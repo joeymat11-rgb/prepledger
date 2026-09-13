@@ -25,6 +25,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { webcrypto } from 'node:crypto';
+import { pathToFileURL } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
 import { buildToday, DIST, ASSETS } from '../build.mjs';
@@ -187,29 +188,67 @@ test('P1 — the built page carries no dash in anything the athlete can see', as
   assert.equal(result.dashes.admitted, report.admitted);
 });
 
-/* RED FIRST. A planted dash must stop the build, in the markup and in the bundle, and
-   the plant must be gone again whatever happens. */
+/* RED FIRST. A planted dash must stop the build, in the markup and in the bundle.
+ *
+ * THE PLANT GOES IN A COPY, NEVER IN THE WORKTREE. This used to write the dash into the
+ * real today-app.cjs and restore it in a `finally`, which is correct for one process and
+ * wrong for this directory: `node --test` gives every test file its own process and runs
+ * them at once, so any sibling suite that read or bundled those bytes inside the window
+ * saw the plant. It surfaced as food.test.mjs N1.15/N1.17 failing intermittently and
+ * naming an em dash that is in no source file - a false accusation, and a confusing one.
+ *
+ * The copy is a SIBLING of this directory (today-plant-<pid>) so it sits at the same
+ * depth: every relative import inside the copied modules, and the ROOT every pinned path
+ * is measured against, resolve exactly as they do for the real directory. The copy's OWN
+ * build.mjs is imported and run, so this is the accepted build, checking the accepted
+ * things, on planted bytes - not a re-implementation of it here. Output goes to its own
+ * dist and scratch, so it cannot collide with a concurrent real build either.
+ *
+ * Nothing tracked is written at any point, so there is no window and nothing to restore.
+ */
+const PLANT_DIR = path.join(SOURCE, '..', 'today-plant-' + process.pid);
+const PLANT_DIST = path.join(design.ROOT, '.tmp/w7-plant-dist-' + process.pid);
+const PLANT_SCRATCH = path.join(design.ROOT, '.tmp/w7-plant-build-' + process.pid);
+function copyTree(from, to) {
+  fs.mkdirSync(to, { recursive: true });
+  for (const entry of fs.readdirSync(from, { withFileTypes: true })) {
+    if (entry.name === 'test' || entry.name === 'node_modules') continue;
+    const source = path.join(from, entry.name);
+    const target = path.join(to, entry.name);
+    if (entry.isDirectory()) copyTree(source, target);
+    else if (entry.isFile()) fs.copyFileSync(source, target);
+  }
+}
 async function planted(file, find, replace) {
-  const full = path.join(SOURCE, file);
-  const original = fs.readFileSync(full);
-  assert(original.toString('utf8').includes(find), 'the plant site exists in ' + file + ': ' + find);
+  fs.rmSync(PLANT_DIR, { recursive: true, force: true });
   try {
-    fs.writeFileSync(full, original.toString('utf8').replace(find, replace));
-    const error = await buildToday().then(() => null, (e) => e);
+    copyTree(SOURCE, PLANT_DIR);
+    const full = path.join(PLANT_DIR, file);
+    const original = fs.readFileSync(full, 'utf8');
+    assert(original.includes(find), 'the plant site exists in ' + file + ': ' + find);
+    fs.writeFileSync(full, original.replace(find, replace));
+    const build = await import(pathToFileURL(path.join(PLANT_DIR, 'build.mjs')).href
+      + '?plant=' + process.pid + '-' + file);
+    const error = await build.buildToday({ dist: PLANT_DIST, scratch: PLANT_SCRATCH })
+      .then(() => null, (e) => e);
     assert(error, 'the build accepted a planted dash in ' + file);
+    /* and the real tree was never touched: it is still GREEN, from its own bytes */
+    const clean = await buildToday();
+    assert.equal(clean.dashes.offences.length, 0, 'the worktree was planted in');
     return error;
   } finally {
-    fs.writeFileSync(full, original);
-    assert.equal(fs.readFileSync(full).equals(original), true, 'the plant was restored byte for byte');
+    for (const directory of [PLANT_DIR, PLANT_DIST, PLANT_SCRATCH]) {
+      fs.rmSync(directory, { recursive: true, force: true });
+    }
   }
 }
 
-test('P1 — the build REFUSES a dash planted in the markup, and the plant is restored', async () => {
+test('P1 — the build REFUSES a dash planted in the markup, in a COPY of the tree', async () => {
   const error = await planted('index.shell.html', '<title>Earned: Today</title>', '<title>Earned — Today</title>');
   assert.equal(error.code, 'AI_DASH_IN_BUILD', error.message);
   assert.equal(error.name, 'AiDashInBuild');
   assert(error.offences.some((o) => o.asset === 'index.html'), error.message);
-  // and the build is clean again afterwards
+  // and the build is clean afterwards, as it was throughout
   const again = await buildToday();
   assert.equal(again.dashes.offences.length, 0);
 });

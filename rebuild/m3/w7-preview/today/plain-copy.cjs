@@ -113,7 +113,15 @@ module.exports = { plainCopy, plainOrDrop, hasAiDash, AiDashRefused, AI_DASH, AI
    a `// <path>` banner in front of each bundled module and that banner is what says who
    owns a literal, so the guard refuses to run at all when it cannot see them. */
 
-const OWNED = "rebuild/m3/w7-preview/today/";
+/* WHICH MODULES THIS PAGE OWNS: the directory this guard itself lives in, spelled the
+   way esbuild's banners spell it (forward slashes, relative to the workspace root, which
+   is four segments up - the same four every other file here counts). On the real tree
+   this is exactly "rebuild/m3/w7-preview/today/", the constant it replaces.
+   It is derived rather than written down so that the guard can be proved RED against a
+   COPY of this directory (test/copy.test.mjs `planted()`) instead of against the
+   worktree, where the plant used to be visible to every suite running beside it. This
+   file still requires nothing: __dirname is CommonJS's own. */
+const OWNED = __dirname.replace(/\\/g, "/").split("/").slice(-4).join("/") + "/";
 const BANNER = /^ (\S+\.(?:cjs|mjs|js))$/;
 
 class AiDashInBuild extends Error {

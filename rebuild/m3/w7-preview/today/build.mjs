@@ -35,6 +35,10 @@ export const SOURCE = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(SOURCE, "../../../..");
 export const DIST = path.join(ROOT, ".tmp/w7-today-dist");
 export const SCRATCH = path.join(ROOT, ".tmp/w7-today-build");
+/* This directory, as the bundle's own inventory spells it: forward slashes, relative to
+   ROOT. On the real tree it is exactly "rebuild/m3/w7-preview/today". */
+export const SOURCE_REL = path.relative(ROOT, SOURCE).split(path.sep).join("/");
+const OWN_PREFIX = "rebuild/m3/w7-preview/today/";
 export const ASSETS = Object.freeze(["index.html", "styles.css", "app.js"]);
 export { APPROVED, readApproved, readFonts, assertDesignBinding, composeStyles };
 
@@ -197,8 +201,18 @@ export function assertBundleInputs(inventory) {
     const hits = paths.filter(match);
     assert.equal(hits.length, 0, `BUNDLE-INPUTS FAIL: ${label} -> ${hits.join(", ")}`);
   }
+  /* The page's OWN modules are required from wherever THIS build.mjs lives, not from a
+     directory spelled out in a constant. It is the same list and the same assertion for
+     the real tree - `SOURCE_REL` is "rebuild/m3/w7-preview/today" there, so every entry
+     below resolves to the byte-identical string it always did. Deriving it is what lets
+     the dash guard be proved RED against a COPY of this directory instead of against the
+     worktree: see test/copy.test.mjs `planted()`, which used to write the plant into the
+     real today-app.cjs and was read mid-flight by whatever else was running. */
   for (const required of REQUIRED_INPUTS) {
-    assert(paths.includes(required), `BUNDLE-INPUTS FAIL: missing required input ${required}`);
+    const wanted = required.startsWith(OWN_PREFIX)
+      ? SOURCE_REL + required.slice(OWN_PREFIX.length - 1)
+      : required;
+    assert(paths.includes(wanted), `BUNDLE-INPUTS FAIL: missing required input ${wanted}`);
   }
   // The only third-party code allowed in the page is the SHA-256/HMAC primitive the
   // accepted W6 browser boundary already substitutes for node:crypto, and only for
@@ -220,7 +234,13 @@ async function realDirectory(directory) {
   return directory;
 }
 
-export async function buildToday() {
+/* The two output directories are arguments with the accepted defaults, so that two
+   builds running AT THE SAME TIME (node --test gives each test file its own process, and
+   five of this directory's suites build) can be told apart instead of overwriting each
+   other's scratch bundle and dist. Called with no argument this is the accepted build,
+   byte for byte, into the accepted paths. Both must still resolve inside the workspace:
+   realDirectory() is what enforces that, and it is unchanged. */
+export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
   const approved = readApproved();
   const fonts = readFonts();
   const shell = design.shellHtml();
@@ -230,9 +250,9 @@ export async function buildToday() {
   const binding = assertDesignBinding(approved, template, design.appSource());
 
   await realDirectory(path.join(ROOT, ".tmp"));
-  await realDirectory(SCRATCH);
+  await realDirectory(scratch);
   const built = await buildBrowser({
-    outfile: path.join(SCRATCH, "app.js"),
+    outfile: path.join(scratch, "app.js"),
     entryPoints: [path.join(SOURCE, "today-entry.mjs")],
   });
   const inputs = assertBundleInputs(built.inventory);
@@ -248,15 +268,15 @@ export async function buildToday() {
   assertNoNetworkReference(Object.entries(contents));
   /* Before a byte is written: no em dash and no en dash in anything the athlete reads. */
   const dashes = assertNoAiDashesInAssets(Object.entries(contents));
-  await realDirectory(DIST);
-  for (const entry of await fs.readdir(DIST, { withFileTypes: true })) {
+  await realDirectory(dist);
+  for (const entry of await fs.readdir(dist, { withFileTypes: true })) {
     assert(entry.isFile() && !entry.isSymbolicLink(), "OUTPUT-CLEAN FAIL: unexpected directory or link");
-    if (!ASSETS.includes(entry.name)) await fs.unlink(path.join(DIST, entry.name));
+    if (!ASSETS.includes(entry.name)) await fs.unlink(path.join(dist, entry.name));
   }
-  for (const name of ASSETS) await fs.writeFile(path.join(DIST, name), contents[name]);
-  assert.deepEqual((await fs.readdir(DIST)).sort(), [...ASSETS].sort(), "PACKAGE-ALLOWLIST FAIL");
+  for (const name of ASSETS) await fs.writeFile(path.join(dist, name), contents[name]);
+  assert.deepEqual((await fs.readdir(dist)).sort(), [...ASSETS].sort(), "PACKAGE-ALLOWLIST FAIL");
 
-  return { dist: DIST, assets: [...ASSETS], inputs, inventory: built.inventory, dashes,
+  return { dist, assets: [...ASSETS], inputs, inventory: built.inventory, dashes,
     buildId, buildTag,
     approved: APPROVED.map((a) => a.sha256), fonts: fonts.map((f) => ({ name: f.name, sha256: f.sha256 })), binding };
 }
