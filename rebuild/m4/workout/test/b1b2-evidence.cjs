@@ -482,31 +482,44 @@ function nativeDiagnosticCategories(kind,paths,rootKeys) {
 function installNativeExitCapture(state,marker) {
   const original=process.emit,descriptor=Object.getOwnPropertyDescriptor(process,'emit');
   if(typeof original!=='function'||(descriptor&&!Object.hasOwn(descriptor,'value')))throw Error('DIAGNOSTIC_EMITTER');
+  // PM350: callback arguments are deliberately ignored; no IO, scheduling or throws.
+  let deferred=false;
+  const hook=require('node:async_hooks').createHook({init(){deferred=true;},promiseResolve(){deferred=true;}});
+  const enable=hook.enable,disable=hook.disable,finalUnlink=fs.unlinkSync;
+  if(typeof enable!=='function'||typeof disable!=='function'||typeof finalUnlink!=='function')throw Error('DIAGNOSTIC_HOOK');
   let depth=0;
   const sameDescriptor=(a,b)=>a===undefined?b===undefined:!!b&&['value','writable','enumerable','configurable'].every(k=>a[k]===b[k]);
   function capturedExit(...args) {
     if(this!==process||args[0]!=='exit')return Reflect.apply(original,this,args);
     const outer=depth++===0;
-    // Pinned Node22 sets _exiting before its real synchronous exit dispatch.
-    // We never set it. Manual events and reentrant dispatch cannot complete.
+    // Pinned Node22 sets _exiting; we never manufacture a termination flag.
     const terminating=process.version==='v22.23.2'&&process._exiting===true;
     if(!outer||!terminating)state.failed=true;
-    let returned=false;
+    let returned=false,hookAttempted=false,prepared=false;
+    if(outer&&terminating){hookAttempted=true;try{if(Reflect.apply(enable,hook,[])!==hook)throw Error('DIAGNOSTIC_HOOK');}catch(_){state.failed=true;}}
     try{const result=Reflect.apply(original,this,args);returned=true;return result;}
     finally {
       depth--;if(!returned)state.failed=true;
-      if(outer)try {
-        if(!sameDescriptor(Object.getOwnPropertyDescriptor(process,'emit'),installed)||process.emit!==capturedExit)throw Error('DIAGNOSTIC_EMITTER_OWNERSHIP');
-        if(descriptor)Object.defineProperty(process,'emit',descriptor);
-        else if(!Reflect.deleteProperty(process,'emit'))throw Error('DIAGNOSTIC_EMITTER_RESTORE');
-        if(!sameDescriptor(Object.getOwnPropertyDescriptor(process,'emit'),descriptor)||process.emit!==original)throw Error('DIAGNOSTIC_EMITTER_RESTORE');
-        if(!state.failed&&returned&&terminating&&process._exiting===true&&state.seq===2&&state.fd===undefined){
-          const st=fs.lstatSync(marker);
-          if(!st.isFile()||st.isSymbolicLink()||st.nlink!==1||fs.readFileSync(marker,'utf8')!=='{"v":1,"pending":true}\n')throw Error('DIAGNOSTIC_MARKER');
-          // All fallible restoration/validation precedes this final publication.
-          fs.unlinkSync(marker);
-        }
-      } catch(_){state.failed=true;}
+      if(outer){
+        try {
+          if(!sameDescriptor(Object.getOwnPropertyDescriptor(process,'emit'),installed)||process.emit!==capturedExit)throw Error('DIAGNOSTIC_EMITTER_OWNERSHIP');
+          if(descriptor)Object.defineProperty(process,'emit',descriptor);
+          else if(!Reflect.deleteProperty(process,'emit'))throw Error('DIAGNOSTIC_EMITTER_RESTORE');
+          if(!sameDescriptor(Object.getOwnPropertyDescriptor(process,'emit'),descriptor)||process.emit!==original)throw Error('DIAGNOSTIC_EMITTER_RESTORE');
+          if(!state.failed&&returned&&terminating&&process._exiting===true&&state.seq===2&&state.fd===undefined){
+            const st=fs.lstatSync(marker);
+            if(!st.isFile()||st.isSymbolicLink()||st.nlink!==1||fs.readFileSync(marker,'utf8')!=='{"v":1,"pending":true}\n')throw Error('DIAGNOSTIC_MARKER');
+            // A later replacement is not an approved final synchronous IO primitive.
+            if(fs.unlinkSync!==finalUnlink)throw Error('DIAGNOSTIC_FINAL_IO_OWNERSHIP');
+            prepared=true;
+          }
+        } catch(_){state.failed=true;}
+        finally {if(hookAttempted)try{if(Reflect.apply(disable,hook,[])!==hook)throw Error('DIAGNOSTIC_HOOK');}catch(_){state.failed=true;}}
+        // Restoration, marker validation and hook removal all precede publication.
+        // The observed interval includes completion cleanup; no microtask drain guess.
+        if(deferred)state.failed=true;
+        if(prepared&&!state.failed)try{finalUnlink(marker);}catch(_){state.failed=true;}
+      }
     }
   }
   const installed=descriptor?{...descriptor,value:capturedExit}:{value:capturedExit,writable:true,enumerable:true,configurable:true};
