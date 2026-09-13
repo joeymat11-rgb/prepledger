@@ -1,0 +1,34 @@
+[
+  {
+    "name": "fresh-invocation",
+    "pattern": "real build: repeated runs",
+    "failed": 1,
+    "restoredPass": 1,
+    "before": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "restored": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b"
+  },
+  {
+    "name": "root-link",
+    "pattern": "real build: refuses root-junction",
+    "failed": 1,
+    "restoredPass": 1,
+    "before": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "restored": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b"
+  },
+  {
+    "name": "publish-after-both",
+    "pattern": "real build: failure in second build",
+    "failed": 1,
+    "restoredPass": 1,
+    "before": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "restored": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b"
+  },
+  {
+    "name": "exclusive-entry",
+    "pattern": "real build: a committed entry sentinel",
+    "failed": 1,
+    "restoredPass": 1,
+    "before": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "restored": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b"
+  }
+]

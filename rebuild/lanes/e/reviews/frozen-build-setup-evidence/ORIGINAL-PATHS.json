@@ -1,0 +1,109 @@
+{
+  "kind": "EXACT_EXISTING_PUBLIC_EVIDENCE_COPY",
+  "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "source": "a0109d93871e13f169ee7094f21dd8a98922aeb9",
+  "files": [
+    {
+      "originalPath": ".tmp/frozen-build-setup/dependency-inventory.json",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/dependency-inventory.json",
+      "bytes": 1428,
+      "sha256": "7670267631e740cf748c18eb669b370d3d2c94294fcc016a6db568b56db4363f"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/final-inventory.json",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/final-inventory.json",
+      "bytes": 1470,
+      "sha256": "005a4d4e4dca54b5e31794d27bfef85d18888eabd218475dbcb322b6191a7d7a"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/final-public.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/final-public.tap",
+      "bytes": 2630,
+      "sha256": "7137029661c14b9042003bd6e3e64df0c43b37df519f34ee447d570bc5c4de87"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/first-public.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/first-public.tap",
+      "bytes": 1498,
+      "sha256": "91dba13cb5e9f313ac7caa78968c413211892c8687f6a4bfa71630e559365714"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/public-after-fixture-path.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/public-after-fixture-path.tap",
+      "bytes": 7050,
+      "sha256": "3586d58d5a967797f668cd6aaf66a4a4cf9c6fdfbe3ce7cc8b7b2cf90f9e2760"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/public-after-race-fix.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/public-after-race-fix.tap",
+      "bytes": 2632,
+      "sha256": "843d2aedbbfde0fb65692418769bca04cf052f6c608ccd3f382c14810c0e1133"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/restored-exclusive-entry.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/restored-exclusive-entry.tap",
+      "bytes": 339,
+      "sha256": "71455a5405a09dc860c85272a5c0a6008a67777c171eee262fdb89fa45dd87fb"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/restored-fresh-invocation.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/restored-fresh-invocation.tap",
+      "bytes": 348,
+      "sha256": "90d4c5b084d64470de44e51a6c2daa69961850bf33dbdda2b6cb50e513d15952"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/restored-publish-after-both.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/restored-publish-after-both.tap",
+      "bytes": 374,
+      "sha256": "76e49bd76bb90a2c45b06ed9d6256442079a1250834c46f239fbf61e8b5c4a33"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/restored-root-link.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/restored-root-link.tap",
+      "bytes": 320,
+      "sha256": "e6d7cc5b25ab8e88e28ac03d1eacd021dd0b18d6b250cee67c15c817aa597983"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/reversal-exclusive-entry.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/reversal-exclusive-entry.tap",
+      "bytes": 1264,
+      "sha256": "503a2b9a36dda47c248c9aaacd575fe6325f1efb7a1224bb6ffb17189266e98f"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/reversal-fresh-invocation.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/reversal-fresh-invocation.tap",
+      "bytes": 2184,
+      "sha256": "69b346f427e52c54f8d1874c34f764289c74488d743707509e0e4424d33a8b84"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/reversal-publish-after-both.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/reversal-publish-after-both.tap",
+      "bytes": 7250,
+      "sha256": "8d0c349a7c2e3cc660097c8e7b3569a684a3d9171ec7eeddda530486334e7334"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/reversal-root-link.tap",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/reversal-root-link.tap",
+      "bytes": 1248,
+      "sha256": "8d79cf48b13d3e8aff68c0a29c2a904010a819eb10841c0d32f3c5a1d1f8682e"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/reversals.json",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/reversals.json",
+      "bytes": 1188,
+      "sha256": "d694b727c3a5a4593b6dad4020b95d702c919581d1410f2da39bd128a8f611ee"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/reversals.mjs",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/reversals.mjs",
+      "bytes": 2372,
+      "sha256": "0f3b481917d860ea110e88a0d3be98538c89e3b2cceb8fc03e6657ec28488134"
+    },
+    {
+      "originalPath": ".tmp/frozen-build-setup/setup.mjs",
+      "archivePath": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/setup.mjs",
+      "bytes": 3071,
+      "sha256": "0c6b4b1ee9fb2b443caff898636c44f1dc8429530db3e36869bcdc305247cc59"
+    }
+  ]
+}
