@@ -99,7 +99,9 @@ function validateSuccessor(table = changes.successor) {
   const S=successorRef(table);
   assert.equal(S,successorRef(),'single named successor source');
   assert.equal(git(['rev-parse','--verify',S+'^{commit}']).toString().trim(),S,'successor commit identity');
-  git(['merge-base','--is-ancestor',R,S]);
+  // PM288: R and S branch from M; require the complete exact common-base set.
+  // The fixed R/S images, whole delta and inverse proof remain separate below.
+  assert.deepEqual(git(['merge-base','--all',R,S]).toString().trim().split('\n'),[M],'exact historical R/S common-base set');
   assert.ok(Array.isArray(table.runtime) && table.runtime.length>0,'nonempty successor runtime delta');
   assert.ok(Array.isArray(table.engineEvidence),'successor evidence array');
   const files=[],ids=[];
