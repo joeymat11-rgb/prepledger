@@ -819,5 +819,60 @@
       "to": "48a3063a23528ed240eb2356226d237d2793a9da",
       "fieldDeltas": []
     }
+  },
+  "repair": {
+    "sourceBase": "48a3063a23528ed240eb2356226d237d2793a9da",
+    "runtimeSource": "797e4cf39fac39148ccae784116999669b82caf3",
+    "runtime": [
+      {
+        "file": "rebuild/engine/today.cjs",
+        "pre": "fff395dfb1d5e1890eacabf39a76a9c65e413b4f89a2c14d74d00c1343260392",
+        "post": "80d4196cfe50637ed373dcf5fa0eab1c2ef549b957aea7c032ab518d2a67ba91",
+        "hunks": [
+          {
+            "id": "R8-TODAY-1",
+            "before": "    title: \"Protect tonight's sleep\",\n    body: \"Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.\",\n    whyNot: \"On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food.\" };\n  // Rungs 4/5 — only once logging, steps and sleep are covered AND the trend has stalled\n  const cr = currentRate(s);\n  /* D27 — rungs 4/5 are CUT advice: the committed phase decides, and its own recorded start times it */\n  const arc = (() => { try { return phaseArc(s); } catch (e) { return { key: \"cut\", weeks: weekDay().wk }; } })();   /* r4 GUARD - a phase that cannot be derived leaves the PRE-D27 reading standing, so theOneFix/nowModel never throw where the frozen engine returned */\n  const onCut = arc.key === \"cut\";\n  const stalled = onCut && !sealed && cr.measured && cr.scale < floor;\n  const longCut = arc.weeks >= 10;\n  if (stalled && longCut) return { rung: \"break\", lever: \"DEFICIT\", state: \"caution\",\n    title: \"A diet break has earned its place\",\n    body: \"You've held the deficit for weeks and the trend has flattened. A full week at maintenance is the intervention with real adherence evidence here — not a deeper cut. A planned pause, not a lapse.\",\n    whyNot: null };\n  if (stalled) return { rung: \"calories\", lever: \"DEFICIT\", state: \"caution\",\n    title: \"Now a small calorie trim earns its place\",\n    body: \"Logging, steps and sleep are all covered and the trend has flattened — this is the rung where a modest cut is finally the honest move. Keep it small; \" + DEFICIT_CEILING.line() + \".\",\n    whyNot: null };\n  // Everything covered, trend doing its job — the good, quiet state\n  return { rung: \"hold\", lever: null, state: \"good\",\n    title: \"Nothing to fix — hold the line\",\n",
+            "after": "    title: \"Protect tonight's sleep\",\n    body: \"Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.\",\n    whyNot: \"On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food.\" };\n  // R8: a quiet sleep comparison is not clearance. Keep the actual recovery\n  // observations and actions together, without selecting or pricing a leader.\n  // The existing logging/steps/finite-sleep decisions above retain precedence.\n  const recovery = L.sleep.state === \"quiet\" ? E.recoveryIndex(s) : null;\n  const recoveryNote = recovery ? [L.sleep.detail + \".\",\n    ...(recovery.score === null ? [\"Recovery rating unavailable.\"] : []),\n    ...recovery.flags.map((f) => `${f.receipt}. ${f.fix}`)].join(\" \") : null;\n  const withRecovery = (fix) => recoveryNote ? { ...fix, body: fix.body + \" \" + recoveryNote, recoveryNote } : fix;\n  // Rungs 4/5 retain the stalled-cut decisions; qualify unavailable sleep.\n  const cr = currentRate(s);\n  /* D27 — rungs 4/5 are CUT advice: the committed phase decides, and its own recorded start times it */\n  const arc = (() => { try { return phaseArc(s); } catch (e) { return { key: \"cut\", weeks: weekDay().wk }; } })();   /* r4 GUARD - a phase that cannot be derived leaves the PRE-D27 reading standing, so theOneFix/nowModel never throw where the frozen engine returned */\n  const onCut = arc.key === \"cut\";\n  const stalled = onCut && !sealed && cr.measured && cr.scale < floor;\n  const longCut = arc.weeks >= 10;\n  if (stalled && longCut) return withRecovery({ rung: \"break\", lever: \"DEFICIT\", state: \"caution\",\n    title: \"A diet break has earned its place\",\n    body: \"You've held the deficit for weeks and the trend has flattened. A full week at maintenance is the intervention with real adherence evidence here — not a deeper cut. A planned pause, not a lapse.\",\n    whyNot: null });\n  if (stalled) return withRecovery({ rung: \"calories\", lever: \"DEFICIT\", state: \"caution\",\n    title: \"Now a small calorie trim earns its place\",\n    body: (recoveryNote ? \"Logging is complete and the trend has flattened; the sleep comparison is unavailable. Keep any calorie trim small; \" : \"Logging, steps and sleep are all covered and the trend has flattened — this is the rung where a modest cut is finally the honest move. Keep it small; \") + DEFICIT_CEILING.line() + \".\",\n    whyNot: null });\n  if (recoveryNote) return { rung: \"hold\", lever: null, state: \"quiet\",\n    title: recovery.flags.length ? \"Recorded recovery warnings\" : \"Sleep comparison unavailable\",\n    body: recoveryNote, whyNot: null, recoveryNote };\n  // Everything covered, trend doing its job — the good, quiet state\n  return { rung: \"hold\", lever: null, state: \"good\",\n    title: \"Nothing to fix — hold the line\",\n"
+          },
+          {
+            "id": "R8-TODAY-2",
+            "before": "  // action is unchanged — only the reason gains the horizon). Self-silencing: an ambiguous or\n  // absent crossing leaves the standing if-then exactly as it was.\n  const fc = (deps && deps.fc) || safeCrossing(s);\n  const why = fc && fc.fires\n    ? `Approaching the lean-loss rate (~${fc.wksEarly}–${fc.wksLate} wks) — protein first protects lean while Auto-Pilot eases the deficit back.`\n    : ((fix && fix.title) || \"Hold the line — the five are covered and the trend is doing its job.\");\n  return {\n    owed: false, kind: \"day\",\n    ifText: \"If it's a meal\", thenText: \"protein first\",\n",
+            "after": "  // action is unchanged — only the reason gains the horizon). Self-silencing: an ambiguous or\n  // absent crossing leaves the standing if-then exactly as it was.\n  const fc = (deps && deps.fc) || safeCrossing(s);\n  const why = (fc && fc.fires\n    ? `Approaching the lean-loss rate (~${fc.wksEarly}–${fc.wksLate} wks) — protein first protects lean while Auto-Pilot eases the deficit back.`\n    : ((fix && fix.title) || \"Hold the line — the five are covered and the trend is doing its job.\"))\n    + (fix && fix.recoveryNote ? \" \" + fix.recoveryNote : \"\");\n  return {\n    owed: false, kind: \"day\",\n    ifText: \"If it's a meal\", thenText: \"protein first\",\n"
+          },
+          {
+            "id": "R8-TODAY-3",
+            "before": "  }\n  else if (fix.state === \"caution\") move = { kind: \"fix\", lever: fix.lever, title: _plain9(String(fix.title || \"\").toUpperCase()), body: _plain9(fix.body) };\n  else if (cr.measured && !eb.gated && (cr.scale > rb.band[1] || cr.scale < rb.band[0]))\n    move = { kind: \"rate\", title: \"HOW FAST YOU'RE LOSING\", strip: _rateStrip(rb, cr), body: _rateWord(rb, cr) };\n  else move = { kind: \"quiet\", title: \"NOTHING NEEDS YOU\", body: \"Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying.\" };\n  /* NEXT WORKOUT */\n  let workout = { title: \"REST DAY\", sub: \"Recovery is training too — the next session is on its way.\", today: false };\n",
+            "after": "  }\n  else if (fix.state === \"caution\") move = { kind: \"fix\", lever: fix.lever, title: _plain9(String(fix.title || \"\").toUpperCase()), body: _plain9(fix.body) };\n  else if (cr.measured && !eb.gated && (cr.scale > rb.band[1] || cr.scale < rb.band[0]))\n    move = { kind: \"rate\", title: \"HOW FAST YOU'RE LOSING\", strip: _rateStrip(rb, cr), body: _rateWord(rb, cr) + (fix.recoveryNote ? \" \" + _plain9(fix.recoveryNote) : \"\") };\n  else if (fix.recoveryNote) move = { kind: \"quiet\", title: _plain9(String(fix.title || \"\").toUpperCase()), body: _plain9(fix.body) };\n  else move = { kind: \"quiet\", title: \"NOTHING NEEDS YOU\", body: \"Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying.\" };\n  /* NEXT WORKOUT */\n  let workout = { title: \"REST DAY\", sub: \"Recovery is training too — the next session is on its way.\", today: false };\n"
+          }
+        ]
+      }
+    ],
+    "engineEvidence": [
+      {
+        "file": "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+        "pre": "c3e215af814551b65a1037f493e6b501759cf5847d3039081c6affbbd1362d95",
+        "post": "7e0a624088ba35d9319b50d44666d46a3005d4508dca21c9986f055799c9ab58"
+      },
+      {
+        "file": "rebuild/engine/test/b1b2-public-engine.cjs",
+        "pre": "59ce589984af6c937540e184fa5b5b5e5e63bf8bad61669c6656676540bdbd13",
+        "post": "208156f785e36635abf9093fa626dff70c3ea49853cff6c5123e7f8fdfdc68b2"
+      },
+      {
+        "file": "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+        "pre": "4421c90ec1a858e9eb284e55059915c3864d9348ca0d214ee59ebf722b2b92eb",
+        "post": "2f0f1f326333e388ac1ae88c54ffb350af9066392442c0586100d06ba9608265"
+      },
+      {
+        "file": "rebuild/engine/test/b2-public-source-faults.test.cjs",
+        "pre": "688acfe5b21415d95a7218ab7e71c91159b8ca7d7dc87eca77a4e2bdea08f466",
+        "post": "98a299af9c85a16493c455df98033b9b7129f863fd234c3d846c0afa0e9c2388"
+      }
+    ],
+    "nativeComparison": {
+      "from": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "to": "797e4cf39fac39148ccae784116999669b82caf3",
+      "fieldDeltas": []
+    }
   }
 }
