@@ -588,7 +588,7 @@ function nowModelUncached(s, deps) {
   for (let k9 = 0; k9 < 7; k9++) {
     let d9, dt9, sess9;
     try {
-      d9 = plusDays(isoOf(todayStart()), k9);
+      d9 = plusDays(tISO, k9);
       dt9 = dayType(d9, s);
       if (dt9 !== "U" && dt9 !== "L") continue;
       sess9 = genSession(s, d9, slp9);
