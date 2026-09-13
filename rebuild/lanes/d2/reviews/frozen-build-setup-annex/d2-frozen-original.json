@@ -1,0 +1,44 @@
+{
+  "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "source": "a0109d93871e13f169ee7094f21dd8a98922aeb9",
+  "node": "v22.23.2",
+  "command": [
+    "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\tools\\node.exe",
+    "--test",
+    "rebuild/conform/engines/test/build-engines.test.mjs"
+  ],
+  "started": "2026-09-13T22:05:00.737Z",
+  "finished": "2026-09-13T22:05:12.964Z",
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "outputSHA256": "0dc885afdf1ea5a31ea4887a83e00bffc507e422f67142700d204fc5012b77c2",
+  "inputs": [
+    {
+      "path": "rebuild/conform/engines/build-engines.mjs",
+      "bytes": 6548,
+      "sha256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "testedUnchanged": true
+    },
+    {
+      "path": "rebuild/conform/engines/test/build-engines.test.mjs",
+      "bytes": 11964,
+      "sha256": "4fab36958c354abc70c9bf9eebbb84226ecf2f9c3fdcc45b36c3c8709e04a21d",
+      "testedUnchanged": true
+    },
+    {
+      "path": "package.json",
+      "bytes": 654,
+      "sha256": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+      "setupOnly": true
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 35020,
+      "sha256": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+      "setupOnly": true
+    }
+  ],
+  "authorOutcomesRead": false,
+  "gitVersion": "git version 2.53.0.windows.3"
+}

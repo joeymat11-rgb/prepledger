@@ -1,0 +1,14 @@
+[
+  {
+    "id": "F4",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-publish-fail-3witX0",
+    "exit": 1,
+    "stdout": "HEAD is now at e3618ae Invented main source\nHEAD is now at dd5515e Invented old source\nbuilt main @ e3618ae6ef65cca6d0adf768bfb4af373b725399\n",
+    "stderr": "Preparing worktree (detached HEAD e3618ae)\nPreparing worktree (detached HEAD dd5515e)\nnode:fs:1012\r\n  binding.rename(\r\n          ^\r\n\r\nError: EPERM: operation not permitted, rename 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-publish-fail-3witX0\\rebuild\\conform\\engines\\.earned-engine-build-2xbii2-old.cjs' -> 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-publish-fail-3witX0\\rebuild\\conform\\engines\\engine-old.cjs'\r\n    at Object.renameSync (node:fs:1012:11)\r\n    at file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-publish-fail-3witX0/rebuild/conform/engines/build-engines.mjs:80:48\r\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\r\n  errno: -4048,\r\n  code: 'EPERM',\r\n  syscall: 'rename',\r\n  path: 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\d2-frozen-build-setup\\\\.tmp\\\\fb-D2-publish-fail-3witX0\\\\rebuild\\\\conform\\\\engines\\\\.earned-engine-build-2xbii2-old.cjs',\r\n  dest: 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\d2-frozen-build-setup\\\\.tmp\\\\fb-D2-publish-fail-3witX0\\\\rebuild\\\\conform\\\\engines\\\\engine-old.cjs'\r\n}\r\n\r\nNode.js v22.23.2\r\n",
+    "invocations": [
+      "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-publish-fail-3witX0\\.tmp\\earned-engine-build-2xbii2"
+    ],
+    "mainAfterHash": "e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1",
+    "oldDirectoryRetained": true
+  }
+]

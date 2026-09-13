@@ -1,0 +1,72 @@
+{
+  "dispatch": "7128197e8aebf54ac1f991696a2cf22caf3da414",
+  "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "source": "a0109d93871e13f169ee7094f21dd8a98922aeb9",
+  "base": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "branch": "codex/astra-d2-frozen-build-setup",
+  "worktree": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup",
+  "createdAt": "2026-09-13T22:01:49.933Z",
+  "fullIndex": 1609,
+  "indexVerifiedBeforeHydration": true,
+  "materialized": [
+    "package-lock.json",
+    "package.json",
+    "rebuild/conform/engines/build-engines.mjs",
+    "rebuild/conform/engines/test/build-engines.test.mjs"
+  ],
+  "identities": [
+    {
+      "path": "rebuild/conform/engines/build-engines.mjs",
+      "bytes": 6548,
+      "sha256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "testedUnchanged": true,
+      "gitDiskEqualsTestedSource": true
+    },
+    {
+      "path": "rebuild/conform/engines/test/build-engines.test.mjs",
+      "bytes": 11964,
+      "sha256": "4fab36958c354abc70c9bf9eebbb84226ecf2f9c3fdcc45b36c3c8709e04a21d",
+      "testedUnchanged": true,
+      "gitDiskEqualsTestedSource": true
+    },
+    {
+      "path": "package.json",
+      "bytes": 654,
+      "sha256": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+      "setupOnly": true,
+      "gitDiskEqualsTestedSource": true
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 35020,
+      "sha256": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+      "setupOnly": true,
+      "gitDiskEqualsTestedSource": true
+    }
+  ],
+  "changedPaths": [
+    "rebuild/conform/engines/build-engines.mjs",
+    "rebuild/conform/engines/test/build-engines.test.mjs",
+    "rebuild/lanes/e/FROZEN-BUILD-SETUP-REPORT.md"
+  ],
+  "bars": [
+    {
+      "name": "FROZEN-BUILD-SETUP-REVIEW.md",
+      "sha256": "32d3466fa03c3ca21d4c783c3615256f98129b7b4f03a7d53e304ca0f6baf973",
+      "bytes": 5313
+    },
+    {
+      "name": "FROZEN-BUILD-SETUP-REVIEW-INPUTS.json",
+      "sha256": "52c9996d440e15ad1a41a35f4987d158c9ae5dd6eb03fd2ea85a6a08b028b05b",
+      "bytes": 1621
+    },
+    {
+      "name": "FROZEN-BUILD-SETUP-GO.md",
+      "sha256": "1854aec90807c5f0f0ff85b99423084442a342f47cbd55646ab2d1c969ea4fde",
+      "bytes": 5507
+    }
+  ],
+  "originalBuilderSHA256": "19f7520f329151eaf8b113e6cde4019113fbc0774e06709d0eeaab4f50bc09fb",
+  "nodeSHA256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+  "authorReportAndOutcomesUnread": true
+}

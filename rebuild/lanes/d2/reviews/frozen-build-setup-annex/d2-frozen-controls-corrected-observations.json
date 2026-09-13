@@ -1,0 +1,120 @@
+[
+  {
+    "id": "F1",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-cli-G5hGHw",
+    "main": "bd65439e50977512d6ad819f5d40843e60131a2f",
+    "old": "47642a3f126ea5aae19d665dcb58e37007d4d5f2",
+    "usageExit": 2,
+    "buildExit": 0,
+    "stdout": "HEAD is now at bd65439 Invented main source\nHEAD is now at 47642a3 Invented old source\nbuilt main @ bd65439e50977512d6ad819f5d40843e60131a2f → rebuild\\conform\\engines\\engine-main.cjs  sha256=e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1  (2484 bytes)\nbuilt old @ 47642a3f126ea5aae19d665dcb58e37007d4d5f2 → rebuild\\conform\\engines\\engine-old.cjs  sha256=b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b  (2483 bytes)\nexport ENGINE_MAIN=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-cli-G5hGHw\\rebuild\\conform\\engines\\engine-main.cjs ENGINE_OLD=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-cli-G5hGHw\\rebuild\\conform\\engines\\engine-old.cjs\n",
+    "stderr": "Preparing worktree (detached HEAD bd65439)\nPreparing worktree (detached HEAD 47642a3)\n"
+  },
+  {
+    "id": "F2",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-6A2t1t",
+    "alias": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\D2-builder-alias-fb-D2-module-link-6A2t1t.mjs",
+    "links": 2,
+    "originalBuilderSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "exit": 0,
+    "stdout": "HEAD is now at 38771f9 Invented main source\nHEAD is now at 9f1744a Invented old source\nbuilt main @ 38771f901d269869727f404cf0ebc33657286fb4 → rebuild\\conform\\engines\\engine-main.cjs  sha256=e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1  (2484 bytes)\nbuilt old @ 9f1744a1d581f0fa26547e5ae764b02d766d5d1b → rebuild\\conform\\engines\\engine-old.cjs  sha256=b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b  (2483 bytes)\nexport ENGINE_MAIN=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-6A2t1t\\rebuild\\conform\\engines\\engine-main.cjs ENGINE_OLD=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-6A2t1t\\rebuild\\conform\\engines\\engine-old.cjs\n",
+    "stderr": "Preparing worktree (detached HEAD 38771f9)\nPreparing worktree (detached HEAD 9f1744a)\n",
+    "invocations": [
+      "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-6A2t1t\\.tmp\\earned-engine-build-fNwk77"
+    ],
+    "worktrees": [
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-6A2t1t",
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-6A2t1t/.tmp/earned-engine-build-fNwk77/main-38771f901d269869727f404cf0ebc33657286fb4",
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-6A2t1t/.tmp/earned-engine-build-fNwk77/old-9f1744a1d581f0fa26547e5ae764b02d766d5d1b"
+    ],
+    "builderBytesUnchanged": true
+  },
+  {
+    "id": "F3",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-loader-link-AJKyIX",
+    "exit": 1,
+    "stdout": "",
+    "stderr": "file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-loader-link-AJKyIX/rebuild/conform/engines/build-engines.mjs:37\r\n      stat.isFile() && stat.nlink !== 1) throw new Error('Unowned or linked path refused: ' + target);\r\n                                               ^\r\n\r\nError: Unowned or linked path refused: C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-loader-link-AJKyIX\\node_modules\\esbuild\\lib\\main.js\r\n    at checked (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-loader-link-AJKyIX/rebuild/conform/engines/build-engines.mjs:37:48)\r\n    at file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-loader-link-AJKyIX/rebuild/conform/engines/build-engines.mjs:47:74\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\r\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\r\n\r\nNode.js v22.23.2\r\n",
+    "invocations": []
+  },
+  {
+    "id": "F4",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-publish-fail-paRM2E",
+    "exit": 1,
+    "stdout": "HEAD is now at 07af068 Invented main source\nHEAD is now at 2e249f1 Invented old source\n",
+    "stderr": "Preparing worktree (detached HEAD 07af068)\nPreparing worktree (detached HEAD 2e249f1)\nnode:fs:1012\r\n  binding.rename(\r\n          ^\r\n\r\nError: EPERM: operation not permitted, rename 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-publish-fail-paRM2E\\rebuild\\conform\\engines\\.earned-engine-build-RbioTC-old.cjs' -> 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-publish-fail-paRM2E\\rebuild\\conform\\engines\\engine-old.cjs'\r\n    at Object.renameSync (node:fs:1012:11)\r\n    at file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-publish-fail-paRM2E/rebuild/conform/engines/build-engines.mjs:80:48\r\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {\r\n  errno: -4048,\r\n  code: 'EPERM',\r\n  syscall: 'rename',\r\n  path: 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\d2-frozen-build-setup\\\\.tmp\\\\fb-D2-publish-fail-paRM2E\\\\rebuild\\\\conform\\\\engines\\\\.earned-engine-build-RbioTC-old.cjs',\r\n  dest: 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\d2-frozen-build-setup\\\\.tmp\\\\fb-D2-publish-fail-paRM2E\\\\rebuild\\\\conform\\\\engines\\\\engine-old.cjs'\r\n}\r\n\r\nNode.js v22.23.2\r\n",
+    "invocations": [
+      "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-publish-fail-paRM2E\\.tmp\\earned-engine-build-RbioTC"
+    ],
+    "mainAfterHash": "e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1",
+    "oldDirectoryRetained": true
+  },
+  {
+    "id": "F5",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-different-overlap-8l88Xj",
+    "invocations": [
+      "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-different-overlap-8l88Xj\\.tmp\\earned-engine-build-8Ck8I1",
+      "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-different-overlap-8l88Xj\\.tmp\\earned-engine-build-aKInQy"
+    ],
+    "produced": [
+      {
+        "invocation": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-different-overlap-8l88Xj\\.tmp\\earned-engine-build-8Ck8I1",
+        "name": "main",
+        "head": "714cde518883f285b8f42e32a2e86a33f6723a03",
+        "sha256": "b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b"
+      },
+      {
+        "invocation": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-different-overlap-8l88Xj\\.tmp\\earned-engine-build-8Ck8I1",
+        "name": "old",
+        "head": "63032f83dc561e0f51988d53d8a9b903b7551903",
+        "sha256": "e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1"
+      },
+      {
+        "invocation": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-different-overlap-8l88Xj\\.tmp\\earned-engine-build-aKInQy",
+        "name": "main",
+        "head": "63032f83dc561e0f51988d53d8a9b903b7551903",
+        "sha256": "e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1"
+      },
+      {
+        "invocation": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-different-overlap-8l88Xj\\.tmp\\earned-engine-build-aKInQy",
+        "name": "old",
+        "head": "714cde518883f285b8f42e32a2e86a33f6723a03",
+        "sha256": "b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b"
+      }
+    ],
+    "standard": [
+      {
+        "name": "main",
+        "sha256": "e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1",
+        "value": {
+          "label": "main",
+          "clock": "INVENTED-CLOCK",
+          "rootOnly": "INVENTED-ROOT-NODE-PATH",
+          "node": "b"
+        }
+      },
+      {
+        "name": "old",
+        "sha256": "b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b",
+        "value": {
+          "label": "old",
+          "clock": "INVENTED-CLOCK",
+          "rootOnly": "INVENTED-ROOT-NODE-PATH",
+          "node": "b"
+        }
+      }
+    ],
+    "results": [
+      {
+        "code": 0,
+        "stdout": "HEAD is now at 63032f8 Invented main source\nHEAD is now at 714cde5 Invented old source\nbuilt main @ 63032f83dc561e0f51988d53d8a9b903b7551903 → rebuild\\conform\\engines\\engine-main.cjs  sha256=e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1  (2484 bytes)\nbuilt old @ 714cde518883f285b8f42e32a2e86a33f6723a03 → rebuild\\conform\\engines\\engine-old.cjs  sha256=b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b  (2483 bytes)\nexport ENGINE_MAIN=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-different-overlap-8l88Xj\\rebuild\\conform\\engines\\engine-main.cjs ENGINE_OLD=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-different-overlap-8l88Xj\\rebuild\\conform\\engines\\engine-old.cjs\n",
+        "stderr": "Preparing worktree (detached HEAD 63032f8)\nPreparing worktree (detached HEAD 714cde5)\n"
+      },
+      {
+        "code": 0,
+        "stdout": "HEAD is now at 714cde5 Invented old source\nHEAD is now at 63032f8 Invented main source\nbuilt main @ 714cde518883f285b8f42e32a2e86a33f6723a03 → rebuild\\conform\\engines\\engine-main.cjs  sha256=b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b  (2483 bytes)\nbuilt old @ 63032f83dc561e0f51988d53d8a9b903b7551903 → rebuild\\conform\\engines\\engine-old.cjs  sha256=e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1  (2484 bytes)\nexport ENGINE_MAIN=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-different-overlap-8l88Xj\\rebuild\\conform\\engines\\engine-main.cjs ENGINE_OLD=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-different-overlap-8l88Xj\\rebuild\\conform\\engines\\engine-old.cjs\n",
+        "stderr": "Preparing worktree (detached HEAD 714cde5)\nPreparing worktree (detached HEAD 63032f8)\n"
+      }
+    ],
+    "contract": "No persistent standard-slot lease or pair-wide transaction asserted; logs identify retained invocation bytes."
+  }
+]

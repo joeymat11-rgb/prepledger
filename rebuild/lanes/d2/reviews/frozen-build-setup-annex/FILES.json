@@ -1,0 +1,206 @@
+{
+  "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "phase": "independent-before-author-outcomes",
+  "files": [
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/FROZEN-BUILD-SETUP-REVIEW.md",
+      "bytes": 5313,
+      "sha256": "32d3466fa03c3ca21d4c783c3615256f98129b7b4f03a7d53e304ca0f6baf973"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/FROZEN-BUILD-SETUP-REVIEW-INPUTS.json",
+      "bytes": 1621,
+      "sha256": "52c9996d440e15ad1a41a35f4987d158c9ae5dd6eb03fd2ea85a6a08b028b05b"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/FROZEN-BUILD-SETUP-GO.md",
+      "bytes": 5507,
+      "sha256": "1854aec90807c5f0f0ff85b99423084442a342f47cbd55646ab2d1c969ea4fde"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-admission.json",
+      "bytes": 2538,
+      "sha256": "d2238f843b7e6f1b11206d37f481d8e3c1b3bd277fac07046f0a70cc82582f9f"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-dependency-inventory.json",
+      "bytes": 3368,
+      "sha256": "90222234c5759feb3aaeb56e6c76e7ce829d4a0caf9ca50756261bd1d65355a4"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-loader-service.json",
+      "bytes": 679,
+      "sha256": "d2fa821e18f4f281d42dd976faa10ac98e18a5f80bd49a98a7d5cdb5adf68847"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-loader-inventory.json",
+      "bytes": 2381,
+      "sha256": "03b8b026c6fe33722ce6eb2bc17e3068e6daa2fc046f80050d63e590d7bdd391"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-install-frozen-deps.mjs",
+      "bytes": 3043,
+      "sha256": "55e2cc31b16e0560b524ec493faf7519f4ff991f4af60a3ea97cfa890b40f081"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-audit-frozen-loader.mjs",
+      "bytes": 2305,
+      "sha256": "ffee824d19d6180165728f184805720fb6f32f6f1996dd5a420991d26ee62ccd"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-run-frozen-original.mjs",
+      "bytes": 3564,
+      "sha256": "f3aba3d6bd8cb2699715ff7f382767747466ad1d9f64f0c48d15d14a6f2fc5d3"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-original.tap",
+      "bytes": 2629,
+      "sha256": "0dc885afdf1ea5a31ea4887a83e00bffc507e422f67142700d204fc5012b77c2"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-original.json",
+      "bytes": 1437,
+      "sha256": "e3256bb8ab5b64ab46ad8f73a534da932c5042ba9f7c54c62e5f7bd6126125d3"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls.test.mjs",
+      "bytes": 10075,
+      "sha256": "fa751620c0e3278056f4d704dae9638b422eff81991a8c76b3565e26e6093925"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-setup-error-source.mjs",
+      "bytes": 10079,
+      "sha256": "f0cfa073be8f28b5a69334bb205799f8a0fa98d909a253877d7bd44ee884cf5f"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-original.tap",
+      "bytes": 1675,
+      "sha256": "a8dca4c0d9e1dfcc6645bcdb462c22e1bdf1d5a87fe782239f4146b794a53f9d"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-original.json",
+      "bytes": 718,
+      "sha256": "02d1a69b619b61ac43be8b05677713fa4033ea814cfc5ba316f0b05867bb3e6f"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-corrected.tap",
+      "bytes": 2113,
+      "sha256": "b242efa314bedc5dabd19502723bd01a3cd6e1fe6dea50b84b921846c16d9fd4"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-corrected.json",
+      "bytes": 867,
+      "sha256": "6f6a5aaf655eea76e22e74b89c43ee0cfbfafdae1337c38b91544550cf25a030"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-corrected-observations.json",
+      "bytes": 11544,
+      "sha256": "cf20c9c3ba4990d4f2397b460cf765c2bdc4028c34f6a22ef849ce2f0138f6a9"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-restored.tap",
+      "bytes": 2114,
+      "sha256": "d9d49f877ad95b5cfb54747fc7e4ef6198e42865e1115fa01b671bbe55c0c602"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-restored.json",
+      "bytes": 866,
+      "sha256": "a6380a103a8bca0aa8ee26d3cc3cfdbd7262ad0b5ef42b2cfb1411a5ff586989"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-restored-observations.json",
+      "bytes": 11544,
+      "sha256": "90cf5147fcb2d0ce4a346eda508fb74afcc609b8d776ce61b015191b3156ba10"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-public-restored.tap",
+      "bytes": 2633,
+      "sha256": "510e465f8681ed9ea72f325601c9f893b8b1b161bc7f1ac98db55e2091895ff3"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-public-restored.json",
+      "bytes": 737,
+      "sha256": "27c9bc0767231dcdf21c492b188e02c8ea134395b79b99d31333ea97215b5464"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-run.mjs",
+      "bytes": 2311,
+      "sha256": "fc6c347b569451a446cd8b13b0fae09f2c8119b28ff67a3d391aeac28e66ada2"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-reverse.mjs",
+      "bytes": 3200,
+      "sha256": "7cb3d04d3e2a25aa9b1d0c70b9ae899a49658115abb424457cec397022502fa7"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-reversals.json",
+      "bytes": 5176,
+      "sha256": "c42d0272dcea4f243c137f7693cd73bd96ef19f7d6fad7af12c907d893fc4d43"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-reversal-loader-link.tap",
+      "bytes": 1097,
+      "sha256": "645fa0ca6a7394e14897fbffc891c161ad23aeb259ec3e5cec389a00cfda5c07"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-reversal-loader-link.json",
+      "bytes": 903,
+      "sha256": "3e19d01e27fe35dcb3741d2d7cbff84ebf285f690cc0ef5643df30e5ccac84e5"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-reversal-loader-link-observations.json",
+      "bytes": 1309,
+      "sha256": "f5506818e667d4ac8c8080f9e518cec6714d948f6a9707caba7fa26b023e4e35"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-reversal-entry-exclusive.tap",
+      "bytes": 1274,
+      "sha256": "158c67167d411f175525b6cf64a2aaf7206d743e12cab462f8400cd6ac61e94e"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-reversal-entry-exclusive.json",
+      "bytes": 804,
+      "sha256": "2d889087d8c95dcd79838bc58565e53fbabf1686a9e97823e82447b503300d65"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-reversal-failure-claims.tap",
+      "bytes": 1282,
+      "sha256": "5a3aca68a87b4cdd7e9644fab0e4a8a6cc3d68050ac395d6c5de7bf551d3b07a"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-reversal-failure-claims.json",
+      "bytes": 906,
+      "sha256": "97a84ae2c9ae237d72d7ba0e3040bc2b2e35627bff8251b562f9b1645849ca9b"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-reversal-failure-claims-observations.json",
+      "bytes": 2045,
+      "sha256": "39d07d84837bc04848aea609a214212db3fc6f6b4d94edcaa7bcc176424d7721"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-first-evidence.json",
+      "bytes": 3984,
+      "sha256": "d7accbba40e847417511d96cbb73563ab96567314c86b46fd3eda0739a88fa41"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-final-identity.mjs",
+      "bytes": 1796,
+      "sha256": "4bba4562604fc60b01e5e750cf1e3068a6c73a9c24d41f237e58e1f0429aac59"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/README.md",
+      "bytes": 3287,
+      "sha256": "db26a88c14cfdc7696d2795976e9f16b73a90f135ac94a6dc15e93ebc27a4403"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/.gitattributes",
+      "bytes": 65,
+      "sha256": "34232dd039900760856d074a5a83a28933222b291d97d6a971a7d4a5f07a8490"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/FROZEN-BUILD-SETUP-REVIEW.md",
+      "bytes": 5119,
+      "sha256": "265d95fb36a99a8ceca636b9aad2dfe9256d6f2a0ebd97a2042e0a8492acadbe"
+    }
+  ]
+}
