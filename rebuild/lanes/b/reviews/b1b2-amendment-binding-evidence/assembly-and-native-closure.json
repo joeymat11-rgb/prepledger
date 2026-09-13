@@ -1,0 +1,96 @@
+{
+  "scope": "Public code/metadata only. No native/frozen/seed/private/history input opened or executed.",
+  "sourceBase": "100820aa47a4f8729642033499eaec0f0ee282e1",
+  "runtimeSource": "cbcebb3d26bf8892adbe84fbbe0a7c5e85856013",
+  "nativeFieldDeltas": "UNKNOWN: prospective empty list is not observed equality",
+  "engineFactories": [
+    "rebuild/engine/dates.cjs",
+    "rebuild/engine/constants.cjs",
+    "rebuild/engine/seed.cjs",
+    "rebuild/engine/entered-load.cjs",
+    "rebuild/engine/performed.cjs",
+    "rebuild/engine/plan.cjs",
+    "rebuild/engine/progression.cjs",
+    "rebuild/engine/sleep.cjs",
+    "rebuild/engine/energy.cjs",
+    "rebuild/engine/policy.cjs",
+    "rebuild/engine/today.cjs",
+    "rebuild/engine/volume.cjs",
+    "rebuild/engine/migrate.cjs",
+    "rebuild/engine/earn.cjs",
+    "rebuild/engine/merge.cjs",
+    "rebuild/engine/writers.cjs"
+  ],
+  "browserFactories": [
+    "rebuild/engine/dates.cjs",
+    "rebuild/engine/constants.cjs",
+    "rebuild/engine/entered-load.cjs",
+    "rebuild/engine/performed.cjs",
+    "rebuild/engine/plan.cjs",
+    "rebuild/engine/progression.cjs",
+    "rebuild/engine/sleep.cjs",
+    "rebuild/engine/energy.cjs",
+    "rebuild/engine/policy.cjs",
+    "rebuild/engine/today.cjs",
+    "rebuild/engine/volume.cjs",
+    "rebuild/engine/earn.cjs"
+  ],
+  "browserExtraFactories": [
+    "rebuild/engine/seed.cjs",
+    "rebuild/engine/writers.cjs"
+  ],
+  "browserConstructor": "rebuild/m3/w7-preview/browser-engine.cjs",
+  "nativeConstructor": "rebuild/engine/index.cjs",
+  "readers": [
+    "nowModel",
+    "statusFace",
+    "currentRate",
+    "calorieTarget",
+    "proteinTarget",
+    "marchingOrder",
+    "readRecency",
+    "fiveLevers",
+    "recoveryIndex",
+    "sleepInfo",
+    "observedTDEE",
+    "weekDigest",
+    "debtLedger",
+    "theOneThing",
+    "dossierData"
+  ],
+  "sameInput": "Both nativeBrowser(M) and nativeBrowser(U) use the unchanged original M SEED under the captured 2026-09-07 clock; compare all 15 reader outputs and whole applyRead output before any delta admission.",
+  "nativePrograms": {
+    "rebuild/engine/test/census-partial.cjs": {
+      "gitBlob": "3951b632c0fccc6fd14932761f5cce03ae739fa3"
+    },
+    "rebuild/conform/oracle/census.cjs": {
+      "gitBlob": "1e57d6c67e29ec13d79a1ecd2771e8e5aa7d967f"
+    },
+    "rebuild/conform/oracle/legacy-records.cjs": {
+      "gitBlob": "79208359acb1e00ac10f3faca8194a4b75ba6e6a"
+    },
+    "rebuild/conform/lib/harness.cjs": {
+      "gitBlob": "68e454fc08fd41b78485842554d449560b5a6f8a"
+    },
+    "rebuild/engine/test/volume-projection.cjs": {
+      "gitBlob": "578cb2e3ed2d543cc89c35b8f66d74fb10a7bec1"
+    },
+    "rebuild/engine/test/volume-reference.cjs": {
+      "gitBlob": "05a7b969f46febd07c982b742d9e8ebcc8866102"
+    },
+    "rebuild/engine/oracle-shim.cjs": {
+      "gitBlob": "a1c69ef86cfa4160715e8973aa74dd7190a63074"
+    },
+    "tools/_fixed-now.mjs": {
+      "gitBlob": "ffa6aa33c85667cda021d2719799f6bd5762b5e8"
+    }
+  },
+  "migrationPrograms": [
+    "rebuild/engine/test/migrate-differential.cjs",
+    "rebuild/engine/test/migrate-reference.cjs",
+    "rebuild/conform/oracle/legacy-records.cjs"
+  ],
+  "frozenBundle": "rebuild/conform/engines/engine-main.cjs",
+  "heldOriginal": "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs",
+  "next": "PM names final shared assembly/integrator and exact affected-consumer/native windows after tooling acceptance. Verify full final source/pins/current chain and the full transitive input inventory before execution; uninspected original program/fixture/seed/frozen/private edges remain held, not inferred complete here. Measure actual M/U (or separately named final) field differences, obtain individual PM expectation rulings, then named family/census/H3/second/FULL/artifact/receipt/reverify/currentCI phases."
+}

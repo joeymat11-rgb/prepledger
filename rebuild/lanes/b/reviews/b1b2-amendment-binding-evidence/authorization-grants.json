@@ -1,0 +1,14 @@
+[
+  {
+    "commit": "78869af65df7c4a1d5734b48958d0d93ce64f111",
+    "file": "rebuild/lanes/astra/B1B2-AMENDMENT-BINDING-PM-GO.md",
+    "bytes": 7557,
+    "sha256": "0164bcc537d4557c5f8b828dd0ca63b90a85da4aa828b693bcf158591505d169"
+  },
+  {
+    "commit": "66e3126bf9a84b823bae1e2ffbdc7c37e1eb2f1c",
+    "file": "rebuild/lanes/astra/B1B2-AMENDMENT-BINDING-FIXTURE-GO.md",
+    "bytes": 1851,
+    "sha256": "dbf5d5a7c48a629db3c26ff991c298e2f0ff390ab89a9bd30ec05b64f7cdcc50"
+  }
+]

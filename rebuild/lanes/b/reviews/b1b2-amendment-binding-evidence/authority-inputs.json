@@ -1,0 +1,79 @@
+{
+  "shared": "78869af65df7c4a1d5734b48958d0d93ce64f111",
+  "amendments": {
+    "repair-and-availability": {
+      "claim": {
+        "ledgerLine": 246,
+        "role": "Astra PM",
+        "line": "- 2026-09-13 · Astra PM · B1+B2 COMPLETE REVIEW REJECTED; FINITE CORRECTIONS AND TARGET AVAILABILITY — Under193/173/214/232/234/236 adopt ERff0c3c13 exact38-line complete review SHA256e88bd58f72263611bc64797331b9efdb05d8227e57bda2fb50c1ae7081288636, first1d1356b before builder read. Candidatecc6a1315 remains rejected; all public/tooling and D2 N2 scoped evidence retained without full/native/CI promotion. Release B successor construction under astra/B1B2-COMPLETE-REPAIR-PM-GO.md: R1/R2 actual consumers, explicit R3 native future-only fallback hunk, fixed Q2 kill, mandated B2/D30/B1-FG proof with two named new tests and bounded source/closure phases. Separately qualify combined29 by astra/B1B2-R7-TARGET-AVAILABILITY-PM-RULING.md: finite-target costs unchanged; real debt plus missing target retains its flag but target-dependent cost and incomplete total are null, known independent costs alone may establish existing LOW/WATCH, otherwise UNKNOWN, no invented rank/clearance or target-absence restriction. This explicit unavailable-input representation resolves contradictory scalar-preservation wording; no new threshold, target, score constant or science. Literal-frozen/reference execution and protected complete gates remain held pending exact closure; source-only reads named, all owner/private/deploy boundaries unchanged. · REJECTED-AND-CORRECTIONS-ASSIGNED",
+        "lineSha256": "a519f6cc8bbe9ad5b0c254bc2c03368265f15c9d1216c4e809c6b99eeeff5ecf"
+      },
+      "documents": [
+        {
+          "file": "rebuild/lanes/astra/B1B2-COMPLETE-REPAIR-PM-GO.md",
+          "sha256": "569ab646d1e4d498f774607f76290b3a29d1bbf2d9287bbcfff5a68df350e1ef"
+        },
+        {
+          "file": "rebuild/lanes/astra/B1B2-R7-TARGET-AVAILABILITY-PM-RULING.md",
+          "sha256": "392d83ecb6138cdd58077a9dcf380739588570c2f9ed4d0a8cd2d3c5feb90295"
+        }
+      ]
+    },
+    "reference-factory": {
+      "claim": {
+        "ledgerLine": 248,
+        "role": "Astra PM",
+        "line": "- 2026-09-13 · Astra PM · B1+B2 FINITE REFERENCE AND THREE FACTORY CONTROLS — Under246 select astra/B1B2-REFERENCE-AND-FACTORY-PM-GO.md. Accept exactly D31 dates-only/prior-day-inclusive and D32 block-start-only as declaration-level dependency-contract fault proof, with their unreachable composed combinations and separate totals disclosed; no claimed native/composed kill or new engine defect. Other composed tests remain. Grant finite inline literal reference construction using only individually pinned allowed declarations, isolated actual Date realms, explicit actual createDates injected-query adapter and invented inputs; source-only expectations are committed/named before candidate observations, then exact ERA30 positive/mutation execution is conditionally authorized with no new source/dependency. No whole frozen app, private input, original native/frozen/census/gate/H3/FULL/currentCI/receipt or package acceptance. · CONSTRUCTION-SCOPE-RULED",
+        "lineSha256": "bad4cb7863900080a4ee9b3af8c5e02d6b0e62a58c7409ab2d30f7ba47ce19bb"
+      },
+      "documents": [
+        {
+          "file": "rebuild/lanes/astra/B1B2-REFERENCE-AND-FACTORY-PM-GO.md",
+          "sha256": "9f3dab4487287a28ac67da6622abc7cdbfb926cc5fbafed17a1bdd9c843bbcf4"
+        }
+      ]
+    },
+    "today-clearance": {
+      "claim": {
+        "ledgerLine": 262,
+        "role": "Astra PM",
+        "line": "- 2026-09-13 · Astra PM · R2 R8 TODAY FALSE CLEARANCE; EXISTING R7 ENFORCED — Under193/246/R7/254 adopt first ER47a0d125 and final162f189 REJECT at c4716ed/S48a3063. PM read complete report, executable and actual Today branches;13 exact review objects rehashed/adopted, final44-line report SHA25664b1697a9eb7cc8cc8140ba4756171c9db8dabd6e0dc87ec5eca5f074ae0a20f and unchanged evidence SHA25600c44e31810dabb08ef910f614fc1d17b7ea6f4e2e843f618b6de5c18c588274. Actual12 fully logged false-clearance failures plus four finite controls; earlier15 commands remain valid in scope. astra/B1B2-R2-R8-PM-DISPOSITION.md releases B/MAX fresh successor, exact theOneFix join and directly necessary marchingOrder/nowModel propagation, affected public proof/pins only. No guessed target/cost/rank/restriction or new science. D2 accepted258 remains old-head scoped; ER LOW after report-last reconciliation. Full/native/private/CI/receipt/phone and companion holds remain. PM HIGH appropriate for bounded existing-rule application. · REJECTED-AND-CORRECTION-ASSIGNED",
+        "lineSha256": "3006cfb8c2a7c9cb5e5ecc9570bdee5ef6b1aaa9dc6ccf7230baa09d7142e4ef"
+      },
+      "documents": [
+        {
+          "file": "rebuild/lanes/astra/B1B2-R2-R8-PM-DISPOSITION.md",
+          "sha256": "34ed6048ee03e98fe6df6059a6c82d24c086bc117a08267bf3bdadc1efe95432"
+        }
+      ]
+    },
+    "captured-date": {
+      "claim": {
+        "ledgerLine": 282,
+        "role": "Astra PM",
+        "line": "- 2026-09-13 · Astra PM · R3 MIDNIGHT DATE DEFECT; NARROW R4 REPAIR — Under193/246/R7/248/254/262/268/272 adopt ER first9bf2acff and final48e591d7 REJECT R9 at8e65805/T797e4cf. PM read final report/reconciliation/actual replay/source and rehashed twelve original review artifacts:33-line9431-byte report SHA256d5dd247f9e0e43bcdaed811dc511efbba588cafe0487a016505e20977e666ce0,832872-byte immutable evidence d1976ae7c7fb7c0ea9a69e3e572313ae7e8482729568a02e9a4873befb6d14fc,2035-byte reconciliation cc08f82a10eafce6ab2cc1cf2be2716188848561f26cf01ca82c71aad9bf0282. Three actual advancing-clock inputs label tomorrow's workout TODAY with yesterday's tISO; four controls pass. R8 and278 affected N2 scope remain valid at their identities, not complete acceptance. astra/B1B2-R3-R9-PM-DISPOSITION.md releases B/MAX fresh exact8e65805 successor for captured-date consistency and necessary existing public tests/fault/profile/map updates; truthful affected trace changes permitted, no dummy queries or broader policy redesign. ER LOW after complete handoff, D2 MAX isolated C276 continues. Saved/executed efforts verified184247Z; no speed change claimed. All prior mechanical/native/frozen/family/FULL/CI/phone holds persist. · REJECTED-AND-CORRECTION-ASSIGNED",
+        "lineSha256": "86849eda203dcb741a7f5e88792fdfa632c2ab0c8e7ce780050a633dc3dcfd8a"
+      },
+      "documents": [
+        {
+          "file": "rebuild/lanes/astra/B1B2-R3-R9-PM-DISPOSITION.md",
+          "sha256": "9f8b97ce50edc211ae3126092eb76d20c510391b8cc66b9e6a0ac1b016ad8ce6"
+        }
+      ]
+    },
+    "source-graph": {
+      "claim": {
+        "ledgerLine": 288,
+        "role": "Astra PM",
+        "line": "- 2026-09-13 · Astra PM · HISTORICAL R/S SOURCE-GRAPH PREDICATE CORRECTION — Under193/232/246/254/282 authorize astra/B1B2-R4-SOURCE-GRAPH-PM-RULING.md. PM inspected actual Ucbcebb3d helper definitions/validateSuccessor and independently verified non-shallow Git metadata: fixed R6c9248e is not ancestor of fixed S48a3063; their complete merge-base --all output is exactly M100820aa, ancestor of both. Replace only that erroneous helper predicate with exact complete-output equality to M. Preserve all fixed references/historical record hashes, complete R/S name-status and forward/inverse byte proof, S/T/U ancestry, and unchanged final sourceBase/current-chain/entry/terminal/freeze/receipt obligations. Only lazy isolated public-map/Git-metadata validation and necessary existing helper pins are licensed; preserve original refusal and disclose this separate R4 hunk to ER/MAX. No historical rewrite, native/family/FULL/currentCI execution, expectation waiver, product acceptance or final ancestry relaxation. B MAX continues. · CONSTRUCTION-SCOPE-RULED",
+        "lineSha256": "599e0afb2d9c2ffb6e0ab0b6878f5d76abc0a27579dd076d4f09f26e2ff1d773"
+      },
+      "documents": [
+        {
+          "file": "rebuild/lanes/astra/B1B2-R4-SOURCE-GRAPH-PM-RULING.md",
+          "sha256": "222b5bc0dcc75db1e95306cdc8a244ecb817a986a045a495dfaad0766dee3017"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "source": "1dcdbc0599330c2354257f053b9ed648616475a6",
+  "version": "v22.23.2",
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "rebuild/lanes/b/tooling/test/astra-issuer-compatibility.test.cjs",
+    "rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs",
+    "rebuild/lanes/b/tooling/test/seal-tip-and-byte-identity.test.cjs",
+    "rebuild/lanes/b/tooling/test/gate-supersession.test.cjs",
+    "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs",
+    "rebuild/lanes/b/tooling/test/parent-pin-shapes-and-spec-successors.test.cjs",
+    "rebuild/lanes/b/tooling/test/git-blob-pin-classes.test.cjs",
+    "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs",
+    "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs"
+  ],
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 573902,
+  "summary": [
+    "# tests 331",
+    "# pass 331",
+    "# fail 0",
+    "# cancelled 0",
+    "# skipped 0",
+    "# todo 0",
+    "# duration_ms 573841.0642"
+  ],
+  "stdout": {
+    "bytes": 269132,
+    "sha256": "36ad406b6a0ec85cc9a8e1aee8998e35ab7e01acfe8b3ddf2e9ed9bcc1e5688b"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "unchanged": true
+}
