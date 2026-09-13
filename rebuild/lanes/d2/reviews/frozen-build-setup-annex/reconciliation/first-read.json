@@ -1,0 +1,31 @@
+{
+  "firstVerdict": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+  "sentBeforeAuthorRead": true,
+  "readAt": "2026-09-13T22:12:15.180Z",
+  "inputs": [
+    {
+      "ref": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+      "path": "rebuild/lanes/e/FROZEN-BUILD-SETUP-REPORT.md",
+      "local": "report.md",
+      "bytes": 7005,
+      "sha256": "30da9adcef41c1ac45c209151456bc701a85930ae7a47afde30733d4ae2fa101",
+      "lines": 26
+    },
+    {
+      "ref": "4c355b2751e14f281bd5c529a67d2492675dbaca",
+      "path": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/INDEX.md",
+      "local": "INDEX.md",
+      "bytes": 1279,
+      "sha256": "b3a7cd141b93e230004770a5b692f4296056e7ac79d959732eb32e2212e64436",
+      "lines": 12
+    },
+    {
+      "ref": "4c355b2751e14f281bd5c529a67d2492675dbaca",
+      "path": "rebuild/lanes/e/reviews/frozen-build-setup-evidence/ORIGINAL-PATHS.json",
+      "local": "ORIGINAL-PATHS.json",
+      "bytes": 5102,
+      "sha256": "ff14cdeb359bacd702d601d3e7c981b3122318b24163736b8006eb95d11fa9ac",
+      "lines": 109
+    }
+  ]
+}

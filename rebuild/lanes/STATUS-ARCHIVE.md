@@ -486,3 +486,7 @@
 2026-09-13 16:12 ET · PM-CARETAKER · Astra · 66e3126bf9a84b823bae1e2ffbdc7c37e1eb2f1c · Owner306: existing Codex usage, no API trial. E XHIGH idle-client foundation308 starts alongside B MAX tooling. D2 source applicability ACCEPT310; no redundant browser rerun, LOW standby. Final engine/import/memory/phone checks remain; no owner action.
 
 2026-09-13 16:21 ET · PM-CARETAKER · Astra · 2e2ed0ea63e9dd0bf0acfdf8f69b46b08b8f9980 · E308 active XHIGH;312 settles exact two-package lock setup and trusted publisher failure semantics. Ordinary refusal preserves the old host; invalid publisher effects are unknown, never claimed rolled back. No path expansion or full-memory acceptance.
+
+2026-09-13 16:31 ET · PM-CARETAKER · Astra · d7fd582d53bb2cb19b0c906efad4752b4d48d5a2 · E found two real final-read revision/token races;314 licenses one additive read-only repository fence, same tests. Keep red proof, no single-writer assumption or extra write. E XHIGH/B MAX continue; full memory/review/device proof remains.
+
+2026-09-13 16:35 ET · PM-CARETAKER · Astra · 3512750110484e91266d9743af0c7025cb07f441 · B083bd47 complete, author331/331;316 commissions ER MAX exact tooling review, B LOW evidence custody. E XHIGH repairs the real storage race314 in parallel. No engine/package/phone acceptance; original failures and final obligations retained.

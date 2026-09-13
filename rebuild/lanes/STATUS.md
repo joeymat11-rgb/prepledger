@@ -1,19 +1,15 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 18:14 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @5b81dc8fa0c8b31f46865b7588e190dcab7f9a15 before this docs checkpoint. M100820aa integrated; local A3bfed63 prepared only. END210; no deployment/phone PASS.
+## STATE (refreshed 2026-09-13 18:17 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @d36cd84cc4211d577c5fc66f1ac91157c6826fef before this docs checkpoint. M100820aa integrated; local A3bfed63 prepared only. END210, no deployment/phone PASS.
 - PM: sole Astra PM193; owner306 existing Codex usage, no API trial. Joe/history/memory then Dad; soak wide beta only. HIGH advised for routine coordination, MAX for complete engine judgment.
 - B: capturef9e45f922/source8986d493 and archive553a88d8 complete/verified. LOW/paused320 while ER reviews336. NativeFieldDeltas UNKNOWN.
 - E: HIGH minimal R1 module-hardlink repair338 from2fdf33e5 in fresh own tree; builder/test/report only. Existing archive4c355b27 and memory foundation324 preserved.
 - C: lifecycle7e64848d scoped ACCEPT294; LOW waiting full consumer/composition. N2 prior147/10/kill/build and R4 applicability310 retained.
 - D: partial import harnessf0b01d9 retained; LOW waits reviewed B native-Date/membership+host companionb73cf852, acceptedB3 and full joins.
-- REVIEW/INTEGRATION: D2 first561d3b27 REJECT R1, MAX completes334 report-last reconciliation; ER MAX capture336 independently. I A3bfed63/report75c358ce LOW/paused. No full/native/receipt/CI/integration acceptance.
+- REVIEW/INTEGRATION: D2 first561d3b27/final4c63a55a complete334 REJECT R1, LOW/paused pending E successor. ER MAX336 continues;340 settles unchanged contained fixture replay. I LOW/paused. No full/native/receipt/CI/integration acceptance.
 - OWNER: no immediate action. September18–23 Joe/history/memory forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks. Import/credentials/device actions remain point-of-use.
-- SCHEDULE: PM30min; E HIGH repair and ER/D2 MAX reviews hourly during substantive work. B/C/D/I paused LOW; D2 pauses on full handoff. Immediate direct handoffs, no duplicate lane/API expense.
-
-2026-09-13 16:31 ET · PM-CARETAKER · Astra · d7fd582d53bb2cb19b0c906efad4752b4d48d5a2 · E found two real final-read revision/token races;314 licenses one additive read-only repository fence, same tests. Keep red proof, no single-writer assumption or extra write. E XHIGH/B MAX continue; full memory/review/device proof remains.
-
-2026-09-13 16:35 ET · PM-CARETAKER · Astra · 3512750110484e91266d9743af0c7025cb07f441 · B083bd47 complete, author331/331;316 commissions ER MAX exact tooling review, B LOW evidence custody. E XHIGH repairs the real storage race314 in parallel. No engine/package/phone acceptance; original failures and final obligations retained.
+- SCHEDULE: PM30min; E HIGH repair and ER MAX review hourly while active. B/C/D/D2/I paused LOW; immediate exact handoffs, no duplicate lane/API expense.
 
 2026-09-13 16:44 ET · PM-CARETAKER · Astra · 5b42068c1aa9f521a4da6655622fd039f8e45606 · E e85ad803 foundation complete, author254/254;318 commissions D2 MAX independent review. E LOW archive custody, ER MAX reviews B316. Source/test prefixes verified; no full memory activation, package acceptance or phone PASS.
 
@@ -40,3 +36,7 @@
 2026-09-13 18:11 ET · D2 · PR-READY PM334 · codex/astra-d2-frozen-build-setup @2fdf33e5 · Review REJECT R1: hard-linked builder passes module ownership and writes.11/11 public;4/5 independent;3 behavioral reversals; source restored. FROZEN-BUILD-SETUP-REVIEW.md/annex ready before author outcomes. PM sole judge.
 
 2026-09-13 18:14 ET · PM-CARETAKER · Astra · 5b81dc8fa0c8b31f46865b7588e190dcab7f9a15 ·338 routes D2 R1 module-hardlink failure to E HIGH for minimal fix/regression. D2 MAX reconciles334; ER MAX capture336 continues. B archive553a88d8 verified, B LOW/paused. No native/FULL/phone PASS or paid API.
+
+2026-09-13 18:14 ET · D2 · RECONCILED PM334 · codex/astra-d2-frozen-build-setup · First561d3b2 sent before full E report/archive.17 copies36666bytes verified; original/setup/product failures retained. REJECT R1 unchanged.11/11 public,4/5 own,3 kills; source exact. Full handoff to PM, then LOW/paused320.
+
+2026-09-13 18:17 ET · PM-CARETAKER · Astra · d36cd84cc4211d577c5fc66f1ac91157c6826fef ·340 preserves final D2 REJECT R1, LOW/paused; E HIGH338 fix continues. ER MAX336 own-root synthetic replay clarified under existing bar; original26/28 retained. No native/private/FULL/phone PASS or paid API.

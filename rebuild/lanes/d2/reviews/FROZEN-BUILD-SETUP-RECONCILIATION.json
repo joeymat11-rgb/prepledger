@@ -1,0 +1,289 @@
+{
+  "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "source": "a0109d93871e13f169ee7094f21dd8a98922aeb9",
+  "firstIndependentVerdict": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+  "firstVerdictSentBeforeAuthorRead": true,
+  "readAt": "2026-09-13T22:13:43.968Z",
+  "report": {
+    "ref": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+    "path": "rebuild/lanes/e/FROZEN-BUILD-SETUP-REPORT.md",
+    "local": "report.md",
+    "bytes": 7005,
+    "sha256": "30da9adcef41c1ac45c209151456bc701a85930ae7a47afde30733d4ae2fa101",
+    "lines": 26
+  },
+  "archive": "4c355b2751e14f281bd5c529a67d2492675dbaca",
+  "copiedFiles": 17,
+  "copiedBytes": 36666,
+  "archiveChangedPaths": 19,
+  "authorFinalInputAndRuntimeMatches": true,
+  "authorStages": [
+    {
+      "file": "first-public.tap",
+      "sha256": "91dba13cb5e9f313ac7caa78968c413211892c8687f6a4bfa71630e559365714",
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "assertionFailures": 0,
+      "failures": [
+        {
+          "name": "rebuild\\\\conform\\\\engines\\\\test\\\\build-engines.test.mjs",
+          "hasENOENT": false,
+          "hasEEXIST": false,
+          "hasModuleResolution": false
+        }
+      ]
+    },
+    {
+      "file": "public-after-fixture-path.tap",
+      "sha256": "3586d58d5a967797f668cd6aaf66a4a4cf9c6fdfbe3ce7cc8b7b2cf90f9e2760",
+      "tests": 11,
+      "pass": 9,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "assertionFailures": 2,
+      "failures": [
+        {
+          "name": "real build: Windows-safe spaces hash percent and Unicode paths retain exports clock ordering and options",
+          "hasENOENT": false,
+          "hasEEXIST": false,
+          "hasModuleResolution": false
+        },
+        {
+          "name": "real build: concurrent runs own distinct worktrees entries and retained bundles",
+          "hasENOENT": false,
+          "hasEEXIST": true,
+          "hasModuleResolution": false
+        }
+      ]
+    },
+    {
+      "file": "public-after-race-fix.tap",
+      "sha256": "843d2aedbbfde0fb65692418769bca04cf052f6c608ccd3f382c14810c0e1133",
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "assertionFailures": 0,
+      "failures": []
+    },
+    {
+      "file": "final-public.tap",
+      "sha256": "7137029661c14b9042003bd6e3e64df0c43b37df519f34ee447d570bc5c4de87",
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "assertionFailures": 0,
+      "failures": []
+    }
+  ],
+  "authorReversals": [
+    {
+      "name": "fresh-invocation",
+      "pattern": "real build: repeated runs",
+      "failed": {
+        "file": "reversal-fresh-invocation.tap",
+        "sha256": "69b346f427e52c54f8d1874c34f764289c74488d743707509e0e4424d33a8b84",
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "assertionFailures": 1,
+        "failures": [
+          {
+            "name": "real build: repeated runs preserve mismatched preexisting worktree and sentinel",
+            "hasENOENT": false,
+            "hasEEXIST": true,
+            "hasModuleResolution": false
+          }
+        ]
+      },
+      "restoredPass": 1,
+      "before": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "restored": {
+        "file": "restored-fresh-invocation.tap",
+        "sha256": "90d4c5b084d64470de44e51a6c2daa69961850bf33dbdda2b6cb50e513d15952",
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "assertionFailures": 0,
+        "failures": []
+      },
+      "reexecutedByD2": false
+    },
+    {
+      "name": "root-link",
+      "pattern": "real build: refuses root-junction",
+      "failed": {
+        "file": "reversal-root-link.tap",
+        "sha256": "8d79cf48b13d3e8aff68c0a29c2a904010a819eb10841c0d32f3c5a1d1f8682e",
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "assertionFailures": 1,
+        "failures": [
+          {
+            "name": "real build: refuses root-junction without changing linked evidence",
+            "hasENOENT": false,
+            "hasEEXIST": false,
+            "hasModuleResolution": false
+          }
+        ]
+      },
+      "restoredPass": 1,
+      "before": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "restored": {
+        "file": "restored-root-link.tap",
+        "sha256": "e6d7cc5b25ab8e88e28ac03d1eacd021dd0b18d6b250cee67c15c817aa597983",
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "assertionFailures": 0,
+        "failures": []
+      },
+      "reexecutedByD2": false
+    },
+    {
+      "name": "publish-after-both",
+      "pattern": "real build: failure in second build",
+      "failed": {
+        "file": "reversal-publish-after-both.tap",
+        "sha256": "8d0c349a7c2e3cc660097c8e7b3569a684a3d9171ec7eeddda530486334e7334",
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "assertionFailures": 1,
+        "failures": [
+          {
+            "name": "real build: failure in second build retains old outputs and the first new bundle as evidence",
+            "hasENOENT": false,
+            "hasEEXIST": false,
+            "hasModuleResolution": false
+          }
+        ]
+      },
+      "restoredPass": 1,
+      "before": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "restored": {
+        "file": "restored-publish-after-both.tap",
+        "sha256": "76e49bd76bb90a2c45b06ed9d6256442079a1250834c46f239fbf61e8b5c4a33",
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "assertionFailures": 0,
+        "failures": []
+      },
+      "reexecutedByD2": false
+    },
+    {
+      "name": "exclusive-entry",
+      "pattern": "real build: a committed entry sentinel",
+      "failed": {
+        "file": "reversal-exclusive-entry.tap",
+        "sha256": "503a2b9a36dda47c248c9aaacd575fe6325f1efb7a1224bb6ffb17189266e98f",
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "assertionFailures": 1,
+        "failures": [
+          {
+            "name": "real build: a committed entry sentinel is never overwritten or cleaned away",
+            "hasENOENT": false,
+            "hasEEXIST": false,
+            "hasModuleResolution": false
+          }
+        ]
+      },
+      "restoredPass": 1,
+      "before": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "restored": {
+        "file": "restored-exclusive-entry.tap",
+        "sha256": "71455a5405a09dc860c85272a5c0a6008a67777c171eee262fdb89fa45dd87fb",
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "assertionFailures": 0,
+        "failures": []
+      },
+      "reexecutedByD2": false
+    }
+  ],
+  "authorReplaySourcesRead": [
+    "reversals.mjs",
+    "setup.mjs"
+  ],
+  "authorSourceExecuted": false,
+  "reviewerR1": {
+    "id": "F2",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-wNmLRr",
+    "alias": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\D2-builder-alias-fb-D2-module-link-wNmLRr.mjs",
+    "links": 2,
+    "originalBuilderSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "exit": 0,
+    "stdout": "HEAD is now at 041a558 Invented main source\nHEAD is now at 7c32f2f Invented old source\nbuilt main @ 041a558c136db7b02d9b534810fe04e589da429c → rebuild\\conform\\engines\\engine-main.cjs  sha256=e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1  (2484 bytes)\nbuilt old @ 7c32f2faa141c5283ac83ad20ad7d7519688ec68 → rebuild\\conform\\engines\\engine-old.cjs  sha256=b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b  (2483 bytes)\nexport ENGINE_MAIN=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-wNmLRr\\rebuild\\conform\\engines\\engine-main.cjs ENGINE_OLD=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-wNmLRr\\rebuild\\conform\\engines\\engine-old.cjs\n",
+    "stderr": "Preparing worktree (detached HEAD 041a558)\nPreparing worktree (detached HEAD 7c32f2f)\n",
+    "invocations": [
+      "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-wNmLRr\\.tmp\\earned-engine-build-gMC4Uv"
+    ],
+    "worktrees": [
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-wNmLRr",
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-wNmLRr/.tmp/earned-engine-build-gMC4Uv/main-041a558c136db7b02d9b534810fe04e589da429c",
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-wNmLRr/.tmp/earned-engine-build-gMC4Uv/old-7c32f2faa141c5283ac83ad20ad7d7519688ec68"
+    ],
+    "builderBytesUnchanged": true
+  },
+  "verdict": "REJECT",
+  "openFindings": [
+    "R1 builder module hardlink bypass remains"
+  ],
+  "scopeReconciliation": [
+    "Original historical builder defects were PM source findings, not executed real-history failures.",
+    "E wrong-owner helper path and non-ASCII fs.cpSync fixture paths are setup failures; EEXIST scratch-parent concurrency is a repaired product failure.",
+    "E claims hard-linked files refuse; D2 F2 proves this omits actual builder module.",
+    "E same-ref overlap and D2 different-ref overlap preserve invocation identity, not permanent standard-slot leases or pair-wide transactions.",
+    "Both sides preserve original options by text where React is not executed.",
+    "No actual history/private/frozen/native/FULL/CI/engine/census/platform scope expansion."
+  ],
+  "D2ExecutionsRemain": {
+    "public": 11,
+    "publicPass": 11,
+    "independent": 5,
+    "independentPass": 4,
+    "independentFail": 1,
+    "reversalKills": 3
+  },
+  "candidateChangedDuringReconciliation": false
+}
