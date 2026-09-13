@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM checkpoint2026-09-13: owner306 chooses existing Codex usage; no paid Agents API trial. B/MAX continues amendment binding300/304 on unchanged R4 runtime. R4 affected-consumer applicability accepted310, firsteb62616e/finald2b3ccd and12 artifacts adopted; fixed-day production binding needs no new browser/test replay. E/XHIGH starts isolated idle-client foundation308 from accepted M100820aa, parallel with B; C lifecycle groundwork remains scoped accepted294. D2/ER LOW until exact next candidates, C/D LOW and I paused. Final engine admission/assembly/native/FULL/CI/receipt, complete memory/import and phone proof remain. PM MAX for this release judgment; Fast setting remains unverified. Joe/history/memory then Dad, soak for wide beta only.
+PM checkpoint2026-09-13: owner306 chooses existing Codex usage; no paid Agents API trial. B300/304 is complete at083bd47/tested1dcdbc0; ER/MAX reviews316, B LOW. R4 runtime is unchanged. R4 affected-consumer applicability accepted310, firsteb62616e/finald2b3ccd and12 artifacts adopted; fixed-day production binding needs no new browser/test replay. E/XHIGH starts isolated idle-client foundation308 from accepted M100820aa, parallel with B; C lifecycle groundwork remains scoped accepted294. D2/C/D LOW and I paused; ER/MAX owns316. Final engine admission/assembly/native/FULL/CI/receipt, complete memory/import and phone proof remain. PM MAX for this release judgment; Fast setting remains unverified. Joe/history/memory then Dad, soak for wide beta only.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
@@ -32,3 +32,5 @@ Acceleration timing clarification: owner100 permits personal first use separatel
 Owner268 clarification controls the earlier acceleration note: Joe AND Dad personal use is the immediate target; the soak is a wide-beta prerequisite only. See PERSONAL-USE-DELIVERY.md. No new time wait; existing138 two-day Joe trial stays.
 
 PM310 closes the R4 affected-consumer applicability question at exactf2dea2ec: the production day clock is immutable, so prior N2 behavior remains applicable without a new full test/browser run. Prior executions retain8e65805; future changed composition still needs actual applicability. PM308 adds isolated E client implementation to the active critical-path preparation; no complete controller, provider or memory capability is claimed.
+
+PM316: B083bd47/tested1dcdbc0 is handed off with author331/331 and all original setup/test failures retained; author report is evidence, not acceptance. ER/MAX now reviews the exact tooling successor independently. B/LOW only preserves the existing public evidence in the named Git archive; E/XHIGH continues314. Final native/input/composition/full admission remains later.

@@ -1,15 +1,15 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: owner306 chooses existing Codex usage; no paid Agents API trial. B/MAX continues amendment binding300/304 on unchanged R4 runtime. R4 affected-consumer applicability accepted310, firsteb62616e/finald2b3ccd and12 artifacts adopted; fixed-day production binding needs no new browser/test replay. E/XHIGH starts isolated idle-client foundation308 from accepted M100820aa, parallel with B; C lifecycle groundwork remains scoped accepted294. D2/ER LOW until exact next candidates, C/D LOW and I paused. Final engine admission/assembly/native/FULL/CI/receipt, complete memory/import and phone proof remain. PM MAX for this release judgment; Fast setting remains unverified. Joe/history/memory then Dad, soak for wide beta only.
+PM checkpoint2026-09-13: owner306 chooses existing Codex usage; no paid Agents API trial. B300/304 is complete at083bd47/tested1dcdbc0; ER/MAX reviews316, B LOW. R4 runtime is unchanged. R4 affected-consumer applicability accepted310, firsteb62616e/finald2b3ccd and12 artifacts adopted; fixed-day production binding needs no new browser/test replay. E/XHIGH starts isolated idle-client foundation308 from accepted M100820aa, parallel with B; C lifecycle groundwork remains scoped accepted294. D2/C/D LOW and I paused; ER/MAX owns316. Final engine admission/assembly/native/FULL/CI/receipt, complete memory/import and phone proof remain. PM MAX for this release judgment; Fast setting remains unverified. Joe/history/memory then Dad, soak for wide beta only.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: finite amendment-binding tooling preparation300 from scoped acceptedf2dea2ec; exact successor review follows | earned-astra-b-follow-up; hourly building,20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW:300/304 candidate083bd47 handed off; existing public evidence custody316 only | earned-astra-b-follow-up; hourly building,20 minutes waiting |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; hourly building,20 minutes waiting |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;20 minutes waiting |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: R4 consumer applicability310 complete; next exact independent candidate at MAX | earned-lane-d2-requests;20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: R4 first03fb8d13/final5492cb9b scoped ACCEPT298 complete; await exact tooling-successor commission | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX: exact083bd47 tooling-successor review316; independent source-first/report-last | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | XHIGH: isolated idle-client foundation308/312/314 from accepted M; final controller/provider joins held | earned-astra-e-follow-up; hourly building,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
@@ -57,11 +57,11 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 
 | Seat | Applied current effort | Next substantive assignment |
 | --- | --- | --- |
-| B | MAX; exact amendment-binding tooling preparation300 | MAX for a named engine/proof correction or separately released companion |
+| B | LOW; exact083bd47 construction complete, evidence custody316 | MAX for a named engine/proof correction or separately released companion |
 | D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
 | C | LOW; lifecycle R3 scoped accepted294 | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
 | D2 | LOW; exact affected R4 consumer review302 complete/accepted310 | MAX for the next named independent successor |
-| Engine reviewer | LOW; R4 review/reconciliation complete298 | MAX for next named independent successor review |
+| Engine reviewer | MAX; exact amendment-binding successor review316 | MAX for next named independent successor review |
 | E | XHIGH; isolated concurrency-sensitive idle-client foundation308 | HIGH for ordinary implementation; XHIGH for concurrency; exact independent review at MAX |
 | I | PAUSED; no new turn or setting change | XHIGH for a specifically authorized integration; separate author/reviewer roles remain |
 
@@ -94,3 +94,5 @@ PM302 removes one avoidable scheduling dependency: D2 may prove actual R4 consum
 Owner306 cost boundary: use existing Codex usage for development; the discussed paid Agents API pilot is declined. Keep completion handoffs prompt, summaries current and source reads bounded. Do not repeat whole plans, transport discovery or unchanged evidence to fill idle time. PM308 releases E's real client foundation alongside B; E owns its original three source/test paths and report plus the additive readonly repository boundary314. D2's current source-only310 acceptance avoids an unnecessary full browser replay; required final changed-composition checks remain. Metadata-only account check20:10Z reported43% weekly used/57% remaining, with ordinary usage allowed; this is a dated observation, not a lasting quota promise or credit purchase.
 
 PM314 resolves the first real E implementation race with one additional repository.mjs source path, already in its public read inventory. The final active revision/full-token check and synchronous local publication must share one actual readonly transaction callback; no extra durable write or unproved single-writer assumption. Preserve both original assertion failures, independent-connection ordering controls and all later admission obligations.
+
+PM316: B083bd47/tested1dcdbc0 is handed off with author331/331 and all original setup/test failures retained; author report is evidence, not acceptance. ER/MAX now reviews the exact tooling successor independently. B/LOW only preserves the existing public evidence in the named Git archive; E/XHIGH continues314. Final native/input/composition/full admission remains later.
