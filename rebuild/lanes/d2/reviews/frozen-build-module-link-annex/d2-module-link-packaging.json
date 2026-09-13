@@ -1,0 +1,34 @@
+{
+  "readerFailure": "d2-module-link-finalize-setup-error.json",
+  "reportingLookup": {
+    "command": [
+      "git",
+      "show",
+      "75302be3e453574be631299a75bea67d8f211ec2:rebuild/lanes/DECISIONS.md"
+    ],
+    "exit": 128,
+    "reason": "Nonexistent path; no contents read. Required rules already read, current footer rule obtained from LANES.md."
+  },
+  "whitespace": {
+    "firstCommand": [
+      "git",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "exit": 2,
+    "reason": "Raw byte-preserved scripts contain CR line endings; no candidate/content failure.",
+    "correctedCommand": [
+      "git",
+      "-c",
+      "core.whitespace=cr-at-eol",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "correctedExit": 0,
+    "rawBytesUnchanged": true
+  },
+  "candidateRunsRepeated": false,
+  "candidateMutated": false
+}

@@ -1,6 +1,6 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: existing Codex usage only. Complete ER first9de7bb79/final0c5010e9 REJECT R1/R2 is verified;34 exact artifacts adopted344, source and all failures preserved. B/MAX now repairs the two false passes from exactf9e45f922 in the named fresh nested own tree; existing public synthetic scope, production root guard and original native gate preserved. ER LOW/paused until exact completed successor. D2/MAX continues exact E module-link review342; E archive4bc6671d complete/verified12 paths10 copies15489bytes, E LOW/paused. B322/E324/C294 acceptances and I A3bfed63 source remain; no real native/FULL/CI result or nativeFieldDeltas yet. Full memory/import/phone joins remain. Joe/history/memory then Dad; soak wide beta only. MAX advised for current PM false-pass judgment, HIGH for routine coordination; no paid API.
+PM checkpoint2026-09-13: existing Codex usage only. Exact E build supportb54fec2d/source46aead24 scoped ACCEPT346 after full D2 firstc7dc4ebf/final2353a591, public12/12 and unchanged independent F2/F3 2/2;43 exact artifacts adopted, source/all failures retained. E/D2 complete LOW/paused. B/MAX repairs complete capture336 R1/R2 under344/348 from exactf9e45f922 in the named fresh nested own tree; production root guard and original native gate preserved. ER LOW/paused until exact completed successor. B322/E324/C294 acceptances and I A3bfed63 source remain; I waits accepted capture plus build inputs for one assembly. No real native/FULL/CI result or nativeFieldDeltas yet. Full memory/import/phone joins remain. Joe/history/memory then Dad; soak wide beta only. MAX advised for current PM judgment, HIGH for routine coordination; no paid API.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
@@ -8,9 +8,9 @@ PM checkpoint2026-09-13: existing Codex usage only. Complete ER first9de7bb79/fi
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: R1/R2 capture repair344 from exactf9e45f922; named fresh own nested root, public synthetic only | earned-astra-b-follow-up; hourly during repair, paused after complete handoff320 |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; PAUSED waiting; direct PM handoff |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: exactb54fec2d module-link successor review342; source-first/report-last, prior334 applicability | earned-lane-d2-requests; hourly while reviewing, then paused320 |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: complete342 firstc7dc4ebf/final2353a591; isolated setup scoped ACCEPT346 | earned-lane-d2-requests; PAUSED320; direct PM handoff |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: complete336 first9de7bb79/final0c5010e9 REJECT R1/R2; await exact repaired candidate | earned-astra-engine-review-follow-up; PAUSED320; direct PM handoff |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: repairb54fec2d and archive4bc6671d complete; D2 reviews342 | earned-astra-e-follow-up; PAUSED320; direct PM handoff |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: build supportb54fec2d scoped ACCEPT346; archive4bc6671d complete | earned-astra-e-follow-up; PAUSED320; direct PM handoff |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
 
 ## Worktrees
@@ -60,7 +60,7 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 | B | MAX commissioned344 | Repair R1/R2 in exact public capture scope; no original native run |
 | D | LOW; partial import harness handed off | XHIGH for the exact provider/admission join release |
 | C | LOW; lifecycle scoped accepted294 | XHIGH for actual concurrency work; HIGH for bounded UI/plumbing |
-| D2 | MAX; exact module-link review342 | Finish independent first verdict and separate author reconciliation |
+| D2 | LOW; complete342, scoped ACCEPT346 | MAX for a named independent review when its dependency is ready |
 | Engine reviewer | LOW; complete336 REJECT R1/R2 | MAX for the exact completed344 successor |
 | E | LOW; repair/archive342 complete | Reassess actual complexity when a memory or support dependency is ready |
 | I | LOW; source A3bfed63 complete326 | HIGH for a named accepted source assembly; no product testing |

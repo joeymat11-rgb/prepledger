@@ -1,0 +1,1 @@
+{"verified":[{"path":"node_modules/esbuild/lib/main.js","bytes":97214,"sha256":"8331fe1d8b3a07381f33cc425fcfaa94776e263113653f80ec3ba433e9657e73"},{"path":"node_modules/@esbuild/win32-x64/esbuild.exe","bytes":11670528,"sha256":"ec02ee9b14ab332416fedd10614dfb80eed5304d94f67745067c011934a8c3c3"}],"serviceSpawns":1,"version":"0.28.1"}

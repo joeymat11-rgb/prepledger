@@ -1,0 +1,25 @@
+[
+  {
+    "id": "F2",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-D2-module-link-IPaPiW",
+    "alias": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\D2-builder-alias-fb-D2-module-link-IPaPiW.mjs",
+    "links": 2,
+    "originalBuilderSHA256": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+    "exit": 1,
+    "stdout": "",
+    "stderr": "file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-D2-module-link-IPaPiW/rebuild/conform/engines/build-engines.mjs:37\r\n      stat.isFile() && stat.nlink !== 1) throw new Error('Unowned or linked path refused: ' + target);\r\n                                               ^\r\n\r\nError: Unowned or linked path refused: C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-D2-module-link-IPaPiW\\rebuild\\conform\\engines\\build-engines.mjs\r\n    at checked (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-D2-module-link-IPaPiW/rebuild/conform/engines/build-engines.mjs:37:48)\r\n    at file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-D2-module-link-IPaPiW/rebuild/conform/engines/build-engines.mjs:40:1\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\r\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\r\n\r\nNode.js v22.23.2\r\n",
+    "invocations": [],
+    "worktrees": [
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-D2-module-link-IPaPiW"
+    ],
+    "builderBytesUnchanged": true
+  },
+  {
+    "id": "F3",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-D2-loader-link-PG2Pe2",
+    "exit": 1,
+    "stdout": "",
+    "stderr": "file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-D2-loader-link-PG2Pe2/rebuild/conform/engines/build-engines.mjs:37\r\n      stat.isFile() && stat.nlink !== 1) throw new Error('Unowned or linked path refused: ' + target);\r\n                                               ^\r\n\r\nError: Unowned or linked path refused: C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-D2-loader-link-PG2Pe2\\node_modules\\esbuild\\lib\\main.js\r\n    at checked (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-D2-loader-link-PG2Pe2/rebuild/conform/engines/build-engines.mjs:37:48)\r\n    at file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-D2-loader-link-PG2Pe2/rebuild/conform/engines/build-engines.mjs:47:74\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\r\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\r\n\r\nNode.js v22.23.2\r\n",
+    "invocations": []
+  }
+]

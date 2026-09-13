@@ -1,23 +1,15 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 18:32 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @75302be3e453574be631299a75bea67d8f211ec2 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+## STATE (refreshed 2026-09-13 18:39 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @010aef10cfec509bded9af9112fb5e95ac745253 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
 - PM: sole Astra PM193; owner306 existing Codex usage, no API trial. Joe/history/memory then Dad; soak wide beta only. MAX advised for current false-pass judgment; HIGH for routine coordination.
-- B: MAX344 repairs complete review336 R1/R2 from capturef9e45f922; fresh named nested own tree, original root guard and public synthetic scope preserved. NativeFieldDeltas UNKNOWN.
-- E: repairb54fec2d/source46aead24 and archive4bc6671d complete/verified; LOW/paused320. D2 reviews342; prior rejection/source/archives and memory324 preserved.
+- B: MAX344/348 repairs complete review336 R1/R2 from capturef9e45f922; fresh named nested own tree, original root guard and public synthetic scope preserved. NativeFieldDeltas UNKNOWN.
+- E: exact isolated build supportb54fec2d/source46aead24 scoped ACCEPT346; archive4bc6671d complete. LOW/paused320. Memory324 unchanged.
 - C: lifecycle7e64848d scoped ACCEPT294; LOW waiting full consumer/composition. N2 prior147/10/kill/build and R4 applicability310 retained.
 - D: partial import harnessf0b01d9 retained; LOW waits reviewed B native-Date/membership+host companionb73cf852, acceptedB3 and full joins.
-- REVIEW/INTEGRATION: ER first9de7bb79/final0c5010e9 REJECT R1/R2 complete, LOW/paused;34 exact artifacts adopted. D2 MAX342 source-first/report-last continues. I LOW/paused. No full/native/receipt/CI/integration acceptance.
+- REVIEW/INTEGRATION: complete D2 firstc7dc4ebf/final2353a591 supports346 scoped ACCEPT;43 exact artifacts adopted. D2/ER LOW/paused. ER first9de7bb79/final0c5010e9 REJECT R1/R2 retained pending B344. I LOW until accepted inputs. No full/native/receipt/CI/integration acceptance.
 - OWNER: no immediate action. September18–23 Joe/history/memory forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks. Import/credentials/device actions remain point-of-use.
-- SCHEDULE: PM30min; B MAX repair and D2 MAX review hourly. C/D/E/ER/I paused LOW. Immediate exact handoffs, no duplicate lane/API expense.
-
-2026-09-13, 16:48 ET · D2 · STARTED PM318 · codex/astra-d2-idle-client-foundation · MAX exact E e85ad803/source4191eeb8 review;55 public inputs/full index verified before hydration.308/312/314 and lifecycle contract read first. Author current/RED outcomes unread. Independent verdict first; PM sole judge.
-
-2026-09-13 17:02 ET · D2 · PR-READY PM318 · codex/astra-d2-idle-client-foundation @e85ad803 · Isolated review complete:254/254,9/9 controls,5 behavioral reversals; source restored. IDLE-CLIENT-FOUNDATION-REVIEW.md plus replay annex. Author current/RED outcomes unread; reconciliation next. PM sole judge.
-
-2026-09-13 17:04 ET · D2 · RECONCILED PM318 · codex/astra-d2-idle-client-foundation · First verdict00c6237 sent before author/RED read.37 archive copies verified; same RED assertions repaired; verdict unchanged.9/9 D2 controls,5 kills,254/254; source exact. Reconciliation report+JSON ready. PM sole judge; complete handoff then LOW/waiting.
-
-2026-09-13 17:11 ET · PM-CARETAKER · Astra · 1ac5036d1d9373b1e816580d3232b4d72d8ed069 · Scoped B tooling322 and E client324 accepted after independent review. I HIGH assembles exact B source; B HIGH maps remaining native inputs326. Reviewers LOW/paused; C/D/E wait actual joins. No owner action, paid API, release or full-memory PASS.
+- SCHEDULE: PM30min; B MAX repair hourly. C/D/D2/E/ER/I paused LOW. Effort saved/executed verified22:34Z. Immediate exact handoffs, no duplicate lane/API expense.
 
 2026-09-13 17:22 ET · PM-CARETAKER · Astra · 1c263e0762ea41baf563b71201a7513e8b33ebb3 · I source A3bfed63 prepared/identity-verified, LOW/paused. B38-program input map complete;328 grants exact remaining code/manifest reads and safe output-observer proposal, HIGH. Existing private-gate custody retained; no run or owner action.
 
@@ -40,3 +32,11 @@
 2026-09-13 18:20 ET · PM-CARETAKER · Astra · 6689c2ccf3a31dcf0594bcca2305998354a89208 ·342 sends completed Eb54fec2d module-link repair to D2 MAX; E LOW archives existing proof. ER MAX336 continues. Original R1 rejection/failures retained; no native/FULL/phone PASS or paid API.
 
 2026-09-13 18:32 ET · PM-CARETAKER · Astra · 75302be3e453574be631299a75bea67d8f211ec2 ·344 verifies complete ER REJECT R1/R2 and commissions B MAX focused capture repair.34 exact review artifacts/all failures retained; ER LOW/paused. D2 MAX342 continues; E archive complete LOW/paused. Existing usage only; no native run or owner action.
+
+2026-09-13 18:22 ET · D2 · STARTED PM342 · codex/astra-d2-frozen-build-module-link @ b54fec2d · Full1609 index/four inputs/six identities verified; source-first R1 review at MAX, new E outcomes unread; PM sole judge.
+
+2026-09-13 18:29 ET · D2 · PR-READY PM342 · codex/astra-d2-frozen-build-module-link @ b54fec2d · R1 closed in Windows synthetic scope; public12/12, immutable F2/F3 2/2. Review: rebuild/lanes/d2/reviews/FROZEN-BUILD-MODULE-LINK-REVIEW.md. First independent verdict; E reconciliation next; PM sole judge.
+
+2026-09-13 18:33 ET · D2 · PR-READY PM342 RECONCILED · codex/astra-d2-frozen-build-module-link @ c7dc4ebf · R1 closure unchanged after full E report and10-file archive; no extra execution. Review: rebuild/lanes/d2/reviews/FROZEN-BUILD-MODULE-LINK-RECONCILIATION.md. PM sole judge; handoff complete, LOW/paused320.
+
+2026-09-13 18:39 ET · PM-CARETAKER · Astra · 010aef10cfec509bded9af9112fb5e95ac745253 ·346 accepts isolated build supportb54fec2d after complete D2 review:12/12 plus2/2 controls,43 exact artifacts/all failures preserved. E/D2 LOW/paused. B MAX344/348 capture repair continues with bounded exit-dispatch proof; no native/phone PASS or added spending.

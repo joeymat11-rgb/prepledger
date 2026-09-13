@@ -1,0 +1,166 @@
+{
+  "candidate": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+  "newAuthorOutcomesRead": false,
+  "files": [
+    {
+      "path": "rebuild/lanes/d2/reviews/FROZEN-BUILD-MODULE-LINK-REVIEW.md",
+      "bytes": 4871,
+      "sha256": "4277d87b1d1c80eee862fd45dc6dc900ce8a4705cb8f1ee15320b8eb9393a75c"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/.gitattributes",
+      "bytes": 65,
+      "sha256": "34232dd039900760856d074a5a83a28933222b291d97d6a971a7d4a5f07a8490"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/FROZEN-BUILD-MODULE-LINK-GO.md",
+      "bytes": 4441,
+      "sha256": "0b8c96f4268fed0b3777d7e8803ce8882284053fe57b24567b1dbfa125a9bc2c"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/FROZEN-BUILD-MODULE-LINK-REVIEW-INPUTS.json",
+      "bytes": 2578,
+      "sha256": "1fde03019f868a30bde3e7870b013006b5044735037aed13c4ea1c0e2bf48cef"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/FROZEN-BUILD-MODULE-LINK-REVIEW.md",
+      "bytes": 5112,
+      "sha256": "1c6c07ca7739a88d802be6539b13b4a2a429548ecf6d7ddfeddaa52b8a79f102"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/README.md",
+      "bytes": 3875,
+      "sha256": "6155d7a1989b2514dbca362c28d894ba45986cba3a79f8644b7029b958e34c0a"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-audit-frozen-loader.mjs",
+      "bytes": 2305,
+      "sha256": "ffee824d19d6180165728f184805720fb6f32f6f1996dd5a420991d26ee62ccd"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-frozen-controls-observations.json",
+      "bytes": 3312,
+      "sha256": "0b363a707210b8b68d01b8a73e7219b4c8c64018fa25cf09d6b49d1aa5df90e8"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-frozen-controls.test.mjs",
+      "bytes": 10075,
+      "sha256": "fa751620c0e3278056f4d704dae9638b422eff81991a8c76b3565e26e6093925"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-frozen-dependency-inventory.json",
+      "bytes": 3368,
+      "sha256": "90222234c5759feb3aaeb56e6c76e7ce829d4a0caf9ca50756261bd1d65355a4"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-frozen-loader-service.json",
+      "bytes": 679,
+      "sha256": "d2fa821e18f4f281d42dd976faa10ac98e18a5f80bd49a98a7d5cdb5adf68847"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-install-frozen-deps.mjs",
+      "bytes": 3043,
+      "sha256": "55e2cc31b16e0560b524ec493faf7519f4ff991f4af60a3ea97cfa890b40f081"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-admission.json",
+      "bytes": 3741,
+      "sha256": "e122075508ecfe10a27b56583e52e7013d4773010f59a6e16af2d119bfa702ec"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-applicability.json",
+      "bytes": 8701,
+      "sha256": "3e1ef12c0f472a17d5d6bd0a0033de556736f8341a3f1f6412dc1ced6cbdf862"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-controls.json",
+      "bytes": 5217,
+      "sha256": "82256e3664cb4bec65fdabe78c62b61f5a37ab62964cb7b1493b32bb8236051c"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-controls.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-controls.tap",
+      "bytes": 582,
+      "sha256": "904f1f73c32d8f8c75a3bcd73cb94f16e75991ab2830da735cdc3df6e6008a8d"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-correct-analyzer.mjs",
+      "bytes": 1819,
+      "sha256": "ef148d08dac3408b7bb77794f9d19b46f84205a59e15b84f6b6bf7f848f2d18c"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-final-evidence.json",
+      "bytes": 9813,
+      "sha256": "31c81431505efefe0e6b4fb0ebb7145fb63185ae1fd37b1febf8f24c4f8f082c"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-finalize-setup-error.json",
+      "bytes": 754,
+      "sha256": "e3d0aaf7b22b209515e91b0b23272d874dac3bb6f4fcab5f504a8a6b29a05ffb"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-finalize-setup-error.mjs",
+      "bytes": 5550,
+      "sha256": "1e1eb77b0c3988c720f288244bc69342ab8f937fa3b4c62408017b2da602959e"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-finalize.mjs",
+      "bytes": 5527,
+      "sha256": "66e02cd0ea0f282ad5aa33c4461979132f770c1b88cb6bd4e89a9ad4caf8fc04"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-loader.json",
+      "bytes": 5099,
+      "sha256": "8095ef4a071915a65b827d5375daf09a4820c65ca903654aae092c36d99d216e"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-loader.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-loader.stdout",
+      "bytes": 334,
+      "sha256": "396961665a8d01ce367252d18394de98d2b5051ae864544737909e600e1e7378"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-prepare.mjs",
+      "bytes": 4814,
+      "sha256": "7aaa8506dd331b6eabb78e59fe20e685498075ab9f1cbb9e121fd5f775dddbed"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-public-observation.raw.json",
+      "bytes": 3130,
+      "sha256": "900878c27bdabc731a2f9171a042e1918569d3c4ba086c3d4701e57e6809b169"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-public.json",
+      "bytes": 5195,
+      "sha256": "1440dfd587274a28b17b04a4362a93d9a3d0df51caa7d078a551505216d3c61b"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-public.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-public.tap",
+      "bytes": 2870,
+      "sha256": "35b080ac1c064724ff0c45e8aa097c56de0674014153a834243d0af5e335e6cb"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-run.mjs",
+      "bytes": 4570,
+      "sha256": "554e72f026db053ef187a31e64c640a90ed060e6ca2b37195ee5189529c9b337"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/frozen-build-module-link-annex/d2-module-link-packaging.json",
+      "bytes": 848,
+      "sha256": "e892916007c7dc545e6eac51e0603088f89240bb133e1f015160e092b4558b0c"
+    }
+  ]
+}

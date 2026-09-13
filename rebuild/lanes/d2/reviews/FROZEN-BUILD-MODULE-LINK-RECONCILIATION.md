@@ -1,0 +1,16 @@
+# D2 report-last module-link reconciliation
+
+First independent verdict c7dc4ebfa7d8091dc15f282c140ebfa0e3761643 was committed and sent to PM before any new E outcome read. Its20-line report SHA2564277d87b1d1c80eee862fd45dc6dc900ce8a4705cb8f1ee15320b8eb9393a75c and entire first annex remain unchanged.
+Read the complete25-line/7326-byte E report at candidate b54fec2de8d33d7d41f038b47e76b1e5bc1763a3, SHA2566d023fc9054ed0e37f772f0a79653a14382e386944ecb18d7d3551323248da30, only after that handoff.
+Archive4bc6671d231435b55dcebda6fea3c3e7830707bd is a direct evidence-only child of b54fec2d: exactly12 archive paths, ten existing public copies totaling15489bytes. All mapped paths/bytes/SHA256 verified from immutable Git blobs in the D2 tree; no E filesystem was accessed. INDEX SHA2562d6514e2ca688fb46b3018b6607950b38781b93708546a0aff9389674816fb07; mapping SHA256a4fb6bc15152b7e29ed504e90ad240ef1003804c59247af28f95be0e30576ef3.
+
+The original D2 rejection561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad remains historical proof of R1. E explicitly preserves it and corrects the old general hardlink claim; the successor does not erase that failure.
+E RED at db73de30e0c181ec63372fb10855b5de90ad4185: one selected test, one intended ERR_ASSERTION/notStrictEqual. The real CLI exits0 on exact preimage builder bytes, creates one invocation/two new worktrees and replaces both old outputs while the builder/alias bytes and nlink2 remain. This corroborates original independent F2; it is author evidence, not a newly executed D2 reversal.
+E GREEN at tested source46aead247d00c5d8b4e63155ca7563ab68d60848: public12/12; linked-module CLI exits1 at checked(script), no success claim, complete before/after equality for scratch, invocation/worktree/output state, hashes, link counts and sentinel. Both runner stderr files are empty. Current source/runtime/setup/package/loader/service identities agree with D2 pins.
+D2 evidence remains independently public12/12 once plus unchanged selected F2/F3 2/2; unaffected334 evidence reuse is already justified in the first review. E counts are not added to D2 execution counts.
+
+E reports a separate initial skip-worktree metadata argument-order failure (-z after --stdin), corrected before product execution with the full index retained. It appears in the report/final inventory; the ten-file archive contains no raw failed-command transcript. D2 neither reproduced it nor treats it as a regression kill.
+D2 separately preserved its own post-run reader suffix-assumption error and reporting/CR-whitespace packaging issues. Its observation was valid JSON; only read-only packaging was corrected, with no source/test repair or repeat. Neither lane setup issue is substituted for the real preimage assertion failure.
+No discrepancy changes the scoped R1 closure. PM remains sole judge; original both-OS combined proof, B frozen generation/census and ER final engine/artifact review remain separate. No source execution, new dependency, historical/private/frozen/native/FULL/CI/workflow or external action was performed for this reconciliation.
+
+Read-only reconciliation commands, custody receipt and checked comparison data are in [the annex](frozen-build-module-link-reconciliation-annex/d2-module-link-reconciliation.json), with FILES.json. Complete handoff returns D2 to LOW/paused320 under PM control.
