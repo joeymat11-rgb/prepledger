@@ -281,6 +281,27 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "Enter whole minutes awake within the time in bed.",
   "Enter hours from 0 to 24, with up to two decimal places.",
   "Choose a completed night.",
+  /* D2 round 1, findings 5 and 6 - the dated, quality, correction, rollover and
+     save-lifecycle states the accepted brief's copy table names. Every one of these is
+     that table's own sentence, and INVENTED for exactly the same reason as the rest of
+     the sleep screen: the approved design has no sleep screen to take them from. */
+  "Night",
+  "Saving sleep...",
+  "Quality: ",
+  "Quality not recorded.",
+  "Open recovery check-in",
+  "Change sleep",
+  "Save correction",
+  "Cancel",
+  "The date changed. Check which night this is for.",
+  "Keep this night",
+  "This night changed while you were editing. Review the saved record before trying again.",
+  "The check-in changed. Review its hours again.",
+  "Checking whether sleep was saved.",
+  "Confirmed from your check-in.",
+  "Corrected ",
+  "Try reading it again",
+  "What you typed is still here.",
 ]);
 /* A4 — Dad's first run. The approved 2026-09-08 design has NO first-run screen at
    all, so every sentence the six screens show is preview-owned and named here,

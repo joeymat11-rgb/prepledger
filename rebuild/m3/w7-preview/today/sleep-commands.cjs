@@ -124,6 +124,31 @@ function prepare(request) {
   return action;
 }
 
+/* D2 ROUND 1, FINDING 1, AT THE STORE. The host refuses a forged check-in reference
+   before it writes; this is the same question asked again on the envelope the client
+   actually built, with the store's own reader, so a reference can never reach the log
+   unauthenticated however the write was issued. Same rule, one place lower. */
+const CHECKIN_PROFILE = "earned/recovery-checkin/v1";
+function nextDay(iso) {
+  const t = Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) + 86400000;
+  return new Date(t).toISOString().slice(0, 10);
+}
+function citedCheckInIsReal(op, readOperation) {
+  const night = op.payload.night;
+  const id = night.from_checkin_op_id;
+  if (typeof id !== "string" || id === "") return true;          // no claim to authenticate
+  if (typeof readOperation !== "function") return false;
+  const source = readOperation(id);
+  if (!source || source.athlete_id !== op.athlete_id) return false;
+  if (source.kind !== "fact" || source.class !== "event") return false;
+  if (!isMap(source.payload) || source.payload.profile !== CHECKIN_PROFILE) return false;
+  const answers = source.payload.answers;
+  if (!isMap(answers)) return false;
+  if (!source.effective || source.effective.local_date !== nextDay(night.date)) return false;
+  if (!isMap(answers.sleep_hours) || answers.sleep_hours.value !== night.hours) return false;
+  return answers.sleep_hours_source === "entered";
+}
+
 /* The shape the client re-checks on the envelope it actually built, after its own
    Ops.build. It re-derives nothing. */
 function validate(op, readOperation) {
@@ -132,6 +157,7 @@ function validate(op, readOperation) {
   if (!isMap(op.payload) || op.payload.profile !== PROFILE || !isMap(op.payload.night)) return false;
   if (Object.keys(op.payload).length !== 2) return false;
   try { nightOf(JSON.parse(JSON.stringify(op.payload.night))); } catch { return false; }
+  if (!citedCheckInIsReal(op, readOperation)) return false;
   if (!Array.isArray(op.causal_parents)) return false;
   for (const id of op.causal_parents) {
     const parent = readOperation(id);
@@ -147,4 +173,5 @@ function createSleepCommands() {
 }
 
 module.exports = { createSleepCommands, prepare, validate, nightOf, isRealDate, spanMinutes,
+  citedCheckInIsReal, CHECKIN_PROFILE,
   PROFILE, ACTION, OP_CLASS, OP_KIND, HOURS_MIN, HOURS_MAX, HM_RE, DAY_RE, MEMBERS, TIME_MEMBERS };

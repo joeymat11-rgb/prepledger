@@ -45,6 +45,15 @@ function nightDateFor(day) {
   return new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10);
 }
 
+/* The morning AFTER a night, which is the day whose check-in holds that night's
+   quality and its entered hours. The inverse of nightDateFor, and the only date
+   arithmetic this lane does: nothing else about a night's date is ever derived. */
+function dayAfter(night) {
+  if (typeof night !== "string" || !DAY_RE.test(night)) return null;
+  const [y, m, d] = night.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
+}
+
 /* The refusal for an entry in the TIMES mode, decided BEFORE anything is written and
    before sleepSpanH is invoked. Null means the entry is recordable. */
 function timesRefusal(entry, today) {
@@ -106,17 +115,51 @@ function nightFromEntry(entry, today) {
   return out;
 }
 
-/* LATEST WINS, per night date. `rows` arrive in the log's own order (the host sorts by
-   device sequence, then op id), so the last row for a date is the winning one. */
-function winningNights(rows) {
+/* D2 ROUND 1, FINDING 4 - ONE DEVICE'S SEQUENCE IS AN ORDER; TWO DEVICES' IS NOT.
+   On this device the log's own order (device sequence, then op id) says which op is
+   later, so the last row for a date is the winning one. Rows from MORE THAN ONE device
+   carry no such order: picking the last of them would be inventing a winner, which is
+   exactly what :167 (1) deferred the conflict SCREEN but expressly did not permit. So
+   an ambiguous date is projected NOT AT ALL - the basis row for it stands - and the
+   dates are named, so a future sync seam has the information it needs. */
+function nightsByDate(rows) {
   const byDate = new Map();
   for (const row of Array.isArray(rows) ? rows : []) {
     if (!row || !row.night || typeof row.night !== "object") continue;
     if (typeof row.night.date !== "string" || !DAY_RE.test(row.night.date)) continue;
-    byDate.set(row.night.date, row);
+    if (!byDate.has(row.night.date)) byDate.set(row.night.date, []);
+    byDate.get(row.night.date).push(row);
   }
-  return [...byDate.values()].sort((a, b) => (a.night.date < b.night.date ? -1
-    : a.night.date > b.night.date ? 1 : 0));
+  return byDate;
+}
+const deviceOf = (row) => (row && typeof row.device_id === "string" && row.device_id ? row.device_id : "");
+function isAmbiguous(group) {
+  const devices = new Set(group.map(deviceOf));
+  return devices.size > 1;
+}
+
+/* The dates this log cannot order: two or more devices contributed a night for them. */
+function ambiguousNights(rows) {
+  return [...nightsByDate(rows).entries()]
+    .filter(([, group]) => isAmbiguous(group))
+    .map(([date]) => date)
+    .sort();
+}
+
+/* The later of two rows from ONE device: the HIGHEST authenticated device sequence, as
+   the accepted contract puts it, and the op id only to break an exact tie. The winner is
+   a fact about the log, never about the order this page happened to read it in. */
+const laterOf = (a, b) => {
+  const one = a.device_seq || 0;
+  const two = b.device_seq || 0;
+  if (one !== two) return one > two ? a : b;
+  return (a.op_id || "") >= (b.op_id || "") ? a : b;
+};
+function winningNights(rows) {
+  return [...nightsByDate(rows).entries()]
+    .filter(([, group]) => !isAmbiguous(group))
+    .map(([, group]) => group.reduce(laterOf))
+    .sort((a, b) => (a.night.date < b.night.date ? -1 : a.night.date > b.night.date ? 1 : 0));
 }
 
 /* ONE stored night -> the engine's own row. `h` comes from the ENGINE for the times
@@ -130,11 +173,29 @@ function rowFor(night, engine) {
   return row;
 }
 
+/* D2 ROUND 1, FINDING 7 - AN OP CARRIES WHAT IT CARRIES, AND NOTHING ELSE IS NEWS.
+   A sleep-night op speaks about the duration of one night. It says nothing about any
+   OTHER member the basis holds on that row (a quality score, a tag, a member a later
+   engine version adds), so overwriting the row WHOLE silently destroyed data this lane
+   never owned. The overlay is a MERGE: the new op's own members win, every member the
+   op does not carry survives - except the members the new form CONTRADICTS. The hours
+   form states a duration without times, so it retires bed/wake/awakeMin rather than
+   leaving an obsolete pair to be read as the source of the new `h`. */
+const TIME_MEMBERS = ["bed", "wake", "awakeMin"];
+function mergeRow(previousRow, night, engine) {
+  const fresh = rowFor(night, engine);
+  if (!previousRow || typeof previousRow !== "object") return fresh;
+  const merged = { ...previousRow, ...fresh };
+  if (Object.hasOwn(night, "hours")) for (const m of TIME_MEMBERS) delete merged[m];
+  else if (!Object.hasOwn(night, "awake_min")) delete merged.awakeMin;
+  return merged;
+}
+
 /* op log -> engine state. The basis is CLONED at the members this touches and every
-   other date and every unrelated member survives; a date this log holds replaces the
-   basis row for that date WHOLE, so an obsolete bed/wake pair cannot survive a switch
-   to the hours form. Sorted ascending by `d`, because sleep.cjs:240 takes the LAST
-   five nights and :585 pairs a night with the next day's session. */
+   other date and every unrelated member survives; a date this log holds is MERGED onto
+   the basis row for that date (see mergeRow). Sorted ascending by `d`, because
+   sleep.cjs:240 takes the LAST five nights and :585 pairs a night with the next day's
+   session. */
 function projectSleepNights(state, rows, engine) {
   const winning = winningNights(rows);
   if (winning.length === 0) return state;
@@ -142,7 +203,9 @@ function projectSleepNights(state, rows, engine) {
     ? state.sleep.nights : [];
   const byDate = new Map();
   for (const row of previous) if (row && typeof row.d === "string") byDate.set(row.d, row);
-  for (const row of winning) byDate.set(row.night.date, rowFor(row.night, engine));
+  for (const row of winning) {
+    byDate.set(row.night.date, mergeRow(byDate.get(row.night.date), row.night, engine));
+  }
   const nights = [...byDate.values()]
     .sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
   return { ...state, sleep: { ...(state && state.sleep), nights } };
@@ -165,5 +228,5 @@ function recordedNight(rows, date) {
 }
 
 module.exports = { REFUSALS, refusalFor, timesRefusal, hoursRefusal, nightFromEntry,
-  nightDateFor, winningNights, rowFor, projectSleepNights, loggedNight, recordedNight,
-  PROFILE, DAY_RE };
+  nightDateFor, dayAfter, winningNights, ambiguousNights, rowFor, mergeRow, projectSleepNights,
+  loggedNight, recordedNight, PROFILE, DAY_RE };

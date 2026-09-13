@@ -169,6 +169,31 @@ const SLEEP_NOT_SAVED = "Sleep could not be saved on this device.";
 const SLEEP_READ_FAILED = "Sleep was saved. The screen could not refresh. Open it again.";
 const SLEEP_NO_STORE = "Sleep cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep it. Open Earned again on this device, or use one that allows local storage.";
 const SLEEP_NOTHING_RECORDED = "Nothing was recorded.";
+/* D2 ROUND 1, FINDINGS 5 AND 6 - the states the accepted brief's copy table names and
+   the first build left undrawn: the night's own DATE (chosen, never guessed), the
+   quality the check-in already holds (asked once, there), the correction flow, the
+   rollover confirmation, and the two honest outcomes of a save whose read-back did not
+   land. Every sentence below is the brief's own ("Exact copy and states to draw"),
+   which marks it INVENTED and declared in design.cjs PREVIEW_RUNTIME_COPY. */
+const SLEEP_DATE_LABEL = "Night";
+const SLEEP_SAVING = "Saving sleep...";
+const SLEEP_QUALITY_PREFIX = "Quality: ";
+const SLEEP_QUALITY_NONE = "Quality not recorded.";
+const SLEEP_OPEN_CHECKIN = "Open recovery check-in";
+const SLEEP_CHANGE = "Change sleep";
+const SLEEP_SAVE_CORRECTION = "Save correction";
+const SLEEP_CANCEL = "Cancel";
+const SLEEP_ROLLOVER = "The date changed. Check which night this is for.";
+const SLEEP_KEEP_NIGHT = "Keep this night";
+const SLEEP_NIGHT_CHANGED = "This night changed while you were editing. Review the saved record before trying again.";
+const SLEEP_CHECKIN_CHANGED = "The check-in changed. Review its hours again.";
+const SLEEP_UNCERTAIN = "Checking whether sleep was saved.";
+/* The acknowledgment that survives a failed read-back: the op committed, so the figure
+   below is a FACT about the record and not a hope about the screen. */
+const SLEEP_CONFIRMED_PLAIN = "Confirmed from your check-in.";
+const SLEEP_CORRECTED_PREFIX = "Corrected ";
+const SLEEP_READ_RETRY = "Try reading it again";
+const SLEEP_KEPT = "What you typed is still here.";
 /* One sentence per refusal code, and no code without one. Each is followed on screen
    by SLEEP_NOTHING_RECORDED, exactly as the brief's table spells it. */
 const SLEEP_REFUSAL_COPY = Object.freeze({
@@ -279,7 +304,13 @@ function mountToday(doc, model, options = {}) {
   const status = doc.getElementById("today-status");
   const chrome = doc.getElementById("today-storage");
   if (!phone) throw new Error("Today preview: no #phone host element");
-  const workout = options.workout || null;
+  /* D2 ROUND 1, FINDING 2 - the workout entry is REPLACEABLE. `createWorkoutEntry`
+     captures `model.stateFromOps()` once, at creation, and neither it nor the gym host
+     it opens has a rebind seam (both files are pinned on disk). So when a night is
+     recorded, the page builds a NEW entry over the SAME memoized era - one store, one
+     lease - and carries the half-typed set across. See rebindWorkout. */
+  let workout = options.workout || null;
+  let workoutRebinding = null;   // the rebind in flight, so a check can await it
   const session = () => (workout && typeof workout.summary === "function" ? workout.summary() : null) || null;
   /* A3 — the check-in entry, injected exactly as the workout entry is, so this
      module keeps no import of the check-in's data layer:
@@ -337,9 +368,32 @@ function mountToday(doc, model, options = {}) {
   let sleepSaving = null;
   let sleepLaneFailure = null;
   let sleepReadBack = null;      // an acknowledged night whose read-back did not land
+  /* D2 ROUND 1, FINDING 6 - THE COMMITTED OP, KEPT. A save that the client acknowledged
+     is durable whatever the read-back afterwards does, so the figure it carries stays on
+     the screen instead of vanishing with the draft: {date, hours, savedDate, savedTime}.
+     Cleared the moment a read succeeds and the projected record can speak for itself. */
+  let sleepAck = null;
+  /* D2 ROUND 1, FINDING 6 - MOUNT OWNERSHIP, as the gym card's settings learned it.
+     Every paint takes the CURRENT token; a save that resolves after the athlete has
+     navigated holds a stale one and applies nothing - no render, no navigation. */
+  let mountToken = 0;
+  let sleepBusy = false;         // a save is in flight: the screen says so and refuses a second
+  /* D2 ROUND 1, FINDING 5 - the night's date is CHOSEN, never guessed. Null means "the
+     page's own default, the day before today"; a string is the athlete's own choice and
+     survives a rollover. `sleepRollover` holds the date the screen was opened against
+     when today moves under an open draft, so the athlete confirms before saving. */
+  let sleepNightChoice = null;
+  let sleepRollover = null;
+  let sleepCorrecting = false;   // the recorded night is being corrected deliberately
+  let sleepOpenedNight = null;   // the night an open draft was begun against
+  let sleepErrorText = "";       // the refusal or outcome sentence the next paint draws
   /* The screen's own transient state. Nothing durable lives here. TIMES first. */
   const sleepDraft = { mode: "times", bed: "", wake: "", awake_min: "", hours: "",
     awakeOpen: false, from_checkin_op_id: "" };
+  const clearSleepDraft = () => {
+    sleepDraft.bed = ""; sleepDraft.wake = ""; sleepDraft.awake_min = "";
+    sleepDraft.hours = ""; sleepDraft.from_checkin_op_id = ""; sleepDraft.awakeOpen = false;
+  };
   if (sleepLane && typeof model.setSleepNights === "function") model.setSleepNights(sleepLane);
 
   function sleepEntryFor(host, rows) {
@@ -350,11 +404,14 @@ function mountToday(doc, model, options = {}) {
       async refresh() { cache = await host.all(); return cache; },
       /* The COMMIT and the READ-BACK are two outcomes, exactly as N1's lane learned
          from D2 round 2: an acknowledged night is durable whatever the read does. */
-      async save(night) {
-        const result = await host.save(night);
+      async save(night, precondition) {
+        const result = await host.save(night, precondition);
         if (!result || result.ok !== true) return result;
-        try { await this.refresh(); return { ...result, readBack: true }; }
-        catch (_) { return { ...result, readBack: false }; }
+        try { await this.refresh(); return { ...result, readBack: true, readCode: null }; }
+        catch (error) {
+          return { ...result, readBack: false,
+            readCode: (error && (error.code || error.message)) || "SLEEP_READ_BACK_FAILED" };
+        }
       },
       close() { host.close(); },
     };
@@ -973,7 +1030,43 @@ function mountToday(doc, model, options = {}) {
   /* ======================= N2, THE SLEEP ENTRY (DECISIONS:167) =======================
      The night this screen is about: the day BEFORE today, which is exactly what
      checkin-model.mjs dayBefore computes for the check-in that reads it back. */
-  const sleepNightDate = () => SleepModel.nightDateFor(model.today);
+  /* D2 ROUND 1, FINDING 5 - the DEFAULT is the day before today; the athlete may choose
+     any completed night through the same label, and his choice is what the screen and
+     the write both use. Nothing about the night's date is inferred from a save time. */
+  const sleepNightDate = () => sleepNightChoice || sleepRollover
+    || SleepModel.nightDateFor(model.today);
+  /* Is anything typed? A rollover may only disturb a draft that exists. */
+  const sleepTyped = () => !!(sleepDraft.bed || sleepDraft.wake || sleepDraft.hours
+    || sleepDraft.awake_min);
+  /* MIDNIGHT UNDER AN OPEN DRAFT. While nothing is typed and nothing is chosen, the
+     screen simply follows the clock. Once there is a draft, the night it was begun
+     against is PINNED (sleepRollover) and the athlete confirms it before saving; the
+     date never moves under him, and the page never silently moves it for him. */
+  function sleepClockCheck() {
+    const now = SleepModel.nightDateFor(model.today);
+    if (sleepNightChoice) return null;
+    if (!sleepTyped()) { sleepRollover = null; sleepOpenedNight = now; return null; }
+    if (!sleepOpenedNight) { sleepOpenedNight = now; return null; }
+    if (sleepOpenedNight === now) return null;
+    sleepRollover = sleepOpenedNight;
+    return sleepOpenedNight;
+  }
+  /* The check-in for the morning AFTER a night, which is where its quality already
+     lives. A3 asked the question once; this lane never asks it again. */
+  function sleepQualityFor(date) {
+    if (!checkin || !checkin.checkin || typeof checkin.checkin.recorded !== "function") return null;
+    const row = checkin.checkin.recorded();
+    if (!row || !row.answers || row.date !== SleepModel.dayAfter(date)) return null;
+    const choice = row.answers.sleep_quality;
+    return typeof choice === "string" && choice ? { choice, date: row.date } : null;
+  }
+  /* Every operation this device holds for one night, in the log's own order. Two of
+     them mean the record has been CORRECTED, which the screen says in the brief's
+     own word rather than presenting a correction as a first entry. */
+  function sleepOpsFor(date) {
+    const rows = sleepLane && typeof sleepLane.rows === "function" ? sleepLane.rows() : null;
+    return Array.isArray(rows) ? rows.filter((row) => row && row.night && row.night.date === date) : [];
+  }
 
   /* The check-in's own answer for the morning AFTER this night, offered as a dated
      SUGGESTION and never promoted silently. Read out of the check-in lane the page was
@@ -1015,8 +1108,49 @@ function mountToday(doc, model, options = {}) {
     section.hidden = false;
     const logged = typeof model.loggedSleep === "function" ? model.loggedSleep(date) : null;
     const record = typeof model.recordedSleep === "function" ? model.recordedSleep(date) : null;
-    put(map, "sleep-note", logged ? "" : SLEEP_NONE);
-    map.get("sleep-note").hidden = !!logged;
+    /* D2 ROUND 1, FINDING 6 - AN ACKNOWLEDGED NIGHT IS A NIGHT. When the read-back did
+       not land there is no projected row to read, but the op committed, so the figure
+       the athlete just saved stays on the screen from the acknowledgment itself. */
+    const ack = sleepAck && sleepAck.date === date ? sleepAck : null;
+    const known = logged || (ack ? { h: ack.hours, d: ack.date } : null);
+    put(map, "sleep-note", known ? "" : SLEEP_NONE);
+    map.get("sleep-note").hidden = !!known;
+
+    /* D2 ROUND 1, FINDING 5 - THE NIGHT'S OWN DATE, chosen rather than assumed. The
+       default is yesterday; any completed night may be selected, and the label above
+       always names the night the write will carry. */
+    put(map, "sleep-date-label", SLEEP_DATE_LABEL);
+    const dateBox = map.get("sleep-date");
+    if (dateBox) {
+      dateBox.value = date || "";
+      const latest = SleepModel.nightDateFor(model.today);
+      if (latest) dateBox.max = latest;
+      dateBox.addEventListener("change", () => {
+        sleepNightChoice = dateBox.value || null;
+        sleepRollover = null;
+        sleepAck = null; sleepReadBack = null; sleepCorrecting = false; sleepErrorText = "";
+        render("sleep", false);
+      });
+    }
+    /* The rollover confirmation. Shown only when the clock has crossed midnight under
+       an open draft; until it is answered the save refuses, so a night cannot be
+       recorded against a date the athlete never saw. */
+    const rolled = sleepClockCheck();
+    const rolloverLine = map.get("sleep-rollover");
+    const keepNight = map.get("sleep-keep-night");
+    if (rolloverLine) {
+      rolloverLine.hidden = !rolled;
+      rolloverLine.textContent = rolled ? plainOrDrop(SLEEP_ROLLOVER, "sleep-rollover") : "";
+    }
+    if (keepNight) {
+      keepNight.hidden = !rolled;
+      keepNight.textContent = rolled ? plainOrDrop(SLEEP_KEEP_NIGHT, "sleep-keep-night") : "";
+      keepNight.addEventListener("click", () => {
+        sleepNightChoice = sleepRollover || sleepNightDate();
+        sleepRollover = null;
+        render("sleep", false);
+      });
+    }
 
     put(map, "sleep-mode-label", SLEEP_MODE_LABEL);
     const times = map.get("sleep-mode-times");
@@ -1065,7 +1199,7 @@ function mountToday(doc, model, options = {}) {
     const offer = sleepCheckInOffer();
     const offerLine = map.get("sleep-checkin");
     const use = map.get("sleep-use-checkin");
-    if (offer && !logged) {
+    if (offer && !known) {
       offerLine.hidden = false;
       offerLine.textContent = plainOrDrop(
         SLEEP_CHECKIN_PREFIX + offer.date + ": " + offer.hours + " h", "sleep-checkin");
@@ -1079,19 +1213,96 @@ function mountToday(doc, model, options = {}) {
       });
     } else { offerLine.hidden = true; offerLine.textContent = ""; use.hidden = true; use.textContent = ""; }
 
+    /* D2 ROUND 1, FINDING 5 - QUALITY IS ASKED ONCE, IN THE CHECK-IN. This lane
+       DISPLAYS what A3 already holds for the morning after this night and never asks a
+       second time; with no answer it says so and offers the way to give one. */
+    const quality = sleepQualityFor(date);
+    const qualityLine = map.get("sleep-quality");
+    const openCheckIn = map.get("sleep-open-checkin");
+    if (qualityLine) {
+      qualityLine.hidden = false;
+      qualityLine.textContent = plainOrDrop(quality
+        ? SLEEP_QUALITY_PREFIX + quality.choice : SLEEP_QUALITY_NONE, "sleep-quality");
+    }
+    if (openCheckIn) {
+      openCheckIn.hidden = !!quality;
+      openCheckIn.textContent = quality ? "" : plainOrDrop(SLEEP_OPEN_CHECKIN, "sleep-open-checkin");
+      openCheckIn.addEventListener("click", () => render("recovery", true));
+    }
+
     const error = map.get("sleep-error");
-    error.textContent = sleepReadBack ? plainOrDrop(SLEEP_READ_FAILED, "sleep-error") : "";
+    error.textContent = sleepErrorText
+      ? plainOrDrop(sleepErrorText, "sleep-error")
+      : (sleepReadBack ? plainOrDrop(SLEEP_READ_FAILED + " " + SLEEP_KEPT, "sleep-error") : "");
+    /* D2 ROUND 1, FINDING 6 - the read that failed is OFFERED AGAIN rather than left
+       for the athlete to discover by reopening the page. */
+    const retry = map.get("sleep-read-retry");
+    if (retry) {
+      retry.hidden = !sleepReadBack;
+      retry.textContent = sleepReadBack ? plainOrDrop(SLEEP_READ_RETRY, "sleep-read-retry") : "";
+      retry.addEventListener("click", () => { sleepSaving = retrySleepRead(); });
+    }
     const recorded = map.get("sleep-recorded");
-    recorded.hidden = !logged;
+    recorded.hidden = !known;
     /* A night the ENGINE holds with NO operation behind it is the athlete's imported
        basis, not something this device recorded: it shows the figure and claims no
-       provenance at all, because there is none to claim. */
-    recorded.textContent = logged
-      ? plainOrDrop([logged.h + " h", sleepSourceLine(record), record ? sleepStamp(record) : ""]
+       provenance at all, because there is none to claim. An acknowledged night whose
+       read-back failed shows its committed figure and says the save time is not known,
+       because from the acknowledgment alone it is not.
+       D2 ROUND 1, FINDING 5 - a second op for one night is a CORRECTION, and the
+       screen says which of the two it is looking at. */
+    const corrected = sleepOpsFor(date).length > 1;
+    recorded.textContent = known
+      ? plainOrDrop([known.h + " h", sleepSourceLine(record),
+        record ? sleepStamp(record, corrected) : (ack ? SLEEP_NO_SAVE_TIME : "")]
         .filter(Boolean).join(" "), "sleep-recorded")
       : "";
-    map.get("sleep-save").addEventListener("click", () => { sleepSaving = recordSleep(map); });
+
+    /* D2 ROUND 1, FINDING 5 - THE CORRECTION FLOW. A recorded night owns the display:
+       the form is put away until the athlete deliberately asks to change it, and the
+       saved value stays visible the whole time, exactly as the brief requires. */
+    const change = map.get("sleep-change");
+    const cancel = map.get("sleep-cancel");
+    const editing = !known || sleepCorrecting;
+    if (map.get("sleep-modes")) map.get("sleep-modes").hidden = !editing;
+    timesBlock.hidden = !editing || sleepDraft.mode !== "times";
+    hoursBlock.hidden = !editing || sleepDraft.mode !== "hours";
+    if (map.get("sleep-date-field")) map.get("sleep-date-field").hidden = false;
+    if (change) {
+      change.hidden = !known || sleepCorrecting;
+      change.textContent = change.hidden ? "" : plainOrDrop(SLEEP_CHANGE, "sleep-change");
+      change.addEventListener("click", () => { sleepCorrecting = true; render("sleep", false); });
+    }
+    if (cancel) {
+      cancel.hidden = !sleepCorrecting;
+      cancel.textContent = sleepCorrecting ? plainOrDrop(SLEEP_CANCEL, "sleep-cancel") : "";
+      cancel.addEventListener("click", () => {
+        sleepCorrecting = false; clearSleepDraft(); render("sleep", false);
+      });
+    }
+    const save = map.get("sleep-save");
+    save.hidden = !editing;
+    put(map, "sleep-save-label", sleepBusy ? SLEEP_SAVING
+      : (known ? SLEEP_SAVE_CORRECTION : SLEEP_SAVE));
+    save.disabled = sleepBusy;
+    save.addEventListener("click", () => { sleepSaving = recordSleep(map); });
     return section;
+  }
+
+  /* D2 ROUND 1, FINDING 6 - the read that failed, asked again. The op is already
+     durable; this only tries to see it. Nothing is written and nothing navigates. */
+  async function retrySleepRead() {
+    if (!sleepLane || !sleepReadBack) return;
+    const token = mountToken;
+    try { await sleepLane.refresh(); }
+    catch (_) { if (token === mountToken) render("sleep", false); return; }
+    if (token !== mountToken) return;      // the athlete left; his destination is his
+    sleepReadBack = null;
+    sleepAck = null;
+    sleepErrorText = "";
+    clearSleepDraft();
+    workoutRebinding = rebindWorkout();
+    render("sleep", false);
   }
 
   /* The hours a pair of clock times comes to, asked of the ENGINE and never computed
@@ -1119,9 +1330,13 @@ function mountToday(doc, model, options = {}) {
     const night = record && record.night ? record.night : null;
     if (!night) return "";
     if (Object.hasOwn(night, "hours")) {
-      return night.from_checkin_op_id
-        ? SLEEP_CONFIRMED_PREFIX + (checkinDateFor(night.from_checkin_op_id) || model.today) + "."
-        : SLEEP_HOURS_NOTE;
+      if (!night.from_checkin_op_id) return SLEEP_HOURS_NOTE;
+      /* D2 ROUND 1, FINDING 5 - NEVER TODAY'S DATE FOR A MISSING ONE. The cited
+         check-in's date is shown when this screen can actually see that check-in;
+         when it cannot, the sentence drops the date rather than substituting one the
+         record does not hold. A guessed date is not provenance. */
+      const cited = checkinDateFor(night.from_checkin_op_id);
+      return cited ? SLEEP_CONFIRMED_PREFIX + cited + "." : SLEEP_CONFIRMED_PLAIN;
     }
     return SLEEP_FROM_TIMES;
   }
@@ -1129,44 +1344,110 @@ function mountToday(doc, model, options = {}) {
     const offer = sleepCheckInOffer();
     return offer && offer.op_id === opId ? offer.date : null;
   };
-  /* ONLY the stamp the operation actually carries. */
-  function sleepStamp(record) {
+  /* ONLY the stamp the operation actually carries - and, when this night has more than
+     one operation behind it, the brief's own word for what the athlete is looking at. */
+  function sleepStamp(record, corrected) {
     if (!record || !record.savedDate || !record.savedTime) return SLEEP_NO_SAVE_TIME;
-    return SLEEP_RECORDED_PREFIX + record.savedDate + " at " + record.savedTime + ".";
+    return (corrected ? SLEEP_CORRECTED_PREFIX : SLEEP_RECORDED_PREFIX)
+      + record.savedDate + " at " + record.savedTime + ".";
   }
 
   /* The write. Kept as a named async function so a check can await it, and it NEVER
      rejects: a commit and the read-back that follows it are two outcomes. */
   async function recordSleep(map) {
-    const error = map.get("sleep-error");
-    const entry = { ...sleepDraft, date: sleepNightDate() };
+    /* D2 ROUND 1, FINDING 6 - the sentence is STATE, not a node. A save that outlives
+       its paint cannot write into the element it started with: `render` replaces the
+       whole screen, so every message below is held here and drawn by the next paint. */
+    const say = (sentence) => { sleepErrorText = sentence; render("sleep", false); };
+    const date = sleepNightDate();
+    sleepErrorText = "";
+    /* D2 ROUND 1, FINDING 5 - a rollover that has not been answered blocks the write.
+       The athlete confirms which night this is for; the page never decides for him. */
+    if (sleepRollover && !sleepNightChoice) {
+      say(SLEEP_ROLLOVER + " " + SLEEP_NOTHING_RECORDED);
+      return;
+    }
+    const entry = { ...sleepDraft, date };
     const refusal = SleepModel.refusalFor(entry, model.today);
     if (refusal) {
-      error.textContent = plainOrDrop(
-        (SLEEP_REFUSAL_COPY[refusal] || SLEEP_NOT_SAVED) + " " + SLEEP_NOTHING_RECORDED, "sleep-error");
+      say((SLEEP_REFUSAL_COPY[refusal] || SLEEP_NOT_SAVED) + " " + SLEEP_NOTHING_RECORDED);
       return;
     }
     const night = SleepModel.nightFromEntry(entry, model.today);
-    const save = map.get("sleep-save");
-    save.disabled = true;
+    /* D2 ROUND 1, FINDING 1 - A CORRECTION NAMES WHAT IT CORRECTS. The op this screen
+       is looking at travels with the write, and the host refuses if it is no longer the
+       current one: a stale editor and a double submit both stop here, with nothing
+       written, rather than quietly replacing a night the athlete never saw. */
+    const held = sleepOpsFor(date);
+    const supersedes = held.length === 0 ? null : held[held.length - 1].op_id;
+    /* D2 ROUND 1, FINDING 6 - MOUNT OWNERSHIP. The token this save was begun under; if
+       the athlete has navigated by the time it resolves, nothing at all is applied. */
+    const token = mountToken;
+    sleepBusy = true;
+    render("sleep", false);
     let result = null;
-    try { result = await sleepLane.save(night); }
+    try { result = await sleepLane.save(night, { supersedes }); }
     catch (thrown) {
-      save.disabled = false;
-      error.textContent = plainOrDrop(SLEEP_NOT_SAVED + " "
-        + FOOD_REASON + ((thrown && (thrown.code || thrown.message)) || "SLEEP_WRITE_UNKNOWN") + ".",
-      "sleep-error");
+      /* D2 ROUND 1, FINDING 6 - AN UNCERTAIN OUTCOME IS RECONCILED, NOT GUESSED. The
+         command threw without answering, so whether it committed is unknown. The screen
+         says it is finding out, then READS the log: if the night is there the write
+         landed and is treated as a save; if it is not, the reason is shown and the
+         athlete may try again. Nothing is resubmitted before that question is settled,
+         so an acknowledged write cannot be duplicated by a second press. */
+      if (token !== mountToken) { sleepBusy = false; return; }
+      say(SLEEP_UNCERTAIN);
+      let landed = null;
+      try {
+        await sleepLane.refresh();
+        const after = sleepOpsFor(night.date);
+        const last = after.length ? after[after.length - 1] : null;
+        landed = last && last.op_id !== supersedes ? last : null;
+      } catch (_) { landed = null; }
+      sleepBusy = false;
+      if (token !== mountToken) return;
+      if (landed) {
+        sleepAck = null; sleepReadBack = null; sleepCorrecting = false;
+        sleepNightChoice = null; sleepRollover = null;
+        clearSleepDraft();
+        workoutRebinding = rebindWorkout();
+        say("");
+        return;
+      }
+      say(SLEEP_NOT_SAVED + " "
+        + FOOD_REASON + ((thrown && (thrown.code || thrown.message)) || "SLEEP_WRITE_UNKNOWN") + ". "
+        + SLEEP_NOTHING_RECORDED + " " + SLEEP_KEPT);
       return;
     }
-    finally { save.disabled = false; }
+    sleepBusy = false;
+    /* THE LATE SAVE NEVER STEALS THE SCREEN. Whatever the outcome, a save whose token
+       is stale paints nothing: the athlete is somewhere else and that place is his. */
+    if (token !== mountToken) return;
     if (!result || result.ok !== true) {
-      error.textContent = plainOrDrop(
-        [SLEEP_NOT_SAVED, reasonOf(result)].filter(Boolean).join(" "), "sleep-error");
+      const code = result && result.code;
+      const sentence = code === "SLEEP_STALE_NIGHT" ? SLEEP_NIGHT_CHANGED
+        : (code && code.indexOf("SLEEP_SOURCE_") === 0) ? SLEEP_CHECKIN_CHANGED
+          : [SLEEP_NOT_SAVED, reasonOf(result)].filter(Boolean).join(" ");
+      say(sentence + " " + SLEEP_NOTHING_RECORDED);
       return;
     }
-    sleepReadBack = result.readBack === false ? { date: night.date } : null;
-    sleepDraft.bed = ""; sleepDraft.wake = ""; sleepDraft.awake_min = "";
-    sleepDraft.hours = ""; sleepDraft.from_checkin_op_id = ""; sleepDraft.awakeOpen = false;
+    /* THE COMMIT IS A FACT. Its figure is held here so a failed read-back cannot make
+       a durable night disappear from the screen, and the typed value is KEPT in that
+       case so nothing the athlete wrote is lost with it. */
+    if (result.readBack === false) {
+      sleepAck = { date: night.date, hours: SleepModel.rowFor(night, model.engine).h };
+      sleepReadBack = { date: night.date, code: result.readCode || null };
+    } else {
+      sleepAck = null;
+      sleepReadBack = null;
+      sleepCorrecting = false;
+      sleepNightChoice = null;
+      sleepRollover = null;
+      clearSleepDraft();
+      /* D2 ROUND 1, FINDING 2 - the gym host captured its engine state before this
+         night existed. It is rebuilt over the SAME era so the workout the athlete
+         opens next is prepared against the record he just made. */
+      workoutRebinding = rebindWorkout();
+    }
     render("sleep", false);
   }
 
@@ -1194,12 +1475,84 @@ function mountToday(doc, model, options = {}) {
     if (same) return null;
     const fresh = checkInKit.createCheckInModel({ host: checkin.host, day: model.today,
       engineState: model.stateFromOps() });
-    return Promise.resolve(fresh.refresh()).then(() => checkInKit.mountCheckIn(doc, phone, {
-      model: fresh,
-      onBack: () => render(origin, true),
-      /* Today's own marker still comes from the ENTRY's durable summary. */
-      onChanged: () => checkin.refresh(),
-    }));
+    /* D2 ROUND 1, FINDING 3 - A REBIND IS NOT A RESET. The only thing that changed is
+       the night this check-in reads back; every OTHER answer the athlete has already
+       typed - his soreness detail, his note, the issues he ticked - is his and is
+       carried across to the replacement. Only the sleep confirmation is left behind,
+       because that is precisely the answer the new night invalidates. */
+    carryCheckInDraft(checkin.checkin, fresh);
+    const token = mountToken;
+    return Promise.resolve(fresh.refresh()).then(() => {
+      /* ... and the mount itself is deferred, so it takes the same ownership guard as
+         every other deferred paint on this page: if the athlete has moved on while the
+         read was in flight, his destination stands. */
+      if (token !== mountToken) return null;
+      return checkInKit.mountCheckIn(doc, phone, {
+        model: fresh,
+        onBack: () => render(origin, true),
+        /* Today's own marker still comes from the ENTRY's durable summary. */
+        onChanged: () => checkin.refresh(),
+      });
+    });
+  }
+
+  /* The half-answered sheet, moved from one model to the next through the draft's own
+     public verbs. Nothing is reached into: `choose`, `toggleIssue` and `set` are the
+     same three the screen itself uses, so a carried answer is indistinguishable from
+     one the athlete has just given. Sleep hours travel only while the replacement is
+     still asking for them. */
+  function carryCheckInDraft(previous, next) {
+    const from = previous && typeof previous.draft === "function" ? previous.draft() : null;
+    const to = next && typeof next.draft === "function" ? next.draft() : null;
+    if (!from || !to || typeof from.state !== "function") return false;
+    const was = from.state();
+    const now = typeof to.state === "function" ? to.state() : null;
+    for (const [group, label] of Object.entries(was.choices || {})) {
+      if (label && typeof to.choose === "function") to.choose(group, label);
+    }
+    for (const [name, on] of Object.entries(was.issues || {})) {
+      if (on && typeof to.toggleIssue === "function") to.toggleIssue(name);
+    }
+    for (const [field, value] of Object.entries(was.fields || {})) {
+      if (value === "" || typeof to.set !== "function") continue;
+      if (field === "sleep_hours" && !(now && now.askHours)) continue;
+      to.set(field, value);
+    }
+    return true;
+  }
+
+  /* D2 ROUND 1, FINDING 2 - THE GYM HOST SEES THE NIGHT. `createWorkoutEntry` captures
+     `model.stateFromOps()` once and `createGymHost` holds it for the life of the host;
+     neither file may be edited (both are pinned on disk), and neither offers a rebind.
+     So the page builds a NEW entry through the SAME exported factory, over the SAME
+     memoized era for this device - `openTodayHosts` is keyed by (indexedDB, database,
+     namespace), so there is no second store, no second lease and no second producer -
+     and carries the half-typed set across, exactly as the check-in rebind carries its
+     draft. Durable Start/set bytes need no carrying: they are in the log. A device with
+     no store rebinds nothing and keeps the entry it has, which is what every jsdom
+     mount in this repository does. */
+  function rebindWorkout() {
+    if (!workout || typeof workout.gymDraft !== "function") return null;
+    const view = doc.defaultView || null;
+    const idb = (view && view.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
+    const web = (view && view.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
+    if (!idb || !web || !web.subtle) return null;
+    const previous = workout;
+    return import("./today-entry.mjs")
+      .then((entry) => entry.createWorkoutEntry(model, { indexedDB: idb, crypto: web }))
+      .then((next) => {
+        const kept = previous.gymDraft();
+        if (kept && typeof next.gymDraft === "function") Object.assign(next.gymDraft(), kept);
+        /* The same refresh binding today-entry.mjs boot() gives the first entry, so
+           Today keeps repainting itself from the durable log after every set. */
+        if (typeof next.setOnRefresh === "function") {
+          next.setOnRefresh(() => { if (screen === "today") render("today", false); });
+        }
+        workout = next;
+        if (screen === "today") render("today", false);
+        return next;
+      })
+      .catch(() => null);       // a rebind that cannot happen leaves the entry it has
   }
 
   function renderStub(id, focus, note, extra, noteSlot = "stub-note") {
@@ -1363,6 +1716,13 @@ function mountToday(doc, model, options = {}) {
        covers RESTORE_REQUIRED and a device with no store, because in both cases
        the page was given no setup entry at all (S14). */
     if (next === "setup" && !firstRun()) next = "today";
+    /* D2 ROUND 1, FINDING 6 - MOUNT OWNERSHIP, exactly as the gym card's settings lane
+       holds it. Leaving a screen INVALIDATES the mount that was on it: any deferred
+       work begun there - a save still in flight, a read being retried - finds its token
+       stale when it resolves and applies nothing, so the destination the athlete chose
+       is never repainted from under him. A repaint of the SAME screen is the same
+       mount and keeps the token. */
+    if (next !== screen) mountToken += 1;
     screen = next;
     if (next === "setup") {
       return setup.open({ doc, phone,
@@ -1435,7 +1795,14 @@ function mountToday(doc, model, options = {}) {
     /* N2 - the in-flight sleep write, the lane's own opening, and the check-in
        rebind's module load, so a check and a test can wait for each honestly. */
     sleepPending: () => sleepSaving, sleepReady: () => sleepOpening,
-    checkInKitReady: () => checkInKitLoading, sleepLane: () => sleepLane };
+    checkInKitReady: () => checkInKitLoading, sleepLane: () => sleepLane,
+    /* D2 round 1 - what the fixed screen now holds, so a cell can assert the
+       acknowledgment, the mount that owns the screen and the rebuilt workout entry
+       without reaching into the module's closure through the DOM. */
+    sleepAck: () => (sleepAck ? { ...sleepAck } : null),
+    sleepMount: () => mountToken,
+    workoutEntry: () => workout,
+    workoutRebound: () => workoutRebinding };
 }
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by
@@ -1458,4 +1825,9 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   SLEEP_HOURS_LABEL, SLEEP_HOURS_NOTE, SLEEP_FROM_TIMES, SLEEP_CHECKIN_PREFIX,
   SLEEP_CONFIRMED_PREFIX, SLEEP_USE_CHECKIN, SLEEP_SAVE, SLEEP_SAVED, SLEEP_RECORDED_PREFIX,
   SLEEP_NO_SAVE_TIME, SLEEP_NOT_SAVED, SLEEP_READ_FAILED, SLEEP_NO_STORE,
-  SLEEP_NOTHING_RECORDED, SLEEP_REFUSAL_COPY };
+  SLEEP_NOTHING_RECORDED, SLEEP_REFUSAL_COPY,
+  SLEEP_DATE_LABEL, SLEEP_SAVING, SLEEP_QUALITY_PREFIX, SLEEP_QUALITY_NONE,
+  SLEEP_OPEN_CHECKIN, SLEEP_CHANGE, SLEEP_SAVE_CORRECTION, SLEEP_CANCEL,
+  SLEEP_ROLLOVER, SLEEP_KEEP_NIGHT, SLEEP_NIGHT_CHANGED, SLEEP_CHECKIN_CHANGED,
+  SLEEP_UNCERTAIN, SLEEP_CONFIRMED_PLAIN, SLEEP_CORRECTED_PREFIX, SLEEP_READ_RETRY,
+  SLEEP_KEPT };
