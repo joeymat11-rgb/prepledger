@@ -359,7 +359,7 @@
     },
     {
       "path": "rebuild/m4/import/test/s3/browser-entry.mjs",
-      "sha256": "83dfbba15d5ff8eaa6d6c92dd21a6a5b20176084237785384bccc6373a16852f"
+      "sha256": "6f3c9a7e4ca3ecf3fab3d8ff4b7f6d4c6d70da2885f380c91ccbdc8ea0dde61c"
     },
     {
       "path": "rebuild/m4/import/test/s3/current-head.cjs",

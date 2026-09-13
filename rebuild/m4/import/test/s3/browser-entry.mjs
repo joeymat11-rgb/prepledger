@@ -2,8 +2,8 @@
 import {createLocalSourceFixture,appendCompletedWorkout,fixtureEffective} from './fixtures.mjs';
 import {commitLocalSource} from '../../../../m3/w6/local/source-commit.mjs';
 import {createSourceReplayEngine} from '../../browser-replay.mjs';
-let fixture;
-const check=(value,name)=>{if(!value)throw Error('S3_BROWSER_ASSERTION '+name);};
+let fixture,checks=0;
+const check=(value,name)=>{if(!value)throw Error('S3_BROWSER_ASSERTION '+name);checks++;};
 async function ready(f,answers={identityConfirmed:true}){
   const h=await f.controller.prepareSource(await f.review(),answers);
   check(h.ready!==false,'qualified core '+JSON.stringify(h.issues||[]));return h;
@@ -18,6 +18,7 @@ function summary(f,loaded,view){
 }
 globalThis.S3=Object.freeze({
   async first(){
+    const from=checks;
     check(globalThis.isSecureContext&&crypto.subtle&&indexedDB,'real secure browser APIs');
     fixture=await createLocalSourceFixture({indexedDB,crypto,databaseName:'s3-browser-core'});
     await appendCompletedWorkout(fixture);
@@ -33,9 +34,10 @@ globalThis.S3=Object.freeze({
     const handle=await commitLocalSource(inactive),view=await fixture.controller.view(handle),loaded=await fixture.repository.load();
     check(fixture.platform.hash(JSON.stringify(loaded.generation.collections.ops))===rawBefore,'commit retains exact originals');
     check(loaded.generation.metadata.localSourceApplication.core_complete===true&&loaded.generation.metadata.localSourceApplication.s3_complete===false,'integration remains pending');
-    return {cells:8,evidence:summary(fixture,loaded,view)};
+    return {cells:checks-from,evidence:summary(fixture,loaded,view)};
   },
   async reopen(expected){
+    const from=checks;
     fixture=await createLocalSourceFixture({indexedDB,crypto,databaseName:'s3-browser-core',reopen:true});
     const handle=await fixture.controller.reopen(fixture.name),view=await fixture.controller.view(handle),loaded=await fixture.repository.load(),actual=summary(fixture,loaded,view);
     check(actual.selection===expected.selection&&actual.sourceDigest===expected.sourceDigest&&actual.materialDigest===expected.materialDigest,'kill reopen same selection/material');
@@ -51,11 +53,12 @@ globalThis.S3=Object.freeze({
     const rollback=await fixture.controller.rollback(expected.selection),rolled=await commitLocalSource(rollback),rolledView=await fixture.controller.view(rolled),rolledLoaded=await fixture.repository.load();
     check(Object.keys(rolledLoaded.generation.metadata.localSources.selections).length>=3,'rollback is append only');
     check(JSON.stringify(summary(fixture,rolledLoaded,rolledView).originals)===JSON.stringify(after.originals),'rollback preserves all descendants');
-    return {cells:7,evidence:summary(fixture,rolledLoaded,rolledView)};
+    return {cells:checks-from,evidence:summary(fixture,rolledLoaded,rolledView)};
   },
   async wrongContext(){
+    const from=checks;
     let refused=false;try{createSourceReplayEngine({engineContext:{verified:true}});}catch(e){refused=e.code==='SOURCE_ENGINE_CONTEXT_UNPROVEN';}
-    check(refused,'proof-shaped provider cannot execute');return {cells:1};
+    check(refused,'proof-shaped provider cannot execute');return {cells:checks-from};
   },
   close(){fixture?.close();}
 });
