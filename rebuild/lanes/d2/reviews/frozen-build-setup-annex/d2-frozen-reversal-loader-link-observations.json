@@ -1,0 +1,12 @@
+[
+  {
+    "id": "F3",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-loader-link-q3kVLh",
+    "exit": 0,
+    "stdout": "HEAD is now at 754ddd6 Invented main source\nHEAD is now at 80e6203 Invented old source\nbuilt main @ 754ddd60fd18549aaf6bc29e5e0e68d2e0584c0b → rebuild\\conform\\engines\\engine-main.cjs  sha256=e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1  (2484 bytes)\nbuilt old @ 80e6203aed45f22729bd34317d3d2d43c7f7d252 → rebuild\\conform\\engines\\engine-old.cjs  sha256=b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b  (2483 bytes)\nexport ENGINE_MAIN=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-loader-link-q3kVLh\\rebuild\\conform\\engines\\engine-main.cjs ENGINE_OLD=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-loader-link-q3kVLh\\rebuild\\conform\\engines\\engine-old.cjs\n",
+    "stderr": "Preparing worktree (detached HEAD 754ddd6)\nPreparing worktree (detached HEAD 80e6203)\n",
+    "invocations": [
+      "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-loader-link-q3kVLh\\.tmp\\earned-engine-build-ug62vJ"
+    ]
+  }
+]

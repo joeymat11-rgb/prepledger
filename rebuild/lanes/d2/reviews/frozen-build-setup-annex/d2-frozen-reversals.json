@@ -1,0 +1,111 @@
+{
+  "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "authorOutcomesRead": false,
+  "records": [
+    {
+      "id": "reversal-loader-link",
+      "from": "stat.isFile() && stat.nlink !== 1",
+      "to": "false",
+      "entry": ".tmp/d2-frozen-controls.test.mjs",
+      "pattern": "^D2 F3",
+      "assertion": "linked loader must refuse before actual service/worktree creation",
+      "source": "rebuild/conform/engines/build-engines.mjs",
+      "sourceSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "mutantSHA256": "fbd154d3cb8b1e7de0ff5e1380aaf4748c3dcdd46becf8eb5d60a2933b4848d6",
+      "restoredSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "behavioralKill": true,
+      "run": {
+        "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+        "command": [
+          "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\tools\\node.exe",
+          "--test",
+          "--test-name-pattern=^D2 F3",
+          ".tmp/d2-frozen-controls.test.mjs"
+        ],
+        "node": "v22.23.2",
+        "started": "2026-09-13T22:08:55.180Z",
+        "finished": "2026-09-13T22:08:56.481Z",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "outputSHA256": "645fa0ca6a7394e14897fbffc891c161ad23aeb259ec3e5cec389a00cfda5c07",
+        "builderSHA256": "fbd154d3cb8b1e7de0ff5e1380aaf4748c3dcdd46becf8eb5d60a2933b4848d6",
+        "entrySHA256": "fa751620c0e3278056f4d704dae9638b422eff81991a8c76b3565e26e6093925",
+        "observations": {
+          "path": ".tmp/d2-frozen-reversal-loader-link-observations.json",
+          "sha256": "f5506818e667d4ac8c8080f9e518cec6714d948f6a9707caba7fa26b023e4e35"
+        },
+        "authorOutcomesRead": false
+      }
+    },
+    {
+      "id": "reversal-entry-exclusive",
+      "from": "{flag:'wx'}",
+      "to": "{flag:'w'}",
+      "entry": "rebuild/conform/engines/test/build-engines.test.mjs",
+      "pattern": "^real build: a committed entry sentinel",
+      "assertion": "ERR_ASSERTION",
+      "source": "rebuild/conform/engines/build-engines.mjs",
+      "sourceSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "mutantSHA256": "aa370bf8b30e5044fbec2747b8f3c59634d3fd167680f25ca67a2e45ec50e0f3",
+      "restoredSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "behavioralKill": true,
+      "run": {
+        "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+        "command": [
+          "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\tools\\node.exe",
+          "--test",
+          "--test-name-pattern=^real build: a committed entry sentinel",
+          "rebuild/conform/engines/test/build-engines.test.mjs"
+        ],
+        "node": "v22.23.2",
+        "started": "2026-09-13T22:08:56.536Z",
+        "finished": "2026-09-13T22:08:57.918Z",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "outputSHA256": "158c67167d411f175525b6cf64a2aaf7206d743e12cab462f8400cd6ac61e94e",
+        "builderSHA256": "aa370bf8b30e5044fbec2747b8f3c59634d3fd167680f25ca67a2e45ec50e0f3",
+        "entrySHA256": "4fab36958c354abc70c9bf9eebbb84226ecf2f9c3fdcc45b36c3c8709e04a21d",
+        "observations": null,
+        "authorOutcomesRead": false
+      }
+    },
+    {
+      "id": "reversal-failure-claims",
+      "from": "fs.renameSync(pending, outfile);",
+      "to": "fs.renameSync(pending, outfile); console.log(\"built \" + item.name + \" @ \" + item.head);",
+      "entry": ".tmp/d2-frozen-controls.test.mjs",
+      "pattern": "^D2 F4",
+      "assertion": "a real publication failure must never print successful build/export claims",
+      "source": "rebuild/conform/engines/build-engines.mjs",
+      "sourceSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "mutantSHA256": "9c85cd71aaa551b230afb8cc4d198a804aee2bbffb3a107a9fa2be9fb29217d1",
+      "restoredSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "behavioralKill": true,
+      "run": {
+        "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+        "command": [
+          "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\tools\\node.exe",
+          "--test",
+          "--test-name-pattern=^D2 F4",
+          ".tmp/d2-frozen-controls.test.mjs"
+        ],
+        "node": "v22.23.2",
+        "started": "2026-09-13T22:08:57.962Z",
+        "finished": "2026-09-13T22:08:59.189Z",
+        "exit": 1,
+        "signal": null,
+        "error": null,
+        "outputSHA256": "5a3aca68a87b4cdd7e9644fab0e4a8a6cc3d68050ac395d6c5de7bf551d3b07a",
+        "builderSHA256": "9c85cd71aaa551b230afb8cc4d198a804aee2bbffb3a107a9fa2be9fb29217d1",
+        "entrySHA256": "fa751620c0e3278056f4d704dae9638b422eff81991a8c76b3565e26e6093925",
+        "observations": {
+          "path": ".tmp/d2-frozen-reversal-failure-claims-observations.json",
+          "sha256": "39d07d84837bc04848aea609a214212db3fc6f6b4d94edcaa7bcc176424d7721"
+        },
+        "authorOutcomesRead": false
+      }
+    }
+  ]
+}

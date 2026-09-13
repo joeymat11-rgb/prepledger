@@ -1,0 +1,19 @@
+{
+  "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "command": [
+    "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\tools\\node.exe",
+    "--test",
+    "rebuild/conform/engines/test/build-engines.test.mjs"
+  ],
+  "node": "v22.23.2",
+  "started": "2026-09-13T22:08:59.236Z",
+  "finished": "2026-09-13T22:09:11.456Z",
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "outputSHA256": "510e465f8681ed9ea72f325601c9f893b8b1b161bc7f1ac98db55e2091895ff3",
+  "builderSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+  "entrySHA256": "4fab36958c354abc70c9bf9eebbb84226ecf2f9c3fdcc45b36c3c8709e04a21d",
+  "observations": null,
+  "authorOutcomesRead": false
+}

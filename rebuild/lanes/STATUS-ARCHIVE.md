@@ -480,3 +480,9 @@
 2026-09-13 15:21 ET · PM-CARETAKER · Astra · ee6bdec136e880898063640c8b7b50e49b7b7d95 · C lifecycle scoped ACCEPT294:144/37/4,24 artifacts; C/D2 LOW. B R4f2dea2ec ready, ER MAX review292; B note296 complete, LOW. Full memory/import/phone still open; no Fast change.
 
 2026-09-13 15:48 ET · PM-CARETAKER · Astra · c711d7588b56947e4fb173276bef1de57306bcd3 · R4 scoped ACCEPT298: date/recovery proof complete,14 reviewer artifacts. B MAX amendment-binding preparation300; ER LOW. C lifecycle accepted294. Final engine gates, history import and full memory remain open; Fast unchanged.
+
+2026-09-13 15:56 ET · PM-CARETAKER · Astra · 78869af65df7c4a1d5734b48958d0d93ce64f111 · B MAX binding300 continues; exact fixture extension304 granted. D2 MAX affected R4 consumer review302 now parallel. Source relevance first, retained evidence reused honestly, final gates unchanged. Other lanes wait their actual dependencies.
+
+2026-09-13 16:12 ET · PM-CARETAKER · Astra · 66e3126bf9a84b823bae1e2ffbdc7c37e1eb2f1c · Owner306: existing Codex usage, no API trial. E XHIGH idle-client foundation308 starts alongside B MAX tooling. D2 source applicability ACCEPT310; no redundant browser rerun, LOW standby. Final engine/import/memory/phone checks remain; no owner action.
+
+2026-09-13 16:21 ET · PM-CARETAKER · Astra · 2e2ed0ea63e9dd0bf0acfdf8f69b46b08b8f9980 · E308 active XHIGH;312 settles exact two-package lock setup and trusted publisher failure semantics. Ordinary refusal preserves the old host; invalid publisher effects are unknown, never claimed rolled back. No path expansion or full-memory acceptance.

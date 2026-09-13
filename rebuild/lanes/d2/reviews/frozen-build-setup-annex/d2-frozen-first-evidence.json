@@ -1,0 +1,83 @@
+{
+  "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "source": "a0109d93871e13f169ee7094f21dd8a98922aeb9",
+  "base": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "verifiedAt": "2026-09-13T22:10:38.254Z",
+  "sourceAndSetup": [
+    {
+      "path": "rebuild/conform/engines/build-engines.mjs",
+      "bytes": 6548,
+      "sha256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "testedUnchanged": true,
+      "gitDiskEqual": true
+    },
+    {
+      "path": "rebuild/conform/engines/test/build-engines.test.mjs",
+      "bytes": 11964,
+      "sha256": "4fab36958c354abc70c9bf9eebbb84226ecf2f9c3fdcc45b36c3c8709e04a21d",
+      "testedUnchanged": true,
+      "gitDiskEqual": true
+    },
+    {
+      "path": "package.json",
+      "bytes": 654,
+      "sha256": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+      "setupOnly": true,
+      "gitDiskEqual": true
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 35020,
+      "sha256": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+      "setupOnly": true,
+      "gitDiskEqual": true
+    }
+  ],
+  "authorOutcomesRead": false,
+  "publicTests": {
+    "original": {
+      "tests": 11,
+      "pass": 11
+    },
+    "restored": {
+      "tests": 11,
+      "pass": 11
+    }
+  },
+  "independent": {
+    "tests": 5,
+    "pass": 4,
+    "fail": 1,
+    "finding": "R1 hard-linked builder accepted"
+  },
+  "reversals": {
+    "count": 3,
+    "behavioralKills": 3
+  },
+  "r1": {
+    "id": "F2",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-wNmLRr",
+    "alias": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\D2-builder-alias-fb-D2-module-link-wNmLRr.mjs",
+    "links": 2,
+    "originalBuilderSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "exit": 0,
+    "stdout": "HEAD is now at 041a558 Invented main source\nHEAD is now at 7c32f2f Invented old source\nbuilt main @ 041a558c136db7b02d9b534810fe04e589da429c → rebuild\\conform\\engines\\engine-main.cjs  sha256=e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1  (2484 bytes)\nbuilt old @ 7c32f2faa141c5283ac83ad20ad7d7519688ec68 → rebuild\\conform\\engines\\engine-old.cjs  sha256=b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b  (2483 bytes)\nexport ENGINE_MAIN=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-wNmLRr\\rebuild\\conform\\engines\\engine-main.cjs ENGINE_OLD=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-wNmLRr\\rebuild\\conform\\engines\\engine-old.cjs\n",
+    "stderr": "Preparing worktree (detached HEAD 041a558)\nPreparing worktree (detached HEAD 7c32f2f)\n",
+    "invocations": [
+      "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-wNmLRr\\.tmp\\earned-engine-build-gMC4Uv"
+    ],
+    "worktrees": [
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-wNmLRr",
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-wNmLRr/.tmp/earned-engine-build-gMC4Uv/main-041a558c136db7b02d9b534810fe04e589da429c",
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-wNmLRr/.tmp/earned-engine-build-gMC4Uv/old-7c32f2faa141c5283ac83ad20ad7d7519688ec68"
+    ],
+    "builderBytesUnchanged": true
+  },
+  "reviewerSetupFailure": "One malformed recorder string caused a parse failure before any case/product execution; original source/TAP retained. Corrected recorder preserves all five assertions.",
+  "unexecuted": [
+    "Real historical/frozen/private inputs",
+    "Native/FULL/CI/workflows",
+    "React",
+    "Import/deploy/engine census"
+  ]
+}

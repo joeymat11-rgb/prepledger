@@ -1,0 +1,23 @@
+{
+  "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "command": [
+    "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\tools\\node.exe",
+    "--test",
+    "--test-name-pattern=^D2 F3",
+    ".tmp/d2-frozen-controls.test.mjs"
+  ],
+  "node": "v22.23.2",
+  "started": "2026-09-13T22:08:55.180Z",
+  "finished": "2026-09-13T22:08:56.481Z",
+  "exit": 1,
+  "signal": null,
+  "error": null,
+  "outputSHA256": "645fa0ca6a7394e14897fbffc891c161ad23aeb259ec3e5cec389a00cfda5c07",
+  "builderSHA256": "fbd154d3cb8b1e7de0ff5e1380aaf4748c3dcdd46becf8eb5d60a2933b4848d6",
+  "entrySHA256": "fa751620c0e3278056f4d704dae9638b422eff81991a8c76b3565e26e6093925",
+  "observations": {
+    "path": ".tmp/d2-frozen-reversal-loader-link-observations.json",
+    "sha256": "f5506818e667d4ac8c8080f9e518cec6714d948f6a9707caba7fa26b023e4e35"
+  },
+  "authorOutcomesRead": false
+}

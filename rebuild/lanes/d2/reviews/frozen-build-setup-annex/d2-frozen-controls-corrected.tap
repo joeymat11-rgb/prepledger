@@ -1,0 +1,53 @@
+TAP version 13
+# Subtest: D2 F1 actual CLI usage and last recognized override preserve the original contract
+ok 1 - D2 F1 actual CLI usage and last recognized override preserve the original contract
+  ---
+  duration_ms: 1227.0814
+  type: 'test'
+  ...
+# Subtest: D2 F2 a hard-linked builder cannot claim exclusive commissioned module ownership
+not ok 2 - D2 F2 a hard-linked builder cannot claim exclusive commissioned module ownership
+  ---
+  duration_ms: 1157.144
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\d2-frozen-controls.test.mjs:53:1'
+  failureType: 'testCodeFailure'
+  error: 'PM334 module ownership must refuse a hard-linked builder before scratch/output writes'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 0
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/d2-frozen-controls.test.mjs:57:9)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: D2 F3 a hard-linked esbuild loader is refused before service or worktree creation
+ok 3 - D2 F3 a hard-linked esbuild loader is refused before service or worktree creation
+  ---
+  duration_ms: 763.2583
+  type: 'test'
+  ...
+# Subtest: D2 F4 actual second publication failure cannot claim success and retains invocation results
+ok 4 - D2 F4 actual second publication failure cannot claim success and retains invocation results
+  ---
+  duration_ms: 1283.7009
+  type: 'test'
+  ...
+# Subtest: D2 F5 overlapping different refs retain individually identified bundles while standard slots may change
+ok 5 - D2 F5 overlapping different refs retain individually identified bundles while standard slots may change
+  ---
+  duration_ms: 1565.2116
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6053.5875

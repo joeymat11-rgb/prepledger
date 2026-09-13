@@ -1,0 +1,11 @@
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';
+const root=process.cwd(),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const [label,entry,pattern]=process.argv.slice(2);if(!/^[a-z0-9-]+$/.test(label)||!['.tmp/d2-frozen-controls.test.mjs','rebuild/conform/engines/test/build-engines.test.mjs'].includes(entry))throw Error('Unlicensed execution entry');
+const env={...process.env};for(const k of Object.keys(env))if(['NODE_OPTIONS','NODE_PATH','ESBUILD_BINARY_PATH','NODE_V8_COVERAGE','NODE_TEST_CONTEXT'].includes(k.toUpperCase())||k.toUpperCase().startsWith('GIT_'))delete env[k];
+Object.assign(env,{TZ:'America/New_York',TEMP:path.join(root,'.tmp'),TMP:path.join(root,'.tmp'),ESBUILD_WORKER_THREADS:'0',GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:path.join(root,'.tmp/empty-gitconfig')});
+const args=['--test',...(pattern?['--test-name-pattern='+pattern]:[]),entry],started=new Date().toISOString(),r=spawnSync(process.execPath,args,{cwd:root,env,encoding:'utf8',timeout:180000,maxBuffer:8*1024*1024});
+const output=r.stdout+(r.stderr?'\n[stderr]\n'+r.stderr:'');fs.writeFileSync('.tmp/d2-frozen-'+label+'.tap',output);
+let observations=null;const observationPath='.tmp/d2-frozen-controls-observations.json';if(entry.startsWith('.tmp/')&&fs.existsSync(observationPath)){const b=fs.readFileSync(observationPath);fs.writeFileSync('.tmp/d2-frozen-'+label+'-observations.json',b);observations={path:'.tmp/d2-frozen-'+label+'-observations.json',sha256:sha(b)};}
+const meta={candidate:'2fdf33e5d3d357b8886591cfec7252ebf3518013',command:[process.execPath,...args],node:process.version,started,finished:new Date().toISOString(),exit:r.status,signal:r.signal,error:r.error?.message||null,outputSHA256:sha(Buffer.from(output)),builderSHA256:sha(fs.readFileSync('rebuild/conform/engines/build-engines.mjs')),entrySHA256:sha(fs.readFileSync(entry)),observations,authorOutcomesRead:false};
+fs.writeFileSync('.tmp/d2-frozen-'+label+'.json',JSON.stringify(meta,null,2)+'\n');
+console.log(JSON.stringify({label,exit:r.status,summary:output.split('\n').filter(x=>/^# (tests|pass|fail|cancelled|skipped|todo|duration_ms)/.test(x)),failedTests:output.split('\n').filter(x=>/^not ok/.test(x))}));if(r.status!==0)process.exitCode=1;

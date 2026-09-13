@@ -1,0 +1,23 @@
+{
+  "candidate": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "command": [
+    "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\tools\\node.exe",
+    "--test",
+    "--test-name-pattern=^D2 F4",
+    ".tmp/d2-frozen-controls.test.mjs"
+  ],
+  "node": "v22.23.2",
+  "started": "2026-09-13T22:08:57.962Z",
+  "finished": "2026-09-13T22:08:59.189Z",
+  "exit": 1,
+  "signal": null,
+  "error": null,
+  "outputSHA256": "5a3aca68a87b4cdd7e9644fab0e4a8a6cc3d68050ac395d6c5de7bf551d3b07a",
+  "builderSHA256": "9c85cd71aaa551b230afb8cc4d198a804aee2bbffb3a107a9fa2be9fb29217d1",
+  "entrySHA256": "fa751620c0e3278056f4d704dae9638b422eff81991a8c76b3565e26e6093925",
+  "observations": {
+    "path": ".tmp/d2-frozen-reversal-failure-claims-observations.json",
+    "sha256": "39d07d84837bc04848aea609a214212db3fc6f6b4d94edcaa7bcc176424d7721"
+  },
+  "authorOutcomesRead": false
+}

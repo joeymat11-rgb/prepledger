@@ -1,16 +1,16 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: owner306 uses existing Codex usage. B330 capture candidatef9e45f922/source8986d493 is complete; exact five-file/report-only scope and helper.post-only profile verified. ER/MAX independently reviews336, B LOW preserves existing public evidence. D2/MAX independently reviews E332 setup2fdf33e5 under334; E archive4c355b27 verified/routed report-last, E LOW/paused. B322/E324/C294 scoped acceptances and I A3bfed63 source remain. No real native/private/frozen/FULL/CI result or nativeFieldDeltas yet. Full memory/provider/controller/import/phone work remains. Joe/history/memory then Dad, soak wide beta only. HIGH advised for routine PM coordination; MAX reviewers. Fast unavailable, no paid API.
+PM checkpoint2026-09-13: existing Codex usage only. ER/MAX independently reviews B capturef9e45f922 under336; B archive553a88d8 complete/verified, B LOW/paused. D2 first561d3b27 rejects E setup2fdf33e5 for R1: builder module hardlink bypass; original11/11 and independent4/5 retained, report-last reconciliation continues MAX. E/HIGH repairs only that actual ownership check and regression under338 in a fresh own tree. Earlier B322/E324/C294 scoped acceptances and I A3bfed63 source remain. No real native/private/frozen/FULL/CI result or nativeFieldDeltas yet; full memory/import/phone joins remain. Joe/history/memory then Dad, soak wide beta only. HIGH advised for routine PM; MAX independent reviews. Fast unavailable, no paid API.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW: capture candidatef9e45f922/source8986d493 complete330; existing public evidence archive336 only | earned-astra-b-follow-up; hourly until finite archive handoff, then paused320 |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW: capturef9e45f922 and public archive553a88d8 complete; ER reviews336 | earned-astra-b-follow-up; PAUSED320, direct PM handoff |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; PAUSED waiting; direct PM handoff |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: exact2fdf33e5 pure build-setup review334, source-first/report-last | earned-lane-d2-requests; hourly while reviewing; pause on handoff |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: first561d3b27 REJECT R1, complete334 report-last reconciliation; later exact E successor review | earned-lane-d2-requests; hourly during review, pause on handoff320 |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX: exactf9e45f922 native-capture review336, source-first/report-last, synthetic only | earned-astra-engine-review-follow-up; hourly during review, paused after handoff320 |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: completed332 candidate2fdf33e5 and334 archive4c355b27; D2 review in progress | earned-astra-e-follow-up; PAUSED320, direct PM handoff |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | HIGH: minimal R1 builder-module hardlink repair and synthetic regression338, from2fdf33e5 | earned-astra-e-follow-up; hourly during repair, then paused320 |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
 
 ## Worktrees
