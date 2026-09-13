@@ -45,6 +45,8 @@ D and D2 have acknowledged :193 directly. D reports F2 f3e9561 (79 cells / 15 mu
 
 Effort is assigned to the actual work, not permanently to a seat. PM applies task settings when dispatching and changes them as the assignment changes. No model change is required. Waiting checkpoints are not executed reviews and never earn a verdict. Required independent reviews remain MAX; PM raises effort before commissioning them.
 
+Joe additionally requires explicit advice about this PM task's own effort. Recommend HIGH for current coordination, scoped screen judgments and normal planning; call out MAX before complete engine acceptance or a serious ambiguous failure, and recommend HIGH again when that work ends. State the level plainly when the work warrants changing it; do not leave Joe to infer it from lane settings. PM advises its own setting and manages the other lanes through task controls. Do not claim to have changed or automatically observed this task's live effort selector when the tools do not expose it. An effort recommendation creates no new product permission or routine confirmation gate.
+
 | Seat | Applied current effort | Next substantive assignment |
 | --- | --- | --- |
 | B | LOW; complete c4716ed handed off, waiting for independent findings | MAX for a named engine/proof correction or separately released companion |
