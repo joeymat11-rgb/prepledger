@@ -1,15 +1,15 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-13 06:41 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. N2 combined admission, B engine construction and D S3 core corrections remain separate from accepted M.
+PM reconciliation at 2026-09-13 06:45 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. Combined B1+B2/N2 review, D S3 corrections and E memory contract remain separate from accepted M.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
 | Full Astra operating handover | Published193, eight development seats with schedules after E203 and separate integrator I; old work preserved, returning work reconciled by PM | PM and all leads |
 | Fresh app launch | Launch package accepted/integrated atM100820aa; independent C/D2, B196, I fresh build/six Edge flows20kills; integration full34745429303 and shared34745429317 bothOS verified. No physical-phone or deployment claim | Complete in development; owner-use proof separate |
 | Shared mechanical preflight | Exact reviewed D200 + B201 workflow/registration adopted inM; actual bothOS67/67 and independent boundaries; full-custody/3UI preflight passed | Complete in development |
-| N2 sleep entry | D2 final98eeb183 scoped ACCEPT atbfc2935/source60e24a8:98 independent tests,3 mutants/fresh113input7kill. PM named exact12 source/test+report adoption to B; sleep77 beside13 standing Today. Builder914 and all older evidence remain attributed. Actual combined-head review/current gate/bothOS CI/integration pending, PR54 Draft | B composition/CI; D2 affected combined-head review; PM judgment/third integrator |
+| N2 sleep entry | D2 R6 ACCEPT98eeb183 atCbfc2935; exact13 C post-images verified in local combinedcc6a1315. D2 now commissioned affected N2 consumer/fresh-browser review there. Registered77sleep beside13Today, actual full CI/gate/integration still pending; PR54Draft | D2 combined-head review; B later admitted CI; PM/third integrator |
 | H3 clean-init engine | Merged :189, existing receipt retained | B uses as parent |
-| B1+B2 | Runtime6c9248e; tooling reported157/157 with original156/157 retained. Exact abf6505 successor registration amendment accepted at232: new current evidence, inherited nine plus three repaired/seven original gates and one setup-test lookup hunk. Complete composition, MAX review and actual native/private/FULL proof pending | B builds/registers; separate MAX reviewer; PM later exact gate grant |
+| B1+B2 | Complete local/unpushedcc6a1315/source3a695625, verified55paths/8 exact R runtime/13C images; profile749a06af has110pins/22children/24IDs/35flips/9+3+7. Builder Node22tooling258/258 and final registration81/81. Separate MAX complete code/profile/public review commissioned; native/family/census/FULL/CI/receipt remain unrun and separately gated | ER reviews; B findings/later exact PC grant; PM judges |
 | B4+B3 | Accepted order after B1+B2; candidate reconciliation needed | B |
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
 | Edit My Week v1 | Bounded independent fix reviewfdc4c8e PASS at74920fb; R1/R2 closed. Real C future-gym/draft/DOM proof and B cumulative/profile/private/CI/receipt admission still open; no package acceptance | C after N2; B admission; PM judgment; D supports joins |
