@@ -101,3 +101,5 @@
 
 2026-09-13 01:31 ET · D · FIX-CANDIDATE · D200 aab62dd/runtime1f4674f; raw-text boundary refuses before comment exemptions. Exact-head Windows45/45,8 assertion mutants; RED79fe207, report53lines. Prior dae1fb2/R1c5192b1 preserved; D2 re-review+B201 bothOS pending. Main172/helper183; real26→CI-UNVERIFIED. PREPARING checked; no acceptance/deploy.
 2026-09-13 01:35 ET · D2 · ACCEPT PREFLIGHT RUNTIME ONLY @aab62dd · R1 boundary finding closed. R2 review+annex:45/45suite,8assertion mutants,17/17independent child controls;3escaping cases now refuse. No new runtime finding; actual bothOS/B201 and composed-head acceptance remain pending. Candidate preserved; no same-head rerun. Window PREPARING.
+
+2026-09-13 01:37 ET · ASTRA-PM · PREFLIGHT RUNTIME REVIEWED · D2ddba29db ACCEPTaab62dd3, R1 closed. B201 exact reviewed-byte composition licensed for actual45-test CI and ER review. C guard0ce2a6f preserved; PREPARING remains, no final H3 GO or integration.
