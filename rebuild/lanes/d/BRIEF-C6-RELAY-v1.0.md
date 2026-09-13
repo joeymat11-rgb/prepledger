@@ -1,6 +1,6 @@
 # BRIEF-C6-RELAY v1.0
 
-Lane D build contract, 2026-09-12. Incorporates PM/owner DECISIONS:156/:158; supersedes conflicting v0.1 enforcement text and wire-pin claims. This document records the assigned implementation, not acceptance or permission to deploy.
+Lane D build contract, 2026-09-12. Incorporates PM/owner DECISIONS:156/:158 and retention clarification :176(3); supersedes conflicting v0.1 enforcement text and wire-pin claims. This document records the assigned implementation, not acceptance or permission to deploy.
 
 ## Authority and scope
 
@@ -16,9 +16,9 @@ Owner :158 sets 10 minutes per session and $15 starting voice-minute budget acro
 
 Before provider IO, one global Durable Object atomically reserves ten minutes and records a digest of user+nonce. Concurrent/replayed attempts cannot purchase another session. A new nonce during an existing ten-minute window refuses with COACH_SESSION_CAP_REACHED. An attempt crossing UTC month end conservatively reserves ten in both months. All attempted calls keep the reservation on success, malformed reply, timeout or uncertain failure; no inferred refund. Retry of the same nonce refuses for the retained 24-hour window. No SDP answer is cached for retry.
 
-Success declares session_minute_cap:10 and deadline_at computed at admission. C closes its peer connection and microphone by that deadline; it is a PHONE deadline, not a proved server stop. Provider SDP startup must finish before it. C6-05 now reads **phone termination + provider cap + idle timeout** per :158. Official docs have not yet supplied a numeric Live idle timeout or a WebRTC REST hangup guarantee. The relay cannot prove a maximum billed tail; report this to PM without inventing one. The owner's chosen layered path stands, with no server-stop claim.
+Success declares session_minute_cap:10 and deadline_at computed at admission. C closes its peer connection and microphone by that deadline; it is a PHONE deadline, not a proved server stop. Provider SDP startup must finish before it. C6-05 now reads **phone termination + provider cap + idle timeout** per :158. Official docs have not yet supplied a numeric Live idle timeout or a WebRTC REST hangup guarantee. The relay cannot prove a maximum billed tail; :176(3) confirms this is the owner's already accepted risk under :158, not an unanswered choice. The owner's chosen layered path stands, with no server-stop claim.
 
-Control state holds only user, nonce digest, opaque provider id, deadline, admission state, reserved minutes and monthly user counters. Session rows/digests are deleted at deadline+24 hours; counters at next-month-start+7 days, by a durable alarm and admission cleanup. A late alarm cannot be claimed as exact physical erasure. Cloudflare SQLite point-in-time recovery can retain prior database states for 30 days; this is a provider retention residual for PM, not application data saved in another store.
+Control state holds only user, nonce digest, opaque provider id, deadline, admission state, reserved minutes and monthly user counters. Session rows/digests are deleted at deadline+24 hours; counters at next-month-start+7 days, by a durable alarm and admission cleanup. A late alarm cannot be claimed as exact physical erasure. Cloudflare SQLite point-in-time recovery can retain prior database states for 30 days. PM ruled this disclosed control-state retention at :176(3); the effective provider recovery retention bound is 30 days, not the live row's 24-hour expiry. No athlete content is stored.
 
 ## Provider and phone companion
 
