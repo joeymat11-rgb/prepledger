@@ -1,0 +1,63 @@
+{
+  "name": "writer-fail-enabled",
+  "mode": "writer-fail",
+  "direct": false,
+  "enabled": true,
+  "result": {
+    "gateVerdict": "FAIL",
+    "captureVerdict": "FAIL",
+    "childExit": 1,
+    "childSignal": null,
+    "tests": 4,
+    "pass": 3,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "comparisons": [
+      {
+        "kind": "second-readers",
+        "categories": [],
+        "differenceCount": 0,
+        "comparisonVerdict": "MATCH"
+      },
+      {
+        "kind": "second-applyRead",
+        "categories": [
+          {
+            "id": "trend",
+            "count": 1
+          }
+        ],
+        "differenceCount": 1,
+        "comparisonVerdict": "DIFFERENT"
+      }
+    ],
+    "fixedFailureCode": "CHILD"
+  },
+  "writerReached": true,
+  "deferredRan": false,
+  "details": null,
+  "raw": [
+    {
+      "file": "stdout.raw",
+      "bytes": 1896,
+      "sha256": "d6b0135bf009b3813a273581370330049c45fc55d4bd6b37c5d7462b93c96c0e"
+    },
+    {
+      "file": "stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "capture-manifest.json",
+      "bytes": 135,
+      "sha256": "116b6f995f70856d9222a10b0a0b29a7f7ffacbfc4e0b0070fd73d2adc05adb4"
+    },
+    {
+      "file": "native-diagnostics.jsonl",
+      "bytes": 238,
+      "sha256": "c0981d541c6fd150677aa043b689d1e475dcdd6a16089275406b513866fe5e36"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "name": "early-sealed-enabled-direct",
+  "mode": "early-sealed",
+  "direct": true,
+  "enabled": true,
+  "result": {
+    "gateVerdict": "FAIL",
+    "captureVerdict": "FAIL",
+    "childExit": 1,
+    "childSignal": null,
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "comparisons": [
+      {
+        "kind": "second-readers",
+        "categories": [],
+        "differenceCount": 0,
+        "comparisonVerdict": "MATCH"
+      },
+      {
+        "kind": "second-applyRead",
+        "categories": [],
+        "differenceCount": 0,
+        "comparisonVerdict": "MATCH"
+      }
+    ],
+    "fixedFailureCode": "DIAGNOSTIC"
+  },
+  "writerReached": true,
+  "deferredRan": false,
+  "details": null,
+  "raw": [
+    {
+      "file": "stdout.raw",
+      "bytes": 262,
+      "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+    },
+    {
+      "file": "stderr.raw",
+      "bytes": 829,
+      "sha256": "fde0d6d12852b8f4072ccf3f42ab7ee328920e0370d1ab7fe569979c2cf7c521"
+    },
+    {
+      "file": "capture-manifest.json",
+      "bytes": 141,
+      "sha256": "5e9949bb31d6b0dc25f4a23a816f3fa744c9d0c0048f28c272a49eb519b6fb49"
+    },
+    {
+      "file": "native-diagnostics.jsonl",
+      "bytes": 210,
+      "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+    }
+  ]
+}

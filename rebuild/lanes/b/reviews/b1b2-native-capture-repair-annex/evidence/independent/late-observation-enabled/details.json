@@ -1,0 +1,7 @@
+{
+  "mode": "late-observation",
+  "events": [
+    "exit-listener"
+  ],
+  "objectsUnchanged": true
+}

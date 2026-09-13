@@ -1,0 +1,10 @@
+{
+  "mode": "early-no-reaction",
+  "events": [
+    "exit-listener"
+  ],
+  "promiseSymbolsBefore": [],
+  "extensibleBefore": true,
+  "objectsUnchanged": true,
+  "promiseSymbolsAtExit": []
+}

@@ -1,0 +1,7 @@
+{
+  "mode": "cleanup-microtask",
+  "events": [
+    "exit-listener"
+  ],
+  "objectsUnchanged": true
+}

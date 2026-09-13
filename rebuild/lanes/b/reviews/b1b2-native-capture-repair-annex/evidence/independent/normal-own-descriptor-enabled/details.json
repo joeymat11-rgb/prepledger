@@ -1,0 +1,7 @@
+{
+  "mode": "normal-own-descriptor",
+  "events": [
+    "exit-listener"
+  ],
+  "objectsUnchanged": true
+}

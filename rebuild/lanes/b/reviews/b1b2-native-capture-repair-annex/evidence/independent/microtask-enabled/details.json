@@ -1,0 +1,7 @@
+{
+  "mode": "microtask",
+  "events": [
+    "exit-listener"
+  ],
+  "objectsUnchanged": true
+}

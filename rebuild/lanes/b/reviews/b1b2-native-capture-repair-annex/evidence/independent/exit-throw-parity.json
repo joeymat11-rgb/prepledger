@@ -1,0 +1,10 @@
+{
+  "mode": "exit-throw",
+  "direct": false,
+  "childExitEqual": true,
+  "childSignalEqual": true,
+  "writerReachEqual": true,
+  "countsEqual": true,
+  "disabledDeferredRan": false,
+  "enabledDeferredRan": false
+}

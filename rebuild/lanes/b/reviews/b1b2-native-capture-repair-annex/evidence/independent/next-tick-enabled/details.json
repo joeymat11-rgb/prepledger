@@ -1,0 +1,7 @@
+{
+  "mode": "next-tick",
+  "events": [
+    "exit-listener"
+  ],
+  "objectsUnchanged": true
+}

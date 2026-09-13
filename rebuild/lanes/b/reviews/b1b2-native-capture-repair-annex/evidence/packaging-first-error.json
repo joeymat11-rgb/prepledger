@@ -1,0 +1,8 @@
+{
+  "phase": "public evidence packaging, after all behavioral runs",
+  "error": "ERR_ASSERTION at assess-and-pack.cjs walk extension allowlist",
+  "cause": "Reviewer allowed json/tap/log/raw/txt but omitted the already known native-diagnostics.jsonl filename.",
+  "effect": "No archive copies were written because enumeration failed first. Candidate files were already restored. No test result or behavioral conclusion changed.",
+  "correction": "Allow jsonl alongside json in the own public packaging driver; rerun packaging only, not behavioral cohorts.",
+  "recordType": "faithful error summary from tool output; not a raw stderr copy"
+}

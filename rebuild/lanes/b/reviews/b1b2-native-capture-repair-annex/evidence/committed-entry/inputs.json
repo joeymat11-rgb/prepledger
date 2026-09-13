@@ -1,0 +1,74 @@
+{
+  "candidate": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+  "node": {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-review\\work\\pm-caretaker\\b1b2-native-capture\\.tmp\\runtime\\node.exe",
+    "version": "v22.23.2",
+    "bytes": 86997320,
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-review\\work\\pm-caretaker\\b1b2-native-capture",
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+  ],
+  "inputs": [
+    {
+      "role": "candidate",
+      "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 45331,
+      "sha256": "a010ef5b0460ecda3009c2cd54c7c7292b987e2ee954f9d6a2e4a949eaaf0b67",
+      "gitBlob": "db92fd63f39774fc5fd590c627869b1286251240",
+      "use": "synthetic invocation only"
+    },
+    {
+      "role": "candidate",
+      "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 14364,
+      "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721",
+      "gitBlob": "ff411faec22f089c1802d25425f73c9ecd2dc9f1",
+      "use": "synthetic invocation only"
+    },
+    {
+      "role": "candidate",
+      "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 48347,
+      "sha256": "27dec2e00e3fc48570704c98330d588e97ad78c7c9817a855af41739627d9a8f",
+      "gitBlob": "c0c4e076c2cdd184082d8f3d3a4489a954b76cb8",
+      "use": "only committed executable test entry"
+    },
+    {
+      "role": "candidate",
+      "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "ba48e26700567b17397eefcaf08532eb5680d01d00226a6b9bf27b8dc468be55",
+      "gitBlob": "b46131431a947e7f4e4129f14fae20d0aa643ee2",
+      "use": "profile metadata comparison only"
+    },
+    {
+      "role": "candidate",
+      "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "bytes": 196822,
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058",
+      "gitBlob": "7302b88e30d1c36b9d4558486d4cde1369915d32",
+      "use": "public helper input"
+    },
+    {
+      "role": "candidate",
+      "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+      "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+      "bytes": 1061,
+      "sha256": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2",
+      "gitBlob": "6f31a562de7447a53236991899417f1a591d62ce",
+      "use": "STATIC ONLY: no original gate invocation"
+    }
+  ],
+  "environmentKeysRemoved": [],
+  "originalNativeInvoked": false,
+  "started": "2026-09-13T23:21:37.304Z"
+}

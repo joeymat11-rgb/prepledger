@@ -1,0 +1,59 @@
+{
+  "name": "next-tick-disabled",
+  "mode": "next-tick",
+  "direct": false,
+  "enabled": false,
+  "result": {
+    "gateVerdict": "PASS",
+    "captureVerdict": "FAIL",
+    "childExit": 0,
+    "childSignal": null,
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "comparisons": [
+      {
+        "kind": "second-readers",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      },
+      {
+        "kind": "second-applyRead",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      }
+    ],
+    "fixedFailureCode": "DIAGNOSTIC"
+  },
+  "writerReached": true,
+  "deferredRan": false,
+  "details": {
+    "mode": "next-tick",
+    "events": [
+      "exit-listener"
+    ],
+    "objectsUnchanged": true
+  },
+  "raw": [
+    {
+      "file": "stdout.raw",
+      "bytes": 562,
+      "sha256": "e7d84ec4953b48cc0134de167db429f837e149730eef1534c4178cef5116fa46"
+    },
+    {
+      "file": "stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "capture-manifest.json",
+      "bytes": 139,
+      "sha256": "c0226f691ad5f7dc083e9c512e19a35182f8e6a666c55a13d46c4ecc4ca715fb"
+    }
+  ]
+}

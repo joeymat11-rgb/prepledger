@@ -1,0 +1,7 @@
+{
+  "mode": "nested-promise",
+  "events": [
+    "exit-listener"
+  ],
+  "objectsUnchanged": true
+}

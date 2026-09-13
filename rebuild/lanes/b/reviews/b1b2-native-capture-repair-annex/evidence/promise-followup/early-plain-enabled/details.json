@@ -1,0 +1,13 @@
+{
+  "mode": "early-plain",
+  "events": [
+    "exit-listener"
+  ],
+  "promiseSymbolsBefore": [],
+  "extensibleBefore": true,
+  "objectsUnchanged": true,
+  "promiseSymbolsAtExit": [
+    "async_id_symbol",
+    "trigger_async_id_symbol"
+  ]
+}
