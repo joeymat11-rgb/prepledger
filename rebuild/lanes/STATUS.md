@@ -1,17 +1,15 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 16:36 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @3512750110484e91266d9743af0c7025cb07f441 before this docs checkpoint. Product M100820aa remains integrated; full34745429303/shared34745429317 bothOS verified. END210 stands; no deployment/phone PASS.
+## STATE (refreshed 2026-09-13 16:44 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @5b42068c1aa9f521a4da6655622fd039f8e45606 before this docs checkpoint. Product M100820aa remains integrated; full34745429303/shared34745429317 bothOS verified. END210 stands; no deployment/phone PASS.
 - PM: sole Astra PM193; owner306 uses existing Codex usage and declines paid API trial. Owner268: Joe/history/memory then Dad; soak gates wide beta only. PM MAX for release judgment, HIGH advised afterward for routine coordination.
 - B: completed300/304 at083bd47/tested1dcdbc0, author331/331; prior324/328 and329/331 retained. LOW evidence custody only under316. ER/MAX exact tooling review active; final native/FULL/CI/receipt remains.
-- E: XHIGH assigned308, isolated idle-client foundation from accepted M, same runtime bytes as R4; client plus readonly repository boundary314/two existing tests/report. Separate from B and C; no full memory/controller/provider activation.
+- E: foundatione85ad803/source4191eeb complete, author254/254; original two final-load races preserved/repaired under314. LOW public archive custody318 only. D2/MAX independent review; actual full memory/controller/provider/consumer remain later.
 - C: lifecycle7e64848d scoped ACCEPT294, actual144/37/4; LOW waiting exact full consumer/composition release. N2 prior147/10/kill/build retains8e65805; current R4 applicability accepted310.
 - D: partial import harnessf0b01d9 preserved; LOW waits exact reviewed B native-Date/membership+host companionb73cf852. Real owner import, acceptedB3 and full joins remain.
-- REVIEW/INTEGRATION: D2 source-only310 complete/LOW; next E308/312/314 review at exact handoff. ER/MAX reviews B083bd47 under316, independent verdict before builder report. I paused until named final accepted candidate.
+- REVIEW/INTEGRATION: D2/MAX E318 review and ER/MAX B316 review run independently, first verdict before author reports. B public archive5ea3eca verified17 files, input manifest routed. I paused until named final accepted candidate.
 - OWNER: no immediate action. September18–23 Joe/history/memory estimate remains limited-confidence; Dad after existing two-day Joe trial and his checks. Private import, credentials and device actions remain point-of-use.
-- SCHEDULE: PM30min, active ER/E hourly, waiting20min, immediate completion handoffs. No acknowledgement-only commits/unchanged audits. One Today writer, one private gate process, one shared integration writer. Current app Fast control/readback unavailable; no speed setting change claimed.
-
-2026-09-13 · PM-CARETAKER · Astra · efdbab9777cc2fba44278ac6495ccc44b92b0fd6 · B R8 repair8e65805/T797e4cf ready; ER MAX independent review272 now. D2 MAX reviews C groundwork270 then affected N2; B/C LOW standby. Report/profile/map rehashed; author evidence is not acceptance. Joe/Dad personal goal unchanged.
+- SCHEDULE: PM30min, active ER/D2 hourly, waiting20min, immediate completion handoffs. No acknowledgement-only commits/unchanged audits. One Today writer, one private gate process, one shared integration writer. Current app Fast control/readback unavailable; no speed setting change claimed.
 
 2026-09-13 13:58 ET · PM-CARETAKER · Astra · 5dc14bdcdbba4db6f03a1d7a16fb33acb8bf3eab · D2 first79ba259 rejects two C lifecycle completion races; C XHIGH narrow repair274 assigned, D2 reconciled and B N2 review assigned. ER MAX R3 active and execution verified; B LOW. Personal Joe/Dad goal unchanged; no owner action.
 
@@ -40,3 +38,5 @@
 2026-09-13 16:31 ET · PM-CARETAKER · Astra · d7fd582d53bb2cb19b0c906efad4752b4d48d5a2 · E found two real final-read revision/token races;314 licenses one additive read-only repository fence, same tests. Keep red proof, no single-writer assumption or extra write. E XHIGH/B MAX continue; full memory/review/device proof remains.
 
 2026-09-13 16:35 ET · PM-CARETAKER · Astra · 3512750110484e91266d9743af0c7025cb07f441 · B083bd47 complete, author331/331;316 commissions ER MAX exact tooling review, B LOW evidence custody. E XHIGH repairs the real storage race314 in parallel. No engine/package/phone acceptance; original failures and final obligations retained.
+
+2026-09-13 16:44 ET · PM-CARETAKER · Astra · 5b42068c1aa9f521a4da6655622fd039f8e45606 · E e85ad803 foundation complete, author254/254;318 commissions D2 MAX independent review. E LOW archive custody, ER MAX reviews B316. Source/test prefixes verified; no full memory activation, package acceptance or phone PASS.
