@@ -263,3 +263,380 @@ module.exports.CONSTRUCTION_MUTATIONS = [
     "FG4"
   ]
 ];
+module.exports.CONSTRUCTION_MUTATIONS.push(...[
+  [
+    "U-zero-is-observation",
+    "sleep",
+    "typeof night.h === \"number\" && Number.isFinite(night.h)",
+    "typeof night.h === \"number\" && Number.isFinite(night.h) && night.h > 0",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U3 finite"
+  ],
+  [
+    "U-last5-backfill",
+    "sleep",
+    "s.sleep.nights.slice(-5).map((n) => n.h)",
+    "s.sleep.nights.filter(finiteSleep).slice(-5).map((n) => n.h)",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U6"
+  ],
+  [
+    "FG-unknown-failed-night-counter",
+    "sleep",
+    "return { run: null, at: null, targetKnown: false }",
+    "return { run: 0, at: false, targetKnown: false }",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG"
+  ],
+  [
+    "FG-null-bed-arithmetic",
+    "sleep",
+    "const needBedMin = target == null ? null : (wakeMed + 1440) - target * 60 - sol;",
+    "const needBedMin = (wakeMed + 1440) - target * 60 - sol;",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG"
+  ],
+  [
+    "U-pick-stale-hour",
+    "today",
+    " && (slp.last.d === iso || slp.last.d === plusDays(iso, -1)) && slp.last.h < 4.5",
+    " && slp.last.h < 4.5",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U8 pickStructural"
+  ]
+]);
+
+module.exports.HISTORICAL_SOURCE_MUTATIONS = [
+  [
+    "D10-1",
+    "dates",
+    "Math.round((mk(bISO) - mk(aISO)) / DAY) / 7",
+    "Math.round((mk(bISO) - mk(aISO)) / DAY / 7)",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D10-2",
+    "dates",
+    "Math.round((mk(bISO) - mk(aISO)) / DAY) / 7",
+    "(Date.UTC(...bISO.split(\"-\").map((v,i)=>+v-(i===1?1:0))) - Date.UTC(...aISO.split(\"-\").map((v,i)=>+v-(i===1?1:0)))) / 604800000",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D10-3",
+    "dates",
+    "const d = mk(iso); d.setDate(d.getDate() + n); return isoOf(d);",
+    "return isoOf(new Date(mk(iso).getTime()+n*DAY));",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D8-1",
+    "sleep",
+    "if (last.d !== plusDays(iso, -1) || !finiteSleep(last)) return true;   /* D8",
+    "if (last.d !== plusDays(iso, -1) || !finiteSleep(last)) return false;   /* D8",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U2|U3"
+  ],
+  [
+    "D8-2",
+    "sleep",
+    "if (last.d !== plusDays(iso, -1) || !finiteSleep(last)) return true;   /* D8",
+    "if (Math.round((mk(iso)-mk(last.d))/DAY)>7 || !finiteSleep(last)) return true;   /* D8",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D8-3",
+    "sleep",
+    "if (last.h < DEBT_LAST_H) return false;",
+    "if (last.h < DEBT_LAST_H) return false; return true;",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D21-1",
+    "sleep",
+    "const tomorrow = plusDays(today9, 1);",
+    "const tomorrow = plusDays(today9, 2);",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D21-2",
+    "sleep",
+    "const tomorrow = plusDays(today9, 1);",
+    "const tomorrow = plusDays(today9, 0);",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D21-3",
+    "sleep",
+    "const tomorrow = plusDays(today9, 1);",
+    "const tomorrow = todayStart().getTimezoneOffset() === 300 ? plusDays(today9, 1) : today9;",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D21-3b",
+    "sleep",
+    "const tomorrow = plusDays(today9, 1);",
+    "const tomorrow = today9 === \"2026-11-01\" ? plusDays(today9, 1) : isoOf(new Date(todayStart().getTime()+DAY));",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D21-4",
+    "sleep",
+    "clean: cleanAtDate(s, today9) && cleanAtDate(s, tomorrow)",
+    "clean: cleanAtDate(s, tomorrow)",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D19-1",
+    "policy",
+    "daysSince: daysBetween(brk.start, today), ...base",
+    "daysSince: daysBetween(brk.start, today)+1, ...base",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D19-2",
+    "policy",
+    "const resumeISO = brkS.end ? plusDays(brkS.end, 1) : null;",
+    "const resumeISO = brkS.end ? isoOf(new Date(mk(brkS.end).getTime()+DAY)) : null;",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D19-scoped-output-length",
+    "policy",
+    "of ${BREAK_LEN_DAYS}, ${brkS.daysLeft}",
+    "of ${8}, ${brkS.daysLeft}",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D16-1",
+    "policy",
+    "graded: false, hit: null, miss: false",
+    "graded: false, hit: null, miss: true",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D16-2",
+    "policy",
+    "actualTrendAt(dueISO, plusDays(dueISO, 1))",
+    "actualTrendAt(dueISO, plusDays(dueISO, 2))",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D16-3",
+    "policy",
+    "r.pt != null && !r.sealed && !r.offWindow",
+    "r.pt != null",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D16-4",
+    "policy",
+    "const dueISO = plusDays(f.d, GRADE_LAG);",
+    "const dueISO = isoOf(new Date(mk(f.d).getTime()+GRADE_LAG*DAY));",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D17-1",
+    "policy",
+    ".slice(-8).map((a) => ({ d: a.d, title: a.title, applied:",
+    ".filter(a=>!a.undone).slice(-8).map((a) => ({ d: a.d, title: a.title, applied:",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D17-2",
+    "policy",
+    "applied: !a.dismissed && !a.undone, auto: !!a.auto",
+    "applied: !a.dismissed && !a.undone, auto: !!(a.auto || a.undone)",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D17-3",
+    "policy",
+    "applied: !a.dismissed && !a.undone, auto: !!a.auto",
+    "applied: false, auto: !!a.auto",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D24-1",
+    "today",
+    "(!yRow || yRow.cal == null)",
+    "(!yRow || yRow.cal == null || yRow.pro == null || yRow.steps == null)",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D24-2",
+    "today",
+    "Object.keys(s.dailyLogs || {}).length > 0 && (!yRow || yRow.cal == null)",
+    "(!yRow || yRow.cal == null)",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D24-3",
+    "today",
+    "const yISO = plusDays(isoOf(todayStart()), -1);",
+    "const yISO = isoOf(new Date(todayStart().getTime()-DAY));",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D25-1",
+    "today",
+    "proHitN >= 1 && proHitN >= proRows.length - 1",
+    "proHitN*2 >= proRows.length",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D25-2",
+    "today",
+    "proHitN >= 1 && proHitN >= proRows.length - 1",
+    "proHitN === proRows.length",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D25-3",
+    "today",
+    "label: \"PROTEIN\", state: \"quiet\", detail: \"counting only\"",
+    "label: \"PROTEIN\", state: \"caution\", detail: \"counting only\"",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D27-1",
+    "today",
+    "const stalled = onCut && !sealed && cr.measured && cr.scale < floor;",
+    "const stalled = !sealed && cr.measured && cr.scale < floor;",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D27-2",
+    "today",
+    "const onCut = arc.key === \"cut\";",
+    "const onCut = s.plan.phase === \"cut\";",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D27-3",
+    "today",
+    "const longCut = arc.weeks >= 10;",
+    "const longCut = weekDay().wk >= 10;",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D27-4",
+    "today",
+    "const arc = (() => { try { return phaseArc(s); } catch (e) { return { key: \"cut\", weeks: weekDay().wk }; } })();",
+    "const arc = phaseArc(s);",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D23-1",
+    "today",
+    "function genSession(s, iso, slp) {",
+    "function genSession(s, iso, slp = {}) {",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D23-2",
+    "today",
+    "} catch (e) { continue; }   /* a failed derivation",
+    "} catch (e) { throw e; }   /* a failed derivation",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D23-3",
+    "today",
+    "} catch (e) { continue; }   /* a failed derivation",
+    "} catch (e) { break; }   /* a failed derivation",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ],
+  [
+    "D23-4",
+    "today",
+    "d9 = plusDays(isoOf(todayStart()), k9);",
+    "d9 = isoOf(new Date(todayStart().getTime()+k9*DAY));",
+    "rebuild/engine/test/b1-delta-cells.cjs",
+    null
+  ]
+];
+
+/* Historical source mutation construction audit checkpoint, Node24.19.0:
+ --audit-historical-mutations:34 licensed historical mutations detected
+ (33 behavioral assertions + D10-2 declaration-alias assertion), plus one separate
+ phaseArc-only length probe. D19-3 constants-file mutation is HELD, not run.
+ The earlier D23-1 survivor used the wrong declaration (pickStructural), replaced
+ by the historical genSession default parameter; a new real missing-slp cell
+ kills it. Deliberate malformed phase/accessor escapes are now asserted via
+ doesNotThrow; their earlier raw exceptions were NOT counted as kills.
+ B1 now27/27; exact M2/27. Earlier26-cell checkpoint remains recorded above.
+*/
+// Explicit opt-in construction audit; ordinary node --test never mutates sources.
+function runConstructionAudit(mode) {
+ const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto');
+ const root=path.resolve(__dirname,'../../..'),scratch=path.join(root,'.tmp','b1b2-public-audit');fs.mkdirSync(scratch,{recursive:true});
+ const licensed=['dates','sleep','policy','today','plan','progression','volume','writers'].map(n=>'rebuild/engine/'+n+'.cjs');
+ const sha=x=>crypto.createHash('sha256').update(x).digest('hex'),saved=new Map(licensed.map(p=>[p,fs.readFileSync(path.join(root,p))]));
+ const before=Object.fromEntries([...saved].map(([p,b])=>[p,sha(b)]));
+ const run=(args,label)=>{const r=cp.spawnSync(process.execPath,args,{cwd:root,encoding:'utf8',windowsHide:true,env:{...process.env,TZ:'America/New_York'}});if(r.error)throw r.error;fs.writeFileSync(path.join(scratch,label+'.log'),r.stdout+r.stderr);return {status:r.status,text:r.stdout+r.stderr};};
+ const restore=()=>{for(const [p,b]of saved)fs.writeFileSync(path.join(root,p),b);for(const [p,h]of Object.entries(before))assert.equal(sha(fs.readFileSync(path.join(root,p))),h,'source restoration '+p);};
+ const result=[];
+ try {
+  if(mode==='--audit-mutations'||mode==='--audit-historical-mutations') {
+   for(const [id,name,a,b,evidence,filter]of (mode==='--audit-mutations'?module.exports.CONSTRUCTION_MUTATIONS:module.exports.HISTORICAL_SOURCE_MUTATIONS)){
+    const p='rebuild/engine/'+name+'.cjs';assert.ok(licensed.includes(p),'unlicensed mutation source');assert.ok(['rebuild/engine/test/b1-unknown-recovery.test.cjs','rebuild/engine/test/b1b2-sleep-target-cells.cjs','rebuild/engine/test/b1-delta-cells.cjs'].includes(evidence));
+    const source=saved.get(p).toString('utf8');assert.equal(source.split(a).length,2,'exact mutation anchor '+id);
+    let r;try{fs.writeFileSync(path.join(root,p),source.replace(a,b));r=run(filter?['--test','--test-reporter=tap','--test-name-pattern='+filter,evidence]:[evidence],id);}finally{restore();}
+    const record=(r.text.match(/^PUBLIC_B1_RESULT (.+)$/m)||[])[1];
+    const delta=record?JSON.parse(record):null;
+    const failures=delta?delta.failures.length:(r.text.match(/^not ok /gm)||[]).length,assertions=delta?delta.failures.filter(f=>f.code==='ERR_ASSERTION').length:(r.text.match(/code: 'ERR_ASSERTION'/g)||[]).length;
+    const classification=r.status===1&&failures>0&&failures===assertions?'BEHAVIORAL_KILL':r.status===0?'SURVIVED':'SETUP_OR_BOUNDARY_FAILURE';
+    const kind=id==='D10-2'&&classification==='BEHAVIORAL_KILL'?'DECLARATION_ALIAS_KILL':classification;
+    result.push({id,classification:kind,failures,assertions});console.log(id+' '+kind);
+   }
+  } else if(mode==='--audit-preimage') {
+   for(const p of licensed)fs.writeFileSync(path.join(root,p),cp.execFileSync('git',['show','100820aa47a4f8729642033499eaec0f0ee282e1:'+p],{cwd:root,windowsHide:true}));
+   const rows=[['b1',['rebuild/engine/test/b1-delta-cells.cjs']],['b2',['rebuild/lanes/b/b2-delta-cells.cjs']],['u',['--test','--test-reporter=tap','rebuild/engine/test/b1-unknown-recovery.test.cjs']],['fg',['--test','--test-reporter=tap','rebuild/engine/test/b1b2-sleep-target-cells.cjs']]];
+   for(const [id,args]of rows){const r=run(args,'M-'+id);const tests=Number((r.text.match(/^# tests (\d+)/m)||[])[1]||0),pass=Number((r.text.match(/^# pass (\d+)/m)||[])[1]||0),fail=Number((r.text.match(/^# fail (\d+)/m)||[])[1]||0),assertions=(r.text.match(/code: 'ERR_ASSERTION'/g)||[]).length;const deltaLine=(r.text.match(/^PUBLIC_B1_RESULT (.+)$/m)||[])[1],delta=deltaLine?JSON.parse(deltaLine):null;
+    if(id==='b1'){assert.equal(r.status,1);assert.equal(delta.total,27);assert.equal(delta.passed,2);assert.ok(delta.failures.every(f=>f.code==='ERR_ASSERTION'));}
+    if(id==='b2'){assert.equal(r.status,0);assert.match(r.text,/32\/32 HOLD · side BASE/);}
+    result.push({id,status:r.status,tests,pass,fail,assertions,...(delta?{deltaTotal:delta.total,deltaPass:delta.passed,deltaAssertions:delta.failures.length}:{}),classification:tests?(fail===assertions?'BEHAVIOR_ONLY':'SETUP_OR_BOUNDARY_FAILURE'):/TypeError|ReferenceError|SyntaxError/.test(r.text)?'SETUP_OR_BOUNDARY_FAILURE':'DELTA_PROGRAM'});console.log(JSON.stringify(result.at(-1)));}
+  } else throw Error('unsupported construction audit mode');
+ } finally {restore();}
+ fs.writeFileSync(path.join(scratch,mode.slice(2)+'.json'),JSON.stringify({sourceBefore:before,sourceRestored:true,results:result},null,2)+'\n');
+ const ok=result.every(r=>!['SURVIVED','SETUP_OR_BOUNDARY_FAILURE'].includes(r.classification));console.log('PUBLIC CONSTRUCTION AUDIT '+mode+': '+(ok?'EXPECTED BEHAVIOR':'FAIL')+'; runtime bytes restored and SHA256-checked');return ok;
+}
+module.exports.runConstructionAudit=runConstructionAudit;
+if(require.main===module&&process.argv.some(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage'].includes(a)))process.exit(runConstructionAudit(process.argv.find(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage'].includes(a)))?0:1);
+
+// Expanded amendment audit:20/20 behavioral kills. Historical audit:34/34
+// licensed historical probes detected plus1 separately labeled phaseArc output probe.
+// Current standard cells: U118/118, FG28/28, B1 27/27, B2 32/32.

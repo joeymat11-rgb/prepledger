@@ -493,7 +493,7 @@ cell("B1-D27-a-phase-that-cannot-be-derived-leaves-the-pre-D27-reading-standing"
   for (const [what, brk] of malformed) {
     // THE cell: no throw, and the answer is the BASE's own answer at this
     // fixture, measured on the pre-B1 base — rung "break" / move.kind "fix".
-    const fix = T.theOneFix(stalled("2026-09-03", "cut", brk));
+    let fix; assert.doesNotThrow(()=>{fix = T.theOneFix(stalled("2026-09-03", "cut", brk));}, what);
     assert.equal(fix.rung, "break", what + " must not move the rung the frozen engine gave");
     assert.equal(fix.title, "A diet break has earned its place", what);
     assert.equal(T.nowModel(stalled("2026-09-03", "cut", brk)).move.kind, "fix",
@@ -537,7 +537,7 @@ cell("B1-D23-a-failed-derivation-is-neither-a-rest-day-nor-an-escaping-throw",
   Object.defineProperty(s.queue[0], "newW", {
     get() { throw new Error("synthetic boom"); }, enumerable: true, configurable: true });
   // THE cell: `nowModel` still returns, and it finds Saturday's UPPER day.
-  const w = engine("2026-09-03").nowModel(s, DEPS).workout;
+  let w; assert.doesNotThrow(()=>{w = engine("2026-09-03").nowModel(s, DEPS).workout;}, "synthetic throwing accessor must stay contained");
   assert.equal(w.title, "UPPER BODY " + MID + " SAT 9/5");
   assert.equal(w.today, false);
   assert.equal(w.iso, "2026-09-05");
@@ -937,8 +937,16 @@ cell("B1-D24-empty-dailyLogs-does-not-invent-an-owed-yesterday", ["D24-2 empty-d
   s.dailyLogs["2026-09-01"] = { cal: 2000 };
   assert.equal(T.nowFocus(s, 12).owed.some((x) => x.k === "yesterday"), true);
 });
+cell("B1-D23-required-sleep-interface-is-preserved", ["D23-1 default-slp-to-empty-object"],()=>{
+ const T=engine("2026-09-03"),s=hackDebut({4:"L"});
+ assert.throws(()=>T.genSession(s,"2026-09-03"),TypeError);
+ s.sleep.nights=[{d:"2026-09-02",h:3}];const slp=T.sleepInfo(s);
+ assert.equal(T.pickStructural(s,"2026-09-03",slp).deferred.length,1);
+ assert.doesNotThrow(()=>T.genSession(s,"2026-09-03",slp));
+});
 let held = 0;
 const failed = [];
+const failureDetails = [];
 for (const c of CELLS) {
   const tag = c.kills.length
     ? "  [kills: " + c.kills.join(" | ") + "]"
@@ -946,6 +954,7 @@ for (const c of CELLS) {
   try { c.run(); held++; console.log("HOLD " + c.name + tag); }
   catch (e) {
     failed.push(c.name);
+    failureDetails.push({cell:c.name,errorName:e.name,code:e.code||null});
     console.log("FAIL " + c.name + tag);
     console.log("     " + String(e && e.message || e).split("\n").slice(0, 3).join(" / "));
   }
@@ -959,3 +968,5 @@ if (failed.length) {
   console.error("B1 DELTA CELLS FAILED: " + failed.join(", "));
   process.exitCode = 1;
 }
+
+console.log("PUBLIC_B1_RESULT "+JSON.stringify({total:CELLS.length,passed:held,failures:failureDetails}));
