@@ -11,8 +11,6 @@
 - OWNER: no immediate action. September18–23 Joe/history/memory estimate remains limited-confidence; Dad after existing two-day Joe trial and his checks. Private import, credentials and device actions remain point-of-use.
 - SCHEDULE: PM30min, active B/E hourly, waiting20min, immediate completion handoffs. No acknowledgement-only commits/unchanged audits. One Today writer, one private gate process, one shared integration writer. Current app Fast control/readback unavailable; no speed setting change claimed.
 
-2026-09-13 · PM-CARETAKER · Astra · cd3e47e70fd56ae17b231337e3bc45272a9e88a6 · E lifecycle and C browser plans settled. C XHIGH starts isolated four-path draft/lifecycle groundwork266 alongside B MAX engine repair. E LOW; D2 reviews on handoff. Full memory/import composition remains later; beta soak earliestOct5 unchanged.
-
 2026-09-13 · PM-CARETAKER · Astra · 0b93425ebac0a27012aef9947a3e6e5ddee7db83 · Owner268 prioritizes Joe with history and Dad personal use; soak gates wide beta only. Two-day Joe trial/Dad walkthrough retained. B MAX repair and C XHIGH groundwork active; C embedded existing S14 build clarified. No owner action now.
 
 2026-09-13 · PM-CARETAKER · Astra · c5efdba68b685f39bbe8f34ef1579cb68df9d80f · C1316639 lifecycle groundwork built, author137 checks/two faults; D2 MAX independent review270 commissioned. C LOW, B MAX R8 continues. This stage is not complete memory; Joe/Dad personal goal and wide-beta-only soak unchanged.
@@ -40,3 +38,5 @@
 2026-09-13 15:56 ET · PM-CARETAKER · Astra · 78869af65df7c4a1d5734b48958d0d93ce64f111 · B MAX binding300 continues; exact fixture extension304 granted. D2 MAX affected R4 consumer review302 now parallel. Source relevance first, retained evidence reused honestly, final gates unchanged. Other lanes wait their actual dependencies.
 
 2026-09-13 16:12 ET · PM-CARETAKER · Astra · 66e3126bf9a84b823bae1e2ffbdc7c37e1eb2f1c · Owner306: existing Codex usage, no API trial. E XHIGH idle-client foundation308 starts alongside B MAX tooling. D2 source applicability ACCEPT310; no redundant browser rerun, LOW standby. Final engine/import/memory/phone checks remain; no owner action.
+
+2026-09-13 16:21 ET · PM-CARETAKER · Astra · 2e2ed0ea63e9dd0bf0acfdf8f69b46b08b8f9980 · E308 active XHIGH;312 settles exact two-package lock setup and trusted publisher failure semantics. Ordinary refusal preserves the old host; invalid publisher effects are unknown, never claimed rolled back. No path expansion or full-memory acceptance.
