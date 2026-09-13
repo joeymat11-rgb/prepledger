@@ -121,7 +121,10 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // claimed the ruled order and the array did not carry it. Both now say the same thing.
 // Widening this list is the ONLY way a new package id becomes runnable — a spec can never
 // nominate its own id.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
+// DECISIONS:191/214 adds the combined successor. Historical separate IDs remain
+// readable; they do not create alternate parents for the new combined package.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'B1-B2', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
+const B1B2_D_IDS = Object.freeze(['D10','D8','D21','D19','D16','D17','D24','D25','D27','D23','D9','D2','D1','D5','D6','D7','D3','D4','D29','D18','D28','D30','D31','D32']);
 // The real chain branch, resolved from GIT REFS and never from a spec (X2/R3-B). Every
 // ancestry assertion that decides whether a commit is on the accepted chain names THIS.
 const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
@@ -1262,7 +1265,7 @@ function spec() {
   assert.equal(s.version, 1); assert.equal(s.lanePackage, ID);
   // The package id is BOUND to the id on the command line, not merely shaped like one: a
   // spec filed as B1.json cannot carry M2-B2-…'s id and so cannot claim B2's artifact path.
-  assert(new RegExp('^M2-' + escapeRe(ID) + '-[A-Z0-9-]+$').test(s.packageId), 'Package id shape');
+  assert(ID === 'B1-B2' ? s.packageId === 'M2-B1-B2' : new RegExp('^M2-' + escapeRe(ID) + '-[A-Z0-9-]+$').test(s.packageId), 'Package id shape');
   assert(['SKELETON', 'PROPOSED', 'BRIEF-ACCEPTED'].includes(s.status), 'Spec status');
   // N4. The brief acceptance is a ledger CITATION, shaped exactly like owner/contract/theme
   // — never a bare integer a spec can invent. Its bytes are resolved in Git by authority().
@@ -1295,6 +1298,7 @@ function spec() {
   assert(s.dIds.length || NO_REGISTER_IDS.has(ID),
     'REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT ' + ID + '; a repair package registers at least one D-id, and only the ids fixed in NO_REGISTER_IDS are exempt');
   assert.deepEqual(Object.keys(s.laws).sort(), s.dIds.slice().sort(), 'Exactly one law id per D-id');
+  if (ID === 'B1-B2') assert.deepEqual(s.dIds, B1B2_D_IDS, 'B1B2-EXACT-24-DEFECT-IDENTITIES');
   assert.deepEqual(s.carriedAcceptedIds, CARRIED, 'Carried accepted ids');
   assert(Array.isArray(s.privateLiveTriggered) && s.privateLiveTriggered.every(d => s.dIds.includes(d)), 'LIVE-triggered subset');
   keys(s.parent, ['decided', 'chosen', 'options'], 'Parent block');
@@ -1629,17 +1633,75 @@ function parentPin(entry, file) {
   assert(/^[a-f0-9]{64}$/.test(pinned), 'PARENT-PIN-SHAPE ' + file);
   return pinned;
 }
-function held(s, file, hash, code) {
+// DECISIONS:154/214. Classes are derived here, never supplied by the spec.
+function pinClass(file) {
+  assert(typeof file === 'string' && file.length && !path.isAbsolute(file) && !path.win32.isAbsolute(file) &&
+    !file.includes('\\') && path.posix.normalize(file) === file &&
+    file.split('/').every(part => part && part !== '.' && part !== '..' && !/[ .]$|[:\x00-\x1f]/.test(part)),
+    'PIN-PATH-NORMALIZED ' + file);
+  const parts = file.split('/');
+  assert(parts[0].toLowerCase() !== 'rebuild' || parts[0] === 'rebuild', 'PIN-PATH-NORMALIZED ' + file);
+  assert(parts[0] !== 'rebuild' || !['engine','conform','m4'].includes((parts[1] || '').toLowerCase()) ||
+    parts[1] === parts[1].toLowerCase(), 'PIN-PATH-NORMALIZED ' + file);
+  return /^rebuild\/(?:engine|conform|m4)(?:\/|$)/.test(file) ? 'disk-head' : 'sourcebase-git';
+}
+function pinPhase(phase) {
+  assert(['ci','full-entry','full-terminal'].includes(phase), 'PIN-PHASE-CLOSED ' + phase);
+  return phase !== 'ci';
+}
+function gitBoundPin(s, file, hash, code, phase) {
+  const strict = pinPhase(phase);
+  assert.equal(pinClass(file), 'sourcebase-git', 'PIN-CLASS-EXPECTED-GIT ' + file);
+  // Always this package's declared sourceBase; never search another historical
+  // commit for matching bytes or substitute today's disk for a missing object.
+  assert.equal(gitSha(s.sourceBase, file), hash, code + '-AT-SOURCEBASE ' + file);
+  if (strict) {
+    assert.equal(diskSha(file), hash, 'GIT-BOUND-PIN-DISK ' + phase + ' ' + file);
+    assert.equal(gitSha('HEAD', file), hash, 'GIT-BOUND-PIN-HEAD ' + phase + ' ' + file);
+  }
+  return hash;
+}
+function unchangedGitPins(s, bound) {
+  const result = new Map();
+  const add = (file, hash, role, from) => {
+    if (pinClass(file) === 'sourcebase-git') result.set(file, {hash, role, from});
+  };
+  for (const [file, pin] of Object.entries(s.product))
+    if (pin.role === 'carried' || pin.role === 'pinned-unchanged') add(file, pin.pre, pin.role, 'own');
+  if (!bound) return result;
+  const a = bound.acceptance, parent = {...a.product, ...a.executionPins};
+  for (const [file, entry] of Object.entries(parent))
+    if (!Object.hasOwn(s.product, file)) add(file, parentPin(entry, file), 'inherited', 'parent');
+  const g = a.parent;
+  if (g) {
+    assert.equal(pinClass(g.artifact), 'disk-head', 'GRANDPARENT-ARTIFACT-CORE-PATH');
+    assert.equal(diskSha(g.artifact), g.sha256, 'GRANDPARENT-ARTIFACT-BYTES');
+    const ga = J.parseExact(fs.readFileSync(rel(g.artifact)));
+    for (const [file, entry] of Object.entries({...ga.product, ...ga.executionPins}))
+      if (!Object.hasOwn(parent, file) && !Object.hasOwn(s.product, file))
+        add(file, parentPin(entry, file), 'inherited', 'grandparent');
+  }
+  return result;
+}
+function verifyUnchangedGitPins(s, bound, phase) {
+  pinPhase(phase);
+  const entries = unchangedGitPins(s, bound);
+  for (const [file, entry] of entries) gitBoundPin(s, file, entry.hash, 'UNCHANGED-PIN-BROKEN', phase);
+  return entries;
+}
+function held(s, file, hash, code, phase = ci ? 'ci' : 'full-entry') {
+  pinPhase(phase); const kind = pinClass(file);
   if (Object.hasOwn(s.product, file)) { assert.equal(gitSha(s.sourceBase, file), hash, code + '-AT-SOURCEBASE ' + file); return false; }
+  if (kind === 'sourcebase-git') { gitBoundPin(s, file, hash, code, phase); return true; }
   assert.equal(diskSha(file), hash, code + ' ' + file);
   assert.equal(gitSha('HEAD', file), hash, code + '-GIT-DISK-DISAGREE ' + file);
   return true;
 }
-function pins(s, bound) {
+function pins(s, bound, phase = ci ? 'ci' : 'full-entry') {
   if (!bound) { note('parent and grandparent artifact pins not re-asserted'); return; }
   const a = bound.acceptance; let kept = 0, gkept = 0, base = 0;
   for (const [file, entry] of Object.entries({ ...a.product, ...a.executionPins })) {
-    if (held(s, file, parentPin(entry, file), 'PARENT-PIN-BROKEN')) kept++; else base++;
+    if (held(s, file, parentPin(entry, file), 'PARENT-PIN-BROKEN', phase)) kept++; else base++;
   }
   const g = a.parent;
   assert(g && typeof g.artifact === 'string' && /^[a-f0-9]{64}$/.test(g.sha256), 'Grandparent coordinates');
@@ -1664,11 +1726,12 @@ function pins(s, bound) {
   // it, and a grandparent sealed by THIS runner is exactly as likely as a parent.
   for (const [file, entry] of Object.entries({ ...ga.product, ...ga.executionPins })) {
     if (Object.hasOwn(a.product, file) || Object.hasOwn(a.executionPins, file)) continue;
-    if (held(s, file, parentPin(entry, file), 'GRANDPARENT-PIN-BROKEN')) gkept++; else base++;
+    if (held(s, file, parentPin(entry, file), 'GRANDPARENT-PIN-BROKEN', phase)) gkept++; else base++;
   }
   say('PARENT PINS RE-ASSERTED at run time; ' + kept + ' pin(s) from ' + bound.option.artifact + ' plus its ' +
     Object.keys(a.product).length + ' product pins through the inventory below, and ' + gkept + ' un-superseded grandparent pin(s) from ' +
-    g.artifact + ', byte-identical on disk AND in Git at HEAD; ' + base + ' superseded pin(s) preserved in Git at sourceBase ' +
+    g.artifact + '; phase=' + phase + ', core pins on disk/HEAD; unchanged outside-core pins at sourceBase' +
+    (phase === 'ci' ? ' (Git-bound only)' : ' AND disk/HEAD') + '; ' + base + ' declared inventory pin(s) preserved in Git at sourceBase ' +
     s.sourceBase.slice(0, 7) + '; parent artifact byte-identical in Git at ' + bound.reviewedCommit);
 }
 // Walk the accepted chain to the artifact that still carries the audit baseline (the
@@ -1687,7 +1750,8 @@ function baselineOf(bound) {
 // W2. The inventory is checked against the PARENT's product map, not only against itself:
 // a pre-image that is not the parent's pinned byte, and a parent-pinned file this spec
 // drops from its inventory, are both UNLISTED-PRODUCT-DRIFT.
-function product(s, bound, sealed) {
+function product(s, bound, sealed, pinVerificationPhase = ci ? 'ci' : 'full-entry') {
+  pinPhase(pinVerificationPhase);
   const pmap = bound && bound.acceptance.product, epins = bound && bound.acceptance.executionPins;
   const at = { pre: [], post: [], carried: [], drift: [], superseded: [], unchanged: [], grandfathered: [] };
   for (const [file, pin] of Object.entries(s.product)) {
@@ -1753,7 +1817,9 @@ function product(s, bound, sealed) {
       '" with pre === post; a file this package edits, supersedes or writes must reach a post-image it does not already stand at — a file it declares, runs and leaves alone is role "pinned-unchanged"');
     if (grandfathered) at.grandfathered.push(file);
     if (pin.role === 'new' && pin.post === null && !fs.existsSync(rel(file))) { at.pre.push(file); continue; }
-    const disk = diskSha(file);
+    const kind = pinClass(file);
+    const gitUnchanged = kind === 'sourcebase-git' && ['carried','pinned-unchanged'].includes(pin.role);
+    const disk = gitUnchanged ? gitBoundPin(s, file, pin.pre, 'PRODUCT-PIN-BROKEN', pinVerificationPhase) : diskSha(file);
     // The POST-image is asked first, and the order is the whole of the change (fix r5
     // follow-up, from lane B's own §4.2 objection). A file this package declares and PINS
     // but does not CHANGE carries pre === post — it is complete at those bytes, and it was
@@ -1785,7 +1851,7 @@ function product(s, bound, sealed) {
   const standing = at.post.length + at.unchanged.length;
   const phase = standing === 0 ? 'NOT-IMPLEMENTED' : at.pre.length === 0 ? 'IMPLEMENTED' : 'PARTIAL';
   say('PRODUCT ' + phase + '; ' + at.post.length + ' at the declared post-image / ' + at.pre.length + ' at the pinned pre-image / ' + at.carried.length +
-    ' carried byte-identical from the parent / ' + at.unchanged.length + ' declared role "pinned-unchanged" — executed by a declared child, produced by nothing' +
+    ' carried at their declared pin class from the parent / ' + at.unchanged.length + ' declared role "pinned-unchanged" — executed by a declared child, produced by nothing' +
     ' / 0 unlisted drift' + (pmap ? '; the inventory covers all ' + Object.keys(pmap).length + ' parent-pinned product files' : '') +
     '; ' + at.superseded.length + ' declared role "superseded-by-child" over a parent EXECUTION pin, each equal to the parent byte' +
     (at.superseded.length ? ' (' + at.superseded.join(' ') + ')' : ''));
@@ -2699,7 +2765,8 @@ function sealedRunReceiptInstruction() {
 }
 // Returns {authorized, said, sealed, key}; `key` identifies everything this evaluation
 // depended on, and the END-of-run re-evaluation must reproduce it exactly (W5).
-function envelope(s, bound, ran) {
+function envelope(s, bound, ran, pinVerificationPhase = ci ? 'ci' : (ran ? 'full-terminal' : 'full-entry')) {
+  const gitUnchanged = verifyUnchangedGitPins(s, bound, pinVerificationPhase);
   const said = [], out = line => said.push('B PACKAGE ' + ID + ' ' + line);
   if (!fs.existsSync(rel(ARTIFACT)) || !fs.existsSync(rel(REVIEW))) {
     out('ENVELOPE ABSENT; ' + ARTIFACT + ' is not sealed yet — no PASS word is available');
@@ -2781,7 +2848,12 @@ function envelope(s, bound, ran) {
   // commit — the spec and this runner included, since both are execution pins.
   const reviewed = { ...m.executionPins };
   for (const [file, pin] of Object.entries(m.product)) reviewed[file] = pin.post || pin.pre;
-  L.checkSources(root, v[1], reviewed); // the original routine: Git at the reviewed commit AND the worktree
+  // Unchanged outside-core pins remain bound to THIS spec's sourceBase. The
+  // strict full phases above additionally prove disk/HEAD, including at the
+  // terminal decision. All actual implementation, runner/spec and core pins
+  // retain the original reviewed-commit plus worktree check.
+  for (const file of gitUnchanged.keys()) delete reviewed[file];
+  L.checkSources(root, v[1], reviewed);
   ancestor(v[1], 'HEAD', 'REVIEWED-COMMIT-NOT-BEHIND-HEAD');
   ancestor(r.commit, CHAIN_REF, 'RECEIPT-BASE-NOT-ON-THE-CHAIN-BRANCH'); // the real chain branch, from Git refs, never from the spec
   ancestor(s.sourceBase, 'HEAD', 'SOURCEBASE-NOT-BEHIND-HEAD');
@@ -2846,14 +2918,15 @@ try {
   const bound = parent(s);
   // Evaluated once HERE only to supply the header word and the sealed pins fidelity()
   // needs; the evaluation that DECIDES runs after every gate (W5).
+  const entryPinPhase = ci ? 'ci' : 'full-entry';
   const first = envelope(s, bound);
   say('POSTFIX ' + s.packageId + ' ' + (first.authorized ? 'AUTHORIZED' : 'REVIEW-PENDING') + ' mode=' + args[0]);
   for (const line of first.said) console.log(line);
-  pins(s, bound);
+  pins(s, bound, entryPinPhase);
   // r7 F1: the sealed artifact is handed over so product() can tell a spec whose role-new
   // pre === post declarations are ALREADY SEALED (grandfathered, reported, non-blocking)
   // from one that is making them fresh (refused).
-  const phase = product(s, bound, first.sealed);
+  const phase = product(s, bound, first.sealed, entryPinPhase);
   fidelity(s, first.sealed);
   authority(s, bound);
   // Honesty: this line ECHOES free text the spec supplies and counts it. It asserts
@@ -2897,7 +2970,7 @@ try {
   // swapped mid-run changes `key` and refuses here, before any terminal word is printed.
   // `ran` is handed over so the Y1 seal assert can re-take the EXECUTION half against the
   // map this run actually produced, not only the declaration half it could see at the top.
-  const last = envelope(s, bound, ran);
+  const last = envelope(s, bound, ran, ci ? 'ci' : 'full-terminal');
   assert.equal(last.key, first.key, 'ENVELOPE-CHANGED-DURING-THE-RUN');
   assert.equal(last.authorized, first.authorized, 'ENVELOPE-CHANGED-DURING-THE-RUN');
   if (!last.authorized) note(last.sealed === null ? 'closed cumulative profile not sealed' : 'independent exact-artifact acceptance PENDING', false);

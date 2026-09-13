@@ -1180,3 +1180,15 @@ node --test rebuild/lanes/b/tooling/test/astra-issuer-compatibility.test.cjs reb
 ```
 
 This is a tooling candidate, not a reseal of H3. Its runner byte change invalidates reuse of a seal made by the old runner. Accepted H3 artifacts/specs/receipts and frozen helpers stay unchanged. After independent MAX review, the next licensed successor must register the test, carry the new pins and its required FULL/private/CI/receipt/rerun evidence. Tooling tests alone grant no package PASS or product integration. Other pending tooling obligations and bundle/F1/F2 admission remain separately scoped.
+
+## B1-B2 construction: pin classes and historical CI proof (154/184)
+
+The combined tooling adopts the exact198 issuer delta and implements the separately accepted154/184 brief. Unchanged files outside `rebuild/engine`, `rebuild/conform` and `rebuild/m4` are checked against this package's declared `sourceBase` Git blobs during construction/public CI. Their original pre-images and ownership remain binding; a matching blob elsewhere in history is never an alternative base. Core files and actual edited/new product remain subject to disk and HEAD checks.
+
+Both FULL entry and FULL terminal recheck every Git-bound unchanged file against sourceBase, disk and HEAD, including before an absent acceptance envelope can return. Own, inherited parent and unsuperseded grandparent pins use the same rule. Invalid paths, aliases and unknown phases refuse. Receipt136's byte identity and the193/198 issuer boundary remain intact; these changes do not authorize a private or FULL run.
+
+Cell35 of `ci-second-gate.test.cjs` now verifies the actual historical STEP receipt71, its exact artifact and workflow at904d35d, ancestry and whole-file equality against a777f64 with exactly one command replacement. All preceding34 cells remain byte-identical. The focused registration tests execute only the real last callback in an isolated VM; they do not load the protected whole historical suite.
+
+Current registration is checked separately: exactly one B1-B2 cumulative workflow command, both operating systems, all13 existing Today test files, and every other standing command. `sleep.test.mjs` remains excluded until an exact N2 successor is admitted. B1-B2's ID and24 ordered D-ids are closed, but a complete package profile and inherited-gate implementation are still pending the successor-registration amendment. This partial tooling tree is not runnable package evidence.
+
+The actual eight-file composed tooling cohort passed157/157 on Node24.19.0, zero failures/cancellations/skips. Its first156/157 result is preserved: r10 F3 required the established header-only call `const first = envelope(s, bound);`, which was restored using the new default entry phase, without changing that test. The new pin suite contributes17 tests including five behavioral source-mutant controls; the new registration suite contributes17 current/historical workflow controls. See `rebuild/lanes/b/BUILD-B1B2-TOOLING-154-184.md` for exact commands and preimage accounting. These are tooling results, not native census, package PASS, acceptance or integration.

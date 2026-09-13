@@ -264,12 +264,12 @@ test('F3 — the four refusals r7 fired bare now carry names in the vocabulary',
   assert.equal(api.failCode('SOMETHING-AN-INPUT-SHAPED value'), null);
 });
 
-test('F6 — IDS carries the order DECISIONS:124 rules', () => {
-  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'B1', 'B2', 'B4', 'B3', 'B-LOM']);
+test('F6 — IDS preserves historical order and adds the DECISIONS:191/214 combined successor', () => {
+  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'B1-B2', 'B1', 'B2', 'B4', 'B3', 'B-LOM']);
   // ":124 — ORDER B-NTC → H3 → B1 → B2 → B4 → B3". B-LOM is in no ruled sequence and
   // stands after the ruled six rather than inside them.
-  assert.deepEqual(api.IDS.slice(0, 6), ['B-NTC', 'H3', 'B1', 'B2', 'B4', 'B3']);
-  assert.equal(api.IDS[6], 'B-LOM');
+  assert.deepEqual(api.IDS.filter(id=>id!=='B1-B2').slice(0, 6), ['B-NTC', 'H3', 'B1', 'B2', 'B4', 'B3']);
+  assert.equal(api.IDS.at(-1), 'B-LOM');
   // THE NO-REGISTER RULE, written down and asserted: every member is either an H-/F-
   // engine-tier item (DECISIONS:93 — feature work under the ratified slice plan takes no
   // register D-ID) or a B- id the PM ruled exempt BY NAME (DECISIONS:103 (1)). H3 is in

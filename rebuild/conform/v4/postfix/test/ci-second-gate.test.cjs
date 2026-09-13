@@ -26,4 +26,24 @@ test.after(()=>{assert(path.resolve(temp).startsWith(path.resolve(parent)+path.s
 test('cold actual entry suppresses missing or throwing synthetic preflight dependencies',()=>{const dir=path.join(temp,'rebuild/conform/v4/postfix');fs.mkdirSync(dir,{recursive:true});const entry=path.join(dir,'ci-second-gate.cjs');fs.copyFileSync(cli,entry);const launch=()=>cp.spawnSync(process.execPath,[entry,'--profile',C.PROFILE],{cwd:temp,encoding:'utf8',windowsHide:true,timeout:30000});for(const body of [null,"process.stdout.write('SYNTHETIC PROTECTED PREFLIGHT');process.stderr.write('SYNTHETIC PROTECTED PREFLIGHT');throw Error('SYNTHETIC PROTECTED PREFLIGHT');"]){if(body!==null)fs.writeFileSync(path.join(dir,'acceptance.cjs'),body);const r=launch();assert.equal(r.status,1);assert.equal(r.stdout,'');assert.equal(r.stderr.trim(),'CI SECOND GATE FAIL');}});
 test('missing or unpinned helper fails before candidate execution',()=>{assert.throws(()=>C.requirePinnedHelper(temp,{executionPins:{[C.HELPER]:C.HELPER_SHA}}));assert.throws(()=>C.requirePinnedHelper(root,{executionPins:{[C.HELPER]:'0'.repeat(64)}}),{code:'CI-CUSTODY-PIN'});const file=path.join(temp,C.HELPER);fs.mkdirSync(path.dirname(file),{recursive:true});fs.copyFileSync(path.join(root,C.HELPER),file);assert.throws(()=>C.requirePinnedHelper(temp,{executionPins:{[C.HELPER]:C.HELPER_SHA}}),{code:'CI-CUSTODY-PENDING'});fs.appendFileSync(file,'\n// synthetic tamper\n');assert.throws(()=>C.requirePinnedHelper(temp,{executionPins:{[C.HELPER]:C.HELPER_SHA,[C.CUSTODY]:'0'.repeat(64)}}),{code:'CI-CUSTODY-PIN'});});
 test('restoring times1000 cannot satisfy the actual one-expression source gate',()=>{const p=A.parentArtifact(root),original=L.object(root,p.baseline.auditCommit,S.STEP_FILE).toString('utf8');assert(original.includes(S.STEP_BEFORE));assert.throws(()=>S.proposeStepEfficacyChange(original,original),{code:'UNAPPROVED-SOURCE-DELTA'});});
-test('workflow changes exactly one command and retains both OS jobs',()=>{const original=L.object(root,'a777f64318dfb9b4766fa336d623196d07b5fc00','.github/workflows/rebuild.yml').toString('utf8'),actual=fs.readFileSync(path.join(root,'.github/workflows/rebuild.yml'),'utf8'),before='run: node rebuild/engine/test/second-gate.mjs --candidate',after='run: node rebuild/conform/v4/postfix/ci-second-gate.cjs --profile M2-STEP-EFFICACY';assert.equal(original.split(before).length,2);assert.equal(actual,original.replace(before,after));assert(actual.includes('os: [ubuntu-latest, windows-latest]'));assert(!actual.includes('|| true'));});
+test('historical STEP receipt71 changes exactly one command and retains both OS jobs',()=>{
+  // DECISIONS:184/214: this is the historical STEP transition, while the current
+  // cumulative workflow is independently required by b1b2-registration.test.cjs.
+  const hash=bytes=>require('node:crypto').createHash('sha256').update(bytes).digest('hex');
+  const reviewed='904d35ddfb81e1a9b4cfc1d6ccbb50b58651149c',baseline='a777f64318dfb9b4766fa336d623196d07b5fc00';
+  const artifact='rebuild/conform/v4/postfix/acceptance-step-efficacy.json',expected='ff164b8620ee0ab7851e7d9283b32d1b330b261fad1f02178d4266131cfcabb1';
+  const chain='refs/remotes/origin/rebuild/t2-client-core';
+  for(const descendant of ['HEAD',chain])L.git(root,['merge-base','--is-ancestor',reviewed,descendant]);
+  L.git(root,['merge-base','--is-ancestor',baseline,reviewed]);
+  const receipt='- 2026-09-06 · cowork · POSTFIX-ACCEPTANCE M2-STEP-EFFICACY '+reviewed+' '+artifact+' '+expected+' ACCEPTED';
+  const ledger=L.object(root,chain,'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
+  assert.equal(ledger[70],receipt);assert.equal(ledger.filter(line=>line===receipt).length,1);
+  assert.equal(hash(L.object(root,reviewed,artifact)),expected);
+  const workflow='.github/workflows/rebuild.yml',original=L.object(root,baseline,workflow).toString('utf8'),actual=L.object(root,reviewed,workflow).toString('utf8');
+  assert.equal(hash(Buffer.from(actual)),'63e714daa676c46a8dbcc2f43b7a5b189da26ae6e854c83afe9f03ac9fbd04ce');
+  const before='run: node rebuild/engine/test/second-gate.mjs --candidate',after='run: node rebuild/conform/v4/postfix/ci-second-gate.cjs --profile M2-STEP-EFFICACY';
+  assert.equal(original.split(before).length,2);assert.equal(original.split(after).length,1);
+  assert.equal(actual.split(before).length,1);assert.equal(actual.split(after).length,2);
+  assert.equal(actual,original.replace(before,after));
+  assert(actual.includes('os: [ubuntu-latest, windows-latest]'));assert(!actual.includes('|| true'));
+});
