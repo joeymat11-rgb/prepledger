@@ -628,11 +628,8 @@ test('N2-13 - an existing basis night survives, and a same-date correction keeps
 });
 
 test('N2-11 - a clean-init athlete records a night and NO screen this lane owns prints NaN', async () => {
-  /* THE FINDING N2 MAKES REACHABLE, RENDERED HONESTLY RATHER THAN PRINTED.
-     createCleanInitState writes `sleep: {nights: []}` and, before H3 lands, may carry
-     no `needed`; several engine readers read `s.sleep.needed`, and with no nights they
-     are unreachable. The first night N2 writes makes them reachable. This cell asserts
-     the SCREEN, not the engine: nothing this lane owns may print undefined or NaN. */
+  // Exercise the integrated H3 constructor and the first night through actual hosts.
+  // Missing recovery inputs retain the engine's own interpretation, owned by B1.
   const clean = createCleanInitState({ setup: firstRunDocument() });
   const model = createTodayModel({ today: DAY, basisState: clean });
   const kit = await device();
@@ -655,6 +652,20 @@ test('N2-11 - a clean-init athlete records a night and NO screen this lane owns 
      m4/workout constructor question and belongs beside H3 (:154 (6)). */
   const state = model.stateFromOps();
   assert.equal(state.sleep.nights.length, 1, 'the night really is in his state');
+  const { createWorkoutEntry, createCheckInEntry } = await import('../today-entry.mjs');
+  const workout = await createWorkoutEntry(model, kit.lane), checkin = await createCheckInEntry(model, kit.lane);
+  const connected = screenOn({ model, query: '?screen=sleep',
+    mount: { sleep: await laneOver(kit.host), workout, checkin } });
+  await connected.api.checkInKitReady();
+  await connected.api.render('workout');
+  assert.doesNotMatch(connected.text(), /NaN|undefined/);
+  assert.deepEqual(workout.gymHost.host.lastProjection().accepted_state.sleep.nights, state.sleep.nights);
+  const beforeCheckIn = await opsOf(kit.host.repository);
+  await connected.api.render('recovery');
+  assert.doesNotMatch(connected.text(), /NaN|undefined/);
+  assert.match(connected.text(), /7\.5 h/);
+  assert.deepEqual(await opsOf(kit.host.repository), beforeCheckIn, 'opening the check-in did not confirm it');
+  connected.dom.window.close(); page.dom.window.close(); checkin.host.close();
   kit.host.close();
 });
 
@@ -833,10 +844,10 @@ test('N2-12 - any reader gets the same dated night and provenance from the share
   const reopened = await again.all();
   assert.deepEqual(reopened[0].night, rows[0].night, 'the same night, byte for byte');
   assert.equal(reopened[0].savedDate, rows[0].savedDate, 'and the same save stamp');
-  /* THE COACH'S OWN WORLD IS UNTOUCHED: no new tool, no network, no tier rule. */
+  /* The companion reads this profile through the shared host, without authoring it. */
   const world = readRepo('rebuild/coach/local-world.mjs');
   assert.equal(/sleep-night|earned\/sleep-night/.test(world), false,
-    'the coach companion is NOT needed for this row and was not written (:167 (2))');
+    'the coach companion must not author its own sleep command or profile');
   again.close();
 });
 
@@ -1215,7 +1226,7 @@ test('N2-01 - D2 finding 1: a confirmed existing record is not the ORIGIN of a n
    ========================================================================== */
 
 /* FINDING 1. A precondition that is not inside the commit is not a precondition. */
-test('N2-01 - D2 round 2 finding 1: two concurrent corrections, and the loser refuses AT THE COMMIT', async () => {
+test('N2-01 / N2-05 - D2 round 2 finding 1: two concurrent corrections, and the loser refuses AT THE COMMIT', async () => {
   const kit = await device();
   const one = await kit.host.save({ date: NIGHT, hours: 7 });
   assert.equal(one.ok, true);
