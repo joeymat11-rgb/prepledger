@@ -1,0 +1,601 @@
+{
+  "reviewer": "D2 Astra MAX",
+  "verdict": "ACCEPT scoped producer correction",
+  "candidate": "bfc293573e1010559e0119bdc7ff666e89f740cc",
+  "source": "60e24a8b757007f6344c598d3c6c3ca7a895d529",
+  "base": "19aa865e63c25b1541180a7dbdc0dd47690f5c92",
+  "branch": "rebuild/astra-c-n2-r4",
+  "pr": "https://github.com/joeymat11-rgb/prepledger/pull/54",
+  "barSHA256": "b0969edba4f55863ea3545ce4cebab751e37b019e84ae4c77f5babdb3208a517",
+  "predecessorReview": "720b317af8cf99972aadf5572786c0a31ca7c9b9",
+  "independentExecutionEndedUTC": "2026-09-13T09:56:09Z",
+  "builderReportReadAfterExecution": true,
+  "sourceManifest": [
+    {
+      "file": "rebuild/lanes/c/N2-R4-REPORT.md",
+      "sha256": "70b0ff9e7f48abd5534a24ff15fa43e76a92f0ec87872303809350e8cc37bef5",
+      "gitBlob": "cf6e6dda4525783dc3ef73576bad2f10609a3123"
+    },
+    {
+      "file": "rebuild/m3/w7-preview/today/sleep-commands.cjs",
+      "sha256": "36c779be57f4975c5a4327113d139edf2652dc59c981523c3531442fd88105ed",
+      "gitBlob": "7d7120cb046c0d63fd7bbf0bd38a0920a60dc470"
+    },
+    {
+      "file": "rebuild/m3/w7-preview/today/test/sleep.test.mjs",
+      "sha256": "bdd358dc69afde543db8e5566f151c0a4c777066b1218a67eea8eafdd2070271",
+      "gitBlob": "9ca55f1dc0f10c43a566e13c23a1c4bd82ab0598"
+    }
+  ],
+  "candidateTrackedClean": true,
+  "scoped": {
+    "tests": 98,
+    "pass": 98,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "currentSleep": 77,
+    "unchangedR5Raw": 3,
+    "unchangedR5DateClock": 7,
+    "unchangedR4Dates": 3,
+    "ownNew": 8,
+    "log": ".tmp/d2-r6-scoped.tap"
+  },
+  "closedFinding": {
+    "priorRawWitnessSHA256": "32194f68a37d958cf5692784bb981fedde6bb1045b3e6e6aabba2ea0d5624825",
+    "priorRawTests": 3,
+    "nowPass": 3,
+    "priorFailed": 2,
+    "allOverrideRefusalsPreserveOpsAndOutbox": true,
+    "matchingTimeOffsetNullUndefinedPartialStampsRefused": true,
+    "outerRequestOverrideRefused": true,
+    "normalCorrectionAfterRefusal": true,
+    "actualClientClockRollover": true
+  },
+  "mutations": [
+    {
+      "id": "override-key-allowed",
+      "pattern": "R6-OVERRIDE",
+      "testFile": ".tmp/d2-r6-overrides.test.mjs",
+      "redExit": 1,
+      "assertions": 6,
+      "otherCodes": [],
+      "applied": 1,
+      "originalExit": 0,
+      "originalPass": 6,
+      "unchanged": true,
+      "patch": {
+        "sourceSHA256": "36c779be57f4975c5a4327113d139edf2652dc59c981523c3531442fd88105ed",
+        "fromSHA256": "e89df8708c31e1eaf45c584f34be9ff1c4f9044233359abce05af1120489a686",
+        "toSHA256": "b66993f9d38d69477f9a73c04b90ef546463546918a3a24bc244211667397b70"
+      },
+      "valid": true
+    },
+    {
+      "id": "override-forwarding-restored",
+      "pattern": "R5-EFFECTIVE",
+      "testFile": ".tmp/d2-r5-effective.test.mjs",
+      "redExit": 1,
+      "assertions": 2,
+      "otherCodes": [],
+      "applied": 1,
+      "originalExit": 0,
+      "originalPass": 3,
+      "unchanged": true,
+      "patch": {
+        "sourceSHA256": "36c779be57f4975c5a4327113d139edf2652dc59c981523c3531442fd88105ed",
+        "fromSHA256": "7997ccceae2e33257b72ffbea2cc03a41137686913eb07258b94da8da4025ec9",
+        "toSHA256": "521e1cad5f360ef0c385aea5df2a636c35fb1851b9f7450e633ccb6aecc44c0a"
+      },
+      "valid": true
+    },
+    {
+      "id": "ordinary-save-stamp-forged",
+      "pattern": "normal previous-night raw producer",
+      "testFile": ".tmp/d2-r5-effective.test.mjs",
+      "redExit": 1,
+      "assertions": 1,
+      "otherCodes": [],
+      "applied": 1,
+      "originalExit": 0,
+      "originalPass": 1,
+      "unchanged": true,
+      "patch": {
+        "sourceSHA256": "36c779be57f4975c5a4327113d139edf2652dc59c981523c3531442fd88105ed",
+        "fromSHA256": "e42edb38568b51ce54a9c376efd1a8528fcc5f1e5e6c32c12b4661630cf52d3b",
+        "toSHA256": "d90b14b7248315d0b1b1e8523680f4be9ba065bb3712fdfcc25494ca1908c099"
+      },
+      "valid": true
+    }
+  ],
+  "build": {
+    "tag": "earned-328bbbb598b5",
+    "inputs": 113,
+    "engineInputs": 13,
+    "clientInputs": 12,
+    "classes": 69,
+    "fonts": 2,
+    "assets": [
+      {
+        "file": "app.js",
+        "bytes": 1581657,
+        "sha256": "a55ca0530e6cc030f5264da4468f26c0663f2dccae80f184e445fa7b1483de56"
+      },
+      {
+        "file": "index.html",
+        "bytes": 30994,
+        "sha256": "f691d5c31447047a02b50004e105f89d58469079fcf219ede146d4f2471b6f2d"
+      },
+      {
+        "file": "styles.css",
+        "bytes": 177491,
+        "sha256": "567a3a3c4677aeed2dcb2090d5fbf4fc31a3a5b47680dabc7bee4f09f3b35cbb"
+      }
+    ],
+    "log": ".tmp/d2-r6-build.log"
+  },
+  "browser": {
+    "result": "PASS",
+    "runner": "rebuild/m3/w7-preview/today/sleep-check.mjs",
+    "profileKills": 7,
+    "actualTransactionBoundaries": true,
+    "actualRollover": true,
+    "widths": [
+      390,
+      320,
+      375
+    ],
+    "inputs": 5,
+    "minInputHeight": 48,
+    "minFont": 16,
+    "persistentDoubledText": true,
+    "physicalIPhone": "NOT RUN",
+    "log": ".tmp/d2-r6-browser.log"
+  },
+  "reused": [
+    {
+      "tested": "bdbee8b455b0530143c9df34d065c1204f70ee0f",
+      "review": "aefc06fefb43f50a5443d293331ca41c1468827d",
+      "broad": 903,
+      "cells": 18,
+      "mutants": 18,
+      "adverse": 8
+    },
+    {
+      "tested": "19aa865e63c25b1541180a7dbdc0dd47690f5c92",
+      "review": "720b317af8cf99972aadf5572786c0a31ca7c9b9",
+      "scoped": 81,
+      "mutants": 4
+    }
+  ],
+  "builderReportedOnly": {
+    "source": "60e24a8b757007f6344c598d3c6c3ca7a895d529",
+    "fullSuite": 914
+  },
+  "ciMetadata": [
+    {
+      "id": 34750345922,
+      "name": "pipeline",
+      "head_sha": "bfc293573e1010559e0119bdc7ff666e89f740cc",
+      "event": "pull_request",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/joeymat11-rgb/prepledger/actions/runs/34750345922",
+      "jobs": [
+        {
+          "id": 103705636037,
+          "name": "suite",
+          "conclusion": "success",
+          "failed": [],
+          "skipped": []
+        },
+        {
+          "id": 103705721812,
+          "name": "production",
+          "conclusion": "skipped",
+          "failed": [],
+          "skipped": []
+        },
+        {
+          "id": 103705721901,
+          "name": "preview",
+          "conclusion": "skipped",
+          "failed": [],
+          "skipped": []
+        }
+      ]
+    },
+    {
+      "id": 34750345925,
+      "name": "shared-preflight",
+      "head_sha": "bfc293573e1010559e0119bdc7ff666e89f740cc",
+      "event": "pull_request",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/joeymat11-rgb/prepledger/actions/runs/34750345925",
+      "jobs": [
+        {
+          "id": 103705635367,
+          "name": "shared-preflight (windows-latest)",
+          "conclusion": "success",
+          "failed": [],
+          "skipped": []
+        },
+        {
+          "id": 103705635474,
+          "name": "shared-preflight (ubuntu-latest)",
+          "conclusion": "success",
+          "failed": [],
+          "skipped": []
+        }
+      ]
+    },
+    {
+      "id": 34750345931,
+      "name": "rebuild",
+      "head_sha": "bfc293573e1010559e0119bdc7ff666e89f740cc",
+      "event": "pull_request",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/joeymat11-rgb/prepledger/actions/runs/34750345931",
+      "jobs": [
+        {
+          "id": 103705636207,
+          "name": "rebuild-public (ubuntu-latest)",
+          "conclusion": "failure",
+          "failed": [
+            {
+              "number": 13,
+              "name": "Cumulative H3 clean-init, native-carrier and legacy-census evidence",
+              "status": "completed",
+              "conclusion": "failure"
+            }
+          ],
+          "skipped": [
+            {
+              "number": 14,
+              "name": "A0 — the workout host over the real durable client",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 15,
+              "name": "A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 16,
+              "name": "C5 — the voice coach tool contract and text prototype",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 17,
+              "name": "A5 — the PWA shell's lockfile-only suites",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 18,
+              "name": "A5 — the built deploy folder itself",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 19,
+              "name": "Report the evidence boundary",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 37,
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "skipped"
+            }
+          ]
+        },
+        {
+          "id": 103705636562,
+          "name": "rebuild-public (windows-latest)",
+          "conclusion": "failure",
+          "failed": [
+            {
+              "number": 13,
+              "name": "Cumulative H3 clean-init, native-carrier and legacy-census evidence",
+              "status": "completed",
+              "conclusion": "failure"
+            }
+          ],
+          "skipped": [
+            {
+              "number": 14,
+              "name": "A0 — the workout host over the real durable client",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 15,
+              "name": "A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 16,
+              "name": "C5 — the voice coach tool contract and text prototype",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 17,
+              "name": "A5 — the PWA shell's lockfile-only suites",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 18,
+              "name": "A5 — the built deploy folder itself",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 19,
+              "name": "Report the evidence boundary",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 37,
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "skipped"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 34750344972,
+      "name": "pipeline",
+      "head_sha": "bfc293573e1010559e0119bdc7ff666e89f740cc",
+      "event": "push",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/joeymat11-rgb/prepledger/actions/runs/34750344972",
+      "jobs": [
+        {
+          "id": 103705635126,
+          "name": "suite",
+          "conclusion": "success",
+          "failed": [],
+          "skipped": []
+        },
+        {
+          "id": 103705719600,
+          "name": "preview",
+          "conclusion": "success",
+          "failed": [],
+          "skipped": []
+        },
+        {
+          "id": 103705719752,
+          "name": "production",
+          "conclusion": "skipped",
+          "failed": [],
+          "skipped": []
+        }
+      ]
+    },
+    {
+      "id": 34750344999,
+      "name": "shared-preflight",
+      "head_sha": "bfc293573e1010559e0119bdc7ff666e89f740cc",
+      "event": "push",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/joeymat11-rgb/prepledger/actions/runs/34750344999",
+      "jobs": [
+        {
+          "id": 103705637309,
+          "name": "shared-preflight (ubuntu-latest)",
+          "conclusion": "success",
+          "failed": [],
+          "skipped": []
+        },
+        {
+          "id": 103705637580,
+          "name": "shared-preflight (windows-latest)",
+          "conclusion": "success",
+          "failed": [],
+          "skipped": []
+        }
+      ]
+    },
+    {
+      "id": 34750344980,
+      "name": "rebuild",
+      "head_sha": "bfc293573e1010559e0119bdc7ff666e89f740cc",
+      "event": "push",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/joeymat11-rgb/prepledger/actions/runs/34750344980",
+      "jobs": [
+        {
+          "id": 103705635442,
+          "name": "rebuild-public (windows-latest)",
+          "conclusion": "failure",
+          "failed": [
+            {
+              "number": 13,
+              "name": "Cumulative H3 clean-init, native-carrier and legacy-census evidence",
+              "status": "completed",
+              "conclusion": "failure"
+            }
+          ],
+          "skipped": [
+            {
+              "number": 14,
+              "name": "A0 — the workout host over the real durable client",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 15,
+              "name": "A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 16,
+              "name": "C5 — the voice coach tool contract and text prototype",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 17,
+              "name": "A5 — the PWA shell's lockfile-only suites",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 18,
+              "name": "A5 — the built deploy folder itself",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 19,
+              "name": "Report the evidence boundary",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 37,
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "skipped"
+            }
+          ]
+        },
+        {
+          "id": 103705635837,
+          "name": "rebuild-public (ubuntu-latest)",
+          "conclusion": "failure",
+          "failed": [
+            {
+              "number": 13,
+              "name": "Cumulative H3 clean-init, native-carrier and legacy-census evidence",
+              "status": "completed",
+              "conclusion": "failure"
+            }
+          ],
+          "skipped": [
+            {
+              "number": 14,
+              "name": "A0 — the workout host over the real durable client",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 15,
+              "name": "A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 16,
+              "name": "C5 — the voice coach tool contract and text prototype",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 17,
+              "name": "A5 — the PWA shell's lockfile-only suites",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 18,
+              "name": "A5 — the built deploy folder itself",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 19,
+              "name": "Report the evidence boundary",
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "number": 37,
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "skipped"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "privateLogsRead": false,
+  "prCheckoutSHAVerified": false,
+  "currentH3TerminalInferred": false,
+  "limits": [
+    "PM named disposition still required",
+    "B owns admitted77 test registration beside13 existingToday files and actualbothOS proof",
+    "No broad914 or old18mutant rerun",
+    "No H3/private/REAL-C2 execution",
+    "No authority acceptance/seal/merge/deploy/import/phone pass"
+  ],
+  "annexes": [
+    {
+      "source": ".tmp/d2-r6-overrides.test.mjs",
+      "target": "N2-R6-OVERRIDES.test.mjs",
+      "executedSHA256": "a0bad9c17e4bf20dc5caf4b9fca2120a10ebf134d415bbbf8d793a490aeae627",
+      "publishedSHA256": "bdbf97294403ee8c31160b06128f3dbbfca979122d318f5af95d38a957b3d46c",
+      "syntaxOnlyExit": 0
+    },
+    {
+      "source": ".tmp/d2-r5-effective.test.mjs",
+      "target": "N2-R6-R5-RAW.test.mjs",
+      "executedSHA256": "32194f68a37d958cf5692784bb981fedde6bb1045b3e6e6aabba2ea0d5624825",
+      "publishedSHA256": "c402bafe72655992c69b829552424ff496006910b38cb41ba81183ca10532e5d",
+      "syntaxOnlyExit": 0
+    },
+    {
+      "source": ".tmp/d2-r5-boundaries.test.mjs",
+      "target": "N2-R6-R5-BOUNDARIES.test.mjs",
+      "executedSHA256": "1715b4d46fc680f6d79c06e1bdbc9f2f917dc23ef2cf492b0e356b67e805fed1",
+      "publishedSHA256": "6d880d6daf6d5f2a4dcfa81b91bb657c7b2b95d49147b3f4fb8304b8761bff7c",
+      "syntaxOnlyExit": 0
+    },
+    {
+      "source": ".tmp/d2-r4-completed-night.test.mjs",
+      "target": "N2-R6-R4-WITNESS.test.mjs",
+      "executedSHA256": "602886d230f7d1bdd8596b51ed9c9695115229ae48d819c0b297ab31a6643268",
+      "publishedSHA256": "8f66edf34a326c80ffd75e2362cb344c51272eaf3b055ae7a6de181ee08b1add",
+      "syntaxOnlyExit": 0
+    },
+    {
+      "source": ".tmp/d2-r6-mutants.mjs",
+      "target": "N2-R6-MUTANTS.mjs",
+      "executedSHA256": "6c37854128377f3af90444ea35a2b694db1fc15c72e4e087b460b89006d4be57",
+      "publishedSHA256": "7caed8566df51a33e807ccfcd7016a3492bd58f53aa15a5e9d6341d305a64f46",
+      "syntaxOnlyExit": 0
+    },
+    {
+      "source": ".tmp/d2-r4-mutant-register.mjs",
+      "target": "N2-R6-MUTANT-HOOK.mjs",
+      "executedSHA256": "489663d3675f25e64cce32d406785f96d96f6a7b0fd83157fb5eb6004bce3987",
+      "publishedSHA256": "489663d3675f25e64cce32d406785f96d96f6a7b0fd83157fb5eb6004bce3987",
+      "syntaxOnlyExit": 0
+    }
+  ]
+}
