@@ -1,58 +1,43 @@
-# N2 sleep entry: R4 builder report
-2026-09-13 · Lane C, Astra · READY FOR INDEPENDENT REVIEW; not PR-READY.
-Contract: rebuild/lanes/d2/BRIEF-N2-SLEEP-ENTRY.md v1.0, accepted by DECISIONS167/178, with SOURCE-ERRATUM.
+# N2 sleep entry: R5 completed-night correction
+2026-09-13 · Lane C, Astra · READY FOR SCOPED INDEPENDENT REVIEW; not PR-READY.
+Branch: rebuild/astra-c-n2-r4 · draft PR54 · own worktree work/pm-caretaker/c-n2-r4.
+Reviewed predecessor: bdbee8b455b0530143c9df34d065c1204f70ee0f; its exact R4 report remains at this path in that commit.
+Source/test successor: 80614ebacaaefae63c649965b080d9a49bd0067b; the following report commit changes only this file.
+Contract: accepted d2/BRIEF-N2-SLEEP-ENTRY.md v1.0,167/178, erratum; PM's bounded post-review correction instruction.
 Contract SHA256: b0969edba4f55863ea3545ce4cebab751e37b019e84ae4c77f5babdb3208a517.
-Base: 8771a51c535cd92b89b537230b857c8fa8fbc472 (accepted launch M plus coordination only).
-Candidate: 582b4a381e442e599f602be3428489c9cd34581e; this report's following commit changes documentation only.
-Branch: rebuild/astra-c-n2-r4; own worktree: work/pm-caretaker/c-n2-r4.
-Old rejected 744c63c974626fe7c00a6e5807c6a6bfb1dbee7b and D2 R3 findings remain preserved.
+D2 final R4: aefc06fefb43f50a5443d293331ca41c1468827d, d2/reviews/N2-R4-REVIEW.md, one P2 producer finding.
+D2 closed all six R3 observations at bdbee8b; its independent903/18cells/18mutants/browser evidence and old744c63c remain historical evidence.
 
-Custody: 12 licensed paths, plus this report; no engine, client, m4, conform, workflow or frozen-app edit.
-Today: build.mjs, design.cjs, preview.css, screens.template.html, today-app.cjs, today-model.cjs.
-New Today modules: sleep-commands.cjs, sleep-host.mjs, sleep-model.cjs, sleep-check.mjs, test/sleep.test.mjs.
-Companion: rebuild/coach/local-world.mjs. Entry, bindings, check-in sources and approved-design pins unchanged.
-PM explicitly licensed only the sleep-entry input min-height:48px selector in preview.css, under accepted167.
-Shared store/client.hostBindings uses the installation clock; no local H3 default or replacement clock.
+Delta from bdbee8b: only sleep-commands.cjs and test/sleep.test.mjs,63 additions/4 deletions, plus this report update.
+The producer rejects night.date >= the calendar-real effective.local_date on the envelope the client built for this commit.
+It uses the installation clock's actual save day, including after midnight; the chosen past-night label is retained.
+The host already routes writes through this validator, so no host, UI, clock, payload shape or shared binding edit was needed.
+Three N2-01 shape fixtures now carry a valid next-day envelope, keeping their existing positive/negative shape assertions isolated.
+No change to setup.test.mjs (B's reserved successor-lookup hunk), browser harness, approved style/pins, engine/client/m4/conform/workflow.
 
-R3 coach observations C1/C2/C3: actual tools refresh authenticated durable rows, including another same-store client.
-An edited night refreshes confirmation; disabled/unreadable sleep cannot be confirmed. Other draft answers survive.
-R3 reconciliation immediate/retry: historical equal hours cannot acknowledge a failed new save or clear its draft.
-Reconciliation requires a new op, matching attempted night, predecessor revision and device; unknown saves stay fenced.
-R3 dated display: selected historical night reads the following day's quality and provenance; selection survives save.
-Earlier recovery opens a dated read-only view. Stale-editor refusal refreshes the record while retaining typed input.
-Extra regressions cover rollover, source units, active Start/set preservation, abort/outbox durability and fresh H3 hosts.
+New actual-host regression controls (public durable client plus encrypted repository):
+Previous2030-02-03 and late2030-01-30 on save day2030-02-04 each append one op/outbox and retain the correct night/save dates.
+Same-day2030-02-04 and future2030-02-05 refuse with zero op/outbox growth and unchanged collection contents.
+An already-open host first refuses tonight, then admits that same night after the installation clock advances to2030-02-05.
+That rollover then refuses the new current/future nights, preserving the accepted row and its outbox.
+Red on bdbee8b product:5 tests,2 valid controls PASS,3 ERR_ASSERTION failures,0 skipped.
+Green with the guard:5/5,0 fail/cancel/skip. Logs: .tmp/n2-r5-date-red.log and n2-r5-date-green.log.
 
-Node22.23.2 required suite at b0ece6ab9c9dc78e79fea7dbf81b71e2bb5cf0db: 903 PASS, 0 fail/cancel/skip.
+Exact80614eb Node22.23.2 required suite:908/908 PASS,0 fail/cancel/skip; sleep71 included.
 Command: node --test --test-reporter=tap --test-concurrency=1
   rebuild/m3/w7-preview/today/test/*.test.* rebuild/coach/test/*.test.cjs
   rebuild/m3/w6/test/local-today-journey.test.mjs rebuild/m3/w6/host/test/*.test.*
-Counts: Today619 (including sleep66), coach201, local journey51, host32. Only the browser harness changed since that run.
-Named N2-01..18 cells actually executed: 6/3/3/6/12/5/3/5/3/2/1/7/2/5/1/4/1/1 passing tests; zero skipped.
-18 separate mutation edits each produced assertion failures, not parse errors; originals restored.
-M01..06: open payload, blank answer, invented span, wrong night, removed revision check, oldest-wins replay.
-M07..12: lost draft, wrong quality day, missing boot rebind, old gym basis, fresh NaN, removed coach refresh.
-M13..18: discarded basis history, historical-equality acknowledgment, enabled no-store form, dash, false commit, width.
-Controls ran on the R4 working tree before final CSS/harness changes; prior assertions remain, with N2-11 strengthened.
-A new browser control failed on the original44px date input before the licensed48px correction; undersized font also fails.
+Counts: Today624 (sleep71), coach201, local journey51, A0 host32. Log: .tmp/n2-r5-required.log.
 
-Final browser: PASS, source 582b4a381e442e599f602be3428489c9cd34581e, fresh build immediately before execution.
-Build: earned-2ead98c80d20, 113 pinned module inputs, 3 assets, approved design/font/copy gates PASS.
-app.js SHA256: 7a0b0fff99f0b38e731247d9c699eb3c478e53d7876847fafeefacb81511fcb1.
-styles.css SHA256: 567a3a3c4677aeed2dcb2090d5fbf4fc31a3a5b47680dabc7bee4f09f3b35cbb.
-index.html SHA256: f691d5c31447047a02b50004e105f89d58469079fcf219ede146d4f2471b6f2d.
-The module-only build tag is unchanged by the CSS correction; the source commit and asset hashes identify that change.
-Browser bar: seven verified process kills, including before commit and after commit before acknowledgment.
-Offline times save, hours correction, provenance, same-page recovery draft and gym return, and actual clock rollover.
-390/320/375 widths, all five inputs across modes/disclosure, doubled text, Tab and reachable single Save; input48px/text16px.
-Prior13e8c76 browser PASS measured44px; it is not credited for the corrected48px bar.
-Retained harness failures:1ee/b0 CSP copying/fetch; fa9 lost enlargement on redraw. Fixed using build bytes and persistent CSSOM.
-Production CSP and console/off-origin failure checks remain unchanged. Physical iPhone acceptance: NOT RUN.
+Fresh80614eb build and official sleep-check browser PASS;113 pinned module inputs,3 assets, earned-06b4c2a34775.
+Seven verified profile-scoped process kills, including before commit and after commit/before acknowledgment; offline save and actual rollover pass.
+Both modes/correction, provenance, recovery draft and gym return,390/320/375, all five inputs48px/text16px and doubled text pass.
+app.js SHA256:4f13f7b2423d14298d6d40ef4f40f80c59b93a7040f8f2f11947f4ec10358ad3.
+styles.css SHA256:567a3a3c4677aeed2dcb2090d5fbf4fc31a3a5b47680dabc7bee4f09f3b35cbb.
+index.html SHA256:f691d5c31447047a02b50004e105f89d58469079fcf219ede146d4f2471b6f2d.
+Logs: .tmp/n2-r5-browser-build.log and n2-r5-browser.log. Physical iPhone NOT RUN.
 
-CI/public engine-package execution and sleep.test.mjs enumeration belong to B's active B1+B2 under214; pending.
-B must preserve all13 existing Today test files, add sleep, and provide exact-head green Windows and Ubuntu results.
-No engine gate/receipt, H3 run, independent acceptance, integration, import, deployment or phone PASS is claimed.
-Optional all-W6 diagnostic hit REAL-C2's repository-output refusal before a bundle; preserved, never rerun or bypassed.
-PM212 excludes that separate cohort from N2's required local suites; it is not a missing N2 pass.
-Logs stay in own .tmp: n2-required-b0ece6a.log; n2-proof-results.json; n2-cell-* / n2-mutant-*; n2-input48-red.log.
-Browser logs: n2-browser-build-final.log / n2-browser-final.log; preceding failures and13e8c76/0d96f79 passes retained.
-Next: D2 independent execution of this exact candidate, then B CI registration/results and third-role integration.
+CI/admission remains separate: B owns sleep.test.mjs registration (now71) beside all13 prior Today files and B1+B2 bothOS proof.
+Original bdbee8b rebuild34748446936 bothOS stopped at H3 SEAL-BASE-IS-NOT-THE-CHAIN-TIP before children; no N2 product verdict.
+No H3/REAL-C2/private run or blind CI rerun was performed. Original refusals and prior harness failures remain at their exact evidence heads.
+Next: D2 scoped independent date-boundary verification of this successor, then B's admitted exact-head CI composition and third-role integration.
