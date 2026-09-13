@@ -84,7 +84,7 @@ async function card(kit, options = {}) {
   const phone = doc.getElementById('phone');
   await kit.model.start();
   const mounted = mountGym(doc, phone, { model: kit.model, onBack: () => {},
-    draft: options.draft,
+    draft: options.draft, onChanged: options.onChanged,
     settings: Object.hasOwn(options, 'settings') ? options.settings : kit.settings });
   await mounted;
   /* D2 round 1, finding 1 - the card is on the screen BEFORE the settings read has
@@ -209,6 +209,125 @@ test('MEM266 remount retains the same entry, effort, editor and failed-save erro
   assert.deepEqual(pairs(page), [['Seat', 'five']]);
   kit.settings.close(); kit.gymHost.close(); first.dom.window.close(); page.dom.window.close();
 });
+
+// Pause only the real write boundary, retaining the production model, encrypted
+// repository and UI handlers. Both collections must preserve every prior row.
+function completionPause() {
+  let enter, release;
+  return { reached: new Promise(resolve => { enter = resolve; }),
+    wait: new Promise(resolve => { release = resolve; }), enter: () => enter(), release: () => release() };
+}
+async function completionCollections(kit) {
+  const { ops, outbox } = (await kit.gymHost.repository.load()).generation.collections;
+  return { ops, outbox };
+}
+function assertOneCompletionWrite(before, after) {
+  for (const kind of ['ops', 'outbox']) {
+    assert.equal(Object.keys(after[kind]).length, Object.keys(before[kind]).length + 1, kind + ' adds exactly once');
+    for (const [id, row] of Object.entries(before[kind])) assert.deepEqual(after[kind][id], row, kind + ' preserves ' + id);
+  }
+}
+function performedInput(page, selector, value) {
+  const input = page.doc.querySelector(selector);
+  input.value = value; input.dispatchEvent(new page.dom.window.Event('input', { bubbles: true }));
+}
+
+for (const editedSurface of ['editor', 'entry']) {
+  test('MEM274 actual set acknowledgement with newer ' + editedSurface + ' input', async () => {
+    const kit = await device(), draft = GymApp.newGymDraft(), pause = completionPause();
+    let page, changed = 0;
+    const client = kit.gymHost.host.client;
+    kit.model = createGymModel({ gymHost: { ...kit.gymHost, host: { ...kit.gymHost.host,
+      client: { ...client, executeResumedWorkout: async input => {
+        pause.enter(); await pause.wait; return client.executeResumedWorkout(input);
+      } } } } });
+    try {
+      page = await card(kit, { draft, onChanged: () => { changed++; } });
+      await page.open(); page.type(0, 'Seat', 'four');
+      for (const selector of ['#gym-weight', '#gym-reps'])
+        performedInput(page, selector, page.doc.querySelector(selector).value);
+      page.click('[data-slot="choices"] button');
+      const before = await completionCollections(kit), editor = draft.settingsEditor.draft;
+      page.click('[data-slot="log"]'); await pause.reached;
+      const snapshot = page.mounted.refreshState();
+      assert.equal(snapshot.counts.busy, 1);
+      assert.deepEqual(await completionCollections(kit), before, 'no write before the real client resumes');
+      if (editedSurface === 'editor') page.type(0, null, 'six');
+      else {
+        performedInput(page, '#gym-weight', ''); performedInput(page, '#gym-reps', '');
+        page.click('[data-slot="choices"] button');
+      }
+      const entry = draft.entry, effort = draft.effort;
+      assert(page.mounted.refreshState().epoch > snapshot.epoch, 'either surface advances the shared observation');
+      pause.release();
+      await waitFor(() => page.mounted.refreshState().counts.busy === 0, 'actual set acknowledgement');
+      await settle();
+      assertOneCompletionWrite(before, await completionCollections(kit));
+      assert.equal((await kit.model.read()).phase, 'saved', 'actual model confirms the submitted set');
+      assert.equal(draft.settingsEditor.draft, editor);
+      assert.equal(editor.rows[0].value, editedSurface === 'editor' ? 'six' : 'four');
+      if (editedSurface === 'editor') {
+        assert(page.phone.querySelector('[data-action="undo"]'), 'confirmed set offers Undo');
+        assert.match(page.pick('saved-title').textContent, /Set 1 logged/);
+        assert.equal(page.pick('log'), null, 'confirmed set no longer offers the same Log');
+        assert.equal(changed, 1, 'completion notifies exactly once');
+        assert.deepEqual(draft.entry, { load: null, reps: null }); assert.equal(draft.effort, null);
+      } else {
+        assert.equal(draft.entry, entry); assert.deepEqual(entry, { load: '', reps: '' });
+        assert.equal(draft.effort, effort); assert.equal(changed, 0);
+        assert.equal(page.doc.querySelector('#gym-weight').value, '');
+        assert.equal(page.doc.querySelector('#gym-reps').value, '');
+      }
+      assert(Object.values(page.mounted.refreshState().counts).every(value => value === 0));
+      assert.equal(snapshot.counts.busy, 1, 'past snapshots remain immutable');
+    } finally { pause.release(); kit.settings.close(); kit.gymHost.close(); page?.dom.window.close(); }
+  });
+}
+
+for (const editedSurface of ['entry', 'editor']) {
+  test('MEM274 actual settings acknowledgement with newer ' + editedSurface + ' input', async () => {
+    const kit = await device(), draft = GymApp.newGymDraft(), pause = completionPause();
+    let page;
+    try {
+      page = await card(kit, { draft, settings: {
+        latest: (...args) => kit.settings.latest(...args),
+        save: async machine => { pause.enter(); await pause.wait; return kit.settings.save(machine); },
+      } });
+      await page.open(); page.type(0, 'Seat', 'four');
+      const before = await completionCollections(kit), editor = draft.settingsEditor.draft, lift = draft.settingsEditor.lift;
+      page.click('[data-slot="settings-save"]'); await pause.reached;
+      const snapshot = page.mounted.refreshState();
+      assert.equal(snapshot.counts.settingsSaving, 1);
+      assert.deepEqual(await completionCollections(kit), before);
+      if (editedSurface === 'entry') {
+        performedInput(page, '#gym-weight', ''); performedInput(page, '#gym-reps', '');
+        page.click('[data-slot="choices"] button');
+      } else page.type(0, null, 'six');
+      const entry = draft.entry, effort = draft.effort;
+      assert(page.mounted.refreshState().epoch > snapshot.epoch);
+      pause.release(); await page.mounted.settings.pending();
+      assertOneCompletionWrite(before, await completionCollections(kit));
+      assert.equal((await kit.settings.latest(lift)).machine.settings[0].value, 'four', 'real saved value is the submission');
+      assert.equal(draft.entry, entry); assert.equal(draft.effort, effort);
+      if (editedSurface === 'entry') {
+        assert.deepEqual(entry, { load: '', reps: '' }); assert(effort);
+        assert.equal(page.doc.querySelector('#gym-weight').value, '');
+        assert.equal(page.doc.querySelector('#gym-reps').value, '');
+        assert.equal(draft.settingsEditor.draft, null, 'confirmed unchanged editor closes');
+        assert.equal(draft.settingsEditor.lift, null); assert.equal(page.pick('settings-editor').hidden, true);
+        assert.deepEqual(pairs(page), [['Seat', 'four']]);
+      } else {
+        assert.equal(draft.settingsEditor.draft, editor); assert.equal(editor.rows[0].value, 'six');
+        assert.equal(page.doc.querySelector('[data-settings-value="0"]').value, 'six');
+        assert.equal(page.pick('settings-editor').hidden, false, 'newer editor remains available');
+      }
+      assert.equal(draft.settingsEditor.error, null);
+      assert(Object.values(page.mounted.refreshState().counts).every(value => value === 0));
+      assert.equal(snapshot.counts.settingsSaving, 1);
+    } finally { pause.release(); if (page) await page.mounted.settings.pending();
+      kit.settings.close(); kit.gymHost.close(); page?.dom.window.close(); }
+  });
+}
 
 for (const succeeds of [false, true]) {
   test('MEM266 departed settings ' + (succeeds ? 'success' : 'failure') + ' cannot replace a newer editor draft or screen', async () => {

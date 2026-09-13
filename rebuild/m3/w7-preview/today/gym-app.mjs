@@ -112,13 +112,19 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   if (!held.settingsEditor || typeof held.settingsEditor !== 'object')
     held.settingsEditor = { draft: null, lift: null, error: null };
   const editorState = held.settingsEditor;
-  if (!draftLifecycles.has(held)) draftLifecycles.set(held, { epoch: 0, revision: 0, owner: null });
+  if (!draftLifecycles.has(held)) draftLifecycles.set(held, { epoch: 0, entryRevision: 0, editorRevision: 0, owner: null });
   const lifecycle = draftLifecycles.get(held), owner = Symbol('gym mount');
   const previousMount = mountOwners.get(phone);
   if (previousMount) previousMount.lifecycle.epoch += 1;
   mountOwners.set(phone, { owner, lifecycle });
   lifecycle.owner = owner;
-  function changed() { lifecycle.epoch += 1; lifecycle.revision += 1; }
+  // Each completion owns only its submitted draft; independent edits still advance
+  // the shared epoch used to observe whether anything changed across an await.
+  function changed(surface) {
+    lifecycle.epoch += 1;
+    if (surface === 'entry') lifecycle.entryRevision += 1;
+    if (surface === 'editor') lifecycle.editorRevision += 1;
+  }
   changed();
   const ownsMount = () => owns && lifecycle.owner === owner && mountOwners.get(phone)?.owner === owner;
   const activity = { busy: 0, read: 0, paint: 0, start: 0, settingsOpening: 0, settingsReading: 0, settingsSaving: 0 };
@@ -271,21 +277,21 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     openControl.addEventListener('click', () => {
       if (!ownsMount() || editorState.draft !== null) return;
       editorState.draft = MachineSettingsView.draftFrom(latest);
-      editorState.lift = liftId; editorState.error = null; changed();
+      editorState.lift = liftId; editorState.error = null; changed('editor');
       paint();
     });
     if (!editorState.draft || editorState.lift !== liftId) { editor.hidden = true; return; }
     editor.hidden = false;
     const paintedDraft = editorState.draft;
     MachineSettingsView.renderEditor(doc, map, { copy: SETTINGS_COPY, draft: paintedDraft, put,
-      onChanged: () => { changed(); paint(); } });
-    editor.addEventListener('input', () => { if (ownsMount()) changed(); }, true);
+      onChanged: () => { changed('editor'); paint(); } });
+    editor.addEventListener('input', () => { if (ownsMount()) changed('editor'); }, true);
     map.get('settings-error').textContent = plainOrDrop(editorState.error || '', 'settings-error');
     root.querySelector('[data-action="settings-cancel"]').addEventListener('click', () => {
       /* CANCELLING WRITES NOTHING. The draft is thrown away and the durable record is
          whatever it already was; the athlete is returned to the block. */
       if (!ownsMount() || editorState.draft !== paintedDraft) return;
-      editorState.draft = null; editorState.lift = null; editorState.error = null; changed(); paint();
+      editorState.draft = null; editorState.lift = null; editorState.error = null; changed('editor'); paint();
     });
     map.get('settings-save').addEventListener('click', () => {
       settingsSaving = tracked('settingsSaving', () => recordSettings(map, view, paintedDraft));
@@ -298,12 +304,12 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   async function recordSettings(map, view, submittedDraft) {
     if (!ownsMount() || !submittedDraft || editorState.draft !== submittedDraft
       || editorState.lift !== view.lift.id) return;
-    const submittedRevision = lifecycle.revision;
-    const stillSubmitted = () => ownsMount() && lifecycle.revision === submittedRevision
+    const submittedRevision = lifecycle.editorRevision;
+    const stillSubmitted = () => ownsMount() && lifecycle.editorRevision === submittedRevision
       && editorState.draft === submittedDraft && editorState.lift === view.lift.id;
     const refuse = (message) => {
       if (!stillSubmitted()) return;
-      editorState.error = message; changed();
+      editorState.error = message; changed('editor');
       // The map captured by Save may already be detached by another repaint.
       const current = phone.querySelector('[data-slot="settings-error"]');
       if (current) current.textContent = plainOrDrop(message, 'settings-error');
@@ -324,7 +330,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       return;
     }
     if (stillSubmitted()) {
-      editorState.draft = null; editorState.lift = null; editorState.error = null; changed();
+      editorState.draft = null; editorState.lift = null; editorState.error = null; changed('editor');
     }
     /* The capture is durable now, so the cached read for this lift is stale: drop it
        and read the LOG again rather than painting what this mount remembers. */
@@ -377,8 +383,8 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const reps = root.querySelector('#gym-reps');
     load.value = held.entry.load === null ? (view.entry.load === null ? '' : String(view.entry.load)) : held.entry.load;
     reps.value = held.entry.reps === null ? (view.entry.reps === null ? '' : String(view.entry.reps)) : held.entry.reps;
-    load.addEventListener('input', () => { if (ownsMount()) { held.entry.load = load.value; changed(); } });
-    reps.addEventListener('input', () => { if (ownsMount()) { held.entry.reps = reps.value; changed(); } });
+    load.addEventListener('input', () => { if (ownsMount()) { held.entry.load = load.value; changed('entry'); } });
+    reps.addEventListener('input', () => { if (ownsMount()) { held.entry.reps = reps.value; changed('entry'); } });
     for (const button of root.querySelectorAll('[data-step]')) {
       const [field, direction] = button.dataset.step.split(':');
       const size = field === 'load' ? (view.entry.step === null ? null : view.entry.step) : 1;
@@ -390,7 +396,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
         const next = (Number.isFinite(current) ? current : 0) + Number(direction) * size;
         box.value = String(Math.max(0, Math.round(next * 100) / 100));
         held.entry[field] = box.value;
-        changed();
+        changed('entry');
       });
     }
 
@@ -405,7 +411,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       button.setAttribute('aria-pressed', String(!!held.effort && held.effort.label === choice.label));
       button.addEventListener('click', () => {
         if (!ownsMount()) return;
-        held.effort = choice; changed();
+        held.effort = choice; changed('entry');
         for (const other of choices.querySelectorAll('.choice')) other.setAttribute('aria-pressed', String(other === button));
         root.querySelector('#gym-error').textContent = '';
       });
@@ -434,19 +440,19 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       event.preventDefault();
       if (busy || !ownsMount()) return;
       busy = true;
-      const submittedRevision = lifecycle.revision;
+      const submittedRevision = lifecycle.entryRevision;
       let result;
       try { result = await tracked('busy', () => model.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
         load: load.value.trim(), reps: reps.value.trim(), effort: held.effort && held.effort.reserve })); }
       finally { busy = false; }
-      if (!ownsMount() || lifecycle.revision !== submittedRevision) return;
+      if (!ownsMount() || lifecycle.entryRevision !== submittedRevision) return;
       if (!result.ok) {
         root.querySelector('#gym-error').textContent = plainOrDrop(refusalText(result), 'gym-error');
         return;
       }
       held.entry = { load: null, reps: null };
       held.effort = null; showWhy = false; showSetup = false; showHelp = false;
-      changed();
+      changed('entry');
       await paint();
       if (onChanged) onChanged();
     });
