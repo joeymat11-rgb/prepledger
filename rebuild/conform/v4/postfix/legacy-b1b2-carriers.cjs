@@ -63,7 +63,7 @@ function runPublic(selected){
 }
 module.exports={PINS,prepareCarrier,runPublic};
 if(require.main===module){const argv=process.argv.slice(2);assert.ok(argv.length===0||(argv.length===1&&(argv[0]==='--public-laws'||Object.hasOwn(REPAIRED_MODES,argv[0]))),'unsupported public carrier argv');}
-if(require.main===module&&process.argv.length===2){process.env.TZ='America/New_York';const r=runPublic();console.log('B1B2 PUBLIC CARRIERS: '+r.length+'/4; '+r.reduce((n,x)=>n+x.cases,0)+' cases; '+r.reduce((n,x)=>n+x.edits.length,0)+' substitutions; original bytes retained');}
+if(require.main===module&&process.argv.length===2){process.env.TZ='America/New_York';const r=runPublic();for(const row of r)for(const line of row.output)console.log(line);console.log('B1B2 PUBLIC CARRIERS: '+r.length+'/4; '+r.reduce((n,x)=>n+x.cases,0)+' cases; '+r.reduce((n,x)=>n+x.edits.length,0)+' substitutions; original bytes retained');}
 if(require.main===module&&Object.hasOwn(REPAIRED_MODES,process.argv[2])){process.env.TZ='America/New_York';const id=REPAIRED_MODES[process.argv[2]],r=runPublic(id)[0];for(const line of r.output)console.log(line);console.log('B1B2 REPAIRED WITNESS witnesses-'+process.argv[2].slice(-1)+': '+r.cases+' cases; '+r.edits.length+' substitutions; original SHA256 '+PINS[id]);}
 
 const PUBLIC_LAW_CATALOG = [
