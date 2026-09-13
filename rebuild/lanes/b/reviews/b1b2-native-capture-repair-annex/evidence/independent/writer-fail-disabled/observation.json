@@ -1,0 +1,53 @@
+{
+  "name": "writer-fail-disabled",
+  "mode": "writer-fail",
+  "direct": false,
+  "enabled": false,
+  "result": {
+    "gateVerdict": "FAIL",
+    "captureVerdict": "FAIL",
+    "childExit": 1,
+    "childSignal": null,
+    "tests": 4,
+    "pass": 3,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "comparisons": [
+      {
+        "kind": "second-readers",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      },
+      {
+        "kind": "second-applyRead",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      }
+    ],
+    "fixedFailureCode": "DIAGNOSTIC"
+  },
+  "writerReached": true,
+  "deferredRan": false,
+  "details": null,
+  "raw": [
+    {
+      "file": "stdout.raw",
+      "bytes": 1896,
+      "sha256": "a08c5bd14dd56e89b37f8e9783c8be7a9008694bf1f61727cf44609b59f781c2"
+    },
+    {
+      "file": "stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "capture-manifest.json",
+      "bytes": 140,
+      "sha256": "58f4cdf1512ab79cf82e08e211e451b224b0e28fe40ba4c07beefb5dc459b469"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "name": "late-observation-disabled",
+  "mode": "late-observation",
+  "direct": false,
+  "enabled": false,
+  "result": {
+    "gateVerdict": "PASS",
+    "captureVerdict": "FAIL",
+    "childExit": 0,
+    "childSignal": null,
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "comparisons": [
+      {
+        "kind": "second-readers",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      },
+      {
+        "kind": "second-applyRead",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      }
+    ],
+    "fixedFailureCode": "DIAGNOSTIC"
+  },
+  "writerReached": true,
+  "deferredRan": false,
+  "details": {
+    "mode": "late-observation",
+    "events": [
+      "exit-listener"
+    ],
+    "objectsUnchanged": true
+  },
+  "raw": [
+    {
+      "file": "stdout.raw",
+      "bytes": 563,
+      "sha256": "8ac5c073e0e4ab0eae20573d2584e8f60b21f3c46f6c63c290ce123e567daab2"
+    },
+    {
+      "file": "stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "capture-manifest.json",
+      "bytes": 139,
+      "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+    }
+  ]
+}

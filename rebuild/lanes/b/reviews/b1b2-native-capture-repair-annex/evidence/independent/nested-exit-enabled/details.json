@@ -1,0 +1,9 @@
+{
+  "mode": "nested-exit",
+  "events": [
+    "exit-listener",
+    "exit-listener"
+  ],
+  "objectsUnchanged": true,
+  "nested": true
+}

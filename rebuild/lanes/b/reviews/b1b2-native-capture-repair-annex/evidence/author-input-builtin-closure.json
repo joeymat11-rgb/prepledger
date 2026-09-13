@@ -1,0 +1,198 @@
+{
+  "version": 1,
+  "authority": "1a0cc98640dae57930569ed8ed7d5a7918ccf11f",
+  "runtime": {
+    "version": "v22.23.2",
+    "bytes": 86997320,
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "retrieval": "Selected public source strings from owned process.binding(natives); no new async hook module loaded/enabled by this inspection.",
+  "modules": [
+    {
+      "id": "async_hooks",
+      "bytes": 8786,
+      "sha256": "70ccf0924b391ef4bab09721dbd8637b4c542cee5f7e016b24e6c46ccd61491c",
+      "readRanges": [
+        [
+          1,
+          159
+        ],
+        [
+          280,
+          297
+        ]
+      ]
+    },
+    {
+      "id": "internal/async_hooks",
+      "bytes": 21142,
+      "sha256": "ba3796c9c95212cad67561d13924865defbf5dd59c6fb7c5237cab194639e53c",
+      "readRanges": [
+        [
+          1,
+          110
+        ],
+        [
+          140,
+          418
+        ],
+        [
+          470,
+          528
+        ],
+        [
+          587,
+          638
+        ]
+      ]
+    },
+    {
+      "id": "internal/promise_hooks",
+      "bytes": 3200,
+      "sha256": "30a555b933f6ef49f0c93001fce25eca042f301a74e785dd95af94521c265a1e",
+      "readRanges": [
+        [
+          1,
+          127
+        ]
+      ]
+    },
+    {
+      "id": "internal/async_context_frame",
+      "bytes": 1661,
+      "sha256": "69b0eb6a63200f2892175aff24a2ab328c8f22cc38052179baaeae24691b5636",
+      "readRanges": [
+        [
+          1,
+          78
+        ]
+      ]
+    },
+    {
+      "id": "internal/errors",
+      "bytes": 71343,
+      "sha256": "b9af59ffba4fe768ddb48a484cd5370004961cac5d4a0f5905a5c9307026d14d",
+      "readRanges": [
+        [
+          190,
+          252
+        ],
+        [
+          370,
+          455
+        ],
+        [
+          530,
+          590
+        ],
+        [
+          1010,
+          1038
+        ],
+        [
+          1080,
+          1129
+        ]
+      ]
+    },
+    {
+      "id": "internal/util",
+      "bytes": 29682,
+      "sha256": "2e5eb87114e5b919b248bbfa6c3a43f07bc49884cd3a48653a346916614dd691",
+      "readRanges": [
+        [
+          1,
+          83
+        ],
+        [
+          95,
+          150
+        ],
+        [
+          703,
+          715
+        ]
+      ]
+    },
+    {
+      "id": "internal/validators",
+      "bytes": 19145,
+      "sha256": "20e552e4b034c71d6feb343bcc676b6dc13d3eb1d0613e20da26fd73168ca8bb",
+      "readRanges": [
+        [
+          1,
+          40
+        ],
+        [
+          468,
+          485
+        ]
+      ]
+    },
+    {
+      "id": "internal/util/types",
+      "bytes": 2714,
+      "sha256": "2301cf16fd792af521e044b013136ef7188b68a46f885eafc7281e0acb5903f7",
+      "readRanges": [
+        [
+          1,
+          116
+        ]
+      ]
+    },
+    {
+      "id": "internal/options",
+      "bytes": 3224,
+      "sha256": "effe1d5cd2803f1fc663248f933c70de1656b8b50d2268b7c22c09cf8d12571d",
+      "readRanges": [
+        [
+          1,
+          121
+        ]
+      ]
+    },
+    {
+      "id": "internal/assert",
+      "bytes": 467,
+      "sha256": "010606835f1b3e2b6c15c29bda0d73789469380e0abd89a4e20d196f3f23f9bb",
+      "readRanges": [
+        [
+          1,
+          23
+        ]
+      ]
+    },
+    {
+      "id": "internal/per_context/primordials",
+      "bytes": 22452,
+      "sha256": "f76722b798e9b53d2693bf5b9f26c3201cbfc379a9b5ad5d1f3afabf2a77a164",
+      "readRanges": [
+        [
+          1,
+          98
+        ]
+      ]
+    }
+  ],
+  "routes": [
+    "async_hooks AsyncHook/createHook/enable/disable",
+    "internal/async_hooks getHookArrays/init/resolve callbacks/fatalError/enable/disable/promise-mode setup",
+    "internal/promise_hooks registration/stop/update/native hook dispatch",
+    "validation and module initialization dependencies; unused lazy exports excluded"
+  ],
+  "opaqueBoundaries": [
+    "V8 primordials/intrinsics and builtin bootstrap/loader supplied by exact Node binary",
+    "internalBinding async_wrap: callback trampoline, provider/constants/fields and setPromiseHooks",
+    "internalBinding task_queue enqueueMicrotask: disableHooks schedules deferred native promise-trampoline teardown",
+    "internalBinding errors triggerUncaughtException/exit codes",
+    "internalBinding symbols, async_context_frame, types, options, constants, util and string_decoder"
+  ],
+  "callbackPolicy": "Callbacks cannot throw: Node routes async hook exceptions to fatalError/process exit. Use no callback arguments or payload, IO/logging/scheduling; only a closure-local boolean latch.",
+  "removalSemantics": "AsyncHook.disable synchronously removes this hook from the active hook array (or staged array during callbacks). Last-hook disable schedules internal promise-trampoline cleanup as a microtask; that native bookkeeping is not claimed synchronous or fully inspected.",
+  "excludedLazyRoutes": [
+    "AsyncLocalStorage getters/implementations and AsyncResource operations",
+    "internal/util deprecation, inspector, URL, coverage, crypto helpers",
+    "error object formatting and fatal-error inspection routes never deliberately invoked; no fatal-hook tests",
+    "native C++ source and external packages"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "name": "microtask-disabled",
+  "mode": "microtask",
+  "direct": false,
+  "enabled": false,
+  "result": {
+    "gateVerdict": "PASS",
+    "captureVerdict": "FAIL",
+    "childExit": 0,
+    "childSignal": null,
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "comparisons": [
+      {
+        "kind": "second-readers",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      },
+      {
+        "kind": "second-applyRead",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      }
+    ],
+    "fixedFailureCode": "DIAGNOSTIC"
+  },
+  "writerReached": true,
+  "deferredRan": true,
+  "details": {
+    "mode": "microtask",
+    "events": [
+      "exit-listener"
+    ],
+    "objectsUnchanged": true
+  },
+  "raw": [
+    {
+      "file": "stdout.raw",
+      "bytes": 563,
+      "sha256": "29044376ed780d2058c5a470a2e6f43aafb402826a57853cfa8748306a1f7db9"
+    },
+    {
+      "file": "stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "capture-manifest.json",
+      "bytes": 139,
+      "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+    }
+  ]
+}

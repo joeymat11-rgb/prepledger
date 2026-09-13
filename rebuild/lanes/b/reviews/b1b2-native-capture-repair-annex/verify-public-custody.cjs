@@ -1,0 +1,7 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'../../../../..'),mapping=JSON.parse(fs.readFileSync(path.join(__dirname,'MAPPING.json'))),sha=b=>crypto.createHash('sha256').update(b).digest('hex'),head=cp.execFileSync('git',['rev-parse','HEAD'],{cwd:root,windowsHide:true}).toString().trim();
+for(const row of mapping.mapping)assert(row.copy.startsWith('rebuild/lanes/b/reviews/b1b2-native-capture-repair-annex/evidence/'));
+const result=cp.execFileSync('git',['cat-file','--batch'],{cwd:root,windowsHide:true,input:mapping.mapping.map(row=>head+':'+row.copy).join('\n')+'\n',maxBuffer:4e6});let offset=0;
+for(const row of mapping.mapping){const nl=result.indexOf(10,offset);assert(nl>=0);const header=result.subarray(offset,nl).toString().split(' ');assert.equal(header[1],'blob');const bytes=Number(header[2]);assert.equal(bytes,row.bytes);offset=nl+1;assert.equal(sha(result.subarray(offset,offset+bytes)),row.sha256);offset+=bytes;assert.equal(result[offset++],10);assert.equal(sha(fs.readFileSync(path.join(root,row.copy))),row.sha256);}
+assert.equal(offset,result.length);console.log(JSON.stringify({head,mappedFiles:mapping.count,totalBytes:mapping.totalBytes,allGitBlobsAndWorkingCopiesExact:true,mappingSha256:sha(fs.readFileSync(path.join(__dirname,'MAPPING.json')))}));

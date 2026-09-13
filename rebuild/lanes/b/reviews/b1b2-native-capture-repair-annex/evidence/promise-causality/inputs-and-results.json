@@ -1,0 +1,86 @@
+{
+  "purpose": "Whole licensed preimage vs fresh restored candidate on the same real node:test frozen-Promise case; not an admission run and not a candidate fix.",
+  "node": {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-review\\work\\pm-caretaker\\b1b2-native-capture\\.tmp\\runtime\\node.exe",
+    "version": "v22.23.2",
+    "bytes": 86997320,
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "candidate": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+  "preimage": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+  "childSha256": "943f0a281c8f697565bc27e3bc6952ba9b932163ccb311796806b505044a7c78",
+  "cases": [
+    {
+      "label": "whole-preimage",
+      "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-review\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\reviews\\b1b2-native-capture-repair-annex\\independent-child.cjs"
+      ],
+      "captureDir": ".tmp\\b1b2-native-capture\\bfa7e3c5475fca18a0493e35ba4ebeaa",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "deferredRan": true,
+      "pendingMarker": false,
+      "files": [
+        {
+          "file": "stdout.tap",
+          "bytes": 563,
+          "sha256": "2478150dc643a0fb49748a4e3cd1acfe2c797fb967b95df2d3d5e6ab7db4f172"
+        },
+        {
+          "file": "stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "file": "native-diagnostics.jsonl",
+          "bytes": 210,
+          "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+        }
+      ]
+    },
+    {
+      "label": "fresh-restored-candidate",
+      "helperSha256": "a010ef5b0460ecda3009c2cd54c7c7292b987e2ee954f9d6a2e4a949eaaf0b67",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-review\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\reviews\\b1b2-native-capture-repair-annex\\independent-child.cjs"
+      ],
+      "captureDir": ".tmp\\b1b2-native-capture\\6bd0979964291c55cb3fb0370de7003e",
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "deferredRan": false,
+      "pendingMarker": true,
+      "files": [
+        {
+          "file": "stdout.tap",
+          "bytes": 2268,
+          "sha256": "75325164caf6ef7fd6d5c9ce8a06cf77c59871c870a053e8f0686972a39caf16"
+        },
+        {
+          "file": "stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "file": "capture-manifest.json",
+          "bytes": 23,
+          "sha256": "52a59dd55851b37d0c335c83c45f27d9a71e25693633f5cad8859f72cdbfa33d"
+        },
+        {
+          "file": "native-diagnostics.jsonl",
+          "bytes": 210,
+          "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+        }
+      ]
+    }
+  ],
+  "candidateRestored": true,
+  "allInputIdentitiesRestored": true,
+  "originalNativeInvoked": false
+}

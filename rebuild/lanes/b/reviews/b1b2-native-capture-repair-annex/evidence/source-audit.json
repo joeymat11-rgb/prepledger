@@ -1,0 +1,224 @@
+{
+  "candidate": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+  "tested": "df8fa14fa08d28cde6bf53a710df0bb089c4720e",
+  "preimage": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+  "assembly": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "authority": "ecca0d8d7ef33c1e6088995ceae88c87aa001656",
+  "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-review\\work\\pm-caretaker\\b1b2-native-capture",
+  "bars": [
+    {
+      "path": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-REPAIR-REVIEW.md",
+      "ref": "ecca0d8d7ef33c1e6088995ceae88c87aa001656",
+      "bytes": 6372,
+      "sha256": "dbe81387173cae3df643cebf1a79e181a8cfbed2f4ad665f8908d3283593749b"
+    },
+    {
+      "path": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-REPAIR-REVIEW-INPUTS.json",
+      "ref": "ecca0d8d7ef33c1e6088995ceae88c87aa001656",
+      "bytes": 5379,
+      "sha256": "ca819148865b9640aa0263c47ab91730548ae86e2679611dcf4cff25e1c33757"
+    },
+    {
+      "path": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-GO.md",
+      "ref": "ecca0d8d7ef33c1e6088995ceae88c87aa001656",
+      "bytes": 6604,
+      "sha256": "3aca3d79eb6870088350fd801640ace0a4b6fd1c297c0fb05f2bdbb5322682ec"
+    },
+    {
+      "path": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-REVIEW.md",
+      "ref": "ecca0d8d7ef33c1e6088995ceae88c87aa001656",
+      "bytes": 6267,
+      "sha256": "2f2ded00e400dc5b312c64b96408e4478feca6c4aef1cebdf61dab7f9fd1268d"
+    },
+    {
+      "path": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-REPAIR-GO.md",
+      "ref": "ecca0d8d7ef33c1e6088995ceae88c87aa001656",
+      "bytes": 6217,
+      "sha256": "7b43e904a6b8ff15d80c3a1f6ca021d9ddcb3eefb728cd373b685f271ccfdf31"
+    },
+    {
+      "path": "rebuild/lanes/astra/B1B2-CAPTURE-EXIT-DISPATCH-GO.md",
+      "ref": "ecca0d8d7ef33c1e6088995ceae88c87aa001656",
+      "bytes": 3538,
+      "sha256": "825cbda522367a3d83ff3e895a1e3ea64c6fcd13553280a940bcf8fdfd80165a"
+    },
+    {
+      "path": "rebuild/lanes/astra/B1B2-CAPTURE-DEFERRED-EXIT-GO.md",
+      "ref": "ecca0d8d7ef33c1e6088995ceae88c87aa001656",
+      "bytes": 4698,
+      "sha256": "6b251b6cf31eac37b840555622435a2654eb3eefb84528fdd5ab03707323ae3f"
+    },
+    {
+      "path": "rebuild/lanes/b/B1B2-NATIVE-BOUNDARIES-PLAN.json",
+      "ref": "bcec684876d0f3d941cd4abc8983ebf8a5eb2dd0",
+      "bytes": 29115,
+      "sha256": "7ed4ecead49357b7bf78e65904c2df50188b958d7481dd4aee35f168a1ba0644"
+    }
+  ],
+  "manifest": {
+    "kind": "INPUT_ONLY_CUSTODY_NOT_OUTCOMES",
+    "authority": "PM352 and complete330/344/348/350 bars",
+    "candidate": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+    "testedSource": "df8fa14fa08d28cde6bf53a710df0bb089c4720e",
+    "base": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+    "assemblyA": "3bfed63febef002b8540d6ff3c56e19d08368711",
+    "node": {
+      "version": "22.23.2",
+      "platform": "win-x64",
+      "bytes": 86997320,
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+    },
+    "inputs": [
+      {
+        "role": "candidate",
+        "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+        "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+        "bytes": 45331,
+        "sha256": "a010ef5b0460ecda3009c2cd54c7c7292b987e2ee954f9d6a2e4a949eaaf0b67",
+        "gitBlob": "db92fd63f39774fc5fd590c627869b1286251240",
+        "use": "synthetic invocation only"
+      },
+      {
+        "role": "candidate",
+        "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+        "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+        "bytes": 14364,
+        "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721",
+        "gitBlob": "ff411faec22f089c1802d25425f73c9ecd2dc9f1",
+        "use": "synthetic invocation only"
+      },
+      {
+        "role": "candidate",
+        "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+        "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+        "bytes": 48347,
+        "sha256": "27dec2e00e3fc48570704c98330d588e97ad78c7c9817a855af41739627d9a8f",
+        "gitBlob": "c0c4e076c2cdd184082d8f3d3a4489a954b76cb8",
+        "use": "only committed executable test entry"
+      },
+      {
+        "role": "candidate",
+        "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+        "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+        "bytes": 89271,
+        "sha256": "ba48e26700567b17397eefcaf08532eb5680d01d00226a6b9bf27b8dc468be55",
+        "gitBlob": "b46131431a947e7f4e4129f14fae20d0aa643ee2",
+        "use": "profile metadata comparison only"
+      },
+      {
+        "role": "candidate",
+        "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+        "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+        "bytes": 196822,
+        "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058",
+        "gitBlob": "7302b88e30d1c36b9d4558486d4cde1369915d32",
+        "use": "public helper input"
+      },
+      {
+        "role": "candidate",
+        "ref": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+        "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+        "bytes": 1061,
+        "sha256": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2",
+        "gitBlob": "6f31a562de7447a53236991899417f1a591d62ce",
+        "use": "STATIC ONLY: no original gate invocation"
+      },
+      {
+        "role": "base",
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+        "bytes": 36945,
+        "sha256": "884218f2fa5f2e012a018f096f05f6ec3fb7a4027b4123c5bacc0aa25fce4b9c",
+        "gitBlob": "6070de8835303eacff27cbf6f2879fd28bc4c132",
+        "use": "static preimage comparison"
+      },
+      {
+        "role": "base",
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+        "bytes": 89271,
+        "sha256": "184d79ad82201a7d2c9ed1c631776077149727223eb5ae259393759bfbd957e7",
+        "gitBlob": "ecc4b33ea1406eb43b5dbc39cbdb15792f5feefd",
+        "use": "static preimage comparison"
+      },
+      {
+        "role": "repair-preimage",
+        "ref": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+        "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+        "bytes": 41569,
+        "sha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+        "gitBlob": "e169ec8bc7c843d034bec96ea9cba4ef90d4ae83",
+        "use": "static preimage comparison; independent invented controls only under352"
+      },
+      {
+        "role": "repair-preimage",
+        "ref": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+        "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+        "bytes": 14267,
+        "sha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+        "gitBlob": "3be4869d3ba487b15535967f4d2687d41b708a77",
+        "use": "static preimage comparison; independent invented controls only under352"
+      },
+      {
+        "role": "repair-preimage",
+        "ref": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+        "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+        "bytes": 28677,
+        "sha256": "712fd9af1074d6dff9f908060790c5cd20c56b77bf25a1cec315e49638e1cb46",
+        "gitBlob": "b2d9a38cecac0be9f2083d075ce9196de5e98442",
+        "use": "static preimage comparison; independent invented controls only under352"
+      },
+      {
+        "role": "repair-preimage",
+        "ref": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+        "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+        "bytes": 89271,
+        "sha256": "cfcf6e9d232d0f1f4fad818684d0f3f58ad840feaca53cbb07d53565b6f1ac04",
+        "gitBlob": "fc5a065fe258ff4488d8d8296ef55fbfda4cd313",
+        "use": "static preimage comparison; independent invented controls only under352"
+      }
+    ],
+    "newBuiltin": "node:async_hooks, finite relevant pinned builtin JavaScript closure under350; inspect independently before loading/enabling; opaque native boundaries explicit"
+  },
+  "index": {
+    "paths": 1610,
+    "tree": "fd340a536ca0bde461b3b3fc3e0807c9592ef44e"
+  },
+  "changed": [
+    "rebuild/lanes/b/BUILD-B1B2-NATIVE-CAPTURE.md",
+    "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+    "rebuild/lanes/b/tooling/packages/B1-B2.json",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+    "rebuild/m4/workout/test/b1b2-evidence.cjs"
+  ],
+  "unchanged": [
+    {
+      "path": "rebuild/engine",
+      "gitObject": "e51462d83985592bcfbde846dab3b9d7abde9c20"
+    },
+    {
+      "path": "rebuild/m3",
+      "gitObject": "6e7bb5e9cd00041467731c1fe5a0210c19665771"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "gitObject": "7302b88e30d1c36b9d4558486d4cde1369915d32"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+      "gitObject": "6f31a562de7447a53236991899417f1a591d62ce"
+    }
+  ],
+  "wholeHelperMinusObserverEqualsA": true,
+  "profileOnlyHelperPost": true,
+  "originalChildStaticOnly": true,
+  "originalNativeInvoked": false,
+  "newAuthorOutcomesRead": false,
+  "node": {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-review\\work\\pm-caretaker\\b1b2-native-capture\\.tmp\\runtime\\node.exe",
+    "version": "v22.23.2",
+    "bytes": 86997320,
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "setup": "Fresh real nested Git worktree; six public inputs only plus NEXT/AGENTS, explicit full index before hydration; owned pinned runtime copied from earlier own ER tree and rehashed. Initial orientation printed too much historical NEXT; subsequent reads followed its first-line rebuild pointer."
+}

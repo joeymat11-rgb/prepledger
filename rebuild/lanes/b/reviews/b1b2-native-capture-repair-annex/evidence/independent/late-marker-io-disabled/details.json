@@ -1,0 +1,7 @@
+{
+  "mode": "late-marker-io",
+  "events": [
+    "exit-listener"
+  ],
+  "objectsUnchanged": true
+}

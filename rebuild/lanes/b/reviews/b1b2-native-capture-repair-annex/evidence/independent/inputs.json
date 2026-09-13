@@ -1,0 +1,313 @@
+{
+  "candidate": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+  "node": {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-review\\work\\pm-caretaker\\b1b2-native-capture\\.tmp\\runtime\\node.exe",
+    "version": "v22.23.2",
+    "bytes": 86997320,
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "operator": {
+    "bytes": 14364,
+    "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721"
+  },
+  "helper": {
+    "sha256": "a010ef5b0460ecda3009c2cd54c7c7292b987e2ee954f9d6a2e4a949eaaf0b67"
+  },
+  "child": {
+    "path": "rebuild\\lanes\\b\\reviews\\b1b2-native-capture-repair-annex\\independent-child.cjs",
+    "bytes": 4702,
+    "sha256": "943f0a281c8f697565bc27e3bc6952ba9b932163ccb311796806b505044a7c78"
+  },
+  "sourceRoutes": [
+    "candidate helper approvedNativeDifference with invented objects; unchanged public source-map and Git metadata validation",
+    "candidate operator capture and tapCensus via isolated Module; only child_process.spawn redirects exact asserted native argv to invented child",
+    "actual pinned Node/filesystem/path/crypto/string_decoder/Module/child_process; no manufactured _exiting flag"
+  ],
+  "claimsExcluded": [
+    "production main/commission/ACL admission is not exercised by this independent launch seam; see committed cohort",
+    "direct cases print their own four-test TAP and do not claim a node:test runner result",
+    "no private/native/engine source or original child executed"
+  ],
+  "cases": [
+    {
+      "mode": "normal",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\d729419a0be3c8ffdbb9c006913c86f1",
+      "out": ".tmp\\er-native-capture-repair\\independent\\normal-disabled"
+    },
+    {
+      "mode": "normal",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\98f403106b44e4b1eb87cf3a525a39e1",
+      "out": ".tmp\\er-native-capture-repair\\independent\\normal-enabled"
+    },
+    {
+      "mode": "normal-own-descriptor",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\d41ca6b0db49a2ef915090475162c41d",
+      "out": ".tmp\\er-native-capture-repair\\independent\\normal-own-descriptor-disabled"
+    },
+    {
+      "mode": "normal-own-descriptor",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\efcb4dc3b15765860af720507fd6ccbe",
+      "out": ".tmp\\er-native-capture-repair\\independent\\normal-own-descriptor-enabled"
+    },
+    {
+      "mode": "reader-fail",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\4ae30a1b57cf358ba771d5df96c48967",
+      "out": ".tmp\\er-native-capture-repair\\independent\\reader-fail-disabled"
+    },
+    {
+      "mode": "reader-fail",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\bf07b266c418cf42632ec06dbee6da39",
+      "out": ".tmp\\er-native-capture-repair\\independent\\reader-fail-enabled"
+    },
+    {
+      "mode": "writer-fail",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\5a8d5b77eab5f7181164e3f65ae83abd",
+      "out": ".tmp\\er-native-capture-repair\\independent\\writer-fail-disabled"
+    },
+    {
+      "mode": "writer-fail",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\e59d932a0538f62a2cbed3b2d0a71370",
+      "out": ".tmp\\er-native-capture-repair\\independent\\writer-fail-enabled"
+    },
+    {
+      "mode": "late-observation",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\f6f84793073a53fc1a37c84b00c26c50",
+      "out": ".tmp\\er-native-capture-repair\\independent\\late-observation-disabled"
+    },
+    {
+      "mode": "late-observation",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\c79bd4ced1e100def0ac9c319f410943",
+      "out": ".tmp\\er-native-capture-repair\\independent\\late-observation-enabled"
+    },
+    {
+      "mode": "microtask",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\3a17a4b389613a206ec5807cf74c42f6",
+      "out": ".tmp\\er-native-capture-repair\\independent\\microtask-disabled"
+    },
+    {
+      "mode": "microtask",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\99809884210f1eed7e22c8a222095327",
+      "out": ".tmp\\er-native-capture-repair\\independent\\microtask-enabled"
+    },
+    {
+      "mode": "nested-promise",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\f9db5a395589cd0f09bf1ab0313c2857",
+      "out": ".tmp\\er-native-capture-repair\\independent\\nested-promise-disabled"
+    },
+    {
+      "mode": "nested-promise",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\c37a5199e3188a0557a4c2f4429488f4",
+      "out": ".tmp\\er-native-capture-repair\\independent\\nested-promise-enabled"
+    },
+    {
+      "mode": "next-tick",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\426b5e4024b85dd544e0b3ab2e3bcf0f",
+      "out": ".tmp\\er-native-capture-repair\\independent\\next-tick-disabled"
+    },
+    {
+      "mode": "next-tick",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\4d1fe42b4fb98776f4ad73d5b1d601fa",
+      "out": ".tmp\\er-native-capture-repair\\independent\\next-tick-enabled"
+    },
+    {
+      "mode": "manual-exit",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\326ce38636d6232516541bb5527f506e",
+      "out": ".tmp\\er-native-capture-repair\\independent\\manual-exit-disabled"
+    },
+    {
+      "mode": "manual-exit",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\e536d1cab55a75ccccd15f4ed1de2620",
+      "out": ".tmp\\er-native-capture-repair\\independent\\manual-exit-enabled"
+    },
+    {
+      "mode": "nested-exit",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\745ec3000ca664f57227b7305a26bd56",
+      "out": ".tmp\\er-native-capture-repair\\independent\\nested-exit-disabled"
+    },
+    {
+      "mode": "nested-exit",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\e9ef39ff9bcac6ffedf42a968972f7bd",
+      "out": ".tmp\\er-native-capture-repair\\independent\\nested-exit-enabled"
+    },
+    {
+      "mode": "lost-emitter",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\9f453fcc7d76c15dfe8fe288d5777955",
+      "out": ".tmp\\er-native-capture-repair\\independent\\lost-emitter-disabled"
+    },
+    {
+      "mode": "lost-emitter",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\332276eaa88a55808e37adac5657b492",
+      "out": ".tmp\\er-native-capture-repair\\independent\\lost-emitter-enabled"
+    },
+    {
+      "mode": "late-unlink-replacement",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\83e379e99700cad4e3d611975cdc8e96",
+      "out": ".tmp\\er-native-capture-repair\\independent\\late-unlink-replacement-disabled"
+    },
+    {
+      "mode": "late-unlink-replacement",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\6d2099dcff679024c8c2b68353332e5c",
+      "out": ".tmp\\er-native-capture-repair\\independent\\late-unlink-replacement-enabled"
+    },
+    {
+      "mode": "late-marker-io",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\2aee9c17dc8e57144c861f222f9bac4a",
+      "out": ".tmp\\er-native-capture-repair\\independent\\late-marker-io-disabled"
+    },
+    {
+      "mode": "late-marker-io",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\694f46b229e310ee0560c60a2a21b349",
+      "out": ".tmp\\er-native-capture-repair\\independent\\late-marker-io-enabled"
+    },
+    {
+      "mode": "cleanup-microtask",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\65685937078cfafe42f4184e6bde9733",
+      "out": ".tmp\\er-native-capture-repair\\independent\\cleanup-microtask-disabled"
+    },
+    {
+      "mode": "cleanup-microtask",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\74f4d1c6da0d7002421cd223e669641a",
+      "out": ".tmp\\er-native-capture-repair\\independent\\cleanup-microtask-enabled"
+    },
+    {
+      "mode": "exit-throw",
+      "direct": false,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\f4b0142365c4455a97fad0c329921366",
+      "out": ".tmp\\er-native-capture-repair\\independent\\exit-throw-disabled"
+    },
+    {
+      "mode": "exit-throw",
+      "direct": false,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\876b2bb6dcc3eada99c66dbbf53daff5",
+      "out": ".tmp\\er-native-capture-repair\\independent\\exit-throw-enabled"
+    },
+    {
+      "mode": "early-plain",
+      "direct": true,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\6a11068fb4ff6320310a70c53653d5ba",
+      "out": ".tmp\\er-native-capture-repair\\independent\\early-plain-disabled-direct"
+    },
+    {
+      "mode": "early-plain",
+      "direct": true,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\e2217498f50067d67c1bc93db0c129dd",
+      "out": ".tmp\\er-native-capture-repair\\independent\\early-plain-enabled-direct"
+    },
+    {
+      "mode": "early-frozen",
+      "direct": true,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\51dd373ac384983fb0ac33443a3b88f7",
+      "out": ".tmp\\er-native-capture-repair\\independent\\early-frozen-disabled-direct"
+    },
+    {
+      "mode": "early-frozen",
+      "direct": true,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\23f58519595d021386ddf4ddc248201d",
+      "out": ".tmp\\er-native-capture-repair\\independent\\early-frozen-enabled-direct"
+    },
+    {
+      "mode": "early-sealed",
+      "direct": true,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\e38d494e708adf726fb6dcc0160d25f7",
+      "out": ".tmp\\er-native-capture-repair\\independent\\early-sealed-disabled-direct"
+    },
+    {
+      "mode": "early-sealed",
+      "direct": true,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\aed041fe1eb9ad69b1159a82592907d7",
+      "out": ".tmp\\er-native-capture-repair\\independent\\early-sealed-enabled-direct"
+    },
+    {
+      "mode": "early-nonextensible",
+      "direct": true,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\e9c54ee1921a3940b77a3717bba7c793",
+      "out": ".tmp\\er-native-capture-repair\\independent\\early-nonextensible-disabled-direct"
+    },
+    {
+      "mode": "early-nonextensible",
+      "direct": true,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\d8fa8e629c453a2ccf1a24f60e08bcaa",
+      "out": ".tmp\\er-native-capture-repair\\independent\\early-nonextensible-enabled-direct"
+    },
+    {
+      "mode": "early-no-reaction",
+      "direct": true,
+      "enabled": false,
+      "captureDir": ".tmp\\b1b2-native-capture\\3e75610b175410417459ea737483a6b8",
+      "out": ".tmp\\er-native-capture-repair\\independent\\early-no-reaction-disabled-direct"
+    },
+    {
+      "mode": "early-no-reaction",
+      "direct": true,
+      "enabled": true,
+      "captureDir": ".tmp\\b1b2-native-capture\\c3156b53f3d2b319175159676c27020b",
+      "out": ".tmp\\er-native-capture-repair\\independent\\early-no-reaction-enabled-direct"
+    }
+  ]
+}

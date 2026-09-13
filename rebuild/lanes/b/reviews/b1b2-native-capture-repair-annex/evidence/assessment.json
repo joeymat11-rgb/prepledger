@@ -1,0 +1,59 @@
+{
+  "verdict": "REJECT: R1 remains open; R2 repair substantiated for reviewed scope",
+  "candidate": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+  "committedEntry": {
+    "tests": 61,
+    "pass": 61,
+    "fail": 0,
+    "guardControls": 12,
+    "allInputsRestored": true
+  },
+  "independent": {
+    "inventedChildLaunches": 50,
+    "realNodeTestLaunches": 40,
+    "directManualTapLaunches": 10,
+    "oneByteTapControls": 4,
+    "changedOutcomes": [
+      {
+        "mode": "early-frozen",
+        "disabledExit": 0,
+        "enabledExit": 1,
+        "disabledReactionRan": true,
+        "enabledReactionRan": false,
+        "markerRetained": true
+      },
+      {
+        "mode": "early-sealed",
+        "disabledExit": 0,
+        "enabledExit": 1,
+        "disabledReactionRan": true,
+        "enabledReactionRan": false,
+        "markerRetained": true
+      },
+      {
+        "mode": "early-nonextensible",
+        "disabledExit": 0,
+        "enabledExit": 1,
+        "disabledReactionRan": true,
+        "enabledReactionRan": false,
+        "markerRetained": true
+      }
+    ],
+    "preimageCausality": "same real node:test early-frozen case exits 0 and executes reaction under whole licensed preimage; fresh restored candidate exits 1 before reaction"
+  },
+  "mechanism": "installNativeExitCapture enables Node async_hooks for exit. internal/async_hooks promiseResolveHook calls trackPromise, which writes symbols onto a previously untracked Promise. Nonextensible promise bookkeeping throws before the observer Boolean callback. This is a real builtin side effect, not an injected throwing callback. Output-only noninterference and original child outcome preservation fail.",
+  "limitedPositiveClaims": [
+    "ordinary real four-test completion and own emit descriptor pass",
+    "original reader/writer failures and first-failure reach preserved",
+    "reviewed manual/reentrant/later listener, cleanup scheduling, ownership, late IO and thrown-exit cases refuse capture",
+    "root mixed-case SKIP/TODO and indented mixed-case Bail out! rejected under one-byte feeds",
+    "fieldDiff, whole-output assertion, exact native field-delta contract, engine/m3/map/static original child and all non-helper.post profile bytes invariant"
+  ],
+  "excludedClaims": [
+    "no native invocation or exact field-delta admission",
+    "independent capture seam does not exercise production main identity/ACL guards",
+    "opaque pinned native/V8/bootstrap/filesystem behavior is not claimed source-reviewed",
+    "61/61 synthetic cohort is not proof of observer noninterference"
+  ],
+  "newAuthorCompletionOutcomesRead": false
+}

@@ -1,0 +1,7 @@
+{
+  "mode": "lost-emitter",
+  "events": [
+    "exit-listener"
+  ],
+  "objectsUnchanged": true
+}

@@ -1,0 +1,10 @@
+{
+  "mode": "early-nonextensible",
+  "events": [
+    "exit-listener"
+  ],
+  "promiseSymbolsBefore": [],
+  "extensibleBefore": false,
+  "objectsUnchanged": true,
+  "promiseSymbolsAtExit": []
+}

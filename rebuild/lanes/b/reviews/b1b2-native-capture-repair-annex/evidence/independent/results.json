@@ -1,0 +1,2449 @@
+[
+  {
+    "name": "normal-disabled",
+    "mode": "normal",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "normal",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "ddce2a549031699101d7cfcbeefd4a4bace6efa2d178077809a00672e4343072"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+      }
+    ]
+  },
+  {
+    "name": "normal-enabled",
+    "mode": "normal",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "PASS",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "NONE"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "normal",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 561,
+        "sha256": "4d79fda4ea7ac35d907b88fdd5b0a70cddbdbee693b057cdbc77259d87756d53"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 132,
+        "sha256": "0cc9e85ef67a6ce704a26622789a5dfa6137175ce3902b490f1f765d6a648aa8"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "normal-own-descriptor-disabled",
+    "mode": "normal-own-descriptor",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "normal-own-descriptor",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "9ef72e78131990a6d09a4156ed4dc881fd314865001c706c5beb3e358033e4d1"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+      }
+    ]
+  },
+  {
+    "name": "normal-own-descriptor-enabled",
+    "mode": "normal-own-descriptor",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "PASS",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "NONE"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "normal-own-descriptor",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "0c1857b66f871ed5cdcc268a8eac1b82368e5fc0d426c453a8191b921e3926ef"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 132,
+        "sha256": "2b70a8ab72a9bcb1af85b49be53fe5cee1fd92e4a1d382eaee640e940f8c724d"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "reader-fail-disabled",
+    "mode": "reader-fail",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "FAIL",
+      "captureVerdict": "FAIL",
+      "childExit": 1,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 3,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": false,
+    "deferredRan": false,
+    "details": null,
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 1893,
+        "sha256": "6ff82ef8167a235bdde70dbbf6ea1469cb73642f6ea23ad663f5f10f4f8f256a"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 140,
+        "sha256": "41e4dd332259b0f6908dd6a310b6cd64e1275a69419485e08ed821385bed126d"
+      }
+    ]
+  },
+  {
+    "name": "reader-fail-enabled",
+    "mode": "reader-fail",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "FAIL",
+      "captureVerdict": "FAIL",
+      "childExit": 1,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 3,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [
+            {
+              "id": "nowModel",
+              "count": 1
+            }
+          ],
+          "differenceCount": 1,
+          "comparisonVerdict": "DIFFERENT"
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": false,
+    "deferredRan": false,
+    "details": null,
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 1894,
+        "sha256": "3e0f75cf1cd55a53c1387c3e3df687341d5a3ebfe4b2e04ccbfb999af5f03b84"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 140,
+        "sha256": "da68a2ba6180f9e5e6ac553ed06142e7f581796185e9f9fbc958f601ae852488"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 135,
+        "sha256": "b6454c536015fcf93660209820f68034d6e5ff32ac9ffe3aeb353845c3312c2f"
+      }
+    ]
+  },
+  {
+    "name": "writer-fail-disabled",
+    "mode": "writer-fail",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "FAIL",
+      "captureVerdict": "FAIL",
+      "childExit": 1,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 3,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": null,
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 1896,
+        "sha256": "a08c5bd14dd56e89b37f8e9783c8be7a9008694bf1f61727cf44609b59f781c2"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 140,
+        "sha256": "58f4cdf1512ab79cf82e08e211e451b224b0e28fe40ba4c07beefb5dc459b469"
+      }
+    ]
+  },
+  {
+    "name": "writer-fail-enabled",
+    "mode": "writer-fail",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "FAIL",
+      "captureVerdict": "FAIL",
+      "childExit": 1,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 3,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [
+            {
+              "id": "trend",
+              "count": 1
+            }
+          ],
+          "differenceCount": 1,
+          "comparisonVerdict": "DIFFERENT"
+        }
+      ],
+      "fixedFailureCode": "CHILD"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": null,
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 1896,
+        "sha256": "d6b0135bf009b3813a273581370330049c45fc55d4bd6b37c5d7462b93c96c0e"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 135,
+        "sha256": "116b6f995f70856d9222a10b0a0b29a7f7ffacbfc4e0b0070fd73d2adc05adb4"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 238,
+        "sha256": "c0981d541c6fd150677aa043b689d1e475dcdd6a16089275406b513866fe5e36"
+      }
+    ]
+  },
+  {
+    "name": "late-observation-disabled",
+    "mode": "late-observation",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "late-observation",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "8ac5c073e0e4ab0eae20573d2584e8f60b21f3c46f6c63c290ce123e567daab2"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+      }
+    ]
+  },
+  {
+    "name": "late-observation-enabled",
+    "mode": "late-observation",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "late-observation",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "c51e6cf694fab17e3b41a0593643394cdfd457f54452ed0077666887fa7b6e18"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "microtask-disabled",
+    "mode": "microtask",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": true,
+    "details": {
+      "mode": "microtask",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "29044376ed780d2058c5a470a2e6f43aafb402826a57853cfa8748306a1f7db9"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+      }
+    ]
+  },
+  {
+    "name": "microtask-enabled",
+    "mode": "microtask",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": true,
+    "details": {
+      "mode": "microtask",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 562,
+        "sha256": "21f865aec25e88acd33b70e45d70fd48ab5dff939e353d1c577b3ebd4c91217b"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "c0226f691ad5f7dc083e9c512e19a35182f8e6a666c55a13d46c4ecc4ca715fb"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "nested-promise-disabled",
+    "mode": "nested-promise",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": true,
+    "details": {
+      "mode": "nested-promise",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "ba8a8d25c7cdab748b5dce7fe2361683b8a6a879edfa92d7fe720297c5b80dd5"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+      }
+    ]
+  },
+  {
+    "name": "nested-promise-enabled",
+    "mode": "nested-promise",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": true,
+    "details": {
+      "mode": "nested-promise",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 562,
+        "sha256": "dc758e099e0fe042f7bd167f4e65538e7117f8c1bc87136104dc1a024c40b219"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "c0226f691ad5f7dc083e9c512e19a35182f8e6a666c55a13d46c4ecc4ca715fb"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "next-tick-disabled",
+    "mode": "next-tick",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "next-tick",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 562,
+        "sha256": "e7d84ec4953b48cc0134de167db429f837e149730eef1534c4178cef5116fa46"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "c0226f691ad5f7dc083e9c512e19a35182f8e6a666c55a13d46c4ecc4ca715fb"
+      }
+    ]
+  },
+  {
+    "name": "next-tick-enabled",
+    "mode": "next-tick",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "PASS",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "NONE"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "next-tick",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "e0e472a7eddb2ed489950b10f5c731627cafea96fb9b854dbc1b2eb73314d2c5"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 132,
+        "sha256": "2b70a8ab72a9bcb1af85b49be53fe5cee1fd92e4a1d382eaee640e940f8c724d"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "manual-exit-disabled",
+    "mode": "manual-exit",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "manual-exit",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "ef620aed79a8914e32731974c6708873fb14084c82117c7fff04695a30c201d3"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+      }
+    ]
+  },
+  {
+    "name": "manual-exit-enabled",
+    "mode": "manual-exit",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "manual-exit",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 562,
+        "sha256": "3512afdcb76979ca3c2494ddc933afaf384afa949d9d18a691a3544234027e80"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "c0226f691ad5f7dc083e9c512e19a35182f8e6a666c55a13d46c4ecc4ca715fb"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "nested-exit-disabled",
+    "mode": "nested-exit",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "nested-exit",
+      "events": [
+        "exit-listener",
+        "exit-listener"
+      ],
+      "objectsUnchanged": true,
+      "nested": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 562,
+        "sha256": "4ca71b73f2b89e8567adf633d6b903455176801d19e46d2dbe0bf1db9f6b175c"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "c0226f691ad5f7dc083e9c512e19a35182f8e6a666c55a13d46c4ecc4ca715fb"
+      }
+    ]
+  },
+  {
+    "name": "nested-exit-enabled",
+    "mode": "nested-exit",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "nested-exit",
+      "events": [
+        "exit-listener",
+        "exit-listener"
+      ],
+      "objectsUnchanged": true,
+      "nested": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 561,
+        "sha256": "1e60951fef964d8fc020d9906a31ff28f3f7d5a363fd8d74f6184d0242902d4e"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "d89f269a4a09dc77132e6f45630e10500bacbca014a29007a492e7ddf1946676"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "lost-emitter-disabled",
+    "mode": "lost-emitter",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "lost-emitter",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "072292b4668149ca173c3fef492ea95cab18db76b192fd7a3c977368ebcaeaee"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+      }
+    ]
+  },
+  {
+    "name": "lost-emitter-enabled",
+    "mode": "lost-emitter",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "lost-emitter",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 562,
+        "sha256": "045f14f7a795883dc3acd09a906bdad08292756e3b2be23d5f762f7d7efb383e"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "c0226f691ad5f7dc083e9c512e19a35182f8e6a666c55a13d46c4ecc4ca715fb"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "late-unlink-replacement-disabled",
+    "mode": "late-unlink-replacement",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "late-unlink-replacement",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 562,
+        "sha256": "4e0139c7bf44c3d26e4a131cb94967a75b43de7893ab605987d6a71dad214d0c"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "c0226f691ad5f7dc083e9c512e19a35182f8e6a666c55a13d46c4ecc4ca715fb"
+      }
+    ]
+  },
+  {
+    "name": "late-unlink-replacement-enabled",
+    "mode": "late-unlink-replacement",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "late-unlink-replacement",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "63b4db7924bc19066170d6104d442ea55ec72f82c19121aea3f934615cb2a974"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "late-marker-io-disabled",
+    "mode": "late-marker-io",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "late-marker-io",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "b89f063004a4a37e502a2a2a3e08db7d925df3297427cab55a1f1e966f7e360b"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+      }
+    ]
+  },
+  {
+    "name": "late-marker-io-enabled",
+    "mode": "late-marker-io",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "late-marker-io",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 560,
+        "sha256": "2cfefb01141ae3b44c72cf1ec6f7355595435b629e2ee743b1cc2bf1fe79c2c3"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "073b576505181364cd5be2cc4e3e5b8db13c60ba2c8c7dfb5c5b4927a66a3404"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "cleanup-microtask-disabled",
+    "mode": "cleanup-microtask",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "cleanup-microtask",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 562,
+        "sha256": "265eb57fd376d08b0f99a2a1b68e05dfec8b57128ba7ac608f5427ceebe03aaf"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "c0226f691ad5f7dc083e9c512e19a35182f8e6a666c55a13d46c4ecc4ca715fb"
+      }
+    ]
+  },
+  {
+    "name": "cleanup-microtask-enabled",
+    "mode": "cleanup-microtask",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": true,
+    "details": {
+      "mode": "cleanup-microtask",
+      "events": [
+        "exit-listener"
+      ],
+      "objectsUnchanged": true
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 563,
+        "sha256": "50c802f8c4e7a3e3ea301b418489b891453d54a7730f3d18fd619b5119f01f40"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "75245c7d306c1d440d41e0e24ff1d4b56e93edd981efe7bcfdf89a838b544458"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "exit-throw-disabled",
+    "mode": "exit-throw",
+    "direct": false,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "FAIL",
+      "captureVerdict": "FAIL",
+      "childExit": 1,
+      "childSignal": null,
+      "tests": null,
+      "pass": null,
+      "fail": null,
+      "cancelled": null,
+      "skipped": null,
+      "todo": null,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "CENSUS"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": null,
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 2053,
+        "sha256": "75fce2e9a9057aa848e89da6ad186dc83674fde3aba7fd3b6b88b159c03d9bdd"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 136,
+        "sha256": "2b68a245c74d5b4583fc178b528561626af1168b4d076d9634cdcd7b98a0e7c1"
+      }
+    ]
+  },
+  {
+    "name": "exit-throw-enabled",
+    "mode": "exit-throw",
+    "direct": false,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "FAIL",
+      "captureVerdict": "FAIL",
+      "childExit": 1,
+      "childSignal": null,
+      "tests": null,
+      "pass": null,
+      "fail": null,
+      "cancelled": null,
+      "skipped": null,
+      "todo": null,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "CENSUS"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": null,
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 2266,
+        "sha256": "a4e729b7085511339a98e1aaa872e39aac41c00481b85765a6e56e5d9d92f833"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 136,
+        "sha256": "3594df3be12ee38d3b44d8badef1c09c50846e1ab1366f556c2a6988ff694d70"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "early-plain-disabled-direct",
+    "mode": "early-plain",
+    "direct": true,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": true,
+    "details": {
+      "mode": "early-plain",
+      "events": [
+        "exit-listener"
+      ],
+      "promiseSymbolsBefore": [],
+      "extensibleBefore": true,
+      "objectsUnchanged": true,
+      "promiseSymbolsAtExit": []
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 262,
+        "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "39dc14899db3378f255ce6ee7bbfff5dec96774fd6afa197419e2a9cc97ea48b"
+      }
+    ]
+  },
+  {
+    "name": "early-plain-enabled-direct",
+    "mode": "early-plain",
+    "direct": true,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": true,
+    "details": {
+      "mode": "early-plain",
+      "events": [
+        "exit-listener"
+      ],
+      "promiseSymbolsBefore": [],
+      "extensibleBefore": true,
+      "objectsUnchanged": true,
+      "promiseSymbolsAtExit": [
+        "async_id_symbol",
+        "trigger_async_id_symbol"
+      ]
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 262,
+        "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "39dc14899db3378f255ce6ee7bbfff5dec96774fd6afa197419e2a9cc97ea48b"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "early-frozen-disabled-direct",
+    "mode": "early-frozen",
+    "direct": true,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": true,
+    "details": {
+      "mode": "early-frozen",
+      "events": [
+        "exit-listener"
+      ],
+      "promiseSymbolsBefore": [],
+      "extensibleBefore": false,
+      "objectsUnchanged": true,
+      "promiseSymbolsAtExit": []
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 262,
+        "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "39dc14899db3378f255ce6ee7bbfff5dec96774fd6afa197419e2a9cc97ea48b"
+      }
+    ]
+  },
+  {
+    "name": "early-frozen-enabled-direct",
+    "mode": "early-frozen",
+    "direct": true,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "FAIL",
+      "captureVerdict": "FAIL",
+      "childExit": 1,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": null,
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 262,
+        "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 829,
+        "sha256": "fde0d6d12852b8f4072ccf3f42ab7ee328920e0370d1ab7fe569979c2cf7c521"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 141,
+        "sha256": "5e9949bb31d6b0dc25f4a23a816f3fa744c9d0c0048f28c272a49eb519b6fb49"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "early-sealed-disabled-direct",
+    "mode": "early-sealed",
+    "direct": true,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": true,
+    "details": {
+      "mode": "early-sealed",
+      "events": [
+        "exit-listener"
+      ],
+      "promiseSymbolsBefore": [],
+      "extensibleBefore": false,
+      "objectsUnchanged": true,
+      "promiseSymbolsAtExit": []
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 262,
+        "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "39dc14899db3378f255ce6ee7bbfff5dec96774fd6afa197419e2a9cc97ea48b"
+      }
+    ]
+  },
+  {
+    "name": "early-sealed-enabled-direct",
+    "mode": "early-sealed",
+    "direct": true,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "FAIL",
+      "captureVerdict": "FAIL",
+      "childExit": 1,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": null,
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 262,
+        "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 829,
+        "sha256": "fde0d6d12852b8f4072ccf3f42ab7ee328920e0370d1ab7fe569979c2cf7c521"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 141,
+        "sha256": "5e9949bb31d6b0dc25f4a23a816f3fa744c9d0c0048f28c272a49eb519b6fb49"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "early-nonextensible-disabled-direct",
+    "mode": "early-nonextensible",
+    "direct": true,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": true,
+    "details": {
+      "mode": "early-nonextensible",
+      "events": [
+        "exit-listener"
+      ],
+      "promiseSymbolsBefore": [],
+      "extensibleBefore": false,
+      "objectsUnchanged": true,
+      "promiseSymbolsAtExit": []
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 262,
+        "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "39dc14899db3378f255ce6ee7bbfff5dec96774fd6afa197419e2a9cc97ea48b"
+      }
+    ]
+  },
+  {
+    "name": "early-nonextensible-enabled-direct",
+    "mode": "early-nonextensible",
+    "direct": true,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "FAIL",
+      "captureVerdict": "FAIL",
+      "childExit": 1,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": null,
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 262,
+        "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 829,
+        "sha256": "fde0d6d12852b8f4072ccf3f42ab7ee328920e0370d1ab7fe569979c2cf7c521"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 141,
+        "sha256": "5e9949bb31d6b0dc25f4a23a816f3fa744c9d0c0048f28c272a49eb519b6fb49"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  },
+  {
+    "name": "early-no-reaction-disabled-direct",
+    "mode": "early-no-reaction",
+    "direct": true,
+    "enabled": false,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        },
+        {
+          "kind": "second-applyRead",
+          "comparisonVerdict": "NOT_OBSERVED",
+          "differenceCount": null,
+          "categories": []
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "early-no-reaction",
+      "events": [
+        "exit-listener"
+      ],
+      "promiseSymbolsBefore": [],
+      "extensibleBefore": true,
+      "objectsUnchanged": true,
+      "promiseSymbolsAtExit": []
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 262,
+        "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "39dc14899db3378f255ce6ee7bbfff5dec96774fd6afa197419e2a9cc97ea48b"
+      }
+    ]
+  },
+  {
+    "name": "early-no-reaction-enabled-direct",
+    "mode": "early-no-reaction",
+    "direct": true,
+    "enabled": true,
+    "result": {
+      "gateVerdict": "PASS",
+      "captureVerdict": "FAIL",
+      "childExit": 0,
+      "childSignal": null,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "comparisons": [
+        {
+          "kind": "second-readers",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        },
+        {
+          "kind": "second-applyRead",
+          "categories": [],
+          "differenceCount": 0,
+          "comparisonVerdict": "MATCH"
+        }
+      ],
+      "fixedFailureCode": "DIAGNOSTIC"
+    },
+    "writerReached": true,
+    "deferredRan": false,
+    "details": {
+      "mode": "early-no-reaction",
+      "events": [
+        "exit-listener"
+      ],
+      "promiseSymbolsBefore": [],
+      "extensibleBefore": true,
+      "objectsUnchanged": true,
+      "promiseSymbolsAtExit": [
+        "async_id_symbol",
+        "trigger_async_id_symbol"
+      ]
+    },
+    "raw": [
+      {
+        "file": "stdout.raw",
+        "bytes": 262,
+        "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+      },
+      {
+        "file": "stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "capture-manifest.json",
+        "bytes": 139,
+        "sha256": "39dc14899db3378f255ce6ee7bbfff5dec96774fd6afa197419e2a9cc97ea48b"
+      },
+      {
+        "file": "native-diagnostics.jsonl",
+        "bytes": 210,
+        "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+      }
+    ]
+  }
+]

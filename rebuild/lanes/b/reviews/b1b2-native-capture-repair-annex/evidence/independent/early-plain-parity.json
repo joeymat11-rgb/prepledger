@@ -1,0 +1,10 @@
+{
+  "mode": "early-plain",
+  "direct": true,
+  "childExitEqual": true,
+  "childSignalEqual": true,
+  "writerReachEqual": true,
+  "countsEqual": true,
+  "disabledDeferredRan": true,
+  "enabledDeferredRan": true
+}

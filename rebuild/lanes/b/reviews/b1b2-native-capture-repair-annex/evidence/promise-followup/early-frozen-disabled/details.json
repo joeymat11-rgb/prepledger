@@ -1,0 +1,10 @@
+{
+  "mode": "early-frozen",
+  "events": [
+    "exit-listener"
+  ],
+  "promiseSymbolsBefore": [],
+  "extensibleBefore": false,
+  "objectsUnchanged": true,
+  "promiseSymbolsAtExit": []
+}

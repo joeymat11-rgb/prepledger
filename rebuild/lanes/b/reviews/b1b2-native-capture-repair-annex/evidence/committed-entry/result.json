@@ -1,0 +1,60 @@
+{
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "finished": "2026-09-13T23:22:59.712Z",
+  "restored": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "sha256": "a010ef5b0460ecda3009c2cd54c7c7292b987e2ee954f9d6a2e4a949eaaf0b67",
+      "expected": "a010ef5b0460ecda3009c2cd54c7c7292b987e2ee954f9d6a2e4a949eaaf0b67"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721",
+      "expected": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "sha256": "27dec2e00e3fc48570704c98330d588e97ad78c7c9817a855af41739627d9a8f",
+      "expected": "27dec2e00e3fc48570704c98330d588e97ad78c7c9817a855af41739627d9a8f"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "sha256": "ba48e26700567b17397eefcaf08532eb5680d01d00226a6b9bf27b8dc468be55",
+      "expected": "ba48e26700567b17397eefcaf08532eb5680d01d00226a6b9bf27b8dc468be55"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058",
+      "expected": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+      "sha256": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2",
+      "expected": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2"
+    }
+  ],
+  "files": [
+    {
+      "name": "inputs.json",
+      "bytes": 3026,
+      "sha256": "eef8f1205f0fd7b999da7a7a658f2848bb73ac7a60213a16f821842c86ef4015"
+    },
+    {
+      "name": "stdout.tap",
+      "bytes": 13277,
+      "sha256": "f28d1427a124f5dc655bb7367e36235ea280d514b45c6e547e4fb4e33fec8df5"
+    },
+    {
+      "name": "stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "public-evidence.json",
+      "bytes": 97263,
+      "sha256": "c37a58dbd3be2ee90a7ff681b9bbd7be00540fbe6e0af3edbaa2eab46204ecbb"
+    }
+  ]
+}

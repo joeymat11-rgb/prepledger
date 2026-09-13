@@ -1,0 +1,10 @@
+{
+  "mode": "next-tick",
+  "direct": false,
+  "childExitEqual": true,
+  "childSignalEqual": true,
+  "writerReachEqual": true,
+  "countsEqual": true,
+  "disabledDeferredRan": false,
+  "enabledDeferredRan": false
+}

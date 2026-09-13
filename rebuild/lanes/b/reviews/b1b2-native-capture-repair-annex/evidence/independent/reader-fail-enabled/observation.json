@@ -1,0 +1,63 @@
+{
+  "name": "reader-fail-enabled",
+  "mode": "reader-fail",
+  "direct": false,
+  "enabled": true,
+  "result": {
+    "gateVerdict": "FAIL",
+    "captureVerdict": "FAIL",
+    "childExit": 1,
+    "childSignal": null,
+    "tests": 4,
+    "pass": 3,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "comparisons": [
+      {
+        "kind": "second-readers",
+        "categories": [
+          {
+            "id": "nowModel",
+            "count": 1
+          }
+        ],
+        "differenceCount": 1,
+        "comparisonVerdict": "DIFFERENT"
+      },
+      {
+        "kind": "second-applyRead",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      }
+    ],
+    "fixedFailureCode": "DIAGNOSTIC"
+  },
+  "writerReached": false,
+  "deferredRan": false,
+  "details": null,
+  "raw": [
+    {
+      "file": "stdout.raw",
+      "bytes": 1894,
+      "sha256": "3e0f75cf1cd55a53c1387c3e3df687341d5a3ebfe4b2e04ccbfb999af5f03b84"
+    },
+    {
+      "file": "stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "capture-manifest.json",
+      "bytes": 140,
+      "sha256": "da68a2ba6180f9e5e6ac553ed06142e7f581796185e9f9fbc958f601ae852488"
+    },
+    {
+      "file": "native-diagnostics.jsonl",
+      "bytes": 135,
+      "sha256": "b6454c536015fcf93660209820f68034d6e5ff32ac9ffe3aeb353845c3312c2f"
+    }
+  ]
+}

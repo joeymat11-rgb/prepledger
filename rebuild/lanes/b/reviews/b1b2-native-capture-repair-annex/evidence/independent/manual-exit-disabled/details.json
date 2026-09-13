@@ -1,0 +1,7 @@
+{
+  "mode": "manual-exit",
+  "events": [
+    "exit-listener"
+  ],
+  "objectsUnchanged": true
+}

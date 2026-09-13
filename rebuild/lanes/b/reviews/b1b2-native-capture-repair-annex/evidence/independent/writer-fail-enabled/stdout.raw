@@ -1,0 +1,55 @@
+TAP version 13
+# Subtest: invented assertion 1
+ok 1 - invented assertion 1
+  ---
+  duration_ms: 0.3975
+  type: 'test'
+  ...
+# Subtest: invented assertion 2
+ok 2 - invented assertion 2
+  ---
+  duration_ms: 0.0598
+  type: 'test'
+  ...
+# Subtest: invented assertion 3
+ok 3 - invented assertion 3
+  ---
+  duration_ms: 0.0377
+  type: 'test'
+  ...
+# Subtest: actual helper comparison
+not ok 4 - actual helper comparison
+  ---
+  duration_ms: 871.0515
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-review\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\reviews\\b1b2-native-capture-repair-annex\\independent-child.cjs:58:107'
+  failureType: 'testCodeFailure'
+  error: |-
+    exact admitted native field deltas second-applyRead; measured 1 (values retained process-locally)
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    Object.approvedNativeDifference (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-review\work\pm-caretaker\b1b2-native-capture\rebuild\m4\workout\test\b1b2-evidence.cjs:568:10)
+    TestContext.execute (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-review\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\reviews\b1b2-native-capture-repair-annex\independent-child.cjs:26:9)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 934.5044

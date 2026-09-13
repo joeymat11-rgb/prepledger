@@ -1,0 +1,7 @@
+{
+  "mode": "late-unlink-replacement",
+  "events": [
+    "exit-listener"
+  ],
+  "objectsUnchanged": true
+}

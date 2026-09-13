@@ -1,0 +1,222 @@
+{
+  "node": {
+    "version": "v22.23.2",
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "modules": [
+    {
+      "id": "async_hooks",
+      "bytes": 8786,
+      "sha256": "70ccf0924b391ef4bab09721dbd8637b4c542cee5f7e016b24e6c46ccd61491c",
+      "reviewedLines": [
+        [
+          1,
+          297
+        ]
+      ],
+      "entireModule": true
+    },
+    {
+      "id": "internal/async_hooks",
+      "bytes": 21142,
+      "sha256": "ba3796c9c95212cad67561d13924865defbf5dd59c6fb7c5237cab194639e53c",
+      "reviewedLines": [
+        [
+          1,
+          638
+        ]
+      ],
+      "entireModule": true
+    },
+    {
+      "id": "internal/promise_hooks",
+      "bytes": 3200,
+      "sha256": "30a555b933f6ef49f0c93001fce25eca042f301a74e785dd95af94521c265a1e",
+      "reviewedLines": [
+        [
+          1,
+          127
+        ]
+      ],
+      "entireModule": true
+    },
+    {
+      "id": "internal/async_context_frame",
+      "bytes": 1661,
+      "sha256": "69b0eb6a63200f2892175aff24a2ab328c8f22cc38052179baaeae24691b5636",
+      "reviewedLines": [
+        [
+          1,
+          78
+        ]
+      ],
+      "entireModule": true
+    },
+    {
+      "id": "internal/errors",
+      "bytes": 71343,
+      "sha256": "b9af59ffba4fe768ddb48a484cd5370004961cac5d4a0f5905a5c9307026d14d",
+      "reviewedLines": [
+        [
+          1,
+          80
+        ],
+        [
+          190,
+          260
+        ],
+        [
+          370,
+          590
+        ],
+        [
+          1010,
+          1129
+        ],
+        [
+          1458,
+          1465
+        ]
+      ],
+      "entireModule": false
+    },
+    {
+      "id": "internal/util",
+      "bytes": 29682,
+      "sha256": "2e5eb87114e5b919b248bbfa6c3a43f07bc49884cd3a48653a346916614dd691",
+      "reviewedLines": [
+        [
+          1,
+          90
+        ],
+        [
+          703,
+          715
+        ],
+        [
+          947,
+          1024
+        ]
+      ],
+      "entireModule": false
+    },
+    {
+      "id": "internal/validators",
+      "bytes": 19145,
+      "sha256": "20e552e4b034c71d6feb343bcc676b6dc13d3eb1d0613e20da26fd73168ca8bb",
+      "reviewedLines": [
+        [
+          1,
+          50
+        ],
+        [
+          450,
+          495
+        ]
+      ],
+      "entireModule": false
+    },
+    {
+      "id": "internal/util/types",
+      "bytes": 2714,
+      "sha256": "2301cf16fd792af521e044b013136ef7188b68a46f885eafc7281e0acb5903f7",
+      "reviewedLines": [
+        [
+          1,
+          116
+        ]
+      ],
+      "entireModule": true
+    },
+    {
+      "id": "internal/options",
+      "bytes": 3224,
+      "sha256": "effe1d5cd2803f1fc663248f933c70de1656b8b50d2268b7c22c09cf8d12571d",
+      "reviewedLines": [
+        [
+          1,
+          121
+        ]
+      ],
+      "entireModule": true
+    },
+    {
+      "id": "internal/assert",
+      "bytes": 467,
+      "sha256": "010606835f1b3e2b6c15c29bda0d73789469380e0abd89a4e20d196f3f23f9bb",
+      "reviewedLines": [
+        [
+          1,
+          23
+        ]
+      ],
+      "entireModule": true
+    },
+    {
+      "id": "internal/per_context/primordials",
+      "bytes": 22452,
+      "sha256": "f76722b798e9b53d2693bf5b9f26c3201cbfc379a9b5ad5d1f3afabf2a77a164",
+      "reviewedLines": [
+        [
+          1,
+          100
+        ]
+      ],
+      "entireModule": false
+    }
+  ],
+  "functions": [
+    {
+      "name": "createHook",
+      "bytes": 59,
+      "sha256": "fe8223decbb582cec92799127df3e5a5231a8d5d467b31b9216ec2d903d54460"
+    },
+    {
+      "name": "enable",
+      "bytes": 1319,
+      "sha256": "857ccb0b6fe725486e1fdd07fede7b909a067d294050c957b7b95d49c6973fc0"
+    },
+    {
+      "name": "disable",
+      "bytes": 806,
+      "sha256": "7b21d3e0c8841ef1785fd7a1b18fa975f9f3c92f7d2d0aad40a948987c7d60e1"
+    },
+    {
+      "name": "unlinkSync",
+      "bytes": 73,
+      "sha256": "2b2d28c8fd4dafdb8f216f278863c3671344be98d86803ff41a72bbf37087cad"
+    }
+  ],
+  "authorInputOnly": [
+    {
+      "ref": "79f3be07adfaad5eb955866798952b5315ea1a33",
+      "path": "rebuild/lanes/b/reviews/b1b2-native-capture-repair-evidence/builtin-closure.json",
+      "bytes": 5174,
+      "sha256": "19fd9292ae6889e7175f2004982baf5f39979b2036629d527b9186117ecc0ecd",
+      "earlyRead": "PM separately permitted both complete input-only manifests; no other author outputs opened"
+    },
+    {
+      "ref": "79f3be07adfaad5eb955866798952b5315ea1a33",
+      "path": "rebuild/lanes/b/reviews/b1b2-native-capture-repair-evidence/builtin-closure.final.json",
+      "bytes": 6496,
+      "sha256": "3c783e7924cbe274d23b23f57672a3fd38cbdc35838c12ab4c37b0a1ae984fef",
+      "earlyRead": "PM separately permitted both complete input-only manifests; no other author outputs opened"
+    }
+  ],
+  "hookEnabledByThisDriver": false,
+  "analysis": [
+    "AsyncHook validates and stores callbacks by symbols. enable/disable update active or staged hook arrays, counts, trampoline and Promise-hook mode; staged arrays are installed after the current hook callback depth returns to zero.",
+    "Observer init and promiseResolve ignore every argument and only set one bounded Boolean. They perform no IO, identifier/payload access, scheduling or explicit throw. Node treats exceptions from async-hook dispatch as fatal, so fatal callback tests are excluded.",
+    "Promise tracking assigns private async-id symbols, including to promises made before activation. Promise-hook dispatch calls trackPromise before promiseResolve. This mutable bookkeeping is part of the behavior to challenge with invented precreated promises.",
+    "disableHooks removes the callback trampoline and internally queues disablePromiseHookIfNecessary. The latter stops the native Promise hook only if no new hook needs it. This internal deferred teardown is not user-work completion evidence.",
+    "Candidate enables at real outer exit dispatch, delegates exactly once, restores emitter ownership and validates pending marker while observed, disables, checks latch, and finally calls a pinned synchronous unlink wrapper.",
+    "Function text pins reject replaced methods at capture setup. Text equality does not itself prove all native internals or dynamic callers safe; actual lifecycle controls remain necessary."
+  ],
+  "opaqueBoundaries": [
+    "Pinned Node/V8 native async_wrap counters, resource creation, callback trampoline, Promise hook setPromiseHooks and task_queue enqueueMicrotask.",
+    "Pinned native async_context_frame, errors, symbols, util/types, options, constants, string_decoder and bootstrap/module-loading machinery. Lazy AsyncLocalStorage/AsyncResource routes are not exercised by this observer and are not claimed reviewed.",
+    "Only relevant validation/error/primordial routes were read in broad support modules; unrelated exports and untraversed lazy error formatting are not source-review claims.",
+    "Final unlinkSync JavaScript wrapper was inspected and pinned; getValidatedPath and native filesystem unlink remain trusted opaque pinned-runtime boundaries, not separately opened source."
+  ],
+  "newAuthorCompletionOutcomesRead": false
+}

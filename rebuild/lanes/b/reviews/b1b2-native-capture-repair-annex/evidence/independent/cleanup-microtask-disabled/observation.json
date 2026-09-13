@@ -1,0 +1,59 @@
+{
+  "name": "cleanup-microtask-disabled",
+  "mode": "cleanup-microtask",
+  "direct": false,
+  "enabled": false,
+  "result": {
+    "gateVerdict": "PASS",
+    "captureVerdict": "FAIL",
+    "childExit": 0,
+    "childSignal": null,
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "comparisons": [
+      {
+        "kind": "second-readers",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      },
+      {
+        "kind": "second-applyRead",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      }
+    ],
+    "fixedFailureCode": "DIAGNOSTIC"
+  },
+  "writerReached": true,
+  "deferredRan": false,
+  "details": {
+    "mode": "cleanup-microtask",
+    "events": [
+      "exit-listener"
+    ],
+    "objectsUnchanged": true
+  },
+  "raw": [
+    {
+      "file": "stdout.raw",
+      "bytes": 562,
+      "sha256": "265eb57fd376d08b0f99a2a1b68e05dfec8b57128ba7ac608f5427ceebe03aaf"
+    },
+    {
+      "file": "stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "capture-manifest.json",
+      "bytes": 139,
+      "sha256": "c0226f691ad5f7dc083e9c512e19a35182f8e6a666c55a13d46c4ecc4ca715fb"
+    }
+  ]
+}

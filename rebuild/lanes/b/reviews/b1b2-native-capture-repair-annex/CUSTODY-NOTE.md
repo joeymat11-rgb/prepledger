@@ -1,0 +1,3 @@
+The first review commit `be8526a5a2ed2d45813579e97538111badd20bd6` preserves the first verdict. Git's inherited text normalization changed CRLF bytes in three direct-child stderr blobs at initial staging; working copies and original scratch were still exact. A follow-on custody-only commit adds a scoped `evidence/** -text` attribute and restages those original bytes. Use the follow-on tip for exact mapped blobs. No source, finding or behavioral run changed. All 399 mapped files are verified against Git blobs after correction.
+
+The whitespace check also reports blank indented lines emitted by Node in four failing-child TAP captures. Those are retained as raw evidence, not edited into a cleaner transcript. Authored source and review prose are checked separately.

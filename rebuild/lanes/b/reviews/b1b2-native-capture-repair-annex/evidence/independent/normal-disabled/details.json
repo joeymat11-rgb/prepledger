@@ -1,0 +1,7 @@
+{
+  "mode": "normal",
+  "events": [
+    "exit-listener"
+  ],
+  "objectsUnchanged": true
+}

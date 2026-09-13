@@ -1,15 +1,15 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: existing Codex usage only. B repairbe0aeeb6/source df8fa14f complete; exact five-path/profile/helper/source scope verified. ER/MAX independently reviews352 with full330/344/348/350 bars, actual deferred-exit/TAP controls and builtin closure before execution; first verdict before new author outcomes. B LOW finite31-file public evidence archive only, then paused320. All prior false-pass failures remain. E build supportb54fec2d scoped ACCEPT346; D2/E/C/D/I LOW/paused. B322/E324/C294 acceptances and I A3bfed63 source remain; I waits accepted capture plus build inputs for one assembly. No real native/FULL/CI result or nativeFieldDeltas yet. Full memory/import/phone joins remain. Joe/history/memory then Dad; soak wide beta only. MAX reviews and critical PM judgment; HIGH routine coordination. No paid API.
+PM checkpoint2026-09-13: existing Codex usage only. Complete ER352 firstbe8526a5/custodyc589c7c6/finale9761d32 REJECT R1: enabled capture changes the actual result of a precreated nonextensible Promise during exit. R2 is substantiated within its scope. All419 exact review artifacts,399 copies359069bytes and31 author copies312233bytes verified/preserved, including every failed phase and CRLF correction. B/MAX354 repairs this mechanism frombe0aeeb6 in the named fresh tree under the same five-path/original-outcome bar. ER LOW/paused pending exact successor; E build supportb54fec2d scoped ACCEPT346. C/D/D2/E/I LOW/paused. B322/E324/C294 and A3bfed63 remain scoped prior work; I waits accepted capture for one assembly. NativeFieldDeltas UNKNOWN; full memory/import/phone joins remain. Joe/history/memory then Dad; soak wide beta only. MAX for repair, independent review and critical PM judgment; HIGH routine coordination. No paid API.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW: repairbe0aeeb6 complete; exact31-file public archive352 only | earned-astra-b-follow-up; hourly until finite archive handoff, then paused320 |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX354: repair exact observer noninterference regression frombe0aeeb6; all original bars stay | earned-astra-b-follow-up; hourly during substantive repair, then paused320 |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; PAUSED waiting; direct PM handoff |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: complete342 firstc7dc4ebf/final2353a591; isolated setup scoped ACCEPT346 | earned-lane-d2-requests; PAUSED320; direct PM handoff |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX: exactbe0aeeb6 capture repair review352, independent source/builtin/bar first and author outcomes last | earned-astra-engine-review-follow-up; hourly during review, paused after full handoff320 |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: complete352 first/final REJECT R1; exact successor gets MAX review | earned-astra-engine-review-follow-up; PAUSED320 |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: build supportb54fec2d scoped ACCEPT346; archive4bc6671d complete | earned-astra-e-follow-up; PAUSED320; direct PM handoff |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
 
@@ -57,11 +57,11 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 
 | Seat | Current effort | Next substantive assignment |
 | --- | --- | --- |
-| B | LOW; complete repair, finite archive352 | MAX only if the exact successor needs a substantive correction |
+| B | MAX; substantive noninterference repair354 | LOW after completed handoff; exact successor to independent ER/MAX |
 | D | LOW; partial import harness handed off | XHIGH for the exact provider/admission join release |
 | C | LOW; lifecycle scoped accepted294 | XHIGH for actual concurrency work; HIGH for bounded UI/plumbing |
 | D2 | LOW; complete342, scoped ACCEPT346 | MAX for a named independent review when its dependency is ready |
-| Engine reviewer | MAX; exact capture repair review352 | First independent verdict then separate author reconciliation |
+| Engine reviewer | LOW; full352 handoff complete | MAX only for exact next independent commission |
 | E | LOW; repair/archive342 complete | Reassess actual complexity when a memory or support dependency is ready |
 | I | LOW; source A3bfed63 complete326 | HIGH for a named accepted source assembly; no product testing |
 

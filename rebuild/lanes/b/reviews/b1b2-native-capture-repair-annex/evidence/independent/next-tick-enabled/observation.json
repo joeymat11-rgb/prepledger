@@ -1,0 +1,64 @@
+{
+  "name": "next-tick-enabled",
+  "mode": "next-tick",
+  "direct": false,
+  "enabled": true,
+  "result": {
+    "gateVerdict": "PASS",
+    "captureVerdict": "PASS",
+    "childExit": 0,
+    "childSignal": null,
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "comparisons": [
+      {
+        "kind": "second-readers",
+        "categories": [],
+        "differenceCount": 0,
+        "comparisonVerdict": "MATCH"
+      },
+      {
+        "kind": "second-applyRead",
+        "categories": [],
+        "differenceCount": 0,
+        "comparisonVerdict": "MATCH"
+      }
+    ],
+    "fixedFailureCode": "NONE"
+  },
+  "writerReached": true,
+  "deferredRan": false,
+  "details": {
+    "mode": "next-tick",
+    "events": [
+      "exit-listener"
+    ],
+    "objectsUnchanged": true
+  },
+  "raw": [
+    {
+      "file": "stdout.raw",
+      "bytes": 563,
+      "sha256": "e0e472a7eddb2ed489950b10f5c731627cafea96fb9b854dbc1b2eb73314d2c5"
+    },
+    {
+      "file": "stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "capture-manifest.json",
+      "bytes": 132,
+      "sha256": "2b70a8ab72a9bcb1af85b49be53fe5cee1fd92e4a1d382eaee640e940f8c724d"
+    },
+    {
+      "file": "native-diagnostics.jsonl",
+      "bytes": 210,
+      "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+    }
+  ]
+}

@@ -1,0 +1,376 @@
+TAP version 13
+# Subtest: public closure and owned Node22 are exact
+ok 1 - public closure and owned Node22 are exact
+  ---
+  duration_ms: 1.5426
+  type: 'test'
+  ...
+# Subtest: actual hook passes with identical objects and unchanged return; disabled writes nothing
+ok 2 - actual hook passes with identical objects and unchanged return; disabled writes nothing
+  ---
+  duration_ms: 1275.1608
+  type: 'test'
+  ...
+# Subtest: actual reader differences produce fixed categories but original assertion still fails
+ok 3 - actual reader differences produce fixed categories but original assertion still fails
+  ---
+  duration_ms: 411.3371
+  type: 'test'
+  ...
+# Subtest: actual state differences use fixed fields and disambiguate dotted dynamic keys
+ok 4 - actual state differences use fixed fields and disambiguate dotted dynamic keys
+  ---
+  duration_ms: 813.236
+  type: 'test'
+  ...
+# Subtest: observer write/fsync/close failures are sticky across later valid calls
+ok 5 - observer write/fsync/close failures are sticky across later valid calls
+  ---
+  duration_ms: 3214.562
+  type: 'test'
+  ...
+# Subtest: partial writes retry and zero writes leave completion pending
+ok 6 - partial writes retry and zero writes leave completion pending
+  ---
+  duration_ms: 1672.2287
+  type: 'test'
+  ...
+# Subtest: actual row and key/path limits refuse without altering the original failure
+ok 7 - actual row and key/path limits refuse without altering the original failure
+  ---
+  duration_ms: 831.6401
+  type: 'test'
+  ...
+# Subtest: every admitted reader/state category comes from actual differing objects
+ok 8 - every admitted reader/state category comes from actual differing objects
+  ---
+  duration_ms: 1654.7512
+  type: 'test'
+  ...
+# Subtest: unit third observer failure retains pending status
+ok 9 - unit third observer failure retains pending status
+  ---
+  duration_ms: 1167.5264
+  type: 'test'
+  ...
+# Subtest: categorizer, access and full-disk observer faults remain failures after later calls
+ok 10 - categorizer, access and full-disk observer faults remain failures after later calls
+  ---
+  duration_ms: 2403.1644
+  type: 'test'
+  ...
+# Subtest: actual operator and helper pass a real four-test invented child
+ok 11 - actual operator and helper pass a real four-test invented child
+  ---
+  duration_ms: 964.4435
+  type: 'test'
+  ...
+# Subtest: first real helper failure preserves child outcome and prevents writer reach
+ok 12 - first real helper failure preserves child outcome and prevents writer reach
+  ---
+  duration_ms: 540.5976
+  type: 'test'
+  ...
+# Subtest: writer failure retains both observations and cannot become capture acceptance
+ok 13 - writer failure retains both observations and cannot become capture acceptance
+  ---
+  duration_ms: 926.7623
+  type: 'test'
+  ...
+# Subtest: enabled and disabled invented gate preserve census, original failure and inputs
+ok 14 - enabled and disabled invented gate preserve census, original failure and inputs
+  ---
+  duration_ms: 4850.9877
+  type: 'test'
+  ...
+# Subtest: canonical diagnostic refusal matrix does not echo data
+ok 15 - canonical diagnostic refusal matrix does not echo data
+  ---
+  duration_ms: 1.2816
+  type: 'test'
+  ...
+# Subtest: silence, valid later rows after incomplete marker and oversized diagnostics refuse
+ok 16 - silence, valid later rows after incomplete marker and oversized diagnostics refuse
+  ---
+  duration_ms: 275.1854
+  type: 'test'
+  ...
+# Subtest: child nonzero, spawn failure, raw IO failure, missing/duplicate/fake census refuse
+ok 17 - child nonzero, spawn failure, raw IO failure, missing/duplicate/fake census refuse
+  ---
+  duration_ms: 318.8799
+  type: 'test'
+  ...
+# Subtest: real stdout and stderr cap crossings drain to natural zero exit
+ok 18 - real stdout and stderr cap crossings drain to natural zero exit
+  ---
+  duration_ms: 540.9137
+  type: 'test'
+  ...
+# Subtest: actual Windows access restriction and fresh-directory guard
+ok 19 - actual Windows access restriction and fresh-directory guard
+  ---
+  duration_ms: 367.8443
+  type: 'test'
+  ...
+# Subtest: directory link escape and stale files are refused by actual helper
+ok 20 - directory link escape and stale files are refused by actual helper
+  ---
+  duration_ms: 776.142
+  type: 'test'
+  ...
+# Subtest: production identity/argv/root checks cannot be weakened by fixture transport
+ok 21 - production identity/argv/root checks cannot be weakened by fixture transport
+  ---
+  duration_ms: 16.8364
+  type: 'test'
+  ...
+# Subtest: fresh path collisions, escaped roots and borrowed runtime are refused
+ok 22 - fresh path collisions, escaped roots and borrowed runtime are refused
+  ---
+  duration_ms: 413.7194
+  type: 'test'
+  ...
+# Subtest: premature plans and forged complete census cannot pass
+ok 23 - premature plans and forged complete census cannot pass
+  ---
+  duration_ms: 213.9814
+  type: 'test'
+  ...
+# Subtest: real signal and raw fsync/close failures never pass capture
+ok 24 - real signal and raw fsync/close failures never pass capture
+  ---
+  duration_ms: 183.9281
+  type: 'test'
+  ...
+# Subtest: actual main emits only safe schema after real invented raw sentinel streams
+ok 25 - actual main emits only safe schema after real invented raw sentinel streams
+  ---
+  duration_ms: 221.6214
+  type: 'test'
+  ...
+# Subtest: actual main success emits exact fixed JSON after real four-test helper child
+ok 26 - actual main success emits exact fixed JSON after real four-test helper child
+  ---
+  duration_ms: 1202.4965
+  type: 'test'
+  ...
+# Subtest: meaningful source reversals fail intended assertions and restore bytes
+ok 27 - meaningful source reversals fail intended assertions and restore bytes
+  ---
+  duration_ms: 10160.2314
+  type: 'test'
+  ...
+# Subtest: PM344 R1 actual normal and before-exit ordering preserve gate outcomes
+ok 28 - PM344 R1 actual normal and before-exit ordering preserve gate outcomes
+  ---
+  duration_ms: 2292.0841
+  type: 'test'
+  ...
+# Subtest: PM344 R1 third observation in a later real exit listener refuses capture
+ok 29 - PM344 R1 third observation in a later real exit listener refuses capture
+  ---
+  duration_ms: 1361.5112
+  type: 'test'
+  ...
+# Subtest: PM344 R1 late finalization IO failures remain capture failures
+ok 30 - PM344 R1 late finalization IO failures remain capture failures
+  ---
+  duration_ms: 1871.8504
+  type: 'test'
+  ...
+# Subtest: PM344 R2 canonical manual and actual Node positives remain valid
+ok 31 - PM344 R2 canonical manual and actual Node positives remain valid
+  ---
+  duration_ms: 1870.1517
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory SKIP refuses through actual capture and chunked parser
+ok 32 - PM344 R2 contradictory SKIP refuses through actual capture and chunked parser
+  ---
+  duration_ms: 856.9514
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory TODO refuses through actual capture and chunked parser
+ok 33 - PM344 R2 contradictory TODO refuses through actual capture and chunked parser
+  ---
+  duration_ms: 883.3865
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory BAILOUT refuses through actual capture and chunked parser
+ok 34 - PM344 R2 contradictory BAILOUT refuses through actual capture and chunked parser
+  ---
+  duration_ms: 888.5319
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-skip refuses through actual capture and chunked parser
+ok 35 - PM344 R2 contradictory mixed-case-skip refuses through actual capture and chunked parser
+  ---
+  duration_ms: 837.2736
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-todo refuses through actual capture and chunked parser
+ok 36 - PM344 R2 contradictory mixed-case-todo refuses through actual capture and chunked parser
+  ---
+  duration_ms: 944.2174
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-bailout refuses through actual capture and chunked parser
+ok 37 - PM344 R2 contradictory mixed-case-bailout refuses through actual capture and chunked parser
+  ---
+  duration_ms: 834.5467
+  type: 'test'
+  ...
+# Subtest: PM348 actual exit dispatch restores descriptors before publication and preserves delegation
+ok 38 - PM348 actual exit dispatch restores descriptors before publication and preserves delegation
+  ---
+  duration_ms: 2842.9221
+  type: 'test'
+  ...
+# Subtest: PM348 regression-manual-exit cannot publish complete capture
+ok 39 - PM348 regression-manual-exit cannot publish complete capture
+  ---
+  duration_ms: 926.4594
+  type: 'test'
+  ...
+# Subtest: PM348 regression-manual-throw cannot publish complete capture
+ok 40 - PM348 regression-manual-throw cannot publish complete capture
+  ---
+  duration_ms: 959.7955
+  type: 'test'
+  ...
+# Subtest: PM348 regression-reentrant cannot publish complete capture
+ok 41 - PM348 regression-reentrant cannot publish complete capture
+  ---
+  duration_ms: 976.9991
+  type: 'test'
+  ...
+# Subtest: PM348 regression-lost-owner cannot publish complete capture
+ok 42 - PM348 regression-lost-owner cannot publish complete capture
+  ---
+  duration_ms: 953.2127
+  type: 'test'
+  ...
+# Subtest: PM348 regression-restore-failure cannot publish complete capture
+ok 43 - PM348 regression-restore-failure cannot publish complete capture
+  ---
+  duration_ms: 944.8585
+  type: 'test'
+  ...
+# Subtest: PM348 disabled capture preserves real child outcomes and does not install wrapper
+ok 44 - PM348 disabled capture preserves real child outcomes and does not install wrapper
+  ---
+  duration_ms: 9447.2517
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-microtask
+ok 45 - PM348 termination assumption regression-exit-microtask
+  ---
+  duration_ms: 1320.0065
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-nexttick
+ok 46 - PM348 termination assumption regression-exit-nexttick
+  ---
+  duration_ms: 1026.9399
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-nested-microtask
+ok 47 - PM348 termination assumption regression-exit-nested-microtask
+  ---
+  duration_ms: 1325.0357
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-promise
+ok 48 - PM348 termination assumption regression-exit-promise
+  ---
+  duration_ms: 1421.7733
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-async-await
+ok 49 - PM348 termination assumption regression-exit-async-await
+  ---
+  duration_ms: 1303.5039
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-precreated-promise
+ok 50 - PM348 termination assumption regression-exit-precreated-promise
+  ---
+  duration_ms: 1374.6711
+  type: 'test'
+  ...
+# Subtest: PM350 regression-hook-create-error retains capture refusal without changing child outcome
+ok 51 - PM350 regression-hook-create-error retains capture refusal without changing child outcome
+  ---
+  duration_ms: 969.9769
+  type: 'test'
+  ...
+# Subtest: PM350 regression-hook-enable-error retains capture refusal without changing child outcome
+ok 52 - PM350 regression-hook-enable-error retains capture refusal without changing child outcome
+  ---
+  duration_ms: 912.6445
+  type: 'test'
+  ...
+# Subtest: PM350 regression-hook-disable-error-before retains capture refusal without changing child outcome
+ok 53 - PM350 regression-hook-disable-error-before retains capture refusal without changing child outcome
+  ---
+  duration_ms: 987.3994
+  type: 'test'
+  ...
+# Subtest: PM350 regression-hook-disable-error-after retains capture refusal without changing child outcome
+ok 54 - PM350 regression-hook-disable-error-after retains capture refusal without changing child outcome
+  ---
+  duration_ms: 942.5631
+  type: 'test'
+  ...
+# Subtest: PM350 regression-hook-callback-poison retains capture refusal without changing child outcome
+ok 55 - PM350 regression-hook-callback-poison retains capture refusal without changing child outcome
+  ---
+  duration_ms: 889.4658
+  type: 'test'
+  ...
+# Subtest: PM350 regression-hook-callback-after-removal retains capture refusal without changing child outcome
+ok 56 - PM350 regression-hook-callback-after-removal retains capture refusal without changing child outcome
+  ---
+  duration_ms: 1036.9264
+  type: 'test'
+  ...
+# Subtest: PM350 regression-hook-disable-queued retains capture refusal without changing child outcome
+ok 57 - PM350 regression-hook-disable-queued retains capture refusal without changing child outcome
+  ---
+  duration_ms: 910.8362
+  type: 'test'
+  ...
+# Subtest: PM350 regression-hook-replaced-disable retains capture refusal without changing child outcome
+ok 58 - PM350 regression-hook-replaced-disable retains capture refusal without changing child outcome
+  ---
+  duration_ms: 945.0305
+  type: 'test'
+  ...
+# Subtest: PM350 async work scheduled by completion validation is observed
+ok 59 - PM350 async work scheduled by completion validation is observed
+  ---
+  duration_ms: 1363.1548
+  type: 'test'
+  ...
+# Subtest: PM350 disabled capture never loads the new builtin
+ok 60 - PM350 disabled capture never loads the new builtin
+  ---
+  duration_ms: 409.0806
+  type: 'test'
+  ...
+# Subtest: tracked runtime originals restored and evidence finished
+ok 61 - tracked runtime originals restored and evidence finished
+  ---
+  duration_ms: 0.9025
+  type: 'test'
+  ...
+1..61
+# tests 61
+# suites 0
+# pass 61
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 82368.4322

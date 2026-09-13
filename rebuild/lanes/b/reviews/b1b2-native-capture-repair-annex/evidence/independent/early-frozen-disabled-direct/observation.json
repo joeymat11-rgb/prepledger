@@ -1,0 +1,62 @@
+{
+  "name": "early-frozen-disabled-direct",
+  "mode": "early-frozen",
+  "direct": true,
+  "enabled": false,
+  "result": {
+    "gateVerdict": "PASS",
+    "captureVerdict": "FAIL",
+    "childExit": 0,
+    "childSignal": null,
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "comparisons": [
+      {
+        "kind": "second-readers",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      },
+      {
+        "kind": "second-applyRead",
+        "comparisonVerdict": "NOT_OBSERVED",
+        "differenceCount": null,
+        "categories": []
+      }
+    ],
+    "fixedFailureCode": "DIAGNOSTIC"
+  },
+  "writerReached": true,
+  "deferredRan": true,
+  "details": {
+    "mode": "early-frozen",
+    "events": [
+      "exit-listener"
+    ],
+    "promiseSymbolsBefore": [],
+    "extensibleBefore": false,
+    "objectsUnchanged": true,
+    "promiseSymbolsAtExit": []
+  },
+  "raw": [
+    {
+      "file": "stdout.raw",
+      "bytes": 262,
+      "sha256": "6d72ef2013290279d2156a93f3328f85b944aa2fd7bdd9f932d4107731ca5561"
+    },
+    {
+      "file": "stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "capture-manifest.json",
+      "bytes": 139,
+      "sha256": "39dc14899db3378f255ce6ee7bbfff5dec96774fd6afa197419e2a9cc97ea48b"
+    }
+  ]
+}
