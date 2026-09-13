@@ -7,14 +7,39 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const os = require('node:os');
 const cp = require('node:child_process');
 
 const sourceRoot = path.resolve(__dirname, '../../../..');
 const toolRel = 'rebuild/lanes/tooling/preflight.cjs';
 const source = fs.readFileSync(path.join(sourceRoot, toolRel), 'utf8');
 assert(source.split(/\r?\n/).length <= 200, 'the preflight stays under 200 lines');
-const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'earned-preflight-'));
+const scratchRoot = path.join(sourceRoot, '.tmp');
+fs.mkdirSync(scratchRoot, { recursive: true });
+const scratch = fs.mkdtempSync(path.join(scratchRoot, 'earned-preflight-'));
+const helperRel = 'rebuild/lanes/tooling/preflight-dash-scan.cjs';
+const helperSource = fs.readFileSync(path.join(sourceRoot, helperRel), 'utf8');
+assert(helperSource.split(/\r?\n/).length <= 220, 'the lexical helper stays bounded');
+const mutation = process.env.PREFLIGHT_SCANNER_MUTANT;
+const mutationCases = Object.fromEntries(['js-line','js-block','regex','html-comment','css-comment'].map(kind =>
+  [kind, { from: kind === 'html-comment' ? "omit(i, stop + 3, 'html-comment')" :
+    kind === 'regex' ? "omit(at, i, 'regex')" : "omit(at, i, '" + kind + "')", to: 'void 0',
+    pattern: '^200 lexical exemption: ' + kind + '$' }]));
+mutationCases['strings-are-comments'] = { from: 'string(c); expression = false;',
+  to: "string(c); omit(at, i, 'js-block'); expression = false;",
+  pattern: '^200 visible dash: js-comment-looking-string$' };
+mutationCases['syntax-check-ignored'] = {
+  from: "if (checked.error || checked.status !== 0) fail('invalid or unsupported JavaScript syntax', start);",
+  to: 'void checked;', pattern: '^200 unknown or unterminated syntax fails explicitly instead of creating an exemption$' };
+mutationCases['raw-text-boundary'] = {
+  from: "'(?=[\\\\t\\\\n\\\\f\\\\r />])'", to: "'[\\\\t\\\\n\\\\f\\\\r ]*>'",
+  pattern: '^200 HTML text end tags with attributes or solidus refuse before comment exemptions$' };
+let fixtureHelper = helperSource;
+if (mutation) {
+  assert(Object.hasOwn(mutationCases, mutation), 'closed mutation list');
+  const { from, to } = mutationCases[mutation];
+  assert.equal(fixtureHelper.split(from).length - 1, 1, 'exact mutation anchor');
+  fixtureHelper = fixtureHelper.replace(from, to);
+}
 function write(file, text) {
   const target = path.join(scratch, file);
   fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -30,6 +55,8 @@ const goodReport = ['# BUILD REPORT', 'Suites: 9/9 green.', 'Terminals unchanged
 const goodStatus = ['# STATUS', 'STATUS lane B - r7 tooling - suites green - PR-READY', ''].join('\n');
 
 write(toolRel, source);
+write(helperRel, fixtureHelper);
+write('.gitignore', '.tmp/\n');
 write(REPORT, goodReport);
 write(STATUS, goodStatus);
 write(UI, '<p>a clean hyphen-only line</p>\n');
@@ -47,15 +74,15 @@ git('add', '-A'); git('commit', '--quiet', '-m', 'lane work inside custody');
 
 test.after(() => {
   const resolved = fs.realpathSync(scratch);
-  assert.equal(path.dirname(resolved), fs.realpathSync(os.tmpdir()));
+  assert.equal(path.dirname(resolved), fs.realpathSync(scratchRoot));
   assert(path.basename(resolved).startsWith('earned-preflight-'));
   fs.rmSync(resolved, { recursive: true, force: true });
 });
 
-function run(extra = []) {
+function run(extra = [], executable = path.join(scratch, toolRel)) {
   const argv = ['--custody', 'rebuild/lanes/b/,rebuild/m3/w7-preview/today/', '--report', REPORT,
     '--status-line', STATUS, ...extra];
-  const r = cp.spawnSync(process.execPath, [path.join(scratch, toolRel), ...argv],
+  const r = cp.spawnSync(process.execPath, [executable, ...argv],
     { cwd: scratch, encoding: 'utf8' });
   const lines = r.stdout.split(/\r?\n/).filter(Boolean);
   assert.equal(lines.length, 1, 'exactly one line on stdout, got ' + JSON.stringify(r.stdout));
@@ -67,6 +94,164 @@ test(':135 (3) — the whole preflight green is ONE PASS line carrying the head 
   const r = run(GREEN);
   assert.equal(r.code, 0);
   assert.equal(r.line, 'PREFLIGHT PASS ' + git('rev-parse', 'HEAD').trim());
+});
+
+const SOURCE_REF = '2b9b09a564531d415df847cd668ea357233687b2';
+const BASE_REF = '0e652ce213b56cd5d73a670e0a761cca8c94b6c3';
+const realPaths = ['build.mjs', 'gym-app.mjs', 'plain-copy.cjs'].map(f => 'rebuild/m3/w7-preview/today/' + f);
+function blob(ref, file) {
+  assert([SOURCE_REF, BASE_REF].includes(ref));
+  assert([...realPaths, toolRel].includes(file), 'public blob read-list is closed');
+  return cp.execFileSync('git', ['show', ref + ':' + file], { cwd: sourceRoot, encoding: 'utf8' });
+}
+const rawHits = text => text.split(/\r?\n/).filter(line => /[\u2013\u2014]/u.test(line));
+test('200 real C candidate: frozen 26-hit refusal becomes CI-UNVERIFIED with all three files declared', () => {
+  try {
+    for (const [i, file] of realPaths.entries()) {
+      const text = blob(SOURCE_REF, file), base = blob(BASE_REF, file);
+      assert.equal(rawHits(text).length, [8, 7, 11][i]);
+      assert.deepEqual(rawHits(text), rawHits(base), 'all offending lines already exist on the pinned integration base');
+      write(file, text);
+    }
+    const frozen = path.join(scratch, '.tmp/preflight-frozen.cjs');
+    write('.tmp/preflight-frozen.cjs', blob(BASE_REF, toolRel));
+    const ui = ['--ui-custody', realPaths.join(',')];
+    const before = run(ui, frozen);
+    assert.equal(before.line, 'PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH');
+    assert.match(before.stderr, /26 line\(s\)/);
+    const after = run(ui);
+    assert.equal(after.line, 'PREFLIGHT FAIL CI-UNVERIFIED');
+    assert.equal(after.code, 1, 'correcting the scan does not invent verified CI');
+    assert.match(after.stderr, /lexical exemptions: comments 20, regex 6/);
+  } finally { for (const file of realPaths) fs.rmSync(path.join(scratch, file), { force: true }); }
+});
+
+function scanCase(extension, text) {
+  const file = 'rebuild/m3/w7-preview/today/lexical-fixture.' + extension;
+  try { write(file, text); return run(['--ui-custody', file]); }
+  finally { fs.rmSync(path.join(scratch, file), { force: true }); }
+}
+const positive = {
+  'js-line': ['mjs', '// — quoted " and /regex/ are still comment\nconst x = 1;'],
+  'js-block': ['cjs', '/* — " \' // / */ const x = 1;'],
+  regex: ['mjs', 'const x = /[—/]/g; const y = /a\\/—[\\]–]/; if (x) /—/.test("x");'],
+  'html-comment': ['html', '<!-- — <p title="—"> --> <p>Clean</p>'],
+  'css-comment': ['css', '/* — " */ p { color: red; /* – */ }']
+};
+for (const [kind, [extension, text]] of Object.entries(positive)) {
+  test('200 lexical exemption: ' + kind, () => {
+    const result = scanCase(extension, text);
+    assert.equal(result.line, 'PREFLIGHT FAIL CI-UNVERIFIED', kind + ' does not contain visible dash text');
+  });
+}
+
+const negatives = {
+  'js-comment-looking-string': ['mjs', 'const x = "// —";'],
+  'js-block-looking-string': ['cjs', 'const x = "/* — */";'],
+  'regex-looking-string': ['mjs', 'const x = "/[—]/g";'],
+  'escaped-quote': ['mjs', 'const x = "a\\\"/* — */";'],
+  division: ['mjs', 'const a=1; const x=a / "—" / 2;'],
+  'postfix-division': ['mjs', 'let a=1; const x=a++ / "—" / 2;'],
+  'property-keyword-division': ['mjs', 'const x = obj.return / "—" / 2;'],
+  'same-line-comment-and-string': ['mjs', '/* allowed — */ const x="—";'],
+  'unicode-line-terminator': ['mjs', '// comment\u2028const x="—";'],
+  'unicode-paragraph-terminator': ['mjs', '// comment\u2029const x="—";'],
+  template: ['mjs', 'const x = `// — /* – */`;'],
+  'template-interpolation': ['mjs', 'const x = `${"—"}`;'],
+  'nested-template': ['mjs', 'const x = `a ${`—`} b`;'],
+  'template-boundary': ['mjs', 'const x = `safe ${/—/.test("x")} —`;'],
+  'html-text': ['html', '<p>—</p>'],
+  'html-attribute': ['html', '<p title="<!-- — -->">clean</p>'],
+  'html-textarea': ['html', '<textarea><!-- — --></textarea>'],
+  'html-title': ['html', '<title><!-- — --></title>'],
+  'html-script-string': ['html', '<script>const x="/* — */";</script>'],
+  'html-style-string': ['html', '<style>p{content:"/* — */"}</style>'],
+  'css-content': ['css', 'p { content: "/* — */"; }'],
+  'css-regex-looking-string': ['css', 'p { content: "/—/"; }'],
+  'css-url': ['css', 'p { background: url(https://example.invalid/—/*data*/); }']
+};
+for (const [name, [extension, text]] of Object.entries(negatives)) test('200 visible dash: ' + name, () => {
+  const r = scanCase(extension, text);
+  assert.equal(r.line, 'PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH', name + ' remains checked');
+  assert.equal(r.code, 1);
+});
+const unsupported = [
+  ['mjs', 'const x = ; /* — */'],
+  ['mjs', '/* —'], ['mjs', 'const s="—'], ['mjs', 'const s=`a ${1;'],
+  ['mjs', 'const r=/[—/;'], ['mjs', 'const r=/[—]/v;'], ['mjs', 'const n={} / "—" /2;'],
+  ['cjs', 'const await=1; await / "—" /2;'],
+  ['html', '<!-- —'], ['html', '<!-->—-->'], ['html', '<!-- x --!><p>—</p> -->'],
+  ['html', '<p title="—>'], ['html', '<script>/* —'], ['html', '<![CDATA[—]]>'],
+  ['css', '/* —'], ['css', 'p{content:"—\n"}'], ['css', 'p{background:u\\72l(/*—*/)}'],
+  ['css', 'p{background:url(/*—*/}'], ['css', 'p { /* — */'], ['jsx', '<p>—</p>']
+];
+test('200 unknown or unterminated syntax fails explicitly instead of creating an exemption', () => {
+  for (const [extension, text] of unsupported) assert.equal(scanCase(extension, text).line,
+    'PREFLIGHT FAIL UI-CUSTODY-SYNTAX', extension + ' unsupported input');
+});
+test('200 recursive template and embedded HTML language boundaries preserve allowed syntax', () => {
+  for (const [extension, text] of [
+    ['mjs', 'const x = `clean ${/* — */ /[–]/.test("x")} text`;'],
+    ['html', '<script>/* — */ const x=/—/;</script><style>/* — */ p{color:red}</style>'],
+    ['css', 'p{color:red}'], ['mjs', 'const x=1/2; x.toString();']
+  ]) assert.equal(scanCase(extension, text).line, 'PREFLIGHT FAIL CI-UNVERIFIED');
+});
+
+test('200 HTML text end tags with attributes or solidus refuse before comment exemptions', () => {
+  for (const name of ['style', 'script', 'textarea', 'title']) {
+    for (const ending of [' data-x>', '/>', ' / >', '\tdata-x="x">', '\n/>']) {
+      const text = '<' + name + '>/* comment </' + name + ending + '<p>—</p> */</' + name + '>';
+      const result = scanCase('html', text);
+      assert.equal(result.line, 'PREFLIGHT FAIL UI-CUSTODY-SYNTAX', name + JSON.stringify(ending));
+      assert.equal(result.code, 1);
+    }
+  }
+});
+
+test('200 canonical HTML text boundaries keep comments bounded and visible copy checked', () => {
+  for (const name of ['style', 'script']) {
+    const start = '<' + name + '>/* allowed —; misleading </' + name + 'x> */';
+    const close = '</' + name.toUpperCase() + ' \t\r\n\f>';
+    assert.equal(scanCase('html', start + close + '<p>clean</p>').line, 'PREFLIGHT FAIL CI-UNVERIFIED');
+    assert.equal(scanCase('html', start + close + '<p>—</p>').line, 'PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH');
+  }
+});
+test('200 JavaScript is syntax checked without evaluating candidate statements', () => {
+  assert.equal(scanCase('mjs', '/* — */ throw new Error("candidate source must never run");').line,
+    'PREFLIGHT FAIL CI-UNVERIFIED');
+});
+test('200 tracked JS template HTML attribute and CSS content still refuse', () => {
+  for (const [extension, text] of [['mjs','const s="—";'], ['js','const s=`—`;'],
+    ['html','<p title="—">clean</p>'], ['css','p{content:"—"}']]) {
+    const file = 'rebuild/m3/w7-preview/today/tracked-fixture.' + extension;
+    write(file, text); git('add', '--', file); git('commit', '--quiet', '-m', 'synthetic tracked dash');
+    try { assert.equal(run(['--ui-custody', file]).line, 'PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH'); }
+    finally { git('reset', '--quiet', '--hard', 'HEAD~1'); }
+  }
+});
+test('200 each exemption mutation fails its actual child-process assertion and restores its control', () => {
+  assert.equal(mutation, undefined, 'mutation runner itself is never selected recursively');
+  for (const [name, spec] of Object.entries(mutationCases)) {
+    const childEnv = { ...process.env, PREFLIGHT_SCANNER_MUTANT: name };
+    delete childEnv.NODE_TEST_CONTEXT; // A separate test process, not Node's suppressed nested runner.
+    const result = cp.spawnSync(process.execPath, ['--test','--test-reporter=tap','--test-name-pattern='+spec.pattern,__filename],
+      { cwd:sourceRoot, encoding:'utf8', timeout:30000, env:childEnv });
+    fs.writeFileSync(path.join(scratchRoot,'preflight-mutant-'+name+'.tap'), result.stdout+result.stderr);
+    assert.equal(result.status, 1, name+' must fail');
+    assert.match(result.stdout, /code: 'ERR_ASSERTION'/);
+    assert.match(result.stdout, /^# fail 1$/m);
+    assert.match(result.stdout, /^# tests 1$/m);
+    assert.doesNotMatch(result.stdout+result.stderr, /SyntaxError|ReferenceError|MODULE_NOT_FOUND/);
+    if (name === 'raw-text-boundary') {
+      assert.equal(scanCase('html', '<style>/* comment </style data-x><p>—</p> */</style>').line,
+        'PREFLIGHT FAIL UI-CUSTODY-SYNTAX');
+      continue;
+    }
+    const allowed = positive[name] || (name === 'syntax-check-ignored' && positive['js-line']);
+    const [extension, text] = allowed || negatives['js-comment-looking-string'];
+    assert.equal(scanCase(extension,text).line, allowed ? 'PREFLIGHT FAIL CI-UNVERIFIED' : 'PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH');
+  }
+  assert.equal(fs.readFileSync(path.join(sourceRoot,helperRel),'utf8'),helperSource);
 });
 
 test(':135 (3) — a change outside custody fails, committed or merely sitting there', () => {
