@@ -1,0 +1,677 @@
+{
+  "candidate": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+  "frozenIntegration": "ea0a011f540448a5ece05d4c0ab7e0c8af17fedc",
+  "reviewedAtUTC": "2026-09-13T06:30:19.989Z",
+  "sourceIdentities": [
+    {
+      "file": "rebuild/m3/w7-preview/today/build.mjs",
+      "source": "0ce2a6fc097bbd5939ca25b52b5d74468e93d56c",
+      "blob": "bb21cc8f44812b235b30421c902f6ebf0d0d29c2"
+    },
+    {
+      "file": "rebuild/m3/w7-preview/today/gym-app.mjs",
+      "source": "0ce2a6fc097bbd5939ca25b52b5d74468e93d56c",
+      "blob": "fd855931864b15c18697d281af5fd7a418a7481a"
+    },
+    {
+      "file": "rebuild/m3/w7-preview/today/machine-settings-check.mjs",
+      "source": "0ce2a6fc097bbd5939ca25b52b5d74468e93d56c",
+      "blob": "d4f4acb8725b5b677c587c91f158c91711d91f11"
+    },
+    {
+      "file": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+      "source": "0ce2a6fc097bbd5939ca25b52b5d74468e93d56c",
+      "blob": "d55e26f604e6b9d28d2ad5299dfb9d1018266d2b"
+    },
+    {
+      "file": "rebuild/m3/w7-preview/today/test/copy.test.mjs",
+      "source": "0ce2a6fc097bbd5939ca25b52b5d74468e93d56c",
+      "blob": "1f56cd59cf1fa6061a2e632f7c58ecfe76ec3978"
+    },
+    {
+      "file": "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+      "source": "0ce2a6fc097bbd5939ca25b52b5d74468e93d56c",
+      "blob": "20c93f76210a02fc7e0f6c250dd60c95a53ad002"
+    },
+    {
+      "file": "rebuild/lanes/tooling/preflight.cjs",
+      "source": "aab62dd38079b54db63fd690c908517e2c686167",
+      "blob": "d35f730357b72150c20a7e8ae18a05e7ff249858"
+    },
+    {
+      "file": "rebuild/lanes/tooling/preflight-dash-scan.cjs",
+      "source": "aab62dd38079b54db63fd690c908517e2c686167",
+      "blob": "f08b512a90cb590af8a778ddd5895b3fec2b0dfa"
+    },
+    {
+      "file": "rebuild/lanes/tooling/test/preflight.test.cjs",
+      "source": "aab62dd38079b54db63fd690c908517e2c686167",
+      "blob": "6b9e23b9f08b016ec7bfe0ec504eba91ae2f689f"
+    },
+    {
+      "file": ".github/workflows/shared-preflight.yml",
+      "source": "b09d55a83a95bc1dba2e633990b2d24690510b56",
+      "blob": "3a4ad31a9a6bfe85eb91f41f97e9e5e4a31ccb2f"
+    },
+    {
+      "file": "rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs",
+      "source": "b09d55a83a95bc1dba2e633990b2d24690510b56",
+      "blob": "127a7067744133736c6fd42dd86c4b86090a374d"
+    }
+  ],
+  "historicalIdentities": [
+    {
+      "file": "rebuild/lanes/c/HOTFIX-DIRNAME.md",
+      "source": "0ce2a6fc097bbd5939ca25b52b5d74468e93d56c",
+      "blob": "ab56babe375fdb4349b5106c2071630ce4620493"
+    },
+    {
+      "file": "rebuild/lanes/c/LAUNCH-ADOPTION-PROBES.mjs",
+      "source": "0ce2a6fc097bbd5939ca25b52b5d74468e93d56c",
+      "blob": "8fb47f452eb964ebcf05a50ef64840855e43ef21"
+    },
+    {
+      "file": "rebuild/lanes/c/LAUNCH-ADOPTION-R2-REPORT.md",
+      "source": "0ce2a6fc097bbd5939ca25b52b5d74468e93d56c",
+      "blob": "a628d828c09b820afde560c635c262450a6361bc"
+    },
+    {
+      "file": "rebuild/lanes/c/LAUNCH-ADOPTION-REPORT.md",
+      "source": "0ce2a6fc097bbd5939ca25b52b5d74468e93d56c",
+      "blob": "04010212321dff9725d4f4ad2cf48ec275ad7acd"
+    },
+    {
+      "file": "rebuild/lanes/d/PREFLIGHT-COMMENT-REGEX-REPORT.md",
+      "source": "aab62dd38079b54db63fd690c908517e2c686167",
+      "blob": "241c0dc1e2c995a3ddcc7a7fc0148b83c77a39c4"
+    },
+    {
+      "file": "rebuild/lanes/b/BUILD-REPORT-SHARED-PREFLIGHT-CI.md",
+      "source": "b09d55a83a95bc1dba2e633990b2d24690510b56",
+      "blob": "e936bd09f207ccbc9a861672812010ff58acb8c3"
+    }
+  ],
+  "manifest": [
+    ".github/workflows/shared-preflight.yml",
+    "rebuild/lanes/b/BUILD-REPORT-SHARED-PREFLIGHT-CI.md",
+    "rebuild/lanes/c/HOTFIX-DIRNAME.md",
+    "rebuild/lanes/c/LAUNCH-ADOPTION-PROBES.mjs",
+    "rebuild/lanes/c/LAUNCH-ADOPTION-R2-REPORT.md",
+    "rebuild/lanes/c/LAUNCH-ADOPTION-REPORT.md",
+    "rebuild/lanes/c/LAUNCH-COMPOSITION-REPORT.md",
+    "rebuild/lanes/d/PREFLIGHT-COMMENT-REGEX-REPORT.md",
+    "rebuild/lanes/tooling/preflight-dash-scan.cjs",
+    "rebuild/lanes/tooling/preflight.cjs",
+    "rebuild/lanes/tooling/test/preflight.test.cjs",
+    "rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs",
+    "rebuild/m3/w7-preview/today/build.mjs",
+    "rebuild/m3/w7-preview/today/gym-app.mjs",
+    "rebuild/m3/w7-preview/today/machine-settings-check.mjs",
+    "rebuild/m3/w7-preview/today/plain-copy.cjs",
+    "rebuild/m3/w7-preview/today/test/copy.test.mjs",
+    "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs"
+  ],
+  "local": {
+    "node": "v24.19.0",
+    "today": {
+      "tests": 553,
+      "pass": 553,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "sharedPreflight": {
+      "tests": 67,
+      "pass": 67,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "build": {
+      "id": "earned-b6acba5d032b",
+      "inputs": 110,
+      "assets": [
+        {
+          "file": "app.js",
+          "sha256": "a622171f9bf82ce52204a577bd8ed6de66f168b683f0278e4ddf1d62174a63f8"
+        },
+        {
+          "file": "index.html",
+          "sha256": "36d3db58318b3fceba62d2b8bd66007a36d398ef88daf6abd3a9f45798219fa0"
+        },
+        {
+          "file": "styles.css",
+          "sha256": "21cb79d65a1b5a548071afa8c97bbfb64820d4048daefa6c0bf84b416d0a3664"
+        }
+      ]
+    },
+    "browsers": [
+      {
+        "file": "rebuild/m3/w7-preview/today/browser-check.mjs",
+        "result": "PASS",
+        "realProfileKillCycles": 1
+      },
+      {
+        "file": "rebuild/m3/w7-preview/today/gym-check.mjs",
+        "result": "PASS",
+        "realProfileKillCycles": 3
+      },
+      {
+        "file": "rebuild/m3/w7-preview/today/checkin-check.mjs",
+        "result": "PASS",
+        "realProfileKillCycles": 3
+      },
+      {
+        "file": "rebuild/m3/w7-preview/today/setup-check.mjs",
+        "result": "PASS",
+        "realProfileKillCycles": 7
+      },
+      {
+        "file": "rebuild/m3/w7-preview/today/food-check.mjs",
+        "result": "PASS",
+        "realProfileKillCycles": 3
+      },
+      {
+        "file": "rebuild/m3/w7-preview/today/machine-settings-check.mjs",
+        "result": "PASS",
+        "realProfileKillCycles": 3
+      }
+    ],
+    "guard": {
+      "case": "D2-R2-ATTRIBUTION",
+      "refused": 12,
+      "admitted": 6,
+      "controls": 18,
+      "scannedModules": 109,
+      "r1Witness": "unsafe prefix refused; execution remains ReferenceError",
+      "mutantsKilledByAssertion": 1
+    },
+    "settings": {
+      "case": "D2-LAUNCH-SETTINGS",
+      "cases": 6,
+      "passed": [
+        "held refusal, cancel/new draft reset, valid save exactly once, success reset",
+        "old real quota refusal isolated from replacement draft",
+        "old real committed success isolated from replacement draft",
+        "real saved read: pending visibility differs from readiness; exact record restored without write",
+        "failed read cannot satisfy readiness",
+        "known empty can be ready but fails saved-data equality"
+      ]
+    },
+    "preflightBoundaries": {
+      "case": "D2-PREFLIGHT-R2-BOUNDARIES",
+      "controls": 17,
+      "passed": 17,
+      "outcomes": [
+        {
+          "name": "clean",
+          "expected": "PREFLIGHT FAIL CI-UNVERIFIED",
+          "actual": "PREFLIGHT FAIL CI-UNVERIFIED"
+        },
+        {
+          "name": "allowed-js-comments",
+          "expected": "PREFLIGHT FAIL CI-UNVERIFIED",
+          "actual": "PREFLIGHT FAIL CI-UNVERIFIED"
+        },
+        {
+          "name": "allowed-regex-class",
+          "expected": "PREFLIGHT FAIL CI-UNVERIFIED",
+          "actual": "PREFLIGHT FAIL CI-UNVERIFIED"
+        },
+        {
+          "name": "comment-looking-string",
+          "expected": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH",
+          "actual": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH"
+        },
+        {
+          "name": "nested-template",
+          "expected": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH",
+          "actual": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH"
+        },
+        {
+          "name": "unsupported-js",
+          "expected": "PREFLIGHT FAIL UI-CUSTODY-SYNTAX",
+          "actual": "PREFLIGHT FAIL UI-CUSTODY-SYNTAX"
+        },
+        {
+          "name": "html-attribute",
+          "expected": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH",
+          "actual": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH"
+        },
+        {
+          "name": "css-string",
+          "expected": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH",
+          "actual": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH"
+        },
+        {
+          "name": "allowed-html-comment",
+          "expected": "PREFLIGHT FAIL CI-UNVERIFIED",
+          "actual": "PREFLIGHT FAIL CI-UNVERIFIED"
+        },
+        {
+          "name": "allowed-css-comment",
+          "expected": "PREFLIGHT FAIL CI-UNVERIFIED",
+          "actual": "PREFLIGHT FAIL CI-UNVERIFIED"
+        },
+        {
+          "name": "script-closing-attribute",
+          "expected": "PREFLIGHT FAIL UI-CUSTODY-SYNTAX",
+          "actual": "PREFLIGHT FAIL UI-CUSTODY-SYNTAX"
+        },
+        {
+          "name": "style-closing-attribute",
+          "expected": "PREFLIGHT FAIL UI-CUSTODY-SYNTAX",
+          "actual": "PREFLIGHT FAIL UI-CUSTODY-SYNTAX"
+        },
+        {
+          "name": "style-closing-solidus",
+          "expected": "PREFLIGHT FAIL UI-CUSTODY-SYNTAX",
+          "actual": "PREFLIGHT FAIL UI-CUSTODY-SYNTAX"
+        },
+        {
+          "name": "style-canonical-clean",
+          "expected": "PREFLIGHT FAIL CI-UNVERIFIED",
+          "actual": "PREFLIGHT FAIL CI-UNVERIFIED"
+        },
+        {
+          "name": "style-canonical-visible",
+          "expected": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH",
+          "actual": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH"
+        },
+        {
+          "name": "script-canonical-clean",
+          "expected": "PREFLIGHT FAIL CI-UNVERIFIED",
+          "actual": "PREFLIGHT FAIL CI-UNVERIFIED"
+        },
+        {
+          "name": "script-canonical-visible",
+          "expected": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH",
+          "actual": "PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH"
+        }
+      ]
+    },
+    "mechanical": {
+      "argv": [
+        "rebuild/lanes/tooling/preflight.cjs",
+        "--custody",
+        ".github/workflows/shared-preflight.yml,rebuild/lanes/b/BUILD-REPORT-SHARED-PREFLIGHT-CI.md,rebuild/lanes/c/HOTFIX-DIRNAME.md,rebuild/lanes/c/LAUNCH-ADOPTION-PROBES.mjs,rebuild/lanes/c/LAUNCH-ADOPTION-R2-REPORT.md,rebuild/lanes/c/LAUNCH-ADOPTION-REPORT.md,rebuild/lanes/c/LAUNCH-COMPOSITION-REPORT.md,rebuild/lanes/d/PREFLIGHT-COMMENT-REGEX-REPORT.md,rebuild/lanes/tooling/preflight-dash-scan.cjs,rebuild/lanes/tooling/preflight.cjs,rebuild/lanes/tooling/test/preflight.test.cjs,rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs,rebuild/m3/w7-preview/today/build.mjs,rebuild/m3/w7-preview/today/gym-app.mjs,rebuild/m3/w7-preview/today/machine-settings-check.mjs,rebuild/m3/w7-preview/today/plain-copy.cjs,rebuild/m3/w7-preview/today/test/copy.test.mjs,rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+        "--report",
+        "rebuild/lanes/c/LAUNCH-COMPOSITION-REPORT.md",
+        "--status-line",
+        ".tmp/d2-final-status.txt",
+        "--ui-custody",
+        "rebuild/m3/w7-preview/today/build.mjs,rebuild/m3/w7-preview/today/gym-app.mjs,rebuild/m3/w7-preview/today/plain-copy.cjs"
+      ],
+      "statusLine": "D2 final af4ed1f: local Today553/553, shared67/67, six browsers20 kills. Complete Windows rebuild failed H3; Today skipped. No CI PASS or integration authorization.",
+      "stdout": "PREFLIGHT FAIL CI-UNVERIFIED",
+      "exit": 1,
+      "exemptions": {
+        "comments": 20,
+        "regex": 6
+      },
+      "ciRunSupplied": false
+    },
+    "h3ExecutedByD2": false,
+    "privateInputsReadByD2": false,
+    "physicalIPhoneProved": false
+  },
+  "independentlyVerifiedPublicCi": [
+    {
+      "id": 34742308033,
+      "name": "rebuild",
+      "head": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+      "status": "completed",
+      "conclusion": "failure",
+      "attempt": 1,
+      "url": "https://github.com/joeymat11-rgb/prepledger/actions/runs/34742308033",
+      "jobs": [
+        {
+          "id": 103683952988,
+          "name": "rebuild-public (windows-latest)",
+          "conclusion": "failure",
+          "steps": [
+            {
+              "number": 13,
+              "name": "Cumulative H3 clean-init, native-carrier and legacy-census evidence",
+              "status": "completed",
+              "conclusion": "failure"
+            },
+            {
+              "number": 15,
+              "name": "A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup",
+              "status": "completed",
+              "conclusion": "skipped"
+            }
+          ]
+        },
+        {
+          "id": 103683953081,
+          "name": "rebuild-public (ubuntu-latest)",
+          "conclusion": "success",
+          "steps": [
+            {
+              "number": 13,
+              "name": "Cumulative H3 clean-init, native-carrier and legacy-census evidence",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 15,
+              "name": "A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 34742308032,
+      "name": "shared-preflight",
+      "head": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "url": "https://github.com/joeymat11-rgb/prepledger/actions/runs/34742308032",
+      "jobs": [
+        {
+          "id": 103683953002,
+          "name": "shared-preflight (ubuntu-latest)",
+          "conclusion": "success",
+          "steps": [
+            {
+              "number": 3,
+              "name": "Materialize only the event's declared public test inputs",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 5,
+              "name": "Execute the actual shared preflight and registration regressions",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 103683953106,
+          "name": "shared-preflight (windows-latest)",
+          "conclusion": "success",
+          "steps": [
+            {
+              "number": 3,
+              "name": "Materialize only the event's declared public test inputs",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 5,
+              "name": "Execute the actual shared preflight and registration regressions",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "evidenceBoundary": "D2 own Windows synthetic/public execution, public CI metadata and Git API tree/parent identity. B alone supplies private-reading H3 and actual checkout-log results, separately attributed. Complete exact-head Windows rebuild and honest mechanical PASS remain unsatisfied; no acceptance or integration authority.",
+  "b196Attributed": {
+    "operator": "B only; D2 did not execute H3 or read child/private logs",
+    "head": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+    "local": {
+      "os": "Windows",
+      "node": "24.19.0",
+      "runner": "unchanged r10",
+      "exit": 0,
+      "terminal": "B PACKAGE H3 PUBLIC CI EVIDENCE PASS",
+      "childrenExitZero": 10,
+      "today": "321/321",
+      "a0Journeys": "23/23",
+      "h3Cells": "14/14",
+      "ntcProvider": "39/39",
+      "supersession": [
+        "4/4",
+        "3/3",
+        "3/3",
+        "3/3",
+        "3/3"
+      ],
+      "fail": 0,
+      "skip": 0,
+      "cancel": 0,
+      "engineDifferential": "Declared verdict; no TAP count supplied",
+      "remoteBeforeAfter": "ea0a011f540448a5ece05d4c0ab7e0c8af17fedc",
+      "sourceClean": true
+    },
+    "hostedWindows": {
+      "run": 34742308033,
+      "job": 103683952988,
+      "terminal": "CHILD-REQUIRED-EXIT-ZERO",
+      "failedChild": "today-suites",
+      "failedChildNumber": 9,
+      "priorChildrenExitZero": 8,
+      "exactFailedCase": null,
+      "exactFailedCount": null,
+      "childTapAvailable": false,
+      "artifacts": 0,
+      "localFailureReproduced": false,
+      "elapsedAfterA0Seconds": 17.377,
+      "configuredChildTimeoutMinutes": 30,
+      "timeoutInterpretation": "Observed interval rules out configured child timeout only; exact test/spawn mechanism unavailable."
+    },
+    "commonLawBaseline": {
+      "census": "45/45",
+      "redFrozen": 45,
+      "redCandidate": 39,
+      "greenRepairControls": 89,
+      "mutantDetections": "97/104",
+      "harnessError": 0,
+      "interpretation": "Shared expected baseline, not newly passing laws or the Windows distinction"
+    },
+    "hostedPrRebuild": {
+      "run": 34742538261,
+      "jobs": [
+        103684567443,
+        103684567520
+      ],
+      "actualCheckout": "17c5a6390c65a73c69deae45741938cbf9658e53",
+      "verification": "Each actual checkout git log -1",
+      "h3Terminal": "B PACKAGE H3 PUBLIC CI EVIDENCE PASS",
+      "childrenExitZero": 10,
+      "fullToday": "553/553",
+      "fail": 0,
+      "skip": 0,
+      "cancel": 0,
+      "exactCandidateHead": false
+    },
+    "hostedPrShared": {
+      "run": 34742538242,
+      "jobs": [
+        103684567431,
+        103684567437
+      ],
+      "actualCheckout": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+      "tests": "67/67",
+      "fail": 0,
+      "skip": 0,
+      "cancel": 0,
+      "currentPublicInputs": 7,
+      "historicalPublicInputs": 7,
+      "uniquePublicBlobs": 14,
+      "fetchRemoteRemaining": false
+    }
+  },
+  "independentlyVerifiedPrMetadata": [
+    {
+      "id": 34742538261,
+      "name": "rebuild",
+      "head": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "url": "https://github.com/joeymat11-rgb/prepledger/actions/runs/34742538261",
+      "jobs": [
+        {
+          "id": 103684567443,
+          "name": "rebuild-public (ubuntu-latest)",
+          "conclusion": "success",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 3,
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 5,
+              "name": "Install pnpm 9 (the version both W6 and W5 lockfiles were written with)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 13,
+              "name": "Cumulative H3 clean-init, native-carrier and legacy-census evidence",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 15,
+              "name": "A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 103684567520,
+          "name": "rebuild-public (windows-latest)",
+          "conclusion": "success",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 3,
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 5,
+              "name": "Install pnpm 9 (the version both W6 and W5 lockfiles were written with)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 13,
+              "name": "Cumulative H3 clean-init, native-carrier and legacy-census evidence",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 15,
+              "name": "A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ],
+      "d2Inspection": "Public run/job/step metadata only; actual checkout log evidence separately attributed to B196."
+    },
+    {
+      "id": 34742538242,
+      "name": "shared-preflight",
+      "head": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "attempt": 1,
+      "url": "https://github.com/joeymat11-rgb/prepledger/actions/runs/34742538242",
+      "jobs": [
+        {
+          "id": 103684567431,
+          "name": "shared-preflight (windows-latest)",
+          "conclusion": "success",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 3,
+              "name": "Materialize only the event's declared public test inputs",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 5,
+              "name": "Execute the actual shared preflight and registration regressions",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 103684567437,
+          "name": "shared-preflight (ubuntu-latest)",
+          "conclusion": "success",
+          "steps": [
+            {
+              "number": 2,
+              "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 3,
+              "name": "Materialize only the event's declared public test inputs",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "number": 5,
+              "name": "Execute the actual shared preflight and registration regressions",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ],
+      "d2Inspection": "Public run/job/step metadata only; actual checkout log evidence separately attributed to B196."
+    }
+  ],
+  "independentlyVerifiedGitApiIdentity": {
+    "candidate": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+    "candidateParents": [
+      "ea0a011f540448a5ece05d4c0ab7e0c8af17fedc"
+    ],
+    "syntheticMerge": "17c5a6390c65a73c69deae45741938cbf9658e53",
+    "syntheticParents": [
+      "ea0a011f540448a5ece05d4c0ab7e0c8af17fedc",
+      "af4ed1f1939ee02d159c0a430c7b57fe004aee4d"
+    ],
+    "sharedTree": "cf161c25cbd66b704323f7edd7e3a148d6a5b1b4",
+    "interpretation": "Same tree, distinct actual commit. No exact-head CI substitution."
+  },
+  "rationaleLast": {
+    "candidateReport": "rebuild/lanes/c/LAUNCH-COMPOSITION-REPORT.md",
+    "separateReceipt": "rebuild/lanes/c/LAUNCH-COMPOSITION-RECEIPT.md",
+    "receiptCommit": "d6dbfa536fd9d2322045fc304fee54ddf1f8dcb1",
+    "readAfterIndependentExecution": true,
+    "reconciliation": "Source/custody/count/hash and refusal claims agree; no final CI PASS inferred."
+  }
+}
