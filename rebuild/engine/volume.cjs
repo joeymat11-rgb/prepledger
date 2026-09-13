@@ -3,6 +3,7 @@
 // Frozen v7.56.0 volume readers; cross-module calls resolve through this engine's E.
 module.exports = function createVolume(E, { clock, ids }) {
 const { DAY, DELIVERED_MAJ, HYP_B, HYP_SDES, INDIRECT, MG_LABEL, REVIEW_CLASSIFY_D, REVIEW_DELIV_D, REVIEW_OUTCOME_D, TREND_MIN_SESSIONS, TREND_SE_FLOOR, VOL_BANDS } = E;
+const _formerNames = (...args) => E._formerNames(...args);   /* Q2 — §2 C1: names are display history; the whole name family is resolved through progression.cjs's own helper, late-bound like every other cross-module call here, so volume.cjs still gains no require */
 const _tCrit = (...args) => E._tCrit(...args);
 const cap = (...args) => E.cap(...args);
 const dayType = (...args) => E.dayType(...args);
@@ -10,6 +11,7 @@ const dayWeather = (...args) => E.dayWeather(...args);
 const energyBalanceTarget = (...args) => E.energyBalanceTarget(...args);
 const exActive = (...args) => E.exActive(...args);
 const fmtShort = (...args) => E.fmtShort(...args);
+const forksOf = (...args) => E.forksOf(...args);
 const isoOf = (...args) => E.isoOf(...args);
 const liftCall = (...args) => E.liftCall(...args);
 const liftTrend = (...args) => E.liftTrend(...args);
@@ -18,6 +20,7 @@ const paceRushed = (...args) => E.paceRushed(...args);
 const phaseArc = (...args) => E.phaseArc(...args);
 const recoveryIndex = (...args) => E.recoveryIndex(...args);
 const rirSetsOf = (...args) => E.rirSetsOf(...args);
+const sameEra = (...args) => E.sameEra(...args);
 const sessionScore = (...args) => E.sessionScore(...args);
 const todayStart = (...args) => E.todayStart(...args);
 const windowFor = (...args) => E.windowFor(...args);
@@ -38,7 +41,7 @@ const volBucket = (ex) => (ex && (ex.head || ex.mg)) || null;
 function muscleVolume(s) {
   const tISO6 = isoOf(todayStart());
   const win = (backLo, backHi) => Object.keys(s.sessionLog).filter((d) => { const g = (mk(tISO6) - mk(d)) / DAY; return g >= backLo && g < backHi; });
-  const count = (days2) => { const by = {}; days2.forEach((d) => { (s.sessionLog[d].entries || []).forEach((e) => { const ex6 = (s.exercises || []).find((x) => x.id === e.id); const b6 = volBucket(ex6); if (!b6) return; const n6 = (e.reps || []).length; by[b6] = (by[b6] || 0) + n6; const lend = INDIRECT[e.id]; if (lend) Object.entries(lend).forEach(([mg2, f2]) => { by[mg2] = (by[mg2] || 0) + n6 * f2; }); }); }); return by; };
+  const count = (days2) => { const by = {}; days2.forEach((d) => { (s.sessionLog[d].entries || []).forEach((e) => { const ex6 = (s.exercises || []).find((x) => x.id === e.id); const b6 = volBucket(ex6); if (!b6) return; const n6 = (e.reps || []).length; by[b6] = (by[b6] || 0) + n6; const lend = INDIRECT[e.id]; if (lend) Object.entries(lend).forEach(([mg2, f2]) => { const k6 = mg2 === "delts" ? "delts_front" : mg2; by[k6] = (by[k6] || 0) + n6 * f2; }); }); }); return by; };
   const now7 = count(win(0, 7)), prev7 = count(win(7, 14));
   const mgs = [...new Set((s.exercises || []).filter((x) => exActive(s, x.id)).map(volBucket).filter(Boolean))];   /* FIX split-1 (P1-1): buckets come from ACTIVE lifts — logged history still counts above, but a retired-only bucket offers nothing to add sets to */
   return mgs.map((mg) => {
@@ -61,7 +64,8 @@ function muscleVolume(s) {
 // Copied from frozen src/app.jsx @ fe516c1:8674-8705.
 function programmeVolume(s) {
   const perWeek = {};
-  for (let i = 0; i < 7; i++) { const t = dayType(isoOf(new Date(mk("2026-07-27").getTime() + i * DAY)), s); if (t === "U" || t === "L") perWeek[t] = (perWeek[t] || 0) + 1; }
+  const d9 = mk(isoOf(todayStart())); const mon9 = new Date(d9.getTime() - ((d9.getDay() + 6) % 7) * DAY);
+  for (let i = 0; i < 7; i++) { const t = dayType(isoOf(new Date(mon9.getTime() + i * DAY)), s); if (t === "U" || t === "L") perWeek[t] = (perWeek[t] || 0) + 1; }
   const by = {};
   const add = (mg, n) => { if (mg) by[mg] = (by[mg] || 0) + n; };
   /* Bucket by HEAD where a muscle has separately-trained heads. Pelland 2025
@@ -154,9 +158,12 @@ function structuralMovesThisWeek(s) {
     if (a.via === "cal" || a.via === "steps") moves.push({ kind: a.via, d: a.d, rid: a.rid });
     if (a.exUndo && a.exUndo.field === "sets") moves.push({ kind: "sets", d: a.d, rid: a.rid, exId: a.exUndo.exId, mgs: spillOf(a.exUndo.exId) });
   });
-  (s.feed || []).slice(0, 80).forEach((f) => {
+  (s.feed || []).forEach((f) => {
     if (!f || !f.t || !f.d || f.d < monday || f.t.indexOf("VOLUME ") !== 0) return;
-    const ex = (s.exercises || []).find((x) => f.t.indexOf("via " + x.n) > -1);   /* "VOLUME PASSED" carries no "via" — declines are not moves */
+    const at9 = f.t.indexOf("via "); const tail9 = at9 < 0 ? null : f.t.slice(at9 + 4);   /* "VOLUME PASSED" carries no "via" — declines are not moves */
+    const cut9 = tail9 === null ? -1 : tail9.lastIndexOf(" (now "); const own9 = tail9 === null ? null : (cut9 < 0 ? tail9 : tail9.slice(0, cut9));
+    const xs9 = (s.exercises || []); const owns9 = (n9) => !!n9 && (own9 === n9 || tail9 === n9);   /* C3 — two exact comparisons over one name, nothing else */
+    const ex = f.exId != null ? xs9.find((x) => String(f.exId) === String(x.id)) : (xs9.find((x) => owns9(String((x && x.n) || ""))) || xs9.find((x) => _formerNames(x).some(owns9)));   /* Q2 — §2 C1→C2→C3: structured identity is terminal, else the producer's whole-name boundary over the lift's whole NAME FAMILY — the same two exact comparisons _volDeltas makes, so the two readers cannot disagree about one receipt (C6). Where the family admits two owners the LIVE name (C1: ex.n is the display name, renames[].prevN is history) is preferred over a former one, so WHERE A LIVE NAME MATCHES the receipt's muscle group is never charged to a different lift by s.exercises order; where ONLY former names match, array order still decides — C6's excluded class (ii), pinned by cell B2-Q2j-b */
     if (ex && !moves.some((m) => m.kind === "sets" && m.exId === ex.id)) moves.push({ kind: "sets", d: f.d, rid: null, exId: ex.id, mgs: spillOf(ex.id) });
   });
   return { monday, moves,
@@ -189,8 +196,11 @@ function _blockSlope(pts9) {
 function setOneRead(s, exId) {
   const ex9 = (s.exercises || []).find((x) => x && x.id === exId);
   if (!ex9 || typeof ex9.w !== "number") return { status: "IDLE", exId };
+  const fk9 = forksOf(s, exId);
+  const at9 = fk9.length ? isoOf(todayStart()) : null;
   const pts = [];
   for (const d of Object.keys(s.sessionLog || {}).sort()) {
+    if (!sameEra(fk9, d, at9)) continue;   /* D30 — a first-set trend never pools two technique eras */
     const sl = s.sessionLog[d];
     const en = (sl.entries || []).find((x) => x && x.id === exId);
     if (!en || !en.reps || !en.reps.length || String(en.w) !== String(ex9.w)) continue;
@@ -235,7 +245,7 @@ function volumeConversion(s, exId) {
   const reviews = { delivery: revAt(REVIEW_DELIV_D), outcome: revAt(REVIEW_OUTCOME_D), classify: revAt(REVIEW_CLASSIFY_D) };
   const blockDays = Math.max(0, Math.round((mk(isoOf(todayStart())) - mk(changedAt)) / DAY));
   const t = liftTrend(s, exId);
-  if (!t || t.n < TREND_MIN_SESSIONS) return { status: "READING", exId, changedAt, prevK, k: lastK, dK, have: post.length, need: TREND_MIN_SESSIONS, reviews, blockDays,
+  if (!t || t.n < TREND_MIN_SESSIONS || t.k !== lastK || t.pts.some((p8) => p8.d < changedAt)) return { status: "READING", exId, changedAt, prevK, k: lastK, dK, have: post.length, need: TREND_MIN_SESSIONS, reviews, blockDays,
     why: "the read window is open — " + post.length + " of " + TREND_MIN_SESSIONS + " post-change sessions logged; the window is liftTrend's own minimum, derived, never hand-picked. Reviews derive from the change date itself: delivery/tolerance " + fmtShort(reviews.delivery) + ", earliest outcome " + fmtShort(reviews.outcome) + ", credible classification " + fmtShort(reviews.classify) };
   const terms = post.map((p9) => { const rs = rirSetsOf(p9.en); return rs.length > 1 ? rs[rs.length - 1] : null; }).filter((x) => x != null);
   const delivered = terms.length >= 2 ? (terms.filter((x) => x <= 1).length / terms.length >= DELIVERED_MAJ) : null;
@@ -250,9 +260,9 @@ function volumeConversion(s, exId) {
   /* A2 — THE STAGED HOLD. Subtract needs the lift ITSELF deteriorating (interval fully
      below zero) AND one of: the deterioration repeating past the minimum window, the
      governor holding the lift (pain speaks there — the immediate safety path), or
-     recovery leaving GREEN. An interval spanning zero can never subtract. */
+     recorded WATCH or LOW recovery. An interval spanning zero can never subtract. */
   const safety = falling && !!(ex && ex.holdFlag);
-  const subtract = dK > 0 && falling && (t.n >= TREND_MIN_SESSIONS + 2 || safety || band9 !== "GREEN");
+  const subtract = dK > 0 && falling && (t.n >= TREND_MIN_SESSIONS + 2 || safety || ["WATCH", "LOW"].includes(band9));
   const effort9 = delivered === true ? "delivered (the terminal-set RIR reports say the hard sets ran hard)" : delivered === false ? "NOT delivered" : "unrated (fewer than 2 terminal-set RIR reports)";
   const revLine9 = "Reviews derive from the change date: outcome opens " + fmtShort(reviews.outcome) + " (day " + blockDays + " of " + REVIEW_OUTCOME_D + "), credible classification " + fmtShort(reviews.classify) + ".";
   /* THE LADDER (F): UNDELIVERED / NOT-TOLERATED / MIXED-PHASE / UNCLEAR / TOLERATED /
@@ -264,8 +274,8 @@ function volumeConversion(s, exId) {
     why = "the added set never arrived as prescribed effort — the final-set RIR reports say the hard sets were left in the tank, so this read says nothing about volume: the dose was not delivered";
   } else if (!tolerated) { tier = "NOT-TOLERATED";
     why = "post-change, the lift itself is deteriorating (" + t.pct + "%/session, CI " + t.lo + " to " + t.hi + ") — the added set is not being tolerated. Delivery was " + effort9 + "; execution, rest and technique standardization are yours to check — the instrument cannot see them. " + (subtract
-      ? "The staged review's subtract condition is met" + (safety ? " on the safety path (the governor holds this lift while it falls)" : (band9 !== "GREEN" ? " — recovery has left GREEN while the lift falls" : " — the deterioration repeated past the minimum window")) + "; the card carries the receipt."
-      : "A set comes off only if this repeats, pain speaks, or recovery leaves GREEN — a hold is not a verdict.");
+      ? "The staged review's subtract condition is met" + (safety ? " on the safety path (the governor holds this lift while it falls)" : (["WATCH", "LOW"].includes(band9) ? " — recovery is WATCH or LOW while the lift falls" : " — the deterioration repeated past the minimum window")) + "; the card carries the receipt."
+      : "A set comes off only if this repeats, pain speaks, or recovery is WATCH or LOW — a hold is not a verdict.");
   } else if (mixedPhase) { tier = "MIXED-PHASE";
     why = "the phase flipped inside this read window — the observation is filed MIXED-PHASE and never force-classified: a cut read and a surplus read answer different questions. " + revLine9;
   } else if (delivered === null && !(t.lo > 0) && !falling) { tier = "UNCLEAR";
@@ -280,7 +290,8 @@ function volumeConversion(s, exId) {
         let s0 = 0;
         for (let i = 1; i <= seq.length; i++) { if (i === seq.length || seq[i].k !== seq[i - 1].k) { segs.push(seq.slice(s0, i)); s0 = i; } }
         segs.pop();
-        const priorOK = segs.some((g9) => g9.length >= TREND_MIN_SESSIONS && (mk(g9[g9.length - 1].d) - mk(g9[0].d)) / DAY >= REVIEW_OUTCOME_D && ((_blockSlope(g9) || {}).lo > 0));
+        const fk2 = forksOf(s, exId), at2 = isoOf(todayStart());
+        const priorOK = segs.some((g9) => g9.length >= TREND_MIN_SESSIONS && g9.every((p8) => sameEra(fk2, p8.d, at2)) && (mk(g9[g9.length - 1].d) - mk(g9[0].d)) / DAY >= REVIEW_OUTCOME_D && ((_blockSlope(g9) || {}).lo > 0));
         tier = priorOK ? "REPLICATED" : "OUTCOME-COMPATIBLE";
         why = priorOK
           ? "the benefit recurred across comparable stable blocks — REPLICATED, the only tier where an individual-response claim may live."
