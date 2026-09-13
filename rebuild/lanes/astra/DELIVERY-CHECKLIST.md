@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-13 07:15 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. Combined B1+B2/N2 review, D S3 corrections and memory integration mapping remain separate from accepted M.
+PM reconciliation at 2026-09-13 07:23 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. Combined B1+B2/N2 review, D S3 corrections and memory integration mapping remain separate from accepted M.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
@@ -20,7 +20,7 @@ PM reconciliation at 2026-09-13 07:15 ET. Product source M100820aa accepted; END
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
 | Joe daily use | Launch and N2 evidence, correct build, real setup/workout hand proof remain | PM prepares; Joe performs |
 | Dad start | Joe's required real-use period and same-code shakedown, Dad walkthrough; F1 if his schedule needs it | Joe/Dad with PM |
-| S3 personal-history port | Independent MAX26ba95c REJECTebc4c4e: R1–R5 admission/calendar faults and R6–R10 harness/parity gaps; original independent45+41/46assertionmutants/19browser passes retained. D correcting within23028paths on successor, then exact separate review. Protected B capture/C consumers, actual C2/data Today/gym/restart/P1 and acceptedB3 remain | D repairs; ER successor review after named B priority; B/C later joins; Joe actual-use confirmation |
+| S3 personal-history port | Original REJECT26ba95c preserved; D R2 candidate0df6ad3/source946c360 has15 existing-path changes and verified111 manifest pins. Author57+41/56mutants/27browser reported; exact independent ER review commissioned. Protected B capture/C consumers, actual C2/data Today/gym/restart/P1 and acceptedB3 remain | ER exact R2 review; D findings; B/C later joins; Joe actual-use confirmation |
 | Later scope | Hosted sync/second phone, broader beta/hardening and protected soak remain under existing milestones | Reconcile after current critical packages |
 
 Done means implemented, independently accepted, automated evidence green, integrated, required device evidence observed and any release specifically authorized. An old green report is not green for a new head. Future optional rep-ceiling and other new science/product scope stays unassigned.
