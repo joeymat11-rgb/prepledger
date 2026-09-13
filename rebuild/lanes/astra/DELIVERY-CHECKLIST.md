@@ -26,3 +26,5 @@ PM checkpoint 2026-09-13: complete engine R2 rejected for R8 Today false clearan
 Done means implemented, independently accepted, automated evidence green, integrated, required device evidence observed and any release specifically authorized. An old green report is not green for a new head. Future optional rep-ceiling and other new science/product scope stays unassigned.
 
 Owner positioning and personalization discussion is retained in POSITIONING-CONTEXT.md. Its memory subset was subsequently approved as the Coaching Memory v1 beta requirement202; other ideas remain planning context. Reported capabilities require code/evidence verification before any shipped claim.
+
+Acceleration timing clarification: owner100 permits personal first use separately from full beta. Formal M4/beta still requires the30-day phone-storage soak verdict, earliest readback2026-10-05 per ROADMAP/DECISIONS80; that is neither a promised release nor a passing result. Days-scale work targets a personal-use engineering candidate with import/memory, subject to its own complete proof and owner/private/release controls. See BETA-ACCELERATION.md.
