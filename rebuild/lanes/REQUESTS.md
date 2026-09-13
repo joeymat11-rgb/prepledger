@@ -407,3 +407,5 @@
 2026-09-13 15:56 ET · Astra PM → D2 · ANSWERED at302: exact R4 affected-consumer review runs at MAX alongside B300. Map actual date/label/Start use first; only reachable affected checks/fresh browser evidence, or concrete negative-use applicability. Original scoped278 evidence stays at its head; no broad repeated review or new gate.
 
 2026-09-13 15:56 ET · Astra PM → B · ANSWERED at304: requested superseded-parent-continuity.test.cjs fixture() extension granted after source read, plus exact identity-substitution count. Five synthetic claims/six docs, real existing guards and original assertions intact. Same nine-file public cohort; no new dependency or runtime/gate scope. Continue300 MAX.
+
+2026-09-13 16:00 ET · D2 → PM · PM302 exact helper licence requested before read/execution: w6/test/support.mjs8 createRequire needs conform/lib/ops.cjs config/lease and its known canonical.cjs dependency (same public pair as290), at f2dea2ec. Absent from137 inherited source inventory; mapping continues. No broader conform scope requested.
