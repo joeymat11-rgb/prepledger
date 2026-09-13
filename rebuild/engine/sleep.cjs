@@ -240,7 +240,7 @@ function recoveryIndex(s) {
   const slp = sleepInfo(s);
   if (!slp.clean) {
     if (slp.targetKnown) add("sleep", `sleep reset — ${slp.run} of ${s.sleep.needed} clean nights`, `${s.sleep.needed - slp.run} more night${s.sleep.needed - slp.run === 1 ? "" : "s"} at ${s.sleep.cleanH} h or better, back to back`, Math.min(3, s.sleep.needed - slp.run) * 10);
-    else add("sleep", "observed short night or three-night sleep debt", "record your sleep target to compare nights with it; the observed debt still counts", Math.min(3, s.sleep.needed) * 10);
+    else add("sleep", "observed short night or three-night sleep debt", "record your sleep target to compare nights with it; the observed debt still counts", null);
   }
   const last5 = s.sleep.nights.slice(-5).map((n) => n.h);
   /* two decimals, because 6.96 rounded to one reads "7.0 h — under 7" and looks
@@ -273,11 +273,14 @@ function recoveryIndex(s) {
       eaR.stepsToDrop ? `eat ~${eaR.needKcal} more — FOOD is named first: deficit size is what the trained evidence ties to lean-mass loss (walking ~${eaR.stepsToDrop.toLocaleString()} fewer steps closes the same gap, as the second option)` : `close a ~${eaR.needKcal} kcal/day gap`,
       eaR.lo < EA_LOW ? 25 : 15);
   }
-  const score = Math.max(0, Math.round(100 - flags.reduce((a, f) => a + f.cost, 0)));
-  const lever = flags.slice().sort((a, b) => b.cost - a.cost)[0] || null;
+  // R7: unknown contributions cannot be added, scored or ranked. Known costs
+  // can still establish WATCH/LOW on their own; their subtotal is not a score.
+  const costsKnown = flags.every((f) => Number.isFinite(f.cost));
+  const score = Math.max(0, Math.round(100 - flags.filter((f) => Number.isFinite(f.cost)).reduce((a, f) => a + f.cost, 0)));
+  const lever = costsKnown ? flags.slice().sort((a, b) => b.cost - a.cost)[0] || null : null;
   return {
-    score: currentSleepObservation(s) ? score : null,
-    band: score < 55 ? "LOW" : score < 80 ? "WATCH" : currentSleepObservation(s) ? "GREEN" : "UNKNOWN",
+    score: currentSleepObservation(s) ? (costsKnown ? score : null) : null,
+    band: score < 55 ? "LOW" : score < 80 ? "WATCH" : currentSleepObservation(s) && costsKnown ? "GREEN" : "UNKNOWN",
     ...(!currentSleepObservation(s) ? { sleepEvidence: { state: "UNKNOWN", expectedDate: plusDays(isoOf(todayStart()), -1), lastDate: (nightsBefore(s, plusDays(isoOf(todayStart()), 1)).slice(-1)[0] || {}).d || null } } : {}),
     flags, lever, watched: 7, excludedDips: excluded,
     factors: flags.map((f) => f.receipt),

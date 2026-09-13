@@ -265,7 +265,7 @@ function fiveLevers(s) {
   const sl = atSleepTarget(s, null);
   const newestN = (s.sleep.nights || [])[(s.sleep.nights || []).length - 1];
   const darkD = newestN ? Math.round((mk(tISO) - mk(newestN.d)) / DAY) - 1 : 99;
-  const sleep = !sl.targetKnown ? { label: "SLEEP", state: "quiet", detail: "sleep target not recorded" } : darkD >= 1
+  const sleep = !E.currentSleepObservation(s) ? { label: "SLEEP", state: "quiet", detail: "current sleep not recorded" } : !sl.targetKnown ? { label: "SLEEP", state: "quiet", detail: "sleep target not recorded" } : darkD >= 1
     ? { label: "SLEEP", state: "quiet", detail: `${darkD} night${darkD === 1 ? "" : "s"} dark — can't read` }
     : { label: "SLEEP", state: sl.at ? "good" : "caution", detail: `${sl.run}/${s.sleep.needed} clean` };
   // STEPS — today's steps against his own measured floor
