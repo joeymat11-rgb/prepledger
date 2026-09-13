@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-13 07:56 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. Combined B1+B2/N2 review, D S3 corrections and memory integration mapping remain separate from accepted M.
+PM reconciliation at 2026-09-13 11:13 ET. B and D resumed saved assignments after Joe renewed usage; PM applied owner-delegated effort settings in TEAM.md. Editorial with original bullet spacing is owner-endorsed, with locked Light/Ink bases. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. Combined B1+B2/N2 review, D S3 corrections and memory integration mapping remain separate from accepted M.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
@@ -20,7 +20,7 @@ PM reconciliation at 2026-09-13 07:56 ET. Product source M100820aa accepted; END
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
 | Joe daily use | Launch and N2 evidence, correct build, real setup/workout hand proof remain | PM prepares; Joe performs |
 | Dad start | Joe's required real-use period and same-code shakedown, Dad walkthrough; F1 if his schedule needs it | Joe/Dad with PM |
-| S3 personal-history port | Independent R2 REJECTfe2c79ef at0df6ad3/source946c360: original10 faults closed, own57+41/56mutants/27Edge/22boundaries retained; four date/identity/lexical/membership findings remain. D two harness fixes and finite engine-context companion assigned250; B protected source route held. Final C2/data/gym/restart/P1 and acceptedB3 remain | D repairs/companion; PM exact B route; ER successor; B/C later joins; Joe real use |
+| S3 personal-history port | Independent R2 REJECTfe2c79ef at0df6ad3/source946c360: original10 faults closed, own57+41/56mutants/27Edge/22boundaries retained; four date/identity/lexical/membership findings remain. D two harness fixes active; concrete26-line context proposal b73cf852 verified/adopted/routed under250. B names protected source/test/pin successor after current repair priority; no source grant inferred. Final C2/data/gym/restart/P1 and acceptedB3 remain | D harness repairs; B exact companion scope; PM source release; ER successor; B/C later joins; Joe real use |
 | Later scope | Hosted sync/second phone, broader beta/hardening and protected soak remain under existing milestones | Reconcile after current critical packages |
 
 Done means implemented, independently accepted, automated evidence green, integrated, required device evidence observed and any release specifically authorized. An old green report is not green for a new head. Future optional rep-ceiling and other new science/product scope stays unassigned.
