@@ -47,6 +47,14 @@ Effort is assigned to the actual work, not permanently to a seat. PM applies tas
 
 Joe additionally requires explicit advice about this PM task's own effort. Recommend HIGH for current coordination, scoped screen judgments and normal planning; call out MAX before complete engine acceptance or a serious ambiguous failure, and recommend HIGH again when that work ends. State the level plainly when the work warrants changing it; do not leave Joe to infer it from lane settings. PM advises its own setting and manages the other lanes through task controls. Do not claim to have changed or automatically observed this task's live effort selector when the tools do not expose it. An effort recommendation creates no new product permission or routine confirmation gate.
 
+### Effort enforcement and verification, owner-required 2026-09-13
+
+After dispatching substantive work or returning a lane to standby, PM verifies the saved task model/effort and the execution context for the matching assignment. Use read-only Codex task metadata and the matching rollout turn_context fields; a role title, prompt saying MAX, or successful send-message response alone is insufficient. Active work must be matched to its actual turn identity. A completed MAX review followed by a LOW saved standby setting is correct, not a reason to rerun the review. Check active assignments at PM wakes and after owner-reported changes, without waking idle lanes merely to audit them.
+
+Apply corrections through the task tool, never by writing Codex's database/config files. If genuine lower-effort substantive work is found, preserve its executed evidence and arrange a bounded reassessment at the required level before the verdict; do not automatically repeat valid tests. If settings and execution disagree, report the exact discrepancy and verify the correction before claiming the requested level is in effect. MAX and ULTRA are distinct supported Astra settings; do not silently replace one with the other.
+
+Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignments. ER saved=max and current review turn01a09b81-21a7-7d03-8fdf-82624dee6cfb records max at16:02:06.434Z/16:14:30.141Z, including collaboration settings; no Medium context found for that review. PM saved/executed high; B/C/D/E low; D2 saved low after its completed max review; I low/paused. The owner's reported Medium selector display remains unexplained and is not claimed fixed. Local metadata-only audit is .tmp/effort-audits/20260913T163756136595Z.json, produced by the read-only .tmp/caretaker-effort-audit.py helper. These local operational files are outside product/release evidence; if absent, repeat the bounded metadata query rather than infer settings.
+
 | Seat | Applied current effort | Next substantive assignment |
 | --- | --- | --- |
 | B | LOW; complete c4716ed handed off, waiting for independent findings | MAX for a named engine/proof correction or separately released companion |
