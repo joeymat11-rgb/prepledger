@@ -1,0 +1,10 @@
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),{execFileSync}=require('node:child_process');
+const root=fs.realpathSync(process.cwd()),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const candidate='0df6ad3f3ec8d69a6e10ba68c279b7b77d061596',source='946c36059a7ce6b949933da3904db3db8e6b8bd3';
+if(!root.replaceAll('\\','/').endsWith('/work/pm-caretaker/review-s3-core-r2'))throw Error('ROOT');
+const manifestPath='rebuild/m4/spec/s3-portable-sources.json',blob=p=>execFileSync('git',['show',`${source}:${p}`],{cwd:root,maxBuffer:4e6});
+const raw=blob(manifestPath),manifest=JSON.parse(raw),expected='5e5266c253a36304543757a360b74bd0567134dd64da03aae09bf4fe38e6fbee';
+if(sha(raw)!==expected||sha(fs.readFileSync(path.join(root,manifestPath)))!==expected||manifest.sources.length!==111)throw Error('MANIFEST');
+const records=manifest.sources.map(s=>{if(/(^\/|\.\.|ledger\/|private\/|(?:^|\/)(?:seed|history)\.|soak|conform\/engines)/.test(s.path))throw Error('FORBIDDEN');const real=fs.realpathSync(path.join(root,s.path));if(!real.startsWith(root+path.sep))throw Error('ESCAPE');const bytes=blob(s.path);if(sha(bytes)!==s.sha256||sha(fs.readFileSync(real))!==s.sha256||sha(execFileSync('git',['show',`${candidate}:${s.path}`],{cwd:root,maxBuffer:4e6}))!==s.sha256)throw Error(`IDENTITY ${s.path}`);return {...s,bytes:bytes.length};});
+fs.writeFileSync(path.join(root,'.tmp/r2-review/custody.json'),JSON.stringify({candidate,source,manifestSha256:expected,records},null,2)+'\n');
+console.log(JSON.stringify({candidate,source,manifestSha256:expected,sources:records.length,bytes:records.reduce((n,s)=>n+s.bytes,0)}));
