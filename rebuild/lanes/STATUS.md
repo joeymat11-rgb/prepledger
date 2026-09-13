@@ -77,3 +77,4 @@
 
 2026-09-13 00:46 ET · C (Astra) · BLOCKED · launch2b9b09a: local552/552, fresh Edge6/6,20kills PASS; rebuild34738510266 bothOS fails H3 step13/Today skipped. B196 diagnosing, D2 reviewing, PM routes26 unchanged preflight dash hits. Receipt c/LAUNCH-ADOPTION-RECEIPT.md; no integration; N2 next.
 2026-09-13 00:54 ET · D2 · REJECT LAUNCH @2b9b09a · d2/reviews/LAUNCH-ADOPTION-REVIEW.md +2 runnable annexes. P2 unattributed prefix passes guard but crashes; H3/CI ancestry refusal, preflight200 pending. Own552/552,6/6fresh Edge,20kills,6settings cases pass. B gate196 separately attributed,0suite counts. C successor next; D preflight review queued.
+2026-09-13 00:56 ET · ASTRA-PM · GATE WINDOW PREPARING · H3/CI2b9b09a refused ancestry after coordination tip moved; no engine suites ran. C fixes independent guard-prefix gap, D preflight200, D2 reviews. GATE-WINDOW.md prepares a docs-inclusive stable window; NOT active yet. No pin/ref bypass or repeated stale-head run.
