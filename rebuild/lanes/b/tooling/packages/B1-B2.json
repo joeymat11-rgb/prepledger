@@ -115,7 +115,7 @@
     },
     "rebuild/engine/today.cjs": {
       "pre": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
-      "post": "80d4196cfe50637ed373dcf5fa0eab1c2ef549b957aea7c032ab518d2a67ba91",
+      "post": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
       "role": "edited"
     },
     "rebuild/engine/writers.cjs": {
@@ -425,7 +425,7 @@
     },
     "rebuild/conform/v4/postfix/legacy-b1b2-carriers.cjs": {
       "pre": null,
-      "post": "3305899385a33f748315f13997d55f027192d8a19e001059698d8425a00ddf00",
+      "post": "24ab82024ac4195397769f58fc37c18827c907c0fc03dec98fa38160e203c699",
       "role": "new"
     },
     "rebuild/engine/test/b1-delta-cells.cjs": {
@@ -435,17 +435,17 @@
     },
     "rebuild/engine/test/b1-unknown-recovery.test.cjs": {
       "pre": null,
-      "post": "7e0a624088ba35d9319b50d44666d46a3005d4508dca21c9986f055799c9ab58",
+      "post": "6cc87127cf62c071cee077478aa352d11eaa49e0a407427a0b66c09a510fefa5",
       "role": "new"
     },
     "rebuild/engine/test/b1b2-public-engine.cjs": {
       "pre": null,
-      "post": "208156f785e36635abf9093fa626dff70c3ea49853cff6c5123e7f8fdfdc68b2",
+      "post": "5afe0c0f30ee93b877328eed04db16df0c5fa28ed577c2fc4ac3c6e05a5051c5",
       "role": "new"
     },
     "rebuild/engine/test/b1b2-sleep-target-cells.cjs": {
       "pre": null,
-      "post": "2f0f1f326333e388ac1ae88c54ffb350af9066392442c0586100d06ba9608265",
+      "post": "6a996fcc53fbea6fc9611517b7d2c7ed636516480322095b1863507e934d256d",
       "role": "new"
     },
     "rebuild/lanes/b/b2-delta-cells.cjs": {
@@ -460,12 +460,12 @@
     },
     "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs": {
       "pre": null,
-      "post": "f831e88bb2348f73fbaa6564e453ce4161e428d67e887527dfde3f76199aa038",
+      "post": "7ccce9f82a4c92508e6001487249df5a0c9b7cc888a767b85409752f72399389",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs": {
       "pre": null,
-      "post": "e420e50135f12db6b47d8ace52976457f521ada2dc49a611712842733d6c3ca0",
+      "post": "a23f1966a41ec84e1e6212e3c35ed3276dc74d660bdafc188d91a9bf6f9e812c",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-supersede-defect-witnesses.test.cjs": {
@@ -480,17 +480,17 @@
     },
     "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs": {
       "pre": null,
-      "post": "4df3f1e16a10b9a963f268331b5ff5d045d661e71a89738b8fc6e58150ba3181",
+      "post": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-engine-files-differential.cjs": {
       "pre": null,
-      "post": "fcec953d5c7cc1d2df4be5f1b0bf84e2283cf315df89d181301ed66ffd34c98e",
+      "post": "06e12e433a0b34fdd9fe8bf4a2fbf8c571a9612e364ecab3209855ae91cefd7d",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-public-census.cjs": {
       "pre": null,
-      "post": "5b9e736a7c5b40d401566fcb3c737b422d1c89816f301a20240d2491e1a68f81",
+      "post": "281c6302204278288b40ba6dcd148f1f3d4341757b66152c758b4f78608bc016",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-h3-clean-init.test.cjs": {
@@ -565,7 +565,7 @@
     },
     "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs": {
       "pre": null,
-      "post": "19762570d6ee60cad3aa168a34d21a3a2ba991d6f60e1ccea3521caa6e5757d7",
+      "post": "2423e05079dd0322671139f23acee832d3255cb5aee6f387ce3889af90ee358d",
       "role": "new"
     },
     "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs": {
@@ -575,12 +575,12 @@
     },
     "rebuild/m4/workout/test/b1b2-evidence.cjs": {
       "pre": null,
-      "post": "fdca5cbc94369f0479de72870e2af8eab6b8bca1451cacd94cc9900e472e2f7d",
+      "post": "87719d3422fd1eb17dc36a8b998fd249c9ae030c69aaefa6a124cd4414137579",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-source-changes.json": {
       "pre": null,
-      "post": "b980b0efa89db3d9a43a6e8114ca9bfaf012436951dc545c443de6ac30eef6ba",
+      "post": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058",
       "role": "new"
     },
     "rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs": {
@@ -650,7 +650,7 @@
     },
     "rebuild/engine/test/b2-public-source-faults.test.cjs": {
       "pre": null,
-      "post": "98a299af9c85a16493c455df98033b9b7129f863fd234c3d846c0afa0e9c2388",
+      "post": "5d609a17c8d19559d3b40ffce8ea4bc7682dd62ab22730c5368d1f2ad8c110b6",
       "role": "new"
     },
     "rebuild/engine/test/b2-era30.test.cjs": {
@@ -1272,7 +1272,7 @@
         "rebuild/engine/test/b1-unknown-recovery.test.cjs",
         "rebuild/engine/test/b1b2-sleep-target-cells.cjs"
       ],
-      "needle": "# pass 323"
+      "needle": "# pass 331"
     },
     {
       "name": "combined-legacy",
@@ -1346,7 +1346,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs"
       ],
-      "needle": "# pass 62"
+      "needle": "# pass 94"
     },
     {
       "name": "b1b2-sup-inherited",
@@ -1373,7 +1373,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/b1b2-supersede-writers-differential.test.cjs"
       ],
-      "needle": "# pass 327"
+      "needle": "# pass 335"
     },
     {
       "name": "b1b2-sup-second",
@@ -1396,7 +1396,7 @@
       "argv": [
         "rebuild/m4/workout/test/b1b2-public-census.cjs"
       ],
-      "needle": "B1B2 PUBLIC CENSUS: 2 complete original public runs; 3 complete M/T frame comparisons; "
+      "needle": "B1B2 PUBLIC CENSUS: 2 complete original public runs; 3 complete M/U frame comparisons; "
     },
     {
       "name": "h3-cells",
@@ -1509,6 +1509,11 @@
     "The original M/R eight-file65-hunk and R/S four-file10-hunk plus5-evidence records remain unchanged. Additive S/T is exactly today.cjs with3hunks and4modified existing engine evidence files. Historical SUCCESSOR inventory is R/S; separate REPAIR inventory is full disk/HEAD/T. Native comparison and public census are M/T, with no admitted native deltas.",
     "R3 measured public U/FG323, B1 27, current63behavioral faults; source62 and writers327=4+323 remain prospective/unexecuted. Final R3 nine-file tooling cohort267/267 PASS on Node22.23.2 ate3025161841892a7628dbfe0dd916a879676a7f1,374491.4785ms,exit0,zero fail/cancel/skip/todo. .tmp/r3-tooling/cohort.tap,220584bytes,SHA256bed657645ead14300ff5ae5a0c06a26d065cbbf2e77bb91d65dfdb18b134ccf3; input manifest24d41adab186cb6c0a6c235fdf3a2b32970da3f273e8b693343d1b8f7cd3b45e. Before/after public input bytes matched. Exact profile tooling-cohort.argv; actual declaration/continuity functions in synthetic repositories, no real package CLI. Other native/frozen/source-family holds remain unchanged.",
     "Final T797e4cf39fac39148ccae784116999669b82caf3 public proof:U/FG323/323,current63/63,B1 27,B2delta32,B2positive20,B2faults52composed+3delegated,ERA56/8faults32matrix,all copies restored. Exact16 ER replay16/16; no oracle/fixture weakening. Public results do not clear native/frozen/family/census/H3/second/private/FULL/currentCI/receipt/integration/phone holds or mechanical authority amendments.",
-    "Root-reported final T carrier checks:combined4/4,31cases35substitutions; separate witnesses10/5/5cases and12/9/5substitutions;45laws30GREEN15RED,43GREENcontrols,52patchmutants21RED,zero harness errors. S/T comparison has zero changed rows or leaves across all45 complete rows/frames. Root evidence SHA25627a31ce60f9368a0868176c678c7ffe1d6f536b50d3793ff63a18bcf579345ef. The first copy-setup ENOENT remains separately preserved with zero product-failure or kill credit."
+    "Root-reported final T carrier checks:combined4/4,31cases35substitutions; separate witnesses10/5/5cases and12/9/5substitutions;45laws30GREEN15RED,43GREENcontrols,52patchmutants21RED,zero harness errors. S/T comparison has zero changed rows or leaves across all45 complete rows/frames. Root evidence SHA25627a31ce60f9368a0868176c678c7ffe1d6f536b50d3793ff63a18bcf579345ef. The first copy-setup ENOENT remains separately preserved with zero product-failure or kill credit.",
+    "PM282 R4 source U=cbcebb3d26bf8892adbe84fbbe0a7c5e85856013. Earlier R2/R3 records retain their original heads and scope. All112 product entries,26 literal children,15 public command licences and9+3+7 coverage remain. No authority binding or scope hold is amended.",
+    "The original M/R eight-file65-hunk, R/S four-file10-hunk plus5-evidence and S/T one-file3-hunk plus4-evidence records remain unchanged. Additive T/U is exactly one today.cjs literal hunk and4modified existing engine evidence files, with the closed T/U engine Git delta. Historical REPAIR inventory is S/T; separate R9 inventory binds full disk/HEAD/U. Native comparisons and the prospective public census name M/U with an empty admitted-delta list.",
+    "R4 registers public U/FG331=131+200. Source94=62retained+5R9construction+27R9refusal and writers335=4+331 are prospective/unexecuted. The existing registration body is extended without a new test declaration, so tooling267 remains prospective atU pending the parent exact nine-file cohort; no prior267 result is relabelled as current. Other native/frozen/source-family/H3/second/census/private/FULL/currentCI holds and mechanical authority amendments remain.",
+    "Parent-reported R9 public recovery evidence:331positives,64current behavioral kills,34historical behavioral kills plus1alias assertion and separatephaseArc,restoredB127. Public carrier closure preserves31cases35substitutions, separate10/5/5cases and12/9/5substitutions,45laws30GREEN15RED,43GREENcontrols,52patchmutants21RED,zero harness errors. Exact T/U comparison has zero changed rows or leaves across all45complete rows/frames. Evidence SHA256af6bdc53527f755e71935595c2fea3d16c8146e2b7dbb6e7aba0b59079e7b193; original wrapper labels S/T are reconciled to T/U in parent custody without rewriting raw output.",
+    "Metadata authoring found the retained validateSuccessor R-ancestor-S predicate refuses: the nonshallow Git graph has exact R/S merge-base M100820aa47a4f8729642033499eaec0f0ee282e1. Its original assertion and refusal remain unchanged pending named PM ruling. A proposed exact common-base assertion was used transiently for metadata reconstruction and reverted; no adopted/source-family/native execution credit follows. Separate T/U exact Git-delta,literal forward/inverse and public disk/HEAD/U metadata checks pass. Seed metadata is retained without opening seed bytes."
   ]
 }

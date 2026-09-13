@@ -10,7 +10,7 @@ const CENSUS='rebuild/conform/oracle/census.cjs';
 const VOLUME='rebuild/engine/test/volume-projection.cjs';
 const ENV=['B1B2_CENSUS_STAGE','B1B2_CENSUS_SIDE','B1B2_CENSUS_CLOCK','B1B2_CENSUS_FRAMES'];
 assert.deepEqual(process.argv.slice(2),[],'closed census argv');
-H.reconstructRepair();
+H.reconstructR9();
 function pinned(file) {
   assert.ok(Object.hasOwn(H.changes.nativePrograms,file),'declared native program BEFORE read');
   const bytes=H.candidateSource(file),object=crypto.createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
@@ -35,7 +35,7 @@ function frameRoot() {
   assert.match(path.basename(absolute),/^b1b2-census-[A-Za-z0-9]+$/);assert.ok(fs.statSync(absolute).isDirectory());return absolute;
 }
 function runOriginal(side,stage,mode) {
-  assert.ok(['M','T'].includes(side));assert.ok(['main','worker'].includes(stage));
+  assert.ok(['M','U'].includes(side));assert.ok(['main','worker'].includes(stage));
   if(stage==='worker')assert.ok(['frozen','unfrozen'].includes(mode));else assert.equal(mode,undefined);
   const directory=frameRoot(),observed=[],ref=H[side],file=path.join(H.ROOT,ORIGINAL),normal=Module.createRequire(file);
   // Validate all named original code pins before a native/oracle import. These
@@ -92,7 +92,7 @@ if(process.env.B1B2_CENSUS_STAGE!==undefined) {
 } else {
   for(const key of ENV)assert.equal(process.env[key],undefined,'complete top-level census invocation');
   const directory=fs.mkdtempSync(path.join(H.ROOT,'.tmp','b1b2-census-')),runs=[];
-  for(const side of ['M','T']) {
+  for(const side of ['M','U']) {
     const result=cp.spawnSync(process.execPath,[__filename],{cwd:H.ROOT,windowsHide:true,encoding:'utf8',maxBuffer:9e7,
       env:{...process.env,TZ:'America/New_York',MEASURED_TEST_NOW:'2026-09-03',B1B2_CENSUS_STAGE:'main',B1B2_CENSUS_SIDE:side,B1B2_CENSUS_FRAMES:directory}});
     // Original public program terminals are retained. Full observations are
@@ -104,11 +104,11 @@ if(process.env.B1B2_CENSUS_STAGE!==undefined) {
   const comparisons=[];
   for(const mode of ['main','frozen','unfrozen']) {
     const load=side=>JSON.parse(fs.readFileSync(path.join(directory,side+'-'+mode+'.json'),'utf8'));
-    const before=load('M'),after=load('T');assert.ok(before.length&&after.length,'nonempty complete native frames');
+    const before=load('M'),after=load('U');assert.ok(before.length&&after.length,'nonempty complete native frames');
     const difference=H.fieldDiff(before,after);
     fs.writeFileSync(path.join(directory,'difference-'+mode+'.json'),JSON.stringify(difference));
     comparisons.push(H.approvedNativeDifference('native-census-'+mode,before,after));
   }
   assert.equal(runs.length,2);assert.ok(runs.every(r=>r.status===0&&r.signal===null&&!r.error),'every unchanged original public census side succeeds');
-  console.log('B1B2 PUBLIC CENSUS: 2 complete original public runs; 3 complete M/T frame comparisons; '+JSON.stringify(comparisons));
+  console.log('B1B2 PUBLIC CENSUS: 2 complete original public runs; 3 complete M/U frame comparisons; '+JSON.stringify(comparisons));
 }
