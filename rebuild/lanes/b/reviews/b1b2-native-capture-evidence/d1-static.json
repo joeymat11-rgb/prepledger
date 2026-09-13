@@ -1,0 +1,30 @@
+{
+  "ref": "ce38aa3bd174c94526e01fb5056df850ad322b80",
+  "path": "rebuild/engine/writers.cjs",
+  "gitBlob": "52cb37a3a1ad5718122826f32c33b47b01d8d806",
+  "lineCount": 2897,
+  "exposedCodeRanges": [
+    [
+      1,
+      8
+    ]
+  ],
+  "literalRedaction": true,
+  "loaderFileSubprocessTokenSites": [],
+  "relativeDependencies": [],
+  "nonrelativeDependencies": [],
+  "suppliedDependency": "E object passed into createWriters; no new loader path detected in the bounded static inspection.",
+  "evaluated": false,
+  "embeddedValuesExposed": false,
+  "excludedLiteralTokenLines": [
+    2514
+  ],
+  "redactedClassificationRanges": [
+    [
+      2514,
+      2514
+    ]
+  ],
+  "trailingEmptySplitRow": 2898,
+  "scanLimit": "No loader call detected; one broad token match was inside an unexposed string literal on line 2514. Static loader/setup closure only, not program behavior proof."
+}

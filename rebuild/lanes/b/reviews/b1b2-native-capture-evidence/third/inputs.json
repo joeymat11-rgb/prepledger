@@ -1,0 +1,41 @@
+{
+  "source": "8986d493058f1f6488781a105586c3177dd4f3fc",
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+  ],
+  "files": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 41569,
+      "sha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "bytes": 196822,
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "cfcf6e9d232d0f1f4fad818684d0f3f58ad840feaca53cbb07d53565b6f1ac04"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 14267,
+      "sha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 28677,
+      "sha256": "712fd9af1074d6dff9f908060790c5cd20c56b77bf25a1cec315e49638e1cb46"
+    },
+    {
+      "path": ".tmp/runtime/node.exe",
+      "bytes": 86997320,
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+    }
+  ],
+  "closure": "Builtins, listed public helper/map/operator/test; invented child; real validateR9 Git metadata only; actual ACL on invented empty folder. Production main original child never invoked. Synthetic helper exit-listener transport added; actual child uses natural Node process exit. No additional input or package loader."
+}

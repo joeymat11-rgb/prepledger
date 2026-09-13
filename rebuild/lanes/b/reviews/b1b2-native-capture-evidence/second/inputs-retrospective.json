@@ -1,0 +1,42 @@
+{
+  "source": "34e0cf063f6e86383deaf0383cd52c16a04a9b49",
+  "manifestTiming": "Retrospective immutable Git metadata after second run; not represented as a pre-run manifest.",
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+  ],
+  "files": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 41139,
+      "sha256": "17e07eb30b77854429199c217f16f65d396c9e6e5e1e77e17b8a7a5e17bb83e7"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "bytes": 196822,
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "4f10706c83469aa2a3600432eebf278e622b9aca6f4c35e6b934ce002fc9e14b"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 13906,
+      "sha256": "590a2278ecc0e6ecb88fc0f7211d9c89e5972a3c07b108e9b17d6a70e2971972"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 22621,
+      "sha256": "824ba596a3d9fe3dc2089408cf472991404db812bf9bbe4ae2d25fd51ab7de05"
+    },
+    {
+      "path": ".tmp/runtime/node.exe",
+      "bytes": 86997320,
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+    }
+  ],
+  "closure": "Builtins, listed public helper/map/operator/test; invented child; real validateR9 Git metadata only; actual ACL on invented empty folder. Production main original child never invoked."
+}

@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "authority": "5b81dc8fa0c8b31f46865b7588e190dcab7f9a15",
+  "candidate": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+  "testedSource": "8986d493058f1f6488781a105586c3177dd4f3fc",
+  "files": [
+    {
+      "originalPath": ".tmp/native-capture-runs/replay-evidence.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/replay-evidence.json",
+      "bytes": 6188,
+      "sha256": "c8ba46eabb800f118ee1452a51a615eafaeb4d16cf18c37884038f84da4e483a"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/d1-static.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/d1-static.json",
+      "bytes": 881,
+      "sha256": "19af479763be04c8b42a8f6542d7e57a3f5d69b5736ff9abecf327eefa31bdb8"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/first/inputs.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/first/inputs.json",
+      "bytes": 1475,
+      "sha256": "78ff7f2e590e0ceabecfb2837132e31bc18952eb27a19ea0d3e51a621a2c9f23"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/first/stdout.tap",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/first/stdout.tap",
+      "bytes": 23843,
+      "sha256": "fa5a6d3931a6387e30c73d1b3c34756525f2d2bd78c5a492789400294688a48e"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/first/stderr.log",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/first/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/first/public-evidence.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/first/public-evidence.json",
+      "bytes": 16908,
+      "sha256": "7d926b3a66f87280c26098a9e1867a56380b702b726255d534f9561090701bb7"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/second/inputs-retrospective.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/second/inputs-retrospective.json",
+      "bytes": 1592,
+      "sha256": "b83a146bd4cbef039b948468e657520eb5e3b3191b5c5132fdd8012642114317"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/second/stdout.tap",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/second/stdout.tap",
+      "bytes": 9356,
+      "sha256": "5aa7d6fceefe33c51f753ac50e110c219b9b767db73f8a20a07e4bcf82d81150"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/second/stderr.log",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/second/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/second/public-evidence.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/second/public-evidence.json",
+      "bytes": 18254,
+      "sha256": "32f6276fb879394737b05cb35cf805585418c8fbf2c57c6341486c3854e4b557"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/third/inputs.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/third/inputs.json",
+      "bytes": 1607,
+      "sha256": "bb878ab6f18bd46f607c8ef5d7494039cb0d8e2ad597475a3bca2007d0e7862f"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/third/stdout.tap",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/third/stdout.tap",
+      "bytes": 6090,
+      "sha256": "4bb00768e5c1fc7975e11d566a9dcbf728227e39d8ffb0acfd7b6cf42c1977cd"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/third/stderr.log",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/third/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/third/public-evidence.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/third/public-evidence.json",
+      "bytes": 26038,
+      "sha256": "b4c4137512fd093b435820f4cd570abf653c2c529a3278dec8225daf6ca78360"
+    }
+  ]
+}

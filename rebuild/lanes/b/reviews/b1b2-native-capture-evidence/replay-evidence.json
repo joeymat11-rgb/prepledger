@@ -1,0 +1,202 @@
+{
+  "v": 1,
+  "authority": "8e988045a586d599d316a53c5c893ccf324d2a00",
+  "base": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "testedSource": "8986d493058f1f6488781a105586c3177dd4f3fc",
+  "sourceFiles": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 41569,
+      "sha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 14267,
+      "sha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 28677,
+      "sha256": "712fd9af1074d6dff9f908060790c5cd20c56b77bf25a1cec315e49638e1cb46"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "cfcf6e9d232d0f1f4fad818684d0f3f58ad840feaca53cbb07d53565b6f1ac04"
+    }
+  ],
+  "node": {
+    "path": ".tmp/runtime/node.exe",
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+    "version": "v22.23.2"
+  },
+  "command": [
+    "--test",
+    "--test-reporter=tap",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+  ],
+  "runs": [
+    {
+      "name": "first",
+      "source": "ef08dbf3244c040928d27eea9d791d7394c32df4",
+      "childExit": 1,
+      "actual": {
+        "tests": 22,
+        "pass": 9,
+        "fail": 13,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2633.4732
+      },
+      "controls": [],
+      "files": [
+        {
+          "path": ".tmp/native-capture-runs/first/stdout.tap",
+          "bytes": 23843,
+          "sha256": "fa5a6d3931a6387e30c73d1b3c34756525f2d2bd78c5a492789400294688a48e"
+        },
+        {
+          "path": ".tmp/native-capture-runs/first/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-runs/first/public-evidence.json",
+          "bytes": 16908,
+          "sha256": "7d926b3a66f87280c26098a9e1867a56380b702b726255d534f9561090701bb7"
+        }
+      ]
+    },
+    {
+      "name": "second",
+      "source": "34e0cf063f6e86383deaf0383cd52c16a04a9b49",
+      "childExit": 1,
+      "actual": {
+        "tests": 22,
+        "pass": 17,
+        "fail": 5,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 12449.905
+      },
+      "controls": [
+        {
+          "id": "hook-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "completion-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "acl-readback-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        }
+      ],
+      "files": [
+        {
+          "path": ".tmp/native-capture-runs/second/stdout.tap",
+          "bytes": 9356,
+          "sha256": "5aa7d6fceefe33c51f753ac50e110c219b9b767db73f8a20a07e4bcf82d81150"
+        },
+        {
+          "path": ".tmp/native-capture-runs/second/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-runs/second/public-evidence.json",
+          "bytes": 18254,
+          "sha256": "32f6276fb879394737b05cb35cf805585418c8fbf2c57c6341486c3854e4b557"
+        }
+      ]
+    },
+    {
+      "name": "third",
+      "source": "8986d493058f1f6488781a105586c3177dd4f3fc",
+      "childExit": 0,
+      "actual": {
+        "tests": 28,
+        "pass": 28,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 27901.0241
+      },
+      "controls": [
+        {
+          "id": "hook-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "completion-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "acl-readback-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "output-whitelist-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "first-failure-guard-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        }
+      ],
+      "files": [
+        {
+          "path": ".tmp/native-capture-runs/third/stdout.tap",
+          "bytes": 6090,
+          "sha256": "4bb00768e5c1fc7975e11d566a9dcbf728227e39d8ffb0acfd7b6cf42c1977cd"
+        },
+        {
+          "path": ".tmp/native-capture-runs/third/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-runs/third/public-evidence.json",
+          "bytes": 26038,
+          "sha256": "b4c4137512fd093b435820f4cd570abf653c2c529a3278dec8225daf6ca78360"
+        }
+      ]
+    }
+  ],
+  "staticChecks": {
+    "originalHelperExceptObserverByteIdentical": true,
+    "profileExceptHelperPostDeepEqual": true,
+    "productKeys": 112,
+    "literalChildArgv": 26,
+    "dIds": 24,
+    "originalChildUnchanged": true,
+    "sourceMapUnchanged": true,
+    "trackedCount": 1609,
+    "originalTrackedCount": 1607,
+    "scope": [
+      "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "rebuild/m4/workout/test/b1b2-evidence.cjs"
+    ],
+    "protectedHydrated": false
+  },
+  "limitations": [
+    "Invented data only; no original H3/native/seed/frozen/history/private program executed.",
+    "Operator production identity checks use synthetic metadata transport; actual ACL and owned synthetic child pipes execute on Windows.",
+    "nativeFieldDeltas UNKNOWN; diagnostic summaries do not admit exact deltas.",
+    "D1 static loader/setup inspection only; E owns separate build setup."
+  ]
+}

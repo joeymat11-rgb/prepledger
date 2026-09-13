@@ -1,0 +1,41 @@
+{
+  "source": "ef08dbf3244c040928d27eea9d791d7394c32df4",
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+  ],
+  "files": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 52432,
+      "sha256": "fde201da3d327c56ae68d9899171bf25c35344b4f5f5da6783f87726d35051d1"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "bytes": 196822,
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "43d49984128e908e21394b1001eb021b579a7f368f7b433faea174fe211a8eed"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 13815,
+      "sha256": "a404726a4e2fa8d0a9a18df50ef3e9d05e74d21a1edf5f94ecd9618dc25aea74"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 22621,
+      "sha256": "824ba596a3d9fe3dc2089408cf472991404db812bf9bbe4ae2d25fd51ab7de05"
+    },
+    {
+      "path": ".tmp/runtime/node.exe",
+      "bytes": 86997320,
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+    }
+  ],
+  "closure": "Builtins, listed public helper/map/operator/test; invented child; real validateR9 Git metadata only; actual ACL on invented empty folder. Production main original child never invoked."
+}

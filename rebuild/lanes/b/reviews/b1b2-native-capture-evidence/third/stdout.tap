@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: public closure and owned Node22 are exact
+ok 1 - public closure and owned Node22 are exact
+  ---
+  duration_ms: 2.541
+  type: 'test'
+  ...
+# Subtest: actual hook passes with identical objects and unchanged return; disabled writes nothing
+ok 2 - actual hook passes with identical objects and unchanged return; disabled writes nothing
+  ---
+  duration_ms: 1291.2402
+  type: 'test'
+  ...
+# Subtest: actual reader differences produce fixed categories but original assertion still fails
+ok 3 - actual reader differences produce fixed categories but original assertion still fails
+  ---
+  duration_ms: 375.6787
+  type: 'test'
+  ...
+# Subtest: actual state differences use fixed fields and disambiguate dotted dynamic keys
+ok 4 - actual state differences use fixed fields and disambiguate dotted dynamic keys
+  ---
+  duration_ms: 843.9345
+  type: 'test'
+  ...
+# Subtest: observer write/fsync/close failures are sticky across later valid calls
+ok 5 - observer write/fsync/close failures are sticky across later valid calls
+  ---
+  duration_ms: 3167.7603
+  type: 'test'
+  ...
+# Subtest: partial writes retry; zero write, marker deletion failure and malformed paths never complete
+ok 6 - partial writes retry; zero write, marker deletion failure and malformed paths never complete
+  ---
+  duration_ms: 2430.1614
+  type: 'test'
+  ...
+# Subtest: actual row and key/path limits refuse without altering the original failure
+ok 7 - actual row and key/path limits refuse without altering the original failure
+  ---
+  duration_ms: 950.9345
+  type: 'test'
+  ...
+# Subtest: every admitted reader/state category comes from actual differing objects
+ok 8 - every admitted reader/state category comes from actual differing objects
+  ---
+  duration_ms: 1554.3626
+  type: 'test'
+  ...
+# Subtest: late observer failure cannot revive completion at natural exit
+ok 9 - late observer failure cannot revive completion at natural exit
+  ---
+  duration_ms: 1245.2719
+  type: 'test'
+  ...
+# Subtest: categorizer, access and full-disk observer faults remain failures after later calls
+ok 10 - categorizer, access and full-disk observer faults remain failures after later calls
+  ---
+  duration_ms: 2403.9265
+  type: 'test'
+  ...
+# Subtest: actual operator and helper pass a real four-test invented child
+ok 11 - actual operator and helper pass a real four-test invented child
+  ---
+  duration_ms: 912.3519
+  type: 'test'
+  ...
+# Subtest: first real helper failure preserves child outcome and prevents writer reach
+ok 12 - first real helper failure preserves child outcome and prevents writer reach
+  ---
+  duration_ms: 551.5697
+  type: 'test'
+  ...
+# Subtest: writer failure retains both observations and cannot become capture acceptance
+ok 13 - writer failure retains both observations and cannot become capture acceptance
+  ---
+  duration_ms: 1004.9819
+  type: 'test'
+  ...
+# Subtest: enabled and disabled invented gate preserve census, original failure and inputs
+ok 14 - enabled and disabled invented gate preserve census, original failure and inputs
+  ---
+  duration_ms: 4739.176
+  type: 'test'
+  ...
+# Subtest: canonical diagnostic refusal matrix does not echo data
+ok 15 - canonical diagnostic refusal matrix does not echo data
+  ---
+  duration_ms: 1.1746
+  type: 'test'
+  ...
+# Subtest: silence, valid later rows after incomplete marker and oversized diagnostics refuse
+ok 16 - silence, valid later rows after incomplete marker and oversized diagnostics refuse
+  ---
+  duration_ms: 209.126
+  type: 'test'
+  ...
+# Subtest: child nonzero, spawn failure, raw IO failure, missing/duplicate/fake census refuse
+ok 17 - child nonzero, spawn failure, raw IO failure, missing/duplicate/fake census refuse
+  ---
+  duration_ms: 343.9154
+  type: 'test'
+  ...
+# Subtest: real stdout and stderr cap crossings drain to natural zero exit
+ok 18 - real stdout and stderr cap crossings drain to natural zero exit
+  ---
+  duration_ms: 535.4795
+  type: 'test'
+  ...
+# Subtest: actual Windows access restriction and fresh-directory guard
+ok 19 - actual Windows access restriction and fresh-directory guard
+  ---
+  duration_ms: 335.492
+  type: 'test'
+  ...
+# Subtest: directory link escape and stale files are refused by actual helper
+ok 20 - directory link escape and stale files are refused by actual helper
+  ---
+  duration_ms: 847.1555
+  type: 'test'
+  ...
+# Subtest: production identity/argv/root checks cannot be weakened by fixture transport
+ok 21 - production identity/argv/root checks cannot be weakened by fixture transport
+  ---
+  duration_ms: 15.2271
+  type: 'test'
+  ...
+# Subtest: fresh path collisions, escaped roots and borrowed runtime are refused
+ok 22 - fresh path collisions, escaped roots and borrowed runtime are refused
+  ---
+  duration_ms: 357.8073
+  type: 'test'
+  ...
+# Subtest: premature plans and forged complete census cannot pass
+ok 23 - premature plans and forged complete census cannot pass
+  ---
+  duration_ms: 262.6847
+  type: 'test'
+  ...
+# Subtest: real signal and raw fsync/close failures never pass capture
+ok 24 - real signal and raw fsync/close failures never pass capture
+  ---
+  duration_ms: 167.9877
+  type: 'test'
+  ...
+# Subtest: actual main emits only safe schema after real invented raw sentinel streams
+ok 25 - actual main emits only safe schema after real invented raw sentinel streams
+  ---
+  duration_ms: 213.3477
+  type: 'test'
+  ...
+# Subtest: actual main success emits exact fixed JSON after real four-test helper child
+ok 26 - actual main success emits exact fixed JSON after real four-test helper child
+  ---
+  duration_ms: 1143.4389
+  type: 'test'
+  ...
+# Subtest: meaningful source reversals fail intended assertions and restore bytes
+ok 27 - meaningful source reversals fail intended assertions and restore bytes
+  ---
+  duration_ms: 1849.6229
+  type: 'test'
+  ...
+# Subtest: tracked runtime originals restored and evidence finished
+ok 28 - tracked runtime originals restored and evidence finished
+  ---
+  duration_ms: 0.5784
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 27901.0241

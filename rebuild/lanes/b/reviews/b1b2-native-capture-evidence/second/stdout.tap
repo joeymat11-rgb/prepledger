@@ -1,0 +1,228 @@
+TAP version 13
+# Subtest: public closure and owned Node22 are exact
+ok 1 - public closure and owned Node22 are exact
+  ---
+  duration_ms: 1.2168
+  type: 'test'
+  ...
+# Subtest: actual hook passes with identical objects and unchanged return; disabled writes nothing
+ok 2 - actual hook passes with identical objects and unchanged return; disabled writes nothing
+  ---
+  duration_ms: 1198.3071
+  type: 'test'
+  ...
+# Subtest: actual reader differences produce fixed categories but original assertion still fails
+ok 3 - actual reader differences produce fixed categories but original assertion still fails
+  ---
+  duration_ms: 488.4353
+  type: 'test'
+  ...
+# Subtest: actual state differences use fixed fields and disambiguate dotted dynamic keys
+ok 4 - actual state differences use fixed fields and disambiguate dotted dynamic keys
+  ---
+  duration_ms: 771.793
+  type: 'test'
+  ...
+# Subtest: observer write/fsync/close failures are sticky across later valid calls
+ok 5 - observer write/fsync/close failures are sticky across later valid calls
+  ---
+  duration_ms: 3238.2069
+  type: 'test'
+  ...
+# Subtest: partial writes retry; zero write, marker deletion failure and malformed paths never complete
+ok 6 - partial writes retry; zero write, marker deletion failure and malformed paths never complete
+  ---
+  duration_ms: 2430.4819
+  type: 'test'
+  ...
+# Subtest: actual row and key/path limits refuse without altering the original failure
+ok 7 - actual row and key/path limits refuse without altering the original failure
+  ---
+  duration_ms: 822.015
+  type: 'test'
+  ...
+# Subtest: actual operator and helper pass a real four-test invented child
+not ok 8 - actual operator and helper pass a real four-test invented child
+  ---
+  duration_ms: 62.2308
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:51:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'FAIL' !== 'PASS'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'PASS'
+  actual: 'FAIL'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:51:126)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: first real helper failure preserves child outcome and prevents writer reach
+not ok 9 - first real helper failure preserves child outcome and prevents writer reach
+  ---
+  duration_ms: 59.9674
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:52:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:52:185)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: writer failure retains both observations and cannot become capture acceptance
+not ok 10 - writer failure retains both observations and cannot become capture acceptance
+  ---
+  duration_ms: 109.2017
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:53:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'NOT_OBSERVED'
+    - 'DIFFERENT'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'DIFFERENT'
+  actual: 'NOT_OBSERVED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:53:183)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: enabled and disabled invented gate preserve census, original failure and inputs
+not ok 11 - enabled and disabled invented gate preserve census, original failure and inputs
+  ---
+  duration_ms: 77.9805
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:54:1'
+  failureType: 'testCodeFailure'
+  error: 'CENSUS'
+  code: 'CENSUS'
+  stack: |-
+    need (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\b1b2-native-capture.cjs:17:46)
+    Object.finish (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\b1b2-native-capture.cjs:99:5)
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:54:681)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: canonical diagnostic refusal matrix does not echo data
+ok 12 - canonical diagnostic refusal matrix does not echo data
+  ---
+  duration_ms: 1.5017
+  type: 'test'
+  ...
+# Subtest: silence, valid later rows after incomplete marker and oversized diagnostics refuse
+ok 13 - silence, valid later rows after incomplete marker and oversized diagnostics refuse
+  ---
+  duration_ms: 239.559
+  type: 'test'
+  ...
+# Subtest: child nonzero, spawn failure, raw IO failure, missing/duplicate/fake census refuse
+ok 14 - child nonzero, spawn failure, raw IO failure, missing/duplicate/fake census refuse
+  ---
+  duration_ms: 335.111
+  type: 'test'
+  ...
+# Subtest: real stdout and stderr cap crossings drain to natural zero exit
+ok 15 - real stdout and stderr cap crossings drain to natural zero exit
+  ---
+  duration_ms: 481.188
+  type: 'test'
+  ...
+# Subtest: actual Windows access restriction and fresh-directory guard
+ok 16 - actual Windows access restriction and fresh-directory guard
+  ---
+  duration_ms: 360.7453
+  type: 'test'
+  ...
+# Subtest: directory link escape and stale files are refused by actual helper
+ok 17 - directory link escape and stale files are refused by actual helper
+  ---
+  duration_ms: 775.4853
+  type: 'test'
+  ...
+# Subtest: production identity/argv/root checks cannot be weakened by fixture transport
+ok 18 - production identity/argv/root checks cannot be weakened by fixture transport
+  ---
+  duration_ms: 9.6711
+  type: 'test'
+  ...
+# Subtest: real signal and raw fsync/close failures never pass capture
+ok 19 - real signal and raw fsync/close failures never pass capture
+  ---
+  duration_ms: 183.3164
+  type: 'test'
+  ...
+# Subtest: actual main emits only safe schema after real invented raw sentinel streams
+ok 20 - actual main emits only safe schema after real invented raw sentinel streams
+  ---
+  duration_ms: 227.402
+  type: 'test'
+  ...
+# Subtest: meaningful source reversals fail intended assertions and restore bytes
+not ok 21 - meaningful source reversals fail intended assertions and restore bytes
+  ---
+  duration_ms: 454.9459
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:72:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 2
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 2
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    fault (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:73:124)
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:77:9)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: tracked runtime originals restored and evidence finished
+ok 22 - tracked runtime originals restored and evidence finished
+  ---
+  duration_ms: 0.6335
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 17
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12449.905
