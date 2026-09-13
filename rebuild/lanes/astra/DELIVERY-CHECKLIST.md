@@ -1,15 +1,15 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-13 02:06 ET, explicit START205 publication. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope: DECISIONS193/202. No completion date inferred from a model handover. Stable validation window is ACTIVE; consult GATE-WINDOW.md before publishing shared docs.
+PM reconciliation at 2026-09-13 03:41 ET, explicit END210. Product source M100820aa accepted; this checkpoint reconciles coordination only. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. GATE-WINDOW is ENDED; separately licensed construction and queued docs resume.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
 | Full Astra operating handover | Published193, eight development seats with schedules after E203 and separate integrator I; old work preserved, returning work reconciled by PM | PM and all leads |
-| Fresh app launch | C R2 0ce2a6f: author553/553, same built app bytes as R1; independent bounded guard ACCEPTa9b444e. R1 2b9b09a had independent552/552 and six Edge flows/20 profile kills, but local H3 and both CI jobs refused ancestry before Today. Stable real-tip composed successor and all final-head evidence still required | C/D2; B gate; PM then third integrator |
-| Shared mechanical preflight | D successoraab62dd reviewed ACCEPTddba29d; exact bytes in Bb09d55a. ER201 PASS87855a3:67/67 bothOS and8/8 independent boundaries. Final composed complete/additive CI remains required | C composes; D2/B/PM and I validate |
+| Fresh app launch | Launch package accepted/integrated atM100820aa; independent C/D2, B196, I fresh build/six Edge flows20kills; integration full34745429303 and shared34745429317 bothOS verified. No physical-phone or deployment claim | Complete in development; owner-use proof separate |
+| Shared mechanical preflight | Exact reviewed D200 + B201 workflow/registration adopted inM; actual bothOS67/67 and independent boundaries; full-custody/3UI preflight passed | Complete in development |
 | N2 sleep entry | D2 round 3 REJECT at 744c63c: coach freshness/confirmation, false commit reconciliation, historical day/quality | C fixes; D2 reruns affected and required bar |
 | H3 clean-init engine | Merged :189, existing receipt retained | B uses as parent |
-| B1+B2 | Named baseff6b6b5 lacks bundle. Issuer198 candidatef047b5b independently REJECTED ada12bbc: grandparent payload check missing despite88/88. B published R1f195b7f with103/103 author suite; independent successor review now assigned. No tooling acceptance yet. B1 UNKNOWN/finite-observation amendment, bundle profile, cell35 and pin obligations remain to be prepared | B; independent engine reviewer; PM |
+| B1+B2 | Exact3647e17d B1v1.3/combined accepted; b77e74e bounded eight-file construction and reviewed198 issuer adoption released afterEND. BodyAlarm/UNKNOWN/target controls named; separate154/184 amendment and actual closed successor/gates pending | B builds; separate MAX reviewer; PM judges |
 | B4+B3 | Accepted order after B1+B2; candidate reconciliation needed | B |
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
 | Edit My Week v1 | Bounded independent fix reviewfdc4c8e PASS at74920fb; R1/R2 closed. Real C future-gym/draft/DOM proof and B cumulative/profile/private/CI/receipt admission still open; no package acceptance | C after N2; B admission; PM judgment; D supports joins |
@@ -20,7 +20,7 @@ PM reconciliation at 2026-09-13 02:06 ET, explicit START205 publication. Recent 
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
 | Joe daily use | Launch and N2 evidence, correct build, real setup/workout hand proof remain | PM prepares; Joe performs |
 | Dad start | Joe's required real-use period and same-code shakedown, Dad walkthrough; F1 if his schedule needs it | Joe/Dad with PM |
-| S3 personal-history port | After fixed merge package; explicit owner go immediately before actual import; recovery/data-preservation proofs | Designated local integrator + Joe |
+| S3 personal-history port | Milestone9cae256 and local-profile/factual-prefix design1606a65 accepted prospectively. D public portable-harness brief, E exact family registryff17d333 and B28path/pin/CI inventory close construction scope. Actual import/order assertion, joined Today/gym/later-workout/restart proof and acceptedB3 still required; no reliable date | D/E/B preparation; C sole future consumer; PM release; Joe actual-use confirmation |
 | Later scope | Hosted sync/second phone, broader beta/hardening and protected soak remain under existing milestones | Reconcile after current critical packages |
 
 Done means implemented, independently accepted, automated evidence green, integrated, required device evidence observed and any release specifically authorized. An old green report is not green for a new head. Future optional rep-ceiling and other new science/product scope stays unassigned.

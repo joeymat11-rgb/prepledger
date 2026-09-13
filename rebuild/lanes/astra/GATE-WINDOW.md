@@ -1,6 +1,6 @@
 # Launch integration: stable validation window
 
-State: ACTIVE. Explicit START under PM205,2026-09-13 02:06 ET. The commit publishing this state and LAUNCH-COMPOSITION-GO.md is frozen T; PM supplies its resulting full SHA directly to every active lane and integrator. No shared integration publication until explicit END, apart from the separately authorized fast-forward of tested final M. A bounded source-composition GO is not final product acceptance or integration permission.
+State: ENDED. Explicit END under PM210,2026-09-13 03:41 ET, after the authorized T ea0a011f540448a5ece05d4c0ab7e0c8af17fedc to M100820aa47a4f8729642033499eaec0f0ee282e1 fast-forward and verified integration-triggered full34745429303/shared34745429317 both-OS actual-head checks. The START205 window below is retained as the procedure/history. Queued documentation and separately licensed work may resume; no deployment/import/phone acceptance is granted. Final-M acceptance and preserved failures are in LAUNCH-FINAL-M-ACCEPTANCE.md and B74e7f1a.
 
 ## Why
 
