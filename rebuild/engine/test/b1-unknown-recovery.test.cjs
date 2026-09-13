@@ -145,7 +145,7 @@ module.exports.CONSTRUCTION_MUTATIONS = [
   [
     "U-absence-GREEN",
     "sleep",
-    "currentSleepObservation(s) ? \"GREEN\" : \"UNKNOWN\"",
+    "currentSleepObservation(s) && costsKnown ? \"GREEN\" : \"UNKNOWN\"",
     "\"GREEN\"",
     "rebuild/engine/test/b1-unknown-recovery.test.cjs",
     "U1"
@@ -153,7 +153,7 @@ module.exports.CONSTRUCTION_MUTATIONS = [
   [
     "U-absence-score",
     "sleep",
-    "score: currentSleepObservation(s) ? score : null",
+    "score: currentSleepObservation(s) ? (costsKnown ? score : null) : null",
     "score: score",
     "rebuild/engine/test/b1-unknown-recovery.test.cjs",
     "U1"
@@ -660,6 +660,183 @@ function runConstructionAudit(mode) {
  fs.writeFileSync(path.join(scratch,mode.slice(2)+'.json'),JSON.stringify({sourceBefore:before,sourceRestored:true,results:result},null,2)+'\n');
  const ok=result.every(r=>!['SURVIVED','SETUP_OR_BOUNDARY_FAILURE'].includes(r.classification));console.log('PUBLIC CONSTRUCTION AUDIT '+mode+': '+(ok?'EXPECTED BEHAVIOR':'FAIL')+'; runtime bytes restored and SHA256-checked');return ok;
 }
+// PM246 successor additions. Original20 and historical35 retain their identities.
+module.exports.CONSTRUCTION_MUTATIONS.push(...[
+  [
+    "R1-askContext-target-clearance",
+    "writers",
+    "an.target == null ? \"Sleep target not recorded; comparison unavailable.\" : an.shiftMin > 0",
+    "false ? \"Sleep target not recorded; comparison unavailable.\" : an.shiftMin > 0",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG4 R1"
+  ],
+  [
+    "R2-fiveLevers-invalid-current",
+    "today",
+    "!E.currentSleepObservation(s) ? { label: \"SLEEP\", state: \"quiet\", detail: \"current sleep not recorded\" } :",
+    "false ? { label: \"SLEEP\", state: \"quiet\", detail: \"current sleep not recorded\" } :",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG4 R2"
+  ],
+  [
+    "R7-full-needed-fallback",
+    "sleep",
+    "\"record your sleep target to compare nights with it; the observed debt still counts\", null);",
+    "\"record your sleep target to compare nights with it; the observed debt still counts\", Math.min(3, s.sleep.needed) * 10);",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG3 R7 paired"
+  ],
+  [
+    "R7-null-cost-score-coercion",
+    "sleep",
+    "score: currentSleepObservation(s) ? (costsKnown ? score : null) : null",
+    "score: currentSleepObservation(s) ? score : null",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG3 R7 paired"
+  ],
+  [
+    "R7-null-cost-rank-coercion",
+    "sleep",
+    "const lever = costsKnown ? flags.slice().sort((a, b) => b.cost - a.cost)[0] || null : null;",
+    "const lever = flags.slice().sort((a, b) => b.cost - a.cost)[0] || null;",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG3 R7 independent"
+  ],
+  [
+    "R7-unavailable-fabricated-GREEN",
+    "sleep",
+    "currentSleepObservation(s) && costsKnown ? \"GREEN\" : \"UNKNOWN\"",
+    "currentSleepObservation(s) ? \"GREEN\" : \"UNKNOWN\"",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG3 R7 paired"
+  ],
+  [
+    "R6-cleanAtDate-mean-gap",
+    "sleep",
+    "function cleanAtDate(s, iso) {\n  const nights = nightsBefore(s, iso);\n  if (!nights.length) return true;\n  const last = nights[nights.length - 1];\n  if (last.d !== plusDays(iso, -1) || !finiteSleep(last)) return true;   /* D8 — a night that is not LAST night carries no current restriction */\n  if (last.h < DEBT_LAST_H) return false;\n  /* three CALENDAR-consecutive nights ending last night, if we have them */\n  const run = [last];\n  for (let i = nights.length - 2; i >= 0 && run.length < 3; i--) {\n    if (!finiteSleep(nights[i]) || Math.round((mk(run[0].d) - mk(nights[i].d)) / DAY) !== 1) break;",
+    "function cleanAtDate(s, iso) {\n  const nights = nightsBefore(s, iso);\n  if (!nights.length) return true;\n  const last = nights[nights.length - 1];\n  if (last.d !== plusDays(iso, -1) || !finiteSleep(last)) return true;   /* D8 — a night that is not LAST night carries no current restriction */\n  if (last.h < DEBT_LAST_H) return false;\n  /* three CALENDAR-consecutive nights ending last night, if we have them */\n  const run = [last];\n  for (let i = nights.length - 2; i >= 0 && run.length < 3; i--) {\n    if (!finiteSleep(nights[i])) break;",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U5"
+  ],
+  [
+    "R6-sleepMean3At-mean-gap",
+    "sleep",
+    "function sleepMean3At(s, iso) {\n  const nights = nightsBefore(s, iso);\n  if (!nights.length) return true;\n  const last = nights[nights.length - 1];\n  if (last.d !== plusDays(iso, -1) || !finiteSleep(last)) return true;\n  const run = [last];\n  for (let i = nights.length - 2; i >= 0 && run.length < 3; i--) {\n    if (!finiteSleep(nights[i]) || Math.round((mk(run[0].d) - mk(nights[i].d)) / DAY) !== 1) break;",
+    "function sleepMean3At(s, iso) {\n  const nights = nightsBefore(s, iso);\n  if (!nights.length) return true;\n  const last = nights[nights.length - 1];\n  if (last.d !== plusDays(iso, -1) || !finiteSleep(last)) return true;\n  const run = [last];\n  for (let i = nights.length - 2; i >= 0 && run.length < 3; i--) {\n    if (!finiteSleep(nights[i])) break;",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U5"
+  ],
+  [
+    "R6-fiveLevers-target-qualification",
+    "today",
+    "!sl.targetKnown ? { label: \"SLEEP\", state: \"quiet\", detail: \"sleep target not recorded\" }",
+    "false ? { label: \"SLEEP\", state: \"quiet\", detail: \"sleep target not recorded\" }",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG4 missing target"
+  ],
+  [
+    "R6-theOneThing-target-qualification",
+    "writers",
+    "sub: lo2.target == null",
+    "sub: false",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG4 final instruction"
+  ],
+  [
+    "R6-dayProtocol-target-qualification",
+    "writers",
+    "if (Number.isFinite(lo.target) && Number.isFinite(lo.mins)) {",
+    "if (true) {",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG4 missing target"
+  ],
+  [
+    "R6-post-refeed-slept-claim",
+    "sleep",
+    "Post-refeed day${vel != null",
+    "You are well fed and slept. Post-refeed day${vel != null",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U9 post-refeed"
+  ],
+  [
+    "R6-standdown-clearance",
+    "writers",
+    "current sleep is not recorded; recovery is UNKNOWN.",
+    "signals cleared; recovery GREEN.",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U9 runAdaptive real standdown"
+  ],
+  [
+    "R6-volume-offer-clearance",
+    "writers",
+    "Current sleep is not recorded; recovery is UNKNOWN.",
+    "recovery GREEN; sleep mean clean.",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U9 runAdaptive actual volume"
+  ]
+]);
+module.exports.CONSTRUCTION_MUTATIONS.push(["R6-weekReview-target-qualification","writers","const targetKnown = Number.isFinite(s.sleep.cleanH);","const targetKnown = true;","rebuild/engine/test/b1b2-sleep-target-cells.cjs","FG4 weekReview"]);
+module.exports.CONSTRUCTION_MUTATIONS.push(...[
+  [
+    "R7-volume-offer-observation",
+    "writers",
+    "const vpRecoveryDetail = currentSleepObservation(s)",
+    "const vpRecoveryDetail = false",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U9 R7 actual offer"
+  ],
+  [
+    "R7-standdown-observation",
+    "writers",
+    "`${currentSleepObservation(s) ? \"Sleep target not recorded; sleep contribution unavailable.\"",
+    "`${false ? \"Sleep target not recorded; sleep contribution unavailable.\"",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U9 R7 actual standdown"
+  ],
+  [
+    "R7-unranked-actions",
+    "writers",
+    "others.map((f) => rec.lever ? f.receipt : `${f.receipt}; ${f.fix}`).join(\"; \")",
+    "others.map((f) => f.receipt).join(\"; \")",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U9 R7 actual low-actions"
+  ],
+  [
+    "R7-incomplete-cost-suppresses-known-warning",
+    "sleep",
+    "band: score < 55 ? \"LOW\"",
+    "band: !costsKnown ? \"UNKNOWN\" : score < 55 ? \"LOW\"",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG3 R7 independent"
+  ],
+  [
+    "R7-volume-unknown-clearance",
+    "writers",
+    "(vpRecoveryUnknown ? \"Your measured scale is stalled",
+    "(false ? \"Your measured scale is stalled",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U9 R7 actual offer"
+  ]
+]);
+module.exports.CONSTRUCTION_MUTATIONS.push(...[
+  [
+    "R6-askContext-run-qualification",
+    "writers",
+    "const sleepTarget = gate2.targetKnown ?",
+    "const sleepTarget = true ?",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG4 missing target"
+  ],
+  [
+    "R6-theOneThing-log-qualification",
+    "writers",
+    "const flips = slp.targetKnown && !slp.clean",
+    "const flips = !slp.clean",
+    "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+    "FG4 logging theOneThing"
+  ]
+]);
+module.exports.CONSTRUCTION_MUTATIONS.push(["R7-WATCH-standdown-incomplete-total","writers","how: rec.score == null ?","how: rec.band === \"UNKNOWN\" ?","rebuild/engine/test/b1-unknown-recovery.test.cjs","U9 R7 WATCH standdown"]);
 module.exports.runConstructionAudit=runConstructionAudit;
 if(require.main===module&&process.argv.some(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage','--audit-public-laws'].includes(a)))process.exit(runConstructionAudit(process.argv.find(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage','--audit-public-laws'].includes(a)))?0:1);
 
@@ -679,3 +856,18 @@ test('U10 law source boundary refuses forbidden or unknown names before reads',(
 // Final exact-M successor rerun after law boundary: U47/120 pass,73 ERR_ASSERTION
 // failures; FG3/28 pass,25 ERR_ASSERTION failures; B1 2/27 pass,25 assertion
 // failures; B2 BASE32/32. Fresh restored U+FG148/148 and B1 27/27.
+// R7 actual writer propagation: observations remain recorded when cost is unknown.
+for(const mode of ['standdown','offer','low-actions'])test(`U9 R7 actual ${mode} with observed debt and unavailable target`,()=>{
+ const T=engine(),s=pushState();delete s.sleep.cleanH;s.sleep.nights=[{d:'2026-09-02',h:2},{d:'2026-09-03',h:8}];
+ if(mode==='standdown')s.proposals=[{rid:'recovery_test',resolved:false}];
+ if(mode==='low-actions'){s.exercises[0].holdFlag=true;s.exercises[1].holdFlag=true;s.sessionLog['2026-09-01']={entries:[],niggles:['joint','joint','joint'],dips:2};}
+ const before=structuredClone(s),rec=T.recoveryIndex(s);assert.equal(rec.lever,null);assert.equal(rec.score,null);assert.ok(T.currentSleepObservation(s));const out=T.runAdaptive(s,'2026-09-03');assert.deepEqual(s,before);
+ if(mode==='low-actions'){assert.equal(rec.band,'LOW');const offer=out.feed.find(p=>p.t.startsWith('RECOVERY LOW'));assert.ok(offer);const text=JSON.stringify(offer);for(const f of rec.flags){assert.ok(text.includes(f.receipt));assert.ok(text.includes(f.fix),'Every unranked flag retains its own action');}assert.doesNotMatch(text,/Start here:/);}
+ else {assert.equal(rec.band,'UNKNOWN');const record=mode==='standdown'?out.feed.find(f=>f.t==='RECOVERY CARD STOOD DOWN'):out.proposals.find(p=>p.rid.startsWith('volpush_'));assert.ok(record);const text=JSON.stringify(record);assert.doesNotMatch(text,/current sleep is not recorded/i,'Recorded debt cannot be relabeled absent observation');assert.match(text,/target.*not recorded|contribution.*unavailable/i);assert.match(text,/observed.*debt/i);assert.doesNotMatch(text,/nothing looking wrong|clean instruments|signals.*cleared/i);}
+});
+test('U9 R7 known LOW keeps identified leading action and prior receipt structure',()=>{
+ const T=engine(),s=pushState();s.sleep.cleanH=8;s.sleep.nights=[{d:'2026-09-02',h:2},{d:'2026-09-03',h:8}];s.exercises[0].holdFlag=true;s.exercises[1].holdFlag=true;s.sessionLog['2026-09-01']={entries:[],niggles:['joint','joint','joint'],dips:2};const before=structuredClone(s),rec=T.recoveryIndex(s);assert.equal(rec.band,'LOW');assert.ok(rec.lever);assert.equal(rec.lever.k,'joints');assert.equal(rec.score,29);const out=T.runAdaptive(s,'2026-09-03'),line=out.feed.find(f=>f.t.startsWith('RECOVERY LOW'));assert.ok(line);assert.ok(line.how.includes(`Start here: ${rec.lever.receipt}.`));assert.ok(line.how.includes('Also up — '+rec.flags.filter(f=>f!==rec.lever).map(f=>f.receipt).join('; ')+'.'));assert.deepEqual(s,before);
+});
+test('U9 R7 WATCH standdown preserves incomplete total and observed flags',()=>{
+ const T=engine(),s=pushState();delete s.sleep.cleanH;s.sleep.nights=[{d:'2026-09-02',h:2},{d:'2026-09-03',h:8}];s.exercises[0].holdFlag=true;s.exercises[1].holdFlag=true;s.sessionLog['2026-09-01']={entries:[],niggles:['joint']};s.proposals=[{rid:'recovery_test',resolved:false}];const before=structuredClone(s),rec=T.recoveryIndex(s);assert.equal(rec.band,'WATCH');assert.equal(rec.score,null);const out=T.runAdaptive(s,'2026-09-03'),line=out.feed.find(f=>f.t==='RECOVERY CARD STOOD DOWN');assert.ok(line);assert.doesNotMatch(line.how,/below the LOW trigger/);assert.match(line.how,/full rating is unavailable/);for(const f of rec.flags)assert.ok(line.how.includes(f.receipt));assert.deepEqual(s,before);
+});
