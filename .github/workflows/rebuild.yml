@@ -115,27 +115,25 @@ jobs:
       # arrived with the settings display at :179 (added in r3b - it was absent from
       # the tip r3 sealed on, and H3-REVIEW-r3's probe (iv) measured H3/13 RED on
       # exactly that file).
-      # ONE FILE IS HELD OUT, BY NAME, AND THIS IS THE WHOLE OF THE EXCEPTION:
-      # food.test.mjs, lane C's N1 suite (DECISIONS:171). Two of its cells - N1.11
-      # and D2.1 - execute the PRE-H3 engine as their expectation ("the engine
-      # cannot produce a plan for a clean-init athlete yet", food.test.mjs:574-583,
-      # which the file itself calls "the fact H3 will change"), so they are RED by
-      # design on every tree carrying H3; and its build cells N1.15/N1.17 race
-      # view.test.mjs's R3 over one build output when they share a `node --test`
-      # invocation - that race is non-deterministic, measured at 3 to 5 fails per
-      # run across four runs, never fewer than the two by-design ones. Naming it
-      # here would ship a red step. Lane C updates those cells and H3 then names the
-      # file; H3 does not edit another lane's test. DECISIONS:178 confirms this
-      # variant and leaves the hunk with lane B.
-      # Measured in the lane-b/h3-r3 worktree at this head: setup.test.mjs 157 tests,
-      # 157 pass, 0 fail; machine-settings-ui.test.mjs 51 tests, 51 pass, 0 fail; the
-      # twelve files together 490 tests, 490 pass, 0 fail, exit 0, three runs of the
-      # exact argv below - unlike food.test.mjs, ms-ui does not race.
+      # NO FILE IS HELD OUT ANY LONGER. DECISIONS:186 closes the last exception:
+      # food.test.mjs, lane C's N1 suite, is named here too. It was held out through
+      # r3/r3b/r3c because two of its cells executed the PRE-H3 engine as their
+      # expectation (N1.11, D2.1) and its build cells raced view.test.mjs's R3 in a
+      # shared invocation; :185 made it engine-version-aware and un-raced the
+      # directory, so both reasons are gone and H3 names it rather than hold it out.
+      # THE RULE THIS STEP NOW STATES IN FULL: every file present under
+      # rebuild/m3/w7-preview/today/test/ is named here by exact path, all thirteen,
+      # with no glob and no exception - so a file added to that directory has a CI
+      # home or turns cell H3/13 red, and nothing named here can be absent.
+      # Measured in the lane-b/h3 worktree at this head: setup.test.mjs 157 tests,
+      # 157 pass, 0 fail; food.test.mjs 57 tests, 57 pass, 0 fail; the thirteen files
+      # together 547 tests, 547 pass, 0 fail, exit 0 - three consecutive runs of the
+      # exact argv below, agreeing with lane C's own two runs of the directory.
       # The older note "no dependency" was already wrong and is corrected: checkin,
       # copy, gym, machine-settings-ui, problem and setup import jsdom, installed by
       # the pinned W6 browser-build step above. No lockfile of this step's own.
       - name: A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup
-        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs
+        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs
       # DECISIONS:117 (4). rebuild.yml is pinned by the accepted engine artifact, so any
       # step lands only inside a re-pinning engine package (DECISIONS:112's standing rule) —
       # lane C's C5 voice coach therefore RIDES THE B-NTC SEAL as one more disclosed hunk,

@@ -712,8 +712,8 @@ test('H3/12 - a first weigh-in that is late or sealed does NOT seed the trend, a
 });
 
 /* ====== H3/13 - the rebuild.yml today enumeration: DECISIONS:142 (2)(b) rode on
-   H3, and DECISIONS:177 (A) now makes the step's list COMPLETE, with one hold-out
-   named in the open ======
+   H3, DECISIONS:177 (A) made the step's list complete but for one hold-out, and
+   DECISIONS:186 closes that too - the step now names EVERY file in the directory ======
    Review r1 PM ITEM: nothing in the tree asserts it. The only workflow cell,
    conform/v4/postfix/test/ci-second-gate.test.cjs, is stale-RED at this head AND
    at ce38aa3 (pre-existing, not an H3 regression), so H3 carries its own. */
@@ -733,32 +733,15 @@ test('H3/13 - the CI today step enumerates setup.test.mjs, named and not globbed
     assert(fs.existsSync(path.join(REPO, 'rebuild/m3/w7-preview/today/test', f)),
       f + ' is named in the today step but is not in the directory - the step may not name an absent file');
 
-  /* DECISIONS:177 (A) with the r3 hold-out. `food.test.mjs` is lane C's N1 suite
-     (DECISIONS:171): its N1.11 and D2.1 execute the PRE-H3 engine as their own
-     expectation - "the engine cannot produce a plan for a clean-init athlete yet",
-     which the file itself calls the fact H3 will change - so they are RED by design
-     on any tree carrying H3, and its build cells N1.15/N1.17 race view.test.mjs's R3
-     over one build output inside a shared `node --test` invocation. Lane C updates
-     those cells, and H3 then names the file. It is listed BY NAME so that a second
-     unnamed file cannot hide behind the exception. */
-  const HELD_OUT = ['food.test.mjs'];
-  for (const f of HELD_OUT)
-    assert.equal(NAMED.includes(f), false, f + ' is the held-out file and must not be named in the today step');
-
+  /* DECISIONS:186. NO HOLD-OUT. `food.test.mjs` was the last one - held out through
+     r3/r3b/r3c because its N1.11 and D2.1 executed the PRE-H3 engine as their own
+     expectation and its build cells raced view.test.mjs's R3 in a shared `node --test`
+     invocation. `:185` made it engine-version-aware and un-raced the directory, so the
+     step names it and this cell no longer carries an exception list: the directory and
+     the named set are simply equal, in both directions. A file added under that
+     directory without a CI home turns this red, and so does a name here with no file. */
   const onDisk = fs.readdirSync(path.join(REPO, 'rebuild/m3/w7-preview/today/test'))
     .filter(n => /\.test\.(mjs|cjs)$/.test(n)).sort();
-  assert.deepEqual(onDisk, NAMED.concat(HELD_OUT).sort(),
-    'the directory holds exactly the files the today step names plus the one held out by name - food.test.mjs, whose N1.11/D2.1 assert the pre-H3 engine and whose build cells race R3; any other unnamed file, or a second hold-out, is this assertion');
-
-  /* And the hold-out is held out IN THE OPEN: executed by no `run:` line anywhere in
-     the workflow, and named in a comment that carries the reason. Hiding it by
-     silence, or quietly giving it a home in some other step, both turn this red. */
-  const runLines = yml.split('\n').filter(l => l.trim().startsWith('run:'));
-  const comments = yml.split('\n').filter(l => l.trim().startsWith('#'));
-  for (const f of HELD_OUT) {
-    assert.equal(runLines.some(l => l.includes('rebuild/m3/w7-preview/today/test/' + f)), false,
-      f + ' is held out, so no run: line in the workflow may execute it');
-    assert(comments.some(l => l.includes(f)),
-      f + ' is held out in the open: the step comment must name it and say why');
-  }
+  assert.deepEqual(onDisk, NAMED,
+    'the today step names EXACTLY the files in rebuild/m3/w7-preview/today/test/ - every one of them, nothing else, no glob and no hold-out (DECISIONS:186)');
 });

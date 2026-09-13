@@ -167,7 +167,7 @@
     },
     ".github/workflows/rebuild.yml": {
       "pre": "839a79ab2eecb025e7603e1f5b7dc887e422f58768fd253a02cc7daf40090078",
-      "post": "19e861df30d0af0bad97b55309b311178fcbefb73bac0b792fc6c32e74a361e6",
+      "post": "34bec65a549a8d29128da3fe1bf08398c0cab47298c094c154f0e42a3614e882",
       "role": "edited"
     },
     "rebuild/m4/spec/b-ntc-successors.cjs": {
@@ -332,7 +332,7 @@
     },
     "rebuild/m4/workout/test/h3-clean-init.test.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "69e20eb464eff1f2d41ef146ff943dd8d2a6b55acc7fe904fcf00564bda31120",
+      "post": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
       "role": "new"
     },
     "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs": {
