@@ -62,3 +62,7 @@ No push to main, no deploy, no private data in any report or cloud session, no p
 ## Owner-approved full Astra handover (2026-09-12)
 
 DECISIONS:193 and rebuild/lanes/astra/PM-OPERATING-CHARTER.md are current for PM identity, all-Astra review independence, B/C handoff and scheduling. Joe approved the exact plan with "Do it". This supersedes only conflicting role/caretaker/Claude-family restrictions above; existing product, custody, test and data rules remain as scoped in the new charter. Old void Astra decisions remain void. A new owner instruction is required to transfer PM authority again.
+
+## Coaching memory and Lane E,2026-09-13
+
+Owner202 makes Coaching Memory v1 required for beta and authorizes design now, implementation after launch/N2. PM203 commissions Astra E, charter `rebuild/lanes/e/CHARTER.md`, initially only its own implementation-brief and beta-coverage documents. Current runtime custody and the single Today writer remain unchanged; PM assigns exact future memory/P6 paths after brief acceptance. D2 reviews future implementation after current priorities; a third role integrates. E is not a second PM or a general new builder pool. Current assignments and schedules live in astra/TEAM.md and DELIVERY-CHECKLIST.md; older lane tables above are historical where superseded.

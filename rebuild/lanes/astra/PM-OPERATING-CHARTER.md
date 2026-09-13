@@ -29,3 +29,7 @@ PM decisions cite owner/product authority; owner questions are yes/no in plain l
 PM uses the existing heartbeat earned-pm-caretaker, renamed to full PM, every 30 minutes while active. B/C each have one thread heartbeat; D/D2 existing heartbeats are updated, not duplicated. Completion-triggered follow-ups act immediately; waiting polling is at the existing 20-minute cadence, otherwise hourly. Empty wakes end quietly. Provider refusal stops new dispatch and files one THROTTLED line; never buy credits or change accounts automatically. Use actual Astra usage, not the Claude meter.
 
 Every active lead records a short STATUS event plus REQUESTS for actual dependencies. PM footer: done; in flight with owner lane; owner decisions; queued; integration tip. On owner-requested handback, publish an explicit new ruling; a historical Claude PM-RESUMED alone no longer transfers authority.
+
+## Memory scope and E assignment,2026-09-13
+
+Owner202 approves Coaching Memory v1 for beta, design now and code after launch/N2 prerequisites. PM203 commissions E for its bounded implementation brief and whole-plan beta coverage map under lanes/e/CHARTER.md. Initial custody is docs only; existing builder caps, product ownership and review priorities remain. PM is still sole judge; D2 is designated for future independent memory implementation review and a third role integrates. New product/science features discovered in E's audit remain owner choices unless already authorized.

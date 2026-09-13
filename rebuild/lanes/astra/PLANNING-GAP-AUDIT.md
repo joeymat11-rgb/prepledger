@@ -1,0 +1,23 @@
+# Planning gaps: PM ruling after owner request
+
+2026-09-13, public source/document inspection at the current integration around92a342f/a93d798. Two independent bounded audits plus PM checks; no runtime/gate/private-data execution. Authority202: memory beta scope approved, audit and lane decision assigned to PM. This report identifies gaps without claiming new product behavior is approved or already implemented.
+
+| Finding | Evidence | PM disposition |
+| --- | --- | --- |
+| Whole-plan beta experience lacks one joined acceptance journey | coach/COACH-EXPERIENCE-BRIEF.md:12 has the five-step gym/coach demo; the delivery checklist distributes coach work among PM/C/D. Neither joins a fresh user through training, nutrition, recovery, memory and a later return | E owns the coverage map and joined acceptance design. Preserve the existing demo's narrower accepted meaning; PM judges additions |
+| Fresh-start nutrition has no current planned route to qualified targets | b/BRIEF-H3-CLEAN-INIT.md:30/:56 deliberately excludes body-composition setup; today/today-app.cjs:104 says no targets without that starting estimate; setup-model.mjs:630 carries athlete/split/exercises/priorities | E maps the existing approved route or names a proposed product choice/explicit limitation. This is not an H3 defect and does not authorize fabricated estimates, default prescriptions or a new formula |
+| Durable reasons, consent and later recall lack one delivery owner | slice/P6-REASON-ON-DISK-BRIEF.md:6/:10 requires PM-client work; coach/local-world.mjs:195 defaults staged consent to null; tools.cjs:841 refuses acceptance without it; proposal body/reasons reside in Maps at404/:813/:846 | E's memory implementation brief owns the dependency/consumer design, including actual staged consent and P6. Exact future file custody is assigned before code; C still owns current coach consumers |
+| Remembered practical constraints are wider than supported plan adjustments | coach/tools.cjs:729 refuses equipment-unavailable capture; :770/:796 supports only specific replan categories; DECISIONS176 limits the week editor to Exercises/Machine settings, effective tomorrow | E distinguishes remembered fact, explanation, manual edit and engine proposal in a capability map. Existing C/D editor work continues; new same-day/recovery adaptation remains a separate owner scope choice |
+| Outcome-follow-through is an undeveloped product idea | POSITIONING-CONTEXT.md:19 proposes recommendation/action/result/reassessment; memory scope explicitly separates causal learning. Narrow outcome readers already exist in engine/policy.cjs:473 and volume.cjs:220 | Retain discovery, not an automatically approved build. Do not claim that memory proves an intervention worked or improves physical results |
+
+Already tracked work is not relabelled as a newly missing feature: launch/N2 failures, B1+B2 and B4+B3, F1/F2/editor composition, relay/phone work, private port/recovery, physical-device proof and protected soak retain their existing owners and gates.
+
+Useful foundations are present: durable setup/priorities, machine settings/cues and source-tagged recall. Priorities are stored without current prescription consumption at m4/workout/athlete-state.cjs:312. P6's no-answer write prohibition remains: an optional declined-reason memory requires a separate user-confirmed action under202. Coach/model-adapter.md:52 prohibits sending whole histories; memory retrieval must keep this minimal-context boundary.
+
+## Lane decision
+
+YES: commission Astra E for coaching memory and beta coverage under203. Its first bounded assignment is two documents: a current implementation brief and a beta journey/coverage map. Its exclusive initial writes are lane-e docs, not shared product files. B/C/D retain active repairs and existing product custody; E adds design capacity while implementation waits for202's launch/N2 prerequisites and accepted technical route. One Today writer and existing independent-review priorities remain.
+
+E is not a second PM, reviewer of its own work or integrator. PM accepts its scope; D2 is the designated independent implementation reviewer after current launch/preflight priorities. Any engine package change goes through B and the MAX engine review/gate requirements. A third role integrates. Reassess useful capacity after E's first brief; do not expand it into a general unbounded builder pool.
+
+The planning audit also found stale routing in the older ROADMAP/QUEUE narrative. Later decisions and astra/DELIVERY-CHECKLIST.md govern current assignments. E's map must retain every applicable older obligation, mark unresolved evidence explicitly and propose precise index corrections rather than mark historical work done by inference.
