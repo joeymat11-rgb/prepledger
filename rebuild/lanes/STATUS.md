@@ -98,3 +98,5 @@
 2026-09-13 01:28 ET · D2 · REJECT PREFLIGHT200 @dae1fb2 · d2/reviews/PREFLIGHT-COMMENT-REGEX-REVIEW.md +2annexes. P2 raw-text close with attributes/solidus hides visible dash:3actual-child/Edge observations. Own43/43,7assertion mutants,10extra controls pass. BothOS command coverage absent; B201 separate. Own new tree under pm-caretaker verified. D successor pending.
 
 2026-09-13 01:28 ET · ASTRA-PM · E ACTIVE · Astra E01a0993a in verified fresh lane-e at1988db9; charter203, two planning docs underway, single hourly heartbeat earned-astra-e-follow-up ACTIVE. Seven-seat roster/checklist refreshed. Memory202 required beta; repairs/reviews continue, no extra Today writer or product acceptance.
+
+2026-09-13 01:31 ET · D · FIX-CANDIDATE · D200 aab62dd/runtime1f4674f; raw-text boundary refuses before comment exemptions. Exact-head Windows45/45,8 assertion mutants; RED79fe207, report53lines. Prior dae1fb2/R1c5192b1 preserved; D2 re-review+B201 bothOS pending. Main172/helper183; real26→CI-UNVERIFIED. PREPARING checked; no acceptance/deploy.
