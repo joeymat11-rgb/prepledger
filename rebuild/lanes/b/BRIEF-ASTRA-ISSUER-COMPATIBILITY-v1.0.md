@@ -1,0 +1,32 @@
+# Astra issuer compatibility: proposed tooling brief v1.0
+
+Prepared by B (Astra), 2026-09-13, at integration 76d5e9541961df8519509c483cd3b591e52ea264.
+Status: PROPOSED. Owner authority is DECISIONS:193; PM write custody and named scope acceptance remain pending. This document grants no receipt, acceptance or gate waiver.
+
+## Problem and evidence
+1. The reviewed r10 runner is sha256 4482bb8aa344b4aa090a01cbcf2164f9834320d71ce24a24bcc0154b0c037db3. It requires role `cowork` for brief/freeze/theme claims (b-package.cjs:1220,1379,1385), review shape (1394), own receipt (2706), and parent/grandparent receipts (1464,1600).
+2. Its original helper rebuild/conform/v4/postfix/legacy-gates.cjs:19-25 checks the exact Git ledger bytes and the delimited role. Impersonating `cowork` would make the record false; an arbitrary alias or substring would weaken the authority check.
+3. DECISIONS:193 transfers PM authority to Astra but preserves old void lines and all evidence requirements. The historical owner M2-RULE and POSTFIX-GATE BRIEF contract remain immutable parent authorizations.
+
+## Proposed scope and contract
+4. Add one canonical new issuer role, case-exact `Astra PM`, matching current PM ledger prose. Keep historical `cowork` receipts valid byte for byte. No aliases, free-form role, case folding, wildcard or role inferred from a name inside the payload.
+5. Recognize `Astra PM` only after verifying the exact owner handover line193 and its approved handover document by Git-blob hashes on the real CHAIN_REF. Authority anchor 3ef096d671af924caefa346c530f06784f382af0, line sha256 5ec62695b9ed298e239e19526595cbb9471262310f12fc7c52e9d7114691ab63, handover document sha256 9be34fa068556bf1b57a8cfdb65b9692fa190a76b73750f0a76767db40989d67. Pin those authority bytes in reviewed code; a spec cannot invent the authority or its chain. Assert the claimed Astra acceptance commit descends from the real handover commit and its ledger line is after the handover.
+6. Apply the closed issuer rule consistently to new brief/theme/freeze authorizations and own review/receipt, including those receipts when inherited as parent or grandparent by later packages. Select only a closed trusted role before calling the original verifyReceipt helper. Preserve its exact-line/hash/content/commit checks and the original helper's bytes.
+7. Keep the owner claim and inherited contract on their original roles and hashes. Do not substitute ruling193 for the original M2 contract, rename old receipts, revive void Astra records, amend a frozen law, or loosen any terminal/package/artifact binding.
+8. Preserve acceptance payload grammar: exact POSTFIX-ACCEPTANCE package id, full commit, exact artifact path, full sha256 and ACCEPTED terminal. New technical authorizations still require their own PM lines; handover alone never satisfies them.
+9. Proposed writable paths: rebuild/lanes/b/tooling/b-package.cjs; tooling/test/product-phase-and-ledger.test.cjs; tooling/test/seal-tip-and-byte-identity.test.cjs; new tooling/test/astra-issuer-compatibility.test.cjs; tooling/README.md; this brief and a <=60-line build report. No product, frozen conform/m4 original, workflow, accepted spec/artifact/receipt or private-file edit in this tooling candidate.
+10. The new test's workflow registration and successor spec/runner pins are disclosed later inside the next accepted re-pinning engine package under178. Never edit H3's artifact/spec to accommodate the changed runner. A changed runner invalidates old byte-identity reuse and requires the reviewed successor's FULL route.
+
+## Independent acceptance bar, before implementation
+11. Positive synthetic controls: old cowork chain unchanged; Astra brief/theme/freeze/own receipt after the real handover; an Astra receipted package inherited by a new parent and grandparent; a mixed historical/current chain. Each uses real temporary Git history and exact hashed ledger lines, no stubbed authority resolver.
+12. Negative controls: wrong/missing/ambiguous role; role text only in a payload; forged/moved/absent handover bytes; handover or acceptance only on a candidate/off-chain ref; pre-handover or void Astra line; wrong ledger line/hash/package/artifact/terminal; altered historical owner/contract. Each must refuse for the intended boundary.
+13. Preserve and execute the existing stale-tip, allowed ancestry, receipt Git anchor, mid-run mutation, runner/spec/product drift, changed-verdict and pin-reuse refusals. Missing role or a successful synthetic issuer test must never create PACKAGE PASS.
+14. Each new authority boundary has a source mutant that fails an assertion, with restoration and a positive control. Exercise actual checker calls and Git ancestry, not a duplicate regex implementation. Report measured counts, not an advance target.
+15. Exact proposed tests: node --test rebuild/lanes/b/tooling/test/astra-issuer-compatibility.test.cjs rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs rebuild/lanes/b/tooling/test/seal-tip-and-byte-identity.test.cjs rebuild/lanes/b/tooling/test/gate-supersession.test.cjs. Before execution, verify fixture custody; private-reading full gates remain the designated B operator's separate service under196.
+16. Separate Astra MAX reviewer executes the exact candidate independently; B does not review its own change. PM judges the named tooling result. A third integrator adopts only the authorized successor package after its required CI, cumulative/private verdict, receipt and rerun/reverify; tooling test green alone is no integration permission.
+
+## Explicit dependencies and handoff
+17. Proposed isolated branch rebuild/astra-issuer-compatibility in work/pm-caretaker/b-issuer-compatibility, created only after PM write release. Preserve old Claude tooling and all unpublished work as unknown until handed back.
+18. B1+B2/B4+B3 bundle registration, F1/F2/companion admission and exact workflow names are separate named package work. This issuer-only patch does not claim those profiles exist. DECISIONS:154(5) Git-blob pin migration and184 cell35 repair remain separately scoped next-tooling obligations.
+19. H3 --ci unconditionally builds historical references including src/history.js. Only B's designated unchanged local gate service may consume those fixtures, without raw private output; this brief does not redesign the gate or make it cloud-safe.
+20. Required PM disposition: accept/revise this named brief and release bounded tooling custody. Novel product/science, release, import or spending authority is not requested.
