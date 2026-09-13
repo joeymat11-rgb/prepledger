@@ -49,12 +49,53 @@ export function sleepNightsIn(generation, profile = PROFILE) {
     .sort((a, b) => (a.device_seq || 0) - (b.device_seq || 0) || (a.op_id < b.op_id ? -1 : 1))
     .map((op) => Object.freeze({
       op_id: op.op_id,
+      /* D2 ROUND 1, FINDING 4 - the sequence is only an order WITHIN one device, so the
+         device that issued an op travels with it and the projector can tell an ordered
+         pair from an unordered one instead of guessing. */
+      device_id: typeof op.device_id === 'string' ? op.device_id : '',
       device_seq: op.device_seq || 0,
       savedDate: op.effective.local_date,
       savedTime: op.effective.local_time || null,
       savedOffset: op.effective.utc_offset || null,
       night: JSON.parse(JSON.stringify(op.payload.night)),
     }));
+}
+
+/* D2 ROUND 1, FINDING 1 - A CITATION IS ONLY A CITATION IF THE THING CITED IS THERE.
+   `from_checkin_op_id` is a claim that this night came out of a check-in the athlete
+   answered. Until now the producer accepted any non-empty string, so a forged id, a
+   deleted check-in, or one whose hours say something else entirely all read back on the
+   screen as provenance. The claim is now AUTHENTICATED against the same authenticated
+   generation the night is written into: the op must be present, be a check-in of this
+   profile, not be rejected or tombstoned, have been effective the MORNING AFTER the
+   night it is cited for, carry a sleep-hours answer EQUAL to the one being written, and
+   have that answer's source be "entered" - a confirmation of an existing record is not
+   the origin of one. Anything else is refused before a write, not decorated after. */
+const CHECKIN_PROFILE = 'earned/recovery-checkin/v1';
+const dayAfter = (iso) => {
+  const t = Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) + 86400000;
+  return new Date(t).toISOString().slice(0, 10);
+};
+export function checkInSourceFault(generation, night) {
+  const id = night && night.from_checkin_op_id;
+  if (typeof id !== 'string' || id === '') return null;          // no claim, nothing to authenticate
+  const collections = (generation && generation.collections) || {};
+  const ops = collections.ops || {};
+  const rejected = collections.rejected || {};
+  const dead = new Set(Object.values(ops)
+    .filter((op) => op && op.kind === 'tombstone' && typeof op.target_op_id === 'string')
+    .map((op) => op.target_op_id));
+  const op = ops[id];
+  if (!op || rejected[id] || dead.has(id)) return 'SLEEP_SOURCE_MISSING';
+  if (op.kind !== 'fact' || op.class !== 'event') return 'SLEEP_SOURCE_NOT_CHECKIN';
+  if (!op.payload || op.payload.profile !== CHECKIN_PROFILE) return 'SLEEP_SOURCE_NOT_CHECKIN';
+  const answers = op.payload.answers;
+  if (!answers || typeof answers !== 'object') return 'SLEEP_SOURCE_NOT_CHECKIN';
+  if (!op.effective || op.effective.local_date !== dayAfter(night.date)) return 'SLEEP_SOURCE_WRONG_NIGHT';
+  const hours = answers.sleep_hours;
+  if (!hours || typeof hours !== 'object' || hours.value !== night.hours) return 'SLEEP_SOURCE_WRONG_HOURS';
+  if (answers.sleep_hours_source !== 'entered') return 'SLEEP_SOURCE_NOT_ENTERED';
+  return null;
 }
 
 export async function createSleepHost({ day, indexedDB, crypto, era: given,
@@ -81,9 +122,28 @@ export async function createSleepHost({ day, indexedDB, crypto, era: given,
         return (await handle.all()).filter((row) => row.night.date === date);
       },
       /* ONE op per save, and a correction is a NEW op (N2 brief). Nothing is updated
-         and nothing is deleted; the projector decides which op wins. */
-      async save(night) {
+         and nothing is deleted; the projector decides which op wins.
+         D2 ROUND 1, FINDING 1 - two preconditions are checked against the generation as
+         it stands NOW, before anything is written. (a) A cited check-in must really be
+         that check-in (checkInSourceFault). (b) A CORRECTION must supersede cleanly: the
+         caller passes the op it believes it is correcting, and if the winning op for that
+         night is no longer that op - another save landed first, or the night it thought
+         it was correcting is gone - the write is refused as SLEEP_STALE_NIGHT rather than
+         silently becoming the winner over a night the athlete never saw. */
+      async save(night, { supersedes } = {}) {
         if (!alive) return { ok: false, state: 3, copy: null, code: 'LOCAL_CLIENT_CLOSED', op_id: null };
+        const refuse = (code) => ({ ok: false, state: 3, copy: null, code, op_id: null });
+        let generation;
+        try { generation = (await bindings.repository.load()).generation; }
+        catch { return refuse('SLEEP_PRECONDITION_UNREADABLE'); }
+        const fault = checkInSourceFault(generation, night);
+        if (fault) return refuse(fault);
+        if (supersedes !== undefined) {
+          const date = night && night.date;
+          const held = sleepNightsIn(generation, PROFILE).filter((row) => row.night.date === date);
+          const current = held.length === 0 ? null : held[held.length - 1].op_id;
+          if (current !== supersedes) return refuse('SLEEP_STALE_NIGHT');
+        }
         let result;
         try {
           result = await sleepClient.execute('workout', { action: ACTION, input: { night } });
@@ -102,4 +162,5 @@ export async function createSleepHost({ day, indexedDB, crypto, era: given,
   } catch (error) { if (!given) era.close(); throw error; }
 }
 
-export default { createSleepHost, sleepNightsIn, PROFILE, OP_CLASS, OP_KIND, SLEEP_SCHEMA_VERSION };
+export default { createSleepHost, sleepNightsIn, checkInSourceFault, PROFILE, OP_CLASS,
+  OP_KIND, SLEEP_SCHEMA_VERSION };

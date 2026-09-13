@@ -172,6 +172,12 @@
   </header>
   <p class="note" data-own data-slot="sleep-note"></p>
   <section class="field" data-own data-slot="sleep-entry-form" hidden>
+    <div class="field" data-slot="sleep-date-field">
+      <label for="sleep-date" data-slot="sleep-date-label"></label>
+      <input id="sleep-date" class="hours" type="date" data-slot="sleep-date">
+    </div>
+    <p class="small muted" data-slot="sleep-rollover" hidden></p>
+    <button class="text-link" type="button" data-action="sleep-keep-night" data-slot="sleep-keep-night" hidden></button>
     <div class="section-label" data-slot="sleep-mode-label"></div>
     <div class="row" data-slot="sleep-modes">
       <button class="choice" type="button" data-action="sleep-mode-times" data-slot="sleep-mode-times"></button>
@@ -202,8 +208,13 @@
     </div>
     <p class="small muted" data-slot="sleep-checkin" hidden></p>
     <button class="text-link" type="button" data-action="sleep-use-checkin" data-slot="sleep-use-checkin" hidden></button>
+    <p class="small muted" data-slot="sleep-quality" hidden></p>
+    <button class="text-link" type="button" data-action="sleep-open-checkin" data-slot="sleep-open-checkin" hidden></button>
     <p class="error" role="alert" data-slot="sleep-error"></p>
     <p class="small muted" data-slot="sleep-recorded" hidden></p>
+    <button class="text-link" type="button" data-action="sleep-read-retry" data-slot="sleep-read-retry" hidden></button>
+    <button class="text-link" type="button" data-action="sleep-change" data-slot="sleep-change" hidden></button>
+    <button class="text-link" type="button" data-action="sleep-cancel" data-slot="sleep-cancel" hidden></button>
     <button class="primary" type="button" data-slot="sleep-save"><span data-slot="sleep-save-label"></span></button>
   </section>
 </article>

@@ -209,6 +209,11 @@ try {
   assert.match(basisLine, /^\d+(\.\d+)? h$/,
     "an imported basis night shows its figure and claims nothing else: " + basisLine);
   notes.push("the imported basis night is shown with no invented provenance: " + basisLine.trim());
+  /* The preview athlete ARRIVES with that basis night, so on this device the entry is
+     already behind Change sleep: a night that exists owns the display until the athlete
+     asks to change it (D2 round 1, finding 5). */
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.waitForSelector('#phone #sleep-bed');
   assert.equal(await page.getAttribute('[data-slot="sleep-mode-times"]', "aria-pressed"), "true",
     "bed and wake times is the first mode");
   await reachable(page, "sleep at 390");
@@ -237,8 +242,32 @@ try {
   assert.match(line, /^7\.5 h/, "the recorded line leads with the engine's hours: " + line);
   assert.match(line, /From bed and wake times\./, "and says which shape it came from");
   assert.match(line, /Recorded \d{4}-\d{2}-\d{2} at \d{2}:\d{2}/, "with the stamp on the operation");
-  assert.equal(await page.inputValue("#sleep-bed"), "", "the boxes are clear for the next correction");
   notes.push("a night recorded from bed and wake times: " + line.trim());
+
+  /* D2 ROUND 1, FINDING 5 - A RECORDED NIGHT OWNS THE DISPLAY. The form is put away and
+     the saved value stays visible until the athlete deliberately asks to change it. */
+  assert.equal(await page.isVisible('#phone [data-slot="sleep-change"]'), true,
+    "a recorded night offers no way to change it");
+  assert.equal(await page.isVisible("#sleep-bed"), false, "the form is still open over a record");
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.waitForSelector('#phone [data-slot="sleep-cancel"]:not([hidden])');
+  assert.match(await page.textContent('#phone [data-slot="sleep-save-label"]'), /Save correction/,
+    "the correction is named as one");
+  assert.equal(await page.inputValue("#sleep-bed"), "", "the boxes are clear for the correction");
+  assert.match(await recorded(page), /7\.5 h/, "the saved value must stay visible until commit");
+  await page.click('#phone [data-slot="sleep-cancel"]');
+  await page.waitForSelector('#phone [data-slot="sleep-change"]:not([hidden])');
+  notes.push("Change sleep / Cancel keeps the recorded night visible and writes nothing");
+
+  /* D2 ROUND 1, FINDING 5 - the night is DATED and the quality is the check-in's. */
+  const dated = await page.inputValue("#sleep-date");
+  assert.match(dated, /^\d{4}-\d{2}-\d{2}$/, "the night has no date control: " + dated);
+  assert(String(await page.textContent('#phone [data-slot="sleep-night"]')).includes(dated),
+    "the label and the date control disagree");
+  const quality = (await page.textContent('#phone [data-slot="sleep-quality"]')) || "";
+  assert.match(quality, /^Quality/, "the quality state is not drawn: " + quality);
+  notes.push("the night is dated by control (" + dated + ") and quality is reused, not asked: "
+    + quality.trim());
 
   /* ---------- a genuine reload ---------- */
   await page.reload({ waitUntil: "load" });
@@ -270,6 +299,8 @@ try {
   /* ---------- A CORRECTION REPLACES THE NIGHT, and the clock fields are GONE ---------- */
   await page.click('#phone [data-go="sleep"]');
   await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])');
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.waitForSelector('#phone [data-action="sleep-mode-hours"]:not([hidden])');
   await page.click('#phone [data-action="sleep-mode-hours"]');
   await page.waitForSelector('#phone #sleep-hours');
   await typeHours(page, "5.5");
@@ -281,9 +312,65 @@ try {
   line = await recorded(page);
   assert.match(line, /Entered as an approximate duration\./, "the corrected shape is named");
   assert.doesNotMatch(line, /From bed and wake times/, "the replaced shape is gone, not stale");
-  notes.push("a correction replaced the night: " + line.trim());
+  assert.match(line, /Corrected \d{4}-\d{2}-\d{2} at \d{2}:\d{2}/,
+    "a second operation for one night is a CORRECTION and says so: " + line);
+  notes.push("a correction replaced the night and is named as one: " + line.trim());
+
+  /* ---------- D2 ROUND 1, FINDING 2 - THE GYM RETURN PATH, IN A REAL BROWSER ----------
+     The night was recorded on this page with no reload, so the workout the athlete opens
+     next is prepared by a gym host built after it. What a browser can prove is the ROUTE:
+     it opens, it carries no error, and the record is still the record on the way back.
+     The gym host's own projection is asserted over the real host in sleep.test.mjs
+     N2-09, which can read `gymHost.host.lastProjection()` and a browser cannot. */
+  await page.click('#phone [data-go="today"]');
+  await page.waitForSelector('#phone [data-slot="primary-label"]', { timeout: 20000 });
+  /* This device's athlete owes his morning weight before a workout can open, and that is
+     A2's rule, not N2's. Recording it through the real weigh-in is what makes the gym
+     route reachable at all, so the return path can actually be walked. */
+  if (/^Log/.test(((await page.textContent('#phone [data-slot="primary-label"]')) || "").trim())) {
+    await page.click('#phone [data-slot="primary"]');
+    await page.waitForSelector("#morning-weight", { timeout: 20000 });
+    await page.evaluate(() => {
+      const box = document.getElementById("morning-weight");
+      box.value = "205.4";
+      box.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await page.click('#phone .gym-actions button[type="submit"]');
+    await page.waitForFunction(() => {
+      const el = document.querySelector('#phone [data-slot="primary-label"]');
+      return el && !/^Log/.test(el.textContent.trim());
+    }, null, { timeout: 20000 });
+    notes.push("the morning weight was recorded so the workout route could be walked");
+  }
+  const primary = ((await page.textContent('#phone [data-slot="primary-label"]')) || "").trim();
+  if (/^(Start|Resume|Review)/.test(primary)) {
+    await page.click('#phone [data-slot="primary"]');
+    await page.waitForSelector("#phone .page", { timeout: 20000 });
+    const gym = await page.textContent("#phone");
+    assert.doesNotMatch(gym, /NaN|undefined/,
+      "the workout screen after a sleep save: " + gym.slice(0, 200));
+    await page.click("#phone .back");
+    await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
+    assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /5\.5 h/,
+      "the round trip through the workout lost the corrected night");
+    notes.push("Today -> workout (" + primary + ") -> Today after a same-page sleep save, "
+      + "with the record intact");
+  } else {
+    /* This device's athlete owes something before a workout can open, so the route is
+       not reachable here. The gym host's own projection after a save is asserted over
+       the REAL host in sleep.test.mjs N2-09, which is where it can be read at all. */
+    notes.push("the workout route was not reachable from Today on this device (primary action: "
+      + primary + "); the gym host projection is proved in sleep.test.mjs N2-09");
+    await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
+    assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /5\.5 h/,
+      "Today's own sleep line is the corrected record");
+  }
+  await page.click('#phone [data-go="sleep"]');
+  await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])');
 
   /* ---------- A REFUSAL RECORDS NOTHING ---------- */
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.waitForSelector('#phone #sleep-hours');
   await typeHours(page, "25");
   await tapSave(page);
   await page.waitForFunction(() => {
@@ -300,6 +387,10 @@ try {
   await hardKill(context);
   ({ context, page } = await relaunch(NARROW));
   assert.match(await recorded(page), /5\.5 h/, "the narrow relaunch lost the record");
+  /* The form is behind Change sleep once a night is recorded, so the narrow measurements
+     are taken on the screen the athlete actually types into. */
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.waitForSelector('#phone #sleep-bed');
   await reachable(page, "sleep at 320");
   await boxesAreLargeEnough(page, "sleep at 320");
   await noDashes(page, "sleep at 320");

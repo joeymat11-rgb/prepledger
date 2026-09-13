@@ -90,6 +90,12 @@ function screenOn(options = {}) {
       box.value = value;
       box.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
     },
+    /* A select or a date field answers to `change`, not `input`. */
+    choose(slot, value) {
+      const box = doc.querySelector('#phone [data-slot="' + slot + '"]');
+      box.value = value;
+      box.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    },
     click(selector) {
       doc.querySelector('#phone ' + selector).dispatchEvent(new dom.window.Event('click'));
     },
@@ -611,11 +617,19 @@ test('N2-13 - an existing basis night survives, and a same-date correction keeps
   const state = SleepModel.projectSleepNights(basis, rowsFor([{ date: fresh, hours: 6 }]), model.engine);
   assert.deepEqual(state.sleep.nights[1], first, 'every old row is preserved');
   assert.equal(state.sleep.nights.length, basis.sleep.nights.length + 1);
-  /* And a date the basis DOES hold is REPLACED whole, never doubled. */
+  /* And a date the basis DOES hold is MERGED, never doubled and never emptied.
+     D2 ROUND 1, FINDING 7 - this cell previously asserted an exact two-member
+     REPLACEMENT, which enforced the very behaviour the contract forbids: an op speaks
+     only about the duration of a night, so a member it does not carry is not news and
+     must survive. Only the members the hours form CONTRADICTS are removed. */
   const held = basis.sleep.nights[0].d;
   const replaced = SleepModel.projectSleepNights(basis, rowsFor([{ date: held, hours: 3 }]), model.engine);
   assert.equal(replaced.sleep.nights.length, basis.sleep.nights.length, 'one row per date');
-  assert.deepEqual(replaced.sleep.nights[0], { d: held, h: 3 });
+  assert.equal(replaced.sleep.nights[0].d, held);
+  assert.equal(replaced.sleep.nights[0].h, 3, 'the new duration wins');
+  assert.equal(Object.hasOwn(replaced.sleep.nights[0], 'bed'), false, 'obsolete clock fields go');
+  assert.equal(Object.hasOwn(replaced.sleep.nights[0], 'wake'), false);
+  assert.equal(Object.hasOwn(replaced.sleep.nights[0], 'awakeMin'), false);
   assert.equal(state.sleep.needed, basis.sleep.needed, 'unrelated sleep members survive');
   /* Zero sleep ops leave an existing basis exactly as it was. */
   assert.equal(SleepModel.projectSleepNights(basis, [], model.engine), basis,
@@ -832,4 +846,373 @@ test('N2-12 - any reader gets the same dated night and provenance from the share
   assert.equal(/sleep-night|earned\/sleep-night/.test(world), false,
     'the coach companion is NOT needed for this row and was not written (:167 (2))');
   again.close();
+});
+
+/* ==========================================================================
+   D2 ROUND 1 - ONE CELL PER FINDING. Each was written RED against the head D2
+   reviewed (3925e90) and is listed in N2-REPORT.md with the failure it printed.
+   ========================================================================== */
+
+/* FINDING 1. A reference is a claim about another operation, and a claim is
+   worth exactly what authenticating it is worth. */
+test('N2-01 - D2 finding 1: a forged check-in reference is refused, and a stale correction cannot supersede', async () => {
+  const fault = faultDatabase();
+  const lane = { indexedDB: fault.indexedDB, crypto: webcrypto };
+  const host = await createSleepHost({ day: DAY, ...lane });
+  const sleepOps = async () => (await opsOf(host.repository)).filter((op) => op.class === OP_CLASS);
+
+  /* (a) AN ID NOTHING ANSWERS TO. Nothing is written and the reason names itself. */
+  const forged = await host.save({ date: NIGHT, hours: 7, from_checkin_op_id: 'no-such-operation' });
+  assert.equal(forged.ok, false, 'a forged source was accepted');
+  assert.equal(forged.code, 'SLEEP_SOURCE_MISSING');
+  assert.equal((await sleepOps()).length, 0, 'and it wrote nothing at all');
+
+  /* (b) A REAL CHECK-IN, saved through the accepted entry over the SAME store. */
+  const model = createTodayModel({ today: DAY, basisState: createCleanInitState({ setup: firstRunDocument() }) });
+  const { createCheckInEntry } = await import('../today-entry.mjs');
+  const entry = await createCheckInEntry(model, lane);
+  const draft = entry.checkin.draft();
+  draft.answerSleepHere();
+  draft.set('sleep_hours', '7');
+  assert.equal((await entry.checkin.save()).ok, true, 'the check-in itself recorded');
+  const source = entry.checkin.recorded().op_id;
+  assert(source, 'and it has an op id to cite');
+
+  /* The same id with the WRONG hours is refused: a citation must match what it cites. */
+  const mismatched = await host.save({ date: NIGHT, hours: 6, from_checkin_op_id: source });
+  assert.equal(mismatched.ok, false);
+  assert.equal(mismatched.code, 'SLEEP_SOURCE_WRONG_HOURS');
+  /* And for the wrong NIGHT: this check-in speaks for the night before its own day. */
+  const wrongNight = await host.save({ date: '2030-01-20', hours: 7, from_checkin_op_id: source });
+  assert.equal(wrongNight.ok, false);
+  assert.equal(wrongNight.code, 'SLEEP_SOURCE_WRONG_NIGHT');
+  assert.equal((await sleepOps()).length, 0, 'three refusals, zero writes');
+
+  /* The honest citation is accepted, once it is really a citation. */
+  const good = await host.save({ date: NIGHT, hours: 7, from_checkin_op_id: source });
+  assert.equal(good.ok, true, good.code || '');
+  const first = (await host.forDate(NIGHT))[0].op_id;
+
+  /* (c) A STALE EDITOR. A second screen corrects the night; the first, which still
+     believes it is looking at `first`, may not silently replace the newer one. */
+  assert.equal((await host.save({ date: NIGHT, hours: 8 }, { supersedes: first })).ok, true);
+  const stale = await host.save({ date: NIGHT, hours: 5 }, { supersedes: first });
+  assert.equal(stale.ok, false, 'a stale editor overwrote a newer save');
+  assert.equal(stale.code, 'SLEEP_STALE_NIGHT');
+  assert.equal((await sleepOps()).length, 2, 'the refusal appended nothing');
+  assert.equal(SleepModel.recordedNight(await host.all(), NIGHT).night.hours, 8,
+    'and the newer night still wins');
+  host.close();
+  if (entry.host) entry.host.close();
+});
+
+/* FINDING 2. Today changing is not the gym host changing. */
+test('N2-09 - D2 finding 2: the REAL gym host sees the night after a same-page save', async () => {
+  const fault = faultDatabase();
+  const lane = { indexedDB: fault.indexedDB, crypto: webcrypto };
+  const sleepHost = await createSleepHost({ day: DAY, ...lane });
+  const model = createTodayModel({ today: DAY });
+  const { createWorkoutEntry } = await import('../today-entry.mjs');
+  const workout = await createWorkoutEntry(model, lane);
+  const nightsIn = (entry) => {
+    const projection = entry.gymHost.host.lastProjection();
+    const state = projection && projection.accepted_state;
+    return (state && state.sleep && Array.isArray(state.sleep.nights)) ? state.sleep.nights : [];
+  };
+  /* A night the athlete has NOT got, so the gym host's answer is unambiguous. */
+  const fresh = '2029-12-30';
+  assert.equal(nightsIn(workout).some((n) => n.d === fresh), false,
+    'the fixture must not already hold the night under test');
+
+  const page = screenOn({ model, query: '?screen=sleep',
+    mount: { sleep: await laneOver(sleepHost), workout } });
+  /* The page can only rebind where it can reach a store, exactly as it opens its own
+     lanes: this window is given the same one device the hosts above are in. */
+  Object.defineProperty(page.dom.window, 'indexedDB', { value: fault.indexedDB, configurable: true });
+  Object.defineProperty(page.dom.window, 'crypto', { value: webcrypto, configurable: true });
+  page.api.render('sleep');
+  /* A half-typed set on the gym card, which the athlete has not logged yet. */
+  const before = workout.gymDraft();
+  before.reps = '8';
+  page.choose('sleep-date', fresh);
+  page.type('sleep-bed', '23:00');
+  page.type('sleep-wake', '05:00');
+  await page.tapSave();
+  assert.equal(page.pick('sleep-error').textContent, '', 'the night had to be recorded first');
+  await page.api.workoutRebound();
+
+  const rebound = page.api.workoutEntry();
+  assert.notEqual(rebound, workout, 'the entry was never rebuilt');
+  const row = nightsIn(rebound).find((n) => n.d === fresh);
+  assert(row, 'the real gym host still cannot see the night this page just recorded');
+  assert.equal(row.h, model.engine.sleepSpanH('23:00', '05:00', 0));
+  assert.equal(nightsIn(workout).some((n) => n.d === fresh), false,
+    'and the OLD host is left as it was, which is why it had to be replaced');
+  assert.equal(rebound.gymDraft().reps, '8', 'the half-typed set did not survive the rebind');
+  sleepHost.close();
+});
+
+/* FINDING 3. The rebind changes ONE answer. Everything else is still his. */
+test('N2-07 - D2 finding 3: rebinding the check-in keeps an unrelated half-typed answer', async () => {
+  const fault = faultDatabase();
+  const lane = { indexedDB: fault.indexedDB, crypto: webcrypto };
+  const sleepHost = await createSleepHost({ day: DAY, ...lane });
+  const model = createTodayModel({ today: DAY, basisState: createCleanInitState({ setup: firstRunDocument() }) });
+  const { createCheckInEntry } = await import('../today-entry.mjs');
+  const entry = await createCheckInEntry(model, lane);
+  /* HALF A CHECK-IN, typed before the night was recorded and never saved. */
+  const draft = entry.checkin.draft();
+  draft.choose('soreness', 'Mild');
+  draft.set('soreness_location', 'left knee on the stairs');
+  draft.choose('energy', 'Moderate');
+  draft.toggleIssue('illness');
+  draft.set('illness_note', 'sore throat since Tuesday');
+
+  const page = screenOn({ model, query: '?screen=sleep',
+    mount: { sleep: await laneOver(sleepHost), checkin: entry } });
+  await page.api.checkInKitReady();
+  page.api.render('sleep');
+  page.type('sleep-bed', '23:00');
+  page.type('sleep-wake', '06:30');
+  await page.tapSave();
+
+  await page.api.render('recovery');
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  /* A typed answer lives in an input's VALUE, which no amount of textContent shows. */
+  const typed = [...page.doc.querySelectorAll('#phone input, #phone textarea')]
+    .map((box) => box.value).filter(Boolean);
+  const sheet = page.text();
+  assert(typed.includes('left knee on the stairs'),
+    'the rebind threw away an answer that had nothing to do with sleep: ' + typed.join(' | '));
+  assert(typed.includes('sore throat since Tuesday'), 'and it threw away the illness note too');
+  /* The choices he made are still pressed, not merely remembered. */
+  assert(page.doc.querySelector('#phone [aria-pressed="true"]'), 'his choices were lost too');
+  /* The one thing that MUST change is the night it reads back. */
+  assert(sheet.includes(String(model.loggedSleep(NIGHT).h)), 'the new night is what it now offers');
+  sleepHost.close();
+  if (entry.host) entry.host.close();
+});
+
+/* FINDING 4. One device's sequence is an order. Two devices' is not. */
+test('N2-06 - D2 finding 4: two unordered devices produce NO winner, and the ambiguous date is named', () => {
+  const model = createTodayModel({ today: DAY });
+  const twoDevices = [
+    { op_id: 'a1', device_id: 'device-A', device_seq: 4, savedDate: DAY, savedTime: '07:00',
+      savedOffset: '+00:00', night: { date: NIGHT, hours: 5 } },
+    { op_id: 'b1', device_id: 'device-B', device_seq: 2, savedDate: DAY, savedTime: '07:30',
+      savedOffset: '+00:00', night: { date: NIGHT, hours: 9 } },
+  ];
+  assert.deepEqual(SleepModel.winningNights(twoDevices), [],
+    'a winner was invented between two devices that carry no order');
+  assert.deepEqual(SleepModel.ambiguousNights(twoDevices), [NIGHT],
+    'and the date the sync seam must resolve is not even named');
+
+  /* The basis stands: an ambiguous date is projected NOT AT ALL, so no figure on any
+     screen is a guess about which device was later. */
+  const basis = { sleep: { nights: [{ d: NIGHT, h: 7, bed: '22:00', wake: '05:00' }] } };
+  const state = SleepModel.projectSleepNights(basis, twoDevices, model.engine);
+  assert.deepEqual(SleepModel.loggedNight(state, NIGHT), { d: NIGHT, h: 7, bed: '22:00', wake: '05:00' });
+  /* Reversing the read order changes nothing, because nothing was chosen. */
+  assert.deepEqual(SleepModel.winningNights([...twoDevices].reverse()), []);
+
+  /* ONE device with two rows is still ordered, and still has a winner: the narrowing
+     at :167 (1) deferred the conflict SCREEN, not this distinction. */
+  const oneDevice = twoDevices.map((row) => ({ ...row, device_id: 'device-A' }));
+  const won = SleepModel.winningNights(oneDevice);
+  assert.equal(won.length, 1);
+  assert.equal(won[0].op_id, 'a1', 'the highest device sequence on ONE device wins');
+  assert.deepEqual(SleepModel.ambiguousNights(oneDevice), []);
+  /* And the real host carries the device identity the projector needs to tell them
+     apart, rather than dropping it on the way out. */
+  const source = readRepo('rebuild/m3/w7-preview/today/sleep-host.mjs');
+  assert.match(source, /device_id:/, 'the host drops the device identity again');
+});
+
+/* FINDING 5. The date is chosen, the quality is reused, and nothing is guessed. */
+test('N2-04 - D2 finding 5: the night is dated by choice, quality is reused, and no source date is guessed', async () => {
+  const kit = await device();
+  const model = createTodayModel({ today: DAY });
+  const page = screenOn({ model, query: '?screen=sleep', mount: { sleep: await laneOver(kit.host) } });
+  page.api.render('sleep');
+  /* (a) THE NIGHT IS DATED, and the athlete may say which night it is. */
+  assert.equal(page.pick('sleep-date').value, NIGHT, 'the default is the night just gone');
+  assert.equal(page.pick('sleep-date').max, NIGHT, 'and a night still running cannot be chosen');
+  const older = '2029-12-30';
+  page.choose('sleep-date', older);
+  assert.match(page.pick('sleep-night').textContent, new RegExp(older),
+    'the label does not follow the night that was chosen');
+  page.click('[data-slot="sleep-mode-hours"]');
+  page.type('sleep-hours', '6.5');
+  await page.tapSave();
+  assert.equal(page.pick('sleep-error').textContent, '', 'the chosen night had to record');
+  assert.deepEqual((await kit.host.forDate(older))[0].night, { date: older, hours: 6.5 },
+    'the night was recorded against a date the athlete never chose');
+
+  /* (b) QUALITY IS THE CHECK-IN'S, DISPLAYED AND NEVER ASKED AGAIN. */
+  assert.equal(page.pick('sleep-quality').textContent, TodayApp.SLEEP_QUALITY_NONE);
+  assert.equal(page.pick('sleep-open-checkin').hidden, false, 'with no quality, offer the check-in');
+  const withQuality = screenOn({ model: createTodayModel({ today: DAY }), query: '?screen=sleep',
+    mount: { sleep: await laneOver(kit.host),
+      checkin: { summary: () => ({ recorded: true }), host: null,
+        checkin: { recorded: () => ({ date: DAY, op_id: 'checkin-1',
+          answers: { sleep_quality: 'Good', sleep_hours: 7 } }) } } } });
+  withQuality.api.render('sleep');
+  assert.equal(withQuality.pick('sleep-quality').textContent, TodayApp.SLEEP_QUALITY_PREFIX + 'Good');
+  assert.equal(withQuality.pick('sleep-open-checkin').hidden, true, 'and never asks a second time');
+
+  /* (c) A CITED CHECK-IN THIS SCREEN CANNOT SEE IS NOT DATED WITH TODAY'S DATE. */
+  const ghost = [{ op_id: 'ghost-1', device_seq: 1, savedDate: '2030-01-15', savedTime: '08:00',
+    savedOffset: '+00:00', night: { date: NIGHT, hours: 7, from_checkin_op_id: 'gone' } }];
+  const cited = screenOn({ model: createTodayModel({ today: DAY }), query: '?screen=sleep',
+    mount: { sleep: { host: null, rows: () => ghost, refresh: async () => ghost,
+      save: async () => ({ ok: false }), close() {} } } });
+  cited.api.render('sleep');
+  const line = cited.pick('sleep-recorded').textContent;
+  assert(line.includes(TodayApp.SLEEP_CONFIRMED_PLAIN), 'it must say only what it knows: ' + line);
+  assert.equal(line.includes(DAY), false, "today's date was substituted for provenance: " + line);
+  kit.host.close();
+});
+
+/* FINDING 6. A commit is a fact; a read is a hope; and a late save owns nothing. */
+test('N2-05 - D2 finding 6: an acknowledged night survives a failed read, and a late save never navigates', async () => {
+  const kit = await device();
+  const model = createTodayModel({ today: DAY, basisState: createCleanInitState({ setup: firstRunDocument() }) });
+  /* (a) THE COMMIT LANDS, THE READ DOES NOT. The op is durable, so the screen may not
+     go blank and the typed value may not be thrown away with it. */
+  let readFails = true;
+  let rows = await kit.host.all();
+  const brittle = {
+    host: kit.host,
+    rows: () => rows,
+    async refresh() {
+      if (readFails) throw Object.assign(new Error('READ_REFUSED'), { code: 'READ_REFUSED' });
+      rows = await kit.host.all(); return rows;
+    },
+    async save(night, precondition) {
+      const result = await kit.host.save(night, precondition);
+      if (!result || result.ok !== true) return result;
+      try { await this.refresh(); return { ...result, readBack: true, readCode: null }; }
+      catch (error) { return { ...result, readBack: false, readCode: error.code }; }
+    },
+    close() {},
+  };
+  const page = screenOn({ model, query: '?screen=sleep', mount: { sleep: brittle } });
+  page.api.render('sleep');
+  page.type('sleep-bed', '23:00');
+  page.type('sleep-wake', '06:30');
+  await page.tapSave();
+  assert.equal((await opsOf(kit.host.repository)).length, 1, 'the night really committed');
+  assert.equal(page.pick('sleep-recorded').hidden, false, 'a committed night vanished from the screen');
+  assert.match(page.pick('sleep-recorded').textContent, /7\.5 h/, 'and its own figure with it');
+  assert.equal(page.api.sleepAck().date, NIGHT);
+  assert.equal(page.pick('sleep-bed').value, '23:00', 'what he typed was thrown away');
+  assert.equal(page.pick('sleep-read-retry').hidden, false, 'and he was not offered the read again');
+  assert.match(page.pick('sleep-error').textContent, /could not refresh/);
+
+  /* The retry is a READ, not a second write, and it settles the screen. */
+  readFails = false;
+  page.pick('sleep-read-retry').dispatchEvent(new page.dom.window.Event('click'));
+  await page.api.sleepPending();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal((await opsOf(kit.host.repository)).length, 1, 'the retry wrote a second op');
+  assert.equal(page.api.sleepAck(), null, 'the record can speak for itself now');
+  assert.equal(page.pick('sleep-read-retry').hidden, true);
+  kit.host.close();
+});
+
+test('N2-05 - D2 finding 6: a save that resolves after the athlete has left does not steal the screen', async () => {
+  const kit = await device();
+  const model = createTodayModel({ today: DAY });
+  let release = null;
+  const held = new Promise((resolve) => { release = resolve; });
+  let rows = await kit.host.all();
+  const slow = {
+    host: kit.host,
+    rows: () => rows,
+    async refresh() { rows = await kit.host.all(); return rows; },
+    async save(night, precondition) {
+      await held;                                    // the write the athlete did not wait for
+      const result = await kit.host.save(night, precondition);
+      if (!result || result.ok !== true) return result;
+      await this.refresh();
+      return { ...result, readBack: true, readCode: null };
+    },
+    close() {},
+  };
+  const page = screenOn({ model, query: '?screen=sleep', mount: { sleep: slow } });
+  page.api.render('sleep');
+  page.type('sleep-bed', '23:00');
+  page.type('sleep-wake', '06:30');
+  page.pick('sleep-save').dispatchEvent(new page.dom.window.Event('click'));
+  /* HE LEAVES while it is in flight. */
+  page.api.render('today');
+  const onToday = page.text();
+  assert.equal(page.api.screen(), 'today');
+  release();
+  await page.api.sleepPending();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(page.api.screen(), 'today', 'the late save navigated back to its own screen');
+  assert.equal(page.text(), onToday, 'and repainted Today from under him');
+  assert.equal((await opsOf(kit.host.repository)).length, 1,
+    'the write itself still landed, because it was acknowledged');
+  kit.host.close();
+});
+
+/* FINDING 7. An op carries what it carries; nothing else is news. */
+test('N2-13 - D2 finding 7: a same-date overlay keeps unrelated row fields and drops only obsolete clock fields', () => {
+  const model = createTodayModel({ today: DAY });
+  /* A basis row carrying a member this lane has never heard of - which is precisely
+     the case a projector must not destroy. */
+  const basis = { sleep: { needed: 8, nights: [
+    { d: NIGHT, h: 7, bed: '22:00', wake: '05:00', awakeMin: 15, sourceNote: 'imported from the old app' },
+    { d: '2030-02-02', h: 6, sourceNote: 'keep me too' },
+  ] } };
+  const overlaid = SleepModel.projectSleepNights(basis,
+    rowsFor([{ date: NIGHT, hours: 6.25 }]), model.engine);
+  const row = SleepModel.loggedNight(overlaid, NIGHT);
+  assert.equal(row.h, 6.25, 'the op wins on the member it carries');
+  assert.equal(row.sourceNote, 'imported from the old app',
+    'the overlay destroyed a field the operation says nothing about');
+  assert.equal(Object.hasOwn(row, 'bed'), false, 'and the contradicted clock fields must go');
+  assert.equal(Object.hasOwn(row, 'wake'), false);
+  assert.equal(Object.hasOwn(row, 'awakeMin'), false);
+  /* A TIMES op over the same row keeps the unrelated member and replaces the clock. */
+  const timed = SleepModel.projectSleepNights(basis,
+    rowsFor([{ date: NIGHT, bed: '23:00', wake: '06:30' }]), model.engine);
+  const second = SleepModel.loggedNight(timed, NIGHT);
+  assert.equal(second.sourceNote, 'imported from the old app');
+  assert.equal(second.bed, '23:00');
+  assert.equal(Object.hasOwn(second, 'awakeMin'), false, 'an omitted awake value is not kept');
+  /* THE BASIS ITSELF IS NEVER MUTATED. */
+  assert.equal(basis.sleep.nights[0].h, 7, 'the basis row was written through');
+  assert.equal(basis.sleep.nights[0].bed, '22:00');
+  assert.equal(SleepModel.loggedNight(overlaid, '2030-02-02').sourceNote, 'keep me too');
+});
+
+/* FINDING 1, the other half. A3's `existing-record` answer is the athlete CONFIRMING a
+   night that already exists. It is not where a night comes from, so it may not be cited
+   as the origin of one - otherwise a night could cite the check-in that cited it. */
+test('N2-01 - D2 finding 1: a confirmed existing record is not the ORIGIN of a night', async () => {
+  const fault = faultDatabase();
+  const lane = { indexedDB: fault.indexedDB, crypto: webcrypto };
+  const host = await createSleepHost({ day: DAY, ...lane });
+  const model = createTodayModel({ today: DAY, basisState: createCleanInitState({ setup: firstRunDocument() }) });
+  /* The night first, so the check-in has something real to confirm. */
+  assert.equal((await host.save({ date: NIGHT, hours: 7 })).ok, true);
+  model.setSleepNights(await laneOver(host));
+  const { createCheckInEntry } = await import('../today-entry.mjs');
+  const entry = await createCheckInEntry(model, lane);
+  assert(entry.checkin.sleepRecord, 'the check-in must have found the night to confirm it');
+  entry.checkin.draft().confirmSleep();
+  assert.equal((await entry.checkin.save()).ok, true);
+  const confirmed = entry.checkin.recorded();
+  assert.equal(confirmed.answers.sleep_hours_source, 'existing-record',
+    'this cell is only meaningful over a CONFIRMATION');
+
+  const cited = await host.save({ date: NIGHT, hours: 7, from_checkin_op_id: confirmed.op_id });
+  assert.equal(cited.ok, false, 'a confirmation was accepted as the origin of the night it confirmed');
+  assert.equal(cited.code, 'SLEEP_SOURCE_NOT_ENTERED');
+  assert.equal((await host.forDate(NIGHT)).length, 1, 'and nothing was appended');
+  host.close();
+  if (entry.host) entry.host.close();
 });
