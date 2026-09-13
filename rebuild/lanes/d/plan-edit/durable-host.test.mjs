@@ -258,6 +258,51 @@ test('PE10 completed transaction with lost confirmation reconciles once and surv
   } finally { h.close(); }
 });
 
+test('PE10-retry closed installation cannot reaffirm a previously acknowledged save', async () => {
+  const h = await scaffold(); try {
+    const host = await h.host(), preview = await reviewed(host, { sets: 3 });
+    assert.equal((await host.save(preview.review_id)).acknowledged, true);
+    h.client().close();
+    assert.equal((await host.read()).read, false, 'the actual installation has closed');
+    const retry = await host.save(preview.review_id);
+    assert.equal(retry.acknowledged, false, 'PE10_RETRY_CLOSED_INSTALLATION_REFUSED');
+    assert.equal(retry.ok, false);
+  } finally { h.close(); }
+});
+
+test('PE10-retry durable authenticated retraction defeats an earlier save acknowledgement', async () => {
+  const h = await scaffold(); try {
+    const host = await h.host(), preview = await reviewed(host, { sets: 3 });
+    const saved = await host.save(preview.review_id); assert.equal(saved.acknowledged, true);
+    // Test-only retraction producer uses the actual client envelope/HMAC and
+    // encrypted repository. It creates no operation or acknowledgement itself.
+    const retract = { schemaVersion: 2,
+      prepare(request) {
+        assert.deepEqual(request, { action: 'synthetic-retract', input: { target: saved.op_id } });
+        return { kind: 'tombstone', class: 'plan', target: saved.op_id,
+          parents: [saved.op_id], payload: { reason: 'Synthetic reviewed retraction' } };
+      },
+      validate(op, readOperation) {
+        return op.kind === 'tombstone' && op.class === 'plan' && op.target_op_id === saved.op_id &&
+          op.causal_parents.length === 1 && op.causal_parents[0] === saved.op_id &&
+          readOperation(saved.op_id)?.members?.[0]?.value?.intent_id === preview.intent_id;
+      }
+    };
+    const bindings = await h.client().hostBindings({ workoutCommands: retract, clock: h.clock });
+    const writer = createDurablePublicClient({ ...bindings, schemaVersion: 2 });
+    assert.equal((await writer.reopen()).refusal, null);
+    const removed = await writer.execute('workout', { action: 'synthetic-retract', input: { target: saved.op_id } });
+    assert.equal(removed.acknowledged, true, removed.code);
+    const current = await host.read(NEXT); assert.equal(current.read, true, current.code);
+    assert.equal(current.intents.find(x => x.intent_id === preview.intent_id).status, 'tombstoned');
+    assert.equal(exOf(current).sets, 2);
+    const before = await h.snapshot(), retry = await host.save(preview.review_id);
+    assert.equal(retry.acknowledged, false, 'PE10_RETRY_RETRACTED_INTENT_REFUSED');
+    assert.equal(retry.ok, false); assert.equal(retry.code, 'PLAN_EDIT_INTENT_CONFLICT');
+    expectSame(await h.snapshot(), before, 'retry creates no replacement operation or outbox item');
+  } finally { h.close(); }
+});
+
 test('PE07 hostile descriptors never execute and invalid equipment shapes do not write', async () => {
   const h = await scaffold(); try {
     const host = await h.host(), before = await h.snapshot(); let getters = 0;
