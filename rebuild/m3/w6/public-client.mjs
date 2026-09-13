@@ -41,6 +41,10 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
   const resumeCommands=WorkoutCommands.createWorkoutCommands();
   const preparations = new Map(); let activeWorkout = null, unresolvedWorkout = null, preparationEpoch = 0;
   const workoutHistories = new WeakMap();
+  // Replacement observes the existing queue/write outcomes; it never changes a
+  // command's result or clears uncertainty through an unrelated read or finally.
+  let queuedWork = 0, queueEpoch = 0, replaced = false, replacementWriteUnknown = false, publicationUnknown = false;
+  let workoutWriteAtCut = false, preparedStartAtCut = false;
   function producerHistory(snapshot,candidate){
     if(projectWorkoutHistory===undefined)return {};
     // Only this candidate's authenticated history may enter the configured
@@ -52,8 +56,17 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       throw new StorageFailure('WORKOUT_HISTORY_PROJECTION_UNAVAILABLE',18);
     return {workoutFacts:copy(facts)};
   }
-  const current = () => isCurrentSession(sessionEpoch) === true;
-  const enqueue = action => { const task = tail.then(action); tail = task.catch(() => {}); return task; };
+  const current = () => !replaced && isCurrentSession(sessionEpoch) === true;
+  const enqueue = action => {
+    queuedWork++; queueEpoch++;
+    const task = tail.then(() => { workoutWriteAtCut = false; preparedStartAtCut = false; return action(); });
+    const finished = () => {
+      if (workoutWriteAtCut && !preparedStartAtCut) replacementWriteUnknown = true;
+      queuedWork--;
+    };
+    tail = task.then(finished, finished);
+    return task;
+  };
   function contextFailure(epoch) {
     try {
       if (!current()) return refusal(17, "SESSION_CHANGED", reasonFor(17));
@@ -62,6 +75,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     } catch { return refusal(18, "CONTEXT_UNPROVEN", reasonFor(18)); }
   }
   function completedOutcome(result) {
+    if (workoutWriteAtCut && !preparedStartAtCut && !(result.acknowledged === true && result.durableRevision) &&
+        !["TRANSACTION_ABORTED", "TRANSACTION_WRITE_FAILED"].includes(result.code)) replacementWriteUnknown = true;
+    workoutWriteAtCut = false;
     const changed = contextFailure(activeContext?.observationEpoch ?? null);
     if (changed && result.durableRevision) {
       lateRefusal = { ...changed, stored: true, durable: true, confirmed: false, acknowledged: false, committed: true, committedRevision: result.durableRevision };
@@ -70,10 +86,11 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     if (result.durableRevision) visibleEpoch = activeContext?.observationEpoch ?? null;
     return result;
   }
-  async function verifiedHistory(generation, signedOperationIds = null, recoveryReceipts = null) {
+  async function verifiedHistory(generation, signedOperationIds = null, recoveryReceipts = null, checkpoint = null) {
     const epoch=observationEpoch();
     const receipts=await authenticateRecoveryArchives({generation,repository,recovery,keys,publicVerifier:verifier,athleteId,deviceId,signedOperationIds,collectReceipts:recoveryReceipts!==null,
-      assertContext:()=>{const changed=contextFailure(epoch)||lateRefusal;if(changed)throw new StorageFailure(changed.code,changed.state);}});
+      assertContext:()=>{const changed=contextFailure(epoch)||lateRefusal;if(changed)throw new StorageFailure(changed.code,changed.state);checkpoint?.assert();}});
+    if(checkpoint){checkpoint.assert();await checkpoint.read();checkpoint.assert();}
     if(recoveryReceipts)for(const receipt of receipts)recoveryReceipts.push(receipt);
     const families = generation.metadata.wireProofs || {};
     const methods = { disposition: "verifyDisposition", pull: "verifyPull", snapshot: "verifySnapshot", lease: "verifyLease", time: "verifyServerTime", currentHead: "verifyCurrentHead" };
@@ -83,7 +100,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if (!method || !records || typeof records !== "object" || Array.isArray(records)) return false;
       for (const record of Object.values(records)) {
         if (kind === "currentHead") {
-          if (!await verifyHistoricalHead(verifier, record, athleteId, deviceId)) return false;
+          const valid=await verifyHistoricalHead(verifier, record, athleteId, deviceId);
+          if(checkpoint){checkpoint.assert();await checkpoint.read();checkpoint.assert();}
+          if (!valid) return false;
           if (signedOperationIds) for (const receipt of record.receipts) {
             const retained = generation.collections.ops?.[receipt.op_id];
             if (!retained || !sameRecordedValue(retained, receipt.op)) return false;
@@ -91,7 +110,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
           }
           continue;
         }
-        if (!await verifier[method](record)) return false;
+        const valid=await verifier[method](record);
+        if(checkpoint){checkpoint.assert();await checkpoint.read();checkpoint.assert();}
+        if (!valid) return false;
         if (kind !== "disposition" && (record.athlete_id !== athleteId || record.device_id !== deviceId)) return false;
         if (kind === "disposition") {
           const op = generation.collections.ops?.[record.op_id];
@@ -101,7 +122,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
           const receipts = kind === "pull" ? record.receipts : record.entries;
           if (!Array.isArray(receipts)) return false;
           for (const receipt of receipts) {
-            if (!await verifier.verifyReceipt(receipt) || receipt.op?.athlete_id !== athleteId) return false;
+            const validReceipt=await verifier.verifyReceipt(receipt);
+            if(checkpoint){checkpoint.assert();await checkpoint.read();checkpoint.assert();}
+            if (!validReceipt || receipt.op?.athlete_id !== athleteId) return false;
             // T2 persists an index (op_id/commitment), not receipt.op. Original
             // signed proof is retained separately; its acknowledged fact must
             // still exist exactly in the authenticated operation collection.
@@ -206,17 +229,23 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     const decision = validateCommit(context);
     // The downstream synchronous validator can itself learn adverse context.
     // Recheck the captured head immediately before returning permission to IDB.
-    return decision || (activeEdit&&(contextFailure(context.observationEpoch)||editFailure(context))) || (activeResume&&(contextFailure(context.observationEpoch)||resumeFailure(context))) || (context.command === "@currentHead" && (contextFailure(context.observationEpoch) || headFailure(context))) ||
+    const guarded = decision || (activeEdit&&(contextFailure(context.observationEpoch)||editFailure(context))) || (activeResume&&(contextFailure(context.observationEpoch)||resumeFailure(context))) || (context.command === "@currentHead" && (contextFailure(context.observationEpoch) || headFailure(context))) ||
       ((capturedStart(context) || captureEnabled && context.command === "workout" && context.args?.action === "start") &&
         (contextFailure(context.observationEpoch) || workoutFailure(context))) || decision;
+    if (!guarded && ["workout", "logSession", "logSet", "finishSession"].includes(context.command)) {
+      workoutWriteAtCut = true; preparedStartAtCut = activeWorkout !== null;
+    }
+    return guarded;
   }, stage: stageVerified });
-  async function stageVerified(generation, command, args, { authenticateLocalHistory = false, requireCurrentProjection = false, authenticateWorkoutHistory = false } = {}) {
+  async function stageVerified(generation, command, args, { authenticateLocalHistory = false, requireCurrentProjection = false, authenticateWorkoutHistory = false, checkpoint = null } = {}) {
     activeGrant?.retire(); activeGrant = null;
     if (!current()) throw new StorageFailure("SESSION_CHANGED", 17);
     const epoch = observationEpoch();
     const signedOperationIds = authenticateLocalHistory || authenticateWorkoutHistory || projectReadings !== undefined ? new Set() : null;
     const recoveryReceipts = authenticateWorkoutHistory ? [] : null;
-    if (!await verifiedHistory(generation, signedOperationIds, recoveryReceipts)) throw new StorageFailure("HISTORICAL_PROOF_UNPROVEN", 18);
+    const historyVerified=await verifiedHistory(generation, signedOperationIds, recoveryReceipts, checkpoint);
+    if(checkpoint){checkpoint.assert();await checkpoint.read();checkpoint.assert();}
+    if (!historyVerified) throw new StorageFailure("HISTORICAL_PROOF_UNPROVEN", 18);
     // Authenticate history first; a restored historical snapshot cannot grant
     // a current prescription. A qualified projection/publish join is still
     // required. History reads and performed-fact corrections do not require
@@ -235,7 +264,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       }
     }
     const lease = copy(command === "@lease" ? activeProof?.record : generation.metadata.authorityLease);
-    if (!lease || !await verifier.verifyLease(lease) || lease.athlete_id !== athleteId || lease.device_id !== deviceId || lease.schema_version !== schemaVersion) throw new StorageFailure("LEASE_PROOF_UNPROVEN", 18);
+    const leaseVerified=lease && await verifier.verifyLease(lease);
+    if(checkpoint){checkpoint.assert();await checkpoint.read();checkpoint.assert();}
+    if (!leaseVerified || lease.athlete_id !== athleteId || lease.device_id !== deviceId || lease.schema_version !== schemaVersion) throw new StorageFailure("LEASE_PROOF_UNPROVEN", 18);
     if (command === "@lease" && generation.metadata.authorityLease && Canonical.canonicalEncode(lease) !== Canonical.canonicalEncode(generation.metadata.authorityLease)) throw new StorageFailure("LEASE_RENEWAL_UNIMPLEMENTED", 18);
     let expectedOperation = null, disposition = null;
     if (command === "@disposition") {
@@ -265,6 +296,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       throw new StorageFailure("OPERATION_SCHEMA_MISMATCH", 20);
     }
     const staged={ ...candidate, context: { namespace, sessionEpoch, observationEpoch: epoch } };
+    checkpoint?.assert();
     if(history)workoutHistories.set(staged,history);
     return staged;
   }
@@ -276,6 +308,97 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
         !Object.hasOwn(descriptors[k], "value") || !descriptors[k].enumerable) || required.some(k => !Object.hasOwn(descriptors, k)))
       throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
     return Object.fromEntries(names.map(k => [k, descriptors[k].value]));
+  }
+  function submittedReplacement(expected, callbacks) {
+    try {
+      const basis = closedInput(expected, ['namespace','athleteId','deviceId','sessionEpoch','observationEpoch','revision','token']);
+      const pair = closedInput(callbacks, ['isReplacementCurrent','publishReplacement']);
+      if (!['namespace','athleteId','deviceId','token'].every(k => typeof basis[k] === 'string' && basis[k].trim()) ||
+          !['sessionEpoch','observationEpoch'].every(k => typeof basis[k] === 'string' || typeof basis[k] === 'number' && Number.isFinite(basis[k])) ||
+          !Number.isSafeInteger(basis.revision) || basis.revision < 1 ||
+          !Object.values(pair).every(fn => typeof fn === 'function' && Object.getPrototypeOf(fn) === Function.prototype)) return null;
+      // Reject evident async/generator/accessor shapes. This is not proof of
+      // purity: these two capabilities belong only to reviewed internal code.
+      return { basis, ...pair };
+    } catch { return null; }
+  }
+  async function replaceIdleWorkoutHost(input, attempt) {
+    const fail = (code, state = 3) => { throw new StorageFailure(code, state); };
+    try {
+      if (!input) fail('WORKOUT_REPLACEMENT_INPUT_INVALID');
+      if (!captureEnabled) fail('WORKOUT_PREPARATION_NOT_CONFIGURED');
+      const {basis,isReplacementCurrent,publishReplacement} = input;
+      const assertIdle = () => {
+        const changed = contextFailure(basis.observationEpoch) || lateRefusal;
+        if (changed) fail(changed.code, changed.state);
+        if (basis.namespace !== namespace || basis.athleteId !== athleteId || basis.deviceId !== deviceId || basis.sessionEpoch !== sessionEpoch)
+          fail('WORKOUT_REPLACEMENT_SCOPE_CHANGED', 18);
+        if (publicationUnknown) fail('WORKOUT_REPLACEMENT_PUBLICATION_UNRESOLVED');
+        if (replacementWriteUnknown) fail('WORKOUT_REPLACEMENT_WRITE_UNRESOLVED');
+        if (unresolvedWorkout) fail('WORKOUT_START_OUTCOME_UNRESOLVED');
+        if (attempt.hadWork || queuedWork !== 1 || queueEpoch !== attempt.epoch || preparationEpoch !== attempt.lifetime ||
+            activeWorkout || activeResume || activeEdit || activeHead || historyAttempt || timeInFlight ||
+            [...preparations.values()].some(entry => entry.phase === 'starting' || entry.phase === 'uncertain'))
+          fail('WORKOUT_REPLACEMENT_BUSY');
+      };
+      const checkpoint = { assert: assertIdle, async read() {
+        assertIdle();
+        const snapshot = await repository.load();
+        assertIdle();
+        if (snapshot.revision !== basis.revision || snapshot.token !== basis.token) fail('WORKOUT_REPLACEMENT_STALE');
+        return snapshot;
+      } };
+      assertIdle();
+      let proved = false, visits = 0;
+      await observationGuard.run('idle-workout-replacement', async () => {
+        // Complete the observation guard itself before publication: a guard
+        // that rejects after its callback must not leave a published candidate.
+        if (++visits !== 1) fail('WORKOUT_REPLACEMENT_GUARD_INVALID', 18);
+        const snapshot = await checkpoint.read(); assertIdle();
+        const candidate = await stageVerified(copy(snapshot.generation), null, null,
+          {authenticateWorkoutHistory:true,requireCurrentProjection:true,checkpoint});
+        assertIdle();
+        if (!candidate.view || candidate.result?.state) fail(candidate.result?.code || 'WORKOUT_REPLACEMENT_HISTORY_UNPROVEN', candidate.result?.state || 18);
+        if (candidate.context.namespace !== basis.namespace || candidate.context.sessionEpoch !== basis.sessionEpoch ||
+            candidate.context.observationEpoch !== basis.observationEpoch) fail('WORKOUT_REPLACEMENT_SCOPE_CHANGED',18);
+        if (candidate.view.paint !== 'TRUTHFUL' || ![0,1,2].includes(candidate.view.state))
+          fail('WORKOUT_REPLACEMENT_STANDING_UNPROVEN', candidate.view.state || 18);
+        const history = workoutHistories.get(candidate), historyFailure = workoutHistoryFailure(snapshot.generation, history);
+        if (historyFailure) fail(historyFailure.code, historyFailure.state);
+        // Reuse the shared interpretation, including its uncertainty, across
+        // ALL dates. A close never erases rejected/unresolved/foreign records.
+        if (snapshot.generation.collections.sync?.frontier?.authorityW !== history.frontier || history.other_records.length ||
+            history.sessions.some(session => !session.original || session.capture_issues.length ||
+              [session.start,...session.records].some(row => !['accepted-through-frontier','stored-on-this-device'].includes(row.status) ||
+                row.operation.device_id !== deviceId || row.operation.schema_version !== 2) ||
+              [session.projection.start_record,...session.projection.facts,...session.projection.skip_records,...session.projection.close_records]
+                .some(record => record.included === null || record.issues.length))) fail('WORKOUT_REPLACEMENT_HISTORY_UNPROVEN',18);
+        await checkpoint.read(); assertIdle(); proved = true;
+      });
+      assertIdle();
+      if (!proved || visits !== 1) fail('WORKOUT_REPLACEMENT_GUARD_INVALID',18);
+      await checkpoint.read(); assertIdle();
+      let ready;
+      try { ready = isReplacementCurrent(); } catch { fail('WORKOUT_REPLACEMENT_NOT_CURRENT'); }
+      if (ready !== true) fail('WORKOUT_REPLACEMENT_NOT_CURRENT');
+      assertIdle(); // The currentness capability can synchronously reenter.
+      // Final no-await turn. The trusted publisher may ONLY assign a fully
+      // constructed bundle reference and return undefined, without throwing.
+      // Arbitrary external effects cannot be rolled back on contract violation.
+      try {
+        if (publishReplacement() !== undefined) throw new Error('Unexpected publication result');
+        assertIdle();
+      } catch {
+        publicationUnknown = true;
+        return {...refusal(18,'WORKOUT_REPLACEMENT_PUBLICATION_UNKNOWN','Replacement publication is unknown; rebuild the trusted host before another replacement.'),replaced:false,outcomeUnknown:true};
+      }
+      for (const entry of preparations.values()) if (entry.phase === 'ready') entry.retired = true;
+      replaced = true;
+      return {replaced:true,stored:false,durable:false,sourceRevision:basis.revision};
+    } catch (error) {
+      return {...refusal(error.state || 18,error.code || 'WORKOUT_REPLACEMENT_UNPROVEN','This replacement did not reach publication.'),replaced:false,
+        ...(['WORKOUT_START_OUTCOME_UNRESOLVED','WORKOUT_REPLACEMENT_WRITE_UNRESOLVED','WORKOUT_REPLACEMENT_PUBLICATION_UNRESOLVED'].includes(error.code)?{outcomeUnknown:true}:{})};
+    } finally { activeGrant?.retire(); activeGrant = null; }
   }
   function workoutCaptureContext(resolved,revision){
     return {producer:producerIdentity,basis:{plan_basis:resolved.plan_basis,input_basis:resolved.input_basis,source_revision:revision},
@@ -534,6 +657,11 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     finally { activeGrant?.retire(); activeGrant = null; activeProof = null; }
   }
   return Object.freeze({
+    replaceIdleWorkoutHost(expected, callbacks) {
+      const input = submittedReplacement(expected, callbacks);
+      const attempt = {hadWork:queuedWork > 0,epoch:queueEpoch + 1,lifetime:preparationEpoch};
+      return enqueue(() => replaceIdleWorkoutHost(input, attempt));
+    },
     prepareLocalRecovery() { return enqueue(async()=>{
       try {
         if(!recovery?.codec||!recovery?.protocol||!recovery?.scopeDigest)throw new StorageFailure("RECOVERY_CONFIGURATION_REQUIRED",18);
@@ -580,6 +708,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     commitWorkoutEdit(request){let input;try{const raw=closedInput(request,['editId','action','change']);resumeCommands.prepare({action:raw.action,input:raw.action==='correct'?{replacement_fields:raw.change}:{reason:raw.change}});input=copy(raw);}catch{input=null;}return enqueue(()=>commitWorkoutEdit(input));},
     startPreparedWorkout(request) { const input = submittedWorkout(request, true); return enqueue(() => startPreparedWorkout(input)); },
     retireWorkoutPreparations() {
+      queueEpoch++;
       preparationEpoch++;
       for (const entry of preparations.values()) {
         entry.retired = true;
@@ -615,6 +744,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       return enqueue(() => accept(kind, record, expectedWatermark));
     },
     invalidateCurrentHead() {
+      queueEpoch++;
       historyAttempt = null;
       boundary.invalidateHistoryChallenge?.();
     },
@@ -623,6 +753,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
         return { accepted: false, ...refusal(12, "CURRENT_HEAD_UNSUPPORTED", "The current-history protocol is not installed.") };
       if (typeof request !== "function" || typeof issuanceAttempt !== "string" || !issuanceAttempt || issuanceAttempt.length > 128)
         return { accepted: false, ...refusal(12, "CURRENT_HEAD_REQUEST_INVALID", "A bound history request is required.") };
+      queueEpoch++;
       let captured;
       try {
         const outcome = await observationGuard.run("current-head-exchange", async () => {

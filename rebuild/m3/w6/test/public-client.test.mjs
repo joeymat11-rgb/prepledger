@@ -327,3 +327,23 @@ test("B11 pending time network request does not stall an allowed local write or 
   } finally { clearTimeout(timer); release.resolve(); }
   assert.equal((await exchange).accepted, true); assert.equal(Object.keys((await f.repo.load()).generation.collections.outbox).length, 1); f.repo.close();
 });
+
+test("idle replacement: a client without capture configuration refuses without changing ordinary commands", async () => {
+  const f=await setup();try{
+    const before=await f.repo.load();let calls=0;
+    const expected={namespace:f.args.namespace,athleteId:f.args.athleteId,deviceId:f.args.deviceId,sessionEpoch:1,observationEpoch:1,revision:before.revision,token:before.token};
+    const no=await f.c.replaceIdleWorkoutHost(expected,{isReplacementCurrent:()=>true,publishReplacement(){calls++;}});
+    assert.equal(no.code,"WORKOUT_PREPARATION_NOT_CONFIGURED");assert.equal(no.replaced,false);assert.equal(calls,0);assert.deepEqual(await f.repo.load(),before);
+    const first=await f.c.execute("weighIn",{lb:170}),second=await f.c.execute("weighIn",{lb:169});
+    assert.equal(first.acknowledged,true);assert.equal(second.acknowledged,true);assert.equal(second.durableRevision,first.durableRevision+1);
+    assert.equal(Object.keys((await f.repo.load()).generation.collections.outbox).length,2);assert((await f.c.reopen()).view);
+  }finally{f.repo.close();}
+});
+test("idle replacement: malformed capabilities cannot invoke getters or interrupt the ordinary queue",async()=>{
+  const f=await setup();try{let hits=0;const callbacks=Object.defineProperty({isReplacementCurrent:()=>true},"publishReplacement",{enumerable:true,get(){hits++;return ()=>{};}});
+    const before=await f.repo.load(),expected={namespace:f.args.namespace,athleteId:f.args.athleteId,deviceId:f.args.deviceId,sessionEpoch:1,observationEpoch:1,revision:before.revision,token:before.token};
+    const pending=f.c.execute("weighIn",{lb:170}),refused=f.c.replaceIdleWorkoutHost(expected,callbacks),next=f.c.execute("weighIn",{lb:169});
+    assert.equal((await pending).acknowledged,true);assert.equal((await refused).code,"WORKOUT_REPLACEMENT_INPUT_INVALID");assert.equal((await next).acknowledged,true);assert.equal(hits,0);
+    assert.equal(Object.keys((await f.repo.load()).generation.collections.ops).length,2);
+  }finally{f.repo.close();}
+});

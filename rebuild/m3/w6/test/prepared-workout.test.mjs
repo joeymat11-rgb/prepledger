@@ -958,3 +958,249 @@ test('v2 uncertain Start reconciles its same stored capture once without invokin
   const ops=await operations(f);assert.equal(Object.keys(ops).length,1);assert.equal(JSON.stringify(ops[recovered.op_id].prescription_capture),original);
  }finally{f.repo.close();}
 });
+
+// PM308/312 foundation controls. These callbacks emulate a trusted future host;
+// they are not a production controller, consumer, import or phone qualification.
+async function replacementBasis(f){const snapshot=await f.repo.load();return {
+ namespace:f.args.namespace,athleteId:f.args.athleteId,deviceId:f.args.deviceId,sessionEpoch:f.args.sessionEpoch,
+ observationEpoch:f.scope.observation,revision:snapshot.revision,token:snapshot.token};}
+async function replaceHost(f,callbacks,basis){return f.c.replaceIdleWorkoutHost(basis||await replacementBasis(f),callbacks);}
+const replacementCallbacks=publishReplacement=>({isReplacementCurrent:()=>true,publishReplacement});
+async function expectReplacementRefused(f,code,callbacks,basis){
+ let calls=0;const before=await f.repo.load(),r=await replaceHost(f,callbacks||replacementCallbacks(()=>{calls++;}),basis);
+ assert.equal(r.replaced,false,JSON.stringify(r));if(code)assert.equal(r.code,code,JSON.stringify(r));
+ assert.equal(calls,0);assert.equal(r.stored,false);assert.equal(r.durable,false);assert.equal(r.acknowledged,undefined);
+ assert.deepEqual(await f.repo.load(),before);return r;
+}
+for(const prepared of [false,true])test(`idle replacement: idle ${prepared?'prepared':'unprepared'} host publishes exactly once without a write`,async()=>{
+ const f=await setup();try{
+  const p=prepared?await prepare(f):null;if(p)assert.equal(p.prepared,true);
+  const next=recreate(f);let host=f.c,calls=0;const before=await f.repo.load(),basis=await replacementBasis(f);
+  const callbacks=replacementCallbacks(()=>{calls++;host=next;});
+  const r=await f.c.replaceIdleWorkoutHost(basis,callbacks);assert.equal(r.replaced,true,JSON.stringify(r));
+  assert.equal(r.sourceRevision,before.revision);assert.equal(r.stored,false);assert.equal(r.durable,false);assert.equal(r.acknowledged,undefined);
+  assert.equal(calls,1);assert.equal(host,next);assert.deepEqual(await f.repo.load(),before);assert.equal(f.produced(),prepared?1:0);
+  assert.equal((await f.c.replaceIdleWorkoutHost(basis,callbacks)).code,'SESSION_CHANGED');assert.equal(calls,1);
+  assert.equal((await start(f,p||{preparedId:'missing'})).code,'SESSION_CHANGED');assert.notEqual((await prepare(f)).prepared,true);
+  assert.deepEqual(await f.repo.load(),before);
+  const fresh=await next.prepareWorkout({planned_split_slot_id:'replacement-slot'});assert.equal(fresh.prepared,true);
+  assert.equal((await next.startPreparedWorkout({preparedId:fresh.preparedId})).acknowledged,true);
+ }finally{f.repo.close();}
+});
+test('idle replacement: fully closed recorded workout preserves complete generation ops outbox and retained history',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f));assert.equal(a.acknowledged,true);
+  for(const slot of ['slot-0','slot-1','slot-2'])assert.equal((await perform(f,a.op_id,slot)).acknowledged,true);
+  assert.equal((await close(f,a.op_id)).acknowledged,true);const before=await f.repo.load();assert.equal(Object.keys(before.generation.collections.ops).length,5);
+  assert.equal(Object.keys(before.generation.collections.outbox).length,5);let calls=0;
+  assert.equal((await replaceHost(f,replacementCallbacks(()=>{calls++;}))).replaced,true);assert.equal(calls,1);
+  assert.deepEqual(await f.repo.load(),before);assert.equal((await start(f,{preparedId:'uncreated'})).code,'SESSION_CHANGED');
+ }finally{f.repo.close();}
+});
+for(const cause of ['false','throw','promise'])test(`idle replacement: ${cause} before publication retains the old usable preparation`,async()=>{
+ const f=await setup();try{const p=await prepare(f),before=await f.repo.load();let calls=0;
+  const callbacks={isReplacementCurrent(){if(cause==='throw')throw Error('Synthetic currentness failure');return cause==='promise'?Promise.resolve(true):false;},publishReplacement(){calls++;}};
+  await expectReplacementRefused(f,'WORKOUT_REPLACEMENT_NOT_CURRENT',callbacks);
+  assert.equal(calls,0);assert.deepEqual(await f.repo.load(),before);assert.equal((await start(f,p)).acknowledged,true);assert.equal(f.produced(),1);
+ }finally{f.repo.close();}
+});
+test('idle replacement: actual failed candidate preparation leaves the old bundle usable',async()=>{
+ const f=await setup();try{const p=await prepare(f),old=f.c;let host=old,calls=0;
+  const next=createDurablePublicClient({...f.args,workoutProducer(){throw Error('Synthetic candidate construction failure');}});
+  const candidate=await next.prepareWorkout({planned_split_slot_id:'replacement-slot'});assert.notEqual(candidate.prepared,true);
+  assert.equal(candidate.code,'WORKOUT_PREPARATION_INVALID');
+  await expectReplacementRefused(f,'WORKOUT_REPLACEMENT_NOT_CURRENT',{isReplacementCurrent:()=>candidate.prepared===true,publishReplacement(){calls++;host=next;}});
+  assert.equal(host,old);assert.equal(calls,0);assert.equal((await start(f,p)).acknowledged,true);assert.equal(f.produced(),1);
+ }finally{f.repo.close();}
+});
+for(const cause of ['throw-before','assign-throw','assign-promise','assign-value'])test(`idle replacement: publisher ${cause} is unknown publication without rolling back external effects`,async()=>{
+ const f=await setup();try{const p=await prepare(f),old=f.c,next=recreate(f);let host=old,calls=0;
+  const r=await expectReplacementRefused(f,'WORKOUT_REPLACEMENT_PUBLICATION_UNKNOWN',replacementCallbacks(()=>{
+   calls++;if(cause==='throw-before')throw Error('Before assignment');host=next;
+   if(cause==='assign-throw')throw Error('After assignment');return cause==='assign-promise'?Promise.resolve():42;
+  }));
+  assert.equal(r.outcomeUnknown,true);assert.equal(calls,1);assert.equal(host,cause==='throw-before'?old:next);
+  assert.equal((await expectReplacementRefused(f,'WORKOUT_REPLACEMENT_PUBLICATION_UNRESOLVED')).outcomeUnknown,true);
+  assert.equal((await start(f,p)).acknowledged,true);assert.equal(f.produced(),1); // Old preparation was NOT retired.
+  assert.equal(host,cause==='throw-before'?old:next); // External assignment was NOT undone.
+ }finally{f.repo.close();}
+});
+for(const bad of ['expected-getter','callback-getter','async-check','async-publish','generator-check','generator-publish','missing-token','object-epoch','extra'])test(`idle replacement: rejects ${bad} capability shape before any accessor or publication`,async()=>{
+ const f=await setup();try{const p=await prepare(f),basis=await replacementBasis(f);let hits=0;
+  const callbacks=replacementCallbacks(()=>{hits++;});
+  if(bad==='expected-getter')Object.defineProperty(basis,'token',{enumerable:true,get(){hits++;return 'bad';}});
+  if(bad==='callback-getter')Object.defineProperty(callbacks,'publishReplacement',{enumerable:true,get(){hits++;return ()=>{};}});
+  if(bad==='async-check')callbacks.isReplacementCurrent=async()=>true;if(bad==='async-publish')callbacks.publishReplacement=async()=>{hits++;};
+  if(bad==='generator-check')callbacks.isReplacementCurrent=function*(){hits++;yield true;};if(bad==='generator-publish')callbacks.publishReplacement=function*(){hits++;};
+  if(bad==='missing-token')delete basis.token;if(bad==='object-epoch')basis.observationEpoch={value:1};if(bad==='extra')basis.idle=true;
+  await expectReplacementRefused(f,'WORKOUT_REPLACEMENT_INPUT_INVALID',callbacks,basis);assert.equal(hits,0);
+  assert.equal((await start(f,p)).acknowledged,true);
+ }finally{f.repo.close();}
+});
+for(const key of ['namespace','athleteId','deviceId','sessionEpoch','observationEpoch','revision','token'])test(`idle replacement: actual ${key} binding cannot be replaced by caller claims`,async()=>{
+ const f=await setup();try{const p=await prepare(f),basis=await replacementBasis(f);basis[key]=typeof basis[key]==='number'?basis[key]+1:basis[key]+'-other';
+  await expectReplacementRefused(f,key==='observationEpoch'?'OBSERVATION_CHANGED':['revision','token'].includes(key)?'WORKOUT_REPLACEMENT_STALE':'WORKOUT_REPLACEMENT_SCOPE_CHANGED',undefined,basis);
+  assert.equal((await start(f,p)).acknowledged,true);
+ }finally{f.repo.close();}
+});
+for(const condition of ['active-today','unfinished-earlier','legacy-closed','other-device-closed','rejected-start','rejected-close','unproved-local','unproved-signature','unresolved-edit','unproved-prefix'])test(`idle replacement: ${condition} history never proves idle`,async()=>{
+ const f=await setup();try{
+  if(condition==='legacy-closed')await readLegacy(f,[...legacyWriter().model.ops.values()]);
+  else if(condition==='other-device-closed'){
+   const other=await setup();try{const a=await start(other,await prepare(other));await close(other,a.op_id);
+    const ops=Object.values(await operations(other)).map(op=>{const r=structuredClone(op);r.device_id='dev-B';r.canonical_content_commitment=Client.ops.commitmentOf(r,O.K_IDENTITY);return r;});
+    await readLegacy(f,ops);
+   }finally{other.repo.close();}
+  }else{
+   const p=await prepare(f),a=await start(f,p,condition==='unfinished-earlier'?{effective:{local_date:'2026-09-03',local_time:'08:00:00',utc_offset:'+00:00'}}:{});
+   assert.equal(a.acknowledged,true,JSON.stringify(a));
+   let fact;if(condition==='unresolved-edit'){fact=await perform(f,a.op_id);await editSet(f,fact.op_id,{reps:{value:9,unit:'rep'}});await editSet(f,fact.op_id,{reps:{value:10,unit:'rep'}});}
+   const ended=['active-today','unfinished-earlier'].includes(condition)?null:await close(f,a.op_id);if(ended)assert.equal(ended.acknowledged,true);
+   if(condition.startsWith('rejected-')){
+    const op=(await operations(f))[condition==='rejected-start'?a.op_id:ended.op_id];
+    const disposition=Sign.signDisposition({op_id:op.op_id,device_id:op.device_id,device_seq:op.device_seq,canonical_content_commitment:op.canonical_content_commitment,
+     status:'REJECTED',athlete_log_seq:null,rejection_code:'LEASE_EXPIRED',decided_at:'2026-09-04T00:00:00Z'},f.signingKey);
+    assert.equal((await f.c.acceptResponse('disposition',{wireVersion:Wire.WIRE_VERSION,body:{disposition}})).accepted,true);
+   }
+   if(['unproved-local','unproved-signature','unproved-prefix'].includes(condition)){
+    const s=await f.repo.load();
+    if(condition==='unproved-local')s.generation.collections.ops[a.op_id].prescription_capture.session.instruction.display='Rewritten';
+    if(condition==='unproved-signature')s.generation.metadata.authorityLease.signature='unproved-signature';
+    if(condition==='unproved-prefix')s.generation.collections.sync.frontier.authorityW=1;
+    await f.repo.commit(s,s.generation,()=>null);
+   }
+  }
+  f.c=recreate(f);await expectReplacementRefused(f);
+ }finally{f.repo.close();}
+});
+
+test('idle replacement: a previously queued history read refuses replacement even after that read completes',async()=>{
+ const f=await setup();try{const p=await prepare(f),basis=await replacementBasis(f),before=await f.repo.load();let calls=0;
+  const read=f.c.readWorkoutHistory(),replacement=f.c.replaceIdleWorkoutHost(basis,replacementCallbacks(()=>{calls++;}));
+  assert.equal((await read).read,true);assert.equal((await replacement).code,'WORKOUT_REPLACEMENT_BUSY');assert.equal(calls,0);
+  assert.deepEqual(await f.repo.load(),before);assert.equal((await start(f,p)).acknowledged,true);
+ }finally{f.repo.close();}
+});
+for(const phase of ['initial-read','verification','final-read','guard-exit'])for(const work of ['Start','edit'])test(`idle replacement: ${work} queued during ${phase} keeps its original scheduling and result`,async()=>{
+ const entered=deferred(),release=deferred();let armed=false,reads=0;
+ const pause=async()=>{if(armed){armed=false;entered.resolve();await release.promise;}};
+ const f=await setup({wrapRepository:repo=>({...repo,async load(){const s=await repo.load();if(armed&&++reads===(phase==='final-read'?6:1)&&phase.endsWith('read'))await pause();return s;}}),
+  client:{subtle:{importKey:(...a)=>webcrypto.subtle.importKey(...a),async verify(...a){const valid=await webcrypto.subtle.verify(...a);if(phase==='verification')await pause();return valid;}},
+   observationGuard:{async run(kind,fn){const r=await fn();if(kind==='idle-workout-replacement'&&phase==='guard-exit')await pause();return r;}}}});
+ try{
+  let edit;if(work==='edit'){const a=await start(f,await prepare(f)),set=await perform(f,a.op_id);await close(f,a.op_id);edit=await prepareEdit(f.c,set.op_id);assert.equal(edit.prepared,true);}
+  const p=await prepare(f),basis=await replacementBasis(f),before=await f.repo.load();let calls=0;
+  armed=true;reads=0;const replacement=f.c.replaceIdleWorkoutHost(basis,replacementCallbacks(()=>{calls++;}));await entered.promise;
+  const competitor=work==='Start'?start(f,p):correctPrepared(f.c,edit,{reps:{value:9,unit:'rep'}});
+  release.resolve();const no=await replacement;assert.equal(no.code,'WORKOUT_REPLACEMENT_BUSY',JSON.stringify(no));assert.equal(no.replaced,false);assert.equal(calls,0);
+  const saved=await competitor;assert.equal(saved.acknowledged,true,JSON.stringify(saved));
+  const after=await f.repo.load();assert.equal(Object.keys(after.generation.collections.ops).length,Object.keys(before.generation.collections.ops||{}).length+1);
+  assert.equal(after.revision,before.revision+1);
+ }finally{release.resolve();f.repo.close();}
+});
+async function resealSameRevision(f){const s=await f.repo.load(),iv=webcrypto.getRandomValues(new Uint8Array(12));
+ const aad=new TextEncoder().encode(JSON.stringify(['earned/local-generation/v1',1,f.setup.namespace,s.revision]));
+ const ciphertext=await webcrypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:aad,tagLength:128},f.key,new TextEncoder().encode(JSON.stringify(s.generation)));
+ await mutateActive(f.indexedDB,record=>({...record,iv,ciphertext}));const next=await f.repo.load();assert.equal(next.revision,s.revision);assert.notEqual(next.token,s.token);
+}
+for(const phase of ['initial-read','verification','final-read'])for(const change of ['revision','token','session','observation'])test(`idle replacement: ${change} changing during ${phase} refuses before publication`,async()=>{
+ const entered=deferred(),release=deferred();let armed=false,reads=0;
+ const pause=async()=>{if(armed){armed=false;entered.resolve();await release.promise;}};
+ const f=await setup({wrapRepository:repo=>({...repo,async load(){const s=await repo.load();if(armed&&++reads===(phase==='final-read'?6:1)&&phase.endsWith('read'))await pause();return s;}}),
+  client:{subtle:{importKey:(...a)=>webcrypto.subtle.importKey(...a),async verify(...a){const r=await webcrypto.subtle.verify(...a);if(phase==='verification')await pause();return r;}}}});
+ try{const p=await prepare(f),basis=await replacementBasis(f);let calls=0;armed=true;reads=0;
+  const pending=f.c.replaceIdleWorkoutHost(basis,replacementCallbacks(()=>{calls++;}));await entered.promise;
+  if(change==='revision'){const s=await f.repo.load();await f.repo.commit(s,s.generation,()=>null);}
+  if(change==='token')await resealSameRevision(f);if(change==='session')f.scope.session++;if(change==='observation')f.scope.observation++;
+  const before=await f.repo.load();release.resolve();const r=await pending;
+  assert.equal(r.replaced,false,JSON.stringify(r));assert.equal(r.code,change==='session'?'SESSION_CHANGED':change==='observation'?'OBSERVATION_CHANGED':'WORKOUT_REPLACEMENT_STALE');
+  assert.equal(calls,0);assert.deepEqual(await f.repo.load(),before);
+  if(change==='session'||change==='observation'){f.scope.session=1;f.scope.observation=1;assert.equal((await start(f,p)).acknowledged,true);}
+ }finally{release.resolve();f.repo.close();}
+});
+for(const behavior of ['throws-after','omits','twice'])test(`idle replacement: observation guard ${behavior} never publishes`,async()=>{
+ const f=await setup({client:{observationGuard:{async run(kind,fn){if(kind!=='idle-workout-replacement')return fn();
+  if(behavior==='omits')return;const r=await fn();if(behavior==='throws-after')throw Error('Synthetic guard failed after verification');await fn();return r;}}}});
+ try{const p=await prepare(f);await expectReplacementRefused(f);assert.equal((await start(f,p)).acknowledged,true);}finally{f.repo.close();}
+});
+test('idle replacement: synchronous currentness reentrancy cannot publish ahead of a queued Start',async()=>{
+ const f=await setup();try{const p=await prepare(f),basis=await replacementBasis(f);let pending,calls=0;
+  const r=await f.c.replaceIdleWorkoutHost(basis,{isReplacementCurrent(){pending=start(f,p);return true;},publishReplacement(){calls++;}});
+  assert.equal(r.code,'WORKOUT_REPLACEMENT_BUSY');assert.equal(calls,0);assert.equal((await pending).acknowledged,true);
+ }finally{f.repo.close();}
+});
+for(const invalidation of ['preparations','history'])test(`idle replacement: synchronous ${invalidation} invalidation changes the private fence`,async()=>{
+ const f=await setup();try{const p=await prepare(f);let calls=0;
+  const r=await replaceHost(f,{isReplacementCurrent(){if(invalidation==='preparations')f.c.retireWorkoutPreparations();else f.c.invalidateCurrentHead();return true;},publishReplacement(){calls++;}});
+  assert.equal(r.code,'WORKOUT_REPLACEMENT_BUSY');assert.equal(calls,0);
+  if(invalidation==='history')assert.equal((await start(f,p)).acknowledged,true);
+ }finally{f.repo.close();}
+});
+test('idle replacement: unknown Start retains same-handle authenticated retry without a second Start',async()=>{
+ let lose=true;const f=await setup({wrapRepository:repo=>({...repo,async commit(...a){const r=await repo.commit(...a);if(lose){lose=false;throw Error('Lost Start reply');}return r;}})});
+ try{const p=await prepare(f),lost=await start(f,p);assert.equal(lost.outcomeUnknown,true);
+  const r=await expectReplacementRefused(f,'WORKOUT_START_OUTCOME_UNRESOLVED');assert.equal(r.outcomeUnknown,true);
+  const saved=await start(f,p);assert.equal(saved.acknowledged,true);assert.equal(saved.recovered,true);assert.equal(Object.keys(await operations(f)).length,1);
+  assert.equal((await close(f,saved.op_id)).acknowledged,true);let calls=0;
+  assert.equal((await replaceHost(f,replacementCallbacks(()=>{calls++;}))).replaced,true);assert.equal(calls,1);assert.equal(f.produced(),1);
+ }finally{f.repo.close();}
+});
+for(const command of ['edit','resume','general-close'])test(`idle replacement: unknown ${command} write remains fenced after finally unrelated success and read`,async()=>{
+ let lose=false;const f=await setup({client:{workoutResumePolicy:resumePolicy},wrapRepository:repo=>({...repo,async commit(...a){const r=await repo.commit(...a);if(lose){lose=false;throw Error('Synthetic durable write lost reply');}return r;}})});
+ try{const a=await start(f,await prepare(f));let pending;
+  if(command==='edit'){const set=await perform(f,a.op_id);await close(f,a.op_id);const p=await prepareEdit(f.c,set.op_id);assert.equal(p.prepared,true);lose=true;pending=correctPrepared(f.c,p,{reps:{value:9,unit:'rep'}});}
+  else if(command==='resume'){const p=await resume(f.c,a.op_id);assert.equal(p.prepared,true);lose=true;pending=f.c.executeResumedWorkout({resumeId:p.resumeId,action:'close',input:{session_start_op_id:a.op_id,completion_kind:'early',causal_parents:[a.op_id]}});}
+  else{lose=true;pending=close(f,a.op_id);}
+  const lost=await pending;assert.equal(lost.acknowledged,false);assert.equal(lost.code,'STAGING_FAILED');
+  if(command==='edit')assert.equal(lost.outcomeUnknown,true);else assert.equal(lost.outcomeUnknown,undefined); // Preserve original result shape.
+  const s=await f.repo.load();assert.equal(Object.values(s.generation.collections.ops).filter(op=>op.kind==='session-close').length,1);
+  const accepted=await f.c.acceptResponse('lease',{wireVersion:Wire.WIRE_VERSION,body:{lease:s.generation.metadata.authorityLease}});assert.equal(accepted.accepted,true,JSON.stringify(accepted));
+  assert.equal((await f.c.readWorkoutHistory()).read,true);assert((await f.c.reopen()).view);
+  assert.equal((await expectReplacementRefused(f,'WORKOUT_REPLACEMENT_WRITE_UNRESOLVED')).outcomeUnknown,true);
+  assert.equal((await expectReplacementRefused(f,'WORKOUT_REPLACEMENT_WRITE_UNRESOLVED')).outcomeUnknown,true);
+  // A new handle authenticates the actual closed history; it does not clear or retry the old handle's uncertainty.
+  const fresh=recreate(f);let calls=0;const before=await f.repo.load();
+  assert.equal((await fresh.replaceIdleWorkoutHost(await replacementBasis(f),replacementCallbacks(()=>{calls++;}))).replaced,true);assert.equal(calls,1);assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+test('idle replacement: a known aborted edit does not create a false unknown-write fence',async()=>{
+ const faults=faultDatabase(),f=await setup({repository:{indexedDB:faults.indexedDB}});
+ try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id);await close(f,a.op_id);const p=await prepareEdit(f.c,set.op_id),before=await f.repo.load();
+  faults.state.armed=true;faults.state.mode='quota';const no=await correctPrepared(f.c,p,{reps:{value:9,unit:'rep'}});faults.state.armed=false;
+  assert.equal(no.acknowledged,false);assert(['TRANSACTION_ABORTED','TRANSACTION_WRITE_FAILED'].includes(no.code),JSON.stringify(no));assert.deepEqual(await f.repo.load(),before);
+  assert.equal((await replaceHost(f,replacementCallbacks(()=>{}))).replaced,true);
+ }finally{faults.state.armed=false;f.repo.close();}
+});
+
+for(const kind of ['time','head'])test(`idle replacement: an in-flight ${kind} exchange is not idle even while the write queue is free`,async()=>{
+ const entered=deferred(),release=deferred(),f=await setup();let exchange;
+ try{const p=await prepare(f);const request=async()=>{entered.resolve();await release.promise;return {wireVersion:'synthetic-invalid-response'};};
+  exchange=kind==='time'?f.c.exchangeServerTime(request):f.c.exchangeCurrentHead(request,{issuanceAttempt:'synthetic-idle-head'});
+  await entered.promise;await expectReplacementRefused(f,'WORKOUT_REPLACEMENT_BUSY');
+  assert.equal((await start(f,p)).acknowledged,true); // Existing local scheduling remains usable while HTTP waits.
+ }finally{release.resolve();if(exchange)await exchange;f.repo.close();}
+});
+for(const command of ['Start','edit','resume-close'])test(`idle replacement: queued behind an active ${command} cannot erase that operation`,async()=>{
+ const faults=faultDatabase(),f=await setup({repository:{indexedDB:faults.indexedDB},client:{workoutResumePolicy:resumePolicy}});
+ try{let request;
+  if(command==='Start'){const p=await prepare(f);request=()=>start(f,p);}
+  else{const a=await start(f,await prepare(f));
+   if(command==='edit'){const set=await perform(f,a.op_id);await close(f,a.op_id);const p=await prepareEdit(f.c,set.op_id);request=()=>correctPrepared(f.c,p,{reps:{value:9,unit:'rep'}});}
+   else{const p=await resume(f.c,a.op_id);request=()=>f.c.executeResumedWorkout({resumeId:p.resumeId,action:'close',input:{session_start_op_id:a.op_id,completion_kind:'early',causal_parents:[a.op_id]}});}
+  }
+  const before=await f.repo.load(),basis=await replacementBasis(f);faults.state.armed=true;faults.state.mode='delay';const pending=request();await faults.state.write.promise;
+  let calls=0;const replacement=f.c.replaceIdleWorkoutHost(basis,replacementCallbacks(()=>{calls++;}));faults.state.release=true;
+  assert.equal((await pending).acknowledged,true);assert.equal((await replacement).code,'WORKOUT_REPLACEMENT_BUSY');assert.equal(calls,0);
+  assert.equal((await f.repo.load()).revision,before.revision+1);
+ }finally{faults.state.release=true;f.repo.close();}
+});
+test('idle replacement: a late durable refusal survives observation restoration and blocks publication',async()=>{
+ const faults=faultDatabase(),f=await setup({repository:{indexedDB:faults.indexedDB}});
+ try{const p=await prepare(f);faults.state.armed=true;faults.state.mode='delay';const pending=start(f,p);await faults.state.write.promise;
+  f.scope.observation=2;faults.state.release=true;const result=await pending;assert.equal(result.acknowledged,false);assert.equal(result.committed,true);
+  f.scope.observation=1;await expectReplacementRefused(f,'OBSERVATION_CHANGED');assert.equal((await start(f,p)).acknowledged,false);
+ }finally{faults.state.release=true;f.repo.close();}
+});
+for(const standing of ['revoked','lease-expired','contract-obsolete'])test(`idle replacement: ${standing} standing is not inferred from a renderer history list`,async()=>{
+ const f=await setup({config:standing==='revoked'?{standing:'revoked'}:standing==='lease-expired'?{clock:{...config().clock,now:()=> '2030-01-01T00:00:00Z'}}:{contract:{client:'1',required:'2'}}});
+ try{await expectReplacementRefused(f,'WORKOUT_REPLACEMENT_STANDING_UNPROVEN');}finally{f.repo.close();}
+});
