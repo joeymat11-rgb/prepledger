@@ -77,3 +77,5 @@
 2026-09-13 07:27 ET · ER · Astra MAX · cc6a1315 · REJECT ff0c3c13 (first1d1356b). Tooling258/258; public checks pass. Three consumer/anchor failures and required Q2/B2/B1 proof gaps returned to B. Native/full/CI held; D2 separate. Exact local evidence adopted by PM; candidate ancestry untouched.
 
 2026-09-13 07:27 ET · PM-CARETAKER · Astra · ce9779dc765b5520ff68a45e500ef8953e0b7dd5 · B finite repairs assigned; missing-target contribution stays unavailable with real warnings retained. ERA30 literal-reference closure remains PM/B task. ER reviewing D S3 R2; memory map complete. No owner action or package/phone acceptance.
+
+2026-09-13 07:40 ET · PM-CARETAKER · Astra · ed211499f82b8dc0a4d3486e46218423f0e40dd3 · B R1/R2 reproduced then18 public checks pass; R7 found weekly summary inventing clean-night counts. Exact weekReview guard hunk released under246;8 failing consumer checks retained. ER S3 review ongoing; no owner action or full-package claim.
