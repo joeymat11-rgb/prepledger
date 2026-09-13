@@ -565,7 +565,7 @@
     },
     "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs": {
       "pre": null,
-      "post": "0dbb1b7e0aa9e26bc46858fe47f123e6fb2916ebe50cbcdf29d33fba9df0f0e8",
+      "post": "173287f88663086a71e9b49afe9c07e2790f33a1bfbfb840509939c7c5c02d5c",
       "role": "new"
     },
     "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs": {
@@ -1563,7 +1563,7 @@
         "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs",
         "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs"
       ],
-      "needle": "# pass 267"
+      "needle": "# pass 331"
     }
   ],
   "notes": [

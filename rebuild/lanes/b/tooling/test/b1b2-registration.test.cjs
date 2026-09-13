@@ -307,7 +307,9 @@ const fixtureScratch=fixtureModule.exports.scratches;
 test.after(()=>{for(const dir of fixtureScratch){const resolved=fs.realpathSync(dir),parent=fs.realpathSync(path.join(root,'.tmp'));assert.equal(path.dirname(resolved),parent);assert(path.basename(resolved).startsWith('b1b2-continuity-'));fs.rmSync(resolved,{recursive:true,force:true});}});
 
 function amendmentFixture(edit=x=>x){
- const f=fixtureModule.exports.fixture({runnerEdit:edit});
+ // This fixture has one synthetic parent and no grandparent. The unchanged
+ // original cohort separately exercises the historical multi-parent chain.
+ const f=fixtureModule.exports.fixture({parentEdit:parent=>{parent.parent=null;},runnerEdit:edit});
  const documents=f.amendmentDocuments,expected=f.amendmentExpected,claims=f.amendmentClaims;
  const oldLedger=f.receiptLine+'\n'+f.handLine+'\n'+f.rule+'\n';
  const beforeAmendments=f.sourceBase,ledger=f.amendmentLedger,admitted=f.amendmentsAdmitted;
@@ -448,4 +450,55 @@ for(const [name,from,to,corrupt,error]of[
  const baseline=amendmentFixture();amendmentPositive(baseline);corrupt(baseline);assert.throws(()=>baseline.api.b1b2Amendments(baseline.s),error);
  const mutant=amendmentFixture(code=>code.replace(from,to));amendmentPositive(mutant);corrupt(mutant);assert.doesNotThrow(()=>mutant.api.b1b2Amendments(mutant.s));
  const restored=amendmentFixture();amendmentPositive(restored);
+});
+
+// Isolate the literal receipt/reviewed-source legs of the actual envelope.
+// Their Git/issuer/source functions stay real. These synthetic leg probes do
+// not enter the package main or claim an ACCEPTED package envelope.
+function receiptLeg(f,r,artifact,digest,source=runnerSource){
+ const begin='  pmReceipt(r.commit, r, [s.packageId, ARTIFACT, hash], s.authorizations.review.role);';
+ const end='  const cited = { owner:';
+ assert.equal(source.split(begin).length,2);assert.equal(source.split(end).length,2);
+ const code=source.slice(source.indexOf(begin),source.indexOf(end));
+ return Function('s','r','ARTIFACT','hash','pmReceipt','b1b2Amendments',code)(f.s,r,artifact,digest,f.api.pmReceipt,f.api.b1b2Amendments);
+}
+test('A18 actual envelope receipt leg refuses document drift at receipt context; guard mutant loses it',()=>{
+ const f=af(),file=amendmentDocuments[0][0],artifact='rebuild/m4/spec/synthetic-amendment-artifact.json',digest='a'.repeat(64);
+ const line='- 2026-09-13 · Astra PM · POSTFIX-ACCEPTANCE M2-B1-B2 '+f.admitted+' '+artifact+' '+digest+' ACCEPTED';
+ const saved=structuredClone(f.s.authorizations.review);f.s.authorizations.review.role='Astra PM';
+ f.write('rebuild/DECISIONS.md',f.ledger+line+'\n');f.write(file,f.documents[file]+'bad receipt context\n');const wrong=f.commit();
+ f.write(file,f.documents[file]);const right=f.commit();
+ const receipt={commit:right,path:'rebuild/DECISIONS.md',line,lineSha256:hash(Buffer.from(line))};
+ const guard='  b1b2Amendments(s, r.commit); // exact six documents must also stand at the actual acceptance receipt context';
+ assert.equal(runnerSource.split(guard).length,2);
+ try{
+  amendmentPositive(f);receiptLeg(f,receipt,artifact,digest);
+  assert.throws(()=>receiptLeg(f,{...receipt,commit:wrong},artifact,digest),/B1B2-AMENDMENT-DOCUMENT-BYTES/);
+  assert.doesNotThrow(()=>receiptLeg(f,{...receipt,commit:wrong},artifact,digest,runnerSource.replace(guard,'')));
+  receiptLeg(f,receipt,artifact,digest);
+ }finally{f.s.authorizations.review=saved;f.write('rebuild/DECISIONS.md',f.ledger);f.commit();}
+ amendmentPositive(f);
+});
+function reviewedLeg(f,at,source=runnerSource){
+ const begin='  const reviewed = { ...m.executionPins };',end="  ancestor(v[1], 'HEAD', 'REVIEWED-COMMIT-NOT-BEHIND-HEAD');";
+ assert.equal(source.split(begin).length,2);assert.equal(source.split(end).length,2);
+ const code=source.slice(source.indexOf(begin),source.indexOf(end));
+ return Function('s','m','amendmentPins','gitUnchanged','L','root','v','ID',code)({product:{}},{executionPins:{}},amendmentPositive(f),new Map(),L,f.dir,[null,at],'B1-B2');
+}
+test('A19 actual reviewed-source leg binds all six authority documents; omitted-pin mutant loses refusal',()=>{
+ const f=af(),file=amendmentDocuments[3][0];reviewedLeg(f,f.admitted);
+ f.write(file,f.documents[file]+'bad reviewed bytes\n');const wrong=f.commit();f.write(file,f.documents[file]);f.commit();
+ const guard='  Object.assign(reviewed, amendmentPins); // fixed authority pins cannot be overridden by product/execution declarations';
+ assert.equal(runnerSource.split(guard).length,2);
+ assert.throws(()=>reviewedLeg(f,wrong),/GIT-SOURCE-PIN/);
+ assert.doesNotThrow(()=>reviewedLeg(f,wrong,runnerSource.replace(guard,'')));
+ reviewedLeg(f,f.admitted);
+});
+test('A20 actual authority and artifact construction re-read withdrawn shared approval',()=>{
+ const f=af(),line=f.claims['source-graph'].claim.line;amendmentPositive(f);
+ f.api.authority(f.s,null);f.api.proposed(f.s,f.bound);
+ f.write('rebuild/DECISIONS.md',f.ledger.replace(line+'\n',''));f.commit();
+ try{for(const call of [()=>f.api.authority(f.s,null),()=>f.api.proposed(f.s,f.bound)])assert.throws(call,/RECEIPT-EXACT-LINE-MISSING/);}
+ finally{f.write('rebuild/DECISIONS.md',f.ledger);f.commit();}
+ f.api.authority(f.s,null);f.api.proposed(f.s,f.bound);
 });
