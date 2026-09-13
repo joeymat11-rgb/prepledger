@@ -1,15 +1,15 @@
 # Earned: active Astra team
 
-Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 12:26 ET. D2's affected c4716ed N2 scope is accepted with report-last reconciliation; D2 returns LOW. ER continues complete engine/public/profile review at MAX; B/D/C/E stay LOW standby and I paused. PM recommends HIGH now under256. Eight seats use GPT-6 Astra. Current assignments supersede historical transfer checkpoints below.
+PM checkpoint 2026-09-13: complete engine R2 rejected for R8 Today false clearance under existing246/R7. Final ER162f189 report/evidence adopted; B resumes MAX for the narrow repair in B1B2-R2-R8-PM-DISPOSITION.md. ER LOW after final handoff; C/D/D2/E LOW standby, I paused. D2 accepted258 remains scoped to c4716ed. PM HIGH for this bounded ruling; all full/native/private/CI/phone holds remain.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Complete R2 c4716ed/source S48a3063: D2 affected N2 accepted258; ER complete review continues. Preserve candidate unpushed; respond to concrete findings. Full gates/companion later | earned-astra-b-follow-up;20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: repair R8 Today false clearance under262 in fresh successor from rejected c4716ed; preserve all original evidence. Full gates/companion later | earned-astra-b-follow-up;20 minutes waiting |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Hold accepted N2 bfc2935; D2 combined scope accepted, B engine repair/review next; respond only to named affected consumer finding | earned-astra-c-follow-up; hourly building,20 minutes waiting |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;20 minutes waiting |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Complete scoped ACCEPT6872c41/reconciliation dab8b9e adopted258 at c4716ed;105+16 tests, fresh113-input build/7 browser kills. LOW standby for named changed consumer | earned-lane-d2-requests;20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX complete B1+B2 R2 code/profile/public review on c4716ed under named dispatch; preserve ff0c3c13, builder report last. Protected full/native gates still held | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW standby: final R2 REJECT162f189/R8 handed off after report-last reconciliation; next exact successor review at MAX | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | ef982610 contract and Bc34e4ec map accepted; wait for precise PM lifecycle/browser/source release after accepted repaired D and B chain | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
@@ -57,11 +57,11 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 
 | Seat | Applied current effort | Next substantive assignment |
 | --- | --- | --- |
-| B | LOW; complete c4716ed handed off, waiting for independent findings | MAX for a named engine/proof correction or separately released companion |
+| B | MAX; R8 Today consumer repair assigned262 | MAX for a named engine/proof correction or separately released companion |
 | D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
 | C | LOW; standby | HIGH for bounded UI/plumbing, raise for demonstrated difficult joins |
 | D2 | LOW; affected c4716ed N2 review and reconciliation complete | MAX for the next specifically named independent review |
-| Engine reviewer | MAX; commissioned complete c4716ed B1+B2 R2 review | Return LOW when its exact independent handoff is complete |
+| Engine reviewer | LOW; final R2 REJECT162f189 handed off | MAX for next named independent successor review |
 | E | LOW; standby | HIGH for a precisely released design/implementation task |
 | I | PAUSED; no new turn or setting change | XHIGH for a specifically authorized integration; separate author/reviewer roles remain |
 

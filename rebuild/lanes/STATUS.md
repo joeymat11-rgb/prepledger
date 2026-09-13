@@ -101,3 +101,5 @@
 2026-09-13 12:21 ET · D2 · N2-B1B2-R2 scoped ACCEPT · c4716ed/source48a3063; 105 retained +16 availability PASS, fresh earned-0f24a65a1b18/113 inputs and7 browser kills. d2/reviews/N2-B1B2-R2-REVIEW.md; report still unread, reconciliation next. Whole engine/tooling ER-owned; candidate unpushed, full/native/private/CI/phone held.
 
 2026-09-13 12:26 ET · PM-CARETAKER · Astra · 5c18cc194d498364f3cdf3490ae9f7dd7eefb786 · D2 affected N2 ACCEPT6872c41/reconciliation dab8b9e rehashed/adopted:105+16 tests, fresh113-input build/7 browser kills; no N2 repair. D2 LOW standby, ER complete engine review MAX. PM HIGH advised. Full/native/private/CI/integration held; no owner action.
+
+2026-09-13 · PM-CARETAKER · Astra · 3d2b4843f93dbaaaaa7c530a9c9eb41c07469b76 · ER final162f189 rejects R2 for Today false clearance with observed debt/unknown target. B MAX narrow repair assigned262; prior15 checks and scoped N2 evidence retained. ER LOW standby; full/private/CI/phone held. PM HIGH; no owner action.
