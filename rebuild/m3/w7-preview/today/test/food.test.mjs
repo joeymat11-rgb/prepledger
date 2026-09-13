@@ -119,6 +119,29 @@ const H3_SEEDS_FIRST_READ = (() => {
   catch { return false; }
 })();
 
+/* Review C1. The paragraph above is an argument about WHICH SURFACE the detector
+   asks, and an argument is not a test: swapping the probe for `model.read()` (the
+   surface N1.11 itself asserts) leaves all 56 cells green on this tree, because
+   here both surfaces throw. It would only come apart on a tree where they
+   disagree, which is the one place this file is supposed to be trustworthy.
+   So the probe's own text is pinned, the way this repo already pins PAGE_PINS
+   and the design harvest. Comments are stripped first, because the prose around
+   the detector deliberately names the very calls this forbids. */
+test('H3 probe - the detector asks the ENGINE, not the surface the cells assert', () => {
+  const own = codeOf(readRepo('rebuild/m3/w7-preview/today/test/food.test.mjs'));
+  const start = own.indexOf('const H3_SEEDS_FIRST_READ');
+  assert(start > 0, 'the engine detector is gone');
+  const end = own.indexOf('})();', start);
+  assert(end > start, 'the engine detector is not the IIFE it was');
+  const probe = own.slice(start, end);
+  assert(probe.includes('engine.proteinTarget(clean)'),
+    'the probe no longer asks the engine for this athlete: ' + probe);
+  /* and it must not be any of the things the two cells go on to assert */
+  assert.equal(/\.read\(\)/.test(probe), false, 'the probe became model.read(), which N1.11 asserts');
+  assert.equal(/loggedFood\(/.test(probe), false, 'the probe became loggedFood(), which D2.1 asserts');
+  assert.equal(/foodUnavailable\(/.test(probe), false, 'the probe became foodUnavailable(), which D2.1 asserts');
+});
+
 /* THE FIRST RUN'S OWN DOCUMENT, built through the accepted reducer rather than by
    hand, so the clean-init athlete N1.11 uses is the athlete A4 actually creates: a
    hand-written setup object is refused by createCleanInitState, and a fixture that
