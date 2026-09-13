@@ -1,0 +1,5020 @@
+{
+  "reviewer": "Lane D2 / Astra MAX",
+  "verdict": "ACCEPT within PM286/290 scope; PM remains the judge",
+  "head": "7e64848dcd1395f26ed3bbbc9e19b9c3e7dce7db",
+  "source": "4d00498567c5045950c8beb2eebcc4f5c4767984",
+  "base": "18ff0dcf015193a9b76b83fbbc80fbe888f15d24",
+  "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-memory-lifecycle-r3",
+  "builderReportUnread": true,
+  "authority": {
+    "dispatch": "ed39231c89cd0f7ffcadc199d6c5e12538856f6c",
+    "helperGrant": "ee6bdec136e880898063640c8b7b50e49b7b7d95",
+    "decisions": [
+      266,
+      276,
+      284,
+      286,
+      290
+    ]
+  },
+  "sourceIdentity": {
+    "head": "7e64848dcd1395f26ed3bbbc9e19b9c3e7dce7db",
+    "source": "4d00498567c5045950c8beb2eebcc4f5c4767984",
+    "base": "18ff0dcf015193a9b76b83fbbc80fbe888f15d24",
+    "changed": [
+      "rebuild/m3/w7-preview/today/gym-app.mjs",
+      "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs"
+    ],
+    "changedBlobs": [
+      "0722c9acf18d38c3e42598b11508de7448f136b5",
+      "2af570fe09b69f66897a10b9af9dd48df4648885"
+    ],
+    "identities": [
+      {
+        "path": "package-lock.json",
+        "bytes": 35020,
+        "sha256": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+        "priorSHA256": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "package.json",
+        "bytes": 654,
+        "sha256": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+        "priorSHA256": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/authority/canonical.cjs",
+        "bytes": 2016,
+        "sha256": "c8888a3907d543371400e75ccfcb11bec2c3e3e7a40e74bd9d471b21a26e08cc",
+        "priorSHA256": "c8888a3907d543371400e75ccfcb11bec2c3e3e7a40e74bd9d471b21a26e08cc",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/bodycomp.cjs",
+        "bytes": 1276,
+        "sha256": "c55d66e5a8c8ae14f90b935d0ad07454d311e606a032d5c8c6ce1f094c3399d2",
+        "priorSHA256": "c55d66e5a8c8ae14f90b935d0ad07454d311e606a032d5c8c6ce1f094c3399d2",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/canonical.cjs",
+        "bytes": 5878,
+        "sha256": "fcf4302c52e149feeaa83c611b7ccdae8992306c6881623b888d086b4e3c1a6e",
+        "priorSHA256": "fcf4302c52e149feeaa83c611b7ccdae8992306c6881623b888d086b4e3c1a6e",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/copy.cjs",
+        "bytes": 3915,
+        "sha256": "d93aca93eb4efea346f5fbd0c38995133be781b9d27502c883134afd0b231b81",
+        "priorSHA256": "d93aca93eb4efea346f5fbd0c38995133be781b9d27502c883134afd0b231b81",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/face.cjs",
+        "bytes": 11152,
+        "sha256": "ede658a223ddb691bf9f64737edc63507dc0d594a462e6f8f3bea9c3aeaa98f0",
+        "priorSHA256": "ede658a223ddb691bf9f64737edc63507dc0d594a462e6f8f3bea9c3aeaa98f0",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/index.cjs",
+        "bytes": 39778,
+        "sha256": "f5e272c048191e6fc5ee56465a7d0bf264e8b488f5fa4bd19a8819a5496ebfa9",
+        "priorSHA256": "f5e272c048191e6fc5ee56465a7d0bf264e8b488f5fa4bd19a8819a5496ebfa9",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/lease.cjs",
+        "bytes": 2728,
+        "sha256": "b8e676d448e27cfecdf27ebd7fcf4766f7f73bfc8a2c6b69fb8754a1b8b0b771",
+        "priorSHA256": "b8e676d448e27cfecdf27ebd7fcf4766f7f73bfc8a2c6b69fb8754a1b8b0b771",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/ops.cjs",
+        "bytes": 6889,
+        "sha256": "4f0e2931d9d0d139ab44cb907cba13c8f9120277155477a56f2a7dbe4301209b",
+        "priorSHA256": "4f0e2931d9d0d139ab44cb907cba13c8f9120277155477a56f2a7dbe4301209b",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/outbox.cjs",
+        "bytes": 2782,
+        "sha256": "e74d97e4cd71ae958b0873fbb680a917e8a12847797671b97f2e538f13f80f2e",
+        "priorSHA256": "e74d97e4cd71ae958b0873fbb680a917e8a12847797671b97f2e538f13f80f2e",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/plan.cjs",
+        "bytes": 5163,
+        "sha256": "91bba71bce872f57733aac88d6c8ce74e8c648d442262a5bed5879cfafc66839",
+        "priorSHA256": "91bba71bce872f57733aac88d6c8ce74e8c648d442262a5bed5879cfafc66839",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/session.cjs",
+        "bytes": 6667,
+        "sha256": "dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3",
+        "priorSHA256": "dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/store.cjs",
+        "bytes": 6439,
+        "sha256": "f6ac3007354524b680d178086c87d7a321a8f8da0973b2b29f6f3d4c6ddcc6b0",
+        "priorSHA256": "f6ac3007354524b680d178086c87d7a321a8f8da0973b2b29f6f3d4c6ddcc6b0",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/client/sync.cjs",
+        "bytes": 10832,
+        "sha256": "42a3b53b4d54120efc4259de2813518f84cf69dfb9ed063529c4baadb7264f3a",
+        "priorSHA256": "42a3b53b4d54120efc4259de2813518f84cf69dfb9ed063529c4baadb7264f3a",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/coach/machine-settings-commands.cjs",
+        "bytes": 7675,
+        "sha256": "c83446191bdb7c8e5514d28f864ffb138c02fb68ac06b5bbfd1512c22c36a31c",
+        "priorSHA256": "c83446191bdb7c8e5514d28f864ffb138c02fb68ac06b5bbfd1512c22c36a31c",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/coach/tools.cjs",
+        "bytes": 58790,
+        "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74",
+        "priorSHA256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/coach/wave1-tools.cjs",
+        "bytes": 17886,
+        "sha256": "dff61d719a29533a4e1dc06c2536894bd9ba9c0c92cf89602426ee66ead642aa",
+        "priorSHA256": "dff61d719a29533a4e1dc06c2536894bd9ba9c0c92cf89602426ee66ead642aa",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/constants.cjs",
+        "bytes": 23393,
+        "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+        "priorSHA256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/dates.cjs",
+        "bytes": 1106,
+        "sha256": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+        "priorSHA256": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/earn.cjs",
+        "bytes": 11429,
+        "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+        "priorSHA256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/energy.cjs",
+        "bytes": 94493,
+        "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+        "priorSHA256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/entered-load.cjs",
+        "bytes": 906,
+        "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+        "priorSHA256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/performed.cjs",
+        "bytes": 19479,
+        "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+        "priorSHA256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/plan.cjs",
+        "bytes": 19784,
+        "sha256": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+        "priorSHA256": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/policy.cjs",
+        "bytes": 56493,
+        "sha256": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+        "priorSHA256": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/progression.cjs",
+        "bytes": 53582,
+        "sha256": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+        "priorSHA256": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/sleep.cjs",
+        "bytes": 185229,
+        "sha256": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+        "priorSHA256": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/today.cjs",
+        "bytes": 46420,
+        "sha256": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+        "priorSHA256": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/volume.cjs",
+        "bytes": 23465,
+        "sha256": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+        "priorSHA256": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/engine/writers.cjs",
+        "bytes": 259235,
+        "sha256": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+        "priorSHA256": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/lanes/b/tooling/packages/B-NTC.json",
+        "bytes": 40808,
+        "sha256": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
+        "priorSHA256": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html",
+        "bytes": 18153,
+        "sha256": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
+        "priorSHA256": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html",
+        "bytes": 22836,
+        "sha256": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031",
+        "priorSHA256": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w5/package.json",
+        "bytes": 289,
+        "sha256": "badf2a44a197008ec4f56a7810fb0e390732de0136eaf2a3048bfaee6288b0bc",
+        "priorSHA256": "badf2a44a197008ec4f56a7810fb0e390732de0136eaf2a3048bfaee6288b0bc",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w5/pnpm-lock.yaml",
+        "bytes": 28646,
+        "sha256": "858248a2668f55703b69f37dbd11ddac4b6c15c71c3407e1346f399e91a9f6ec",
+        "priorSHA256": "858248a2668f55703b69f37dbd11ddac4b6c15c71c3407e1346f399e91a9f6ec",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w5/public-client.cjs",
+        "bytes": 15327,
+        "sha256": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74",
+        "priorSHA256": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w5/reconciliation/codec.cjs",
+        "bytes": 12629,
+        "sha256": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e",
+        "priorSHA256": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w5/source/codec.cjs",
+        "bytes": 13896,
+        "sha256": "e6591fcd586b568a6fa8c0aff89336dde75e4c80864f4fe23c399e1dc1c3c0d6",
+        "priorSHA256": "e6591fcd586b568a6fa8c0aff89336dde75e4c80864f4fe23c399e1dc1c3c0d6",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/bridge.mjs",
+        "bytes": 5062,
+        "sha256": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00",
+        "priorSHA256": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/build-browser.mjs",
+        "bytes": 4656,
+        "sha256": "c2a0df9155e658c74b9e4fe2bc96badeaa9048dd56e9a0455b89212721da8f97",
+        "priorSHA256": "c2a0df9155e658c74b9e4fe2bc96badeaa9048dd56e9a0455b89212721da8f97",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/candidate-grant.mjs",
+        "bytes": 1058,
+        "sha256": "d65dfcafcde6a1105fe7720264c4adc3f28859c8f5bb3f53dcbb9e67c9cf951a",
+        "priorSHA256": "d65dfcafcde6a1105fe7720264c4adc3f28859c8f5bb3f53dcbb9e67c9cf951a",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/cipher-imports.json",
+        "bytes": 504,
+        "sha256": "b34e9d2fdf1304059e4bf6b8487e40cd0953cad8af7f63c07a8e3eea2831e4db",
+        "priorSHA256": "b34e9d2fdf1304059e4bf6b8487e40cd0953cad8af7f63c07a8e3eea2831e4db",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/history-proof.mjs",
+        "bytes": 2348,
+        "sha256": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114",
+        "priorSHA256": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/host/engine-runtime-host.cjs",
+        "bytes": 7305,
+        "sha256": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+        "priorSHA256": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/host/workout-host.mjs",
+        "bytes": 16079,
+        "sha256": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
+        "priorSHA256": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/import-custody.mjs",
+        "bytes": 8639,
+        "sha256": "9f5d0c461d58275ce619b3028fb64c167a684bf21abff41bd71bd3daf20eeec7",
+        "priorSHA256": "9f5d0c461d58275ce619b3028fb64c167a684bf21abff41bd71bd3daf20eeec7",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/local/host-bindings.mjs",
+        "bytes": 22941,
+        "sha256": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
+        "priorSHA256": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/local/import-bundle.mjs",
+        "bytes": 37665,
+        "sha256": "5db842a96a94db7df91b4eaec28c82522e4aa50edc1d3b19607bf1200b4d2b54",
+        "priorSHA256": "5db842a96a94db7df91b4eaec28c82522e4aa50edc1d3b19607bf1200b4d2b54",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/local/local-client.mjs",
+        "bytes": 26390,
+        "sha256": "3bf8c01d7e2b28fd0fad66ec0b6fd60663ab8b38caa9f222e0d36772c5970899",
+        "priorSHA256": "3bf8c01d7e2b28fd0fad66ec0b6fd60663ab8b38caa9f222e0d36772c5970899",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/local/local-era.mjs",
+        "bytes": 7115,
+        "sha256": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
+        "priorSHA256": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/local/local-keys.mjs",
+        "bytes": 11873,
+        "sha256": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
+        "priorSHA256": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/local/today-bindings.mjs",
+        "bytes": 43212,
+        "sha256": "95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8",
+        "priorSHA256": "95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/node-sha256-browser.mjs",
+        "bytes": 1149,
+        "sha256": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97",
+        "priorSHA256": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/package.json",
+        "bytes": 392,
+        "sha256": "e2bbbd8a3464628ad2e71a42b0984cdda29720eb2a714ba506517cc50a4fd494",
+        "priorSHA256": "e2bbbd8a3464628ad2e71a42b0984cdda29720eb2a714ba506517cc50a4fd494",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/pnpm-lock.yaml",
+        "bytes": 9709,
+        "sha256": "cea5ea74668bb33be4d38de333a0bc35cbdc18d32022561ad0f09c690a53a566",
+        "priorSHA256": "cea5ea74668bb33be4d38de333a0bc35cbdc18d32022561ad0f09c690a53a566",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/public-client.mjs",
+        "bytes": 56389,
+        "sha256": "230370a0c6465892337e76fea7fbfd117458c79f57d50bc82e8b9b7e5df0648d",
+        "priorSHA256": "230370a0c6465892337e76fea7fbfd117458c79f57d50bc82e8b9b7e5df0648d",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-history.mjs",
+        "bytes": 6095,
+        "sha256": "f4ca4aae3c2f4f94ff89640f00a1cebcbf5ebab56c2c11c5f95b84da1019e478",
+        "priorSHA256": "f4ca4aae3c2f4f94ff89640f00a1cebcbf5ebab56c2c11c5f95b84da1019e478",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-local.mjs",
+        "bytes": 9632,
+        "sha256": "da94b8eeb73c41d01d2eb55ac57ab0e1d1f37ce64dc9d5a3158a0c3651e2904e",
+        "priorSHA256": "da94b8eeb73c41d01d2eb55ac57ab0e1d1f37ce64dc9d5a3158a0c3651e2904e",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-plan-reader.cjs",
+        "bytes": 4389,
+        "sha256": "69e58c26bb452fea48101fd73a9ee07e29d9b531dbbde9ab67330dffd61babc5",
+        "priorSHA256": "69e58c26bb452fea48101fd73a9ee07e29d9b531dbbde9ab67330dffd61babc5",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-plan.cjs",
+        "bytes": 2331,
+        "sha256": "32a9c0343b1c602beb0bb38f565d6a66355012bab3d34928f1e1df859838e2b3",
+        "priorSHA256": "32a9c0343b1c602beb0bb38f565d6a66355012bab3d34928f1e1df859838e2b3",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-profile.mjs",
+        "bytes": 17522,
+        "sha256": "dc16a4c0626a63e83bddea3a53ed8043647740428e868346623fcd7ba812e666",
+        "priorSHA256": "dc16a4c0626a63e83bddea3a53ed8043647740428e868346623fcd7ba812e666",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-snapshot.cjs",
+        "bytes": 672,
+        "sha256": "80252922aeda425eabf1402d22613e299481a0242c77be9c707354d14fd5aa23",
+        "priorSHA256": "80252922aeda425eabf1402d22613e299481a0242c77be9c707354d14fd5aa23",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-stage.mjs",
+        "bytes": 18703,
+        "sha256": "ef96cb867ba61cc74262d7a7c49060fd2aeb5d15b66448d22aa0cef30b1d023d",
+        "priorSHA256": "ef96cb867ba61cc74262d7a7c49060fd2aeb5d15b66448d22aa0cef30b1d023d",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/repository.mjs",
+        "bytes": 17378,
+        "sha256": "4d8696382792d05585174652ac23b6589be9269d92eed0de37c8980d296a8912",
+        "priorSHA256": "4d8696382792d05585174652ac23b6589be9269d92eed0de37c8980d296a8912",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/strict-json.mjs",
+        "bytes": 4746,
+        "sha256": "1605acb16b8d828578979755e9ce3387efaab70f6b22370bbd565355187b7fb9",
+        "priorSHA256": "1605acb16b8d828578979755e9ce3387efaab70f6b22370bbd565355187b7fb9",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/t2-stage.cjs",
+        "bytes": 12582,
+        "sha256": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592",
+        "priorSHA256": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/test/local-today-journey.test.mjs",
+        "bytes": 64913,
+        "sha256": "4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7",
+        "priorSHA256": "4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w6/test/support.mjs",
+        "bytes": 4437,
+        "sha256": "6f62d795db9f69c6c757a2a23fba33e9288bf99ccf6afb2c7c79e3eca3da1462",
+        "priorSHA256": "6f62d795db9f69c6c757a2a23fba33e9288bf99ccf6afb2c7c79e3eca3da1462",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+        "bytes": 1451,
+        "sha256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+        "priorSHA256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/fixtures.cjs",
+        "bytes": 2020,
+        "sha256": "42d16ee32c2a6bb4f404277b89021b75573e593e9654e86c01e1c574cb4c7a58",
+        "priorSHA256": "42d16ee32c2a6bb4f404277b89021b75573e593e9654e86c01e1c574cb4c7a58",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/browser-check.mjs",
+        "bytes": 25507,
+        "sha256": "d798fcdb21346546be4bc8e40205049af33b81138004576abca3c47b200752ea",
+        "priorSHA256": "d798fcdb21346546be4bc8e40205049af33b81138004576abca3c47b200752ea",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/build.mjs",
+        "bytes": 22409,
+        "sha256": "cafd588d46789841ead39893a88c7d6258e7a530d1d36fd77575b41cffb59c1e",
+        "priorSHA256": "cafd588d46789841ead39893a88c7d6258e7a530d1d36fd77575b41cffb59c1e",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-app.mjs",
+        "bytes": 8296,
+        "sha256": "db8295cb5f12a4e6d65033b6a74cf696b63ec32368c1d6d6161cf1e0519161b0",
+        "priorSHA256": "db8295cb5f12a4e6d65033b6a74cf696b63ec32368c1d6d6161cf1e0519161b0",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-check.mjs",
+        "bytes": 21303,
+        "sha256": "a743215ef0eb6320248dd575a184a9547f1e63729b199546374ca10c925aa818",
+        "priorSHA256": "a743215ef0eb6320248dd575a184a9547f1e63729b199546374ca10c925aa818",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+        "bytes": 10008,
+        "sha256": "2ec701faa7edc77276e8154789507a03c423f1493bdc069f078bd8a797fec984",
+        "priorSHA256": "2ec701faa7edc77276e8154789507a03c423f1493bdc069f078bd8a797fec984",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-host.mjs",
+        "bytes": 3317,
+        "sha256": "029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b",
+        "priorSHA256": "029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-model.mjs",
+        "bytes": 15572,
+        "sha256": "d449518578bd57431fd8a79c174fdde1208c5eccced9156070411844af794a22",
+        "priorSHA256": "d449518578bd57431fd8a79c174fdde1208c5eccced9156070411844af794a22",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/dash-check.mjs",
+        "bytes": 1925,
+        "sha256": "8654a036d9de04f5c33debbefa65a04de219c04be109702997c0cfef1147ce75",
+        "priorSHA256": "8654a036d9de04f5c33debbefa65a04de219c04be109702997c0cfef1147ce75",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/design.cjs",
+        "bytes": 35902,
+        "sha256": "1ec78fbb8940e875d7c477c15149e9d2e1d49b359207061f2eaff50317bd233f",
+        "priorSHA256": "1ec78fbb8940e875d7c477c15149e9d2e1d49b359207061f2eaff50317bd233f",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+        "bytes": 23260,
+        "sha256": "9f7116bb679eb53ead6d5ea8000e8534a5bfc94e2042e3b0b36e57f272cd52e3",
+        "priorSHA256": "9f7116bb679eb53ead6d5ea8000e8534a5bfc94e2042e3b0b36e57f272cd52e3",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/food-check.mjs",
+        "bytes": 15154,
+        "sha256": "08d608a5968a6a319f25c57e59e9bf30013e7a7673522e1a9e12b3266d15cd15",
+        "priorSHA256": "08d608a5968a6a319f25c57e59e9bf30013e7a7673522e1a9e12b3266d15cd15",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/food-commands.cjs",
+        "bytes": 5205,
+        "sha256": "194190aa0a12e30d937eb5c4c59878b58089eeab93f6783f46969eddadcaddc5",
+        "priorSHA256": "194190aa0a12e30d937eb5c4c59878b58089eeab93f6783f46969eddadcaddc5",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/food-host.mjs",
+        "bytes": 6458,
+        "sha256": "009e7e93d230e4168dfacd7f6a7ea35652c79612b1c6c5bfd3b18c13c2180c88",
+        "priorSHA256": "009e7e93d230e4168dfacd7f6a7ea35652c79612b1c6c5bfd3b18c13c2180c88",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/food-model.cjs",
+        "bytes": 6181,
+        "sha256": "1552309c0c4368ece9aca169338df7b1c02a4d2c6f28bb3b0af8c385ebe15c5c",
+        "priorSHA256": "1552309c0c4368ece9aca169338df7b1c02a4d2c6f28bb3b0af8c385ebe15c5c",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/gym-app.mjs",
+        "bytes": 33414,
+        "sha256": "0e552694fa596844e4e27c30ca273f36ced22351a3e9216ed905be7be632d452",
+        "priorSHA256": "69f3d6529e8eb003e0c744a30c78fe0456486ebb220bd481f9ad0dd7cfbdb7cc",
+        "gitDiskEqual": true,
+        "baseEqual": false,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/gym-check.mjs",
+        "bytes": 37503,
+        "sha256": "2cacc15164a4fa9ea9695887be51640771529ed39495aaf7f8d231511a0c6738",
+        "priorSHA256": "2cacc15164a4fa9ea9695887be51640771529ed39495aaf7f8d231511a0c6738",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/gym-host.mjs",
+        "bytes": 4767,
+        "sha256": "70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18",
+        "priorSHA256": "70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/gym-model.mjs",
+        "bytes": 30814,
+        "sha256": "2c67666717c02ab49f426de0b5052ea409b8acc6930d71ad6f72b34e251ea1d8",
+        "priorSHA256": "2c67666717c02ab49f426de0b5052ea409b8acc6930d71ad6f72b34e251ea1d8",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/index.shell.html",
+        "bytes": 1505,
+        "sha256": "d490d6c0fc924aa14c219128942e37e6c86f06d123b346e083644cb210a017d2",
+        "priorSHA256": "d490d6c0fc924aa14c219128942e37e6c86f06d123b346e083644cb210a017d2",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/machine-settings-check.mjs",
+        "bytes": 20022,
+        "sha256": "f344a4af2d7d560bed0f7deb20202860bc88fbd780ad81ba0ab44843f5a37b4a",
+        "priorSHA256": "f344a4af2d7d560bed0f7deb20202860bc88fbd780ad81ba0ab44843f5a37b4a",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
+        "bytes": 6311,
+        "sha256": "82ba53328a99f097efe028236ec0742e14535ad9bbcea81dbe924db170b41a70",
+        "priorSHA256": "82ba53328a99f097efe028236ec0742e14535ad9bbcea81dbe924db170b41a70",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
+        "bytes": 7809,
+        "sha256": "f7e9da0d764d64f3413dcf90c60f7353f1e3963eca36b1aa7e474b039eb87b23",
+        "priorSHA256": "f7e9da0d764d64f3413dcf90c60f7353f1e3963eca36b1aa7e474b039eb87b23",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+        "bytes": 13697,
+        "sha256": "a9a675061f3bc9fa791fb724b8ef111aa2a0ae45c363afd1c13ff70f9d641a73",
+        "priorSHA256": "a9a675061f3bc9fa791fb724b8ef111aa2a0ae45c363afd1c13ff70f9d641a73",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/preview.css",
+        "bytes": 5541,
+        "sha256": "96c0f30a5a8ab50b09c226275d766bea3b410dc037f5ba85e8ebf838662803a0",
+        "priorSHA256": "96c0f30a5a8ab50b09c226275d766bea3b410dc037f5ba85e8ebf838662803a0",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/problem-report.cjs",
+        "bytes": 7739,
+        "sha256": "1ea3d6ae3280e0418f1994a62c665de19a16478f57995a22e39a0c1466c4e62c",
+        "priorSHA256": "1ea3d6ae3280e0418f1994a62c665de19a16478f57995a22e39a0c1466c4e62c",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/reading-host.mjs",
+        "bytes": 2652,
+        "sha256": "a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa",
+        "priorSHA256": "a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/screens.template.html",
+        "bytes": 24587,
+        "sha256": "dc49b390b5c0670a312bbb4263896588ab1fd02f9220ad54c02009ac45f5a627",
+        "priorSHA256": "dc49b390b5c0670a312bbb4263896588ab1fd02f9220ad54c02009ac45f5a627",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/serve.mjs",
+        "bytes": 4880,
+        "sha256": "6483de1d5cf841c1d58bc1f02bea682bf7e03d49fdaff2c1d67075f9b5754174",
+        "priorSHA256": "6483de1d5cf841c1d58bc1f02bea682bf7e03d49fdaff2c1d67075f9b5754174",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-app.mjs",
+        "bytes": 26427,
+        "sha256": "cc9053e59ad862bd1d7034860f3a70e64acb701236ea592da3c29e7279795b0b",
+        "priorSHA256": "cc9053e59ad862bd1d7034860f3a70e64acb701236ea592da3c29e7279795b0b",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-check.mjs",
+        "bytes": 31734,
+        "sha256": "5ae9c6158bd4e9f3ebb44dba15f5fc53cefd29c594f9a6e22cfa53fc77e19081",
+        "priorSHA256": "5ae9c6158bd4e9f3ebb44dba15f5fc53cefd29c594f9a6e22cfa53fc77e19081",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-commands.mjs",
+        "bytes": 9083,
+        "sha256": "c5b65d7146828736dd6afaea2473a02e0a44cba654409c115f9d9784762e5677",
+        "priorSHA256": "c5b65d7146828736dd6afaea2473a02e0a44cba654409c115f9d9784762e5677",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-host.mjs",
+        "bytes": 7576,
+        "sha256": "eec0914a71fc8b0447f277559e35030735dbc1426af1fbef31e8f0894a7bfdf9",
+        "priorSHA256": "eec0914a71fc8b0447f277559e35030735dbc1426af1fbef31e8f0894a7bfdf9",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+        "bytes": 36183,
+        "sha256": "54c7c6e06c74aba0cfd135ab71fab8b595b884d8e86934fd4a1e2dab82d463e0",
+        "priorSHA256": "54c7c6e06c74aba0cfd135ab71fab8b595b884d8e86934fd4a1e2dab82d463e0",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/split-kinds.mjs",
+        "bytes": 3736,
+        "sha256": "998233006411fefb735d1924aa13343e069a39ef64776841fbc321b88e40b01a",
+        "priorSHA256": "998233006411fefb735d1924aa13343e069a39ef64776841fbc321b88e40b01a",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/starter-week.mjs",
+        "bytes": 7387,
+        "sha256": "8b4f257133daffc73696e2e642a568984a22af36808456fd3e350aa88987f069",
+        "priorSHA256": "8b4f257133daffc73696e2e642a568984a22af36808456fd3e350aa88987f069",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+        "bytes": 75005,
+        "sha256": "954e28b28ed3331c7e3bc902f99fc1d3b814f4f38c6a2d9be36a572588b5d465",
+        "priorSHA256": "954e28b28ed3331c7e3bc902f99fc1d3b814f4f38c6a2d9be36a572588b5d465",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+        "bytes": 78431,
+        "sha256": "266eb53ddcc324e3b25c07c26d80635392009e7671a18a5ed69e931908283804",
+        "priorSHA256": "98aa11ff4a590faa4f67771bd8002eaca0bbdb85861562e4d56d420e554a17d0",
+        "gitDiskEqual": true,
+        "baseEqual": false,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+        "bytes": 60822,
+        "sha256": "ec5ce136ffcd72ee9900926ae4c4aef367d85fac49b5d469161c97795ac07944",
+        "priorSHA256": "ec5ce136ffcd72ee9900926ae4c4aef367d85fac49b5d469161c97795ac07944",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-engine.cjs",
+        "bytes": 1969,
+        "sha256": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c",
+        "priorSHA256": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-entry.mjs",
+        "bytes": 20214,
+        "sha256": "b50b92314b8e7730b4aab56e79a9bff2f03d949d234eeaf2a7270ec83f3fa111",
+        "priorSHA256": "b50b92314b8e7730b4aab56e79a9bff2f03d949d234eeaf2a7270ec83f3fa111",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+        "bytes": 17210,
+        "sha256": "040f883203bb6a1b9ce6e4991f6f566c79154b2eb9454bef10a12ce98fc5aa8d",
+        "priorSHA256": "040f883203bb6a1b9ce6e4991f6f566c79154b2eb9454bef10a12ce98fc5aa8d",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/athlete-state.cjs",
+        "bytes": 21198,
+        "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+        "priorSHA256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/authority-profile.cjs",
+        "bytes": 1395,
+        "sha256": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63",
+        "priorSHA256": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/capture.cjs",
+        "bytes": 6822,
+        "sha256": "c20fb021034b7c110d58cd14cb8e5fb547ce23d0436086894dce67e23a4674ea",
+        "priorSHA256": "c20fb021034b7c110d58cd14cb8e5fb547ce23d0436086894dce67e23a4674ea",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/commands.cjs",
+        "bytes": 5320,
+        "sha256": "ee4de3b4ea573fe6f924fdff97f793e5679219516e4188fcc6b9f689c9b5c571",
+        "priorSHA256": "ee4de3b4ea573fe6f924fdff97f793e5679219516e4188fcc6b9f689c9b5c571",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/context-values.cjs",
+        "bytes": 11196,
+        "sha256": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b",
+        "priorSHA256": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/continuation.mjs",
+        "bytes": 4074,
+        "sha256": "b688367c42158606738c03b7c9d6752fd86ce58480a8485f34ee275605d83f7d",
+        "priorSHA256": "b688367c42158606738c03b7c9d6752fd86ce58480a8485f34ee275605d83f7d",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/edit-history.cjs",
+        "bytes": 14582,
+        "sha256": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2",
+        "priorSHA256": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/edit-values.cjs",
+        "bytes": 5848,
+        "sha256": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546",
+        "priorSHA256": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/engine-capture.cjs",
+        "bytes": 10716,
+        "sha256": "309c75d82a036b24b09ebc6668ea73065aa76de5638b2dee3da18d9067e08785",
+        "priorSHA256": "309c75d82a036b24b09ebc6668ea73065aa76de5638b2dee3da18d9067e08785",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/engine-history.cjs",
+        "bytes": 17467,
+        "sha256": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89",
+        "priorSHA256": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/engine-order.cjs",
+        "bytes": 5876,
+        "sha256": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a",
+        "priorSHA256": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/fonts/InstrumentSans-Variable.woff2",
+        "bytes": 88784,
+        "sha256": "aa72922aafcc0dc18f36ec1d805b0212057dabe8b9d5b8b57f67035aea1b826d",
+        "priorSHA256": "aa72922aafcc0dc18f36ec1d805b0212057dabe8b9d5b8b57f67035aea1b826d",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/fonts/InstrumentSerif-Regular.woff2",
+        "bytes": 27440,
+        "sha256": "ca21b99b0d6b88a0dc34cebfe48104611e5c7f8f92746bed26c37aa470174322",
+        "priorSHA256": "ca21b99b0d6b88a0dc34cebfe48104611e5c7f8f92746bed26c37aa470174322",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/fonts/SOURCES.json",
+        "bytes": 2212,
+        "sha256": "d91470a5d364e45ada6d38310a7c6772176ab3cbb6042d8f52c6d22fe4d56d53",
+        "priorSHA256": "d91470a5d364e45ada6d38310a7c6772176ab3cbb6042d8f52c6d22fe4d56d53",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/native-trend-context.cjs",
+        "bytes": 26812,
+        "sha256": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+        "priorSHA256": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/project-history.mjs",
+        "bytes": 3837,
+        "sha256": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92",
+        "priorSHA256": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/resume-policy.cjs",
+        "bytes": 2590,
+        "sha256": "7c11a07ae5bb5d114447ad06f52d95537d83fef012cc78d47e19664e9925395f",
+        "priorSHA256": "7c11a07ae5bb5d114447ad06f52d95537d83fef012cc78d47e19664e9925395f",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/schema.cjs",
+        "bytes": 10852,
+        "sha256": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458",
+        "priorSHA256": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/source-control-values.cjs",
+        "bytes": 1435,
+        "sha256": "635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560",
+        "priorSHA256": "635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/source-projection.cjs",
+        "bytes": 5431,
+        "sha256": "fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e",
+        "priorSHA256": "fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/stored-history.mjs",
+        "bytes": 5564,
+        "sha256": "78db774066ccc465bbdce8394bf3bb545c197664a9f7703cc8b34003e002567e",
+        "priorSHA256": "78db774066ccc465bbdce8394bf3bb545c197664a9f7703cc8b34003e002567e",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/m4/workout/workout-basis.cjs",
+        "bytes": 4496,
+        "sha256": "e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664",
+        "priorSHA256": "e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "R2 verified input inventory"
+      },
+      {
+        "path": "rebuild/conform/lib/ops.cjs",
+        "bytes": 6337,
+        "sha256": "cbf7e73cd899492981a03bc4b4153f12a77cc664c4c90c29774ef30bf981d1c1",
+        "priorSHA256": "cbf7e73cd899492981a03bc4b4153f12a77cc664c4c90c29774ef30bf981d1c1",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "PM290 helper grant, absent from prior134 inventory"
+      },
+      {
+        "path": "rebuild/conform/lib/canonical.cjs",
+        "bytes": 2656,
+        "sha256": "ca9d5daa7df046be3849ca21e9a21cdf43cbff4fd204246b673ec5621e84f4fa",
+        "priorSHA256": "ca9d5daa7df046be3849ca21e9a21cdf43cbff4fd204246b673ec5621e84f4fa",
+        "gitDiskEqual": true,
+        "baseEqual": true,
+        "priorInventory": "PM290 helper grant, absent from prior134 inventory"
+      }
+    ],
+    "nonModuleReads": [
+      "package.json",
+      "package-lock.json",
+      "rebuild/m3/w6/package.json",
+      "rebuild/m3/w6/pnpm-lock.yaml",
+      "rebuild/m3/w5/package.json",
+      "rebuild/m3/w5/pnpm-lock.yaml",
+      "rebuild/m3/w6/cipher-imports.json",
+      "rebuild/m3/w6/test/local-today-journey.test.mjs",
+      "rebuild/lanes/b/tooling/packages/B-NTC.json",
+      "rebuild/m4/workout/fonts/SOURCES.json",
+      "rebuild/m4/workout/fonts/InstrumentSans-Variable.woff2",
+      "rebuild/m4/workout/fonts/InstrumentSerif-Regular.woff2",
+      "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html",
+      "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html",
+      "rebuild/m3/w7-preview/today/index.shell.html",
+      "rebuild/m3/w7-preview/today/screens.template.html",
+      "rebuild/m3/w7-preview/today/preview.css",
+      "rebuild/m3/w7-preview/today/browser-check.mjs",
+      "rebuild/m3/w7-preview/today/build.mjs",
+      "rebuild/m3/w7-preview/today/checkin-app.mjs",
+      "rebuild/m3/w7-preview/today/checkin-check.mjs",
+      "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+      "rebuild/m3/w7-preview/today/checkin-host.mjs",
+      "rebuild/m3/w7-preview/today/checkin-model.mjs",
+      "rebuild/m3/w7-preview/today/dash-check.mjs",
+      "rebuild/m3/w7-preview/today/design.cjs",
+      "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+      "rebuild/m3/w7-preview/today/food-check.mjs",
+      "rebuild/m3/w7-preview/today/food-commands.cjs",
+      "rebuild/m3/w7-preview/today/food-host.mjs",
+      "rebuild/m3/w7-preview/today/food-model.cjs",
+      "rebuild/m3/w7-preview/today/gym-app.mjs",
+      "rebuild/m3/w7-preview/today/gym-check.mjs",
+      "rebuild/m3/w7-preview/today/gym-host.mjs",
+      "rebuild/m3/w7-preview/today/gym-model.mjs",
+      "rebuild/m3/w7-preview/today/machine-settings-check.mjs",
+      "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
+      "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
+      "rebuild/m3/w7-preview/today/plain-copy.cjs",
+      "rebuild/m3/w7-preview/today/problem-report.cjs",
+      "rebuild/m3/w7-preview/today/reading-host.mjs",
+      "rebuild/m3/w7-preview/today/serve.mjs",
+      "rebuild/m3/w7-preview/today/setup-app.mjs",
+      "rebuild/m3/w7-preview/today/setup-check.mjs",
+      "rebuild/m3/w7-preview/today/setup-commands.mjs",
+      "rebuild/m3/w7-preview/today/setup-host.mjs",
+      "rebuild/m3/w7-preview/today/setup-model.mjs",
+      "rebuild/m3/w7-preview/today/split-kinds.mjs",
+      "rebuild/m3/w7-preview/today/starter-week.mjs",
+      "rebuild/m3/w7-preview/today/today-app.cjs",
+      "rebuild/m3/w7-preview/today/today-engine.cjs",
+      "rebuild/m3/w7-preview/today/today-entry.mjs",
+      "rebuild/m3/w7-preview/today/today-model.cjs"
+    ],
+    "replays": [
+      {
+        "name": "d2-lifecycle-extra.test.mjs",
+        "sha256": "68fc44b097041bb4a604df320fb74c41d46b4d8af136d9f060915ab3e0dc1a67",
+        "bytes": 17878
+      },
+      {
+        "name": "d2-lifecycle-r2-edges.test.mjs",
+        "sha256": "9ee48503d81c397e2db996c6cad425a85eb0ea6e4f888ec9a7c214e01f27852c",
+        "bytes": 9316
+      },
+      {
+        "name": "d2-lifecycle-r2-support.mjs",
+        "sha256": "c3d55ace4009bb3dca8542717e62b9b1b09593b022116cc393d800cbe3e25955",
+        "bytes": 4078
+      }
+    ],
+    "helpers": [
+      {
+        "path": "rebuild/conform/lib/ops.cjs",
+        "bytes": 6337,
+        "sha256": "cbf7e73cd899492981a03bc4b4153f12a77cc664c4c90c29774ef30bf981d1c1",
+        "blob": "6cf0d2f2e51abb37b022010a423647a8f5983ef7",
+        "addedByPM290": true
+      },
+      {
+        "path": "rebuild/conform/lib/canonical.cjs",
+        "bytes": 2656,
+        "sha256": "ca9d5daa7df046be3849ca21e9a21cdf43cbff4fd204246b673ec5621e84f4fa",
+        "blob": "de71c53a0df29a31b43d72cb28ebc652ad79eb86",
+        "addedByPM290": true
+      }
+    ],
+    "helperGrant": "ee6bdec136e880898063640c8b7b50e49b7b7d95 / PM290",
+    "materializedTracked": 138,
+    "protectedAndAuthorAbsent": true,
+    "builderReportUnread": true,
+    "clean": true,
+    "m3Tree": "b1c0f6694958e3cc6c11518b1723cd261d9dddd1",
+    "engineTree": "560dead8ffa821fe60db480faca956ffbafedbd1",
+    "setupDisclosureSHA256": "7722768306c666ff8d5503e4b5b92f3e84393ce074f4591ef4ee4bca68959d34",
+    "priorClosureQualification": "The old109 parsed/134 tracked inventories omit the two literal createRequire helpers. They are incomplete runtime inventories; earlier functional outcomes remain at their original heads without retroactive complete-custody claims."
+  },
+  "closure": {
+    "entries": [
+      "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+      "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs"
+    ],
+    "supplementalEntries": [
+      "rebuild/client/index.cjs",
+      "rebuild/conform/lib/ops.cjs",
+      "rebuild/m3/w6/t2-stage.cjs"
+    ],
+    "createRequireCalls": [
+      {
+        "from": "rebuild/m3/w6/test/support.mjs",
+        "line": 7,
+        "binding": "require",
+        "factory": "import.meta.url",
+        "base": "rebuild/m3/w6/test/support.mjs",
+        "specifier": "../../../client/index.cjs",
+        "resolved": "rebuild/client/index.cjs",
+        "executedSource": true,
+        "external": false
+      },
+      {
+        "from": "rebuild/m3/w6/test/support.mjs",
+        "line": 8,
+        "binding": "require",
+        "factory": "import.meta.url",
+        "base": "rebuild/m3/w6/test/support.mjs",
+        "specifier": "../../../conform/lib/ops.cjs",
+        "resolved": "rebuild/conform/lib/ops.cjs",
+        "executedSource": true,
+        "external": false
+      },
+      {
+        "from": "rebuild/m3/w6/test/support.mjs",
+        "line": 9,
+        "binding": "require",
+        "factory": "import.meta.url",
+        "base": "rebuild/m3/w6/test/support.mjs",
+        "specifier": "../t2-stage.cjs",
+        "resolved": "rebuild/m3/w6/t2-stage.cjs",
+        "executedSource": true,
+        "external": false
+      },
+      {
+        "from": "rebuild/m3/w7-preview/today/browser-check.mjs",
+        "line": 54,
+        "binding": "require",
+        "factory": "path.join(here, \"../../w6/package.json\")",
+        "base": "rebuild/m3/w6/package.json",
+        "specifier": "playwright-core",
+        "resolved": null,
+        "executedSource": false,
+        "external": true
+      },
+      {
+        "from": "rebuild/m3/w7-preview/today/checkin-check.mjs",
+        "line": 63,
+        "binding": "require",
+        "factory": "path.join(here, \"../../w6/package.json\")",
+        "base": "rebuild/m3/w6/package.json",
+        "specifier": "playwright-core",
+        "resolved": null,
+        "executedSource": false,
+        "external": true
+      },
+      {
+        "from": "rebuild/m3/w7-preview/today/checkin-check.mjs",
+        "line": 66,
+        "binding": "hereRequire",
+        "factory": "import.meta.url",
+        "base": "rebuild/m3/w7-preview/today/checkin-check.mjs",
+        "specifier": "./today-model.cjs",
+        "resolved": "rebuild/m3/w7-preview/today/today-model.cjs",
+        "executedSource": false,
+        "external": false
+      },
+      {
+        "from": "rebuild/m3/w7-preview/today/food-check.mjs",
+        "line": 45,
+        "binding": "require",
+        "factory": "path.join(here, \"../../w6/package.json\")",
+        "base": "rebuild/m3/w6/package.json",
+        "specifier": "playwright-core",
+        "resolved": null,
+        "executedSource": false,
+        "external": true
+      },
+      {
+        "from": "rebuild/m3/w7-preview/today/gym-check.mjs",
+        "line": 40,
+        "binding": "require",
+        "factory": "path.join(here, \"../../w6/package.json\")",
+        "base": "rebuild/m3/w6/package.json",
+        "specifier": "playwright-core",
+        "resolved": null,
+        "executedSource": false,
+        "external": true
+      },
+      {
+        "from": "rebuild/m3/w7-preview/today/gym-check.mjs",
+        "line": 53,
+        "binding": "hereRequire",
+        "factory": "import.meta.url",
+        "base": "rebuild/m3/w7-preview/today/gym-check.mjs",
+        "specifier": "./today-model.cjs",
+        "resolved": "rebuild/m3/w7-preview/today/today-model.cjs",
+        "executedSource": false,
+        "external": false
+      },
+      {
+        "from": "rebuild/m3/w7-preview/today/machine-settings-check.mjs",
+        "line": 37,
+        "binding": "require",
+        "factory": "path.join(here, \"../../w6/package.json\")",
+        "base": "rebuild/m3/w6/package.json",
+        "specifier": "playwright-core",
+        "resolved": null,
+        "executedSource": false,
+        "external": true
+      },
+      {
+        "from": "rebuild/m3/w7-preview/today/setup-check.mjs",
+        "line": 48,
+        "binding": "require",
+        "factory": "path.join(here, \"../../w6/package.json\")",
+        "base": "rebuild/m3/w6/package.json",
+        "specifier": "playwright-core",
+        "resolved": null,
+        "executedSource": false,
+        "external": true
+      }
+    ],
+    "files": [
+      {
+        "path": "rebuild/m3/w6/recovery-stage.mjs",
+        "sha256": "ef96cb867ba61cc74262d7a7c49060fd2aeb5d15b66448d22aa0cef30b1d023d",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w6/import-custody.mjs",
+        "sha256": "9f5d0c461d58275ce619b3028fb64c167a684bf21abff41bd71bd3daf20eeec7",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w6/repository.mjs",
+        "sha256": "4d8696382792d05585174652ac23b6589be9269d92eed0de37c8980d296a8912",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/recovery-stage.mjs",
+            "kind": "import-statement",
+            "original": "./recovery-stage.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/import-custody.mjs",
+            "kind": "import-statement",
+            "original": "./import-custody.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/bridge.mjs",
+        "sha256": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/repository.mjs",
+            "kind": "import-statement",
+            "original": "./repository.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/test/support.mjs",
+        "sha256": "6f62d795db9f69c6c757a2a23fba33e9288bf99ccf6afb2c7c79e3eca3da1462",
+        "imports": [
+          {
+            "path": "fake-indexeddb",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:crypto",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:module",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "rebuild/m3/w6/repository.mjs",
+            "kind": "import-statement",
+            "original": "../repository.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/bridge.mjs",
+            "kind": "import-statement",
+            "original": "../bridge.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/client/store.cjs",
+        "sha256": "f6ac3007354524b680d178086c87d7a321a8f8da0973b2b29f6f3d4c6ddcc6b0",
+        "imports": []
+      },
+      {
+        "path": "rebuild/client/canonical.cjs",
+        "sha256": "fcf4302c52e149feeaa83c611b7ccdae8992306c6881623b888d086b4e3c1a6e",
+        "imports": []
+      },
+      {
+        "path": "rebuild/client/ops.cjs",
+        "sha256": "4f0e2931d9d0d139ab44cb907cba13c8f9120277155477a56f2a7dbe4301209b",
+        "imports": [
+          {
+            "path": "node:crypto",
+            "kind": "require-call",
+            "external": true
+          },
+          {
+            "path": "rebuild/client/canonical.cjs",
+            "kind": "require-call",
+            "original": "./canonical.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/client/lease.cjs",
+        "sha256": "b8e676d448e27cfecdf27ebd7fcf4766f7f73bfc8a2c6b69fb8754a1b8b0b771",
+        "imports": [
+          {
+            "path": "rebuild/client/ops.cjs",
+            "kind": "require-call",
+            "original": "./ops.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/client/outbox.cjs",
+        "sha256": "e74d97e4cd71ae958b0873fbb680a917e8a12847797671b97f2e538f13f80f2e",
+        "imports": []
+      },
+      {
+        "path": "rebuild/client/copy.cjs",
+        "sha256": "d93aca93eb4efea346f5fbd0c38995133be781b9d27502c883134afd0b231b81",
+        "imports": []
+      },
+      {
+        "path": "rebuild/client/sync.cjs",
+        "sha256": "42a3b53b4d54120efc4259de2813518f84cf69dfb9ed063529c4baadb7264f3a",
+        "imports": [
+          {
+            "path": "rebuild/client/ops.cjs",
+            "kind": "require-call",
+            "original": "./ops.cjs"
+          },
+          {
+            "path": "rebuild/client/copy.cjs",
+            "kind": "require-call",
+            "original": "./copy.cjs"
+          },
+          {
+            "path": "rebuild/client/copy.cjs",
+            "kind": "require-call",
+            "original": "./copy.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/client/face.cjs",
+        "sha256": "ede658a223ddb691bf9f64737edc63507dc0d594a462e6f8f3bea9c3aeaa98f0",
+        "imports": [
+          {
+            "path": "rebuild/client/copy.cjs",
+            "kind": "require-call",
+            "original": "./copy.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/client/plan.cjs",
+        "sha256": "91bba71bce872f57733aac88d6c8ce74e8c648d442262a5bed5879cfafc66839",
+        "imports": [
+          {
+            "path": "node:crypto",
+            "kind": "require-call",
+            "external": true
+          },
+          {
+            "path": "rebuild/client/canonical.cjs",
+            "kind": "require-call",
+            "original": "./canonical.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/client/session.cjs",
+        "sha256": "dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3",
+        "imports": [
+          {
+            "path": "rebuild/client/copy.cjs",
+            "kind": "require-call",
+            "original": "./copy.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/client/bodycomp.cjs",
+        "sha256": "c55d66e5a8c8ae14f90b935d0ad07454d311e606a032d5c8c6ce1f094c3399d2",
+        "imports": []
+      },
+      {
+        "path": "rebuild/client/index.cjs",
+        "sha256": "f5e272c048191e6fc5ee56465a7d0bf264e8b488f5fa4bd19a8819a5496ebfa9",
+        "imports": [
+          {
+            "path": "rebuild/client/store.cjs",
+            "kind": "require-call",
+            "original": "./store.cjs"
+          },
+          {
+            "path": "rebuild/client/ops.cjs",
+            "kind": "require-call",
+            "original": "./ops.cjs"
+          },
+          {
+            "path": "rebuild/client/lease.cjs",
+            "kind": "require-call",
+            "original": "./lease.cjs"
+          },
+          {
+            "path": "rebuild/client/outbox.cjs",
+            "kind": "require-call",
+            "original": "./outbox.cjs"
+          },
+          {
+            "path": "rebuild/client/sync.cjs",
+            "kind": "require-call",
+            "original": "./sync.cjs"
+          },
+          {
+            "path": "rebuild/client/face.cjs",
+            "kind": "require-call",
+            "original": "./face.cjs"
+          },
+          {
+            "path": "rebuild/client/plan.cjs",
+            "kind": "require-call",
+            "original": "./plan.cjs"
+          },
+          {
+            "path": "rebuild/client/session.cjs",
+            "kind": "require-call",
+            "original": "./session.cjs"
+          },
+          {
+            "path": "rebuild/client/bodycomp.cjs",
+            "kind": "require-call",
+            "original": "./bodycomp.cjs"
+          },
+          {
+            "path": "rebuild/client/copy.cjs",
+            "kind": "require-call",
+            "original": "./copy.cjs"
+          },
+          {
+            "path": "rebuild/client/canonical.cjs",
+            "kind": "require-call",
+            "original": "./canonical.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/edit-values.cjs",
+        "sha256": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m4/workout/context-values.cjs",
+        "sha256": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b",
+        "imports": [
+          {
+            "path": "rebuild/m4/workout/edit-values.cjs",
+            "kind": "require-call",
+            "original": "./edit-values.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/source-control-values.cjs",
+        "sha256": "635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560",
+        "imports": [
+          {
+            "path": "rebuild/m4/workout/edit-values.cjs",
+            "kind": "require-call",
+            "original": "./edit-values.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/schema.cjs",
+        "sha256": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458",
+        "imports": [
+          {
+            "path": "rebuild/m4/workout/edit-values.cjs",
+            "kind": "require-call",
+            "original": "./edit-values.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/context-values.cjs",
+            "kind": "require-call",
+            "original": "./context-values.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/source-control-values.cjs",
+            "kind": "require-call",
+            "original": "./source-control-values.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/authority-profile.cjs",
+        "sha256": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63",
+        "imports": [
+          {
+            "path": "rebuild/m4/workout/edit-values.cjs",
+            "kind": "require-call",
+            "original": "./edit-values.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/commands.cjs",
+        "sha256": "ee4de3b4ea573fe6f924fdff97f793e5679219516e4188fcc6b9f689c9b5c571",
+        "imports": [
+          {
+            "path": "rebuild/m4/workout/schema.cjs",
+            "kind": "require-call",
+            "original": "./schema.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/authority-profile.cjs",
+            "kind": "require-call",
+            "original": "./authority-profile.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-snapshot.cjs",
+        "sha256": "80252922aeda425eabf1402d22613e299481a0242c77be9c707354d14fd5aa23",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w6/t2-stage.cjs",
+        "sha256": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592",
+        "imports": [
+          {
+            "path": "rebuild/client/index.cjs",
+            "kind": "require-call",
+            "original": "../../client/index.cjs"
+          },
+          {
+            "path": "rebuild/client/ops.cjs",
+            "kind": "require-call",
+            "original": "../../client/ops.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/commands.cjs",
+            "kind": "require-call",
+            "original": "../../m4/workout/commands.cjs"
+          },
+          {
+            "path": "rebuild/m3/w6/recovery-snapshot.cjs",
+            "kind": "require-call",
+            "original": "./recovery-snapshot.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/local/local-keys.mjs",
+        "sha256": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/repository.mjs",
+            "kind": "import-statement",
+            "original": "../repository.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/local/local-era.mjs",
+        "sha256": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
+        "imports": [
+          {
+            "path": "rebuild/client/lease.cjs",
+            "kind": "import-statement",
+            "original": "../../../client/lease.cjs"
+          },
+          {
+            "path": "rebuild/client/ops.cjs",
+            "kind": "import-statement",
+            "original": "../../../client/ops.cjs"
+          },
+          {
+            "path": "rebuild/m3/w6/repository.mjs",
+            "kind": "import-statement",
+            "original": "../repository.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/authority/canonical.cjs",
+        "sha256": "c8888a3907d543371400e75ccfcb11bec2c3e3e7a40e74bd9d471b21a26e08cc",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w6/local/host-bindings.mjs",
+        "sha256": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/t2-stage.cjs",
+            "kind": "import-statement",
+            "original": "../t2-stage.cjs"
+          },
+          {
+            "path": "rebuild/authority/canonical.cjs",
+            "kind": "import-statement",
+            "original": "../../../authority/canonical.cjs"
+          },
+          {
+            "path": "rebuild/m3/w6/repository.mjs",
+            "kind": "import-statement",
+            "original": "../repository.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/local-era.mjs",
+            "kind": "import-statement",
+            "original": "./local-era.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/local-client.mjs",
+            "kind": "import-statement",
+            "original": "./local-client.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/strict-json.mjs",
+        "sha256": "1605acb16b8d828578979755e9ce3387efaab70f6b22370bbd565355187b7fb9",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w6/local/import-bundle.mjs",
+        "sha256": "5db842a96a94db7df91b4eaec28c82522e4aa50edc1d3b19607bf1200b4d2b54",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/repository.mjs",
+            "kind": "import-statement",
+            "original": "../repository.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/strict-json.mjs",
+            "kind": "import-statement",
+            "original": "../strict-json.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/local-client.mjs",
+            "kind": "import-statement",
+            "original": "./local-client.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/local/local-client.mjs",
+        "sha256": "3bf8c01d7e2b28fd0fad66ec0b6fd60663ab8b38caa9f222e0d36772c5970899",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/repository.mjs",
+            "kind": "import-statement",
+            "original": "../repository.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/bridge.mjs",
+            "kind": "import-statement",
+            "original": "../bridge.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/t2-stage.cjs",
+            "kind": "import-statement",
+            "original": "../t2-stage.cjs"
+          },
+          {
+            "path": "rebuild/client/index.cjs",
+            "kind": "import-statement",
+            "original": "../../../client/index.cjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/local-keys.mjs",
+            "kind": "import-statement",
+            "original": "./local-keys.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/local-era.mjs",
+            "kind": "import-statement",
+            "original": "./local-era.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/host-bindings.mjs",
+            "kind": "import-statement",
+            "original": "./host-bindings.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/import-bundle.mjs",
+            "kind": "import-statement",
+            "original": "./import-bundle.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w5/public-client.cjs",
+        "sha256": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74",
+        "imports": [
+          {
+            "path": "rebuild/authority/canonical.cjs",
+            "kind": "require-call",
+            "original": "../../authority/canonical.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/node-sha256-browser.mjs",
+        "sha256": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97",
+        "imports": [
+          {
+            "path": "@noble/hashes/hmac.js",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "@noble/hashes/sha2.js",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "@noble/hashes/utils.js",
+            "kind": "import-statement",
+            "external": true
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-plan-reader.cjs",
+        "sha256": "69e58c26bb452fea48101fd73a9ee07e29d9b531dbbde9ab67330dffd61babc5",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-plan.cjs",
+        "sha256": "32a9c0343b1c602beb0bb38f565d6a66355012bab3d34928f1e1df859838e2b3",
+        "imports": [
+          {
+            "path": "rebuild/authority/canonical.cjs",
+            "kind": "require-call",
+            "original": "../../authority/canonical.cjs"
+          },
+          {
+            "path": "rebuild/m3/w6/node-sha256-browser.mjs",
+            "kind": "require-call",
+            "original": "./node-sha256-browser.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/recovery-plan-reader.cjs",
+            "kind": "require-call",
+            "original": "./recovery-plan-reader.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-profile.mjs",
+        "sha256": "dc16a4c0626a63e83bddea3a53ed8043647740428e868346623fcd7ba812e666",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/recovery-plan.cjs",
+            "kind": "import-statement",
+            "original": "./recovery-plan.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-local.mjs",
+        "sha256": "da94b8eeb73c41d01d2eb55ac57ab0e1d1f37ce64dc9d5a3158a0c3651e2904e",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/repository.mjs",
+            "kind": "import-statement",
+            "original": "./repository.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/recovery-profile.mjs",
+            "kind": "import-statement",
+            "original": "./recovery-profile.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/t2-stage.cjs",
+            "kind": "import-statement",
+            "original": "./t2-stage.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-history.mjs",
+        "sha256": "f4ca4aae3c2f4f94ff89640f00a1cebcbf5ebab56c2c11c5f95b84da1019e478",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/repository.mjs",
+            "kind": "import-statement",
+            "original": "./repository.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/recovery-profile.mjs",
+            "kind": "import-statement",
+            "original": "./recovery-profile.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/recovery-snapshot.cjs",
+            "kind": "import-statement",
+            "original": "./recovery-snapshot.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/candidate-grant.mjs",
+        "sha256": "d65dfcafcde6a1105fe7720264c4adc3f28859c8f5bb3f53dcbb9e67c9cf951a",
+        "imports": [
+          {
+            "path": "rebuild/authority/canonical.cjs",
+            "kind": "import-statement",
+            "original": "../../authority/canonical.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/history-proof.mjs",
+        "sha256": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114",
+        "imports": [
+          {
+            "path": "rebuild/m3/w5/public-client.cjs",
+            "kind": "import-statement",
+            "original": "../w5/public-client.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/edit-history.cjs",
+        "sha256": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2",
+        "imports": [
+          {
+            "path": "rebuild/m4/workout/edit-values.cjs",
+            "kind": "require-call",
+            "original": "./edit-values.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/schema.cjs",
+            "kind": "require-call",
+            "original": "./schema.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/context-values.cjs",
+            "kind": "require-call",
+            "original": "./context-values.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/project-history.mjs",
+        "sha256": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92",
+        "imports": [
+          {
+            "path": "rebuild/m4/workout/edit-history.cjs",
+            "kind": "import-statement",
+            "original": "./edit-history.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/stored-history.mjs",
+        "sha256": "78db774066ccc465bbdce8394bf3bb545c197664a9f7703cc8b34003e002567e",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/history-proof.mjs",
+            "kind": "import-statement",
+            "original": "../../m3/w6/history-proof.mjs"
+          },
+          {
+            "path": "rebuild/m4/workout/project-history.mjs",
+            "kind": "import-statement",
+            "original": "./project-history.mjs"
+          },
+          {
+            "path": "rebuild/m4/workout/edit-history.cjs",
+            "kind": "import-statement",
+            "original": "./edit-history.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/continuation.mjs",
+        "sha256": "b688367c42158606738c03b7c9d6752fd86ce58480a8485f34ee275605d83f7d",
+        "imports": [
+          {
+            "path": "rebuild/client/session.cjs",
+            "kind": "import-statement",
+            "original": "../../client/session.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/public-client.mjs",
+        "sha256": "230370a0c6465892337e76fea7fbfd117458c79f57d50bc82e8b9b7e5df0648d",
+        "imports": [
+          {
+            "path": "rebuild/m3/w5/public-client.cjs",
+            "kind": "import-statement",
+            "original": "../w5/public-client.cjs"
+          },
+          {
+            "path": "rebuild/m3/w6/bridge.mjs",
+            "kind": "import-statement",
+            "original": "./bridge.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/repository.mjs",
+            "kind": "import-statement",
+            "original": "./repository.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/recovery-local.mjs",
+            "kind": "import-statement",
+            "original": "./recovery-local.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/recovery-history.mjs",
+            "kind": "import-statement",
+            "original": "./recovery-history.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/candidate-grant.mjs",
+            "kind": "import-statement",
+            "original": "./candidate-grant.mjs"
+          },
+          {
+            "path": "rebuild/authority/canonical.cjs",
+            "kind": "import-statement",
+            "original": "../../authority/canonical.cjs"
+          },
+          {
+            "path": "rebuild/m3/w6/history-proof.mjs",
+            "kind": "import-statement",
+            "original": "./history-proof.mjs"
+          },
+          {
+            "path": "rebuild/m4/workout/schema.cjs",
+            "kind": "import-statement",
+            "original": "../../m4/workout/schema.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/stored-history.mjs",
+            "kind": "import-statement",
+            "original": "../../m4/workout/stored-history.mjs"
+          },
+          {
+            "path": "rebuild/m4/workout/continuation.mjs",
+            "kind": "import-statement",
+            "original": "../../m4/workout/continuation.mjs"
+          },
+          {
+            "path": "rebuild/m4/workout/commands.cjs",
+            "kind": "import-statement",
+            "original": "../../m4/workout/commands.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/host/workout-host.mjs",
+        "sha256": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w5/reconciliation/codec.cjs",
+        "sha256": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e",
+        "imports": [
+          {
+            "path": "@noble/hashes/sha2.js",
+            "kind": "require-call",
+            "external": true
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w5/source/codec.cjs",
+        "sha256": "e6591fcd586b568a6fa8c0aff89336dde75e4c80864f4fe23c399e1dc1c3c0d6",
+        "imports": [
+          {
+            "path": "rebuild/m3/w5/reconciliation/codec.cjs",
+            "kind": "require-call",
+            "original": "../reconciliation/codec.cjs"
+          },
+          {
+            "path": "@noble/hashes/sha2.js",
+            "kind": "require-call",
+            "external": true
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/capture.cjs",
+        "sha256": "c20fb021034b7c110d58cd14cb8e5fb547ce23d0436086894dce67e23a4674ea",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m4/workout/engine-capture.cjs",
+        "sha256": "309c75d82a036b24b09ebc6668ea73065aa76de5638b2dee3da18d9067e08785",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m4/workout/engine-order.cjs",
+        "sha256": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m4/workout/engine-history.cjs",
+        "sha256": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89",
+        "imports": [
+          {
+            "path": "rebuild/m4/workout/engine-order.cjs",
+            "kind": "require-call",
+            "original": "./engine-order.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/edit-history.cjs",
+            "kind": "require-call",
+            "original": "./edit-history.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/source-projection.cjs",
+        "sha256": "fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m4/workout/workout-basis.cjs",
+        "sha256": "e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m4/workout/resume-policy.cjs",
+        "sha256": "7c11a07ae5bb5d114447ad06f52d95537d83fef012cc78d47e19664e9925395f",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/dates.cjs",
+        "sha256": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/constants.cjs",
+        "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/plan.cjs",
+        "sha256": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/entered-load.cjs",
+        "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/performed.cjs",
+        "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+        "imports": [
+          {
+            "path": "rebuild/engine/entered-load.cjs",
+            "kind": "require-call",
+            "original": "./entered-load.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/engine/progression.cjs",
+        "sha256": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/sleep.cjs",
+        "sha256": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/energy.cjs",
+        "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/policy.cjs",
+        "sha256": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/today.cjs",
+        "sha256": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/volume.cjs",
+        "sha256": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/earn.cjs",
+        "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+        "imports": []
+      },
+      {
+        "path": "rebuild/engine/writers.cjs",
+        "sha256": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w6/host/engine-runtime-host.cjs",
+        "sha256": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+        "imports": [
+          {
+            "path": "rebuild/engine/dates.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/dates.cjs"
+          },
+          {
+            "path": "rebuild/engine/constants.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/constants.cjs"
+          },
+          {
+            "path": "rebuild/engine/plan.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/plan.cjs"
+          },
+          {
+            "path": "rebuild/engine/performed.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/performed.cjs"
+          },
+          {
+            "path": "rebuild/engine/progression.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/progression.cjs"
+          },
+          {
+            "path": "rebuild/engine/sleep.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/sleep.cjs"
+          },
+          {
+            "path": "rebuild/engine/energy.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/energy.cjs"
+          },
+          {
+            "path": "rebuild/engine/policy.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/policy.cjs"
+          },
+          {
+            "path": "rebuild/engine/today.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/today.cjs"
+          },
+          {
+            "path": "rebuild/engine/volume.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/volume.cjs"
+          },
+          {
+            "path": "rebuild/engine/earn.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/earn.cjs"
+          },
+          {
+            "path": "rebuild/engine/writers.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/writers.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/native-trend-context.cjs",
+        "sha256": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w6/local/today-bindings.mjs",
+        "sha256": "95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/local/local-client.mjs",
+            "kind": "import-statement",
+            "original": "./local-client.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/local-keys.mjs",
+            "kind": "import-statement",
+            "original": "./local-keys.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/local-era.mjs",
+            "kind": "import-statement",
+            "original": "./local-era.mjs"
+          },
+          {
+            "path": "rebuild/client/index.cjs",
+            "kind": "import-statement",
+            "original": "../../../client/index.cjs"
+          },
+          {
+            "path": "rebuild/m3/w6/repository.mjs",
+            "kind": "import-statement",
+            "original": "../repository.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/public-client.mjs",
+            "kind": "import-statement",
+            "original": "../public-client.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/strict-json.mjs",
+            "kind": "import-statement",
+            "original": "../strict-json.mjs"
+          },
+          {
+            "path": "rebuild/m4/workout/project-history.mjs",
+            "kind": "import-statement",
+            "original": "../../../m4/workout/project-history.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/host/workout-host.mjs",
+            "kind": "import-statement",
+            "original": "../host/workout-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w5/source/codec.cjs",
+            "kind": "import-statement",
+            "original": "../../w5/source/codec.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/capture.cjs",
+            "kind": "import-statement",
+            "original": "../../../m4/workout/capture.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/commands.cjs",
+            "kind": "import-statement",
+            "original": "../../../m4/workout/commands.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/engine-capture.cjs",
+            "kind": "import-statement",
+            "original": "../../../m4/workout/engine-capture.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/engine-history.cjs",
+            "kind": "import-statement",
+            "original": "../../../m4/workout/engine-history.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/source-projection.cjs",
+            "kind": "import-statement",
+            "original": "../../../m4/workout/source-projection.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/workout-basis.cjs",
+            "kind": "import-statement",
+            "original": "../../../m4/workout/workout-basis.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/resume-policy.cjs",
+            "kind": "import-statement",
+            "original": "../../../m4/workout/resume-policy.cjs"
+          },
+          {
+            "path": "rebuild/m3/w6/host/engine-runtime-host.cjs",
+            "kind": "import-statement",
+            "original": "../host/engine-runtime-host.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/native-trend-context.cjs",
+            "kind": "import-statement",
+            "original": "../../../m4/workout/native-trend-context.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/gym-host.mjs",
+        "sha256": "70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18",
+        "imports": [
+          {
+            "path": "rebuild/m3/w6/local/today-bindings.mjs",
+            "kind": "import-statement",
+            "original": "../../w6/local/today-bindings.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/today-bindings.mjs",
+            "kind": "import-statement",
+            "original": "../../w6/local/today-bindings.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/gym-model.mjs",
+        "sha256": "2c67666717c02ab49f426de0b5052ea409b8acc6930d71ad6f72b34e251ea1d8",
+        "imports": [
+          {
+            "path": "rebuild/m4/workout/edit-values.cjs",
+            "kind": "import-statement",
+            "original": "../../../m4/workout/edit-values.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+        "sha256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+        "imports": [
+          {
+            "path": "rebuild/engine/dates.cjs",
+            "kind": "require-call",
+            "original": "../../engine/dates.cjs"
+          },
+          {
+            "path": "rebuild/engine/constants.cjs",
+            "kind": "require-call",
+            "original": "../../engine/constants.cjs"
+          },
+          {
+            "path": "rebuild/engine/entered-load.cjs",
+            "kind": "require-call",
+            "original": "../../engine/entered-load.cjs"
+          },
+          {
+            "path": "rebuild/engine/performed.cjs",
+            "kind": "require-call",
+            "original": "../../engine/performed.cjs"
+          },
+          {
+            "path": "rebuild/engine/plan.cjs",
+            "kind": "require-call",
+            "original": "../../engine/plan.cjs"
+          },
+          {
+            "path": "rebuild/engine/progression.cjs",
+            "kind": "require-call",
+            "original": "../../engine/progression.cjs"
+          },
+          {
+            "path": "rebuild/engine/sleep.cjs",
+            "kind": "require-call",
+            "original": "../../engine/sleep.cjs"
+          },
+          {
+            "path": "rebuild/engine/energy.cjs",
+            "kind": "require-call",
+            "original": "../../engine/energy.cjs"
+          },
+          {
+            "path": "rebuild/engine/policy.cjs",
+            "kind": "require-call",
+            "original": "../../engine/policy.cjs"
+          },
+          {
+            "path": "rebuild/engine/today.cjs",
+            "kind": "require-call",
+            "original": "../../engine/today.cjs"
+          },
+          {
+            "path": "rebuild/engine/volume.cjs",
+            "kind": "require-call",
+            "original": "../../engine/volume.cjs"
+          },
+          {
+            "path": "rebuild/engine/earn.cjs",
+            "kind": "require-call",
+            "original": "../../engine/earn.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-engine.cjs",
+        "sha256": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+            "kind": "require-call",
+            "original": "../browser-engine.cjs"
+          },
+          {
+            "path": "rebuild/engine/writers.cjs",
+            "kind": "require-call",
+            "original": "../../../engine/writers.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/fixtures.cjs",
+        "sha256": "42d16ee32c2a6bb4f404277b89021b75573e593e9654e86c01e1c574cb4c7a58",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/food-commands.cjs",
+        "sha256": "194190aa0a12e30d937eb5c4c59878b58089eeab93f6783f46969eddadcaddc5",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/food-model.cjs",
+        "sha256": "1552309c0c4368ece9aca169338df7b1c02a4d2c6f28bb3b0af8c385ebe15c5c",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/food-commands.cjs",
+            "kind": "require-call",
+            "original": "./food-commands.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+        "sha256": "040f883203bb6a1b9ce6e4991f6f566c79154b2eb9454bef10a12ce98fc5aa8d",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/today-engine.cjs",
+            "kind": "require-call",
+            "original": "./today-engine.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/fixtures.cjs",
+            "kind": "require-call",
+            "original": "../fixtures.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/food-model.cjs",
+            "kind": "require-call",
+            "original": "./food-model.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+        "sha256": "a9a675061f3bc9fa791fb724b8ef111aa2a0ae45c363afd1c13ff70f9d641a73",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/problem-report.cjs",
+        "sha256": "1ea3d6ae3280e0418f1994a62c665de19a16478f57995a22e39a0c1466c4e62c",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+            "kind": "require-call",
+            "original": "./plain-copy.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/food-host.mjs",
+        "sha256": "009e7e93d230e4168dfacd7f6a7ea35652c79612b1c6c5bfd3b18c13c2180c88",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-host.mjs",
+            "kind": "import-statement",
+            "original": "./gym-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/today-bindings.mjs",
+            "kind": "import-statement",
+            "original": "../../w6/local/today-bindings.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/public-client.mjs",
+            "kind": "import-statement",
+            "original": "../../w6/public-client.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/local-era.mjs",
+            "kind": "import-statement",
+            "original": "../../w6/local/local-era.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/food-commands.cjs",
+            "kind": "import-statement",
+            "original": "./food-commands.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+        "sha256": "ec5ce136ffcd72ee9900926ae4c4aef367d85fac49b5d469161c97795ac07944",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+            "kind": "require-call",
+            "original": "./today-model.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+            "kind": "require-call",
+            "original": "./plain-copy.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/problem-report.cjs",
+            "kind": "require-call",
+            "original": "./problem-report.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/food-model.cjs",
+            "kind": "require-call",
+            "original": "./food-model.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/food-host.mjs",
+            "kind": "dynamic-import",
+            "original": "./food-host.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/coach/machine-settings-commands.cjs",
+        "sha256": "c83446191bdb7c8e5514d28f864ffb138c02fb68ac06b5bbfd1512c22c36a31c",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
+        "sha256": "f7e9da0d764d64f3413dcf90c60f7353f1e3963eca36b1aa7e474b039eb87b23",
+        "imports": [
+          {
+            "path": "rebuild/coach/machine-settings-commands.cjs",
+            "kind": "import-statement",
+            "original": "../../../coach/machine-settings-commands.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
+        "sha256": "82ba53328a99f097efe028236ec0742e14535ad9bbcea81dbe924db170b41a70",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-host.mjs",
+            "kind": "import-statement",
+            "original": "./gym-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/today-bindings.mjs",
+            "kind": "import-statement",
+            "original": "../../w6/local/today-bindings.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/public-client.mjs",
+            "kind": "import-statement",
+            "original": "../../w6/public-client.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/local-era.mjs",
+            "kind": "import-statement",
+            "original": "../../w6/local/local-era.mjs"
+          },
+          {
+            "path": "rebuild/coach/machine-settings-commands.cjs",
+            "kind": "import-statement",
+            "original": "../../../coach/machine-settings-commands.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/gym-app.mjs",
+        "sha256": "0e552694fa596844e4e27c30ca273f36ced22351a3e9216ed905be7be632d452",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+            "kind": "import-statement",
+            "original": "./today-app.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+            "kind": "import-statement",
+            "original": "./plain-copy.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
+            "kind": "import-statement",
+            "original": "./machine-settings-view.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
+            "kind": "dynamic-import",
+            "original": "./machine-settings-host.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/reading-host.mjs",
+        "sha256": "a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-host.mjs",
+            "kind": "import-statement",
+            "original": "./gym-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/local-era.mjs",
+            "kind": "import-statement",
+            "original": "../../w6/local/local-era.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+        "sha256": "2ec701faa7edc77276e8154789507a03c423f1493bdc069f078bd8a797fec984",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-host.mjs",
+        "sha256": "029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-host.mjs",
+            "kind": "import-statement",
+            "original": "./gym-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+            "kind": "import-statement",
+            "original": "./checkin-commands.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-model.mjs",
+        "sha256": "d449518578bd57431fd8a79c174fdde1208c5eccced9156070411844af794a22",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+            "kind": "import-statement",
+            "original": "./checkin-commands.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-app.mjs",
+        "sha256": "db8295cb5f12a4e6d65033b6a74cf696b63ec32368c1d6d6161cf1e0519161b0",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+            "kind": "import-statement",
+            "original": "./today-app.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/checkin-model.mjs",
+            "kind": "import-statement",
+            "original": "./checkin-model.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+            "kind": "import-statement",
+            "original": "./plain-copy.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m4/workout/athlete-state.cjs",
+        "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+        "imports": [
+          {
+            "path": "rebuild/engine/constants.cjs",
+            "kind": "require-call",
+            "original": "../../engine/constants.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/split-kinds.mjs",
+        "sha256": "998233006411fefb735d1924aa13343e069a39ef64776841fbc321b88e40b01a",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+        "sha256": "54c7c6e06c74aba0cfd135ab71fab8b595b884d8e86934fd4a1e2dab82d463e0",
+        "imports": [
+          {
+            "path": "rebuild/m4/workout/athlete-state.cjs",
+            "kind": "import-statement",
+            "original": "../../../m4/workout/athlete-state.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/split-kinds.mjs",
+            "kind": "import-statement",
+            "original": "./split-kinds.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+        "sha256": "9f7116bb679eb53ead6d5ea8000e8534a5bfc94e2042e3b0b36e57f272cd52e3",
+        "imports": []
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-commands.mjs",
+        "sha256": "c5b65d7146828736dd6afaea2473a02e0a44cba654409c115f9d9784762e5677",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+            "kind": "import-statement",
+            "original": "./setup-model.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+            "kind": "import-statement",
+            "original": "./exercise-catalogue.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-host.mjs",
+        "sha256": "eec0914a71fc8b0447f277559e35030735dbc1426af1fbef31e8f0894a7bfdf9",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-host.mjs",
+            "kind": "import-statement",
+            "original": "./gym-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/setup-commands.mjs",
+            "kind": "import-statement",
+            "original": "./setup-commands.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/starter-week.mjs",
+        "sha256": "8b4f257133daffc73696e2e642a568984a22af36808456fd3e350aa88987f069",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+            "kind": "import-statement",
+            "original": "./setup-model.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+            "kind": "import-statement",
+            "original": "./exercise-catalogue.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-app.mjs",
+        "sha256": "cc9053e59ad862bd1d7034860f3a70e64acb701236ea592da3c29e7279795b0b",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+            "kind": "import-statement",
+            "original": "./today-app.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+            "kind": "import-statement",
+            "original": "./setup-model.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+            "kind": "import-statement",
+            "original": "./plain-copy.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+            "kind": "import-statement",
+            "original": "./exercise-catalogue.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/starter-week.mjs",
+            "kind": "import-statement",
+            "original": "./starter-week.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-entry.mjs",
+        "sha256": "b50b92314b8e7730b4aab56e79a9bff2f03d949d234eeaf2a7270ec83f3fa111",
+        "imports": [
+          {
+            "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+            "kind": "import-statement",
+            "original": "./today-app.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+            "kind": "import-statement",
+            "original": "./today-model.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-host.mjs",
+            "kind": "import-statement",
+            "original": "./gym-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/reading-host.mjs",
+            "kind": "import-statement",
+            "original": "./reading-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-model.mjs",
+            "kind": "import-statement",
+            "original": "./gym-model.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-app.mjs",
+            "kind": "import-statement",
+            "original": "./gym-app.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/checkin-host.mjs",
+            "kind": "import-statement",
+            "original": "./checkin-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+            "kind": "import-statement",
+            "original": "./checkin-commands.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/checkin-model.mjs",
+            "kind": "import-statement",
+            "original": "./checkin-model.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/checkin-app.mjs",
+            "kind": "import-statement",
+            "original": "./checkin-app.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+            "kind": "import-statement",
+            "original": "./plain-copy.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/setup-host.mjs",
+            "kind": "import-statement",
+            "original": "./setup-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/setup-commands.mjs",
+            "kind": "import-statement",
+            "original": "./setup-commands.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+            "kind": "import-statement",
+            "original": "./setup-model.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/setup-app.mjs",
+            "kind": "import-statement",
+            "original": "./setup-app.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/design.cjs",
+        "sha256": "1ec78fbb8940e875d7c477c15149e9d2e1d49b359207061f2eaff50317bd233f",
+        "imports": [
+          {
+            "path": "node:assert/strict",
+            "kind": "require-call",
+            "external": true
+          },
+          {
+            "path": "node:crypto",
+            "kind": "require-call",
+            "external": true
+          },
+          {
+            "path": "node:fs",
+            "kind": "require-call",
+            "external": true
+          },
+          {
+            "path": "node:path",
+            "kind": "require-call",
+            "external": true
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+            "kind": "require-call",
+            "original": "./plain-copy.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+        "sha256": "954e28b28ed3331c7e3bc902f99fc1d3b814f4f38c6a2d9be36a572588b5d465",
+        "imports": [
+          {
+            "path": "node:test",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:assert/strict",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:crypto",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "jsdom",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "rebuild/m3/w6/test/support.mjs",
+            "kind": "import-statement",
+            "original": "../../../w6/test/support.mjs"
+          },
+          {
+            "path": "rebuild/m3/w6/local/today-bindings.mjs",
+            "kind": "import-statement",
+            "original": "../../../w6/local/today-bindings.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-host.mjs",
+            "kind": "import-statement",
+            "original": "../gym-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-model.mjs",
+            "kind": "import-statement",
+            "original": "../gym-model.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-app.mjs",
+            "kind": "import-statement",
+            "original": "../gym-app.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/today-entry.mjs",
+            "kind": "import-statement",
+            "original": "../today-entry.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/reading-host.mjs",
+            "kind": "import-statement",
+            "original": "../reading-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+            "kind": "import-statement",
+            "original": "../today-app.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+            "kind": "import-statement",
+            "original": "../today-model.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/design.cjs",
+            "kind": "import-statement",
+            "original": "../design.cjs"
+          },
+          {
+            "path": "rebuild/m4/workout/edit-values.cjs",
+            "kind": "import-statement",
+            "original": "../../../../m4/workout/edit-values.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-app.mjs",
+            "kind": "import-statement",
+            "original": "../gym-app.mjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w6/build-browser.mjs",
+        "sha256": "c2a0df9155e658c74b9e4fe2bc96badeaa9048dd56e9a0455b89212721da8f97",
+        "imports": [
+          {
+            "path": "esbuild",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:module",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:url",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:path",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:fs/promises",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:crypto",
+            "kind": "import-statement",
+            "external": true
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/build.mjs",
+        "sha256": "cafd588d46789841ead39893a88c7d6258e7a530d1d36fd77575b41cffb59c1e",
+        "imports": [
+          {
+            "path": "node:assert/strict",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:fs/promises",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:path",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:url",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "rebuild/m3/w6/build-browser.mjs",
+            "kind": "import-statement",
+            "original": "../../w6/build-browser.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/design.cjs",
+            "kind": "import-statement",
+            "original": "./design.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+            "kind": "import-statement",
+            "original": "./plain-copy.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/problem-report.cjs",
+            "kind": "import-statement",
+            "original": "./problem-report.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/coach/tools.cjs",
+        "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74",
+        "imports": [
+          {
+            "path": "node:crypto",
+            "kind": "require-call",
+            "external": true
+          }
+        ]
+      },
+      {
+        "path": "rebuild/coach/wave1-tools.cjs",
+        "sha256": "dff61d719a29533a4e1dc06c2536894bd9ba9c0c92cf89602426ee66ead642aa",
+        "imports": [
+          {
+            "path": "rebuild/coach/tools.cjs",
+            "kind": "require-call",
+            "original": "./tools.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+        "sha256": "266eb53ddcc324e3b25c07c26d80635392009e7671a18a5ed69e931908283804",
+        "imports": [
+          {
+            "path": "node:test",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:assert/strict",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:fs",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:path",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:crypto",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:url",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "jsdom",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "rebuild/m3/w6/test/support.mjs",
+            "kind": "import-statement",
+            "original": "../../../w6/test/support.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-host.mjs",
+            "kind": "import-statement",
+            "original": "../gym-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-model.mjs",
+            "kind": "import-statement",
+            "original": "../gym-model.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/gym-app.mjs",
+            "kind": "import-statement",
+            "original": "../gym-app.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
+            "kind": "import-statement",
+            "original": "../machine-settings-host.mjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
+            "kind": "import-statement",
+            "original": "../machine-settings-view.mjs"
+          },
+          {
+            "path": "rebuild/coach/machine-settings-commands.cjs",
+            "kind": "import-statement",
+            "original": "../../../../coach/machine-settings-commands.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+            "kind": "import-statement",
+            "original": "../today-model.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/design.cjs",
+            "kind": "import-statement",
+            "original": "../design.cjs"
+          },
+          {
+            "path": "rebuild/m3/w7-preview/today/build.mjs",
+            "kind": "import-statement",
+            "original": "../build.mjs"
+          },
+          {
+            "path": "rebuild/coach/wave1-tools.cjs",
+            "kind": "dynamic-import",
+            "original": "../../../../coach/wave1-tools.cjs"
+          }
+        ]
+      },
+      {
+        "path": "rebuild/conform/lib/canonical.cjs",
+        "sha256": "ca9d5daa7df046be3849ca21e9a21cdf43cbff4fd204246b673ec5621e84f4fa",
+        "imports": []
+      },
+      {
+        "path": "rebuild/conform/lib/ops.cjs",
+        "sha256": "cbf7e73cd899492981a03bc4b4153f12a77cc664c4c90c29774ef30bf981d1c1",
+        "imports": [
+          {
+            "path": "node:crypto",
+            "kind": "require-call",
+            "external": true
+          },
+          {
+            "path": "rebuild/conform/lib/canonical.cjs",
+            "kind": "require-call",
+            "original": "./canonical.cjs"
+          }
+        ]
+      }
+    ],
+    "addedModules": [
+      "rebuild/conform/lib/canonical.cjs",
+      "rebuild/conform/lib/ops.cjs"
+    ],
+    "external": [
+      "@noble/hashes/hmac.js",
+      "@noble/hashes/sha2.js",
+      "@noble/hashes/utils.js",
+      "esbuild",
+      "fake-indexeddb",
+      "jsdom",
+      "node:assert/strict",
+      "node:crypto",
+      "node:fs",
+      "node:fs/promises",
+      "node:module",
+      "node:path",
+      "node:test",
+      "node:url"
+    ],
+    "denied": [],
+    "warnings": [],
+    "sourceModulesExecuted": false,
+    "metadataOnlyPackageCalls": "playwright-core calls are recorded from already licensed browser-script metadata, not executed or added to the test invocation"
+  },
+  "runtime": {
+    "node": "v22.23.2",
+    "nodeSHA256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+    "pnpm": "9.15.9",
+    "tz": "America/New_York",
+    "resolvedTz": "America/New_York",
+    "temp": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-memory-lifecycle-r3\\.tmp",
+    "tmp": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-memory-lifecycle-r3\\.tmp",
+    "nodeOptionsAbsent": true,
+    "coverageAbsent": true,
+    "dependencies": "Fresh own locked root/W6/W5, install scripts disabled; only own tool runtime reused."
+  },
+  "original": {
+    "log": "d2-lifecycle-r3-original.tap",
+    "tests": 144,
+    "pass": 144,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "lateActivity": false,
+    "topLevelNames": [
+      {
+        "outcome": "ok",
+        "name": "A2 — the gym card journey, on the real stack"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 model read is observable before its first await and releases after failure"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 start remains submitted across an actual client await"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 logSet remains submitted across an actual client await"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 undo remains submitted across an actual client await"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 finish remains submitted across an actual client await"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 closeUnfinished remains submitted across an actual client await"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 raw unknown start preserves its exact handle after finally and later reads"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 raw unknown logSet preserves its exact handle after finally and later reads"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 raw unknown undo preserves its exact handle after finally and later reads"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 raw unknown finish preserves its exact handle after finally and later reads"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 raw unknown closeUnfinished preserves its exact handle after finally and later reads"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 known abort preserves original operations without manufacturing uncertainty"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 stored but unacknowledged raw outcome stays observed even without an unknown flag"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 a different-draft mount takes the actual screen from an older pending paint"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 a departed log completion cannot erase the same draft owned by a new mount"
+      },
+      {
+        "outcome": "ok",
+        "name": "A2 — resume, relaunch and a process kill"
+      },
+      {
+        "outcome": "ok",
+        "name": "A2 — the refusals the capture layer owns"
+      },
+      {
+        "outcome": "ok",
+        "name": "A2 — the effort domain is the accepted one, and nothing is preselected"
+      },
+      {
+        "outcome": "ok",
+        "name": "A2 — previous performance is the engine's own, or nothing at all"
+      },
+      {
+        "outcome": "ok",
+        "name": "A2/C4d — a prior NATIVE session prints \"Last time\" with the engine's own numbers"
+      },
+      {
+        "outcome": "ok",
+        "name": "A2 — the gym screens render the capture, with nothing preselected"
+      },
+      {
+        "outcome": "ok",
+        "name": "A2 — Today reflects the durable workout state"
+      },
+      {
+        "outcome": "ok",
+        "name": "A2 — a FRESH athlete (DECISIONS:100, Joe at S2) trains day after day, each day on a NEW page load"
+      },
+      {
+        "outcome": "ok",
+        "name": "A2 — a session abandoned on an earlier day is named, and the accepted close retires it"
+      },
+      {
+        "outcome": "ok",
+        "name": "A2 — the causal frontier is DERIVED from the durable log, never remembered"
+      },
+      {
+        "outcome": "ok",
+        "name": "A2 — an athlete carrying a LEGACY session log (Joe after the S3 port) is refused a second session outright"
+      },
+      {
+        "outcome": "ok",
+        "name": "S1 - with nothing stored the active set says so, in the brief's own sentence"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 remount retains the same entry, effort, editor and failed-save error until explicit resolution"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM274 actual set acknowledgement with newer editor input"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM274 actual set acknowledgement with newer entry input"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM274 actual settings acknowledgement with newer entry input"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM274 actual settings acknowledgement with newer editor input"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM284 real failed set after editor repaint respects current card"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM284 real failed set after editor repaint respects newer entry"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM284 real failed set after editor repaint respects replacement mount"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 departed settings failure cannot replace a newer editor draft or screen"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 departed settings success cannot replace a newer editor draft or screen"
+      },
+      {
+        "outcome": "ok",
+        "name": "MEM266 pending optional read and settled read/open promises report actual activity"
+      },
+      {
+        "outcome": "ok",
+        "name": "S1 - the empty block carries NO figure and no dash of any kind"
+      },
+      {
+        "outcome": "ok",
+        "name": "S1 - with no lane at all the card is exactly the card that shipped before"
+      },
+      {
+        "outcome": "ok",
+        "name": "S2 - stored settings render verbatim and in the STORED order, with the cue below"
+      },
+      {
+        "outcome": "ok",
+        "name": "S2 - \"four\" stays \"four\": nothing is interpreted into a number or a unit"
+      },
+      {
+        "outcome": "ok",
+        "name": "S2 - a cue on its own is a whole answer, with no settings row and no empty state"
+      },
+      {
+        "outcome": "ok",
+        "name": "S3 - settings stored for ANOTHER exercise id never appear on this one"
+      },
+      {
+        "outcome": "ok",
+        "name": "S3 - two lifts in one session each show their OWN settings, or nothing"
+      },
+      {
+        "outcome": "ok",
+        "name": "S4 - three captures for one lift leave THREE ops and the block shows the third"
+      },
+      {
+        "outcome": "ok",
+        "name": "S4 - the winning op carries the WHOLE machine: a dropped row is dropped"
+      },
+      {
+        "outcome": "ok",
+        "name": "S4 - latestFor is the COACH's rule, read out of its module at test time"
+      },
+      {
+        "outcome": "ok",
+        "name": "S5 - a capture from the gym card writes ONE op and its outbox entry"
+      },
+      {
+        "outcome": "ok",
+        "name": "S5 - the captured op is what the block then shows, read back off the store"
+      },
+      {
+        "outcome": "ok",
+        "name": "S5 - a storage fault writes NO part of the capture, and the card says so"
+      },
+      {
+        "outcome": "ok",
+        "name": "S6a - the op the CARD writes is the op the COACH's producer builds"
+      },
+      {
+        "outcome": "ok",
+        "name": "S6b - no second profile, validator or payload shape exists anywhere in today/**"
+      },
+      {
+        "outcome": "ok",
+        "name": "S6c - THE COACH READS WHAT THE GYM CARD CAPTURED, through its own wave-one tool"
+      },
+      {
+        "outcome": "ok",
+        "name": "S6d - and the card reads what the COACH captured, with no second read path"
+      },
+      {
+        "outcome": "ok",
+        "name": "S7 - neither a setting nor a cue records nothing, and says which is missing"
+      },
+      {
+        "outcome": "ok",
+        "name": "S7 - a name with no value, a value with no name and a repeated name all refuse"
+      },
+      {
+        "outcome": "ok",
+        "name": "S7 - the caps are the PRODUCER's, executed: over-long text and a 13th row refuse"
+      },
+      {
+        "outcome": "ok",
+        "name": "S7 - a refused capture leaves his answers on the screen, unchanged"
+      },
+      {
+        "outcome": "ok",
+        "name": "S7 - a producer refusal survives a held row-add repaint and a valid retry saves once"
+      },
+      {
+        "outcome": "ok",
+        "name": "S7 - a late old refusal cannot change a replacement draft"
+      },
+      {
+        "outcome": "ok",
+        "name": "S7 - a late old success cannot change a replacement draft"
+      },
+      {
+        "outcome": "ok",
+        "name": "S8 - cancelling writes nothing and leaves the record exactly as it was"
+      },
+      {
+        "outcome": "ok",
+        "name": "S8 - capture never blocks logging a set, and the primary action is unmoved"
+      },
+      {
+        "outcome": "ok",
+        "name": "S8 - a set logs with the editor open, and nothing about the settings changes"
+      },
+      {
+        "outcome": "ok",
+        "name": "S9 - the block survives a new host over the same store"
+      },
+      {
+        "outcome": "ok",
+        "name": "S9 - and a whole new installation over the same IndexedDB reads it back"
+      },
+      {
+        "outcome": "ok",
+        "name": "S9 - the read-back carries the op id, the date and the time it was recorded"
+      },
+      {
+        "outcome": "ok",
+        "name": "S9 - a closed lane refuses in the client's own shape and writes nothing"
+      },
+      {
+        "outcome": "ok",
+        "name": "S10 - PAGE_PINS names exactly four files, and all four are sha-identical"
+      },
+      {
+        "outcome": "ok",
+        "name": "S10 - today-bindings.mjs is byte-identical to the B-NTC package's own hash"
+      },
+      {
+        "outcome": "ok",
+        "name": "S10 - the lane is opened through client.hostBindings, not a w6 factory"
+      },
+      {
+        "outcome": "ok",
+        "name": "S11 - no em or en dash in the new sources, the template section or the screen"
+      },
+      {
+        "outcome": "ok",
+        "name": "S12 - every new sentence is declared, preview-owned, and REFUSED if dropped"
+      },
+      {
+        "outcome": "ok",
+        "name": "S12 - every class in the new markup is a selector in the APPROVED stylesheets"
+      },
+      {
+        "outcome": "ok",
+        "name": "S12 - the new markup invents no class and sets no width of its own"
+      },
+      {
+        "outcome": "ok",
+        "name": "S13 - the editor offers real text boxes, labelled, with one row to start"
+      },
+      {
+        "outcome": "ok",
+        "name": "S13 - a row can be added and removed, and the add stops at the producer's cap"
+      },
+      {
+        "outcome": "ok",
+        "name": "S13 - the editor opens seeded from what is STORED, so a correction starts there"
+      },
+      {
+        "outcome": "ok",
+        "name": "S14 - the build pins the three new inputs and names no network"
+      },
+      {
+        "outcome": "ok",
+        "name": "S14 - nothing under the page reaches the network or a store of its own"
+      },
+      {
+        "outcome": "ok",
+        "name": "S15 - this build adds files and edits only the ones its custody names"
+      },
+      {
+        "outcome": "ok",
+        "name": "S15 - the card with no capture at all is byte-for-byte the card that shipped"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2.1 - the card paints and the set LOGS while the settings read is still pending"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2.2 - a FAILED read says so, never prints the empty state, and seeds no editor"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2.3 / S-M6 - the LOG BUTTON logs a set with NO settings saved for the lift"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2.3 / S-M6 - and logs with the editor open and UNSAVED text in it"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2.1 / D2.2 - the new states are declared, dash free, and carry no figure"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2.R2 - BACK during a deferred read: the destination screen is never repainted over"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2.R2 - the CHECK-IN opened mid-read keeps its screen AND its half-typed draft"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2.R2 - a read that FAILS after navigation is equally silent"
+      }
+    ]
+  },
+  "replay37": {
+    "log": "d2-lifecycle-r3-replay37.tap",
+    "tests": 37,
+    "pass": 37,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "lateActivity": false,
+    "topLevelNames": [
+      {
+        "outcome": "ok",
+        "name": "D2 actual start paused write / confirmed"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual start paused write / outcomeUnknown"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual start paused write / stored"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual start paused write / durable"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual start paused write / committed"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual start paused write / abort"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual logSet paused write / confirmed"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual logSet paused write / outcomeUnknown"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual logSet paused write / stored"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual logSet paused write / durable"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual logSet paused write / committed"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual logSet paused write / abort"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual undo paused write / confirmed"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual undo paused write / outcomeUnknown"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual undo paused write / stored"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual undo paused write / durable"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual undo paused write / committed"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual undo paused write / abort"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual finish paused write / confirmed"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual finish paused write / outcomeUnknown"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual finish paused write / stored"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual finish paused write / durable"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual finish paused write / committed"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual finish paused write / abort"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual closeUnfinished paused write / confirmed"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual closeUnfinished paused write / outcomeUnknown"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual closeUnfinished paused write / stored"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual closeUnfinished paused write / durable"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual closeUnfinished paused write / committed"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual closeUnfinished paused write / abort"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual read pause and failure preserve counts, snapshots and operations"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 old actual log cannot clear a replacement mount on the same phone"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 acknowledged settings save preserves an actually newer editor answer"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 independent entry edits do not prevent confirmed settings Save clearing its unchanged editor"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 independent editor edits do not hide an acknowledged set log or suppress successful-log clearing"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 actual logging stays available while optional settings read is pending and navigation hands off first"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 real settings transaction failure retains exact editor error and drafts on same-phone remount"
+      }
+    ]
+  },
+  "replay4": {
+    "log": "d2-lifecycle-r3-replay4.tap",
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "lateActivity": false,
+    "topLevelNames": [
+      {
+        "outcome": "ok",
+        "name": "D2 R2 editor row addition preserves the real submitted set payload and acknowledges it exactly once"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 R2 entry stepper and effort retain their new values when the unchanged settings submission confirms"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 R2 actual failed settings Save retains its current error beside independent entry edits and on remount"
+      },
+      {
+        "outcome": "ok",
+        "name": "D2 R2 actual pending set outcome reaches the current owning card after an independent editor repaint"
+      }
+    ]
+  },
+  "newControls": [
+    {
+      "outcome": "ok",
+      "name": "MEM284 real failed set after editor repaint respects current card"
+    },
+    {
+      "outcome": "ok",
+      "name": "MEM284 real failed set after editor repaint respects newer entry"
+    },
+    {
+      "outcome": "ok",
+      "name": "MEM284 real failed set after editor repaint respects replacement mount"
+    }
+  ],
+  "observations": {
+    "d2-lifecycle-race-log.json": {
+      "modelPhase": "saved",
+      "visibleUndo": true,
+      "visibleLog": false,
+      "changedCalls": 1,
+      "entry": {
+        "load": null,
+        "reps": null
+      },
+      "editor": {
+        "draft": {
+          "rows": [
+            {
+              "name": "Seat",
+              "value": "six"
+            }
+          ],
+          "cues": ""
+        },
+        "lift": "demo-press",
+        "error": null
+      },
+      "counts": {
+        "busy": 0,
+        "read": 0,
+        "paint": 0,
+        "start": 0,
+        "settingsOpening": 0,
+        "settingsReading": 0,
+        "settingsSaving": 0
+      },
+      "opsBefore": 1,
+      "opsAfter": 2
+    },
+    "d2-lifecycle-race-settings.json": {
+      "editor": {
+        "draft": null,
+        "lift": null,
+        "error": null
+      },
+      "entry": {
+        "load": "",
+        "reps": ""
+      },
+      "effort": "2",
+      "counts": {
+        "busy": 0,
+        "read": 0,
+        "paint": 0,
+        "start": 0,
+        "settingsOpening": 0,
+        "settingsReading": 0,
+        "settingsSaving": 0
+      },
+      "opsBefore": 1,
+      "opsAfter": 2
+    },
+    "d2-lifecycle-r2-submitted-set.json": {
+      "payload": {
+        "load": {
+          "value": 35,
+          "unit": "lb"
+        },
+        "reps": {
+          "value": 7,
+          "unit": "rep"
+        },
+        "reserve": {
+          "tag": "exact",
+          "value": 2,
+          "unit": "rep"
+        }
+      },
+      "editor": {
+        "rows": [
+          {
+            "name": "Seat",
+            "value": "four"
+          },
+          {
+            "name": "Pin",
+            "value": "new independent answer"
+          }
+        ],
+        "cues": ""
+      },
+      "changed": 1,
+      "counts": {
+        "busy": 0,
+        "read": 0,
+        "paint": 0,
+        "start": 0,
+        "settingsOpening": 0,
+        "settingsReading": 0,
+        "settingsSaving": 0
+      }
+    },
+    "d2-lifecycle-r2-refused-set.json": {
+      "result": {
+        "acknowledged": false,
+        "state": 3,
+        "code": "TRANSACTION_WRITE_FAILED",
+        "copy": "Entry not saved. Your input is retained."
+      },
+      "phase": "active",
+      "message": {
+        "code": "TRANSACTION_WRITE_FAILED",
+        "copy": "Entry not saved. Your input is retained."
+      },
+      "currentError": "Entry not saved. Your input is retained. · TRANSACTION_WRITE_FAILED",
+      "detachedError": "",
+      "currentLogVisible": true,
+      "currentOwns": true,
+      "entry": {
+        "load": "35",
+        "reps": "7"
+      },
+      "effort": {
+        "label": "2",
+        "reserve": {
+          "tag": "exact",
+          "value": 2,
+          "unit": "rep"
+        }
+      },
+      "editorRows": [
+        {
+          "name": "Seat",
+          "value": "four"
+        },
+        {
+          "name": "",
+          "value": ""
+        }
+      ],
+      "changed": 0,
+      "counts": {
+        "busy": 0,
+        "read": 0,
+        "paint": 0,
+        "start": 0,
+        "settingsOpening": 0,
+        "settingsReading": 0,
+        "settingsSaving": 0
+      },
+      "opsBefore": 1,
+      "opsAfter": 1,
+      "outboxBefore": 1,
+      "outboxAfter": 1,
+      "observation": {
+        "preparations": [
+          {
+            "prepared": true,
+            "resumeId": "f02035381a13a0b8e1c650258198f7cc8510d9ca07be0ad9"
+          },
+          {
+            "prepared": true,
+            "resumeId": "b6b999b9ea53fec05a035d1c3ee26464d1ebfd15f717db6a"
+          },
+          {
+            "prepared": true,
+            "resumeId": "fd9ca1492dc9bed07a5be660ca5a8dfbe6c4c1453b89eebd"
+          },
+          {
+            "prepared": true,
+            "resumeId": "9d9ad73a2894258e0198eb33e2085484b23bde2309e0dc97"
+          },
+          {
+            "prepared": true,
+            "resumeId": "f1f9c24b51411fa7815309d98af19ef043245f1fe1c145e5"
+          },
+          {
+            "prepared": true,
+            "resumeId": "7dc37a96b45f982a64dd38d773446cbbf0a17500672e0bc5"
+          }
+        ],
+        "execute": "9d9ad73a2894258e0198eb33e2085484b23bde2309e0dc97"
+      }
+    }
+  },
+  "findings": [],
+  "closedFinding": {
+    "id": "D2-L3",
+    "priorVerdict": "f9f70a71bfa496708aff4996e895f92281522fa9",
+    "priorReconciliation": "377b0d3230ea30271dfaee88ececfb7ab22259c5",
+    "priorOutcome": "Original18ff0dcf final4 gave3 PASS/1 intended current-error failure; unchanged prior evidence retained, no old-head rerun.",
+    "currentOutcome": "Byte-exact final4 gives4/4. The actual already-executed quota refusal is visible on the current owning card and leaves its detached predecessor empty. Exact full old collections and both drafts retained; no extra write/notification; counters settle.",
+    "mechanism": "Only the post-await error-node target changes at gym-app452-453. The original entry revision and mount guards at448 remain before the lookup, so truly newer entries and replacement mounts keep their existing protection."
+  },
+  "preservedBehavior": "L1/L2 confirmed payloads, exactly-one collection additions, Saved/Undo and one caller notification, independent/explicit-empty drafts, same-surface/mount safeguards, epoch/frozen snapshots/counters/finally,30 model outcome cases, optional reads, settings errors and Cancel all execute in the licensed pair/replays.",
+  "build": {
+    "origin": "Actual unchanged S14 embedded build only; S10 licensed static metadata exception",
+    "buildId": "dc1abb4ec51721cf8d1263fdb9a3e11f3d9736f68371ca2b5ec9440c6b707c69",
+    "buildTag": "earned-dc1abb4ec517",
+    "inputs": [
+      {
+        "path": "rebuild/engine/dates.cjs",
+        "sha256": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6"
+      },
+      {
+        "path": "rebuild/engine/constants.cjs",
+        "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380"
+      },
+      {
+        "path": "rebuild/engine/entered-load.cjs",
+        "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3"
+      },
+      {
+        "path": "rebuild/engine/performed.cjs",
+        "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a"
+      },
+      {
+        "path": "rebuild/engine/plan.cjs",
+        "sha256": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3"
+      },
+      {
+        "path": "rebuild/engine/progression.cjs",
+        "sha256": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5"
+      },
+      {
+        "path": "rebuild/engine/sleep.cjs",
+        "sha256": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0"
+      },
+      {
+        "path": "rebuild/engine/energy.cjs",
+        "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc"
+      },
+      {
+        "path": "rebuild/engine/policy.cjs",
+        "sha256": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d"
+      },
+      {
+        "path": "rebuild/engine/today.cjs",
+        "sha256": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3"
+      },
+      {
+        "path": "rebuild/engine/volume.cjs",
+        "sha256": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4"
+      },
+      {
+        "path": "rebuild/engine/earn.cjs",
+        "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+        "sha256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61"
+      },
+      {
+        "path": "rebuild/engine/writers.cjs",
+        "sha256": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-engine.cjs",
+        "sha256": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/fixtures.cjs",
+        "sha256": "42d16ee32c2a6bb4f404277b89021b75573e593e9654e86c01e1c574cb4c7a58"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/food-commands.cjs",
+        "sha256": "194190aa0a12e30d937eb5c4c59878b58089eeab93f6783f46969eddadcaddc5"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/food-model.cjs",
+        "sha256": "1552309c0c4368ece9aca169338df7b1c02a4d2c6f28bb3b0af8c385ebe15c5c"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+        "sha256": "040f883203bb6a1b9ce6e4991f6f566c79154b2eb9454bef10a12ce98fc5aa8d"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+        "sha256": "a9a675061f3bc9fa791fb724b8ef111aa2a0ae45c363afd1c13ff70f9d641a73"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/problem-report.cjs",
+        "sha256": "1ea3d6ae3280e0418f1994a62c665de19a16478f57995a22e39a0c1466c4e62c"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-stage.mjs",
+        "sha256": "ef96cb867ba61cc74262d7a7c49060fd2aeb5d15b66448d22aa0cef30b1d023d"
+      },
+      {
+        "path": "rebuild/m3/w6/import-custody.mjs",
+        "sha256": "9f5d0c461d58275ce619b3028fb64c167a684bf21abff41bd71bd3daf20eeec7"
+      },
+      {
+        "path": "rebuild/m3/w6/repository.mjs",
+        "sha256": "4d8696382792d05585174652ac23b6589be9269d92eed0de37c8980d296a8912"
+      },
+      {
+        "path": "rebuild/m3/w6/bridge.mjs",
+        "sha256": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00"
+      },
+      {
+        "path": "rebuild/client/store.cjs",
+        "sha256": "f6ac3007354524b680d178086c87d7a321a8f8da0973b2b29f6f3d4c6ddcc6b0"
+      },
+      {
+        "path": "rebuild/m3/w6/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/utils.js",
+        "sha256": "e2adfc13c846487feff0410bd5508a1d66f5ebadc3188f3a40a6b55449981e2f"
+      },
+      {
+        "path": "rebuild/m3/w6/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/hmac.js",
+        "sha256": "137ed94227806b351a55b09801287a4dba72d2a35d3838730becf641271bc3dd"
+      },
+      {
+        "path": "rebuild/m3/w6/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/_md.js",
+        "sha256": "8227b9b5cabf078a9d7f7317f7a1ace6e46627539aa9364667aec724e1636f14"
+      },
+      {
+        "path": "rebuild/m3/w6/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/_u64.js",
+        "sha256": "766b91a693a798f9d3cde97b25db4a6d0cef66b2ca21153d3d42424d37878870"
+      },
+      {
+        "path": "rebuild/m3/w6/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/sha2.js",
+        "sha256": "0fb8e3c3f2c73a890be2524ac5d2542aaed4decff69e561231a86131203b3973"
+      },
+      {
+        "path": "rebuild/m3/w6/node-sha256-browser.mjs",
+        "sha256": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97"
+      },
+      {
+        "path": "rebuild/client/canonical.cjs",
+        "sha256": "fcf4302c52e149feeaa83c611b7ccdae8992306c6881623b888d086b4e3c1a6e"
+      },
+      {
+        "path": "rebuild/client/ops.cjs",
+        "sha256": "4f0e2931d9d0d139ab44cb907cba13c8f9120277155477a56f2a7dbe4301209b"
+      },
+      {
+        "path": "rebuild/client/lease.cjs",
+        "sha256": "b8e676d448e27cfecdf27ebd7fcf4766f7f73bfc8a2c6b69fb8754a1b8b0b771"
+      },
+      {
+        "path": "rebuild/client/outbox.cjs",
+        "sha256": "e74d97e4cd71ae958b0873fbb680a917e8a12847797671b97f2e538f13f80f2e"
+      },
+      {
+        "path": "rebuild/client/copy.cjs",
+        "sha256": "d93aca93eb4efea346f5fbd0c38995133be781b9d27502c883134afd0b231b81"
+      },
+      {
+        "path": "rebuild/client/sync.cjs",
+        "sha256": "42a3b53b4d54120efc4259de2813518f84cf69dfb9ed063529c4baadb7264f3a"
+      },
+      {
+        "path": "rebuild/client/face.cjs",
+        "sha256": "ede658a223ddb691bf9f64737edc63507dc0d594a462e6f8f3bea9c3aeaa98f0"
+      },
+      {
+        "path": "rebuild/client/plan.cjs",
+        "sha256": "91bba71bce872f57733aac88d6c8ce74e8c648d442262a5bed5879cfafc66839"
+      },
+      {
+        "path": "rebuild/client/session.cjs",
+        "sha256": "dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3"
+      },
+      {
+        "path": "rebuild/client/bodycomp.cjs",
+        "sha256": "c55d66e5a8c8ae14f90b935d0ad07454d311e606a032d5c8c6ce1f094c3399d2"
+      },
+      {
+        "path": "rebuild/client/index.cjs",
+        "sha256": "f5e272c048191e6fc5ee56465a7d0bf264e8b488f5fa4bd19a8819a5496ebfa9"
+      },
+      {
+        "path": "rebuild/m4/workout/edit-values.cjs",
+        "sha256": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546"
+      },
+      {
+        "path": "rebuild/m4/workout/context-values.cjs",
+        "sha256": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b"
+      },
+      {
+        "path": "rebuild/m4/workout/source-control-values.cjs",
+        "sha256": "635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560"
+      },
+      {
+        "path": "rebuild/m4/workout/schema.cjs",
+        "sha256": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458"
+      },
+      {
+        "path": "rebuild/m4/workout/authority-profile.cjs",
+        "sha256": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63"
+      },
+      {
+        "path": "rebuild/m4/workout/commands.cjs",
+        "sha256": "ee4de3b4ea573fe6f924fdff97f793e5679219516e4188fcc6b9f689c9b5c571"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-snapshot.cjs",
+        "sha256": "80252922aeda425eabf1402d22613e299481a0242c77be9c707354d14fd5aa23"
+      },
+      {
+        "path": "rebuild/m3/w6/t2-stage.cjs",
+        "sha256": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592"
+      },
+      {
+        "path": "rebuild/m3/w6/local/local-keys.mjs",
+        "sha256": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d"
+      },
+      {
+        "path": "rebuild/m3/w6/local/local-era.mjs",
+        "sha256": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46"
+      },
+      {
+        "path": "rebuild/authority/canonical.cjs",
+        "sha256": "c8888a3907d543371400e75ccfcb11bec2c3e3e7a40e74bd9d471b21a26e08cc"
+      },
+      {
+        "path": "rebuild/m3/w6/local/host-bindings.mjs",
+        "sha256": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39"
+      },
+      {
+        "path": "rebuild/m3/w6/strict-json.mjs",
+        "sha256": "1605acb16b8d828578979755e9ce3387efaab70f6b22370bbd565355187b7fb9"
+      },
+      {
+        "path": "rebuild/m3/w6/local/import-bundle.mjs",
+        "sha256": "5db842a96a94db7df91b4eaec28c82522e4aa50edc1d3b19607bf1200b4d2b54"
+      },
+      {
+        "path": "rebuild/m3/w6/local/local-client.mjs",
+        "sha256": "3bf8c01d7e2b28fd0fad66ec0b6fd60663ab8b38caa9f222e0d36772c5970899"
+      },
+      {
+        "path": "rebuild/m3/w5/public-client.cjs",
+        "sha256": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-plan-reader.cjs",
+        "sha256": "69e58c26bb452fea48101fd73a9ee07e29d9b531dbbde9ab67330dffd61babc5"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-plan.cjs",
+        "sha256": "32a9c0343b1c602beb0bb38f565d6a66355012bab3d34928f1e1df859838e2b3"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-profile.mjs",
+        "sha256": "dc16a4c0626a63e83bddea3a53ed8043647740428e868346623fcd7ba812e666"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-local.mjs",
+        "sha256": "da94b8eeb73c41d01d2eb55ac57ab0e1d1f37ce64dc9d5a3158a0c3651e2904e"
+      },
+      {
+        "path": "rebuild/m3/w6/recovery-history.mjs",
+        "sha256": "f4ca4aae3c2f4f94ff89640f00a1cebcbf5ebab56c2c11c5f95b84da1019e478"
+      },
+      {
+        "path": "rebuild/m3/w6/candidate-grant.mjs",
+        "sha256": "d65dfcafcde6a1105fe7720264c4adc3f28859c8f5bb3f53dcbb9e67c9cf951a"
+      },
+      {
+        "path": "rebuild/m3/w6/history-proof.mjs",
+        "sha256": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114"
+      },
+      {
+        "path": "rebuild/m4/workout/edit-history.cjs",
+        "sha256": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2"
+      },
+      {
+        "path": "rebuild/m4/workout/project-history.mjs",
+        "sha256": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92"
+      },
+      {
+        "path": "rebuild/m4/workout/stored-history.mjs",
+        "sha256": "78db774066ccc465bbdce8394bf3bb545c197664a9f7703cc8b34003e002567e"
+      },
+      {
+        "path": "rebuild/m4/workout/continuation.mjs",
+        "sha256": "b688367c42158606738c03b7c9d6752fd86ce58480a8485f34ee275605d83f7d"
+      },
+      {
+        "path": "rebuild/m3/w6/public-client.mjs",
+        "sha256": "230370a0c6465892337e76fea7fbfd117458c79f57d50bc82e8b9b7e5df0648d"
+      },
+      {
+        "path": "rebuild/m3/w6/host/workout-host.mjs",
+        "sha256": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69"
+      },
+      {
+        "path": "rebuild/m3/w5/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/utils.js",
+        "sha256": "e2adfc13c846487feff0410bd5508a1d66f5ebadc3188f3a40a6b55449981e2f"
+      },
+      {
+        "path": "rebuild/m3/w5/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/_md.js",
+        "sha256": "8227b9b5cabf078a9d7f7317f7a1ace6e46627539aa9364667aec724e1636f14"
+      },
+      {
+        "path": "rebuild/m3/w5/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/_u64.js",
+        "sha256": "766b91a693a798f9d3cde97b25db4a6d0cef66b2ca21153d3d42424d37878870"
+      },
+      {
+        "path": "rebuild/m3/w5/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/sha2.js",
+        "sha256": "0fb8e3c3f2c73a890be2524ac5d2542aaed4decff69e561231a86131203b3973"
+      },
+      {
+        "path": "rebuild/m3/w5/reconciliation/codec.cjs",
+        "sha256": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e"
+      },
+      {
+        "path": "rebuild/m3/w5/source/codec.cjs",
+        "sha256": "e6591fcd586b568a6fa8c0aff89336dde75e4c80864f4fe23c399e1dc1c3c0d6"
+      },
+      {
+        "path": "rebuild/m4/workout/capture.cjs",
+        "sha256": "c20fb021034b7c110d58cd14cb8e5fb547ce23d0436086894dce67e23a4674ea"
+      },
+      {
+        "path": "rebuild/m4/workout/engine-capture.cjs",
+        "sha256": "309c75d82a036b24b09ebc6668ea73065aa76de5638b2dee3da18d9067e08785"
+      },
+      {
+        "path": "rebuild/m4/workout/engine-order.cjs",
+        "sha256": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a"
+      },
+      {
+        "path": "rebuild/m4/workout/engine-history.cjs",
+        "sha256": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89"
+      },
+      {
+        "path": "rebuild/m4/workout/source-projection.cjs",
+        "sha256": "fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e"
+      },
+      {
+        "path": "rebuild/m4/workout/workout-basis.cjs",
+        "sha256": "e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664"
+      },
+      {
+        "path": "rebuild/m4/workout/resume-policy.cjs",
+        "sha256": "7c11a07ae5bb5d114447ad06f52d95537d83fef012cc78d47e19664e9925395f"
+      },
+      {
+        "path": "rebuild/m3/w6/host/engine-runtime-host.cjs",
+        "sha256": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d"
+      },
+      {
+        "path": "rebuild/m4/workout/native-trend-context.cjs",
+        "sha256": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a"
+      },
+      {
+        "path": "rebuild/m3/w6/local/today-bindings.mjs",
+        "sha256": "95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/gym-host.mjs",
+        "sha256": "70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/food-host.mjs",
+        "sha256": "009e7e93d230e4168dfacd7f6a7ea35652c79612b1c6c5bfd3b18c13c2180c88"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+        "sha256": "ec5ce136ffcd72ee9900926ae4c4aef367d85fac49b5d469161c97795ac07944"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/reading-host.mjs",
+        "sha256": "a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/gym-model.mjs",
+        "sha256": "2c67666717c02ab49f426de0b5052ea409b8acc6930d71ad6f72b34e251ea1d8"
+      },
+      {
+        "path": "rebuild/coach/machine-settings-commands.cjs",
+        "sha256": "c83446191bdb7c8e5514d28f864ffb138c02fb68ac06b5bbfd1512c22c36a31c"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
+        "sha256": "f7e9da0d764d64f3413dcf90c60f7353f1e3963eca36b1aa7e474b039eb87b23"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
+        "sha256": "82ba53328a99f097efe028236ec0742e14535ad9bbcea81dbe924db170b41a70"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/gym-app.mjs",
+        "sha256": "0e552694fa596844e4e27c30ca273f36ced22351a3e9216ed905be7be632d452"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+        "sha256": "2ec701faa7edc77276e8154789507a03c423f1493bdc069f078bd8a797fec984"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-host.mjs",
+        "sha256": "029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-model.mjs",
+        "sha256": "d449518578bd57431fd8a79c174fdde1208c5eccced9156070411844af794a22"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/checkin-app.mjs",
+        "sha256": "db8295cb5f12a4e6d65033b6a74cf696b63ec32368c1d6d6161cf1e0519161b0"
+      },
+      {
+        "path": "rebuild/m4/workout/athlete-state.cjs",
+        "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/split-kinds.mjs",
+        "sha256": "998233006411fefb735d1924aa13343e069a39ef64776841fbc321b88e40b01a"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+        "sha256": "54c7c6e06c74aba0cfd135ab71fab8b595b884d8e86934fd4a1e2dab82d463e0"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+        "sha256": "9f7116bb679eb53ead6d5ea8000e8534a5bfc94e2042e3b0b36e57f272cd52e3"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-commands.mjs",
+        "sha256": "c5b65d7146828736dd6afaea2473a02e0a44cba654409c115f9d9784762e5677"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-host.mjs",
+        "sha256": "eec0914a71fc8b0447f277559e35030735dbc1426af1fbef31e8f0894a7bfdf9"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/starter-week.mjs",
+        "sha256": "8b4f257133daffc73696e2e642a568984a22af36808456fd3e350aa88987f069"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/setup-app.mjs",
+        "sha256": "cc9053e59ad862bd1d7034860f3a70e64acb701236ea592da3c29e7279795b0b"
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-entry.mjs",
+        "sha256": "b50b92314b8e7730b4aab56e79a9bff2f03d949d234eeaf2a7270ec83f3fa111"
+      }
+    ],
+    "vendorInputs": [
+      {
+        "path": "rebuild/m3/w6/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/utils.js",
+        "sha256": "e2adfc13c846487feff0410bd5508a1d66f5ebadc3188f3a40a6b55449981e2f"
+      },
+      {
+        "path": "rebuild/m3/w6/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/hmac.js",
+        "sha256": "137ed94227806b351a55b09801287a4dba72d2a35d3838730becf641271bc3dd"
+      },
+      {
+        "path": "rebuild/m3/w6/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/_md.js",
+        "sha256": "8227b9b5cabf078a9d7f7317f7a1ace6e46627539aa9364667aec724e1636f14"
+      },
+      {
+        "path": "rebuild/m3/w6/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/_u64.js",
+        "sha256": "766b91a693a798f9d3cde97b25db4a6d0cef66b2ca21153d3d42424d37878870"
+      },
+      {
+        "path": "rebuild/m3/w6/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/sha2.js",
+        "sha256": "0fb8e3c3f2c73a890be2524ac5d2542aaed4decff69e561231a86131203b3973"
+      },
+      {
+        "path": "rebuild/m3/w5/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/utils.js",
+        "sha256": "e2adfc13c846487feff0410bd5508a1d66f5ebadc3188f3a40a6b55449981e2f"
+      },
+      {
+        "path": "rebuild/m3/w5/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/_md.js",
+        "sha256": "8227b9b5cabf078a9d7f7317f7a1ace6e46627539aa9364667aec724e1636f14"
+      },
+      {
+        "path": "rebuild/m3/w5/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/_u64.js",
+        "sha256": "766b91a693a798f9d3cde97b25db4a6d0cef66b2ca21153d3d42424d37878870"
+      },
+      {
+        "path": "rebuild/m3/w5/node_modules/.pnpm/@noble+hashes@2.2.0/node_modules/@noble/hashes/sha2.js",
+        "sha256": "0fb8e3c3f2c73a890be2524ac5d2542aaed4decff69e561231a86131203b3973"
+      }
+    ],
+    "assets": [
+      {
+        "name": "app.js",
+        "bytes": 1516180,
+        "sha256": "21ff1b4f4b6b0dfed8bf3c3994cf56326b8c9157920d09ed5b482189947a2e30"
+      },
+      {
+        "name": "index.html",
+        "bytes": 26065,
+        "sha256": "36d3db58318b3fceba62d2b8bd66007a36d398ef88daf6abd3a9f45798219fa0"
+      },
+      {
+        "name": "styles.css",
+        "bytes": 177334,
+        "sha256": "21cb79d65a1b5a548071afa8c97bbfb64820d4048daefa6c0bf84b416d0a3664"
+      }
+    ]
+  },
+  "setupDisclosure": {
+    "review": "PM286 lifecycle R3",
+    "head": "7e64848dcd1395f26ed3bbbc9e19b9c3e7dce7db",
+    "workdir": "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-memory-lifecycle-r3",
+    "initialCommands": [
+      "git worktree add --no-checkout -b rebuild/lane-d2-memory-lifecycle-r3 ../d2-memory-lifecycle-r3 7e64848dcd1395f26ed3bbbc9e19b9c3e7dce7db",
+      "git sparse-checkout init --no-cone",
+      "136 explicit public paths piped to git sparse-checkout set --no-cone --stdin",
+      "git checkout --no-overlay HEAD -- ."
+    ],
+    "mistake": "The unnecessary final generic checkout materialized tracked paths outside the sparse selection. This was a transient local copy, not no-copy custody.",
+    "firstMetadata": {
+      "materializedTracked": 1350,
+      "authorReportPresent": true,
+      "trackedStatus": "clean"
+    },
+    "beforeCorrectionMetadata": {
+      "sparsePatterns": 136,
+      "ledgerStatePresent": true,
+      "historySourcePresent": true,
+      "protectedFixtureDirectoryPresent": false,
+      "authorReportPresent": true,
+      "trackedStatus": "clean"
+    },
+    "correctionCommand": "git sparse-checkout reapply",
+    "afterCorrectionMetadata": {
+      "materializedTracked": 136,
+      "ledgerStatePresent": false,
+      "historySourcePresent": false,
+      "protectedFixtureDirectoryPresent": false,
+      "authorReportPresent": false,
+      "trackedStatus": "clean"
+    },
+    "boundary": "No protected contents or author report were opened, printed or executed. No product test had run and no upload or push occurred. Only path-presence/count metadata was inspected before reapplying the sparse selection.",
+    "reported": "Immediately disclosed to PM before product execution. PM acknowledged and directed exact136-path/absence/clean-source verification under286, with no further hydration, broad cleanup or old-head replay.",
+    "subsequentProof": "Preserved d2-lifecycle-r3-identity-initial-134.json verifies the initial136 materialized paths, protected/report absence, clean HEAD and134 input hashes before dependency installation. After the explicit PM290 two-helper grant, the complete before/after identities cover136 reviewed inputs and138 materialized paths; the initial inventory remains unchanged.",
+    "docsSetupCorrection": {
+      "workdir": "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-memory-lifecycle-r3-docs",
+      "base": "ed39231c89cd0f7ffcadc199d6c5e12538856f6c",
+      "mistake": "The separate no-checkout docs worktree had an uninitialized empty index. sparse-checkout set alone did not populate it. STATUS append/add failed for a missing path, but the shell continued and committed the empty index as1456 local deletions. This was not a valid STARTED event or review artifact.",
+      "badLocalCommit": "e4113066540372ce6289145993dd5ed92dc7a628",
+      "preservedOnOwnBranch": "rebuild/lane-d2-memory-lifecycle-r3-docs-setup-record",
+      "correctionCommands": [
+        "verify exact bad HEAD and clean own tree",
+        "git branch rebuild/lane-d2-memory-lifecycle-r3-docs-setup-record e4113066540372ce6289145993dd5ed92dc7a628",
+        "git reset --soft ed39231c89cd0f7ffcadc199d6c5e12538856f6c",
+        "git read-tree --dry-run --reset -u HEAD",
+        "git read-tree --reset -u HEAD"
+      ],
+      "after": {
+        "head": "ed39231c89cd0f7ffcadc199d6c5e12538856f6c",
+        "materializedDocs": 163,
+        "statusExists": true,
+        "ledgerPresent": false,
+        "historyPresent": false,
+        "authorDirectoryPresent": false,
+        "productDirectoryPresent": false,
+        "clean": true
+      },
+      "boundary": "No shared/candidate/main ref or existing user checkout was changed. No protected contents were materialized in this docs tree. The bad local commit remains named for audit, outside review ancestry. Future shell mutations now stop on errors and verify the exact staged path set before commit."
+    }
+  },
+  "initialAttempt": {
+    "log": "d2-lifecycle-r3-original-attempt1-module-load.tap",
+    "tests": 2,
+    "pass": 0,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "lateActivity": false,
+    "topLevelNames": [
+      {
+        "outcome": "not ok",
+        "name": "rebuild\\\\m3\\\\w7-preview\\\\today\\\\test\\\\gym.test.mjs"
+      },
+      {
+        "outcome": "not ok",
+        "name": "rebuild\\\\m3\\\\w7-preview\\\\today\\\\test\\\\machine-settings-ui.test.mjs"
+      }
+    ],
+    "productCases": 0,
+    "productFailureCredit": 0,
+    "attribution": "Missing public createRequire helper caused file-level module-load failures before real cases. Execution stopped, PM290 granted exactly ops/canonical, initial inventories preserved, and explicit current closure completed before the successful invocation."
+  },
+  "priorInventoryQualification": "Prior109 parsed/134 tracked manifests were incomplete runtime inventories. Their functional outcomes remain at true original heads; no retroactive full-custody claim. Current helper blobs independently match7e64848d/4d004985/18ff0dcf/1316639. Current scope has111 modules including3 executed literal createRequire edges;11 literal calls total also include8 calls in metadata-only browser scripts.",
+  "commands": {
+    "original": [
+      "--test",
+      "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+      "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs"
+    ],
+    "replay37": [
+      "--test",
+      ".tmp/d2-lifecycle-extra.test.mjs"
+    ],
+    "replay4": [
+      "--test",
+      ".tmp/d2-lifecycle-r2-edges.test.mjs"
+    ],
+    "identity": ".tmp/d2-lifecycle-r3-identity.mjs",
+    "closure": ".tmp/d2-lifecycle-r3-closure.mjs"
+  },
+  "sourceFaults": {
+    "run": false,
+    "credit": 0,
+    "reason": "Exact prior red witness closes on the unmodified successor and required controls pass; no new mutation or product repair needed."
+  },
+  "files": [
+    {
+      "path": ".tmp/d2-lifecycle-r3-identity.mjs",
+      "bytes": 4864,
+      "sha256": "0ca8ac6565f895d1e0f42ab6c6c2371a821a5b5493df08d68e534ac385c9fbb2"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-identity-before.json",
+      "bytes": 54939,
+      "sha256": "625c114f5402cb02671b0f000ab74f9c485ef423b2750bd0de76ad5a07959419"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-identity-after.json",
+      "bytes": 54939,
+      "sha256": "625c114f5402cb02671b0f000ab74f9c485ef423b2750bd0de76ad5a07959419"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-identity-initial.mjs",
+      "bytes": 4162,
+      "sha256": "a48b7460f02ef498516ce5eefff6c536cd7ab9d5b7f80cbf43f7a17c69e61da0"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-identity-initial-134.json",
+      "bytes": 46335,
+      "sha256": "93d3d198cc9f38d152d44c6c62943903ba9e5600759f821d8a6d647f5d303249"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-closure.mjs",
+      "bytes": 3904,
+      "sha256": "cd535f0de346fd064d0557738c92253a930e03b6683fa36e82eb9fdce13206eb"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-closure.json",
+      "bytes": 65757,
+      "sha256": "635b9c1c0bd01e3b3ac7defd6ac10dd60282adbc627c85e2a7e5c7e71a39ab92"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-closure-initial.mjs",
+      "bytes": 1725,
+      "sha256": "ea76f7087f4c0d51dbef6a4f66b08e6f8f9f392d9b43bb0f86157bf7b4f6315b"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-closure-initial-109.json",
+      "bytes": 60890,
+      "sha256": "f11233d79e41cffef05919b86640587e7b75089dc857e033db5a1fb61fa24f52"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-setup-disclosure.json",
+      "bytes": 3607,
+      "sha256": "7722768306c666ff8d5503e4b5b92f3e84393ce074f4591ef4ee4bca68959d34"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-evidence.mjs",
+      "bytes": 11067,
+      "sha256": "161d841b336efa38b67640efc69095aec58882a5de8c0d36fef4f0d4d7ac94c9"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-extra.test.mjs",
+      "bytes": 17878,
+      "sha256": "68fc44b097041bb4a604df320fb74c41d46b4d8af136d9f060915ab3e0dc1a67"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r2-edges.test.mjs",
+      "bytes": 9316,
+      "sha256": "9ee48503d81c397e2db996c6cad425a85eb0ea6e4f888ec9a7c214e01f27852c"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r2-support.mjs",
+      "bytes": 4078,
+      "sha256": "c3d55ace4009bb3dca8542717e62b9b1b09593b022116cc393d800cbe3e25955"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-original-attempt1-module-load.tap",
+      "bytes": 3744,
+      "sha256": "9ddbdd72cc4ad3b3202db33f0b0d6f13dfee403e0f4a34ff8bef33c80c0369c4"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-original.tap",
+      "bytes": 32765,
+      "sha256": "b8a5f55e213ca1dd618e683a58f33a1437cf00b3d19c6eef1765acfa3e36678a"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-replay37.tap",
+      "bytes": 6680,
+      "sha256": "6be08c60cfcc2cacae68ea53338bbca874a8ec9d4b5a773c24209b6472938ff7"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-replay4.tap",
+      "bytes": 1245,
+      "sha256": "0e05cc551a652511d1c84047d89bdf30b83d13bc0daee8654b9af686352874b9"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-root-install.log",
+      "bytes": 240,
+      "sha256": "9dbab493193019a0a03074e600eb503bca49c86bb0ffd214a120507508b8f051"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-w6-install.log",
+      "bytes": 378,
+      "sha256": "2a806a3689ad21f282ed37000fc964d4d92953744e54f9c25be2d5799cda8708"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r3-w5-install.log",
+      "bytes": 472,
+      "sha256": "f4306c985fa725160a752d6b87d89d6373d565c3001cb430d667ba7299623820"
+    },
+    {
+      "path": ".tmp/w7-today-build/app.js.meta.json",
+      "bytes": 80758,
+      "sha256": "93adc764a00b16439390e3952f430402d4bd36d50c981656c570b60f7398e4fd"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-race-log.json",
+      "bytes": 538,
+      "sha256": "c32a666f3d5be0a2762dabdcd81264602eea43291d508b35ae67ada8af2ce275"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-race-settings.json",
+      "bytes": 335,
+      "sha256": "40b297b6394db2029fe4b1db606c969d4c653e62079019d1fcda9e93ecd9f7d6"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r2-submitted-set.json",
+      "bytes": 598,
+      "sha256": "c1299d343897bcbc8bcad0611acbb994d1dead5ad108c815df188ea00d4c4252"
+    },
+    {
+      "path": ".tmp/d2-lifecycle-r2-refused-set.json",
+      "bytes": 1812,
+      "sha256": "27fb6600e32fd5a3fa6608a8f391325c9df8e800fd3df59e7af75de90c01302d"
+    }
+  ],
+  "limits": "Isolated lifecycle current-card repair only. No B/D composition, standalone browser/build, new product/controller/host/provider, private content inspection/execution, native/H3/FULL/package/currentCI/import/deploy/phone or complete-memory proof. Transient local copying and docs setup error are disclosed separately, not denied. No shared/candidate/main push or acceptance/ruling/receipt lines."
+}

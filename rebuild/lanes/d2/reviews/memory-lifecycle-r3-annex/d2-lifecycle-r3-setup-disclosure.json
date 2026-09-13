@@ -1,0 +1,29 @@
+{
+  "review": "PM286 lifecycle R3",
+  "head": "7e64848dcd1395f26ed3bbbc9e19b9c3e7dce7db",
+  "workdir": "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-memory-lifecycle-r3",
+  "initialCommands": [
+    "git worktree add --no-checkout -b rebuild/lane-d2-memory-lifecycle-r3 ../d2-memory-lifecycle-r3 7e64848dcd1395f26ed3bbbc9e19b9c3e7dce7db",
+    "git sparse-checkout init --no-cone",
+    "136 explicit public paths piped to git sparse-checkout set --no-cone --stdin",
+    "git checkout --no-overlay HEAD -- ."
+  ],
+  "mistake": "The unnecessary final generic checkout materialized tracked paths outside the sparse selection. This was a transient local copy, not no-copy custody.",
+  "firstMetadata": {"materializedTracked":1350,"authorReportPresent":true,"trackedStatus":"clean"},
+  "beforeCorrectionMetadata": {"sparsePatterns":136,"ledgerStatePresent":true,"historySourcePresent":true,"protectedFixtureDirectoryPresent":false,"authorReportPresent":true,"trackedStatus":"clean"},
+  "correctionCommand": "git sparse-checkout reapply",
+  "afterCorrectionMetadata": {"materializedTracked":136,"ledgerStatePresent":false,"historySourcePresent":false,"protectedFixtureDirectoryPresent":false,"authorReportPresent":false,"trackedStatus":"clean"},
+  "boundary": "No protected contents or author report were opened, printed or executed. No product test had run and no upload or push occurred. Only path-presence/count metadata was inspected before reapplying the sparse selection.",
+  "reported": "Immediately disclosed to PM before product execution. PM acknowledged and directed exact136-path/absence/clean-source verification under286, with no further hydration, broad cleanup or old-head replay.",
+  "subsequentProof": "Preserved d2-lifecycle-r3-identity-initial-134.json verifies the initial136 materialized paths, protected/report absence, clean HEAD and134 input hashes before dependency installation. After the explicit PM290 two-helper grant, the complete before/after identities cover136 reviewed inputs and138 materialized paths; the initial inventory remains unchanged.",
+  "docsSetupCorrection": {
+    "workdir": "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-memory-lifecycle-r3-docs",
+    "base": "ed39231c89cd0f7ffcadc199d6c5e12538856f6c",
+    "mistake": "The separate no-checkout docs worktree had an uninitialized empty index. sparse-checkout set alone did not populate it. STATUS append/add failed for a missing path, but the shell continued and committed the empty index as1456 local deletions. This was not a valid STARTED event or review artifact.",
+    "badLocalCommit": "e4113066540372ce6289145993dd5ed92dc7a628",
+    "preservedOnOwnBranch": "rebuild/lane-d2-memory-lifecycle-r3-docs-setup-record",
+    "correctionCommands": ["verify exact bad HEAD and clean own tree", "git branch rebuild/lane-d2-memory-lifecycle-r3-docs-setup-record e4113066540372ce6289145993dd5ed92dc7a628", "git reset --soft ed39231c89cd0f7ffcadc199d6c5e12538856f6c", "git read-tree --dry-run --reset -u HEAD", "git read-tree --reset -u HEAD"],
+    "after": {"head":"ed39231c89cd0f7ffcadc199d6c5e12538856f6c","materializedDocs":163,"statusExists":true,"ledgerPresent":false,"historyPresent":false,"authorDirectoryPresent":false,"productDirectoryPresent":false,"clean":true},
+    "boundary": "No shared/candidate/main ref or existing user checkout was changed. No protected contents were materialized in this docs tree. The bad local commit remains named for audit, outside review ancestry. Future shell mutations now stop on errors and verify the exact staged path set before commit."
+  }
+}

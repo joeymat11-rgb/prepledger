@@ -1,0 +1,34 @@
+{
+  "modelPhase": "saved",
+  "visibleUndo": true,
+  "visibleLog": false,
+  "changedCalls": 1,
+  "entry": {
+    "load": null,
+    "reps": null
+  },
+  "editor": {
+    "draft": {
+      "rows": [
+        {
+          "name": "Seat",
+          "value": "six"
+        }
+      ],
+      "cues": ""
+    },
+    "lift": "demo-press",
+    "error": null
+  },
+  "counts": {
+    "busy": 0,
+    "read": 0,
+    "paint": 0,
+    "start": 0,
+    "settingsOpening": 0,
+    "settingsReading": 0,
+    "settingsSaving": 0
+  },
+  "opsBefore": 1,
+  "opsAfter": 2
+}

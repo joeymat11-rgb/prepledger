@@ -1,15 +1,15 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: C current-card refusal repair7e64848d/source4d004985 is built; exact three-path identity and21-line report verified, D2/MAX independent review286 commissioned. C LOW, original L3 failure retained. B/MAX R9 construction continues; PM288 additionally corrects one prospective helper predicate to the actual exact historical R/S merge-base M, preserving source proofs and final ancestry gates. ER/D/E LOW, I paused. PM remains MAX; desktop Medium/iPhone MAX display cause remains unconfirmed, Fast unchanged. Goal268 remains Joe/history/coaching memory then Dad; soak gates wide beta only. D2 module loading exposed two omitted synthetic fixture helpers before0 real cases; exact public helpers/complete current inventory licensed290, with prior closure claims qualified and functional evidence retained.
+PM checkpoint2026-09-13: C lifecycle7e64848d/4d004985 independently accepted294 (144/37/4), with exact first223242c9/final3974b340 and24 artifacts adopted; original setup/closure limitations remain recorded. C/D2 LOW. B R4 f2dea2ec/construction9a4b2d0/engine Ucbcebb3d is in ER/MAX independent review292; B completed planning-only note296 and returned LOW; immutable candidate preserved. D/E LOW, I paused. Full memory/import/combined/phone proof remains. PM MAX and effort transitions are verified; Fast has not been changed by PM. Goal268 is Joe/history/coaching memory then Dad; soak gates wide beta only.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: R9 captured-date correction282 plus exact historical source-graph helper predicate288; independent review follows full R4 handoff | earned-astra-b-follow-up;20 minutes waiting |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 current-card refusal repair in D2/MAX review286 | earned-astra-c-follow-up; hourly building,20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW: note296 complete; immutablef2dea2ec under ER/MAX review292; next exact mechanical binding/assembly scope awaits disposition | earned-astra-b-follow-up;20 minutes waiting |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; hourly building,20 minutes waiting |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: current-card refusal successor7e64848d/4d004985 independent review286 | earned-lane-d2-requests;20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: completed R3 REJECT R9 final48e591d7 adopted282; await exact successor commission | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: lifecycle R3 first223242c9/final3974b340 scoped ACCEPT294 complete; await exact next commission | earned-lane-d2-requests;20 minutes waiting |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX: exact R4f2dea2ec/Ucbcebb3d independent date/source-proof review292; report last | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: lifecycle0f57c99c direction selected266; await named decision/provider implementation release | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
@@ -57,11 +57,11 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 
 | Seat | Applied current effort | Next substantive assignment |
 | --- | --- | --- |
-| B | MAX; narrow R9 captured-date repair282 | MAX for a named engine/proof correction or separately released companion |
+| B | LOW; finite planning-only note296 complete | MAX for a named engine/proof correction or separately released companion |
 | D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
-| C | LOW; current-card refusal successor7e64848d in review286 | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
-| D2 | MAX; exact C7e64848d R3 independent review286 | MAX for the next named independent successor |
-| Engine reviewer | LOW; R3 final48e591d7 review complete282 | MAX for next named independent successor review |
+| C | LOW; lifecycle R3 scoped accepted294 | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
+| D2 | LOW; exact lifecycle R3 review/reconciliation complete294 | MAX for the next named independent successor |
+| Engine reviewer | MAX; R4 exact source/public-proof review292 | MAX for next named independent successor review |
 | E | LOW; exact lifecycle addendum complete | HIGH for a precisely released design/implementation task |
 | I | PAUSED; no new turn or setting change | XHIGH for a specifically authorized integration; separate author/reviewer roles remain |
 
@@ -84,3 +84,5 @@ Fast mode authority280,2026-09-13: Joe delegates speed settings as well as effor
 Installed Astra cache describes priority/Fast as2x speed; official Codex pricing lists2.5x Standard credit usage, including faster consumption of included limits: https://learn.chatgpt.com/docs/agent-configuration/speed and https://learn.chatgpt.com/docs/pricing. These are product/pricing facts, not measured whole-project acceleration. Do not halve the personal forecast, conflate Fast with Low reasoning, or use API2x pricing for this ChatGPT-sign-in multiplier.
 
 Audit2026-09-13T18:42:47Z: PM/B/D2 saved/executed MAX, ER/C/D/E LOW, I LOW/paused. B repair turn01a09c12-c8ee-7281-899c-05fd2f10577a records max; D2 review turn01a09bed-16c8-7912-aefa-51e988e50161 remains max. ER completed its prior MAX review before LOW standby01a09c12-c9b7-7f50-a7fa-627e5a6c3a5d. Local metadata audit .tmp/effort-audits/20260913T184247969564Z.json records both task and executed contexts, not the UI selector or Fast tier.
+
+B296 planning-only note delivered2026-09-13: next exact preparation is mechanical amendment binding in b/tooling/b-package.cjs and packages/B1-B2.json, with affected existing registration tests/README; b1b2Inventory/spec/authority/proposed/envelope must enforce named actual ruling identities. This is the author's planning map, not a new implementation grant or independent verdict. PM names the closed representation and final assembly/integrator after ER disposition. Historical sourceBase M stays distinct from current-chain ancestry; nativeFieldDeltas remain unknown until exact authorized comparison, then expectation admission and actual source/family/census/H3/second/FULL/receipt/currentCI. No code/test/gate ran for this note. B returned LOW.
