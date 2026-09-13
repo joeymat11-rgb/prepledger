@@ -213,7 +213,8 @@ export function assertNoNodeOnlyGlobals(assets) {
       const code = segment.code
         .replace(/\/\*[\s\S]*?\*\//g, " ")
         .replace(/(^|[^:])\/\/.*$/gm, "$1")
-        .replace(/typeof\s+(__dirname|__filename|require)\s*===?\s*["'][a-z]+["']\s*\?\s*\1\b/g, "GUARDED")
+        .replace(/typeof\s+(__dirname|__filename)\s*===?\s*(["'])string\2\s*\?\s*\1\b/g, "GUARDED")
+        .replace(/typeof\s+(require)\s*===?\s*(["'])function\2\s*\?\s*\1\b/g, "GUARDED")
         .replace(/typeof\s+(__dirname|__filename|require)\b/g, "TYPEOF_ONLY");
       for (const [label, pattern] of NODE_ONLY) {
         const hit = code.match(pattern);

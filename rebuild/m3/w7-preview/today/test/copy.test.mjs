@@ -28,7 +28,7 @@ import { webcrypto } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
-import { buildToday, DIST, ASSETS } from '../build.mjs';
+import { buildToday, DIST, ASSETS, assertNoNodeOnlyGlobals } from '../build.mjs';
 import PlainCopy from '../plain-copy.cjs';
 import design from '../design.cjs';
 import TodayApp from '../today-app.cjs';
@@ -249,6 +249,43 @@ test('A1 the built bundle EVALUATES with no Node globals, as a browser must run 
   assert.equal(typeof sandbox.__entry, 'object', 'the bundle evaluated but exported nothing');
   assert.equal(typeof sandbox.__entry.boot, 'function', 'the page has no boot()');
   assert.equal(typeof sandbox.__entry.mountToday, 'function', 'the page has no mountToday()');
+
+  // Restore the actual production defect in the emitted bytes. The browser-context
+  // check must catch it independently of the build's earlier static guard.
+  const guardedRead = 'typeof __dirname === "string" ? __dirname : "rebuild/m3/w7-preview/today"';
+  assert.equal(script.split(guardedRead).length, 2, 'one emitted original-defect site');
+  const reinstated = script.replace(guardedRead, '__dirname');
+  assert.throws(() => new vm.Script(reinstated, { filename: 'original-defect.js' })
+    .runInContext(vm.createContext({ ...sandbox }), { timeout: 20000 }),
+  (error) => error.name === 'ReferenceError' && /__dirname is not defined/.test(error.message));
+  dom.window.close();
+});
+
+test('Launch guard refuses missing attribution and unsafe guarded browser reads', async () => {
+  // Synthetic module banners exercise attribution separately from the real bundle.
+  // A typeof check is safe only when its true branch cannot execute in a browser.
+  const banners = Array.from({ length: 21 }, (_, i) =>
+    `// rebuild/m3/w7-preview/today/guard-fixture-${i}.cjs\nvar fixture${i} = ${i};\n`).join('');
+  const check = (code) => assertNoNodeOnlyGlobals([['app.js', banners + code]]);
+  assert.throws(() => assertNoNodeOnlyGlobals([['app.js', 'var x = __dirname;']]),
+    /NODE-GLOBAL-GUARD BLIND/);
+  for (const code of [
+    'var x = __dirname;',
+    'var x = typeof __dirname === "undefined" ? __dirname : "fallback";',
+    'var x = typeof __filename === "undefined" ? __filename : "fallback";',
+    'var x = typeof require === "undefined" ? require("missing") : null;',
+    'var x = typeof __dirname === "string" ? __dirname : "fallback"; var y = __dirname;',
+  ]) assert.throws(() => check(code), /NODE-GLOBAL-IN-BUNDLE FAIL/, code);
+  for (const code of [
+    'var x = typeof __dirname === "string" ? __dirname : "fallback";',
+    "var x = typeof __filename == 'string' ? __filename : 'fallback';",
+    'var x = typeof require === "function" ? require("missing") : null;',
+    '// node_modules/vendor/index.js\nvar x = __dirname;',
+  ]) assert.equal(check(code).offences.length, 0, code);
+  const vm = await import('node:vm');
+  assert.throws(() => new vm.Script(
+    'var x = typeof __dirname === "undefined" ? __dirname : "fallback";')
+    .runInNewContext({}), (error) => error.name === 'ReferenceError');
 });
 
 /* RED FIRST. A planted dash must stop the build, in the markup and in the bundle.
