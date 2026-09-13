@@ -68,7 +68,7 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "eedabccd5b8145bfb07fe653bfb14f9483af8ca52619e813c70bf699407dd612"
+    "runnerSha256": "4482bb8aa344b4aa090a01cbcf2164f9834320d71ce24a24bcc0154b0c037db3"
   },
   "product": {
     "rebuild/engine/writers.cjs": {
@@ -185,7 +185,8 @@
       "second-gate": "second-gate"
     },
     "moves": {},
-    "successors": null
+    "successors": null,
+    "superseded": null
   },
   "carrierSuccessor": null,
   "witnessFlips": [],

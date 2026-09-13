@@ -871,42 +871,55 @@ test('S19 - the sentence clears ITSELF the day Today really stands on his athlet
   assert.equal(needed(true, 'Dad', null), true, 'no state to compare is not a licence to stay silent');
 });
 
-/* H3, EXECUTED AND RECORDED (A4-REPORT.md section 6), and CORRECTED at review round
-   1 (C2): the reviewer executed both fix shapes the first hand-off offered and
-   neither works. TWO members are missing, not one, and the test asserts BOTH gaps
-   BY NAME so that a partial engine fix cannot close the register item silently. */
-test('H3 - the accepted engine still cannot paint Today for a clean-init athlete', () => {
+/* H3, EXECUTED AND RECORDED (A4-REPORT.md section 6), CORRECTED at review round 1
+   (C2), and NOW CLOSED. This cell was written to fail: it asserted the defect —
+   `createCleanInitState` wrote neither `blackout` nor `model`, so the accepted
+   engine threw and Dad's Today stood on the preview's sample athlete.
+   M2-H3-CLEAN-INIT closes it (DECISIONS:124, ruled from this cell and lane C's
+   REQUESTS 2026-09-11 20:45), so the assertions are INVERTED here rather than
+   deleted: the same four states, in the same order, with the fourth now produced
+   by the constructor itself. DECISIONS:124: "the A4 red-first cell flips GREEN".
+   The two throw sites are still asserted to be as unguarded as they ever were,
+   because H3 is a change to the CONSTRUCTOR and to nothing in rebuild/engine's
+   reading path — if a later pass guards them, this cell should be revisited, not
+   silently satisfied. Lane B carries the fuller version of this proof, with the
+   no-invented-number half lane C's `doesNotThrow` could not state, in
+   rebuild/m4/workout/test/h3-clean-init.test.cjs (H3/3, H3/5). */
+test('H3 - the accepted engine CAN now paint Today for a clean-init athlete', () => {
   const state = createCleanInitState({ setup: documentOf(filled()) });
-  assert.equal(Object.hasOwn(state, 'blackout'), false, 'no blackout member');
-  assert.equal(Object.hasOwn(state, 'model'), false, 'and no model member either');
+  assert.equal(Object.hasOwn(state, 'blackout'), true, 'the constructor writes blackout');
+  assert.equal(Object.hasOwn(state, 'model'), true, 'and model');
+  assert.equal(Object.hasOwn(state.model, 'lean'), false,
+    'and NOT lean: he has declared no body composition, and none is invented for him');
   assert(readRepo('rebuild/engine/energy.cjs').includes('daysUntil(s.blackout.until)'),
-    'energy.cjs:370 still dereferences s.blackout.until unguarded');
+    'energy.cjs:370 still dereferences s.blackout.until unguarded — the fix is the constructor\'s');
   assert(readRepo('rebuild/engine/energy.cjs').includes('s.model.anchorISO'),
     'energy.cjs:84 bfEst still dereferences s.model.anchorISO unguarded');
-  /* GAP 1: as the constructor writes it, the first throw is s.blackout.until. */
-  assert.throws(() => createTodayModel({ today: DAY, basisState: state }).read(),
-    /Cannot read properties of undefined \(reading 'until'\)/,
-    'GAP 1: nowModel throws on s.blackout.until');
-  /* GAP 2: blackout ALONE is not enough. `blackout: {}` is not even a fix shape:
-     daysUntil(undefined) throws in dates.cjs. With a VALID blackout the throw
-     MOVES to bfEst's s.model.anchorISO. */
   const plain = JSON.parse(JSON.stringify(state));
-  assert.throws(() => createTodayModel({ today: DAY, basisState: { ...plain, blackout: {} } }).read(),
+  const without = (...names) => { const s = { ...plain }; for (const n of names) delete s[n]; return s; };
+  /* GAP 1, as it was: with neither member the first throw is s.blackout.until. */
+  assert.throws(() => createTodayModel({ today: DAY, basisState: without('blackout', 'model') }).read(),
+    /Cannot read properties of undefined \(reading 'until'\)/,
+    'GAP 1 is still real: nowModel throws on s.blackout.until when blackout is absent');
+  /* GAP 2, as it was: `blackout: {}` is not a fix shape — daysUntil(undefined)
+     reaches mk() in dates.cjs — and a VALID blackout alone only MOVES the throw. */
+  assert.throws(() => createTodayModel({ today: DAY, basisState: { ...without('model'), blackout: {} } }).read(),
     /Cannot read properties of undefined \(reading 'split'\)/,
-    'blackout: {} is NOT a fix shape: daysUntil(undefined) reaches mk() in rebuild/engine/dates.cjs:8');
+    'blackout: {} is still NOT a fix shape: daysUntil(undefined) reaches mk() in rebuild/engine/dates.cjs:8');
   assert.throws(() => createTodayModel({ today: DAY,
-    basisState: { ...plain, blackout: { until: '2020-01-01' } } }).read(),
+    basisState: { ...without('model'), blackout: { until: '2020-01-01' } } }).read(),
   /Cannot read properties of undefined \(reading 'anchorISO'\)/,
-  'GAP 2: with a VALID blackout the throw MOVES to energy.cjs:84 bfEst, s.model.anchorISO');
-  /* And the fix shape the hand-off must name: BOTH members, written by the
-     constructor. With both present the page paints, which is what makes "two
-     members, not one" a claim and not an opinion. */
-  assert.doesNotThrow(() => createTodayModel({ today: DAY, basisState: { ...plain,
-    blackout: { until: '2020-01-01' },
-    model: { anchorISO: '2020-01-01', anchorLb: 170, k: 0 } } }).read(),
-  'blackout AND model together: Today paints');
-  /* And guarding energy.cjs:370 alone only moves the throw: these readers are
-     equally unguarded, which is why the honest fix is the CONSTRUCTOR's. */
+  'GAP 2 is still real: with a VALID blackout the throw MOVES to energy.cjs:84 bfEst');
+  /* THE FLIP. The state the constructor ACTUALLY produces paints Today — no
+     hand-written members, no fixture, no sample athlete. */
+  assert.doesNotThrow(() => createTodayModel({ today: DAY, basisState: state }).read(),
+    'the state createCleanInitState returns paints Today');
+  const view = createTodayModel({ today: DAY, basisState: state }).read();
+  assert.equal(view.workout.available, true, 'and it paints HIS week, not a stranger\'s');
+  assert.equal(Number.isFinite(view.proteinTarget.g), false,
+    'while claiming no figure about a body it has never measured');
+  /* The other unguarded readers are still unguarded, which is why the fix had to
+     be the constructor's and not a guard at one reader. */
   for (const [file, count] of [['rebuild/engine/sleep.cjs', 2], ['rebuild/engine/writers.cjs', 3]]) {
     const unguarded = (readRepo(file).match(/\bs\.blackout\.until\b|\bst\.blackout\.until\b/g) || []).length;
     assert(unguarded >= 1, file + ' still reads blackout.until directly (' + unguarded + ' of ~' + count + ')');
@@ -2293,13 +2306,32 @@ test('re-pin - every file the B-NTC package pins is untouched by A4b, on disk', 
   const entries = Object.entries(pins).filter(([, v]) => v && typeof v.post === 'string');
   assert(entries.length >= 40, 'pins found: ' + entries.length);
 
-  const missed = [];
+  /* H3 (M2-H3-CLEAN-INIT) AMENDED THIS CELL, and it is still a guard.
+     The question it asks is "did A4B move a B-NTC pin", not "did anybody" —
+     and on a branch carrying the NEXT package in the ruled order (B-NTC -> H3
+     -> B1 -> B2 -> B4 -> B3) some B-NTC product pins are moved BY THAT
+     PACKAGE, on purpose and declared. Reading the child's own spec is what
+     keeps the guard honest without restating a hash here: a file is exempt
+     only while it stands at the post-image THAT SPEC DECLARES for it, so an
+     undeclared change, a declared change that has not landed, and any drift
+     in the other forty-odd pins all still go red. With no such spec on the
+     branch the exemption set is empty and this is the original cell. */
+  const child = (() => {
+    try { return JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/H3.json')).product || {}; }
+    catch { return {}; }
+  })();
+  const declared = (file, onDisk) => Object.hasOwn(child, file) && child[file].post === onDisk;
+
+  const missed = [], licensed = [];
   for (const [file, pin] of entries) {
     const onDisk = shaOf(file);
-    if (onDisk !== pin.post) missed.push(file + ' on disk ' + onDisk.slice(0, 12)
+    if (onDisk === pin.post) continue;
+    (declared(file, onDisk) ? licensed : missed).push(file + ' on disk ' + onDisk.slice(0, 12)
       + ' but pinned ' + pin.post.slice(0, 12));
   }
-  assert.deepEqual(missed, [], 'A4b changed a file the B-NTC artifact pins on disk');
+  assert.deepEqual(missed, [], 'a file the B-NTC artifact pins moved on disk and no package on this branch declares it');
+  /* Said out loud rather than hidden: every exemption taken, named. */
+  for (const line of licensed) assert(/ on disk [0-9a-f]{12} but pinned [0-9a-f]{12}$/.test(line), line);
 });
 
 test('re-pin - the three files A4b used to touch are the tip\'s bytes', () => {

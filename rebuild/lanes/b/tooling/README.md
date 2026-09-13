@@ -668,6 +668,7 @@ The spec declares them in `coverage.successors` (`null` in five of the six packa
 "successors": {
   "ruling": "MOVES_RULING=DECISIONS:113 B-NTC-INHERITED-1",
   "parentAcceptanceCommit": "b95ccca879e371b5ba225ad12cae612ec89469ba",
+  "reviewFile": "rebuild/lanes/b/<the review that enumerates the substitutions>.md",
   "carriers": { "<parent child name>": { "successor": "<file>", "original": "<file>" } },
   "substitutions": [ { "original": "<file>", "from": "<exact text>", "to": "<exact text>",
                        "why": "<why the re-target is unavoidable>" } ]
@@ -689,13 +690,24 @@ an identity:
    anywhere; a commit a file names is never trusted for provenance);
 2. the successor **names** that original and **does not contain it** — none of the
    original's own long lines may stand verbatim in the successor's source closure, so a
-   successor that pastes the body instead of loading it refuses;
+   successor that pastes the body instead of loading it refuses. **`DECISIONS:147`**: the
+   floor of 8 long lines is measured on the body the wrapper actually **loads** — the files
+   reached by a relative `require`/`import`, never a path literal and never a `.json` — so a
+   nine-line wrapper that loads `b-ntc-successors.cjs` is measured against that module's 174
+   qualifying lines (`SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD` still refuses a successor
+   whose loaded bodies are all too thin), and the copy test runs over every loaded body and
+   is asked **first**;
 3. the successor's replacements are exactly the spec's enumerated list: the successor
    states them as one strict-JSON `SUBSTITUTIONS` literal, the runner deep-equals that
    table against the spec's, requires every `from` to stand exactly once in the original
    and `to` not at all, and requires every `replace()` call site in the closure to be
    driven by the table. A retarget silently turned into `assert.ok(true)` is a table entry
-   the spec does not carry, and it refuses;
+   the spec does not carry, and it refuses. **`DECISIONS:147`** widens *where* a `from` may
+   live and narrows *who may state it*: the target must stand in the **parent gate's own
+   source closure** computed from the parent's reviewed commit (not only in the carrier's
+   own file), it may never reach `rebuild/conform/private/**`, `rebuild/conform/golden(s)/**`
+   or `rebuild/conform/oracle/**`, and both its `from` and its `to` must stand **verbatim in
+   the review file the spec cites** as well as in the spec;
 4. the successor's declared verdict is the **parent wrapper's own accepted string in
    full** — `NATIVE SOURCE CARRIERS: 6/6 PASS;`, never the prefix `NATIVE SOURCE CARRIERS:`
    — read out of the pinned `native-carriers-package.cjs` `verdicts` table, never re-typed.
@@ -772,3 +784,379 @@ own stdout**. The evidence sentence the runner prints now says exactly that and 
   sibling worktree, no second branch) and is 8/8. **Z11** an UNDECIDED parent run now says
   out loud that Y2's single-parent scan did not run. `TOOLING-FIX-r5-REPORT.md` carries the
   executed proof for each.
+
+## TOOLING-REVIEW r7 — what changed, and the two PM rulings that landed with it
+
+- **A fifth product role, `pinned-unchanged`.** r6 change 5 refused `pre === post` for
+  `edited` and `superseded-by-child` and exempted `new` outright. r7 F1 measured the cost of
+  that exemption on the sealed spec: **7 of B-NTC's 31 `new` files carry `pre === post`** and
+  stand at their own `sourceBase` bytes, so 7 of the "33 at the declared post-image" are
+  files the package did not write a byte of. The case is real and had no name: a package
+  DECLARES a file, PINS it by bytes, a declared child EXECUTES it, and the package changes
+  nothing in it. That case is now `pinned-unchanged` — `pre === post`, both real, the file
+  NOT parent-pinned (a parent-pinned unchanged file is `carried`), and a declared child's
+  argv must name it or reach it through a relative require (`executedClosure`, read never
+  executed, bounded at 512 files and the bound is reported rather than silent). It is
+  counted in its OWN bucket and never among "at the declared post-image", because this
+  package produced none of it. With the name available, role `new` means what it says:
+  `pre === null` (the file did not exist) or `pre !== post` (this package moved it).
+  **The one exception, bounded in one direction only:** a spec whose artifact is ALREADY
+  SEALED, and whose sealed artifact carries that same file with that same role and those
+  same two shas, keeps its declaration — refusing retroactively would make an accepted
+  package unrunnable without improving the run that sealed it. The grandfathered files are
+  NAMED on every run (`PRODUCT DECLARED-UNCHANGED-UNDER-ROLE-NEW …`) and carry a
+  non-blocking OPEN obligation to re-declare at the next seal. An UNSEALED spec refuses:
+  `PRODUCT-CHANGE-ROLE-DECLARES-NO-CHANGE`.
+- **A ruled substitution is one the ruling's own DESCRIPTION names and quotes.** r6's branch
+  (B) asked whether the last hyphen segment of the substituted module's basename stood
+  anywhere in the `DECISIONS:113` line; measured, that admits one substitution each over
+  **8 of the 17** `native-carriers-*.cjs` parent originals. The ruling describes **two**.
+  `ruledDescriptions()` now parses the ruling's own enumeration — `(two at <commit>: <desc>
+  and <desc>)` — and `describes()` requires (1) the module's distinguishing token to stand in
+  THAT DESCRIPTION, not merely somewhere in a paragraph of prose, and (2) at least one other
+  word of the description to stand in the substitution's own text and in no repository path
+  — the word that says WHAT changed rather than WHERE. Descriptions are CONSUMED, so the
+  ruling's count is the ceiling. Both of B-NTC's real non-re-target substitutions are still
+  admitted and are re-measured in the suite.
+- **The ruling is found by its own sha256, not by a line number.** r6 read line 113 of
+  `rebuild/DECISIONS.md` on `CHAIN_REF`, which made every successor run a hard runtime
+  coupling to a ledger line number. The spec now records `coverage.successors
+  .rulingLineSha256`, the runner SEARCHES the chain branch's `DECISIONS.md` for the one line
+  that hashes to it, and requires that line to carry `B-NTC-INHERITED-1`. A PM renumber moves
+  nothing. The two halves a spec cannot forge — the BYTES and the ID — are the two r6 already
+  required; only the way the line is LOCATED changed.
+- **Named refusals for everything that printed a bare `FAIL`.** Every
+  `merge-base --is-ancestor` now goes through one `ancestor(commit, of, code)` helper, so
+  X2's chain-ancestry refusal says which ancestry it was; the theme-shape assert, the two
+  coverage-map shape asserts and the successor-block key shape have their own names; and the
+  FAIL_CODES harvest admits a name followed by a COLON, which is why six of this file's own
+  names (`SEALED-PROFILE-RECOMPUTATION`, `SINGLE-PARENT-CHAIN`, `SINGLE-PARENT-CHAIN-SEALED`,
+  `BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE`, `THEME-AUTHORIZATION-UNVERIFIABLE`,
+  `BRIEF-ACCEPTANCE-UNVERIFIABLE`) printed nothing before, for no reason but punctuation.
+- **`IDS` carries the ruled order** — `B-NTC, H3, B1, B2, B4, B3` is `DECISIONS:124`'s
+  sequence exactly, and `B-LOM` stands after it because no ruling puts it inside.
+- **`NO_REGISTER_IDS` gains `H3`, under a rule that is written down and asserted.** EVERY
+  H-/F- item is an ENGINE-TIER register item carrying no D-id (`DECISIONS:93` — feature work
+  under the ratified slice plan takes no register D-ID); a B- package is exempt only where
+  the PM ruled it so BY NAME (`DECISIONS:103 (1)` for B-NTC and B-LOM). `DECISIONS:124` makes
+  `M2-H3-CLEAN-INIT` an engine-tier item beside H1/H2, so H3 enters under the H- half of the
+  rule and not by anybody's discretion. What H3 owes instead is Y1's replacement obligation.
+
+### `DECISIONS:135 (4)` — SEAL ON THE TIP, enforced
+
+The ACCEPTED branch of `envelope()` — the same place X1 and Y1 are re-asserted — refuses
+unless the chain branch's CURRENT tip stands in HEAD's own **first-parent chain**. Ancestry
+is the weaker question and would admit a branch that merged the chain a week ago; the
+first-parent chain says the lane head is BUILT ON the tip, which is the mechanic `:135`'s own
+timeline names ("rebase + final round + seal each, on the tip"). **Operational consequence,
+said out loud: `git merge --no-ff <tip>` run FROM THE LANE puts the tip on the SECOND parent
+and does NOT satisfy this.** What does: rebasing onto the tip, branching afresh from it, or
+fast-forwarding. The escape is the PM's alone — a FREEZE line in `rebuild/DECISIONS.md`
+cited in `authorizations.freeze` (the one OPTIONAL authorization key) and matched the way
+every other citation is matched, by the LINE'S OWN SHA256 found on the chain branch. The
+line must say FREEZE, name this package, and name a commit that IS in this HEAD's
+first-parent chain. Codes: `SEAL-BASE-IS-NOT-THE-CHAIN-TIP`,
+`SEAL-FREEZE-LINE-NOT-ON-THE-CHAIN-BRANCH`, `SEAL-FREEZE-LINE-DOES-NOT-FREEZE-THIS-PACKAGE`,
+`SEAL-FREEZE-LINE-DOES-NOT-NAME-A-BASE-IN-THIS-FIRST-PARENT-CHAIN`, `SEAL-FREEZE-LINE-SHAPE`.
+
+### `DECISIONS:136 (3)` — the AUTHORIZED STEP is a byte-identity re-verify
+
+The owner's amendment to the `:88`/`:103 (5)` rerun step. The FULL run that reaches
+`POSTFIX PACKAGE PASS` — **the seal step** — writes `receipts/<ID>.json`: the artifact, spec
+and runner sha256, the ACCEPTED envelope key, the verdict file coordinate, and every pinned
+product file's bytes. That file is the only byte this runner writes outside `.tmp`, it lives
+inside `fidelity()`'s own change check, and it is a RECEIPT and not evidence — it can only
+ever cause the expensive matrix to be SKIPPED, never cause a PASS the `--ci` evidence, the
+pins, the ledger and the ACCEPTED envelope have not already earned on that very run.
+
+On a later `--full` with an ACCEPTED envelope, `sealedRunReceipt()` re-takes all of it from
+disk. Identical → the private oracle, the historical audit and the 19 original gates are not
+re-run, everything else is exactly the `--ci` path plus pin verification plus the receipt
+check, and the terminal is `POSTFIX PACKAGE PASS` as before. **Any byte change voids the
+receipt** (`SEALED-RUN-RECEIPT-VOID`, naming what moved) and the FULL run happens exactly as
+today; so does a missing receipt (`SEALED-RUN-RECEIPT-ABSENT`) — which is what makes the
+FIRST full run with the private census unchanged. `:136 (3)`'s "the verdict file names the
+sealed run's evidence hashes" is checked literally: `rebuild/lanes/b/VERDICT-<ID>.md` (a
+runner-derived coordinate, never a spec's word) must NAME the three hashes, or
+`SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-EVIDENCE-HASHES`.
+
+### `DECISIONS:135 (3)` — the shared builder preflight
+
+`rebuild/lanes/tooling/preflight.cjs` — **not** under `lanes/b/`, because every lane runs it;
+plumbing tier, deciding nothing about any package's evidence. One line reaches stdout,
+`PREFLIGHT PASS <head sha>` or `PREFLIGHT FAIL <code>`, so it can be pasted unedited.
+Six checks: the diff against the chain branch (committed, uncommitted and untracked, with
+`--untracked-files=all` so a stray file is named and not collapsed to its directory) lies
+inside the custody globs; the report is ≤ 60 lines; the report carries counts (`<n>/<n>` or
+`pass <n>`); the longest STATUS line is ≤ 400 code points; no U+2013/U+2014 in the declared
+UI custody. The sixth, CI green at the exact head sha, is a GitHub API fact and is out of
+reach offline — so it is NOT faked: the exact `gh run list --repo <slug> --commit <head>`
+command and the commit URL are printed, `--ci-run <id>` must be supplied by the builder who
+looked, and without it the preflight FAILS at `CI-UNVERIFIED` rather than passing quietly.
+The id is recorded and explicitly NOT verified; what it buys is that a human looked and can
+be asked which run they looked at.
+
+## r7b and r8 — the parent-pin shapes, spec-driven successors, and an AUTHENTIC receipt
+
+The runner these passes deliver is
+`59ecc7f91f5f8f6d40c5c0f61267c6f71ca7edd7987b8022da39c5a04a1cce0d`, 2200 lines, 176 780 B,
+pinned as `tooling.runnerSha256` by all seven package specs; `TOOLING-REPORT.md` §"r7b and
+r8-fix" carries the full byte table and the suite counts.
+
+- **r7b F-E — two artifact shapes are in the chain.** The accepted originals write `product`
+  as a flat file → sha256 map; this runner writes file → `{pre, post, role}`. The readers
+  knew only the flat one, so the FIRST child of a package this runner sealed refused
+  `PARENT-PIN-BROKEN-AT-SOURCEBASE` on a file whose bytes are identical everywhere — it
+  blocked every child of B-NTC, not just H3. One normaliser, `parentPin()`, now stands
+  between every reader (`pins()` for parent AND grandparent, and product()'s pre-image
+  check) and either shape: a string is a sha; an object's pinned byte is its POST-image,
+  the image the parent's own seal stands at. **r8 change 4**: only the literal `null` means
+  "no post yet" — a falsy non-null post (`0`, `""`, `false`) is `PARENT-PIN-SHAPE`, not a
+  silent fallback to the pre-image. The SEALED ARTIFACT is never rewritten;
+  `acceptance-b-ntc-native-trend-context.json` is merged and receipted at `DECISIONS:141`.
+- **r7b F-C — the successor machinery is spec-driven.** `SUCCESSOR_PACKAGES`,
+  `SUCCESSOR_PARENT_COMMIT`, `SUCCESSOR_WRAPPER` and `SUCCESSOR_SUPPORT` are gone; a
+  constant naming one package could not read `DECISIONS:142`'s grant to another. What
+  admits a package is `successorRuling()`: the ruling LINE, located on the chain branch by
+  the sha256 the spec records, must name `M2-<ID>` (taken from the command line, never the
+  spec), use the word SUCCESSOR, stand on `DECISIONS:113`'s conditions (a)–(e), and NAME
+  the support file — which must itself be a path this spec declares it changes. The
+  acceptance commit is the parent receipt's own `reviewedCommit`; the accepted schedule is
+  the parent artifact's own `children` needles, falling back to a spec-named `wrapper` that
+  must be a parent execution pin; the gate set is the parent's `byChild` ∩ the carriers this
+  spec declares ∩ the parent's executionPins ∩ the carriers whose closure reaches the
+  support file. Conditions (a)–(e) are enforced exactly as before.
+- **r8 change 1 — the byte-identity receipt must be AUTHENTIC, not merely consistent.** This
+  was the one ungated admission point in r7b: a receipt written by hand, by a process that
+  never ran a gate, returned `ok:true` and the private oracle, the historical audit and the
+  19 gates were skipped on a plain disk read. Consistency with the bytes on disk is exactly
+  what a forger has. `receipts/<ID>.json` must now (a) be COMMITTED — its bytes at `HEAD`
+  must equal the bytes on disk, and if it already stands at the package's receipt base those
+  bytes must match too — and (b) have **its own sha256 named in the verdict file**, which is
+  the one string that exists only after a seal step has written one. Either missing →
+  `SEALED-RUN-RECEIPT-NOT-IN-GIT` / `SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-RECEIPT`, the step
+  is unavailable, and the FULL run with the private census stands. The seal step prints the
+  instruction (`SEALED RUN NEXT STEP …`) on the run that writes the receipt.
+- **r8 change 2** — the `receipts/*.json` exemption from `UNLISTED-SOURCE-CHANGE` narrows to
+  THIS package's own receipt, decided in `fidelity()` where the id is known. It cannot be
+  removed outright: change 1 requires the receipt to be committable.
+- **r8 change 5** — the preflight's UI dash check scans untracked files too
+  (`git ls-files --others --exclude-standard`), the same set check (1) already counted.
+- **`SEAL_TIP_RULE` is one word, and `DECISIONS:145` set it to `'ancestor'`.** The PM ruled
+  seal-on-the-tip as ANCESTRY: the CURRENT `origin/rebuild/t2-client-core` must be an
+  ancestor of the branch head; a merge and a rebase both count; a stale base does not; the
+  FREEZE escape is kept. That is what the runner ships. `'first-parent'` — the earlier,
+  stricter reading, which additionally forbade the `git merge --no-ff <tip>` workflow
+  `:137 (1)` makes the house move — remains implemented, and the suite measures BOTH
+  settings on one repository, including the case that divides them and the stale base that
+  neither admits.
+
+## r9 — `DECISIONS:147`, the parent gate's own source closure and the load floor
+
+`DECISIONS:147` amends `:113 (1) (c)`. The r7 reading admitted a substitution only where the
+carrier's own original file carried it, and measured the copy floor on the file the spec
+named as `original`. Both were wrong for B-NTC's shape: its wrappers are **nine lines**, and
+the text a child must re-target lives in the module those nine lines load. Under `:147` (a),
+(b), (d) and (e) stand unchanged; (c) now reads:
+
+- **The target set is the parent gate's own source closure**, computed by `parentClosure()`
+  from the parent's **reviewed commit** — every blob reachable from the carrier's own
+  `original` by a relative `require`/`import` specifier or by a `rebuild/…` path literal,
+  read out of Git at that commit (never off disk), bounded at 512 files and memoised. A
+  substitution whose `original` is not in that set refuses
+  `SUCCESSOR-SUBSTITUTION-TARGET-NOT-IN-THE-PARENT-GATE-CLOSURE`. Each target is still
+  sha-anchored twice — to the Git blob at the parent's acceptance commit and, when the
+  parent pinned it, to that `executionPins` entry.
+- **No substitution may reach a protected surface.** `rebuild/conform/private/**`,
+  `rebuild/conform/golden/**`, `rebuild/conform/goldens/**` and `rebuild/conform/oracle/**`
+  refuse **by name** (`SUCCESSOR-SUBSTITUTION-TARGET-IS-A-PROTECTED-SURFACE`) before any
+  other question is asked. This is not vacuous: the measured B-NTC closure **does** reach
+  `rebuild/conform/oracle/**`. Its size depends on which carriers a child declares — one
+  source carrier closes over **171** files, the five gate carriers over **175**, the ten
+  spec carriers **180**, all fifteen children **219**, the eighteen `executionPins` **222**
+  (TOOLING-REVIEW-r9 F2, which corrected an earlier sentence attributing 171 to six
+  carriers). Declaring another carrier therefore widens the target set for every
+  substitution — a fact a reviewer must read the carrier list for.
+- **Every substitution must be enumerated verbatim in the review the spec cites**, not only
+  in the spec. `coverage.successors.reviewFile` names a path under
+  `rebuild/lanes/b/reviews/` and `reviewFileSha256` pins its bytes; the runner requires the
+  file to exist, to BE those bytes, and for those same bytes to stand in Git at `HEAD`, and
+  then requires both the `from` and the `to` strings to stand in it
+  (`SUCCESSOR-REVIEW-FILE-SHAPE`, `-SHA256-SHAPE`, `-NOT-IN-THE-REVIEWS-DIRECTORY`,
+  `-ABSENT`, `-BYTES-NOT-THE-PINNED-REVIEW`, `-NOT-IN-GIT-AT-HEAD`,
+  `SUCCESSOR-SUBSTITUTION-NOT-ENUMERATED-IN-THE-REVIEW`). **Said out loud** (r9 F3): that
+  the review's AUTHOR is not the spec's builder is *not* machine-checkable — nothing in a
+  Git tree records who wrote a file. What is proved is that a specific, committed, pinned
+  document enumerates every substitution.
+- **The load floor is measured on the ORIGINAL the wrapper loads.** `proveSuccessor()` still
+  requires ≥ 8 qualifying lines (≥ 40 chars, not one of the declared quoted strings). The
+  bodies it measures are those reached from the named original by the **compile edge** —
+  relative `require`/`import` only, never a path literal and never a `.json` data fixture
+  (r9 F1: the first cut took "the fattest body in the closure", which on all five real
+  B-NTC carriers chose a 7 791-line JSON acceptance fixture and made the copy test inert).
+  The **copy test runs over every one of those bodies and is asked FIRST**, naming the file,
+  so a successor that pastes the **module's** body — however short that module is — refuses
+  `SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT`; the floor is then the largest of
+  them, so a wrapper whose loaded module is itself thin still refuses.
+- **A whole-file replacement is not a substitution.** `successorProof()` re-asserts it
+  against the parent's own bytes (`SUCCESSOR-SUBSTITUTION-IS-A-WHOLE-FILE-REPLACEMENT`), so
+  the run-phase gate does not depend on `spec()` having run first (r9 C (vi)).
+
+`test/parent-gate-closure-and-load-floor.test.cjs` (14 cases) builds a B-NTC-shaped fixture —
+a nine-line wrapper loading a module that requires a reference file, names a source file by
+path literal and reaches an oracle golden — and measures all of it: closure by both edge
+kinds, an H3-shaped spec admitted, an out-of-closure target refused, a protected surface
+refused with the oracle proven to be **in** the closure, the double sha anchor, the review
+clause and its three custody refusals, the compile edge reaching neither the path literal
+nor any `.json`, r9's own paste control (a nine-line wrapper over a five-line loaded module,
+pasted whole) refusing on the COPY and then on the FLOOR once the paste is removed, a
+whole-file replacement refused at run phase, the four `spec()`-phase refusals measured
+through `successorSpecShape()` (r9 F5), and every new code in `FAIL_CODES`.
+
+**Stated residual.** `parentClosure()` follows `rebuild/…` path literals only for
+`.cjs/.mjs/.js/.json` under the roots the carrier itself reaches; a target a parent gate
+loads through a computed path this runner cannot see is out of the set and refuses. That is
+the safe direction — a refusal, never an admission — and it is narrower than `:147`'s words.
+
+## r10 — REQUESTS 2026-09-12 08:40 (b): GATE SUPERSESSION (pending a PM line)
+
+**Speculative, under `DECISIONS:100`.** The PM has been asked to ratify option (b) as plan
+of record and has not yet ruled. The role below is built, tested and shipped INERT: every
+package spec holds `coverage.superseded: null`, and a spec that declares the block before
+the PM's line lands refuses `GATE-SUPERSESSION-RULING-NOT-CITED`. If the PM rules otherwise
+the branch is adjusted; nothing in the tree depends on it today.
+
+**What two H3 builders measured, independently.** `BRIEF-H3-CLEAN-INIT` v1.7 §9 and
+`BRIEF-H3-CORE` §5 both end at the same wall. The five NATIVE-CARRIERS carriers —
+`source-carriers`, `inherited-carriers`, `defect-witnesses`, `writers-differential`,
+`second-gate` — do not **pin** `rebuild/engine`, they **reconstruct** it: `baseline()` reads
+every carried file from a frozen `BASE` and applies the literal carrier list whose bytes are
+pinned by `CHANGES_SHA`. And `b-ntc-successors.cjs:141/:145` additionally assert every path
+`packages/B-NTC.json` declares **at B-NTC's own post**. So:
+
+> **No child of M2-B-NTC that changes ANY file the parent spec declares — engine byte or
+> not — can carry these five by substitution.** `:147`'s widening of `:113 (1) (c)` is
+> necessary and nowhere near sufficient, and H3-CORE proved the second half with no engine
+> byte changed at all. B-NTC passed them because it moved only execution pins.
+
+**The role.** Such a child may declare a gate SUPERSEDED and stand its own EXECUTED evidence
+in its place. Five things bound it, and not one of them is a word in a spec:
+
+```json
+"superseded": {
+  "rulingLineSha256": null,
+  "gates": { "<one of the five carriers>": { "why": "<why byte-identity cannot be carried>",
+    "evidence": { "laws": null, "redFirst": ["<child>"], "census": "runner-live-triggered-line",
+                  "legacyDifferential": "<child>", "writersDifferential": "<child>" } } }
+}
+```
+
+1. **Only those five.** `BYTE_IDENTITY_CARRIERS` is fixed in `b-package.cjs` (W7) and every
+   other gate of the nineteen refuses **by name**
+   (`GATE-SUPERSESSION-CARRIER-IS-NOT-A-BYTE-IDENTITY-GATE`). A name that is one of the five
+   but is not a carrier of THIS parent refuses against the parent artifact's own
+   `coverage.byChild` (`-CARRIER-IS-NOT-A-PARENT-CARRIER`), and a carrier a successor also
+   claims refuses (`-CARRIER-IS-ALSO-CLAIMED-BY-A-SUCCESSOR`).
+2. **The evidence is EXECUTED, not claimed.** Every child the block names must be a declared
+   child of this package (`-EVIDENCE-CHILD-NOT-DECLARED`) that RAN IN THIS RUN
+   (`-EVIDENCE-CHILD-NOT-EXECUTED`) and ran green (`-EVIDENCE-CHILD-NOT-GREEN`) — `ran` is
+   the map `children()` built by actually spawning them. `laws: null` is "the 45-law register
+   did not move"; a moved register must name D-ids this package REGISTERED
+   (`-EVIDENCE-LAWS-MOVED-OUTSIDE-THE-REGISTERED-INVENTORY`) and its brief must itself be
+   accepted (`-EVIDENCE-LAWS-MOVED-WITHOUT-AN-ACCEPTED-BRIEF`). `census` is either a declared
+   cell or the literal `runner-live-triggered-line`, which is the runner's OWN census line and
+   is admitted only while it says `none` (`-EVIDENCE-CENSUS-LINE-IS-NOT-CLEAN`).
+3. **The ruling is the PM's own bytes.** `rulingLineSha256` locates a line in
+   `rebuild/DECISIONS.md` on `CHAIN_REF` by its sha256 — the same mechanic as every other
+   citation in this file — and that line must name this package, grant the supersession in
+   the word (`SUPERSEDE`/`SUPERSEDED`/`NOT-INHERITABLE`) and name one of the five carriers.
+   The placeholder `null` refuses `GATE-SUPERSESSION-RULING-NOT-CITED`; the line is
+   **re-taken at the seal**, so a seal cannot stand on a ruling that has since moved.
+4. **It is reported SUPERSEDED, never OBSERVED and never carried.** `coverage.inherited` must
+   DROP every superseded gate (`GATE-SUPERSESSION-GATE-IS-ALSO-INHERITED`), the
+   parent-map equality is taken against `byChild` **minus** those gates, the covered-set
+   bound becomes `covered + superseded = |byChild| + |moves|`, and the run prints
+   `SUPERSESSIONS`, one `SUPERSEDED <carrier> <- <gates>` line and one
+   `SUPERSEDED EVIDENCE` line naming every piece.
+5. **`--full` re-executes everything else, as today.** A superseded gate is not re-run — its
+   byte-identity reconstruction is exactly what the child cannot reproduce — and the gate set
+   is still closed against `GATE_IDS`, so a gate can be skipped only through a supersession
+   `coverage()` already admitted. The sealed artifact records `coverage.superseded` (the gate
+   ids), `coverage.supersessions` (the carriers, the PM line's sha256 and the evidence names)
+   and a `run` list disjoint from both.
+
+`test/gate-supersession.test.cjs` (10 cases) builds B-NTC's own nine-gate/five-carrier
+`byChild` map and a fixture PM line on a probe chain, and measures: the five and only the
+five; an H3-shaped spec with all five superseded and its four children ADMITTED; a sixth gate
+refused by name; a missing and a never-run evidence child refused; a red evidence child
+refused; the placeholder, an absent line and a real line that grants nothing all refused; the
+inherited/superseded conflict and the mixed four-superseded-one-carried case; the artifact's
+disjoint `covered`/`superseded`/`run` and its recorded evidence names; the laws rule; and
+every new code in `FAIL_CODES`.
+
+### r10-fix — TOOLING-REVIEW-r10's seven findings, and THE SHAPE THE PM'S LINE MUST CARRY
+
+**The grant is a token, not prose (F1).** r10 asked three substring questions of the located
+line and the blind reviewer executed them against the real chain: `DECISIONS:112` — a line
+about `MOVES_RULING B-NTC-INHERITED-1` whose only "grant" is the incidental clause *"…exactly
+as NATIVE-CARRIERS' inherited-carriers superseded LOAD-WRITES"* — was **ADMITTED**, and so was
+a line *refusing* the role. A supersession is now granted by an exact token and by nothing
+else. **For the PM:**
+
+```
+GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…]
+```
+
+**alone in its own `·`-delimited clause**, on a ledger line that ends in the `RULED` terminal
+word — e.g.
+
+```
+- 2026-09-12 · cowork · LANE B RULINGS — … the carriers are not inheritable … · GATE-SUPERSESSION M2-H3-CLEAN-INIT source-carriers,inherited-carriers,defect-witnesses,writers-differential,second-gate · RULED
+```
+
+**The clause must be the token and nothing else (r10b N1).** A token with any word or mark
+before or after it inside the same clause frees **nothing** — so `may not GATE-SUPERSESSION …`,
+`"GATE-SUPERSESSION …"`, `(GATE-SUPERSESSION …)`, `**GATE-SUPERSESSION …**` and
+`` `GATE-SUPERSESSION …` `` are all refused, and a line can discuss, quote or refuse the token
+safely. Put it between two `·` separators, exactly as `RULED` stands.
+Everything around that clause is prose the runner never reads. The token's `<packageId>` must be
+this package's own (`GATE-SUPERSESSION-RULING-DOES-NOT-NAME-THIS-PACKAGE`), each carrier must be
+one of the five (`-RULING-NAMES-A-CARRIER-THAT-IS-NOT-A-BYTE-IDENTITY-GATE`), the line must be
+`RULED` (`-RULING-IS-NOT-A-RULED-LINE`), and a line with no token frees nothing
+(`-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN`).
+
+**The grant is matched carrier by carrier (F2).** A token naming `second-gate` frees
+`second-gate` alone; declaring any other refuses `GATE-SUPERSESSION-CARRIER-IS-NOT-IN-THE-RULING`.
+And the role retires **gates**, not carriers: B-NTC's five carriers cover **nine of the
+nineteen**, so the coverage line and the artifact both report the count **per carrier**
+(`supersededByCarrier`: `source-carriers` 3, `inherited-carriers` 3, `defect-witnesses` 1,
+`writers-differential` 1, `second-gate` 1).
+
+**The seal assert is phased (F3).** `SUPERSEDED_RESOLVED` is written by `coverage()`, which runs
+after the first, header-only `envelope()` call. r10 asserted it unconditionally, so on a
+sealed+ACCEPTED artifact the first call refused `GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL` with the
+map still empty and **no package declaring a supersession could ever reach a PASS**. The assert
+is now guarded on `ran`, exactly as Y1's execution half already is: the header call asks the
+RULING, the end-of-run re-evaluation asks the admitted map as well.
+
+**No cache across the re-take (F4).** `supersessionRuling()` re-reads `rebuild/DECISIONS.md`
+from `CHAIN_REF` on every call, so a ruling withdrawn mid-run refuses **in the same process**.
+
+**Per-carrier, distinct, bearing evidence (F5).** Each superseded carrier must name at least one
+evidence child of its **own** (`-EVIDENCE-IS-NOT-THIS-CARRIER-OWN`); the two differentials must
+differ and neither may stand in `redFirst` (`-EVIDENCE-DIFFERENTIALS-ARE-THE-SAME-CHILD`,
+`-EVIDENCE-SLOTS-SHARE-A-CHILD`); and every named child must execute a file this package declares
+(`-EVIDENCE-CHILD-DOES-NOT-EXECUTE-THIS-PACKAGE-PRODUCT`). `children()`'s own refusal of a red
+child is now named `CHILD-REQUIRED-EXIT-ZERO` instead of printing a bare FAIL.
+
+**Attribution (F6).** The role is **REQUESTS 2026-09-12 08:40 (b)**, pending a PM line —
+`DECISIONS:147`'s own (b) is the H3-CORE split and says nothing about supersession. The
+`DECISIONS:<n>` a terminal prints is the located line's real coordinate and stays.
+
+**B-NTC's artifact is read unchanged (F7).** `acceptance-b-ntc-native-trend-context.json` predates
+`coverage.superseded`: its `coverage` carries the five pre-r10 keys and nothing else, and every
+parent-side reader takes it as it stands — no forced re-seal to be a PARENT. What *does* need a
+re-seal is B-NTC's own `--full` recomputation: `proposed()` now emits `superseded`,
+`supersededByCarrier` and `supersessions`, so `same(m, proposed())` cannot hold for an artifact
+written by an older runner and `SEALED-PROFILE-RECOMPUTATION` is the refusal — the same cost every
+runner change since `eedabccd…` already carries.

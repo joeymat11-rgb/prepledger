@@ -2,18 +2,24 @@
   "version": 1,
   "lanePackage": "H3",
   "packageId": "M2-H3-CLEAN-INIT",
-  "status": "BRIEF-ACCEPTED",
-  "brief": {
-    "file": "rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md",
-    "sha256": "67e95134b2c48f0c175f3481575854e03e685f6ce50fbf97efe041a459f5b301",
-    "acceptedLedgerLine": {
-      "ledgerLine": 169,
-      "role": "cowork",
-      "line": "- 2026-09-12 · cowork · BRIEF ACCEPTED BY SHA for M2-H3-CLEAN-INIT: rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md, sha256 67e95134b2c48f0c175f3481575854e03e685f6ce50fbf97efe041a459f5b301 (34208 bytes), is the brief of record. It is the brief DECISIONS:146 (2) accepted by name (v1.3, sha256 prefix 60567b60) grown ONLY by the amendments its own header table lists: the :146 (3) option B first-read rule, the r1 review corrections, the :135 (5) label half as bounded, the sleep.needed member (lane C 04:11), the :153/:160 supersession section with one red-first cell per carrier and the :153 (ii) engine-files differential. Appended by lane B under DECISIONS:135 (2); it supersedes line 166, whose role clause the runner cannot read; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
-      "lineSha256": "59e7bab1affa9a722f20e163c34e6095e4e43777815a5da5510ad9b02ab3da25"
-    }
-  },
   "sourceBase": "ce38aa3bd174c94526e01fb5056df850ad322b80",
+  "parent": {
+    "id": "B-NTC",
+    "artifact": "rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json",
+    "sha256": "87f4848c8c20a9a187f440abbfef94244786a6ab6fcf859e64295a29f5b49428",
+    "review": "rebuild/m4/spec/review-b-ntc-native-trend-context.json",
+    "reviewSha256": "e0b86ad532731d8639e54fdfe2a1d4c92a7b50548ac736a0700b17d8a01a786e",
+    "receiptLedgerLine": null,
+    "reviewedCommit": "9ad2ecab141753e9e8e74d3a105bd168d5e72286"
+  },
+  "spec": {
+    "file": "rebuild/lanes/b/tooling/packages/H3.json",
+    "sha256": "6c9eca87402e0794351a70e0a53b9209df73709b7178397b78d1570e7d0ba1c5"
+  },
+  "runner": {
+    "file": "rebuild/lanes/b/tooling/b-package.cjs",
+    "sha256": "4482bb8aa344b4aa090a01cbcf2164f9834320d71ce24a24bcc0154b0c037db3"
+  },
   "dIds": [],
   "laws": {},
   "carriedAcceptedIds": [
@@ -25,24 +31,171 @@
     "D43"
   ],
   "privateLiveTriggered": [],
-  "parent": {
-    "decided": true,
-    "chosen": "B-NTC",
-    "options": [
-      {
-        "id": "B-NTC",
-        "artifact": "rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json",
-        "sha256": "87f4848c8c20a9a187f440abbfef94244786a6ab6fcf859e64295a29f5b49428",
-        "review": "rebuild/m4/spec/review-b-ntc-native-trend-context.json",
-        "reviewSha256": "e0b86ad532731d8639e54fdfe2a1d4c92a7b50548ac736a0700b17d8a01a786e",
-        "receiptLedgerLine": null,
-        "note": "M2-B-NTC-NATIVE-TREND-CONTEXT, sealed at 9ad2ecab and INTEGRATED into rebuild/t2-client-core at ce38aa3 (receipt DECISIONS:141, integration ledger line 144). DECISIONS:124 rules M2-H3-CLEAN-INIT its child, ORDER B-NTC -> H3 -> B1 -> B2 -> B4 -> B3."
+  "gates": [
+    "conformance",
+    "merge-differential",
+    "merge-laws",
+    "merge-source",
+    "migrate-differential",
+    "migrate-full",
+    "migrate-source",
+    "second-gate",
+    "selftest",
+    "strict",
+    "witnesses-1",
+    "witnesses-2",
+    "witnesses-3",
+    "witnesses-4",
+    "witnesses-5",
+    "witnesses-6",
+    "witnesses-7",
+    "writers-differential",
+    "writers-source"
+  ],
+  "coverage": {
+    "covered": [],
+    "superseded": [
+      "merge-source",
+      "migrate-differential",
+      "migrate-source",
+      "second-gate",
+      "witnesses-2",
+      "witnesses-5",
+      "witnesses-7",
+      "writers-differential",
+      "writers-source"
+    ],
+    "supersededByCarrier": {
+      "defect-witnesses": [
+        "witnesses-7"
+      ],
+      "inherited-carriers": [
+        "migrate-differential",
+        "witnesses-2",
+        "witnesses-5"
+      ],
+      "second-gate": [
+        "second-gate"
+      ],
+      "source-carriers": [
+        "merge-source",
+        "migrate-source",
+        "writers-source"
+      ],
+      "writers-differential": [
+        "writers-differential"
+      ]
+    },
+    "run": [
+      "conformance",
+      "merge-differential",
+      "merge-laws",
+      "migrate-full",
+      "selftest",
+      "strict",
+      "witnesses-1",
+      "witnesses-3",
+      "witnesses-4",
+      "witnesses-6"
+    ],
+    "moves": {},
+    "successors": null,
+    "supersessions": {
+      "rulingLineSha256": "3746ff573af4522ff8199f21d210d5915954bb7190e6914ca5e7a7e5853184bb",
+      "gates": {
+        "source-carriers": {
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37; H3 edits two engine files, extending that list moves a sha that is no declared product pre- or post-image, and DECISIONS:113 (1) (c) as widened by :147 admits only a pin re-target",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-source-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "inherited-carriers": {
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs:82/:85/:88/:89) and pins the substitution order at :138, so the two files H3 declares are refused there for the same reason as source-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-inherited-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "defect-witnesses": {
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: every one of its ten complete comparisons needs the FROZEN side reconstructed from that same pinned carrier list, so no witness can be produced on both sides once an engine byte H3 declares has moved",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-defect-witnesses"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "writers-differential": {
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: the gate is the differential over rebuild/engine/writers.cjs itself, which is the file F-B edits, and it reaches it through the same reconstruction",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-writers-differential"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "second-gate": {
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: the independent second reading is taken over the reconstructed engine, so it refuses the child tree before it compares anything",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-second-gate"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        }
       }
-    ]
+    },
+    "byChild": {}
   },
-  "tooling": {
-    "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "4482bb8aa344b4aa090a01cbcf2164f9834320d71ce24a24bcc0154b0c037db3"
+  "authorizations": {
+    "owner": {
+      "ledgerLine": 60,
+      "role": "owner",
+      "line": "- 2026-09-06 · owner · M2-RULE — the owner's disposition of the M2 audit, given on rebuild/m2/OWNER-RULING-PACK-M2.md v3 (5,579 bytes, sha256 2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9, committed at 4e561e5): owner, exact words received in the Codex coordinator task 01a06e0c-39ea-7591-9666-eead44de251c — a user-role annotation selecting \"Approve Batch A and all seven recommended choices\", then user-role \"Continue\" — relayed verbatim by Astra with that provenance on 2026-09-06 14:40 UTC; cowork independently verified the pack correspondence (pack bytes/sha and the register's 38 FIX + 7 OWNER RULING split match the relay) and did NOT directly observe the Codex UI; the Message-35 route governs transport only and did not originate this ruling; recorded as the owner's ruling in his own words, not a recommendation and not an inference from the integration Go — the owner may correct it at any time by an appended line. BATCH A APPROVED as one batch — every FIX recommendation of rebuild/m2/AUDIT-REGISTER.md becomes an approved repair direction: D1 APPROVED-FIX · D2 APPROVED-FIX · D3 APPROVED-FIX · D4 APPROVED-FIX · D5 APPROVED-FIX · D6 APPROVED-FIX · D7 APPROVED-FIX · D9 APPROVED-FIX · D11 APPROVED-FIX · D12 APPROVED-FIX · D13 APPROVED-FIX · D14 APPROVED-FIX · D15 APPROVED-FIX · D17 APPROVED-FIX · D18 APPROVED-FIX · D19 APPROVED-FIX · D20 APPROVED-FIX · D21 APPROVED-FIX · D22 APPROVED-FIX · D23 APPROVED-FIX · D24 APPROVED-FIX · D26 APPROVED-FIX · D27 APPROVED-FIX · D28 APPROVED-FIX · D29 APPROVED-FIX · D30 APPROVED-FIX · D31 APPROVED-FIX · D33 APPROVED-FIX · D34 APPROVED-FIX · D35 APPROVED-FIX · D36 APPROVED-FIX · D38 APPROVED-FIX · D39 APPROVED-FIX · D41 APPROVED-FIX · D42 APPROVED-FIX · D43 APPROVED-FIX · D44 APPROVED-FIX · D45 APPROVED-FIX (38). BATCH B — all seven RECOMMENDED answers chosen, each now an approved repair direction with its exact rule: D8 APPROVED-FIX — when last night's sleep is missing, recovery is UNKNOWN and no sleep restriction is applied today; every other recovery check still applies (not carry-forward of the last logged night). D10 APPROVED-FIX — date-only week counts mean 7 CALENDAR days, not 168 elapsed hours. D16 APPROVED-FIX — a 7-day forecast hit requires an eligible weigh-in on the due day or, failing that, the next day (one grace date); with no such reading the forecast is UNGRADED, not a miss; the day arithmetic follows D10. D25 APPROVED-FIX — \"protein: good\" requires at least one successful day within the current seven-logged-days window before the one-miss allowance applies; a first missed day cannot read \"good\". D32 APPROVED-FIX — \"benefit replicated\" counts only sessions from the CURRENT technique; all other replication thresholds stay as they are. D37 APPROVED-FIX — a merged earned receipt keeps the assessment as of the day it was earned, accepting that this can change whether a single-sighting increase counts as earned and the numbers printed on past earned receipts. D40 APPROVED-FIX — when two phones disagree on a day's calories with equal detail, ONE deterministic shared winner is chosen with the conflict kept visible and BOTH original entries retained; the exact tie-break rule and how the conflict is shown are NOT decided here and must be specified in the reviewed fix brief before anything is built. Totals: 45/45 dispositions recorded, 45 APPROVED-FIX, 0 KEEP, 0 DEFER, 0 UNRULED. What this does NOT do: it approves directions, not code — each theme still needs its accepted behaviour/delta brief, its red-first laws turning GREEN on the candidate and RED on the frozen engine, the post-fix gate's PACKAGE run and cowork's execution acceptance; the frozen app and its goldens stay untouched; no private release, spending, phone gate, remote gate or M2 closure is waived; no owner-specific interval or value is set. Transport: the route ruling at line 42 applies; no additional Go was requested or given · rebuild/m2/OWNER-RULING-PACK-M2.md · M2-RULE DONE; M2-FIX unblocked for briefs (D33–D35 first, per the accepted PR #34 contract)",
+      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
+    },
+    "contract": {
+      "ledgerLine": 49,
+      "role": "cowork",
+      "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
+    },
+    "theme": {
+      "ledgerLine": 168,
+      "role": "cowork",
+      "line": "- 2026-09-12 · cowork · THEME M2-H3-CLEAN-INIT — the clean-init athlete state that paints Today, DECISIONS:124 first after B-NTC in the lane-B chain and an S2 blocker. Its behaviour/delta contract is rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md; its parent is M2-B-NTC-NATIVE-TREND-CONTEXT, rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json sha256 87f4848c8c20a9a187f440abbfef94244786a6ab6fcf859e64295a29f5b49428 (receipt DECISIONS:141), whose five byte-identity carriers this child supersedes under DECISIONS:153 and the token clause DECISIONS:160. Appended by lane B under DECISIONS:135 (2); it supersedes line 165, whose role clause the runner cannot read. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "2834242756266eb30cdbfd61d5b7b6146e3389cc5424aa0322a58fff96ac7251"
+    },
+    "review": {
+      "role": "cowork",
+      "prefix": "POSTFIX-ACCEPTANCE M2-H3-CLEAN-INIT",
+      "terminal": "ACCEPTED"
+    }
   },
   "product": {
     "rebuild/engine/plan.cjs": {
@@ -366,116 +519,12 @@
       "role": "new"
     }
   },
-  "coverage": {
-    "inherited": {},
-    "moves": {},
-    "successors": null,
-    "superseded": {
-      "rulingLineSha256": "3746ff573af4522ff8199f21d210d5915954bb7190e6914ca5e7a7e5853184bb",
-      "gates": {
-        "source-carriers": {
-          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37; H3 edits two engine files, extending that list moves a sha that is no declared product pre- or post-image, and DECISIONS:113 (1) (c) as widened by :147 admits only a pin re-target",
-          "evidence": {
-            "laws": null,
-            "redFirst": [
-              "h3-sup-source-carriers"
-            ],
-            "census": "runner-live-triggered-line",
-            "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-suites",
-            "engineFilesDifferential": "engine-files-differential"
-          }
-        },
-        "inherited-carriers": {
-          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs:82/:85/:88/:89) and pins the substitution order at :138, so the two files H3 declares are refused there for the same reason as source-carriers",
-          "evidence": {
-            "laws": null,
-            "redFirst": [
-              "h3-sup-inherited-carriers"
-            ],
-            "census": "runner-live-triggered-line",
-            "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-suites",
-            "engineFilesDifferential": "engine-files-differential"
-          }
-        },
-        "defect-witnesses": {
-          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: every one of its ten complete comparisons needs the FROZEN side reconstructed from that same pinned carrier list, so no witness can be produced on both sides once an engine byte H3 declares has moved",
-          "evidence": {
-            "laws": null,
-            "redFirst": [
-              "h3-sup-defect-witnesses"
-            ],
-            "census": "runner-live-triggered-line",
-            "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-suites",
-            "engineFilesDifferential": "engine-files-differential"
-          }
-        },
-        "writers-differential": {
-          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: the gate is the differential over rebuild/engine/writers.cjs itself, which is the file F-B edits, and it reaches it through the same reconstruction",
-          "evidence": {
-            "laws": null,
-            "redFirst": [
-              "h3-sup-writers-differential"
-            ],
-            "census": "runner-live-triggered-line",
-            "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-suites",
-            "engineFilesDifferential": "engine-files-differential"
-          }
-        },
-        "second-gate": {
-          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: the independent second reading is taken over the reconstructed engine, so it refuses the child tree before it compares anything",
-          "evidence": {
-            "laws": null,
-            "redFirst": [
-              "h3-sup-second-gate"
-            ],
-            "census": "runner-live-triggered-line",
-            "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-suites",
-            "engineFilesDifferential": "engine-files-differential"
-          }
-        }
-      }
-    }
-  },
   "carrierSuccessor": null,
   "witnessFlips": [],
   "protectedSurfaces": [
     "rebuild/conform/goldens (public census and frozen goldens)",
     "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
   ],
-  "authorizations": {
-    "owner": {
-      "ledgerLine": 60,
-      "role": "owner",
-      "line": "- 2026-09-06 · owner · M2-RULE — the owner's disposition of the M2 audit, given on rebuild/m2/OWNER-RULING-PACK-M2.md v3 (5,579 bytes, sha256 2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9, committed at 4e561e5): owner, exact words received in the Codex coordinator task 01a06e0c-39ea-7591-9666-eead44de251c — a user-role annotation selecting \"Approve Batch A and all seven recommended choices\", then user-role \"Continue\" — relayed verbatim by Astra with that provenance on 2026-09-06 14:40 UTC; cowork independently verified the pack correspondence (pack bytes/sha and the register's 38 FIX + 7 OWNER RULING split match the relay) and did NOT directly observe the Codex UI; the Message-35 route governs transport only and did not originate this ruling; recorded as the owner's ruling in his own words, not a recommendation and not an inference from the integration Go — the owner may correct it at any time by an appended line. BATCH A APPROVED as one batch — every FIX recommendation of rebuild/m2/AUDIT-REGISTER.md becomes an approved repair direction: D1 APPROVED-FIX · D2 APPROVED-FIX · D3 APPROVED-FIX · D4 APPROVED-FIX · D5 APPROVED-FIX · D6 APPROVED-FIX · D7 APPROVED-FIX · D9 APPROVED-FIX · D11 APPROVED-FIX · D12 APPROVED-FIX · D13 APPROVED-FIX · D14 APPROVED-FIX · D15 APPROVED-FIX · D17 APPROVED-FIX · D18 APPROVED-FIX · D19 APPROVED-FIX · D20 APPROVED-FIX · D21 APPROVED-FIX · D22 APPROVED-FIX · D23 APPROVED-FIX · D24 APPROVED-FIX · D26 APPROVED-FIX · D27 APPROVED-FIX · D28 APPROVED-FIX · D29 APPROVED-FIX · D30 APPROVED-FIX · D31 APPROVED-FIX · D33 APPROVED-FIX · D34 APPROVED-FIX · D35 APPROVED-FIX · D36 APPROVED-FIX · D38 APPROVED-FIX · D39 APPROVED-FIX · D41 APPROVED-FIX · D42 APPROVED-FIX · D43 APPROVED-FIX · D44 APPROVED-FIX · D45 APPROVED-FIX (38). BATCH B — all seven RECOMMENDED answers chosen, each now an approved repair direction with its exact rule: D8 APPROVED-FIX — when last night's sleep is missing, recovery is UNKNOWN and no sleep restriction is applied today; every other recovery check still applies (not carry-forward of the last logged night). D10 APPROVED-FIX — date-only week counts mean 7 CALENDAR days, not 168 elapsed hours. D16 APPROVED-FIX — a 7-day forecast hit requires an eligible weigh-in on the due day or, failing that, the next day (one grace date); with no such reading the forecast is UNGRADED, not a miss; the day arithmetic follows D10. D25 APPROVED-FIX — \"protein: good\" requires at least one successful day within the current seven-logged-days window before the one-miss allowance applies; a first missed day cannot read \"good\". D32 APPROVED-FIX — \"benefit replicated\" counts only sessions from the CURRENT technique; all other replication thresholds stay as they are. D37 APPROVED-FIX — a merged earned receipt keeps the assessment as of the day it was earned, accepting that this can change whether a single-sighting increase counts as earned and the numbers printed on past earned receipts. D40 APPROVED-FIX — when two phones disagree on a day's calories with equal detail, ONE deterministic shared winner is chosen with the conflict kept visible and BOTH original entries retained; the exact tie-break rule and how the conflict is shown are NOT decided here and must be specified in the reviewed fix brief before anything is built. Totals: 45/45 dispositions recorded, 45 APPROVED-FIX, 0 KEEP, 0 DEFER, 0 UNRULED. What this does NOT do: it approves directions, not code — each theme still needs its accepted behaviour/delta brief, its red-first laws turning GREEN on the candidate and RED on the frozen engine, the post-fix gate's PACKAGE run and cowork's execution acceptance; the frozen app and its goldens stay untouched; no private release, spending, phone gate, remote gate or M2 closure is waived; no owner-specific interval or value is set. Transport: the route ruling at line 42 applies; no additional Go was requested or given · rebuild/m2/OWNER-RULING-PACK-M2.md · M2-RULE DONE; M2-FIX unblocked for briefs (D33–D35 first, per the accepted PR #34 contract)",
-      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
-    },
-    "contract": {
-      "ledgerLine": 49,
-      "role": "cowork",
-      "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
-      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
-    },
-    "theme": {
-      "ledgerLine": 168,
-      "role": "cowork",
-      "line": "- 2026-09-12 · cowork · THEME M2-H3-CLEAN-INIT — the clean-init athlete state that paints Today, DECISIONS:124 first after B-NTC in the lane-B chain and an S2 blocker. Its behaviour/delta contract is rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md; its parent is M2-B-NTC-NATIVE-TREND-CONTEXT, rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json sha256 87f4848c8c20a9a187f440abbfef94244786a6ab6fcf859e64295a29f5b49428 (receipt DECISIONS:141), whose five byte-identity carriers this child supersedes under DECISIONS:153 and the token clause DECISIONS:160. Appended by lane B under DECISIONS:135 (2); it supersedes line 165, whose role clause the runner cannot read. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
-      "lineSha256": "2834242756266eb30cdbfd61d5b7b6146e3389cc5424aa0322a58fff96ac7251"
-    },
-    "review": {
-      "role": "cowork",
-      "prefix": "POSTFIX-ACCEPTANCE M2-H3-CLEAN-INIT",
-      "terminal": "ACCEPTED"
-    }
-  },
-  "artifact": {
-    "file": "rebuild/m4/spec/acceptance-h3-clean-init.json",
-    "review": "rebuild/m4/spec/review-h3-clean-init.json"
-  },
   "children": [
     {
       "name": "h3-sup-source-carriers",
@@ -574,7 +623,31 @@
       "needle": "# pass 39"
     }
   ],
-  "notes": [
-    "H3 supersedes the five NATIVE-CARRIERS byte-identity carriers under the STANDING ROLE at DECISIONS:153 (lineSha256 b6f84af6a014cc3a751ff3f077ed03e149047cdcc0f448328038a3e0f0af47e1, whose own token stands inside a prose clause and therefore frees nothing), granted to this package by the TOKEN CLAUSE at DECISIONS:160 (lineSha256 3746ff573af4522ff8199f21d210d5915954bb7190e6914ca5e7a7e5853184bb, cited in coverage.superseded.rulingLineSha256 - the closed block has no field of its own for the standing role, so it is recorded here and in every carrier why). Evidence per :153 (ii): one red-first cell per carrier, the shared legacy (a0-journeys) and writers (today-suites) differentials, the runner's own clean census line, and the named-files engine differential (engine-files-differential, 27 tracked rebuild/engine files outside the brief, byte-identical to the parent). BRIEF-H3-CLEAN-INIT.md v1.9 section 9 carries the measurement. THEME cited at DECISIONS:168 (lineSha 28342427…) and the brief accepted by sha at DECISIONS:169 (lineSha 59e7bab1…), both carrying the bare cowork role the seal runner reads and both superseding the withdrawn :165/:166, in the citation shape packages/B-NTC.json uses; status BRIEF-ACCEPTED follows the cited line (b-package.cjs:1221). BUILD-REPORT-H3.md section r2-1 records why :165/:166 could not be cited and section r2-2 carries the brief errata, which stand because :169 re-pins the same bytes 67e95134…. H3-REVIEW-r2 ACCEPT WITH CHANGES, and its doc corrections stand as an errata section in rebuild/lanes/b/BUILD-REPORT-H3.md because the brief bytes are pinned by :169, which re-pins the bytes the withdrawn :166 had pinned (H3-REVIEW-r3 F5; `notes` is not carried into the sealed artifact, so this correction moves only the spec sha256)."
-  ]
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-h3-clean-init.json",
+    "review": "rebuild/m4/spec/review-h3-clean-init.json"
+  },
+  "executionPins": {
+    "rebuild/lanes/b/tooling/b-package.cjs": "4482bb8aa344b4aa090a01cbcf2164f9834320d71ce24a24bcc0154b0c037db3",
+    "rebuild/lanes/b/tooling/packages/H3.json": "6c9eca87402e0794351a70e0a53b9209df73709b7178397b78d1570e7d0ba1c5",
+    "rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md": "67e95134b2c48f0c175f3481575854e03e685f6ce50fbf97efe041a459f5b301",
+    "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs": "dc92e91810246fca195ab3a031236aaffba2b04522e5718fb72f9f6eda62d0dc",
+    "rebuild/m4/workout/test/h3-supersede-inherited-carriers.test.cjs": "69c8d05fa3a1ccf6b3b3458706ffc633c9f83063dd604bd15549ba61d1c7f0ff",
+    "rebuild/m4/workout/test/h3-supersede-defect-witnesses.test.cjs": "e41ec9f2d1ea8d7d650ce139799da783301f7d5e99365e6386c0ccf61e990c7f",
+    "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+    "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+    "rebuild/m4/workout/test/h3-engine-files-differential.cjs": "d0f59c48b9d50997c5cd4a8cbd9e8a48fdae4765f17c8cf74f03cffafd41d9bf",
+    "rebuild/m4/workout/test/h3-clean-init.test.cjs": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
+    "rebuild/m3/w6/host/test/journey.test.mjs": "7b78319ea83cdeb5679faa8e5995867244c8fa540d57ee8f53f6b6d437b0322d",
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+    "rebuild/m3/w7-preview/today/test/adapter.test.mjs": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+    "rebuild/m3/w7-preview/today/test/checkin.test.mjs": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+    "rebuild/m3/w7-preview/today/test/design.test.cjs": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+    "rebuild/m3/w7-preview/today/test/gym.test.mjs": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+    "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+    "rebuild/m3/w7-preview/today/test/package.test.cjs": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+    "rebuild/m3/w7-preview/today/test/setup.test.mjs": "e4b797ebfae92107ffbdd7e07184f702b9a3503c91f202b652eb506bab1321ca",
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+    "rebuild/m4/workout/test/native-trend-context.test.cjs": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a"
+  }
 }

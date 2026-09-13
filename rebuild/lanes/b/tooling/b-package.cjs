@@ -94,13 +94,34 @@ const { sha } = require(path.join(P, 'target.cjs'));
 const BLOCKED = require(path.join(root, 'rebuild/m4/spec/native-carriers-errors.cjs')).codes; // the original closed BLOCKED list
 const Reference = require(path.join(root, 'rebuild/m4/spec/load-write-reference.cjs'));
 const TOOLING = 'rebuild/lanes/b/tooling', RUNNER = TOOLING + '/b-package.cjs';
-// The closed package-id list. Case-exact, ordered as the PM ruled the chain
-// (DECISIONS:103 (1): B-NTC first, then B1, B2, B4, B3; B-LOM follows B-NTC if the legacy
-// order-mapping seam turns out not to be the same seam). DECISIONS:124 rules a new package
-// in between — M2-H3-CLEAN-INIT, child of M2-B-NTC, "ORDER B-NTC → H3 → B1 → B2 → B4 → B3"
-// — so H3 stands here, before B1. Widening this list is the ONLY way a new package id
-// becomes runnable — a spec can never nominate its own id.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'B-LOM', 'H3', 'B1', 'B2', 'B3', 'B4'];
+// DECISIONS:136 (3). Where the seal step writes its byte-identity RECEIPT, and the only
+// place the authorized step reads one from. Fixed here (W7) and inside the lane's own
+// tooling directory, which is already inside fidelity()'s change check — this runner still
+// never writes a byte in rebuild/m4/spec.
+const RECEIPT_DIR = TOOLING + '/receipts';
+// DECISIONS:135 (4), and THE ONE WORD that decides what "on the tip" means (r8 F1).
+//
+// RULED AT DECISIONS:145: seal-on-the-tip is ANCESTRY — the CURRENT
+// origin/rebuild/t2-client-core must be an ancestor of the branch head; a merge and a
+// rebase both count; a stale base does not; the FREEZE escape is kept. r8 F1 recommended
+// exactly this and lane B asked: first-parent additionally forbade the `git merge --no-ff
+// <tip>` workflow :137 (1) makes the house move, and bought nothing against the failure
+// :135 names, because the CURRENT tip being an ancestor already means no chain commit is
+// missing. 'first-parent' remains implemented and the suite still measures both settings on
+// one repository, so this is one word and a reviewer can see that it is.
+const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
+// The closed package-id list. Case-exact, and in THE RULED ORDER — r7 F6. DECISIONS:124
+// rules the chain "ORDER B-NTC → H3 → B1 → B2 → B4 → B3", superseding DECISIONS:103 (1)'s
+// "B-NTC first, then B1, B2, B4, B3" by inserting H3 after B-NTC; those six stand here in
+// exactly that sequence. B-LOM is NOT in :124's sequence — :103 (1) puts it behind B-NTC
+// only "if the legacy order-mapping seam turns out not to be the same seam", a condition
+// nobody has decided — so it stands last, after the ruled six, and the array says so
+// rather than claiming an order the ledger does not give it. The array is used for
+// membership and for the usage string, never for sequencing; r7 F6 was that the comment
+// claimed the ruled order and the array did not carry it. Both now say the same thing.
+// Widening this list is the ONLY way a new package id becomes runnable — a spec can never
+// nominate its own id.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
 // The real chain branch, resolved from GIT REFS and never from a spec (X2/R3-B). Every
 // ancestry assertion that decides whether a commit is on the accepted chain names THIS.
 const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
@@ -142,23 +163,32 @@ const SUCCESSOR_RULING = 'DECISIONS:113';
 // is what makes rulingText() a reading of THE RULING rather than of whatever line happens
 // to be numbered 113 the day it is read.
 const SUCCESSOR_RULING_ID = 'B-NTC-INHERITED-1';
-// ":113 … for M2-B-NTC only". Fixed here; a spec cannot nominate its own id.
-const SUCCESSOR_PACKAGES = new Set(['B-NTC']);
+// r7b F-C. `SUCCESSOR_PACKAGES = new Set(['B-NTC'])` stood here and had to go: DECISIONS:142
+// granted M2-H3-CLEAN-INIT a successor "in the :113 shape" and the constant made the grant
+// undeclarable — a PM ruling that the tooling could not read. What admits a package now is
+// successorRuling(): the ruling LINE ITSELF, found on the chain branch by its own sha256,
+// must name `M2-<ID>`, use the word SUCCESSOR, stand on THIS ruling's conditions (a)-(e),
+// and name the support file. The constants below are the BASE CONTRACT every grant is held
+// to and they stay fixed here (W7); what varies per grant is in the spec and is verified
+// against the parent artifact's own bytes.
 // ":113 (b) … the Git blob at the parent's acceptance commit b95ccca…". The commit is the
 // one DECISIONS:104's re-seal names as reviewed, and it is asserted to be on the real chain
 // branch (CHAIN_REF) and an ancestor of HEAD before any blob is read out of it — X2's rule
 // applied to the successor path, which is r5's Z5. There is no policy `sourceCommit`: every
 // successor and original byte is verified on disk and in Git AT HEAD, and the parent's own
 // bytes against the chain. A commit a file names is never trusted for provenance.
-const SUCCESSOR_PARENT_COMMIT = 'b95ccca879e371b5ba225ad12cae612ec89469ba';
-// The parent wrapper whose `verdicts` table IS the accepted schedule (r5 Z3): the exact
-// terminal strings the parent's own children must print. Read out of the immutable
-// original, never re-typed here, exactly as PIN_PATHS and GATE_NEEDLE are.
-const SUCCESSOR_WRAPPER = 'rebuild/m4/spec/native-carriers-package.cjs';
-// The support file whose supersession is what makes a successor necessary at all
-// (DECISIONS:109 PATH A). A parent carrier that does not reach it has no claim to a
-// successor, and successorGates() refuses the gate rather than admitting it.
-const SUCCESSOR_SUPPORT = 'rebuild/m4/workout/engine-runtime.cjs';
+// r7b F-C: the constant `SUCCESSOR_PARENT_COMMIT = 'b95ccca…'` is gone. It was the parent's
+// reviewed commit written down, and the runner already HAS that commit as a verified fact:
+// option() takes it out of the parent's own receipt line (`bound.reviewedCommit`), after
+// asserting the receipt's base is on the chain branch and the artifact's bytes stand there.
+// The spec declares `parentAcceptanceCommit` and successorProof() asserts it EQUALS
+// bound.reviewedCommit, so the spec agrees with the parent's receipt or refuses — and a
+// child of any parent gets the right commit without a tooling change.
+//
+// r7b F-C: `SUCCESSOR_WRAPPER` and `SUCCESSOR_SUPPORT` are gone the same way. The wrapper is
+// the spec's `wrapper` (required only where the parent artifact carries no `children` of its
+// own) and must be a parent EXECUTION PIN; the support file is the spec's `support` and must
+// be named by the ruling AND declared a change by this package (successorRuling).
 // r5 Z2. The successor's own substitution table must stand in its source as ONE strict-JSON
 // literal under this name, so the runner can read it without executing a line of the lane's
 // code — the same discipline PIN_PATHS uses against run.cjs. Every replacement the successor
@@ -169,7 +199,26 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // it) exactly that kind of package — it turns an accepted open boundary into a provider.
 // Fixed HERE, like every other exemption (W7): a repair package can never empty its own
 // D-id inventory to dodge the law-agreement accounting.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM']);
+//
+// THE RULE, written down (r7 item 2). DECISIONS:93 exempts feature work under the ratified
+// slice plan from a register D-ID, and the register's own tiers say which work that is: an
+// H- or F- item is an ENGINE-TIER register item that carries NO D-id at all, while a B-
+// package is a REPAIR package built on the M2 audit register and must name the D-ids it
+// repairs. So the rule this set encodes is: EVERY H-/F- ITEM IS A NO-REGISTER PACKAGE, and
+// a B- package is one only where the PM has ruled it so by name (DECISIONS:103 (1) for
+// B-NTC, and B-LOM behind it). DECISIONS:124 rules M2-H3-CLEAN-INIT an engine-tier item
+// beside H1/H2 and names no D-id for it, so H3 enters under the H- half of the rule and
+// not by anybody's discretion. The rule is ASSERTED below, not merely described, so a
+// future hand cannot quietly add a B- id to this set without also writing the PM line.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM', 'H3']);
+// The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
+// must be an H-/F- id, which is the rule above stated as an assertion over this file's own
+// constants. Nothing an input can shape reaches it: both sets are fixed here (W7).
+const NO_REGISTER_RULED_B_IDS = new Set(['B-NTC', 'B-LOM']);
+for (const id of NO_REGISTER_IDS)
+  assert(NO_REGISTER_RULED_B_IDS.has(id) || /^[HF][0-9]+$/.test(id),
+    'NO-REGISTER-EXEMPTION-IS-NEITHER-AN-ENGINE-TIER-ITEM-NOR-PM-RULED ' + id);
+for (const id of NO_REGISTER_IDS) assert(IDS.includes(id), 'NO-REGISTER-EXEMPTION-IS-NOT-A-RUNNABLE-PACKAGE-ID ' + id);
 // Y1 (TOOLING-REVIEW-r4 §5.1/§7) — the REPLACEMENT obligation for a package with no D-id,
 // and therefore no law obligation. Fixed HERE beside NO_REGISTER_IDS itself (W7), because
 // a package that can name its own exemption could otherwise name its own replacement: the
@@ -186,13 +235,34 @@ const MIN_OWN_CHILDREN = 1;
 // it, such a file could only be declared "new", which is false of a file the parent pins,
 // and the pin.pre === parent-pin equality product() enforces for parent PRODUCT files was
 // not enforced for it at all. Both are fixed by giving the case its own name.
-const PRODUCT_ROLES = ['edited', 'carried', 'new', 'superseded-by-child'];
+// r7 F1 adds the fifth and last: "pinned-unchanged". r6 change 5 refused pre === post for
+// `edited` and `superseded-by-child` and exempted `new` outright, and r7 F1 measured what
+// that exemption costs — 7 of B-NTC's 31 `new` files stand at their own sourceBase bytes,
+// so 7 of the "33 at the declared post-image" are files the package did not write a byte
+// of. The exemption existed because the case is real and has no other name: a package
+// DECLARES a file, PINS it by bytes, a declared child EXECUTES it, and the package changes
+// nothing in it. "pinned-unchanged" is that case and only that case — pre === post, both
+// real, the file NOT parent-pinned (a parent-pinned unchanged file is `carried`), and a
+// declared child's argv must execute it. With the name available, role `new` means what it
+// says: a file that did not exist (pre === null) or one this package moves (pre !== post).
+const PRODUCT_ROLES = ['edited', 'carried', 'new', 'superseded-by-child', 'pinned-unchanged'];
 // W7: every exemption is fixed HERE and nowhere else — the lane-B tooling inventory, the
 // roots a declared child may execute from, and (in spec()) the artifact/review paths the
 // package id itself determines. A spec can never nominate its own exempt path.
 const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPORT.md', TOOLING + '/TOOLING-FIX-ASTRA-REPORT.md',
-  TOOLING + '/TOOLING-FIX-r5-REPORT.md', TOOLING + '/test/execution-targets.test.cjs', TOOLING + '/test/successor-moves.test.cjs',
-  TOOLING + '/test/product-phase-and-ledger.test.cjs', ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
+  TOOLING + '/TOOLING-FIX-r5-REPORT.md', TOOLING + '/TOOLING-FIX-r7-REPORT.md', TOOLING + '/TOOLING-FIX-r10-REPORT.md',
+  TOOLING + '/test/execution-targets.test.cjs',
+  TOOLING + '/test/successor-moves.test.cjs', TOOLING + '/test/product-phase-and-ledger.test.cjs',
+  TOOLING + '/test/pinned-unchanged-and-ruled-substitutions.test.cjs', TOOLING + '/test/seal-tip-and-byte-identity.test.cjs',
+  TOOLING + '/test/parent-pin-shapes-and-spec-successors.test.cjs',
+  TOOLING + '/test/parent-gate-closure-and-load-floor.test.cjs',
+  TOOLING + '/test/gate-supersession.test.cjs',
+  // r8 change 2. `receipts/<every id>.json` STOOD HERE and no longer does: the exemption is
+  // narrowed to THIS PACKAGE'S OWN receipt and moved into fidelity(), where `ID` is known.
+  // It cannot be removed outright — r8 change 1 requires the receipt's bytes to stand in
+  // Git, so it has to be committable — but a run of B1 has no business finding B2's receipt
+  // changed under it and calling that accounted for.
+  ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
 const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/'];
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
@@ -272,7 +342,15 @@ const ORIGINAL_CODE_SOURCES = [path.join(P, 'target.cjs'), path.join(P, 'legacy-
   path.join(P, 'run.cjs'), path.join(root, 'rebuild/m4/spec/native-carriers-errors.cjs'), path.join(root, 'rebuild/m4/spec/load-write-reference.cjs')];
 const FAIL_CODES = (() => {
   const src = fs.readFileSync(path.join(__dirname, 'b-package.cjs'), 'utf8'), out = new Set();
-  for (const m of src.matchAll(/'([A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,})(?=['; ])/g)) out.add(m[1]);
+  // r7 F3, one more class. The harvest admitted a name followed by a quote, a semicolon or a
+  // space, and SIX of this file's own names are written with a COLON after them —
+  // SEALED-PROFILE-RECOMPUTATION, SINGLE-PARENT-CHAIN, SINGLE-PARENT-CHAIN-SEALED,
+  // BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE, THEME-AUTHORIZATION-UNVERIFIABLE and
+  // BRIEF-ACCEPTANCE-UNVERIFIABLE — so those six printed a bare FAIL for no reason except
+  // punctuation. failCode() already read them correctly; only the harvest could not see
+  // them. The colon joins the terminator set; nothing else about the rule changes, and a
+  // string that is not already an upper-kebab name in this file is still not in the set.
+  for (const m of src.matchAll(/'([A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,})(?=['; :])/g)) out.add(m[1]);
   // held() composes two suffixes onto a base code; they are names too, so they are in.
   for (const base of [...out]) for (const suffix of ['-AT-SOURCEBASE', '-GIT-DISK-DISAGREE']) out.add(base + suffix);
   // The originals' own closed codes — RECEIPT-*, JSON-*, WORKTREE-SOURCE-PIN and their
@@ -305,6 +383,23 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const rel = file => path.join(root, file), diskSha = file => sha(fs.readFileSync(rel(file)));
 const gitSha = (commit, file) => sha(L.object(root, commit, file)); // bytes as they stand IN GIT
 const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// r7 F3. `git merge-base --is-ancestor` refuses by EXITING NON-ZERO, so every ancestry
+// assertion in this file reached the catch as a child-process error whose message opens
+// with "Command failed" — no code, and X2's chain-ancestry refusal (the highest-value one
+// on the parent path) printed a bare FAIL. Every ancestry question now goes through here
+// and names itself. The git call is unchanged; only the refusal acquires a word.
+function ancestor(commit, of, code) {
+  try { L.git(root, ['merge-base', '--is-ancestor', commit, of]); return true; }
+  catch { throw new Error(code + ' ' + String(commit).slice(0, 12) + ' is not an ancestor of ' + of); }
+}
+// TOOLING-REVIEW-r9 F4. Z6 asks that every refusal carry a name, and one whole class did
+// not: a 40-hex string that is not a commit IN THIS REPOSITORY passed every shape test and
+// then reached Git, which answered "Command failed" — an unnamed runtime error, printed as
+// a bare FAIL. Existence is a question with an answer, so it is asked by name, once, here.
+function commitExists(commit, code) {
+  try { L.git(root, ['rev-parse', '--verify', '--quiet', String(commit) + '^{commit}']); return true; }
+  catch { throw new Error(code + ' ' + String(commit).slice(0, 12) + ' is not a commit in this repository'); }
+}
 // N2/N3. The whole argv of a declared child, decided here and nowhere else: allow-listed
 // flags first, then explicit executable files under fixed roots. In bare-script mode
 // Node runs exactly ONE file: trailing positions are application arguments, not executions.
@@ -345,6 +440,38 @@ function requiresOriginal(file, original) {
     if ([base, base + '.cjs', base + '.js', base + '.mjs'].includes(original)) return true;
   }
   return false;
+}
+// r7 F1. THE FILES A DECLARED CHILD ACTUALLY RUNS: its argv targets and everything those
+// reach through a RELATIVE require/import specifier, resolved exactly the way
+// requiresOriginal() resolves one — READ, never executed. This is what "executed" has to
+// mean for the "pinned-unchanged" role, because the case the role exists for is a module
+// under test: H3 declares rebuild/m4/workout/athlete-state.cjs and runs it through
+// rebuild/m4/workout/test/h3-clean-init.test.cjs, which is what a test file is for. An
+// argv-membership test would have refused every such declaration and left the dishonest
+// role `new` as the only spelling available, which is the defect r7 F1 is closing.
+//
+// Bounded, and the bound is REPORTED rather than silent: a truncated walk would turn "this
+// file is not executed" into "the walk stopped before reaching it", which is a different
+// sentence and must not be printed as the first one.
+const EXECUTED_CLOSURE_LIMIT = 512;
+function executedClosure(targets) {
+  const files = new Set(), queue = [...targets];
+  let capped = false;
+  while (queue.length) {
+    const f = queue.shift();
+    if (files.has(f) || !fs.existsSync(rel(f)) || !fs.statSync(rel(f)).isFile()) continue;
+    if (files.size >= EXECUTED_CLOSURE_LIMIT) { capped = true; break; }
+    files.add(f);
+    const src = fs.readFileSync(rel(f), 'utf8'), dir = path.posix.dirname(f);
+    for (const m of src.matchAll(/(?:\brequire|\bimport)\s*\(\s*['"]([^'"]+)['"]\s*\)|\bfrom\s*['"]([^'"]+)['"]/g)) {
+      const ref = m[1] || m[2];
+      if (!ref || !ref.startsWith('.')) continue;
+      const base = path.posix.normalize(path.posix.join(dir, ref));
+      for (const cand of [base, base + '.cjs', base + '.js', base + '.mjs'])
+        if (fs.existsSync(rel(cand)) && fs.statSync(rel(cand)).isFile()) { queue.push(cand); break; }
+    }
+  }
+  return { files, capped };
 }
 // Y1. The package's OWN children: the declared children whose argv executes a file THIS
 // spec declares in product with role "new" — its own new code, as opposed to the parent's
@@ -397,32 +524,265 @@ function closure(file, enter = () => true) {
 // superseded support file. Nine names are never typed here. A gate the parent does not
 // record, or one whose carrier does not reach the support file, is not in the returned map
 // and coverage() refuses it by the ordinary rule.
-function successorGates(bound) {
+// DECISIONS:147 — THE PARENT GATE'S OWN SOURCE CLOSURE, computed from GIT BLOBS at the
+// parent's reviewed commit. `:113 (1) (c)` admitted a substitution only over a file the
+// parent pins in executionPins, and BRIEF-H3 v1.6 §9 measured what that costs: every file a
+// child of B-NTC must re-target — `native-carriers-source.cjs`, `native-carriers-reference
+// .cjs`, `native-carriers-changes.json`, `native-next-target-candidate/source-delta.cjs`,
+// `b-ntc-successors.cjs` — is reached by the gate and pinned by nobody, so `:1603` refused
+// all five and there was no successor to build. `:147` amends (c): a substitution may live
+// in ANY file of the parent gate's own source closure, parent-transitive, sha-anchored to
+// the parent's reviewed commit.
+//
+// The closure is walked over the BLOBS AT THAT COMMIT — never disk, never HEAD — and it has
+// two kinds of edge, because a gate reaches its own programme both ways:
+//   • RELATIVE REQUIRE/IMPORT specifiers, resolved as requiresOriginal() resolves one;
+//   • REPOSITORY PATH LITERALS (`'rebuild/…'` with a code or data extension) that resolve
+//     to a blob at that commit — which is how a carrier names the original it compiles
+//     privately, the very mechanism `:113 (b)` requires it to use.
+// Both are READ, never executed. The walk is bounded by CLOSURE_LIMIT and by the commit: a
+// path that does not stand there is not in the closure at all.
+//
+// TOOLING-REVIEW-r9 F1 adds the SECOND, NARROWER walk. Two questions are asked of this
+// closure and they are not the same question: "may a substitution land in this file?" is
+// about everything the gate reaches, but "what body does this wrapper LOAD?" is about the
+// COMPILE EDGE alone. `edges === 'require'` therefore follows relative require/import
+// specifiers only — never a path literal, never a `.json` data fixture — which is the edge
+// `:113 (b)` names, and it is what the load floor and the copy test are measured on.
+const PARENT_CLOSURE_LIMIT = 512;
+const PARENT_CLOSURE_EXT = ['', '.cjs', '.js', '.mjs', '.json'];
+const PARENT_CLOSURE_REQUIRE_EXT = ['.cjs', '.js', '.mjs', ''];
+const PARENT_CLOSURE_CACHE = new Map();
+function parentClosure(commit, roots, edges = 'all') {
+  const key = edges + '|' + commit + '|' + roots.slice().sort().join(' ');
+  if (PARENT_CLOSURE_CACHE.has(key)) return PARENT_CLOSURE_CACHE.get(key);
+  const blob = f => { try { return L.object(root, commit, f).toString('utf8'); } catch { return null; } };
+  const files = new Map(), queue = [...roots];
+  while (queue.length && files.size < PARENT_CLOSURE_LIMIT) {
+    const f = queue.shift();
+    if (files.has(f)) continue;
+    const src = blob(f);
+    if (src === null) continue;
+    files.set(f, src);
+    if (f.endsWith('.json')) continue;          // data, not a source of further edges
+    const dir = path.posix.dirname(f);
+    for (const m of src.matchAll(/(?:\brequire|\bimport)\s*\(\s*['"]([^'"]+)['"]\s*\)|\bfrom\s*['"]([^'"]+)['"]/g)) {
+      const ref = m[1] || m[2];
+      if (!ref || !ref.startsWith('.')) continue;
+      const base = path.posix.normalize(path.posix.join(dir, ref));
+      for (const e of (edges === 'require' ? PARENT_CLOSURE_REQUIRE_EXT : PARENT_CLOSURE_EXT)) {
+        if (edges === 'require' && (base + e).endsWith('.json')) continue;
+        if (blob(base + e) !== null) { queue.push(base + e); break; }
+      }
+    }
+    if (edges === 'require') continue;          // the compile edge only — F1
+    for (const m of src.matchAll(/['"](rebuild\/[A-Za-z0-9._/-]+\.(?:cjs|mjs|js|json))['"]/g))
+      if (!files.has(m[1])) queue.push(m[1]);
+  }
+  PARENT_CLOSURE_CACHE.set(key, files);
+  return files;
+}
+// `:147`'s own exclusion, asserted by name and never by a path shape alone: "no substitution
+// may reach rebuild/conform/private/**, goldens, or the private fixture". These roots ARE in
+// the measured closure — `rebuild/conform/oracle/**` is reached by the gate — so the refusal
+// is live, not vacuous. Fixed HERE (W7); a spec can never nominate an exempt path.
+const SUBSTITUTION_FORBIDDEN = ['rebuild/conform/private/', 'rebuild/conform/golden/', 'rebuild/conform/goldens/',
+  'rebuild/conform/oracle/'];
+// TOOLING-REVIEW-r9 F3. The one directory a cited successor review may stand in. Fixed here
+// (W7): a package cannot cite its own report or brief as the review that saw its
+// substitutions, and it cannot nominate a directory of its own.
+const REVIEWS_DIR = 'rebuild/lanes/b/reviews/';
+// The LOAD FLOOR: how many trimmed 40+ character lines a body must carry before the copy
+// test can say anything. Fixed here (W7). `:147` moves WHERE it is measured — the body the
+// wrapper loads, not the wrapper — and leaves the number alone.
+const SUCCESSOR_LOAD_FLOOR = 8;
+// ---------------------------------------------------------------------------------------
+// REQUESTS 2026-09-12 08:40 (b) — PENDING A PM LINE — built speculatively under
+// DECISIONS:100 while the PM is asked to ratify it as plan of record. (TOOLING-REVIEW-r10
+// F6: `DECISIONS:147`'s own (b) is the H3-CORE split, "(b) split is refused as the plan of
+// record" / "CONTINGENCY: … lane B ships (b) H3-core at once", and says nothing about gate
+// supersession. Every attribution in this file is the request, not that ruling; the
+// `DECISIONS:<n>` a terminal prints comes from the located line and is the real coordinate.)
+// TWO H3 builders measured the same wall independently
+// (BRIEF-H3-CLEAN-INIT v1.7 §9, BRIEF-H3-CORE §5): the five NATIVE-CARRIERS carriers below
+// do not PIN the engine, they RECONSTRUCT it — `baseline()` reads every carried file from a
+// frozen BASE and applies the literal carrier list whose bytes are pinned by CHANGES_SHA —
+// and `b-ntc-successors.cjs` additionally holds the child's whole declared state: `:141`
+// each declared child supersession at its `pin.post`, `:145` every path
+// `packages/B-NTC.json` declares at that spec's own post, and — TOOLING-REVIEW-r10's
+// citation correction, verified independently of the briefs — b-ntc-successors.cjs:142, the
+// `else` branch, is what actually refuses H3 (`Unlisted parent pin drift rebuild/engine/writers.cjs`,
+// a path B-NTC pins and never declared `superseded-by-child`). So no child of M2-B-NTC that
+// changes ANY declared file,
+// engine byte or not, can carry these five by substitution: the walls are byte-identity
+// reconstructions, not pins, and `:113 (1) (c)` admits no substitution that could move one.
+// H3-CORE proved the second half with no engine byte changed at all.
+//
+// The role this builds is contingency (b): such a child may declare the gate SUPERSEDED and
+// stand its OWN evidence in its place. Five things bound it, and none of them is a word in
+// a spec: (i) only these five carriers, fixed HERE (W7) and refused by name for anything
+// else; (ii) the evidence is named in the spec and EXECUTED by this runner — every named
+// child must be a declared child of this package that ran green in this very run; (iii) the
+// PM's ruling line is recorded by its own sha256 and located on the chain branch, so until
+// the line lands every such spec refuses GATE-SUPERSESSION-RULING-NOT-CITED, which is the
+// expected pre-ruling state and not a defect; (iv) the gate is reported SUPERSEDED, never
+// OBSERVED and never carried, and counts toward the nineteen only under that ruling; (v)
+// `--full` still re-executes every gate that is neither covered nor superseded.
+const BYTE_IDENTITY_CARRIERS = ['source-carriers', 'inherited-carriers', 'defect-witnesses',
+  'writers-differential', 'second-gate'];
+// The evidence a child must name in place of a byte-identity gate, and the closed key set of
+// it. `laws`: null when the 45-law register is unmoved, else the D-ids that moved — each of
+// which must be in this package's own registered inventory AND its brief accepted, so a law
+// cannot be moved by declaration. `redFirst`: the red-first cells, by declared child name.
+// `census`: a declared child that proves public-census byte-identity, or the fixed literal
+// below, which is the runner's OWN census line and is admitted only when it says `none`.
+// `legacyDifferential` / `writersDifferential`: the two differentials, by declared child name.
+// DECISIONS:153 adds the fifth kind, and it is the one the PM calls "the correct proof" for a
+// child whose accepted brief changes engine bytes: `engineFilesDifferential`, a declared child
+// proving every `rebuild/engine` file OUTSIDE the brief's named files byte-identical to the
+// parent's post. The runner does not take the child's word for it — it computes the same
+// comparison itself from the parent artifact and the disk (supersessionEngineIdentity below)
+// and holds the child's needle to the count it measured.
+const SUPERSESSION_EVIDENCE_KEYS = ['laws', 'redFirst', 'census', 'legacyDifferential', 'writersDifferential',
+  'engineFilesDifferential'];
+const SUPERSESSION_RUNNER_CENSUS = 'runner-live-triggered-line';
+// DECISIONS:153, the STANDING ROLE's own coordinate, recorded here as vocabulary. The line
+// ratifies the role, weighs r10 §C's honesty table and writes it off knowingly, and carries
+// H3's token — but INSIDE a long prose clause, so under r10b N1 it grants nothing and the
+// runner says so by name. The PM is appending a token-clause line; this sha is what the
+// refusal points at so nobody hunts for the ruling.
+const SUPERSESSION_STANDING_RULING = { at: 153, lineSha256: 'b6f84af6a014cc3a751ff3f077ed03e149047cdcc0f448328038a3e0f0af47e1' };
+// The one root the named-files differential is about. Fixed here (W7).
+const ENGINE_ROOT = 'rebuild/engine/';
+// TOOLING-REVIEW-r10 F1 — BLOCKING, and this is the fix. r10 asked three SUBSTRING/KEYWORD
+// questions of the located line: does it contain the package id, does it contain the word
+// SUPERSEDE/NOT-INHERITABLE, does it contain one of the five carrier names. The reviewer
+// executed that against the real chain and `DECISIONS:112` — a line about
+// `MOVES_RULING B-NTC-INHERITED-1`, whose only "grant" is the incidental clause "…exactly as
+// NATIVE-CARRIERS' inherited-carriers superseded LOAD-WRITES" — was ADMITTED, and would have
+// retired three of the nineteen for M2-B-NTC. A line REFUSING the role passed all three too.
+//
+// So the grant is a TOKEN the PM writes on purpose, matched positively and structurally, and
+// prose is never read again. THE EXACT SHAPE, and it is documented in README §r10 for the PM:
+//
+//     GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…]
+//
+// e.g. `GATE-SUPERSESSION M2-H3-CLEAN-INIT source-carriers,inherited-carriers,second-gate`.
+// The token must stand on a ledger line that ENDS in the `RULED` terminal word, exactly as
+// brief acceptance is held to `ACCEPTED` — so a line that argues about the role, or refuses
+// it, carries no token and frees nothing. The carriers the token names are the ONLY carriers
+// the spec may supersede (F2), one by one.
+//
+// TOOLING-REVIEW-r10b N1. The token must BEGIN ITS OWN `·`-DELIMITED CLAUSE and be the whole
+// of it. r10-fix matched the token after any whitespace, so a token that stood INSIDE a
+// clause could be negated, quoted or wrapped by the words around it and still free five
+// carriers: `… may not GATE-SUPERSESSION M2-X a,b …`, `"GATE-SUPERSESSION M2-X a"`,
+// `(GATE-SUPERSESSION M2-X a)`, `**GATE-SUPERSESSION M2-X a**`. A ledger clause is the
+// smallest unit a PM writes deliberately, so the grant is one: split the line on `·`, trim,
+// and the clause must be EXACTLY the token and its carrier list. Nothing before it, nothing
+// after it, and every wrapper — a bracket, a quote, a backtick, an emphasis marker, a
+// negating word — leaves the clause something other than the token and frees nothing.
+const SUPERSESSION_GRANT = /^GATE-SUPERSESSION\s+(M2-[A-Za-z0-9-]+)\s+([a-z0-9]+(?:-[a-z0-9]+)*(?:,[a-z0-9]+(?:-[a-z0-9]+)*)*)$/;
+const SUPERSESSION_GRANT_SHAPE = 'GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…], alone in its own · clause';
+// The grant clauses of one ledger line: every `·`-delimited clause that IS a grant token.
+const supersessionGrants = line => line.split('·').map(c => SUPERSESSION_GRANT.exec(c.trim())).filter(Boolean);
+// What coverage() ADMITTED, so the --full gate sweep and the seal can see it without being
+// handed it through four signatures. Empty for every package that declares none, and it is
+// written exactly once, by coverage(), after the ruling and the evidence have both stood.
+let SUPERSEDED_RESOLVED = new Map();
+// r7b F-C. SPEC-DRIVEN, and every one of the four facts is taken from bytes no spec writes.
+//
+// r7 derived the carrier's path by CONCATENATION — `'rebuild/m4/spec/native-carriers-' +
+// child + '.cjs'` — which is B-NTC-as-child-of-NATIVE-CARRIERS and nothing else, and it
+// tested the closure against one hard-coded support file. DECISIONS:142 granted
+// M2-H3-CLEAN-INIT a successor over a DIFFERENT parent, a different carrier naming scheme
+// and a different support file, and none of it was declarable. The spec now declares the
+// parent child name, the parent's own original executable and the support file; the runner
+// still decides, from (1) the PARENT ARTIFACT's own coverage.byChild, (2) the PARENT's own
+// executionPins, (3) the carrier's own source closure reaching the support file, and (4)
+// the ruling line on the chain branch naming that support file (successorRuling). A spec
+// that declares a carrier the parent does not pin, or one that does not reach the support
+// file, gets no gate at all and coverage() refuses it by the ordinary rule.
+function successorGates(s, bound) {
   const out = new Map(); // gate -> { child, original }
+  const sup = s && s.coverage && s.coverage.successors;
   const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
-  if (!byChild) return out;
+  if (!sup || !byChild) return out;
   const epins = bound.acceptance.executionPins;
   for (const [gate, child] of Object.entries(byChild)) {
-    // The parent's carrier for a child name is the file the parent PINS under that name;
-    // the concatenation is only ever admitted because the parent's own pin map agrees.
-    const original = 'rebuild/m4/spec/native-carriers-' + child + '.cjs';
-    if (!Object.hasOwn(epins, original)) continue;
+    const declared = Object.hasOwn(sup.carriers, child) ? sup.carriers[child] : null;
+    if (!declared) continue;                                   // not a carrier this spec claims
+    const original = declared.original;
+    if (!Object.hasOwn(epins, original)) continue;             // the parent must pin it
+    if (!fs.existsSync(rel(original))) continue;
     let reaches = false;
-    for (const src of closure(original).values()) if (src.includes(SUCCESSOR_SUPPORT)) { reaches = true; break; }
-    if (!reaches) continue;
+    for (const src of closure(original).values()) if (src.includes(sup.support)) { reaches = true; break; }
+    if (!reaches) continue;                                    // it has no claim to a successor
     out.set(gate, { child, original });
   }
   return out;
+}
+// r7b F-C. THE RULING, and what it must say before a spec may claim anything under it.
+//
+// This is what replaced `SUCCESSOR_PACKAGES = new Set(['B-NTC'])`. A constant naming one
+// package could not be widened without a reviewed tooling change for every grant the PM
+// makes; the RULING'S OWN BYTES can, because the PM writes them and no lane can. The line
+// is located by its sha256 (r7 F4, renumber-proof) and must then say four things:
+//   (1) it names THIS package — `M2-<ID>`, derived from the command line, never the spec;
+//   (2) it GRANTS a successor, in the word;
+//   (3) it stands on the BASE ruling's conditions (a)-(e) — the id this runner fixes, or
+//       that ruling's own coordinate — so :142's "in the :113 shape" is the same contract
+//       and a future grant cannot invent conditions of its own;
+//   (4) it NAMES the support file, the path whose supersession makes a successor necessary
+//       at all, by full path, basename, or basename without its final extension (:113 says
+//       "engine-runtime", :142 says "rebuild/m3/w6/host/test/journey.test.mjs").
+// And the support file must be one THIS SPEC declares a CHANGE on, so "made necessary by a
+// declared product path" is a fact about the package and not a word in a spec.
+function successorRuling(s) {
+  const sup = s.coverage.successors;
+  const line = rulingText(s), at = RULING_LINE_AT;
+  assert(line.includes('M2-' + ID), 'SUCCESSOR-RULING-DOES-NOT-NAME-THIS-PACKAGE DECISIONS:' + at + ' does not name M2-' + ID);
+  assert(/\bSUCCESSOR\b/.test(line), 'SUCCESSOR-RULING-DOES-NOT-GRANT-A-SUCCESSOR DECISIONS:' + at);
+  assert(line.includes(SUCCESSOR_RULING_ID) || line.includes(SUCCESSOR_RULING) || line.includes(':' + SUCCESSOR_RULING.split(':')[1]),
+    'SUCCESSOR-RULING-DOES-NOT-STAND-ON-THE-BASE-CONDITIONS DECISIONS:' + at + '; a grant must be in the ' + SUCCESSOR_RULING + ' shape');
+  const base = path.posix.basename(sup.support), stem = base.replace(/\.[a-z0-9]+$/, '');
+  assert(line.includes(sup.support) || line.includes(base) || (stem.length >= 8 && line.includes(stem)),
+    'SUCCESSOR-RULING-DOES-NOT-NAME-THE-SUPPORT-FILE DECISIONS:' + at + ' ' + sup.support);
+  const changed = Object.entries(s.product).filter(([f, p]) => f === sup.support && p.post && p.pre !== p.post &&
+    (p.role === 'edited' || p.role === 'superseded-by-child'));
+  assert(changed.length === 1, 'SUCCESSOR-SUPPORT-IS-NOT-A-DECLARED-CHANGE-OF-THIS-PACKAGE ' + sup.support +
+    '; a successor is made necessary by a product path this package declares it changes');
+  return { line, at };
 }
 // Z3. The ACCEPTED SCHEDULE, read out of the parent wrapper's own `verdicts` table — the
 // exact terminal string each parent child prints. The wrapper's bytes are a parent
 // execution pin, re-asserted here before a character is parsed, so this is the parent's
 // own text and not a re-typing of it. A successor is held to the string its parent was
 // held to, in full: "NATIVE SOURCE CARRIERS: 6/6 PASS;", not "NATIVE SOURCE CARRIERS:".
-function acceptedVerdicts(bound) {
-  const pin = bound.acceptance.executionPins[SUCCESSOR_WRAPPER];
-  assert(pin, 'SUCCESSOR-WRAPPER-NOT-A-PARENT-EXECUTION-PIN ' + SUCCESSOR_WRAPPER);
-  assert.equal(diskSha(SUCCESSOR_WRAPPER), pin, 'SUCCESSOR-WRAPPER-BYTES ' + SUCCESSOR_WRAPPER);
+//
+// r7b F-C: WHERE the schedule is read from is now decided by the parent, not by a constant.
+// A parent sealed by THIS runner carries `children: [{name, argv, needle}]` in its own
+// bytes — proposed() puts the spec's children there — so the accepted verdict for a parent
+// child name is read straight out of the parent artifact and no wrapper file exists or is
+// needed. That is the case for every child of B-NTC, H3 included. The WRAPPER path is the
+// older shape, for a parent the accepted originals sealed (acceptance-native-carriers.json
+// has no `children`): the spec names it and it must be a parent EXECUTION PIN, re-asserted
+// byte-for-byte here before a character is parsed. Neither source is a re-typing.
+function acceptedVerdicts(s, bound) {
+  const kids = bound.acceptance.children;
+  if (Array.isArray(kids) && kids.length) {
+    const own = new Map();
+    for (const c of kids)
+      if (c && typeof c.name === 'string' && typeof c.needle === 'string' && c.needle.length) own.set(c.name, c.needle);
+    if (own.size) return own;
+  }
+  const wrapper = s.coverage.successors.wrapper;
+  assert(typeof wrapper === 'string' && wrapper.length,
+    'SUCCESSOR-ACCEPTED-SCHEDULE-UNAVAILABLE; the parent artifact declares no children, so the spec must name the parent wrapper whose verdicts table is the accepted schedule');
+  const pin = bound.acceptance.executionPins[wrapper];
+  assert(pin, 'SUCCESSOR-WRAPPER-NOT-A-PARENT-EXECUTION-PIN ' + wrapper);
+  assert.equal(diskSha(wrapper), pin, 'SUCCESSOR-WRAPPER-BYTES ' + wrapper);
+  const SUCCESSOR_WRAPPER = wrapper;
   const src = fs.readFileSync(rel(SUCCESSOR_WRAPPER), 'utf8');
   const block = /^const verdicts=\{$([\s\S]*?)^\};$/m.exec(src);
   assert(block, 'SUCCESSOR-ACCEPTED-SCHEDULE-UNREADABLE ' + SUCCESSOR_WRAPPER);
@@ -470,22 +830,380 @@ function claim(v, role, label) { // a ledger citation whose text hashes to the s
   assert(Number.isInteger(v.ledgerLine) && v.ledgerLine > 0 && v.role === role, 'Claim coordinates ' + label);
   assert(typeof v.line === 'string' && !/[\r\n]/.test(v.line) && /^[a-f0-9]{64}$/.test(v.lineSha256) && sha(Buffer.from(v.line)) === v.lineSha256, 'LEDGER-LINE-SHA256 ' + label);
 }
-// r6 change 4. THE RULING'S OWN BYTES, read from Git on the chain branch — the one text a
-// spec cannot write. The coordinate is the runner's constant, and the line standing there
-// must carry the ruling id the runner also fixes, or it is not the ruling and nothing below
-// may lean on it. Read once per run, and only on the successor path.
-let RULING_TEXT = null;
-function rulingText() {
-  if (RULING_TEXT === null) {
-    const n = Number(SUCCESSOR_RULING.split(':')[1]);
-    assert(Number.isInteger(n) && n > 0, 'SUCCESSOR-RULING-COORDINATE-SHAPE ' + SUCCESSOR_RULING);
-    const line = L.object(root, CHAIN_REF, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/)[n - 1] || '';
-    assert(line.includes(SUCCESSOR_RULING_ID),
-      'SUCCESSOR-RULING-COORDINATE-IS-NOT-THE-RULING ' + SUCCESSOR_RULING + ' on the chain branch does not carry ' + SUCCESSOR_RULING_ID);
-    RULING_TEXT = line;
+// r6 change 4, as r7 F4 re-anchors it. THE RULING'S OWN BYTES, read from Git on the chain
+// branch — the one text a spec cannot write.
+//
+// r6 found the line BY NUMBER: line 113 of rebuild/DECISIONS.md on CHAIN_REF. That made
+// every successor run a hard runtime coupling to a ledger line number, so a PM renumber
+// would break B-NTC until the runner itself was re-reviewed (r7 F4) — and a line number is
+// the weakest coordinate the ledger has, because it is the only part of a citation that
+// changes when nothing about the ruling does. Every OTHER citation in this file is already
+// matched BY ITS OWN SHA256 (claim(): `sha(Buffer.from(v.line)) === v.lineSha256`, then
+// L.verifyReceipt finds those exact bytes in Git). The ruling is now matched the same way:
+// the spec RECORDS the ruling line's sha256 in its successor block, the runner SEARCHES
+// rebuild/DECISIONS.md on the chain branch for a line that hashes to it, and requires
+// exactly one such line carrying the ruling id the runner fixes. A renumber moves nothing.
+//
+// Nothing is weakened by letting the spec name the sha: a spec that names the wrong sha
+// finds no line at all (the bytes are Git's, on a ref no spec can write), and a spec that
+// names a real line which does not carry B-NTC-INHERITED-1 is refused by the second assert.
+// The two halves the spec cannot forge — the BYTES and the ID — are exactly the two halves
+// r6 already required; only the way the line is LOCATED changed. The runner's own
+// SUCCESSOR_RULING coordinate stays as the human-readable citation and is reported beside
+// the line index actually found, so a drifted coordinate is visible without being fatal.
+// The cache is keyed by the sha it resolved, not by "have I run yet": a run reads one spec
+// and one ruling, but a function that answers the FIRST question ever asked of it and then
+// ignores its argument is a trap for anyone who calls it twice — and r7b calls it from
+// spec(), successorProof() and successorCoverage(). Same bytes, same answer, no re-read.
+let RULING_TEXT = null, RULING_LINE_AT = null, RULING_KEY = null;
+function rulingText(s) {
+  const sup0 = s && s.coverage && s.coverage.successors;
+  if (RULING_TEXT === null || RULING_KEY !== (sup0 && sup0.rulingLineSha256)) {
+    const sup = sup0;
+    assert(sup && /^[a-f0-9]{64}$/.test(sup.rulingLineSha256), 'SUCCESSOR-RULING-LINE-SHA256-SHAPE');
+    const lines = L.object(root, CHAIN_REF, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
+    const hits = lines.map((line, i) => [i + 1, line]).filter(([, line]) => sha(Buffer.from(line)) === sup.rulingLineSha256);
+    assert.equal(hits.length, 1, 'SUCCESSOR-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH ' + hits.length + ' line(s) on ' + CHAIN_REF + ' hash to the recorded sha256');
+    const [at, line] = hits[0];
+    // r7b F-C: WHAT the line must say is successorRuling()'s question, not this one's —
+    // :113 carries `B-NTC-INHERITED-1` and :142 grants "in the :113 shape" without repeating
+    // the id, and both are rulings. This function's whole job is to LOCATE the line by its
+    // own bytes on the chain branch; every test of its content stands in one place below.
+    assert(line.trim().length >= 40, 'SUCCESSOR-RULING-LINE-IS-NOT-THE-RULING; DECISIONS:' + at + ' is too short to be a ruling');
+    RULING_LINE_AT = at; RULING_TEXT = line; RULING_KEY = sup.rulingLineSha256;
   }
   return RULING_TEXT;
 }
+// r7 F2. THE SUBSTITUTIONS THE RULING DESCRIBES, read out of the ruling's own bytes.
+//
+// r6's branch (B) admitted a non-re-target substitution when the LAST HYPHEN SEGMENT of the
+// substituted module's basename stood somewhere in the ruling line and any six-letter word
+// of that line stood in the substitution's text. Measured by r7 against the real ruling,
+// that admits one substitution each over 8 of the 17 `native-carriers-*.cjs` parent
+// originals — cases, defect-witnesses, inherited-carriers, package, profile, second-gate,
+// source-carriers, witnesses — because those eight tokens happen to occur in a long prose
+// line, and the echo test is nearly free. The ruling describes TWO.
+//
+// So the ruling's own enumeration is parsed instead of sampled. DECISIONS:113 (c) writes it
+// as "(two at <commit>: <description> and <description>)" — a parenthesis, a count word, a
+// commit, a colon, then the descriptions joined by " and ". That shape is read here, from
+// the ruling bytes, and each description becomes a CLOSED phrase: its significant words
+// (>= 4 letters, minus the stop words a description of a code change always contains) must
+// ALL be found either in the substituted module's own path or in the substitution's text,
+// and at least one of them must be found in the text and NOT in any repository path — the
+// word that actually describes what changed rather than where. One description admits one
+// substitution: descriptions are consumed, so the count of non-re-target substitutions can
+// never exceed the count the ruling gives.
+const RULED_STOP_WORDS = new Set(['this', 'that', 'with', 'from', 'into', 'over', 'each', 'both', 'they', 'them', 'when',
+  'then', 'than', 'only', 'such', 'must', 'stay', 'stays', 'line', 'lines', 'ruling', 'rules', 'ruled', 'package', 'spec',
+  'child', 'parent', 'their', 'there', 'which', 'whose', 'every', 'never', 'about', 'under', 'after', 'before']);
+const words = text => (String(text).toLowerCase().match(/[a-z][a-z0-9]{3,}/g) || []);
+function ruledDescriptions(ruling) {
+  const m = /\((?:one|two|three|four|[0-9]+) at [a-f0-9]{7,40}:\s*([^)]+)\)/.exec(ruling);
+  assert(m, 'SUCCESSOR-RULING-ENUMERATES-NO-SUBSTITUTION; ' + SUCCESSOR_RULING +
+    ' admits a non-re-target substitution only where its own text enumerates one, and this ruling text enumerates none');
+  const out = m[1].split(/\s+and\s+/).map(d => d.trim()).filter(Boolean);
+  assert(out.length, 'SUCCESSOR-RULING-ENUMERATES-NO-SUBSTITUTION');
+  return out;
+}
+// ONE DESCRIPTION, ONE SUBSTITUTION, and both halves are the review's change 3 in terms.
+//
+// (1) THE DESCRIPTION NAMES THE MODULE. r6 asked whether the module's distinguishing token
+//     stood anywhere in the ruling LINE — a paragraph of prose, in which 8 of the 17 parent
+//     originals' tokens happen to appear. It must now stand in THIS DESCRIPTION, which is
+//     one short phrase the PM wrote about one change. That alone takes the admission count
+//     from 8 of 17 to the 2 the ruling describes.
+// (2) THE DESCRIPTION QUOTES THE CHANGE. At least one OTHER word of the description must
+//     stand in the substitution's own text and in NO repository path this run can see — the
+//     word that says WHAT changed rather than WHERE. "the witnesses exposed-surface
+//     deepEqual" quotes `exposed`; "the cases mutant-detector target" quotes `target`; a
+//     substitution that only renames a path quotes neither and is refused.
+//
+// Said out loud, as r6 said of its own branch: this bounds WHICH module and HOW MANY, not
+// the substance of the text. The substance is still the spec's enumeration, the parent's
+// own bytes (successorProof), and the package review.
+function describes(description, sub, paths) {
+  const text = (sub.from + '\n' + sub.to).toLowerCase();
+  const pathWords = new Set(paths.flatMap(p => words(p)));
+  const significant = words(description).filter(w => !RULED_STOP_WORDS.has(w));
+  const token = path.posix.basename(sub.original, '.cjs').split('-').pop();
+  if (token.length < 4 || !significant.includes(token)) return false;
+  return significant.some(w => w !== token && text.includes(w) && !pathWords.has(w));
+}
+// REQUESTS 2026-09-12 08:40 (b), PENDING A PM LINE. THE PM'S SUPERSESSION LINE, located the
+// way every other citation in this file is located: by its OWN SHA256, in
+// `rebuild/DECISIONS.md` on the chain branch — the one text a spec cannot write. It must
+// then be a RULED line carrying the exact grant token `GATE-SUPERSESSION <packageId>
+// <carrier>[,<carrier>…]` naming THIS package, and it returns the SET OF CARRIERS that token
+// names: the spec may supersede those and no others (F2). Until the PM writes such a line,
+// every spec that declares the block refuses GATE-SUPERSESSION-RULING-NOT-CITED (the
+// placeholder `null`) or finds no line at all — the expected state of this build, not a bug.
+let SUPERSESSION_AT = null;
+function supersessionRuling(s) {
+  const sup = s.coverage.superseded;
+  assert(sup.rulingLineSha256 !== null, 'GATE-SUPERSESSION-RULING-NOT-CITED; ' +
+    'REQUESTS 08:40 (b) needs a PM line of the shape ' + SUPERSESSION_GRANT_SHAPE +
+    ' and coverage.superseded.rulingLineSha256 is the placeholder null');
+  assert(/^[a-f0-9]{64}$/.test(sup.rulingLineSha256), 'GATE-SUPERSESSION-RULING-LINE-SHA256-SHAPE');
+  // TOOLING-REVIEW-r10 F4 — NO CACHE, EVER. r10 short-circuited on the recorded sha, so the
+  // "re-taken at the seal" call re-validated a STRING this process had already read: the
+  // reviewer deleted the line from the chain mid-run and the second call still ADMITTED.
+  // The chain file is re-read on every call, which is the only way "a seal cannot stand on a
+  // withdrawn ruling" can be true WITHIN a run as well as across runs. It is one Git object
+  // read per call and the role is declared by nobody today, so the cost is nil.
+  const lines = L.object(root, CHAIN_REF, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
+  const hits = lines.map((line, i) => [i + 1, line]).filter(([, line]) => sha(Buffer.from(line)) === sup.rulingLineSha256);
+  assert.equal(hits.length, 1, 'GATE-SUPERSESSION-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH ' +
+    hits.length + ' line(s) on ' + CHAIN_REF + ' hash to the recorded sha256');
+  const [at, line] = hits[0];
+  SUPERSESSION_AT = at;
+  // The ledger's own terminal word, held exactly as brief acceptance is held to ACCEPTED.
+  assert(/(?:^|[ ·])RULED$/.test(line.trim()), 'GATE-SUPERSESSION-RULING-IS-NOT-A-RULED-LINE DECISIONS:' + at +
+    '; a supersession stands on a RULED ledger line and on nothing else');
+  // F1: the POSITIVE, STRUCTURED grant. No prose is read.
+  const grants = supersessionGrants(line);
+  assert(grants.length, 'GATE-SUPERSESSION-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN DECISIONS:' + at +
+    '; a supersession is granted by the exact token ' + SUPERSESSION_GRANT_SHAPE + ' and never by prose about it' +
+    '; the STANDING ROLE is DECISIONS:' + SUPERSESSION_STANDING_RULING.at + ' ' +
+    SUPERSESSION_STANDING_RULING.lineSha256.slice(0, 12) + ', whose own token stands inside a prose clause and therefore frees nothing');
+  const mine = grants.filter(g => g[1] === s.packageId);
+  assert(mine.length, 'GATE-SUPERSESSION-RULING-DOES-NOT-NAME-THIS-PACKAGE DECISIONS:' + at +
+    '; its grant token(s) name ' + [...new Set(grants.map(g => g[1]))].join(' ') + ', not ' + s.packageId);
+  const granted = new Set();
+  for (const g of mine) for (const c of g[2].split(',')) {
+    assert(BYTE_IDENTITY_CARRIERS.includes(c), 'GATE-SUPERSESSION-RULING-NAMES-A-CARRIER-THAT-IS-NOT-A-BYTE-IDENTITY-GATE ' +
+      c + ' DECISIONS:' + at + '; the token may name only ' + BYTE_IDENTITY_CARRIERS.join(','));
+    granted.add(c);
+  }
+  return { at, line, granted };
+}
+// REQUESTS 08:40 (b), the SPEC-PHASE shape. Nothing here supersedes anything: it decides
+// only that the block is well formed, that every carrier named is one of the five the
+// runner fixes, and that every evidence child is a DECLARED child of this package. Whether
+// that child RAN, and green, is supersededGates()'s question at run time.
+function supersededSpecShape(s, names) {
+  const sup = s.coverage.superseded;
+  // `== null` and not `=== null`: spec()'s own closed-key assert is what refuses an ABSENT
+  // key, so every function that reads the block treats absent and null alike and none of
+  // them can be the first to see a spec the key gate has not already closed over.
+  if (sup == null) return;
+  assert(sup && typeof sup === 'object' && !Array.isArray(sup), 'GATE-SUPERSESSION-BLOCK-UNDECLARED');
+  keys(sup, ['rulingLineSha256', 'gates'], 'GATE-SUPERSESSION-BLOCK-KEYS-NOT-CLOSED; the block is exactly rulingLineSha256, gates');
+  assert(sup.rulingLineSha256 === null || (typeof sup.rulingLineSha256 === 'string' && /^[a-f0-9]{64}$/.test(sup.rulingLineSha256)),
+    'GATE-SUPERSESSION-RULING-LINE-SHA256-SHAPE ' + JSON.stringify(sup.rulingLineSha256));
+  assert(sup.gates && typeof sup.gates === 'object' && !Array.isArray(sup.gates) && Object.keys(sup.gates).length,
+    'GATE-SUPERSESSION-GATES-UNDECLARED');
+  for (const [carrier, row] of Object.entries(sup.gates)) {
+    // (i) ONLY the five byte-identity carriers, and anything else refuses BY NAME.
+    assert(BYTE_IDENTITY_CARRIERS.includes(carrier), 'GATE-SUPERSESSION-CARRIER-IS-NOT-A-BYTE-IDENTITY-GATE ' + carrier +
+      '; REQUESTS 08:40 (b) frees exactly ' + BYTE_IDENTITY_CARRIERS.join(' ') + ' and no other gate of the nineteen');
+    assert(row && typeof row === 'object' && !Array.isArray(row), 'GATE-SUPERSESSION-ROW-UNDECLARED ' + carrier);
+    keys(row, ['why', 'evidence'], 'GATE-SUPERSESSION-ROW-KEYS-NOT-CLOSED ' + carrier + '; a row is exactly why, evidence');
+    assert(typeof row.why === 'string' && !/[\r\n]/.test(row.why) && row.why.trim().length >= 16,
+      'GATE-SUPERSESSION-WHY-MISSING ' + carrier);
+    const e = row.evidence;
+    assert(e && typeof e === 'object' && !Array.isArray(e), 'GATE-SUPERSESSION-EVIDENCE-UNDECLARED ' + carrier);
+    keys(e, SUPERSESSION_EVIDENCE_KEYS, 'GATE-SUPERSESSION-EVIDENCE-KEYS-NOT-CLOSED ' + carrier +
+      '; the evidence is exactly ' + SUPERSESSION_EVIDENCE_KEYS.join(', '));
+    // `laws`: null is "the register did not move". Otherwise every id must be one THIS
+    // package registered, and the brief that authorises it must itself be accepted.
+    assert(e.laws === null || (Array.isArray(e.laws) && e.laws.length && e.laws.every(d => typeof d === 'string')),
+      'GATE-SUPERSESSION-EVIDENCE-LAWS-SHAPE ' + carrier);
+    if (e.laws !== null) {
+      for (const d of e.laws) assert(s.dIds.includes(d),
+        'GATE-SUPERSESSION-EVIDENCE-LAWS-MOVED-OUTSIDE-THE-REGISTERED-INVENTORY ' + carrier + ' ' + d);
+      assert(s.brief.acceptedLedgerLine !== null,
+        'GATE-SUPERSESSION-EVIDENCE-LAWS-MOVED-WITHOUT-AN-ACCEPTED-BRIEF ' + carrier + ' ' + e.laws.join(' '));
+    }
+    assert(Array.isArray(e.redFirst) && e.redFirst.length, 'GATE-SUPERSESSION-EVIDENCE-RED-FIRST-UNDECLARED ' + carrier);
+    const children = evidenceChildren(e);
+    for (const c of children)
+      assert(typeof c === 'string' && names.has(c), 'GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-DECLARED ' + carrier + ' ' + JSON.stringify(c));
+    assert(typeof e.census === 'string' && e.census.length, 'GATE-SUPERSESSION-EVIDENCE-CENSUS-UNNAMED ' + carrier);
+    // TOOLING-REVIEW-r10 F5, half one: ONE CHILD MAY NOT FILL THREE SLOTS. r10 admitted the
+    // same green child as red-first, legacy differential AND writers differential — three
+    // names for one execution, reported as "3 named child(ren) executed green". The three
+    // slots are three different questions, so they are three different children.
+    // DECISIONS:153 adds the third differential, so the three are held apart pairwise.
+    const diffs = [e.legacyDifferential, e.writersDifferential, e.engineFilesDifferential];
+    assert(new Set(diffs).size === 3,
+      'GATE-SUPERSESSION-EVIDENCE-DIFFERENTIALS-ARE-THE-SAME-CHILD ' + carrier + ' ' + diffs.join(' '));
+    for (const slot of ['legacyDifferential', 'writersDifferential', 'engineFilesDifferential'])
+      assert(!e.redFirst.includes(e[slot]), 'GATE-SUPERSESSION-EVIDENCE-SLOTS-SHARE-A-CHILD ' + carrier + ' ' + e[slot] +
+        ' stands in redFirst and in ' + slot);
+    assert(new Set(e.redFirst).size === e.redFirst.length, 'GATE-SUPERSESSION-EVIDENCE-RED-FIRST-REPEATS-A-CHILD ' + carrier);
+    // Half two: the evidence must BEAR on this package. r10 admitted a child executing a
+    // file with no relation to anything the package declares. A child that runs none of this
+    // package's own declared product is not this package's evidence for anything.
+    for (const c of children) {
+      const files = childArgv(byNameOf(s).get(c));
+      assert(files.some(f => Object.hasOwn(s.product, f)),
+        'GATE-SUPERSESSION-EVIDENCE-CHILD-DOES-NOT-EXECUTE-THIS-PACKAGE-PRODUCT ' + carrier + ' ' + c + ' ' + files.join(' '));
+    }
+  }
+  // Half three: PER-CARRIER evidence. Every superseded carrier must carry at least one
+  // evidence child of its OWN — a set shared verbatim across five carriers is one claim
+  // wearing five hats, which is exactly what r10 measured in the real H3 probe.
+  const rows = Object.entries(sup.gates);
+  for (const [carrier, row] of rows) {
+    const mine = new Set(evidenceChildren(row.evidence));
+    for (const [other, r2] of rows) if (other !== carrier) for (const c of evidenceChildren(r2.evidence)) mine.delete(c);
+    assert(mine.size, 'GATE-SUPERSESSION-EVIDENCE-IS-NOT-THIS-CARRIER-OWN ' + carrier +
+      '; every named child also stands under another superseded carrier, so nothing here bears on this gate in particular');
+  }
+}
+// The declared evidence children of one row, in one place: the three slots plus the census
+// when it names a child rather than the runner's own line.
+function evidenceChildren(e) {
+  return [...e.redFirst, e.legacyDifferential, e.writersDifferential, e.engineFilesDifferential,
+    ...(e.census === SUPERSESSION_RUNNER_CENSUS ? [] : [e.census])];
+}
+const byNameOf = s => new Map(s.children.map(c => [c.name, c]));
+// TOOLING-REVIEW-r9 F5. The SPEC-PHASE shape of the successor block, in its own named
+// function. r9 shipped four refusals here — SUCCESSOR-SUBSTITUTION-TARGET-SHAPE, the
+// spec half of -IS-A-PROTECTED-SURFACE, SUCCESSOR-REVIEW-FILE-SHAPE and
+// SUCCESSOR-BLOCK-KEYS-NOT-CLOSED — that no suite could reach, because spec() reads the
+// package file off disk and validates forty other things first. Nothing about the block
+// changed in the lift: spec() calls it where the block stood.
+function successorSpecShape(s) {
+  if (s.coverage.successors !== null) {
+    assert(s.coverage.successors && typeof s.coverage.successors === 'object' && !Array.isArray(s.coverage.successors), 'SUCCESSOR-BLOCK-UNDECLARED');
+    // r7 F4 adds `rulingLineSha256`: the ruling line is now LOCATED by its own bytes on the
+    // chain branch instead of by a ledger line number (rulingText()).
+    // r7b F-C adds `support` (the path whose supersession makes the successor necessary)
+    // and `wrapper` (the older parent shape's accepted schedule, null where the parent
+    // artifact carries its own children). Everything that was a runner constant naming
+    // B-NTC-as-child now stands here and is verified against bytes no spec writes.
+    // DECISIONS:147 adds `reviewFile`: `:113 (1) (c)` says each substitution is "enumerated
+    // verbatim in the package spec AND IN THE REVIEW", and only the spec half was ever
+    // asserted. The spec cites the review path; the runner reads that file and requires
+    // every `from` and `to` to stand in it verbatim, so a substitution a reviewer never saw
+    // cannot ride in on a spec alone.
+    // TOOLING-REVIEW-r9 F3 adds `reviewFileSha256` beside it: the path alone was a name, and
+    // a name is not custody.
+    keys(s.coverage.successors, ['ruling', 'rulingLineSha256', 'support', 'wrapper', 'reviewFile', 'reviewFileSha256', 'parentAcceptanceCommit', 'carriers', 'substitutions'],
+      'SUCCESSOR-BLOCK-KEYS-NOT-CLOSED; the successor block is exactly ruling, rulingLineSha256, support, wrapper, reviewFile, reviewFileSha256, parentAcceptanceCommit, carriers, substitutions');
+    const sup = s.coverage.successors;
+    assert(typeof sup.ruling === 'string' && sup.ruling.includes('MOVES_RULING='),
+      'SUCCESSOR-RULING-NOT-CITED ' + JSON.stringify(sup.ruling) + '; the spec must cite MOVES_RULING=<the ledger coordinate it stands on>');
+    assert(typeof sup.support === 'string' && /^[a-z0-9][a-z0-9./_-]+$/.test(sup.support), 'SUCCESSOR-SUPPORT-SHAPE ' + JSON.stringify(sup.support));
+    assert(sup.wrapper === null || (typeof sup.wrapper === 'string' && sup.wrapper.length), 'SUCCESSOR-WRAPPER-SHAPE ' + JSON.stringify(sup.wrapper));
+    assert(/^[a-f0-9]{40}$/.test(sup.parentAcceptanceCommit), 'SUCCESSOR-PARENT-ACCEPTANCE-COMMIT-SHAPE');
+    // THE ADMISSION, and it is the ruling's own bytes on the chain branch — not a constant
+    // in this file and not a word in the spec. Everything below it is reachable only after
+    // the PM's line has named this package, granted a successor, stood on the base
+    // conditions and named the support file this package declares it changes.
+    successorRuling(s);
+    assert(sup.carriers && typeof sup.carriers === 'object' && !Array.isArray(sup.carriers) && Object.keys(sup.carriers).length, 'SUCCESSOR-CARRIERS-UNDECLARED');
+    for (const [name, c] of Object.entries(sup.carriers)) {
+      keys(c, ['successor', 'original'], 'Successor carrier ' + name);
+      assert(typeof c.successor === 'string' && typeof c.original === 'string', 'SUCCESSOR-CARRIER-SHAPE ' + name);
+      // The successor file must be a file a DECLARED child of this package actually runs.
+      assert(s.children.some(ch => childArgv(ch).includes(c.successor)), 'SUCCESSOR-NOT-AN-EXECUTED-CHILD-TARGET ' + name + ' ' + c.successor);
+      assert(c.successor !== c.original, 'SUCCESSOR-IS-THE-ORIGINAL ' + name);
+    }
+    assert(Array.isArray(sup.substitutions), 'SUCCESSOR-SUBSTITUTIONS-UNDECLARED');
+    // r6 change 4 (F3). ":113 (c)" permits ONE kind of substitution — "a pin re-target made
+    // necessary by a declared superseded-by-child product path" — and then ratifies two
+    // further ones by describing them in the ruling text itself ("two at 71fb2f1: the
+    // witnesses exposed-surface deepEqual and the cases mutant-detector target"). The runner
+    // enforced neither: it required each `from` to stand exactly once in a parent-pinned
+    // original (successorProof) and the successor's own table to equal this list, but
+    // nothing asked whether a change was a RE-TARGET at all — so a fourth, unratified
+    // substitution was admitted and caught only by a human reading the spec. Both halves are
+    // decided here, before any child runs. Residual, said out loud: (B) bounds WHICH module
+    // and HOW MANY, not the substance of the text; the substance is still the spec's
+    // enumeration, the parent's own bytes, and the package review.
+    // r7b F-C widens branch (A) from `superseded-by-child` alone to EVERY product pin this
+    // package declares a CHANGE on. ":113 (c)" writes "a pin re-target made necessary by a
+    // declared superseded-by-child product path" because that was the only changing role
+    // B-NTC had over a parent EXECUTION pin; DECISIONS:142 grants H3 the same mechanic over
+    // a parent PRODUCT pin, which this package declares `edited`. Nothing is trusted that
+    // was not already: every pre/post pair below is the parent's own pinned byte and this
+    // package's own post, both re-verified in product() against the parent artifact and the
+    // bytes on disk. A substitution can still only carry images the spec declares and the
+    // runner has independently checked.
+    const superseded = Object.entries(s.product).filter(([, p]) =>
+      (p.role === 'superseded-by-child' || p.role === 'edited') && p.post && p.pre !== p.post);
+    const ruledOriginals = new Set(), usedDescriptions = new Set();
+    for (const sub of sup.substitutions) {
+      keys(sub, ['original', 'from', 'to', 'why'], 'Successor substitution');
+      assert(typeof sub.original === 'string' && typeof sub.from === 'string' && sub.from.length >= 16 &&
+        typeof sub.to === 'string' && sub.to.length >= 16 && sub.from !== sub.to &&
+        typeof sub.why === 'string' && sub.why.trim().length >= 16, 'SUCCESSOR-SUBSTITUTION-SHAPE ' + JSON.stringify(sub.original));
+      // The file a substitution applies to need not be a declared CARRIER's original: a
+      // pin re-target most naturally lands in the support module the carriers share. What
+      // is required of it is stronger and is checked at run time against the parent's own
+      // bytes (successorProof): it must be a file the PARENT pins in executionPins, equal
+      // to that pin and to the Git blob at the parent's acceptance commit.
+      // DECISIONS:147 widens the target shape: a substitution may live in any file of the
+      // parent gate's own source closure, which reaches subdirectories and `.json` data as
+      // well as the flat `.cjs` programmes `:113 (c)` assumed. The root stays
+      // `rebuild/m4/spec/` — the parent's own gate programme — which is NARROWER than
+      // ":147"'s words and is said out loud as such: the closure also reaches
+      // `rebuild/engine/**` and `rebuild/conform/**`, and a re-target over the engine under
+      // test would be a code change wearing a re-target's name. Every file BRIEF-H3 v1.6 §9
+      // measured is under this root. Widen it further only with a reviewed tooling change.
+      //
+      // ":147 — no substitution may reach rebuild/conform/private/**, goldens, or the
+      // private fixture." Asserted by name FIRST — TOOLING-REVIEW-r9 F5 measured that the
+      // root shape below dominated it, so a golden target refused as a SHAPE and the
+      // ruling's own exclusion printed nowhere in the spec phase. The named refusal comes
+      // first in both phases now, and a later widening of the root cannot lose it.
+      assert(!SUBSTITUTION_FORBIDDEN.some(p => sub.original.startsWith(p)),
+        'SUCCESSOR-SUBSTITUTION-TARGET-IS-A-PROTECTED-SURFACE ' + sub.original);
+      assert(/^rebuild\/m4\/spec\/[A-Za-z0-9._/-]+\.(?:cjs|mjs|js|json)$/.test(sub.original) && !sub.original.includes('..'),
+        'SUCCESSOR-SUBSTITUTION-TARGET-SHAPE ' + sub.original);
+      // (A) RE-TARGET. Replacing every superseded-by-child pre-image sha by its own post
+      // turns `from` into `to`; or `from` and `to` differ only inside the one region where a
+      // superseded-by-child PATH stands. Either way the two sides differ only in a path or a
+      // pin THIS SPEC declares superseded, which is exactly what ":113 (c)" permits outright.
+      let pinRetarget = sub.from;
+      for (const [, p] of superseded) if (p.post) pinRetarget = pinRetarget.split(p.pre).join(p.post);
+      const pathRetarget = superseded.some(([file]) => {
+        const parts = sub.from.split(file);
+        return parts.length === 2 && sub.to.length >= parts[0].length + parts[1].length &&
+          sub.to.startsWith(parts[0]) && sub.to.endsWith(parts[1]);
+      });
+      if (pinRetarget === sub.to || pathRetarget) continue;
+      // (B) DESCRIBED BY THE RULING. Not a re-target — so one of the substitutions the
+      // RULING'S OWN BYTES enumerate must be THIS one. r7 F2: r6 asked whether a token of
+      // the module's basename appeared anywhere in the ruling prose, which admitted 8 of
+      // the 17 parent originals; the ruling enumerates two. Each enumerated DESCRIPTION is
+      // matched against this substitution as a closed phrase (describes()), and a
+      // description is CONSUMED when it matches, so the ruling's count is the ceiling.
+      const ruling = rulingText(s), descriptions = ruledDescriptions(ruling);
+      // The paths a word could be naming rather than describing: the module itself, the
+      // carriers' successors and originals, and every declared product path. A word that
+      // stands in one of them says WHERE the change is, not WHAT it is.
+      const paths = [sub.original, ...Object.values(sup.carriers).flatMap(c => [c.successor, c.original]), ...Object.keys(s.product)];
+      const hit = descriptions.findIndex((d, i) => !usedDescriptions.has(i) && describes(d, sub, paths));
+      assert(hit >= 0 && !ruledOriginals.has(sub.original),
+        'SUCCESSOR-SUBSTITUTION-NOT-A-RE-TARGET-AND-NOT-RULED ' + sub.original + '; ' + SUCCESSOR_RULING +
+        ' permits a re-target of a declared superseded-by-child path or pin, and otherwise only the ' + descriptions.length +
+        ' substitution(s) its own text describes, once each');
+      usedDescriptions.add(hit);
+      ruledOriginals.add(sub.original);
+    }
+    // DECISIONS:147 / ":113 (1) (c) … enumerated verbatim in the package spec AND IN THE
+    // REVIEW". The spec names the review file; the runner reads it and requires every
+    // `from` and every `to` to stand in it VERBATIM. A substitution a reviewer never saw
+    // cannot enter on the spec's word alone, and a review that quotes three of four
+    // substitutions refuses on the fourth by name.
+    // TOOLING-REVIEW-r9 F3 narrows the shape to the REVIEWS directory and pins the bytes.
+    // The custody half — the file exists, is those bytes, and stands in Git at HEAD — is
+    // re-asserted in successorProof(), which is also where the path root is re-checked so
+    // that neither function depends on the other having run.
+    assert(typeof sup.reviewFile === 'string' && sup.reviewFile.startsWith(REVIEWS_DIR) &&
+      /^rebuild\/lanes\/b\/reviews\/[A-Za-z0-9._-]+\.md$/.test(sup.reviewFile) && !sup.reviewFile.includes('..'),
+      'SUCCESSOR-REVIEW-FILE-SHAPE ' + JSON.stringify(sup.reviewFile) + '; a cited review stands under ' + REVIEWS_DIR);
+    assert(typeof sup.reviewFileSha256 === 'string' && /^[a-f0-9]{64}$/.test(sup.reviewFileSha256),
+      'SUCCESSOR-REVIEW-FILE-SHA256-SHAPE ' + JSON.stringify(sup.reviewFileSha256));
+    // The CONTENT half stands in successorProof(), beside every other fact a substitution is
+    // held to, so one function answers "is this substitution admissible" end to end.
+  }
+}
+
 function spec() {
   specRaw = fs.readFileSync(path.join(SPEC_DIR, ID + '.json'));
   const s = J.parseExact(specRaw); // exact reviewed bytes + duplicate-decoded-key refusal
@@ -509,7 +1227,10 @@ function spec() {
   // cleared nothing, but a verdict file must not carry a word its own evidence denies.
   assert(s.status !== 'BRIEF-ACCEPTED' || s.brief.acceptedLedgerLine !== null,
     'BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE: status says the brief is accepted and brief.acceptedLedgerLine is null');
-  assert(/^[a-f0-9]{40}$/.test(s.sourceBase), 'sourceBase is a commit');
+  // TOOLING-REVIEW-r9 F4. The shape was asked and existence was not, so a 40-hex string
+  // naming no commit refused BARE, four functions later, inside a Git call.
+  assert(/^[a-f0-9]{40}$/.test(s.sourceBase), 'SPEC-SOURCE-BASE-SHAPE; sourceBase is a 40-hex commit');
+  commitExists(s.sourceBase, 'SPEC-SOURCE-BASE-NOT-A-COMMIT');
   // A repair package must register at least one D-id. The only packages allowed an empty
   // inventory are the ones the runner itself names in NO_REGISTER_IDS — the exemption is
   // fixed in this file (W7), so no spec can empty its own inventory to dodge the accounting.
@@ -548,8 +1269,16 @@ function spec() {
   assert.equal(gitSha('HEAD', TOOLING + '/packages/' + ID + '.json'), sha(specRaw), 'SPEC-BYTES-NOT-THE-REVIEWED-SPEC-IN-GIT');
   for (const [file, pin] of Object.entries(s.product)) {
     keys(pin, ['pre', 'post', 'role'], 'Product pin ' + file);
-    assert(/^[a-f0-9]{64}$/.test(pin.pre) && (pin.post === null || /^[a-f0-9]{64}$/.test(pin.post)), 'Product sha256 ' + file);
-    assert(PRODUCT_ROLES.includes(pin.role) && (pin.role !== 'carried' || pin.pre === pin.post), 'Product role ' + file);
+    assert(PRODUCT_ROLES.includes(pin.role), 'PRODUCT-ROLE-NOT-IN-THE-CLOSED-VOCABULARY ' + file + ' ' + JSON.stringify(pin.role));
+    // r7 F1. `pre: null` says the file did not stand at sourceBase at all, and only role
+    // "new" may say it — every other role names a byte this package inherits and stands on.
+    assert(pin.pre === null ? pin.role === 'new' : /^[a-f0-9]{64}$/.test(pin.pre), 'PRODUCT-PRE-IMAGE-SHAPE ' + file);
+    assert(pin.post === null || /^[a-f0-9]{64}$/.test(pin.post), 'PRODUCT-POST-IMAGE-SHAPE ' + file);
+    assert(pin.role !== 'carried' || pin.pre === pin.post, 'PRODUCT-CARRIED-IS-NOT-PRE-EQUALS-POST ' + file);
+    // r7 F1, the DECLARATION half of the new role: "pinned-unchanged" is pre === post, both
+    // real bytes. A pinned-unchanged file that declares a change is a mislabelled `edited`.
+    assert(pin.role !== 'pinned-unchanged' || (pin.pre !== null && pin.pre === pin.post),
+      'PRODUCT-PINNED-UNCHANGED-DECLARES-A-CHANGE ' + file + '; role "pinned-unchanged" is pre === post by definition');
   }
   // W3 + N2/N3. Each declared child is schema-checked, its needle is non-empty, and its
   // argv carries only allow-listed flags and then real files under a fixed root — never
@@ -562,13 +1291,30 @@ function spec() {
     assert(typeof c.needle === 'string' && c.needle.trim().length >= 8 && !/[\r\n]/.test(c.needle), 'CHILD-NEEDLE-EMPTY ' + c.name);
     childArgv(c);
   }
+  // r7 F1, the EXECUTED half of the new role, and the reason it is not simply a licence to
+  // declare anything and call it unchanged. "pinned-unchanged" claims three things at once
+  // — the package DECLARES the file, a declared child EXECUTES it, and no byte of it moved
+  // — and the runner can take all three: the declaration is this map, the bytes are checked
+  // in product(), and the execution is the file standing in a declared child's argv OR
+  // reached from one through a relative require (executedClosure) — children() then
+  // actually spawns those argv targets in this process with their exact needles. A file
+  // nothing runs cannot carry the role; it is either `new` (this package writes it),
+  // `edited` (this package changes it) or it does not belong in the inventory.
+  const executed = executedClosure(s.children.flatMap(c => childArgv(c)));
+  for (const [file, pin] of Object.entries(s.product))
+    assert(pin.role !== 'pinned-unchanged' || executed.files.has(file),
+      'PRODUCT-PINNED-UNCHANGED-IS-NOT-EXECUTED-BY-A-DECLARED-CHILD ' + file +
+      '; the role says a declared child runs this file, and no declared child argv names it or reaches it through a relative require' +
+      (executed.capped ? ' within the first ' + EXECUTED_CLOSURE_LIMIT + ' files of the closure' : ''));
   // W2 + N1. A covering child is a DECLARED child by name and its EXECUTION covers the
   // gate. INHERITED coverage is bounded by the parent artifact (coverage() asserts the map
   // itself). A MOVE is bounded HERE, three ways at once: it must state a reason; its child
   // must execute the gate's own original executable, or a file whose bytes require that
   // executable; and one child may carry more than one gate only where run.cjs itself groups
   // those gates on a single executable. "All 19 by one child" satisfies none of the three.
-  keys(s.coverage, ['inherited', 'moves', 'successors'], 'Coverage block');
+  // REQUESTS 08:40 (b) adds `superseded`: `null` in every package that declares none, which
+  // today is all seven. Its whole spec-phase shape stands in supersededSpecShape() below.
+  keys(s.coverage, ['inherited', 'moves', 'successors', 'superseded'], 'Coverage block');
   // X1 — BLOCKING, and it is the FIRST thing decided about coverage. r3's residual R3-A is
   // the move/needle composite: a declared child that never ran the gate's original could
   // still be reported as carrying a moved gate. Every part of that finding enters through a
@@ -581,14 +1327,18 @@ function spec() {
   assert(MOVES_RULING !== null || !Object.keys(s.coverage.moves).length,
     'COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING ' + Object.keys(s.coverage.moves).join(' ') +
     '; coverage.moves must be {} under this runner (TOOLING-REVIEW-r3 X1)');
+  // r7 F3. Both of these were bare: the r7 reviewer re-keyed an inherited pair onto an
+  // unlisted gate and got exit 1 with no code at all. A gate id that is not one of the
+  // nineteen originals, and a gate claimed twice over, are the two shape refusals of the
+  // coverage map and each now says which it is.
   for (const [gate, child] of Object.entries(s.coverage.inherited)) {
-    assert(GATE_IDS.includes(gate), 'Covered gate is an original gate: ' + gate);
+    assert(GATE_IDS.includes(gate), 'COVERAGE-GATE-IS-NOT-AN-ORIGINAL-GATE ' + gate);
     assert(typeof child === 'string' && names.has(child), 'COVERAGE-CHILD-NOT-DECLARED ' + gate + ' ' + child);
   }
   const movedBy = new Map();
   for (const [gate, move] of Object.entries(s.coverage.moves)) {
-    assert(GATE_IDS.includes(gate), 'Covered gate is an original gate: ' + gate);
-    assert(!Object.hasOwn(s.coverage.inherited, gate), 'A gate is inherited-covered or moved, never both');
+    assert(GATE_IDS.includes(gate), 'COVERAGE-GATE-IS-NOT-AN-ORIGINAL-GATE ' + gate);
+    assert(!Object.hasOwn(s.coverage.inherited, gate), 'COVERAGE-GATE-BOTH-INHERITED-AND-MOVED ' + gate);
     assert(move && typeof move === 'object' && !Array.isArray(move), 'COVERAGE-MOVE-UNDECLARED ' + gate);
     keys(move, ['child', 'reason'], 'COVERAGE-MOVE-UNDECLARED ' + gate);
     assert(typeof move.child === 'string' && names.has(move.child), 'COVERAGE-CHILD-NOT-DECLARED ' + gate + ' ' + move.child);
@@ -609,79 +1359,36 @@ function spec() {
   // be one the ruling names and must cite the ruling id. Everything else refuses HERE,
   // before any child runs, and X1's `moves === {}` above is untouched for every package
   // including this one: DECISIONS:113 (1) (a) is explicit that coverage.moves stays {}.
-  if (s.coverage.successors !== null) {
-    assert(s.coverage.successors && typeof s.coverage.successors === 'object' && !Array.isArray(s.coverage.successors), 'SUCCESSOR-BLOCK-UNDECLARED');
-    keys(s.coverage.successors, ['ruling', 'parentAcceptanceCommit', 'carriers', 'substitutions'], 'Successor block');
-    const sup = s.coverage.successors;
-    assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID + '; ' + SUCCESSOR_RULING + ' names ' + [...SUCCESSOR_PACKAGES].join(' ') + ' only');
-    assert(typeof sup.ruling === 'string' && sup.ruling.includes('MOVES_RULING=' + SUCCESSOR_RULING),
-      'SUCCESSOR-RULING-NOT-CITED ' + JSON.stringify(sup.ruling) + '; the spec must cite MOVES_RULING=' + SUCCESSOR_RULING);
-    assert.equal(sup.parentAcceptanceCommit, SUCCESSOR_PARENT_COMMIT, 'SUCCESSOR-PARENT-ACCEPTANCE-COMMIT');
-    assert(sup.carriers && typeof sup.carriers === 'object' && !Array.isArray(sup.carriers) && Object.keys(sup.carriers).length, 'SUCCESSOR-CARRIERS-UNDECLARED');
-    for (const [name, c] of Object.entries(sup.carriers)) {
-      keys(c, ['successor', 'original'], 'Successor carrier ' + name);
-      assert(typeof c.successor === 'string' && typeof c.original === 'string', 'SUCCESSOR-CARRIER-SHAPE ' + name);
-      // The successor file must be a file a DECLARED child of this package actually runs.
-      assert(s.children.some(ch => childArgv(ch).includes(c.successor)), 'SUCCESSOR-NOT-AN-EXECUTED-CHILD-TARGET ' + name + ' ' + c.successor);
-      assert(c.successor !== c.original, 'SUCCESSOR-IS-THE-ORIGINAL ' + name);
-    }
-    assert(Array.isArray(sup.substitutions), 'SUCCESSOR-SUBSTITUTIONS-UNDECLARED');
-    // r6 change 4 (F3). ":113 (c)" permits ONE kind of substitution — "a pin re-target made
-    // necessary by a declared superseded-by-child product path" — and then ratifies two
-    // further ones by describing them in the ruling text itself ("two at 71fb2f1: the
-    // witnesses exposed-surface deepEqual and the cases mutant-detector target"). The runner
-    // enforced neither: it required each `from` to stand exactly once in a parent-pinned
-    // original (successorProof) and the successor's own table to equal this list, but
-    // nothing asked whether a change was a RE-TARGET at all — so a fourth, unratified
-    // substitution was admitted and caught only by a human reading the spec. Both halves are
-    // decided here, before any child runs. Residual, said out loud: (B) bounds WHICH module
-    // and HOW MANY, not the substance of the text; the substance is still the spec's
-    // enumeration, the parent's own bytes, and the package review.
-    const superseded = Object.entries(s.product).filter(([, p]) => p.role === 'superseded-by-child');
-    const ruledOriginals = new Set();
-    for (const sub of sup.substitutions) {
-      keys(sub, ['original', 'from', 'to', 'why'], 'Successor substitution');
-      assert(typeof sub.original === 'string' && typeof sub.from === 'string' && sub.from.length >= 16 &&
-        typeof sub.to === 'string' && sub.to.length >= 16 && sub.from !== sub.to &&
-        typeof sub.why === 'string' && sub.why.trim().length >= 16, 'SUCCESSOR-SUBSTITUTION-SHAPE ' + JSON.stringify(sub.original));
-      // The file a substitution applies to need not be a declared CARRIER's original: a
-      // pin re-target most naturally lands in the support module the carriers share. What
-      // is required of it is stronger and is checked at run time against the parent's own
-      // bytes (successorProof): it must be a file the PARENT pins in executionPins, equal
-      // to that pin and to the Git blob at the parent's acceptance commit.
-      assert(/^rebuild\/m4\/spec\/[a-z0-9.-]+\.cjs$/.test(sub.original), 'SUCCESSOR-SUBSTITUTION-TARGET-SHAPE ' + sub.original);
-      // (A) RE-TARGET. Replacing every superseded-by-child pre-image sha by its own post
-      // turns `from` into `to`; or `from` and `to` differ only inside the one region where a
-      // superseded-by-child PATH stands. Either way the two sides differ only in a path or a
-      // pin THIS SPEC declares superseded, which is exactly what ":113 (c)" permits outright.
-      let pinRetarget = sub.from;
-      for (const [, p] of superseded) if (p.post) pinRetarget = pinRetarget.split(p.pre).join(p.post);
-      const pathRetarget = superseded.some(([file]) => {
-        const parts = sub.from.split(file);
-        return parts.length === 2 && sub.to.length >= parts[0].length + parts[1].length &&
-          sub.to.startsWith(parts[0]) && sub.to.endsWith(parts[1]);
-      });
-      if (pinRetarget === sub.to || pathRetarget) continue;
-      // (B) RULED BY NAME. Not a re-target — so the RULING'S OWN BYTES, on the chain branch
-      // and writable by no spec, must name it: the substituted module's own distinguishing
-      // name stands in the ruling line, and at least one other word of that line stands in
-      // the substitution's own text. The ruling names ONE such change per module it names,
-      // so a second non-re-target over the same original refuses as well.
-      const ruling = rulingText(), low = ruling.toLowerCase();
-      const token = path.posix.basename(sub.original, '.cjs').split('-').pop(), text = (sub.from + '\n' + sub.to).toLowerCase();
-      const echoed = (low.match(/[a-z][a-z0-9]{5,}/g) || []).filter(w => w !== token && text.includes(w));
-      assert(token.length >= 4 && low.includes(token) && echoed.length && !ruledOriginals.has(sub.original),
-        'SUCCESSOR-SUBSTITUTION-NOT-A-RE-TARGET-AND-NOT-RULED ' + sub.original + '; ' + SUCCESSOR_RULING +
-        ' permits a re-target of a declared superseded-by-child path or pin, and otherwise only the substitutions its own text names, once each');
-      ruledOriginals.add(sub.original);
-    }
-  }
+  // r7b F-C / DECISIONS:147 / TOOLING-REVIEW-r9 F5. The successor block's spec-phase
+  // shape is one named function, so a suite can measure its refusals directly.
+  successorSpecShape(s);
+  // REQUESTS 08:40 (b). The same discipline for the gate-supersession block: its whole
+  // spec-phase shape is one named function, measurable on its own.
+  supersededSpecShape(s, names);
   for (const flip of s.witnessFlips) keys(flip, ['file', 'line', 'from', 'to'], 'Witness flip');
-  keys(s.authorizations, ['owner', 'contract', 'theme', 'review'], 'Closed authorization keys');
+  // DECISIONS:135 (4). `freeze` is the ONE optional authorization: a PM FREEZE line naming
+  // the base a seal stands on, cited exactly as owner/contract/theme are and matched the
+  // same way in sealOnTheTip(). Optional so that every spec that does not need one — all of
+  // them, on a branch that carries the tip — keeps the closed four it already has, and so
+  // that adding the key changes no sealed artifact's bytes.
+  const authKeys = Object.keys(s.authorizations).sort();
+  assert(authKeys.every(k => ['owner', 'contract', 'theme', 'review', 'freeze'].includes(k)),
+    'AUTHORIZATION-KEY-NOT-IN-THE-CLOSED-SET ' + authKeys.join(' '));
+  keys({ ...s.authorizations, freeze: null }, ['owner', 'contract', 'theme', 'review', 'freeze'], 'Closed authorization keys');
+  if (s.authorizations.freeze) {
+    claim(s.authorizations.freeze, 'cowork', 'freeze');
+    assert(/\bFREEZE\b/.test(s.authorizations.freeze.line) && /\b[a-f0-9]{40}\b/.test(s.authorizations.freeze.line),
+      'SEAL-FREEZE-LINE-SHAPE; a freeze citation must say FREEZE and name a 40-hex base commit');
+  }
   claim(s.authorizations.owner, 'owner', 'owner'); claim(s.authorizations.contract, 'cowork', 'contract');
   if (s.authorizations.theme !== null) {
     claim(s.authorizations.theme, 'cowork', 'theme');
-    assert(s.authorizations.theme.line.includes(s.packageId) && s.authorizations.theme.line.endsWith(' · ACCEPTED'), 'Theme line binds this package id');
+    // r7 F3. This was one of the three refusals the r7 reviewer fired that printed a bare
+    // FAIL: a theme citation that is well-formed and hashes to its own sha but names some
+    // other package, or does not end in the ACCEPT terminal word, is a shape refusal and
+    // deserves its own word exactly as the brief-acceptance shape assert has one.
+    assert(s.authorizations.theme.line.includes(s.packageId) && s.authorizations.theme.line.endsWith(' · ACCEPTED'),
+      'THEME-LINE-DOES-NOT-BIND-THIS-PACKAGE-ID ' + s.packageId + '; the cited theme line must name this package id and end in the ACCEPT terminal word');
   }
   keys(s.authorizations.review, ['role', 'prefix', 'terminal'], 'Review claim');
   assert(s.authorizations.review.role === 'cowork' && s.authorizations.review.terminal === 'ACCEPTED' &&
@@ -702,7 +1409,16 @@ function spec() {
     // executables carried the parent's gates. It now says which it is, on every run.
     '; ' + (s.coverage.successors === null ? 'no successor carriers declared (every inherited gate must be carried by a parent-pinned executable)'
       : Object.keys(s.coverage.successors.carriers).length + ' successor carrier(s) declared under ' + s.coverage.successors.ruling +
-        ' with ' + s.coverage.successors.substitutions.length + ' enumerated substitution(s), each proved against the parent original in coverage()'));
+        ' with ' + s.coverage.successors.substitutions.length + ' enumerated substitution(s), each proved against the parent original in coverage()' +
+        (RULING_LINE_AT === null ? '; the ruling line was not read on this run (every substitution was a re-target)'
+          : '; the ruling line was located on ' + CHAIN_REF + ' BY ITS OWN SHA256 ' + s.coverage.successors.rulingLineSha256.slice(0, 12) +
+            ', standing at DECISIONS:' + RULING_LINE_AT + ' today, and carries ' + SUCCESSOR_RULING_ID)) +
+    // REQUESTS 08:40 (b). Declared or not, the header says so: this is the one line a
+    // reviewer reads first, and a gate supersession is the largest claim a child can make.
+    '; ' + (s.coverage.superseded == null ? 'no gate supersession declared (every inherited gate is carried or re-executed)'
+      : Object.keys(s.coverage.superseded.gates).length + ' byte-identity carrier(s) declared SUPERSEDED under a PM line recorded by sha256 ' +
+        (s.coverage.superseded.rulingLineSha256 === null ? 'NOT YET CITED — the run will refuse GATE-SUPERSESSION-RULING-NOT-CITED'
+          : s.coverage.superseded.rulingLineSha256.slice(0, 12) + ', each with its own named and executed evidence')));
   if (fs.existsSync(rel(s.brief.file))) assert.equal(diskSha(s.brief.file), s.brief.sha256, 'Brief bytes');
   else note('brief ' + s.brief.file + ' not authored');
   return s;
@@ -720,7 +1436,9 @@ function option(o) {
     say('PARENT OPTION ' + o.id + ' ' + o.artifact + ' NOT-YET-SEALED (' + o.note + ')'); return null;
   }
   const raw = fs.readFileSync(rel(o.artifact));
-  assert.equal(sha(raw), o.sha256, 'Parent artifact bytes ' + o.id);
+  // TOOLING-REVIEW-r9 F4. One nibble changed in the spec's pin and this refused BARE.
+  assert.equal(sha(raw), o.sha256, 'PARENT-ARTIFACT-BYTES ' + o.id + ' ' + o.artifact +
+    '; the artifact on disk is not the bytes this spec pins');
   // X2 / R3-B, half one. The parent's REVIEW file is where receiptBase comes from, and
   // receiptBase is the base every ledger obligation is resolved at. Unpinned, a spec could
   // hand the runner any review file it liked — r3's C-COMMIT-3 wrote one inside the tooling
@@ -738,7 +1456,7 @@ function option(o) {
   // branch, resolved from Git refs here (CHAIN_REF) and never from anything the spec says.
   // envelope() already demands this of the package's OWN receipt; nothing demanded it of
   // the parent's, which is how a local scratch commit could become the ledger anchor.
-  L.git(root, ['merge-base', '--is-ancestor', r.commit, CHAIN_REF]);
+  ancestor(r.commit, CHAIN_REF, 'PARENT-RECEIPT-BASE-NOT-ON-THE-CHAIN-BRANCH');
   // W6/N4, unchanged and load-bearing: the receipt line itself is found as EXACT LINE BYTES
   // in rebuild/DECISIONS.md in Git at that base, under role cowork, mentioning this
   // artifact path and this hash. X2 decides WHERE that base may be; this decides WHAT must
@@ -758,8 +1476,8 @@ function option(o) {
   // quietly, so a stale parent must be re-taken rather than carried.
   assert.equal(sha(L.object(root, CHAIN_REF, o.artifact)), o.sha256, 'PARENT-ARTIFACT-BYTES-NOT-ON-THE-CHAIN-BRANCH ' + o.id);
   assert.equal(sha(L.object(root, CHAIN_REF, o.review)), o.reviewSha256, 'PARENT-REVIEW-BYTES-NOT-ON-THE-CHAIN-BRANCH ' + o.id);
-  L.git(root, ['merge-base', '--is-ancestor', m[2], 'HEAD']);
-  L.git(root, ['merge-base', '--is-ancestor', m[2], CHAIN_REF]);
+  ancestor(m[2], 'HEAD', 'PARENT-REVIEWED-COMMIT-NOT-BEHIND-HEAD');
+  ancestor(m[2], CHAIN_REF, 'PARENT-REVIEWED-COMMIT-NOT-ON-THE-CHAIN-BRANCH');
   say('PARENT OPTION ' + o.id + ' ' + acceptance.packageId + ' ' + o.artifact + ' ' + o.sha256 + ' ACCEPTED at ' + m[2] +
     ' (DECISIONS:' + o.receiptLedgerLine + '); artifact byte-identical on disk, in Git at that commit and on ' + CHAIN_REF +
     '; review ' + o.review + ' ' + o.reviewSha256.slice(0, 12) + ' byte-identical on disk and on that branch; receipt base ' +
@@ -830,6 +1548,36 @@ function parent(s) {
 // pin against Git at HEAD — so a worktree that disagrees with the reviewed history under
 // rebuild/m4/spec, rebuild/m3 or .github (where 28 of the 31 parent pins and all 23
 // grandparent pins live, outside the 18 PIN_PATHS git-status check) cannot pass unnoticed.
+// r7b F-E, found by the H3 builder and blocking EVERY child of B-NTC, not just H3.
+//
+// TWO ARTIFACT SHAPES ARE IN THE CHAIN, and the readers only knew one. The accepted
+// originals write `product` as a FLAT MAP of file -> sha256 (acceptance-native-carriers.json
+// and every artifact above it); THIS runner's proposed() writes `product` as the SPEC's own
+// map, file -> {pre, post, role}, because the child's roles and both images travel into the
+// seal. So `held()` and product()'s pre-image check compared a sha string to an OBJECT the
+// moment the bound parent was a package sealed by this runner, and `pins()` refused
+// `PARENT-PIN-BROKEN-AT-SOURCEBASE` on the first entry — `rebuild/engine/plan.cjs`, whose
+// bytes are in fact identical everywhere.
+//
+// THE READERS ARE FIXED, NEVER THE SEALED ARTIFACT. `acceptance-b-ntc-native-trend-context
+// .json` is merged, receipted at DECISIONS:141 and named by a verdict file; rewriting it to
+// suit a reader would void a receipt to fix a bug in the thing that reads it. So one
+// normaliser stands between every reader and either shape, and it is narrow: a string is a
+// sha; an object is the spec-pin shape and its PINNED BYTE is `post || pre` — the image the
+// parent's own seal stands at, which is what "the parent pinned this file" has always meant.
+// Anything else is a named refusal, never a silently skipped entry.
+function parentPin(entry, file) {
+  if (typeof entry === 'string') { assert(/^[a-f0-9]{64}$/.test(entry), 'PARENT-PIN-SHAPE ' + file); return entry; }
+  assert(entry && typeof entry === 'object' && !Array.isArray(entry) && Object.hasOwn(entry, 'pre') && Object.hasOwn(entry, 'post'),
+    'PARENT-PIN-SHAPE ' + file + '; a parent product entry is a sha256 or a {pre, post, role} pin');
+  // r8 change 4. `entry.post || entry.pre` read a FALSY non-null post — 0, "", false — as
+  // "no post" and silently fell back to the pre-image. Unreachable through a parent this
+  // runner sealed, but a normaliser that stands between every reader and two shapes has to
+  // be TOTAL: only the literal null means "this file has no post-image yet".
+  const pinned = entry.post === null ? entry.pre : entry.post;
+  assert(/^[a-f0-9]{64}$/.test(pinned), 'PARENT-PIN-SHAPE ' + file);
+  return pinned;
+}
 function held(s, file, hash, code) {
   if (Object.hasOwn(s.product, file)) { assert.equal(gitSha(s.sourceBase, file), hash, code + '-AT-SOURCEBASE ' + file); return false; }
   assert.equal(diskSha(file), hash, code + ' ' + file);
@@ -839,8 +1587,8 @@ function held(s, file, hash, code) {
 function pins(s, bound) {
   if (!bound) { note('parent and grandparent artifact pins not re-asserted'); return; }
   const a = bound.acceptance; let kept = 0, gkept = 0, base = 0;
-  for (const [file, hash] of Object.entries({ ...a.product, ...a.executionPins })) {
-    if (held(s, file, hash, 'PARENT-PIN-BROKEN')) kept++; else base++;
+  for (const [file, entry] of Object.entries({ ...a.product, ...a.executionPins })) {
+    if (held(s, file, parentPin(entry, file), 'PARENT-PIN-BROKEN')) kept++; else base++;
   }
   const g = a.parent;
   assert(g && typeof g.artifact === 'string' && /^[a-f0-9]{64}$/.test(g.sha256), 'Grandparent coordinates');
@@ -851,9 +1599,11 @@ function pins(s, bound) {
     assert.equal(gr.status, 'ACCEPTED', 'Grandparent independently accepted');
     L.verifyReceipt(root, gr.receipt.commit, gr.receipt, { role: 'cowork', mentions: [g.sha256, g.artifact] });
   }
-  for (const [file, hash] of Object.entries({ ...ga.product, ...ga.executionPins })) {
+  // The grandparent is read through the same normaliser: the chain now has both shapes in
+  // it, and a grandparent sealed by THIS runner is exactly as likely as a parent.
+  for (const [file, entry] of Object.entries({ ...ga.product, ...ga.executionPins })) {
     if (Object.hasOwn(a.product, file) || Object.hasOwn(a.executionPins, file)) continue;
-    if (held(s, file, hash, 'GRANDPARENT-PIN-BROKEN')) gkept++; else base++;
+    if (held(s, file, parentPin(entry, file), 'GRANDPARENT-PIN-BROKEN')) gkept++; else base++;
   }
   say('PARENT PINS RE-ASSERTED at run time; ' + kept + ' pin(s) from ' + bound.option.artifact + ' plus its ' +
     Object.keys(a.product).length + ' product pins through the inventory below, and ' + gkept + ' un-superseded grandparent pin(s) from ' +
@@ -876,12 +1626,14 @@ function baselineOf(bound) {
 // W2. The inventory is checked against the PARENT's product map, not only against itself:
 // a pre-image that is not the parent's pinned byte, and a parent-pinned file this spec
 // drops from its inventory, are both UNLISTED-PRODUCT-DRIFT.
-function product(s, bound) {
+function product(s, bound, sealed) {
   const pmap = bound && bound.acceptance.product, epins = bound && bound.acceptance.executionPins;
-  const at = { pre: [], post: [], carried: [], drift: [], superseded: [] };
+  const at = { pre: [], post: [], carried: [], drift: [], superseded: [], unchanged: [], grandfathered: [] };
   for (const [file, pin] of Object.entries(s.product)) {
     if (pmap && Object.hasOwn(pmap, file)) {
-      assert.equal(pin.pre, pmap[file], 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin: ' + file);
+      // r7b F-E, the second place the flat-sha assumption stood. The child's pre-image must
+      // be the byte the parent's seal stands at, whichever shape the parent artifact wrote.
+      assert.equal(pin.pre, parentPin(pmap[file], file), 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin: ' + file);
       assert(pin.role === 'carried' || pin.role === 'edited', 'PARENT-PRODUCT-PIN-NOT-DECLARED-CARRIED-OR-EDITED ' + file);
       assert(pin.role !== 'superseded-by-child', 'PRODUCT-ROLE-MISLABELLED ' + file + ' is a parent PRODUCT pin, not an execution pin');
     } else if (epins && Object.hasOwn(epins, file)) {
@@ -892,12 +1644,19 @@ function product(s, bound) {
       // same equality that binds a parent PRODUCT pre-image binds this one.
       assert.equal(pin.role, 'superseded-by-child', 'PARENT-EXECUTION-PIN-NOT-DECLARED-SUPERSEDED ' + file +
         ' is pinned by the parent in executionPins; declare role "superseded-by-child" (DECISIONS:109), never "new"');
-      assert.equal(pin.pre, epins[file], 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent execution pin: ' + file);
+      assert.equal(pin.pre, parentPin(epins[file], file), 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent execution pin: ' + file);
       at.superseded.push(file);
     } else {
-      assert(pin.role === 'new' || !pmap, 'UNLISTED-PRODUCT-DRIFT ' + file + ' is not parent-pinned and is not declared new');
+      // r7 F1. A file the parent pins in neither map is this package's own: it either
+      // writes it (`new`) or declares, runs and leaves it alone (`pinned-unchanged`).
+      assert(pin.role === 'new' || pin.role === 'pinned-unchanged' || !pmap, 'UNLISTED-PRODUCT-DRIFT ' + file + ' is not parent-pinned and is not declared new');
       assert(pin.role !== 'superseded-by-child' || !pmap, 'SUPERSEDED-BY-CHILD-IS-NOT-A-PARENT-PIN ' + file);
     }
+    // r7 F1, the other side of the same rule: `pinned-unchanged` says NOT PARENT-PINNED, so
+    // a parent pin wearing it is a mislabelled `carried` or `superseded-by-child`. The two
+    // branches above already refuse it by their own names; this says why in one word.
+    assert(pin.role !== 'pinned-unchanged' || !((pmap && Object.hasOwn(pmap, file)) || (epins && Object.hasOwn(epins, file))),
+      'PRODUCT-PINNED-UNCHANGED-IS-A-PARENT-PIN ' + file);
     // r6 change 5 (F4). The post-first order below makes `pre === post` a FULLY SATISFIED
     // product claim, and for two of the four roles the word does not fit: a file the parent
     // pins and this package declares `edited`, or a parent EXECUTION pin it declares
@@ -907,9 +1666,31 @@ function product(s, bound) {
     // differs from the pre. The case the reorder exists for is untouched: role `carried` is
     // pre === post BY DEFINITION (spec() requires it), and role `new` — a file this package
     // declares, does not change, and the parent does not pin — still counts at its post.
-    assert(pin.pre !== pin.post || pin.role === 'carried' || pin.role === 'new',
+    //
+    // r7 F1 closes the one role r6 left open. `new` was exempted OUTRIGHT, and the r7
+    // reviewer measured the cost on the sealed spec: 7 of B-NTC's 31 `new` files carry
+    // pre === post and stand at their own sourceBase bytes, so 7 of "33 at the declared
+    // post-image" are files the package did not write. The honest declaration for that case
+    // now exists — `pinned-unchanged` — so `new` means what it says: pre === null (the file
+    // did not exist) or pre !== post (this package moved it). The refusal is UNCONDITIONAL
+    // for `edited` and `superseded-by-child`, exactly as r6 landed it.
+    //
+    // THE ONE EXCEPTION, and it is bounded in one direction only: a spec whose artifact IS
+    // ALREADY SEALED, and whose sealed artifact carries this same file with this same role
+    // and these same two shas, keeps its declaration. Retroactively refusing it would not
+    // improve the sealed run — the artifact's bytes are what they are and the seal ran on
+    // them — it would only make an accepted package unrunnable and void a receipt nobody
+    // disputes. So the sealed case is GRANDFATHERED and reported by name on every run, and
+    // an UNSEALED spec (no artifact yet, or an artifact that does not carry this exact
+    // declaration) refuses. The next seal of a grandfathered package must re-declare.
+    const noChange = pin.pre !== null && pin.pre === pin.post;
+    const sealedPin = sealed && sealed.product && Object.hasOwn(sealed.product, file) ? sealed.product[file] : null;
+    const grandfathered = noChange && pin.role === 'new' && sealedPin !== null &&
+      sealedPin.role === pin.role && sealedPin.pre === pin.pre && sealedPin.post === pin.post;
+    assert(!noChange || pin.role === 'carried' || pin.role === 'pinned-unchanged' || grandfathered,
       'PRODUCT-CHANGE-ROLE-DECLARES-NO-CHANGE ' + file + ' is declared "' + pin.role +
-      '" with pre === post; a file this package edits or supersedes must reach a post-image its parent does not already stand at');
+      '" with pre === post; a file this package edits, supersedes or writes must reach a post-image it does not already stand at — a file it declares, runs and leaves alone is role "pinned-unchanged"');
+    if (grandfathered) at.grandfathered.push(file);
     if (pin.role === 'new' && pin.post === null && !fs.existsSync(rel(file))) { at.pre.push(file); continue; }
     const disk = diskSha(file);
     // The POST-image is asked first, and the order is the whole of the change (fix r5
@@ -922,6 +1703,11 @@ function product(s, bound) {
     // pin.pre exactly, and a file at neither image is still UNLISTED-PRODUCT-DRIFT. This is
     // a reporting order, not a refusal; no assertion is added, removed or relaxed.
     if (pin.role === 'carried') { assert.equal(disk, pin.pre, 'UNLISTED-PRODUCT-DRIFT ' + file); at.carried.push(file); }
+    // r7 F1. Asked on the ROLE, before the post-image, so the two cannot be confused: a
+    // pinned-unchanged file is pre === post and must stand on exactly those bytes. It is
+    // counted in its own bucket and never in "at the declared post-image", because this
+    // package produced none of it — that separation is the whole of F1's correction.
+    else if (pin.role === 'pinned-unchanged') { assert.equal(disk, pin.pre, 'PRODUCT-PINNED-UNCHANGED-BYTES-MOVED ' + file); at.unchanged.push(file); }
     else if (pin.post && disk === pin.post) at.post.push(file);
     else if (disk === pin.pre) at.pre.push(file);
     else at.drift.push(file);
@@ -930,11 +1716,27 @@ function product(s, bound) {
   if (!pmap) note('product inventory completeness unverified until the PM names the parent');
   else for (const file of Object.keys(pmap))
     assert(Object.hasOwn(s.product, file), 'UNLISTED-PRODUCT-DRIFT ' + file + ' is pinned by the parent and is not in this product inventory');
-  const phase = at.post.length === 0 ? 'NOT-IMPLEMENTED' : at.pre.length === 0 ? 'IMPLEMENTED' : 'PARTIAL';
+  // r7 F1. A package whose whole inventory is pinned-unchanged has produced nothing, so
+  // "nothing at a post-image AND nothing unchanged" is still NOT-IMPLEMENTED; a file left
+  // at a pre-image it declares a different post for is still PARTIAL. The two counts are
+  // reported SEPARATELY and the phase reads over both, because a package that runs an
+  // unchanged file has satisfied its declaration for that file without producing it.
+  const standing = at.post.length + at.unchanged.length;
+  const phase = standing === 0 ? 'NOT-IMPLEMENTED' : at.pre.length === 0 ? 'IMPLEMENTED' : 'PARTIAL';
   say('PRODUCT ' + phase + '; ' + at.post.length + ' at the declared post-image / ' + at.pre.length + ' at the pinned pre-image / ' + at.carried.length +
-    ' carried byte-identical from the parent / 0 unlisted drift' + (pmap ? '; the inventory covers all ' + Object.keys(pmap).length + ' parent-pinned product files' : '') +
+    ' carried byte-identical from the parent / ' + at.unchanged.length + ' declared role "pinned-unchanged" — executed by a declared child, produced by nothing' +
+    ' / 0 unlisted drift' + (pmap ? '; the inventory covers all ' + Object.keys(pmap).length + ' parent-pinned product files' : '') +
     '; ' + at.superseded.length + ' declared role "superseded-by-child" over a parent EXECUTION pin, each equal to the parent byte' +
     (at.superseded.length ? ' (' + at.superseded.join(' ') + ')' : ''));
+  // r7 F1, said out loud on every run of a grandfathered package: these files are counted
+  // at their post-image and this package wrote none of them. The obligation is non-blocking
+  // — the seal that carries them is already accepted — and it names the fix.
+  if (at.grandfathered.length) {
+    say('PRODUCT DECLARED-UNCHANGED-UNDER-ROLE-NEW ' + at.grandfathered.length + ' of the ' + at.post.length +
+      ' at the declared post-image are declared role "new" with pre === post and stand at their sourceBase bytes; they are counted because the SEALED artifact carries these exact declarations (r7 F1 grandfather), and this package produced no byte of them: ' +
+      at.grandfathered.join(' '));
+    note('product: ' + at.grandfathered.length + ' file(s) declared role "new" with pre === post (grandfathered by the sealed artifact — r7 F1); re-declare them "pinned-unchanged" at the next seal', false);
+  }
   if (phase !== 'IMPLEMENTED') note('product ' + phase + ' (' + at.pre.length + ' declared file(s) still at the pinned pre-image)');
   return phase;
 }
@@ -942,10 +1744,13 @@ function product(s, bound) {
 // evidence, so a committed change to either — or a new file smuggled beside them — is
 // visible here, and their BYTES are pinned by the reviewed spec and the sealed artifact.
 function fidelity(s, sealed) {
-  L.git(root, ['merge-base', '--is-ancestor', s.sourceBase, 'HEAD']); // sourceBase is an ancestor of HEAD
+  ancestor(s.sourceBase, 'HEAD', 'SOURCEBASE-NOT-BEHIND-HEAD'); // sourceBase is an ancestor of HEAD
   const changed = L.git(root, ['diff', '--name-only', s.sourceBase, 'HEAD', '--', 'rebuild/engine', 'rebuild/conform', 'rebuild/m4/spec', TOOLING]).toString().split(/\r?\n/).filter(Boolean);
   const targets = new Set(s.children.flatMap(c => childArgv(c)));
-  const unlisted = changed.filter(f => !(Object.hasOwn(s.product, f) || f === ARTIFACT || f === REVIEW || TOOLING_FILES.includes(f) || targets.has(f) || f === (s.carrierSuccessor && s.carrierSuccessor.file)));
+  // r8 change 2: THIS package's own sealed-run receipt is accounted for (change 1 requires
+  // it to be committed); any OTHER package's receipt appearing in this diff is not.
+  const ownReceipt = RECEIPT_DIR + '/' + ID + '.json';
+  const unlisted = changed.filter(f => !(Object.hasOwn(s.product, f) || f === ARTIFACT || f === REVIEW || TOOLING_FILES.includes(f) || f === ownReceipt || targets.has(f) || f === (s.carrierSuccessor && s.carrierSuccessor.file)));
   assert(!unlisted.length, 'UNLISTED-SOURCE-CHANGE ' + unlisted.join(' '));
   assert.equal(diskSha(RUNNER), s.tooling.runnerSha256, 'RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER');
   assert.equal(gitSha('HEAD', RUNNER), s.tooling.runnerSha256, 'RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER-IN-GIT');
@@ -1092,7 +1897,14 @@ function children(s, env) {
     const r = cp.spawnSync(process.execPath, c.argv, { cwd: root, env, encoding: 'utf8', windowsHide: true, timeout: 1800000, maxBuffer: 32 * 1024 * 1024 });
     const out = r.stdout || '', bytes = Buffer.byteLength(out, 'utf8');
     fs.writeFileSync(path.join(logDir, c.name + '.log'), out + (r.stderr || ''));
-    assert(!r.error && r.status === 0, 'Required child ' + c.name);
+    // TOOLING-REVIEW-r10 F5. This refusal used to read “Required child <name>” — not a name
+    // in FAIL_CODES, so the single most likely real failure of any package printed a bare
+    // FAIL. It is the same refusal; it now carries a word. (It is also why
+    // GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-GREEN is belt-and-braces rather than the first
+    // line of defence: children() refuses a red child here, earlier and harder, and the
+    // evidence check reaches only the map this loop produced.)
+    assert(!r.error && r.status === 0, 'CHILD-REQUIRED-EXIT-ZERO ' + c.name + '; status ' + r.status +
+      (r.error ? ' ' + String(r.error.code || r.error.message).slice(0, 40) : '') + ', log ' + c.name + '.log');
     // N3. The needle is a VERDICT, so it must stand at the head of its own line — not
     // somewhere inside a longer sentence, and not inside a negation. And a process that
     // printed a handful of bytes did not execute a gate file: `node --version` exits 0 and
@@ -1150,39 +1962,110 @@ function successorProof(s, bound, ran) {
   const proofs = new Map();
   const sup = s.coverage.successors;
   if (sup === null || !bound) return proofs;
-  assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID);
-  // Z5, once for the run: the parent's acceptance commit is on the real chain branch,
-  // resolved from Git refs, and behind HEAD. Nothing below reads a blob before this holds.
-  L.git(root, ['merge-base', '--is-ancestor', SUCCESSOR_PARENT_COMMIT, CHAIN_REF]);
-  L.git(root, ['merge-base', '--is-ancestor', SUCCESSOR_PARENT_COMMIT, 'HEAD']);
+  // r7b F-C. The admission is the RULING's, re-taken here beside the parent's own bytes —
+  // spec() has already refused a spec whose cited line does not name this package.
+  successorRuling(s);
+  // r7b F-C / Z5. The parent's acceptance commit is no longer a constant: it is the commit
+  // the PARENT'S OWN RECEIPT names as reviewed, which option() took out of the ledger line
+  // after asserting the receipt base is on the chain branch and the artifact's bytes stand
+  // there. The spec must agree with it, so a spec can name no commit of its own.
+  const PARENT_COMMIT = bound.reviewedCommit;
+  assert.equal(sup.parentAcceptanceCommit, PARENT_COMMIT,
+    'SUCCESSOR-PARENT-ACCEPTANCE-COMMIT-IS-NOT-THE-PARENT-REVIEWED-COMMIT; the parent receipt names ' + String(PARENT_COMMIT).slice(0, 12));
+  ancestor(PARENT_COMMIT, CHAIN_REF, 'SUCCESSOR-PARENT-COMMIT-NOT-ON-THE-CHAIN-BRANCH');
+  ancestor(PARENT_COMMIT, 'HEAD', 'SUCCESSOR-PARENT-COMMIT-NOT-BEHIND-HEAD');
   // Z2 (c), the substitution list as a whole, BEFORE any carrier is considered. Every file
   // a substitution touches is a parent EXECUTION PIN, byte-equal to that pin and to the Git
   // blob at the parent's acceptance commit; every `from` stands exactly once in it; every
   // `to` stands in it not at all. A substitution over a file the parent does not pin, or
   // one whose `from` is not there, or one that is already applied, all refuse here.
+  // DECISIONS:147. The admissible target set is THE PARENT GATE'S OWN SOURCE CLOSURE at the
+  // parent's reviewed commit, walked from the declared carriers' own originals — not the
+  // parent's executionPins, which BRIEF-H3 v1.6 §9 measured to contain none of the five
+  // files a child of B-NTC must re-target. The closure is Git's, at a commit the parent's
+  // own receipt names, so a spec can neither widen it nor choose the commit.
+  const gateClosure = parentClosure(PARENT_COMMIT, Object.values(sup.carriers).map(c => c.original));
+  // DECISIONS:147 / ":113 (1) (c) … enumerated verbatim in the package spec AND IN THE
+  // REVIEW". Only the spec half was ever asserted. The spec names the review file; every
+  // `from` and every `to` must stand in it VERBATIM, so a substitution a reviewer never saw
+  // cannot enter on the spec's word alone, and a review that quotes three of four refuses
+  // on the fourth by name.
+  //
+  // TOOLING-REVIEW-r9 F3. r9 read the cited file off the WORKTREE, unpinned: a review the
+  // package wrote in its own commit was admitted, and so was a path this function never
+  // re-checked (only spec() asked its shape). Custody is now asked here, of Git:
+  //   • the path stands under `rebuild/lanes/b/reviews/` — a REVIEW, never the package's
+  //     own report or brief, and the root is fixed in this file (W7);
+  //   • its bytes are the ones the spec PINS (`reviewFileSha256`), so the file cannot move
+  //     after the spec was reviewed; and
+  //   • those same bytes stand in Git at HEAD, so a review written and never committed —
+  //     or committed and then edited — is not a review.
+  // SAID OUT LOUD, because it is the part that is NOT proved: that the review's AUTHOR is
+  // not the spec's builder is not machine-checkable here. Nothing in the tree records who
+  // wrote a file, and a builder who can commit can commit a review. What is proved is that
+  // a specific, committed, pinned document enumerates every substitution — which is what
+  // `:113 (1) (c)` asks for — not that an independent hand wrote it.
+  let reviewText = '';
+  if (sup.substitutions.length) {
+    assert(sup.reviewFile.startsWith(REVIEWS_DIR), 'SUCCESSOR-REVIEW-FILE-NOT-IN-THE-REVIEWS-DIRECTORY ' + sup.reviewFile +
+      '; the cited review must stand under ' + REVIEWS_DIR);
+    assert(fs.existsSync(rel(sup.reviewFile)), 'SUCCESSOR-REVIEW-FILE-ABSENT ' + sup.reviewFile);
+    const reviewBytes = fs.readFileSync(rel(sup.reviewFile));
+    assert.equal(sha(reviewBytes), sup.reviewFileSha256, 'SUCCESSOR-REVIEW-FILE-BYTES-NOT-THE-PINNED-REVIEW ' + sup.reviewFile);
+    let inGit = null;
+    try { inGit = gitSha('HEAD', sup.reviewFile); } catch { inGit = null; }
+    assert.equal(inGit, sup.reviewFileSha256, 'SUCCESSOR-REVIEW-FILE-NOT-IN-GIT-AT-HEAD ' + sup.reviewFile +
+      '; an uncommitted or since-edited review is not custody of anything');
+    reviewText = reviewBytes.toString('utf8');
+  }
   for (const sub of sup.substitutions) {
-    const pin = bound.acceptance.executionPins[sub.original];
-    assert(pin, 'SUCCESSOR-SUBSTITUTION-TARGET-NOT-A-PARENT-EXECUTION-PIN ' + sub.original);
+    // ADMISSIBILITY FIRST — is this file a target at all — and only then whether a reviewer
+    // saw it. A substitution reaching a protected surface is refused by the ruling itself,
+    // and a review quoting it would not make it admissible.
+    assert(gateClosure.has(sub.original), 'SUCCESSOR-SUBSTITUTION-TARGET-NOT-IN-THE-PARENT-GATE-CLOSURE ' + sub.original +
+      '; the closure at ' + PARENT_COMMIT.slice(0, 12) + ' carries ' + gateClosure.size + ' file(s) and not this one');
+    assert(!SUBSTITUTION_FORBIDDEN.some(p => sub.original.startsWith(p)),
+      'SUCCESSOR-SUBSTITUTION-TARGET-IS-A-PROTECTED-SURFACE ' + sub.original);
+    assert(reviewText.includes(sub.from) && reviewText.includes(sub.to),
+      'SUCCESSOR-SUBSTITUTION-NOT-ENUMERATED-IN-THE-REVIEW ' + sub.original + '; ' + sup.reviewFile +
+      ' does not carry this substitution verbatim');
     const bytes = fs.readFileSync(rel(sub.original));
-    assert.equal(sha(bytes), pin, 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + sub.original);
-    assert.equal(sha(bytes), gitSha(SUCCESSOR_PARENT_COMMIT, sub.original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + sub.original);
+    // SHA-ANCHORED to the parent's reviewed commit, which is `:147`'s own requirement and
+    // the thing that makes a closure membership test worth anything: the bytes being
+    // substituted must be the bytes the parent was accepted on.
+    assert.equal(sha(bytes), gitSha(PARENT_COMMIT, sub.original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + sub.original);
+    // And where the parent DOES pin the file, the pin still binds — strictly more, never
+    // less, than `:113 (c)` asked before `:147` widened it.
+    const pin = bound.acceptance.executionPins[sub.original];
+    if (pin) assert.equal(sha(bytes), pin, 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + sub.original);
     const text = bytes.toString('utf8');
     assert.equal(text.split(sub.from).length, 2, 'SUCCESSOR-SUBSTITUTION-NOT-EXACTLY-ONCE-IN-THE-ORIGINAL ' + sub.original + ' ' + JSON.stringify(sub.from.slice(0, 48)));
     assert.equal(text.split(sub.to).length, 1, 'SUCCESSOR-SUBSTITUTION-ALREADY-IN-THE-ORIGINAL ' + sub.original + ' ' + JSON.stringify(sub.to.slice(0, 48)));
+    // TOOLING-REVIEW-r9 C (vi). A `from` that is the WHOLE FILE is a rewrite wearing a
+    // substitution's name: nothing of the parent's accepted body would survive it, and the
+    // sha anchor above would still hold because it anchors the INPUT. spec() refuses it as
+    // NOT-A-RE-TARGET-AND-NOT-RULED, but that is spec()'s gate and this function must not
+    // depend on the order the two are called in — r9 measured it ADMITTED here. So the
+    // run-phase gate asks it too, of the parent's own bytes: what the substitution does not
+    // replace must still be a body.
+    const remainder = text.split(sub.from).join('').trim();
+    assert(remainder.length >= 40, 'SUCCESSOR-SUBSTITUTION-IS-A-WHOLE-FILE-REPLACEMENT ' + sub.original +
+      '; removing the declared `from` leaves ' + remainder.length + ' byte(s) of the parent\'s accepted body standing, and ' +
+      SUCCESSOR_RULING + ' (c) admits a re-target WITHIN that body, never a rewrite of it');
   }
-  const accepted = acceptedVerdicts(bound);
+  const accepted = acceptedVerdicts(s, bound);
   for (const [parentChild, declared] of Object.entries(sup.carriers))
-    proofs.set(parentChild, proveSuccessor(s, bound, ran, parentChild, declared, accepted));
+    proofs.set(parentChild, proveSuccessor(s, bound, ran, parentChild, declared, accepted, PARENT_COMMIT));
   return proofs;
 }
-function proveSuccessor(s, bound, ran, parentChild, declared, accepted) {
+function proveSuccessor(s, bound, ran, parentChild, declared, accepted, PARENT_COMMIT) {
   const sup = s.coverage.successors, original = declared.original;
   assert.equal(bound.acceptance.executionPins[original] !== undefined, true, 'SUCCESSOR-ORIGINAL-NOT-A-PARENT-EXECUTION-PIN ' + original);
   // (1) the original is the parent's own byte, on disk, in the parent's pin map, and in Git
   // at the parent's acceptance commit — anchored on the chain by successorProof() above.
   const originalBytes = fs.readFileSync(rel(original));
   assert.equal(sha(originalBytes), bound.acceptance.executionPins[original], 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + original);
-  assert.equal(sha(originalBytes), gitSha(SUCCESSOR_PARENT_COMMIT, original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + original);
+  assert.equal(sha(originalBytes), gitSha(PARENT_COMMIT, original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + original);
   const originalText = originalBytes.toString('utf8');
   // (2) names it, and does not contain it. The closure is the files THIS PACKAGE declares as
   // its own role:"new" product — the lane's code and nothing else. Every file the walk stops
@@ -1214,12 +2097,46 @@ function proveSuccessor(s, bound, ran, parentChild, declared, accepted) {
   // line of the original must be absent from the successor's own source.
   const subs = sup.substitutions.filter(x => x.original === original);
   const quoted = sup.substitutions.flatMap(x => [x.from, x.to]);
-  const lines = originalText.split('\n').map(l => l.trim())
+  const qualify = text => text.split('\n').map(l => l.trim())
     .filter(l => l.length >= 40 && !quoted.some(q => q.includes(l) || l.includes(q)));
-  assert(lines.length >= 8, 'SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD ' + original);
-  const copied = lines.filter(l => body.includes(l));
-  assert(!copied.length, 'SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT ' + parentChild + '; ' +
-    copied.length + ' of ' + lines.length + ' original line(s) stand verbatim in the successor source');
+  // DECISIONS:147. THE FLOOR IS MEASURED ON THE BODY THE WRAPPER LOADS, not on the wrapper.
+  // B-NTC's carriers are nine-line wrappers carrying seven qualifying lines each, and they
+  // LOAD `b-ntc-successors.cjs` (174 qualifying lines) — exactly `:113 (b)`'s own mechanic.
+  // The old floor was calibrated to NATIVE-CARRIERS' large programmes, so BRIEF-H3 v1.6 §9
+  // measured `SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD` on all five of B-NTC's carriers
+  // and no child of B-NTC could ever have met it.
+  //
+  // TOOLING-REVIEW-r9 F1, BLOCKING, and the fix is the whole point of the rule. r9 took
+  // "the body the wrapper loads" to mean "the fattest body anywhere in the wrapper's
+  // closure", and the closure includes path literals and `.json`: measured against the real
+  // parent, all five B-NTC carriers chose `rebuild/conform/v4/postfix/acceptance-step-
+  // efficacy.json` (7 791 qualifying lines) and NEVER `b-ntc-successors.cjs`. A data fixture
+  // cannot be pasted into a successor, so the copy test — the ONE mechanical proof that the
+  // parent body is LOADED and not PASTED — was inert, and a successor carrying the loaded
+  // module verbatim was admitted. The bodies are now exactly those reached from the original
+  // by the COMPILE EDGE (relative require/import, no path literals, no `.json`), and:
+  //   • the copy test runs over ALL of them, the original included, and names the file;
+  //   • the floor is the largest of them, so a wrapper whose loaded module is itself thin
+  //     still refuses.
+  // The copy test is asked FIRST. A pasted body is evidence whatever its length, and asking
+  // the floor first would answer a paste with "too short to tell" — which is how r9's own
+  // control (9-line wrapper → 5-line loaded body, pasted whole) came back ADMITTED.
+  const loaded = new Map([[original, originalText]]);
+  for (const [f, src] of parentClosure(PARENT_COMMIT, [original], 'require')) loaded.set(f, src);
+  for (const [f, src] of loaded) {
+    const copied = qualify(src).filter(l => body.includes(l));
+    assert(!copied.length, 'SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT ' + parentChild + '; ' +
+      copied.length + ' line(s) of ' + f + ', which ' + original + ' loads, stand verbatim in the successor source');
+  }
+  let floorFile = original, lines = qualify(originalText);
+  for (const [f, src] of loaded) {
+    if (f === original) continue;
+    const q = qualify(src);
+    if (q.length > lines.length) { lines = q; floorFile = f; }
+  }
+  assert(lines.length >= SUCCESSOR_LOAD_FLOOR, 'SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD ' + original +
+    '; the largest body it LOADS at ' + PARENT_COMMIT.slice(0, 12) + ' is ' + floorFile + ' with ' + lines.length +
+    ' qualifying line(s) across ' + loaded.size + ' compiled file(s), and ' + SUCCESSOR_LOAD_FLOOR + ' are required');
   // (3) the replacements are exactly the enumerated ones, and nothing else replaces.
   const { table, holder } = successorTable(sources);
   assert.deepEqual(table, sup.substitutions, 'SUCCESSOR-SUBSTITUTION-TABLE-DISAGREES-WITH-THE-SPEC ' + holder);
@@ -1243,10 +2160,13 @@ function proveSuccessor(s, bound, ran, parentChild, declared, accepted) {
 // carry the ruling, and the ruled gate set is derived from the parent artifact's bytes.
 function successorCoverage(s, bound, proofs, gate, child, targets) {
   assert(s.coverage.successors !== null, 'INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE ' + gate + ' ' + child + ' ' + targets[0]);
-  assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID);
-  const admitted = successorGates(bound);
+  // r7b F-C: the ruling admits the package, and the gate set is derived from the parent
+  // artifact's own byChild map plus the carriers THIS spec declares plus the support file
+  // the ruling names. A gate the ruling does not reach is simply not in the map.
+  successorRuling(s);
+  const admitted = successorGates(s, bound);
   assert(admitted.has(gate), 'SUCCESSOR-GATE-NOT-IN-THE-RULING ' + gate +
-    '; the parent artifact records ' + admitted.size + ' gate(s) whose carrier reaches ' + SUCCESSOR_SUPPORT);
+    '; the parent artifact records ' + admitted.size + ' gate(s) whose declared carrier reaches ' + s.coverage.successors.support);
   const { child: parentChild, original } = admitted.get(gate);
   const proof = proofs.get(parentChild);
   assert(proof, 'SUCCESSOR-CARRIER-NOT-DECLARED ' + gate + ' ' + parentChild);
@@ -1254,6 +2174,121 @@ function successorCoverage(s, bound, proofs, gate, child, targets) {
   assert.equal(proof.child, child, 'SUCCESSOR-CHILD-DOES-NOT-EXECUTE-THE-DECLARED-SUCCESSOR ' + gate + ' ' + child);
   assert(targets.includes(proof.successor), 'SUCCESSOR-CHILD-DOES-NOT-EXECUTE-THE-DECLARED-SUCCESSOR ' + gate + ' ' + proof.successor);
   return proof;
+}
+// REQUESTS 08:40 (b), the RUN PHASE. Returns gate -> { carrier, why, evidence, executed },
+// and it returns nothing at all unless the PM's line stands on the chain branch: the ruling
+// is asked FIRST, so a spec that declares the block without one refuses by name and no
+// evidence is even read. Then, per carrier: it must be a carrier of THIS parent (its name
+// must stand in the parent artifact's own byChild map — a spec cannot invent one), and
+// every child the evidence names must have RUN IN THIS RUN and be green. That is the whole
+// difference between evidence and a claim: `ran` is the map children() built by actually
+// spawning them, so "absent" and "red" are the same refusal shape as everywhere else.
+// The pure derivation, with no execution question in it: which of the parent's gates the
+// declared carriers cover. proposed() needs it to keep the sealed artifact's `covered`,
+// `superseded` and `run` lists disjoint and exhaustive; supersededGates() below is the one
+// that decides whether any of it is ADMITTED.
+function supersededGateIds(s, bound) {
+  const sup = s.coverage.superseded;
+  const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
+  if (sup == null || !byChild) return [];
+  return Object.entries(byChild).filter(([, c]) => Object.hasOwn(sup.gates, c)).map(([g]) => g).sort();
+}
+// The same derivation, grouped: which gates EACH declared carrier retires. TOOLING-REVIEW-r10
+// F2 asked for the true count per carrier in both the coverage line and the artifact.
+function supersededByCarrier(s, bound) {
+  const sup = s.coverage.superseded;
+  const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
+  if (sup == null || !byChild) return {};
+  const out = {};
+  for (const carrier of Object.keys(sup.gates).sort())
+    out[carrier] = Object.entries(byChild).filter(([, c]) => c === carrier).map(([g]) => g).sort();
+  return out;
+}
+// DECISIONS:153 (ii), the fifth evidence kind, COMPUTED BY THE RUNNER and not taken on the
+// child's word: every tracked `rebuild/engine` file that this package does NOT declare as its
+// own product must stand byte-identical to the PARENT'S POST — or, where the parent declares
+// no post for it, to the blob at the parent's own `sourceBase`. That is the exact sentence
+// :153 (ii) asks the named-files differential to prove, asked again here of the parent
+// artifact and the disk, so the differential child is corroboration and never the only
+// evidence. Returns the count compared, which the child's needle is then held to.
+function supersessionEngineIdentity(s, bound) {
+  const tracked = L.git(root, ['ls-files', '-z', ENGINE_ROOT.slice(0, -1)]).toString('utf8')
+    .split('\0').filter(f => f.startsWith(ENGINE_ROOT));
+  const base = bound.acceptance.sourceBase;
+  let compared = 0;
+  for (const f of tracked) {
+    if (Object.hasOwn(s.product, f)) continue;               // named by this package's brief
+    const pin = bound.acceptance.product[f];
+    let want = pin && pin.post !== null && pin.post !== undefined ? pin.post : null;
+    if (want === null) {
+      assert(typeof base === 'string' && /^[a-f0-9]{40}$/.test(base),
+        'SUPERSESSION-ENGINE-PARENT-SOURCEBASE-UNAVAILABLE ' + f + '; the parent artifact declares no post for it and no sourceBase to fall back to');
+      want = gitSha(base, f);
+    }
+    assert.equal(diskSha(f), want, 'SUPERSESSION-ENGINE-FILE-OUTSIDE-THE-BRIEF-MOVED ' + f +
+      '; it is not declared by this package and does not stand at ' +
+      (pin && pin.post ? 'the parent post ' + String(want).slice(0, 12) : 'the parent sourceBase blob ' + String(base).slice(0, 7)));
+    compared++;
+  }
+  assert(compared, 'SUPERSESSION-ENGINE-DIFFERENTIAL-COMPARED-NOTHING; no tracked ' + ENGINE_ROOT + ' file stands outside this package\'s own product');
+  return compared;
+}
+function supersededGates(s, bound, ran) {
+  const out = new Map();
+  const sup = s.coverage.superseded;
+  if (sup == null) return out;
+  const ruling = supersessionRuling(s);                        // (iii) — refuses if absent
+  const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
+  assert(byChild, 'GATE-SUPERSESSION-WITHOUT-A-BOUND-PARENT-ARTIFACT; a gate can only be superseded against the parent that covered it');
+  const parentCarriers = new Set(Object.values(byChild));
+  // DECISIONS:153 (ii). The runner's own named-files differential, once per run, before any
+  // carrier is admitted: if an engine file outside this package's brief has moved, no amount
+  // of declared evidence is worth reading.
+  const engineCompared = supersessionEngineIdentity(s, bound);
+  const byName = byNameOf(s);
+  for (const [carrier, row] of Object.entries(sup.gates)) {
+    // TOOLING-REVIEW-r10 F2 — BLOCKING, and the fix is this one line. r10 asked the ruling
+    // only whether it mentioned SOME carrier, so a PM line reading "may declare second-gate
+    // SUPERSEDED and nothing else" admitted all five and nine gates. The grant token is now
+    // matched CARRIER BY CARRIER: a line naming second-gate frees second-gate alone.
+    assert(ruling.granted.has(carrier), 'GATE-SUPERSESSION-CARRIER-IS-NOT-IN-THE-RULING ' + carrier +
+      '; DECISIONS:' + ruling.at + '\'s grant token frees ' + [...ruling.granted].sort().join(',') + ' for this package');
+    assert(parentCarriers.has(carrier), 'GATE-SUPERSESSION-CARRIER-IS-NOT-A-PARENT-CARRIER ' + carrier +
+      '; ' + bound.option.id + '\'s own coverage.byChild names ' + [...parentCarriers].sort().join(' '));
+    // A gate is superseded OR carried, never both: a successor that carries it would be
+    // claiming the very byte-identity the supersession says cannot be reproduced.
+    const claimed = s.coverage.successors && Object.hasOwn(s.coverage.successors.carriers, carrier);
+    assert(!claimed, 'GATE-SUPERSESSION-CARRIER-IS-ALSO-CLAIMED-BY-A-SUCCESSOR ' + carrier);
+    const e = row.evidence, executed = [];
+    for (const child of evidenceChildren(e)) {
+      const r = ran.get(child);
+      assert(r, 'GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-EXECUTED ' + carrier + ' ' + child +
+        '; the named evidence child did not run in this run');
+      assert(r.ok, 'GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-GREEN ' + carrier + ' ' + child +
+        '; the named evidence child ran and did not pass');
+      executed.push(child);
+    }
+    // The runner's OWN census line as evidence is admitted only when that line says `none`.
+    if (e.census === SUPERSESSION_RUNNER_CENSUS)
+      assert(!s.privateLiveTriggered.length, 'GATE-SUPERSESSION-EVIDENCE-CENSUS-LINE-IS-NOT-CLEAN ' + carrier +
+        '; the runner\'s own census line names ' + s.privateLiveTriggered.join(' ') + ', so it is not byte-identity evidence');
+    // DECISIONS:153 (ii), the child's half: its needle must STATE the count of engine files
+    // compared and claim byte-identity over `rebuild/engine`, and the count it states is the
+    // one the runner measured a moment ago. A differential that says "all good" without a
+    // number, or with somebody else's number, is not the proof :153 asks for.
+    const diffNeedle = byName.get(e.engineFilesDifferential).needle;
+    assert(new RegExp('(?:^|\\D)' + engineCompared + '(?:\\D|$)').test(diffNeedle),
+      'GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-STATE-THE-COUNT ' + carrier + ' ' +
+      e.engineFilesDifferential + '; the runner compared ' + engineCompared + ' file(s) and the needle is ' + JSON.stringify(diffNeedle));
+    assert(/byte-identical/i.test(diffNeedle) && diffNeedle.includes('rebuild/engine'),
+      'GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-CLAIM-BYTE-IDENTITY ' + carrier + ' ' +
+      e.engineFilesDifferential + '; the needle must name rebuild/engine and say byte-identical');
+    const gates = Object.entries(byChild).filter(([, c]) => c === carrier).map(([g]) => g).sort();
+    for (const gate of gates)
+      out.set(gate, { carrier, why: row.why, evidence: e, executed, gates, engineCompared, at: ruling.at, line: ruling.line });
+  }
+  assert(out.size, 'GATE-SUPERSESSION-SUPERSEDES-NO-GATE-OF-THE-PARENT');
+  return out;
 }
 // W2. A gate is covered ONLY by a declared child that executed here with its exact
 // declared verdict — never by a file's existence. The inherited set must be exactly the
@@ -1265,13 +2300,22 @@ function coverage(s, bound, ran) {
   // Every declared successor is proved before any gate is admitted by one, so a carrier
   // that claims no gate is held to exactly the same four proofs as one that does.
   const proofs = successorProof(s, bound, ran);
+  // REQUESTS 08:40 (b). Decided BEFORE the inherited map is compared, because a superseded
+  // gate is one the child does NOT inherit: `coverage.inherited` must drop it, and the
+  // equality below is taken against the parent map MINUS the superseded gates.
+  const superseded = supersededGates(s, bound, ran);
+  SUPERSEDED_RESOLVED = superseded;
   const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
   if (!byChild) { if (covered.size) note('inherited coverage unverified against a parent artifact until the PM names the parent'); }
   else {
     // N1. The WHOLE inherited map, gate AND child, is the parent artifact's own — not just
     // its gate ids. Re-pointing the parent's nine at one child of this spec's choosing is
     // what B30 did; that is what this equality refuses.
-    assert.deepEqual(s.coverage.inherited, byChild, 'INHERITED-COVERAGE-IS-NOT-THE-PARENT-COVERED-SET');
+    const inheritable = Object.fromEntries(Object.entries(byChild).filter(([g]) => !superseded.has(g)));
+    for (const gate of superseded.keys())
+      assert(!Object.hasOwn(s.coverage.inherited, gate), 'GATE-SUPERSESSION-GATE-IS-ALSO-INHERITED ' + gate +
+        '; a superseded gate is not carried, so coverage.inherited must drop it');
+    assert.deepEqual(s.coverage.inherited, inheritable, 'INHERITED-COVERAGE-IS-NOT-THE-PARENT-COVERED-SET');
     for (const [gate, child] of Object.entries(s.coverage.inherited)) {
       const targets = ran.get(child).targets;
       // The ordinary case: the child ran the parent's own pinned executable. Unchanged.
@@ -1283,14 +2327,47 @@ function coverage(s, bound, ran) {
     }
     // The closed bound the accepted original states as assert.equal(covered.length, 9):
     // exactly the parent's covered set plus this package's own declared, bounded moves.
-    assert.equal(covered.size, Object.keys(byChild).length + Object.keys(s.coverage.moves).length, 'COVERED-SET-BOUND');
+    assert.equal(covered.size + superseded.size, Object.keys(byChild).length + Object.keys(s.coverage.moves).length, 'COVERED-SET-BOUND');
   }
   assert.equal(covered.size, Object.keys(s.coverage.inherited).length + Object.keys(s.coverage.moves).length, 'COVERED-SET-BOUND');
   say('COVERAGE ' + covered.size + '/' + GATE_IDS.length + ' original gate(s) covered by ' + new Set(covered.values()).size + ' executed child(ren) (' +
     Object.keys(s.coverage.inherited).length + ' inherited' + (byChild ? ', the parent map byte-for-byte' : ', unverified') + '; ' +
     Object.keys(s.coverage.moves).length + ' moved, each naming its own original executable in a relative require specifier' +
     ' and each proved by that gate’s own needle out of R.GATES in the child’s stdout); ' +
-    (GATE_IDS.length - covered.size) + ' re-execute under --full');
+    // TOOLING-REVIEW-r10 F2, the reporting half: the TRUE count, per carrier. The role
+    // retires GATES, not carriers — five carriers of B-NTC cover nine of the nineteen — and
+    // the line now says which carrier retired which, so nobody reads "five" and means nine.
+    (superseded.size ? superseded.size + ' SUPERSEDED under DECISIONS:' + [...superseded.values()][0].at +
+      ' (' + [...new Set([...superseded.values()].map(r => r.carrier))].sort()
+        .map(c => c + ' ' + [...superseded.values()].filter(r => r.carrier === c).length).join(', ') +
+      '), counted toward the ' + GATE_IDS.length + ' only under that ruling; ' : '') +
+    (GATE_IDS.length - covered.size - superseded.size) + ' re-execute under --full');
+  // REQUESTS 08:40 (b), the reporting half, and it is why the role exists at all: a
+  // superseded gate is named SUPERSEDED — never OBSERVED, never carried — with the carrier
+  // it replaces, the PM line that freed it, and every evidence child this run EXECUTED.
+  if (superseded.size) {
+    const byCarrier = new Map();
+    for (const [gate, r] of superseded) byCarrier.set(r.carrier, [...(byCarrier.get(r.carrier) || []), gate]);
+    say('SUPERSESSIONS ' + byCarrier.size + ' byte-identity carrier(s) of ' + bound.option.id + ' SUPERSEDED over ' +
+      superseded.size + ' gate(s) under DECISIONS:' + [...superseded.values()][0].at +
+      ', located on ' + CHAIN_REF + ' BY ITS OWN SHA256 ' + s.coverage.superseded.rulingLineSha256.slice(0, 12) +
+      '; these gates reconstruct rebuild/engine byte-for-byte from a frozen BASE and assert every path the parent spec' +
+      ' declares at the parent\'s own post, so no child that changes a declared file can carry them — the child\'s own' +
+      ' evidence stands in their place and every named child ran green in THIS run');
+    for (const [carrier, gates] of byCarrier) {
+      const r = superseded.get(gates[0]), e = r.evidence;
+      say('SUPERSEDED ' + carrier + ' <- ' + gates.slice().sort().join(' ') + '; ' + r.why);
+      say('SUPERSEDED EVIDENCE ' + carrier + '; laws ' + (e.laws === null ? 'UNMOVED' : 'moved per ' + e.laws.join(' ')) +
+        '; red-first ' + e.redFirst.join(' ') + '; public census ' +
+        (e.census === SUPERSESSION_RUNNER_CENSUS ? 'the runner\'s own census line, which says none' : 'child ' + e.census) +
+        '; legacy differential ' + e.legacyDifferential + '; writers differential ' + e.writersDifferential +
+        // DECISIONS:153 (ii): the named-files differential, and the count the RUNNER measured
+        // beside the child that states it.
+        '; engine-files differential ' + e.engineFilesDifferential + ' over ' + r.engineCompared +
+        ' tracked ' + ENGINE_ROOT + ' file(s) outside this package\'s own product, each re-compared here against the parent post' +
+        '; ' + r.executed.length + ' named child(ren) executed green in this run');
+    }
+  }
   // The declared verdict is never echoed: it carries the word PASS, and a REVIEW-PENDING
   // run must print that word only inside its own two negations.
   // Z1/Z2, the honesty half, and it is the sentence r2's R5 said was missing: the runner
@@ -1301,7 +2378,7 @@ function coverage(s, bound, ran) {
     const sup = s.coverage.successors;
     say('SUCCESSORS ' + proofs.size + ' declared successor executable(s) PROVED against the parent original, of which ' + carried.size +
       ' carry an inherited gate under MOVES_RULING=' + SUCCESSOR_RULING + ' (' + sup.ruling + '); coverage.moves stays {} and X1 is unwidened; each successor LOADS the parent carrier\'s own original, byte-equal to the parent execution pin AND to the Git blob at ' +
-      SUCCESSOR_PARENT_COMMIT.slice(0, 7) + ' (on ' + CHAIN_REF + ' and behind HEAD), contains none of its lines, replaces only through the declared table, and prints the parent\'s own accepted verdict in full; ' +
+      String(bound.reviewedCommit).slice(0, 7) + ' (the commit the parent\'s own receipt names as reviewed, on ' + CHAIN_REF + ' and behind HEAD), contains none of its lines, replaces only through the declared table, and prints the parent\'s own accepted verdict in full; ' +
       sup.substitutions.length + ' enumerated substitution(s)');
     for (const p of proofs.values())
       say('SUCCESSOR ' + p.parentChild + ' <- ' + p.successor + ' loads ' + p.original + '; child ' + p.child + '; ' +
@@ -1362,8 +2439,17 @@ function proposed(s, bound) {
     // (X2): a later reader of the artifact can see which gates were carried by a successor,
     // under which ruling id, and what the enumerated substitutions were, without trusting
     // the spec that produced it. It is null for every package that declares none.
-    coverage: { covered, run: GATE_IDS.filter(g => !covered.includes(g)).sort(), moves: s.coverage.moves,
-      successors: s.coverage.successors,
+    // REQUESTS 08:40 (b): the supersession travels into the sealed artifact the same way —
+    // the carriers, the PM line's own sha256 and the EVIDENCE NAMES, so a later reader sees
+    // which of the parent's gates were not carried and what stood in their place without
+    // trusting the spec that produced it. `superseded` and `run` are disjoint from
+    // `covered`: a superseded gate is neither carried here nor re-executed under --full.
+    coverage: { covered, superseded: supersededGateIds(s, bound),
+      // TOOLING-REVIEW-r10 F2: the TRUE count, per carrier, in the artifact as well as the
+      // terminal — `{ <carrier>: [<gate ids it retires>] }`, empty when none is declared.
+      supersededByCarrier: supersededByCarrier(s, bound),
+      run: GATE_IDS.filter(g => !covered.includes(g) && !supersededGateIds(s, bound).includes(g)).sort(),
+      moves: s.coverage.moves, successors: s.coverage.successors, supersessions: s.coverage.superseded ?? null,
       byChild: { ...s.coverage.inherited, ...Object.fromEntries(Object.entries(s.coverage.moves).map(([g, m]) => [g, m.child])) } },
     authorizations: s.authorizations, product: s.product, carrierSuccessor: s.carrierSuccessor, witnessFlips: s.witnessFlips,
     protectedSurfaces: s.protectedSurfaces, children: s.children, artifact: { file: ARTIFACT, review: REVIEW }, executionPins: pins,
@@ -1372,6 +2458,183 @@ function proposed(s, bound) {
 const ARTIFACT_KEYS = ['version', 'lanePackage', 'packageId', 'sourceBase', 'parent', 'spec', 'runner', 'dIds', 'laws', 'carriedAcceptedIds',
   'privateLiveTriggered', 'gates', 'coverage', 'authorizations', 'product', 'carrierSuccessor', 'witnessFlips', 'protectedSurfaces',
   'children', 'artifact', 'executionPins'];
+// DECISIONS:135 (4) SEAL ON THE TIP, ENFORCED — "the seal runner refuses to seal unless the
+// branch head is on origin/rebuild/t2-client-core (or the PM has written a FREEZE line
+// naming the base)". The diagnosis :135 records is a seal on a stale base costing a whole
+// round trip; the cure is that the runner asks the question the human was asking.
+//
+// "ON the tip" is decided as the FIRST-PARENT chain of HEAD, not as ancestry. Ancestry is
+// the weaker question and it is already asked elsewhere; it says only that the tip is
+// somewhere behind, which a branch that merged the chain once a week ago also satisfies.
+// The first-parent chain says the lane head is BUILT ON the tip — which is exactly the
+// mechanic :135's own timeline names, "rebase + final round + seal each, on the tip".
+//
+// SAID OUT LOUD, because it has an operational consequence: `git merge --no-ff <tip>` run
+// FROM THE LANE puts the tip on the SECOND parent, so it does NOT satisfy this. What does:
+// rebasing the lane onto the tip, branching afresh from it, or fast-forwarding to it. A
+// lane that must keep a merge commit has the PM's FREEZE line, below, and nothing else.
+// The tip is read from GIT REFS (CHAIN_REF), never from a spec.
+//
+// THE ESCAPE, and it is the PM's alone: a FREEZE line in rebuild/DECISIONS.md naming the
+// base this seal stands on. The spec CITES it in authorizations.freeze exactly as it cites
+// owner, contract and theme — and it is matched the same way, by the LINE'S OWN SHA256
+// found on the chain branch, so a lane cannot write its own freeze. The line must say
+// FREEZE, name this package, and name a commit that IS in this HEAD's first-parent chain:
+// a freeze naming somebody else's base frees nothing.
+function sealOnTheTip(s, out) {
+  const tip = L.git(root, ['rev-parse', CHAIN_REF]).toString().trim();
+  assert(/^[a-f0-9]{40}$/.test(tip), 'CHAIN-TIP-UNRESOLVED ' + CHAIN_REF);
+  // r8 F1, and the PM has NOT relaxed it yet, so first-parent stands. What changed is that
+  // the question is now ONE CONSTANT: `SEAL_TIP_RULE`. Under 'first-parent' the tip must be
+  // in HEAD's own first-parent chain (a rebase, a fresh branch, a fast-forward); under
+  // 'ancestor' it need only be behind HEAD, which admits the `git merge --no-ff <tip>`
+  // workflow :137 (1) makes the house move and which r8 recommends. Both branches are
+  // exercised by the suite at both settings, so the day the PM answers, one word moves and
+  // nothing else does. The FREEZE escape below is identical either way.
+  const firstParents = new Set(L.git(root, ['rev-list', '--first-parent', 'HEAD']).toString().split(/\r?\n/).filter(Boolean));
+  const onTip = SEAL_TIP_RULE === 'first-parent' ? firstParents.has(tip)
+    : (() => { try { L.git(root, ['merge-base', '--is-ancestor', tip, 'HEAD']); return true; } catch { return false; } })();
+  if (onTip) {
+    out('SEAL BASE ON THE TIP; ' + CHAIN_REF + ' is at ' + tip.slice(0, 7) + ' and that commit ' +
+      (SEAL_TIP_RULE === 'first-parent' ? 'stands in this HEAD\'s own first-parent chain' : 'is an ancestor of this HEAD') +
+      ' (DECISIONS:135 (4), rule=' + SEAL_TIP_RULE + ')');
+    return;
+  }
+  const freeze = s.authorizations.freeze || null;
+  assert(freeze, 'SEAL-BASE-IS-NOT-THE-CHAIN-TIP ' + CHAIN_REF + ' is at ' + tip.slice(0, 7) + ' and that commit is ' +
+    (SEAL_TIP_RULE === 'first-parent' ? 'not in this HEAD\'s first-parent chain' : 'not an ancestor of this HEAD') +
+    '; merge or rebase the tip, or cite a PM FREEZE line naming this base (DECISIONS:135 (4), :145)');
+  const lines = L.object(root, CHAIN_REF, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
+  const hits = lines.map((line, i) => [i + 1, line]).filter(([, line]) => sha(Buffer.from(line)) === freeze.lineSha256);
+  assert.equal(hits.length, 1, 'SEAL-FREEZE-LINE-NOT-ON-THE-CHAIN-BRANCH ' + hits.length +
+    ' line(s) on ' + CHAIN_REF + ' hash to the cited freeze lineSha256');
+  const [at, line] = hits[0];
+  assert(/\bFREEZE\b/.test(line) && line.includes(s.packageId),
+    'SEAL-FREEZE-LINE-DOES-NOT-FREEZE-THIS-PACKAGE DECISIONS:' + at);
+  const named = (line.match(/\b[a-f0-9]{40}\b/g) || []).filter(c => firstParents.has(c));
+  assert(named.length, 'SEAL-FREEZE-LINE-DOES-NOT-NAME-A-BASE-IN-THIS-FIRST-PARENT-CHAIN DECISIONS:' + at +
+    '; the freeze must name the commit this seal actually stands on');
+  out('SEAL BASE FROZEN BY DECISIONS:' + at + '; ' + CHAIN_REF + ' has moved to ' + tip.slice(0, 7) +
+    ' and the PM\'s FREEZE line, found on that branch by its own sha256, names ' + named[0].slice(0, 7) +
+    ' in this HEAD\'s first-parent chain (DECISIONS:135 (4))');
+}
+// DECISIONS:136 (3) AUTHORIZED STEP = BYTE-IDENTITY RE-VERIFY. The owner's amendment to the
+// :88/:103 (5) rerun step: after the PM's receipt, an AUTHORIZED rerun whose artifact,
+// runner, spec and every pinned product file are byte-identical to the sealed run is a
+// --ci run + pin verification + receipt check, and prints POSTFIX PACKAGE PASS on that
+// basis. ANY byte change voids the receipt and forces the FULL run exactly as before; the
+// FIRST full run with the private census is unchanged.
+//
+// The SEALED RUN is recorded by the seal step itself — the --full run that reaches
+// POSTFIX PACKAGE PASS writes rebuild/lanes/b/tooling/receipts/<ID>.json, and nothing else
+// in this runner ever writes it. It is a RECEIPT, not evidence: it can only ever cause the
+// expensive matrix to be SKIPPED, never cause a PASS that the --ci evidence, the pins, the
+// ledger and the ACCEPTED envelope have not already earned on this very run. Everything a
+// forged receipt could claim has already been re-taken from bytes by the time it is read.
+//
+// The receipt does not live in the spec and cannot: a spec cannot carry its own sha256, and
+// an artifact recomputed by proposed() cannot carry its own either. It lives beside them,
+// inside fidelity()'s own change check and pinned into the seal by TOOLING_FILES.
+const SEALED_RUN_KEYS = ['version', 'lanePackage', 'packageId', 'sealedRun'];
+const SEALED_RUN_BLOCK_KEYS = ['artifactSha256', 'specSha256', 'runnerSha256', 'envelopeKey', 'verdictFile', 'product'];
+const VERDICT_FILE = 'rebuild/lanes/b/VERDICT-' + ID + '.md'; // W7: derived here, never named by a spec
+//
+// r8 CHANGE 1 — THE RECEIPT MUST BE AUTHENTIC, NOT MERELY CONSISTENT. r8 measured the hole
+// and it is the only ungated admission point in the pass: a receipt WRITTEN BY HAND, by a
+// process that never ran a gate, returned ok:true, and `main` then skipped privateOracle(),
+// historical() and the 19 gates on nothing but a plain disk read. Consistency with the
+// bytes on disk is exactly what a forger has; it is not evidence that a FULL run happened.
+//
+// So the receipt is now bound to two things the hand that writes it cannot also write:
+//   (1) ITS OWN SHA256 STANDS IN THE VERDICT FILE. `:136 (3)` says "the verdict file reports
+//       the sealed run"; r7 read that as three hashes pasted anywhere in the prose, which a
+//       forger supplies as easily as the receipt. The verdict must now name the RECEIPT —
+//       the one string that only exists once the seal step has actually written one.
+//   (2) THOSE BYTES STAND IN GIT, at HEAD (and, once the envelope is ACCEPTED, also at the
+//       package's own RECEIPT BASE — the commit the PM's ledger line names, which no lane
+//       can rewrite). An untracked receipt, or one edited since it was committed, refuses.
+// Both are cheap and neither is a judgement: they say the receipt was produced by a run
+// that was committed and reviewed, which is precisely what "in place of a FULL run" needs.
+function sealedRunReceipt(s, key) {
+  const file = RECEIPT_DIR + '/' + ID + '.json';
+  if (!fs.existsSync(rel(file))) return { ok: false, code: 'SEALED-RUN-RECEIPT-ABSENT', file };
+  let r = null;
+  try { r = J.parseExact(fs.readFileSync(rel(file))); } catch { return { ok: false, code: 'SEALED-RUN-RECEIPT-UNREADABLE', file }; }
+  const receiptSha = diskSha(file);
+  // (2) IN GIT. HEAD is MANDATORY: the receipt must be committed, so an untracked one — the hand-written
+  // case r8 fired — and one edited since it was committed both refuse here.
+  let atHead = null;
+  try { atHead = gitSha('HEAD', file); } catch { atHead = null; }
+  if (atHead !== receiptSha)
+    return { ok: false, code: 'SEALED-RUN-RECEIPT-NOT-IN-GIT', file, at: 'HEAD', moved: [file + ' is not committed at HEAD'] };
+  // The package's own RECEIPT BASE — the commit the PM's ledger line names — is checked
+  // ONCE SET, meaning: if the receipt already stands there, its bytes must be these. It
+  // cannot be required to exist there, because the base is the commit the PM signed and the
+  // seal step that writes the receipt runs after it; what this refuses is the other order,
+  // a receipt that stood at the base and has since been replaced by a different one.
+  const parts = String(key).split(':');
+  if (parts[0] === 'ACCEPTED' && /^[a-f0-9]{40}$/.test(parts[3] || '')) {
+    let atBase = null;
+    try { atBase = gitSha(parts[3], file); } catch { atBase = null; }
+    if (atBase !== null && atBase !== receiptSha)
+      return { ok: false, code: 'SEALED-RUN-RECEIPT-NOT-IN-GIT', file, at: parts[3], moved: [file + ' differs at the receipt base ' + parts[3].slice(0, 12)] };
+  }
+  const shaped = r && typeof r === 'object' && !Array.isArray(r) && r.version === 1 && r.lanePackage === ID &&
+    r.packageId === s.packageId && r.sealedRun && typeof r.sealedRun === 'object' && !Array.isArray(r.sealedRun) &&
+    same(Object.keys(r).sort(), SEALED_RUN_KEYS.slice().sort()) &&
+    same(Object.keys(r.sealedRun).sort(), SEALED_RUN_BLOCK_KEYS.slice().sort()) &&
+    r.sealedRun.product && typeof r.sealedRun.product === 'object' && !Array.isArray(r.sealedRun.product);
+  if (!shaped) return { ok: false, code: 'SEALED-RUN-RECEIPT-SHAPE', file };
+  const sr = r.sealedRun, moved = [];
+  // The four the ruling names, plus the envelope this receipt was written under: a receipt
+  // taken at another receipt base or another reviewed commit is not this run's.
+  if (sr.artifactSha256 !== diskSha(ARTIFACT)) moved.push(ARTIFACT);
+  if (sr.specSha256 !== sha(specRaw)) moved.push(TOOLING + '/packages/' + ID + '.json');
+  if (sr.runnerSha256 !== diskSha(RUNNER)) moved.push(RUNNER);
+  if (sr.envelopeKey !== key) moved.push('the ACCEPTED envelope');
+  if (sr.verdictFile !== VERDICT_FILE) moved.push('the verdict file coordinate');
+  // EVERY pinned product file, in both directions — a file the receipt does not carry is as
+  // much a change as one whose bytes moved.
+  for (const [file, hash] of Object.entries(sr.product))
+    if (!Object.hasOwn(s.product, file) || !fs.existsSync(rel(file)) || diskSha(file) !== hash) moved.push(file);
+  for (const file of Object.keys(s.product)) if (!Object.hasOwn(sr.product, file)) moved.push(file);
+  if (moved.length) return { ok: false, code: 'SEALED-RUN-RECEIPT-VOID', file, moved };
+  // ":136 (3) … the verdict file names the sealed run's evidence hashes". The verdict is
+  // prose and is appended to, so it is not byte-pinned; what is required is that it NAMES
+  // the three hashes this receipt stands on, so a reader of the verdict can re-take them.
+  if (!fs.existsSync(rel(VERDICT_FILE))) return { ok: false, code: 'SEALED-RUN-VERDICT-FILE-ABSENT', file };
+  const verdict = fs.readFileSync(rel(VERDICT_FILE), 'utf8');
+  const unnamed = [sr.artifactSha256, sr.specSha256, sr.runnerSha256].filter(h => !verdict.includes(h));
+  if (unnamed.length) return { ok: false, code: 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-EVIDENCE-HASHES', file };
+  // r8 change 1 (1). The three hashes above are public and a forger has them; the RECEIPT'S
+  // OWN sha256 exists only once a seal step has written one, so naming it in the verdict is
+  // the sentence a human wrote about a run that happened. Without it the step is unavailable
+  // and the FULL run stands.
+  if (!verdict.includes(receiptSha)) return { ok: false, code: 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-RECEIPT', file };
+  return { ok: true, file, receipt: r, receiptSha };
+}
+// The seal step's own write. Called ONLY from the terminal branch of a --full run that has
+// just printed nothing yet and is about to print POSTFIX PACKAGE PASS, so the bytes it
+// records are the bytes that run verified. Deterministic: no clock, no counter, no host.
+function writeSealedRunReceipt(s, key) {
+  const product = {};
+  for (const file of Object.keys(s.product).sort()) if (fs.existsSync(rel(file))) product[file] = diskSha(file);
+  const body = { version: 1, lanePackage: ID, packageId: s.packageId,
+    sealedRun: { artifactSha256: diskSha(ARTIFACT), specSha256: sha(specRaw), runnerSha256: diskSha(RUNNER),
+      envelopeKey: key, verdictFile: VERDICT_FILE, product } };
+  fs.mkdirSync(rel(RECEIPT_DIR), { recursive: true });
+  fs.writeFileSync(rel(RECEIPT_DIR + '/' + ID + '.json'), JSON.stringify(body, null, 2) + '\n');
+  return body;
+}
+// r8 change 1. What the sealer must do with the file the seal step just wrote, printed on
+// the run that writes it so nobody has to find it in a README: COMMIT it, and NAME its
+// sha256 in the verdict file's sealed-run section. Until both are true the byte-identity
+// step is unavailable and every authorized rerun is a FULL run, which is the safe default.
+function sealedRunReceiptInstruction() {
+  const file = RECEIPT_DIR + '/' + ID + '.json';
+  return 'commit ' + file + ' and write its sha256 ' + diskSha(file) + ' into ' + VERDICT_FILE +
+    '; the DECISIONS:136 (3) byte-identity step is UNAVAILABLE until those bytes stand in Git and the verdict names them';
+}
 // Returns {authorized, said, sealed, key}; `key` identifies everything this evaluation
 // depended on, and the END-of-run re-evaluation must reproduce it exactly (W5).
 function envelope(s, bound, ran) {
@@ -1393,12 +2656,34 @@ function envelope(s, bound, ran) {
     return { authorized: false, said, sealed: m, key: 'PENDING:' + hash };
   }
   const r = review.receipt; assert(r && typeof r.commit === 'string', 'Missing independent receipt');
+  // DECISIONS:135 (4), and THE SEAL IS THIS BRANCH — the same place X1 and Y1 are re-asserted.
+  // Nothing below is reachable on a stale base unless the PM has frozen it by name.
+  sealOnTheTip(s, out);
   // X1, re-asserted AT THE SEAL. spec() already refused a non-empty coverage.moves, so this
   // can only fire if a future edit loosens that gate without loosening this one; it is here
   // because the reviewer's requirement is literally "must be {} at every seal", and the seal
   // is this branch. Nothing below it is reachable with a move declared.
   assert(MOVES_RULING !== null || !Object.keys(s.coverage.moves).length,
     'COVERAGE-MOVES-REFUSED-AT-SEAL-WITHOUT-A-PM-RULING ' + Object.keys(s.coverage.moves).join(' '));
+  // REQUESTS 08:40 (b), the same discipline at the seal: the PM's supersession line is
+  // RE-TAKEN here, off the chain branch — re-READ, not re-validated from a cache (F4) — so a
+  // seal cannot stand on a ruling that has since moved or been withdrawn. It is the ruling
+  // that lets a superseded gate count toward the nineteen, so it is asked again at the one
+  // moment the count becomes a PASS.
+  //
+  // TOOLING-REVIEW-r10 F3 — BLOCKING, and this guard is the fix. `SUPERSEDED_RESOLVED` is
+  // written by coverage(), which runs AFTER the first envelope() call of the main sequence
+  // (the one that supplies the header word and the sealed pins). r10 asserted the map
+  // unconditionally, so on a sealed+ACCEPTED artifact the FIRST call refused
+  // GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL with the map still empty — and since PASS needs
+  // an authorized review, no package declaring a supersession could ever reach one. The
+  // assert is now phased on `ran`, exactly as Y1's execution half below already is: the
+  // first, header-only evaluation asks the RULING (which needs nothing but Git) and the
+  // END-of-run re-evaluation, the one that decides, asks the admitted map as well.
+  if (s.coverage.superseded != null) {
+    supersessionRuling(s);
+    if (ran) assert(SUPERSEDED_RESOLVED.size, 'GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL; coverage() admitted no superseded gate');
+  }
   // Y1 — BLOCKING, and the seal is where it belongs. A package in NO_REGISTER_IDS carries
   // no D-id, so nothing in the 45-law accounting is ever owed by it: want(d) is RED for
   // every un-carried id and GREEN for the six carried ones whether the package is empty or
@@ -1433,9 +2718,9 @@ function envelope(s, bound, ran) {
   const reviewed = { ...m.executionPins };
   for (const [file, pin] of Object.entries(m.product)) reviewed[file] = pin.post || pin.pre;
   L.checkSources(root, v[1], reviewed); // the original routine: Git at the reviewed commit AND the worktree
-  L.git(root, ['merge-base', '--is-ancestor', v[1], 'HEAD']);
-  L.git(root, ['merge-base', '--is-ancestor', r.commit, CHAIN_REF]); // the real chain branch, from Git refs, never from the spec
-  L.git(root, ['merge-base', '--is-ancestor', s.sourceBase, 'HEAD']);
+  ancestor(v[1], 'HEAD', 'REVIEWED-COMMIT-NOT-BEHIND-HEAD');
+  ancestor(r.commit, CHAIN_REF, 'RECEIPT-BASE-NOT-ON-THE-CHAIN-BRANCH'); // the real chain branch, from Git refs, never from the spec
+  ancestor(s.sourceBase, 'HEAD', 'SOURCEBASE-NOT-BEHIND-HEAD');
   out('ENVELOPE AUTHORIZED artifact=' + hash + ' reviewed at ' + v[1] + '; receipt base ' + r.commit + '; spec ' + m.spec.sha256 +
     ' and runner ' + m.runner.sha256 + ' pinned inside the artifact and re-read from Git');
   return { authorized: true, said, sealed: m, key: 'ACCEPTED:' + hash + ':' + v[1] + ':' + r.commit };
@@ -1471,14 +2756,23 @@ function historical(bound, bundles) {
 function gates(bundles, authorized, covered, ran) {
   for (const [gate, child] of covered) assert(ran.get(child) && ran.get(child).ok, 'COVERAGE-CHILD-NOT-EXECUTED ' + gate + ' ' + child);
   const done = new Set(covered.keys());
+  // REQUESTS 08:40 (b). A SUPERSEDED gate is not re-executed here, and that is the whole of
+  // what the ruling buys: its byte-identity reconstruction of rebuild/engine is exactly
+  // what a child that changes a declared file cannot reproduce. Every OTHER original gate
+  // re-executes as it always did, and the set is still closed against GATE_IDS below, so a
+  // gate can be skipped only through a supersession coverage() already admitted.
+  for (const gate of SUPERSEDED_RESOLVED.keys()) done.add(gate);
   for (const gate of R.GATES) {
     if (done.has(gate[0])) continue;
     R.gateRun(root, bundles, gate, { emit: line => console.log(line.replace(/\bPASS\b/g, authorized ? 'PASS' : 'OBSERVED')) });
     done.add(gate[0]);
   }
   assert.deepEqual([...done].sort(), GATE_IDS.slice().sort(), 'No missing or extra original gate');
-  say('FULL EVIDENCE: ' + (GATE_IDS.length - covered.size) + ' of the ' + GATE_IDS.length + ' original gates re-executed and ' +
-    covered.size + ' carried by successor children that executed in this run; second gate included');
+  say('FULL EVIDENCE: ' + (GATE_IDS.length - covered.size - SUPERSEDED_RESOLVED.size) + ' of the ' + GATE_IDS.length +
+    ' original gates re-executed, ' + covered.size + ' carried by successor children that executed in this run' +
+    (SUPERSEDED_RESOLVED.size ? ' and ' + SUPERSEDED_RESOLVED.size + ' SUPERSEDED under DECISIONS:' +
+      [...SUPERSEDED_RESOLVED.values()][0].at + ', each replaced by this package\'s own executed evidence' : '') +
+    '; second gate included');
 }
 
 // ------------------------------------------------------------------ 8. main sequence
@@ -1492,7 +2786,10 @@ try {
   say('POSTFIX ' + s.packageId + ' ' + (first.authorized ? 'AUTHORIZED' : 'REVIEW-PENDING') + ' mode=' + args[0]);
   for (const line of first.said) console.log(line);
   pins(s, bound);
-  const phase = product(s, bound);
+  // r7 F1: the sealed artifact is handed over so product() can tell a spec whose role-new
+  // pre === post declarations are ALREADY SEALED (grandfathered, reported, non-blocking)
+  // from one that is making them fresh (refused).
+  const phase = product(s, bound, first.sealed);
   fidelity(s, first.sealed);
   authority(s, bound);
   // Honesty: this line ECHOES free text the spec supplies and counts it. It asserts
@@ -1507,7 +2804,31 @@ try {
   const ran = children(s, env);
   const covered = coverage(s, bound, ran);
   noRegister(s, ran); // Y1: the replacement obligation for a package with no D-id
-  if (!ci) { privateOracle(); historical(bound, bundles); gates(bundles, first.authorized, covered, ran); }
+  // DECISIONS:136 (3). Everything above this line IS the --ci run and the pin verification;
+  // the receipt check is envelope()'s own L.verifyReceipt, already done. So the AUTHORIZED
+  // STEP is exactly this: on an ACCEPTED envelope whose artifact, runner, spec and every
+  // pinned product file are byte-identical to the sealed run the receipt records, the
+  // private oracle, the historical audit and the 19-gate matrix are SKIPPED. On anything
+  // else — no receipt, a voided one, or an unauthorized envelope — the FULL run happens
+  // exactly as before, which is also what the FIRST full run always does.
+  let reverify = null;
+  if (!ci) {
+    reverify = first.authorized ? sealedRunReceipt(s, first.key) : { ok: false, code: 'ENVELOPE-NOT-AUTHORIZED' };
+    if (reverify.ok) {
+      say('AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY (DECISIONS:136 (3)); artifact, runner, spec and all ' +
+        Object.keys(s.product).length + ' pinned product file(s) are byte-identical to the sealed run recorded in ' + reverify.file +
+        ' ' + reverify.receiptSha + ', whose own bytes stand IN GIT at every base checked and whose sha256 ' + VERDICT_FILE +
+        ' names (r8 change 1: a receipt no seal step wrote, or one not committed, refuses here); the private oracle, the historical audit and the ' +
+        GATE_IDS.length + ' original gates are NOT re-run on this step — the FIRST full run with the private census stands as the evidence');
+    } else {
+      if (reverify.code === 'SEALED-RUN-RECEIPT-VOID')
+        say('SEALED-RUN-RECEIPT-VOID ' + reverify.moved.length + ' byte change(s) since the sealed run (' +
+          reverify.moved.slice(0, 8).join(' ') + '); the FULL run is required (DECISIONS:136 (3))');
+      else if (first.authorized)
+        say('AUTHORIZED STEP UNAVAILABLE ' + reverify.code + '; the FULL run with the private census is required (DECISIONS:136 (3))');
+      privateOracle(); historical(bound, bundles); gates(bundles, first.authorized, covered, ran);
+    }
+  }
   // W5. Re-evaluate AFTER all evidence: an artifact, review, receipt, spec or runner
   // swapped mid-run changes `key` and refuses here, before any terminal word is printed.
   // `ran` is handed over so the Y1 seal assert can re-take the EXECUTION half against the
@@ -1523,6 +2844,18 @@ try {
     else { say('PUBLIC CI EVIDENCE PASS — public evidence only, NOT the package verdict; the 19 original gates, the private oracle and independent exact-artifact acceptance remain separate, and POSTFIX PACKAGE PASS is unavailable on this mode at any time'); process.exitCode = 0; }
   } else {
     const ready = last.authorized && !open.length;
+    // DECISIONS:136 (3), THE SEAL STEP'S OWN WRITE. The only line in this runner that
+    // writes a byte outside .tmp, and it runs only where the package has just earned
+    // POSTFIX PACKAGE PASS on a FULL run — never on --ci, never on a re-verified step
+    // (the receipt it would write is the one it just read), and never on a REVIEW-PENDING.
+    // What it records is exactly what the next authorized step must find unchanged.
+    if (ready && !(reverify && reverify.ok)) {
+      const wrote = writeSealedRunReceipt(s, last.key);
+      say('SEALED RUN RECORDED ' + RECEIPT_DIR + '/' + ID + '.json; artifact=' + wrote.sealedRun.artifactSha256.slice(0, 12) +
+        ' spec=' + wrote.sealedRun.specSha256.slice(0, 12) + ' runner=' + wrote.sealedRun.runnerSha256.slice(0, 12) +
+        ' over ' + Object.keys(wrote.sealedRun.product).length + ' pinned product file(s)');
+      say('SEALED RUN NEXT STEP ' + sealedRunReceiptInstruction());
+    }
     say(ready ? 'POSTFIX PACKAGE PASS ' + s.packageId
       : 'POSTFIX PACKAGE REVIEW-PENDING: ' + open.length + ' open obligation(s); independent exact-artifact acceptance required');
     process.exitCode = ready ? 0 : 2;

@@ -78,8 +78,16 @@ jobs:
         run: node rebuild/t2/rig187.cjs
       # B-NTC succeeds the memory-only preview with the executed durable Today,
       # gym and check-in suites below. Historical preview tests remain in Git.
-      - name: Cumulative B-NTC native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC
+      # M2-H3-CLEAN-INIT SUCCEEDS M2-B-NTC HERE, exactly as B-NTC succeeded the accepted
+      # originals at ce38aa3 (it replaced "Cumulative extracted-engine native-carrier and
+      # legacy-census evidence" / `node rebuild/m4/spec/native-carriers-package.cjs --ci`
+      # with its own line). A cumulative profile carries its parent's evidence forward, so
+      # the child's gate IS the standing step and the parent's is retired, not kept beside
+      # it: H3 re-pins packages/B-NTC.json onto the r10 runner, and a spec so re-pinned no
+      # longer recomputes the artifact B-NTC's own seal stands on. Same position, same job,
+      # same matrix; one command changes.
+      - name: Cumulative H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package H3
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -93,8 +101,39 @@ jobs:
       # today/gym test files" rides the B-NTC seal, so both are named here. The
       # rule the step already stated is kept: every file is named rather than
       # globbed, so the same set runs on both runners whatever the shell does.
-      - name: A1/A2/A3 — the rebound Today page, the gym card, the check-in and the B-NTC delta cells
-        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/view.test.mjs
+      # DECISIONS:142 (2), option (b): the :117 (4) enumeration of A4's own
+      # setup.test.mjs RIDES H3's seal — H3 re-pins rebuild.yml as B-NTC's child,
+      # and there is no further B-NTC re-seal. setup.test.mjs stands on the tip
+      # and is named here rather than globbed, like every other file in this step.
+      # DECISIONS:177 (A), applied by M2-H3-CLEAN-INIT r3 under the same :112 licence
+      # that lets this package re-pin .github at all. Every file present under
+      # rebuild/m3/w7-preview/today/test/ is named here by path and still never
+      # globbed: catalogue.test.mjs and problem.test.mjs (the :173 F-H pair);
+      # copy.test.mjs, which - measured across all five files in .github/workflows -
+      # was named in NO workflow in this repo at all, not "enumerated elsewhere";
+      # and machine-settings-ui.test.mjs, which DECISIONS:177 (1) names and which
+      # arrived with the settings display at :179 (added in r3b - it was absent from
+      # the tip r3 sealed on, and H3-REVIEW-r3's probe (iv) measured H3/13 RED on
+      # exactly that file).
+      # NO FILE IS HELD OUT ANY LONGER. DECISIONS:186 closes the last exception:
+      # food.test.mjs, lane C's N1 suite, is named here too. It was held out through
+      # r3/r3b/r3c because two of its cells executed the PRE-H3 engine as their
+      # expectation (N1.11, D2.1) and its build cells raced view.test.mjs's R3 in a
+      # shared invocation; :185 made it engine-version-aware and un-raced the
+      # directory, so both reasons are gone and H3 names it rather than hold it out.
+      # THE RULE THIS STEP NOW STATES IN FULL: every file present under
+      # rebuild/m3/w7-preview/today/test/ is named here by exact path, all thirteen,
+      # with no glob and no exception - so a file added to that directory has a CI
+      # home or turns cell H3/13 red, and nothing named here can be absent.
+      # Measured in the lane-b/h3 worktree at this head: setup.test.mjs 157 tests,
+      # 157 pass, 0 fail; food.test.mjs 57 tests, 57 pass, 0 fail; the thirteen files
+      # together 547 tests, 547 pass, 0 fail, exit 0 - three consecutive runs of the
+      # exact argv below, agreeing with lane C's own two runs of the directory.
+      # The older note "no dependency" was already wrong and is corrected: checkin,
+      # copy, gym, machine-settings-ui, problem and setup import jsdom, installed by
+      # the pinned W6 browser-build step above. No lockfile of this step's own.
+      - name: A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup
+        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs
       # DECISIONS:117 (4). rebuild.yml is pinned by the accepted engine artifact, so any
       # step lands only inside a re-pinning engine package (DECISIONS:112's standing rule) —
       # lane C's C5 voice coach therefore RIDES THE B-NTC SEAL as one more disclosed hunk,
@@ -103,10 +142,10 @@ jobs:
       # expansion itself, not the shell. Measured in the lane-b/ntc worktree at this head:
       # 64 tests, 64 pass, 0 fail, exit 0. No dependency, no lockfile.
       #
-      # A4's rebuild/m3/w7-preview/today/test/setup.test.mjs is NOT enumerated in the today
-      # step above: :117 (4) enumerates it "only if it exists on the tip when B-NTC seals",
-      # and it does not exist on origin/rebuild/t2-client-core at this head. If it lands
-      # before the seal it joins the A1/A2/A3 step; otherwise it rides B1's re-seal.
+      # A4's rebuild/m3/w7-preview/today/test/setup.test.mjs IS enumerated in the today
+      # step above, as of H3. :117 (4) enumerated it "only if it exists on the tip when
+      # B-NTC seals"; it did not, so DECISIONS:142 (2) took option (b) — it rides H3's
+      # seal instead, and B-NTC is not re-sealed for it.
       - name: C5 — the voice coach tool contract and text prototype
         run: node --test "rebuild/coach/test/*.test.cjs"
       - name: A5 — the PWA shell's lockfile-only suites
