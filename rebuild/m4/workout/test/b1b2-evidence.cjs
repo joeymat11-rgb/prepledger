@@ -461,7 +461,7 @@ function fieldDiff(a,b,at='$',out=[]) {
   } else out.push({path:at,before:{present:true,value:a},after:{present:true,value:b}});
   return out;
 }
-// PM330: output-only observation. No diagnostic value is an expectation or waiver.
+// PM330 output-only diagnostics. Never an expectation or field-delta waiver.
 const NATIVE_DIAGNOSTIC_STATES=Object.freeze(['reads','trend','feed','queue','sleep','dailyLogs','sessionLog','model','learned','adjustments','suggestionLog','corrLog','exercises']);
 let nativeObservation;
 function nativeDiagnosticCategories(kind,paths,rootKeys) {
@@ -469,128 +469,18 @@ function nativeDiagnosticCategories(kind,paths,rootKeys) {
   if(rootKeys.some(k=>typeof k!=='string'||k.length>4096))throw Error('DIAGNOSTIC_KEYS');
   const counts=new Map(),roots=new Set(rootKeys);
   for(const p of paths) {
-    if(typeof p!=='string'||p.length>4096||!(p==='
-  assert.ok(['second-readers','second-applyRead','native-census-main','native-census-frozen','native-census-unfrozen'].includes(kind),'closed R9 native comparison kind');
-  const comparison=validateR9().nativeComparison;
-  const actual=fieldDiff(before,after),approved=comparison.fieldDeltas;
-  observeNativeDifference(kind,actual,before,after);
-  // Empty at construction: a native delta must be measured and separately
-  // admitted. No reader-wide exception, ignored prose, or equality sampling.
-  assert.equal(JSON.stringify(actual)===JSON.stringify(approved),true,'exact admitted native field deltas '+kind+'; measured '+actual.length+' (values retained process-locally)');
-  if(actual.length===0)assert.equal(JSON.stringify(before)===JSON.stringify(after),true,'whole native output bytes '+kind);
-  return {kind,sourceBase:comparison.from,runtimeSource:comparison.to,before:sha(JSON.stringify(before)),after:sha(JSON.stringify(after)),deltaCount:actual.length};
-}
-function migrationWorker(ref,mode) {
-  const U=r9Ref();
-  assert.ok([M,U].includes(ref),'closed candidate migration side');assert.ok(['frozen','native'].includes(mode));
-  closedEngineInventory();
-  for(const dependency of ['rebuild/engine/test/migrate-reference.cjs','rebuild/conform/oracle/legacy-records.cjs'])candidateSource(dependency);
-  const file='rebuild/engine/test/migrate-differential.cjs',bytes=candidateSource(file);
-  assert.equal(sha(bytes),changes.originals[file]);assert.deepEqual(bytes,blob(M,file));assert.deepEqual(bytes,blob('HEAD',file));
-  assert.deepEqual(blob(M,'rebuild/engine/migrate.cjs'),blob(R,'rebuild/engine/migrate.cjs'));
-  assert.deepEqual(blob(S,'rebuild/engine/migrate.cjs'),blob(R,'rebuild/engine/migrate.cjs'),'retained historical R/S migration source');
-  assert.deepEqual(blob(T,'rebuild/engine/migrate.cjs'),blob(S,'rebuild/engine/migrate.cjs'),'retained historical S/T migration source');
-  assert.deepEqual(candidateSource('rebuild/engine/migrate.cjs'),blob(T,'rebuild/engine/migrate.cjs'),'retained T/U migration source');
-  const abs=path.join(ROOT,file),normal=Module.createRequire(abs),output=[],savedDate=globalThis.Date;
-  const frozen=path.join(ROOT,'rebuild/conform/engines/engine-main.cjs'),m=new Module(abs,module);m.filename=abs;
-  m.__process={argv:[process.execPath,abs,'--worker',mode],env:{...process.env,ENGINE_MAIN:frozen,MEASURED_TEST_NOW:'2026-09-03',TZ:'America/New_York'}};
-  m.__console={log:(...args)=>output.push(args.map(String).join(' '))};
-  m.require=request=>{
-    if(request==='../index.cjs')return {createEngine:options=>nativeEngine(ref,options)};
-    assert.ok(['node:assert/strict','node:path','node:child_process','./migrate-reference.cjs','../../conform/oracle/legacy-records.cjs',frozen].includes(request),'closed original migration dependency BEFORE load');return normal(request);
-  };
-  try {m._compile('"use strict";const process=module.__process,console=module.__console;\n'+bytes.toString(),abs);}
-  finally {globalThis.Date=savedDate;assert.strictEqual(globalThis.Date,savedDate);assert.deepEqual(disk(file),bytes);}
-  const terminal=output.at(-1);assert.match(terminal,new RegExp('^M5 SYNTHETIC '+mode+': PASS'));
-  const counts=/([0-9]+) exact differential cases; ([0-9]+) migration exits/.exec(terminal);assert.ok(counts);assert.ok(+counts[1]>0&&+counts[2]>0);
-  for(const line of output)console.log(line);
-}
-function migrationContinuity() {
-  const U=validateR9().runtimeSource;
-  assert.equal(process.env.B1B2_MIGRATION_STAGE,undefined,'full parent execution required');
-  const target=path.join(ROOT,W+'b1b2-supersede-inherited-carriers.test.cjs'),reports=[];
-  for(const side of ['M','U'])for(const mode of ['frozen','native']) {
-    const result=cp.spawnSync(process.execPath,[target],{cwd:ROOT,windowsHide:true,encoding:'utf8',maxBuffer:9e7,
-      env:{...process.env,TZ:'America/New_York',MEASURED_TEST_NOW:'2026-09-03',B1B2_MIGRATION_STAGE:'worker',B1B2_MIGRATION_SIDE:side,B1B2_MIGRATION_CLOCK:mode}});
-    process.stdout.write(result.stdout||'');process.stderr.write(result.stderr||'');if(result.error)throw result.error;
-    assert.equal(result.status,0,'complete original migration worker '+side+'/'+mode);assert.equal(result.signal,null);
-    const terminal=(result.stdout||'').trim().split('\n').at(-1);assert.match(terminal,new RegExp('^M5 SYNTHETIC '+mode+': PASS'));
-    const counts=/([0-9]+) exact differential cases; ([0-9]+) migration exits/.exec(terminal);assert.ok(counts&&+counts[1]>0&&+counts[2]>0);
-    reports.push({side,source:side==='M'?M:U,mode,cases:+counts[1],exits:+counts[2],stdout:result.stdout,stderr:result.stderr,sha256:sha(result.stdout),terminal});
-  }
-  assert.equal(reports.length,4);
-  for(const mode of ['frozen','native']) {const rows=reports.filter(r=>r.mode===mode);assert.equal(rows[0].stdout,rows[1].stdout,'whole original M/U migration output');assert.equal(rows[0].stderr,rows[1].stderr);}
-  return reports.map(({stdout,stderr,...r})=>r);
-}
-module.exports={ROOT,M,R,get S(){return successorRef();},get T(){return repairRef();},get U(){return r9Ref();},H3_BASE,W,RUNTIME,NEW_ENGINE,SUCCESSOR_NEW_ENGINE,SUCCESSOR_RECORD_SHA,REPAIR_RECORD_SHA,REPAIR_RUNTIME,REPAIR_ENGINE_EVIDENCE,R9_ENGINE_EVIDENCE,changes,sha,blob,disk,exact,validateTable,reconstructRuntime,validateSuccessor,reconstructSuccessor,validateRepair,reconstructRepair,validateR9,reconstructR9,reconstructH3,historicalEngineInventory,closedEngineInventory,candidateSource,pinScopedOriginalDependencies,original,s1Source,loadOriginal,nativeBrowser,nativeEngine,READERS,DAY,projection,fieldDiff,approvedNativeDifference,migrationContinuity,migrationWorker};
-||p.startsWith('$.')))throw Error('DIAGNOSTIC_PATH');
+    if(typeof p!=='string'||p.length>4096||!(p==='$'||p.startsWith('$.')))throw Error('DIAGNOSTIC_PATH');
     const matches=[];
     if(p.startsWith('$.'))for(let i=2;i<=p.length;i++)if(i===p.length||p[i]==='.'){const key=p.slice(2,i);if(roots.has(key))matches.push(key);}
     let id;
-    if(kind==='second-readers') {
-      if(matches.length!==1||!READERS.includes(matches[0]))throw Error('DIAGNOSTIC_READER');
-      id=matches[0];
-    } else id=p==='
-  assert.ok(['second-readers','second-applyRead','native-census-main','native-census-frozen','native-census-unfrozen'].includes(kind),'closed R9 native comparison kind');
-  const comparison=validateR9().nativeComparison;
-  const actual=fieldDiff(before,after),approved=comparison.fieldDeltas;
-  // Empty at construction: a native delta must be measured and separately
-  // admitted. No reader-wide exception, ignored prose, or equality sampling.
-  assert.equal(JSON.stringify(actual)===JSON.stringify(approved),true,'exact admitted native field deltas '+kind+'; measured '+actual.length+' (values retained process-locally)');
-  if(actual.length===0)assert.equal(JSON.stringify(before)===JSON.stringify(after),true,'whole native output bytes '+kind);
-  return {kind,sourceBase:comparison.from,runtimeSource:comparison.to,before:sha(JSON.stringify(before)),after:sha(JSON.stringify(after)),deltaCount:actual.length};
-}
-function migrationWorker(ref,mode) {
-  const U=r9Ref();
-  assert.ok([M,U].includes(ref),'closed candidate migration side');assert.ok(['frozen','native'].includes(mode));
-  closedEngineInventory();
-  for(const dependency of ['rebuild/engine/test/migrate-reference.cjs','rebuild/conform/oracle/legacy-records.cjs'])candidateSource(dependency);
-  const file='rebuild/engine/test/migrate-differential.cjs',bytes=candidateSource(file);
-  assert.equal(sha(bytes),changes.originals[file]);assert.deepEqual(bytes,blob(M,file));assert.deepEqual(bytes,blob('HEAD',file));
-  assert.deepEqual(blob(M,'rebuild/engine/migrate.cjs'),blob(R,'rebuild/engine/migrate.cjs'));
-  assert.deepEqual(blob(S,'rebuild/engine/migrate.cjs'),blob(R,'rebuild/engine/migrate.cjs'),'retained historical R/S migration source');
-  assert.deepEqual(blob(T,'rebuild/engine/migrate.cjs'),blob(S,'rebuild/engine/migrate.cjs'),'retained historical S/T migration source');
-  assert.deepEqual(candidateSource('rebuild/engine/migrate.cjs'),blob(T,'rebuild/engine/migrate.cjs'),'retained T/U migration source');
-  const abs=path.join(ROOT,file),normal=Module.createRequire(abs),output=[],savedDate=globalThis.Date;
-  const frozen=path.join(ROOT,'rebuild/conform/engines/engine-main.cjs'),m=new Module(abs,module);m.filename=abs;
-  m.__process={argv:[process.execPath,abs,'--worker',mode],env:{...process.env,ENGINE_MAIN:frozen,MEASURED_TEST_NOW:'2026-09-03',TZ:'America/New_York'}};
-  m.__console={log:(...args)=>output.push(args.map(String).join(' '))};
-  m.require=request=>{
-    if(request==='../index.cjs')return {createEngine:options=>nativeEngine(ref,options)};
-    assert.ok(['node:assert/strict','node:path','node:child_process','./migrate-reference.cjs','../../conform/oracle/legacy-records.cjs',frozen].includes(request),'closed original migration dependency BEFORE load');return normal(request);
-  };
-  try {m._compile('"use strict";const process=module.__process,console=module.__console;\n'+bytes.toString(),abs);}
-  finally {globalThis.Date=savedDate;assert.strictEqual(globalThis.Date,savedDate);assert.deepEqual(disk(file),bytes);}
-  const terminal=output.at(-1);assert.match(terminal,new RegExp('^M5 SYNTHETIC '+mode+': PASS'));
-  const counts=/([0-9]+) exact differential cases; ([0-9]+) migration exits/.exec(terminal);assert.ok(counts);assert.ok(+counts[1]>0&&+counts[2]>0);
-  for(const line of output)console.log(line);
-}
-function migrationContinuity() {
-  const U=validateR9().runtimeSource;
-  assert.equal(process.env.B1B2_MIGRATION_STAGE,undefined,'full parent execution required');
-  const target=path.join(ROOT,W+'b1b2-supersede-inherited-carriers.test.cjs'),reports=[];
-  for(const side of ['M','U'])for(const mode of ['frozen','native']) {
-    const result=cp.spawnSync(process.execPath,[target],{cwd:ROOT,windowsHide:true,encoding:'utf8',maxBuffer:9e7,
-      env:{...process.env,TZ:'America/New_York',MEASURED_TEST_NOW:'2026-09-03',B1B2_MIGRATION_STAGE:'worker',B1B2_MIGRATION_SIDE:side,B1B2_MIGRATION_CLOCK:mode}});
-    process.stdout.write(result.stdout||'');process.stderr.write(result.stderr||'');if(result.error)throw result.error;
-    assert.equal(result.status,0,'complete original migration worker '+side+'/'+mode);assert.equal(result.signal,null);
-    const terminal=(result.stdout||'').trim().split('\n').at(-1);assert.match(terminal,new RegExp('^M5 SYNTHETIC '+mode+': PASS'));
-    const counts=/([0-9]+) exact differential cases; ([0-9]+) migration exits/.exec(terminal);assert.ok(counts&&+counts[1]>0&&+counts[2]>0);
-    reports.push({side,source:side==='M'?M:U,mode,cases:+counts[1],exits:+counts[2],stdout:result.stdout,stderr:result.stderr,sha256:sha(result.stdout),terminal});
-  }
-  assert.equal(reports.length,4);
-  for(const mode of ['frozen','native']) {const rows=reports.filter(r=>r.mode===mode);assert.equal(rows[0].stdout,rows[1].stdout,'whole original M/U migration output');assert.equal(rows[0].stderr,rows[1].stderr);}
-  return reports.map(({stdout,stderr,...r})=>r);
-}
-module.exports={ROOT,M,R,get S(){return successorRef();},get T(){return repairRef();},get U(){return r9Ref();},H3_BASE,W,RUNTIME,NEW_ENGINE,SUCCESSOR_NEW_ENGINE,SUCCESSOR_RECORD_SHA,REPAIR_RECORD_SHA,REPAIR_RUNTIME,REPAIR_ENGINE_EVIDENCE,R9_ENGINE_EVIDENCE,changes,sha,blob,disk,exact,validateTable,reconstructRuntime,validateSuccessor,reconstructSuccessor,validateRepair,reconstructRepair,validateR9,reconstructR9,reconstructH3,historicalEngineInventory,closedEngineInventory,candidateSource,pinScopedOriginalDependencies,original,s1Source,loadOriginal,nativeBrowser,nativeEngine,READERS,DAY,projection,fieldDiff,approvedNativeDifference,migrationContinuity,migrationWorker};
-?'state-shape':matches.length===1&&NATIVE_DIAGNOSTIC_STATES.includes(matches[0])?matches[0]:'state-other';
+    if(kind==='second-readers') {if(matches.length!==1||!READERS.includes(matches[0]))throw Error('DIAGNOSTIC_READER');id=matches[0];}
+    else id=p==='$'?'state-shape':matches.length===1&&NATIVE_DIAGNOSTIC_STATES.includes(matches[0])?matches[0]:'state-other';
     counts.set(id,(counts.get(id)||0)+1);
   }
   return [...counts].sort(([a],[b])=>a<b?-1:a>b?1:0).map(([id,count])=>({id,count}));
 }
 function observeNativeDifference(kind,actual,before,after) {
-  const directory=process.env.EARNED_B1B2_CAPTURE_DIR;
-  if(directory===undefined)return;
+  const directory=process.env.EARNED_B1B2_CAPTURE_DIR;if(directory===undefined)return;
   try {
     if(!nativeObservation)nativeObservation={directory,seq:0,failed:false};
     const state=nativeObservation;
@@ -598,10 +488,7 @@ function observeNativeDifference(kind,actual,before,after) {
     const equal=(a,b)=>process.platform==='win32'?a.toLowerCase()===b.toLowerCase():a===b;
     const parent=path.join(ROOT,'.tmp','b1b2-native-capture'),dir=path.resolve(directory);
     if(!equal(path.dirname(dir),parent)||!/^[a-f0-9]{32}$/.test(path.basename(dir)))throw Error('DIAGNOSTIC_DIRECTORY');
-    for(let walk=dir;;walk=path.dirname(walk)) {
-      const st=fs.lstatSync(walk);if(!st.isDirectory()||st.isSymbolicLink()||!equal(fs.realpathSync(walk),walk))throw Error('DIAGNOSTIC_LINK');
-      if(equal(walk,ROOT))break;if(path.dirname(walk)===walk)throw Error('DIAGNOSTIC_ROOT');
-    }
+    for(let walk=dir;;walk=path.dirname(walk)) {const st=fs.lstatSync(walk);if(!st.isDirectory()||st.isSymbolicLink()||!equal(fs.realpathSync(walk),walk))throw Error('DIAGNOSTIC_LINK');if(equal(walk,ROOT))break;if(path.dirname(walk)===walk)throw Error('DIAGNOSTIC_ROOT');}
     const marker=path.join(dir,'capture-manifest.json'),mark=fs.lstatSync(marker);
     if(!mark.isFile()||mark.isSymbolicLink()||mark.nlink!==1||fs.readFileSync(marker,'utf8')!=='{"v":1,"pending":true}\n')throw Error('DIAGNOSTIC_MARKER');
     if(!Array.isArray(actual)||actual.length>100000)throw Error('DIAGNOSTIC_ROWS');
@@ -616,18 +503,14 @@ function observeNativeDifference(kind,actual,before,after) {
     let offset=0;while(offset<bytes.length){const n=fs.writeSync(state.fd,bytes,offset,bytes.length-offset);if(!Number.isSafeInteger(n)||n<=0)throw Error('DIAGNOSTIC_WRITE');offset+=n;}
     fs.fsyncSync(state.fd);state.seq++;
     if(state.seq===2){fs.closeSync(state.fd);state.fd=undefined;fs.unlinkSync(marker);}
-    // Marker removal is the final IO commit, after both durable rows and close.
-    // Any earlier failure leaves it present; later calls cannot clear failure.
-  } catch (_) {
-    if(!nativeObservation)nativeObservation={directory,seq:0,failed:true};
-    nativeObservation.failed=true;
-    if(nativeObservation.fd!==undefined){try{fs.closeSync(nativeObservation.fd);}catch(_){}nativeObservation.fd=undefined;}
-  }
+    // Last IO commits completion only after both rows, fsync and close succeed.
+  } catch (_) {if(!nativeObservation)nativeObservation={directory,seq:0,failed:true};nativeObservation.failed=true;if(nativeObservation.fd!==undefined){try{fs.closeSync(nativeObservation.fd);}catch(_){}nativeObservation.fd=undefined;}}
 }
 function approvedNativeDifference(kind,before,after) {
   assert.ok(['second-readers','second-applyRead','native-census-main','native-census-frozen','native-census-unfrozen'].includes(kind),'closed R9 native comparison kind');
   const comparison=validateR9().nativeComparison;
   const actual=fieldDiff(before,after),approved=comparison.fieldDeltas;
+  observeNativeDifference(kind,actual,before,after);
   // Empty at construction: a native delta must be measured and separately
   // admitted. No reader-wide exception, ignored prose, or equality sampling.
   assert.equal(JSON.stringify(actual)===JSON.stringify(approved),true,'exact admitted native field deltas '+kind+'; measured '+actual.length+' (values retained process-locally)');

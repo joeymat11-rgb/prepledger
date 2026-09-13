@@ -22,7 +22,7 @@ function safeDirectory(dir,root=ROOT){
   for(;;){const st=fs.lstatSync(walk);need(st.isDirectory()&&!st.isSymbolicLink()&&equalPath(fs.realpathSync(walk),walk),'SCOPE');if(equalPath(walk,root))break;walk=path.dirname(walk);}
 }
 function safeFile(file){const s=fs.lstatSync(file);need(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1,'SCOPE');return s;}
-function git(args){return cp.execFileSync('git',args,{cwd:ROOT,windowsHide:true,maxBuffer:16*1024*1024});}
+function git(args){return cp.execFileSync('git',args,{cwd:ROOT,windowsHide:true,stdio:['ignore','pipe','pipe'],maxBuffer:16*1024*1024});}
 function verifyCommission(){
   need(process.argv.length===2&&process.version==='v22.23.2'&&process.platform==='win32','SCOPE');
   need(equalPath(path.resolve(process.cwd()),ROOT)&&/[\\/]work[\\/]pm-caretaker[\\/]b1b2-native-capture$/.test(ROOT),'SCOPE');safeDirectory(ROOT);
@@ -51,8 +51,8 @@ $acl=[System.Security.AccessControl.DirectorySecurity]::new()
 $acl.SetOwner($sid)
 $acl.SetAccessRuleProtection($true,$false)
 foreach($s in @($sid,$system)) {$acl.AddAccessRule([System.Security.AccessControl.FileSystemAccessRule]::new($s,'FullControl','ContainerInherit,ObjectInherit','None','Allow'))}
-Set-Acl -LiteralPath $p -AclObject $acl
-$read=Get-Acl -LiteralPath $p
+[System.IO.Directory]::SetAccessControl($p,$acl)
+$read=[System.IO.Directory]::GetAccessControl($p)
 if(-not $read.AreAccessRulesProtected){throw 'ACCESS'}
 if($read.GetOwner([System.Security.Principal.SecurityIdentifier]).Value -ne $sid.Value){throw 'OWNER'}
 $rules=@($read.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier]))
@@ -61,7 +61,7 @@ foreach($r in $rules){if($r.IdentityReference.Value -notin @($sid.Value,'S-1-5-1
 [Console]::Write('ACL_OK')`;
 function secureWindowsDirectory(dir){
   need(process.platform==='win32'&&typeof process.env.SystemRoot==='string','ACCESS');
-  const out=cp.execFileSync(path.join(process.env.SystemRoot,'System32','WindowsPowerShell','v1.0','powershell.exe'),['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(ACL_SCRIPT,'utf16le').toString('base64')],{env:{...process.env,EARNED_B1B2_ACL_PATH:dir},windowsHide:true,encoding:'utf8',maxBuffer:4096});
+  const out=cp.execFileSync(path.join(process.env.SystemRoot,'System32','WindowsPowerShell','v1.0','powershell.exe'),['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(ACL_SCRIPT,'utf16le').toString('base64')],{env:{...process.env,EARNED_B1B2_ACL_PATH:dir},windowsHide:true,stdio:['ignore','pipe','pipe'],encoding:'utf8',maxBuffer:4096});
   need(out==='ACL_OK','ACCESS');safeDirectory(dir);
 }
 function createDirectory(){
