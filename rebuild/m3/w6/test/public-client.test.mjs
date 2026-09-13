@@ -347,3 +347,25 @@ test("idle replacement: malformed capabilities cannot invoke getters or interrup
     assert.equal(Object.keys((await f.repo.load()).generation.collections.ops).length,2);
   }finally{f.repo.close();}
 });
+
+test("atomic repository: snapshots expected identity before awaiting the readonly transaction",async()=>{
+  const f=await setup();try{const before=await f.repo.load(),expected={namespace:f.args.namespace,revision:before.revision,token:before.token};let calls=0;
+    const pending=f.repo.withCurrentHead(expected,()=>{calls++;return {checked:true};});expected.namespace='changed';expected.revision++;expected.token='changed';
+    assert.deepEqual(await pending,{checked:true});assert.equal(calls,1);assert.deepEqual(await f.repo.load(),before);
+  }finally{f.repo.close();}
+});
+for(const bad of ['namespace','missing-token','getter','extra','revision','async-callback'])test(`atomic repository: rejects ${bad} before calling the trusted capability`,async()=>{
+  const f=await setup();try{const before=await f.repo.load(),expected={namespace:f.args.namespace,revision:before.revision,token:before.token};let calls=0;
+    if(bad==='namespace')expected.namespace='other-namespace';if(bad==='missing-token')delete expected.token;
+    if(bad==='getter')Object.defineProperty(expected,'token',{enumerable:true,get(){calls++;return before.token;}});
+    if(bad==='extra')expected.safe=true;if(bad==='revision')expected.revision=NaN;
+    const callback=bad==='async-callback'?async()=>{calls++;}:()=>{calls++;};
+    await assert.rejects(f.repo.withCurrentHead(expected,callback),e=>e.code==='CURRENT_HEAD_INPUT_INVALID');assert.equal(calls,0);assert.deepEqual(await f.repo.load(),before);
+  }finally{f.repo.close();}
+});
+test("atomic repository: a closed connection refuses before invoking the callback",async()=>{
+  const f=await setup(),fresh=await f.fresh();try{const before=await f.repo.load();f.repo.close();let calls=0;
+    await assert.rejects(f.repo.withCurrentHead({namespace:f.args.namespace,revision:before.revision,token:before.token},()=>{calls++;}),e=>e.code==='CURRENT_HEAD_READ_BEGIN_FAILED');
+    assert.equal(calls,0);assert.deepEqual(await fresh.repository.load(),before);
+  }finally{fresh.repository.close();f.repo.close();}
+});

@@ -1204,3 +1204,135 @@ for(const standing of ['revoked','lease-expired','contract-obsolete'])test(`idle
  const f=await setup({config:standing==='revoked'?{standing:'revoked'}:standing==='lease-expired'?{clock:{...config().clock,now:()=> '2030-01-01T00:00:00Z'}}:{contract:{client:'1',required:'2'}}});
  try{await expectReplacementRefused(f,'WORKOUT_REPLACEMENT_STANDING_UNPROVEN');}finally{f.repo.close();}
 });
+
+// Real fake-indexeddb transactions/connections, with observation and deterministic
+// I/O faults only. No successful repository/head guard is replaced by a stub.
+function headDatabase(){
+ const inner=faultDatabase().inner,state={arm:false,mode:null,events:[],transactions:[],writes:[],beforeBegin:null,afterRead:null,afterCallback:null};
+ const indexedDB={open(...args){const request=inner.open(...args);request.addEventListener('success',()=>{
+  const db=request.result,transaction=db.transaction.bind(db);
+  db.transaction=(...args)=>{
+   const head=state.arm&&args[1]==='readonly';if(head){state.arm=false;state.events.push('head-begin');state.beforeBegin?.();if(state.mode==='begin-failure')throw new DOMException('Synthetic begin fault','InvalidStateError');}
+   const tx=transaction(...args);state.transactions.push({head,mode:args[1]});
+   if(head){state.tx=tx;tx.addEventListener('complete',()=>state.events.push('head-complete'));tx.addEventListener('abort',()=>state.events.push('head-abort'));}
+   const objectStore=tx.objectStore.bind(tx);tx.objectStore=name=>{
+    const store=objectStore(name);
+    for(const method of ['put','delete','clear']){const original=store[method].bind(store);store[method]=(...a)=>{state.writes.push({head,method});return original(...a);};}
+    if(head){const get=store.get.bind(store);state.headGet=get;store.get=(key)=>{
+     if(state.mode==='read-failure')throw new DOMException('Synthetic read fault','UnknownError');
+     const reading=get(key);let handler;
+     Object.defineProperty(reading,'onsuccess',{configurable:true,get:()=>handler,set(fn){handler=event=>{
+      state.events.push('head-read');state.recordSeen=structuredClone(reading.result);state.afterRead?.(tx);
+      if(state.mode==='abort-before'){tx.abort();return;}
+      fn.call(reading,event);state.afterCallback?.(tx);
+      if(state.mode==='abort-after')tx.abort();
+     };}});return reading;
+    };}
+    return store;
+   };
+   return tx;
+  };
+ });return request;}};
+ return {inner,indexedDB,state};
+}
+async function nativeConnection(inner){return new Promise((resolve,reject)=>{const r=inner.open('w6-synthetic',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+async function storedRecords(db){return new Promise((resolve,reject)=>{const tx=db.transaction('generations','readonly'),store=tx.objectStore('generations');let keys,values;
+ const k=store.getAllKeys(),v=store.getAll();k.onsuccess=()=>keys=k.result;v.onsuccess=()=>values=v.result;
+ tx.oncomplete=()=>resolve(keys.map((key,i)=>[key,values[i]]));tx.onabort=()=>reject(tx.error);
+});}
+function nativeWriter(db,{record,remove=false,hold=false,events=[]}={}){
+ const entered=deferred(),state={release:!hold},tx=db.transaction('generations','readwrite'),store=tx.objectStore('generations');
+ const complete=new Promise((resolve,reject)=>{tx.oncomplete=()=>{events.push('writer-complete');resolve();};tx.onabort=()=>reject(tx.error);});
+ const request=store.get('active');request.onsuccess=()=>{
+  events.push('writer-read');if(remove)store.delete('active');else if(record!==undefined)store.put(record,'active');entered.resolve();
+  const keepAlive=()=>{if(state.release)return;const r=store.get('active');r.onsuccess=keepAlive;};keepAlive();
+ };
+ return {entered:entered.promise,complete,release(){state.release=true;}};
+}
+async function nextHeadRecord(f,snapshot,revision){const iv=webcrypto.getRandomValues(new Uint8Array(12));
+ const aad=new TextEncoder().encode(JSON.stringify(['earned/local-generation/v1',1,f.setup.namespace,revision]));
+ const ciphertext=await webcrypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:aad,tagLength:128},f.key,new TextEncoder().encode(JSON.stringify(snapshot.generation)));
+ return {format:1,namespace:f.setup.namespace,revision,iv,ciphertext};
+}
+async function headSetup(){const db=headDatabase();const f=await setup({repository:{indexedDB:db.indexedDB},wrapRepository:repo=>({...repo,
+ withCurrentHead(expected,fn){db.state.arm=true;return repo.withCurrentHead(expected,fn);}})});return {...f,headDB:db};}
+test('atomic head: success is readonly and preserves active previous adoption and every stored collection byte',async()=>{
+ const f=await headSetup(),db=await nativeConnection(f.headDB.inner);try{const a=await start(f,await prepare(f));await close(f,a.op_id);const p=await prepare(f);
+  const before=await storedRecords(db),snapshot=await f.repo.load();assert(before.some(([key])=>key==='previous'));let calls=0;
+  f.headDB.state.transactions=[];f.headDB.state.writes=[];
+  const r=await replaceHost(f,replacementCallbacks(()=>{calls++;f.headDB.state.events.push('published');assert.deepEqual(f.headDB.state.recordSeen,before.find(([key])=>key==='active')[1]);}));
+  assert.equal(r.replaced,true);assert.equal(calls,1);assert.deepEqual(await storedRecords(db),before);assert.deepEqual(await f.repo.load(),snapshot);
+  assert.equal(f.headDB.state.transactions.filter(t=>t.head).length,1);assert(f.headDB.state.transactions.every(t=>t.mode==='readonly'));
+  assert.deepEqual(f.headDB.state.writes,[]);assert(f.headDB.state.events.indexOf('published')<f.headDB.state.events.indexOf('head-complete'));
+  assert.equal((await start(f,p)).code,'SESSION_CHANGED');
+ }finally{db.close();f.repo.close();}
+});
+for(const change of ['revision','token','missing','malformed'])test(`atomic head: earlier independent ${change} write refuses inside the real readonly transaction`,async()=>{
+ const f=await headSetup(),db=await nativeConnection(f.headDB.inner),reader=await f.fresh();let writer;
+ try{const p=await prepare(f),snapshot=await f.repo.load();let record;
+  if(change==='revision'||change==='token')record=await nextHeadRecord(f,snapshot,snapshot.revision+(change==='revision'?1:0));
+  if(change==='malformed')record={format:1,namespace:f.setup.namespace,revision:snapshot.revision,iv:new Uint8Array(1),ciphertext:new ArrayBuffer(16)};
+  f.headDB.state.beforeBegin=()=>{writer=nativeWriter(db,{record,remove:change==='missing'});};let calls=0;
+  const result=await replaceHost(f,replacementCallbacks(()=>{calls++;}));await writer.complete;
+  assert.equal(result.replaced,false);assert.equal(result.code,['revision','token'].includes(change)?'WORKOUT_REPLACEMENT_STALE':'STORED_INTEGRITY_UNPROVEN');assert.equal(calls,0);
+  assert.equal(f.headDB.state.events.includes('head-read'),true);assert.equal(result.outcomeUnknown,undefined);
+  assert.equal(f.headDB.state.writes.some(w=>w.head),false);
+  if(change==='revision'||change==='token'){
+   const after=await reader.repository.load();assert.equal(after.revision,record.revision);assert.notEqual(after.token,snapshot.token);assert.deepEqual(after.generation,snapshot.generation);
+   assert.equal((await start(f,p)).code,'WORKOUT_PREPARATION_STALE');assert.equal((await prepare(f)).prepared,true); // Refusal did not retire the client.
+  }
+ }finally{writer?.release();db.close();reader.repository.close();f.repo.close();}
+});
+test('atomic head: a later independent writer waits for synchronous publication and transaction completion',async()=>{
+ const f=await headSetup(),db=await nativeConnection(f.headDB.inner),reader=await f.fresh();let writer;
+ try{const snapshot=await f.repo.load(),record=await nextHeadRecord(f,snapshot,snapshot.revision+1),events=f.headDB.state.events;let calls=0;
+  f.headDB.state.afterRead=()=>{events.push('writer-scheduled');writer=nativeWriter(db,{record,events});};
+  const r=await replaceHost(f,replacementCallbacks(()=>{calls++;events.push('published');assert.equal(events.includes('writer-read'),false);assert.equal(f.headDB.state.recordSeen.revision,snapshot.revision);}));
+  assert.equal(r.replaced,true);assert.equal(calls,1);await writer.complete;
+  assert(events.indexOf('published')<events.indexOf('head-complete'));assert(events.indexOf('head-complete')<events.indexOf('writer-read'));
+  assert.equal((await reader.repository.load()).revision,snapshot.revision+1);assert.equal(f.headDB.state.writes.some(w=>w.head),false);
+ }finally{writer?.release();db.close();reader.repository.close();f.repo.close();}
+});
+for(const change of ['queue','session','observation'])test(`atomic head: ${change} changing while an earlier transaction blocks the read refuses publication`,async()=>{
+ const f=await headSetup(),db=await nativeConnection(f.headDB.inner),waiting=deferred();let writer,pendingStart;
+ try{const p=await prepare(f),before=await f.repo.load();let calls=0;
+  f.headDB.state.beforeBegin=()=>{writer=nativeWriter(db,{hold:true});writer.entered.then(waiting.resolve);};
+  const pending=replaceHost(f,replacementCallbacks(()=>{calls++;}));await waiting.promise;
+  assert.equal(f.headDB.state.events.includes('head-read'),false);
+  if(change==='queue')pendingStart=start(f,p);if(change==='session')f.scope.session++;if(change==='observation')f.scope.observation++;
+  writer.release();const result=await pending;await writer.complete;
+  assert.equal(result.code,change==='queue'?'WORKOUT_REPLACEMENT_BUSY':change==='session'?'SESSION_CHANGED':'OBSERVATION_CHANGED');assert.equal(calls,0);
+  if(pendingStart)assert.equal((await pendingStart).acknowledged,true);
+  else{assert.deepEqual(await f.repo.load(),before);f.scope.session=1;f.scope.observation=1;assert.equal((await start(f,p)).acknowledged,true);}
+ }finally{writer?.release();db.close();f.repo.close();}
+});
+for(const failure of ['begin-failure','read-failure','abort-before'])test(`atomic head: ${failure} leaves the old preparation usable and writes nothing`,async()=>{
+ const f=await headSetup();try{const p=await prepare(f),before=await f.repo.load();f.headDB.state.mode=failure;
+  const r=await expectReplacementRefused(f,{ 'begin-failure':'CURRENT_HEAD_READ_BEGIN_FAILED','read-failure':'CURRENT_HEAD_READ_FAILED','abort-before':'CURRENT_HEAD_READ_ABORTED'}[failure]);
+  assert.equal(r.outcomeUnknown,undefined);assert.deepEqual(await f.repo.load(),before);assert.equal(f.headDB.state.writes.some(w=>w.head),false);
+  f.headDB.state.mode=null;assert.equal((await start(f,p)).acknowledged,true);
+ }finally{f.repo.close();}
+});
+for(const failure of ['abort-after','close-after'])test(`atomic head: ${failure} after publication is unknown and never revives the old handle`,async()=>{
+ const f=await headSetup(),reader=await f.fresh();try{const p=await prepare(f),before=await reader.repository.load(),old=f.c,next=recreate(f);let host=old,calls=0;
+  if(failure==='abort-after')f.headDB.state.mode=failure;else f.headDB.state.afterCallback=()=>f.repo.close();
+  const result=await replaceHost(f,replacementCallbacks(()=>{calls++;host=next;}));assert.equal(result.replaced,false);assert.equal(result.outcomeUnknown,true);
+  assert.equal(result.code,'WORKOUT_REPLACEMENT_PUBLICATION_UNKNOWN');assert.equal(result.publicationCompleted,true);assert.equal(result.oldHandleRetired,true);
+  assert.equal(result.failureCode,failure==='abort-after'?'CURRENT_HEAD_READ_ABORTED':'CURRENT_HEAD_CONNECTION_CLOSED');assert.equal(calls,1);assert.equal(host,next);
+  assert.equal((await start(f,p)).code,'SESSION_CHANGED');assert.equal((await f.c.replaceIdleWorkoutHost(await replacementBasis({...f,repo:reader.repository}),replacementCallbacks(()=>{calls++;}))).code,'SESSION_CHANGED');
+  assert.equal(calls,1);assert.deepEqual(await reader.repository.load(),before);assert.equal(f.headDB.state.writes.some(w=>w.head),false);
+ }finally{reader.repository.close();f.repo.close();}
+});
+test('atomic head: missing capability refuses rather than falling back to a snapshot check',async()=>{
+ const f=await setup({wrapRepository:repo=>({...repo,withCurrentHead:undefined})});try{const p=await prepare(f);await expectReplacementRefused(f,'WORKOUT_REPLACEMENT_ATOMIC_HEAD_UNAVAILABLE');assert.equal((await start(f,p)).acknowledged,true);}finally{f.repo.close();}
+});
+test('atomic head: successful replacement stays pending until the readonly transaction completes',async()=>{
+ const f=await headSetup(),entered=deferred();let release=false,settled=false;
+ try{const before=await f.repo.load();f.headDB.state.afterCallback=()=>{
+   const keepAlive=()=>{if(release)return;const request=f.headDB.state.headGet('active');request.onsuccess=keepAlive;};keepAlive();entered.resolve();
+  };
+  const pending=replaceHost(f,replacementCallbacks(()=>{})).then(result=>{settled=true;return result;});
+  await entered.promise;await new Promise(resolve=>setImmediate(resolve));assert.equal(settled,false);assert.equal(f.headDB.state.events.includes('head-complete'),false);
+  release=true;assert.equal((await pending).replaced,true);assert.equal(f.headDB.state.events.includes('head-complete'),true);assert.deepEqual(await f.repo.load(),before);
+ }finally{release=true;f.repo.close();}
+});

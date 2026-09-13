@@ -267,6 +267,54 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
     if (active === undefined) throw new StorageFailure("STORE_MISSING", 18);
     return unseal(active);
   }
+  let headCloseEpoch = 0;
+  // Trusted internal capability, not a writer. Equality to the full token of an
+  // already authenticated snapshot carries its proof into this IDB ordering
+  // point. The callback must finish synchronously while the readonly request is
+  // active; transaction completion does not make its local effects durable.
+  function withCurrentHead(expected, callback) {
+    return new Promise((resolve, reject) => {
+      let basis, tx, failure = null, invoked = false, result;
+      const closeEpoch = headCloseEpoch;
+      try {
+        if (!object(expected) || ![Object.prototype, null].includes(Object.getPrototypeOf(expected))) throw new Error();
+        const fields = Object.getOwnPropertyDescriptors(expected), names = Reflect.ownKeys(expected);
+        if (names.length !== 3 || !['namespace','revision','token'].every(k => Object.hasOwn(fields,k) && Object.hasOwn(fields[k],'value') && fields[k].enumerable)) throw new Error();
+        basis = Object.freeze({namespace:fields.namespace.value,revision:fields.revision.value,token:fields.token.value});
+        if (basis.namespace !== namespace || !Number.isSafeInteger(basis.revision) || basis.revision < 1 ||
+            typeof basis.token !== 'string' || !basis.token || typeof callback !== 'function' || Object.getPrototypeOf(callback) !== Function.prototype) throw new Error();
+      } catch { reject(new StorageFailure('CURRENT_HEAD_INPUT_INVALID',18)); return; }
+      try { tx = db.transaction(STORE,'readonly'); }
+      catch { reject(new StorageFailure('CURRENT_HEAD_READ_BEGIN_FAILED',18)); return; }
+      const abort = error => {
+        failure ||= error;
+        try { tx.abort(); } catch { reject(failure); }
+      };
+      tx.onabort = () => reject(failure || new StorageFailure('CURRENT_HEAD_READ_ABORTED',18));
+      tx.onerror = () => abort(new StorageFailure('CURRENT_HEAD_READ_FAILED',18));
+      tx.oncomplete = () => {
+        if (failure) reject(failure);
+        else if (closeEpoch !== headCloseEpoch) reject(new StorageFailure('CURRENT_HEAD_CONNECTION_CLOSED',18));
+        else if (!invoked) reject(new StorageFailure('CURRENT_HEAD_CALLBACK_MISSING',18));
+        else resolve(result);
+      };
+      try {
+        const request = tx.objectStore(STORE).get('active');
+        request.onerror = () => abort(new StorageFailure('CURRENT_HEAD_READ_FAILED',18));
+        request.onsuccess = () => {
+          try {
+            if (failure) return;
+            if (closeEpoch !== headCloseEpoch) throw new StorageFailure('CURRENT_HEAD_CONNECTION_CLOSED',18);
+            const active = request.result;
+            if (!validRecord(active,namespace)) throw new StorageFailure('STORED_INTEGRITY_UNPROVEN',18);
+            if (active.revision !== basis.revision || token(active) !== basis.token) throw new StorageFailure('CURRENT_HEAD_CHANGED',18);
+            invoked = true; result = callback();
+            if (result && typeof result.then === 'function') throw new StorageFailure('CURRENT_HEAD_CALLBACK_ASYNC',18);
+          } catch (error) { abort(error instanceof StorageFailure ? error : new StorageFailure('CURRENT_HEAD_CALLBACK_FAILED',18)); }
+        };
+      } catch { abort(new StorageFailure('CURRENT_HEAD_READ_FAILED',18)); }
+    });
+  }
   return {
     importCustody({parseStrictJson,validateContext}={}) {
       return createImportCustody({db,namespace,crypto,key,loadActive,parseStrictJson,validateContext,StorageFailure,
@@ -279,6 +327,7 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
       return createRecoveryStage({db,namespace,crypto,key,protocol,codec,verificationKeys,validateContext,keyRange,StorageFailure});
     },
     load: loadActive,
+    withCurrentHead,
     async initialize(generation, evidence) {
       let allowed = false;
       try { allowed = typeof authorizeEnrollment === "function" && await authorizeEnrollment(evidence, { namespace, databaseName }); }
@@ -310,6 +359,6 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
     // actually adopted a recovery. Absent for a never-recovered profile, for
     // a completed but uncommitted recovery, and for a failed adoption.
     async recoveryAdoption() { return openAdoption(await readKey(ADOPTION)); },
-    close() { db.close(); },
+    close() { headCloseEpoch++; db.close(); },
   };
 }

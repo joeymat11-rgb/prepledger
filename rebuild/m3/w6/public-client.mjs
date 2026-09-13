@@ -324,6 +324,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
   }
   async function replaceIdleWorkoutHost(input, attempt) {
     const fail = (code, state = 3) => { throw new StorageFailure(code, state); };
+    let publicationAttempted = false, publicationCompleted = false;
     try {
       if (!input) fail('WORKOUT_REPLACEMENT_INPUT_INVALID');
       if (!captureEnabled) fail('WORKOUT_PREPARATION_NOT_CONFIGURED');
@@ -378,25 +379,31 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       assertIdle();
       if (!proved || visits !== 1) fail('WORKOUT_REPLACEMENT_GUARD_INVALID',18);
       await checkpoint.read(); assertIdle();
-      let ready;
-      try { ready = isReplacementCurrent(); } catch { fail('WORKOUT_REPLACEMENT_NOT_CURRENT'); }
-      if (ready !== true) fail('WORKOUT_REPLACEMENT_NOT_CURRENT');
-      assertIdle(); // The currentness capability can synchronously reenter.
-      // Final no-await turn. The trusted publisher may ONLY assign a fully
-      // constructed bundle reference and return undefined, without throwing.
-      // Arbitrary external effects cannot be rolled back on contract violation.
-      try {
-        if (publishReplacement() !== undefined) throw new Error('Unexpected publication result');
+      if (typeof repository.withCurrentHead !== 'function') fail('WORKOUT_REPLACEMENT_ATOMIC_HEAD_UNAVAILABLE',18);
+      // A load is a historical snapshot after decryption awaits. Publish ONLY
+      // inside the repository's synchronous comparison of the live IDB head.
+      return await repository.withCurrentHead({namespace,revision:basis.revision,token:basis.token}, () => {
         assertIdle();
-      } catch {
-        publicationUnknown = true;
-        return {...refusal(18,'WORKOUT_REPLACEMENT_PUBLICATION_UNKNOWN','Replacement publication is unknown; rebuild the trusted host before another replacement.'),replaced:false,outcomeUnknown:true};
-      }
-      for (const entry of preparations.values()) if (entry.phase === 'ready') entry.retired = true;
-      replaced = true;
-      return {replaced:true,stored:false,durable:false,sourceRevision:basis.revision};
+        let ready;
+        try { ready = isReplacementCurrent(); } catch { fail('WORKOUT_REPLACEMENT_NOT_CURRENT'); }
+        if (ready !== true) fail('WORKOUT_REPLACEMENT_NOT_CURRENT');
+        assertIdle(); // The currentness capability can synchronously reenter.
+        // No-await reference assignment. A later transaction failure cannot
+        // roll back this reference or revive an already fenced old handle.
+        publicationAttempted = true;
+        if (publishReplacement() !== undefined) fail('WORKOUT_REPLACEMENT_PUBLISHER_CONTRACT',18);
+        assertIdle();
+        for (const entry of preparations.values()) if (entry.phase === 'ready') entry.retired = true;
+        replaced = true; publicationCompleted = true;
+        return {replaced:true,stored:false,durable:false,sourceRevision:basis.revision};
+      });
     } catch (error) {
-      return {...refusal(error.state || 18,error.code || 'WORKOUT_REPLACEMENT_UNPROVEN','This replacement did not reach publication.'),replaced:false,
+      if (publicationAttempted) {
+        publicationUnknown = true;
+        return {...refusal(18,'WORKOUT_REPLACEMENT_PUBLICATION_UNKNOWN','Replacement publication is unknown; rebuild the trusted host before another replacement.'),
+          replaced:false,outcomeUnknown:true,publicationCompleted,oldHandleRetired:replaced,failureCode:error.code || 'WORKOUT_REPLACEMENT_PUBLISHER_FAILED'};
+      }
+      return {...refusal(error.state || 18,error.code === 'CURRENT_HEAD_CHANGED' ? 'WORKOUT_REPLACEMENT_STALE' : error.code || 'WORKOUT_REPLACEMENT_UNPROVEN','This replacement did not reach publication.'),replaced:false,
         ...(['WORKOUT_START_OUTCOME_UNRESOLVED','WORKOUT_REPLACEMENT_WRITE_UNRESOLVED','WORKOUT_REPLACEMENT_PUBLICATION_UNRESOLVED'].includes(error.code)?{outcomeUnknown:true}:{})};
     } finally { activeGrant?.retire(); activeGrant = null; }
   }
