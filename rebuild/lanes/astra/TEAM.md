@@ -1,17 +1,17 @@
 # Earned: active Astra team
 
-Owner-approved handover: DECISIONS:193, published at 3ef096d; memory202 and E203. Operational checkpoint: 2026-09-13 01:28 ET. Seven active seats use GPT-6 Astra. PM, D and D2 are retained chats; B/C/engine reviewer/E are new persistent chats. The app sidebar section is Earned — Astra team. The current assignments below supersede older transfer checkpoints retained later in this file.
+Owner-approved handover: DECISIONS:193, published at 3ef096d; memory202 and E203. Operational checkpoint: 2026-09-13 01:46 ET. Eight seats use GPT-6 Astra, including the separately commissioned integration seat in preparation only. PM, D and D2 are retained chats; B/C/engine reviewer/E/I are new persistent chats. The app sidebar section is Earned — Astra team. The current assignments below supersede older transfer checkpoints retained later in this file.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Additive preflight CI201 first; issuer f047b5b REJECT R1 preserved for later fix; sole gate196 operator; B1+B2 scope docs next | earned-astra-b-follow-up; hourly building, 20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Additive CI201 composed b09d55a with reviewed D bytes,67 local checks; hosted/ER pending. Returning to issuer198 R1; sole gate196 operator | earned-astra-b-follow-up; hourly building, 20 minutes waiting |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Launch R2 0ce2a6f bounded guard ACCEPT a9b444e; final stable-tip composition pending; N2 next separately | earned-astra-c-follow-up; hourly building, 20 minutes waiting |
-| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Fixing D2 raw-text closing-tag finding on preflight200 candidate dae1fb2; companion74920fb bounded PASS, downstream admission held | earned-lane-d-hourly; hourly building, 20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Independent preflight200 review, C R2 guard closed; N2 round3 REJECT. Future memory implementation reviewer after current priorities | earned-lane-d2-requests; hourly reviewing, 20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Prospective201 bar read; waiting exact CI candidate, issuer R1 successor follows; companion74920fb review completed fdc4c8e | earned-astra-engine-review-follow-up; hourly reviewing, 20 minutes waiting |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | Coaching Memory v1 implementation brief and whole-plan beta coverage under202/203; docs only now, code after prerequisites and precise custody | earned-astra-e-follow-up; hourly design, 20 minutes waiting |
-| Integrator | Commission a third-role task for a named accepted head | Verify custody, exact-head and merged-tree evidence; integration branch only | No merge authorized by this roster alone |
+| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Preflight200 aab62dd bounded ACCEPTddba29d; final CI/composition held. Companion74920fb bounded PASS, downstream admission held | earned-lane-d-hourly; hourly building, 20 minutes waiting |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | C guard and D200 runtime findings closed; waits final launch composition. N2 round3 REJECT; future memory reviewer after current priorities | earned-lane-d2-requests; hourly reviewing, 20 minutes waiting |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Independent201 review at b09d55a, issuer R1 successor follows; companion74920fb review completed fdc4c8e | earned-astra-engine-review-follow-up; hourly reviewing, 20 minutes waiting |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | Two design docs BRIEF-READY2794d7e; PM judgment/G2 consent/G3 pins next. No runtime custody released | earned-astra-e-follow-up; hourly design, 20 minutes waiting |
+| I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | Separate integrator, one preparation pass under INTEGRATOR-BRIEF.md; waits final accepted head and explicit PM grant, no merge yet | earned-astra-integration-follow-up;20 minutes waiting,30 during authorized integration, pause at completion |
 
 ## Worktrees
 
@@ -24,6 +24,7 @@ New-tree root on Joe's PC: `C:/Users/joeym/Documents/prepledger-dev/work/pm-care
 - C launch successors: `c-launch-adoption` and `c-launch-r2`, their own named branches; the latter is locally prepared, not a final gate candidate.
 - D tooling200: `preflight-comments`, branch `rebuild/astra-preflight-comments`; earlier feature trees remain preserved.
 - E: `lane-e`, branch `rebuild/astra-e-memory`, public sparse checkout verified clean at1988db9; no runtime custody released.
+- I: `launch-integrator`, branch `rebuild/astra-launch-integrator`, public sparse checkout verified clean at3cab73d; preparation only, no merge grant.
 - Engine reviewer: `review-plan-edit`, branch `rebuild/astra-review-plan-edit`, public sparse checkout initialized clean at6b3465e.
 - D retains its own trees beneath `C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/lane-d/`.
 - D2 retains its own trees beneath `C:/Users/joeym/Documents/prepledger-dev/work/lane-d2/`.
