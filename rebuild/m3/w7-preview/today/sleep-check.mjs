@@ -194,7 +194,8 @@ async function durableSleepRows(page) {
     const entry = await import('/app.js');
     const opened = await entry.boot({ document });
     await opened.api.sleepReady();
-    const rows = await opened.api.sleepLane().host.all();
+    window.__n2ObservedSleepHost = opened.api.sleepLane().host;
+    const rows = await window.__n2ObservedSleepHost.all();
     return rows.map(row => ({ op_id: row.op_id, night: row.night }));
   });
 }
@@ -276,6 +277,11 @@ try {
   await reachable(page, "sleep at 390");
   await boxesAreLargeEnough(page, "sleep at 390");
   await noDashes(page, "sleep at 390");
+  await page.evaluate(() => { document.getElementById('sleep-bed').style.fontSize = '8px'; });
+  await assert.rejects(() => boxesAreLargeEnough(page, 'negative undersized input'), /renders at 8px/);
+  await page.evaluate(() => { document.getElementById('sleep-bed').style.fontSize = ''; });
+  notes.push('the browser size check rejects an intentionally undersized input');
+  await context.setOffline(true);
 
   /* ---------- the estimate is the ENGINE's, shown as an estimate ---------- */
   await typeTimes(page, "23:00", "06:30");
@@ -300,6 +306,8 @@ try {
   assert.match(line, /From bed and wake times\./, "and says which shape it came from");
   assert.match(line, /Recorded \d{4}-\d{2}-\d{2} at \d{2}:\d{2}/, "with the stamp on the operation");
   notes.push("a night recorded from bed and wake times: " + line.trim());
+  await context.setOffline(false);
+  notes.push('the actual clock-time save completed while the browser was offline');
 
   /* D2 ROUND 1, FINDING 5 - A RECORDED NIGHT OWNS THE DISPLAY. The form is put away and
      the saved value stays visible until the athlete deliberately asks to change it. */
@@ -558,6 +566,39 @@ try {
   }
   assert(focused.has('sleep-bed') && focused.has('sleep-wake') && focused.has('sleep-save'));
   notes.push('Tab reaches bed, wake and Save at 375px with doubled text');
+
+  // An existing public entry on the next day advances the one installation clock.
+  // It uses a detached document so the original page and its typed draft stay open.
+  const rolloverBefore = await durableSleepRows(page);
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.click('#phone [data-slot="sleep-mode-hours"]');
+  await typeHours(page, '6.25');
+  const originalNight = await page.inputValue('#sleep-date');
+  const advanced = await page.evaluate(async () => {
+    const entry = await import('/app.js');
+    const detached = document.implementation.createHTMLDocument('Synthetic clock adoption');
+    detached.documentElement.innerHTML = document.documentElement.innerHTML;
+    const opened = await entry.boot({ document: detached, today: '2030-02-05' });
+    await opened.api.sleepReady();
+    return opened.hosts.liveDay();
+  });
+  assert.equal(advanced, '2030-02-05');
+  assert.equal(await page.inputValue('#sleep-hours'), '6.25');
+  await tapSave(page);
+  await page.waitForSelector('#phone [data-slot="sleep-keep-night"]:not([hidden])');
+  assert.match(await page.textContent('#phone [data-slot="sleep-error"]'), /The date changed/);
+  assert.equal(await page.evaluate(async () => (await window.__n2ObservedSleepHost.all()).length), rolloverBefore.length);
+  await page.click('#phone [data-slot="sleep-keep-night"]');
+  await tapSave(page);
+  await page.waitForFunction(() => document.querySelector('[data-slot="sleep-recorded"]').textContent.includes('6.25 h'));
+  const rolled = await page.evaluate(async () => {
+    const row = (await window.__n2ObservedSleepHost.all()).at(-1);
+    return { date: row.night.date, savedDate: row.savedDate };
+  });
+  assert.equal(rolled.date, originalNight);
+  assert.equal(rolled.savedDate, '2030-02-05');
+  assert.equal(await page.inputValue('#sleep-date'), originalNight);
+  notes.push('actual page rollover required Keep this night, retained typed hours and used the installation save date');
   await hardKill(context);
 } catch (error) {
   failures += 1;
