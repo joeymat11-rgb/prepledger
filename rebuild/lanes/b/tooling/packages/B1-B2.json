@@ -575,7 +575,7 @@
     },
     "rebuild/m4/workout/test/b1b2-evidence.cjs": {
       "pre": null,
-      "post": "60a623446bf78294da655bf196fa5bbdcf8fef757497da95480761d1c35c7459",
+      "post": "a010ef5b0460ecda3009c2cd54c7c7292b987e2ee954f9d6a2e4a949eaaf0b67",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-source-changes.json": {

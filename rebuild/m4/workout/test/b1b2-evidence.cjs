@@ -464,6 +464,10 @@ function fieldDiff(a,b,at='$',out=[]) {
 // PM330 output-only diagnostics. Never an expectation or field-delta waiver.
 const NATIVE_DIAGNOSTIC_STATES=Object.freeze(['reads','trend','feed','queue','sleep','dailyLogs','sessionLog','model','learned','adjustments','suggestionLog','corrLog','exercises']);
 let nativeObservation;
+const NATIVE_FUNCTION_STRING=Function.prototype.toString;
+const NATIVE_HOOK_PINS=Object.freeze({createHook:'fe8223decbb582cec92799127df3e5a5231a8d5d467b31b9216ec2d903d54460',enable:'857ccb0b6fe725486e1fdd07fede7b909a067d294050c957b7b95d49c6973fc0',disable:'7b21d3e0c8841ef1785fd7a1b18fa975f9f3c92f7d2d0aad40a948987c7d60e1',unlink:'2b2d28c8fd4dafdb8f216f278863c3671344be98d86803ff41a72bbf37087cad'});
+function nativeCaptureFunction(fn,pin){if(typeof fn!=='function'||sha(Reflect.apply(NATIVE_FUNCTION_STRING,fn,[]))!==pin)throw Error('DIAGNOSTIC_BUILTIN');return fn;}
+
 function nativeDiagnosticCategories(kind,paths,rootKeys) {
   if(!['second-readers','second-applyRead'].includes(kind)||!Array.isArray(paths)||paths.length>100000||!Array.isArray(rootKeys)||rootKeys.length>100000)throw Error('DIAGNOSTIC_SHAPE');
   if(rootKeys.some(k=>typeof k!=='string'||k.length>4096))throw Error('DIAGNOSTIC_KEYS');
@@ -484,9 +488,9 @@ function installNativeExitCapture(state,marker) {
   if(typeof original!=='function'||(descriptor&&!Object.hasOwn(descriptor,'value')))throw Error('DIAGNOSTIC_EMITTER');
   // PM350: callback arguments are deliberately ignored; no IO, scheduling or throws.
   let deferred=false;
-  const hook=require('node:async_hooks').createHook({init(){deferred=true;},promiseResolve(){deferred=true;}});
-  const enable=hook.enable,disable=hook.disable,finalUnlink=fs.unlinkSync;
-  if(typeof enable!=='function'||typeof disable!=='function'||typeof finalUnlink!=='function')throw Error('DIAGNOSTIC_HOOK');
+  const createHook=nativeCaptureFunction(require('node:async_hooks').createHook,NATIVE_HOOK_PINS.createHook);
+  const hook=Reflect.apply(createHook,undefined,[{init(){deferred=true;},promiseResolve(){deferred=true;}}]);
+  const enable=nativeCaptureFunction(hook.enable,NATIVE_HOOK_PINS.enable),disable=nativeCaptureFunction(hook.disable,NATIVE_HOOK_PINS.disable),finalUnlink=nativeCaptureFunction(fs.unlinkSync,NATIVE_HOOK_PINS.unlink);
   let depth=0;
   const sameDescriptor=(a,b)=>a===undefined?b===undefined:!!b&&['value','writable','enumerable','configurable'].every(k=>a[k]===b[k]);
   function capturedExit(...args) {
