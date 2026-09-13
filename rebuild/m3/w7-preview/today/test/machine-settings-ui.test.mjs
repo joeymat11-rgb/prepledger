@@ -96,8 +96,10 @@ async function card(kit, options = {}) {
     click: (selector) => doc.querySelector('#phone ' + selector).dispatchEvent(new dom.window.Event('click')),
     rowCount: () => doc.querySelectorAll('#phone [data-slot="settings-rows"] .row').length,
     async open() {
+      const previousEditor = pick('settings-editor');
       this.click('[data-action="settings-open"]');
-      await waitFor(() => pick('settings-editor') && pick('settings-editor').hidden === false
+      await waitFor(() => pick('settings-editor') && pick('settings-editor') !== previousEditor
+        && pick('settings-editor').hidden === false
         && doc.querySelector('#phone [data-settings-name="0"]'), 'the editor to open');
     },
     async addRow() {
@@ -474,7 +476,7 @@ test('S7 - a name with no value, a value with no name and a repeated name all re
     assert.deepEqual(await settingsOps(kit.settings.repository), [],
       'nothing was written for ' + JSON.stringify(rows));
     page.click('[data-action="settings-cancel"]');
-    await settle();
+    await waitFor(() => page.pick('settings-editor').hidden, 'the cancelled editor to close');
   }
   kit.settings.close(); kit.gymHost.close();
 });
@@ -511,6 +513,71 @@ test('S7 - a refused capture leaves his answers on the screen, unchanged', async
   kit.settings.close(); kit.gymHost.close();
 });
 
+test('S7 - a producer refusal survives a held row-add repaint and a valid retry saves once', async () => {
+  const kit = await device(), actualModel = kit.model;
+  let held = false, entered = false, release;
+  const delayed = new Promise(resolve => { release = resolve; });
+  kit.model = { ...actualModel, async read() {
+    const view = await actualModel.read();
+    if (held) { entered = true; await delayed; }
+    return view;
+  } };
+  let page;
+  try {
+    page = await card(kit);
+    const beforeOps = await opsOf(kit.settings.repository);
+    const beforeOutbox = await outboxOf(kit.settings.repository);
+    await page.open(); page.type(0, 'Seat', ''); held = true;
+    page.click('[data-action="settings-add"]');
+    await waitFor(() => entered, 'the actual row-add read to be held');
+    await page.save();
+    assert.equal(page.pick('settings-error').textContent, SETTINGS_REFUSED);
+    held = false; release();
+    await waitFor(() => page.rowCount() === 2, 'the row-add repaint to finish');
+    assert.equal(page.pick('settings-error').textContent, SETTINGS_REFUSED,
+      'a later repaint must not erase the producer refusal');
+    assert.equal(page.doc.querySelector('#phone [data-settings-name="0"]').value, 'Seat');
+    assert.deepEqual(await opsOf(kit.settings.repository), beforeOps);
+    assert.deepEqual(await outboxOf(kit.settings.repository), beforeOutbox);
+    page.type(0, 'Seat', 'four'); await page.save();
+    await waitFor(() => page.pick('settings-editor').hidden, 'the successful retry to close');
+    assert.equal((await settingsOps(kit.settings.repository)).length, 1);
+    assert.deepEqual(pairs(page), [['Seat', 'four']]);
+  } finally {
+    held = false; release(); page?.dom.window.close();
+    kit.settings.close(); kit.gymHost.close();
+  }
+});
+
+for (const committed of [false, true]) {
+  test(`S7 - a late old ${committed ? 'success' : 'refusal'} cannot change a replacement draft`, async () => {
+    const kit = await device();
+    let entered = false, release;
+    const delayed = new Promise(resolve => { release = resolve; });
+    const settings = { ...kit.settings, async save(machine) {
+      const result = committed ? await kit.settings.save(machine) : { ok: false };
+      entered = true; await delayed; return result;
+    } };
+    let page;
+    try {
+      page = await card(kit, { settings });
+      await page.open(); page.type(0, 'Seat', 'four');
+      page.click('[data-slot="settings-save"]');
+      await waitFor(() => entered, 'the old save result to be held');
+      page.click('[data-action="settings-cancel"]');
+      await waitFor(() => page.pick('settings-editor').hidden, 'the old draft to close');
+      await page.open(); page.type(0, 'Seat', 'nine');
+      release(); await page.mounted.settings.pending();
+      assert.equal(page.pick('settings-editor').hidden, false, 'the new draft stays open');
+      assert.equal(page.doc.querySelector('#phone [data-settings-value="0"]').value, 'nine');
+      assert.equal(page.pick('settings-error').textContent, '');
+      assert.equal((await settingsOps(kit.settings.repository)).length, committed ? 1 : 0);
+    } finally {
+      release(); page?.dom.window.close(); kit.settings.close(); kit.gymHost.close();
+    }
+  });
+}
+
 /* ==========================================================================
    S8 - CANCELLING, AND NEVER BLOCKING THE SET.
    ========================================================================== */
@@ -522,7 +589,7 @@ test('S8 - cancelling writes nothing and leaves the record exactly as it was', a
   await page.open();
   page.type(0, 'Seat', 'nine');
   page.click('[data-action="settings-cancel"]');
-  await settle();
+  await waitFor(() => page.pick('settings-editor').hidden, 'the cancelled editor to close');
   assert.equal(page.pick('settings-editor').hidden, true, 'the editor closed');
   assert.equal((await settingsOps(kit.settings.repository)).length, 1, 'no second op');
   assert.deepEqual(pairs(page), [['Seat', 'four']], 'the record is what it was');
@@ -872,7 +939,7 @@ test('D2.1 - the card paints and the set LOGS while the settings read is still p
     settings: { latest: () => pending, save: async () => ({ ok: false }), close() {} } });
   let finished = false;
   mounted.then(() => { finished = true; });
-  await settle();
+  await waitFor(() => finished, 'the card to mount while settings remain pending');
   assert.equal(finished, true, 'mountGym resolved WITHOUT waiting for the optional read');
   const page = { dom, doc,
     pick: (slot) => doc.querySelector('#phone [data-slot="' + slot + '"]') };
