@@ -1,0 +1,82 @@
+{
+  "result": {
+    "acknowledged": false,
+    "state": 3,
+    "code": "TRANSACTION_WRITE_FAILED",
+    "copy": "Entry not saved. Your input is retained."
+  },
+  "phase": "active",
+  "message": {
+    "code": "TRANSACTION_WRITE_FAILED",
+    "copy": "Entry not saved. Your input is retained."
+  },
+  "currentError": "Entry not saved. Your input is retained. · TRANSACTION_WRITE_FAILED",
+  "detachedError": "",
+  "currentLogVisible": true,
+  "currentOwns": true,
+  "entry": {
+    "load": "35",
+    "reps": "7"
+  },
+  "effort": {
+    "label": "2",
+    "reserve": {
+      "tag": "exact",
+      "value": 2,
+      "unit": "rep"
+    }
+  },
+  "editorRows": [
+    {
+      "name": "Seat",
+      "value": "four"
+    },
+    {
+      "name": "",
+      "value": ""
+    }
+  ],
+  "changed": 0,
+  "counts": {
+    "busy": 0,
+    "read": 0,
+    "paint": 0,
+    "start": 0,
+    "settingsOpening": 0,
+    "settingsReading": 0,
+    "settingsSaving": 0
+  },
+  "opsBefore": 1,
+  "opsAfter": 1,
+  "outboxBefore": 1,
+  "outboxAfter": 1,
+  "observation": {
+    "preparations": [
+      {
+        "prepared": true,
+        "resumeId": "f02035381a13a0b8e1c650258198f7cc8510d9ca07be0ad9"
+      },
+      {
+        "prepared": true,
+        "resumeId": "b6b999b9ea53fec05a035d1c3ee26464d1ebfd15f717db6a"
+      },
+      {
+        "prepared": true,
+        "resumeId": "fd9ca1492dc9bed07a5be660ca5a8dfbe6c4c1453b89eebd"
+      },
+      {
+        "prepared": true,
+        "resumeId": "9d9ad73a2894258e0198eb33e2085484b23bde2309e0dc97"
+      },
+      {
+        "prepared": true,
+        "resumeId": "f1f9c24b51411fa7815309d98af19ef043245f1fe1c145e5"
+      },
+      {
+        "prepared": true,
+        "resumeId": "7dc37a96b45f982a64dd38d773446cbbf0a17500672e0bc5"
+      }
+    ],
+    "execute": "9d9ad73a2894258e0198eb33e2085484b23bde2309e0dc97"
+  }
+}
