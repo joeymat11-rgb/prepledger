@@ -13,3 +13,4 @@ H3 custody finding: b-package.cjs:2801 invokes Reference.create even for --ci; l
 That inventory names two src/history.js blobs, and publicReferences reads every listed blob with git. D2 has not run H3 or read either blob. Routed to B/PM for an authorized exact-candidate gate run; no bypass.
 C now has PM write custody under :194; await its separately adopted current-H3 exact candidate and Windows/Ubuntu CI, including the previously failing named Today step. Old hotfix4c19239 is not combined-head evidence.
 N2 round 3 remains separately REJECT per b9f9d86, with three findings and six observations; this package does not close them.
+2026-09-13 00:06 ET update: PM designated B as sole local H3 runner under193. B executes the unchanged gate on the exact C candidate; D2 reports that as separate package evidence, never as its own execution. Operator dependency resolved; candidate and gate result remain pending.
