@@ -138,9 +138,15 @@ async function openCard(page) {
   null, { timeout: 20000 });
   await page.click('[data-slot="primary"]');
   await page.waitForSelector('[data-slot="plan"]', { timeout: 20000 });
-  /* The lane is opened by gym-app.mjs itself, asynchronously and failing closed, so
-     the block appearing IS the evidence that this device gave the page a store. */
+  /* The block can appear while its optional saved-settings read is still pending.
+     Inspect durable values only after that read enables the editor; a failed read
+     stays disabled and times out here. The value assertions below still decide
+     whether a completed read returned the expected record. */
   await page.waitForSelector('[data-slot="settings-block"]:not([hidden])', { timeout: 20000 });
+  await page.waitForFunction(() => {
+    const open = document.querySelector('[data-action="settings-open"]');
+    return open && !open.disabled;
+  }, null, { timeout: 20000 });
 }
 
 const block = (page) => text(page, '[data-slot="settings-block"]');

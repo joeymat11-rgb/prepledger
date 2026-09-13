@@ -120,6 +120,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   let settingsSaving = null;
   let settingsDraft = null;       // non-null only while the editor is open
   let settingsDraftLift = null;   // the lift that draft belongs to
+  // A repaint replaces DOM nodes, not the draft's refusal. Weak keys also keep a
+  // delayed result from assigning the old draft's message to a replacement draft.
+  const settingsErrors = new WeakMap();
   /* D2 ROUND 1, FINDING 1 - THE OPTIONAL READ IS NEVER A PREREQUISITE FOR THE CARD.
      The read used to be AWAITED inside paint(), so a slow lane meant no active set, no
      log control and no workout at all until it answered. It is now a lookup in a cache
@@ -248,26 +251,38 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     });
     if (!settingsDraft || settingsDraftLift !== liftId) { editor.hidden = true; return; }
     editor.hidden = false;
-    MachineSettingsView.renderEditor(doc, map, { copy: SETTINGS_COPY, draft: settingsDraft, put,
+    const paintedDraft = settingsDraft;
+    MachineSettingsView.renderEditor(doc, map, { copy: SETTINGS_COPY, draft: paintedDraft, put,
       onChanged: () => { paint(); } });
-    map.get('settings-error').textContent = '';
+    map.get('settings-error').textContent = plainOrDrop(settingsErrors.get(paintedDraft) || '', 'settings-error');
     root.querySelector('[data-action="settings-cancel"]').addEventListener('click', () => {
       /* CANCELLING WRITES NOTHING. The draft is thrown away and the durable record is
          whatever it already was; the athlete is returned to the block. */
+      if (settingsDraft !== paintedDraft) return;
       settingsDraft = null; settingsDraftLift = null; paint();
     });
-    map.get('settings-save').addEventListener('click', () => { settingsSaving = recordSettings(map, view); });
+    map.get('settings-save').addEventListener('click', () => {
+      settingsSaving = recordSettings(map, view, paintedDraft);
+    });
   }
 
   /* ONE op through the coach's producer (brief section 2). Both refusals below are
      decided BEFORE anything is written, and the second of them is the producer's own
      gate called through machine-settings-view.mjs - there is no validator here. */
-  async function recordSettings(map, view) {
-    const error = map.get('settings-error');
-    const machine = MachineSettingsView.machineFromDraft(settingsDraft, view.lift.id);
-    if (!machine) { error.textContent = plainOrDrop(SETTINGS_NOTHING, 'settings-error'); return; }
+  async function recordSettings(map, view, submittedDraft) {
+    if (!owns || !submittedDraft || settingsDraft !== submittedDraft
+      || settingsDraftLift !== view.lift.id) return;
+    const refuse = (message) => {
+      settingsErrors.set(submittedDraft, message);
+      if (!owns || settingsDraft !== submittedDraft || settingsDraftLift !== view.lift.id) return;
+      // The map captured by Save may already be detached by another repaint.
+      const current = phone.querySelector('[data-slot="settings-error"]');
+      if (current) current.textContent = plainOrDrop(message, 'settings-error');
+    };
+    const machine = MachineSettingsView.machineFromDraft(submittedDraft, view.lift.id);
+    if (!machine) { refuse(SETTINGS_NOTHING); return; }
     if (!MachineSettingsView.acceptable(machine)) {
-      error.textContent = plainOrDrop(SETTINGS_REFUSED, 'settings-error');
+      refuse(SETTINGS_REFUSED);
       return;
     }
     const save = map.get('settings-save');
@@ -276,10 +291,12 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     try { result = await settingsLane.save(machine); }
     finally { save.disabled = false; }
     if (!result || result.ok !== true) {
-      error.textContent = plainOrDrop(SETTINGS_NOT_SAVED, 'settings-error');
+      refuse(SETTINGS_NOT_SAVED);
       return;
     }
-    settingsDraft = null; settingsDraftLift = null;
+    if (settingsDraft === submittedDraft && settingsDraftLift === view.lift.id) {
+      settingsDraft = null; settingsDraftLift = null;
+    }
     /* The capture is durable now, so the cached read for this lift is stale: drop it
        and read the LOG again rather than painting what this mount remembers. */
     settingsRead.delete(view.lift.id);

@@ -28,7 +28,7 @@ import { webcrypto } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
-import { buildToday, DIST, ASSETS } from '../build.mjs';
+import { buildToday, DIST, ASSETS, assertNoNodeOnlyGlobals } from '../build.mjs';
 import PlainCopy from '../plain-copy.cjs';
 import design from '../design.cjs';
 import TodayApp from '../today-app.cjs';
@@ -188,6 +188,137 @@ test('P1 — the built page carries no dash in anything the athlete can see', as
   assert.equal(result.dashes.admitted, report.admitted);
 });
 
+/* THE PAGE MUST EVALUATE WHERE IT RUNS.
+ *
+ * This is the net that was missing when plain-copy.cjs (a bundled input) read `__dirname`
+ * at module scope: in a browser that is a ReferenceError before the first paint, so the
+ * deployed page did not boot at all. Every Node suite stayed green, because under
+ * `node --test` the bundle is only ever READ as text, never executed, and the guards that
+ * scan it run at build time. The msedge checks do execute the page, but they serve
+ * whatever is already in .tmp/w7-today-dist and never rebuild, so they were reading a
+ * bundle built before the change.
+ *
+ * So the built bundle is EXECUTED here, in a sandbox shaped like a browser and not like
+ * Node: no `__dirname`, no `__filename`, no `require`, no `module`, no `process`. If the
+ * bundle reads any of them at module scope this throws exactly what the browser throws.
+ * (It lives in this file rather than package.test.cjs because the B-NTC artifact pins
+ * that one on disk and a byte of ours there turns rebuild.yml's gate red.)
+ */
+test('A1 the built bundle EVALUATES with no Node globals, as a browser must run it', async () => {
+  const vm = await import('node:vm');
+  const result = await buildToday();
+  const bundle = fs.readFileSync(path.join(result.dist, 'app.js'), 'utf8');
+  const dom = new JSDOM(fs.readFileSync(path.join(result.dist, 'index.html'), 'utf8'),
+    { url: 'http://127.0.0.1:4178/' });
+  const sandbox = {
+    window: dom.window, document: dom.window.document, navigator: dom.window.navigator,
+    location: dom.window.location, localStorage: dom.window.localStorage,
+    indexedDB: undefined, crypto: dom.window.crypto,
+    setTimeout, clearTimeout, setInterval, clearInterval, queueMicrotask,
+    console, TextEncoder, TextDecoder, URL, URLSearchParams,
+    Event: dom.window.Event, CustomEvent: dom.window.CustomEvent,
+    /* real browser globals, every one of them also standard on the web platform */
+    structuredClone, performance, atob, btoa, AbortController, Blob,
+    fetch: () => { throw new Error('the page must not fetch'); },
+  };
+  sandbox.globalThis = sandbox;
+  sandbox.self = sandbox;
+  const context = vm.createContext(sandbox);
+  /* NOT supplied, on purpose - reading any of these is the defect this cell exists for */
+  for (const name of ['__dirname', '__filename', 'require', 'module', 'exports', 'process']) {
+    assert.equal(name in context, false, name + ' must not be in a browser context');
+  }
+  /* The bundle is an ES module, and node:vm runs ES modules only behind a flag. The ONE
+     piece of module syntax esbuild leaves is a single trailing `export { ... };` - there
+     is no import statement at all, which is asserted rather than assumed - so the clause
+     is replaced by an assignment of the same names. Evaluation is what this cell is
+     about, and module-scope evaluation is identical either way: a `__dirname` read still
+     throws here exactly when it throws in the browser. */
+  assert.equal((bundle.match(/^import[\s{*]/gm) || []).length, 0,
+    'the bundle grew an import statement; this harness no longer represents the browser');
+  const clauses = bundle.match(/^export \{[\s\S]*?\};\s*$/m) || [];
+  assert.equal(clauses.length, 1, 'expected exactly one trailing export clause');
+  const names = clauses[0].replace(/^export \{|\};\s*$/g, '').split(',')
+    .map((n) => n.trim()).filter(Boolean);
+  const script = bundle.replace(clauses[0], 'globalThis.__entry = { ' + names.join(', ') + ' };');
+
+  /* The throw a browser would give is the throw this gives. */
+  new vm.Script(script, { filename: 'app.js' }).runInContext(context, { timeout: 20000 });
+
+  /* and it really was the page: the module evaluated and produced the page's own entry */
+  assert.equal(typeof sandbox.__entry, 'object', 'the bundle evaluated but exported nothing');
+  assert.equal(typeof sandbox.__entry.boot, 'function', 'the page has no boot()');
+  assert.equal(typeof sandbox.__entry.mountToday, 'function', 'the page has no mountToday()');
+
+  // Restore the actual production defect in the emitted bytes. The browser-context
+  // check must catch it independently of the build's earlier static guard.
+  const guardedRead = 'typeof __dirname === "string" ? __dirname : "rebuild/m3/w7-preview/today"';
+  assert.equal(script.split(guardedRead).length, 2, 'one emitted original-defect site');
+  const reinstated = script.replace(guardedRead, '__dirname');
+  assert.throws(() => new vm.Script(reinstated, { filename: 'original-defect.js' })
+    .runInContext(vm.createContext({ ...sandbox }), { timeout: 20000 }),
+  (error) => error.name === 'ReferenceError' && /__dirname is not defined/.test(error.message));
+  dom.window.close();
+});
+
+test('Launch guard scans the emitted prelude and otherwise unattributed JavaScript assets', async () => {
+  const vm = await import('node:vm');
+  const result = await buildToday();
+  const bundle = fs.readFileSync(path.join(result.dist, 'app.js'), 'utf8');
+  const baseline = assertNoNodeOnlyGlobals([['app.js', bundle]]);
+  const clauses = bundle.match(/^export \{[\s\S]*?\};\s*$/m) || [];
+  assert.equal(clauses.length, 1, 'one trailing export clause in the actual emitted bundle');
+  const script = bundle.replace(clauses[0], '');
+  const prefix = 'var launchUnattributed = __dirname;\n';
+  assert.throws(() => new vm.Script(prefix + script).runInNewContext({}, { timeout: 20000 }),
+    error => error.name === 'ReferenceError' && /__dirname is not defined/.test(error.message),
+    'this actual emitted-bundle prefix crashes before any module body can run');
+  assert.throws(() => assertNoNodeOnlyGlobals([['app.js', prefix + bundle]]),
+    /NODE-GLOBAL-IN-BUNDLE FAIL: <unattributed> reads __dirname/,
+    'code before the first banner must not fall outside the guard');
+  for (const code of ['var x = __filename;', 'var x = require("missing");']) {
+    assert.throws(() => assertNoNodeOnlyGlobals([['app.js', code + '\n' + bundle]]),
+      /NODE-GLOBAL-IN-BUNDLE FAIL: <unattributed>/, code);
+  }
+  for (const code of [prefix, 'var x = __filename;', 'var x = require("missing");']) {
+    assert.throws(() => assertNoNodeOnlyGlobals([['app.js', bundle], ['extra.js', code]]),
+      /NODE-GLOBAL-IN-BUNDLE FAIL: <unattributed>/,
+      'attribution in one asset cannot hide an unsafe unattributed second asset');
+  }
+  const safe = 'var x = typeof __dirname === "string" ? __dirname : "browser";\n';
+  const admitted = assertNoNodeOnlyGlobals([['app.js', safe + bundle], ['extra.js', safe]]);
+  assert.equal(admitted.offences.length, 0, 'safe generated prelude and extra script remain allowed');
+  assert.equal(admitted.scannedModules, baseline.scannedModules,
+    'unattributed text must not inflate the owned-module attribution floor');
+});
+
+test('Launch guard refuses missing attribution and unsafe guarded browser reads', async () => {
+  // Synthetic module banners exercise attribution separately from the real bundle.
+  // A typeof check is safe only when its true branch cannot execute in a browser.
+  const banners = Array.from({ length: 21 }, (_, i) =>
+    `// rebuild/m3/w7-preview/today/guard-fixture-${i}.cjs\nvar fixture${i} = ${i};\n`).join('');
+  const check = (code) => assertNoNodeOnlyGlobals([['app.js', banners + code]]);
+  assert.throws(() => assertNoNodeOnlyGlobals([['app.js', 'var x = __dirname;']]),
+    /NODE-GLOBAL-GUARD BLIND/);
+  for (const code of [
+    'var x = __dirname;',
+    'var x = typeof __dirname === "undefined" ? __dirname : "fallback";',
+    'var x = typeof __filename === "undefined" ? __filename : "fallback";',
+    'var x = typeof require === "undefined" ? require("missing") : null;',
+    'var x = typeof __dirname === "string" ? __dirname : "fallback"; var y = __dirname;',
+  ]) assert.throws(() => check(code), /NODE-GLOBAL-IN-BUNDLE FAIL/, code);
+  for (const code of [
+    'var x = typeof __dirname === "string" ? __dirname : "fallback";',
+    "var x = typeof __filename == 'string' ? __filename : 'fallback';",
+    'var x = typeof require === "function" ? require("missing") : null;',
+    '// node_modules/vendor/index.js\nvar x = __dirname;',
+  ]) assert.equal(check(code).offences.length, 0, code);
+  const vm = await import('node:vm');
+  assert.throws(() => new vm.Script(
+    'var x = typeof __dirname === "undefined" ? __dirname : "fallback";')
+    .runInNewContext({}), (error) => error.name === 'ReferenceError');
+});
+
 /* RED FIRST. A planted dash must stop the build, in the markup and in the bundle.
  *
  * THE PLANT GOES IN A COPY, NEVER IN THE WORKTREE. This used to write the dash into the
@@ -206,9 +337,20 @@ test('P1 — the built page carries no dash in anything the athlete can see', as
  *
  * Nothing tracked is written at any point, so there is no window and nothing to restore.
  */
-const PLANT_DIR = path.join(SOURCE, '..', 'today-plant-' + process.pid);
-const PLANT_DIST = path.join(design.ROOT, '.tmp/w7-plant-dist-' + process.pid);
-const PLANT_SCRATCH = path.join(design.ROOT, '.tmp/w7-plant-build-' + process.pid);
+/* A FRESH directory per plant, never a reused one. Node caches CommonJS modules by
+   absolute path, so a second plant into the same path would be served the FIRST plant's
+   design.cjs and problem-report.cjs out of the require cache - which showed up as a
+   build whose id literal had already been substituted ("appears 0 times, not once").
+   The counter makes every plant its own tree, and the pid keeps two processes apart. */
+let plantSeq = 0;
+const plantPaths = () => {
+  const id = process.pid + '-' + (plantSeq += 1);
+  return {
+    dir: path.join(SOURCE, '..', 'today-plant-' + id),
+    dist: path.join(design.ROOT, '.tmp/w7-plant-dist-' + id),
+    scratch: path.join(design.ROOT, '.tmp/w7-plant-build-' + id),
+  };
+};
 function copyTree(from, to) {
   fs.mkdirSync(to, { recursive: true });
   for (const entry of fs.readdirSync(from, { withFileTypes: true })) {
@@ -220,16 +362,15 @@ function copyTree(from, to) {
   }
 }
 async function planted(file, find, replace) {
-  fs.rmSync(PLANT_DIR, { recursive: true, force: true });
+  const plant = plantPaths();
   try {
-    copyTree(SOURCE, PLANT_DIR);
-    const full = path.join(PLANT_DIR, file);
+    copyTree(SOURCE, plant.dir);
+    const full = path.join(plant.dir, file);
     const original = fs.readFileSync(full, 'utf8');
     assert(original.includes(find), 'the plant site exists in ' + file + ': ' + find);
     fs.writeFileSync(full, original.replace(find, replace));
-    const build = await import(pathToFileURL(path.join(PLANT_DIR, 'build.mjs')).href
-      + '?plant=' + process.pid + '-' + file);
-    const error = await build.buildToday({ dist: PLANT_DIST, scratch: PLANT_SCRATCH })
+    const build = await import(pathToFileURL(path.join(plant.dir, 'build.mjs')).href);
+    const error = await build.buildToday({ dist: plant.dist, scratch: plant.scratch })
       .then(() => null, (e) => e);
     assert(error, 'the build accepted a planted dash in ' + file);
     /* and the real tree was never touched: it is still GREEN, from its own bytes */
@@ -237,7 +378,7 @@ async function planted(file, find, replace) {
     assert.equal(clean.dashes.offences.length, 0, 'the worktree was planted in');
     return error;
   } finally {
-    for (const directory of [PLANT_DIR, PLANT_DIST, PLANT_SCRATCH]) {
+    for (const directory of [plant.dir, plant.dist, plant.scratch]) {
       fs.rmSync(directory, { recursive: true, force: true });
     }
   }
