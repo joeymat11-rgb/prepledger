@@ -17,6 +17,7 @@ for(const [file,digest]of [
 }
 const H = require('./b1b2-public-engine.cjs');
 const {createNativeTrendContextBinding,createDayFactsReader} = require('../../m4/workout/native-trend-context.cjs');
+const createVolume = require('../volume.cjs');
 const lift = (o={}) => ({id:'public-lift',n:'Press',w:100,inc:5,sets:2,hi:10,last:[8,7],setup:'invented',day:'U',mg:'chest',...o});
 const state = (ex=lift()) => ({...H.syntheticState(),exercises:[ex]});
 const engine = (day='2026-09-03') => H.createEngine({clock:H.clockAt(day)});
@@ -150,6 +151,32 @@ test('D32 actual replication retains thresholds, inclusive era and query-side fo
   assert.equal(read(replication([],['2026-05-01','2026-05-29','2026-06-26'])).tier,'OUTCOME-COMPATIBLE');
   assert.equal(read(replication([],['2026-05-01','2026-05-08','2026-05-15','2026-05-22'])).tier,'OUTCOME-COMPATIBLE');
 });
+// PM 8de5cdff clauses1–5: exactly three declaration-level dependency probes.
+// These combinations CANNOT arise from the composed engine. They test the
+// caller's explicit guard, not reachable history, native behavior or full kills.
+test('DELEGATED D31 count/date orthogonality with only liftTrend overridden',()=>{
+  for(const [k,dates] of [[2,['2026-08-05','2026-08-12','2026-08-19','2026-08-26']],
+    [3,['2026-08-04','2026-08-12','2026-08-19','2026-08-26']]]){
+    const clock=H.clockAt('2026-09-03'),E=H.createEngine({clock}),original=E.liftTrend;
+    const ex=lift({sets:3}),s=state(ex);addLog(s,'2026-08-04',2,8);
+    for(const [i,d]of ['2026-08-05','2026-08-12','2026-08-19','2026-08-26'].entries())addLog(s,d,3,9+i);
+    const trend={n:4,k,pts:dates.map(d=>({d})),lo:1,hi:3,pct:2};
+    const deps={...E,liftTrend:()=>structuredClone(trend)};
+    const volume=createVolume(deps,{clock});
+    assert.equal(volume.volumeConversion(s,ex.id).status,'READING');
+    assert.equal(E.liftTrend,original,'composed dependency unchanged');
+    assert.equal(E.volumeConversion(s,ex.id).status,'LIVE','real composed positive remains');
+  }
+});
+test('DELEGATED D32 nonmonotone membership with only sameEra overridden',()=>{
+  const clock=H.clockAt('2026-09-03'),E=H.createEngine({clock}),original=E.sameEra;
+  const membership=new Map([['2026-05-01',true],['2026-05-15',false],['2026-05-29',true],['2026-06-26',true]]);
+  const deps={...E,sameEra:(forks,d,at)=>membership.has(d)?membership.get(d):original(forks,d,at)};
+  const volume=createVolume(deps,{clock}),s=replication();
+  assert.equal(volume.volumeConversion(s,s.exercises[0].id).tier,'OUTCOME-COMPATIBLE');
+  assert.equal(E.sameEra,original,'composed dependency unchanged');
+  assert.equal(E.volumeConversion(s,s.exercises[0].id).tier,'REPLICATED','real composed positive remains');
+});
 function fault(id,file,fn,from,to,pattern){FAULTS.push({id,file,fn,from,to,pattern});}
 const P='plan.cjs',G='progression.cjs',V='volume.cjs';
 fault('split-selection-returns-to-last-array-row',P,'dayType',' && (!ent || String(x.from) >= String(ent.from))','','D9');
@@ -215,6 +242,9 @@ FAULTS.find(f=>f.id==='future-cut-applied-to-the-trend-only').additional=[
   {fn:'progressAnchor',from:'if (row.d > atA) continue;',to:''}];
 FAULTS.find(f=>f.id==='dedupe-drops-the-sort').additional=[
   {fn:'parseRungs',from:'[...new Set(r)].sort((a, b) => a - b)',to:'[...new Set(r)]'}];
+for(const id of ['post-change-check-on-the-dates-only','post-change-check-is-inclusive-of-the-prior-day','replication-era-checked-on-the-block-start-only']){
+  const f=FAULTS.find(f=>f.id===id);f.delegated=true;f.pattern=id.startsWith('replication')?'DELEGATED D32':'DELEGATED D31';
+}
 function replaceFault(source,f){
   const begin=source.indexOf('function '+f.fn+'(');assert.ok(begin>=0,'SETUP declaration '+f.fn);
   let end=source.indexOf('\n// Copied',begin);if(end<0)end=source.length;
@@ -245,16 +275,13 @@ function audit(){
   fs.writeFileSync(path.join(dir,'positive-initial.tap'),initial.stdout+initial.stderr);
   const results=[];
   for(const f of FAULTS){const target=path.join(dir,'rebuild/engine',f.file),before=fs.readFileSync(target);let outcome='SETUP';
-    if(['post-change-check-on-the-dates-only','post-change-check-is-inclusive-of-the-prior-day','replication-era-checked-on-the-block-start-only'].includes(f.id)){
-      results.push({id:f.id,outcome:'HELD'});console.log('B2 SOURCE FAULT '+f.id+' HELD pending dependency-fixture scope');continue;
-    }
     try{const positive=run(f.pattern);assert.equal(positive.status,0,'SETUP positive '+f.id+'\n'+positive.stdout);
       fs.writeFileSync(target,replaceFault(before.toString('utf8'),f));const r=run(f.pattern);
       outcome=r.status!==0&&/code: 'ERR_ASSERTION'/.test(r.stdout)&&!/(?:SyntaxError|ReferenceError|TypeError|SETUP|PUBLIC_ENGINE_DENIED)/.test(r.stdout)?'BEHAVIORAL_KILL':r.status===0?'SURVIVED':'SETUP';
       fs.writeFileSync(path.join(dir,f.id+'.tap'),r.stdout+r.stderr);
     }catch(e){console.log('FAULT SETUP '+f.id+' '+e.message);}
     finally{fs.writeFileSync(target,before);restored();const p=run(f.pattern);assert.equal(p.status,0,'RESTORED POSITIVE '+f.id);}
-    const logfile=path.join(dir,f.id+'.tap');results.push({id:f.id,outcome,logSHA256:fs.existsSync(logfile)?sha(fs.readFileSync(logfile)):null});console.log('B2 SOURCE FAULT '+f.id+' '+outcome);
+    const logfile=path.join(dir,f.id+'.tap');results.push({id:f.id,outcome,attribution:f.delegated?'delegated':'composed',logSHA256:fs.existsSync(logfile)?sha(fs.readFileSync(logfile)):null});console.log('B2 SOURCE FAULT '+f.id+' '+outcome+' '+(f.delegated?'DELEGATED':'COMPOSED'));
   }
   const final=run();assert.equal(final.status,0,'RESTORED FULL POSITIVE\n'+final.stdout);restored();
   fs.writeFileSync(path.join(dir,'positive-final.tap'),final.stdout+final.stderr);
@@ -262,6 +289,7 @@ function audit(){
   fs.writeFileSync(path.join(dir,'audit.json'),JSON.stringify(evidence,null,2)+'\n');
   console.log('PUBLIC CLOSURE '+sha(JSON.stringify(manifest))+'; EVIDENCE '+sha(fs.readFileSync(path.join(dir,'audit.json')))+'; '+dir);
   console.log('B2 PUBLIC SOURCE FAULTS: '+results.length+' catalogued; '+results.filter(x=>x.outcome==='BEHAVIORAL_KILL').length+' behavioral kills; '+results.filter(x=>x.outcome==='SURVIVED').length+' survived; '+results.filter(x=>x.outcome==='SETUP').length+' setup; '+results.filter(x=>x.outcome==='HELD').length+' held; exact restoration and fresh positives.');
+  console.log('B2 ATTRIBUTION: '+results.filter(x=>x.attribution==='composed'&&x.outcome==='BEHAVIORAL_KILL').length+' composed; '+results.filter(x=>x.attribution==='delegated'&&x.outcome==='BEHAVIORAL_KILL').length+' delegated dependency-contract kills (unreachable composed combinations). Protected D7 tools/engine-test.jsx:70 UNEXECUTED.');
   if(results.some(x=>x.outcome!=='BEHAVIORAL_KILL'))process.exitCode=1;
 }
 if(process.argv.includes('--audit-mutations'))audit();
