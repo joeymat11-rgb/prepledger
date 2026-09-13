@@ -874,5 +874,50 @@
       "to": "797e4cf39fac39148ccae784116999669b82caf3",
       "fieldDeltas": []
     }
+  },
+  "r9": {
+    "sourceBase": "797e4cf39fac39148ccae784116999669b82caf3",
+    "runtimeSource": "cbcebb3d26bf8892adbe84fbbe0a7c5e85856013",
+    "runtime": [
+      {
+        "file": "rebuild/engine/today.cjs",
+        "pre": "80d4196cfe50637ed373dcf5fa0eab1c2ef549b957aea7c032ab518d2a67ba91",
+        "post": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
+        "hunks": [
+          {
+            "id": "R9-nowModel-captured-workout-date",
+            "before": "      d9 = plusDays(isoOf(todayStart()), k9);\n",
+            "after": "      d9 = plusDays(tISO, k9);\n"
+          }
+        ]
+      }
+    ],
+    "engineEvidence": [
+      {
+        "file": "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+        "pre": "7e0a624088ba35d9319b50d44666d46a3005d4508dca21c9986f055799c9ab58",
+        "post": "6cc87127cf62c071cee077478aa352d11eaa49e0a407427a0b66c09a510fefa5"
+      },
+      {
+        "file": "rebuild/engine/test/b1b2-public-engine.cjs",
+        "pre": "208156f785e36635abf9093fa626dff70c3ea49853cff6c5123e7f8fdfdc68b2",
+        "post": "5afe0c0f30ee93b877328eed04db16df0c5fa28ed577c2fc4ac3c6e05a5051c5"
+      },
+      {
+        "file": "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+        "pre": "2f0f1f326333e388ac1ae88c54ffb350af9066392442c0586100d06ba9608265",
+        "post": "6a996fcc53fbea6fc9611517b7d2c7ed636516480322095b1863507e934d256d"
+      },
+      {
+        "file": "rebuild/engine/test/b2-public-source-faults.test.cjs",
+        "pre": "98a299af9c85a16493c455df98033b9b7129f863fd234c3d846c0afa0e9c2388",
+        "post": "5d609a17c8d19559d3b40ffce8ea4bc7682dd62ab22730c5368d1f2ad8c110b6"
+      }
+    ],
+    "nativeComparison": {
+      "from": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "to": "cbcebb3d26bf8892adbe84fbbe0a7c5e85856013",
+      "fieldDeltas": []
+    }
   }
 }
