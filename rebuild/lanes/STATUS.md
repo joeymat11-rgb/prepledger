@@ -1,13 +1,14 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-12 22:40 ET by the lane B integrator at DECISIONS:189 · whoever writes the next MERGED line refreshes this block; tail below = last 15 events, older lines in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @ 1f8dcfa (the M2-H3-CLEAN-INIT merge; this docs commit sits on top) · last merge :189 M2-H3-CLEAN-INIT (before it: :185 TEST HYGIENE, :179 GYM-CARD MACHINE SETTINGS)
-- TIP FREEZE of :186 (1) LIFTED by ledger line 189 — H3 is MERGED, so the lanes may merge again; the deploy is the owner's/PM's step
-- PM: P1 + P2 MERGED · queued briefs P3 preview guard, P4 gym-app retry-once, P5 full-bleed layout, P6 coach reason-on-disk (client), P7 A5 preflight dashes — no new dispatch while A4 sits accepted-unmerged (:119 cap) · owner look at A4 pending
-- B: M2-H3-CLEAN-INIT MERGED :189 (receipt :187, judgment :188; artifact b457b539… at 5f0c378, sealed-run receipt 5149c5e4…) · the standing CI step is --ci --package H3, succeeding the B-NTC step (:184) · next the B1+B2 bundle (:136), then B4+B3 · carried: F-A as ruled (:142), F-G rides B1+B2 (:173), sleep.test.mjs named in B1+B2 (:186 (4)), ci-second-gate cell 35 rides the next tooling round (:184)
-- C: test hygiene MERGED :185 · freeze lifted — N2 @ 7d2fdab (D2 round 2 REJECT) merges on its own terms once accepted · the lane preflight command is now --ci --package H3 · phone voice session next
-- WAITING ON THE OWNER: iPhone HAND-PROOF v2 at https://earned-slice.netlify.app/ (one line per row, PASS/FAIL/SEE)
-- THROTTLE: none · usage at 10:49 ET fh 44 / sd 70
+## STATE (refreshed 2026-09-13 00:01 ET by Astra PM under DECISIONS:193; historical events below remain unchanged)
+- TIP rebuild/t2-client-core @ 3ef096d before this coordination checkpoint. Last product merge :189 H3; historical freeze :186 lifted. Current public gate: --ci --package H3.
+- PM: Astra sole PM per owner-approved :193. Active task IDs, worktree custody and schedules: astra/TEAM.md. Finite delivery queue: astra/DELIVERY-CHECKLIST.md. A4/A4b already merged :128/:149; stale accepted-unmerged hold removed.
+- B: new Astra engine/gate lead running read-only handover inventory. B1+B2 branch last ff6b6b5 has H3 base only; adopt actual B1+B2 then B4+B3. Retain F-G, sleep test enumeration, cell 35 and independently reviewed issuer/pin compatibility. Old writer handback pending.
+- C: new Astra screens/storage lead running read-only handover inventory. Launch candidate4c19239 unaccepted; prospective adoption bar published at3ef096d; D2 awaits current-H3 combined head and exact-head both-OS CI. Then fix N2 round3 at744c63c, three blockers/six observations. One Today writer.
+- D: F1 prebuild4d1549e retains B2-dependent red cell; F2 latest reportedf3e9561 (79 cells/15 mutants), cumulative admission pending. Plan-edit companion clarification requested before brief acceptance; C real consumer join mandatory. C6 docsab0c18e, producte43f15f, reviewer/CI pending.
+- D2: N2 round3 REJECT b9f9d86 stands. Launch review bar read; independent preparation underway, new combined head awaited. Separate Astra authors may be reviewed under193; no self-review or integration.
+- OWNER: physical iPhone proof follows independently accepted fresh-built launch fix; no readiness claim. New P4/P5/P7 product choices, personal-history import, live account/deployment and spending remain owner decisions when concrete. Protected soak stays closed.
+- SCHEDULE: PM30min, B/C20min waiting, D hourly building, D2 20min waiting; existing heartbeat IDs reused. No current provider refusal observed; use actual Astra usage, never the stale Claude sample.
 
 2026-09-12 19:32 ET · B · PR-READY (RE-SEALED, REVIEW-PENDING) · M2-H3-CLEAN-INIT rebuild/lane-b-h3 @ 892209f (artifact 521a004, sha256 2b6e579e…; tip c5552f5 an ancestor) · :178 (i): rebuild.yml names 12 today tests, food held out by name in H3/13 · r3 3bb7612 ACCEPT WITH CHANGES applied; r3b 6005efe CONFIRMED · --ci PASS; FULL REVIEW-PENDING 1 open · receipt asked in REQUESTS
 2026-09-12 19:54 ET · PM · RECEIPT 180 + RULED 181 · H3 re-seal ACCEPTED (artifact 2b6e579e… at 521a004; sha recomputed; ancestry OK; 12 today tests named, food held out by name). Lane B: envelope, authorized FULL rerun, integrator merges on PASS, deploy. Sunday setup follows.
@@ -47,3 +48,5 @@
 2026-09-12 23:38 ET · D · DOCS-UPDATED · rebuild/lane-d-c6 @ab0c18e · brief now records settled :176(3) 30-day provider recovery retention and :158 billed-tail risk. Product unchanged e43f15f; reviewer/CI remain held, no deployment/live/key/account action.
 
 2026-09-12 23:50 ET · ASTRA-PM · OWNER HANDOVER · sole PM per DECISIONS:193, approved "Do it"; all-Astra charter + finite checklist published. D/D2 continue; B/C read-only handoff first. Launch adoption bar ready. No gate waiver, main push or relay deploy. tip befa2c9
+
+2026-09-13 00:01 ET · ASTRA-PM · TEAM ACTIVE · B/C new Astra chats inventory in own work/pm-caretaker trees; D/D2 retained and acknowledged193. TEAM.md lists custody and five active heartbeat IDs; PM30min. Launch bar read by D2; companion clarification with D. Product acceptance unchanged. tip3ef096d
