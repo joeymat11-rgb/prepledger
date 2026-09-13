@@ -479,6 +479,40 @@ function nativeDiagnosticCategories(kind,paths,rootKeys) {
   }
   return [...counts].sort(([a],[b])=>a<b?-1:a>b?1:0).map(([id,count])=>({id,count}));
 }
+function installNativeExitCapture(state,marker) {
+  const original=process.emit,descriptor=Object.getOwnPropertyDescriptor(process,'emit');
+  if(typeof original!=='function'||(descriptor&&!Object.hasOwn(descriptor,'value')))throw Error('DIAGNOSTIC_EMITTER');
+  let depth=0;
+  const sameDescriptor=(a,b)=>a===undefined?b===undefined:!!b&&['value','writable','enumerable','configurable'].every(k=>a[k]===b[k]);
+  function capturedExit(...args) {
+    if(this!==process||args[0]!=='exit')return Reflect.apply(original,this,args);
+    const outer=depth++===0;
+    // Pinned Node22 sets _exiting before its real synchronous exit dispatch.
+    // We never set it. Manual events and reentrant dispatch cannot complete.
+    const terminating=process.version==='v22.23.2'&&process._exiting===true;
+    if(!outer||!terminating)state.failed=true;
+    let returned=false;
+    try{const result=Reflect.apply(original,this,args);returned=true;return result;}
+    finally {
+      depth--;if(!returned)state.failed=true;
+      if(outer)try {
+        if(!sameDescriptor(Object.getOwnPropertyDescriptor(process,'emit'),installed)||process.emit!==capturedExit)throw Error('DIAGNOSTIC_EMITTER_OWNERSHIP');
+        if(descriptor)Object.defineProperty(process,'emit',descriptor);
+        else if(!Reflect.deleteProperty(process,'emit'))throw Error('DIAGNOSTIC_EMITTER_RESTORE');
+        if(!sameDescriptor(Object.getOwnPropertyDescriptor(process,'emit'),descriptor)||process.emit!==original)throw Error('DIAGNOSTIC_EMITTER_RESTORE');
+        if(!state.failed&&returned&&terminating&&process._exiting===true&&state.seq===2&&state.fd===undefined){
+          const st=fs.lstatSync(marker);
+          if(!st.isFile()||st.isSymbolicLink()||st.nlink!==1||fs.readFileSync(marker,'utf8')!=='{"v":1,"pending":true}\n')throw Error('DIAGNOSTIC_MARKER');
+          // All fallible restoration/validation precedes this final publication.
+          fs.unlinkSync(marker);
+        }
+      } catch(_){state.failed=true;}
+    }
+  }
+  const installed=descriptor?{...descriptor,value:capturedExit}:{value:capturedExit,writable:true,enumerable:true,configurable:true};
+  Object.defineProperty(process,'emit',installed);
+  if(!sameDescriptor(Object.getOwnPropertyDescriptor(process,'emit'),installed))throw Error('DIAGNOSTIC_EMITTER_INSTALL');
+}
 function observeNativeDifference(kind,actual,before,after) {
   const directory=process.env.EARNED_B1B2_CAPTURE_DIR;if(directory===undefined)return;
   try {
@@ -491,13 +525,7 @@ function observeNativeDifference(kind,actual,before,after) {
     for(let walk=dir;;walk=path.dirname(walk)) {const st=fs.lstatSync(walk);if(!st.isDirectory()||st.isSymbolicLink()||!equal(fs.realpathSync(walk),walk))throw Error('DIAGNOSTIC_LINK');if(equal(walk,ROOT))break;if(path.dirname(walk)===walk)throw Error('DIAGNOSTIC_ROOT');}
     const marker=path.join(dir,'capture-manifest.json'),mark=fs.lstatSync(marker);
     if(!mark.isFile()||mark.isSymbolicLink()||mark.nlink!==1||fs.readFileSync(marker,'utf8')!=='{"v":1,"pending":true}\n')throw Error('DIAGNOSTIC_MARKER');
-    if(state.seq===0&&!state.exitRegistered){
-      process.once('exit',()=>{
-        if(state.failed||state.seq!==2||state.fd!==undefined)return;
-        try{const st=fs.lstatSync(marker);if(!st.isFile()||st.isSymbolicLink()||st.nlink!==1||fs.readFileSync(marker,'utf8')!=='{"v":1,"pending":true}\n')throw Error('DIAGNOSTIC_MARKER');fs.unlinkSync(marker);}
-        catch(_){state.failed=true;}
-      });state.exitRegistered=true;
-    }
+    if(state.seq===0&&!state.exitRegistered){installNativeExitCapture(state,marker);state.exitRegistered=true;}
     if(!Array.isArray(actual)||actual.length>100000)throw Error('DIAGNOSTIC_ROWS');
     const roots=[...new Set([before,after].flatMap(v=>v&&typeof v==='object'?Object.keys(v):[]))];
     const categories=nativeDiagnosticCategories(kind,actual.map(row=>row.path),roots);
