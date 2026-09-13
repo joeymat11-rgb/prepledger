@@ -7,7 +7,8 @@ const { execFileSync } = require('node:child_process');
 const Module = require('node:module');
 
 const ROOT = path.resolve(__dirname, '../../../..');
-const BASE = '2d50e88';
+// F1 prebuild on the named H3-containing B candidate; not B1/B2 acceptance.
+const BASE = '2afd2c1';
 const DAY = '2026-09-14'; // Monday; the explicit synthetic calendar owns this day.
 const MODULES = Object.freeze(['dates', 'constants', 'plan', 'performed', 'progression',
   'sleep', 'energy', 'policy', 'today', 'volume', 'earn', 'writers']);

@@ -97,11 +97,17 @@ function createSetupTagProjector(options) {
           || !(tag.head === null || (typeof tag.head === 'string' && own(regions, tag.head) && regions[tag.head] === e.mg))) fail();
       const targets = new Set(), bucket = tag.head || e.mg;
       for (const helper of tag.secondary) {
-        if (!closed(helper, ['mg', 'lend']) || !known.has(helper.mg)
+        const hasHead = plain(helper) && own(helper, 'head');
+        if (!closed(helper, hasHead ? ['mg', 'lend', 'head'] : ['mg', 'lend']) || !known.has(helper.mg)
             || typeof helper.lend !== 'number' || helper.lend <= 0 || helper.lend > 1
-            || targets.has(helper.mg) || helper.mg === bucket
-            || helper.mg === e.mg || (tag.head === null && regions[helper.mg] === e.mg)) fail();
-        targets.add(helper.mg);
+            || (hasHead && (typeof helper.head !== 'string' || !own(regions, helper.head)
+              || regions[helper.head] !== helper.mg))) fail();
+        // :170 adds a compatible explicit helper head. Validate its effective
+        // target exactly as the already-supported direct-region mg tuple.
+        const target = hasHead ? helper.head : helper.mg;
+        if (targets.has(target) || target === bucket || target === e.mg
+            || (tag.head === null && regions[target] === e.mg)) fail();
+        targets.add(target);
       }
     }
     if (Object.keys(snapshot).length !== ids.size) fail();

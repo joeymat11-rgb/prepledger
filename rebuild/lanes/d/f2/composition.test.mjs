@@ -53,3 +53,20 @@ test('F2 metadata stays with saved ids when source order and new authoring value
   assert.equal(E.programmeVolume(future).some(r => r.mg === 'biceps'), false);
   assert.equal(E.programmeVolume(old).find(r => r.mg === 'biceps').sets, 3);
 });
+
+test('F2-H05 C producer serializes optional helper heads before projection and regional counting', () => {
+  const input = saved().payload;
+  input.tags.press.secondary = [{ mg: 'delts', lend: 0.5, head: 'delts_front' }];
+  input.tags.hinge.secondary = [{ mg: 'back', lend: 0.25, head: 'lower_back' }];
+  const action = JSON.parse(JSON.stringify(prepare({ action: 'first-run-setup',
+    input: { setup: input.setup, tags: input.tags } })));
+  const before = JSON.stringify(action), state = project(action), rows = E.programmeVolume(state);
+  assert.deepEqual(action.payload.tags.press.secondary, input.tags.press.secondary);
+  assert.deepEqual(action.payload.tags.hinge.secondary, input.tags.hinge.secondary);
+  for (const mg of ['delts_front', 'lower_back']) {
+    const row = rows.find(x => x.mg === mg); assert(row);
+    assert.equal(row.sets, 1); assert.equal(row.qualified, true); assert.equal(row.indirectOnly, true);
+  }
+  assert.equal(rows.some(x => ['delts', 'back'].includes(x.mg)), false);
+  assert.equal(JSON.stringify(action), before);
+});

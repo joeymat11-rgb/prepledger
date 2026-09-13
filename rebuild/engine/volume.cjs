@@ -39,7 +39,7 @@ const volBucket = (ex) => (ex && (ex.head || ex.mg)) || null;
 // Regional vocabulary is projected from C's taxonomy, never guessed from a name.
 const hasVolumeTags = (ex) => ex && ex.volumeTags && ex.volumeTags.profile === 'earned/setup-volume-tags/v1';
 function volumeSecondary(ex, designed = false) {
-  if (hasVolumeTags(ex)) return (ex.secondary || []).map(x => [x.mg, x.lend]);
+  if (hasVolumeTags(ex)) return (ex.secondary || []).map(x => [x.head || x.mg, x.lend]);
   return Object.entries(INDIRECT[ex && ex.id] || {}).map(([mg, lend]) => [designed && mg === 'delts' ? 'delts_front' : mg, lend]);
 }
 function volumeTouched(ex) {

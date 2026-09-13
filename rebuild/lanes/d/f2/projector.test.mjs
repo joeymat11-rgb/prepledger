@@ -37,6 +37,7 @@ function assertFrozen(value) {
 
 test('F2-02 all canonical catalogue snapshots project by saved athlete id', () => {
   const f = fixture(), before = bytes(f);
+  assert.equal(CATALOGUE.length, 83);
   assert.equal(validateSetupTags(f.setup, f.tags), true);
   const out = project(f);
   assert.notEqual(out, f.state); assert.equal(out.exercises.length, CATALOGUE.length);
@@ -80,18 +81,77 @@ test('F2-03 absent snapshot returns the exact legacy state; [] is explicit metad
   assert.equal(projectSetupTags(out, { tags: null }), out);
 });
 
-test('F2-04 currently coarse catalogue helpers remain coarse after projection', () => {
+test('F2-04 five headless coarse catalogue helpers remain coarse after projection', () => {
   const f = fixture(), out = project(f);
   let coarse = 0;
   out.exercises.forEach((e, i) => {
     for (const helper of CATALOGUE[i].secondary) {
       if (Object.values(REGION_MG).some(mg => mg === helper.mg)
-          && Object.keys(e.volumeTags.regionsByMuscle).includes(helper.mg)) {
-        assert(e.secondary.some(x => x.mg === helper.mg && x.lend === helper.lend)); coarse++;
+          && Object.keys(e.volumeTags.regionsByMuscle).includes(helper.mg)
+          && !Object.hasOwn(helper, 'head')) {
+        assert(e.secondary.some(x => x.mg === helper.mg && x.lend === helper.lend && !Object.hasOwn(x, 'head'))); coarse++;
       }
     }
   });
-  assert(coarse > 0);
+  assert.equal(coarse, 5);
+});
+
+test('F2-H01 optional helper heads preserve exact new and old snapshot members', () => {
+  const f = fixture(), before = bytes(f), out = project(f);
+  const headed = out.exercises.flatMap(e => e.secondary).filter(x => Object.hasOwn(x, 'head'));
+  assert.equal(headed.length, 16);
+  for (const h of headed) assert.equal(REGION_MG[h.head], h.mg);
+  assert.equal(bytes(f), before);
+  assert.equal(bytes(projectSetupTags(out, context(f))), bytes(out));
+  // An old saved headless snapshot stays headless after a catalogue correction.
+  const old = fixture();
+  for (const t of Object.values(old.tags)) for (const h of t.secondary) delete h.head;
+  const oldOut = project(old);
+  assert(oldOut.exercises.every(e => e.secondary.every(h => !Object.hasOwn(h, 'head'))));
+  assert.equal(bytes(projectSetupTags(oldOut, context(old))), bytes(oldOut));
+});
+
+test('F2-H02 helper head must be present as a compatible known string or absent', () => {
+  const f = fixture([customEntry({ name: 'Synthetic chest', mg: 'chest' })]);
+  for (const head of [null, undefined, '', false, 0, [], {}, 'unknown', 'lats', 'delts']) {
+    f.tags['renamed-0'].secondary = [{ mg: 'delts', lend: 0.5, head }];
+    const before = bytes(f.state);
+    bad(() => validateSetupTags(f.setup, f.tags)); bad(() => project(f));
+    assert.equal(bytes(f.state), before);
+  }
+  f.tags['renamed-0'].secondary = [{ mg: 'delts', lend: 0.5, head: 'delts_rear' }];
+  assert.equal(validateSetupTags(f.setup, f.tags), true);
+  f.tags['renamed-0'].secondary[0].fourth = true;
+  bad(() => validateSetupTags(f.setup, f.tags));
+});
+
+test('F2-H03 effective helper targets detect duplicates and self-credit across tuple forms', () => {
+  const f = fixture([customEntry({ name: 'Synthetic chest', mg: 'chest' })]);
+  for (const helpers of [
+    [{ mg: 'delts', lend: 0.5, head: 'delts_front' }, { mg: 'delts_front', lend: 0.25 }],
+    [{ mg: 'delts', lend: 0.5, head: 'delts_rear' }, { mg: 'delts', lend: 0.25, head: 'delts_rear' }],
+  ]) { f.tags['renamed-0'].secondary = helpers; bad(() => validateSetupTags(f.setup, f.tags)); }
+  f.tags['renamed-0'].secondary = [{ mg: 'delts', lend: 0.5, head: 'delts_front' },
+    { mg: 'delts', lend: 0.25, head: 'delts_rear' }];
+  assert.equal(validateSetupTags(f.setup, f.tags), true);
+  for (const entry of [customEntry({ name: 'Synthetic coarse back', mg: 'back' }),
+    customEntry({ name: 'Synthetic lats', region: 'lats' })]) {
+    const g = fixture([entry]);
+    g.tags['renamed-0'].secondary = [{ mg: 'back', lend: 0.5, head: 'lats' }];
+    bad(() => validateSetupTags(g.setup, g.tags));
+  }
+  const sibling = fixture([customEntry({ name: 'Synthetic lats', region: 'lats' })]);
+  sibling.tags['renamed-0'].secondary = [{ mg: 'back', lend: 0.25, head: 'upper_back' }];
+  assert.equal(validateSetupTags(sibling.setup, sibling.tags), true);
+});
+
+test('F2-H04 helper head getter is rejected without executing it or partially projecting', () => {
+  const f = fixture([customEntry({ name: 'Synthetic chest', mg: 'chest' })]);
+  const helper = { mg: 'delts', lend: 0.5 }; let reads = 0;
+  Object.defineProperty(helper, 'head', { enumerable: true, get() { reads++; throw Error('getter executed'); } });
+  f.tags['renamed-0'].secondary = [helper]; const before = bytes(f.state);
+  bad(() => validateSetupTags(f.setup, f.tags)); bad(() => project(f));
+  assert.equal(reads, 0); assert.equal(bytes(f.state), before);
 });
 
 test('F2-02 missing, extra and duplicate setup identities refuse without mutation', () => {

@@ -294,5 +294,5 @@ test('F2-C03 zero tagged contribution cannot add qualification to a legacy contr
 });
 
 test('F2-C04 frozen baseline loader rejects every nonallowlisted ref', () => {
-  for (const ref of ['HEAD', 'main', '2d50e88^', '964f183', '']) assert.throws(() => loadProduct(ref), /F2_BASE_REF_NOT_ALLOWLISTED/);
+  for (const ref of ['HEAD', 'main', '2afd2c1^', '2d50e88', '964f183', '']) assert.throws(() => loadProduct(ref), /F2_BASE_REF_NOT_ALLOWLISTED/);
 });
