@@ -1,4 +1,0 @@
-{
-  "beforeReadDenied": [],
-  "error": "Error: Build failed with 1 error:\nrebuild/m3/w7-preview/today/sleep-check.mjs:195:31: ERROR: Could not resolve \"/app.js\""
-}

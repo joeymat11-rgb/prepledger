@@ -1,6 +1,0 @@
-{
-  "name": "earned-authority-core",
-  "private": true,
-  "main": "index.cjs",
-  "engines": { "node": ">=18" }
-}
