@@ -1,15 +1,15 @@
 # Earned: active Astra team
 
-Owner-approved handover: DECISIONS:193, published at 3ef096d. Operational checkpoint: 2026-09-12 23:59 ET. All seats use GPT-6 Astra. PM, D and D2 are retained chats; B and C are new persistent chats. The app sidebar section is Earned — Astra team.
+Owner-approved handover: DECISIONS:193, published at 3ef096d. Operational checkpoint: 2026-09-13 01:00 ET. All seats use GPT-6 Astra. PM, D and D2 are retained chats; B and C are new persistent chats. The app sidebar section is Earned — Astra team. The current assignments below supersede older transfer checkpoints retained later in this file.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Isolated issuer compatibility tooling198; designated local gate execution196; B1+B2 scope docs next | earned-astra-b-follow-up; B changes same heartbeat to hourly building |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Launch adoption writer under DECISIONS:194; N2 next separately | earned-astra-c-follow-up; C changes same heartbeat to hourly building |
-| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | F1/F2, plan-edit companion, existing relay candidate | earned-lane-d-hourly; 20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Independent launch adoption review; N2 round 3 remains REJECT | earned-lane-d2-requests; 20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Astra MAX independent companion review6b3465e under brief195; consumer/cumulative admission still separate | earned-astra-engine-review-follow-up; hourly reviewing, pause at completion without new assignment |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Issuer f047b5b REJECT R1, fixing exact grandparent payload within198; sole gate196 operator; prospective preflight CI registration brief; B1+B2 scope docs next | earned-astra-b-follow-up; hourly building, 20 minutes waiting |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Launch R2 0ce2a6f prepared locally for D2; final stable-tip composition pending; N2 next separately | earned-astra-c-follow-up; hourly building, 20 minutes waiting |
+| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Shared preflight correction200 in a new isolated tree; companion74920fb bounded review PASS, downstream admission held | earned-lane-d-hourly; hourly building, 20 minutes waiting |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Launch R2 guard correction review, then independent preflight200 review; N2 round 3 remains REJECT | earned-lane-d2-requests; hourly reviewing, 20 minutes waiting |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Issuer198 review ada12bbc REJECT R1, awaiting B successor; companion74920fb review completed fdc4c8e | earned-astra-engine-review-follow-up; hourly reviewing, 20 minutes waiting |
 | Integrator | Commission a third-role task for a named accepted head | Verify custody, exact-head and merged-tree evidence; integration branch only | No merge authorized by this roster alone |
 
 ## Worktrees
@@ -20,6 +20,8 @@ New-tree root on Joe's PC: `C:/Users/joeym/Documents/prepledger-dev/work/pm-care
 - B: `lane-b`, branch `rebuild/astra-b-lead`.
 - B tooling198: `b-issuer-compatibility`, branch `rebuild/astra-issuer-compatibility`, created by B after reading the accepted brief and PM narrowing bar.
 - C: `lane-c`, branch `rebuild/astra-c-lead`.
+- C launch successors: `c-launch-adoption` and `c-launch-r2`, their own named branches; the latter is locally prepared, not a final gate candidate.
+- D tooling200: `preflight-comments`, branch `rebuild/astra-preflight-comments`; earlier feature trees remain preserved.
 - Engine reviewer: `review-plan-edit`, branch `rebuild/astra-review-plan-edit`, public sparse checkout initialized clean at6b3465e.
 - D retains its own trees beneath `C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/lane-d/`.
 - D2 retains its own trees beneath `C:/Users/joeym/Documents/prepledger-dev/work/lane-d2/`.
@@ -37,6 +39,8 @@ D and D2 have acknowledged :193 directly. D reports F2 f3e9561 (79 cells / 15 mu
 ## Coordination
 
 Send meaningful events to the PM task directly and publish concise STATUS/REQUESTS records. Joe never relays lane messages. PM refreshes the current STATE and DELIVERY-CHECKLIST; historical events remain append-only. Fetch/rebase and stage only named own files before docs publication. Product integration has one designated writer.
+
+Read `GATE-WINDOW.md` before every shared publication. It is currently PREPARING. After an explicit START, all shared integration pushes, including PM and lane docs, pause until explicit END; own-branch evidence and direct messages continue. Never let a scheduled wake move the frozen tip. Read-only fetches verify the actual remote identity rather than concealing movement.
 
 The three existing heartbeats were updated in place; only B/C received new ones. Empty waiting wakes end quietly. Hourly while building, 20 minutes when waiting for a handoff, and immediate response to completion messages; PM remains every 30 minutes. The previous Fable bridge automation stays paused. A historical PM-RESUMED does not undo Joe's new authority ruling.
 

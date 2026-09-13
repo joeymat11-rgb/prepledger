@@ -1,14 +1,15 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-12 23:50 ET, observed tip befa2c9. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope: DECISIONS:193. No completion date inferred from a model handover.
+PM reconciliation at 2026-09-13 01:00 ET, observed tip ee3d1d9. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope: DECISIONS:193. No completion date inferred from a model handover. Stable validation window is PREPARING, not active; consult GATE-WINDOW.md before publishing shared docs.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
 | Full Astra operating handover | Published193; six active chats with schedules. C launch custody194/197 and B isolated tooling custody198 released; old work preserved, returning work reconciled by PM | PM/B/C |
-| Fresh app launch | C fixing build-guard gap and reproduced settings refusal-loss under197; preliminary548 tests/six browser checks passed on earlier bytes. Final-head both-OS CI, B gate and D2 review required | C/B then D2 then integrator |
+| Fresh app launch | C R2 0ce2a6f prepared locally: author553/553, same built app bytes as R1. D2 reviewing R1's partial-attribution correction. R1 2b9b09a had independent552/552 and six Edge flows/20 profile kills, but local H3 and both CI jobs refused ancestry before Today. A stable real-tip composed successor and all final-head evidence are still required | C/D2; B gate; PM then third integrator |
+| Shared mechanical preflight | D correction200 in progress: raw scan rejects26 permitted comment/regex lines. D2 reviews separately. Existing CI does not run its regression suite; B preparing prospective registration/pin brief. No omitted UI custody, fake CI id or renamed PASS | D/D2, B CI proposal, PM |
 | N2 sleep entry | D2 round 3 REJECT at 744c63c: coach freshness/confirmation, false commit reconciliation, historical day/quality | C fixes; D2 reruns affected and required bar |
 | H3 clean-init engine | Merged :189, existing receipt retained | B uses as parent |
-| B1+B2 | Named baseff6b6b5 lacks bundle. B issuer tooling brief accepted198 and build assigned; B1 UNKNOWN/finite-observation amendment and actual combined profile remain to be prepared | B; independent engine reviewer; PM |
+| B1+B2 | Named baseff6b6b5 lacks bundle. Issuer198 candidatef047b5b independently REJECTED ada12bbc: grandparent payload check missing despite88/88. B fixes within198, reviewer retests successor; no tooling acceptance yet. B1 UNKNOWN/finite-observation amendment, bundle profile, cell35 and pin obligations remain to be prepared | B; independent engine reviewer; PM |
 | B4+B3 | Accepted order after B1+B2; candidate reconciliation needed | B |
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
 | Edit My Week v1 | Bounded independent fix reviewfdc4c8e PASS at74920fb; R1/R2 closed. Real C future-gym/draft/DOM proof and B cumulative/profile/private/CI/receipt admission still open; no package acceptance | C after N2; B admission; PM judgment; D supports joins |
