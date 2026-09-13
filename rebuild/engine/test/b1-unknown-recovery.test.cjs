@@ -780,7 +780,7 @@ module.exports.CONSTRUCTION_MUTATIONS.push(...[
   [
     "R7-volume-offer-observation",
     "writers",
-    "const vpRecoveryDetail = currentSleepObservation(s)",
+    "const vpRecoveryDetail = !vpRecoveryUnknown ? \"\" : !vpRecovery.sleepEvidence",
     "const vpRecoveryDetail = false",
     "rebuild/engine/test/b1-unknown-recovery.test.cjs",
     "U9 R7 actual offer"
@@ -788,7 +788,7 @@ module.exports.CONSTRUCTION_MUTATIONS.push(...[
   [
     "R7-standdown-observation",
     "writers",
-    "`${currentSleepObservation(s) ? \"Sleep target not recorded; sleep contribution unavailable.\"",
+    "`${!rec.sleepEvidence ? \"Sleep target not recorded; sleep contribution unavailable.\"",
     "`${false ? \"Sleep target not recorded; sleep contribution unavailable.\"",
     "rebuild/engine/test/b1-unknown-recovery.test.cjs",
     "U9 R7 actual standdown"
@@ -837,6 +837,32 @@ module.exports.CONSTRUCTION_MUTATIONS.push(...[
   ]
 ]);
 module.exports.CONSTRUCTION_MUTATIONS.push(["R7-WATCH-standdown-incomplete-total","writers","how: rec.score == null ?","how: rec.band === \"UNKNOWN\" ?","rebuild/engine/test/b1-unknown-recovery.test.cjs","U9 R7 WATCH standdown"]);
+module.exports.CONSTRUCTION_MUTATIONS.push(...[
+  [
+    "R7-eager-offer-query",
+    "writers",
+    "const vp = volumePush(s);",
+    "const vp = volumePush(s); recoveryIndex(s);",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U9 R7 clock trace"
+  ],
+  [
+    "R7-offer-observation-requery",
+    "writers",
+    "const vpRecoveryDetail = !vpRecoveryUnknown ? \"\" : !vpRecovery.sleepEvidence",
+    "const vpRecoveryDetail = currentSleepObservation(s)",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U9 R7 clock trace"
+  ],
+  [
+    "R7-standdown-observation-requery",
+    "writers",
+    "`${!rec.sleepEvidence ? \"Sleep target not recorded; sleep contribution unavailable.\"",
+    "`${currentSleepObservation(s) ? \"Sleep target not recorded; sleep contribution unavailable.\"",
+    "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+    "U9 R7 clock trace"
+  ]
+]);
 module.exports.runConstructionAudit=runConstructionAudit;
 if(require.main===module&&process.argv.some(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage','--audit-public-laws'].includes(a)))process.exit(runConstructionAudit(process.argv.find(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage','--audit-public-laws'].includes(a)))?0:1);
 
@@ -871,3 +897,6 @@ test('U9 R7 known LOW keeps identified leading action and prior receipt structur
 test('U9 R7 WATCH standdown preserves incomplete total and observed flags',()=>{
  const T=engine(),s=pushState();delete s.sleep.cleanH;s.sleep.nights=[{d:'2026-09-02',h:2},{d:'2026-09-03',h:8}];s.exercises[0].holdFlag=true;s.exercises[1].holdFlag=true;s.sessionLog['2026-09-01']={entries:[],niggles:['joint']};s.proposals=[{rid:'recovery_test',resolved:false}];const before=structuredClone(s),rec=T.recoveryIndex(s);assert.equal(rec.band,'WATCH');assert.equal(rec.score,null);const out=T.runAdaptive(s,'2026-09-03'),line=out.feed.find(f=>f.t==='RECOVERY CARD STOOD DOWN');assert.ok(line);assert.doesNotMatch(line.how,/below the LOW trigger/);assert.match(line.how,/full rating is unavailable/);for(const f of rec.flags)assert.ok(line.how.includes(f.receipt));assert.deepEqual(s,before);
 });
+
+// Exact original68c1da3 writer trace over the same public synthetic state.
+for(const [kind,beforeHour,afterHour] of [['nooffer',5,18],['sealed',28,92],['knownoffer',23,115],['unknownoffer',23,115],['unknownstanddown',23,115],['watchstanddown',22,95]])test('U9 R7 clock trace '+kind,()=>{const s=kind==='nooffer'?state():pushState();if(kind==='sealed')s.blackout.until='2026-09-10';if(!['nooffer','sealed'].includes(kind)){s.sleep.cleanH=8;s.sleep.nights=[{d:'2026-09-02',h:2},{d:'2026-09-03',h:8}];if(kind!=='knownoffer')delete s.sleep.cleanH;}if(kind.includes('standdown'))s.proposals=[{rid:'recovery_test',resolved:false}];if(kind==='watchstanddown'){s.exercises[0].holdFlag=true;s.exercises[1].holdFlag=true;s.sessionLog['2026-09-01']={entries:[],niggles:['joint']};}const trace=[],base=clockAt('2026-09-03'),clock={...base};for(const k of Object.keys(base))if(typeof base[k]==='function')clock[k]=(...a)=>{trace.push(k);return base[k](...a);};const T=createEngine({clock,ids:{fresh:()=> 'synthetic-id'}}).__test;const out=T.runAdaptive(s,'2026-09-03');assert.deepEqual(trace,[...Array(beforeHour).fill('today'),'hour',...Array(afterHour).fill('today')],'Original writer clock-query sequence stays exact');});
