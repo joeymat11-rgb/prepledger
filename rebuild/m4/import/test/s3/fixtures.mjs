@@ -20,6 +20,8 @@ import Capture from '../../../workout/capture.cjs';
 import EngineCapture from '../../../workout/engine-capture.cjs';
 import Commands from '../../../workout/commands.cjs';
 import Runtime from '../../../workout/engine-runtime.cjs';
+import Provider from '../../engine-provider.cjs';
+import {createReadingProjector} from '../../../../m3/w6/reading-history.mjs';
 
 export const SYNTHETIC_PROVENANCE = 'earned/s3-public-invented-fixture/v1';
 export const syntheticDay = F.SYNTHETIC_DAY;
@@ -32,6 +34,68 @@ export function fixtureClock(day = syntheticDay, hour = 12) {
   return Object.freeze({today: () => day, hour: () => hour, dow: () => now.getDay(),
     nowISO: () => now.toISOString(), nowMs: () => now.getTime(), tz: Intl.DateTimeFormat().resolvedOptions().timeZone});
 }
+
+// One serialized public input vector is handed unchanged to Node and the real
+// browser. The registry is explicitly synthetic; all seven engine members are
+// the production provider's real composed factories, never a fixture facade.
+export function createPortableVector(){
+ const source=fixtureState('2026-09-03');source.parity={composed:'é',decomposed:'e\u0301',nested:{kept:['source',0,false,null]}};
+ const local=structuredClone(source);local.v=59;local.parity.local='retained original';
+ const ops={},dispositions={},receipts={},add=(action)=>{
+  const seq=Object.keys(ops).length+1,op=Ops.build({...action,op_id:'S3-parity-'+seq,athlete_id:'TEST-ONLY-athlete',device_id:'TEST-ONLY-remote',device_seq:seq,parents:seq>1?['S3-parity-'+(seq-1)]:[],lease_id:'TEST-ONLY-lease',schema_version:1},'TEST-ONLY-parity-key');
+  ops[op.op_id]=op;dispositions[op.op_id]={op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment,status:'ACCEPTED',athlete_log_seq:seq};receipts[seq]={seq,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment};return op;
+ };
+ add({class:'reading',kind:'fact',payload:{lb:{value:173.25,unit:'lb'}},effective:fixtureEffective('2026-09-04',12)});
+ add({class:'reading',kind:'fact',payload:{lb:{value:173,unit:'lb'}},effective:fixtureEffective('2026-09-05',8)});
+ // This existing portable hosted reader takes its own v1 quantity schema.
+ // The separate custody/browser cells still exercise real native N1 commands.
+ add({class:'food-day',kind:'fact',payload:{kcal:{value:2300,unit:'kcal'},protein_g:{value:175,unit:'g'}},effective:fixtureEffective('2026-09-05',10)});
+ return {profile:'earned/s3-real-provider-parity-input/v1',source_json:new TextDecoder().decode(fixtureBytes(source)),local_json:new TextDecoder().decode(fixtureBytes(local)),
+  generation:{collections:{ops,dispositions,receipts,outbox:{},rejected:{},sync:{frontier:{W:3,authorityW:3}}},metadata:{}},asOf:'2026-09-06'};
+}
+export function portableReplayEvidence(vector,constructors=createBrowserReplay()){
+ const input=structuredClone(vector),before=JSON.stringify(input),platform=createSourcePlatform(),day='2026-09-03',build='S3-real-production-provider-TEST-ONLY';
+ const engine={sha256:Profile.SOURCE_PINS['rebuild/engine/oracle-shim.cjs'],treeSha256:'b'.repeat(64),schemaV:60,path:'rebuild/engine/oracle-shim.cjs'};
+ const gate={clock:day,tz:'America/New_York'},materialDigest=platform.hash(JSON.stringify(input));
+ const dates=['2026-03-07','2026-03-09',day,'2026-09-06'].map(date=>{const d=new Date(fixtureClock(date).nowMs());return {day:date,noonISO:d.toISOString(),offsetMinutes:d.getTimezoneOffset()};});
+ const mapping={profile:'earned/source-producer-mapping/v1',id:'TEST-ONLY-portable-identical-input',construction:'oracle-shim-default/v1',engine,gate,public_factory_digest:Profile.PUBLIC_FACTORY_DIGEST,source_pins:Profile.SOURCE_PINS,
+  executions:[{id:'TEST-ONLY-vector-not-C2',material_digest:materialDigest,calendar:{profile:'earned/native-date-compatibility/v1',compatibility_id:'TEST-ONLY-2026',zone:gate.tz,range:{from:'2026-01-01',to:'2026-12-31'},dates}}],dependencies:{drafts:'default-empty'}};
+ const context=Profile.createProducerRegistry([mapping],{hash:platform.hash}).qualify({materialDigest,context:{engine,oracle:{gate}}});
+ const engineFor=({day,hour})=>Provider.createSourceReplayEngine({engineContext:Profile.engineContextAt(context,day,hour)});
+ const real=engineFor({day,hour:12}),prep=constructors.createImportPreparation({engine:real,parseStrictJson});
+ const source=platform.bytes(input.source_json),local=platform.bytes(input.local_json),prepared=prep.prepare(source,{localBytes:local});
+ const preparation={summary:structuredClone(prepared.summary),source_bytes:Array.from(prepared.sourceBytes()),local_bytes:Array.from(prepared.localBytes()),candidate_bytes:Array.from(prepared.candidateBytes()),source_state:prepared.sourceState(),local_state:prepared.localState(),candidate_state:prepared.candidateState()};
+ const same=(a,b)=>platform.equal(a,b),aliases={};
+ for(const key of ['source','local','candidate']){
+  const state=prepared[key+'State'](),bytes=prepared[key+'Bytes']();state.parity.nested.kept[0]='caller mutation';bytes[0]=0;
+  aliases[key]=same(prepared[key+'State'](),preparation[key+'_state'])&&same(Array.from(prepared[key+'Bytes']()),preparation[key+'_bytes']);
+ }
+ source[0]=0;local[0]=0;aliases.input_bytes=same(Array.from(prepared.sourceBytes()),preparation.source_bytes)&&same(Array.from(prepared.localBytes()),preparation.local_bytes);
+ const candidate=prepared.candidateState(),lost=structuredClone(candidate);lost.reads.pop();
+ const guards={source:real.dataLossGuard(prepared.sourceState(),candidate),local:real.dataLossGuard(prepared.localState(),candidate),removed_read:real.dataLossGuard(candidate,lost)};
+ const empty={collections:{ops:{},dispositions:{},receipts:{},outbox:{},rejected:{},sync:{frontier:{W:0,authorityW:0}}},metadata:{}};
+ const material={source_json:input.source_json,local_json:input.local_json,candidate_json:platform.text(prepared.candidateBytes()),checkpoint_json:JSON.stringify({revision:1,token:'TEST-ONLY-parity',generation:empty}),engine_context_json:JSON.stringify({build,clock:day})};
+ const replay=constructors.createReadingReplay({engineFor,projectReadings:createReadingProjector({athleteId:'TEST-ONLY-athlete',deviceId:'TEST-ONLY-local'}),parseStrictJson,producerIdentity:build,importBuild:build,deviceId:'TEST-ONLY-local'});
+ const replayInput={sourceId:'TEST-ONLY-portable-source',material,generation:input.generation,asOf:input.asOf};
+ const result=replay.project(replayInput),reproduced=replay.reproduce(replayInput,result);
+ if(!result.ready)throw Error('S3_PUBLIC_PARITY_REPLAY '+JSON.stringify(result.issues));
+ const detached=structuredClone(result);detached.accepted_state.reads[0].w=999;detached.coverage.steps.length=0;
+ result.accepted_state.parity.nested.kept[0]='caller mutation';result.accepted_state.reads[0].w=999;
+ aliases.replay=same(replay.project(replayInput),reproduced);
+ const refusals={},refuse=(name,fn)=>{try{fn();refusals[name]=null;}catch(e){refusals[name]=e.code||e.name;}};
+ refuse('future',()=>prep.prepare(platform.bytes(JSON.stringify({...prepared.sourceState(),v:61}))));
+ refuse('seed',()=>prep.prepare(platform.bytes('{"v":2}')));
+ refuse('duplicate',()=>prep.prepare(platform.bytes('{"v":60,"v":60}')));
+ refuse('changed_replay',()=>replay.reproduce(replayInput,detached));
+ const wrong=structuredClone(replayInput);wrong.material.candidate_json=JSON.stringify({...candidate,trend:999});
+ refuse('changed_candidate',()=>replay.project(wrong));
+ aliases.vector=before===JSON.stringify(input)&&before===JSON.stringify(vector);
+ // The entire semantic replay is compared. Only the documented host runtime
+ // metadata field differs between adapters; it is retained separately, checked
+ // and recorded, never mistaken for semantic output or silently discarded.
+ const runtime=structuredClone(reproduced.coverage.runtime);delete reproduced.coverage.runtime;
+ return {profile:'earned/s3-real-provider-parity/v1',input_sha256:materialDigest,provider_members:Object.keys(real).sort(),preparation,guards,aliases,refusals,replay:reproduced,runtime};
+}
 export async function prepareFixture({engine, parseStrictJson, prepare, day = syntheticDay, local = null}) {
   const sourceBytes = fixtureBytes(fixtureState(day));
   const localBytes = local === null ? null : fixtureBytes(local);
@@ -43,7 +107,7 @@ export function fixtureEffective(day='2026-09-04',hour=8){
   const date=new Date(fixtureClock(day,hour).nowMs()),minutes=date.getTimezoneOffset(),abs=Math.abs(minutes);
   return {local_date:day,local_time:String(hour).padStart(2,'0')+':00',utc_offset:(minutes<=0?'+':'-')+String(Math.floor(abs/60)).padStart(2,'0')+':'+String(abs%60).padStart(2,'0')};
 }
-export async function appendCompletedWorkout(f,{day='2026-09-04',complete=true}={}){
+export async function appendCompletedWorkout(f,{day='2026-09-04',complete=true,skipSlot=null}={}){
   const loaded=await f.repository.load(),g=structuredClone(loaded.generation),era=readLocalEra(g.metadata),platform=f.platform;
   const pc=Capture.createPrescriptionCapture({parseStrictJson}),runtime=Runtime.createEngineRuntime({clock:fixtureClock(day)});
   const producer={app_build:'S3-TEST-ONLY',engine_build:'S3-public-runtime-synthetic',rule_profile:EngineCapture.PROFILE,source_schema:'S3-invented-state/v1'};
@@ -57,7 +121,10 @@ export async function appendCompletedWorkout(f,{day='2026-09-04',complete=true}=
     g.collections.ops[op.op_id]=op;g.collections.outbox[op.op_id]={op_id:op.op_id};operationIds.push(op.op_id);return op;
   };
   const start=add('start',{planned_split_slot_id:'S3-synthetic-Friday',plan_basis:basis.plan_basis,prescription_capture:capture});
-  for(const slot of prepared.layout.slots)add('set',{session_start_op_id:start.op_id,logical_set_slot:slot.logical_set_slot,lift_lineage_id:slot.lift_lineage_id,load:{value:f.state.exercises.find(e=>e.id===slot.lift_lineage_id).steps[0],unit:'lb'},reps:{value:8,unit:'rep'},reserve:{tag:'exact',value:2,unit:'rep'}});
+  for(const slot of prepared.layout.slots){
+    if(slot.logical_set_slot===skipSlot)add('skip',{session_start_op_id:start.op_id,logical_set_slot:slot.logical_set_slot,lift_lineage_id:slot.lift_lineage_id,skip_scope:'set'});
+    else add('set',{session_start_op_id:start.op_id,logical_set_slot:slot.logical_set_slot,lift_lineage_id:slot.lift_lineage_id,load:{value:f.state.exercises.find(e=>e.id===slot.lift_lineage_id).steps[0],unit:'lb'},reps:{value:8,unit:'rep'},reserve:{tag:'exact',value:2,unit:'rep'}});
+  }
   if(complete)add('close',{session_start_op_id:start.op_id,completion_kind:'normal'});
   await f.repository.commit(loaded,g,()=>null);return {startId:start.op_id,capture,operationIds};
 }
@@ -93,7 +160,7 @@ export async function createLocalSourceFixture({indexedDB,crypto,databaseName='s
       add('TEST-ONLY-machine',Settings.prepare({action:Settings.ACTION,input:{machine:{exercise_id:setup.exercises[0].id,settings:[{name:'Seat',value:'four'}]},effective}}));
       add('TEST-ONLY-checkin',CheckIn.prepare({action:'checkin',input:{answers:{energy:'Moderate',note:'Invented retained answer'},effective}}));
     }
-    await repository.initialize({collections:{ops,outbox:Object.fromEntries(Object.keys(ops).map(id=>[id,{op_id:id}])),dispositions:{},rejected:{},receipts:{},sync:{frontier:{W:0,authorityW:0}},derived:{}},metadata:{localEra:era,imports:[]}},SYNTHETIC_PROVENANCE);
+    await repository.initialize({collections:{ops,outbox:Object.fromEntries(Object.keys(ops).map(id=>[id,{op_id:id}])),dispositions:{},rejected:{},receipts:{},sync:{frontier:{W:0,authorityW:0}},derived:{}},metadata:{namespace,localEra:era,imports:[]}},SYNTHETIC_PROVENANCE);
     await keys.persist(await keys.keyProvider());
     const loaded=await repository.load(),custody=repository.importCustody({parseStrictJson,validateContext:()=>null});
     await custody.stage(name,loaded,{sourceBytes,candidateBytes,localBytes:null,engineContextJson});

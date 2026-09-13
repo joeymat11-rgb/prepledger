@@ -6,7 +6,7 @@ const {createImportPreparation} = require('../prepare.cjs');
 const {createEngine} = require('./s3/engine.cjs');
 const F = require('../../../m3/w7-preview/fixtures.cjs');
 const w6 = path.resolve(__dirname, '../../../..');
-const parser = import(pathToFileURL(path.join(w6, 'rebuild/m3/w6/strict-json.mjs')));
+const parser = import('../../../m3/w6/strict-json.mjs');
 const bytes = state => Buffer.from(JSON.stringify(state, null, 2) + '\r\n');
 function engine() {
   let id = 0;

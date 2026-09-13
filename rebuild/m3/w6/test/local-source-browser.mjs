@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import assert from 'node:assert/strict';
 import path from 'node:path';
 import http from 'node:http';
 import childProcesses from 'node:child_process';
@@ -6,6 +7,9 @@ import {spawnSync} from 'node:child_process';
 import {once} from 'node:events';
 import {fileURLToPath} from 'node:url';
 import {buildBrowser} from '../build-browser.mjs';
+import NodePreparation from '../../../m4/import/prepare.cjs';
+import NodeReading from '../../../m4/import/reading-replay.cjs';
+import {createPortableVector,portableReplayEvidence} from '../../../m4/import/test/s3/fixtures.mjs';
 import {contained,readManifest,verifySources,inspectStaticEdges,verifiedBrowser,sha256} from '../../../m4/import/test/s3/run.mjs';
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../../..');
 const fail=code=>{throw Error(code);};
@@ -55,12 +59,24 @@ async function killOwned(){
   await Promise.race([exited,sleep(10000).then(()=>fail('S3_BROWSER_KILL_TIMEOUT'))]);processHandle=null;browser=null;
 }
 try{
-  let page=await launch();const userAgent=await page.evaluate(()=>navigator.userAgent),first=await page.evaluate(()=>S3.first());
+  let page=await launch();const userAgent=await page.evaluate(()=>navigator.userAgent),vector=createPortableVector();
+  const nodeParity=portableReplayEvidence(vector,{...NodePreparation,...NodeReading}),browserParity=await page.evaluate(input=>S3.parity(input),vector);
+  const {runtime:nodeRuntime,...nodeSemantics}=nodeParity,{runtime:browserRuntime,...browserSemantics}=browserParity.evidence;
+  assert.deepEqual(browserSemantics,nodeSemantics,'R10 complete real-provider portable semantic output');
+  assert.deepEqual(nodeRuntime,{node:process.versions.node,timezone:'America/New_York'},'R10 Node runtime retained');
+  assert.deepEqual(browserRuntime,{platform:'javascript',user_agent:userAgent,timezone:'America/New_York'},'R10 browser runtime retained');
+  const changed=structuredClone(browserSemantics);changed.preparation.candidate_state.parity.nested.kept[0]='wrong output';
+  assert.throws(()=>assert.deepEqual(changed,nodeSemantics),{code:'ERR_ASSERTION'},'R10 complete comparison rejects changed output with unchanged counts');
+  const parity={cells:browserParity.cells+4,input:vector,node:nodeParity,browser:browserParity.evidence,comparison:'complete semantic output; exact sole coverage.runtime field retained separately'};
+  const first=await page.evaluate(()=>S3.first());
   await killOwned();killed=true;
   page=await launch();const second=await page.evaluate(expected=>S3.reopen(expected),first.evidence),negative=await page.evaluate(()=>S3.wrongContext());
   if(errors.length)fail('S3_BROWSER_PAGE_ERRORS '+errors.join('|'));
   await page.evaluate(()=>S3.close());
-  const evidence={profile:'earned/s3-browser-core/v1',scope:'PORTABLE ONLY',synthetic:true,realC2:false,calendar:'browser realm explicitly America/New_York; invented compatibility registry',executable,userAgent,killed,profile,source_manifest_sha256:sha256(fs.readFileSync(path.join(ROOT,'rebuild/m4/spec/s3-portable-sources.json'))),cells:first.cells+second.cells+negative.cells,first,second,graph,pending:['final capture Start/resume','Today and gym consumers','real-C2/P1','B cumulative final gates']};
+  const evidence={profile:'earned/s3-browser-core/v1',scope:'PORTABLE ONLY',synthetic:true,realC2:false,calendar:'browser realm explicitly America/New_York; invented compatibility registry',executable,userAgent,killed,browserProfile:profile,source_manifest_sha256:sha256(fs.readFileSync(path.join(ROOT,'rebuild/m4/spec/s3-portable-sources.json'))),cells:first.cells+second.cells+negative.cells+parity.cells,first,second,parity,graph,pending:['final capture Start/resume','Today and gym consumers','real-C2/P1','B cumulative final gates']};
   fs.writeFileSync(path.join(run,'browser-core-evidence.json'),JSON.stringify(evidence,null,2)+'\n');
+  const produced=JSON.parse(fs.readFileSync(path.join(run,'browser-core-evidence.json'),'utf8'));
+  assert.equal(produced.profile,'earned/s3-browser-core/v1','R9 produced artifact retains its schema profile');
+  assert.equal(produced.browserProfile,profile,'R9 produced artifact names its owned directory separately');
   console.log('S3 BROWSER PORTABLE ONLY '+evidence.cells+' cells; real WebCrypto/IndexedDB; owned force-kill/reopen; final/P1 pending');
 }finally{await killOwned();childProcesses.spawn=originalSpawn;server.close();verifySources(ROOT,manifest);}

@@ -25,7 +25,7 @@ test('S3-PROVIDER-CURRENT: current60 uses real algorithms with no reference seed
 test('S3-PROVIDER-CAUGHT60: inner patch catch cannot publish partial v60 or clear instance poison',()=>{
  const engine=provider().createSourceReplayEngine({engineContext:context()});
  const F=require('../../../m3/w7-preview/fixtures.cjs'),state=F.createSyntheticState('2026-09-03');state.v=59;
- assert.throws(()=>engine.migrate(state),{code:'SOURCE_ENGINE_DEPENDENCY_REQUIRED'});
+ assert.throws(()=>engine.migrate(state),{code:'SOURCE_ENGINE_DEPENDENCY_REQUIRED',dependency:'SEED'});
  assert.throws(()=>engine.currentRate(F.createSyntheticState('2026-09-03')),{code:'SOURCE_ENGINE_DEPENDENCY_REQUIRED'});
 });
 test('S3-PROVIDER-CONTEXT-CUSTODY: looked-up context and its clock stay immutable',()=>{
@@ -46,8 +46,18 @@ test('S3-PROVIDER-SOURCE60-LOCAL59: real source-first merge never independently 
 test('S3-PROVIDER-CAUGHT51: caught draft scans remain poisoned outside the engine',()=>{
  const engine=provider().createSourceReplayEngine({engineContext:context({drafts:false})});
  const F=require('../../../m3/w7-preview/fixtures.cjs'),state=F.createSyntheticState('2026-09-03');state.v=50;
- assert.throws(()=>engine.migrate(state),{code:'SOURCE_ENGINE_DEPENDENCY_REQUIRED'});
- assert.throws(()=>engine.writeDaily(F.createSyntheticState('2026-09-03'),'2026-09-04',{cal:2200}),{code:'SOURCE_ENGINE_DEPENDENCY_REQUIRED'});
+ assert.throws(()=>engine.migrate(state),{code:'SOURCE_ENGINE_DEPENDENCY_REQUIRED',dependency:'drafts'});
+ assert.throws(()=>engine.writeDaily(F.createSyntheticState('2026-09-03'),'2026-09-04',{cal:2200}),{code:'SOURCE_ENGINE_DEPENDENCY_REQUIRED',dependency:'drafts'});
+ const mapped=provider().createSourceReplayEngine({engineContext:context()});
+ assert.throws(()=>mapped.migrate(structuredClone(state)),{code:'SOURCE_ENGINE_DEPENDENCY_REQUIRED',dependency:'SEED'},'Mapped empty drafts pass the same real patch51 scan before patch60 needs its reference');
+});
+test('S3-PROVIDER-CALENDAR-REACHED: real regression over DST requires historical range coverage',()=>{
+ const F=require('../../../m3/w7-preview/fixtures.cjs'),state=F.createSyntheticState('2026-03-15'),before=JSON.stringify(state);
+ const covered=provider().createSourceReplayEngine({engineContext:context()}),rate=covered.currentRate(state);
+ assert.equal(rate.method,'regression');assert.equal(rate.n,28);assert.equal(rate.from,state.reads[0].d);assert.equal(rate.to,state.reads.at(-1).d);
+ const narrow=provider().createSourceReplayEngine({engineContext:context({change:e=>{e.executions[0].calendar.range.from='2026-09-01';}})});
+ assert.throws(()=>narrow.currentRate(state),{code:'SOURCE_ENGINE_CONTEXT_UNPROVEN'});
+ assert.equal(JSON.stringify(state),before);
 });
 test('S3-PROVIDER-MAPPING: path, entry, closure, preparation day and compatibility cannot be arbitrary labels',()=>{
  const changes=[e=>{e.engine.path='other-engine.cjs';},e=>{e.engine.sha256='f'.repeat(64);},e=>{e.public_factory_digest='f'.repeat(64);},e=>{e.source_pins={...e.source_pins,'tools/_fixed-now.mjs':'f'.repeat(64)};},e=>{e.gate.clock='2026-09-04';},e=>{e.executions[0].calendar.dates[0].noonISO='2026-09-03T12:00:00.000Z';},e=>{e.executions.push(structuredClone(e.executions[0]));}];

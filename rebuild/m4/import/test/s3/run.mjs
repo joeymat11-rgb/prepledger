@@ -3,6 +3,8 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash, randomUUID} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
+import {isBuiltin} from 'node:module';
+import Mutations from './mutations.cjs';
 const ownFile=fileURLToPath(import.meta.url);
 export const ROOT=path.resolve(path.dirname(ownFile),'../../../../..');
 export const MANIFEST='rebuild/m4/spec/s3-portable-sources.json';
@@ -40,14 +42,83 @@ export function verifySources(root,manifest,{extra=false}={}){
  if(extra){const visit=dir=>{for(const ent of fs.readdirSync(dir,{withFileTypes:true})){if(['node_modules','.tmp'].includes(ent.name))continue;const file=contained(root,path.join(dir,ent.name));if(ent.isDirectory())visit(file);else{const rel=path.relative(root,file).split(path.sep).join('/');if(!expected.has(rel))refusal('S3_SOURCE_EXTRA',rel);}}};visit(root);}
  return manifest.sources.length;
 }
+// Lexical inspection never evaluates a source. Strings/comments/regexes are
+// data; template expressions remain executable tokens. Unknown computed module
+// sites refuse. The sole reviewed factory loop has a byte-bound explicit map.
+function moduleTokens(source){
+ const tokens=[];let i=0;
+ const push=(type,value,start)=>tokens.push({type,value,start,end:i});
+ const regexStart=()=>!tokens.length||/^(?:[({[=,:;!?&|+*%^~<>-]|return|throw|case|yield|typeof|void|delete|in|of)$/.test(tokens.at(-1).value);
+ function scan(templateExpression=false){let depth=0;
+  while(i<source.length){const start=i,c=source[i],next=source[i+1];
+   if(/\s/.test(c)){i++;continue;}
+   if(c==='/'&&next==='/'){i+=2;while(i<source.length&&source[i]!=='\n')i++;continue;}
+   if(c==='/'&&next==='*'){const end=source.indexOf('*/',i+2);if(end<0)refusal('S3_SOURCE_LEXICAL');i=end+2;continue;}
+   if(c==='"'||c==="'"){
+    const quote=c;let value='';i++;
+    while(i<source.length&&source[i]!==quote){let char=source[i++];
+     if(char==='\\'){
+      char=source[i++];const escapes={n:'\n',r:'\r',t:'\t',b:'\b',f:'\f',v:'\v','0':'\0'};
+      if(char==='\n')continue;if(char==='\r'){if(source[i]==='\n')i++;continue;}
+      if(char==='x'||char==='u'){
+       let hex;if(char==='u'&&source[i]==='{'){const end=source.indexOf('}',++i);hex=source.slice(i,end);i=end+1;}
+       else{const count=char==='x'?2:4;hex=source.slice(i,i+count);i+=count;}
+       if(!/^[a-fA-F0-9]+$/.test(hex))refusal('S3_SOURCE_LEXICAL');char=String.fromCodePoint(parseInt(hex,16));
+      }else char=escapes[char]??char;
+     }
+     value+=char;
+    }
+    if(source[i++]!==quote)refusal('S3_SOURCE_LEXICAL');push('string',value,start);continue;
+   }
+   if(c==='`'){
+    i++;push('template','`',start);let closed=false;
+    while(i<source.length){if(source[i]==='\\'){i+=2;continue;}if(source[i]==='`'){i++;closed=true;break;}
+     if(source[i]==='$'&&source[i+1]==='{'){i+=2;push('punct','{',i-1);scan(true);}else i++;
+    }
+    if(!closed)refusal('S3_SOURCE_LEXICAL');
+    push('template','`',i-1);continue;
+   }
+   if(c==='/'&&regexStart()){
+    i++;let bracket=false,closed=false;
+    while(i<source.length){const ch=source[i++];if(ch==='\\'){i++;continue;}if(ch==='[')bracket=true;if(ch===']')bracket=false;if(ch==='/'&&!bracket){closed=true;break;}}
+    if(!closed)refusal('S3_SOURCE_LEXICAL');
+    while(/[a-z]/i.test(source[i]||'')&&i<source.length)i++;push('regex','regex',start);continue;
+   }
+   if((c==='+'||c==='-')&&next===c){i+=2;push('punct',c+c,start);continue;}
+   if(/[A-Za-z_$]/.test(c)){i++;while(i<source.length&&/[A-Za-z0-9_$]/.test(source[i]))i++;push('id',source.slice(start,i),start);continue;}
+   i++;push('punct',c,start);
+   if(templateExpression){if(c==='{')depth++;if(c==='}'&&depth--===0)return;}
+  }
+  if(templateExpression)refusal('S3_SOURCE_LEXICAL');
+ }
+ scan();return tokens;
+}
 export function inspectStaticEdges(root,manifest){
  const names=new Set(manifest.sources.map(e=>e.path)),deferred=new Set(manifest.deferredRedSources||[]),edges=[];
- for(const entry of manifest.sources){if(!/\.(cjs|mjs|js)$/.test(entry.path))continue;const text=fs.readFileSync(path.join(root,entry.path),'utf8');
-  const patterns=[/\brequire\s*\(\s*(['"])([^'"\n]+)\1\s*\)/g,/\bfrom\s+(['"])([^'"\n]+)\1/g,/\bimport\s*\(\s*(['"])([^'"\n]+)\1\s*\)/g];
-  for(const re of patterns)for(const hit of text.matchAll(re)){const spec=hit[2];if(!spec.startsWith('.'))continue;
+ const packages=new Set();
+ for(const entry of manifest.sources.filter(e=>e.path.endsWith('package.json'))){const p=JSON.parse(fs.readFileSync(path.join(root,entry.path),'utf8'));for(const name of [...Object.keys(p.dependencies||{}),...Object.keys(p.devDependencies||{})])packages.add(name);}
+ for(const entry of manifest.sources){if(!/\.(cjs|mjs|js)$/.test(entry.path))continue;
+  const source=fs.readFileSync(path.join(root,entry.path),'utf8'),tokens=moduleTokens(source);
+  const edge=spec=>{
+   if(isBuiltin(spec))return;
+   if(!spec.startsWith('.')){const pkg=spec.startsWith('@')?spec.split('/').slice(0,2).join('/'):spec.split('/')[0];if(packages.has(pkg))return;refusal('S3_UNLISTED_EDGE',entry.path+' -> '+spec);}
    const resolved=path.posix.normalize(path.posix.join(path.posix.dirname(entry.path),spec));safeRelative(resolved);
-   if(!names.has(resolved)&&!deferred.has(resolved))refusal('S3_UNLISTED_EDGE',entry.path+' -> '+resolved);
-   edges.push([entry.path,resolved]);
+   if(!names.has(resolved)&&!deferred.has(resolved))refusal('S3_UNLISTED_EDGE',entry.path+' -> '+resolved);edges.push([entry.path,resolved]);
+  };
+  for(let i=0;i<tokens.length;i++){
+   const token=tokens[i],next=tokens[i+1];if(token.type!=='id')continue;
+   if(['require','import'].includes(token.value)&&next?.value==='('){
+    const arg=tokens[i+2],close=tokens[i+3];
+    if(arg?.type==='string'&&close?.value===')'){edge(arg.value);continue;}
+    const site="require('../../engine/'+name+'.cjs')";
+    const mapped=entry.path==='rebuild/m4/workout/engine-runtime.cjs'&&sha256(source)==='c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936'&&source.slice(token.start,token.start+site.length)===site&&
+      source.includes("const MODULES=Object.freeze(['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers']);");
+    if(!mapped)refusal('S3_UNLISTED_EDGE',entry.path+' computed '+token.value);
+    for(const name of ['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers'])edge('../../engine/'+name+'.cjs');
+   }else if(token.value==='import'&&next?.type==='string')edge(next.value);
+   else if(token.value==='import'&&next?.value!=='.'||token.value==='export'&&['{','*'].includes(next?.value)){
+    for(let j=i+1;j<tokens.length&&tokens[j].value!==';';j++)if(tokens[j].type==='id'&&tokens[j].value==='from'&&tokens[j+1]?.type==='string'){edge(tokens[j+1].value);break;}
+   }
   }
  }
  return edges;
@@ -75,8 +146,9 @@ export function suiteInventory(root,files,log,total){
  return inventory;
 }
 export function mutantSummary(log,status,name){
- if(status!==1||!log.includes('ERR_ASSERTION')||!log.includes(name)||!/not ok /.test(log)||/SyntaxError|ERR_MODULE_NOT_FOUND|MODULE_NOT_FOUND|ERR_UNKNOWN_FILE_EXTENSION/.test(log))refusal('S3_MUTANT_NOT_ASSERTION',name);
- return {name,assertion:true,status};
+ const diagnostic=Mutations.assertionDiagnostic(log,status,name);
+ if(!diagnostic)refusal('S3_MUTANT_NOT_ASSERTION',name);
+ return {name:diagnostic.name,assertion:true,status};
 }
 function toolVersions(toolchain){
  for(const k of ['node','npm','pnpm'])if(!toolchain[k]||!fs.existsSync(toolchain[k]))refusal('S3_TOOL_MISSING',k);
@@ -87,7 +159,7 @@ function toolVersions(toolchain){
 }
 function scratchEnvironment(run,toolchain){
  const env={...process.env,NODE_ENV:'development',TEMP:path.join(run,'temp'),TMP:path.join(run,'temp'),npm_config_cache:path.join(run,'cache'),npm_config_userconfig:path.join(run,'npmrc'),PNPM_HOME:path.join(run,'pnpm-home'),S3_SCRATCH:path.join(run,'tree'),S3_RUN_ROOT:run};
- for(const k of ['NODE_OPTIONS','W6_PLAYWRIGHT_DIR','PERFORMED_W6_DIR','EARNED_READING_W6_ROOT','EARNED_SOURCE_R1_ROOT','IMPORT_PREPARATION_MODULE','EARNED_REPLAY_CANDIDATE','S3_MUTATION'])delete env[k];
+ for(const k of ['NODE_OPTIONS','NODE_PATH','NODE_TEST_CONTEXT','W6_PLAYWRIGHT_DIR','PERFORMED_W6_DIR','EARNED_READING_W6_ROOT','EARNED_SOURCE_R1_ROOT','IMPORT_PREPARATION_MODULE','EARNED_REPLAY_CANDIDATE','S3_MUTATION'])delete env[k];
  const key=Object.keys(env).find(k=>k.toLowerCase()==='path')||'PATH';env[key]=path.dirname(toolchain.node)+path.delimiter+(env[key]||'');
  env.TZ='America/New_York';return env;
 }
@@ -148,7 +220,7 @@ export function dispatch(record,mode){
   }return;
  }
  if(mode==='browser-core'){
-  const r=child(record,['rebuild/m3/w6/test/local-source-browser.mjs','--core'],'browser-core',{env:{W6_BROWSER_BIN:process.env.W6_BROWSER_BIN||''}});
+  const r=child(record,['--require','./rebuild/m4/import/test/s3/current-head.cjs','rebuild/m3/w6/test/local-source-browser.mjs','--core'],'browser-core',{env:{W6_BROWSER_BIN:process.env.W6_BROWSER_BIN||''}});
   if(r.status!==0||!r.log.includes('PORTABLE ONLY'))refusal('S3_BROWSER_FAILED',r.logFile);
   console.log('S3 BROWSER PORTABLE ONLY '+r.logFile);verifySources(record.tree,manifest);return;
  }

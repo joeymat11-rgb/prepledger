@@ -1,5 +1,5 @@
 // TEST ONLY. The browser uses actual WebCrypto/IndexedDB and invented public inputs.
-import {createLocalSourceFixture,appendCompletedWorkout,fixtureEffective} from './fixtures.mjs';
+import {createLocalSourceFixture,appendCompletedWorkout,fixtureEffective,portableReplayEvidence} from './fixtures.mjs';
 import {commitLocalSource} from '../../../../m3/w6/local/source-commit.mjs';
 import {createSourceReplayEngine} from '../../browser-replay.mjs';
 let fixture,checks=0;
@@ -17,6 +17,14 @@ function summary(f,loaded,view){
     pending:view.integration_pending,complete:loaded.generation.metadata.localSourceApplication.s3_complete};
 }
 globalThis.S3=Object.freeze({
+  parity(vector){
+    const from=checks,evidence=portableReplayEvidence(vector);
+    check(evidence.replay.ready===true,'real-provider replay ready');
+    check(Object.values(evidence.aliases).every(v=>v===true),'all preparation/replay aliases detached');
+    check(evidence.guards.source.safe&&evidence.guards.local.safe&&!evidence.guards.removed_read.safe,'real data-loss guard controls');
+    check(evidence.replay.accepted_calculation.rate.method==='regression','real reached calculation');
+    return {cells:checks-from,evidence};
+  },
   async first(){
     const from=checks;
     check(globalThis.isSecureContext&&crypto.subtle&&indexedDB,'real secure browser APIs');

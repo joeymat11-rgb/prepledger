@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import Mutations from './mutations.cjs';
 import {contained,safeRelative,readManifest,verifySources,inspectStaticEdges,tapSummary,suiteInventory,mutantSummary,verifiedBrowser,sha256,MANIFEST} from './run.mjs';
 
 const base=process.env.S3_RUN_ROOT;
@@ -45,7 +47,7 @@ test('S3-HARNESS-ACCOUNTING: exit zero, empty cells, skips and cancellations are
  assert.throws(()=>tapSummary(tap(1,0,1),0),{code:'S3_TEST_FAILED'});assert.throws(()=>tapSummary(tap(),1),{code:'S3_TEST_FAILED'});
 });
 test('S3-HARNESS-MUTANT: only a reached named assertion failure earns a kill',()=>{
- assert.equal(mutantSummary('not ok 1 - named guard\ncode: ERR_ASSERTION',1,'named guard').assertion,true);
+ assert.equal(mutantSummary("not ok 1 - named guard\n  ---\n  code: 'ERR_ASSERTION'\n  ...",1,'named guard').assertion,true);
  for(const [log,status]of [['not ok named guard MODULE_NOT_FOUND ERR_ASSERTION',1],['not ok named guard SyntaxError ERR_ASSERTION',1],['named guard ERR_ASSERTION',1],['not ok other ERR_ASSERTION',1],['not ok named guard ERR_ASSERTION',0]])assert.throws(()=>mutantSummary(log,status,'named guard'),{code:'S3_MUTANT_NOT_ASSERTION'});
 });
 test('S3-HARNESS-BROWSER: missing browser is explicitly blocked',()=>{
@@ -62,4 +64,51 @@ test('S3-HARNESS-CHILD: actual exit-zero and skipped children cannot satisfy nam
  assert.throws(()=>suiteInventory(f.root,[file],r.stdout,{tests:1}),{code:'S3_FILE_ZERO_CELLS'});
  r=execute("require('node:test')('skipped cell',{skip:true},()=>{});");
  assert.throws(()=>tapSummary(r.stdout,r.status),{code:'S3_TEST_ACCOUNTING'});
+});
+
+test('S3-HARNESS-ESM-STATIC: side effects and computed imports refuse before copying',()=>{
+ const f=fixture();
+ for(const source of [['import ',"'./missing.mjs';"].join(''), "const target='./missing.mjs'; await import(target);"]){
+  fs.writeFileSync(path.join(f.root,f.file),source);
+  assert.throws(()=>inspectStaticEdges(f.root,f.manifest),{code:'S3_UNLISTED_EDGE'});
+ }
+ fs.writeFileSync(path.join(f.root,f.file),["import 'node:fs'; // import './missing.mjs'\nconst s=\"import(","'./missing.mjs')\";"].join(''));
+ assert.deepEqual(inspectStaticEdges(f.root,f.manifest),[]);
+});
+test('S3-HARNESS-ESM-RUNTIME: actual CJS and ESM children cannot execute an unlisted sentinel',()=>{
+ const directory=fs.mkdtempSync(path.join(base,'harmless-sentinel-')),sentinel=path.join(directory,'sentinel.cjs'),esm=path.join(directory,'sentinel.mjs');
+ for(const file of [sentinel,esm])fs.writeFileSync(file,"console.log('S3_UNLISTED_SENTINEL_EXECUTED');\n");
+ const env={...process.env};delete env.NODE_OPTIONS;delete env.NODE_PATH;delete env.NODE_TEST_CONTEXT;
+ const preload=fileURLToPath(new URL('./current-head.cjs',import.meta.url));
+ for(const tail of [['--eval','require('+JSON.stringify(sentinel)+')'],['--input-type=module','--eval','await import('+JSON.stringify(pathToFileURL(esm).href)+')']]){
+  const result=spawnSync(process.execPath,['--require',preload,...tail],{cwd:process.env.S3_SCRATCH,env,encoding:'utf8',windowsHide:true,timeout:10000});
+  assert.equal(result.error,undefined);assert.equal(result.status,1,'Unlisted module child refuses');
+  assert.match(result.stderr,/S3_UNLISTED_MODULE/);assert.doesNotMatch(result.stdout,/S3_UNLISTED_SENTINEL_EXECUTED/);
+ }
+});
+test('S3-HARNESS-LEXICAL: postfix division cannot hide a following template module load',()=>{
+ const f=fixture();
+ for(const operator of ['++','--']){
+  const source='let n=1; n'+operator+' / 2; '+['import(', '`./missing.mjs`',');'].join('');
+  fs.writeFileSync(path.join(f.root,f.file),source);
+  assert.throws(()=>inspectStaticEdges(f.root,f.manifest),{code:'S3_UNLISTED_EDGE'});
+ }
+});
+test('S3-HARNESS-MUTANT-OWN-DIAGNOSTIC: selected TypeError cannot borrow an unrelated assertion',()=>{
+ const f=fixture(),file=path.join(f.root,'rebuild','diagnostic.cjs');
+ const env={...process.env};delete env.NODE_TEST_CONTEXT;delete env.NODE_OPTIONS;delete env.NODE_PATH;
+ const execute=selected=>{
+  fs.writeFileSync(file,"const test=require('node:test'),assert=require('node:assert/strict');\ntest('selected boundary',()=>{"+selected+"});\ntest('unrelated boundary',()=>assert.equal(3,4));\n");
+  const r=spawnSync(process.execPath,['--test','--test-reporter=tap',file],{cwd:f.root,env,encoding:'utf8',windowsHide:true,timeout:10000});
+  assert.equal(r.error,undefined);return r;
+ };
+ const wrong=execute("throw new TypeError('selected setup failure')");
+ assert.throws(()=>mutantSummary(wrong.stdout,wrong.status,'selected boundary'),{code:'S3_MUTANT_NOT_ASSERTION'});
+ const right=execute('assert.equal(1,2)');assert.equal(mutantSummary(right.stdout,right.status,'selected boundary').assertion,true);
+});
+test('S3-HARNESS-MUTATION-PROGRAM: actual mutation program requires its selected assertion diagnostic',()=>{
+ assert.equal(typeof Mutations.assertionDiagnostic,'function','Mutation runner exposes its actual named classifier');
+ const log="not ok 1 - selected boundary\n  ---\n  error: 'setup'\n  name: 'TypeError'\n  ...\nnot ok 2 - unrelated boundary\n  ---\n  code: 'ERR_ASSERTION'\n  ...\n";
+ assert.equal(Mutations.assertionDiagnostic(log,1,'selected boundary'),null);
+ assert.equal(Mutations.assertionDiagnostic(log,1,'unrelated boundary').name,'unrelated boundary');
 });

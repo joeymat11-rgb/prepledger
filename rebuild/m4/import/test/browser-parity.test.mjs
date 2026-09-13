@@ -3,7 +3,25 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {existsSync} from 'node:fs';
 import {createHash} from 'node:crypto';
+import {createPortableVector,portableReplayEvidence} from './s3/fixtures.mjs';
 const require=createRequire(import.meta.url);
+test('S3-CORE-REAL-PROVIDER: full preparation, replay, aliases, guards and calculation use production factories',()=>{
+ const vector=createPortableVector(),before=structuredClone(vector);
+ const constructors={...require('../prepare.cjs'),...require('../reading-replay.cjs')};
+ const node=portableReplayEvidence(vector,constructors),portable=portableReplayEvidence(vector);
+ const {runtime:nodeRuntime,...nodeSemantics}=node,{runtime:portableRuntime,...portableSemantics}=portable;
+ assert.deepEqual(nodeSemantics,portableSemantics);assert.deepEqual(vector,before);
+ assert.equal(nodeRuntime.node,process.versions.node);assert.equal(portableRuntime.platform,'javascript');
+ assert.deepEqual(node.provider_members,['SCHEMA_V','applyRead','currentRate','dataLossGuard','mergeState','migrate','writeDaily'].sort());
+ assert(Object.values(node.aliases).every(v=>v===true));assert.equal(node.guards.source.safe,true);assert.equal(node.guards.local.safe,true);assert.equal(node.guards.removed_read.safe,false);
+ assert.equal(node.preparation.source_state.v,60);assert.equal(node.preparation.local_state.v,59);assert.equal(node.preparation.candidate_state.v,60);
+ assert.equal(node.replay.ready,true);assert.equal(node.replay.accepted_state.reads.find(r=>r.d==='2026-09-04').offWindow,true);
+ assert.equal(node.replay.accepted_state.reads.find(r=>r.d==='2026-09-05').w,173);assert.equal(node.replay.accepted_state.dailyLogs['2026-09-05'].cal,2300);
+ assert.equal(node.replay.accepted_calculation.rate.method,'regression');assert.equal(node.replay.coverage.steps.length,3);
+ assert.deepEqual(node.refusals,{future:'IMPORT_SOURCE_FUTURE_SCHEMA',seed:'IMPORT_SOURCE_SEED_PROFILE_REQUIRED',duplicate:'IMPORT_SOURCE_JSON_INVALID',changed_replay:'READING_REPLAY_CHECKPOINT_MISMATCH',changed_candidate:'SOURCE_PREPARATION_REPRODUCTION_MISMATCH'});
+ const changed=structuredClone(portableSemantics);changed.preparation.candidate_state.parity.nested.kept[0]='wrong output';
+ assert.throws(()=>assert.deepEqual(nodeSemantics,changed),{code:'ERR_ASSERTION'},'Complete comparison sees fields beyond counts and hashes');
+});
 test('S3-CORE-ORDER: portable preparation retains source-first order and both originals',()=>{
   assert.ok(existsSync(new URL('../replay-core.cjs',import.meta.url)),'S3 portable replay core is implemented');
   const {createReplayCore}=require('../replay-core.cjs');

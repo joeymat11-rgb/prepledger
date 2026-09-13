@@ -40,7 +40,7 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
  async function current(held){const loaded=await checked(held,()=>repository.load());if(loaded.revision!==held.expected.revision||loaded.token!==held.expected.token)fail('LOCAL_SOURCE_STALE');return true;}
  function validateGeneration(g){
   const era=readLocalEra(g.metadata),c=g.collections,ops=c.ops||{};
-  if(era.lease.athlete_id!==athleteId||era.lease.device_id!==deviceId)fail('LOCAL_SOURCE_SCOPE');
+  if(g.metadata.namespace!==namespace||era.lease.athlete_id!==athleteId||era.lease.device_id!==deviceId)fail('LOCAL_SOURCE_SCOPE');
   if(Object.keys(c).some(k=>!COLLECTIONS.has(k)))fail('LOCAL_SOURCE_EFFECT_UNMAPPED');
   if(c.sync?.frontier?.W!==0||(c.sync?.frontier?.authorityW??0)!==0||['receipts','rejected','dispositions'].some(k=>Object.keys(c[k]||{}).length)||Object.keys(g.metadata.wireProofs||{}).length)fail('LOCAL_SOURCE_AUTHORITY_CONTEXT');
   const sequences=new Set(),colors=new Map();
@@ -48,13 +48,14 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   for(const [id,op]of Object.entries(ops)){
    if(op.op_id!==id||op.athlete_id!==athleteId||op.device_id!==deviceId||op.lease_id!==era.lease.lease_id||!Number.isSafeInteger(op.device_seq)||op.device_seq<1||sequences.has(op.device_seq)||![1,2].includes(op.schema_version)||!Ops.KINDS.includes(op.kind)||!Ops.CLASSES.includes(op.class)||Ops.commitmentOf(op,era.identityKey)!==op.canonical_content_commitment||c.outbox?.[id]?.op_id!==id)fail('LOCAL_SOURCE_ORIGINAL_INVALID');
    if(['authority_signature','athlete_log_seq','accepted_at','decided_at','sealing_transitions','sealed'].some(k=>Object.hasOwn(op,k)))fail('LOCAL_SOURCE_AUTHORITY_CONTEXT');
+   if(Ops.TARGET_REQUIRED.has(op.kind)?typeof op.target_op_id!=='string'||!op.target_op_id:Object.hasOwn(op,'target_op_id'))fail('LOCAL_SOURCE_ORIGINAL_INVALID');
    sequences.add(op.device_seq);visit(id);
    if(op.target_op_id&&(!ops[op.target_op_id]||!op.causal_parents.length))fail('LOCAL_SOURCE_ORIGINAL_INVALID');
   }
   if(Object.keys(c.outbox||{}).length!==Object.keys(ops).length||Object.keys(c.outbox||{}).some(id=>!Object.hasOwn(ops,id)))fail('LOCAL_SOURCE_ORIGINAL_INVALID');
   const ordered=Object.values(ops).sort((a,b)=>a.device_seq-b.device_seq);
   for(let i=0;i<ordered.length;i++)if(ordered[i].device_seq!==i+1||ordered[i].device_predecessor_op_id!==(i?ordered[i-1].op_id:null))fail('LOCAL_SOURCE_ORIGINAL_INVALID');
-  if(['planTxns','planTransactions','planHistory','suspensions','issuances'].some(k=>Object.keys(c[k]||{}).length))fail('LOCAL_SOURCE_EFFECT_UNMAPPED');
+  if(['plan','planTxns','planTransactions','planHistory','suspensions','issuances'].some(k=>Object.keys(c[k]||{}).length))fail('LOCAL_SOURCE_EFFECT_UNMAPPED');
   return era;
  }
  function rawMaterial(m){return {source_json:platform.text(m.sourceBytes),candidate_json:platform.text(m.candidateBytes),local_json:m.localBytes===null?null:platform.text(m.localBytes),engine_context_json:m.engineContextJson};}
@@ -98,7 +99,7 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   const engineFor=(day,hour)=>createSourceReplayEngine({engineContext:engineContextAt(held.engineContext,day,hour)});
   const preparationEngine=createSourceReplayEngine({engineContext:held.engineContext});let prep;
   try{prep=core.createImportPreparation({engine:preparationEngine,parseStrictJson}).prepare(held.material.sourceBytes,held.material.localBytes===null?{}:{localBytes:held.material.localBytes});}
-  catch(error){try{preparationEngine.dataLossGuard({},{});}catch(dependency){if(dependency.code==='SOURCE_ENGINE_DEPENDENCY_REQUIRED')throw dependency;}throw error;}
+  catch(error){try{preparationEngine.dataLossGuard({},{});}catch(dependency){if(['SOURCE_ENGINE_DEPENDENCY_REQUIRED','SOURCE_ENGINE_CONTEXT_UNPROVEN'].includes(dependency.code))throw dependency;}throw error;}
   if(platform.text(prep.candidateBytes())!==held.raw.candidate_json)fail('SOURCE_PREPARATION_REPRODUCTION_MISMATCH');
   let state=prep.candidateState(),programmeBasis;
   for(const op of rows){const eff=op.effective,match=/^([+-])(0\d|1[0-4]):([0-5]\d)$/.exec(eff?.utc_offset||'');try{
@@ -142,7 +143,14 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
     const producer=start.prescription_capture.producer;if(![EngineCapture.PROFILE,EngineCapture.CONFIGURATION_PROFILE].includes(producer.rule_profile))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
     const adapter=EngineCapture.createEngineWorkoutCapture({engine:runtime,prescriptionCapture:captures,producerIdentity:producer});
     const layout=adapter.readLayout(start.prescription_capture),counts=new Map();for(const slot of layout.slots){if(state.exercises.filter(e=>e.id===slot.lift_lineage_id).length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');counts.set(slot.lift_lineage_id,(counts.get(slot.lift_lineage_id)||0)+1);}
-    for(const [id,count]of counts)if(state.exercises.find(e=>e.id===id).sets!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');return layout;}});
+    for(const [id,count]of counts)if(state.exercises.find(e=>e.id===id).sets!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+    // Compare complete programme membership at the ORIGINAL Start day. The
+    // existing reader owns day selection and active-lift order. Historical
+    // prescription loads/reps and performed/skip facts remain untouched.
+    const originalDay=start.effective.local_date,originalClock=sourceEngineContext(engineContextAt(held.engineContext,originalDay,12)).clock;
+    const expected=Runtime.createEngineRuntime({clock:originalClock}).genSession(state,originalDay);
+    if(!expected||encode([...counts.keys()])!==encode(expected.ex.map(card=>card.id)))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+    return layout;}});
    workoutFacts=projector.project(history,g,{sourceRevision:held.expected.revision});
    if([...workoutFacts.sessions,...workoutFacts.incomplete_sessions].some(s=>s.completion_state==='unresolved'||s.record.entries.some(e=>e.slots.some(x=>x.state==='unresolved'))))issue('LOCAL_SOURCE_WORKOUT_UNRESOLVED');
    families.push({family:'F3',state:'projected',start_ids:workoutFacts.order.start_ids});

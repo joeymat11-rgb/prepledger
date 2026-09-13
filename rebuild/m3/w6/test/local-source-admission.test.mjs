@@ -3,12 +3,68 @@ import assert from 'node:assert/strict';
 import {existsSync} from 'node:fs';
 import {webcrypto} from 'node:crypto';
 import {IDBFactory} from 'fake-indexeddb';
-import {createLocalSourceFixture,fixtureEffective,appendCompletedWorkout} from '../../../m4/import/test/s3/fixtures.mjs';
+import {createLocalSourceFixture,fixtureEffective,appendCompletedWorkout,fixtureState,fixtureSetup} from '../../../m4/import/test/s3/fixtures.mjs';
+import {createLocalSourceController} from '../local/source-admission.mjs';
+import {createCleanInitState} from '../../w7-preview/today/setup-model.mjs';
+import Profile from '../../../m4/import/local-source-profile.cjs';
 import Food from '../../w7-preview/today/food-commands.cjs';
 import Ops from '../../../client/ops.cjs';
 import {readLocalEra} from '../local/local-era.mjs';
 const fixture=async(t,options={})=>{const f=await createLocalSourceFixture({indexedDB:new IDBFactory(),crypto:webcrypto,databaseName:'s3-admission',...options});t.after(()=>f.close());return f;};
 const prepare=async f=>f.controller.prepareSource(await f.review(),{identityConfirmed:true,prefixAnswer:true});
+const controllerFor=(f,options={})=>createLocalSourceController({repository:f.repository,namespace:f.namespace,athleteId:f.athleteId,deviceId:f.deviceId,producerRegistry:f.registry,asOf:'2026-09-04',platform:f.platform,...options});
+async function refused(f,codes,controller=f.controller){
+ const before=(await f.repository.load()).generation;let result,error;
+ try{result=await controller.prepareSource(await controller.reviewSource(f.name),{identityConfirmed:true,prefixAnswer:true});}catch(e){error=e;}
+ assert.deepEqual((await f.repository.load()).generation,before,'Refusal leaves authentic originals unchanged');
+ assert.ok(error?codes.includes(error.code):result?.ready===false&&result.issues.some(i=>codes.includes(i.code)),'Expected scoped refusal, not qualification or an unrelated exception');
+}
+test('S3-Q-ENROLLMENT: matching authenticated namespace qualifies and a caller relabel refuses',async t=>{
+ const f=await fixture(t);await f.mutate(g=>{g.metadata.namespace=f.namespace;});
+ assert.equal((await f.controller.view(await prepare(f))).basis.installation_id,f.namespace);
+ const wrong=controllerFor(f,{namespace:'TEST-ONLY-wrong-installation'});t.after(()=>wrong.close());
+ await refused(f,['LOCAL_SOURCE_SCOPE'],wrong);
+});
+test('S3-Q-PLAN-COLLECTION: empty plan is supported but unexplained sealed programme state refuses',async t=>{
+ const f=await fixture(t);await f.mutate(g=>{g.collections.plan={};});
+ assert.equal((await f.controller.view(await prepare(f))).ready,true);
+ await f.mutate(g=>{g.collections.plan.unexplained={exercise_id:f.setup.exercises[0].id,sets:99};});
+ await refused(f,['LOCAL_SOURCE_EFFECT_UNMAPPED','LOCAL_SOURCE_PROGRAMME_UNRESOLVED']);
+});
+test('S3-Q-TARGET-KIND: normal causally linked reading projects once but a committed fact target refuses',async t=>{
+ const f=await fixture(t);f.setAsOf('2026-09-05');
+ const action={class:'reading',kind:'fact',payload:{lb:{value:174,unit:'lb'}},parents:['TEST-ONLY-food'],effective:fixtureEffective('2026-09-05',8)};
+ await f.append('normal-target-control',action,1);
+ assert.equal((await f.controller.view(await prepare(f))).state.reads.filter(r=>r.d==='2026-09-05').length,1);
+ await f.append('illegal-target',{...action,extra:{target_op_id:'TEST-ONLY-food'}},1);
+ await refused(f,['LOCAL_SOURCE_ORIGINAL_INVALID']);
+});
+test('S3-Q-LAYOUT-COMPLETE: an omitted entire lift refuses while original historical loads and incomplete facts survive',async t=>{
+ const f=await fixture(t);for(const e of f.state.exercises)e.w=typeof e.steps[0]==='number'?e.steps[0]+5:20;
+ const complete=await appendCompletedWorkout(f),v=await f.controller.view(await prepare(f));
+ assert.deepEqual(v.workout_facts.sessions.map(s=>s.start_op_id),[complete.startId]);
+ assert.equal(JSON.stringify(v.workout_facts.sessions[0].capture),JSON.stringify(complete.capture),'Original historical prescription bytes survive');
+ const skipped=await fixture(t,{databaseName:'s3-skipped-layout'}),slot=complete.capture.slots[0].logical_set_slot;
+ await appendCompletedWorkout(skipped,{skipSlot:slot});
+ const skippedView=await skipped.controller.view(await prepare(skipped)),skippedSlots=skippedView.workout_facts.sessions[0].record.entries.flatMap(e=>e.slots).filter(s=>s.state==='skipped');
+ assert.equal(skippedSlots.length,1);assert.equal(skippedSlots[0].logical_set_slot,slot);assert.equal(skippedSlots[0].fact,undefined);assert.ok(skippedSlots[0].skip_op_id);
+ const g=await fixture(t,{databaseName:'s3-missing-lift'}),omitted=complete.capture.slots[0].lift_lineage_id;
+ assert.ok(new Set(complete.capture.slots.map(s=>s.lift_lineage_id)).size>1);
+ g.state.exercises=g.state.exercises.filter(e=>e.id!==omitted);
+ await appendCompletedWorkout(g,{complete:false});
+ await refused(g,['LOCAL_SOURCE_PROGRAMME_UNRESOLVED','LOCAL_SOURCE_WORKOUT_UNRESOLVED']);
+});
+test('S3-Q-CALENDAR-REACHED: covering DST history qualifies and September-only evidence withholds the same source',async t=>{
+ const history=fixtureState('2026-03-15'),source=structuredClone(createCleanInitState({setup:fixtureSetup()}));
+ for(const key of ['model','trend','reads','dailyLogs','sleep'])source[key]=structuredClone(history[key]);source.sessionLog={};
+ const f=await fixture(t,{source,withFacts:false});
+ for(const narrow of [false,true]){
+  const mapping=structuredClone(f.mapping),cal=mapping.executions[0].calendar;cal.range={from:narrow?'2026-09-01':'2026-01-01',to:'2026-12-31'};cal.dates=cal.dates.filter(d=>d.day>=cal.range.from);
+  const controller=controllerFor(f,{producerRegistry:Profile.createProducerRegistry([mapping],{hash:f.platform.hash})});t.after(()=>controller.close());
+  if(narrow)await refused(f,['SOURCE_ENGINE_CONTEXT_UNPROVEN','LOCAL_SOURCE_CALCULATION_UNRESOLVED','LOCAL_SOURCE_CONTEXT_UNRESOLVED'],controller);
+  else{const h=await controller.prepareSource(await controller.reviewSource(f.name),{identityConfirmed:true}),v=await controller.view(h);assert.equal(v.calculation.rate.method,'regression');assert.equal(v.calculation.rate.n,28);}
+ }
+});
 test('S3-Q-OWNERSHIP: serialized qualification cannot become a live controller handle',async()=>{
  assert.ok(existsSync(new URL('../local/source-admission.mjs',import.meta.url)),'S3 admission controller is implemented');
  const {assertLocalSourceQualification}=await import('../local/source-admission.mjs');
