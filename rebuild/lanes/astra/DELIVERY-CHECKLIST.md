@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM checkpoint2026-09-13: B/MAX R8 repair and D2/MAX independent C1316639 lifecycle review270 are active. E0f57c99c/C301f587 planning directions settled; C/E/D/ER LOW standby, I paused. PM MAX for accelerated release judgment. Prior N2 scoped evidence retained; exact accepted B/D composition and full import/memory proof remain, owner268 personal delivery is Joe with history and Dad; soak gates wide beta only.
+PM checkpoint2026-09-13: ER/MAX B8e65805 R8 review272 and D2/MAX C1316639 lifecycle review270 are active; D2 affected B N2 follows. E0f57c99c/C301f587 planning directions settled; B/C/E/D LOW standby, I paused. PM MAX for accelerated release judgment. Prior N2 scoped evidence retained; exact accepted B/D composition and full import/memory proof remain, owner268 personal delivery is Joe with history and Dad; soak gates wide beta only.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ PM checkpoint2026-09-13: B/MAX R8 repair and D2/MAX independent C1316639 lifecyc
 | Shared mechanical preflight | Exact reviewed D200 + B201 workflow/registration adopted inM; actual bothOS67/67 and independent boundaries; full-custody/3UI preflight passed | Complete in development |
 | N2 sleep entry | Current combined c4716ed/S48a3063 scoped ACCEPT6872c41 with separate dab8b9e reconciliation adopted258:105 retained+16 new actual availability tests, fresh earned-0f24a65a1b18/113 inputs/7 browser kills;13 C postimages and S tree exact. Two246 assertion adaptations preserved; no N2 repair. Older R6/combined reviews stay historical. Registered77sleep beside13Today; full ER/package/gate/CI/integration pending, PR54Draft | ER complete engine review; B later admitted gates/CI; PM/third integrator |
 | H3 clean-init engine | Merged :189, existing receipt retained | B uses as parent |
-| B1+B2 | R2 c4716ed/S48a3063 REJECT for R8: real debt with unavailable target falsely clears Today. First47a0d125/final162f189 independently committed; all15 completed checks retained,12 new intended assertion failures/four finite controls. PM262 assigns narrow Today repair at MAX. D2 accepted258 remains scoped to old head; full/native/CI/receipt still held | B repair; ER named successor review; PM later exact gate admission |
+| B1+B2 | R3 R8 successor8e65805/T797e4cf built; report34lines/11330bytes60239aee rehashed,112pins26children. ER/MAX independent review272 active; affected D2 N2 after270. Original R2 rejection/old scoped258 evidence retained. Actual extra clock-query effects and final authority/full/native/CI/receipt remain separate obligations | ER; D2 next consumer review; B concrete findings or later gate/companion |
 | B4+B3 | Accepted order after B1+B2; candidate reconciliation needed | B |
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
 | Edit My Week v1 | Bounded independent fix reviewfdc4c8e PASS at74920fb; R1/R2 closed. Real C future-gym/draft/DOM proof and B cumulative/profile/private/CI/receipt admission still open; no package acceptance | C after N2; B admission; PM judgment; D supports joins |
