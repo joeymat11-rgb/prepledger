@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-13 06:45 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. Combined B1+B2/N2 review, D S3 corrections and E memory contract remain separate from accepted M.
+PM reconciliation at 2026-09-13 06:59 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. Combined B1+B2/N2 review, D S3 corrections and memory integration mapping remain separate from accepted M.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ PM reconciliation at 2026-09-13 06:45 ET. Product source M100820aa accepted; END
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
 | Edit My Week v1 | Bounded independent fix reviewfdc4c8e PASS at74920fb; R1/R2 closed. Real C future-gym/draft/DOM proof and B cumulative/profile/private/CI/receipt admission still open; no package acceptance | C after N2; B admission; PM judgment; D supports joins |
 | Coach wave one | Text baseline merged; reason-on-disk P6, relay review/CI, phone session and owner account/device steps remain | PM/C/D |
-| Coaching Memory v1 | E1290ce5 concrete local decision contract selected; three finite wire/state/retry clarifications pending. D single future provider reservation binds accepted repaired S3; B incremental pin/CI map assigned. E shared/C consumer subsets selected, runtime still held afterN2 and exact joins | E amendment; B incremental map; D repairs first; PM runtime judgment; D2 later review |
+| Coaching Memory v1 | Exact Eef982610 contract accepted by name; all3 finite protocol corrections closed. B incremental map pending; D future provider base must be accepted repaired S3. Actual prefix reconstruction/host join/G1 and final runtime custody remain held; no implementation PASS | B incremental map; D repairs first; PM precise runtime release; E/C afterN2; D2 later review |
 | Whole-plan beta coverage | Planning audit identifies missing joined journey, fresh nutrition qualification, durable consent/reason consumer and constraint/action boundaries. E maps existing obligations and proposed choices; no default estimates or new adaptive rules authorized | E coverage map; PM routes accepted gaps and owner choices |
 | P3 preview guard | Brief accepted :190; workflow ownership/CI compatibility needed | PM assigns after handover |
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
