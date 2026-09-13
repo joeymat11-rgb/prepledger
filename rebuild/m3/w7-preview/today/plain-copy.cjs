@@ -120,8 +120,18 @@ module.exports = { plainCopy, plainOrDrop, hasAiDash, AiDashRefused, AI_DASH, AI
    It is derived rather than written down so that the guard can be proved RED against a
    COPY of this directory (test/copy.test.mjs `planted()`) instead of against the
    worktree, where the plant used to be visible to every suite running beside it. This
-   file still requires nothing: __dirname is CommonJS's own. */
-const OWNED = __dirname.replace(/\\/g, "/").split("/").slice(-4).join("/") + "/";
+   file still requires nothing: __dirname is CommonJS's own.
+
+   AND IT IS ONLY NODE'S OWN. This module is bundled into the SHIPPED PAGE, where
+   `__dirname` does not exist: reading it at module scope threw `__dirname is not
+   defined` before the first paint, so the page did not boot in a browser at all
+   (found by N2's msedge check on the tip, after the :185 test-hygiene merge; the guard
+   itself runs only at build time, so no suite could see it). The derived spelling is
+   kept for the build, where it is what lets the guard be proved RED against a COPY of
+   this directory, and the browser falls back to the path this file is actually at -
+   which is the same four segments, and is never used there. */
+const OWNED_PATH = typeof __dirname === "string" ? __dirname : "rebuild/m3/w7-preview/today";
+const OWNED = OWNED_PATH.replace(/\\/g, "/").split("/").slice(-4).join("/") + "/";
 const BANNER = /^ (\S+\.(?:cjs|mjs|js))$/;
 
 class AiDashInBuild extends Error {
