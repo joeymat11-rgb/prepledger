@@ -1,6 +1,6 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),path=require('node:path'),{pathToFileURL}=require('node:url');
-const {createReadingReplay}=require(process.env.EARNED_REPLAY_CANDIDATE||'../reading-replay.cjs'),{createImportPreparation}=require('../prepare.cjs');
+const {createReadingReplay}=require('../reading-replay.cjs'),{createImportPreparation}=require('../prepare.cjs');
 const {createEngine}=require('./s3/engine.cjs'),F=require('../../../m3/w7-preview/fixtures.cjs'),Ops=require('../../../client/ops.cjs');
 const w6=path.resolve(__dirname,'../../../..');
 const day='2026-09-01',build='synthetic-installed-engine',key='synthetic-reading-identity';

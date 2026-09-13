@@ -1,15 +1,8 @@
 'use strict';
-const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process'),assert=require('node:assert/strict'),{createHash}=require('node:crypto');
-const root=path.resolve(__dirname,'../../../..'),dir=fs.mkdtempSync(path.join(os.tmpdir(),'earned-reading-replay-'));
-if(!process.env.EARNED_READING_W6_ROOT)throw Error('Provide retained W6 root explicitly');
-const originalFile=path.join(__dirname,'../reading-replay.cjs'),original=fs.readFileSync(originalFile),target=path.join(dir,'reading-replay.cjs'),sha=x=>createHash('sha256').update(x).digest('hex');
-fs.writeFileSync(target,original);fs.copyFileSync(path.join(__dirname,'../prepare.cjs'),path.join(dir,'prepare.cjs'));
-const dailyFile=path.join(__dirname,'../daily-history.cjs'),dailyOriginal=fs.readFileSync(dailyFile),dailyTarget=path.join(dir,'daily-history.cjs');fs.writeFileSync(dailyTarget,dailyOriginal);
-function run(name){const r=cp.spawnSync(process.execPath,['--test','--test-reporter=tap',path.join(__dirname,'reading-replay.test.cjs')],{cwd:root,
- env:{...process.env,EARNED_REPLAY_CANDIDATE:target},encoding:'utf8',windowsHide:true,timeout:30000,maxBuffer:4e6});fs.writeFileSync(path.join(dir,name+'.log'),(r.stdout||'')+(r.stderr||''));return r;}
-assert.equal(run('baseline').status,0,'Actual engine baseline');
+// Original twenty behavioral bites and hosted controls; only current scratch wiring changes.
+const {runCases}=require('./s3/mutations.cjs');
 const faults=[
- ['trust-supplied-candidate',"if(prep.candidateBytes().toString()!==input.candidate_json)",'if(false)'],
+ ['trust-supplied-candidate',"if(text(prep.candidateBytes())!==input.candidate_json)",'if(false)'],
  ['pending-effect-enters-engine','effect=row.accepted;','effect=row.local;'],
  ['skip-checkpoint-listed-original',".filter(r=>r?.original.kind==='fact');",".filter(r=>r?.original.kind==='fact'&&!Object.hasOwn(checkpoint.generation.collections.ops||{},r.op_id));"],
  ['removed-original-kept',"if(effect.state==='included'){","if(effect.state==='removed')state=engineFor({day:row.date,hour:8}).applyRead(state,row.date,row.original.payload.lb.value,{hour:8});\n        if(effect.state==='included'){"],
@@ -30,13 +23,6 @@ const faults=[
  ['workout-binding-copies-another-log','activation_op_id:source.intent_op_id,session_log:log','activation_op_id:source.intent_op_id,session_log:copy(log)'],
  ['workout-binding-loses-material','material_sha256:result.coverage.material_sha256',"material_sha256:'unbound'"]
 ];
-const evidence={profile:'earned/reading-replay-faults/v1',directory:dir,source_sha256:sha(original),daily_source_sha256:sha(dailyOriginal),faults:[]};
-for(const [name,needle,replacement,file='reading-replay.cjs']of faults.filter(f=>!process.argv.includes('--workout-source-only')||f[0].startsWith('workout-binding-'))){
- const bytes=file==='daily-history.cjs'?dailyOriginal:original,mutantTarget=path.join(dir,file),source=bytes.toString();assert.equal(source.split(needle).length,2,'Unique mutation '+name);const mutant=source.replace(needle,replacement);let r;
- try{fs.writeFileSync(mutantTarget,mutant);r=run(name);}finally{fs.writeFileSync(mutantTarget,bytes);}
- assert.equal(r.status,1,'Reached fault '+name+' '+dir);assert.match(r.stdout,/code: 'ERR_ASSERTION'/);assert.match(r.stdout,/not ok /);
- evidence.faults.push({name,file,mutant_sha256:sha(mutant),effective:true,log:name+'.log'});console.log('READING REPLAY FAULT REACHED '+name);
-}
-assert.equal(run('restored').status,0);assert.equal(sha(fs.readFileSync(target)),sha(original));assert.equal(sha(fs.readFileSync(originalFile)),sha(original));
-assert.equal(sha(fs.readFileSync(dailyTarget)),sha(dailyOriginal));assert.equal(sha(fs.readFileSync(dailyFile)),sha(dailyOriginal));
-evidence.restored=true;fs.writeFileSync(path.join(dir,'evidence.json'),JSON.stringify(evidence,null,2)+'\n');console.log('READING REPLAY RESTORED PASS '+dir);
+const names=["changed candidate or supplied checkpoint coverage","accepted correction reconstructs earlier and later effects","source checkpoint membership","removing an earlier reading","the actual original-day hour","known pending/source overlap","changed candidate or supplied checkpoint coverage","known pending/source overlap","different local bytes and checkpoint originals","native local image is reproduced","rollback selects the target activation","different local bytes and checkpoint originals","daily partial correction preserves","accepted food and steps","daily concurrent edits","native daily lineage reproduces original local image","removed daily originals retain","rollback selects the target activation","workout source binding cannot arise","rollback selects the target activation"];
+const cases=faults.map(([id,needle,replacement,file],i)=>({id,needle,replacement,test:names[i],...(file?{target:"rebuild/m4/import/"+file}:{})}));
+runCases({label:"reading-replay",testFile:"rebuild/m4/import/test/reading-replay.test.cjs",cases:process.argv.includes("--workout-source-only")?cases.filter(c=>c.id.startsWith("workout-binding-")):cases});

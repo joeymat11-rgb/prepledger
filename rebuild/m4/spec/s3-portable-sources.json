@@ -1,6 +1,6 @@
 {
   "profile": "earned/s3-provisional-public-sources/v1",
-  "phase": "red-first",
+  "phase": "portable-core-candidate",
   "implementationParent": "06c5b4a5d76c9973849d0f4cde51b379bc35be43",
   "sourceM": "100820aa47a4f8729642033499eaec0f0ee282e1",
   "grant": "06631c16d7428025e008d2580db45c40d28d207a",
@@ -146,6 +146,10 @@
       "sha256": "858248a2668f55703b69f37dbd11ddac4b6c15c71c3407e1346f399e91a9f6ec"
     },
     {
+      "path": "rebuild/m3/w5/public-client.cjs",
+      "sha256": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74"
+    },
+    {
       "path": "rebuild/m3/w5/reconciliation/codec.cjs",
       "sha256": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e"
     },
@@ -156,6 +160,18 @@
     {
       "path": "rebuild/m3/w6/bridge.mjs",
       "sha256": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00"
+    },
+    {
+      "path": "rebuild/m3/w6/build-browser.mjs",
+      "sha256": "c2a0df9155e658c74b9e4fe2bc96badeaa9048dd56e9a0455b89212721da8f97"
+    },
+    {
+      "path": "rebuild/m3/w6/cipher-imports.json",
+      "sha256": "b34e9d2fdf1304059e4bf6b8487e40cd0953cad8af7f63c07a8e3eea2831e4db"
+    },
+    {
+      "path": "rebuild/m3/w6/history-proof.mjs",
+      "sha256": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114"
     },
     {
       "path": "rebuild/m3/w6/host/test/journey-fixture.cjs",
@@ -184,6 +200,22 @@
     {
       "path": "rebuild/m3/w6/local/local-keys.mjs",
       "sha256": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d"
+    },
+    {
+      "path": "rebuild/m3/w6/local/source-admission.mjs",
+      "sha256": "97d5132803cfbb5ade3a30c7ba725f49a2b40de466137a68e627ebb6ff497a89"
+    },
+    {
+      "path": "rebuild/m3/w6/local/source-commit.mjs",
+      "sha256": "63ae3d0bf399fd73f628949d6c00e9c21d83395afa29cceb50e54361d3a4736b"
+    },
+    {
+      "path": "rebuild/m3/w6/local/source-platform.mjs",
+      "sha256": "5afc98dcb1a7891df0bf17467893eee1dcf59b324e2382ca239003f44e75cfa7"
+    },
+    {
+      "path": "rebuild/m3/w6/node-sha256-browser.mjs",
+      "sha256": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97"
     },
     {
       "path": "rebuild/m3/w6/package.json",
@@ -219,11 +251,15 @@
     },
     {
       "path": "rebuild/m3/w6/test/local-source-admission.test.mjs",
-      "sha256": "8edfd2980055a8dacf8e59e8436dc8e038dd6f61056e4af8053b3700a111ba0e"
+      "sha256": "4b88348ffb11d2d3d8002ed5acbdd65ba3e2163670aeee85b83ad2cb015a34c8"
+    },
+    {
+      "path": "rebuild/m3/w6/test/local-source-browser.mjs",
+      "sha256": "9459c921f42a6b4a3e49d99eebf64ce7dc0cb88c988c59e3833ea8b4f94da3f5"
     },
     {
       "path": "rebuild/m3/w6/test/local-source-commit.test.mjs",
-      "sha256": "e042bcab8f32424d914c03e1b0740f4a71e67a27f0553f58304e35c3ec5ac4cf"
+      "sha256": "04ec9d32b6047375c6b3fd0a3ae69c1bfddcf0dd8493eeb5414b99f28e027f7f"
     },
     {
       "path": "rebuild/m3/w6/test/support.mjs",
@@ -262,16 +298,36 @@
       "sha256": "998233006411fefb735d1924aa13343e069a39ef64776841fbc321b88e40b01a"
     },
     {
+      "path": "rebuild/m4/import/browser-replay.mjs",
+      "sha256": "2b7112798db0ba41497aae0b38bdbf7deea5116b23f872ada0ebe6a52f0f10ba"
+    },
+    {
       "path": "rebuild/m4/import/daily-history.cjs",
       "sha256": "5358b3ba6a9a92e217651f0a74d85511f50a30d276c7a483a025034de6e604f7"
     },
     {
+      "path": "rebuild/m4/import/engine-provider.cjs",
+      "sha256": "f8b3d4cb7f8a7fd2c414a83b54cc497ca3aee71be90269ddd30b3eeb9c231a3e"
+    },
+    {
+      "path": "rebuild/m4/import/local-source-order.cjs",
+      "sha256": "6c89fd55696b846c519c8f195b1df5fa3b6aa6bf5ec1d23d2074622ad742cf43"
+    },
+    {
+      "path": "rebuild/m4/import/local-source-profile.cjs",
+      "sha256": "e1c992c714f5753835f02cfcae672ff1da72d4a21b3b56d340fe9a5d0507103a"
+    },
+    {
       "path": "rebuild/m4/import/prepare.cjs",
-      "sha256": "982e980c577d0630ceb3710168b5e9846fbbcb6dbc11f54051313e20a749c861"
+      "sha256": "2f76d35232f929edd0d9f3e2c490dc8a171a6cff63373881be5b5b703d77fd8c"
     },
     {
       "path": "rebuild/m4/import/reading-replay.cjs",
-      "sha256": "a7e22716c70e1a479a0a1882e8e0e72992c8de45942b761ff9cf041d65c954d2"
+      "sha256": "0580c0d0cd7910f4eae7960c970744ebee8a814186259f15d28aed29d46123ad"
+    },
+    {
+      "path": "rebuild/m4/import/replay-core.cjs",
+      "sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2"
     },
     {
       "path": "rebuild/m4/import/test/browser-parity.test.mjs",
@@ -279,7 +335,7 @@
     },
     {
       "path": "rebuild/m4/import/test/engine-provider.test.cjs",
-      "sha256": "66eb2f42660565f5fc6f0fd464eb2bdd8dfd9edfd333ecdd1d251c304be4a0e2"
+      "sha256": "e05d275bb3cadfcdfb60fcc182c45bf930f1df12fb259c81cd58ec8a2d4b9611"
     },
     {
       "path": "rebuild/m4/import/test/local-source-order.test.cjs",
@@ -287,19 +343,23 @@
     },
     {
       "path": "rebuild/m4/import/test/mutations.cjs",
-      "sha256": "1093e73b1d8ae963d406213e616c4e5e80f6f4c27948ef9bdac7636e74363f6b"
+      "sha256": "0c279836874ff73f91033ee47011d24309cb2210275e27ef0aa66b301c6bb00b"
     },
     {
       "path": "rebuild/m4/import/test/prepare.test.cjs",
-      "sha256": "4d966bec737d015a97d86fd8d83e36606d7ecf1e1715e48ec1cf4ebcec19a620"
+      "sha256": "358b71568c6b4c2668522160a13381b8a57091c51194a3d47ed15c418752095a"
     },
     {
       "path": "rebuild/m4/import/test/reading-replay-faults.cjs",
-      "sha256": "1d123e7bad0babad8ce6828339edecc3f5dfb381634283edf8a8f973a1756f49"
+      "sha256": "247dc49cd6528f9314c93697e47f4de06dcd05e0e1422918d6570f51579953f4"
     },
     {
       "path": "rebuild/m4/import/test/reading-replay.test.cjs",
-      "sha256": "21fa92191f6b657719f8baa73ca95a9a5730c89b98ebba3721029e1e952ad764"
+      "sha256": "fafd535ca89f3843de845c9b773b8540b0914729cd40161ad9dd86d1c4c53b49"
+    },
+    {
+      "path": "rebuild/m4/import/test/s3/browser-entry.mjs",
+      "sha256": "83dfbba15d5ff8eaa6d6c92dd21a6a5b20176084237785384bccc6373a16852f"
     },
     {
       "path": "rebuild/m4/import/test/s3/current-head.cjs",
@@ -311,11 +371,19 @@
     },
     {
       "path": "rebuild/m4/import/test/s3/fixtures.mjs",
-      "sha256": "a0e0a62a6adc658851875260955270b569ca70392b43fe5be08b6308a0a36b2f"
+      "sha256": "b4aa700adfe1d74f94e1d38ac2fe879fe90c58232af5146f71fab78129ad9903"
+    },
+    {
+      "path": "rebuild/m4/import/test/s3/harness.test.mjs",
+      "sha256": "fd61989d526179f80b05f2ad45ed7eb68d165e72c8dade78f91184299df95827"
+    },
+    {
+      "path": "rebuild/m4/import/test/s3/mutations.cjs",
+      "sha256": "33dd392208966ac536a608c7930373804eedfdcaf6486cbf5eaa23b1f5cfdef0"
     },
     {
       "path": "rebuild/m4/import/test/s3/run.mjs",
-      "sha256": "1e78f36d842042c0dfa508faa9991aaef05ebbd26efd1a02fc73cca61745a271"
+      "sha256": "54a79f528893f13edc0f90d90e05062ec7fdaf678f19d407d0fcffe76dc2793c"
     },
     {
       "path": "rebuild/m4/workout/athlete-state.cjs",
@@ -338,6 +406,10 @@
       "sha256": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b"
     },
     {
+      "path": "rebuild/m4/workout/edit-history.cjs",
+      "sha256": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2"
+    },
+    {
       "path": "rebuild/m4/workout/edit-values.cjs",
       "sha256": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546"
     },
@@ -346,24 +418,39 @@
       "sha256": "309c75d82a036b24b09ebc6668ea73065aa76de5638b2dee3da18d9067e08785"
     },
     {
+      "path": "rebuild/m4/workout/engine-history.cjs",
+      "sha256": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89"
+    },
+    {
+      "path": "rebuild/m4/workout/engine-order.cjs",
+      "sha256": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a"
+    },
+    {
+      "path": "rebuild/m4/workout/engine-runtime.cjs",
+      "sha256": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936"
+    },
+    {
+      "path": "rebuild/m4/workout/fonts/SOURCES.json",
+      "sha256": "d91470a5d364e45ada6d38310a7c6772176ab3cbb6042d8f52c6d22fe4d56d53"
+    },
+    {
+      "path": "rebuild/m4/workout/project-history.mjs",
+      "sha256": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92"
+    },
+    {
       "path": "rebuild/m4/workout/schema.cjs",
       "sha256": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458"
     },
     {
       "path": "rebuild/m4/workout/source-control-values.cjs",
       "sha256": "635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560"
+    },
+    {
+      "path": "rebuild/m4/workout/stored-history.mjs",
+      "sha256": "78db774066ccc465bbdce8394bf3bb545c197664a9f7703cc8b34003e002567e"
     }
   ],
-  "deferredRedSources": [
-    "rebuild/m3/w6/local/source-admission.mjs",
-    "rebuild/m3/w6/local/source-commit.mjs",
-    "rebuild/m3/w6/local/source-platform.mjs",
-    "rebuild/m4/import/local-source-profile.cjs",
-    "rebuild/m4/import/local-source-order.cjs",
-    "rebuild/m4/import/replay-core.cjs",
-    "rebuild/m4/import/browser-replay.mjs",
-    "rebuild/m4/import/engine-provider.cjs"
-  ],
+  "deferredRedSources": [],
   "mutationTargets": [
     "rebuild/m4/import/prepare.cjs",
     "rebuild/m4/import/reading-replay.cjs",
@@ -374,7 +461,6 @@
     "rebuild/m3/w6/local/source-platform.mjs",
     "rebuild/m4/import/local-source-profile.cjs",
     "rebuild/m4/import/local-source-order.cjs",
-    "rebuild/m4/import/replay-core.cjs",
     "rebuild/m4/import/browser-replay.mjs",
     "rebuild/m4/import/engine-provider.cjs"
   ],
@@ -383,5 +469,230 @@
     "consumers": "C reserved",
     "realC2": "Separate point-of-use evidence/actor/output grant required",
     "full": "B cumulative registration/private/FULL and final P1 pending"
-  }
+  },
+  "coreMutations": [
+    {
+      "id": "publish-uses-fresh-cas-basis",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "publish:()=>repository.commit(held.expected,next,()=>syncGuard(held.stamp))",
+      "replacement": "publish:async()=>repository.commit(await repository.load(),next,()=>syncGuard(held.stamp))",
+      "test": "S3-COMMIT-PUBLISH-CAS",
+      "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
+    },
+    {
+      "id": "captured-set-count-unchecked",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "for(const [id,count]of counts)if(state.exercises.find(e=>e.id===id).sets!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');",
+      "replacement": "",
+      "test": "S3-Q-F3-LAYOUT",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "provider-caught-fault-escapes",
+      "target": "rebuild/m4/import/engine-provider.cjs",
+      "needle": "if(fault)missing(fault);if(error)throw error;return value;",
+      "replacement": "if(error)throw error;return value;",
+      "test": "S3-PROVIDER-CAUGHT60",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
+      "id": "provider-context-record-mutable",
+      "target": "rebuild/m4/import/local-source-profile.cjs",
+      "needle": "contexts.set(handle,freeze(",
+      "replacement": "contexts.set(handle,(",
+      "test": "S3-PROVIDER-CONTEXT-CUSTODY",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
+      "id": "provider-default-entry-unchecked",
+      "target": "rebuild/m4/import/local-source-profile.cjs",
+      "needle": "||mapping.engine.path!=='rebuild/engine/oracle-shim.cjs'",
+      "replacement": "",
+      "test": "S3-PROVIDER-MAPPING",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
+      "id": "source-original-rewrite-allowed",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "||encode(currentOps[id])!==encode(original)",
+      "replacement": "",
+      "test": "S3-Q-CHECKPOINT-ORIGINAL",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "ambiguous-import-picked",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "if(entries.length!==1)fail(entries.length?'LOCAL_SOURCE_IMPORT_AMBIGUOUS':'LOCAL_SOURCE_IMPORT_REQUIRED');",
+      "replacement": "if(!entries.length)fail('LOCAL_SOURCE_IMPORT_REQUIRED');",
+      "test": "S3-Q-IMPORT-NAME",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "identity-confirmation-bypassed",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "if(identityConfirmed!==true&&!existingSelection)fail('LOCAL_SOURCE_IDENTITY_CONFIRMATION_REQUIRED');",
+      "replacement": "",
+      "test": "S3-Q-REVIEW",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "semantic-currentness-ignored",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "||stamp()!==expected",
+      "replacement": "",
+      "test": "S3-Q-CURRENT",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "original-hour-replaced",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "const eff=row.original.effective,hour=Number(eff?.local_time?.slice(0,2));",
+      "replacement": "const eff=row.original.effective,hour=8;",
+      "test": "S3-Q-LATE-HOUR",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "prefix-answer-assumed",
+      "target": "rebuild/m4/import/local-source-order.cjs",
+      "needle": "if(answer!==true)fail('ORDER_EVIDENCE_REQUIRED');",
+      "replacement": "",
+      "test": "S3-ORDER-ATTESTATION",
+      "testFile": "rebuild/m4/import/test/local-source-order.test.cjs"
+    },
+    {
+      "id": "source-scope-unbound",
+      "target": "rebuild/m4/import/local-source-order.cjs",
+      "needle": "'athlete_id','source_digest','checkpoint_digest'",
+      "replacement": "'athlete_id','checkpoint_digest'",
+      "test": "S3-ORDER-MEMBERS",
+      "testFile": "rebuild/m4/import/test/local-source-order.test.cjs"
+    },
+    {
+      "id": "publish-cancel-ignored",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "publish:()=>repository.commit(held.expected,next,()=>syncGuard(held.stamp))",
+      "replacement": "publish:()=>repository.commit(held.expected,next,()=>null)",
+      "test": "S3-COMMIT-SEAL-CANCEL",
+      "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
+    },
+    {
+      "id": "completion-disagrees",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "{...e,rebaseRequired:false,localSourceSelectionId:selectionId}",
+      "replacement": "{...e,rebaseRequired:true,localSourceSelectionId:selectionId}",
+      "test": "S3-COMMIT-ATOMIC",
+      "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
+    },
+    {
+      "id": "rollback-replaces-history",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "next.metadata.localSources.selections[selectionId]=copy(selection);",
+      "replacement": "next.metadata.localSources.selections={[selectionId]:copy(selection)};",
+      "test": "S3-COMMIT-ROLLBACK",
+      "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
+    },
+    {
+      "id": "lost-ack-not-reconciled",
+      "target": "rebuild/m3/w6/local/source-commit.mjs",
+      "needle": "try{return await capability.reconcile();}catch{throw error;}",
+      "replacement": "throw error;",
+      "test": "S3-COMMIT-ACK",
+      "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
+    }
+  ],
+  "pendingInventory": {
+    "source": "B1c8eacc6d6e0559e93ba8147d5b4ab9e4643e28b:rebuild/lanes/b/S3-PIN-CI-MAP.md:39-56; D e7e452e:rebuild/lanes/d/S3-PORTABLE-HARNESS-BRIEF.md",
+    "fullNewSuite": [
+      "rebuild/m3/w6/test/local-source-admission.test.mjs",
+      "rebuild/m3/w6/test/local-source-commit.test.mjs",
+      "rebuild/m3/w6/test/local-source-capture.test.mjs",
+      "rebuild/m4/import/test/local-source-order.test.cjs",
+      "rebuild/m4/import/test/browser-parity.test.mjs",
+      "rebuild/m4/import/test/s3/harness.test.mjs",
+      "rebuild/m4/import/test/engine-provider.test.cjs"
+    ],
+    "workoutConsumerSuite": [
+      "rebuild/m4/workout/test/engine-order.test.cjs",
+      "rebuild/m4/workout/test/engine-history.test.cjs",
+      "rebuild/m4/workout/test/engine-capture.test.cjs",
+      "rebuild/m4/workout/test/configuration-capture.test.cjs",
+      "rebuild/m3/w6/test/prescription-capture.test.mjs",
+      "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "rebuild/m3/w6/test/local-today-journey.test.mjs",
+      "rebuild/m3/w6/host/test/journey.test.mjs",
+      "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
+    ],
+    "mutationPrograms": [
+      "rebuild/m4/import/test/mutations.cjs",
+      "rebuild/m4/import/test/reading-replay-faults.cjs",
+      "rebuild/m4/workout/test/configuration-capture-faults.cjs",
+      "rebuild/m4/import/test/s3/mutations.cjs"
+    ],
+    "reservedMutants": [
+      "lost local Q on Start",
+      "lost local Q on resume",
+      "source-prefix/overlap at capture consumer",
+      "effect-only currentness at consumer",
+      "changed programme/context at Start",
+      "every awaited reread in protected capture/consumer",
+      "prebatch capture binding",
+      "Today source-dependent output",
+      "gym previous-performance source-dependent output"
+    ],
+    "realC2Commands": [
+      "node rebuild/m3/w6/test/local-source-browser.mjs --real-c2 --evidence <exact-authorized-producer-evidence-path>",
+      "node --test --test-reporter=tap rebuild/m3/w6/test/local-import.test.mjs",
+      "node rebuild/m3/w6/test/local-import-browser.mjs"
+    ],
+    "status": "BLOCKED pending reserved B/C construction, actual C2 actor/output/provenance and P1; no cells silently skipped",
+    "P1": [
+      "real gate-produced file",
+      "native workout and weigh-in before import",
+      "actual identity and separate prefix/no-overlap answer",
+      "imported-history-dependent Today AND gym/previous performance",
+      "later saved native descendant",
+      "force-kill/reopen",
+      "all originals/imported facts/captures/outbox preserved exactly once"
+    ]
+  },
+  "dynamicEdges": {
+    "rebuild/m4/workout/engine-runtime.cjs": {
+      "kind": "source-owned MODULES literal and accepted existing browser build",
+      "targets": [
+        "rebuild/engine/dates.cjs",
+        "rebuild/engine/constants.cjs",
+        "rebuild/engine/plan.cjs",
+        "rebuild/engine/performed.cjs",
+        "rebuild/engine/progression.cjs",
+        "rebuild/engine/sleep.cjs",
+        "rebuild/engine/energy.cjs",
+        "rebuild/engine/policy.cjs",
+        "rebuild/engine/today.cjs",
+        "rebuild/engine/volume.cjs",
+        "rebuild/engine/earn.cjs",
+        "rebuild/engine/writers.cjs"
+      ]
+    },
+    "rebuild/m4/import/test/prepare.test.cjs": {
+      "kind": "current-root pathToFileURL",
+      "targets": [
+        "rebuild/m3/w6/strict-json.mjs"
+      ]
+    },
+    "rebuild/m4/import/test/reading-replay.test.cjs": {
+      "kind": "current-root pathToFileURL and require",
+      "targets": [
+        "rebuild/m3/w6/strict-json.mjs",
+        "rebuild/m3/w6/reading-history.mjs",
+        "rebuild/m4/workout/capture.cjs",
+        "rebuild/m3/w5/source/codec.cjs"
+      ]
+    }
+  },
+  "toolVersions": {
+    "node": "22.23.2",
+    "npm": "10.9.8",
+    "pnpm": "9.15.9"
+  },
+  "toolLocationGrant": "4f75048027a035988f17a45162e2e852db076fd9:rebuild/lanes/astra/TOOL-RUNTIME-LOCATIONS.md"
 }

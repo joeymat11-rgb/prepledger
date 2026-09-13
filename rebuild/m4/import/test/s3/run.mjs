@@ -10,6 +10,10 @@ const NODE_TEST=['--require','./rebuild/m4/import/test/s3/current-head.cjs','--t
 export const CORE_TESTS=['rebuild/m3/w6/test/local-source-admission.test.mjs','rebuild/m3/w6/test/local-source-commit.test.mjs','rebuild/m4/import/test/local-source-order.test.cjs','rebuild/m4/import/test/browser-parity.test.mjs','rebuild/m4/import/test/s3/harness.test.mjs','rebuild/m4/import/test/engine-provider.test.cjs'];
 export const IMPORT_TESTS=['rebuild/m4/import/test/prepare.test.cjs','rebuild/m4/import/test/reading-replay.test.cjs'];
 export const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
+export function verifiedBrowser(file){
+ if(typeof file!=='string'||!file||!path.isAbsolute(file)||!fs.existsSync(file)||!fs.statSync(file).isFile())refusal('S3_BROWSER_UNAVAILABLE');
+ return Object.freeze({path:fs.realpathSync.native(file),sha256:sha256(fs.readFileSync(file))});
+}
 export function refusal(code,detail=''){const e=new Error(code+(detail?' '+detail:''));e.code=code;throw e;}
 function equalPath(a,b){return process.platform==='win32'?a.toLowerCase()===b.toLowerCase():a===b;}
 export function contained(base,target){
@@ -20,7 +24,7 @@ export function contained(base,target){
  return t;
 }
 export function safeRelative(name){
- if(typeof name!=='string'||!name||name.includes('\\')||path.posix.isAbsolute(name)||name.split('/').some(x=>!x||x==='.'||x==='..'))refusal('S3_SOURCE_PATH');
+ if(typeof name!=='string'||!name||name.includes('\\')||/^[A-Za-z]:/.test(name)||path.posix.isAbsolute(name)||name.split('/').some(x=>!x||x==='.'||x==='..'))refusal('S3_SOURCE_PATH');
  if(/(^|\/)(node_modules|ledger|private|engines)(\/|$)/.test(name)||/^src\//.test(name)||/^tools\//.test(name)||/rebuild\/engine\/(seed|index|oracle-shim)\.cjs$/.test(name))refusal('S3_FORBIDDEN_SOURCE');
  return name;
 }
@@ -54,6 +58,21 @@ export function tapSummary(log,status){
  if(value.tests===null||value.tests<=0||value.pass===null||value.fail===null||value.skipped!==0||value.cancelled!==0)refusal('S3_TEST_ACCOUNTING');
  if(status!==0||value.fail!==0||value.pass!==value.tests)refusal('S3_TEST_FAILED');
  return value;
+}
+export function suiteInventory(root,files,log,total){
+ const seen=new Set(),inventory=[];
+ for(const file of files){
+  const text=fs.readFileSync(path.join(root,file),'utf8');
+  const names=[...text.matchAll(/^\s*test\(\s*(['"])((?:\\.|(?!\1)[^\\\n])*)\1\s*,/gm)].map(m=>m[2].replace(/\\(['"\\])/g,'$1'));
+  if(!names.length)refusal('S3_FILE_ZERO_CELLS',file);
+  for(const name of names){if(seen.has(name))refusal('S3_DUPLICATE_CELL',name);seen.add(name);
+   const hits=log.split(/\r?\n/).filter(line=>/^ok [0-9]+ - /.test(line)&&line.replace(/^ok [0-9]+ - /,'')===name);
+   if(hits.length!==1)refusal('S3_CELL_NOT_EXECUTED',file+' '+name);
+  }
+  inventory.push({file,sha256:sha256(text),discovered:names.length,executed:names.length,names});
+ }
+ if(inventory.reduce((n,f)=>n+f.executed,0)!==total.tests)refusal('S3_CELL_TOTAL_MISMATCH');
+ return inventory;
 }
 export function mutantSummary(log,status,name){
  if(status!==1||!log.includes('ERR_ASSERTION')||!log.includes(name)||!/not ok /.test(log)||/SyntaxError|ERR_MODULE_NOT_FOUND|MODULE_NOT_FOUND|ERR_UNKNOWN_FILE_EXTENSION/.test(log))refusal('S3_MUTANT_NOT_ASSERTION',name);
@@ -111,12 +130,14 @@ export function loadRun(run){
 export function dispatch(record,mode){
  const manifest=readManifest(record.tree);verifySources(record.tree,manifest);
  if(['suite-new','suite-workout','mutations','browser-real-c2'].includes(mode))refusal('S3_PHASE_DEPENDENCY_BLOCKED',mode);
- const suites={'suite-core':CORE_TESTS,'suite-import':IMPORT_TESTS,'red-core':CORE_TESTS.filter(f=>!f.endsWith('/harness.test.mjs'))};
+ const suites={'suite-core':CORE_TESTS,'suite-import':IMPORT_TESTS,'suite-provider':CORE_TESTS.filter(f=>!f.startsWith('rebuild/m3/w6/test/')),'red-core':CORE_TESTS.filter(f=>!f.endsWith('/harness.test.mjs'))};
  if(suites[mode]){
   for(const file of suites[mode])if(!manifest.sources.some(e=>e.path===file))refusal('S3_SOURCE_MISSING',file);
   const r=child(record,[...NODE_TEST,...suites[mode]],mode);
   if(mode==='red-core'){if(r.status!==1||!r.log.includes('ERR_ASSERTION')||/MODULE_NOT_FOUND|ERR_MODULE_NOT_FOUND|SyntaxError/.test(r.log))refusal('S3_RED_NOT_ASSERTION');console.log('S3 RED ASSERTIONS '+r.logFile);}
-  else console.log('S3 '+mode+' '+JSON.stringify(tapSummary(r.log,r.status))+' '+r.logFile);
+  else {const total=tapSummary(r.log,r.status),inventory=suiteInventory(record.tree,suites[mode],r.log,total);
+   fs.writeFileSync(path.join(record.run,mode+'-inventory.json'),JSON.stringify({total,files:inventory},null,2)+'\n');
+   console.log('S3 '+mode+' '+JSON.stringify(total)+' '+r.logFile);}
   verifySources(record.tree,manifest);return;
  }
  if(mode==='mutations-core'){

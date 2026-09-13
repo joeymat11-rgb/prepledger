@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test'), assert = require('node:assert/strict');
 const path = require('node:path'), {pathToFileURL} = require('node:url');
-const {createImportPreparation} = require(process.env.IMPORT_PREPARATION_MODULE || '../prepare.cjs');
+const {createImportPreparation} = require('../prepare.cjs');
 // TEST ONLY: current public factories with wholly invented reference inputs.
 const {createEngine} = require('./s3/engine.cjs');
 const F = require('../../../m3/w7-preview/fixtures.cjs');
