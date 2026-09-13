@@ -1,0 +1,15 @@
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';
+const dir='.tmp/author-reconciliation',archive='b7dc5a041cdcfdc9488b74ac0d84a28dcd8aa661',prefix='rebuild/lanes/e/reviews/idle-client-foundation-evidence/',sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+function git(args){const r=spawnSync('git',args,{maxBuffer:8*1024*1024});if(r.status)throw Error('Git read/ancestry failed '+args[0]);return r.stdout;}
+const map=JSON.parse(fs.readFileSync(dir+'/ORIGINAL-PATHS.json')),entries=[];fs.mkdirSync(dir+'/archive',{recursive:true});
+const changed=git(['diff','--name-only',map.candidate,archive]).toString().trim().split('\n');if(changed.length!==39||changed.some(p=>!p.startsWith(prefix)))throw Error('Unexpected archive diff');
+if(git(['rev-parse',archive+'^']).toString().trim()!==map.candidate)throw Error('Not a direct evidence child');git(['merge-base','--is-ancestor',map.red,map.source]);
+for(const x of map.files){if(!x.archivePath.startsWith(prefix)||(x.archivePath.slice(prefix.length).includes('/') && x.archivePath!==prefix+'runtime/SHASUMS256.txt')||!/^[-.a-zA-Z0-9]+\.(json|tap|txt)$/.test(path.basename(x.archivePath)))throw Error('Unexpected archive input');const b=git(['show',archive+':'+x.archivePath]);if(b.length!==x.bytes||sha(b)!==x.sha256)throw Error('Archive bytes mismatch '+x.archivePath);fs.writeFileSync(dir+'/archive/'+path.basename(x.archivePath),b);entries.push({...x,verified:true});}
+const redPath='rebuild/lanes/e/MEMORY-IDLE-CLIENT-FOUNDATION-REPORT.md',red=git(['show',map.red+':'+redPath]);fs.writeFileSync(dir+'/red-report.md',red);
+const summary={archive,candidate:map.candidate,source:map.source,red:map.red,parentIsCandidate:true,redIsSourceAncestor:true,changedPaths:changed.length,files:entries,totalCopiedBytes:entries.reduce((n,x)=>n+x.bytes,0),redReport:{path:redPath,bytes:red.length,sha256:sha(red),lines:red.toString().trimEnd().split('\n').length},readAfterFirstVerdict:'00c6237a2169aa6da2b3348c6b28ac8e821dbf9d'};
+fs.writeFileSync(dir+'/archive-verification.json',JSON.stringify(summary,null,2)+'\n');
+console.log(JSON.stringify({changed:changed.length,copied:entries.length,bytes:summary.totalCopiedBytes,redReport:summary.redReport}));
+console.log('ARCHIVE FILES',entries.map(x=>path.basename(x.archivePath)).join(', '));
+console.log('RED REPORT TEXT',red.toString().split('\n').map((x,i)=>`${i+1}: ${x.length>1500?'[long archived data line '+x.length+' characters]':x}`).join('\n'));
+for(const x of entries.filter(x=>x.archivePath.endsWith('.tap'))){const t=fs.readFileSync(dir+'/archive/'+path.basename(x.archivePath),'utf8');console.log(path.basename(x.archivePath),t.split('\n').filter(l=>/^# (tests|pass|fail|cancelled|skipped|todo) /.test(l)).join('; '));}
+for(const n of ['final-inventory.json','loader-inventory.json','dependency-inventory.json','reversals.json','atomic-reversals.json']){const j=JSON.parse(fs.readFileSync(dir+'/archive/'+n));console.log(n,'keys',Object.keys(j));console.log(JSON.stringify(j).slice(0,3000));}

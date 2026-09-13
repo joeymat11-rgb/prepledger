@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: D2 I1 complete closed history preserves every stored byte and waits for real completion
+ok 1 - D2 I1 complete closed history preserves every stored byte and waits for real completion
+  ---
+  duration_ms: 34.4659
+  type: 'test'
+  ...
+# Subtest: D2 I2 earlier ciphertext-only changed head defeats same revision namespace and IV claims
+ok 2 - D2 I2 earlier ciphertext-only changed head defeats same revision namespace and IV claims
+  ---
+  duration_ms: 10.2573
+  type: 'test'
+  ...
+# Subtest: D2 I3 aborted earlier writer leaves the actual old head usable for publication
+ok 3 - D2 I3 aborted earlier writer leaves the actual old head usable for publication
+  ---
+  duration_ms: 3.7745
+  type: 'test'
+  ...
+# Subtest: D2 I4 later independent writer waits and the next client still rejects its stale preparation
+ok 4 - D2 I4 later independent writer waits and the next client still rejects its stale preparation
+  ---
+  duration_ms: 7.518
+  type: 'test'
+  ...
+# Subtest: D2 I5 currentness reentrant Start is ordinary refusal and retains original command outcome
+ok 5 - D2 I5 currentness reentrant Start is ordinary refusal and retains original command outcome
+  ---
+  duration_ms: 6.589
+  type: 'test'
+  ...
+# Subtest: D2 I6 publisher reentrancy has explicit unknown effects while queued original commands survive
+ok 6 - D2 I6 publisher reentrancy has explicit unknown effects while queued original commands survive
+  ---
+  duration_ms: 11.0771
+  type: 'test'
+  ...
+# Subtest: D2 I7 lost general workout reply keeps replacement fenced through later acknowledged work
+ok 7 - D2 I7 lost general workout reply keeps replacement fenced through later acknowledged work
+  ---
+  duration_ms: 21.0238
+  type: 'test'
+  ...
+# Subtest: D2 I8 abort in the post-read microtask cannot revive a published old handle
+ok 8 - D2 I8 abort in the post-read microtask cannot revive a published old handle
+  ---
+  duration_ms: 4.2837
+  type: 'test'
+  ...
+# Subtest: D2 I8 close in the post-read microtask cannot revive a published old handle
+ok 9 - D2 I8 close in the post-read microtask cannot revive a published old handle
+  ---
+  duration_ms: 3.8816
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 222.4098

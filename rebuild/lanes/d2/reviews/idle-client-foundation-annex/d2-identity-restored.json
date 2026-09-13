@@ -1,0 +1,285 @@
+{
+  "candidate": "e85ad803ae8af600726c1491f35c90c7b3cd2c03",
+  "verifiedAt": "2026-09-13T20:58:51.453Z",
+  "identities": [
+    {
+      "path": "rebuild/authority/canonical.cjs",
+      "bytes": 2016,
+      "sha256": "c8888a3907d543371400e75ccfcb11bec2c3e3e7a40e74bd9d471b21a26e08cc"
+    },
+    {
+      "path": "rebuild/client/bodycomp.cjs",
+      "bytes": 1276,
+      "sha256": "c55d66e5a8c8ae14f90b935d0ad07454d311e606a032d5c8c6ce1f094c3399d2"
+    },
+    {
+      "path": "rebuild/client/canonical.cjs",
+      "bytes": 5878,
+      "sha256": "fcf4302c52e149feeaa83c611b7ccdae8992306c6881623b888d086b4e3c1a6e"
+    },
+    {
+      "path": "rebuild/client/copy.cjs",
+      "bytes": 3915,
+      "sha256": "d93aca93eb4efea346f5fbd0c38995133be781b9d27502c883134afd0b231b81"
+    },
+    {
+      "path": "rebuild/client/face.cjs",
+      "bytes": 11152,
+      "sha256": "ede658a223ddb691bf9f64737edc63507dc0d594a462e6f8f3bea9c3aeaa98f0"
+    },
+    {
+      "path": "rebuild/client/index.cjs",
+      "bytes": 39778,
+      "sha256": "f5e272c048191e6fc5ee56465a7d0bf264e8b488f5fa4bd19a8819a5496ebfa9"
+    },
+    {
+      "path": "rebuild/client/lease.cjs",
+      "bytes": 2728,
+      "sha256": "b8e676d448e27cfecdf27ebd7fcf4766f7f73bfc8a2c6b69fb8754a1b8b0b771"
+    },
+    {
+      "path": "rebuild/client/ops.cjs",
+      "bytes": 6889,
+      "sha256": "4f0e2931d9d0d139ab44cb907cba13c8f9120277155477a56f2a7dbe4301209b"
+    },
+    {
+      "path": "rebuild/client/outbox.cjs",
+      "bytes": 2782,
+      "sha256": "e74d97e4cd71ae958b0873fbb680a917e8a12847797671b97f2e538f13f80f2e"
+    },
+    {
+      "path": "rebuild/client/plan.cjs",
+      "bytes": 5163,
+      "sha256": "91bba71bce872f57733aac88d6c8ce74e8c648d442262a5bed5879cfafc66839"
+    },
+    {
+      "path": "rebuild/client/session.cjs",
+      "bytes": 6667,
+      "sha256": "dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3"
+    },
+    {
+      "path": "rebuild/client/store.cjs",
+      "bytes": 6439,
+      "sha256": "f6ac3007354524b680d178086c87d7a321a8f8da0973b2b29f6f3d4c6ddcc6b0"
+    },
+    {
+      "path": "rebuild/client/sync.cjs",
+      "bytes": 10832,
+      "sha256": "42a3b53b4d54120efc4259de2813518f84cf69dfb9ed063529c4baadb7264f3a"
+    },
+    {
+      "path": "rebuild/conform/lib/canonical.cjs",
+      "bytes": 2656,
+      "sha256": "ca9d5daa7df046be3849ca21e9a21cdf43cbff4fd204246b673ec5621e84f4fa"
+    },
+    {
+      "path": "rebuild/conform/lib/ops.cjs",
+      "bytes": 6337,
+      "sha256": "cbf7e73cd899492981a03bc4b4153f12a77cc664c4c90c29774ef30bf981d1c1"
+    },
+    {
+      "path": "rebuild/m3/w5/crypto.cjs",
+      "bytes": 9071,
+      "sha256": "4fd0ebea06c4b66c1680c526939dc5671d009ba3b0488daa2735237193397203"
+    },
+    {
+      "path": "rebuild/m3/w5/public-client.cjs",
+      "bytes": 15327,
+      "sha256": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74"
+    },
+    {
+      "path": "rebuild/m3/w5/reconciliation/codec.cjs",
+      "bytes": 12629,
+      "sha256": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e"
+    },
+    {
+      "path": "rebuild/m3/w5/reconciliation/server-bytes.cjs",
+      "bytes": 4690,
+      "sha256": "1efbc53d5db6bf63edab60fb29814a406cd742c93a5fd3ab1921aba0d854c5dc"
+    },
+    {
+      "path": "rebuild/m3/w5/source/codec.cjs",
+      "bytes": 13896,
+      "sha256": "e6591fcd586b568a6fa8c0aff89336dde75e4c80864f4fe23c399e1dc1c3c0d6"
+    },
+    {
+      "path": "rebuild/m3/w6/bridge.mjs",
+      "bytes": 5062,
+      "sha256": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00"
+    },
+    {
+      "path": "rebuild/m3/w6/candidate-grant.mjs",
+      "bytes": 1058,
+      "sha256": "d65dfcafcde6a1105fe7720264c4adc3f28859c8f5bb3f53dcbb9e67c9cf951a"
+    },
+    {
+      "path": "rebuild/m3/w6/history-proof.mjs",
+      "bytes": 2348,
+      "sha256": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114"
+    },
+    {
+      "path": "rebuild/m3/w6/import-custody.mjs",
+      "bytes": 8639,
+      "sha256": "9f5d0c461d58275ce619b3028fb64c167a684bf21abff41bd71bd3daf20eeec7"
+    },
+    {
+      "path": "rebuild/m3/w6/node-sha256-browser.mjs",
+      "bytes": 1149,
+      "sha256": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97"
+    },
+    {
+      "path": "rebuild/m3/w6/public-client.mjs",
+      "bytes": 66014,
+      "sha256": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31"
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-history.mjs",
+      "bytes": 6095,
+      "sha256": "f4ca4aae3c2f4f94ff89640f00a1cebcbf5ebab56c2c11c5f95b84da1019e478"
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-local.mjs",
+      "bytes": 9632,
+      "sha256": "da94b8eeb73c41d01d2eb55ac57ab0e1d1f37ce64dc9d5a3158a0c3651e2904e"
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-plan-reader.cjs",
+      "bytes": 4389,
+      "sha256": "69e58c26bb452fea48101fd73a9ee07e29d9b531dbbde9ab67330dffd61babc5"
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-plan.cjs",
+      "bytes": 2331,
+      "sha256": "32a9c0343b1c602beb0bb38f565d6a66355012bab3d34928f1e1df859838e2b3"
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-profile.mjs",
+      "bytes": 17522,
+      "sha256": "dc16a4c0626a63e83bddea3a53ed8043647740428e868346623fcd7ba812e666"
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-snapshot.cjs",
+      "bytes": 672,
+      "sha256": "80252922aeda425eabf1402d22613e299481a0242c77be9c707354d14fd5aa23"
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-stage.mjs",
+      "bytes": 18703,
+      "sha256": "ef96cb867ba61cc74262d7a7c49060fd2aeb5d15b66448d22aa0cef30b1d023d"
+    },
+    {
+      "path": "rebuild/m3/w6/repository.mjs",
+      "bytes": 20668,
+      "sha256": "c300f00d1bb6d7473bddc310559695876a4a76b53f4b35e3dfff7edeb1383ddc"
+    },
+    {
+      "path": "rebuild/m3/w6/strict-json.mjs",
+      "bytes": 4746,
+      "sha256": "1605acb16b8d828578979755e9ce3387efaab70f6b22370bbd565355187b7fb9"
+    },
+    {
+      "path": "rebuild/m3/w6/t2-stage.cjs",
+      "bytes": 12582,
+      "sha256": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592"
+    },
+    {
+      "path": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "bytes": 137258,
+      "sha256": "6e73717de83d027e6aa7b181494fb8918fc0ab8daee61f7c0bd37edc0835df70"
+    },
+    {
+      "path": "rebuild/m3/w6/test/public-client.test.mjs",
+      "bytes": 30443,
+      "sha256": "ff30457ad80c778b7cf030f41744b07390021e950cc7e55282d723e732887f02"
+    },
+    {
+      "path": "rebuild/m3/w6/test/support.mjs",
+      "bytes": 4437,
+      "sha256": "6f62d795db9f69c6c757a2a23fba33e9288bf99ccf6afb2c7c79e3eca3da1462"
+    },
+    {
+      "path": "rebuild/m4/workout/authority-profile.cjs",
+      "bytes": 1395,
+      "sha256": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63"
+    },
+    {
+      "path": "rebuild/m4/workout/capture.cjs",
+      "bytes": 6822,
+      "sha256": "c20fb021034b7c110d58cd14cb8e5fb547ce23d0436086894dce67e23a4674ea"
+    },
+    {
+      "path": "rebuild/m4/workout/commands.cjs",
+      "bytes": 5320,
+      "sha256": "ee4de3b4ea573fe6f924fdff97f793e5679219516e4188fcc6b9f689c9b5c571"
+    },
+    {
+      "path": "rebuild/m4/workout/context-values.cjs",
+      "bytes": 11196,
+      "sha256": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b"
+    },
+    {
+      "path": "rebuild/m4/workout/continuation.mjs",
+      "bytes": 4074,
+      "sha256": "b688367c42158606738c03b7c9d6752fd86ce58480a8485f34ee275605d83f7d"
+    },
+    {
+      "path": "rebuild/m4/workout/edit-history.cjs",
+      "bytes": 14582,
+      "sha256": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2"
+    },
+    {
+      "path": "rebuild/m4/workout/edit-values.cjs",
+      "bytes": 5848,
+      "sha256": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546"
+    },
+    {
+      "path": "rebuild/m4/workout/project-history.mjs",
+      "bytes": 3837,
+      "sha256": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92"
+    },
+    {
+      "path": "rebuild/m4/workout/schema.cjs",
+      "bytes": 10852,
+      "sha256": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458"
+    },
+    {
+      "path": "rebuild/m4/workout/source-control-values.cjs",
+      "bytes": 1435,
+      "sha256": "635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560"
+    },
+    {
+      "path": "rebuild/m4/workout/stored-history.mjs",
+      "bytes": 5564,
+      "sha256": "78db774066ccc465bbdce8394bf3bb545c197664a9f7703cc8b34003e002567e"
+    },
+    {
+      "path": "package.json",
+      "bytes": 654,
+      "sha256": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 35020,
+      "sha256": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608"
+    },
+    {
+      "path": ".gitattributes",
+      "bytes": 928,
+      "sha256": "8bdc791ff524e697db8d6138f83071a776a834d4c626cffa8a0e7df2365e2a55"
+    },
+    {
+      "path": "rebuild/m3/w6/package.json",
+      "bytes": 392,
+      "sha256": "e2bbbd8a3464628ad2e71a42b0984cdda29720eb2a714ba506517cc50a4fd494"
+    },
+    {
+      "path": "rebuild/m3/w6/pnpm-lock.yaml",
+      "bytes": 9709,
+      "sha256": "cea5ea74668bb33be4d38de333a0bc35cbdc18d32022561ad0f09c690a53a566"
+    }
+  ],
+  "sourceModules": 50,
+  "sourceEdges": 118,
+  "sourceClosureDenied": [],
+  "authorOutcomesRead": false
+}

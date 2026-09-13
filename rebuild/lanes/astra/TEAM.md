@@ -1,17 +1,17 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: owner306 chooses existing Codex usage; no paid Agents API trial. B300/304 is complete at083bd47/tested1dcdbc0; ER/MAX reviews316, B LOW. R4 runtime is unchanged. R4 affected-consumer applicability accepted310, firsteb62616e/finald2b3ccd and12 artifacts adopted; fixed-day production binding needs no new browser/test replay. E foundatione85ad803/source4191eeb is complete; D2/MAX reviews318, E LOW; C lifecycle groundwork remains scoped accepted294. C/D LOW and I paused; ER/MAX owns316 and D2/MAX owns318. Final engine admission/assembly/native/FULL/CI/receipt, complete memory/import and phone proof remain. PM MAX for this release judgment; Fast setting remains unverified. Joe/history/memory then Dad, soak for wide beta only.
+PM checkpoint2026-09-13: owner306 uses existing Codex usage; no paid API trial. B083bd47 tooling scoped ACCEPT322, ER first424749a6/final13b602c; E e85ad803 client foundation scoped ACCEPT324, D2 first00c6237a/final079e3182. Both reviewers LOW with completed heartbeats paused320. Existing I/HIGH prepares the exact local B validation assembly326; B/HIGH maps native inputs concurrently. C294/E324 retain separate accepted foundation heads for later memory composition; C/D/E LOW/paused. Native/FULL/artifact/receipt/CI, full memory/import and phone proof remain. PM MAX for acceptance/assembly judgment, HIGH advised for routine coordination; Fast unavailable. Joe/history/memory then Dad; soak gates wide beta only.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW:300/304 candidate083bd47 and public archive5ea3eca complete; await exact review disposition | earned-astra-b-follow-up; PAUSED waiting; direct PM handoff |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | HIGH: finite native-input/code-only preparation326 from083bd47; no native execution | earned-astra-b-follow-up; hourly while assigned, pause on handoff |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; PAUSED waiting; direct PM handoff |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: exact E e85ad803 client/repository foundation review318; report-last | earned-lane-d2-requests;hourly reviewing; pause after handoff |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX: exact083bd47 tooling-successor review316; independent source-first/report-last | earned-astra-engine-review-follow-up; hourly reviewing; pause after handoff |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: exact e85ad803 foundation and public archiveb7dc5a04 complete; await exact review disposition | earned-astra-e-follow-up; PAUSED waiting; direct PM handoff |
-| I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: E318 independent handoff complete, scoped ACCEPT324 | earned-lane-d2-requests; PAUSED320; direct PM handoff |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: B316 tooling handoff complete, scoped ACCEPT322 | earned-astra-engine-review-follow-up; PAUSED320; direct PM handoff |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: e85ad803 foundation scoped ACCEPT324; await qualified caller/provider/controller release | earned-astra-e-follow-up; PAUSED320; direct PM handoff |
+| I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | HIGH: exact local B114-object validation assembly326; separate from author/reviewer, no shared push | earned-astra-integration-follow-up; hourly while assigned, pause on handoff |
 
 ## Worktrees
 
@@ -57,13 +57,13 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 
 | Seat | Applied current effort | Next substantive assignment |
 | --- | --- | --- |
-| B | LOW; exact083bd47 construction complete, evidence custody316 | MAX for a named engine/proof correction or separately released companion |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | HIGH: finite native-input/code-only preparation326 from083bd47; no native execution | earned-astra-b-follow-up; hourly while assigned, pause on handoff |
 | D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
 | C | LOW; lifecycle R3 scoped accepted294 | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
-| D2 | MAX; exact E idle-client foundation review318 | MAX for the next named independent successor |
-| Engine reviewer | MAX; exact amendment-binding successor review316 | MAX for next named independent successor review |
-| E | LOW; isolated foundation e85ad803 complete, archive custody318 only | HIGH for ordinary implementation; XHIGH for concurrency; exact independent review at MAX |
-| I | PAUSED; no new turn or setting change | XHIGH for a specifically authorized integration; separate author/reviewer roles remain |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: E318 independent handoff complete, scoped ACCEPT324 | earned-lane-d2-requests; PAUSED320; direct PM handoff |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: B316 tooling handoff complete, scoped ACCEPT322 | earned-astra-engine-review-follow-up; PAUSED320; direct PM handoff |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: e85ad803 foundation scoped ACCEPT324; await qualified caller/provider/controller release | earned-astra-e-follow-up; PAUSED320; direct PM handoff |
+| I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | HIGH: exact local B114-object validation assembly326; separate from author/reviewer, no shared push | earned-astra-integration-follow-up; hourly while assigned, pause on handoff |
 
 Joe endorsed Editorial with original bullet spacing; Light and Ink bases remain locked. This is an example design preview endorsement, not an implementation, owner-data or deployment claim. Keep development focused on the current engine/import repairs and their joined acceptance requirements.
 
@@ -100,3 +100,5 @@ PM316: B083bd47/tested1dcdbc0 is handed off with author331/331 and all original 
 PM318: E e85ad803/source4191eeb completes the five-file isolated foundation, with author254/254 and preserved original failures/reversals. D2/MAX now reviews it independently while ER/MAX handles B316. E/LOW archives existing public evidence only. PM current50+5 custody hashes are verified; no actual controller, provider, canonical consumer or complete-memory acceptance is implied.
 
 PM320 reduces idle polling using owner306 authority. No active review is paused: ER316 and D2318 remain MAX. E archiveb7dc5a04 is verified39 paths/37 original public files, with product candidate unchanged; it is routed for review only after the first verdict. B archive5ea3eca is complete. Completed builders remain available for immediate direct PM dispatch.
+
+PM322/324 accept the two isolated completed scopes and preserve all first/report-last evidence. PM326 now names I as the separate local B assembly task and B for static native-input preparation. No product test is assigned to PM or I. Protected native execution waits the exact next candidate/input grant. Both completed reviewers are LOW/paused; B/I hourly on substantive work; direct completion handoffs remain immediate.

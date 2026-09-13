@@ -1,0 +1,9 @@
+{
+  "command": "node --test rebuild/m3/w6/test/public-client.test.mjs rebuild/m3/w6/test/prepared-workout.test.mjs",
+  "candidate": "e85ad803ae8af600726c1491f35c90c7b3cd2c03",
+  "started": "2026-09-13T20:50:31.3663913+00:00",
+  "finished": "2026-09-13T20:50:33.4008630+00:00",
+  "exit": 0,
+  "node": "v22.23.2",
+  "timezone": "America/New_York"
+}

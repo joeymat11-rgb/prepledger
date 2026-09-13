@@ -1,0 +1,3123 @@
+{
+  "candidate": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+  "firstIndependentCommit": "424749a61afb0178fb82277bb811912971500617",
+  "firstIndependentVerdictSentBeforeAuthorReads": true,
+  "archive": "5ea3ecaeb60613cb7402c0e8e52d7c843c0a9827",
+  "archiveParent": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+  "all17BlobsReadAndHashVerified": true,
+  "index": {
+    "bytes": 2555,
+    "sha256": "4968624e948adc9a1f02bc9a744130a70157fdadd71cf6aac8e6b100e1e776c0",
+    "text": "# Evidence path mapping\nEach row maps an original to an exact-byte archive relative to this directory. Outcomes remain report-last; binding-verified/input-manifest.json is input/environment only.\n| Original | Archive | Bytes | SHA256 |\n|---|---|---:|---|\n| .tmp/final-evidence-index.json | final-evidence-index.json | 11481 | d89afb670d44d9b3471477acada8ece9a7a0ec7be7fe75c0902f969e63a33b3a |\n| .tmp/authorization-grants.json | authorization-grants.json | 476 | 98e37a13155dba02b36c7b902f177c88ae4bf58f0b58a373a355ae667f626f68 |\n| .tmp/binding-final/result.json | binding-final/result.json | 1282 | 3fd777b90308327a0eb12f3b8c83f08f6e36fe12cc61eaf9f1cd46ad5b2bec2d |\n| .tmp/binding-final/cohort.tap | binding-final/cohort.tap | 271434 | 47f9454876f8683af5dfffe3e8ebeabfd30b6a772212bbf11c48ca2da17a79d9 |\n| .tmp/binding-final/input-manifest.json | binding-final/input-manifest.json | 23298 | 365009f617c92bf004b3013f412c0bb83cdf1868a4a99b1e1979fe2d4d8ec490 |\n| .tmp/binding-first/result.json | binding-first/result.json | 1282 | 11072d9b50457bb607c68ea81c04c602b2e850a9585a637f3207a00ad3c39261 |\n| .tmp/binding-first/cohort.tap | binding-first/cohort.tap | 247672 | b991157a86c5b1d8ca627022e45e26571363ac41f736dff5663ffaa9785f3040 |\n| .tmp/binding-first/input-manifest.json | binding-first/input-manifest.json | 23119 | 711a26985a672907a5961488fe0ecff1c107768b7db72a0dad9386b994c6b72c |\n| .tmp/binding-verified/result.json | binding-verified/result.json | 1282 | d679a7037d5cdb05d9084e7c74833265fe15126e59cb4c6231368fe0e445c897 |\n| .tmp/binding-verified/cohort.tap | binding-verified/cohort.tap | 269132 | 36ad406b6a0ec85cc9a8e1aee8998e35ab7e01acfe8b3ddf2e9ed9bcc1e5688b |\n| .tmp/binding-verified/input-manifest.json | binding-verified/input-manifest.json | 23298 | f75b2284e401dd80a1cf681af5d3815f90f1179309d204832c993ce8b67e3801 |\n| .tmp/authority-inputs.json | authority-inputs.json | 8137 | 6a74d014992a61401886b0bae5773540398231e390eb047b9803b93d30f84d38 |\n| .tmp/assembly-and-native-closure.json | assembly-and-native-closure.json | 3807 | b9d545203171ad11e9d21084d825ced29dfd0d5230cb4fbb2a999e256ea45aee |\n| .tmp/binding-first/cohort.stderr.log | binding-first/cohort.stderr.log | 0 | e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 |\n| .tmp/binding-final/cohort.stderr.log | binding-final/cohort.stderr.log | 0 | e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 |\n| .tmp/binding-verified/cohort.stderr.log | binding-verified/cohort.stderr.log | 0 | e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 |\n"
+  },
+  "archiveRows": [
+    {
+      "original": ".tmp/final-evidence-index.json",
+      "file": "final-evidence-index.json",
+      "bytes": 11481,
+      "sha256": "d89afb670d44d9b3471477acada8ece9a7a0ec7be7fe75c0902f969e63a33b3a"
+    },
+    {
+      "original": ".tmp/authorization-grants.json",
+      "file": "authorization-grants.json",
+      "bytes": 476,
+      "sha256": "98e37a13155dba02b36c7b902f177c88ae4bf58f0b58a373a355ae667f626f68"
+    },
+    {
+      "original": ".tmp/binding-final/result.json",
+      "file": "binding-final/result.json",
+      "bytes": 1282,
+      "sha256": "3fd777b90308327a0eb12f3b8c83f08f6e36fe12cc61eaf9f1cd46ad5b2bec2d"
+    },
+    {
+      "original": ".tmp/binding-final/cohort.tap",
+      "file": "binding-final/cohort.tap",
+      "bytes": 271434,
+      "sha256": "47f9454876f8683af5dfffe3e8ebeabfd30b6a772212bbf11c48ca2da17a79d9"
+    },
+    {
+      "original": ".tmp/binding-final/input-manifest.json",
+      "file": "binding-final/input-manifest.json",
+      "bytes": 23298,
+      "sha256": "365009f617c92bf004b3013f412c0bb83cdf1868a4a99b1e1979fe2d4d8ec490"
+    },
+    {
+      "original": ".tmp/binding-first/result.json",
+      "file": "binding-first/result.json",
+      "bytes": 1282,
+      "sha256": "11072d9b50457bb607c68ea81c04c602b2e850a9585a637f3207a00ad3c39261"
+    },
+    {
+      "original": ".tmp/binding-first/cohort.tap",
+      "file": "binding-first/cohort.tap",
+      "bytes": 247672,
+      "sha256": "b991157a86c5b1d8ca627022e45e26571363ac41f736dff5663ffaa9785f3040"
+    },
+    {
+      "original": ".tmp/binding-first/input-manifest.json",
+      "file": "binding-first/input-manifest.json",
+      "bytes": 23119,
+      "sha256": "711a26985a672907a5961488fe0ecff1c107768b7db72a0dad9386b994c6b72c"
+    },
+    {
+      "original": ".tmp/binding-verified/result.json",
+      "file": "binding-verified/result.json",
+      "bytes": 1282,
+      "sha256": "d679a7037d5cdb05d9084e7c74833265fe15126e59cb4c6231368fe0e445c897"
+    },
+    {
+      "original": ".tmp/binding-verified/cohort.tap",
+      "file": "binding-verified/cohort.tap",
+      "bytes": 269132,
+      "sha256": "36ad406b6a0ec85cc9a8e1aee8998e35ab7e01acfe8b3ddf2e9ed9bcc1e5688b"
+    },
+    {
+      "original": ".tmp/binding-verified/input-manifest.json",
+      "file": "binding-verified/input-manifest.json",
+      "bytes": 23298,
+      "sha256": "f75b2284e401dd80a1cf681af5d3815f90f1179309d204832c993ce8b67e3801"
+    },
+    {
+      "original": ".tmp/authority-inputs.json",
+      "file": "authority-inputs.json",
+      "bytes": 8137,
+      "sha256": "6a74d014992a61401886b0bae5773540398231e390eb047b9803b93d30f84d38"
+    },
+    {
+      "original": ".tmp/assembly-and-native-closure.json",
+      "file": "assembly-and-native-closure.json",
+      "bytes": 3807,
+      "sha256": "b9d545203171ad11e9d21084d825ced29dfd0d5230cb4fbb2a999e256ea45aee"
+    },
+    {
+      "original": ".tmp/binding-first/cohort.stderr.log",
+      "file": "binding-first/cohort.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "original": ".tmp/binding-final/cohort.stderr.log",
+      "file": "binding-final/cohort.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "original": ".tmp/binding-verified/cohort.stderr.log",
+      "file": "binding-verified/cohort.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "authorReport": {
+    "file": "rebuild/lanes/b/BUILD-B1B2-AMENDMENT-BINDING.md",
+    "bytes": 11271,
+    "sha256": "7cc4818a759ce69aa4656af6233249d365107bbf200419a8e5b32bcdc515d2ce",
+    "lines": 34,
+    "text": "# B1+B2: exact amendment binding — PM300/304\n\n2026-09-13 · Astra B · finite public tooling construction. This is not package, native, full-gate, CI or phone acceptance.\nSource/tested construction 1dcdbc0599330c2354257f053b9ed648616475a6; base f2dea2ec8426d12e95483e180821839fbf1165f7; final handoff adds this report only. Branch codex/astra-b1b2-amendment-binding, owned work/pm-caretaker/b1b2-amendment-binding. All prior candidates remain unchanged and unpushed.\nPM300 document SHA2560164bcc537d4557c5f8b828dd0ca63b90a85da4aa828b693bcf158591505d169 at78869af65df7c4a1d5734b48958d0d93ce64f111; supporting fixture304 SHA256dbf5d5a7c48a629db3c26ff991c298e2f0ff390ab89a9bd30ec05b64f7cdcc50 at66e3126bf9a84b823bae1e2ffbdc7c37e1eb2f1c.\nChanged paths: the runner/profile/registration test/README under300, existing superseded-parent-continuity.test.cjs fixture under304, and this report. No other tracked change. Runner SHA256f21ce8ee43647915953b359d493cfb05272b35c3615d4c57b3e7db0d39f6f022; profile SHA256184d79ad82201a7d2c9ed1c631776077149727223eb5ae259393759bfbd957e7.\nB1-B2 alone requires exactly five amendments, each existing four-field Astra PM claim plus the exact ordered document list. IDs, line hashes, paths and document hashes are fixed in B1B2_AMENDMENTS. Missing/extra fields or IDs, duplicated decoded JSON keys, non-PM claims and self-consistent forged authority refuse; physical ledger numbers remain explanatory.\nb1b2Inventory/spec use b1b2AmendmentShape/authorizationKeys and authenticated b1b2Amendments. authority and proposed re-read the real shared-chain ledger/documents. envelope re-reads at entry and terminal, then separately at the actual receipt context; pmLedger/pmReceipt retain exact line/issuer/handover/ancestry checks, with no success cache or candidate-local authority.\nproposed retains the existing authorizations field, carrying all five claims/six document pins. FULL entry/terminal bind those documents at HEAD and disk; the authorized envelope also checks exact reviewed-commit and candidate HEAD/worktree bytes, including CI. Fixed document pins are assigned after declared product/execution pins, preventing an override. The original other-package schema/artifact fields are unchanged.\nActual fixed claims (ID: line SHA256): repair-and-availability:a519f6cc8bbe9ad5b0c254bc2c03368265f15c9d1216c4e809c6b99eeeff5ecf; reference-factory:bad4cb7863900080a4ee9b3af8c5e02d6b0e62a58c7409ab2d30f7ba47ce19bb; today-clearance:3006cfb8c2a7c9cb5e5ecc9570bdee5ef6b1aaa9dc6ccf7230baa09d7142e4ef; captured-date:86849eda203dcb741a7f5e88792fdfa632c2ab0c8e7ce780050a633dc3dcfd8a; source-graph:599e0afb2d9c2ffb6e0ab0b6878f5d76abc0a27579dd076d4f09f26e2ff1d773.\nActual six read-only PM document pins:\nrebuild/lanes/astra/B1B2-COMPLETE-REPAIR-PM-GO.md SHA256569ab646d1e4d498f774607f76290b3a29d1bbf2d9287bbcfff5a68df350e1ef\nrebuild/lanes/astra/B1B2-R7-TARGET-AVAILABILITY-PM-RULING.md SHA256392d83ecb6138cdd58077a9dcf380739588570c2f9ed4d0a8cd2d3c5feb90295\nrebuild/lanes/astra/B1B2-REFERENCE-AND-FACTORY-PM-GO.md SHA2569f3dab4487287a28ac67da6622abc7cdbfb926cc5fbafed17a1bdd9c843bbcf4\nrebuild/lanes/astra/B1B2-R2-R8-PM-DISPOSITION.md SHA25634ed6048ee03e98fe6df6059a6c82d24c086bc117a08267bf3bdadc1efe95432\nrebuild/lanes/astra/B1B2-R3-R9-PM-DISPOSITION.md SHA2569f8b97ce50edc211ae3126092eb76d20c510391b8cc66b9e6a0ac1b016ad8ce6\nrebuild/lanes/astra/B1B2-R4-SOURCE-GRAPH-PM-RULING.md SHA256222b5bc0dcc75db1e95306cdc8a244ecb817a986a045a495dfaad0766dee3017\nPM304 fixture adaptation supplies five wholly synthetic claims and six synthetic documents. Exactly five named constant substitutions—CHAIN_REF, PM_HANDOVER, B1B2_PARENT, B1B2_SUPERSESSION_LINE, B1B2_AMENDMENTS—have an exact inverse proof; no guard/function body changes in that adaptation. Original parent/gate/issuer/negative assertions are retained.\nThe new registration fixture reuses only the licensed continuity constructor before its tests, exporting real readers. It explicitly has one synthetic parent and no grandparent; the unchanged historical inheritance tests remain separate. Its real envelope positives are unsealed ABSENT at entry/terminal, never an ACCEPTED package.\n64 added tooling cases include every missing amendment, every forged/mismatched/wrong-role claim, every document path/hash/shared-byte mismatch, extra/duplicate fields and decoded JSON keys, candidate-local authority absent from chain, incorrect/off-chain receipt context, changed shared authority/documents between entry/terminal, candidate HEAD/disk mismatch, explanatory coordinate movement and unchanged other-package schemas.\nFive guard-removal controls lose their otherwise-runnable refusals: fixed required line, real shared issuer, document object hash, actual envelope receipt-context document call, and reviewed-source amendment pin inclusion. Valid originals/restored positives pass. Receipt and reviewed-source controls execute exact isolated envelope legs with real Git/issuer/source readers; no package main or full ACCEPTED envelope is executed.\nFirst exact nine-file Node22 run at1987177434b89b0b11672b806b4ba998d9c14bbc:324/328,4 setup failures,480312.1277ms,exit1; zero cancelled/skipped/todo, inputs unchanged. C12 lacked the already pinned brief in sparse hydration; three new unsealed-envelope positives reached an absent grandparent in an incomplete invented history. These are retained setup failures, not product defects or mutation kills.\nIntermediate exact nine-file run at5ef700b5be6f77fd834e65f972ad511222d12ab7:329/331,633279.6709ms,exit1,zero cancelled/skipped/todo,inputs unchanged. The original C9 tooling census assertion still expected267 despite the measured331 declarations; only its tooling total/message changed, with all source/writer counts retained. A19 omitted m.product in its synthetic envelope-leg input and stopped before the intended guard; that empty metadata field was supplied. Original raw failures/TAP remain under .tmp/binding-final, SHA25647f9454876f8683af5dfffe3e8ebeabfd30b6a772212bbf11c48ca2da17a79d9. No runtime guard was changed for either failure.\nSetup chronology: fresh --no-checkout creation was followed by a verified full1278-entry index; read-tree alone left named public files absent. PowerShell stdin appended CR to exact checkout paths and git refused them; explicit argv hydration then succeeded. No excluded materialization occurred. The first135-file inventory omitted the already licensed brief; its exact ae1a58a75530a06988a936d6087f00ee8c86814521a957a7648cc15bf14b4f80 bytes were then added. Final136 public files match the explicit own-tree inventory; known private/seed/history/soak paths stay absent.\nFinal exact nine-file cohort on Nodev22.23.2 at1dcdbc0599330c2354257f053b9ed648616475a6:331/331,exit0,zero fail/cancelled/skipped/todo; # duration_ms 573841.0642. Before/after all136 materialized public inputs matched. The six real ruling documents and real ledger are read-only Git inputs; owned synthetic histories exercise actual bindings. No project node_modules, native factory, original protected gate or package CLI is invoked.\nLiteral command: node --test --test-reporter=tap rebuild/lanes/b/tooling/test/astra-issuer-compatibility.test.cjs rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs rebuild/lanes/b/tooling/test/seal-tip-and-byte-identity.test.cjs rebuild/lanes/b/tooling/test/gate-supersession.test.cjs rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs rebuild/lanes/b/tooling/test/parent-pin-shapes-and-spec-successors.test.cjs rebuild/lanes/b/tooling/test/git-blob-pin-classes.test.cjs rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs. Executable identity and all136 input hashes are in .tmp/binding-verified/input-manifest.json; runtime is the previously licensed Node22.23.2 executable.\nFinal TAP 269132bytes SHA25636ad406b6a0ec85cc9a8e1aee8998e35ab7e01acfe8b3ddf2e9ed9bcc1e5688b; input-manifest SHA256f75b2284e401dd80a1cf681af5d3815f90f1179309d204832c993ce8b67e3801; result SHA256d679a7037d5cdb05d9084e7c74833265fe15126e59cb4c6231368fe0e445c897. First TAP SHA256b991157a86c5b1d8ca627022e45e26571363ac41f736dff5663ffaa9785f3040 retained. No UTF-8 replacement characters; captured TAP hash agrees with actual file bytes.\nAll51 tracked engine paths remain byte-identical by Git object metadata to reviewed R4/Ucbcebb3d26bf8892adbe84fbbe0a7c5e85856013; no seed content read. m3/N2, workflow and source-map objects are unchanged. Preserve112 product keys,26 exact child argv,24 D-ids, parent/coverage9+3+7 and sourceBase M100820aa47a4f8729642033499eaec0f0ee282e1. Only three tooling product posts/runner pin, amendment metadata, one explanatory note and tooling needle267→331 change in the profile.\nR4 runtime/consumer evidence remains at its real PM298-adopted identity; no runtime rerun or borrowed current result. The tooling cohort is fresh at this construction, and the report is its only later change. Source94/writers335/nativeFieldDeltas remain prospective/unmeasured, never tuned to these tooling results.\nRemaining source/assembly: PM names one current shared base and separate integrator after independent exact tooling review. Preserve M/R/S/T/U and all inverse proofs; do not repin historical sourceBase M. Bind actual final source/profile/runner/product/child bytes, all amended and original authority, accepted affected consumer source and the one PM-controlled freeze/current-chain ancestry at entry/terminal.\nPublic native-boundary metadata: b1b2-evidence.cjs sourceFactory/nativeEngine names16 factories (including held seed), nativeBrowser names12 plus seed/writers and the unchanged browser constructor; its only factory import is entered-load. b1b2-supersede-second-gate loads the original H3 second-gate and compares the same original M SEED,15 reader outputs and whole applyRead at2026-09-07 across M/U. No original input was opened here.\nPinned native program boundary: census-partial.cjs, oracle/{census,legacy-records}.cjs, conform/lib/harness.cjs, volume-{projection,reference}.cjs, oracle-shim.cjs and tools/_fixed-now.mjs. Migration additionally names migrate-differential/migrate-reference and held conform/engines/engine-main.cjs. The exact metadata is .tmp/assembly-and-native-closure.json SHA256b9d545203171ad11e9d21084d825ced29dfd0d5230cb4fbb2a999e256ea45aee; these names do not claim complete transitive execution clearance.\nPM must authorize the actual native/program/input closure before opening remaining seed/original fixture/frozen/private edges. Measure actual same-input native differences, obtain individual expectation rulings, then release named source/frozen/family/census/H3/second/FULL phases. All actual final artifact review, receipt generation/commit,136 reverify/currentCI, integration and Joe history/coaching-memory/phone proof remain separate; Dad follows Joe. No candidate/shared push, freeze, import or deployment occurred.\nOwn replay index: .tmp/final-evidence-index.json SHA256d89afb670d44d9b3471477acada8ece9a7a0ec7be7fe75c0902f969e63a33b3a. It binds the source/file identities and original/final results/TAP/manifests, real authority metadata and finite native-closure note. Complete immutable candidate goes directly to PM; B returns LOW.\n"
+  },
+  "cohorts": [
+    {
+      "name": "binding-first",
+      "source": "1987177434b89b0b11672b806b4ba998d9c14bbc",
+      "tests": 328,
+      "pass": 324,
+      "fail": 4,
+      "count": 135,
+      "result": {
+        "source": "1987177434b89b0b11672b806b4ba998d9c14bbc",
+        "version": "v22.23.2",
+        "argv": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/lanes/b/tooling/test/astra-issuer-compatibility.test.cjs",
+          "rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs",
+          "rebuild/lanes/b/tooling/test/seal-tip-and-byte-identity.test.cjs",
+          "rebuild/lanes/b/tooling/test/gate-supersession.test.cjs",
+          "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs",
+          "rebuild/lanes/b/tooling/test/parent-pin-shapes-and-spec-successors.test.cjs",
+          "rebuild/lanes/b/tooling/test/git-blob-pin-classes.test.cjs",
+          "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs",
+          "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 480379,
+        "summary": [
+          "# tests 328",
+          "# pass 324",
+          "# fail 4",
+          "# cancelled 0",
+          "# skipped 0",
+          "# todo 0",
+          "# duration_ms 480312.1277"
+        ],
+        "stdout": {
+          "bytes": 247672,
+          "sha256": "b991157a86c5b1d8ca627022e45e26571363ac41f736dff5663ffaa9785f3040"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "unchanged": true
+      },
+      "failures": [
+        {
+          "name": "C12 profile binds actual public product bytes, fixed M preimages and untouched parent inventory",
+          "diagnostic": "  ---\n  duration_ms: 6122.0448\n  type: 'test'\n  location: 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\b1b2-amendment-binding\\\\rebuild\\\\lanes\\\\b\\\\tooling\\\\test\\\\b1b2-registration.test.cjs:243:1'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\b1b2-amendment-binding\\\\rebuild\\\\lanes\\\\b\\\\BRIEF-B1B2-SUCCESSOR-REGISTRATION-v1.0.md'\"\n  code: 'ENOENT'\n  stack: |-\n    Object.openSync (node:fs:560:18)\n    Object.readFileSync (node:fs:444:35)\n    TestContext.<anonymous> (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\rebuild\\lanes\\b\\tooling\\test\\b1b2-registration.test.cjs:254:23)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n"
+        },
+        {
+          "name": "A2 complete synthetic amendment authority verifies real issuer, Git, shape and six documents",
+          "diagnostic": "  ---\n  duration_ms: 60325.9904\n  type: 'test'\n  location: 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\b1b2-amendment-binding\\\\rebuild\\\\lanes\\\\b\\\\tooling\\\\test\\\\b1b2-registration.test.cjs:343:1'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\b1b2-amendment-binding\\\\.tmp\\\\b1b2-continuity-HSNZ15\\\\rebuild\\\\m4\\\\spec\\\\acceptance-b-ntc-native-trend-context.json'\"\n  code: 'ENOENT'\n  stack: |-\n    Object.openSync (node:fs:560:18)\n    Object.readFileSync (node:fs:444:35)\n    diskSha (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:509:69)\n    unchangedGitPins (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:1967:18)\n    verifyUnchangedGitPins (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:1977:19)\n    Object.envelope (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:3084:24)\n    TestContext.<anonymous> (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\rebuild\\lanes\\b\\tooling\\test\\b1b2-registration.test.cjs:350:21)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n"
+        },
+        {
+          "name": "A13 actual envelope re-reads shared authority and documents after entry",
+          "diagnostic": "  ---\n  duration_ms: 3135.9023\n  type: 'test'\n  location: 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\b1b2-amendment-binding\\\\rebuild\\\\lanes\\\\b\\\\tooling\\\\test\\\\b1b2-registration.test.cjs:409:1'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\b1b2-amendment-binding\\\\.tmp\\\\b1b2-continuity-HSNZ15\\\\rebuild\\\\m4\\\\spec\\\\acceptance-b-ntc-native-trend-context.json'\"\n  code: 'ENOENT'\n  stack: |-\n    Object.openSync (node:fs:560:18)\n    Object.readFileSync (node:fs:444:35)\n    diskSha (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:509:69)\n    unchangedGitPins (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:1967:18)\n    verifyUnchangedGitPins (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:1977:19)\n    Object.envelope (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:3084:24)\n    TestContext.<anonymous> (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\rebuild\\lanes\\b\\tooling\\test\\b1b2-registration.test.cjs:410:34)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n"
+        },
+        {
+          "name": "A14 actual FULL entry and terminal bind candidate HEAD and worktree documents",
+          "diagnostic": "  ---\n  duration_ms: 11788.2639\n  type: 'test'\n  location: 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\b1b2-amendment-binding\\\\rebuild\\\\lanes\\\\b\\\\tooling\\\\test\\\\b1b2-registration.test.cjs:418:1'\n  failureType: 'testCodeFailure'\n  error: \"ENOENT: no such file or directory, open 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\b1b2-amendment-binding\\\\.tmp\\\\b1b2-continuity-HSNZ15\\\\rebuild\\\\m4\\\\spec\\\\acceptance-b-ntc-native-trend-context.json'\"\n  code: 'ENOENT'\n  stack: |-\n    Object.openSync (node:fs:560:18)\n    Object.readFileSync (node:fs:444:35)\n    diskSha (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:509:69)\n    unchangedGitPins (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:1967:18)\n    verifyUnchangedGitPins (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:1977:19)\n    Object.envelope (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\.tmp\\b1b2-continuity-HSNZ15\\rebuild\\lanes\\b\\tooling\\b-package.cjs:3084:24)\n    TestContext.<anonymous> (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\rebuild\\lanes\\b\\tooling\\test\\b1b2-registration.test.cjs:426:21)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n"
+        }
+      ],
+      "inputVerification": [
+        {
+          "file": ".gitattributes",
+          "sha256": "8bdc791ff524e697db8d6138f83071a776a834d4c626cffa8a0e7df2365e2a55",
+          "bytes": 928,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": ".github/workflows/rebuild.yml",
+          "sha256": "fa5a4e766310f816b929480df316ad5db961220e0f7b4b8a9f55c8b84e6bb282",
+          "bytes": 11001,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": ".gitignore",
+          "sha256": "ffe98a0fdf720df14d4d568d748bd5cae9ebb7a237f75be316efe49d7bb78da4",
+          "bytes": 36,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "AGENTS.md",
+          "sha256": "79f5808dbd4e396bc98f629290e3ed1de817585c766d0653bebcde325536ca42",
+          "bytes": 3469,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "NEXT.md",
+          "sha256": "9e709f1f4429a0612d832e974bf3edc0d6673e146bb3efcf6cca02e00d396792",
+          "bytes": 282450,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/coach/local-world.mjs",
+          "sha256": "5c46ab64d7233beb341fceae615e5ef81477e98accd654732791b5d29a626292",
+          "bytes": 20541,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/legacy-b1-carriers.cjs",
+          "sha256": "d8d98b247271d9b4f5ac50f2b7205b1820db4ff72ad6bb53ee2e0d6ccbb002bf",
+          "bytes": 12838,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/legacy-b1b2-carriers.cjs",
+          "sha256": "24ab82024ac4195397769f58fc37c18827c907c0fc03dec98fa38160e203c699",
+          "bytes": 40106,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/legacy-gates.cjs",
+          "sha256": "b8891d9ba12f38713582634b7709b6f3a3a5c05e008a10c7f2d74a91e169b0df",
+          "bytes": 10124,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/run.cjs",
+          "sha256": "654288e073ea6815ce699c1eacb61c7030b0de0781b277477f3800fa06eb245a",
+          "bytes": 17068,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/strict-json.cjs",
+          "sha256": "5722f233e704149f03f2898bf739c3cc42fe323a0c91e0eee55eb82cc57a3478",
+          "bytes": 1697,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/target.cjs",
+          "sha256": "e19f3399d9e4e4dff7d3a6dae2c2c251c9fda5b88ead9640e95adc3e4a7908bb",
+          "bytes": 14223,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs",
+          "sha256": "d78fd8322ede877e0ff3b56c936d4381bdea3280359079d310a7b6278460608d",
+          "bytes": 11570,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/trace-v2.cjs",
+          "sha256": "5804390be453b9321955c1b498d7b5a80ee96f9b14ef701b33176a15f6ce9e2d",
+          "bytes": 4986,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/constants.cjs",
+          "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+          "bytes": 23393,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/dates.cjs",
+          "sha256": "b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067",
+          "bytes": 1343,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/earn.cjs",
+          "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+          "bytes": 11429,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/energy.cjs",
+          "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+          "bytes": 94493,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/entered-load.cjs",
+          "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+          "bytes": 906,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/index.cjs",
+          "sha256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+          "bytes": 1111,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/merge.cjs",
+          "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+          "bytes": 84396,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/migrate.cjs",
+          "sha256": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+          "bytes": 184433,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/oracle-shim.cjs",
+          "sha256": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+          "bytes": 826,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/performed.cjs",
+          "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+          "bytes": 19479,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/plan.cjs",
+          "sha256": "4c6f981706694771501d3d050440eb4f9a62e64b6eac7c59ff9c4742dfaa7e93",
+          "bytes": 19853,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/policy.cjs",
+          "sha256": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870",
+          "bytes": 56874,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/progression.cjs",
+          "sha256": "2384d12e5788fb01324a62d7bbc7fa7303a3e748f97ecd4a6f9a5c82975dbc7a",
+          "bytes": 54604,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/sleep.cjs",
+          "sha256": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8",
+          "bytes": 188103,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/test/b1-delta-cells.cjs",
+          "sha256": "ade964b9887b758f9cf04fd82d002ac19ffcb4b77be5e136971f252b6e116466",
+          "bytes": 61185,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+          "sha256": "6cc87127cf62c071cee077478aa352d11eaa49e0a407427a0b66c09a510fefa5",
+          "bytes": 55323,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/test/b1b2-public-engine.cjs",
+          "sha256": "5afe0c0f30ee93b877328eed04db16df0c5fa28ed577c2fc4ac3c6e05a5051c5",
+          "bytes": 10827,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+          "sha256": "6a996fcc53fbea6fc9611517b7d2c7ed636516480322095b1863507e934d256d",
+          "bytes": 64433,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/test/b2-era30.test.cjs",
+          "sha256": "78ba43847681a176298c91257cc456a6d5aed5f03b6783b091521d473d6335d5",
+          "bytes": 435756,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/test/b2-public-source-faults.test.cjs",
+          "sha256": "5d609a17c8d19559d3b40ffce8ea4bc7682dd62ab22730c5368d1f2ad8c110b6",
+          "bytes": 32555,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+          "sha256": "f5169bebd527ac13c8a570859bb5d728535a2a71734e135904a77be36c8506e6",
+          "bytes": 5081,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/test/defect-witnesses-4.cjs",
+          "sha256": "c90ffeaa953a9b04146432f39702f87fc8c51ce7f0be77876f075fc4142b87f7",
+          "bytes": 6465,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/test/defect-witnesses.cjs",
+          "sha256": "557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644",
+          "bytes": 4126,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/today.cjs",
+          "sha256": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
+          "bytes": 48911,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/volume.cjs",
+          "sha256": "d58159bc0c098983fa1db6a1f8542d93611537934fca2b2a17bae236bcacd321",
+          "bytes": 25485,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/engine/writers.cjs",
+          "sha256": "7e8ba66e82a24983e98d063fe948838f77ec168b52515cdfe2e6483291027494",
+          "bytes": 261840,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/astra/PM-OPERATING-CHARTER.md",
+          "sha256": "9694413f01703f765b8fa54cd4aa520c752a7e144ee5ead3e7c9e8dba8931967",
+          "bytes": 5972,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/b2-delta-cells.cjs",
+          "sha256": "5c8d365b0c32d9f37880e778dd14300ce88d265e960196cf3bcc47a17fc52c1d",
+          "bytes": 35108,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/b-package.cjs",
+          "sha256": "f21ce8ee43647915953b359d493cfb05272b35c3615d4c57b3e7db0d39f6f022",
+          "bytes": 263361,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/packages/B-NTC.json",
+          "sha256": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
+          "bytes": 40808,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+          "sha256": "7be0cea7bebc2c0dff8743de055affe251bb42aadb6985ad5344153e0ba3376d",
+          "bytes": 88754,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/README.md",
+          "sha256": "c085ef3b04c97445ba55ae34166f197191316a3a5be587cd5a367de35bb68ddc",
+          "bytes": 107693,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/astra-issuer-compatibility.test.cjs",
+          "sha256": "a90f2434e8607800ed95ea1902c886031c69297e79f92be57ed33aabbed074b9",
+          "bytes": 31543,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs",
+          "sha256": "0dbb1b7e0aa9e26bc46858fe47f123e6fb2916ebe50cbcdf29d33fba9df0f0e8",
+          "bytes": 41779,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/gate-supersession.test.cjs",
+          "sha256": "ef1232edcc35303d502d587373b23463aa2f7784a58bc7ec7f53580d045bdcdc",
+          "bytes": 37454,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/git-blob-pin-classes.test.cjs",
+          "sha256": "f1e4c0e8761b171b747482d9da537d98e74f883933d2f92635ba355cba17ee7b",
+          "bytes": 11669,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/parent-pin-shapes-and-spec-successors.test.cjs",
+          "sha256": "08f832a90ae8ba07ce76da57923c311eed5702a3fc98139a95870e1247351175",
+          "bytes": 16577,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs",
+          "sha256": "a77deaf5ef6c444fc406f2273753ada3ffa905d5fbd1ed2fbad838e3a6146a6f",
+          "bytes": 19172,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs",
+          "sha256": "3ee3923e2dc69cc8e795070df48a6a4b73d8f364ee931310b184f6ad04a11838",
+          "bytes": 15446,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/seal-tip-and-byte-identity.test.cjs",
+          "sha256": "f03a8952084a92b482671140090c33260ab03436cf16408063dc0e2ecc0c1166",
+          "bytes": 24699,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs",
+          "sha256": "e2422080738d1ef0701f3ad677f52e4d723357110a322b9f8485a89b29a01c2d",
+          "bytes": 28170,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/TOOLING-REPORT.md",
+          "sha256": "41adeaf6bfe4f0e43b09b87e8eff5e700a472281987d4d500f4431a2e042c819",
+          "bytes": 178174,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/c/N2-R4-REPORT.md",
+          "sha256": "70b0ff9e7f48abd5534a24ff15fa43e76a92f0ec87872303809350e8cc37bef5",
+          "bytes": 4016,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/LANES.md",
+          "sha256": "82e6779281b1d9f0da9354daf5047fe4fcd3dd9286f4b2c6fa737f6434cc009b",
+          "bytes": 11877,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/lanes/PM-CARETAKER-BRIEF.md",
+          "sha256": "582e5674fffc60c94fce69fe2373d44eed5c79e1c984c01d73c4bc5b7262ad69",
+          "bytes": 5517,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w6/host/engine-runtime-host.cjs",
+          "sha256": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+          "bytes": 7305,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w6/host/test/engine-equivalence.test.cjs",
+          "sha256": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+          "bytes": 4486,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w6/host/test/journey.test.mjs",
+          "sha256": "7b78319ea83cdeb5679faa8e5995867244c8fa540d57ee8f53f6b6d437b0322d",
+          "bytes": 40507,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w6/host/workout-host.mjs",
+          "sha256": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
+          "bytes": 16079,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w6/local/today-bindings.mjs",
+          "sha256": "95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8",
+          "bytes": 43212,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w6/test/local-today-journey.test.mjs",
+          "sha256": "4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7",
+          "bytes": 64913,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/browser-engine.cjs",
+          "sha256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+          "bytes": 1451,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/build.mjs",
+          "sha256": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+          "bytes": 5317,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/build.mjs",
+          "sha256": "b7ae73d94a8c9e255307baab24343e281a4244bb9ea1dd3de211d7dfd8aa400f",
+          "bytes": 23186,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/design.cjs",
+          "sha256": "ef7f2a174c41b247e9472e1699e71df70369036bb7719ea3f8c28dd04e9c1175",
+          "bytes": 38320,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/preview.css",
+          "sha256": "d6278685a57b1d851881fafa3c1c0d1250aadb30cb2beb56069e93d773a67bab",
+          "bytes": 5698,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/screens.template.html",
+          "sha256": "6779adff94c19ab482e6f484d334c34cd8c4fcbaa4badabb173658451113c662",
+          "bytes": 29516,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-check.mjs",
+          "sha256": "fc59516168c87b9c601f87586f954840851ef3b9fa22621121c1c983a6eeb5d7",
+          "bytes": 36177,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-commands.cjs",
+          "sha256": "36c779be57f4975c5a4327113d139edf2652dc59c981523c3531442fd88105ed",
+          "bytes": 12687,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-host.mjs",
+          "sha256": "730143f0f16ed1ac8c369cdeb0701bf0e58984de734a97afc50716dc1bf1bbb4",
+          "bytes": 11720,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-model.cjs",
+          "sha256": "eff392a49fd067dbcc01648a27df3a5dddd55ad5328873b07a8f0006ebd1afe3",
+          "bytes": 11250,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/adapter.test.mjs",
+          "sha256": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+          "bytes": 18515,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/catalogue.test.mjs",
+          "sha256": "a586e3eb4917302864d86937294b1eb824f32931ddaf552c5deb4f97e067322f",
+          "bytes": 32182,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/checkin.test.mjs",
+          "sha256": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+          "bytes": 43480,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/copy.test.mjs",
+          "sha256": "c9ad7b5e232ee0bdc4ad7096188ccf43688ccf4c28128976c3b04bc512649e55",
+          "bytes": 44008,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/design.test.cjs",
+          "sha256": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+          "bytes": 11168,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/food.test.mjs",
+          "sha256": "0d4933f4f3cd9f9f1a98f6632285c355240477062df32b084b107cf17306e77c",
+          "bytes": 63196,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+          "sha256": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+          "bytes": 64476,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+          "sha256": "b1dcece689912141d6332d7d35a44e06bd3bfc511a38dcee187bb741f57e9292",
+          "bytes": 60356,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs",
+          "sha256": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+          "bytes": 26129,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/package.test.cjs",
+          "sha256": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+          "bytes": 10731,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/problem.test.mjs",
+          "sha256": "83b9c4988d17bbbe99d6b6d66c11b489e749d8eb7fe8eb7bf62d3b7bd75d908e",
+          "bytes": 33781,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/setup.test.mjs",
+          "sha256": "68f91f9ca8d2e3b2f5434f87a625310f0898e93fba1c42cc50cb7bbb4a684fab",
+          "bytes": 132999,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/sleep.test.mjs",
+          "sha256": "bdd358dc69afde543db8e5566f151c0a4c777066b1218a67eea8eafdd2070271",
+          "bytes": 114626,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/view.test.mjs",
+          "sha256": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+          "bytes": 34112,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/today-app.cjs",
+          "sha256": "18c79030cc7f420d6c7cb1d14cbd4febeb79c6ee31bdf327a772f5d4f180e5e7",
+          "bytes": 116877,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/today-model.cjs",
+          "sha256": "958136d7ee4a741b82d4e16a6b331a332cd0c96f59fde45d9938b1f57a711637",
+          "bytes": 19215,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/acceptance-h3-clean-init.json",
+          "sha256": "b457b539a384d8c72531b880cd771e996c6b231f034a49272e899c1fba61e61f",
+          "bytes": 36069,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-cases.cjs",
+          "sha256": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
+          "bytes": 577,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-defect-witnesses.cjs",
+          "sha256": "d6a39f0051a5c3374ce53e0273a9fbd0b60695eaf1fa218a3d2a0c27967ceeb7",
+          "bytes": 610,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-direct.cjs",
+          "sha256": "a043bffc9a0c99f0cfb3aa24ead3e75d4b3f4fc1635fc1df094c089b0b55142a",
+          "bytes": 580,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-focused.cjs",
+          "sha256": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+          "bytes": 1030,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-inherited-carriers.cjs",
+          "sha256": "505cf440ed736a4deb8cc2d7faf7c2c7b6e10a8d9b640b89ef4ee2e29b9433c1",
+          "bytes": 616,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-journeys.cjs",
+          "sha256": "cb59f37e39b6eaa17207b3b6a0f6d8fcba4b90798381853ba39221d7ee5271be",
+          "bytes": 1849,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-legacy.cjs",
+          "sha256": "287526762da17bbf7d46ea2b9d567e8a90752b4ba8a4b1e91aa8864c9d3309c8",
+          "bytes": 580,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs",
+          "sha256": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+          "bytes": 1096,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs",
+          "sha256": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+          "bytes": 1205,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-second-gate.cjs",
+          "sha256": "b87b8949f9b7f03ab8f62abf3fb9bc8293c7ab7aadfdbcfa489202f6ff9f60c8",
+          "bytes": 595,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-source-carriers.cjs",
+          "sha256": "89bb7727e08d0f0783ada0b584620a793a6acae73f0efb9e6f9c72a228b0e578",
+          "bytes": 607,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-successors.cjs",
+          "sha256": "2efe4a480f952a58bd2fd3e2301054334cfced297f14a46b7b4945962fabe6f9",
+          "bytes": 15831,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-successors.test.cjs",
+          "sha256": "bf63c764a5cb0a86d24a80c9a299711c71801075288ba7339e1c94964fee7ca3",
+          "bytes": 5503,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-traces.cjs",
+          "sha256": "0137dc617d83ed1e0171054da62f3699a32232342ed88cd54eded578a83c2325",
+          "bytes": 580,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-witnesses.cjs",
+          "sha256": "6a601742f8b1bfae28ca7c7ee3acb0a3930614b21b17e4271f7db0b82fe6207e",
+          "bytes": 589,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-writers-differential.cjs",
+          "sha256": "abf14c3f3b37954a9bcf131506d28f0ad44b9e1c6e1c3b0c24c90682735d53d9",
+          "bytes": 622,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/b2-inherited-carriers.cjs",
+          "sha256": "f023ad8c8ef15809cefea577e7835f3bd7bfb864af3b7f33875983d773ead00d",
+          "bytes": 12543,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/load-write-reference.cjs",
+          "sha256": "dfc836b34e5d48b06105fdf097db6e6154a25e145220d47569bab269ea6778df",
+          "bytes": 1361,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/load-write-source.cjs",
+          "sha256": "77bd6b7116f42b7e676473ec00cb57a13b86ec4d6daa30aa3514f90ad01a24d0",
+          "bytes": 4620,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/native-carriers-errors.cjs",
+          "sha256": "ddcfa7d212a6291e7c84c50106813c4f9c1ead46bb11723bb505e58e423e51c7",
+          "bytes": 965,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/spec/review-h3-clean-init.json",
+          "sha256": "42295d2f4327cef9f4fa736848645f641c91a637b21445c95235d0e19af8f23d",
+          "bytes": 480,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/athlete-state.cjs",
+          "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+          "bytes": 21198,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/engine-runtime.cjs",
+          "sha256": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+          "bytes": 5596,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/native-trend-context.cjs",
+          "sha256": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+          "bytes": 26812,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-engine-files-differential.cjs",
+          "sha256": "06e12e433a0b34fdd9fe8bf4a2fbf8c571a9612e364ecab3209855ae91cefd7d",
+          "bytes": 3857,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+          "sha256": "884218f2fa5f2e012a018f096f05f6ec3fb7a4027b4123c5bacc0aa25fce4b9c",
+          "bytes": 36945,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-h3-clean-init.test.cjs",
+          "sha256": "94b62b27ed84ac594937d251edaa4fd40f046f8f39e663fce10e45d53b5317ac",
+          "bytes": 326,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-public-census.cjs",
+          "sha256": "281c6302204278288b40ba6dcd148f1f3d4341757b66152c758b4f78608bc016",
+          "bytes": 8642,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-source-changes.json",
+          "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058",
+          "bytes": 196822,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-defect-witnesses.test.cjs",
+          "sha256": "6062f3cca4d05580689a0fa28bd0dfa9559a2c39df5595677132a4f167bdbbfd",
+          "bytes": 693,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs",
+          "sha256": "a23f1966a41ec84e1e6212e3c35ed3276dc74d660bdafc188d91a9bf6f9e812c",
+          "bytes": 3804,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+          "sha256": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2",
+          "bytes": 1061,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs",
+          "sha256": "7ccce9f82a4c92508e6001487249df5a0c9b7cc888a767b85409752f72399389",
+          "bytes": 16536,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-writers-differential.test.cjs",
+          "sha256": "4ec48c63fa12c9f0ce0d5888df519a2e99944c9e198b67f0e84319d111dad6a2",
+          "bytes": 1132,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-clean-init.test.cjs",
+          "sha256": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
+          "bytes": 49398,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-engine-files-differential.cjs",
+          "sha256": "d0f59c48b9d50997c5cd4a8cbd9e8a48fdae4765f17c8cf74f03cffafd41d9bf",
+          "bytes": 5294,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-defect-witnesses.test.cjs",
+          "sha256": "e41ec9f2d1ea8d7d650ce139799da783301f7d5e99365e6386c0ccf61e990c7f",
+          "bytes": 8911,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-inherited-carriers.test.cjs",
+          "sha256": "69c8d05fa3a1ccf6b3b3458706ffc633c9f83063dd604bd15549ba61d1c7f0ff",
+          "bytes": 7588,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs",
+          "sha256": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+          "bytes": 8089,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs",
+          "sha256": "dc92e91810246fca195ab3a031236aaffba2b04522e5718fb72f9f6eda62d0dc",
+          "bytes": 12591,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs",
+          "sha256": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+          "bytes": 9806,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/m4/workout/test/native-trend-context.test.cjs",
+          "sha256": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a",
+          "bytes": 34331,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        },
+        {
+          "file": "rebuild/ROADMAP.md",
+          "sha256": "8bc65f6c86fd8d2fbcbb7bf737148e5f80ced34e2013edeebdec24a58815afbc",
+          "bytes": 16105,
+          "source": "1987177434b89b0b11672b806b4ba998d9c14bbc"
+        }
+      ],
+      "tapSHA256": "b991157a86c5b1d8ca627022e45e26571363ac41f736dff5663ffaa9785f3040"
+    },
+    {
+      "name": "binding-final",
+      "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7",
+      "tests": 331,
+      "pass": 329,
+      "fail": 2,
+      "count": 136,
+      "result": {
+        "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7",
+        "version": "v22.23.2",
+        "argv": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/lanes/b/tooling/test/astra-issuer-compatibility.test.cjs",
+          "rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs",
+          "rebuild/lanes/b/tooling/test/seal-tip-and-byte-identity.test.cjs",
+          "rebuild/lanes/b/tooling/test/gate-supersession.test.cjs",
+          "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs",
+          "rebuild/lanes/b/tooling/test/parent-pin-shapes-and-spec-successors.test.cjs",
+          "rebuild/lanes/b/tooling/test/git-blob-pin-classes.test.cjs",
+          "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs",
+          "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 633340,
+        "summary": [
+          "# tests 331",
+          "# pass 329",
+          "# fail 2",
+          "# cancelled 0",
+          "# skipped 0",
+          "# todo 0",
+          "# duration_ms 633279.6709"
+        ],
+        "stdout": {
+          "bytes": 271434,
+          "sha256": "47f9454876f8683af5dfffe3e8ebeabfd30b6a772212bbf11c48ca2da17a79d9"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "unchanged": true
+      },
+      "failures": [
+        {
+          "name": "C9 full current profile passes the actual closed registration checker",
+          "diagnostic": "  ---\n  duration_ms: 1.2592\n  type: 'test'\n  location: 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\b1b2-amendment-binding\\\\rebuild\\\\lanes\\\\b\\\\tooling\\\\test\\\\b1b2-registration.test.cjs:194:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    exact R4 expectation; prospective until that child runs\n    + actual - expected\n    \n    + '# pass 331'\n    - '# pass 267'\n              ^\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '# pass 267'\n  actual: '# pass 331'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\rebuild\\lanes\\b\\tooling\\test\\b1b2-registration.test.cjs:198:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n"
+        },
+        {
+          "name": "A19 actual reviewed-source leg binds all six authority documents; omitted-pin mutant loses refusal",
+          "diagnostic": "  ---\n  duration_ms: 2954.6529\n  type: 'test'\n  location: 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\b1b2-amendment-binding\\\\rebuild\\\\lanes\\\\b\\\\tooling\\\\test\\\\b1b2-registration.test.cjs:488:1'\n  failureType: 'testCodeFailure'\n  error: 'Cannot convert undefined or null to object'\n  code: 'ERR_TEST_FAILURE'\n  name: 'TypeError'\n  stack: |-\n    Function.entries (<anonymous>)\n    eval (eval at reviewedLeg (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\rebuild\\lanes\\b\\tooling\\test\\b1b2-registration.test.cjs:486:9), <anonymous>:4:36)\n    reviewedLeg (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\rebuild\\lanes\\b\\tooling\\test\\b1b2-registration.test.cjs:486:82)\n    TestContext.<anonymous> (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\b1b2-amendment-binding\\rebuild\\lanes\\b\\tooling\\test\\b1b2-registration.test.cjs:489:45)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n"
+        }
+      ],
+      "inputVerification": [
+        {
+          "file": ".gitattributes",
+          "sha256": "8bdc791ff524e697db8d6138f83071a776a834d4c626cffa8a0e7df2365e2a55",
+          "bytes": 928,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": ".github/workflows/rebuild.yml",
+          "sha256": "fa5a4e766310f816b929480df316ad5db961220e0f7b4b8a9f55c8b84e6bb282",
+          "bytes": 11001,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": ".gitignore",
+          "sha256": "ffe98a0fdf720df14d4d568d748bd5cae9ebb7a237f75be316efe49d7bb78da4",
+          "bytes": 36,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "AGENTS.md",
+          "sha256": "79f5808dbd4e396bc98f629290e3ed1de817585c766d0653bebcde325536ca42",
+          "bytes": 3469,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "NEXT.md",
+          "sha256": "9e709f1f4429a0612d832e974bf3edc0d6673e146bb3efcf6cca02e00d396792",
+          "bytes": 282450,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/coach/local-world.mjs",
+          "sha256": "5c46ab64d7233beb341fceae615e5ef81477e98accd654732791b5d29a626292",
+          "bytes": 20541,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/legacy-b1-carriers.cjs",
+          "sha256": "d8d98b247271d9b4f5ac50f2b7205b1820db4ff72ad6bb53ee2e0d6ccbb002bf",
+          "bytes": 12838,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/legacy-b1b2-carriers.cjs",
+          "sha256": "24ab82024ac4195397769f58fc37c18827c907c0fc03dec98fa38160e203c699",
+          "bytes": 40106,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/legacy-gates.cjs",
+          "sha256": "b8891d9ba12f38713582634b7709b6f3a3a5c05e008a10c7f2d74a91e169b0df",
+          "bytes": 10124,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/run.cjs",
+          "sha256": "654288e073ea6815ce699c1eacb61c7030b0de0781b277477f3800fa06eb245a",
+          "bytes": 17068,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/strict-json.cjs",
+          "sha256": "5722f233e704149f03f2898bf739c3cc42fe323a0c91e0eee55eb82cc57a3478",
+          "bytes": 1697,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/target.cjs",
+          "sha256": "e19f3399d9e4e4dff7d3a6dae2c2c251c9fda5b88ead9640e95adc3e4a7908bb",
+          "bytes": 14223,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs",
+          "sha256": "d78fd8322ede877e0ff3b56c936d4381bdea3280359079d310a7b6278460608d",
+          "bytes": 11570,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/trace-v2.cjs",
+          "sha256": "5804390be453b9321955c1b498d7b5a80ee96f9b14ef701b33176a15f6ce9e2d",
+          "bytes": 4986,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/constants.cjs",
+          "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+          "bytes": 23393,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/dates.cjs",
+          "sha256": "b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067",
+          "bytes": 1343,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/earn.cjs",
+          "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+          "bytes": 11429,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/energy.cjs",
+          "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+          "bytes": 94493,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/entered-load.cjs",
+          "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+          "bytes": 906,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/index.cjs",
+          "sha256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+          "bytes": 1111,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/merge.cjs",
+          "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+          "bytes": 84396,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/migrate.cjs",
+          "sha256": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+          "bytes": 184433,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/oracle-shim.cjs",
+          "sha256": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+          "bytes": 826,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/performed.cjs",
+          "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+          "bytes": 19479,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/plan.cjs",
+          "sha256": "4c6f981706694771501d3d050440eb4f9a62e64b6eac7c59ff9c4742dfaa7e93",
+          "bytes": 19853,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/policy.cjs",
+          "sha256": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870",
+          "bytes": 56874,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/progression.cjs",
+          "sha256": "2384d12e5788fb01324a62d7bbc7fa7303a3e748f97ecd4a6f9a5c82975dbc7a",
+          "bytes": 54604,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/sleep.cjs",
+          "sha256": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8",
+          "bytes": 188103,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/test/b1-delta-cells.cjs",
+          "sha256": "ade964b9887b758f9cf04fd82d002ac19ffcb4b77be5e136971f252b6e116466",
+          "bytes": 61185,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+          "sha256": "6cc87127cf62c071cee077478aa352d11eaa49e0a407427a0b66c09a510fefa5",
+          "bytes": 55323,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/test/b1b2-public-engine.cjs",
+          "sha256": "5afe0c0f30ee93b877328eed04db16df0c5fa28ed577c2fc4ac3c6e05a5051c5",
+          "bytes": 10827,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+          "sha256": "6a996fcc53fbea6fc9611517b7d2c7ed636516480322095b1863507e934d256d",
+          "bytes": 64433,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/test/b2-era30.test.cjs",
+          "sha256": "78ba43847681a176298c91257cc456a6d5aed5f03b6783b091521d473d6335d5",
+          "bytes": 435756,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/test/b2-public-source-faults.test.cjs",
+          "sha256": "5d609a17c8d19559d3b40ffce8ea4bc7682dd62ab22730c5368d1f2ad8c110b6",
+          "bytes": 32555,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+          "sha256": "f5169bebd527ac13c8a570859bb5d728535a2a71734e135904a77be36c8506e6",
+          "bytes": 5081,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/test/defect-witnesses-4.cjs",
+          "sha256": "c90ffeaa953a9b04146432f39702f87fc8c51ce7f0be77876f075fc4142b87f7",
+          "bytes": 6465,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/test/defect-witnesses.cjs",
+          "sha256": "557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644",
+          "bytes": 4126,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/today.cjs",
+          "sha256": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
+          "bytes": 48911,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/volume.cjs",
+          "sha256": "d58159bc0c098983fa1db6a1f8542d93611537934fca2b2a17bae236bcacd321",
+          "bytes": 25485,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/engine/writers.cjs",
+          "sha256": "7e8ba66e82a24983e98d063fe948838f77ec168b52515cdfe2e6483291027494",
+          "bytes": 261840,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/astra/PM-OPERATING-CHARTER.md",
+          "sha256": "9694413f01703f765b8fa54cd4aa520c752a7e144ee5ead3e7c9e8dba8931967",
+          "bytes": 5972,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/b2-delta-cells.cjs",
+          "sha256": "5c8d365b0c32d9f37880e778dd14300ce88d265e960196cf3bcc47a17fc52c1d",
+          "bytes": 35108,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/b-package.cjs",
+          "sha256": "f21ce8ee43647915953b359d493cfb05272b35c3615d4c57b3e7db0d39f6f022",
+          "bytes": 263361,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/packages/B-NTC.json",
+          "sha256": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
+          "bytes": 40808,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+          "sha256": "cb21a493b035927e5286ebade6d33340a72fc6ead7901d806c360cc65003053c",
+          "bytes": 89271,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/README.md",
+          "sha256": "c085ef3b04c97445ba55ae34166f197191316a3a5be587cd5a367de35bb68ddc",
+          "bytes": 107693,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/astra-issuer-compatibility.test.cjs",
+          "sha256": "a90f2434e8607800ed95ea1902c886031c69297e79f92be57ed33aabbed074b9",
+          "bytes": 31543,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs",
+          "sha256": "173287f88663086a71e9b49afe9c07e2790f33a1bfbfb840509939c7c5c02d5c",
+          "bytes": 45807,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/gate-supersession.test.cjs",
+          "sha256": "ef1232edcc35303d502d587373b23463aa2f7784a58bc7ec7f53580d045bdcdc",
+          "bytes": 37454,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/git-blob-pin-classes.test.cjs",
+          "sha256": "f1e4c0e8761b171b747482d9da537d98e74f883933d2f92635ba355cba17ee7b",
+          "bytes": 11669,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/parent-pin-shapes-and-spec-successors.test.cjs",
+          "sha256": "08f832a90ae8ba07ce76da57923c311eed5702a3fc98139a95870e1247351175",
+          "bytes": 16577,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs",
+          "sha256": "a77deaf5ef6c444fc406f2273753ada3ffa905d5fbd1ed2fbad838e3a6146a6f",
+          "bytes": 19172,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs",
+          "sha256": "3ee3923e2dc69cc8e795070df48a6a4b73d8f364ee931310b184f6ad04a11838",
+          "bytes": 15446,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/seal-tip-and-byte-identity.test.cjs",
+          "sha256": "f03a8952084a92b482671140090c33260ab03436cf16408063dc0e2ecc0c1166",
+          "bytes": 24699,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs",
+          "sha256": "e2422080738d1ef0701f3ad677f52e4d723357110a322b9f8485a89b29a01c2d",
+          "bytes": 28170,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/TOOLING-REPORT.md",
+          "sha256": "41adeaf6bfe4f0e43b09b87e8eff5e700a472281987d4d500f4431a2e042c819",
+          "bytes": 178174,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/c/N2-R4-REPORT.md",
+          "sha256": "70b0ff9e7f48abd5534a24ff15fa43e76a92f0ec87872303809350e8cc37bef5",
+          "bytes": 4016,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/LANES.md",
+          "sha256": "82e6779281b1d9f0da9354daf5047fe4fcd3dd9286f4b2c6fa737f6434cc009b",
+          "bytes": 11877,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/PM-CARETAKER-BRIEF.md",
+          "sha256": "582e5674fffc60c94fce69fe2373d44eed5c79e1c984c01d73c4bc5b7262ad69",
+          "bytes": 5517,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w6/host/engine-runtime-host.cjs",
+          "sha256": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+          "bytes": 7305,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w6/host/test/engine-equivalence.test.cjs",
+          "sha256": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+          "bytes": 4486,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w6/host/test/journey.test.mjs",
+          "sha256": "7b78319ea83cdeb5679faa8e5995867244c8fa540d57ee8f53f6b6d437b0322d",
+          "bytes": 40507,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w6/host/workout-host.mjs",
+          "sha256": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
+          "bytes": 16079,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w6/local/today-bindings.mjs",
+          "sha256": "95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8",
+          "bytes": 43212,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w6/test/local-today-journey.test.mjs",
+          "sha256": "4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7",
+          "bytes": 64913,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/browser-engine.cjs",
+          "sha256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+          "bytes": 1451,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/build.mjs",
+          "sha256": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+          "bytes": 5317,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/build.mjs",
+          "sha256": "b7ae73d94a8c9e255307baab24343e281a4244bb9ea1dd3de211d7dfd8aa400f",
+          "bytes": 23186,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/design.cjs",
+          "sha256": "ef7f2a174c41b247e9472e1699e71df70369036bb7719ea3f8c28dd04e9c1175",
+          "bytes": 38320,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/preview.css",
+          "sha256": "d6278685a57b1d851881fafa3c1c0d1250aadb30cb2beb56069e93d773a67bab",
+          "bytes": 5698,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/screens.template.html",
+          "sha256": "6779adff94c19ab482e6f484d334c34cd8c4fcbaa4badabb173658451113c662",
+          "bytes": 29516,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-check.mjs",
+          "sha256": "fc59516168c87b9c601f87586f954840851ef3b9fa22621121c1c983a6eeb5d7",
+          "bytes": 36177,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-commands.cjs",
+          "sha256": "36c779be57f4975c5a4327113d139edf2652dc59c981523c3531442fd88105ed",
+          "bytes": 12687,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-host.mjs",
+          "sha256": "730143f0f16ed1ac8c369cdeb0701bf0e58984de734a97afc50716dc1bf1bbb4",
+          "bytes": 11720,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-model.cjs",
+          "sha256": "eff392a49fd067dbcc01648a27df3a5dddd55ad5328873b07a8f0006ebd1afe3",
+          "bytes": 11250,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/adapter.test.mjs",
+          "sha256": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+          "bytes": 18515,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/catalogue.test.mjs",
+          "sha256": "a586e3eb4917302864d86937294b1eb824f32931ddaf552c5deb4f97e067322f",
+          "bytes": 32182,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/checkin.test.mjs",
+          "sha256": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+          "bytes": 43480,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/copy.test.mjs",
+          "sha256": "c9ad7b5e232ee0bdc4ad7096188ccf43688ccf4c28128976c3b04bc512649e55",
+          "bytes": 44008,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/design.test.cjs",
+          "sha256": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+          "bytes": 11168,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/food.test.mjs",
+          "sha256": "0d4933f4f3cd9f9f1a98f6632285c355240477062df32b084b107cf17306e77c",
+          "bytes": 63196,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+          "sha256": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+          "bytes": 64476,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+          "sha256": "b1dcece689912141d6332d7d35a44e06bd3bfc511a38dcee187bb741f57e9292",
+          "bytes": 60356,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs",
+          "sha256": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+          "bytes": 26129,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/package.test.cjs",
+          "sha256": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+          "bytes": 10731,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/problem.test.mjs",
+          "sha256": "83b9c4988d17bbbe99d6b6d66c11b489e749d8eb7fe8eb7bf62d3b7bd75d908e",
+          "bytes": 33781,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/setup.test.mjs",
+          "sha256": "68f91f9ca8d2e3b2f5434f87a625310f0898e93fba1c42cc50cb7bbb4a684fab",
+          "bytes": 132999,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/sleep.test.mjs",
+          "sha256": "bdd358dc69afde543db8e5566f151c0a4c777066b1218a67eea8eafdd2070271",
+          "bytes": 114626,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/view.test.mjs",
+          "sha256": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+          "bytes": 34112,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/today-app.cjs",
+          "sha256": "18c79030cc7f420d6c7cb1d14cbd4febeb79c6ee31bdf327a772f5d4f180e5e7",
+          "bytes": 116877,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/today-model.cjs",
+          "sha256": "958136d7ee4a741b82d4e16a6b331a332cd0c96f59fde45d9938b1f57a711637",
+          "bytes": 19215,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/acceptance-h3-clean-init.json",
+          "sha256": "b457b539a384d8c72531b880cd771e996c6b231f034a49272e899c1fba61e61f",
+          "bytes": 36069,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-cases.cjs",
+          "sha256": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
+          "bytes": 577,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-defect-witnesses.cjs",
+          "sha256": "d6a39f0051a5c3374ce53e0273a9fbd0b60695eaf1fa218a3d2a0c27967ceeb7",
+          "bytes": 610,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-direct.cjs",
+          "sha256": "a043bffc9a0c99f0cfb3aa24ead3e75d4b3f4fc1635fc1df094c089b0b55142a",
+          "bytes": 580,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-focused.cjs",
+          "sha256": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+          "bytes": 1030,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-inherited-carriers.cjs",
+          "sha256": "505cf440ed736a4deb8cc2d7faf7c2c7b6e10a8d9b640b89ef4ee2e29b9433c1",
+          "bytes": 616,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-journeys.cjs",
+          "sha256": "cb59f37e39b6eaa17207b3b6a0f6d8fcba4b90798381853ba39221d7ee5271be",
+          "bytes": 1849,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-legacy.cjs",
+          "sha256": "287526762da17bbf7d46ea2b9d567e8a90752b4ba8a4b1e91aa8864c9d3309c8",
+          "bytes": 580,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs",
+          "sha256": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+          "bytes": 1096,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs",
+          "sha256": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+          "bytes": 1205,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-second-gate.cjs",
+          "sha256": "b87b8949f9b7f03ab8f62abf3fb9bc8293c7ab7aadfdbcfa489202f6ff9f60c8",
+          "bytes": 595,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-source-carriers.cjs",
+          "sha256": "89bb7727e08d0f0783ada0b584620a793a6acae73f0efb9e6f9c72a228b0e578",
+          "bytes": 607,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-successors.cjs",
+          "sha256": "2efe4a480f952a58bd2fd3e2301054334cfced297f14a46b7b4945962fabe6f9",
+          "bytes": 15831,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-successors.test.cjs",
+          "sha256": "bf63c764a5cb0a86d24a80c9a299711c71801075288ba7339e1c94964fee7ca3",
+          "bytes": 5503,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-traces.cjs",
+          "sha256": "0137dc617d83ed1e0171054da62f3699a32232342ed88cd54eded578a83c2325",
+          "bytes": 580,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-witnesses.cjs",
+          "sha256": "6a601742f8b1bfae28ca7c7ee3acb0a3930614b21b17e4271f7db0b82fe6207e",
+          "bytes": 589,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-writers-differential.cjs",
+          "sha256": "abf14c3f3b37954a9bcf131506d28f0ad44b9e1c6e1c3b0c24c90682735d53d9",
+          "bytes": 622,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/b2-inherited-carriers.cjs",
+          "sha256": "f023ad8c8ef15809cefea577e7835f3bd7bfb864af3b7f33875983d773ead00d",
+          "bytes": 12543,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/load-write-reference.cjs",
+          "sha256": "dfc836b34e5d48b06105fdf097db6e6154a25e145220d47569bab269ea6778df",
+          "bytes": 1361,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/load-write-source.cjs",
+          "sha256": "77bd6b7116f42b7e676473ec00cb57a13b86ec4d6daa30aa3514f90ad01a24d0",
+          "bytes": 4620,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/native-carriers-errors.cjs",
+          "sha256": "ddcfa7d212a6291e7c84c50106813c4f9c1ead46bb11723bb505e58e423e51c7",
+          "bytes": 965,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/spec/review-h3-clean-init.json",
+          "sha256": "42295d2f4327cef9f4fa736848645f641c91a637b21445c95235d0e19af8f23d",
+          "bytes": 480,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/athlete-state.cjs",
+          "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+          "bytes": 21198,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/engine-runtime.cjs",
+          "sha256": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+          "bytes": 5596,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/native-trend-context.cjs",
+          "sha256": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+          "bytes": 26812,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-engine-files-differential.cjs",
+          "sha256": "06e12e433a0b34fdd9fe8bf4a2fbf8c571a9612e364ecab3209855ae91cefd7d",
+          "bytes": 3857,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+          "sha256": "884218f2fa5f2e012a018f096f05f6ec3fb7a4027b4123c5bacc0aa25fce4b9c",
+          "bytes": 36945,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-h3-clean-init.test.cjs",
+          "sha256": "94b62b27ed84ac594937d251edaa4fd40f046f8f39e663fce10e45d53b5317ac",
+          "bytes": 326,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-public-census.cjs",
+          "sha256": "281c6302204278288b40ba6dcd148f1f3d4341757b66152c758b4f78608bc016",
+          "bytes": 8642,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-source-changes.json",
+          "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058",
+          "bytes": 196822,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-defect-witnesses.test.cjs",
+          "sha256": "6062f3cca4d05580689a0fa28bd0dfa9559a2c39df5595677132a4f167bdbbfd",
+          "bytes": 693,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs",
+          "sha256": "a23f1966a41ec84e1e6212e3c35ed3276dc74d660bdafc188d91a9bf6f9e812c",
+          "bytes": 3804,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+          "sha256": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2",
+          "bytes": 1061,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs",
+          "sha256": "7ccce9f82a4c92508e6001487249df5a0c9b7cc888a767b85409752f72399389",
+          "bytes": 16536,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-writers-differential.test.cjs",
+          "sha256": "4ec48c63fa12c9f0ce0d5888df519a2e99944c9e198b67f0e84319d111dad6a2",
+          "bytes": 1132,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-clean-init.test.cjs",
+          "sha256": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
+          "bytes": 49398,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-engine-files-differential.cjs",
+          "sha256": "d0f59c48b9d50997c5cd4a8cbd9e8a48fdae4765f17c8cf74f03cffafd41d9bf",
+          "bytes": 5294,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-defect-witnesses.test.cjs",
+          "sha256": "e41ec9f2d1ea8d7d650ce139799da783301f7d5e99365e6386c0ccf61e990c7f",
+          "bytes": 8911,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-inherited-carriers.test.cjs",
+          "sha256": "69c8d05fa3a1ccf6b3b3458706ffc633c9f83063dd604bd15549ba61d1c7f0ff",
+          "bytes": 7588,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs",
+          "sha256": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+          "bytes": 8089,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs",
+          "sha256": "dc92e91810246fca195ab3a031236aaffba2b04522e5718fb72f9f6eda62d0dc",
+          "bytes": 12591,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs",
+          "sha256": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+          "bytes": 9806,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/m4/workout/test/native-trend-context.test.cjs",
+          "sha256": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a",
+          "bytes": 34331,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/ROADMAP.md",
+          "sha256": "8bc65f6c86fd8d2fbcbb7bf737148e5f80ced34e2013edeebdec24a58815afbc",
+          "bytes": 16105,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        },
+        {
+          "file": "rebuild/lanes/b/BRIEF-B1B2-SUCCESSOR-REGISTRATION-v1.0.md",
+          "sha256": "ae1a58a75530a06988a936d6087f00ee8c86814521a957a7648cc15bf14b4f80",
+          "bytes": 18331,
+          "source": "5ef700b5be6f77fd834e65f972ad511222d12ab7"
+        }
+      ],
+      "tapSHA256": "47f9454876f8683af5dfffe3e8ebeabfd30b6a772212bbf11c48ca2da17a79d9"
+    },
+    {
+      "name": "binding-verified",
+      "source": "1dcdbc0599330c2354257f053b9ed648616475a6",
+      "tests": 331,
+      "pass": 331,
+      "fail": 0,
+      "count": 136,
+      "result": {
+        "source": "1dcdbc0599330c2354257f053b9ed648616475a6",
+        "version": "v22.23.2",
+        "argv": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/lanes/b/tooling/test/astra-issuer-compatibility.test.cjs",
+          "rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs",
+          "rebuild/lanes/b/tooling/test/seal-tip-and-byte-identity.test.cjs",
+          "rebuild/lanes/b/tooling/test/gate-supersession.test.cjs",
+          "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs",
+          "rebuild/lanes/b/tooling/test/parent-pin-shapes-and-spec-successors.test.cjs",
+          "rebuild/lanes/b/tooling/test/git-blob-pin-classes.test.cjs",
+          "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs",
+          "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 573902,
+        "summary": [
+          "# tests 331",
+          "# pass 331",
+          "# fail 0",
+          "# cancelled 0",
+          "# skipped 0",
+          "# todo 0",
+          "# duration_ms 573841.0642"
+        ],
+        "stdout": {
+          "bytes": 269132,
+          "sha256": "36ad406b6a0ec85cc9a8e1aee8998e35ab7e01acfe8b3ddf2e9ed9bcc1e5688b"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "unchanged": true
+      },
+      "failures": [],
+      "inputVerification": [
+        {
+          "file": ".gitattributes",
+          "sha256": "8bdc791ff524e697db8d6138f83071a776a834d4c626cffa8a0e7df2365e2a55",
+          "bytes": 928,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": ".github/workflows/rebuild.yml",
+          "sha256": "fa5a4e766310f816b929480df316ad5db961220e0f7b4b8a9f55c8b84e6bb282",
+          "bytes": 11001,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": ".gitignore",
+          "sha256": "ffe98a0fdf720df14d4d568d748bd5cae9ebb7a237f75be316efe49d7bb78da4",
+          "bytes": 36,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "AGENTS.md",
+          "sha256": "79f5808dbd4e396bc98f629290e3ed1de817585c766d0653bebcde325536ca42",
+          "bytes": 3469,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "NEXT.md",
+          "sha256": "9e709f1f4429a0612d832e974bf3edc0d6673e146bb3efcf6cca02e00d396792",
+          "bytes": 282450,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/coach/local-world.mjs",
+          "sha256": "5c46ab64d7233beb341fceae615e5ef81477e98accd654732791b5d29a626292",
+          "bytes": 20541,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/legacy-b1-carriers.cjs",
+          "sha256": "d8d98b247271d9b4f5ac50f2b7205b1820db4ff72ad6bb53ee2e0d6ccbb002bf",
+          "bytes": 12838,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/legacy-b1b2-carriers.cjs",
+          "sha256": "24ab82024ac4195397769f58fc37c18827c907c0fc03dec98fa38160e203c699",
+          "bytes": 40106,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/legacy-gates.cjs",
+          "sha256": "b8891d9ba12f38713582634b7709b6f3a3a5c05e008a10c7f2d74a91e169b0df",
+          "bytes": 10124,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/run.cjs",
+          "sha256": "654288e073ea6815ce699c1eacb61c7030b0de0781b277477f3800fa06eb245a",
+          "bytes": 17068,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/strict-json.cjs",
+          "sha256": "5722f233e704149f03f2898bf739c3cc42fe323a0c91e0eee55eb82cc57a3478",
+          "bytes": 1697,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/target.cjs",
+          "sha256": "e19f3399d9e4e4dff7d3a6dae2c2c251c9fda5b88ead9640e95adc3e4a7908bb",
+          "bytes": 14223,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs",
+          "sha256": "d78fd8322ede877e0ff3b56c936d4381bdea3280359079d310a7b6278460608d",
+          "bytes": 11570,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/conform/v4/postfix/trace-v2.cjs",
+          "sha256": "5804390be453b9321955c1b498d7b5a80ee96f9b14ef701b33176a15f6ce9e2d",
+          "bytes": 4986,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/constants.cjs",
+          "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+          "bytes": 23393,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/dates.cjs",
+          "sha256": "b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067",
+          "bytes": 1343,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/earn.cjs",
+          "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+          "bytes": 11429,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/energy.cjs",
+          "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+          "bytes": 94493,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/entered-load.cjs",
+          "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+          "bytes": 906,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/index.cjs",
+          "sha256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+          "bytes": 1111,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/merge.cjs",
+          "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+          "bytes": 84396,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/migrate.cjs",
+          "sha256": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+          "bytes": 184433,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/oracle-shim.cjs",
+          "sha256": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+          "bytes": 826,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/performed.cjs",
+          "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+          "bytes": 19479,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/plan.cjs",
+          "sha256": "4c6f981706694771501d3d050440eb4f9a62e64b6eac7c59ff9c4742dfaa7e93",
+          "bytes": 19853,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/policy.cjs",
+          "sha256": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870",
+          "bytes": 56874,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/progression.cjs",
+          "sha256": "2384d12e5788fb01324a62d7bbc7fa7303a3e748f97ecd4a6f9a5c82975dbc7a",
+          "bytes": 54604,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/sleep.cjs",
+          "sha256": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8",
+          "bytes": 188103,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/test/b1-delta-cells.cjs",
+          "sha256": "ade964b9887b758f9cf04fd82d002ac19ffcb4b77be5e136971f252b6e116466",
+          "bytes": 61185,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+          "sha256": "6cc87127cf62c071cee077478aa352d11eaa49e0a407427a0b66c09a510fefa5",
+          "bytes": 55323,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/test/b1b2-public-engine.cjs",
+          "sha256": "5afe0c0f30ee93b877328eed04db16df0c5fa28ed577c2fc4ac3c6e05a5051c5",
+          "bytes": 10827,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+          "sha256": "6a996fcc53fbea6fc9611517b7d2c7ed636516480322095b1863507e934d256d",
+          "bytes": 64433,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/test/b2-era30.test.cjs",
+          "sha256": "78ba43847681a176298c91257cc456a6d5aed5f03b6783b091521d473d6335d5",
+          "bytes": 435756,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/test/b2-public-source-faults.test.cjs",
+          "sha256": "5d609a17c8d19559d3b40ffce8ea4bc7682dd62ab22730c5368d1f2ad8c110b6",
+          "bytes": 32555,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+          "sha256": "f5169bebd527ac13c8a570859bb5d728535a2a71734e135904a77be36c8506e6",
+          "bytes": 5081,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/test/defect-witnesses-4.cjs",
+          "sha256": "c90ffeaa953a9b04146432f39702f87fc8c51ce7f0be77876f075fc4142b87f7",
+          "bytes": 6465,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/test/defect-witnesses.cjs",
+          "sha256": "557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644",
+          "bytes": 4126,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/today.cjs",
+          "sha256": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
+          "bytes": 48911,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/volume.cjs",
+          "sha256": "d58159bc0c098983fa1db6a1f8542d93611537934fca2b2a17bae236bcacd321",
+          "bytes": 25485,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/engine/writers.cjs",
+          "sha256": "7e8ba66e82a24983e98d063fe948838f77ec168b52515cdfe2e6483291027494",
+          "bytes": 261840,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/astra/PM-OPERATING-CHARTER.md",
+          "sha256": "9694413f01703f765b8fa54cd4aa520c752a7e144ee5ead3e7c9e8dba8931967",
+          "bytes": 5972,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/b2-delta-cells.cjs",
+          "sha256": "5c8d365b0c32d9f37880e778dd14300ce88d265e960196cf3bcc47a17fc52c1d",
+          "bytes": 35108,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/b-package.cjs",
+          "sha256": "f21ce8ee43647915953b359d493cfb05272b35c3615d4c57b3e7db0d39f6f022",
+          "bytes": 263361,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/packages/B-NTC.json",
+          "sha256": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
+          "bytes": 40808,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+          "sha256": "184d79ad82201a7d2c9ed1c631776077149727223eb5ae259393759bfbd957e7",
+          "bytes": 89271,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/README.md",
+          "sha256": "c085ef3b04c97445ba55ae34166f197191316a3a5be587cd5a367de35bb68ddc",
+          "bytes": 107693,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/astra-issuer-compatibility.test.cjs",
+          "sha256": "a90f2434e8607800ed95ea1902c886031c69297e79f92be57ed33aabbed074b9",
+          "bytes": 31543,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs",
+          "sha256": "9d261133281ce4097039a0b190cabe1d9804aac477dacc484680bf9a6ae6c655",
+          "bytes": 45850,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/gate-supersession.test.cjs",
+          "sha256": "ef1232edcc35303d502d587373b23463aa2f7784a58bc7ec7f53580d045bdcdc",
+          "bytes": 37454,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/git-blob-pin-classes.test.cjs",
+          "sha256": "f1e4c0e8761b171b747482d9da537d98e74f883933d2f92635ba355cba17ee7b",
+          "bytes": 11669,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/parent-pin-shapes-and-spec-successors.test.cjs",
+          "sha256": "08f832a90ae8ba07ce76da57923c311eed5702a3fc98139a95870e1247351175",
+          "bytes": 16577,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs",
+          "sha256": "a77deaf5ef6c444fc406f2273753ada3ffa905d5fbd1ed2fbad838e3a6146a6f",
+          "bytes": 19172,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs",
+          "sha256": "3ee3923e2dc69cc8e795070df48a6a4b73d8f364ee931310b184f6ad04a11838",
+          "bytes": 15446,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/seal-tip-and-byte-identity.test.cjs",
+          "sha256": "f03a8952084a92b482671140090c33260ab03436cf16408063dc0e2ecc0c1166",
+          "bytes": 24699,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs",
+          "sha256": "e2422080738d1ef0701f3ad677f52e4d723357110a322b9f8485a89b29a01c2d",
+          "bytes": 28170,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/tooling/TOOLING-REPORT.md",
+          "sha256": "41adeaf6bfe4f0e43b09b87e8eff5e700a472281987d4d500f4431a2e042c819",
+          "bytes": 178174,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/c/N2-R4-REPORT.md",
+          "sha256": "70b0ff9e7f48abd5534a24ff15fa43e76a92f0ec87872303809350e8cc37bef5",
+          "bytes": 4016,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/LANES.md",
+          "sha256": "82e6779281b1d9f0da9354daf5047fe4fcd3dd9286f4b2c6fa737f6434cc009b",
+          "bytes": 11877,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/PM-CARETAKER-BRIEF.md",
+          "sha256": "582e5674fffc60c94fce69fe2373d44eed5c79e1c984c01d73c4bc5b7262ad69",
+          "bytes": 5517,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w6/host/engine-runtime-host.cjs",
+          "sha256": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+          "bytes": 7305,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w6/host/test/engine-equivalence.test.cjs",
+          "sha256": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+          "bytes": 4486,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w6/host/test/journey.test.mjs",
+          "sha256": "7b78319ea83cdeb5679faa8e5995867244c8fa540d57ee8f53f6b6d437b0322d",
+          "bytes": 40507,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w6/host/workout-host.mjs",
+          "sha256": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
+          "bytes": 16079,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w6/local/today-bindings.mjs",
+          "sha256": "95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8",
+          "bytes": 43212,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w6/test/local-today-journey.test.mjs",
+          "sha256": "4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7",
+          "bytes": 64913,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/browser-engine.cjs",
+          "sha256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+          "bytes": 1451,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/build.mjs",
+          "sha256": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+          "bytes": 5317,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/build.mjs",
+          "sha256": "b7ae73d94a8c9e255307baab24343e281a4244bb9ea1dd3de211d7dfd8aa400f",
+          "bytes": 23186,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/design.cjs",
+          "sha256": "ef7f2a174c41b247e9472e1699e71df70369036bb7719ea3f8c28dd04e9c1175",
+          "bytes": 38320,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/preview.css",
+          "sha256": "d6278685a57b1d851881fafa3c1c0d1250aadb30cb2beb56069e93d773a67bab",
+          "bytes": 5698,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/screens.template.html",
+          "sha256": "6779adff94c19ab482e6f484d334c34cd8c4fcbaa4badabb173658451113c662",
+          "bytes": 29516,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-check.mjs",
+          "sha256": "fc59516168c87b9c601f87586f954840851ef3b9fa22621121c1c983a6eeb5d7",
+          "bytes": 36177,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-commands.cjs",
+          "sha256": "36c779be57f4975c5a4327113d139edf2652dc59c981523c3531442fd88105ed",
+          "bytes": 12687,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-host.mjs",
+          "sha256": "730143f0f16ed1ac8c369cdeb0701bf0e58984de734a97afc50716dc1bf1bbb4",
+          "bytes": 11720,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/sleep-model.cjs",
+          "sha256": "eff392a49fd067dbcc01648a27df3a5dddd55ad5328873b07a8f0006ebd1afe3",
+          "bytes": 11250,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/adapter.test.mjs",
+          "sha256": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+          "bytes": 18515,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/catalogue.test.mjs",
+          "sha256": "a586e3eb4917302864d86937294b1eb824f32931ddaf552c5deb4f97e067322f",
+          "bytes": 32182,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/checkin.test.mjs",
+          "sha256": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+          "bytes": 43480,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/copy.test.mjs",
+          "sha256": "c9ad7b5e232ee0bdc4ad7096188ccf43688ccf4c28128976c3b04bc512649e55",
+          "bytes": 44008,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/design.test.cjs",
+          "sha256": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+          "bytes": 11168,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/food.test.mjs",
+          "sha256": "0d4933f4f3cd9f9f1a98f6632285c355240477062df32b084b107cf17306e77c",
+          "bytes": 63196,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+          "sha256": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+          "bytes": 64476,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+          "sha256": "b1dcece689912141d6332d7d35a44e06bd3bfc511a38dcee187bb741f57e9292",
+          "bytes": 60356,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs",
+          "sha256": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+          "bytes": 26129,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/package.test.cjs",
+          "sha256": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+          "bytes": 10731,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/problem.test.mjs",
+          "sha256": "83b9c4988d17bbbe99d6b6d66c11b489e749d8eb7fe8eb7bf62d3b7bd75d908e",
+          "bytes": 33781,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/setup.test.mjs",
+          "sha256": "68f91f9ca8d2e3b2f5434f87a625310f0898e93fba1c42cc50cb7bbb4a684fab",
+          "bytes": 132999,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/sleep.test.mjs",
+          "sha256": "bdd358dc69afde543db8e5566f151c0a4c777066b1218a67eea8eafdd2070271",
+          "bytes": 114626,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/test/view.test.mjs",
+          "sha256": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+          "bytes": 34112,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/today-app.cjs",
+          "sha256": "18c79030cc7f420d6c7cb1d14cbd4febeb79c6ee31bdf327a772f5d4f180e5e7",
+          "bytes": 116877,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m3/w7-preview/today/today-model.cjs",
+          "sha256": "958136d7ee4a741b82d4e16a6b331a332cd0c96f59fde45d9938b1f57a711637",
+          "bytes": 19215,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/acceptance-h3-clean-init.json",
+          "sha256": "b457b539a384d8c72531b880cd771e996c6b231f034a49272e899c1fba61e61f",
+          "bytes": 36069,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-cases.cjs",
+          "sha256": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
+          "bytes": 577,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-defect-witnesses.cjs",
+          "sha256": "d6a39f0051a5c3374ce53e0273a9fbd0b60695eaf1fa218a3d2a0c27967ceeb7",
+          "bytes": 610,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-direct.cjs",
+          "sha256": "a043bffc9a0c99f0cfb3aa24ead3e75d4b3f4fc1635fc1df094c089b0b55142a",
+          "bytes": 580,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-focused.cjs",
+          "sha256": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+          "bytes": 1030,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-inherited-carriers.cjs",
+          "sha256": "505cf440ed736a4deb8cc2d7faf7c2c7b6e10a8d9b640b89ef4ee2e29b9433c1",
+          "bytes": 616,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-journeys.cjs",
+          "sha256": "cb59f37e39b6eaa17207b3b6a0f6d8fcba4b90798381853ba39221d7ee5271be",
+          "bytes": 1849,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-legacy.cjs",
+          "sha256": "287526762da17bbf7d46ea2b9d567e8a90752b4ba8a4b1e91aa8864c9d3309c8",
+          "bytes": 580,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs",
+          "sha256": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+          "bytes": 1096,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs",
+          "sha256": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+          "bytes": 1205,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-second-gate.cjs",
+          "sha256": "b87b8949f9b7f03ab8f62abf3fb9bc8293c7ab7aadfdbcfa489202f6ff9f60c8",
+          "bytes": 595,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-source-carriers.cjs",
+          "sha256": "89bb7727e08d0f0783ada0b584620a793a6acae73f0efb9e6f9c72a228b0e578",
+          "bytes": 607,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-successors.cjs",
+          "sha256": "2efe4a480f952a58bd2fd3e2301054334cfced297f14a46b7b4945962fabe6f9",
+          "bytes": 15831,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-successors.test.cjs",
+          "sha256": "bf63c764a5cb0a86d24a80c9a299711c71801075288ba7339e1c94964fee7ca3",
+          "bytes": 5503,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-traces.cjs",
+          "sha256": "0137dc617d83ed1e0171054da62f3699a32232342ed88cd54eded578a83c2325",
+          "bytes": 580,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-witnesses.cjs",
+          "sha256": "6a601742f8b1bfae28ca7c7ee3acb0a3930614b21b17e4271f7db0b82fe6207e",
+          "bytes": 589,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b-ntc-writers-differential.cjs",
+          "sha256": "abf14c3f3b37954a9bcf131506d28f0ad44b9e1c6e1c3b0c24c90682735d53d9",
+          "bytes": 622,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/b2-inherited-carriers.cjs",
+          "sha256": "f023ad8c8ef15809cefea577e7835f3bd7bfb864af3b7f33875983d773ead00d",
+          "bytes": 12543,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/load-write-reference.cjs",
+          "sha256": "dfc836b34e5d48b06105fdf097db6e6154a25e145220d47569bab269ea6778df",
+          "bytes": 1361,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/load-write-source.cjs",
+          "sha256": "77bd6b7116f42b7e676473ec00cb57a13b86ec4d6daa30aa3514f90ad01a24d0",
+          "bytes": 4620,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/native-carriers-errors.cjs",
+          "sha256": "ddcfa7d212a6291e7c84c50106813c4f9c1ead46bb11723bb505e58e423e51c7",
+          "bytes": 965,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/spec/review-h3-clean-init.json",
+          "sha256": "42295d2f4327cef9f4fa736848645f641c91a637b21445c95235d0e19af8f23d",
+          "bytes": 480,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/athlete-state.cjs",
+          "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+          "bytes": 21198,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/engine-runtime.cjs",
+          "sha256": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+          "bytes": 5596,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/native-trend-context.cjs",
+          "sha256": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+          "bytes": 26812,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-engine-files-differential.cjs",
+          "sha256": "06e12e433a0b34fdd9fe8bf4a2fbf8c571a9612e364ecab3209855ae91cefd7d",
+          "bytes": 3857,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+          "sha256": "884218f2fa5f2e012a018f096f05f6ec3fb7a4027b4123c5bacc0aa25fce4b9c",
+          "bytes": 36945,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-h3-clean-init.test.cjs",
+          "sha256": "94b62b27ed84ac594937d251edaa4fd40f046f8f39e663fce10e45d53b5317ac",
+          "bytes": 326,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-public-census.cjs",
+          "sha256": "281c6302204278288b40ba6dcd148f1f3d4341757b66152c758b4f78608bc016",
+          "bytes": 8642,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-source-changes.json",
+          "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058",
+          "bytes": 196822,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-defect-witnesses.test.cjs",
+          "sha256": "6062f3cca4d05580689a0fa28bd0dfa9559a2c39df5595677132a4f167bdbbfd",
+          "bytes": 693,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs",
+          "sha256": "a23f1966a41ec84e1e6212e3c35ed3276dc74d660bdafc188d91a9bf6f9e812c",
+          "bytes": 3804,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+          "sha256": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2",
+          "bytes": 1061,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs",
+          "sha256": "7ccce9f82a4c92508e6001487249df5a0c9b7cc888a767b85409752f72399389",
+          "bytes": 16536,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/b1b2-supersede-writers-differential.test.cjs",
+          "sha256": "4ec48c63fa12c9f0ce0d5888df519a2e99944c9e198b67f0e84319d111dad6a2",
+          "bytes": 1132,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-clean-init.test.cjs",
+          "sha256": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
+          "bytes": 49398,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-engine-files-differential.cjs",
+          "sha256": "d0f59c48b9d50997c5cd4a8cbd9e8a48fdae4765f17c8cf74f03cffafd41d9bf",
+          "bytes": 5294,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-defect-witnesses.test.cjs",
+          "sha256": "e41ec9f2d1ea8d7d650ce139799da783301f7d5e99365e6386c0ccf61e990c7f",
+          "bytes": 8911,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-inherited-carriers.test.cjs",
+          "sha256": "69c8d05fa3a1ccf6b3b3458706ffc633c9f83063dd604bd15549ba61d1c7f0ff",
+          "bytes": 7588,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs",
+          "sha256": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+          "bytes": 8089,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs",
+          "sha256": "dc92e91810246fca195ab3a031236aaffba2b04522e5718fb72f9f6eda62d0dc",
+          "bytes": 12591,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs",
+          "sha256": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+          "bytes": 9806,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/m4/workout/test/native-trend-context.test.cjs",
+          "sha256": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a",
+          "bytes": 34331,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/ROADMAP.md",
+          "sha256": "8bc65f6c86fd8d2fbcbb7bf737148e5f80ced34e2013edeebdec24a58815afbc",
+          "bytes": 16105,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        },
+        {
+          "file": "rebuild/lanes/b/BRIEF-B1B2-SUCCESSOR-REGISTRATION-v1.0.md",
+          "sha256": "ae1a58a75530a06988a936d6087f00ee8c86814521a957a7648cc15bf14b4f80",
+          "bytes": 18331,
+          "source": "1dcdbc0599330c2354257f053b9ed648616475a6"
+        }
+      ],
+      "tapSHA256": "36ad406b6a0ec85cc9a8e1aee8998e35ab7e01acfe8b3ddf2e9ed9bcc1e5688b"
+    }
+  ],
+  "deferredDocuments": [
+    {
+      "file": "rebuild/lanes/b/tooling/README.md",
+      "bytes": 107693,
+      "sha256": "c085ef3b04c97445ba55ae34166f197191316a3a5be587cd5a367de35bb68ddc",
+      "deferredHashNowVerified": true
+    },
+    {
+      "file": "rebuild/lanes/b/tooling/TOOLING-REPORT.md",
+      "bytes": 178174,
+      "sha256": "41adeaf6bfe4f0e43b09b87e8eff5e700a472281987d4d500f4431a2e042c819",
+      "deferredHashNowVerified": true
+    }
+  ],
+  "readmeDiff": "diff --git a/rebuild/lanes/b/tooling/README.md b/rebuild/lanes/b/tooling/README.md\nindex decc9bc..1c26d75 100644\n--- a/rebuild/lanes/b/tooling/README.md\n+++ b/rebuild/lanes/b/tooling/README.md\n@@ -1256,3 +1256,13 @@ R4 registers331 U/FG tests (131+200), source94 and writers335=4+331. Source94 an\n Metadata authoring exposed an inherited historical blocker: `validateSuccessor` required R to be an ancestor of S, while the complete Git graph reports their exact common base as M. The original refusal and the transient, reverted proposal remain recorded separately. PM288 then approved the exact correction: the complete `git merge-base --all R S` result must equal only M. Fixed M/R/S identities, historical record hashes, the entire R/S delta and inverse proof, S/T and T/U ancestry, and every later ancestry duty remain binding. Bounded metadata reconstruction verifies all four source stages and the exact current public disk/HEAD/U bytes; it executes no native source module or source-family test.\n \n Source94, writers335 and tooling267 are declared expectations; the final parent evidence belongs in `../BUILD-B1B2-R4-R9.md`. This registration does not claim a current tooling result or source-family, native/frozen, census, H3, private/FULL, package CLI, workflow, receipt, integration or phone execution. The seed pin remains metadata only. All work is local and unpushed.\n+\n+## B1-B2 amendment authority (PM300/304)\n+\n+Only `M2-B1-B2` requires `authorizations.amendments`: `repair-and-availability`, `reference-factory`, `today-clearance`, `captured-date` and `source-graph`. The runner fixes the five real PM line hashes and six ordered document path/hash pairs from PM300; the profile cannot nominate different authority. Each claim retains the existing exact four-field shape and Astra PM issuer. Ledger numbers remain explanatory coordinates; exact unique line bytes, issuer/handover and shared-chain ancestry authenticate the claim. Duplicate decoded JSON keys, missing/extra IDs or fields, changed paths/hashes and reordered documents refuse.\n+\n+The same checker runs in inventory/spec, authority, artifact construction and envelope entry/terminal paths. Every authority call reads Git again; the accepted envelope additionally reads the documents at its actual receipt context. FULL entry and terminal bind all six documents at candidate HEAD and on disk. The authorized envelope also binds them at the reviewed commit and candidate HEAD/worktree, including CI, using the fixed document pins after product/execution declarations are collected. The artifact's existing `authorizations` field carries the complete claims and documents without changing other packages' artifact shape. The original owner, contract, theme, brief, parent and supersession checks remain.\n+\n+PM304 extends only the existing continuity fixture constructor: five synthetic claims and six synthetic documents, with exactly five named identity substitutions (`CHAIN_REF`, `PM_HANDOVER`, `B1B2_PARENT`, `B1B2_SUPERSESSION_LINE`, `B1B2_AMENDMENTS`). Exact inverse reconstruction proves that this fixture adaptation changes no guard or function body. Registration tests reuse that already licensed constructor before its tests and exercise real issuer/Git/shape/binding functions, restored positives and separately identified guard-removal mutants. Synthetic unsealed entry/terminal results remain `ABSENT`; they supply no accepted package or native evidence.\n+\n+The immutable runtime remains R4/U. SourceBase remains M, with112 product keys,26 unchanged child commands,24 D-ids and9+3+7 duties. This preparation updates only changed tooling pins and its measured tooling test total. The exact execution results and hashes belong in `../BUILD-B1B2-AMENDMENT-BINDING.md`; previous267 remains the R4 result at its recorded head. Final shared assembly, affected consumer proof, native comparison and individual native-field expectation admissions remain separate. `nativeFieldDeltas` is still unmeasured; source94/writers335 and native/frozen/family/census/H3/second/FULL, actual artifact/receipt/reverify/currentCI and phone/history requirements remain held.\n",
+  "finalEvidenceIndex": {
+    "source": "1dcdbc0599330c2354257f053b9ed648616475a6",
+    "base": "f2dea2ec8426d12e95483e180821839fbf1165f7",
+    "U": "cbcebb3d26bf8892adbe84fbbe0a7c5e85856013",
+    "engineMetadataPaths": 51,
+    "engineUnchanged": true,
+    "changedProduct": [
+      "rebuild/lanes/b/tooling/b-package.cjs",
+      "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs",
+      "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs"
+    ],
+    "productKeys": 112,
+    "children": 26,
+    "dIds": 24,
+    "sourceBase": "100820aa47a4f8729642033499eaec0f0ee282e1",
+    "documents": {
+      "repair-and-availability": {
+        "claim": {
+          "ledgerLine": 246,
+          "role": "Astra PM",
+          "line": "- 2026-09-13 · Astra PM · B1+B2 COMPLETE REVIEW REJECTED; FINITE CORRECTIONS AND TARGET AVAILABILITY — Under193/173/214/232/234/236 adopt ERff0c3c13 exact38-line complete review SHA256e88bd58f72263611bc64797331b9efdb05d8227e57bda2fb50c1ae7081288636, first1d1356b before builder read. Candidatecc6a1315 remains rejected; all public/tooling and D2 N2 scoped evidence retained without full/native/CI promotion. Release B successor construction under astra/B1B2-COMPLETE-REPAIR-PM-GO.md: R1/R2 actual consumers, explicit R3 native future-only fallback hunk, fixed Q2 kill, mandated B2/D30/B1-FG proof with two named new tests and bounded source/closure phases. Separately qualify combined29 by astra/B1B2-R7-TARGET-AVAILABILITY-PM-RULING.md: finite-target costs unchanged; real debt plus missing target retains its flag but target-dependent cost and incomplete total are null, known independent costs alone may establish existing LOW/WATCH, otherwise UNKNOWN, no invented rank/clearance or target-absence restriction. This explicit unavailable-input representation resolves contradictory scalar-preservation wording; no new threshold, target, score constant or science. Literal-frozen/reference execution and protected complete gates remain held pending exact closure; source-only reads named, all owner/private/deploy boundaries unchanged. · REJECTED-AND-CORRECTIONS-ASSIGNED",
+          "lineSha256": "a519f6cc8bbe9ad5b0c254bc2c03368265f15c9d1216c4e809c6b99eeeff5ecf"
+        },
+        "documents": [
+          {
+            "file": "rebuild/lanes/astra/B1B2-COMPLETE-REPAIR-PM-GO.md",
+            "sha256": "569ab646d1e4d498f774607f76290b3a29d1bbf2d9287bbcfff5a68df350e1ef"
+          },
+          {
+            "file": "rebuild/lanes/astra/B1B2-R7-TARGET-AVAILABILITY-PM-RULING.md",
+            "sha256": "392d83ecb6138cdd58077a9dcf380739588570c2f9ed4d0a8cd2d3c5feb90295"
+          }
+        ]
+      },
+      "reference-factory": {
+        "claim": {
+          "ledgerLine": 248,
+          "role": "Astra PM",
+          "line": "- 2026-09-13 · Astra PM · B1+B2 FINITE REFERENCE AND THREE FACTORY CONTROLS — Under246 select astra/B1B2-REFERENCE-AND-FACTORY-PM-GO.md. Accept exactly D31 dates-only/prior-day-inclusive and D32 block-start-only as declaration-level dependency-contract fault proof, with their unreachable composed combinations and separate totals disclosed; no claimed native/composed kill or new engine defect. Other composed tests remain. Grant finite inline literal reference construction using only individually pinned allowed declarations, isolated actual Date realms, explicit actual createDates injected-query adapter and invented inputs; source-only expectations are committed/named before candidate observations, then exact ERA30 positive/mutation execution is conditionally authorized with no new source/dependency. No whole frozen app, private input, original native/frozen/census/gate/H3/FULL/currentCI/receipt or package acceptance. · CONSTRUCTION-SCOPE-RULED",
+          "lineSha256": "bad4cb7863900080a4ee9b3af8c5e02d6b0e62a58c7409ab2d30f7ba47ce19bb"
+        },
+        "documents": [
+          {
+            "file": "rebuild/lanes/astra/B1B2-REFERENCE-AND-FACTORY-PM-GO.md",
+            "sha256": "9f3dab4487287a28ac67da6622abc7cdbfb926cc5fbafed17a1bdd9c843bbcf4"
+          }
+        ]
+      },
+      "today-clearance": {
+        "claim": {
+          "ledgerLine": 262,
+          "role": "Astra PM",
+          "line": "- 2026-09-13 · Astra PM · R2 R8 TODAY FALSE CLEARANCE; EXISTING R7 ENFORCED — Under193/246/R7/254 adopt first ER47a0d125 and final162f189 REJECT at c4716ed/S48a3063. PM read complete report, executable and actual Today branches;13 exact review objects rehashed/adopted, final44-line report SHA25664b1697a9eb7cc8cc8140ba4756171c9db8dabd6e0dc87ec5eca5f074ae0a20f and unchanged evidence SHA25600c44e31810dabb08ef910f614fc1d17b7ea6f4e2e843f618b6de5c18c588274. Actual12 fully logged false-clearance failures plus four finite controls; earlier15 commands remain valid in scope. astra/B1B2-R2-R8-PM-DISPOSITION.md releases B/MAX fresh successor, exact theOneFix join and directly necessary marchingOrder/nowModel propagation, affected public proof/pins only. No guessed target/cost/rank/restriction or new science. D2 accepted258 remains old-head scoped; ER LOW after report-last reconciliation. Full/native/private/CI/receipt/phone and companion holds remain. PM HIGH appropriate for bounded existing-rule application. · REJECTED-AND-CORRECTION-ASSIGNED",
+          "lineSha256": "3006cfb8c2a7c9cb5e5ecc9570bdee5ef6b1aaa9dc6ccf7230baa09d7142e4ef"
+        },
+        "documents": [
+          {
+            "file": "rebuild/lanes/astra/B1B2-R2-R8-PM-DISPOSITION.md",
+            "sha256": "34ed6048ee03e98fe6df6059a6c82d24c086bc117a08267bf3bdadc1efe95432"
+          }
+        ]
+      },
+      "captured-date": {
+        "claim": {
+          "ledgerLine": 282,
+          "role": "Astra PM",
+          "line": "- 2026-09-13 · Astra PM · R3 MIDNIGHT DATE DEFECT; NARROW R4 REPAIR — Under193/246/R7/248/254/262/268/272 adopt ER first9bf2acff and final48e591d7 REJECT R9 at8e65805/T797e4cf. PM read final report/reconciliation/actual replay/source and rehashed twelve original review artifacts:33-line9431-byte report SHA256d5dd247f9e0e43bcdaed811dc511efbba588cafe0487a016505e20977e666ce0,832872-byte immutable evidence d1976ae7c7fb7c0ea9a69e3e572313ae7e8482729568a02e9a4873befb6d14fc,2035-byte reconciliation cc08f82a10eafce6ab2cc1cf2be2716188848561f26cf01ca82c71aad9bf0282. Three actual advancing-clock inputs label tomorrow's workout TODAY with yesterday's tISO; four controls pass. R8 and278 affected N2 scope remain valid at their identities, not complete acceptance. astra/B1B2-R3-R9-PM-DISPOSITION.md releases B/MAX fresh exact8e65805 successor for captured-date consistency and necessary existing public tests/fault/profile/map updates; truthful affected trace changes permitted, no dummy queries or broader policy redesign. ER LOW after complete handoff, D2 MAX isolated C276 continues. Saved/executed efforts verified184247Z; no speed change claimed. All prior mechanical/native/frozen/family/FULL/CI/phone holds persist. · REJECTED-AND-CORRECTION-ASSIGNED",
+          "lineSha256": "86849eda203dcb741a7f5e88792fdfa632c2ab0c8e7ce780050a633dc3dcfd8a"
+        },
+        "documents": [
+          {
+            "file": "rebuild/lanes/astra/B1B2-R3-R9-PM-DISPOSITION.md",
+            "sha256": "9f8b97ce50edc211ae3126092eb76d20c510391b8cc66b9e6a0ac1b016ad8ce6"
+          }
+        ]
+      },
+      "source-graph": {
+        "claim": {
+          "ledgerLine": 288,
+          "role": "Astra PM",
+          "line": "- 2026-09-13 · Astra PM · HISTORICAL R/S SOURCE-GRAPH PREDICATE CORRECTION — Under193/232/246/254/282 authorize astra/B1B2-R4-SOURCE-GRAPH-PM-RULING.md. PM inspected actual Ucbcebb3d helper definitions/validateSuccessor and independently verified non-shallow Git metadata: fixed R6c9248e is not ancestor of fixed S48a3063; their complete merge-base --all output is exactly M100820aa, ancestor of both. Replace only that erroneous helper predicate with exact complete-output equality to M. Preserve all fixed references/historical record hashes, complete R/S name-status and forward/inverse byte proof, S/T/U ancestry, and unchanged final sourceBase/current-chain/entry/terminal/freeze/receipt obligations. Only lazy isolated public-map/Git-metadata validation and necessary existing helper pins are licensed; preserve original refusal and disclose this separate R4 hunk to ER/MAX. No historical rewrite, native/family/FULL/currentCI execution, expectation waiver, product acceptance or final ancestry relaxation. B MAX continues. · CONSTRUCTION-SCOPE-RULED",
+          "lineSha256": "599e0afb2d9c2ffb6e0ab0b6878f5d76abc0a27579dd076d4f09f26e2ff1d773"
+        },
+        "documents": [
+          {
+            "file": "rebuild/lanes/astra/B1B2-R4-SOURCE-GRAPH-PM-RULING.md",
+            "sha256": "222b5bc0dcc75db1e95306cdc8a244ecb817a986a045a495dfaad0766dee3017"
+          }
+        ]
+      }
+    },
+    "files": [
+      {
+        "file": "rebuild/lanes/b/tooling/b-package.cjs",
+        "sha256": "f21ce8ee43647915953b359d493cfb05272b35c3615d4c57b3e7db0d39f6f022"
+      },
+      {
+        "file": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+        "sha256": "184d79ad82201a7d2c9ed1c631776077149727223eb5ae259393759bfbd957e7"
+      },
+      {
+        "file": "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs",
+        "sha256": "9d261133281ce4097039a0b190cabe1d9804aac477dacc484680bf9a6ae6c655"
+      },
+      {
+        "file": "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs",
+        "sha256": "e2422080738d1ef0701f3ad677f52e4d723357110a322b9f8485a89b29a01c2d"
+      },
+      {
+        "file": "rebuild/lanes/b/tooling/README.md",
+        "sha256": "c085ef3b04c97445ba55ae34166f197191316a3a5be587cd5a367de35bb68ddc"
+      }
+    ],
+    "evidence": [
+      {
+        "file": ".tmp/authorization-grants.json",
+        "bytes": 476,
+        "sha256": "98e37a13155dba02b36c7b902f177c88ae4bf58f0b58a373a355ae667f626f68"
+      },
+      {
+        "file": ".tmp/binding-final/result.json",
+        "bytes": 1282,
+        "sha256": "3fd777b90308327a0eb12f3b8c83f08f6e36fe12cc61eaf9f1cd46ad5b2bec2d"
+      },
+      {
+        "file": ".tmp/binding-final/cohort.tap",
+        "bytes": 271434,
+        "sha256": "47f9454876f8683af5dfffe3e8ebeabfd30b6a772212bbf11c48ca2da17a79d9"
+      },
+      {
+        "file": ".tmp/binding-final/input-manifest.json",
+        "bytes": 23298,
+        "sha256": "365009f617c92bf004b3013f412c0bb83cdf1868a4a99b1e1979fe2d4d8ec490"
+      },
+      {
+        "file": ".tmp/binding-first/result.json",
+        "bytes": 1282,
+        "sha256": "11072d9b50457bb607c68ea81c04c602b2e850a9585a637f3207a00ad3c39261"
+      },
+      {
+        "file": ".tmp/binding-first/cohort.tap",
+        "bytes": 247672,
+        "sha256": "b991157a86c5b1d8ca627022e45e26571363ac41f736dff5663ffaa9785f3040"
+      },
+      {
+        "file": ".tmp/binding-first/input-manifest.json",
+        "bytes": 23119,
+        "sha256": "711a26985a672907a5961488fe0ecff1c107768b7db72a0dad9386b994c6b72c"
+      },
+      {
+        "file": ".tmp/binding-verified/result.json",
+        "bytes": 1282,
+        "sha256": "d679a7037d5cdb05d9084e7c74833265fe15126e59cb4c6231368fe0e445c897"
+      },
+      {
+        "file": ".tmp/binding-verified/cohort.tap",
+        "bytes": 269132,
+        "sha256": "36ad406b6a0ec85cc9a8e1aee8998e35ab7e01acfe8b3ddf2e9ed9bcc1e5688b"
+      },
+      {
+        "file": ".tmp/binding-verified/input-manifest.json",
+        "bytes": 23298,
+        "sha256": "f75b2284e401dd80a1cf681af5d3815f90f1179309d204832c993ce8b67e3801"
+      },
+      {
+        "file": ".tmp/authority-inputs.json",
+        "bytes": 8137,
+        "sha256": "6a74d014992a61401886b0bae5773540398231e390eb047b9803b93d30f84d38"
+      },
+      {
+        "file": ".tmp/assembly-and-native-closure.json",
+        "bytes": 3807,
+        "sha256": "b9d545203171ad11e9d21084d825ced29dfd0d5230cb4fbb2a999e256ea45aee"
+      }
+    ]
+  },
+  "authorizationGrants": [
+    {
+      "commit": "78869af65df7c4a1d5734b48958d0d93ce64f111",
+      "file": "rebuild/lanes/astra/B1B2-AMENDMENT-BINDING-PM-GO.md",
+      "bytes": 7557,
+      "sha256": "0164bcc537d4557c5f8b828dd0ca63b90a85da4aa828b693bcf158591505d169"
+    },
+    {
+      "commit": "66e3126bf9a84b823bae1e2ffbdc7c37e1eb2f1c",
+      "file": "rebuild/lanes/astra/B1B2-AMENDMENT-BINDING-FIXTURE-GO.md",
+      "bytes": 1851,
+      "sha256": "dbf5d5a7c48a629db3c26ff991c298e2f0ff390ab89a9bd30ec05b64f7cdcc50"
+    }
+  ],
+  "authorityInputs": {
+    "shared": "78869af65df7c4a1d5734b48958d0d93ce64f111",
+    "amendments": {
+      "repair-and-availability": {
+        "claim": {
+          "ledgerLine": 246,
+          "role": "Astra PM",
+          "line": "- 2026-09-13 · Astra PM · B1+B2 COMPLETE REVIEW REJECTED; FINITE CORRECTIONS AND TARGET AVAILABILITY — Under193/173/214/232/234/236 adopt ERff0c3c13 exact38-line complete review SHA256e88bd58f72263611bc64797331b9efdb05d8227e57bda2fb50c1ae7081288636, first1d1356b before builder read. Candidatecc6a1315 remains rejected; all public/tooling and D2 N2 scoped evidence retained without full/native/CI promotion. Release B successor construction under astra/B1B2-COMPLETE-REPAIR-PM-GO.md: R1/R2 actual consumers, explicit R3 native future-only fallback hunk, fixed Q2 kill, mandated B2/D30/B1-FG proof with two named new tests and bounded source/closure phases. Separately qualify combined29 by astra/B1B2-R7-TARGET-AVAILABILITY-PM-RULING.md: finite-target costs unchanged; real debt plus missing target retains its flag but target-dependent cost and incomplete total are null, known independent costs alone may establish existing LOW/WATCH, otherwise UNKNOWN, no invented rank/clearance or target-absence restriction. This explicit unavailable-input representation resolves contradictory scalar-preservation wording; no new threshold, target, score constant or science. Literal-frozen/reference execution and protected complete gates remain held pending exact closure; source-only reads named, all owner/private/deploy boundaries unchanged. · REJECTED-AND-CORRECTIONS-ASSIGNED",
+          "lineSha256": "a519f6cc8bbe9ad5b0c254bc2c03368265f15c9d1216c4e809c6b99eeeff5ecf"
+        },
+        "documents": [
+          {
+            "file": "rebuild/lanes/astra/B1B2-COMPLETE-REPAIR-PM-GO.md",
+            "sha256": "569ab646d1e4d498f774607f76290b3a29d1bbf2d9287bbcfff5a68df350e1ef"
+          },
+          {
+            "file": "rebuild/lanes/astra/B1B2-R7-TARGET-AVAILABILITY-PM-RULING.md",
+            "sha256": "392d83ecb6138cdd58077a9dcf380739588570c2f9ed4d0a8cd2d3c5feb90295"
+          }
+        ]
+      },
+      "reference-factory": {
+        "claim": {
+          "ledgerLine": 248,
+          "role": "Astra PM",
+          "line": "- 2026-09-13 · Astra PM · B1+B2 FINITE REFERENCE AND THREE FACTORY CONTROLS — Under246 select astra/B1B2-REFERENCE-AND-FACTORY-PM-GO.md. Accept exactly D31 dates-only/prior-day-inclusive and D32 block-start-only as declaration-level dependency-contract fault proof, with their unreachable composed combinations and separate totals disclosed; no claimed native/composed kill or new engine defect. Other composed tests remain. Grant finite inline literal reference construction using only individually pinned allowed declarations, isolated actual Date realms, explicit actual createDates injected-query adapter and invented inputs; source-only expectations are committed/named before candidate observations, then exact ERA30 positive/mutation execution is conditionally authorized with no new source/dependency. No whole frozen app, private input, original native/frozen/census/gate/H3/FULL/currentCI/receipt or package acceptance. · CONSTRUCTION-SCOPE-RULED",
+          "lineSha256": "bad4cb7863900080a4ee9b3af8c5e02d6b0e62a58c7409ab2d30f7ba47ce19bb"
+        },
+        "documents": [
+          {
+            "file": "rebuild/lanes/astra/B1B2-REFERENCE-AND-FACTORY-PM-GO.md",
+            "sha256": "9f3dab4487287a28ac67da6622abc7cdbfb926cc5fbafed17a1bdd9c843bbcf4"
+          }
+        ]
+      },
+      "today-clearance": {
+        "claim": {
+          "ledgerLine": 262,
+          "role": "Astra PM",
+          "line": "- 2026-09-13 · Astra PM · R2 R8 TODAY FALSE CLEARANCE; EXISTING R7 ENFORCED — Under193/246/R7/254 adopt first ER47a0d125 and final162f189 REJECT at c4716ed/S48a3063. PM read complete report, executable and actual Today branches;13 exact review objects rehashed/adopted, final44-line report SHA25664b1697a9eb7cc8cc8140ba4756171c9db8dabd6e0dc87ec5eca5f074ae0a20f and unchanged evidence SHA25600c44e31810dabb08ef910f614fc1d17b7ea6f4e2e843f618b6de5c18c588274. Actual12 fully logged false-clearance failures plus four finite controls; earlier15 commands remain valid in scope. astra/B1B2-R2-R8-PM-DISPOSITION.md releases B/MAX fresh successor, exact theOneFix join and directly necessary marchingOrder/nowModel propagation, affected public proof/pins only. No guessed target/cost/rank/restriction or new science. D2 accepted258 remains old-head scoped; ER LOW after report-last reconciliation. Full/native/private/CI/receipt/phone and companion holds remain. PM HIGH appropriate for bounded existing-rule application. · REJECTED-AND-CORRECTION-ASSIGNED",
+          "lineSha256": "3006cfb8c2a7c9cb5e5ecc9570bdee5ef6b1aaa9dc6ccf7230baa09d7142e4ef"
+        },
+        "documents": [
+          {
+            "file": "rebuild/lanes/astra/B1B2-R2-R8-PM-DISPOSITION.md",
+            "sha256": "34ed6048ee03e98fe6df6059a6c82d24c086bc117a08267bf3bdadc1efe95432"
+          }
+        ]
+      },
+      "captured-date": {
+        "claim": {
+          "ledgerLine": 282,
+          "role": "Astra PM",
+          "line": "- 2026-09-13 · Astra PM · R3 MIDNIGHT DATE DEFECT; NARROW R4 REPAIR — Under193/246/R7/248/254/262/268/272 adopt ER first9bf2acff and final48e591d7 REJECT R9 at8e65805/T797e4cf. PM read final report/reconciliation/actual replay/source and rehashed twelve original review artifacts:33-line9431-byte report SHA256d5dd247f9e0e43bcdaed811dc511efbba588cafe0487a016505e20977e666ce0,832872-byte immutable evidence d1976ae7c7fb7c0ea9a69e3e572313ae7e8482729568a02e9a4873befb6d14fc,2035-byte reconciliation cc08f82a10eafce6ab2cc1cf2be2716188848561f26cf01ca82c71aad9bf0282. Three actual advancing-clock inputs label tomorrow's workout TODAY with yesterday's tISO; four controls pass. R8 and278 affected N2 scope remain valid at their identities, not complete acceptance. astra/B1B2-R3-R9-PM-DISPOSITION.md releases B/MAX fresh exact8e65805 successor for captured-date consistency and necessary existing public tests/fault/profile/map updates; truthful affected trace changes permitted, no dummy queries or broader policy redesign. ER LOW after complete handoff, D2 MAX isolated C276 continues. Saved/executed efforts verified184247Z; no speed change claimed. All prior mechanical/native/frozen/family/FULL/CI/phone holds persist. · REJECTED-AND-CORRECTION-ASSIGNED",
+          "lineSha256": "86849eda203dcb741a7f5e88792fdfa632c2ab0c8e7ce780050a633dc3dcfd8a"
+        },
+        "documents": [
+          {
+            "file": "rebuild/lanes/astra/B1B2-R3-R9-PM-DISPOSITION.md",
+            "sha256": "9f8b97ce50edc211ae3126092eb76d20c510391b8cc66b9e6a0ac1b016ad8ce6"
+          }
+        ]
+      },
+      "source-graph": {
+        "claim": {
+          "ledgerLine": 288,
+          "role": "Astra PM",
+          "line": "- 2026-09-13 · Astra PM · HISTORICAL R/S SOURCE-GRAPH PREDICATE CORRECTION — Under193/232/246/254/282 authorize astra/B1B2-R4-SOURCE-GRAPH-PM-RULING.md. PM inspected actual Ucbcebb3d helper definitions/validateSuccessor and independently verified non-shallow Git metadata: fixed R6c9248e is not ancestor of fixed S48a3063; their complete merge-base --all output is exactly M100820aa, ancestor of both. Replace only that erroneous helper predicate with exact complete-output equality to M. Preserve all fixed references/historical record hashes, complete R/S name-status and forward/inverse byte proof, S/T/U ancestry, and unchanged final sourceBase/current-chain/entry/terminal/freeze/receipt obligations. Only lazy isolated public-map/Git-metadata validation and necessary existing helper pins are licensed; preserve original refusal and disclose this separate R4 hunk to ER/MAX. No historical rewrite, native/family/FULL/currentCI execution, expectation waiver, product acceptance or final ancestry relaxation. B MAX continues. · CONSTRUCTION-SCOPE-RULED",
+          "lineSha256": "599e0afb2d9c2ffb6e0ab0b6878f5d76abc0a27579dd076d4f09f26e2ff1d773"
+        },
+        "documents": [
+          {
+            "file": "rebuild/lanes/astra/B1B2-R4-SOURCE-GRAPH-PM-RULING.md",
+            "sha256": "222b5bc0dcc75db1e95306cdc8a244ecb817a986a045a495dfaad0766dee3017"
+          }
+        ]
+      }
+    }
+  },
+  "finiteAssemblyNativeMetadata": {
+    "scope": "Public code/metadata only. No native/frozen/seed/private/history input opened or executed.",
+    "sourceBase": "100820aa47a4f8729642033499eaec0f0ee282e1",
+    "runtimeSource": "cbcebb3d26bf8892adbe84fbbe0a7c5e85856013",
+    "nativeFieldDeltas": "UNKNOWN: prospective empty list is not observed equality",
+    "engineFactories": [
+      "rebuild/engine/dates.cjs",
+      "rebuild/engine/constants.cjs",
+      "rebuild/engine/seed.cjs",
+      "rebuild/engine/entered-load.cjs",
+      "rebuild/engine/performed.cjs",
+      "rebuild/engine/plan.cjs",
+      "rebuild/engine/progression.cjs",
+      "rebuild/engine/sleep.cjs",
+      "rebuild/engine/energy.cjs",
+      "rebuild/engine/policy.cjs",
+      "rebuild/engine/today.cjs",
+      "rebuild/engine/volume.cjs",
+      "rebuild/engine/migrate.cjs",
+      "rebuild/engine/earn.cjs",
+      "rebuild/engine/merge.cjs",
+      "rebuild/engine/writers.cjs"
+    ],
+    "browserFactories": [
+      "rebuild/engine/dates.cjs",
+      "rebuild/engine/constants.cjs",
+      "rebuild/engine/entered-load.cjs",
+      "rebuild/engine/performed.cjs",
+      "rebuild/engine/plan.cjs",
+      "rebuild/engine/progression.cjs",
+      "rebuild/engine/sleep.cjs",
+      "rebuild/engine/energy.cjs",
+      "rebuild/engine/policy.cjs",
+      "rebuild/engine/today.cjs",
+      "rebuild/engine/volume.cjs",
+      "rebuild/engine/earn.cjs"
+    ],
+    "browserExtraFactories": [
+      "rebuild/engine/seed.cjs",
+      "rebuild/engine/writers.cjs"
+    ],
+    "browserConstructor": "rebuild/m3/w7-preview/browser-engine.cjs",
+    "nativeConstructor": "rebuild/engine/index.cjs",
+    "readers": [
+      "nowModel",
+      "statusFace",
+      "currentRate",
+      "calorieTarget",
+      "proteinTarget",
+      "marchingOrder",
+      "readRecency",
+      "fiveLevers",
+      "recoveryIndex",
+      "sleepInfo",
+      "observedTDEE",
+      "weekDigest",
+      "debtLedger",
+      "theOneThing",
+      "dossierData"
+    ],
+    "sameInput": "Both nativeBrowser(M) and nativeBrowser(U) use the unchanged original M SEED under the captured 2026-09-07 clock; compare all 15 reader outputs and whole applyRead output before any delta admission.",
+    "nativePrograms": {
+      "rebuild/engine/test/census-partial.cjs": {
+        "gitBlob": "3951b632c0fccc6fd14932761f5cce03ae739fa3"
+      },
+      "rebuild/conform/oracle/census.cjs": {
+        "gitBlob": "1e57d6c67e29ec13d79a1ecd2771e8e5aa7d967f"
+      },
+      "rebuild/conform/oracle/legacy-records.cjs": {
+        "gitBlob": "79208359acb1e00ac10f3faca8194a4b75ba6e6a"
+      },
+      "rebuild/conform/lib/harness.cjs": {
+        "gitBlob": "68e454fc08fd41b78485842554d449560b5a6f8a"
+      },
+      "rebuild/engine/test/volume-projection.cjs": {
+        "gitBlob": "578cb2e3ed2d543cc89c35b8f66d74fb10a7bec1"
+      },
+      "rebuild/engine/test/volume-reference.cjs": {
+        "gitBlob": "05a7b969f46febd07c982b742d9e8ebcc8866102"
+      },
+      "rebuild/engine/oracle-shim.cjs": {
+        "gitBlob": "a1c69ef86cfa4160715e8973aa74dd7190a63074"
+      },
+      "tools/_fixed-now.mjs": {
+        "gitBlob": "ffa6aa33c85667cda021d2719799f6bd5762b5e8"
+      }
+    },
+    "migrationPrograms": [
+      "rebuild/engine/test/migrate-differential.cjs",
+      "rebuild/engine/test/migrate-reference.cjs",
+      "rebuild/conform/oracle/legacy-records.cjs"
+    ],
+    "frozenBundle": "rebuild/conform/engines/engine-main.cjs",
+    "heldOriginal": "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs",
+    "next": "PM names final shared assembly/integrator and exact affected-consumer/native windows after tooling acceptance. Verify full final source/pins/current chain and the full transitive input inventory before execution; uninspected original program/fixture/seed/frozen/private edges remain held, not inferred complete here. Measure actual M/U (or separately named final) field differences, obtain individual PM expectation rulings, then named family/census/H3/second/FULL/artifact/receipt/reverify/currentCI phases."
+  },
+  "readAt": "2026-09-13T20:58:48.027Z",
+  "limits": "Author raw outcomes remain provenance; no author runtime/worktree was borrowed, no tests rerun, no named protected native dependency opened. This archive does not widen execution permission."
+}

@@ -400,3 +400,27 @@
 ## Rotated by PM320 at 2026-09-13 16:50 ET
 
 2026-09-13 13:58 ET · PM-CARETAKER · Astra · 5dc14bdcdbba4db6f03a1d7a16fb33acb8bf3eab · D2 first79ba259 rejects two C lifecycle completion races; C XHIGH narrow repair274 assigned, D2 reconciled and B N2 review assigned. ER MAX R3 active and execution verified; B LOW. Personal Joe/Dad goal unchanged; no owner action.
+
+
+## Archived at 2026-09-13 17:11 ET: state before322/324/326
+
+# LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
+
+## STATE (refreshed 2026-09-13 16:50 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @19bb942ec94768f93b9e9a2527775fb5b7abc64f before this docs checkpoint. Product M100820aa remains integrated; full34745429303/shared34745429317 bothOS verified. END210 stands; no deployment/phone PASS.
+- PM: sole Astra PM193; owner306 uses existing Codex usage and declines paid API trial. Owner268: Joe/history/memory then Dad; soak gates wide beta only. PM MAX for release judgment, HIGH advised afterward for routine coordination.
+- B: completed300/304 at083bd47/tested1dcdbc0, author331/331; prior324/328 and329/331 retained. LOW; public archive5ea3eca complete, recurring checks paused320. ER/MAX exact tooling review active; final native/FULL/CI/receipt remains.
+- E: foundatione85ad803/source4191eeb complete, author254/254; original two final-load races preserved/repaired under314. LOW; public archiveb7dc5a04 complete, recurring checks paused320. D2/MAX independent review; actual full memory/controller/provider/consumer remain later.
+- C: lifecycle7e64848d scoped ACCEPT294, actual144/37/4; LOW waiting exact full consumer/composition release. N2 prior147/10/kill/build retains8e65805; current R4 applicability accepted310.
+- D: partial import harnessf0b01d9 preserved; LOW waits exact reviewed B native-Date/membership+host companionb73cf852. Real owner import, acceptedB3 and full joins remain.
+- REVIEW/INTEGRATION: D2/MAX E318 review and ER/MAX B316 review run independently, first verdict before author reports. B public archive5ea3eca verified17 files, input manifest routed. I paused until named final accepted candidate.
+- OWNER: no immediate action. September18–23 Joe/history/memory estimate remains limited-confidence; Dad after existing two-day Joe trial and his checks. Private import, credentials and device actions remain point-of-use.
+- SCHEDULE: PM30min; ER/D2 MAX active reviews/hourly; completed/dependency-waiting B/C/D/E recurring checks PAUSED under320, I paused. Direct handoffs wake ready work immediately; resume same heartbeat on dispatch. No quality/evidence reduction or duplicate tasks; Fast control/readback still unavailable.
+
+2026-09-13 14:14 ET · PM-CARETAKER · Astra · 74325f117b92d7e898c09773d7566add243ee5e1 · C18ff0dcf fixes ready, author141+37 pass; D2 MAX review276 queued after current B N2. ER MAX B R3 continues, C LOW. Exact scope/report verified; no acceptance or owner action.
+
+2026-09-13 14:31 ET · PM-CARETAKER · Astra · 19029c2136af7bd01a675807e32770f832df945c · B R3 N2 scope ACCEPTdf9f36ab/reconciliationd7c76a0e adopted278:147 Node/10 Edge/one kill. D2 MAX now C lifecycle276; ER MAX full B review continues. No owner action; Fast only discussed, settings unchanged.
+
+2026-09-13 14:45 ET · PM-CARETAKER · Astra · 074d512d56e1e55b87defe270e972e0c9a1565e9 · ER R9 mixed-date rejection adopted282; B MAX narrow repair active. D2 MAX C276 review; ER LOW complete. Efforts verified. Owner280 delegates Fast, but no live speed control available and no speed changed. Joe/history/Dad goal unchanged.
+
+2026-09-13 14:55 ET · PM-CARETAKER · Astra · 850708dc9404e8962ebaab7f261f3fea42f04865 · C L1/L2 independently fixed141+37; D2-L3 failed-save message gap routed C XHIGH284,27 artifacts adopted with final377b0d32 reconciliation. D2 LOW, B MAX R9 active. This PM reply verified MAX despite PC Medium/iPhone MAX display mismatch; Fast unchanged.

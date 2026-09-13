@@ -1,0 +1,2 @@
+# Preserve exact archived source and raw execution bytes, including original line endings.
+* -text

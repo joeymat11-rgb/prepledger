@@ -1,0 +1,17 @@
+{
+  "candidate": "e85ad803ae8af600726c1491f35c90c7b3cd2c03",
+  "node": "v22.23.2",
+  "command": [
+    "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-idle-client-foundation\\.tmp\\tools\\node.exe",
+    "--test",
+    ".tmp/d2-controls.mjs"
+  ],
+  "started": "2026-09-13T20:55:40.361Z",
+  "finished": "2026-09-13T20:55:40.668Z",
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "scriptSHA256": "10930a9230b87e3f62fd0d36a83883813dbb9ba488ffac215a2940d2ba313220",
+  "outputSHA256": "cdfe8dc3534749aea2d218fed90df09c1213094946e6953c3344a0a93538ee8d",
+  "authorOutcomesRead": false
+}
