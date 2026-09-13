@@ -1,0 +1,564 @@
+{
+  "schemaVersion": 1,
+  "purpose": "PM356 input-only public static audit inventory; no author conclusions or runtime results",
+  "preparedCandidate": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "integratedLaunchBaseline": "100820aa47a4f8729642033499eaec0f0ee282e1",
+  "priorDocumentsAt": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+  "readMode": "git blobs; no modules, tests, fixtures or history evaluated",
+  "claims": [
+    {
+      "id": "S01",
+      "topic": "Maintenance estimate, energy density, matched windows, uncertainty and cold start"
+    },
+    {
+      "id": "S02",
+      "topic": "Deficit size, weight-loss rate, calorie floors and male energy availability"
+    },
+    {
+      "id": "S03",
+      "topic": "Protein target, body-mass versus fat-free-mass basis, energy restriction and age applicability"
+    },
+    {
+      "id": "S04",
+      "topic": "Surplus or gain rate, monthly versus weekly units, fat/carbohydrate prescriptions"
+    },
+    {
+      "id": "S05",
+      "topic": "Resistance-training dose, fractional indirect sets, maintenance versus growth and deficit context"
+    },
+    {
+      "id": "S06",
+      "topic": "Progression, RIR accuracy, load/rep changes, failure, actual records and measurement noise"
+    },
+    {
+      "id": "S07",
+      "topic": "Sleep/recovery adjustment, downside-only policy, deloads and readiness claims"
+    },
+    {
+      "id": "S08",
+      "topic": "Strength/body-composition inferences and uncertainty in personal estimates"
+    },
+    {
+      "id": "S09",
+      "topic": "Refeeds versus diet breaks, claimed mechanisms and adherence evidence"
+    },
+    {
+      "id": "S10",
+      "topic": "Per-user applicability: Joe versus Dad, unknown baseline/health/training facts"
+    },
+    {
+      "id": "S11",
+      "topic": "Proposal/consent boundaries and what the coach actually tells the user"
+    },
+    {
+      "id": "S12",
+      "topic": "Research-to-rule-to-consumer traceability and existing known defect/ruling reconciliation"
+    }
+  ],
+  "files": [
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "GOALS.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 5079,
+      "sha256": "407b6b6b85813944c423d69eb3e0deb972ed0e7f217d896e0df77598f8453467"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "research-brief.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 28198,
+      "sha256": "98c82cdea5d814bc06cf7e0a153307c3004613395968757b9450147cd62a4ed9"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "RESEARCH-DESIGN.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 40920,
+      "sha256": "348cbac8f755dbc22b076d638a9e4a2e6cbab0d4d3bfb762b81ce5074c532d6e"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "NUTRITION-TDEE-VERDICT.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 10259,
+      "sha256": "87c8dcbc2cf4f869ec53a75a462c2f6343a38c61e39a6d15d721e82d6752cb2d"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "PROGRESSION-ENGINE-AUDIT.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 74301,
+      "sha256": "f1b8e07860c748e6c936df2a06610e5f71d69184773607be8e396e59ddb4eae6"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/conform/gates/inputs/EARNED-SOURCE-INGESTION-PROTOCOL-v1.1.txt",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 52248,
+      "sha256": "9e777a27d8231930d1340039e3499f489c92fd39fe75fa9a37c912e2e534a740"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/conform/gates/inputs/EARNED-RUNTIME-SHEET-v1.7.38.txt",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 426600,
+      "sha256": "604d8cc4c23baff85d4378270c8bbff26db1933f651ad3058c61ce7416476721"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/lanes/c/N1-NUTRITION-BRIEF.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 18774,
+      "sha256": "0aa0bcc1416e24ab354079ea9034d2da5df27c21d121867e1904d79a516964fe"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/m2/AUDIT-REGISTER.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 62638,
+      "sha256": "b1732189c5a0588d43428ac29f0d80ab32b72c5bf26864f29fc17f97c6ebaaa4"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/m2/OWNER-RULING-PACK-M2.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 5579,
+      "sha256": "2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/DECISIONS.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 452272,
+      "sha256": "b465e0ff75509304e9bf803fad8470e477f0c65ebca41230c5110c3595ecb1df"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/constants.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 23393,
+      "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/constants.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 23393,
+      "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/dates.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 1343,
+      "sha256": "b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/dates.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 1106,
+      "sha256": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/earn.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 11429,
+      "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/earn.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 11429,
+      "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/energy.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 94493,
+      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/energy.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 94493,
+      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/entered-load.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 906,
+      "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/entered-load.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 906,
+      "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/index.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 1111,
+      "sha256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/index.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 1111,
+      "sha256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/merge.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 84396,
+      "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/merge.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 84396,
+      "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/performed.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 19479,
+      "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/performed.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 19479,
+      "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/plan.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 19853,
+      "sha256": "4c6f981706694771501d3d050440eb4f9a62e64b6eac7c59ff9c4742dfaa7e93"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/plan.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 19784,
+      "sha256": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/policy.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 56874,
+      "sha256": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/policy.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 56493,
+      "sha256": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/progression.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 54604,
+      "sha256": "2384d12e5788fb01324a62d7bbc7fa7303a3e748f97ecd4a6f9a5c82975dbc7a"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/progression.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 53582,
+      "sha256": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/sleep.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 188103,
+      "sha256": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/sleep.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 185229,
+      "sha256": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/today.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 48911,
+      "sha256": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/today.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 46420,
+      "sha256": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/volume.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 25485,
+      "sha256": "d58159bc0c098983fa1db6a1f8542d93611537934fca2b2a17bae236bcacd321"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/volume.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 23465,
+      "sha256": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/writers.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 261840,
+      "sha256": "7e8ba66e82a24983e98d063fe948838f77ec168b52515cdfe2e6483291027494"
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/writers.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 259235,
+      "sha256": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/checkin-model.mjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 15572,
+      "sha256": "d449518578bd57431fd8a79c174fdde1208c5eccced9156070411844af794a22"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 23260,
+      "sha256": "9f7116bb679eb53ead6d5ea8000e8534a5bfc94e2042e3b0b36e57f272cd52e3"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/food-model.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 6181,
+      "sha256": "1552309c0c4368ece9aca169338df7b1c02a4d2c6f28bb3b0af8c385ebe15c5c"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/gym-model.mjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 28009,
+      "sha256": "6e2361035adf9e677d2a2499b54395ab738e71debaa2e2df9bc29b5cdca42fc3"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 13697,
+      "sha256": "a9a675061f3bc9fa791fb724b8ef111aa2a0ae45c363afd1c13ff70f9d641a73"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 36183,
+      "sha256": "54c7c6e06c74aba0cfd135ab71fab8b595b884d8e86934fd4a1e2dab82d463e0"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/sleep-model.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 11250,
+      "sha256": "eff392a49fd067dbcc01648a27df3a5dddd55ad5328873b07a8f0006ebd1afe3"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/starter-week.mjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 7387,
+      "sha256": "8b4f257133daffc73696e2e642a568984a22af36808456fd3e350aa88987f069"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 116877,
+      "sha256": "18c79030cc7f420d6c7cb1d14cbd4febeb79c6ee31bdf327a772f5d4f180e5e7"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/today-engine.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 1969,
+      "sha256": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 19215,
+      "sha256": "958136d7ee4a741b82d4e16a6b331a332cd0c96f59fde45d9938b1f57a711637"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/coach-text.cjs",
+      "kind": "prepared-coach-static",
+      "bytes": 14675,
+      "sha256": "1ec05a8c8f16261b3651db4a017b10b3fc2bbefcd1ffb43174d12a81cf8d7d3e"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/local-world.mjs",
+      "kind": "prepared-coach-static",
+      "bytes": 20541,
+      "sha256": "5c46ab64d7233beb341fceae615e5ef81477e98accd654732791b5d29a626292"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/onboarding-text.cjs",
+      "kind": "prepared-coach-static",
+      "bytes": 7334,
+      "sha256": "b8e2b4b774c67f45246c914478114b019f4582393fd31cc1e1f78dd80200d509"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/wave1-text.cjs",
+      "kind": "prepared-coach-static",
+      "bytes": 7495,
+      "sha256": "b7e88970cb88bb3873f011ab9b830803d23e8a971b1de65b7d098177d1d10165"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/tools.cjs",
+      "kind": "prepared-coach-static",
+      "bytes": 58790,
+      "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/wave1-tools.cjs",
+      "kind": "prepared-coach-static",
+      "bytes": 17886,
+      "sha256": "dff61d719a29533a4e1dc06c2536894bd9ba9c0c92cf89602426ee66ead642aa"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/athlete-state.cjs",
+      "kind": "prepared-workout-static",
+      "bytes": 21198,
+      "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/context-values.cjs",
+      "kind": "prepared-workout-static",
+      "bytes": 11196,
+      "sha256": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/source-projection.cjs",
+      "kind": "prepared-workout-static",
+      "bytes": 5431,
+      "sha256": "fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/workout-basis.cjs",
+      "kind": "prepared-workout-static",
+      "bytes": 4496,
+      "sha256": "e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 64433,
+      "sha256": "6a996fcc53fbea6fc9611517b7d2c7ed636516480322095b1863507e934d256d"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 4126,
+      "sha256": "557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-2.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 7892,
+      "sha256": "833db0431e656f862636ab96383c64b8e52f4cbaf94e28da14c1bae52115aaf2"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 5081,
+      "sha256": "f5169bebd527ac13c8a570859bb5d728535a2a71734e135904a77be36c8506e6"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-4.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 6465,
+      "sha256": "c90ffeaa953a9b04146432f39702f87fc8c51ce7f0be77876f075fc4142b87f7"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-5.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 5286,
+      "sha256": "024be3cd3e76d2f6854defda9e5c989f750a5ea9efde25a30b625f1233fbc27b"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-6.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 8055,
+      "sha256": "71a5fa27293b6e7837ec627b273b266db9d6c4987ff850fb6fe9e2a5f86092c4"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-7.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 8511,
+      "sha256": "990e814209aac63537288d80127e6a088b375c19562820cfec7bfd1a19a08d8a"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/volume-projection.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 2264,
+      "sha256": "681880aeb461b20a479dc97a6bfb128aa34ebb399c50d9647d07462b24857444"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/volume-reference.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 1463,
+      "sha256": "37ab7ddf4dde7c38873a0b09d6beb31b6a5e208807a40dd03d1070c6051c97e3"
+    }
+  ]
+}

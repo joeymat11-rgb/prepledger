@@ -1,16 +1,16 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: existing Codex usage only. Complete ER352 firstbe8526a5/custodyc589c7c6/finale9761d32 REJECT R1: enabled capture changes the actual result of a precreated nonextensible Promise during exit. R2 is substantiated within its scope. All419 exact review artifacts,399 copies359069bytes and31 author copies312233bytes verified/preserved, including every failed phase and CRLF correction. B/MAX354 repairs this mechanism frombe0aeeb6 in the named fresh tree under the same five-path/original-outcome bar. ER LOW/paused pending exact successor; E build supportb54fec2d scoped ACCEPT346. C/D/D2/E/I LOW/paused. B322/E324/C294 and A3bfed63 remain scoped prior work; I waits accepted capture for one assembly. NativeFieldDeltas UNKNOWN; full memory/import/phone joins remain. Joe/history/memory then Dad; soak wide beta only. MAX for repair, independent review and critical PM judgment; HIGH routine coordination. No paid API.
+PM checkpoint2026-09-13: owner356 approves focused science audit alongside delivery. E/MAX authors; D2/MAX independently checks original evidence and exact static claims, then reconciles.72 pinned public input rows/12 questions; A3bfed63 prepared versus M100820aa integrated launch. No policy change or product/private execution. B/MAX354/358 continues observer repair, with bounded Promise-hook alternative after actual builtin inspection; complete ER352 REJECT R1 remains. ER LOW/paused pending exact successor. E346 isolated build support accepted; C/D/I LOW/paused. NativeFieldDeltas UNKNOWN; full memory/import/phone joins remain. Joe/history/memory then Dad, soak wide beta only. Existing Codex usage only.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX354: repair exact observer noninterference regression frombe0aeeb6; all original bars stay | earned-astra-b-follow-up; hourly during substantive repair, then paused320 |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX354/358: repair observer noninterference; bounded Promise-hook alternative, all original bars stay | earned-astra-b-follow-up; hourly during substantive repair, then paused320 |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; PAUSED waiting; direct PM handoff |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: complete342 firstc7dc4ebf/final2353a591; isolated setup scoped ACCEPT346 | earned-lane-d2-requests; PAUSED320; direct PM handoff |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX356: independent science audit against exact public input inventory, source-first then author reconciliation | earned-lane-d2-requests; hourly substantive work, then paused320 |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: complete352 first/final REJECT R1; exact successor gets MAX review | earned-astra-engine-review-follow-up; PAUSED320 |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: build supportb54fec2d scoped ACCEPT346; archive4bc6671d complete | earned-astra-e-follow-up; PAUSED320; direct PM handoff |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | MAX356: focused science audit author; prior build support346 remains accepted | earned-astra-e-follow-up; hourly substantive work, then paused320 |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
 
 ## Worktrees
@@ -108,3 +108,5 @@ PM328 adopts the completed326 source assembly and finite static map. Input/outpu
 PM330/332 release two concrete nonoverlapping implementations on existing usage: B capture helper/operator; E frozen-build path/scratch support. Independent ER/MAX and D2/MAX review bars are written before build. E is temporarily assigned this support file, not native gate custody. Private data runs remain solely B under an exact later window; the diagnostic summary cannot replace field-level expectation admission.
 
 PM334 verifies E332 exact three-file handoff and starts D2/MAX independent review while B330 continues. E LOW archives only existing public proof; do not treat author11/11 as acceptance. No historical/private/frozen invocation is assigned to D2 or E.
+
+PM356 temporarily assigns E and D2 to distinct science-author and independent-review roles in fresh science-audit-e/science-audit-d2 worktrees. Read SCIENCE-AUDIT-GO.md and its input-only manifest. Current research may inform concrete owner choices; no source-only finding silently rewrites policy or receives product acceptance. PM358 answers B's bounded Promise-hook dependency request without waiting for this audit.

@@ -1,17 +1,16 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 19:34 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @ecca0d8d7ef33c1e6088995ceae88c87aa001656 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
-- PM: sole Astra PM193; owner306 existing Codex usage, no API trial. Joe/history/memory then Dad; soak wide beta only. MAX advised for current noninterference judgment; HIGH routine coordination.
-- B: MAX354 repairs exactbe0aeeb6 observer noninterference in a fresh own nested tree. Original bars and all failures stay. Previous31-file archive79f3be07 complete/verified. NativeFieldDeltas UNKNOWN.
-- E: exact isolated build supportb54fec2d/source46aead24 scoped ACCEPT346; archive4bc6671d complete. LOW/paused320. Memory324 unchanged.
-- C: lifecycle7e64848d scoped ACCEPT294; LOW waiting full consumer/composition. N2 prior147/10/kill/build and R4 applicability310 retained.
-- D: partial import harnessf0b01d9 retained; LOW waits reviewed B native-Date/membership+host companionb73cf852, acceptedB3 and full joins.
-- REVIEW/INTEGRATION: complete ER352 firstbe8526a5/custodyc589c7c6/finale9761d32 REJECT R1; R2 substantiated within scope.419 exact artifacts preserved. ER/D2/I LOW/paused; E346 accepted. No full/native/receipt/CI/integration acceptance.
-- OWNER: no immediate action. September18–23 Joe/history/memory forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks. Import/credentials/device actions remain point-of-use.
-- SCHEDULE: PM30min; B MAX repair hourly; C/D/D2/ER/E/I paused LOW. Immediate exact handoffs, no duplicate lane/API expense.
-
-2026-09-13 18:07 ET · PM-CARETAKER · Astra · 7128197e8aebf54ac1f991696a2cf22caf3da414 ·336 sends complete Bf9e45f922 capture to ER MAX; B LOW archives public evidence. D2 MAX setup334 runs in parallel; E4c355b27 archive verified, E LOW/paused. Existing Codex usage; no native/FULL/phone PASS or paid API.
+## STATE (refreshed 2026-09-13 19:47 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @34fce6323d78adb7363a7e05f81dc92e27eb9017 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193; owner306 existing Codex usage, no API trial. Joe/history/memory then Dad; soak wide beta only. MAX advised for science/critical judgments, HIGH routine coordination.
+- B: MAX354/358 noninterference repair. Test-only red8ab80f3b preserved; bounded Promise-hook alternative now licensed for inspection/attempt, original bars stay. NativeFieldDeltas UNKNOWN.
+- E: MAX356 science author in fresh science-audit-e;12 scoped claims and72 pinned public inputs. Prior isolated build support346 and memory324 remain their accepted scopes.
+- D2: MAX356 independent source/static science check before E findings, then reconciliation. Prior342/346 complete; separate owned science-audit-d2.
+- C: lifecycle7e64848d scoped ACCEPT294; LOW waiting full consumer/composition. N2/R4 evidence retained.
+- D: partial import harnessf0b01d9 retained; LOW waits reviewed B native-Date/membership+host companion, acceptedB3 and full joins.
+- REVIEW/INTEGRATION: complete ER352 REJECT R1 and419 exact artifacts preserved; R2 substantiated within scope. ER/I LOW/paused until exact accepted handoff. No full/native/receipt/CI/integration acceptance.
+- OWNER: no immediate action. Science audit findings will become concrete yes/no policy choices only if needed. September18–23 Joe/history/memory forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks.
+- SCHEDULE: PM30min; B/E/D2 MAX substantive work hourly; C/D/ER/I LOW/paused. Immediate meaningful handoffs; no duplicate tasks or spending.
 
 2026-09-13 18:05 ET · D2 · STARTED PM334 · codex/astra-d2-frozen-build-setup @2fdf33e5 · MAX; all10 clauses/332 read. Full1609-entry index before4 exact public inputs; owned Node22/esbuild0.28.1 loader+service verified. Synthetic test running; author report/outcomes unread. PM sole judge.
 
@@ -40,3 +39,6 @@
 2026-09-13 19:12 ET · PM-CARETAKER · Astra · 1a0cc98640dae57930569ed8ed7d5a7918ccf11f ·352 sends complete capture repairbe0aeeb6 to ER MAX independent review. Exact five-file/tested/profile/source scope verified; all failed attempts retained. B LOW finite public archive. E346 stays accepted. No native/phone PASS, owner action or paid API.
 
 2026-09-13 19:34 ET · PM-CARETAKER · Astra · ecca0d8d7ef33c1e6088995ceae88c87aa001656 ·354 retains full ER352 REJECT R1: capture changes an actual child result.419 exact artifacts/all failures preserved; R2 substantiated. B MAX focused noninterference repair; ER LOW/paused. E346 accepted. No native/phone PASS, owner action or paid API.
+
+
+2026-09-13 19:47 ET · PM-CARETAKER · Astra · 34fce6323d78adb7363a7e05f81dc92e27eb9017 ·356 starts owner-approved science audit: E MAX author, D2 MAX independent primary-source/static review. B MAX358 receives bounded Promise-hook scope; original outcome bar stays. Existing usage, no new policy/native/phone PASS or paid API.
