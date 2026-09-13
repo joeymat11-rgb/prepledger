@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM checkpoint2026-09-13: B/MAX R8 engine repair and C/XHIGH isolated memory lifecycle groundwork266 are active. E0f57c99c/C301f587 planning directions settled; E/D/ER/D2 LOW standby, I paused. PM MAX for accelerated release judgment. Prior N2 scoped evidence retained; exact accepted B/D composition and full import/memory proof remain, formal beta soak earliestOct5 unchanged.
+PM checkpoint2026-09-13: B/MAX R8 engine repair and C/XHIGH isolated memory lifecycle groundwork266 are active. E0f57c99c/C301f587 planning directions settled; E/D/ER/D2 LOW standby, I paused. PM MAX for accelerated release judgment. Prior N2 scoped evidence retained; exact accepted B/D composition and full import/memory proof remain, owner268 personal delivery is Joe with history and Dad; soak gates wide beta only.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
@@ -19,7 +19,7 @@ PM checkpoint2026-09-13: B/MAX R8 engine repair and C/XHIGH isolated memory life
 | P3 preview guard | Brief accepted :190; workflow ownership/CI compatibility needed | PM assigns after handover |
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
 | Joe daily use | Launch and N2 evidence, correct build, real setup/workout hand proof remain | PM prepares; Joe performs |
-| Dad start | Joe's required real-use period and same-code shakedown, Dad walkthrough; F1 if his schedule needs it | Joe/Dad with PM |
+| Dad personal start | Owner268 priority alongside Joe/history/memory. Existing138 two days of Joe real use on the same candidate, Dad own-phone walkthrough/separate setup and store; F1 if2–3-day schedule needs it. Soak is not a personal-start gate | Joe/Dad with PM; D/B/C for required F1 |
 | S3 personal-history port | R2 REJECTfe2c79ef preserved with57+41/56/27/22 evidence. Partial D f0b01d9/source a69b591 repairs two harness findings: author17 harness/59 exact assertion mutants+restores/7 unchanged annex probes,111 Git/copy pins;26-line report7572bytes SHA256e62f715771d3a33039a40d12b0a17577c28e053bb3d5dd4f3d77e94673c309e9 rehashed/adopted. No full combined review yet. Native-Date/membership+host companion b73cf852 waits for accepted B parent/exact public closure; D then joins and runs complete portable proof. Final C2/data/gym/restart/P1 and acceptedB3 remain | B exact companion; PM source release; D join; ER complete successor; B/C later joins; Joe real use |
 | Later scope | Hosted sync/second phone, broader beta/hardening and protected soak remain under existing milestones | Reconcile after current critical packages |
 
@@ -28,3 +28,5 @@ Done means implemented, independently accepted, automated evidence green, integr
 Owner positioning and personalization discussion is retained in POSITIONING-CONTEXT.md. Its memory subset was subsequently approved as the Coaching Memory v1 beta requirement202; other ideas remain planning context. Reported capabilities require code/evidence verification before any shipped claim.
 
 Acceleration timing clarification: owner100 permits personal first use separately from full beta. Formal M4/beta still requires the30-day phone-storage soak verdict, earliest readback2026-10-05 per ROADMAP/DECISIONS80; that is neither a promised release nor a passing result. Days-scale work targets a personal-use engineering candidate with import/memory, subject to its own complete proof and owner/private/release controls. See BETA-ACCELERATION.md.
+
+Owner268 clarification controls the earlier acceleration note: Joe AND Dad personal use is the immediate target; the soak is a wide-beta prerequisite only. See PERSONAL-USE-DELIVERY.md. No new time wait; existing138 two-day Joe trial stays.

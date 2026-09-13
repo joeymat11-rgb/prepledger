@@ -1,5 +1,6 @@
 # Beta acceleration: history import and coaching memory
 
+Current owner268 target: accelerate personal use for Joe with his data AND Dad, including coaching memory. The soak gates WIDE BETA only. PERSONAL-USE-DELIVERY.md controls the audience and milestones; historical timing discussion below is superseded where it couples Dad to full beta.
 2026-09-13. Joe asks whether the broader beta can be delivered in days without sacrificing quality and says resources are available. Under193/202/244, use existing idle seats for concrete preparation that does not depend on accepted future bytes. This does not authorize skipped evidence, speculative acceptance, private-data access, a new task, spending or deployment. The earlier owner-facing calendar estimates were rough forecasts, not a dependency-based schedule.
 
 | Workstream | Immediate assignment | Completion boundary |
