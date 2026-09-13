@@ -188,7 +188,7 @@ for(const [name,target]of r8Targets)for(const debt of ['short','three-night'])te
  assert.equal(focus.owed.length,0,'All three previous calendar nights and current logging close the decision prerequisites');assert.ok(sleep);assert.ok(T.currentSleepObservation(s));
  if(Number.isFinite(target)) {
   assert.equal(sleep.cost,target===8&&debt==='short'?20:30);assert.equal(fix.rung,'sleep');assert.equal(now.move.kind,'fix');assert.equal(now.move.lever,'SLEEP');assert.equal(order.why,fix.title);
-  const ref=R8_FINITE_S.find(r=>r.target===target&&r.debt===debt);assert.deepEqual(r8Json({fix,order,now}),ref.outputs,'Complete finite-target Today outputs stay exactly S');assert.deepEqual(trace,ref.trace,'Finite-target clock queries stay exactly S');return;
+  const ref=R8_FINITE_S.find(r=>r.target===target&&r.debt===debt);assert.deepEqual(r8Json({fix,order,now}),ref.outputs,'Complete finite-target Today outputs stay exactly S');assert.deepEqual(trace,r9Trace(ref.trace),'Finite-target clock queries stay exactly S');return;
  }
  assert.equal(sleep.cost,null);assert.equal(rec.score,null);assert.equal(rec.lever,null);assert.equal(rec.band,'UNKNOWN');assert.equal(levers.sleep.state,'quiet');
  assert.equal(fix.state,'quiet');assert.equal(fix.lever,null);assert.equal(fix.title,'Recorded recovery warnings');assert.equal(now.move.kind,'quiet');r8NoClearance(out);r8ActualWarnings(out);
@@ -207,7 +207,7 @@ for(const [name,target]of r8Targets.slice(0,6))test(`FG5 R8 healthy observations
 for(const target of [8,9])test(`FG5 R8 known healthy target ${target}`,()=>{
  const {s}=r8Fixture(target,'healthy');for(const night of s.sleep.nights)night.h=10;
  const {rec,focus,levers,fix,order,now,trace}=r8Read(s),ref=R8_KNOWN_HEALTHY_S.find(r=>r.target===target);assert.equal(focus.owed.length,0);assert.equal(levers.sleep.state,'good');assert.equal(rec.score,100);assert.deepEqual(rec.flags,[]);
- assert.deepEqual(r8Json({fix,order,now}),ref.outputs,'Healthy finite-target outputs remain exactly S');assert.deepEqual(trace,ref.trace,'No new recovery query on the established finite healthy path');
+ assert.deepEqual(r8Json({fix,order,now}),ref.outputs,'Healthy finite-target outputs remain exactly S');assert.deepEqual(trace,r9Trace(ref.trace),'No new recovery query on the established finite healthy path');
 });
 test('FG5 R8 actual foresight retains the observed recovery warnings',()=>{
  const {s,offset}=r8Fixture(undefined);s.reads=Array.from({length:28},(_,i)=>({d:offset(i-27),w:180+(27-i)*1.72/7+[0,0.1,-0.1][i%3],pt:180+(27-i)*1.72/7}));s.dailyLogs=Object.fromEntries(s.reads.map(r=>[r.d,{cal:2200,pro:180,steps:10000}]));
@@ -223,7 +223,7 @@ for(const [kind,day,loss,phase]of [['calories','2026-08-01',0,'cut'],['break','2
  if(kind==='steps')s.dailyLogs[day].steps=1000;if(kind==='logging')s.sleep.nights.shift();if(kind==='decisions')s.proposals=[{rid:'r8-decision',title:'Review recorded change',why:'An existing decision needs your answer.',resolved:false}];
  const out=r8Read(s,day,true),{rec,focus,fix,order,now,trace}=out,ref=R8_CONTROLS_S.find(r=>r.kind===kind);
  assert.equal(focus.owed.length,kind==='logging'?1:0);assert.equal(fix.rung,['rate','decisions'].includes(kind)?'hold':kind);assert.equal(now.move.kind,kind==='rate'?'rate':kind==='decisions'?'decisions':'fix');assert.ok(rec.flags.find(f=>f.k==='sleep'));assert.equal(rec.lever,null);
- if(['logging','steps'].includes(kind)){assert.deepEqual(r8Json({fix,order,now}),ref.outputs,'Existing logging/steps actions and all outputs stay S');assert.deepEqual(trace,ref.trace,'Logging/steps clock queries stay S');return;}
+ if(['logging','steps'].includes(kind)){assert.deepEqual(r8Json({fix,order,now}),ref.outputs,'Existing logging/steps actions and all outputs stay S');assert.deepEqual(trace,r9Trace(ref.trace),'Logging/steps clock queries stay S');return;}
  if(kind==='decisions'){assert.deepEqual(r8Json(now),ref.outputs.now,'Pending real decision retains precedence and full output');return;}
  assert.equal(out.rate.measured,true);assert.equal(out.energy.gated,false);r8NoClearance(out);r8ActualWarnings(out);
  const {why,...orderRest}=order,{why:oldWhy,...oldOrderRest}=ref.outputs.order;assert.deepEqual(r8Json(orderRest),oldOrderRest,'Meal action and target unchanged');
@@ -234,4 +234,27 @@ for(const [kind,day,loss,phase]of [['calories','2026-08-01',0,'cut'],['break','2
 });
 for(const [name,target]of Object.entries({...unknownTargets,known:8}))test(`FG4 logging theOneThing target ${name}`,()=>{
  const T=engine(),s=state();s.sleep.cleanH=target;s.sleep.needed=1;s.sleep.nights=[{d:'2026-09-03',h:2}];const before=structuredClone(s),out=T.theOneThing(s,T.sleepInfo(s),21);assert.match(out.t,/^Log /);if(Number.isFinite(target))assert.match(out.sub,/8 h target/);else assert.doesNotMatch(out.sub,/target|updates the target count/);assert.deepEqual(s,before);
+});
+
+// PM282: S constants above remain historical bytes. R9 removes one workout date read.
+function r9Trace(trace){const out=trace.slice();const i=out.lastIndexOf("today");assert.ok(i>=0);out.splice(i,1);return out;}
+function r9Clock(start,step){let index=0;const trace=[],clock={tz:'America/New_York'},day=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;for(const [key,fn]of Object.entries({today:day,hour:d=>d.getHours(),dow:d=>d.getDay(),nowISO:d=>d.toISOString(),nowMs:d=>d.getTime()}))clock[key]=()=>{const ms=start+step*index++,value=fn(new Date(ms));trace.push({key,ms,value});return value;};return{clock,trace};}
+for(const [kind,oldCount]of [['unknown-debt',43],['unknown-healthy',43],['pending-decision',43],['finite-sleep',33],['finite-healthy',43],['logging',33],['steps',51]])test(`FG6 R9 advancing calendar ${kind}`,()=>{
+ const s=r8Fixture(kind.startsWith('finite')?8:undefined,kind==='unknown-healthy'||kind==='finite-healthy'?'healthy':'short').s;
+ if(kind==='finite-healthy')s.sleep.nights.forEach(n=>n.h=10);
+ if(kind==='logging')s.sleep.nights.shift();
+ if(kind==='pending-decision')s.proposals=[{rid:'r8-decision',title:'Review recorded change',why:'An existing decision needs your answer.',resolved:false}];
+ if(kind==='steps'){s.reads=Array.from({length:28},(_,i)=>({d:new Date(Date.UTC(2026,8,3+i-27)).toISOString().slice(0,10),w:180+(27-i)/7,pt:180+(27-i)/7}));s.dailyLogs=Object.fromEntries(s.reads.map(r=>[r.d,{cal:2200,pro:180,steps:10000}]));s.plan.phase='cut';s.dailyLogs['2026-09-03'].steps=1000;}
+ const before=structuredClone(s),midnight=Date.parse('2026-09-04T00:00:00-04:00');
+ for(const start of [midnight-oldCount-1,midnight-1000,midnight+1]){
+  const ctx=r9Clock(start,1),T=createEngine({clock:ctx.clock,ids:{fresh:()=>assert.fail('Read must not allocate')}}).__test,out=T.nowModel(s),first=ctx.trace[0];
+  assert.equal(first.key,'today');assert.equal(out.tISO,first.value,'Returned date is the first captured date');assert.ok(ctx.trace.every((v,i)=>v.ms===start+i),'Clock advances coherently');
+  assert.equal(out.workout.iso,out.tISO,'R9-MIXED-TODAY-DATE');assert.equal(out.workout.today,true);assert.equal(out.workout.title,out.tISO==='2026-09-03'?'UPPER BODY · TODAY':'LOWER BODY · TODAY');
+  if(start<midnight){if(kind==='pending-decision')assert.equal(out.move.kind,'decisions');if(kind==='unknown-debt')assert.match(out.move.body,/observed short|three-night debt/);}
+  assert.deepEqual(s,before);
+ }
+});
+test('FG6 R9 rest-day multi-iteration scan crosses midnight coherently',()=>{
+ const s=r8Fixture(undefined,'short','2026-08-01').s,before=structuredClone(s),midnight=Date.parse('2026-08-02T00:00:00-04:00');
+ for(const start of [midnight-44,midnight-1000]){const ctx=r9Clock(start,1),T=createEngine({clock:ctx.clock,ids:{fresh:()=>assert.fail('No ID on read')}}).__test,out=T.nowModel(s);assert.equal(out.tISO,'2026-08-01');assert.equal(out.tISO,ctx.trace[0].value);assert.equal(out.workout.iso,'2026-08-03');assert.equal(out.workout.today,false);assert.equal(out.workout.title,'UPPER BODY · MON 8/3');assert.deepEqual(s,before);}
 });
