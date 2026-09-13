@@ -565,7 +565,7 @@
     },
     "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs": {
       "pre": null,
-      "post": "173287f88663086a71e9b49afe9c07e2790f33a1bfbfb840509939c7c5c02d5c",
+      "post": "9d261133281ce4097039a0b190cabe1d9804aac477dacc484680bf9a6ae6c655",
       "role": "new"
     },
     "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs": {

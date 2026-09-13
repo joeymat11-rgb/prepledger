@@ -194,8 +194,8 @@ test('C12c public law source admission retains M/R/S/T and the closed Today-only
 test('C9 full current profile passes the actual closed registration checker',()=>{
  const s=currentProfile();inventory.check(s);
  assert.equal(s.children.length,26);assert.equal(s.witnessFlips.length,35);
- for(const [name,count]of [['unknown-and-target-cells',331],['b1b2-sup-source',94],['b1b2-sup-writers',335],['tooling-cohort',267]])
-  assert.equal(s.children.find(c=>c.name===name).needle,'# pass '+count,'exact R4 expectation; prospective until that child runs');
+ for(const [name,count]of [['unknown-and-target-cells',331],['b1b2-sup-source',94],['b1b2-sup-writers',335],['tooling-cohort',331]])
+  assert.equal(s.children.find(c=>c.name===name).needle,'# pass '+count,'exact current expectation; R4 source/writer counts retained, PM300 tooling adds64 cases');
  assert.equal(s.children.find(c=>c.name==='public-census').needle,'B1B2 PUBLIC CENSUS: 2 complete original public runs; 3 complete M/U frame comparisons; ');
  assert.equal(s.parent.chosen,'H3');assert.equal(s.parent.options.length,1);
  assert.equal(s.parent.options[0].receiptLedgerLine,187);
@@ -483,7 +483,7 @@ function reviewedLeg(f,at,source=runnerSource){
  const begin='  const reviewed = { ...m.executionPins };',end="  ancestor(v[1], 'HEAD', 'REVIEWED-COMMIT-NOT-BEHIND-HEAD');";
  assert.equal(source.split(begin).length,2);assert.equal(source.split(end).length,2);
  const code=source.slice(source.indexOf(begin),source.indexOf(end));
- return Function('s','m','amendmentPins','gitUnchanged','L','root','v','ID',code)({product:{}},{executionPins:{}},amendmentPositive(f),new Map(),L,f.dir,[null,at],'B1-B2');
+ return Function('s','m','amendmentPins','gitUnchanged','L','root','v','ID',code)({product:{}},{executionPins:{},product:{}},amendmentPositive(f),new Map(),L,f.dir,[null,at],'B1-B2');
 }
 test('A19 actual reviewed-source leg binds all six authority documents; omitted-pin mutant loses refusal',()=>{
  const f=af(),file=amendmentDocuments[3][0];reviewedLeg(f,f.admitted);
