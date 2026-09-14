@@ -1,0 +1,8 @@
+{
+  "phase": "setup before product hydration or execution",
+  "command": "git update-index --skip-worktree --stdin -z",
+  "exitCode": 129,
+  "stderr": "error: option 'stdin' must be the last argument",
+  "correction": "Place -z before --stdin; no missing dependency or provider capacity failure",
+  "productExecuted": false
+}

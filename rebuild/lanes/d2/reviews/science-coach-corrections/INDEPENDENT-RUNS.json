@@ -1,0 +1,175 @@
+{
+  "candidate": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+  "sourceTest": "c21e64f2616552c3672107a792f45ea6e2342777",
+  "authorOutcomesRead": false,
+  "runs": [
+    {
+      "id": "syntax-1",
+      "startedAtUTC": "2026-09-14T02:35:10.383Z",
+      "finishedAtUTC": "2026-09-14T02:35:10.458Z",
+      "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+      "nodeVersion": "v22.23.2",
+      "args": [
+        "--check",
+        "rebuild/coach/tools.cjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-1.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-1.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "counts": {}
+    },
+    {
+      "id": "syntax-2",
+      "startedAtUTC": "2026-09-14T02:35:10.459Z",
+      "finishedAtUTC": "2026-09-14T02:35:10.503Z",
+      "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+      "nodeVersion": "v22.23.2",
+      "args": [
+        "--check",
+        "rebuild/coach/coach-text.cjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-2.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-2.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "counts": {}
+    },
+    {
+      "id": "syntax-3",
+      "startedAtUTC": "2026-09-14T02:35:10.503Z",
+      "finishedAtUTC": "2026-09-14T02:35:10.546Z",
+      "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+      "nodeVersion": "v22.23.2",
+      "args": [
+        "--check",
+        "rebuild/coach/test/science-correction-contract.test.cjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-3.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-3.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "counts": {}
+    },
+    {
+      "id": "syntax-review-control",
+      "startedAtUTC": "2026-09-14T02:35:10.547Z",
+      "finishedAtUTC": "2026-09-14T02:35:10.583Z",
+      "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+      "nodeVersion": "v22.23.2",
+      "args": [
+        "--check",
+        "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial.test.cjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-review-control.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-review-control.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "counts": {}
+    },
+    {
+      "id": "delivered-test",
+      "startedAtUTC": "2026-09-14T02:35:10.584Z",
+      "finishedAtUTC": "2026-09-14T02:35:10.698Z",
+      "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+      "nodeVersion": "v22.23.2",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/coach/test/science-correction-contract.test.cjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/delivered-test.stdout.log",
+        "bytes": 2840,
+        "sha256": "e8cb009a18c656dc7e74058ce013ae6bbc0bfd6c22d7de65c8996666432bbb11"
+      },
+      "stderr": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/delivered-test.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "counts": {
+        "tests": 17,
+        "suites": 0,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "id": "adversarial-test",
+      "startedAtUTC": "2026-09-14T02:35:10.699Z",
+      "finishedAtUTC": "2026-09-14T02:35:10.804Z",
+      "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+      "nodeVersion": "v22.23.2",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial.test.cjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-test.stdout.log",
+        "bytes": 837,
+        "sha256": "338e1965ff704dae80a38966474160c6d5d117b2ac23f94e39e0b5a876ce8a8b"
+      },
+      "stderr": {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-test.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "counts": {
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ]
+}
