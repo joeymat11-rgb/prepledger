@@ -1,0 +1,7 @@
+{
+  "loaded": [
+    "rebuild/coach/coach-text.cjs",
+    "rebuild/coach/tools.cjs",
+    "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial.test.cjs"
+  ]
+}

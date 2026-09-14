@@ -1,0 +1,432 @@
+{
+  "authority": "PM394",
+  "createdAtUTC": "2026-09-14T02:30:25.869Z",
+  "root": "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/science-coach-corrections-review-d2",
+  "branch": "codex/astra-science-coach-review-d2",
+  "candidate": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+  "tested": "c21e64f2616552c3672107a792f45ea6e2342777",
+  "base": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "shared": "5e24d0da6503313a10ff4685153e8142fd99dc84",
+  "completeIndexEntries": 1617,
+  "indexVerifiedBeforeHydration": true,
+  "hydratedTrackedPaths": [
+    "rebuild/coach/tools.cjs",
+    "rebuild/coach/coach-text.cjs",
+    "rebuild/coach/test/science-correction-contract.test.cjs"
+  ],
+  "node": {
+    "path": ".tmp/tools/node.exe",
+    "version": "v22.23.2",
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "context": [
+    {
+      "ref": "5e24d0da6503313a10ff4685153e8142fd99dc84",
+      "path": "rebuild/lanes/astra/SCIENCE-COACH-CORRECTIONS-REVIEW.md",
+      "bytes": 4554,
+      "sha256": "955fe9cd368eadbb7025105557a6c1f3df2b568013420a097a20f0ee809e175a",
+      "copy": ".tmp/instructions/SCIENCE-COACH-CORRECTIONS-REVIEW.md"
+    },
+    {
+      "ref": "5e24d0da6503313a10ff4685153e8142fd99dc84",
+      "path": "rebuild/lanes/astra/SCIENCE-COACH-CORRECTIONS-REVIEW-INPUTS.json",
+      "bytes": 3685,
+      "sha256": "3fee0a522dafa7d8078c87cae39d5386537ea45883fcd08631520595efbb3377",
+      "copy": ".tmp/instructions/SCIENCE-COACH-CORRECTIONS-REVIEW-INPUTS.json"
+    },
+    {
+      "ref": "5e24d0da6503313a10ff4685153e8142fd99dc84",
+      "path": "rebuild/lanes/astra/SCIENCE-COACH-CORRECTIONS-GO.md",
+      "bytes": 4936,
+      "sha256": "c527e9f77760776a0050bbdb1203fcad11d12e7bca09ce537f2572d0fe6980a5",
+      "copy": ".tmp/instructions/SCIENCE-COACH-CORRECTIONS-GO.md"
+    }
+  ],
+  "sourceRows": [
+    {
+      "path": "rebuild/coach/tools.cjs",
+      "bytes": 58784,
+      "sha256": "b2bb3c959840a3c9fa867b84e94df979bf8ec04b9a5b19701da07f72fb8e6037",
+      "blob": "49d2d5e62a25c3b1c96dea381c07419fe6040495",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "identityVerified": true,
+      "identicalAtTestedRef": true,
+      "copy": "rebuild/coach/tools.cjs",
+      "lines": 1032
+    },
+    {
+      "path": "rebuild/coach/coach-text.cjs",
+      "bytes": 14880,
+      "sha256": "2e5213b99b469ec4fd079ed04c406061033437b40b0c1b82934ba24824c78147",
+      "blob": "15fb2ad08ac078599bb16ef4aacd670e6f75a24e",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "identityVerified": true,
+      "identicalAtTestedRef": true,
+      "copy": "rebuild/coach/coach-text.cjs",
+      "lines": 268
+    },
+    {
+      "path": "rebuild/coach/test/science-correction-contract.test.cjs",
+      "bytes": 10886,
+      "sha256": "faa210fdef5037ece50239195bdf335b5189bfc11288eb9e2158a087082bf610",
+      "blob": "2fc542a8978c25d966b6bd50ccb55a2c6b10e1bb",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "identityVerified": true,
+      "identicalAtTestedRef": true,
+      "copy": "rebuild/coach/test/science-correction-contract.test.cjs",
+      "lines": 167
+    }
+  ],
+  "preimages": [
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/tools.cjs",
+      "bytes": 58790,
+      "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74",
+      "copy": ".tmp/preimage/rebuild/coach/tools.cjs",
+      "identityVerified": true,
+      "lines": 1033
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/coach-text.cjs",
+      "bytes": 14675,
+      "sha256": "1ec05a8c8f16261b3651db4a017b10b3fc2bbefcd1ffb43174d12a81cf8d7d3e",
+      "copy": ".tmp/preimage/rebuild/coach/coach-text.cjs",
+      "identityVerified": true,
+      "lines": 268
+    }
+  ],
+  "sourceFirstDiff": {
+    "path": ".tmp/source-first.diff",
+    "bytes": 27273,
+    "sha256": "3cf144f5a915771f302987baeaa8ef9f3156a37a5f38197154a641b68aa5bc05",
+    "authorArchiveRead": false
+  },
+  "authorOutcomesRead": false,
+  "productExecuted": true,
+  "phase": "Independent first assessment before C outcomes",
+  "executionScope": "Only actual two coach modules, delivered synthetic entry and three invented-world review controls; Node builtins",
+  "execution": {
+    "candidate": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+    "sourceTest": "c21e64f2616552c3672107a792f45ea6e2342777",
+    "authorOutcomesRead": false,
+    "runs": [
+      {
+        "id": "syntax-1",
+        "startedAtUTC": "2026-09-14T02:35:10.383Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.458Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--check",
+          "rebuild/coach/tools.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-1.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-1.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {}
+      },
+      {
+        "id": "syntax-2",
+        "startedAtUTC": "2026-09-14T02:35:10.459Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.503Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--check",
+          "rebuild/coach/coach-text.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-2.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-2.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {}
+      },
+      {
+        "id": "syntax-3",
+        "startedAtUTC": "2026-09-14T02:35:10.503Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.546Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--check",
+          "rebuild/coach/test/science-correction-contract.test.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-3.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-3.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {}
+      },
+      {
+        "id": "syntax-review-control",
+        "startedAtUTC": "2026-09-14T02:35:10.547Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.583Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--check",
+          "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial.test.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-review-control.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-review-control.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {}
+      },
+      {
+        "id": "delivered-test",
+        "startedAtUTC": "2026-09-14T02:35:10.584Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.698Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/coach/test/science-correction-contract.test.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/delivered-test.stdout.log",
+          "bytes": 2840,
+          "sha256": "e8cb009a18c656dc7e74058ce013ae6bbc0bfd6c22d7de65c8996666432bbb11"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/delivered-test.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {
+          "tests": 17,
+          "suites": 0,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "id": "adversarial-test",
+        "startedAtUTC": "2026-09-14T02:35:10.699Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.804Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial.test.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-test.stdout.log",
+          "bytes": 837,
+          "sha256": "338e1965ff704dae80a38966474160c6d5d117b2ac23f94e39e0b5a876ce8a8b"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-test.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {
+          "tests": 3,
+          "suites": 0,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      }
+    ]
+  },
+  "staticComparisons": [
+    {
+      "name": "today_plan",
+      "baseSHA256": "b0359876b4095b1e35bd34382caa0a312d189200cf7b1d72ddea1690fe101fc6",
+      "candidateSHA256": "176ab34a9f8a0c1b1d96612771be27afef4fce34893c3a3dd12690c9a44e7158",
+      "unchanged": false,
+      "permittedDifference": "Only three null-safe property accesses"
+    },
+    {
+      "name": "why_this_instruction",
+      "baseSHA256": "c4195a52fdcda6b7e7f8df88288e5af2057bda708489c503908183e84fcfbe53",
+      "candidateSHA256": "c4195a52fdcda6b7e7f8df88288e5af2057bda708489c503908183e84fcfbe53",
+      "unchanged": true,
+      "permittedDifference": null
+    },
+    {
+      "name": "proposal producer",
+      "baseSHA256": "a3065eb95b9f72983e355afd54702c212c8cc8b03ec336a6562d17eda486947b",
+      "candidateSHA256": "a3065eb95b9f72983e355afd54702c212c8cc8b03ec336a6562d17eda486947b",
+      "unchanged": true,
+      "permittedDifference": null
+    },
+    {
+      "name": "request_replan",
+      "baseSHA256": "8a42b8533aed34cc20a755be23e04a9f480e1d09ac584c314e5b5fb1bd01f6c0",
+      "candidateSHA256": "8a42b8533aed34cc20a755be23e04a9f480e1d09ac584c314e5b5fb1bd01f6c0",
+      "unchanged": true,
+      "permittedDifference": null
+    },
+    {
+      "name": "accept_proposal",
+      "baseSHA256": "58a8bbf6782d547134f7234b4f8b9eb101b6b10b77c391027c9c55bf92428594",
+      "candidateSHA256": "eb0c4c107f6031599a92f101c58ba5dea59a1bf3769a50417f28f70a6fdf1a94",
+      "unchanged": false,
+      "permittedDifference": "Only coach-owned source suffix; record.engine_source prefix and record.reason argument unchanged"
+    },
+    {
+      "name": "refusal dispatch",
+      "baseSHA256": "bf687ac2efd9bf2d309e0a1b974283a498a3434aead1d3926e08de6fa959c4f3",
+      "candidateSHA256": "bf687ac2efd9bf2d309e0a1b974283a498a3434aead1d3926e08de6fa959c4f3",
+      "unchanged": true,
+      "permittedDifference": null
+    },
+    {
+      "name": "openTurn",
+      "baseSHA256": "54932c7b4b4767794eba519884ccbb0c9ed9db1a7e71fac214db2507a51f1a54",
+      "candidateSHA256": "54932c7b4b4767794eba519884ccbb0c9ed9db1a7e71fac214db2507a51f1a54",
+      "unchanged": true,
+      "permittedDifference": null
+    },
+    {
+      "name": "answerOne routing",
+      "baseSHA256": "d872236aed75831c13c272a08df8e36435bff91326a7994744de4cbd8f74b841",
+      "candidateSHA256": "d872236aed75831c13c272a08df8e36435bff91326a7994744de4cbd8f74b841",
+      "unchanged": true
+    }
+  ],
+  "sourceReadLog": [
+    {
+      "atUTC": "2026-09-14T02:30:59.556Z",
+      "read": "Entire independently generated three-file source diff",
+      "sha256": "3cf144f5a915771f302987baeaa8ef9f3156a37a5f38197154a641b68aa5bc05",
+      "authorArchive": false
+    },
+    {
+      "atUTC": "2026-09-14T02:31:44.705Z",
+      "path": "rebuild/coach/coach-text.cjs",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "sha256": "2e5213b99b469ec4fd079ed04c406061033437b40b0c1b82934ba24824c78147",
+      "from": 1,
+      "to": 268,
+      "total": 268
+    },
+    {
+      "atUTC": "2026-09-14T02:31:44.760Z",
+      "path": "rebuild/coach/tools.cjs",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "sha256": "b2bb3c959840a3c9fa867b84e94df979bf8ec04b9a5b19701da07f72fb8e6037",
+      "from": 1,
+      "to": 150,
+      "total": 1032
+    },
+    {
+      "atUTC": "2026-09-14T02:31:44.864Z",
+      "path": "rebuild/coach/tools.cjs",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "sha256": "b2bb3c959840a3c9fa867b84e94df979bf8ec04b9a5b19701da07f72fb8e6037",
+      "from": 900,
+      "to": 1032,
+      "total": 1032
+    },
+    {
+      "atUTC": "2026-09-14T02:32:46.547Z",
+      "path": "rebuild/coach/tools.cjs",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "sha256": "b2bb3c959840a3c9fa867b84e94df979bf8ec04b9a5b19701da07f72fb8e6037",
+      "from": 400,
+      "to": 650,
+      "total": 1032
+    },
+    {
+      "atUTC": "2026-09-14T02:32:46.821Z",
+      "path": "rebuild/coach/tools.cjs",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "sha256": "b2bb3c959840a3c9fa867b84e94df979bf8ec04b9a5b19701da07f72fb8e6037",
+      "from": 151,
+      "to": 399,
+      "total": 1032
+    },
+    {
+      "atUTC": "2026-09-14T02:32:46.918Z",
+      "path": "rebuild/coach/tools.cjs",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "sha256": "b2bb3c959840a3c9fa867b84e94df979bf8ec04b9a5b19701da07f72fb8e6037",
+      "from": 651,
+      "to": 899,
+      "total": 1032
+    },
+    {
+      "atUTC": "2026-09-14T02:33:18.902Z",
+      "path": "rebuild/coach/tools.cjs",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "sha256": "b2bb3c959840a3c9fa867b84e94df979bf8ec04b9a5b19701da07f72fb8e6037",
+      "from": 464,
+      "to": 615,
+      "total": 1032
+    }
+  ],
+  "coverageNotes": [
+    "Two complete coach modules read; entire new test read from independent source diff.",
+    "Both base preimages identity-verified and every changed hunk read in independent diff; unchanged regions compared as bytes, not separately reread line by line.",
+    "Initial large NEXT output was truncated; its current rebuild redirect and AGENTS READ FIRST block were read. Later lane charter and both review/author scope documents were fully read.",
+    "One combined source read truncated its middle; tools 464–615 were reread in a bounded call, closing that coverage gap."
+  ],
+  "gateWindow": {
+    "ref": "5e24d0da6503313a10ff4685153e8142fd99dc84",
+    "path": "rebuild/lanes/astra/GATE-WINDOW.md",
+    "bytes": 5565,
+    "sha256": "7f35f787f7bbe728a9fc72aea0596f41d824696541dd8f09237ca511380e27f1",
+    "read": "Full static coordination text",
+    "state": "ENDED"
+  },
+  "privateDataAccess": false,
+  "realEngineOrTodayLoaded": false,
+  "realClientGymProposalPathExecuted": false,
+  "CLIOrLoadScriptInvoked": false,
+  "Q1Q2Q3": "Pending owner decisions; unchanged"
+}

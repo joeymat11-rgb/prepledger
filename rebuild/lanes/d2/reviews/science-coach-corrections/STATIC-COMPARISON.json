@@ -1,0 +1,65 @@
+{
+  "kind": "Static exact-source comparison, not an executed proposal-path test",
+  "candidate": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+  "base": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "comparisons": [
+    {
+      "name": "today_plan",
+      "baseSHA256": "b0359876b4095b1e35bd34382caa0a312d189200cf7b1d72ddea1690fe101fc6",
+      "candidateSHA256": "176ab34a9f8a0c1b1d96612771be27afef4fce34893c3a3dd12690c9a44e7158",
+      "unchanged": false,
+      "permittedDifference": "Only three null-safe property accesses"
+    },
+    {
+      "name": "why_this_instruction",
+      "baseSHA256": "c4195a52fdcda6b7e7f8df88288e5af2057bda708489c503908183e84fcfbe53",
+      "candidateSHA256": "c4195a52fdcda6b7e7f8df88288e5af2057bda708489c503908183e84fcfbe53",
+      "unchanged": true,
+      "permittedDifference": null
+    },
+    {
+      "name": "proposal producer",
+      "baseSHA256": "a3065eb95b9f72983e355afd54702c212c8cc8b03ec336a6562d17eda486947b",
+      "candidateSHA256": "a3065eb95b9f72983e355afd54702c212c8cc8b03ec336a6562d17eda486947b",
+      "unchanged": true,
+      "permittedDifference": null
+    },
+    {
+      "name": "request_replan",
+      "baseSHA256": "8a42b8533aed34cc20a755be23e04a9f480e1d09ac584c314e5b5fb1bd01f6c0",
+      "candidateSHA256": "8a42b8533aed34cc20a755be23e04a9f480e1d09ac584c314e5b5fb1bd01f6c0",
+      "unchanged": true,
+      "permittedDifference": null
+    },
+    {
+      "name": "accept_proposal",
+      "baseSHA256": "58a8bbf6782d547134f7234b4f8b9eb101b6b10b77c391027c9c55bf92428594",
+      "candidateSHA256": "eb0c4c107f6031599a92f101c58ba5dea59a1bf3769a50417f28f70a6fdf1a94",
+      "unchanged": false,
+      "permittedDifference": "Only coach-owned source suffix; record.engine_source prefix and record.reason argument unchanged"
+    },
+    {
+      "name": "refusal dispatch",
+      "baseSHA256": "bf687ac2efd9bf2d309e0a1b974283a498a3434aead1d3926e08de6fa959c4f3",
+      "candidateSHA256": "bf687ac2efd9bf2d309e0a1b974283a498a3434aead1d3926e08de6fa959c4f3",
+      "unchanged": true,
+      "permittedDifference": null
+    },
+    {
+      "name": "openTurn",
+      "baseSHA256": "54932c7b4b4767794eba519884ccbb0c9ed9db1a7e71fac214db2507a51f1a54",
+      "candidateSHA256": "54932c7b4b4767794eba519884ccbb0c9ed9db1a7e71fac214db2507a51f1a54",
+      "unchanged": true,
+      "permittedDifference": null
+    },
+    {
+      "name": "answerOne routing",
+      "baseSHA256": "d872236aed75831c13c272a08df8e36435bff91326a7994744de4cbd8f74b841",
+      "candidateSHA256": "d872236aed75831c13c272a08df8e36435bff91326a7994744de4cbd8f74b841",
+      "unchanged": true
+    }
+  ],
+  "engineReasonBytesNotRewritten": true,
+  "newAvailabilityFlagInterpreted": false,
+  "realProposalPathExecuted": false
+}

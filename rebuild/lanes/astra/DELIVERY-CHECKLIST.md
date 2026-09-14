@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM checkpoint 2026-09-13 22:26 ET: Ca0e8ec38/testedc21e64f2 completed390; exact source and nine author records verified/adopted394, C LOW. D2 MAX gets one bounded source-first independent consumer review. B392 remains capacity-held after one failed recovery, heartbeat paused; temporary existing-B Sol/MAX fallback awaits owner yes/no. Science Q1-Q3 also remain held. No product acceptance, model switch, repeat retry, data or release change.
+PM checkpoint 2026-09-13 23:23 ET: D2 independent-first66b6a3e5 preserves17+3 passing checks/no blocking first-stage finding;23 exact artifacts adopted396. Provider capacity then stopped final reconciliation; D2 heartbeat PAUSED, Astra/MAX retained, C acceptance unfinished. B392 likewise held; temporary B Sol/MAX owner choice and science Q1-Q3 remain pending. All completed/waiting worker heartbeats paused; PM30-minute oversight continues without retry loops or changed quality/data/release rules.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
