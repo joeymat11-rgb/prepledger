@@ -1,16 +1,13 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-14 00:28 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @5f8f7aea30c5b8cecff0a251a19f4339670f6a65 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
-- PM: sole Astra PM193, all seats Astra under398. Existing usage; Joe/history/approved memory then Dad, soak gates wide beta only. MAX critical judgment, HIGH routine coordination.
-- STANDALONE: exact2592f091 Windows native-slot capability scoped accepted408 after full ER64ba4a96;533 review artifacts preserved,270 first artifacts unchanged. Original R1, real writer/loader/privacy/platform/integration obligations remain.
-- B: Astra/MAX404/406 exact source-only original-capture integration plan, two plan files/no runtime. H3 code ranges and b-package pin-consumer reads settled by supplement1. Apply408 limits; no implementation grant yet.
-- ER: complete64ba4a96, Astra/LOW/paused; independent34 delivered plus3 behavioral controls/one census subtest passed. Intentional child failure preserved; no repeated passing runtime or binary-equivalence claim.
-- C/D2: coach correctiona0e8ec38/testedc21e64f2 scoped accepted400 after full D2 final5cf5ef6a; both LOW/paused. Actual integration/current-CI/durable effects remain separate.
-- E/OWNER: contract135887a4 adopted388, E LOW/paused. Q1 goal/volume authority, Q2 final-set default, Q3 EA/break policy held for actual owner answers. No model fallback or new scientific policy.
-- SCHEDULE/DELIVERY: B hourly while active, PM30min; other waiting/completed seats LOW/paused. September18-23 personal forecast retains limited confidence, no rolling ETA. Dad follows the two-day same-candidate Joe trial; no live-data/phone claim.
-
-2026-09-13 20:07 ET · PM-CARETAKER · Astra · e99726a39e78268c65f894be687266483d736c50 · 366 clears one exact public workout composition input for D2/E science audit, static only. Original72 inputs plus two supplements; no findings shared between author/reviewer. Both MAX; B MAX364 limitation/plan continues. No product change or owner action.
+## STATE (refreshed 2026-09-14 11:48 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @63cc8446c3e7daa32b923116a99c1ce90bb72a41 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193, all seats Astra under398. Joe/history/approved memory then Dad; soak gates wide beta only. MAX critical judgment, HIGH routine coordination.
+- B: THROTTLED410, original plan404/406 turn failed at00:30 ET before immutable handoff; draft exists, branch9cc78e77 unchanged. Eleven automatic wakes also refused; current ordinary usage unavailable. Heartbeat now PAUSED, Astra/MAX retained without a new dispatch.
+- RECOVERY: same two-file plan after confirmed owner-enabled usage recovery. Exact sparse staging already authorized404; full final custody and writer/loader/auxiliary/checker-pin/platform judgment precede implementation. No quota retry/model/spending/account action.
+- STANDALONE: exact2592f091 Windows capability scoped accepted408 after full ER64ba4a96/all533 records. ER LOW/paused; original R1, writer/loading/private/platform/integration proof remains.
+- C/D2: exact coach correction scoped accepted400 after5cf5ef6a, both LOW/paused. E science contract388 complete/LOW. Q1-Q3 still require actual owner answers; I/D wait their accepted dependencies.
+- SCHEDULE/DELIVERY: PM30min quiet changed-state oversight; all worker heartbeats paused. September18-23 dated forecast at risk while usage-blocked, no rolling ETA. Dad follows two-day same-candidate Joe trial; no live-data/phone claim.
 
 2026-09-13 20:16 ET · PM-CARETAKER · Astra · 023597c2599a746a44a9780f2277d571ab65a298 · 368 verifies B limitation/185 raw copies; B LOW, ER MAX independent source feasibility.370 sends complete E science audit after D2 first assessment for MAX reconciliation;372 adds exact producer input. E LOW. No policy/native/phone PASS or owner action.
 
@@ -39,3 +36,5 @@
 2026-09-14 00:21 ET · PM-CARETAKER · Astra · d6eee5529fd18a1151914bc9696e7f2eb53d8e31 ·406 clears two requested source reads for B MAX404: original H3 code ranges match328; exact b-package pin consumer verified. Supplement1, no protected-value read or execution. ER MAX final reconciliation continues; no acceptance or owner action.
 
 2026-09-14 00:28 ET · PM-CARETAKER · Astra · 5f8f7aea30c5b8cecff0a251a19f4339670f6a65 ·408 verifies full ER64ba4a96/all533 records; exact Windows standalone capability scoped accepted. ER LOW/paused; B Astra/MAX finishes404/406 source-only integration plan. Original R1/writer/loading/private/platform proof and release remain separate.
+
+2026-09-14 11:48 ET · PM-CARETAKER · Astra · 63cc8446c3e7daa32b923116a99c1ce90bb72a41 · THROTTLED410: B usage stop before final two-file plan;9cc78e77 preserved. Eleven hourly retries also refused; worker heartbeat now PAUSED. Current weekly allowance exhausted; Astra/MAX retained, no paid/model fallback. Finish same handoff after recovery; September18-23 forecast at risk.

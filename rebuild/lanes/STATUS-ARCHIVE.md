@@ -712,3 +712,18 @@
 - DELIVERY: September18-23 personal forecast retains limited confidence; no rolling ETA. Dad follows the existing two-day same-candidate Joe trial. No live-data/phone claim.
 
 2026-09-13 20:01 ET · PM-CARETAKER · Astra · a38d4574db33efb0d40d4da5a233d946a4bafc5a · 364 preserves B resource-probe failure; prototype unaccepted. B MAX completes limitation/raw custody and two-option source-only plan, then LOW. No repeated known-refuted suite or new code. E/D2 MAX science continues; no owner action/native release.
+
+
+## PM410 rotation — 2026-09-14 11:48 ET
+
+## STATE (refreshed 2026-09-14 00:28 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @5f8f7aea30c5b8cecff0a251a19f4339670f6a65 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193, all seats Astra under398. Existing usage; Joe/history/approved memory then Dad, soak gates wide beta only. MAX critical judgment, HIGH routine coordination.
+- STANDALONE: exact2592f091 Windows native-slot capability scoped accepted408 after full ER64ba4a96;533 review artifacts preserved,270 first artifacts unchanged. Original R1, real writer/loader/privacy/platform/integration obligations remain.
+- B: Astra/MAX404/406 exact source-only original-capture integration plan, two plan files/no runtime. H3 code ranges and b-package pin-consumer reads settled by supplement1. Apply408 limits; no implementation grant yet.
+- ER: complete64ba4a96, Astra/LOW/paused; independent34 delivered plus3 behavioral controls/one census subtest passed. Intentional child failure preserved; no repeated passing runtime or binary-equivalence claim.
+- C/D2: coach correctiona0e8ec38/testedc21e64f2 scoped accepted400 after full D2 final5cf5ef6a; both LOW/paused. Actual integration/current-CI/durable effects remain separate.
+- E/OWNER: contract135887a4 adopted388, E LOW/paused. Q1 goal/volume authority, Q2 final-set default, Q3 EA/break policy held for actual owner answers. No model fallback or new scientific policy.
+- SCHEDULE/DELIVERY: B hourly while active, PM30min; other waiting/completed seats LOW/paused. September18-23 personal forecast retains limited confidence, no rolling ETA. Dad follows the two-day same-candidate Joe trial; no live-data/phone claim.
+
+2026-09-13 20:07 ET · PM-CARETAKER · Astra · e99726a39e78268c65f894be687266483d736c50 · 366 clears one exact public workout composition input for D2/E science audit, static only. Original72 inputs plus two supplements; no findings shared between author/reviewer. Both MAX; B MAX364 limitation/plan continues. No product change or owner action.
