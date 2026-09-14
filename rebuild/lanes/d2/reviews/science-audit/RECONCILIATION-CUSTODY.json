@@ -1,0 +1,625 @@
+{
+  "schemaVersion": 1,
+  "phase": "Final reconciliation after preserved independent assessment",
+  "createdAtUTC": "2026-09-14T01:07:14.674Z",
+  "localSearchDate": "2026-09-13 America/New_York",
+  "UTCSearchDates": [
+    "2026-09-13",
+    "2026-09-14"
+  ],
+  "authority": {
+    "dispatch": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+    "owners": [
+      356,
+      360,
+      366,
+      370,
+      372
+    ],
+    "sharedCheckpoint": "83a8e8b3571263fb5d23de88ad46b9dea66da0b4",
+    "soleJudge": "PM",
+    "branchOnlyDocumentation": true
+  },
+  "ownRoot": "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/science-audit-d2",
+  "branch": "codex/astra-science-audit-d2",
+  "base": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+  "prepared": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "integratedComparison": "100820aa47a4f8729642033499eaec0f0ee282e1",
+  "independentFirst": {
+    "head": "cc995900710fc2510b2a78309491148b4f658c8c",
+    "committedAt": "2026-09-13T20:13:47-04:00",
+    "sentBeforeAuthorAccess": true,
+    "firstAuthorAccessAtUTC": "2026-09-14T00:15:21.694Z",
+    "artifacts": [
+      {
+        "path": "rebuild/lanes/d2/reviews/SCIENCE-AUDIT-REVIEW.md",
+        "bytes": 5303,
+        "sha256": "e1faf8ba4902fe37a9de11029b9be26f5f11281b39e6e3607de0a4bbbe16fc97",
+        "preservedAtCommit": "cc995900710fc2510b2a78309491148b4f658c8c",
+        "workingCopyUnchanged": false,
+        "originalReportAlsoAt": "rebuild/lanes/d2/reviews/science-audit/FIRST-ASSESSMENT.md"
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-audit/CLAIMS.md",
+        "bytes": 25088,
+        "sha256": "a3814757d066b596290f69812e7ae3cdf6c58a992c5a0d5428ffe84b1a97538a",
+        "preservedAtCommit": "cc995900710fc2510b2a78309491148b4f658c8c",
+        "workingCopyUnchanged": true
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-audit/FIRST-ASSESSMENT.md",
+        "bytes": 5303,
+        "sha256": "e1faf8ba4902fe37a9de11029b9be26f5f11281b39e6e3607de0a4bbbe16fc97",
+        "preservedAtCommit": "cc995900710fc2510b2a78309491148b4f658c8c",
+        "workingCopyUnchanged": true
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-audit/INPUT-CUSTODY.json",
+        "bytes": 47101,
+        "sha256": "0aafb3bde34143d253f3a04d07bb2825f58dd52f903e0b72b970d6ad33cedd8e",
+        "preservedAtCommit": "cc995900710fc2510b2a78309491148b4f658c8c",
+        "workingCopyUnchanged": true
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-audit/SEARCH-LIMITATIONS.md",
+        "bytes": 2793,
+        "sha256": "b71edd891b54a3a391bc09d05eb3c66d9a0b5825de273dff374f6e2c90e922cd",
+        "preservedAtCommit": "cc995900710fc2510b2a78309491148b4f658c8c",
+        "workingCopyUnchanged": true
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-audit/SOURCES.md",
+        "bytes": 16264,
+        "sha256": "93854c84df2bb9ec1da73d1554f862a91d4efc83a8be5af373d14ad12df96666",
+        "preservedAtCommit": "cc995900710fc2510b2a78309491148b4f658c8c",
+        "workingCopyUnchanged": true
+      }
+    ],
+    "initialSourceCoverageUnchanged": true
+  },
+  "originalManifest": {
+    "ref": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+    "path": "rebuild/lanes/astra/SCIENCE-AUDIT-INPUTS.json",
+    "bytes": 21515,
+    "sha256": "9553ba37c4ed8fc974884b3e008d67c1212889a42ab56dfa61246ca5e2a1b3d1",
+    "rows": 72,
+    "inputByteTotal": 3511827,
+    "allOwnCopiesIdentityReverified": true,
+    "allAuthorRowsMatch": true,
+    "authorByteFieldCorrection": "E originalManifest.bytes contains inputByteTotal, not JSON byte length; all hashes and rows match"
+  },
+  "authorPackage": {
+    "head": "4a6a33351f88038060b9bacb3c3399103c210668",
+    "files": [
+      {
+        "ref": "4a6a33351f88038060b9bacb3c3399103c210668",
+        "path": "rebuild/lanes/e/SCIENCE-AUDIT.md",
+        "bytes": 3190,
+        "sha256": "cd19bb7475334f785f6acd780f4e3c91478054edd700c7beeaa5b2c2ea3839ea",
+        "lines": 33,
+        "fullTextRead": true,
+        "coverage": [
+          1,
+          33
+        ],
+        "identityVerified": true,
+        "readEvidence": "Full report printed at admission and again during reconciliation"
+      },
+      {
+        "ref": "4a6a33351f88038060b9bacb3c3399103c210668",
+        "path": "rebuild/lanes/e/science-audit/CLAIMS.md",
+        "bytes": 37227,
+        "sha256": "dc66f0fb408d4cb735d08f70a4d6bad932f3e20c03db058d36cff010b62aeadd",
+        "lines": 200,
+        "fullTextRead": true,
+        "coverage": [
+          1,
+          200
+        ],
+        "identityVerified": true,
+        "readEvidence": "Own numbered-read log covers every line; repeated excerpts do not change coverage"
+      },
+      {
+        "ref": "4a6a33351f88038060b9bacb3c3399103c210668",
+        "path": "rebuild/lanes/e/science-audit/SOURCES.md",
+        "bytes": 20930,
+        "sha256": "fefb494ff85a111bbe21cd02905c6034a2b6b918823b30867339b52bb5e9f2d8",
+        "lines": 179,
+        "fullTextRead": true,
+        "coverage": [
+          1,
+          179
+        ],
+        "identityVerified": true,
+        "readEvidence": "Own numbered-read log covers every line; repeated excerpts do not change coverage"
+      },
+      {
+        "ref": "4a6a33351f88038060b9bacb3c3399103c210668",
+        "path": "rebuild/lanes/e/science-audit/INPUT-CUSTODY.json",
+        "bytes": 49139,
+        "sha256": "cfefc978095de2a24ab08d7cbabfa8a16143d0cd9b1b390629034b24a75d194e",
+        "lines": 1393,
+        "fullTextRead": true,
+        "coverage": [
+          1,
+          1393
+        ],
+        "identityVerified": true,
+        "readEvidence": "Own numbered-read log covers every line; repeated excerpts do not change coverage"
+      }
+    ],
+    "allFourReadInFull": true,
+    "authorSourceCoverageNotExpanded": true
+  },
+  "supplementalInputs": [
+    {
+      "number": 1,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+      "bytes": 1451,
+      "sha256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "identityVerified": true,
+      "contentRead": "Full static text; no dependencies evaluated",
+      "phase": "Before independent first assessment; shared with E",
+      "readAtUTC": "2026-09-13T23:54:03.327Z",
+      "authority": "PM356/366 shared static supplement",
+      "lines": 33
+    },
+    {
+      "number": 2,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/engine-runtime.cjs",
+      "bytes": 5596,
+      "sha256": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+      "identityVerified": true,
+      "contentRead": "Full static text; no dependencies evaluated",
+      "phase": "Before independent first assessment; shared with E",
+      "readAtUTC": null,
+      "authority": "PM356/366 shared static supplement",
+      "lines": 70
+    },
+    {
+      "number": 3,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/engine-capture.cjs",
+      "bytes": 10716,
+      "sha256": "309c75d82a036b24b09ebc6668ea73065aa76de5638b2dee3da18d9067e08785",
+      "identityVerified": true,
+      "contentRead": "Full static text; no dependencies evaluated",
+      "phase": "Reviewer-only after independent assessment and E admission",
+      "readAtUTC": "2026-09-14T00:17:29.449Z",
+      "authority": "PM372 reviewer-only grant, reaffirmed by heartbeat",
+      "grantManifestSHA256": "4192fa58da15a1862b0c4afe319fa525cfd9d0e923229d2475a31b9c7772c729",
+      "lines": 133
+    }
+  ],
+  "postFirstOriginalInputReadLog": [
+    {
+      "at": "2026-09-14T00:17:43.097Z",
+      "row": 18,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/energy.cjs",
+      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "mode": "read",
+      "spec": "793:847,1056:1127",
+      "context": null,
+      "renderedRanges": [
+        [
+          793,
+          847
+        ],
+        [
+          1056,
+          1127
+        ]
+      ],
+      "totalLines": 1245,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:17:43.146Z",
+      "row": 30,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/policy.cjs",
+      "sha256": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870",
+      "mode": "read",
+      "spec": "650:678",
+      "context": null,
+      "renderedRanges": [
+        [
+          650,
+          678
+        ]
+      ],
+      "totalLines": 830,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:17:43.195Z",
+      "row": 34,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/sleep.cjs",
+      "sha256": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8",
+      "mode": "read",
+      "spec": "1052:1063",
+      "context": null,
+      "renderedRanges": [
+        [
+          1052,
+          1063
+        ]
+      ],
+      "totalLines": 1987,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:17:59.850Z",
+      "row": 36,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/today.cjs",
+      "sha256": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
+      "mode": "read",
+      "spec": "250:262,316:337",
+      "context": null,
+      "renderedRanges": [
+        [
+          250,
+          262
+        ],
+        [
+          316,
+          337
+        ]
+      ],
+      "totalLines": 654,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:17:59.900Z",
+      "row": 47,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+      "sha256": "54c7c6e06c74aba0cfd135ab71fab8b595b884d8e86934fd4a1e2dab82d463e0",
+      "mode": "read",
+      "spec": "1:80",
+      "context": null,
+      "renderedRanges": [
+        [
+          1,
+          80
+        ]
+      ],
+      "totalLines": 678,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:17:59.948Z",
+      "row": 57,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/tools.cjs",
+      "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74",
+      "mode": "read",
+      "spec": "472:495,761:817",
+      "context": null,
+      "renderedRanges": [
+        [
+          472,
+          495
+        ],
+        [
+          761,
+          817
+        ]
+      ],
+      "totalLines": 1033,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:18:05.874Z",
+      "row": 53,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/coach-text.cjs",
+      "sha256": "1ec05a8c8f16261b3651db4a017b10b3fc2bbefcd1ffb43174d12a81cf8d7d3e",
+      "mode": "read",
+      "spec": "1:80",
+      "context": null,
+      "renderedRanges": [
+        [
+          1,
+          80
+        ]
+      ],
+      "totalLines": 268,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:18:05.926Z",
+      "row": 54,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/local-world.mjs",
+      "sha256": "5c46ab64d7233beb341fceae615e5ef81477e98accd654732791b5d29a626292",
+      "mode": "read",
+      "spec": "1:152",
+      "context": null,
+      "renderedRanges": [
+        [
+          1,
+          152
+        ]
+      ],
+      "totalLines": 370,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:18:21.733Z",
+      "row": 59,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/athlete-state.cjs",
+      "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+      "mode": "read",
+      "spec": "139:200",
+      "context": null,
+      "renderedRanges": [
+        [
+          139,
+          200
+        ]
+      ],
+      "totalLines": 338,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:18:21.780Z",
+      "row": 58,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/wave1-tools.cjs",
+      "sha256": "dff61d719a29533a4e1dc06c2536894bd9ba9c0c92cf89602426ee66ead642aa",
+      "mode": "read",
+      "spec": "270:325",
+      "context": null,
+      "renderedRanges": [
+        [
+          270,
+          325
+        ]
+      ],
+      "totalLines": 328,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:18:21.830Z",
+      "row": 39,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/volume.cjs",
+      "sha256": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "mode": "read",
+      "spec": "62:93",
+      "context": null,
+      "renderedRanges": [
+        [
+          62,
+          93
+        ]
+      ],
+      "totalLines": 308,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:18:21.876Z",
+      "row": 34,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/sleep.cjs",
+      "sha256": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8",
+      "mode": "read",
+      "spec": "126:145",
+      "context": null,
+      "renderedRanges": [
+        [
+          126,
+          145
+        ]
+      ],
+      "totalLines": 1987,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:53:19.595Z",
+      "row": 30,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/policy.cjs",
+      "sha256": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870",
+      "mode": "read",
+      "spec": "650:678",
+      "context": null,
+      "renderedRanges": [
+        [
+          650,
+          678
+        ]
+      ],
+      "totalLines": 830,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:53:19.671Z",
+      "row": 18,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/energy.cjs",
+      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "mode": "read",
+      "spec": "493:504",
+      "context": null,
+      "renderedRanges": [
+        [
+          493,
+          504
+        ]
+      ],
+      "totalLines": 1245,
+      "productEvaluated": false
+    },
+    {
+      "at": "2026-09-14T00:53:19.737Z",
+      "row": 36,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/today.cjs",
+      "sha256": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
+      "mode": "read",
+      "spec": "250:262,296:306,316:321",
+      "context": null,
+      "renderedRanges": [
+        [
+          250,
+          262
+        ],
+        [
+          296,
+          306
+        ],
+        [
+          316,
+          321
+        ]
+      ],
+      "totalLines": 654,
+      "productEvaluated": false
+    }
+  ],
+  "readLogCaveat": "This is the additional original-input numbered-text log after the first commit, separate from the immutable initial coverage. Metadata-only rereads and full E-package reading do not imply additional product content was semantically inspected. Supplemental3 has its own later full-read record.",
+  "additionalSourceChecks": [
+    {
+      "paper": "Roth",
+      "doi": "10.1111/sms.14237",
+      "url": "https://onlinelibrary.wiley.com/doi/full/10.1111/sms.14237",
+      "phase": "after first",
+      "actualAccess": "Abstract and selected full-text methods/results/Table 3; not whole paper or supplement",
+      "conclusion": "Main effect .966 and interaction .785 are different tests; publication-date discrepancy retained"
+    },
+    {
+      "paper": "Helms 2018",
+      "doi": "10.3389/fphys.2018.00247",
+      "url": "https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2018.00247/full",
+      "phase": "after first",
+      "actualAccess": "Abstract, selected results/Table 4; no supplement or reanalysis",
+      "conclusion": "Imprecise combined strength effect, not exact RIR algorithm validation"
+    },
+    {
+      "paper": "Taguchi and Manore",
+      "doi": "10.3389/fspor.2022.885631",
+      "url": "https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2022.885631/full",
+      "phase": "after first",
+      "actualAccess": "Selected full-text definitions and soccer recalculation; underlying Lee data not read/reanalyzed",
+      "conclusion": "Methods chain narrowed; not an Espinar physiological-change experiment"
+    },
+    {
+      "paper": "Poon subgroup",
+      "doi": "10.1093/nutrit/nuad168",
+      "url": "https://academic.oup.com/nutritionreviews/article-abstract/83/1/59/7513121",
+      "phase": "after first retry",
+      "actualAccess": "Abstract/redirect available; primary Table 4 not retrieved",
+      "conclusion": "E sign conversion consistent, source-specific numeric table not independently certified"
+    },
+    {
+      "paper": "Poon correction",
+      "doi": "10.1093/nutrit/nuae018",
+      "url": "https://academic.oup.com/nutritionreviews/article/83/1/200/7616492",
+      "phase": "Already verified before E",
+      "actualAccess": "Original correction text, as preserved D2 R21",
+      "conclusion": "Material overall-figure correction omitted from E source record"
+    },
+    {
+      "paper": "Campbell reply",
+      "doi": "10.3390/jfmk5040086",
+      "url": "https://mdpi-res.com/d_attachment/jfmk/jfmk-05-00086/article_deploy/jfmk-05-00086.pdf",
+      "phase": "Already verified before E",
+      "actualAccess": "Opening/statistical response pp1–2; later pages not fully inspected",
+      "conclusion": "Adds contrary interpretation to E search coverage, no proof of individual benefit"
+    }
+  ],
+  "sourceCrosswalk": {
+    "path": "rebuild/lanes/d2/reviews/science-audit/SOURCE-ADDENDUM.md",
+    "authorSources": 28,
+    "notIndependentlyRetrievedByD2": [
+      "R13",
+      "R22",
+      "R26",
+      "R27",
+      "R28"
+    ],
+    "originalLimitationsPreserved": true,
+    "noExhaustiveFullTextOrRetractionClaim": true
+  },
+  "gateWindow": {
+    "ref": "83a8e8b3571263fb5d23de88ad46b9dea66da0b4",
+    "path": "rebuild/lanes/astra/GATE-WINDOW.md",
+    "bytes": 5565,
+    "sha256": "7f35f787f7bbe728a9fc72aea0596f41d824696541dd8f09237ca511380e27f1",
+    "readAtUTC": "2026-09-14T00:53:20.282Z",
+    "read": "full static coordination text",
+    "state": "ENDED",
+    "identityReverifiedAtFinalization": true
+  },
+  "validation": {
+    "mainReportLines": 25,
+    "claimDispositionRows": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12"
+    ],
+    "followupDispositionRows": [
+      "U1",
+      "U2",
+      "U3",
+      "U4",
+      "U5",
+      "U6",
+      "U7",
+      "U8"
+    ],
+    "sourceCrosswalkRows": 28,
+    "firstFiveSupportFilesBytePreserved": true,
+    "authorFourFilesReverified": true,
+    "original72PinsReverified": true,
+    "sharedSupplementsMatchE": true,
+    "supplement3ByteIdentityVerified": true,
+    "scope": "Document identity/line/count/link checks and Git whitespace/scope review only",
+    "sourceOnly": true
+  },
+  "executionBoundaries": {
+    "productImports": false,
+    "productEvaluation": false,
+    "productTests": false,
+    "historyOrPrivateDataAccess": false,
+    "dependencyScopeExpansion": false,
+    "policyEdits": false,
+    "acceptedArtifactEdits": false,
+    "sharedPush": false,
+    "personalAssessment": false,
+    "newReleaseHold": false
+  },
+  "writeSet": [
+    "rebuild/lanes/d2/reviews/SCIENCE-AUDIT-REVIEW.md",
+    "rebuild/lanes/d2/reviews/science-audit/RECONCILIATION.md",
+    "rebuild/lanes/d2/reviews/science-audit/SOURCE-ADDENDUM.md",
+    "rebuild/lanes/d2/reviews/science-audit/RECONCILIATION-CUSTODY.json"
+  ],
+  "knownIssuesPreserved": [
+    "D11",
+    "D15"
+  ],
+  "alreadyCorrectedRulesKeptSeparate": true,
+  "remaining": "Owner policy choices; authorized product behavior/persistence checks; actual deployment/personal applicability; inaccessible sources/supplements and calibration. Review itself complete.",
+  "operationalNotes": [
+    "One coordination read used the incorrect rebuild/GATE-WINDOW.md path and failed; the exact rebuild/lanes/astra/GATE-WINDOW.md was then read and verified at the shared checkpoint. No product action resulted.",
+    "An apply_patch combining delete/add for the same report path was rejected before applying changes; the report was then replaced explicitly and all preserved support hashes rechecked."
+  ]
+}
