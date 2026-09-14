@@ -1,0 +1,42 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/doc/api/n-api.md",
+    "upstreamPath": "doc/api/n-api.md",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\n-api.md",
+    "bytes": 241517,
+    "sha256": "20b8b3351be836c196f75aaa5ad805f7363997198adb14c3c4c2a39eb2dba620",
+    "reason": "Direct stable C Node-API opaque value/type-tag/finalizer/reference/registration and scalar callback contracts"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_api.h",
+    "upstreamPath": "src/node_api.h",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\node_api.h",
+    "bytes": 10370,
+    "sha256": "2d4560831e525b47b060ec8a0864ab73993df9e20215ce9f0fe7b24cd31af32a",
+    "reason": "Direct stable C Node-API opaque value/type-tag/finalizer/reference/registration and scalar callback contracts"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_api_types.h",
+    "upstreamPath": "src/node_api_types.h",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\node_api_types.h",
+    "bytes": 1825,
+    "sha256": "088766b3cf1f0cd9b292c361ad30f7a04e7cc6db35a20ca52c572c1adf9635e7",
+    "reason": "Direct stable C Node-API opaque value/type-tag/finalizer/reference/registration and scalar callback contracts"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/js_native_api.h",
+    "upstreamPath": "src/js_native_api.h",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\js_native_api.h",
+    "bytes": 31770,
+    "sha256": "582e64ead4d5fdf663e2bd934f2fc97e8e155a7740d28995830393d19d089705",
+    "reason": "Direct stable C Node-API opaque value/type-tag/finalizer/reference/registration and scalar callback contracts"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/js_native_api_types.h",
+    "upstreamPath": "src/js_native_api_types.h",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\js_native_api_types.h",
+    "bytes": 7603,
+    "sha256": "05e3d86e24c814f94a8b52b6a70cec11d7e91c810008253553528637e3a15b2f",
+    "reason": "Direct stable C Node-API opaque value/type-tag/finalizer/reference/registration and scalar callback contracts"
+  }
+]

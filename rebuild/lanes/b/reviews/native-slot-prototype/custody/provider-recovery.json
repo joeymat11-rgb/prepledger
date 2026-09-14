@@ -1,0 +1,7 @@
+{
+  "source": "Sole PM direct task message",
+  "failedTurn": "01a09d8d-3d8e-7f82-88cf-244ce6617c65",
+  "providerError": "Selected model is at capacity. Please try a different model.",
+  "recovery": "One PM-authorized same-model attempt at MAX; resume saved state; no repeated completed checks; another capacity failure means one blocked handoff, no retry loop",
+  "checkpoint": "mapping.c, loader.cjs, build.cjs, PROTOCOL.md authored; test source/build/runtime still unfinished"
+}

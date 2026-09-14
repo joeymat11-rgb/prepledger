@@ -1,0 +1,44 @@
+{
+  "executable": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\downloads\\node.exe",
+  "args": [
+    "--expose-gc",
+    "--test",
+    "--test-reporter=tap",
+    "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\rebuild\\lanes\\b\\tooling\\native-slot-prototype\\test\\prototype.test.cjs"
+  ],
+  "cwd": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b",
+  "environment": {
+    "SystemRoot": "C:\\WINDOWS",
+    "WINDIR": "C:\\WINDOWS",
+    "SystemDrive": "C:",
+    "ComSpec": "C:\\WINDOWS\\System32\\cmd.exe",
+    "PATH": "C:\\WINDOWS\\System32",
+    "PATHEXT": ".COM;.EXE;.BAT;.CMD",
+    "NODE_OPTIONS": "",
+    "NODE_PATH": "",
+    "TEMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "TMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "TMPDIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "ZIG_GLOBAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\cache\\global",
+    "ZIG_LOCAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\cache\\local",
+    "EARNED_SLOT_BINARY": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\candidate.node",
+    "EARNED_SLOT_BUILD_JSON": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\build.json",
+    "EARNED_SLOT_RUN_ROOT": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\runs\\run-01"
+  },
+  "start": "2026-09-14T03:38:22.604Z",
+  "end": "2026-09-14T03:38:28.670Z",
+  "pid": 51560,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdout": {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\runs\\run-01\\suite.stdout",
+    "bytes": 6241,
+    "sha256": "5992dd37b3955ed85fca8446f1b91098bb2b073d806b7e73b7dfe268e5b0cf9c"
+  },
+  "stderr": {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\runs\\run-01\\suite.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

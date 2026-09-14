@@ -1,0 +1,8 @@
+{
+  "events": [
+    "PM temporarily relayed a Sol fallback proposal.",
+    "The following owner correction withdrew that proposal: no - we must use astra."
+  ],
+  "effective": "Continue same task on gpt-6-astra at MAX only; no alternate model or automatic fallback",
+  "agentActions": "This task did not issue a model-switch or new-writer tool call; source2592f09 and first build are retained."
+}

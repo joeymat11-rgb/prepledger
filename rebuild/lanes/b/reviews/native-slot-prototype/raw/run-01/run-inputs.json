@@ -1,0 +1,31 @@
+{
+  "sourceHead": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+  "testSourceSha256": "15ec5392d47e1ff66ad6b409d6a559ee5cce3ef59d9b02abbef80702971e5162",
+  "binarySha256": "6bb68a2d28021703d776ee2afbbf9bee318354b5d3f4f6481e5294e8407822d0",
+  "buildManifestSha256": "9b1bf3ec97bea71f0a2ce8ff95d2df128056c92b574bd997bd98682a5a24106d",
+  "executable": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\downloads\\node.exe",
+  "args": [
+    "--expose-gc",
+    "--test",
+    "--test-reporter=tap",
+    "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\rebuild\\lanes\\b\\tooling\\native-slot-prototype\\test\\prototype.test.cjs"
+  ],
+  "environment": {
+    "SystemRoot": "C:\\WINDOWS",
+    "WINDIR": "C:\\WINDOWS",
+    "SystemDrive": "C:",
+    "ComSpec": "C:\\WINDOWS\\System32\\cmd.exe",
+    "PATH": "C:\\WINDOWS\\System32",
+    "PATHEXT": ".COM;.EXE;.BAT;.CMD",
+    "NODE_OPTIONS": "",
+    "NODE_PATH": "",
+    "TEMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "TMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "TMPDIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "ZIG_GLOBAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\cache\\global",
+    "ZIG_LOCAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\cache\\local",
+    "EARNED_SLOT_BINARY": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\candidate.node",
+    "EARNED_SLOT_BUILD_JSON": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\build.json",
+    "EARNED_SLOT_RUN_ROOT": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\runs\\run-01"
+  }
+}

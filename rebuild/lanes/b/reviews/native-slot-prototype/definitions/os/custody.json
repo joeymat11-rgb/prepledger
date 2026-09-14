@@ -1,0 +1,56 @@
+[
+  {
+    "url": "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createfilemappinga",
+    "status": 200,
+    "bytes": 75514,
+    "sha256": "669eb512b45c62413dfa22650233b0aebf5b85e7c2e77d3123b264890ca1a22c",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-winbase-createfilemappinga.html",
+    "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+  },
+  {
+    "url": "https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-openfilemappinga",
+    "status": 404,
+    "errorFile": "nf-memoryapi-openfilemappinga.error.txt",
+    "fetched": false
+  },
+  {
+    "url": "https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-mapviewoffile",
+    "status": 200,
+    "bytes": 65686,
+    "sha256": "6a89d573315aef26fb20b69f0e63e658bd650964328caa68cf0fd1265a706154",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-memoryapi-mapviewoffile.html",
+    "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+  },
+  {
+    "url": "https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-unmapviewoffile",
+    "status": 200,
+    "bytes": 54154,
+    "sha256": "5fda412c22f33c27eb7e9cc7cbf8553d81104721b40eb9f95063d333cbbb8e8b",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-memoryapi-unmapviewoffile.html",
+    "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+  },
+  {
+    "url": "https://learn.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-closehandle",
+    "status": 200,
+    "bytes": 56055,
+    "sha256": "df0a7db57e00fcccaec2827a6ae7a6ee87c87f38c2c6de7de0e23e091862d584",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-handleapi-closehandle.html",
+    "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+  },
+  {
+    "url": "https://learn.microsoft.com/en-us/windows/win32/api/winnt/nf-winnt-interlockedcompareexchange",
+    "status": 200,
+    "bytes": 55406,
+    "sha256": "cf2e86dd8d46156d1b3882d138cc1f00074bea54b8f98175a5f0ce6f73f9ddda",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-winnt-interlockedcompareexchange.html",
+    "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+  },
+  {
+    "url": "https://learn.microsoft.com/en-us/windows/win32/api/winnt/nf-winnt-interlockedexchange",
+    "status": 200,
+    "bytes": 55242,
+    "sha256": "56b19b4863043abef22d182dcb9756389dd3ff03524a673f2ce64a354f483df6",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-winnt-interlockedexchange.html",
+    "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+  }
+]

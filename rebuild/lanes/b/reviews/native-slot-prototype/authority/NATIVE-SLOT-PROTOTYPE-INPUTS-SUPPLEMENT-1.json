@@ -1,0 +1,12 @@
+{
+  "authority": "PM386 clarifies PM384 within its existing named Windows API scope",
+  "originalManifest": {
+    "path": "rebuild/lanes/astra/NATIVE-SLOT-PROTOTYPE-INPUTS.json",
+    "sha256": "50a38c17b56af818b7173ac6f4f46e8e1478863b92632aad5dee0bb15645ddad"
+  },
+  "originalUnavailableUrl": "https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-openfilemappinga",
+  "replacementUrl": "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-openfilemappinga",
+  "verifiedByPM": "Official Microsoft Learn page opened successfully; title OpenFileMappingA function (winbase.h), signature, handle return/failure and CloseHandle contract visible. This is a URL correction, not an added capability.",
+  "custody": "B retains the original HTTP404 and original manifest, then records exact replacement retrieval/bytes/hash in its supplemental inputs.",
+  "boundaries": "All384 source, portable toolchain, standalone invented-data execution, lifetime/refusal and independent review limits remain. Original gate stays closed."
+}
