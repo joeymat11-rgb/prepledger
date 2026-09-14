@@ -1,21 +1,14 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 21:33 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @126fac49474ab2ba8e3dccf7ceb0707ddf65d113 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+## STATE (refreshed 2026-09-13 21:44 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @5ae1f2f48f9e53a37bbb725a31c65a8cc8eec63b before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
 - PM: sole Astra PM193; existing usage only. Joe/history/memory then Dad, soak wide beta only. MAX critical judgment, HIGH routine coordination; immediate meaningful handoffs, no repeated unchanged audits.
-- B: MAX384 standalone owned C native-slot Windows prototype with pinned portable tools and invented data. Source check2043fb96 complete/rejected382; no original helper/operator/product/private gate changes.
-- ER: complete2c9c19a1 LOW/paused; independent MAX source-first review of an exact finished prototype is next when ready. Current capture remains rejected; no native admission.
-- E: XHIGH380 bounded science correction contract: exact existing-rule repairs and concrete owner choices from completed research. Original author4a6a3335 and prior accepted scopes preserved.
-- D2: finalf93834d8 nine exact artifacts verified, four changed docs adopted378. All12 topics/U1-U8 reconciled; U8 review complete, U1-U7 corrections/choices open. LOW/paused320.
-- C/D/I: LOW/paused on existing dependencies. Full native engine admission, import, memory/provider/consumer joins and phone proof remain open.
-- OWNER: no immediate action. E380 prepares concrete grouped yes/no policy choices; no dose or behavior has been changed by the audit. September18-23 personal forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks.
-- SCHEDULE: PM30min; B MAX/E XHIGH hourly while substantive; D2/ER/C/D/I LOW/paused. Immediate meaningful handoffs; no repeated unchanged checks or spending.
-
-
-
-
-
-2026-09-13 18:33 ET · D2 · PR-READY PM342 RECONCILED · codex/astra-d2-frozen-build-module-link @ c7dc4ebf · R1 closure unchanged after full E report and10-file archive; no extra execution. Review: rebuild/lanes/d2/reviews/FROZEN-BUILD-MODULE-LINK-RECONCILIATION.md. PM sole judge; handoff complete, LOW/paused320.
+- B: MAX384 standalone owned C native-slot Windows prototype with pinned portable tools/invented data.386 corrects one API documentation address. No original helper/operator/product/private gate changes.
+- C: HIGH390 two-module coach accuracy/missing-target correction with one bounded invented-world test; no new science policy or Today adapter changes. D2 MAX independent review after exact handoff.
+- E: complete135887a4 four-document science contract, all41 declared input/context identities checked, adopted388. LOW/paused; no repeated research.
+- D2/ER/D/I: LOW/paused pending actual independent review or accepted dependencies. Prior scope acceptances and failures preserved. Full native admission/import/memory-provider-consumer joins/phone proof remain.
+- OWNER: Q1 goal/volume authority, Q2 normal final-set effort, Q3 EA/break policy are concrete yes/no choices in SCIENCE-OWNER-CHOICES.md; all held pending answers. No new dose or default approved. September18-23 personal forecast retains limited confidence; Dad follows the existing two-day Joe trial.
+- SCHEDULE: PM30min; B MAX/C HIGH hourly while substantive. E/D2/ER/D/I paused. Completed tasks pause; immediate handoffs, no duplicate work or spending. Effort is checked after real dispatch/change.
 
 2026-09-13 18:39 ET · PM-CARETAKER · Astra · 010aef10cfec509bded9af9112fb5e95ac745253 ·346 accepts isolated build supportb54fec2d after complete D2 review:12/12 plus2/2 controls,43 exact artifacts/all failures preserved. E/D2 LOW/paused. B MAX344/348 capture repair continues with bounded exit-dispatch proof; no native/phone PASS or added spending.
 
@@ -44,3 +37,5 @@
 2026-09-13 21:18 ET · PM-CARETAKER · Astra · d5c13c378b07a9953b00329f2e63aabd18aa2094 · 378 verifies/adopts final D2 science audit;12 topics reviewed, U8 complete, U1-U7 corrections/choices open.380 gives E XHIGH one concrete correction contract; D2 LOW. B MAX376 continues. No new dose, product execution, policy or release acceptance.
 
 2026-09-13 21:33 ET · PM-CARETAKER · Astra · 126fac49474ab2ba8e3dccf7ceb0707ddf65d113 · 382 verifies26 B source artifacts; published mapping candidate rejected for invalid handle lifetime.384 gives B MAX one standalone C mapping prototype with pinned portable tools/invented tests; original gate stays closed. E XHIGH380 continues.
+
+2026-09-13 21:44 ET · PM-CARETAKER · Astra · 5ae1f2f48f9e53a37bbb725a31c65a8cc8eec63b · 386 fixes B API link; MAX384 continues.388 adopts complete E correction contract, E LOW. Three owner choices held.390 C HIGH starts coach accuracy/missing-target fixes in parallel; D2 independent review next. No native/phone PASS.

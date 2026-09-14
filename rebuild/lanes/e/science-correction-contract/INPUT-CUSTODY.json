@@ -1,0 +1,531 @@
+{
+  "schemaVersion": 1,
+  "base": "d5c13c378b07a9953b00329f2e63aabd18aa2094",
+  "branch": "codex/astra-science-correction-contract-e",
+  "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-correction-contract-e",
+  "fullIndexBeforeHydration": {
+    "entries": 2363,
+    "tree": "d451b5550e1516a71e19ead82aaefcd6ee5faff7"
+  },
+  "authority": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+  "reviewHead": "f93834d89ce15c0f01ffe26c1db8acaf6adf0e3c",
+  "reviewParent": "cc995900710fc2510b2a78309491148b4f658c8c",
+  "verifiedFourChangedReviewArtifacts": [
+    "rebuild/lanes/d2/reviews/SCIENCE-AUDIT-REVIEW.md",
+    "rebuild/lanes/d2/reviews/science-audit/RECONCILIATION-CUSTODY.json",
+    "rebuild/lanes/d2/reviews/science-audit/RECONCILIATION.md",
+    "rebuild/lanes/d2/reviews/science-audit/SOURCE-ADDENDUM.md"
+  ],
+  "verifiedFivePreservedSupportFiles": 5,
+  "originalManifestBytes": 21515,
+  "totalOriginalInputBytes": 3511827,
+  "authorOriginalPackageUnchanged": true,
+  "rows": [
+    {
+      "ref": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+      "path": "rebuild/lanes/astra/SCIENCE-CORRECTION-CONTRACT-GO.md",
+      "bytes": 4066,
+      "sha256": "af21a3d18136cd34788853f4afb3b70f42213360d79116c77fffa841dfb53ac4",
+      "local": ".tmp/contract-inputs/authority/rebuild/lanes/astra/SCIENCE-CORRECTION-CONTRACT-GO.md",
+      "inspection": "full brief/disposition text read; hash verified"
+    },
+    {
+      "ref": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+      "path": "rebuild/lanes/astra/SCIENCE-AUDIT-PM-DISPOSITION.md",
+      "bytes": 6502,
+      "sha256": "f6ae643b8c1c12a4e3c62a695ea7b9fe28df49de6fadeedc7a14a4c29c9ee217",
+      "local": ".tmp/contract-inputs/authority/rebuild/lanes/astra/SCIENCE-AUDIT-PM-DISPOSITION.md",
+      "inspection": "full brief/disposition text read; hash verified"
+    },
+    {
+      "ref": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+      "path": "rebuild/lanes/astra/SCIENCE-AUDIT-INPUTS.json",
+      "bytes": 21515,
+      "sha256": "9553ba37c4ed8fc974884b3e008d67c1212889a42ab56dfa61246ca5e2a1b3d1",
+      "local": ".tmp/contract-inputs/authority/rebuild/lanes/astra/SCIENCE-AUDIT-INPUTS.json",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "f93834d89ce15c0f01ffe26c1db8acaf6adf0e3c",
+      "path": "rebuild/lanes/d2/reviews/SCIENCE-AUDIT-REVIEW.md",
+      "bytes": 5896,
+      "sha256": "446310c912661b30b65b55a111a06facb281dc24b24afa57f5c625758b0fdbbf",
+      "local": ".tmp/contract-inputs/review/rebuild/lanes/d2/reviews/SCIENCE-AUDIT-REVIEW.md",
+      "inspection": "full final text read in this synthesis"
+    },
+    {
+      "ref": "f93834d89ce15c0f01ffe26c1db8acaf6adf0e3c",
+      "path": "rebuild/lanes/d2/reviews/science-audit/CLAIMS.md",
+      "bytes": 25088,
+      "sha256": "a3814757d066b596290f69812e7ae3cdf6c58a992c5a0d5428ffe84b1a97538a",
+      "local": ".tmp/contract-inputs/review/rebuild/lanes/d2/reviews/science-audit/CLAIMS.md",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "f93834d89ce15c0f01ffe26c1db8acaf6adf0e3c",
+      "path": "rebuild/lanes/d2/reviews/science-audit/FIRST-ASSESSMENT.md",
+      "bytes": 5303,
+      "sha256": "e1faf8ba4902fe37a9de11029b9be26f5f11281b39e6e3607de0a4bbbe16fc97",
+      "local": ".tmp/contract-inputs/review/rebuild/lanes/d2/reviews/science-audit/FIRST-ASSESSMENT.md",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "f93834d89ce15c0f01ffe26c1db8acaf6adf0e3c",
+      "path": "rebuild/lanes/d2/reviews/science-audit/INPUT-CUSTODY.json",
+      "bytes": 47101,
+      "sha256": "0aafb3bde34143d253f3a04d07bb2825f58dd52f903e0b72b970d6ad33cedd8e",
+      "local": ".tmp/contract-inputs/review/rebuild/lanes/d2/reviews/science-audit/INPUT-CUSTODY.json",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "f93834d89ce15c0f01ffe26c1db8acaf6adf0e3c",
+      "path": "rebuild/lanes/d2/reviews/science-audit/RECONCILIATION-CUSTODY.json",
+      "bytes": 20478,
+      "sha256": "9aa10ffc49be029e1922271ef3d39b5d0f3247ae135e61470d3f66de137e1951",
+      "local": ".tmp/contract-inputs/review/rebuild/lanes/d2/reviews/science-audit/RECONCILIATION-CUSTODY.json",
+      "inspection": "structured custody inspected: write set, independent-first artifacts, author inputs, source limits, gate and validation; broad printed output partly truncated"
+    },
+    {
+      "ref": "f93834d89ce15c0f01ffe26c1db8acaf6adf0e3c",
+      "path": "rebuild/lanes/d2/reviews/science-audit/RECONCILIATION.md",
+      "bytes": 18470,
+      "sha256": "55745fd15fcfc4cf5b6c2deef995517b8eeb16dd0f6b3b562fde118bc6010f0d",
+      "local": ".tmp/contract-inputs/review/rebuild/lanes/d2/reviews/science-audit/RECONCILIATION.md",
+      "inspection": "full final text read in this synthesis"
+    },
+    {
+      "ref": "f93834d89ce15c0f01ffe26c1db8acaf6adf0e3c",
+      "path": "rebuild/lanes/d2/reviews/science-audit/SEARCH-LIMITATIONS.md",
+      "bytes": 2793,
+      "sha256": "b71edd891b54a3a391bc09d05eb3c66d9a0b5825de273dff374f6e2c90e922cd",
+      "local": ".tmp/contract-inputs/review/rebuild/lanes/d2/reviews/science-audit/SEARCH-LIMITATIONS.md",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "f93834d89ce15c0f01ffe26c1db8acaf6adf0e3c",
+      "path": "rebuild/lanes/d2/reviews/science-audit/SOURCE-ADDENDUM.md",
+      "bytes": 12695,
+      "sha256": "329b7c2cc51698141a9bbdd2da76854038c57d661c5545b2de5d5212c295d461",
+      "local": ".tmp/contract-inputs/review/rebuild/lanes/d2/reviews/science-audit/SOURCE-ADDENDUM.md",
+      "inspection": "full final text read in this synthesis",
+      "requestedRanges": [
+        [
+          1,
+          64
+        ]
+      ]
+    },
+    {
+      "ref": "f93834d89ce15c0f01ffe26c1db8acaf6adf0e3c",
+      "path": "rebuild/lanes/d2/reviews/science-audit/SOURCES.md",
+      "bytes": 16264,
+      "sha256": "93854c84df2bb9ec1da73d1554f862a91d4efc83a8be5af373d14ad12df96666",
+      "local": ".tmp/contract-inputs/review/rebuild/lanes/d2/reviews/science-audit/SOURCES.md",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "4a6a33351f88038060b9bacb3c3399103c210668",
+      "path": "rebuild/lanes/e/SCIENCE-AUDIT.md",
+      "bytes": 3190,
+      "sha256": "cd19bb7475334f785f6acd780f4e3c91478054edd700c7beeaa5b2c2ea3839ea",
+      "local": ".tmp/contract-inputs/author/rebuild/lanes/e/SCIENCE-AUDIT.md",
+      "inspection": "immutable author package identity reverified; previously authored/read in prior assignment, not reread in full or changed here"
+    },
+    {
+      "ref": "4a6a33351f88038060b9bacb3c3399103c210668",
+      "path": "rebuild/lanes/e/science-audit/CLAIMS.md",
+      "bytes": 37227,
+      "sha256": "dc66f0fb408d4cb735d08f70a4d6bad932f3e20c03db058d36cff010b62aeadd",
+      "local": ".tmp/contract-inputs/author/rebuild/lanes/e/science-audit/CLAIMS.md",
+      "inspection": "immutable author package identity reverified; previously authored/read in prior assignment, not reread in full or changed here"
+    },
+    {
+      "ref": "4a6a33351f88038060b9bacb3c3399103c210668",
+      "path": "rebuild/lanes/e/science-audit/SOURCES.md",
+      "bytes": 20930,
+      "sha256": "fefb494ff85a111bbe21cd02905c6034a2b6b918823b30867339b52bb5e9f2d8",
+      "local": ".tmp/contract-inputs/author/rebuild/lanes/e/science-audit/SOURCES.md",
+      "inspection": "immutable author package identity reverified; previously authored/read in prior assignment, not reread in full or changed here"
+    },
+    {
+      "ref": "4a6a33351f88038060b9bacb3c3399103c210668",
+      "path": "rebuild/lanes/e/science-audit/INPUT-CUSTODY.json",
+      "bytes": 49139,
+      "sha256": "cfefc978095de2a24ab08d7cbabfa8a16143d0cd9b1b390629034b24a75d194e",
+      "local": ".tmp/contract-inputs/author/rebuild/lanes/e/science-audit/INPUT-CUSTODY.json",
+      "inspection": "immutable author package identity reverified; previously authored/read in prior assignment, not reread in full or changed here"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "NUTRITION-TDEE-VERDICT.md",
+      "bytes": 10259,
+      "sha256": "87c8dcbc2cf4f869ec53a75a462c2f6343a38c61e39a6d15d721e82d6752cb2d",
+      "local": ".tmp/contract-inputs/D/NUTRITION-TDEE-VERDICT.md",
+      "inspection": "selected static excerpts",
+      "requestedRanges": [
+        [
+          59,
+          151
+        ]
+      ]
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "RESEARCH-DESIGN.md",
+      "bytes": 40920,
+      "sha256": "348cbac8f755dbc22b076d638a9e4a2e6cbab0d4d3bfb762b81ce5074c532d6e",
+      "local": ".tmp/contract-inputs/D/RESEARCH-DESIGN.md",
+      "inspection": "selected static excerpts",
+      "requestedRanges": [
+        [
+          366,
+          465
+        ]
+      ]
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/DECISIONS.md",
+      "bytes": 452272,
+      "sha256": "b465e0ff75509304e9bf803fad8470e477f0c65ebca41230c5110c3595ecb1df",
+      "local": ".tmp/contract-inputs/D/rebuild/DECISIONS.md",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/m2/AUDIT-REGISTER.md",
+      "bytes": 62638,
+      "sha256": "b1732189c5a0588d43428ac29f0d80ab32b72c5bf26864f29fc17f97c6ebaaa4",
+      "local": ".tmp/contract-inputs/D/rebuild/m2/AUDIT-REGISTER.md",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/energy.cjs",
+      "bytes": 94493,
+      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "local": ".tmp/contract-inputs/A/rebuild/engine/energy.cjs",
+      "inspection": "selected static excerpts",
+      "requestedRanges": [
+        [
+          575,
+          685
+        ],
+        [
+          684,
+          785
+        ],
+        [
+          520,
+          552
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/policy.cjs",
+      "bytes": 56874,
+      "sha256": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870",
+      "local": ".tmp/contract-inputs/A/rebuild/engine/policy.cjs",
+      "inspection": "selected static excerpts",
+      "requestedRanges": [
+        [
+          505,
+          581
+        ],
+        [
+          650,
+          680
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/today.cjs",
+      "bytes": 48911,
+      "sha256": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
+      "local": ".tmp/contract-inputs/A/rebuild/engine/today.cjs",
+      "inspection": "selected static excerpts",
+      "requestedRanges": [
+        [
+          254,
+          337
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/volume.cjs",
+      "bytes": 25485,
+      "sha256": "d58159bc0c098983fa1db6a1f8542d93611537934fca2b2a17bae236bcacd321",
+      "local": ".tmp/contract-inputs/A/rebuild/engine/volume.cjs",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/writers.cjs",
+      "bytes": 261840,
+      "sha256": "7e8ba66e82a24983e98d063fe948838f77ec168b52515cdfe2e6483291027494",
+      "local": ".tmp/contract-inputs/A/rebuild/engine/writers.cjs",
+      "inspection": "selected static excerpts",
+      "requestedRanges": [
+        [
+          791,
+          842
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/sleep.cjs",
+      "bytes": 188103,
+      "sha256": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8",
+      "local": ".tmp/contract-inputs/A/rebuild/engine/sleep.cjs",
+      "inspection": "selected static excerpts",
+      "requestedRanges": [
+        [
+          1025,
+          1063
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/constants.cjs",
+      "bytes": 23393,
+      "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "local": ".tmp/contract-inputs/A/rebuild/engine/constants.cjs",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/plan.cjs",
+      "bytes": 19853,
+      "sha256": "4c6f981706694771501d3d050440eb4f9a62e64b6eac7c59ff9c4742dfaa7e93",
+      "local": ".tmp/contract-inputs/A/rebuild/engine/plan.cjs",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/tools.cjs",
+      "bytes": 58790,
+      "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74",
+      "local": ".tmp/contract-inputs/A/rebuild/coach/tools.cjs",
+      "inspection": "selected static excerpts",
+      "requestedRanges": [
+        [
+          736,
+          838
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/coach-text.cjs",
+      "bytes": 14675,
+      "sha256": "1ec05a8c8f16261b3651db4a017b10b3fc2bbefcd1ffb43174d12a81cf8d7d3e",
+      "local": ".tmp/contract-inputs/A/rebuild/coach/coach-text.cjs",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+      "bytes": 116877,
+      "sha256": "18c79030cc7f420d6c7cb1d14cbd4febeb79c6ee31bdf327a772f5d4f180e5e7",
+      "local": ".tmp/contract-inputs/A/rebuild/m3/w7-preview/today/today-app.cjs",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+      "bytes": 19215,
+      "sha256": "958136d7ee4a741b82d4e16a6b331a332cd0c96f59fde45d9938b1f57a711637",
+      "local": ".tmp/contract-inputs/A/rebuild/m3/w7-preview/today/today-model.cjs",
+      "inspection": "identity verified only"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+      "bytes": 36183,
+      "sha256": "54c7c6e06c74aba0cfd135ab71fab8b595b884d8e86934fd4a1e2dab82d463e0",
+      "local": ".tmp/contract-inputs/A/rebuild/m3/w7-preview/today/setup-model.mjs",
+      "inspection": "identity verified only"
+    }
+  ],
+  "completedAtUTC": "2026-09-14T01:29:03.712Z",
+  "readMode": "Bounded synthesis from previously audited public inputs and final D2 review. Static text/metadata only; no product code or tests imported/evaluated/executed.",
+  "originalAuthorCoverageUnchanged": true,
+  "D2ReviewerOnlyProducer": {
+    "path": "rebuild/m4/workout/engine-capture.cjs",
+    "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+    "directReadByE": false,
+    "coverage": "Only the qualified trace in final D2 RECONCILIATION.md is used; PM372 is not an E direct-source grant."
+  },
+  "priorSharedSupplements": {
+    "one": "d4ab7a32e2302382362b2978cf67b5cbf3d73c29:rebuild/lanes/astra/SCIENCE-AUDIT-INPUTS-SUPPLEMENT-1.json",
+    "two": "023597c2599a746a44a9780f2277d571ab65a298:rebuild/lanes/astra/SCIENCE-AUDIT-INPUTS-SUPPLEMENT-2.json",
+    "scope": "Previously verified/read in original author task; no new hydration or evaluation for this synthesis."
+  },
+  "requiredContext": [
+    {
+      "ref": "d5c13c378b07a9953b00329f2e63aabd18aa2094",
+      "path": "NEXT.md",
+      "read": "Read first; top rebuild/ROADMAP redirection and historical queue context seen; broad output truncated, no complete-file claim.",
+      "bytes": 282450,
+      "sha256": "9e709f1f4429a0612d832e974bf3edc0d6673e146bb3efcf6cca02e00d396792"
+    },
+    {
+      "ref": "d5c13c378b07a9953b00329f2e63aabd18aa2094",
+      "path": "AGENTS.md",
+      "read": "Full current root file including READ FIRST",
+      "bytes": 3469,
+      "sha256": "79f5808dbd4e396bc98f629290e3ed1de817585c766d0653bebcde325536ca42"
+    },
+    {
+      "ref": "d5c13c378b07a9953b00329f2e63aabd18aa2094",
+      "path": "rebuild/ROADMAP.md",
+      "read": "First 18 lines/current priority and acceptance context",
+      "bytes": 16623,
+      "sha256": "eadfd041f15f3055b03b1a6393a6371c7f74824eefa5a8fd180440723e84d67b"
+    },
+    {
+      "ref": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+      "path": "rebuild/lanes/LANES.md",
+      "read": "Full current lane context; latest brief overrides older assignments",
+      "bytes": 11877,
+      "sha256": "82e6779281b1d9f0da9354daf5047fe4fcd3dd9286f4b2c6fa737f6434cc009b"
+    },
+    {
+      "ref": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+      "path": "rebuild/lanes/e/CHARTER.md",
+      "read": "Full role charter; first assignment historical, PM380 governs this exact task",
+      "bytes": 5621,
+      "sha256": "87772e0dc54fbe7ef7b3c4865ddf9c1b0e3aee573a53d09722938daedd1820b2"
+    },
+    {
+      "ref": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+      "path": "rebuild/lanes/astra/TEAM.md",
+      "read": "Current assignment/table and selected context; broad output partly truncated",
+      "bytes": 20821,
+      "sha256": "b1fc960fadad5303823ee43ea31aac7ea6ee7fa259782a7a50d3e245131ed134"
+    },
+    {
+      "ref": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+      "path": "rebuild/DECISIONS.md",
+      "read": "88-94 fully; selected193/194/306/320/356/370/372/378/380 current-authority lines",
+      "bytes": 467082,
+      "sha256": "d04adcc4864b5d11ecf11d0b33efedaf465cdf01129750a2e5b603e21f3ae3a7"
+    },
+    {
+      "ref": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+      "path": "rebuild/lanes/astra/GATE-WINDOW.md",
+      "read": "Full; ENDED under PM210",
+      "bytes": 5565,
+      "sha256": "7f35f787f7bbe728a9fc72aea0596f41d824696541dd8f09237ca511380e27f1"
+    }
+  ],
+  "actualReadLimit": "requestedRanges are tool-requested excerpts. They do not expand the original author or D2 coverage; files without content notes are identity-only. Full final review/reconciliation/source-addendum were read. No new literature search, underlying paper retrieval or producer372 source read.",
+  "reviewVerification": {
+    "finalParent": "cc995900710fc2510b2a78309491148b4f658c8c",
+    "changedPaths": [
+      "rebuild/lanes/d2/reviews/SCIENCE-AUDIT-REVIEW.md",
+      "rebuild/lanes/d2/reviews/science-audit/RECONCILIATION-CUSTODY.json",
+      "rebuild/lanes/d2/reviews/science-audit/RECONCILIATION.md",
+      "rebuild/lanes/d2/reviews/science-audit/SOURCE-ADDENDUM.md"
+    ],
+    "allNineFinalBlobsVerified": true,
+    "fiveSupportFilesMatchIndependentFirstCustody": true,
+    "firstAssessmentSnapshotPreserved": true,
+    "finalChangedHashes": [
+      {
+        "path": "rebuild/lanes/d2/reviews/SCIENCE-AUDIT-REVIEW.md",
+        "bytes": 5896,
+        "sha256": "446310c912661b30b65b55a111a06facb281dc24b24afa57f5c625758b0fdbbf"
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-audit/RECONCILIATION-CUSTODY.json",
+        "bytes": 20478,
+        "sha256": "9aa10ffc49be029e1922271ef3d39b5d0f3247ae135e61470d3f66de137e1951"
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-audit/RECONCILIATION.md",
+        "bytes": 18470,
+        "sha256": "55745fd15fcfc4cf5b6c2deef995517b8eeb16dd0f6b3b562fde118bc6010f0d"
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-audit/SOURCE-ADDENDUM.md",
+        "bytes": 12695,
+        "sha256": "329b7c2cc51698141a9bbdd2da76854038c57d661c5545b2de5d5212c295d461"
+      }
+    ],
+    "basis": "Exact immutable final Git head, writeSet in final custody, independent-first recorded hashes and final-parent identity; final custody does not contain a recursive self-hash."
+  },
+  "deliverables": [
+    {
+      "path": "rebuild/lanes/e/SCIENCE-CORRECTION-CONTRACT.md",
+      "purpose": "Concise owner-readable correction contract and three proposed questions"
+    },
+    {
+      "path": "rebuild/lanes/e/science-correction-contract/CASES.md",
+      "purpose": "Exact proposed goal/effort/EA-break behavior, exceptions, yes/no dispositions and 23 symbolic cases"
+    },
+    {
+      "path": "rebuild/lanes/e/science-correction-contract/RULES-AND-ROUTING.md",
+      "purpose": "Eight existing-rule correction rows, exact source/consumer paths, prospective ownership and required evidence"
+    },
+    {
+      "path": "rebuild/lanes/e/science-correction-contract/INPUT-CUSTODY.json",
+      "purpose": "Pinned inputs, actual read coverage, reviewer qualifications, untouched original records and static verification"
+    }
+  ],
+  "scope": {
+    "openFollowups": [
+      "U1",
+      "U2",
+      "U3",
+      "U4",
+      "U5",
+      "U6",
+      "U7"
+    ],
+    "reviewU8": "complete under PM378",
+    "ownerChoices": [
+      "Q1",
+      "Q2",
+      "Q3"
+    ],
+    "settledRepairRows": [
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "R8"
+    ],
+    "proposedCases": 23
+  },
+  "prohibitionsObserved": {
+    "newLiteratureSearch": false,
+    "newProductSourceScope": false,
+    "producer372DirectRead": false,
+    "productImports": false,
+    "productTests": false,
+    "privateHistoryFixtureAccess": false,
+    "productPolicyOrAcceptedArtifactEdits": false,
+    "newLaneOrSubagent": false,
+    "sharedStatusWrite": false,
+    "sharedPush": false,
+    "importOrDeploy": false,
+    "spending": false
+  },
+  "validation": {
+    "kind": "Documentation and input identity only",
+    "syntheticCasesExecuted": false,
+    "policyAccepted": false,
+    "runtimeValidated": false,
+    "requiredIndependentEvidence": "RULES-AND-ROUTING.md and CASES.md",
+    "preStageIndexUnchanged": true
+  }
+}

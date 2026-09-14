@@ -1,0 +1,21 @@
+{
+  "authority": "PM390",
+  "base": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "sourceRows": [
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/tools.cjs",
+      "bytes": 58790,
+      "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/coach-text.cjs",
+      "bytes": 14675,
+      "sha256": "1ec05a8c8f16261b3651db4a017b10b3fc2bbefcd1ffb43174d12a81cf8d7d3e"
+    }
+  ],
+  "execution": "Only these actual CommonJS modules and the new named invented-world test. tools.cjs imports node:crypto; coach-text.cjs imports node:fs,node:path and tools.cjs. Never invoke coach-text as CLI: its main-only demo imports the real Today closure. Do not call loadScript, the demo, real engine/client/gym/provider or any unlisted module.",
+  "context": "Current PM390 brief and existing PM378 disposition; E135887a4 four-document correction contract. These are static context, not execution dependencies.",
+  "scope": "Exact product files only; no scientific reader, Today adapter, persisted command or target-selection change."
+}
