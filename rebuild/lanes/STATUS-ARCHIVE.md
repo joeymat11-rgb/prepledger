@@ -652,3 +652,18 @@
 - SCHEDULE: PM30min oversight; all worker heartbeats PAUSED on completion/dependencies/capacity. B/D2 retain saved MAX while blocked; other seats LOW. No new dispatch or automatic model/retry loop; pending owner choices remain open.
 
 2026-09-13 19:34 ET · PM-CARETAKER · Astra · ecca0d8d7ef33c1e6088995ceae88c87aa001656 ·354 retains full ER352 REJECT R1: capture changes an actual child result.419 exact artifacts/all failures preserved; R2 substantiated. B MAX focused noninterference repair; ER LOW/paused. E346 accepted. No native/phone PASS, owner action or paid API.
+
+
+## PM402 rotation — 2026-09-13 23:52 ET
+
+## STATE (refreshed 2026-09-13 23:41 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @536ba47ac5b357c6ea88c57bf3faf63a9a1f2540 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193; owner398 requires Astra for every seat. Current saved models and B actual MAX execution verified. Existing usage, Joe/history/memory then Dad; soak wide beta only.
+- B: Astra/MAX384/398 active from preserved checkpoint; source2592f091 and34/34 standalone author checks reported. Finish exact custody/handoff, then separate ER/MAX. No original capture/native acceptance.
+- C: a0e8ec38/testedc21e64f2 exact two-module/one-test coach correction scoped accepted400 after complete independent review. LOW/paused; actual integration/current-CI and durable effects remain.
+- D2: full final5cf5ef6a verified/adopted400,34 artifacts/nine author records;17+3 independent passes/four syntax checks. Complete LOW/paused, no repeated passed checks.
+- E: contract135887a4 adopted388, LOW/paused. OWNER: Q1 goal/volume authority, Q2 final-set default and Q3 EA/break policy stay held for actual answers. The Sol fallback is rejected, not pending.
+- SCHEDULE: B hourly while active, PM30min; other waiting/completed seats LOW/paused. No automatic capacity retry/model switch, new paid service or repeated unchanged audit. Original gates and third-role integration remain.
+- DELIVERY: September18-23 personal forecast retains limited confidence; no rolling ETA. Dad follows the existing two-day Joe trial. Current acceptance is development evidence, no live-data/phone claim.
+
+2026-09-13 19:47 ET · PM-CARETAKER · Astra · 34fce6323d78adb7363a7e05f81dc92e27eb9017 ·356 starts owner-approved science audit: E MAX author, D2 MAX independent primary-source/static review. B MAX358 receives bounded Promise-hook scope; original outcome bar stays. Existing usage, no new policy/native/phone PASS or paid API.

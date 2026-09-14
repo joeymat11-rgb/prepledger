@@ -1,0 +1,44 @@
+[
+  {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\candidate.node",
+    "bytes": 173568,
+    "sha256": "6bb68a2d28021703d776ee2afbbf9bee318354b5d3f4f6481e5294e8407822d0",
+    "committed": false
+  },
+  {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\candidate.pdb",
+    "bytes": 1040384,
+    "sha256": "b9f2b8f88d9a08245cdb77f0518ab9e34cf5cbaf7a1be2f954b65a1f58923a38",
+    "committed": false
+  },
+  {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\mapping.lib",
+    "bytes": 1848,
+    "sha256": "779e9f86c5173e93f7525d9dc479729be29887a2aef91842572d17f483d3f7ff",
+    "committed": false
+  },
+  {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\size-mismatch.node",
+    "bytes": 173568,
+    "sha256": "f71a8fe6d905e537fe5719b4cba5d2dd1fb61fcf117af6d433aeee579cd1c543",
+    "committed": false
+  },
+  {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\size-mismatch.pdb",
+    "bytes": 1040384,
+    "sha256": "67b3bb846883bcf38e408744f8c7a332258259e67d141fbd07d1da0370711965",
+    "committed": false
+  },
+  {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\version-mismatch.node",
+    "bytes": 173568,
+    "sha256": "60341c06a20f0eaf568b046c34c12875d8727454f8214a89f9ea8742c36e7055",
+    "committed": false
+  },
+  {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\version-mismatch.pdb",
+    "bytes": 1040384,
+    "sha256": "7ed7302dacce6cefe0585741fa8372974e4fd011be73179777e7d22bdd6055a0",
+    "committed": false
+  }
+]

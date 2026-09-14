@@ -1,0 +1,58 @@
+{
+  "label": "invalid-huge",
+  "start": "2026-09-14T03:38:24.898Z",
+  "end": "2026-09-14T03:38:25.001Z",
+  "operatorPid": 17076,
+  "executable": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\downloads\\node.exe",
+  "args": [
+    "--test",
+    "--test-reporter=tap",
+    "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\runs\\run-01\\cases\\invalid-huge\\writer.test.cjs"
+  ],
+  "cwd": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b",
+  "environment": {
+    "SystemRoot": "C:\\WINDOWS",
+    "WINDIR": "C:\\WINDOWS",
+    "SystemDrive": "C:",
+    "ComSpec": "C:\\WINDOWS\\System32\\cmd.exe",
+    "PATH": "C:\\WINDOWS\\System32",
+    "PATHEXT": ".COM;.EXE;.BAT;.CMD",
+    "NODE_OPTIONS": "",
+    "NODE_PATH": "",
+    "TEMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "TMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "TMPDIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "ZIG_GLOBAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\cache\\global",
+    "ZIG_LOCAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\cache\\local",
+    "EARNED_SLOT_BINARY": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\builds\\build-01\\candidate.node",
+    "SLOT_LOADER": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\rebuild\\lanes\\b\\tooling\\native-slot-prototype\\loader.cjs",
+    "SLOT_DESCRIPTOR": "{\"name\":\"Local\\\\EarnedSlot-a310c99a5a4998d52ae1b6a61891d724\",\"nonce\":\"3632fa1b0cef5b41be83e53c2d4d0545\",\"ownerPid\":17076,\"version\":1,\"bytes\":64}",
+    "SLOT_CONFIG": "{\"mode\":\"invalid\",\"invalid\":\"huge\"}",
+    "SLOT_TRACE": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\runs\\run-01\\cases\\invalid-huge\\trace.json",
+    "SLOT_DIAGNOSTIC": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\runs\\run-01\\cases\\invalid-huge\\diagnostic.txt"
+  },
+  "outerPid": 57228,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "census": {
+    "tests": 1,
+    "suites": 0,
+    "pass": 1,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "firstFailure": null,
+  "writerSourceSha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+  "stdoutSha256": "26cccec20c520a28cf7bbcd1fe22f206134a2f6c3c2491dd21d38e409cc2b8f7",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trace": {
+    "pid": 49988,
+    "parentPid": 57228,
+    "ownerPid": 17076,
+    "mode": "invalid"
+  },
+  "diagnostic": null
+}
