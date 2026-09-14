@@ -1,0 +1,197 @@
+{
+  "authority": "83a8e8b3571263fb5d23de88ad46b9dea66da0b4",
+  "initialCommit": "6ae87871376ae1d59cbe6f79cf2c57baaac9e5cf",
+  "initialAssessmentSha256": "34131a414d9f30818e84691a6f0a6e1501b52daf5caf395ab2209cb23272a825",
+  "sourcesManifestSha256": "732b020c79b1f94f3405d2775fc269c19af675a13bec9f612c4eb8ef951257c8",
+  "staticInputCustodySha256": "a649865be76af8a65f49dbec8bcdf2deee3d742af9a2f6c8b04adccf7d4a97d5",
+  "all27UpstreamFilesFetchedBeforeInitialCommit": true,
+  "newSourcesFetchedAfterInitialCommit": 0,
+  "completeBDocumentsReadAfterInitialCommit": [
+    {
+      "ref": "48d53673fea1532600479ccffb8db6cabbcfd98b",
+      "path": "rebuild/lanes/b/B1B2-NATIVE-CAPTURE-ALTERNATIVES.md",
+      "bytes": 7445,
+      "sha256": "33dd616554d7e1b17e6157b6ee79d49ab50e9b58574061b8fd6c1743221d1d46",
+      "readAfterInitialCommit": "6ae87871376ae1d59cbe6f79cf2c57baaac9e5cf",
+      "scratch": ".tmp/capture-feasibility/inputs/B-B1B2-NATIVE-CAPTURE-ALTERNATIVES.md"
+    },
+    {
+      "ref": "48d53673fea1532600479ccffb8db6cabbcfd98b",
+      "path": "rebuild/lanes/b/BUILD-B1B2-NATIVE-CAPTURE.md",
+      "bytes": 8741,
+      "sha256": "03faee1775d4821f7ef7176beff994eb94489e6b3273afe5184a23d6590c5eba",
+      "readAfterInitialCommit": "6ae87871376ae1d59cbe6f79cf2c57baaac9e5cf",
+      "scratch": ".tmp/capture-feasibility/inputs/B-BUILD-B1B2-NATIVE-CAPTURE.md"
+    }
+  ],
+  "archiveMapping": {
+    "ref": "b69b870cf4b369586278e2377a2a5e71cee634eb",
+    "path": "rebuild/lanes/b/reviews/native-capture-noninterference-evidence/MAPPING.json",
+    "bytes": 68154,
+    "sha256": "63619136dc78c3a9b422e790f001504cadba4d5976f09927456788f0e7cb151c",
+    "archivePaths": 187,
+    "copiedFiles": 185,
+    "copiedBytes": 174283,
+    "fullCopyVerification": "Already performed by PM368; this reviewer checks the mapping and nine necessary public records"
+  },
+  "exactPublicRecordsRead": [
+    {
+      "ref": "b69b870cf4b369586278e2377a2a5e71cee634eb",
+      "originalPath": ".tmp/native-capture-noninterference/red/exit.json",
+      "path": "rebuild/lanes/b/reviews/native-capture-noninterference-evidence/metadata/red/exit.json",
+      "bytes": 40,
+      "sha256": "708eae6cc8f6002add20318bc7578926b2f0d7aeb0877e4ea67ff64ca0a23262",
+      "scratch": ".tmp/capture-feasibility/inputs/ARCHIVE-metadata__red__exit.json"
+    },
+    {
+      "ref": "b69b870cf4b369586278e2377a2a5e71cee634eb",
+      "originalPath": ".tmp/native-capture-noninterference/prototype/exit.json",
+      "path": "rebuild/lanes/b/reviews/native-capture-noninterference-evidence/metadata/prototype/exit.json",
+      "bytes": 40,
+      "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed",
+      "scratch": ".tmp/capture-feasibility/inputs/ARCHIVE-metadata__prototype__exit.json"
+    },
+    {
+      "ref": "b69b870cf4b369586278e2377a2a5e71cee634eb",
+      "originalPath": ".tmp/native-capture-noninterference/resource-probe/exit.json",
+      "path": "rebuild/lanes/b/reviews/native-capture-noninterference-evidence/metadata/resource-probe/exit.json",
+      "bytes": 40,
+      "sha256": "708eae6cc8f6002add20318bc7578926b2f0d7aeb0877e4ea67ff64ca0a23262",
+      "scratch": ".tmp/capture-feasibility/inputs/ARCHIVE-metadata__resource-probe__exit.json"
+    },
+    {
+      "ref": "b69b870cf4b369586278e2377a2a5e71cee634eb",
+      "originalPath": ".tmp/native-capture-noninterference/resource-probe/public-evidence.json",
+      "path": "rebuild/lanes/b/reviews/native-capture-noninterference-evidence/metadata/resource-probe/public-evidence.json",
+      "bytes": 3252,
+      "sha256": "51d274ff18a29aa6afbc07b6275bb35eee09fd9b0a4157d75c51ced3e28f856a",
+      "scratch": ".tmp/capture-feasibility/inputs/ARCHIVE-metadata__resource-probe__public-evidence.json"
+    },
+    {
+      "ref": "b69b870cf4b369586278e2377a2a5e71cee634eb",
+      "originalPath": ".tmp/native-capture-noninterference/resource-probe/stdout.tap",
+      "path": "rebuild/lanes/b/reviews/native-capture-noninterference-evidence/metadata/resource-probe/stdout.tap",
+      "bytes": 1822,
+      "sha256": "03713698f4369d4252933da35f397d94820b2517adab910026d29bc421fc821e",
+      "scratch": ".tmp/capture-feasibility/inputs/ARCHIVE-metadata__resource-probe__stdout.tap"
+    },
+    {
+      "ref": "b69b870cf4b369586278e2377a2a5e71cee634eb",
+      "originalPath": ".tmp/b1b2-native-capture/478cd2825be52a179201155c734d32ec/synthetic-resource.json",
+      "path": "rebuild/lanes/b/reviews/native-capture-noninterference-evidence/captures/478cd2825be52a179201155c734d32ec/synthetic-resource.json",
+      "bytes": 76,
+      "sha256": "9b5c5c2f79e429b94bd236f0c6ed5a0cc890372527aa1645a36fdd20060a69e4",
+      "scratch": ".tmp/capture-feasibility/inputs/ARCHIVE-captures__478cd2825be52a179201155c734d32ec__synthetic-resource.json"
+    },
+    {
+      "ref": "b69b870cf4b369586278e2377a2a5e71cee634eb",
+      "originalPath": ".tmp/b1b2-native-capture/5e31cef34038a09accdfa80e9fde157f/synthetic-resource.json",
+      "path": "rebuild/lanes/b/reviews/native-capture-noninterference-evidence/captures/5e31cef34038a09accdfa80e9fde157f/synthetic-resource.json",
+      "bytes": 37,
+      "sha256": "9dd290faaa505b4e01374cea317677ce10daeb5a6e7b74eaec342b07cc9e4670",
+      "scratch": ".tmp/capture-feasibility/inputs/ARCHIVE-captures__5e31cef34038a09accdfa80e9fde157f__synthetic-resource.json"
+    },
+    {
+      "ref": "b69b870cf4b369586278e2377a2a5e71cee634eb",
+      "originalPath": ".tmp/b1b2-native-capture/478cd2825be52a179201155c734d32ec/stdout.raw",
+      "path": "rebuild/lanes/b/reviews/native-capture-noninterference-evidence/captures/478cd2825be52a179201155c734d32ec/stdout.raw",
+      "bytes": 2524,
+      "sha256": "8502dff99fade5a4adb5e12f0e54784ec9d86a7e9a0a2bf4e291fd05ee2f83ee",
+      "scratch": ".tmp/capture-feasibility/inputs/ARCHIVE-captures__478cd2825be52a179201155c734d32ec__stdout.raw"
+    },
+    {
+      "ref": "b69b870cf4b369586278e2377a2a5e71cee634eb",
+      "originalPath": ".tmp/b1b2-native-capture/5e31cef34038a09accdfa80e9fde157f/stdout.raw",
+      "path": "rebuild/lanes/b/reviews/native-capture-noninterference-evidence/captures/5e31cef34038a09accdfa80e9fde157f/stdout.raw",
+      "bytes": 609,
+      "sha256": "9d4edb3b2d1524b0ef274b75cd71d9aaf5c3985c92e7626a54bbac2800ba3876",
+      "scratch": ".tmp/capture-feasibility/inputs/ARCHIVE-captures__5e31cef34038a09accdfa80e9fde157f__stdout.raw"
+    }
+  ],
+  "historicalPhases": [
+    {
+      "phase": "red",
+      "source": "8ab80f3ba7dc0ea0e927abb2a76a75d9197be9e4",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=PM354",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "counts": {
+        "tests": 4,
+        "pass": 0,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 7821.3001
+      },
+      "exit": {
+        "status": 1,
+        "signal": null,
+        "error": null
+      },
+      "actualChildren": 8
+    },
+    {
+      "phase": "prototype",
+      "source": "0282f3f2cf2d8f6d994c4d65451d14420555311b",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=PM354|PM348 termination assumption|PM348 actual exit dispatch|PM350 async work scheduled",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "counts": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 19954.3145
+      },
+      "exit": {
+        "status": 0,
+        "signal": null,
+        "error": null
+      },
+      "actualChildren": 18
+    },
+    {
+      "phase": "resource-probe",
+      "source": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=PM362",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2046.5744
+      },
+      "exit": {
+        "status": 1,
+        "signal": null,
+        "error": null
+      },
+      "actualChildren": 2
+    }
+  ],
+  "newRuntimeChildren": 0,
+  "finalReport": {
+    "path": "rebuild/lanes/b/reviews/B1B2-CAPTURE-FEASIBILITY-REVIEW.md",
+    "lines": 34,
+    "bytes": 8803,
+    "sha256": "38d18676f305c293443ac2ef0a404f86fb69581122591e562d4ecbe3fcd664ee"
+  },
+  "reconciliationSha256": "4238a69ef569851d18a3dc679e02e0099c647d217bad8c0e95c8837a600f21ef",
+  "scope": "Review notes only. No runtime setup, product code execution or mutation; no additional upstream reads after independent commit; no implementation or acceptance grant."
+}

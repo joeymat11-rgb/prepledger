@@ -1,18 +1,17 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 20:54 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @83a8e8b3571263fb5d23de88ad46b9dea66da0b4 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
-- PM: sole Astra PM193; owner306 existing usage only. Joe/history/memory then Dad, soak wide beta only. MAX critical judgments, HIGH routine coordination. Account recovery verified: ER/D2 executing MAX; B/C/D/E/I remain LOW/paused; immediate ready-work handoffs under320.
-- B: complete limitation/planning48d53673 and archiveb69b870c verified;185 copies174283bytes and all three phase outcomes retained. Prototype unaccepted, nativeFieldDeltas UNKNOWN. LOW/paused320.
-- ER: MAX368 independent source-only feasibility check before another capture implementation; bounded pinned-Node coverage/shutdown/shared-view analysis. No execution/addon install/new product scope.
+## STATE (refreshed 2026-09-13 21:10 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @31d5451ad063af76a25ec10fb7d3cdc59bc9dd91 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193; existing usage only. Joe/history/memory then Dad, soak wide beta only. MAX critical judgment, HIGH routine coordination; immediate meaningful handoffs, no repeated unchanged audits.
+- B: MAX376 one named shmbuf0.1.0 source capability check, fresh shared-mapping-capability-b. Prior48d53673/b69b870c limitation/archive retained; no installation, implementation or native run.
+- ER: complete2c9c19a1; six exact artifacts/custody adopted374. Current capture rejected, both alternatives unresolved. LOW/paused320 until exact new independent work.
 - E: complete science author4a6a3335, four exact files/12 topics/U1-U8; LOW/paused320. Prior build support346/memory324 retain scoped acceptance.
-- D2: independent firstcc995900 verified before E outcomes; MAX370 reconciles exact full author package. Reviewer-only producer input372 added to original72 plus two shared supplements; no retroactive E read claim.
+- D2: final science reportf93834d8 handed off; all12/U1-U8 reconciliation reported, PM final custody/disposition in progress. LOW/paused320; no new policy or release hold.
 - C/D/I: LOW/paused on existing dependencies. Full native engine admission, import, memory/provider/consumer joins and phone proof remain open.
 - OWNER: no immediate action. Final science findings will become concrete yes/no choices only after reconciliation. September18-23 personal forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks.
-- SCHEDULE: PM30min; ER/D2 MAX hourly while substantive; B/C/D/E/I LOW/paused. Direct meaningful handoffs, no duplicate tasks or spending.
+- SCHEDULE: PM30min; B MAX hourly while substantive; D2/ER/C/D/E/I LOW/paused. Immediate meaningful handoffs; no duplicate tasks or spending.
 
 
-2026-09-13 18:32 ET · PM-CARETAKER · Astra · 75302be3e453574be631299a75bea67d8f211ec2 ·344 verifies complete ER REJECT R1/R2 and commissions B MAX focused capture repair.34 exact review artifacts/all failures retained; ER LOW/paused. D2 MAX342 continues; E archive complete LOW/paused. Existing usage only; no native run or owner action.
 
 2026-09-13 18:22 ET · D2 · STARTED PM342 · codex/astra-d2-frozen-build-module-link @ b54fec2d · Full1609 index/four inputs/six identities verified; source-first R1 review at MAX, new E outcomes unread; PM sole judge.
 
@@ -41,3 +40,5 @@
 2026-09-13 20:16 ET · PM-CARETAKER · Astra · 023597c2599a746a44a9780f2277d571ab65a298 · 368 verifies B limitation/185 raw copies; B LOW, ER MAX independent source feasibility.370 sends complete E science audit after D2 first assessment for MAX reconciliation;372 adds exact producer input. E LOW. No policy/native/phone PASS or owner action.
 
 2026-09-13 20:54 ET · PM-CARETAKER · Astra · 83a8e8b3571263fb5d23de88ad46b9dea66da0b4 · Resumed ER after old-account limit; ER/D2 active MAX, saved/executed efforts verified. B/C/D/E/I paused pending concrete dependencies. Thirty-minute PM fallback retained; recurring context shortened, direct handoffs immediate. No acceptance/release change.
+
+2026-09-13 21:10 ET · PM-CARETAKER · Astra · 31d5451ad063af76a25ec10fb7d3cdc59bc9dd91 · 374 adopts completed ER source review: current capture rejected, alternatives unresolved; ER LOW.376 gives B MAX one pinned mapping source check, no install/experiment. D2 final science report delivered for PM judgment, LOW/paused. Prior outcomes retained.

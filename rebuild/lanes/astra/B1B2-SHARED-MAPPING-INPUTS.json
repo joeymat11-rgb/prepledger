@@ -1,0 +1,148 @@
+{
+  "purpose": "PM376 source-only assessment of one named cross-process mapping candidate; no dependency or execution acceptance",
+  "base": "31d5451ad063af76a25ec10fb7d3cdc59bc9dd91",
+  "reviewHead": "2c9c19a1296152fd6ac30a475d9eb69d7726699e",
+  "reviewFiles": [
+    {
+      "path": "rebuild/lanes/b/reviews/B1B2-CAPTURE-FEASIBILITY-REVIEW.md",
+      "bytes": 8803,
+      "sha256": "38d18676f305c293443ac2ef0a404f86fb69581122591e562d4ecbe3fcd664ee",
+      "lines": 34
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/capture-feasibility/INITIAL-ASSESSMENT.md",
+      "bytes": 11363,
+      "sha256": "34131a414d9f30818e84691a6f0a6e1501b52daf5caf395ab2209cb23272a825",
+      "lines": 41
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/capture-feasibility/SOURCES.json",
+      "bytes": 12651,
+      "sha256": "732b020c79b1f94f3405d2775fc269c19af675a13bec9f612c4eb8ef951257c8",
+      "lines": 231
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/capture-feasibility/INPUT-CUSTODY.json",
+      "bytes": 6947,
+      "sha256": "a649865be76af8a65f49dbec8bcdf2deee3d742af9a2f6c8b04adccf7d4a97d5",
+      "lines": 156
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/capture-feasibility/AFTER-INITIAL-CUSTODY.json",
+      "bytes": 8734,
+      "sha256": "1423d18bc3d285caa5c7587b447cb53a0dc0f99fc0d06eb7e873d1d5f99aebf8",
+      "lines": 197
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/capture-feasibility/RECONCILIATION.md",
+      "bytes": 6443,
+      "sha256": "4238a69ef569851d18a3dc679e02e0099c647d217bad8c0e95c8837a600f21ef",
+      "lines": 34
+    }
+  ],
+  "package": {
+    "name": "shmbuf",
+    "version": "0.1.0",
+    "url": "https://registry.npmjs.org/shmbuf/-/shmbuf-0.1.0.tgz",
+    "integrity": "sha512-GrFwCI/AVek5aAsAQhriTcubVfEVqJ8SPioHAt/323yBRWIOhZqdAyb4uxj8IEHnGAAYNz/acatNYhHQka9kSA==",
+    "tarball_sha256": "4b0bf434a319cd1de8dfb9289c006922c983d717b33daa13e0beef024b1e41b4",
+    "files": [
+      {
+        "path": "package/LICENSE",
+        "bytes": 1084,
+        "sha256": "19b68e3e925a9cf8a93428caba4bc09e3160f40c311730141e67deb24f910d70"
+      },
+      {
+        "path": "package/src/shmbuf.cpp",
+        "bytes": 5876,
+        "sha256": "5b5e79d46639d87e6f95ec834a1c71a8a14e2ce5a62a2d9fe500baf422bfaefe"
+      },
+      {
+        "path": "package/binding.gyp",
+        "bytes": 402,
+        "sha256": "025e759e0dfe579aeb33cc8730cb0296f580b7cb8286ced6e6da79ace5a017a5"
+      },
+      {
+        "path": "package/get-include-dir.js",
+        "bytes": 229,
+        "sha256": "2699a3507920e208609a835ac7e3c3374d2bf66f0d06369087e1a3c6b32ace28"
+      },
+      {
+        "path": "package/lib/index.js",
+        "bytes": 777,
+        "sha256": "2e9e0fda859a4a47505de607550b04d14a95bee91dd76368f53412b8ddd88ca3"
+      },
+      {
+        "path": "package/test/test-cross-process.js",
+        "bytes": 2964,
+        "sha256": "49b420522c437b29c6ec0b0460ad7cc28edac7ae65b8366e8eb63cfd8ce48121"
+      },
+      {
+        "path": "package/test/test-shmbuf.js",
+        "bytes": 10345,
+        "sha256": "a8465d54cb74a56c9952ba4a1b2a44574d25cd61499433b4171584f09b4260f9"
+      },
+      {
+        "path": "package/test/test.js",
+        "bytes": 1375,
+        "sha256": "8f7f1c0f4e8d523173b862816996b7ac97572e03bc171847b5a933ad0c8ba56b"
+      },
+      {
+        "path": "package/package.json",
+        "bytes": 1327,
+        "sha256": "434f8310f9085fe1c34052ed201ec4fc6b7872618303064165b1582e8908fe98"
+      },
+      {
+        "path": "package/README.md",
+        "bytes": 1309,
+        "sha256": "448c7ff5630d96801481c47f3eb40323769f2510652efabd6f39b2ef12b8e311"
+      },
+      {
+        "path": "package/lib/index.d.ts",
+        "bytes": 159,
+        "sha256": "dd480d63b9f94a7184b18bb8e034ee4fb55ebbb9fdad69745497f7ede5ce5da3"
+      }
+    ],
+    "tarballBytes": 7918,
+    "totalSourceBytes": 25847,
+    "registryMetadataSha256": "714e14345b147c75bf251dbd75e23f5a0343c5143af8150131826ceb7ac93285",
+    "publishedDependencyRange": "node-addon-api ^8.0.0; prebuild-install ^7.1.3",
+    "scriptsExecuted": false
+  },
+  "officialNode": {
+    "tag": "v22.23.2",
+    "tagObject": "490a9fef8f8adcda5a95bd6f96035b05cb43fe5b",
+    "commit": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+    "allowedDirectDefinitionPaths": [
+      "deps/v8/include/v8-array-buffer.h",
+      "deps/v8/include/v8-local-handle.h",
+      "src/js_native_api_v8.h",
+      "src/js_native_api_v8.cc",
+      "src/node_api.cc",
+      "src/node_api.h",
+      "src/js_native_api.h"
+    ]
+  },
+  "wrapperSourceOnly": {
+    "name": "node-addon-api",
+    "version": "8.0.0",
+    "metadataUrl": "https://registry.npmjs.org/node-addon-api/8.0.0",
+    "allowedFiles": [
+      "package.json",
+      "napi.h",
+      "napi-inl.h"
+    ],
+    "note": "Pin returned tarball integrity and exact read bytes before using. This deliberately selected lower-bound source is not evidence that an unpinned install would select it. No wrapper/runtime install."
+  },
+  "osApiReferences": [
+    "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createfilemappinga",
+    "https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-mapviewoffile",
+    "https://pubs.opengroup.org/onlinepubs/9799919799/functions/shm_open.html",
+    "https://pubs.opengroup.org/onlinepubs/9799919799/functions/mmap.html"
+  ],
+  "limitations": [
+    "npm landing page returned403 to web reader; exact version metadata and tarball were obtained from primary registry and integrity-checked without install",
+    "POSIX pages were unavailable in PM web reader; no claim of full PM access",
+    "PM inspected implementation and loader text only; package README and tests are source claims, not executed proof"
+  ]
+}
