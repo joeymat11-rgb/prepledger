@@ -1,5 +1,5 @@
 {
-  "gen": "2026-09-11T09:05:32.823Z",
+  "gen": "2026-09-14T00:51:04.304Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
     "soft": 162.12,
@@ -19,9 +19,9 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2690,
+    "tdee": 2732,
     "tdeeWinDays": 10,
-    "meanCal": 2263,
+    "meanCal": 2305,
     "waterSensitivityLb": 1.14,
     "waterSensDays": 4,
     "meanSleepH": 7.9,
@@ -71,10 +71,10 @@
     },
     {
       "wk": "2026-09-07",
-      "meanCal": 2200,
-      "meanPro": 170,
+      "meanCal": 2332,
+      "meanPro": 168,
       "proHitPct": 100,
-      "meanSteps": 20333
+      "meanSteps": 20375
     }
   ],
   "priorDecisions": [
