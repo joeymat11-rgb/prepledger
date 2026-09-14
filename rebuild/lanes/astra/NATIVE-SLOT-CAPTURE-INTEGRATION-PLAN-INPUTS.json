@@ -1,0 +1,209 @@
+{
+  "purpose": "PM404 one concrete source-only original-capture integration plan; no acceptance or implementation",
+  "existingOwnTree": "work/pm-caretaker/native-slot-prototype-b",
+  "sourceBaseForPlan": "9cc78e7701957569fd603b9013d2ac454dacb2dd",
+  "standaloneCandidate": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+  "reviewFirst": "dd4ae18da24a614d468ced172cdf5cc89766d402",
+  "originalCapturePreimage": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+  "inputs": [
+    {
+      "ref": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+      "path": "rebuild/lanes/b/tooling/native-slot-prototype/mapping.c",
+      "bytes": 11875,
+      "sha256": "f48e49de14baf671a7f8171cae181d356f879614f5c54a457a06b5810a895f20",
+      "blob": "2889078169b0d8c0ccb81f300af2561194202b48",
+      "use": "STATIC ONLY: current standalone candidate; not accepted/integrated"
+    },
+    {
+      "ref": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+      "path": "rebuild/lanes/b/tooling/native-slot-prototype/loader.cjs",
+      "bytes": 1436,
+      "sha256": "af4c86c8c5bc58ea1bda55c2fe2352a0497cf135d4ffbfbeadadafb2d4a0cbb4",
+      "blob": "761546975cf58a6a9a10a0a428823ad34efbf72b",
+      "use": "STATIC ONLY: current standalone candidate; not accepted/integrated"
+    },
+    {
+      "ref": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+      "path": "rebuild/lanes/b/tooling/native-slot-prototype/build.cjs",
+      "bytes": 6742,
+      "sha256": "c1b91326dcc509b61c91ff9a16a073446ba9a328f92d852dff915a847c7e8ad8",
+      "blob": "13fc86a30ff3538afdea2711515dbce073a1e882",
+      "use": "STATIC ONLY: current standalone candidate; not accepted/integrated"
+    },
+    {
+      "ref": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+      "path": "rebuild/lanes/b/tooling/native-slot-prototype/PROTOCOL.md",
+      "bytes": 6623,
+      "sha256": "46195cfc2f601031caab0dfa04a4d02ec5d97b1a5935b0a01697b146894fda69",
+      "blob": "63473e54a4ecdb5f79523902167b62d221a52da0",
+      "use": "STATIC ONLY: current standalone candidate; not accepted/integrated"
+    },
+    {
+      "ref": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+      "path": "rebuild/lanes/b/tooling/native-slot-prototype/test/prototype.test.cjs",
+      "bytes": 13642,
+      "sha256": "15ec5392d47e1ff66ad6b409d6a559ee5cce3ef59d9b02abbef80702971e5162",
+      "blob": "95055baaa33fe0d74893d31c8ba98e1c79853fd7",
+      "use": "STATIC ONLY: current standalone candidate; not accepted/integrated"
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 47308,
+      "sha256": "2034c081d42035472d3c1722b2f85ab94bfe581d4f147920ecfec5052ac678ec",
+      "blob": "78e1c597ceeae04b409e62a470e0d940fd3414be",
+      "use": "STATIC ONLY: existing public capture/helper/test/profile/original-child input; no module or original gate execution"
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 14364,
+      "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721",
+      "blob": "ff411faec22f089c1802d25425f73c9ecd2dc9f1",
+      "use": "STATIC ONLY: existing public capture/helper/test/profile/original-child input; no module or original gate execution"
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 54479,
+      "sha256": "844c84aa69da4cf9f2d28b5bd4b0b518f5029cd4c94f44d4430dd1d5adde0d7e",
+      "blob": "475ec847daba8f1eeb1df0cb21d1c0c78ad2458a",
+      "use": "STATIC ONLY: existing public capture/helper/test/profile/original-child input; no module or original gate execution"
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "2a9acf634da21bbd53de3489f10ae70b6d94245c47cb66c346cc136c1d277d66",
+      "blob": "010e8dfff544979b970ac3519d843fc780173cfa",
+      "use": "STATIC ONLY: existing public capture/helper/test/profile/original-child input; no module or original gate execution"
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "bytes": 196822,
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058",
+      "blob": "7302b88e30d1c36b9d4558486d4cde1369915d32",
+      "use": "STATIC ONLY: existing public capture/helper/test/profile/original-child input; no module or original gate execution"
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+      "bytes": 1061,
+      "sha256": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2",
+      "blob": "6f31a562de7447a53236991899417f1a591d62ce",
+      "use": "STATIC ONLY: existing public capture/helper/test/profile/original-child input; no module or original gate execution"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 36945,
+      "sha256": "884218f2fa5f2e012a018f096f05f6ec3fb7a4027b4123c5bacc0aa25fce4b9c",
+      "blob": "6070de8835303eacff27cbf6f2879fd28bc4c132",
+      "use": "STATIC ONLY: prepared A preimage and unchanged policy/profile boundary"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "184d79ad82201a7d2c9ed1c631776077149727223eb5ae259393759bfbd957e7",
+      "blob": "ecc4b33ea1406eb43b5dbc39cbdb15792f5feefd",
+      "use": "STATIC ONLY: prepared A preimage and unchanged policy/profile boundary"
+    },
+    {
+      "ref": "dd4ae18da24a614d468ced172cdf5cc89766d402",
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/FIRST-ASSESSMENT.md",
+      "bytes": 9869,
+      "sha256": "4e986798767e4a79933b7ea4fdc127380939121c93ca4794d11280627af17eed",
+      "blob": "18484224ca6c0b1790ce47a67169b0996aa2c21e",
+      "use": "Read full immutable first assessment and its limits; final reconciliation remains pending"
+    },
+    {
+      "ref": "16a628ed5bfbaa600f3240b80471280c11ae9d3a",
+      "path": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-GO.md",
+      "bytes": 6604,
+      "sha256": "3aca3d79eb6870088350fd801640ace0a4b6fd1c297c0fb05f2bdbb5322682ec",
+      "blob": "d27a1dc23b0aee5a0959d156598496fbd2882498",
+      "use": "Full applicable authority; no new execution"
+    },
+    {
+      "ref": "16a628ed5bfbaa600f3240b80471280c11ae9d3a",
+      "path": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-REPAIR-GO.md",
+      "bytes": 6217,
+      "sha256": "7b43e904a6b8ff15d80c3a1f6ca021d9ddcb3eefb728cd373b685f271ccfdf31",
+      "blob": "3504748169f3f3b0d0381a68468919624b22fe95",
+      "use": "Full applicable authority; no new execution"
+    },
+    {
+      "ref": "16a628ed5bfbaa600f3240b80471280c11ae9d3a",
+      "path": "rebuild/lanes/astra/B1B2-CAPTURE-NONINTERFERENCE-GO.md",
+      "bytes": 6670,
+      "sha256": "fa4510c7f0e69dc75239e7403d0b160e83c58aaa0187d16c316a309efaa7bc24",
+      "blob": "ebc933545eb3b8356fb5fefa1e1a9b39fe41ccee",
+      "use": "Full applicable authority; no new execution"
+    },
+    {
+      "ref": "16a628ed5bfbaa600f3240b80471280c11ae9d3a",
+      "path": "rebuild/lanes/astra/NATIVE-SLOT-PROTOTYPE-GO.md",
+      "bytes": 5905,
+      "sha256": "9a5963c4dcedab643e13cc51c55df5adf2969e8dd87514de03e8c9ec3177f652",
+      "blob": "61c07940879fe981720ac91742120681c7aabfb3",
+      "use": "Full applicable authority; no new execution"
+    },
+    {
+      "ref": "16a628ed5bfbaa600f3240b80471280c11ae9d3a",
+      "path": "rebuild/lanes/astra/NATIVE-SLOT-PROTOTYPE-INPUTS.json",
+      "bytes": 9338,
+      "sha256": "50a38c17b56af818b7173ac6f4f46e8e1478863b92632aad5dee0bb15645ddad",
+      "blob": "8ac9f9da36e6bf9d1735c980087bf3b8c903b739",
+      "use": "Full applicable authority; no new execution"
+    },
+    {
+      "ref": "16a628ed5bfbaa600f3240b80471280c11ae9d3a",
+      "path": "rebuild/lanes/astra/NATIVE-SLOT-PROTOTYPE-INPUTS-SUPPLEMENT-1.json",
+      "bytes": 1058,
+      "sha256": "902cc3cd3380ac3162fc31b4ab4df045dd0e6efb0fea5e679b506d89cc7f6292",
+      "blob": "54bce2736063bc8845625b25ee05517f53af354e",
+      "use": "Full applicable authority; no new execution"
+    },
+    {
+      "ref": "16a628ed5bfbaa600f3240b80471280c11ae9d3a",
+      "path": "rebuild/lanes/astra/NATIVE-SLOT-PROTOTYPE-REVIEW-GO.md",
+      "bytes": 6411,
+      "sha256": "66e90b06b147ab963e479bfcb32f432c7b8b0995f9e50f96d49f546b9bce8647",
+      "blob": "0c8fe542243af512075dd3c51f4a60e38c87f99e",
+      "use": "Full applicable authority; no new execution"
+    },
+    {
+      "ref": "16a628ed5bfbaa600f3240b80471280c11ae9d3a",
+      "path": "rebuild/lanes/astra/B1B2-VALIDATION-ASSEMBLY-GO.md",
+      "bytes": 4193,
+      "sha256": "6a78169da9706c9aa1ef30ed3719fa6c4443c9c1498704cc83a4dc8651c4fd49",
+      "blob": "c49e0d249e1738f53e8dfab6f91f3babb2f45b55",
+      "use": "Full applicable authority; no new execution"
+    },
+    {
+      "ref": "16a628ed5bfbaa600f3240b80471280c11ae9d3a",
+      "path": "rebuild/lanes/astra/GATE-WINDOW.md",
+      "bytes": 5565,
+      "sha256": "7f35f787f7bbe728a9fc72aea0596f41d824696541dd8f09237ca511380e27f1",
+      "blob": "5b1b258cf158ada2c4c891f0920a225f20538e81",
+      "use": "Full applicable authority; no new execution"
+    },
+    {
+      "ref": "16a628ed5bfbaa600f3240b80471280c11ae9d3a",
+      "path": ".github/workflows/rebuild.yml",
+      "bytes": 10610,
+      "sha256": "34bec65a549a8d29128da3fe1bf08398c0cab47298c094c154f0e42a3614e882",
+      "blob": "baa50aa80dc12b2b2ae50a8498a53a77805cf87d",
+      "use": "STATIC ONLY: existing Windows/Ubuntu platform and registration route; no workflow edit, dispatch, push or CI execution"
+    }
+  ],
+  "writeOnly": [
+    "rebuild/lanes/b/NATIVE-SLOT-CAPTURE-INTEGRATION-PLAN.md",
+    "rebuild/lanes/b/NATIVE-SLOT-CAPTURE-INTEGRATION-PLAN.json"
+  ],
+  "model": "gpt-6-astra",
+  "effort": "max",
+  "noRuntimeOrProductEdits": true
+}
