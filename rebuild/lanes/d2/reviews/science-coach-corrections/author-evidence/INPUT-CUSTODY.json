@@ -1,0 +1,62 @@
+{
+  "authority": "5d97ec06ff458a227fb3edc1a11929b74179d9fa",
+  "briefSHA256": "c527e9f77760776a0050bbdb1203fcad11d12e7bca09ce537f2572d0fe6980a5",
+  "inputsSHA256": "9225c11a2107ce662c057535bdaadc90f38625da47b3ce90a42d0ecd56b6a700",
+  "base": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "sourceRows": [
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/tools.cjs",
+      "bytes": 58790,
+      "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/coach-text.cjs",
+      "bytes": 14675,
+      "sha256": "1ec05a8c8f16261b3651db4a017b10b3fc2bbefcd1ffb43174d12a81cf8d7d3e"
+    }
+  ],
+  "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\c-memory-lifecycle-r3\\.tmp\\runtime\\node.exe",
+  "nodeVersion": "v22.23.2",
+  "indexEntries": 1607,
+  "hydrated": "Two licensed modules and root .gitignore/.gitattributes/AGENTS/NEXT only; checkout-index restored selected files after sparse initialization.",
+  "execution": "Only two coach modules, new invented-world test and Node builtins. No installs, CLI demo, loadScript, actual proposal/client/engine/Today/gym execution.",
+  "staticContext": [
+    {
+      "ref": "135887a4",
+      "path": "rebuild/lanes/e/SCIENCE-CORRECTION-CONTRACT.md",
+      "bytes": 4641,
+      "sha256": "7479db0fa2d1d63e62c74d39260db733c949eed0732b14cd21912a2547e2cf41",
+      "inspection": "Static content read; Q1-Q3 remain pending"
+    },
+    {
+      "ref": "135887a4",
+      "path": "rebuild/lanes/e/science-correction-contract/RULES-AND-ROUTING.md",
+      "bytes": 17169,
+      "sha256": "991dd3931511a8a61695efadb2dc33ddef3f1a4fc1a47a191f097116c84958e5",
+      "inspection": "Static content read; Q1-Q3 remain pending"
+    },
+    {
+      "ref": "135887a4",
+      "path": "rebuild/lanes/e/science-correction-contract/CASES.md",
+      "bytes": 20233,
+      "sha256": "1287ae29cde5ee022ec24b9e726bf2e179f8f68956d063caf4919c3d60962bb2",
+      "inspection": "Static content read; Q1-Q3 remain pending"
+    },
+    {
+      "ref": "135887a4",
+      "path": "rebuild/lanes/e/science-correction-contract/INPUT-CUSTODY.json",
+      "bytes": 21682,
+      "sha256": "1ff45e3d8b98ed1a2a995958174d9fa607a9f1fc0caee393834a98740cfdfe5a",
+      "inspection": "Static metadata only; no underlying product or paper sources executed/read from its references"
+    },
+    {
+      "ref": "5d97ec06ff458a227fb3edc1a11929b74179d9fa",
+      "path": "rebuild/lanes/astra/SCIENCE-AUDIT-PM-DISPOSITION.md",
+      "bytes": 6502,
+      "sha256": "f6ae643b8c1c12a4e3c62a695ea7b9fe28df49de6fadeedc7a14a4c29c9ee217",
+      "inspection": "Static content read; Q1-Q3 remain pending"
+    }
+  ]
+}
