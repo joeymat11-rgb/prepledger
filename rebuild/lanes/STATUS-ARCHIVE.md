@@ -514,3 +514,5 @@
 2026-09-13 18:05 ET · D2 · STARTED PM334 · codex/astra-d2-frozen-build-setup @2fdf33e5 · MAX; all10 clauses/332 read. Full1609-entry index before4 exact public inputs; owned Node22/esbuild0.28.1 loader+service verified. Synthetic test running; author report/outcomes unread. PM sole judge.
 
 2026-09-13 18:11 ET · D2 · PR-READY PM334 · codex/astra-d2-frozen-build-setup @2fdf33e5 · Review REJECT R1: hard-linked builder passes module ownership and writes.11/11 public;4/5 independent;3 behavioral reversals; source restored. FROZEN-BUILD-SETUP-REVIEW.md/annex ready before author outcomes. PM sole judge.
+
+2026-09-13 18:14 ET · PM-CARETAKER · Astra · 5b81dc8fa0c8b31f46865b7588e190dcab7f9a15 ·338 routes D2 R1 module-hardlink failure to E HIGH for minimal fix/regression. D2 MAX reconciles334; ER MAX capture336 continues. B archive553a88d8 verified, B LOW/paused. No native/FULL/phone PASS or paid API.

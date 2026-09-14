@@ -1,9 +1,9 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 19:56 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @d4ab7a32e2302382362b2978cf67b5cbf3d73c29 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+## STATE (refreshed 2026-09-13 20:01 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @a38d4574db33efb0d40d4da5a233d946a4bafc5a before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
 - PM: sole Astra PM193; owner306 existing Codex usage, no API trial. Joe/history/memory then Dad; soak wide beta only. MAX advised for science/critical judgments, HIGH routine coordination.
-- B: MAX354/358/362 noninterference repair. Prototype0282f3f2 targeted12/12 is intermediate; one resource parity probe cleared. Exact red8ab80f3b/all original bars stay. NativeFieldDeltas UNKNOWN.
+- B: MAX364 limitation/custody and bounded source-only alternative plan after actual resource failure d05ef3e9. Prototype0282f3f2 unaccepted; no new implementation or known-refuted full-suite runs. NativeFieldDeltas UNKNOWN.
 - E: MAX356 science author in fresh science-audit-e;12 scoped claims and72 pinned public inputs plus one static composition supplement360. Prior isolated build support346 and memory324 remain their accepted scopes.
 - D2: MAX356 independent source/static science check before E findings, then reconciliation. Prior342/346 complete; separate owned science-audit-d2.
 - C: lifecycle7e64848d scoped ACCEPT294; LOW waiting full consumer/composition. N2/R4 evidence retained.
@@ -11,8 +11,6 @@
 - REVIEW/INTEGRATION: complete ER352 REJECT R1 and419 exact artifacts preserved; R2 substantiated within scope. ER/I LOW/paused until exact accepted handoff. No full/native/receipt/CI/integration acceptance.
 - OWNER: no immediate action. Science audit findings will become concrete yes/no policy choices only if needed. September18–23 Joe/history/memory forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks.
 - SCHEDULE: PM30min; B/E/D2 MAX substantive work hourly; C/D/ER/I LOW/paused. Immediate meaningful handoffs; no duplicate tasks or spending.
-
-2026-09-13 18:14 ET · PM-CARETAKER · Astra · 5b81dc8fa0c8b31f46865b7588e190dcab7f9a15 ·338 routes D2 R1 module-hardlink failure to E HIGH for minimal fix/regression. D2 MAX reconciles334; ER MAX capture336 continues. B archive553a88d8 verified, B LOW/paused. No native/FULL/phone PASS or paid API.
 
 2026-09-13 18:14 ET · D2 · RECONCILED PM334 · codex/astra-d2-frozen-build-setup · First561d3b2 sent before full E report/archive.17 copies36666bytes verified; original/setup/product failures retained. REJECT R1 unchanged.11/11 public,4/5 own,3 kills; source exact. Full handoff to PM, then LOW/paused320.
 
@@ -41,3 +39,5 @@
 2026-09-13 19:52 ET · PM-CARETAKER · Astra · 45eb03a02e0dc268178f87927a8bb56fe0e8730c · 360 answers science audit input request: one exact public browser composition file, static only. Original72 inputs retained plus supplement1. E/D2 MAX continue independently; B MAX358 repair active. No science verdict, policy change or owner action.
 
 2026-09-13 19:56 ET · PM-CARETAKER · Astra · d4ab7a32e2302382362b2978cf67b5cbf3d73c29 · 362 clears one real-Node resource parity probe for B MAX. Prototype0282f3f2 targeted12/12 is intermediate, not acceptance; original bars/failures stay. E/D2 MAX science audit continues independently. No native/phone verdict or owner action.
+
+2026-09-13 20:01 ET · PM-CARETAKER · Astra · a38d4574db33efb0d40d4da5a233d946a4bafc5a · 364 preserves B resource-probe failure; prototype unaccepted. B MAX completes limitation/raw custody and two-option source-only plan, then LOW. No repeated known-refuted suite or new code. E/D2 MAX science continues; no owner action/native release.
