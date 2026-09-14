@@ -1,0 +1,32 @@
+"use strict";
+
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const T = require("../tools.cjs");
+const C = require("../coach-text.cjs");
+
+// Entirely invented supplied view. No real Today, engine, client or proposal path.
+function suppliedView(targets = {}) {
+  return {
+    today: "2044-06-12", statusFace: { word: "Review", cause: "Invented observation" },
+    marchingOrder: { ifText: "If the plan needs review", thenText: "Review it", targetLine: "Invented plan" },
+    workout: { title: "Invented circuit", available: true }, ...targets,
+  };
+}
+const coachFor = view => T.createCoachTools({ today: { today: view.today, read: () => view } });
+
+test("missing target objects stay unknown while the supplied workout survives", async () => {
+  const view = suppliedView(), coach = coachFor(view), turn = coach.openTurn("missing-targets");
+  const result = await turn.call.today_plan();
+  assert.equal(result.ok, true);
+  for (const key of ["kcalLo", "kcalHi", "proteinG"]) {
+    assert.equal(result.values[key].value, null);
+    assert.equal(result.values[key].blank, true);
+    assert.equal(result.values[key].display, "");
+  }
+  assert.equal(result.values.workoutTitle.value, view.workout.title);
+  const answer = await C.answerOne(coach, { id: "missing", intent: "today_plan" }, {});
+  assert.match(answer.answer, /Invented circuit/);
+  assert.match(answer.answer, /do not have a calorie band/);
+  assert.deepEqual(answer.untraceable, []);
+});
