@@ -1,6 +1,6 @@
 # Earned: active Astra team
 
-PM checkpoint 2026-09-13 21:10 ET: ER368 is complete at2c9c19a1, exact six-file scope/custody adopted374; current capture remains rejected and both proposed routes unresolved. B MAX376 now checks one named pinned shmbuf0.1.0 mapping candidate from source only, before any installation or experiment. ER LOW/paused. D2 final science reportf93834d8 is delivered and awaits PM final custody/disposition, LOW/paused; E/C/D/I remain paused. Existing accepted scopes, original failed outcomes, native/history/memory/import/phone obligations and owner policies remain unchanged.
+PM checkpoint 2026-09-13 21:18 ET: focused science audit/review is complete with qualifications under378; final D2f93834d8 exact four changed artifacts adopted, original first assessment preserved. U8 closes; U1-U7 correction/owner-choice work remains. E XHIGH380 prepares one actionable contract from existing research, without product changes or another audit. B MAX376 is finishing the named mapping capability check; ER/D2/C/D/I are paused. Existing accepted scopes, failed outcomes, private/runtime/phone requirements and owner policies remain unchanged.
 
 Execution control check 2026-09-13 20:54 ET: the old-account usage stop in Engine reviewer was recovered; ER368 and D2 science reconciliation are executing at MAX. Saved and actual executing efforts match. B/C/D/E/I remain LOW with follow-ups paused until a concrete dependency is ready. New account ordinary usage is available. PM keeps30-minute fallback oversight and immediate meaningful handoffs; active reviewers retain hourly fallback. The recurring PM prompt now points to durable records instead of replaying old custody detail. No duplicate work, repeated unchanged audits, new paid service, acceptance shortcut or release change. Audit: `.tmp/effort-audits/20260914T005231829974Z.json`.
 
@@ -10,9 +10,9 @@ Execution control check 2026-09-13 20:54 ET: the old-account usage stop in Engin
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX376: one pinned shared-memory source capability check; no installation/experiment | earned-astra-b-follow-up; hourly substantive work, then paused320 |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; PAUSED waiting; direct PM handoff |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: final science reviewf93834d8 delivered, PM disposition pending | earned-lane-d2-requests; PAUSED320 |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: final science auditf93834d8 scoped completion adopted378; await exact independent successor | earned-lane-d2-requests; PAUSED320 |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: complete2c9c19a1 source feasibility review; await exact successor | earned-astra-engine-review-follow-up; PAUSED320 |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: complete science author4a6a3335; prior build support346 remains accepted | earned-astra-e-follow-up; PAUSED320 |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | XHIGH380: concrete science correction contract and owner choices; no new research/product changes | earned-astra-e-follow-up; hourly substantive work, then paused320 |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
 
 ## Worktrees
@@ -62,9 +62,9 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX376: one pinned shared-memory source capability check; no installation/experiment | earned-astra-b-follow-up; hourly substantive work, then paused320 |
 | D | LOW; partial import harness handed off | XHIGH for the exact provider/admission join release |
 | C | LOW; lifecycle scoped accepted294 | XHIGH for actual concurrency work; HIGH for bounded UI/plumbing |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: final science reviewf93834d8 delivered, PM disposition pending | earned-lane-d2-requests; PAUSED320 |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: final science auditf93834d8 scoped completion adopted378; await exact independent successor | earned-lane-d2-requests; PAUSED320 |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: complete2c9c19a1 source feasibility review; await exact successor | earned-astra-engine-review-follow-up; PAUSED320 |
-| E | LOW; repair/archive342 complete | Reassess actual complexity when a memory or support dependency is ready |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | XHIGH380: concrete science correction contract and owner choices; no new research/product changes | earned-astra-e-follow-up; hourly substantive work, then paused320 |
 | I | LOW; source A3bfed63 complete326 | HIGH for a named accepted source assembly; no product testing |
 
 Joe endorsed Editorial with original bullet spacing; Light and Ink bases remain locked. This is an example design preview endorsement, not an implementation, owner-data or deployment claim. Keep development focused on the current engine/import repairs and their joined acceptance requirements.

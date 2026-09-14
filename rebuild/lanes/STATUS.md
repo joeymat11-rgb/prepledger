@@ -1,19 +1,18 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 21:10 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @31d5451ad063af76a25ec10fb7d3cdc59bc9dd91 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+## STATE (refreshed 2026-09-13 21:18 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @d5c13c378b07a9953b00329f2e63aabd18aa2094 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
 - PM: sole Astra PM193; existing usage only. Joe/history/memory then Dad, soak wide beta only. MAX critical judgment, HIGH routine coordination; immediate meaningful handoffs, no repeated unchanged audits.
 - B: MAX376 one named shmbuf0.1.0 source capability check, fresh shared-mapping-capability-b. Prior48d53673/b69b870c limitation/archive retained; no installation, implementation or native run.
 - ER: complete2c9c19a1; six exact artifacts/custody adopted374. Current capture rejected, both alternatives unresolved. LOW/paused320 until exact new independent work.
-- E: complete science author4a6a3335, four exact files/12 topics/U1-U8; LOW/paused320. Prior build support346/memory324 retain scoped acceptance.
-- D2: final science reportf93834d8 handed off; all12/U1-U8 reconciliation reported, PM final custody/disposition in progress. LOW/paused320; no new policy or release hold.
+- E: XHIGH380 bounded science correction contract: exact existing-rule repairs and concrete owner choices from completed research. Original author4a6a3335 and prior accepted scopes preserved.
+- D2: finalf93834d8 nine exact artifacts verified, four changed docs adopted378. All12 topics/U1-U8 reconciled; U8 review complete, U1-U7 corrections/choices open. LOW/paused320.
 - C/D/I: LOW/paused on existing dependencies. Full native engine admission, import, memory/provider/consumer joins and phone proof remain open.
-- OWNER: no immediate action. Final science findings will become concrete yes/no choices only after reconciliation. September18-23 personal forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks.
-- SCHEDULE: PM30min; B MAX hourly while substantive; D2/ER/C/D/E/I LOW/paused. Immediate meaningful handoffs; no duplicate tasks or spending.
+- OWNER: no immediate action. E380 prepares concrete grouped yes/no policy choices; no dose or behavior has been changed by the audit. September18-23 personal forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks.
+- SCHEDULE: PM30min; B MAX/E XHIGH hourly while substantive; D2/ER/C/D/I LOW/paused. Immediate meaningful handoffs; no repeated unchanged checks or spending.
 
 
 
-2026-09-13 18:22 ET · D2 · STARTED PM342 · codex/astra-d2-frozen-build-module-link @ b54fec2d · Full1609 index/four inputs/six identities verified; source-first R1 review at MAX, new E outcomes unread; PM sole judge.
 
 2026-09-13 18:29 ET · D2 · PR-READY PM342 · codex/astra-d2-frozen-build-module-link @ b54fec2d · R1 closed in Windows synthetic scope; public12/12, immutable F2/F3 2/2. Review: rebuild/lanes/d2/reviews/FROZEN-BUILD-MODULE-LINK-REVIEW.md. First independent verdict; E reconciliation next; PM sole judge.
 
@@ -42,3 +41,5 @@
 2026-09-13 20:54 ET · PM-CARETAKER · Astra · 83a8e8b3571263fb5d23de88ad46b9dea66da0b4 · Resumed ER after old-account limit; ER/D2 active MAX, saved/executed efforts verified. B/C/D/E/I paused pending concrete dependencies. Thirty-minute PM fallback retained; recurring context shortened, direct handoffs immediate. No acceptance/release change.
 
 2026-09-13 21:10 ET · PM-CARETAKER · Astra · 31d5451ad063af76a25ec10fb7d3cdc59bc9dd91 · 374 adopts completed ER source review: current capture rejected, alternatives unresolved; ER LOW.376 gives B MAX one pinned mapping source check, no install/experiment. D2 final science report delivered for PM judgment, LOW/paused. Prior outcomes retained.
+
+2026-09-13 21:18 ET · PM-CARETAKER · Astra · d5c13c378b07a9953b00329f2e63aabd18aa2094 · 378 verifies/adopts final D2 science audit;12 topics reviewed, U8 complete, U1-U7 corrections/choices open.380 gives E XHIGH one concrete correction contract; D2 LOW. B MAX376 continues. No new dose, product execution, policy or release acceptance.

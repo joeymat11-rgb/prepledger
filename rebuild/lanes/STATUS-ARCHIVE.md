@@ -550,3 +550,18 @@
 - SCHEDULE: PM30min; ER/D2 MAX hourly while substantive; B/C/D/E/I LOW/paused. Direct meaningful handoffs, no duplicate tasks or spending.
 
 2026-09-13 18:32 ET · PM-CARETAKER · Astra · 75302be3e453574be631299a75bea67d8f211ec2 ·344 verifies complete ER REJECT R1/R2 and commissions B MAX focused capture repair.34 exact review artifacts/all failures retained; ER LOW/paused. D2 MAX342 continues; E archive complete LOW/paused. Existing usage only; no native run or owner action.
+
+## PM science checkpoint 2026-09-13 21:18 ET
+
+## STATE (refreshed 2026-09-13 21:10 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @31d5451ad063af76a25ec10fb7d3cdc59bc9dd91 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193; existing usage only. Joe/history/memory then Dad, soak wide beta only. MAX critical judgment, HIGH routine coordination; immediate meaningful handoffs, no repeated unchanged audits.
+- B: MAX376 one named shmbuf0.1.0 source capability check, fresh shared-mapping-capability-b. Prior48d53673/b69b870c limitation/archive retained; no installation, implementation or native run.
+- ER: complete2c9c19a1; six exact artifacts/custody adopted374. Current capture rejected, both alternatives unresolved. LOW/paused320 until exact new independent work.
+- E: complete science author4a6a3335, four exact files/12 topics/U1-U8; LOW/paused320. Prior build support346/memory324 retain scoped acceptance.
+- D2: final science reportf93834d8 handed off; all12/U1-U8 reconciliation reported, PM final custody/disposition in progress. LOW/paused320; no new policy or release hold.
+- C/D/I: LOW/paused on existing dependencies. Full native engine admission, import, memory/provider/consumer joins and phone proof remain open.
+- OWNER: no immediate action. Final science findings will become concrete yes/no choices only after reconciliation. September18-23 personal forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks.
+- SCHEDULE: PM30min; B MAX hourly while substantive; D2/ER/C/D/E/I LOW/paused. Immediate meaningful handoffs; no duplicate tasks or spending.
+
+2026-09-13 18:22 ET · D2 · STARTED PM342 · codex/astra-d2-frozen-build-module-link @ b54fec2d · Full1609 index/four inputs/six identities verified; source-first R1 review at MAX, new E outcomes unread; PM sole judge.
