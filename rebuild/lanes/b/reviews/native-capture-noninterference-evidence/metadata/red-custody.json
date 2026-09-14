@@ -1,0 +1,35 @@
+{
+  "source": "8ab80f3ba7dc0ea0e927abb2a76a75d9197be9e4",
+  "files": [
+    {
+      "path": ".tmp/native-capture-noninterference/red/inputs.json",
+      "bytes": 2058,
+      "sha256": "6a17dd792f551889d4a42c0fc0a338009bdf939ac91fda5e8333443c46f5688c"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/red/stdout.tap",
+      "bytes": 6825,
+      "sha256": "4a32298a807006c8532cc3f8ea15cbf52436e52ada75ba2c427c53e392b8023a"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/red/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/red/exit.json",
+      "bytes": 40,
+      "sha256": "708eae6cc8f6002add20318bc7578926b2f0d7aeb0877e4ea67ff64ca0a23262"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/red/public-evidence.json",
+      "bytes": 15622,
+      "sha256": "1e7e2cca7253c73b7fc99c6b417606350ebc13c6e77fda92f1ca64ec21388a11"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/red/capture-custody.json",
+      "bytes": 10188,
+      "sha256": "b0698f4269a37f6778a321c6d780924b9abea37e9aaf103e030533f6d2bb0154"
+    }
+  ]
+}

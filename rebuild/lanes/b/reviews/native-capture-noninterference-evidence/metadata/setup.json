@@ -1,0 +1,25 @@
+{
+  "source": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+  "authority354": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+  "goSha256": "fa4510c7f0e69dc75239e7403d0b160e83c58aaa0187d16c316a309efaa7bc24",
+  "index": 1610,
+  "hydrated": [
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "NEXT.md",
+    "rebuild/m4/workout/test/b1b2-evidence.cjs",
+    "rebuild/m4/workout/test/b1b2-source-changes.json",
+    "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+    "rebuild/lanes/b/tooling/packages/B1-B2.json",
+    "rebuild/lanes/b/BUILD-B1B2-NATIVE-CAPTURE.md"
+  ],
+  "runtime": {
+    "version": "v22.23.2",
+    "bytes": 86997320,
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "setupNote": "PowerShell line transport initially failed to set skip-worktree flags; no extra file was hydrated. Corrected using raw NUL Git bytes before any source execution.",
+  "protectedAbsent": true
+}

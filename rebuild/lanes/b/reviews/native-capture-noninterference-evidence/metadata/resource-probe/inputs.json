@@ -1,0 +1,52 @@
+{
+  "source": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern=PM362",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+  ],
+  "files": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 47308,
+      "sha256": "2034c081d42035472d3c1722b2f85ab94bfe581d4f147920ecfec5052ac678ec"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "bytes": 196822,
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 14364,
+      "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 54479,
+      "sha256": "844c84aa69da4cf9f2d28b5bd4b0b518f5029cd4c94f44d4430dd1d5adde0d7e"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "2a9acf634da21bbd53de3489f10ae70b6d94245c47cb66c346cc136c1d277d66"
+    },
+    {
+      "path": ".tmp/runtime/node.exe",
+      "bytes": 86997320,
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/resource-closure.json",
+      "bytes": 1410,
+      "sha256": "267ad759552697efb4078f44cfd75802268706da985d6ca2b5ab8d5b6731fb79"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/v8-closure.before-import.json",
+      "bytes": 5819,
+      "sha256": "b00749aeb6bc85f2b8b93dea4a9d12ecbfd8fe93fb4aed0af3794950f7d44124"
+    }
+  ],
+  "closure": "PM362 single actual Node four-test enabled/disabled AsyncResource constructor pair. Relevant constructor/init/context/type-validation paths read and pinned. requireManualDestroy:true avoids auto disposal; no runInAsyncScope/bind/emitDestroy. Only fixture-owned subclass prototype Proxy counts/throws; real helper hook unchanged from0282f3f2; no original native/private inputs."
+}

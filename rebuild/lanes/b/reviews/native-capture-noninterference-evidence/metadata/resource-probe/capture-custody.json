@@ -1,0 +1,62 @@
+{
+  "source": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+  "actualChildren": 2,
+  "files": [
+    {
+      "path": ".tmp/b1b2-native-capture/5e31cef34038a09accdfa80e9fde157f/capture-manifest.json",
+      "bytes": 139,
+      "sha256": "a2390be60c76cd41de6ece82c1543cb9a8817e8b6ea5a7583f7d969e4ed1edb7"
+    },
+    {
+      "path": ".tmp/b1b2-native-capture/5e31cef34038a09accdfa80e9fde157f/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/b1b2-native-capture/5e31cef34038a09accdfa80e9fde157f/stdout.raw",
+      "bytes": 609,
+      "sha256": "9d4edb3b2d1524b0ef274b75cd71d9aaf5c3985c92e7626a54bbac2800ba3876"
+    },
+    {
+      "path": ".tmp/b1b2-native-capture/5e31cef34038a09accdfa80e9fde157f/synthetic-resource.json",
+      "bytes": 37,
+      "sha256": "9dd290faaa505b4e01374cea317677ce10daeb5a6e7b74eaec342b07cc9e4670"
+    },
+    {
+      "path": ".tmp/b1b2-native-capture/5e31cef34038a09accdfa80e9fde157f/synthetic-writer-marker",
+      "bytes": 7,
+      "sha256": "52774637822c236d84ed1e221bb24d9c1840e08c9d3542efd26f16e27ac8c0a2"
+    },
+    {
+      "path": ".tmp/b1b2-native-capture/478cd2825be52a179201155c734d32ec/capture-manifest.json",
+      "bytes": 136,
+      "sha256": "10ea68b8d93aa42901d327078e887316efeefb6bd7a9f2694fc14899f9932510"
+    },
+    {
+      "path": ".tmp/b1b2-native-capture/478cd2825be52a179201155c734d32ec/native-diagnostics.jsonl",
+      "bytes": 210,
+      "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6"
+    },
+    {
+      "path": ".tmp/b1b2-native-capture/478cd2825be52a179201155c734d32ec/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".tmp/b1b2-native-capture/478cd2825be52a179201155c734d32ec/stdout.raw",
+      "bytes": 2524,
+      "sha256": "8502dff99fade5a4adb5e12f0e54784ec9d86a7e9a0a2bf4e291fd05ee2f83ee"
+    },
+    {
+      "path": ".tmp/b1b2-native-capture/478cd2825be52a179201155c734d32ec/synthetic-resource.json",
+      "bytes": 76,
+      "sha256": "9b5c5c2f79e429b94bd236f0c6ed5a0cc890372527aa1645a36fdd20060a69e4"
+    },
+    {
+      "path": ".tmp/b1b2-native-capture/478cd2825be52a179201155c734d32ec/synthetic-writer-marker",
+      "bytes": 7,
+      "sha256": "52774637822c236d84ed1e221bb24d9c1840e08c9d3542efd26f16e27ac8c0a2"
+    }
+  ],
+  "allPublicInvented": true
+}

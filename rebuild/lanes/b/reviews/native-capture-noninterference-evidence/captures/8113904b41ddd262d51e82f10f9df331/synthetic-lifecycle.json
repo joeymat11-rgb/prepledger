@@ -1,0 +1,1 @@
+{"mode":"regression-exit-nested-microtask","initialExiting":false,"restoredBeforePublication":true,"finalExiting":true,"listenerOrder":["first","last"],"partialWrites":0}

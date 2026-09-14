@@ -1,0 +1,14 @@
+{
+  "originalHelperByteIdentical": true,
+  "profileDiff": [
+    [
+      "product",
+      "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "post"
+    ]
+  ],
+  "fullIndex": 1610,
+  "protectedAbsent": true,
+  "unchangedEngineM3MapChild": true,
+  "head": "d05ef3e9005ced9505250cd4e67f654910a9aacc"
+}
