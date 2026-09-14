@@ -1,0 +1,214 @@
+TAP version 13
+# Subtest: actual nested OS processes share exact two-record progress after exit
+ok 1 - actual nested OS processes share exact two-record progress after exit
+  ---
+  duration_ms: 114.593
+  type: 'test'
+  ...
+# Subtest: none progress cannot become a false completion
+ok 2 - none progress cannot become a false completion
+  ---
+  duration_ms: 110.1549
+  type: 'test'
+  ...
+# Subtest: first-pending progress cannot become a false completion
+ok 3 - first-pending progress cannot become a false completion
+  ---
+  duration_ms: 153.5211
+  type: 'test'
+  ...
+# Subtest: first-complete progress cannot become a false completion
+ok 4 - first-complete progress cannot become a false completion
+  ---
+  duration_ms: 166.7297
+  type: 'test'
+  ...
+# Subtest: second-pending progress cannot become a false completion
+ok 5 - second-pending progress cannot become a false completion
+  ---
+  duration_ms: 107.354
+  type: 'test'
+  ...
+# Subtest: extra progress cannot become a false completion
+ok 6 - extra progress cannot become a false completion
+  ---
+  duration_ms: 107.2098
+  type: 'test'
+  ...
+# Subtest: out-of-order progress cannot become a false completion
+ok 7 - out-of-order progress cannot become a false completion
+  ---
+  duration_ms: 130.3548
+  type: 'test'
+  ...
+# Subtest: duplicate progress cannot become a false completion
+ok 8 - duplicate progress cannot become a false completion
+  ---
+  duration_ms: 120.2608
+  type: 'test'
+  ...
+# Subtest: invalid nan progress refuses without reset or coercion
+ok 9 - invalid nan progress refuses without reset or coercion
+  ---
+  duration_ms: 106.4623
+  type: 'test'
+  ...
+# Subtest: invalid infinity progress refuses without reset or coercion
+ok 10 - invalid infinity progress refuses without reset or coercion
+  ---
+  duration_ms: 109.4965
+  type: 'test'
+  ...
+# Subtest: invalid fractional progress refuses without reset or coercion
+ok 11 - invalid fractional progress refuses without reset or coercion
+  ---
+  duration_ms: 114.1431
+  type: 'test'
+  ...
+# Subtest: invalid huge progress refuses without reset or coercion
+ok 12 - invalid huge progress refuses without reset or coercion
+  ---
+  duration_ms: 105.5526
+  type: 'test'
+  ...
+# Subtest: invalid negative progress refuses without reset or coercion
+ok 13 - invalid negative progress refuses without reset or coercion
+  ---
+  duration_ms: 152.3285
+  type: 'test'
+  ...
+# Subtest: invalid string progress refuses without reset or coercion
+ok 14 - invalid string progress refuses without reset or coercion
+  ---
+  duration_ms: 107.287
+  type: 'test'
+  ...
+# Subtest: invalid null progress refuses without reset or coercion
+ok 15 - invalid null progress refuses without reset or coercion
+  ---
+  duration_ms: 111.5833
+  type: 'test'
+  ...
+# Subtest: invalid object progress refuses without reset or coercion
+ok 16 - invalid object progress refuses without reset or coercion
+  ---
+  duration_ms: 104.7475
+  type: 'test'
+  ...
+# Subtest: invalid missing progress refuses without reset or coercion
+ok 17 - invalid missing progress refuses without reset or coercion
+  ---
+  duration_ms: 104.306
+  type: 'test'
+  ...
+# Subtest: invalid extra-argument progress refuses without reset or coercion
+ok 18 - invalid extra-argument progress refuses without reset or coercion
+  ---
+  duration_ms: 147.7793
+  type: 'test'
+  ...
+# Subtest: late third progress survives loss of the later diagnostic write
+ok 19 - late third progress survives loss of the later diagnostic write
+  ---
+  duration_ms: 108.7731
+  type: 'test'
+  ...
+# Subtest: negative control: a local buffer and complete file cannot complete the parent
+ok 20 - negative control: a local buffer and complete file cannot complete the parent
+  ---
+  duration_ms: 108.2162
+  type: 'test'
+  ...
+# Subtest: negative control: completed state does not erase a failed child outcome
+ok 21 - negative control: completed state does not erase a failed child outcome
+  ---
+  duration_ms: 161.574
+  type: 'test'
+  ...
+# Subtest: native root survives GC, child teardown and repeatable explicit cleanup
+ok 22 - native root survives GC, child teardown and repeatable explicit cleanup
+  ---
+  duration_ms: 270.9581
+  type: 'test'
+  ...
+# Subtest: missing binary has no successful fallback
+ok 23 - missing binary has no successful fallback
+  ---
+  duration_ms: 0.3178
+  type: 'test'
+  ...
+# Subtest: missing region refuses in the actual test-file process
+ok 24 - missing region refuses in the actual test-file process
+  ---
+  duration_ms: 111.2334
+  type: 'test'
+  ...
+# Subtest: nonce descriptor mismatch refuses
+ok 25 - nonce descriptor mismatch refuses
+  ---
+  duration_ms: 109.1197
+  type: 'test'
+  ...
+# Subtest: owner descriptor mismatch refuses
+ok 26 - owner descriptor mismatch refuses
+  ---
+  duration_ms: 104.0584
+  type: 'test'
+  ...
+# Subtest: version descriptor mismatch refuses
+ok 27 - version descriptor mismatch refuses
+  ---
+  duration_ms: 149.2707
+  type: 'test'
+  ...
+# Subtest: size descriptor mismatch refuses
+ok 28 - size descriptor mismatch refuses
+  ---
+  duration_ms: 109.8642
+  type: 'test'
+  ...
+# Subtest: actual version-mismatch region header refuses
+ok 29 - actual version-mismatch region header refuses
+  ---
+  duration_ms: 695.8453
+  type: 'test'
+  ...
+# Subtest: actual size-mismatch region header refuses
+ok 30 - actual size-mismatch region header refuses
+  ---
+  duration_ms: 632.2844
+  type: 'test'
+  ...
+# Subtest: duplicate ownership cannot replace the existing region
+ok 31 - duplicate ownership cannot replace the existing region
+  ---
+  duration_ms: 111.9004
+  type: 'test'
+  ...
+# Subtest: forged, non-owner and closed handles fail safely in a separate process
+ok 32 - forged, non-owner and closed handles fail safely in a separate process
+  ---
+  duration_ms: 104.4387
+  type: 'test'
+  ...
+# Subtest: unclosed child-owned native resources end with the process
+ok 33 - unclosed child-owned native resources end with the process
+  ---
+  duration_ms: 143.8674
+  type: 'test'
+  ...
+# Subtest: write the complete observed synthetic process census
+ok 34 - write the complete observed synthetic process census
+  ---
+  duration_ms: 0.5627
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5971.2452

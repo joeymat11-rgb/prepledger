@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: invented native-slot writer
+ok 1 - invented native-slot writer
+  ---
+  duration_ms: 1.0052
+  type: 'test'
+  ...
+# Subtest: C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\runs\\run-01\\cases\\nonzero\\writer.test.cjs
+not ok 1 - C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\runs\\run-01\\cases\\nonzero\\writer.test.cjs
+  ---
+  duration_ms: 47.3874
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\runs\\run-01\\cases\\nonzero\\writer.test.cjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 7
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54.4327

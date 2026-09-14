@@ -1,0 +1,4285 @@
+{
+  "version": 1,
+  "authority": "PM402",
+  "candidate": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+  "authorRef": "9cc78e7701957569fd603b9013d2ac454dacb2dd",
+  "immutableFirstRef": "dd4ae18da24a614d468ced172cdf5cc89766d402",
+  "finalBranch": "codex/astra-native-slot-prototype-review-er",
+  "manifestSelfExclusion": "This file excludes its own bytes/hash to avoid a self-reference. Its staged blob is verified separately and its SHA256 and final commit are supplied in the PM handoff.",
+  "stagedGitBlobVerificationPerformed": true,
+  "workingBytesMatchStaged": true,
+  "allFirstArtifactsUnchanged": true,
+  "candidateInputsUnchanged": true,
+  "reviewedSourcePaths": 5,
+  "immutableFirstArtifacts": 270,
+  "newFinalArtifactsIncludingThisManifest": 263,
+  "reviewArtifactsIncludingThisManifest": 533,
+  "fullIndexIncludingThisManifest": 2906,
+  "inventoriedArtifacts": 532,
+  "inventoriedBytes": 11520161,
+  "rawFiles": 523,
+  "rawBytes": 11208728,
+  "pinnedIndependentRawFiles": 266,
+  "pinnedAuthorCopies": 254,
+  "ownReconciliationCustodyFiles": 3,
+  "binaryPolicy": "No native binary, archive, SDK, cache or private/product execution artifact is committed. Extraction inventories are metadata. All staged raw bytes match their unchanged owned files and every prior copy pin.",
+  "verificationScope": "Documentation/custody checks only after the immutable independent execution. No additional build, test, original helper, native/private gate, app, CI or deploy run.",
+  "files": [
+    {
+      "path": "rebuild/lanes/b/reviews/NATIVE-SLOT-PROTOTYPE-REVIEW.md",
+      "bytes": 6199,
+      "sha256": "8c59181223a57da2117839d02d8cb615c6db9151a13a17084d3a9b55e3686cf9",
+      "gitBlob": "56bd771a8ff7b8e2af27925d51427557ed39728d",
+      "immutableFirst": false,
+      "raw": false
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/.gitattributes",
+      "bytes": 14,
+      "sha256": "21fb98e8f631e37927617aea1c79741d0c6694fc110a7a5ad4e5aa324f0f706a",
+      "gitBlob": "a34107d759c77c13c52855e582215fab2a4c310e",
+      "immutableFirst": true,
+      "raw": false
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/bounded-controls.cjs",
+      "bytes": 9453,
+      "sha256": "dc90ef1a97d0747ed412354838dae1ae56fbef7361d4de85e85eed911ca4c018",
+      "gitBlob": "16671f35aa1fe995112b296abd848242158a57ca",
+      "immutableFirst": true,
+      "raw": false
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/FIRST-ASSESSMENT.md",
+      "bytes": 9869,
+      "sha256": "4e986798767e4a79933b7ea4fdc127380939121c93ca4794d11280627af17eed",
+      "gitBlob": "18484224ca6c0b1790ce47a67169b0996aa2c21e",
+      "immutableFirst": true,
+      "raw": false
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/MAPPING-AUTHOR.json",
+      "bytes": 119257,
+      "sha256": "d22ceafddf141da7cb87041ba68c763995476de3ec7a72692a14ba1c1a7d8c2f",
+      "gitBlob": "ebfc3072949e2a3aaff6566f6bfd81439f026b1f",
+      "immutableFirst": false,
+      "raw": false
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/MAPPING-FIRST.json",
+      "bytes": 108913,
+      "sha256": "3f8a448933bc7cac858cb0bcf26bc526cff3835f5ec726feaee4e423233c626f",
+      "gitBlob": "4a0aae4c1a330b08ef4752f2d31ec68cedf77039",
+      "immutableFirst": true,
+      "raw": false
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/authority/NATIVE-SLOT-PROTOTYPE-GO.md",
+      "bytes": 5905,
+      "sha256": "9a5963c4dcedab643e13cc51c55df5adf2969e8dd87514de03e8c9ec3177f652",
+      "gitBlob": "61c07940879fe981720ac91742120681c7aabfb3",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/authority/NATIVE-SLOT-PROTOTYPE-INPUTS-SUPPLEMENT-1.json",
+      "bytes": 1058,
+      "sha256": "902cc3cd3380ac3162fc31b4ab4df045dd0e6efb0fea5e679b506d89cc7f6292",
+      "gitBlob": "54bce2736063bc8845625b25ee05517f53af354e",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/authority/NATIVE-SLOT-PROTOTYPE-INPUTS.json",
+      "bytes": 9338,
+      "sha256": "50a38c17b56af818b7173ac6f4f46e8e1478863b92632aad5dee0bb15645ddad",
+      "gitBlob": "8ac9f9da36e6bf9d1735c980087bf3b8c903b739",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/BUILD-NATIVE-SLOT-PROTOTYPE.md",
+      "bytes": 8740,
+      "sha256": "865685263ec740528f4710f831878d188dd479192d228e9863403838d06849fe",
+      "gitBlob": "ef4f931daae4f61cda42b43277268019b884ac06",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/build-launch-01.json",
+      "bytes": 1650,
+      "sha256": "f4d335e3f4d5dda29b9f65d238bab23d59dfd1f91cc432233c70a300014039d2",
+      "gitBlob": "317505d55aa85c87b2e0a3a2bee2b81d1e6ed031",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/build-launch-01.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/build-launch-01.stdout",
+      "bytes": 274,
+      "sha256": "7daf45791e040aa123a7950c87b92d9f0748bb591bf26c20c4ac20dc815a3a40",
+      "gitBlob": "8fad61b2cf3686e748d507b5bf3ce6a8c74f905c",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/custody.ps1",
+      "bytes": 834,
+      "sha256": "b31da2137872709ccff96604b90840578077bc15b042200c54f8b06fca725b00",
+      "gitBlob": "4cd41f3df0d66f59acc93447ea9b4db377db6c13",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/extract.ps1",
+      "bytes": 5300,
+      "sha256": "83edc7ddd3668f4f7d4fa63a0c8ab7876187a4cf07c416288080cb2c6f5a771c",
+      "gitBlob": "10b1cd4a6271e4455dc60a373566cbf5ea0f5aab",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/extract.raw.txt",
+      "bytes": 94,
+      "sha256": "4bde7fe66a306a612e2ba196925a91d75e28b6053958adb4acf8e293c95112ac",
+      "gitBlob": "136ab08fa4cb75f3fbcf448e4a6def2ca5f9de88",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/generated-build-outputs.json",
+      "bytes": 2107,
+      "sha256": "e5569598dc78820e3b2dfd4d81016d6ac4e869a39ad66a7b974d3442ec578d60",
+      "gitBlob": "e324a8f0ecfd435bd0db1aafa2b8f6769a09ee67",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/header-extraction.json",
+      "bytes": 614566,
+      "sha256": "7d54e8f080892cf4fdaa83f21d036146a02406bd9960a752aa624557e856d64c",
+      "gitBlob": "63b5822477165371ee31d0016a468bbe8e707adf",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/model-correction.json",
+      "bytes": 404,
+      "sha256": "de6e1f94b5baf66bbfa73808dec52a50731dcd5d49168129704190ce959ac529",
+      "gitBlob": "aa4bbd43570014efaace389e9d12b21e3fb161d7",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/node-acquisition.json",
+      "bytes": 1213,
+      "sha256": "cb2be20854009065fae13ca86dd8055f7972c48c4ce8251d4f3b3360834625cb",
+      "gitBlob": "2c377efeca4ac5d5d055e07832a89b5479a271de",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/provider-recovery.json",
+      "bytes": 487,
+      "sha256": "8aff48b6a1e17f02b2617e1e7e66a6b5fe160f893bb7aa32dad039f680560ed2",
+      "gitBlob": "fd9ded0a9f0e8e8cac6c65646e4a65a85bb281d3",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/run-tests.cjs",
+      "bytes": 1894,
+      "sha256": "fcfd935925e5c2c7a9fa69020c243692aa23b612cbf4c3496f89a222df911c1f",
+      "gitBlob": "05d560208bbfeab693a9d281eec58d77016d5ae6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/SETUP.json",
+      "bytes": 928,
+      "sha256": "ce538a6d94ca5b325cfb6a5d2cdfe744f915babf08454e4d5b5a2b033ed36163",
+      "gitBlob": "487d20d55b642d365582f8c74806fd50b771a5d5",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/source-01.json",
+      "bytes": 1149,
+      "sha256": "82cc24ce4e5d981705cdbe20b904028cc8ce052bcb0039c97f6e20fbe5f3fcd8",
+      "gitBlob": "fe8cf6135183f727146a743ce60d16778f42c305",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/test-launch-01.json",
+      "bytes": 1275,
+      "sha256": "ababca05e1307a2258abf0b189966f8e8b41a531938d52b92ea729b5e6699d4b",
+      "gitBlob": "6963037793e251db124248ba274edbc902eba140",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/test-launch-01.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/test-launch-01.stdout",
+      "bytes": 253,
+      "sha256": "4da4e2358446ff5c5abb79ebe8089e476ada4246a7b4679d5c35df0bec17f552",
+      "gitBlob": "0aa8826324daf105879d8cef7dbd7d85a4993c4e",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/zig-acquisition.json",
+      "bytes": 412,
+      "sha256": "29b10a5688cb752d1e72ed74a91f949d7e2929405aa1070221767c4e31687aad",
+      "gitBlob": "1c91ae368bc45ee55f54f00a7cffbdb8844947ee",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/custody/zig-extraction.json",
+      "bytes": 3815738,
+      "sha256": "2ca83c0c49f20a212038f90cb6963397eaf09fb29559ff597b1c0b1693915244",
+      "gitBlob": "8d61ef95dbae9b74cbf790b92df159c6698daad5",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/node/js_native_api_types.h",
+      "bytes": 7603,
+      "sha256": "05e3d86e24c814f94a8b52b6a70cec11d7e91c810008253553528637e3a15b2f",
+      "gitBlob": "baae4ea609103344059b1c262c7ee7883c2b9f7d",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/node/js_native_api.h",
+      "bytes": 31770,
+      "sha256": "582e64ead4d5fdf663e2bd934f2fc97e8e155a7740d28995830393d19d089705",
+      "gitBlob": "36516267bf36664c7f33c0b1a2d40e64c015c6be",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/node/n-api.md",
+      "bytes": 241517,
+      "sha256": "20b8b3351be836c196f75aaa5ad805f7363997198adb14c3c4c2a39eb2dba620",
+      "gitBlob": "b18048338f86847fa1811effd9e18d89dcabb023",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/node/node_api_types.h",
+      "bytes": 1825,
+      "sha256": "088766b3cf1f0cd9b292c361ad30f7a04e7cc6db35a20ca52c572c1adf9635e7",
+      "gitBlob": "2580f15c030d2287b97bce9167bc75856103c393",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/node/node_api.h",
+      "bytes": 10370,
+      "sha256": "2d4560831e525b47b060ec8a0864ab73993df9e20215ce9f0fe7b24cd31af32a",
+      "gitBlob": "46dbb02b47d24ba9fa3a1f9251d5d42ace6fc829",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/node/node-source-custody.json",
+      "bytes": 2806,
+      "sha256": "cb2b8f476ebf39e84f35027daf3aa5b764107143bd8375c345bea7941101d115",
+      "gitBlob": "c967c77521b14e7866535a99357f3b3c764a64bb",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/os/custody.json",
+      "bytes": 3297,
+      "sha256": "a51624b446f4218d7a09508c8e52e35f10b0c31ddf5037aa3149f57d38d958d3",
+      "gitBlob": "e91a2756eecbb1293847cbf395ffb0417a18f72b",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/os/nf-handleapi-closehandle.html",
+      "bytes": 56055,
+      "sha256": "df0a7db57e00fcccaec2827a6ae7a6ee87c87f38c2c6de7de0e23e091862d584",
+      "gitBlob": "9ea5b9946810dfc1e1fd1e42b4532ce4ba875e37",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/os/nf-memoryapi-mapviewoffile.html",
+      "bytes": 65686,
+      "sha256": "6a89d573315aef26fb20b69f0e63e658bd650964328caa68cf0fd1265a706154",
+      "gitBlob": "291d440a426469706d681a4ce009a5d8b9697c45",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/os/nf-memoryapi-openfilemappinga.error.txt",
+      "bytes": 4525,
+      "sha256": "f7c1b2f1f232dea947cc797bb2bd850ad8e816c2b0e2f859812f4c5759f3f754",
+      "gitBlob": "1daedae3c7d9cce1e3fdad64cf9f9168d1a8b530",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/os/nf-memoryapi-unmapviewoffile.html",
+      "bytes": 54154,
+      "sha256": "5fda412c22f33c27eb7e9cc7cbf8553d81104721b40eb9f95063d333cbbb8e8b",
+      "gitBlob": "20a1acfa1f2aebbbe2ee57bf1bd0589ed9f6ec54",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/os/nf-winbase-createfilemappinga.html",
+      "bytes": 75514,
+      "sha256": "669eb512b45c62413dfa22650233b0aebf5b85e7c2e77d3123b264890ca1a22c",
+      "gitBlob": "faa8ff2749035476276b06338447ce1c94851164",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/os/nf-winbase-openfilemappinga.html",
+      "bytes": 54902,
+      "sha256": "e126f2734210583eeae7f7e34e22d91820be8f2b58b0bfede292b295e85cb59d",
+      "gitBlob": "fd90c68809c42ad746d9f0c636aab14b8e8cec16",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/os/nf-winnt-interlockedcompareexchange.html",
+      "bytes": 55406,
+      "sha256": "cf2e86dd8d46156d1b3882d138cc1f00074bea54b8f98175a5f0ce6f73f9ddda",
+      "gitBlob": "ea7e01aca9b75805a39afdc7e3cf1296467562f6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/os/nf-winnt-interlockedexchange.html",
+      "bytes": 55242,
+      "sha256": "56b19b4863043abef22d182dcb9756389dd3ff03524a673f2ce64a354f483df6",
+      "gitBlob": "a0bf012f0eebb1e3d3b2389ad2135898b76ec748",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/definitions/os/supplement.json",
+      "bytes": 794,
+      "sha256": "ee14f3c39a0a82cf1175fd0ecd300d7d3a9b795f5a2d4c81ddedda95139427c7",
+      "gitBlob": "435221ead6a8b26430f98ec261e7bb01d4dc6f99",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/INDEX.md",
+      "bytes": 1796,
+      "sha256": "a9c25188a0d7bf73a947b07174ab3c3e5181c56f220198d3e0dc2b110d3377a1",
+      "gitBlob": "abd890d9f8183c5f93ed61b0b873e2151ef46b23",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/INPUT-CUSTODY.json",
+      "bytes": 4073,
+      "sha256": "48f800c314f4dc1f7ee848f98fc2bc745f0bc1916563efd607fc1d1390f4436e",
+      "gitBlob": "ae32f2f633439cc2a23d768f18d6b795279ee73d",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/MAPPING.json",
+      "bytes": 77387,
+      "sha256": "6e0b95b6bab6a07fbad74a395b3f725d139ada4f55eef4dafd133683064daa6f",
+      "gitBlob": "e2708e4b91cdf5ec50038f3ad671820bd9934843",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/build.json",
+      "bytes": 4613,
+      "sha256": "9b1bf3ec97bea71f0a2ce8ff95d2df128056c92b574bd997bd98682a5a24106d",
+      "gitBlob": "52b1b1e382c47edb8726e3a860860c182c3a3c6c",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/candidate.result.json",
+      "bytes": 2785,
+      "sha256": "2bdeee97647812f6e5136acc2833d25d659bcfec60496b4847d5dc2660d741bd",
+      "gitBlob": "a63e73534e41c6be8e3ae011bb47cbc6a1730f55",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/candidate.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/candidate.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/compiler-version.result.json",
+      "bytes": 1988,
+      "sha256": "0a26827674287c4d53aa3be0ad25c4272c6d8859fdca8bb571e7143acc7d5996",
+      "gitBlob": "24f425f70861bae1ca711a44234a3ceb2ec4ae90",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/compiler-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/compiler-version.stdout",
+      "bytes": 7,
+      "sha256": "355a2e14f6a7f2cb387d9d3b75a3550980d020ee1d005b139b62290c1645068a",
+      "gitBlob": "4312e0d0cae3a96e9f4a9be98e59e8468f39e1a8",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/inputs.json",
+      "bytes": 3550,
+      "sha256": "1a5d7d30450d5196ed57442b5c322608ab585768f468914f8ba7ff9731b4e221",
+      "gitBlob": "1259ddca2833ce712a07928673d13f16ef6b3fd3",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/size-mismatch.result.json",
+      "bytes": 2826,
+      "sha256": "b0174cde63680c73cb1929734e533a215991a0c7e719167bb2c05de6e9bf97b0",
+      "gitBlob": "f89952765c225e29b3097534abedf6b6ed6d3508",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/size-mismatch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/size-mismatch.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/version-mismatch.result.json",
+      "bytes": 2830,
+      "sha256": "d42deb42d9c7c3418e2d10461e9679e9b88e2f2616aefbfa16992ecbbbe72ba7",
+      "gitBlob": "ad4636c2024ef204eadaf206563ad1afa0d26921",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/version-mismatch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/build-01/version-mismatch.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-nonce/result.json",
+      "bytes": 3195,
+      "sha256": "31a704421464fe4c059eb7896920ff58cfc918286a5eaa006685df88ad95c2b1",
+      "gitBlob": "96486e15201e5750cb049daa4afe57506e0d7ebd",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-nonce/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-nonce/stdout.raw",
+      "bytes": 239,
+      "sha256": "57c979b39f94758243a54d0b9aa43045292c1144f6b6d1c0a275076b2d2234bb",
+      "gitBlob": "6a43a80d5d6fcaeafb01a4461296cd5b255a2019",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-nonce/trace.json",
+      "bytes": 71,
+      "sha256": "32fdeb4c0e93dbf50f6293f803205436a406c063f4e09788178ff45b85707d8d",
+      "gitBlob": "e38d5c2eacd86468a41910311af4a6b0c68fe795",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-nonce/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-owner/result.json",
+      "bytes": 3195,
+      "sha256": "d8a25c916db65f88989cdb08d6b2fda3fa2e9d277ec534c4e6a0243c8811167a",
+      "gitBlob": "49fc7bd87ad7c165dea75dcf807faf27a2897bdd",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-owner/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-owner/stdout.raw",
+      "bytes": 239,
+      "sha256": "f95d6dc68b04e925584925ec1a034df408397752588e28fe24b02e7451dd16e3",
+      "gitBlob": "80d54320a555e6419f795915541a475d94dc89a6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-owner/trace.json",
+      "bytes": 71,
+      "sha256": "81be564a9074eb3260bda948c1a459275bc2e598e10976f06afaa9edf79be8e1",
+      "gitBlob": "2888b7ff65ebbef2ab43fa176272d64ecb1cf9d7",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-owner/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-size/result.json",
+      "bytes": 3195,
+      "sha256": "85af2db8b911fe8f4d1ff093ac0c46c114529f0c57cb06ece5d98838acb373ca",
+      "gitBlob": "bf77f6b90ba2b96be6405422f83010b599337279",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-size/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-size/stdout.raw",
+      "bytes": 239,
+      "sha256": "02c75dfd69983d276e4264c45691498ce3d329f2b986fec9710772e814c0181d",
+      "gitBlob": "c1b3b69d9c9a976591ab9d87bbe317b406400347",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-size/trace.json",
+      "bytes": 71,
+      "sha256": "cf0668bf2ca493266b2ccc4e5b52c467a892e4423ed697f2a4c5d9bdeb8ce79e",
+      "gitBlob": "856510a5bce96f246df829f69443416a55fc24a7",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-size/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-version/result.json",
+      "bytes": 3205,
+      "sha256": "ba030590ddd5bf8269274788a530457d137bb737ed804b06155cf93870d2f84a",
+      "gitBlob": "e431baecebe35796f11f16844d2d16fc27feb13b",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-version/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-version/stdout.raw",
+      "bytes": 240,
+      "sha256": "3f8f4977550d068367cf2e1adf0bc8ff64aef7b489a5655000f31f5b40b7127a",
+      "gitBlob": "599e8db46efbb8318bf145f4ac914b6ca3961b9f",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-version/trace.json",
+      "bytes": 70,
+      "sha256": "5b5dbbeb907b1baba003ad51b45588e3e256f4b7dc070b6454bdb951c130dca3",
+      "gitBlob": "2879cfc43fcdeb92a70b074b51231b126e80e9a5",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/descriptor-version/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/duplicate-owner-intact/result.json",
+      "bytes": 3176,
+      "sha256": "3e1bbad99005e969322228b1235c967e93527c9667d6e8cfd0e0524b9baf9bcc",
+      "gitBlob": "69bfd037e633426629ce9763e927ae87e9ab2bda",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/duplicate-owner-intact/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/duplicate-owner-intact/stdout.raw",
+      "bytes": 238,
+      "sha256": "869b0dea6da2901d248e82059b35ab93f429afdde51b1a1ac91fd7b49c8d5771",
+      "gitBlob": "a4ed22e14b1e02c44db3f148e58a8af15a0978f6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/duplicate-owner-intact/trace.json",
+      "bytes": 67,
+      "sha256": "b8aa96392ef6e3b39d1ee137dc066c3cfb30c0796c53bc0fcf36abc707fbd743",
+      "gitBlob": "37cce74773bdc100bd4096ef3c0947c9497c5133",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/duplicate-owner-intact/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/duplicate/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/duplicate/result.json",
+      "bytes": 3146,
+      "sha256": "4b47c34fc41862513f35c93fbaacefed17763a78b61ad2021e83cac9c9285e0c",
+      "gitBlob": "48d285a23372b9ed220f4c1d6ea9163a5f9950a6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/duplicate/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/duplicate/stdout.raw",
+      "bytes": 239,
+      "sha256": "9f81aedef2fac57a24838ce90313705838fb14d371eb19f0c19c78180703f283",
+      "gitBlob": "6a01735a06093e5b5b9c043b6d1f2b15bd84353b",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/duplicate/trace.json",
+      "bytes": 66,
+      "sha256": "c47d02dfb8562c3b33f00321488116b5fdd6f190e60aba5bbeadf84237019f1a",
+      "gitBlob": "b6554e520c635869b0f7eca4ecf1195ff99c418e",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/duplicate/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/extra/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/extra/result.json",
+      "bytes": 3137,
+      "sha256": "96190c5582c9c7a9db885c872195230f755932d7446628daf12fd0fe066b657e",
+      "gitBlob": "fcb55b1b7668929b18159efe6ebc3877daa06e18",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/extra/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/extra/stdout.raw",
+      "bytes": 239,
+      "sha256": "8c643c69be7d84c214636f115815675dd5ab685e06e99ab434fcc71a540581b1",
+      "gitBlob": "854a0568eabc180bbf7ac262225dbcc587cca1f9",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/extra/trace.json",
+      "bytes": 67,
+      "sha256": "6fbeb75ab88f88a857089fae54238ab439fd3b77b046b4bf5531f58368643e1a",
+      "gitBlob": "d557d20dbd00d4d66247ad9f516551cd365d852b",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/extra/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-complete/owner-observation.json",
+      "bytes": 87,
+      "sha256": "38ec80e3a1d6875333ef21284a47f79379d16ea33ef759e48fc7fa7dbac34cff",
+      "gitBlob": "3793398bc338a62dfdeb0838bc06dd2b4ba6df17",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-complete/result.json",
+      "bytes": 3161,
+      "sha256": "2d0dbaf6f1bd8726447fbe8b15ef0c6f3cba1fb62349350ea7527ea4ae00cc7d",
+      "gitBlob": "3132ee210c1577d87726fb5a273f71d5438ce88a",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-complete/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-complete/stdout.raw",
+      "bytes": 239,
+      "sha256": "eb40cb025b0ce461acce683157190d0005f79e4ae1da95b158dfc8ee983d933e",
+      "gitBlob": "4714287f0ed36227dce0f047f29757d834d34db6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-complete/trace.json",
+      "bytes": 67,
+      "sha256": "23bfb526ade4e05544898f5ed239b0d2d26b79c015e4a423a2176d677f8b7d6d",
+      "gitBlob": "6fb2841d87602e913d7bcaeca95e6b860a4f1bdc",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-complete/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-pending/owner-observation.json",
+      "bytes": 87,
+      "sha256": "aa0eb58e745db97f505bec143db5433502fb27ce792e4775a03b739a97659a1b",
+      "gitBlob": "c67fe9c1c24cb0438a6723302fa4625f46f086c4",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-pending/result.json",
+      "bytes": 3155,
+      "sha256": "c06bcf5cb47ef33384b8cadde33049ccbeabd337839795d3558dbc9635427772",
+      "gitBlob": "0bfb4aa85e8a6e27f2d4d419db16ce33572797c8",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-pending/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-pending/stdout.raw",
+      "bytes": 239,
+      "sha256": "18fd20584cb9a0b409f940bfd54e172912a04bc2649e2b5648fbfe9f3c70ee96",
+      "gitBlob": "9edf5e3103b39dc0bd15742b96b98b47a9ea9ad7",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-pending/trace.json",
+      "bytes": 67,
+      "sha256": "1a20ac99d58a8512e35959dd24e45829fdbbeb4cc55fe746423ac5370b5824fc",
+      "gitBlob": "a4709e60077c23b0305e94652ca2abd7dfe7ff91",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/first-pending/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/forged-closed/owner-observation.json",
+      "bytes": 87,
+      "sha256": "afbc6be281f9d85c9d25a7d3f0a7375812e965675ff7bc382ab27eadcc29ad39",
+      "gitBlob": "488ba5c796e9bb9da74dfdc216ebf1cbf1e8c484",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/forged-closed/result.json",
+      "bytes": 3150,
+      "sha256": "1438c135d506a228bb54d75b9c37ff9234aba2c63f86f6f2030ee4537d8bcef5",
+      "gitBlob": "5ab63b800a535b316b3f11223f1b1d87bdc71576",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/forged-closed/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/forged-closed/stdout.raw",
+      "bytes": 239,
+      "sha256": "06ec1c2f4fab01931d2725836a39df48378c9c0f6e95d580c0dfac835a865bca",
+      "gitBlob": "09dba760188b25bc52d9c8da7277ce4359f088b9",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/forged-closed/trace.json",
+      "bytes": 72,
+      "sha256": "d419211f499363fce5ebb180a2ce75b30367896adad8f382f3903438e095836e",
+      "gitBlob": "e4fe631bb9711de50bc1c9131691fac1bd02ffbc",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/forged-closed/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/header-size-mismatch/result.json",
+      "bytes": 3211,
+      "sha256": "dac94296f3349d1c84bd774e974a0e008ffb18e93433ca60803d4e0726361085",
+      "gitBlob": "0e58574085583ef1cb7c29402d44a0e133abf4e4",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/header-size-mismatch/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/header-size-mismatch/stdout.raw",
+      "bytes": 238,
+      "sha256": "692302d842ab28b380738b34c4effaf8e5ba2bb6bc2f5cffaf0d7e4d41b6b005",
+      "gitBlob": "c8630cf4c206640babfad8f8fc993898be6ff22a",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/header-size-mismatch/trace.json",
+      "bytes": 71,
+      "sha256": "7293761e7729522933286f14a50ba722da3db642610a0d9e0f49bf3ef4fdb4c2",
+      "gitBlob": "b178bcaf93ae2c14c9a736c643ba64f012db738a",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/header-size-mismatch/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/header-version-mismatch/result.json",
+      "bytes": 3223,
+      "sha256": "ea805a08ab92cbf3981717af20c36e654583752c8bcef58afcb4b57bac0b6651",
+      "gitBlob": "4b7b6f56fcea72c97743501fa6b9e6189ce75c21",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/header-version-mismatch/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/header-version-mismatch/stdout.raw",
+      "bytes": 239,
+      "sha256": "e29ec036605d9448c2e391164bc26149c95a1e725d40bde62d01bcbcd24c9a2e",
+      "gitBlob": "ed3edb0c1d5463685ca782b1cc321ad3a347f815",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/header-version-mismatch/trace.json",
+      "bytes": 71,
+      "sha256": "2ef30f9ca2fa4a402e1dc568418d7e66d8dace68acf461cfa3a64af2e4fef135",
+      "gitBlob": "de986824c17cbecfc8fd13b7f99dd62caf556b0f",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/header-version-mismatch/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-extra-argument/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-extra-argument/result.json",
+      "bytes": 3205,
+      "sha256": "f6cd591055d94b7811560eef41ac7bdb7e5f08d8b7615d4e85c8b7544b640089",
+      "gitBlob": "f03c6a5821d12ca906b31cf6cb423c522a90ddf6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-extra-argument/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-extra-argument/stdout.raw",
+      "bytes": 238,
+      "sha256": "17dc24cb8fc04c6205294200e0fd61188cca1a40d85927680379a14e53f157c4",
+      "gitBlob": "d043da7e0456e501d2aaf671a3334ba6fc02dd4a",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-extra-argument/trace.json",
+      "bytes": 66,
+      "sha256": "e714fa18578ac883872fcf9865ec39c5bc955446672cc43a86931f15605067f2",
+      "gitBlob": "38866b9bc711838955f7ad55fbb16dba3a57cb8e",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-extra-argument/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-fractional/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-fractional/result.json",
+      "bytes": 3185,
+      "sha256": "c9ed0aac8354b83b53feeaaa29737447ddb8fe2a4165172d64e112bd44abddbc",
+      "gitBlob": "077cb584e6396784102b51c6ec112157a71dafe9",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-fractional/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-fractional/stdout.raw",
+      "bytes": 239,
+      "sha256": "bba30779dd2e7f4ed3792491099ca681764b613ec585b21af65b7ce5c8da579a",
+      "gitBlob": "840c8c53f80f39c0011a5b48d0eb3c3cfa73e910",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-fractional/trace.json",
+      "bytes": 66,
+      "sha256": "34e5f807eb97fb09144863a1d5ac25fc12a2f2161aa148391de7abb7c96494c7",
+      "gitBlob": "03f17bc9facfba8cfe2ebb1f3c78eaf7b27d6d30",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-fractional/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-huge/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-huge/result.json",
+      "bytes": 3155,
+      "sha256": "b20727dad7a22027e956e0278be3371ec31978ab71ec6d0b71918c9187e988bd",
+      "gitBlob": "aef7e5d11bca3ef15b24e9594679c244a70b511d",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-huge/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-huge/stdout.raw",
+      "bytes": 239,
+      "sha256": "26cccec20c520a28cf7bbcd1fe22f206134a2f6c3c2491dd21d38e409cc2b8f7",
+      "gitBlob": "7d89167b5cf11de843979aaae2e417f1b0f8a6e2",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-huge/trace.json",
+      "bytes": 66,
+      "sha256": "a15401ea7eed3ca66a65cbe8983664c910f1cb1b14123601794f30d568b2fb96",
+      "gitBlob": "ccb6e80867d4ec30880aedff4077ccd6f02e0823",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-huge/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-infinity/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-infinity/result.json",
+      "bytes": 3175,
+      "sha256": "6a37cf8f189940d03cb28db8c26e2eabe981716692d57be205f9f6118cbb56e4",
+      "gitBlob": "4a31dae2050b55f0940c0e9a6582d86002a0f467",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-infinity/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-infinity/stdout.raw",
+      "bytes": 239,
+      "sha256": "d86091203826aacfbc6233c1b84e158c27b0d2d4119949e55dd0bc1baebec44c",
+      "gitBlob": "4bfe224bc2c76fdfc57dbb700fb080263489abe8",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-infinity/trace.json",
+      "bytes": 66,
+      "sha256": "a50e7cb8955144aa7d0c93228573d7490307f8cd638373d5225176cdebc75dda",
+      "gitBlob": "4afe3a7111e64df324f36bfce56be47b3f6f7a92",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-infinity/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-missing/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-missing/result.json",
+      "bytes": 3170,
+      "sha256": "2ae25875f01202f7e5760d393a293049d7a40ac8428f5341521b3748afda1ce6",
+      "gitBlob": "e2890761bfdfbfad77361f6406de742cbef7a859",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-missing/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-missing/stdout.raw",
+      "bytes": 239,
+      "sha256": "149237c42ec254e038181a6ecef1940effea7e6c909503ad4e64ab2e62441bbe",
+      "gitBlob": "5f707e00aaf694b3e512927f5223a0387b3f3f3f",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-missing/trace.json",
+      "bytes": 66,
+      "sha256": "168dee5e827442a9a249de072d0cbcabc336f0ebcb474ea5fcdd47b94fb510dc",
+      "gitBlob": "72dd840510f5b03bb28c18f7eca2cf4eccf1e259",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-missing/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-nan/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-nan/result.json",
+      "bytes": 3150,
+      "sha256": "93b814eda508aefba68e439a55bbc879702bc184166be3177d458fb91de2a820",
+      "gitBlob": "7e0ab0054ed4b27ef5a0dbf4bb75a1270cd884a4",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-nan/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-nan/stdout.raw",
+      "bytes": 239,
+      "sha256": "ddb0c16bf1b70092d560827ffa91db0fa1174138f9abd60e86c35de650a0e610",
+      "gitBlob": "cbfb1a16794c850c911743424443577634037f72",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-nan/trace.json",
+      "bytes": 66,
+      "sha256": "08f0b76a640d9b0d437b7623364d1baa4305266f06212a57b16917672154db72",
+      "gitBlob": "182ebb75d6e5047765c8772312b7e05f95730bff",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-nan/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-negative/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-negative/result.json",
+      "bytes": 3175,
+      "sha256": "c0f9ec0fbd0f69ff326dc420df505d9ed7caa7a34ed646f73a6a44f505c5be96",
+      "gitBlob": "e3e5b0a45d219a6d2f06830b8149f8aa64c67ba2",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-negative/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-negative/stdout.raw",
+      "bytes": 239,
+      "sha256": "208a3de330bff681e34285da7031ffba95fc4ac4ccafeaf6da32f3aa9c4f032e",
+      "gitBlob": "b13810893887df281eaa279b0b6360904a70be09",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-negative/trace.json",
+      "bytes": 66,
+      "sha256": "1f3b23be5b626c0deddc4898f3ea2433da7963e201f05c4891a80bf33ff33bfc",
+      "gitBlob": "eab7199c51bd8f8a6f023f65093f08614337f390",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-negative/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-null/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-null/result.json",
+      "bytes": 3154,
+      "sha256": "f4396a133dff0f9407e3a692ab8f6413bdc7db8dcb4cd1ee443e7b254e354958",
+      "gitBlob": "6b9ac3a4fe584aa32289d0ee3ed2449a8e7858d2",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-null/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-null/stdout.raw",
+      "bytes": 239,
+      "sha256": "0606ea61c66ef3382dbbc5349ee3dd72b73c8c25ed54c1b960ed68451a0336ac",
+      "gitBlob": "f509ac4b705cfb8d5a77a6ccef2a52032d310988",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-null/trace.json",
+      "bytes": 65,
+      "sha256": "fe230261418d8cf25daa82352d38f794a379ebf39a8ea9747f35e3d0bd87a958",
+      "gitBlob": "38d6d10a82dd885ce7647bdd1db17700b4606fb5",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-null/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-object/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-object/result.json",
+      "bytes": 3165,
+      "sha256": "b3c847cc694ba203031ba01fc97702ce8ac4652f398ee13ff031c42263712ed0",
+      "gitBlob": "0a1177624856bee129a470794923ca3c6280d0b5",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-object/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-object/stdout.raw",
+      "bytes": 239,
+      "sha256": "0e4b224245d2c24e9cab9832ee99f31e23cc1d2e0be73986a6475ce639d2dc86",
+      "gitBlob": "375105e4259a3ad8e46e62da6d3044c056c1a6cc",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-object/trace.json",
+      "bytes": 66,
+      "sha256": "3e6ba03f49691493117ff73511baf00beec3c3d898a1f15f72b59d2a038282e4",
+      "gitBlob": "c176a6e895ec1aed7cda1fcc1a6e1d75a052208d",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-object/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-string/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-string/result.json",
+      "bytes": 3165,
+      "sha256": "60773a1d168b0ba0ba8800608bf47e07083abd8ced31c876af5222b0084c0653",
+      "gitBlob": "3352556fcd483b0e511c9f21a84a49a9b5f56e09",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-string/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-string/stdout.raw",
+      "bytes": 239,
+      "sha256": "6466db672c435ebadb69ba03010e3a067d6cdd2e6899163c84e6396c061eadfd",
+      "gitBlob": "2b2ab3ec28f2896db498508c6fc72310910bea3c",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-string/trace.json",
+      "bytes": 66,
+      "sha256": "40fddddd571ebe2bf7306beb71424f853303d7b0882d68b805557e29f8e39e8c",
+      "gitBlob": "de9668e74a38c0d350d30966ffaa32805d2f3ee3",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/invalid-string/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/late-io/diagnostic.txt",
+      "bytes": 9,
+      "sha256": "37a40f08d8548dba289b9b0bb35bcf63b359f6d37ee86044ebc6b6da080b9ec1",
+      "gitBlob": "c591978baf2f899399e8cdcb588d3f4f07750854",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/late-io/result.json",
+      "bytes": 3122,
+      "sha256": "21c1d40bc02ef3a693b8d8428ab3da908789d5110a11405906e4af84760823a5",
+      "gitBlob": "876da06b3341c39e0f07cddccb87eda998e99315",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/late-io/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/late-io/stdout.raw",
+      "bytes": 239,
+      "sha256": "5dee81b176de2a900133e346d742088bbb61adbe59b41600a8999ff12c20a9f0",
+      "gitBlob": "3f15c357988dbc36a2e5bd8c087e817edab1f832",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/late-io/trace.json",
+      "bytes": 66,
+      "sha256": "d534bed1d8b2a2a0c235aa3c37cba68fc31d652875e98de6d3ff40e30e9f6feb",
+      "gitBlob": "3c7f27bfc50decaf03f31b93051824f3f080a0ea",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/late-io/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/local-control/diagnostic.txt",
+      "bytes": 9,
+      "sha256": "37a40f08d8548dba289b9b0bb35bcf63b359f6d37ee86044ebc6b6da080b9ec1",
+      "gitBlob": "c591978baf2f899399e8cdcb588d3f4f07750854",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/local-control/result.json",
+      "bytes": 3158,
+      "sha256": "0fde58692d84cb60d201bd62fea29335f5f8d6a0bf65da0ed8ff273f777ac88a",
+      "gitBlob": "bec7502f3ac64c779fd2ea3b3724f729eb3295b2",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/local-control/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/local-control/stdout.raw",
+      "bytes": 237,
+      "sha256": "7259ccda0aae1f996bd3314d8642c44d95a401c0ef1cc13bb128505ac3a52d53",
+      "gitBlob": "d2801be4edaf94557882283d6759b476b12e3d4b",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/local-control/trace.json",
+      "bytes": 72,
+      "sha256": "7a4330da873f0c30ed0b35bb86d91a9fd609be0cdd417b4504688871fa2f914d",
+      "gitBlob": "2eb452bf18dc1b44a5d79620d1707d72dcf8bbab",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/local-control/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/missing-region/result.json",
+      "bytes": 3183,
+      "sha256": "89380e034edbc73ffa32ee8981c1f025e2988c15ed29699ab612230e1a7ed837",
+      "gitBlob": "875b65844f59e0951a70f19ed9f049322aba8814",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/missing-region/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/missing-region/stdout.raw",
+      "bytes": 239,
+      "sha256": "7f54f42ee675e141b73f6c85c0114762da0092a9e9eed6141da054bdaae2cd00",
+      "gitBlob": "d5a88027f488b6ef26072e17c4d3aff985742584",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/missing-region/trace.json",
+      "bytes": 71,
+      "sha256": "465fbea2907ac42f3dc095c4135540c6cb2a0ecf9196407107f7bc19dee84909",
+      "gitBlob": "6da46d1ab5cae21ba1474702cb88c94ffecaf34c",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/missing-region/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/none/owner-observation.json",
+      "bytes": 87,
+      "sha256": "afbc6be281f9d85c9d25a7d3f0a7375812e965675ff7bc382ab27eadcc29ad39",
+      "gitBlob": "488ba5c796e9bb9da74dfdc216ebf1cbf1e8c484",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/none/result.json",
+      "bytes": 3118,
+      "sha256": "3c79c1af84242b2e4470437a9a5deeafb2a477306a72954c5dd8806cba926fcd",
+      "gitBlob": "9585212e36ba21255bd92017ca1d98720b4e0efe",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/none/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/none/stdout.raw",
+      "bytes": 238,
+      "sha256": "a287c8897c8ae5a8c87a5472c55c7afed4b72c933d3eb55f8d8264e4ee0ede97",
+      "gitBlob": "20a257f002b4d9be7768c59c2de601683208a4b7",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/none/trace.json",
+      "bytes": 67,
+      "sha256": "33050235ecde95402536c3a74d904895354ad506172570ffab158fad041bf360",
+      "gitBlob": "aaf68a2b6ba18a87de977d08949c281ce370b3bb",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/none/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/nonzero/result.json",
+      "bytes": 3305,
+      "sha256": "1c4127432b1204ec53de0eae932807e061747de8e41ba40f686d03a00c124d24",
+      "gitBlob": "ac662d1db84f516698f1a765e6595986b20b899e",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/nonzero/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/nonzero/stdout.raw",
+      "bytes": 903,
+      "sha256": "795dada4ed0e002d1664214417df182a6b78b4e40c9a1d1e640aa1b89766a6e9",
+      "gitBlob": "645699fc6779e1a5b4bc4293842c370356e6b6e3",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/nonzero/trace.json",
+      "bytes": 66,
+      "sha256": "484cb68d1c0a73c14adca1f227db96017587b85efaf6efd64610902f0586462a",
+      "gitBlob": "fc2568c1b32520a23735188a9265246d3795f922",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/nonzero/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/out-of-order/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/out-of-order/result.json",
+      "bytes": 3159,
+      "sha256": "b87e0e859046e4ba93666206243745beab83c6298152aaaf6c6b21869a9b6d1d",
+      "gitBlob": "108d6a0d11a8d965af75d81dbaf68e492248a1d9",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/out-of-order/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/out-of-order/stdout.raw",
+      "bytes": 239,
+      "sha256": "b3478d9f911ff42e0da655e0253fe19c3342e00a5c4640cfe66542d5cdff2f00",
+      "gitBlob": "14a7a2a30d5be7f3eb15cfdef0050fc52034ce3d",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/out-of-order/trace.json",
+      "bytes": 67,
+      "sha256": "f1338953c5ead03a9945dda1801d2588d20840b6c150b43af02c3876e2aa1989",
+      "gitBlob": "51becf2631d452a1b690aedf43aae16e75c0820a",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/out-of-order/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/owned-teardown/result.json",
+      "bytes": 3156,
+      "sha256": "db26bfef252219b403810d523886eaead5f8e5b5be2d75325dce52dbb2423f36",
+      "gitBlob": "0743bd15931cb54cf5dc3596cc662fd5c15f14ef",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/owned-teardown/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/owned-teardown/stdout.raw",
+      "bytes": 239,
+      "sha256": "fe4c086246862b842919341d9e5917106bbed1383486ada3337c5356328eb39a",
+      "gitBlob": "c7f660ac650c480b093e73d86929aa44f03bf496",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/owned-teardown/trace.json",
+      "bytes": 73,
+      "sha256": "5dbb57362a615a87d7e7c2fbce3a0cb7cbf232693ce3ae80e61993c693b8a540",
+      "gitBlob": "1e67ba92185c59e90db4e87e339712026565a10b",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/owned-teardown/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/retained-root/result.json",
+      "bytes": 3140,
+      "sha256": "d6496e7d6111d5f9cdfece5ff81354a0225778f3de1014d378d3c5e4a4cf3c5d",
+      "gitBlob": "4b8f5f46a223c623202d85ec40cd170033bbc84a",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/retained-root/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/retained-root/stdout.raw",
+      "bytes": 239,
+      "sha256": "929be2e714142a29a998bb825020e105444ae5eeeb2e0fc092d9fe575fdee6b1",
+      "gitBlob": "f3481a179b05c3566f333dfb8cd07a34ad70117a",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/retained-root/trace.json",
+      "bytes": 67,
+      "sha256": "8657b5900ffc78f8c9da2b86c6add22abb263f98ab9a8fdbbf3936c182c4007a",
+      "gitBlob": "5aa75c626a15c04a354e757fbc4ae4181f735248",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/retained-root/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/second-pending/owner-observation.json",
+      "bytes": 87,
+      "sha256": "b75048757f7e66c478f24d0200015a89dd5f23b078eed323117d3f93f1c00620",
+      "gitBlob": "df17cd05a7952466ce9b269f74bbe28b3a01cd20",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/second-pending/result.json",
+      "bytes": 3163,
+      "sha256": "8569071b8fd5e69a07c5c9b61d0315fcadba764a97d0f8d50eb74bbc3451bccc",
+      "gitBlob": "43a49e229f619abf48691980896c60150e6ea1fe",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/second-pending/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/second-pending/stdout.raw",
+      "bytes": 239,
+      "sha256": "c8d95d58cab1c158260eada628b2e24ccb4e4206c630898a0008f339973fcb5e",
+      "gitBlob": "8d9934530ebe1b623af024aa757dc8c147d20fb1",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/second-pending/trace.json",
+      "bytes": 67,
+      "sha256": "635d94be6bebdb3630ec5e9d3f726817eaaedad3537414aaa872a8ee2ff4ea81",
+      "gitBlob": "dbae12231dc7a628b94a0f3e31b50f89e4360527",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/second-pending/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/stale-generation/result.json",
+      "bytes": 3195,
+      "sha256": "909110c8262112b575a7e07b2f5fb41775bc07614293f7e5c39cf0d1dc6459a0",
+      "gitBlob": "1a79654708e0cc6e02f0da24be4f565998de0ce3",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/stale-generation/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/stale-generation/stdout.raw",
+      "bytes": 239,
+      "sha256": "233f7e2b0428ab6a7b8b4a8ebea0ea046350fca5841737cbf845fb124f339318",
+      "gitBlob": "f6d4cf78f4e41ddef954e373be84d415c5826ac9",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/stale-generation/trace.json",
+      "bytes": 71,
+      "sha256": "cd2ce13153476b159cf2d90d0f7cf77ee9983dec35edc460d846f7b745b44133",
+      "gitBlob": "5251e88794b9d3914f61dcda0b1dd96d2db2d87e",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/stale-generation/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/two-records/owner-observation.json",
+      "bytes": 86,
+      "sha256": "83188d417c5d20b8e8e667293ca818124cb9fd5ddd295a538cc31002f2f1b7c9",
+      "gitBlob": "7aeba1cae6fd30d38f6eedc0db8c2fb2512cbb3e",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/two-records/result.json",
+      "bytes": 3132,
+      "sha256": "9e852d9cf4e0635698b042b358c931a14f25ee00ad36d2fba98fbd3e9352b97e",
+      "gitBlob": "0e7417712df68a104f1fff709a387c0da19f177f",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/two-records/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/two-records/stdout.raw",
+      "bytes": 239,
+      "sha256": "3e06812359d1a080f4969b6b4d422283890a01593bf81009b0fae8be572b16c6",
+      "gitBlob": "7b02d251036c411ee59107e05c6dc99315ae9271",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/two-records/trace.json",
+      "bytes": 67,
+      "sha256": "3e5c966ae43735089e13a5cced9b415ac5824bdda81c987ccf51af21051fb9c2",
+      "gitBlob": "aa8140be7e72484cf1a49e5b740172671d1571c3",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/cases/two-records/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/census.json",
+      "bytes": 213,
+      "sha256": "b640bbe50a02407d0920f358099e21cbd628d2d1699f0d27acd0ca8e6cba0a21",
+      "gitBlob": "092186e64ce09f5cec7374548f8637053a3a7a7f",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/process-census.json",
+      "bytes": 10435,
+      "sha256": "695bd81f0c5581a9c6b8b94ff649578e3e63c6b3e857a4db82892e2300c125f5",
+      "gitBlob": "902cc7f550265313d044bcd9c828bced42075905",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/run-inputs.json",
+      "bytes": 2197,
+      "sha256": "a57a4c94d31c347a7220047c52c666c7e71807e321c08fa5f95a5e9ead4ecbec",
+      "gitBlob": "f1206c9261e10175da9794e25a3ee2c5ecc81702",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/suite.result.json",
+      "bytes": 2648,
+      "sha256": "37ad3faa9dbddc18d0723a2ac241e0599d374c90c2c53e38c6259b7d53ddb5c9",
+      "gitBlob": "d932e5b4f22caeff0771d143a5e445d69e6c8678",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/suite.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/raw/run-01/suite.stdout",
+      "bytes": 6241,
+      "sha256": "5992dd37b3955ed85fca8446f1b91098bb2b073d806b7e73b7dfe268e5b0cf9c",
+      "gitBlob": "810a9346c2ac5d7807914a965982866fb74b0a3e",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/source-2592f09/build.cjs",
+      "bytes": 6742,
+      "sha256": "c1b91326dcc509b61c91ff9a16a073446ba9a328f92d852dff915a847c7e8ad8",
+      "gitBlob": "13fc86a30ff3538afdea2711515dbce073a1e882",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/source-2592f09/loader.cjs",
+      "bytes": 1436,
+      "sha256": "af4c86c8c5bc58ea1bda55c2fe2352a0497cf135d4ffbfbeadadafb2d4a0cbb4",
+      "gitBlob": "761546975cf58a6a9a10a0a428823ad34efbf72b",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/source-2592f09/mapping.c",
+      "bytes": 11875,
+      "sha256": "f48e49de14baf671a7f8171cae181d356f879614f5c54a457a06b5810a895f20",
+      "gitBlob": "2889078169b0d8c0ccb81f300af2561194202b48",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/source-2592f09/PROTOCOL.md",
+      "bytes": 6623,
+      "sha256": "46195cfc2f601031caab0dfa04a4d02ec5d97b1a5935b0a01697b146894fda69",
+      "gitBlob": "63473e54a4ecdb5f79523902167b62d221a52da0",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/source-2592f09/test/prototype.test.cjs",
+      "bytes": 13642,
+      "sha256": "15ec5392d47e1ff66ad6b409d6a559ee5cce3ef59d9b02abbef80702971e5162",
+      "gitBlob": "95055baaa33fe0d74893d31c8ba98e1c79853fd7",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/author/SOURCES.json",
+      "bytes": 11498,
+      "sha256": "2cc580ca38bbe4b9ad078bf4ebcc25a4b37572962a776bcdd1cfd67d46ba3141",
+      "gitBlob": "1d1c0851e969360958e1f61336b4a0ebf434e0ef",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/build.json",
+      "bytes": 4779,
+      "sha256": "8e29ffa676c0643b9caadc54142639803bae6b2baea956d2b7b21ca9ac68fa33",
+      "gitBlob": "e26a204352bbbe1e0fece42b57f7835299f71bcf",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/candidate.result.json",
+      "bytes": 2919,
+      "sha256": "dace8ea9403218be73254ff66eaa7c4c292095d2c3b5f1854370a40f001e3086",
+      "gitBlob": "d5ce486a6f93650ab0587eb7482d6bf9068d8e24",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/candidate.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/candidate.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/compiler-version.result.json",
+      "bytes": 2080,
+      "sha256": "1a48de31bca64454715bf3f440c64f6b0c372c4a52906d6587701cae295776b7",
+      "gitBlob": "0af86ba205878c644f442acf3c2ebc3a89c32c3e",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/compiler-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/compiler-version.stdout",
+      "bytes": 7,
+      "sha256": "355a2e14f6a7f2cb387d9d3b75a3550980d020ee1d005b139b62290c1645068a",
+      "gitBlob": "4312e0d0cae3a96e9f4a9be98e59e8468f39e1a8",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/inputs.json",
+      "bytes": 3662,
+      "sha256": "bb330fdbebe1e614d8d3ae245ca5c864b9f95ec71aa072bc89335ddf648b4d53",
+      "gitBlob": "26b2d844583fad56a8b7942064324a04765c7729",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/size-mismatch.result.json",
+      "bytes": 2960,
+      "sha256": "454b64b9cf7d373ff0954ce6f48decc1309bac5c4c9d224c07c52da78ca112f0",
+      "gitBlob": "28a49e0151e35c454cdb174c6c6bcfd6f008cbca",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/size-mismatch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/size-mismatch.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/version-mismatch.result.json",
+      "bytes": 2964,
+      "sha256": "66e7a76e967f8e0465572482abf120a9c58ba2d1bcec7c87f0a19787b2d79d43",
+      "gitBlob": "9ccee8248c565c87175c8f6925ba0cfdf6b92bc9",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/version-mismatch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/version-mismatch.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/closed-external-gc.json",
+      "bytes": 54,
+      "sha256": "56157fc99c3291754c5c05bbe12fcecd5e26541926bfa626dbd19ceab9c4070f",
+      "gitBlob": "b9497379075c7cf73eeed5df9da712bb0caa8396",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/process-census.json",
+      "bytes": 969,
+      "sha256": "7695d2052fbb32cc878b37c99d2709b20fe97cf6988aaeb8ae8b8f15720e7a79",
+      "gitBlob": "8bb291354c624d3441c1b64f301f620774caa339",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/retained-child-view/control-child.cjs",
+      "bytes": 554,
+      "sha256": "77227f7597950f7e6d72d7267df0359803b67a14c63056fe1b4b2c15d7aa8086",
+      "gitBlob": "1140d5c30dfa399e3cba7ba7da4e77b20fbcc76a",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/retained-child-view/result.json",
+      "bytes": 2935,
+      "sha256": "92a65cdc858c6900a2ca3005ec88cf11c6b36aad622afe6169891764e05ad178",
+      "gitBlob": "2e39f7307c1525a85d0a99a14351a3c8121c97e8",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/retained-child-view/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/retained-child-view/stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/scalar-setup.json",
+      "bytes": 62,
+      "sha256": "7318960f899c8be1605b3b874349e93b10a26a6ec2ac4840322b1ad4b7635847",
+      "gitBlob": "f98ea810adb6f8578a4766971c73e79d3ca3a39a",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/two-writer-state.json",
+      "bytes": 69,
+      "sha256": "68ea80b46173f8ca5e27101418c259d1b5b17de8e9ebc48445a78ea7b769ab36",
+      "gitBlob": "99159d44fa03794d8d88221eb98a7a86a401036e",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-a/control-child.cjs",
+      "bytes": 574,
+      "sha256": "ca45d85951ee8a47d1bebc7703d5320fab24b36798d7bd716273680c562048b4",
+      "gitBlob": "b351dffb75d3fdd2cc5d64c085696e1e4329041a",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-a/result.json",
+      "bytes": 2958,
+      "sha256": "ce95e06f981236d314f071744523cee97a6e262d9440e298457f23b674d6ca66",
+      "gitBlob": "af19f2b5764a2c115c5f7b6b001e67395e5b2706",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-a/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-a/stdout.raw",
+      "bytes": 245,
+      "sha256": "f3f4b727352a7488a77ea0ef73ca55674d935a1f435ff955447c69eb39bc23db",
+      "gitBlob": "92b558f58a804284f5cc6dcfa855a5f256a2267d",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-a/trace.json",
+      "bytes": 32,
+      "sha256": "3ff25eae32e8a2939591fe4c6410001ec17ca0dc1a1a4e3b77de7511ec0a8e7d",
+      "gitBlob": "d0d056467d99170236c9899033d5cdd2f3a053b5",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-b/control-child.cjs",
+      "bytes": 574,
+      "sha256": "ca45d85951ee8a47d1bebc7703d5320fab24b36798d7bd716273680c562048b4",
+      "gitBlob": "b351dffb75d3fdd2cc5d64c085696e1e4329041a",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-b/result.json",
+      "bytes": 2958,
+      "sha256": "d2f56b14ca0f0f12bd0f35a63d9a537013b18ea709f1f88d106843aedcb0965a",
+      "gitBlob": "ddfb50d89717c7f0b8a1089cf1fa8143d21d8997",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-b/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-b/stdout.raw",
+      "bytes": 245,
+      "sha256": "fb4fcb59b2496eefe5161efb2f058c98ee70e1dea57d229f29a9ad4b88f08711",
+      "gitBlob": "b626e5b29f892e4a737f4ecf91e79dbca7c25523",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-b/trace.json",
+      "bytes": 32,
+      "sha256": "1f8c2d35d05e7a95adfd8c41c116a3313f2a24b8fc73f270786baa1aba711c9d",
+      "gitBlob": "ab3ed88886f824af9c3d03f1d67305cae87de44b",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-nonce/result.json",
+      "bytes": 3329,
+      "sha256": "00ef6930a0b7d366f325a6d015e465f719e9ea27972b4ac441f3ec1b3587bd55",
+      "gitBlob": "38ac6847025246285aaa038c1176b35ef1e07c30",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-nonce/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-nonce/stdout.raw",
+      "bytes": 239,
+      "sha256": "8edb363200ddd732866f869ed418f0ed3fbbce8b504dd2ea85b89309babdb543",
+      "gitBlob": "e1befeb36027ca7ea6c1549650b01699a63d9e85",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-nonce/trace.json",
+      "bytes": 71,
+      "sha256": "5df2e33a675fa95b2a234e68dcff30cc30dae1a880342261cee2c7360b524f60",
+      "gitBlob": "0271b1b7dcd34a19a4610485e518035fe0a7eb01",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-nonce/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-owner/result.json",
+      "bytes": 3329,
+      "sha256": "dda1c4a1e92f33e18f292adf85779aeafc129471d6b407c4c3b97d60d679f98d",
+      "gitBlob": "b30445874863bf3737db85f44cc21d1ea8aaa2cb",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-owner/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-owner/stdout.raw",
+      "bytes": 239,
+      "sha256": "e110cce346d7d594004b07ccc9c2cea160a77e18bc798eb7b28d91c3c98ec8aa",
+      "gitBlob": "9a927e8f3a4c6658b1642d6e435ca38375e19faa",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-owner/trace.json",
+      "bytes": 71,
+      "sha256": "965c33d40f6e7473be9a4b09963b6fca18d260808878dd882394a434f24248a5",
+      "gitBlob": "d2e9dbd111a9657e482b72010b6da11a3bdceee1",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-owner/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-size/result.json",
+      "bytes": 3329,
+      "sha256": "779caf7a00c2198e5323be8af8605d8332324eb69b8850d0e78dd513f12c0e4d",
+      "gitBlob": "8722d95fe79794e853bc0c014671a2dce897097d",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-size/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-size/stdout.raw",
+      "bytes": 239,
+      "sha256": "3116cd086d8173bb160d65af74a95ecd32b42089a8fd07ebfe83cd27e78b9bd8",
+      "gitBlob": "f0bdc59c9c4f783d4ffd36fa5fb4d8e1699728a2",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-size/trace.json",
+      "bytes": 71,
+      "sha256": "f210f0302eaf145ae4cc58feae967442e5fd83782401db407d80a5f28e607235",
+      "gitBlob": "29daf617d107ed2cd180943b119b70cbe0530628",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-size/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-version/result.json",
+      "bytes": 3339,
+      "sha256": "d3bd1933329a505ca6335d7130ef4861176f21d427d2d8d67801b566274a474f",
+      "gitBlob": "4ba4459f59f3a87c1d7bea5b52d938a67484ab7d",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-version/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-version/stdout.raw",
+      "bytes": 238,
+      "sha256": "5b1216070d0e287c2b53a7af041219ea8de6be993a7dba971eb1e68060644fc2",
+      "gitBlob": "33eee11e064a40a1592cfdd0e62bd5f8a3d3f1bb",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-version/trace.json",
+      "bytes": 70,
+      "sha256": "14d8d0a200f7e1910b2bb706ccbd82252db9a12fa6241b4e36f16aa80a016bbe",
+      "gitBlob": "998d86a1332795b99de58bc8b0340ffddbc33366",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-version/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate-owner-intact/result.json",
+      "bytes": 3310,
+      "sha256": "6d6bba5a438ecb7d99df72a4154ae03cb5cca97b45d182b1f897aa1856669295",
+      "gitBlob": "dc470d2d1ad57ccaf615a2c9834c9d78ffcb9bd3",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate-owner-intact/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate-owner-intact/stdout.raw",
+      "bytes": 239,
+      "sha256": "75ed53ee4979b142057108a6e960a43a40cc2114d7f0495327649775e6bc159b",
+      "gitBlob": "e3fc826dbe154565e5f4db60573d9d9723d5c59f",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate-owner-intact/trace.json",
+      "bytes": 67,
+      "sha256": "af8b9ddea28db45df6b66e6b311c879455549558f4f4156c0972f6969d84cd6e",
+      "gitBlob": "42d66bd83663f5b85be3c4448a6ef790e1a34c70",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate-owner-intact/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/result.json",
+      "bytes": 3281,
+      "sha256": "5530dae9bac7c1485560a332fc454c0af32d4a6790fb7f6bc1bcb4181d54ab4c",
+      "gitBlob": "79106d756db4d0d013bfa874ed63f1d2125906cd",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/stdout.raw",
+      "bytes": 239,
+      "sha256": "5a936a9cacde44106ffb172a8624f7afb9b0b726d08151928cf2b5adbba0fb6b",
+      "gitBlob": "740de57c72b2b1fc7f57de95b4a14984a503d919",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/trace.json",
+      "bytes": 67,
+      "sha256": "8c28311bd7eada051644abacc2958d75e3694548f376d44ca78b599afc3633a9",
+      "gitBlob": "ba2361cf9dc810cfa69c7886813a0243b1dbf355",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/result.json",
+      "bytes": 3270,
+      "sha256": "bd00b932da629ae80e084a33e2b0cb0509a1f653a6fd2125b2029354773313af",
+      "gitBlob": "43a71a43923cc1865c2522217b972f45cbb85ad0",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/stdout.raw",
+      "bytes": 239,
+      "sha256": "a47a64ba9ce98912e5934bb8d5a6ed17eb3ce65088109579af19474d7692784d",
+      "gitBlob": "0904a7e3a97b277847eeac985c1c61156b9ed167",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/trace.json",
+      "bytes": 66,
+      "sha256": "744913668f275da0f555f81167a5de0f0392afec0391566accf8490124b34581",
+      "gitBlob": "3e27db04c3fda05441b45df3bdff975e8fbf904b",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/owner-observation.json",
+      "bytes": 87,
+      "sha256": "38ec80e3a1d6875333ef21284a47f79379d16ea33ef759e48fc7fa7dbac34cff",
+      "gitBlob": "3793398bc338a62dfdeb0838bc06dd2b4ba6df17",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/result.json",
+      "bytes": 3295,
+      "sha256": "323153e861650aad83ceff81fca1845610cfc661825d2e71d1d6cfd8ada5915c",
+      "gitBlob": "cd4f4309085977d82ec47071414c705e57b42833",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/stdout.raw",
+      "bytes": 239,
+      "sha256": "a8b5e4bc9027ee1a6199dbc81d3e8ba5ccf152c007ae113fbd2e5af99dbcd11a",
+      "gitBlob": "c0cb33bdda899b19e4da4dc4b570928d7378e169",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/trace.json",
+      "bytes": 67,
+      "sha256": "cbad75ccef53a5f7bbed68cfac53cf8a0a68f580a69869625286322e01fec7fe",
+      "gitBlob": "29b460add808ac283bc2ee80a32656d003508996",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/owner-observation.json",
+      "bytes": 87,
+      "sha256": "aa0eb58e745db97f505bec143db5433502fb27ce792e4775a03b739a97659a1b",
+      "gitBlob": "c67fe9c1c24cb0438a6723302fa4625f46f086c4",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/result.json",
+      "bytes": 3289,
+      "sha256": "50dc0c8fb32538c7236e52ead2ebcf1b513420a6c2096e15145b4bf72629a4c9",
+      "gitBlob": "b0f7bdabe89cc8a3b75ee590343545f3d39f6a9a",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/stdout.raw",
+      "bytes": 239,
+      "sha256": "0ec5b90b956c81ec4a3c1df684c925bc5f6dc699b1a1efc3aa705cd73f474f6e",
+      "gitBlob": "5de5120d0226a30775d9249f51331868742f4499",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/trace.json",
+      "bytes": 67,
+      "sha256": "ce0d90616235d6fd92356e8fe3482857ae08275768a77505c62f0ca8c30dfc3e",
+      "gitBlob": "2e1c7d957815cbd3035c7854f0bf211589ad0a54",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/owner-observation.json",
+      "bytes": 87,
+      "sha256": "afbc6be281f9d85c9d25a7d3f0a7375812e965675ff7bc382ab27eadcc29ad39",
+      "gitBlob": "488ba5c796e9bb9da74dfdc216ebf1cbf1e8c484",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/result.json",
+      "bytes": 3284,
+      "sha256": "465012edc39e227bf1a8ecb5ba37281a5b463609d51cb2b85a7dc20fad97a863",
+      "gitBlob": "217dff07b21d2a4d9b7a3081a00fcdf2fc453952",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/stdout.raw",
+      "bytes": 239,
+      "sha256": "b03acda4b2d6d4fedd3052e39694e88172211334eed13680ea644609dfadb6aa",
+      "gitBlob": "53a1cfcac101ac694af6315a5d3b886431c5333d",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/trace.json",
+      "bytes": 72,
+      "sha256": "edddf8f8cfe77f63406c8e6a8716741c63f50443541a6bbbfff3ce742cec70b2",
+      "gitBlob": "00967d9e9dce569ceec2ebd0f4a7d2a8b68f164e",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-size-mismatch/result.json",
+      "bytes": 3345,
+      "sha256": "9a67af64bb8ddb0cefaf19564d1594344f2deaf5007056723d431a9e375fc266",
+      "gitBlob": "788b41fd65a1b8b7d90c7452bcfc6ed617344f03",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-size-mismatch/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-size-mismatch/stdout.raw",
+      "bytes": 239,
+      "sha256": "0e95f23707025d468bea4eb0c49629815747bcc99cdd091ad3c378740978eaae",
+      "gitBlob": "0a8910518de30014562a7094670ede3e1879ddb9",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-size-mismatch/trace.json",
+      "bytes": 71,
+      "sha256": "1400c5bef443909ae92e60821e8196480c02b362dd619576cafcbdf9626bb6a6",
+      "gitBlob": "ed1e6b6bfcfb1fe21c277e5a80e28e45d2a5ca50",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-size-mismatch/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-version-mismatch/result.json",
+      "bytes": 3357,
+      "sha256": "d08593f30f0d0b2e456c4229e9cfa16998959541fa4bb35195177136681ef882",
+      "gitBlob": "7d5b0e84bcff3a5b987ab6adf65cbe537c5703d8",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-version-mismatch/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-version-mismatch/stdout.raw",
+      "bytes": 239,
+      "sha256": "03c94dc58f06f3db7a9d0cd63495d6b29da3e1d0d3c0fed11b4815924ebc2b8c",
+      "gitBlob": "43bcd62937a23a344677c6909270d6e44390a752",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-version-mismatch/trace.json",
+      "bytes": 71,
+      "sha256": "a9e1709cf7eff72197391ec1012eba69ef9f5b0d447615f8ee9f4436a750c979",
+      "gitBlob": "66d60fb4b4c0ba27ae704a5a42e33fb21578c2f7",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-version-mismatch/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/result.json",
+      "bytes": 3339,
+      "sha256": "eea092a77b59ec3a39708e053de7c6f60c9d8362627680f8aa90c320c4d032d3",
+      "gitBlob": "639d98dd1b5372ecfe860ea67c1413cf69a4b0af",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/stdout.raw",
+      "bytes": 239,
+      "sha256": "3c787062e3d30d2ee87c3d6db7026bf2e40d57a511ff9944b44e10f1d2560dee",
+      "gitBlob": "8089bc9564d69dab04de453abb12b76388827c43",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/trace.json",
+      "bytes": 66,
+      "sha256": "39f2750051077887f64e72cfe1cff91412ae11e0a738e5133127db17bcb7fdfa",
+      "gitBlob": "1d1a5f323c4558cd9d5d033f3f69d357faf340b4",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/result.json",
+      "bytes": 3319,
+      "sha256": "b877c71b6703a592298608933259c3116036bda5810b98a73402c8a9c71e20f3",
+      "gitBlob": "6ec0a79b2beed71b8d5b8c3c5566833cd218adf3",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/stdout.raw",
+      "bytes": 239,
+      "sha256": "72b2d94d8e818855872c650c50dd0f642d3e96bcfa1381b5d9e819e929304d1e",
+      "gitBlob": "25aa935ed7ab8cf6559c356a5670525df00b859e",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/trace.json",
+      "bytes": 66,
+      "sha256": "dac99f02c3705ff65db3347365268054a8a74850425401343b04ae3c540d3880",
+      "gitBlob": "dfb4d8f5a88a4d974b5a3760830f75469c9ded3d",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/result.json",
+      "bytes": 3289,
+      "sha256": "205552b47e03a134d21b87e08f6882c175397b907050ba3b76c76e397e2db7fa",
+      "gitBlob": "5b9e88a0b21504d501194d9eb7ef759c8a65c205",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/stdout.raw",
+      "bytes": 238,
+      "sha256": "941331d098071c7cfa1a3c3c9c00871c3547fc3b860fdabc9b6881cf8dabf716",
+      "gitBlob": "017677085dc88be067fba0861dc403bac42b19aa",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/trace.json",
+      "bytes": 66,
+      "sha256": "c29f96f2a897c8d50dadf8d541a66dd994a680a650ca4a221d505f5b417bb829",
+      "gitBlob": "5699fba4ad1c24e40d76348b9b852bd145ed46ae",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/result.json",
+      "bytes": 3307,
+      "sha256": "d9cb4a080e24a7549f0d5d451ca2f71629aca8d6a0abf4b314cef4a243da516a",
+      "gitBlob": "e771c9b1252d86a3b7882801b104a8b4c1f13ccf",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/stdout.raw",
+      "bytes": 238,
+      "sha256": "5b9ce04a2ca011305c9a0a434a97ec93431eb100f836ab3ccebe309cc56018e5",
+      "gitBlob": "1babd8fd74926b66ddfa1ba010e2acbcebb25e9d",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/trace.json",
+      "bytes": 65,
+      "sha256": "4db82cab0137a7602e9e7a43187c0b8620a94c21ef6c73274e9ff96c451d2e93",
+      "gitBlob": "e6781f5583b06f241a61dbc39ba60cf3116b5663",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/result.json",
+      "bytes": 3304,
+      "sha256": "eea173e1ce0ed27a3b4388ad5dd2c37a8d1cf9c7d9b475a05a935431b2ea81bf",
+      "gitBlob": "d3875e373806f1e53abbbef02c628d36932b71f2",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/stdout.raw",
+      "bytes": 239,
+      "sha256": "aed64ddc0aa89e721b14bd45dab1d18433218c7b6a6c48bf6110db0b7f42f66b",
+      "gitBlob": "28d12a00cc01e8727c7462b93e71c8da6422092c",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/trace.json",
+      "bytes": 66,
+      "sha256": "203ae33254d496af210ff3e8651b2a463bd838ec86bd9163069a4e0aa6a25ab5",
+      "gitBlob": "489d89d6ec1ccb0dcb7e1736c295839f174a7869",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/result.json",
+      "bytes": 3284,
+      "sha256": "d30423fd7fe24377fd551067aefb1774b4db8ef6a29279f3939cd92537978395",
+      "gitBlob": "fc52047c3bca9d288bdb17a5eff9e6a739526d49",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/stdout.raw",
+      "bytes": 239,
+      "sha256": "29b71547561fa817a36db1b9dc4cbabdc42dc562ca7ef92c73db8f1dff9e638c",
+      "gitBlob": "3f8b2cd1cb8f9da3b51e90170971ede43caf32eb",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/trace.json",
+      "bytes": 66,
+      "sha256": "0e64e4d83e5187fb467fa4b5e10761cd67e30902a2386e586f8919bc557d3a44",
+      "gitBlob": "a953a575e50ebeac0d011afe9d7b185ec3f08a74",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/result.json",
+      "bytes": 3309,
+      "sha256": "242eb30d0879a2286715b4e7924315c28387f12ad9a565934d3dc9b0a777a9e4",
+      "gitBlob": "aef2b491e019c053783c15bb0450142980675081",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/stdout.raw",
+      "bytes": 237,
+      "sha256": "f9c39821e95b9d85df40eda1b18b0d9bd151c7fb62381c25ed51edcd9e243376",
+      "gitBlob": "25ceeb68e31e8332991d463267b2a2dfd7a7b73a",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/trace.json",
+      "bytes": 66,
+      "sha256": "7f43a133ef5c0385ff60d9497f484de3432c03071705dcb190ef7847c7ea6c44",
+      "gitBlob": "2015161d47081a96a52dc87c1cb8c8093e00c549",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/result.json",
+      "bytes": 3289,
+      "sha256": "e40a0daa521d542845447b51ef3b0c5af7c13480e8243e156370c0481bc9047a",
+      "gitBlob": "36ab9f8b45d4ef3fd95bbe74d3c4e91ec316da9e",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/stdout.raw",
+      "bytes": 239,
+      "sha256": "4363eef1c73fcc118c80fd28c00510e2deb0747a6b56b4538b3e99d4f07ed479",
+      "gitBlob": "9d9808ad865e180f6d4bb0937ca282d38e5a8727",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/trace.json",
+      "bytes": 66,
+      "sha256": "9683c2c599d1ccf4a020066101ac330b5693c23966e83bfb9be0bbd55f4d091e",
+      "gitBlob": "4c10f1562479f09405bb104885e880b01ddcb813",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/result.json",
+      "bytes": 3299,
+      "sha256": "28c97161b720533aa32624384d5db19e53541d28afb6f7bb94d6785697d701c8",
+      "gitBlob": "f1ad90e29c279e307ac3a4963b5b08d315db463e",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/stdout.raw",
+      "bytes": 238,
+      "sha256": "8bba0a6a7912344b3218c4bfed38b057e2e842db692e2618fa1cbbd71171b557",
+      "gitBlob": "c8fb9a3ef2d37967ae9dd8df67e5c038d99952cb",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/trace.json",
+      "bytes": 66,
+      "sha256": "91f936bb0bceefbd5dd534659a50f99735cc9c1ff1243de97224928d288fe1b3",
+      "gitBlob": "b3adbdefa3c3a1a5f2b3208ba064ea98225ea4a8",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/result.json",
+      "bytes": 3299,
+      "sha256": "2e2ecaabc5c37742c618d3de4fa4944de6681cfd623a8a7db06526c1e6df0668",
+      "gitBlob": "1b1ae4efd68725815ecd071de080d83a45d1ceb3",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/stdout.raw",
+      "bytes": 239,
+      "sha256": "c90212eb8414f266138533c74484b89bbba4d51e1ad54c1ac6ebfbbd78071f81",
+      "gitBlob": "2e48fe46fa031c1640d034d7d77d5a805cd5f9ba",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/trace.json",
+      "bytes": 66,
+      "sha256": "c85e8ca88c9d28ad930f3bcbdafadf7b4139ed09708183c3364f4c6ffa757563",
+      "gitBlob": "6dc36c82e06aad1a0b8d8163934586b40c661896",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/diagnostic.txt",
+      "bytes": 9,
+      "sha256": "37a40f08d8548dba289b9b0bb35bcf63b359f6d37ee86044ebc6b6da080b9ec1",
+      "gitBlob": "c591978baf2f899399e8cdcb588d3f4f07750854",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/result.json",
+      "bytes": 3256,
+      "sha256": "2dc1882de3aba77e845dc517c0f156ab61972ec11f1dffc3bd7c1e72207aea2c",
+      "gitBlob": "700f7c23228fa811e55dd2d6603a6b4fd6702e02",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/stdout.raw",
+      "bytes": 239,
+      "sha256": "578170925e010e93ffc8c8ec0f9194a9f9efa08e2160190c1c6605e376fe833d",
+      "gitBlob": "754d92614387d9f7f309b1eaf5c009872c863759",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/trace.json",
+      "bytes": 66,
+      "sha256": "b4bf13652e0993c86a58768f7405910080f85cad7da4bd9cce3c22cf99202b8d",
+      "gitBlob": "814670c29caccf2df4c77d672c59eb6b09866598",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/diagnostic.txt",
+      "bytes": 9,
+      "sha256": "37a40f08d8548dba289b9b0bb35bcf63b359f6d37ee86044ebc6b6da080b9ec1",
+      "gitBlob": "c591978baf2f899399e8cdcb588d3f4f07750854",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/result.json",
+      "bytes": 3292,
+      "sha256": "88ff7d6a38f3c2b1f0785ba07e09ae6829df8877e5b201d8e1f86df342f1852c",
+      "gitBlob": "b03ed80d45d65593cb98c44b78413ddc17fdc073",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/stdout.raw",
+      "bytes": 239,
+      "sha256": "ea75e896a618ea12421db2b2f34b3adb497de6a02ed58d57eed040c23291ccfb",
+      "gitBlob": "ce37cda32f751f711589c384ccc2eea01a857c10",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/trace.json",
+      "bytes": 72,
+      "sha256": "bb56bf30997bc5758e0f06972734acdf0a3bd3b20917a9dedf7d1ea341ec379c",
+      "gitBlob": "efc6e98d09da50f8ab32e27b4edc36c1703d0f16",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/missing-region/result.json",
+      "bytes": 3317,
+      "sha256": "a7da313606b1fecd4bdb47c9aa2a39269cf17b79f50bb740f621e24a7bca8ff3",
+      "gitBlob": "0d65157b618312370267357aabc6faecd3cc0cd3",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/missing-region/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/missing-region/stdout.raw",
+      "bytes": 239,
+      "sha256": "640342b079a9910d51173fa9680e46b7d7f4ef7ea6d961560fad3d0cd1648706",
+      "gitBlob": "19856cd4ebe1af0b5150d57a80579df86fca2260",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/missing-region/trace.json",
+      "bytes": 71,
+      "sha256": "14277b263be3e188885659e686dd12e9b1d2c661f067eac80c7162bf704ac6bf",
+      "gitBlob": "c13c5363761fafd243ae99ae1dd0d91b0b0ea1d3",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/missing-region/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/owner-observation.json",
+      "bytes": 87,
+      "sha256": "afbc6be281f9d85c9d25a7d3f0a7375812e965675ff7bc382ab27eadcc29ad39",
+      "gitBlob": "488ba5c796e9bb9da74dfdc216ebf1cbf1e8c484",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/result.json",
+      "bytes": 3252,
+      "sha256": "3ce9f3b838e2ab59703d6fd590984f1b8eb2be67c3c7121901fdc4bd7da4b32d",
+      "gitBlob": "c51e61dabb7c454465ea6af29d8a70d309135a19",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/stdout.raw",
+      "bytes": 239,
+      "sha256": "e645d3ad0bf6eec64c2ea105fe4abac4190da824512d0487aed809b219b70901",
+      "gitBlob": "7ceae7f345768b94b7940be14d3abdfdb20fcb00",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/trace.json",
+      "bytes": 67,
+      "sha256": "35be056e87277b2b6d1c79d264e63ac39ff6eed3c15aba6d1a0bcc547c60f089",
+      "gitBlob": "3635ae479500c7ad927a8cc892ff5211d4ae791a",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/nonzero/result.json",
+      "bytes": 3457,
+      "sha256": "021cda1567805dc988c628a69799a4e77eac818194ab96cbcdf3fb1d962ebdbc",
+      "gitBlob": "5765c1b2787fbc386fe6bbd95855be8adc29e4d1",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/nonzero/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/nonzero/stdout.raw",
+      "bytes": 957,
+      "sha256": "09ffc1586875d244478ee69fb71d22562e1c6992b24fcefea3de49312516dd9b",
+      "gitBlob": "654270b7506fff69da55dcd84c324c43d6e05ba3",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/nonzero/trace.json",
+      "bytes": 66,
+      "sha256": "6b7c587aba5e0d7b27fbff2cee7a19bdf2ed6923d0fadb9a4aae00b2b8e58ba9",
+      "gitBlob": "d4f0340197933a9e67dd7f732d923fe52fb2b6b9",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/nonzero/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed",
+      "gitBlob": "fde041a6afa4aaae09629f4500f86158073c2403",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/result.json",
+      "bytes": 3293,
+      "sha256": "84435039d41507c4857f546c20a7547ca2944ed6bacf533b4c61e37e594c720d",
+      "gitBlob": "4085033f903328a7ec77e996fd833a73a15fe39a",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/stdout.raw",
+      "bytes": 239,
+      "sha256": "01d281fb066f8c506c3aa42822b0350e739010945fcb1e9590ea70642ebc52b8",
+      "gitBlob": "e43ac061d41f9b2ffe6d256f40e740d9163f04f4",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/trace.json",
+      "bytes": 67,
+      "sha256": "ce2f1804e137224f4578565eb50a76738feeb4514da1e49a5d5465064d592d2c",
+      "gitBlob": "1175d1f9fa111c8eeeb08ad02e95077d8dadfa30",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/owned-teardown/result.json",
+      "bytes": 3290,
+      "sha256": "75a89b4890bc1c98dde1e7396418216ef989351a721ba0c2e8a1281f32869f5b",
+      "gitBlob": "ff60b8b2cfcb89afdbf7d914c3570712aea7e779",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/owned-teardown/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/owned-teardown/stdout.raw",
+      "bytes": 239,
+      "sha256": "1454137467261db205ed6f910780d473ceebfbfd3be1ed0c8912a1cc144eaab3",
+      "gitBlob": "afcd773b6c4360d40206abcda808cca3ff2154fc",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/owned-teardown/trace.json",
+      "bytes": 73,
+      "sha256": "df7bbaecd13fcb1f8e53543c90b60706f81f3f1ad520ca0da8ea748053f69904",
+      "gitBlob": "fd19bd63127aa6439696abf9e329c7e856805d1e",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/owned-teardown/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/retained-root/result.json",
+      "bytes": 3274,
+      "sha256": "3e80bb1d25bd275c14df6ba67d89b236e79855e60f65540aa83dacf6e82f6920",
+      "gitBlob": "31c0d10c46153aa5c72246b1008594093b9e95a4",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/retained-root/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/retained-root/stdout.raw",
+      "bytes": 239,
+      "sha256": "75a08c66b05cf7d4e09ac19d15156b6ca54ac944e63fbd2d341705397a3b7fc2",
+      "gitBlob": "e7895fa50d30775ed9948d3a48b445901d21572e",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/retained-root/trace.json",
+      "bytes": 67,
+      "sha256": "6f924b8228800c1984a720c3a872c2ba6654efb443b98dea97c7f5e0de50af7e",
+      "gitBlob": "e2e4c93f81b2fb118e28628f5982000e3f396b20",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/retained-root/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/owner-observation.json",
+      "bytes": 87,
+      "sha256": "b75048757f7e66c478f24d0200015a89dd5f23b078eed323117d3f93f1c00620",
+      "gitBlob": "df17cd05a7952466ce9b269f74bbe28b3a01cd20",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/result.json",
+      "bytes": 3297,
+      "sha256": "4e93e4f303035b7bfce4d7a1d4e4fe8156e41ccb1ae6f383f6db3c7a25c54860",
+      "gitBlob": "7fb8f84bc6fa1a404deb83199c7f1ad9e903519c",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/stdout.raw",
+      "bytes": 239,
+      "sha256": "49f9cba1cde6a0dc20b3fabe938dfa990a14f047eb69fff557461892fe311bdd",
+      "gitBlob": "9b73d435f9d6a6c37d03ed69fd6d95c31dcd10cd",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/trace.json",
+      "bytes": 67,
+      "sha256": "3737b4f84d999f73013ae3359d01f7c386c3b8185a320233140d113577ad17f7",
+      "gitBlob": "e65109c26469571a694fc5182782908805cc238c",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/stale-generation/result.json",
+      "bytes": 3329,
+      "sha256": "acd1b9ca6375d98920f95e878f9d7063dd221b20740cc77b90215f451e02a292",
+      "gitBlob": "fc95c42f857e5c1596ea691c01e441b5c76cc883",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/stale-generation/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/stale-generation/stdout.raw",
+      "bytes": 239,
+      "sha256": "151237eeafb87990ab3875e817a5bbbe40c2c6ce0498eb1adf9231871766e6ae",
+      "gitBlob": "a7c38932fba5311028d508f90a25fd2f6be45b06",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/stale-generation/trace.json",
+      "bytes": 71,
+      "sha256": "b26c1cc06766f7bddd5aa92fd9377b4380810e752395be78e8929821783998d4",
+      "gitBlob": "9865d9ab15c5296196f096c210515b09a531c6ce",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/stale-generation/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/owner-observation.json",
+      "bytes": 86,
+      "sha256": "83188d417c5d20b8e8e667293ca818124cb9fd5ddd295a538cc31002f2f1b7c9",
+      "gitBlob": "7aeba1cae6fd30d38f6eedc0db8c2fb2512cbb3e",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/result.json",
+      "bytes": 3266,
+      "sha256": "af1b14150a926f33b4b7061ebdb47a67ca43cfd4170b8bc5d858b5739e1adda8",
+      "gitBlob": "77ef8f0638939a140b39adfc5221519f2668895f",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/stdout.raw",
+      "bytes": 239,
+      "sha256": "b4d9e72aa77cc8f3abf6158a5025d440b6189f70db4a20bd5e070022194b72ef",
+      "gitBlob": "3284311865c8c5b4d3a190eea62796f46f04c572",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/trace.json",
+      "bytes": 67,
+      "sha256": "815b429b21d6cf1d93990cecaa42aaaf990f3120f073cd71cc27df85be7fa0b2",
+      "gitBlob": "3f059ff0647d77a591f04c5973cd2c9e3fb245ef",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+      "gitBlob": "4a3713a68ce066d066bc4a10e7e2309bc8c0cbe6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/process-census.json",
+      "bytes": 10435,
+      "sha256": "e42d5ce42b0e4a11683198703375912eecde7efdd9ead24ef1fbed02f9d16dec",
+      "gitBlob": "6714eb4700cd6c3d69d2d6b1166d7972d155e1a9",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/B1B2-CAPTURE-FEASIBILITY-REVIEW.md",
+      "bytes": 8803,
+      "sha256": "38d18676f305c293443ac2ef0a404f86fb69581122591e562d4ecbe3fcd664ee",
+      "gitBlob": "48ac13c11ed3e8066fdf39a9ccd08450b541d309",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/B1B2-SHARED-MAPPING-CAPABILITY.md",
+      "bytes": 8054,
+      "sha256": "ba64ee84fb3a58cafe5e5540880c382f011bbb957aaa115ee1a2e806295f9cc2",
+      "gitBlob": "77c7846c4b226a2b81253a9df55ff40d94067adb",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/build.cjs",
+      "bytes": 6742,
+      "sha256": "c1b91326dcc509b61c91ff9a16a073446ba9a328f92d852dff915a847c7e8ad8",
+      "gitBlob": "13fc86a30ff3538afdea2711515dbce073a1e882",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/GATE-WINDOW.md",
+      "bytes": 5565,
+      "sha256": "7f35f787f7bbe728a9fc72aea0596f41d824696541dd8f09237ca511380e27f1",
+      "gitBlob": "5b1b258cf158ada2c4c891f0920a225f20538e81",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/loader.cjs",
+      "bytes": 1436,
+      "sha256": "af4c86c8c5bc58ea1bda55c2fe2352a0497cf135d4ffbfbeadadafb2d4a0cbb4",
+      "gitBlob": "761546975cf58a6a9a10a0a428823ad34efbf72b",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/mapping.c",
+      "bytes": 11875,
+      "sha256": "f48e49de14baf671a7f8171cae181d356f879614f5c54a457a06b5810a895f20",
+      "gitBlob": "2889078169b0d8c0ccb81f300af2561194202b48",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-GO.md",
+      "bytes": 5905,
+      "sha256": "9a5963c4dcedab643e13cc51c55df5adf2969e8dd87514de03e8c9ec3177f652",
+      "gitBlob": "61c07940879fe981720ac91742120681c7aabfb3",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-INPUTS-SUPPLEMENT-1.json",
+      "bytes": 1058,
+      "sha256": "902cc3cd3380ac3162fc31b4ab4df045dd0e6efb0fea5e679b506d89cc7f6292",
+      "gitBlob": "54bce2736063bc8845625b25ee05517f53af354e",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-INPUTS.json",
+      "bytes": 9338,
+      "sha256": "50a38c17b56af818b7173ac6f4f46e8e1478863b92632aad5dee0bb15645ddad",
+      "gitBlob": "8ac9f9da36e6bf9d1735c980087bf3b8c903b739",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-REVIEW-GO.md",
+      "bytes": 6411,
+      "sha256": "66e90b06b147ab963e479bfcb32f432c7b8b0995f9e50f96d49f546b9bce8647",
+      "gitBlob": "0c8fe542243af512075dd3c51f4a60e38c87f99e",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-REVIEW-INPUTS.json",
+      "bytes": 4041,
+      "sha256": "56423671e38fadda78358b2f1d7bb02549e8e593cff7b4aa93161b1d4145411f",
+      "gitBlob": "ae3538e7aabe3f28e24fa23067697aca99ce9354",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/PROTOCOL.md",
+      "bytes": 6623,
+      "sha256": "46195cfc2f601031caab0dfa04a4d02ec5d97b1a5935b0a01697b146894fda69",
+      "gitBlob": "63473e54a4ecdb5f79523902167b62d221a52da0",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/prototype.test.cjs",
+      "bytes": 13642,
+      "sha256": "15ec5392d47e1ff66ad6b409d6a559ee5cce3ef59d9b02abbef80702971e5162",
+      "gitBlob": "95055baaa33fe0d74893d31c8ba98e1c79853fd7",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/VERIFIED-INPUTS.json",
+      "bytes": 2864,
+      "sha256": "c3bd121e174da1cd2f698d8f41d60cd0d8ebb57d200ad2f0f68f9472c4505f7b",
+      "gitBlob": "3449d6aacca48b88bf9d87855c5a0695b32035cb",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/build/result.json",
+      "bytes": 2289,
+      "sha256": "0be9bb02d0d5898542eab3075d547aa2c710eaffa5708b2090b0d60720bd0bd6",
+      "gitBlob": "4b69cc8b7760b6b73b4b178ff2431f53e838da37",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/build/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/build/stdout.raw",
+      "bytes": 302,
+      "sha256": "c89c7e342f7d0356088c0d781dc425f310515c741beb126f2d66ebb13f3c47e7",
+      "gitBlob": "8c5d9d8f0c814dee6b40d72543d864f0e387e2e5",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/controls/result.json",
+      "bytes": 2661,
+      "sha256": "717777f7c33c32001d4081876db65e05255fd062a6af2606b9e8f4195f0f60a5",
+      "gitBlob": "4f524468a72ffa0014d6272eb248ed6edc206a94",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/controls/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/controls/stdout.raw",
+      "bytes": 971,
+      "sha256": "3d5bc67be59e9a08a108ad3969a5461e3a3e17b4a065926d266132df08706e59",
+      "gitBlob": "b6c5f63b76ba3753b51d5ec9e502c2a7042098bb",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/delivered/result.json",
+      "bytes": 2662,
+      "sha256": "145f9da15833915f5346372bd94fd77d04350971e6f23062276afbe017d89ac4",
+      "gitBlob": "612455236957bba8f8b3be9d72aa204ec24a2efd",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/delivered/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/delivered/stdout.raw",
+      "bytes": 6227,
+      "sha256": "17b4577ea083bd1c5939f890c93dd206904c241d3b1451212ab0a25baeaa6b47",
+      "gitBlob": "0b931aa71beb7301b5a91034d40eb1b9efececff",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/reconciliation/archive-author.ps1",
+      "bytes": 8162,
+      "sha256": "95a53ef9bc5bc7659ec59c5c62d405c5f84c2bbd32c195b88e704108f5f3ba5d",
+      "gitBlob": "b154caeb84a889df4dfce7cbfc184af2091d7714",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/reconciliation/attempt-1.ps1",
+      "bytes": 17275,
+      "sha256": "0165d40f1e059d5810eb453f2d5960f3a715f7fba892b51fffa55e81b73efe2d",
+      "gitBlob": "f55f1247062508b4ca430851facf6b32e67db542",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/reconciliation/audit-corrections.json",
+      "bytes": 1790,
+      "sha256": "97ce8aa0aaef40d7d6497ed539412b26ad3ad3178d3e3036314142e8d786d104",
+      "gitBlob": "4cfabc212ba49552d0b6bb30feed3b5c9bb078e0",
+      "immutableFirst": false,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/archive-first-failure.json",
+      "bytes": 1974,
+      "sha256": "5f66330ed4c6a5d8d12481edf4f095dade363010324b19682bde450c84ed202f",
+      "gitBlob": "d42caa3b88ca24e8c9e22bcb9ed00daf6776d949",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/build-output-inventory.json",
+      "bytes": 3650,
+      "sha256": "27f103bc8b263f86bb542d29fddbf340f1031e83bc1b6cd414227a59798d86b4",
+      "gitBlob": "59f9c9a3adb83d428da3da96440eac64dcd38ce0",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/downloads.json",
+      "bytes": 2399,
+      "sha256": "a4d6708db6155cc83d5f6c2fdfd8858e1b482d6b6ea7c9794f54b17d2de19d04",
+      "gitBlob": "613501db15e7e731d2f08eae425296f989923e54",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/extract-tools.ps1",
+      "bytes": 6442,
+      "sha256": "2bf35a58aaa36aac4a8ed904a993d8720a89759de530f094627501f0663d7efe",
+      "gitBlob": "20af20943127d218357d36bd1fdf95ce0d1a7083",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/header-extraction.json",
+      "bytes": 600889,
+      "sha256": "d504242ec411472818fcf392cb339b561ada34eca4b6f9d4d6c71c0267522b24",
+      "gitBlob": "dff72dd8c6c37a3bf82e5ec628b900681f7adc4b",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/run-phase.ps1",
+      "bytes": 5222,
+      "sha256": "a116c0e0d213d6eb0fe87de8b357b6a0af771d0946c642a534a9f3b2524956ee",
+      "gitBlob": "75e0cad7fdc73a56b42eb6a7ef4c61037673050c",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/source-before-build.json",
+      "bytes": 1406,
+      "sha256": "eda40e476b4ad41e580b8c4fccade673be8aff4c935642c523c7b810cc873512",
+      "gitBlob": "260b66b346df76b02807e24a00b5b96b029f375c",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/zig-extraction.json",
+      "bytes": 3725161,
+      "sha256": "2e63e937237f406889c01eaf01ca95ee61230e00098e614d25c90ad0aee0f0c4",
+      "gitBlob": "a9b53ab69b584f7ea4034b55cb7403af8ffce5a4",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/doc__api__n-api.md",
+      "bytes": 241517,
+      "sha256": "20b8b3351be836c196f75aaa5ad805f7363997198adb14c3c4c2a39eb2dba620",
+      "gitBlob": "b18048338f86847fa1811effd9e18d89dcabb023",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-handleapi-closehandle.html",
+      "bytes": 56055,
+      "sha256": "df0a7db57e00fcccaec2827a6ae7a6ee87c87f38c2c6de7de0e23e091862d584",
+      "gitBlob": "9ea5b9946810dfc1e1fd1e42b4532ce4ba875e37",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-memoryapi-mapviewoffile.html",
+      "bytes": 65686,
+      "sha256": "6a89d573315aef26fb20b69f0e63e658bd650964328caa68cf0fd1265a706154",
+      "gitBlob": "291d440a426469706d681a4ce009a5d8b9697c45",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-memoryapi-unmapviewoffile.html",
+      "bytes": 54154,
+      "sha256": "5fda412c22f33c27eb7e9cc7cbf8553d81104721b40eb9f95063d333cbbb8e8b",
+      "gitBlob": "20a1acfa1f2aebbbe2ee57bf1bd0589ed9f6ec54",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winbase-createfilemappinga.html",
+      "bytes": 75514,
+      "sha256": "669eb512b45c62413dfa22650233b0aebf5b85e7c2e77d3123b264890ca1a22c",
+      "gitBlob": "faa8ff2749035476276b06338447ce1c94851164",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winbase-openfilemappinga.html",
+      "bytes": 54902,
+      "sha256": "e126f2734210583eeae7f7e34e22d91820be8f2b58b0bfede292b295e85cb59d",
+      "gitBlob": "fd90c68809c42ad746d9f0c636aab14b8e8cec16",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winnt-interlockedcompareexchange.html",
+      "bytes": 55406,
+      "sha256": "cf2e86dd8d46156d1b3882d138cc1f00074bea54b8f98175a5f0ce6f73f9ddda",
+      "gitBlob": "ea7e01aca9b75805a39afdc7e3cf1296467562f6",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winnt-interlockedexchange.html",
+      "bytes": 55242,
+      "sha256": "56b19b4863043abef22d182dcb9756389dd3ff03524a673f2ce64a354f483df6",
+      "gitBlob": "a0bf012f0eebb1e3d3b2389ad2135898b76ec748",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/NODE-SOURCES.json",
+      "bytes": 3830,
+      "sha256": "72176416a3ee75702ff04b325fd7c460d8c14b97bce0667b6c647afa4ac09a69",
+      "gitBlob": "00626c075dd0b2000f19d6693d450d320adb3233",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__js_native_api_types.h",
+      "bytes": 7603,
+      "sha256": "05e3d86e24c814f94a8b52b6a70cec11d7e91c810008253553528637e3a15b2f",
+      "gitBlob": "baae4ea609103344059b1c262c7ee7883c2b9f7d",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__js_native_api_v8.cc",
+      "bytes": 127315,
+      "sha256": "5b51d73fead7ee8e0f62a294e3cfea38eaacf2d90f5cd6641015453d338aacc5",
+      "gitBlob": "4a748957431da4b3a55ecaa5db9c45e2061f76f1",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__js_native_api_v8.h",
+      "bytes": 18470,
+      "sha256": "074f64cc178ec82d6cf0a06423340076b79e685b11f301144f6afae1d282c5ac",
+      "gitBlob": "27aeac589b19cd681923fb848ce5f36c66fc05e2",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__js_native_api.h",
+      "bytes": 31770,
+      "sha256": "582e64ead4d5fdf663e2bd934f2fc97e8e155a7740d28995830393d19d089705",
+      "gitBlob": "36516267bf36664c7f33c0b1a2d40e64c015c6be",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__node_api_types.h",
+      "bytes": 1825,
+      "sha256": "088766b3cf1f0cd9b292c361ad30f7a04e7cc6db35a20ca52c572c1adf9635e7",
+      "gitBlob": "2580f15c030d2287b97bce9167bc75856103c393",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__node_api.h",
+      "bytes": 10370,
+      "sha256": "2d4560831e525b47b060ec8a0864ab73993df9e20215ce9f0fe7b24cd31af32a",
+      "gitBlob": "46dbb02b47d24ba9fa3a1f9251d5d42ace6fc829",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/WINDOWS-SOURCES.json",
+      "bytes": 3185,
+      "sha256": "cfd19055e91d8d78c5615068eedfc9c022bc6df6a64fc3a971b3bdcc862c62b7",
+      "gitBlob": "d434fa2f51185a9717a2669d14656ab0fc29ae92",
+      "immutableFirst": true,
+      "raw": true
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/reconcile-author.ps1",
+      "bytes": 17987,
+      "sha256": "0909d76508b3bed9d452eb9f9fdc4e5985e47212e05ff53e2ba1945d9aca8c81",
+      "gitBlob": "c7d4dd3a86c25540c13fc8aac8c8d9b9637dce6b",
+      "immutableFirst": false,
+      "raw": false
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/RECONCILIATION-CHECKS.json",
+      "bytes": 28154,
+      "sha256": "f45f44eb9d441ae72954807f21247fe15d0e9c211407d3f8d5c2ba8ea94bfa94",
+      "gitBlob": "a2e4d9ae303d702e0de8acdfa61f13651ba764f9",
+      "immutableFirst": false,
+      "raw": false
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/native-slot-prototype-review/RECONCILIATION.md",
+      "bytes": 11587,
+      "sha256": "8dd574997ad65aeee91064623420e3aa175c69832defed3cf5c9f7b98c076fff",
+      "gitBlob": "1f55d54e5dcd6d8ad8e5fee4514aa662af005843",
+      "immutableFirst": false,
+      "raw": false
+    }
+  ]
+}
