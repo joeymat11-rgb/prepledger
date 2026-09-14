@@ -520,3 +520,18 @@
 2026-09-13 18:14 ET · D2 · RECONCILED PM334 · codex/astra-d2-frozen-build-setup · First561d3b2 sent before full E report/archive.17 copies36666bytes verified; original/setup/product failures retained. REJECT R1 unchanged.11/11 public,4/5 own,3 kills; source exact. Full handoff to PM, then LOW/paused320.
 
 2026-09-13 18:17 ET · PM-CARETAKER · Astra · d36cd84cc4211d577c5fc66f1ac91157c6826fef ·340 preserves final D2 REJECT R1, LOW/paused; E HIGH338 fix continues. ER MAX336 own-root synthetic replay clarified under existing bar; original26/28 retained. No native/private/FULL/phone PASS or paid API.
+
+## PM account recovery checkpoint 2026-09-13 20:54 ET
+
+## STATE (refreshed 2026-09-13 20:16 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @023597c2599a746a44a9780f2277d571ab65a298 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193; owner306 existing usage only. Joe/history/memory then Dad, soak wide beta only. MAX critical judgments, HIGH routine coordination.
+- B: complete limitation/planning48d53673 and archiveb69b870c verified;185 copies174283bytes and all three phase outcomes retained. Prototype unaccepted, nativeFieldDeltas UNKNOWN. LOW/paused320.
+- ER: MAX368 independent source-only feasibility check before another capture implementation; bounded pinned-Node coverage/shutdown/shared-view analysis. No execution/addon install/new product scope.
+- E: complete science author4a6a3335, four exact files/12 topics/U1-U8; LOW/paused320. Prior build support346/memory324 retain scoped acceptance.
+- D2: independent firstcc995900 verified before E outcomes; MAX370 reconciles exact full author package. Reviewer-only producer input372 added to original72 plus two shared supplements; no retroactive E read claim.
+- C/D/I: LOW/paused on existing dependencies. Full native engine admission, import, memory/provider/consumer joins and phone proof remain open.
+- OWNER: no immediate action. Final science findings will become concrete yes/no choices only after reconciliation. September18-23 personal forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks.
+- SCHEDULE: PM30min; ER/D2 MAX hourly while substantive; B/C/D/E/I LOW/paused. Direct meaningful handoffs, no duplicate tasks or spending.
+
+2026-09-13 18:20 ET · PM-CARETAKER · Astra · 6689c2ccf3a31dcf0594bcca2305998354a89208 ·342 sends completed Eb54fec2d module-link repair to D2 MAX; E LOW archives existing proof. ER MAX336 continues. Original R1 rejection/failures retained; no native/FULL/phone PASS or paid API.

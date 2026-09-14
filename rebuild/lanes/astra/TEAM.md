@@ -2,6 +2,8 @@
 
 PM checkpoint2026-09-13: complete B limitation/planning48d53673 and archiveb69b870c verified;185 exact copies174283bytes, three phases and original failures retained. B LOW/paused. ER/MAX368 now independently checks source feasibility before another implementation, no product run/install or accepted architecture. Science author E4a6a3335 complete LOW; independent-first D2cc995900 now MAX370 reconciles all12 author dispositions/U1-U8.372 adds one reviewer-only static producer input; original72/shared supplements/E coverage preserved. No new science policy or release hold. Earlier E346/B322/E324/C294 scopes and prepared A remain; native/history/memory/import/phone proof still open. Existing usage only.
 
+Execution control check 2026-09-13 20:54 ET: the old-account usage stop in Engine reviewer was recovered; ER368 and D2 science reconciliation are executing at MAX. Saved and actual executing efforts match. B/C/D/E/I remain LOW with follow-ups paused until a concrete dependency is ready. New account ordinary usage is available. PM keeps30-minute fallback oversight and immediate meaningful handoffs; active reviewers retain hourly fallback. The recurring PM prompt now points to durable records instead of replaying old custody detail. No duplicate work, repeated unchanged audits, new paid service, acceptance shortcut or release change. Audit: `.tmp/effort-audits/20260914T005231829974Z.json`.
+
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
