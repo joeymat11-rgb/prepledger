@@ -595,3 +595,17 @@
 - SCHEDULE: PM30min; B MAX/E XHIGH hourly while substantive; D2/ER/C/D/I LOW/paused. Immediate meaningful handoffs; no repeated unchanged checks or spending.
 
 2026-09-13 18:33 ET · D2 · PR-READY PM342 RECONCILED · codex/astra-d2-frozen-build-module-link @ c7dc4ebf · R1 closure unchanged after full E report and10-file archive; no extra execution. Review: rebuild/lanes/d2/reviews/FROZEN-BUILD-MODULE-LINK-RECONCILIATION.md. PM sole judge; handoff complete, LOW/paused320.
+
+## State archived 2026-09-13 22:21 ET
+
+## STATE (refreshed 2026-09-13 21:44 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @5ae1f2f48f9e53a37bbb725a31c65a8cc8eec63b before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193; existing usage only. Joe/history/memory then Dad, soak wide beta only. MAX critical judgment, HIGH routine coordination; immediate meaningful handoffs, no repeated unchanged audits.
+- B: MAX384 standalone owned C native-slot Windows prototype with pinned portable tools/invented data.386 corrects one API documentation address. No original helper/operator/product/private gate changes.
+- C: HIGH390 two-module coach accuracy/missing-target correction with one bounded invented-world test; no new science policy or Today adapter changes. D2 MAX independent review after exact handoff.
+- E: complete135887a4 four-document science contract, all41 declared input/context identities checked, adopted388. LOW/paused; no repeated research.
+- D2/ER/D/I: LOW/paused pending actual independent review or accepted dependencies. Prior scope acceptances and failures preserved. Full native admission/import/memory-provider-consumer joins/phone proof remain.
+- OWNER: Q1 goal/volume authority, Q2 normal final-set effort, Q3 EA/break policy are concrete yes/no choices in SCIENCE-OWNER-CHOICES.md; all held pending answers. No new dose or default approved. September18-23 personal forecast retains limited confidence; Dad follows the existing two-day Joe trial.
+- SCHEDULE: PM30min; B MAX/C HIGH hourly while substantive. E/D2/ER/D/I paused. Completed tasks pause; immediate handoffs, no duplicate work or spending. Effort is checked after real dispatch/change.
+
+2026-09-13 18:39 ET · PM-CARETAKER · Astra · 010aef10cfec509bded9af9112fb5e95ac745253 ·346 accepts isolated build supportb54fec2d after complete D2 review:12/12 plus2/2 controls,43 exact artifacts/all failures preserved. E/D2 LOW/paused. B MAX344/348 capture repair continues with bounded exit-dispatch proof; no native/phone PASS or added spending.

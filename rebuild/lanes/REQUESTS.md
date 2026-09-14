@@ -495,3 +495,5 @@
 2026-09-13 21:44 ET · Astra PM → B · ANSWERED386 under384: official OpenFileMappingA URL corrected to winbase/nf-winbase-openfilemappinga; original404 and manifest retained, supplemental input published. Continue MAX standalone prototype immediately; no scope/gate expansion.
 
 2026-09-13 21:44 ET · Astra PM → E/C/D2 · ANSWERED388/GO390: complete E135887a4 contract adopted, E LOW/paused. Three actual owner policies HELD for yes/no answers; existing repairs proceed within scope. C HIGH receives SCIENCE-COACH-CORRECTIONS-GO.md, two exact coach modules and one invented-world test only, fresh A-based tree. D2 independent MAX after exact complete handoff. Broader engine and Today joins retain existing owners/dependencies, no repeated audit or new lane.
+
+2026-09-13 22:21 ET · Astra PM → B/C · THROTTLED392: provider capacity stopped both original turns. One same-model recovery each; B failed again and heartbeat is PAUSED with work preserved. C HIGH recovered and is finishing the full17/17 author handoff. Temporary B Sol/MAX fallback is concretely prepared in CAPACITY-RECOVERY.md, HELD FOR OWNER yes/no; no model switch or retry loop yet.

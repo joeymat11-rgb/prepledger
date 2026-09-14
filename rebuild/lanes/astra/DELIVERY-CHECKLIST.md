@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM checkpoint 2026-09-13 21:44 ET: B MAX384 continues the standalone Windows native-slot prototype;386 corrects its OpenFileMappingA documentation address without widening scope. E135887a4 four-document science correction contract is complete/adopted388; E LOW/paused. Three concrete owner policy choices remain held. C HIGH390 starts the two-module coach accuracy/missing-target correction in parallel; D2 MAX exact independent review follows handoff. ER/D/I remain paused on real dependencies. No new science policy, original native gate, deployment or phone acceptance. Existing accepted work and failed outcomes remain.
+PM checkpoint 2026-09-13 22:21 ET: provider capacity stopped B/C; single same-model recovery392 leaves B held with work preserved/heartbeat paused and C HIGH finishing its17/17 author handoff. Temporary existing-B Sol/MAX fallback is prepared for owner yes/no, with separate Astra/MAX review unchanged. No model switch or repeated retry. Science Q1-Q3 also remain held; current implementation, source/data and release boundaries remain.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
