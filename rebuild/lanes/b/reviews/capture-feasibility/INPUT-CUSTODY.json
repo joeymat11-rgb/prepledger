@@ -1,0 +1,156 @@
+{
+  "authority": "83a8e8b3571263fb5d23de88ad46b9dea66da0b4",
+  "base": "023597c2599a746a44a9780f2277d571ab65a298",
+  "branch": "codex/astra-capture-feasibility-review",
+  "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\capture-feasibility-review",
+  "fullIndexPaths": 2153,
+  "initialIndexTree": "74f9959be4560b00e9ff42178c794788ae7119d3",
+  "hydratedContext": [
+    "NEXT.md",
+    "AGENTS.md"
+  ],
+  "barSha256": "2a664b9471a8abfd151877f8d4ccd96c3c517e9ad173efe89db09c6d31e8611a",
+  "manifestSha256": "6b16bce7f3fa4b83146e109c6d48e8ff0bfa7c0d5648e0efbd165a5311be5d6b",
+  "inputs": [
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "kind": "static-current-source",
+      "bytes": 47308,
+      "sha256": "2034c081d42035472d3c1722b2f85ab94bfe581d4f147920ecfec5052ac678ec",
+      "scratch": ".tmp/capture-feasibility/inputs/00-b1b2-evidence.cjs",
+      "executed": false
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "kind": "static-current-source",
+      "bytes": 14364,
+      "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721",
+      "scratch": ".tmp/capture-feasibility/inputs/01-b1b2-native-capture.cjs",
+      "executed": false
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "kind": "static-current-source",
+      "bytes": 54479,
+      "sha256": "844c84aa69da4cf9f2d28b5bd4b0b518f5029cd4c94f44d4430dd1d5adde0d7e",
+      "scratch": ".tmp/capture-feasibility/inputs/02-b1b2-native-capture.test.cjs",
+      "executed": false
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "kind": "static-current-source",
+      "bytes": 89271,
+      "sha256": "2a9acf634da21bbd53de3489f10ae70b6d94245c47cb66c346cc136c1d277d66",
+      "scratch": ".tmp/capture-feasibility/inputs/03-B1-B2.json",
+      "executed": false
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "kind": "static-current-source",
+      "bytes": 196822,
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058",
+      "scratch": ".tmp/capture-feasibility/inputs/04-b1b2-source-changes.json",
+      "executed": false
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+      "kind": "static-current-source",
+      "bytes": 1061,
+      "sha256": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2",
+      "scratch": ".tmp/capture-feasibility/inputs/05-b1b2-supersede-second-gate.test.cjs",
+      "executed": false
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "kind": "static-original-helper",
+      "bytes": 36945,
+      "sha256": "884218f2fa5f2e012a018f096f05f6ec3fb7a4027b4123c5bacc0aa25fce4b9c",
+      "scratch": ".tmp/capture-feasibility/inputs/06-b1b2-evidence.cjs",
+      "executed": false
+    },
+    {
+      "ref": "023597c2599a746a44a9780f2277d571ab65a298",
+      "path": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-GO.md",
+      "kind": "existing-bar",
+      "bytes": 6604,
+      "sha256": "3aca3d79eb6870088350fd801640ace0a4b6fd1c297c0fb05f2bdbb5322682ec",
+      "scratch": ".tmp/capture-feasibility/inputs/07-B1B2-NATIVE-CAPTURE-GO.md",
+      "executed": false
+    },
+    {
+      "ref": "023597c2599a746a44a9780f2277d571ab65a298",
+      "path": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-REPAIR-GO.md",
+      "kind": "existing-bar",
+      "bytes": 6217,
+      "sha256": "7b43e904a6b8ff15d80c3a1f6ca021d9ddcb3eefb728cd373b685f271ccfdf31",
+      "scratch": ".tmp/capture-feasibility/inputs/08-B1B2-NATIVE-CAPTURE-REPAIR-GO.md",
+      "executed": false
+    },
+    {
+      "ref": "023597c2599a746a44a9780f2277d571ab65a298",
+      "path": "rebuild/lanes/astra/B1B2-CAPTURE-EXIT-DISPATCH-GO.md",
+      "kind": "existing-bar",
+      "bytes": 3538,
+      "sha256": "825cbda522367a3d83ff3e895a1e3ea64c6fcd13553280a940bcf8fdfd80165a",
+      "scratch": ".tmp/capture-feasibility/inputs/09-B1B2-CAPTURE-EXIT-DISPATCH-GO.md",
+      "executed": false
+    },
+    {
+      "ref": "023597c2599a746a44a9780f2277d571ab65a298",
+      "path": "rebuild/lanes/astra/B1B2-CAPTURE-DEFERRED-EXIT-GO.md",
+      "kind": "existing-bar",
+      "bytes": 4698,
+      "sha256": "6b251b6cf31eac37b840555622435a2654eb3eefb84528fdd5ab03707323ae3f",
+      "scratch": ".tmp/capture-feasibility/inputs/10-B1B2-CAPTURE-DEFERRED-EXIT-GO.md",
+      "executed": false
+    },
+    {
+      "ref": "023597c2599a746a44a9780f2277d571ab65a298",
+      "path": "rebuild/lanes/astra/B1B2-CAPTURE-NONINTERFERENCE-GO.md",
+      "kind": "existing-bar",
+      "bytes": 6670,
+      "sha256": "fa4510c7f0e69dc75239e7403d0b160e83c58aaa0187d16c316a309efaa7bc24",
+      "scratch": ".tmp/capture-feasibility/inputs/11-B1B2-CAPTURE-NONINTERFERENCE-GO.md",
+      "executed": false
+    },
+    {
+      "ref": "023597c2599a746a44a9780f2277d571ab65a298",
+      "path": "rebuild/lanes/astra/B1B2-CAPTURE-PROMISE-HOOKS-GO.md",
+      "kind": "existing-bar",
+      "bytes": 3105,
+      "sha256": "38552ffe978af1375c6c75ee71a46858faf5296e49dccd41ac07004f2f5ca797",
+      "scratch": ".tmp/capture-feasibility/inputs/12-B1B2-CAPTURE-PROMISE-HOOKS-GO.md",
+      "executed": false
+    },
+    {
+      "ref": "023597c2599a746a44a9780f2277d571ab65a298",
+      "path": "rebuild/lanes/astra/B1B2-CAPTURE-RESOURCE-PROBE-GO.md",
+      "kind": "existing-bar",
+      "bytes": 2880,
+      "sha256": "97103b0af66647d3d78b73cef65ba05b5d378fecdae3cd8fca5dd225c7fe1fb4",
+      "scratch": ".tmp/capture-feasibility/inputs/13-B1B2-CAPTURE-RESOURCE-PROBE-GO.md",
+      "executed": false
+    },
+    {
+      "ref": "023597c2599a746a44a9780f2277d571ab65a298",
+      "path": "rebuild/lanes/astra/B1B2-CAPTURE-LIMIT-AND-PLAN.md",
+      "kind": "existing-bar",
+      "bytes": 3521,
+      "sha256": "fa2088e011ff36c787c891484f3c10d8cabb0f98f7d7bdc852c180115e0672ee",
+      "scratch": ".tmp/capture-feasibility/inputs/14-B1B2-CAPTURE-LIMIT-AND-PLAN.md",
+      "executed": false
+    }
+  ],
+  "runtimeSetup": false,
+  "productExecution": false,
+  "builderAlternativesRead": false,
+  "setupNote": "Initial status before applying sparse paths listed absent unhydrated paths; no tracked deletion staged or source changed. Full index retained before only NEXT/AGENTS hydration.",
+  "contextCheckoutCorrection": "Before the initial assessment commit, AGENTS.md and NEXT.md were found absent despite their sparse patterns. Restored these two licensed context paths from exact base HEAD; unstaged and staged diff then empty. No deletion was staged or committed."
+}

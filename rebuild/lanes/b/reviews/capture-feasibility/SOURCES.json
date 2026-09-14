@@ -1,0 +1,231 @@
+{
+  "scope": "PM368 public source only; no product or runtime API execution",
+  "identity": {
+    "tag": "v22.23.2",
+    "tagObject": "490a9fef8f8adcda5a95bd6f96035b05cb43fe5b",
+    "commit": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+    "apiSha256": "d94c9b6edf311a90f59dc27e9bffae804c1e67e5174206b48a68d0e64db1e367",
+    "url": "https://api.github.com/repos/nodejs/node/git/tags/490a9fef8f8adcda5a95bd6f96035b05cb43fe5b",
+    "resolvedVia": "git ls-remote refs/tags/v22.23.2 and peeled tag, confirmed official GitHub Git-tag API"
+  },
+  "sourceFiles": 27,
+  "sourceBytes": 885844.0,
+  "files": [
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "doc/api/cli.md",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/doc/api/cli.md",
+      "bytes": 116053,
+      "sha256": "8b24935bfca5d9a0a4882614a1c65954f0e9d20b9822205b3bdcd06b3bbe525c",
+      "rationale": "PM368 official NODE_V8_COVERAGE activation and propagation contract"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "doc/api/v8.md",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/doc/api/v8.md",
+      "bytes": 50828,
+      "sha256": "4d7849d6d0fc15506a7758e6a93eb98b71d6488c5ff2b2a4efba69f6ac993d37",
+      "rationale": "PM368 coverage snapshot/reset/stop and serialization contracts"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "doc/api/worker_threads.md",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/doc/api/worker_threads.md",
+      "bytes": 60898,
+      "sha256": "eefcb91dc6bfe03149a208d5006b2261dd6cbd9a67fa321363d858596ee52e26",
+      "rationale": "PM368 shared ArrayBuffer ownership and workers"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "doc/api/child_process.md",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/doc/api/child_process.md",
+      "bytes": 85527,
+      "sha256": "fc56f1a7c76d9689aa7379f886fe83c66673e929d63d0bf8e754ed7aea9c69df",
+      "rationale": "PM368 process stdio/IPC and advanced serialization boundary"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "lib/internal/process/pre_execution.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/lib/internal/process/pre_execution.js",
+      "bytes": 25265,
+      "sha256": "2ce1ff6536d196e772e2c83a0ba5b8f5c23c89d183181cd993ad0a7a990413df",
+      "rationale": "CLI coverage initialization/setup caller"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "lib/internal/test_runner/runner.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/lib/internal/test_runner/runner.js",
+      "bytes": 25709,
+      "sha256": "fabc2e514afba79040b600b19080bb7dacc4a8d8fca4d9627b0504e08d3cc952",
+      "rationale": "Existing --test actual process isolation and child spawn ownership"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/inspector_profiler.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/inspector_profiler.cc",
+      "bytes": 20196,
+      "sha256": "b0828e669f1b2bb74e54a0cb841b0933640ff60a983f18e69b784b637b9058b6",
+      "rationale": "Native coverage profiler implementation/final output; direct implementation named by coverage subsystem"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "lib/internal/util.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/lib/internal/util.js",
+      "bytes": 28659,
+      "sha256": "e962ae18fd72e5bb4211f01e6054251553cbbd910384ece00aae653d05dfa3f5",
+      "rationale": "pre_execution.js:30,447 setupCoverageHooks definition and lifecycle registration"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/api/hooks.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/api/hooks.cc",
+      "bytes": 7829,
+      "sha256": "50011285283a466e0565ab3aa22a5854e544dcb62842ae90b323eb021141e402",
+      "rationale": "inspector_profiler.cc:491 AtExit registration and process exit callback definition"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/api/embed_helpers.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/api/embed_helpers.cc",
+      "bytes": 10521,
+      "sha256": "d91a947861126d1b5b946c841d5193536a5aeac094b7187afdef9f4626214cfd",
+      "rationale": "terminal event-loop dispatch ordering before environment teardown and final profiler snapshot"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/env.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/env.cc",
+      "bytes": 85253,
+      "sha256": "92169078cfdad22010ebe7d617358ccbff3698a62d43a3d131b6bbfdf9196f3d",
+      "rationale": "AtExit/environment teardown caller and native worker cleanup ordering"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/node_worker.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_worker.cc",
+      "bytes": 52708,
+      "sha256": "7961ab27981d1a231d72f4213ce3f6d7a7bff68ef085d9ece1522761332c18c1",
+      "rationale": "PM368 worker environment lifecycle and profiler termination ownership"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/node_main_instance.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_main_instance.cc",
+      "bytes": 4760,
+      "sha256": "c46ebc63d53bad74c1b5e96690893383666ddfd437b1cb520fb69d3d22792e81",
+      "rationale": "Main environment teardown and SpinEventLoop caller"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "lib/internal/child_process/serialization.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/lib/internal/child_process/serialization.js",
+      "bytes": 5632,
+      "sha256": "59f0124b35fa9127200c10c5aa206b60ceaf0951d11947ce3e9a4afb1844f4f2",
+      "rationale": "runner child process and advanced serialization implementation"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/node_serdes.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_serdes.cc",
+      "bytes": 18706,
+      "sha256": "5d20cec542d5586bc9b02a90eba8c5bb1c67a8f65d5df0f0074bd1552a82e2b3",
+      "rationale": "v8.md shared-buffer serialization delegate ID versus backing-memory transport"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/node_messaging.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_messaging.cc",
+      "bytes": 61048,
+      "sha256": "5449ae0e35e929018660e8299354fde4ddf41b050de58d84c2391845d2ad8aec",
+      "rationale": "worker_threads.md shared-buffer actual backing-store transfer definition"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/api/environment.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/api/environment.cc",
+      "bytes": 35886,
+      "sha256": "203fbbc587ff81566a9011374b2812ba84d313d218cb49d7fbf00e9f901e156f",
+      "rationale": "node_main_instance.cc:95 and node_worker.cc:318 FreeEnvironment definition and teardown ordering"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/node_process_methods.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_process_methods.cc",
+      "bytes": 28571,
+      "sha256": "0e5d70750c4f4d777c21bc8209b81771b038da135df136e28dc82a24063ca287",
+      "rationale": "Explicit process.exit/reallyExit terminal path versus normal AtExit coverage"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "lib/internal/process/per_thread.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/lib/internal/process/per_thread.js",
+      "bytes": 16689,
+      "sha256": "9fb576a173cf42cfde6a73798c538ff8ad470b03fa8c4d132083774aee0e2266",
+      "rationale": "Public process.exit JavaScript emitter and native reallyExit call path"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "lib/internal/source_map/source_map_cache.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/lib/internal/source_map/source_map_cache.js",
+      "bytes": 15983,
+      "sha256": "fbd34e28c94cab4312976984465269e92bfef284bba5603685b63af05044ce7c",
+      "rationale": "inspector_profiler.cc:287 sourceMapCache getter executes JS after snapshot; util.js:809 named definition"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/inspector_profiler.h",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/inspector_profiler.h",
+      "bytes": 4574,
+      "sha256": "b6de5b58314b158c679e165d6955f084c5cba6b2dc101530643a1dcfbc844874",
+      "rationale": "V8CoverageConnection End state and destructor behavior"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "src/node_messaging.h",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_messaging.h",
+      "bytes": 15294,
+      "sha256": "55815ed0ab98510b24818d3e9b2c7d55cdae67dad4ebb15d018515a4ffc3d02e",
+      "rationale": "Message shared backing-store field type defines worker transfer ownership"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "deps/v8/src/inspector/v8-profiler-agent-impl.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/deps/v8/src/inspector/v8-profiler-agent-impl.cc",
+      "bytes": 18978,
+      "sha256": "c3cce5711f1481486c16f9cd1881b6cc42025d489750d554d3426359abc93912",
+      "rationale": "Profiler.takePreciseCoverage and stopPreciseCoverage direct V8 method definitions"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "lib/internal/source_map/source_map_cache_map.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/lib/internal/source_map/source_map_cache_map.js",
+      "bytes": 3653,
+      "sha256": "8a22a549777dec6743155b538b999dd170e54b315d09b6bc294be96059a212df",
+      "rationale": "source_map_cache.js:34,353 direct iterator/storage getter used after coverage snapshot"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "lib/internal/main/test_runner.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/lib/internal/main/test_runner.js",
+      "bytes": 1145,
+      "sha256": "186b02b622080280c21b968742f9b920a2e794d877f3d3a2adcd9b96f268f32b",
+      "rationale": "Existing exact --test entry supplies runner coverage/isolation flags"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "deps/v8/src/debug/debug-interface.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/deps/v8/src/debug/debug-interface.cc",
+      "bytes": 55553,
+      "sha256": "cefe43bb20afab7044e879ab3db9743423c9d71aaadd6632f87ad0f8ca7ca190",
+      "rationale": "v8-profiler-agent-impl.cc:419 CollectPrecise direct primitive definition"
+    },
+    {
+      "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+      "path": "deps/v8/src/debug/debug-coverage.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/deps/v8/src/debug/debug-coverage.cc",
+      "bytes": 29926,
+      "sha256": "f37f562f7f77022347a2cdb8bacf925891dc2bcbe47f4938a45fbd6226f3a501",
+      "rationale": "CollectPrecise entry counter reset and terminal snapshot semantics"
+    }
+  ]
+}
