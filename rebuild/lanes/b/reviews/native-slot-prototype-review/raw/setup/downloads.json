@@ -1,0 +1,46 @@
+[
+  {
+    "name": "zig-x86_64-windows-0.15.2.zip",
+    "url": "https://ziglang.org/download/0.15.2/zig-x86_64-windows-0.15.2.zip",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\downloads\\zig-x86_64-windows-0.15.2.zip",
+    "startUtc": "2026-09-14T03:58:16.1926333Z",
+    "completedUtc": "2026-09-14T03:58:36.3101075Z",
+    "bytes": 92614574,
+    "sha256": "3a0ed1e8799a2f8ce2a6e6290a9ff22e6906f8227865911fb7ddedc3cc14cb0c",
+    "expectedSha256": "3a0ed1e8799a2f8ce2a6e6290a9ff22e6906f8227865911fb7ddedc3cc14cb0c",
+    "expectedBytes": 92614574
+  },
+  {
+    "name": "node-v22.23.2-headers.tar.gz",
+    "url": "https://nodejs.org/dist/v22.23.2/node-v22.23.2-headers.tar.gz",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\downloads\\node-v22.23.2-headers.tar.gz",
+    "startUtc": "2026-09-14T03:58:16.2022412Z",
+    "completedUtc": "2026-09-14T03:58:36.3351655Z",
+    "bytes": 9932325,
+    "sha256": "daaf13ec5d45a38bbcfcff06d0723f72a6813b89ab27bb5af2ac8e1f6259dde0",
+    "expectedSha256": "daaf13ec5d45a38bbcfcff06d0723f72a6813b89ab27bb5af2ac8e1f6259dde0",
+    "expectedBytes": null
+  },
+  {
+    "name": "node.exe",
+    "url": "https://nodejs.org/dist/v22.23.2/win-x64/node.exe",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\downloads\\node.exe",
+    "startUtc": "2026-09-14T03:58:16.2095250Z",
+    "completedUtc": "2026-09-14T03:58:36.4211561Z",
+    "bytes": 86997320,
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+    "expectedSha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+    "expectedBytes": 86997320
+  },
+  {
+    "name": "node.lib",
+    "url": "https://nodejs.org/dist/v22.23.2/win-x64/node.lib",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\downloads\\node.lib",
+    "startUtc": "2026-09-14T03:58:16.2171036Z",
+    "completedUtc": "2026-09-14T03:58:36.4258048Z",
+    "bytes": 2790574,
+    "sha256": "ac15f1e9d7c8279353723a77f6319967f1a41c06026521094a8234c2e6fbe052",
+    "expectedSha256": "ac15f1e9d7c8279353723a77f6319967f1a41c06026521094a8234c2e6fbe052",
+    "expectedBytes": null
+  }
+]

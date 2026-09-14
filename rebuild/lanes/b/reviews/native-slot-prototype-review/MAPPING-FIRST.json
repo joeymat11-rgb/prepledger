@@ -1,0 +1,2438 @@
+{
+  "authority": "PM402",
+  "candidate": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+  "base": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+  "firstIndependentBeforeAuthorOutcomes": true,
+  "copiedFiles": 266,
+  "copiedBytes": 5587513.0,
+  "files": [
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/VERIFIED-INPUTS.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/VERIFIED-INPUTS.json",
+      "bytes": 2864,
+      "sha256": "c3bd121e174da1cd2f698d8f41d60cd0d8ebb57d200ad2f0f68f9472c4505f7b"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/prototype.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/prototype.test.cjs",
+      "bytes": 13642,
+      "sha256": "15ec5392d47e1ff66ad6b409d6a559ee5cce3ef59d9b02abbef80702971e5162"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/PROTOCOL.md",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/PROTOCOL.md",
+      "bytes": 6623,
+      "sha256": "46195cfc2f601031caab0dfa04a4d02ec5d97b1a5935b0a01697b146894fda69"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/NATIVE-SLOT-PROTOTYPE-REVIEW-INPUTS.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-REVIEW-INPUTS.json",
+      "bytes": 4041,
+      "sha256": "56423671e38fadda78358b2f1d7bb02549e8e593cff7b4aa93161b1d4145411f"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/NATIVE-SLOT-PROTOTYPE-REVIEW-GO.md",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-REVIEW-GO.md",
+      "bytes": 6411,
+      "sha256": "66e90b06b147ab963e479bfcb32f432c7b8b0995f9e50f96d49f546b9bce8647"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/NATIVE-SLOT-PROTOTYPE-INPUTS.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-INPUTS.json",
+      "bytes": 9338,
+      "sha256": "50a38c17b56af818b7173ac6f4f46e8e1478863b92632aad5dee0bb15645ddad"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/NATIVE-SLOT-PROTOTYPE-INPUTS-SUPPLEMENT-1.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-INPUTS-SUPPLEMENT-1.json",
+      "bytes": 1058,
+      "sha256": "902cc3cd3380ac3162fc31b4ab4df045dd0e6efb0fea5e679b506d89cc7f6292"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/NATIVE-SLOT-PROTOTYPE-GO.md",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-GO.md",
+      "bytes": 5905,
+      "sha256": "9a5963c4dcedab643e13cc51c55df5adf2969e8dd87514de03e8c9ec3177f652"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/mapping.c",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/mapping.c",
+      "bytes": 11875,
+      "sha256": "f48e49de14baf671a7f8171cae181d356f879614f5c54a457a06b5810a895f20"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/loader.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/loader.cjs",
+      "bytes": 1436,
+      "sha256": "af4c86c8c5bc58ea1bda55c2fe2352a0497cf135d4ffbfbeadadafb2d4a0cbb4"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/GATE-WINDOW.md",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/GATE-WINDOW.md",
+      "bytes": 5565,
+      "sha256": "7f35f787f7bbe728a9fc72aea0596f41d824696541dd8f09237ca511380e27f1"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/build.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/build.cjs",
+      "bytes": 6742,
+      "sha256": "c1b91326dcc509b61c91ff9a16a073446ba9a328f92d852dff915a847c7e8ad8"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/B1B2-SHARED-MAPPING-CAPABILITY.md",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/B1B2-SHARED-MAPPING-CAPABILITY.md",
+      "bytes": 8054,
+      "sha256": "ba64ee84fb3a58cafe5e5540880c382f011bbb957aaa115ee1a2e806295f9cc2"
+    },
+    {
+      "kind": "source-authority-input",
+      "original": ".tmp/native-slot-review-er/inputs/B1B2-CAPTURE-FEASIBILITY-REVIEW.md",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/B1B2-CAPTURE-FEASIBILITY-REVIEW.md",
+      "bytes": 8803,
+      "sha256": "38d18676f305c293443ac2ef0a404f86fb69581122591e562d4ecbe3fcd664ee"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/WINDOWS-SOURCES.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/WINDOWS-SOURCES.json",
+      "bytes": 3185,
+      "sha256": "cfd19055e91d8d78c5615068eedfc9c022bc6df6a64fc3a971b3bdcc862c62b7"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/src__node_api_types.h",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__node_api_types.h",
+      "bytes": 1825,
+      "sha256": "088766b3cf1f0cd9b292c361ad30f7a04e7cc6db35a20ca52c572c1adf9635e7"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/src__node_api.h",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__node_api.h",
+      "bytes": 10370,
+      "sha256": "2d4560831e525b47b060ec8a0864ab73993df9e20215ce9f0fe7b24cd31af32a"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/src__js_native_api_v8.h",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__js_native_api_v8.h",
+      "bytes": 18470,
+      "sha256": "074f64cc178ec82d6cf0a06423340076b79e685b11f301144f6afae1d282c5ac"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/src__js_native_api_v8.cc",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__js_native_api_v8.cc",
+      "bytes": 127315,
+      "sha256": "5b51d73fead7ee8e0f62a294e3cfea38eaacf2d90f5cd6641015453d338aacc5"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/src__js_native_api_types.h",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__js_native_api_types.h",
+      "bytes": 7603,
+      "sha256": "05e3d86e24c814f94a8b52b6a70cec11d7e91c810008253553528637e3a15b2f"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/src__js_native_api.h",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__js_native_api.h",
+      "bytes": 31770,
+      "sha256": "582e64ead4d5fdf663e2bd934f2fc97e8e155a7740d28995830393d19d089705"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/NODE-SOURCES.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/NODE-SOURCES.json",
+      "bytes": 3830,
+      "sha256": "72176416a3ee75702ff04b325fd7c460d8c14b97bce0667b6c647afa4ac09a69"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/nf-winnt-interlockedexchange.html",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winnt-interlockedexchange.html",
+      "bytes": 55242,
+      "sha256": "56b19b4863043abef22d182dcb9756389dd3ff03524a673f2ce64a354f483df6"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/nf-winnt-interlockedcompareexchange.html",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winnt-interlockedcompareexchange.html",
+      "bytes": 55406,
+      "sha256": "cf2e86dd8d46156d1b3882d138cc1f00074bea54b8f98175a5f0ce6f73f9ddda"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/nf-winbase-openfilemappinga.html",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winbase-openfilemappinga.html",
+      "bytes": 54902,
+      "sha256": "e126f2734210583eeae7f7e34e22d91820be8f2b58b0bfede292b295e85cb59d"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/nf-winbase-createfilemappinga.html",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winbase-createfilemappinga.html",
+      "bytes": 75514,
+      "sha256": "669eb512b45c62413dfa22650233b0aebf5b85e7c2e77d3123b264890ca1a22c"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/nf-memoryapi-unmapviewoffile.html",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-memoryapi-unmapviewoffile.html",
+      "bytes": 54154,
+      "sha256": "5fda412c22f33c27eb7e9cc7cbf8553d81104721b40eb9f95063d333cbbb8e8b"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/nf-memoryapi-mapviewoffile.html",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-memoryapi-mapviewoffile.html",
+      "bytes": 65686,
+      "sha256": "6a89d573315aef26fb20b69f0e63e658bd650964328caa68cf0fd1265a706154"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/nf-handleapi-closehandle.html",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-handleapi-closehandle.html",
+      "bytes": 56055,
+      "sha256": "df0a7db57e00fcccaec2827a6ae7a6ee87c87f38c2c6de7de0e23e091862d584"
+    },
+    {
+      "kind": "primary-api-source-or-custody",
+      "original": ".tmp/native-slot-review-er/upstream/doc__api__n-api.md",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/doc__api__n-api.md",
+      "bytes": 241517,
+      "sha256": "20b8b3351be836c196f75aaa5ad805f7363997198adb14c3c4c2a39eb2dba620"
+    },
+    {
+      "kind": "reviewer-setup-or-custody",
+      "original": ".tmp/native-slot-review-er/downloads.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/downloads.json",
+      "bytes": 2399,
+      "sha256": "a4d6708db6155cc83d5f6c2fdfd8858e1b482d6b6ea7c9794f54b17d2de19d04"
+    },
+    {
+      "kind": "reviewer-setup-or-custody",
+      "original": ".tmp/native-slot-review-er/source-before-build.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/source-before-build.json",
+      "bytes": 1406,
+      "sha256": "eda40e476b4ad41e580b8c4fccade673be8aff4c935642c523c7b810cc873512"
+    },
+    {
+      "kind": "reviewer-setup-or-custody",
+      "original": ".tmp/native-slot-review-er/extract-tools.ps1",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/extract-tools.ps1",
+      "bytes": 6442,
+      "sha256": "2bf35a58aaa36aac4a8ed904a993d8720a89759de530f094627501f0663d7efe"
+    },
+    {
+      "kind": "reviewer-setup-or-custody",
+      "original": ".tmp/native-slot-review-er/run-phase.ps1",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/run-phase.ps1",
+      "bytes": 5222,
+      "sha256": "a116c0e0d213d6eb0fe87de8b357b6a0af771d0946c642a534a9f3b2524956ee"
+    },
+    {
+      "kind": "reviewer-setup-or-custody",
+      "original": ".tmp/native-slot-review-er/archive-first-failure.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/archive-first-failure.json",
+      "bytes": 1974,
+      "sha256": "5f66330ed4c6a5d8d12481edf4f095dade363010324b19682bde450c84ed202f"
+    },
+    {
+      "kind": "reviewer-setup-or-custody",
+      "original": ".tmp/native-slot-review-er/build-output-inventory.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/build-output-inventory.json",
+      "bytes": 3650,
+      "sha256": "27f103bc8b263f86bb542d29fddbf340f1031e83bc1b6cd414227a59798d86b4"
+    },
+    {
+      "kind": "complete-tool-extraction-inventory",
+      "original": ".tmp/native-slot/zig-extraction.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/zig-extraction.json",
+      "bytes": 3725161,
+      "sha256": "2e63e937237f406889c01eaf01ca95ee61230e00098e614d25c90ad0aee0f0c4"
+    },
+    {
+      "kind": "complete-tool-extraction-inventory",
+      "original": ".tmp/native-slot/header-extraction.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/setup/header-extraction.json",
+      "bytes": 600889,
+      "sha256": "d504242ec411472818fcf392cb339b561ada34eca4b6f9d4d6c71c0267522b24"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/version-mismatch.stdout",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/version-mismatch.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/compiler-version.result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/compiler-version.result.json",
+      "bytes": 2080,
+      "sha256": "1a48de31bca64454715bf3f440c64f6b0c372c4a52906d6587701cae295776b7"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/version-mismatch.stderr",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/version-mismatch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/version-mismatch.result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/version-mismatch.result.json",
+      "bytes": 2964,
+      "sha256": "66e7a76e967f8e0465572482abf120a9c58ba2d1bcec7c87f0a19787b2d79d43"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/candidate.stdout",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/candidate.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/candidate.stderr",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/candidate.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/size-mismatch.stdout",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/size-mismatch.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/size-mismatch.stderr",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/size-mismatch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/candidate.result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/candidate.result.json",
+      "bytes": 2919,
+      "sha256": "dace8ea9403218be73254ff66eaa7c4c292095d2c3b5f1854370a40f001e3086"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/size-mismatch.result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/size-mismatch.result.json",
+      "bytes": 2960,
+      "sha256": "454b64b9cf7d373ff0954ce6f48decc1309bac5c4c9d224c07c52da78ca112f0"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/build.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/build.json",
+      "bytes": 4779,
+      "sha256": "8e29ffa676c0643b9caadc54142639803bae6b2baea956d2b7b21ca9ac68fa33"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/inputs.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/inputs.json",
+      "bytes": 3662,
+      "sha256": "bb330fdbebe1e614d8d3ae245ca5c864b9f95ec71aa072bc89335ddf648b4d53"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/compiler-version.stdout",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/compiler-version.stdout",
+      "bytes": 7,
+      "sha256": "355a2e14f6a7f2cb387d9d3b75a3550980d020ee1d005b139b62290c1645068a"
+    },
+    {
+      "kind": "independent-build",
+      "original": ".tmp/native-slot/builds/er-independent-one/compiler-version.stderr",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/build/compiler-version.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "reviewer-invocation",
+      "original": ".tmp/native-slot-review-er/runs/build/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/build/stdout.raw",
+      "bytes": 302,
+      "sha256": "c89c7e342f7d0356088c0d781dc425f310515c741beb126f2d66ebb13f3c47e7"
+    },
+    {
+      "kind": "reviewer-invocation",
+      "original": ".tmp/native-slot-review-er/runs/build/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/build/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "reviewer-invocation",
+      "original": ".tmp/native-slot-review-er/runs/build/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/build/result.json",
+      "bytes": 2289,
+      "sha256": "0be9bb02d0d5898542eab3075d547aa2c710eaffa5708b2090b0d60720bd0bd6"
+    },
+    {
+      "kind": "reviewer-invocation",
+      "original": ".tmp/native-slot-review-er/runs/delivered/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/delivered/stdout.raw",
+      "bytes": 6227,
+      "sha256": "17b4577ea083bd1c5939f890c93dd206904c241d3b1451212ab0a25baeaa6b47"
+    },
+    {
+      "kind": "reviewer-invocation",
+      "original": ".tmp/native-slot-review-er/runs/delivered/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/delivered/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "reviewer-invocation",
+      "original": ".tmp/native-slot-review-er/runs/delivered/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/delivered/result.json",
+      "bytes": 2662,
+      "sha256": "145f9da15833915f5346372bd94fd77d04350971e6f23062276afbe017d89ac4"
+    },
+    {
+      "kind": "reviewer-invocation",
+      "original": ".tmp/native-slot-review-er/runs/controls/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/controls/stdout.raw",
+      "bytes": 971,
+      "sha256": "3d5bc67be59e9a08a108ad3969a5461e3a3e17b4a065926d266132df08706e59"
+    },
+    {
+      "kind": "reviewer-invocation",
+      "original": ".tmp/native-slot-review-er/runs/controls/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/controls/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "reviewer-invocation",
+      "original": ".tmp/native-slot-review-er/runs/controls/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/invocations/controls/result.json",
+      "bytes": 2661,
+      "sha256": "717777f7c33c32001d4081876db65e05255fd062a6af2606b9e8f4195f0f60a5"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/process-census.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/process-census.json",
+      "bytes": 10435,
+      "sha256": "e42d5ce42b0e4a11683198703375912eecde7efdd9ead24ef1fbed02f9d16dec"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/two-records/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/two-records/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/trace.json",
+      "bytes": 67,
+      "sha256": "815b429b21d6cf1d93990cecaa42aaaf990f3120f073cd71cc27df85be7fa0b2"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/two-records/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/stdout.raw",
+      "bytes": 239,
+      "sha256": "b4d9e72aa77cc8f3abf6158a5025d440b6189f70db4a20bd5e070022194b72ef"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/two-records/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/two-records/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/result.json",
+      "bytes": 3266,
+      "sha256": "af1b14150a926f33b4b7061ebdb47a67ca43cfd4170b8bc5d858b5739e1adda8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/two-records/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/two-records/owner-observation.json",
+      "bytes": 86,
+      "sha256": "83188d417c5d20b8e8e667293ca818124cb9fd5ddd295a538cc31002f2f1b7c9"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-complete/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/forged-closed/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/forged-closed/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/trace.json",
+      "bytes": 72,
+      "sha256": "edddf8f8cfe77f63406c8e6a8716741c63f50443541a6bbbfff3ce742cec70b2"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-complete/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/trace.json",
+      "bytes": 67,
+      "sha256": "cbad75ccef53a5f7bbed68cfac53cf8a0a68f580a69869625286322e01fec7fe"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/forged-closed/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/stdout.raw",
+      "bytes": 239,
+      "sha256": "b03acda4b2d6d4fedd3052e39694e88172211334eed13680ea644609dfadb6aa"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-complete/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/stdout.raw",
+      "bytes": 239,
+      "sha256": "a8b5e4bc9027ee1a6199dbc81d3e8ba5ccf152c007ae113fbd2e5af99dbcd11a"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/forged-closed/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-complete/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/forged-closed/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/result.json",
+      "bytes": 3284,
+      "sha256": "465012edc39e227bf1a8ecb5ba37281a5b463609d51cb2b85a7dc20fad97a863"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-complete/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/result.json",
+      "bytes": 3295,
+      "sha256": "323153e861650aad83ceff81fca1845610cfc661825d2e71d1d6cfd8ada5915c"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/forged-closed/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/forged-closed/owner-observation.json",
+      "bytes": 87,
+      "sha256": "afbc6be281f9d85c9d25a7d3f0a7375812e965675ff7bc382ab27eadcc29ad39"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-complete/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-complete/owner-observation.json",
+      "bytes": 87,
+      "sha256": "38ec80e3a1d6875333ef21284a47f79379d16ea33ef759e48fc7fa7dbac34cff"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-missing/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-missing/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/trace.json",
+      "bytes": 66,
+      "sha256": "203ae33254d496af210ff3e8651b2a463bd838ec86bd9163069a4e0aa6a25ab5"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-missing/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/stdout.raw",
+      "bytes": 239,
+      "sha256": "aed64ddc0aa89e721b14bd45dab1d18433218c7b6a6c48bf6110db0b7f42f66b"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-missing/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-missing/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/result.json",
+      "bytes": 3304,
+      "sha256": "eea173e1ce0ed27a3b4388ad5dd2c37a8d1cf9c7d9b475a05a935431b2ea81bf"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-missing/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-missing/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/header-version-mismatch/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-version-mismatch/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/header-version-mismatch/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-version-mismatch/trace.json",
+      "bytes": 71,
+      "sha256": "a9e1709cf7eff72197391ec1012eba69ef9f5b0d447615f8ee9f4436a750c979"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/header-version-mismatch/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-version-mismatch/stdout.raw",
+      "bytes": 239,
+      "sha256": "03c94dc58f06f3db7a9d0cd63495d6b29da3e1d0d3c0fed11b4815924ebc2b8c"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/header-version-mismatch/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-version-mismatch/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/header-version-mismatch/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-version-mismatch/result.json",
+      "bytes": 3357,
+      "sha256": "d08593f30f0d0b2e456c4229e9cfa16998959541fa4bb35195177136681ef882"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/header-size-mismatch/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-size-mismatch/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/header-size-mismatch/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-size-mismatch/trace.json",
+      "bytes": 71,
+      "sha256": "1400c5bef443909ae92e60821e8196480c02b362dd619576cafcbdf9626bb6a6"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/header-size-mismatch/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-size-mismatch/stdout.raw",
+      "bytes": 239,
+      "sha256": "0e95f23707025d468bea4eb0c49629815747bcc99cdd091ad3c378740978eaae"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/header-size-mismatch/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-size-mismatch/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/header-size-mismatch/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/header-size-mismatch/result.json",
+      "bytes": 3345,
+      "sha256": "9a67af64bb8ddb0cefaf19564d1594344f2deaf5007056723d431a9e375fc266"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-pending/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-pending/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/trace.json",
+      "bytes": 67,
+      "sha256": "ce0d90616235d6fd92356e8fe3482857ae08275768a77505c62f0ca8c30dfc3e"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-pending/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/stdout.raw",
+      "bytes": 239,
+      "sha256": "0ec5b90b956c81ec4a3c1df684c925bc5f6dc699b1a1efc3aa705cd73f474f6e"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-pending/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-pending/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/result.json",
+      "bytes": 3289,
+      "sha256": "50dc0c8fb32538c7236e52ead2ebcf1b513420a6c2096e15145b4bf72629a4c9"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/first-pending/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/first-pending/owner-observation.json",
+      "bytes": 87,
+      "sha256": "aa0eb58e745db97f505bec143db5433502fb27ce792e4775a03b739a97659a1b"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/extra/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/extra/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/trace.json",
+      "bytes": 66,
+      "sha256": "744913668f275da0f555f81167a5de0f0392afec0391566accf8490124b34581"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/extra/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/stdout.raw",
+      "bytes": 239,
+      "sha256": "a47a64ba9ce98912e5934bb8d5a6ed17eb3ce65088109579af19474d7692784d"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/extra/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/extra/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/result.json",
+      "bytes": 3270,
+      "sha256": "bd00b932da629ae80e084a33e2b0cb0509a1f653a6fd2125b2029354773313af"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/extra/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/extra/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/stale-generation/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/stale-generation/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/stale-generation/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/stale-generation/trace.json",
+      "bytes": 71,
+      "sha256": "b26c1cc06766f7bddd5aa92fd9377b4380810e752395be78e8929821783998d4"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/stale-generation/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/stale-generation/stdout.raw",
+      "bytes": 239,
+      "sha256": "151237eeafb87990ab3875e817a5bbbe40c2c6ce0498eb1adf9231871766e6ae"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/stale-generation/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/stale-generation/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/stale-generation/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/stale-generation/result.json",
+      "bytes": 3329,
+      "sha256": "acd1b9ca6375d98920f95e878f9d7063dd221b20740cc77b90215f451e02a292"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-huge/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-huge/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/trace.json",
+      "bytes": 66,
+      "sha256": "c29f96f2a897c8d50dadf8d541a66dd994a680a650ca4a221d505f5b417bb829"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-huge/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/stdout.raw",
+      "bytes": 238,
+      "sha256": "941331d098071c7cfa1a3c3c9c00871c3547fc3b860fdabc9b6881cf8dabf716"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-huge/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-huge/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/result.json",
+      "bytes": 3289,
+      "sha256": "205552b47e03a134d21b87e08f6882c175397b907050ba3b76c76e397e2db7fa"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-huge/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-huge/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-fractional/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-fractional/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/trace.json",
+      "bytes": 66,
+      "sha256": "dac99f02c3705ff65db3347365268054a8a74850425401343b04ae3c540d3880"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-fractional/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/stdout.raw",
+      "bytes": 239,
+      "sha256": "72b2d94d8e818855872c650c50dd0f642d3e96bcfa1381b5d9e819e929304d1e"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-fractional/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-infinity/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-fractional/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/result.json",
+      "bytes": 3319,
+      "sha256": "b877c71b6703a592298608933259c3116036bda5810b98a73402c8a9c71e20f3"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-infinity/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/trace.json",
+      "bytes": 65,
+      "sha256": "4db82cab0137a7602e9e7a43187c0b8620a94c21ef6c73274e9ff96c451d2e93"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-fractional/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-fractional/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-infinity/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/stdout.raw",
+      "bytes": 238,
+      "sha256": "5b9ce04a2ca011305c9a0a434a97ec93431eb100f836ab3ccebe309cc56018e5"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-infinity/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-infinity/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/result.json",
+      "bytes": 3307,
+      "sha256": "d9cb4a080e24a7549f0d5d451ca2f71629aca8d6a0abf4b314cef4a243da516a"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-infinity/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-infinity/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-extra-argument/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-extra-argument/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/trace.json",
+      "bytes": 66,
+      "sha256": "39f2750051077887f64e72cfe1cff91412ae11e0a738e5133127db17bcb7fdfa"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-extra-argument/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/stdout.raw",
+      "bytes": 239,
+      "sha256": "3c787062e3d30d2ee87c3d6db7026bf2e40d57a511ff9944b44e10f1d2560dee"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-extra-argument/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-extra-argument/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/result.json",
+      "bytes": 3339,
+      "sha256": "eea092a77b59ec3a39708e053de7c6f60c9d8362627680f8aa90c320c4d032d3"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-extra-argument/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-extra-argument/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/second-pending/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/second-pending/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/trace.json",
+      "bytes": 67,
+      "sha256": "3737b4f84d999f73013ae3359d01f7c386c3b8185a320233140d113577ad17f7"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/second-pending/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/stdout.raw",
+      "bytes": 239,
+      "sha256": "49f9cba1cde6a0dc20b3fabe938dfa990a14f047eb69fff557461892fe311bdd"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/second-pending/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/second-pending/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/result.json",
+      "bytes": 3297,
+      "sha256": "4e93e4f303035b7bfce4d7a1d4e4fe8156e41ccb1ae6f383f6db3c7a25c54860"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/second-pending/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/second-pending/owner-observation.json",
+      "bytes": 87,
+      "sha256": "b75048757f7e66c478f24d0200015a89dd5f23b078eed323117d3f93f1c00620"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/duplicate-owner-intact/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate-owner-intact/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/duplicate-owner-intact/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate-owner-intact/trace.json",
+      "bytes": 67,
+      "sha256": "af8b9ddea28db45df6b66e6b311c879455549558f4f4156c0972f6969d84cd6e"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/duplicate-owner-intact/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate-owner-intact/stdout.raw",
+      "bytes": 239,
+      "sha256": "75ed53ee4979b142057108a6e960a43a40cc2114d7f0495327649775e6bc159b"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/duplicate-owner-intact/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate-owner-intact/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/duplicate-owner-intact/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate-owner-intact/result.json",
+      "bytes": 3310,
+      "sha256": "6d6bba5a438ecb7d99df72a4154ae03cb5cca97b45d182b1f897aa1856669295"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/nonzero/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/nonzero/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/nonzero/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/nonzero/trace.json",
+      "bytes": 66,
+      "sha256": "6b7c587aba5e0d7b27fbff2cee7a19bdf2ed6923d0fadb9a4aae00b2b8e58ba9"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/nonzero/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/nonzero/stdout.raw",
+      "bytes": 957,
+      "sha256": "09ffc1586875d244478ee69fb71d22562e1c6992b24fcefea3de49312516dd9b"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/nonzero/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/nonzero/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/nonzero/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/nonzero/result.json",
+      "bytes": 3457,
+      "sha256": "021cda1567805dc988c628a69799a4e77eac818194ab96cbcdf3fb1d962ebdbc"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-string/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-string/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/trace.json",
+      "bytes": 66,
+      "sha256": "c85e8ca88c9d28ad930f3bcbdafadf7b4139ed09708183c3364f4c6ffa757563"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-string/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/stdout.raw",
+      "bytes": 239,
+      "sha256": "c90212eb8414f266138533c74484b89bbba4d51e1ad54c1ac6ebfbbd78071f81"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-string/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-string/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/result.json",
+      "bytes": 3299,
+      "sha256": "2e2ecaabc5c37742c618d3de4fa4944de6681cfd623a8a7db06526c1e6df0668"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-string/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-string/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/retained-root/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/retained-root/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/retained-root/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/retained-root/trace.json",
+      "bytes": 67,
+      "sha256": "6f924b8228800c1984a720c3a872c2ba6654efb443b98dea97c7f5e0de50af7e"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/retained-root/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/retained-root/stdout.raw",
+      "bytes": 239,
+      "sha256": "75a08c66b05cf7d4e09ac19d15156b6ca54ac944e63fbd2d341705397a3b7fc2"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/retained-root/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/retained-root/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/retained-root/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/retained-root/result.json",
+      "bytes": 3274,
+      "sha256": "3e80bb1d25bd275c14df6ba67d89b236e79855e60f65540aa83dacf6e82f6920"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-null/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-null/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/trace.json",
+      "bytes": 66,
+      "sha256": "9683c2c599d1ccf4a020066101ac330b5693c23966e83bfb9be0bbd55f4d091e"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-null/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/stdout.raw",
+      "bytes": 239,
+      "sha256": "4363eef1c73fcc118c80fd28c00510e2deb0747a6b56b4538b3e99d4f07ed479"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-null/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-null/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/result.json",
+      "bytes": 3289,
+      "sha256": "e40a0daa521d542845447b51ef3b0c5af7c13480e8243e156370c0481bc9047a"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-null/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-null/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/local-control/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/local-control/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/trace.json",
+      "bytes": 72,
+      "sha256": "bb56bf30997bc5758e0f06972734acdf0a3bd3b20917a9dedf7d1ea341ec379c"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/local-control/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/stdout.raw",
+      "bytes": 239,
+      "sha256": "ea75e896a618ea12421db2b2f34b3adb497de6a02ed58d57eed040c23291ccfb"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/local-control/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/local-control/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/result.json",
+      "bytes": 3292,
+      "sha256": "88ff7d6a38f3c2b1f0785ba07e09ae6829df8877e5b201d8e1f86df342f1852c"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/local-control/diagnostic.txt",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/local-control/diagnostic.txt",
+      "bytes": 9,
+      "sha256": "37a40f08d8548dba289b9b0bb35bcf63b359f6d37ee86044ebc6b6da080b9ec1"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/none/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/none/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/trace.json",
+      "bytes": 67,
+      "sha256": "35be056e87277b2b6d1c79d264e63ac39ff6eed3c15aba6d1a0bcc547c60f089"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/none/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/stdout.raw",
+      "bytes": 239,
+      "sha256": "e645d3ad0bf6eec64c2ea105fe4abac4190da824512d0487aed809b219b70901"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/none/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/none/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/result.json",
+      "bytes": 3252,
+      "sha256": "3ce9f3b838e2ab59703d6fd590984f1b8eb2be67c3c7121901fdc4bd7da4b32d"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/none/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/none/owner-observation.json",
+      "bytes": 87,
+      "sha256": "afbc6be281f9d85c9d25a7d3f0a7375812e965675ff7bc382ab27eadcc29ad39"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/owned-teardown/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/owned-teardown/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/owned-teardown/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/owned-teardown/trace.json",
+      "bytes": 73,
+      "sha256": "df7bbaecd13fcb1f8e53543c90b60706f81f3f1ad520ca0da8ea748053f69904"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/owned-teardown/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/owned-teardown/stdout.raw",
+      "bytes": 239,
+      "sha256": "1454137467261db205ed6f910780d473ceebfbfd3be1ed0c8912a1cc144eaab3"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/owned-teardown/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/owned-teardown/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/owned-teardown/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/owned-teardown/result.json",
+      "bytes": 3290,
+      "sha256": "75a89b4890bc1c98dde1e7396418216ef989351a721ba0c2e8a1281f32869f5b"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-object/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-object/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/trace.json",
+      "bytes": 66,
+      "sha256": "91f936bb0bceefbd5dd534659a50f99735cc9c1ff1243de97224928d288fe1b3"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-object/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/stdout.raw",
+      "bytes": 238,
+      "sha256": "8bba0a6a7912344b3218c4bfed38b057e2e842db692e2618fa1cbbd71171b557"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-object/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-object/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/result.json",
+      "bytes": 3299,
+      "sha256": "28c97161b720533aa32624384d5db19e53541d28afb6f7bb94d6785697d701c8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-object/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-object/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/duplicate/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/duplicate/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/trace.json",
+      "bytes": 67,
+      "sha256": "8c28311bd7eada051644abacc2958d75e3694548f376d44ca78b599afc3633a9"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/duplicate/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/stdout.raw",
+      "bytes": 239,
+      "sha256": "5a936a9cacde44106ffb172a8624f7afb9b0b726d08151928cf2b5adbba0fb6b"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/duplicate/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/duplicate/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/result.json",
+      "bytes": 3281,
+      "sha256": "5530dae9bac7c1485560a332fc454c0af32d4a6790fb7f6bc1bcb4181d54ab4c"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/duplicate/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/duplicate/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/late-io/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/late-io/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/trace.json",
+      "bytes": 66,
+      "sha256": "b4bf13652e0993c86a58768f7405910080f85cad7da4bd9cce3c22cf99202b8d"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/late-io/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/stdout.raw",
+      "bytes": 239,
+      "sha256": "578170925e010e93ffc8c8ec0f9194a9f9efa08e2160190c1c6605e376fe833d"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/late-io/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/late-io/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/result.json",
+      "bytes": 3256,
+      "sha256": "2dc1882de3aba77e845dc517c0f156ab61972ec11f1dffc3bd7c1e72207aea2c"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/late-io/diagnostic.txt",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/late-io/diagnostic.txt",
+      "bytes": 9,
+      "sha256": "37a40f08d8548dba289b9b0bb35bcf63b359f6d37ee86044ebc6b6da080b9ec1"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-negative/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-negative/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/trace.json",
+      "bytes": 66,
+      "sha256": "7f43a133ef5c0385ff60d9497f484de3432c03071705dcb190ef7847c7ea6c44"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-negative/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/stdout.raw",
+      "bytes": 237,
+      "sha256": "f9c39821e95b9d85df40eda1b18b0d9bd151c7fb62381c25ed51edcd9e243376"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-negative/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-negative/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/result.json",
+      "bytes": 3309,
+      "sha256": "242eb30d0879a2286715b4e7924315c28387f12ad9a565934d3dc9b0a777a9e4"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-negative/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-negative/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/missing-region/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/missing-region/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/missing-region/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/missing-region/trace.json",
+      "bytes": 71,
+      "sha256": "14277b263be3e188885659e686dd12e9b1d2c661f067eac80c7162bf704ac6bf"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/missing-region/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/missing-region/stdout.raw",
+      "bytes": 239,
+      "sha256": "640342b079a9910d51173fa9680e46b7d7f4ef7ea6d961560fad3d0cd1648706"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/missing-region/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/missing-region/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/missing-region/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/missing-region/result.json",
+      "bytes": 3317,
+      "sha256": "a7da313606b1fecd4bdb47c9aa2a39269cf17b79f50bb740f621e24a7bca8ff3"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/out-of-order/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/out-of-order/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/trace.json",
+      "bytes": 67,
+      "sha256": "ce2f1804e137224f4578565eb50a76738feeb4514da1e49a5d5465064d592d2c"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/out-of-order/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/stdout.raw",
+      "bytes": 239,
+      "sha256": "01d281fb066f8c506c3aa42822b0350e739010945fcb1e9590ea70642ebc52b8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/out-of-order/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/out-of-order/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/result.json",
+      "bytes": 3293,
+      "sha256": "84435039d41507c4857f546c20a7547ca2944ed6bacf533b4c61e37e594c720d"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/out-of-order/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/out-of-order/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-nan/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-nan/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/trace.json",
+      "bytes": 66,
+      "sha256": "0e64e4d83e5187fb467fa4b5e10761cd67e30902a2386e586f8919bc557d3a44"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-nan/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/stdout.raw",
+      "bytes": 239,
+      "sha256": "29b71547561fa817a36db1b9dc4cbabdc42dc562ca7ef92c73db8f1dff9e638c"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-nan/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-nan/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/result.json",
+      "bytes": 3284,
+      "sha256": "d30423fd7fe24377fd551067aefb1774b4db8ef6a29279f3939cd92537978395"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/invalid-nan/owner-observation.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/invalid-nan/owner-observation.json",
+      "bytes": 87,
+      "sha256": "878b24241ef1940a9370bbe254653e39de0703eb32e792882c19d6946081faed"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-size/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-size/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-size/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-size/trace.json",
+      "bytes": 71,
+      "sha256": "f210f0302eaf145ae4cc58feae967442e5fd83782401db407d80a5f28e607235"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-size/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-size/stdout.raw",
+      "bytes": 239,
+      "sha256": "3116cd086d8173bb160d65af74a95ecd32b42089a8fd07ebfe83cd27e78b9bd8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-size/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-size/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-size/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-size/result.json",
+      "bytes": 3329,
+      "sha256": "779caf7a00c2198e5323be8af8605d8332324eb69b8850d0e78dd513f12c0e4d"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-nonce/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-nonce/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-nonce/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-nonce/trace.json",
+      "bytes": 71,
+      "sha256": "5df2e33a675fa95b2a234e68dcff30cc30dae1a880342261cee2c7360b524f60"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-nonce/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-nonce/stdout.raw",
+      "bytes": 239,
+      "sha256": "8edb363200ddd732866f869ed418f0ed3fbbce8b504dd2ea85b89309babdb543"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-nonce/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-nonce/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-nonce/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-nonce/result.json",
+      "bytes": 3329,
+      "sha256": "00ef6930a0b7d366f325a6d015e465f719e9ea27972b4ac441f3ec1b3587bd55"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-version/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-version/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-version/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-version/trace.json",
+      "bytes": 70,
+      "sha256": "14d8d0a200f7e1910b2bb706ccbd82252db9a12fa6241b4e36f16aa80a016bbe"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-version/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-version/stdout.raw",
+      "bytes": 238,
+      "sha256": "5b1216070d0e287c2b53a7af041219ea8de6be993a7dba971eb1e68060644fc2"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-version/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-version/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-version/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-version/result.json",
+      "bytes": 3339,
+      "sha256": "d3bd1933329a505ca6335d7130ef4861176f21d427d2d8d67801b566274a474f"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-owner/writer.test.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-owner/writer.test.cjs",
+      "bytes": 3223,
+      "sha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-owner/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-owner/trace.json",
+      "bytes": 71,
+      "sha256": "965c33d40f6e7473be9a4b09963b6fca18d260808878dd882394a434f24248a5"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-owner/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-owner/stdout.raw",
+      "bytes": 239,
+      "sha256": "e110cce346d7d594004b07ccc9c2cea160a77e18bc798eb7b28d91c3c98ec8aa"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-owner/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-owner/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-delivered-one/cases/descriptor-owner/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/delivered/cases/descriptor-owner/result.json",
+      "bytes": 3329,
+      "sha256": "dda1c4a1e92f33e18f292adf85779aeafc129471d6b407c4c3b97d60d679f98d"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/two-writer-state.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/two-writer-state.json",
+      "bytes": 69,
+      "sha256": "68ea80b46173f8ca5e27101418c259d1b5b17de8e9ebc48445a78ea7b769ab36"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/scalar-setup.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/scalar-setup.json",
+      "bytes": 62,
+      "sha256": "7318960f899c8be1605b3b874349e93b10a26a6ec2ac4840322b1ad4b7635847"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/closed-external-gc.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/closed-external-gc.json",
+      "bytes": 54,
+      "sha256": "56157fc99c3291754c5c05bbe12fcecd5e26541926bfa626dbd19ceab9c4070f"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/process-census.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/process-census.json",
+      "bytes": 969,
+      "sha256": "7695d2052fbb32cc878b37c99d2709b20fe97cf6988aaeb8ae8b8f15720e7a79"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/writer-b/control-child.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-b/control-child.cjs",
+      "bytes": 574,
+      "sha256": "ca45d85951ee8a47d1bebc7703d5320fab24b36798d7bd716273680c562048b4"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/writer-b/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-b/trace.json",
+      "bytes": 32,
+      "sha256": "1f8c2d35d05e7a95adfd8c41c116a3313f2a24b8fc73f270786baa1aba711c9d"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/writer-b/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-b/stdout.raw",
+      "bytes": 245,
+      "sha256": "fb4fcb59b2496eefe5161efb2f058c98ee70e1dea57d229f29a9ad4b88f08711"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/writer-b/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-b/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/writer-b/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-b/result.json",
+      "bytes": 2958,
+      "sha256": "d2f56b14ca0f0f12bd0f35a63d9a537013b18ea709f1f88d106843aedcb0965a"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/retained-child-view/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/retained-child-view/stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/retained-child-view/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/retained-child-view/result.json",
+      "bytes": 2935,
+      "sha256": "92a65cdc858c6900a2ca3005ec88cf11c6b36aad622afe6169891764e05ad178"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/retained-child-view/control-child.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/retained-child-view/control-child.cjs",
+      "bytes": 554,
+      "sha256": "77227f7597950f7e6d72d7267df0359803b67a14c63056fe1b4b2c15d7aa8086"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/retained-child-view/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/retained-child-view/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/writer-a/trace.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-a/trace.json",
+      "bytes": 32,
+      "sha256": "3ff25eae32e8a2939591fe4c6410001ec17ca0dc1a1a4e3b77de7511ec0a8e7d"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/writer-a/stdout.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-a/stdout.raw",
+      "bytes": 245,
+      "sha256": "f3f4b727352a7488a77ea0ef73ca55674d935a1f435ff955447c69eb39bc23db"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/writer-a/stderr.raw",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-a/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/writer-a/result.json",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-a/result.json",
+      "bytes": 2958,
+      "sha256": "ce95e06f981236d314f071744523cee97a6e262d9440e298457f23b674d6ca66"
+    },
+    {
+      "kind": "invented-process-evidence",
+      "original": ".tmp/native-slot/runs/er-controls-one/writer-a/control-child.cjs",
+      "copy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/controls/writer-a/control-child.cjs",
+      "bytes": 574,
+      "sha256": "ca45d85951ee8a47d1bebc7703d5320fab24b36798d7bd716273680c562048b4"
+    }
+  ],
+  "deliveredRawCensusAudit": [
+    {
+      "label": "two-records",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 39496,
+      "filePid": 26612,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "descriptor-version",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 28000,
+      "filePid": 6360,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "invalid-nan",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 47700,
+      "filePid": 39972,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "missing-region",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 59576,
+      "filePid": 50820,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "owned-teardown",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 56924,
+      "filePid": 57644,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "stale-generation",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 36088,
+      "filePid": 53644,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "descriptor-size",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 17664,
+      "filePid": 61512,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "invalid-missing",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 54776,
+      "filePid": 52504,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "local-control",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 35776,
+      "filePid": 37640,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "out-of-order",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 16968,
+      "filePid": 50456,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "late-io",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 36636,
+      "filePid": 25684,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "nonzero",
+      "status": 1,
+      "operatorPid": 55476,
+      "outerPid": 58800,
+      "filePid": 56260,
+      "rawCensus": {
+        "tests": 2,
+        "suites": 0,
+        "pass": 1,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "second-pending",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 32224,
+      "filePid": 14816,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "descriptor-owner",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 58712,
+      "filePid": 46996,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "invalid-infinity",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 9044,
+      "filePid": 53300,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "invalid-string",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 61680,
+      "filePid": 58660,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "none",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 10564,
+      "filePid": 41184,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "invalid-huge",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 48336,
+      "filePid": 38272,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "retained-root",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 27688,
+      "filePid": 50056,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "descriptor-nonce",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 13868,
+      "filePid": 52320,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "invalid-object",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 37936,
+      "filePid": 55988,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "header-size-mismatch",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 32672,
+      "filePid": 49792,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "invalid-fractional",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 54940,
+      "filePid": 44788,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "invalid-negative",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 17972,
+      "filePid": 26680,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "header-version-mismatch",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 64404,
+      "filePid": 63324,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "invalid-extra-argument",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 33880,
+      "filePid": 57844,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "forged-closed",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 41348,
+      "filePid": 59104,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "invalid-null",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 64144,
+      "filePid": 61008,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "duplicate-owner-intact",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 56784,
+      "filePid": 59220,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "extra",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 38064,
+      "filePid": 7784,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "duplicate",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 64208,
+      "filePid": 48676,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "first-pending",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 49212,
+      "filePid": 58992,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    },
+    {
+      "label": "first-complete",
+      "status": 0,
+      "operatorPid": 55476,
+      "outerPid": 45712,
+      "filePid": 60296,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sourceAndStreamHashesVerified": true
+    }
+  ],
+  "sourceHeadAfterExecution": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+  "candidateInputsUnchanged": true,
+  "binaryPolicy": "No binary/archive/SDK/cache tree committed; complete extraction inventories are metadata only. Initial custody-copy failure/correction is preserved."
+}

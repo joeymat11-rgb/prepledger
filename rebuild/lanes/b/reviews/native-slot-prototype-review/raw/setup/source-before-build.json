@@ -1,0 +1,24 @@
+{
+  "candidate": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+  "base": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+  "fullIndexEntries": 2373,
+  "initialIndexTree": "541ff76585e1700dacb58b6d677def1c41ba9df0",
+  "allFiveCandidateFilesRead": true,
+  "PM384And386Read": true,
+  "authorOutcomesRead": false,
+  "sourceConclusion": "No decisive execution-blocking source defect established within the standalone trusted Windows/Node toolchain boundary. Proceed once to the specifically licensed unchanged build and delivered driver.",
+  "openVerification": [
+    "Actual cross-process state and environment teardown",
+    "Opaque handle rooting, closed-handle/GC lifecycle",
+    "Sticky refusal and late observation despite failed diagnostic IO",
+    "Recorded child exit/census and declared writer ownership, not arbitrary descendants",
+    "Logical view/header size versus unqueried actual section allocation",
+    "Build provenance independently established from exact downloaded archives, not self-authored inventory alone"
+  ],
+  "limits": [
+    "No general VM/OS failure nonthrowing proof",
+    "Cleanup native runtime implementation beyond pinned API contract is trusted",
+    "Loader lexical scratch containment does not authenticate arbitrary symlink or loader-hook inputs; review supplies independently pinned regular own binaries",
+    "No original helper/operator/private/noninterference gate"
+  ]
+}

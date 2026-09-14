@@ -1,0 +1,51 @@
+{
+  "cases": 3,
+  "nestedOuterProcesses": 2,
+  "nestedTestFileProcesses": 2,
+  "directWriterProcesses": 1,
+  "records": [
+    {
+      "label": "writer-b",
+      "operatorPid": 47584,
+      "childPid": 46916,
+      "nested": true,
+      "filePid": 13716,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "writer-a",
+      "operatorPid": 47584,
+      "childPid": 62704,
+      "nested": true,
+      "filePid": 63880,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "retained-child-view",
+      "operatorPid": 47584,
+      "childPid": 49760,
+      "nested": false,
+      "filePid": null,
+      "status": 0,
+      "census": {}
+    }
+  ]
+}

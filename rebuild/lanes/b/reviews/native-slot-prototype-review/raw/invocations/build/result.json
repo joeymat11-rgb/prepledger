@@ -1,0 +1,41 @@
+{
+  "phase": "build",
+  "sourceHead": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+  "executable": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\runtime\\node.exe",
+  "executableSha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+  "args": [
+    "rebuild/lanes/b/tooling/native-slot-prototype/build.cjs",
+    "er-independent-one",
+    "2592f091f9cd2956f5f6c442d36c8763e247cff6"
+  ],
+  "cwd": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er",
+  "environment": {
+    "SystemRoot": "C:\\WINDOWS",
+    "WINDIR": "C:\\WINDOWS",
+    "SystemDrive": "C:",
+    "ComSpec": "C:\\WINDOWS\\System32\\cmd.exe",
+    "PATH": "C:\\WINDOWS\\System32",
+    "PATHEXT": ".COM;.EXE;.BAT;.CMD",
+    "NODE_OPTIONS": "",
+    "NODE_PATH": "",
+    "TEMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\temp",
+    "TMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\temp",
+    "TMPDIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\temp",
+    "ZIG_GLOBAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\cache\\global",
+    "ZIG_LOCAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\cache\\local"
+  },
+  "startUtc": "2026-09-14T04:01:10.4443444Z",
+  "pid": 57664,
+  "status": 0,
+  "endUtc": "2026-09-14T04:01:23.0721772Z",
+  "stdout": {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot-review-er\\runs\\build\\stdout.raw",
+    "bytes": 302,
+    "sha256": "c89c7e342f7d0356088c0d781dc425f310515c741beb126f2d66ebb13f3c47e7"
+  },
+  "stderr": {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot-review-er\\runs\\build\\stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

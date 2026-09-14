@@ -1,0 +1,128 @@
+[
+  {
+    "name": "build.json",
+    "bytes": 4779,
+    "sha256": "8e29ffa676c0643b9caadc54142639803bae6b2baea956d2b7b21ca9ac68fa33",
+    "committedBinary": false
+  },
+  {
+    "name": "candidate.node",
+    "bytes": 173568,
+    "sha256": "66bee62804fa30196a384fd202d373d83511dbd4fb2e120d6a9a3f39b8dee170",
+    "committedBinary": false
+  },
+  {
+    "name": "candidate.pdb",
+    "bytes": 1044480,
+    "sha256": "024048e5828924c0984c47adb7b11f1afb86363aba2b0495c3040b5cd3fedb02",
+    "committedBinary": false
+  },
+  {
+    "name": "candidate.result.json",
+    "bytes": 2919,
+    "sha256": "dace8ea9403218be73254ff66eaa7c4c292095d2c3b5f1854370a40f001e3086",
+    "committedBinary": false
+  },
+  {
+    "name": "candidate.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "committedBinary": false
+  },
+  {
+    "name": "candidate.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "committedBinary": false
+  },
+  {
+    "name": "compiler-version.result.json",
+    "bytes": 2080,
+    "sha256": "1a48de31bca64454715bf3f440c64f6b0c372c4a52906d6587701cae295776b7",
+    "committedBinary": false
+  },
+  {
+    "name": "compiler-version.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "committedBinary": false
+  },
+  {
+    "name": "compiler-version.stdout",
+    "bytes": 7,
+    "sha256": "355a2e14f6a7f2cb387d9d3b75a3550980d020ee1d005b139b62290c1645068a",
+    "committedBinary": false
+  },
+  {
+    "name": "inputs.json",
+    "bytes": 3662,
+    "sha256": "bb330fdbebe1e614d8d3ae245ca5c864b9f95ec71aa072bc89335ddf648b4d53",
+    "committedBinary": false
+  },
+  {
+    "name": "mapping.lib",
+    "bytes": 1848,
+    "sha256": "779e9f86c5173e93f7525d9dc479729be29887a2aef91842572d17f483d3f7ff",
+    "committedBinary": false
+  },
+  {
+    "name": "size-mismatch.node",
+    "bytes": 173568,
+    "sha256": "103f5459c633b6fea818acfa83ccf70605752f177c8c5457d382c2b31e0f5259",
+    "committedBinary": false
+  },
+  {
+    "name": "size-mismatch.pdb",
+    "bytes": 1044480,
+    "sha256": "119371224208698540936ed23439b92319a197800ade53267de6aad3ce54a32e",
+    "committedBinary": false
+  },
+  {
+    "name": "size-mismatch.result.json",
+    "bytes": 2960,
+    "sha256": "454b64b9cf7d373ff0954ce6f48decc1309bac5c4c9d224c07c52da78ca112f0",
+    "committedBinary": false
+  },
+  {
+    "name": "size-mismatch.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "committedBinary": false
+  },
+  {
+    "name": "size-mismatch.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "committedBinary": false
+  },
+  {
+    "name": "version-mismatch.node",
+    "bytes": 173568,
+    "sha256": "4196dc1c2aebeb1e3233b9c2f57f407beb6e2e4ec16c226c10d3bebefe0e21c7",
+    "committedBinary": false
+  },
+  {
+    "name": "version-mismatch.pdb",
+    "bytes": 1044480,
+    "sha256": "ddbc048cad1100f6051b5b07912d5ceb859c58c98365a19dec254577d3ff55c7",
+    "committedBinary": false
+  },
+  {
+    "name": "version-mismatch.result.json",
+    "bytes": 2964,
+    "sha256": "66e7a76e967f8e0465572482abf120a9c58ba2d1bcec7c87f0a19787b2d79d43",
+    "committedBinary": false
+  },
+  {
+    "name": "version-mismatch.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "committedBinary": false
+  },
+  {
+    "name": "version-mismatch.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "committedBinary": false
+  }
+]

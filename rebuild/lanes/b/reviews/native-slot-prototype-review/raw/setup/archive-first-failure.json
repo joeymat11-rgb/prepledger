@@ -1,0 +1,23 @@
+{
+  "step": "first public custody copy",
+  "exitCode": 1,
+  "error": "Binary/archive is not a review artifact",
+  "cause": "The compiler also produced import .lib side outputs; the initial source-only copy loop excluded .node but its protective binary guard refused .lib.",
+  "effect": "Binary guard refused import .lib. Any PDB copied before that refusal was moved back to ignored own scratch with exact hashes before staging; no binary was committed. No candidate/build/test/source outcome changed.",
+  "correction": "Inventory all outputs; copy only .json/.stdout/.stderr build records, verify identical existing text copies, and resume documentation-only custody.",
+  "binaryCopiesHeldInScratch": [
+    {
+      "source": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\rebuild\\lanes\\b\\reviews\\native-slot-prototype-review\\raw\\build\\version-mismatch.pdb",
+      "destination": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot-review-er\\held-archive-binary-copies\\version-mismatch.pdb",
+      "bytes": 1044480,
+      "sha256": "ddbc048cad1100f6051b5b07912d5ceb859c58c98365a19dec254577d3ff55c7"
+    },
+    {
+      "source": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\rebuild\\lanes\\b\\reviews\\native-slot-prototype-review\\raw\\build\\size-mismatch.pdb",
+      "destination": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot-review-er\\held-archive-binary-copies\\size-mismatch.pdb",
+      "bytes": 1044480,
+      "sha256": "119371224208698540936ed23439b92319a197800ade53267de6aad3ce54a32e"
+    }
+  ],
+  "metadataCorrection": "The first copy-total aggregation over ordered dictionaries produced null; recomputed the byte total from the serialized verified rows before staging. File hashes and copies were unchanged."
+}

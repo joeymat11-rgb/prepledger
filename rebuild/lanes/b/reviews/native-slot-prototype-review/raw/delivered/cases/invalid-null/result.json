@@ -1,0 +1,58 @@
+{
+  "label": "invalid-null",
+  "start": "2026-09-14T04:02:48.965Z",
+  "end": "2026-09-14T04:02:49.057Z",
+  "operatorPid": 55476,
+  "executable": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\runtime\\node.exe",
+  "args": [
+    "--test",
+    "--test-reporter=tap",
+    "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\runs\\er-delivered-one\\cases\\invalid-null\\writer.test.cjs"
+  ],
+  "cwd": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er",
+  "environment": {
+    "SystemRoot": "C:\\WINDOWS",
+    "WINDIR": "C:\\WINDOWS",
+    "SystemDrive": "C:",
+    "ComSpec": "C:\\WINDOWS\\System32\\cmd.exe",
+    "PATH": "C:\\WINDOWS\\System32",
+    "PATHEXT": ".COM;.EXE;.BAT;.CMD",
+    "NODE_OPTIONS": "",
+    "NODE_PATH": "",
+    "TEMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\temp",
+    "TMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\temp",
+    "TMPDIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\temp",
+    "ZIG_GLOBAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\cache\\global",
+    "ZIG_LOCAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\cache\\local",
+    "EARNED_SLOT_BINARY": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\builds\\er-independent-one\\candidate.node",
+    "SLOT_LOADER": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\rebuild\\lanes\\b\\tooling\\native-slot-prototype\\loader.cjs",
+    "SLOT_DESCRIPTOR": "{\"name\":\"Local\\\\EarnedSlot-23b0eab516e594a619d8d0cf5785212f\",\"nonce\":\"625ef4a539274f95967c1192feaf02cf\",\"ownerPid\":55476,\"version\":1,\"bytes\":64}",
+    "SLOT_CONFIG": "{\"mode\":\"invalid\",\"invalid\":\"null\"}",
+    "SLOT_TRACE": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\runs\\er-delivered-one\\cases\\invalid-null\\trace.json",
+    "SLOT_DIAGNOSTIC": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\runs\\er-delivered-one\\cases\\invalid-null\\diagnostic.txt"
+  },
+  "outerPid": 64144,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "census": {
+    "tests": 1,
+    "suites": 0,
+    "pass": 1,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "firstFailure": null,
+  "writerSourceSha256": "0ede681b18fd616a44e4469322b7634edf1ff202d39f848a4bb268488cd0ded8",
+  "stdoutSha256": "4363eef1c73fcc118c80fd28c00510e2deb0747a6b56b4538b3e99d4f07ed479",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "trace": {
+    "pid": 61008,
+    "parentPid": 64144,
+    "ownerPid": 55476,
+    "mode": "invalid"
+  },
+  "diagnostic": null
+}
