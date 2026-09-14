@@ -1,0 +1,52 @@
+{
+  "source": "0282f3f2cf2d8f6d994c4d65451d14420555311b",
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern=PM354|PM348 termination assumption|PM348 actual exit dispatch|PM350 async work scheduled",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+  ],
+  "files": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 47308,
+      "sha256": "2034c081d42035472d3c1722b2f85ab94bfe581d4f147920ecfec5052ac678ec"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "bytes": 196822,
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 14364,
+      "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 51829,
+      "sha256": "908857e9baa84d4baa63b688e190eec13103de648e0f18754d8f65ad63e7206e"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "2a9acf634da21bbd53de3489f10ae70b6d94245c47cb66c346cc136c1d277d66"
+    },
+    {
+      "path": ".tmp/runtime/node.exe",
+      "bytes": 86997320,
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/v8-closure.before-import.json",
+      "bytes": 5819,
+      "sha256": "b00749aeb6bc85f2b8b93dea4a9d12ecbfd8fe93fb4aed0af3794950f7d44124"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/promise-function-inputs.json",
+      "bytes": 2126,
+      "sha256": "489d61f58f787dabdce4286f3a2790481e07eec663fc5761f8fe277eec68a82c"
+    }
+  ],
+  "closure": "PM354 plus358: selected public v8 complete newly eager modules inspected;16 source pins/cache routes and native boundaries recorded before import. Existing observer-owned kNoPromiseHook only; public promiseHooks.createHook init/settled flags and direct pinned stop. Original operator and original comparison/validation unchanged. Actual owned four-test children only."
+}

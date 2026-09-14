@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "authority": "PM372 under356 clause2; reviewer-only after first assessment",
+  "purpose": "Static intervening rirPlan-to-stored-effort producer trace during final reconciliation",
+  "files": [
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/engine-capture.cjs",
+      "bytes": 10716,
+      "sha256": "309c75d82a036b24b09ebc6668ea73065aa76de5638b2dee3da18d9067e08785",
+      "kind": "prepared-prescription-producer-static-only"
+    }
+  ],
+  "limits": "D2 only in its owned science tree for final reconciliation. No imports/evaluation/tests/private/dependency expansion. Original72 inventory, supplements1/2 and immutable E package/coverage remain unchanged. Record post-first-assessment source access separately."
+}

@@ -1,16 +1,16 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: B prototype0282f3f2 remains unaccepted after actual resource-probe failure d05ef3e9. B/MAX364 finishes immutable limitation/public custody and at most two source-only alternatives; no repeated known-refuted full suite or new implementation. ER stays LOW/paused until reviewable successor. E/MAX science author and D2/MAX independent verifier continue owner356/360 audit:72 pinned public rows plus one composition input,12 questions, no policy/product execution. E346 isolated build support and earlier B322/E324/C294 scopes remain accepted. I waits accepted capture for one assembly; full native/history/import/memory/phone proof remains. Existing Codex usage only.
+PM checkpoint2026-09-13: complete B limitation/planning48d53673 and archiveb69b870c verified;185 exact copies174283bytes, three phases and original failures retained. B LOW/paused. ER/MAX368 now independently checks source feasibility before another implementation, no product run/install or accepted architecture. Science author E4a6a3335 complete LOW; independent-first D2cc995900 now MAX370 reconciles all12 author dispositions/U1-U8.372 adds one reviewer-only static producer input; original72/shared supplements/E coverage preserved. No new science policy or release hold. Earlier E346/B322/E324/C294 scopes and prepared A remain; native/history/memory/import/phone proof still open. Existing usage only.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX364: finish limitation/public custody and source-only alternatives after resource refutation; no new implementation | earned-astra-b-follow-up; hourly during substantive repair, then paused320 |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW: complete limitation/planning48d53673 and archiveb69b870c; wait exact feasible next scope | earned-astra-b-follow-up; PAUSED320 |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; PAUSED waiting; direct PM handoff |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX356: independent science audit against exact public input inventory, source-first then author reconciliation | earned-lane-d2-requests; hourly substantive work, then paused320 |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: complete352 first/final REJECT R1; exact successor gets MAX review | earned-astra-engine-review-follow-up; PAUSED320 |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | MAX356: focused science audit author; prior build support346 remains accepted | earned-astra-e-follow-up; hourly substantive work, then paused320 |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX370/372: reconcile exact E package after independent firstcc995900; static producer input added | earned-lane-d2-requests; hourly substantive work, then paused320 |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX368: independent source-only capture feasibility assessment; no product execution | earned-astra-engine-review-follow-up; hourly substantive work, then paused320 |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: complete science author4a6a3335; prior build support346 remains accepted | earned-astra-e-follow-up; PAUSED320 |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
 
 ## Worktrees

@@ -1,0 +1,57 @@
+{
+  "authority": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+  "pins": [
+    {
+      "name": "promiseOnInit",
+      "bytes": 176,
+      "sha256": "c80c89b4be803759dadd0bd0a546520311cd9c5e57da8e6dad23ae7c8f75c3f6",
+      "source": "(hook) => {\r\n    validatePlainFunction(hook, `${name}Hook`);\r\n    ArrayPrototypePush(list, hook);\r\n    update();\r\n    return FunctionPrototypeBind(stop, null, list, hook);\r\n  }"
+    },
+    {
+      "name": "promiseOnSettled",
+      "bytes": 176,
+      "sha256": "c80c89b4be803759dadd0bd0a546520311cd9c5e57da8e6dad23ae7c8f75c3f6",
+      "source": "(hook) => {\r\n    validatePlainFunction(hook, `${name}Hook`);\r\n    ArrayPrototypePush(list, hook);\r\n    update();\r\n    return FunctionPrototypeBind(stop, null, list, hook);\r\n  }"
+    },
+    {
+      "name": "promiseStop",
+      "bytes": 29,
+      "sha256": "0b57ab05538ff09a83dc6159fb7e5e46c4188ee02fe567ce5e1a1ef6823d6e30",
+      "source": "function () { [native code] }"
+    },
+    {
+      "name": "promiseStopSettled",
+      "bytes": 29,
+      "sha256": "0b57ab05538ff09a83dc6159fb7e5e46c4188ee02fe567ce5e1a1ef6823d6e30",
+      "source": "function () { [native code] }"
+    },
+    {
+      "name": "Reflect.apply",
+      "bytes": 34,
+      "sha256": "b56be1b445ff9dbb9009d30888d5ae8d62eee7e16711bb99efd3f0b5247b62c3",
+      "source": "function apply() { [native code] }"
+    }
+  ],
+  "flag": {
+    "description": "kNoPromiseHook",
+    "own": true,
+    "descriptor": {
+      "value": false,
+      "writable": true,
+      "enumerable": true,
+      "configurable": true
+    },
+    "source": "internal/async_hooks:587; async_hooks:93,124-126; internal/async_hooks:202-204,239-241"
+  },
+  "newLoads": [
+    "Internal Binding serdes",
+    "Internal Binding profiler",
+    "Internal Binding heap_utils",
+    "Internal Binding internal_only_v8",
+    "NativeModule internal/heap_utils",
+    "NativeModule internal/promise_hooks",
+    "Internal Binding v8",
+    "NativeModule v8"
+  ],
+  "registrationProbe": "Only fixed boolean callbacks registered and each captured stop called immediately; no heap/profiler/serialization API invoked."
+}

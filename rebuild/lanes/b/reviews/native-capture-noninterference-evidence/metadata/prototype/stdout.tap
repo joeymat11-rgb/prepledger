@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: PM348 actual exit dispatch restores descriptors before publication and preserves delegation
+ok 1 - PM348 actual exit dispatch restores descriptors before publication and preserves delegation
+  ---
+  duration_ms: 2935.5423
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-microtask
+ok 2 - PM348 termination assumption regression-exit-microtask
+  ---
+  duration_ms: 1345.2341
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-nexttick
+ok 3 - PM348 termination assumption regression-exit-nexttick
+  ---
+  duration_ms: 961.3846
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-nested-microtask
+ok 4 - PM348 termination assumption regression-exit-nested-microtask
+  ---
+  duration_ms: 1400.4166
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-promise
+ok 5 - PM348 termination assumption regression-exit-promise
+  ---
+  duration_ms: 1379.6472
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-async-await
+ok 6 - PM348 termination assumption regression-exit-async-await
+  ---
+  duration_ms: 1333.6216
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-precreated-promise
+ok 7 - PM348 termination assumption regression-exit-precreated-promise
+  ---
+  duration_ms: 1441.9369
+  type: 'test'
+  ...
+# Subtest: PM350 async work scheduled by completion validation is observed
+ok 8 - PM350 async work scheduled by completion validation is observed
+  ---
+  duration_ms: 1374.2262
+  type: 'test'
+  ...
+# Subtest: PM354 precreated frozen Promise preserves real child outcome reaction and own state
+ok 9 - PM354 precreated frozen Promise preserves real child outcome reaction and own state
+  ---
+  duration_ms: 1862.8933
+  type: 'test'
+  ...
+# Subtest: PM354 precreated sealed Promise preserves real child outcome reaction and own state
+ok 10 - PM354 precreated sealed Promise preserves real child outcome reaction and own state
+  ---
+  duration_ms: 1954.7951
+  type: 'test'
+  ...
+# Subtest: PM354 precreated nonextensible Promise preserves real child outcome reaction and own state
+ok 11 - PM354 precreated nonextensible Promise preserves real child outcome reaction and own state
+  ---
+  duration_ms: 1895.5409
+  type: 'test'
+  ...
+# Subtest: PM354 precreated plain Promise preserves real child outcome reaction and own state
+ok 12 - PM354 precreated plain Promise preserves real child outcome reaction and own state
+  ---
+  duration_ms: 1908.6926
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 19954.3145

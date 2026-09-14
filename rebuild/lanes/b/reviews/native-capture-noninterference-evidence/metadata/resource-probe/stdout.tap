@@ -1,0 +1,66 @@
+TAP version 13
+# Subtest: PM362 actual non-Promise resource preserves getter and natural outcome parity
+not ok 1 - PM362 actual non-Promise resource preserves getter and natural outcome parity
+  ---
+  duration_ms: 1926.6058
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-noninterference\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:147:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM362 capture must not add an application resource failure
+    + actual - expected
+    
+      {
+    +   cancelled: null,
+    +   childExit: 1,
+    -   cancelled: 0,
+    -   childExit: 0,
+        childSignal: null,
+    +   fail: null,
+    +   pass: null,
+    +   skipped: null,
+    +   tests: null,
+    +   todo: null
+    -   fail: 0,
+    -   pass: 4,
+    -   skipped: 0,
+    -   tests: 4,
+    -   todo: 0
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    childExit: 0
+    childSignal: ~
+    tests: 4
+    pass: 4
+    fail: 0
+    cancelled: 0
+    skipped: 0
+    todo: 0
+  actual:
+    childExit: 1
+    childSignal: ~
+    tests: ~
+    pass: ~
+    fail: ~
+    cancelled: ~
+    skipped: ~
+    todo: ~
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-noninterference\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:153:9)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2046.5744

@@ -1,0 +1,159 @@
+{
+  "authority": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+  "runtime": {
+    "version": "v22.23.2",
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "entries": [
+    {
+      "id": "v8",
+      "bytes": 14640,
+      "sha256": "8fe706c183a6f0677a5b7147a550a066c6d4368d53a834fbb2b83e61895e9346",
+      "cachedBeforeImport": false,
+      "review": "entire 1-482"
+    },
+    {
+      "id": "buffer",
+      "bytes": 41521,
+      "sha256": "bcfb02de2947519a5bf5f6ff375cd3ed13f30e246b9a207300b58e3abd1b58ec",
+      "cachedBeforeImport": true,
+      "review": "existing cached builtin export only; module body is not reexecuted by v8 require"
+    },
+    {
+      "id": "internal/validators",
+      "bytes": 19145,
+      "sha256": "20e552e4b034c71d6feb343bcc676b6dc13d3eb1d0613e20da26fd73168ca8bb",
+      "cachedBeforeImport": true,
+      "review": "existing cached builtin export only; module body is not reexecuted by v8 require"
+    },
+    {
+      "id": "internal/v8/startup_snapshot",
+      "bytes": 3890,
+      "sha256": "ac2b4123936484e4899252cb5359b6b3b583f7630f5508e5455a27a3d41ad815",
+      "cachedBeforeImport": true,
+      "review": "entire 1-131"
+    },
+    {
+      "id": "internal/assert",
+      "bytes": 467,
+      "sha256": "010606835f1b3e2b6c15c29bda0d73789469380e0abd89a4e20d196f3f23f9bb",
+      "cachedBeforeImport": true,
+      "review": "existing cached builtin export only; module body is not reexecuted by v8 require"
+    },
+    {
+      "id": "internal/util/inspect",
+      "bytes": 95612,
+      "sha256": "5ffca482fd4dfffbd2f3f8adcbae126b23d6785c201ef6d76b1bfbf660c1fdbd",
+      "cachedBeforeImport": true,
+      "review": "existing cached builtin export only; module body is not reexecuted by v8 require"
+    },
+    {
+      "id": "internal/buffer",
+      "bytes": 32528,
+      "sha256": "aab9a9a68424ce861b237739b6258a6027ee414e952cd7ac39b3bfc2c939669d",
+      "cachedBeforeImport": true,
+      "review": "existing cached builtin export only; module body is not reexecuted by v8 require"
+    },
+    {
+      "id": "internal/fs/utils",
+      "bytes": 28285,
+      "sha256": "544eba3d86f836cd21d7243c7b54966061d67b4eb55f485560d2647dc27cea00",
+      "cachedBeforeImport": true,
+      "review": "existing cached builtin export only; module body is not reexecuted by v8 require"
+    },
+    {
+      "id": "internal/heap_utils",
+      "bytes": 2555,
+      "sha256": "bdbbd9cb7e461f839f9b0d3440bd60ff34c2ec9a501112370705568cb4551b7a",
+      "cachedBeforeImport": false,
+      "review": "entire 1-97"
+    },
+    {
+      "id": "internal/promise_hooks",
+      "bytes": 3200,
+      "sha256": "30a555b933f6ef49f0c93001fce25eca042f301a74e785dd95af94521c265a1e",
+      "cachedBeforeImport": false,
+      "review": "entire 1-127"
+    },
+    {
+      "id": "internal/options",
+      "bytes": 3224,
+      "sha256": "effe1d5cd2803f1fc663248f933c70de1656b8b50d2268b7c22c09cf8d12571d",
+      "cachedBeforeImport": true,
+      "review": "existing cached builtin export only; module body is not reexecuted by v8 require"
+    },
+    {
+      "id": "internal/stream_base_commons",
+      "bytes": 7350,
+      "sha256": "1717240a06d8b16675c6ee1af4c4814ff2aeda211b47ac69b61ad04acd438700",
+      "cachedBeforeImport": true,
+      "review": "existing cached builtin export only; module body is not reexecuted by v8 require"
+    },
+    {
+      "id": "internal/async_hooks",
+      "bytes": 21142,
+      "sha256": "ba3796c9c95212cad67561d13924865defbf5dd59c6fb7c5237cab194639e53c",
+      "cachedBeforeImport": true,
+      "review": "existing350/354 ranges and exact identity"
+    },
+    {
+      "id": "stream",
+      "bytes": 5247,
+      "sha256": "f93c8e3439191d349e4e1826d4ee08a5881fc10390036538eb11468390efd120",
+      "cachedBeforeImport": true,
+      "review": "existing cached builtin export only; module body is not reexecuted by v8 require"
+    },
+    {
+      "id": "internal/errors",
+      "bytes": 71343,
+      "sha256": "b9af59ffba4fe768ddb48a484cd5370004961cac5d4a0f5905a5c9307026d14d",
+      "cachedBeforeImport": true,
+      "review": "existing cached builtin export only; module body is not reexecuted by v8 require"
+    },
+    {
+      "id": "internal/util",
+      "bytes": 29682,
+      "sha256": "2e5eb87114e5b919b248bbfa6c3a43f07bc49884cd3a48653a346916614dd691",
+      "cachedBeforeImport": true,
+      "review": "existing cached builtin export only; module body is not reexecuted by v8 require"
+    }
+  ],
+  "eagerPrograms": [
+    "v8",
+    "internal/heap_utils",
+    "internal/promise_hooks"
+  ],
+  "loadRoutes": {
+    "v8": [
+      "buffer",
+      "internal/validators",
+      "internal/v8/startup_snapshot",
+      "internal/assert",
+      "internal/util/inspect",
+      "internal/buffer",
+      "internal/fs/utils",
+      "internal/heap_utils",
+      "internal/promise_hooks",
+      "internal/options"
+    ],
+    "internal/heap_utils": [
+      "internal/stream_base_commons",
+      "internal/async_hooks",
+      "stream",
+      "internal/validators",
+      "internal/errors",
+      "internal/util",
+      "internal/util/inspect"
+    ],
+    "internal/promise_hooks": [
+      "internal/util",
+      "internal/validators"
+    ]
+  },
+  "opaque": [
+    "Node builtin cache/loader and primordials from pinned runtime",
+    "Native serdes/config/profiler/heap_utils/v8/internal_only_v8 bindings referenced at module initialization; no exposed heap/profiler/snapshot/serialization call",
+    "Native async_wrap.setPromiseHooks and errors.triggerUncaughtException"
+  ],
+  "note": "Complete newly executed eager JS modules read before importing v8. Other named dependencies are already-loaded modules under the existing helper builtin prefix, source-pinned and used only for exported references at this load. No claim that all dormant formatter/stream/heap implementations were reviewed."
+}

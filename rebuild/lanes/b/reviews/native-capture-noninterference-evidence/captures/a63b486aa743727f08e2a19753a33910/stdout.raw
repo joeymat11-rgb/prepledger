@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: PM354 preserved 1
+ok 1 - PM354 preserved 1
+  ---
+  duration_ms: 0.3987
+  type: 'test'
+  ...
+# Subtest: PM354 preserved 2
+ok 2 - PM354 preserved 2
+  ---
+  duration_ms: 0.0669
+  type: 'test'
+  ...
+# Subtest: PM354 preserved 3
+ok 3 - PM354 preserved 3
+  ---
+  duration_ms: 0.0387
+  type: 'test'
+  ...
+# Subtest: PM354 actual helper and unchanged Promise
+ok 4 - PM354 actual helper and unchanged Promise
+  ---
+  duration_ms: 826.6099
+  type: 'test'
+  ...
+# node:internal/async_hooks:324
+#   promise[async_id_symbol] = newAsyncId();
+#                            ^
+# TypeError: Cannot add property Symbol(async_id_symbol), object is not extensible
+#     at trackPromise (node:internal/async_hooks:324:28)
+#     at promiseResolveHook (node:internal/async_hooks:370:3)
+#     at <anonymous>
+#     at process.<anonymous> (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-noninterference\\work\\pm-caretaker\\b1b2-native-capture\\.tmp\\native-capture-tests\\noninterference-child.cjs:19:40)
+#     at Object.onceWrapper (node:events:634:26)
+#     at process.emit (node:events:519:28)
+#     at process.capturedExit [as emit] (C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-noninterference\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\m4\\workout\\test\\b1b2-evidence.cjs:504:30)
+# Node.js v22.23.2
+# Subtest: C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-noninterference\\work\\pm-caretaker\\b1b2-native-capture\\.tmp\\native-capture-tests\\noninterference-child.cjs
+not ok 1 - C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-noninterference\\work\\pm-caretaker\\b1b2-native-capture\\.tmp\\native-capture-tests\\noninterference-child.cjs
+  ---
+  duration_ms: 883.4621
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-noninterference\\work\\pm-caretaker\\b1b2-native-capture\\.tmp\\native-capture-tests\\noninterference-child.cjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 4
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 890.4079

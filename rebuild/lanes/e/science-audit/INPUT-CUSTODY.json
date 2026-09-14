@@ -1,0 +1,1393 @@
+{
+  "authority": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+  "base": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+  "fullIndexEntries": 2146,
+  "fullIndexTree": "811b5d9bb26c46fd3bcd9a43cf40bbeff568b4e7",
+  "readMode": "Public Git blobs and static text only. No product module evaluation, application/test/native-gate execution, or seed/migration/fixture/history-provider loading. Protected private athlete/history artifacts were not read; historical public research context was not treated as a current profile.",
+  "rows": [
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "GOALS.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 5079,
+      "sha256": "407b6b6b85813944c423d69eb3e0deb972ed0e7f217d896e0df77598f8453467",
+      "local": ".tmp/science-inputs/D/GOALS.md",
+      "lines": 126,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [],
+      "additionalInspection": "Charter selected earlier; historical profile is not a current applicability fact."
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "research-brief.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 28198,
+      "sha256": "98c82cdea5d814bc06cf7e0a153307c3004613395968757b9450147cd62a4ed9",
+      "local": ".tmp/science-inputs/D/research-brief.md",
+      "lines": 448,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [
+        [
+          310,
+          448
+        ]
+      ],
+      "additionalInspection": "Selected original corpus sections and later negative findings; some broad output was truncated."
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "RESEARCH-DESIGN.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 40920,
+      "sha256": "348cbac8f755dbc22b076d638a9e4a2e6cbab0d4d3bfb762b81ce5074c532d6e",
+      "local": ".tmp/science-inputs/D/RESEARCH-DESIGN.md",
+      "lines": 739,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          70,
+          114
+        ],
+        [
+          221,
+          272
+        ]
+      ]
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "NUTRITION-TDEE-VERDICT.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 10259,
+      "sha256": "87c8dcbc2cf4f869ec53a75a462c2f6343a38c61e39a6d15d721e82d6752cb2d",
+      "local": ".tmp/science-inputs/D/NUTRITION-TDEE-VERDICT.md",
+      "lines": 160,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          160
+        ]
+      ]
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "PROGRESSION-ENGINE-AUDIT.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 74301,
+      "sha256": "f1b8e07860c748e6c936df2a06610e5f71d69184773607be8e396e59ddb4eae6",
+      "local": ".tmp/science-inputs/D/PROGRESSION-ENGINE-AUDIT.md",
+      "lines": 569,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [
+        [
+          1,
+          178
+        ],
+        [
+          227,
+          301
+        ]
+      ],
+      "additionalInspection": "Selected prior corrections, noise and source-attribution sections; no complete 74KB document review claimed."
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/conform/gates/inputs/EARNED-SOURCE-INGESTION-PROTOCOL-v1.1.txt",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 52248,
+      "sha256": "9e777a27d8231930d1340039e3499f489c92fd39fe75fa9a37c912e2e534a740",
+      "local": ".tmp/science-inputs/D/rebuild/conform/gates/inputs/EARNED-SOURCE-INGESTION-PROTOCOL-v1.1.txt",
+      "lines": 542,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/conform/gates/inputs/EARNED-RUNTIME-SHEET-v1.7.38.txt",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 426600,
+      "sha256": "604d8cc4c23baff85d4378270c8bbff26db1933f651ad3058c61ce7416476721",
+      "local": ".tmp/science-inputs/D/rebuild/conform/gates/inputs/EARNED-RUNTIME-SHEET-v1.7.38.txt",
+      "lines": 3918,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/lanes/c/N1-NUTRITION-BRIEF.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 18774,
+      "sha256": "0aa0bcc1416e24ab354079ea9034d2da5df27c21d121867e1904d79a516964fe",
+      "local": ".tmp/science-inputs/D/rebuild/lanes/c/N1-NUTRITION-BRIEF.md",
+      "lines": 229,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [],
+      "additionalInspection": "Selected H3, target-availability, display and acceptance references located by source search."
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/m2/AUDIT-REGISTER.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 62638,
+      "sha256": "b1732189c5a0588d43428ac29f0d80ab32b72c5bf26864f29fc17f97c6ebaaa4",
+      "local": ".tmp/science-inputs/D/rebuild/m2/AUDIT-REGISTER.md",
+      "lines": 537,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "searches": [
+        {
+          "pattern": "observedTDEE|energyAvailability|energyBalanceTarget|proteinTarget|volumeImbalance|partitionRates|partitionPrior|tdeeLearned|dietExit|sleepInfo|typicalError|beatsNoise|Craven|Nuzzo|Sanghvi|HYP_SDES|bodyAlarm",
+          "lines": [
+            124,
+            140,
+            144,
+            164,
+            172,
+            176,
+            344
+          ],
+          "read": "matched line excerpts only, max420chars"
+        }
+      ],
+      "requestedLineRanges": [
+        [
+          113,
+          179
+        ],
+        [
+          272,
+          292
+        ]
+      ],
+      "additionalInspection": "Named D8/D11/D15/D16/D21/D25/D27/D28/D37 entries and selected surrounding text; no personal LIVE-state verification."
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/m2/OWNER-RULING-PACK-M2.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 5579,
+      "sha256": "2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9",
+      "local": ".tmp/science-inputs/D/rebuild/m2/OWNER-RULING-PACK-M2.md",
+      "lines": 31,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          31
+        ]
+      ]
+    },
+    {
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/DECISIONS.md",
+      "kind": "prior-public-research-or-ruling",
+      "bytes": 452272,
+      "sha256": "b465e0ff75509304e9bf803fad8470e477f0c65ebca41230c5110c3595ecb1df",
+      "local": ".tmp/science-inputs/D/rebuild/DECISIONS.md",
+      "lines": 354,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [
+        [
+          124,
+          124
+        ],
+        [
+          142,
+          142
+        ]
+      ],
+      "additionalInspection": "Named rulings 124,142,193,194,306,320 and current-role controls; not all decisions."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/constants.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 23393,
+      "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "local": ".tmp/science-inputs/A/rebuild/engine/constants.cjs",
+      "lines": 431,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          195
+        ],
+        [
+          190,
+          237
+        ],
+        [
+          310,
+          351
+        ]
+      ]
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/constants.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 23393,
+      "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "local": ".tmp/science-inputs/M/rebuild/engine/constants.cjs",
+      "lines": 431,
+      "identityVerified": true,
+      "contentRead": "same bytes as inspected prepared input; not reread",
+      "requestedLineRanges": [],
+      "identicalToPrepared": true,
+      "analysisVia": "3bfed63febef002b8540d6ff3c56e19d08368711:rebuild/engine/constants.cjs"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/dates.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 1343,
+      "sha256": "b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067",
+      "local": ".tmp/science-inputs/A/rebuild/engine/dates.cjs",
+      "lines": 29,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/dates.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 1106,
+      "sha256": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "local": ".tmp/science-inputs/M/rebuild/engine/dates.cjs",
+      "lines": 26,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": [],
+      "identicalToPrepared": false
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/earn.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 11429,
+      "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "local": ".tmp/science-inputs/A/rebuild/engine/earn.cjs",
+      "lines": 106,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/earn.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 11429,
+      "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "local": ".tmp/science-inputs/M/rebuild/engine/earn.cjs",
+      "lines": 106,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": [],
+      "identicalToPrepared": true
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/energy.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 94493,
+      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "local": ".tmp/science-inputs/A/rebuild/engine/energy.cjs",
+      "lines": 1245,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          245
+        ],
+        [
+          245,
+          462
+        ],
+        [
+          462,
+          720
+        ],
+        [
+          680,
+          856
+        ],
+        [
+          866,
+          1042
+        ],
+        [
+          553,
+          680
+        ],
+        [
+          1040,
+          1127
+        ],
+        [
+          117,
+          144
+        ],
+        [
+          65,
+          114
+        ],
+        [
+          792,
+          847
+        ],
+        [
+          488,
+          525
+        ]
+      ]
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/energy.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 94493,
+      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "local": ".tmp/science-inputs/M/rebuild/engine/energy.cjs",
+      "lines": 1245,
+      "identityVerified": true,
+      "contentRead": "same bytes as inspected prepared input; not reread",
+      "requestedLineRanges": [],
+      "identicalToPrepared": true,
+      "analysisVia": "3bfed63febef002b8540d6ff3c56e19d08368711:rebuild/engine/energy.cjs"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/entered-load.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 906,
+      "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "local": ".tmp/science-inputs/A/rebuild/engine/entered-load.cjs",
+      "lines": 13,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/entered-load.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 906,
+      "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "local": ".tmp/science-inputs/M/rebuild/engine/entered-load.cjs",
+      "lines": 13,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": [],
+      "identicalToPrepared": true
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/index.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 1111,
+      "sha256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "local": ".tmp/science-inputs/A/rebuild/engine/index.cjs",
+      "lines": 34,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/index.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 1111,
+      "sha256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "local": ".tmp/science-inputs/M/rebuild/engine/index.cjs",
+      "lines": 34,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": [],
+      "identicalToPrepared": true
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/merge.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 84396,
+      "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "local": ".tmp/science-inputs/A/rebuild/engine/merge.cjs",
+      "lines": 1099,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/merge.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 84396,
+      "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "local": ".tmp/science-inputs/M/rebuild/engine/merge.cjs",
+      "lines": 1099,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": [],
+      "identicalToPrepared": true
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/performed.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 19479,
+      "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "local": ".tmp/science-inputs/A/rebuild/engine/performed.cjs",
+      "lines": 260,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/performed.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 19479,
+      "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "local": ".tmp/science-inputs/M/rebuild/engine/performed.cjs",
+      "lines": 260,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": [],
+      "identicalToPrepared": true
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/plan.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 19853,
+      "sha256": "4c6f981706694771501d3d050440eb4f9a62e64b6eac7c59ff9c4742dfaa7e93",
+      "local": ".tmp/science-inputs/A/rebuild/engine/plan.cjs",
+      "lines": 343,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/plan.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 19784,
+      "sha256": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "local": ".tmp/science-inputs/M/rebuild/engine/plan.cjs",
+      "lines": 343,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": [],
+      "identicalToPrepared": false
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/policy.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 56874,
+      "sha256": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870",
+      "local": ".tmp/science-inputs/A/rebuild/engine/policy.cjs",
+      "lines": 830,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "searches": [
+        {
+          "pattern": "observedTDEE|energyAvailability|energyBalanceTarget|proteinTarget|volumeImbalance|partitionRates|partitionPrior|tdeeLearned|dietExit|sleepInfo|typicalError|beatsNoise|Craven|Nuzzo|Sanghvi|HYP_SDES|bodyAlarm",
+          "lines": [
+            11,
+            12,
+            13,
+            20,
+            21,
+            22,
+            38,
+            84,
+            109,
+            111,
+            156,
+            306,
+            369,
+            370,
+            371,
+            380,
+            458,
+            527,
+            545,
+            598,
+            599,
+            658
+          ],
+          "read": "matched line excerpts only, max420chars"
+        }
+      ],
+      "requestedLineRanges": [
+        [
+          588,
+          681
+        ],
+        [
+          585,
+          659
+        ],
+        [
+          650,
+          698
+        ]
+      ],
+      "additionalInspection": "Additional source searches: autoPilotPolicy explanation 459; dietBreakHonest 511-516; current sentinel/cluster body read."
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/policy.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 56493,
+      "sha256": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "local": ".tmp/science-inputs/M/rebuild/engine/policy.cjs",
+      "lines": 827,
+      "identityVerified": true,
+      "contentRead": "selected static comparison hunks only",
+      "requestedLineRanges": [],
+      "identicalToPrepared": false,
+      "additionalInspection": "Comparison relevant to claims; no whole-file review asserted."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/progression.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 54604,
+      "sha256": "2384d12e5788fb01324a62d7bbc7fa7303a3e748f97ecd4a6f9a5c82975dbc7a",
+      "local": ".tmp/science-inputs/A/rebuild/engine/progression.cjs",
+      "lines": 904,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [
+        [
+          19,
+          63
+        ],
+        [
+          423,
+          446
+        ],
+        [
+          564,
+          618
+        ]
+      ],
+      "additionalInspection": "Additional target/anchor source searches and comparison hunks; full record-classification implementation not claimed."
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/progression.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 53582,
+      "sha256": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "local": ".tmp/science-inputs/M/rebuild/engine/progression.cjs",
+      "lines": 891,
+      "identityVerified": true,
+      "contentRead": "selected static comparison hunks only",
+      "requestedLineRanges": [],
+      "identicalToPrepared": false,
+      "additionalInspection": "Comparison relevant to claims; no whole-file review asserted."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/sleep.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 188103,
+      "sha256": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8",
+      "local": ".tmp/science-inputs/A/rebuild/engine/sleep.cjs",
+      "lines": 1987,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [
+        [
+          54,
+          192
+        ],
+        [
+          217,
+          293
+        ],
+        [
+          1048,
+          1069
+        ]
+      ],
+      "additionalInspection": "Additional currentSleepObservation/cleanAtDate/sleepMean3At/sleepInfo and recovery source searches/comparison hunks."
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/sleep.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 185229,
+      "sha256": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "local": ".tmp/science-inputs/M/rebuild/engine/sleep.cjs",
+      "lines": 1958,
+      "identityVerified": true,
+      "contentRead": "selected static comparison hunks only",
+      "requestedLineRanges": [],
+      "identicalToPrepared": false,
+      "additionalInspection": "Comparison relevant to claims; no whole-file review asserted."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/today.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 48911,
+      "sha256": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
+      "local": ".tmp/science-inputs/A/rebuild/engine/today.cjs",
+      "lines": 654,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          230,
+          336
+        ],
+        [
+          423,
+          462
+        ],
+        [
+          483,
+          590
+        ],
+        [
+          66,
+          128
+        ]
+      ]
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/today.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 46420,
+      "sha256": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "local": ".tmp/science-inputs/M/rebuild/engine/today.cjs",
+      "lines": 633,
+      "identityVerified": true,
+      "contentRead": "selected static comparison hunks only",
+      "requestedLineRanges": [],
+      "identicalToPrepared": false,
+      "additionalInspection": "Comparison relevant to claims; no whole-file review asserted."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/volume.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 25485,
+      "sha256": "d58159bc0c098983fa1db6a1f8542d93611537934fca2b2a17bae236bcacd321",
+      "local": ".tmp/science-inputs/A/rebuild/engine/volume.cjs",
+      "lines": 319,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          208
+        ],
+        [
+          98,
+          153
+        ]
+      ]
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/volume.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 23465,
+      "sha256": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "local": ".tmp/science-inputs/M/rebuild/engine/volume.cjs",
+      "lines": 308,
+      "identityVerified": true,
+      "contentRead": "selected static comparison hunks only",
+      "requestedLineRanges": [],
+      "identicalToPrepared": false,
+      "additionalInspection": "Comparison relevant to claims; no whole-file review asserted."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/writers.cjs",
+      "kind": "prepared-engine-static",
+      "bytes": 261840,
+      "sha256": "7e8ba66e82a24983e98d063fe948838f77ec168b52515cdfe2e6483291027494",
+      "local": ".tmp/science-inputs/A/rebuild/engine/writers.cjs",
+      "lines": 2946,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [
+        [
+          791,
+          826
+        ],
+        [
+          823,
+          861
+        ]
+      ],
+      "additionalInspection": "rirPlan body 791-841 read; targeted genSession/liftCall references; no writer executed or full-file review."
+    },
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/writers.cjs",
+      "kind": "integrated-launch-comparison-static",
+      "bytes": 259235,
+      "sha256": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+      "local": ".tmp/science-inputs/M/rebuild/engine/writers.cjs",
+      "lines": 2929,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": [],
+      "identicalToPrepared": false
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/checkin-model.mjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 15572,
+      "sha256": "d449518578bd57431fd8a79c174fdde1208c5eccced9156070411844af794a22",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/today/checkin-model.mjs",
+      "lines": 297,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 23260,
+      "sha256": "9f7116bb679eb53ead6d5ea8000e8534a5bfc94e2042e3b0b36e57f272cd52e3",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+      "lines": 325,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/food-model.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 6181,
+      "sha256": "1552309c0c4368ece9aca169338df7b1c02a4d2c6f28bb3b0af8c385ebe15c5c",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/today/food-model.cjs",
+      "lines": 125,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          125
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/gym-model.mjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 28009,
+      "sha256": "6e2361035adf9e677d2a2499b54395ab738e71debaa2e2df9bc29b5cdca42fc3",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/today/gym-model.mjs",
+      "lines": 492,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [
+        [
+          1,
+          78
+        ],
+        [
+          122,
+          143
+        ]
+      ],
+      "additionalInspection": "Actual engine.genSession call 136 inspected; 169-170 is a comment, not a current call-site proof."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 13697,
+      "sha256": "a9a675061f3bc9fa791fb724b8ef111aa2a0ae45c363afd1c13ff70f9d641a73",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/today/plain-copy.cjs",
+      "lines": 305,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 36183,
+      "sha256": "54c7c6e06c74aba0cfd135ab71fab8b595b884d8e86934fd4a1e2dab82d463e0",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/today/setup-model.mjs",
+      "lines": 678,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          125
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/sleep-model.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 11250,
+      "sha256": "eff392a49fd067dbcc01648a27df3a5dddd55ad5328873b07a8f0006ebd1afe3",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/today/sleep-model.cjs",
+      "lines": 232,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/starter-week.mjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 7387,
+      "sha256": "8b4f257133daffc73696e2e642a568984a22af36808456fd3e350aa88987f069",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/today/starter-week.mjs",
+      "lines": 162,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          60
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 116877,
+      "sha256": "18c79030cc7f420d6c7cb1d14cbd4febeb79c6ee31bdf327a772f5d4f180e5e7",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/today/today-app.cjs",
+      "lines": 2070,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [
+        [
+          791,
+          891
+        ]
+      ],
+      "additionalInspection": "Additional targeted headline/target references 49,53,630,633; no browser/render run."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/today-engine.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 1969,
+      "sha256": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/today/today-engine.cjs",
+      "lines": 39,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          39
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+      "kind": "prepared-consumer-static",
+      "bytes": 19215,
+      "sha256": "958136d7ee4a741b82d4e16a6b331a332cd0c96f59fde45d9938b1f57a711637",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/today/today-model.cjs",
+      "lines": 354,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          40,
+          130
+        ],
+        [
+          72,
+          115
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/coach-text.cjs",
+      "kind": "prepared-coach-static",
+      "bytes": 14675,
+      "sha256": "1ec05a8c8f16261b3651db4a017b10b3fc2bbefcd1ffb43174d12a81cf8d7d3e",
+      "local": ".tmp/science-inputs/A/rebuild/coach/coach-text.cjs",
+      "lines": 268,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [
+        [
+          1,
+          76
+        ]
+      ],
+      "additionalInspection": "Selected template body and intent-list source searches; not proof of live AI behavior."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/local-world.mjs",
+      "kind": "prepared-coach-static",
+      "bytes": 20541,
+      "sha256": "5c46ab64d7233beb341fceae615e5ef81477e98accd654732791b5d29a626292",
+      "local": ".tmp/science-inputs/A/rebuild/coach/local-world.mjs",
+      "lines": 370,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          152
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/onboarding-text.cjs",
+      "kind": "prepared-coach-static",
+      "bytes": 7334,
+      "sha256": "b8e2b4b774c67f45246c914478114b019f4582393fd31cc1e1f78dd80200d509",
+      "local": ".tmp/science-inputs/A/rebuild/coach/onboarding-text.cjs",
+      "lines": 161,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [],
+      "additionalInspection": "Targeted text/dispatch searches only."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/wave1-text.cjs",
+      "kind": "prepared-coach-static",
+      "bytes": 7495,
+      "sha256": "b7e88970cb88bb3873f011ab9b830803d23e8a971b1de65b7d098177d1d10165",
+      "local": ".tmp/science-inputs/A/rebuild/coach/wave1-text.cjs",
+      "lines": 177,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [],
+      "additionalInspection": "Targeted text/dispatch searches only."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/tools.cjs",
+      "kind": "prepared-coach-static",
+      "bytes": 58790,
+      "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74",
+      "local": ".tmp/science-inputs/A/rebuild/coach/tools.cjs",
+      "lines": 1033,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "searches": [
+        {
+          "pattern": "observedTDEE|energyAvailability|energyBalanceTarget|proteinTarget|volumeImbalance|partitionRates|partitionPrior|tdeeLearned|dietExit|sleepInfo|typicalError|beatsNoise|Craven|Nuzzo|Sanghvi|HYP_SDES|bodyAlarm",
+          "lines": [
+            417,
+            422,
+            483,
+            485,
+            486,
+            487,
+            488,
+            777,
+            781
+          ],
+          "read": "matched line excerpts only, max420chars"
+        }
+      ],
+      "requestedLineRanges": [
+        [
+          379,
+          507
+        ],
+        [
+          736,
+          793
+        ],
+        [
+          795,
+          908
+        ],
+        [
+          459,
+          507
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/wave1-tools.cjs",
+      "kind": "prepared-coach-static",
+      "bytes": 17886,
+      "sha256": "dff61d719a29533a4e1dc06c2536894bd9ba9c0c92cf89602426ee66ead642aa",
+      "local": ".tmp/science-inputs/A/rebuild/coach/wave1-tools.cjs",
+      "lines": 328,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "searches": [
+        {
+          "pattern": "observedTDEE|energyAvailability|energyBalanceTarget|proteinTarget|volumeImbalance|partitionRates|partitionPrior|tdeeLearned|dietExit|sleepInfo|typicalError|beatsNoise|Craven|Nuzzo|Sanghvi|HYP_SDES|bodyAlarm",
+          "lines": [],
+          "read": "matched line excerpts only, max420chars"
+        }
+      ],
+      "requestedLineRanges": [
+        [
+          270,
+          325
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/athlete-state.cjs",
+      "kind": "prepared-workout-static",
+      "bytes": 21198,
+      "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+      "local": ".tmp/science-inputs/A/rebuild/m4/workout/athlete-state.cjs",
+      "lines": 338,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          170
+        ],
+        [
+          170,
+          254
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/context-values.cjs",
+      "kind": "prepared-workout-static",
+      "bytes": 11196,
+      "sha256": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b",
+      "local": ".tmp/science-inputs/A/rebuild/m4/workout/context-values.cjs",
+      "lines": 180,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/source-projection.cjs",
+      "kind": "prepared-workout-static",
+      "bytes": 5431,
+      "sha256": "fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e",
+      "local": ".tmp/science-inputs/A/rebuild/m4/workout/source-projection.cjs",
+      "lines": 77,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/workout-basis.cjs",
+      "kind": "prepared-workout-static",
+      "bytes": 4496,
+      "sha256": "e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664",
+      "local": ".tmp/science-inputs/A/rebuild/m4/workout/workout-basis.cjs",
+      "lines": 79,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 64433,
+      "sha256": "6a996fcc53fbea6fc9611517b7d2c7ed636516480322095b1863507e934d256d",
+      "local": ".tmp/science-inputs/A/rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+      "lines": 262,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          75,
+          128
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 4126,
+      "sha256": "557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644",
+      "local": ".tmp/science-inputs/A/rebuild/engine/test/defect-witnesses.cjs",
+      "lines": 77,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [],
+      "additionalInspection": "Named witness source searches including D8; no execution."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-2.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 7892,
+      "sha256": "833db0431e656f862636ab96383c64b8e52f4cbaf94e28da14c1bae52115aaf2",
+      "local": ".tmp/science-inputs/A/rebuild/engine/test/defect-witnesses-2.cjs",
+      "lines": 163,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          95
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 5081,
+      "sha256": "f5169bebd527ac13c8a570859bb5d728535a2a71734e135904a77be36c8506e6",
+      "local": ".tmp/science-inputs/A/rebuild/engine/test/defect-witnesses-3.cjs",
+      "lines": 105,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [],
+      "additionalInspection": "Named D25/D27 witness source searches; no execution."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-4.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 6465,
+      "sha256": "c90ffeaa953a9b04146432f39702f87fc8c51ce7f0be77876f075fc4142b87f7",
+      "local": ".tmp/science-inputs/A/rebuild/engine/test/defect-witnesses-4.cjs",
+      "lines": 125,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [],
+      "additionalInspection": "Named D28 witness source search; no execution."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-5.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 5286,
+      "sha256": "024be3cd3e76d2f6854defda9e5c989f750a5ea9efde25a30b625f1233fbc27b",
+      "local": ".tmp/science-inputs/A/rebuild/engine/test/defect-witnesses-5.cjs",
+      "lines": 94,
+      "identityVerified": true,
+      "contentRead": false,
+      "requestedLineRanges": []
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-6.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 8055,
+      "sha256": "71a5fa27293b6e7837ec627b273b266db9d6c4987ff850fb6fe9e2a5f86092c4",
+      "local": ".tmp/science-inputs/A/rebuild/engine/test/defect-witnesses-6.cjs",
+      "lines": 124,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [],
+      "additionalInspection": "Named D37 witness source search; no execution."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-7.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 8511,
+      "sha256": "990e814209aac63537288d80127e6a088b375c19562820cfec7bfd1a19a08d8a",
+      "local": ".tmp/science-inputs/A/rebuild/engine/test/defect-witnesses-7.cjs",
+      "lines": 133,
+      "identityVerified": true,
+      "contentRead": "selected excerpts and/or source-search hits",
+      "requestedLineRanges": [],
+      "additionalInspection": "Selected source search hits only; no assertions executed."
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/volume-projection.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 2264,
+      "sha256": "681880aeb461b20a479dc97a6bfb128aa34ebb399c50d9647d07462b24857444",
+      "local": ".tmp/science-inputs/A/rebuild/engine/test/volume-projection.cjs",
+      "lines": 39,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          39
+        ]
+      ]
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/volume-reference.cjs",
+      "kind": "test-source-only-never-executed",
+      "bytes": 1463,
+      "sha256": "37ab7ddf4dde7c38873a0b09d6beb31b6a5e208807a40dd03d1070c6051c97e3",
+      "local": ".tmp/science-inputs/A/rebuild/engine/test/volume-reference.cjs",
+      "lines": 28,
+      "identityVerified": true,
+      "contentRead": "selected static excerpts; not a claim of every requested line",
+      "requestedLineRanges": [
+        [
+          1,
+          28
+        ]
+      ]
+    }
+  ],
+  "supplementalInputs": [
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+      "local": ".tmp/science-inputs/A/rebuild/m3/w7-preview/browser-engine.cjs",
+      "bytes": 1451,
+      "sha256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "authority": "PM direct yes under356 clause2",
+      "readRanges": [
+        [
+          1,
+          33
+        ]
+      ],
+      "contentRead": "full static source text; imports and factories not evaluated"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/engine-runtime.cjs",
+      "bytes": 5596,
+      "sha256": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+      "local": ".tmp/science-inputs/A/rebuild/m4/workout/engine-runtime.cjs",
+      "authority": "PM direct grant Owner356 supplement2/366, 2026-09-13",
+      "identityVerified": true,
+      "contentRead": "full static source text; imports and factories not evaluated"
+    }
+  ],
+  "schemaVersion": 2,
+  "ownWorktree": "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/science-audit-e",
+  "ownBranch": "codex/astra-science-audit-e",
+  "preparedCandidate": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "integratedComparison": "100820aa47a4f8729642033499eaec0f0ee282e1",
+  "originalManifest": {
+    "ref": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+    "path": "rebuild/lanes/astra/SCIENCE-AUDIT-INPUTS.json",
+    "sha256": "9553ba37c4ed8fc974884b3e008d67c1212889a42ab56dfa61246ca5e2a1b3d1",
+    "rows": 72,
+    "bytes": 3511827,
+    "identityVerified": true
+  },
+  "brief": {
+    "ref": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+    "path": "rebuild/lanes/astra/SCIENCE-AUDIT-GO.md",
+    "sha256": "6a3274773b4750485c10f0bfe02fac79c0749ec8677f9c4ad0260dd6dea9449d",
+    "read": "full"
+  },
+  "supplementalGrants": [
+    {
+      "ref": "d4ab7a32e2302382362b2978cf67b5cbf3d73c29",
+      "path": "rebuild/lanes/astra/SCIENCE-AUDIT-INPUTS-SUPPLEMENT-1.json",
+      "sha256": "03753f35d0775efe0a6283685127410f014b68cbbe95f6140d0968f911e9fb71",
+      "read": "full; identity verified"
+    },
+    {
+      "ref": "023597c2599a746a44a9780f2277d571ab65a298",
+      "path": "rebuild/lanes/astra/SCIENCE-AUDIT-INPUTS-SUPPLEMENT-2.json",
+      "sha256": "045bb225618e52707797ab3e599df98178b9642b1aed17561d2b047e9b89c582",
+      "read": "full; identity verified"
+    }
+  ],
+  "gateWindow": {
+    "ref": "023597c2599a746a44a9780f2277d571ab65a298",
+    "path": "rebuild/lanes/astra/GATE-WINDOW.md",
+    "read": "full before local documentation commit",
+    "state": "ENDED under PM210; no shared push licensed"
+  },
+  "coverageLimit": "requestedLineRanges records tool requests, not proof every byte was seen. Several broad outputs were truncated. Only selected excerpts, source-search hits, named ruling sections and relevant comparison hunks were reviewed; specific consequential anchors are traced in CLAIMS.md. Unmarked files are identity-only. Identical A/M bytes do not require repeated reading. No complete review of every manifest file is claimed.",
+  "searchCutoff": {
+    "localDate": "2026-09-13",
+    "timezone": "America/New_York",
+    "utcDates": "2026-09-13 through 2026-09-14",
+    "sourceRegister": "SOURCES.md",
+    "exhaustive": false
+  },
+  "claimsCovered": [
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "S10",
+    "S11",
+    "S12"
+  ],
+  "unresolvedReviewItems": [
+    "U1",
+    "U2",
+    "U3",
+    "U4",
+    "U5",
+    "U6",
+    "U7",
+    "U8"
+  ],
+  "deliverables": [
+    {
+      "path": "rebuild/lanes/e/SCIENCE-AUDIT.md",
+      "purpose": "Concise owner-readable author report"
+    },
+    {
+      "path": "rebuild/lanes/e/science-audit/CLAIMS.md",
+      "purpose": "All twelve dispositions, exact code/caller/test traces, self-corrections and eight unresolved review items"
+    },
+    {
+      "path": "rebuild/lanes/e/science-audit/SOURCES.md",
+      "purpose": "Primary source links, publication dates, access levels, uncertainty and material correction limits"
+    },
+    {
+      "path": "rebuild/lanes/e/science-audit/INPUT-CUSTODY.json",
+      "purpose": "Original identities, separately licensed supplements and conservative actual inspection coverage"
+    }
+  ],
+  "validation": {
+    "kind": "documentation and input-identity checks only",
+    "productExecution": false,
+    "sharedPublication": false,
+    "independentD2Acceptance": false
+  }
+}

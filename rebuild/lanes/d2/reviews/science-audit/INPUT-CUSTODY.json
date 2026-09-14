@@ -1,0 +1,1229 @@
+{
+  "schemaVersion": 1,
+  "phase": "independent first assessment before E outcomes",
+  "createdAtUTC": "2026-09-14T00:12:13.411Z",
+  "localSearchDate": "2026-09-13 America/New_York",
+  "UTCSearchDates": [
+    "2026-09-13",
+    "2026-09-14"
+  ],
+  "authority": {
+    "dispatch": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+    "barPath": "rebuild/lanes/astra/SCIENCE-AUDIT-GO.md",
+    "barSHA256": "6a3274773b4750485c10f0bfe02fac79c0749ec8677f9c4ad0260dd6dea9449d",
+    "manifestPath": "rebuild/lanes/astra/SCIENCE-AUDIT-INPUTS.json",
+    "manifestSHA256": "9553ba37c4ed8fc974884b3e008d67c1212889a42ab56dfa61246ca5e2a1b3d1",
+    "manifestRows": 72,
+    "manifestUnchanged": true
+  },
+  "ownRoot": "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/science-audit-d2",
+  "branch": "codex/astra-science-audit-d2",
+  "base": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+  "fullIndexBeforeHydration": 2146,
+  "indexVerifiedBeforeHydration": true,
+  "prepared": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "integratedComparison": "100820aa47a4f8729642033499eaec0f0ee282e1",
+  "authorOutcomesRead": false,
+  "productExecuted": false,
+  "testsExecuted": false,
+  "claimsCovered": [
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "S10",
+    "S11",
+    "S12"
+  ],
+  "inputs": [
+    {
+      "row": 1,
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "GOALS.md",
+      "bytes": 5079,
+      "sha256": "407b6b6b85813944c423d69eb3e0deb972ed0e7f217d896e0df77598f8453467",
+      "identityVerified": true,
+      "actualCoverage": "all 126 lines"
+    },
+    {
+      "row": 2,
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "research-brief.md",
+      "bytes": 28198,
+      "sha256": "98c82cdea5d814bc06cf7e0a153307c3004613395968757b9450147cd62a4ed9",
+      "identityVerified": true,
+      "actualCoverage": "all 448 lines"
+    },
+    {
+      "row": 3,
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "RESEARCH-DESIGN.md",
+      "bytes": 40920,
+      "sha256": "348cbac8f755dbc22b076d638a9e4a2e6cbab0d4d3bfb762b81ce5074c532d6e",
+      "identityVerified": true,
+      "actualCoverage": "outline/search; 150–232,366–465,643–664"
+    },
+    {
+      "row": 4,
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "NUTRITION-TDEE-VERDICT.md",
+      "bytes": 10259,
+      "sha256": "87c8dcbc2cf4f869ec53a75a462c2f6343a38c61e39a6d15d721e82d6752cb2d",
+      "identityVerified": true,
+      "actualCoverage": "all 160 lines"
+    },
+    {
+      "row": 5,
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "PROGRESSION-ENGINE-AUDIT.md",
+      "bytes": 74301,
+      "sha256": "f1b8e07860c748e6c936df2a06610e5f71d69184773607be8e396e59ddb4eae6",
+      "identityVerified": true,
+      "actualCoverage": "outline/search;107–300"
+    },
+    {
+      "row": 6,
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/conform/gates/inputs/EARNED-SOURCE-INGESTION-PROTOCOL-v1.1.txt",
+      "bytes": 52248,
+      "sha256": "9e777a27d8231930d1340039e3499f489c92fd39fe75fa9a37c912e2e534a740",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 7,
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/conform/gates/inputs/EARNED-RUNTIME-SHEET-v1.7.38.txt",
+      "bytes": 426600,
+      "sha256": "604d8cc4c23baff85d4378270c8bbff26db1933f651ad3058c61ce7416476721",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 8,
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/lanes/c/N1-NUTRITION-BRIEF.md",
+      "bytes": 18774,
+      "sha256": "0aa0bcc1416e24ab354079ea9034d2da5df27c21d121867e1904d79a516964fe",
+      "identityVerified": true,
+      "actualCoverage": "1–76,130–149,152–228; other initially requested ranges conservatively not claimed after truncation"
+    },
+    {
+      "row": 9,
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/m2/AUDIT-REGISTER.md",
+      "bytes": 62638,
+      "sha256": "b1732189c5a0588d43428ac29f0d80ab32b72c5bf26864f29fc17f97c6ebaaa4",
+      "identityVerified": true,
+      "actualCoverage": "matched searches;101–177"
+    },
+    {
+      "row": 10,
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/m2/OWNER-RULING-PACK-M2.md",
+      "bytes": 5579,
+      "sha256": "2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9",
+      "identityVerified": true,
+      "actualCoverage": "all 31 lines"
+    },
+    {
+      "row": 11,
+      "ref": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+      "path": "rebuild/DECISIONS.md",
+      "bytes": 452272,
+      "sha256": "b465e0ff75509304e9bf803fad8470e477f0c65ebca41230c5110c3595ecb1df",
+      "identityVerified": true,
+      "actualCoverage": "88–159 bytes verified equal to previously read role copy; decisions193,202,268,306,320 read. Other long decisions not claimed."
+    },
+    {
+      "row": 12,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/constants.cjs",
+      "bytes": 23393,
+      "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "identityVerified": true,
+      "actualCoverage": "64–96,132–246,300–319,326–398; selected searches"
+    },
+    {
+      "row": 13,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/constants.cjs",
+      "bytes": 23393,
+      "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "identityVerified": true,
+      "actualCoverage": "whole-file bytes equal to A; reuses only corresponding A inspected ranges, not a new full read"
+    },
+    {
+      "row": 14,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/dates.cjs",
+      "bytes": 1343,
+      "sha256": "b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 15,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/dates.cjs",
+      "bytes": 1106,
+      "sha256": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "identityVerified": true,
+      "actualCoverage": "different whole-file bytes; selected function-body comparisons only; no full semantic read of M"
+    },
+    {
+      "row": 16,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/earn.cjs",
+      "bytes": 11429,
+      "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 17,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/earn.cjs",
+      "bytes": 11429,
+      "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "identityVerified": true,
+      "actualCoverage": "whole-file bytes equal to A; reuses only corresponding A inspected ranges, not a new full read"
+    },
+    {
+      "row": 18,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/energy.cjs",
+      "bytes": 94493,
+      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "identityVerified": true,
+      "actualCoverage": "83–144,185–307,369–507,518–576,575–652,653–728,728–779,780–875,877–1017,1018–1130; important truncated ranges recovered by bounded reads"
+    },
+    {
+      "row": 19,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/energy.cjs",
+      "bytes": 94493,
+      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "identityVerified": true,
+      "actualCoverage": "whole-file bytes equal to A; reuses only corresponding A inspected ranges, not a new full read"
+    },
+    {
+      "row": 20,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/entered-load.cjs",
+      "bytes": 906,
+      "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 21,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/entered-load.cjs",
+      "bytes": 906,
+      "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "identityVerified": true,
+      "actualCoverage": "whole-file bytes equal to A; reuses only corresponding A inspected ranges, not a new full read"
+    },
+    {
+      "row": 22,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/index.cjs",
+      "bytes": 1111,
+      "sha256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 23,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/index.cjs",
+      "bytes": 1111,
+      "sha256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "identityVerified": true,
+      "actualCoverage": "whole-file bytes equal to A; reuses only corresponding A inspected ranges, not a new full read"
+    },
+    {
+      "row": 24,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/merge.cjs",
+      "bytes": 84396,
+      "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 25,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/merge.cjs",
+      "bytes": 84396,
+      "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "identityVerified": true,
+      "actualCoverage": "whole-file bytes equal to A; reuses only corresponding A inspected ranges, not a new full read"
+    },
+    {
+      "row": 26,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/performed.cjs",
+      "bytes": 19479,
+      "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "identityVerified": true,
+      "actualCoverage": "98–124; selected searches"
+    },
+    {
+      "row": 27,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/performed.cjs",
+      "bytes": 19479,
+      "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "identityVerified": true,
+      "actualCoverage": "whole-file bytes equal to A; reuses only corresponding A inspected ranges, not a new full read"
+    },
+    {
+      "row": 28,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/plan.cjs",
+      "bytes": 19853,
+      "sha256": "4c6f981706694771501d3d050440eb4f9a62e64b6eac7c59ff9c4742dfaa7e93",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 29,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/plan.cjs",
+      "bytes": 19784,
+      "sha256": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "identityVerified": true,
+      "actualCoverage": "different whole-file bytes; selected function-body comparisons only; no full semantic read of M"
+    },
+    {
+      "row": 30,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/policy.cjs",
+      "bytes": 56874,
+      "sha256": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870",
+      "identityVerified": true,
+      "actualCoverage": "511–674; selected searches including459; function comparisons"
+    },
+    {
+      "row": 31,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/policy.cjs",
+      "bytes": 56493,
+      "sha256": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "identityVerified": true,
+      "actualCoverage": "different whole-file bytes; selected function-body comparisons only; no full semantic read of M"
+    },
+    {
+      "row": 32,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/progression.cjs",
+      "bytes": 54604,
+      "sha256": "2384d12e5788fb01324a62d7bbc7fa7303a3e748f97ecd4a6f9a5c82975dbc7a",
+      "identityVerified": true,
+      "actualCoverage": "1–80,115–191,270–337,418–446,493–620; selected searches"
+    },
+    {
+      "row": 33,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/progression.cjs",
+      "bytes": 53582,
+      "sha256": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "identityVerified": true,
+      "actualCoverage": "different whole-file bytes; selected function-body comparisons only; no full semantic read of M"
+    },
+    {
+      "row": 34,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/sleep.cjs",
+      "bytes": 188103,
+      "sha256": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8",
+      "identityVerified": true,
+      "actualCoverage": "44–66,220–310,1035–1107,1647–1728,1898–1962; selected searches; alarm tail reread after truncation"
+    },
+    {
+      "row": 35,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/sleep.cjs",
+      "bytes": 185229,
+      "sha256": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "identityVerified": true,
+      "actualCoverage": "different whole-file bytes; selected function-body comparisons only; no full semantic read of M"
+    },
+    {
+      "row": 36,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/today.cjs",
+      "bytes": 48911,
+      "sha256": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
+      "identityVerified": true,
+      "actualCoverage": "58–173,230–321,480–613; selected searches"
+    },
+    {
+      "row": 37,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/today.cjs",
+      "bytes": 46420,
+      "sha256": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "identityVerified": true,
+      "actualCoverage": "different whole-file bytes; selected function-body comparisons only; no full semantic read of M"
+    },
+    {
+      "row": 38,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/volume.cjs",
+      "bytes": 25485,
+      "sha256": "d58159bc0c098983fa1db6a1f8542d93611537934fca2b2a17bae236bcacd321",
+      "identityVerified": true,
+      "actualCoverage": "41–153,196–256; selected searches"
+    },
+    {
+      "row": 39,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/volume.cjs",
+      "bytes": 23465,
+      "sha256": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "identityVerified": true,
+      "actualCoverage": "different whole-file bytes; selected function-body comparisons only; no full semantic read of M"
+    },
+    {
+      "row": 40,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/writers.cjs",
+      "bytes": 261840,
+      "sha256": "7e8ba66e82a24983e98d063fe948838f77ec168b52515cdfe2e6483291027494",
+      "identityVerified": true,
+      "actualCoverage": "779–862; selected search hits; clipped glossary line2503 not a full read"
+    },
+    {
+      "row": 41,
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/writers.cjs",
+      "bytes": 259235,
+      "sha256": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+      "identityVerified": true,
+      "actualCoverage": "different whole-file bytes; selected function-body comparisons only; no full semantic read of M"
+    },
+    {
+      "row": 42,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/checkin-model.mjs",
+      "bytes": 15572,
+      "sha256": "d449518578bd57431fd8a79c174fdde1208c5eccced9156070411844af794a22",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 43,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+      "bytes": 23260,
+      "sha256": "9f7116bb679eb53ead6d5ea8000e8534a5bfc94e2042e3b0b36e57f272cd52e3",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 44,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/food-model.cjs",
+      "bytes": 6181,
+      "sha256": "1552309c0c4368ece9aca169338df7b1c02a4d2c6f28bb3b0af8c385ebe15c5c",
+      "identityVerified": true,
+      "actualCoverage": "1–119"
+    },
+    {
+      "row": 45,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/gym-model.mjs",
+      "bytes": 28009,
+      "sha256": "6e2361035adf9e677d2a2499b54395ab738e71debaa2e2df9bc29b5cdca42fc3",
+      "identityVerified": true,
+      "actualCoverage": "1–181,260–287; selected search hits"
+    },
+    {
+      "row": 46,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/plain-copy.cjs",
+      "bytes": 13697,
+      "sha256": "a9a675061f3bc9fa791fb724b8ef111aa2a0ae45c363afd1c13ff70f9d641a73",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 47,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+      "bytes": 36183,
+      "sha256": "54c7c6e06c74aba0cfd135ab71fab8b595b884d8e86934fd4a1e2dab82d463e0",
+      "identityVerified": true,
+      "actualCoverage": "81–161,261–290; selected searches"
+    },
+    {
+      "row": 48,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/sleep-model.cjs",
+      "bytes": 11250,
+      "sha256": "eff392a49fd067dbcc01648a27df3a5dddd55ad5328873b07a8f0006ebd1afe3",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 49,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/starter-week.mjs",
+      "bytes": 7387,
+      "sha256": "8b4f257133daffc73696e2e642a568984a22af36808456fd3e350aa88987f069",
+      "identityVerified": true,
+      "actualCoverage": "all 162 lines after own reader range correction"
+    },
+    {
+      "row": 50,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+      "bytes": 116877,
+      "sha256": "18c79030cc7f420d6c7cb1d14cbd4febeb79c6ee31bdf327a772f5d4f180e5e7",
+      "identityVerified": true,
+      "actualCoverage": "799–835,875–908; selected search hits"
+    },
+    {
+      "row": 51,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/today-engine.cjs",
+      "bytes": 1969,
+      "sha256": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c",
+      "identityVerified": true,
+      "actualCoverage": "all 39 lines"
+    },
+    {
+      "row": 52,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+      "bytes": 19215,
+      "sha256": "958136d7ee4a741b82d4e16a6b331a332cd0c96f59fde45d9938b1f57a711637",
+      "identityVerified": true,
+      "actualCoverage": "65–124,176–250"
+    },
+    {
+      "row": 53,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/coach-text.cjs",
+      "bytes": 14675,
+      "sha256": "1ec05a8c8f16261b3651db4a017b10b3fc2bbefcd1ffb43174d12a81cf8d7d3e",
+      "identityVerified": true,
+      "actualCoverage": "selected search hits including53,61–64,153–156,199,206"
+    },
+    {
+      "row": 54,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/local-world.mjs",
+      "bytes": 20541,
+      "sha256": "5c46ab64d7233beb341fceae615e5ef81477e98accd654732791b5d29a626292",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 55,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/onboarding-text.cjs",
+      "bytes": 7334,
+      "sha256": "b8e2b4b774c67f45246c914478114b019f4582393fd31cc1e1f78dd80200d509",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 56,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/wave1-text.cjs",
+      "bytes": 7495,
+      "sha256": "b7e88970cb88bb3873f011ab9b830803d23e8a971b1de65b7d098177d1d10165",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 57,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/tools.cjs",
+      "bytes": 58790,
+      "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74",
+      "identityVerified": true,
+      "actualCoverage": "405–500,761–923"
+    },
+    {
+      "row": 58,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/wave1-tools.cjs",
+      "bytes": 17886,
+      "sha256": "dff61d719a29533a4e1dc06c2536894bd9ba9c0c92cf89602426ee66ead642aa",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 59,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/athlete-state.cjs",
+      "bytes": 21198,
+      "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 60,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/context-values.cjs",
+      "bytes": 11196,
+      "sha256": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b",
+      "identityVerified": true,
+      "actualCoverage": "identity only; no full semantic read claimed"
+    },
+    {
+      "row": 61,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/source-projection.cjs",
+      "bytes": 5431,
+      "sha256": "fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e",
+      "identityVerified": true,
+      "actualCoverage": "1–28; selected search hits"
+    },
+    {
+      "row": 62,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/workout-basis.cjs",
+      "bytes": 4496,
+      "sha256": "e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664",
+      "identityVerified": true,
+      "actualCoverage": "all 79 nonterminal lines"
+    },
+    {
+      "row": 63,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+      "bytes": 64433,
+      "sha256": "6a996fcc53fbea6fc9611517b7d2c7ed636516480322095b1863507e934d256d",
+      "identityVerified": true,
+      "actualCoverage": "selected missing/unknown-sleep search hits; huge inline154,155,157 controls clipped, not fully read"
+    },
+    {
+      "row": 64,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses.cjs",
+      "bytes": 4126,
+      "sha256": "557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644",
+      "identityVerified": true,
+      "actualCoverage": "selected defect-witness search hits only"
+    },
+    {
+      "row": 65,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-2.cjs",
+      "bytes": 7892,
+      "sha256": "833db0431e656f862636ab96383c64b8e52f4cbaf94e28da14c1bae52115aaf2",
+      "identityVerified": true,
+      "actualCoverage": "selected searches and19–32,71–83"
+    },
+    {
+      "row": 66,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "bytes": 5081,
+      "sha256": "f5169bebd527ac13c8a570859bb5d728535a2a71734e135904a77be36c8506e6",
+      "identityVerified": true,
+      "actualCoverage": "selected defect-witness search hits only"
+    },
+    {
+      "row": 67,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-4.cjs",
+      "bytes": 6465,
+      "sha256": "c90ffeaa953a9b04146432f39702f87fc8c51ce7f0be77876f075fc4142b87f7",
+      "identityVerified": true,
+      "actualCoverage": "selected defect-witness search hits only"
+    },
+    {
+      "row": 68,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-5.cjs",
+      "bytes": 5286,
+      "sha256": "024be3cd3e76d2f6854defda9e5c989f750a5ea9efde25a30b625f1233fbc27b",
+      "identityVerified": true,
+      "actualCoverage": "selected defect-witness search hits only"
+    },
+    {
+      "row": 69,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-6.cjs",
+      "bytes": 8055,
+      "sha256": "71a5fa27293b6e7837ec627b273b266db9d6c4987ff850fb6fe9e2a5f86092c4",
+      "identityVerified": true,
+      "actualCoverage": "selected defect-witness search hits only"
+    },
+    {
+      "row": 70,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/defect-witnesses-7.cjs",
+      "bytes": 8511,
+      "sha256": "990e814209aac63537288d80127e6a088b375c19562820cfec7bfd1a19a08d8a",
+      "identityVerified": true,
+      "actualCoverage": "selected defect-witness search hits only"
+    },
+    {
+      "row": 71,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/volume-projection.cjs",
+      "bytes": 2264,
+      "sha256": "681880aeb461b20a479dc97a6bfb128aa34ebb399c50d9647d07462b24857444",
+      "identityVerified": true,
+      "actualCoverage": "all 39 lines"
+    },
+    {
+      "row": 72,
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/engine/test/volume-reference.cjs",
+      "bytes": 1463,
+      "sha256": "37ab7ddf4dde7c38873a0b09d6beb31b6a5e208807a40dd03d1070c6051c97e3",
+      "identityVerified": true,
+      "actualCoverage": "all 28 lines; source includes evaluation calls which were not executed"
+    }
+  ],
+  "supplementalInputs": [
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+      "bytes": 1451,
+      "sha256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "authority": "PM356 input-only supplemental permission in direct message; original72-row manifest unchanged",
+      "readAt": "2026-09-13T23:54:03.327Z",
+      "coverage": "full static text",
+      "evaluation": false
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/engine-runtime.cjs",
+      "bytes": 5596,
+      "sha256": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+      "authorization": "PM direct input-only message, owner356 clause2, supplement2/366",
+      "read": "full static text",
+      "productEvaluated": false
+    }
+  ],
+  "roleContext": [
+    {
+      "ref": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+      "path": "rebuild/lanes/LANES.md",
+      "bytes": 11877,
+      "sha256": "82e6779281b1d9f0da9354daf5047fe4fcd3dd9286f4b2c6fa737f6434cc009b",
+      "read": "full"
+    },
+    {
+      "ref": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+      "path": "rebuild/lanes/d/CHARTER.md",
+      "bytes": 3693,
+      "sha256": "3d8534eab4098b2018bfb7e7718c1d0cb07659f2e3fea2bc3f5072619ae4af6e",
+      "read": "full"
+    },
+    {
+      "ref": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+      "path": "rebuild/lanes/d/CHARTER-D2.md",
+      "bytes": 4340,
+      "sha256": "b5c6204a260f5604b8ea91d187be88988abd51171a26d54797e43cc71e8c5c10",
+      "read": "full"
+    }
+  ],
+  "gateWindow": {
+    "ref": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+    "path": "rebuild/lanes/astra/GATE-WINDOW.md",
+    "bytes": 5565,
+    "sha256": "7f35f787f7bbe728a9fc72aea0596f41d824696541dd8f09237ca511380e27f1",
+    "read": "full; state ENDED at this dispatch",
+    "onlyOwnBranchCommit": true
+  },
+  "engineByteComparisons": [
+    {
+      "path": "rebuild/engine/constants.cjs",
+      "preparedSHA256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "integratedSHA256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "bytesEqual": true
+    },
+    {
+      "path": "rebuild/engine/dates.cjs",
+      "preparedSHA256": "b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067",
+      "integratedSHA256": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "bytesEqual": false
+    },
+    {
+      "path": "rebuild/engine/earn.cjs",
+      "preparedSHA256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "integratedSHA256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "bytesEqual": true
+    },
+    {
+      "path": "rebuild/engine/energy.cjs",
+      "preparedSHA256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "integratedSHA256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "bytesEqual": true
+    },
+    {
+      "path": "rebuild/engine/entered-load.cjs",
+      "preparedSHA256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "integratedSHA256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "bytesEqual": true
+    },
+    {
+      "path": "rebuild/engine/index.cjs",
+      "preparedSHA256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "integratedSHA256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "bytesEqual": true
+    },
+    {
+      "path": "rebuild/engine/merge.cjs",
+      "preparedSHA256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "integratedSHA256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "bytesEqual": true
+    },
+    {
+      "path": "rebuild/engine/performed.cjs",
+      "preparedSHA256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "integratedSHA256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "bytesEqual": true
+    },
+    {
+      "path": "rebuild/engine/plan.cjs",
+      "preparedSHA256": "4c6f981706694771501d3d050440eb4f9a62e64b6eac7c59ff9c4742dfaa7e93",
+      "integratedSHA256": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "bytesEqual": false
+    },
+    {
+      "path": "rebuild/engine/policy.cjs",
+      "preparedSHA256": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870",
+      "integratedSHA256": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "bytesEqual": false
+    },
+    {
+      "path": "rebuild/engine/progression.cjs",
+      "preparedSHA256": "2384d12e5788fb01324a62d7bbc7fa7303a3e748f97ecd4a6f9a5c82975dbc7a",
+      "integratedSHA256": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "bytesEqual": false
+    },
+    {
+      "path": "rebuild/engine/sleep.cjs",
+      "preparedSHA256": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8",
+      "integratedSHA256": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "bytesEqual": false
+    },
+    {
+      "path": "rebuild/engine/today.cjs",
+      "preparedSHA256": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
+      "integratedSHA256": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "bytesEqual": false
+    },
+    {
+      "path": "rebuild/engine/volume.cjs",
+      "preparedSHA256": "d58159bc0c098983fa1db6a1f8542d93611537934fca2b2a17bae236bcacd321",
+      "integratedSHA256": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "bytesEqual": false
+    },
+    {
+      "path": "rebuild/engine/writers.cjs",
+      "preparedSHA256": "7e8ba66e82a24983e98d063fe948838f77ec168b52515cdfe2e6483291027494",
+      "integratedSHA256": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+      "bytesEqual": false
+    }
+  ],
+  "namedFunctionComparisons": [
+    {
+      "path": "rebuild/engine/policy.cjs",
+      "function": "phaseSupervisor",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 594,
+        "to": 630,
+        "sha256": "9e4706d308e3944481c9983cbc29968b983ab502d27946b5dbdc2b693e0b66f3"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 591,
+        "to": 627,
+        "sha256": "9e4706d308e3944481c9983cbc29968b983ab502d27946b5dbdc2b693e0b66f3"
+      },
+      "same": true,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/policy.cjs",
+      "function": "phaseProposal",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 633,
+        "to": 683,
+        "sha256": "3c37d4b19b599f7cfe9b65ed63b26301e3bd101d0b6a1d3b13b797596b67fe1d"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 630,
+        "to": 680,
+        "sha256": "da6202d3dd2afa9f434eeab84b8380b6918b1b03c1b2cdfcb23326fb7f030597"
+      },
+      "same": false,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/policy.cjs",
+      "function": "dietBreakHonest",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 511,
+        "to": 518,
+        "sha256": "8bb3bdf87c12e29b2820c24239e6791e2e39fcd9ba72c6075415a8669ca995ac"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 509,
+        "to": 516,
+        "sha256": "8bb3bdf87c12e29b2820c24239e6791e2e39fcd9ba72c6075415a8669ca995ac"
+      },
+      "same": true,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/progression.cjs",
+      "function": "progressStep",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 19,
+        "to": 54,
+        "sha256": "0db0d448f28d58de6504cd5340a01c59d06ed26151a9b8c9dbee477b9760da79"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 19,
+        "to": 54,
+        "sha256": "0db0d448f28d58de6504cd5340a01c59d06ed26151a9b8c9dbee477b9760da79"
+      },
+      "same": true,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/progression.cjs",
+      "function": "progressAnchor",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 138,
+        "to": 179,
+        "sha256": "3e314278aa94a9431a0fb44dc75419709164c29cdef964d6b944ac8ec36fb6b5"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 138,
+        "to": 174,
+        "sha256": "a7c08017528ded96a6b0bb17e1dad6c25bdf58f7397241377e5e38d23195b8c1"
+      },
+      "same": false,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/progression.cjs",
+      "function": "targetsFor",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 270,
+        "to": 316,
+        "sha256": "9b79faa7e929ea5dfcb27faabad2d6f7e6adb4ef48484a13ad27f836fd0d5b9a"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 261,
+        "to": 307,
+        "sha256": "b36b0280273703a699d7fe0960715354444f68930ed9a9ddf2a577aeeeeb9ff0"
+      },
+      "same": false,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/progression.cjs",
+      "function": "windowFor",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 435,
+        "to": 444,
+        "sha256": "f4533621b6f1dc28e1834353fae8cbe714a6e0f21b3be909ed3a006b001aa9c7"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 424,
+        "to": 433,
+        "sha256": "f4533621b6f1dc28e1834353fae8cbe714a6e0f21b3be909ed3a006b001aa9c7"
+      },
+      "same": true,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/progression.cjs",
+      "function": "typicalError",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 564,
+        "to": 601,
+        "sha256": "a4c9e0acf58911e831e59a277aa75163cfa207bc8c8427715dbfef410ff8b56e"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 553,
+        "to": 590,
+        "sha256": "a4c9e0acf58911e831e59a277aa75163cfa207bc8c8427715dbfef410ff8b56e"
+      },
+      "same": true,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/progression.cjs",
+      "function": "beatsNoise",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 604,
+        "to": 616,
+        "sha256": "d35d0273337cc64d2b4b991ce210b3dac570925356c0a3c860074c9bcbf4cf7d"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 593,
+        "to": 605,
+        "sha256": "d35d0273337cc64d2b4b991ce210b3dac570925356c0a3c860074c9bcbf4cf7d"
+      },
+      "same": true,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/sleep.cjs",
+      "function": "cleanAtDate",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 1035,
+        "to": 1049,
+        "sha256": "c99abb86a3f3354d5bca84e8e6ef5f6cb5d62a62a0303e239fc6c065feb547fe"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 1017,
+        "to": 1030,
+        "sha256": "78e0ba1b1bc0c7b167a455bff9c0334da7d334b9f4a1c3c3ada7adc5f47066de"
+      },
+      "same": false,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/sleep.cjs",
+      "function": "recoveryIndex",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 220,
+        "to": 288,
+        "sha256": "cb9a6c684b50d849d07a29985ffa1191f225b04b30131665fab94f18f7412b7e"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 218,
+        "to": 278,
+        "sha256": "9b1a51799271a49aae22cc5b4840e341dcd7a5eaaa40143d51cce3cc47692891"
+      },
+      "same": false,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/sleep.cjs",
+      "function": "bodyAlarm",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 1684,
+        "to": 1717,
+        "sha256": "0b1cb6ac0c49b4b4cee66b9cf089e88ebbf3c69b723d0a1966bac19285d57682"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 1662,
+        "to": 1691,
+        "sha256": "7ee0651c94cb1c5423661b1fdc3ee3424f6410d9dc6ab0c9f5f4c6a68cd4fc2a"
+      },
+      "same": false,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/sleep.cjs",
+      "function": "bodyAlarmSignal",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 1647,
+        "to": 1681,
+        "sha256": "ececb2f8881940c56bf3619d6dced4aa8aeb7cfab2da22440c743663b098a746"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 1625,
+        "to": 1659,
+        "sha256": "ececb2f8881940c56bf3619d6dced4aa8aeb7cfab2da22440c743663b098a746"
+      },
+      "same": true,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/today.cjs",
+      "function": "fiveLevers",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 230,
+        "to": 280,
+        "sha256": "86506d3bb7eb59d1ef8c9fa49301719631d5e86fa75622df8088b8b9c3e09064"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 226,
+        "to": 276,
+        "sha256": "662d3a653d3ce70c6bf4af372fae7da84cef503275c98d302733a6513650a756"
+      },
+      "same": false,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/today.cjs",
+      "function": "theOneFix",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 283,
+        "to": 337,
+        "sha256": "3264c28d602e48e606f2602981b3a1edd4d5872ecfbf087d3708c7eba00e29eb"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 279,
+        "to": 319,
+        "sha256": "394a1e6e84ebcddbd25cef5f5de528263e54360372795903f36318bc9d5a1b49"
+      },
+      "same": false,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/today.cjs",
+      "function": "nowModelUncached",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 531,
+        "to": 613,
+        "sha256": "1217164822cefbf4bbdbdbef2a15053c5864c2c351e79e300e09bef5f9f77286"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 512,
+        "to": 592,
+        "sha256": "9e2bc2622f85ede7e6fb2f8370682ee8a7eb7eed3988ded5eb75d0b101d914f8"
+      },
+      "same": false,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/volume.cjs",
+      "function": "programmeVolume",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 65,
+        "to": 97,
+        "sha256": "d4fa185dd9536e451a2419ba64369a36b7278209c0925324e08e0decc0e0b3a2"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 62,
+        "to": 93,
+        "sha256": "84a754f3abfe39ccc80de2c054580222d29c2ebd5dbbe021aa474270119af91b"
+      },
+      "same": false,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/volume.cjs",
+      "function": "volumeImbalance",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 103,
+        "to": 146,
+        "sha256": "be7dc648a24f191455f3f25fdc4f1e49a76c3d24d7cf246ac3edfd364a6184c0"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 99,
+        "to": 142,
+        "sha256": "be7dc648a24f191455f3f25fdc4f1e49a76c3d24d7cf246ac3edfd364a6184c0"
+      },
+      "same": true,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    },
+    {
+      "path": "rebuild/engine/writers.cjs",
+      "function": "rirPlan",
+      "A": {
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "from": 791,
+        "to": 842,
+        "sha256": "9eb65bcffa74020228a1c3aa2356b2b8caa9b559ed4ed280ad59d3ae117973e2"
+      },
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "from": 789,
+        "to": 840,
+        "sha256": "9eb65bcffa74020228a1c3aa2356b2b8caa9b559ed4ed280ad59d3ae117973e2"
+      },
+      "same": true,
+      "bodyBoundary": "first column-zero closing brace after named declaration; text only",
+      "productEvaluated": false
+    }
+  ],
+  "metadataTool": {
+    "version": "22.23.2",
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+    "productExecution": false
+  },
+  "coverageCautions": [
+    "Conservative confirmed ranges, not every requested/read-log range.",
+    "Search hits and truncated inline control code are not full-file coverage.",
+    "Identical bytes permit reuse of inspected ranges only.",
+    "No engine/test/source module imported or evaluated.",
+    "One own line-reader range request failed on bounds; next full read succeeded."
+  ],
+  "unresolved": [
+    "E complete immutable package reconciliation",
+    "Uninspected supplements/full-text limitations listed in SOURCES",
+    "Intervening rirPlan prescription-capture producer not inspected",
+    "Presentation reach not proved for anchorTighten/tdeeLearned/bodyAlarm/dietExit end consumer",
+    "Current Joe/Dad applicability facts and individual response not assessed",
+    "Display not proved for phaseSupervisor EA fraction or theOneFix.whyNot companion wording"
+  ],
+  "artifacts": {
+    "SCIENCE-AUDIT-REVIEW.md": "owner-readable current first-stage report",
+    "science-audit/FIRST-ASSESSMENT.md": "immutable copy of independent first-stage report, preserved before E outcomes",
+    "science-audit/CLAIMS.md": "all12 source-to-rule/caller/disposition traces",
+    "science-audit/SOURCES.md": "primary sources, actual access and changed conclusions",
+    "science-audit/SEARCH-LIMITATIONS.md": "method, scope and unexecuted verification limits",
+    "science-audit/INPUT-CUSTODY.json": "identity versus actual read coverage, no copied product data"
+  },
+  "privateSourcesOrAthleteHistoryFilesRead": false
+}

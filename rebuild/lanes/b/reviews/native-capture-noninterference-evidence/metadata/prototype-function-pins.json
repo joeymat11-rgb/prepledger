@@ -1,0 +1,30 @@
+{
+  "source": "0282f3f2cf2d8f6d994c4d65451d14420555311b",
+  "pins": {
+    "createHook": "fe8223decbb582cec92799127df3e5a5231a8d5d467b31b9216ec2d903d54460",
+    "enable": "857ccb0b6fe725486e1fdd07fede7b909a067d294050c957b7b95d49c6973fc0",
+    "disable": "7b21d3e0c8841ef1785fd7a1b18fa975f9f3c92f7d2d0aad40a948987c7d60e1",
+    "unlink": "2b2d28c8fd4dafdb8f216f278863c3671344be98d86803ff41a72bbf37087cad",
+    "promiseCreate": "df1c137cbb005919cd7bf2ffe4ffabe437cd734a6cdf861a4bb6b37d2b877353",
+    "promiseStop": "07f0aa7c21d66e6d8731962e0c5bf56afab65208068f0a598e4d7b43fce982a5",
+    "iterator": "d54c5f58ed8a91b4293430b55eb7fe216ba82a680e0d2a119a068559f6926fa5",
+    "iteratorNext": "05a9615ca5cd6c3e314eb0f41b54e2c2fe18521c7357ec5affd61a8ac9572cb7"
+  },
+  "flag": {
+    "description": "kNoPromiseHook",
+    "owner": "fresh observer hook only",
+    "before": {
+      "value": false,
+      "writable": true,
+      "enumerable": true,
+      "configurable": true
+    },
+    "after": {
+      "value": true,
+      "writable": false,
+      "enumerable": true,
+      "configurable": false
+    }
+  },
+  "note": "Promise createHook/returned cleanup are the inspected internal/promise_hooks functions; initial onInit/onSettled probe metadata is separate. Captured Reflect.apply is an existing runtime primitive, not an object/payload observer. No global iterator or Promise object modifications by helper."
+}

@@ -1,0 +1,29 @@
+{
+  "authority": "a38d4574db33efb0d40d4da5a233d946a4bafc5a",
+  "sha256": "97103b0af66647d3d78b73cef65ba05b5d378fecdae3cd8fca5dd225c7fe1fb4",
+  "modules": [
+    {
+      "id": "async_hooks",
+      "bytes": 8786,
+      "sha256": "70ccf0924b391ef4bab09721dbd8637b4c542cee5f7e016b24e6c46ccd61491c"
+    },
+    {
+      "id": "internal/async_hooks",
+      "bytes": 21142,
+      "sha256": "ba3796c9c95212cad67561d13924865defbf5dd59c6fb7c5237cab194639e53c"
+    },
+    {
+      "id": "internal/async_context_frame",
+      "bytes": 1661,
+      "sha256": "69b0eb6a63200f2892175aff24a2ab328c8f22cc38052179baaeae24691b5636"
+    },
+    {
+      "id": "internal/validators",
+      "bytes": 19145,
+      "sha256": "20e552e4b034c71d6feb343bcc676b6dc13d3eb1d0613e20da26fd73168ca8bb"
+    }
+  ],
+  "route": "AsyncResource constructor168-205; type validation, context frame current, ID allocation, initHooksExist/emitInitScript/emitInitNative/lookupPublicResource. Test uses requireManualDestroy:true; no automatic destroy registration, runInAsyncScope/bind/emitDestroy or callback invocation.",
+  "readNote": "AsyncResource surrounding160-280 shown for definition boundary; unused method bodies were not invoked. Existing350/354 internal emit/check/native route pins retained.",
+  "opaque": "Node async ID fields/native bindings and context-frame implementation under pinned runtime; no native C++ read or private resource output."
+}

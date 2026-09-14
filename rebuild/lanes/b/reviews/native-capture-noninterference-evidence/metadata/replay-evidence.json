@@ -1,0 +1,263 @@
+{
+  "version": 1,
+  "authority354": "34fce6323d78adb7363a7e05f81dc92e27eb9017",
+  "authority358": "45eb03a02e0dc268178f87927a8bb56fe0e8730c",
+  "authority362": "a38d4574db33efb0d40d4da5a233d946a4bafc5a",
+  "preimage": "be0aeeb6a8e046f55730edc824ca3dddbb181a09",
+  "latestTested": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+  "sourceFiles": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 47308,
+      "sha256": "2034c081d42035472d3c1722b2f85ab94bfe581d4f147920ecfec5052ac678ec"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 14364,
+      "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 54479,
+      "sha256": "844c84aa69da4cf9f2d28b5bd4b0b518f5029cd4c94f44d4430dd1d5adde0d7e"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "2a9acf634da21bbd53de3489f10ae70b6d94245c47cb66c346cc136c1d277d66"
+    }
+  ],
+  "runs": [
+    {
+      "phase": "red",
+      "source": "8ab80f3ba7dc0ea0e927abb2a76a75d9197be9e4",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=PM354",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "counts": {
+        "tests": 4,
+        "pass": 0,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 7821.3001
+      },
+      "exit": {
+        "status": 1,
+        "signal": null,
+        "error": null
+      },
+      "actualChildren": 8,
+      "rawPublicFiles": 44,
+      "rawPublicBytes": 13733,
+      "files": [
+        {
+          "path": ".tmp/native-capture-noninterference/red/inputs.json",
+          "bytes": 2058,
+          "sha256": "6a17dd792f551889d4a42c0fc0a338009bdf939ac91fda5e8333443c46f5688c"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/red/stdout.tap",
+          "bytes": 6825,
+          "sha256": "4a32298a807006c8532cc3f8ea15cbf52436e52ada75ba2c427c53e392b8023a"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/red/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/red/exit.json",
+          "bytes": 40,
+          "sha256": "708eae6cc8f6002add20318bc7578926b2f0d7aeb0877e4ea67ff64ca0a23262"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/red/public-evidence.json",
+          "bytes": 15622,
+          "sha256": "1e7e2cca7253c73b7fc99c6b417606350ebc13c6e77fda92f1ca64ec21388a11"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/red/capture-custody.json",
+          "bytes": 10188,
+          "sha256": "b0698f4269a37f6778a321c6d780924b9abea37e9aaf103e030533f6d2bb0154"
+        }
+      ]
+    },
+    {
+      "phase": "prototype",
+      "source": "0282f3f2cf2d8f6d994c4d65451d14420555311b",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=PM354|PM348 termination assumption|PM348 actual exit dispatch|PM350 async work scheduled",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "counts": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 19954.3145
+      },
+      "exit": {
+        "status": 0,
+        "signal": null,
+        "error": null
+      },
+      "actualChildren": 18,
+      "rawPublicFiles": 100,
+      "rawPublicBytes": 21179,
+      "files": [
+        {
+          "path": ".tmp/native-capture-noninterference/prototype/inputs.json",
+          "bytes": 2174,
+          "sha256": "98d4658ddc43da05cac49b7e2f7927d091301c9f87799ea6687180c5db6c3ec7"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/prototype/stdout.tap",
+          "bytes": 2650,
+          "sha256": "7434870a9f5ef2e0be079540a79fc58c14a8d48c5f4ba96414fd50ca8a79a38b"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/prototype/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/prototype/exit.json",
+          "bytes": 40,
+          "sha256": "21326876b4708d66addc168a68fa4919356a7eba7bc3becd93297b39423451ed"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/prototype/public-evidence.json",
+          "bytes": 34662,
+          "sha256": "ba573e5a230e8fb2d6a5a325c8ac6b7e3a357e7692e6b22797f8be4744703863"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/prototype/capture-custody.json",
+          "bytes": 21089,
+          "sha256": "128cb046c63ae98a9617a3fcdb9ac2334c175af0047c8aff88b11c4ed12be611"
+        }
+      ]
+    },
+    {
+      "phase": "resource-probe",
+      "source": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=PM362",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2046.5744
+      },
+      "exit": {
+        "status": 1,
+        "signal": null,
+        "error": null
+      },
+      "actualChildren": 2,
+      "rawPublicFiles": 11,
+      "rawPublicBytes": 3745,
+      "files": [
+        {
+          "path": ".tmp/native-capture-noninterference/resource-probe/inputs.json",
+          "bytes": 2093,
+          "sha256": "1441921179ecc2465c0117e9d831034cd0b6f912b5efe992d45eb4a5d4e46aa4"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/resource-probe/stdout.tap",
+          "bytes": 1822,
+          "sha256": "03713698f4369d4252933da35f397d94820b2517adab910026d29bc421fc821e"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/resource-probe/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/resource-probe/exit.json",
+          "bytes": 40,
+          "sha256": "708eae6cc8f6002add20318bc7578926b2f0d7aeb0877e4ea67ff64ca0a23262"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/resource-probe/public-evidence.json",
+          "bytes": 3252,
+          "sha256": "51d274ff18a29aa6afbc07b6275bb35eee09fd9b0a4157d75c51ced3e28f856a"
+        },
+        {
+          "path": ".tmp/native-capture-noninterference/resource-probe/capture-custody.json",
+          "bytes": 2429,
+          "sha256": "9777aaaaf669c54e2dbd149db54a3ff4cf7d130cfdc8d39894c352af88ad3ca9"
+        }
+      ]
+    }
+  ],
+  "metadata": [
+    {
+      "path": ".tmp/native-capture-noninterference/setup.json",
+      "bytes": 998,
+      "sha256": "888461e3490074b2c8a0aa87ea3480315d730e21ef1b175fb6e340befd6e9703"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/builtin-inputs.json",
+      "bytes": 3645,
+      "sha256": "b5cd154b92f997c92788e730f9e2e58acc2c54ef945bc446f444d0894569a96d"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/v8-before-import.json",
+      "bytes": 3710,
+      "sha256": "2a12de0423bfd7cf6f49ee1cf4fe755148eac79e92dce691c2bac918f7a9954f"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/v8-closure.before-import.json",
+      "bytes": 5819,
+      "sha256": "b00749aeb6bc85f2b8b93dea4a9d12ecbfd8fe93fb4aed0af3794950f7d44124"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/promise-function-inputs.json",
+      "bytes": 2126,
+      "sha256": "489d61f58f787dabdce4286f3a2790481e07eec663fc5761f8fe277eec68a82c"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/prototype-function-pins.json",
+      "bytes": 1399,
+      "sha256": "561c21275bedbf407c441eccf1faa0398d3b4b2d7558782cf5d9a197cf97194f"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/authority358.json",
+      "bytes": 130,
+      "sha256": "6e4e2c232117dc9cf877a5fee15def03b765ecf20f0355a00eb155a8f0b13f10"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/resource-closure.json",
+      "bytes": 1410,
+      "sha256": "267ad759552697efb4078f44cfd75802268706da985d6ca2b5ab8d5b6731fb79"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/operation-notes.json",
+      "bytes": 746,
+      "sha256": "6e3d0c997994f8873a4479a791cf502a73159dad15f1b023762f62e8b15f2e75"
+    },
+    {
+      "path": ".tmp/native-capture-noninterference/red-custody.json",
+      "bytes": 1203,
+      "sha256": "7fbc3613b4ed54ce38187eb8ebd7827e5eb52d9114dc50eeb49e5814f813acd3"
+    }
+  ],
+  "verdict": "R1 OPEN/REJECT: non-Promise lookupPublicResource invokes application getter before observer callback; no corrected full cohort or independent acceptance.",
+  "originalNativeInvoked": false
+}
