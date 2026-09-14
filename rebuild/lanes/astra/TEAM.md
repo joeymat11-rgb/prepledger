@@ -1,6 +1,6 @@
 # Earned: active Astra team
 
-PM checkpoint 2026-09-13 22:21 ET: provider capacity stopped B/C; single same-model recovery392 leaves B held with work preserved/heartbeat paused and C HIGH finishing its17/17 author handoff. Temporary existing-B Sol/MAX fallback is prepared for owner yes/no, with separate Astra/MAX review unchanged. No model switch or repeated retry. Science Q1-Q3 also remain held; current implementation, source/data and release boundaries remain.
+PM checkpoint 2026-09-13 22:26 ET: Ca0e8ec38/testedc21e64f2 completed390; exact source and nine author records verified/adopted394, C LOW. D2 MAX gets one bounded source-first independent consumer review. B392 remains capacity-held after one failed recovery, heartbeat paused; temporary existing-B Sol/MAX fallback awaits owner yes/no. Science Q1-Q3 also remain held. No product acceptance, model switch, repeat retry, data or release change.
 
 Execution control check 2026-09-13 20:54 ET: the old-account usage stop in Engine reviewer was recovered; ER368 and D2 science reconciliation are executing at MAX. Saved and actual executing efforts match. B/C/D/E/I remain LOW with follow-ups paused until a concrete dependency is ready. New account ordinary usage is available. PM keeps30-minute fallback oversight and immediate meaningful handoffs; active reviewers retain hourly fallback. The recurring PM prompt now points to durable records instead of replaying old custody detail. No duplicate work, repeated unchanged audits, new paid service, acceptance shortcut or release change. Audit: `.tmp/effort-audits/20260914T005231829974Z.json`.
 
@@ -8,9 +8,9 @@ Execution control check 2026-09-13 20:54 ET: the old-account usage stop in Engin
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Astra MAX384 capacity-held392; exact prototype work preserved, temporary Sol/MAX fallback awaits owner | earned-astra-b-follow-up; PAUSED capacity hold |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | HIGH390: two-module coach accuracy and missing-target correction; old C lifecycle acceptance retained | earned-astra-c-follow-up; hourly while substantive, then paused320 |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: completea0e8ec38/testedc21e64f2 coach correction, independent review pending | earned-astra-c-follow-up; PAUSED320 |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: final science auditf93834d8 scoped completion adopted378; await exact independent successor | earned-lane-d2-requests; PAUSED320 |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX394: exact two-module coach correction independent review | earned-lane-d2-requests; hourly substantive, then paused320 |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: complete2c9c19a1 source feasibility review; await exact successor | earned-astra-engine-review-follow-up; PAUSED320 |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: complete135887a4 science correction contract adopted388; owner choices held | earned-astra-e-follow-up; PAUSED320 |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |

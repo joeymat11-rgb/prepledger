@@ -1,0 +1,113 @@
+TAP version 13
+# Subtest: missing target objects stay unknown while the supplied workout survives
+ok 1 - missing target objects stay unknown while the supplied workout survives
+  ---
+  duration_ms: 3.3954
+  type: 'test'
+  ...
+# Subtest: null, partial and nonfinite targets preserve every other supplied field
+    # Subtest: null targets
+    ok 1 - null targets
+      ---
+      duration_ms: 1.1874
+      type: 'test'
+      ...
+    # Subtest: calories only
+    ok 2 - calories only
+      ---
+      duration_ms: 0.3781
+      type: 'test'
+      ...
+    # Subtest: protein only
+    ok 3 - protein only
+      ---
+      duration_ms: 0.1973
+      type: 'test'
+      ...
+    # Subtest: null calories
+    ok 4 - null calories
+      ---
+      duration_ms: 0.1346
+      type: 'test'
+      ...
+    # Subtest: null protein
+    ok 5 - null protein
+      ---
+      duration_ms: 0.1647
+      type: 'test'
+      ...
+    # Subtest: partial band
+    ok 6 - partial band
+      ---
+      duration_ms: 0.1176
+      type: 'test'
+      ...
+    # Subtest: empty objects
+    ok 7 - empty objects
+      ---
+      duration_ms: 0.256
+      type: 'test'
+      ...
+    # Subtest: nonfinite
+    ok 8 - nonfinite
+      ---
+      duration_ms: 0.2697
+      type: 'test'
+      ...
+    # Subtest: no coercion
+    ok 9 - no coercion
+      ---
+      duration_ms: 0.5474
+      type: 'test'
+      ...
+    # Subtest: partly nonfinite
+    ok 10 - partly nonfinite
+      ---
+      duration_ms: 0.1297
+      type: 'test'
+      ...
+    1..10
+ok 2 - null, partial and nonfinite targets preserve every other supplied field
+  ---
+  duration_ms: 4.2727
+  type: 'test'
+  ...
+# Subtest: finite values remain exact and licensed only in their own turn and unit
+ok 3 - finite values remain exact and licensed only in their own turn and unit
+  ---
+  duration_ms: 0.4365
+  type: 'test'
+  ...
+# Subtest: protein is provisional without changing the at-least instruction
+ok 4 - protein is provisional without changing the at-least instruction
+  ---
+  duration_ms: 0.5461
+  type: 'test'
+  ...
+# Subtest: all five tier-three topics remain refused with no consent or engine action
+ok 5 - all five tier-three topics remain refused with no consent or engine action
+  ---
+  duration_ms: 0.3854
+  type: 'test'
+  ...
+# Subtest: engine-owned reason strings pass through verbatim and whole-view failures propagate
+ok 6 - engine-owned reason strings pass through verbatim and whole-view failures propagate
+  ---
+  duration_ms: 0.5133
+  type: 'test'
+  ...
+# Subtest: acceptance rendering describes an acknowledgement, not durable application or a stored reason
+ok 7 - acceptance rendering describes an acknowledgement, not durable application or a stored reason
+  ---
+  duration_ms: 0.3447
+  type: 'test'
+  ...
+1..7
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 72.31

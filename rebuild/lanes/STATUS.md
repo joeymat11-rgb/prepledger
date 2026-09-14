@@ -1,16 +1,14 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 22:21 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @5d97ec06ff458a227fb3edc1a11929b74179d9fa before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+## STATE (refreshed 2026-09-13 22:26 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @871175d3f14885c8d06cee489ba5fcfc47b15b47 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
 - PM: sole Astra PM193; existing usage only. Joe/history/memory then Dad, soak wide beta only. MAX critical judgment, HIGH routine coordination; immediate meaningful handoffs, no repeated unchanged audits.
 - B: MAX384 capacity-held392 after original stop and one failed recovery; work preserved, heartbeat PAUSED. Temporary Sol/MAX author fallback awaits owner answer. Original product/private/native gates remain closed.
-- C: HIGH390 recovered from capacity stop, reports completed two-module correction and17/17 focused tests; finishing immutable handoff. D2 MAX independent review next, no product acceptance yet.
+- C: completea0e8ec38/testedc21e64f2, two coach modules/one test; nine exact report/evidence files adopted394 as author proof only. LOW/paused; no product acceptance.
 - E: complete135887a4 four-document science contract, all41 declared input/context identities checked, adopted388. LOW/paused; no repeated research.
-- D2/ER/D/I: LOW/paused pending actual independent review or accepted dependencies. Prior scope acceptances and failures preserved. Full native admission/import/memory-provider-consumer joins/phone proof remain.
+- D2: MAX394 independent source-first coach correction review, one bounded attempt. ER/D/I LOW/paused. Prior acceptance/failures preserved; full native/import/memory/phone proof remains.
 - OWNER: temporary B Sol/MAX capacity fallback awaits yes/no; Q1 goal/volume authority, Q2 normal final-set effort, Q3 EA/break policy are concrete yes/no choices in SCIENCE-OWNER-CHOICES.md; all held pending answers. No new dose or default approved. September18-23 personal forecast retains limited confidence; Dad follows the existing two-day Joe trial.
-- SCHEDULE: PM30min; C HIGH hourly while substantive; B/E/D2/ER/D/I PAUSED. No capacity retry loop or spending. Saved/executed B MAX/C HIGH verified after recovery dispatch.
-
-2026-09-13 18:50 ET · PM-CARETAKER · Astra · e66e9ec39f36b5c7bd5108779bb16ebe58302ded ·350 answers B builtin-scope request after reported deferred-exit false PASS. R1 stays open; pinned builtin inspection/contained repair attempt, MAX, same original gate. Earlier45/45 and later1/2 retained. Other lanes LOW/paused; no owner action or paid API.
+- SCHEDULE: PM30min; D2 MAX hourly while substantive. B/C/E/ER/D/I PAUSED. Capacity refusals stop without retry loops; saved/executed effort checked after actual dispatch.
 
 2026-09-13 19:12 ET · PM-CARETAKER · Astra · 1a0cc98640dae57930569ed8ed7d5a7918ccf11f ·352 sends complete capture repairbe0aeeb6 to ER MAX independent review. Exact five-file/tested/profile/source scope verified; all failed attempts retained. B LOW finite public archive. E346 stays accepted. No native/phone PASS, owner action or paid API.
 
@@ -39,3 +37,5 @@
 2026-09-13 21:44 ET · PM-CARETAKER · Astra · 5ae1f2f48f9e53a37bbb725a31c65a8cc8eec63b · 386 fixes B API link; MAX384 continues.388 adopts complete E correction contract, E LOW. Three owner choices held.390 C HIGH starts coach accuracy/missing-target fixes in parallel; D2 independent review next. No native/phone PASS.
 
 2026-09-13 22:21 ET · PM-CARETAKER · Astra · 5d97ec06ff458a227fb3edc1a11929b74179d9fa · THROTTLED392: B/C hit Astra capacity. Single recovery: C HIGH resumed,17/17 author checks; B MAX failed again, heartbeat paused. Temporary B Sol/MAX fallback prepared for owner yes/no, independent Astra review retained. No scope/data/release change.
+
+2026-09-13 22:26 ET · PM-CARETAKER · Astra · 871175d3f14885c8d06cee489ba5fcfc47b15b47 ·394 verifies complete Ca0e8ec38/testedc21e64f2 and9 evidence files. C LOW; D2 MAX exact independent review commissioned. Author17/17 is not acceptance. B remains capacity-held392; temporary Sol/MAX and science Q1-Q3 await owner answers.

@@ -609,3 +609,17 @@
 - SCHEDULE: PM30min; B MAX/C HIGH hourly while substantive. E/D2/ER/D/I paused. Completed tasks pause; immediate handoffs, no duplicate work or spending. Effort is checked after real dispatch/change.
 
 2026-09-13 18:39 ET · PM-CARETAKER · Astra · 010aef10cfec509bded9af9112fb5e95ac745253 ·346 accepts isolated build supportb54fec2d after complete D2 review:12/12 plus2/2 controls,43 exact artifacts/all failures preserved. E/D2 LOW/paused. B MAX344/348 capture repair continues with bounded exit-dispatch proof; no native/phone PASS or added spending.
+
+## State archived 2026-09-13 22:26 ET
+
+## STATE (refreshed 2026-09-13 22:21 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @5d97ec06ff458a227fb3edc1a11929b74179d9fa before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193; existing usage only. Joe/history/memory then Dad, soak wide beta only. MAX critical judgment, HIGH routine coordination; immediate meaningful handoffs, no repeated unchanged audits.
+- B: MAX384 capacity-held392 after original stop and one failed recovery; work preserved, heartbeat PAUSED. Temporary Sol/MAX author fallback awaits owner answer. Original product/private/native gates remain closed.
+- C: HIGH390 recovered from capacity stop, reports completed two-module correction and17/17 focused tests; finishing immutable handoff. D2 MAX independent review next, no product acceptance yet.
+- E: complete135887a4 four-document science contract, all41 declared input/context identities checked, adopted388. LOW/paused; no repeated research.
+- D2/ER/D/I: LOW/paused pending actual independent review or accepted dependencies. Prior scope acceptances and failures preserved. Full native admission/import/memory-provider-consumer joins/phone proof remain.
+- OWNER: temporary B Sol/MAX capacity fallback awaits yes/no; Q1 goal/volume authority, Q2 normal final-set effort, Q3 EA/break policy are concrete yes/no choices in SCIENCE-OWNER-CHOICES.md; all held pending answers. No new dose or default approved. September18-23 personal forecast retains limited confidence; Dad follows the existing two-day Joe trial.
+- SCHEDULE: PM30min; C HIGH hourly while substantive; B/E/D2/ER/D/I PAUSED. No capacity retry loop or spending. Saved/executed B MAX/C HIGH verified after recovery dispatch.
+
+2026-09-13 18:50 ET · PM-CARETAKER · Astra · e66e9ec39f36b5c7bd5108779bb16ebe58302ded ·350 answers B builtin-scope request after reported deferred-exit false PASS. R1 stays open; pinned builtin inspection/contained repair attempt, MAX, same original gate. Earlier45/45 and later1/2 retained. Other lanes LOW/paused; no owner action or paid API.

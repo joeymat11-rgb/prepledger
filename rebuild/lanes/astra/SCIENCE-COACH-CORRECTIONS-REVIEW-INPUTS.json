@@ -1,0 +1,95 @@
+{
+  "authority": "PM394",
+  "candidate": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+  "tested": "c21e64f2616552c3672107a792f45ea6e2342777",
+  "base": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "sourceRows": [
+    {
+      "path": "rebuild/coach/tools.cjs",
+      "bytes": 58784,
+      "sha256": "b2bb3c959840a3c9fa867b84e94df979bf8ec04b9a5b19701da07f72fb8e6037",
+      "blob": "49d2d5e62a25c3b1c96dea381c07419fe6040495",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f"
+    },
+    {
+      "path": "rebuild/coach/coach-text.cjs",
+      "bytes": 14880,
+      "sha256": "2e5213b99b469ec4fd079ed04c406061033437b40b0c1b82934ba24824c78147",
+      "blob": "15fb2ad08ac078599bb16ef4aacd670e6f75a24e",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f"
+    },
+    {
+      "path": "rebuild/coach/test/science-correction-contract.test.cjs",
+      "bytes": 10886,
+      "sha256": "faa210fdef5037ece50239195bdf335b5189bfc11288eb9e2158a087082bf610",
+      "blob": "2fc542a8978c25d966b6bd50ccb55a2c6b10e1bb",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f"
+    }
+  ],
+  "preimages": [
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/tools.cjs",
+      "bytes": 58790,
+      "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74"
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/coach-text.cjs",
+      "bytes": 14675,
+      "sha256": "1ec05a8c8f16261b3651db4a017b10b3fc2bbefcd1ffb43174d12a81cf8d7d3e"
+    }
+  ],
+  "sourceFirstContext": {
+    "authorBrief": "rebuild/lanes/astra/SCIENCE-COACH-CORRECTIONS-GO.md",
+    "sha256": "c527e9f77760776a0050bbdb1203fcad11d12e7bca09ce537f2572d0fe6980a5"
+  },
+  "authorRecordsAfterFirstAssessment": [
+    {
+      "path": "rebuild/lanes/c/SCIENCE-COACH-CORRECTIONS-REPORT.md",
+      "bytes": 6019,
+      "sha256": "f46f46dcf45cff69ceaff8fce22fcaf8c313259d36a549b7f18e507ba20eb757"
+    },
+    {
+      "path": "rebuild/lanes/c/reviews/science-coach-corrections/.gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "rebuild/lanes/c/reviews/science-coach-corrections/EVIDENCE.json",
+      "bytes": 3458,
+      "sha256": "d1460b274283ba20fadc3f142965ea6eae97235140fd90a77dc5d4e64676409d"
+    },
+    {
+      "path": "rebuild/lanes/c/reviews/science-coach-corrections/INPUT-CUSTODY.json",
+      "bytes": 2771,
+      "sha256": "4faa6ae900b99ff38d08d038ca66510eee6e2eb4d3bca1c15f46ec07feeda362"
+    },
+    {
+      "path": "rebuild/lanes/c/reviews/science-coach-corrections/README.md",
+      "bytes": 1586,
+      "sha256": "93581a14a731293708c626736f9d3dc0f7fb10d3688d332f599794ecdfe9e26a"
+    },
+    {
+      "path": "rebuild/lanes/c/reviews/science-coach-corrections/baseline-red.log",
+      "bytes": 1389,
+      "sha256": "ee365387337181dc522f9a0d936cf87ef5597cd642eade51d7d8b7c89253a7ae"
+    },
+    {
+      "path": "rebuild/lanes/c/reviews/science-coach-corrections/baseline-test.txt",
+      "bytes": 1481,
+      "sha256": "9432e8b3ab5a438195bfc038f4baa2e31d156f0db6d072f2679c80ad58518cf5"
+    },
+    {
+      "path": "rebuild/lanes/c/reviews/science-coach-corrections/first-corrected.log",
+      "bytes": 2952,
+      "sha256": "442d135bda896f5a028e6fe76be79f865cd6699283bb40602c7070a09895c187"
+    },
+    {
+      "path": "rebuild/lanes/c/reviews/science-coach-corrections/source.diff",
+      "bytes": 17463,
+      "sha256": "de074ed763dc0b3f6f93be4c83c8b33724d911491586e53ab47a8a5044cb20c5"
+    }
+  ],
+  "execution": "Only the two coach modules, named new invented-world entry and Node builtins; no CLI/main demo or real product closure."
+}

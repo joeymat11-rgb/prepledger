@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM checkpoint 2026-09-13 22:21 ET: provider capacity stopped B/C; single same-model recovery392 leaves B held with work preserved/heartbeat paused and C HIGH finishing its17/17 author handoff. Temporary existing-B Sol/MAX fallback is prepared for owner yes/no, with separate Astra/MAX review unchanged. No model switch or repeated retry. Science Q1-Q3 also remain held; current implementation, source/data and release boundaries remain.
+PM checkpoint 2026-09-13 22:26 ET: Ca0e8ec38/testedc21e64f2 completed390; exact source and nine author records verified/adopted394, C LOW. D2 MAX gets one bounded source-first independent consumer review. B392 remains capacity-held after one failed recovery, heartbeat paused; temporary existing-B Sol/MAX fallback awaits owner yes/no. Science Q1-Q3 also remain held. No product acceptance, model switch, repeat retry, data or release change.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
