@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM checkpoint 2026-09-14 00:14 ET: ER independent-firstdd4ae18d reports no blocking standalone finding; full first report read,270 review-only paths/source identity checked. Final reconciliation continues at Astra/MAX; no acceptance or repeated tests. B Astra/MAX404 now prepares one exact source-only original-capture integration plan in parallel, two plan files/no runtime. C400 remains scoped accepted; D2/C/D/E/I waiting LOW/paused. Astra only, existing usage; original/native/current-CI/integration and held Q1-Q3 remain.
+PM checkpoint 2026-09-14 00:14 ET: ER independent-firstdd4ae18d reports no blocking standalone finding; full first report read,270 review-only paths/source identity checked. Final reconciliation continues at Astra/MAX; no acceptance or repeated tests. B Astra/MAX404 now prepares one exact source-only original-capture integration plan in parallel, two plan files/no runtime. C400 remains scoped accepted; D2/C/D/E/I waiting LOW/paused. Astra only, existing usage; original/native/current-CI/integration and held Q1-Q3 remain. PM406 (2026-09-14 00:21 ET) clears the requested exact H3 code ranges and b-package pin-consumer read through supplement1; B continues without a new execution grant.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |

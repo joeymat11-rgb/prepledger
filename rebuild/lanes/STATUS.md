@@ -1,16 +1,14 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-14 00:14 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @16a628ed5bfbaa600f3240b80471280c11ae9d3a before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+## STATE (refreshed 2026-09-14 00:21 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @d6eee5529fd18a1151914bc9696e7f2eb53d8e31 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
 - PM: sole Astra PM193, all seats Astra under398. Existing usage, Joe/history/approved memory then Dad; soak gates wide beta only. MAX critical judgment, HIGH routine coordination.
-- B: Astra/MAX404 source-only exact original-capture integration plan, two plan files/no runtime; prototype9cc78e77 remains unaccepted pending final ER review. Loading/artifact/writer closure, unchanged original behavior and platform/pin scope must be concrete.
+- B: Astra/MAX404 source-only exact original-capture integration plan, two plan files/no runtime;406 answers exact H3/b-package static edges through supplement1; prototype9cc78e77 remains unaccepted pending final ER review. Loading/artifact/writer closure, unchanged original behavior and platform/pin scope must be concrete.
 - ER: Astra/MAX402 final reconciliation after immutable independent-firstdd4ae18d. First34 delivered plus3 behavioral controls/one census subtest pass; no blocking standalone finding yet. Final verdict/PM acceptance pending; no repeat of passed runs.
 - C/D2: coach correctiona0e8ec38/testedc21e64f2 scoped accepted400 after full D2 final5cf5ef6a; both LOW/paused. Exact integration/current-CI and real durable effects remain separate.
 - E/OWNER: contract135887a4 adopted388, E LOW/paused. Q1 goal/volume authority, Q2 final-set default, Q3 EA/break policy held for actual owner answers. No model fallback or new scientific policy approved.
 - SCHEDULE: B/ER hourly while active, PM30min; other waiting/completed seats LOW/paused. No automatic capacity retry/model switch, paid service, repeated audit or unchanged passing-run replay.
 - DELIVERY: September18-23 personal forecast retains limited confidence; no rolling ETA. Dad follows the existing two-day same-candidate Joe trial. No live-data/phone claim.
-
-2026-09-13 19:56 ET · PM-CARETAKER · Astra · d4ab7a32e2302382362b2978cf67b5cbf3d73c29 · 362 clears one real-Node resource parity probe for B MAX. Prototype0282f3f2 targeted12/12 is intermediate, not acceptance; original bars/failures stay. E/D2 MAX science audit continues independently. No native/phone verdict or owner action.
 
 2026-09-13 20:01 ET · PM-CARETAKER · Astra · a38d4574db33efb0d40d4da5a233d946a4bafc5a · 364 preserves B resource-probe failure; prototype unaccepted. B MAX completes limitation/raw custody and two-option source-only plan, then LOW. No repeated known-refuted suite or new code. E/D2 MAX science continues; no owner action/native release.
 
@@ -39,3 +37,5 @@
 2026-09-13 23:52 ET · PM-CARETAKER · Astra · c59e149a77e142147ee602d799f052b5df6a7985 ·402 verifies complete B9cc78e77/source2592f091;254 evidence files preserved,34 author passes not acceptance. B LOW/paused; ER Astra/MAX exact source-first independent review/reproduction. Original capture/native/integration proof and science choices remain.
 
 2026-09-14 00:14 ET · PM-CARETAKER · Astra · 16a628ed5bfbaa600f3240b80471280c11ae9d3a ·404 preserves ER firstdd4ae18d, final reconciliation pending at MAX. B Astra/MAX prepares exact source-only original integration plan in parallel: loading/writer/pin/platform boundary and tests, two plan files/no runtime. No acceptance or changed privacy/release rule.
+
+2026-09-14 00:21 ET · PM-CARETAKER · Astra · d6eee5529fd18a1151914bc9696e7f2eb53d8e31 ·406 clears two requested source reads for B MAX404: original H3 code ranges match328; exact b-package pin consumer verified. Supplement1, no protected-value read or execution. ER MAX final reconciliation continues; no acceptance or owner action.

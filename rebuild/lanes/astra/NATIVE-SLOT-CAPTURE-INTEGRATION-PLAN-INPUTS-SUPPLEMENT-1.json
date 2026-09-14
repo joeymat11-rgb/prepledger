@@ -1,0 +1,24 @@
+{
+  "authority": "PM406 under193/196/328/330/404; code inspection only",
+  "originalManifestSha256": "bbd936dc2baa48144e3628c19a1dbc97ce455c8741bb79836513e9aa64a572db",
+  "inputs": [
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs",
+      "blob": "ab177f9d21b8d61bbfdf0fc1d64e4d5bb9ac216a",
+      "bytes": 8089,
+      "sha256": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+      "identity": "Git object equals previously licensed A object under328; no protected payload exposed by PM",
+      "use": "Only require/loader/process/setup/assertion control-flow ranges; first locate structure without printing embedded protected literals. No full-file dump, data-value read, module evaluation or following dependencies."
+    },
+    {
+      "ref": "d05ef3e9005ced9505250cd4e67f654910a9aacc",
+      "path": "rebuild/lanes/b/tooling/b-package.cjs",
+      "blob": "c05612fbc6172ccf59c53669dfe30d1079cfcf97",
+      "bytes": 263361,
+      "sha256": "f21ce8ee43647915953b359d493cfb05272b35c3615d4c57b3e7db0d39f6f022",
+      "use": "Static helper/product/auxiliary pin-consumer control flow and metadata only. No CLI/module execution, profile write, gate invocation or following unlisted files."
+    }
+  ],
+  "unchangedBoundaries": "Source-only two-file plan under404; no runtime, private/history/seed/fixture values, original gate, new Node download, workflow/profile edit or acceptance. Return any additional actual source edge with its purpose."
+}
