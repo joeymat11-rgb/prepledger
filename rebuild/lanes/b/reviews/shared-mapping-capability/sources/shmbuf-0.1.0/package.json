@@ -1,0 +1,52 @@
+{
+  "name": "shmbuf",
+  "version": "0.1.0",
+  "description": "Cross-platform shared memory for Node.js — returns a SharedArrayBuffer backed by OS shared memory, usable with Atomics across processes",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "gypfile": true,
+  "scripts": {
+    "install": "prebuild-install --runtime napi || node-gyp rebuild || echo 'All build methods failed, using fallback'",
+    "prebuild": "npx prebuildify --napi --strip",
+    "build": "node-gyp rebuild",
+    "test": "node test/test-shmbuf.js",
+    "test:all": "node test/test-shmbuf.js"
+  },
+  "keywords": [
+    "shared-memory",
+    "shm",
+    "mmap",
+    "ipc",
+    "cross-process",
+    "native",
+    "napi",
+    "atomics",
+    "SharedArrayBuffer"
+  ],
+  "author": "kedemd",
+  "license": "MIT",
+  "dependencies": {
+    "node-addon-api": "^8.0.0",
+    "prebuild-install": "^7.1.3"
+  },
+  "devDependencies": {
+    "node-gyp": "^10.0.0",
+    "prebuildify": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "src/",
+    "lib/",
+    "test/",
+    "binding.gyp",
+    "get-include-dir.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "prebuild-install": {
+    "host": "https://github.com/kedemd/shmbuf/releases/download",
+    "asset": "shmbuf-{platform}-{arch}.node"
+  }
+}
