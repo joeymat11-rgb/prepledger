@@ -1,18 +1,16 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 20:01 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @a38d4574db33efb0d40d4da5a233d946a4bafc5a before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+## STATE (refreshed 2026-09-13 20:07 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @e99726a39e78268c65f894be687266483d736c50 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
 - PM: sole Astra PM193; owner306 existing Codex usage, no API trial. Joe/history/memory then Dad; soak wide beta only. MAX advised for science/critical judgments, HIGH routine coordination.
 - B: MAX364 limitation/custody and bounded source-only alternative plan after actual resource failure d05ef3e9. Prototype0282f3f2 unaccepted; no new implementation or known-refuted full-suite runs. NativeFieldDeltas UNKNOWN.
-- E: MAX356 science author in fresh science-audit-e;12 scoped claims and72 pinned public inputs plus one static composition supplement360. Prior isolated build support346 and memory324 remain their accepted scopes.
+- E: MAX356 science author in fresh science-audit-e;12 scoped claims and72 pinned public inputs plus two static composition supplements360/366. Prior isolated build support346 and memory324 remain their accepted scopes.
 - D2: MAX356 independent source/static science check before E findings, then reconciliation. Prior342/346 complete; separate owned science-audit-d2.
 - C: lifecycle7e64848d scoped ACCEPT294; LOW waiting full consumer/composition. N2/R4 evidence retained.
 - D: partial import harnessf0b01d9 retained; LOW waits reviewed B native-Date/membership+host companion, acceptedB3 and full joins.
 - REVIEW/INTEGRATION: complete ER352 REJECT R1 and419 exact artifacts preserved; R2 substantiated within scope. ER/I LOW/paused until exact accepted handoff. No full/native/receipt/CI/integration acceptance.
 - OWNER: no immediate action. Science audit findings will become concrete yes/no policy choices only if needed. September18–23 Joe/history/memory forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks.
 - SCHEDULE: PM30min; B/E/D2 MAX substantive work hourly; C/D/ER/I LOW/paused. Immediate meaningful handoffs; no duplicate tasks or spending.
-
-2026-09-13 18:14 ET · D2 · RECONCILED PM334 · codex/astra-d2-frozen-build-setup · First561d3b2 sent before full E report/archive.17 copies36666bytes verified; original/setup/product failures retained. REJECT R1 unchanged.11/11 public,4/5 own,3 kills; source exact. Full handoff to PM, then LOW/paused320.
 
 2026-09-13 18:17 ET · PM-CARETAKER · Astra · d36cd84cc4211d577c5fc66f1ac91157c6826fef ·340 preserves final D2 REJECT R1, LOW/paused; E HIGH338 fix continues. ER MAX336 own-root synthetic replay clarified under existing bar; original26/28 retained. No native/private/FULL/phone PASS or paid API.
 
@@ -41,3 +39,5 @@
 2026-09-13 19:56 ET · PM-CARETAKER · Astra · d4ab7a32e2302382362b2978cf67b5cbf3d73c29 · 362 clears one real-Node resource parity probe for B MAX. Prototype0282f3f2 targeted12/12 is intermediate, not acceptance; original bars/failures stay. E/D2 MAX science audit continues independently. No native/phone verdict or owner action.
 
 2026-09-13 20:01 ET · PM-CARETAKER · Astra · a38d4574db33efb0d40d4da5a233d946a4bafc5a · 364 preserves B resource-probe failure; prototype unaccepted. B MAX completes limitation/raw custody and two-option source-only plan, then LOW. No repeated known-refuted suite or new code. E/D2 MAX science continues; no owner action/native release.
+
+2026-09-13 20:07 ET · PM-CARETAKER · Astra · e99726a39e78268c65f894be687266483d736c50 · 366 clears one exact public workout composition input for D2/E science audit, static only. Original72 inputs plus two supplements; no findings shared between author/reviewer. Both MAX; B MAX364 limitation/plan continues. No product change or owner action.

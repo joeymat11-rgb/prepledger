@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "authority": "PM366 under owner356 and SCIENCE-AUDIT-GO clause2",
+  "purpose": "Input-only static rirPlan and workout engine composition trace; no author/reviewer findings",
+  "originalManifestSha256": "9553ba37c4ed8fc974884b3e008d67c1212889a42ab56dfa61246ca5e2a1b3d1",
+  "files": [
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m4/workout/engine-runtime.cjs",
+      "bytes": 5596,
+      "sha256": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+      "kind": "prepared-workout-composition-static-only"
+    }
+  ],
+  "limits": "E and D2 may inspect this text in their own science-audit trees, with actual read coverage recorded. Original72 rows and supplement1 stay unchanged. No import/evaluation/execution, seed/migrate/private dependency or product scope expansion. Comment references are distinct from actual current call-site reach."
+}
