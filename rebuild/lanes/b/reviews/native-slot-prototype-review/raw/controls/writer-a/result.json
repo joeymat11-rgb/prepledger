@@ -1,0 +1,55 @@
+{
+  "label": "writer-a",
+  "start": "2026-09-14T04:03:20.666Z",
+  "end": "2026-09-14T04:03:20.790Z",
+  "executable": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\runtime\\node.exe",
+  "args": [
+    "--test",
+    "--test-reporter=tap",
+    "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\runs\\er-controls-one\\writer-a\\control-child.cjs"
+  ],
+  "cwd": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er",
+  "environment": {
+    "SystemRoot": "C:\\WINDOWS",
+    "WINDIR": "C:\\WINDOWS",
+    "SystemDrive": "C:",
+    "ComSpec": "C:\\WINDOWS\\System32\\cmd.exe",
+    "PATH": "C:\\WINDOWS\\System32",
+    "PATHEXT": ".COM;.EXE;.BAT;.CMD",
+    "NODE_OPTIONS": "",
+    "NODE_PATH": "",
+    "TEMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\temp",
+    "TMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\temp",
+    "TMPDIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\temp",
+    "ZIG_GLOBAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\cache\\global",
+    "ZIG_LOCAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\cache\\local",
+    "EARNED_SLOT_BINARY": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\builds\\er-independent-one\\candidate.node",
+    "SLOT_LOADER": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\rebuild\\lanes\\b\\tooling\\native-slot-prototype\\loader.cjs",
+    "SLOT_DESCRIPTOR": "{\"name\":\"Local\\\\EarnedSlot-e4af46acc63b4bd887ad607493020e6a\",\"nonce\":\"b686d01f965c57ae3fd25b99753409fb\",\"ownerPid\":47584,\"version\":1,\"bytes\":64}",
+    "SLOT_TRACE": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot\\runs\\er-controls-one\\writer-a\\trace.json"
+  },
+  "operatorPid": 47584,
+  "childPid": 62704,
+  "nested": true,
+  "status": 0,
+  "signal": null,
+  "spawnError": null,
+  "timedOut": false,
+  "census": {
+    "tests": 1,
+    "suites": 0,
+    "pass": 1,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "messages": [],
+  "trace": {
+    "pid": 63880,
+    "parentPid": 62704
+  },
+  "sourceSha256": "ca45d85951ee8a47d1bebc7703d5320fab24b36798d7bd716273680c562048b4",
+  "stdoutSha256": "f3f4b727352a7488a77ea0ef73ca55674d935a1f435ff955447c69eb39bc23db",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

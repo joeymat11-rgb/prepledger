@@ -1,0 +1,230 @@
+{
+  "version": 1,
+  "authority": "PM384/386",
+  "nodeCommit": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+  "nodeDefinitions": [
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/doc/api/n-api.md",
+      "upstreamPath": "doc/api/n-api.md",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\n-api.md",
+      "bytes": 241517,
+      "sha256": "20b8b3351be836c196f75aaa5ad805f7363997198adb14c3c4c2a39eb2dba620",
+      "reason": "Direct stable C Node-API opaque value/type-tag/finalizer/reference/registration and scalar callback contracts"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_api.h",
+      "upstreamPath": "src/node_api.h",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\node_api.h",
+      "bytes": 10370,
+      "sha256": "2d4560831e525b47b060ec8a0864ab73993df9e20215ce9f0fe7b24cd31af32a",
+      "reason": "Direct stable C Node-API opaque value/type-tag/finalizer/reference/registration and scalar callback contracts"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_api_types.h",
+      "upstreamPath": "src/node_api_types.h",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\node_api_types.h",
+      "bytes": 1825,
+      "sha256": "088766b3cf1f0cd9b292c361ad30f7a04e7cc6db35a20ca52c572c1adf9635e7",
+      "reason": "Direct stable C Node-API opaque value/type-tag/finalizer/reference/registration and scalar callback contracts"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/js_native_api.h",
+      "upstreamPath": "src/js_native_api.h",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\js_native_api.h",
+      "bytes": 31770,
+      "sha256": "582e64ead4d5fdf663e2bd934f2fc97e8e155a7740d28995830393d19d089705",
+      "reason": "Direct stable C Node-API opaque value/type-tag/finalizer/reference/registration and scalar callback contracts"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/js_native_api_types.h",
+      "upstreamPath": "src/js_native_api_types.h",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\js_native_api_types.h",
+      "bytes": 7603,
+      "sha256": "05e3d86e24c814f94a8b52b6a70cec11d7e91c810008253553528637e3a15b2f",
+      "reason": "Direct stable C Node-API opaque value/type-tag/finalizer/reference/registration and scalar callback contracts"
+    }
+  ],
+  "nodeApiDocumentReadRanges": [
+    [
+      830,
+      875
+    ],
+    [
+      1523,
+      1569
+    ],
+    [
+      1728,
+      1856
+    ],
+    [
+      1910,
+      1970
+    ],
+    [
+      2029,
+      2057
+    ],
+    [
+      2479,
+      2514
+    ],
+    [
+      3506,
+      3535
+    ],
+    [
+      3732,
+      3764
+    ],
+    [
+      5174,
+      5214
+    ],
+    [
+      5541,
+      5644
+    ],
+    [
+      5657,
+      5718
+    ]
+  ],
+  "headerInspection": "node_api.h31-84; js_native_api.h580-605; targeted declaration-name searches. The two types headers are byte-pinned type context, not a full text audit. Compiler consumption of the exact header archive is a trusted-toolchain boundary.",
+  "osDefinitions": [
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createfilemappinga",
+      "status": 200,
+      "bytes": 75514,
+      "sha256": "669eb512b45c62413dfa22650233b0aebf5b85e7c2e77d3123b264890ca1a22c",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-winbase-createfilemappinga.html",
+      "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-openfilemappinga",
+      "status": 404,
+      "errorFile": "nf-memoryapi-openfilemappinga.error.txt",
+      "fetched": false
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-mapviewoffile",
+      "status": 200,
+      "bytes": 65686,
+      "sha256": "6a89d573315aef26fb20b69f0e63e658bd650964328caa68cf0fd1265a706154",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-memoryapi-mapviewoffile.html",
+      "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-unmapviewoffile",
+      "status": 200,
+      "bytes": 54154,
+      "sha256": "5fda412c22f33c27eb7e9cc7cbf8553d81104721b40eb9f95063d333cbbb8e8b",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-memoryapi-unmapviewoffile.html",
+      "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-closehandle",
+      "status": 200,
+      "bytes": 56055,
+      "sha256": "df0a7db57e00fcccaec2827a6ae7a6ee87c87f38c2c6de7de0e23e091862d584",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-handleapi-closehandle.html",
+      "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winnt/nf-winnt-interlockedcompareexchange",
+      "status": 200,
+      "bytes": 55406,
+      "sha256": "cf2e86dd8d46156d1b3882d138cc1f00074bea54b8f98175a5f0ce6f73f9ddda",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-winnt-interlockedcompareexchange.html",
+      "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winnt/nf-winnt-interlockedexchange",
+      "status": 200,
+      "bytes": 55242,
+      "sha256": "56b19b4863043abef22d182dcb9756389dd3ff03524a673f2ce64a354f483df6",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-winnt-interlockedexchange.html",
+      "reason": "Direct mapping/open/view/unmap/handle/interlocked contract for owned prototype"
+    }
+  ],
+  "osSupplement": {
+    "authority": "PM384 direct correction from sole PM task01a098c1-1d81-70b3-a380-0eb4d23b7f15",
+    "originalManifestSha256": "50a38c17b56af818b7173ac6f4f46e8e1478863b92632aad5dee0bb15645ddad",
+    "original404": "https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-openfilemappinga",
+    "url": "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-openfilemappinga",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-winbase-openfilemappinga.html",
+    "at": "2026-09-14T01:40:20.0231609Z",
+    "bytes": 54902,
+    "sha256": "e126f2734210583eeae7f7e34e22d91820be8f2b58b0bfede292b295e85cb59d",
+    "scope": "Address correction only; original manifest preserved"
+  },
+  "nodeArtifacts": [
+    {
+      "url": "https://nodejs.org/dist/v22.23.2/node-v22.23.2-headers.tar.gz",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\downloads\\node-v22.23.2-headers.tar.gz",
+      "bytes": 9932325,
+      "sha256": "daaf13ec5d45a38bbcfcff06d0723f72a6813b89ab27bb5af2ac8e1f6259dde0",
+      "verified": true,
+      "at": "2026-09-14T01:36:46.9477012Z"
+    },
+    {
+      "url": "https://nodejs.org/dist/v22.23.2/win-x64/node.exe",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\downloads\\node.exe",
+      "bytes": 86997320,
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+      "verified": true,
+      "at": "2026-09-14T01:36:48.5924917Z"
+    },
+    {
+      "url": "https://nodejs.org/dist/v22.23.2/win-x64/node.lib",
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\downloads\\node.lib",
+      "bytes": 2790574,
+      "sha256": "ac15f1e9d7c8279353723a77f6319967f1a41c06026521094a8234c2e6fbe052",
+      "verified": true,
+      "at": "2026-09-14T01:36:48.8220077Z"
+    }
+  ],
+  "zigArtifact": {
+    "url": "https://ziglang.org/download/0.15.2/zig-x86_64-windows-0.15.2.zip",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\downloads\\zig-x86_64-windows-0.15.2.zip",
+    "bytes": 92614574,
+    "sha256": "3a0ed1e8799a2f8ce2a6e6290a9ff22e6906f8227865911fb7ddedc3cc14cb0c",
+    "verified": true,
+    "at": "2026-09-14T01:37:03.9414219Z"
+  },
+  "sourceCandidate": {
+    "head": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+    "base": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+    "files": [
+      {
+        "path": "rebuild/lanes/b/tooling/native-slot-prototype/mapping.c",
+        "bytes": 11875,
+        "sha256": "f48e49de14baf671a7f8171cae181d356f879614f5c54a457a06b5810a895f20"
+      },
+      {
+        "path": "rebuild/lanes/b/tooling/native-slot-prototype/loader.cjs",
+        "bytes": 1436,
+        "sha256": "af4c86c8c5bc58ea1bda55c2fe2352a0497cf135d4ffbfbeadadafb2d4a0cbb4"
+      },
+      {
+        "path": "rebuild/lanes/b/tooling/native-slot-prototype/build.cjs",
+        "bytes": 6742,
+        "sha256": "c1b91326dcc509b61c91ff9a16a073446ba9a328f92d852dff915a847c7e8ad8"
+      },
+      {
+        "path": "rebuild/lanes/b/tooling/native-slot-prototype/PROTOCOL.md",
+        "bytes": 6623,
+        "sha256": "46195cfc2f601031caab0dfa04a4d02ec5d97b1a5935b0a01697b146894fda69"
+      },
+      {
+        "path": "rebuild/lanes/b/tooling/native-slot-prototype/test/prototype.test.cjs",
+        "bytes": 13642,
+        "sha256": "15ec5392d47e1ff66ad6b409d6a559ee5cce3ef59d9b02abbef80702971e5162"
+      }
+    ],
+    "fullIndex": 2373
+  },
+  "build": "raw/build-01/build.json records exact executable/argv/environment/source/library/binary hashes. Full extracted-file hash inventories are retained under custody; no compiler/runtime/SDK bodies or binaries are copied.",
+  "readScope": "Only named direct Node-API and seven named Windows contracts, with PM386 replacing the unavailable OpenFileMappingA URL. No V8 C++ implementation audit, alternate dependency search, original helper/operator or product execution.",
+  "trustedBoundary": "Pinned compiler/runtime/header/import-library and ordinary Windows mapping/interlocked, process-id, allocation and cleanup implementations. The source trace and first executable cohort are finite evidence, not universal OS/VM fault proof."
+}

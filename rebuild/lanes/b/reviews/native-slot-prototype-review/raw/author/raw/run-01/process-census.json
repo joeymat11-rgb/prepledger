@@ -1,0 +1,537 @@
+{
+  "sourceHead": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+  "cases": 33,
+  "outerProcesses": 33,
+  "distinctOuterPids": 33,
+  "distinctTestFilePids": 33,
+  "records": [
+    {
+      "label": "two-records",
+      "operatorPid": 17076,
+      "outerPid": 52180,
+      "filePid": 58612,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "none",
+      "operatorPid": 17076,
+      "outerPid": 15932,
+      "filePid": 34616,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "first-pending",
+      "operatorPid": 17076,
+      "outerPid": 44568,
+      "filePid": 38256,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "first-complete",
+      "operatorPid": 17076,
+      "outerPid": 57036,
+      "filePid": 43324,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "second-pending",
+      "operatorPid": 17076,
+      "outerPid": 11596,
+      "filePid": 47728,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "extra",
+      "operatorPid": 17076,
+      "outerPid": 44984,
+      "filePid": 47532,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "out-of-order",
+      "operatorPid": 17076,
+      "outerPid": 64008,
+      "filePid": 42472,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "duplicate",
+      "operatorPid": 17076,
+      "outerPid": 48336,
+      "filePid": 3204,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "invalid-nan",
+      "operatorPid": 17076,
+      "outerPid": 36916,
+      "filePid": 53736,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "invalid-infinity",
+      "operatorPid": 17076,
+      "outerPid": 30864,
+      "filePid": 40608,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "invalid-fractional",
+      "operatorPid": 17076,
+      "outerPid": 35040,
+      "filePid": 42504,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "invalid-huge",
+      "operatorPid": 17076,
+      "outerPid": 57228,
+      "filePid": 49988,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "invalid-negative",
+      "operatorPid": 17076,
+      "outerPid": 41336,
+      "filePid": 43344,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "invalid-string",
+      "operatorPid": 17076,
+      "outerPid": 55040,
+      "filePid": 41348,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "invalid-null",
+      "operatorPid": 17076,
+      "outerPid": 16216,
+      "filePid": 2344,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "invalid-object",
+      "operatorPid": 17076,
+      "outerPid": 17536,
+      "filePid": 35796,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "invalid-missing",
+      "operatorPid": 17076,
+      "outerPid": 52984,
+      "filePid": 48072,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "invalid-extra-argument",
+      "operatorPid": 17076,
+      "outerPid": 43928,
+      "filePid": 61592,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "late-io",
+      "operatorPid": 17076,
+      "outerPid": 39592,
+      "filePid": 63844,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "local-control",
+      "operatorPid": 17076,
+      "outerPid": 55780,
+      "filePid": 13896,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "nonzero",
+      "operatorPid": 17076,
+      "outerPid": 39100,
+      "filePid": 26120,
+      "status": 1,
+      "census": {
+        "tests": 2,
+        "suites": 0,
+        "pass": 1,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "retained-root",
+      "operatorPid": 17076,
+      "outerPid": 35812,
+      "filePid": 49884,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "stale-generation",
+      "operatorPid": 17076,
+      "outerPid": 53900,
+      "filePid": 56804,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "missing-region",
+      "operatorPid": 17076,
+      "outerPid": 57180,
+      "filePid": 24152,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "descriptor-nonce",
+      "operatorPid": 17076,
+      "outerPid": 63492,
+      "filePid": 38064,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "descriptor-owner",
+      "operatorPid": 17076,
+      "outerPid": 50728,
+      "filePid": 58592,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "descriptor-version",
+      "operatorPid": 17076,
+      "outerPid": 25008,
+      "filePid": 5864,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "descriptor-size",
+      "operatorPid": 17076,
+      "outerPid": 58720,
+      "filePid": 53300,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "header-version-mismatch",
+      "operatorPid": 17076,
+      "outerPid": 63140,
+      "filePid": 18092,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "header-size-mismatch",
+      "operatorPid": 17076,
+      "outerPid": 18208,
+      "filePid": 19588,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "duplicate-owner-intact",
+      "operatorPid": 17076,
+      "outerPid": 39876,
+      "filePid": 61140,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "forged-closed",
+      "operatorPid": 17076,
+      "outerPid": 24940,
+      "filePid": 37720,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "label": "owned-teardown",
+      "operatorPid": 17076,
+      "outerPid": 30544,
+      "filePid": 23480,
+      "status": 0,
+      "census": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+Zig safely extracted: 18105 regular files
+Node headers safely extracted: 2725 regular files

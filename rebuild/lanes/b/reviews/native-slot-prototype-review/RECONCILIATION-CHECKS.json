@@ -1,0 +1,961 @@
+{
+  "version": 1,
+  "authorRef": "9cc78e7701957569fd603b9013d2ac454dacb2dd",
+  "independentFirstRef": "dd4ae18da24a614d468ced172cdf5cc89766d402",
+  "candidate": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+  "offlineOnly": true,
+  "newRuntimeExecutions": 0,
+  "allAuthorCopiesVerified": true,
+  "parsedJsonFiles": 114,
+  "extractions": [
+    {
+      "kind": "zig",
+      "archiveSha256": "3a0ed1e8799a2f8ce2a6e6290a9ff22e6906f8227865911fb7ddedc3cc14cb0c",
+      "members": 19312,
+      "files": 18105,
+      "bytes": 348607584,
+      "allMemberSizeHashesMatchIndependent": true
+    },
+    {
+      "kind": "header",
+      "archiveSha256": "daaf13ec5d45a38bbcfcff06d0723f72a6813b89ab27bb5af2ac8e1f6259dde0",
+      "members": 3325,
+      "files": 2725,
+      "bytes": 58889427,
+      "allMemberSizeHashesMatchIndependent": true
+    }
+  ],
+  "sharedPrimaryDefinitionsAndAuthority": [
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/authority/NATIVE-SLOT-PROTOTYPE-GO.md",
+      "sha256": "9a5963c4dcedab643e13cc51c55df5adf2969e8dd87514de03e8c9ec3177f652",
+      "bytes": 5905,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-GO.md"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/authority/NATIVE-SLOT-PROTOTYPE-INPUTS.json",
+      "sha256": "50a38c17b56af818b7173ac6f4f46e8e1478863b92632aad5dee0bb15645ddad",
+      "bytes": 9338,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-INPUTS.json"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/authority/NATIVE-SLOT-PROTOTYPE-INPUTS-SUPPLEMENT-1.json",
+      "sha256": "902cc3cd3380ac3162fc31b4ab4df045dd0e6efb0fea5e679b506d89cc7f6292",
+      "bytes": 1058,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/inputs/NATIVE-SLOT-PROTOTYPE-INPUTS-SUPPLEMENT-1.json"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/node/n-api.md",
+      "sha256": "20b8b3351be836c196f75aaa5ad805f7363997198adb14c3c4c2a39eb2dba620",
+      "bytes": 241517,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/doc__api__n-api.md"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/node/node_api.h",
+      "sha256": "2d4560831e525b47b060ec8a0864ab73993df9e20215ce9f0fe7b24cd31af32a",
+      "bytes": 10370,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__node_api.h"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/node/node_api_types.h",
+      "sha256": "088766b3cf1f0cd9b292c361ad30f7a04e7cc6db35a20ca52c572c1adf9635e7",
+      "bytes": 1825,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__node_api_types.h"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/node/js_native_api.h",
+      "sha256": "582e64ead4d5fdf663e2bd934f2fc97e8e155a7740d28995830393d19d089705",
+      "bytes": 31770,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__js_native_api.h"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/node/js_native_api_types.h",
+      "sha256": "05e3d86e24c814f94a8b52b6a70cec11d7e91c810008253553528637e3a15b2f",
+      "bytes": 7603,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/src__js_native_api_types.h"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/os/nf-handleapi-closehandle.html",
+      "sha256": "df0a7db57e00fcccaec2827a6ae7a6ee87c87f38c2c6de7de0e23e091862d584",
+      "bytes": 56055,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-handleapi-closehandle.html"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/os/nf-memoryapi-mapviewoffile.html",
+      "sha256": "6a89d573315aef26fb20b69f0e63e658bd650964328caa68cf0fd1265a706154",
+      "bytes": 65686,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-memoryapi-mapviewoffile.html"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/os/nf-memoryapi-unmapviewoffile.html",
+      "sha256": "5fda412c22f33c27eb7e9cc7cbf8553d81104721b40eb9f95063d333cbbb8e8b",
+      "bytes": 54154,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-memoryapi-unmapviewoffile.html"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/os/nf-winbase-createfilemappinga.html",
+      "sha256": "669eb512b45c62413dfa22650233b0aebf5b85e7c2e77d3123b264890ca1a22c",
+      "bytes": 75514,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winbase-createfilemappinga.html"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/os/nf-winbase-openfilemappinga.html",
+      "sha256": "e126f2734210583eeae7f7e34e22d91820be8f2b58b0bfede292b295e85cb59d",
+      "bytes": 54902,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winbase-openfilemappinga.html"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/os/nf-winnt-interlockedcompareexchange.html",
+      "sha256": "cf2e86dd8d46156d1b3882d138cc1f00074bea54b8f98175a5f0ce6f73f9ddda",
+      "bytes": 55406,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winnt-interlockedcompareexchange.html"
+    },
+    {
+      "authorPath": "rebuild/lanes/b/reviews/native-slot-prototype/definitions/os/nf-winnt-interlockedexchange.html",
+      "sha256": "56b19b4863043abef22d182dcb9756389dd3ff03524a673f2ce64a354f483df6",
+      "bytes": 55242,
+      "independentCopy": "rebuild/lanes/b/reviews/native-slot-prototype-review/raw/upstream/nf-winnt-interlockedexchange.html"
+    }
+  ],
+  "toolArtifactPins": 4,
+  "buildChecks": [
+    {
+      "phase": "compiler-version",
+      "status": 0,
+      "pid": 35760,
+      "argvAndEnvironmentMatchAfterPathNormalization": true,
+      "stdoutSha256": "355a2e14f6a7f2cb387d9d3b75a3550980d020ee1d005b139b62290c1645068a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "candidate",
+      "status": 0,
+      "pid": 44712,
+      "argvAndEnvironmentMatchAfterPathNormalization": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "version-mismatch",
+      "status": 0,
+      "pid": 55468,
+      "argvAndEnvironmentMatchAfterPathNormalization": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "size-mismatch",
+      "status": 0,
+      "pid": 43752,
+      "argvAndEnvironmentMatchAfterPathNormalization": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "binaryIdentities": [
+    {
+      "kind": "candidate",
+      "authorBytes": 173568,
+      "authorSha256": "6bb68a2d28021703d776ee2afbbf9bee318354b5d3f4f6481e5294e8407822d0",
+      "independentBytes": 173568,
+      "independentSha256": "66bee62804fa30196a384fd202d373d83511dbd4fb2e120d6a9a3f39b8dee170",
+      "byteIdentical": false
+    },
+    {
+      "kind": "version-mismatch",
+      "authorBytes": 173568,
+      "authorSha256": "60341c06a20f0eaf568b046c34c12875d8727454f8214a89f9ea8742c36e7055",
+      "independentBytes": 173568,
+      "independentSha256": "4196dc1c2aebeb1e3233b9c2f57f407beb6e2e4ec16c226c10d3bebefe0e21c7",
+      "byteIdentical": false
+    },
+    {
+      "kind": "size-mismatch",
+      "authorBytes": 173568,
+      "authorSha256": "f71a8fe6d905e537fe5719b4cba5d2dd1fb61fcf117af6d433aeee579cd1c543",
+      "independentBytes": 173568,
+      "independentSha256": "103f5459c633b6fea818acfa83ccf70605752f177c8c5457d382c2b31e0f5259",
+      "byteIdentical": false
+    }
+  ],
+  "binaryComparisonLimit": "Independent binaries differ from author hashes. Same exact source/tool pins/normalized flags and observed behavior were reproduced; bit-reproducibility and the cause of differing binary bytes were not established. Author binaries were not opened or executed.",
+  "runtimePathDifference": "Author ran its pinned downloads/node.exe; reviewer ran its verified identical runtime/node.exe copy. This is an explicit location difference with the same independently verified executable bytes, not a toolchain change.",
+  "authorTopSuite": {
+    "pid": 51560,
+    "ownerPid": 17076,
+    "status": 0,
+    "census": {
+      "tests": 34,
+      "suites": 0,
+      "pass": 34,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "durationMs": 5971.2452,
+    "stdoutSha256": "5992dd37b3955ed85fca8446f1b91098bb2b073d806b7e73b7dfe268e5b0cf9c"
+  },
+  "authorNestedGraphs": [
+    {
+      "label": "two-records",
+      "operatorPid": 17076,
+      "outerPid": 52180,
+      "filePid": 58612,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 4,
+        "completion": true
+      }
+    },
+    {
+      "label": "none",
+      "operatorPid": 17076,
+      "outerPid": 15932,
+      "filePid": 34616,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 0,
+        "completion": false
+      }
+    },
+    {
+      "label": "first-pending",
+      "operatorPid": 17076,
+      "outerPid": 44568,
+      "filePid": 38256,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 1,
+        "completion": false
+      }
+    },
+    {
+      "label": "first-complete",
+      "operatorPid": 17076,
+      "outerPid": 57036,
+      "filePid": 43324,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 2,
+        "completion": false
+      }
+    },
+    {
+      "label": "second-pending",
+      "operatorPid": 17076,
+      "outerPid": 11596,
+      "filePid": 47728,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 3,
+        "completion": false
+      }
+    },
+    {
+      "label": "extra",
+      "operatorPid": 17076,
+      "outerPid": 44984,
+      "filePid": 47532,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "out-of-order",
+      "operatorPid": 17076,
+      "outerPid": 64008,
+      "filePid": 42472,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "duplicate",
+      "operatorPid": 17076,
+      "outerPid": 48336,
+      "filePid": 3204,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "invalid-nan",
+      "operatorPid": 17076,
+      "outerPid": 36916,
+      "filePid": 53736,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "invalid-infinity",
+      "operatorPid": 17076,
+      "outerPid": 30864,
+      "filePid": 40608,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "invalid-fractional",
+      "operatorPid": 17076,
+      "outerPid": 35040,
+      "filePid": 42504,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "invalid-huge",
+      "operatorPid": 17076,
+      "outerPid": 57228,
+      "filePid": 49988,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "invalid-negative",
+      "operatorPid": 17076,
+      "outerPid": 41336,
+      "filePid": 43344,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "invalid-string",
+      "operatorPid": 17076,
+      "outerPid": 55040,
+      "filePid": 41348,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "invalid-null",
+      "operatorPid": 17076,
+      "outerPid": 16216,
+      "filePid": 2344,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "invalid-object",
+      "operatorPid": 17076,
+      "outerPid": 17536,
+      "filePid": 35796,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "invalid-missing",
+      "operatorPid": 17076,
+      "outerPid": 52984,
+      "filePid": 48072,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "invalid-extra-argument",
+      "operatorPid": 17076,
+      "outerPid": 43928,
+      "filePid": 61592,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 5,
+        "completion": false
+      }
+    },
+    {
+      "label": "late-io",
+      "operatorPid": 17076,
+      "outerPid": 39592,
+      "filePid": 63844,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "local-control",
+      "operatorPid": 17076,
+      "outerPid": 55780,
+      "filePid": 13896,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "nonzero",
+      "operatorPid": 17076,
+      "outerPid": 39100,
+      "filePid": 26120,
+      "status": 1,
+      "rawCensus": {
+        "tests": 2,
+        "suites": 0,
+        "pass": 1,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": "not ok 1 - C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\native-slot-prototype-b\\\\.tmp\\\\native-slot\\\\runs\\\\run-01\\\\cases\\\\nonzero\\\\writer.test.cjs",
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "retained-root",
+      "operatorPid": 17076,
+      "outerPid": 35812,
+      "filePid": 49884,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "stale-generation",
+      "operatorPid": 17076,
+      "outerPid": 53900,
+      "filePid": 56804,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "missing-region",
+      "operatorPid": 17076,
+      "outerPid": 57180,
+      "filePid": 24152,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "descriptor-nonce",
+      "operatorPid": 17076,
+      "outerPid": 63492,
+      "filePid": 38064,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "descriptor-owner",
+      "operatorPid": 17076,
+      "outerPid": 50728,
+      "filePid": 58592,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "descriptor-version",
+      "operatorPid": 17076,
+      "outerPid": 25008,
+      "filePid": 5864,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "descriptor-size",
+      "operatorPid": 17076,
+      "outerPid": 58720,
+      "filePid": 53300,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "header-version-mismatch",
+      "operatorPid": 17076,
+      "outerPid": 63140,
+      "filePid": 18092,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "header-size-mismatch",
+      "operatorPid": 17076,
+      "outerPid": 18208,
+      "filePid": 19588,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "duplicate-owner-intact",
+      "operatorPid": 17076,
+      "outerPid": 39876,
+      "filePid": 61140,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    },
+    {
+      "label": "forged-closed",
+      "operatorPid": 17076,
+      "outerPid": 24940,
+      "filePid": 37720,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": {
+        "outerTerminated": true,
+        "outerStatus": 0,
+        "state": 0,
+        "completion": false
+      }
+    },
+    {
+      "label": "owned-teardown",
+      "operatorPid": 17076,
+      "outerPid": 30544,
+      "filePid": 23480,
+      "status": 0,
+      "rawCensus": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "firstFailure": null,
+      "sourceAndStreamsVerified": true,
+      "configurationAndSourceMatchIndependent": true,
+      "ownerObservation": null
+    }
+  ],
+  "distinctChildProcesses": 66,
+  "separateOwnerObservations": 19,
+  "observationLimit": "Late-IO/state5, local-buffer/state0, nonzero/state4-with-failed-child and remaining lifetime/setup assertions are in the pinned parent test with a passing top-level TAP result; no separate owner-observation file exists for these cases.",
+  "historyLimit": "Setup/provider/model-switch and retention assertions are author/PM reports. Full Git end states and public copy identities were checked, but incomplete original setup logs and historical absence of other executions cannot be independently recreated from metadata.",
+  "extractionLimit": "Author extraction helper validates Zig members before extraction; header members are validated as streamed before creation/use. Reviewer independently validated both complete archives before extraction. All 20,830 reported file identities agree, without treating metadata as an audit of compiler/SDK implementation."
+}

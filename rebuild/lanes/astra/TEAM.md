@@ -1,6 +1,6 @@
 # Earned: active Astra team
 
-PM checkpoint 2026-09-14 00:14 ET: ER independent-firstdd4ae18d reports no blocking standalone finding; full first report read,270 review-only paths/source identity checked. Final reconciliation continues at Astra/MAX; no acceptance or repeated tests. B Astra/MAX404 now prepares one exact source-only original-capture integration plan in parallel, two plan files/no runtime. C400 remains scoped accepted; D2/C/D/E/I waiting LOW/paused. Astra only, existing usage; original/native/current-CI/integration and held Q1-Q3 remain. PM406 (2026-09-14 00:21 ET) clears the requested exact H3 code ranges and b-package pin-consumer read through supplement1; B continues without a new execution grant.
+PM checkpoint 2026-09-14 00:28 ET: full ER64ba4a96 verified/adopted408; exact2592f091 Windows standalone capability scoped accepted, all533 records/270 unchanged first artifacts preserved. Original capture R1, actual writer/loader/custody/private reduction and platform/current-CI/integration remain. ER Astra/LOW/paused. B Astra/MAX404/406 continues exact source-only integration plan; no code/runtime grant. C400 remains scoped accepted; science Q1-Q3 held. All seats Astra, existing usage; B hourly/PM30-minute oversight.
 
 Execution control check 2026-09-13 23:41 ET: every saved seat is gpt-6-astra; actual B turn01a09df9-22c6-7d53-a2ad-1c0c782cfd05 is MAX. D2 complete review is followed by LOW standby, as intended. Audit: `.tmp/effort-audits/20260914T033723773871Z.json`. Model changes are not authorized by PM effort control; owner398 requires Astra only. No paid service, retry loop or acceptance shortcut.
 
@@ -11,7 +11,7 @@ Execution control check 2026-09-13 23:41 ET: every saved seat is gpt-6-astra; ac
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: completea0e8ec38/testedc21e64f2 coach correction, scoped accepted400 | earned-astra-c-follow-up; PAUSED320 |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Astra LOW: full final5cf5ef6a complete, C correction scoped accepted400 | earned-lane-d2-requests; PAUSED complete |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Astra MAX402: exact standalone2592f091 source-first independent review/reproduction | earned-astra-engine-review-follow-up; hourly while active |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Astra LOW: full64ba4a96 complete; standalone capability scoped accepted408 | earned-astra-engine-review-follow-up; PAUSED complete |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: complete135887a4 science correction contract adopted388; owner choices held | earned-astra-e-follow-up; PAUSED320 |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
 
@@ -63,7 +63,7 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 | C | LOW; coach correction scoped accepted400 | XHIGH for actual concurrency, HIGH for bounded UI/plumbing |
 | D | LOW; partial import harness handed off | XHIGH for exact provider/admission join release |
 | D2 | LOW; review5cf5ef6a complete400 | MAX before a new exact independent review |
-| Engine reviewer | MAX; active402 | Exact standalone source/independent execution, then full author reconciliation |
+| Engine reviewer | LOW; review64ba4a96 complete408 | MAX for a separately named original-integration successor review |
 | E | LOW; science correction contract complete388 | Effort assigned on a new exact implementation, no repeated research |
 | I | LOW; source A3bfed63 complete326 | HIGH for the next named accepted assembly, including the exact400 delta; no product testing |
 

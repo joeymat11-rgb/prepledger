@@ -1,0 +1,65 @@
+[
+  {
+    "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+    "path": "doc/api/n-api.md",
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/doc/api/n-api.md",
+    "bytes": 241517,
+    "sha256": "20b8b3351be836c196f75aaa5ad805f7363997198adb14c3c4c2a39eb2dba620",
+    "kind": "pinned Node-API direct contract",
+    "scratch": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot-review-er\\upstream\\doc__api__n-api.md"
+  },
+  {
+    "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+    "path": "src/node_api.h",
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_api.h",
+    "bytes": 10370,
+    "sha256": "2d4560831e525b47b060ec8a0864ab73993df9e20215ce9f0fe7b24cd31af32a",
+    "kind": "pinned Node-API direct contract",
+    "scratch": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot-review-er\\upstream\\src__node_api.h"
+  },
+  {
+    "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+    "path": "src/node_api_types.h",
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/node_api_types.h",
+    "bytes": 1825,
+    "sha256": "088766b3cf1f0cd9b292c361ad30f7a04e7cc6db35a20ca52c572c1adf9635e7",
+    "kind": "pinned Node-API direct contract",
+    "scratch": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot-review-er\\upstream\\src__node_api_types.h"
+  },
+  {
+    "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+    "path": "src/js_native_api.h",
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/js_native_api.h",
+    "bytes": 31770,
+    "sha256": "582e64ead4d5fdf663e2bd934f2fc97e8e155a7740d28995830393d19d089705",
+    "kind": "pinned Node-API direct contract",
+    "scratch": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot-review-er\\upstream\\src__js_native_api.h"
+  },
+  {
+    "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+    "path": "src/js_native_api_types.h",
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/js_native_api_types.h",
+    "bytes": 7603,
+    "sha256": "05e3d86e24c814f94a8b52b6a70cec11d7e91c810008253553528637e3a15b2f",
+    "kind": "pinned Node-API direct contract",
+    "scratch": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot-review-er\\upstream\\src__js_native_api_types.h"
+  },
+  {
+    "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+    "path": "src/js_native_api_v8.cc",
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/js_native_api_v8.cc",
+    "bytes": 127315,
+    "sha256": "5b51d73fead7ee8e0f62a294e3cfea38eaacf2d90f5cd6641015453d338aacc5",
+    "kind": "pinned Node-API direct contract",
+    "scratch": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot-review-er\\upstream\\src__js_native_api_v8.cc"
+  },
+  {
+    "ref": "aa4c77582be995286fc6e00aaf530dc7ade102a9",
+    "path": "src/js_native_api_v8.h",
+    "url": "https://raw.githubusercontent.com/nodejs/node/aa4c77582be995286fc6e00aaf530dc7ade102a9/src/js_native_api_v8.h",
+    "bytes": 18470,
+    "sha256": "074f64cc178ec82d6cf0a06423340076b79e685b11f301144f6afae1d282c5ac",
+    "kind": "pinned Node-API direct contract",
+    "scratch": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-review-er\\.tmp\\native-slot-review-er\\upstream\\src__js_native_api_v8.h"
+  }
+]

@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "setup": {
+    "base": "126fac49474ab2ba8e3dccf7ceb0707ddf65d113",
+    "authority": "5ae1f2f48f9e53a37bbb725a31c65a8cc8eec63b",
+    "fullIndex": 2368,
+    "hydrated": [
+      ".gitattributes",
+      ".gitignore",
+      "AGENTS.md",
+      "NEXT.md"
+    ],
+    "setupCorrections": [
+      "First PowerShell text pipeline to update-index emitted Ignoring path lines because of line endings; corrected using raw NUL bytes, retaining all2368 index entries and only four hydrated public files. No tracked file was removed. Tool output was truncated and must not be represented as a complete retained raw log.",
+      "Initial GATE-WINDOW lookup used an incorrect path and failed; the exact tracked path was then located and read. No gate execution occurred.",
+      "An own generated custody helper duplicated a PowerShell parameter declaration and failed on dot-source; corrected with a literal helper definition before the index correction ran."
+    ]
+  },
+  "authority": {
+    "head": "5ae1f2f48f9e53a37bbb725a31c65a8cc8eec63b",
+    "goSha256": "9a5963c4dcedab643e13cc51c55df5adf2969e8dd87514de03e8c9ec3177f652",
+    "inputsSha256": "50a38c17b56af818b7173ac6f4f46e8e1478863b92632aad5dee0bb15645ddad",
+    "supplementHead": "5d97ec06ff458a227fb3edc1a11929b74179d9fa",
+    "supplementSha256": "902cc3cd3380ac3162fc31b4ab4df045dd0e6efb0fea5e679b506d89cc7f6292"
+  },
+  "requiredContext": "NEXT current header, complete AGENTS/LANES/GATE-WINDOW, current ROADMAP header, directed decision lines88-94/193/306/320/330/344/348/350/364/368/374/376/382/384, full PM384 bar/manifest and PM386 supplement read. Gate window remains ENDED.",
+  "priorReview": {
+    "er368Head": "2c9c19a1296152fd6ac30a475d9eb69d7726699e",
+    "er368ReportSha256": "38d18676f305c293443ac2ef0a404f86fb69581122591e562d4ecbe3fcd664ee",
+    "b376Head": "2043fb96df5bc91a5c2ec6abf952b9b5bdc3687e",
+    "b376ReportSha256": "ba64ee84fb3a58cafe5e5540880c382f011bbb957aaa115ee1a2e806295f9cc2",
+    "bothFullReportsRead": true,
+    "all26PriorCandidateArtifactsHashSizeVerified": true,
+    "rejectionPreserved": true
+  },
+  "phases": {
+    "candidateHead": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+    "build": "build-01 only, candidate and two incompatible fixtures exit0",
+    "test": "run-01 only,34/34 top-level checks, zero skipped/cancelled, exit0",
+    "syntheticGraph": "33 outer and33 actual test-file processes; all distinct in this cohort",
+    "expectedFailure": "nonzero control: original synthetic exitCode7 -> outerexit1, inner2 tests/1 pass/1 fail; first failure/raw stderr/stdout retained",
+    "unchangedPassedReruns": 0
+  },
+  "operationalLimits": [
+    "Initial Git skip-worktree text-pipeline diagnostics were truncated by the tool; SETUP.json preserves that fact and the successful raw-byte correction. Those logs are not represented as a complete raw archive. The wrong gate-window path and own PowerShell helper parse error also remain recorded. No compiler or prototype test failed in these setup attempts.",
+    "The original OpenFileMappingA address returned404; full retrieved error and corrected page/authority are retained, and the original input manifest is unchanged.",
+    "The provider capacity interruption and withdrawn Sol proposal are preserved as PM-reported control events. Effective owner instruction is Astra only; this task issued no model-switch or new-writer tool call.",
+    "The linker used one shared, unused mapping.lib output name across the three successful builds; only its final bytes are retained. All three tested .node binaries and distinct PDB outputs remain in own scratch with hashes, and all compiler result/stdout/stderr records are separate. No earlier failed compiler result was overwritten."
+  ],
+  "protectedInputsPresent": [],
+  "originalGateExecuted": false,
+  "appIntegration": false,
+  "nativeBinaryOrArchiveCommitted": false,
+  "finalInventory": {
+    "sourcePaths": 5,
+    "exactCopies": 249,
+    "copiedBytes": 5490494,
+    "authoredReportAndCustodyPaths": 5,
+    "totalAddedPaths": 259,
+    "expectedFullIndex": 2627
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "phase": "build-01",
+  "sourceHead": "2592f091f9cd2956f5f6c442d36c8763e247cff6",
+  "runtime": {
+    "version": "v22.23.2",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\downloads\\node.exe",
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "compiler": {
+    "version": "0.15.2",
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\toolchain\\zig-x86_64-windows-0.15.2\\zig.exe",
+    "sha256": "d408dd38eed3e5204af841bcebf70502a4dbbb8399a3a3262be55059370bc018",
+    "archiveSha256": "3a0ed1e8799a2f8ce2a6e6290a9ff22e6906f8227865911fb7ddedc3cc14cb0c"
+  },
+  "library": {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\downloads\\node.lib",
+    "sha256": "ac15f1e9d7c8279353723a77f6319967f1a41c06026521094a8234c2e6fbe052"
+  },
+  "headerArchiveSha256": "daaf13ec5d45a38bbcfcff06d0723f72a6813b89ab27bb5af2ac8e1f6259dde0",
+  "headerFilesVerified": 2725,
+  "sources": [
+    {
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\rebuild\\lanes\\b\\tooling\\native-slot-prototype\\mapping.c",
+      "bytes": 11875,
+      "sha256": "f48e49de14baf671a7f8171cae181d356f879614f5c54a457a06b5810a895f20"
+    },
+    {
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\rebuild\\lanes\\b\\tooling\\native-slot-prototype\\loader.cjs",
+      "bytes": 1436,
+      "sha256": "af4c86c8c5bc58ea1bda55c2fe2352a0497cf135d4ffbfbeadadafb2d4a0cbb4"
+    },
+    {
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\rebuild\\lanes\\b\\tooling\\native-slot-prototype\\build.cjs",
+      "bytes": 6742,
+      "sha256": "c1b91326dcc509b61c91ff9a16a073446ba9a328f92d852dff915a847c7e8ad8"
+    },
+    {
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\rebuild\\lanes\\b\\tooling\\native-slot-prototype\\PROTOCOL.md",
+      "bytes": 6623,
+      "sha256": "46195cfc2f601031caab0dfa04a4d02ec5d97b1a5935b0a01697b146894fda69"
+    },
+    {
+      "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\rebuild\\lanes\\b\\tooling\\native-slot-prototype\\test\\prototype.test.cjs",
+      "bytes": 13642,
+      "sha256": "15ec5392d47e1ff66ad6b409d6a559ee5cce3ef59d9b02abbef80702971e5162"
+    }
+  ],
+  "environment": {
+    "SystemRoot": "C:\\WINDOWS",
+    "WINDIR": "C:\\WINDOWS",
+    "SystemDrive": "C:",
+    "ComSpec": "C:\\WINDOWS\\System32\\cmd.exe",
+    "PATH": "C:\\WINDOWS\\System32",
+    "PATHEXT": ".COM;.EXE;.BAT;.CMD",
+    "NODE_OPTIONS": "",
+    "NODE_PATH": "",
+    "TEMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "TMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "TMPDIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\temp",
+    "ZIG_GLOBAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\cache\\global",
+    "ZIG_LOCAL_CACHE_DIR": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\cache\\local"
+  }
+}

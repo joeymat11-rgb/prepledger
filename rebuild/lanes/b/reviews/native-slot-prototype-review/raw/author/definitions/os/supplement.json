@@ -1,0 +1,11 @@
+{
+  "authority": "PM384 direct correction from sole PM task01a098c1-1d81-70b3-a380-0eb4d23b7f15",
+  "originalManifestSha256": "50a38c17b56af818b7173ac6f4f46e8e1478863b92632aad5dee0bb15645ddad",
+  "original404": "https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-openfilemappinga",
+  "url": "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-openfilemappinga",
+  "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-slot-prototype-b\\.tmp\\native-slot\\definitions\\os\\nf-winbase-openfilemappinga.html",
+  "at": "2026-09-14T01:40:20.0231609Z",
+  "bytes": 54902,
+  "sha256": "e126f2734210583eeae7f7e34e22d91820be8f2b58b0bfede292b295e85cb59d",
+  "scope": "Address correction only; original manifest preserved"
+}

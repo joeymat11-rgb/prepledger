@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "kind": "Offline review-tool corrections, not candidate execution results",
+  "attempt1": {
+    "source": "attempt-1.ps1",
+    "exit": 1,
+    "exception": "Graph executable/cwd differs",
+    "cause": "The comparison wrongly required the same relative runtime location. The author used downloads/node.exe and the reviewer used its separately verified runtime/node.exe copy. Both build manifests and the independent invocation pin the same SHA256 0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4.",
+    "correction": "Compare each graph executable with its own pinned build runtime path and verify the reviewer's current runtime bytes inside the own root. Preserve the explicit location difference. Candidate/build/test inputs and all raw outcomes are unchanged."
+  },
+  "readCorrections": [
+    "An optional late-io/owner-observation.json read found no file. The mapping and pinned parent test confirm that this observation is asserted by the parent test and is not a separately authored file; no missing evidence copy was invented.",
+    "One combined display of already copied author records was tool-truncated. The full committed input bytes remained intact; smaller subsequent reads and the complete offline parser/hash comparison supply the reconciliation. The display is not claimed to be a complete retained raw log."
+  ],
+  "stagingCorrection": "Plain git add refused the new review paths outside the sparse checkout definition. Its long path-list display was truncated. The correction uses git add --sparse with only the two licensed review pathspecs, preserving the complete existing index and sparse settings; the staged checks are then performed on the actual additions. No product/runtime command is involved.",
+  "newRuntimeExecutions": 0
+}

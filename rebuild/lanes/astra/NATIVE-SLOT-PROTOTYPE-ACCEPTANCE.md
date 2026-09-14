@@ -1,0 +1,31 @@
+# Standalone native-slot capability: scoped acceptance
+
+PM408, 2026-09-14 00:28 ET. **Accept the exact PM384/386 Windows standalone capability.** The author and independent review are complete, with no blocking defect within that bar. This does not accept the original capture helper/operator, close R1, admit a native/private gate or authorize integration or release.
+
+Source/tested candidate `2592f091f9cd2956f5f6c442d36c8763e247cff6`, base `126fac49474ab2ba8e3dccf7ceb0707ddf65d113`; author evidence `9cc78e7701957569fd603b9013d2ac454dacb2dd`. Independent final `64ba4a964f2d1dc691599b522698b8ddad1779f9` directly follows independent-first `dd4ae18da24a614d468ced172cdf5cc89766d402`. All270 first artifacts remain byte-identical. PM read the full33-line final report and complete reconciliation, verified all533 final artifact blobs/lengths/SHA256,266 independent and254 author copy pins,15 shared source/authority identities and the five unchanged source inputs. All533 review artifacts are adopted once, including523 raw files/11208728 bytes. No product code or test ran in PM.
+
+| Accepted source path | Bytes | SHA256 |
+| --- | ---: | --- |
+| rebuild/lanes/b/tooling/native-slot-prototype/mapping.c | 11875 | f48e49de14baf671a7f8171cae181d356f879614f5c54a457a06b5810a895f20 |
+| rebuild/lanes/b/tooling/native-slot-prototype/loader.cjs | 1436 | af4c86c8c5bc58ea1bda55c2fe2352a0497cf135d4ffbfbeadadafb2d4a0cbb4 |
+| rebuild/lanes/b/tooling/native-slot-prototype/build.cjs | 6742 | c1b91326dcc509b61c91ff9a16a073446ba9a328f92d852dff915a847c7e8ad8 |
+| rebuild/lanes/b/tooling/native-slot-prototype/PROTOCOL.md | 6623 | 46195cfc2f601031caab0dfa04a4d02ec5d97b1a5935b0a01697b146894fda69 |
+| rebuild/lanes/b/tooling/native-slot-prototype/test/prototype.test.cjs | 13642 | 15ec5392d47e1ff66ad6b409d6a559ee5cce3ef59d9b02abbef80702971e5162 |
+
+The source and independent checks support an opaque, retained Node-API handle with bounded close/finalizer/environment ownership; exclusive named Windows mapping with checked identity/header fields; aligned interlocked state0→1→2→3→4 and sticky refusal5; and a parent-retained view across the declared synthetic writer graph. The driver requires the child outcome as well as a complete state. It does not use the refuted V8 return, process-local fallback or interfering Promise/resource mechanism.
+
+Independent execution comprised one unchanged build of the candidate and its two incompatible fixtures, one delivered34/34 cohort and three extra behavioral controls plus one census subtest (4/4). It observed71 invented child processes across the two runtime cohorts, excluding top harness/build/compiler processes. The controls cover concurrent-writer refusal, child-held mapping after owner close with actual closed-external collection, and non-coercing invalid setup calls. The deliberately failed writer remains exit7, outerexit1, raw2 tests/1 pass/1 file failure; state4 does not erase it. No passing runtime run was repeated for reconciliation.
+
+The complete author report and all five authored records plus249 mapped copies were reconciled. Its34/34 and33 nested graphs agree with the retained raw evidence. Nineteen separate owner-state records exist; other lifetime/state observations rely on the exact parent assertions and passing top-level cases, not fabricated extra logs. Author/independent tools and20830 extracted-file metadata identities agree. PM verified the retained comparisons and identities; this does not turn metadata into an independent PM execution or certify every historical setup claim.
+
+The final report is6199bytes/SHA256 `8c59181223a57da2117839d02d8cb615c6db9151a13a17084d3a9b55e3686cf9`; reconciliation11587bytes/SHA256 `8dd574997ad65aeee91064623420e3aa175c69832defed3cf5c9f7b98c076fff`; final custody184677bytes/SHA256 `2921c8bf94ee91d9416a48c0626fdec3dcd53a02f6cd1af8dd7164e40b762eb2`. [Full review](../b/reviews/NATIVE-SLOT-PROTOTYPE-REVIEW.md), [reconciliation](../b/reviews/native-slot-prototype-review/RECONCILIATION.md) and [custody](../b/reviews/native-slot-prototype-review/FINAL-CUSTODY.json) retain the complete record.
+
+## Limits retained in this acceptance
+
+- The logical64-byte view/header is checked; exact Windows section-allocation interrogation is not proved. Trusted creator/runtime/OS behavior and the stated native-writer boundary remain.
+- The generated writer graph closes in the demonstrated runs; arbitrary descendants and the original helper's actual writer set are not yet closed. Prototype paths and launcher details do not establish original argv/noninterference parity.
+- Loader containment is lexical. It does not authenticate arbitrary loader hooks, symlinks/junctions or mutable executable provenance. The original-integration plan must establish its precise custody and load boundary.
+- The author and reviewer produced different binary hashes from the same source/tool pins and normalized compiler flags. Behavior was independently reproduced; bit-reproducibility and the cause of the differing bytes are unestablished. No author binary was opened or executed by ER. This acceptance does not declare those binaries interchangeable or provide a universal binary pin for a future build.
+- These finite controls do not prove universal concurrency schedules, OS/VM allocation/cleanup fault behavior or hostile native-writer resistance. Earlier setup truncation, failed404, custody corrections and retained-only-final unused linker side output remain visible with their attribution.
+
+B continues only its already licensed Astra/MAX source-only integration plan404/406. This scoped acceptance settles its standalone prerequisite; it does not release implementation. The plan must give exact prospective loader/descriptor/writer-set/artifact/path/pin/platform changes and the smallest meaningful synthetic proof while preserving the full original330/344/354 requirements, private output boundary and actual failure/census. PM then names any justified implementation grant. Original R1, private two-record reduction, actual original command, other-platform/current-CI proof and the eventual separate I composition remain. C400's coach delta and E's build support retain their own identities. ER is complete Astra/LOW with its existing heartbeat paused. Q1-Q3 scientific choices and all release/data permissions are unchanged.
