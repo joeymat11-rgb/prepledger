@@ -1,13 +1,13 @@
 # Earned: active Astra team
 
-PM checkpoint 2026-09-13 21:18 ET: focused science audit/review is complete with qualifications under378; final D2f93834d8 exact four changed artifacts adopted, original first assessment preserved. U8 closes; U1-U7 correction/owner-choice work remains. E XHIGH380 prepares one actionable contract from existing research, without product changes or another audit. B MAX376 is finishing the named mapping capability check; ER/D2/C/D/I are paused. Existing accepted scopes, failed outcomes, private/runtime/phone requirements and owner policies remain unchanged.
+PM checkpoint 2026-09-13 21:33 ET: B376 source check2043fb96 is complete; all26 exact artifacts adopted382, published candidate rejected for handle lifetime. B MAX384 now builds one standalone owned C native-slot prototype with pinned portable tools and invented Windows process tests; no original helper/operator/product/private gate integration is granted. E XHIGH380 continues the science correction contract from completed research. ER/D2/C/D/I are paused until exact ready work. Existing accepted scopes, failed outcomes and owner policies remain.
 
 Execution control check 2026-09-13 20:54 ET: the old-account usage stop in Engine reviewer was recovered; ER368 and D2 science reconciliation are executing at MAX. Saved and actual executing efforts match. B/C/D/E/I remain LOW with follow-ups paused until a concrete dependency is ready. New account ordinary usage is available. PM keeps30-minute fallback oversight and immediate meaningful handoffs; active reviewers retain hourly fallback. The recurring PM prompt now points to durable records instead of replaying old custody detail. No duplicate work, repeated unchanged audits, new paid service, acceptance shortcut or release change. Audit: `.tmp/effort-audits/20260914T005231829974Z.json`.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX376: one pinned shared-memory source capability check; no installation/experiment | earned-astra-b-follow-up; hourly substantive work, then paused320 |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX384: standalone native-slot Windows prototype; invented data, pinned portable tools, no app integration | earned-astra-b-follow-up; hourly substantive work, then paused320 |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; PAUSED waiting; direct PM handoff |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: final science auditf93834d8 scoped completion adopted378; await exact independent successor | earned-lane-d2-requests; PAUSED320 |
@@ -59,7 +59,7 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 
 | Seat | Current effort | Next substantive assignment |
 | --- | --- | --- |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX376: one pinned shared-memory source capability check; no installation/experiment | earned-astra-b-follow-up; hourly substantive work, then paused320 |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX384: standalone native-slot Windows prototype; invented data, pinned portable tools, no app integration | earned-astra-b-follow-up; hourly substantive work, then paused320 |
 | D | LOW; partial import harness handed off | XHIGH for the exact provider/admission join release |
 | C | LOW; lifecycle scoped accepted294 | XHIGH for actual concurrency work; HIGH for bounded UI/plumbing |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: final science auditf93834d8 scoped completion adopted378; await exact independent successor | earned-lane-d2-requests; PAUSED320 |

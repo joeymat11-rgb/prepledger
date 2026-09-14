@@ -1,0 +1,72 @@
+{
+  "base": "31d5451ad063af76a25ec10fb7d3cdc59bc9dd91",
+  "branch": "codex/astra-shared-mapping-capability-b",
+  "fullInitialIndex": 2355,
+  "hydrated": [
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "NEXT.md"
+  ],
+  "authorityHash": "78911723712faea76cb21cfd622feb214e7d5478f62b53ed082e07731ad3c09f",
+  "inputManifestHash": "333a0382815a85f96a660862b41874553eaddb496295ee6b8e832ce583a0a02e",
+  "reviewHead": "2c9c19a1296152fd6ac30a475d9eb69d7726699e",
+  "reviewFiles": [
+    {
+      "path": "rebuild/lanes/b/reviews/B1B2-CAPTURE-FEASIBILITY-REVIEW.md",
+      "bytes": 8803,
+      "sha256": "38d18676f305c293443ac2ef0a404f86fb69581122591e562d4ecbe3fcd664ee",
+      "lines": 34
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/capture-feasibility/INITIAL-ASSESSMENT.md",
+      "bytes": 11363,
+      "sha256": "34131a414d9f30818e84691a6f0a6e1501b52daf5caf395ab2209cb23272a825",
+      "lines": 41
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/capture-feasibility/SOURCES.json",
+      "bytes": 12651,
+      "sha256": "732b020c79b1f94f3405d2775fc269c19af675a13bec9f612c4eb8ef951257c8",
+      "lines": 231
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/capture-feasibility/INPUT-CUSTODY.json",
+      "bytes": 6947,
+      "sha256": "a649865be76af8a65f49dbec8bcdf2deee3d742af9a2f6c8b04adccf7d4a97d5",
+      "lines": 156
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/capture-feasibility/AFTER-INITIAL-CUSTODY.json",
+      "bytes": 8734,
+      "sha256": "1423d18bc3d285caa5c7587b447cb53a0dc0f99fc0d06eb7e873d1d5f99aebf8",
+      "lines": 197
+    },
+    {
+      "path": "rebuild/lanes/b/reviews/capture-feasibility/RECONCILIATION.md",
+      "bytes": 6443,
+      "sha256": "4238a69ef569851d18a3dc679e02e0099c647d217bad8c0e95c8837a600f21ef",
+      "lines": 34
+    }
+  ],
+  "allSixReviewBlobsVerified": true,
+  "reviewTextsRead": [
+    "rebuild/lanes/b/reviews/B1B2-CAPTURE-FEASIBILITY-REVIEW.md",
+    "rebuild/lanes/b/reviews/capture-feasibility/RECONCILIATION.md"
+  ],
+  "requiredContext": "NEXT current header, full AGENTS, ROADMAP current header, complete GATE-WINDOW, full376 and input manifest read",
+  "tarValidation": "shmbuf SHA256/SHA512,11 regular safe unique member names, exact member hashes/sizes; wrapper SHA512/SHA1 with19 names listed and only3 selected files extracted",
+  "sourceExecution": false,
+  "zeroPackageInstallsBuildsImportsTests": true,
+  "operationalNotes": [
+    "A PowerShell data-extraction call had a parse error before any command in that call ran. Corrected MemoryStream construction; no package source was evaluated or test result credited.",
+    "Two official direct-definition pages were also opened read-only by the web tool; byte identities/range numbering refer to the separately downloaded exact files.",
+    "After all 26 files had been staged and their bytes/index/whitespace checked, a scratch custody-summary write failed because an own PowerShell hashtable used bare true rather than $true. No package code ran. The summary serialization was corrected, and the changed report/custody notes were staged and byte-checked again."
+  ],
+  "protectedInputsAbsent": [
+    "ledger/state.json",
+    "src/app.jsx",
+    "rebuild/conform/private/live.json",
+    "rebuild/engine/seed.cjs"
+  ]
+}

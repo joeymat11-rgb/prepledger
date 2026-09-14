@@ -1,10 +1,10 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 21:18 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @d5c13c378b07a9953b00329f2e63aabd18aa2094 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+## STATE (refreshed 2026-09-13 21:33 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @126fac49474ab2ba8e3dccf7ceb0707ddf65d113 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
 - PM: sole Astra PM193; existing usage only. Joe/history/memory then Dad, soak wide beta only. MAX critical judgment, HIGH routine coordination; immediate meaningful handoffs, no repeated unchanged audits.
-- B: MAX376 one named shmbuf0.1.0 source capability check, fresh shared-mapping-capability-b. Prior48d53673/b69b870c limitation/archive retained; no installation, implementation or native run.
-- ER: complete2c9c19a1; six exact artifacts/custody adopted374. Current capture rejected, both alternatives unresolved. LOW/paused320 until exact new independent work.
+- B: MAX384 standalone owned C native-slot Windows prototype with pinned portable tools and invented data. Source check2043fb96 complete/rejected382; no original helper/operator/product/private gate changes.
+- ER: complete2c9c19a1 LOW/paused; independent MAX source-first review of an exact finished prototype is next when ready. Current capture remains rejected; no native admission.
 - E: XHIGH380 bounded science correction contract: exact existing-rule repairs and concrete owner choices from completed research. Original author4a6a3335 and prior accepted scopes preserved.
 - D2: finalf93834d8 nine exact artifacts verified, four changed docs adopted378. All12 topics/U1-U8 reconciled; U8 review complete, U1-U7 corrections/choices open. LOW/paused320.
 - C/D/I: LOW/paused on existing dependencies. Full native engine admission, import, memory/provider/consumer joins and phone proof remain open.
@@ -14,7 +14,6 @@
 
 
 
-2026-09-13 18:29 ET · D2 · PR-READY PM342 · codex/astra-d2-frozen-build-module-link @ b54fec2d · R1 closed in Windows synthetic scope; public12/12, immutable F2/F3 2/2. Review: rebuild/lanes/d2/reviews/FROZEN-BUILD-MODULE-LINK-REVIEW.md. First independent verdict; E reconciliation next; PM sole judge.
 
 2026-09-13 18:33 ET · D2 · PR-READY PM342 RECONCILED · codex/astra-d2-frozen-build-module-link @ c7dc4ebf · R1 closure unchanged after full E report and10-file archive; no extra execution. Review: rebuild/lanes/d2/reviews/FROZEN-BUILD-MODULE-LINK-RECONCILIATION.md. PM sole judge; handoff complete, LOW/paused320.
 
@@ -43,3 +42,5 @@
 2026-09-13 21:10 ET · PM-CARETAKER · Astra · 31d5451ad063af76a25ec10fb7d3cdc59bc9dd91 · 374 adopts completed ER source review: current capture rejected, alternatives unresolved; ER LOW.376 gives B MAX one pinned mapping source check, no install/experiment. D2 final science report delivered for PM judgment, LOW/paused. Prior outcomes retained.
 
 2026-09-13 21:18 ET · PM-CARETAKER · Astra · d5c13c378b07a9953b00329f2e63aabd18aa2094 · 378 verifies/adopts final D2 science audit;12 topics reviewed, U8 complete, U1-U7 corrections/choices open.380 gives E XHIGH one concrete correction contract; D2 LOW. B MAX376 continues. No new dose, product execution, policy or release acceptance.
+
+2026-09-13 21:33 ET · PM-CARETAKER · Astra · 126fac49474ab2ba8e3dccf7ceb0707ddf65d113 · 382 verifies26 B source artifacts; published mapping candidate rejected for invalid handle lifetime.384 gives B MAX one standalone C mapping prototype with pinned portable tools/invented tests; original gate stays closed. E XHIGH380 continues.

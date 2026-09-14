@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "authority": "d5c13c378b07a9953b00329f2e63aabd18aa2094",
+  "base": "31d5451ad063af76a25ec10fb7d3cdc59bc9dd91",
+  "files": [
+    {
+      "originalPath": ".tmp/shared-mapping/package/LICENSE",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/shmbuf-0.1.0/LICENSE",
+      "bytes": 1084,
+      "sha256": "19b68e3e925a9cf8a93428caba4bc09e3160f40c311730141e67deb24f910d70"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/package/src/shmbuf.cpp",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/shmbuf-0.1.0/src/shmbuf.cpp",
+      "bytes": 5876,
+      "sha256": "5b5e79d46639d87e6f95ec834a1c71a8a14e2ce5a62a2d9fe500baf422bfaefe"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/package/binding.gyp",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/shmbuf-0.1.0/binding.gyp",
+      "bytes": 402,
+      "sha256": "025e759e0dfe579aeb33cc8730cb0296f580b7cb8286ced6e6da79ace5a017a5"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/package/get-include-dir.js",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/shmbuf-0.1.0/get-include-dir.js",
+      "bytes": 229,
+      "sha256": "2699a3507920e208609a835ac7e3c3374d2bf66f0d06369087e1a3c6b32ace28"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/package/lib/index.js",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/shmbuf-0.1.0/lib/index.js",
+      "bytes": 777,
+      "sha256": "2e9e0fda859a4a47505de607550b04d14a95bee91dd76368f53412b8ddd88ca3"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/package/test/test-cross-process.js",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/shmbuf-0.1.0/test/test-cross-process.js",
+      "bytes": 2964,
+      "sha256": "49b420522c437b29c6ec0b0460ad7cc28edac7ae65b8366e8eb63cfd8ce48121"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/package/test/test-shmbuf.js",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/shmbuf-0.1.0/test/test-shmbuf.js",
+      "bytes": 10345,
+      "sha256": "a8465d54cb74a56c9952ba4a1b2a44574d25cd61499433b4171584f09b4260f9"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/package/test/test.js",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/shmbuf-0.1.0/test/test.js",
+      "bytes": 1375,
+      "sha256": "8f7f1c0f4e8d523173b862816996b7ac97572e03bc171847b5a933ad0c8ba56b"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/package/package.json",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/shmbuf-0.1.0/package.json",
+      "bytes": 1327,
+      "sha256": "434f8310f9085fe1c34052ed201ec4fc6b7872618303064165b1582e8908fe98"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/package/README.md",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/shmbuf-0.1.0/README.md",
+      "bytes": 1309,
+      "sha256": "448c7ff5630d96801481c47f3eb40323769f2510652efabd6f39b2ef12b8e311"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/package/lib/index.d.ts",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/shmbuf-0.1.0/lib/index.d.ts",
+      "bytes": 159,
+      "sha256": "dd480d63b9f94a7184b18bb8e034ee4fb55ebbb9fdad69745497f7ede5ce5da3"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/definitions/node/v8-local-handle.h",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/node-aa4c7758/deps/v8/include/v8-local-handle.h",
+      "bytes": 24162,
+      "sha256": "3552928bda38c10525a5f5a44efabb443cc80d87dbe1ae3c01175c0155581c8d"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/definitions/node/js_native_api_v8.h",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/node-aa4c7758/src/js_native_api_v8.h",
+      "bytes": 18470,
+      "sha256": "074f64cc178ec82d6cf0a06423340076b79e685b11f301144f6afae1d282c5ac"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/definitions/node/v8-array-buffer.h",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/node-aa4c7758/deps/v8/include/v8-array-buffer.h",
+      "bytes": 18316,
+      "sha256": "83cb7545c49916d893597cdef536e51bece9756e6118d9c19177fc8f579564d8"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/definitions/node/js_native_api_v8.cc",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/node-aa4c7758/src/js_native_api_v8.cc",
+      "bytes": 127315,
+      "sha256": "5b51d73fead7ee8e0f62a294e3cfea38eaacf2d90f5cd6641015453d338aacc5"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/definitions/node-addon-api/napi-inl.h",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/node-addon-api-8.0.0/napi-inl.h",
+      "bytes": 219411,
+      "sha256": "4b053c184dfed740fbd802fdcf97e85fb8c7b0eb1d83322000d932d31662eda7"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/definitions/node-addon-api/napi.h",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/node-addon-api-8.0.0/napi.h",
+      "bytes": 115423,
+      "sha256": "2f2f5d1e4ca96f315c51ad96c292c18294dbb999b98f8b2f33b80816a3189fb0"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/definitions/node-addon-api/package.json",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/node-addon-api-8.0.0/package.json",
+      "bytes": 10838,
+      "sha256": "3d0e437ff6d420e443625c0b9f80a6b52fac5068df9b106095e401f45bff4fbc"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/definitions/node-addon-api-8.0.0.metadata.json",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/sources/node-addon-api-8.0.0/REGISTRY-METADATA.json",
+      "bytes": 8960,
+      "sha256": "4ee99c8bc528fc781fbb1b32a08860b4d6a817ac636396d394aa1986b54836f1"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/GO.md",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/authority/GO.md",
+      "bytes": 4677,
+      "sha256": "78911723712faea76cb21cfd622feb214e7d5478f62b53ed082e07731ad3c09f"
+    },
+    {
+      "originalPath": ".tmp/shared-mapping/INPUTS.json",
+      "copyPath": "rebuild/lanes/b/reviews/shared-mapping-capability/authority/INPUTS.json",
+      "bytes": 5681,
+      "sha256": "333a0382815a85f96a660862b41874553eaddb496295ee6b8e832ce583a0a02e"
+    }
+  ],
+  "copiedFiles": 21,
+  "copiedBytes": 579100.0,
+  "tarballsRetainedOnlyInOwnScratch": true,
+  "sourceExecuted": false
+}
