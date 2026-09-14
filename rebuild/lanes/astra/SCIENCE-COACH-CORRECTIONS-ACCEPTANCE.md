@@ -1,0 +1,19 @@
+# Coach correction: scoped PM acceptance
+
+PM400, 2026-09-13 23:41 ET. Accept only the three-file PM390 correction after the full author and independent reviewer handoffs. This closes this implementation/review step; integration and applicable package/current-CI proof are still required.
+
+Candidate `a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f`, identical tested source `c21e64f2616552c3672107a792f45ea6e2342777`, prepared base `3bfed63febef002b8540d6ff3c56e19d08368711`. Reviewer final `5cf5ef6ab868ecb6591db29e0d9386e46da80378` follows independent-first `66b6a3e5cb62adc1ade300d616a87484ad0f1a76` directly. PM read the complete final report and reconciliation, verified all34 final review artifacts, nine author copies, nine source/context identities and12 raw streams, and adopted exactly13 changed records. Twenty-one first supports stay byte-identical; all original23 survive at the first checkpoint.
+
+| Accepted source path | Bytes | SHA256 |
+| --- | ---: | --- |
+| rebuild/coach/tools.cjs | 58784 | b2bb3c959840a3c9fa867b84e94df979bf8ec04b9a5b19701da07f72fb8e6037 |
+| rebuild/coach/coach-text.cjs | 14880 | 2e5213b99b469ec4fd079ed04c406061033437b40b0c1b82934ba24824c78147 |
+| rebuild/coach/test/science-correction-contract.test.cjs | 10886 | faa210fdef5037ece50239195bdf335b5189bfc11288eb9e2158a087082bf610 |
+
+The correction keeps missing calorie/protein targets unknown while retaining other valid supplied values. Protein wording stays provisional and retains its at-least number. All five tier-three refusals stay refused. Acceptance wording states acknowledgment without promising an applied programme or stored reason. Source comparison preserves consent/issuance calls, operation IDs, machine fields and engine reason values; only the licensed coach-owned provenance suffix changes.
+
+D2 independently passed the exact17 delivered cases, three additional controls and four syntax checks. Only the two coach modules, invented supplied worlds/tagged envelopes and Node builtins ran. C's original absent-calorie-target TypeError remains a preserved0/1 author result; the corrected author17/17 agrees with D2. No repeated passing check was required after reconciliation and PM executed no product code. The actual request_replan/accept_proposal path, real Today/client/gym/engine, persistence, native gate and current CI were not exercised by these tests. Whole-view exceptions still propagate; malformed views are not generally certified.
+
+The final report is4399bytes/SHA256 `bab9482aabcf793494177a612f6e42a59f7c3d4385ab6cc14193c89cc465aaf6`; reconciliation10631bytes/SHA256 `9c1f8716873e3ff247a19bff96f8d9c73093bcd6ef37d8d77d6c679ff1d4f03a`; final custody37665bytes/SHA256 `bd6f87e3ca069d920285d2b7f65510cf484db94e491c4b13a57e5ea3e7976b0c`. Full evidence: [review](../d2/reviews/SCIENCE-COACH-CORRECTIONS-REVIEW.md), [reconciliation](../d2/reviews/science-coach-corrections/RECONCILIATION.md), [custody](../d2/reviews/science-coach-corrections/FINAL-CUSTODY.json). Earlier setup/documentation errors and PM-observed provider interruption remain separate from product outcomes.
+
+Q1-Q3 and broader engine-owned scientific corrections remain open. Queue these exact three files for the next licensed third-integrator composition, alongside the separately accepted dependencies. Do not merge all of prepared A merely to import this delta. PM's source-only precheck found identical coach preimages in shared, launch M and prepared A, and the existing coach-test workflow glob includes the new entry. That avoids an unnecessary workflow edit; it does not waive B196 custody, applicable package gates, exact-head CI, final composition review or release authorization. No separate duplicate assembly or old passing-run replay is commissioned now. D2 returns to Astra/LOW with its existing heartbeat paused. B continues the separate standalone prototype at Astra/MAX.

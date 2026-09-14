@@ -1,10 +1,20 @@
 # Recovery from the Astra capacity stop
 
+## Current rule under PM398 — Astra only
+
+Owner explicitly corrected the proposed fallback: "no - we must use astra". The preceding "what? continue" meant to continue the work; PM's Sol-setting dispatch was an incorrect interpretation and has been withdrawn. B was immediately set back to gpt-6-astra/MAX through the supported task control. Audit `.tmp/effort-audits/20260914T033723773871Z.json` verifies every saved seat uses Astra and B's actual active turn01a09df9-22c6-7d53-a2ad-1c0c782cfd05 executes Astra/MAX. No other-model fallback is authorized. This supersedes the historical pending question below; it is no longer an owner question.
+
+B continues the same384/386 prototype workspace and preserved tools/work. Its source2592f091f9cd2956f5f6c442d36c8763e247cff6 and first34/34 standalone author suite have been reported; final immutable custody/report and separate Astra/MAX review remain. No unchanged setup or passing execution is repeated. Its existing hourly heartbeat resumes while substantive work is active and pauses on completion or a new capacity failure, without an automatic retry/model-switch loop. PM keeps30-minute oversight.
+
+D2's owner-triggered Astra/MAX continuation completed at5cf5ef6ab868ecb6591db29e0d9386e46da80378. PM400 verifies the complete reconciliation and accepts only the licensed coach delta; D2 is LOW/paused. The first-stage tests were not repeated. PM396's observed provider-error task state remains historical evidence even though D2's report records no provider refusal visible to its own tool workflow; neither statement changes a product test result. Q1-Q3, private/native/current-CI and release rules remain separate.
+
+## Preserved capacity history
+
 PM392. The provider stopped B turn01a09d8d-3d8e-7f82-88cf-244ce6617c65 and C turn01a09d97-64cc-7ba0-a9af-1c04046b235e with “Selected model is at capacity. Please try a different model.” One same-model continuation of each existing task was attempted after the elapsed pause. No worktree, source or acceptance was reset.
 
 B recovery turn01a09db5-1c5b-70b2-973c-094a09113cda failed again with that error. Its existing heartbeat is paused to avoid a retry loop; the saved model/effort remains Astra/MAX. C recovery turn01a09db5-1d33-7840-978a-ad21a88ae77b is running at HIGH and reports implementation complete with17/17 focused checks; the final immutable handoff and independent review remain. The effort audit at .tmp/effort-audits/20260914T021833074704Z.json verifies saved/executed settings, not successful completion.
 
-## Proposed temporary fallback: awaiting the owner
+## Historical temporary fallback proposal392 — rejected by owner398
 
 **Should the engine task temporarily use Sol at MAX while Astra is at capacity, keeping independent Astra review before acceptance? Recommended: Yes.** The owner asked for Astra lanes; a different model is a separate choice from the already delegated effort controls.
 

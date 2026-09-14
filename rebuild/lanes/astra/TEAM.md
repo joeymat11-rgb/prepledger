@@ -1,16 +1,16 @@
 # Earned: active Astra team
 
-PM checkpoint 2026-09-13 23:23 ET: D2 independent-first66b6a3e5 preserves17+3 passing checks/no blocking first-stage finding;23 exact artifacts adopted396. Provider capacity then stopped final reconciliation; D2 heartbeat PAUSED, Astra/MAX retained, C acceptance unfinished. B392 likewise held; temporary B Sol/MAX owner choice and science Q1-Q3 remain pending. All completed/waiting worker heartbeats paused; PM30-minute oversight continues without retry loops or changed quality/data/release rules.
+PM checkpoint 2026-09-13 23:41 ET: owner398 requires Astra only; all saved seats and B active MAX execution verified. B384 source2592f091/34 author passes reported, final immutable handoff and independent review remain. Full D2 final5cf5ef6a verified/adopted400; exact C coach correction scoped accepted, current-CI/third-role integration still owed. D2 LOW/paused; other waiting/completed seats LOW/paused. B hourly and PM30-minute oversight retain checkpoints and quality rules; science Q1-Q3 remain held.
 
-Execution control check 2026-09-13 20:54 ET: the old-account usage stop in Engine reviewer was recovered; ER368 and D2 science reconciliation are executing at MAX. Saved and actual executing efforts match. B/C/D/E/I remain LOW with follow-ups paused until a concrete dependency is ready. New account ordinary usage is available. PM keeps30-minute fallback oversight and immediate meaningful handoffs; active reviewers retain hourly fallback. The recurring PM prompt now points to durable records instead of replaying old custody detail. No duplicate work, repeated unchanged audits, new paid service, acceptance shortcut or release change. Audit: `.tmp/effort-audits/20260914T005231829974Z.json`.
+Execution control check 2026-09-13 23:41 ET: every saved seat is gpt-6-astra; actual B turn01a09df9-22c6-7d53-a2ad-1c0c782cfd05 is MAX. D2 complete review is followed by LOW standby, as intended. Audit: `.tmp/effort-audits/20260914T033723773871Z.json`. Model changes are not authorized by PM effort control; owner398 requires Astra only. No paid service, retry loop or acceptance shortcut.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Astra MAX384 capacity-held392; exact prototype work preserved, temporary Sol/MAX fallback awaits owner | earned-astra-b-follow-up; PAUSED capacity hold |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: completea0e8ec38/testedc21e64f2 coach correction, independent review pending | earned-astra-c-follow-up; PAUSED320 |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Astra MAX384/398: source2592f091,34 author passes; finish immutable handoff | earned-astra-b-follow-up; hourly while active |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: completea0e8ec38/testedc21e64f2 coach correction, scoped accepted400 | earned-astra-c-follow-up; PAUSED320 |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Astra MAX394 capacity-held396; independent first complete, final reconciliation pending | earned-lane-d2-requests; PAUSED capacity hold |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Astra LOW: full final5cf5ef6a complete, C correction scoped accepted400 | earned-lane-d2-requests; PAUSED complete |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: complete2c9c19a1 source feasibility review; await exact successor | earned-astra-engine-review-follow-up; PAUSED320 |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: complete135887a4 science correction contract adopted388; owner choices held | earned-astra-e-follow-up; PAUSED320 |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
@@ -59,13 +59,14 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 
 | Seat | Current effort | Next substantive assignment |
 | --- | --- | --- |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX384: standalone native-slot Windows prototype; invented data, pinned portable tools, no app integration | earned-astra-b-follow-up; hourly substantive work, then paused320 |
-| D | LOW; partial import harness handed off | XHIGH for the exact provider/admission join release |
-| C | LOW; lifecycle scoped accepted294 | XHIGH for actual concurrency work; HIGH for bounded UI/plumbing |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: final science auditf93834d8 scoped completion adopted378; await exact independent successor | earned-lane-d2-requests; PAUSED320 |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: complete2c9c19a1 source feasibility review; await exact successor | earned-astra-engine-review-follow-up; PAUSED320 |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | XHIGH380: concrete science correction contract and owner choices; no new research/product changes | earned-astra-e-follow-up; hourly substantive work, then paused320 |
-| I | LOW; source A3bfed63 complete326 | HIGH for a named accepted source assembly; no product testing |
+| B | MAX; active384/398 | Complete standalone prototype handoff; all other work follows an exact GO |
+| C | LOW; coach correction scoped accepted400 | XHIGH for actual concurrency, HIGH for bounded UI/plumbing |
+| D | LOW; partial import harness handed off | XHIGH for exact provider/admission join release |
+| D2 | LOW; review5cf5ef6a complete400 | MAX before a new exact independent review |
+| Engine reviewer | LOW; source feasibility review complete374 | MAX for the full exact B prototype after handoff |
+| E | LOW; science correction contract complete388 | Effort assigned on a new exact implementation, no repeated research |
+| I | LOW; source A3bfed63 complete326 | HIGH for the next named accepted assembly, including the exact400 delta; no product testing |
+
 
 Joe endorsed Editorial with original bullet spacing; Light and Ink bases remain locked. This is an example design preview endorsement, not an implementation, owner-data or deployment claim. Keep development focused on the current engine/import repairs and their joined acceptance requirements.
 

@@ -1,0 +1,909 @@
+{
+  "schemaVersion": 1,
+  "phase": "Final independent coach correction review after full author reconciliation",
+  "createdAtUTC": "2026-09-14T03:33:12.875Z",
+  "authority": "PM394; PM390 scoped correction, Q1-Q3 pending",
+  "soleJudge": "PM",
+  "verdict": "No blocking finding in the licensed delta; review complete, not product acceptance",
+  "root": "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/science-coach-corrections-review-d2",
+  "branch": "codex/astra-science-coach-review-d2",
+  "candidate": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+  "tested": "c21e64f2616552c3672107a792f45ea6e2342777",
+  "base": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "completeIndexEntries": 1617,
+  "indexVerifiedBeforeHydration": true,
+  "hydratedProductPaths": [
+    "rebuild/coach/tools.cjs",
+    "rebuild/coach/coach-text.cjs",
+    "rebuild/coach/test/science-correction-contract.test.cjs"
+  ],
+  "node": {
+    "path": ".tmp/tools/node.exe",
+    "version": "v22.23.2",
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "barAndInputIdentities": [
+    {
+      "ref": "5e24d0da6503313a10ff4685153e8142fd99dc84",
+      "path": "rebuild/lanes/astra/SCIENCE-COACH-CORRECTIONS-REVIEW.md",
+      "bytes": 4554,
+      "sha256": "955fe9cd368eadbb7025105557a6c1f3df2b568013420a097a20f0ee809e175a",
+      "copy": ".tmp/instructions/SCIENCE-COACH-CORRECTIONS-REVIEW.md"
+    },
+    {
+      "ref": "5e24d0da6503313a10ff4685153e8142fd99dc84",
+      "path": "rebuild/lanes/astra/SCIENCE-COACH-CORRECTIONS-REVIEW-INPUTS.json",
+      "bytes": 3685,
+      "sha256": "3fee0a522dafa7d8078c87cae39d5386537ea45883fcd08631520595efbb3377",
+      "copy": ".tmp/instructions/SCIENCE-COACH-CORRECTIONS-REVIEW-INPUTS.json"
+    },
+    {
+      "ref": "5e24d0da6503313a10ff4685153e8142fd99dc84",
+      "path": "rebuild/lanes/astra/SCIENCE-COACH-CORRECTIONS-GO.md",
+      "bytes": 4936,
+      "sha256": "c527e9f77760776a0050bbdb1203fcad11d12e7bca09ce537f2572d0fe6980a5",
+      "copy": ".tmp/instructions/SCIENCE-COACH-CORRECTIONS-GO.md"
+    }
+  ],
+  "sourceRows": [
+    {
+      "path": "rebuild/coach/tools.cjs",
+      "bytes": 58784,
+      "sha256": "b2bb3c959840a3c9fa867b84e94df979bf8ec04b9a5b19701da07f72fb8e6037",
+      "blob": "49d2d5e62a25c3b1c96dea381c07419fe6040495",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "identityVerified": true,
+      "identicalAtTestedRef": true,
+      "copy": "rebuild/coach/tools.cjs",
+      "lines": 1032
+    },
+    {
+      "path": "rebuild/coach/coach-text.cjs",
+      "bytes": 14880,
+      "sha256": "2e5213b99b469ec4fd079ed04c406061033437b40b0c1b82934ba24824c78147",
+      "blob": "15fb2ad08ac078599bb16ef4aacd670e6f75a24e",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "identityVerified": true,
+      "identicalAtTestedRef": true,
+      "copy": "rebuild/coach/coach-text.cjs",
+      "lines": 268
+    },
+    {
+      "path": "rebuild/coach/test/science-correction-contract.test.cjs",
+      "bytes": 10886,
+      "sha256": "faa210fdef5037ece50239195bdf335b5189bfc11288eb9e2158a087082bf610",
+      "blob": "2fc542a8978c25d966b6bd50ccb55a2c6b10e1bb",
+      "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+      "identityVerified": true,
+      "identicalAtTestedRef": true,
+      "copy": "rebuild/coach/test/science-correction-contract.test.cjs",
+      "lines": 167
+    }
+  ],
+  "preimages": [
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/tools.cjs",
+      "bytes": 58790,
+      "sha256": "6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74",
+      "copy": ".tmp/preimage/rebuild/coach/tools.cjs",
+      "identityVerified": true,
+      "lines": 1033
+    },
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/coach/coach-text.cjs",
+      "bytes": 14675,
+      "sha256": "1ec05a8c8f16261b3651db4a017b10b3fc2bbefcd1ffb43174d12a81cf8d7d3e",
+      "copy": ".tmp/preimage/rebuild/coach/coach-text.cjs",
+      "identityVerified": true,
+      "lines": 268
+    }
+  ],
+  "independentFirst": {
+    "head": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+    "committedAt": "2026-09-13T22:39:26-04:00",
+    "sentBeforeAuthorAccess": true,
+    "artifacts": [
+      {
+        "path": "rebuild/lanes/d2/reviews/SCIENCE-COACH-CORRECTIONS-REVIEW.md",
+        "bytes": 3695,
+        "sha256": "525dfb4a0f72d6ac73a847fd3f0d94cb7cf7c78b9e5e58167c55add87d01dcd5",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": false,
+        "changeReason": "Final report replaces first-stage status; FIRST-ASSESSMENT.md unchanged"
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/.gitattributes",
+        "bytes": 27,
+        "sha256": "39cc3de7504dbd4bed22c3c24489bb2b0f683d839f1945e3d07019c36c873e90",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": false,
+        "changeReason": "Add whitespace exemption for verbatim archived CRLF logs only"
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/FIRST-ASSESSMENT.md",
+        "bytes": 3695,
+        "sha256": "525dfb4a0f72d6ac73a847fd3f0d94cb7cf7c78b9e5e58167c55add87d01dcd5",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/FIRST-CUSTODY.json",
+        "bytes": 16772,
+        "sha256": "f6453db1a4b4e379bfc9cb0e52a620f3ab6c140d62eec5802d1982b832978fc7",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/INDEPENDENT-RUNS.json",
+        "bytes": 6308,
+        "sha256": "fedfc8659c454adba5dd89cd12c788ca9955002a00e19c452da8b69ef3313523",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/STATIC-COMPARISON.json",
+        "bytes": 2722,
+        "sha256": "894edae2392ae403fd0c992d3e88aba70cfb58264a13f67851cfa986068eadab",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-module-cache.json",
+        "bytes": 167,
+        "sha256": "081728732f97dcf2b0b7d197a58fdb2ae55fffe37ce218a405b603de5111ff19",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-test.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-test.stdout.log",
+        "bytes": 837,
+        "sha256": "338e1965ff704dae80a38966474160c6d5d117b2ac23f94e39e0b5a876ce8a8b",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial.test.cjs",
+        "bytes": 5184,
+        "sha256": "1b929f32a1f9cf00216b72c0226d180d59740ee6e069a2baf240019778f0bd73",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/delivered-test.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/delivered-test.stdout.log",
+        "bytes": 2840,
+        "sha256": "e8cb009a18c656dc7e74058ce013ae6bbc0bfd6c22d7de65c8996666432bbb11",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/independent-source.diff",
+        "bytes": 27273,
+        "sha256": "3cf144f5a915771f302987baeaa8ef9f3156a37a5f38197154a641b68aa5bc05",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/raw-diff-whitespace-check.json",
+        "bytes": 2748,
+        "sha256": "b420d3969209fb80b766da408f731f4253b762c821180f8b08e7eeb6fba292ba",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/setup-failure.json",
+        "bytes": 326,
+        "sha256": "a347e61062a80d973c42775d3a2e38edcaeab94f8b89e06a270b03ef7597117d",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-1.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-1.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-2.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-2.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-3.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-3.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-review-control.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      },
+      {
+        "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-review-control.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "preservedAt": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+        "workingCopyUnchanged": true,
+        "changeReason": null
+      }
+    ],
+    "unchangedWorkingSupportFiles": 21
+  },
+  "authorPackage": {
+    "firstAssessmentHead": "66b6a3e5cb62adc1ade300d616a87484ad0f1a76",
+    "firstAssessmentCommittedAt": "2026-09-13T22:39:26-04:00",
+    "authorFirstAccessAtUTC": "2026-09-14T02:40:26.962Z",
+    "authorRef": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+    "first23ArtifactsVerified": true,
+    "records": [
+      {
+        "path": "rebuild/lanes/c/SCIENCE-COACH-CORRECTIONS-REPORT.md",
+        "bytes": 6019,
+        "sha256": "f46f46dcf45cff69ceaff8fce22fcaf8c313259d36a549b7f18e507ba20eb757",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "copy": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/SCIENCE-COACH-CORRECTIONS-REPORT.md",
+        "lines": 21,
+        "identityVerified": true
+      },
+      {
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/.gitattributes",
+        "bytes": 8,
+        "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "copy": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/.gitattributes",
+        "lines": 1,
+        "identityVerified": true
+      },
+      {
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/EVIDENCE.json",
+        "bytes": 3458,
+        "sha256": "d1460b274283ba20fadc3f142965ea6eae97235140fd90a77dc5d4e64676409d",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "copy": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/EVIDENCE.json",
+        "lines": 81,
+        "identityVerified": true
+      },
+      {
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/INPUT-CUSTODY.json",
+        "bytes": 2771,
+        "sha256": "4faa6ae900b99ff38d08d038ca66510eee6e2eb4d3bca1c15f46ec07feeda362",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "copy": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/INPUT-CUSTODY.json",
+        "lines": 62,
+        "identityVerified": true
+      },
+      {
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/README.md",
+        "bytes": 1586,
+        "sha256": "93581a14a731293708c626736f9d3dc0f7fb10d3688d332f599794ecdfe9e26a",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "copy": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/README.md",
+        "lines": 14,
+        "identityVerified": true
+      },
+      {
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/baseline-red.log",
+        "bytes": 1389,
+        "sha256": "ee365387337181dc522f9a0d936cf87ef5597cd642eade51d7d8b7c89253a7ae",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "copy": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/baseline-red.log",
+        "lines": 29,
+        "identityVerified": true
+      },
+      {
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/baseline-test.txt",
+        "bytes": 1481,
+        "sha256": "9432e8b3ab5a438195bfc038f4baa2e31d156f0db6d072f2679c80ad58518cf5",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "copy": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/baseline-test.txt",
+        "lines": 32,
+        "identityVerified": true
+      },
+      {
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/first-corrected.log",
+        "bytes": 2952,
+        "sha256": "442d135bda896f5a028e6fe76be79f865cd6699283bb40602c7070a09895c187",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "copy": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/first-corrected.log",
+        "lines": 113,
+        "identityVerified": true
+      },
+      {
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/source.diff",
+        "bytes": 17463,
+        "sha256": "de074ed763dc0b3f6f93be4c83c8b33724d911491586e53ab47a8a5044cb20c5",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "copy": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/source.diff",
+        "lines": 259,
+        "identityVerified": true
+      }
+    ],
+    "allNineReadInFull": true,
+    "readLog": [
+      {
+        "atUTC": "2026-09-14T02:40:51.097Z",
+        "record": 1,
+        "path": "rebuild/lanes/c/SCIENCE-COACH-CORRECTIONS-REPORT.md",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "sha256": "f46f46dcf45cff69ceaff8fce22fcaf8c313259d36a549b7f18e507ba20eb757",
+        "read": "full",
+        "lines": 21
+      },
+      {
+        "atUTC": "2026-09-14T02:40:51.098Z",
+        "record": 2,
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/.gitattributes",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "read": "full",
+        "lines": 1
+      },
+      {
+        "atUTC": "2026-09-14T02:40:51.099Z",
+        "record": 3,
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/EVIDENCE.json",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "sha256": "d1460b274283ba20fadc3f142965ea6eae97235140fd90a77dc5d4e64676409d",
+        "read": "full",
+        "lines": 81
+      },
+      {
+        "atUTC": "2026-09-14T02:40:51.100Z",
+        "record": 4,
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/INPUT-CUSTODY.json",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "sha256": "4faa6ae900b99ff38d08d038ca66510eee6e2eb4d3bca1c15f46ec07feeda362",
+        "read": "full",
+        "lines": 62
+      },
+      {
+        "atUTC": "2026-09-14T02:40:51.100Z",
+        "record": 5,
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/README.md",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "sha256": "93581a14a731293708c626736f9d3dc0f7fb10d3688d332f599794ecdfe9e26a",
+        "read": "full",
+        "lines": 14
+      },
+      {
+        "atUTC": "2026-09-14T02:40:51.101Z",
+        "record": 6,
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/baseline-red.log",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "sha256": "ee365387337181dc522f9a0d936cf87ef5597cd642eade51d7d8b7c89253a7ae",
+        "read": "full",
+        "lines": 29
+      },
+      {
+        "atUTC": "2026-09-14T02:40:51.102Z",
+        "record": 7,
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/baseline-test.txt",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "sha256": "9432e8b3ab5a438195bfc038f4baa2e31d156f0db6d072f2679c80ad58518cf5",
+        "read": "full",
+        "lines": 32
+      },
+      {
+        "atUTC": "2026-09-14T02:40:51.103Z",
+        "record": 8,
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/first-corrected.log",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "sha256": "442d135bda896f5a028e6fe76be79f865cd6699283bb40602c7070a09895c187",
+        "read": "full",
+        "lines": 113
+      },
+      {
+        "atUTC": "2026-09-14T02:42:03.510Z",
+        "record": 9,
+        "path": "rebuild/lanes/c/reviews/science-coach-corrections/source.diff",
+        "ref": "a0e8ec38b6b3d42212e9d79839501ba6eb31ab8f",
+        "sha256": "de074ed763dc0b3f6f93be4c83c8b33724d911491586e53ab47a8a5044cb20c5",
+        "read": "full",
+        "lines": 259
+      }
+    ],
+    "allCopiesPreserveRawBytes": true
+  },
+  "reconciliation": {
+    "verifiedAtUTC": "2026-09-14T02:43:26.740Z",
+    "sourceDeltaOnlyThreeFiles": true,
+    "candidateAddsOnlyNineAuthorRecords": true,
+    "allAuthorEvidenceSourcePinsMatch": true,
+    "allNestedArtifactPinsMatch": true,
+    "authorDiffByteEqualToIndependentRegeneration": true,
+    "authorDiffSHA256": "de074ed763dc0b3f6f93be4c83c8b33724d911491586e53ab47a8a5044cb20c5",
+    "baseIndexEntries": 1607,
+    "candidateIndexEntries": 1617,
+    "baselineAuthorCounts": {
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "correctedAuthorCounts": {
+      "tests": 17,
+      "pass": 17,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "independentCorrectedCounts": {
+      "tests": 17,
+      "pass": 17,
+      "fail": 0,
+      "skipped": 0
+    },
+    "independentAdditionalControls": {
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    "authorNineReadInFull": true,
+    "baselineRerun": false,
+    "baselineRerunReason": "Preserved exact one-case source and error trace align with verified base dereference; no unresolved evidence question requires another execution.",
+    "authorHistoricalSetupEvents": "PM/C-reported; no independent provider transcript inspected, not product test results."
+  },
+  "independentExecution": {
+    "runs": [
+      {
+        "id": "syntax-1",
+        "startedAtUTC": "2026-09-14T02:35:10.383Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.458Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--check",
+          "rebuild/coach/tools.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-1.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-1.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {}
+      },
+      {
+        "id": "syntax-2",
+        "startedAtUTC": "2026-09-14T02:35:10.459Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.503Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--check",
+          "rebuild/coach/coach-text.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-2.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-2.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {}
+      },
+      {
+        "id": "syntax-3",
+        "startedAtUTC": "2026-09-14T02:35:10.503Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.546Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--check",
+          "rebuild/coach/test/science-correction-contract.test.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-3.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-3.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {}
+      },
+      {
+        "id": "syntax-review-control",
+        "startedAtUTC": "2026-09-14T02:35:10.547Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.583Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--check",
+          "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial.test.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-review-control.stdout.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-review-control.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {}
+      },
+      {
+        "id": "delivered-test",
+        "startedAtUTC": "2026-09-14T02:35:10.584Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.698Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/coach/test/science-correction-contract.test.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/delivered-test.stdout.log",
+          "bytes": 2840,
+          "sha256": "e8cb009a18c656dc7e74058ce013ae6bbc0bfd6c22d7de65c8996666432bbb11"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/delivered-test.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {
+          "tests": 17,
+          "suites": 0,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "id": "adversarial-test",
+        "startedAtUTC": "2026-09-14T02:35:10.699Z",
+        "finishedAtUTC": "2026-09-14T02:35:10.804Z",
+        "nodePath": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\science-coach-corrections-review-d2\\.tmp\\tools\\node.exe",
+        "nodeVersion": "v22.23.2",
+        "args": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial.test.cjs"
+        ],
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-test.stdout.log",
+          "bytes": 837,
+          "sha256": "338e1965ff704dae80a38966474160c6d5d117b2ac23f94e39e0b5a876ce8a8b"
+        },
+        "stderr": {
+          "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-test.stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "counts": {
+          "tests": 3,
+          "suites": 0,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      }
+    ],
+    "deliveredTestCount": 17,
+    "additionalControlCount": 3,
+    "syntaxChecks": 4,
+    "postFirstProductReruns": 0,
+    "entry": "rebuild/coach/test/science-correction-contract.test.cjs",
+    "additionalEntry": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial.test.cjs",
+    "moduleCache": {
+      "loaded": [
+        "rebuild/coach/coach-text.cjs",
+        "rebuild/coach/tools.cjs",
+        "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial.test.cjs"
+      ]
+    }
+  },
+  "baseline": {
+    "authorFailurePreserved": true,
+    "independentlyReexecuted": false,
+    "reason": "Preserved exact one-case source and error trace align with verified base dereference; no unresolved evidence question requires another execution."
+  },
+  "scopeLimits": {
+    "Q1Q2Q3": "Pending owner decisions; untouched",
+    "engineOwnedReasonRewrite": false,
+    "realEngineTodayClientGymProposalExecution": false,
+    "privateHistorySeedFixtureAccess": false,
+    "CLIOrLoadScript": false,
+    "installOrPaidService": false,
+    "nativeGateOrCI": false,
+    "persistenceOrLiveUseProven": false,
+    "sharedPushOrAcceptance": false,
+    "oldScienceLifecycleEvidenceModified": false
+  },
+  "setupAndDocumentFailures": {
+    "setup": "rebuild/lanes/d2/reviews/science-coach-corrections/setup-failure.json",
+    "whitespace": "rebuild/lanes/d2/reviews/science-coach-corrections/raw-diff-whitespace-check.json",
+    "classification": "Own setup/document-validation events, not product runs; no capacity failure or model switch",
+    "rawPreservation": "Raw .diff context and archived CRLF logs retained; generated setup metadata normalized before first commit",
+    "finalScopeParser": "A final metadata helper initially trimmed the leading Git porcelain status space and falsely parsed rebuild as ebuild. It refused staging at that assertion. Reading NUL-delimited porcelain records corrected the helper; no actual unexpected path or product change existed, and no product test was rerun."
+  },
+  "gateWindow": {
+    "ref": "5e24d0da6503313a10ff4685153e8142fd99dc84",
+    "path": "rebuild/lanes/astra/GATE-WINDOW.md",
+    "bytes": 5565,
+    "sha256": "7f35f787f7bbe728a9fc72aea0596f41d824696541dd8f09237ca511380e27f1",
+    "read": "Full static coordination text",
+    "state": "ENDED",
+    "identityReverifiedBeforeFinalPublication": true
+  },
+  "validation": {
+    "reportLines": 17,
+    "authorRecords": 9,
+    "firstArtifactPins": 23,
+    "workingUnchangedFirstSupport": 21,
+    "productInputsUnchanged": true,
+    "authorSourceDiffExact": true,
+    "noUnresolvedProductFinding": true,
+    "checks": "Explicit write set, Git whitespace excluding only raw .diff/.log artifacts, local document links, byte/SHA/Git blob checks; no product rerun after first assessment"
+  },
+  "artifactInventoryExcludingThisFile": [
+    {
+      "path": "rebuild/lanes/d2/reviews/SCIENCE-COACH-CORRECTIONS-REVIEW.md",
+      "bytes": 4399,
+      "sha256": "bab9482aabcf793494177a612f6e42a59f7c3d4385ab6cc14193c89cc465aaf6"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/.gitattributes",
+      "bytes": 61,
+      "sha256": "2486d16f4bda6b371027e069b0c8b4b255b05f8d4140695d7282b7dbd8c4cd02"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/FIRST-ASSESSMENT.md",
+      "bytes": 3695,
+      "sha256": "525dfb4a0f72d6ac73a847fd3f0d94cb7cf7c78b9e5e58167c55add87d01dcd5"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/FIRST-CUSTODY.json",
+      "bytes": 16772,
+      "sha256": "f6453db1a4b4e379bfc9cb0e52a620f3ab6c140d62eec5802d1982b832978fc7"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/INDEPENDENT-RUNS.json",
+      "bytes": 6308,
+      "sha256": "fedfc8659c454adba5dd89cd12c788ca9955002a00e19c452da8b69ef3313523"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/RECONCILIATION.md",
+      "bytes": 10631,
+      "sha256": "9c1f8716873e3ff247a19bff96f8d9c73093bcd6ef37d8d77d6c679ff1d4f03a"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/STATIC-COMPARISON.json",
+      "bytes": 2722,
+      "sha256": "894edae2392ae403fd0c992d3e88aba70cfb58264a13f67851cfa986068eadab"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-module-cache.json",
+      "bytes": 167,
+      "sha256": "081728732f97dcf2b0b7d197a58fdb2ae55fffe37ce218a405b603de5111ff19"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-test.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial-test.stdout.log",
+      "bytes": 837,
+      "sha256": "338e1965ff704dae80a38966474160c6d5d117b2ac23f94e39e0b5a876ce8a8b"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/adversarial.test.cjs",
+      "bytes": 5184,
+      "sha256": "1b929f32a1f9cf00216b72c0226d180d59740ee6e069a2baf240019778f0bd73"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/.gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/EVIDENCE.json",
+      "bytes": 3458,
+      "sha256": "d1460b274283ba20fadc3f142965ea6eae97235140fd90a77dc5d4e64676409d"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/INPUT-CUSTODY.json",
+      "bytes": 2771,
+      "sha256": "4faa6ae900b99ff38d08d038ca66510eee6e2eb4d3bca1c15f46ec07feeda362"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/README.md",
+      "bytes": 1586,
+      "sha256": "93581a14a731293708c626736f9d3dc0f7fb10d3688d332f599794ecdfe9e26a"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/SCIENCE-COACH-CORRECTIONS-REPORT.md",
+      "bytes": 6019,
+      "sha256": "f46f46dcf45cff69ceaff8fce22fcaf8c313259d36a549b7f18e507ba20eb757"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/baseline-red.log",
+      "bytes": 1389,
+      "sha256": "ee365387337181dc522f9a0d936cf87ef5597cd642eade51d7d8b7c89253a7ae"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/baseline-test.txt",
+      "bytes": 1481,
+      "sha256": "9432e8b3ab5a438195bfc038f4baa2e31d156f0db6d072f2679c80ad58518cf5"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/first-corrected.log",
+      "bytes": 2952,
+      "sha256": "442d135bda896f5a028e6fe76be79f865cd6699283bb40602c7070a09895c187"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/author-evidence/source.diff",
+      "bytes": 17463,
+      "sha256": "de074ed763dc0b3f6f93be4c83c8b33724d911491586e53ab47a8a5044cb20c5"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/delivered-test.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/delivered-test.stdout.log",
+      "bytes": 2840,
+      "sha256": "e8cb009a18c656dc7e74058ce013ae6bbc0bfd6c22d7de65c8996666432bbb11"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/independent-source.diff",
+      "bytes": 27273,
+      "sha256": "3cf144f5a915771f302987baeaa8ef9f3156a37a5f38197154a641b68aa5bc05"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/raw-diff-whitespace-check.json",
+      "bytes": 2748,
+      "sha256": "b420d3969209fb80b766da408f731f4253b762c821180f8b08e7eeb6fba292ba"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/setup-failure.json",
+      "bytes": 326,
+      "sha256": "a347e61062a80d973c42775d3a2e38edcaeab94f8b89e06a270b03ef7597117d"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-1.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-1.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-2.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-2.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-3.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-3.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-review-control.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/science-coach-corrections/syntax-review-control.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "selfHash": "Provided in immutable final handoff; not recursively embedded"
+}

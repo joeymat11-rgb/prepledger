@@ -637,3 +637,18 @@
 - SCHEDULE: PM30min; D2 MAX hourly while substantive. B/C/E/ER/D/I PAUSED. Capacity refusals stop without retry loops; saved/executed effort checked after actual dispatch.
 
 2026-09-13 19:12 ET · PM-CARETAKER · Astra · 1a0cc98640dae57930569ed8ed7d5a7918ccf11f ·352 sends complete capture repairbe0aeeb6 to ER MAX independent review. Exact five-file/tested/profile/source scope verified; all failed attempts retained. B LOW finite public archive. E346 stays accepted. No native/phone PASS, owner action or paid API.
+
+
+## PM398/400 rotation — 2026-09-13 23:41 ET
+
+## STATE (refreshed 2026-09-13 23:23 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @5e24d0da6503313a10ff4685153e8142fd99dc84 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193; existing usage only. Joe/history/memory then Dad, soak wide beta only. MAX critical judgment, HIGH routine coordination; immediate meaningful handoffs, no repeated unchanged audits.
+- B: MAX384 capacity-held392 after original stop and one failed recovery; work preserved, heartbeat PAUSED. Temporary Sol/MAX author fallback awaits owner answer. Original product/private/native gates remain closed.
+- C: completea0e8ec38/testedc21e64f2, two coach modules/one test; nine exact report/evidence files adopted394 as author proof only. LOW/paused; no product acceptance.
+- E: complete135887a4 four-document science contract, all41 declared input/context identities checked, adopted388. LOW/paused; no repeated research.
+- D2: MAX394 capacity-held396 after independent-first66b6a3e5;23 exact artifacts/17+3 passing checks preserved. Full author reconciliation and C acceptance remain unfinished. Heartbeat PAUSED; no repeat loop.
+- OWNER: temporary B Sol/MAX capacity fallback awaits yes/no; Q1 goal/volume authority, Q2 normal final-set effort, Q3 EA/break policy are concrete yes/no choices in SCIENCE-OWNER-CHOICES.md; all held pending answers. No new dose or default approved. September18-23 personal forecast retains limited confidence; Dad follows the existing two-day Joe trial.
+- SCHEDULE: PM30min oversight; all worker heartbeats PAUSED on completion/dependencies/capacity. B/D2 retain saved MAX while blocked; other seats LOW. No new dispatch or automatic model/retry loop; pending owner choices remain open.
+
+2026-09-13 19:34 ET · PM-CARETAKER · Astra · ecca0d8d7ef33c1e6088995ceae88c87aa001656 ·354 retains full ER352 REJECT R1: capture changes an actual child result.419 exact artifacts/all failures preserved; R2 substantiated. B MAX focused noninterference repair; ER LOW/paused. E346 accepted. No native/phone PASS, owner action or paid API.

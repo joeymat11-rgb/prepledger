@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM checkpoint 2026-09-13 23:23 ET: D2 independent-first66b6a3e5 preserves17+3 passing checks/no blocking first-stage finding;23 exact artifacts adopted396. Provider capacity then stopped final reconciliation; D2 heartbeat PAUSED, Astra/MAX retained, C acceptance unfinished. B392 likewise held; temporary B Sol/MAX owner choice and science Q1-Q3 remain pending. All completed/waiting worker heartbeats paused; PM30-minute oversight continues without retry loops or changed quality/data/release rules.
+PM checkpoint 2026-09-13 23:41 ET: owner398 requires Astra only; all saved seats and B active MAX execution verified. B384 source2592f091/34 author passes reported, final immutable handoff and independent review remain. Full D2 final5cf5ef6a verified/adopted400; exact C coach correction scoped accepted, current-CI/third-role integration still owed. D2 LOW/paused; other waiting/completed seats LOW/paused. B hourly and PM30-minute oversight retain checkpoints and quality rules; science Q1-Q3 remain held.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
@@ -15,7 +15,7 @@ PM checkpoint 2026-09-13 23:23 ET: D2 independent-first66b6a3e5 preserves17+3 pa
 | Edit My Week v1 | Bounded independent fix reviewfdc4c8e PASS at74920fb; R1/R2 closed. Real C future-gym/draft/DOM proof and B cumulative/profile/private/CI/receipt admission still open; no package acceptance | C after N2; B admission; PM judgment; D supports joins |
 | Coach wave one | Text baseline merged; reason-on-disk P6, relay review/CI, phone session and owner account/device steps remain | PM/C/D |
 | Coaching Memory v1 | Contracts242/244, C lifecycle7e64848d scoped ACCEPT294 and E e85ad803 client/repository foundation scoped ACCEPT324. Independent C144/37/4 and E254/254,9 controls,5 reversals retained. Actual qualified caller/provider/controller/canonical programme, durable approved memory and fresh/imported consumer still require implementation and combined proof | PM exact next releases on accepted B/D parents; E/C/D then independent review |
-| Training/nutrition science audit | Audit/review complete378 and E135887a4 correction contract adopted388. U8 closes; U1-U7 repairs/new choices open. C HIGH390 builds a narrow coach subset; three owner choices held | C then D2 independent; PM owner answers; B engine corrections after current capture task |
+| Training/nutrition science audit | Audit/review complete378 and E135887a4 correction contract adopted388. U8 closes; U1-U7 repairs/new choices open. C390 narrow coach subset independently reviewed/scoped accepted400; three owner choices held | I exact next composition/current CI; PM owner answers; B engine corrections after current capture task |
 | Whole-plan beta coverage | Planning audit identifies missing joined journey, fresh nutrition qualification, durable consent/reason consumer and constraint/action boundaries. E maps existing obligations and proposed choices; no default estimates or new adaptive rules authorized | E coverage map; PM routes accepted gaps and owner choices |
 | P3 preview guard | Brief accepted :190; workflow ownership/CI compatibility needed | PM assigns after handover |
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
