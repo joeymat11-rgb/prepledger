@@ -14,7 +14,7 @@ import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
 import { createReadingHost } from '../reading-host.mjs';
 import { createGymHost, openTodayHosts } from '../gym-host.mjs';
-import { createGymModel, EFFORT_CHOICES } from '../gym-model.mjs';
+import { createGymModel, EFFORT_CHOICES, ADOPTION_PENDING } from '../gym-model.mjs';
 import { createWorkoutEntry, createSetupEntry, createCheckInEntry, boot,
   SETUP_BASIS_STATE_REFUSED } from '../today-entry.mjs';
 import { createSetupModel } from '../setup-model.mjs';
@@ -836,8 +836,20 @@ test('P0B.8 - an enrolled installation paints no fixture figure before adoption;
   const firstFrame = doc.getElementById('phone').textContent;
   assert.equal(firstFrame.includes(fixtureKcal), false, 'the fixture figure never paints, not even for one frame');
   assert.equal(firstFrame.includes(fixtureTrend), false, 'nor the fixture weight trend');
+  /* r3 N3 - the workout line's own count and the marching order (the
+     "next best action" text) are fixture-derived too; gate both. */
+  assert.equal(firstView.workout.exerciseCount, null, 'no fixture exercise count before adoption resolves');
+  assert.deepEqual(firstView.marchingOrder, {}, 'no fixture marching order before adoption resolves');
+  assert.equal(firstFrame.includes('No session is scheduled today.'), true,
+    'the same honest fallback an athlete with no session at all already sees');
+  const fixtureCount = fixtureView.workout.exerciseCount;
+  assert(Number.isFinite(fixtureCount) && fixtureCount > 0, 'the fixture really carries a count to hide');
+  assert.equal(firstFrame.includes(fixtureCount + ' exercise'), false,
+    'no fixture-derived exercise count on this frame');
   assert.equal(doc.querySelector('[data-slot="setup-note"]').hidden, false, 'S19: the note stays visible on this frame');
   await booted.api.ready;
+  const afterView = booted.model.read();
+  assert.equal(afterView.workout.exerciseCount, 2, 'his own U-day count reads back once adoption settles');
   booted.hosts.close();
 });
 
@@ -866,4 +878,44 @@ test('P0B.9 - a tap that beats adoption is refused, not recorded: no fixture id 
   assert.equal(card.phase, 'ready', 'the card rebased onto his own host once adoption settled: ' + (card.code || ''));
   assert.equal(card.lift.id, 'chest-press', 'his own lift, never the fixture\'s');
   hosts.close();
+});
+
+test('P0B.10 - athleteState() rejects: Start stays refused, never the fixture host; the status shows why', async () => {
+  const kit = await p0bEnrolledDevice();
+  const hosts = await openTodayHosts({ indexedDB: kit.fault.indexedDB, crypto: webcrypto, day: P0B_DAY });
+  const realSetup = await createSetupEntry({ today: P0B_DAY }, { hosts });
+  assert.equal(realSetup.summary().enrolled, true);
+  /* A real rejection - a corrupt or undecryptable first-run record, the case
+     the .catch exists for (review N1). */
+  const cause = () => new Error('SETUP_STATE_BOOM');
+  const rejectingSetup = { ...realSetup, athleteState: () => Promise.reject(cause()) };
+  const model = createTodayModel({ today: P0B_DAY });
+  const workout = await createWorkoutEntry(model, { hosts });
+  const dom = new JSDOM(shell());
+  const api = mountToday(dom.window.document, model, { workout, setup: rejectingSetup });
+  await api.ready;
+  /* r3 N1 - the hold IS released (it no longer sits behind a promise the
+     rejection never reaches: `.finally()` on the whole chain ran). That
+     release must never, by itself, hand Start the still-fixture host back
+     (r3 N2/N1's own residual risk) - gym-model's `everHeld` guard keeps it
+     refused, on the SAME code, since no rebase ever ran. */
+  const refused = await workout.gym.start();
+  assert.equal(refused.ok, false, 'Start stays refused after a rejection - never the fixture host');
+  assert.equal(refused.code, 'WORKOUT_ADOPTION_PENDING');
+  const status = dom.window.document.getElementById('today-status');
+  assert.equal(status.textContent, TodayApp.athleteStateFailureCopy(cause()),
+    'the real cause reaches the athlete, visibly, on the status line');
+  /* No fixture id was ever written: start() above never reached
+     client.startPreparedWorkout, so nothing durable was recorded at all -
+     no retry is offered here, so "released" only ever means this. */
+  hosts.close();
+});
+
+test('P0B.11 - both new adoption-safety strings are complete, dash-free sentences', () => {
+  const sample = TodayApp.athleteStateFailureCopy(new Error('SETUP_STATE_BOOM'));
+  for (const sentence of [ADOPTION_PENDING, sample]) {
+    assert.equal(AI_DASH.test(sentence), false, 'no en dash or em dash: ' + sentence);
+    assert.equal(/[.!?]$/.test(sentence.trim()), true, 'ends with sentence punctuation: ' + sentence);
+    assert(sentence.trim().length > 0, 'not blank');
+  }
 });

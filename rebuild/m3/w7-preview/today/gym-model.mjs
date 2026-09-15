@@ -38,6 +38,11 @@ for (const choice of EFFORT_CHOICES) {
 export const CHOOSE_EFFORT = 'Choose clean reps left, or Unsure.';
 export const ENTER_PERFORMED = 'Enter the weight and reps you actually completed.';
 export const UNDO_REASON = 'Undone on this device from the saved-set screen before the next set.';
+/* P0-B r2/r3 (review findings 3, N5) - Start's own refusal while an enrolled
+   installation's adoption is pending or never swapped the host. Exported at
+   module level, exactly as the three copy constants above are, so a copy
+   cell can assert it directly rather than duplicating the literal. */
+export const ADOPTION_PENDING = 'Your own week is still opening on this device. Try Start again in a moment.';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const cell = value => (value && typeof value.display === 'string' ? value : null);
@@ -116,8 +121,20 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
      invents a screen state, it only refuses in the layer's own words, exactly
      as every other refusal on this model already does. */
   let awaitingAdoption = false;
-  function holdForAdoption(flag) { awaitingAdoption = !!flag; }
-  const ADOPTION_PENDING = 'Your own week is still opening on this device. Try Start again in a moment.';
+  /* P0-B r3 (review finding N1) - today-app.cjs now releases `awaitingAdoption`
+     on EVERY path out of adoption, including a REJECTED athleteState(), so
+     Start is never left dark behind a message that promises it will clear.
+     That release must never, by itself, hand Start the still-fixture host
+     back: `everHeld` latches the first time this installation was ever held
+     for adoption (enrolled-only - a fresh install never calls this at all)
+     and, once latched, start() below refuses until `rebase` has actually
+     swapped the host - not merely until the temporary hold is lifted. So a
+     rejection (or the null-state path, review N2) still refuses Start, on
+     the SAME code and copy, for as long as no rebase ever happens; only a
+     successful rebase() ever opens it. */
+  let everHeld = false;
+  function holdForAdoption(flag) { awaitingAdoption = !!flag; if (awaitingAdoption) everHeld = true; }
+  /* ADOPTION_PENDING is the module-level export above (r3 N5). */
 
   /* P0 HIS NUMBERS - the rebase seam. today-app.cjs mountToday calls this once,
      after it adopts the athlete's own state, and only when it did; nothing here
@@ -449,9 +466,12 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
   /* ---------------- the actions ---------------- */
 
   async function start() {
-    /* P0-B r2 (review finding 3) - refuse rather than commit a Start against a
-       host adoption is about to replace. See `awaitingAdoption` above. */
-    if (awaitingAdoption) {
+    /* P0-B r2/r3 (review findings 3, N1, N2) - refuse rather than commit a
+       Start against a host adoption is about to replace (`awaitingAdoption`,
+       the temporary window) OR already tried and did not swap
+       (`everHeld && !rebased`, the permanent one - a rejection, a falsy
+       state, or no workout lane at all on an enrolled installation). */
+    if (awaitingAdoption || (everHeld && !rebased)) {
       message = { code: 'WORKOUT_ADOPTION_PENDING', copy: ADOPTION_PENDING };
       return { ok: false, code: 'WORKOUT_ADOPTION_PENDING', copy: ADOPTION_PENDING };
     }

@@ -20,39 +20,44 @@ files the ticket names; `today-entry.mjs` untouched.
 
 All H3-pinned test files, workflows and DECISIONS.md untouched.
 ## Deviation from 66c8af08 (found and fixed on the PC, r1)
-Two bugs the cloud suite could not catch (no jsdom in the sandbox).
-(1) `rebase()` refused whenever `preparedId` was set, but
-`createWorkoutEntry`'s own constructor probe always sets one before
-`mountToday` runs, so `rebase()` silently never fired. Fixed: only
-`saved !== null` refuses it; a probe-only `preparedId` is reset by the
-swap instead. (2) an unconditional `render("today")` after adoption tore
-down whatever the athlete had open on that screen, breaking the
-pre-existing `problem.test.mjs` R5 cell. Fixed: removed; the repaint now
-comes only from `workout.refresh()`'s existing `onRefresh` cascade.
+Two bugs the cloud suite could not catch (no jsdom in the sandbox): (1)
+`rebase()`'s `preparedId` guard always tripped (the constructor's own
+probe sets one), so it silently never fired - fixed to guard only on
+`saved !== null`. (2) an unconditional `render("today")` after adoption
+tore down open in-page state, breaking pre-existing `problem.test.mjs`
+R5 - fixed by removing it and relying on `workout.refresh()`'s existing
+`onRefresh` cascade.
 ## r2 (independent review REJECT, rebuild/lanes/c/P0B-REVIEW.md at af486cdb)
-Three findings against `a7b75dd4`, each fixed in the same 4 unpinned files,
-each with a new or extended cell, re-run on the PC.
-F1 BLOCKING - today-app.cjs:1093 guarded on the ENTRY's adoptEngineState,
-which does not exist; only the model's does (`entry.checkin`). Fixed: call
-through `checkin.checkin`. Cell P0B.7: `read().sleepRecord === null` on his
-basis, and "From your sleep record for" never appears on his sheet.
-F2 MAJOR - the synchronous first frame painted the fixture's kcal, protein,
-calorie band and weight trend before adoption. Fixed: today-model.cjs gates
-those four - never fabricated, the SAME gated/non-finite shape the engine
-already returns for no data - set and cleared by today-app.cjs around
-adoption; S19 untouched, since basis itself is untouched. Cell P0B.8; P0B.3
-extended for the un-enrolled case.
-F3 MINOR - a tap that won the adoption race could Start over the fixture
-host and durably write a fixture id. Fixed: gym-model.mjs refuses Start
-until adoption settles (`holdForAdoption`), released on every exit path,
-including no-state and no-workout-lane installations. Cell P0B.9 reproduces
-the 300 ms delay and the early tap.
-F4 MINOR - `rebase()` left `previousByLift`/`message` stale and returned a
-pre-rebase `day` snapshot; checkin-model's `sleepRecord` was a snapshot too.
-Fixed: cleared on rebase; both are live getters now.
-F5 NOTE - the constructor-refusal status string was unreachable (`#today-
-status` already read "Ready."). Fixed: the guard no longer needs an empty
-status line.
+F1 BLOCKING - today-app.cjs:1093 guarded the ENTRY's adoptEngineState
+(does not exist); fixed to call `checkin.checkin.adoptEngineState`. P0B.7.
+F2 MAJOR - the first frame painted fixture kcal/protein/band/trend; fixed
+via today-model.cjs's `pendingAdoption` gate (the engine's own gated
+shape, never fabricated); S19 unaffected. P0B.8; P0B.3 extended.
+F3 MINOR - an early tap could Start over the fixture host; fixed via
+gym-model's `holdForAdoption`, released on every exit path. P0B.9.
+F4 MINOR - `rebase()` left stale carry-overs; `day`/`sleepRecord` were
+construction-time snapshots. Fixed: cleared on rebase; both live getters.
+F5 NOTE - the refusal status string was unreachable (`#today-status`
+already read "Ready."). Fixed: the guard no longer needs an empty status.
+## r3 (independent review ACCEPT with preconditions, review at 28d1cd9e)
+Rebased onto origin tip `2ea42e8e` (docs-only), clean - precondition (i).
+N1 MAJOR (precondition ii) - the `finally` releasing `holdForAdoption` sat
+inside `.then`, so a REJECTED `athleteState()` never reached it, leaving
+Start dark behind a message that promised it would clear. Fixed: moved to
+`.finally()` on the WHOLE chain, so every path releases it. That release
+alone must never hand Start the still-fixture host back (this also closes
+N2, the null-state path): gym-model's new `everHeld` latches once an
+install was ever held for adoption, and `start()` refuses until a rebase
+actually swapped the host, not merely until the temporary hold lifts.
+Cell P0B.10: a rejection still refuses Start, on the same code, with the
+real status string visible; no fixture id is ever written.
+N3 MINOR - the gate now also covers `workout.exerciseCount` (null; the
+SAME "No session is scheduled today." sentence an athlete with no session
+already sees) and `marchingOrder` (emptied; both readers already fall
+back to non-fixture wording). P0B.8 extended.
+N5 NOTE - both new strings exported (`ADOPTION_PENDING`; the status
+line's composer, `athleteStateFailureCopy`), asserted dash-free and
+sentence-terminated. Cell P0B.11.
 ## Bar table
 | # | Item | Cell | Status |
 |---|---|---|---|
@@ -63,15 +68,17 @@ status line.
 | 5 | Weigh-in + set survive reopen | P0B.5 | PASS |
 | 6 | No frame paints a foreign athlete | P0B.6 | PASS; see note |
 | 7 | Check-in adopts his state (r2 F1) | P0B.7 | PASS |
-| 8 | First frame paints no fixture figure (r2 F2) | P0B.8 | PASS |
+| 8 | First frame: figures, count, order (r2 F2/r3 N3) | P0B.8 | PASS |
 | 9 | Early tap writes no fixture id (r2 F3) | P0B.9 | PASS |
-## Executed on the PC (Node from codex-primary-runtime), r2
-`node --test`, 13 files by name: `tests 562 / pass 562 / fail 0 / cancelled
+| 10 | Rejection: Start stays refused (r3 N1/N2) | P0B.10 | PASS |
+| 11 | New copy: dash-free, sentence-terminated (r3 N5) | P0B.11 | PASS |
+## Executed on the PC (Node from codex-primary-runtime), r3, rebased HEAD
+`node --test`, 13 files by name: `tests 564 / pass 564 / fail 0 / cancelled
 0 / skipped 0 / todo 0`. `build.mjs`: `A1 TODAY BUILD PASS`. `build-pwa.mjs`:
 `A5 PWA BUILD PASS`. `rig187.cjs => PASS` (same pre-existing SUITE GAP note,
-unrelated to this ticket). `b-package.cjs --ci --package H3`: `PRODUCT
-IMPLEMENTED ... 0 unlisted drift`; `PUBLIC CI EVIDENCE PASS`. All six files
-verified LF-only (no CR byte) after every edit.
+unrelated to this ticket). `b-package.cjs --ci --package H3`: `SEAL BASE ON
+THE TIP` (`2ea42e8`); `PRODUCT IMPLEMENTED ... 0 unlisted drift`; `PUBLIC CI
+EVIDENCE PASS`. All six files verified LF-only (no CR byte) after every edit.
 ## Item 6 as written
 "Not even one frame" cannot be literal without editing `today-entry.mjs`
 (forbidden) or breaking pinned `setup.test.mjs` S13/M9, S14, S19, which
@@ -83,6 +90,6 @@ label is `undefined` or `'Dad'` - executed and green on the PC.
 ## Residual risk
 With no workout lane at all, Today's model is still correctly adopted, but
 nothing auto-repaints the screen until the next render for another reason.
-Not covered by a cell. r2's F3 fix does not depend on this repaint.
+Not covered by a cell; unaffected by r2/r3.
 ## Commit
-`git -c user.name="cowork (Earned PM)" -c user.email="joeymat11@gmail.com" commit -a -m "P0-B r2: check-in adoption wired; enrolled first frame paints no fixture figure; early-tap safety; carry-overs cleared" -m "Co-Authored-By: Claude Sonnet <noreply@anthropic.com>"`
+`git -c user.name="cowork (Earned PM)" -c user.email="joeymat11@gmail.com" commit -a -m "P0-B r3: rebase on 2ea42e8e; adoption hold released on rejection; first-frame gate covers exercise count and order; copy cell" -m "Co-Authored-By: Claude Sonnet <noreply@anthropic.com>"`

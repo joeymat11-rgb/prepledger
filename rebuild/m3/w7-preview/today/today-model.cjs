@@ -259,20 +259,32 @@ function createTodayModel(options = {}) {
         available: session.available, unavailableReason: session.reason },
       ...projection,
     };
-    /* P0-B r2 (review finding 2) - gate the fixture's own figures off this view
-       while adoption is pending. This is never a fabricated placeholder: it is
-       the SAME "gated" / non-finite shape the engine already returns for an
-       athlete with no qualifying data, so calorieHeadline/calorieBand/trendLine
-       in today-app.cjs already render it as "Not available yet" through the
-       normal, honest path - nothing new is taught to that layer here. Nothing
-       else on view (workout, instruction, the setup note) is touched: none of
-       it paints a fixture-specific figure in the first place. */
+    /* P0-B r2/r3 (review findings 2, N3) - gate the fixture's own figures off
+       this view while adoption is pending. This is never a fabricated
+       placeholder: calorieTarget/proteinTarget/the weight trend use the SAME
+       "gated" / non-finite shape the engine already returns for an athlete
+       with no qualifying data, so calorieHeadline/calorieBand/trendLine in
+       today-app.cjs already render them as "Not available yet" through the
+       normal, honest path. `workout.exerciseCount` (r3 N3) is the fixture's
+       OWN session count otherwise - null falls through to today-app.cjs's
+       own existing "No session is scheduled today." sentence, the same words
+       an athlete with no session at all already sees; nothing new is taught
+       to that layer here either. `marchingOrder` (r3 N3) is the fixture's own
+       next-best-action, feeding the instruction-why text and the primary
+       button's label when a weigh-in is owed; emptied, both already fall back
+       to their own existing, non-fixture-specific wording (view.statusFace.
+       cause, "Log this morning's weight"). Nothing else on view (workout.
+       title/sub/available, the instruction heading, the setup note) is
+       touched: none of it paints a fixture-specific figure in the first
+       place. */
     if (pendingAdoption) {
       view.calorieTarget = { gated: true };
       view.proteinTarget = { g: NaN };
       if (view.nowModel && view.nowModel.headed) {
         view.nowModel = { ...view.nowModel, headed: { ...view.nowModel.headed, weight: NaN } };
       }
+      view.workout = { ...view.workout, exerciseCount: null };
+      view.marchingOrder = {};
     }
     view.why = whySections(view);
     return clone(view);

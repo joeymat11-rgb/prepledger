@@ -75,6 +75,16 @@ function trendLine(view) {
    discover it. The screen behind it repeats the same words in full. */
 const NOT_WIRED = "Not wired yet";
 
+/* P0-B r2/r3 (review findings F5, N5) - the status-line sentence a rejected
+   setup.athleteState() prints, as a function of the cause, exactly the shape
+   today-entry.mjs's own bootFailureCopy already uses for a boot refusal.
+   Exported so a copy cell can assert it directly (no U+2013/U+2014, ends in
+   punctuation) without needing to force the rejection through a full mount. */
+function athleteStateFailureCopy(error) {
+  return "Not everything opened: athlete state: "
+    + (error && error.message ? error.message : String(error)) + ". Nothing was recorded.";
+}
+
 /* REPORT A PROBLEM (DECISIONS:140 (3)) - the three sentences the control can put on
    the screen. The approved 2026-09-08 design has no such control, so all three are
    preview-owned and declared in design.cjs PREVIEW_RUNTIME_COPY, which asserts each is
@@ -1093,7 +1103,7 @@ function mountToday(doc, model, options = {}) {
   let ready = Promise.resolve();
   if (willAdopt) {
     ready = setup.athleteState().then(async (state) => {
-      try {
+      {
         if (!state) return;
         model.adoptBasis(state);
         /* The gym card: rebase its host through hostForDay(day), which rereads
@@ -1127,17 +1137,25 @@ function mountToday(doc, model, options = {}) {
            tests here do), Today's adopted state still paints correctly the next
            time anything else repaints it - `read()` and `stateFromOps()` always
            read the CURRENT (adopted) basis; only the automatic repaint waits. */
-      } finally {
-        /* The Start hold is released here on EVERY path out - a falsy state, a
-           thrown refusal, or no workout lane at all must never leave an
-           enrolled installation's Start permanently dark. */
-        if (workout && workout.gym && typeof workout.gym.holdForAdoption === "function") {
-          workout.gym.holdForAdoption(false);
-        }
       }
     }).catch((error) => {
-      if (status) tell("Not everything opened: athlete state: "
-        + (error && error.message ? error.message : String(error)) + ". Nothing was recorded.");
+      if (status) tell(athleteStateFailureCopy(error));
+    }).finally(() => {
+      /* P0-B r3 (review finding N1) - moved OUT of the `.then` (where it sat
+         inside a `try/finally` that a REJECTED athleteState() never reached,
+         so a corrupt or undecryptable first-run record left Start dark for
+         the whole page load behind a message that promised it would clear).
+         `.finally()` on the WHOLE chain runs after `.then` OR `.catch`, so
+         EVERY path - adopted, a falsy state, no workout lane, or a genuine
+         rejection - releases it. This alone does not hand the athlete the
+         fixture host back: gym-model.mjs's own `everHeld` guard (below)
+         keeps Start refused on an enrolled installation until a rebase has
+         actually happened, so releasing this flag only clears the ONE
+         early, worded refusal - it never becomes "Start over the fixture
+         host". */
+      if (workout && workout.gym && typeof workout.gym.holdForAdoption === "function") {
+        workout.gym.holdForAdoption(false);
+      }
     });
   }
 
@@ -1158,4 +1176,5 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   FOOD_HEAD, FOOD_LEAD, FOOD_CAL_LABEL, FOOD_PRO_LABEL, FOOD_SAVE, FOOD_SAVED,
   FOOD_CORRECTION, FOOD_REFUSED, FOOD_NO_TARGETS, FOOD_NOT_PRESCRIBED, FOOD_REFUSAL_COPY,
   FOOD_REFUSED_ACTION, FOOD_REASON, FOOD_NO_STORE, FOOD_OPENING, FOOD_KEPT_UNREADABLE,
-  FOOD_PLAN_UNWIRED, FOOD_SAVED_UNREAD, FOOD_UNKNOWN, FOOD_READ_ACTION, FOOD_READ_RETRY };
+  FOOD_PLAN_UNWIRED, FOOD_SAVED_UNREAD, FOOD_UNKNOWN, FOOD_READ_ACTION, FOOD_READ_RETRY,
+  athleteStateFailureCopy };
