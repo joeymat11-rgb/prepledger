@@ -50,7 +50,7 @@ const TEMPLATES = Object.freeze({
     has(v.kcalLo) && has(v.kcalHi)
       ? "Eat between " + d(v.kcalLo, "kcal") + " and " + d(v.kcalHi, "kcal") + " calories"
       : "I do not have a calorie band for you",
-    has(v.proteinG) ? ", with at least " + d(v.proteinG, "g") + " grams of protein. " : ". ",
+    has(v.proteinG) ? ". The provisional protein target is at least " + d(v.proteinG, "g") + " grams. " : ". I do not have a protein target for you. ",
     has(v.ifText) && has(v.thenText) ? d(v.ifText, "text") + ": " + d(v.thenText, "text") + "." : "",
   ]),
   calories: (v) => join([
@@ -60,7 +60,7 @@ const TEMPLATES = Object.freeze({
   ]),
   protein: (v) => join([
     has(v.proteinG)
-      ? "At least " + d(v.proteinG, "g") + " grams. It is a floor, not a bullseye. Over it is not a miss."
+      ? "At least " + d(v.proteinG, "g") + " grams is the provisional protein target, using the available lean-mass input. It is not a measured personal minimum."
       : "I do not have a protein target for you today.",
   ]),
   why_calories: (v) => join([has(v.body) ? d(v.body, "text") : "The engine gave no reasoning for that number.",
@@ -127,8 +127,8 @@ const TEMPLATES_2 = Object.freeze({
     "Do you want it? Until you say yes, nothing changes.",
   ]),
   accepted: (v) => join([
-    "Recorded. ",
-    has(v.reason) ? "The reason stored with it is the engine's own: " + d(v.reason, "text") : "",
+    "Your acceptance was acknowledged. This response does not confirm that the plan was applied or the reason durably saved. ",
+    has(v.reason) ? "The engine's stated reason: " + d(v.reason, "text") : "",
   ]),
   declined: () => "Then nothing changes. This conversation doesn't change your plan.",
   refused: (v) => join([has(v.explanation) ? d(v.explanation, "text") : "", " This conversation doesn't change your plan."]),
