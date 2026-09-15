@@ -304,9 +304,9 @@ function charterViolations(transcriptText) {
 /* ------------------------------------------------- tier 3: never via coach -- */
 
 const NEVER_VIA_COACH = Object.freeze({
-  phase: "Phase is a detector output, not a choice. It is not yours and it is not mine. It moves when the evidence moves, and it changes in settings, never in a conversation.",
-  calorie_floor: "The calorie floor is derived from your lean mass by the energy-availability formula, not set by hand. I can tell you the number and the reasoning behind it; I cannot move it.",
-  protein_floor: "The protein floor is derived from your measured lean mass. I can read it out and explain it; changing it is an owner decision in settings.",
+  phase: "Phase changes require review in settings. A detected pattern does not establish the right goal for you, and this conversation cannot change your phase.",
+  calorie_floor: "The calorie floor is a modeled estimate using the available lean-mass input and energy-availability formula, not a proved personal safety boundary. I can read the available number and reasoning; I cannot move it.",
+  protein_floor: "The protein target is provisional, using the available lean-mass input, not a measured personal minimum. I can read it out and explain it; changing it is an owner decision in settings.",
   progression_rules: "How the next target is worked out is a rule in the engine, not a setting in this conversation. I can explain what it did and why; I cannot rewrite it.",
   consent_policy: "What needs your explicit yes, and how that yes is recorded, is not something a conversation can loosen. I can explain it.",
 });
@@ -417,9 +417,9 @@ function createCoachTools(world) {
     const cal = view.calorieTarget, pro = view.proteinTarget;
     const values = {
       day: tagged(turn_id, "today-model.read.today", view.today, "date", view.today),
-      kcalLo: num(turn_id, "energy.calorieTarget.lo", cal.lo, "kcal"),
-      kcalHi: num(turn_id, "energy.calorieTarget.hi", cal.hi, "kcal"),
-      proteinG: num(turn_id, "energy.proteinTarget.g", pro.g, "g"),
+      kcalLo: num(turn_id, "energy.calorieTarget.lo", cal?.lo, "kcal"),
+      kcalHi: num(turn_id, "energy.calorieTarget.hi", cal?.hi, "kcal"),
+      proteinG: num(turn_id, "energy.proteinTarget.g", pro?.g, "g"),
       statusWord: text(turn_id, "today.statusFace.word", view.statusFace.word),
       statusCause: text(turn_id, "today.statusFace.cause", view.statusFace.cause),
       ifText: text(turn_id, "today.marchingOrder.ifText", view.marchingOrder.ifText),
@@ -824,10 +824,9 @@ function createCoachTools(world) {
     }, { proposal: record, awaiting_yes: true, state_unchanged: true }));
   }
 
-  /* The yes. It goes through the EXISTING consent path — rebuild/client
-     index.cjs respond() (a durable `proposal-response` operation) and
-     recordIssuance() (the issuance ledger) — and the engine's own reason is
-     stored beside it, because "saved" alone is not evidence the engine used it. */
+  /* The yes goes through the existing respond()/recordIssuance() calls.
+     The records below retain the issued reason in memory; an acknowledged
+     response alone proves neither a durable reason nor an applied programme. */
   async function accept_proposal(args, turn_id) {
     const id = args && args.proposal_id;
     if (!args || args.confirmed !== true) {
@@ -857,7 +856,7 @@ function createCoachTools(world) {
     consentLedger.push(entry);
     return assertNoLeak(ok("accept_proposal", TIER.PROPOSAL, turn_id, {
       proposalId: tagged(turn_id, "coach.proposal.id", id, "id", ""),
-      reason: text(turn_id, record.engine_source + " (reason, stored with the yes)", record.reason),
+      reason: text(turn_id, record.engine_source + " (reason from issued proposal)", record.reason),
       opId: text(turn_id, "rebuild/client respond().op_id", answered.op_id),
     }, { accepted: entry, recorded: true }));
   }
