@@ -389,3 +389,37 @@ Section 11's other suites are untouched by this hunk (only `setup.test.mjs` move
 Next: the PM appends THEME / BRIEF-BY-SHA (this brief `d366386f...`, 15151 bytes) / token lines; then the
 three-field spec edit (theme, `brief.acceptedLedgerLine`, `rulingLineSha256`; status `BRIEF-ACCEPTED`) and the
 artifact regenerated from `proposed()`.
+
+## 13. The PM's lines cited (DECISIONS:418-421 at 2ea42e8e); `--ci --package S3` PUBLIC CI EVIDENCE PASS on the PC
+
+Branch rebased onto `2ea42e8e` (docs-only: :418 brief accepted by name, :419 THEME, :420 BRIEF ACCEPTED BY SHA
+`d366386f...` 15151 bytes, :421 the GATE-SUPERSESSION token line, RULED). Spec edit, three fields plus status, each
+read from the chain branch's own `rebuild/DECISIONS.md` bytes and hashed as the runner hashes a line (`sha256` of the
+exact line, no newline): `authorizations.theme` -> :419, `brief.acceptedLedgerLine` -> :420,
+`coverage.superseded.rulingLineSha256` -> `21252b845fb6...` (:421); `status` `BRIEF-ACCEPTED`. The spec's `notes`
+(not carried into the artifact) no longer say the lines are pending. Artifact regenerated from the runner's own
+`proposed()` on the PC.
+
+| Artifact | sha256 | bytes |
+| --- | --- | --- |
+| `rebuild/lanes/b/tooling/packages/S3.json` | `53c52d8877ef32c7a04bb50e176e29ab67fbabff03f41dbdef78752fbfe58154` | 38182 |
+| `rebuild/m4/spec/acceptance-s3-companion.json` | `8a6d27c96ac40de9022d4c8d51221b0e7bac8e361244ffdac1e10a962b6f4d22` | 39372 |
+| brief (unchanged, v1.3) | `d366386f72f69d76426a4e4a1d5e636bcbfbdf20ff934903f7fb2aec6dfc8352` | 15151 |
+| review (PENDING, unchanged) | `5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30` | 61 |
+
+`node rebuild/lanes/b/tooling/b-package.cjs --ci --package S3` (PC) - exit 0:
+```
+B PACKAGE S3 ENVELOPE PENDING artifact=8a6d27c9… spec=53c52d88… runner=c8668d79…; independent exact-artifact acceptance required
+B PACKAGE S3 AUTHORITY OBSERVED … theme DECISIONS:419 found in Git on refs/remotes/origin/rebuild/t2-client-core; brief acceptance DECISIONS:420 found in Git on refs/remotes/origin/rebuild/t2-client-core; …
+B PACKAGE S3 LAWS 45/45 executed | … 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL
+B PACKAGE S3 CHILD <all 13> OBSERVED; exit 0, exact declared verdict at line start
+B PACKAGE S3 SUPERSESSIONS 5 byte-identity carrier(s) of H3 SUPERSEDED over 9 gate(s) under DECISIONS:421, located on refs/remotes/origin/rebuild/t2-client-core BY ITS OWN SHA256 21252b845fb6; … every named child ran green in THIS run
+B PACKAGE S3 SUPERSEDED source-carriers <- merge-source migrate-source writers-source; retired by H3's own seal and retired AGAIN here under this package's own token line, not inherited; …   (and inherited-carriers <- migrate-differential witnesses-2 witnesses-5; defect-witnesses <- witnesses-7; writers-differential <- writers-differential; second-gate <- second-gate, each with its SUPERSEDED EVIDENCE line: laws UNMOVED; red-first s3-sup-<carrier>; … 4 named child(ren) executed green in this run)
+B PACKAGE S3 NO-REGISTER OBLIGATION S3 registers no D-id, so the 45-law accounting imposes nothing on it; in its place 9 of 9 declared child(ren) executing one of this package's own role:"new" product file(s) ran in this process, exit 0, with their exact declared needle at line start — 1 required at the seal (13 child(ren) declared in total: …)
+B PACKAGE S3 OPEN independent exact-artifact acceptance PENDING
+B PACKAGE S3 PUBLIC CI EVIDENCE PASS — public evidence only, NOT the package verdict; the 19 original gates, the private oracle and independent exact-artifact acceptance remain separate, and POSTFIX PACKAGE PASS is unavailable on this mode at any time
+```
+Today 13 files by name 553/553 exit 0; tooling suite 90/90 exit 0. `--full` (private census) is the PM's run.
+Known nit, not changed here: the five `gates.<carrier>.why` strings still read "token clause pending for
+M2-S3-COMPANION" (written before :421 existed); the terminal prints them verbatim. Editing them moves the spec and
+artifact shas, so it is left for the PM to call.

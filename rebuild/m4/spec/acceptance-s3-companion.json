@@ -14,7 +14,7 @@
   },
   "spec": {
     "file": "rebuild/lanes/b/tooling/packages/S3.json",
-    "sha256": "4326f68354f16c4ef88aa3b05dc549ab75eedb9771946a5ee9eb88a9e0d96299"
+    "sha256": "53c52d8877ef32c7a04bb50e176e29ab67fbabff03f41dbdef78752fbfe58154"
   },
   "runner": {
     "file": "rebuild/lanes/b/tooling/b-package.cjs",
@@ -101,7 +101,7 @@
     "moves": {},
     "successors": null,
     "supersessions": {
-      "rulingLineSha256": null,
+      "rulingLineSha256": "21252b845fb6d03ca0ee90925c64eedd106ca951dfe6c413061ce7e15adae6bd",
       "gates": {
         "source-carriers": {
           "why": "DECISIONS:153 (the standing role), token clause pending for M2-S3-COMPANION: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37; S3 edits two engine files (merge.cjs, today.cjs), extending that list moves a sha that is no declared product pre- or post-image, and DECISIONS:113 (1) (c) as widened by :147 admits only a pin re-target; H3 retired these three gates for the same reason and S3 retires them again under its own line",
@@ -185,7 +185,12 @@
       "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
       "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
     },
-    "theme": null,
+    "theme": {
+      "ledgerLine": 419,
+      "role": "cowork",
+      "line": "- 2026-09-15 · cowork · THEME M2-S3-COMPANION — the S3 companion capability (createMerge nativeDate seam, sessionMembership reader, runtime EXPOSED 4->5), CRITICAL-PATH-2026-09-15 section 4 P1 adopted at DECISIONS:414 (2). Its behaviour/delta contract is rebuild/lanes/b/M2-S3-COMPANION-BRIEF.md; its parent is M2-H3-CLEAN-INIT, rebuild/m4/spec/acceptance-h3-clean-init.json sha256 b457b539a384d8c72531b880cd771e996c6b231f034a49272e899c1fba61e61f (receipt DECISIONS:187), whose five byte-identity carriers this child supersedes again under DECISIONS:153 and its own token clause. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "0b3cc292b31ad4e42c07b4c66f27560b6031f39cc2a6b6f09445606864c16629"
+    },
     "review": {
       "role": "cowork",
       "prefix": "POSTFIX-ACCEPTANCE M2-S3-COMPANION",
@@ -701,7 +706,7 @@
   },
   "executionPins": {
     "rebuild/lanes/b/tooling/b-package.cjs": "c8668d797559500496b65cbf796f63ae8d7256e3f310a8445e30d1e3890f8864",
-    "rebuild/lanes/b/tooling/packages/S3.json": "4326f68354f16c4ef88aa3b05dc549ab75eedb9771946a5ee9eb88a9e0d96299",
+    "rebuild/lanes/b/tooling/packages/S3.json": "53c52d8877ef32c7a04bb50e176e29ab67fbabff03f41dbdef78752fbfe58154",
     "rebuild/lanes/b/M2-S3-COMPANION-BRIEF.md": "d366386f72f69d76426a4e4a1d5e636bcbfbdf20ff934903f7fb2aec6dfc8352",
     "rebuild/m4/workout/test/s3-supersede-source-carriers.test.cjs": "ac001b53d6e9a6cd44fa02e12e5c981ed5f84795643a32882fdc515f7a8a1aff",
     "rebuild/m4/workout/test/s3-supersede-inherited-carriers.test.cjs": "06300f812ac64930cf9231d82628f5a21bb47c9ff519ab910cae5034a8787691",
