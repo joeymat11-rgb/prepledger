@@ -328,5 +328,5 @@ test("the whole script over the real consent surface stays traceable and honest"
   /* q18 says yes to the proposal q17 issued; q19 asks and then does not */
   assert.equal(w.coach.acceptedProposals().length, 1);
   assert.match(run.turns.find((t) => t.id === "q19").answer, /nothing changes/i);
-  assert.match(run.turns.find((t) => t.id === "q18").answer, /Recorded\./);
+  assert.match(run.turns.find((t) => t.id === "q18").answer, /Your acceptance was acknowledged\./);
 });
