@@ -349,3 +349,43 @@ node rebuild/slice/pwa/build-pwa.mjs                 A5 PWA BUILD PASS: 13 files
 node rebuild/t2/rig187.cjs                           rig187 ⇒ PASS  — SUITE GAP: both subjects are 35 GREEN under run.cjs; ...   exit 0
 ```
 `--full` was not run (the PM runs the private census). `git status` clean after the builds. Not pushed.
+
+## 12. v1.3 - the B-NTC re-pin cell reads the youngest declaring spec (PM-approved; PC)
+
+PM routing on section 11: the single hunk is licensed to lane B as a disclosed custody row, H3's precedent exactly.
+`rebuild/m3/w7-preview/today/test/setup.test.mjs` :2320 `packages/H3.json` -> `packages/S3.json` plus six comment
+lines saying so (:2318-2323); nothing else in the file moves. The cell stays the guard it was: a B-NTC pin that has
+moved is licensed only while it stands at the post the youngest declaring spec pins for it, and S3 carries every H3
+post it does not move (pre == post), so H3's licences survive through it. `packages/S3.json`: `setup.test.mjs`
+role `edited`, pre `e4b797eb...` (H3's post) -> post `f97cb66b...`; brief v1.3 custody row and changelog line.
+Spec and artifact regenerated on the PC by the same generators, this time from the runner's own `proposed()` on the
+v1.3 tree. Not fixed by weakening: the cell's assertion, its `missed`/`licensed` split and its `entries.length >= 40`
+floor are byte-unchanged.
+
+| Artifact | sha256 | bytes |
+| --- | --- | --- |
+| `rebuild/lanes/b/M2-S3-COMPANION-BRIEF.md` (v1.3) | `d366386f72f69d76426a4e4a1d5e636bcbfbdf20ff934903f7fb2aec6dfc8352` | 15151 |
+| `rebuild/lanes/b/tooling/packages/S3.json` | `4326f68354f16c4ef88aa3b05dc549ab75eedb9771946a5ee9eb88a9e0d96299` | 36758 |
+| `rebuild/m4/spec/acceptance-s3-companion.json` | `d86ce82bb88ca29e54ce0dffd40aaa51c09a20a0afdae9fdc21840b29bbecd1d` | 38463 |
+| `rebuild/m3/w7-preview/today/test/setup.test.mjs` | `f97cb66bce930aa6cd82cd3737de53afb2c4527baa0fa44e041a7b9b12d5920c` (was `e4b797eb...`) | 132370 |
+
+These supersede the section 2 / section 10 values. `runner` unchanged `c8668d79...`; review still PENDING `5c2811a4...`.
+
+### `node rebuild/lanes/b/tooling/b-package.cjs --ci --package S3` (PC, v1.3) - exit 1
+
+```
+B PACKAGE S3 ENVELOPE PENDING artifact=d86ce82bb88ca29e54ce0dffd40aaa51c09a20a0afdae9fdc21840b29bbecd1d spec=4326f68354f16c4ef88aa3b05dc549ab75eedb9771946a5ee9eb88a9e0d96299 runner=c8668d797559500496b65cbf796f63ae8d7256e3f310a8445e30d1e3890f8864; independent exact-artifact acceptance required
+B PACKAGE S3 PRODUCT IMPLEMENTED; 19 at the declared post-image / 0 at the pinned pre-image / 55 carried byte-identical from the parent / 0 declared role "pinned-unchanged" ... / 0 unlisted drift; the inventory covers all 64 parent-pinned product files; 1 declared role "superseded-by-child" over a parent EXECUTION pin, each equal to the parent byte (rebuild/lanes/b/tooling/packages/H3.json)
+B PACKAGE S3 LAWS 45/45 executed | TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls · 97/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL
+B PACKAGE S3 LAWS DECLARED-STATE 45/45 rows agree with the spec at product phase IMPLEMENTED; this package declares NO D-id ...
+B PACKAGE S3 CHILD s3-sup-source-carriers ... s3-sup-inherited-carriers ... s3-sup-defect-witnesses ... s3-sup-writers-differential ... s3-sup-second-gate ... engine-files-differential ... s3-merge-native-date ... s3-membership ... s3-gensession-differential ... h3-cells ... a0-journeys OBSERVED; exit 0, exact declared verdict at line start
+B PACKAGE S3 CHILD today-suites OBSERVED; exit 0, 71491 bytes of stdout, exact declared verdict at line start; ran ... setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs
+B PACKAGE S3 CHILD ntc-provider-cells OBSERVED; exit 0, 8589 bytes of stdout, exact declared verdict at line start; ran rebuild/m4/workout/test/native-trend-context.test.cjs
+B PACKAGE S3 FAIL GATE-SUPERSESSION-RULING-NOT-CITED; required evidence missing or failed; local diagnostics withheld
+```
+All 13 declared children green; the one remaining refusal is the documented pre-ruling state (the PM's token line).
+Today 13 files by name: `tests 553 / pass 553 / fail 0`, exit 0 (was 552/1). Tooling suite: 90/90, exit 0.
+Section 11's other suites are untouched by this hunk (only `setup.test.mjs` moved, and it is in the today suite).
+Next: the PM appends THEME / BRIEF-BY-SHA (this brief `d366386f...`, 15151 bytes) / token lines; then the
+three-field spec edit (theme, `brief.acceptedLedgerLine`, `rulingLineSha256`; status `BRIEF-ACCEPTED`) and the
+artifact regenerated from `proposed()`.

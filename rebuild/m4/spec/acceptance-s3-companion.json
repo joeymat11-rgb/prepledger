@@ -14,7 +14,7 @@
   },
   "spec": {
     "file": "rebuild/lanes/b/tooling/packages/S3.json",
-    "sha256": "a9d0976a2c09781b4bb96854d610e407cc47c76b496daf745d374d6d927a1d46"
+    "sha256": "4326f68354f16c4ef88aa3b05dc549ab75eedb9771946a5ee9eb88a9e0d96299"
   },
   "runner": {
     "file": "rebuild/lanes/b/tooling/b-package.cjs",
@@ -475,8 +475,8 @@
     },
     "rebuild/m3/w7-preview/today/test/setup.test.mjs": {
       "pre": "e4b797ebfae92107ffbdd7e07184f702b9a3503c91f202b652eb506bab1321ca",
-      "post": "e4b797ebfae92107ffbdd7e07184f702b9a3503c91f202b652eb506bab1321ca",
-      "role": "carried"
+      "post": "f97cb66bce930aa6cd82cd3737de53afb2c4527baa0fa44e041a7b9b12d5920c",
+      "role": "edited"
     },
     "rebuild/m4/workout/test/h3-clean-init.test.cjs": {
       "pre": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
@@ -701,8 +701,8 @@
   },
   "executionPins": {
     "rebuild/lanes/b/tooling/b-package.cjs": "c8668d797559500496b65cbf796f63ae8d7256e3f310a8445e30d1e3890f8864",
-    "rebuild/lanes/b/tooling/packages/S3.json": "a9d0976a2c09781b4bb96854d610e407cc47c76b496daf745d374d6d927a1d46",
-    "rebuild/lanes/b/M2-S3-COMPANION-BRIEF.md": "138d4627f410810548dc5a5a89c002f599f75bd834d9fc2771fa7688828bbc0f",
+    "rebuild/lanes/b/tooling/packages/S3.json": "4326f68354f16c4ef88aa3b05dc549ab75eedb9771946a5ee9eb88a9e0d96299",
+    "rebuild/lanes/b/M2-S3-COMPANION-BRIEF.md": "d366386f72f69d76426a4e4a1d5e636bcbfbdf20ff934903f7fb2aec6dfc8352",
     "rebuild/m4/workout/test/s3-supersede-source-carriers.test.cjs": "ac001b53d6e9a6cd44fa02e12e5c981ed5f84795643a32882fdc515f7a8a1aff",
     "rebuild/m4/workout/test/s3-supersede-inherited-carriers.test.cjs": "06300f812ac64930cf9231d82628f5a21bb47c9ff519ab910cae5034a8787691",
     "rebuild/m4/workout/test/s3-supersede-defect-witnesses.test.cjs": "92781c5bff89bc4ebda34f0d86bbde0ff97345bc7c6b533a03d952e18ed96682",
@@ -721,7 +721,7 @@
     "rebuild/m3/w7-preview/today/test/gym.test.mjs": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
     "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
     "rebuild/m3/w7-preview/today/test/package.test.cjs": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
-    "rebuild/m3/w7-preview/today/test/setup.test.mjs": "e4b797ebfae92107ffbdd7e07184f702b9a3503c91f202b652eb506bab1321ca",
+    "rebuild/m3/w7-preview/today/test/setup.test.mjs": "f97cb66bce930aa6cd82cd3737de53afb2c4527baa0fa44e041a7b9b12d5920c",
     "rebuild/m3/w7-preview/today/test/view.test.mjs": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
     "rebuild/m4/workout/test/native-trend-context.test.cjs": "cb4643af81e7a7d6082ba7c2cbd1cb51c4896aa0f82ac69d9274c683659979ab"
   }

@@ -1,6 +1,7 @@
-# BRIEF - M2-S3-COMPANION (v1.2)
+# BRIEF - M2-S3-COMPANION (v1.3)
 
 Changelog: v1.1 added lane C's P0 HIS NUMBERS disclosed hunk (four files, commit 4eec4738); v1.2 withdraws it under DECISIONS:416 (a) - P0 leaves this package so it does not wait on the engine gate - and the custody below is v1.0's exactly, on the tip 47d31806 (docs-only moves :415/:416).
+v1.3 (PM-approved, measured on the PC under DECISIONS:417): one hunk in `rebuild/m3/w7-preview/today/test/setup.test.mjs` - the B-NTC re-pin cell H3 amended now reads the youngest declaring spec (`packages/S3.json` in place of `packages/H3.json`), licensed to lane B as a disclosed custody row exactly as H3's precedent; the guard is intact.
 
 Lane B, engine tier. Package id `M2-S3-COMPANION`, runner id `S3`. Branch `rebuild/b-s3-companion`,
 sourceBase `2ae28401d65453dc59c68a9a804e32dda44a8d83` (= `origin/rebuild/t2-client-core` at dispatch,
@@ -28,6 +29,7 @@ the provider, profile and admission tests) are NOT this package and are not touc
 | `rebuild/m4/workout/test/native-trend-context.test.cjs` | edited (pin) | The exact EXPOSED list on both runtimes: five names. |
 | `.github/workflows/rebuild.yml` | edited | The standing cumulative step becomes `--ci --package S3`, succeeding H3's exactly as H3's succeeded B-NTC's (ce38aa3 precedent, H3 r3c). |
 | `rebuild/lanes/b/tooling/b-package.cjs` | edited (H3 declared it a product, so the runner requires `edited`, not `superseded-by-child`) | `S3` registered in `IDS` and `NO_REGISTER_IDS` (S- = slice-plan item, DECISIONS:93); grandchild supersession (section 4). |
+| `rebuild/m3/w7-preview/today/test/setup.test.mjs` | edited (v1.3; H3 product pin, lane C's file, one disclosed hunk licensed to lane B by the PM) | The cell `re-pin - every file the B-NTC package pins is untouched by A4b, on disk` (:2302), which H3 amended to license a moved B-NTC pin only while the file stands at the post `packages/H3.json` declares, reads `packages/S3.json` instead - the youngest declaring spec. S3 carries every H3 post it does not move (pre == post), so H3's licences survive through it; S3's seven moved B-NTC pins are licensed by their declared posts under the same one rule; an undeclared move or a declared move that has not landed is still red. Measured on the PC: `# pass 320 / # fail 1` before, `# pass 321` after. |
 | `rebuild/lanes/b/tooling/packages/H3.json` | superseded-by-child | `tooling.runnerSha256` re-pinned onto the S3 runner, as H3 re-pinned B-NTC.json. |
 | `rebuild/m4/workout/test/s3-companion-merge-native-date.test.cjs` | new | 9 cells, section 3. |
 | `rebuild/m4/workout/test/s3-companion-membership.test.cjs` | new | 9 cells, section 3. |

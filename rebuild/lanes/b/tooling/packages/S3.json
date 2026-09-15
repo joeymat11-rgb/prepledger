@@ -5,7 +5,7 @@
   "status": "PROPOSED",
   "brief": {
     "file": "rebuild/lanes/b/M2-S3-COMPANION-BRIEF.md",
-    "sha256": "138d4627f410810548dc5a5a89c002f599f75bd834d9fc2771fa7688828bbc0f",
+    "sha256": "d366386f72f69d76426a4e4a1d5e636bcbfbdf20ff934903f7fb2aec6dfc8352",
     "acceptedLedgerLine": null
   },
   "sourceBase": "2ae28401d65453dc59c68a9a804e32dda44a8d83",
@@ -322,8 +322,8 @@
     },
     "rebuild/m3/w7-preview/today/test/setup.test.mjs": {
       "pre": "e4b797ebfae92107ffbdd7e07184f702b9a3503c91f202b652eb506bab1321ca",
-      "post": "e4b797ebfae92107ffbdd7e07184f702b9a3503c91f202b652eb506bab1321ca",
-      "role": "carried"
+      "post": "f97cb66bce930aa6cd82cd3737de53afb2c4527baa0fa44e041a7b9b12d5920c",
+      "role": "edited"
     },
     "rebuild/m4/workout/test/h3-clean-init.test.cjs": {
       "pre": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
@@ -642,6 +642,6 @@
     }
   ],
   "notes": [
-    "M2-S3-COMPANION supersedes AGAIN the five NATIVE-CARRIERS byte-identity carriers its parent H3 retired, under the STANDING ROLE at DECISIONS:153 (lineSha256 b6f84af6a014cc3a751ff3f077ed03e149047cdcc0f448328038a3e0f0af47e1) and its OWN token clause, which the PM has not yet appended: coverage.superseded.rulingLineSha256 is the placeholder null and the runner refuses GATE-SUPERSESSION-RULING-NOT-CITED by name until the line stands on origin/rebuild/t2-client-core (the documented pre-ruling state). The token this package needs, alone in its own clause on a RULED line: GATE-SUPERSESSION M2-S3-COMPANION source-carriers,inherited-carriers,defect-witnesses,writers-differential,second-gate. Evidence per :153 (ii): one red-first cell per carrier (s3-sup-*), the shared legacy (a0-journeys) and writers (today-suites) differentials, the runner's own clean census line, and the named-files engine differential (engine-files-differential, 27 tracked rebuild/engine files outside the brief, byte-identical to the parent). The runner's parent-carrier map now reads H3's own coverage.supersededByCarrier as well as its (empty) byChild - the grandchild fact recorded in rebuild/lanes/b/M2-S3-COMPANION-BRIEF.md section 4 and README section S3. THEME and BRIEF-BY-SHA citations are null and status is PROPOSED until the PM accepts the brief by name and the :135 (2) lines stand on the chain; the drafted lines are in the brief, section 6. The P0 HIS NUMBERS hunk that rode this package as lane C's disclosed hunk (v1.1) was WITHDRAWN under DECISIONS:416 (a); the four files stand at their sourceBase bytes and the custody is v1.0's. This package registers no D-id (DECISIONS:93, :414 (2) / CRITICAL-PATH section 4 P1); its obligation is the Y1 own-child rule and three of its declared children execute its own role:new cells. `notes` is not carried into the sealed artifact."
+    "M2-S3-COMPANION supersedes AGAIN the five NATIVE-CARRIERS byte-identity carriers its parent H3 retired, under the STANDING ROLE at DECISIONS:153 (lineSha256 b6f84af6a014cc3a751ff3f077ed03e149047cdcc0f448328038a3e0f0af47e1) and its OWN token clause, which the PM has not yet appended: coverage.superseded.rulingLineSha256 is the placeholder null and the runner refuses GATE-SUPERSESSION-RULING-NOT-CITED by name until the line stands on origin/rebuild/t2-client-core (the documented pre-ruling state). The token this package needs, alone in its own clause on a RULED line: GATE-SUPERSESSION M2-S3-COMPANION source-carriers,inherited-carriers,defect-witnesses,writers-differential,second-gate. Evidence per :153 (ii): one red-first cell per carrier (s3-sup-*), the shared legacy (a0-journeys) and writers (today-suites) differentials, the runner's own clean census line, and the named-files engine differential (engine-files-differential, 27 tracked rebuild/engine files outside the brief, byte-identical to the parent). The runner's parent-carrier map now reads H3's own coverage.supersededByCarrier as well as its (empty) byChild - the grandchild fact recorded in rebuild/lanes/b/M2-S3-COMPANION-BRIEF.md section 4 and README section S3. THEME and BRIEF-BY-SHA citations are null and status is PROPOSED until the PM accepts the brief by name and the :135 (2) lines stand on the chain; the drafted lines are in the brief, section 6. The P0 HIS NUMBERS hunk that rode this package as lane C's disclosed hunk (v1.1) was WITHDRAWN under DECISIONS:416 (a); the four files stand at their sourceBase bytes and the custody is v1.0's. v1.3 (PM-approved, DECISIONS:417 execution on the PC): the B-NTC re-pin cell in rebuild/m3/w7-preview/today/test/setup.test.mjs (H3's own amendment) reads the youngest declaring spec, packages/S3.json, in place of packages/H3.json, so the seven B-NTC pins S3 moves are licensed by their declared posts and the guard is unchanged; setup.test.mjs is therefore declared edited (an H3 product pin), the one hunk beyond v1.2. This package registers no D-id (DECISIONS:93, :414 (2) / CRITICAL-PATH section 4 P1); its obligation is the Y1 own-child rule and three of its declared children execute its own role:new cells. `notes` is not carried into the sealed artifact."
   ]
 }

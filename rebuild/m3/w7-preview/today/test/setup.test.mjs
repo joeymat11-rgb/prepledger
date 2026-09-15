@@ -2315,9 +2315,15 @@ test('re-pin - every file the B-NTC package pins is untouched by A4b, on disk', 
      only while it stands at the post-image THAT SPEC DECLARES for it, so an
      undeclared change, a declared change that has not landed, and any drift
      in the other forty-odd pins all still go red. With no such spec on the
-     branch the exemption set is empty and this is the original cell. */
+     branch the exemption set is empty and this is the original cell.
+     S3 (M2-S3-COMPANION, H3's child) moved the read to the YOUNGEST declaring
+     spec, packages/S3.json, exactly as H3 had pointed it at its own: S3 carries
+     every H3 post it does not move (pre == post), so H3's licences survive
+     through it, S3's own posts are licensed by the same one rule, and the
+     guard is unchanged - an undeclared move or a declared move that has not
+     landed is still red. */
   const child = (() => {
-    try { return JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/H3.json')).product || {}; }
+    try { return JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/S3.json')).product || {}; }
     catch { return {}; }
   })();
   const declared = (file, onDisk) => Object.hasOwn(child, file) && child[file].post === onDisk;
