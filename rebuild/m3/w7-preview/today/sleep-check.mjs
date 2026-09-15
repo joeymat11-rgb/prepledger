@@ -1,0 +1,657 @@
+// sleep-check.mjs - N2's row in a REAL browser (DECISIONS:167). It serves the built
+// page over 127.0.0.1, drives it in a persistent browser profile, and proves the things
+// a Node test cannot:
+//   ?screen=sleep opens its own sleep lane -> a night is recorded from bed and wake
+//   times -> the screen says what the ENGINE derived -> a genuine reload -> a genuine
+//   PROCESS KILL -> the night is still there, out of this device's own encrypted
+//   IndexedDB store -> and the recovery check-in, on the SAME page, stops asking for
+//   the duration and offers that night for confirmation instead.
+//
+// It also measures what only a browser can: the entry and its one primary action are in
+// view at 390x844 and at 320px with no sideways scroll, every box renders at 16px or
+// more and at least 48px high, the save target is at least 44px high, no U+2013 or U+2014 is rendered in
+// anything N2 owns, and the page requests nothing off this local origin.
+//
+// THE KILL IS THE POINT. context.close() is a graceful shutdown: the browser flushes
+// what it was holding, which is exactly the case that HIDES a lane that only ever lived
+// in memory. A taskkill /F /T is what makes "it is recorded" a fact about the store.
+//
+// It installs nothing. Point W7_BROWSER_BIN at an existing Chromium/Chrome/Edge
+// executable; without it the check says so and exits 0 with a clear NOT RUN line.
+//
+//   node rebuild/m3/w7-preview/today/build.mjs
+//   set W7_BROWSER_BIN=C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+//   node rebuild/m3/w7-preview/today/sleep-check.mjs
+import assert from "node:assert/strict";
+import { createRequire } from "node:module";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { startServer } from "./serve.mjs";
+import { DIST } from "./build.mjs";
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const executablePath = process.env.W7_BROWSER_BIN;
+if (!executablePath) {
+  console.log("N2 SLEEP BROWSER CHECK NOT RUN - set W7_BROWSER_BIN to a Chromium executable. "
+    + "This is not a pass.");
+  process.exit(0);
+}
+const PROCESS_NAME = path.basename(executablePath);
+const require = createRequire(path.join(here, "../../w6/package.json"));
+const { chromium } = require("playwright-core");
+
+const VIEWPORT = { width: 390, height: 844 };
+const NARROW = { width: 320, height: 844 };
+const EM = String.fromCharCode(0x2014);
+const EN = String.fromCharCode(0x2013);
+
+const scratch = path.resolve(here, "../../../../.tmp");
+fs.mkdirSync(scratch, { recursive: true });
+const profile = fs.mkdtempSync(path.join(scratch, "n2-sleep-profile-"));
+const server = await startServer({ port: 0 });
+const url = `http://127.0.0.1:${server.address().port}/`;
+const problems = [];
+const notes = [];
+let kills = 0;
+
+function watch(page) {
+  page.on("pageerror", (error) => problems.push("pageerror: " + error.message));
+  page.addInitScript(() => {
+    window.addEventListener("unhandledrejection", (event) => {
+      const reason = event.reason;
+      console.error("unhandledrejection: " + ((reason && (reason.stack || reason.message)) || String(reason)));
+    });
+  });
+  page.on("console", (message) => {
+    if (message.type() !== "error") return;
+    const where = (message.location() && message.location().url) || "";
+    if (/favicon/.test(where) || /favicon/.test(message.text())) return;
+    problems.push("console: " + message.text() + " @ " + where);
+  });
+  page.on("request", (request) => {
+    if (!request.url().startsWith(url) && !request.url().startsWith("data:")) {
+      problems.push("offsite request: " + request.url());
+    }
+  });
+  return page;
+}
+
+let live = null;
+/* THE LANE IS OPENED BY THE SCREEN, asynchronously and failing closed, so "the entry is
+   on the page" is the signal that this device really did give the page a store. */
+async function launch(viewport = VIEWPORT) {
+  const context = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport });
+  const page = watch(context.pages()[0] || await context.newPage());
+  await page.goto(url + "?screen=sleep", { waitUntil: "load" });
+  await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])', { timeout: 20000 });
+  return { context, page };
+}
+async function relaunch(viewport = VIEWPORT) {
+  const opened = await launch(viewport);
+  live = opened.context;
+  return opened;
+}
+
+function browserProcessesForProfile() {
+  const script = "Get-CimInstance Win32_Process -Filter \"Name='" + PROCESS_NAME + "'\" | "
+    + "Where-Object { $_.CommandLine -like '*" + profile.replace(/'/g, "''") + "*' } | "
+    + "Select-Object -ExpandProperty ProcessId";
+  try {
+    const out = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script],
+      { encoding: "utf8", timeout: 30000 });
+    return out.split(/\r?\n/).map(line => Number(line.trim())).filter(Number.isSafeInteger).filter(pid => pid > 0);
+  } catch (_) { return []; }
+}
+async function hardKill(context) {
+  const pids = browserProcessesForProfile();
+  assert(pids.length > 0,
+    "no " + PROCESS_NAME + " process was found for this profile - the kill would prove nothing");
+  for (const pid of pids) {
+    try { execFileSync("taskkill.exe", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore", timeout: 30000 }); }
+    catch (_) { /* a child may already be gone with its parent */ }
+  }
+  for (let tick = 0; tick < 100; tick++) {
+    if (browserProcessesForProfile().length === 0) break;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  assert.equal(browserProcessesForProfile().length, 0, "the browser survived taskkill /F /T");
+  try { await context.close(); } catch (_) { /* already gone - that is the point */ }
+  kills += 1;
+  await new Promise(resolve => setTimeout(resolve, 250));
+}
+
+const recorded = (page) => page.textContent('[data-slot="sleep-recorded"]').then(v => v || "");
+const estimate = (page) => page.textContent('[data-slot="sleep-estimate"]').then(v => v || "");
+
+/* Type the way a thumb does: set the value and dispatch the platform's own event. */
+async function typeTimes(page, bed, wake) {
+  await page.evaluate(([b, w]) => {
+    for (const [id, value] of [["sleep-bed", b], ["sleep-wake", w]]) {
+      const box = document.getElementById(id);
+      box.value = value;
+      box.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  }, [bed, wake]);
+}
+async function typeHours(page, hours) {
+  await page.evaluate((h) => {
+    const box = document.getElementById("sleep-hours");
+    box.value = h;
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+  }, hours);
+}
+const tapSave = (page) => page.click('#phone [data-slot="sleep-save"]');
+
+// Fault injection is confined to the browser's IDB API, outside the served source.
+// Before: keep the real active-put transaction alive. After: let it commit but hold
+// the application's oncomplete callback, so its save promise cannot acknowledge.
+async function armCommitBoundary(page, mode) {
+  await page.evaluate((boundary) => {
+    window.__n2Boundary = { mode: boundary, phase: 'armed' };
+    const original = IDBDatabase.prototype.transaction;
+    const complete = Object.getOwnPropertyDescriptor(IDBTransaction.prototype, 'oncomplete');
+    let armed = true;
+    IDBDatabase.prototype.transaction = function (...args) {
+      const tx = original.apply(this, args);
+      if (!armed || args[1] !== 'readwrite' || !tx.objectStoreNames.contains('generations')) return tx;
+      const objectStore = tx.objectStore.bind(tx), store = objectStore('generations');
+      const put = store.put.bind(store);
+      let activePut = false;
+      tx.objectStore = name => name === 'generations' ? store : objectStore(name);
+      store.put = (value, key) => {
+        const result = put(value, key);
+        if (key === 'active') {
+          activePut = true; armed = false;
+          window.__n2Boundary.phase = 'active-put-uncommitted';
+          if (boundary === 'before') {
+            const hold = () => { const request = store.get('active'); request.onsuccess = hold; };
+            hold();
+          }
+        }
+        return result;
+      };
+      Object.defineProperty(tx, 'oncomplete', {
+        configurable: true,
+        get() { return complete.get.call(tx); },
+        set(callback) {
+          complete.set.call(tx, function (event) {
+            if (activePut && boundary === 'after') {
+              window.__n2Boundary.phase = 'committed-before-ack';
+              return;
+            }
+            if (callback) callback.call(tx, event);
+          });
+        },
+      });
+      return tx;
+    };
+  }, mode);
+}
+
+async function durableSleepRows(page) {
+  return page.evaluate(async () => {
+    const entry = await import('/app.js');
+    const opened = await entry.boot({ document });
+    await opened.api.sleepReady();
+    window.__n2ObservedSleepHost = opened.api.sleepLane().host;
+    const rows = await window.__n2ObservedSleepHost.all();
+    return rows.map(row => ({ op_id: row.op_id, night: row.night }));
+  });
+}
+
+async function reachable(page, label) {
+  const box = await page.evaluate(() => {
+    const view = document.querySelector(".view");
+    const cta = document.querySelector('#phone [data-slot="sleep-save"]');
+    if (!cta) return null;
+    cta.scrollIntoView({ block: "end" });
+    const rect = cta.getBoundingClientRect(), frame = view.getBoundingClientRect();
+    return { top: Math.round(rect.top - frame.top), bottom: Math.round(rect.bottom - frame.top),
+      height: Math.round(rect.height), viewport: Math.round(view.clientHeight),
+      primaries: document.querySelectorAll("#phone .primary").length,
+      overflow: Math.round(view.scrollWidth - view.clientWidth) };
+  });
+  assert(box, label + ": no save control on screen");
+  assert(box.bottom <= box.viewport + 1,
+    `${label}: the save control is not fully visible (${box.bottom} > ${box.viewport})`);
+  assert(box.height >= 44, `${label}: the save control is ${box.height}px high`);
+  assert(box.overflow <= 0, `${label}: the screen scrolls sideways by ${box.overflow}px`);
+  assert.equal(box.primaries, 1, `${label}: ${box.primaries} primary actions, not one`);
+  notes.push(`${label}: save control ${box.top}-${box.bottom} in a ${box.viewport}px viewport, `
+    + `${box.height}px high, ONE primary action, no sideways scroll`);
+  return box;
+}
+async function boxesAreLargeEnough(page, label) {
+  const sizes = await page.evaluate(() => [...document.querySelectorAll('#phone [data-slot="sleep-entry-form"] input')]
+    .filter(el => el.offsetParent !== null)
+    .map(el => ({ id: el.id, size: Math.round(parseFloat(getComputedStyle(el).fontSize)),
+      h: Math.round(el.getBoundingClientRect().height) })));
+  assert(sizes.length >= 1, label + ": no visible box on the entry");
+  for (const entry of sizes) {
+    assert(entry.size >= 16, `${label}: ${entry.id} renders at ${entry.size}px`);
+    assert(entry.h >= 48, `${label}: ${entry.id} is ${entry.h}px high`);
+  }
+  notes.push(`${label}: ${sizes.length} visible box(es), each >= 16px text and >= 48px high`);
+  return sizes;
+}
+/* THE OWNER'S RULE, AT RENDER TIME (DECISIONS:114 (1)), scoped to what N2 owns. */
+async function noDashes(page, label) {
+  const hits = await page.evaluate(([em, en]) => {
+    const roots = [document.querySelector('[data-slot="sleep-entry-form"]'),
+      document.querySelector('[data-slot="sleep-note"]'),
+      document.querySelector('[data-slot="sleep-night"]')].filter(Boolean);
+    const bad = [];
+    for (const root of roots) {
+      for (const node of [root, ...root.querySelectorAll("*")]) {
+        for (const value of [node.textContent, node.getAttribute("placeholder"),
+          node.getAttribute("aria-label"), node.getAttribute("title")]) {
+          if (value && (value.includes(em) || value.includes(en))) bad.push(value.slice(0, 60));
+        }
+      }
+    }
+    return [...new Set(bad)];
+  }, [EM, EN]);
+  assert.deepEqual(hits, [], label + " renders an ai dash: " + hits.join(" | "));
+}
+
+let failures = 0;
+try {
+  /* ---------- launch 1: the screen opened its own lane ---------- */
+  let { context, page } = await relaunch();
+  const opened = await page.textContent("#phone");
+  assert.match(opened, /Night of \d{4}-\d{2}-\d{2}/, "the night label is the NIGHT's own date");
+  /* The preview athlete arrives with an imported basis of nights, so this launch reads
+     one back. It carries NO provenance, because no operation on this device made it. */
+  const basisLine = await recorded(page);
+  assert.match(basisLine, /^\d+(\.\d+)? h$/,
+    "an imported basis night shows its figure and claims nothing else: " + basisLine);
+  notes.push("the imported basis night is shown with no invented provenance: " + basisLine.trim());
+  /* The preview athlete ARRIVES with that basis night, so on this device the entry is
+     already behind Change sleep: a night that exists owns the display until the athlete
+     asks to change it (D2 round 1, finding 5). */
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.waitForSelector('#phone #sleep-bed');
+  assert.equal(await page.getAttribute('[data-slot="sleep-mode-times"]', "aria-pressed"), "true",
+    "bed and wake times is the first mode");
+  await reachable(page, "sleep at 390");
+  await boxesAreLargeEnough(page, "sleep at 390");
+  await noDashes(page, "sleep at 390");
+  await page.click('#phone [data-slot="sleep-awake-toggle"]');
+  const awakeBoxes = await boxesAreLargeEnough(page, 'time-awake disclosure at 390');
+  assert(awakeBoxes.some(box => box.id === 'sleep-awake'));
+  await reachable(page, 'time-awake disclosure at 390');
+  await page.click('#phone [data-slot="sleep-awake-toggle"]');
+  await page.evaluate(() => { document.getElementById('sleep-bed').style.fontSize = '8px'; });
+  await assert.rejects(() => boxesAreLargeEnough(page, 'negative undersized input'), /renders at 8px/);
+  await page.evaluate(() => { document.getElementById('sleep-bed').style.fontSize = ''; });
+  notes.push('the browser size check rejects an intentionally undersized input');
+  await context.setOffline(true);
+
+  /* ---------- the estimate is the ENGINE's, shown as an estimate ---------- */
+  await typeTimes(page, "23:00", "06:30");
+  await page.waitForFunction(() => {
+    const el = document.querySelector('[data-slot="sleep-estimate"]');
+    return el && /Estimate from clock times/.test(el.textContent);
+  }, null, { timeout: 20000 });
+  const shown = await estimate(page);
+  assert.match(shown, /7\.5 h/, "23:00 to 06:30 is the engine's own 7.5 h: " + shown);
+  notes.push("the clock-time estimate is the engine's own span: " + shown.trim());
+
+  /* ---------- the night is recorded ---------- */
+  await tapSave(page);
+  /* Wait for the line to carry the PROVENANCE of a night this device recorded: the
+     imported basis night was already on the screen, so "not empty" proves nothing. */
+  await page.waitForFunction(() => {
+    const el = document.querySelector('[data-slot="sleep-recorded"]');
+    return el && !el.hidden && /From bed and wake times\./.test(el.textContent);
+  }, null, { timeout: 20000 });
+  let line = await recorded(page);
+  assert.match(line, /^7\.5 h/, "the recorded line leads with the engine's hours: " + line);
+  assert.match(line, /From bed and wake times\./, "and says which shape it came from");
+  assert.match(line, /Recorded \d{4}-\d{2}-\d{2} at \d{2}:\d{2}/, "with the stamp on the operation");
+  notes.push("a night recorded from bed and wake times: " + line.trim());
+  await context.setOffline(false);
+  notes.push('the actual clock-time save completed while the browser was offline');
+
+  /* D2 ROUND 1, FINDING 5 - A RECORDED NIGHT OWNS THE DISPLAY. The form is put away and
+     the saved value stays visible until the athlete deliberately asks to change it. */
+  assert.equal(await page.isVisible('#phone [data-slot="sleep-change"]'), true,
+    "a recorded night offers no way to change it");
+  assert.equal(await page.isVisible("#sleep-bed"), false, "the form is still open over a record");
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.waitForSelector('#phone [data-slot="sleep-cancel"]:not([hidden])');
+  assert.match(await page.textContent('#phone [data-slot="sleep-save-label"]'), /Save correction/,
+    "the correction is named as one");
+  assert.equal(await page.inputValue("#sleep-bed"), "", "the boxes are clear for the correction");
+  assert.match(await recorded(page), /7\.5 h/, "the saved value must stay visible until commit");
+  await page.click('#phone [data-slot="sleep-cancel"]');
+  await page.waitForSelector('#phone [data-slot="sleep-change"]:not([hidden])');
+  notes.push("Change sleep / Cancel keeps the recorded night visible and writes nothing");
+
+  /* D2 ROUND 1, FINDING 5 - the night is DATED and the quality is the check-in's. */
+  const dated = await page.inputValue("#sleep-date");
+  assert.match(dated, /^\d{4}-\d{2}-\d{2}$/, "the night has no date control: " + dated);
+  assert(String(await page.textContent('#phone [data-slot="sleep-night"]')).includes(dated),
+    "the label and the date control disagree");
+  const quality = (await page.textContent('#phone [data-slot="sleep-quality"]')) || "";
+  assert.match(quality, /^Quality/, "the quality state is not drawn: " + quality);
+  notes.push("the night is dated by control (" + dated + ") and quality is reused, not asked: "
+    + quality.trim());
+
+  /* ---------- a genuine reload ---------- */
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])', { timeout: 20000 });
+  assert.match(await recorded(page), /7\.5 h/, "the reload lost the night");
+
+  /* ---------- A REAL PROCESS KILL ---------- */
+  await hardKill(context);
+  ({ context, page } = await relaunch());
+  assert.match(await recorded(page), /7\.5 h/, "a real taskkill lost the night");
+  notes.push("survived a real taskkill /F /T with the night intact");
+
+  /* ---------- THE CHECK-IN STOPS ASKING TWICE, ON THE SAME PAGE ----------
+     No reload between the save and the check-in: the route rebinds the check-in over
+     the SAME host and the CURRENT projected state, which is the journey D2's own
+     correction 1 asks for. */
+  await page.click('#phone [data-go="today"]');
+  await page.waitForSelector('#phone [data-go="recovery"]');
+  await page.click('#phone [data-go="recovery"]');
+  await page.waitForSelector('#phone [data-slot="sleep-known"], #phone .option', { timeout: 20000 });
+  const sheet = await page.textContent("#phone");
+  assert.match(sheet, /7\.5/, "the check-in did not offer the night N2 recorded: " + sheet.slice(0, 200));
+  notes.push("the recovery check-in offered the recorded night on the SAME page, with no reload");
+  await page.click('#phone [data-go="today"]');
+  await page.waitForSelector('#phone [data-go="sleep"]');
+  assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /7\.5 h/,
+    "Today's own sleep line is the durable record");
+
+  /* ---------- A CORRECTION REPLACES THE NIGHT, and the clock fields are GONE ---------- */
+  await page.click('#phone [data-go="sleep"]');
+  await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])');
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.waitForSelector('#phone [data-action="sleep-mode-hours"]:not([hidden])');
+  await page.click('#phone [data-action="sleep-mode-hours"]');
+  await page.waitForSelector('#phone #sleep-hours');
+  const hoursBoxes = await boxesAreLargeEnough(page, 'hours entry at 390');
+  assert(hoursBoxes.some(box => box.id === 'sleep-hours'));
+  await typeHours(page, "5.5");
+  await tapSave(page);
+  await page.waitForFunction(() => {
+    const el = document.querySelector('[data-slot="sleep-recorded"]');
+    return el && el.textContent.includes("5.5 h");
+  }, null, { timeout: 20000 });
+  line = await recorded(page);
+  assert.match(line, /Entered as an approximate duration\./, "the corrected shape is named");
+  assert.doesNotMatch(line, /From bed and wake times/, "the replaced shape is gone, not stale");
+  assert.match(line, /Corrected \d{4}-\d{2}-\d{2} at \d{2}:\d{2}/,
+    "a second operation for one night is a CORRECTION and says so: " + line);
+  notes.push("a correction replaced the night and is named as one: " + line.trim());
+
+  /* ---------- D2 ROUND 1, FINDING 2 - THE GYM RETURN PATH, IN A REAL BROWSER ----------
+     The night was recorded on this page with no reload, so the workout the athlete opens
+     next is prepared by a gym host built after it. What a browser can prove is the ROUTE:
+     it opens, it carries no error, and the record is still the record on the way back.
+     The gym host's own projection is asserted over the real host in sleep.test.mjs
+     N2-09, which can read `gymHost.host.lastProjection()` and a browser cannot. */
+  await page.click('#phone [data-go="today"]');
+  await page.waitForSelector('#phone [data-slot="primary-label"]', { timeout: 20000 });
+  /* This device's athlete owes his morning weight before a workout can open, and that is
+     A2's rule, not N2's. Recording it through the real weigh-in is what makes the gym
+     route reachable at all, so the return path can actually be walked. */
+  if (/^Log/.test(((await page.textContent('#phone [data-slot="primary-label"]')) || "").trim())) {
+    await page.click('#phone [data-slot="primary"]');
+    await page.waitForSelector("#morning-weight", { timeout: 20000 });
+    await page.evaluate(() => {
+      const box = document.getElementById("morning-weight");
+      box.value = "205.4";
+      box.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await page.click('#phone .gym-actions button[type="submit"]');
+    await page.waitForFunction(() => {
+      const el = document.querySelector('#phone [data-slot="primary-label"]');
+      return el && !/^Log/.test(el.textContent.trim());
+    }, null, { timeout: 20000 });
+    notes.push("the morning weight was recorded so the workout route could be walked");
+  }
+  const primary = ((await page.textContent('#phone [data-slot="primary-label"]')) || "").trim();
+  if (/^(Start|Resume|Review)/.test(primary)) {
+    await page.click('#phone [data-slot="primary"]');
+    await page.waitForSelector("#phone .page", { timeout: 20000 });
+    const gym = await page.textContent("#phone");
+    assert.doesNotMatch(gym, /NaN|undefined/,
+      "the workout screen after a sleep save: " + gym.slice(0, 200));
+    await page.click("#phone .back");
+    await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
+    assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /5\.5 h/,
+      "the round trip through the workout lost the corrected night");
+    notes.push("Today -> workout (" + primary + ") -> Today after a same-page sleep save, "
+      + "with the record intact");
+  } else {
+    /* This device's athlete owes something before a workout can open, so the route is
+       not reachable here. The gym host's own projection after a save is asserted over
+       the REAL host in sleep.test.mjs N2-09, which is where it can be read at all. */
+    notes.push("the workout route was not reachable from Today on this device (primary action: "
+      + primary + "); the gym host projection is proved in sleep.test.mjs N2-09");
+    await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
+    assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /5\.5 h/,
+      "Today's own sleep line is the corrected record");
+  }
+  await page.click('#phone [data-go="sleep"]');
+  await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])');
+
+  /* ---------- D2 ROUND 2, FINDING 3 - A SECOND VISIT TO THE CHECK-IN ----------
+     The first visit rebinds the sheet over the night that was just recorded. What is
+     typed into THAT sheet has to be there on the way back, which is what round 2
+     found it was not. */
+  await page.click('#phone [data-go="today"]');
+  await page.waitForSelector('#phone [data-go="recovery"]', { timeout: 20000 });
+  await page.click('#phone [data-go="recovery"]');
+  await page.waitForSelector('#phone #checkin-error', { state: 'attached', timeout: 20000 });
+  await page.click('#phone details.checkin-note summary');
+  await page.fill('#phone #recovery-note', 'typed on the first visit');
+  await page.click('#phone [data-go="today"]');
+  await page.waitForSelector('#phone [data-go="recovery"]', { timeout: 20000 });
+  await page.click('#phone [data-go="recovery"]');
+  await page.waitForSelector('#phone #checkin-error', { state: 'attached', timeout: 20000 });
+  await page.click('#phone details.checkin-note summary');
+  assert.equal(await page.inputValue('#phone #recovery-note'), 'typed on the first visit');
+  assert.equal(await page.isVisible('#phone #recovery-note'), true);
+  notes.push('the visible recovery note retained typed text across a second visit');
+  await page.click('#phone [data-go="today"]');
+  await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
+
+  /* ---------- D2 ROUND 2, FINDING 2 - A RELAUNCH WITH THE NIGHT ALREADY STORED ----
+     A fresh boot on a device that HOLDS a night: no save happens, and the workout the
+     athlete opens is prepared after the replay rather than before it. The gym host's
+     own projection is asserted over the real host in sleep.test.mjs N2-09; what a
+     browser can show is that the whole journey is consistent and carries no NaN. */
+  await hardKill(context);
+  ({ context, page } = await relaunch());
+  assert.match(await recorded(page), /5\.5 h/, "the relaunch lost the night");
+  await page.click('#phone [data-go="today"]');
+  await page.waitForSelector('#phone [data-slot="primary-label"]', { timeout: 20000 });
+  assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /5\.5 h/,
+    "Today after a boot with a stored night");
+  const boots = ((await page.textContent('#phone [data-slot="primary-label"]')) || "").trim();
+  if (/^(Start|Resume|Review)/.test(boots)) {
+    await page.click('#phone [data-slot="primary"]');
+    await page.waitForSelector("#phone .page", { timeout: 20000 });
+    const after = await page.textContent("#phone");
+    assert.doesNotMatch(after, /NaN|undefined/, "the workout after a boot with a stored night");
+    await page.click("#phone .back");
+    await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
+    notes.push("a fresh boot with a night already stored: Today -> workout (" + boots + ") -> Today, truthful");
+  } else {
+    notes.push("after the relaunch the workout route needed " + boots + " first; the boot rebind "
+      + "is proved in sleep.test.mjs N2-09");
+  }
+  await page.click('#phone [data-go="sleep"]');
+  await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])');
+
+  /* ---------- A REFUSAL RECORDS NOTHING ---------- */
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.waitForSelector('#phone [data-action="sleep-mode-hours"]:not([hidden])');
+  await page.click('#phone [data-action="sleep-mode-hours"]');
+  await page.waitForSelector('#phone #sleep-hours');
+  await typeHours(page, "25");
+  await tapSave(page);
+  await page.waitForFunction(() => {
+    const el = document.querySelector('[data-slot="sleep-error"]');
+    return el && el.textContent.trim().length > 0;
+  }, null, { timeout: 20000 });
+  const refusal = (await page.textContent('[data-slot="sleep-error"]')) || "";
+  assert.match(refusal, /Nothing was recorded\./);
+  assert.match(await recorded(page), /5\.5 h/, "the refused entry changed the record");
+  notes.push("an out-of-range duration was refused and changed nothing: " + refusal.trim());
+  await noDashes(page, "sleep, refused");
+
+  /* ---------- 320px ---------- */
+  await hardKill(context);
+  ({ context, page } = await relaunch(NARROW));
+  assert.match(await recorded(page), /5\.5 h/, "the narrow relaunch lost the record");
+  /* The form is behind Change sleep once a night is recorded, so the narrow measurements
+     are taken on the screen the athlete actually types into. */
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.waitForSelector('#phone #sleep-bed');
+  await reachable(page, "sleep at 320");
+  await boxesAreLargeEnough(page, "sleep at 320");
+  await noDashes(page, "sleep at 320");
+  await hardKill(context);
+
+  // The two commit boundaries use independent launches of this same synthetic profile.
+  ({ context, page } = await relaunch());
+  const beforeRows = await durableSleepRows(page);
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.click('#phone [data-slot="sleep-mode-hours"]');
+  await typeHours(page, '4.5');
+  await armCommitBoundary(page, 'before');
+  await tapSave(page);
+  await page.waitForFunction(() => window.__n2Boundary.phase === 'active-put-uncommitted');
+  assert.match(await recorded(page), /5\.5 h/);
+  assert.equal(await page.isDisabled('#phone [data-slot="sleep-save"]'), true);
+  await hardKill(context);
+  ({ context, page } = await relaunch());
+  assert.match(await recorded(page), /5\.5 h/);
+  assert.deepEqual(await durableSleepRows(page), beforeRows, 'a killed, uncommitted transaction added a night');
+  notes.push('killed after active put before commit: original sleep ops and value retained');
+
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.click('#phone [data-slot="sleep-mode-hours"]');
+  await typeHours(page, '4.5');
+  await armCommitBoundary(page, 'after');
+  await tapSave(page);
+  await page.waitForFunction(() => window.__n2Boundary.phase === 'committed-before-ack');
+  assert.match(await recorded(page), /5\.5 h/);
+  assert.equal(await page.isDisabled('#phone [data-slot="sleep-save"]'), true);
+  await hardKill(context);
+  ({ context, page } = await relaunch());
+  assert.match(await recorded(page), /4\.5 h/);
+  const committedRows = await durableSleepRows(page);
+  assert.equal(committedRows.length, beforeRows.length + 1);
+  assert.deepEqual(committedRows.slice(0, -1), beforeRows);
+  assert.equal(committedRows.at(-1).night.hours, 4.5);
+  notes.push('killed after transaction completion before acknowledgment: exactly one new night retained');
+
+  await page.setViewportSize({ width: 375, height: 844 });
+  await page.click('#phone [data-slot="sleep-change"]');
+  await reachable(page, 'sleep at 375');
+  await boxesAreLargeEnough(page, 'sleep at 375');
+  await page.evaluate(() => {
+    // Modify the already loaded stylesheet through CSSOM so enlarged text also
+    // applies to nodes recreated by a mode/disclosure change. Per-node styles do not.
+    const enlarge = rules => {
+      for (const rule of rules) {
+        const size = rule.style && rule.style.getPropertyValue('font-size');
+        if (size) rule.style.setProperty('font-size', `calc((${size}) * 2)`,
+          rule.style.getPropertyPriority('font-size'));
+        if (rule.cssRules) enlarge(rule.cssRules);
+      }
+    };
+    for (const sheet of document.styleSheets) enlarge(sheet.cssRules);
+  });
+  await reachable(page, 'sleep at 375 with doubled text');
+  const enlarged = await boxesAreLargeEnough(page, 'sleep at 375 with doubled text');
+  assert(enlarged.every(box => box.size >= 32));
+  await page.focus('#sleep-date');
+  const focused = new Set();
+  for (let i = 0; i < 25; i++) {
+    await page.keyboard.press('Tab');
+    focused.add(await page.evaluate(() => document.activeElement.id || document.activeElement.dataset.slot || ''));
+  }
+  assert(focused.has('sleep-bed') && focused.has('sleep-wake') && focused.has('sleep-save'));
+  notes.push('Tab reaches bed, wake and Save at 375px with doubled text');
+  await page.click('#phone [data-slot="sleep-awake-toggle"]');
+  const enlargedAwake = await boxesAreLargeEnough(page, 'time-awake disclosure with doubled text');
+  assert(enlargedAwake.some(box => box.id === 'sleep-awake') && enlargedAwake.every(box => box.size >= 32));
+  await reachable(page, 'time-awake disclosure with doubled text');
+  await page.click('#phone [data-slot="sleep-mode-hours"]');
+  const enlargedHours = await boxesAreLargeEnough(page, 'hours entry with doubled text');
+  assert(enlargedHours.some(box => box.id === 'sleep-hours') && enlargedHours.every(box => box.size >= 32));
+  await reachable(page, 'hours entry with doubled text');
+
+  // An existing public entry on the next day advances the one installation clock.
+  // It uses a detached document so the original page and its typed draft stay open.
+  const rolloverBefore = await durableSleepRows(page);
+  await page.click('#phone [data-slot="sleep-change"]');
+  await page.click('#phone [data-slot="sleep-mode-hours"]');
+  await typeHours(page, '6.25');
+  const originalNight = await page.inputValue('#sleep-date');
+  const advanced = await page.evaluate(async (shell) => {
+    const entry = await import('/app.js');
+    // Parse the exact built shell supplied by the runner. The live page has temporary
+    // font styles, and the unchanged CSP also forbids a browser fetch for this shell.
+    const detached = new DOMParser().parseFromString(shell, 'text/html');
+    const opened = await entry.boot({ document: detached, today: '2030-02-05' });
+    await opened.api.sleepReady();
+    return opened.hosts.liveDay();
+  }, fs.readFileSync(path.join(DIST, 'index.html'), 'utf8'));
+  assert.equal(advanced, '2030-02-05');
+  assert.equal(await page.inputValue('#sleep-hours'), '6.25');
+  await tapSave(page);
+  await page.waitForSelector('#phone [data-slot="sleep-keep-night"]:not([hidden])');
+  assert.match(await page.textContent('#phone [data-slot="sleep-error"]'), /The date changed/);
+  assert.equal(await page.evaluate(async () => (await window.__n2ObservedSleepHost.all()).length), rolloverBefore.length);
+  await page.click('#phone [data-slot="sleep-keep-night"]');
+  await tapSave(page);
+  await page.waitForFunction(() => document.querySelector('[data-slot="sleep-recorded"]').textContent.includes('6.25 h'));
+  const rolled = await page.evaluate(async () => {
+    const row = (await window.__n2ObservedSleepHost.all()).at(-1);
+    return { date: row.night.date, savedDate: row.savedDate };
+  });
+  assert.equal(rolled.date, originalNight);
+  assert.equal(rolled.savedDate, '2030-02-05');
+  assert.equal(await page.inputValue('#sleep-date'), originalNight);
+  notes.push('actual page rollover required Keep this night, retained typed hours and used the installation save date');
+  await hardKill(context);
+} catch (error) {
+  failures += 1;
+  problems.push(error && error.message ? error.message : String(error));
+} finally {
+  const bounded = (work) => Promise.race([work.catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, 5000))]);
+  if (live) await bounded(Promise.resolve().then(() => live.close()));
+  if (typeof server.closeAllConnections === "function") server.closeAllConnections();
+  await bounded(new Promise((resolve) => server.close(resolve)));
+  const resolvedProfile = path.resolve(profile);
+  assert(resolvedProfile.startsWith(scratch + path.sep)
+    && path.basename(resolvedProfile).startsWith('n2-sleep-profile-'));
+  try { fs.rmSync(resolvedProfile, { recursive: true, force: true }); } catch (_) {}
+}
+
+if (problems.length || failures) {
+  console.error("N2 SLEEP BROWSER CHECK FAIL:\n  " + problems.join("\n  "));
+  process.exitCode = 1;
+} else {
+  console.log("N2 SLEEP BROWSER CHECK PASS - ?screen=sleep opened its own sleep lane -> the "
+    + "engine's own clock-time estimate -> a night recorded with its provenance -> a genuine "
+    + "reload -> the recovery check-in offered that night on the SAME page with no reload -> a "
+    + "correction that replaced the whole night -> an out-of-range duration refused with nothing "
+    + `written -> the same record at 320px, across ${kills} REAL PROCESS KILLS (taskkill /F /T, `
+    + "each verified dead); no off-origin request, no horizontal overflow at 390px or 320px, "
+    + "every visible box >= 16px and >= 48px, exactly ONE primary action, and no U+2013 or "
+    + "U+2014 rendered in anything N2 owns.\n  " + notes.join("\n  "));
+}
+/* A killed browser can leave a handle this process cannot drain. */
+process.exit(process.exitCode || 0);
