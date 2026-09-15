@@ -58,6 +58,25 @@ back to non-fixture wording). P0B.8 extended.
 N5 NOTE - both new strings exported (`ADOPTION_PENDING`; the status
 line's composer, `athleteStateFailureCopy`), asserted dash-free and
 sentence-terminated. Cell P0B.11.
+## r4 (review REJECT, review 3e226456 in the PC review folder)
+N3b BLOCKING - r3's fix emptied `marchingOrder`, but `instruction-why`
+falls back to `view.statusFace.cause` when it is empty, and that field
+was never gated: the enrolled first frame still painted the fixture's
+own rich-history verdict (ON COURSE / "The cut is working"). Fixed in
+today-model.cjs's SAME `pendingAdoption` block: `view.statusFace` is
+now recomputed by calling the engine's own `statusFace()` again, over a
+clone of `basis` with `reads` emptied - never a hardcoded word. That
+neutral-history clone resolves to CALIBRATING, the engine's own shape
+for "no qualifying data yet", exactly as the review suggested. Cell
+P0B.12 sweeps the WHOLE first-frame DOM text, once, for every
+fixture-distinctive string this ticket has ever had to hide (verdict,
+cause, figures, trend, exercise names and ids, the count) rather than
+re-checking field by field; S19 (the note stays visible) holds inside
+the same cell.
+MINOR - `ADOPTION_PENDING` promised the block would clear "in a
+moment", which is false on the path that never clears (a rejected or
+absent `athleteState()`). Reworded to a sentence true on every path
+that reaches it. P0B.11 re-asserts it unchanged in shape.
 ## Bar table
 | # | Item | Cell | Status |
 |---|---|---|---|
@@ -72,8 +91,9 @@ sentence-terminated. Cell P0B.11.
 | 9 | Early tap writes no fixture id (r2 F3) | P0B.9 | PASS |
 | 10 | Rejection: Start stays refused (r3 N1/N2) | P0B.10 | PASS |
 | 11 | New copy: dash-free, sentence-terminated (r3 N5) | P0B.11 | PASS |
-## Executed on the PC (Node from codex-primary-runtime), r3, rebased HEAD
-`node --test`, 13 files by name: `tests 564 / pass 564 / fail 0 / cancelled
+| 12 | Whole-DOM sweep: no fixture verdict, figure or name (r4 N3b) | P0B.12 | PASS |
+## Executed on the PC (Node from codex-primary-runtime), r4, same HEAD
+`node --test`, 13 files by name: `tests 565 / pass 565 / fail 0 / cancelled
 0 / skipped 0 / todo 0`. `build.mjs`: `A1 TODAY BUILD PASS`. `build-pwa.mjs`:
 `A5 PWA BUILD PASS`. `rig187.cjs => PASS` (same pre-existing SUITE GAP note,
 unrelated to this ticket). `b-package.cjs --ci --package H3`: `SEAL BASE ON
@@ -92,4 +112,4 @@ With no workout lane at all, Today's model is still correctly adopted, but
 nothing auto-repaints the screen until the next render for another reason.
 Not covered by a cell; unaffected by r2/r3.
 ## Commit
-`git -c user.name="cowork (Earned PM)" -c user.email="joeymat11@gmail.com" commit -a -m "P0-B r3: rebase on 2ea42e8e; adoption hold released on rejection; first-frame gate covers exercise count and order; copy cell" -m "Co-Authored-By: Claude Sonnet <noreply@anthropic.com>"`
+`git -c user.name="cowork (Earned PM)" -c user.email="joeymat11@gmail.com" commit -a -m "P0-B r4: enrolled first frame paints no fixture verdict; honest copy on the refusal path" -m "Co-Authored-By: Claude Sonnet <noreply@anthropic.com>"`

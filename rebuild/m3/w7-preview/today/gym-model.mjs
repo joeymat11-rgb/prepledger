@@ -41,8 +41,12 @@ export const UNDO_REASON = 'Undone on this device from the saved-set screen befo
 /* P0-B r2/r3 (review findings 3, N5) - Start's own refusal while an enrolled
    installation's adoption is pending or never swapped the host. Exported at
    module level, exactly as the three copy constants above are, so a copy
-   cell can assert it directly rather than duplicating the literal. */
-export const ADOPTION_PENDING = 'Your own week is still opening on this device. Try Start again in a moment.';
+   cell can assert it directly rather than duplicating the literal. r4
+   (review, MINOR residual on N1): reworded true on every path that reaches
+   it, including the one that never clears (a rejected or absent
+   athleteState()) - the old wording promised something that path would
+   never make true. */
+export const ADOPTION_PENDING = 'Start is not available until this device can read your setup. Reload to try again.';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const cell = value => (value && typeof value.display === 'string' ? value : null);

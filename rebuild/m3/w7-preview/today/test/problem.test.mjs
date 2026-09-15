@@ -919,3 +919,29 @@ test('P0B.11 - both new adoption-safety strings are complete, dash-free sentence
     assert(sentence.trim().length > 0, 'not blank');
   }
 });
+
+/* r4 (review 3e226456, N3b BLOCKING) - emptying marchingOrder alone let the
+   instruction-why binding fall through to view.statusFace.cause, which was
+   never gated: the enrolled first frame still painted the fixture's own
+   rich-history verdict (ON COURSE / "The cut is working"). Whole-DOM sweep
+   of the entire synchronous first frame for every distinctive fixture
+   string reachable by any word, cause, verdict, target, trend or badge -
+   not just the handful of fields already checked field-by-field above. */
+test('P0B.12 - the enrolled first frame paints no fixture verdict, figure or name: the whole DOM, once', async () => {
+  const kit = await p0bEnrolledDevice();
+  const { doc, booted } = await p0bOpen(kit);
+  const firstFrame = doc.getElementById('phone').textContent;
+  const forbidden = [
+    'ON COURSE', 'cut is working',
+    '2,300', '155 g', '2,262', '2,360', '180.4',
+    'demo-press', 'demo-row', 'demo-leg', 'demo-curl',
+    'Chest press', 'Seated row', 'Leg press', 'Leg curl',
+    '2 exercises',
+  ];
+  for (const needle of forbidden) {
+    assert.equal(firstFrame.includes(needle), false, 'the fixture string "' + needle + '" never paints on this frame');
+  }
+  assert.equal(doc.querySelector('[data-slot="setup-note"]').hidden, false, 'S19: the note stays visible on this frame');
+  await booted.api.ready;
+  booted.hosts.close();
+});

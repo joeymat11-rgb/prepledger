@@ -271,11 +271,19 @@ function createTodayModel(options = {}) {
        an athlete with no session at all already sees; nothing new is taught
        to that layer here either. `marchingOrder` (r3 N3) is the fixture's own
        next-best-action, feeding the instruction-why text and the primary
-       button's label when a weigh-in is owed; emptied, both already fall back
-       to their own existing, non-fixture-specific wording (view.statusFace.
-       cause, "Log this morning's weight"). Nothing else on view (workout.
-       title/sub/available, the instruction heading, the setup note) is
-       touched: none of it paints a fixture-specific figure in the first
+       button's label when a weigh-in is owed; emptied, its own reader falls
+       back to "Log this morning's weight". `statusFace` (r4, review finding
+       N3b) is ALSO the fixture's: emptying `marchingOrder` alone left the
+       instruction line falling through to `view.statusFace.cause`, which is
+       the fixture's rich 28-day history talking - "ON COURSE ... The cut is
+       working", the exact opposite of what an enrolled athlete's own,
+       genuinely unread state would say. Recomputed here instead of emptied
+       or hardcoded: off a NEUTRAL variant of the SAME valid engine state
+       (`basis`, with no reads) - the shape a device with nothing measured
+       yet already has, and what the engine ITSELF answers for it, never a
+       word this module invents. Nothing else on view (workout.title/sub/
+       available, the instruction heading, the setup note) is touched: none
+       of it paints a fixture-specific figure or verdict in the first
        place. */
     if (pendingAdoption) {
       view.calorieTarget = { gated: true };
@@ -285,6 +293,9 @@ function createTodayModel(options = {}) {
       }
       view.workout = { ...view.workout, exerciseCount: null };
       view.marchingOrder = {};
+      const neutral = clone(basis);
+      neutral.reads = [];
+      view.statusFace = E.statusFace(neutral);
     }
     view.why = whySections(view);
     return clone(view);
