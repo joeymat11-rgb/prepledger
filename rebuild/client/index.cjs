@@ -35,6 +35,20 @@ const deepFreeze = (v) => { if (v && typeof v === "object") { Object.values(v).f
 const localTime = (iso, tz) => { const m = /^([+-])(\d\d):(\d\d)$/.exec(tz || "+00:00"); const off = m ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0; const t = new Date(Date.parse(iso) + off * 60000); return t.toISOString().slice(11, 16); };
 const q = (value, unit) => ({ value, unit });
 
+/* P6: reason on disk. The day this client began storing an issuance beside its consent record.
+   A record from before this date has no issuance slot; reasonFor() names that honestly rather
+   than guessing at a reason the client never held. */
+const REASON_ON_DISK_SINCE = "2026-09-15";
+/* an issuance is accepted only whole: the engine's own proposal body, its reason text, the
+   engine revision that issued it, the turn/source that carried it, and the moment - every field
+   present, nothing inferred. The client never authors or edits any of these five values. */
+const validIssuance = (x) => !!x && typeof x === "object" && !Array.isArray(x) &&
+  x.body !== undefined && x.body !== null &&
+  typeof x.reason === "string" && x.reason.length > 0 &&
+  typeof x.revision === "string" && x.revision.length > 0 &&
+  typeof x.source === "string" && x.source.length > 0 &&
+  typeof x.moment === "string" && Number.isFinite(Date.parse(x.moment));
+
 function createClient(config) {
   const cfg = config || {};
   const verification = cfg.authorityVerification;
@@ -268,7 +282,18 @@ function createClient(config) {
     undoRequest: (targetTxn) => commit({ field: "undoRequest", value: targetTxn, kind: "undo-request", class: "plan", payload: { target: q(1, "txn") }, undo: { target_txn: targetTxn, seen_plan_basis: (model.snapshot && model.snapshot.planBasis) || "basis-0" }, copy: COPY.UNDO_SAVED }),
     finishSession: () => { const start = activeSession(); const payload = { closed: q(1, "flag") }; if (start) payload.session_start_id = start; return commit({ field: "finishSession", value: true, kind: "session-close", class: "session", payload }); },
     planEdit: ({ domain, value, unit }) => { const v = value && typeof value === "object" ? value.value : value; const u = value && typeof value === "object" ? value.unit : unit || Plan.unitFor(domain); return commit({ field: "planEdit", value: { domain, value: v }, kind: "plan-mutation", class: "plan", payload: null, plan: { domain, members: [{ field: domain, value: v, unit: u, provenance: "athlete_edited" }], seen_plan_basis: (model.snapshot && model.snapshot.planBasis) || "basis-0" } }); },
-    respond: (proposalId, answer) => commit({ field: "respond", value: { proposalId, answer }, kind: "proposal-response", class: "plan", payload: { proposal_id: proposalId, answer: String(answer) }, copy: COPY.ANSWER_SAVED }),
+    respond: (proposalId, answer, issuance) => {
+      const ans = String(answer);
+      const payload = { proposal_id: proposalId, answer: ans };
+      /* all-or-nothing WITH the answer: an issuance travels only whole, and only on an accept.
+         Anything short of that refuses the entire write before store.transaction ever runs -
+         no partial record, not even the plain answer, reaches disk. */
+      if (issuance !== undefined) {
+        if (ans !== "accept" || !validIssuance(issuance)) return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID(COPY.ISSUANCE_INCOMPLETE) };
+        payload.issuance = deepCopy({ body: issuance.body, reason: issuance.reason, revision: issuance.revision, source: issuance.source, moment: issuance.moment });
+      }
+      return commit({ field: "respond", value: { proposalId, answer, issuance }, kind: "proposal-response", class: "plan", payload, copy: COPY.ANSWER_SAVED });
+    },
     /* "Start from today's session": session FACTS only — a start and its sets, one durable transaction, never a plan */
     logSession: ({ date, sets }) => { const eff = effectiveOn(date); const startId = "op-" + model.deviceId + "-" + (model.ownSeq + 1); const actions = [{ field: "logSession", value: { date, sets }, kind: "session-start", class: "session", payload: { slot: "AD_HOC" }, effective: eff }].concat((sets || []).map((s) => ({ kind: "session-set", class: "session", payload: setPayload(s, startId), effective: eff }))); return commitBatch(actions); },
     beginEntry: (draft) => { const rec = { kind: draft.kind || "set", lift: draft.lift || null, set: draft.set == null ? null : draft.set, at: clock.now() }; const r = store.transaction((t) => { t.put("drafts", "active", rec); }); if (r.ok) model.draft = rec; return { durable: r.ok }; },
@@ -337,6 +362,18 @@ function createClient(config) {
     deriveInstance: Plan.deriveInstance,
     recordIssuance: ({ id, accepted, instance }) => { const rec = { id, accepted: !!accepted, instance: instance == null ? null : instance }; const r = store.transaction((t) => { t.put("issuances", id, rec); }); if (r.ok) model.issuances.set(id, rec); return { stored: r.ok }; },
     issuedInstance: (id) => { const i = model.issuances.get(id); return i ? i.instance : undefined; },
+    /* P6: "why did this change?" - the stored reason beside an accepted consent, or the honest
+       not-recorded line for a record from before this client kept one. Never a re-derivation. */
+    reasonFor: (proposalId) => {
+      const hits = Array.from(model.ops.values()).filter((o) => o.kind === "proposal-response" &&
+        o.payload && o.payload.proposal_id === proposalId && o.payload.answer === "accept" && !model.rejected.has(o.op_id))
+        .sort((a, b) => a.device_seq - b.device_seq);
+      const hit = hits[hits.length - 1];
+      if (!hit) return null;
+      const iss = hit.payload.issuance;
+      if (!iss) return { proposalId, opId: hit.op_id, recorded: false, reason: null, body: null, revision: null, source: null, moment: null, notRecordedBefore: REASON_ON_DISK_SINCE, copy: COPY.REASON_NOT_RECORDED(REASON_ON_DISK_SINCE) };
+      return { proposalId, opId: hit.op_id, recorded: true, reason: iss.reason, body: deepCopy(iss.body), revision: iss.revision, source: iss.source, moment: iss.moment };
+    },
     /* facts (A4 presence law) */
     dayFacts: (date) => { const dead = tombstoned(); const food = Array.from(model.ops.values()).filter((o) => o.class === "food-day" && o.kind === "fact" && o.effective && o.effective.local_date === date && !model.rejected.has(o.op_id) && !dead.has(o.op_id)); if (!food.length) return { date, intakeState: "ABSENT" }; const o = food[food.length - 1]; const k = o.payload && o.payload.kcal; return { date, intake: k && k.value, unit: k && k.unit, intakeState: "ATHLETE_LOGGED", op_id: o.op_id }; },
     maintenanceInputs: (days) => { const dates = Array.isArray(days) ? days.slice() : []; if (!dates.length) { const n = (days && days.window) || 14; for (let i = n; i >= 1; i--) dates.push(addDays(clock.today(), -i)); } return dates.map((d) => { const f = api.dayFacts(d); return f.intakeState === "ATHLETE_LOGGED" ? { date: d, intake: f.intake, source: "ATHLETE_LOGGED", op_id: f.op_id } : { date: d, source: "ABSENT" }; }); },
