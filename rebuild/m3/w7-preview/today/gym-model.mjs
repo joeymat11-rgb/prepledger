@@ -38,6 +38,15 @@ for (const choice of EFFORT_CHOICES) {
 export const CHOOSE_EFFORT = 'Choose clean reps left, or Unsure.';
 export const ENTER_PERFORMED = 'Enter the weight and reps you actually completed.';
 export const UNDO_REASON = 'Undone on this device from the saved-set screen before the next set.';
+/* P0-B r2/r3 (review findings 3, N5) - Start's own refusal while an enrolled
+   installation's adoption is pending or never swapped the host. Exported at
+   module level, exactly as the three copy constants above are, so a copy
+   cell can assert it directly rather than duplicating the literal. r4
+   (review, MINOR residual on N1): reworded true on every path that reaches
+   it, including the one that never clears (a rejected or absent
+   athleteState()) - the old wording promised something that path would
+   never make true. */
+export const ADOPTION_PENDING = 'Start is not available until this device can read your setup. Reload to try again.';
 
 const clone = value => JSON.parse(JSON.stringify(value));
 const cell = value => (value && typeof value.display === 'string' ? value : null);
@@ -86,13 +95,85 @@ const sameSlot = (a, b) => a && b && a.logical_set_slot === b.logical_set_slot &
    supplied the recovery is simply unavailable and says so; nothing is guessed. */
 export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
   if (!gymHost || !gymHost.host) throw new TypeError('createGymModel requires a composed gym host');
-  const { host, engine, day, plannedSplitSlotId } = gymHost;
-  const client = host.client;
+  /* P0 HIS NUMBERS - `current` is the LIVE handle this model reads and writes
+     through. `gymHost` is composed by today-entry.mjs createWorkoutEntry BEFORE
+     today-app.cjs mountToday adopts an enrolled installation's own athlete state
+     onto the Today model (today-model.cjs adoptBasis), so it can still stand on
+     whatever basis was current at boot time. rebase() below swaps it, at most
+     once, for a fresh handle hostForDay(day) opens over the SAME device storage
+     - hostForDay rereads model.stateFromOps() at CALL time, so calling it after
+     adoption is what puts the athlete's own exercises on the card. `host`,
+     `engine`, `day` and `plannedSplitSlotId` are `let` so every closure below
+     that already reads them sees the rebased values with no other edit. */
+  let current = gymHost;
+  let host = current.host, engine = current.engine, day = current.day,
+    plannedSplitSlotId = current.plannedSplitSlotId;
+  let client = host.client;
 
   let message = null;          // the last refusal, in the layer's own words
   let saved = null;            // the set just recorded, for the saved/rest screen
   let preparedId = null;       // a live preparation handle, held only until Start
   let previousByLift = new Map();
+
+  /* P0-B r2 (review finding 3) - SETTABLE, exactly as today-model.cjs's
+     pendingAdoption is. today-app.cjs mountToday sets this true, on an
+     enrolled installation only, BEFORE the synchronous first paint - before
+     Start could ever be live over the fixture host - and releases it once
+     adoption has resolved one way or another (adopted, refused, or no state at
+     all). While it is true, start() refuses rather than committing a Start
+     operation the OLD (fixture) host would durably record; nothing here
+     invents a screen state, it only refuses in the layer's own words, exactly
+     as every other refusal on this model already does. */
+  let awaitingAdoption = false;
+  /* P0-B r3 (review finding N1) - today-app.cjs now releases `awaitingAdoption`
+     on EVERY path out of adoption, including a REJECTED athleteState(), so
+     Start is never left dark behind a message that promises it will clear.
+     That release must never, by itself, hand Start the still-fixture host
+     back: `everHeld` latches the first time this installation was ever held
+     for adoption (enrolled-only - a fresh install never calls this at all)
+     and, once latched, start() below refuses until `rebase` has actually
+     swapped the host - not merely until the temporary hold is lifted. So a
+     rejection (or the null-state path, review N2) still refuses Start, on
+     the SAME code and copy, for as long as no rebase ever happens; only a
+     successful rebase() ever opens it. */
+  let everHeld = false;
+  function holdForAdoption(flag) { awaitingAdoption = !!flag; if (awaitingAdoption) everHeld = true; }
+  /* ADOPTION_PENDING is the module-level export above (r3 N5). */
+
+  /* P0 HIS NUMBERS - the rebase seam. today-app.cjs mountToday calls this once,
+     after it adopts the athlete's own state, and only when it did; nothing here
+     calls it on its own, so a fresh or a no-store installation opens exactly the
+     one host it always has. `preparedId` set by an earlier READ-ONLY probe (the
+     constructor's own preparability check, review B1 - `client.prepareWorkout`
+     with nothing stored) belongs to the OLD client and is invalidated by the
+     swap, not a reason to refuse it: the next read() re-prepares fresh, against
+     the rebased host. A genuinely SAVED set (`saved !== null`, a committed,
+     durable action) still refuses - swapping the client under a screen the
+     athlete has already acted on is not this seam's job. A no-op with no
+     hostForDay at all. holdForAdoption(true) on an enrolled installation keeps
+     Start dark until this runs, so in the shipped page `saved` can never be
+     non-null here from a set the fixture host recorded (review finding 3).
+     Every exit clears `awaitingAdoption`: the caller's own `finally` also
+     clears it, so a Start held by an install that never even reaches this
+     seam (no workout lane) is not left dark for ever. */
+  let rebased = false;
+  async function rebase() {
+    if (rebased || typeof hostForDay !== 'function') { awaitingAdoption = false; return false; }
+    if (saved !== null) { awaitingAdoption = false; return false; }
+    const fresh = await hostForDay(day);
+    current = fresh; host = fresh.host; engine = fresh.engine;
+    day = fresh.day; plannedSplitSlotId = fresh.plannedSplitSlotId; client = host.client;
+    preparedId = null;
+    /* P0-B r2 (review finding 4) - carry-overs from the OLD (fixture) host
+       cleared with it: a previous-performance comparison and a stale refusal
+       both belong to the host that is gone. The next read() re-derives
+       previousByLift against the rebased host; nothing here invents one. */
+    previousByLift = new Map();
+    message = null;
+    rebased = true;
+    awaitingAdoption = false;
+    return true;
+  }
 
   /* A refusal, in the LAYER'S own words. The durable client contains whatever the
      producer threw and answers with its own WORKOUT_PREPARATION_INVALID, so when
@@ -207,8 +288,8 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
      takes. It never invents a reason: the host derives both the code and the
      sentence from the durable log. */
   async function orderRefusal() {
-    if (typeof gymHost.startOrderRefusal !== 'function') return null;
-    const refusal = await gymHost.startOrderRefusal();
+    if (typeof current.startOrderRefusal !== 'function') return null;
+    const refusal = await current.startOrderRefusal();
     return refusal ? { code: refusal.code, copy: refusal.reason || null } : null;
   }
 
@@ -389,6 +470,15 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
   /* ---------------- the actions ---------------- */
 
   async function start() {
+    /* P0-B r2/r3 (review findings 3, N1, N2) - refuse rather than commit a
+       Start against a host adoption is about to replace (`awaitingAdoption`,
+       the temporary window) OR already tried and did not swap
+       (`everHeld && !rebased`, the permanent one - a rejection, a falsy
+       state, or no workout lane at all on an enrolled installation). */
+    if (awaitingAdoption || (everHeld && !rebased)) {
+      message = { code: 'WORKOUT_ADOPTION_PENDING', copy: ADOPTION_PENDING };
+      return { ok: false, code: 'WORKOUT_ADOPTION_PENDING', copy: ADOPTION_PENDING };
+    }
     if (!preparedId) { const view = await read(); if (view.phase !== 'ready') return { ok: false, code: view.code || 'WORKOUT_NOT_READY', copy: view.copy || null }; }
     /* Re-run the guard immediately before the write, against the generation the
        write will land on. A Start that cannot be ordered is refused here and
@@ -486,7 +576,12 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
     }
   }
 
-  return Object.freeze({ read, start, logSet, undo, finish, forget, closeUnfinished,
+  return Object.freeze({ read, start, logSet, undo, finish, forget, closeUnfinished, rebase, holdForAdoption,
     effortChoices: () => EFFORT_CHOICES.map(choice => ({ label: choice.label, reserve: choice.reserve })),
-    previous: () => previousByLift, day });
+    previous: () => previousByLift,
+    /* P0-B r2 (review finding 4) - a LIVE getter, not a value captured at
+       construction time: `day` is reassigned by rebase() above, and a plain
+       property here would freeze in the pre-rebase day for the object's whole
+       lifetime regardless. */
+    get day() { return day; } });
 }

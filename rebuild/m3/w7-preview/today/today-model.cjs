@@ -108,7 +108,22 @@ const STORE_NOTE = "Saved in this device's encrypted local store. It survives a 
 function createTodayModel(options = {}) {
   const day = options.today || SYNTHETIC_DAY;
   const engineFactory = options.engineFactory || createTodayEngine;
-  const basis = options.basisState ? clone(options.basisState) : createBasisState(day);
+  /* P0 HIS NUMBERS - SETTABLE after construction, exactly as N1's foodDays is
+     (see setFoodDays below): today-app.cjs mountToday opens this page's setup
+     lane lazily and reads setup.athleteState() asynchronously, so the basis it
+     hands back cannot be known at createTodayModel() time. `basis` starts as
+     whatever the caller supplied (or the fixture, unchanged), and adoptBasis()
+     below REPLACES it, once the athlete's own record has actually been read. */
+  let basis = options.basisState ? clone(options.basisState) : createBasisState(day);
+
+  /* P0-B r2 (review finding 2) - SETTABLE, exactly as `basis` is. today-app.cjs
+     mountToday sets this true, on an enrolled installation only, BEFORE the
+     synchronous first paint (so S19's note-visible assertion, which reads the
+     UNCHANGED fixture basis, is untouched) and adoptBasis below clears it the
+     moment his own state actually lands. While it is true, read() gates the
+     fixture's own calorie, protein and weight-trend figures - never a number
+     this device has not actually measured, and never the fixture's. */
+  let pendingAdoption = false;
 
   /* THE STORE OF RECORD (review B2). `readings` is the durable reading lane —
      rebuild/m3/w7-preview/today/reading-host.mjs, the accepted encrypted
@@ -244,6 +259,44 @@ function createTodayModel(options = {}) {
         available: session.available, unavailableReason: session.reason },
       ...projection,
     };
+    /* P0-B r2/r3 (review findings 2, N3) - gate the fixture's own figures off
+       this view while adoption is pending. This is never a fabricated
+       placeholder: calorieTarget/proteinTarget/the weight trend use the SAME
+       "gated" / non-finite shape the engine already returns for an athlete
+       with no qualifying data, so calorieHeadline/calorieBand/trendLine in
+       today-app.cjs already render them as "Not available yet" through the
+       normal, honest path. `workout.exerciseCount` (r3 N3) is the fixture's
+       OWN session count otherwise - null falls through to today-app.cjs's
+       own existing "No session is scheduled today." sentence, the same words
+       an athlete with no session at all already sees; nothing new is taught
+       to that layer here either. `marchingOrder` (r3 N3) is the fixture's own
+       next-best-action, feeding the instruction-why text and the primary
+       button's label when a weigh-in is owed; emptied, its own reader falls
+       back to "Log this morning's weight". `statusFace` (r4, review finding
+       N3b) is ALSO the fixture's: emptying `marchingOrder` alone left the
+       instruction line falling through to `view.statusFace.cause`, which is
+       the fixture's rich 28-day history talking - "ON COURSE ... The cut is
+       working", the exact opposite of what an enrolled athlete's own,
+       genuinely unread state would say. Recomputed here instead of emptied
+       or hardcoded: off a NEUTRAL variant of the SAME valid engine state
+       (`basis`, with no reads) - the shape a device with nothing measured
+       yet already has, and what the engine ITSELF answers for it, never a
+       word this module invents. Nothing else on view (workout.title/sub/
+       available, the instruction heading, the setup note) is touched: none
+       of it paints a fixture-specific figure or verdict in the first
+       place. */
+    if (pendingAdoption) {
+      view.calorieTarget = { gated: true };
+      view.proteinTarget = { g: NaN };
+      if (view.nowModel && view.nowModel.headed) {
+        view.nowModel = { ...view.nowModel, headed: { ...view.nowModel.headed, weight: NaN } };
+      }
+      view.workout = { ...view.workout, exerciseCount: null };
+      view.marchingOrder = {};
+      const neutral = clone(basis);
+      neutral.reads = [];
+      view.statusFace = E.statusFace(neutral);
+    }
     view.why = whySections(view);
     return clone(view);
   }
@@ -292,8 +345,26 @@ function createTodayModel(options = {}) {
     return read();
   }
 
+  /* P0 HIS NUMBERS - replaces the basis operations are replayed onto. A falsy
+     `state` is a no-op: nothing here invents a basis, so a constructor refusal
+     or a not-yet-enrolled installation leaves the fixture exactly as it was.
+     Called at most once per adoption by today-app.cjs mountToday, never by this
+     module itself - it holds no setup lane and reads no record of its own. */
+  function adoptBasis(state) {
+    if (!state) return clone(basis);
+    basis = clone(state);
+    /* His own state, however sparse, is never fabricated the way a held figure
+       is: the gate lifts here, unconditionally, the moment there IS a real
+       basis to read figures off. */
+    pendingAdoption = false;
+    return clone(basis);
+  }
+
+  /* P0-B r2 (review finding 2) - see `pendingAdoption` above. */
+  function setPendingAdoption(flag) { pendingAdoption = !!flag; }
+
   return {
-    read, weighIn, reopen,
+    read, weighIn, reopen, adoptBasis, setPendingAdoption,
     today: day,
     engine: E,
     readings,
