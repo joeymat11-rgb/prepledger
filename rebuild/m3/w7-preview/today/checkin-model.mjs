@@ -230,10 +230,33 @@ export function recordedLines(row) {
    --------------------------------------------------------------------------- */
 export function createCheckInModel({ host = null, day, engineState = null } = {}) {
   if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('createCheckInModel requires day');
-  const sleepRecord = sleepNightFor(engineState, day);
+  let sleepRecord = sleepNightFor(engineState, day);
   let draft = createCheckInDraft({ sleepRecord });
   let recorded = null;              // today's stored check-in, or null
   let message = null;
+
+  /* P0 HIS NUMBERS - the settable basis, in the same shape today-model.cjs
+     adoptBasis and N1's foodDays are: `engineState` is whatever this device's
+     record looked like when today-entry.mjs createCheckInEntry opened this
+     lane, which can predate today-app.cjs mountToday adopting the enrolled
+     installation's own athlete state. adoptEngineState re-derives sleepRecord
+     from the state actually handed in and rebuilds a fresh, unanswered draft
+     over it - so "last night's sleep" is read off the athlete's OWN record
+     rather than the fixture's. An athlete who has already started answering, or
+     whose check-in is already recorded, is left alone: adopting a new state
+     under a live sheet would silently rewrite what "already answered" means. */
+  function adoptEngineState(state) {
+    if (recorded) return sleepRecord;
+    const current = draft.state();
+    const untouched = current.sleepConfirm === null
+      && Object.values(current.choices).every((v) => v === null)
+      && Object.values(current.fields).every((v) => v === '')
+      && Object.values(current.issues).every((v) => v === false);
+    if (!untouched) return sleepRecord;
+    sleepRecord = sleepNightFor(state, day);
+    draft = createCheckInDraft({ sleepRecord });
+    return sleepRecord;
+  }
 
   /* THE DATE LAW (law 4). Only operations effective for THIS day are read back. A
      check-in recorded yesterday — including one in which the athlete denied a
@@ -288,7 +311,14 @@ export function createCheckInModel({ host = null, day, engineState = null } = {}
     return read();
   }
 
-  return { read, save, refresh, reopen, day, host, sleepRecord,
+  return { read, save, refresh, reopen, adoptEngineState, day, host,
+    /* P0-B r2 (review finding 4) - a LIVE getter: adoptEngineState above
+       reassigns the closure variable, and a plain property here would keep
+       handing out the value captured at construction (the fixture's, before
+       any adoption) for the object's whole lifetime regardless. read().
+       sleepRecord was already live for this reason; this is the same fix
+       applied to the constructor's own return. */
+    get sleepRecord() { return sleepRecord; },
     draft: () => draft, recorded: () => recorded };
 }
 

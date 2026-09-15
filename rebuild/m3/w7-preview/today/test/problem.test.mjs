@@ -13,10 +13,12 @@ import { webcrypto, createHash } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
 import { createReadingHost } from '../reading-host.mjs';
-import { createGymHost } from '../gym-host.mjs';
-import { createGymModel, EFFORT_CHOICES } from '../gym-model.mjs';
-import { createWorkoutEntry, createSetupEntry, createCheckInEntry } from '../today-entry.mjs';
+import { createGymHost, openTodayHosts } from '../gym-host.mjs';
+import { createGymModel, EFFORT_CHOICES, ADOPTION_PENDING } from '../gym-model.mjs';
+import { createWorkoutEntry, createSetupEntry, createCheckInEntry, boot,
+  SETUP_BASIS_STATE_REFUSED } from '../today-entry.mjs';
 import { createSetupModel } from '../setup-model.mjs';
+import { createSetupHost } from '../setup-host.mjs';
 import TodayApp from '../today-app.cjs';
 import TodayModel from '../today-model.cjs';
 import ProblemReport from '../problem-report.cjs';
@@ -611,4 +613,335 @@ test('C1 - the page block is the same shape, and user agent is the browser\'s ow
   assert.equal(value('screen'), 'today');
   assert.equal(value('lane open'), 'workout, setup');
   setup.host.close();
+});
+
+/* ==========================================================================
+   P0-B HIS NUMBERS (CRITICAL-PATH-2026-09-15 section 4, Route B - see
+   rebuild/lanes/c/P0-HIS-NUMBERS-AUTHOR-REPORT.md and P0B-AUTHOR-REPORT.md).
+   On an ENROLLED installation, Today and the gym card stand on the athlete's
+   OWN state (setup.athleteState(), built by the ACCEPTED clean-init
+   constructor) instead of the preview's synthetic fixture. Every boot below is
+   a real page load over a real fault-injected store; nothing here reaches into
+   history.js, ledger/ or any soak path. One installation per cell.
+   ========================================================================== */
+const P0B_DAY = DAY;
+/* A first-run document driven through the reducer's own actions, exactly as
+   setup.test.mjs's own `filled()` is (2.1-2.14): Dad, two upper lifts and one
+   lower - never built by reaching into the model's state. */
+function p0bFirstRunDocument() {
+  const model = createSetupModel({ today: P0B_DAY });
+  model.setName('Dad');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  model.toggleDay('4'); model.setDayKind('4', 'L');
+  const press = model.addExercise('U');
+  model.setExerciseField(press.key, 'n', 'Chest press');
+  model.chooseMg(press.key, 'chest');
+  model.setExerciseField(press.key, 'first', '20');
+  model.setExerciseField(press.key, 'inc', '10');
+  const row = model.addExercise('U');
+  model.setExerciseField(row.key, 'n', 'Seated row');
+  model.chooseMgOther(row.key);
+  model.setMgOther(row.key, 'lats and mid back');
+  model.setExerciseField(row.key, 'first', '30');
+  const legs = model.addExercise('L');
+  model.setExerciseField(legs.key, 'n', 'Leg press');
+  model.chooseMg(legs.key, 'quads');
+  model.setExerciseField(legs.key, 'first', '45');
+  model.setExerciseField(legs.key, 'rungs', '45 / 70 / 100 / 135');
+  const built = model.document();
+  assert.equal(built.ok, true, 'the P0B fixture is complete: ' + JSON.stringify(built.missing));
+  return built.setup;
+}
+const p0bTags = (setup) => Object.fromEntries(setup.exercises.map((e) => [e.id, { head: null, secondary: [] }]));
+
+/* One device, first run already recorded, so `enrolled` is true for every
+   boot() this device does from here on. */
+async function p0bEnrolledDevice() {
+  const fault = faultDatabase();
+  const host = await createSetupHost({ day: P0B_DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  const setup = p0bFirstRunDocument();
+  assert.equal((await host.save(setup, p0bTags(setup))).ok, true);
+  host.close();
+  return { fault, setup };
+}
+/* A real page load over the device's store - boot(), unedited, exactly as the
+   shipped page calls it (today-entry.mjs is byte-identical to the tip). */
+async function p0bOpen(kit) {
+  const dom = new JSDOM(shell());
+  const booted = await boot({ document: dom.window.document, today: P0B_DAY,
+    indexedDB: kit.fault.indexedDB, crypto: webcrypto });
+  return { dom, doc: dom.window.document, booted };
+}
+
+test('P0B.1 - an enrolled installation adopts HIS state: label Dad, note hidden, a workout', async () => {
+  const kit = await p0bEnrolledDevice();
+  const { doc, booted } = await p0bOpen(kit);
+  assert.deepEqual(booted.failures, [], 'every lane opened');
+  await booted.api.ready;
+  assert.equal(booted.model.stateFromOps().athlete_label, 'Dad',
+    'Today adopted the athlete the first-run record holds');
+  assert.equal(booted.setup.athleteLabel(), 'Dad');
+  assert.equal(doc.querySelector('[data-slot="setup-note"]').hidden, true,
+    'SETUP_NOT_HIS_NUMBERS clears once the two labels agree');
+  const view = booted.model.read();
+  assert.equal(view.workout.available, true, 'and it paints HIS week');
+  assert.equal(view.workout.exerciseCount, 2, 'his two U-day lifts on this Monday');
+  booted.hosts.close();
+});
+
+test('P0B.2 - the gym card lists HIS exercise ids from setup, not the fixture\'s', async () => {
+  const kit = await p0bEnrolledDevice();
+  const { booted } = await p0bOpen(kit);
+  await booted.api.ready;
+  const his = kit.setup.exercises.filter((e) => e.day === 'U').map((e) => e.id);
+  assert.deepEqual(his, ['chest-press', 'seated-row']);
+  const card = await booted.workout.gym.read();
+  assert.equal(card.phase, 'ready', 'the gym host rebased through hostForDay(day): ' + (card.code || ''));
+  assert.equal(card.lift.id, 'chest-press', 'his own first U-day lift');
+  assert.equal(card.lift.count, 2);
+  const fixtureIds = createTodayModel({ today: P0B_DAY }).stateFromOps().exercises.map((e) => e.id);
+  for (const id of his) assert.equal(fixtureIds.includes(id), false, 'no fixture lift shares his id: ' + id);
+  booted.hosts.close();
+});
+
+test('P0B.3 - a fresh installation is unchanged: still the fixture, still the note', async () => {
+  const fault = faultDatabase();
+  const dom = new JSDOM(shell());
+  const booted = await boot({ document: dom.window.document, today: P0B_DAY,
+    indexedDB: fault.indexedDB, crypto: webcrypto });
+  assert.equal(booted.setup.firstRun(), true, 'nothing enrolled');
+  /* P0B.8 (r2, review finding 2) - the pending-adoption gate is enrolled-only.
+     Captured before `ready` so this is genuinely the synchronous first frame. */
+  const firstFrame = dom.window.document.getElementById('phone').textContent;
+  await booted.api.ready;
+  const expected = createTodayModel({ today: P0B_DAY });
+  const expectedKcal = TodayApp.calorieHeadline(expected.read().calorieTarget);
+  assert(expectedKcal, 'the fixture really carries a figure to check for');
+  assert.equal(firstFrame.includes(expectedKcal), true,
+    'an un-enrolled install paints the fixture exactly as A1 always has - the gate never applies here');
+  assert.equal(JSON.stringify(booted.model.stateFromOps()), JSON.stringify(expected.stateFromOps()),
+    'the basis is exactly today-model.cjs createBasisState, the fixture - adoption never touched it');
+  assert.equal(dom.window.document.querySelector('[data-slot="setup-entry"]').hidden, false,
+    'the setup tile is still offered');
+  assert.equal(dom.window.document.querySelector('[data-slot="setup-note"]').hidden, true,
+    'nothing recorded, nothing to say');
+  booted.hosts.close();
+});
+
+test('P0B.4 - an injected foreign basisState over an enrolled installation still throws', async () => {
+  const kit = await p0bEnrolledDevice();
+  const dom = new JSDOM(shell());
+  const before = dom.window.document.getElementById('phone').innerHTML;
+  await assert.rejects(() => boot({ document: dom.window.document, today: P0B_DAY,
+    indexedDB: kit.fault.indexedDB, crypto: webcrypto,
+    basisState: createTodayModel({ today: P0B_DAY }).stateFromOps() }),
+  (error) => error.code === SETUP_BASIS_STATE_REFUSED);
+  assert.equal(dom.window.document.getElementById('phone').innerHTML, before, 'nothing was painted');
+});
+
+test('P0B.5 - a weigh-in and a logged set survive a store close/reopen on HIS basis', async () => {
+  const kit = await p0bEnrolledDevice();
+  const first = await p0bOpen(kit);
+  await first.booted.api.ready;
+  assert.equal((await first.booted.model.weighIn(181.2)).ok, true);
+  /* The gym card rebased before the weigh-in; re-probe before Start, exactly as
+     the screen does after any durable write. */
+  await first.booted.workout.refresh();
+  const started = await first.booted.workout.gym.start();
+  assert.equal(started.ok, true, started.code || '');
+  const active = await first.booted.workout.gym.read();
+  assert.equal(active.phase, 'active');
+  const logged = await first.booted.workout.gym.logSet({ startId: active.startId, slot: active.set.slot,
+    lift: active.set.lift, load: '20', reps: '10', effort: EFFORT_CHOICES.find((c) => c.label === '2').reserve });
+  assert.equal(logged.ok, true, logged.code || '');
+  first.booted.hosts.close();
+
+  const again = await p0bOpen(kit);
+  await again.booted.api.ready;
+  assert.deepEqual(again.booted.failures, []);
+  const state = again.booted.model.stateFromOps();
+  assert.equal(state.athlete_label, 'Dad', 'still his basis after the reopen');
+  assert.equal(state.reads.length, 1, 'the weigh-in came back through the accepted writer');
+  assert.equal(state.reads[0].w, 181.2, 'engine row shape {d, w, ...} (writers.cjs)');
+  assert.equal(state.reads[0].d, P0B_DAY);
+  assert.equal(again.booted.model.read().hasReadToday, true);
+  const card = await again.booted.workout.gym.read();
+  assert.equal(card.phase, 'active', card.code || '');
+  assert.equal(card.done, 1, 'the logged set came back');
+  assert.equal(card.lift.id, 'chest-press', 'on his lift');
+  again.booted.hosts.close();
+});
+
+test('P0B.6 - no frame ever paints a foreign athlete: the only defined label any render shows is HIS', async () => {
+  const kit = await p0bEnrolledDevice();
+  const dom = new JSDOM(shell());
+  /* An instrumented model, otherwise IDENTICAL to what boot() would build
+     itself: every render this page load makes calls model.read() exactly once
+     (today-app.cjs renderToday), so recording the athlete_label behind each
+     call is recording the render sequence. The fixture basis carries no
+     athlete_label at all (today-model.cjs createBasisState), so an unadopted
+     frame contributes `undefined`, never a foreign name - there is no fixture
+     "athlete" to paint a label for in the first place. */
+  const base = createTodayModel({ today: P0B_DAY });
+  const labels = [];
+  const model = { ...base, read() {
+    const view = base.read();
+    let label; try { label = base.stateFromOps().athlete_label; } catch (_) { label = undefined; }
+    labels.push(label);
+    return view;
+  } };
+  const booted = await boot({ document: dom.window.document, today: P0B_DAY, model,
+    indexedDB: kit.fault.indexedDB, crypto: webcrypto });
+  await booted.api.ready;
+  const defined = [...new Set(labels.filter((l) => typeof l === 'string'))];
+  assert.deepEqual(defined, ['Dad'], 'across every render this load made, the only athlete label ever painted is his own');
+  booted.hosts.close();
+});
+
+/* ==========================================================================
+   P0-B r2 (owner review, rebuild/lanes/c/P0B-REVIEW.md) - three findings, each
+   with its own cell, over the SAME real boot() this whole file already uses.
+   ========================================================================== */
+
+test('P0B.7 - the check-in adopts HIS state too: no fixture night offered on his sheet', async () => {
+  const kit = await p0bEnrolledDevice();
+  const { doc, booted } = await p0bOpen(kit);
+  await booted.api.ready;
+  /* Review finding 1: the entry today-entry.mjs:83 returns has no
+     adoptEngineState of its own; only entry.checkin (the model) does. */
+  assert.equal(typeof booted.checkin.checkin.adoptEngineState, 'function');
+  const view = booted.checkin.checkin.read();
+  assert.equal(view.sleepRecord, null, 'his own clean-init basis carries no fixture night');
+  booted.api.render('recovery', true);
+  const known = doc.querySelector('[data-slot="sleep-known"]');
+  assert.equal(known.hidden, true, 'nothing offered to confirm');
+  assert.equal(doc.getElementById('phone').textContent.includes('From your sleep record for'), false,
+    'the fixture\'s night is never offered on his sheet');
+  booted.hosts.close();
+});
+
+test('P0B.8 - an enrolled installation paints no fixture figure before adoption; S19 stays true', async () => {
+  const kit = await p0bEnrolledDevice();
+  const { doc, booted } = await p0bOpen(kit);
+  /* Captured before `ready`: this really is the synchronous first frame. */
+  const firstView = booted.model.read();
+  assert.equal(firstView.calorieTarget.gated, true, 'no fixture calorie figure before adoption resolves');
+  assert.equal(Number.isFinite(firstView.proteinTarget.g), false, 'no fixture protein figure before adoption resolves');
+  const weight = firstView.nowModel && firstView.nowModel.headed ? firstView.nowModel.headed.weight : NaN;
+  assert.equal(Number.isFinite(weight), false, 'no fixture weight trend before adoption resolves');
+  const fixtureView = createTodayModel({ today: P0B_DAY }).read();
+  const fixtureKcal = TodayApp.calorieHeadline(fixtureView.calorieTarget);
+  const fixtureTrend = TodayApp.trendLine(fixtureView);
+  assert(fixtureKcal, 'the fixture really carries a calorie figure to hide');
+  const firstFrame = doc.getElementById('phone').textContent;
+  assert.equal(firstFrame.includes(fixtureKcal), false, 'the fixture figure never paints, not even for one frame');
+  assert.equal(firstFrame.includes(fixtureTrend), false, 'nor the fixture weight trend');
+  /* r3 N3 - the workout line's own count and the marching order (the
+     "next best action" text) are fixture-derived too; gate both. */
+  assert.equal(firstView.workout.exerciseCount, null, 'no fixture exercise count before adoption resolves');
+  assert.deepEqual(firstView.marchingOrder, {}, 'no fixture marching order before adoption resolves');
+  assert.equal(firstFrame.includes('No session is scheduled today.'), true,
+    'the same honest fallback an athlete with no session at all already sees');
+  const fixtureCount = fixtureView.workout.exerciseCount;
+  assert(Number.isFinite(fixtureCount) && fixtureCount > 0, 'the fixture really carries a count to hide');
+  assert.equal(firstFrame.includes(fixtureCount + ' exercise'), false,
+    'no fixture-derived exercise count on this frame');
+  assert.equal(doc.querySelector('[data-slot="setup-note"]').hidden, false, 'S19: the note stays visible on this frame');
+  await booted.api.ready;
+  const afterView = booted.model.read();
+  assert.equal(afterView.workout.exerciseCount, 2, 'his own U-day count reads back once adoption settles');
+  booted.hosts.close();
+});
+
+test('P0B.9 - a tap that beats adoption is refused, not recorded: no fixture id lands in his store', async () => {
+  const kit = await p0bEnrolledDevice();
+  const hosts = await openTodayHosts({ indexedDB: kit.fault.indexedDB, crypto: webcrypto, day: P0B_DAY });
+  const realSetup = await createSetupEntry({ today: P0B_DAY }, { hosts });
+  assert.equal(realSetup.summary().enrolled, true);
+  /* The 300 ms delayed adoption the review reproduced (probe3.mjs B3): the
+     REAL read, only slow to settle - never a faked answer. */
+  const delayedSetup = { ...realSetup, athleteState: () => new Promise((resolve) => {
+    setTimeout(() => { realSetup.athleteState().then(resolve); }, 300);
+  }) };
+  const model = createTodayModel({ today: P0B_DAY });
+  const workout = await createWorkoutEntry(model, { hosts });
+  const dom = new JSDOM(shell());
+  const api = mountToday(dom.window.document, model, { workout, setup: delayedSetup });
+  /* The early tap: fired the instant mountToday returns, well inside the
+     300 ms window - over whatever host Start would have been live on before
+     this ticket, the fixture's. */
+  const early = await workout.gym.start();
+  assert.equal(early.ok, false, 'Start is refused while his own state is still loading');
+  assert.equal(early.code, 'WORKOUT_ADOPTION_PENDING');
+  await api.ready;
+  const card = await workout.gym.read();
+  assert.equal(card.phase, 'ready', 'the card rebased onto his own host once adoption settled: ' + (card.code || ''));
+  assert.equal(card.lift.id, 'chest-press', 'his own lift, never the fixture\'s');
+  hosts.close();
+});
+
+test('P0B.10 - athleteState() rejects: Start stays refused, never the fixture host; the status shows why', async () => {
+  const kit = await p0bEnrolledDevice();
+  const hosts = await openTodayHosts({ indexedDB: kit.fault.indexedDB, crypto: webcrypto, day: P0B_DAY });
+  const realSetup = await createSetupEntry({ today: P0B_DAY }, { hosts });
+  assert.equal(realSetup.summary().enrolled, true);
+  /* A real rejection - a corrupt or undecryptable first-run record, the case
+     the .catch exists for (review N1). */
+  const cause = () => new Error('SETUP_STATE_BOOM');
+  const rejectingSetup = { ...realSetup, athleteState: () => Promise.reject(cause()) };
+  const model = createTodayModel({ today: P0B_DAY });
+  const workout = await createWorkoutEntry(model, { hosts });
+  const dom = new JSDOM(shell());
+  const api = mountToday(dom.window.document, model, { workout, setup: rejectingSetup });
+  await api.ready;
+  /* r3 N1 - the hold IS released (it no longer sits behind a promise the
+     rejection never reaches: `.finally()` on the whole chain ran). That
+     release must never, by itself, hand Start the still-fixture host back
+     (r3 N2/N1's own residual risk) - gym-model's `everHeld` guard keeps it
+     refused, on the SAME code, since no rebase ever ran. */
+  const refused = await workout.gym.start();
+  assert.equal(refused.ok, false, 'Start stays refused after a rejection - never the fixture host');
+  assert.equal(refused.code, 'WORKOUT_ADOPTION_PENDING');
+  const status = dom.window.document.getElementById('today-status');
+  assert.equal(status.textContent, TodayApp.athleteStateFailureCopy(cause()),
+    'the real cause reaches the athlete, visibly, on the status line');
+  /* No fixture id was ever written: start() above never reached
+     client.startPreparedWorkout, so nothing durable was recorded at all -
+     no retry is offered here, so "released" only ever means this. */
+  hosts.close();
+});
+
+test('P0B.11 - both new adoption-safety strings are complete, dash-free sentences', () => {
+  const sample = TodayApp.athleteStateFailureCopy(new Error('SETUP_STATE_BOOM'));
+  for (const sentence of [ADOPTION_PENDING, sample]) {
+    assert.equal(AI_DASH.test(sentence), false, 'no en dash or em dash: ' + sentence);
+    assert.equal(/[.!?]$/.test(sentence.trim()), true, 'ends with sentence punctuation: ' + sentence);
+    assert(sentence.trim().length > 0, 'not blank');
+  }
+});
+
+/* r4 (review 3e226456, N3b BLOCKING) - emptying marchingOrder alone let the
+   instruction-why binding fall through to view.statusFace.cause, which was
+   never gated: the enrolled first frame still painted the fixture's own
+   rich-history verdict (ON COURSE / "The cut is working"). Whole-DOM sweep
+   of the entire synchronous first frame for every distinctive fixture
+   string reachable by any word, cause, verdict, target, trend or badge -
+   not just the handful of fields already checked field-by-field above. */
+test('P0B.12 - the enrolled first frame paints no fixture verdict, figure or name: the whole DOM, once', async () => {
+  const kit = await p0bEnrolledDevice();
+  const { doc, booted } = await p0bOpen(kit);
+  const firstFrame = doc.getElementById('phone').textContent;
+  const forbidden = [
+    'ON COURSE', 'cut is working',
+    '2,300', '155 g', '2,262', '2,360', '180.4',
+    'demo-press', 'demo-row', 'demo-leg', 'demo-curl',
+    'Chest press', 'Seated row', 'Leg press', 'Leg curl',
+    '2 exercises',
+  ];
+  for (const needle of forbidden) {
+    assert.equal(firstFrame.includes(needle), false, 'the fixture string "' + needle + '" never paints on this frame');
+  }
+  assert.equal(doc.querySelector('[data-slot="setup-note"]').hidden, false, 'S19: the note stays visible on this frame');
+  await booted.api.ready;
+  booted.hosts.close();
 });
