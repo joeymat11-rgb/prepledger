@@ -46,7 +46,7 @@ rebuild/m3/w6/host/**, local-today-journey.test.mjs) appears in this delta.
 | Today suite (`node --test` over test/ dir contents) | **630/630, 0 fail** (>= tip's 553) |
 | W6 (`node --test test/*.test.mjs`) | **552/552, 0 fail** |
 | A0 (journey + engine-equivalence) | **23/23, 0 fail** |
-| `b-package.cjs --ci --package S3` | **FAIL**: `CHILD-REQUIRED-EXIT-ZERO`; spec declares 13 children, only 9 have files on disk under `rebuild/m4/workout/test/s3-*`. Pre-existing gap: none of S3's declared product/children lie in this merge's file list (rebuild/m4/**, rebuild/lanes/b/** untouched by N2); the "0 unlisted drift" sub-check did pass before the run failed on the missing children. Not caused by this composition and not fixable within N2's custody (rebuild/m4/** is off-limits). |
+| `b-package.cjs --ci --package S3` | **FAIL**: child `h3-cells` (`rebuild/m4/workout/test/h3-clean-init.test.cjs`) exits non-zero at `H3/13 - the CI today step enumerates setup.test.mjs, named and not globbed` (line 720): a DECISIONS:186 closed enumeration of `rebuild/m3/w7-preview/today/test/` file names does not admit N2's new `sleep.test.mjs` (13 expected vs 14 actual). Runner then stops before `today-suites`/`a0-journeys`/`ntc-provider-cells` run. `findstr` against S3.json/H3.json found zero pin hits for any of N2's 7 touched today/ files, so this is not a product-pin collision, it is the hard-coded closed list inside h3-clean-init.test.cjs (pinned/off-limits to N2: rebuild/m4/**). |
 | A1 build | **PASS** (`A1 TODAY BUILD PASS`, 113 pinned inputs, build earned-dd3eebaeefcd) |
 | A5 build | **PASS** (`A5 PWA BUILD PASS`, 13 files) |
 | rig187 | **PASS** |
