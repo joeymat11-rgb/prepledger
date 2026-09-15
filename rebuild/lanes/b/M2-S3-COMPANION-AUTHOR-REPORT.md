@@ -423,3 +423,14 @@ Today 13 files by name 553/553 exit 0; tooling suite 90/90 exit 0. `--full` (pri
 Known nit, not changed here: the five `gates.<carrier>.why` strings still read "token clause pending for
 M2-S3-COMPANION" (written before :421 existed); the terminal prints them verbatim. Editing them moves the spec and
 artifact shas, so it is left for the PM to call.
+
+## 14. Carrier why-strings cite DECISIONS:421 (PM routing on section 13's nit)
+
+The five `coverage.superseded.gates.<carrier>.why` strings now open "DECISIONS:153 (the standing role) and the token
+clause DECISIONS:421 (RULED) for M2-S3-COMPANION, located by its own sha256 21252b845fb6...:" in place of "token
+clause pending"; nothing else in the spec moves. Artifact regenerated from `proposed()` on the PC.
+`packages/S3.json` `8f0452feb525228073ea58af50c4bee1f61518d04bb384029fc79e84155f3642` (38502 B);
+`acceptance-s3-companion.json` `fb2f6a023ac6bcfc584c115078b16fb8ec21eba3a71c1c231c573d52dbab74f2` (39692 B).
+These supersede section 13's two shas. `--ci --package S3` (PC): the same lines as section 13 with the re-worded
+SUPERSEDED clauses, ending `B PACKAGE S3 PUBLIC CI EVIDENCE PASS — public evidence only, NOT the package verdict; ...`
+exit 0. Tooling suite 90/90. Not pushed.

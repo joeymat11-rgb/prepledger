@@ -424,7 +424,7 @@
       "rulingLineSha256": "21252b845fb6d03ca0ee90925c64eedd106ca951dfe6c413061ce7e15adae6bd",
       "gates": {
         "source-carriers": {
-          "why": "DECISIONS:153 (the standing role), token clause pending for M2-S3-COMPANION: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37; S3 edits two engine files (merge.cjs, today.cjs), extending that list moves a sha that is no declared product pre- or post-image, and DECISIONS:113 (1) (c) as widened by :147 admits only a pin re-target; H3 retired these three gates for the same reason and S3 retires them again under its own line",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:421 (RULED) for M2-S3-COMPANION, located by its own sha256 21252b845fb6...: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37; S3 edits two engine files (merge.cjs, today.cjs), extending that list moves a sha that is no declared product pre- or post-image, and DECISIONS:113 (1) (c) as widened by :147 admits only a pin re-target; H3 retired these three gates for the same reason and S3 retires them again under its own line",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -437,7 +437,7 @@
           }
         },
         "inherited-carriers": {
-          "why": "DECISIONS:153 (the standing role), token clause pending for M2-S3-COMPANION: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs:82/:85/:88/:89) and pins the substitution order at :138, so the two files S3 declares are refused there for the same reason as source-carriers",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:421 (RULED) for M2-S3-COMPANION, located by its own sha256 21252b845fb6...: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs:82/:85/:88/:89) and pins the substitution order at :138, so the two files S3 declares are refused there for the same reason as source-carriers",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -450,7 +450,7 @@
           }
         },
         "defect-witnesses": {
-          "why": "DECISIONS:153 (the standing role), token clause pending for M2-S3-COMPANION: every one of its ten complete comparisons needs the FROZEN side reconstructed from that same pinned carrier list, so no witness can be produced on both sides once an engine byte S3 declares has moved",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:421 (RULED) for M2-S3-COMPANION, located by its own sha256 21252b845fb6...: every one of its ten complete comparisons needs the FROZEN side reconstructed from that same pinned carrier list, so no witness can be produced on both sides once an engine byte S3 declares has moved",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -463,7 +463,7 @@
           }
         },
         "writers-differential": {
-          "why": "DECISIONS:153 (the standing role), token clause pending for M2-S3-COMPANION: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and S3's merge.cjs and today.cjs are two of the files it reconstructs; writers.cjs itself is carried byte-identical and S3/SUP-8 asserts it",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:421 (RULED) for M2-S3-COMPANION, located by its own sha256 21252b845fb6...: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and S3's merge.cjs and today.cjs are two of the files it reconstructs; writers.cjs itself is carried byte-identical and S3/SUP-8 asserts it",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -476,7 +476,7 @@
           }
         },
         "second-gate": {
-          "why": "DECISIONS:153 (the standing role), token clause pending for M2-S3-COMPANION: the independent second reading is taken over the reconstructed engine, so it refuses the child tree before it compares anything",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:421 (RULED) for M2-S3-COMPANION, located by its own sha256 21252b845fb6...: the independent second reading is taken over the reconstructed engine, so it refuses the child tree before it compares anything",
           "evidence": {
             "laws": null,
             "redFirst": [
