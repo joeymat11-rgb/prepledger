@@ -1057,8 +1057,61 @@ function mountToday(doc, model, options = {}) {
     return found ? found[1] : null;
   }
   render(requestedScreen() || "today");
+
+  /* P0 HIS NUMBERS (CRITICAL-PATH-2026-09-15 section 4, Route B) - ON AN ENROLLED
+     INSTALLATION, TODAY AND THE GYM CARD STAND ON THE ATHLETE'S OWN STATE.
+     today-entry.mjs is pinned on disk (H3) and is not the file that can read
+     setup.athleteState() and hand it to createTodayModel as the basis (the
+     Route A shape recorded in rebuild/lanes/c/P0-HIS-NUMBERS-AUTHOR-REPORT.md
+     section 2) without a lane-B re-pin no author here has. This module reads
+     the SAME state through the SAME accepted constructor, off the SAME
+     `options.setup` boot() already hands it, and adopts it here instead - once,
+     asynchronously, AFTER the synchronous first paint above. That paint is what
+     keeps S19's pinned assertion true (taken synchronously, before this promise
+     can possibly have settled: `setup.athleteState()` is a real read of this
+     installation's durable record, and nothing in today-entry.mjs awaits
+     mountToday). `ready` lets a caller that wants the ADOPTED state wait for
+     exactly this work; the shipped page never awaits it and is unchanged by its
+     existence. A constructor refusal is surfaced on the status line, exactly as
+     every other boot() cause is, and Today keeps the basis it already painted. */
+  let ready = Promise.resolve();
+  if (setup && typeof setup.summary === "function" && setup.summary().enrolled === true
+    && typeof setup.athleteState === "function" && typeof model.adoptBasis === "function") {
+    ready = setup.athleteState().then(async (state) => {
+      if (!state) return;
+      model.adoptBasis(state);
+      /* The gym card: rebase its host through hostForDay(day), which rereads
+         model.stateFromOps() at call time and so picks up the athlete just
+         adopted above. Then refresh the cached summary Today reads off the
+         workout entry, so the durable state the card next opens on agrees with
+         the one line Today already shows about it. */
+      if (workout && workout.gym && typeof workout.gym.rebase === "function") {
+        try { await workout.gym.rebase(); } catch (_) { /* the card keeps whatever host it already had */ }
+        if (typeof workout.refresh === "function") { try { await workout.refresh(); } catch (_) { /* reported on its own next read */ } }
+      }
+      /* The check-in's sleep record: re-derived off the SAME adopted state. */
+      if (checkin && typeof checkin.adoptEngineState === "function") checkin.adoptEngineState(state);
+      /* No render call of this module's own here (review, this ticket): the
+         repaint that shows the adopted state comes from workout.refresh()
+         above, through the SAME onRefresh -> api.render("today") wiring
+         boot() already gives every other durable change on this page. A
+         render here, unconditional on whatever screen or in-page control the
+         athlete already has open (the "Report a problem" box included), would
+         tear that down out from under them for no reason of its own; letting
+         the existing cascade own it is what every other lane on this page
+         already does. With no workout lane (a device with no workout store,
+         or a caller that mounts this module directly with none, as several
+         tests here do), Today's adopted state still paints correctly the next
+         time anything else repaints it - `read()` and `stateFromOps()` always
+         read the CURRENT (adopted) basis; only the automatic repaint waits. */
+    }).catch((error) => {
+      if (status && !status.textContent) tell("Not everything opened: athlete state: "
+        + (error && error.message ? error.message : String(error)) + ". Nothing was recorded.");
+    });
+  }
+
   return { render, read: () => model.read(), openWeighIn, screen: () => screen,
-    foodPending: () => foodSaving, foodReady: () => foodOpening };
+    foodPending: () => foodSaving, foodReady: () => foodOpening, ready };
 }
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by

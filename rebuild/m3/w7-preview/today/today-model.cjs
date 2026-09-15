@@ -108,7 +108,13 @@ const STORE_NOTE = "Saved in this device's encrypted local store. It survives a 
 function createTodayModel(options = {}) {
   const day = options.today || SYNTHETIC_DAY;
   const engineFactory = options.engineFactory || createTodayEngine;
-  const basis = options.basisState ? clone(options.basisState) : createBasisState(day);
+  /* P0 HIS NUMBERS - SETTABLE after construction, exactly as N1's foodDays is
+     (see setFoodDays below): today-app.cjs mountToday opens this page's setup
+     lane lazily and reads setup.athleteState() asynchronously, so the basis it
+     hands back cannot be known at createTodayModel() time. `basis` starts as
+     whatever the caller supplied (or the fixture, unchanged), and adoptBasis()
+     below REPLACES it, once the athlete's own record has actually been read. */
+  let basis = options.basisState ? clone(options.basisState) : createBasisState(day);
 
   /* THE STORE OF RECORD (review B2). `readings` is the durable reading lane —
      rebuild/m3/w7-preview/today/reading-host.mjs, the accepted encrypted
@@ -292,8 +298,19 @@ function createTodayModel(options = {}) {
     return read();
   }
 
+  /* P0 HIS NUMBERS - replaces the basis operations are replayed onto. A falsy
+     `state` is a no-op: nothing here invents a basis, so a constructor refusal
+     or a not-yet-enrolled installation leaves the fixture exactly as it was.
+     Called at most once per adoption by today-app.cjs mountToday, never by this
+     module itself - it holds no setup lane and reads no record of its own. */
+  function adoptBasis(state) {
+    if (!state) return clone(basis);
+    basis = clone(state);
+    return clone(basis);
+  }
+
   return {
-    read, weighIn, reopen,
+    read, weighIn, reopen, adoptBasis,
     today: day,
     engine: E,
     readings,

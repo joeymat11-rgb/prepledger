@@ -86,13 +86,48 @@ const sameSlot = (a, b) => a && b && a.logical_set_slot === b.logical_set_slot &
    supplied the recovery is simply unavailable and says so; nothing is guessed. */
 export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
   if (!gymHost || !gymHost.host) throw new TypeError('createGymModel requires a composed gym host');
-  const { host, engine, day, plannedSplitSlotId } = gymHost;
-  const client = host.client;
+  /* P0 HIS NUMBERS - `current` is the LIVE handle this model reads and writes
+     through. `gymHost` is composed by today-entry.mjs createWorkoutEntry BEFORE
+     today-app.cjs mountToday adopts an enrolled installation's own athlete state
+     onto the Today model (today-model.cjs adoptBasis), so it can still stand on
+     whatever basis was current at boot time. rebase() below swaps it, at most
+     once, for a fresh handle hostForDay(day) opens over the SAME device storage
+     - hostForDay rereads model.stateFromOps() at CALL time, so calling it after
+     adoption is what puts the athlete's own exercises on the card. `host`,
+     `engine`, `day` and `plannedSplitSlotId` are `let` so every closure below
+     that already reads them sees the rebased values with no other edit. */
+  let current = gymHost;
+  let host = current.host, engine = current.engine, day = current.day,
+    plannedSplitSlotId = current.plannedSplitSlotId;
+  let client = host.client;
 
   let message = null;          // the last refusal, in the layer's own words
   let saved = null;            // the set just recorded, for the saved/rest screen
   let preparedId = null;       // a live preparation handle, held only until Start
   let previousByLift = new Map();
+
+  /* P0 HIS NUMBERS - the rebase seam. today-app.cjs mountToday calls this once,
+     after it adopts the athlete's own state, and only when it did; nothing here
+     calls it on its own, so a fresh or a no-store installation opens exactly the
+     one host it always has. `preparedId` set by an earlier READ-ONLY probe (the
+     constructor's own preparability check, review B1 - `client.prepareWorkout`
+     with nothing stored) belongs to the OLD client and is invalidated by the
+     swap, not a reason to refuse it: the next read() re-prepares fresh, against
+     the rebased host. A genuinely SAVED set (`saved !== null`, a committed,
+     durable action) still refuses - swapping the client under a screen the
+     athlete has already acted on is not this seam's job. A no-op with no
+     hostForDay at all. */
+  let rebased = false;
+  async function rebase() {
+    if (rebased || typeof hostForDay !== 'function') return false;
+    if (saved !== null) return false;
+    const fresh = await hostForDay(day);
+    current = fresh; host = fresh.host; engine = fresh.engine;
+    day = fresh.day; plannedSplitSlotId = fresh.plannedSplitSlotId; client = host.client;
+    preparedId = null;
+    rebased = true;
+    return true;
+  }
 
   /* A refusal, in the LAYER'S own words. The durable client contains whatever the
      producer threw and answers with its own WORKOUT_PREPARATION_INVALID, so when
@@ -207,8 +242,8 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
      takes. It never invents a reason: the host derives both the code and the
      sentence from the durable log. */
   async function orderRefusal() {
-    if (typeof gymHost.startOrderRefusal !== 'function') return null;
-    const refusal = await gymHost.startOrderRefusal();
+    if (typeof current.startOrderRefusal !== 'function') return null;
+    const refusal = await current.startOrderRefusal();
     return refusal ? { code: refusal.code, copy: refusal.reason || null } : null;
   }
 
@@ -486,7 +521,7 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
     }
   }
 
-  return Object.freeze({ read, start, logSet, undo, finish, forget, closeUnfinished,
+  return Object.freeze({ read, start, logSet, undo, finish, forget, closeUnfinished, rebase,
     effortChoices: () => EFFORT_CHOICES.map(choice => ({ label: choice.label, reserve: choice.reserve })),
     previous: () => previousByLift, day });
 }
