@@ -1,7 +1,18 @@
 "use strict";
 
 // Complete frozen merge range; instance-local bindings, including overlapping migration helpers.
-module.exports = function createMerge(E, { clock }) {
+module.exports = function createMerge(E, { clock, nativeDate = Date }) {
+/* M2-S3-COMPANION (rebuild/lanes/d/S3-R3-CONTEXT-CAPABILITY-PROPOSAL.md, B custody) — THE
+   NATIVE-DATE SEAM. `nativeDate` is the ONE constructor every calendar operation in this
+   engine goes through: the five parse sites (_corrOf, _fileCorr x2, _mergeSession,
+   _adjInstant) and the single constructor site in _fileCorr. It DEFAULTS TO THE NATIVE
+   `Date`, so every existing caller — createEngine, the runtime, every gate — composes
+   exactly the engine it composed before, byte for byte in behaviour: same coercion,
+   same NaN on a malformed stamp, same invalid-Date throw on toISOString, same +1 ms
+   live bump. An import provider (D custody, rebuild/m4/import) may supply an
+   instance-local adapter that captures the real native implementation and validates
+   each reached operation against a proved calendar; nothing here interprets a date
+   differently, and _sessionAtMs stays numeric coercion with no date reading at all. */
 const _skinSeriesKey = (...args) => E._skinSeriesKey(...args);
 const normalizePlan = (...args) => E.normalizePlan(...args);
 const reconcileDebutQueue = (...args) => E.reconcileDebutQueue(...args);
@@ -73,7 +84,7 @@ function _corrOf(v) {
   const c = v && v.corr;
   if (!c || typeof c !== "object") return null;
   const at = typeof c.at === "string" && c.at ? c.at : null;
-  if (!at || !isFinite(Date.parse(at))) return null;        // malformed -> unstamped, falls to rule 1
+  if (!at || !isFinite(nativeDate.parse(at))) return null;        // malformed -> unstamped, falls to rule 1
   const rev = isFinite(+c.rev) ? +c.rev : 0;
   return { at, rev };
 }
@@ -158,7 +169,7 @@ const CORR_KINDS = ["skip", "unskip", "strike", "amend"];
 function _fileCorr(rec, op, kind, id, at, to, opts) {   /* op is a REQUEST: on a LIVE act _fileCorr owns the effective stamp and rebuilds the key from it when the record's own history forces one */
   try {
     if (!rec || typeof rec !== "object" || !op || CORR_KINDS.indexOf(kind) < 0) return rec;
-    let at9 = typeof at === "string" && isFinite(Date.parse(at)) ? at : ((rec.corr && rec.corr.at) || null);
+    let at9 = typeof at === "string" && isFinite(nativeDate.parse(at)) ? at : ((rec.corr && rec.corr.at) || null);
     if (!at9) return rec;
     const log9 = Array.isArray(rec.corrLog) ? rec.corrLog.slice() : [];
     /* v7.54.4 — THE RECORD'S OWN HISTORY IS THE CLOCK. Replay orders corrections
@@ -174,7 +185,7 @@ function _fileCorr(rec, op, kind, id, at, to, opts) {   /* op is a REQUEST: on a
        value-keyed on the op and returns before this. */
     const latest9 = log9.reduce((m9, c9) => (c9 && String(c9.at || "") > m9 ? String(c9.at) : m9), "");
     if ((opts && opts.live) && latest9 && String(at9) <= latest9) {
-      at9 = new Date(Date.parse(latest9) + 1).toISOString();
+      at9 = new nativeDate(nativeDate.parse(latest9) + 1).toISOString();
       /* AND THE KEY CARRIES THE EFFECTIVE STAMP. The bump used to happen AFTER
          the caller had already built the op from its RAW wall stamp, and the
          dedup matched on that key — so a third act repeating the first raw
@@ -512,7 +523,7 @@ function _richerSession(x, y) {
     return bx9 >= by9 ? x : y;                                                    /* equal bodies too → the records are the same body under the same authority; either is the base */
   }
   const stamped = cx ? x : y, plain = cx ? y : x, c = cx || cy;
-  return _sessionAtMs(plain) > Date.parse(c.at) ? plain : stamped;             // 3 : 2
+  return _sessionAtMs(plain) > nativeDate.parse(c.at) ? plain : stamped;             // 3 : 2
 }
 
 function _unionBy(remoteArr, localArr, keyOf) {
@@ -562,7 +573,7 @@ function _adjRank(a) { return ((a && a.undone) ? "2" : (a && a.dismissed) ? "1" 
    to its recovered storage position (`ord`, minted at the boot exit under exactly this
    predicate, so no row is ever left with neither an instant nor a position). */
 function _adjInstant(x) {
-  if (x && x.at) { const t7 = Date.parse(x.at); if (isFinite(t7)) return t7; }
+  if (x && x.at) { const t7 = nativeDate.parse(x.at); if (isFinite(t7)) return t7; }
   const m7 = x && x.id ? /^adj_([0-9a-z]{8})/.exec(String(x.id)) : null;
   if (m7) { const t7 = parseInt(m7[1], 36); if (t7 >= 1e12 && t7 < 4e12) return t7; }
   return null;

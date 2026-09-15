@@ -121,7 +121,14 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // claimed the ruled order and the array did not carry it. Both now say the same thing.
 // Widening this list is the ONLY way a new package id becomes runnable — a spec can never
 // nominate its own id.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
+// M2-S3-COMPANION. DECISIONS:414 (2) adopts the scout's dependency order as PM routing
+// (CRITICAL-PATH-2026-09-15 section 4: "P1 M2-S3-COMPANION (engine). Lane B ... Parent:
+// rebuild/m4/spec/acceptance-h3-clean-init.json"), and :415 dispatches it; its packageId
+// is `M2-S3-COMPANION`, so under the `^M2-<ID>-` shape spec() enforces the id is `S3` and
+// the artifact path it determines is acceptance-s3-companion.json, the path the plan
+// names. It stands after H3, whose artifact is its parent, and before B1, which the plan
+// says re-pins at its own rebase behind it.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
 // The real chain branch, resolved from GIT REFS and never from a spec (X2/R3-B). Every
 // ancestry assertion that decides whether a commit is on the accepted chain names THIS.
 const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
@@ -210,13 +217,19 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // beside H1/H2 and names no D-id for it, so H3 enters under the H- half of the rule and
 // not by anybody's discretion. The rule is ASSERTED below, not merely described, so a
 // future hand cannot quietly add a B- id to this set without also writing the PM line.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM', 'H3']);
+// M2-S3-COMPANION enters under the S- half: an S- item is a SLICE-PLAN item — DECISIONS:93's
+// own words, "feature work under the ratified slice plan takes no register D-ID" — and the
+// plan :414 (2) adopts names it an engine-tier package with no D-id whose obligation is the
+// Y1 own-child rule (CRITICAL-PATH-2026-09-15 section 4 P1, "45/45 laws executed with no new
+// D-id, so the Y1 own-child rule (:110) supplies the obligation"). The letter joins the
+// asserted shape below beside H and F; a B- id still needs the PM's own line.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM', 'H3', 'S3']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
-// must be an H-/F- id, which is the rule above stated as an assertion over this file's own
-// constants. Nothing an input can shape reaches it: both sets are fixed here (W7).
+// must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
+// own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).
 const NO_REGISTER_RULED_B_IDS = new Set(['B-NTC', 'B-LOM']);
 for (const id of NO_REGISTER_IDS)
-  assert(NO_REGISTER_RULED_B_IDS.has(id) || /^[HF][0-9]+$/.test(id),
+  assert(NO_REGISTER_RULED_B_IDS.has(id) || /^[HFS][0-9]+$/.test(id),
     'NO-REGISTER-EXEMPTION-IS-NEITHER-AN-ENGINE-TIER-ITEM-NOR-PM-RULED ' + id);
 for (const id of NO_REGISTER_IDS) assert(IDS.includes(id), 'NO-REGISTER-EXEMPTION-IS-NOT-A-RUNNABLE-PACKAGE-ID ' + id);
 // Y1 (TOOLING-REVIEW-r4 §5.1/§7) — the REPLACEMENT obligation for a package with no D-id,
@@ -2183,6 +2196,43 @@ function successorCoverage(s, bound, proofs, gate, child, targets) {
 // every child the evidence names must have RUN IN THIS RUN and be green. That is the whole
 // difference between evidence and a claim: `ran` is the map children() built by actually
 // spawning them, so "absent" and "red" are the same refusal shape as everywhere else.
+// M2-S3-COMPANION — THE GRANDCHILD. DECISIONS:153 says "each later package (B1+B2, B4+B3,
+// F1, F2) receives its own token line ... under the same conditions", and every one of those
+// is a child of H3, not of B-NTC. But the derivation below read the carriers OUT OF THE
+// PARENT'S `coverage.byChild` ALONE, and H3's sealed artifact carries `byChild: {}` — H3
+// covered no gate by a carrier; it SUPERSEDED nine and re-executed ten. So a child of H3
+// found no parent carrier at all: GATE-SUPERSESSION-CARRIER-IS-NOT-A-PARENT-CARRIER on every
+// one of the five, and its --full would have re-run the nine byte-identity reconstructions
+// that the standing role says no child changing a declared file can hold. Measured by the
+// S3 builder on the real H3 artifact.
+//
+// So the parent's gate map has TWO halves and both are read: the gates its own carriers
+// COVERED (`byChild`, the r9b reading, unchanged) and the gates it itself declared
+// SUPERSEDED, per carrier (`supersededByCarrier`, written by proposed() into every artifact
+// this runner seals under the role — TOOLING-REVIEW-r10 F2). A carrier the parent retired
+// is one the child may retire again under ITS OWN token line; it inherits nothing from the
+// parent's retirement but the gate list, and every other condition of :153 (ii)-(iii) is
+// asked of the child exactly as it was asked of the parent. Nothing here reads the parent's
+// evidence names or its ruling sha: the child's own supersession block stands on its own.
+// A parent sealed by an older runner carries no such key and reads as before.
+function parentCarrierGates(bound) {
+  const cov = bound && bound.acceptance.coverage;
+  const out = new Map(); // carrier -> { gates: [...], via: 'covered' | 'superseded' }
+  if (!cov || !cov.byChild) return out;
+  for (const [gate, carrier] of Object.entries(cov.byChild)) {
+    const row = out.get(carrier) || { gates: [], via: 'covered' };
+    row.gates.push(gate); out.set(carrier, row);
+  }
+  const retired = cov.supersededByCarrier && typeof cov.supersededByCarrier === 'object' && !Array.isArray(cov.supersededByCarrier)
+    ? cov.supersededByCarrier : {};
+  for (const [carrier, gates] of Object.entries(retired)) {
+    assert(Array.isArray(gates) && gates.every(g => GATE_IDS.includes(g)), 'PARENT-SUPERSEDED-BY-CARRIER-SHAPE ' + carrier);
+    assert(!out.has(carrier), 'PARENT-CARRIER-BOTH-COVERED-AND-SUPERSEDED ' + carrier);
+    if (gates.length) out.set(carrier, { gates: gates.slice(), via: 'superseded' });
+  }
+  for (const row of out.values()) row.gates.sort();
+  return out;
+}
 // The pure derivation, with no execution question in it: which of the parent's gates the
 // declared carriers cover. proposed() needs it to keep the sealed artifact's `covered`,
 // `superseded` and `run` lists disjoint and exhaustive; supersededGates() below is the one
@@ -2191,7 +2241,7 @@ function supersededGateIds(s, bound) {
   const sup = s.coverage.superseded;
   const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
   if (sup == null || !byChild) return [];
-  return Object.entries(byChild).filter(([, c]) => Object.hasOwn(sup.gates, c)).map(([g]) => g).sort();
+  return [...parentCarrierGates(bound)].filter(([c]) => Object.hasOwn(sup.gates, c)).flatMap(([, r]) => r.gates).sort();
 }
 // The same derivation, grouped: which gates EACH declared carrier retires. TOOLING-REVIEW-r10
 // F2 asked for the true count per carrier in both the coverage line and the artifact.
@@ -2199,9 +2249,9 @@ function supersededByCarrier(s, bound) {
   const sup = s.coverage.superseded;
   const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
   if (sup == null || !byChild) return {};
-  const out = {};
+  const out = {}, gates = parentCarrierGates(bound);
   for (const carrier of Object.keys(sup.gates).sort())
-    out[carrier] = Object.entries(byChild).filter(([, c]) => c === carrier).map(([g]) => g).sort();
+    out[carrier] = gates.has(carrier) ? gates.get(carrier).gates.slice() : [];
   return out;
 }
 // DECISIONS:153 (ii), the fifth evidence kind, COMPUTED BY THE RUNNER and not taken on the
@@ -2240,7 +2290,11 @@ function supersededGates(s, bound, ran) {
   const ruling = supersessionRuling(s);                        // (iii) — refuses if absent
   const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
   assert(byChild, 'GATE-SUPERSESSION-WITHOUT-A-BOUND-PARENT-ARTIFACT; a gate can only be superseded against the parent that covered it');
-  const parentCarriers = new Set(Object.values(byChild));
+  // M2-S3-COMPANION: a parent carrier is one the parent COVERED a gate by, or one the parent
+  // itself declared SUPERSEDED under the role (parentCarrierGates); the gates it retires
+  // are read from the same map, so a grandchild retires exactly the gates its parent did.
+  const parentGates = parentCarrierGates(bound);
+  const parentCarriers = new Set(parentGates.keys());
   // DECISIONS:153 (ii). The runner's own named-files differential, once per run, before any
   // carrier is admitted: if an engine file outside this package's brief has moved, no amount
   // of declared evidence is worth reading.
@@ -2283,9 +2337,9 @@ function supersededGates(s, bound, ran) {
     assert(/byte-identical/i.test(diffNeedle) && diffNeedle.includes('rebuild/engine'),
       'GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-CLAIM-BYTE-IDENTITY ' + carrier + ' ' +
       e.engineFilesDifferential + '; the needle must name rebuild/engine and say byte-identical');
-    const gates = Object.entries(byChild).filter(([, c]) => c === carrier).map(([g]) => g).sort();
+    const gates = parentGates.get(carrier).gates.slice();
     for (const gate of gates)
-      out.set(gate, { carrier, why: row.why, evidence: e, executed, gates, engineCompared, at: ruling.at, line: ruling.line });
+      out.set(gate, { carrier, why: row.why, evidence: e, executed, gates, engineCompared, at: ruling.at, line: ruling.line, via: parentGates.get(carrier).via });
   }
   assert(out.size, 'GATE-SUPERSESSION-SUPERSEDES-NO-GATE-OF-THE-PARENT');
   return out;
@@ -2327,7 +2381,12 @@ function coverage(s, bound, ran) {
     }
     // The closed bound the accepted original states as assert.equal(covered.length, 9):
     // exactly the parent's covered set plus this package's own declared, bounded moves.
-    assert.equal(covered.size + superseded.size, Object.keys(byChild).length + Object.keys(s.coverage.moves).length, 'COVERED-SET-BOUND');
+    // M2-S3-COMPANION: a gate the PARENT itself retired is not in its covered set, so a
+    // grandchild that retires it again is counted on the right as well as the left —
+    // `reclaimed` is exactly the superseded gates whose carrier came from the parent's own
+    // supersededByCarrier, and the equality still binds the byChild half as before.
+    const reclaimed = [...superseded.values()].filter(r => r.via === 'superseded').length;
+    assert.equal(covered.size + superseded.size, Object.keys(byChild).length + reclaimed + Object.keys(s.coverage.moves).length, 'COVERED-SET-BOUND');
   }
   assert.equal(covered.size, Object.keys(s.coverage.inherited).length + Object.keys(s.coverage.moves).length, 'COVERED-SET-BOUND');
   say('COVERAGE ' + covered.size + '/' + GATE_IDS.length + ' original gate(s) covered by ' + new Set(covered.values()).size + ' executed child(ren) (' +
@@ -2356,7 +2415,9 @@ function coverage(s, bound, ran) {
       ' evidence stands in their place and every named child ran green in THIS run');
     for (const [carrier, gates] of byCarrier) {
       const r = superseded.get(gates[0]), e = r.evidence;
-      say('SUPERSEDED ' + carrier + ' <- ' + gates.slice().sort().join(' ') + '; ' + r.why);
+      say('SUPERSEDED ' + carrier + ' <- ' + gates.slice().sort().join(' ') + (r.via === 'superseded'
+        ? '; retired by ' + bound.option.id + '\'s own seal and retired AGAIN here under this package\'s own token line, not inherited'
+        : '') + '; ' + r.why);
       say('SUPERSEDED EVIDENCE ' + carrier + '; laws ' + (e.laws === null ? 'UNMOVED' : 'moved per ' + e.laws.join(' ')) +
         '; red-first ' + e.redFirst.join(' ') + '; public census ' +
         (e.census === SUPERSESSION_RUNNER_CENSUS ? 'the runner\'s own census line, which says none' : 'child ' + e.census) +

@@ -59,17 +59,39 @@ function pickStructural(s, iso, slp) {
   return { main, riders, deferred: candidates.filter((q) => !passes.includes(q)) };
 }
 
+/* M2-S3-COMPANION (rebuild/lanes/d/S3-R3-CONTEXT-CAPABILITY-PROPOSAL.md, B custody) — THE
+   SESSION POOL, extracted verbatim from genSession below: the day's exercise order,
+   the active-lift filter and the order sort, and nothing else. genSession keeps its
+   original day guard and its pickStructural -> active -> pool call order; this helper is
+   the pool step of that sequence, moved into a name so that sessionMembership can ask
+   the same question without reading sleep or the structural picker. */
+function _sessionPool(s, dt) {
+  const ord = (s.exOrder && s.exOrder[dt]) || [];
+  return s.exercises.filter((e) => e.day === dt && exActive(s, e.id)).sort((a, b) => {   /* SPLIT item d — retired lifts leave the day pool; the raw record is never filtered */
+    const ia = ord.indexOf(a.id), ib = ord.indexOf(b.id);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+}
+/* M2-S3-COMPANION — SESSION MEMBERSHIP. The complete ordered pool of a training day, by
+   id, and nothing more: null for exactly the days genSession answers null (the non-U/L
+   predicate), otherwise a FRESH, frozen `{ day, exercise_ids }` carrying the ids of the
+   same pool genSession maps its cards from, in the same order. It reads no sleep, calls
+   no structural picker, computes no target or load, and hands out no exercise-object
+   alias, so a caller can prove pool and order of a recorded capture without inventing a
+   night to reproduce a prescription. */
+function sessionMembership(s, iso) {
+  const dt = dayType(iso, s);
+  if (dt !== "U" && dt !== "L") return null;
+  return Object.freeze({ day: dt, exercise_ids: Object.freeze(_sessionPool(s, dt).map((e) => e.id)) });
+}
+
 // Copied from frozen src/app.jsx @ fe516c1:1481-1595.
 function genSession(s, iso, slp) {
   const dt = dayType(iso, s);
   if (dt !== "U" && dt !== "L") return null;
   const { main, riders } = pickStructural(s, iso, slp);
   const active = new Set([main, ...riders].filter(Boolean).map((q) => q.exId));
-  const ord = (s.exOrder && s.exOrder[dt]) || [];
-  const pool = s.exercises.filter((e) => e.day === dt && exActive(s, e.id)).sort((a, b) => {   /* SPLIT item d — retired lifts leave the day pool; the raw record is never filtered */
-    const ia = ord.indexOf(a.id), ib = ord.indexOf(b.id);
-    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-  });
+  const pool = _sessionPool(s, dt);
   const ex = pool.map((e) => {
     const isDebutNow = active.has(e.id);
     const q = isDebutNow ? s.queue.find((x) => x.exId === e.id && !x.done && (x.kind === "debut" || x.kind === "unlock")) : null;
@@ -629,5 +651,5 @@ const _nowMemo = memoOnState((s) => nowModelUncached(s));
 // Copied from frozen src/app.jsx @ fe516c1:15536-15536.
 function nowModel(s, deps) { return deps ? nowModelUncached(s, deps) : _nowMemo(s); }
 
-return { pickStructural, genSession, nowFocus, fiveLevers, theOneFix, whyDecompose, lastUndoable, apAutoHandledFor, oweTarget, statusFace, marchingOrder, statusTarget, nowModelUncached, _plain9, _rateStrip, _rateWord, nowModel };
+return { pickStructural, genSession, sessionMembership, nowFocus, fiveLevers, theOneFix, whyDecompose, lastUndoable, apAutoHandledFor, oweTarget, statusFace, marchingOrder, statusTarget, nowModelUncached, _plain9, _rateStrip, _rateWord, nowModel };
 };

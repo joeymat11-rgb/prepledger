@@ -1,7 +1,7 @@
 'use strict';
 // NATIVE-NEXT-TARGETS — static binding-only prescription runtime.
 // Composes the accepted generated engine factories over one private table and
-// returns a frozen object exposing exactly the four names in EXPOSED. It imports
+// returns a frozen object exposing exactly the five names in EXPOSED. It imports
 // no seed, migrate or merge, uses no dynamic compiler, copies no scoring or
 // physiology, supplies no athlete history and grants no permission. The writer
 // factory is instantiated privately only to obtain the existing rirPlan reader;
@@ -25,9 +25,19 @@
 // is left byte-for-byte intact and therefore REFUSES on these bytes; that
 // refusal is the child's to supersede, and no separate parent re-seal is wanted
 // (DECISIONS:109, and the :97/:104/:105 re-seal/re-pin pattern).
+//
+// EXPOSED WIDENED BY M2-S3-COMPANION (rebuild/lanes/d/S3-R3-CONTEXT-CAPABILITY-PROPOSAL.md,
+// B custody; CRITICAL-PATH-2026-09-15 section 4 P1; DECISIONS:414 (2)). The fifth name is
+// `sessionMembership`, a READER today.cjs now composes beside genSession: the complete
+// ordered pool ids of a training day, null on a rest day, reading no sleep and calling
+// no structural picker. It lets an import admission prove the pool and order of a
+// recorded capture without inventing a night. Same re-pin mechanic as B-NTC's: the child
+// profile supersedes the parent's pin on this file; no writer, seed, migration or merge
+// becomes reachable, and the module exports stay createEngineRuntime, COMPOSITION,
+// absentProvider.
 const MODULES=Object.freeze(['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers']);
 const factories=MODULES.map(name=>require('../../engine/'+name+'.cjs'));
-const EXPOSED=Object.freeze(['genSession','rirPlan','dayWeather','cleanAtDate']);
+const EXPOSED=Object.freeze(['genSession','rirPlan','dayWeather','cleanAtDate','sessionMembership']);
 // Source-owned exact lookup (the same read the seeded engine performs); it
 // embeds no athlete data. It is a reached dependency of today.pickStructural.
 const exById=(s,id)=>s.exercises.find(e=>e.id===id);
@@ -56,7 +66,7 @@ function createEngineRuntime({clock,ids,drafts,nativeTrendContext}={}){
  // the caller never receives E, and the two day predicates are handed out with
  // the engine's own arity and the engine's own return value, unwrapped.
  return Object.freeze({genSession:(s,iso,slp)=>E.genSession(s,iso,slp),rirPlan:(s,ex,slp)=>E.rirPlan(s,ex,slp),
-  dayWeather:(s,iso)=>E.dayWeather(s,iso),cleanAtDate:(s,iso)=>E.cleanAtDate(s,iso)});
+  dayWeather:(s,iso)=>E.dayWeather(s,iso),cleanAtDate:(s,iso)=>E.cleanAtDate(s,iso),sessionMembership:(s,iso)=>E.sessionMembership(s,iso)});
 }
 // Record of what the exposed readers are composed from. Private
 // initialization (every factory, the writer table) is distinct from the

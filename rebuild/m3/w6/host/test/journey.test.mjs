@@ -54,7 +54,9 @@ const { createEngineRuntime } = AcceptedRuntime;
 // failure; its behavioural equivalence is engine-equivalence.test.cjs's job.
 // Re-pinned once, with the accepted runtime it mirrors, under DECISIONS:109 —
 // see step 14 for the reason and for the parent refusal it does not restate.
-const HOST_RUNTIME_SHA256 = 'e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d';
+// Re-pinned a second time with M2-S3-COMPANION (the fifth exposed name,
+// sessionMembership); the mirror still never leads.
+const HOST_RUNTIME_SHA256 = '836a369db3a94f340348fd2db02d6e8cd3ad636a851725518d583cfcbe07f334';
 const emptyPrefix = () => Source.basis({ W: 0, log_digest: Source.createPrefixHasher().digest(), selection_id: null });
 
 // One live host over one repository handle. Providers are named here and only
@@ -401,16 +403,23 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
        old bytes and therefore refuses; that refusal is the child's to supersede
        and is not re-stated here. The bundleable variant is the separate
        host-owned mirror below, and engine-equivalence.test.cjs proves the two
-       still agree name for name. */
+       still agree name for name.
+       MOVED A SECOND TIME by M2-S3-COMPANION (CRITICAL-PATH-2026-09-15 section 4
+       P1, DECISIONS:414 (2)): the surface is now five names, the fifth being
+       today.cjs's own `sessionMembership` reader (the complete ordered pool ids
+       of a training day, null on a rest day; no sleep, no structural picker),
+       which an import admission asks instead of inventing a night. Same
+       mechanic as the first move: the child profile re-pins this file and the
+       H3 parent's own pin refuses, which is the child's to supersede. */
     assert.equal(sha('../../../../m4/workout/engine-runtime.cjs'),
-      'c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936',
-      'accepted engine-runtime.cjs is at the M2-B-NTC re-pinned bytes');
+      '95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30',
+      'accepted engine-runtime.cjs is at the M2-S3-COMPANION re-pinned bytes');
     assert.equal(sha('../engine-runtime-host.cjs'), HOST_RUNTIME_SHA256, 'host runtime is at its pinned bytes');
     // The runtime the journey actually ran is the accepted one.
     assert.deepEqual(AcceptedRuntime.COMPOSITION.modules, HostRuntime.MODULES);
     assert.equal(AcceptedRuntime.COMPOSITION.modules.length, 12);
     assert.deepEqual(AcceptedRuntime.COMPOSITION.exposed.slice().sort(),
-      ['cleanAtDate', 'dayWeather', 'genSession', 'rirPlan'], 'the re-pinned EXPOSED surface');
+      ['cleanAtDate', 'dayWeather', 'genSession', 'rirPlan', 'sessionMembership'], 'the re-pinned EXPOSED surface');
     for (const forbidden of ['seed.cjs', 'migrate.cjs', 'merge.cjs'])
       assert(AcceptedRuntime.COMPOSITION.forbiddenImports.includes(forbidden), forbidden);
   });

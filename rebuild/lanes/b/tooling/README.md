@@ -1160,3 +1160,40 @@ re-seal is B-NTC's own `--full` recomputation: `proposed()` now emits `supersede
 `supersededByCarrier` and `supersessions`, so `same(m, proposed())` cannot hold for an artifact
 written by an older runner and `SEALED-PROFILE-RECOMPUTATION` is the refusal — the same cost every
 runner change since `eedabccd…` already carries.
+
+## S3 — M2-S3-COMPANION: the S- id, and the grandchild under the DECISIONS:153 role
+
+Two changes, both made by the S3 builder and both measured on the real chain; the runner sha moves,
+so every sibling spec pinning `4482bb8a…` is stale until it re-pins at its own rebase (packages/H3.json
+is re-pinned here as S3's own `superseded-by-child` product, exactly as H3 re-pinned B-NTC's).
+
+**The id `S3`, and the S- half of the no-register rule.** `spec()` binds `packageId` to `^M2-<ID>-`
+and derives the artifact path from it, so the plan's `M2-S3-COMPANION` /
+`acceptance-s3-companion.json` (CRITICAL-PATH-2026-09-15 section 4 P1, adopted as PM routing at
+DECISIONS:414 (2)) admits exactly one id. It stands in `IDS` after H3 (its parent) and before B1
+(which the plan says re-pins behind it). It carries no D-id — the plan says so in terms, "the Y1
+own-child rule (:110) supplies the obligation" — and enters `NO_REGISTER_IDS` under a third letter:
+the asserted shape is now `/^[HFS][0-9]+$/`, an S- item being a SLICE-PLAN item, which is
+DECISIONS:93's own class ("feature work under the ratified slice plan takes no register D-ID"). A
+B- id still needs the PM's line by name. F6 in `pinned-unchanged-and-ruled-substitutions.test.cjs`
+asserts both.
+
+**The grandchild.** `:153` promises every later package (B1+B2, B4+B3, F1, F2) its own token line
+under the same conditions, and every one of them is a child of H3. H3's sealed artifact carries
+`byChild: {}` — it covered no gate by a carrier; it retired nine and re-executed ten — and the
+runner read parent carriers out of `byChild` ALONE. Measured on the real artifact: a child of H3
+refused `GATE-SUPERSESSION-CARRIER-IS-NOT-A-PARENT-CARRIER` on all five, `supersededGateIds()`
+was empty, and `--full` would have re-run the nine byte-identity reconstructions the role exists
+to retire. `parentCarrierGates(bound)` now reads BOTH halves of the parent's map: the gates its
+carriers covered (`byChild`, unchanged) and the gates it itself retired per carrier
+(`coverage.supersededByCarrier`, which `proposed()` has written into every artifact sealed under
+the role since r10 F2). A carrier the parent retired may be retired AGAIN by its child under the
+child's OWN token line, with the child's OWN five evidence slots, its own engine-files identity
+and its own ruling re-take; nothing of the parent's is inherited but the gate list, and the
+terminal says so per carrier ("retired by H3's own seal and retired AGAIN here … not inherited").
+`COVERED-SET-BOUND` counts those reclaimed gates on the right-hand side and still binds the
+`byChild` half exactly as before. A parent artifact naming one carrier as both covered and
+retired refuses `PARENT-CARRIER-BOTH-COVERED-AND-SUPERSEDED`; a malformed list refuses
+`PARENT-SUPERSEDED-BY-CARRIER-SHAPE`; a parent sealed by an older runner (no such key) reads
+exactly as before. Two cells at the end of `gate-supersession.test.cjs` measure all of it on a
+fixture parent shaped as H3's artifact is.

@@ -264,17 +264,21 @@ test('F3 — the four refusals r7 fired bare now carry names in the vocabulary',
   assert.equal(api.failCode('SOMETHING-AN-INPUT-SHAPED value'), null);
 });
 
-test('F6 — IDS carries the order DECISIONS:124 rules', () => {
-  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'B1', 'B2', 'B4', 'B3', 'B-LOM']);
-  // ":124 — ORDER B-NTC → H3 → B1 → B2 → B4 → B3". B-LOM is in no ruled sequence and
-  // stands after the ruled six rather than inside them.
-  assert.deepEqual(api.IDS.slice(0, 6), ['B-NTC', 'H3', 'B1', 'B2', 'B4', 'B3']);
-  assert.equal(api.IDS[6], 'B-LOM');
-  // THE NO-REGISTER RULE, written down and asserted: every member is either an H-/F-
-  // engine-tier item (DECISIONS:93 — feature work under the ratified slice plan takes no
-  // register D-ID) or a B- id the PM ruled exempt BY NAME (DECISIONS:103 (1)). H3 is in
-  // because DECISIONS:124 makes it an engine-tier item beside H1/H2, not by discretion.
-  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-LOM', 'B-NTC', 'H3']);
-  for (const id of api.NO_REGISTER_IDS) assert(/^[HF][0-9]+$/.test(id) || id === 'B-NTC' || id === 'B-LOM');
+test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION where DECISIONS:414 (2) puts it', () => {
+  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'B1', 'B2', 'B4', 'B3', 'B-LOM']);
+  // ":124 — ORDER B-NTC → H3 → B1 → B2 → B4 → B3". DECISIONS:414 (2) adopts the scout's
+  // order as PM routing: P1 M2-S3-COMPANION is H3's child and B1 re-pins at its own rebase
+  // behind it (CRITICAL-PATH-2026-09-15 section 4 P1). B-LOM is in no ruled sequence and
+  // stands after the ruled seven rather than inside them.
+  assert.deepEqual(api.IDS.slice(0, 7), ['B-NTC', 'H3', 'S3', 'B1', 'B2', 'B4', 'B3']);
+  assert.equal(api.IDS[7], 'B-LOM');
+  // THE NO-REGISTER RULE, written down and asserted: every member is either an H-/F-/S-
+  // engine-tier or slice-plan item (DECISIONS:93 — feature work under the ratified slice
+  // plan takes no register D-ID) or a B- id the PM ruled exempt BY NAME (DECISIONS:103 (1)).
+  // H3 is in because DECISIONS:124 makes it an engine-tier item beside H1/H2; S3 is in
+  // because the plan :414 (2) adopts names M2-S3-COMPANION an engine package with no D-id
+  // whose obligation is the Y1 own-child rule — not by discretion.
+  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-LOM', 'B-NTC', 'H3', 'S3']);
+  for (const id of api.NO_REGISTER_IDS) assert(/^[HFS][0-9]+$/.test(id) || id === 'B-NTC' || id === 'B-LOM');
   for (const id of api.NO_REGISTER_IDS) assert(api.IDS.includes(id));
 });

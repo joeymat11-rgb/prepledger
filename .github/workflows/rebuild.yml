@@ -86,8 +86,16 @@ jobs:
       # it: H3 re-pins packages/B-NTC.json onto the r10 runner, and a spec so re-pinned no
       # longer recomputes the artifact B-NTC's own seal stands on. Same position, same job,
       # same matrix; one command changes.
-      - name: Cumulative H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package H3
+      # M2-S3-COMPANION SUCCEEDS M2-H3-CLEAN-INIT HERE, by the same rule (ce38aa3, then
+      # H3's r3c): the child's gate IS the standing step and the parent's is retired, not
+      # kept beside it. S3 registers itself in the runner (its bytes move), re-pins
+      # packages/H3.json onto that runner, and H3's own sealed artifact no longer recomputes
+      # beside it. Same position, same job, same matrix; one command changes. Until the PM's
+      # theme, brief-by-sha and GATE-SUPERSESSION lines for M2-S3-COMPANION stand on the
+      # chain branch this step reports the runner's own refusal by name rather than PASS;
+      # that is the expected pre-ruling state (b-package.cjs, REQUESTS 08:40 (b)).
+      - name: Cumulative S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S3
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.

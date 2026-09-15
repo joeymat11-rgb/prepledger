@@ -48,7 +48,10 @@ const MODULES = Object.freeze(['dates', 'constants', 'plan', 'performed', 'progr
 // two. The two added names are the engine's own day predicates, `dayWeather`
 // (sleep.cjs:1872) and `cleanAtDate` (sleep.cjs:1017), which the B-NTC
 // nativeTrendContext provider asks instead of restating.
-const EXPOSED = Object.freeze(['genSession', 'rirPlan', 'dayWeather', 'cleanAtDate']);
+// WIDENED AGAIN WITH THE ACCEPTED RUNTIME BY M2-S3-COMPANION: the fifth name is the
+// today.cjs reader `sessionMembership` (the complete ordered pool ids of a training
+// day, null on a rest day; no sleep read, no structural picker). Still a mirror.
+const EXPOSED = Object.freeze(['genSession', 'rirPlan', 'dayWeather', 'cleanAtDate', 'sessionMembership']);
 // Literal requires: the same twelve modules MODULES names, in that order.
 const FACTORIES = Object.freeze({
  dates: require('../../../engine/dates.cjs'),
@@ -104,10 +107,11 @@ function createEngineRuntime({ clock, ids, drafts, nativeTrendContext } = {}) {
   Object.assign(E, created);
  }
  for (const name of EXPOSED) if (typeof E[name] !== 'function') throw new TypeError('Accepted engine did not compose ' + name);
- // The same four thin forwarders the accepted runtime returns, in the same
+ // The same five thin forwarders the accepted runtime returns, in the same
  // order and with the same arities; E itself never leaves this function.
  return Object.freeze({ genSession: (s, iso, slp) => E.genSession(s, iso, slp), rirPlan: (s, ex, slp) => E.rirPlan(s, ex, slp),
-  dayWeather: (s, iso) => E.dayWeather(s, iso), cleanAtDate: (s, iso) => E.cleanAtDate(s, iso) });
+  dayWeather: (s, iso) => E.dayWeather(s, iso), cleanAtDate: (s, iso) => E.cleanAtDate(s, iso),
+  sessionMembership: (s, iso) => E.sessionMembership(s, iso) });
 }
 
 const COMPOSITION = Object.freeze({ profile: 'earned/engine-runtime-host/v1',

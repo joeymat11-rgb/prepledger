@@ -148,7 +148,7 @@ const savedArgv = process.argv;
 process.argv = [process.execPath, runnerFile, '--ci', '--package', 'H3'];
 try {
   m._compile(fixtureSource.slice(0, fixtureSource.indexOf(delimiter)) +
-    '\nmodule.exports={coverage,supersededSpecShape,supersededGates,supersededGateIds,supersededByCarrier,' +
+    '\nmodule.exports={coverage,supersededSpecShape,supersededGates,supersededGateIds,supersededByCarrier,parentCarrierGates,' +
     'supersessionRuling,proposed,GATE_IDS,BYTE_IDENTITY_CARRIERS,SUPERSESSION_EVIDENCE_KEYS,' +
     'SUPERSESSION_RUNNER_CENSUS,SUPERSESSION_GRANT_SHAPE,SUPERSESSION_STANDING_RULING,' +
     'supersessionEngineIdentity,ENGINE_ROOT,FAIL_CODES,failCode,' +
@@ -537,5 +537,77 @@ test('r10 — the block is closed, and every refusal carries a name in the vocab
     'SUPERSESSION-ENGINE-DIFFERENTIAL-COMPARED-NOTHING',
     'GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-STATE-THE-COUNT',
     'GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-CLAIM-BYTE-IDENTITY'])
+    assert(api.FAIL_CODES.has(code), 'the vocabulary carries ' + code);
+});
+
+// ------------------------------------------------ M2-S3-COMPANION — THE GRANDCHILD
+// DECISIONS:153 promises every later package its own token line "under the same conditions",
+// and every later package is a child of H3, whose sealed artifact carries `byChild: {}` and
+// `supersededByCarrier: {five carriers -> nine gates}`. Measured on the real H3 artifact by
+// the S3 builder: with the carriers read out of `byChild` alone, a child of H3 refused
+// GATE-SUPERSESSION-CARRIER-IS-NOT-A-PARENT-CARRIER on all five and would have re-run the
+// nine reconstructions under --full. The parent's own retirements are now the second half
+// of its carrier map, and a grandchild retires exactly the gates its parent retired, under
+// its OWN token line, with its OWN evidence — nothing of the parent's is inherited but the
+// gate list.
+const grandparentBound = () => {
+  const b = bound();
+  // The parent as THIS runner seals a package under the role: nothing covered, the nine
+  // superseded, per carrier, and the run set the other ten.
+  b.option.id = 'H3'; b.option.artifact = 'rebuild/m4/spec/acceptance-h3-clean-init.json';
+  b.acceptance.coverage = { covered: [], superseded: Object.keys(BY_CHILD).sort(),
+    supersededByCarrier: Object.fromEntries(CARRIERS.map(c => [c, GATES_OF(c)])),
+    run: api.GATE_IDS.filter(g => !Object.hasOwn(BY_CHILD, g)).sort(), moves: {}, successors: null,
+    supersessions: { rulingLineSha256: shaOf(RULING_LINE), gates: {} }, byChild: {} };
+  return b;
+};
+test('S3 — a grandchild reads its parent\'s retired carriers out of supersededByCarrier and retires them again under its own line', () => {
+  const b = grandparentBound();
+  const gates = api.parentCarrierGates(b);
+  assert.deepEqual([...gates.keys()].sort(), CARRIERS.slice().sort(), 'the five carriers, none covered, all retired by the parent');
+  for (const c of CARRIERS) assert.deepEqual(gates.get(c), { gates: GATES_OF(c), via: 'superseded' });
+  const s = spec();
+  s.coverage.inherited = {};            // the parent covered nothing, so nothing is inheritable
+  shape(s);
+  const got = api.supersededGates(s, b, ran());
+  assert.equal(got.size, 9, 'the nine gates the parent retired, retired again');
+  for (const [, r] of got) assert.equal(r.via, 'superseded');
+  assert.deepEqual(api.supersededGateIds(s, b), Object.keys(BY_CHILD).sort());
+  assert.deepEqual(api.supersededByCarrier(s, b)['source-carriers'], GATES_OF('source-carriers'));
+  // coverage() holds the COVERED-SET-BOUND with the reclaimed gates on the right-hand side.
+  assert.equal(api.coverage(s, b, ran()).size, 0);
+  // And the artifact this grandchild seals is disjoint and exhaustive exactly as its parent's was.
+  const artifact = api.proposed(s, b);
+  assert.deepEqual(artifact.coverage.covered, []);
+  assert.deepEqual(artifact.coverage.superseded, Object.keys(BY_CHILD).sort());
+  assert.equal(artifact.coverage.superseded.length + artifact.coverage.run.length, api.GATE_IDS.length);
+  assert.deepEqual(artifact.coverage.supersededByCarrier, Object.fromEntries(CARRIERS.map(c => [c, GATES_OF(c)])));
+});
+test('S3 — the grandchild path inherits nothing but the gate list: ruling, evidence and engine identity are asked of the child', () => {
+  const b = grandparentBound();
+  // No token line of its own: refused by name, whatever the parent's artifact says.
+  const s = spec(CARRIERS, null); s.coverage.inherited = {};
+  assert.throws(() => api.supersededGates(s, b, ran()), /GATE-SUPERSESSION-RULING-NOT-CITED/);
+  // A carrier the parent neither covered nor retired is still not a parent carrier.
+  const b2 = grandparentBound(); delete b2.acceptance.coverage.supersededByCarrier['second-gate'];
+  const s2 = spec(); s2.coverage.inherited = {};
+  assert.throws(() => api.supersededGates(s2, b2, ran()), /GATE-SUPERSESSION-CARRIER-IS-NOT-A-PARENT-CARRIER/);
+  // A red evidence child refuses exactly as for a child of B-NTC.
+  const s3 = spec(); s3.coverage.inherited = {};
+  assert.throws(() => api.supersededGates(s3, b, ran(CELL_CHILD('second-gate'))), /GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-GREEN/);
+  // An engine file outside the brief that moved refuses before any carrier is admitted.
+  const before = fs.readFileSync(path.join(scratch, 'rebuild/engine/plan.cjs'), 'utf8');
+  write('rebuild/engine/plan.cjs', before + '// moved under the grandchild\n');
+  const s4 = spec(); s4.coverage.inherited = {};
+  assert.throws(() => api.supersededGates(s4, b, ran()), /SUPERSESSION-ENGINE-FILE-OUTSIDE-THE-BRIEF-MOVED/);
+  write('rebuild/engine/plan.cjs', before);
+  // A parent artifact that lists a carrier as BOTH covered and retired is malformed and refuses.
+  const b3 = grandparentBound(); b3.acceptance.coverage.byChild = { 'second-gate': 'second-gate' };
+  assert.throws(() => api.parentCarrierGates(b3), /PARENT-CARRIER-BOTH-COVERED-AND-SUPERSEDED/);
+  // A parent sealed by an OLDER runner (no supersededByCarrier at all) reads exactly as before.
+  const old = bound();
+  assert.deepEqual([...api.parentCarrierGates(old).values()].map(r => r.via), CARRIERS.map(() => 'covered'));
+  assert.equal(api.supersededGates(spec(), old, ran()).size, 9);
+  for (const code of ['PARENT-SUPERSEDED-BY-CARRIER-SHAPE', 'PARENT-CARRIER-BOTH-COVERED-AND-SUPERSEDED'])
     assert(api.FAIL_CODES.has(code), 'the vocabulary carries ' + code);
 });

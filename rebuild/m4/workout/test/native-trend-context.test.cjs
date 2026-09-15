@@ -448,7 +448,9 @@ const RUNTIME_CLOCK = { today: () => DAY, hour: () => 8, now: () => new Date(DAY
   stamp: () => DAY + 'T13:00:00.000Z' };
 
 test('EXPOSED carries the two day predicates in BOTH accepted runtimes, and they are the engine\'s own', () => {
-  const expected = ['cleanAtDate', 'dayWeather', 'genSession', 'rirPlan'];
+  // Five names since M2-S3-COMPANION: the fifth is today.cjs's own sessionMembership
+  // reader, re-pinned on both runtimes exactly as the two predicates were.
+  const expected = ['cleanAtDate', 'dayWeather', 'genSession', 'rirPlan', 'sessionMembership'];
   assert.deepEqual(Runtime.COMPOSITION.exposed.slice().sort(), expected, 'rebuild/m4/workout/engine-runtime.cjs');
   assert.deepEqual(HostRuntime.COMPOSITION.exposed.slice().sort(), expected, 'the host mirror');
   assert.deepEqual(HostRuntime.EXPOSED.slice(), Runtime.COMPOSITION.exposed.slice(),
