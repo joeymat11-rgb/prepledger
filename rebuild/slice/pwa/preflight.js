@@ -55,7 +55,7 @@
         // promise what the next launch will do; the worker having every file is the
         // fact, and it is the fact this device can check.
         say(true, 'offline-ready ✓',
-          'All ' + status.total + ' files of this build are stored on this device — everything the launch needs is here.');
+          'All ' + status.total + ' files of this build are stored on this device. Everything the launch needs is here.');
         return;
       }
       if (status) {

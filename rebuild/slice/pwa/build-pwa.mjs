@@ -22,6 +22,8 @@ const require = createRequire(import.meta.url);
 const pwa = require("./pwa.cjs");
 const shell = require("./shell.cjs");
 const icons = require("./icons.cjs");
+/* P0-C item (c) (DECISIONS:114 (1)) - the SAME dash regex build.mjs's own guard uses. */
+const { AI_DASH } = require("../../m3/w7-preview/today/plain-copy.cjs");
 
 export const SOURCE = path.dirname(fileURLToPath(import.meta.url));
 export const DIST = path.join(ROOT, ".tmp/slice-pwa-dist");
@@ -35,6 +37,39 @@ async function realDirectory(directory) {
   assert.equal(await fs.realpath(directory), path.join(root, path.relative(ROOT, directory)),
     "OUTPUT-DIRECTORY FAIL: path escaped workspace");
   return directory;
+}
+
+/* P0-C item (c) (DECISIONS:114 (1); P-INSTALL-VERIFY step 11 found one live) - THE SAME
+   REFUSAL build.mjs applies to Today's own assets, over what THIS build additionally
+   emits: A5's preflight markup and script, the composed installable HTML, the manifest,
+   the stylesheet and the _headers file. Text assets only; the icons are pixels. An em or
+   en dash reaching the athlete's screen is refused before a byte is written. Comments
+   are exempt, exactly as build.mjs's own guard exempts them. */
+function stripComments(text, name) {
+  return /\.html?$/.test(name) ? text.replace(/<!--[\s\S]*?-->/g, " ")
+    : text.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
+}
+export function assertNoAiDashesInSite(entries, { exempt = new Set() } = {}) {
+  const offences = [];
+  for (const [name, bytes] of entries) {
+    if (!/\.(html?|css|m?js|json|webmanifest)$/.test(name) && name !== pwa.HEADERS_FILE) continue;
+    /* A1's own bundle (build.mjs's `assertNoAiDashesInAssets`, run when Today builds)
+       already vetted every dash it may carry: frozen engine/client prose that reaches
+       the DOM only through plainCopy(), never bare. Re-scanning it here with this
+       simple sweep would refuse a dash sitting in a REGEX LITERAL of the bundled
+       source (never shown to an athlete) as if it were prose A5 itself wrote. */
+    if (exempt.has(name)) continue;
+    const text = typeof bytes === "string" ? bytes : bytes.toString("utf8");
+    const hit = stripComments(text, name).match(AI_DASH);
+    if (hit) {
+      offences.push(`${name}: "${stripComments(text, name)
+        .slice(Math.max(0, hit.index - 40), hit.index + 40).trim()}"`);
+    }
+  }
+  assert.equal(offences.length, 0,
+    `AI_DASH_IN_PWA_BUILD: ${offences.length} em/en dash(es) in text the athlete can see (DECISIONS:114): `
+      + offences.join(" | "));
+  return offences.length;
 }
 
 /* The whole folder, as bytes, with nothing written yet. Separated from the writing so the
@@ -85,6 +120,7 @@ export async function composeSite({ a1 } = {}) {
 
   const entries = [...files.entries()];
   shell.assertNoNetworkReference(entries);
+  assertNoAiDashesInSite([...entries, [pwa.HEADERS_FILE, headers]], { exempt: new Set([names.app]) });
   const guard = pwa.assertNothingPrivate([...entries, [pwa.HEADERS_FILE, headers]], sources);
 
   files.set(pwa.HEADERS_FILE, Buffer.from(headers));
@@ -116,7 +152,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
       + `no-store on ${pwa.SERVICE_WORKER}; ${site.guard.shapes} credential shapes and `
       + `${site.guard.roots} private roots refused across ${site.guard.files} files; `
       + `theme ${site.colours.theme} / background ${site.colours.background} read back from the approved design; `
-      + `no network reference in any shipped byte`);
+      + `no network reference in any shipped byte; no em/en dash in any text this build emits`);
   } catch (error) {
     console.error(`A5 PWA BUILD FAIL: ${error.message}`);
     process.exitCode = 1;

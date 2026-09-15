@@ -953,6 +953,107 @@ test('P0B.12 - the enrolled first frame paints no fixture verdict, figure or nam
   booted.hosts.close();
 });
 
+/* ==========================================================================
+   P0-C (P-INSTALL-VERIFY step 4/11, ledger DECISIONS:433). Three narrow, live-site
+   findings. Item (a): P0-B's adoption ran only at mount, so the IN-PAGE transition off
+   "Start using Earned" (no reload) painted the fixture verbatim for one frame on a real
+   device. Item (b): the primary button's label and its click disagreed about which
+   sheet opens. Item (c) is a PWA-shell dash fix, its cells live in rebuild/slice/pwa's
+   own suites (P0C.3).
+   ========================================================================== */
+test('P0C.1 - completing setup adopts his own state in place, exactly as a fresh mount does', async () => {
+  const fault = faultDatabase();
+  const dom = new JSDOM(shell());
+  const booted = await boot({ document: dom.window.document, today: P0B_DAY,
+    indexedDB: fault.indexedDB, crypto: webcrypto });
+  assert.equal(booted.setup.firstRun(), true, 'nothing enrolled yet');
+  booted.api.render('setup');
+  const model = booted.setup.setup;
+  model.setName('Joe-test');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const press = model.addExercise('U');
+  model.setExerciseField(press.key, 'n', 'Joe-test Bench Press');
+  model.chooseMg(press.key, 'chest');
+  model.setExerciseField(press.key, 'first', '20');
+  model.goto(6);
+  booted.api.render('setup');
+  const primary = dom.window.document.querySelector('#phone [data-slot="primary"]');
+  assert.equal(primary.textContent.trim(), 'Start using Earned');
+  const beforeReady = booted.api.ready;
+  primary.click();
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  assert.notEqual(booted.api.ready, beforeReady, 'the transition armed a NEW adoption chain');
+  await booted.api.ready;
+  assert.equal(booted.api.screen(), 'today', 'landed on Today, in page, with no reload');
+
+  const firstFrame = dom.window.document.getElementById('phone').textContent;
+  assert.equal(dom.window.document.querySelector('[data-slot="setup-note"]').hidden, true,
+    'SETUP_NOT_HIS_NUMBERS never survives the in-page transition');
+  const fixtureView = createTodayModel({ today: P0B_DAY }).read();
+  const fixtureKcal = TodayApp.calorieHeadline(fixtureView.calorieTarget);
+  const forbidden = [fixtureKcal, '155 g', '2,262', '2,360', '180.4', 'ON COURSE', 'cut is working'];
+  for (const needle of forbidden) {
+    assert.equal(firstFrame.includes(needle), false, 'no fixture string survives the transition: ' + needle);
+  }
+  assert.equal(booted.model.stateFromOps().athlete_label, 'Joe-test',
+    'Today stands on his own record, not the fixture');
+
+  /* gym/check-in/sleep all read the adopted state, exactly as P0B required at boot. */
+  const card = await booted.workout.gym.read();
+  assert.equal(card.phase, 'ready', card.code || '');
+  assert.equal(card.lift.count, 1, 'his own single Monday U-day lift, not the fixture week');
+  assert.equal(typeof booted.checkin.checkin.adoptEngineState, 'function');
+  assert.equal(booted.checkin.checkin.read().sleepRecord, null,
+    'his own clean-init basis carries no fixture night, on his check-in sheet too');
+  booted.hosts.close();
+});
+
+test("P0C.2 - the primary button's label names the sheet it opens, before and after the weigh-in", async () => {
+  const kit = await installation();
+  const before = today({ model: kit.model });
+  before.api.render('today');
+  const primaryBefore = before.doc.querySelector('#phone [data-slot="primary"]');
+  const viewBefore = kit.model.read();
+  assert.equal(viewBefore.marchingOrder.kind, 'weight', 'this fixture\'s own owed head really is the weigh-in');
+  assert.equal(primaryBefore.textContent.trim().toLowerCase(), viewBefore.marchingOrder.thenText.toLowerCase(),
+    'when the engine\'s owed head IS the weigh-in, its own words are shown unchanged (view.test.mjs)');
+  primaryBefore.dispatchEvent(new before.dom.window.Event('click'));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert(before.doc.querySelector('#phone [role="dialog"] #morning-weight'),
+    'clicking it opened the WEIGHT sheet the label named');
+
+  /* P-INSTALL-VERIFY step 5 - a clean-init athlete's owed head can be something ELSE
+     (kind "night", "log last night"), a real engine sentence, but never a sheet this
+     click opens. Reproduced by wrapping a real model's read() with the SAME shape,
+     one field changed - never a fabricated view. */
+  const mismatchModel = createTodayModel({ today: DAY });
+  const realRead = mismatchModel.read;
+  mismatchModel.read = () => {
+    const view = realRead();
+    return { ...view, marchingOrder: { ...view.marchingOrder, kind: 'night', thenText: 'log last night' } };
+  };
+  const mismatch = today({ model: mismatchModel });
+  mismatch.api.render('today');
+  const primaryMismatch = mismatch.doc.querySelector('#phone [data-slot="primary"]');
+  assert.equal(primaryMismatch.textContent.trim(), "Log this morning's weight",
+    'the engine\'s off-topic owed head is never shown as the primary label');
+  primaryMismatch.dispatchEvent(new mismatch.dom.window.Event('click'));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert(mismatch.doc.querySelector('#phone [role="dialog"] #morning-weight'),
+    'label and action agree: it opened WEIGHT, exactly as the corrected label named');
+
+  assert.equal((await kit.model.weighIn(170.6)).ok, true);
+  const after = today({ model: kit.model });
+  after.api.render('today');
+  const view = kit.model.read();
+  const primaryAfter = after.doc.querySelector('#phone [data-slot="primary"]');
+  assert.equal(primaryAfter.textContent.trim(), 'Start ' + view.workout.title,
+    'once the weigh-in is done, the label names the workout');
+  primaryAfter.dispatchEvent(new after.dom.window.Event('click'));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(after.api.screen(), 'workout', 'clicking it opened exactly the screen the label named');
+});
+
 /* ======================= N2, THE SLEEP ENTRY (relocated from test/sleep.test.mjs;
    PM routing DECISIONS:427 (1), on origin at 408a42f1) =======================
    Relocated here rather than left in its own file so h3-clean-init.test.cjs's closed

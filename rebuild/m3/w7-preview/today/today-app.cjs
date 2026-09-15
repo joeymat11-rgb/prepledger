@@ -696,7 +696,19 @@ function mountToday(doc, model, options = {}) {
     const resuming = !!(today && today.phase === "active");
     const action = resuming ? "Resume " + view.workout.title
       : stranded ? CLOSE_UNFINISHED_WORKOUT
-      : owed ? capitalise(view.marchingOrder.thenText || "Log this morning's weight")
+      /* P0-C item (b) - the primary label must name the sheet the click below
+         actually opens. Before a weigh-in this click ALWAYS opens WEIGHT
+         ("close the books first" - the weigh-in comes before everything else
+         by design; sleep keeps its own row). The engine's marchingOrder is a
+         general "what's owed" hint and its head is not always the weigh-in
+         (kind "weight") - on a clean-init athlete it read kind "night"
+         ("log last night"), a real sentence, but for a sheet this click does
+         not open. `kind` (rebuild/engine/today.cjs marchingOrder, o0.k) names
+         which owed item thenText describes; only echo the engine's own words
+         when they truly describe THIS click, and say what it opens otherwise. */
+      : owed ? (view.marchingOrder.kind === "weight" && view.marchingOrder.thenText
+        ? capitalise(view.marchingOrder.thenText)
+        : "Log this morning's weight")
       : today && today.phase === "finished" ? REVIEW_WORKOUT
       : refused ? WHY_WORKOUT_CANNOT_OPEN
       : "Start " + view.workout.title;
@@ -1971,7 +1983,21 @@ function mountToday(doc, model, options = {}) {
     if (next === "setup") {
       return setup.open({ doc, phone,
         back: () => render("today", true),
-        done: () => render("today", true) });
+        /* P0-C item (a) - the in-page transition off "Start using Earned" must
+           adopt his own state the same way a fresh enrolled mount does: arm
+           the same gates BEFORE this first Today paint, then run the same
+           adoption chain (canAdoptAthleteState/armAdoptionGate/
+           adoptAthleteState below). Returning the chain lets today-entry.mjs's
+           own `await done()` (pinned, unedited) wait for it; reassigning
+           `ready` lets a caller await api.ready and see exactly this settle,
+           with no reload. */
+        done: () => {
+          const adopting = canAdoptAthleteState();
+          if (adopting) armAdoptionGate();
+          render("today", true);
+          ready = adopting ? adoptAthleteState() : Promise.resolve();
+          return ready;
+        } });
     }
     if (next === "today") return renderToday(focus);
     if (next === "why") return renderWhy(focus);
@@ -2045,12 +2071,23 @@ function mountToday(doc, model, options = {}) {
      id into his real store. `willAdopt` gates both the holds and the block
      below that must release them, so neither is ever left set with nothing
      left to release it. */
-  const willAdopt = !!(setup && typeof setup.summary === "function" && setup.summary().enrolled === true
-    && typeof setup.athleteState === "function" && typeof model.adoptBasis === "function");
-  if (willAdopt && typeof model.setPendingAdoption === "function") model.setPendingAdoption(true);
-  if (willAdopt && workout && workout.gym && typeof workout.gym.holdForAdoption === "function") {
-    workout.gym.holdForAdoption(true);
+  /* P0-C item (a) - factored out of the boot-only inline check so the SAME
+     gate (fresh each call, never cached) also arms the in-page transition off
+     "Start using Earned" (the "done" callback above). At THIS mount, before
+     setup finishes, setup.summary().enrolled is false, so this is false here
+     and the first paint is the untouched fixture, exactly as P0B.3 requires. */
+  function canAdoptAthleteState() {
+    return !!(setup && typeof setup.summary === "function" && setup.summary().enrolled === true
+      && typeof setup.athleteState === "function" && typeof model.adoptBasis === "function");
   }
+  function armAdoptionGate() {
+    if (typeof model.setPendingAdoption === "function") model.setPendingAdoption(true);
+    if (workout && workout.gym && typeof workout.gym.holdForAdoption === "function") {
+      workout.gym.holdForAdoption(true);
+    }
+  }
+  const willAdopt = canAdoptAthleteState();
+  if (willAdopt) armAdoptionGate();
   render(requestedScreen() || "today");
 
   /* P0 HIS NUMBERS (CRITICAL-PATH-2026-09-15 section 4, Route B) - ON AN ENROLLED
@@ -2069,9 +2106,10 @@ function mountToday(doc, model, options = {}) {
      exactly this work; the shipped page never awaits it and is unchanged by its
      existence. A constructor refusal is surfaced on the status line, exactly as
      every other boot() cause is, and Today keeps the basis it already painted. */
-  let ready = Promise.resolve();
-  if (willAdopt) {
-    ready = setup.athleteState().then(async (state) => {
+  /* P0-C item (a) - factored so the "done" callback above can rerun the exact
+     same chain after "Start using Earned", not merely at boot. */
+  function adoptAthleteState() {
+    return setup.athleteState().then(async (state) => {
       {
         if (!state) return;
         model.adoptBasis(state);
@@ -2127,6 +2165,10 @@ function mountToday(doc, model, options = {}) {
       }
     });
   }
+  /* `let`, not `const`: the "done" callback above reassigns this on the
+     in-page transition, so a caller awaiting api.ready sees that settle too,
+     with no reload. */
+  let ready = willAdopt ? adoptAthleteState() : Promise.resolve();
 
   return { render, read: () => model.read(), openWeighIn, screen: () => screen,
     foodPending: () => foodSaving, foodReady: () => foodOpening,
@@ -2143,8 +2185,12 @@ function mountToday(doc, model, options = {}) {
     workoutEntry: () => workout,
     workoutRebound: () => workoutRebinding,
     /* P0-B - the boot chain's own settle promise, so a caller can await the
-       athleteState() adoption (or its refusal) without polling. */
-    ready };
+       athleteState() adoption (or its refusal) without polling. P0-C item (a) -
+       a GETTER, not a snapshot: the "done" callback above reassigns `ready` on
+       the in-page transition off "Start using Earned", and a caller reading
+       this property after that point must see that later settle, not the
+       already-resolved promise this function returned at boot. */
+    get ready() { return ready; } };
 }
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by

@@ -207,18 +207,16 @@ test("no em dash and no en dash in any text file A5 deploys", () => {
   const count = (name, text) => (((/\.html?$/.test(name)
     ? text.replace(/<!--[\s\S]*?-->/g, " ")
     : text.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ")).match(/[–—]/g)) || []).length;
-  /* The two A5-OWNED lines, pinned rather than hidden. A5's own preflight copy carries
-     one user-facing dash in its markup and one in its script:
-       "<strong>Offline launch</strong> — <span data-pwa="state">..."
-       "...are stored on this device — everything the launch needs is here."
-     P1's custody for this fix is the two A5 TEST files only (the PM's ruling on the P1
-     review), so P1 does not rewrite A5's source; the count is pinned here so a THIRD one
-     fails this suite, and both are named for the A5 lane in rebuild/slice/P1-REPORT.md.
-     Every other deployed text file must be clean. `app.js` is A1's bundle and is exempt
-     for the reason A1's own build guard states (the frozen rebuild/engine and
+  /* P0-C item (c) - the two A5-owned dashes this file used to pin (preflight.html's
+     "Offline launch — ..." and preflight.js's "...device — everything...") were the
+     LIVE em dash P-INSTALL-VERIFY step 11 found; both are rewritten without a dash
+     (rebuild/slice/pwa/preflight.html, preflight.js) and build-pwa.mjs now refuses a
+     build that reintroduces one, so nothing is pinned as an exception any more.
+     Every deployed text file must be clean. `app.js` is A1's bundle and is exempt for
+     the reason A1's own build guard states (the frozen rebuild/engine and
      rebuild/client prose is inlined there and reaches the DOM only through
      today/plain-copy.cjs; A1's build.mjs refuses any A1-owned literal). */
-  const expected = { "index.html": 1, [site.names.preflightJs]: 1 };
+  const expected = {};
   const found = {};
   const swept = [];
   for (const [name, bytes] of site.files) {
@@ -228,13 +226,31 @@ test("no em dash and no en dash in any text file A5 deploys", () => {
     if (n) found[name] = n;
     swept.push(name);
   }
-  assert.deepEqual(found, expected,
-    "AI DASH in a deployed file beyond A5's two pinned preflight lines (DECISIONS:114)");
+  assert.deepEqual(found, expected, "AI DASH in a deployed file (DECISIONS:114)");
   assert(swept.includes("index.html"), "the shipped page itself was swept: " + swept.join(", "));
   assert(swept.length >= 5, "only " + swept.length + " text files swept: " + swept.join(", "));
-  // RED FIRST: the sweep really would catch one more.
+  // RED FIRST: the sweep really would catch one.
   const page = site.files.get("index.html").toString("utf8");
-  assert.equal(count("index.html", page.replace("<title>", "<title>—")), expected["index.html"] + 1);
+  assert.equal(count("index.html", page.replace("<title>", "<title>—")), 1);
+});
+
+/* P0C.3 (ticket P0-C item (c)) - the build-time refusal, over the REAL deployable
+   folder this file already built in before(). build-pwa.mjs's assertNoAiDashesInSite
+   is exported for exactly this; it is the same function composeSite() already ran, on
+   every one of these bytes, before a single one was written to build.DIST. */
+test("P0C.3 - the real deployable folder carries no dash, and the same guard refuses one", () => {
+  assert.doesNotThrow(() => build.assertNoAiDashesInSite([...site.files.entries()],
+      { exempt: new Set([site.names.app]) }),
+    "the real build (preflight.html/preflight.js fixed) is clean");
+  assert.throws(() => build.assertNoAiDashesInSite([["index.html", "<p>Before — after</p>"]]),
+    /AI_DASH_IN_PWA_BUILD/);
+  assert.throws(() => build.assertNoAiDashesInSite([["preflight.js", "say('Before – after')"]]),
+    /AI_DASH_IN_PWA_BUILD/);
+  // A dash inside a comment only is not an offence to the athlete's screen.
+  assert.doesNotThrow(() => build.assertNoAiDashesInSite([["index.html", "<!-- note — planning -->"]]));
+  assert.doesNotThrow(() => build.assertNoAiDashesInSite([["preflight.js", "// note — planning\nsay('clean');"]]));
+  // A binary asset (an icon) is never scanned as text.
+  assert.doesNotThrow(() => build.assertNoAiDashesInSite([["icon-192.png", Buffer.from([0, 1, 2])]]));
 });
 
 test("the build's own summary is true: counts, colours and the guard", () => {
