@@ -1,5 +1,10 @@
 {
   "version": 1,
-  "status": "PENDING",
-  "receipt": null
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "601ced4899ff5b4a4ee69ce348ee6493bd6121ea",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-09-15 · cowork · POSTFIX-ACCEPTANCE M2-S3-COMPANION ee8fdbbb3045999ba15d70e86c36684c73611668 rebuild/m4/spec/acceptance-s3-companion.json fb2f6a023ac6bcfc584c115078b16fb8ec21eba3a71c1c231c573d52dbab74f2 ACCEPTED",
+    "lineSha256": "8b3ff9636f064eb31909623f91b3dfcb8908d3e643534d60af57c00c4c7f0a81"
+  }
 }
