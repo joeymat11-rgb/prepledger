@@ -1056,6 +1056,22 @@ function mountToday(doc, model, options = {}) {
     const found = /[?&]screen=([a-z-]+)/.exec(search);
     return found ? found[1] : null;
   }
+  /* P0-B r2 (review findings 2, 3) - BEFORE the synchronous first paint, on an
+     ENROLLED installation only: hold Today's fixture-derived figures off this
+     frame (today-model.cjs setPendingAdoption - adoptBasis below clears it the
+     moment his own state actually lands, and it touches no basis, so S19 stays
+     exactly as it was) and hold the gym card's Start off until the SAME
+     adoption has settled (gym-model.mjs holdForAdoption), so a tap that wins
+     the race against setup.athleteState() can never commit a fixture exercise
+     id into his real store. `willAdopt` gates both the holds and the block
+     below that must release them, so neither is ever left set with nothing
+     left to release it. */
+  const willAdopt = !!(setup && typeof setup.summary === "function" && setup.summary().enrolled === true
+    && typeof setup.athleteState === "function" && typeof model.adoptBasis === "function");
+  if (willAdopt && typeof model.setPendingAdoption === "function") model.setPendingAdoption(true);
+  if (willAdopt && workout && workout.gym && typeof workout.gym.holdForAdoption === "function") {
+    workout.gym.holdForAdoption(true);
+  }
   render(requestedScreen() || "today");
 
   /* P0 HIS NUMBERS (CRITICAL-PATH-2026-09-15 section 4, Route B) - ON AN ENROLLED
@@ -1075,37 +1091,52 @@ function mountToday(doc, model, options = {}) {
      existence. A constructor refusal is surfaced on the status line, exactly as
      every other boot() cause is, and Today keeps the basis it already painted. */
   let ready = Promise.resolve();
-  if (setup && typeof setup.summary === "function" && setup.summary().enrolled === true
-    && typeof setup.athleteState === "function" && typeof model.adoptBasis === "function") {
+  if (willAdopt) {
     ready = setup.athleteState().then(async (state) => {
-      if (!state) return;
-      model.adoptBasis(state);
-      /* The gym card: rebase its host through hostForDay(day), which rereads
-         model.stateFromOps() at call time and so picks up the athlete just
-         adopted above. Then refresh the cached summary Today reads off the
-         workout entry, so the durable state the card next opens on agrees with
-         the one line Today already shows about it. */
-      if (workout && workout.gym && typeof workout.gym.rebase === "function") {
-        try { await workout.gym.rebase(); } catch (_) { /* the card keeps whatever host it already had */ }
-        if (typeof workout.refresh === "function") { try { await workout.refresh(); } catch (_) { /* reported on its own next read */ } }
+      try {
+        if (!state) return;
+        model.adoptBasis(state);
+        /* The gym card: rebase its host through hostForDay(day), which rereads
+           model.stateFromOps() at call time and so picks up the athlete just
+           adopted above. Then refresh the cached summary Today reads off the
+           workout entry, so the durable state the card next opens on agrees with
+           the one line Today already shows about it. */
+        if (workout && workout.gym && typeof workout.gym.rebase === "function") {
+          try { await workout.gym.rebase(); } catch (_) { /* the card keeps whatever host it already had */ }
+          if (typeof workout.refresh === "function") { try { await workout.refresh(); } catch (_) { /* reported on its own next read */ } }
+        }
+        /* P0-B r2 (review finding 1) - through the MODEL the entry actually
+           carries. `checkin` here is the ENTRY today-entry.mjs:83 returns
+           ({summary, refresh, setOnRefresh, open, checkin, host}); the entry
+           itself has no adoptEngineState, only entry.checkin (the model) does,
+           so this guard used to be permanently false and the fixture's sleep
+           night stood on his check-in sheet on every frame, unreached. */
+        if (checkin && checkin.checkin && typeof checkin.checkin.adoptEngineState === "function") {
+          checkin.checkin.adoptEngineState(state);
+        }
+        /* No render call of this module's own here (review, this ticket): the
+           repaint that shows the adopted state comes from workout.refresh()
+           above, through the SAME onRefresh -> api.render("today") wiring
+           boot() already gives every other durable change on this page. A
+           render here, unconditional on whatever screen or in-page control the
+           athlete already has open (the "Report a problem" box included), would
+           tear that down out from under them for no reason of its own; letting
+           the existing cascade own it is what every other lane on this page
+           already does. With no workout lane (a device with no workout store,
+           or a caller that mounts this module directly with none, as several
+           tests here do), Today's adopted state still paints correctly the next
+           time anything else repaints it - `read()` and `stateFromOps()` always
+           read the CURRENT (adopted) basis; only the automatic repaint waits. */
+      } finally {
+        /* The Start hold is released here on EVERY path out - a falsy state, a
+           thrown refusal, or no workout lane at all must never leave an
+           enrolled installation's Start permanently dark. */
+        if (workout && workout.gym && typeof workout.gym.holdForAdoption === "function") {
+          workout.gym.holdForAdoption(false);
+        }
       }
-      /* The check-in's sleep record: re-derived off the SAME adopted state. */
-      if (checkin && typeof checkin.adoptEngineState === "function") checkin.adoptEngineState(state);
-      /* No render call of this module's own here (review, this ticket): the
-         repaint that shows the adopted state comes from workout.refresh()
-         above, through the SAME onRefresh -> api.render("today") wiring
-         boot() already gives every other durable change on this page. A
-         render here, unconditional on whatever screen or in-page control the
-         athlete already has open (the "Report a problem" box included), would
-         tear that down out from under them for no reason of its own; letting
-         the existing cascade own it is what every other lane on this page
-         already does. With no workout lane (a device with no workout store,
-         or a caller that mounts this module directly with none, as several
-         tests here do), Today's adopted state still paints correctly the next
-         time anything else repaints it - `read()` and `stateFromOps()` always
-         read the CURRENT (adopted) basis; only the automatic repaint waits. */
     }).catch((error) => {
-      if (status && !status.textContent) tell("Not everything opened: athlete state: "
+      if (status) tell("Not everything opened: athlete state: "
         + (error && error.message ? error.message : String(error)) + ". Nothing was recorded.");
     });
   }

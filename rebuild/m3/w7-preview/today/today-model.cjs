@@ -116,6 +116,15 @@ function createTodayModel(options = {}) {
      below REPLACES it, once the athlete's own record has actually been read. */
   let basis = options.basisState ? clone(options.basisState) : createBasisState(day);
 
+  /* P0-B r2 (review finding 2) - SETTABLE, exactly as `basis` is. today-app.cjs
+     mountToday sets this true, on an enrolled installation only, BEFORE the
+     synchronous first paint (so S19's note-visible assertion, which reads the
+     UNCHANGED fixture basis, is untouched) and adoptBasis below clears it the
+     moment his own state actually lands. While it is true, read() gates the
+     fixture's own calorie, protein and weight-trend figures - never a number
+     this device has not actually measured, and never the fixture's. */
+  let pendingAdoption = false;
+
   /* THE STORE OF RECORD (review B2). `readings` is the durable reading lane —
      rebuild/m3/w7-preview/today/reading-host.mjs, the accepted encrypted
      repository under the accepted durable public client over rebuild/client. This
@@ -250,6 +259,21 @@ function createTodayModel(options = {}) {
         available: session.available, unavailableReason: session.reason },
       ...projection,
     };
+    /* P0-B r2 (review finding 2) - gate the fixture's own figures off this view
+       while adoption is pending. This is never a fabricated placeholder: it is
+       the SAME "gated" / non-finite shape the engine already returns for an
+       athlete with no qualifying data, so calorieHeadline/calorieBand/trendLine
+       in today-app.cjs already render it as "Not available yet" through the
+       normal, honest path - nothing new is taught to that layer here. Nothing
+       else on view (workout, instruction, the setup note) is touched: none of
+       it paints a fixture-specific figure in the first place. */
+    if (pendingAdoption) {
+      view.calorieTarget = { gated: true };
+      view.proteinTarget = { g: NaN };
+      if (view.nowModel && view.nowModel.headed) {
+        view.nowModel = { ...view.nowModel, headed: { ...view.nowModel.headed, weight: NaN } };
+      }
+    }
     view.why = whySections(view);
     return clone(view);
   }
@@ -306,11 +330,18 @@ function createTodayModel(options = {}) {
   function adoptBasis(state) {
     if (!state) return clone(basis);
     basis = clone(state);
+    /* His own state, however sparse, is never fabricated the way a held figure
+       is: the gate lifts here, unconditionally, the moment there IS a real
+       basis to read figures off. */
+    pendingAdoption = false;
     return clone(basis);
   }
 
+  /* P0-B r2 (review finding 2) - see `pendingAdoption` above. */
+  function setPendingAdoption(flag) { pendingAdoption = !!flag; }
+
   return {
-    read, weighIn, reopen, adoptBasis,
+    read, weighIn, reopen, adoptBasis, setPendingAdoption,
     today: day,
     engine: E,
     readings,

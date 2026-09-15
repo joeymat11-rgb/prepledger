@@ -311,7 +311,14 @@ export function createCheckInModel({ host = null, day, engineState = null } = {}
     return read();
   }
 
-  return { read, save, refresh, reopen, adoptEngineState, day, host, sleepRecord,
+  return { read, save, refresh, reopen, adoptEngineState, day, host,
+    /* P0-B r2 (review finding 4) - a LIVE getter: adoptEngineState above
+       reassigns the closure variable, and a plain property here would keep
+       handing out the value captured at construction (the fixture's, before
+       any adoption) for the object's whole lifetime regardless. read().
+       sleepRecord was already live for this reason; this is the same fix
+       applied to the constructor's own return. */
+    get sleepRecord() { return sleepRecord; },
     draft: () => draft, recorded: () => recorded };
 }
 

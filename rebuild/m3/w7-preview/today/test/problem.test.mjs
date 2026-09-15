@@ -13,7 +13,7 @@ import { webcrypto, createHash } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
 import { createReadingHost } from '../reading-host.mjs';
-import { createGymHost } from '../gym-host.mjs';
+import { createGymHost, openTodayHosts } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES } from '../gym-model.mjs';
 import { createWorkoutEntry, createSetupEntry, createCheckInEntry, boot,
   SETUP_BASIS_STATE_REFUSED } from '../today-entry.mjs';
@@ -710,8 +710,15 @@ test('P0B.3 - a fresh installation is unchanged: still the fixture, still the no
   const booted = await boot({ document: dom.window.document, today: P0B_DAY,
     indexedDB: fault.indexedDB, crypto: webcrypto });
   assert.equal(booted.setup.firstRun(), true, 'nothing enrolled');
+  /* P0B.8 (r2, review finding 2) - the pending-adoption gate is enrolled-only.
+     Captured before `ready` so this is genuinely the synchronous first frame. */
+  const firstFrame = dom.window.document.getElementById('phone').textContent;
   await booted.api.ready;
   const expected = createTodayModel({ today: P0B_DAY });
+  const expectedKcal = TodayApp.calorieHeadline(expected.read().calorieTarget);
+  assert(expectedKcal, 'the fixture really carries a figure to check for');
+  assert.equal(firstFrame.includes(expectedKcal), true,
+    'an un-enrolled install paints the fixture exactly as A1 always has - the gate never applies here');
   assert.equal(JSON.stringify(booted.model.stateFromOps()), JSON.stringify(expected.stateFromOps()),
     'the basis is exactly today-model.cjs createBasisState, the fixture - adoption never touched it');
   assert.equal(dom.window.document.querySelector('[data-slot="setup-entry"]').hidden, false,
@@ -789,4 +796,74 @@ test('P0B.6 - no frame ever paints a foreign athlete: the only defined label any
   const defined = [...new Set(labels.filter((l) => typeof l === 'string'))];
   assert.deepEqual(defined, ['Dad'], 'across every render this load made, the only athlete label ever painted is his own');
   booted.hosts.close();
+});
+
+/* ==========================================================================
+   P0-B r2 (owner review, rebuild/lanes/c/P0B-REVIEW.md) - three findings, each
+   with its own cell, over the SAME real boot() this whole file already uses.
+   ========================================================================== */
+
+test('P0B.7 - the check-in adopts HIS state too: no fixture night offered on his sheet', async () => {
+  const kit = await p0bEnrolledDevice();
+  const { doc, booted } = await p0bOpen(kit);
+  await booted.api.ready;
+  /* Review finding 1: the entry today-entry.mjs:83 returns has no
+     adoptEngineState of its own; only entry.checkin (the model) does. */
+  assert.equal(typeof booted.checkin.checkin.adoptEngineState, 'function');
+  const view = booted.checkin.checkin.read();
+  assert.equal(view.sleepRecord, null, 'his own clean-init basis carries no fixture night');
+  booted.api.render('recovery', true);
+  const known = doc.querySelector('[data-slot="sleep-known"]');
+  assert.equal(known.hidden, true, 'nothing offered to confirm');
+  assert.equal(doc.getElementById('phone').textContent.includes('From your sleep record for'), false,
+    'the fixture\'s night is never offered on his sheet');
+  booted.hosts.close();
+});
+
+test('P0B.8 - an enrolled installation paints no fixture figure before adoption; S19 stays true', async () => {
+  const kit = await p0bEnrolledDevice();
+  const { doc, booted } = await p0bOpen(kit);
+  /* Captured before `ready`: this really is the synchronous first frame. */
+  const firstView = booted.model.read();
+  assert.equal(firstView.calorieTarget.gated, true, 'no fixture calorie figure before adoption resolves');
+  assert.equal(Number.isFinite(firstView.proteinTarget.g), false, 'no fixture protein figure before adoption resolves');
+  const weight = firstView.nowModel && firstView.nowModel.headed ? firstView.nowModel.headed.weight : NaN;
+  assert.equal(Number.isFinite(weight), false, 'no fixture weight trend before adoption resolves');
+  const fixtureView = createTodayModel({ today: P0B_DAY }).read();
+  const fixtureKcal = TodayApp.calorieHeadline(fixtureView.calorieTarget);
+  const fixtureTrend = TodayApp.trendLine(fixtureView);
+  assert(fixtureKcal, 'the fixture really carries a calorie figure to hide');
+  const firstFrame = doc.getElementById('phone').textContent;
+  assert.equal(firstFrame.includes(fixtureKcal), false, 'the fixture figure never paints, not even for one frame');
+  assert.equal(firstFrame.includes(fixtureTrend), false, 'nor the fixture weight trend');
+  assert.equal(doc.querySelector('[data-slot="setup-note"]').hidden, false, 'S19: the note stays visible on this frame');
+  await booted.api.ready;
+  booted.hosts.close();
+});
+
+test('P0B.9 - a tap that beats adoption is refused, not recorded: no fixture id lands in his store', async () => {
+  const kit = await p0bEnrolledDevice();
+  const hosts = await openTodayHosts({ indexedDB: kit.fault.indexedDB, crypto: webcrypto, day: P0B_DAY });
+  const realSetup = await createSetupEntry({ today: P0B_DAY }, { hosts });
+  assert.equal(realSetup.summary().enrolled, true);
+  /* The 300 ms delayed adoption the review reproduced (probe3.mjs B3): the
+     REAL read, only slow to settle - never a faked answer. */
+  const delayedSetup = { ...realSetup, athleteState: () => new Promise((resolve) => {
+    setTimeout(() => { realSetup.athleteState().then(resolve); }, 300);
+  }) };
+  const model = createTodayModel({ today: P0B_DAY });
+  const workout = await createWorkoutEntry(model, { hosts });
+  const dom = new JSDOM(shell());
+  const api = mountToday(dom.window.document, model, { workout, setup: delayedSetup });
+  /* The early tap: fired the instant mountToday returns, well inside the
+     300 ms window - over whatever host Start would have been live on before
+     this ticket, the fixture's. */
+  const early = await workout.gym.start();
+  assert.equal(early.ok, false, 'Start is refused while his own state is still loading');
+  assert.equal(early.code, 'WORKOUT_ADOPTION_PENDING');
+  await api.ready;
+  const card = await workout.gym.read();
+  assert.equal(card.phase, 'ready', 'the card rebased onto his own host once adoption settled: ' + (card.code || ''));
+  assert.equal(card.lift.id, 'chest-press', 'his own lift, never the fixture\'s');
+  hosts.close();
 });
