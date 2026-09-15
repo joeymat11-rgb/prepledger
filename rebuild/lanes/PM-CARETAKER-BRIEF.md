@@ -36,3 +36,7 @@ The PM of record is the Claude Cowork chat. This brief lets an Astra chat act as
 ## Owner-approved full Astra handover (2026-09-12)
 
 DECISIONS:193 and rebuild/lanes/astra/PM-OPERATING-CHARTER.md are current for PM identity, all-Astra review independence, B/C handoff and scheduling. Joe approved the exact plan with "Do it". This supersedes only conflicting role/caretaker/Claude-family restrictions above; existing product, custody, test and data rules remain as scoped in the new charter. Old void Astra decisions remain void. A new owner instruction is required to transfer PM authority again.
+
+## Owner-approved Claude PM return (2026-09-14)
+
+Owner412 supersedes the PM/model identity where it conflicts with193/398: the original Claude PM designated by Joe is sole PM, and Astra returns only as a reviewer when ordinary usage is available and a named scope is commissioned. Astra PM heartbeat is deleted; no automatic PM return or worker restart. Read rebuild/lanes/astra/CLAUDE-PM-HANDOFF.md and current STATUS/TEAM. Accepted work, independent roles, product/data/spending/release rules remain; this changes no D40 or science choice.

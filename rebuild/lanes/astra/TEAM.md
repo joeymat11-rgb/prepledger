@@ -1,12 +1,13 @@
-# Earned: active Astra team
+# Earned: Astra lanes under Claude PM
 
-PM checkpoint 2026-09-14 11:48 ET: THROTTLED410. B source-only plan404/406 was drafted but not committed before the00:30 ET usage refusal; branch remains9cc78e77. Eleven subsequent hourly wakes also refused, latest11:23 ET. Current ordinary Codex usage is unavailable; B heartbeat now PAUSED, Astra/MAX retained for unfinished plan, no paid fallback/retry. Standalone408 and coach400 scoped acceptances remain complete. PM30-minute quiet oversight; all other lanes LOW/paused. Exact handoff resumes after owner-enabled recovery. September18-23 forecast at risk; Q1-Q3 held.
+Owner handback 2026-09-14 22:57 ET, DECISIONS:412: original Claude PM is sole PM; Astra is review standby when ordinary usage returns and Claude assigns a named review. Astra PM heartbeat deleted, all worker heartbeats remain paused; no automatic PM recovery. Shared handoff: astra/CLAUDE-PM-HANDOFF.md, direct Claude receipt unverified. Launch M100820aa remains integrated210, standalone408 and coach400 scoped acceptances preserved; engine/import/full-memory/phone joins remain. D40 tie-break and science Q1-Q3 are not approved by this transfer.
 
 Execution control check 2026-09-13 23:41 ET: every saved seat is gpt-6-astra; actual B turn01a09df9-22c6-7d53-a2ad-1c0c782cfd05 is MAX. D2 complete review is followed by LOW standby, as intended. Audit: `.tmp/effort-audits/20260914T033723773871Z.json`. Model changes are not authorized by PM effort control; owner398 requires Astra only. No paid service, retry loop or acceptance shortcut.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
-| PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
+| PM | Original Claude PM designated by owner412; direct chat ID not verified here | Sole delivery/queue/assignment judge under owner-approved handback | Claude owns its cadence; not configured by Codex |
+| Astra review standby | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Former PM; named independent review after ordinary usage returns, no automatic dispatch | earned-pm-caretaker deleted412 |
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Astra MAX retained: usage-held410, unfinished two-file plan404/406 at9cc78e77; no runtime | earned-astra-b-follow-up; PAUSED after usage refusal |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: completea0e8ec38/testedc21e64f2 coach correction, scoped accepted400 | earned-astra-c-follow-up; PAUSED320 |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |

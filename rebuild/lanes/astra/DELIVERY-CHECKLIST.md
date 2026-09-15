@@ -1,10 +1,10 @@
 # Earned: current delivery checklist
 
-PM checkpoint 2026-09-14 11:48 ET: THROTTLED410. B source-only plan404/406 was drafted but not committed before the00:30 ET usage refusal; branch remains9cc78e77. Eleven subsequent hourly wakes also refused, latest11:23 ET. Current ordinary Codex usage is unavailable; B heartbeat now PAUSED, Astra/MAX retained for unfinished plan, no paid fallback/retry. Standalone408 and coach400 scoped acceptances remain complete. PM30-minute quiet oversight; all other lanes LOW/paused. Exact handoff resumes after owner-enabled recovery. September18-23 forecast at risk; Q1-Q3 held.
+Owner handback 2026-09-14 22:57 ET, DECISIONS:412: original Claude PM is sole PM; Astra is review standby when ordinary usage returns and Claude assigns a named review. Astra PM heartbeat deleted, all worker heartbeats remain paused; no automatic PM recovery. Shared handoff: astra/CLAUDE-PM-HANDOFF.md, direct Claude receipt unverified. Launch M100820aa remains integrated210, standalone408 and coach400 scoped acceptances preserved; engine/import/full-memory/phone joins remain. D40 tie-break and science Q1-Q3 are not approved by this transfer.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
-| Full Astra operating handover | Published193, eight development seats with schedules after E203 and separate integrator I; old work preserved, returning work reconciled by PM | PM and all leads |
+| Current PM authority | Owner412 returns sole PM to original Claude PM; Astra review standby. Earlier193 handover and all work remain historical; no automatic Astra return | Claude PM and all leads |
 | Fresh app launch | Launch package accepted/integrated atM100820aa; independent C/D2, B196, I fresh build/six Edge flows20kills; integration full34745429303 and shared34745429317 bothOS verified. No physical-phone or deployment claim | Complete in development; owner-use proof separate |
 | Shared mechanical preflight | Exact reviewed D200 + B201 workflow/registration adopted inM; actual bothOS67/67 and independent boundaries; full-custody/3UI preflight passed | Complete in development |
 | N2 sleep entry | Prior independent147 Node/10 fresh Edge/one process kill at8e65805 retained. R4 fixed-day affected-consumer applicability scoped ACCEPT310; same whole m3 now preserved in A3bfed63. No artificial advancing-clock/browser replay required; complete final engine/package/currentCI/integration still owed | B final engine admission; PM/third integrator; D2 only actual changed composition |

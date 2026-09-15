@@ -66,3 +66,7 @@ DECISIONS:193 and rebuild/lanes/astra/PM-OPERATING-CHARTER.md are current for PM
 ## Coaching memory and Lane E,2026-09-13
 
 Owner202 makes Coaching Memory v1 required for beta and authorizes design now, implementation after launch/N2. PM203 commissions Astra E, charter `rebuild/lanes/e/CHARTER.md`, initially only its own implementation-brief and beta-coverage documents. Current runtime custody and the single Today writer remain unchanged; PM assigns exact future memory/P6 paths after brief acceptance. D2 reviews future implementation after current priorities; a third role integrates. E is not a second PM or a general new builder pool. Current assignments and schedules live in astra/TEAM.md and DELIVERY-CHECKLIST.md; older lane tables above are historical where superseded.
+
+## Owner-approved Claude PM return (2026-09-14)
+
+Owner412 supersedes the PM/model identity where it conflicts with193/398: the original Claude PM designated by Joe is sole PM, and Astra returns only as a reviewer when ordinary usage is available and a named scope is commissioned. Astra PM heartbeat is deleted; no automatic PM return or worker restart. Read rebuild/lanes/astra/CLAUDE-PM-HANDOFF.md and current STATUS/TEAM. Accepted work, independent roles, product/data/spending/release rules remain; this changes no D40 or science choice.

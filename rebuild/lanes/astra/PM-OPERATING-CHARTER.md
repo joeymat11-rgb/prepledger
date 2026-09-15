@@ -33,3 +33,7 @@ Every active lead records a short STATUS event plus REQUESTS for actual dependen
 ## Memory scope and E assignment,2026-09-13
 
 Owner202 approves Coaching Memory v1 for beta, design now and code after launch/N2 prerequisites. PM203 commissions E for its bounded implementation brief and whole-plan beta coverage map under lanes/e/CHARTER.md. Initial custody is docs only; existing builder caps, product ownership and review priorities remain. PM is still sole judge; D2 is designated for future independent memory implementation review and a third role integrates. New product/science features discovered in E's audit remain owner choices unless already authorized.
+
+## Owner-approved Claude PM return (2026-09-14)
+
+Owner412 supersedes the PM/model identity where it conflicts with193/398: the original Claude PM designated by Joe is sole PM, and Astra returns only as a reviewer when ordinary usage is available and a named scope is commissioned. Astra PM heartbeat is deleted; no automatic PM return or worker restart. Read rebuild/lanes/astra/CLAUDE-PM-HANDOFF.md and current STATUS/TEAM. Accepted work, independent roles, product/data/spending/release rules remain; this changes no D40 or science choice.

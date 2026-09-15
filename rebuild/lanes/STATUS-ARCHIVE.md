@@ -727,3 +727,17 @@
 - SCHEDULE/DELIVERY: B hourly while active, PM30min; other waiting/completed seats LOW/paused. September18-23 personal forecast retains limited confidence, no rolling ETA. Dad follows the two-day same-candidate Joe trial; no live-data/phone claim.
 
 2026-09-13 20:07 ET · PM-CARETAKER · Astra · e99726a39e78268c65f894be687266483d736c50 · 366 clears one exact public workout composition input for D2/E science audit, static only. Original72 inputs plus two supplements; no findings shared between author/reviewer. Both MAX; B MAX364 limitation/plan continues. No product change or owner action.
+
+
+## Owner412 handback rotation — 2026-09-14 22:57 ET
+
+## STATE (refreshed 2026-09-14 11:48 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @63cc8446c3e7daa32b923116a99c1ce90bb72a41 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193, all seats Astra under398. Joe/history/approved memory then Dad; soak gates wide beta only. MAX critical judgment, HIGH routine coordination.
+- B: THROTTLED410, original plan404/406 turn failed at00:30 ET before immutable handoff; draft exists, branch9cc78e77 unchanged. Eleven automatic wakes also refused; current ordinary usage unavailable. Heartbeat now PAUSED, Astra/MAX retained without a new dispatch.
+- RECOVERY: same two-file plan after confirmed owner-enabled usage recovery. Exact sparse staging already authorized404; full final custody and writer/loader/auxiliary/checker-pin/platform judgment precede implementation. No quota retry/model/spending/account action.
+- STANDALONE: exact2592f091 Windows capability scoped accepted408 after full ER64ba4a96/all533 records. ER LOW/paused; original R1, writer/loading/private/platform/integration proof remains.
+- C/D2: exact coach correction scoped accepted400 after5cf5ef6a, both LOW/paused. E science contract388 complete/LOW. Q1-Q3 still require actual owner answers; I/D wait their accepted dependencies.
+- SCHEDULE/DELIVERY: PM30min quiet changed-state oversight; all worker heartbeats paused. September18-23 dated forecast at risk while usage-blocked, no rolling ETA. Dad follows two-day same-candidate Joe trial; no live-data/phone claim.
+
+2026-09-13 20:16 ET · PM-CARETAKER · Astra · 023597c2599a746a44a9780f2277d571ab65a298 · 368 verifies B limitation/185 raw copies; B LOW, ER MAX independent source feasibility.370 sends complete E science audit after D2 first assessment for MAX reconciliation;372 adds exact producer input. E LOW. No policy/native/phone PASS or owner action.
