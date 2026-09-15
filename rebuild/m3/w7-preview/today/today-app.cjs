@@ -78,6 +78,16 @@ function trendLine(view) {
    discover it. The screen behind it repeats the same words in full. */
 const NOT_WIRED = "Not wired yet";
 
+/* P0-B r2/r3 (review findings F5, N5) - the status-line sentence a rejected
+   setup.athleteState() prints, as a function of the cause, exactly the shape
+   today-entry.mjs's own bootFailureCopy already uses for a boot refusal.
+   Exported so a copy cell can assert it directly (no U+2013/U+2014, ends in
+   punctuation) without needing to force the rejection through a full mount. */
+function athleteStateFailureCopy(error) {
+  return "Not everything opened: athlete state: "
+    + (error && error.message ? error.message : String(error)) + ". Nothing was recorded.";
+}
+
 /* REPORT A PROBLEM (DECISIONS:140 (3)) - the three sentences the control can put on
    the screen. The approved 2026-09-08 design has no such control, so all three are
    preview-owned and declared in design.cjs PREVIEW_RUNTIME_COPY, which asserts each is
@@ -2025,7 +2035,99 @@ function mountToday(doc, model, options = {}) {
     const found = /[?&]screen=([a-z-]+)/.exec(search);
     return found ? found[1] : null;
   }
+  /* P0-B r2 (review findings 2, 3) - BEFORE the synchronous first paint, on an
+     ENROLLED installation only: hold Today's fixture-derived figures off this
+     frame (today-model.cjs setPendingAdoption - adoptBasis below clears it the
+     moment his own state actually lands, and it touches no basis, so S19 stays
+     exactly as it was) and hold the gym card's Start off until the SAME
+     adoption has settled (gym-model.mjs holdForAdoption), so a tap that wins
+     the race against setup.athleteState() can never commit a fixture exercise
+     id into his real store. `willAdopt` gates both the holds and the block
+     below that must release them, so neither is ever left set with nothing
+     left to release it. */
+  const willAdopt = !!(setup && typeof setup.summary === "function" && setup.summary().enrolled === true
+    && typeof setup.athleteState === "function" && typeof model.adoptBasis === "function");
+  if (willAdopt && typeof model.setPendingAdoption === "function") model.setPendingAdoption(true);
+  if (willAdopt && workout && workout.gym && typeof workout.gym.holdForAdoption === "function") {
+    workout.gym.holdForAdoption(true);
+  }
   render(requestedScreen() || "today");
+
+  /* P0 HIS NUMBERS (CRITICAL-PATH-2026-09-15 section 4, Route B) - ON AN ENROLLED
+     INSTALLATION, TODAY AND THE GYM CARD STAND ON THE ATHLETE'S OWN STATE.
+     today-entry.mjs is pinned on disk (H3) and is not the file that can read
+     setup.athleteState() and hand it to createTodayModel as the basis (the
+     Route A shape recorded in rebuild/lanes/c/P0-HIS-NUMBERS-AUTHOR-REPORT.md
+     section 2) without a lane-B re-pin no author here has. This module reads
+     the SAME state through the SAME accepted constructor, off the SAME
+     `options.setup` boot() already hands it, and adopts it here instead - once,
+     asynchronously, AFTER the synchronous first paint above. That paint is what
+     keeps S19's pinned assertion true (taken synchronously, before this promise
+     can possibly have settled: `setup.athleteState()` is a real read of this
+     installation's durable record, and nothing in today-entry.mjs awaits
+     mountToday). `ready` lets a caller that wants the ADOPTED state wait for
+     exactly this work; the shipped page never awaits it and is unchanged by its
+     existence. A constructor refusal is surfaced on the status line, exactly as
+     every other boot() cause is, and Today keeps the basis it already painted. */
+  let ready = Promise.resolve();
+  if (willAdopt) {
+    ready = setup.athleteState().then(async (state) => {
+      {
+        if (!state) return;
+        model.adoptBasis(state);
+        /* The gym card: rebase its host through hostForDay(day), which rereads
+           model.stateFromOps() at call time and so picks up the athlete just
+           adopted above. Then refresh the cached summary Today reads off the
+           workout entry, so the durable state the card next opens on agrees with
+           the one line Today already shows about it. */
+        if (workout && workout.gym && typeof workout.gym.rebase === "function") {
+          try { await workout.gym.rebase(); } catch (_) { /* the card keeps whatever host it already had */ }
+          if (typeof workout.refresh === "function") { try { await workout.refresh(); } catch (_) { /* reported on its own next read */ } }
+        }
+        /* P0-B r2 (review finding 1) - through the MODEL the entry actually
+           carries. `checkin` here is the ENTRY today-entry.mjs:83 returns
+           ({summary, refresh, setOnRefresh, open, checkin, host}); the entry
+           itself has no adoptEngineState, only entry.checkin (the model) does,
+           so this guard used to be permanently false and the fixture's sleep
+           night stood on his check-in sheet on every frame, unreached. */
+        if (checkin && checkin.checkin && typeof checkin.checkin.adoptEngineState === "function") {
+          checkin.checkin.adoptEngineState(state);
+        }
+        /* No render call of this module's own here (review, this ticket): the
+           repaint that shows the adopted state comes from workout.refresh()
+           above, through the SAME onRefresh -> api.render("today") wiring
+           boot() already gives every other durable change on this page. A
+           render here, unconditional on whatever screen or in-page control the
+           athlete already has open (the "Report a problem" box included), would
+           tear that down out from under them for no reason of its own; letting
+           the existing cascade own it is what every other lane on this page
+           already does. With no workout lane (a device with no workout store,
+           or a caller that mounts this module directly with none, as several
+           tests here do), Today's adopted state still paints correctly the next
+           time anything else repaints it - `read()` and `stateFromOps()` always
+           read the CURRENT (adopted) basis; only the automatic repaint waits. */
+      }
+    }).catch((error) => {
+      if (status) tell(athleteStateFailureCopy(error));
+    }).finally(() => {
+      /* P0-B r3 (review finding N1) - moved OUT of the `.then` (where it sat
+         inside a `try/finally` that a REJECTED athleteState() never reached,
+         so a corrupt or undecryptable first-run record left Start dark for
+         the whole page load behind a message that promised it would clear).
+         `.finally()` on the WHOLE chain runs after `.then` OR `.catch`, so
+         EVERY path - adopted, a falsy state, no workout lane, or a genuine
+         rejection - releases it. This alone does not hand the athlete the
+         fixture host back: gym-model.mjs's own `everHeld` guard (below)
+         keeps Start refused on an enrolled installation until a rebase has
+         actually happened, so releasing this flag only clears the ONE
+         early, worded refusal - it never becomes "Start over the fixture
+         host". */
+      if (workout && workout.gym && typeof workout.gym.holdForAdoption === "function") {
+        workout.gym.holdForAdoption(false);
+      }
+    });
+  }
+
   return { render, read: () => model.read(), openWeighIn, screen: () => screen,
     foodPending: () => foodSaving, foodReady: () => foodOpening,
     /* N2 - the in-flight sleep write, the lane's own opening, and the check-in
@@ -2039,7 +2141,10 @@ function mountToday(doc, model, options = {}) {
     sleepAck: () => (sleepAck ? { ...sleepAck } : null),
     sleepMount: () => mountToken,
     workoutEntry: () => workout,
-    workoutRebound: () => workoutRebinding };
+    workoutRebound: () => workoutRebinding,
+    /* P0-B - the boot chain's own settle promise, so a caller can await the
+       athleteState() adoption (or its refusal) without polling. */
+    ready };
 }
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by
@@ -2067,4 +2172,5 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   SLEEP_OPEN_CHECKIN, SLEEP_CHANGE, SLEEP_SAVE_CORRECTION, SLEEP_CANCEL,
   SLEEP_ROLLOVER, SLEEP_KEEP_NIGHT, SLEEP_NIGHT_CHANGED, SLEEP_CHECKIN_CHANGED,
   SLEEP_UNCERTAIN, SLEEP_CONFIRMED_PLAIN, SLEEP_CORRECTED_PREFIX, SLEEP_READ_RETRY,
-  SLEEP_KEPT };
+  SLEEP_KEPT,
+  athleteStateFailureCopy };
