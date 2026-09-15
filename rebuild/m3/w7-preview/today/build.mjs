@@ -133,6 +133,17 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/coach/machine-settings-commands.cjs",
   "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
   "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
+  /* N2 SLEEP (DECISIONS:167) - the producer, the projector seam S2 needs and the
+     durable lane. A build that lost sleep-model.cjs would be a page whose recorded
+     night never reaches `state.sleep.nights`, and therefore never reaches the workout
+     preparation or the recovery check-in; one that lost sleep-commands.cjs or
+     sleep-host.mjs would be a page whose sleep entry writes nowhere. sleep-host.mjs is
+     reached through a dynamic import (the page opens that lane itself, because
+     today-entry.mjs is pinned on disk by B-NTC), so naming it here is also what proves
+     the bundler really followed it. */
+  "rebuild/m3/w7-preview/today/sleep-commands.cjs",
+  "rebuild/m3/w7-preview/today/sleep-model.cjs",
+  "rebuild/m3/w7-preview/today/sleep-host.mjs",
   "rebuild/m4/workout/athlete-state.cjs",
   "rebuild/m3/w6/host/workout-host.mjs",
   "rebuild/m3/w6/host/engine-runtime-host.cjs",
