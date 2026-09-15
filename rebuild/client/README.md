@@ -43,6 +43,15 @@ Named actions (`weighIn`, `logSet`, `decision`, `correction`, `tombstone`, `undo
 `{ acknowledged, state, copy, op_id }`. An action is acknowledged only after ONE durable transaction wrote the operation
 and its outbox entry; otherwise nothing is recorded (state 3) and the entered value stays in `fieldValue(name)`.
 
+### P6: the reason on disk
+
+`respond(proposalId, answer, issuance)` takes an optional third argument, an `{ body, reason, revision, source,
+moment }` issuance copied byte-for-byte from the engine-issued proposal the caller already holds in memory. All five
+fields are required and `answer` must be `"accept"`; short of that the whole write refuses (state 3), nothing partial
+on disk, and a plain `respond(proposalId, answer)` behaves exactly as before. `reasonFor(proposalId)` reads it back:
+`{ recorded: true, reason, body, revision, source, moment, opId }` for an accepted consent that carries one, or
+`{ recorded: false, notRecordedBefore, copy }` for an older record with no issuance slot.
+
 ## Backend interface (store.cjs)
 
 ```

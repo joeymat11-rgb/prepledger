@@ -12,6 +12,9 @@ const COPY = {
   ANSWER_SAVED: "Answer saved on this phone · takes effect after sync",
   UNDO_SAVED: "Undo saved on this phone · takes effect after sync",
   RESOLUTION_SAVED: "Resolution saved",
+  /* P6: the engine's reason and proposal body on disk with an accepted consent */
+  REASON_NOT_RECORDED: (date) => "Not recorded before " + date + ". This plan change was accepted before Earned began storing engine reasons on this phone.",
+  ISSUANCE_INCOMPLETE: "A stored reason needs the engine's proposal body, reason, revision, source and moment together, and it only travels with an accepted answer.",
   /* Today */
   FIRST_USE: "first use, no accepted plan",
   NO_PLAN: "no accepted plan",
