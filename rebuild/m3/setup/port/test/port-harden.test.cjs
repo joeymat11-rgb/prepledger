@@ -376,5 +376,146 @@ test('a malformed string date is still echoed, truncated to 10 characters', () =
   const issues = shapeIssues(s);
   const issue = issues.find(i => i.code === 'PORT_SOURCE_DATE_INVALID' && i.detail.startsWith('class reads'));
   assert.ok(issue, JSON.stringify(issues));
-  assert.equal(issue.detail, 'class reads date at position 0 is invalid: "2026-99-99"');
+  // A truncated echo carries a trailing "..." (round 3, Fable r5 NOTE 7) so
+  // it can never be mistaken for a valid, whole 10-character date.
+  assert.equal(issue.detail, 'class reads date at position 0 is invalid: "2026-99-99"...');
+});
+
+/* --- P3-HARDEN ROUND 3 (PM order, round-2 review r4/r5 findings) ----------- */
+
+/* Finding 1 (Opus r4 / Fable r5, MAJOR): a night entry that is not an object
+   at all used to be silently skipped (`continue`), admitting null, a string,
+   a number, a boolean, or (via a keyed-nights container) a scalar entry.
+   Every one of those now refuses PORT_SOURCE_SHAPE_INVALID naming the index. */
+test('finding 1: a non-object night entry (null/string/number/boolean) refuses, does not seal PASS', () => {
+  const cases = [
+    ['null', null], ['string', 'a-string-night'], ['number', 42], ['boolean', true],
+  ];
+  for (const [label, bad] of cases) {
+    const s = clone();
+    s.sleep.nights[0] = bad;
+    const issues = shapeIssues(s);
+    assert.ok(issues.some(i => i.code === 'PORT_SOURCE_SHAPE_INVALID' &&
+      i.detail === `class nights entry at position 0 is not an object (got ${typeof bad === 'object' ? 'null' : typeof bad})`),
+      `${label}: ${JSON.stringify(issues)}`);
+  }
+});
+test('finding 1: object-shaped nights with a scalar entry ({a: 1}) refuses too', () => {
+  const s = clone();
+  s.sleep.nights = { a: 1 };
+  const issues = shapeIssues(s);
+  assert.ok(issues.some(i => i.code === 'PORT_SOURCE_SHAPE_INVALID' &&
+    i.detail === 'class nights entry at key a is not an object (got number)'), JSON.stringify(issues));
+});
+test('finding 1 end to end: sleep.nights[0] = null no longer seals PASS', () => {
+  const s = clone();
+  s.sleep.nights[0] = null;
+  const file = writeSource('nights-null-source', s);
+  const out = path.join(SCRATCH, 'nights-null-out');
+  const run = runPort(['--source', file, '--out', out]);
+  assert.equal(run.code, 2, run.out);
+  assert.match(run.out, /PORT_SOURCE_SHAPE_INVALID\s+class nights entry at position 0 is not an object/);
+  assert.equal(fs.existsSync(out), false, 'nothing written');
+});
+test('finding 1 via --local: a non-object night entry refuses local:PORT_SOURCE_SHAPE_INVALID', () => {
+  const local = clone();
+  local.sleep.nights[0] = 'a-string-night';
+  const sourceFile = writeSource('local-nights-source', clone());
+  const localFile = writeSource('local-nights-local', local);
+  const confirm = sha256First8(fs.readFileSync(localFile));
+  const out = path.join(SCRATCH, 'local-nights-out');
+  const run = runPort(['--source', sourceFile, '--local', localFile, '--local-confirm', confirm, '--out', out]);
+  assert.equal(run.code, 2, run.out);
+  assert.match(run.out, /local:PORT_SOURCE_SHAPE_INVALID\s+class nights entry at position 0 is not an object/);
+  assert.equal(fs.existsSync(out), false, 'nothing written');
+});
+
+/* Finding 2 (Fable r5, MAJOR): the --local shape check now runs on the RAW
+   parsed --local, right after it is read, before relatedness or prepare can
+   crash on a wrong-typed ARRAY class with a bare JavaScript error. */
+test('finding 2: --local queue={} refuses local:PORT_SOURCE_SHAPE_INVALID, not a crash', () => {
+  const local = clone();
+  local.queue = {};
+  const sourceFile = writeSource('local-queueobj-source', clone());
+  const localFile = writeSource('local-queueobj-local', local);
+  const confirm = sha256First8(fs.readFileSync(localFile));
+  const out = path.join(SCRATCH, 'local-queueobj-out');
+  const run = runPort(['--source', sourceFile, '--local', localFile, '--local-confirm', confirm, '--out', out]);
+  assert.equal(run.code, 2, run.out);
+  assert.match(run.out, /local:PORT_SOURCE_SHAPE_INVALID\s+class queue is not a\(n\) array \(got object\)/);
+  assert.equal(fs.existsSync(out), false, 'nothing written');
+});
+test('finding 2: --local reads="x" refuses local:PORT_SOURCE_SHAPE_INVALID, not a crash', () => {
+  const local = clone();
+  local.reads = 'x';
+  const sourceFile = writeSource('local-readsstr-source', clone());
+  const localFile = writeSource('local-readsstr-local', local);
+  const confirm = sha256First8(fs.readFileSync(localFile));
+  const out = path.join(SCRATCH, 'local-readsstr-out');
+  const run = runPort(['--source', sourceFile, '--local', localFile, '--local-confirm', confirm, '--out', out]);
+  assert.equal(run.code, 2, run.out);
+  assert.match(run.out, /local:PORT_SOURCE_SHAPE_INVALID\s+class reads is not a\(n\) array \(got string\)/);
+  assert.equal(fs.existsSync(out), false, 'nothing written');
+});
+test('finding 2: --local corrLog={} (on a sessionLog record) refuses local:PORT_SOURCE_SHAPE_INVALID', () => {
+  const local = clone();
+  const day = Object.keys(local.sessionLog)[0];
+  local.sessionLog[day].corrLog = {};
+  const sourceFile = writeSource('local-corrobj-source', clone());
+  const localFile = writeSource('local-corrobj-local', local);
+  const confirm = sha256First8(fs.readFileSync(localFile));
+  const out = path.join(SCRATCH, 'local-corrobj-out');
+  const run = runPort(['--source', sourceFile, '--local', localFile, '--local-confirm', confirm, '--out', out]);
+  assert.equal(run.code, 2, run.out);
+  assert.match(run.out, /local:PORT_SOURCE_SHAPE_INVALID\s+class corrections is not a\(n\) array \(got object\)/);
+  assert.equal(fs.existsSync(out), false, 'nothing written');
+});
+
+/* Finding 3 (Fable r5, MINOR, privacy): object-shaped nights echoed the
+   entry's KEY whole; dailyLogs/sessionLog keys already truncated to 10 via
+   badDate. The key label now truncates the same way, with the same "..."
+   trailing marker used for a truncated date value. */
+test('finding 3: a long object-shaped nights key never appears whole in the SHAPE line', () => {
+  const longKey = 'PERSONAL-LOOKING-KEY-THAT-IS-LONG';
+  const s = clone();
+  s.sleep.nights = { [longKey]: { h: 7 } };  // missing d -> SHAPE_INVALID
+  const issues = shapeIssues(s);
+  const issue = issues.find(i => i.code === 'PORT_SOURCE_SHAPE_INVALID' && i.detail.startsWith('class nights'));
+  assert.ok(issue, JSON.stringify(issues));
+  assert.ok(!issue.detail.includes(longKey), 'the full key must not appear: ' + issue.detail);
+  assert.equal(issue.detail, 'class nights entry at key "PERSONAL-L"... is missing d');
+});
+test('finding 3: a long object-shaped nights key never appears whole in the DATE_INVALID line', () => {
+  const longKey = 'ANOTHER-PERSONAL-LOOKING-KEY-HERE';
+  const s = clone();
+  s.sleep.nights = { [longKey]: { d: null } };
+  const issues = shapeIssues(s);
+  const issue = issues.find(i => i.code === 'PORT_SOURCE_DATE_INVALID');
+  assert.ok(issue, JSON.stringify(issues));
+  assert.ok(!issue.detail.includes(longKey), 'the full key must not appear: ' + issue.detail);
+  assert.equal(issue.detail, 'class nights date at key "ANOTHER-PE"... is invalid: <null>');
+});
+
+/* Finding 4 (Opus r4, MINOR): PORT_SOURCE_CLASS_MISSING for 'earned' used to
+   print "(no earned key)"; 'earned' is backed by 'feed', which has no key of
+   its own, so the line now names the REAL backing key. */
+test('finding 4: earned CLASS_MISSING names the real backing key (feed)', () => {
+  const s = clone();
+  delete s.feed;
+  const issues = shapeIssues(s);
+  const issue = issues.find(i => i.code === 'PORT_SOURCE_CLASS_MISSING' && i.detail.includes('earned'));
+  assert.ok(issue, JSON.stringify(issues));
+  assert.equal(issue.detail, 'class earned is missing from the source (no feed key)');
+});
+
+/* Finding 5 (Opus r4, MINOR): a corrLog present but not an array (object,
+   string, number) used to be treated as [] here, raising no issue at all
+   (PREPARE refused it downstream, but this check did not say so). */
+test('finding 5: an object-typed corrLog now refuses PORT_SOURCE_SHAPE_INVALID', () => {
+  const day = Object.keys(BASE.sessionLog)[0];
+  const s = clone();
+  s.sessionLog[day].corrLog = { not: 'an array' };
+  const issues = shapeIssues(s);
+  assert.ok(issues.some(i => i.code === 'PORT_SOURCE_SHAPE_INVALID' &&
+    i.detail === 'class corrections is not a(n) array (got object)'), JSON.stringify(issues));
 });

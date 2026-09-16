@@ -258,7 +258,7 @@ const SHAPE_CLASSES = Object.freeze([
   { cls: 'sessionLog', get: s => s.sessionLog, type: 'object' },
   { cls: 'exercises', get: s => s.exercises, type: 'array' },
   { cls: 'queue', get: s => s.queue, type: 'array' },  // backs both 'queue' and 'debuts' (debuts is queue-derived, no key of its own)
-  { cls: 'earned', get: s => s.feed, type: 'array' },  // 'earned' has no key of its own - census derives it from feed
+  { cls: 'earned', get: s => s.feed, type: 'array', key: 'feed' },  // 'earned' has no key of its own - census derives it from feed
   { cls: 'events', get: s => s.events, type: 'array' },
   // waist is the one guarded class m4/workout/athlete-state.cjs's OWN accepted
   // createCleanInitState() genuinely never writes (not even as []) - "Every
@@ -271,16 +271,25 @@ const SHAPE_CLASSES = Object.freeze([
 ]);
 const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
 const typeName = v => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v);
+// PRIVACY: a 'key' locLabel (object-shaped nights) echoes a real ledger key,
+// not a bare index - truncate it exactly like a date VALUE below, so a long
+// key never appears whole in a report line. A 'position' index is always a
+// number and passes through untouched.
+const truncateLabel = (locLabel, idx) =>
+  (locLabel === 'key' && typeof idx === 'string' && idx.length > 10)
+    ? JSON.stringify(idx.slice(0, 10)) + '...' : idx;
 
 function shapeIssues(source) {
   const issues = [];
   const typed = {};
-  for (const { cls, get, type, optional } of SHAPE_CLASSES) {
+  for (const { cls, get, type, optional, key } of SHAPE_CLASSES) {
     let value;
     try { value = get(source); } catch { value = undefined; }
     if (value === undefined) {
       if (!optional) {
-        issues.push({ code: 'PORT_SOURCE_CLASS_MISSING', detail: `class ${cls} is missing from the source (no ${cls} key)` });
+        // Name the ACTUAL backing key (e.g. 'earned' is backed by 'feed', no
+        // key of its own) rather than the class label when the two differ.
+        issues.push({ code: 'PORT_SOURCE_CLASS_MISSING', detail: `class ${cls} is missing from the source (no ${key || cls} key)` });
       }
       continue;
     }
@@ -299,11 +308,14 @@ function shapeIssues(source) {
   // since that could carry a ledger fact. For anything else, name only the
   // type; the class and position already say where.
   const badDate = (cls, locLabel, index, value) => {
+    // A truncated echo gets a trailing "..." so it can never be mistaken for
+    // a valid, whole value (e.g. "2024-06-01T00:00" would otherwise echo as
+    // the well-formed-looking "2024-06-01").
     const shown = typeof value === 'string'
-      ? JSON.stringify(value.length > 10 ? value.slice(0, 10) : value)
+      ? (value.length > 10 ? JSON.stringify(value.slice(0, 10)) + '...' : JSON.stringify(value))
       : `<${typeName(value)}>`;
     issues.push({ code: 'PORT_SOURCE_DATE_INVALID',
-      detail: `class ${cls} date at ${locLabel} ${index} is invalid: ${shown}` });
+      detail: `class ${cls} date at ${locLabel} ${truncateLabel(locLabel, index)} is invalid: ${shown}` });
   };
   if (Array.isArray(typed.reads)) typed.reads.forEach((r, i) => { if (!validDay(r && r.d)) badDate('reads', 'position', i, r && r.d); });
   if (isPlainObject(typed.dailyLogs)) Object.keys(typed.dailyLogs).forEach((k, i) => { if (!validDay(k)) badDate('dailyLogs', 'position', i, k); });
@@ -317,7 +329,17 @@ function shapeIssues(source) {
     // Checking entry.d (the old code) checked a key that never exists.
     dates.forEach(k => {
       const rec = typed.sessionLog[k];
-      const log = rec && Array.isArray(rec.corrLog) ? rec.corrLog : [];
+      const corrLog = rec && rec.corrLog;
+      // A PRESENT-but-wrong-typed corrLog (object, string, number...) used to
+      // be silently treated as [] here; PREPARE refuses it downstream, but
+      // this check never said so. Refuse it here by name, same as any other
+      // wrong-typed class, instead of masking it as empty.
+      if (corrLog !== undefined && !Array.isArray(corrLog)) {
+        issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
+          detail: `class corrections is not a(n) array (got ${typeName(corrLog)})` });
+        return;
+      }
+      const log = Array.isArray(corrLog) ? corrLog : [];
       log.forEach((entry, i) => {
         const op = entry && entry.op;
         const parts = typeof op === 'string' ? op.split(':') : null;
@@ -344,10 +366,18 @@ function shapeIssues(source) {
     const locLabel = keyed ? 'key' : 'position';
     const entries = keyed ? Object.entries(typed.nights) : typed.nights.entries();
     for (const [i, entry] of entries) {
-      if (!entry || typeof entry !== 'object') continue;
+      // P3-HARDEN round 3 (PM order): a night that is not an object at all
+      // (null, a string, a number, a boolean, or - for keyed nights - a
+      // scalar entry like {a: 1}) used to be silently skipped here, admitting
+      // it with no issue raised. Refuse it by name instead of continuing past it.
+      if (!entry || typeof entry !== 'object') {
+        issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
+          detail: `class nights entry at ${locLabel} ${truncateLabel(locLabel, i)} is not an object (got ${typeName(entry)})` });
+        continue;
+      }
       if (!Object.hasOwn(entry, 'd')) {
         issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
-          detail: `class nights entry at ${locLabel} ${i} is missing d` });
+          detail: `class nights entry at ${locLabel} ${truncateLabel(locLabel, i)} is missing d` });
         continue;
       }
       if (!validDay(entry.d)) badDate('nights', locLabel, i, entry.d);
@@ -547,6 +577,19 @@ async function run(argv) {
       say('LOCAL', 'FAIL', 'LOCAL_UNREADABLE  (not strict JSON, or no schema version)');
       return 2;
     }
+    // P3-HARDEN round 3 (PM order): run the SAME seal-time shape refusal on
+    // the RAW parsed --local, right here, before relatedness or prepare()
+    // ever touch it. The b3 check below (after COUNTS) runs too late for a
+    // wrong-typed ARRAY class: relatedness()'s own .map/.filter throws first,
+    // with no PORT_SOURCE_* line and no --local:-blame, exit 1 not 2. This
+    // check is cheap and catches it before anything downstream can crash.
+    const rawLocalIssues = shapeIssues(localHead);
+    if (rawLocalIssues.length) {
+      say('SHAPE', 'FAIL', `${rawLocalIssues.length} issue(s) in --local (nothing written)`);
+      for (const issue of rawLocalIssues) note(`local:${issue.code}  ${issue.detail}`);
+      note('The --local source is malformed. NO BUNDLE WRITTEN.');
+      return 2;
+    }
     localRelated = relatedness(sourceHead, localHead, engine.SCHEMA_V);
     say('LOCAL', localRelated.related ? 'PASS' : 'FAIL', `${opts.local}  sha256=${localSha256}  bytes=${localBytes.length}`);
     note(`schema ${localHead.v} (source ${sourceHead.v}, engine ${engine.SCHEMA_V})  lineage=${localRelated.lineage}  ` +
@@ -614,11 +657,15 @@ async function run(argv) {
     return 2;
   }
 
-  // b3. the SAME seal-time shape refusal that ran on the source, now run on
-  //     the PREPARED --local state too. A clean source cannot save a --local
-  //     whose own reads/dates/classes are malformed: the unsealed migrated
-  //     state carries whatever --local contributed, and COUNTS above is a
-  //     decrease rule blind to a bad date or a class --local never declared.
+  // b3. the SAME seal-time shape refusal that ran on the source, now run
+  //     AGAIN on the PREPARED --local state. P3-HARDEN round 3 (PM order)
+  //     moved the primary --local shape check earlier (right after LOCAL is
+  //     read, above prepare()/relatedness()), because a wrong-typed ARRAY
+  //     class used to crash inside relatedness() or census before it ever
+  //     got here. This second run is kept: it costs nothing on a clean
+  //     --local, and it is the only check that sees --local AFTER prepare()
+  //     has migrated it, in case migration itself ever introduces a shape
+  //     issue the raw check upstream could not have seen.
   //     Same codes, prefixed by the side, so a report line always says which
   //     file is at fault. Nothing written on refusal, same as the source check.
   if (localBytes) {

@@ -123,13 +123,23 @@ happens, not as proof of identity.
 
 ## If it stops
 
+- **Check order.** Both a `--source` and a `--local` file are checked in the
+  same order: raw parse (valid JSON, a schema version), then shape (the
+  three `PORT_SOURCE_*` checks below, on the RAW file as read), then
+  relatedness (`--local` only), then prepare (migrate, and merge if
+  `--local`), then counts. A `--local` file's own shape is checked as soon as
+  it is read, before relatedness or prepare ever touch it - not after, so a
+  wrong-typed class in it cannot crash relatedness or the census with a bare
+  JavaScript error instead of a named refusal.
 - **`PORT_SOURCE_CLASS_MISSING`** - a record class the census depends on
   (reads, sleep nights, daily logs, session log, exercises, queue, feed, or
   events) is absent from the source entirely, not merely empty. Checked
   BEFORE migration, so a class that is 0 on both sides (invisible to the
   counts check below) cannot slip through as a shrink. Nothing was written.
-  (`waist` is the one exception: the accepted clean-init state genuinely never
-  writes it, so its absence alone is not refused - only a wrong type is.)
+  The line names the actual backing key when it differs from the class name
+  (`earned` has no key of its own - it is backed by `feed`, and the line says
+  so). (`waist` is the one exception: the accepted clean-init state genuinely
+  never writes it, so its absence alone is not refused - only a wrong type is.)
 - **`PORT_SOURCE_DATE_INVALID`** - a date-bearing field in reads, logs, sleep
   nights, sessions or corrections is not a real calendar day (same rule the
   phone's own admission uses). Nights and corrections meet this rule too now
@@ -138,14 +148,20 @@ happens, not as proof of identity.
   checked against the day embedded in the engine's own `op` field (there is
   no top-level `d` on a correction) and against `at` parsing as a date. The
   line names the class and the position (or, for object-shaped sleep nights,
-  the key). A malformed non-string value is never echoed - only its type.
-  Nothing was written.
+  the key, itself truncated to 10 characters the same way a date value is
+  when it is long). A malformed non-string value is never echoed - only its
+  type. A truncated string value carries a trailing `...` so it can never be
+  mistaken for a valid, whole value. Nothing was written.
 - **`PORT_SOURCE_SHAPE_INVALID`** - a required class is present but not the
   type the census expects (an object where an array was needed, or the
-  reverse), or a sleep-night / correction entry is missing its date field
-  entirely. Nothing was written.
-- **`local:PORT_SOURCE_*`** - the same three checks above, run again on a
-  `--local` file's own shape before it can be merged in. Nothing was written.
+  reverse); a sleep-night entry that is not an object at all (`null`, a
+  string, a number, a boolean); a sleep-night or correction entry missing its
+  date field entirely; or a `corrLog` that is present but not an array.
+  Nothing was written.
+- **`local:PORT_SOURCE_*`** - the same three checks above, run again on the
+  RAW `--local` file, right after it is read - before relatedness, before it
+  can be merged in, and before anything downstream could crash on its shape
+  instead of naming it. Nothing was written.
 - **`COUNTS FAIL … SHRANK`** — a class of record came out of the walk smaller
   than it went in. Nothing was written. The line names the class and both
   numbers.
