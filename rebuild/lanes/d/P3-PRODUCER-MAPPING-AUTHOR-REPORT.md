@@ -41,7 +41,7 @@ Its guards are the engine identity, the gate and the calendar; the material is p
 the accepted A1 build (`buildToday()`, 121 pinned inputs): `browser-entry.mjs` **out** of the page
 graph, `source-admission.mjs` **out**, `local-client.mjs` **in**, `rebuild/m4/import/` **0**
 inputs — so injecting through `local-client.mjs` trips A1 at once, and exporting from `browser-entry.mjs` reaches no production caller. The line that must change first is
-`rebuild/m3/w7-preview/today/build.mjs:51`, `["rebuild/m4/import/*", (p) => /^rebuild\/m4\/import\//.test(p)],` — a `today/**` byte, P3-IMPORT-UI-2's in S6 by :475 rule (1). I stopped there; this ticket moves no byte for wiring and edits no sealed file.
+`rebuild/m3/w7-preview/today/build.mjs:53 (corrected by the integrator from :51, review r1 MAJOR 1 and r3 MAJOR 1)`, `["rebuild/m4/import/*", (p) => /^rebuild\/m4\/import\//.test(p)],` — a `today/**` byte, P3-IMPORT-UI-2's in S6 by :475 rule (1). I stopped there; this ticket moves no byte for wiring and edits no sealed file.
 
 ## 4. The bar, cell by cell (executed, real stores, no stubs)
 | bar item | cells |
@@ -68,7 +68,7 @@ the two suites to rebuild.yml. No engine byte, no `today/**` byte and no declare
 touched, so there is no WORKTREE-SOURCE-PIN or SEALED-PROFILE-RECOMPUTATION red.
 
 ## 7. Stops and open items
-1. **Wiring** stops at `today/build.mjs:51` (§3) — P3-IMPORT-UI-2, S6.
+1. **Wiring** stops at `today/build.mjs:53 (corrected by the integrator from :51, review r1 MAJOR 1 and r3 MAJOR 1)` (§3) — P3-IMPORT-UI-2, S6.
 2. **Runbook pre-check 6 caveat (:472)**: every admitting cell before this ticket qualified
    through a TEST-ONLY mapping, so it can be lifted only when this mapping is what the PHONE
    uses, i.e. after (1). I did NOT edit `P3-RUNBOOK.md`; naming it here is my whole change to it.
