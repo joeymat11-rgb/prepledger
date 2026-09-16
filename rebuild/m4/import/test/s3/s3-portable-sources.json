@@ -375,7 +375,7 @@
     },
     {
       "path": "rebuild/m4/import/test/s3/harness.test.mjs",
-      "sha256": "72f7e9c66a21ad30eeb5f395825e2c5737028bbc4ae6d3ed1c4834e44243a8fd"
+      "sha256": "2e9117885b8ddde9002b9497f4baf5c8706262a2e09e9f9b10b921ba3e1c7fd0"
     },
     {
       "path": "rebuild/m4/import/test/s3/mutations.cjs",

@@ -12,7 +12,9 @@ function fixture(){
  assert.ok(base,'Actual owned dispatcher scratch required');
  const root=fs.mkdtempSync(path.join(base,'harness-control-'));
  const source='export const value = 1;\n',file='rebuild/public.mjs';
- fs.mkdirSync(path.join(root,'rebuild/m4/spec'),{recursive:true});fs.writeFileSync(path.join(root,file),source);
+ // The control tree needs whatever directory the manifest constant names, which
+ // P2 moved out of the sealed rebuild/m4/spec tree and beside this harness.
+ fs.mkdirSync(path.dirname(path.join(root,MANIFEST)),{recursive:true});fs.writeFileSync(path.join(root,file),source);
  const manifest={profile:'earned/s3-provisional-public-sources/v1',sources:[{path:file,sha256:sha256(source)}]};
  fs.writeFileSync(path.join(root,MANIFEST),JSON.stringify(manifest));
  return {root,source,file,manifest};
