@@ -566,6 +566,100 @@ function mountToday(doc, model, options = {}) {
     return foodOpening;
   }
 
+  /* ---------------- P-MEASURE (round 2) - THE MEASURE LANE ----------------
+     Closing reviewer round-1 findings 1 and 2: opened here for the SAME reason
+     N1's food lane and N2's sleep lane are - today-entry.mjs boot() and
+     rebuild/m3/w6/local/today-bindings.mjs are both pinned on disk
+     (DECISIONS:154 (5)), so this route opens its own lane lazily, through
+     measure-host.mjs's own `era.client.hostBindings({workoutCommands})`,
+     failing CLOSED exactly as the food and sleep lanes do: no encrypted local
+     store, no lane, nothing recorded. */
+  let measureLane = options.measure || null;
+  let measureOpening = null;
+  let measureLaneFailure = null;
+  let measureError = "";
+
+  function openMeasureLane() {
+    if (measureLane || measureOpening) return measureOpening;
+    const view2 = doc.defaultView || null;
+    const idb = (view2 && view2.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
+    const web = (view2 && view2.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
+    if (!idb || !web || !web.subtle) { measureLaneFailure = "NO_LOCAL_STORE"; return null; }
+    measureOpening = Promise.resolve()
+      .then(() => import("./measure-host.mjs"))
+      .then((module) => module.createMeasureHost({ day: model.today, indexedDB: idb, crypto: web }))
+      .then((host) => {
+        measureLane = host;
+        if (screen === "measure") render(screen, false);
+        return host;
+      })
+      .catch((error) => {
+        measureLane = null;
+        measureLaneFailure = (error && (error.code || error.message)) || "MEASURE_LANE_UNAVAILABLE";
+        if (screen === "measure") render(screen, false);
+        return null;
+      });
+    return measureOpening;
+  }
+
+  /* The measure screen itself. No approved template exists for it yet (round 1
+     review, finding 2), so it is built directly with createElement, exactly as
+     measure-view.mjs's own mount functions are - see those for why. */
+  async function renderMeasure(focus) {
+    const root = doc.createElement("section");
+    root.id = "measure-screen";
+    const heading = doc.createElement("h1");
+    heading.textContent = "Measure";
+    root.append(heading);
+    const back = doc.createElement("button");
+    back.type = "button";
+    back.textContent = "Back";
+    back.addEventListener("click", () => render("today", true));
+    root.append(back);
+    const entryHost = doc.createElement("div");
+    const comparisonHost = doc.createElement("div");
+    root.append(entryHost, comparisonHost);
+    const token = mountToken;
+    show(root, focus);
+
+    if (!measureLane && !measureLaneFailure) openMeasureLane();
+    const MeasureView = await import("./measure-view.mjs");
+    if (token !== mountToken) return root;
+    if (!measureLane) {
+      const p = doc.createElement("p");
+      p.textContent = measureLaneFailure
+        ? "This browser did not give the page an encrypted local store to keep measurements in."
+        : "Opening this device's encrypted store.";
+      comparisonHost.replaceChildren(p);
+      return root;
+    }
+    const MeasureModel = await import("./measure-model.mjs");
+    const Baseline = await import("./measure-baseline.mjs");
+    const rows = await measureLane.all();
+    if (token !== mountToken) return root;
+    MeasureView.mountWaistEntry(doc, entryHost, {
+      today: model.today, error: measureError,
+      onSave: async (entry) => {
+        const refusal = MeasureModel.waistRefusalFor(entry, model.today);
+        if (refusal === MeasureModel.WAIST_REFUSALS.NOTHING) return;
+        if (refusal) { measureError = refusal; return render("measure", false); }
+        const built = MeasureModel.waistFromEntry(entry, model.today);
+        const result = await measureLane.save(built);
+        if (token !== mountToken) return;
+        measureError = result.ok ? "" : (result.code || "WAIST_WRITE_REFUSED");
+        return render("measure", false);
+      } });
+    const markers = (await measureLane.markers()) || [];
+    if (token !== mountToken) return root;
+    const trialWeeks = [MeasureModel.computeWeek({ startDate: model.today, index: 0,
+      reads: [], waistRows: rows, sets: [], markers, today: model.today })];
+    const baseline = setup ? await Baseline.baselineWeeks(setup, model.today, 8, markers) : [];
+    if (token !== mountToken) return root;
+    const compView = MeasureView.buildComparisonView({ baselineWeeks: baseline, trialWeeks, markers });
+    MeasureView.mountMeasureComparison(doc, comparisonHost, compView);
+    return root;
+  }
+
   let screen = "today";
   /* A3 review F7 — BACK RETURNS WHERE THE ATHLETE CAME FROM. The check-in is reachable
      from two places, and "back" from it must not silently move the athlete: entered
@@ -733,6 +827,17 @@ function mountToday(doc, model, options = {}) {
       return owed && !resuming ? openWeighIn() : render("workout", true);
     });
     if (!owed && view.workout.exerciseCount === null) primary.disabled = true;
+
+    /* P-MEASURE (round 2, closing finding 2 - "nothing renders"): the ONE way
+       Today reaches the comparison view. No approved tile exists for this
+       screen yet, so it is a plain button, built and wired the same way
+       wire(root)'s own [data-go] loop wires every other route off this page. */
+    const measureTile = doc.createElement("button");
+    measureTile.type = "button";
+    measureTile.dataset.slot = "measure-tile";
+    measureTile.dataset.go = "measure";
+    measureTile.textContent = "Measure";
+    root.append(measureTile);
 
     wire(root);
     show(root, focus);
@@ -2033,6 +2138,7 @@ function mountToday(doc, model, options = {}) {
       }
       return renderCheckInWithoutStore(focus, origin);
     }
+    if (next === "measure") return renderMeasure(focus);
     if (next === "coach") return renderStub("t-coach", focus,
       "The coach is not wired yet. There is no conversation here, and nothing on this screen comes from your records.");
     if (next === "workout") {

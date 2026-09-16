@@ -40,7 +40,10 @@ export const WAIST_REFUSALS = Object.freeze({
 export function waistRefusalFor(entry, today) {
   const raw = trimmed(entry && entry.in);
   const date = trimmed(entry && entry.date);
-  if (raw === "" && date === "") return WAIST_REFUSALS.NOTHING;
+  /* ROUND 2, FINDING 11 - a blank value is NOTHING whether or not the date box
+     was touched: the athlete has entered no waist figure, and that is never an
+     out-of-range one. Only a non-blank value is ever bounds-checked. */
+  if (raw === "") return WAIST_REFUSALS.NOTHING;
   if (!DAY_RE.test(date) || (typeof today === "string" && DAY_RE.test(today) && date > today)) {
     return WAIST_REFUSALS.WEEK_DATE;
   }
@@ -113,12 +116,15 @@ export function weeklyWeightAverage(reads, startDate, index) {
   return Math.round((sum / 7) * 100) / 100;
 }
 
-/* The weekly waist value: the entry recorded inside that week's own seven dates. */
+/* The weekly waist value: the entry recorded inside that week's own seven dates.
+   ROUND 2, FINDING 10 - when more than one date inside the week carries a
+   (already deduplicated by projectWaist) row, the LATEST date wins, matching
+   this module's own "latest wins" rule rather than array order. */
 export function weeklyWaistValue(waistRows, startDate, index) {
   const dates = new Set(weekDates(startDate, index));
-  const projected = projectWaist(waistRows);
-  const hit = projected.find((r) => dates.has(r.date));
-  return hit ? hit.in : null;
+  const inWeek = projectWaist(waistRows).filter((r) => dates.has(r.date));
+  if (!inWeek.length) return null;
+  return inWeek.reduce((latest, r) => (r.date > latest.date ? r : latest)).in;
 }
 
 /* The four-week waist trend: this week's value minus the value four weeks earlier,
@@ -160,8 +166,23 @@ export function pct(numerator, denominator) {
   return Math.round((numerator / denominator) * 1000) / 10;
 }
 
-export const trainingAdherencePct = (completed, planned) => pct(completed, planned);
-export const loggingAdherencePct = (loggedDays, daysInWeek) => pct(loggedDays, daysInWeek);
+/* ROUND 2, FINDING 7 - an adherence percentage never exceeds 100: more sessions
+   or more logged days than were possible is a counting fact upstream, not a
+   number this screen shows past its own ceiling. */
+const clampPct = (value) => (value === null ? null : Math.min(100, value));
+export const trainingAdherencePct = (completed, planned) => clampPct(pct(completed, planned));
+export const loggingAdherencePct = (loggedDays, daysInWeek) => clampPct(pct(loggedDays, daysInWeek));
+
+/* ROUND 2, FINDING 6 - the denominator is the days of the week that have
+   actually ELAPSED as of `today`, not a hardcoded 7. Joe's day one is an
+   install day (DECISIONS:432 c, :452): a 3-day-old week has 3 elapsed days,
+   and 3 of 3 logged reads 100%, never 42.9%. With no `today` given (the
+   baseline's own complete weeks, always in the past) every one of the week's
+   seven dates counts, unchanged from round 1. */
+export function elapsedDaysInWeek(dates, today) {
+  if (typeof today !== "string" || !DAY_RE.test(today)) return dates.length;
+  return dates.filter((d) => d <= today).length;
+}
 
 /* Sleep nights meeting the app's own qualifying rule. `nights` is an array of
    { date, clean } for the week's seven dates, where `clean` is the caller's own
@@ -176,21 +197,24 @@ export function sleepQualifyingCount(nights) {
    ONE WEEK, ALL MEASURES. The row the comparison view (measure-view.mjs) renders.
    --------------------------------------------------------------------------- */
 export function computeWeek({ startDate, index, reads, waistRows, sets, markers,
-  sessionsCompleted, sessionsPlanned, foodDaysLogged, energyDaysLogged, nights } = {}) {
+  sessionsCompleted, sessionsPlanned, foodDaysLogged, energyDaysLogged, nights, today } = {}) {
   const marker1RM = {};
   for (const marker of Array.isArray(markers) ? markers : []) {
     marker1RM[marker] = weeklyMarker1RM(sets, marker, startDate, index);
   }
+  const dates = weekDates(startDate, index);
+  /* ROUND 2, FINDING 6 - the elapsed days of THIS week, from `today`. */
+  const elapsed = elapsedDaysInWeek(dates, today);
   return {
     week: index + 1,
-    dates: weekDates(startDate, index),
+    dates,
     weightAvg: weeklyWeightAverage(reads, startDate, index),
     waist: weeklyWaistValue(waistRows, startDate, index),
     waistTrend4Week: waistTrend4Week(waistRows, startDate, index),
     marker1RM,
     trainingAdherencePct: trainingAdherencePct(sessionsCompleted, sessionsPlanned),
-    foodAdherencePct: loggingAdherencePct(foodDaysLogged, 7),
-    energyAdherencePct: loggingAdherencePct(energyDaysLogged, 7),
+    foodAdherencePct: loggingAdherencePct(foodDaysLogged, elapsed),
+    energyAdherencePct: loggingAdherencePct(energyDaysLogged, elapsed),
     sleepQualifyingNights: sleepQualifyingCount(nights),
   };
 }
@@ -199,5 +223,5 @@ export default {
   ONE_RM_FORMULA_NAME, ONE_RM_FORMULA_TEXT,
   WAIST_MIN, WAIST_MAX, WAIST_REFUSALS, waistRefusalFor, waistFromEntry, projectWaist, loggedWaist,
   weekDates, weeklyWeightAverage, weeklyWaistValue, waistTrend4Week, estimate1RM, weeklyMarker1RM,
-  pct, trainingAdherencePct, loggingAdherencePct, sleepQualifyingCount, computeWeek,
+  pct, trainingAdherencePct, loggingAdherencePct, elapsedDaysInWeek, sleepQualifyingCount, computeWeek,
 };
