@@ -90,10 +90,17 @@ test('P3-B2 - the accepted page bundler now BUILDS the Import graph: no computed
       'rebuild/conform is still reached through the sweep');
     /* THE FIGURE, measured on this tree and on the brief's (DECISIONS:472 row E,
        "133 modules"): the same 133. It is recorded exactly so that whoever
-       moves the page comes back and re-measures rather than assuming. */
-    assert.equal(withAdmission.inventory.length, 133,
+       moves the page comes back and re-measures rather than assuming.
+       RE-MEASURED BY P3-REPLAY-MEASURE-FAMILY (lane D), and saying so as the
+       message above demands: 134. The one added module is
+       rebuild/m4/import/measure-replay.cjs, the F7 family, reached ONLY from
+       source-admission.mjs. Its own two reads, the S5 producer
+       measure-commands.cjs and client/ops.cjs, were already in this graph
+       (the page ships the Measure screen), so the family costs exactly one
+       module and no new leaf. */
+    assert.equal(withAdmission.inventory.length, 134,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'brief\'s measured 133: re-measure and say so');
+      + 'measured 134 (the brief\'s 133 plus the F7 family): re-measure and say so');
   });
 
 /* AND THE LAW STILL REFUSES. This is the old P3-B3 with its stub plugin
@@ -114,11 +121,17 @@ test('P3-B3 - the page input law STILL refuses that graph, and what it refuses '
        requires migrate and merge by LITERAL path, to reproduce on the phone the
        walk port.cjs already did on the PC (SOURCE_PREPARATION_REPRODUCTION_
        MISMATCH); that is why those two are here and why removing them is a
-       ruling for P3-IMPORT-UI-2, not an author's fix. */
+       ruling for P3-IMPORT-UI-2, not an author's fix.
+       SEVEN since P3-REPLAY-MEASURE-FAMILY: measure-replay.cjs, the F7 family,
+       joins them. It is the ONLY name added by that ticket, it is reached only
+       from source-admission.mjs, and it reaches nothing of its own - it takes
+       the S5 producer's validate() by injection rather than importing it. The
+       list stays EXACT: the law is not widened, one measured name is added. */
     assert.deepEqual(paths.filter(p => /^rebuild\/m4\/import\//.test(p)).sort(),
       ['rebuild/m4/import/browser-replay.mjs', 'rebuild/m4/import/daily-history.cjs',
         'rebuild/m4/import/engine-provider.cjs', 'rebuild/m4/import/local-source-order.cjs',
-        'rebuild/m4/import/local-source-profile.cjs', 'rebuild/m4/import/replay-core.cjs']);
+        'rebuild/m4/import/local-source-profile.cjs', 'rebuild/m4/import/measure-replay.cjs',
+        'rebuild/m4/import/replay-core.cjs']);
   });
 
 test('P3-B4 - and the size of what an Import route would put on the phone, '
@@ -132,8 +145,12 @@ test('P3-B4 - and the size of what an Import route would put on the phone, '
      unstubbed build did not complete at all. */
   assert.ok(admission - base < 400000, 'the admission stack used to cost more than 400 kB '
     + 'with the sweep stubbed; it now costs +' + (admission - base) + ' bytes');
-  assert.equal(withAdmission.inventory.length - baseline.inventory.length, 12,
-    'the delta is 12 modules: the six m4/import files, migrate, merge and their reach');
+  /* 13 since P3-REPLAY-MEASURE-FAMILY: the seventh m4/import file, the F7
+     family measure-replay.cjs. It is ONE module and no new leaf - the delta
+     moved by exactly one, which is itself the evidence that the family's two
+     reads were already in the page. */
+  assert.equal(withAdmission.inventory.length - baseline.inventory.length, 13,
+    'the delta is 13 modules: the seven m4/import files, migrate, merge and their reach');
 });
 
 process.on('exit', () => { try { fs.rmSync(SCRATCH, { recursive: true, force: true }); } catch {} });

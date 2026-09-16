@@ -5,6 +5,15 @@ import {createReadingProjector} from '../reading-history.mjs';
 import Food from '../../w7-preview/today/food-commands.cjs';
 import FoodModel from '../../w7-preview/today/food-model.cjs';
 import CheckIn from '../../w7-preview/today/checkin-commands.cjs';
+// P3-REPLAY-MEASURE-FAMILY. The S5 measure producer is READ here, never
+// edited: measure-commands.cjs is S5-sealed, and the family below answers for
+// the records it writes rather than changing what it writes. measure-host.mjs
+// opens the SAME installation Today opens, so an athlete who opened the
+// Measure screen before importing carries these records in the very generation
+// admission replays; without a family they fell to the catch-all and refused
+// LOCAL_SOURCE_CONTEXT_UNRESOLVED (P3-IMPORT-UI-2 open item 1, cell P3-X9).
+import Measure from '../../w7-preview/measure/measure-commands.cjs';
+import MeasureReplay from '../../../m4/import/measure-replay.cjs';
 import Setup from '../../w7-preview/today/setup-commands.mjs';
 import {createCleanInitState} from '../../w7-preview/today/setup-model.mjs';
 import Settings from '../../../coach/machine-settings-commands.cjs';
@@ -36,6 +45,11 @@ import {createBrowserReplay,createSourceReplayEngine} from '../../../m4/import/b
 import {createSourcePlatform} from './source-platform.mjs';
 
 const qualifications=new WeakMap(),reviews=new WeakMap();
+// F7, the measure family. Pure and stateless: it is built once from the S5
+// producer's own validate() and its three profile names, holds no clock, no
+// engine and no platform, and is handed the day admission stands on per call.
+const measureFamily=MeasureReplay.createMeasureReplayFamily({commands:Measure.createMeasureCommands(),
+ profiles:{waist:Measure.PROFILE,markers:Measure.MARKERS_PROFILE,trialStart:Measure.TRIAL_PROFILE}});
 const fail=code=>{const e=new Error(code);e.code=code;throw e;};
 const {encode,digest,freeze,validDay,sourceEngineContext,engineContextAt}=Profile;
 const copy=structuredClone;
@@ -136,9 +150,14 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    families.push({family:'F1',state:row.local.state==='removed'?'retained':'projected',op_id:row.op_id,effect_ids:row.local.effect_ids});
   }
   for(const row of facts.records)if(row.original.kind!=='fact'&&row.local.state==='unresolved')issue('LOCAL_SOURCE_READING_UNRESOLVED',row.op_id);
-  const food=[];const checkDates=new Set();
+  const food=[];const checkDates=new Set();const measureRows=[];
   for(const op of rows){
    if(op.class==='reading'||op.class==='session')continue;
+   // F7 FIRST, so that EVERY record of the measure class gets an answer from
+   // its own family: a malformed one is refused by the family's NAMED code
+   // rather than falling to the generic catch-all below. The family is run
+   // once after this loop, because its ordering rule is over the whole set.
+   if(measureFamily.owns(op)){measureRows.push(op);continue;}
    const p=op.payload,day=op.effective?.local_date;
    if(!validDay(day)||day>currentDay()){issue('LOCAL_SOURCE_CONTEXT_UNRESOLVED',op.op_id);continue;}
    if(op.class==='food-day'&&op.schema_version===2&&Food.validate(op,id=>ops[id])){food.push({op_id:op.op_id,date:day,day:copy(p.day)});continue;}
@@ -147,6 +166,15 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    if(op.schema_version===2&&p?.profile===CheckIn.PROFILE&&CheckIn.validate(op,id=>ops[id])&&!checkDates.has(day)){checkDates.add(day);families.push({family:'F5',state:'retained',op_id:op.op_id});continue;}
    issue(op.class==='food-day'||op.class==='steps'?'LOCAL_SOURCE_DAILY_UNRESOLVED':op.class==='plan'?'LOCAL_SOURCE_EFFECT_UNMAPPED':'LOCAL_SOURCE_CONTEXT_UNRESOLVED',op.op_id);
   }
+  // F7, THE MEASURE FAMILY (P3-REPLAY-MEASURE-FAMILY). These are athlete-local
+  // records with no engine context of their own - a trial start, a dated waist
+  // reading, a marker pick - so they are RETAINED and never projected: no
+  // engine call, no state member and no programme answer comes from them, and
+  // the baseline window stays the one derived from the import. The family
+  // accounts for every record of its class, so none can be silently dropped.
+  const measured=measureFamily.replay(measureRows,{readOperation:id=>ops[id],asOf:currentDay()});
+  for(const row of measured.issues)issue(row.code,row.op_id);
+  for(const row of measured.families)families.push(row);
   const winners=FoodModel.winningRows(food);
   for(const row of winners){if(Object.keys(state.dailyLogs?.[row.date]||{}).some(k=>['cal','pro'].includes(k))){issue('LOCAL_SOURCE_DAILY_UNRESOLVED',row.op_id);continue;}
    const projected=FoodModel.foodProjection(state,[row],engineFor(row.date,12));if(projected.unavailable.length)issue('LOCAL_SOURCE_DAILY_UNRESOLVED',row.op_id);else state=projected.state;
