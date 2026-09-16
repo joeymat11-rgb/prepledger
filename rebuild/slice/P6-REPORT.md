@@ -20,14 +20,14 @@ rebuild/polish-p6. Author only, Sonnet medium.
   --ci --package S4` runs clean: SEAL BASE ON THE TIP, 0 unlisted drift,
   PUBLIC CI EVIDENCE PASS, EXIT=0. Corrected below, not deleted: M2's actual
   conclusion (S4/S3 name neither rebuild/client nor the workflow) still holds.
+  M3 follow-on (ticket P6-COACH-WIRE): rebuild/coach/tools.cjs:846 consent.respond(id, "accept") must pass the issuance, and recordIssuance({producer, revision}) at :852 must run BEFORE respond so revision/source/moment are digest-bound in production.
 - MAJOR 4 (B2 mutant survives): added a cell where the store has NEVER
   recorded an issuance anywhere (only a pre-P6 plain accept); asserts
   notRecordedBefore is null and recordDate is the record's own date. The r1
   mutant (`return earliest || "2026-09-15"`) now fails this cell (checked by
   hand: mutant applied, cell reds; reverted, 18/18 green).
 - MINOR 5 (report numbers): corrected below (W6 586, today 645, base sha).
-- MINOR 6 (length / U+2014 / BASE_SHA): dash replaced with ASCII hyphen; file
-  trimmed to the line bar; BASE_SHA removed (see BLOCKING 2).
+- MINOR 6 (length / U+2014 / BASE_SHA): dash replaced with ASCII hyphen; file trimmed to the line bar; BASE_SHA removed (see BLOCKING 2).
 
 ## Bar cells
 `rebuild/client/test/reason-on-disk.test.cjs`, 18/18 PASS: round 2's 17 cells
