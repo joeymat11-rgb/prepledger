@@ -22,12 +22,25 @@ his own words, right before it happens (README's own rule).
    a second layer, not a reason to stop checking.
 5. Phone reachable, unlocked, Home-Screen build, network for the chosen
    route, free space for the bundle.
-6. Confirm the phone's IMPORT screen writes its own setup/session operations
-   with the **live** device clock, not a frozen day — `today-bindings.mjs:197
+6. **DISCHARGED IN CODE (P3-IMPORT-UI).** The question was whether the phone's
+   IMPORT screen writes its own setup/session operations with the **live**
+   device clock rather than a frozen day - `today-bindings.mjs:197
    clientClockFor`'s non-live branch hardcodes tz "-05:00" year-round
-   (STAGE-REPORT finding 3); a real EDT day (mid-Mar–early Nov) on that
-   branch makes review refuse `LOCAL_SOURCE_CONTEXT_UNRESOLVED`. Ask Lane C
-   first if unsure.
+   (STAGE-REPORT finding 3), so a real EDT day (mid-Mar to early Nov) on that
+   branch makes review refuse `LOCAL_SOURCE_CONTEXT_UNRESOLVED`. It is now
+   answered by execution rather than by inspection, in
+   `rebuild/m3/w7-preview/import/test/live-clock.test.mjs`:
+   - P3-L1/L2: on a real EDT day (2026-09-16) the live clock stamps the
+     installation's own first-run operation `-04:00`, and the whole admission
+     sequence (reviewSource, prepareSource, publish, reconcile) admits with no
+     issue at all.
+   - P3-L3: P2's winter day (2026-11-20) still admits on the same path.
+   - P3-L4: the frozen branch on that same summer day still refuses
+     `LOCAL_SOURCE_CONTEXT_UNRESOLVED`, so the finding is fenced, not merely
+     avoided.
+
+   Run it with `TZ=America/New_York`; it refuses to run in any other zone
+   rather than measuring nothing.
 
 ## Step 0 — Joe's own words
 
@@ -46,16 +59,37 @@ all say PASS; ORACLE must show `10/10` in both `frozen` and `unfrozen` modes,
 `scope FULL` (private blob present). Anything else: STOP, do not move the
 file, and report the exact line — see "If it stops" in the README.
 
-## Move + unseal (phone)
+## Move + unseal (phone) — **BLOCKED: THERE IS NO IMPORT SCREEN YET**
 
-1. Move only `earned-port-<date>.json` to the phone (any route — sealed).
+**Do not start the real run for the phone half.** Steps 2 to 5 below describe a
+screen the shipped build does not have, and P3-IMPORT-UI could not build it:
+the review and the confirm are `rebuild/m3/w6/local/source-admission.mjs`, and
+the page's own accepted build law refuses that module's graph. The evidence is
+executed in `rebuild/m3/w7-preview/import/test/page-bundle.test.mjs` and written
+up in `rebuild/lanes/c/P3-IMPORT-UI-AUTHOR-REPORT.md`; it needs a PM ruling, not
+an author's fix. Until that ruling lands, the phone cannot admit a bundle and
+this section is a plan, not a script.
+
+Sealing on the PC is unaffected and still runs on Joe's word (step 0 above); the
+bundle simply waits. Nothing about his ledger changes either way.
+
+1. Move only `earned-port-<date>.json` to the phone (any route - sealed).
    Keep `earned-port-<date>-PASSPHRASE.txt` on the PC.
-2. Earned → IMPORT → pick the bundle → type the six words exactly
-   (`<REAL_PASSPHRASE_PLACEHOLDER>`).
+2. Earned -> IMPORT -> pick the bundle -> type the six words exactly
+   (`<REAL_PASSPHRASE_PLACEHOLDER>`). **No such route exists yet.**
 3. Confirm the review screen's identity question, then confirm admission.
 4. Confirm history visible on Today and on the gym card.
 5. Save one new set on top, force-kill the app, reopen. Confirm both the
    imported history and the new set are still there.
+
+What IS proved today, on the real machinery over a synthetic bundle
+(`rebuild/m3/w7-preview/import/test/`): the six words open the seal and take
+custody on the device; a wrong word or one flipped byte refuses
+`BUNDLE_AUTH_FAILED` and writes nothing; another athlete's file refuses
+`LOCAL_SOURCE_PROGRAMME_UNRESOLVED` and commits no basis; a repeat is
+`LOCAL_IMPORT_ALREADY_PRESENT`; and on both a summer and a winter day the full
+admission sequence makes the imported history this athlete's own basis. All of
+it runs off the page, which is exactly the gap.
 
 ## Go / no-go (what the PM reads before proceeding)
 
