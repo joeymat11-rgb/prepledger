@@ -11,10 +11,10 @@
  * rebuild/lanes/b/tooling/receipts/<PACKAGE-ID short name>.json>, computed
  * once from a small node one-liner (sha256 of the receipt file's raw bytes,
  * lower-hex, first 16 characters) and pasted here as a literal. Currently
- * the standing CI step is `--package S4` (.github/workflows/rebuild.yml),
- * whose receipt is rebuild/lanes/b/tooling/receipts/S4.json and whose long
- * package id (receipt field "packageId") is M2-S4-REAL-DAY; the computed
- * prefix is 171ebcd4d4b3b2b4.
+ * the standing CI step is `--package S5` (.github/workflows/rebuild.yml),
+ * whose receipt is rebuild/lanes/b/tooling/receipts/S5.json and whose long
+ * package id (receipt field "packageId") is M2-S5-TODAY-CHILD; the computed
+ * prefix is 0df73b01f3d2d935 (S4 was 171ebcd4d4b3b2b4).
  *
  * engine-revision.test.cjs recomputes this from the receipt on disk and from
  * rebuild.yml's own --package flag, so a reseal (S5 and on) that moves the
@@ -22,6 +22,6 @@
  * updated by the reseal's own ticket - a stale revision can never ship
  * silently.
  */
-const ENGINE_REVISION = "M2-S4-REAL-DAY@171ebcd4d4b3b2b4";
+const ENGINE_REVISION = "M2-S5-TODAY-CHILD@0df73b01f3d2d935";
 
 module.exports = { ENGINE_REVISION };

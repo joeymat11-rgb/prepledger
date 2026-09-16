@@ -15,24 +15,31 @@ const { ENGINE_REVISION } = require("../engine-revision.cjs");
 const REBUILD_ROOT = path.join(__dirname, "..", "..");
 const REPO_ROOT = path.join(REBUILD_ROOT, "..");
 
-test("ENGINE_REVISION recomputes from the sealed S4 receipt on disk", () => {
+/* The receipt this label is bound to is the one the STANDING CI step names
+   (rebuild.yml --package <id>), never a hardcoded file: S5 turned the S4
+   literal red exactly as designed, and the fix is to read the id. */
+function standingPackageShortId() {
+  const yml = fs.readFileSync(path.join(REPO_ROOT, ".github", "workflows", "rebuild.yml"), "utf8");
+  const m = /b-package\.cjs\s+--ci\s+--package\s+(\S+)/.exec(yml);
+  assert.ok(m, "no standing `b-package.cjs --ci --package <id>` step found in rebuild.yml");
+  return m[1];
+}
+
+test("ENGINE_REVISION recomputes from the standing package's sealed receipt on disk", () => {
   const m = /^([^@]+)@([0-9a-f]{16})$/.exec(ENGINE_REVISION);
   assert.ok(m, "ENGINE_REVISION is not <package-id>@<16 hex>: " + ENGINE_REVISION);
   const [, packageId, prefix] = m;
-  const receiptPath = path.join(REBUILD_ROOT, "lanes", "b", "tooling", "receipts", "S4.json");
+  const shortId = standingPackageShortId();
+  const receiptPath = path.join(REBUILD_ROOT, "lanes", "b", "tooling", "receipts", shortId + ".json");
   const bytes = fs.readFileSync(receiptPath);
   const sha = crypto.createHash("sha256").update(bytes).digest("hex");
-  assert.equal(prefix, sha.slice(0, 16), "revision prefix does not match sha256(receipts/S4.json)");
+  assert.equal(prefix, sha.slice(0, 16), "revision prefix does not match sha256(receipts/" + shortId + ".json)");
   const receipt = JSON.parse(bytes.toString("utf8"));
   assert.equal(packageId, receipt.packageId || receipt.lanePackage, "revision package id does not match the receipt");
 });
 
 test("the standing CI b-package step names the same package ENGINE_REVISION is pinned to", () => {
-  const ymlPath = path.join(REPO_ROOT, ".github", "workflows", "rebuild.yml");
-  const yml = fs.readFileSync(ymlPath, "utf8");
-  const m = /b-package\.cjs\s+--ci\s+--package\s+(\S+)/.exec(yml);
-  assert.ok(m, "no standing `b-package.cjs --ci --package <id>` step found in rebuild.yml");
-  const shortId = m[1];
+  const shortId = standingPackageShortId();
   const receiptPath = path.join(REBUILD_ROOT, "lanes", "b", "tooling", "receipts", shortId + ".json");
   const receipt = JSON.parse(fs.readFileSync(receiptPath, "utf8"));
   const [packageId] = ENGINE_REVISION.split("@");
