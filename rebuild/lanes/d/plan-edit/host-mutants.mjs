@@ -34,7 +34,16 @@ const cases=[
  // it against the generation adopts an unadmitted import as the athlete's plan.
  ['unchecked-basis-source','^PE16 the clean-init state ', [
   ["    const source = Model.importPresentIn(generation) ? 'local-source' : 'first-run';",
-   "    const source = 'first-run';"]]]];
+   "    const source = 'first-run';"]]],
+ // R1 finding 5. Without the named refusal the athlete's day turning under an
+ // open review arrives as the client's generic "Nothing was recorded".
+ ['day-turned-unnamed','^PE15 stamp-clock ', [
+  ['      const stamped = clock.today(); Commands.dateOf(stamped);\n      if (stamped !== entry.authoredDay) return dayTurned();\n','']]],
+ // R1 note 6. Defaulted identity degrades the P2 predicate to "any admitted
+ // import" for any caller that simply forgets to pass it.
+ ['identity-optional','^PE17 ', [
+  ["  for (const value of [athleteLabel, namespace])\n    if (typeof value !== 'string' || !value.trim()) Commands.fail('PLAN_EDIT_HOST_INCOMPLETE');\n",
+   '  athleteLabel = athleteLabel ?? null; namespace = namespace ?? null;\n']]]];
 mkdirSync(join(root,'.tmp'),{recursive:true});
 const out=mkdtempSync(join(root,'.tmp','plan-edit-host-mutants-'));
 let killed=0;

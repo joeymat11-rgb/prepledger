@@ -17,6 +17,11 @@ const same = (a,b) => Canonical.encode(a) === Canonical.encode(b);
 const freeze = value => { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value; };
 const refusal = code => ({ ok:false, acknowledged:false, state:3, code });
 const stale = () => refusal('PLAN_EDIT_REVIEW_STALE');
+/* The one refusal this companion must SAY, not just make. Everything else here
+   is a code lane C words; this one happens between a review and its Save, so
+   the honest sentence travels with the code rather than being reconstructed. */
+const dayTurned = () => ({ ...refusal('PLAN_EDIT_DAY_TURNED'),
+  message:'The day changed while this was open. Review the latest week before saving.' });
 
 /* S4 REAL DAY (DECISIONS:437/:451/:467). TOMORROW is a date on the ATHLETE'S
    LOCAL CALENDAR, and the only honest source for it is the same live clock
@@ -35,9 +40,17 @@ const stale = () => refusal('PLAN_EDIT_REVIEW_STALE');
    day this review was authored on, so a frozen page refuses at the final
    validator instead of dating an edit off a day nothing is stamped with. */
 export async function createPlanEditHost({ client, clock, liveDay, basisState, setupOperation,
-  validateTags, projectNewExerciseTags, newIntentId, athleteLabel = null, namespace = null } = {}) {
+  validateTags, projectNewExerciseTags, newIntentId, athleteLabel, namespace } = {}) {
   if (typeof client?.hostBindings !== 'function' || typeof clock?.today !== 'function' ||
       typeof newIntentId !== 'function') throw new TypeError('Existing installation, clock and intent ID provider required');
+  /* WHOSE NUMBERS, AND WHICH INSTALLATION. admittedLocalSourceBasis narrows the
+     admitted import to this athlete's label in this namespace; defaulted away,
+     the P2 predicate degrades to "any admitted import" and a caller that simply
+     forgot them would silently loosen it. The real host always has both (the
+     page passes them beside admittedLocalSourceState), so absence is an
+     incomplete host, not a permissive one. */
+  for (const value of [athleteLabel, namespace])
+    if (typeof value !== 'string' || !value.trim()) Commands.fail('PLAN_EDIT_HOST_INCOMPLETE');
   const liveDayOf = typeof liveDay === 'function' ? liveDay
     : (typeof client.liveDay === 'function' ? () => client.liveDay() : null);
   if (!liveDayOf) throw new TypeError('The installation live athlete-local day (today-bindings liveDay) is required');
@@ -201,6 +214,16 @@ export async function createPlanEditHost({ client, clock, liveDay, basisState, s
       if (!matches(entry,current)) return { ...stale(), current:copy(current.state),
         plan_basis:current.plan_basis, pending_dates:copy(current.pending_dates),
         starts_on:Commands.nextLocalDate(localDay()) };
+      /* THE STAMP CLOCK AND THE LIVE DAY MUST AGREE BEFORE ANYTHING IS BUILT.
+         In the page they do by construction (clientClockFor takes the host's own
+         day). When they do not, the operation this Save would build carries an
+         effective.local_date the review was never authored on, and the client's
+         own closed validator refuses it - correctly, and nothing is written, but
+         in its own generic words ("Nothing was recorded"), which tells the
+         athlete a save failed when what actually happened is that his day
+         turned. Name it here, before the client is asked to build anything. */
+      const stamped = clock.today(); Commands.dateOf(stamped);
+      if (stamped !== entry.authoredDay) return dayTurned();
       active = entry;
       let result;
       try { result = await lane.execute('workout',entry.args); }

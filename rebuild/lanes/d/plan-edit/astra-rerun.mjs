@@ -1,26 +1,35 @@
 /* Re-run the independent Astra witnesses (f355ccce / 96c4b101) against this
-   head. The annex bytes are NOT rewritten: exactly two mechanical adaptations
-   are applied to a copy in .tmp, each anchored and counted, and both are
-   recorded in the author report.
+   head. The annex bytes are NOT rewritten: exactly four mechanical adaptations
+   are applied to a copy under an ignored .tmp, each anchored and counted, and
+   all four are recorded in the author report.
 
    (1) F2's setup-tags.cjs is not on rebuild/t2-client-core; the require is
        pointed at the lane's byte-identical copy of the same public blob.
    (2) createPlanEditHost now REQUIRES the installation's live athlete-local day
-       (S4). The annex is handed `() => clock.today()`, which is exactly the
-       value the Sept-13 host derived internally, so every witness probes the
-       same behaviour it probed then. */
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+       (S4) and the installation identity the P2 join narrows by (r1 note 6).
+       The annex is handed `() => clock.today()`, which is exactly the value the
+       Sept-13 host derived internally, and its own `setup.athlete_label` and
+       `options.namespace`, which are the values the annex already enrolled
+       with, so every witness probes the same behaviour it probed then. */
+import { readFileSync, writeFileSync, mkdirSync, mkdtempSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import assert from 'node:assert/strict';
 const root = resolve(process.argv[2]);
-const out = join(root, 'rebuild/lanes/astra/tmp-plan-edit-rerun');
-mkdirSync(out, { recursive: true });
+/* RUNNING THE EVIDENCE LEAVES THE TREE CLEAN. The copies go under an IGNORED
+   `.tmp` (root .gitignore line 4, the same place host-mutants.mjs writes), not
+   into a tracked lane directory. The depth is not free: every specifier in the
+   annex is `../../../<module>` off `rebuild/`, and adaptation (1) below is
+   `../../d/plan-edit/...` off `rebuild/lanes/`, so the copies must sit exactly
+   two directories below `rebuild/lanes` for both to resolve unchanged. */
+mkdirSync(join(root, 'rebuild/lanes/.tmp'), { recursive: true });
+const out = mkdtempSync(join(root, 'rebuild/lanes/.tmp', 'plan-edit-rerun-'));
 const edits = [
   ["const { createSetupTagProjector } = require('../../../m4/workout/setup-tags.cjs');",
    "const { createSetupTagProjector } = require('../../d/plan-edit/f2-tag-adapter.cjs');"],
   ["} }, clock, basisState:basis, setupOperation:origin, validateTags:tags.validateExerciseTags,",
-   "} }, clock, liveDay:()=>clock.today(), basisState:basis, setupOperation:origin, validateTags:tags.validateExerciseTags,"],
+   "} }, clock, liveDay:()=>clock.today(), athleteLabel:setup.athlete_label, namespace:options.namespace," +
+   " basisState:basis, setupOperation:origin, validateTags:tags.validateExerciseTags,"],
   /* (3) The annex's synthetic split trains on F1 FULL-BODY days. F1 is lane D's
      other unmerged package: rebuild/m4/workout/athlete-state.cjs DAY_KINDS on
      this tip is ['U','L'], so the reviewer's own first-run setup refuses here

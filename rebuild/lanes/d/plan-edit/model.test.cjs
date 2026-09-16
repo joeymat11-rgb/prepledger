@@ -198,12 +198,77 @@ test('qualified tombstone removes its intent and changes complete basis',()=>{
   f.generation.collections.ops[t.op_id]=t;const after=f.model.read(f.generation,tomorrow);
   assert.deepEqual(after.state,f.state);assert.equal(after.intents[0].status,'tombstoned');assert.notEqual(after.plan_basis,before);
 });
-test('unproved local rejection refuses instead of excluding an edit or its descendants',()=>{
-  const f=fixture(),first=f.append(change('press',{sets:3}),'first');
-  f.generation.collections.rejected[first.op_id]={op_id:first.op_id,kind:'plan-mutation'};
-  assert.throws(()=>f.model.read(f.generation,tomorrow),{code:'PLAN_EDIT_REJECTION_UNPROVEN'});
+/* R1 FINDING 2. A rejection is this companion's business only when the op it
+   names is a PLAN op: the setup descriptor, a plan-mutation, or a tombstone over
+   one. Another lane's rejected record is read straight through - refusing over
+   it would dark-screen Edit my week for a food entry. */
+function unrelated(f,day=today){
+  const rows=Object.values(f.generation.collections.ops).sort((a,b)=>a.device_seq-b.device_seq),last=rows.at(-1);
+  const op=build({kind:'fact',class:'event',payload:{profile:'earned/synthetic-weigh-in/v1',lb:181.5}},last.device_seq+1,last.op_id,day);
+  f.generation.collections.ops[op.op_id]=op;return op;
+}
+test('a rejection of an operation this companion does not own reads normally',()=>{
+  const f=fixture(),edit=f.append(change('press',{sets:3}),'first');
+  const clean=f.model.read(f.generation,tomorrow),other=unrelated(f);
+  // A refusal here is the defect under test, so it is REPORTED as one rather
+  // than thrown out of the cell.
+  const readOrRefusal=(model,generation,day)=>{try{return model.read(generation,day);}catch(e){return {refused:e.code||String(e)};}};
+  for(const record of [{op_id:other.op_id,reason:'Synthetic rejection'},'opaque to this companion',null,['x']]){
+    f.generation.collections.rejected[other.op_id]=record;
+    const read=readOrRefusal(f.model,f.generation,tomorrow);
+    assert.equal(read.refused,undefined,'an unrelated rejection must not refuse the plan read');
+    assert.deepEqual(read.state,clean.state);assert.equal(read.plan_basis,clean.plan_basis);
+    assert.deepEqual(read.causal_parents,clean.causal_parents);
+    assert.equal(read.intents.length,1);assert.equal(read.intents[0].op_id,edit.op_id);
+    assert.equal(read.intents[0].status,'active');
+  }
+  // ...and the editor over it still composes onto that plan.
+  assert.equal(f.model.preview(f.generation,tomorrow,f.input(change('other',{sets:4}),'second')).state.exercises[1].sets,4);
+});
+/* NOTHING PROVES A PLAN REJECTION HERE, so no shape of record buys one: a
+   local installation admits no authority disposition, and an index entry that
+   names its own op exactly is still only an index entry. This is the model half
+   of PE09-rejection in durable-host.test.mjs. */
+test('a PLAN rejection refuses whatever shape it has and never excludes an edit',()=>{
+  const f0=fixture(),edit0=f0.append(change('press',{sets:3}),'first');
+  for(const record of [{op_id:edit0.op_id},{op_id:edit0.op_id,kind:'plan-mutation'},
+    {op_id:'op-synthetic-99'},{reason:'no op named'},'rejected',null,[],42]){
+    const f=fixture(),first=f.append(change('press',{sets:3}),'first');
+    f.generation.collections.rejected[first.op_id]=record;
+    assert.throws(()=>f.model.read(f.generation,tomorrow),{code:'PLAN_EDIT_REJECTION_UNPROVEN'});
+    assert.deepEqual(f.generation.collections.rejected[first.op_id],record,'the record is kept intact');
+  }
+  // A descendant of the rejected edit changes nothing: the read still refuses in
+  // the same words rather than rebasing the athlete's later edit.
   const g=fixture(),parent=g.append(change('press',{sets:3}),'first');g.append(change('other',{sets:4}),'second');
   g.generation.collections.rejected[parent.op_id]={op_id:parent.op_id};
+  assert.throws(()=>g.model.read(g.generation,tomorrow),{code:'PLAN_EDIT_REJECTION_UNPROVEN'});
+});
+test('a rejection naming no operation of this generation cannot be shown unrelated and refuses',()=>{
+  const f=fixture();f.append(change('press',{sets:3}),'first');
+  f.generation.collections.rejected['op-synthetic-absent']={op_id:'op-synthetic-absent'};
+  assert.throws(()=>f.model.read(f.generation,tomorrow),{code:'PLAN_EDIT_REJECTION_UNPROVEN'});
+  // A tombstone whose target chain never reaches a plan op (here, itself) is
+  // equally unclassifiable, so it is plan-class and refuses like one.
+  const g=fixture(),rows=Object.values(g.generation.collections.ops);
+  const loop=build({kind:'tombstone',class:'plan',target:'op-synthetic-9',parents:[],payload:{reason:'Synthetic'}},9,rows[0].op_id);
+  g.generation.collections.ops[loop.op_id]=loop;assert.equal(loop.target_op_id,loop.op_id);
+  g.generation.collections.rejected[loop.op_id]={op_id:loop.op_id};
+  assert.throws(()=>g.model.read(g.generation,tomorrow),{code:'PLAN_EDIT_REJECTION_UNPROVEN'});
+});
+/* The setup descriptor and a tombstone over a plan edit are plan-class through
+   their own routes: identity, and one hop down the target chain. Both refuse
+   before the branch that used to read the record downstream, which is why that
+   branch is retired rather than left behind. */
+test('a rejected setup descriptor and a rejected plan tombstone are plan-class and refuse',()=>{
+  const f=fixture();f.append(change('press',{sets:3}),'first');
+  f.generation.collections.rejected[f.origin.op_id]={op_id:f.origin.op_id};
+  assert.throws(()=>f.model.read(f.generation,tomorrow),{code:'PLAN_EDIT_REJECTION_UNPROVEN'});
+  const g=fixture(),op=g.append(change('press',{sets:3}));
+  const t=build({kind:'tombstone',class:'plan',target:op.op_id,parents:[op.op_id],payload:{reason:'Synthetic correction'}},3,op.op_id);
+  g.generation.collections.ops[t.op_id]=t;
+  assert.equal(g.model.read(g.generation,tomorrow).intents[0].status,'tombstoned','the tombstone alone is honoured');
+  g.generation.collections.rejected[t.op_id]={op_id:t.op_id};
   assert.throws(()=>g.model.read(g.generation,tomorrow),{code:'PLAN_EDIT_REJECTION_UNPROVEN'});
 });
 test('missing, cyclical or incomparable causal history refuses instead of sequence-wins',()=>{

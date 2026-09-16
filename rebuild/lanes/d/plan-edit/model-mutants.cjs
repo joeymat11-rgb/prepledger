@@ -10,8 +10,23 @@ const files = {
   canonical: path.join(root, 'rebuild/client/canonical.cjs'),
 };
 const cases = [
-  { id:'unproved-rejection-is-authority', file:'model', test:'unproved local rejection refuses instead of excluding an edit or its descendants', replacements:[
-    [' || Object.keys(rejected).length', '']] },
+  // An index entry is not an authority disposition, whatever shape it has.
+  { id:'unproved-rejection-is-authority', file:'model', test:'a PLAN rejection refuses whatever shape it has and never excludes an edit', replacements:[
+    ["    if (Object.keys(rejected).some(planClass)) fail('PLAN_EDIT_REJECTION_UNPROVEN');",
+     "    for (const id of Object.keys(rejected)) if (planClass(id) &&\n      (!rejected[id] || typeof rejected[id] !== 'object' || rejected[id].op_id !== id)) fail('PLAN_EDIT_REJECTION_UNPROVEN');"]] },
+  // R1 finding 2: fail-closed reaching past its own subject. One unrelated
+  // rejected record must not dark-screen the plan read and the editor.
+  { id:'unrelated-rejection-dark-screens', file:'model', test:'a rejection of an operation this companion does not own reads normally', replacements:[
+    ['Object.keys(rejected).some(planClass)', 'Object.keys(rejected).length']] },
+  // The other direction: an op this generation does not carry, or a tombstone
+  // chain that never lands on one, must not be waved through as somebody else's.
+  { id:'unclassifiable-rejection-waved-through', file:'model', test:'a rejection naming no operation of this generation cannot be shown unrelated and refuses', replacements:[
+    ['        if (!op || seen.has(op.op_id) || op.op_id === origin.op_id',
+     '        if (!op || seen.has(op.op_id)) return false;\n        if (op.op_id === origin.op_id']] },
+  // The setup descriptor and a tombstone over a plan edit are plan ops too.
+  { id:'only-mutations-are-plan-class', file:'model', test:'a rejected setup descriptor and a rejected plan tombstone are plan-class and refuse', replacements:[
+    ["        if (!op || seen.has(op.op_id) || op.op_id === origin.op_id || op.kind === 'plan-mutation') return true;\n        if (op.kind !== 'tombstone') return false;\n        seen.add(op.op_id);",
+     "        return !op || op.kind === 'plan-mutation';\n        seen.add(op.op_id);"]] },
   { id:'next-local-date', file:'commands', test:'the built operation must start on the next authored local date', replacements:[
     ["input.starts_on !== nextLocalDate(op.effective.local_date) || ", '']] },
   { id:'empty-tags-fall-back', file:'model', test:'explicit empty original tag snapshots require exact provenance and survive rename', replacements:[

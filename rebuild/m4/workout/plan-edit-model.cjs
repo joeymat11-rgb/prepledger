@@ -126,12 +126,32 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
     if (Object.keys(collections.plan || {}).length || Object.keys(collections.planTransactions || {}).length)
       fail('PLAN_EDIT_UNSUPPORTED_PLAN_CONTEXT');
     const ops = collections.ops || {}, rejected = collections.rejected ?? {};
-    // This companion admits only the local installation context. Its existing
-    // host refuses inbound authority dispositions; ciphertext cannot supply one.
-    // Keep the records intact and refuse rather than treating an index as proof.
-    if (!rejected || typeof rejected !== 'object' || Array.isArray(rejected) || Object.keys(rejected).length)
-      fail('PLAN_EDIT_REJECTION_UNPROVEN');
-    if (!equal(ops[origin.op_id], origin) || rejected[origin.op_id]) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
+    if (!rejected || typeof rejected !== 'object' || Array.isArray(rejected)) fail('PLAN_EDIT_REJECTION_UNPROVEN');
+    /* WHOSE REJECTION IS THIS COMPANION'S BUSINESS: a PLAN operation's, and only
+       that. This generation's own setup descriptor, a plan-mutation, or a
+       tombstone over one. A rejected food entry or weigh-in belongs to the
+       machinery that owns it and says nothing about the plan, so refusing the
+       whole plan read over it would be fail-closed reaching past its own
+       subject, and once this installation syncs it would dark-screen Edit my
+       week over somebody else's record. An op this generation does not carry
+       cannot be SHOWN to be unrelated, and neither can a tombstone cycle, so
+       both count as plan-class and still refuse.
+       A plan-class rejection then REFUSES, and is never acted on: this
+       companion admits only the local installation context, its existing host
+       refuses inbound authority dispositions and ciphertext cannot supply one,
+       so a record here is an index entry and never proof, WHATEVER shape it
+       has. The records are kept intact; nothing excludes an operation. Because
+       no plan rejection can be admitted, this companion has no `rejected`
+       status to project: the branches that would have carried one are retired
+       rather than left behind as unreachable code with an opinion. */
+    const planClass = id => { const seen = new Set();
+      for (let op = ops[id]; ; op = ops[op.target_op_id]) {
+        if (!op || seen.has(op.op_id) || op.op_id === origin.op_id || op.kind === 'plan-mutation') return true;
+        if (op.kind !== 'tombstone') return false;
+        seen.add(op.op_id);
+      } };
+    if (Object.keys(rejected).some(planClass)) fail('PLAN_EDIT_REJECTION_UNPROVEN');
+    if (!equal(ops[origin.op_id], origin)) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
     const rows = Object.entries(ops).map(([id, op]) => {
       if (!op || op.op_id !== id || op.athlete_id !== origin.athlete_id || op.device_id !== origin.device_id ||
           !Number.isSafeInteger(op.device_seq) || op.device_seq < 1 || !Array.isArray(op.causal_parents) ||
@@ -151,14 +171,13 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
     const tombstones = rows.filter(op => op.kind === 'tombstone' && relevant.has(op.target_op_id));
     for (const op of tombstones) {
       if (op.target_op_id === origin.op_id || !op.causal_parents.includes(op.target_op_id) ||
-          op.device_seq <= ops[op.target_op_id].device_seq || rejected[op.op_id] ||
+          op.device_seq <= ops[op.target_op_id].device_seq ||
           rows.some(o => o.kind === 'tombstone' && o.target_op_id === op.op_id)) fail('PLAN_EDIT_TOMBSTONE_UNPROVEN');
     }
     const dead = new Set(tombstones.map(op => op.target_op_id));
-    const statuses = new Map(edits.map(op => [op.op_id, rejected[op.op_id] ? 'rejected' : dead.has(op.op_id) ? 'tombstoned' : 'active']));
+    const statuses = new Map(edits.map(op => [op.op_id, dead.has(op.op_id) ? 'tombstoned' : 'active']));
     const intents = new Set(), added = new Set(baseIds);
     for (const op of edits) {
-      if (rejected[op.op_id] && (typeof rejected[op.op_id] !== 'object' || rejected[op.op_id].op_id !== op.op_id)) fail('PLAN_EDIT_REJECTION_UNPROVEN');
       const value = op.members[0].value;
       if (intents.has(value.intent_id)) fail('PLAN_EDIT_DUPLICATE_INTENT'); intents.add(value.intent_id);
       if (value.edit.exercise) { if (added.has(value.edit.exercise.id)) fail('PLAN_EDIT_ID_REUSED'); added.add(value.edit.exercise.id); }
@@ -166,7 +185,7 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
     }
     const basisAt = before => hash({ origin: coreOrigin,
       edits: edits.filter(op => op.device_seq < before).map(op => ({ op_id: op.op_id, commitment: op.canonical_content_commitment,
-        status: statuses.get(op.op_id), rejected: rejected[op.op_id] || null })),
+        status: statuses.get(op.op_id) })),
       tombstones: tombstones.filter(op => op.device_seq < before).map(op => ({ op_id: op.op_id, commitment: op.canonical_content_commitment, target: op.target_op_id })) });
     const active = edits.filter(op => statuses.get(op.op_id) === 'active');
     for (let i = 0; i < active.length; i++) {

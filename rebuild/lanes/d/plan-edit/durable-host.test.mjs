@@ -116,9 +116,11 @@ async function scaffold({ indexedDB = new IDBFactory() } = {}) {
     } };
   } });
   async function host({ projectNewExerciseTags = tagProjector.projectNewExerciseTags,
-    basisState: basis = basisState } = {}) {
+    basisState: basis = basisState, ...identity } = {}) {
+    // `...identity` overrides even with an explicit undefined, so a cell can
+    // construct the host with the installation identity genuinely absent.
     const handle = await createPlanEditHost({ client: adapter(), clock, basisState: basis, setupOperation, validateTags,
-      projectNewExerciseTags, athleteLabel: setup().athlete_label, namespace: options.namespace,
+      projectNewExerciseTags, athleteLabel: setup().athlete_label, namespace: options.namespace, ...identity,
       /* S4 LIVE DAY. In the page this is today-bindings openTodayInstallation's
          `liveDay()`; `clock` is the client's stamp clock, which in the page is
          clientClockFor(day, live) and whose day NEVER moves on its own. Here the
@@ -524,27 +526,49 @@ test('PE15 a live day that has moved past the review refuses and shows the new r
     expectSame(await h.snapshot(), before, 'a stale review writes nothing');
   } finally { h.close(); }
 });
-test('PE15 a stamp clock that disagrees with the live day cannot commit an edit', async () => {
+test('PE15 stamp-clock disagreement is named PLAN_EDIT_DAY_TURNED before anything is built', async () => {
   const h = await scaffold(); try {
     const host = await h.host(), before = await h.snapshot();
     const review = await reviewed(host, { sets: 3 });
     /* The athlete is still on his own 14th (live.day), but the instant the
        client stamps with has crossed UTC midnight. In the page these agree by
        construction (clientClockFor takes the host's own day); if they ever do
-       not, the operation would carry a date the review was never authored on,
-       so the final validator refuses at the transaction boundary. */
+       not, the operation would carry a date the review was never authored on.
+       R1 finding 5: nothing was ever written either way, but the client's own
+       closed validator can only say WORKOUT_INPUT_INVALID / "Nothing was
+       recorded", which is not what happened. The host names it first. */
     h.live.day = DAY; h.time.iso = '2026-09-15T01:30:00.000Z';
     assert.equal(h.clock.today(), '2026-09-15'); assert.equal(h.live.day, DAY);
     const refused = await host.save(review.review_id);
     assert.equal(refused.acknowledged, false, JSON.stringify(refused));
     assert.equal(refused.ok, false, JSON.stringify(refused));
-    /* The injected producer's own validate() refuses at the T2 stage, before the
-       final validator is reached: a built operation whose starts_on is no longer
-       the day after its own effective.local_date is not this intent. The client
-       reports it in its own existing words and records nothing. */
-    assert.deepEqual(refused.invalid, ['WORKOUT_INPUT_INVALID']);
+    assert.equal(refused.code, 'PLAN_EDIT_DAY_TURNED', JSON.stringify(refused));
+    assert.equal(refused.message,
+      'The day changed while this was open. Review the latest week before saving.');
+    assert.equal(refused.invalid, undefined, 'the client was never asked to build this operation');
+    assert.equal([...refused.message].some(c => c.codePointAt(0) >= 0x2010 && c.codePointAt(0) <= 0x2015),
+      false, 'no dash in athlete-facing copy');
     expectSame(await h.snapshot(), before, 'no operation and no outbox entry');
     assert.equal(planOps(await h.snapshot()).length, 0);
+    // Put the two back in step and the SAME review still saves: this refusal is
+    // about the disagreement, not about the review having been spent.
+    h.time.iso = DAY + 'T23:45:00.000Z';
+    const saved = await host.save(review.review_id);
+    assert.equal(saved.acknowledged, true, saved.code);
+    assert.equal(planOps(await h.snapshot())[0].effective.local_date, DAY);
+  } finally { h.close(); }
+});
+/* R1 note 6. admittedLocalSourceBasis narrows the admitted import to THIS
+   athlete's label in THIS namespace. Defaulted to null the P2 predicate reads
+   "any admitted import", so the host refuses to exist without them. */
+test('PE17 a host without the installation identity refuses to be constructed', async () => {
+  const h = await scaffold(); try {
+    for (const missing of [{ athleteLabel: undefined }, { namespace: undefined },
+      { athleteLabel: '  ' }, { namespace: null }, { athleteLabel: 7 }]) {
+      await assert.rejects(() => h.host(missing), { code: 'PLAN_EDIT_HOST_INCOMPLETE' },
+        JSON.stringify(Object.keys(missing)));
+    }
+    assert.equal((await (await h.host()).read()).read, true, 'and with both it opens');
   } finally { h.close(); }
 });
 test('PE15 with the two in step across a local midnight the edit commits for the right date', async () => {

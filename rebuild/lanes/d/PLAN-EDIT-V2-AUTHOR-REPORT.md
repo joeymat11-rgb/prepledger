@@ -35,10 +35,12 @@ New: PE15 x4 (live day vs frozen host clock; stale-with-result; disagreeing stam
 `lanes/d/plan-edit/astra-rerun.mjs` copies the reviewer's published files (committed unchanged beside it; ANNEX sha256 5662293f8c6f976c9ebbb1a8f19dbac4534744b085ac2ff1537cd76644732c7e, the value the r1 retest names; R1-ANNEX e88619e449f818cecb80051baaa15521addcd2673df22a31744a71a07c85fe7a) to a directory at the same depth, applies FOUR anchored, counted adaptations and nothing else, and runs them. Each is a dependency this tip does not carry, never a weakened assertion: (1) F2's `setup-tags.cjs` require -> the lane's byte-identical copy; (2) `liveDay: () => clock.today()`, exactly the value the Sept-13 host derived internally; (3) the fixture's F1 FULL-BODY split restated in the tip's `DAY_KINDS` (`['U','L']`), covering the same two families its lifts use - without it the reviewer's own first-run setup refuses before any companion code runs; (4) F1's engine `orderedExercisesForDay` (not on the tip; `rebuild/engine` is pinned) -> the tip's own ordered-pool reader, the M2-S3 companion `sessionMembership` through `m4/workout/engine-runtime.cjs`. Result **22/22 PASS**: I01-I16, including the blocking REJECT witnesses I08/I09 (R1) and I10 (R2), plus R1-A..R1-D. Both findings are closed at this head.
 
 ## 6. Verbatim tails
+All taken at the head this report names, after the rebase in section 9.
+
 ```text
-# tests 64 / # suites 0 / # pass 64 / # fail 0 / # cancelled 0 / # skipped 0   (lane companion suites)
-{"baseline":true,"total":13,"killed":13,"survived":0,"originalsUnchanged":true}
-7/7 host mutants killed by selected assertions
+# tests 68 / # suites 0 / # pass 68 / # fail 0 / # cancelled 0 / # skipped 0   (lane companion suites)
+{"baseline":true,"total":16,"killed":16,"survived":0,"originalsUnchanged":true}
+9/9 host mutants killed by selected assertions
 # tests 22 / # pass 22 / # fail 0 / # cancelled 0 / # skipped 0                (Astra annex + R1 annex)
 today-17 (MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York): tests 666 / pass 666 / fail 0
 W6: 586/586/0   A0 (journey+engine-equivalence+local-real-day): 38/38/0   coach: 231/231/0
@@ -47,7 +49,7 @@ A1 TODAY BUILD PASS: 3 assets; 121 pinned inputs (13 engine, 12 client); build e
   approved design pinned; 69 bound classes; 2 pinned typefaces inlined; no literal figure in the
   template; 3/3 assets scanned and free of any network reference; no em/en dash in any text the
   athlete can see
-b-package --ci --package S5 at HEAD 5c2ad35, exit 0:
+b-package --ci --package S5 at HEAD <R2-HEAD>, EXIT 0:
   B PACKAGE S5 PRODUCT IMPLEMENTED; 33 at the declared post-image / 0 at the pinned pre-image / 81
     carried byte-identical from the parent / ... / 0 unlisted drift; the inventory covers all 90
     parent-pinned product files
@@ -58,7 +60,7 @@ b-package --ci --package S5 at HEAD 5c2ad35, exit 0:
 The new host file is NOT an input to the Today build: `build.mjs` still reports 121 pinned inputs, because the page imports nothing from `m3/w6/host/plan-edit-host.mjs`.
 
 ## 7. Drift list
-`git diff --name-only 0ac72ea HEAD`, each `findstr`'d against `lanes/b/tooling/packages/S5.json`: **17 files, 0 named in S5.json. Pinned-by-S5: NONE.** Unpinned: `m4/workout/{plan-edit-commands.cjs, plan-edit-model.cjs}`; `m3/w6/host/plan-edit-host.mjs`; `lanes/d/{BRIEF-PLAN-EDIT-COMPANION-v1.0.md, PLAN-EDIT-CANDIDATE-REPORT.md, PLAN-EDIT-R1-FIX-REPORT.md, PLAN-EDIT-V2-AUTHOR-REPORT.md}`; `lanes/d/plan-edit/{astra-rerun.mjs, browser-build.test.mjs, client-p6.test.cjs, durable-host.test.mjs, f2-tag-adapter.cjs, host-mutants.mjs, model-mutants.cjs, model.test.cjs}`; `lanes/astra/reviews/PLAN-EDIT-{BROWSER-IMPORT.mjs, REVIEW-ANNEX.mjs, REVIEW-R1-ANNEX.mjs}`.
+`git diff --name-only <BASE> HEAD`, each `findstr`'d against `lanes/b/tooling/packages/S5.json`: **18 files, 0 named in S5.json. Pinned-by-S5: NONE.** (r1 finding 3: the count said 17 while the list below held 18.) Unpinned: `m4/workout/{plan-edit-commands.cjs, plan-edit-model.cjs}`; `m3/w6/host/plan-edit-host.mjs`; `lanes/d/{BRIEF-PLAN-EDIT-COMPANION-v1.0.md, PLAN-EDIT-CANDIDATE-REPORT.md, PLAN-EDIT-R1-FIX-REPORT.md, PLAN-EDIT-V2-AUTHOR-REPORT.md}`; `lanes/d/plan-edit/{astra-rerun.mjs, browser-build.test.mjs, client-p6.test.cjs, durable-host.test.mjs, f2-tag-adapter.cjs, host-mutants.mjs, model-mutants.cjs, model.test.cjs}`; `lanes/astra/reviews/PLAN-EDIT-{BROWSER-IMPORT.mjs, REVIEW-ANNEX.mjs, REVIEW-R1-ANNEX.mjs}`.
 
 NO engine byte and NO `m3/w7-preview/today/**` file is touched, and no S5-declared product file moves. So `b-package --ci --package S5` does NOT go red here: the three runtime files are new under fixed roots but are not among S5's 114 declared product files, so the profile recomputes unchanged (`0 unlisted drift`, exit 0). The ticket predicted WORKTREE-SOURCE-PIN or SEALED-PROFILE-RECOMPUTATION; neither fires. Reported as observed, not argued. The custody question it raises is the PM's: whether S6 should DECLARE these three runtime files as product, which is what would make a later change to them recompute the seal.
 
@@ -69,3 +71,21 @@ NO engine byte and NO `m3/w7-preview/today/**` file is touched, and no S5-declar
 - F2 is still unmerged; the ACTUAL C/F2 integration is not proved here, exactly as the brief's section 3 says.
 - The four annex adaptations in section 5 are the author's; an independent reviewer should re-derive them.
 - Not pushed. B's cumulative profile, pins, private verdict, receipt and authorized rerun remain separate gates.
+
+## 9. Round 2 - review r1 (83ea76e6 over 4f88087, ACCEPT with 2 MAJOR / 3 MINOR / 4 NOTE) closed
+Every item the PM ordered, with the cell that holds it. No law, guard or test was weakened; no S5-declared file was touched (drift is still the same 18 additions, `0 unlisted drift`).
+
+**2 MAJOR, fail-closed over-reach (RV14).** `inspect()` refused `PLAN_EDIT_REJECTION_UNPROVEN` whenever `collections.rejected` was non-empty AT ALL. One synthetic rejection of an unrelated food operation dark-screened the whole plan read and the editor. Now the guard asks WHOSE rejection it is: plan-class means this generation's own setup descriptor, a `plan-mutation`, or a tombstone whose target chain reaches one; an op_id the generation does not carry, and a tombstone cycle, cannot be SHOWN to be unrelated and stay plan-class. Cells: *a rejection of an operation this companion does not own reads normally* (four record shapes, state / basis / parents / intent identical to the clean read, and the editor still previews over it) and *a rejection naming no operation of this generation cannot be shown unrelated and refuses*.
+A PLAN rejection still refuses, in every shape, and that is deliberate: this installation admits no authority disposition (`metadata.wireProofs.disposition` is empty and the closed frontier check refuses a synced generation), so a record naming its own op exactly is an index entry and never proof. Making a well-formed record admissible would have broken PE09-rejection, the accepted law that an unproved encrypted rejection cannot remove an authenticated plan edit - so the reviewer's own wording was followed instead: the guard is narrowed and **the dead branches are RETIRED**, not left behind with an opinion. Retired: the `rejected` status in `statuses`, its duplicate proof check inside the edits loop, the `rejected[op.op_id]` clause in the tombstone guard, the `rejected` field in `basisAt`, and the `rejected[origin.op_id]` clause beside the origin equality. Cells: *a PLAN rejection refuses whatever shape it has and never excludes an edit* (eight records incl. `{op_id: <its own op>}`, each kept intact; plus a descendant case) and *a rejected setup descriptor and a rejected plan tombstone are plan-class and refuse* (which also proves an unrejected tombstone is still honoured). New model mutants `unrelated-rejection-dark-screens`, `unclassifiable-rejection-waved-through`, `only-mutations-are-plan-class`; `unproved-rejection-is-authority` re-pointed at the new guard. 16/16 killed.
+
+**1 MAJOR, report currency.** Rebased onto `origin/rebuild/t2-client-core` 60cb6187 LAST, then re-ran the S5 gate and the lane suites. Section 6 now cites the head it was taken at, and nothing in it comes from an intermediate commit.
+
+**3 MINOR, drift count.** Section 7 said 17 over an 18-entry list. Fixed to 18.
+
+**4 MINOR, astra-rerun dirtied the tree.** The adapted copies were written to `rebuild/lanes/astra/tmp-plan-edit-rerun/`, which git does not ignore. They now go to a `mkdtemp` under `rebuild/lanes/.tmp/`, ignored by the root `.gitignore` (`.tmp/`, line 4) exactly like the host mutants' scratch. The depth is load-bearing and is commented as such: the annex's own specifiers are `../../../<module>` off `rebuild/`, and adaptation (1) is `../../d/plan-edit/...` off `rebuild/lanes/`, so the copies must sit exactly two directories below `rebuild/lanes` for both to resolve unchanged. Verified: `git status --porcelain` after running the full evidence shows only the files this commit edits.
+
+**5 MINOR, the day-turned refusal had no name (RV06).** A live day that disagrees with the client's stamp clock used to reach the client's own closed validator and come back as `WORKOUT_INPUT_INVALID` ("Nothing was recorded"), which is not what happened. `save()` now compares `clock.today()` with the day the review was authored on BEFORE anything is built, and refuses `PLAN_EDIT_DAY_TURNED` carrying the sentence lane C shows: "The day changed while this was open. Review the latest week before saving." (no dash; asserted by code point). It is ordered AFTER the stale check, so a live day that moved past the review still refuses `PLAN_EDIT_REVIEW_STALE` with its result, unchanged. Cell *PE15 stamp-clock disagreement is named PLAN_EDIT_DAY_TURNED before anything is built* also proves `invalid` is absent (the client was never asked to build), that nothing is written, and that putting the two back in step lets the SAME review save - the refusal is about the disagreement, not about spending the review. Host mutant `day-turned-unnamed`.
+
+**6 NOTE, defaulted installation identity.** `createPlanEditHost` defaulted `athleteLabel`/`namespace` to `null`, degrading `admittedLocalSourceBasis` to "any admitted import". Both are now required and absence refuses `PLAN_EDIT_HOST_INCOMPLETE`. Cell *PE17 a host without the installation identity refuses to be constructed* (five absent / blank / wrong-typed shapes, then a construction with both). Host mutant `identity-optional`. The annex adaptation (2) now hands the witnesses the annex's own `setup.athlete_label` and `options.namespace` - the values it already enrolled with - so it stays FOUR adaptations and every witness probes what it probed: 22/22 PASS.
+
+**7 NOTE (two U+2013 in the brief, inherited byte-identical from 12a837f) and 8 NOTE (`client.planEdit` deliberately unused)** are recorded as correct as stated and left alone: rewriting an accepted brief's bytes is not this round's business, and the A1 dash gate passes.
