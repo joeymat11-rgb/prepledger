@@ -22,6 +22,7 @@ const C = require("../coach-text.cjs");
 const Client = require("../../client/index.cjs");
 const O = require("../../conform/lib/ops.cjs");
 const { createTodayModel } = require("../../m3/w7-preview/today/today-model.cjs");
+const { ENGINE_REVISION } = require("../engine-revision.cjs");
 
 const DAY = "2030-02-04";
 const CLOCK = { now: () => DAY + "T13:00:00.000Z", today: () => DAY, tz: "+00:00", monotonicMs: () => 0 };
@@ -120,7 +121,11 @@ test("tier 2: WITH A YES the accepted proposal equals the engine's proposal exac
   assert.equal(done.accepted.issuance_stored, true);
 });
 
-test("tier 2: EXACTLY what the durable store keeps after a yes — and the reason is NOT on disk", async () => {
+/* P6-COACH-WIRE-2 (DECISIONS:456) closed the gap this test used to state:
+   accept_proposal now records the issuance BEFORE responding, and respond()
+   carries the whole thing, so the reason, the producer and the proposal body
+   are on disk, keyed to the ENGINE_REVISION the accepting build shipped. */
+test("tier 2: EXACTLY what the durable store keeps after a yes - the reason IS on disk, sealed to ENGINE_REVISION", async () => {
   const w = world();
   const t1 = w.coach.openTurn("turn-a");
   const issued = await t1.call.request_replan({ fact: "volume" });
@@ -131,33 +136,43 @@ test("tier 2: EXACTLY what the durable store keeps after a yes — and the reaso
 
   const store = JSON.parse(w.dump());
 
-  /* ONE operation, and its payload is exactly two fields */
+  /* ONE operation, and its payload is exactly the answer plus the whole issuance */
   const ops = Object.values(store.ops);
   assert.equal(ops.length, 1);
   assert.equal(ops[0].kind, "proposal-response");
-  assert.deepEqual(ops[0].payload, { proposal_id: engineProposal.proposal_id, answer: "accept" });
+  assert.deepEqual(ops[0].payload, { proposal_id: engineProposal.proposal_id, answer: "accept",
+    issuance: { producer: engineProposal.producer, body: engineProposal.body, reason: engineProposal.reason,
+      revision: ENGINE_REVISION, source: "turn-b", moment: w.today.today } });
   assert.equal(ops[0].op_id, done.accepted.op_id);
 
-  /* and ONE issuance, of exactly three fields */
+  /* and ONE issuance record, now carrying producer and revision too */
   assert.deepEqual(Object.values(store.issuances),
-    [{ id: engineProposal.proposal_id, accepted: true, instance: null }]);
+    [{ id: engineProposal.proposal_id, accepted: true, instance: null,
+      producer: engineProposal.producer, revision: ENGINE_REVISION }]);
 
-  /* THE GAP, stated rather than hidden: the engine's reason, the proposal body
-     and the producer name never reach disk, because the existing
-     proposal-response payload has no slot for any of them. */
+  /* THE GAP IS CLOSED: the engine's reason, the proposal body and the
+     producer name now reach disk, inside the sealed issuance. */
   const raw = w.dump();
-  assert.ok(!raw.includes(engineProposal.reason), "the engine's reason IS on disk — update this test and C3");
-  assert.ok(!raw.includes(engineProposal.producer), "the producer name is on disk");
-  assert.ok(!raw.includes("weeklySetsNow"), "the proposal body is on disk");
+  assert.ok(raw.includes(engineProposal.reason), "the engine's reason did not reach disk");
+  assert.ok(raw.includes(engineProposal.producer), "the producer name did not reach disk");
+  assert.ok(raw.includes("weeklySetsNow"), "the proposal body did not reach disk");
+  assert.ok(raw.includes(ENGINE_REVISION), "ENGINE_REVISION did not reach disk");
 
-  /* a freshly booted client over the SAME backend keeps the answer and loses the
-     rest — this is what survives a restart, in full */
+  /* a freshly booted client over the SAME backend keeps the answer AND the
+     reason - this is what survives a restart, in full */
   const fresh = w.reboot();
   assert.deepEqual(fresh.face().answers.map((a) => ({ proposal: a.proposal, answer: a.answer, op_id: a.op_id })),
     [{ proposal: engineProposal.proposal_id, answer: "accept", op_id: done.accepted.op_id }]);
   assert.equal(fresh.issuedInstance(engineProposal.proposal_id), null);
+  const back = fresh.reasonFor(engineProposal.proposal_id);
+  assert.equal(back.recorded, true);
+  assert.equal(back.reason, engineProposal.reason);
+  assert.equal(back.revision, ENGINE_REVISION);
 
-  /* and a coach rebuilt over that fresh client knows nothing about the proposal */
+  /* and a coach rebuilt over that fresh client knows nothing about the
+     proposal IN MEMORY - issuedProposals/acceptedProposals/consentLedger are
+     this-process bookkeeping, never the durability story; the durability
+     story is reasonFor() above, over the client's own store */
   const rebuilt = T.createCoachTools({ today: w.today, consent: fresh });
   assert.deepEqual(rebuilt.acceptedProposals(), []);
   assert.deepEqual(rebuilt.issuedProposals(), []);

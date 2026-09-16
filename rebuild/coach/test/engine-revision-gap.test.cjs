@@ -31,32 +31,13 @@ function world() {
   return { backend, client, today, coach: T.createCoachTools({ today, consent: client }) };
 }
 
-/* R1: the call site still issues with no producer/revision, and no clock
-   has been added to the coach's world. */
-test("R1 accept_proposal still calls respond and recordIssuance without an issuance", () => {
-  assert.equal(SRC.includes('consent.respond(id, "accept")'), true, "respond call site changed");
-  assert.equal(SRC.includes("recordIssuance({ id, accepted: true, instance: null })"), true,
-    "recordIssuance call site changed");
-  assert.equal(/recordIssuance\([^)]*producer/.test(SRC), false, "producer now passed to recordIssuance?");
-  assert.equal(/world\.clock|deps\.clock/.test(SRC), false, "a coach clock seam appeared?");
-});
-
-/* R2: end to end with the real client, the P6 carry-over is still open:
-   after a real yes the reason is not on disk and reasonFor says so. */
-test("R2 real client: accept_proposal stores no reason (carry-over open)", async () => {
-  const w = world();
-  const t1 = w.coach.openTurn("turn-req");
-  const r = await t1.call.request_replan({ fact: "volume" });
-  assert.equal(r.ok, true, JSON.stringify(r.unavailable || {}));
-  const id = r.values.proposalId.value;
-  const t2 = w.coach.openTurn("turn-yes");
-  const a = await t2.call.accept_proposal({ proposal_id: id, confirmed: true });
-  assert.equal(a.ok, true, JSON.stringify(a.unavailable || {}));
-  const back = w.client.reasonFor(id);
-  assert.equal(back.recorded, false, "reason unexpectedly on disk");
-  assert.equal(back.reason, null);
-  assert.equal(back.revision, null);
-});
+/* R1 and R2 asserted the gap (no revision reached the call site; the real
+   client stored no reason after a yes). P6-COACH-WIRE-2 (DECISIONS:456)
+   closed it - see rebuild/coach/test/accept-proposal-issuance.test.cjs for
+   the bar cells proving the call site now works, and tiers.test.cjs for the
+   durable-store proof that superseded R2. R1 and R2 are deleted rather than
+   inverted: they tested the ABSENCE of a seam, and that seam now exists by
+   design, not by accident this file should keep re-discovering. */
 
 /* R3: the gap is a real blocker, not a hypothetical one - the real client
    refuses an otherwise perfect issuance whose revision is missing, empty,
@@ -81,13 +62,14 @@ test("R3 the client refuses an issuance without a real string revision", async (
   assert.equal(back.revision, whole.revision);
 });
 
-/* R4: neither seam PM's follow-up needs exists today - not a revision, and
-   not a clock. `source` (turn_id) is fine; `moment` has nothing to read
-   from either, since verifyCostCap's `new Date()` default (tools.cjs:938)
-   is unrelated to proposal issuance and today-model's own engine clock
-   (today-model.cjs) is never exposed on the today adapter the coach holds.
-   This is why the PM follow-up is TWO seams: revision AND a coach clock. */
-test("R4 no engine revision and no clock reach the coach's world", () => {
+/* R4, rewritten as a contract cell (P6-COACH-WIRE-2, reviewer note 5): the
+   engine itself still exposes no revision or clock of its own - that has not
+   changed and must not - so ENGINE_REVISION (a sealed-receipt LABEL, not a
+   runtime read) is the only revision source tools.cjs is allowed to use, and
+   no clock reaches the coach: the only Date construction anywhere in
+   tools.cjs is verifyCostCap's documented default at its own line, never
+   inside accept_proposal or its issuance. */
+test("R4 ENGINE_REVISION is the only revision source, and no clock reaches the coach", () => {
   const today = createTodayModel({});
   assert.equal(today.revision, undefined);
   assert.equal(today.clock, undefined);
@@ -96,4 +78,33 @@ test("R4 no engine revision and no clock reach the coach's world", () => {
   const rt = require("../../m4/workout/engine-runtime.cjs");
   assert.equal(rt.COMPOSITION.revision, undefined);
   assert.equal(Object.keys(require("../../engine/index.cjs")).join(","), "createEngine");
+
+  const { ENGINE_REVISION } = require("../engine-revision.cjs");
+  assert.equal(typeof ENGINE_REVISION, "string");
+  assert.ok(ENGINE_REVISION.length > 0);
+
+  /* the call site reads the constant, never a literal of its own and never
+     any other property named revision/version on the world it holds */
+  assert.equal(SRC.includes("revision: ENGINE_REVISION"), true, "accept_proposal no longer uses ENGINE_REVISION");
+  assert.equal(/revision:\s*(?!ENGINE_REVISION)[a-zA-Z0-9_.]+/.test(SRC), false,
+    "some other value is assigned to a revision field");
+
+  /* every `new Date`/`Date.now()` in tools.cjs lives inside verifyCostCap's
+     own documented default (:938's line) and nowhere else - no coach clock
+     seam appeared. Attribute each site to its nearest enclosing top-level
+     `function NAME(` declaration rather than pinning a line number, so the
+     cell survives unrelated reflow of this file. */
+  const lines = SRC.split("\n");
+  const fnAt = lines.map((line) => { const m = /^function\s+([A-Za-z0-9_]+)\s*\(/.exec(line); return m ? m[1] : null; });
+  let enclosing = null;
+  const dateSites = [];
+  lines.forEach((line, i) => {
+    if (fnAt[i]) enclosing = fnAt[i];
+    if (/\bnew Date\(|\bDate\.now\(/.test(line)) dateSites.push({ line: i + 1, fn: enclosing, text: line.trim() });
+  });
+  assert.ok(dateSites.length > 0, "no Date construction found at all - has verifyCostCap moved its default?");
+  for (const site of dateSites) {
+    assert.equal(site.fn, "verifyCostCap",
+      "unexpected Date construction outside verifyCostCap at tools.cjs:" + site.line + " (in " + site.fn + "): " + site.text);
+  }
 });

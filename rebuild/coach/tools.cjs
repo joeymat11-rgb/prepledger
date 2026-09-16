@@ -24,6 +24,7 @@
  */
 
 const crypto = require("node:crypto");
+const { ENGINE_REVISION } = require("./engine-revision.cjs");
 
 const TIER = Object.freeze({ READ: 0, FACT: 1, PROPOSAL: 2, REFUSED: 3 });
 
@@ -343,6 +344,9 @@ const CODES = Object.freeze({
   ENGINE_ISSUED_NO_PROPOSAL: "COACH_ENGINE_ISSUED_NO_PROPOSAL",
   CONSENT_SURFACE_ABSENT: "COACH_CONSENT_SURFACE_ABSENT",
   PROPOSAL_NOT_ENGINE_ISSUED: "COACH_PROPOSAL_NOT_ENGINE_ISSUED",
+  /* P6-COACH-WIRE-2 (DECISIONS:456): recordIssuance() ran but reported
+     stored:false, so respond() is never called. */
+  CONSENT_ISSUANCE_NOT_STORED: "CONSENT_ISSUANCE_NOT_STORED",
   COST_CAP_ABSENT: "COACH_COST_CAP_ABSENT",
   COST_CAP_INVALID: "COACH_COST_CAP_INVALID",
 });
@@ -387,7 +391,8 @@ function carriesNumber(node, depth) {
  *             createTodayModel) — read()/stateFromOps()/engine
  *   gym     : OPTIONAL, the slice's REAL gym adapter (gym-model.mjs createGymModel)
  *   consent : OPTIONAL, rebuild/client's own consent surface
- *             { respond(id, answer), recordIssuance({id,accepted,instance}), face() }
+ *             { respond(id, answer, issuance?), recordIssuance({id,accepted,instance,
+ *             producer?,revision?}), face() }
  *   checkin : OPTIONAL, a recovery check-in reader — ABSENT in the slice today
  * }
  */
@@ -824,9 +829,12 @@ function createCoachTools(world) {
     }, { proposal: record, awaiting_yes: true, state_unchanged: true }));
   }
 
-  /* The yes goes through the existing respond()/recordIssuance() calls.
-     The records below retain the issued reason in memory; an acknowledged
-     response alone proves neither a durable reason nor an applied programme. */
+  /* The yes goes through the existing respond()/recordIssuance() calls, in
+     that order (P6-COACH-WIRE-2, DECISIONS:456): recordIssuance() seeds the
+     durable "prior" record respond()'s own digest check compares against,
+     so respond() carries the whole issuance - producer, body, reason,
+     ENGINE_REVISION, the turn_id and the coach's day - and nothing from
+     this conversation enters it. */
   async function accept_proposal(args, turn_id) {
     const id = args && args.proposal_id;
     if (!args || args.confirmed !== true) {
@@ -843,15 +851,30 @@ function createCoachTools(world) {
         "rebuild/client/index.cjs respond()/recordIssuance()");
     }
     const record = issued.get(id);
-    const answered = consent.respond(id, "accept");
+    /* the whole issuance, sealed: only fields the engine itself produced
+       (record.producer/body/reason from request_replan's own copy) plus the
+       ENGINE_REVISION constant, the turn carrying it, and the coach's day -
+       never a value read back off the conversation. */
+    const issuance = { producer: record.producer, body: record.body, reason: record.reason,
+      revision: ENGINE_REVISION, source: turn_id,
+      /* day resolution per DECISIONS:456 - today.today is the coach's day
+         string, not an instant; a finer moment can come later from the same
+         source Today uses, never from a clock read here. */
+      moment: day };
+    const stored = consent.recordIssuance({ id, accepted: true, instance: null,
+      producer: record.producer, revision: ENGINE_REVISION });
+    if (!stored || stored.stored !== true) {
+      return unavailable("accept_proposal", TIER.PROPOSAL, turn_id, CODES.CONSENT_ISSUANCE_NOT_STORED,
+        "Your yes could not be recorded on this device. Nothing changed.",
+        "rebuild/client/index.cjs recordIssuance()");
+    }
+    const answered = consent.respond(id, "accept", issuance);
     if (!answered || answered.acknowledged !== true) {
       return unavailable("accept_proposal", TIER.PROPOSAL, turn_id, (answered && answered.code) || "PLAN_CONSENT_NOT_ACKNOWLEDGED",
         (answered && answered.copy) || null, "rebuild/client/index.cjs respond()");
     }
-    let issuance = null;
-    if (typeof consent.recordIssuance === "function") issuance = consent.recordIssuance({ id, accepted: true, instance: null });
     const entry = freeze({ proposal_id: id, proposal: record, reason: record.reason,
-      op_id: answered.op_id || null, issuance_stored: !!(issuance && issuance.stored), turn_id });
+      op_id: answered.op_id || null, issuance_stored: true, turn_id });
     accepted.set(id, entry);
     consentLedger.push(entry);
     return assertNoLeak(ok("accept_proposal", TIER.PROPOSAL, turn_id, {
