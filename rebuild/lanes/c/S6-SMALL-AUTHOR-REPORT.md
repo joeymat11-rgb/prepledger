@@ -1,7 +1,9 @@
 # S6-C SMALL ITEMS - AUTHOR REPORT
 Branch `rebuild/c-s6-small` off `origin/rebuild/t2-client-core` 0ac72ea (DECISIONS:468). Lane C, author Opus
-high. Six files, +552/-36. No `rebuild/engine` byte moves. Every cell is in
-`rebuild/m3/w7-preview/today/test/problem.test.mjs`: the 13-name rule holds, no test file was added.
+high. Round 1 six files; round 2 (review R1, section at the end) adds a seventh, `today/gym-app.mjs`. No
+`rebuild/engine` byte moves. Every cell is in `rebuild/m3/w7-preview/today/test/problem.test.mjs`: the 13-name
+rule holds, no test file was added. THE TAILS AND THE DRIFT LIST BELOW ARE ROUND 1's; round 2's are in its own
+section, and where they differ round 2 stands.
 ## 1 SETUP FIRST ON A FRESH INSTALL (owner ruling DECISIONS:463 verbatim)
 `today-entry.mjs` boot(): one new local `setupFirst`, handed to mountToday, defaulting to `!!live` - and `live`
 is non-null for exactly one caller, the shipped page, which declares no day. `today-app.cjs` mountToday reads
@@ -78,3 +80,92 @@ food.test.mjs N1.18; machine-settings-ui.test.mjs S10; setup.test.mjs re-pin x2.
 paths and closes when packages/S6.json declares them. Nothing was weakened or removed to reach that state.
 ## Stops
 None. No engine, ledger, private or soak path was opened.
+
+# ROUND 2 - THE INDEPENDENT REVIEW R1 (REJECT), FINDING BY FINDING
+Review file `rebuild/lanes/c/S6-SMALL-REVIEW-R1.md` in the reviewer's worktree, review sha 26691ea. Every
+finding below was reproduced here first, then closed, then proved red-first.
+## R1-1 BLOCKING, FIXED - the built page printed "Build unknown"
+REPRODUCED. `injectCommit()` rewrites the one literal `"commitnotinjected"`, and that literal's only occurrence
+IS the declaration of `COMMIT_PLACEHOLDER`; so on the built page `COMMIT_PLACEHOLDER` *is* the sha, and
+`commit !== COMMIT_PLACEHOLDER` is false against itself. The page said "Build unknown" while A1 said
+`commit c0a4e6c`. FIX, in `problem-report.cjs` and one line long: the footer no longer asks "is this still the
+placeholder" - a replace() can always reach the constant that names the placeholder - it asks "is this a
+commit": `SHORT_SHA = /^[0-9a-f]{4,40}$/`, the same shape `build.mjs` admits at injection. The placeholder,
+"unknown", '' and a non-string all fall to "unknown" because none of them is a sha. THE BUILT BYTES, read back
+from `.tmp/w7-today-dist/app.js` at this head and evaluated under node:vm:
+    var COMMIT_PLACEHOLDER = "c0a4e6c"; var COMMIT = COMMIT_PLACEHOLDER;
+    var COMMIT_UNKNOWN = "unknown"; var SHORT_SHA = /^[0-9a-f]{4,40}$/;
+    function buildFooterLine(commit) {
+      const named = typeof commit === "string" && SHORT_SHA.test(commit);
+      return "Build " + (named ? commit : COMMIT_UNKNOWN); }
+    --- WHAT THE SHIPPED PAGE PRINTS: "Build c0a4e6c" ---
+## R1-3 MINOR, FIXED - the two assertions that could not fail
+They were what should have caught R1-1, so they are replaced by the assertion that does. S6C.7b now lifts the
+BUNDLE's own constants and its own `buildFooterLine` out of `app.js` and evaluates them under node:vm, then
+asserts the rendered line equals `'Build ' + result.commit` and, when the build named a commit, equals
+`'Build ' + commitOf()`. The tautologies (`split(x).length - 1 >= 0`; `includes('Build ')` met by the format
+literal) are deleted, not weakened into something else. S6C.7 gains the value rule at its edges: the placeholder
+is not sha-shaped, "unknown" is not, uppercase is not (git prints lowercase), three hex characters are not, a
+trailing byte is not, an object with a toString is not, and a full 40-character sha is.
+## R1-2 MAJOR, FIXED - the gym stub screen was left with an empty heading
+REPRODUCED, and the review is right on both counts: `gym-app.mjs` stub() read `view.title || ''`, the fallback
+the round 1 report named (`view.title || view.session.instruction.display`) exists at 310/444/466 and CANNOT
+serve here - neither the refusal view nor the finished view carries a `session` - and an h1 put to '' is also
+HIDDEN by put() and is the element show() then focuses. FIX: stub() takes the heading its caller owns.
+The refusal screen is headed `WORKOUT_CANNOT_OPEN` ("Today's workout cannot open"), the recorded screen
+`WORKOUT_RECORDED_TODAY` ("Workout recorded"). Both are today-app.cjs's OWN sentences, already in design.cjs's
+PREVIEW_RUNTIME_COPY and already checked ABSENT from the approved references, so the screen gains a true heading
+and this lane invents no word and adds no copy to bind. Where the engine's stamp IS true of the card's own day
+it still wins, unchanged.
+NEW CELL S6C.6d, and it is the only cell this round adds: a REAL boot on the fixture's REFEED day (the S6C.6c
+day, title null) mounted on the shipped template - the painted h1 is not hidden, is not empty and names no other
+day - then both stub screens at the exact DTOs gym-model returns, pinned by name, then the headed case.
+## R1-4 MINOR, NOT FIXED, STATED - the build embeds HEAD, so a docs-only commit rotates the PWA cache
+Correct and reproduced: `app.js` bytes are now a function of HEAD, so every commit changes the asset hash and
+the sw cache name, and the round 1 A5 tail does not reproduce at a different commit. This is the price of
+DECISIONS:468 (b) and is not removable while the page names its commit: the bytes DID change, and a cache name
+that did not rotate while the bytes changed would serve stale bytes to installed clients, which is the worse
+failure. The build id beside it already had the same property (it is a hash of the inputs). What a reader
+should take from it: a build tail is reproducible AT A COMMIT, not across commits. Nothing here is asserted
+against a fixed cache name; the A5 cell pins the derivation, not the value.
+## R1-5/6/7 MINOR, FIXED
+(5) `RESUME_TODAYS_WORKOUT` now spells its apostrophe U+2019, as the rest of the screen does, with the cell
+asserting the new bytes and that no ASCII apostrophe survives. (6) the dead-export comment in
+`local-today-journey.test.mjs` now names FOUR chain-reader copies with their line numbers, including
+`measure/test/boundary.test.mjs:83`, which round 1 missed. (7) the stale A4 residual comment at
+`today-app.cjs` ~2200 is replaced by what is now true: S6 item 1 closes that residual for the LIVE page only,
+and every fixture, suite and check still boots into what it always did.
+## Round 2 red sides (each applied, run, reverted; tree clean after)
+M6 restore the old footer predicate `commit !== COMMIT_PLACEHOLDER`: S6C.7 AND S6C.7b red, the latter verbatim
+`AssertionError: the SERVED page prints the commit the build named / + 'Build unknown' - 'Build c0a4e6c'` -
+the review's finding, now caught by the cell that missed it. M7 restore `view.title || ''` in stub():
+S6C.6d red on the REAL boot assertion, `a heading put to the empty string is HIDDEN, and is what show() focuses`.
+## Round 2 verbatim tails (this worktree, Node 24, junctions only, no npm)
+today-17 (MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York), split in two runs as before: part A (adapter,
+catalogue, checkin, copy, design, food, gym) `tests 276 / suites 0 / pass 275 / fail 1`; part B (the other six
+today files + the four measure suites) `tests 403 / pass 399 / fail 4` => `tests 679 / pass 674 / fail 5`
+(+1 test on round 1: S6C.6d). THE FIVE REDS ARE THE SAME FIVE, unchanged in name and in content: food N1.18,
+measure/boundary P-MEASURE (g), machine-settings-ui S10, setup re-pin x2 - one guard asking "does a package on
+this branch declare these bytes", closed by packages/S6.json. P-MEASURE (g)'s actual list is byte-identical to
+round 1's four names, because the S4-sealed set it watches is S5's declared set.
+W6 `tests 586 / pass 586 / fail 0`. coach `tests 231 / pass 231 / fail 0`. client `tests 18 / pass 18 / fail 0`.
+lane B tooling `tests 91 / pass 91 / fail 0`. measure hermetic (model, adherence) `tests 11 / pass 11 / fail 0`.
+rig187 `rig187 ⇒ PASS`.
+A1 `A1 TODAY BUILD PASS: 3 assets; 121 pinned inputs (13 engine, 12 client); build earned-911ef8a63a78; commit
+c0a4e6c; approved design pinned; 69 bound classes; 2 pinned typefaces inlined; no literal figure in the
+template; 3/3 assets scanned and free of any network reference; no em/en dash in any text the athlete can see`
+A5 `A5 PWA BUILD PASS: 13 files in .tmp\slice-pwa-dist; 11 precached and pinned by sha256; cache name
+earned-slice-7bb762b085426ad212b2f4153d4eb50e derived from those bytes (no version constant); 13 exact header
+rules, no-store on sw.js; ... no em/en dash in any text this build emits` - a different cache name from round
+1's, which is R1-4 above, not a regression. BOTH BUILD TAILS WERE TAKEN AT c0a4e6c, the parent of the round 2
+commit, for the plain reason that a commit cannot contain a build of itself. By R1-4 the `commit` field, the
+build id and the cache name all move with HEAD: re-run A1 at the head under review and compare its `commit`
+with `git rev-parse --short HEAD`, not with the bytes printed here.
+## Round 2 drift (git diff --name-only 0ac72ea HEAD, each findstr'd against packages/S5.json)
+EIGHT paths. PINNED BY S5 (4), unchanged from round 1: `m3/w6/test/local-today-journey.test.mjs`;
+`today/today-entry.mjs` (untouched this round); `today/today-app.cjs`; `today/test/problem.test.mjs`.
+NOT IN S5 (4): `today/build.mjs` (untouched this round); `today/problem-report.cjs`; `today/gym-app.mjs` (NEW
+this round, R1-2); and this report. No new file under `today/test`, no engine byte, nothing outside lane C's
+custody. `b-package --ci --package S5` stays the expected red (WORKTREE-SOURCE-PIN / SEALED-PROFILE-
+RECOMPUTATION, DECISIONS:455/:467); this work lands inside the S6 reseal.
+Hygiene, round 2 added lines across the five edited source files: 0 CRLF, 0 U+2013/U+2014.

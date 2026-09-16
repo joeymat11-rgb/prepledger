@@ -296,7 +296,7 @@ const SAMPLE_DATA_NOTE = "Sample data. Set up your week to start your own.";
    words are kept unchanged; where it does not, the button names what the tap opens
    and claims no day of its own. The engine is not touched and no lift name is
    invented. Exported so a cell can assert both branches directly. */
-const RESUME_TODAYS_WORKOUT = "Resume today's workout";
+const RESUME_TODAYS_WORKOUT = "Resume today’s workout";
 function resumeLabel(workout) {
   return workout && workout.today === true && typeof workout.title === "string" && workout.title
     ? "Resume " + workout.title
@@ -2201,14 +2201,15 @@ function mountToday(doc, model, options = {}) {
      screen this page would otherwise offer: the setup route above refuses when
      the installation is not fresh, so ?screen=setup on a set-up device lands on
      Today rather than on a second enrolment.
-     A4 does NOT make the setup screens the landing screen. It cannot honestly:
-     Today's engine basis on this page is still the synthetic fixture
-     (today-model.cjs createBasisState), so a fresh installation that has not run
-     setup is exactly the A1 page that already ships, and making setup the landing
-     screen would change what every merged suite and check boots into. Wiring the
-     first-run op's clean-init state in as Today's basis is a today-model.cjs
-     change, which A4 does not own; boot() does it for the enrolled case, which is
-     the case the first run creates. Recorded in A4-REPORT.md as a residual. */
+     A4's RESIDUAL IS CLOSED (review R1 minor 7). A4 recorded that it could not
+     make setup the landing screen, because Today's engine basis on this page is
+     still the synthetic fixture (today-model.cjs createBasisState) and moving the
+     landing would change what every merged suite and check boots into. S6 item 1
+     (owner ruling DECISIONS:463) moves it for the LIVE page only: `setupFirst` is
+     off unless boot() turns it on, and boot() turns it on for exactly the caller
+     that declares no day - the shipped page. Every fixture, suite and check
+     declares its day, keeps the pre-setup Today preview, and boots into what it
+     always did. See the landing-screen note at render() below. */
   function requestedScreen() {
     const view = doc.defaultView;
     const search = view && view.location && typeof view.location.search === "string" ? view.location.search : "";

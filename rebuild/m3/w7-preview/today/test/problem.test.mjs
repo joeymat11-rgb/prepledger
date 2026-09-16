@@ -15,6 +15,7 @@ import { faultDatabase } from '../../../w6/test/support.mjs';
 import { createReadingHost } from '../reading-host.mjs';
 import { createGymHost, openTodayHosts } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES, ADOPTION_PENDING } from '../gym-model.mjs';
+import { mountGym } from '../gym-app.mjs';
 import { createWorkoutEntry, createSetupEntry, createCheckInEntry, boot,
   SETUP_BASIS_STATE_REFUSED } from '../today-entry.mjs';
 import { createCleanInitState, createSetupModel, COPY as SETUP_COPY } from '../setup-model.mjs';
@@ -31,6 +32,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fsSync from 'node:fs';
+import vm from 'node:vm';
 import { createSleepHost, sleepNightsIn, PROFILE, OP_CLASS, OP_KIND } from '../sleep-host.mjs';
 import SleepCommands from '../sleep-commands.cjs';
 import SleepModel from '../sleep-model.cjs';
@@ -3302,7 +3304,11 @@ test('S6C.6b - the engine stamp is the NEXT session, and is carried only where i
      verbatim; where it does not, the button names the tap and claims no day. */
   assert.equal(TodayApp.resumeLabel(session.workout), 'Resume UPPER BODY · TODAY');
   assert.equal(TodayApp.resumeLabel(rest.workout), TodayApp.RESUME_TODAYS_WORKOUT);
-  assert.equal(TodayApp.RESUME_TODAYS_WORKOUT, "Resume today's workout");
+  /* Review R1 minor 5 - the page's own apostrophe (U+2019), as every other
+     sentence on this screen spells it; the first cut shipped an ASCII one beside
+     "Earned could not prepare today’s workout" on the same card. */
+  assert.equal(TodayApp.RESUME_TODAYS_WORKOUT, "Resume today’s workout");
+  assert.equal(TodayApp.RESUME_TODAYS_WORKOUT.includes("'"), false);
   assert.equal(TodayApp.resumeLabel(rest.workout).includes('TOMORROW'), false,
     'the defect of :452: a Resume button that named TOMORROW for a workout in hand');
   assert.equal(TodayApp.resumeLabel(null), TodayApp.RESUME_TODAYS_WORKOUT);
@@ -3331,6 +3337,55 @@ test('S6C.6c - the gym card is headed with the stamp only on a day the stamp des
   entryOff.gymHost.close();
 });
 
+/* REVIEW R1 FINDING 2 - WHAT WITHHOLDING THE STAMP DOES TO THE SCREEN. S6C.6c
+   proves the card is handed no title on such a day; this is the other half, on the
+   shipped template: what the card then CALLS itself. Two of the gym card's screens
+   have no session to fall back on - the refusal and the recorded workout, both
+   painted by stub() - and before this round both were headed with the empty string,
+   which put() also hides and show() then focuses. */
+test('S6C.6d - no gym screen is headed with nothing when the stamp is withheld', async () => {
+  const fault = faultDatabase();
+  const entry = await createWorkoutEntry(createTodayModel({ today: S6_REST_DAY }),
+    { indexedDB: fault.indexedDB, crypto: webcrypto });
+  const real = await entry.gym.read();
+  assert.equal(real.title, null, 'the day the stamp does not describe (S6C.6c)');
+  const doc = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' }).window.document;
+  await mountGym(doc, doc.getElementById('phone'), { model: entry.gym, onBack: () => {} });
+  const head = doc.querySelector('#phone h1');
+  assert(head, 'the card paints a heading');
+  assert.equal(head.hidden, false, 'a heading put to the empty string is HIDDEN, and is what show() focuses');
+  assert(head.textContent.trim().length > 0,
+    'the screen this card painted on a titleless day is named: phase ' + real.phase);
+  assert.equal(head.textContent.includes('TOMORROW'), false, 'and it never names another day');
+  entry.gymHost.close();
+
+  /* Both stub screens at the DTOs gym-model returns for them (gym-model.mjs read():
+     `{ day, title: sessionTitle || null, message, saved, phase, ... }`), so each
+     heading is pinned by name rather than by whichever one today's fixture reaches. */
+  const paint = async (view) => {
+    const d = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' }).window.document;
+    await mountGym(d, d.getElementById('phone'), { model: { read: async () => view }, onBack: () => {} });
+    return d.querySelector('#phone [data-slot="workout-title"]');
+  };
+  const base = { day: S6_REST_DAY, title: null, message: null, saved: null };
+  const blocked = await paint({ ...base, phase: 'blocked',
+    code: 'WORKOUT_SPLIT_NOT_IN_FORCE', copy: null });
+  assert.equal(blocked.textContent, TodayApp.WORKOUT_CANNOT_OPEN);
+  assert.equal(blocked.hidden, false);
+  const finished = await paint({ ...base, phase: 'finished', sets: 12, lifts: 4 });
+  assert.equal(finished.textContent, TodayApp.WORKOUT_RECORDED_TODAY);
+  assert.equal(finished.hidden, false);
+  /* Both fallbacks are today-app.cjs's own declared sentences, not new words. */
+  for (const line of [TodayApp.WORKOUT_CANNOT_OPEN, TodayApp.WORKOUT_RECORDED_TODAY]) {
+    assert(design.PREVIEW_RUNTIME_COPY.includes(line), 'declared in design.cjs: ' + line);
+    assert.equal(AI_DASH.test(line), false);
+  }
+  /* And where the engine's words ARE true of the card's own day, they still win. */
+  const headed = await paint({ ...base, day: S6_SESSION_DAY, title: 'UPPER BODY · TODAY',
+    phase: 'finished', sets: 12, lifts: 4 });
+  assert.equal(headed.textContent, 'UPPER BODY · TODAY');
+});
+
 /* --------------------------------------------------------------------------
    S6 item 4 - THE BUILD ID IN THE FOOTER (DECISIONS:468 (b)). The served page
    prints the commit it was built from, in visible text, so a verifier can tie
@@ -3353,6 +3408,20 @@ test('S6C.7 - Today carries a "Build <sha>" footer, and unbuilt it says unknown'
   assert.equal(buildFooterLine(COMMIT_PLACEHOLDER), 'Build unknown');
   assert.equal(buildFooterLine(null), 'Build unknown');
   assert.equal(buildFooterLine(''), 'Build unknown');
+  /* REVIEW R1 FINDING 1 - the line names a COMMIT, and the placeholder is not one.
+     The first cut asked `commit !== COMMIT_PLACEHOLDER`, which the injection
+     rewrites out of existence; the rule below is a property of the VALUE, so no
+     replace() in the build can reach it. Below is that rule at its edges. */
+  assert.equal(/^[0-9a-f]{4,40}$/.test(COMMIT_PLACEHOLDER), false,
+    'the placeholder can never be mistaken for a sha, whatever it is renamed to');
+  assert.equal(/^[0-9a-f]{4,40}$/.test(COMMIT_UNKNOWN), false);
+  assert.equal(buildFooterLine(COMMIT_UNKNOWN), 'Build unknown');
+  assert.equal(buildFooterLine('0AC72EA'), 'Build unknown', 'git prints lowercase');
+  assert.equal(buildFooterLine('0ac'), 'Build unknown', 'too short to name a commit');
+  assert.equal(buildFooterLine('0ac72ea '), 'Build unknown', 'a trailing byte is not a sha');
+  assert.equal(buildFooterLine({ toString: () => '0ac72ea' }), 'Build unknown');
+  assert.equal(buildFooterLine('0123456789abcdef0123456789abcdef01234567'),
+    'Build 0123456789abcdef0123456789abcdef01234567', 'a full sha is still a sha');
   assert.equal(AI_DASH.test(buildFooterLine('0ac72ea')), false);
   /* And commitOf() itself never invents one: no repository, no guess. */
   assert.equal(commitOf(path.parse(process.cwd()).root), COMMIT_UNKNOWN);
@@ -3363,7 +3432,6 @@ test('S6C.7b - the BUILT page carries the commit exactly once, and still pins it
   const app = await readAsset('app.js');
   assert.match(result.commit, /^([0-9a-f]{4,40}|unknown)$/, 'the build named a commit or said unknown');
   assert.equal(app.includes(COMMIT_PLACEHOLDER), false, 'the placeholder never ships');
-  assert.equal(app.split('Build ' + result.commit).length - 1 >= 0, true);
   assert.equal(app.includes('"' + result.commit + '"') || app.includes("'" + result.commit + "'"), true,
     'the injected commit really is in the bundle');
   /* The injection refuses both ways it could be wrong, exactly as the build id's does. */
@@ -3378,6 +3446,28 @@ test('S6C.7b - the BUILT page carries the commit exactly once, and still pins it
      manifest the service worker pins. */
   assert.deepEqual([...result.assets].sort(), [...ASSETS].sort());
   assert.deepEqual((await fs.readdir(DIST)).sort(), [...ASSETS].sort());
-  /* And the footer really survived the build, in the page's own text. */
-  assert(app.includes('"Build "') || app.includes('Build '), 'the footer literal is in the bundle');
+  /* REVIEW R1 FINDING 1 - WHAT THE SHIPPED PAGE PRINTS, rendered from the BUILT
+     BYTES rather than from this process's copy of the module. The bundle's own
+     commit constants and its own buildFooterLine are lifted out of app.js and
+     evaluated under node:vm, which is what the phone does with them. This is the
+     assertion the two it replaces could never make: `split(x).length - 1 >= 0` is
+     true for every input, and `includes('Build ')` is satisfied by the format
+     literal alone - both were green while the served page said "Build unknown".
+     If the bundler ever stops emitting these three declarations followed by the
+     function, the slice fails to resolve and this cell goes red rather than
+     quietly stopping at a weaker claim. */
+  const from = app.indexOf('var COMMIT_PLACEHOLDER = ');
+  const fn = app.indexOf('function buildFooterLine(', from);
+  const brace = fn > -1 ? /\n[ \t]*\}/.exec(app.slice(fn)) : null;
+  assert(from > -1 && fn > from && brace, 'the built bundle still carries the footer and its constants');
+  const printed = vm.runInNewContext(
+    app.slice(from, fn + brace.index + brace[0].length) + '\nbuildFooterLine(COMMIT);');
+  assert.equal(printed, 'Build ' + result.commit,
+    'the SERVED page prints the commit the build named');
+  assert.match(printed, /^Build ([0-9a-f]{4,40}|unknown)$/);
+  if (result.commit !== COMMIT_UNKNOWN) {
+    assert.equal(printed.includes(COMMIT_UNKNOWN), false,
+      'a built page that HAS a commit never prints the unknown word');
+    assert.equal(printed, 'Build ' + commitOf(), 'and it is this worktree\'s HEAD');
+  }
 });

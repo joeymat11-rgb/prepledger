@@ -673,13 +673,15 @@ export const PAGE_PINS = Object.freeze({
 
 /* S6 item 5 (S5 independent review r1, MINOR 2) - THE DEAD CHAIN READER IS GONE.
    `CHILD_SPECS` / `declaredPostIn` were exported from here and imported by NOTHING,
-   in this file or anywhere in the tree. The three guard cells that do read the chain
-   of declaring specs - rebuild/m3/w7-preview/today/test/food.test.mjs,
-   test/machine-settings-ui.test.mjs and test/setup.test.mjs - each hold their own
-   copy, and each of those copies already names ['H3','S3','S4','S5'] while the export
-   here still stopped at S4. Making this the shared reader would mean those three
-   files IMPORTING A TEST MODULE, which would run this whole journey suite three more
-   times inside them; so the dead, stale copy is deleted instead. No assertion moves:
+   in this file or anywhere in the tree. The FOUR guard cells that do read the chain
+   of declaring specs - rebuild/m3/w7-preview/today/test/food.test.mjs:792,
+   test/machine-settings-ui.test.mjs:709, test/setup.test.mjs:2315 and
+   rebuild/m3/w7-preview/measure/test/boundary.test.mjs:83 (review R1 minor 6: the
+   fourth was missed here) - each hold their own copy, and each of those copies
+   already names ['H3','S3','S4','S5'] while the export here still stopped at S4.
+   Making this the shared reader would mean those four files IMPORTING A TEST MODULE,
+   which would run this whole journey suite four more times inside them; so the dead,
+   stale copy is deleted instead. No assertion moves:
    nothing called it. The cell below is unchanged and still the only guard in this
    file, and it still reads PAGE_PINS. */
 const pageFile = name => fileURLToPath(new URL('../../w7-preview/today/' + name, import.meta.url));
