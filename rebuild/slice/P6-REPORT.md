@@ -1,69 +1,61 @@
-# P4a / P6: reason on disk
+# P4a / P6: reason on disk (round 2)
 
-Ticket P4a-P6, CRITICAL-PATH-2026-09-15.md 4, DECISIONS:117 (3), :139, :202. Lane: PM/client
-(rebuild/client custody). Model Sonnet, effort medium. Size S/M. Author only; independent
-reviewer + PM integrator follow, per DECISIONS:89 plumbing tier.
-Base: origin/rebuild/t2-client-core @ d3d2a16. Branch rebuild/polish-p6.
+Ticket P4a-P6 r2, closing REVIEW-P4a-P6.md REJECT. Base origin/rebuild/t2-client-core @
+d3d2a16 (BASE_SHA). Branch rebuild/polish-p6. Author only, Sonnet medium.
 
-## What landed
+## Findings closed
 
-`respond(proposalId, answer, issuance)`: a new, optional third argument. `issuance =
-{ body, reason, revision, source, moment }`, all five required and `answer` must be
-`"accept"`; short of that the whole write refuses (state 3) before `store.transaction`
-ever runs, so no partial record reaches disk. When valid, `issuance` is folded verbatim
-into the SAME `proposal-response` operation's payload, in the SAME durable transaction as
-the answer: literally the same write, so "all-or-nothing with the answer" needs no new
-collection or second transaction. A plain two-argument `respond()` is byte-identical to
-before. `reasonFor(proposalId)` reads it back: `{ recorded: true, reason, body, revision,
-source, moment, opId }`, or `{ recorded: false, notRecordedBefore: "2026-09-15", copy }`
-for an accepted record with no issuance slot (old shape).
+- B1 (BLOCKING): `respond(id, answer, issuance)` now recomputes
+  `prop-sha256("earned/coach/proposal/v1"+JSON.stringify({producer,body,reason}))` (the exact
+  digest `rebuild/coach/tools.cjs:770` derives) from the supplied issuance and refuses the
+  whole write unless it equals `id`, and unless producer/revision agree with whatever this
+  device already registered via `recordIssuance()` for that id. `node:crypto` is unavailable
+  in the browser bundle, so the digest uses a dependency-free SHA-256 in `index.cjs`,
+  verified byte-for-byte against `node:crypto` for empty/ascii/unicode/long inputs.
+- B2 (BLOCKING): no constant date. `reasonFor()` derives "not recorded before <date>" from
+  this store's own earliest issuance-bearing record's `moment`; a record older than that
+  cutover gets `notRecordedBefore`, a record not older gets its own `recordDate` instead.
+- M1: a later plain two-arg accept of the same id cannot erase a recorded reason —
+  `reasonFor()` prefers the latest record (by device_seq) that actually carries an issuance.
+- M2 (CI home): `packages/S4.json` does not exist; `packages/S3.json`'s product map does not
+  list `rebuild/client/**` or `shared-preflight.yml`. Wired: `.github/workflows/
+  shared-preflight.yml` (not pinned, not owned by S3) now materializes the 15
+  `rebuild/client/**` files and runs `reason-on-disk.test.cjs` in its `regressions` step.
+- M3: not wired. Follow-on call site: `rebuild/coach/tools.cjs:846`,
+  `const answered = consent.respond(id, "accept");` needs a 3rd arg built from `record`.
+- MINOR: a BigInt body refuses (state 3), no throw. Red-first replay is real cross-build
+  parity: extracts `index.cjs`/`copy.cjs` at BASE_SHA via `git show` (confirmed by `git diff
+  BASE_SHA --stat` that no other `rebuild/client` file moved) into a throwaway copy, runs a
+  forged-issuance scenario in a fresh child process, asserts the REVERTED product accepts it.
 
-## Files : hunks
+## Bar cells (all in `rebuild/client/test/reason-on-disk.test.cjs`, 17/17 PASS)
+1. B1 x4 (model-authored / one-number-changed / swapped-reason / disagreeing-revision all
+   refused, byte-identical) + "the engine's own issuance ... byte-for-byte".
+2. "bar-2: a pre-P6-shaped op log replays to a byte-identical projection across a real
+   restart" (red-first) + both B2 cells (far-future cutover, post-cutover record).
+3. "the engine's own issuance is accepted and read back byte-for-byte" (reasonFor read API).
+4. "an issuance travels only with an accept; a decline ... refuses ... byte-identical" (no-yes).
+5. rig187 PASS; suites below.
 
-- `rebuild/client/index.cjs`: `REASON_ON_DISK_SINCE`, `validIssuance()`, `respond()`
-  extended, `reasonFor()` added (3 hunks).
-- `rebuild/client/copy.cjs`: `REASON_NOT_RECORDED`, `ISSUANCE_INCOMPLETE` (1 hunk).
-- `rebuild/client/README.md`: documents the new `respond()` argument and `reasonFor()`.
-- `rebuild/client/test/reason-on-disk.test.cjs`: new, 10 cases, self-contained (no
-  `rebuild/conform` reference, matching this module's own claim).
-- `rebuild/slice/P6-REPORT.md`: this file.
-
-No file outside `rebuild/client/**` changed. `rebuild/coach/**` untouched: `accept_proposal`
-still calls the old two-argument path, so the coach's own "reason is NOT on disk" red test
-(`tiers.test.cjs`) still passes unchanged. Flipping it to prove the reason IS on disk is
-lane C's one-line follow-on once `tools.cjs` passes an `issuance`; leaving a REQUESTS line
-for lane C is outside this ticket's custody and is not done here.
-
-## Bar, cell by cell
-
-1. All-or-nothing, byte-for-byte: `respond() with a full issuance...` PASS; dropping any
-   one of body/reason/revision/source/moment refuses the whole write, store byte-identical.
-2. Pre-P6 replay: `a pre-P6 op log replays to a byte-identical projection across a real
-   restart` PASS (red-first: purely additive over `boot()`/`face()`/`answers()`).
-3. Read API: `reasonFor()`, accepted-with-reason, accepted-without-reason ("not recorded
-   before 2026-09-15"), and unknown-id (null) all PASS.
-4. No-yes / no-answer byte-identical: `an issuance travels only with an accept...` PASS.
-5. `node rebuild/t2/rig187.cjs` PASS (unaffected, durability path untouched).
-
-## Verbatim tails
-
+## Suite tails
 ```
-ℹ tests 10 / pass 10 / fail 0   (reason-on-disk.test.cjs)
-rig187 ⇒ PASS
-ℹ tests 218 / pass 218 / fail 0   (rebuild/coach/test)
-ℹ tests 552 / pass 552 / fail 0   (rebuild/m3/w6/test/*.test.mjs)
-ℹ tests 643 / pass 643 / fail 0   (rebuild/m3/w7-preview/today/test)
-B PACKAGE S3 PRODUCT IMPLEMENTED; ... 0 unlisted drift ...
-B PACKAGE S3 PUBLIC CI EVIDENCE PASS
+reason-on-disk.test.cjs: pass 17 / fail 0
+rig187 => PASS
+rebuild/coach --test: pass 218 / fail 0
+rebuild/m3/w6 --test: pass 552 / fail 0
+today 13-by-name (MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York): pass 321 / fail 0
+A1 build: PASS (3 assets, build earned-d6dcd5e47bcd)
+A5 build: PASS (13 files, cache earned-slice-41f5b2a9a0f7eb5286c815f79a6376bd)
 ```
 
-A1/A5 onboarding acceptance groups run and pass inside the 218/218 coach total above.
-Both-OS GitHub CI not run here (no push made, per instructions).
+## Impossible as written
+`node rebuild/lanes/b/tooling/b-package.cjs --ci --package S4`: refused by the runner itself
+("USAGE REFUSED; exactly ... B-NTC|H3|S3|B1|B2|B4|B3|B-LOM") -- no S4 package is registered
+and no `packages/S4.json` exists; `rebuild/lanes/b/tooling/**` is pinned, so it cannot be
+added here. `--package S3` is not a substitute either (S3's product map excludes
+`rebuild/client`), so this bar item is not executable against this ticket's custody as named.
 
-## Risks
-
-- `reasonFor()` picks the latest matching accepted op by `device_seq`; correct for the
-  single-device flow every test here exercises, unreviewed for a multi-device race.
-- `revision`/`source` are opaque strings the client only checks are non-empty; the coach
-  supplies their real content (not this builder's custody).
-- No schema_version bump on `proposal-response` payload; purely additive field.
+## Files touched
+`rebuild/client/index.cjs`, `copy.cjs`, `README.md`, `test/reason-on-disk.test.cjs`,
+`.github/workflows/shared-preflight.yml`, `rebuild/slice/P6-REPORT.md`. Nothing under
+`rebuild/coach/**`, `rebuild/engine/**` or any pinned path.

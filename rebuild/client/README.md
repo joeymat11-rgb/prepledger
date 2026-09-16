@@ -45,12 +45,18 @@ and its outbox entry; otherwise nothing is recorded (state 3) and the entered va
 
 ### P6: the reason on disk
 
-`respond(proposalId, answer, issuance)` takes an optional third argument, an `{ body, reason, revision, source,
-moment }` issuance copied byte-for-byte from the engine-issued proposal the caller already holds in memory. All five
-fields are required and `answer` must be `"accept"`; short of that the whole write refuses (state 3), nothing partial
-on disk, and a plain `respond(proposalId, answer)` behaves exactly as before. `reasonFor(proposalId)` reads it back:
-`{ recorded: true, reason, body, revision, source, moment, opId }` for an accepted consent that carries one, or
-`{ recorded: false, notRecordedBefore, copy }` for an older record with no issuance slot.
+`respond(proposalId, answer, issuance)` takes an optional third argument, an `{ producer, body, reason, revision,
+source, moment }` issuance copied byte-for-byte from the engine-issued proposal the caller already holds in memory.
+All six fields are required and `answer` must be `"accept"`. The write also refuses unless `proposalId` itself equals
+`"prop-" + sha256("earned/coach/proposal/v1" + JSON.stringify({ producer, body, reason }))` (the exact digest
+`rebuild/coach/tools.cjs` derives a proposal id from) and, when this device already registered a producer/revision for
+that id via `recordIssuance()`, unless they agree with what is supplied here. Short of any of that the whole write
+refuses (state 3), nothing partial on disk, and a plain `respond(proposalId, answer)` behaves exactly as before.
+`reasonFor(proposalId)` reads it back: `{ recorded: true, reason, body, producer, revision, source, moment, opId }`
+for an accepted consent that carries one; for one that does not, `{ recorded: false, notRecordedBefore, copy }` when
+the record predates the earliest issuance-bearing record this store holds, or `{ recorded: false, recordDate, copy }`
+otherwise. There is no hardcoded cutover date: the store's own earliest issuance moment is the only comparison point.
+A later plain `respond(id, "accept")` for an id that already carries a recorded reason never erases it.
 
 ## Backend interface (store.cjs)
 

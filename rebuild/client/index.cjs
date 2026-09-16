@@ -35,14 +35,64 @@ const deepFreeze = (v) => { if (v && typeof v === "object") { Object.values(v).f
 const localTime = (iso, tz) => { const m = /^([+-])(\d\d):(\d\d)$/.exec(tz || "+00:00"); const off = m ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0; const t = new Date(Date.parse(iso) + off * 60000); return t.toISOString().slice(11, 16); };
 const q = (value, unit) => ({ value, unit });
 
-/* P6: reason on disk. The day this client began storing an issuance beside its consent record.
-   A record from before this date has no issuance slot; reasonFor() names that honestly rather
-   than guessing at a reason the client never held. */
-const REASON_ON_DISK_SINCE = "2026-09-15";
-/* an issuance is accepted only whole: the engine's own proposal body, its reason text, the
-   engine revision that issued it, the turn/source that carried it, and the moment - every field
-   present, nothing inferred. The client never authors or edits any of these five values. */
+/* P6: reason on disk. An issuance is accepted only whole: the producer that computed it, the
+   engine's own proposal body, its reason text, the engine revision that issued it, the
+   turn/source that carried it, and the moment - every field present, nothing inferred. The
+   client never authors or edits any of these six values, and never trusts a caller's word for
+   it: PROPOSAL_DOMAIN below is the exact digest the coach's tools.cjs already derives the
+   proposal id from (producer + body + reason), so respond() can refuse anything that does not
+   reproduce the id the caller is answering. */
+const PROPOSAL_DOMAIN = "earned/coach/proposal/v1";
+/* a dependency-free SHA-256 (no node:crypto): this module ships inside the browser bundle
+   (A1/A5), whose boundary refuses any Node-only import. Verified byte-for-byte against
+   node:crypto's own sha256 for the empty string, ascii, unicode and long inputs. */
+const rotr32 = (x, n) => (x >>> n) | (x << (32 - n));
+const SHA256_K = Object.freeze([
+  0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+  0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+  0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+  0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+  0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+  0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+  0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+  0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2]);
+function sha256Hex(str) {
+  const bytes = new TextEncoder().encode(str);
+  const h = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]);
+  const len = bytes.length;
+  const withLen = Math.ceil((len + 9) / 64) * 64;
+  const msg = new Uint8Array(withLen);
+  msg.set(bytes); msg[len] = 0x80;
+  const view = new DataView(msg.buffer);
+  view.setUint32(withLen - 4, (len * 8) >>> 0);
+  view.setUint32(withLen - 8, Math.floor((len * 8) / 0x100000000));
+  const w = new Uint32Array(64);
+  for (let offset = 0; offset < withLen; offset += 64) {
+    for (let i = 0; i < 16; i++) w[i] = view.getUint32(offset + i * 4);
+    for (let i = 16; i < 64; i++) {
+      const s0 = rotr32(w[i - 15], 7) ^ rotr32(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+      const s1 = rotr32(w[i - 2], 17) ^ rotr32(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) >>> 0;
+    }
+    let a = h[0], b = h[1], c = h[2], d = h[3], e = h[4], f = h[5], g = h[6], hh = h[7];
+    for (let i = 0; i < 64; i++) {
+      const S1 = rotr32(e, 6) ^ rotr32(e, 11) ^ rotr32(e, 25);
+      const ch = (e & f) ^ (~e & g);
+      const temp1 = (hh + S1 + ch + SHA256_K[i] + w[i]) >>> 0;
+      const S0 = rotr32(a, 2) ^ rotr32(a, 13) ^ rotr32(a, 22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const temp2 = (S0 + maj) >>> 0;
+      hh = g; g = f; f = e; e = (d + temp1) >>> 0;
+      d = c; c = b; b = a; a = (temp1 + temp2) >>> 0;
+    }
+    h[0] = (h[0] + a) >>> 0; h[1] = (h[1] + b) >>> 0; h[2] = (h[2] + c) >>> 0; h[3] = (h[3] + d) >>> 0;
+    h[4] = (h[4] + e) >>> 0; h[5] = (h[5] + f) >>> 0; h[6] = (h[6] + g) >>> 0; h[7] = (h[7] + hh) >>> 0;
+  }
+  return Array.from(h).map((x) => x.toString(16).padStart(8, "0")).join("");
+}
+const proposalDigest = (producer, body, reason) => "prop-" + sha256Hex(PROPOSAL_DOMAIN + JSON.stringify({ producer, body, reason })).slice(0, 16);
 const validIssuance = (x) => !!x && typeof x === "object" && !Array.isArray(x) &&
+  typeof x.producer === "string" && x.producer.length > 0 &&
   x.body !== undefined && x.body !== null &&
   typeof x.reason === "string" && x.reason.length > 0 &&
   typeof x.revision === "string" && x.revision.length > 0 &&
@@ -173,6 +223,20 @@ function createClient(config) {
     return plan;
   }
   function answers() { return ownOps().filter((o) => o.kind === "proposal-response" && o.payload && o.payload.proposal_id).map((o) => ({ proposal: o.payload.proposal_id, answer: o.payload.answer, label: outbox.has(o.op_id) && !outbox.everSent(o.op_id) ? COPY.ANSWER_SAVED : sync.faceLabel(o.op_id), op_id: o.op_id })); }
+  /* P6: the earliest date (by issuance moment) ANY accepted record in this store actually
+     carries an issuance - the only store-derived fact reasonFor() may compare an old record
+     against, never a literal. Across every device this store has ever seen, not just this one. */
+  function firstIssuanceRecordDate() {
+    let earliest = null;
+    for (const o of model.ops.values()) {
+      if (o.kind !== "proposal-response" || !o.payload || !o.payload.issuance) continue;
+      const m = o.payload.issuance.moment;
+      if (typeof m !== "string") continue;
+      const d = m.slice(0, 10);
+      if (earliest === null || d < earliest) earliest = d;
+    }
+    return earliest;
+  }
   function sessionFacts() { const byDate = new Map(); for (const o of ownOps()) if (o.kind === "session-set") { const d = o.effective.local_date; if (!byDate.has(d)) byDate.set(d, { date: d, sets: [] }); const p = o.payload || {}; byDate.get(d).sets.push({ lift: p.lift, load: p.load && p.load.value, reps: p.reps && p.reps.value, op_id: o.op_id }); } return Array.from(byDate.values()); }
   function history() { return Array.from(model.suspensions.values()).map((s) => ({ txn: s.txn_id, copy: COPY.SUSPENDED_HISTORY(s.appliedAtW, s.suspendedAtW), fallback: s.fallback, excluded: s.excluded })); }
   const frontierLabel = () => Math.max(model.W, model.reductions);
@@ -285,12 +349,24 @@ function createClient(config) {
     respond: (proposalId, answer, issuance) => {
       const ans = String(answer);
       const payload = { proposal_id: proposalId, answer: ans };
-      /* all-or-nothing WITH the answer: an issuance travels only whole, and only on an accept.
-         Anything short of that refuses the entire write before store.transaction ever runs -
-         no partial record, not even the plain answer, reaches disk. */
+      /* all-or-nothing WITH the answer: an issuance travels only whole, only on an accept, and
+         only when it is PROVABLY the engine's own - never a caller's word for it. Anything short
+         of that refuses the entire write before store.transaction ever runs: no partial record,
+         not even the plain answer, reaches disk. */
       if (issuance !== undefined) {
         if (ans !== "accept" || !validIssuance(issuance)) return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID(COPY.ISSUANCE_INCOMPLETE) };
-        payload.issuance = deepCopy({ body: issuance.body, reason: issuance.reason, revision: issuance.revision, source: issuance.source, moment: issuance.moment });
+        let digest, clean;
+        try {
+          digest = proposalDigest(issuance.producer, issuance.body, issuance.reason);
+          clean = deepCopy({ producer: issuance.producer, body: issuance.body, reason: issuance.reason, revision: issuance.revision, source: issuance.source, moment: issuance.moment });
+        } catch (e) { return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID(COPY.ISSUANCE_UNENCODABLE) }; }
+        if (digest !== proposalId) return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID(COPY.ISSUANCE_NOT_ENGINE_ISSUED) };
+        const prior = model.issuances.get(proposalId);
+        if (prior && ((prior.producer !== undefined && prior.producer !== issuance.producer) ||
+          (prior.revision !== undefined && prior.revision !== issuance.revision))) {
+          return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID(COPY.ISSUANCE_NOT_ENGINE_ISSUED) };
+        }
+        payload.issuance = clean;
       }
       return commit({ field: "respond", value: { proposalId, answer, issuance }, kind: "proposal-response", class: "plan", payload, copy: COPY.ANSWER_SAVED });
     },
@@ -360,19 +436,27 @@ function createClient(config) {
     conflictSuspend: (txnId) => { const fb = Plan.fallbackBefore(model.planHistory, txnId); if (!fb) return { suspended: false, reason: "unknown transaction " + txnId }; const txn = model.planHistory.find((t) => t.txn_id === txnId); const rec = { txn_id: txnId, fallback: fb.plan, excluded: fb.excluded, appliedAtW: txn.appliedAtW, suspendedAtW: frontierLabel() + 1, source: fb.source }; const r = store.transaction((t) => { t.put("suspensions", txnId, rec); bumpReductions(t); }); if (!r.ok) return { suspended: false, reason: r.error.message }; model.reductions += 1; model.suspensions.set(txnId, rec); return { suspended: true, fallback: fb.plan, history: COPY.SUSPENDED_HISTORY(rec.appliedAtW, rec.suspendedAtW) }; },
     /* state 8 */
     deriveInstance: Plan.deriveInstance,
-    recordIssuance: ({ id, accepted, instance }) => { const rec = { id, accepted: !!accepted, instance: instance == null ? null : instance }; const r = store.transaction((t) => { t.put("issuances", id, rec); }); if (r.ok) model.issuances.set(id, rec); return { stored: r.ok }; },
+    recordIssuance: ({ id, accepted, instance, producer, revision }) => { const rec = { id, accepted: !!accepted, instance: instance == null ? null : instance }; if (producer !== undefined) rec.producer = producer; if (revision !== undefined) rec.revision = revision; const r = store.transaction((t) => { t.put("issuances", id, rec); }); if (r.ok) model.issuances.set(id, rec); return { stored: r.ok }; },
     issuedInstance: (id) => { const i = model.issuances.get(id); return i ? i.instance : undefined; },
-    /* P6: "why did this change?" - the stored reason beside an accepted consent, or the honest
-       not-recorded line for a record from before this client kept one. Never a re-derivation. */
+    /* P6: "why did this change?" - the stored reason beside an accepted consent, or an honest
+       line for a record with none. Never a constant date: an old record's own effective date is
+       compared against the earliest issuance-bearing record this store actually holds, so the
+       claim is always true of THIS store, never a guess about when the feature shipped. */
     reasonFor: (proposalId) => {
       const hits = Array.from(model.ops.values()).filter((o) => o.kind === "proposal-response" &&
-        o.payload && o.payload.proposal_id === proposalId && o.payload.answer === "accept" && !model.rejected.has(o.op_id))
-        .sort((a, b) => a.device_seq - b.device_seq);
-      const hit = hits[hits.length - 1];
-      if (!hit) return null;
+        o.payload && o.payload.proposal_id === proposalId && o.payload.answer === "accept" && !model.rejected.has(o.op_id));
+      if (!hits.length) return null;
+      const bySeq = (a, b) => a.device_seq - b.device_seq;
+      const withReason = hits.filter((o) => o.payload.issuance).sort(bySeq);
+      /* a later plain accept of the same id never erases an already-recorded reason: ops are
+         append-only, and reasonFor() prefers the latest record that actually carries one. */
+      const hit = withReason.length ? withReason[withReason.length - 1] : hits.slice().sort(bySeq)[hits.length - 1];
       const iss = hit.payload.issuance;
-      if (!iss) return { proposalId, opId: hit.op_id, recorded: false, reason: null, body: null, revision: null, source: null, moment: null, notRecordedBefore: REASON_ON_DISK_SINCE, copy: COPY.REASON_NOT_RECORDED(REASON_ON_DISK_SINCE) };
-      return { proposalId, opId: hit.op_id, recorded: true, reason: iss.reason, body: deepCopy(iss.body), revision: iss.revision, source: iss.source, moment: iss.moment };
+      if (iss) return { proposalId, opId: hit.op_id, recorded: true, reason: iss.reason, body: deepCopy(iss.body), producer: iss.producer, revision: iss.revision, source: iss.source, moment: iss.moment };
+      const recordDate = (hit.effective && hit.effective.local_date) || null;
+      const cutover = firstIssuanceRecordDate();
+      if (cutover && recordDate && recordDate < cutover) return { proposalId, opId: hit.op_id, recorded: false, reason: null, body: null, revision: null, source: null, moment: null, notRecordedBefore: cutover, copy: COPY.REASON_NOT_RECORDED_BEFORE(cutover) };
+      return { proposalId, opId: hit.op_id, recorded: false, reason: null, body: null, revision: null, source: null, moment: null, notRecordedBefore: null, recordDate, copy: COPY.REASON_NOT_RECORDED_FOR_RECORD(recordDate) };
     },
     /* facts (A4 presence law) */
     dayFacts: (date) => { const dead = tombstoned(); const food = Array.from(model.ops.values()).filter((o) => o.class === "food-day" && o.kind === "fact" && o.effective && o.effective.local_date === date && !model.rejected.has(o.op_id) && !dead.has(o.op_id)); if (!food.length) return { date, intakeState: "ABSENT" }; const o = food[food.length - 1]; const k = o.payload && o.payload.kcal; return { date, intake: k && k.value, unit: k && k.unit, intakeState: "ATHLETE_LOGGED", op_id: o.op_id }; },

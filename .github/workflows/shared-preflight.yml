@@ -41,7 +41,7 @@ jobs:
           node <<'NODE'
           'use strict';
           const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');
-          const CURRENT = [".github/workflows/shared-preflight.yml","package.json","package-lock.json","rebuild/lanes/tooling/preflight.cjs","rebuild/lanes/tooling/test/preflight.test.cjs","rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs"];
+          const CURRENT = [".github/workflows/shared-preflight.yml","package.json","package-lock.json","rebuild/lanes/tooling/preflight.cjs","rebuild/lanes/tooling/test/preflight.test.cjs","rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs","rebuild/client/README.md","rebuild/client/bodycomp.cjs","rebuild/client/canonical.cjs","rebuild/client/copy.cjs","rebuild/client/face.cjs","rebuild/client/index.cjs","rebuild/client/lease.cjs","rebuild/client/ops.cjs","rebuild/client/outbox.cjs","rebuild/client/package.json","rebuild/client/plan.cjs","rebuild/client/session.cjs","rebuild/client/store.cjs","rebuild/client/sync.cjs","rebuild/client/test/reason-on-disk.test.cjs"];
           const OPTIONAL = ["rebuild/lanes/tooling/preflight-dash-scan.cjs"];
           const HISTORY = {"2b9b09a564531d415df847cd668ea357233687b2":["rebuild/m3/w7-preview/today/build.mjs","rebuild/m3/w7-preview/today/gym-app.mjs","rebuild/m3/w7-preview/today/plain-copy.cjs"],"0e652ce213b56cd5d73a670e0a761cca8c94b6c3":["rebuild/m3/w7-preview/today/build.mjs","rebuild/m3/w7-preview/today/gym-app.mjs","rebuild/m3/w7-preview/today/plain-copy.cjs","rebuild/lanes/tooling/preflight.cjs"]};
           const root=process.cwd(),expected=process.env.CANDIDATE_SHA;
@@ -122,4 +122,4 @@ jobs:
         env:
           TEMP: ${{ github.workspace }}/.tmp
           TMP: ${{ github.workspace }}/.tmp
-        run: node --test rebuild/lanes/tooling/test/preflight.test.cjs rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs
+        run: node --test rebuild/lanes/tooling/test/preflight.test.cjs rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs rebuild/client/test/reason-on-disk.test.cjs

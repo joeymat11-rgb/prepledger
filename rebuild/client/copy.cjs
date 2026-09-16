@@ -13,8 +13,11 @@ const COPY = {
   UNDO_SAVED: "Undo saved on this phone · takes effect after sync",
   RESOLUTION_SAVED: "Resolution saved",
   /* P6: the engine's reason and proposal body on disk with an accepted consent */
-  REASON_NOT_RECORDED: (date) => "Not recorded before " + date + ". This plan change was accepted before Earned began storing engine reasons on this phone.",
+  REASON_NOT_RECORDED_BEFORE: (date) => "Not recorded before " + date + ". This phone had not yet stored an engine reason with an answer.",
+  REASON_NOT_RECORDED_FOR_RECORD: (date) => "No reason was recorded with this answer, accepted " + (date || "an unknown date") + ".",
   ISSUANCE_INCOMPLETE: "A stored reason needs the engine's proposal body, reason, revision, source and moment together, and it only travels with an accepted answer.",
+  ISSUANCE_NOT_ENGINE_ISSUED: "This proposal's stored details do not match what the engine issued, so nothing was recorded.",
+  ISSUANCE_UNENCODABLE: "This proposal's stored details could not be saved in the required format, so nothing was recorded.",
   /* Today */
   FIRST_USE: "first use, no accepted plan",
   NO_PLAN: "no accepted plan",
