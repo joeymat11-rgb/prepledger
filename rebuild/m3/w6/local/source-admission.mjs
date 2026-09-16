@@ -14,6 +14,20 @@ import CheckIn from '../../w7-preview/today/checkin-commands.cjs';
 // LOCAL_SOURCE_CONTEXT_UNRESOLVED (P3-IMPORT-UI-2 open item 1, cell P3-X9).
 import Measure from '../../w7-preview/measure/measure-commands.cjs';
 import MeasureReplay from '../../../m4/import/measure-replay.cjs';
+// P3-REPLAY-ALL-FAMILIES, RV-G4. body-composition-source is NOT one lane's
+// class: the authority validates a LEAN-SOURCE payload of its own under it
+// (rebuild/authority/validate.cjs payloadValid), which carries no profile at
+// all. Membership is therefore by PROFILE, through this router, so the measure
+// family answers for the three measure profiles and any other member of the
+// class is refused in the CLASS's name rather than in a family's.
+import BodyComposition from '../../../m4/import/body-composition-class.cjs';
+// P3-REPLAY-ALL-FAMILIES, RV-S1. The N2 sleep producer is READ here, never
+// edited. sleep-host.mjs opens the SAME installation Today opens, so one
+// recorded night lands in the very generation admission replays; without a
+// family it fell to the catch-all and refused LOCAL_SOURCE_CONTEXT_UNRESOLVED,
+// reproduced through the real host before this was built.
+import Sleep from '../../w7-preview/today/sleep-commands.cjs';
+import SleepReplay from '../../../m4/import/sleep-replay.cjs';
 import Setup from '../../w7-preview/today/setup-commands.mjs';
 import {createCleanInitState} from '../../w7-preview/today/setup-model.mjs';
 import Settings from '../../../coach/machine-settings-commands.cjs';
@@ -50,6 +64,17 @@ const qualifications=new WeakMap(),reviews=new WeakMap();
 // engine and no platform, and is handed the day admission stands on per call.
 const measureFamily=MeasureReplay.createMeasureReplayFamily({commands:Measure.createMeasureCommands(),
  profiles:{waist:Measure.PROFILE,markers:Measure.MARKERS_PROFILE,trialStart:Measure.TRIAL_PROFILE}});
+// The shared class, judged by profile (RV-G4). F7 is its one member today and
+// claims exactly the three S5 measure profiles; every other member of the class
+// - the authority's own lean-source payload among them - is refused by the
+// class's name until a family for it exists.
+const bodyComposition=BodyComposition.createBodyCompositionClass({members:[{family:MeasureReplay.FAMILY,
+ profiles:[Measure.PROFILE,Measure.MARKERS_PROFILE,Measure.TRIAL_PROFILE],replay:measureFamily.replay}]});
+// F8, the sleep family. Pure and stateless, on the same terms as F7: built once
+// from the N2 producer's own validate() and its one profile name, holding no
+// clock, no engine and no platform.
+const sleepFamily=SleepReplay.createSleepReplayFamily({commands:Sleep.createSleepCommands(),
+ profile:Sleep.PROFILE});
 const fail=code=>{const e=new Error(code);e.code=code;throw e;};
 const {encode,digest,freeze,validDay,sourceEngineContext,engineContextAt}=Profile;
 const copy=structuredClone;
@@ -150,14 +175,15 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    families.push({family:'F1',state:row.local.state==='removed'?'retained':'projected',op_id:row.op_id,effect_ids:row.local.effect_ids});
   }
   for(const row of facts.records)if(row.original.kind!=='fact'&&row.local.state==='unresolved')issue('LOCAL_SOURCE_READING_UNRESOLVED',row.op_id);
-  const food=[];const checkDates=new Set();const measureRows=[];
+  const food=[];const checkDates=new Set();const measureRows=[];const sleepRows=[];
   for(const op of rows){
    if(op.class==='reading'||op.class==='session')continue;
-   // F7 FIRST, so that EVERY record of the measure class gets an answer from
-   // its own family: a malformed one is refused by the family's NAMED code
-   // rather than falling to the generic catch-all below. The family is run
-   // once after this loop, because its ordering rule is over the whole set.
-   if(measureFamily.owns(op)){measureRows.push(op);continue;}
+   // THE OWNED CLASSES FIRST, so that EVERY record of one gets an answer from
+   // its own family: a malformed one is refused by a NAMED code rather than
+   // falling to the generic catch-all below. Each family is run once after this
+   // loop, because each one's ordering rule is over its whole set.
+   if(bodyComposition.owns(op)){measureRows.push(op);continue;}
+   if(sleepFamily.owns(op)){sleepRows.push(op);continue;}
    const p=op.payload,day=op.effective?.local_date;
    if(!validDay(day)||day>currentDay()){issue('LOCAL_SOURCE_CONTEXT_UNRESOLVED',op.op_id);continue;}
    if(op.class==='food-day'&&op.schema_version===2&&Food.validate(op,id=>ops[id])){food.push({op_id:op.op_id,date:day,day:copy(p.day)});continue;}
@@ -172,9 +198,19 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   // engine call, no state member and no programme answer comes from them, and
   // the baseline window stays the one derived from the import. The family
   // accounts for every record of its class, so none can be silently dropped.
-  const measured=measureFamily.replay(measureRows,{readOperation:id=>ops[id],asOf:currentDay()});
+  const measured=bodyComposition.replay(measureRows,{readOperation:id=>ops[id],asOf:currentDay()});
   for(const row of measured.issues)issue(row.code,row.op_id);
   for(const row of measured.families)families.push(row);
+  // F8, THE SLEEP FAMILY (P3-REPLAY-ALL-FAMILIES). A night is an ATHLETE
+  // RECORD, not session or programme evidence: it is RETAINED and never
+  // projected, no engine call is made for it, nothing is written into
+  // state.sleep.nights, and a night dated before the import's last day is
+  // therefore neither contradicted by the imported history nor absorbed into
+  // it. The family accounts for every record of its class, so none can be
+  // silently dropped.
+  const slept=sleepFamily.replay(sleepRows,{readOperation:id=>ops[id],asOf:currentDay()});
+  for(const row of slept.issues)issue(row.code,row.op_id);
+  for(const row of slept.families)families.push(row);
   const winners=FoodModel.winningRows(food);
   for(const row of winners){if(Object.keys(state.dailyLogs?.[row.date]||{}).some(k=>['cal','pro'].includes(k))){issue('LOCAL_SOURCE_DAILY_UNRESOLVED',row.op_id);continue;}
    const projected=FoodModel.foodProjection(state,[row],engineFor(row.date,12));if(projected.unavailable.length)issue('LOCAL_SOURCE_DAILY_UNRESOLVED',row.op_id);else state=projected.state;

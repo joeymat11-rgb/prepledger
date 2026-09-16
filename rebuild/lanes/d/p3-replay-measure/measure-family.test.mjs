@@ -18,6 +18,9 @@ import {createLocalSourceFixture, fixtureEffective, appendCompletedWorkout}
 import Measure from '../../../m3/w7-preview/measure/measure-commands.cjs';
 import {createMeasureReplayFamily, CODE, FAMILY}
   from '../../../m4/import/measure-replay.cjs';
+/* P3-REPLAY-ALL-FAMILIES, RV-G4: the shared class's own code, for a member of
+   the class that is not a measure record. See P3-MF3. */
+import {CODE as CLASS_CODE} from '../../../m4/import/body-composition-class.cjs';
 
 const DAY = '2026-09-04';
 const commands = Measure.createMeasureCommands();
@@ -109,12 +112,22 @@ test('P3-MF2 - a measure record is NOT session, programme, reading or daily evid
     assert.equal(without.families.some(row => row.family === FAMILY), false);
   });
 
-test('P3-MF3 - a MALFORMED measure record refuses ' + CODE + ', by name, and never '
+test('P3-MF3 - a MALFORMED measure record refuses BY NAME - ' + CODE + ' for a measure record, '
+  + 'the shared class\'s own code for a member of the class that is not one - and never '
   + 'LOCAL_SOURCE_CONTEXT_UNRESOLVED; nothing is committed', async t => {
+    /* P3-REPLAY-ALL-FAMILIES, RV-G4. `body-composition-source` is an ACCEPTED
+       A4 class, not this lane's private one: the authority validates a
+       lean-source payload of its own under it. Membership is therefore by
+       PROFILE, and the ONE case below whose profile is not a measure profile is
+       now refused in the CLASS's name rather than in this family's - which says
+       what is actually missing, a family, instead of naming a family that never
+       had anything to say about it. Every other case here is unchanged, each
+       still refuses by a NAMED code, and none reaches the catch-all. */
     const malformed = [
       ['an unknown profile of the measure class',
         {class: 'body-composition-source', kind: 'fact',
-          payload: {profile: 'earned/measure-not-a-profile/v1', entry: {date: DAY, in: 32.5}}}],
+          payload: {profile: 'earned/measure-not-a-profile/v1', entry: {date: DAY, in: 32.5}}},
+        null, CLASS_CODE],
       ['a waist reading outside the producer\'s own range',
         {class: 'body-composition-source', kind: 'fact',
           payload: {profile: Measure.PROFILE, entry: {date: DAY, in: 900}}}],
@@ -136,13 +149,13 @@ test('P3-MF3 - a MALFORMED measure record refuses ' + CODE + ', by name, and nev
         {class: 'body-composition-source', kind: 'correction', target: 'TEST-ONLY-measure-waist',
           payload: {replacement_fields: {entry: {date: DAY, in: 33}}}},
         f => writeMeasureOps(f, {trial: null, markers: null})]];
-    for (const [index, [what, action, pre]] of malformed.entries()) {
+    for (const [index, [what, action, pre, expected = CODE]] of malformed.entries()) {
       const f = await fixture(t, {databaseName: 'p3-mf3-' + index});
       if (pre) await pre(f);
       const before = (await f.repository.load()).generation;
       await f.append('TEST-ONLY-malformed-measure', {...action, effective: fixtureEffective(DAY, 9)});
       const codes = codesOf(await attempt(f));
-      assert.ok(codes.includes(CODE), what + ' fell to ' + JSON.stringify(codes));
+      assert.ok(codes.includes(expected), what + ' fell to ' + JSON.stringify(codes));
       assert.equal(codes.includes('LOCAL_SOURCE_CONTEXT_UNRESOLVED'), false,
         what + ' still reached the catch-all');
       const after = (await f.repository.load()).generation;

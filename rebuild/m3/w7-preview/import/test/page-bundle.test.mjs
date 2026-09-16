@@ -97,10 +97,18 @@ test('P3-B2 - the accepted page bundler now BUILDS the Import graph: no computed
        source-admission.mjs. Its own two reads, the S5 producer
        measure-commands.cjs and client/ops.cjs, were already in this graph
        (the page ships the Measure screen), so the family costs exactly one
-       module and no new leaf. */
-    assert.equal(withAdmission.inventory.length, 134,
+       module and no new leaf.
+       RE-MEASURED AGAIN BY P3-REPLAY-ALL-FAMILIES (lane D): 136. The two added
+       modules are rebuild/m4/import/sleep-replay.cjs, the F8 family, and
+       rebuild/m4/import/body-composition-class.cjs, the shared class's router
+       (RV-G4) - both reached ONLY from source-admission.mjs. F8's own read, the
+       N2 producer sleep-commands.cjs, was already in this graph (the page ships
+       the Sleep lane) and the router imports nothing at all, so the two cost
+       exactly two modules and no new leaf. */
+    assert.equal(withAdmission.inventory.length, 136,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 134 (the brief\'s 133 plus the F7 family): re-measure and say so');
+      + 'measured 136 (the brief\'s 133 plus the F7 family, the F8 family and the '
+      + 'shared-class router): re-measure and say so');
   });
 
 /* AND THE LAW STILL REFUSES. This is the old P3-B3 with its stub plugin
@@ -126,12 +134,18 @@ test('P3-B3 - the page input law STILL refuses that graph, and what it refuses '
        joins them. It is the ONLY name added by that ticket, it is reached only
        from source-admission.mjs, and it reaches nothing of its own - it takes
        the S5 producer's validate() by injection rather than importing it. The
-       list stays EXACT: the law is not widened, one measured name is added. */
+       list stays EXACT: the law is not widened, one measured name is added.
+       NINE since P3-REPLAY-ALL-FAMILIES: sleep-replay.cjs, the F8 family, and
+       body-composition-class.cjs, the shared class's router (RV-G4). Both are
+       reached only from source-admission.mjs; F8 takes the N2 producer's
+       validate() by injection rather than importing it, and the router imports
+       nothing at all. Two measured names added, the list still EXACT. */
     assert.deepEqual(paths.filter(p => /^rebuild\/m4\/import\//.test(p)).sort(),
-      ['rebuild/m4/import/browser-replay.mjs', 'rebuild/m4/import/daily-history.cjs',
+      ['rebuild/m4/import/body-composition-class.cjs',
+        'rebuild/m4/import/browser-replay.mjs', 'rebuild/m4/import/daily-history.cjs',
         'rebuild/m4/import/engine-provider.cjs', 'rebuild/m4/import/local-source-order.cjs',
         'rebuild/m4/import/local-source-profile.cjs', 'rebuild/m4/import/measure-replay.cjs',
-        'rebuild/m4/import/replay-core.cjs']);
+        'rebuild/m4/import/replay-core.cjs', 'rebuild/m4/import/sleep-replay.cjs']);
   });
 
 test('P3-B4 - and the size of what an Import route would put on the phone, '
@@ -149,8 +163,13 @@ test('P3-B4 - and the size of what an Import route would put on the phone, '
      family measure-replay.cjs. It is ONE module and no new leaf - the delta
      moved by exactly one, which is itself the evidence that the family's two
      reads were already in the page. */
-  assert.equal(withAdmission.inventory.length - baseline.inventory.length, 13,
-    'the delta is 13 modules: the seven m4/import files, migrate, merge and their reach');
+  /* 15 since P3-REPLAY-ALL-FAMILIES: the eighth and ninth m4/import files, the
+     F8 family sleep-replay.cjs and the shared class's router
+     body-composition-class.cjs. Two modules and no new leaf - the delta moved
+     by exactly two, which is itself the evidence that F8's one read was
+     already in the page and that the router reads nothing. */
+  assert.equal(withAdmission.inventory.length - baseline.inventory.length, 15,
+    'the delta is 15 modules: the nine m4/import files, migrate, merge and their reach');
 });
 
 process.on('exit', () => { try { fs.rmSync(SCRATCH, { recursive: true, force: true }); } catch {} });

@@ -65,6 +65,26 @@ his own words, right before it happens (README's own rule).
    zone ON the phone, not from the PC: a phone travelling, or with its zone set
    by hand, is a NO-GO until it is back in America/New_York.
 
+8. **ORDER OF USE BEFORE THE IMPORT — ONE SCREEN, NOT FOUR.** The temporary
+   instruction that said "do not open Measure before importing" (P3-IMPORT-UI-2
+   open item 1) and the one P3-REPLAY-MEASURE-FAMILY asked for for Sleep are
+   both WITHDRAWN. Every writer the shipped page has now has a replay family,
+   and each one was stood up on a real installation in both orders
+   (`rebuild/lanes/d/p3-replay-all/writer-order.test.mjs`): the weigh-in (F1),
+   the food day (F2), the first run and the machine note (F4), the recovery
+   check-in (F5), Measure's day one, waist and markers (F7) and a recorded
+   night (F8) may all be used before the import, in any order, and the import
+   still admits.
+
+   **THE ONE THAT REMAINS IS THE GYM CARD.** Do not START A WORKOUT before the
+   import is admitted. A session recorded first is answered by F3, not by a
+   missing family, but it was prescribed from the pre-import athlete, so under
+   the imported basis admission refuses `LOCAL_SOURCE_WORKOUT_UNRESOLVED` and
+   commits nothing; the file stays staged and can be admitted after the session
+   question is settled. Importing FIRST and training afterwards admits and is
+   the order to use. This lifts when `local-capture-start-resume`, the
+   integration the admitted basis still declares pending, lands.
+
 ## Step 0 — Joe's own words
 
 Joe says, unprompted, something equivalent to: **"Run the port now, on my real
