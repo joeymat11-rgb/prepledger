@@ -38,7 +38,8 @@ function compile(mode) {
   process.argv = [process.execPath, runnerFile, mode, '--package', 'B-NTC'];
   try {
     m._compile(source.slice(0, source.indexOf(delimiter)) +
-      '\nmodule.exports={children,ci,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
+      '\nmodule.exports={children,ci,childDiagnosticTail,PUBLIC_TAIL_ROOTS,TAIL_DENYLIST,' +
+      'init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
   } finally { process.argv = savedArgv; }
   m.exports.init();
   return m.exports;
@@ -57,6 +58,12 @@ const publicFail = 'rebuild/m4/workout/test/probe-tail-fail.test.cjs';
 write(publicFail, 'console.log("PUBLIC FAIL TAIL");\nprocess.exitCode = 1;');
 const publicDenylisted = 'rebuild/m4/workout/test/probe-tail-denylisted.test.cjs';
 write(publicDenylisted, 'console.log("touches rebuild/conform/private/census.json");\nprocess.exitCode = 1;');
+// RV17 (S6-B round-2 review, finding 1): TAIL_DENYLIST's needles are '/'-spelled; on
+// Windows a child printing path.join's native separator ('rebuild\conform\private\...')
+// matched none of them. This fixture's own stdout names the same private path, spelled
+// with backslashes, the way path.join would actually print it on this OS.
+const publicDenylistedBackslash = 'rebuild/m4/workout/test/probe-tail-denylisted-backslash.test.cjs';
+write(publicDenylistedBackslash, 'console.log("touches rebuild\\\\conform\\\\private\\\\census.json");\nprocess.exitCode = 1;');
 const privateRootFail = 'rebuild/m4/spec/probe-tail-private-root.cjs';
 write(privateRootFail, 'console.log("PRIVATE ROOT FAIL");\nprocess.exitCode = 1;');
 const publicPass = 'rebuild/m4/workout/test/probe-tail-pass.test.cjs';
@@ -110,6 +117,24 @@ test('a public-root failing child whose own stdout names a denylisted path withh
   const caught = throwsOf(() => apiCi.children(packageFor(c), env));
   assert.match(caught.diagnostic, /tail withheld \(path policy\)$/);
   assert.doesNotMatch(caught.diagnostic, /touches rebuild\/conform\/private/);
+});
+test('RV17 -- a denylisted path spelled with backslashes (Windows path.join) withholds too', () => {
+  const c = child([publicDenylistedBackslash], 'tail-denylisted-backslash');
+  const caught = throwsOf(() => apiCi.children(packageFor(c), env));
+  assert.match(caught.diagnostic, /tail withheld \(path policy\)$/);
+  assert.doesNotMatch(caught.diagnostic, /touches rebuild\\conform\\private/);
+});
+test('RV17 -- a spawnSync timeout (r.status null, r.error set) prints "exit timeout <code>", not "exit null"', () => {
+  const fakeTimedOut = { status: null, error: { code: 'ETIMEDOUT' }, stdout: '', stderr: '' };
+  const header = apiCi.childDiagnosticTail({ name: 'hung-child' }, [publicFail], fakeTimedOut, 1800004);
+  assert.match(header,
+    /^B PACKAGE B-NTC CHILD hung-child DIAGNOSTIC exit timeout ETIMEDOUT wall 1800004 ms; /);
+  assert.doesNotMatch(header, /exit null/);
+});
+test('RV17 -- a spawnSync timeout with no r.error.code still prints "exit timeout", never "exit null"', () => {
+  const fakeTimedOutNoCode = { status: null, error: {}, stdout: '', stderr: '' };
+  const header = apiCi.childDiagnosticTail({ name: 'hung-child-2' }, [publicFail], fakeTimedOutNoCode, 5);
+  assert.match(header, /^B PACKAGE B-NTC CHILD hung-child-2 DIAGNOSTIC exit timeout wall 5 ms; /);
 });
 test('every child carries its wall time on the OBSERVED line in --ci, none in --full', () => {
   const ciLines = capture(() => apiCi.children(packageFor(child([publicPass], 'tail-pass', 'PUBLIC PASS')), env));

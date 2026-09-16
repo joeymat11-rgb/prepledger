@@ -50,7 +50,8 @@ process.argv = [process.execPath, runnerFile, '--ci', '--package', 'B-NTC'];
 try {
   m._compile(source.slice(0, source.indexOf(delimiter)) +
     '\nmodule.exports={product,describes,ruledDescriptions,failCode,executedClosure,EXECUTED_CLOSURE_LIMIT,' +
-    'FAIL_CODES,IDS,PRODUCT_ROLES,NO_REGISTER_IDS,CHILD_ROOTS,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
+    'FAIL_CODES,IDS,PRODUCT_ROLES,NO_REGISTER_IDS,CHILD_ROOTS,PUBLIC_TAIL_ROOTS,TAIL_DENYLIST,' +
+    'init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
 api.init();
@@ -318,4 +319,22 @@ test('F7 — CHILD_ROOTS is the fixed list of directories a declared child may e
     assert.equal(path.isAbsolute(root), false, root + ' is relative to the repository');
     assert(fs.existsSync(path.join(sourceRoot, root)), root + ' is a real directory of this repository');
   }
+});
+
+// ------------------------------------------------------ F8. the fixed tail gates (RV17)
+// S6-B round-2 review, finding 4: PUBLIC_TAIL_ROOTS and TAIL_DENYLIST were pinned by no
+// cell, unlike their wider sibling CHILD_ROOTS above (F7). Both are FIXED IN THE RUNNER
+// (W7) the same way; a spec may not widen either, so a widening is worth a red assertion,
+// not only a comment. Pinned exactly and in order, same as F7.
+test('F8 -- PUBLIC_TAIL_ROOTS and TAIL_DENYLIST are the fixed lists the tail diagnostic gates on', () => {
+  assert.deepEqual(api.PUBLIC_TAIL_ROOTS, [
+    'rebuild/m3/w7-preview/today/test/',
+    'rebuild/m3/w7-preview/measure/test/',
+    'rebuild/m3/w6/host/test/',
+    'rebuild/m4/workout/test/',
+  ]);
+  assert.deepEqual(api.TAIL_DENYLIST, ['conform/private', 'golden', 'live.json', 'ledger/']);
+  // A prepended root or needle is a real widening and must be visible as a failing array,
+  // not merely a longer one nobody notices.
+  assert.notDeepEqual(['rebuild/conform/v4/postfix/', ...api.PUBLIC_TAIL_ROOTS], api.PUBLIC_TAIL_ROOTS);
 });

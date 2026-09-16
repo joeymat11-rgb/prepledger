@@ -1975,11 +1975,21 @@ function carriers(s) {
 // still closes the ticket: a child already public in shape and silent on the denylist adds
 // nothing a rerun of the SAME rebuild.yml step would not already have printed.
 function childDiagnosticTail(c, targets, r, wall) {
-  const header = 'B PACKAGE ' + ID + ' CHILD ' + c.name + ' DIAGNOSTIC exit ' + r.status + ' wall ' + wall + ' ms; ';
+  // RV17 (S6-B round-2 review, finding 5): r.status is null on a spawnSync timeout or
+  // ENOENT (r.error set), and the bare word "null" reads as a passed exit code rather than
+  // the hang this diagnostic exists to surface. Print "timeout" (plus the error code, when
+  // one is present) instead, and leave a real exit code exactly as before.
+  const exitLabel = r.status === null ? 'timeout' + (r.error && r.error.code ? ' ' + r.error.code : '') : r.status;
+  const header = 'B PACKAGE ' + ID + ' CHILD ' + c.name + ' DIAGNOSTIC exit ' + exitLabel + ' wall ' + wall + ' ms; ';
   const combined = (r.stdout || '') + (r.stderr || '');
   const lines = combined.split(/\r?\n/);
   const isPublic = targets.length > 0 && targets.every(t => PUBLIC_TAIL_ROOTS.some(root => t.startsWith(root)));
-  const denylisted = TAIL_DENYLIST.some(needle => lines.some(line => line.includes(needle)));
+  // RV17 finding 1 (BLOCKING): TAIL_DENYLIST's needles are '/'-spelled, so on Windows a
+  // child that prints a backslash path (path.join's native separator) matched none of them
+  // and its tail printed uncensored. Scan a '/'-normalized copy of the WHOLE stream (same
+  // scope as before, not only the printed 60 lines) and keep printing the ORIGINAL lines.
+  const normalized = combined.replace(/\\/g, '/');
+  const denylisted = TAIL_DENYLIST.some(needle => normalized.includes(needle));
   if (!isPublic || denylisted) return header + 'tail withheld (path policy)';
   return header + 'last ' + TAIL_LINES + ' lines of stdout+stderr follow\n' + lines.slice(-TAIL_LINES).join('\n');
 }

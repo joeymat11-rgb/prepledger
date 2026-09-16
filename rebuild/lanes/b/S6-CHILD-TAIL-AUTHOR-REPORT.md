@@ -1,110 +1,60 @@
-# S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS -- author report (R1 fix)
+# S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS -- author report (R2 fix)
 
-Ticket: DECISIONS:467 process note 2 (two one-OS reds of the today child in one day,
-each passing on rerun, neither diagnosable because `--ci` withholds all local
-diagnostics on any failure). Branch `rebuild/b-s6-child-tail`, worktree tip
-0ac72eadf8cfe55c010af7f0d40034d133cdccba, commits a7e41db (diagnostics) and
-d902815 (original report) plus this commit, which disposes review R1
-(`rebuild/lanes/b/S6-CHILD-TAIL-REVIEW-R1.md`, reviewed sha d902815 -- the
-original report wrongly named only a7e41db).
+Ticket: DECISIONS:467 process note 2. Branch `rebuild/b-s6-child-tail`, worktree tip
+210a04c29ccbbc5726fb50054ffd8b3ccb2c9bf4, disposing review R2
+(`S6-CHILD-TAIL-REVIEW-R2.md`, reviewed sha 210a04c2, VERDICT REJECT).
 
-## What changed (b-package.cjs and this report only; no engine byte touched)
+## R2 dispositions
 
-- `children()` records each child's wall time around `spawnSync` and, in `--ci`
-  only, catches its own `CHILD-REQUIRED-EXIT-ZERO` assertion to attach
-  `error.diagnostic` before rethrowing unchanged.
-- New `childDiagnosticTail()`: prints `B PACKAGE <ID> CHILD <name> DIAGNOSTIC exit
-  <code> wall <ms> ms; last 60 lines of stdout+stderr follow` plus the tail, only if
-  every argv target stands under one of four `PUBLIC_TAIL_ROOTS` AND no line of
-  that child's own stdout+stderr matches `TAIL_DENYLIST` (`conform/private`,
-  `golden`, `live.json`, `ledger/`). Either gate failing prints `tail withheld
-  (path policy)` instead -- zero output bytes.
-- Top-level `catch` prints `error.diagnostic` (when `ci` and present) right after
-  the existing `FAIL` line, never in place of it, never for `--full`.
-- Every child's OBSERVED line carries `; wall <ms> ms` in `--ci`.
+1. BLOCKING (`TAIL_DENYLIST` separator-sensitive on Windows) -- FIXED. Scans
+   `combined.replace(/\\/g, '/')` for the denylist, prints ORIGINAL lines. Cell
+   `RV17 -- a denylisted path spelled with backslashes ... withholds too`; the
+   reviewer's own RV17 (asserting the leak) now correctly fails.
+2. MAJOR (report over 60 lines) -- FIXED: this report.
+3. MAJOR carry-forward, not mine to land: `measure/test/boundary.test.mjs:82`
+   hardcodes `CHILD_SPECS = ['H3','S3','S4','S5']`. The S6 reseal must add
+   `'S6'` there too, or `P-MEASURE (g)` stays red past the reseal.
+4. MINOR (`PUBLIC_TAIL_ROOTS`/`TAIL_DENYLIST` pinned by no cell) -- FIXED. New
+   cell `F8` in `pinned-unchanged-and-ruled-substitutions.test.cjs` `deepEqual`s
+   both arrays and asserts a prepended root is not deepEqual.
+5. MINOR (`exit null` on a spawnSync timeout) -- FIXED. `r.status === null` now
+   prints `exit timeout` (plus `r.error.code` when present), never `null`.
+   Cells: `RV17 -- a spawnSync timeout ...` with and without an error code.
 
-## R1 fix: `PUBLIC_TAIL_ROOTS` was in no `TOOLING_FILES` entry (BLOCKING)
+## Cells added this round
 
-`test/child-diagnostic-tail.test.cjs` was added by a7e41db but never enumerated in
-`TOOLING_FILES` (b-package.cjs W7 list), so `fidelity()`'s own `--ci --package S5`
-run refused it as `UNLISTED-SOURCE-CHANGE`. Fixed by adding one entry to
-`TOOLING_FILES`, next to the other eight tooling test files it sits beside.
-
-## R1 fix: privacy justification was wrong for one of four roots (MINOR)
-
-The `PUBLIC_TAIL_ROOTS` comment claimed all four roots are ones "rebuild.yml
-already runs in the open." Three are (today, measure, w6 host); `m4/workout` is
-not -- its six cells run only inside the withheld `--ci --package S5` step
-(rebuild.yml:127). Comment corrected in both places (the `PUBLIC_TAIL_ROOTS`
-definition and the `childDiagnosticTail()` docstring) to give `m4/workout`'s real
-basis: its content was read in full (node builtins, `rebuild/engine/*`,
-`native-carriers-source.cjs`, `w7-preview/fixtures.cjs`, `S5.json`) and contains no
-line naming the private census, a golden, `live.json` or the ledger. No behavior
-changed; the four-element `PUBLIC_TAIL_ROOTS` array itself is untouched.
-
-## Cells (`test/child-diagnostic-tail.test.cjs`; compiles the real runner twice,
-once per mode, same technique as `execution-targets.test.cjs`)
-
-1. public-root child exits 1 in `--ci` -> tail printed, exit/wall/last-60 present.
-2. same child under `--full` -> `error.diagnostic` is `undefined`.
-3. non-public-root (`rebuild/m4/spec/`) failing child -> withheld (path policy).
-4. public-root failing child whose stdout names a denylisted path -> withheld too.
-5. every child's OBSERVED line carries `; wall N ms` in `--ci`, none in `--full`.
-
-5 new cells; 91 pre-existing tooling cells; 96 total, all green. Reviewer's 10
-independent cells at `%TEMP%\s6b-rv\rv.test.cjs` (RV1-RV10, mutant-proved,
-stub-free) now all pass, including RV10 (`TOOLING_FILES` enumeration), which was
-red before this fix.
+3 RV17 cells (backslash-denylist, timeout-with-code, timeout-no-code) in
+`child-diagnostic-tail.test.cjs`, plus `F8` (pin) in `pinned-unchanged-and-
+ruled-substitutions.test.cjs`. Lane B tooling suite now 100/100, all green.
 
 ## Verbatim tails
 
-`node --test "rebuild/lanes/b/tooling/test/*.test.cjs"`:
-```
-ℹ tests 96
-ℹ suites 0
-ℹ pass 96
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-```
+Lane B tooling suite (`node --test "rebuild/lanes/b/tooling/test/*.test.cjs"`):
+`tests 100 / pass 100 / fail 0`.
 
-`node --test "%TEMP%\s6b-rv\rv.test.cjs"` (REVIEW_ROOT=this worktree):
-```
-ℹ tests 10
-ℹ suites 0
-ℹ pass 10
-ℹ fail 0
-```
+today-17 (`rebuild.yml:199`): `tests 666 / pass 665 / fail 1`; `P-MEASURE (g)`
+drifts on two S4-sealed files this branch edits (`b-package.cjs`, and now the
+F8-edited F-file) -- expected, see item 3 for why `CHILD_SPECS` keeps it red
+past the S6 reseal.
+
+`node rebuild/m3/w7-preview/today/build.mjs`:
+`A1 TODAY BUILD PASS: 3 assets; 121 pinned inputs (13 engine, 12 client); ...`
+
+`node rebuild/t2/rig187.cjs`: `rig187 => PASS -- SUITE GAP: both subjects are 35
+GREEN under run.cjs; B-durability never restarts from the store`.
 
 `node rebuild/lanes/b/tooling/b-package.cjs --ci --package S5`:
-```
-B PACKAGE S5 FAIL RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER; required evidence missing or failed; local diagnostics withheld
-```
-Expected per DECISIONS:455/:467: `packages/S5.json` pins this runner's sha256, so
-editing it refuses at the runner pin before any evidence is read. S6's own reseal
-re-pins the runner, as S4 and S5 did.
+`B PACKAGE S5 FAIL RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER; ... local diagnostics
+withheld` -- expected SEAL FACT; runner sha256 moved again; clears at the S6
+reseal (which must also add `'S6'` to `CHILD_SPECS`, item 3).
 
-## Drift list (`git diff --name-only 0ac72ea HEAD`, checked against `packages/S5.json`)
+## Drift (`git diff --name-only 0ac72ea HEAD` vs `packages/S5.json`)
 
-- `rebuild/lanes/b/tooling/b-package.cjs` -- matches S5.json's `runner` /
-  `tooling.runnerSha256` pin (why S5 --ci refuses above); expected red.
-- `rebuild/lanes/b/tooling/test/child-diagnostic-tail.test.cjs` -- new file, not
-  named in S5.json.
-- `rebuild/lanes/b/S6-CHILD-TAIL-AUTHOR-REPORT.md` (this file) -- new file, not
-  named in S5.json; omitted from the prior drift list in error.
+- `b-package.cjs` -- matches S5.json's runner pin; expected red (SEAL FACT).
+- `test/child-diagnostic-tail.test.cjs`, `test/pinned-unchanged-and-ruled-
+  substitutions.test.cjs` (F8), this report -- none named in S5.json.
 
 ## Stops
 
-None encountered while fixing R1. No `rebuild/conform/private`, `src/history.js`,
-`ledger/` or soak path read. Not pushed.
-
-Known, unresolved, out of custody for this fix: today-17 measures `pass 665 /
-fail 1` on this branch (needle `# pass 666`), failure `P-MEASURE (g)` in
-`measure/test/boundary.test.mjs:95`. This is the same SEAL FACT drift as
-`b-package.cjs` above (clears at the S6 reseal) but it reddens the *public*
-rebuild.yml step at line 199, not only the withheld S5 step -- the prior report's
-"Stops: none" did not measure or disclose this. Neither this fix nor a7e41db
-touches `measure/test/boundary.test.mjs` or `b-package.cjs`'s S5-relevant bytes
-beyond the two changes above, so the shape is unchanged by R1; recorded here so
-"Stops: none" is not repeated inaccurately.
+None. No `rebuild/conform/private`, `src/history.js`, `ledger/` or soak path
+read. No engine byte touched. Not pushed.
