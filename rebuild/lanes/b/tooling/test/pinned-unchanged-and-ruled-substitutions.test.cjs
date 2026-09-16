@@ -50,7 +50,7 @@ process.argv = [process.execPath, runnerFile, '--ci', '--package', 'B-NTC'];
 try {
   m._compile(source.slice(0, source.indexOf(delimiter)) +
     '\nmodule.exports={product,describes,ruledDescriptions,failCode,executedClosure,EXECUTED_CLOSURE_LIMIT,' +
-    'FAIL_CODES,IDS,PRODUCT_ROLES,NO_REGISTER_IDS,CHILD_ROOTS,PUBLIC_TAIL_ROOTS,TAIL_DENYLIST,' +
+    'FAIL_CODES,IDS,PRODUCT_ROLES,NO_REGISTER_IDS,CHILD_ROOTS,PUBLIC_TAIL_ROOTS,TAIL_DENYLIST,TAIL_BYTES,' +
     'init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
@@ -340,4 +340,13 @@ test('F8 -- PUBLIC_TAIL_ROOTS and TAIL_DENYLIST are the fixed lists the tail dia
   // either array's CONTENT is examined, so the assertion passed regardless of what either
   // list actually held and pinned nothing the two deepEqual calls above do not already
   // pin. Removed; those two calls do the real work of this test.
+});
+
+// ------------------------------------------------------- F9. the fixed tail byte cap
+// S6-B round-4 review, finding 1 (MINOR): TAIL_BYTES landed (round 3) but was pinned by
+// no cell, unlike PUBLIC_TAIL_ROOTS and TAIL_DENYLIST just above (F8). Pinned exactly,
+// same style: deleting the constant or raising it does not go unnoticed here or in
+// child-diagnostic-tail.test.cjs's byte-cap probe.
+test('F9 -- TAIL_BYTES is the fixed byte cap the diagnostic tail truncates to', () => {
+  assert.deepEqual(api.TAIL_BYTES, 16 * 1024);
 });

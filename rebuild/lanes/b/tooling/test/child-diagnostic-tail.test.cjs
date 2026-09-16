@@ -38,7 +38,7 @@ function compile(mode) {
   process.argv = [process.execPath, runnerFile, mode, '--package', 'B-NTC'];
   try {
     m._compile(source.slice(0, source.indexOf(delimiter)) +
-      '\nmodule.exports={children,ci,childDiagnosticTail,PUBLIC_TAIL_ROOTS,TAIL_DENYLIST,' +
+      '\nmodule.exports={children,ci,childDiagnosticTail,PUBLIC_TAIL_ROOTS,TAIL_DENYLIST,TAIL_BYTES,' +
       'init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
   } finally { process.argv = savedArgv; }
   m.exports.init();
@@ -175,4 +175,24 @@ test('every child carries its wall time on the OBSERVED line in --ci, none in --
   const fullObserved = fullLines.find(l => l.includes(' OBSERVED;'));
   assert(fullObserved, 'expected an OBSERVED line under --full too');
   assert.doesNotMatch(fullObserved, /; wall \d+ ms$/);
+});
+
+// S6-B round-4 review, finding 1 (MINOR): TAIL_BYTES landed (round 3, spawnSync's own
+// 32 MB maxBuffer still let one pathological line flood CI past the 60-line cap) but was
+// pinned by no cell. This probe drives the REAL byte cap through a public, non-denylisted
+// child whose entire tail is ONE 200 KB line -- too short to trip the 60-LINE cap, long
+// enough to trip TAIL_BYTES -- and pins both the exact printed length and the constant
+// itself, so deleting TAIL_BYTES (a ReferenceError at compile, above) or raising it (this
+// byte-length assertion, or F9's deepEqual in pinned-unchanged-and-ruled-substitutions.
+// test.cjs) goes red.
+test('RV -- a 200 KB single-line tail caps to TAIL_BYTES bytes, with the header saying so', () => {
+  assert.equal(apiCi.TAIL_BYTES, 16 * 1024);
+  const bigLine = 'p'.repeat(200 * 1024); // one line, no newline in it at all
+  const fakeBig = { status: 1, error: null, stdout: bigLine, stderr: '' };
+  const header = apiCi.childDiagnosticTail({ name: 'tail-cap' }, [publicFail], fakeBig, 42);
+  assert.match(header,
+    /^B PACKAGE B-NTC CHILD tail-cap DIAGNOSTIC exit 1 wall 42 ms; last 60 lines of stdout\+stderr follow \(last 16384 bytes of that\)\n/);
+  const printed = header.slice(header.indexOf('\n') + 1);
+  assert.equal(Buffer.byteLength(printed, 'utf8'), apiCi.TAIL_BYTES);
+  assert.equal(printed, bigLine.slice(-apiCi.TAIL_BYTES));
 });

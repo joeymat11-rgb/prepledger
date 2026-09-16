@@ -349,6 +349,10 @@ const TAIL_LINES = 60;
 // (no newline in it at all) could still flood CI even after the 60-line cap. Cap the
 // printed tail in bytes too, independently of the line cap.
 const TAIL_BYTES = 16 * 1024;
+// S6-B round-4 review, finding 1 (MINOR): this constant was itself pinned by no cell.
+// Closed by pinned-unchanged-and-ruled-substitutions.test.cjs's F9 (deepEqual on the
+// exported constant) and child-diagnostic-tail.test.cjs's byte-cap probe (a 200 KB
+// single-line tail truncates to exactly TAIL_BYTES, the header saying so).
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
 // --require=, --import=) are caught with the bare ones; NO_RUN catches every form that
