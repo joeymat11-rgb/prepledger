@@ -52,6 +52,7 @@ const { spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
 const { createImportPreparation } = require('../../../m4/import/prepare.cjs');
 const { counts: censusCounts } = require('../../../conform/oracle/census.cjs');
+const { validDay } = require('../../../m4/import/local-source-profile.cjs');
 const { PROFILE, KDF, CIPHER, TAG_BYTES, aadBytes, deriveKey } = require('./unseal.cjs');
 const { WORDS } = require('./wordlist.cjs');
 
@@ -237,6 +238,154 @@ function manifestPin(sourceSha256) {
   return null;
 }
 
+/* --- SEAL-TIME MALFORMED SOURCE REFUSAL -------------------------------------
+   The counts check below is a DECREASE rule: before -> after. A guarded class
+   absent on BOTH sides (0->0) is invisible to it. This runs once, on the raw
+   parsed source, before prepare() ever touches it, and refuses with a named
+   code - nothing migrated, nothing sealed, nothing written - when the source
+   itself does not have the shape the census depends on. Dates reuse validDay
+   from m4/import/local-source-profile.cjs, the SAME rule C2b admission
+   enforces, rather than a looser one re-derived here. */
+const SHAPE_CLASSES = Object.freeze([
+  { cls: 'reads', get: s => s.reads, type: 'array' },
+  // nights is an array on the real ledger (and the preimage fixture) but an
+  // OBJECT keyed "0".."34" on the synthetic fixture (oracle/make-synthetic.cjs) -
+  // a known fixture-shape quirk (port.test.cjs's own comment on the synthetic
+  // pair), not a defect on real data. census counts() reads via Object.keys(),
+  // which is valid for either shape, so both are accepted here.
+  { cls: 'nights', get: s => s.sleep && s.sleep.nights, type: 'array-or-object' },
+  { cls: 'dailyLogs', get: s => s.dailyLogs, type: 'object' },
+  { cls: 'sessionLog', get: s => s.sessionLog, type: 'object' },
+  { cls: 'exercises', get: s => s.exercises, type: 'array' },
+  { cls: 'queue', get: s => s.queue, type: 'array' },  // backs both 'queue' and 'debuts' (debuts is queue-derived, no key of its own)
+  { cls: 'earned', get: s => s.feed, type: 'array', key: 'feed' },  // 'earned' has no key of its own - census derives it from feed
+  { cls: 'events', get: s => s.events, type: 'array' },
+  // waist is the one guarded class m4/workout/athlete-state.cjs's OWN accepted
+  // createCleanInitState() genuinely never writes (not even as []) - "Every
+  // history member starts empty" lists reads/dailyLogs/sessionLog/queue/feed/
+  // events, and waist is not among them. So its ABSENCE is not evidence of a
+  // malformed source (measured against rebuild/m3/w6/test/local-source-consumer
+  // .test.mjs's own invented, already-schema-60 legacy state, which has no
+  // waist key and is accepted). Only its TYPE is checked when it IS present.
+  { cls: 'waist', get: s => s.waist, type: 'array', optional: true },
+]);
+const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+const typeName = v => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v);
+// PRIVACY: a 'key' locLabel (object-shaped nights) echoes a real ledger key,
+// not a bare index - truncate it exactly like a date VALUE below, so a long
+// key never appears whole in a report line. A 'position' index is always a
+// number and passes through untouched.
+const truncateLabel = (locLabel, idx) =>
+  (locLabel === 'key' && typeof idx === 'string' && idx.length > 10)
+    ? JSON.stringify(idx.slice(0, 10)) + '...' : idx;
+
+function shapeIssues(source) {
+  const issues = [];
+  const typed = {};
+  for (const { cls, get, type, optional, key } of SHAPE_CLASSES) {
+    let value;
+    try { value = get(source); } catch { value = undefined; }
+    if (value === undefined) {
+      if (!optional) {
+        // Name the ACTUAL backing key (e.g. 'earned' is backed by 'feed', no
+        // key of its own) rather than the class label when the two differ.
+        issues.push({ code: 'PORT_SOURCE_CLASS_MISSING', detail: `class ${cls} is missing from the source (no ${key || cls} key)` });
+      }
+      continue;
+    }
+    const ok = type === 'array' ? Array.isArray(value)
+      : type === 'array-or-object' ? (Array.isArray(value) || isPlainObject(value))
+        : isPlainObject(value);
+    if (!ok) {
+      issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
+        detail: `class ${cls} is not a(n) ${type} (got ${typeName(value)})` });
+      continue;
+    }
+    typed[cls] = value;
+  }
+  // PRIVACY: echo a malformed date's VALUE only when it is itself a string
+  // (truncated to 10 characters) - never a non-string value, whole or partial,
+  // since that could carry a ledger fact. For anything else, name only the
+  // type; the class and position already say where.
+  const badDate = (cls, locLabel, index, value) => {
+    // A truncated echo gets a trailing "..." so it can never be mistaken for
+    // a valid, whole value (e.g. "2024-06-01T00:00" would otherwise echo as
+    // the well-formed-looking "2024-06-01").
+    const shown = typeof value === 'string'
+      ? (value.length > 10 ? JSON.stringify(value.slice(0, 10)) + '...' : JSON.stringify(value))
+      : `<${typeName(value)}>`;
+    issues.push({ code: 'PORT_SOURCE_DATE_INVALID',
+      detail: `class ${cls} date at ${locLabel} ${truncateLabel(locLabel, index)} is invalid: ${shown}` });
+  };
+  if (Array.isArray(typed.reads)) typed.reads.forEach((r, i) => { if (!validDay(r && r.d)) badDate('reads', 'position', i, r && r.d); });
+  if (isPlainObject(typed.dailyLogs)) Object.keys(typed.dailyLogs).forEach((k, i) => { if (!validDay(k)) badDate('dailyLogs', 'position', i, k); });
+  if (isPlainObject(typed.sessionLog)) {
+    const dates = Object.keys(typed.sessionLog);
+    dates.forEach((k, i) => { if (!validDay(k)) badDate('sessionLog', 'position', i, k); });
+    // corrLog entries come from the engine's OWN _fileCorr (engine/migrate.cjs
+    // ~2501, read-only, reproduced here for reference):
+    //   {op: "kind:YYYY-MM-DD:id", kind, id?, at: ISOString, to?}
+    // There is no top-level `d` - the day lives inside `op`, second field.
+    // Checking entry.d (the old code) checked a key that never exists.
+    dates.forEach(k => {
+      const rec = typed.sessionLog[k];
+      const corrLog = rec && rec.corrLog;
+      // A PRESENT-but-wrong-typed corrLog (object, string, number...) used to
+      // be silently treated as [] here; PREPARE refuses it downstream, but
+      // this check never said so. Refuse it here by name, same as any other
+      // wrong-typed class, instead of masking it as empty.
+      if (corrLog !== undefined && !Array.isArray(corrLog)) {
+        issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
+          detail: `class corrections is not a(n) array (got ${typeName(corrLog)})` });
+        return;
+      }
+      const log = Array.isArray(corrLog) ? corrLog : [];
+      log.forEach((entry, i) => {
+        const op = entry && entry.op;
+        const parts = typeof op === 'string' ? op.split(':') : null;
+        if (!parts || parts.length < 3) {
+          issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
+            detail: `class corrections entry at position ${i} has a malformed op` });
+          return;
+        }
+        if (!validDay(parts[1])) badDate('corrections', 'position', i, parts[1]);
+        const at = entry.at;
+        if (!(typeof at === 'string' && Number.isFinite(Date.parse(at)))) badDate('corrections-at', 'position', i, at);
+      });
+    });
+  }
+  // Nights are pre-guarded no more: a night's `d` must be PRESENT (missing ->
+  // SHAPE_INVALID, the same admission rule reads already meets) and, when
+  // present, a real calendar day of whatever type it is (DATE_INVALID covers
+  // numeric, object and malformed-string alike - validDay already refuses a
+  // non-string). Object-shaped nights (the synthetic fixture's own shape) name
+  // the entry's KEY, not a numeric "position", since Object.entries yields the
+  // key, not an index.
+  if (Array.isArray(typed.nights) || isPlainObject(typed.nights)) {
+    const keyed = isPlainObject(typed.nights);
+    const locLabel = keyed ? 'key' : 'position';
+    const entries = keyed ? Object.entries(typed.nights) : typed.nights.entries();
+    for (const [i, entry] of entries) {
+      // P3-HARDEN round 3 (PM order): a night that is not an object at all
+      // (null, a string, a number, a boolean, or - for keyed nights - a
+      // scalar entry like {a: 1}) used to be silently skipped here, admitting
+      // it with no issue raised. Refuse it by name instead of continuing past it.
+      if (!entry || typeof entry !== 'object') {
+        issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
+          detail: `class nights entry at ${locLabel} ${truncateLabel(locLabel, i)} is not an object (got ${typeName(entry)})` });
+        continue;
+      }
+      if (!Object.hasOwn(entry, 'd')) {
+        issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
+          detail: `class nights entry at ${locLabel} ${truncateLabel(locLabel, i)} is missing d` });
+        continue;
+      }
+      if (!validDay(entry.d)) badDate('nights', locLabel, i, entry.d);
+    }
+  }
+  return issues;
+}
+
 /* --- WHERE THE BUNDLE MAY NOT GO -------------------------------------------
    The first version of this guard compared path.resolve() strings. The reviewer
    walked through it twice on Windows — once through a directory junction
@@ -285,12 +434,35 @@ function gitWorkingTreeAt(dir) {
   }
 }
 
+/* SYNCED-FOLDER REFUSAL. The bundle is encrypted, so a synced folder is a
+   smaller exposure than the repo-leak the three checks above were built for -
+   but it is real (the passphrase file sits right beside it) and was, until
+   this ticket, unguarded (P3-STAGE-REPORT finding 2). Segment match is
+   case-insensitive and exact ("OneDriveBackup2" is a different folder, not a
+   OneDrive folder, unless it is genuinely nested inside one). */
+const SYNCED_SEGMENTS = Object.freeze(['onedrive', 'dropbox', 'google drive', 'googledrive', 'iclouddrive', 'icloud drive', 'box']);
+const SYNCED_ENV_VARS = Object.freeze(['OneDrive', 'OneDriveCommercial', 'OneDriveConsumer']);
+function syncedFolderRefusal(real) {
+  for (const segment of real.split(path.sep)) {
+    if (SYNCED_SEGMENTS.includes(segment.toLowerCase())) return `inside a synced folder ("${segment}") (${real})`;
+  }
+  for (const name of SYNCED_ENV_VARS) {
+    const value = process.env[name];
+    if (!value) continue;
+    const envReal = realPathOf(value);
+    if (contains(envReal, real)) return `inside the synced folder %${name}% (${envReal})`;
+  }
+  return null;
+}
+
 function outRefusal(dir) {
   const real = realPathOf(dir);
   if (contains(REPO_REAL, real)) return `inside this repository (${real})`;
   const tree = gitWorkingTreeAt(real);
   if (tree) return `inside a git working tree (${tree}) - a commit there could publish it`;
   if (real.split(path.sep).includes('rebuild')) return `inside a folder called "rebuild" (${real})`;
+  const synced = syncedFolderRefusal(real);
+  if (synced) return synced;
   return null;
 }
 
@@ -378,6 +550,21 @@ async function run(argv) {
   const sourceBytes = readInput('--source', opts.source);
   const sourceSha256 = sha256(sourceBytes);
   say('SOURCE', 'PASS', `${opts.source}  sha256=${sourceSha256}  bytes=${sourceBytes.length}`);
+  // Malformed-source refusal: parsed here (independently of prepare()'s own
+  // parse) so a source with the wrong SHAPE never reaches migration at all.
+  // A source that is not even valid JSON falls through unreported here and is
+  // caught by PREPARE below, unchanged (IMPORT_SOURCE_JSON_INVALID etc).
+  let sourceForShape = null;
+  try { sourceForShape = parseStrictJson(sourceBytes); } catch { sourceForShape = null; }
+  if (sourceForShape && typeof sourceForShape === 'object' && !Array.isArray(sourceForShape)) {
+    const issues = shapeIssues(sourceForShape);
+    if (issues.length) {
+      say('SHAPE', 'FAIL', `${issues.length} issue(s) (nothing written)`);
+      for (const issue of issues) note(`${issue.code}  ${issue.detail}`);
+      note('The source is malformed. NO BUNDLE WRITTEN.');
+      return 2;
+    }
+  }
   let localBytes, localSha256, localRelated = null;
   if (opts.local) {
     localBytes = readInput('--local', opts.local);
@@ -388,6 +575,19 @@ async function run(argv) {
     const shaped = s => s && typeof s === 'object' && !Array.isArray(s) && Number.isSafeInteger(s.v);
     if (!shaped(sourceHead) || !shaped(localHead)) {
       say('LOCAL', 'FAIL', 'LOCAL_UNREADABLE  (not strict JSON, or no schema version)');
+      return 2;
+    }
+    // P3-HARDEN round 3 (PM order): run the SAME seal-time shape refusal on
+    // the RAW parsed --local, right here, before relatedness or prepare()
+    // ever touch it. The b3 check below (after COUNTS) runs too late for a
+    // wrong-typed ARRAY class: relatedness()'s own .map/.filter throws first,
+    // with no PORT_SOURCE_* line and no --local:-blame, exit 1 not 2. This
+    // check is cheap and catches it before anything downstream can crash.
+    const rawLocalIssues = shapeIssues(localHead);
+    if (rawLocalIssues.length) {
+      say('SHAPE', 'FAIL', `${rawLocalIssues.length} issue(s) in --local (nothing written)`);
+      for (const issue of rawLocalIssues) note(`local:${issue.code}  ${issue.detail}`);
+      note('The --local source is malformed. NO BUNDLE WRITTEN.');
       return 2;
     }
     localRelated = relatedness(sourceHead, localHead, engine.SCHEMA_V);
@@ -455,6 +655,27 @@ async function run(argv) {
     for (const check of shrank) note(`SHRANK (${check.label}): ${check.shrank.join('  ')}`);
     note('A record class came out smaller than it went in. NO BUNDLE WRITTEN.');
     return 2;
+  }
+
+  // b3. the SAME seal-time shape refusal that ran on the source, now run
+  //     AGAIN on the PREPARED --local state. P3-HARDEN round 3 (PM order)
+  //     moved the primary --local shape check earlier (right after LOCAL is
+  //     read, above prepare()/relatedness()), because a wrong-typed ARRAY
+  //     class used to crash inside relatedness() or census before it ever
+  //     got here. This second run is kept: it costs nothing on a clean
+  //     --local, and it is the only check that sees --local AFTER prepare()
+  //     has migrated it, in case migration itself ever introduces a shape
+  //     issue the raw check upstream could not have seen.
+  //     Same codes, prefixed by the side, so a report line always says which
+  //     file is at fault. Nothing written on refusal, same as the source check.
+  if (localBytes) {
+    const localIssues = shapeIssues(prepared.localState());
+    if (localIssues.length) {
+      say('SHAPE', 'FAIL', `${localIssues.length} issue(s) in --local (nothing written)`);
+      for (const issue of localIssues) note(`local:${issue.code}  ${issue.detail}`);
+      note('The --local source is malformed. NO BUNDLE WRITTEN.');
+      return 2;
+    }
   }
 
   // c. the frozen port-oracle gate, both Date modes, all laws GREEN or nothing
@@ -565,4 +786,5 @@ if (require.main === module) {
 }
 
 module.exports = { run, GATE, REPO, REPO_REAL, USAGE, makePassphrase, seal, runGate, engineDigest,
-  PASSPHRASE_WORDS, realPathOf, outRefusal, insideRepo, relatedness, unrelatedReason, GUARDED };
+  PASSPHRASE_WORDS, realPathOf, outRefusal, insideRepo, relatedness, unrelatedReason, GUARDED,
+  shapeIssues, syncedFolderRefusal, SHAPE_CLASSES };

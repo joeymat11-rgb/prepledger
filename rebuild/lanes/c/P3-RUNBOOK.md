@@ -15,10 +15,11 @@ his own words, right before it happens (README's own rule).
 3. Disk space: the sealed bundle roughly doubles the source file's size;
    confirm free space on the PC out-drive and on the phone.
 4. `--out` is a plain folder Joe controls (Desktop/Documents), outside the
-   repo, outside any git working tree, not named/nested `rebuild` — **and
-   not inside a OneDrive/iCloud-synced folder**: the code refuses the first
-   three but does **not** special-case a synced folder (STAGE-REPORT finding
-   2). Joe picks the folder deliberately.
+   repo, outside any git working tree, not named/nested `rebuild`, and not
+   inside a synced folder (OneDrive, Dropbox, Google Drive, iCloud Drive,
+   Box) - the code now refuses all of these (P3-HARDEN, DECISIONS:454, closed
+   STAGE-REPORT finding 2). Joe still picks the folder deliberately; this is
+   a second layer, not a reason to stop checking.
 5. Phone reachable, unlocked, Home-Screen build, network for the chosen
    route, free space for the bundle.
 6. Confirm the phone's IMPORT screen writes its own setup/session operations
