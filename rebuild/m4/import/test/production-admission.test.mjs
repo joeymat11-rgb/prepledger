@@ -22,8 +22,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, carry, material,
-  IMPORTED_LOADS, SOURCE_SESSION_DAYS, REPO, PORT, Profile }
-  from '../../../m3/w7-preview/import/test/support.mjs';
+  IMPORTED_LOADS, SOURCE_SESSION_DAYS, REPO, PORT, Profile, createSourcePlatform,
+  parseStrictJson, durable } from '../../../m3/w7-preview/import/test/support.mjs';
 import { createLocalSourceController, localSourceCommitCapability }
   from '../../../m3/w6/local/source-admission.mjs';
 
@@ -39,12 +39,17 @@ const scope = tag => ({ databaseName: 'p3m-' + tag, namespace: 'joe/p3m-' + tag,
 
 /* THE REAL CALL SEQUENCE AN IMPORT SCREEN MUST MAKE, with the one registry
    this ticket authors and nothing else injected. */
-async function admitWithProductionMapping(era, sealed, { day, namespace, athleteId, deviceId }) {
+async function admitWithProductionMapping(era, sealed,
+  { day, namespace, athleteId, deviceId, reviewedDigest = null }) {
   const { carried, platform } = await carry(era, sealed);
   if (!carried.imported) return { admitted: false, stage: 'custody', code: carried.code };
   const held = await material(era, platform, carried.name);
+  /* THE PRODUCTION WIRING: no material digest at construction. The controller
+     derives it privately at qualify time and the row is bound from it there
+     (P3-D-FOLLOWONS; both mapping reviews' MAJOR 2). `reviewedDigest` is the
+     other shape - the reviewed row pinned by hand - and only P3-P5 uses it. */
   const registry = Mapping.createProductionProducerRegistry({ hash: platform.hash,
-    materialDigest: held.materialDigest });
+    ...(reviewedDigest ? { materialDigest: reviewedDigest } : {}) });
   const controller = createLocalSourceController({ repository: held.repository,
     namespace, athleteId, deviceId, producerRegistry: registry, asOf: () => day, platform });
   let review;
@@ -163,3 +168,74 @@ test('P3-P3 - the pinned engine\'s own bundle admits on the same day and the '
     assert.equal(result.held.context.engine.treeSha256, Mapping.ENGINE.treeSha256);
     era.close();
   });
+
+/* P3-D-FOLLOWONS, item 2. THE WIRING A PAGE CAN ACTUALLY DO.
+ *
+ * Both mapping reviews' MAJOR 2: createProductionProducerRegistry used to need
+ * the material digest at CONSTRUCTION, but source-admission.mjs takes its
+ * registry at ITS construction and derives that digest only later, privately,
+ * at :74. The only way to build the registry was to duplicate that private
+ * derivation in the page - a sixth copy of a harness line. This cell does the
+ * whole admission with NOTHING derived outside the controller: the repository
+ * comes from the era's own host bindings and the registry is built from the
+ * platform hash alone. `material()` - the harness helper that carries the
+ * private copy - is not called at all, and the digest is read back OUT of the
+ * basis the controller committed, which is the only place a page would ever
+ * see it.
+ */
+const workoutCommands = require_('../../workout/commands.cjs').createWorkoutCommands({
+  prescriptionCapture: require_('../../workout/capture.cjs')
+    .createPrescriptionCapture({ parseStrictJson }) });
+
+test('P3-P4 - the production registry is built from the platform hash ALONE and '
+  + 'admits end to end: no material digest is derived outside the controller',
+  async () => {
+    const { era, names } = await run('wired', SUMMER);
+    const platform = createSourcePlatform();
+    const carried = await era.client.importBundle({ bundleBytes: SEALED.bytes,
+      passphrase: SEALED.passphrase });
+    assert.equal(carried.imported, true, carried.code);
+    const repository = (await era.client.hostBindings({ workoutCommands })).repository;
+    /* THE WHOLE PRODUCTION WIRING, in two lines and with no private copy. */
+    const registry = Mapping.createProductionProducerRegistry({ hash: platform.hash });
+    const controller = createLocalSourceController({ repository, producerRegistry: registry,
+      asOf: () => SUMMER.day, platform, namespace: names.namespace,
+      athleteId: names.athleteId, deviceId: names.deviceId });
+    const review = await controller.reviewSource(carried.name);
+    const prepared = await controller.prepareSource(review, { identityConfirmed: true });
+    assert.equal(prepared.profile, 'earned/local-source-qualification/v1',
+      'the production mapping qualified the bundle with no digest supplied to it');
+    const capability = localSourceCommitCapability(prepared);
+    await capability.publish();
+    const view = await controller.view(await capability.reconcile());
+    assert.equal(view.ready, true);
+    /* The digest the controller derived, read back out of its own basis, is the
+       one the row was bound to - so the qualify-time binding is the real one. */
+    assert.equal(view.basis.engine_digest,
+      productionEngineDigest(platform, view.basis.material_digest));
+    assert.deepEqual(view.state.exercises.map(e => [e.id, e.w]).sort(), IMPORTED_LOADS);
+    era.close();
+  });
+
+/* THE REVIEWED ROW'S RED SIDE. A registry PINNED by hand to some other bundle's
+   material digest is the brief's section 5 shape with the wrong number in it,
+   and it must refuse rather than admit the file in front of it. P3-P4 above is
+   this cell's control: same bundle, same day, same device shape, the only
+   difference being which digest the row was bound to. */
+test('P3-P5 - a REVIEWED execution row pinned to the wrong material refuses '
+  + 'SOURCE_ENGINE_CONTEXT_UNPROVEN at review, and commits nothing', async () => {
+  const { era, names } = await run('wrong-digest', SUMMER);
+  const before = await durable(era);
+  const result = await admitWithProductionMapping(era, SEALED,
+    { day: SUMMER.day, ...names, reviewedDigest: 'f'.repeat(64) });
+  assert.equal(result.admitted, false);
+  assert.equal(result.stage, 'review');
+  assert.equal(result.code, 'SOURCE_ENGINE_CONTEXT_UNPROVEN');
+  assert.notEqual(result.held.materialDigest, 'f'.repeat(64),
+    'the bundle really does present a digest of its own');
+  const after = await durable(era);
+  assert.equal(after.basis, false, 'no basis was committed');
+  assert.equal(after.applied, false);
+  assert.equal(after.ops, before.ops, 'and the refusal minted no operation');
+  era.close();
+});

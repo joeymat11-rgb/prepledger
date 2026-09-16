@@ -13,7 +13,23 @@ import {projectWorkoutRecords} from '../../../m4/workout/project-history.mjs';
 import Capture from '../../../m4/workout/capture.cjs';
 import EngineCapture from '../../../m4/workout/engine-capture.cjs';
 import History from '../../../m4/workout/engine-history.cjs';
-import Runtime from '../../../m4/workout/engine-runtime.cjs';
+// ROUTE 1, STEP ONE (P3-D-FOLLOWONS, DECISIONS:475; the brief's row E). The
+// ACCEPTED host-owned MIRROR, not rebuild/m4/workout/engine-runtime.cjs. That
+// file composes its twelve factories through ONE non-literal require, which
+// esbuild answers by globbing the whole of rebuild/engine: engine/index.cjs,
+// engine/seed.cjs and every Node-only engine/test/** harness are swept into
+// any browser graph that reaches this module. The mirror is a BINDING, not a
+// reimplementation - engine-runtime-host.cjs states the same twelve modules in
+// the same order behind literal requires, and
+// rebuild/m3/w6/host/test/engine-equivalence.test.cjs fails on any drift
+// between the two. This module uses exactly one name from it,
+// createEngineRuntime, and one reader off the frozen five-name facade,
+// sessionMembership, so the swap changes no behaviour: proved cell by cell in
+// rebuild/lanes/d/p3-followons/admission-swap.test.mjs, which runs the whole
+// admission against BOTH runtimes and compares the durable basis byte for
+// byte. What leaves the graph is measured in
+// rebuild/m3/w7-preview/import/test/page-bundle.test.mjs.
+import Runtime from '../host/engine-runtime-host.cjs';
 import Profile from '../../../m4/import/local-source-profile.cjs';
 import Order from '../../../m4/import/local-source-order.cjs';
 import {createBrowserReplay,createSourceReplayEngine} from '../../../m4/import/browser-replay.mjs';

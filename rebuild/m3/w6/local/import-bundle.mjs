@@ -56,6 +56,28 @@
 // in custody, and importOriginal refuses to hand back a retracted entry's
 // bytes by name rather than pretending they are gone.
 //
+// TWO BOUNDARIES THIS LEAVES OPEN, NAMED HERE RATHER THAN LEFT TO DISCOVERY
+// (independent review r1, MINOR 2 and MINOR 3; Fable r3 MINOR 1 and NOTE 5).
+//
+// (a) A DIFFERENT FILE UNDER A RETRACTED NAME IS STILL REFUSED. Custody is
+// immutable and retract deletes nothing, so the custody record keeps the name
+// it was staged under: importing OTHER bytes under that same name refuses
+// LOCAL_IMPORT_NAME_TAKEN, and it does so over a name listImports no longer
+// shows, because the live register is empty. Re-importing the SAME bytes is
+// fine - the custody record is reused, and the entry stages fresh. The name is
+// carried in the retract record, so a host CAN explain it; saying so on a
+// screen is P3-IMPORT-UI-2's.
+//
+// (b) RETRACT IS A ONE-WAY DOOR ONCE ANYTHING IS LOGGED ON A SEEDED IMPORT.
+// A zero-op device that imports (so the cache is SEEDED), then logs one thing,
+// then asks to retract, is refused LOCAL_IMPORT_RETRACT_BASIS_UNPROVEN and
+// nothing is written: his logged work now sits on the imported base and this
+// module will not invent the state underneath it. The refusal is the right
+// shape, and its cost is that plan-edit-model.cjs:31 importPresentIn stays true
+// for a file he never adopted. Handing that athlete a way back out needs an
+// engine to rebuild from his ops, which is the host projector's job and not in
+// this module's reach.
+//
 // This module imports local-client.mjs and local-client.mjs imports this one —
 // the same deliberate cycle host-bindings.mjs already uses. Neither side touches
 // the other's bindings at module-evaluation time, only inside functions.
@@ -684,6 +706,23 @@ function admissionTrace(generation, entry) {
 const seeded = entry => entry.rebaseRequired !== true && (entry.opsBasisAtImport?.opCount ?? null) === 0;
 async function priorSidecar(scope, entry, snapshot) {
   if (opsBasis(snapshot.generation).opCount !== 0) fail("LOCAL_IMPORT_RETRACT_BASIS_UNPROVEN", 3);
+  /* THE SEEDED SIBLING (independent review r1, MAJOR 1). A zero-op device can
+     hold TWO seeded entries: the header calls that LAST-WINS, so the cache
+     belongs to whichever was staged last, and this entry's own checkpoint
+     describes a moment before BOTH of them. Restoring it would put back a cache
+     that belongs to no live entry at all - importPresentIn stays true and the
+     companion demands an imported basis while Today paints clean-init, which is
+     precisely the guessed-cache class the header above refuses at length. So
+     when ANY OTHER live entry is itself seeded, the retract refuses instead.
+     That is deliberately wider than the one direction the review reproduced
+     (retracting the OLDER of two): retracting the newer would need this module
+     to reason that the newer entry's checkpoint is the older one's cache, and
+     inferring a cache is the thing it will not do. The retract is not lost -
+     retract the other entry first, or retract this one once the sibling is
+     gone, and the register keeps the whole account either way. */
+  if (importEntries(snapshot.generation)
+    .some(other => other.name !== entry.name && seeded(other)))
+    fail("LOCAL_IMPORT_RETRACT_BASIS_UNPROVEN", 3);
   let checkpoint;
   try { checkpoint = (await custodyOf(scope).load(entry.name)).checkpoint; }
   catch { fail("LOCAL_IMPORT_RETRACT_BASIS_UNPROVEN", 3); }

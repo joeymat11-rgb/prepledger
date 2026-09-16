@@ -290,3 +290,79 @@ test('P3D-10 - retracting a SEEDED import restores the cache the custody record 
     assert.equal(await sourceJsonOf(era, carried.name) === null, false, 'and the bytes are still kept');
     era.close();
   });
+
+/* P3-D-FOLLOWONS, item 3. THE SEEDED SIBLING (independent review r1, MAJOR 1,
+   its RV-9). Two zero-op imports on the same device are LAST-WINS: the cache
+   belongs to whichever was staged last. Retracting the OLDER used to restore
+   that entry's own checkpoint - the clean-init cache - over a cache the LIVE
+   entry seeded, leaving a state belonging to no entry in the register:
+   importPresentIn true, so the companion demands an imported basis, while
+   Today paints clean-init. It now refuses instead. */
+test('P3D-11 - with another SEEDED entry live, retracting refuses '
+  + 'LOCAL_IMPORT_RETRACT_BASIS_UNPROVEN and cannot wipe the cache it seeded',
+  async () => {
+    const clean = createCleanInitState({ setup: SETUP }), names = scope('seeded-sibling');
+    const era = await openTodayOverLocalEra({ indexedDB: new IDBFactory(), crypto: webcrypto,
+      live: liveAt(AT), cleanInit: clean, ...names });
+    const first = (await carry(era, SEALED)).carried;
+    assert.equal(first.code, 'LOCAL_IMPORT_SEEDED');
+    const second = (await carry(era, STRANGER)).carried;
+    assert.equal(second.code, 'LOCAL_IMPORT_SEEDED', 'both files seeded: this is LAST-WINS');
+    assert.notEqual(second.name, first.name, 'two different bundles, two different entries');
+    const staged = await consumerView(era, names), settled = await durable(era);
+    assert.notDeepEqual(staged.derived, clean, 'the SECOND file is the cache now');
+    const result = await retractImport(era.client, first.name, REASON);
+    assert.equal(result.retracted, false);
+    assert.equal(result.code, 'LOCAL_IMPORT_RETRACT_BASIS_UNPROVEN');
+    assert.equal(result.state, 3);
+    assert.deepEqual(await durable(era), settled, 'the refusal writes nothing at all');
+    assert.deepEqual(await consumerView(era, names), staged,
+      'the cache the LIVE entry seeded is untouched, and both entries are still live');
+    assert.deepEqual(await listImportRetractions(era.client), []);
+    era.close();
+  });
+
+/* THE RED SIDE, run on the same path with the sibling taken away: the guard
+   above is what refuses, not the checkpoint rule underneath it. */
+test('P3D-12 - RED SIDE: the same retract of the same file SUCCEEDS once no other '
+  + 'seeded entry is live, and restores the checkpointed cache', async () => {
+  const clean = createCleanInitState({ setup: SETUP }), names = scope('seeded-alone');
+  const era = await openTodayOverLocalEra({ indexedDB: new IDBFactory(), crypto: webcrypto,
+    live: liveAt(AT), cleanInit: clean, ...names });
+  const before = await consumerView(era, names);
+  const only = (await carry(era, SEALED)).carried;
+  assert.equal(only.code, 'LOCAL_IMPORT_SEEDED');
+  const result = await retractImport(era.client, only.name, REASON);
+  assert.equal(result.retracted, true, 'the ONLY difference from P3D-11 is the sibling');
+  assert.equal(result.code, 'LOCAL_IMPORT_RETRACTED');
+  assert.deepEqual(await consumerView(era, names), before);
+  assert.deepEqual((await consumerView(era, names)).derived, clean);
+  era.close();
+});
+
+/* P3-D-FOLLOWONS, item 3. THE REVIEWER'S RV-6, carried in as a lane cell
+   (Fable r3 MINOR 2). The suite above proves ONE retract record is appended;
+   mutant M7 - the register dropping its history on a second retract - left all
+   ten cells green. Two retracts of the same name, with a live re-import in
+   between, is the shape that catches it: the register only ever grows. */
+test('P3D-13 - retract, re-import, retract again: TWO records, and the first is '
+  + 'still the first', async () => {
+  const { era, names } = await device('twice-over');
+  const first = (await carry(era, SEALED)).carried;
+  assert.equal((await retractImport(era.client, first.name, REASON)).retracted, true);
+  const one = importRetractions((await era.generation()).generation);
+  assert.equal(one.length, 1);
+  const again = (await carry(era, SEALED)).carried;
+  assert.equal(again.imported, true, 'the same bundle stages fresh under the same name');
+  const second = await retractImport(era.client, again.name, 'athlete-cancelled');
+  assert.equal(second.retracted, true, 'and it can be taken back again');
+  const both = importRetractions((await era.generation()).generation);
+  assert.equal(both.length, 2, 'THE REGISTER IS APPEND-ONLY ACROSS TWO RETRACTS');
+  assert.deepEqual(both[0], one[0], 'the first record is unchanged, not rewritten');
+  assert.deepEqual(both.map(r => r.reason), [REASON, 'athlete-cancelled']);
+  assert.deepEqual(both.map(r => r.name), [first.name, first.name]);
+  assert.equal((await listImportRetractions(era.client)).length, 2);
+  assert.deepEqual(await listImports(era.client), [], 'and nothing is live afterwards');
+  assert.equal((await consumerView(era, names)).importRebaseRequired, false);
+  era.close();
+});

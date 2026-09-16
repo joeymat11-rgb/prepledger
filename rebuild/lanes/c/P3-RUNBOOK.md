@@ -42,6 +42,29 @@ his own words, right before it happens (README's own rule).
    Run it with `TZ=America/New_York`; it refuses to run in any other zone
    rather than measuring nothing.
 
+   **What is still open here, and when it lifts.** The caveat on item 6 is not
+   the clock any more; it is that the phone has no Import screen to run that
+   clock on, so the answer is proved off the page (DECISIONS:472). It lifts
+   when P3-IMPORT-UI-2 wires `rebuild/m4/import/production-mapping.cjs` into
+   the shipped page and the Import route lands: from then on this is an
+   ordinary confirmation made on the device, and the "Go / no-go" line that
+   quotes it below is discharged with it.
+
+7. **The phone must be standing in America/New_York when the import is
+   admitted.** The production execution calendar is the New York calendar.
+   `rebuild/m4/import/production-mapping.cjs` reads the DEVICE's own resolved
+   time zone into the calendar it presents, and
+   `rebuild/m4/import/local-source-profile.cjs` refuses unless that zone is the
+   calendar's zone and the calendar's zone is the sealed oracle gate's, which
+   is `America/New_York` by law. So a phone resolving to America/Los_Angeles,
+   to America/Toronto (which keeps New York's exact offsets and still refuses)
+   or to UTC refuses `SOURCE_ENGINE_CONTEXT_UNPROVEN` end to end, before
+   anything is written. Executed in four real zones by the mapping's own final
+   review (P3-PRODUCER-MAPPING-REVIEW-R3, MINOR 4) and pinned by
+   `rebuild/m4/import/test/production-mapping.test.cjs` P3-M15. Check the time
+   zone ON the phone, not from the PC: a phone travelling, or with its zone set
+   by hand, is a NO-GO until it is back in America/New_York.
+
 ## Step 0 — Joe's own words
 
 Joe says, unprompted, something equivalent to: **"Run the port now, on my real

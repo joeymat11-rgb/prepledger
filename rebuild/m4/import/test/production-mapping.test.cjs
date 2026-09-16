@@ -199,12 +199,51 @@ test('P3-M12 - a bundle sealed on a different oracle gate refuses', () => {
       'gate ' + JSON.stringify(over));
 });
 
-test('P3-M13 - material other than the one the row was bound to refuses', () => {
+/* THE REVIEWED ROW (the brief's section 5, and R1's MAJOR 2). A registry built
+   WITH a material digest is PINNED to that bundle: this is the shape the day
+   port.cjs writes Joe's file and its digest has been read by hand. */
+test('P3-M13 - a registry pinned to a REVIEWED material digest refuses any other '
+  + 'material, and a registry with no hash is still refused outright', () => {
   refuses(() => registry().qualify({ context: contextFor(), materialDigest: 'd'.repeat(64) }),
     'foreign material');
-  assert.throws(() => Mapping.createProductionProducerRegistry({ hash }), TypeError);
   assert.throws(() => Mapping.createProductionProducerRegistry({ materialDigest: DIGEST }),
-    TypeError);
+    TypeError, 'the platform hash function is still required');
+  assert.throws(() => Mapping.createProductionProducerRegistry({ hash, materialDigest: '' }),
+    TypeError, 'an empty string is not a reviewed pin');
+  assert.throws(() => Mapping.createProductionProducerRegistry({ hash, materialDigest: 7 }),
+    TypeError, 'a reviewed pin is a digest string');
+});
+
+/* THE PRODUCTION WIRING (both mapping reviews' MAJOR 2). The controller takes
+   its registry at ITS construction and derives the material digest privately at
+   qualify time, so the page must be able to build this registry knowing no
+   digest at all. Built that way the row is bound from the digest PRESENTED -
+   and every other clause still bites. */
+test('P3-M16 - built with no material digest, the registry binds the execution '
+  + 'row at QUALIFY time from the digest presented, and refuses when none is', () => {
+  const wired = Mapping.createProductionProducerRegistry({ hash });
+  const resolved = Profile.sourceEngineContext(
+    wired.qualify({ context: contextFor(), materialDigest: DIGEST }));
+  assert.equal(resolved.execution.material_digest, DIGEST);
+  assert.equal(resolved.execution.id, Mapping.EXECUTION_ID_PREFIX + DIGEST);
+  assert.equal(resolved.mapping.id, Mapping.MAPPING_ID);
+  /* IT IS THE SAME ROW A REVIEWED PIN PRODUCES. The basis digest is the profile's
+     own hash over {mapping, execution}, so equality here is equality of the whole
+     qualified row, not of a label. */
+  assert.equal(resolved.digest, Profile.sourceEngineContext(
+    registry().qualify({ context: contextFor(), materialDigest: DIGEST })).digest);
+  const other = 'e'.repeat(64);
+  assert.equal(Profile.sourceEngineContext(
+    wired.qualify({ context: contextFor(), materialDigest: other })).execution.material_digest,
+    other, 'the row follows the material presented, one admission at a time');
+  refuses(() => wired.qualify({ context: contextFor({ engine: { sha256: 'c'.repeat(64) } }),
+    materialDigest: DIGEST }), 'another engine identity');
+  refuses(() => wired.qualify({ context: contextFor({ gate: { tz: 'UTC' } }),
+    materialDigest: DIGEST }), 'another oracle gate');
+  for (const bad of [undefined, null, '', 7, {}])
+    refuses(() => wired.qualify({ context: contextFor(), materialDigest: bad }),
+      'no material digest: ' + JSON.stringify(bad));
+  refuses(() => wired.qualify(), 'no request at all');
 });
 
 test('P3-M14 - the calendar clocks a day inside the range and refuses one '

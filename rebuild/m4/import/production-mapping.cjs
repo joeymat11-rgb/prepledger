@@ -234,12 +234,46 @@ function productionMapping({ materialDigest, executionId } = {}) {
 /* THE ONE PRODUCTION REGISTRY. This is what createLocalSourceController's
  * producerRegistry must be on the phone. It carries exactly one mapping: the
  * registry qualifies only when exactly one entry matches, so a second mapping
- * here would be a way to make admission ambiguous, and there is none. */
-function createProductionProducerRegistry({ hash, materialDigest, executionId } = {}) {
+ * here would be a way to make admission ambiguous, and there is none.
+ *
+ * TWO WAYS TO BUILD IT, AND THE DIFFERENCE IS THE WHOLE POINT (P3-D-FOLLOWONS,
+ * both mapping reviews' MAJOR 2).
+ *
+ * WITHOUT materialDigest - THE PRODUCTION WIRING. The controller takes its
+ * producerRegistry at ITS construction (source-admission.mjs:31-32) and derives
+ * the material digest only later, privately, at qualify time (:74, over the
+ * four custody strings it is holding). A registry that needed that digest up
+ * front could only be built by DUPLICATING that private derivation in the page:
+ * a sixth copy of a harness line, which fails closed if it drifts but is the
+ * wrong shape. So the row is BOUND AT QUALIFY TIME from the digest the
+ * controller presents. This claims nothing it did not claim before: the header
+ * above already says the material_digest clause is not a guard in production
+ * (the material is proved by the seal and by source-admission.mjs:73), and the
+ * engine identity, the oracle gate and the execution calendar all still bite on
+ * every qualify.
+ *
+ * WITH materialDigest - THE REVIEWED ROW (the brief's section 5 path). Once
+ * Joe's bundle exists and its digest has been read by hand, the registry is
+ * PINNED to it and any other material refuses SOURCE_ENGINE_CONTEXT_UNPROVEN.
+ * That is the brief's "one short reviewed addition made the day port.cjs writes
+ * the file", and it is now reachable through the shipped constructor. */
+function createProductionProducerRegistry({ hash, materialDigest = null, executionId } = {}) {
   if (typeof hash !== 'function')
     throw new TypeError('The platform hash function is required');
-  return Profile.createProducerRegistry([productionMapping({ materialDigest, executionId })],
-    { hash });
+  if (materialDigest !== null && (typeof materialDigest !== 'string' || !materialDigest))
+    throw new TypeError('A reviewed material digest must be a non-empty string');
+  const bound = digest => Profile.createProducerRegistry(
+    [productionMapping({ materialDigest: digest, executionId })], { hash });
+  if (materialDigest) return bound(materialDigest);
+  return Object.freeze({ qualify(request = {}) {
+    const presented = request && request.materialDigest;
+    if (typeof presented !== 'string' || !presented) {
+      const error = new Error('SOURCE_ENGINE_CONTEXT_UNPROVEN');
+      error.code = 'SOURCE_ENGINE_CONTEXT_UNPROVEN';
+      throw error;
+    }
+    return bound(presented).qualify(request);
+  } });
 }
 
 module.exports = { createProductionProducerRegistry, productionMapping, executionCalendar,
