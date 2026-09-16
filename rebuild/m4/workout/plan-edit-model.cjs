@@ -10,7 +10,30 @@ const clone = v => C.plain(v);
 function freeze(v) { if (v && typeof v === 'object') { Object.values(v).forEach(freeze); Object.freeze(v); } return v; }
 const put = (o, k, value) => Object.defineProperty(o, k, { value, enumerable: true, configurable: true, writable: true });
 const documentRow = e => Object.fromEntries(C.EXERCISE.map(k => [k, e[k]]));
-function createPlanEditProjector({ basisState, setupOperation, validateTags, projectNewExerciseTags, hashBasis } = {}) {
+/* Every collection rebuild/m3/w6/local/local-client.mjs COLLECTIONS seals, plus
+   `derived`, which rebuild/m3/w6/local/source-admission.mjs adds when an import
+   is admitted (its own COLLECTIONS set is this list). Anything else in a
+   generation is an effect this companion cannot map, so it refuses rather than
+   project a plan over a store shape nobody has admitted. planEditCollections
+   below is a trip-wire: the lane's cells recompute it from that module. */
+const COLLECTIONS = ['ops','outbox','dispositions','rejected','receipts','planTxns','plan',
+  'planTransactions','planHistory','suspensions','issuances','sessionStarts','sessionResolutions',
+  'drafts','sync','meta','derived'];
+const P2_ROW = ['id','day','mg','sets','hi','inc','steps'];
+/* Does this generation carry a source import AT ALL - admitted or not? The four
+   places source-admission.mjs / import-bundle.mjs leave one: the import entry
+   list, the selection record, the commit marker and the derived replay. Presence
+   alone decides WHICH basis a caller must have adopted; local-source-basis.mjs
+   decides whether that import is ADMITTED. Kept here so the host and the
+   projector cannot disagree about what counts as an import. */
+function importPresentIn(generation) {
+  const metadata = generation?.metadata || {}, collections = generation?.collections || {};
+  return (Array.isArray(metadata.imports) && metadata.imports.length > 0) ||
+    !!metadata.localSources || !!metadata.localSourceApplication ||
+    !!(collections.derived && collections.derived.localSource);
+}
+function createPlanEditProjector({ basisState, setupOperation, validateTags, projectNewExerciseTags,
+  hashBasis, admittedBasisOf, basisSource = 'first-run' } = {}) {
   if (typeof hashBasis !== 'function') fail('PLAN_EDIT_BASIS_HASH_UNAVAILABLE');
   const hash = value => {
     const digest = hashBasis(canonical(value));
@@ -27,20 +50,55 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
   if (!Array.isArray(setup.exercises) || !setup.exercises.length || setup.exercises.length !== base.exercises.length ||
       base.athlete_label !== setup.athlete_label || !equal(base.split, [setup.split]) ||
       !equal(base.priority_muscles || [], setup.priority_muscles)) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
+  /* WHICH BASIS THIS IS, and what proves it corresponds to this installation's
+     own first run. today-app.cjs adoptAthleteState (P0-B) adopts ONE of two
+     states and the companion edits whichever one it was handed:
+
+     FIRST-RUN. setup.athleteState() -> createCleanInitState({setup}) over the
+     stored setup document. Correspondence is exact on all eight plan members
+     plus the F2 tag marker, with no rename and no retirement: a clean-init
+     state that has moved is not a clean-init state.
+
+     LOCAL-SOURCE (P2). local-source-basis.mjs admittedLocalSourceState -> the
+     admitted import's own replayed state. Its correspondence predicate is not
+     ours to invent: source-admission.mjs `programme()` is what admission itself
+     proved, over id/day/mg/sets/hi/inc/steps and the setup tag snapshot, MATCHED
+     BY ID and NOT over `n` (the athlete's own name for the lift travels with his
+     import) and not over history. Renames and retirements the import replayed are
+     his facts, so they are carried, not refused.
+
+     `basisSource` DECLARES which one was handed over and is validated exactly
+     here, at construction, before any projection exists. It cannot be a lie:
+     inspect() reads the generation and refuses a declaration that generation
+     does not carry, so a clean-init shape can never stand in for an unadmitted
+     import and an import can never be adopted without its admission marker
+     being in the same generation the operations are replayed from. */
+  if (basisSource !== 'first-run' && basisSource !== 'local-source') fail('PLAN_EDIT_BASIS_SOURCE_UNKNOWN');
+  const firstRun = basisSource === 'first-run';
   const baseIds = new Set();
+  let rowsOk = true, tagsOk = true;
+  const byId = new Map(base.exercises.map(e => [e && e.id, e]));
+  if (byId.size !== base.exercises.length) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
   for (let i = 0; i < setup.exercises.length; i++) {
-    const row = C.exerciseOf(setup.exercises[i]), e = base.exercises[i];
-    if (!e || baseIds.has(row.id) || !equal(documentRow(e), row) || e.renames?.length || (base.retirements || {})[row.id]) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
+    const row = C.exerciseOf(setup.exercises[i]), e = firstRun ? base.exercises[i] : byId.get(row.id);
+    if (baseIds.has(row.id) || !byId.get(row.id) || !e) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
     baseIds.add(row.id);
+    if (firstRun) {
+      if (!equal(documentRow(e), row) || e.renames?.length || (base.retirements || {})[row.id]) rowsOk = false;
+    } else if (!equal(Object.fromEntries(P2_ROW.map(k => [k, e[k]])), Object.fromEntries(P2_ROW.map(k => [k, row[k]])))
+        || typeof e.n !== 'string' || !e.n.trim()) rowsOk = false;
     if (origin.payload.tags !== undefined) {
       const tags = origin.payload.tags[row.id]; C.tagsOf(row, tags, validateTags);
-      if (own(e, 'head') || own(e, 'secondary') || own(e, 'volumeTags')) {
+      if (!firstRun) { if (!equal({ head: e.head ?? null, secondary: e.secondary ?? [] }, tags)) tagsOk = false; }
+      else if (own(e, 'head') || own(e, 'secondary') || own(e, 'volumeTags')) {
         if (!equal({ head: e.head ?? null, secondary: e.secondary }, tags) ||
             e.volumeTags?.profile !== 'earned/setup-volume-tags/v1' || e.volumeTags.op_id !== origin.op_id ||
-            e.volumeTags.date !== origin.effective.local_date) fail('PLAN_EDIT_TAG_BASIS_UNPROVEN');
-      } else fail('PLAN_EDIT_TAG_BASIS_UNPROVEN');
-    } else if (own(e, 'volumeTags')) fail('PLAN_EDIT_TAG_BASIS_UNPROVEN');
+            e.volumeTags.date !== origin.effective.local_date) tagsOk = false;
+      } else tagsOk = false;
+    } else if (own(e, 'volumeTags')) tagsOk = false;
   }
+  if (!rowsOk) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
+  if (!tagsOk) fail('PLAN_EDIT_TAG_BASIS_UNPROVEN');
   if (origin.payload.tags !== undefined && (Object.keys(origin.payload.tags).length !== baseIds.size ||
       Object.keys(origin.payload.tags).some(id => !baseIds.has(id)))) fail('PLAN_EDIT_TAG_BASIS_UNPROVEN');
   const coreOrigin = { op_id: origin.op_id, commitment: origin.canonical_content_commitment, setup: origin.payload,
@@ -48,8 +106,23 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
   function inspect(raw) {
     const generation = clone(raw), collections = generation?.collections;
     if (!collections || typeof collections !== 'object' || Array.isArray(collections)) fail();
-    if (Object.keys(collections.sourceImports || {}).length || (collections.sync?.frontier?.W ?? 0) !== 0 ||
+    if (Object.keys(collections).some(k => !COLLECTIONS.includes(k)) ||
+        (collections.sync?.frontier?.W ?? 0) !== 0 ||
         collections.sync?.snapshot?.recoveryPlan || Object.keys(collections.sync?.snapshot?.plan || {}).length) fail('PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE');
+    /* THE ADOPTED BASIS, decided by this generation and not by the caller.
+       `admittedBasisOf` is local-source-basis.mjs admittedLocalSourceBasis, the
+       SAME join Today adopts through, injected because it is ESM and this layer
+       is not. An import that is present but not admitted - still to be rebased,
+       still pending, carrying an unresolved issue, or belonging to another
+       installation or label - is a context this companion cannot edit, and it
+       never substitutes a clean-init state for it. */
+    if (importPresentIn(generation) !== !firstRun) fail('PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE');
+    if (!firstRun) {
+      const adopted = typeof admittedBasisOf === 'function' ? admittedBasisOf(generation) : null;
+      if (!adopted) fail('PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE');
+      // The state handed to this projector IS the admitted one, byte for byte.
+      if (!equal(adopted, base)) fail('PLAN_EDIT_IMPORTED_BASIS_MISMATCH');
+    }
     if (Object.keys(collections.plan || {}).length || Object.keys(collections.planTransactions || {}).length)
       fail('PLAN_EDIT_UNSUPPORTED_PLAN_CONTEXT');
     const ops = collections.ops || {}, rejected = collections.rejected ?? {};
@@ -186,4 +259,5 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
   }
   return Object.freeze({ read, preview });
 }
-module.exports = { createPlanEditProjector };
+module.exports = { createPlanEditProjector, importPresentIn,
+  planEditCollections: () => COLLECTIONS.slice(), P2_ROW: P2_ROW.slice() };

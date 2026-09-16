@@ -15,7 +15,16 @@ const cases = [
   { id:'next-local-date', file:'commands', test:'the built operation must start on the next authored local date', replacements:[
     ["input.starts_on !== nextLocalDate(op.effective.local_date) || ", '']] },
   { id:'empty-tags-fall-back', file:'model', test:'explicit empty original tag snapshots require exact provenance and survive rename', replacements:[
-    ["} else fail('PLAN_EDIT_TAG_BASIS_UNPROVEN');", '} else {}']] },
+    ["  if (!tagsOk) fail('PLAN_EDIT_TAG_BASIS_UNPROVEN');", '  void tagsOk;']] },
+  // An unknown collection is an effect nobody mapped; projecting over it anyway
+  // is how an import the admission lane never saw becomes the athlete's plan.
+  { id:'open-collections', file:'model', test:'source identity, foreign-device, imported frontier and unknown training members refuse', replacements:[
+    ['Object.keys(collections).some(k => !COLLECTIONS.includes(k)) ||\n        ', '']] },
+  // P0-B/P2: the declared basis stands without the generation agreeing.
+  { id:'declared-basis-unchecked', file:'model', test:'PE16 an unadmitted import refuses and never falls back to the clean-init basis', replacements:[
+    ["    if (importPresentIn(generation) !== !firstRun) fail('PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE');\n", '']] },
+  { id:'admitted-basis-unmatched', file:'model', test:'PE16 an admitted import is the basis and must be the state handed over', replacements:[
+    ["      if (!equal(adopted, base)) fail('PLAN_EDIT_IMPORTED_BASIS_MISMATCH');\n", '']] },
   { id:'rename-overwrites-history', file:'model', test:'rename and repeated same-date rename use names seams without technique forks', replacements:[
     ["(target.renames || (target.renames = [])).push({ from: starts_on, prevN: target.n });", 'void starts_on;']] },
   { id:'future-applies-today', file:'model', test:'two pending saves compose globally while current state and history remain exact', replacements:[

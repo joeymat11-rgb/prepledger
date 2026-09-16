@@ -19,10 +19,15 @@ const require = createRequire(import.meta.url);
 const w6Require = createRequire(new URL('../../../m3/w6/package.json', import.meta.url));
 const { IDBFactory } = w6Require('fake-indexeddb');
 const { createCleanInitState } = require('../../../m4/workout/athlete-state.cjs');
+// F2's setup-tags.cjs is not on rebuild/t2-client-core (it is lane D's unmerged
+// F2 package). The tag validator/projector are INJECTED collaborators, so this
+// lane keeps a byte-identical copy of the public F2 source at f3e9561 beside its
+// cells; PE-f2-identity below proves that copy against the public blob, and no
+// plan-edit runtime file imports either one.
 function tagSource() {
-  if (!process.env.PE_F2_PUBLIC_REF) return require('../../../m4/workout/setup-tags.cjs');
-  // Construction-only exact public companion. Published proof loads same-tree
-  // F2 above, after root puts this branch on the named F2 predecessor.
+  if (!process.env.PE_F2_PUBLIC_REF) return require('./f2-tag-adapter.cjs');
+  // Construction-only exact public companion, kept so a verifier can re-run
+  // these cells against the published F2 blob instead of the lane copy.
   assert.equal(process.env.PE_F2_PUBLIC_REF, 'f3e9561', 'closed F2 public source allowlist');
   const source = execFileSync('git', ['show', 'f3e9561:rebuild/m4/workout/setup-tags.cjs'], { encoding: 'utf8' });
   assert.equal(/\brequire\s*\(/.test(source), false, 'F2 projection has no imports');
@@ -81,7 +86,7 @@ function cryptoControl() {
     release() { gate?.release.resolve(); gate = null; } };
 }
 async function scaffold({ indexedDB = new IDBFactory() } = {}) {
-  const crypt = cryptoControl(), time = { iso: DAY + 'T12:00:00.000Z' };
+  const crypt = cryptoControl(), time = { iso: DAY + 'T12:00:00.000Z' }, live = { day: null };
   const clock = { now: () => time.iso, today: () => time.iso.slice(0, 10), tz: '+00:00', monotonicMs: () => 0 };
   const options = { indexedDB, crypto: crypt.crypto, databaseName: DB, namespace: 'synthetic-plan-edit/device-A',
     athleteId: 'synthetic-plan-edit-athlete', deviceId: 'synthetic-plan-edit-device', clock };
@@ -110,13 +115,21 @@ async function scaffold({ indexedDB = new IDBFactory() } = {}) {
       const decision = real.validateCommit(context); hooks.validate?.(context); return decision;
     } };
   } });
-  async function host({ projectNewExerciseTags = tagProjector.projectNewExerciseTags } = {}) {
-    const handle = await createPlanEditHost({ client: adapter(), clock, basisState, setupOperation, validateTags,
-      projectNewExerciseTags,
+  async function host({ projectNewExerciseTags = tagProjector.projectNewExerciseTags,
+    basisState: basis = basisState } = {}) {
+    const handle = await createPlanEditHost({ client: adapter(), clock, basisState: basis, setupOperation, validateTags,
+      projectNewExerciseTags, athleteLabel: setup().athlete_label, namespace: options.namespace,
+      /* S4 LIVE DAY. In the page this is today-bindings openTodayInstallation's
+         `liveDay()`; `clock` is the client's stamp clock, which in the page is
+         clientClockFor(day, live) and whose day NEVER moves on its own. Here the
+         two agree by default (every existing cell moves `time.iso` and both
+         follow), and `live.day` pins the athlete-local calendar day on its own so
+         a cell can put the two into the disagreement a frozen page really has. */
+      liveDay: () => (live.day === null ? time.iso.slice(0, 10) : live.day),
       newIntentId: () => 'synthetic-plan-edit-intent-' + (++serial) });
     handles.push(handle); return handle;
   }
-  return { host, clock, time, crypt, hooks, setupOperation, basisState, indexedDB,
+  return { host, clock, time, live, crypt, hooks, setupOperation, basisState, indexedDB,
     snapshot: () => repository.load(), client: () => client,
     async tamper(mutator) { const before = await repository.load(), next = structuredClone(before.generation); mutator(next);
       await repository.commit(before, next, () => null); },
@@ -470,5 +483,140 @@ test('PE04 missing new-tag companion and incompatible secondary heads refuse wit
     const host = await h.host(), bad = structuredClone(add); bad.tags.secondary = [{ mg: 'back', lend: 0.5, head: 'delts_front' }];
     assert.equal((await host.review(bad)).reviewed, false);
     expectSame(await h.snapshot(), before, 'missing or contradictory anatomy evidence cannot write');
+  } finally { h.close(); }
+});
+
+/* ===== PE15 / S4 REAL DAY (DECISIONS:437/:451/:467) =====
+   TOMORROW comes from the installation's live athlete-local day, the same value
+   today-bindings.mjs openTodayInstallation reports as liveDay() and Today stands
+   on. A host's own clock.today() is its FROZEN `day` argument, so a page that
+   opened yesterday must not date an edit from it. Here `live.day` is that live
+   value and `time.iso` drives the client's stamp clock, exactly as the two move
+   apart on a real device between local midnight and the page's next adoption. */
+test('PE15 tomorrow is the live athlete-local day plus one, not the host clock day', async () => {
+  const h = await scaffold(); try {
+    const host = await h.host();
+    assert.equal((await reviewed(host, { sets: 3 })).starts_on, NEXT, 'the two agree on the opening day');
+    // Local midnight passed. The installation adopted the new day; the page's own
+    // stamp clock has not moved, which is the :437 shape exactly.
+    h.live.day = '2026-09-15';
+    const later = await host.review(update({ hi: 11 }, 'row-old'));
+    assert.equal(later.reviewed, true, later.code);
+    assert.equal(later.starts_on, '2026-09-16', 'the athlete is shown the date his own calendar is on');
+    const read = await host.read();
+    assert.equal(read.read, true, read.code);
+    assert.deepEqual(read.pending_dates, [], 'and nothing has been written to reach it');
+  } finally { h.close(); }
+});
+test('PE15 a live day that has moved past the review refuses and shows the new result', async () => {
+  const h = await scaffold(); try {
+    const host = await h.host(), before = await h.snapshot();
+    const review = await reviewed(host, { sets: 3 });
+    assert.equal(review.starts_on, NEXT);
+    h.live.day = '2026-09-15';
+    const refused = await host.save(review.review_id);
+    assert.equal(refused.acknowledged, false); assert.equal(refused.code, 'PLAN_EDIT_REVIEW_STALE');
+    // NOT just "no": the plan that is actually there, and the date a fresh
+    // review would now offer, come back with the refusal.
+    assert.equal(refused.starts_on, '2026-09-16');
+    assert.equal(refused.plan_basis, (await host.read()).plan_basis);
+    expectSame(refused.current, h.basisState, 'the unedited plan is what is shown');
+    expectSame(await h.snapshot(), before, 'a stale review writes nothing');
+  } finally { h.close(); }
+});
+test('PE15 a stamp clock that disagrees with the live day cannot commit an edit', async () => {
+  const h = await scaffold(); try {
+    const host = await h.host(), before = await h.snapshot();
+    const review = await reviewed(host, { sets: 3 });
+    /* The athlete is still on his own 14th (live.day), but the instant the
+       client stamps with has crossed UTC midnight. In the page these agree by
+       construction (clientClockFor takes the host's own day); if they ever do
+       not, the operation would carry a date the review was never authored on,
+       so the final validator refuses at the transaction boundary. */
+    h.live.day = DAY; h.time.iso = '2026-09-15T01:30:00.000Z';
+    assert.equal(h.clock.today(), '2026-09-15'); assert.equal(h.live.day, DAY);
+    const refused = await host.save(review.review_id);
+    assert.equal(refused.acknowledged, false, JSON.stringify(refused));
+    assert.equal(refused.ok, false, JSON.stringify(refused));
+    /* The injected producer's own validate() refuses at the T2 stage, before the
+       final validator is reached: a built operation whose starts_on is no longer
+       the day after its own effective.local_date is not this intent. The client
+       reports it in its own existing words and records nothing. */
+    assert.deepEqual(refused.invalid, ['WORKOUT_INPUT_INVALID']);
+    expectSame(await h.snapshot(), before, 'no operation and no outbox entry');
+    assert.equal(planOps(await h.snapshot()).length, 0);
+  } finally { h.close(); }
+});
+test('PE15 with the two in step across a local midnight the edit commits for the right date', async () => {
+  const h = await scaffold(); try {
+    h.time.iso = DAY + 'T23:45:00.000Z'; h.live.day = DAY;
+    const host = await h.host(), review = await reviewed(host, { sets: 3 });
+    assert.equal(review.starts_on, NEXT);
+    const saved = await host.save(review.review_id);
+    assert.equal(saved.acknowledged, true, saved.code);
+    assert.equal(saved.starts_on, NEXT);
+    const op = planOps(await h.snapshot())[0];
+    assert.equal(op.effective.local_date, DAY, 'stamped on the day it was authored');
+    assert.equal(op.members[0].value.starts_on, NEXT);
+    // Today is unchanged until his own calendar reaches it.
+    assert.equal(exOf(await host.read()).sets, 2);
+    h.live.day = NEXT; h.time.iso = NEXT + 'T00:15:00.000Z';
+    assert.equal(exOf(await host.read()).sets, 3, 'and on the new local day it is in force');
+  } finally { h.close(); }
+});
+
+/* ===== PE16 / P0-B + P2. THE ADOPTED BASIS, THROUGH THE REAL STORE ===== */
+function admitState(generation, state, { namespace, selection = 'local-source:synthetic-plan-edit' } = {}) {
+  const basis = { profile: 'earned/local-source-basis/v1', installation_id: namespace, local_selection_id: selection };
+  generation.metadata.localSources = { selections: { [selection]: { id: selection } }, active: selection };
+  generation.metadata.localSourceApplication = { selection_id: selection, core_complete: true, basis: structuredClone(basis) };
+  generation.collections.derived = { localSource: { basis: structuredClone(basis),
+    view: { ready: true, pending: false, issues: [], basis: structuredClone(basis), state: structuredClone(state) } } };
+}
+function importedOf(basisState) {
+  const imported = structuredClone(basisState);
+  imported.exercises[0].n = 'Flat bench';
+  imported.exercises[0].renames = [{ from: '2026-08-20', prevN: 'Bench press' }];
+  imported.reads = [{ d: '2026-08-01', w: 181.2 }];
+  return imported;
+}
+test('PE16 an admitted import in the real generation is the basis the companion edits', async () => {
+  const h = await scaffold(); try {
+    const imported = importedOf(h.basisState);
+    await h.tamper(next => admitState(next, imported, { namespace: 'synthetic-plan-edit/device-A' }));
+    const host = await h.host({ basisState: imported }), read = await host.read();
+    assert.equal(read.read, true, read.code);
+    assert.equal(read.state.exercises[0].n, 'Flat bench', 'his own imported name, not the setup document');
+    assert.deepEqual(read.state.reads, [{ d: '2026-08-01', w: 181.2 }], 'his imported readings survive');
+    const review = await reviewed(host, { sets: 3 });
+    const saved = await host.save(review.review_id);
+    assert.equal(saved.acknowledged, true, saved.code);
+    const tomorrow = await host.read(NEXT);
+    assert.equal(exOf(tomorrow).sets, 3);
+    assert.equal(exOf(tomorrow).n, 'Flat bench', 'the edit composes onto HIS row');
+    assert.deepEqual(exOf(tomorrow).renames, [{ from: '2026-08-20', prevN: 'Bench press' }]);
+  } finally { h.close(); }
+});
+test('PE16 the clean-init state is refused over an admitted import and never substituted', async () => {
+  const h = await scaffold(); try {
+    const imported = importedOf(h.basisState), before = await h.snapshot();
+    await h.tamper(next => admitState(next, imported, { namespace: 'synthetic-plan-edit/device-A' }));
+    const wrong = await h.host(), read = await wrong.read();
+    assert.equal(read.read, false);
+    assert.equal(read.code, 'PLAN_EDIT_IMPORTED_BASIS_MISMATCH');
+    assert.equal((await wrong.review(update({ sets: 3 }))).reviewed, false);
+    expectSame(planOps(await h.snapshot()), planOps(before), 'a refused basis writes nothing');
+  } finally { h.close(); }
+});
+test('PE16 an import that was never admitted refuses instead of projecting a plan', async () => {
+  const h = await scaffold(); try {
+    const imported = importedOf(h.basisState);
+    await h.tamper(next => { admitState(next, imported, { namespace: 'synthetic-plan-edit/device-A' });
+      next.collections.derived.localSource.view.ready = false; });
+    for (const basis of [imported, h.basisState]) {
+      const host = await h.host({ basisState: basis }), read = await host.read();
+      assert.equal(read.read, false);
+      assert.equal(read.code, 'PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE');
+    }
   } finally { h.close(); }
 });

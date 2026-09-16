@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test'), assert = require('node:assert/strict');
 const Commands = require('../../../m4/workout/plan-edit-commands.cjs');
-const { createPlanEditProjector } = require('../../../m4/workout/plan-edit-model.cjs');
+const { createPlanEditProjector, planEditCollections, P2_ROW } = require('../../../m4/workout/plan-edit-model.cjs');
 const { createCleanInitState } = require('../../../m4/workout/athlete-state.cjs');
 const Ops = require('../../../client/ops.cjs');
 const { createHash } = require('node:crypto');
@@ -9,15 +9,22 @@ const hashBasis = text => createHash('sha256').update(text,'utf8').digest('hex')
 const nameAt = require('../../../engine/plan.cjs')({}, {}).nameAt;
 const copy = structuredClone, today = '2026-09-12', tomorrow = '2026-09-13';
 const emptyTags = { head:null, secondary:[] };
-let validateTags, projectNewTags;
+let validateTags, projectNewTags, admittedLocalSourceBasis, sealedCollections;
 test.before(async()=>{
-  // Before the F2 candidate is composed in this tree, a local verification run
-  // explicitly supplies its pinned public source blob in the lane's .tmp.
-  const modulePath=process.env.PLAN_EDIT_F2_MODULE || '../../../m4/workout/setup-tags.cjs';
+  // F2's setup-tags.cjs is NOT on rebuild/t2-client-core: it belongs to lane D's
+  // unmerged F2 package. validateTags / projectNewExerciseTags are INJECTED
+  // collaborators (brief section 3), so this lane keeps a byte-identical copy of
+  // the public F2 source at f3e9561 beside its cells and proves that identity in
+  // f2-adapter-identity below. PLAN_EDIT_F2_MODULE points at the real module once
+  // F2 lands; no plan-edit runtime file imports either one.
+  const modulePath=process.env.PLAN_EDIT_F2_MODULE || './f2-tag-adapter.cjs';
   const {createSetupTagProjector}=require(modulePath);
   const {ENGINE_MG,REGION_MG}=await import('../../../m3/w7-preview/today/exercise-catalogue.mjs');
   const api=createSetupTagProjector({taxonomy:{muscles:ENGINE_MG,regions:REGION_MG}});
   validateTags=api.validateExerciseTags;projectNewTags=api.projectNewExerciseTags;
+  // The REAL P2 join Today adopts through, and the REAL sealed collection list.
+  ({admittedLocalSourceBasis}=await import('../../../m3/w7-preview/today/local-source-basis.mjs'));
+  ({COLLECTIONS:sealedCollections}=await import('../../../m3/w6/local/local-client.mjs'));
 });
 function build(action, seq, predecessor, day=today) {
   return Ops.build({ ...action, op_id:'op-synthetic-'+seq, athlete_id:'synthetic-athlete', device_id:'synthetic-device',
@@ -230,4 +237,104 @@ test('full-body calendar covers both lift families while uncovered days refuse',
   g.origin.payload.setup.split=copy(g.state.split[0]);g.origin.canonical_content_commitment=Ops.commitmentOf(g.origin,'synthetic-test-identity');g.generation.collections.ops[g.origin.op_id]=copy(g.origin);
   const gm=g.make(),gr=gm.read(g.generation,today);
   assert.throws(()=>gm.preview(g.generation,tomorrow,{...input,seen_plan_basis:gr.plan_basis,causal_parents:gr.causal_parents}),{code:'PLAN_EDIT_DAY_UNCOVERED'});
+});
+
+/* ===== PE16 / P0-B + P2. WHOSE STATE THE PROJECTOR EDITS =====
+   today-app.cjs adoptAthleteState adopts admittedLocalSourceState(setup) when
+   this generation carries an admitted import and setup.athleteState() (the
+   clean-init constructor over the stored setup document) when it does not. The
+   companion edits the SAME state and proves which one it was handed against the
+   generation itself, through the SAME local-source-basis.mjs join. */
+const SELECTION='local-source:synthetic-plan-edit';
+const NS='synthetic-plan-edit/device-A';
+function importedFixture({ label='Synthetic', namespace=NS, mutate=null }={}) {
+  const f=fixture({tags:true});
+  // His own file: his own name for one lift, its rename history, and readings
+  // from before this installation existed. None of it is in the setup document.
+  const imported=copy(f.state);
+  imported.exercises[0].n='Flat bench';
+  imported.exercises[0].renames=[{from:'2026-08-20',prevN:'Bench press'}];
+  imported.reads=[{d:'2026-08-01',w:181.2},{d:'2026-09-02',w:100}];
+  const basis={profile:'earned/local-source-basis/v1',installation_id:namespace,local_selection_id:SELECTION};
+  const view={ready:true,pending:false,issues:[],basis:copy(basis),state:copy(imported)};
+  f.generation.metadata.localSources={selections:{[SELECTION]:{id:SELECTION}},active:SELECTION};
+  f.generation.metadata.localSourceApplication={selection_id:SELECTION,core_complete:true,basis:copy(basis)};
+  f.generation.collections.derived={localSource:{basis:copy(basis),view}};
+  if(mutate)mutate({generation:f.generation,view,marker:f.generation.metadata.localSourceApplication});
+  const make=(state=imported,basisSource='local-source')=>createPlanEditProjector({basisState:state,
+    setupOperation:f.origin,validateTags,projectNewExerciseTags:projectNewTags,hashBasis,basisSource,
+    admittedBasisOf:g=>admittedLocalSourceBasis(g,{athleteLabel:label,namespace})});
+  return {...f,imported,view,make};
+}
+test('PE16 an admitted import is the basis and must be the state handed over',()=>{
+  const f=importedFixture(),read=f.make().read(f.generation,today);
+  assert.equal(read.state.exercises[0].n,'Flat bench','his own name, not the setup document');
+  assert.deepEqual(read.state.exercises[0].renames,[{from:'2026-08-20',prevN:'Bench press'}]);
+  assert.deepEqual(read.state.reads,[{d:'2026-08-01',w:181.2},{d:'2026-09-02',w:100}],'imported history survives');
+  // A rename composes with the imported rename seam; neither is lost.
+  const input={intent_id:'imported-rename',seen_plan_basis:read.plan_basis,starts_on:tomorrow,
+    causal_parents:read.causal_parents,edit:change('press',{n:'Incline bench'})};
+  const after=f.make().preview(f.generation,tomorrow,input).state.exercises[0];
+  assert.equal(after.n,'Incline bench');
+  assert.deepEqual(after.renames,[{from:'2026-08-20',prevN:'Bench press'},{from:tomorrow,prevN:'Flat bench'}]);
+  const projected={exercises:[after]};
+  assert.equal(nameAt(projected,'press','2026-08-19'),'Bench press','the imported pre-rename name survives');
+  assert.equal(nameAt(projected,'press',today),'Flat bench','today still reads his imported name');
+  assert.equal(nameAt(projected,'press',tomorrow),'Incline bench','and the edit starts tomorrow');
+  // The clean-init state is NOT this generation's basis, and saying so refuses.
+  assert.throws(()=>f.make(f.state).read(f.generation,today),{code:'PLAN_EDIT_IMPORTED_BASIS_MISMATCH'});
+});
+test('PE16 an unadmitted import refuses and never falls back to the clean-init basis',()=>{
+  const faults=[
+    ['not ready',({view})=>{view.ready=false;}],
+    ['still pending',({view})=>{view.pending=true;}],
+    ['an unresolved issue',({view})=>{view.issues=[{code:'LOCAL_SOURCE_READING_UNRESOLVED'}];}],
+    ['core not complete',({marker})=>{marker.core_complete=false;}],
+    ['a superseded selection',({generation})=>{generation.metadata.localSources.active='local-source:other';}],
+    ['a disagreeing basis copy',({view})=>{view.basis.installation_id='another-installation';}],
+    ['no admitted marker at all',({generation})=>{delete generation.metadata.localSourceApplication;}]];
+  for(const [why,mutate] of faults){
+    const f=importedFixture({mutate});
+    assert.throws(()=>f.make().read(f.generation,today),{code:'PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE'},why);
+  }
+  // Another athlete's numbers, and another installation's admitted import: both
+  // are records this device may hold and neither is a plan this device may edit.
+  const elsewhere=({view,generation})=>{ for(const b of [view.basis,generation.collections.derived.localSource.basis,
+    generation.metadata.localSourceApplication.basis]) b.installation_id='another-installation/device-B'; };
+  for(const wrong of [{label:'Someone else'},{mutate:elsewhere}]){
+    const f=importedFixture(wrong);
+    assert.throws(()=>f.make().read(f.generation,today),{code:'PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE'});
+  }
+  // THE FALLBACK IS THE DEFECT. A projector that was handed the clean-init state
+  // cannot project over a generation that carries an import, admitted or not.
+  const g=importedFixture();
+  assert.throws(()=>g.make(g.state,'first-run').read(g.generation,today),{code:'PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE'});
+  const clean=fixture({tags:true});
+  assert.throws(()=>createPlanEditProjector({basisState:clean.state,setupOperation:clean.origin,validateTags,
+    projectNewExerciseTags:projectNewTags,hashBasis,basisSource:'local-source',
+    admittedBasisOf:()=>null}).read(clean.generation,today),{code:'PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE'});
+  assert.throws(()=>createPlanEditProjector({basisState:clean.state,setupOperation:clean.origin,validateTags,
+    hashBasis,basisSource:'invented'}),{code:'PLAN_EDIT_BASIS_SOURCE_UNKNOWN'});
+});
+test('PE16 the mapped collection set is exactly the collections this installation seals',()=>{
+  // A trip-wire in the :456 shape: if local-client.mjs ever seals another
+  // collection, this goes red here instead of an unmapped effect being projected.
+  assert.deepEqual(planEditCollections(),[...sealedCollections,'derived']);
+  assert.deepEqual(P2_ROW,['id','day','mg','sets','hi','inc','steps'],
+    'source-admission.mjs programme() proves exactly these, and not the name');
+});
+test('PE16 f2-adapter-identity the injected tag collaborator is the published F2 source',()=>{
+  // The lane copy is byte-identical to the public blob the independent reviewer
+  // ran against. It is a stand-in for an INJECTED collaborator, not a stub of a
+  // plan-edit runtime path, and no runtime file imports it.
+  const { execFileSync } = require('node:child_process');
+  const { readFileSync } = require('node:fs');
+  const published=execFileSync('git',['show','f3e9561:rebuild/m4/workout/setup-tags.cjs'],
+    {encoding:'utf8',cwd:require('node:path').resolve(__dirname,'../../../..')});
+  const lane=readFileSync(require('node:path').join(__dirname,'f2-tag-adapter.cjs'),'utf8');
+  assert.equal(createHash('sha256').update(lane).digest('hex'),
+    createHash('sha256').update(published).digest('hex'),'lane F2 copy is the published F2 blob');
+  for(const file of ['plan-edit-commands.cjs','plan-edit-model.cjs'])
+    assert.equal(/f2-tag-adapter|setup-tags/.test(
+      readFileSync(require('node:path').resolve(__dirname,'../../../m4/workout',file),'utf8')),false,file);
 });

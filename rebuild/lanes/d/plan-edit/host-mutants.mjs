@@ -19,11 +19,22 @@ const cases=[
   ['reviews.get(active.args.input.intent_id) !== active ||','false ||'],
   ['!alive || reviews.get(active.args.input.intent_id) !== active','!alive']]],
  ['final-clock', '^PE14 ', [[
-  'return clock.today() !== active.authoredDay ? stale() : null;',
+  'return localDay() !== active.authoredDay ? stale() : null;',
   'return null;']]],
  ['unprojectable-commit','^PE09-projection ', [[
-  "        if (candidate.result?.acknowledged === true) {\n          try { projector.read(candidate.generation,clock.today()); }\n          catch (error) { return { generation,result:refusal(error.code || 'PLAN_EDIT_PROJECTION_REFUSED'),view:null }; }\n        }",
-  '        // fault: no validation of the actual pending projection']]]];
+  "        if (candidate.result?.acknowledged === true) {\n          try { read(candidate.generation,localDay()); }\n          catch (error) { return { generation,result:refusal(error.code || 'PLAN_EDIT_PROJECTION_REFUSED'),view:null }; }\n        }",
+  '        // fault: no validation of the actual pending projection']]],
+ // S4 LIVE DAY. A host that dates tomorrow off its own frozen host clock instead
+ // of the installation's live athlete-local day is the :437 defect with a day
+ // added to it, and the new PE15 cells must kill exactly that.
+ ['frozen-host-day','^PE15 tomorrow ', [
+  ['const localDay = () => { const day = liveDayOf(); Commands.dateOf(day); return day; };',
+   'const localDay = () => { const day = clock.today(); Commands.dateOf(day); return day; };']]],
+ // P2/P0-B. A host that lets the caller's declared basis stand without proving
+ // it against the generation adopts an unadmitted import as the athlete's plan.
+ ['unchecked-basis-source','^PE16 the clean-init state ', [
+  ["    const source = Model.importPresentIn(generation) ? 'local-source' : 'first-run';",
+   "    const source = 'first-run';"]]]];
 mkdirSync(join(root,'.tmp'),{recursive:true});
 const out=mkdtempSync(join(root,'.tmp','plan-edit-host-mutants-'));
 let killed=0;
