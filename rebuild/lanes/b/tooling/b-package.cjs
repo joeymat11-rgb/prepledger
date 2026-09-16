@@ -304,6 +304,7 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
   TOOLING + '/test/parent-pin-shapes-and-spec-successors.test.cjs',
   TOOLING + '/test/parent-gate-closure-and-load-floor.test.cjs',
   TOOLING + '/test/gate-supersession.test.cjs',
+  TOOLING + '/test/child-diagnostic-tail.test.cjs',
   // r8 change 2. `receipts/<every id>.json` STOOD HERE and no longer does: the exemption is
   // narrowed to THIS PACKAGE'S OWN receipt and moved into fidelity(), where `ID` is known.
   // It cannot be removed outright — r8 change 1 requires the receipt's bytes to stand in
@@ -325,10 +326,16 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
 // CI-TODAY-CHILD-FLAKE). Narrower than CHILD_ROOTS above on purpose: CHILD_ROOTS is every
 // root ANY declared child of ANY B package may execute from, including
 // rebuild/m4/spec/ and rebuild/conform/v4/postfix/, which reach the private oracle under
-// --full. PUBLIC_TAIL_ROOTS is only the four roots rebuild.yml already runs in the open on
-// every push — today, measure, w6 host, m4/workout — so a --ci child whose argv stands
-// entirely under one of these was already public before this diagnostic existed; nothing
-// here discloses a byte CI did not already print for that child. TAIL_DENYLIST is the
+// --full. Three of the four PUBLIC_TAIL_ROOTS — today, measure, w6 host — are roots
+// rebuild.yml already runs in an open step, so a --ci child whose argv stands entirely
+// under one of those three was already public before this diagnostic existed. The fourth,
+// m4/workout, is NOT run by any open rebuild.yml step — its six cells run only inside this
+// withheld `--ci --package S5` step (rebuild.yml:127) — and stands on a second basis: its
+// content was read in full (node builtins, rebuild/engine/*, native-carriers-source.cjs,
+// w7-preview/fixtures.cjs, S5.json) and contains no line naming the private census, a
+// golden, live.json or the ledger, so it is safe by audited content, not by an open step.
+// Either way, nothing here discloses a byte CI did not already print or a byte the root's
+// own content did not already clear. TAIL_DENYLIST is the
 // second, independent gate: even a public-root child's OWN STDOUT is scanned line by line,
 // and any line naming the private census, a golden, live.json or the ledger withholds the
 // tail regardless of where the child's argv pointed — argv path and printed content are
@@ -1958,8 +1965,9 @@ function carriers(s) {
 // nothing about a declared child's stdout is disclosed by this ticket. Two independent
 // gates, both over the FAILING CHILD's own evidence, and either one alone withholds:
 //   1. PATH — every target this child's own argv names (childArgv(c), already validated
-//      against CHILD_ROOTS) must stand under one of the four PUBLIC_TAIL_ROOTS, the exact
-//      suites rebuild.yml already runs in the open on every push;
+//      against CHILD_ROOTS) must stand under one of the four PUBLIC_TAIL_ROOTS — three of
+//      which rebuild.yml already runs in an open step, the fourth (m4/workout) safe on the
+//      separate, audited-content basis recorded at PUBLIC_TAIL_ROOTS' own definition;
 //   2. CONTENT — no line of the child's own stdout+stderr may contain a TAIL_DENYLIST
 //      needle, so a public suite that happens to print a private-looking path (a rejected
 //      traversal probe, say) still withholds rather than trusting its own root.
