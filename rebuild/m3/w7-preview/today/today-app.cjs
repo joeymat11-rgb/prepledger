@@ -2108,8 +2108,25 @@ function mountToday(doc, model, options = {}) {
      every other boot() cause is, and Today keeps the basis it already painted. */
   /* P0-C item (a) - factored so the "done" callback above can rerun the exact
      same chain after "Start using Earned", not merely at boot. */
+  /* P2 S3 IMPORT JOIN (GATE-AUDIT-SPEC-P2 finding 1) - WHICH state this
+     installation's own basis is. An ADMITTED import is already this athlete's
+     own record: source-admission.mjs replayed it from his own file, proved its
+     programme against the very setup document `athleteState()` is built from,
+     and committed it into the SAME generation the setup host authenticates.
+     When one is there, it IS the basis, and the clean-init state built from the
+     setup document is what stands when it is not. local-source-basis.mjs
+     refuses on any doubt (not admitted, not this installation, not this
+     athlete's label) and never throws, so this is the P0-B chain with one extra
+     read in front of it and no other change: the same adoptBasis, the same gym
+     rebase, the same check-in adoption, the same pending gate and release. */
+  function athleteBasisState() {
+    return import("./local-source-basis.mjs")
+      .then((module) => module.admittedLocalSourceState(setup))
+      .catch(() => null)
+      .then((imported) => imported || setup.athleteState());
+  }
   function adoptAthleteState() {
-    return setup.athleteState().then(async (state) => {
+    return athleteBasisState().then(async (state) => {
       {
         if (!state) return;
         model.adoptBasis(state);
