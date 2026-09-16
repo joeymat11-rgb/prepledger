@@ -48,12 +48,17 @@ const READS = [['2026-08-14', 178.2], ['2026-08-18', 177.6], ['2026-08-24', 177.
    has never seen. Built through the ACCEPTED clean-init constructor so its
    programme is the very one the first run records, which is what admission
    proves before it will admit anything. */
-function inventedLegacyState(setup = SETUP) {
+/* The file's own workout days. A cell that needs a file whose LAST workout is
+   not before the one on the phone states its own list (LOCAL-CAPTURE-START-
+   RESUME); the default is the three days every other cell already pins, in the
+   same order, so the sealed bytes are unchanged for all of them. */
+const DEFAULT_SESSIONS = [['2026-08-14', 'U'], ['2026-08-17', 'L'], ['2026-08-21', 'U']];
+function inventedLegacyState(setup = SETUP, sessions = DEFAULT_SESSIONS) {
   const state = JSON.parse(JSON.stringify(createCleanInitState({ setup })));
   for (const ex of state.exercises) { ex.w = LOADS[ex.id]; ex.last = REPS[ex.id].slice(); }
   const session = type => ({ type, entries: state.exercises.filter(e => e.day === type)
     .map(e => ({ id: e.id, w: LOADS[e.id], reps: REPS[e.id].slice(), rir: 2, sets: e.sets })) });
-  state.sessionLog = { '2026-08-14': session('U'), '2026-08-17': session('L'), '2026-08-21': session('U') };
+  state.sessionLog = Object.fromEntries(sessions.map(([day, type]) => [day, session(type)]));
   state.reads = READS.map(([d, w]) => ({ d, w, sealed: false, note: 'INVENTED' }));
   state.model = { anchorISO: '2026-08-14', lean: 132, drip: 0, src: 'EYE' };
   /* A file the old app wrote carries its own smoothed trend; a clean-init state
@@ -76,12 +81,12 @@ STRANGER_SETUP.exercises[0].sets = 4;
 /* ONE REAL SEAL, produced once per test process. --out must be outside every
    git working tree and carry no `rebuild` segment (the port's own guard), so
    the OS temp folder is the only place it can go. */
-export function sealInventedBundle(setup = SETUP) {
+export function sealInventedBundle(setup = SETUP, { sessions = DEFAULT_SESSIONS } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'imp-out-'));
   const out = path.join(dir, 'out');
   fs.mkdirSync(out);
   const file = path.join(dir, 'invented-legacy-state.json');
-  fs.writeFileSync(file, JSON.stringify(inventedLegacyState(setup), null, 2));
+  fs.writeFileSync(file, JSON.stringify(inventedLegacyState(setup, sessions), null, 2));
   const run = spawnSync(process.execPath, [PORT, '--source', file, '--out', out],
     { cwd: REPO, encoding: 'utf8', timeout: 600000, windowsHide: true });
   if (run.status !== 0) throw new Error('port.cjs did not seal the invented bundle (status '
@@ -184,10 +189,16 @@ const NATIVE_DATE_EVIDENCE = () => ({ profile: 'earned/native-date-capability/v1
    THIS device's native Date by local-source-profile.cjs clockAt() before the
    mapping qualifies, so an enumerated day that the device disagrees with
    refuses SOURCE_ENGINE_CONTEXT_UNPROVEN rather than passing quietly. Both
-   sides of the 2026 US DST boundaries are named for that reason. */
+   sides of the 2026 US DST boundaries are named for that reason.
+   The last three days are LOCAL-CAPTURE-START-RESUME's: 2026-10-16 and
+   2026-10-17 are its EDT pair (-04:00, both before DST ends on 2026-11-01) and
+   2026-11-21 its EST second day, and an operation on a day this list does not
+   name refuses SOURCE_ENGINE_CONTEXT_UNPROVEN rather than being waved through,
+   so they are named here for the same reason as the rest. */
 const CALENDAR_DAYS = ['2026-03-07', '2026-03-08', '2026-03-09', '2026-08-14', '2026-08-17',
   '2026-08-18', '2026-08-21', '2026-08-24', '2026-08-31', '2026-09-03', '2026-09-04',
-  '2026-09-16', '2026-10-31', '2026-11-01', '2026-11-02', '2026-11-20'];
+  '2026-09-16', '2026-10-31', '2026-11-01', '2026-11-02', '2026-11-20',
+  '2026-10-16', '2026-10-17', '2026-11-21'];
 
 export function producerRegistryFor({ platform, context, materialDigest }, { days = CALENDAR_DAYS } = {}) {
   const dates = days.map(day => {
@@ -210,8 +221,18 @@ export function producerRegistryFor({ platform, context, materialDigest }, { day
 /* THE CALL SEQUENCE A REAL IMPORT SCREEN MUST REPRODUCE, in its own order:
    reviewSource (step 3's review and its identity question), prepareSource with
    the athlete's confirmation (step 3's confirm), publish, reconcile, view.
-   `asOf` is the LIVE day the page is standing on, never a frozen one. */
-export async function admit(era, sealed, { day, namespace, athleteId, deviceId }) {
+   `asOf` is the LIVE day the page is standing on, never a frozen one.
+   `prefixAnswer` is HIS answer to that same identity question, and the default
+   is the Yes the screen sends when he taps Yes; a cell that wants the other
+   answer, or no answer at all, says so (LOCAL-CAPTURE-START-RESUME). */
+export async function admit(era, sealed, options) {
+  const { day, namespace, athleteId, deviceId } = options;
+  /* Naming the key with an undefined value is the question he never answered,
+     and it must not collapse into the default Yes: that is a different case and
+     these cells measure it. */
+  const answers = !Object.hasOwn(options, 'prefixAnswer') ? { identityConfirmed: true, prefixAnswer: true }
+    : options.prefixAnswer === undefined ? { identityConfirmed: true }
+      : { identityConfirmed: true, prefixAnswer: options.prefixAnswer };
   const { carried, platform } = await carry(era, sealed);
   if (!carried.imported) return { admitted: false, stage: 'custody', code: carried.code };
   const held = await material(era, platform, carried.name);
@@ -223,9 +244,9 @@ export async function admit(era, sealed, { day, namespace, athleteId, deviceId }
   let review;
   try { review = await controller.reviewSource(carried.name); }
   catch (error) { return { admitted: false, stage: 'review', code: error.code || error.message, controller }; }
-  const prepared = await controller.prepareSource(review, { identityConfirmed: true });
+  const prepared = await controller.prepareSource(review, answers);
   if (prepared.profile !== 'earned/local-source-qualification/v1') {
-    return { admitted: false, stage: 'prepare', review, controller,
+    return { admitted: false, stage: 'prepare', review, controller, name: carried.name,
       issues: prepared.issues || [], codes: (prepared.issues || []).map(i => i.code) };
   }
   const capability = localSourceCommitCapability(prepared);

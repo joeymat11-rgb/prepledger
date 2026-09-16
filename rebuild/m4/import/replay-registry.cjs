@@ -42,13 +42,19 @@ const ENTRIES = Object.freeze([
     disposition: 'family', family: 'F3',
     rule: 'programme evidence: native sessions are PROJECTED through the accepted workout '
       + 'projector and prove the imported programme at their own start day, in the order '
-      + 'the order map fixes; malformed refuses LOCAL_SOURCE_WORKOUT_UNRESOLVED'}),
+      + 'the order map fixes; a session recorded BEFORE the import is projected after the '
+      + 'imported prefix only on the athlete\'s own Yes to the identity question, which is '
+      + 'the start interpretation engine-order.cjs requires (local-capture-start-resume); '
+      + 'a No, an unanswered question, a start the file does not precede, or a malformed '
+      + 'record refuses LOCAL_SOURCE_WORKOUT_UNRESOLVED'}),
   Object.freeze({module: 'rebuild/m4/workout/commands.cjs', class: 'session',
     kinds: Object.freeze(['session-start', 'session-set', 'session-skip', 'session-close']),
     profiles: Object.freeze(['earned/workout-prescription/v2']),
     disposition: 'family', family: 'F3',
     rule: 'programme evidence: the same family, over the operations the gym card writes '
-      + 'through the accepted W6 host; malformed refuses LOCAL_SOURCE_WORKOUT_UNRESOLVED'}),
+      + 'through the accepted W6 host, whose captures carry this profile and are read '
+      + 'with it (local-capture-start-resume); malformed refuses '
+      + 'LOCAL_SOURCE_WORKOUT_UNRESOLVED'}),
   Object.freeze({module: 'rebuild/m3/w7-preview/today/setup-commands.mjs', class: 'event',
     kinds: Object.freeze(['fact']), profiles: Object.freeze(['earned/first-run-setup/v1']),
     disposition: 'family', family: 'F4',

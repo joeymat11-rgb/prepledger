@@ -173,8 +173,9 @@ try {
   const first = await page.evaluate(input => window.P2.first(input), INPUT);
   assert.deepEqual(first.admitted, [['db-bench', 45], ['lat-pulldown', 80], ['leg-press', 120]],
     'the admission replayed the imported working loads in the browser');
-  assert.deepEqual(first.integration_pending, ['local-capture-start-resume'],
-    'today-gym-consumers is no longer pending');
+  /* LOCAL-CAPTURE-START-RESUME closed the last entry, so the list is EMPTY
+     here too; the new reason stands where the old one did. */
+  assert.deepEqual(first.integration_pending, []);
   assert.equal(first.label, SETUP.athlete_label, 'Today stands on his own record');
   assert.deepEqual(first.basisLoads, [['db-bench', 45], ['lat-pulldown', 80], ['leg-press', 120]],
     'the imported loads ARE the basis the shipped model reads');

@@ -139,7 +139,11 @@ test('S3-Q-F3: real captured sets are locally projected once and incomplete work
  assert.deepEqual(v.workout_facts.sessions.map(s=>s.start_op_id),[first.startId]);
  assert.deepEqual(v.workout_facts.incomplete_sessions.map(s=>s.start_op_id),[second.startId]);
  assert.ok(v.families.some(r=>r.family==='F3'&&r.state==='projected'));
- assert.ok(v.integration_pending.includes('local-capture-start-resume'));
+ /* LOCAL-CAPTURE-START-RESUME closed the last pending integration, so this
+    assertion states the new fact where the old one stood: the list is EMPTY,
+    and this cell's own native capture is projected by F3 above rather than
+    waiting on a named remainder. */
+ assert.deepEqual(v.integration_pending,[]);
  assert.equal(JSON.stringify((await f.repository.load()).generation.collections.ops[first.startId].prescription_capture),JSON.stringify(first.capture));
 });
 test('S3-Q-F3-LAYOUT: a valid capture with different configured set counts stays unresolved',async t=>{
@@ -150,7 +154,22 @@ test('S3-Q-MIXED-PREFIX: nonempty legacy plus real native capture needs its sepa
  const template=await fixture(t,{withFacts:false}),source=structuredClone(template.state),ex=source.exercises[0];
  source.sessionLog['2026-09-01']={type:'U',entries:[{id:ex.id,w:ex.steps[0],reps:[8,8,8],rir:2,sets:3}]};
  const f=await fixture(t,{source}),workout=await appendCompletedWorkout(f),review=await f.review();
- await assert.rejects(()=>f.controller.prepareSource(review,{identityConfirmed:true,prefixAnswer:false}),{code:'ORDER_EVIDENCE_REQUIRED'});
+ /* LOCAL-CAPTURE-START-RESUME. The No is now answered EARLIER and by a NAMED
+    family code, so the new reason stands where the old one did: F3 needs the
+    athlete's Yes to interpret a Start the imported prefix precedes, so a No
+    stops the replay before any order map is built and nothing is written. The
+    order map's own ORDER_EVIDENCE_REQUIRED is still the law at its own level
+    and is asserted there (m4/import/test/local-source-order.test.cjs); it is
+    no longer reachable through this controller, because the only call that
+    reaches order.confirm now carries answer===true. */
+ const before=(await f.repository.load()).generation;
+ const no=await f.controller.prepareSource(review,{identityConfirmed:true,prefixAnswer:false});
+ assert.equal(no.ready,false);
+ assert.deepEqual(no.issues.map(i=>i.code),['LOCAL_SOURCE_WORKOUT_UNRESOLVED']);
+ assert.deepEqual((await f.repository.load()).generation,before,'a No wrote something');
+ const absent=await f.controller.prepareSource(review,{identityConfirmed:true});
+ assert.deepEqual(absent.issues.map(i=>i.code),['LOCAL_SOURCE_WORKOUT_UNRESOLVED']);
+ assert.deepEqual((await f.repository.load()).generation,before,'an unanswered question wrote something');
  const h=await f.controller.prepareSource(review,{identityConfirmed:true,prefixAnswer:true}),view=await f.controller.view(h);
  assert.equal(view.order_map.native_root_id,workout.startId);assert.equal(view.order_map.assertion.answer,true);
  assert.deepEqual(view.state.sessionLog,source.sessionLog);assert.deepEqual(view.workout_facts.sessions.map(s=>s.start_op_id),[workout.startId]);

@@ -311,8 +311,11 @@ test('P2-W4 - only an ADMITTED import of THIS installation and THIS athlete is e
   const good = admittedLocalSourceBasis(generation, { athleteLabel: label, namespace: NS });
   assert.ok(good && good.exercises.length === 3, 'the admitted import IS adopted');
   assert.equal(good.exercises.find(e => e.id === 'db-bench').w, 45);
-  assert.deepEqual(admitted.view.integration_pending, ['local-capture-start-resume'],
-    'today-gym-consumers is no longer pending: this file is the cell that closed it');
+  /* today-gym-consumers was closed by this file; local-capture-start-resume was
+     closed by its own ticket, so the list this cell pins is now EMPTY. The new
+     reason stands where the old one did: nothing about an admitted import is
+     still waiting on another lane. */
+  assert.deepEqual(admitted.view.integration_pending, []);
 
   const spoil = change => {
     const copy = JSON.parse(JSON.stringify(generation));

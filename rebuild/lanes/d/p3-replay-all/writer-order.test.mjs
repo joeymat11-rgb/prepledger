@@ -81,20 +81,22 @@ const WRITERS = {
     ok('the food day', await host.save({ cal: 2350, pro: 178 }));
     return { close: () => host.close(), read: async () => (await host.all()).map(r => r.date) };
   } },
-  /* THE ONE WRITER THIS TICKET DOES NOT CLOSE, and it is named rather than
-     hidden. A workout recorded BEFORE importing is answered by F3 - it never
-     reaches the catch-all and no family is missing - but F3's own law refuses
-     it: the session was prescribed from the pre-import athlete, and under the
-     imported basis its start record comes back with issues, so
-     rebuild/m4/workout/engine-order.cjs raises
-     WORKOUT_ORDER_START_INTERPRETATION_REQUIRED and admission reports its own
-     LOCAL_SOURCE_WORKOUT_UNRESOLVED. That is the accepted law of the workout
-     lane (`integration_pending: ['local-capture-start-resume']`), not a replay
-     gap, and it is why the runbook's ordering instruction still names the gym
-     card and nothing else. The reverse order admits, which is what P3-WO2
-     proves for this writer too. */
+  /* THE WRITER THAT WAS STILL CLOSED WHEN THIS FILE WAS WRITTEN, and the new
+     reason stands where the old one did. A workout recorded BEFORE importing
+     was always ANSWERED by F3 - it never reached the catch-all and no family
+     was missing - but admission installed the v1 capture reader while the page
+     prescribes through the source-aware profile, so every native start record
+     came back with ORIGINAL_CAPTURE_UNINTERPRETABLE and
+     rebuild/m4/workout/engine-order.cjs raised
+     WORKOUT_ORDER_START_INTERPRETATION_REQUIRED, which admission reported as
+     its own LOCAL_SOURCE_WORKOUT_UNRESOLVED. LOCAL-CAPTURE-START-RESUME closed
+     it: F3 reads the page's own captures, and the interpretation the law asks
+     for is the athlete's own Yes to the identity question, carried into the
+     family. So this writer now ADMITS like every other one, and the refusal it
+     used to carry is proved in its own cells (capture-start.test.mjs) for the
+     answers that do NOT state the interpretation. Nothing in the engine moved. */
   'session (the gym card: start, every set, close)': { family: 'F3',
-    refusal: 'LOCAL_SOURCE_WORKOUT_UNRESOLVED', async use(era) {
+    async use(era) {
     const open = day => era.createGymHost({ day, engineState: nativeState(),
       plannedSplitSlotId: 'earned-today-preview/' + day });
     const gymHost = await open(DAY);

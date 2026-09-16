@@ -34,6 +34,8 @@ import Settings from '../../../coach/machine-settings-commands.cjs';
 import {storedWorkoutHistory} from '../../../m4/workout/stored-history.mjs';
 import {projectWorkoutRecords} from '../../../m4/workout/project-history.mjs';
 import Capture from '../../../m4/workout/capture.cjs';
+import SourceCodec from '../../w5/source/codec.cjs';
+import SourceProjection from '../../../m4/workout/source-projection.cjs';
 import EngineCapture from '../../../m4/workout/engine-capture.cjs';
 import History from '../../../m4/workout/engine-history.cjs';
 // ROUTE 1, STEP ONE (P3-D-FOLLOWONS, DECISIONS:475; the brief's row E). The
@@ -147,7 +149,10 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   if(encode(source.priority_muscles??[])!==encode(op.payload.setup.priority_muscles))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
   return {op_id:op.op_id,split:source.split,exercises:source.exercises.map(ex=>Object.fromEntries([...fields,'head','secondary'].filter(k=>Object.hasOwn(ex,k)).map(k=>[k,ex[k]]))),priority_muscles:op.payload.setup.priority_muscles};
  }
- function replay(held){
+ // `prefixAnswer` is the athlete's own answer to the review's identity question
+ // and nothing else. It is a value, never a default: an undefined one is a
+ // question he has not answered, and F3 treats it as such.
+ function replay(held,prefixAnswer){
   const g=held.generation,c=g.collections,ops=c.ops,rows=Object.values(ops).sort((a,b)=>a.device_seq-b.device_seq),issues=[],families=[];
   const issue=(code,id)=>{issues.push({code,...(id?{op_id:id}:{})});};
   if(held.raw.local_json!==null&&held.raw.local_json!==held.raw.source_json&&Object.keys(held.material.checkpoint.generation.collections.ops||{}).length)fail('LOCAL_SOURCE_COVERAGE_UNKNOWN');
@@ -216,12 +221,54 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    const projected=FoodModel.foodProjection(state,[row],engineFor(row.date,12));if(projected.unavailable.length)issue('LOCAL_SOURCE_DAILY_UNRESOLVED',row.op_id);else state=projected.state;
    families.push({family:'F2',state:projected.unavailable.length?'retained':'projected',op_id:row.op_id});}
   for(const row of food)if(!winners.includes(row))families.push({family:'F2',state:'retained',op_id:row.op_id});
-  const captures=Capture.createPrescriptionCapture({parseStrictJson});let workoutFacts=null;
-  if(rows.some(op=>op.class==='session'))try{
+  // F3 READS THE PAGE'S OWN CAPTURES (local-capture-start-resume). The shipped
+  // page prescribes through the SOURCE-AWARE capture profile: today-bindings.mjs
+  // builds Capture.SOURCE_PROFILE with the w5 source codec, so every Start the
+  // gym card writes carries a source_basis. This module used to install the v1
+  // reader, which cannot read one: stored-history.mjs caught the throw as
+  // ORIGINAL_CAPTURE_UNINTERPRETABLE, project-history.mjs carried that onto the
+  // start record's issues, and engine-order.cjs then refused the whole order
+  // WORKOUT_ORDER_START_INTERPRETATION_REQUIRED - which admission reported as
+  // LOCAL_SOURCE_WORKOUT_UNRESOLVED. That is why a workout recorded BEFORE the
+  // import could not be admitted at all (P3-REPLAY-ALL-FAMILIES, RV-INNER-CAUSE).
+  // read() is a CLOSED historical dispatch, so the source-aware reader still
+  // reads a v1 capture exactly as before; nothing is relaxed by installing it.
+  const captures=Capture.createPrescriptionCapture({parseStrictJson,profile:Capture.SOURCE_PROFILE,sourceCodec:SourceCodec});let workoutFacts=null;
+  // The adapter below only READS a layout, but the source-aware adapter refuses
+  // to exist without a registered projection consumer. This is the accepted one
+  // the page itself composes (today-bindings.mjs), not a stub: the NULL lane,
+  // which is the only lane this installation has.
+  const projectionReader=SourceProjection.createSourceProjectionReader({nullSelection:SourceProjection.createNullSelectionRegistrar({sourceCodec:SourceCodec})});
+  /* THE START INTERPRETATION engine-order.cjs ASKS FOR: local-capture-start-resume.
+     The law is a question about ORDER, and the athlete is the only one who can
+     answer it. He answers it once, at :80: "Did every workout in this file
+     happen before this first Earned workout, with none already recorded in
+     Earned?" A Yes STATES the interpretation exactly - the imported file is the
+     complete prefix, and the first Earned workout is the first workout after
+     it - so it is carried here and applied to the Starts this installation
+     already holds. Nothing else may supply it: an absent or No answer leaves
+     the pre-import Start uninterpreted and F3 refuses by its own name, as it
+     does today. The Yes also has to be TRUE of the records in hand, and that is
+     checked rather than assumed: every native Start must be dated strictly
+     after the file's last recorded workout day, because a Start on or before it
+     is a workout the file does not precede. The trial day one is untouched (F7
+     keeps the first enrolled record's date) and the imported history stays the
+     baseline; what this states is only where the native Starts sit. */
+  const legacyDays=Object.keys(state.sessionLog||{}).sort(),lastLegacyDay=legacyDays.at(-1)??null;
+  const nativeStarts=rows.filter(op=>op.class==='session'&&op.kind==='session-start');
+  const resumeRequired=legacyDays.length>0&&nativeStarts.length>0;
+  let resumeStated=!resumeRequired;
+  if(resumeRequired&&prefixAnswer!==true)issue('LOCAL_SOURCE_WORKOUT_UNRESOLVED');
+  else if(resumeRequired){
+   resumeStated=true;
+   for(const op of nativeStarts)if(!validDay(op.effective?.local_date)||op.effective.local_date<=lastLegacyDay){
+    issue('LOCAL_SOURCE_WORKOUT_UNRESOLVED',op.op_id);resumeStated=false;}
+  }
+  if(rows.some(op=>op.class==='session')&&resumeStated)try{
    const history=storedWorkoutHistory(g,{athleteId,deviceId,prescriptionCapture:captures}),runtime=Runtime.createEngineRuntime({clock:sourceEngineContext(held.engineContext).clock});
    const projector=History.createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,parseStrictJson,prescriptionCapture:captures,resolveCapturedLayout:({start})=>{
     const producer=start.prescription_capture.producer;if(![EngineCapture.PROFILE,EngineCapture.CONFIGURATION_PROFILE].includes(producer.rule_profile))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
-    const adapter=EngineCapture.createEngineWorkoutCapture({engine:runtime,prescriptionCapture:captures,producerIdentity:producer});
+    const adapter=EngineCapture.createEngineWorkoutCapture({engine:runtime,prescriptionCapture:captures,producerIdentity:producer,sourceProjectionReader:projectionReader});
     const layout=adapter.readLayout(start.prescription_capture),counts=new Map();for(const slot of layout.slots){if(state.exercises.filter(e=>e.id===slot.lift_lineage_id).length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');counts.set(slot.lift_lineage_id,(counts.get(slot.lift_lineage_id)||0)+1);}
     for(const [id,count]of counts)if(state.exercises.find(e=>e.id===id).sets!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
     // Compare complete programme membership at the ORIGINAL Start day, under
@@ -249,7 +296,11 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   const existingSelection=internal?.selection;
   const held=reviews.get(review);if(!held)fail('LOCAL_SOURCE_REVIEW_UNOWNED');await current(held);
   if(identityConfirmed!==true&&!existingSelection)fail('LOCAL_SOURCE_IDENTITY_CONFIRMATION_REQUIRED');
-  const replayed=replay(held);if(replayed.issues.length)return freeze({ready:false,pending:true,issues:replayed.issues,families:replayed.families});
+  // The SAME answer reaches F3's start interpretation and the order map, so a
+  // reopen or a rollback replays under the very answer its own order map
+  // records and nothing is re-asked on his behalf (local-capture-start-resume).
+  const answer=existingSelection?existingSelection.order_map?.assertion?.answer:prefixAnswer;
+  const replayed=replay(held,answer);if(replayed.issues.length)return freeze({ready:false,pending:true,issues:replayed.issues,families:replayed.families});
   const operations=held.generation.collections.ops,rootInterpretation=Object.fromEntries((replayed.workoutFacts?.sessions||[]).concat(replayed.workoutFacts?.incomplete_sessions||[]).map(s=>[s.start_op_id,{capture:s.capture,record:s.record,completion:s.completion_state}]));
   const orderInput={installation_id:namespace,era_id:held.eraId,athlete_id:athleteId,source_digest:held.sourceDigest,checkpoint_digest:held.checkpointDigest,legacyLog:replayed.state.sessionLog||{},operations,rootInterpretation,display_review:review};
   let M=null;
@@ -265,8 +316,14 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
     import is adopted as the athlete's own basis by the P0-B chain, through
     rebuild/m3/w7-preview/today/local-source-basis.mjs, and proved on Today and
     on the gym card by the cells in today/test/local-source-consumer.test.mjs.
-    'local-capture-start-resume' remains open and is still declared. */
-   integration_pending:['local-capture-start-resume']});
+    'local-capture-start-resume' is no longer pending either: the start
+    interpretation engine-order.cjs asks for is stated above from the athlete's
+    own answer to the identity question, so a workout recorded on this device
+    BEFORE the import is admitted and projected after the imported prefix. An
+    absent or No answer, or a native Start the file does not precede, still
+    refuses LOCAL_SOURCE_WORKOUT_UNRESOLVED and writes nothing. The list is
+    empty because nothing is pending, not because the list was retired. */
+   integration_pending:[]});
   const selection=internal?.action==='reopen'?copy(existingSelection):{id:selectionId,name:held.name,basis:Q,order_map:M,order_input:existingSelection?.order_input||orderInput,identity_review:existingSelection?.identity_review||review,previous:held.generation.metadata.localSources?.active??null,action:internal?.action||'select'};
   const next=copy(held.generation);next.metadata.localSources=next.metadata.localSources||{selections:{},active:null};
   if(next.metadata.localSources.selections[selectionId]&&encode(next.metadata.localSources.selections[selectionId])!==encode(selection))fail('LOCAL_SOURCE_SELECTION_CONFLICT');
