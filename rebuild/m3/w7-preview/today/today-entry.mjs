@@ -163,8 +163,20 @@ export async function createWorkoutEntry(model, options = {}) {
      close a session abandoned on an earlier day (gym-model.closeUnfinished). */
   const hostForDay = (other) => openGym({ day: other, engineState: model.stateFromOps(),
     plannedSplitSlotId: "earned-today-preview/" + other, ...lane });
+  /* S6 item 3 (DECISIONS:452 late-evening caveat, :468 (d)). `view.workout` is the
+     engine's NEXT SCHEDULED SESSION (rebuild/engine/today.cjs:591-597), and its title
+     carries a RELATIVE DAY STAMP - "UPPER BODY · TODAY", "· TOMORROW", "· MON 9/21" -
+     which answers "when is the next session", not "what am I logging now". The gym
+     card always stands on `day`, and the client prepares a session from the planned
+     split slot whether or not the ENGINE schedules one that day, so on a day the
+     engine calls REST the athlete logged the correct lift under a header that read
+     "UPPER BODY · TOMORROW". The stamp is carried to the card ONLY while it describes
+     the card's OWN day; otherwise the card falls back to the session's own name
+     (gym-app.mjs `view.title || view.session.instruction.display`), which is the name
+     of the thing actually being logged. No engine byte moves, and no sentence is
+     invented here. */
   const gym = createGymModel({ gymHost, hostForDay,
-    sessionTitle: view.workout ? view.workout.title : null });
+    sessionTitle: view.workout && view.workout.today === true ? view.workout.title : null });
   let summary = null;
   let onRefresh = null;
   const gymDraft = newGymDraft();
@@ -344,8 +356,23 @@ export async function boot(options = {}) {
       onFailure: (error) => failures.push("check-in store: " + (error && error.message ? error.message : String(error))) });
   } catch (error) { failures.push("check-in store: " + (error && error.message ? error.message : String(error))); }
 
+  /* S6 item 1 - SETUP FIRST ON A FRESH INSTALL (owner ruling DECISIONS:463, verbatim:
+     "A fresh install should open on setup first"). The landing screen, and NOTHING
+     else, moves: an installation whose durable record holds no first-run operation
+     opens on the setup screens and reaches Today through the setup-to-Today
+     transition that already exists; an enrolled installation boots to Today exactly
+     as it always did, and the P0-B/P0-C adoption gate is untouched.
+
+     WHICH CALLERS. `live` is non-null for exactly one caller: the shipped page, which
+     declares no day (see the S4 note above). Every fixture, check script and suite
+     DECLARES its day, and by S4's own rule a declared-day caller gets the pinned
+     preview - so it keeps the pre-setup Today preview, byte for byte, and no merged
+     cell moves. The preview is also reachable on the live path through `?screen=`,
+     which requestedScreen() honours ahead of this. `options.setupFirst` overrides
+     both directions explicitly, so a cell can drive either landing on either clock. */
+  const setupFirst = options.setupFirst !== undefined ? !!options.setupFirst : !!live;
   const api = mountToday(doc, model, { ...(workout ? { workout } : {}), ...(checkin ? { checkin } : {}),
-    ...(setup ? { setup } : {}) });
+    ...(setup ? { setup } : {}), setupFirst });
   if (workout) workout.setOnRefresh(() => { if (api.screen() === "today") api.render("today"); });
   if (checkin) checkin.setOnRefresh(() => { if (api.screen() === "today") api.render("today"); });
   if (setup) setup.setOnRefresh(() => { if (api.screen() === "today") api.render("today"); });

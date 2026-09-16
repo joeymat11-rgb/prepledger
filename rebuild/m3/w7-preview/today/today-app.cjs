@@ -273,6 +273,36 @@ const SETUP_ENTRY = "Set up your week";
    agree, and this module is a SETUP_SOURCE so the harvest sees it here. */
 const SETUP_NOT_HIS_NUMBERS = "Your week is saved on this device. The numbers on this screen are still the preview’s sample athlete, not you. Nothing here was measured from anything you did.";
 
+/* S6 item 2 (DECISIONS:463 "Related daily-use item", :468 (c)). THE PREVIEW PATH
+   SAYS IT IS A PREVIEW. Before the first run this page paints the fixture athlete's
+   own figures (today-model.cjs createBasisState over fixtures.cjs) with no mark on
+   them, which reads as measured data. P0B.12 covers only the ENROLLED first frame,
+   so it never caught this. Setup-first (item 1) takes the preview off the shipped
+   page's landing screen, but the preview is still reachable by name (`?screen=today`)
+   and is what every declared-day caller sees, so wherever those figures can render
+   before enrolment this line sits above the first of them. It is a statement about
+   the SCREEN, not a figure, and it carries no dash. */
+const SAMPLE_DATA_NOTE = "Sample data. Set up your week to start your own.";
+
+/* S6 item 3 - THE RESUME LABEL (DECISIONS:452, :468 (d)).
+
+   `view.workout` is the engine's NEXT SCHEDULED SESSION and its title carries a
+   RELATIVE DAY STAMP ("UPPER BODY · TODAY" / "· TOMORROW" / "· MON 9/21",
+   rebuild/engine/today.cjs:591-597). A session is "active" only when THIS device has
+   an open session for the day the page is standing on, and the client prepares one
+   from the planned split slot whether or not the ENGINE schedules a session that day,
+   so on a day the engine calls REST the CTA read "Resume UPPER BODY · TOMORROW" for a
+   workout being logged now. Where the stamp truly describes today, the engine's own
+   words are kept unchanged; where it does not, the button names what the tap opens
+   and claims no day of its own. The engine is not touched and no lift name is
+   invented. Exported so a cell can assert both branches directly. */
+const RESUME_TODAYS_WORKOUT = "Resume today's workout";
+function resumeLabel(workout) {
+  return workout && workout.today === true && typeof workout.title === "string" && workout.title
+    ? "Resume " + workout.title
+    : RESUME_TODAYS_WORKOUT;
+}
+
 /* WHEN THE SENTENCE IS OWED, as a predicate rather than a flag, so that it clears
    ITSELF the day H3 closes and boot() paints his own state: the moment Today is
    standing on the athlete whose week the record holds, the two labels agree and
@@ -339,6 +369,14 @@ function mountToday(doc, model, options = {}) {
        open({ doc, phone, back, done }) -> mounts the six screens into #phone */
   const setup = options.setup || null;
   const firstRun = () => !!(setup && typeof setup.firstRun === "function" && setup.firstRun() === true);
+  /* S6 item 1 (owner ruling DECISIONS:463). Whether THIS mount lands on the setup
+     screens when the durable record says the installation is fresh. today-entry.mjs
+     boot() sets it true for the shipped page (the caller that declares no day) and
+     false for every declared-day caller, which is what keeps the pre-setup Today
+     preview reachable for the fixtures and checks that were built on it. A caller
+     that mounts this module directly and says nothing gets the landing it has always
+     had. */
+  const setupFirst = options.setupFirst === true;
 
   /* N1 - THE FOOD LANE, and why this module opens it rather than boot().
 
@@ -730,6 +768,7 @@ function mountToday(doc, model, options = {}) {
     map.get("sleep-state").textContent = plainOrDrop(sleepState(), "sleep-state");
     setupTile(map);
     setupNote(map);
+    sampleNote(map, root);
     problemControl(map);
     put(map, "morning", morningLine(view));
     put(map, "trend", trendLine(view));
@@ -739,7 +778,7 @@ function mountToday(doc, model, options = {}) {
        progress the single primary action resumes it, in the approved design's own
        word. A recorded workout is reviewable, not restartable. */
     const resuming = !!(today && today.phase === "active");
-    const action = resuming ? "Resume " + view.workout.title
+    const action = resuming ? resumeLabel(view.workout)
       : stranded ? CLOSE_UNFINISHED_WORKOUT
       /* P0-C item (b) - the primary label must name the sheet the click below
          actually opens. Before a weigh-in this click ALWAYS opens WEIGHT
@@ -781,6 +820,20 @@ function mountToday(doc, model, options = {}) {
     measureTile.dataset.go = "measure";
     measureTile.textContent = "Measure";
     root.append(measureTile);
+
+    /* S6 item 4 - THE BUILD FOOTER (DECISIONS:468 (b)). The served page names the
+       commit it was built from, in visible text, so a verifier can tie what is on
+       the phone to a tip without going through GitHub Actions and the service
+       worker's cache name. It is built here, not added to the approved template,
+       for the Measure tile's reason directly above; it is the LAST thing on the
+       screen, below every control, because it is for the person checking the
+       build and not for the athlete. The value is problem-report.cjs's own
+       build-time literal, and unbuilt it reads "Build unknown" rather than
+       leaking a placeholder. */
+    const buildFooter = doc.createElement("p");
+    buildFooter.dataset.slot = "build-id";
+    buildFooter.textContent = plainOrDrop(ProblemReport.buildFooterLine(ProblemReport.COMMIT), "build-id");
+    root.append(buildFooter);
 
     wire(root);
     show(root, focus);
@@ -1890,6 +1943,31 @@ function mountToday(doc, model, options = {}) {
     return offer;
   }
 
+  /* S6 item 2 - THE SAMPLE MARK, bound to the SAME durable answer the tile is bound
+     to. It is shown exactly while firstRun() is true: the record says this
+     installation has never been set up, so every figure on the frame is the
+     fixture's. On an ENROLLED frame firstRun() is false and the line is not built at
+     all - which is the assertion the cell makes in both directions. With no setup
+     entry (a device whose store did not open, a RESTORE_REQUIRED device, a caller
+     that mounts this module with no lane) the page cannot know, and it does not
+     guess: nothing is claimed either way, exactly as setupTile already behaves.
+
+     WHERE IT SITS. renderToday builds a fresh root from the approved template on
+     every paint, so this inserts rather than toggles, and it inserts BEFORE the
+     root-level block that carries the first figure (the calorie headline), which is
+     what "above the first figure" means on this screen. The template is untouched:
+     the element is built here, the same way the Measure tile below already is. */
+  function sampleNote(map, root) {
+    if (!firstRun()) return false;
+    const line = doc.createElement("p");
+    line.dataset.slot = "sample-note";
+    line.textContent = plainOrDrop(SAMPLE_DATA_NOTE, "sample-note");
+    let anchor = map.get("kcal") || null;
+    while (anchor && anchor.parentNode !== root) anchor = anchor.parentNode;
+    if (anchor) root.insertBefore(line, anchor); else root.prepend(line);
+    return true;
+  }
+
   /* A4 / C1 - the sentence, bound exactly as the tile is. `state` is the engine
      state Today is actually painting from, so the comparison is with what is on
      the screen and not with what the page hoped was on it. */
@@ -2164,7 +2242,16 @@ function mountToday(doc, model, options = {}) {
   }
   const willAdopt = canAdoptAthleteState();
   if (willAdopt) armAdoptionGate();
-  render(requestedScreen() || "today");
+  /* S6 item 1 - THE LANDING SCREEN (owner ruling DECISIONS:463). A device whose
+     durable record holds no first-run operation opens on the setup screens; an
+     enrolled device, a device whose store did not open, and a RESTORE_REQUIRED
+     device are all unchanged, because firstRun() is false in every one of those
+     cases. `?screen=` still wins, which is what keeps the pre-setup Today preview
+     reachable by name on the live path, and the render() guard above still refuses
+     the setup route on an installation that is no longer fresh. Nothing here
+     changes what setup WRITES or how it hands over: the "done" callback below is
+     the same setup-to-Today transition P0-C already owns. */
+  render(requestedScreen() || (setupFirst && firstRun() ? "setup" : "today"));
 
   /* P0 HIS NUMBERS (CRITICAL-PATH-2026-09-15 section 4, Route B) - ON AN ENROLLED
      INSTALLATION, TODAY AND THE GYM CARD STAND ON THE ATHLETE'S OWN STATE.
@@ -2314,6 +2401,7 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   UNFINISHED_WORKOUT, CLOSE_UNFINISHED_WORKOUT,
   CHECKIN_RECORDED_TODAY, CHECKIN_NO_STORE_SHORT, CHECKIN_NO_STORE,
   SETUP_ENTRY, SETUP_NOT_HIS_NUMBERS, setupNoteNeeded,
+  SAMPLE_DATA_NOTE, RESUME_TODAYS_WORKOUT, resumeLabel,
   PROBLEM_ENTRY, PROBLEM_COPIED, PROBLEM_SELECT,
   FOOD_HEAD, FOOD_LEAD, FOOD_CAL_LABEL, FOOD_PRO_LABEL, FOOD_SAVE, FOOD_SAVED,
   FOOD_CORRECTION, FOOD_REFUSED, FOOD_NO_TARGETS, FOOD_NOT_PRESCRIBED, FOOD_REFUSAL_COPY,

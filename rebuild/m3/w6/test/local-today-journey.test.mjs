@@ -651,33 +651,37 @@ export const PAGE_PINS = Object.freeze({
      (open item 6's growth closed by the same line) before the new day paints.
      Re-read again at this re-pin: the `hosts` branch is still byte-unchanged,
      an INJECTED installation is still never closed by this page, and a
-     declared-day caller still gets no watcher and so never reaches any of it. */
-  'today-entry.mjs': '029e096b7c9e7dfc501b05e699c0d83f0f1b1d2eb6b0e20fc17ee0cfb498bebe',
+     declared-day caller still gets no watcher and so never reaches any of it.
+     S6 SMALL ITEMS re-pin (owner ruling DECISIONS:463, caveat :452 / :468 (d)).
+     today-entry.mjs moves twice, and neither move is a store move. (1) boot()
+     computes `setupFirst` and hands it to mountToday: with NO declared day (the
+     shipped page) a fresh installation lands on the setup screens instead of the
+     preview, and with a DECLARED day - every fixture, check and suite here - the
+     landing is the one it always had, so this suite's own blocks are untouched.
+     (2) createWorkoutEntry carries the engine's relative-day session stamp to the
+     gym card ONLY while it describes the card's own day, so a card standing on a
+     day the engine schedules no session no longer heads itself "· TOMORROW".
+     Re-read against today-bindings.mjs once more at this re-pin, as every re-pin
+     must: the `hosts` branch is byte-unchanged, no wrapper opens a store of its
+     own, an INJECTED installation is still never closed by this page, and a
+     declared-day caller still gets no watcher at all. */
+  'today-entry.mjs': 'a4a4041d5bba8345ffba5dac722c317c534c5c5628194ca966f12a946173bb11',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',
 });
 
-/* THE CHAIN OF DECLARING SPECS, youngest last, in the ruled order
-   (DECISIONS:124, extended by :414 (2) and this package). A guard that asks
-   "did this file move" is answered honestly by a package that DECLARED the
-   move: H3 pointed the B-NTC re-pin cell at packages/H3.json, S3 moved it to
-   packages/S3.json, and S4 makes the read a CHAIN rather than one name, so a
-   file is exempt only while it stands at the post-image the YOUNGEST spec that
-   declares it declares for it. An undeclared move, a declared move that has not
-   landed, and drift in anything no spec names are all still red; with no spec on
-   the branch the exemption set is empty and every cell is the original cell. */
-export const CHILD_SPECS = Object.freeze(['H3', 'S3', 'S4']);
-export function declaredPostIn(read, file) {
-  for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
-    let product = null;
-    try { product = JSON.parse(read('rebuild/lanes/b/tooling/packages/' + CHILD_SPECS[i] + '.json')).product; }
-    catch { product = null; }
-    if (product && Object.hasOwn(product, file) && typeof product[file].post === 'string')
-      return product[file].post;
-  }
-  return null;
-}
+/* S6 item 5 (S5 independent review r1, MINOR 2) - THE DEAD CHAIN READER IS GONE.
+   `CHILD_SPECS` / `declaredPostIn` were exported from here and imported by NOTHING,
+   in this file or anywhere in the tree. The three guard cells that do read the chain
+   of declaring specs - rebuild/m3/w7-preview/today/test/food.test.mjs,
+   test/machine-settings-ui.test.mjs and test/setup.test.mjs - each hold their own
+   copy, and each of those copies already names ['H3','S3','S4','S5'] while the export
+   here still stopped at S4. Making this the shared reader would mean those three
+   files IMPORTING A TEST MODULE, which would run this whole journey suite three more
+   times inside them; so the dead, stale copy is deleted instead. No assertion moves:
+   nothing called it. The cell below is unchanged and still the only guard in this
+   file, and it still reads PAGE_PINS. */
 const pageFile = name => fileURLToPath(new URL('../../w7-preview/today/' + name, import.meta.url));
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 

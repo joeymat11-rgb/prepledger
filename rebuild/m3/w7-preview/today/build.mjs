@@ -14,6 +14,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { execFileSync } from "node:child_process";
 import { buildBrowser } from "../../w6/build-browser.mjs";
 import design from "./design.cjs";
 /* THE BUILD-TIME REFUSAL for the owner's no-dashes rule (DECISIONS:114 (1), P1 brief
@@ -28,7 +29,7 @@ import PlainCopy from "./plain-copy.cjs";
 import ProblemReport from "./problem-report.cjs";
 
 const { assertNoAiDashesInAssets } = PlainCopy;
-const { BUILD_PLACEHOLDER } = ProblemReport;
+const { BUILD_PLACEHOLDER, COMMIT_PLACEHOLDER, COMMIT_UNKNOWN } = ProblemReport;
 const { APPROVED, readApproved, readFonts, assertDesignBinding, composeStyles } = design;
 
 export const SOURCE = path.dirname(fileURLToPath(import.meta.url));
@@ -294,6 +295,38 @@ export function injectBuildId(bundle, tag) {
   return bundle.replace(BUILD_PLACEHOLDER, tag);
 }
 
+/* S6 item 4 - THE BUILT COMMIT (DECISIONS:468 (b)).
+
+   The build id above names the INPUTS; this names the COMMIT those inputs were read
+   at, which is the half a verifier can look up. It is asked of Git itself, at build
+   time, in the repository this file lives in, and it is the only thing in this build
+   that reaches outside the tree - so it is failure-tolerant by construction: no
+   repository, no git on PATH, a detached or empty tree, anything at all, and the
+   build writes the honest word "unknown" instead of guessing. The returned value is
+   checked to be exactly what `git rev-parse --short` can return (lowercase hex, 4 to
+   40 characters) before it is allowed into the page, so a stray line of git output
+   can never become the page's own name for itself. */
+export function commitOf(cwd = ROOT) {
+  try {
+    const out = execFileSync("git", ["rev-parse", "--short", "HEAD"],
+      { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    return /^[0-9a-f]{4,40}$/.test(out) ? out : COMMIT_UNKNOWN;
+  } catch (_) { return COMMIT_UNKNOWN; }
+}
+
+/* The injection, under the build id's own rule and its own refusal: the literal must
+   be in the bundle EXACTLY ONCE. Zero means problem-report.cjs left the graph or the
+   literal was renamed, and the page would print a name for a build that does not
+   exist; more than one means something else in the graph spells it and the
+   replacement would be ambiguous. Both refuse the build. */
+export function injectCommit(bundle, commit) {
+  const found = bundle.split(COMMIT_PLACEHOLDER).length - 1;
+  assert.equal(found, 1, `COMMIT-INJECTION FAIL: the commit literal appears ${found} times, not once`);
+  assert(/^[0-9a-f]{4,40}$/.test(commit) || commit === COMMIT_UNKNOWN,
+    `COMMIT-INJECTION FAIL: ${commit} is not a short sha and not ${COMMIT_UNKNOWN}`);
+  return bundle.replace(COMMIT_PLACEHOLDER, commit);
+}
+
 export function assertBundleInputs(inventory) {
   const paths = inventory.map((i) => i.path);
   for (const [label, match] of FORBIDDEN) {
@@ -358,11 +391,14 @@ export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
   /* The build names itself, from what went into it, before a byte is written. */
   const buildId = buildIdOf(built.inventory);
   const buildTag = buildTagOf(built.inventory);
+  /* S6 item 4 - and the commit those inputs were read at, so the page can say it. */
+  const commit = commitOf();
 
   const contents = {
     "index.html": shell.replace("<!-- APPROVED_TEMPLATES -->", template),
     "styles.css": composeStyles(approved, chrome, fonts),
-    "app.js": injectBuildId((await fs.readFile(built.outfile)).toString("utf8"), buildTag),
+    "app.js": injectCommit(
+      injectBuildId((await fs.readFile(built.outfile)).toString("utf8"), buildTag), commit),
   };
   assertNoNetworkReference(Object.entries(contents));
   /* Before a byte is written: nothing in the bundle reads a global only Node has. */
@@ -378,7 +414,7 @@ export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
   assert.deepEqual((await fs.readdir(dist)).sort(), [...ASSETS].sort(), "PACKAGE-ALLOWLIST FAIL");
 
   return { dist, assets: [...ASSETS], inputs, inventory: built.inventory, dashes, nodeGlobals,
-    buildId, buildTag,
+    buildId, buildTag, commit,
     approved: APPROVED.map((a) => a.sha256), fonts: fonts.map((f) => ({ name: f.name, sha256: f.sha256 })), binding };
 }
 
@@ -388,7 +424,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     const engine = result.inputs.filter((p) => p.startsWith("rebuild/engine/"));
     const client = result.inputs.filter((p) => p.startsWith("rebuild/client/"));
     console.log(`A1 TODAY BUILD PASS: ${result.assets.length} assets; ${result.inputs.length} pinned inputs `
-      + `(${engine.length} engine, ${client.length} client); build ${result.buildTag}; approved design pinned; `
+      + `(${engine.length} engine, ${client.length} client); build ${result.buildTag}; commit ${result.commit}; approved design pinned; `
       + `${result.binding.classes} bound classes; ${result.fonts.length} pinned typefaces inlined; `
       + `no literal figure in the template; ${result.assets.length}/${result.assets.length} assets scanned and free of any network reference; `
       + `no em/en dash in any text the athlete can see (${result.dashes.admitted} frozen-source strings carry one and `

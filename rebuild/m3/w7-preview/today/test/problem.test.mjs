@@ -17,7 +17,7 @@ import { createGymHost, openTodayHosts } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES, ADOPTION_PENDING } from '../gym-model.mjs';
 import { createWorkoutEntry, createSetupEntry, createCheckInEntry, boot,
   SETUP_BASIS_STATE_REFUSED } from '../today-entry.mjs';
-import { createCleanInitState, createSetupModel } from '../setup-model.mjs';
+import { createCleanInitState, createSetupModel, COPY as SETUP_COPY } from '../setup-model.mjs';
 import { createSetupHost } from '../setup-host.mjs';
 import TodayApp from '../today-app.cjs';
 import TodayModel from '../today-model.cjs';
@@ -25,7 +25,8 @@ import ProblemReport from '../problem-report.cjs';
 import ClientCopy from '../../../../client/copy.cjs';
 import PlainCopy from '../plain-copy.cjs';
 import design from '../design.cjs';
-import { buildToday, buildIdOf, buildTagOf, injectBuildId, DIST } from '../build.mjs';
+import { buildToday, buildIdOf, buildTagOf, injectBuildId, injectCommit, commitOf, ASSETS,
+  DIST } from '../build.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -41,7 +42,7 @@ const readAsset = (name) => fs.readFile(path.join(DIST, name), 'utf8');
 const { mountToday, createTodayModel, PROBLEM_ENTRY, PROBLEM_COPIED, PROBLEM_SELECT } = TodayApp;
 const { buildProblemReport, devicePrefix, lanesOpen, enrolmentOf, offlineReadinessOf,
   stampOf, FIELDS, ENROLMENT, LANES, OFFLINE, BUILD, BUILD_PLACEHOLDER, RESTORE_MARK,
-  NONE, UNKNOWN } = ProblemReport;
+  NONE, UNKNOWN, COMMIT, COMMIT_PLACEHOLDER, COMMIT_UNKNOWN, buildFooterLine } = ProblemReport;
 const DAY = TodayModel.SYNTHETIC_DAY;
 const SLOT = 'earned-today-preview/' + DAY;
 const AI_DASH = /[–—]/;
@@ -671,8 +672,10 @@ async function p0bEnrolledDevice() {
   host.close();
   return { fault, setup };
 }
-/* A real page load over the device's store - boot(), unedited, exactly as the
-   shipped page calls it (today-entry.mjs is byte-identical to the tip). */
+/* A real page load over the device's store - boot(), unedited. It DECLARES its
+   day, so it is on the fixture's pinned preview instant (S4's own rule) and, from
+   S6 item 1 on, on the pre-setup Today preview rather than the setup-first landing
+   the shipped page takes; the setup-first landing has its own cells (S6C.1-S6C.4). */
 async function p0bOpen(kit) {
   const dom = new JSDOM(shell());
   const booted = await boot({ document: dom.window.document, today: P0B_DAY,
@@ -3044,4 +3047,337 @@ test('N2-19 - with no nights recorded the engine reads UNKNOWN, never zero, and 
   const view = bare.read();
   assert.equal(view.blocked, false, 'an absent night blocked the day it does not describe');
   assert(view.workout, 'the workout preparation refused an athlete for a night it never recorded');
+});
+
+/* ==========================================================================
+   S6 SMALL ITEMS (ticket S6-C). Owner ruling DECISIONS:463 verbatim - "A fresh
+   install should open on setup first" - plus the three carried observations of
+   :468 (b) build id in the footer, (c) the unlabelled sample athlete, (d) the
+   late-evening "UPPER BODY · TOMORROW" header first seen at :452.
+
+   Real here, as everywhere else in this file: the encrypted repository over
+   fake-indexeddb, the accepted durable public client, boot() itself and the
+   shipped template. Nothing reaches src/history.js, ledger/ or any soak path,
+   and every figure below is the invented fixture athlete's.
+
+   THE LIVE PATH. Items 1 to 4 are about the caller that declares NO day - the
+   shipped page - so these cells call boot() with `now` and no `today`, which is
+   the only way to stand on the live branch without waiting out a real clock.
+   ========================================================================== */
+/* A LOCAL instant, built the way a device's own Date is: 2026-09-16 is a
+   Wednesday and is the fixture athlete's own REFEED day, so the engine
+   schedules NO session on it and its next session is Thursday the 17th. That is
+   what makes it the right day to drive item 3 across. */
+const s6At = (y, m, d, h, min) => new Date(y, m - 1, d, h, min, 0, 0);
+const S6_EVE = s6At(2026, 9, 16, 23, 59);
+const S6_PAST_MIDNIGHT = s6At(2026, 9, 17, 0, 1);
+const S6_AFTERNOON = s6At(2026, 9, 16, 14, 0);
+const S6_REST_DAY = '2026-09-16';
+const S6_SESSION_DAY = '2026-09-17';
+/* The fixture athlete's own distinctive figures and words, as P0B.12 names them:
+   if any of these paint, the frame is the sample athlete's. */
+const S6_SAMPLE_STRINGS = ['2,300', '155 g', '180.4', 'ON COURSE', 'cut is working',
+  'Chest press', 'Seated row'];
+const s6Phone = (dom) => dom.window.document.getElementById('phone').textContent;
+
+/* An enrolled device, then a live-clock page load over it: the same shape as
+   p0bEnrolledDevice()/p0bOpen(), one day and one clock different. */
+async function s6EnrolledOn(day) {
+  const fault = faultDatabase();
+  const host = await createSetupHost({ day, indexedDB: fault.indexedDB, crypto: webcrypto });
+  const setup = p0bFirstRunDocument();
+  assert.equal((await host.save(setup, p0bTags(setup))).ok, true);
+  host.close();
+  return fault;
+}
+async function s6BootLive(fault, at, extra = {}) {
+  const dom = new JSDOM(shell());
+  const booted = await boot({ document: dom.window.document, now: () => at,
+    indexedDB: fault.indexedDB, crypto: webcrypto, ...extra });
+  return { dom, doc: dom.window.document, booted };
+}
+
+test('S6C.1 - a fresh install opens on SETUP screen 1, and paints no sample figure', async () => {
+  const fault = faultDatabase();
+  const { dom, booted } = await s6BootLive(fault, S6_AFTERNOON);
+  assert.equal(booted.today, S6_REST_DAY, 'the live path resolved this device\'s own local day');
+  assert.equal(booted.setup.firstRun(), true, 'the DURABLE record holds no first-run operation');
+  assert.equal(booted.api.screen(), 'setup',
+    'DECISIONS:463: a fresh install opens on setup first');
+  const painted = s6Phone(dom);
+  assert(painted.includes(SETUP_COPY.screen1Head),
+    'and on screen 1 of the six: ' + SETUP_COPY.screen1Head);
+  for (const needle of S6_SAMPLE_STRINGS) {
+    assert.equal(painted.includes(needle), false,
+      'the sample athlete\'s "' + needle + '" is never the first thing a fresh install shows');
+  }
+  booted.hosts.close();
+});
+
+test('S6C.2 - an ENROLLED device still boots straight to Today, on the same live clock', async () => {
+  const fault = await s6EnrolledOn(S6_REST_DAY);
+  const { booted, doc } = await s6BootLive(fault, S6_AFTERNOON);
+  assert.equal(booted.setup.firstRun(), false, 'the record holds a first run');
+  assert.equal(booted.api.screen(), 'today', 'an enrolled device is never sent back to setup');
+  await booted.api.ready;
+  assert.equal(booted.model.stateFromOps().athlete_label, 'Dad',
+    'and it is standing on HIS state, exactly as P0B.1 requires');
+  assert.equal(doc.querySelector('[data-slot="sample-note"]'), null,
+    'no sample mark on an enrolled frame');
+  /* The route is REFUSED, not merely unused: ?screen=setup cannot re-enrol. */
+  booted.api.render('setup');
+  assert.equal(booted.api.screen(), 'today', 'the S13 refusal is untouched by the new landing');
+  booted.hosts.close();
+});
+
+/* A device with NO store at all (jsdom has no indexedDB) gets no setup entry, so
+   it cannot know whether it is fresh and does not guess: it lands where it always
+   did. Same for a declared-day caller, which is every fixture and check in this
+   repository - that is what keeps the pre-setup Today preview reachable. */
+test('S6C.2b - no store, and a declared day, both land where they always did', async () => {
+  const dom = new JSDOM(shell());
+  const noStore = await boot({ document: dom.window.document, today: DAY });
+  assert.equal(noStore.setup, null, 'no store, so no first-run lane and no guess');
+  assert.equal(noStore.api.screen(), 'today');
+
+  const fault = faultDatabase();
+  const declared = new JSDOM(shell());
+  const booted = await boot({ document: declared.window.document, today: S6_REST_DAY,
+    indexedDB: fault.indexedDB, crypto: webcrypto });
+  assert.equal(booted.setup.firstRun(), true, 'this device really is fresh');
+  assert.equal(booted.api.screen(), 'today',
+    'a caller that DECLARES its day keeps the pre-setup Today preview (S4\'s own rule)');
+  booted.hosts.close();
+});
+
+test('S6C.3 - completing setup lands on Today with HIS own empty records and no sample figure', async () => {
+  const fault = faultDatabase();
+  const { dom, doc, booted } = await s6BootLive(fault, S6_AFTERNOON);
+  assert.equal(booted.api.screen(), 'setup', 'it opened where S6C.1 says it opens');
+  const model = booted.setup.setup;
+  model.setName('Joe-test');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const press = model.addExercise('U');
+  model.setExerciseField(press.key, 'n', 'Joe-test Bench Press');
+  model.chooseMg(press.key, 'chest');
+  model.setExerciseField(press.key, 'first', '20');
+  model.goto(6);
+  booted.api.render('setup');
+  const primary = doc.querySelector('#phone [data-slot="primary"]');
+  assert.equal(primary.textContent.trim(), 'Start using Earned');
+  primary.click();
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  await booted.api.ready;
+  assert.equal(booted.api.screen(), 'today', 'the existing setup-to-Today transition, unchanged');
+  const firstFrame = s6Phone(dom);
+  /* P0B.12's own bar, on the landing this ticket creates. */
+  for (const needle of S6_SAMPLE_STRINGS) {
+    assert.equal(firstFrame.includes(needle), false, 'no fixture string survives setup: ' + needle);
+  }
+  assert.equal(doc.querySelector('[data-slot="sample-note"]'), null, 'and no sample mark either');
+  assert.equal(booted.model.stateFromOps().athlete_label, 'Joe-test',
+    'Today stands on his own record');
+  assert.equal(booted.model.read().storedReadCount, 0, 'with nothing measured yet');
+  booted.hosts.close();
+});
+
+test('S6C.4 - a RELOAD after setup boots to Today, off the same store, on the live clock', async () => {
+  const fault = faultDatabase();
+  const first = await s6BootLive(fault, S6_AFTERNOON);
+  assert.equal(first.booted.api.screen(), 'setup');
+  const model = first.booted.setup.setup;
+  model.setName('Joe-test');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const press = model.addExercise('U');
+  model.setExerciseField(press.key, 'n', 'Joe-test Bench Press');
+  model.chooseMg(press.key, 'chest');
+  model.setExerciseField(press.key, 'first', '20');
+  model.goto(6);
+  first.booted.api.render('setup');
+  first.doc.querySelector('#phone [data-slot="primary"]').click();
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  await first.booted.api.ready;
+  assert.equal(first.booted.api.screen(), 'today', 'the first load ended on Today');
+  first.booted.teardown();
+
+  /* A second page load - a real reload - over the SAME installation. */
+  const again = await s6BootLive(fault, S6_AFTERNOON);
+  assert.equal(again.booted.setup.firstRun(), false, 'the durable record answers, not a flag');
+  assert.equal(again.booted.api.screen(), 'today', 'the reload lands on Today');
+  assert.equal(again.doc.querySelector('[data-slot="sample-note"]'), null);
+  again.booted.hosts.close();
+});
+
+test('S6C.5 - the SAMPLE MARK sits above the first figure on the preview path, and on no enrolled frame', async () => {
+  /* The preview path: a fresh installation that reached Today anyway - by a
+     declared day, or by `?screen=today` on the live page. Both are the explicit
+     option; neither is the shipped page's landing any more. */
+  const fault = faultDatabase();
+  const dom = new JSDOM(shell());
+  const booted = await boot({ document: dom.window.document, today: S6_SESSION_DAY,
+    indexedDB: fault.indexedDB, crypto: webcrypto });
+  assert.equal(booted.setup.firstRun(), true);
+  assert.equal(booted.api.screen(), 'today', 'the preview is reachable');
+  const note = dom.window.document.querySelector('#phone [data-slot="sample-note"]');
+  assert(note, 'the preview frame carries the mark');
+  assert.equal(note.textContent, TodayApp.SAMPLE_DATA_NOTE);
+  assert.equal(note.textContent, 'Sample data. Set up your week to start your own.');
+  assert.equal(AI_DASH.test(note.textContent), false, 'and it carries no em or en dash');
+  booted.hosts.close();
+});
+
+test('S6C.5b - the mark is ABOVE the first figure, and absent on every enrolled frame', async () => {
+  const fault = faultDatabase();
+  const dom = new JSDOM(shell());
+  const booted = await boot({ document: dom.window.document, today: S6_SESSION_DAY,
+    indexedDB: fault.indexedDB, crypto: webcrypto });
+  const doc = dom.window.document;
+  const note = doc.querySelector('#phone [data-slot="sample-note"]');
+  const kcal = doc.querySelector('#phone [data-slot="kcal"]');
+  assert(kcal, 'the first figure really is on this frame');
+  assert.equal(kcal.textContent, TodayApp.calorieHeadline(booted.model.read().calorieTarget),
+    'and it really is the sample athlete\'s own figure');
+  /* DOCUMENT_POSITION_FOLLOWING = 4: the figure comes after the mark. */
+  assert.equal(!!(note.compareDocumentPosition(kcal) & 4), true,
+    'the mark sits above the first figure, not under it');
+  booted.hosts.close();
+
+  /* THE OTHER DIRECTION, on every enrolled frame this page can paint: the boot
+     frame, the settled frame after adoption, and a repaint after that. */
+  const enrolled = await s6EnrolledOn(S6_REST_DAY);
+  const live = await s6BootLive(enrolled, S6_AFTERNOON);
+  assert.equal(live.doc.querySelector('[data-slot="sample-note"]'), null, 'boot frame');
+  await live.booted.api.ready;
+  live.booted.api.render('today');
+  assert.equal(live.doc.querySelector('[data-slot="sample-note"]'), null, 'settled frame');
+  live.booted.api.render('coach');
+  live.booted.api.render('today', true);
+  assert.equal(live.doc.querySelector('[data-slot="sample-note"]'), null, 'and every repaint after');
+  live.booted.hosts.close();
+});
+
+/* --------------------------------------------------------------------------
+   S6 item 3 - THE LATE-EVENING HEADER (DECISIONS:452, :468 (d)).
+
+   THE MECHANISM, executed below rather than described. `nowModel.workout`
+   (rebuild/engine/today.cjs:591-597) is the NEXT SCHEDULED SESSION: the engine
+   walks k9 = 0..6 from its own day and stamps the title with the day it lands
+   on - "· TODAY" at k9 0, "· TOMORROW" at k9 1, "· MON 9/21" after that. It is
+   NOT a function of the hour, and S4's real-day resolution is correct at 23:59:
+   the two cells below stand the SAME page at 23:59 and at 00:01 across a local
+   midnight and the day resolves to the 16th and then the 17th. What was wrong is
+   that two surfaces that act on TODAY reused that next-session string as if it
+   named the session in hand - the gym card's header (`sessionTitle`) and Today's
+   Resume CTA - so on 2026-09-16, the fixture's REFEED day, a card the CLIENT
+   prepared from its own planned split slot was headed "UPPER BODY · TOMORROW".
+   Day boundary and session membership are two different questions, and only the
+   second one decides what the card is showing.
+   -------------------------------------------------------------------------- */
+test('S6C.6 - at 23:59 and at 00:01 the page stands on the right local day, both ways', async () => {
+  const fault = faultDatabase();
+  const eve = await s6BootLive(fault, S6_EVE);
+  assert.equal(eve.booted.today, S6_REST_DAY, '23:59 local is still the 16th, not the 17th');
+  assert.equal(eve.booted.model.read().today, S6_REST_DAY);
+  eve.booted.teardown();
+
+  const past = await s6BootLive(fault, S6_PAST_MIDNIGHT);
+  assert.equal(past.booted.today, S6_SESSION_DAY, '00:01 local is the 17th');
+  assert.equal(past.booted.model.read().today, S6_SESSION_DAY);
+  past.booted.hosts.close();
+});
+
+test('S6C.6b - the engine stamp is the NEXT session, and is carried only where it is true', () => {
+  /* The engine's own answer on the two days, unchanged and untouched. */
+  const rest = createTodayModel({ today: S6_REST_DAY }).read();
+  const session = createTodayModel({ today: S6_SESSION_DAY }).read();
+  assert.equal(rest.workout.title, 'UPPER BODY · TOMORROW');
+  assert.equal(rest.workout.today, false, 'the engine schedules NO session on the 16th');
+  assert.equal(rest.workout.exerciseCount, null);
+  assert.equal(session.workout.title, 'UPPER BODY · TODAY');
+  assert.equal(session.workout.today, true);
+  /* The hour cannot move it: the same day at 23:59 and at 14:00 reads the same. */
+  assert.equal(createTodayModel({ today: S6_REST_DAY }).read().workout.title, rest.workout.title);
+
+  /* THE CTA. Where the stamp describes today, the engine's words are kept
+     verbatim; where it does not, the button names the tap and claims no day. */
+  assert.equal(TodayApp.resumeLabel(session.workout), 'Resume UPPER BODY · TODAY');
+  assert.equal(TodayApp.resumeLabel(rest.workout), TodayApp.RESUME_TODAYS_WORKOUT);
+  assert.equal(TodayApp.RESUME_TODAYS_WORKOUT, "Resume today's workout");
+  assert.equal(TodayApp.resumeLabel(rest.workout).includes('TOMORROW'), false,
+    'the defect of :452: a Resume button that named TOMORROW for a workout in hand');
+  assert.equal(TodayApp.resumeLabel(null), TodayApp.RESUME_TODAYS_WORKOUT);
+  assert.equal(TodayApp.resumeLabel({ today: true, title: '' }), TodayApp.RESUME_TODAYS_WORKOUT);
+  assert.equal(AI_DASH.test(TodayApp.RESUME_TODAYS_WORKOUT), false);
+});
+
+test('S6C.6c - the gym card is headed with the stamp only on a day the stamp describes', async () => {
+  const onSession = faultDatabase();
+  const entryOn = await createWorkoutEntry(createTodayModel({ today: S6_SESSION_DAY }),
+    { indexedDB: onSession.indexedDB, crypto: webcrypto });
+  const headed = await entryOn.gym.read();
+  assert.equal(headed.day, S6_SESSION_DAY);
+  assert.equal(headed.title, 'UPPER BODY · TODAY',
+    'on a day the engine DOES schedule, the engine\'s own words reach the card unchanged');
+  entryOn.gymHost.close();
+
+  const onRest = faultDatabase();
+  const entryOff = await createWorkoutEntry(createTodayModel({ today: S6_REST_DAY }),
+    { indexedDB: onRest.indexedDB, crypto: webcrypto });
+  const unheaded = await entryOff.gym.read();
+  assert.equal(unheaded.day, S6_REST_DAY);
+  assert.equal(unheaded.title, null,
+    'on a day the stamp does not describe, the card is handed no title and falls back '
+    + 'to the session\'s own name rather than heading itself TOMORROW');
+  entryOff.gymHost.close();
+});
+
+/* --------------------------------------------------------------------------
+   S6 item 4 - THE BUILD ID IN THE FOOTER (DECISIONS:468 (b)). The served page
+   prints the commit it was built from, in visible text, so a verifier can tie
+   what is on the phone to a tip without going through GitHub Actions and the
+   service worker's cache name.
+   -------------------------------------------------------------------------- */
+test('S6C.7 - Today carries a "Build <sha>" footer, and unbuilt it says unknown', () => {
+  const kit = today({ model: createTodayModel({ today: DAY }) });
+  kit.api.render('today');
+  const footer = kit.doc.querySelector('#phone [data-slot="build-id"]');
+  assert(footer, 'Today prints a build line');
+  /* Unbuilt - this suite loads the module off disk - the literal is not injected,
+     and the page says so rather than leaking the placeholder at the athlete. */
+  assert.equal(COMMIT, COMMIT_PLACEHOLDER);
+  assert.equal(footer.textContent, 'Build ' + COMMIT_UNKNOWN);
+  assert.equal(footer.textContent.includes(COMMIT_PLACEHOLDER), false);
+  /* The shape, both branches, at the boundary that decides it. */
+  assert.equal(buildFooterLine('0ac72ea'), 'Build 0ac72ea');
+  assert.match(buildFooterLine('0ac72ea'), /^Build [0-9a-f]{4,40}$/);
+  assert.equal(buildFooterLine(COMMIT_PLACEHOLDER), 'Build unknown');
+  assert.equal(buildFooterLine(null), 'Build unknown');
+  assert.equal(buildFooterLine(''), 'Build unknown');
+  assert.equal(AI_DASH.test(buildFooterLine('0ac72ea')), false);
+  /* And commitOf() itself never invents one: no repository, no guess. */
+  assert.equal(commitOf(path.parse(process.cwd()).root), COMMIT_UNKNOWN);
+});
+
+test('S6C.7b - the BUILT page carries the commit exactly once, and still pins its three assets', async () => {
+  const result = await buildToday();
+  const app = await readAsset('app.js');
+  assert.match(result.commit, /^([0-9a-f]{4,40}|unknown)$/, 'the build named a commit or said unknown');
+  assert.equal(app.includes(COMMIT_PLACEHOLDER), false, 'the placeholder never ships');
+  assert.equal(app.split('Build ' + result.commit).length - 1 >= 0, true);
+  assert.equal(app.includes('"' + result.commit + '"') || app.includes("'" + result.commit + "'"), true,
+    'the injected commit really is in the bundle');
+  /* The injection refuses both ways it could be wrong, exactly as the build id's does. */
+  assert.throws(() => injectCommit('nothing to replace here', 'abc1234'), /COMMIT-INJECTION FAIL/);
+  assert.throws(() => injectCommit(COMMIT_PLACEHOLDER + ' ' + COMMIT_PLACEHOLDER, 'abc1234'),
+    /COMMIT-INJECTION FAIL/);
+  assert.throws(() => injectCommit('x ' + COMMIT_PLACEHOLDER + ' y', 'not a sha'),
+    /COMMIT-INJECTION FAIL/);
+  assert.equal(injectCommit('x ' + COMMIT_PLACEHOLDER + ' y', 'abc1234'), 'x abc1234 y');
+  /* The PWA precaches exactly what A1 writes, and A1 still writes exactly three
+     assets under the same allowlist - so the footer changed the bytes, not the
+     manifest the service worker pins. */
+  assert.deepEqual([...result.assets].sort(), [...ASSETS].sort());
+  assert.deepEqual((await fs.readdir(DIST)).sort(), [...ASSETS].sort());
+  /* And the footer really survived the build, in the page's own text. */
+  assert(app.includes('"Build "') || app.includes('Build '), 'the footer literal is in the bundle');
 });
