@@ -420,6 +420,11 @@
       "post": "b24cde6880a1f50054c526d6c74ef0506cbae7b7a5dba66028d7fa4c51846ff7",
       "role": "superseded-by-child"
     },
+    "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs": {
+      "pre": "4d470e68b3aa44d7dbf2c109e06e38560015f821cabc61493c0a1c4cbe8e88a6",
+      "post": "999986c87da474db1a42a1335f313792e27a9e5106f8dcf2de63b607e46142e6",
+      "role": "new"
+    },
     "rebuild/m3/w7-preview/today/today-entry.mjs": {
       "pre": "b50b92314b8e7730b4aab56e79a9bff2f03d949d234eeaf2a7270ec83f3fa111",
       "post": "029e096b7c9e7dfc501b05e699c0d83f0f1b1d2eb6b0e20fc17ee0cfb498bebe",

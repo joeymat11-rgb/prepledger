@@ -504,3 +504,123 @@ is on that path, and the suite is 586/586 where the private blob is absent.
    `GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-STATE-THE-COUNT`.
 4. `git diff b7dc642 -- <every product path with role edited or new>` — expect empty. The product is
    the reviewed product; round 4 added evidence and a citation, nothing else.
+
+
+## 11. Round 5 — the F6 literal, the tooling declaration, and the re-sealed artifact (DECISIONS:447)
+
+Routed by DECISIONS:447: the one loose end named in round 4 (§10.3(a)) is closed. `origin/rebuild/t2-client-core`
+was merged first (docs-only: `rebuild/DECISIONS.md` +3, `rebuild/lanes/pm/FRICTION-LOG.md` new, both
+carried unmodified into this branch).
+
+### 11.1 The one literal
+
+`rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs`, test `F6`, now reads
+the runner's real `IDS` (`b-package.cjs:140`) instead of the pre-S4 array:
+
+```
+assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'B1', 'B2', 'B4', 'B3', 'B-LOM']);
+assert.deepEqual(api.IDS.slice(0, 8), ['B-NTC', 'H3', 'S3', 'S4', 'B1', 'B2', 'B4', 'B3']);
+assert.equal(api.IDS[8], 'B-LOM');
+assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-LOM', 'B-NTC', 'H3', 'S3', 'S4']);
+```
+
+`S4` sits directly behind `S3` and ahead of `B1`, exactly where `b-package.cjs:140` already puts it
+(S4 is S3's own child under the same DECISIONS:444 rule S3 was H3's child under DECISIONS:414 (2)).
+Nothing else in the file changed. Re-run: `node --test --test-reporter=tap
+rebuild/lanes/b/tooling/test/*.test.cjs` → `# tests 90 / # pass 90 / # fail 0`.
+
+### 11.2 Declared in `packages/S4.json`
+
+The edited test file is not parent-pinned (`M2-S3-COMPANION` never declares it), so `product()`'s own
+rule (`b-package.cjs` W2: "a file the parent pins in neither map is this package's own: it either
+writes it (`new`) or declares... — role `new` is *new to the pinned inventory*, not `does not exist`,
+README §"How to instantiate a package" step 3) makes `edited` refuse
+`UNLISTED-PRODUCT-DRIFT` here (confirmed by a first attempt with role `edited`, which failed exactly
+that assertion). The correct declaration, matching the file's real `sourceBase` bytes at `pre` per the
+same rule:
+
+```
+"rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs": {
+  "pre": "4d470e68b3aa44d7dbf2c109e06e38560015f821cabc61493c0a1c4cbe8e88a6",
+  "post": "999986c87da474db1a42a1335f313792e27a9e5106f8dcf2de63b607e46142e6",
+  "role": "new"
+}
+```
+
+placed beside the `packages/S3.json` `superseded-by-child` entry, in `product`, the same section S3
+used for its own tooling-file declarations (`rebuild/lanes/b/tooling/b-package.cjs`: role `edited`,
+in `product`, since that file IS a parent-pinned inheritance-chain file back to `B-NTC`).
+
+### 11.3 Artifact regenerated
+
+`rebuild/m4/spec/acceptance-s4-real-day.json` recomputed from `proposed()` (spec `sha256`, runner
+`sha256`, `product`, `children`, `executionPins` re-taken; every other sealed key carried unchanged;
+`ROUNDTRIP true` before the rewrite, `KEY ORDER SAME true` / `PIN ORDER SAME true` after):
+
+- spec (`packages/S4.json`) sha256: `b2eb5eb8ef42d45063eea440319f4e5fde1b4a0c8aa55eaa5ac500e3f6edd4f5`
+- artifact (`acceptance-s4-real-day.json`) sha256: `12779767123e5b0983bcce4028c2c3213b0a6bf05a1661909ee5949f96d8a972`
+
+### 11.4 `--ci --package S4` — full runner tail
+
+```
+B PACKAGE S4 SPEC OBSERVED packages/S4.json b2eb5eb8ef42d45063eea440319f4e5fde1b4a0c8aa55eaa5ac500e3f6edd4f5; runner 422d1e9fd5174047a2eb5f92845826e22023d6d297a54e7a6a796f6824e20340 byte-identical on disk and in Git at HEAD; status=BRIEF-ACCEPTED; 0 D-ids ; 90 declared product files; 9 declared child(ren), argv file-first under 7 fixed root(s) with only --test --test-reporter=tap permitted; 0 declared move(s), each naming its own original executable in a relative require specifier (moves are refused outright under this runner — TOOLING-REVIEW-r3 X1); no successor carriers declared (every inherited gate must be carried by a parent-pinned executable); 5 byte-identity carrier(s) declared SUPERSEDED under a PM line recorded by sha256 a1d96976ed87, each with its own named and executed evidence
+B PACKAGE S4 PARENT OPTION S3 M2-S3-COMPANION rebuild/m4/spec/acceptance-s3-companion.json fb2f6a023ac6bcfc584c115078b16fb8ec21eba3a71c1c231c573d52dbab74f2 ACCEPTED at ee8fdbbb3045999ba15d70e86c36684c73611668 (DECISIONS:423); artifact byte-identical on disk, in Git at that commit and on refs/remotes/origin/rebuild/t2-client-core; review rebuild/m4/spec/review-s3-companion.json a008123a9036 byte-identical on disk and on that branch; receipt base 601ced4 is an ancestor of it
+B PACKAGE S4 PARENT BOUND S3 rebuild/m4/spec/acceptance-s3-companion.json fb2f6a023ac6bcfc584c115078b16fb8ec21eba3a71c1c231c573d52dbab74f2; single-parent chain holds — no sibling spec claims it on disk or in Git at HEAD, and no sealed artifact on refs/remotes/origin/rebuild/t2-client-core names it as parent
+B PACKAGE S4 POSTFIX M2-S4-REAL-DAY REVIEW-PENDING mode=--ci
+B PACKAGE S4 ENVELOPE ABSENT; rebuild/m4/spec/acceptance-s4-real-day.json is not sealed yet — no PASS word is available
+B PACKAGE S4 PARENT PINS RE-ASSERTED at run time; 1 pin(s) from rebuild/m4/spec/acceptance-s3-companion.json plus its 74 product pins through the inventory below, and 1 un-superseded grandparent pin(s) from rebuild/m4/spec/acceptance-h3-clean-init.json, byte-identical on disk AND in Git at HEAD; 75 superseded pin(s) preserved in Git at sourceBase f84e694; parent artifact byte-identical in Git at ee8fdbbb3045999ba15d70e86c36684c73611668
+B PACKAGE S4 PRODUCT IMPLEMENTED; 22 at the declared post-image / 0 at the pinned pre-image / 68 carried byte-identical from the parent / 0 declared role "pinned-unchanged" — executed by a declared child, produced by nothing / 0 unlisted drift; the inventory covers all 74 parent-pinned product files; 1 declared role "superseded-by-child" over a parent EXECUTION pin, each equal to the parent byte (rebuild/lanes/b/tooling/packages/S3.json)
+B PACKAGE S4 FIDELITY OBSERVED; sourceBase f84e694 ancestor of HEAD 509ade7; 6 engine/conform/m4-spec/lane-b-tooling file(s) changed since sourceBase, all in the fixed inventory; runner 422d1e9fd517 and spec b2eb5eb8ef42 pinned (artifact not sealed yet); 16 of 18 PIN_PATHS present in this tree and byte-identical Git vs disk; 2 not in this tree and therefore vacuous (rebuild/conform/goldens rebuild/conform/manifest.json)
+B PACKAGE S4 AUTHORITY OBSERVED owner DECISIONS:60 and contract DECISIONS:49 present as exact ledger line bytes at the parent receipt base 601ced4 under their own roles; contract inherited byte-equal from the parent; theme DECISIONS:441 found in Git on refs/remotes/origin/rebuild/t2-client-core; brief acceptance DECISIONS:442 found in Git on refs/remotes/origin/rebuild/t2-client-core; this package's own two lines are resolved on the chain branch, not at its parent's receipt base — they are written after the parent was sealed and could never be found there
+B PACKAGE S4 PROTECTED SURFACES 2 declared by the spec and echoed here, asserted by nothing in this line: rebuild/conform/goldens (public census and frozen goldens) | rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)
+B PACKAGE S4 PRIVATE LIVE-TRIGGERED none; a census change on any other declared D-id is a RED stop for a reviewed successor cell, never a golden regeneration
+B PACKAGE S4 LAWS 45/45 executed | TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls · 97/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL
+B PACKAGE S4 LAWS DECLARED-STATE 45/45 rows agree with the spec at product phase IMPLEMENTED; this package declares NO D-id, so these rows are the register BASELINE and prove nothing about it — its obligation is the Y1 own-child rule reported below
+B PACKAGE S4 CARRIERS NONE DECLARED; 0 witness flip(s) declared
+B PACKAGE S4 CHILD s4-real-day OBSERVED; exit 0, 3513 bytes of stdout, exact declared verdict at line start; ran rebuild/m3/w6/host/test/local-real-day.test.mjs
+B PACKAGE S4 CHILD today-13 OBSERVED; exit 0, 141397 bytes of stdout, exact declared verdict at line start; ran rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs
+B PACKAGE S4 CHILD a0-journeys OBSERVED; exit 0, 5237 bytes of stdout, exact declared verdict at line start; ran rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs
+B PACKAGE S4 CHILD s4-sup-source-carriers OBSERVED; exit 0, 1761 bytes of stdout, exact declared verdict at line start; ran rebuild/m4/workout/test/s4-supersede-source-carriers.test.cjs
+B PACKAGE S4 CHILD s4-sup-inherited-carriers OBSERVED; exit 0, 1296 bytes of stdout, exact declared verdict at line start; ran rebuild/m4/workout/test/s4-supersede-inherited-carriers.test.cjs
+B PACKAGE S4 CHILD s4-sup-defect-witnesses OBSERVED; exit 0, 1108 bytes of stdout, exact declared verdict at line start; ran rebuild/m4/workout/test/s4-supersede-defect-witnesses.test.cjs
+B PACKAGE S4 CHILD s4-sup-writers-differential OBSERVED; exit 0, 1167 bytes of stdout, exact declared verdict at line start; ran rebuild/m4/workout/test/s4-supersede-writers-differential.test.cjs
+B PACKAGE S4 CHILD s4-sup-second-gate OBSERVED; exit 0, 983 bytes of stdout, exact declared verdict at line start; ran rebuild/m4/workout/test/s4-supersede-second-gate.test.cjs
+B PACKAGE S4 CHILD engine-files-differential OBSERVED; exit 0, 4726 bytes of stdout, exact declared verdict at line start; ran rebuild/m4/workout/test/s4-engine-files-differential.cjs
+B PACKAGE S4 COVERAGE 0/19 original gate(s) covered by 0 executed child(ren) (0 inherited, the parent map byte-for-byte; 0 moved, each naming its own original executable in a relative require specifier and each proved by that gate's own needle out of R.GATES in the child's stdout); 9 SUPERSEDED under DECISIONS:444 (defect-witnesses 1, inherited-carriers 3, second-gate 1, source-carriers 3, writers-differential 1), counted toward the 19 only under that ruling; 10 re-execute under --full
+B PACKAGE S4 SUPERSESSIONS 5 byte-identity carrier(s) of S3 SUPERSEDED over 9 gate(s) under DECISIONS:444, located on refs/remotes/origin/rebuild/t2-client-core BY ITS OWN SHA256 a1d96976ed87; these gates reconstruct rebuild/engine byte-for-byte from a frozen BASE and assert every path the parent spec declares at the parent's own post, so no child that changes a declared file can carry them — the child's own evidence stands in their place and every named child ran green in THIS run
+B PACKAGE S4 NO-REGISTER OBLIGATION S4 registers no D-id, so the 45-law accounting imposes nothing on it; in its place 8 of 8 declared child(ren) executing one of this package's own role:"new" product file(s) ran in this process, exit 0, with their exact declared needle at line start — 1 required at the seal (9 child(ren) declared in total: s4-real-day -> rebuild/m3/w6/host/test/local-real-day.test.mjs; today-13 -> rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/problem.test.mjs; s4-sup-source-carriers -> rebuild/m4/workout/test/s4-supersede-source-carriers.test.cjs; s4-sup-inherited-carriers -> rebuild/m4/workout/test/s4-supersede-inherited-carriers.test.cjs; s4-sup-defect-witnesses -> rebuild/m4/workout/test/s4-supersede-defect-witnesses.test.cjs; s4-sup-writers-differential -> rebuild/m4/workout/test/s4-supersede-writers-differential.test.cjs; s4-sup-second-gate -> rebuild/m4/workout/test/s4-supersede-second-gate.test.cjs; engine-files-differential -> rebuild/m4/workout/test/s4-engine-files-differential.cjs)
+B PACKAGE S4 OPEN closed cumulative profile not sealed
+B PACKAGE S4 PUBLIC CI EVIDENCE PASS — public evidence only, NOT the package verdict; the 19 original gates, the private oracle and independent exact-artifact acceptance remain separate, and POSTFIX PACKAGE PASS is unavailable on this mode at any time
+```
+
+Exit 0. `SUPERSESSIONS` under `DECISIONS:444` as expected; 9/9 named children OBSERVED; `0 unlisted
+drift`.
+
+### 11.5 `--ci --package S3` — token quoted
+
+```
+B PACKAGE S3 SPEC OBSERVED packages/S3.json b24cde6880a1f50054c526d6c74ef0506cbae7b7a5dba66028d7fa4c51846ff7; runner 422d1e9fd5174047a2eb5f92845826e22023d6d297a54e7a6a796f6824e20340 byte-identical on disk and in Git at HEAD; status=BRIEF-ACCEPTED; 0 D-ids ; 74 declared product files; 13 declared child(ren), argv file-first under 7 fixed root(s) with only --test --test-reporter=tap permitted; 0 declared move(s), each naming its own original executable in a relative require specifier (moves are refused outright under this runner — TOOLING-REVIEW-r3 X1); no successor carriers declared (every inherited gate must be carried by a parent-pinned executable); 5 byte-identity carrier(s) declared SUPERSEDED under a PM line recorded by sha256 21252b845fb6, each with its own named and executed evidence
+B PACKAGE S3 PARENT OPTION H3 M2-H3-CLEAN-INIT rebuild/m4/spec/acceptance-h3-clean-init.json b457b539a384d8c72531b880cd771e996c6b231f034a49272e899c1fba61e61f ACCEPTED at 5f0c3781a227e18ffdf8236090fe2499ecd8782b (DECISIONS:187); artifact byte-identical on disk, in Git at that commit and on refs/remotes/origin/rebuild/t2-client-core; review rebuild/m4/spec/review-h3-clean-init.json 42295d2f4327 byte-identical on disk and on that branch; receipt base a4ed5ce is an ancestor of it
+B PACKAGE S3 PARENT BOUND H3 rebuild/m4/spec/acceptance-h3-clean-init.json b457b539a384d8c72531b880cd771e996c6b231f034a49272e899c1fba61e61f; single-parent chain holds — no sibling spec claims it on disk or in Git at HEAD, and no sealed artifact on refs/remotes/origin/rebuild/t2-client-core names it as parent
+B PACKAGE S3 FAIL SEALED-PROFILE-RECOMPUTATION; required evidence missing or failed; local diagnostics withheld
+```
+
+Token: **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 — S3 stands sealed at its own tip exactly as it did
+under S4's parent chain before this round, unmoved by S4's edits.
+
+### 11.6 Product byte-identity vs the reviewed `b7dc642`
+
+`git diff b7dc642 HEAD --stat` lists exactly: `rebuild/DECISIONS.md`, `S4-REAL-DAY-AUTHOR-REPORT.md`,
+`rebuild/lanes/b/tooling/packages/S4.json`, `pinned-unchanged-and-ruled-substitutions.test.cjs`,
+`rebuild/lanes/pm/FRICTION-LOG.md`, `acceptance-s4-real-day.json`, and the six `s4-*` test files under
+`rebuild/m4/workout/test/` — spec, artifact, tooling test, report, DECISIONS and the already-reviewed
+new test files only. No file under this package's declared `product` map with role `edited`/`carried`
+moved a byte; the r3 ACCEPT stands for the product.
+
+### 11.7 Tooling suite
+
+`node --test --test-reporter=tap rebuild/lanes/b/tooling/test/*.test.cjs` → `# tests 90 / # pass 90 /
+# fail 0 / # cancelled 0 / # skipped 0 / # todo 0`.
+
+Committed at `509ade7` on `rebuild/b-s4-real-day` (git identity `cowork (Earned PM)
+<joeymat11@gmail.com>`), not pushed.
