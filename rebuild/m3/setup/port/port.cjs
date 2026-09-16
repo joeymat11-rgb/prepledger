@@ -52,6 +52,7 @@ const { spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
 const { createImportPreparation } = require('../../../m4/import/prepare.cjs');
 const { counts: censusCounts } = require('../../../conform/oracle/census.cjs');
+const { validDay } = require('../../../m4/import/local-source-profile.cjs');
 const { PROFILE, KDF, CIPHER, TAG_BYTES, aadBytes, deriveKey } = require('./unseal.cjs');
 const { WORDS } = require('./wordlist.cjs');
 
@@ -237,6 +238,81 @@ function manifestPin(sourceSha256) {
   return null;
 }
 
+/* --- SEAL-TIME MALFORMED SOURCE REFUSAL -------------------------------------
+   The counts check below is a DECREASE rule: before -> after. A guarded class
+   absent on BOTH sides (0->0) is invisible to it. This runs once, on the raw
+   parsed source, before prepare() ever touches it, and refuses with a named
+   code - nothing migrated, nothing sealed, nothing written - when the source
+   itself does not have the shape the census depends on. Dates reuse validDay
+   from m4/import/local-source-profile.cjs, the SAME rule C2b admission
+   enforces, rather than a looser one re-derived here. */
+const SHAPE_CLASSES = Object.freeze([
+  { cls: 'reads', get: s => s.reads, type: 'array' },
+  // nights is an array on the real ledger (and the preimage fixture) but an
+  // OBJECT keyed "0".."34" on the synthetic fixture (oracle/make-synthetic.cjs) -
+  // a known fixture-shape quirk (port.test.cjs's own comment on the synthetic
+  // pair), not a defect on real data. census counts() reads via Object.keys(),
+  // which is valid for either shape, so both are accepted here.
+  { cls: 'nights', get: s => s.sleep && s.sleep.nights, type: 'array-or-object' },
+  { cls: 'dailyLogs', get: s => s.dailyLogs, type: 'object' },
+  { cls: 'sessionLog', get: s => s.sessionLog, type: 'object' },
+  { cls: 'exercises', get: s => s.exercises, type: 'array' },
+  { cls: 'queue', get: s => s.queue, type: 'array' },  // backs both 'queue' and 'debuts' (debuts is queue-derived, no key of its own)
+  { cls: 'earned', get: s => s.feed, type: 'array' },  // 'earned' has no key of its own - census derives it from feed
+  { cls: 'events', get: s => s.events, type: 'array' },
+  // waist is the one guarded class m4/workout/athlete-state.cjs's OWN accepted
+  // createCleanInitState() genuinely never writes (not even as []) - "Every
+  // history member starts empty" lists reads/dailyLogs/sessionLog/queue/feed/
+  // events, and waist is not among them. So its ABSENCE is not evidence of a
+  // malformed source (measured against rebuild/m3/w6/test/local-source-consumer
+  // .test.mjs's own invented, already-schema-60 legacy state, which has no
+  // waist key and is accepted). Only its TYPE is checked when it IS present.
+  { cls: 'waist', get: s => s.waist, type: 'array', optional: true },
+]);
+const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+function shapeIssues(source) {
+  const issues = [];
+  const typed = {};
+  for (const { cls, get, type, optional } of SHAPE_CLASSES) {
+    let value;
+    try { value = get(source); } catch { value = undefined; }
+    if (value === undefined) {
+      if (!optional) {
+        issues.push({ code: 'PORT_SOURCE_CLASS_MISSING', detail: `class ${cls} is missing from the source (no ${cls} key)` });
+      }
+      continue;
+    }
+    const ok = type === 'array' ? Array.isArray(value)
+      : type === 'array-or-object' ? (Array.isArray(value) || isPlainObject(value))
+        : isPlainObject(value);
+    if (!ok) {
+      issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
+        detail: `class ${cls} is not a(n) ${type} (got ${Array.isArray(value) ? 'array' : typeof value})` });
+      continue;
+    }
+    typed[cls] = value;
+  }
+  const badDate = (cls, index, value) => issues.push({ code: 'PORT_SOURCE_DATE_INVALID',
+    detail: `class ${cls} date at position ${index} is invalid: ${JSON.stringify(value)}` });
+  if (Array.isArray(typed.reads)) typed.reads.forEach((r, i) => { if (!validDay(r && r.d)) badDate('reads', i, r && r.d); });
+  if (isPlainObject(typed.dailyLogs)) Object.keys(typed.dailyLogs).forEach((k, i) => { if (!validDay(k)) badDate('dailyLogs', i, k); });
+  if (isPlainObject(typed.sessionLog)) {
+    const dates = Object.keys(typed.sessionLog);
+    dates.forEach((k, i) => { if (!validDay(k)) badDate('sessionLog', i, k); });
+    dates.forEach(k => {
+      const rec = typed.sessionLog[k];
+      const log = rec && Array.isArray(rec.corrLog) ? rec.corrLog : [];
+      log.forEach((entry, i) => { if (entry && typeof entry.d === 'string' && !validDay(entry.d)) badDate('corrections', i, entry.d); });
+    });
+  }
+  if (Array.isArray(typed.nights) || isPlainObject(typed.nights)) {
+    const entries = Array.isArray(typed.nights) ? typed.nights.entries() : Object.entries(typed.nights);
+    for (const [i, entry] of entries) if (entry && typeof entry.d === 'string' && !validDay(entry.d)) badDate('nights', i, entry.d);
+  }
+  return issues;
+}
+
 /* --- WHERE THE BUNDLE MAY NOT GO -------------------------------------------
    The first version of this guard compared path.resolve() strings. The reviewer
    walked through it twice on Windows — once through a directory junction
@@ -285,12 +361,35 @@ function gitWorkingTreeAt(dir) {
   }
 }
 
+/* SYNCED-FOLDER REFUSAL. The bundle is encrypted, so a synced folder is a
+   smaller exposure than the repo-leak the three checks above were built for -
+   but it is real (the passphrase file sits right beside it) and was, until
+   this ticket, unguarded (P3-STAGE-REPORT finding 2). Segment match is
+   case-insensitive and exact ("OneDriveBackup2" is a different folder, not a
+   OneDrive folder, unless it is genuinely nested inside one). */
+const SYNCED_SEGMENTS = Object.freeze(['onedrive', 'dropbox', 'google drive', 'googledrive', 'iclouddrive', 'icloud drive', 'box']);
+const SYNCED_ENV_VARS = Object.freeze(['OneDrive', 'OneDriveCommercial', 'OneDriveConsumer']);
+function syncedFolderRefusal(real) {
+  for (const segment of real.split(path.sep)) {
+    if (SYNCED_SEGMENTS.includes(segment.toLowerCase())) return `inside a synced folder ("${segment}") (${real})`;
+  }
+  for (const name of SYNCED_ENV_VARS) {
+    const value = process.env[name];
+    if (!value) continue;
+    const envReal = realPathOf(value);
+    if (contains(envReal, real)) return `inside the synced folder %${name}% (${envReal})`;
+  }
+  return null;
+}
+
 function outRefusal(dir) {
   const real = realPathOf(dir);
   if (contains(REPO_REAL, real)) return `inside this repository (${real})`;
   const tree = gitWorkingTreeAt(real);
   if (tree) return `inside a git working tree (${tree}) - a commit there could publish it`;
   if (real.split(path.sep).includes('rebuild')) return `inside a folder called "rebuild" (${real})`;
+  const synced = syncedFolderRefusal(real);
+  if (synced) return synced;
   return null;
 }
 
@@ -378,6 +477,21 @@ async function run(argv) {
   const sourceBytes = readInput('--source', opts.source);
   const sourceSha256 = sha256(sourceBytes);
   say('SOURCE', 'PASS', `${opts.source}  sha256=${sourceSha256}  bytes=${sourceBytes.length}`);
+  // Malformed-source refusal: parsed here (independently of prepare()'s own
+  // parse) so a source with the wrong SHAPE never reaches migration at all.
+  // A source that is not even valid JSON falls through unreported here and is
+  // caught by PREPARE below, unchanged (IMPORT_SOURCE_JSON_INVALID etc).
+  let sourceForShape = null;
+  try { sourceForShape = parseStrictJson(sourceBytes); } catch { sourceForShape = null; }
+  if (sourceForShape && typeof sourceForShape === 'object' && !Array.isArray(sourceForShape)) {
+    const issues = shapeIssues(sourceForShape);
+    if (issues.length) {
+      say('SHAPE', 'FAIL', `${issues.length} issue(s) (nothing written)`);
+      for (const issue of issues) note(`${issue.code}  ${issue.detail}`);
+      note('The source is malformed. NO BUNDLE WRITTEN.');
+      return 2;
+    }
+  }
   let localBytes, localSha256, localRelated = null;
   if (opts.local) {
     localBytes = readInput('--local', opts.local);
@@ -565,4 +679,5 @@ if (require.main === module) {
 }
 
 module.exports = { run, GATE, REPO, REPO_REAL, USAGE, makePassphrase, seal, runGate, engineDigest,
-  PASSPHRASE_WORDS, realPathOf, outRefusal, insideRepo, relatedness, unrelatedReason, GUARDED };
+  PASSPHRASE_WORDS, realPathOf, outRefusal, insideRepo, relatedness, unrelatedReason, GUARDED,
+  shapeIssues, syncedFolderRefusal, SHAPE_CLASSES };
