@@ -1,0 +1,805 @@
+{
+  "profile": "earned/s3-provisional-public-sources/v1",
+  "phase": "portable-core-candidate",
+  "implementationParent": "06c5b4a5d76c9973849d0f4cde51b379bc35be43",
+  "sourceM": "100820aa47a4f8729642033499eaec0f0ee282e1",
+  "grant": "06631c16d7428025e008d2580db45c40d28d207a",
+  "sources": [
+    {
+      "path": "package-lock.json",
+      "sha256": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608"
+    },
+    {
+      "path": "package.json",
+      "sha256": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c"
+    },
+    {
+      "path": "rebuild/authority/canonical.cjs",
+      "sha256": "c8888a3907d543371400e75ccfcb11bec2c3e3e7a40e74bd9d471b21a26e08cc"
+    },
+    {
+      "path": "rebuild/client/bodycomp.cjs",
+      "sha256": "c55d66e5a8c8ae14f90b935d0ad07454d311e606a032d5c8c6ce1f094c3399d2"
+    },
+    {
+      "path": "rebuild/client/canonical.cjs",
+      "sha256": "fcf4302c52e149feeaa83c611b7ccdae8992306c6881623b888d086b4e3c1a6e"
+    },
+    {
+      "path": "rebuild/client/copy.cjs",
+      "sha256": "d93aca93eb4efea346f5fbd0c38995133be781b9d27502c883134afd0b231b81"
+    },
+    {
+      "path": "rebuild/client/face.cjs",
+      "sha256": "ede658a223ddb691bf9f64737edc63507dc0d594a462e6f8f3bea9c3aeaa98f0"
+    },
+    {
+      "path": "rebuild/client/index.cjs",
+      "sha256": "f5e272c048191e6fc5ee56465a7d0bf264e8b488f5fa4bd19a8819a5496ebfa9"
+    },
+    {
+      "path": "rebuild/client/lease.cjs",
+      "sha256": "b8e676d448e27cfecdf27ebd7fcf4766f7f73bfc8a2c6b69fb8754a1b8b0b771"
+    },
+    {
+      "path": "rebuild/client/ops.cjs",
+      "sha256": "4f0e2931d9d0d139ab44cb907cba13c8f9120277155477a56f2a7dbe4301209b"
+    },
+    {
+      "path": "rebuild/client/outbox.cjs",
+      "sha256": "e74d97e4cd71ae958b0873fbb680a917e8a12847797671b97f2e538f13f80f2e"
+    },
+    {
+      "path": "rebuild/client/plan.cjs",
+      "sha256": "91bba71bce872f57733aac88d6c8ce74e8c648d442262a5bed5879cfafc66839"
+    },
+    {
+      "path": "rebuild/client/session.cjs",
+      "sha256": "dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3"
+    },
+    {
+      "path": "rebuild/client/store.cjs",
+      "sha256": "f6ac3007354524b680d178086c87d7a321a8f8da0973b2b29f6f3d4c6ddcc6b0"
+    },
+    {
+      "path": "rebuild/client/sync.cjs",
+      "sha256": "42a3b53b4d54120efc4259de2813518f84cf69dfb9ed063529c4baadb7264f3a"
+    },
+    {
+      "path": "rebuild/coach/machine-settings-commands.cjs",
+      "sha256": "c83446191bdb7c8e5514d28f864ffb138c02fb68ac06b5bbfd1512c22c36a31c"
+    },
+    {
+      "path": "rebuild/conform/lib/canonical.cjs",
+      "sha256": "ca9d5daa7df046be3849ca21e9a21cdf43cbff4fd204246b673ec5621e84f4fa"
+    },
+    {
+      "path": "rebuild/conform/lib/ops.cjs",
+      "sha256": "cbf7e73cd899492981a03bc4b4153f12a77cc664c4c90c29774ef30bf981d1c1"
+    },
+    {
+      "path": "rebuild/engine/constants.cjs",
+      "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380"
+    },
+    {
+      "path": "rebuild/engine/dates.cjs",
+      "sha256": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6"
+    },
+    {
+      "path": "rebuild/engine/earn.cjs",
+      "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da"
+    },
+    {
+      "path": "rebuild/engine/energy.cjs",
+      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc"
+    },
+    {
+      "path": "rebuild/engine/entered-load.cjs",
+      "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3"
+    },
+    {
+      "path": "rebuild/engine/merge.cjs",
+      "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98"
+    },
+    {
+      "path": "rebuild/engine/migrate.cjs",
+      "sha256": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41"
+    },
+    {
+      "path": "rebuild/engine/performed.cjs",
+      "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a"
+    },
+    {
+      "path": "rebuild/engine/plan.cjs",
+      "sha256": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3"
+    },
+    {
+      "path": "rebuild/engine/policy.cjs",
+      "sha256": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d"
+    },
+    {
+      "path": "rebuild/engine/progression.cjs",
+      "sha256": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5"
+    },
+    {
+      "path": "rebuild/engine/sleep.cjs",
+      "sha256": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0"
+    },
+    {
+      "path": "rebuild/engine/today.cjs",
+      "sha256": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3"
+    },
+    {
+      "path": "rebuild/engine/volume.cjs",
+      "sha256": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4"
+    },
+    {
+      "path": "rebuild/engine/writers.cjs",
+      "sha256": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e"
+    },
+    {
+      "path": "rebuild/m3/w5/package.json",
+      "sha256": "badf2a44a197008ec4f56a7810fb0e390732de0136eaf2a3048bfaee6288b0bc"
+    },
+    {
+      "path": "rebuild/m3/w5/pnpm-lock.yaml",
+      "sha256": "858248a2668f55703b69f37dbd11ddac4b6c15c71c3407e1346f399e91a9f6ec"
+    },
+    {
+      "path": "rebuild/m3/w5/public-client.cjs",
+      "sha256": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74"
+    },
+    {
+      "path": "rebuild/m3/w5/reconciliation/codec.cjs",
+      "sha256": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e"
+    },
+    {
+      "path": "rebuild/m3/w5/source/codec.cjs",
+      "sha256": "e6591fcd586b568a6fa8c0aff89336dde75e4c80864f4fe23c399e1dc1c3c0d6"
+    },
+    {
+      "path": "rebuild/m3/w6/bridge.mjs",
+      "sha256": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00"
+    },
+    {
+      "path": "rebuild/m3/w6/build-browser.mjs",
+      "sha256": "c2a0df9155e658c74b9e4fe2bc96badeaa9048dd56e9a0455b89212721da8f97"
+    },
+    {
+      "path": "rebuild/m3/w6/cipher-imports.json",
+      "sha256": "b34e9d2fdf1304059e4bf6b8487e40cd0953cad8af7f63c07a8e3eea2831e4db"
+    },
+    {
+      "path": "rebuild/m3/w6/history-proof.mjs",
+      "sha256": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114"
+    },
+    {
+      "path": "rebuild/m3/w6/host/test/journey-fixture.cjs",
+      "sha256": "cbca2b7721bb2291691d7bd74bc568493d0b5b10f0bcb3e6dec34f5e4736cba4"
+    },
+    {
+      "path": "rebuild/m3/w6/import-custody.mjs",
+      "sha256": "9f5d0c461d58275ce619b3028fb64c167a684bf21abff41bd71bd3daf20eeec7"
+    },
+    {
+      "path": "rebuild/m3/w6/local/host-bindings.mjs",
+      "sha256": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39"
+    },
+    {
+      "path": "rebuild/m3/w6/local/import-bundle.mjs",
+      "sha256": "5db842a96a94db7df91b4eaec28c82522e4aa50edc1d3b19607bf1200b4d2b54"
+    },
+    {
+      "path": "rebuild/m3/w6/local/local-client.mjs",
+      "sha256": "3bf8c01d7e2b28fd0fad66ec0b6fd60663ab8b38caa9f222e0d36772c5970899"
+    },
+    {
+      "path": "rebuild/m3/w6/local/local-era.mjs",
+      "sha256": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46"
+    },
+    {
+      "path": "rebuild/m3/w6/local/local-keys.mjs",
+      "sha256": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d"
+    },
+    {
+      "path": "rebuild/m3/w6/local/source-admission.mjs",
+      "sha256": "7d6032d074ef102acd48d588c6a3fe9e0b3c0b3eff2719cb487895224f139e10"
+    },
+    {
+      "path": "rebuild/m3/w6/local/source-commit.mjs",
+      "sha256": "63ae3d0bf399fd73f628949d6c00e9c21d83395afa29cceb50e54361d3a4736b"
+    },
+    {
+      "path": "rebuild/m3/w6/local/source-platform.mjs",
+      "sha256": "5afc98dcb1a7891df0bf17467893eee1dcf59b324e2382ca239003f44e75cfa7"
+    },
+    {
+      "path": "rebuild/m3/w6/node-sha256-browser.mjs",
+      "sha256": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97"
+    },
+    {
+      "path": "rebuild/m3/w6/package.json",
+      "sha256": "e2bbbd8a3464628ad2e71a42b0984cdda29720eb2a714ba506517cc50a4fd494"
+    },
+    {
+      "path": "rebuild/m3/w6/pnpm-lock.yaml",
+      "sha256": "cea5ea74668bb33be4d38de333a0bc35cbdc18d32022561ad0f09c690a53a566"
+    },
+    {
+      "path": "rebuild/m3/w6/reading-history.mjs",
+      "sha256": "76a19b7078414476886dd5967d8ac328e2bc47d38f5043021add3f3e366df4cf"
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-snapshot.cjs",
+      "sha256": "80252922aeda425eabf1402d22613e299481a0242c77be9c707354d14fd5aa23"
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-stage.mjs",
+      "sha256": "ef96cb867ba61cc74262d7a7c49060fd2aeb5d15b66448d22aa0cef30b1d023d"
+    },
+    {
+      "path": "rebuild/m3/w6/repository.mjs",
+      "sha256": "4d8696382792d05585174652ac23b6589be9269d92eed0de37c8980d296a8912"
+    },
+    {
+      "path": "rebuild/m3/w6/strict-json.mjs",
+      "sha256": "1605acb16b8d828578979755e9ce3387efaab70f6b22370bbd565355187b7fb9"
+    },
+    {
+      "path": "rebuild/m3/w6/t2-stage.cjs",
+      "sha256": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592"
+    },
+    {
+      "path": "rebuild/m3/w6/test/local-source-admission.test.mjs",
+      "sha256": "62db6a4012a2cd2f070d28fa03dc0866df1a83049881b6d18f8ab0cc05a88afd"
+    },
+    {
+      "path": "rebuild/m3/w6/test/local-source-browser.mjs",
+      "sha256": "f7c1a0d08aca21b0172f25958ddcb72f8340a7decc6f1626e3806ffc444986dc"
+    },
+    {
+      "path": "rebuild/m3/w6/test/local-source-commit.test.mjs",
+      "sha256": "04ec9d32b6047375c6b3fd0a3ae69c1bfddcf0dd8493eeb5414b99f28e027f7f"
+    },
+    {
+      "path": "rebuild/m3/w6/test/support.mjs",
+      "sha256": "6f62d795db9f69c6c757a2a23fba33e9288bf99ccf6afb2c7c79e3eca3da1462"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/fixtures.cjs",
+      "sha256": "42d16ee32c2a6bb4f404277b89021b75573e593e9654e86c01e1c574cb4c7a58"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+      "sha256": "2ec701faa7edc77276e8154789507a03c423f1493bdc069f078bd8a797fec984"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+      "sha256": "9f7116bb679eb53ead6d5ea8000e8534a5bfc94e2042e3b0b36e57f272cd52e3"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/today/food-commands.cjs",
+      "sha256": "194190aa0a12e30d937eb5c4c59878b58089eeab93f6783f46969eddadcaddc5"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/today/food-model.cjs",
+      "sha256": "1552309c0c4368ece9aca169338df7b1c02a4d2c6f28bb3b0af8c385ebe15c5c"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/today/setup-commands.mjs",
+      "sha256": "c5b65d7146828736dd6afaea2473a02e0a44cba654409c115f9d9784762e5677"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/today/setup-model.mjs",
+      "sha256": "54c7c6e06c74aba0cfd135ab71fab8b595b884d8e86934fd4a1e2dab82d463e0"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/today/split-kinds.mjs",
+      "sha256": "998233006411fefb735d1924aa13343e069a39ef64776841fbc321b88e40b01a"
+    },
+    {
+      "path": "rebuild/m4/import/browser-replay.mjs",
+      "sha256": "2b7112798db0ba41497aae0b38bdbf7deea5116b23f872ada0ebe6a52f0f10ba"
+    },
+    {
+      "path": "rebuild/m4/import/daily-history.cjs",
+      "sha256": "5358b3ba6a9a92e217651f0a74d85511f50a30d276c7a483a025034de6e604f7"
+    },
+    {
+      "path": "rebuild/m4/import/engine-provider.cjs",
+      "sha256": "357a7159218567f37eceb8ba051bcfa9c055e33e995ec8101a9a949b1ab0d405"
+    },
+    {
+      "path": "rebuild/m4/import/local-source-order.cjs",
+      "sha256": "6c89fd55696b846c519c8f195b1df5fa3b6aa6bf5ec1d23d2074622ad742cf43"
+    },
+    {
+      "path": "rebuild/m4/import/local-source-profile.cjs",
+      "sha256": "e1c992c714f5753835f02cfcae672ff1da72d4a21b3b56d340fe9a5d0507103a"
+    },
+    {
+      "path": "rebuild/m4/import/prepare.cjs",
+      "sha256": "2f76d35232f929edd0d9f3e2c490dc8a171a6cff63373881be5b5b703d77fd8c"
+    },
+    {
+      "path": "rebuild/m4/import/reading-replay.cjs",
+      "sha256": "0580c0d0cd7910f4eae7960c970744ebee8a814186259f15d28aed29d46123ad"
+    },
+    {
+      "path": "rebuild/m4/import/replay-core.cjs",
+      "sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2"
+    },
+    {
+      "path": "rebuild/m4/import/test/browser-parity.test.mjs",
+      "sha256": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632"
+    },
+    {
+      "path": "rebuild/m4/import/test/engine-provider.test.cjs",
+      "sha256": "9926308ffcf3f902087eb4718a8ce469477714aec5017b4bed4a128f1ecaad37"
+    },
+    {
+      "path": "rebuild/m4/import/test/local-source-order.test.cjs",
+      "sha256": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b"
+    },
+    {
+      "path": "rebuild/m4/import/test/mutations.cjs",
+      "sha256": "ec0d98af304f299fdf00fb092c670a33a0b6ac7d0646f4dc7ed6e99b9b03787f"
+    },
+    {
+      "path": "rebuild/m4/import/test/prepare.test.cjs",
+      "sha256": "8c9511d8e32ba2d52754288de301054e1a2b17111cc1c352b83f89ea1df7015c"
+    },
+    {
+      "path": "rebuild/m4/import/test/reading-replay-faults.cjs",
+      "sha256": "92262c324b572204462896085414a5d4b2de476403a9ee48bb1320df24b0d363"
+    },
+    {
+      "path": "rebuild/m4/import/test/reading-replay.test.cjs",
+      "sha256": "83c9f88d961af688164d345964b38018429aadff26b2e37e106e92484ed94fca"
+    },
+    {
+      "path": "rebuild/m4/import/test/s3/browser-entry.mjs",
+      "sha256": "7f5686b30ad7ff3150557db1bf3e67c4b33465538082066625b1a0870dd9a1f3"
+    },
+    {
+      "path": "rebuild/m4/import/test/s3/current-head.cjs",
+      "sha256": "87840f2df5861a6a4999e61b26fbbc36200e63f08c0832572938d967507b0a2e"
+    },
+    {
+      "path": "rebuild/m4/import/test/s3/engine.cjs",
+      "sha256": "ff0db8ce9d83b75821cc1326b2110a8be0c6a371686a165c73d1571ff4acefe4"
+    },
+    {
+      "path": "rebuild/m4/import/test/s3/fixtures.mjs",
+      "sha256": "9d31409edf3355ec7c394f0340b1895f0c7446e0c171bc79452e5404d027f155"
+    },
+    {
+      "path": "rebuild/m4/import/test/s3/harness.test.mjs",
+      "sha256": "72f7e9c66a21ad30eeb5f395825e2c5737028bbc4ae6d3ed1c4834e44243a8fd"
+    },
+    {
+      "path": "rebuild/m4/import/test/s3/mutations.cjs",
+      "sha256": "3cb410dddbc14c8628efb42f517b2c82b6eb69b303f19650ac634fa99aefb7b1"
+    },
+    {
+      "path": "rebuild/m4/import/test/s3/run.mjs",
+      "sha256": "b9f905e6e32aad74c08735d4cc22a796c30fea765712301ebb4b125e9542363b"
+    },
+    {
+      "path": "rebuild/m4/workout/athlete-state.cjs",
+      "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c"
+    },
+    {
+      "path": "rebuild/m4/workout/authority-profile.cjs",
+      "sha256": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63"
+    },
+    {
+      "path": "rebuild/m4/workout/capture.cjs",
+      "sha256": "c20fb021034b7c110d58cd14cb8e5fb547ce23d0436086894dce67e23a4674ea"
+    },
+    {
+      "path": "rebuild/m4/workout/commands.cjs",
+      "sha256": "ee4de3b4ea573fe6f924fdff97f793e5679219516e4188fcc6b9f689c9b5c571"
+    },
+    {
+      "path": "rebuild/m4/workout/context-values.cjs",
+      "sha256": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b"
+    },
+    {
+      "path": "rebuild/m4/workout/edit-history.cjs",
+      "sha256": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2"
+    },
+    {
+      "path": "rebuild/m4/workout/edit-values.cjs",
+      "sha256": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546"
+    },
+    {
+      "path": "rebuild/m4/workout/engine-capture.cjs",
+      "sha256": "309c75d82a036b24b09ebc6668ea73065aa76de5638b2dee3da18d9067e08785"
+    },
+    {
+      "path": "rebuild/m4/workout/engine-history.cjs",
+      "sha256": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89"
+    },
+    {
+      "path": "rebuild/m4/workout/engine-order.cjs",
+      "sha256": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a"
+    },
+    {
+      "path": "rebuild/m4/workout/engine-runtime.cjs",
+      "sha256": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936"
+    },
+    {
+      "path": "rebuild/m4/workout/fonts/SOURCES.json",
+      "sha256": "d91470a5d364e45ada6d38310a7c6772176ab3cbb6042d8f52c6d22fe4d56d53"
+    },
+    {
+      "path": "rebuild/m4/workout/project-history.mjs",
+      "sha256": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92"
+    },
+    {
+      "path": "rebuild/m4/workout/schema.cjs",
+      "sha256": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458"
+    },
+    {
+      "path": "rebuild/m4/workout/source-control-values.cjs",
+      "sha256": "635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560"
+    },
+    {
+      "path": "rebuild/m4/workout/stored-history.mjs",
+      "sha256": "78db774066ccc465bbdce8394bf3bb545c197664a9f7703cc8b34003e002567e"
+    }
+  ],
+  "deferredRedSources": [],
+  "mutationTargets": [
+    "rebuild/m4/import/prepare.cjs",
+    "rebuild/m4/import/reading-replay.cjs",
+    "rebuild/m4/import/replay-core.cjs",
+    "rebuild/m4/import/daily-history.cjs",
+    "rebuild/m3/w6/local/source-admission.mjs",
+    "rebuild/m3/w6/local/source-commit.mjs",
+    "rebuild/m3/w6/local/source-platform.mjs",
+    "rebuild/m4/import/local-source-profile.cjs",
+    "rebuild/m4/import/local-source-order.cjs",
+    "rebuild/m4/import/browser-replay.mjs",
+    "rebuild/m4/import/engine-provider.cjs",
+    "rebuild/m4/import/test/s3/current-head.cjs",
+    "rebuild/m4/import/test/s3/run.mjs",
+    "rebuild/m4/import/test/s3/mutations.cjs"
+  ],
+  "pending": {
+    "capture": "B reserved",
+    "consumers": "C reserved",
+    "realC2": "Separate point-of-use evidence/actor/output grant required",
+    "full": "B cumulative registration/private/FULL and final P1 pending"
+  },
+  "coreMutations": [
+    {
+      "id": "r3-selected-suffix-assertion-borrowed",
+      "target": "rebuild/m4/import/test/s3/mutations.cjs",
+      "needle": "\n  const hit=/^(not ok|ok) [0-9]+ - (.+)$/.exec(lines[index]);\n  if(!hit||hit[2]!==name)continue;",
+      "replacement": "\n  const hit=/^(not ok) [0-9]+ - (.+)$/.exec(lines[index]);\n  if(!hit||!hit[2].includes(name))continue;",
+      "test": "S3-HARNESS-EXACT-IDENTITY: a passing selected test cannot borrow a suffix-named assertion",
+      "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
+    },
+    {
+      "id": "r3-property-of-regex-confusion",
+      "target": "rebuild/m4/import/test/s3/run.mjs",
+      "needle": "if(last.property)return false;",
+      "replacement": "if(last.property)return last.value==='of';",
+      "test": "S3-HARNESS-PROPERTY-DIVISION: property keywords cannot hide escaped-slash imports",
+      "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
+    },
+    {
+      "id": "r3-control-regex-treated-as-division",
+      "target": "rebuild/m4/import/test/s3/run.mjs",
+      "needle": "if(last.type==='punct'&&last.value===')')return last.statement===true;",
+      "replacement": "if(last.type==='punct'&&last.value===')')return false;",
+      "test": "S3-HARNESS-CONTROL-REGEX: a statement regex after a control condition is data",
+      "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
+    },
+    {
+      "id": "r1-enrollment-namespace-unbound",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "g.metadata.namespace!==namespace||",
+      "replacement": "",
+      "test": "S3-Q-ENROLLMENT: matching authenticated namespace qualifies and a caller relabel refuses",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "r2-uninterpreted-plan-admitted",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "['plan','planTxns','planTransactions','planHistory','suspensions','issuances']",
+      "replacement": "['planTxns','planTransactions','planHistory','suspensions','issuances']",
+      "test": "S3-Q-PLAN-COLLECTION: empty plan is supported but unexplained sealed programme state refuses",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "r3-missing-lift-admitted",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "if(!expected||encode([...counts.keys()])!==encode(expected.ex.map(card=>card.id)))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');",
+      "replacement": "",
+      "test": "S3-Q-LAYOUT-COMPLETE: an omitted entire lift refuses while original historical loads and incomplete facts survive",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "r4-target-kind-unchecked",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "if(Ops.TARGET_REQUIRED.has(op.kind)?typeof op.target_op_id!=='string'||!op.target_op_id:Object.hasOwn(op,'target_op_id'))fail('LOCAL_SOURCE_ORIGINAL_INVALID');",
+      "replacement": "",
+      "test": "S3-Q-TARGET-KIND: normal causally linked reading projects once but a committed fact target refuses",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "r5-reached-calendar-unchecked",
+      "target": "rebuild/m4/import/engine-provider.cjs",
+      "needle": "function reached(day){try{context.clockAt(day,0);}catch{unproven();}}",
+      "replacement": "function reached(day){}",
+      "test": "S3-PROVIDER-CALENDAR-REACHED: real regression over DST requires historical range coverage",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
+      "id": "r8-invented-empty-drafts",
+      "target": "rebuild/m4/import/engine-provider.cjs",
+      "needle": ":unavailable('drafts'),nativeTrendContext",
+      "replacement": ":Object.freeze({length:0,key:()=>null}),nativeTrendContext",
+      "test": "S3-PROVIDER-CAUGHT51: caught draft scans remain poisoned outside the engine",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
+      "id": "r6-runtime-esm-hook-omitted",
+      "target": "rebuild/m4/import/test/s3/current-head.cjs",
+      "needle": "Module.registerHooks({",
+      "replacement": "void ({",
+      "test": "S3-HARNESS-ESM-RUNTIME: actual CJS and ESM children cannot execute an unlisted sentinel",
+      "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
+    },
+    {
+      "id": "r6-static-computed-import-unchecked",
+      "target": "rebuild/m4/import/test/s3/run.mjs",
+      "needle": "if(!mapped)refusal('S3_UNLISTED_EDGE',entry.path+' computed '+token.value);",
+      "replacement": "if(!mapped)continue;",
+      "test": "S3-HARNESS-ESM-STATIC: side effects and computed imports refuse before copying",
+      "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
+    },
+    {
+      "id": "r6-static-side-effect-unchecked",
+      "target": "rebuild/m4/import/test/s3/run.mjs",
+      "needle": "else if(token.value==='import'&&next?.type==='string')edge(next.value);",
+      "replacement": "else if(token.value==='import'&&next?.type==='string')continue;",
+      "test": "S3-HARNESS-ESM-STATIC: side effects and computed imports refuse before copying",
+      "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
+    },
+    {
+      "id": "r7-unrelated-assertion-borrowed",
+      "target": "rebuild/m4/import/test/s3/mutations.cjs",
+      "needle": "\n  matches.push(codes.length===1&&codes[0][1]==='ERR_ASSERTION'?",
+      "replacement": "\n  matches.push(log.includes('ERR_ASSERTION')?",
+      "test": "S3-HARNESS-MUTANT-OWN-DIAGNOSTIC: selected TypeError cannot borrow an unrelated assertion",
+      "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
+    },
+    {
+      "id": "publish-uses-fresh-cas-basis",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "publish:()=>repository.commit(held.expected,next,()=>syncGuard(held.stamp))",
+      "replacement": "publish:async()=>repository.commit(await repository.load(),next,()=>syncGuard(held.stamp))",
+      "test": "S3-COMMIT-PUBLISH-CAS: a concurrent factual save after preflight cannot be overwritten by publication",
+      "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
+    },
+    {
+      "id": "captured-set-count-unchecked",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "for(const [id,count]of counts)if(state.exercises.find(e=>e.id===id).sets!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');",
+      "replacement": "",
+      "test": "S3-Q-F3-LAYOUT: a valid capture with different configured set counts stays unresolved",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "provider-caught-fault-escapes",
+      "target": "rebuild/m4/import/engine-provider.cjs",
+      "needle": "if(fault)missing(fault);if(calendarFault)unproven();if(error)throw error;return value;",
+      "replacement": "if(calendarFault)unproven();if(error)throw error;return value;",
+      "test": "S3-PROVIDER-CAUGHT60: inner patch catch cannot publish partial v60 or clear instance poison",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
+      "id": "provider-context-record-mutable",
+      "target": "rebuild/m4/import/local-source-profile.cjs",
+      "needle": "contexts.set(handle,freeze(",
+      "replacement": "contexts.set(handle,(",
+      "test": "S3-PROVIDER-CONTEXT-CUSTODY: looked-up context and its clock stay immutable",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
+      "id": "provider-default-entry-unchecked",
+      "target": "rebuild/m4/import/local-source-profile.cjs",
+      "needle": "||mapping.engine.path!=='rebuild/engine/oracle-shim.cjs'",
+      "replacement": "",
+      "test": "S3-PROVIDER-MAPPING: path, entry, closure, preparation day and compatibility cannot be arbitrary labels",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
+      "id": "source-original-rewrite-allowed",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "||encode(currentOps[id])!==encode(original)",
+      "replacement": "",
+      "test": "S3-Q-CHECKPOINT-ORIGINAL: rewriting and recommitting an original under the same ID still refuses",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "ambiguous-import-picked",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "if(entries.length!==1)fail(entries.length?'LOCAL_SOURCE_IMPORT_AMBIGUOUS':'LOCAL_SOURCE_IMPORT_REQUIRED');",
+      "replacement": "if(!entries.length)fail('LOCAL_SOURCE_IMPORT_REQUIRED');",
+      "test": "S3-Q-IMPORT-NAME: duplicate matching import metadata does not pick the first source silently",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "identity-confirmation-bypassed",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "if(identityConfirmed!==true&&!existingSelection)fail('LOCAL_SOURCE_IDENTITY_CONFIRMATION_REQUIRED');",
+      "replacement": "",
+      "test": "S3-Q-REVIEW: cloned reviews and caller-supplied selection evidence cannot replace identity confirmation",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "semantic-currentness-ignored",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "||stamp()!==expected",
+      "replacement": "",
+      "test": "S3-Q-CURRENT: same-count semantic change and a new durable operation both invalidate guidance",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "original-hour-replaced",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "const eff=row.original.effective,hour=Number(eff?.local_time?.slice(0,2));",
+      "replacement": "const eff=row.original.effective,hour=8;",
+      "test": "S3-Q-LATE-HOUR: a real evening fact stays outside the trend rather than borrowing hour8",
+      "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
+    },
+    {
+      "id": "prefix-answer-assumed",
+      "target": "rebuild/m4/import/local-source-order.cjs",
+      "needle": "if(answer!==true)fail('ORDER_EVIDENCE_REQUIRED');",
+      "replacement": "",
+      "test": "S3-ORDER-ATTESTATION: exact immutable displayed membership requires a distinct factual answer",
+      "testFile": "rebuild/m4/import/test/local-source-order.test.cjs"
+    },
+    {
+      "id": "source-scope-unbound",
+      "target": "rebuild/m4/import/local-source-order.cjs",
+      "needle": "'athlete_id','source_digest','checkpoint_digest'",
+      "replacement": "'athlete_id','checkpoint_digest'",
+      "test": "S3-ORDER-MEMBERS: dates and labels do not repair changed members or mapped root interpretation",
+      "testFile": "rebuild/m4/import/test/local-source-order.test.cjs"
+    },
+    {
+      "id": "publish-cancel-ignored",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "publish:()=>repository.commit(held.expected,next,()=>syncGuard(held.stamp))",
+      "replacement": "publish:()=>repository.commit(held.expected,next,()=>null)",
+      "test": "S3-COMMIT-SEAL-CANCEL: semantic cancellation after publish begins is rejected inside the real transaction",
+      "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
+    },
+    {
+      "id": "completion-disagrees",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "{...e,rebaseRequired:false,localSourceSelectionId:selectionId}",
+      "replacement": "{...e,rebaseRequired:true,localSourceSelectionId:selectionId}",
+      "test": "S3-COMMIT-ATOMIC: one real CAS publishes projection, evidence, selection and matching completion",
+      "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
+    },
+    {
+      "id": "rollback-replaces-history",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "needle": "next.metadata.localSources.selections[selectionId]=copy(selection);",
+      "replacement": "next.metadata.localSources.selections={[selectionId]:copy(selection)};",
+      "test": "S3-COMMIT-ROLLBACK: rollback appends evidence and retains later local facts and old selections",
+      "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
+    },
+    {
+      "id": "lost-ack-not-reconciled",
+      "target": "rebuild/m3/w6/local/source-commit.mjs",
+      "needle": "try{return await capability.reconcile();}catch{throw error;}",
+      "replacement": "throw error;",
+      "test": "S3-COMMIT-ACK: lost acknowledgment reconciles the exact durable selection without a second write",
+      "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
+    }
+  ],
+  "pendingInventory": {
+    "source": "B1c8eacc6d6e0559e93ba8147d5b4ab9e4643e28b:rebuild/lanes/b/S3-PIN-CI-MAP.md:39-56; D e7e452e:rebuild/lanes/d/S3-PORTABLE-HARNESS-BRIEF.md",
+    "fullNewSuite": [
+      "rebuild/m3/w6/test/local-source-admission.test.mjs",
+      "rebuild/m3/w6/test/local-source-commit.test.mjs",
+      "rebuild/m3/w6/test/local-source-capture.test.mjs",
+      "rebuild/m4/import/test/local-source-order.test.cjs",
+      "rebuild/m4/import/test/browser-parity.test.mjs",
+      "rebuild/m4/import/test/s3/harness.test.mjs",
+      "rebuild/m4/import/test/engine-provider.test.cjs"
+    ],
+    "workoutConsumerSuite": [
+      "rebuild/m4/workout/test/engine-order.test.cjs",
+      "rebuild/m4/workout/test/engine-history.test.cjs",
+      "rebuild/m4/workout/test/engine-capture.test.cjs",
+      "rebuild/m4/workout/test/configuration-capture.test.cjs",
+      "rebuild/m3/w6/test/prescription-capture.test.mjs",
+      "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "rebuild/m3/w6/test/local-today-journey.test.mjs",
+      "rebuild/m3/w6/host/test/journey.test.mjs",
+      "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
+    ],
+    "mutationPrograms": [
+      "rebuild/m4/import/test/mutations.cjs",
+      "rebuild/m4/import/test/reading-replay-faults.cjs",
+      "rebuild/m4/workout/test/configuration-capture-faults.cjs",
+      "rebuild/m4/import/test/s3/mutations.cjs"
+    ],
+    "reservedMutants": [
+      "lost local Q on Start",
+      "lost local Q on resume",
+      "source-prefix/overlap at capture consumer",
+      "effect-only currentness at consumer",
+      "changed programme/context at Start",
+      "every awaited reread in protected capture/consumer",
+      "prebatch capture binding",
+      "Today source-dependent output",
+      "gym previous-performance source-dependent output"
+    ],
+    "realC2Commands": [
+      "node rebuild/m3/w6/test/local-source-browser.mjs --real-c2 --evidence <exact-authorized-producer-evidence-path>",
+      "node --test --test-reporter=tap rebuild/m3/w6/test/local-import.test.mjs",
+      "node rebuild/m3/w6/test/local-import-browser.mjs"
+    ],
+    "status": "BLOCKED pending reserved B/C construction, actual C2 actor/output/provenance and P1; no cells silently skipped",
+    "P1": [
+      "real gate-produced file",
+      "native workout and weigh-in before import",
+      "actual identity and separate prefix/no-overlap answer",
+      "imported-history-dependent Today AND gym/previous performance",
+      "later saved native descendant",
+      "force-kill/reopen",
+      "all originals/imported facts/captures/outbox preserved exactly once"
+    ]
+  },
+  "dynamicEdges": {
+    "rebuild/m4/workout/engine-runtime.cjs": {
+      "kind": "source-owned MODULES literal and accepted existing browser build",
+      "targets": [
+        "rebuild/engine/dates.cjs",
+        "rebuild/engine/constants.cjs",
+        "rebuild/engine/plan.cjs",
+        "rebuild/engine/performed.cjs",
+        "rebuild/engine/progression.cjs",
+        "rebuild/engine/sleep.cjs",
+        "rebuild/engine/energy.cjs",
+        "rebuild/engine/policy.cjs",
+        "rebuild/engine/today.cjs",
+        "rebuild/engine/volume.cjs",
+        "rebuild/engine/earn.cjs",
+        "rebuild/engine/writers.cjs"
+      ]
+    },
+    "rebuild/m4/import/test/prepare.test.cjs": {
+      "kind": "current-root pathToFileURL",
+      "targets": [
+        "rebuild/m3/w6/strict-json.mjs"
+      ]
+    },
+    "rebuild/m4/import/test/reading-replay.test.cjs": {
+      "kind": "current-root pathToFileURL and require",
+      "targets": [
+        "rebuild/m3/w6/strict-json.mjs",
+        "rebuild/m3/w6/reading-history.mjs",
+        "rebuild/m4/workout/capture.cjs",
+        "rebuild/m3/w5/source/codec.cjs"
+      ]
+    }
+  },
+  "toolVersions": {
+    "node": "22.23.2",
+    "npm": "10.9.8",
+    "pnpm": "9.15.9"
+  },
+  "toolLocationGrant": "4f75048027a035988f17a45162e2e852db076fd9:rebuild/lanes/astra/TOOL-RUNTIME-LOCATIONS.md"
+}
