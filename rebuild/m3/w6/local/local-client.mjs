@@ -404,6 +404,12 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
     imports() { return importInternals.runImports(internalScope()); },
     importOriginal(name) { return importInternals.runImportOriginal(internalScope(), name); },
     markImportRebased(name) { return importInternals.runMarkRebased(internalScope(), name); },
+    // P3-IMPORT-RETRACT. The athlete takes a staged file back: one durable
+    // commit that supersedes the import entry with a retract record and deletes
+    // no byte. Fenced exactly like importBundle, and refused outright for an
+    // ADMITTED import — that history is his data and leaves by another path.
+    retractImport(selector, reason) { return importInternals.runRetract(internalScope(), selector, reason); },
+    retractions() { return importInternals.runRetractions(internalScope()); },
     close() {
       if (closed) return;
       closed = true; pending = null; booted = false;

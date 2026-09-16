@@ -37,6 +37,25 @@
 // the real one. It hands the host the imported base (importOriginal) and the
 // ops, and the host's projector computes the state.
 //
+// RETRACT IS APPEND-ONLY, AND THAT IS THE WHOLE OF IT (P3-IMPORT-RETRACT).
+// Custody is a byte vault with no status: retractImport DELETES NOTHING. The
+// original source bytes, the candidate and the provenance stay in the
+// generations store exactly as they were staged, under the same name and the
+// same device key, and import-custody.mjs gains no remove and is not edited.
+// What retract writes is ONE durable record of its own kind — the retract
+// operation — in metadata.importRetractions[], carrying the whole superseded
+// entry verbatim, the athlete's reason and the clock. The entry leaves
+// metadata.imports[] in the same commit, because THAT array is the live
+// register of imports this installation has adopted, and two consumers read it
+// raw and cannot be taught a status field: source-admission.mjs:64 (an entry
+// there is a file offered for review) and m4/workout/plan-edit-model.cjs:31
+// (a non-empty array means "an import is present, refuse a clean-init basis").
+// Leaving a tombstone in the register would keep both of them refusing over a
+// file that was never adopted, which is the residue this ticket exists to
+// remove. Nothing is lost: the record is in importRetractions[], the bytes are
+// in custody, and importOriginal refuses to hand back a retracted entry's
+// bytes by name rather than pretending they are gone.
+//
 // This module imports local-client.mjs and local-client.mjs imports this one —
 // the same deliberate cycle host-bindings.mjs already uses. Neither side touches
 // the other's bindings at module-evaluation time, only inside functions.
@@ -62,6 +81,9 @@ export const BUNDLE_FAILURE = "BUNDLE_AUTH_FAILED";
 // not speak this profile. It names the field, never the value.
 export const PAYLOAD_FAILURE = "BUNDLE_PAYLOAD_INVALID";
 export const LOCAL_IMPORT_PROFILE = "earned/local-import/v1";
+// The retract operation's own kind. A record under this profile supersedes the
+// import entry it carries; it is never itself an import.
+export const LOCAL_IMPORT_RETRACT_PROFILE = "earned/local-import-retract/v1";
 export const IMPORT_REBASE_CODE = "IMPORT_REBASE_REQUIRED";
 // A bundle that is well-formed and correctly sealed, but whose OWN recorded
 // verdicts say the migration inside it was not vouched for. Distinct from both
@@ -314,6 +336,25 @@ export const importSummaries = generation => importEntries(generation).map(entry
   importedAt: entry.importedAt, opsBasisAtImport: clone(entry.opsBasisAtImport ?? null),
   rebaseRequired: entry.rebaseRequired === true, rebasedAt: entry.rebasedAt ?? null }));
 
+/* THE RETRACT REGISTER. Separate from metadata.imports[] by design (see the
+   header): this is the history of files that were staged and then taken back,
+   and NOTHING in the tree treats a record here as an import. A host renders it
+   to say "you removed this file on the 16th"; every consumer that asks "is
+   there an import?" reads the other array and correctly answers no. */
+export function importRetractions(generation) {
+  const records = generation?.metadata?.importRetractions;
+  return Array.isArray(records) ? records.filter(object) : [];
+}
+export const importRetractionSummaries = generation => importRetractions(generation).map(record => ({
+  name: record.name, sourceSha256: record.sourceSha256 ?? null, reason: record.reason ?? null,
+  retractedAt: record.retractedAt ?? null, importedAt: record.entry?.importedAt ?? null }));
+// A name is retracted when the register holds it and the live array does not.
+// A re-import of the same bundle stages a fresh entry under the same name, and
+// from that moment the name is live again — the retract record stays as history.
+export const importRetracted = (generation, name) =>
+  importRetractions(generation).some(record => record.name === name) &&
+  !importEntries(generation).some(entry => entry.name === name);
+
 // WHAT MAKES TWO IMPORTS THE SAME IMPORT. Review round 2 (R2-1): this used to be
 // sourceSha256 alone, and that is not an identity. A re-port of the SAME ledger
 // with --local keeps source.sha256 (the --source file did not change) and moves
@@ -544,6 +585,16 @@ async function runImports(scope) {
 async function runImportOriginal(scope, name) {
   if (!scope.alive()) fail("LOCAL_CLIENT_CLOSED", 3);
   if (typeof name !== "string" || !VALID_NAME.test(name)) fail("LOCAL_IMPORT_NAME_INVALID", 3);
+  // A retracted entry's bytes are still in custody — nothing was deleted — and
+  // that is exactly why this refuses by NAME instead of letting custody answer.
+  // The athlete took the file back; handing its history to a caller that asked
+  // for "the imported original" would be the residue in another shape. The
+  // refusal is named so a host can say which it is rather than "missing".
+  // A generation with a stranded custody record and no entry at all (a crash
+  // between stage and commit) is NOT this: it has no retract record and keeps
+  // its existing behaviour, which local-import.test.mjs pins.
+  if (importRetracted((await scope.repository.load()).generation, name))
+    fail("LOCAL_IMPORT_ENTRY_RETRACTED", 3);
   const loaded = await custodyOf(scope).load(name);
   let context = null;
   try { context = JSON.parse(loaded.engineContextJson); } catch { /* reported as null, never thrown away silently */ }
@@ -583,6 +634,143 @@ async function runMarkRebased(scope, name) {
   return { marked: false, state: 3, code: "LOCAL_IMPORT_CONTENDED", name: null };
 }
 
+/* --- RETRACT: THE ATHLETE TAKES THE FILE BACK -------------------------------
+   Fable's constraint (ii), ruled as its own ticket at DECISIONS:475 (2). The
+   review stage reads from custody, so importBundle must commit BEFORE the
+   review or the identity question can be shown; a refused or cancelled review
+   therefore leaves a named entry with rebaseRequired: true and boot() reporting
+   IMPORT_REBASE_REQUIRED for a file that was never adopted. markImportRebased
+   would clear that flag by telling the host's lie for it. This clears it by
+   recording the truth: he took the file back, and here is when and why. */
+const RETRACT_ADMITTED = "LOCAL_IMPORT_RETRACT_REFUSED_ADMITTED";
+// A reason is a LABEL, not a note: LETTERS, hyphens and underscores, up to 64
+// of them — "review-refused", "athlete-cancelled",
+// "LOCAL_SOURCE_PROGRAMME_UNRESOLVED". This string is written durably into the
+// generation and read back by a host, so the alphabet is chosen to make a
+// ledger value UNREPRESENTABLE rather than discouraged: no digits, no dots, no
+// colons, no spaces, so no weight, no date, no note he typed and no pasted
+// refusal detail can ride out of his history on it. A cell proves it.
+const RETRACT_REASON = /^[A-Za-z][A-Za-z_-]{0,63}$/;
+
+/* AN ADMITTED HISTORY IS HIS DATA AND LEAVES ONLY BY AN OWNER-RULED PATH.
+   Four places record an admission (the same four m4/workout/plan-edit-model.cjs
+   calls an import's presence), and this refuses if ANY of them names this
+   entry — the widest reading, because the cost of refusing a retract is one
+   honest refusal and the cost of allowing one is an adopted history torn out
+   from under the screens that are already painting it. */
+function admissionTrace(generation, entry) {
+  const metadata = generation?.metadata || {}, selections = metadata.localSources?.selections;
+  if (typeof entry.localSourceSelectionId === "string") return "entry.localSourceSelectionId";
+  if (object(selections)) for (const [id, selection] of Object.entries(selections))
+    if (object(selection) && (selection.name === entry.name ||
+      (entry.localSourceSelectionId && selection.id === entry.localSourceSelectionId))) return "localSources.selections." + id;
+  if (object(metadata.localSourceApplication) &&
+    metadata.localSourceApplication.source_digest === entry.sourceSha256) return "localSourceApplication";
+  const basis = generation?.collections?.[DERIVED]?.localSource?.basis;
+  if (object(basis) && basis.source_digest === entry.sourceSha256) return "derived.localSource";
+  return null;
+}
+
+/* THE SEEDED CACHE. On a ZERO-OP generation importBundle replaces
+   derived.value with the migrated state, so retracting THAT import must put the
+   cache back or his screens keep reading a history he took back. The only
+   authenticated copy of the pre-stage cache in the store is the one the custody
+   record checkpointed when it took the original — so it is read from there,
+   under the device key, and only when the checkpoint provably describes the
+   moment before this entry: zero ops then and still zero ops now, and no entry
+   of this name in the checkpoint itself. Anything else
+   refuses rather than guess, because a guessed cache is exactly the class of
+   defect this module's header spends forty lines refusing to commit. */
+const seeded = entry => entry.rebaseRequired !== true && (entry.opsBasisAtImport?.opCount ?? null) === 0;
+async function priorSidecar(scope, entry, snapshot) {
+  if (opsBasis(snapshot.generation).opCount !== 0) fail("LOCAL_IMPORT_RETRACT_BASIS_UNPROVEN", 3);
+  let checkpoint;
+  try { checkpoint = (await custodyOf(scope).load(entry.name)).checkpoint; }
+  catch { fail("LOCAL_IMPORT_RETRACT_BASIS_UNPROVEN", 3); }
+  const prior = checkpoint?.generation;
+  if (!object(prior) || importEntries(prior).some(other => other.name === entry.name) ||
+    opsBasis(prior).opCount !== 0) fail("LOCAL_IMPORT_RETRACT_BASIS_UNPROVEN", 3);
+  return clone(prior.collections?.[DERIVED] ?? { basis: { opCount: 0, lastOpId: null }, value: null });
+}
+
+// The retract operation's own durable record. It carries the superseded entry
+// VERBATIM — the whole of it, not a summary — so the register plus custody is a
+// complete account of an import that once existed here.
+const retractRecordFor = (entry, reason, retractedAt, basis) => ({
+  profile: LOCAL_IMPORT_RETRACT_PROFILE, name: entry.name, sourceSha256: entry.sourceSha256 ?? null,
+  migratedSha256: entry.migratedSha256 ?? null, reason, retractedAt,
+  opsBasisAtRetract: { opCount: basis.opCount, lastOpId: basis.lastOpId }, entry: clone(entry) });
+
+// entryId (the custody name) or the bundle's sourceSha256. A name is tried
+// first: every name this module mints is port:<16 hex>, so the two cannot
+// collide in practice, and a hand-chosen name that happens to be 64 hex
+// characters still means the name its owner chose.
+function resolveRetract(generation, selector) {
+  const entries = importEntries(generation), byName = entries.filter(entry => entry.name === selector);
+  return byName.length || !HEX64.test(selector) ? byName
+    : entries.filter(entry => entry.sourceSha256 === selector);
+}
+
+/* retractImport(selector, reason) — ONE durable commit, fenced exactly like the
+   other two writers here (boot() ready, era lease alive, client open), which is
+   what "authenticated like the others" means: it rides the same sealed
+   generation under the same device key and the same optimistic revision check.
+   Result: {retracted, code, state, name, durableRevision, reason, retractedAt}. */
+async function runRetract(scope, selector, reason) {
+  const blocked = refuseUnlessWritable(scope);
+  if (blocked) return { retracted: false, ...blocked, name: null };
+  if (typeof selector !== "string" || !VALID_NAME.test(selector))
+    return { retracted: false, state: 3, code: "LOCAL_IMPORT_NAME_INVALID", name: null };
+  if (typeof reason !== "string" || !RETRACT_REASON.test(reason))
+    return { retracted: false, state: 3, code: "LOCAL_IMPORT_RETRACT_REASON_INVALID", name: null };
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    try {
+      const snapshot = await scope.repository.load(), generation = snapshot.generation;
+      const matches = resolveRetract(generation, selector);
+      if (matches.length > 1) return { retracted: false, state: 3, name: null,
+        code: "LOCAL_IMPORT_RETRACT_AMBIGUOUS", durableRevision: snapshot.revision };
+      if (!matches.length) {
+        // Retracting twice is a NAMED no-op, not a fault: the athlete asked for
+        // a state the store is already in. state stays null, as it does for
+        // ALREADY_PRESENT and NOT_PENDING, because nothing failed.
+        const already = importRetractions(generation).some(record =>
+          record.name === selector || record.sourceSha256 === selector);
+        return { retracted: false, state: already ? null : 3, name: already ? selector : null,
+          code: already ? "LOCAL_IMPORT_ALREADY_RETRACTED" : "LOCAL_IMPORT_UNKNOWN",
+          durableRevision: snapshot.revision };
+      }
+      const entry = matches[0], admitted = admissionTrace(generation, entry);
+      if (admitted) return { retracted: false, state: 3, code: RETRACT_ADMITTED, name: entry.name,
+        durableRevision: snapshot.revision, admittedBy: admitted };
+      const retractedAt = scope.clock.now();
+      if (typeof retractedAt !== "string" || !Number.isFinite(Date.parse(retractedAt)))
+        return { retracted: false, state: 3, code: "LOCAL_CLOCK_UNUSABLE", name: null };
+      const restored = seeded(entry) ? await priorSidecar(scope, entry, snapshot) : null;
+      const next = clone(generation), basis = opsBasis(generation);
+      next.metadata.imports = importEntries({ metadata: next.metadata }).filter(other => other.name !== entry.name);
+      next.metadata.importRetractions = [...importRetractions({ metadata: next.metadata }),
+        retractRecordFor(entry, reason, retractedAt, basis)];
+      if (restored) next.collections[DERIVED] = restored;
+      const commit = await scope.repository.commit(snapshot, next,
+        () => (scope.alive() ? null : { state: 3, code: "LOCAL_CLIENT_CLOSED" }));
+      return { retracted: true, state: null, code: "LOCAL_IMPORT_RETRACTED", name: entry.name,
+        durableRevision: commit.revision, reason, retractedAt };
+    } catch (error) {
+      if (error instanceof StorageFailure && error.retryable && attempt + 1 < MAX_ATTEMPTS) continue;
+      return { retracted: false, state: error?.state ?? 3, name: null,
+        code: error?.code || "LOCAL_IMPORT_RETRACT_FAILED" };
+    }
+  }
+  return { retracted: false, state: 3, code: "LOCAL_IMPORT_CONTENDED", name: null };
+}
+
+/* The read side of the register, the twin of imports(). A host that wants to
+   show "you removed this file" reads this; nothing else in the tree does. */
+async function runRetractions(scope) {
+  if (!scope.alive()) fail("LOCAL_CLIENT_CLOSED", 3);
+  return importRetractionSummaries((await scope.repository.load()).generation);
+}
+
 // --- ENTRY POINTS ------------------------------------------------------------
 // Each takes EITHER an opened local client (the brief's signature) or the
 // factory's own internal scope (what local-client.mjs's additive methods pass).
@@ -594,6 +782,9 @@ export const importBundle = (target, options) => dispatch(target, "importBundle"
 export const listImports = target => dispatch(target, "imports", runImports);
 export const importOriginal = (target, name) => dispatch(target, "importOriginal", runImportOriginal, name);
 export const markImportRebased = (target, name) => dispatch(target, "markImportRebased", runMarkRebased, name);
+export const retractImport = (target, selector, reason) =>
+  dispatch(target, "retractImport", runRetract, selector, reason);
+export const listImportRetractions = target => dispatch(target, "retractions", runRetractions);
 
 // Used by local-client.mjs boot(). Returns the derivedCode to report, or null.
 // It does NOT overrule a more specific sidecar fault: a malformed cache keeps
@@ -602,4 +793,5 @@ export const markImportRebased = (target, name) => dispatch(target, "markImportR
 // thing the caller does with either.
 export const importRebaseCode = generation => (importRebasePending(generation) ? IMPORT_REBASE_CODE : null);
 
-export const importInternals = Object.freeze({ runImport, runImports, runImportOriginal, runMarkRebased });
+export const importInternals = Object.freeze({ runImport, runImports, runImportOriginal, runMarkRebased,
+  runRetract, runRetractions });
