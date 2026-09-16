@@ -459,13 +459,112 @@
       "pre": null,
       "post": "f6cc4c657276078c6d2de65cb94f325b64a53972e24e9e2c14ff6be2c358bc55",
       "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-supersede-source-carriers.test.cjs": {
+      "pre": null,
+      "post": "1dd908981b535e8501e774da30331ae4c3797beeb572fc82a1fc90fc7669d77a",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-supersede-inherited-carriers.test.cjs": {
+      "pre": null,
+      "post": "6ae869632a7d80055bd46a0e2d46abd23558aa29c88176442f5ff8e363f0f05c",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-supersede-defect-witnesses.test.cjs": {
+      "pre": null,
+      "post": "034a226aa4b101c522a3cf3c85320167dba1cd0e2e52633f377a91f55f89c0c7",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-supersede-writers-differential.test.cjs": {
+      "pre": null,
+      "post": "38c01c17d7c0e8e515823d350f583c9ac3dcafeb46d21ec8ee15b901928e5d1a",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-supersede-second-gate.test.cjs": {
+      "pre": null,
+      "post": "cb2c1ea96da0b0c545fda1d5910cc306d2de0da2ae93e9670ffc07032272a9f7",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-engine-files-differential.cjs": {
+      "pre": null,
+      "post": "6fde05da585d7cf5d22a8b961274074cc2cbf295cf860b17889a1b82b01beb7e",
+      "role": "new"
     }
   },
   "coverage": {
     "inherited": {},
     "moves": {},
     "successors": null,
-    "superseded": null
+    "superseded": {
+      "rulingLineSha256": "a1d96976ed87da290b890f2e715c2c3bc872e97a186dc87386f0ffc15a1a1693",
+      "gates": {
+        "source-carriers": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37, and the three original programmes rebuild migrate.cjs from the frozen fe516c1:src/app.jsx declarations; this package changes NO engine byte, yet four files the reconstruction rebuilds (constants.cjs and writers.cjs from M2-H3-CLEAN-INIT, merge.cjs and today.cjs from M2-S3-COMPANION) already stand outside it, so the gates refuse on this tree and no package that moves nothing can mend them - executed and measured in s4-supersede-source-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s4-sup-source-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-13",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "inherited-carriers": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs) and pins the visit order and the per-module carrier counts, so today.cjs (nine declared carriers) and writers.cjs are refused there for the same reason as source-carriers, at the parent's own post which this package carries unmoved",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s4-sup-inherited-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-13",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "defect-witnesses": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: the FROZEN side of every one of its ten complete comparisons is built through native-carriers-parent-source.cjs into the same pinned reconstruction, so no witness can be produced on both sides once an inherited engine byte stands outside it; S4 closes no register defect and moves no engine byte, and the complete comparison it owes is measured instead against the accepted engine read from Git",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s4-sup-defect-witnesses"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-13",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "writers-differential": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and writers.cjs on this tree is neither that reconstruction's declared pre-image nor its declared post-image - it was moved by M2-H3-CLEAN-INIT and is carried here byte-identical to the parent's post, asserted at S4/SUP-11",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s4-sup-writers-differential"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-13",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "second-gate": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: the independent second reading is taken over the reconstructed engine and pins the frozen source commit fe516c1 with a static inventory, so it refuses this tree before it compares anything; the second reading S4 puts in its place is taken from Git at this package's own sourceBase against the disk composition",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s4-sup-second-gate"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-13",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        }
+      }
+    }
   },
   "carrierSuccessor": null,
   "witnessFlips": [],
@@ -542,10 +641,62 @@
         "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
       ],
       "needle": "# pass 23"
+    },
+    {
+      "name": "s4-sup-source-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s4-supersede-source-carriers.test.cjs"
+      ],
+      "needle": "# pass 4"
+    },
+    {
+      "name": "s4-sup-inherited-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s4-supersede-inherited-carriers.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "s4-sup-defect-witnesses",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s4-supersede-defect-witnesses.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "s4-sup-writers-differential",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s4-supersede-writers-differential.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "s4-sup-second-gate",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s4-supersede-second-gate.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "engine-files-differential",
+      "argv": [
+        "rebuild/m4/workout/test/s4-engine-files-differential.cjs"
+      ],
+      "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 18 named and NOT ONE moves, so all 45 tracked rebuild/engine file(s) stand byte-identical to the parent's own post;"
     }
   ],
   "notes": [
-    "M2-S4-REAL-DAY is S3's child under the same rule S3 was H3's, and it changes NO byte under rebuild/engine: all 20 engine files the parent pins are carried at the parent's post, byte-identical on disk. It therefore declares NO gate supersession - coverage.superseded is null, coverage.inherited is the parent's own coverage.byChild map byte-for-byte (empty, as S3 sealed it), the five byte-identity carriers stand exactly as the parent map leaves them, and no GATE-SUPERSESSION token line is needed, requested or claimed. This package registers no D-id (DECISIONS:93, the S- slice-plan half); its obligation is the Y1 own-child rule and its s4-real-day child executes its own role:new cells. The brief has not yet been accepted by name, so brief.acceptedLedgerLine and authorizations.theme are null and the runner reports them as OPEN OBLIGATIONS - the same state packages/H3.json stood in at H3-REVIEW-r2. `notes` is not carried into the sealed artifact.",
+    "M2-S4-REAL-DAY is S3's child under the same rule S3 was H3's, and it changes NO byte under rebuild/engine: all 20 engine files the parent pins are carried at the parent's post, byte-identical on disk, and s4-engine-files-differential measures all 45 tracked rebuild/engine files against the parent. ROUND 4 CORRECTION (DECISIONS:443): rounds 1-3 read \"no engine byte moves\" as \"every parent carrier is carried\", and the FULL refused at the first of the nineteen re-executed gates, migrate-source. The nine NATIVE-CARRIERS gates are byte-identity RECONSTRUCTIONS of rebuild/engine from a frozen BASE; four of the files they rebuild were moved by this package's ancestors (constants.cjs, writers.cjs by M2-H3-CLEAN-INIT; merge.cjs, today.cjs by M2-S3-COMPANION), so no descendant of S3 can carry them whether or not it moves an engine byte of its own - the S3 reviewer's note 3 at DECISIONS:422 named exactly this second-generation effect. This package therefore retires the same nine gates again under its OWN token line DECISIONS:444 with its OWN evidence in H3/S3's exact shape: five red-first cells, the engine-files differential over ALL 45 files, the legacy (a0-journeys) and writers (today-13) differentials it already declares, and the runner's own clean census line. The product bytes are byte-identical to the reviewed b7dc642; the r3 ACCEPT stands for the product. This package registers no D-id (DECISIONS:93, the S- slice-plan half); its obligation is the Y1 own-child rule. `notes` is not carried into the sealed artifact.",
     "S4-REVIEW-R1 finding 4. S4 moves the runner, so EVERY package spec that pins the runner by sha has to be re-pinned or it stops at RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER before any evidence is read. Round 1 re-pinned packages/S3.json and missed packages/H3.json; round 2 re-pins H3.json the same way, which is what ccf2137 did when the runner last moved and what S3 itself did to H3.json. H3.json is therefore declared role edited over the parent product pin, one byte range, tooling.runnerSha256 only. With it re-pinned, `--ci --package H3` at this head stops where it stops at the tip - SEALED-PROFILE-RECOMPUTATION - so no coverage is lost and no refusal token is changed by S4."
   ]
 }

@@ -353,3 +353,154 @@ asked for a change. Nothing else in the package moved this round. No law, guard 
 `dispose()` adds a refusal, it removes none; `render`'s new first line only ever refuses; the four
 lane-C guard cells and the declaring-spec chain stand exactly as rounds 1 and 2 left them; and
 `SETUP_BASIS_STATE_REFUSED`, the `hosts` default branch and the declared-day path are byte-unchanged.
+
+## 10. Round 4 — DECISIONS:443, the nine byte-identity gates retired under DECISIONS:444
+
+**What round 4 is, and what it is not.** It is PACKAGE STRUCTURE only. Not one product byte moves:
+every file this package declares `edited` or `new` in rounds 1–3 stands at the post-image the r3
+review ACCEPTED at `b7dc642`, the brief is unchanged at `5f1ee6f3…`, and the runner is unchanged at
+`422d1e9f…`. What moved is the spec's `coverage.superseded` block, the sealed artifact recomputed
+from it, six new evidence cells under `rebuild/m4/workout/test/`, and this section.
+
+**The diagnosis, restated in this package's own terms.** Rounds 1–3 read the brief's "S4 changes no
+`rebuild/engine` byte" as "every parent carrier is carried", and the spec said so in terms
+(`coverage.superseded: null`). The runner's own `--ci` line — *"0 inherited … 19 re-execute under
+`--full`"* — was the tell nobody read. The nine NATIVE-CARRIERS gates are not pins; they are
+byte-identity RECONSTRUCTIONS of `rebuild/engine` from a frozen `BASE` plus a sha-pinned literal
+carrier list, and from the frozen `fe516c1:src/app.jsx` declarations. Four of the files they rebuild
+were moved by this package's ANCESTORS — `constants.cjs` and `writers.cjs` by M2-H3-CLEAN-INIT,
+`merge.cjs` and `today.cjs` by M2-S3-COMPANION — so no descendant of S3 can carry them whether or not
+it moves an engine byte of its own. The S3 reviewer's note 3 at `DECISIONS:422` named exactly this
+second-generation effect; `DECISIONS:443` measured it as `migrate-source` refusing first, with the
+other eighteen never reached. `DECISIONS:444` is this package's own token line.
+
+**The evidence, in H3's and S3's exact shape, all of it EXECUTED.** Five red-first cells, one per
+carrier, plus the named-files differential:
+
+| child | file | verdict |
+| --- | --- | --- |
+| `s4-sup-source-carriers` | `rebuild/m4/workout/test/s4-supersede-source-carriers.test.cjs` | `# pass 4` |
+| `s4-sup-inherited-carriers` | `rebuild/m4/workout/test/s4-supersede-inherited-carriers.test.cjs` | `# pass 3` |
+| `s4-sup-defect-witnesses` | `rebuild/m4/workout/test/s4-supersede-defect-witnesses.test.cjs` | `# pass 3` |
+| `s4-sup-writers-differential` | `rebuild/m4/workout/test/s4-supersede-writers-differential.test.cjs` | `# pass 3` |
+| `s4-sup-second-gate` | `rebuild/m4/workout/test/s4-supersede-second-gate.test.cjs` | `# pass 3` |
+| `engine-files-differential` | `rebuild/m4/workout/test/s4-engine-files-differential.cjs` | the whole line below |
+
+The RED-FIRST half is not a description of a wall; it is the wall, run. `S4/SUP-2` calls the
+carrier's own `native-carriers-source.cjs verify()` and it throws
+`Exact product construction: rebuild/engine/today.cjs`; the cell then enumerates all four diverged
+files and asserts each stands at the PARENT's own post. `S4/SUP-3` spawns the ORIGINAL gate
+programme `rebuild/engine/test/migrate-source.cjs`, asserts a non-zero exit and
+`exact declaration migrate` on stderr, and then asserts that `migrate.cjs` itself is byte-identical
+to both the parent post and the frozen `BASE` blob — the refusal is inherited, not caused here.
+`S4/SUP-5` re-executes `priorModule`'s own rule over the six carried engine modules: four still ARE
+the declared carriers, `today.cjs` (nine declared carriers, the count the carrier pins in
+`CARRIED_VISITS`) and `writers.cjs` are not. `S4/SUP-11` measures both distances for `writers.cjs` —
+it is neither the reconstruction's pre-image nor its post-image.
+
+The half that STANDS IN THEIR PLACE is, for a package that moves no engine byte, the identity itself
+— and identity is worthless unless the instrument can fail, so every such cell carries its own
+mutation control. `S4/SUP-9` and `S4/SUP-15` compose the ACCEPTED engine from GIT at this package's
+own `sourceBase` (each of the sixteen modules asserted to be the parent artifact's declared post
+BEFORE it is compiled, never read from disk) and the engine ON DISK, and compare the whole projection
+— seventeen census readers, seven `genSession` days, seven membership reads, `mergeState` of the
+record with a diverged copy — byte for byte, 0 moved. `S4/SUP-10` removes one export
+(`sessionMembership`) and the projection detects exactly it; `S4/SUP-16` shows a comment-only change
+moving nothing and a one-line `pickStructural` change being caught; `S4/SUP-12` runs the writers
+differential in all 3 Date/trap modes against the Git-side engine and `S4/SUP-13` shows one removed
+writer detected in all three. `S4/SUP-7` proves the two INHERITED capabilities are not just present
+as bytes but reached: `sessionMembership` names the seed's own pool, and the `nativeDate` seam is
+reached at the routed parse sites.
+
+**The engine-files differential is the stronger sentence, because S4 can afford it.** S3's version
+compared the REMAINDER and named two moved files; S4's compares the remainder AND the eighteen it
+names, and there is no moved half at all:
+
+```
+ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 18 named and NOT ONE moves, so all 45 tracked rebuild/engine file(s) stand byte-identical to the parent's own post;
+```
+
+The runner computes the 27 itself (`supersessionEngineIdentity`) and holds this needle to the count
+IT measured, so neither side can drift alone.
+
+**The citation.** `coverage.superseded.rulingLineSha256` is
+`a1d96976ed87da290b890f2e715c2c3bc872e97a186dc87386f0ffc15a1a1693`, the sha256 of the exact bytes of
+`DECISIONS:444` as the runner computes it, unique on `refs/remotes/origin/rebuild/t2-client-core`.
+Evidence per carrier: `laws` null (this package registers no D-id), `redFirst` its own cell,
+`census` the runner's own live-triggered line (which says `none`), `legacyDifferential`
+`a0-journeys`, `writersDifferential` `today-13`, `engineFilesDifferential`
+`engine-files-differential`. Each carrier's red-first cell is its own and no other carrier's, which
+is what `GATE-SUPERSESSION-EVIDENCE-IS-NOT-THIS-CARRIER-OWN` asks.
+
+### 10.1 `--ci --package S4` at the round-4 head, the lines that moved, whole
+
+```
+B PACKAGE S4 SUPERSESSIONS 5 byte-identity carrier(s) of S3 SUPERSEDED over 9 gate(s) under DECISIONS:444, located on refs/remotes/origin/rebuild/t2-client-core BY ITS OWN SHA256 a1d96976ed87; these gates reconstruct rebuild/engine byte-for-byte from a frozen BASE and assert every path the parent spec declares at the parent's own post, so no child that changes a declared file can carry them — the child's own evidence stands in their place and every named child ran green in THIS run
+B PACKAGE S4 COVERAGE 0/19 original gate(s) covered by 0 executed child(ren) (0 inherited, the parent map byte-for-byte; 0 moved, each naming its own original executable in a relative require specifier and each proved by that gate’s own needle out of R.GATES in the child’s stdout); 9 SUPERSEDED under DECISIONS:444 (defect-witnesses 1, inherited-carriers 3, second-gate 1, source-carriers 3, writers-differential 1), counted toward the 19 only under that ruling; 10 re-execute under --full
+B PACKAGE S4 SUPERSEDED source-carriers <- merge-source migrate-source writers-source; retired by S3's own seal and retired AGAIN here under this package's own token line, not inherited; DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37, and the three original programmes rebuild migrate.cjs from the frozen fe516c1:src/app.jsx declarations; this package changes NO engine byte, yet four files the reconstruction rebuilds (constants.cjs and writers.cjs from M2-H3-CLEAN-INIT, merge.cjs and today.cjs from M2-S3-COMPANION) already stand outside it, so the gates refuse on this tree and no package that moves nothing can mend them - executed and measured in s4-supersede-source-carriers
+B PACKAGE S4 SUPERSEDED EVIDENCE source-carriers; laws UNMOVED; red-first s4-sup-source-carriers; public census the runner's own census line, which says none; legacy differential a0-journeys; writers differential today-13; engine-files differential engine-files-differential over 27 tracked rebuild/engine/ file(s) outside this package's own product, each re-compared here against the parent post; 4 named child(ren) executed green in this run
+B PACKAGE S4 SUPERSEDED inherited-carriers <- migrate-differential witnesses-2 witnesses-5; retired by S3's own seal and retired AGAIN here under this package's own token line, not inherited; DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs) and pins the visit order and the per-module carrier counts, so today.cjs (nine declared carriers) and writers.cjs are refused there for the same reason as source-carriers, at the parent's own post which this package carries unmoved
+B PACKAGE S4 SUPERSEDED EVIDENCE inherited-carriers; laws UNMOVED; red-first s4-sup-inherited-carriers; public census the runner's own census line, which says none; legacy differential a0-journeys; writers differential today-13; engine-files differential engine-files-differential over 27 tracked rebuild/engine/ file(s) outside this package's own product, each re-compared here against the parent post; 4 named child(ren) executed green in this run
+B PACKAGE S4 SUPERSEDED defect-witnesses <- witnesses-7; retired by S3's own seal and retired AGAIN here under this package's own token line, not inherited; DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: the FROZEN side of every one of its ten complete comparisons is built through native-carriers-parent-source.cjs into the same pinned reconstruction, so no witness can be produced on both sides once an inherited engine byte stands outside it; S4 closes no register defect and moves no engine byte, and the complete comparison it owes is measured instead against the accepted engine read from Git
+B PACKAGE S4 SUPERSEDED EVIDENCE defect-witnesses; laws UNMOVED; red-first s4-sup-defect-witnesses; public census the runner's own census line, which says none; legacy differential a0-journeys; writers differential today-13; engine-files differential engine-files-differential over 27 tracked rebuild/engine/ file(s) outside this package's own product, each re-compared here against the parent post; 4 named child(ren) executed green in this run
+B PACKAGE S4 SUPERSEDED writers-differential <- writers-differential; retired by S3's own seal and retired AGAIN here under this package's own token line, not inherited; DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and writers.cjs on this tree is neither that reconstruction's declared pre-image nor its declared post-image - it was moved by M2-H3-CLEAN-INIT and is carried here byte-identical to the parent's post, asserted at S4/SUP-11
+B PACKAGE S4 SUPERSEDED EVIDENCE writers-differential; laws UNMOVED; red-first s4-sup-writers-differential; public census the runner's own census line, which says none; legacy differential a0-journeys; writers differential today-13; engine-files differential engine-files-differential over 27 tracked rebuild/engine/ file(s) outside this package's own product, each re-compared here against the parent post; 4 named child(ren) executed green in this run
+B PACKAGE S4 SUPERSEDED second-gate <- second-gate; retired by S3's own seal and retired AGAIN here under this package's own token line, not inherited; DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: the independent second reading is taken over the reconstructed engine and pins the frozen source commit fe516c1 with a static inventory, so it refuses this tree before it compares anything; the second reading S4 puts in its place is taken from Git at this package's own sourceBase against the disk composition
+B PACKAGE S4 SUPERSEDED EVIDENCE second-gate; laws UNMOVED; red-first s4-sup-second-gate; public census the runner's own census line, which says none; legacy differential a0-journeys; writers differential today-13; engine-files differential engine-files-differential over 27 tracked rebuild/engine/ file(s) outside this package's own product, each re-compared here against the parent post; 4 named child(ren) executed green in this run
+B PACKAGE S4 NO-REGISTER OBLIGATION S4 registers no D-id, so the 45-law accounting imposes nothing on it; in its place 8 of 8 declared child(ren) executing one of this package's own role:"new" product file(s) ran in this process, exit 0, with their exact declared needle at line start — 1 required at the seal (9 child(ren) declared in total: s4-real-day -> rebuild/m3/w6/host/test/local-real-day.test.mjs; today-13 -> rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/problem.test.mjs; s4-sup-source-carriers -> rebuild/m4/workout/test/s4-supersede-source-carriers.test.cjs; s4-sup-inherited-carriers -> rebuild/m4/workout/test/s4-supersede-inherited-carriers.test.cjs; s4-sup-defect-witnesses -> rebuild/m4/workout/test/s4-supersede-defect-witnesses.test.cjs; s4-sup-writers-differential -> rebuild/m4/workout/test/s4-supersede-writers-differential.test.cjs; s4-sup-second-gate -> rebuild/m4/workout/test/s4-supersede-second-gate.test.cjs; engine-files-differential -> rebuild/m4/workout/test/s4-engine-files-differential.cjs)
+B PACKAGE S4 OPEN closed cumulative profile not sealed
+B PACKAGE S4 PUBLIC CI EVIDENCE PASS — public evidence only, NOT the package verdict; the 19 original gates, the private oracle and independent exact-artifact acceptance remain separate, and POSTFIX PACKAGE PASS is unavailable on this mode at any time
+```
+
+Exit 0. The SPEC line now ends *"5 byte-identity carrier(s) declared SUPERSEDED under a PM line
+recorded by sha256 a1d96976ed87, each with its own named and executed evidence"*, and the PRODUCT
+line reads *"21 at the declared post-image / 0 at the pinned pre-image / 68 carried byte-identical
+from the parent / 0 declared role "pinned-unchanged" … / 0 unlisted drift"* — the six new cells are
+the only additions to the 15 posts round 3 sealed.
+
+### 10.2 Suites at the round-4 head
+
+| suite | result |
+| --- | --- |
+| today 13 by name | `ℹ tests 645 · ℹ pass 645 · ℹ fail 0` exit 0 |
+| A0 (journey + engine-equivalence) + S4 cells (local-real-day + the five supersession cells) | `ℹ tests 54 · ℹ pass 54 · ℹ fail 0` exit 0 |
+| `s4-engine-files-differential.cjs` (bare) | the whole line quoted in 10.1, exit 0 |
+| W6 `rebuild/m3/w6 --test "test/*.test.mjs"` | `ℹ tests 586 · ℹ pass 585 · ℹ fail 1` exit 1 — see 10.3 |
+| lane-B tooling `rebuild/lanes/b/tooling/test/*.test.cjs` | `ℹ tests 90 · ℹ pass 89 · ℹ fail 1` exit 1 — see 10.3 |
+| `rebuild/t2/rig187.cjs` | `rig187 ⇒ PASS` exit 0 |
+
+### 10.3 Two failures that round 4 did NOT cause, named rather than rounded off
+
+**(a) lane-B tooling 89/90 — PRE-EXISTING SINCE `b7dc642`, and it is this package's own doing in an
+earlier round.** `pinned-unchanged-and-ruled-substitutions.test.cjs:267 F6` pins the expected `IDS`
+order and reads `['B-NTC','H3','S3','B1','B2','B4','B3','B-LOM']`; S4's own runner edit (round 1,
+reviewed and ACCEPTED at r3) inserted `'S4'` after `'S3'`, which is what lets `--package S4` run at
+all. The fix is one literal in that test file. It is NOT applied here, on purpose: round 4 is
+structure only, the file is not in this package's `product` map, and it lives under the lane-B
+tooling fixed inventory that `FIDELITY` audits — editing it undeclared would turn a one-literal
+repair into unlisted drift. It belongs in the same declared hunk as the runner edit, and the PM
+should route it as a one-line follow-up (or accept it into this package's product with the review).
+
+**(b) W6 585/586 — ENVIRONMENTAL, the private oracle being PRESENT on this machine.**
+`test/local-source-consumer.test.mjs:198 P2-W1` expects `4. ORACLE PASS frozen 7/7 unfrozen 7/7`;
+on this PC the port oracle runs at `scope FULL` and reports `frozen 10/10 unfrozen 10/10` because
+the private live blob is on disk. The step still says `PASS`; only the arity the test's regular
+expression pins differs. Nothing was opened, quoted or hashed here beyond the runner's own counts.
+This is a cloud-vs-PC condition of the P2 harness, not an S4 file: no file in this package's product
+is on that path, and the suite is 586/586 where the private blob is absent.
+
+### 10.4 What a reviewer should re-take first
+
+1. `node rebuild/lanes/b/tooling/b-package.cjs --ci --package S4` — expect the `SUPERSESSIONS`,
+   five `SUPERSEDED` / `SUPERSEDED EVIDENCE` pairs, `COVERAGE … 9 SUPERSEDED … 10 re-execute`, and
+   `PUBLIC CI EVIDENCE PASS`, exit 0.
+2. Delete `DECISIONS:444` from the chain branch and re-run: the run must refuse
+   `GATE-SUPERSESSION-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH`, because the runner
+   re-reads the chain file on every call and never caches the recorded sha.
+3. Point any one carrier's `redFirst` at another carrier's cell: expect
+   `GATE-SUPERSESSION-EVIDENCE-IS-NOT-THIS-CARRIER-OWN`. Point `engineFilesDifferential` at
+   `a0-journeys`: expect `GATE-SUPERSESSION-EVIDENCE-DIFFERENTIALS-ARE-THE-SAME-CHILD`. Change the
+   `27` in the differential needle: expect
+   `GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-STATE-THE-COUNT`.
+4. `git diff b7dc642 -- <every product path with role edited or new>` — expect empty. The product is
+   the reviewed product; round 4 added evidence and a citation, nothing else.

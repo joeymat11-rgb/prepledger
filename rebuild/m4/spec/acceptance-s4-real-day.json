@@ -14,7 +14,7 @@
   },
   "spec": {
     "file": "rebuild/lanes/b/tooling/packages/S4.json",
-    "sha256": "a0e8413a2f31729a965b1a332c5006c89ffdfce1635b2db2ffe6d10e6147a0fc"
+    "sha256": "972f4ded83547c7ca500d47c74104bcc63cfe555f8c06c64d78b5e71f59dd995"
   },
   "runner": {
     "file": "rebuild/lanes/b/tooling/b-package.cjs",
@@ -54,32 +54,122 @@
   ],
   "coverage": {
     "covered": [],
-    "superseded": [],
-    "supersededByCarrier": {},
-    "run": [
-      "conformance",
-      "merge-differential",
-      "merge-laws",
+    "superseded": [
       "merge-source",
       "migrate-differential",
-      "migrate-full",
       "migrate-source",
       "second-gate",
-      "selftest",
-      "strict",
-      "witnesses-1",
       "witnesses-2",
-      "witnesses-3",
-      "witnesses-4",
       "witnesses-5",
-      "witnesses-6",
       "witnesses-7",
       "writers-differential",
       "writers-source"
     ],
+    "supersededByCarrier": {
+      "defect-witnesses": [
+        "witnesses-7"
+      ],
+      "inherited-carriers": [
+        "migrate-differential",
+        "witnesses-2",
+        "witnesses-5"
+      ],
+      "second-gate": [
+        "second-gate"
+      ],
+      "source-carriers": [
+        "merge-source",
+        "migrate-source",
+        "writers-source"
+      ],
+      "writers-differential": [
+        "writers-differential"
+      ]
+    },
+    "run": [
+      "conformance",
+      "merge-differential",
+      "merge-laws",
+      "migrate-full",
+      "selftest",
+      "strict",
+      "witnesses-1",
+      "witnesses-3",
+      "witnesses-4",
+      "witnesses-6"
+    ],
     "moves": {},
     "successors": null,
-    "supersessions": null,
+    "supersessions": {
+      "rulingLineSha256": "a1d96976ed87da290b890f2e715c2c3bc872e97a186dc87386f0ffc15a1a1693",
+      "gates": {
+        "source-carriers": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37, and the three original programmes rebuild migrate.cjs from the frozen fe516c1:src/app.jsx declarations; this package changes NO engine byte, yet four files the reconstruction rebuilds (constants.cjs and writers.cjs from M2-H3-CLEAN-INIT, merge.cjs and today.cjs from M2-S3-COMPANION) already stand outside it, so the gates refuse on this tree and no package that moves nothing can mend them - executed and measured in s4-supersede-source-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s4-sup-source-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-13",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "inherited-carriers": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs) and pins the visit order and the per-module carrier counts, so today.cjs (nine declared carriers) and writers.cjs are refused there for the same reason as source-carriers, at the parent's own post which this package carries unmoved",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s4-sup-inherited-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-13",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "defect-witnesses": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: the FROZEN side of every one of its ten complete comparisons is built through native-carriers-parent-source.cjs into the same pinned reconstruction, so no witness can be produced on both sides once an inherited engine byte stands outside it; S4 closes no register defect and moves no engine byte, and the complete comparison it owes is measured instead against the accepted engine read from Git",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s4-sup-defect-witnesses"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-13",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "writers-differential": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and writers.cjs on this tree is neither that reconstruction's declared pre-image nor its declared post-image - it was moved by M2-H3-CLEAN-INIT and is carried here byte-identical to the parent's post, asserted at S4/SUP-11",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s4-sup-writers-differential"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-13",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "second-gate": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:444 (RULED) for M2-S4-REAL-DAY, located by its own sha256 a1d96976ed87...: the independent second reading is taken over the reconstructed engine and pins the frozen source commit fe516c1 with a static inventory, so it refuses this tree before it compares anything; the second reading S4 puts in its place is taken from Git at this package's own sourceBase against the disk composition",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s4-sup-second-gate"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-13",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        }
+      }
+    },
     "byChild": {}
   },
   "authorizations": {
@@ -522,6 +612,36 @@
       "pre": null,
       "post": "f6cc4c657276078c6d2de65cb94f325b64a53972e24e9e2c14ff6be2c358bc55",
       "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-supersede-source-carriers.test.cjs": {
+      "pre": null,
+      "post": "1dd908981b535e8501e774da30331ae4c3797beeb572fc82a1fc90fc7669d77a",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-supersede-inherited-carriers.test.cjs": {
+      "pre": null,
+      "post": "6ae869632a7d80055bd46a0e2d46abd23558aa29c88176442f5ff8e363f0f05c",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-supersede-defect-witnesses.test.cjs": {
+      "pre": null,
+      "post": "034a226aa4b101c522a3cf3c85320167dba1cd0e2e52633f377a91f55f89c0c7",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-supersede-writers-differential.test.cjs": {
+      "pre": null,
+      "post": "38c01c17d7c0e8e515823d350f583c9ac3dcafeb46d21ec8ee15b901928e5d1a",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-supersede-second-gate.test.cjs": {
+      "pre": null,
+      "post": "cb2c1ea96da0b0c545fda1d5910cc306d2de0da2ae93e9670ffc07032272a9f7",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s4-engine-files-differential.cjs": {
+      "pre": null,
+      "post": "6fde05da585d7cf5d22a8b961274074cc2cbf295cf860b17889a1b82b01beb7e",
+      "role": "new"
     }
   },
   "carrierSuccessor": null,
@@ -570,6 +690,58 @@
         "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
       ],
       "needle": "# pass 23"
+    },
+    {
+      "name": "s4-sup-source-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s4-supersede-source-carriers.test.cjs"
+      ],
+      "needle": "# pass 4"
+    },
+    {
+      "name": "s4-sup-inherited-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s4-supersede-inherited-carriers.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "s4-sup-defect-witnesses",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s4-supersede-defect-witnesses.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "s4-sup-writers-differential",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s4-supersede-writers-differential.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "s4-sup-second-gate",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s4-supersede-second-gate.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "engine-files-differential",
+      "argv": [
+        "rebuild/m4/workout/test/s4-engine-files-differential.cjs"
+      ],
+      "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 18 named and NOT ONE moves, so all 45 tracked rebuild/engine file(s) stand byte-identical to the parent's own post;"
     }
   ],
   "artifact": {
@@ -578,7 +750,7 @@
   },
   "executionPins": {
     "rebuild/lanes/b/tooling/b-package.cjs": "422d1e9fd5174047a2eb5f92845826e22023d6d297a54e7a6a796f6824e20340",
-    "rebuild/lanes/b/tooling/packages/S4.json": "a0e8413a2f31729a965b1a332c5006c89ffdfce1635b2db2ffe6d10e6147a0fc",
+    "rebuild/lanes/b/tooling/packages/S4.json": "972f4ded83547c7ca500d47c74104bcc63cfe555f8c06c64d78b5e71f59dd995",
     "rebuild/lanes/b/S4-REAL-DAY-BRIEF.md": "5f1ee6f36c1d59087ef12a5819cbf338347e4dc0529ad6954630ea32e434bc09",
     "rebuild/m3/w6/host/test/local-real-day.test.mjs": "f6cc4c657276078c6d2de65cb94f325b64a53972e24e9e2c14ff6be2c358bc55",
     "rebuild/m3/w7-preview/today/test/adapter.test.mjs": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
@@ -595,6 +767,12 @@
     "rebuild/m3/w7-preview/today/test/setup.test.mjs": "84ebde8752c9252e728eeed801fd64cb497a79146e832fc888b6db82e9723334",
     "rebuild/m3/w7-preview/today/test/view.test.mjs": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
     "rebuild/m3/w6/host/test/journey.test.mjs": "2ac6a7f23bcc079406a1493fe01629b61abc66984c04289dc40fbbec60c20af9",
-    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee"
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+    "rebuild/m4/workout/test/s4-supersede-source-carriers.test.cjs": "1dd908981b535e8501e774da30331ae4c3797beeb572fc82a1fc90fc7669d77a",
+    "rebuild/m4/workout/test/s4-supersede-inherited-carriers.test.cjs": "6ae869632a7d80055bd46a0e2d46abd23558aa29c88176442f5ff8e363f0f05c",
+    "rebuild/m4/workout/test/s4-supersede-defect-witnesses.test.cjs": "034a226aa4b101c522a3cf3c85320167dba1cd0e2e52633f377a91f55f89c0c7",
+    "rebuild/m4/workout/test/s4-supersede-writers-differential.test.cjs": "38c01c17d7c0e8e515823d350f583c9ac3dcafeb46d21ec8ee15b901928e5d1a",
+    "rebuild/m4/workout/test/s4-supersede-second-gate.test.cjs": "cb2c1ea96da0b0c545fda1d5910cc306d2de0da2ae93e9670ffc07032272a9f7",
+    "rebuild/m4/workout/test/s4-engine-files-differential.cjs": "6fde05da585d7cf5d22a8b961274074cc2cbf295cf860b17889a1b82b01beb7e"
   }
 }
