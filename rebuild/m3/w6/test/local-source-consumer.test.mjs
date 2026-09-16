@@ -364,3 +364,35 @@ test('P2-W5 - the pending gate still covers every fixture-derived figure while t
     assert.notDeepEqual(settled.calorieTarget, { gated: true }, 'the gate lifts on his own imported state');
     era.close();
   });
+
+/* AN HONEST LIMIT, EXECUTED RATHER THAN ASSUMED, and a finding for the PM.
+   rebuild/m3/w6/local/today-bindings.mjs is PINNED and stamps every operation
+   this installation writes with a fixed tz of "-05:00" (clientClockFor, :166).
+   America/New_York is on -04:00 from March to November, so on a SUMMER day the
+   offset a real operation records disagrees with the offset the execution
+   calendar computes for that very date, and admission correctly refuses to
+   interpret it. The page's own SYNTHETIC_DAY (2030-02-04) is a winter day, so
+   nothing shipped is affected today; a real clock in summer would be, and P3
+   runs in September. Naming it here with its exact code so it cannot be
+   mistaken for a fault in the import. */
+test('P2-W6 - a summer-stamped installation refuses the same import, and says exactly why', async () => {
+  const indexedDB = new IDBFactory();
+  const summer = '2026-09-04';
+  const era = await openTodayOverLocalEra({ indexedDB, crypto: webcrypto, databaseName: 'p2-summer',
+    namespace: NS, athleteId: ATHLETE, deviceId: DEVICE, clock: clockFor(summer) });
+  const host = await era.createSetupHost({ day: summer, commands: Setup.createSetupCommands(), profile: Setup.PROFILE });
+  assert.equal((await host.save({ setup: SETUP, tags: TAGS })).ok, true);
+  host.close();
+  const carried = await admitTheImport(era);
+  const ops = Object.values((await era.generation()).generation.collections.ops);
+  assert.equal(ops[0].effective.utc_offset, '-05:00', 'the pinned binding stamped a summer day at -05:00');
+  const controller = createLocalSourceController({ repository: carried.repository, namespace: NS,
+    athleteId: ATHLETE, deviceId: DEVICE, producerRegistry: producerRegistryFor(carried),
+    asOf: () => summer, platform: carried.platform });
+  const prepared = await controller.prepareSource(await controller.reviewSource(carried.name),
+    { identityConfirmed: true });
+  assert.equal(prepared.ready, false, 'the import is withheld, not silently admitted');
+  assert.deepEqual([...new Set(prepared.issues.map(i => i.code))], ['LOCAL_SOURCE_CONTEXT_UNRESOLVED'],
+    'and the one reason is the recorded offset, not anything in the file');
+  era.close();
+});
