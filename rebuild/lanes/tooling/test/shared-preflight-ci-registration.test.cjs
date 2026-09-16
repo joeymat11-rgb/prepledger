@@ -10,9 +10,14 @@ const root=path.resolve(__dirname,'../../../..');
 const file='.github/workflows/shared-preflight.yml';
 const own='rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs';
 const regression='rebuild/lanes/tooling/test/preflight.test.cjs';
-const command='node --test '+regression+' '+own;
+const clientDir='rebuild/client/';
+const clientSuite=clientDir+'test/reason-on-disk.test.cjs';
+const command='node --test '+regression+' '+own+' '+clientSuite;
 const identity="${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}";
-const current=[file,'package.json','package-lock.json','rebuild/lanes/tooling/preflight.cjs',regression,own];
+const clientFiles=['README.md','bodycomp.cjs','canonical.cjs','copy.cjs','face.cjs','index.cjs','lease.cjs',
+  'ops.cjs','outbox.cjs','package.json','plan.cjs','session.cjs','store.cjs','sync.cjs',
+  'test/reason-on-disk.test.cjs','test/fixtures/base-index.cjs','test/fixtures/base-copy.cjs'].map(p=>clientDir+p);
+const current=[file,'package.json','package-lock.json','rebuild/lanes/tooling/preflight.cjs',regression,own,...clientFiles];
 const optional=['rebuild/lanes/tooling/preflight-dash-scan.cjs'];
 const ui=['build.mjs','gym-app.mjs','plain-copy.cjs'].map(p=>'rebuild/m3/w7-preview/today/'+p);
 const history={
@@ -149,7 +154,7 @@ function checkoutFixture({missing=false,filter=true}={}) {
 }
 function success(result) {
   assert.equal(result.status,0,result.stderr);
-  assert.match(result.stdout,/SHARED-PREFLIGHT CHECKOUT [a-f0-9]{40}; 7 current \/ 7 historical inputs; \d+ unique public blobs; no fetch remote/);
+  assert.match(result.stdout,/SHARED-PREFLIGHT CHECKOUT [a-f0-9]{40}; 24 current \/ 7 historical inputs; \d+ unique public blobs; no fetch remote/);
 }
 test('actual workflow materializes only the closed current inputs and exact public historical blobs',()=>{
   const f=checkoutFixture(),result=f.run();success(result);

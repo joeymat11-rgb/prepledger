@@ -19,7 +19,6 @@ const DAY = "2026-09-15";
 const CLOCK = { now: () => DAY + "T12:00:00.000Z", today: () => DAY, tz: "+00:00", monotonicMs: () => 0 };
 const AUTH_KEY = "p6-authority-key";
 const IDENTITY_KEY = "p6-identity-key";
-const BASE_SHA = "d3d2a16"; // origin/rebuild/t2-client-core at the start of this ticket
 
 function lease(deviceId) {
   const base = { lease_id: "lease-" + deviceId, device_id: deviceId, athlete_id: "ath-1",
@@ -228,6 +227,27 @@ test("B2: a no-issuance record dated AFTER the store's cutover reports its own r
   assert.ok(back.copy.indexOf("2030-01-01") >= 0, back.copy);
 });
 
+/* B2, mutant-killing: every cell above seeds an issuance somewhere in the store before calling
+   reasonFor, so firstIssuanceRecordDate() never actually returns null in this suite - a mutant
+   that changes its `return earliest;` to `return earliest || "2026-09-15"` (the exact r1
+   BLOCKING literal) survives every cell above untouched. This is the real product's most common
+   shape: a store that has never recorded a single issuance. */
+test("B2: a store with no issuance anywhere reports the record's own date, never the r1 literal", () => {
+  const backend = Client.memoryBackend();
+  const EARLY_CLOCK = { now: () => "2020-01-01T00:00:00.000Z", today: () => "2020-01-01", tz: "+00:00", monotonicMs: () => 0 };
+  const client = freshClient(backend, "dev-A", EARLY_CLOCK);
+  const r = client.respond("prop-never-issued", "accept"); // pre-P6 shape: no third argument, ever
+  assert.equal(r.acknowledged, true, JSON.stringify(r));
+
+  const back = client.reasonFor("prop-never-issued");
+  assert.equal(back.recorded, false);
+  assert.equal(back.notRecordedBefore, null,
+    "with no issuance anywhere in the store, there is no cutover to compare against - " +
+    "a fallback literal would wrongly claim this record predates 2026-09-15");
+  assert.equal(back.recordDate, "2020-01-01");
+  assert.ok(back.copy.indexOf("2020-01-01") >= 0, back.copy);
+});
+
 /* M1: a later plain two-arg accept of the same id must not erase an already-recorded reason. */
 test("M1: a later plain accept of the same id does not erase a previously recorded reason", () => {
   const backend = Client.memoryBackend();
@@ -281,19 +301,21 @@ test("no em or en dash in the new P6 copy", () => {
   }
 });
 
-/* MINOR, cross-build parity: this must be a real regression fix on the reverted (pre-P6, base
-   d3d2a16) product, not a self-compare. The base index.cjs/copy.cjs are read straight from git
-   at BASE_SHA into a throwaway copy of rebuild/client (every other file there is byte-identical
-   at that revision - confirmed: `git diff BASE_SHA --stat -- rebuild/client` touches only
-   README.md, copy.cjs, index.cjs and this test) and exercised in a fresh child process. */
+/* MINOR, cross-build parity: this must be a real regression fix on the reverted (pre-P6)
+   product, not a self-compare. The base index.cjs/copy.cjs are frozen fixtures under
+   test/fixtures/ (checked-in snapshots, not read from git history, so this suite runs
+   hermetically in any checkout - including a shallow, single-commit one - and never breaks
+   on a rebase); every other file in rebuild/client is byte-identical at that revision
+   (confirmed once, by hand, against the pre-P6 tree: only README.md, copy.cjs, index.cjs
+   and this test differ). Exercised in a fresh child process. */
 test("cross-build parity: the reverted pre-fix product accepts a forged issuance under the real id (red-first, not a self-compare)", () => {
   const repoRoot = path.join(__dirname, "..", "..", "..");
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "p6-parity-"));
   try {
     fs.cpSync(path.join(repoRoot, "rebuild", "client"), tmp, { recursive: true });
     fs.rmSync(path.join(tmp, "test"), { recursive: true, force: true });
-    const oldIndex = cp.execFileSync("git", ["show", BASE_SHA + ":rebuild/client/index.cjs"], { cwd: repoRoot, encoding: "utf8" });
-    const oldCopy = cp.execFileSync("git", ["show", BASE_SHA + ":rebuild/client/copy.cjs"], { cwd: repoRoot, encoding: "utf8" });
+    const oldIndex = fs.readFileSync(path.join(__dirname, "fixtures", "base-index.cjs"), "utf8");
+    const oldCopy = fs.readFileSync(path.join(__dirname, "fixtures", "base-copy.cjs"), "utf8");
     fs.writeFileSync(path.join(tmp, "index.cjs"), oldIndex);
     fs.writeFileSync(path.join(tmp, "copy.cjs"), oldCopy);
 
