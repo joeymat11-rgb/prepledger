@@ -131,9 +131,12 @@ export async function createSetupEntry({ today: day }, options = {}) {
     },
     refresh,
     setOnRefresh(fn) { onRefresh = fn; },
-    open({ doc, phone, back, done }) {
+    open({ doc, phone, back, done, importLink = null }) {
       return mountSetup(doc, phone, { model: setup,
         onBack: back,
+        /* P3-IMPORT-UI-2 (DECISIONS:470 "from setup's end"). Forwarded
+           unchanged: this entry composes no label and opens no route. */
+        importLink,
         /* ONE write, at the end, all or nothing. The screen reports what the
            durable layer answered and never its own optimism. */
         async onDone(document_) {
@@ -344,8 +347,13 @@ export async function boot(options = {}) {
       onFailure: (error) => failures.push("check-in store: " + (error && error.message ? error.message : String(error))) });
   } catch (error) { failures.push("check-in store: " + (error && error.message ? error.message : String(error))); }
 
+  /* P3-IMPORT-UI-2 (DECISIONS:475 (4)) - the installation this boot opened is
+     handed to the page, for the ONE route that needs the local durable client
+     itself (importBundle / listImports / retractImport, and the admission
+     controller's own hostBindings). No new lane is opened here and nothing else
+     on the page reads it. */
   const api = mountToday(doc, model, { ...(workout ? { workout } : {}), ...(checkin ? { checkin } : {}),
-    ...(setup ? { setup } : {}) });
+    ...(setup ? { setup } : {}), ...(hosts ? { installation: hosts } : {}) });
   if (workout) workout.setOnRefresh(() => { if (api.screen() === "today") api.render("today"); });
   if (checkin) checkin.setOnRefresh(() => { if (api.screen() === "today") api.render("today"); });
   if (setup) setup.setOnRefresh(() => { if (api.screen() === "today") api.render("today"); });

@@ -60,10 +60,21 @@ test("the bundle carries the real engine and the real client and nothing forbidd
     "rebuild/client/index.cjs", "rebuild/client/ops.cjs", "rebuild/client/store.cjs"]) {
     assert(inputs.includes(required), required);
   }
-  assert.equal(inputs.filter((p) => p.startsWith("rebuild/engine/")).length, 13);
+  /* P3-IMPORT-UI-2 (DECISIONS:475 (1) and (4)) - THIRTEEN BECAME FIFTEEN, AND
+     THE RULE THAT ADMITTED THE TWO IS STATED HERE RATHER THAN THE COUNT BEING
+     QUIETLY RAISED. The page is still a reader of an already migrated state on
+     every screen but ONE: the Import route, where it must reproduce the PC's
+     walk to prove the bundle it is about to adopt, and that walk
+     (rebuild/m4/import/engine-provider.cjs) requires migrate.cjs and merge.cjs
+     by literal path. They are in the bundle and are reachable ONLY through
+     build.mjs IMPORT_ENTRY; the cell below runs the law that says so. seed.cjs
+     and index.cjs keep their outright ban, and so does everything after them. */
+  assert.equal(inputs.filter((p) => p.startsWith("rebuild/engine/")).length, 15);
   assert.equal(inputs.filter((p) => p.startsWith("rebuild/client/")).length, 12);
-  for (const forbidden of ["rebuild/engine/seed.cjs", "rebuild/engine/migrate.cjs", "rebuild/engine/merge.cjs",
-    "rebuild/engine/index.cjs"]) assert(!inputs.includes(forbidden), forbidden);
+  for (const admitted of ["rebuild/engine/migrate.cjs", "rebuild/engine/merge.cjs"])
+    assert(inputs.includes(admitted), admitted + " left the page: the Import route cannot reproduce the walk");
+  for (const forbidden of ["rebuild/engine/seed.cjs", "rebuild/engine/index.cjs"])
+    assert(!inputs.includes(forbidden), forbidden);
   assert(!inputs.some((p) => /^rebuild\/engine\/test\//.test(p)));
   assert(!inputs.some((p) => /^rebuild\/authority\//.test(p) && p !== "rebuild/authority/canonical.cjs"));
   assert(!inputs.some((p) => /^ledger\//.test(p) || p === "src/history.js"));
@@ -72,6 +83,28 @@ test("the bundle carries the real engine and the real client and nothing forbidd
   for (const p of inputs.filter((p) => /node_modules/.test(p))) assert.match(p, /@noble[+/]hashes/);
   assert.throws(() => build.assertBundleInputs([{ path: "rebuild/engine/seed.cjs" }]), /BUNDLE-INPUTS FAIL/);
   assert.throws(() => build.assertBundleInputs(result.inputs.map((p) => ({ path: p })).concat([{ path: "node_modules/left-pad/index.js" }])), /unapproved dependency/);
+});
+
+/* THE OTHER HALF OF THE SAME LAW, run here so this package's own test file
+   carries it: the two names admitted above are reachable ONLY through the
+   Import route's entry module, and the graph the page walks to paint Today
+   carries neither. A boot graph that reached them would mean some other screen
+   had found a second way to arrive at the athlete's numbers, which is the thing
+   the outright ban was buying and which this replaces. */
+test("the Import route is the ONLY way migrate.cjs and merge.cjs are reached", () => {
+  const isolation = build.assertImportRouteIsolation(result.graph);
+  assert.equal(isolation.route, "rebuild/m3/w7-preview/import/import-screen.mjs");
+  assert.equal(isolation.route, build.IMPORT_ENTRY);
+  assert.ok(isolation.boot > 100, "the boot graph is " + isolation.boot + " modules: this guard would pass on anything");
+  assert.ok(isolation.boot < result.inventory.length,
+    "the boot graph is the whole bundle, so the route is not behind a dynamic import at all");
+  /* RED SIDE: a graph in which today-app.cjs reaches the route by an import
+     statement instead of a dynamic one is refused, by name. */
+  const planted = JSON.parse(JSON.stringify(result.graph));
+  for (const edge of planted.inputs["rebuild/m3/w7-preview/today/today-app.cjs"].imports) {
+    if (edge.path === build.IMPORT_ENTRY) edge.kind = "import-statement";
+  }
+  assert.throws(() => build.assertImportRouteIsolation(planted), /IMPORT-ROUTE FAIL/);
 });
 
 test("the page fetches nothing: no remote origin in any shipped asset (review F9)", async () => {

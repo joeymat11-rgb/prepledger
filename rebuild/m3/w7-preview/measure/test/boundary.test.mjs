@@ -104,15 +104,31 @@ test('P-MEASURE (g) - no S4-sealed file drifts except where a declaring spec say
   const undeclared = drifted.filter((file) => shaOf(file) !== declaredPost(file));
   assert.deepEqual(undeclared, [],
     'an S4-sealed file drifts and no package on this branch declares the bytes it stands at');
-  /* AND THIS LANE'S OWN DRIFT IS STILL EXACTLY ONE FILE. Bar item (g) is about
-     P-MEASURE, not about whatever lane B package is carrying it, so it is asked
-     of the files this lane authors: the ONLY sealed file P-MEASURE moves is
-     today-app.cjs, and it is in the drifted set because this lane moved it. */
+  /* AND THE DRIFT UNDER today/ IS A NAMED SET, not a count.
+
+     THE OLD REASON, kept: bar item (g) is about P-MEASURE, and the ONLY sealed
+     file P-MEASURE moves is today-app.cjs - the route, the tile and the
+     accessors, with everything the athlete sees under measure/.
+
+     THE NEW REASON (P3-IMPORT-UI-2, DECISIONS:475 (1) and (4)): a second lane C
+     ticket now lands on the same branch and it cannot be held to P-MEASURE's
+     one file, because the Import route needs a screen case and a lazy loader in
+     today-app.cjs, the installation and the setup link forwarded through
+     today-entry.mjs, the link painted on setup's last screen, the route's own
+     16 px / 48 px / 44 px rule in preview.css, and the re-reasoned input law in
+     build.mjs. Each is named here, so the guard is exactly as tight as it was -
+     a SIXTH file under today/ is still red - and nothing is exempted by being
+     counted rather than named. today-app.cjs must still be in the set, because
+     without it neither ticket delivered anything. */
   const MINE = 'rebuild/m3/w7-preview/today/today-app.cjs';
+  const P3_IMPORT_UI_2 = ['rebuild/m3/w7-preview/today/today-entry.mjs',
+    'rebuild/m3/w7-preview/today/setup-app.mjs',
+    'rebuild/m3/w7-preview/today/preview.css',
+    'rebuild/m3/w7-preview/today/build.mjs'];
   assert(drifted.includes(MINE), 'today-app.cjs does not drift, so this lane delivered nothing');
   const under = drifted.filter((f) => f.startsWith('rebuild/m3/w7-preview/today/') && !f.includes('/test/'));
-  assert.deepEqual(under, [MINE],
-    'the sealed-byte drift of this ticket under today/ is not today-app.cjs alone');
+  assert.deepEqual(under.sort(), [MINE, ...P3_IMPORT_UI_2].sort(),
+    'the sealed-byte drift under today/ is not the named set of these two tickets');
   /* And the restore is real: the test file round 2 edited carries no byte of
      this lane's (review R2 finding 4). It is no longer held to S4's post alone,
      because S5 moves it by one literal (the declaring-spec chain), so it is

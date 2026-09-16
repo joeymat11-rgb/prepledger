@@ -263,7 +263,15 @@ test('A1 the built bundle EVALUATES with no Node globals, as a browser must run 
 
 test('Launch guard scans the emitted prelude and otherwise unattributed JavaScript assets', async () => {
   const vm = await import('node:vm');
-  const result = await buildToday();
+  /* ITS OWN OUTPUT DIRECTORIES (P3-IMPORT-UI-2). build.mjs offers these
+     arguments for exactly this reason - "two builds running AT THE SAME TIME
+     ... can be told apart instead of overwriting each other's scratch bundle
+     and dist" - and this cell was reading `app.js` back out of the SHARED dist
+     while the other suites of this directory were writing their own builds into
+     it. It read a half-written file and found no trailing export clause. The
+     accepted build is byte-for-byte the same either way; only the path moves. */
+  const result = await buildToday({ dist: path.join(DIST, '..', 'w7-launch-guard-dist'),
+    scratch: path.join(DIST, '..', 'w7-launch-guard-build') });
   const bundle = fs.readFileSync(path.join(result.dist, 'app.js'), 'utf8');
   const baseline = assertNoNodeOnlyGlobals([['app.js', bundle]]);
   const clauses = bundle.match(/^export \{[\s\S]*?\};\s*$/m) || [];

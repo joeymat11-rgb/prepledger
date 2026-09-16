@@ -17,6 +17,16 @@
 /* N2's accepted brief requires 48px inputs; the existing button touch minimum is 44px. */
 .view [data-slot="sleep-entry-form"] input { min-height: 48px; }
 
+/* P3-IMPORT-UI-2. The Import route carries no approved-design template yet (the
+   measure screen is in the same position), so its two inputs and its controls
+   are given the page's own accepted minimums here and no colour, type or spacing
+   of their own: 16px so Safari does not zoom the fixed phone layout on focus,
+   48px of control height, and the 44px tap minimum every button on this page
+   already has. */
+.view [data-slot="import-screen"] input { font-size: 16px; min-height: 48px; }
+.view [data-slot="import-screen"] button { min-height: 44px; }
+.view [data-slot="import-entry"] { min-height: 44px; }
+
 /* The morning weigh-in sheet. The 2026-09-08 design does not cover a weigh-in entry
    screen, so this is preview-owned chrome built only from approved tokens and the
    approved direct-entry control (.field / .number-control / .step / .error / .cta). */

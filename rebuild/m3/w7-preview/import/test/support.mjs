@@ -234,3 +234,69 @@ export async function admit(era, sealed, { day, namespace, athleteId, deviceId }
   return { admitted: true, review, controller, name: carried.name,
     view: await controller.view(settled) };
 }
+
+/* ---------------------------------------------------------------------------
+   P3-IMPORT-UI-2 - THE REAL TODAY ROUTE, in jsdom over fake-indexeddb.
+   Everything below drives the SHIPPED page: design.shellHtml() with the
+   approved templates in it, today-entry.mjs boot(), and the Import route
+   today-app.cjs opens by dynamic import. Nothing is stubbed and no screen is
+   mounted by hand.
+   --------------------------------------------------------------------------- */
+import { JSDOM } from 'jsdom';
+import design from '../../today/design.cjs';
+import * as Entry from '../../today/today-entry.mjs';
+export { Entry };
+
+export function shellWindow() {
+  const dom = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
+    { url: 'https://example.test/' });
+  /* A PHONE'S WINDOW HAS WebCrypto. jsdom's has a `crypto` with getRandomValues
+     and NO `subtle`, so a page that unseals a bundle would refuse
+     LOCAL_CRYPTO_UNAVAILABLE here for a reason that exists nowhere on a device.
+     Node's own WebCrypto is the same standard implementation the browser
+     exposes, and it is what the accepted W6 browser boundary already
+     substitutes; nothing else about the window is changed. */
+  Object.defineProperty(dom.window, 'crypto', { configurable: true, value: webcrypto });
+  return dom.window;
+}
+
+export const textOf = doc => (doc.getElementById('phone') || doc.body).textContent.replace(/\s+/g, ' ');
+export const slot = (doc, name) => doc.querySelector('[data-slot="' + name + '"]');
+export const slots = (doc, name) => [...doc.querySelectorAll('[data-slot="' + name + '"]')];
+export const tap = node => { node.dispatchEvent(new node.ownerDocument.defaultView.Event('click', { bubbles: true })); };
+export function type(node, value) {
+  node.value = value;
+  const view = node.ownerDocument.defaultView;
+  node.dispatchEvent(new view.Event('input', { bubbles: true }));
+  node.dispatchEvent(new view.Event('change', { bubbles: true }));
+}
+
+/* THE ATHLETE PICKING A FILE. jsdom gives no file chooser, so the bytes are put
+   on the real <input type="file"> the screen rendered and its own change event
+   is fired: everything after this point is the shipped code path. */
+export function pickBundle(win, input, bytes, name = 'earned-port-2026-09-16.json') {
+  const file = new win.File([bytes], name, { type: 'application/json' });
+  Object.defineProperty(input, 'files', { configurable: true, value: [file] });
+  input.dispatchEvent(new win.Event('change', { bubbles: true }));
+  return file;
+}
+
+/* THE TRAPS (bar item g). Every way a page could send a byte off the device or
+   hand it to the operating system, replaced by a recorder. Installed BEFORE the
+   route is opened and read after; the route must never touch one. */
+export function installTraps(win) {
+  const fired = [];
+  const record = name => (...args) => { fired.push(name); throw new Error('TRAP ' + name); };
+  win.fetch = record('fetch');
+  win.XMLHttpRequest = function () { fired.push('XMLHttpRequest'); throw new Error('TRAP xhr'); };
+  win.navigator.share = record('navigator.share');
+  win.open = record('window.open');
+  if (!win.URL.createObjectURL) win.URL.createObjectURL = record('createObjectURL');
+  else win.URL.createObjectURL = record('createObjectURL');
+  const click = win.HTMLAnchorElement.prototype.click;
+  win.HTMLAnchorElement.prototype.click = function () {
+    if (this.hasAttribute('download')) fired.push('download');
+    return click.apply(this, arguments);
+  };
+  return { fired: () => fired.slice() };
+}
