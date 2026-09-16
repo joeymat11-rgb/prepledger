@@ -131,13 +131,20 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
       + 'measured 138 (the brief\'s 133, the F7 family\'s one and the route\'s own '
       + 'four): re-measure and say so');
     /* AND THE DELTA, which P3-REPLAY-MEASURE-FAMILY asserted (at 13) in its own
-       P3-B4 over these same two inventories. That cell's SIZE bound is replaced
-       in P3-B5 below, where the reason it could not fail is written out; its
-       module-delta assertion is not dropped with it, it stands here, over the
-       graph it was always about. 13 + the route's four. */
-    assert.equal(withAdmission.inventory.length - baseline.inventory.length, 17,
-      'the delta is 17 modules: the eight m4/import files, migrate, merge, their '
-      + 'reach, and the route\'s own four');
+       P3-B4 over these same two inventories, and which MEANS SOMETHING ELSE ON
+       THIS BRANCH - so it is re-measured and the change of meaning is written
+       down rather than the number quietly edited. On the family's base the
+       baseline build (today-entry.mjs at HEAD) did NOT carry the admission
+       stack, so "what a static import of source-admission.mjs adds" was the
+       whole stack: 13 modules. On this branch today-entry.mjs reaches the route
+       through the dynamic edge today-app.cjs opens, so the BASELINE already
+       carries all 16 route modules and the static import adds no module at all.
+       The delta is 1, and the 1 is this probe's own entry file. That is not a
+       weaker fact: it is why P3-B3 and P3-B4 below prove ISOLATION - which path
+       reaches them - and not presence, which the old number stood for. */
+    assert.equal(withAdmission.inventory.length - baseline.inventory.length, 1,
+      'the delta is 1 module - the probe entry itself - because the baseline '
+      + 'build already carries the whole route through the dynamic edge');
   });
 
 /* THE RULE CHANGE, SAID OUT LOUD AND THEN EXECUTED FROM BOTH SIDES. The old

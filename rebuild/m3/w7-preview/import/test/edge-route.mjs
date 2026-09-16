@@ -109,18 +109,36 @@ try {
      screen, which is the entry the runbook now sends the operator to and the
      only one on this page that can admit.
 
-     NOT through the Measure screen, for a reason this run is what found (see
-     the report's open item 1, P3-X9 and P3-X10): the first render of Measure
-     writes this installation's trial-start operations, and the S3 admission
-     replay has no family for them, so an import attempted after Measure has
-     been opened refuses LOCAL_SOURCE_CONTEXT_UNRESOLVED. The Measure link's own
-     two labels are read off the served page in step 8 and step 9. */
+     ROUND 4: not through the Measure screen either, but no longer because it
+     cannot admit - P3-REPLAY-MEASURE-FAMILY landed the F7 family and it can
+     (P3-X9). The Today link is simply the one this runbook's step 3 sends the
+     operator to, and the Measure link's own two labels are read off the served
+     page in step 8 and step 9. */
   await page.goto(origin + '/index.html', { waitUntil: 'load' });
   const entry = page.locator('[data-slot="import-entry"]');
   await entry.waitFor({ state: 'visible', timeout: 20000 });
   taps.push(['Today entry link', await entry.textContent()]);
-  assert.equal(await entry.evaluate(node => Math.round(node.getBoundingClientRect().height) >= 44), true,
-    'the served entry link is under the 44 px tap minimum');
+  /* THE TAP MINIMUM, MEASURED ON A SETTLED FRAME (round 4, review r3 MINOR 4).
+     This check FAILED twice under load, over a Today frame that was still being
+     built, and passed on an idle machine: it was reading a rect mid-layout and
+     reporting it as a product fact, which is the worst kind of red - the
+     operator reads this verdict on the day and has no way to tell a race from a
+     defect. So the rect must hold STILL before it is judged: two consecutive
+     animation frames with the same height, and only then the comparison. */
+  const height = await entry.evaluate(node => new Promise(resolve => {
+    let last = -1, same = 0;
+    const read = () => {
+      const now = Math.round(node.getBoundingClientRect().height);
+      same = now === last ? same + 1 : 0;
+      last = now;
+      if (same >= 2 && now > 0) return resolve(now);
+      requestAnimationFrame(read);
+    };
+    requestAnimationFrame(read);
+  }));
+  assert.equal(height >= 44, true,
+    'the served entry link is ' + height + ' px on a settled frame, under the 44 px tap minimum');
+  taps.push(['Today entry link, settled height', height + ' px']);
   await entry.click();
 
   /* 3. PICK THE FILE. A real <input type="file"> and a real file. */

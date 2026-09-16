@@ -202,9 +202,10 @@ test('P3-U2 (bar b) - the SAME tap sequence on a WINTER day', async () => {
 });
 
 test('P3-U3 (bar e) - after admission the entry links read History imported, '
-  + 'the summary lists the import, and a SECOND file gets the machinery\'s own '
-  + 'rebase code, verbatim', async () => {
-  const { era, win, doc, booted } = await admitsOn('second', SUMMER);
+  + 'the summary lists the import, and THE ROUTE opens no second import door at '
+  + 'all - on this page session or a fresh one; the machinery behind that door '
+  + 'answers the rebase code, verbatim', async () => {
+  const { era, win, doc, booted, indexedDB } = await admitsOn('second', SUMMER);
   const measure = await openMeasure(win, booted);
   assert.equal(measure.link.textContent, Screen.COPY.entryDone,
     'the Measure link still offers an import that has already happened');
@@ -216,10 +217,35 @@ test('P3-U3 (bar e) - after admission the entry links read History imported, '
   assert.equal(listed.length, 1, 'listImports says ' + listed.length);
   assert.ok(textOf(doc).includes(listed[0].name), 'the summary does not name the import');
 
-  /* THE SECOND ATTEMPT. The screen after admission is read only, so the second
-     file is taken to the machinery the way any other caller would take it, and
-     what it answers is what a second attempt gets: the rebase code, verbatim,
-     and no second basis. */
+  /* THE SECOND ATTEMPT, ANSWERED AT THE ROUTE FIRST (round 4, review r2 MINOR
+     5). The reviewer's objection was exact: round 2 proved this bar by calling
+     browser-entry.importBundle, which is the machinery and not the route, so
+     the ROUTE-level claim stood unexecuted. Here it is, executed, and it is a
+     stronger answer than a code: after admission there is no second import door
+     on this route to refuse anything. Both entry links paint the read-only
+     summary, neither opens a chooser, and the assertion below is the ABSENCE of
+     every control a second attempt would need - on this page session and on a
+     fresh one opened over the same store, which is the configuration an athlete
+     comes back to tomorrow.
+
+     What the machinery answers BEHIND that closed door is kept underneath,
+     labelled as the machinery's answer and not the screen's, because it is what
+     any future second door would have to paint. */
+  assert.equal(doc.getElementById('import-file'), null,
+    'the route offers a chooser to a device that has already admitted');
+  assert.equal(textOf(doc).includes(Screen.COPY.pickLabel), false,
+    'the pick step is painted after admission');
+  assert.equal(slot(doc, 'import-unlock'), null, 'the words step is reachable after admission');
+  await booted.api.render('today', true);
+  const todayLink = slot(doc, 'import-entry');
+  assert.equal(todayLink.textContent, Screen.COPY.entryDone,
+    'the Today link still offers an import that has already happened');
+  tap(todayLink);
+  await booted.api.render('import', false);
+  assert.equal(doc.getElementById('import-file'), null,
+    'the Today link opens a chooser on a device that has already admitted');
+  assert.ok(textOf(doc).includes(Screen.COPY.summaryHead), 'it opened no summary either');
+
   const machinery = await import('../../../w6/local/browser-entry.mjs');
   const second = await machinery.importBundle(era.client,
     { bundleBytes: SEALED.bytes, passphrase: SEALED.passphrase });
@@ -242,6 +268,26 @@ test('P3-U3 (bar e) - after admission the entry links read History imported, '
   assert.equal(third.code, 'LOCAL_IMPORT_REBASE_REQUIRED',
     'the machinery\'s own code for a file arriving onto a device that already has operations');
   booted.rollover.stop(); booted.teardown(); era.close();
+
+  /* AND TOMORROW'S PAGE (round 4, review r2 MINOR 4 as well as MINOR 5). A
+     FRESH page session over the SAME store: the FIRST Today frame reads
+     "History imported" and never the offer, because the entry is not painted
+     until the adoption chain has answered - the stale first frame the reviewer
+     measured is what this asserts is gone - and the route it opens still has no
+     chooser on it. */
+  const again = await eraFor({ indexedDB, ...scope('second'), live: liveAt(SUMMER.at) });
+  const tomorrow = await openPage(again, SUMMER);
+  await tomorrow.booted.api.render('today', true);
+  const firstFrame = slot(tomorrow.doc, 'import-entry');
+  assert.ok(firstFrame, 'the reopened Today frame offers no entry at all');
+  assert.equal(firstFrame.textContent, Screen.COPY.entryDone,
+    'the FIRST Today frame of a reopened admitted device offers the import again');
+  tap(firstFrame);
+  await tomorrow.booted.api.render('import', false);
+  assert.equal(tomorrow.doc.getElementById('import-file'), null,
+    'a reopened page offers a second import door');
+  assert.ok(textOf(tomorrow.doc).includes(Screen.COPY.summaryHead));
+  tomorrow.booted.rollover.stop(); tomorrow.booted.teardown(); again.close();
 });
 
 test('P3-U4 (bar f) - a NEW SET saved after the import, then dispose and reopen: '
@@ -299,26 +345,64 @@ test('P3-U4 (bar f) - a NEW SET saved after the import, then dispose and reopen:
    than the old one because it covers every setup screen and the Today screen
    too: no setup screen offers the route at all, and "from setup's end"
    (DECISIONS:470) is served on the screen setup ends on - Today, on the very
-   frame the first run lands. Both halves are executed below. */
-test('P3-U5 - NO SETUP SCREEN offers the route, because on setup\'s last screen '
-  + 'the walk refuses LOCAL_SOURCE_PROGRAMME_UNRESOLVED; the entry is on TODAY, '
-  + 'from the frame the first run lands', async () => {
+   frame the first run lands.
+
+   ROUND 4, REVIEW R3 MAJOR 1, AND THE RED SIDE MOVED TO WHERE THE TRAP WAS.
+   Round 2 left the Today link ungated, so the trap it had just removed from
+   setup's last screen was still standing on the screen setup's Back lands on -
+   and on a fresh install, before S6-C's setup-first, that is the FIRST screen an
+   athlete sees. So this cell's red side is no longer "setup's last screen": it
+   is the UNENROLLED TODAY FRAME, where it belongs. What it proves, in order:
+   the unenrolled Today paints NO entry; no setup screen does either; no control
+   anywhere on that page can reach the route; and the walk that link would have
+   started is executed once, forced open, to show exactly what the gate is
+   worth - custody taken and then refused, with a permanent retraction record
+   left on a device whose owner did nothing wrong. Then the green side: the
+   moment the first run is saved, Today offers it and it opens the route.
+   (DECISIONS:480 RULING 1 as the PM amended it in round 4: both entries gated
+   on an enrolled installation, no entry at setup's end.) */
+test('P3-U5 - THE UNENROLLED INSTALLATION IS OFFERED NO ROUTE AT ALL: not on '
+  + 'Today, not on any setup screen, and the walk it would have started can '
+  + 'only take custody and refuse; the entry appears the moment the first run '
+  + 'is saved', async () => {
   const fresh = await phoneDevice({ at: SUMMER.at, day: SUMMER.day, firstRun: false });
   const doc = fresh.doc, model = fresh.booted.setup.setup;
   assert.equal(fresh.booted.setup.firstRun(), true, 'this installation is not fresh');
+  /* THE TODAY FRAME AN UNENROLLED INSTALLATION SHOWS - the screen setup's Back
+     lands on, and the first screen of a fresh install on this branch. */
+  await fresh.booted.api.render('today', true);
+  assert.equal(fresh.booted.api.screen(), 'today', 'the page did not go to Today');
+  assert.equal(slot(doc, 'import-entry'), null,
+    'the unenrolled Today frame offers the import: ' + textOf(doc));
+  assert.equal(textOf(doc).includes(Screen.COPY.entryNew), false,
+    'the two words are painted on the unenrolled Today frame by something else');
   for (let screen = 1; screen <= 6; screen++) {
     model.goto(screen);
     await fresh.booted.api.render('setup', false);
     assert.equal(slot(doc, 'import-entry'), null, 'the link is on setup screen ' + screen);
   }
-  /* THE RED SIDE, executed rather than argued: the route opened from where that
-     link stood refuses, names the code, and leaves the device exactly as it
-     was. */
+  /* AND NOTHING ELSE ON THE UNENROLLED PAGE REACHES THE ROUTE. The two entry
+     links are the only controls that ever call render("import"), so with both
+     withheld an unenrolled walk cannot start at all: there is no painted
+     control on Today whose route is the Import screen. */
+  await fresh.booted.api.render('today', true);
+  assert.deepEqual([...doc.querySelectorAll('[data-go="import"]')], [],
+    'something on the unenrolled Today frame routes to the import');
+  /* WHAT THE GATE IS WORTH, executed rather than argued: the route forced open
+     the way no painted control can open it, walked with a good file, takes
+     custody and then refuses - and the retraction that costs him is permanent.
+     This is the whole reason the frame above carries no link. */
   const before = await durable(fresh.era);
   await fresh.booted.api.render('import', true);
   const refused = await walkFromHere(fresh.win, fresh.booted, SEALED);
   assert.equal(refused.refusal().code, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED',
-    'the setup-screen entry would have worked after all: ' + JSON.stringify(refused.refusal()));
+    'an unenrolled walk admits after all, so the gate above is arguing against '
+    + 'the machinery: ' + JSON.stringify(refused.refusal()));
+  /* THE COST, named: the file was taken into custody before it could be
+     refused, and the record of taking it back is permanent. No athlete should
+     be able to reach this, which is what the withheld link above means. */
+  assert.equal(fresh.booted.api.importScreen().retractions().length, 1,
+    'the forced walk did not even reach custody, so this cell measures nothing');
   /* "Nothing was written" means every consumer reads what it read before. The
      REVISION is the one number that moves and must: retract deletes nothing, so
      the custody commit and the retraction record are both still on disk

@@ -623,7 +623,15 @@ function mountToday(doc, model, options = {}) {
        did, and the link falls back to offering the import. */
     try { await ready; } catch (_) { /* reported by adoptAthleteState's own catch */ }
     if (token !== mountToken) return root;
-    importLink(root, root.querySelector('[data-slot="measure-baseline-note"]'));
+    /* AND ONLY ON AN ENROLLED INSTALLATION (round 4, DECISIONS:480 RULING 1 as
+       amended, and review r3 MAJOR 1). Before the first run is saved this
+       installation holds no setup document, so source-admission.mjs programme()
+       can only answer LOCAL_SOURCE_PROGRAMME_UNRESOLVED - after the walk has
+       taken custody, which costs the athlete a permanent retraction record for
+       a route that never could have worked. An entry that can only refuse is
+       not an entry, so it is not painted. Both entries ask the same question,
+       in the same words, of the same lane. */
+    if (!firstRun()) importLink(root, root.querySelector('[data-slot="measure-baseline-note"]'));
     return root;
   }
 
@@ -695,6 +703,48 @@ function mountToday(doc, model, options = {}) {
     return link;
   }
 
+  /* TODAY'S ENTRY, PAINTED ON A SETTLED FRAME (round 4: review r2 MINOR 4, and
+     the gate review r3 MAJOR 1 asks for).
+
+     WHICH two words this link carries is decided by importAdmitted, and that
+     flag is set by the ASYNCHRONOUS adoption chain. renderMeasure awaits that
+     chain inline because it is async; renderToday is synchronous - every screen
+     this page shows off it, and every cell that reads it, depends on that - so
+     it cannot await anything. The old code painted the link anyway, and on a
+     reopen of a device that HAD imported, Today's first frame said "Import my
+     history" until the workout cascade happened to repaint it.
+
+     So the frame carries NO entry until the chain has answered, and the answer
+     paints it onto the Today frame that is still mounted. No frame ever carries
+     the wrong two words, and no reader has to await something renderToday does
+     not return. A chain that rejects still settles: adoptAthleteState reports
+     its own cause on the status line and the link then offers the import, which
+     is what it offered before this ticket existed. */
+  let adoptionSettled = false;
+  let todayEntry = null;         // { root, token } the settle should paint into
+  function paintTodayEntry() {
+    if (!adoptionSettled || !todayEntry) return null;
+    if (todayEntry.token !== mountToken || screen !== "today") return null;
+    if (todayEntry.root.querySelector('[data-slot="import-entry"]')) return null;
+    return importLink(todayEntry.root, null);
+  }
+  function settleAdoption(chain, adopting) {
+    /* WITH NO ADOPTION CHAIN RUNNING there is nothing to wait for and the frame
+       must not be made to wait: importAdmitted is set by athleteBasisState()
+       inside the chain, so when no chain runs the flag is already final (false)
+       and the link can be painted in the same frame as everything else. Making
+       every mount wait would change what a Today frame CONTAINS between one
+       paint and the next on pages that never adopt at all, which is a real
+       change to a screen for no gain. */
+    adoptionSettled = !adopting;
+    if (!adopting) return chain;
+    const answered = () => { adoptionSettled = true; paintTodayEntry(); };
+    /* The chain itself is handed back UNCHANGED, so api.ready is the same
+       promise, with the same settlement, that it was before this hook. */
+    chain.then(answered, answered);
+    return chain;
+  }
+
   let screen = "today";
   /* A3 review F7 — BACK RETURNS WHERE THE ATHLETE CAME FROM. The check-in is reachable
      from two places, and "back" from it must not silently move the athlete: entered
@@ -744,6 +794,7 @@ function mountToday(doc, model, options = {}) {
   /* ---------------- Today ---------------- */
   function renderToday(focus) {
     const view = model.read();
+    const token = mountToken;
     if (chrome) chrome.textContent = plainOrDrop(view.storageNote, "today-storage");
     const root = template("t-today");
     const map = slots(root);
@@ -874,18 +925,26 @@ function mountToday(doc, model, options = {}) {
     measureTile.textContent = "Measure";
     root.append(measureTile);
 
-    /* P3-IMPORT-UI-2 round 2, review r1 finding 1: THE ENTRY THAT CAN ACTUALLY
-       ADMIT, and the only one on this page that can. The Measure entry below is
-       where DECISIONS:470 put the primary, and it is kept - but opening Measure
-       writes this installation's trial-start operations before it paints a
-       thing, and the S3 admission replay has no family for them, so from THAT
-       link the walk refuses LOCAL_SOURCE_CONTEXT_UNRESOLVED every time (P3-X9,
-       and P3-X10 takes the tap from the link itself). This link is reachable on
-       the frame the first run lands on, before Measure has ever been opened,
-       which is the one configuration a phone has in which the import admits
-       (P3-U6). It is the same two words and the same route as the other entry;
-       nothing here is lazy-loaded, so painting it pulls no admission stack. */
-    importLink(root, null);
+    /* P3-IMPORT-UI-2 - THE ENTRY, ON THE SCREEN SETUP ENDS ON. DECISIONS:480
+       RULING 1 as the PM amended it in round 4: the Import entry lives on the
+       Measure screen's "No baseline yet" line and here on Today, BOTH gated on
+       an ENROLLED installation, and there is no entry at setup's end.
+
+       ROUND 4, REVIEW R3 MAJOR 1, SAID WHERE THE OLD RULE STOOD: round 2 painted
+       this link unconditionally, and on an installation whose first run is not
+       yet saved the whole walk from it can only take custody and then refuse
+       LOCAL_SOURCE_PROGRAMME_UNRESOLVED, leaving a permanent "Files you took
+       back" entry. That is the trap round 2 removed from setup's last screen,
+       re-created on the screen setup's Back lands on. So the gate: no first run
+       saved, no entry. P3-U5 executes both sides of it on the unenrolled Today
+       frame, and P3-U6 walks it from here on an enrolled one.
+
+       WHEN it is painted is paintTodayEntry's business: the two words depend on
+       the adoption chain, so the link goes on once that chain has answered and
+       never before (review r2 MINOR 4). Nothing here is lazy-loaded, so painting
+       it pulls no admission stack onto the boot path. */
+    todayEntry = firstRun() ? null : { root, token };
+    paintTodayEntry();
 
     wire(root);
     show(root, focus);
@@ -2174,8 +2233,17 @@ function mountToday(doc, model, options = {}) {
         done: () => {
           const adopting = canAdoptAthleteState();
           if (adopting) armAdoptionGate();
+          /* ROUND 4: the chain is armed BEFORE this first Today paint, exactly
+             as boot() below arms it before ITS first paint. It was started one
+             statement later until now, which was invisible while nothing on the
+             Today frame depended on the chain's answer, and is not invisible
+             now that the Import entry does: painting first would have put the
+             link on this frame with the PREVIOUS chain's answer behind it. The
+             gates are still armed before the paint, and the chain still does
+             its own first work asynchronously, so the athlete sees the same
+             Today he saw before. */
+          ready = settleAdoption(adopting ? adoptAthleteState() : Promise.resolve(), adopting);
           render("today", true);
-          ready = adopting ? adoptAthleteState() : Promise.resolve();
           return ready;
         } });
     }
@@ -2379,7 +2447,7 @@ function mountToday(doc, model, options = {}) {
   /* `let`, not `const`: the "done" callback above reassigns this on the
      in-page transition, so a caller awaiting api.ready sees that settle too,
      with no reload. */
-  let ready = willAdopt ? adoptAthleteState() : Promise.resolve();
+  let ready = settleAdoption(willAdopt ? adoptAthleteState() : Promise.resolve(), willAdopt);
 
   return { render, read: () => model.read(), openWeighIn, screen: () => screen,
     /* P3-IMPORT-UI-2 - the Import route's own handle and the one flag the two

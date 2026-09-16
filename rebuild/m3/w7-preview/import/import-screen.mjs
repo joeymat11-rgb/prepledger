@@ -239,7 +239,31 @@ export function createImportScreen(deps = {}) {
     return section;
   }
 
-  const fail = (code, detail) => { refusal = { code: code || 'IMPORT_ROUTE_REFUSED', detail: detail || null }; };
+  /* ROUND 4, REVIEW R3 MINOR 3: A REFUSAL ENDS THE WORK, so the note that said
+     work was in flight goes with it. confirm() sets note = COPY.working before
+     it calls the machinery; when the machinery refuses, the screen used to
+     paint the code AND "Working." beside it, which told the athlete something
+     was still happening after everything had stopped. Every refusal on this
+     route goes through fail(), so clearing it here covers all of them, and the
+     two notes that belong to a refusal - retractRefused and retracted - are
+     written AFTER fail() by retract() and cancelAfterCustody() and stand. */
+  const fail = (code, detail) => {
+    note = '';
+    refusal = { code: code || 'IMPORT_ROUTE_REFUSED', detail: detail || null };
+  };
+
+  /* ROUND 4, REVIEW R3 MAJOR 2: THE WAY BACK TO ANOTHER FILE, with no reload.
+     A damaged file or a mistyped passphrase refuses at the words step and the
+     screen keeps the file, which is right while he is retyping the six words -
+     and WRONG the moment the file itself is the problem, because until this
+     round there was no control anywhere that put him back on the chooser. This
+     resets the draft to the first step and drops the bytes with it. Nothing
+     durable is touched: it runs only where no custody is open, and custody is
+     the first durable write this route makes. */
+  function resetDraft() {
+    opened = null; file = null; words = '';
+    step = 'pick'; refusal = null; note = '';
+  }
 
   async function readLists() {
     if (!installation || !installation.client) { imports = []; retractions = []; return; }
@@ -353,6 +377,13 @@ export function createImportScreen(deps = {}) {
         const capability = localSourceCommitCapability(prepared);
         await capability.publish();
         await capability.reconcile();
+        /* ROUND 4, REVIEW R3 NOTE (carried from r2): THE BYTES GO WHEN THE WORK
+           IS DONE. `opened` held the whole decrypted bundle for the life of the
+           page session - through the review, through the confirm and after it -
+           for nothing: everything past custody reads the material back out of
+           custody, not out of this closure. Dropped here, with the file and the
+           words, the moment the import is admitted. */
+        opened = null; file = null; words = '';
         custody = null; step = 'done'; note = '';
         await readLists();
         busy = false; repaint();
@@ -375,8 +406,14 @@ export function createImportScreen(deps = {}) {
 
   function chrome(root) {
     root.append(el('h1', 'import-title', COPY.title));
+    /* BACK, and what it leaves behind (round 4, review r3 MAJOR 2). WITH
+       custody it is a cancel and retracts. WITHOUT custody nothing durable
+       exists, so it drops the draft - the file, the words, the bytes and any
+       refusal standing over them - before it hands the athlete back to Today.
+       Re-entering the route then starts at the chooser, which is the only way
+       a damaged file can be replaced without reloading the page. */
     root.append(button('import-back', COPY.back,
-      () => (custody ? cancelAfterCustody() : back()), 'option'));
+      () => (custody ? cancelAfterCustody() : (resetDraft(), back())), 'option'));
     if (refusal) {
       const box = el('p', 'import-refusal');
       box.className = 'error';
@@ -490,12 +527,26 @@ export function createImportScreen(deps = {}) {
      the import the athlete just confirmed - must not be what a LATER tap on the
      entry link paints. today-app.cjs calls this on a tap and never on a
      repaint. It resets nothing but the step: no custody is open at 'done', and
-     the summary below is read back from the machinery on every paint. */
+     the summary below is read back from the machinery on every paint.
+
+     ROUND 4, REVIEW R3 MAJOR 2: AND IT NOW RESETS THE DRAFT TOO. A tap on the
+     entry link is the athlete ARRIVING at this route, not resuming a half-typed
+     one, so whatever file, words and refusal the last visit left behind are
+     dropped and he starts at the chooser. That is what makes a damaged file
+     replaceable without a page reload. Custody is never open here - it exists
+     only inside the awaited stretch between importBundle and the confirm, and a
+     tap cannot land inside it - so this can leave nothing durable behind; the
+     guard says so out loud rather than trusting the reading. */
   function reopen() {
-    if (step === 'done') { step = 'summary'; note = ''; refusal = null; }
+    if (custody) return;
+    if (step === 'done') { step = 'summary'; note = ''; refusal = null; opened = null; return; }
+    resetDraft();
   }
 
-  return Object.freeze({ paint, reopen, step: () => step, refusal: () => refusal,
+  return Object.freeze({ paint, reopen, resetDraft, step: () => step, refusal: () => refusal,
+    /* The decrypted bundle this screen is holding for the draft in hand, so a
+       cell can PROVE the closure carries no bytes rather than infer it. */
+    holdingBytes: () => !!(opened && opened.bytes),
     imports: () => imports.slice(), retractions: () => retractions.slice(),
     busy: () => busy, review: () => review, custody: () => custody,
     /* What the last tap started, so a caller can await it instead of guessing. */

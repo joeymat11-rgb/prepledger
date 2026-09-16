@@ -11,14 +11,28 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, durable, STRANGER_SETUP,
   REPO, Entry, shellWindow, slot, tap, type, textOf, pickBundle, installTraps,
-  phoneDevice } from './support.mjs';
+  phoneDevice, SOURCE_SESSION_DAYS } from './support.mjs';
 import { listImports, listImportRetractions } from '../../../w6/local/browser-entry.mjs';
 import { admittedLocalSourceState } from '../../today/local-source-basis.mjs';
+/* P3-X9 (round 4) reads the column the Measure screen draws, the same way
+   route.test.mjs's own admission cells read it. */
+import { baselineWeeks } from '../../measure/measure-baseline.mjs';
 import Screen from '../import-screen.mjs';
 
 const SEALED = sealInventedBundle();
 const STRANGER = sealInventedBundle(STRANGER_SETUP);
 const DAY = '2026-09-16', AT = '2026-09-16T16:00:00.000Z';
+/* This athlete's own three lifts, which are the markers P3-X9 draws the
+   baseline column over. */
+const MARKERS = ['db-bench', 'lat-pulldown', 'leg-press'];
+
+/* THE MEASURE LANE'S OWN OPERATIONS, by their class, so "the import left them
+   alone" is a comparison of what is on disk and not a claim. */
+async function opsOfClass(era, wanted) {
+  const loaded = await era.generation();
+  return Object.values(loaded.generation.collections.ops || {})
+    .filter(op => op.class === wanted).map(op => op.op_id).sort();
+}
 
 const scope = tag => ({ databaseName: 'p3x-' + tag, namespace: 'joe/p3x-' + tag,
   athleteId: 'ath-p3x', deviceId: 'dev-p3x' });
@@ -232,116 +246,221 @@ test('P3-X8 (bar h) - THE COPY CENSUS: no em or en dash anywhere the athlete '
   booted.rollover.stop(); booted.teardown(); era.close();
 });
 
-/* THE FINDING THE REAL-EDGE RUN MADE, PINNED SO IT CANNOT BE FORGOTTEN.
+/* P3-X9 AND P3-X10, RE-REASONED INTO ONE POSITIVE CELL (round 4, the ticket's
+   step 4). THE NEW REASON IS WRITTEN WHERE THE OLD ASSERTION STOOD, and the old
+   assertion is named so nobody has to go looking for it in the history.
 
-   On a phone there is ONE IndexedDB, so the measure lane (measure-host.mjs
-   openTodayHosts, the SAME database and namespace the page's own installation
-   uses) writes its trial-start operation into the very generation admission
-   replays. The S3 replay maps six families and has none for that operation, so
-   it raises LOCAL_SOURCE_CONTEXT_UNRESOLVED and the import refuses - and the
-   route then retracts, so nothing is left behind, which is the only part of
-   this that is this ticket's to own.
+   WHAT THE PAIR USED TO ASSERT, and why it was right on its base: on a phone
+   there is ONE IndexedDB, so the measure lane (gym-host.mjs openTodayHosts, the
+   SAME database and namespace the page's own installation uses) writes its
+   trial-start operations - two before the screen paints anything, a third when
+   the markers pick is answered, all of class body-composition-source - into the
+   very generation admission replays. The S3 replay had no family for that class,
+   so source-admission.mjs:148 answered LOCAL_SOURCE_CONTEXT_UNRESOLVED and the
+   import refused. P3-X9 pinned that refusal from Today's render and P3-X10 from
+   the Measure link itself, and both said in as many words that they would go RED
+   the day the lane learned the family, and that whoever taught it must come back
+   here and say so.
 
-   THIS CELL ASSERTS THE CURRENT, HONEST BEHAVIOUR, not a behaviour anyone
-   wants. It is written to go RED the day the import lane learns the measure
-   family, and whoever teaches it must come back here and say so. It is also
-   why P3-U1 and P3-U2 hand the measure lane a SEPARATE IDBFactory: those cells
-   are about the route, and this one is about the collision.
+   IT HAS BEEN TAUGHT. P3-REPLAY-MEASURE-FAMILY landed the F7 family
+   (rebuild/m4/import/measure-replay.cjs, origin/rebuild/d-p3-replay-measure
+   47a223d, which this branch is now rebased onto), and Measure-then-import
+   ADMITS on one store. So the two refusal cells are not merely stale, their
+   subject is gone: there is no collision left to assert. They become the ONE
+   positive cell below, which walks the very sequence they refused - the phone's
+   own IDBFactory and installation through gym-host.mjs openTodayHosts, the first
+   run saved, Measure LOOKED AT until its markers pick paints, and only then the
+   tap on "Import my history" - and proves it admits and that the measure lane's
+   own record is untouched by the import that crossed it.
 
-   ROUND 2 (review r1 finding 1) measured what "opening Measure" costs: the
-   first render writes TWO earned/measure-trial-start/v1 operations before the
-   screen paints anything, and the markers pick adds a third of
-   earned/measure-markers/v1. All three are class body-composition-source, and
-   source-admission.mjs:148 is where an operation of a class the replay has no
-   family for becomes LOCAL_SOURCE_CONTEXT_UNRESOLVED. So the Measure entry
-   cannot admit on any phone, ever, until lane D teaches that family - which is
-   why the entry that CAN admit is on Today (today-app.cjs renderToday, P3-U6)
-   and why this pair of cells stands beside it rather than instead of it.
-
-   Not fixed here: adding a family to rebuild/m4/import's replay is a change to
-   the admission stack, which is lane D's and is not an author's fix. Open item
-   1 of rebuild/lanes/c/P3-IMPORT-UI-2-AUTHOR-REPORT.md. */
-test('P3-X9 - OPENING MEASURE FIRST makes the import refuse '
-  + 'LOCAL_SOURCE_CONTEXT_UNRESOLVED, and the route still leaves nothing behind',
-  async () => {
-    const indexedDB = new IDBFactory();
-    const win = shellWindow();
-    /* ONE store AND ONE INSTALLATION, as a phone has: this opens the very
-       installation gym-host.mjs openTodayHosts opens - the default database,
-       namespace and athlete - so the measure lane's own openTodayHosts call
-       lands in the SAME generation rather than beside it. */
-    Object.defineProperty(win, 'indexedDB', { configurable: true, value: indexedDB });
-    const { openTodayHosts } = await import('../../today/gym-host.mjs');
-    const era = await openTodayHosts({ indexedDB, crypto: win.crypto, live: liveAt(AT) });
-    await firstRun(era, DAY);
-    const booted = await Entry.boot({ document: win.document, hosts: era, now: liveAt(AT) });
-    await booted.api.ready;
-    const doc = win.document;
-    for (let guard = 0; guard < 40 && !slot(doc, 'measure-marker-pick'); guard++) {
-      await booted.api.render('measure', false);
-      await new Promise(resolve => setTimeout(resolve, 1));
-    }
-    const before = await consumers(era, booted);
-    assert.ok(before.durable.ops > 1, 'the measure lane wrote nothing, so this cell measures nothing');
-    await toIdentity(win, booted, SEALED);
-    const at = await afterTap(booted, slot(doc, 'import-identity-yes'));
-    const refused = at.step() === 'review' ? await afterTap(booted, slot(doc, 'import-confirm')) : at;
-    assert.equal(refused.refusal().code, 'LOCAL_SOURCE_CONTEXT_UNRESOLVED',
-      'the collision is gone; re-reason this cell and say so: ' + JSON.stringify(refused.refusal()));
-    const after = await consumers(era, booted);
-    assert.deepEqual(after.imports, before.imports, 'the refused file is still staged');
-    assert.equal(after.durable.ops, before.durable.ops, 'an operation was minted');
-    assert.equal(after.durable.applied, false);
-    assert.equal(after.retractions.length, 1, 'the refused file was not retracted');
-    booted.rollover.stop(); booted.teardown(); era.close();
-  });
-
-/* P3-X10 (round 2, review r1 finding 1). P3-X9 opens the route from Today's own
-   render; the reviewer's objection was that nothing anywhere took the tap from
-   the LINK ON MEASURE on a phone's configuration, so the entry itself was
-   untested where it matters. This cell taps that link and nothing else, and
-   pins BOTH halves of what the athlete gets: the refusal, verbatim and printed
-   ONCE, and a device left exactly as it was found. It goes RED the day the
-   admission replay learns the measure family - and on that day the link works,
-   which is the outcome everyone wants. */
-test('P3-X10 - THE MEASURE LINK ITSELF, tapped on ONE store: the route refuses '
-  + 'LOCAL_SOURCE_CONTEXT_UNRESOLVED and the device is unchanged', async () => {
+   The old cells' one claim that still matters is kept and asserted below: the
+   route leaves the measure operations exactly as it found them, and trial day
+   one - the device's own first entry, which has nothing to do with any import -
+   still reads what it read before. */
+test('P3-X9 - MEASURE FIRST, THEN IMPORT, ON ONE STORE: the athlete opens '
+  + 'Measure, taps Import my history on it and the whole walk ADMITS; Today, '
+  + 'the gym card and the baseline column carry his history and the measure '
+  + 'operations are untouched', async () => {
   const phone = await phoneDevice({ at: AT, day: DAY });
   const doc = phone.doc;
-  /* Waited on the markers pick, not on the link: the link is painted on the
-     measure screen's FIRST frame, before the lane's own store has answered, and
-     a cell that tapped it there would be testing the race rather than the
-     athlete's day. */
+  /* MEASURE, LOOKED AT - rendered and settled until the markers pick is on the
+     screen, which is what "the athlete opened Measure" costs the generation. */
   await phone.booted.api.render('measure', true);
   for (let guard = 0; guard < 40 && !slot(doc, 'measure-marker-pick'); guard++) {
     await new Promise(resolve => setTimeout(resolve, 1));
     await phone.booted.api.render('measure', false);
   }
-  const link = slot(doc, 'import-entry');
-  assert.ok(link, 'the Measure screen offers no Import link');
+  assert.ok(slot(doc, 'measure-marker-pick'), 'the markers pick never painted');
   const before = await consumers(phone.era, phone.booted);
   assert.ok(before.durable.ops > 1,
     'opening Measure wrote nothing, so this cell measures nothing');
+  const measureOps = await opsOfClass(phone.era, 'body-composition-source');
+  assert.ok(measureOps.length >= 2, 'the measure lane wrote no operations: ' + measureOps.length);
+  const trialBefore = slot(doc, 'measure-trial-start') && slot(doc, 'measure-trial-start').textContent;
+  /* THE TAP, on the link the measure screen carries. */
+  const link = slot(doc, 'import-entry');
+  assert.ok(link, 'the Measure screen offers no Import link');
+  assert.equal(link.textContent, Screen.COPY.entryNew);
   tap(link);
   await phone.booted.api.render('import', false);
   assert.equal(phone.booted.api.screen(), 'import', 'the Measure link opened nothing');
+  /* PICK, WORDS, UNLOCK, YES, CONFIRM - every step tapped, nothing called. */
   pickBundle(phone.win, doc.getElementById('import-file'), SEALED.bytes);
   await phone.booted.api.render('import', false);
   type(doc.getElementById('import-passphrase'), SEALED.passphrase);
   await afterTap(phone.booted, slot(doc, 'import-unlock'));
-  const at = await afterTap(phone.booted, slot(doc, 'import-identity-yes'));
-  const refused = at.step() === 'review'
-    ? await afterTap(phone.booted, slot(doc, 'import-confirm')) : at;
-  assert.equal(refused.refusal().code, 'LOCAL_SOURCE_CONTEXT_UNRESOLVED',
-    'the collision is gone; re-reason this cell and say so: ' + JSON.stringify(refused.refusal()));
-  /* Printed ONCE (review r1 finding 4), not as CODE (CODE). */
-  assert.equal(slot(doc, 'import-refusal').textContent, 'LOCAL_SOURCE_CONTEXT_UNRESOLVED');
+  assert.equal(slot(doc, 'import-identity-question').textContent, Screen.IDENTITY_QUESTION);
+  const reviewing = await afterTap(phone.booted, slot(doc, 'import-identity-yes'));
+  assert.equal(reviewing.step(), 'review',
+    'the identity Yes refused: ' + JSON.stringify(reviewing.refusal()));
+  const admitted = await afterTap(phone.booted, slot(doc, 'import-confirm'));
+  assert.equal(admitted.refusal(), null,
+    'Measure-then-import refuses again; the F7 family is the thing to look at: '
+    + JSON.stringify(admitted.refusal()));
+  assert.equal(admitted.step(), 'done');
+  assert.ok(textOf(doc).includes(Screen.COPY.done));
+  /* AND WHAT HE HAS NOW. The basis is his file's, on Today and on the gym card;
+     the baseline column the Measure screen draws has weeks in it where it had
+     none; the measure lane's own operations are the ones it wrote, unchanged;
+     and trial day one has not moved. */
   const after = await consumers(phone.era, phone.booted);
-  assert.deepEqual(after.imports, before.imports, 'the refused file is still staged');
-  assert.equal(after.durable.ops, before.durable.ops, 'an operation was minted');
-  assert.equal(after.durable.applied, false);
-  assert.deepEqual(after.basis, before.basis, 'a basis was committed');
-  assert.equal(after.retractions.length, before.retractions.length + 1,
-    'the refused file was not retracted');
+  assert.equal(after.durable.applied, true, 'no basis was committed');
+  assert.equal(after.durable.basis, true);
+  assert.equal(after.durable.ops, before.durable.ops, 'the import minted an operation');
+  assert.deepEqual(after.retractions, before.retractions, 'something was taken back');
+  assert.deepEqual(await opsOfClass(phone.era, 'body-composition-source'), measureOps,
+    'the import moved the measure lane\'s own operations');
+  const basis = phone.booted.model.basisState();
+  assert.deepEqual(basis.exercises.map(e => [e.id, e.w]),
+    [['db-bench', 45], ['lat-pulldown', 80], ['leg-press', 120]], 'the import is not the basis');
+  assert.deepEqual(Object.keys(basis.sessionLog).sort(), SOURCE_SESSION_DAYS);
+  const card = JSON.stringify(await phone.booted.workout.gym.read());
+  for (const mark of ['demo-press', 'demo-row', 'demo-leg', 'demo-curl'])
+    assert.ok(!card.includes(mark), 'a fixture lift is on the gym card: ' + mark);
+  const weeks = await baselineWeeks(phone.booted.setup, DAY, 8, MARKERS, phone.booted.model.engine);
+  assert.ok(weeks.length > 0, 'the measure baseline column still reads No baseline yet');
+  /* BACK ON THE MEASURE SCREEN ITSELF. */
+  await phone.booted.api.render('measure', true);
+  for (let guard = 0; guard < 40 && !slot(doc, 'import-entry'); guard++) {
+    await new Promise(resolve => setTimeout(resolve, 1));
+    await phone.booted.api.render('measure', false);
+  }
+  assert.equal(slot(doc, 'import-entry').textContent, Screen.COPY.entryDone,
+    'the Measure link still offers an import that has already happened');
+  const trialAfter = slot(doc, 'measure-trial-start') && slot(doc, 'measure-trial-start').textContent;
+  assert.equal(trialAfter, trialBefore, 'trial day one moved');
+  phone.close();
+});
+
+
+
+/* P3-X10, RE-REASONED IN ROUND 4 (review r3 MAJOR 2). WHAT IT USED TO ASSERT:
+   the Measure link, tapped on one store, refusing LOCAL_SOURCE_CONTEXT_UNRESOLVED.
+   That refusal is gone with the F7 family and the tap from that link is now
+   P3-X9's, positive, above. THE NUMBER KEEPS ITS PLACE and takes the defect the
+   final review found in its stead, which is the other thing an athlete can do
+   from this route and could not until now.
+
+   THE DEFECT: a file that will not unlock - six words mistyped, or the file
+   itself damaged - refuses at the words step, and the screen kept the file and
+   the refusal with it. There was no control anywhere that offered him ANOTHER
+   file: Back left the cached screen standing on the same step with the same
+   stale refusal, the link painted that again, and only a page reload got him
+   out. For a damaged file that is not a recoverable state at all, and the
+   runbook's "retype and try again" was advice he could not take.
+
+   THE RULE NOW: Back without custody, and every later tap on the entry link,
+   reset this route to the chooser and drop the bytes. Executed here end to end,
+   in ONE page session: a damaged file refuses, and the very next thing he does
+   is pick a good one and admit. */
+test('P3-X10 - A DAMAGED FILE THEN A GOOD ONE, IN ONE PAGE SESSION: the refusal '
+  + 'does not trap him on the words step, and no reload is needed', async () => {
+  const phone = await phoneDevice({ at: AT, day: DAY });
+  const doc = phone.doc;
+  const before = await consumers(phone.era, phone.booted);
+  await phone.booted.api.render('today', true);
+  const link = slot(doc, 'import-entry');
+  assert.ok(link, 'Today offers no Import link');
+  tap(link);
+  await phone.booted.api.render('import', false);
+  /* THE DAMAGED FILE: the right six words, one byte flipped. */
+  const damaged = Uint8Array.from(SEALED.bytes);
+  const at = Math.floor(damaged.length / 2);
+  damaged[at] = damaged[at] ^ 0x01;
+  pickBundle(phone.win, doc.getElementById('import-file'), damaged, 'earned-port-damaged.json');
+  await phone.booted.api.render('import', false);
+  type(doc.getElementById('import-passphrase'), SEALED.passphrase);
+  const refused = await afterTap(phone.booted, slot(doc, 'import-unlock'));
+  assert.equal(refused.refusal().code, 'BUNDLE_AUTH_FAILED');
+  assert.equal(refused.step(), 'words', 'the draft is dropped before he can retype');
+  assert.deepEqual(await consumers(phone.era, phone.booted), before,
+    'a file that never unlocked wrote something');
+  /* BACK, WITH NO CUSTODY: out of the route, and the draft goes with him. The
+     tap is taken bare - afterTap re-renders the import screen, which is exactly
+     what this tap must NOT end on. */
+  tap(slot(doc, 'import-back'));
+  await phone.booted.api.importScreen().settled();
+  assert.equal(phone.booted.api.screen(), 'today', 'Back did not leave the route');
+  const screen = phone.booted.api.importScreen();
+  assert.equal(screen.step(), 'pick', 'the screen still stands on the refused step');
+  assert.equal(screen.refusal(), null, 'the refusal is still standing over a new attempt');
+  assert.equal(screen.holdingBytes(), false, 'the damaged file is still in the closure');
+  /* AND BACK IN, on the same page, through the same link. */
+  tap(slot(doc, 'import-entry'));
+  await phone.booted.api.render('import', false);
+  assert.ok(doc.getElementById('import-file'), 'the route did not reopen on the chooser');
+  assert.equal(slot(doc, 'import-refusal'), null,
+    'the stale refusal is painted over the new attempt: ' + textOf(doc));
+  assert.equal(textOf(doc).includes('earned-port-damaged.json'), false,
+    'the damaged file is still named on the screen');
+  /* THE GOOD FILE, and the whole walk, with no reload anywhere above. */
+  pickBundle(phone.win, doc.getElementById('import-file'), SEALED.bytes);
+  await phone.booted.api.render('import', false);
+  type(doc.getElementById('import-passphrase'), SEALED.passphrase);
+  await afterTap(phone.booted, slot(doc, 'import-unlock'));
+  await afterTap(phone.booted, slot(doc, 'import-identity-yes'));
+  const admitted = await afterTap(phone.booted, slot(doc, 'import-confirm'));
+  assert.equal(admitted.refusal(), null,
+    'the second file refused: ' + JSON.stringify(admitted.refusal()));
+  assert.equal(admitted.step(), 'done');
+  const after = await consumers(phone.era, phone.booted);
+  assert.equal(after.durable.applied, true, 'no basis was committed');
+  assert.equal(after.imports.length, 1, 'the damaged file took custody too: ' + after.imports);
+  assert.deepEqual(after.retractions, [],
+    'a file that never unlocked cost him a retraction record');
+  /* AND THE BYTES ARE GONE once the work is done (review r3 NOTE): nothing that
+     was in that file is still in this closure. */
+  assert.equal(admitted.holdingBytes(), false, 'the admitted bundle is still in the closure');
+  phone.close();
+});
+
+/* P3-X11 (round 4, review r3 MINOR 3). A refusal at the confirm step used to be
+   painted with "Working." still beside it, because confirm() sets that note
+   before it calls the machinery and only success or a refused retract cleared
+   it. The athlete was told the code AND that something was still happening. */
+test('P3-X11 - NO STALE "Working." BESIDE A REFUSAL: the note that said work '
+  + 'was in flight goes when the work stops', async () => {
+  const phone = await phoneDevice({ at: AT, day: DAY });
+  const doc = phone.doc;
+  await phone.booted.api.render('today', true);
+  tap(slot(doc, 'import-entry'));
+  await phone.booted.api.render('import', false);
+  /* ANOTHER ATHLETE'S FILE, which is refused at the confirm - the one step that
+     paints the note. */
+  pickBundle(phone.win, doc.getElementById('import-file'), STRANGER.bytes);
+  await phone.booted.api.render('import', false);
+  type(doc.getElementById('import-passphrase'), STRANGER.passphrase);
+  await afterTap(phone.booted, slot(doc, 'import-unlock'));
+  const reviewing = await afterTap(phone.booted, slot(doc, 'import-identity-yes'));
+  const refused = reviewing.step() === 'review'
+    ? await afterTap(phone.booted, slot(doc, 'import-confirm')) : reviewing;
+  assert.equal(refused.refusal().code, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED',
+    JSON.stringify(refused.refusal()));
+  assert.equal(slot(doc, 'import-refusal').textContent, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+  const note = slot(doc, 'import-note');
+  assert.equal(Boolean(note && note.textContent === Screen.COPY.working), false,
+    'the refusal is painted with "Working." beside it');
+  assert.equal(textOf(doc).includes(Screen.COPY.working), false,
+    '"Working." is still on the screen after everything stopped: ' + textOf(doc));
   phone.close();
 });

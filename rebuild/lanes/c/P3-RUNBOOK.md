@@ -98,26 +98,38 @@ Every label below is quoted from the SERVED page: `edge-route.mjs` runs this
 exact sequence in real headless Edge against the A1 dist on the real clock and
 prints the labels it read (P3-IMPORT-UI-2 bar item j).
 
-**Before step 2, do not open Measure on this phone.** This is not a preference,
-it is the difference between the import working and not working. The FIRST
-render of the Measure screen writes two `earned/measure-trial-start/v1`
-operations into the very record admission replays, and the S3 replay has no
-family for that class, so from that moment every import on this installation
-refuses `LOCAL_SOURCE_CONTEXT_UNRESOLVED` until lane D teaches it one. Pinned,
-both sides, by `refusal-route.test.mjs` P3-X9 and P3-X10; open item 1 of
-`rebuild/lanes/c/P3-IMPORT-UI-2-AUTHOR-REPORT.md`. Nothing is lost if it
+**MEASURE IS NO LONGER A PRE-CHECK.** This paragraph used to read "do not open
+Measure on this phone", because the first render of that screen writes two
+`earned/measure-trial-start/v1` operations into the very record admission
+replays and the S3 replay had no family for that class, so every later import
+refused `LOCAL_SOURCE_CONTEXT_UNRESOLVED`. **That is fixed and the caution is
+withdrawn:** `P3-REPLAY-MEASURE-FAMILY` landed the F7 family
+(`rebuild/m4/import/measure-replay.cjs`), and a phone that has already opened
+Measure - and answered its markers pick - now ADMITS. Executed on one store,
+from the Measure link itself, by `refusal-route.test.mjs` P3-X9.
+
+**Before step 2, do not open Sleep on this phone.** The sleep lane writes its
+nights with `class: "sleep"` (`today/sleep-commands.cjs` `OP_CLASS`), and that
+class is exactly where Measure's was: `source-admission.mjs` replay() hands
+`reading`, `session`, the measure family, `food-day`, `steps`, `plan`, the
+setup, settings and check-in profiles to a family each, and answers everything
+else `LOCAL_SOURCE_CONTEXT_UNRESOLVED`. So a night recorded before the import
+refuses it the same way Measure used to. A family for it is in flight in lane
+D; until it lands, import first and record sleep after. Nothing is lost if it
 happens - a refused import retracts itself and writes nothing - but the history
-cannot be admitted on that phone afterwards. Import first, Measure after.
+cannot be admitted on that phone until the family lands. (This one is a reading
+of the two files named, not an executed cell: no cell in this lane records a
+sleep night before an import. Said plainly so nobody takes it for proof.)
 
 1. Move only `earned-port-<date>.json` to the phone (any route - sealed).
    Keep `earned-port-<date>-PASSPHRASE.txt` on the PC.
-2. Open Earned and tap **"Import my history"** ON THE TODAY SCREEN, below the
-   "Measure" button. Do not tap "Measure". (The same link is also on the
-   Measure screen beside the "No baseline yet" line, and that one is the entry
-   DECISIONS:470 asked for, but see the warning above: by the time it paints,
-   the operations that refuse the import have been written.) Once a history is
-   admitted the link reads **"History imported"** and opens a read-only summary
-   instead.
+2. Open Earned and tap **"Import my history"**. It is in two places and EITHER
+   works: on the Today screen, below the "Measure" button, and on the Measure
+   screen beside the "No baseline yet" line (the entry DECISIONS:470 asked
+   for). Both appear only on an installation whose first run has been saved -
+   before that there is no entry anywhere, because the import could only refuse.
+   Once a history is admitted the link reads **"History imported"** and opens a
+   read-only summary instead.
 3. Step 1 of the screen, **"Choose the earned-port file"**: the file picker
    accepts `.json`. Pick the bundle you just moved. Nothing is read yet.
 4. Step 2, **"Type the six words from the PC"**: type them exactly
@@ -128,7 +140,14 @@ cannot be admitted on that phone afterwards. Import first, Measure after.
    and sha256, the file sha256).
    - Wrong words or a damaged file: **`BUNDLE_AUTH_FAILED`** and, beneath it,
      "That passphrase or file did not unlock. Check the six words and the
-     file." Nothing was written. Retype and try again; STOP after two tries.
+     file." Nothing was written, on either cause: the screen keeps the file and
+     what was typed so the six words can be RETYPED in place. STOP after two
+     tries at the words.
+   - If the FILE is the problem rather than the words, pick another file: tap
+     **"Back"**, then the entry link again. The screen comes back on step 1
+     with the chooser, no refusal standing over it and the old file dropped.
+     (No reload, and nothing durable happened; `refusal-route.test.mjs`
+     P3-X10.) Move the bundle to the phone again and re-pick it.
 5. Step 3, the question, asked before anything is written:
    **"Did every workout in this file happen before this first Earned workout,
    with none already recorded in Earned?"** Joe answers, not the PM.
@@ -142,12 +161,21 @@ cannot be admitted on that phone afterwards. Import first, Measure after.
      check it against the S5 receipt before confirming.
 6. Tap **"Import this history"**. That is the explicit confirm and the only
    control that admits anything.
-   - Any refusal here is the machinery's own code, shown verbatim
-     (`LOCAL_SOURCE_*`, `IMPORT_REBASE_REQUIRED`,
-     `SOURCE_ENGINE_CONTEXT_UNPROVEN`). The screen takes the file back out of
-     custody by itself and says so; nothing is left behind. Report the code and
-     STOP - see "Go / no-go".
-   - Tapping **"Back"** on the review does the same thing deliberately.
+   - Any refusal here is the machinery's own code, shown verbatim and once
+     (`LOCAL_SOURCE_*`, `LOCAL_IMPORT_REBASE_REQUIRED`,
+     `SOURCE_ENGINE_CONTEXT_UNPROVEN`). WHAT THE SCREEN ACTUALLY PAINTS, so
+     nobody waits for a sentence that is not coming: the code alone, in the
+     error line, with no explanation beside it and no "Working." note left
+     standing; the screen returns to step 1; and the file appears under
+     **"Files you took back"**, which IS the receipt that it was taken back out
+     of custody. The one refusal that carries a sentence is
+     `BUNDLE_AUTH_FAILED` (step 4). If the take-back itself is refused the
+     screen says "That file could not be taken back on its own. It is still
+     listed below." and the entry stays in **"Your import"**. Report the code
+     and STOP - see "Go / no-go".
+   - Tapping **"Back"** on the review does the same thing deliberately, and
+     that one DOES say so: "That file was taken back. Nothing on this phone was
+     changed."
 7. The screen reads **"Imported. Today and your gym card now use it."** with
    **"Your import"** beneath it (and **"Files you took back"** if anything was
    ever retracted). Confirm his history on Today and on the gym card, and that
@@ -162,10 +190,15 @@ against the A1 dist; a wrong word or one flipped byte refuses
 `BUNDLE_AUTH_FAILED` and writes nothing; "No" writes nothing; a cancel after
 custody retracts and every consumer reads the record it read before; another
 athlete's file refuses `LOCAL_SOURCE_PROGRAMME_UNRESOLVED`, retracts and leaves
-nothing behind; a repeat is `LOCAL_IMPORT_ALREADY_PRESENT`, a re-port under the
-same name is `LOCAL_IMPORT_NAME_TAKEN`, and a different file after admission is
-`LOCAL_IMPORT_REBASE_REQUIRED`; and no fetch, XHR, share, download,
-createObjectURL or window.open ever fires on the route.
+nothing behind; a damaged file refuses and the very next thing the athlete does
+is pick a good one and admit, in one page session with no reload (P3-X10); a
+phone that opened Measure first still admits (P3-X9); after admission the route
+opens no second import door at all, on that page session or a fresh one (P3-U3,
+which also records what the MACHINERY answers behind that door: a repeat is
+`LOCAL_IMPORT_ALREADY_PRESENT`, a re-port under the same name is
+`LOCAL_IMPORT_NAME_TAKEN`, a different file is `LOCAL_IMPORT_REBASE_REQUIRED`);
+and no fetch, XHR, share, download, createObjectURL or window.open ever fires
+on the route.
 
 ## Go / no-go (what the PM reads before proceeding)
 
