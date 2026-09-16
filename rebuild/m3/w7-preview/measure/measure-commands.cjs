@@ -130,6 +130,50 @@ function validateMarkers(op, readOperation) {
   return true;
 }
 
+/* ---------------------------------------------------------------------------
+   ROUND 3, CLOSING REVIEW-R2 FINDING 2 - THE TRIAL'S DAY ONE, WRITTEN ONCE.
+   Round 2 passed `startDate: model.today`, which re-based the whole window
+   every morning: week 2 through week 12 could never exist. The ticket says day
+   one is the local date of the FIRST ENROLLED RECORD, persisted once and never
+   re-based. It is therefore a FACT on this device, not a clock reading: one op,
+   one profile, refused a second time by measure-host.mjs's own read-before-
+   write, exactly as the markers pick is.
+   --------------------------------------------------------------------------- */
+const TRIAL_PROFILE = "earned/measure-trial-start/v1";
+const TRIAL_ACTION = "measure-trial-start";
+
+function trialStartOf(input) {
+  if (typeof input !== "string" || !isRealDate(input)) bad();
+  return input;
+}
+
+function prepareTrialStart(request) {
+  if (!isMap(request) || Object.keys(request).length !== 2
+    || request.action !== TRIAL_ACTION || !isMap(request.input)) bad();
+  const input = request.input;
+  for (const key of Object.keys(input)) if (key !== "start") bad();
+  return { class: OP_CLASS, kind: OP_KIND,
+    payload: { profile: TRIAL_PROFILE, start: trialStartOf(input.start) },
+    parents: [] };
+}
+
+function validateTrialStart(op, readOperation) {
+  if (!op || op.kind !== OP_KIND || op.class !== OP_CLASS) return false;
+  if (!op.effective || typeof op.effective.local_date !== "string"
+    || !isRealDate(op.effective.local_date)) return false;
+  if (!isMap(op.payload) || op.payload.profile !== TRIAL_PROFILE) return false;
+  if (Object.keys(op.payload).length !== 2) return false;
+  try { trialStartOf(op.payload.start); } catch { return false; }
+  /* A trial cannot begin after the day it is recorded on. */
+  if (op.payload.start > op.effective.local_date) return false;
+  if (!Array.isArray(op.causal_parents)) return false;
+  for (const id of op.causal_parents) {
+    const parent = readOperation(id);
+    if (!parent || parent.athlete_id !== op.athlete_id) return false;
+  }
+  return true;
+}
+
 function createMeasureCommands() {
   /* schemaVersion 2, the accepted client's requirement for a producer-injected
      command - the same schema the check-in, the first run and the sleep night
@@ -140,10 +184,12 @@ function createMeasureCommands() {
   return Object.freeze({ schemaVersion: 2,
     prepare(request) {
       if (isMap(request) && request.action === MARKERS_ACTION) return prepareMarkers(request);
+      if (isMap(request) && request.action === TRIAL_ACTION) return prepareTrialStart(request);
       return prepare(request);
     },
     validate(op, readOperation) {
       if (op && isMap(op.payload) && op.payload.profile === MARKERS_PROFILE) return validateMarkers(op, readOperation);
+      if (op && isMap(op.payload) && op.payload.profile === TRIAL_PROFILE) return validateTrialStart(op, readOperation);
       return validate(op, readOperation);
     } });
 }
@@ -151,4 +197,5 @@ function createMeasureCommands() {
 module.exports = { createMeasureCommands, prepare, validate, entryOf, isRealDate,
   markersOf, prepareMarkers, validateMarkers,
   PROFILE, ACTION, OP_CLASS, OP_KIND, WAIST_MIN, WAIST_MAX, DAY_RE,
-  MARKERS_PROFILE, MARKERS_ACTION, MARKERS_MIN, MARKERS_MAX };
+  MARKERS_PROFILE, MARKERS_ACTION, MARKERS_MIN, MARKERS_MAX,
+  prepareTrialStart, validateTrialStart, trialStartOf, TRIAL_PROFILE, TRIAL_ACTION };
