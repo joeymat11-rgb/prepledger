@@ -10,7 +10,7 @@ function fail(code){const e=new Error(code);e.code=code;throw e;}
 if(!/^22\./.test(process.versions.node))fail('S3_NODE22_REQUIRED');
 if(!process.env.S3_SCRATCH||!same(path.resolve(process.env.S3_SCRATCH),root)||!same(fs.realpathSync.native(root),root)||path.basename(root)!=='tree')fail('S3_CURRENT_SCRATCH_REQUIRED');
 for(const name of ['PERFORMED_W6_DIR','EARNED_READING_W6_ROOT','EARNED_SOURCE_R1_ROOT','W6_PLAYWRIGHT_DIR'])if(process.env[name])fail('S3_RETAINED_ENV_REFUSED');
-const manifest=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m4/spec/s3-portable-sources.json'),'utf8'));
+const manifest=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m4/import/test/s3/s3-portable-sources.json'),'utf8'));
 if(manifest.profile!=='earned/s3-provisional-public-sources/v1'||!Array.isArray(manifest.sources)||!manifest.sources.length)fail('S3_MANIFEST_INVALID');
 const entries=new Map(manifest.sources.map(e=>[e.path,e]));if(entries.size!==manifest.sources.length)fail('S3_MANIFEST_INVALID');
 let mutation=null;if(process.env.S3_MUTATION){mutation=JSON.parse(process.env.S3_MUTATION);const e=entries.get(mutation.path);if(!e||mutation.original_sha256!==e.sha256||!/^[a-f0-9]{64}$/.test(mutation.sha256)||!manifest.mutationTargets?.includes(mutation.path))fail('S3_MUTATION_UNREGISTERED');}

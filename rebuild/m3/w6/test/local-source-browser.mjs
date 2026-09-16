@@ -73,7 +73,7 @@ try{
   page=await launch();const second=await page.evaluate(expected=>S3.reopen(expected),first.evidence),negative=await page.evaluate(()=>S3.wrongContext());
   if(errors.length)fail('S3_BROWSER_PAGE_ERRORS '+errors.join('|'));
   await page.evaluate(()=>S3.close());
-  const evidence={profile:'earned/s3-browser-core/v1',scope:'PORTABLE ONLY',synthetic:true,realC2:false,calendar:'browser realm explicitly America/New_York; invented compatibility registry',executable,userAgent,killed,browserProfile:profile,source_manifest_sha256:sha256(fs.readFileSync(path.join(ROOT,'rebuild/m4/spec/s3-portable-sources.json'))),cells:first.cells+second.cells+negative.cells+parity.cells,first,second,parity,graph,pending:['final capture Start/resume','Today and gym consumers','real-C2/P1','B cumulative final gates']};
+  const evidence={profile:'earned/s3-browser-core/v1',scope:'PORTABLE ONLY',synthetic:true,realC2:false,calendar:'browser realm explicitly America/New_York; invented compatibility registry',executable,userAgent,killed,browserProfile:profile,source_manifest_sha256:sha256(fs.readFileSync(path.join(ROOT,'rebuild/m4/import/test/s3/s3-portable-sources.json'))),cells:first.cells+second.cells+negative.cells+parity.cells,first,second,parity,graph,pending:['final capture Start/resume','Today and gym consumers','real-C2/P1','B cumulative final gates']};
   fs.writeFileSync(path.join(run,'browser-core-evidence.json'),JSON.stringify(evidence,null,2)+'\n');
   const produced=JSON.parse(fs.readFileSync(path.join(run,'browser-core-evidence.json'),'utf8'));
   assert.equal(produced.profile,'earned/s3-browser-core/v1','R9 produced artifact retains its schema profile');

@@ -19,7 +19,7 @@ function assertionDiagnostic(log,status,name){
 }
 function runCases({label,cases,testFile,defaultTarget='rebuild/m4/import/replay-core.cjs'}){
  assert.equal(path.resolve(process.env.S3_SCRATCH||''),root,'Mutation requires owned copied tree');
- const manifest=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m4/spec/s3-portable-sources.json')));
+ const manifest=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m4/import/test/s3/s3-portable-sources.json')));
  const pins=new Map(manifest.sources.map(e=>[e.path,e.sha256]));
  const run=path.resolve(process.env.S3_RUN_ROOT),dir=path.join(run,'mutation-'+label+'-'+randomUUID());fs.mkdirSync(dir);
  const evidence={profile:'earned/s3-assertion-mutations/v1',label,source_manifest_sha256:sha(JSON.stringify(manifest)),cases:[],restored:false};
@@ -331,7 +331,7 @@ module.exports={runCases,CORE_MUTATIONS,assertionDiagnostic};
 if(require.main===module){
  if(!process.argv.includes('--core')){console.error('S3 BLOCKED final capture/consumer mutation custody pending');process.exitCode=2;}
  else{
-  const manifest=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m4/spec/s3-portable-sources.json')));
+  const manifest=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m4/import/test/s3/s3-portable-sources.json')));
   assert.equal(JSON.stringify(manifest.coreMutations),JSON.stringify(CORE_MUTATIONS),'Exact reviewed-in-manifest core subset');
   for(const [index,testFile]of [...new Set(CORE_MUTATIONS.map(c=>c.testFile))].entries())runCases({label:'core-'+index,testFile,cases:CORE_MUTATIONS.filter(c=>c.testFile===testFile)});
  }

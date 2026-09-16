@@ -255,7 +255,7 @@
     },
     {
       "path": "rebuild/m3/w6/test/local-source-browser.mjs",
-      "sha256": "f7c1a0d08aca21b0172f25958ddcb72f8340a7decc6f1626e3806ffc444986dc"
+      "sha256": "f3121f153b4d7c97ed9cce0947fe263035d827252403b78016b111bbd0ebe973"
     },
     {
       "path": "rebuild/m3/w6/test/local-source-commit.test.mjs",
@@ -335,7 +335,7 @@
     },
     {
       "path": "rebuild/m4/import/test/engine-provider.test.cjs",
-      "sha256": "212b22d8a78448c3a73b5ab1f5f246d5abb420f715794279748417ab0f3a832d"
+      "sha256": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8"
     },
     {
       "path": "rebuild/m4/import/test/local-source-order.test.cjs",
@@ -363,7 +363,7 @@
     },
     {
       "path": "rebuild/m4/import/test/s3/current-head.cjs",
-      "sha256": "87840f2df5861a6a4999e61b26fbbc36200e63f08c0832572938d967507b0a2e"
+      "sha256": "f0bb18234ef2affb7ba419795ef7eeaad17190b07780aa00d623b0b9a46d8eba"
     },
     {
       "path": "rebuild/m4/import/test/s3/engine.cjs",
@@ -379,11 +379,11 @@
     },
     {
       "path": "rebuild/m4/import/test/s3/mutations.cjs",
-      "sha256": "5a7d6dfcbacfac1e7dd1a1097e6a30401575b4c40f194afd734e926c790589e8"
+      "sha256": "2d52d9ed14349a12bee9385f50989deeac1bf8eb41a4b7a737782dce028c0fba"
     },
     {
       "path": "rebuild/m4/import/test/s3/run.mjs",
-      "sha256": "394799501f0745bbc22819faef589f3e6877e96f67e61fd12e78527a5f2916ba"
+      "sha256": "cf7d5cb746067a4137a514973bacd0230df02f24045bf139412d39e8bd5adc78"
     },
     {
       "path": "rebuild/m4/workout/athlete-state.cjs",

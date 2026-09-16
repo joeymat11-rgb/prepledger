@@ -136,7 +136,7 @@ const ENGINE_DEPENDENCIES=['rebuild/engine/merge.cjs','rebuild/engine/today.cjs'
 test('S3-PROVIDER-ENGINE-PINS: the S3-changed engine files are re-qualified and a mutated byte refuses',()=>{
  const {SOURCE_PINS}=require('../local-source-profile.cjs'),crypto=require('node:crypto');
  const root=path.resolve(__dirname,'../../../..'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
- const manifest=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m4/spec/s3-portable-sources.json'),'utf8'));
+ const manifest=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m4/import/test/s3/s3-portable-sources.json'),'utf8'));
  const pinned=new Map(manifest.sources.map(e=>[e.path,e.sha256]));
  for(const name of ENGINE_DEPENDENCIES){
   const bytes=fs.readFileSync(path.join(root,name)),actual=sha(bytes);

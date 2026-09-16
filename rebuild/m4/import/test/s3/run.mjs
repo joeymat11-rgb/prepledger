@@ -7,7 +7,10 @@ import {isBuiltin} from 'node:module';
 import Mutations from './mutations.cjs';
 const ownFile=fileURLToPath(import.meta.url);
 export const ROOT=path.resolve(path.dirname(ownFile),'../../../../..');
-export const MANIFEST='rebuild/m4/spec/s3-portable-sources.json';
+// P2: the manifest lives with the harness that owns it. rebuild/m4/spec is a
+// sealed tree - rebuild/lanes/b/tooling/b-package.cjs fidelity() refuses ANY
+// file under it that the package does not declare, this one included.
+export const MANIFEST='rebuild/m4/import/test/s3/s3-portable-sources.json';
 const NODE_TEST=['--require','./rebuild/m4/import/test/s3/current-head.cjs','--test','--test-reporter=tap'];
 export const CORE_TESTS=['rebuild/m3/w6/test/local-source-admission.test.mjs','rebuild/m3/w6/test/local-source-commit.test.mjs','rebuild/m4/import/test/local-source-order.test.cjs','rebuild/m4/import/test/browser-parity.test.mjs','rebuild/m4/import/test/s3/harness.test.mjs','rebuild/m4/import/test/engine-provider.test.cjs'];
 export const IMPORT_TESTS=['rebuild/m4/import/test/prepare.test.cjs','rebuild/m4/import/test/reading-replay.test.cjs'];
