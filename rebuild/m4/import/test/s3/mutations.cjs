@@ -62,6 +62,38 @@ function runCases({label,cases,testFile,defaultTarget='rebuild/m4/import/replay-
 }
 const CORE_MUTATIONS=[
   {
+    "id": "p2-native-date-capability-unchecked",
+    "target": "rebuild/m4/import/engine-provider.cjs",
+    "needle": "function capability(){if(!context.native)unproven();return context.native;}",
+    "replacement": "function capability(){return context.native;}",
+    "test": "S3-PROVIDER-NATIVE-DATE-ABSENT: missing native-Date evidence refuses at the reached operation and poisons the instance",
+    "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+  },
+  {
+    "id": "p2-native-date-coverage-unchecked",
+    "target": "rebuild/m4/import/engine-provider.cjs",
+    "needle": "function covered(ms){if(!Number.isFinite(ms))unproven();reached(civil(ms));}",
+    "replacement": "function covered(ms){if(!Number.isFinite(ms))unproven();}",
+    "test": "S3-PROVIDER-NATIVE-DATE-WITHHELD: a September-only context withholds the same reached March parse and stays poisoned",
+    "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+  },
+  {
+    "id": "p2-native-date-vectors-unchecked",
+    "target": "rebuild/m4/import/local-source-profile.cjs",
+    "needle": "  if(v.epoch===null?!Number.isNaN(actual):actual!==v.epoch)fail('SOURCE_ENGINE_CONTEXT_UNPROVEN');",
+    "replacement": "",
+    "test": "S3-PROVIDER-NATIVE-DATE-VECTORS: evidence contradicted by the real native implementation cannot qualify",
+    "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+  },
+  {
+    "id": "p2-engine-dependency-pin-dropped",
+    "target": "rebuild/m4/import/local-source-profile.cjs",
+    "needle": " 'rebuild/engine/merge.cjs':'01e9d6e6000fd625b9f50c336c3440fb8f84e61f3e77bce4a9bf93fb8fb63b00',\n",
+    "replacement": "",
+    "test": "S3-PROVIDER-ENGINE-PINS: the S3-changed engine files are re-qualified and a mutated byte refuses",
+    "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+  },
+  {
     "id": "r3-selected-suffix-assertion-borrowed",
     "target": "rebuild/m4/import/test/s3/mutations.cjs",
     "needle": "\n  const hit=/^(not ok|ok) [0-9]+ - (.+)$/.exec(lines[index]);\n  if(!hit||hit[2]!==name)continue;",
@@ -104,7 +136,7 @@ const CORE_MUTATIONS=[
   {
     "id": "r3-missing-lift-admitted",
     "target": "rebuild/m3/w6/local/source-admission.mjs",
-    "needle": "if(!expected||encode([...counts.keys()])!==encode(expected.ex.map(card=>card.id)))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');",
+    "needle": "if(!expected||!['U','L'].includes(expected.day)||encode([...counts.keys()])!==encode([...expected.exercise_ids]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');",
     "replacement": "",
     "test": "S3-Q-LAYOUT-COMPLETE: an omitted entire lift refuses while original historical loads and incomplete facts survive",
     "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"

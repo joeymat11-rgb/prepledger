@@ -129,7 +129,7 @@ export function inspectStaticEdges(root,manifest){
     const arg=tokens[i+2],close=tokens[i+3];
     if(arg?.type==='string'&&close?.value===')'){edge(arg.value);continue;}
     const site="require('../../engine/'+name+'.cjs')";
-    const mapped=entry.path==='rebuild/m4/workout/engine-runtime.cjs'&&sha256(source)==='c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936'&&source.slice(token.start,token.start+site.length)===site&&
+    const mapped=entry.path==='rebuild/m4/workout/engine-runtime.cjs'&&sha256(source)==='95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30'&&source.slice(token.start,token.start+site.length)===site&&
       source.includes("const MODULES=Object.freeze(['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers']);");
     if(!mapped)refusal('S3_UNLISTED_EDGE',entry.path+' computed '+token.value);
     for(const name of ['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers'])edge('../../engine/'+name+'.cjs');

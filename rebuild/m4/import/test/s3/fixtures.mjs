@@ -1,4 +1,15 @@
 // TEST ONLY. Invented facts, never a C2 file, private reference or production registry.
+// SYNTHETIC reviewed native-Date evidence for every invented execution calendar
+// in this harness. Each raw input is retained exactly as recorded and bound to
+// the exact epoch the native implementation produces, malformed input to NaN,
+// and each epoch to its exact native ISO string or to the invalid outcome.
+export function nativeDateEvidence(){
+ return {profile:'earned/native-date-capability/v1',
+  parse_vectors:[{input:'2026-03-15T12:00:00.000Z',epoch:1773576000000},{input:'2026-03-08T07:00:00.000Z',epoch:1772953200000},
+   {input:'2026-09-03T12:00:00.000Z',epoch:1788436800000},{input:'TEST-ONLY not a timestamp',epoch:null}],
+  constructor_vectors:[{epoch:1772953200001,iso:'2026-03-08T07:00:00.001Z'},{epoch:1788436800001,iso:'2026-09-03T12:00:00.001Z'},
+   {epoch:8640000000000001,iso:null}]};
+}
 import F from '../../../../m3/w7-preview/fixtures.cjs';
 import Journey from '../../../../m3/w6/host/test/journey-fixture.cjs';
 import SyntheticEngine from './engine.cjs';
@@ -59,7 +70,7 @@ export function portableReplayEvidence(vector,constructors=createBrowserReplay()
  const gate={clock:day,tz:'America/New_York'},materialDigest=platform.hash(JSON.stringify(input));
  const dates=['2026-03-07','2026-03-09',day,'2026-09-06'].map(date=>{const d=new Date(fixtureClock(date).nowMs());return {day:date,noonISO:d.toISOString(),offsetMinutes:d.getTimezoneOffset()};});
  const mapping={profile:'earned/source-producer-mapping/v1',id:'TEST-ONLY-portable-identical-input',construction:'oracle-shim-default/v1',engine,gate,public_factory_digest:Profile.PUBLIC_FACTORY_DIGEST,source_pins:Profile.SOURCE_PINS,
-  executions:[{id:'TEST-ONLY-vector-not-C2',material_digest:materialDigest,calendar:{profile:'earned/native-date-compatibility/v1',compatibility_id:'TEST-ONLY-2026',zone:gate.tz,range:{from:'2026-01-01',to:'2026-12-31'},dates}}],dependencies:{drafts:'default-empty'}};
+  executions:[{id:'TEST-ONLY-vector-not-C2',material_digest:materialDigest,calendar:{profile:'earned/native-date-compatibility/v1',compatibility_id:'TEST-ONLY-2026',zone:gate.tz,range:{from:'2026-01-01',to:'2026-12-31'},dates,native_date:nativeDateEvidence()}}],dependencies:{drafts:'default-empty'}};
  const context=Profile.createProducerRegistry([mapping],{hash:platform.hash}).qualify({materialDigest,context:{engine,oracle:{gate}}});
  const engineFor=({day,hour})=>Provider.createSourceReplayEngine({engineContext:Profile.engineContextAt(context,day,hour)});
  const real=engineFor({day,hour:12}),prep=constructors.createImportPreparation({engine:real,parseStrictJson});
@@ -144,7 +155,7 @@ export async function createLocalSourceFixture({indexedDB,crypto,databaseName='s
   const raw={source_json:platform.text(sourceBytes),candidate_json:platform.text(candidateBytes),local_json:null,engine_context_json:engineContextJson};
   const materialDigest=Profile.digest(platform.hash,'earned/local-source-material/v1',raw);
   const dates=['2026-01-15','2026-03-07','2026-03-09','2026-09-03','2026-09-04','2026-09-05','2026-11-02'].map(day=>{const d=new Date(fixtureClock(day).nowMs());return {day,noonISO:d.toISOString(),offsetMinutes:d.getTimezoneOffset()};});
-  const mapping={profile:'earned/source-producer-mapping/v1',construction:'oracle-shim-default/v1',id:'TEST-ONLY-synthetic-mapping',engine:producerEngine,gate:{clock:gate.clock,tz:gate.tz},public_factory_digest:Profile.PUBLIC_FACTORY_DIGEST,source_pins:Profile.SOURCE_PINS,executions:[{id:'TEST-ONLY-invented-public-run',material_digest:materialDigest,calendar:{profile:'earned/native-date-compatibility/v1',compatibility_id:'TEST-ONLY-host-calendar',zone:gate.tz,range:{from:'2026-01-01',to:'2026-12-31'},dates}}],dependencies:{drafts:'default-empty'}};
+  const mapping={profile:'earned/source-producer-mapping/v1',construction:'oracle-shim-default/v1',id:'TEST-ONLY-synthetic-mapping',engine:producerEngine,gate:{clock:gate.clock,tz:gate.tz},public_factory_digest:Profile.PUBLIC_FACTORY_DIGEST,source_pins:Profile.SOURCE_PINS,executions:[{id:'TEST-ONLY-invented-public-run',material_digest:materialDigest,calendar:{profile:'earned/native-date-compatibility/v1',compatibility_id:'TEST-ONLY-host-calendar',zone:gate.tz,range:{from:'2026-01-01',to:'2026-12-31'},dates,native_date:nativeDateEvidence()}}],dependencies:{drafts:'default-empty'}};
   const registry=Profile.createProducerRegistry([mapping],{hash:platform.hash});
   const keys=await openLocalKeys({indexedDB,crypto,databaseName});
   if(!reopen)await keys.generate();

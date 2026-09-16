@@ -99,7 +99,7 @@
     },
     {
       "path": "rebuild/engine/merge.cjs",
-      "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98"
+      "sha256": "01e9d6e6000fd625b9f50c336c3440fb8f84e61f3e77bce4a9bf93fb8fb63b00"
     },
     {
       "path": "rebuild/engine/migrate.cjs",
@@ -127,7 +127,7 @@
     },
     {
       "path": "rebuild/engine/today.cjs",
-      "sha256": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3"
+      "sha256": "685f6e1e907cd9bba268e5d8f6927120172869febe1c747ffb9bd851aa17c45a"
     },
     {
       "path": "rebuild/engine/volume.cjs",
@@ -203,7 +203,7 @@
     },
     {
       "path": "rebuild/m3/w6/local/source-admission.mjs",
-      "sha256": "7d6032d074ef102acd48d588c6a3fe9e0b3c0b3eff2719cb487895224f139e10"
+      "sha256": "00ce58d28ad65d50176713d9dd0ffed1aad7f3acde4f961a479e5e4374bd72e3"
     },
     {
       "path": "rebuild/m3/w6/local/source-commit.mjs",
@@ -307,7 +307,7 @@
     },
     {
       "path": "rebuild/m4/import/engine-provider.cjs",
-      "sha256": "357a7159218567f37eceb8ba051bcfa9c055e33e995ec8101a9a949b1ab0d405"
+      "sha256": "1899ba3c451c830b904f65c8e4afd4012e59ca18fcfa0b990993c58c2786f896"
     },
     {
       "path": "rebuild/m4/import/local-source-order.cjs",
@@ -315,7 +315,7 @@
     },
     {
       "path": "rebuild/m4/import/local-source-profile.cjs",
-      "sha256": "e1c992c714f5753835f02cfcae672ff1da72d4a21b3b56d340fe9a5d0507103a"
+      "sha256": "2de07820664ee2ec42c72fecd665a31dfb3768d607870745798c590bd79640e9"
     },
     {
       "path": "rebuild/m4/import/prepare.cjs",
@@ -335,7 +335,7 @@
     },
     {
       "path": "rebuild/m4/import/test/engine-provider.test.cjs",
-      "sha256": "9926308ffcf3f902087eb4718a8ce469477714aec5017b4bed4a128f1ecaad37"
+      "sha256": "212b22d8a78448c3a73b5ab1f5f246d5abb420f715794279748417ab0f3a832d"
     },
     {
       "path": "rebuild/m4/import/test/local-source-order.test.cjs",
@@ -371,7 +371,7 @@
     },
     {
       "path": "rebuild/m4/import/test/s3/fixtures.mjs",
-      "sha256": "9d31409edf3355ec7c394f0340b1895f0c7446e0c171bc79452e5404d027f155"
+      "sha256": "74bbba37999191d5ce5ae17061e676b96280542ed379f880c92957a6b87a3e5d"
     },
     {
       "path": "rebuild/m4/import/test/s3/harness.test.mjs",
@@ -379,11 +379,11 @@
     },
     {
       "path": "rebuild/m4/import/test/s3/mutations.cjs",
-      "sha256": "3cb410dddbc14c8628efb42f517b2c82b6eb69b303f19650ac634fa99aefb7b1"
+      "sha256": "5a7d6dfcbacfac1e7dd1a1097e6a30401575b4c40f194afd734e926c790589e8"
     },
     {
       "path": "rebuild/m4/import/test/s3/run.mjs",
-      "sha256": "b9f905e6e32aad74c08735d4cc22a796c30fea765712301ebb4b125e9542363b"
+      "sha256": "394799501f0745bbc22819faef589f3e6877e96f67e61fd12e78527a5f2916ba"
     },
     {
       "path": "rebuild/m4/workout/athlete-state.cjs",
@@ -427,7 +427,7 @@
     },
     {
       "path": "rebuild/m4/workout/engine-runtime.cjs",
-      "sha256": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936"
+      "sha256": "95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30"
     },
     {
       "path": "rebuild/m4/workout/fonts/SOURCES.json",
@@ -475,6 +475,38 @@
   },
   "coreMutations": [
     {
+      "id": "p2-native-date-capability-unchecked",
+      "target": "rebuild/m4/import/engine-provider.cjs",
+      "needle": "function capability(){if(!context.native)unproven();return context.native;}",
+      "replacement": "function capability(){return context.native;}",
+      "test": "S3-PROVIDER-NATIVE-DATE-ABSENT: missing native-Date evidence refuses at the reached operation and poisons the instance",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
+      "id": "p2-native-date-coverage-unchecked",
+      "target": "rebuild/m4/import/engine-provider.cjs",
+      "needle": "function covered(ms){if(!Number.isFinite(ms))unproven();reached(civil(ms));}",
+      "replacement": "function covered(ms){if(!Number.isFinite(ms))unproven();}",
+      "test": "S3-PROVIDER-NATIVE-DATE-WITHHELD: a September-only context withholds the same reached March parse and stays poisoned",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
+      "id": "p2-native-date-vectors-unchecked",
+      "target": "rebuild/m4/import/local-source-profile.cjs",
+      "needle": "  if(v.epoch===null?!Number.isNaN(actual):actual!==v.epoch)fail('SOURCE_ENGINE_CONTEXT_UNPROVEN');",
+      "replacement": "",
+      "test": "S3-PROVIDER-NATIVE-DATE-VECTORS: evidence contradicted by the real native implementation cannot qualify",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
+      "id": "p2-engine-dependency-pin-dropped",
+      "target": "rebuild/m4/import/local-source-profile.cjs",
+      "needle": " 'rebuild/engine/merge.cjs':'01e9d6e6000fd625b9f50c336c3440fb8f84e61f3e77bce4a9bf93fb8fb63b00',\n",
+      "replacement": "",
+      "test": "S3-PROVIDER-ENGINE-PINS: the S3-changed engine files are re-qualified and a mutated byte refuses",
+      "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
+    },
+    {
       "id": "r3-selected-suffix-assertion-borrowed",
       "target": "rebuild/m4/import/test/s3/mutations.cjs",
       "needle": "\n  const hit=/^(not ok|ok) [0-9]+ - (.+)$/.exec(lines[index]);\n  if(!hit||hit[2]!==name)continue;",
@@ -517,7 +549,7 @@
     {
       "id": "r3-missing-lift-admitted",
       "target": "rebuild/m3/w6/local/source-admission.mjs",
-      "needle": "if(!expected||encode([...counts.keys()])!==encode(expected.ex.map(card=>card.id)))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');",
+      "needle": "if(!expected||!['U','L'].includes(expected.day)||encode([...counts.keys()])!==encode([...expected.exercise_ids]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');",
       "replacement": "",
       "test": "S3-Q-LAYOUT-COMPLETE: an omitted entire lift refuses while original historical loads and incomplete facts survive",
       "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"

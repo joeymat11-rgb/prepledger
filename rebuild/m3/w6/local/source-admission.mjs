@@ -144,12 +144,17 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
     const adapter=EngineCapture.createEngineWorkoutCapture({engine:runtime,prescriptionCapture:captures,producerIdentity:producer});
     const layout=adapter.readLayout(start.prescription_capture),counts=new Map();for(const slot of layout.slots){if(state.exercises.filter(e=>e.id===slot.lift_lineage_id).length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');counts.set(slot.lift_lineage_id,(counts.get(slot.lift_lineage_id)||0)+1);}
     for(const [id,count]of counts)if(state.exercises.find(e=>e.id===id).sets!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
-    // Compare complete programme membership at the ORIGINAL Start day. The
-    // existing reader owns day selection and active-lift order. Historical
-    // prescription loads/reps and performed/skip facts remain untouched.
+    // Compare complete programme membership at the ORIGINAL Start day, under
+    // the authenticated original Start local date and this source's opaque
+    // engineContextAt clock. The engine's own membership reader owns day
+    // selection and active-lift order and reads NO sleep, so nothing here
+    // invents a night to reproduce a structural target; it proves pool and
+    // order only. The independent set-count validation above still stands and
+    // historical prescription loads/reps and performed/skip/incomplete facts
+    // remain untouched.
     const originalDay=start.effective.local_date,originalClock=sourceEngineContext(engineContextAt(held.engineContext,originalDay,12)).clock;
-    const expected=Runtime.createEngineRuntime({clock:originalClock}).genSession(state,originalDay);
-    if(!expected||encode([...counts.keys()])!==encode(expected.ex.map(card=>card.id)))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+    const expected=Runtime.createEngineRuntime({clock:originalClock}).sessionMembership(state,originalDay);
+    if(!expected||!['U','L'].includes(expected.day)||encode([...counts.keys()])!==encode([...expected.exercise_ids]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
     return layout;}});
    workoutFacts=projector.project(history,g,{sourceRevision:held.expected.revision});
    if([...workoutFacts.sessions,...workoutFacts.incomplete_sessions].some(s=>s.completion_state==='unresolved'||s.record.entries.some(e=>e.slots.some(x=>x.state==='unresolved'))))issue('LOCAL_SOURCE_WORKOUT_UNRESOLVED');
@@ -176,7 +181,12 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   const Q=freeze({profile:'earned/local-source-basis/v1',installation_id:namespace,era_id:held.eraId,athlete_id:athleteId,device_id:deviceId,source_digest:held.sourceDigest,material_digest:held.materialDigest,checkpoint_digest:held.checkpointDigest,local_selection_id:selectionId,
    operation_digest:digest(platform.hash,'earned/local-source-operations/v1',operations),interpretation_digest:digest(platform.hash,'earned/local-source-interpretation/v1',interpretation),programme_digest:digest(platform.hash,'earned/local-source-programme/v1',replayed.programmeBasis),order_map_digest:digest(platform.hash,'earned/local-source-order-map/v1',M),engine_digest:sourceEngineContext(held.engineContext).digest,replay_profile:'earned/local-source-replay/v1',as_of:currentDay()});
   await current(held);
-  const handle=Object.freeze({profile:'earned/local-source-qualification/v1'}),view=freeze({ready:true,basis:Q,order_map:M,state:replayed.state,calculation:replayed.calculation,workout_baseline:{profile:'earned/imported-engine-history/local-v1',local_source_basis:Q,session_log:replayed.state.sessionLog},workout_facts:replayed.workoutFacts,families:replayed.families,retained:replayed.retained,integration_pending:['local-capture-start-resume','today-gym-consumers']});
+  const handle=Object.freeze({profile:'earned/local-source-qualification/v1'}),view=freeze({ready:true,basis:Q,order_map:M,state:replayed.state,calculation:replayed.calculation,workout_baseline:{profile:'earned/imported-engine-history/local-v1',local_source_basis:Q,session_log:replayed.state.sessionLog},workout_facts:replayed.workoutFacts,families:replayed.families,retained:replayed.retained,/* P2 S3 IMPORT JOIN: 'today-gym-consumers' is no longer pending. An admitted
+    import is adopted as the athlete's own basis by the P0-B chain, through
+    rebuild/m3/w7-preview/today/local-source-basis.mjs, and proved on Today and
+    on the gym card by the cells in today/test/local-source-consumer.test.mjs.
+    'local-capture-start-resume' remains open and is still declared. */
+   integration_pending:['local-capture-start-resume']});
   const selection=internal?.action==='reopen'?copy(existingSelection):{id:selectionId,name:held.name,basis:Q,order_map:M,order_input:existingSelection?.order_input||orderInput,identity_review:existingSelection?.identity_review||review,previous:held.generation.metadata.localSources?.active??null,action:internal?.action||'select'};
   const next=copy(held.generation);next.metadata.localSources=next.metadata.localSources||{selections:{},active:null};
   if(next.metadata.localSources.selections[selectionId]&&encode(next.metadata.localSources.selections[selectionId])!==encode(selection))fail('LOCAL_SOURCE_SELECTION_CONFLICT');
