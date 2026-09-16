@@ -9,9 +9,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { unseal } = require('../unseal.cjs');
-const { GATE, REPO, shapeIssues, syncedFolderRefusal, outRefusal } = require('../port.cjs');
+const { GATE, REPO, shapeIssues, syncedFolderRefusal, outRefusal, realPathOf } = require('../port.cjs');
 
 process.env.MEASURED_TEST_NOW = GATE.clock;
 process.env.TZ = GATE.tz;
@@ -177,13 +178,26 @@ test('a path under %OneDrive% is refused even without the literal segment name',
   }
 });
 
-/* (f) the three PRE-EXISTING refusals are byte-identical to before this ticket. */
-test('the three pre-existing --out refusals are unchanged, verbatim', () => {
-  const inRepo = outRefusal(path.join(REPO, 'rebuild', 'm3', 'setup', 'port', 'nope'));
-  assert.match(inRepo, /^inside this repository \(.*\)$/);
-  const inRebuildNamed = outRefusal(path.join(SCRATCH, 'rebuild', 'nope'));
-  assert.match(inRebuildNamed, /^inside a folder called "rebuild" \(.*\)$/);
-  assert.match(inRepo, /^inside this repository \(/, 'string shape unchanged (byte-for-byte prefix)');
+/* (f) the three PRE-EXISTING refusals, asserted BYTE-FOR-BYTE against this
+   worktree's own wording (not a regex shape), including the git-working-tree
+   refusal a prior round of this cell omitted entirely. */
+test('the three pre-existing --out refusals are unchanged, byte-for-byte', () => {
+  const repoTarget = path.join(REPO, 'rebuild', 'm3', 'setup', 'port', 'nope');
+  assert.equal(outRefusal(repoTarget), `inside this repository (${realPathOf(repoTarget)})`);
+
+  const treeRoot = path.join(SCRATCH, 'fake-worktree');
+  fs.mkdirSync(treeRoot, { recursive: true });
+  fs.writeFileSync(path.join(treeRoot, '.git'), 'gitdir: /elsewhere\n');
+  try {
+    const treeTarget = path.join(treeRoot, 'nested', 'out');
+    assert.equal(outRefusal(treeTarget),
+      `inside a git working tree (${realPathOf(treeRoot)}) - a commit there could publish it`);
+  } finally {
+    fs.rmSync(path.join(treeRoot, '.git'), { force: true });
+  }
+
+  const namedTarget = path.join(SCRATCH, 'rebuild', 'nope');
+  assert.equal(outRefusal(namedTarget), `inside a folder called "rebuild" (${realPathOf(namedTarget)})`);
 });
 
 /* (g) happy path: bundle (a)'s shape (the unmodified public preimage fixture)
@@ -218,4 +232,149 @@ test('no en dash or em dash in the new refusal messages', () => {
     assert.ok(!text.includes('–'), 'no U+2013 (en dash): ' + text);
     assert.ok(!text.includes('—'), 'no U+2014 (em dash): ' + text);
   }
+});
+
+
+/* --- P3-HARDEN ROUND 2 (PM order, DECISIONS:431 point 17) ------------------
+   (i) nights are no longer pre-guarded by `typeof entry.d === 'string'`: a
+   numeric d and an object d both refuse now (as PORT_SOURCE_DATE_INVALID,
+   same as a malformed string would), and a night with NO d at all refuses as
+   PORT_SOURCE_SHAPE_INVALID rather than sealing PASS silently. */
+test('sleep.nights: numeric d, missing d and object d are all refused', () => {
+  const numeric = clone();
+  numeric.sleep.nights[0] = { ...numeric.sleep.nights[0], d: 20260610 };
+  const numericIssues = shapeIssues(numeric);
+  assert.ok(numericIssues.some(i => i.code === 'PORT_SOURCE_DATE_INVALID' && i.detail.startsWith('class nights')),
+    JSON.stringify(numericIssues));
+
+  const missing = clone();
+  delete missing.sleep.nights[0].d;
+  const missingIssues = shapeIssues(missing);
+  assert.ok(missingIssues.some(i => i.code === 'PORT_SOURCE_SHAPE_INVALID' &&
+    i.detail === 'class nights entry at position 0 is missing d'), JSON.stringify(missingIssues));
+
+  const objectD = clone();
+  objectD.sleep.nights[0] = { ...objectD.sleep.nights[0], d: { evil: 'ledger-secret' } };
+  const objectIssues = shapeIssues(objectD);
+  const dateIssue = objectIssues.find(i => i.code === 'PORT_SOURCE_DATE_INVALID' && i.detail.startsWith('class nights'));
+  assert.ok(dateIssue, JSON.stringify(objectIssues));
+  assert.ok(!dateIssue.detail.includes('evil'), 'no object key leaked: ' + dateIssue.detail);
+  assert.ok(!dateIssue.detail.includes('ledger-secret'), 'no object value leaked: ' + dateIssue.detail);
+  assert.match(dateIssue.detail, /<object>$/);
+});
+
+/* (j) Opus MINOR 3 (cosmetic): a nulled class reports "null", not "object"
+   (typeof null), and an object-shaped sleep.nights entry names the entry's
+   KEY, not a numeric "position". */
+test('cosmetic: a nulled class reports "null" (not "object")', () => {
+  const s = clone();
+  s.dailyLogs = null;
+  const issues = shapeIssues(s);
+  assert.ok(issues.some(i => i.code === 'PORT_SOURCE_SHAPE_INVALID' &&
+    i.detail === 'class dailyLogs is not a(n) object (got null)'), JSON.stringify(issues));
+});
+test('cosmetic: object-shaped nights (synthetic-fixture shape) name the KEY', () => {
+  const s = clone();
+  s.sleep.nights = { '7': { d: null, h: 7 } };
+  const issues = shapeIssues(s);
+  const issue = issues.find(i => i.code === 'PORT_SOURCE_DATE_INVALID');
+  assert.ok(issue, JSON.stringify(issues));
+  assert.equal(issue.detail, 'class nights date at key 7 is invalid: <null>');
+});
+
+/* (k) corrections: _fileCorr (engine/migrate.cjs, read-only) writes
+   {op:"kind:YYYY-MM-DD:id", kind, at:ISO}, never a top-level `d`. The old
+   check read entry.d and was vacuous; this validates the day embedded in
+   `op` and that `at` parses. */
+test('corrections: op day 2026-02-30 refuses', () => {
+  const day = Object.keys(BASE.sessionLog)[0];
+  const s = clone();
+  s.sessionLog[day].corrLog = [{ op: 'edit:2026-02-30:x1', kind: 'edit', at: new Date().toISOString() }];
+  const issues = shapeIssues(s);
+  assert.ok(issues.some(i => i.code === 'PORT_SOURCE_DATE_INVALID' && i.detail.startsWith('class corrections date')),
+    JSON.stringify(issues));
+});
+test('corrections: a malformed op (no kind:date:id shape) refuses', () => {
+  const day = Object.keys(BASE.sessionLog)[0];
+  const s = clone();
+  s.sessionLog[day].corrLog = [{ op: 'not-shaped-right', at: new Date().toISOString() }];
+  const issues = shapeIssues(s);
+  assert.ok(issues.some(i => i.code === 'PORT_SOURCE_SHAPE_INVALID' && i.detail.includes('malformed op')),
+    JSON.stringify(issues));
+});
+test('corrections: an unparsable at refuses', () => {
+  const day = Object.keys(BASE.sessionLog)[0];
+  const s = clone();
+  s.sessionLog[day].corrLog = [{ op: `edit:${day}:x1`, kind: 'edit', at: 'not-a-date' }];
+  const issues = shapeIssues(s);
+  assert.ok(issues.some(i => i.code === 'PORT_SOURCE_DATE_INVALID' && i.detail.startsWith('class corrections-at')),
+    JSON.stringify(issues));
+});
+test('corrections: a valid op and at are accepted', () => {
+  const day = Object.keys(BASE.sessionLog)[0];
+  const s = clone();
+  s.sessionLog[day].corrLog = [{ op: `edit:${day}:x1`, kind: 'edit', at: new Date().toISOString() }];
+  const issues = shapeIssues(s).filter(i => i.detail.includes('corrections'));
+  assert.deepEqual(issues, []);
+});
+
+/* (l) --local is now shape-checked too, before the gate, with codes prefixed
+   "local:". A clean source cannot save a malformed --local. */
+function sha256First8(bytes) { return crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 8); }
+
+test('--local with a bad date refuses (local:PORT_SOURCE_DATE_INVALID), nothing written', () => {
+  const local = clone();
+  local.reads[9] = { ...local.reads[9], d: '2026-13-40' };
+  const sourceFile = writeSource('local-baddate-source', clone());
+  const localFile = writeSource('local-baddate-local', local);
+  const confirm = sha256First8(fs.readFileSync(localFile));
+  const out = path.join(SCRATCH, 'local-baddate-out');
+  const run = runPort(['--source', sourceFile, '--local', localFile, '--local-confirm', confirm, '--out', out]);
+  assert.equal(run.code, 2, run.out);
+  assert.match(run.out, /local:PORT_SOURCE_DATE_INVALID/);
+  assert.equal(fs.existsSync(out), false, 'nothing written');
+});
+test('--local with a missing class refuses (local:PORT_SOURCE_CLASS_MISSING), nothing written', () => {
+  const local = clone();
+  delete local.exercises;
+  const sourceFile = writeSource('local-missing-source', clone());
+  const localFile = writeSource('local-missing-local', local);
+  const confirm = sha256First8(fs.readFileSync(localFile));
+  const out = path.join(SCRATCH, 'local-missing-out');
+  const run = runPort(['--source', sourceFile, '--local', localFile, '--local-confirm', confirm, '--out', out]);
+  assert.equal(run.code, 2, run.out);
+  assert.match(run.out, /local:PORT_SOURCE_CLASS_MISSING\s+class exercises is missing/);
+  assert.equal(fs.existsSync(out), false, 'nothing written');
+});
+test('a clean --local still seals PASS (the new check does not over-refuse)', () => {
+  const sourceFile = writeSource('local-clean-source', clone());
+  const localFile = writeSource('local-clean-local', clone());
+  const confirm = sha256First8(fs.readFileSync(localFile));
+  const out = path.join(SCRATCH, 'local-clean-out');
+  const run = runPort(['--source', sourceFile, '--local', localFile, '--local-confirm', confirm, '--out', out]);
+  assert.equal(run.code, 0, run.out);
+  assert.match(run.out, /^\d+\. ORACLE\s+PASS/m);
+});
+
+/* (m) privacy: an object d on a READ (the exact repro from review round 3) is
+   never echoed whole or in part - only its type. */
+test('privacy: an object reads[].d never echoes the object\'s keys or values', () => {
+  const s = clone();
+  s.reads[2] = { ...s.reads[2], d: { secret: 'do-not-print', w: 999 } };
+  const issues = shapeIssues(s);
+  const issue = issues.find(i => i.code === 'PORT_SOURCE_DATE_INVALID' && i.detail.startsWith('class reads'));
+  assert.ok(issue, JSON.stringify(issues));
+  assert.equal(issue.detail, 'class reads date at position 2 is invalid: <object>');
+  assert.ok(!issue.detail.includes('secret'), issue.detail);
+  assert.ok(!issue.detail.includes('do-not-print'), issue.detail);
+});
+
+/* (n) a malformed STRING date is still echoed, truncated to 10 characters. */
+test('a malformed string date is still echoed, truncated to 10 characters', () => {
+  const s = clone();
+  s.reads[0] = { ...s.reads[0], d: '2026-99-99-way-too-long' };
+  const issues = shapeIssues(s);
+  const issue = issues.find(i => i.code === 'PORT_SOURCE_DATE_INVALID' && i.detail.startsWith('class reads'));
+  assert.ok(issue, JSON.stringify(issues));
+  assert.equal(issue.detail, 'class reads date at position 0 is invalid: "2026-99-99"');
 });

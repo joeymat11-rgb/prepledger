@@ -270,6 +270,7 @@ const SHAPE_CLASSES = Object.freeze([
   { cls: 'waist', get: s => s.waist, type: 'array', optional: true },
 ]);
 const isPlainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+const typeName = v => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v);
 
 function shapeIssues(source) {
   const issues = [];
@@ -288,27 +289,69 @@ function shapeIssues(source) {
         : isPlainObject(value);
     if (!ok) {
       issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
-        detail: `class ${cls} is not a(n) ${type} (got ${Array.isArray(value) ? 'array' : typeof value})` });
+        detail: `class ${cls} is not a(n) ${type} (got ${typeName(value)})` });
       continue;
     }
     typed[cls] = value;
   }
-  const badDate = (cls, index, value) => issues.push({ code: 'PORT_SOURCE_DATE_INVALID',
-    detail: `class ${cls} date at position ${index} is invalid: ${JSON.stringify(value)}` });
-  if (Array.isArray(typed.reads)) typed.reads.forEach((r, i) => { if (!validDay(r && r.d)) badDate('reads', i, r && r.d); });
-  if (isPlainObject(typed.dailyLogs)) Object.keys(typed.dailyLogs).forEach((k, i) => { if (!validDay(k)) badDate('dailyLogs', i, k); });
+  // PRIVACY: echo a malformed date's VALUE only when it is itself a string
+  // (truncated to 10 characters) - never a non-string value, whole or partial,
+  // since that could carry a ledger fact. For anything else, name only the
+  // type; the class and position already say where.
+  const badDate = (cls, locLabel, index, value) => {
+    const shown = typeof value === 'string'
+      ? JSON.stringify(value.length > 10 ? value.slice(0, 10) : value)
+      : `<${typeName(value)}>`;
+    issues.push({ code: 'PORT_SOURCE_DATE_INVALID',
+      detail: `class ${cls} date at ${locLabel} ${index} is invalid: ${shown}` });
+  };
+  if (Array.isArray(typed.reads)) typed.reads.forEach((r, i) => { if (!validDay(r && r.d)) badDate('reads', 'position', i, r && r.d); });
+  if (isPlainObject(typed.dailyLogs)) Object.keys(typed.dailyLogs).forEach((k, i) => { if (!validDay(k)) badDate('dailyLogs', 'position', i, k); });
   if (isPlainObject(typed.sessionLog)) {
     const dates = Object.keys(typed.sessionLog);
-    dates.forEach((k, i) => { if (!validDay(k)) badDate('sessionLog', i, k); });
+    dates.forEach((k, i) => { if (!validDay(k)) badDate('sessionLog', 'position', i, k); });
+    // corrLog entries come from the engine's OWN _fileCorr (engine/migrate.cjs
+    // ~2501, read-only, reproduced here for reference):
+    //   {op: "kind:YYYY-MM-DD:id", kind, id?, at: ISOString, to?}
+    // There is no top-level `d` - the day lives inside `op`, second field.
+    // Checking entry.d (the old code) checked a key that never exists.
     dates.forEach(k => {
       const rec = typed.sessionLog[k];
       const log = rec && Array.isArray(rec.corrLog) ? rec.corrLog : [];
-      log.forEach((entry, i) => { if (entry && typeof entry.d === 'string' && !validDay(entry.d)) badDate('corrections', i, entry.d); });
+      log.forEach((entry, i) => {
+        const op = entry && entry.op;
+        const parts = typeof op === 'string' ? op.split(':') : null;
+        if (!parts || parts.length < 3) {
+          issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
+            detail: `class corrections entry at position ${i} has a malformed op` });
+          return;
+        }
+        if (!validDay(parts[1])) badDate('corrections', 'position', i, parts[1]);
+        const at = entry.at;
+        if (!(typeof at === 'string' && Number.isFinite(Date.parse(at)))) badDate('corrections-at', 'position', i, at);
+      });
     });
   }
+  // Nights are pre-guarded no more: a night's `d` must be PRESENT (missing ->
+  // SHAPE_INVALID, the same admission rule reads already meets) and, when
+  // present, a real calendar day of whatever type it is (DATE_INVALID covers
+  // numeric, object and malformed-string alike - validDay already refuses a
+  // non-string). Object-shaped nights (the synthetic fixture's own shape) name
+  // the entry's KEY, not a numeric "position", since Object.entries yields the
+  // key, not an index.
   if (Array.isArray(typed.nights) || isPlainObject(typed.nights)) {
-    const entries = Array.isArray(typed.nights) ? typed.nights.entries() : Object.entries(typed.nights);
-    for (const [i, entry] of entries) if (entry && typeof entry.d === 'string' && !validDay(entry.d)) badDate('nights', i, entry.d);
+    const keyed = isPlainObject(typed.nights);
+    const locLabel = keyed ? 'key' : 'position';
+    const entries = keyed ? Object.entries(typed.nights) : typed.nights.entries();
+    for (const [i, entry] of entries) {
+      if (!entry || typeof entry !== 'object') continue;
+      if (!Object.hasOwn(entry, 'd')) {
+        issues.push({ code: 'PORT_SOURCE_SHAPE_INVALID',
+          detail: `class nights entry at ${locLabel} ${i} is missing d` });
+        continue;
+      }
+      if (!validDay(entry.d)) badDate('nights', locLabel, i, entry.d);
+    }
   }
   return issues;
 }
@@ -569,6 +612,23 @@ async function run(argv) {
     for (const check of shrank) note(`SHRANK (${check.label}): ${check.shrank.join('  ')}`);
     note('A record class came out smaller than it went in. NO BUNDLE WRITTEN.');
     return 2;
+  }
+
+  // b3. the SAME seal-time shape refusal that ran on the source, now run on
+  //     the PREPARED --local state too. A clean source cannot save a --local
+  //     whose own reads/dates/classes are malformed: the unsealed migrated
+  //     state carries whatever --local contributed, and COUNTS above is a
+  //     decrease rule blind to a bad date or a class --local never declared.
+  //     Same codes, prefixed by the side, so a report line always says which
+  //     file is at fault. Nothing written on refusal, same as the source check.
+  if (localBytes) {
+    const localIssues = shapeIssues(prepared.localState());
+    if (localIssues.length) {
+      say('SHAPE', 'FAIL', `${localIssues.length} issue(s) in --local (nothing written)`);
+      for (const issue of localIssues) note(`local:${issue.code}  ${issue.detail}`);
+      note('The --local source is malformed. NO BUNDLE WRITTEN.');
+      return 2;
+    }
   }
 
   // c. the frozen port-oracle gate, both Date modes, all laws GREEN or nothing

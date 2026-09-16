@@ -67,10 +67,10 @@ node rebuild/m3/setup/port/port.cjs --source "C:\path\to\ledger\state.json" --ou
   the true folder first, because an earlier version of this check did not, and a
   reviewer used exactly those two tricks to land the bundle — and the password
   file beside it — inside a folder that gets committed to a **public**
-  repository. It also refuses a folder inside a SYNCED service — OneDrive,
+  repository. It also refuses a folder inside a SYNCED service - OneDrive,
   Dropbox, Google Drive, iCloud Drive or Box, matched case-insensitively by
   folder name, or by lying under `%OneDrive%` / `%OneDriveCommercial%` /
-  `%OneDriveConsumer%` when set — because the plaintext passphrase file sits
+  `%OneDriveConsumer%` when set - because the plaintext passphrase file sits
   right beside the bundle there, if only for a moment. Your Desktop or
   Documents is the right kind of place.
 - `--engine` — optional, for testing. Leave it alone.
@@ -123,20 +123,29 @@ happens, not as proof of identity.
 
 ## If it stops
 
-- **`PORT_SOURCE_CLASS_MISSING`** — a record class the census depends on
+- **`PORT_SOURCE_CLASS_MISSING`** - a record class the census depends on
   (reads, sleep nights, daily logs, session log, exercises, queue, feed, or
   events) is absent from the source entirely, not merely empty. Checked
   BEFORE migration, so a class that is 0 on both sides (invisible to the
   counts check below) cannot slip through as a shrink. Nothing was written.
   (`waist` is the one exception: the accepted clean-init state genuinely never
   writes it, so its absence alone is not refused - only a wrong type is.)
-- **`PORT_SOURCE_DATE_INVALID`** — a date-bearing field in reads, logs, sleep
+- **`PORT_SOURCE_DATE_INVALID`** - a date-bearing field in reads, logs, sleep
   nights, sessions or corrections is not a real calendar day (same rule the
-  phone's own admission uses). The line names the class and the position.
+  phone's own admission uses). Nights and corrections meet this rule too now
+  (missing `d` refuses as `PORT_SOURCE_SHAPE_INVALID`; a numeric, `null` or
+  object `d` refuses here, exactly like a `reads` date). Corrections are
+  checked against the day embedded in the engine's own `op` field (there is
+  no top-level `d` on a correction) and against `at` parsing as a date. The
+  line names the class and the position (or, for object-shaped sleep nights,
+  the key). A malformed non-string value is never echoed - only its type.
   Nothing was written.
-- **`PORT_SOURCE_SHAPE_INVALID`** — a required class is present but not the
+- **`PORT_SOURCE_SHAPE_INVALID`** - a required class is present but not the
   type the census expects (an object where an array was needed, or the
-  reverse). Nothing was written.
+  reverse), or a sleep-night / correction entry is missing its date field
+  entirely. Nothing was written.
+- **`local:PORT_SOURCE_*`** - the same three checks above, run again on a
+  `--local` file's own shape before it can be merged in. Nothing was written.
 - **`COUNTS FAIL … SHRANK`** — a class of record came out of the walk smaller
   than it went in. Nothing was written. The line names the class and both
   numbers.

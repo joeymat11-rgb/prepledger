@@ -1,60 +1,40 @@
 # P3-HARDEN - author report
 
-Ticket P3-HARDEN (DECISIONS:454; gaps 1/2 of P3-STAGE; gap 3 pinned,
-deferred). Lane C, size S. Model/effort: Sonnet, medium. Author only, nothing
-pushed. Branch `rebuild/c-p3-harden` over tip `c76fb7f5`, fresh worktree,
-TZ=America/New_York, Node 24.19.0. Invented bundles only, cloned in memory
-from the public `preimage-2026-08-15.json` fixture; nothing under
-`rebuild/conform/private`, `src/history.js`, `ledger/` or any soak path read.
+Ticket P3-HARDEN (DECISIONS:454/431 pt 17). Lane C, size S. Author only,
+nothing pushed. Invented bundles only, cloned in memory from the public
+`preimage-2026-08-15.json` fixture; nothing private, ledger or soak read.
 
-## Files : hunks
+## Round 1 (accepted with follow-ups; see round 2)
 
-- `port.cjs` - require + 2 new blocks (`shapeIssues`/`SHAPE_CLASSES` seal-time
-  refusal; `syncedFolderRefusal` wired into `outRefusal`) + 1 call site in
-  `run()` + exports extended. 116 ins / 1 del vs tip.
-- `test/port-harden.test.cjs` - new, 21 cases.
-- `README.md` - 3 new codes; `--out` synced-folder rule. `lanes/c/P3-RUNBOOK.md` - pre-check 4 updated (STAGE finding 2 closed).
+`port.cjs` gained seal-time `shapeIssues()` (missing/wrong-typed/bad-date
+guarded classes) and `syncedFolderRefusal` wired into `outRefusal`. 21 cases
+in `test/port-harden.test.cjs`; README + RUNBOOK updated. Deviation
+disclosed: `waist` absence tolerated (pinned `local-source-consumer.test.mjs`
+requires it). CI home not wired (disclosed, not forced).
 
-## Bar table
+## Round 2 (this commit) - PM order closing all round-1 follow-ups
 
-| item | cell(s) |
-|---|---|
-| (a) both codes | `BOTH codes: missing exercises + an impossible date refuse together` |
-| (b) empty not refused | `a present-but-empty exercises array is not refused...` |
-| (c) one per class | 8 `missing guarded class: *` + 1 `waist: absent is tolerated` (deviation) |
-| (d) dates | `date validity ... validDay` (5 refused incl. 2023-02-29; 2024-02-29 accepted) |
-| (e) synced folder | 6 cells: OneDrive, Dropbox, "Google Drive", onedrive, OneDriveBackup2 (not refused), %OneDrive% |
-| (f) byte-identical | `the three pre-existing --out refusals are unchanged, verbatim` |
-| (g) happy round-trip | `a well-formed source still seals PASS and round-trips` |
-| (h) no dash | `no en dash or em dash in the new refusal messages` |
-| (i) mutant | on-PC only (class-missing push commented -> 9 cells red, bundle written exit 0; reverted). Not committed. |
+| item | disposition | cell(s) |
+|---|---|---|
+| A/1/3 nights+corr `typeof d==='string'` pre-guard | CLOSED: `Object.hasOwn(entry,'d')` -> `PORT_SOURCE_SHAPE_INVALID` when absent; present-and-invalid (numeric/object/string) -> `PORT_SOURCE_DATE_INVALID` | `sleep.nights: numeric d, missing d and object d are all refused` |
+| 1 `--local` not shape-checked | CLOSED: `shapeIssues()` re-run on `prepared.localState()` before the gate, codes prefixed `local:`, nothing written on refusal | `--local with a bad date refuses`, `--local with a missing class refuses`, `a clean --local still seals PASS` |
+| 2 corrections read vacuous `entry.d` | CLOSED: validates the day inside `op` (`kind:YYYY-MM-DD:id`) and `at` via `Date.parse`; README states exactly this | `corrections: op day 2026-02-30 refuses`, `...malformed op) refuses`, `...unparsable at refuses`, `...valid op and at are accepted` |
+| 4 privacy echo of non-string `d` | CLOSED: string values only, truncated to 10 chars; any other type prints `<typename>`, never the value | `privacy: an object reads[].d never echoes...`, `a malformed string date is still echoed, truncated to 10 characters` |
+| 5 README U+2014 x5 + cell (f) gap | CLOSED: the 5 new-line em dashes replaced with ASCII; cell (f) now asserts the three `--out` refusals byte-for-byte, including the previously-omitted git-working-tree case | `the three pre-existing --out refusals are unchanged, byte-for-byte` |
+| Opus MINOR 3 (cosmetic) | CLOSED: `typeName()` reports `null` for null; object-shaped `nights` names the entry's KEY, not "position" | `cosmetic: a nulled class reports "null"...`, `cosmetic: object-shaped nights...name the KEY` |
 
-## Deviation (disclosed): waist
+`port-harden.test.cjs`: 21 -> 33 cases (+12 round-2 cells above). No pinned
+path touched; LF only; no U+2013/U+2014 in any new string.
 
-Named in the bar list but excluded from the missing-class refusal:
-`m4/workout/athlete-state.cjs`'s ACCEPTED `createCleanInitState()` never
-writes `waist` (not even `[]`) - confirmed against PINNED
-`local-source-consumer.test.mjs`, whose invented already-schema-60 state
-seals through the real `port.cjs` with no `waist` key. Refusing there would
-break that pinned suite. Type is still checked when `waist` IS present.
+## Suite tails (verbatim, MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York)
 
-## CI home: not wired
-
-`shared-preflight.yml` sparse-checks a single-commit blob allowlist
-(`rebuild/client/**` + lane tooling), no fetch remote after. The port suite
-needs the full gate (`rebuild/engine/**`, `rebuild/conform/oracle/**` incl.
-`census.cjs`, fixtures, manifest, `tools/_fixed-now.mjs`) - not hermetic
-there. Disclosed, not forced.
-
-## Suite tails (verbatim)
-
-- `node --test rebuild/m3/setup/port/test/*.test.cjs`: `tests 42 / pass 42 / fail 0`.
-- `node --test rebuild/m3/w6/test/local-source-consumer.test.mjs`: `tests 6 / pass 6 / fail 0`.
+- `node --test rebuild/m3/setup/port/test/*.test.cjs`: `tests 54 / pass 54 / fail 0`.
+- `rebuild/m3/w6/test/local-source-consumer.test.mjs`: `tests 6 / pass 6 / fail 0`.
 - `node rebuild/t2/rig187.cjs`: `rig187 => PASS`, exit 0.
 - `b-package.cjs --ci --package S4`: `PUBLIC CI EVIDENCE PASS`, exit 0.
-- today-13 by name (MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York): `tests 645 / pass 645 / fail 0`.
+- today-13 by name: `tests 645 / pass 645 / fail 0`.
 
 ## Open items
 
 - Gap 3 of P3-STAGE (`today-bindings.mjs` frozen-day tz) is pinned, out of scope.
-- Shape check re-parses the source once (besides `prepare()`'s own parse), deliberately, to fail fast before migration.
+- CI home for the full gate remains unwired (unchanged disclosure from round 1).
