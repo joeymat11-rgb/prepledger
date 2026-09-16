@@ -785,7 +785,11 @@ test('N1.16 - the entry sets no width a 390px or 320px phone cannot hold', () =>
    spec names are all still red - and with no such spec on the branch the
    exemption set is empty and this is the original cell. Same licence H3 wrote
    and S3 re-pointed (setup.test.mjs), widened from one name to the chain. */
-const CHILD_SPECS = ['H3', 'S3', 'S4'];
+/* S5 (M2-S5-TODAY-CHILD, S4's child under DECISIONS:455) appends itself to the chain and
+   changes nothing else about it: S5 moves .github/workflows/rebuild.yml, a B-NTC product
+   pin this cell walks, so the youngest declaring spec for that file must be findable or a
+   DECLARED move would read as an undeclared one. Same rule, one name longer. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5'];
 function declaredPost(file) {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;

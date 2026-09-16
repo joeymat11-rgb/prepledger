@@ -50,7 +50,7 @@ process.argv = [process.execPath, runnerFile, '--ci', '--package', 'B-NTC'];
 try {
   m._compile(source.slice(0, source.indexOf(delimiter)) +
     '\nmodule.exports={product,describes,ruledDescriptions,failCode,executedClosure,EXECUTED_CLOSURE_LIMIT,' +
-    'FAIL_CODES,IDS,PRODUCT_ROLES,NO_REGISTER_IDS,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
+    'FAIL_CODES,IDS,PRODUCT_ROLES,NO_REGISTER_IDS,CHILD_ROOTS,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
 api.init();
@@ -264,22 +264,58 @@ test('F3 — the four refusals r7 fired bare now carry names in the vocabulary',
   assert.equal(api.failCode('SOMETHING-AN-INPUT-SHAPED value'), null);
 });
 
-test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION where DECISIONS:414 (2) puts it and M2-S4-REAL-DAY as S3\'s own child directly behind it', () => {
-  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'B1', 'B2', 'B4', 'B3', 'B-LOM']);
+test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION where DECISIONS:414 (2) puts it, M2-S4-REAL-DAY as S3\'s own child directly behind it, and M2-S5-TODAY-CHILD as S4\'s', () => {
+  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'B1', 'B2', 'B4', 'B3', 'B-LOM']);
   // ":124 — ORDER B-NTC → H3 → B1 → B2 → B4 → B3". DECISIONS:414 (2) adopts the scout's
   // order as PM routing: P1 M2-S3-COMPANION is H3's child and B1 re-pins at its own rebase
   // behind it (CRITICAL-PATH-2026-09-15 section 4 P1). M2-S4-REAL-DAY is S3's own child
   // under the same rule (DECISIONS:444), so S4 sits directly behind S3 and ahead of B1.
-  // B-LOM is in no ruled sequence and stands after the ruled eight rather than inside them.
-  assert.deepEqual(api.IDS.slice(0, 8), ['B-NTC', 'H3', 'S3', 'S4', 'B1', 'B2', 'B4', 'B3']);
-  assert.equal(api.IDS[8], 'B-LOM');
+  // M2-S5-TODAY-CHILD is S4's own child under the standing reseal ruling DECISIONS:455, so
+  // S5 sits directly behind S4 and still ahead of B1: the ruled sequence is now NINE.
+  // B-LOM is in no ruled sequence and stands after the ruled nine rather than inside them.
+  assert.deepEqual(api.IDS.slice(0, 9), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'B1', 'B2', 'B4', 'B3']);
+  assert.equal(api.IDS[9], 'B-LOM');
   // THE NO-REGISTER RULE, written down and asserted: every member is either an H-/F-/S-
   // engine-tier or slice-plan item (DECISIONS:93 — feature work under the ratified slice
   // plan takes no register D-ID) or a B- id the PM ruled exempt BY NAME (DECISIONS:103 (1)).
   // H3 is in because DECISIONS:124 makes it an engine-tier item beside H1/H2; S3 and S4 are
   // in because the plan (:414 (2), :444) adopts each as an engine package with no D-id
-  // whose obligation is the Y1 own-child rule — not by discretion.
-  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-LOM', 'B-NTC', 'H3', 'S3', 'S4']);
+  // whose obligation is the Y1 own-child rule — not by discretion. S5 is in for the same
+  // reason under DECISIONS:455: a reseal child of S4, slice-plan work, no register D-id.
+  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-LOM', 'B-NTC', 'H3', 'S3', 'S4', 'S5']);
   for (const id of api.NO_REGISTER_IDS) assert(/^[HFS][0-9]+$/.test(id) || id === 'B-NTC' || id === 'B-LOM');
   for (const id of api.NO_REGISTER_IDS) assert(api.IDS.includes(id));
+});
+
+// -------------------------------------------------------- F7. the fixed child roots
+// M2-S5-TODAY-CHILD widened CHILD_ROOTS by one directory, so the list gets the same kind
+// of guard F6 gives IDS: the roots are FIXED IN THE RUNNER (W7) and a spec may not name
+// its own, and that is worth an assertion rather than a comment. The cell pins the exact
+// list, in order, and re-states the two properties the list exists for.
+test('F7 — CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S5-TODAY-CHILD adds exactly one', () => {
+  assert.deepEqual(api.CHILD_ROOTS, [
+    'rebuild/m4/spec/',
+    'rebuild/conform/v4/postfix/',
+    'rebuild/engine/test/',
+    'rebuild/m4/workout/test/',
+    'rebuild/m3/w7-preview/test/',
+    'rebuild/m3/w6/host/test/',
+    'rebuild/m3/w7-preview/today/test/',
+    'rebuild/m3/w7-preview/measure/test/',
+  ]);
+  // The eighth is S5's, and DECISIONS:455 is why it exists: lane C's new modules go under
+  // rebuild/m3/w7-preview/measure/ so that only the route wiring in today-app.cjs is a
+  // sealed-byte move, and the package that declares those modules must be able to execute
+  // them or the Y1 own-child rule cannot reach them at all.
+  assert.equal(api.CHILD_ROOTS.length, 8);
+  assert.equal(api.CHILD_ROOTS[7], 'rebuild/m3/w7-preview/measure/test/');
+  // Every root is a directory prefix of this repository, relative, with no wildcard and a
+  // trailing separator - so `startsWith` cannot be satisfied by a sibling whose name
+  // merely begins with a root's name.
+  for (const root of api.CHILD_ROOTS) {
+    assert(root.endsWith('/'), root + ' ends in a separator');
+    assert.equal(/[*?\\]/.test(root), false, root + ' is a literal directory, not a pattern');
+    assert.equal(path.isAbsolute(root), false, root + ' is relative to the repository');
+    assert(fs.existsSync(path.join(sourceRoot, root)), root + ' is a real directory of this repository');
+  }
 });

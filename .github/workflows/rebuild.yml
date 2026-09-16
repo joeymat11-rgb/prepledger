@@ -106,8 +106,25 @@ jobs:
       # theme and brief-by-sha lines for M2-S4-REAL-DAY stand on the chain branch this step
       # reports the runner's own refusal by name rather than PASS; that is the expected
       # pre-ruling state, and the brief predicts the token.
-      - name: Cumulative S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S4
+      # M2-S5-TODAY-CHILD SUCCEEDS M2-S4-REAL-DAY HERE, by the same rule a fourth time
+      # (ce38aa3, then H3's r3c, then S3's own, then S4's): a cumulative profile carries its
+      # parent's evidence forward, so the child's gate IS the standing step and the parent's
+      # is retired rather than kept beside it. S5 registers itself in the runner (its bytes
+      # move), re-pins packages/S4.json onto that runner, and S4's own sealed artifact no
+      # longer recomputes beside it. Same position, same job, same matrix; one command
+      # changes. WHY THIS CHILD EXISTS AT ALL, and it is not a behaviour change of its own:
+      # DECISIONS:455 rules that S4 sealed every product file under
+      # rebuild/m3/w7-preview/today/**, so lane C's ACCEPTED P-MEASURE bytes can only reach
+      # the tip inside a lane B reseal child. S5 pins them and moves no engine byte. LIKE S4
+      # and UNLIKE the comment S4 left here, it DOES declare a gate supersession: a
+      # second-generation descendant of S3 inherits the same refusing byte-identity
+      # reconstructions (DECISIONS:153, :422 note 3, :443), so the nine are retired again
+      # under S5's own token line with S5's own red-first cells. Until the PM's theme,
+      # brief-by-sha and GATE-SUPERSESSION lines for M2-S5-TODAY-CHILD stand on the chain
+      # branch this step reports the runner's own refusal by name rather than PASS; that is
+      # the expected pre-ruling state, and the brief predicts the exact refusal.
+      - name: Cumulative S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S5
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -158,8 +175,28 @@ jobs:
       # The older note "no dependency" was already wrong and is corrected: checkin,
       # copy, gym, machine-settings-ui, problem and setup import jsdom, installed by
       # the pinned W6 browser-build step above. No lockfile of this step's own.
-      - name: A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup
-        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs
+      # M2-S5-TODAY-CHILD ADDS THE FOUR PAGE-STACK MEASURE SUITES HERE, and DECISIONS:117
+      # (4) is the rule it rides: rebuild.yml is pinned by the accepted engine artifact, so
+      # any step lands only inside a re-pinning engine package, and lane C's work therefore
+      # RIDES THE SEAL as a DISCLOSED HUNK — exactly as the C5 coach step rode B-NTC's.
+      # THE FOUR, and why they are here rather than in shared-preflight.yml: journey, lane,
+      # baseline and boundary mount the REAL Today route over jsdom and fake-indexeddb, and
+      # shared-preflight's allowlist cannot open the page stack, so P-MEASURE's own report
+      # records them as running in NO workflow at all (DECISIONS:457 (i), an honest gap
+      # carried into S5 rather than a finding). model and adherence are hermetic and stay
+      # where lane C registered them, in shared-preflight.yml, which S5 does not touch.
+      # THE 13-NAME RULE STILL HOLDS AND IS THE CEREMONY THAT ADMITS THESE FOUR. Cell H3/13
+      # reads the today/test/ paths off THIS line and requires them to equal the directory
+      # exactly - every one of them, nothing else, no glob and no hold-out (DECISIONS:186).
+      # It reads today/test/ paths and only those, so naming a measure file here neither
+      # satisfies nor breaks it: the thirteen are still thirteen and still exact. What the
+      # enumeration IS, for the measure suites, is the whole of their admission - there is
+      # no other ceremony and no glob standing in for one, so a fifth measure page suite
+      # added later has no CI home until some package names it here on purpose, which is
+      # precisely the property DECISIONS:186 (3) asks of a file: "a file with no CI home is
+      # a file nobody runs". Named by exact path, never globbed, so both runners agree.
+      - name: A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup; and P-MEASURE's four page-stack suites
+        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs rebuild/m3/w7-preview/measure/test/journey.test.mjs rebuild/m3/w7-preview/measure/test/lane.test.mjs rebuild/m3/w7-preview/measure/test/baseline.test.mjs rebuild/m3/w7-preview/measure/test/boundary.test.mjs
       # DECISIONS:117 (4). rebuild.yml is pinned by the accepted engine artifact, so any
       # step lands only inside a re-pinning engine package (DECISIONS:112's standing rule) —
       # lane C's C5 voice coach therefore RIDES THE B-NTC SEAL as one more disclosed hunk,

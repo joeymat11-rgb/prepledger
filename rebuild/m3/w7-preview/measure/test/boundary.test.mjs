@@ -68,20 +68,61 @@ test('P-MEASURE (g) - package S4 pins none of this lane\'s new files', () => {
     'S4 pins nothing under today/, so this comparison is vacuous');
 });
 
-test('P-MEASURE (g) - exactly ONE S4-sealed file drifts, and it is today-app.cjs', () => {
+/* M2-S5-TODAY-CHILD AMENDED THIS CELL, and it is still the same guard.
+   The question it asks is "does THIS LANE drift a sealed byte it has not
+   declared", and on a branch carrying the RESEAL CHILD that pins this lane's
+   work (DECISIONS:455, :457) some S4 pins are moved BY THAT PACKAGE, on purpose
+   and declared: rebuild.yml, b-package.cjs, the lane B tooling suite, the three
+   B-NTC guard cells and two package specs. So the cell now reads the DECLARING
+   SPEC, exactly as setup / food / machine-settings-ui already do for the B-NTC
+   pins, and a file is exempt only while it stands at the post-image THAT SPEC
+   DECLARES. An undeclared drift, a declared move that has not landed, and a
+   file that has gone missing are all still red; and with no such spec on the
+   branch the exemption set is empty and the cell is the original cell, which
+   is the state lane C's own branch was reviewed in. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5'];
+const declaredPost = (file) => {
+  for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
+    let product = null;
+    try { product = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/' + CHILD_SPECS[i] + '.json')).product; }
+    catch { product = null; }
+    if (product && Object.hasOwn(product, file) && typeof product[file].post === 'string')
+      return product[file].post;
+  }
+  return null;
+};
+
+test('P-MEASURE (g) - no S4-sealed file drifts except where a declaring spec says so, and this lane\'s own drift is today-app.cjs', () => {
   const product = S4.product || {};
   const drifted = Object.keys(product).filter((file) => {
     let sha = null;
     try { sha = shaOf(file); } catch { return true; }      /* a pinned file that is gone */
     return typeof product[file].post === 'string' && sha !== product[file].post;
   });
-  assert.deepEqual(drifted, ['rebuild/m3/w7-preview/today/today-app.cjs'],
-    'the sealed-byte drift of this ticket is not today-app.cjs alone');
-  /* And the restore is real: the test file round 2 edited stands byte for byte
-     at the post S4 declares for it (review R2 finding 4). */
+  /* EVERY drift is accounted for by a declaring spec, named one by one rather
+     than counted, and each drifted file stands at the post that spec declares. */
+  const undeclared = drifted.filter((file) => shaOf(file) !== declaredPost(file));
+  assert.deepEqual(undeclared, [],
+    'an S4-sealed file drifts and no package on this branch declares the bytes it stands at');
+  /* AND THIS LANE'S OWN DRIFT IS STILL EXACTLY ONE FILE. Bar item (g) is about
+     P-MEASURE, not about whatever lane B package is carrying it, so it is asked
+     of the files this lane authors: the ONLY sealed file P-MEASURE moves is
+     today-app.cjs, and it is in the drifted set because this lane moved it. */
+  const MINE = 'rebuild/m3/w7-preview/today/today-app.cjs';
+  assert(drifted.includes(MINE), 'today-app.cjs does not drift, so this lane delivered nothing');
+  const under = drifted.filter((f) => f.startsWith('rebuild/m3/w7-preview/today/') && !f.includes('/test/'));
+  assert.deepEqual(under, [MINE],
+    'the sealed-byte drift of this ticket under today/ is not today-app.cjs alone');
+  /* And the restore is real: the test file round 2 edited carries no byte of
+     this lane's (review R2 finding 4). It is no longer held to S4's post alone,
+     because S5 moves it by one literal (the declaring-spec chain), so it is
+     held to the post the youngest declaring spec names - and to the fact that
+     no spec of LANE C's names it at all, which is what "restored" means here. */
   const restored = 'rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs';
-  assert.equal(shaOf(restored), product[restored].post,
-    'machine-settings-ui.test.mjs was not restored to its sealed bytes');
+  assert.equal(shaOf(restored), declaredPost(restored),
+    'machine-settings-ui.test.mjs stands at no post any declaring spec names');
+  assert.equal(readRepo(restored).includes(DIR), false,
+    'machine-settings-ui.test.mjs names this lane\'s directory: round 2\'s edit is back');
 });
 
 test('P-MEASURE (g) - these cells are registered with the shared preflight that runs them', () => {

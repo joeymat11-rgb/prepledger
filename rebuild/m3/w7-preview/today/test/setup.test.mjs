@@ -2305,7 +2305,14 @@ test(':132 (3) - screen 2 uses ONE apostrophe, the curly one, in every sentence'
    branch DECLARED for this file? A file no spec names gets null and is exempt
    from nothing. This is the same licence H3 wrote and S3 re-pointed, widened
    from one name to the chain so a grandchild need not restate its ancestors. */
-const CHILD_SPECS = ['H3', 'S3', 'S4'];
+/* S5 (M2-S5-TODAY-CHILD, S4's child under the standing reseal ruling DECISIONS:455)
+   appends itself to the chain and changes nothing else about it. It has to: S5 moves
+   .github/workflows/rebuild.yml, which IS one of the forty-odd B-NTC product pins the
+   cell below walks, so without this name the youngest declaring spec found for that file
+   would be S4 and the disk bytes would read as an undeclared move. With it, the file is
+   exempt exactly while it stands at the post S5's own spec declares for it - the same one
+   rule, one name longer. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5'];
 function declaredPost(file) {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;

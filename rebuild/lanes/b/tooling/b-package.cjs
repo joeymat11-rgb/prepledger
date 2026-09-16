@@ -136,8 +136,24 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // which re-pins the runner at its own rebase behind it, as B1 already owed behind S3.
 // It changes NO byte under rebuild/engine, so it declares NO gate supersession: the five
 // byte-identity carriers are inherited through the parent map exactly as they stand, and no
-// token line is needed or claimed. See the README section S4.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
+// token line is needed or claimed. See the README section S4. THAT LAST SENTENCE WAS
+// WRONG and DECISIONS:443 measured it: S4 round 4 retired the same nine gates under its own
+// token line DECISIONS:444. It is left standing here as the record of what the comment said
+// when S4 sealed; :444 and the S4 spec's own coverage.superseded are the operative facts.
+// M2-S5-TODAY-CHILD. DECISIONS:455's standing ruling: M2-S4-REAL-DAY sealed every product
+// file under rebuild/m3/w7-preview/today/**, so ANY byte change under today/ now fails
+// SEALED-PROFILE-RECOMPUTATION on its branch and a lane C product change lands on the tip
+// only inside a lane B RESEAL CHILD. S5 is that child for lane C's accepted P-MEASURE
+// bytes (:457): it pins today-app.cjs at its P-MEASURE post, declares the measure module
+// as its own new product, and moves NO byte under rebuild/engine. Its packageId is
+// `M2-S5-TODAY-CHILD`, so the `^M2-<ID>-` shape enforces the id `S5` and the artifact path
+// acceptance-s5-today-child.json. It stands after S4 and before B1, which re-pins the
+// runner at its own rebase behind it, as B1 already owed behind S3 and S4. Being a
+// SECOND-GENERATION descendant of S3 it inherits S4's wall exactly (:153, :422 note 3,
+// :443): the nine NATIVE-CARRIERS gates are byte-identity reconstructions that already
+// refuse on this tree, so S5 retires them again under its OWN token line with its OWN
+// red-first cells. See the README section S4; S5 is that section applied a second time.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
 // The real chain branch, resolved from GIT REFS and never from a spec (X2/R3-B). Every
 // ancestry assertion that decides whether a commit is on the accepted chain names THIS.
 const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
@@ -236,7 +252,12 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // obligation is the Y1 own-child rule. The owner ruled the behaviour (DECISIONS:432); no
 // entry of the 45-law register describes "which day the page boots on", so there is nothing
 // for it to register and the exemption is by name here, never by a spec's own say-so.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM', 'H3', 'S3', 'S4']);
+// M2-S5-TODAY-CHILD enters under the same S- half again: a SLICE-PLAN item with no D-id,
+// whose obligation is the Y1 own-child rule. It is a RESEAL child (DECISIONS:455) - it
+// pins bytes lane C's own review accepted and adds the measure module's own cells - and no
+// entry of the 45-law register describes "the weekly waist entry and the comparison
+// table", so there is nothing for it to register and the exemption is by name here too.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM', 'H3', 'S3', 'S4', 'S5']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).
@@ -289,7 +310,17 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
   // Git, so it has to be committable — but a run of B1 has no business finding B2's receipt
   // changed under it and calling that accounted for.
   ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
-const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/'];
+// M2-S5-TODAY-CHILD adds the EIGHTH root, `rebuild/m3/w7-preview/measure/test/`, and it is
+// the same kind of move as adding an id to IDS: a fixed, literal directory written HERE
+// (W7), unreachable by any spec, so a package still cannot name its own child root. It is
+// added because DECISIONS:455 rules that lane C's new modules go under
+// rebuild/m3/w7-preview/measure/ precisely so only the route wiring in today-app.cjs is a
+// sealed-byte move - and a package that declares those modules as its own role:"new"
+// product cannot EXECUTE them, and so cannot satisfy the Y1 own-child rule over them,
+// while their directory stands outside this list. Nothing is widened for any other
+// package: every existing root is unchanged, and the new one names one real directory of
+// this repository that already exists on the branch, not a pattern.
+const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/'];
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
 // --require=, --import=) are caught with the bare ones; NO_RUN catches every form that
