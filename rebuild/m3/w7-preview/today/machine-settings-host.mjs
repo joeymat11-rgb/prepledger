@@ -33,8 +33,21 @@
 // the read-back and the latest-wins rule are one definition, imported, and a test
 // asserts the op this file writes is byte-identical to the op the coach's tool writes
 // for the same answer.
+//
+// NO SECOND CLOCK EITHER (FOOD-LIVE-SAVE). This lane used to hand hostBindings a
+// `clientClockFor(day)` built with no live instant provider, which is the PINNED
+// PREVIEW instant (day + 'T13:00:00.000Z', -05:00). On the shipped build the
+// installation is opened LIVE (S4, DECISIONS:455-457) and its write lease is issued
+// not_before the real instant the installation was opened, so 13:00Z on that day fell
+// OUTSIDE the window and every machine note was refused state 20 with nothing
+// written. This lane still says nothing about how an installation begins. The
+// instant half of a host's clock is the installation's to answer, never this file's;
+// `live` lives inside the installation and today-bindings.mjs is pinned on disk, so
+// the way a lane outside it says "use the era's own clock" is to declare none - which
+// is what sleep-host.mjs and measure/measure-host.mjs already do. The DAY half is
+// unchanged: openTodayHosts passes this host's `day` to the installation, which adopts
+// it and reports it on clockAdoptions(), so clock.today() is still this host's day.
 import { openTodayHosts, DATABASE, NAMESPACE } from './gym-host.mjs';
-import { clientClockFor } from '../../w6/local/today-bindings.mjs';
 import { createDurablePublicClient } from '../../w6/public-client.mjs';
 import { LOCAL_ERA_SCHEMA_VERSION } from '../../w6/local/local-era.mjs';
 import MachineSettings from '../../../coach/machine-settings-commands.cjs';
@@ -52,8 +65,11 @@ export async function createMachineSettingsHost({ day, indexedDB, crypto, era: g
   if (typeof day !== 'string' || !DAY_RE.test(day)) throw new TypeError('createMachineSettingsHost requires day');
   const era = given || await openTodayHosts({ indexedDB, crypto, databaseName, namespace, day });
   try {
-    const bindings = await era.client.hostBindings({ workoutCommands: createMachineSettingsCommands(),
-      clock: clientClockFor(day) });
+    /* NO `clock` HERE (FOOD-LIVE-SAVE): with none declared host-bindings.mjs:244 uses
+       `scope.clock`, the installation's own, so this lane stamps the era's instant and
+       the era's offset - live on the shipped build, byte-for-byte the pinned preview
+       instant on every declared-day fixture. */
+    const bindings = await era.client.hostBindings({ workoutCommands: createMachineSettingsCommands() });
     const lease = (await bindings.repository.load()).generation.metadata.authorityLease;
     const client = createDurablePublicClient({ ...bindings, schemaVersion: LOCAL_ERA_SCHEMA_VERSION });
     const opened = await client.reopen();

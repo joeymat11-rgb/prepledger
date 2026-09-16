@@ -18,9 +18,21 @@
 //
 // NO SECOND STORE, NO SECOND LEASE, NO SECOND CLOCK. The bindings come from the era's
 // client, so the compare-and-swap that serialises the other four lanes serialises this
-// one too.
+// one too - and, FOOD-LIVE-SAVE, so does the clock. This lane used to hand
+// hostBindings a `clientClockFor(day)` built with no live instant provider, which is
+// the PINNED PREVIEW instant (day + 'T13:00:00.000Z', -05:00). On the shipped build
+// the installation is opened LIVE (S4, DECISIONS:455-457), its write lease is issued
+// not_before the real instant the installation was opened, and 13:00Z on that day is
+// BEFORE it - so every food save was refused state 20 and nothing was written. This
+// lane still says nothing whatever about how an installation begins; it only stops
+// answering a question that was never its to answer. The instant half of a
+// host's clock is the installation's to answer, never this file's; `live` lives inside
+// the installation and today-bindings.mjs is pinned on disk, so the way a lane outside
+// it says "use the era's own clock" is to declare none - which is exactly what
+// sleep-host.mjs and measure/measure-host.mjs already do. The DAY half is unchanged:
+// openTodayHosts passes this host's `day` to the installation, which adopts it and
+// reports it on clockAdoptions(), so clock.today() is still this host's day.
 import { openTodayHosts, DATABASE, NAMESPACE } from './gym-host.mjs';
-import { clientClockFor } from '../../w6/local/today-bindings.mjs';
 import { createDurablePublicClient } from '../../w6/public-client.mjs';
 import { LOCAL_ERA_SCHEMA_VERSION } from '../../w6/local/local-era.mjs';
 import FoodCommands from './food-commands.cjs';
@@ -66,8 +78,11 @@ export async function createFoodHost({ day, indexedDB, crypto, era: given,
   if (typeof day !== 'string' || !DAY_RE.test(day)) throw new TypeError('createFoodHost requires day');
   const era = given || await openTodayHosts({ indexedDB, crypto, databaseName, namespace, day });
   try {
-    const bindings = await era.client.hostBindings({ workoutCommands: createFoodCommands(),
-      clock: clientClockFor(day) });
+    /* NO `clock` HERE, and that is the whole of FOOD-LIVE-SAVE: with none declared
+       host-bindings.mjs:244 uses `scope.clock`, the installation's own, so this lane
+       stamps the era's instant and the era's offset - live on the shipped build,
+       byte-for-byte the pinned preview instant on every declared-day fixture. */
+    const bindings = await era.client.hostBindings({ workoutCommands: createFoodCommands() });
     const lease = (await bindings.repository.load()).generation.metadata.authorityLease;
     const foodClient = createDurablePublicClient({ ...bindings,
       schemaVersion: LOCAL_ERA_SCHEMA_VERSION });
