@@ -9,8 +9,6 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
 const T = require("../tools.cjs");
 const Client = require("../../client/index.cjs");
 const O = require("../../conform/lib/ops.cjs");
@@ -147,6 +145,33 @@ test("d: a tampered reason is refused by the real client's own digest check, sur
      against) but no accepted proposal-response op reached the client's own
      durable store */
   assert.deepEqual(client.face().answers, [], "an accept was recorded despite the refusal");
+});
+test("e2: a refused respond leaves the durable issuances row accepted:false, over the REAL client (P6-COACH-WIRE-2, round 2, reviewer note 3)", async () => {
+  const { backend, client } = realClient();
+  const consent = recordingConsent(client, { tamperReason: true });
+  const today = createTodayModel({});
+  const coach = T.createCoachTools({ today, consent });
+  const issued = await issueVolumeProposal(coach);
+  const id = issued.values.proposalId.value;
+  const record = issued.proposal;
+
+  const t = coach.openTurn("turn-yes");
+  const done = await t.call.accept_proposal({ proposal_id: id, confirmed: true });
+  assert.equal(done.ok, false, "the tampered issuance should still be refused by the real digest check");
+
+  /* the compensating write ran: the durable row never claims an acceptance
+     the store does not hold, read straight off the shared backend so this
+     is the real client's own durable state, not tools.cjs's opinion of it */
+  const row = backend.get("issuances", id);
+  assert.equal(row.accepted, false, "issuances row still claims accepted:true after a refused respond");
+  assert.equal(row.producer, record.producer);
+  assert.equal(row.revision, ENGINE_REVISION);
+
+  /* respond() refuses before it ever commits a proposal-response op, so
+     reasonFor(id) - whose own contract is "no hit → null" - reports that
+     nothing was recorded the same way it does for any id it has never
+     seen: null, not an object claiming a reason */
+  assert.equal(client.reasonFor(id), null, "reasonFor(id) reports a reason that was never durably recorded");
 });
 test("f: after accept, the real client's reasonFor(id) returns the stored reason and revision === ENGINE_REVISION", async () => {
   const { client } = realClient();

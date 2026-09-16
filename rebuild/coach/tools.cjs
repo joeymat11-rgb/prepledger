@@ -845,7 +845,7 @@ function createCoachTools(world) {
       return unavailable("accept_proposal", TIER.PROPOSAL, turn_id, CODES.PROPOSAL_NOT_ENGINE_ISSUED,
         "That is not a proposal the engine issued in this conversation, so it cannot be accepted.", "coach.issued ledger");
     }
-    if (!consent || typeof consent.respond !== "function") {
+    if (!consent || typeof consent.respond !== "function" || typeof consent.recordIssuance !== "function") {
       return unavailable("accept_proposal", TIER.PROPOSAL, turn_id, CODES.CONSENT_SURFACE_ABSENT,
         "The consent surface is not reachable on this device, so your yes cannot be recorded. Nothing changed.",
         "rebuild/client/index.cjs respond()/recordIssuance()");
@@ -870,6 +870,12 @@ function createCoachTools(world) {
     }
     const answered = consent.respond(id, "accept", issuance);
     if (!answered || answered.acknowledged !== true) {
+      /* PM RULING (P6-COACH-WIRE-2, round 2, item 3): a refused respond()
+         must not leave the durable issuances row claiming accepted:true
+         with no proposal-response op behind it - compensate the write so
+         the row reads accepted:false before returning unavailable. */
+      consent.recordIssuance({ id, accepted: false, instance: null,
+        producer: record.producer, revision: ENGINE_REVISION });
       return unavailable("accept_proposal", TIER.PROPOSAL, turn_id, (answered && answered.code) || "PLAN_CONSENT_NOT_ACKNOWLEDGED",
         (answered && answered.copy) || null, "rebuild/client/index.cjs respond()");
     }

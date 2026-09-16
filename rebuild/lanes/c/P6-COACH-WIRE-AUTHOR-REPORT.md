@@ -1,6 +1,9 @@
 # P6-COACH-WIRE author report
 
-Lane C, size S. Branch rebuild/c-p6-coach-wire, this round's sha 91c30744.
+Lane C, size S. Branch rebuild/c-p6-coach-wire. Round 2 commit 544a1a8d
+(P6-COACH-WIRE-2, DECISIONS:456): 6 files, +372/-56 (git show --numstat
+544a1a8d), and accept-proposal-issuance.test.cjs holds 6 test() cells
+(a/b/e merged into one, c, d, f, g, h) before round 3's new cell below.
 
 ## History (compressed)
 R1 (Sonnet medium): STOP before touching accept_proposal, no engine
@@ -13,44 +16,44 @@ SOURCE = turn_id; routed as P6-COACH-WIRE-2.
 
 ## Round 2: P6-COACH-WIRE-2 (lane C, size S, Sonnet, effort high)
 Base origin/rebuild/t2-client-core @ 57d056cbad808e694b3348cf7e59299767d19a6f.
-Files:hunks (this commit, 6 files, +372/-56):
-- rebuild/coach/engine-revision.cjs (new, 27 lines): ENGINE_REVISION const
-- rebuild/coach/tools.cjs (+39/-9, one hunk): require, CODES entry,
-  accept_proposal body (recordIssuance before respond, whole issuance)
-- rebuild/coach/test/engine-revision.test.cjs (new, 52 lines): 3 cells
-- rebuild/coach/test/engine-revision-gap.test.cjs (77 changed): R1/R2
-  deleted (asserted the closed gap), R3 kept, R4 rewritten as contract cell
-- rebuild/coach/test/accept-proposal-issuance.test.cjs (new, 188 lines):
-  bar cells a-h
-- rebuild/coach/test/tiers.test.cjs (45 changed): "EXACTLY what the durable
-  store keeps" rewritten for the closed gap
+engine-revision.cjs (new); tools.cjs (require, CODES entry, accept_proposal
+records then responds with the whole issuance); engine-revision.test.cjs
+(new, 3 cells); engine-revision-gap.test.cjs (R1/R2 deleted as closed, R3
+kept, R4 rewritten as a contract cell); accept-proposal-issuance.test.cjs
+(new, bar cells a-h); tiers.test.cjs ("EXACTLY what the durable store
+keeps" rewritten for the closed gap).
 
-Receipt sha256 over rebuild/lanes/b/tooling/receipts/S4.json's raw bytes =
-171ebcd4d4b3b2b43707d681cf0511c9eb9d609e3fc32e699a94d88ff7f5dcc1, via
-`node -e "console.log(crypto.createHash('sha256').update(fs.readFileSync(
-'rebuild/lanes/b/tooling/receipts/S4.json')).digest('hex'))"`; first 16 hex
-= 171ebcd4d4b3b2b4. receipt.packageId = M2-S4-REAL-DAY; rebuild.yml's
-standing step is `--package S4`. ENGINE_REVISION =
-"M2-S4-REAL-DAY@171ebcd4d4b3b2b4".
+Review r1 (Opus high, sha 9d990bf over 8f56cb5 = author 54b7e5fb rebased
+onto c76fb7f): ACCEPT with 1 MAJOR, 3 MINOR, 3 NOTE.
 
-## Bar cells (accept-proposal-issuance.test.cjs unless noted)
-a/b/e one cell "recordIssuance runs BEFORE respond..."; c "recordIssuance
-stored:false leaves respond uncalled..."; d "a tampered reason is refused
-by the real client's own digest check..."; f "after accept, the real
-client's reasonFor(id) returns the stored reason..."; g
-engine-revision.test.cjs's 2 cells, green in the same suite run; h "the new
-CONSENT_ISSUANCE_NOT_STORED code and copy carry no long dash".
+## Round 3: closes r1's MAJOR and MINOR 3/4/5 (this commit)
+1. MAJOR - CONSENT_SURFACE_ABSENT guard (tools.cjs) now also requires
+   typeof consent.recordIssuance === "function"; a consent surface with
+   respond and no recordIssuance refuses instead of throwing. Existing
+   accept_proposal cells exercise this call path; no new cell needed.
+3. MINOR - accept_proposal now writes a compensating
+   consent.recordIssuance({accepted:false,...}) when respond() refuses.
+   New cell "e2" in accept-proposal-issuance.test.cjs, over the REAL
+   client: the backend's issuances row reads accepted:false and
+   reasonFor(id) is null (its own contract when no proposal-response op
+   exists - never a falsely-recorded reason).
+4. MINOR - engine-revision-gap.test.cjs's R4 regex now also matches a
+   quoted literal (e.g. "S9@deadbeef"). New "R4 mutant" cell proves the
+   old class let a quoted literal through and the new one catches it.
+5. NOTE - accept-proposal-issuance.test.cjs's unused fs/path requires
+   removed.
+2. MINOR - this header's sha/diff-stat/cell-count corrected against git
+   (git show --numstat, git log, and the suite's own cell names).
+6. NOTE - rebased onto origin/rebuild/t2-client-core @ c76fb7f before this
+   report (git merge-base --is-ancestor origin/rebuild/t2-client-core HEAD).
 
-## Suite tails (this sha, %TEMP%\earned-p6wire)
-coach: 229 tests, 229 pass, 0 fail
+## Suite tails (this worktree, %TEMP%\earned-p6wire, post round-3 edits)
+coach: 231 tests, 231 pass, 0 fail (was 229; +e2, +R4 mutant)
 client: 18 tests, 18 pass, 0 fail
 rig187: `rig187 => PASS`
-S4 --ci: exit 0; `SEAL BASE ON THE TIP`; 0 unlisted drift;
-  `PUBLIC CI EVIDENCE PASS`; rebuild/coach absent from S4's product map
+S4 --ci: exit 0; `SEAL BASE ON THE TIP`; `PUBLIC CI EVIDENCE PASS`
 today-13 (MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York, 13 files by
   name): 645 tests, 645 pass, 0 fail
 
 ## Open items
-- rebuild/coach/local-world.mjs untouched: ENGINE_REVISION is required
-  directly by tools.cjs, so no constant-threading was needed there.
 - Not pushed.

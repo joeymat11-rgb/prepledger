@@ -86,7 +86,10 @@ test("R4 ENGINE_REVISION is the only revision source, and no clock reaches the c
   /* the call site reads the constant, never a literal of its own and never
      any other property named revision/version on the world it holds */
   assert.equal(SRC.includes("revision: ENGINE_REVISION"), true, "accept_proposal no longer uses ENGINE_REVISION");
-  assert.equal(/revision:\s*(?!ENGINE_REVISION)[a-zA-Z0-9_.]+/.test(SRC), false,
+  /* the class must also catch a quoted literal (e.g. revision: "S9@deadbeef")
+     standing in for the constant - not just a bare identifier - so both
+     quote forms are alternatives here alongside the unquoted-token branch */
+  assert.equal(/revision:\s*(?!ENGINE_REVISION\b)(?:"[^"]*"|'[^']*'|`[^`]*`|[a-zA-Z0-9_.]+)/.test(SRC), false,
     "some other value is assigned to a revision field");
 
   /* every `new Date`/`Date.now()` in tools.cjs lives inside verifyCostCap's
@@ -107,4 +110,18 @@ test("R4 ENGINE_REVISION is the only revision source, and no clock reaches the c
     assert.equal(site.fn, "verifyCostCap",
       "unexpected Date construction outside verifyCostCap at tools.cjs:" + site.line + " (in " + site.fn + "): " + site.text);
   }
+});
+
+/* R4 mutant proof (P6-COACH-WIRE-2, round 2, reviewer note 4): the R4 regex
+   above must catch a QUOTED literal standing in for ENGINE_REVISION, not
+   only a bare identifier - this is the exact case the pre-round-2 class
+   [a-zA-Z0-9_.]+ let through, since a quote is not in that class. */
+test("R4 mutant: a quoted literal in place of ENGINE_REVISION is caught", () => {
+  const REVISION_RE = /revision:\s*(?!ENGINE_REVISION\b)(?:"[^"]*"|'[^']*'|`[^`]*`|[a-zA-Z0-9_.]+)/;
+  const mutant = 'const issuance = { revision: "S9@deadbeef", source: turn_id };';
+  assert.equal(REVISION_RE.test(mutant), true,
+    "quoted-literal mutant slipped past the revision regex");
+  const clean = "const issuance = { revision: ENGINE_REVISION, source: turn_id };";
+  assert.equal(REVISION_RE.test(clean), false,
+    "the real call site false-positives against its own regex");
 });
