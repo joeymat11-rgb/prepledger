@@ -664,8 +664,18 @@ export const PAGE_PINS = Object.freeze({
      Re-read against today-bindings.mjs once more at this re-pin, as every re-pin
      must: the `hosts` branch is byte-unchanged, no wrapper opens a store of its
      own, an INJECTED installation is still never closed by this page, and a
-     declared-day caller still gets no watcher at all. */
-  'today-entry.mjs': 'a4a4041d5bba8345ffba5dac722c317c534c5c5628194ca966f12a946173bb11',
+     declared-day caller still gets no watcher at all.
+     S6 SMALL ITEMS round 3 (review R2, BLOCKING 1 and MINOR 3). Nothing EXECUTABLE
+     in today-entry.mjs moves at this re-pin: both hunks are comments - the setup-first
+     note now records the one live-clock cell that declares its own landing
+     (rebuild/m3/w6/host/test/local-real-day.test.mjs S4/8, `setupFirst: false`), and
+     the gym-card note states the mechanism this tree actually executes (on the
+     fixture's REFEED day the workout REFUSES, so the wrong day was on the refusal
+     card's heading). Re-read once more against today-bindings.mjs, as every re-pin
+     must: the `hosts` branch is byte-unchanged, no wrapper opens a store of its own,
+     an INJECTED installation is still never closed by this page, and a declared-day
+     caller still gets no watcher at all. */
+  'today-entry.mjs': 'ae04f1131bdd068ae7cfec501a308530fd15d24a9a8e2c62a57d4278bbe32393',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

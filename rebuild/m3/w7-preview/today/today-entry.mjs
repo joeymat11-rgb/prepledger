@@ -167,10 +167,15 @@ export async function createWorkoutEntry(model, options = {}) {
      engine's NEXT SCHEDULED SESSION (rebuild/engine/today.cjs:591-597), and its title
      carries a RELATIVE DAY STAMP - "UPPER BODY · TODAY", "· TOMORROW", "· MON 9/21" -
      which answers "when is the next session", not "what am I logging now". The gym
-     card always stands on `day`, and the client prepares a session from the planned
-     split slot whether or not the ENGINE schedules one that day, so on a day the
-     engine calls REST the athlete logged the correct lift under a header that read
-     "UPPER BODY · TOMORROW". The stamp is carried to the card ONLY while it describes
+     card always stands on `day` and took that stamp for its heading whatever the day
+     held (review R2 minor 3, the executed mechanism): on 2026-09-16, the fixture's
+     REFEED day, gym.read() is `blocked` and gym.start() refuses
+     ENGINE_CAPTURE_NO_WORKOUT, so no lift is logged there and the card the athlete
+     actually met was the REFUSAL, headed "UPPER BODY · TOMORROW" - now "Today’s
+     workout cannot open" (cell S6C.6d). The CTA half is reachable a different way:
+     a session stays open across the local midnight the page re-boots on, so Today
+     could stand on one day holding a session opened on another (cell S6C.6e).
+     The stamp is carried to the card ONLY while it describes
      the card's OWN day; otherwise the card falls back to the session's own name
      (gym-app.mjs `view.title || view.session.instruction.display`), which is the name
      of the thing actually being logged. No engine byte moves, and no sentence is
@@ -364,10 +369,15 @@ export async function boot(options = {}) {
      as it always did, and the P0-B/P0-C adoption gate is untouched.
 
      WHICH CALLERS. `live` is non-null for exactly one caller: the shipped page, which
-     declares no day (see the S4 note above). Every fixture, check script and suite
-     DECLARES its day, and by S4's own rule a declared-day caller gets the pinned
+     declares no day (see the S4 note above). Nearly every fixture, check script and
+     suite DECLARES its day, and by S4's own rule a declared-day caller gets the pinned
      preview - so it keeps the pre-setup Today preview, byte for byte, and no merged
-     cell moves. The preview is also reachable on the live path through `?screen=`,
+     cell moves. THE EXCEPTIONS are the cells that exist to drive the live clock
+     itself: review round 2 found one of them landing on the setup screens -
+     rebuild/m3/w6/host/test/local-real-day.test.mjs S4/8, the midnight re-boot over
+     an unenrolled store - and it now declares `setupFirst: false` where it boots,
+     because what it measures is the rollover and not the landing.
+     The preview is also reachable on the live path through `?screen=`,
      which requestedScreen() honours ahead of this. `options.setupFirst` overrides
      both directions explicitly, so a cell can drive either landing on either clock. */
   const setupFirst = options.setupFirst !== undefined ? !!options.setupFirst : !!live;

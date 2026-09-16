@@ -288,14 +288,20 @@ const SAMPLE_DATA_NOTE = "Sample data. Set up your week to start your own.";
 
    `view.workout` is the engine's NEXT SCHEDULED SESSION and its title carries a
    RELATIVE DAY STAMP ("UPPER BODY · TODAY" / "· TOMORROW" / "· MON 9/21",
-   rebuild/engine/today.cjs:591-597). A session is "active" only when THIS device has
-   an open session for the day the page is standing on, and the client prepares one
-   from the planned split slot whether or not the ENGINE schedules a session that day,
-   so on a day the engine calls REST the CTA read "Resume UPPER BODY · TOMORROW" for a
-   workout being logged now. Where the stamp truly describes today, the engine's own
-   words are kept unchanged; where it does not, the button names what the tap opens
-   and claims no day of its own. The engine is not touched and no lift name is
-   invented. Exported so a cell can assert both branches directly. */
+   rebuild/engine/today.cjs:591-597), which answers "when is the next session", not
+   "what am I logging now". A session is "active" for as long as THIS device holds it
+   open, and the page does not always stand on the day the session was opened on: a
+   tab carried through local midnight re-boots on the new day (today-entry.mjs
+   rollover) still holding it, which is how the CTA came to read "Resume UPPER BODY ·
+   TOMORROW" over a workout in hand - cell S6C.6e stands exactly that page. On the
+   REFEED day itself nothing is logged at all (gym.read() is `blocked`, gym.start()
+   refuses ENGINE_CAPTURE_NO_WORKOUT); what carried the wrong day there was the
+   REFUSAL card's heading, cell S6C.6d.
+
+   Where the stamp truly describes today, the engine's own words are kept unchanged;
+   where it does not, the button names what the tap opens and claims no day of its
+   own. The engine is not touched and no lift name is invented. Exported so a cell
+   can assert both branches directly, and S6C.6e pins that renderToday calls it. */
 const RESUME_TODAYS_WORKOUT = "Resume today’s workout";
 function resumeLabel(workout) {
   return workout && workout.today === true && typeof workout.title === "string" && workout.title
@@ -2207,9 +2213,11 @@ function mountToday(doc, model, options = {}) {
      landing would change what every merged suite and check boots into. S6 item 1
      (owner ruling DECISIONS:463) moves it for the LIVE page only: `setupFirst` is
      off unless boot() turns it on, and boot() turns it on for exactly the caller
-     that declares no day - the shipped page. Every fixture, suite and check
+     that declares no day - the shipped page. Nearly every fixture, suite and check
      declares its day, keeps the pre-setup Today preview, and boots into what it
-     always did. See the landing-screen note at render() below. */
+     always did; the live-clock cells that declare none say which landing they mean
+     (`setupFirst`), as local-real-day.test.mjs S4/8 now does. See the landing-screen
+     note at render() below. */
   function requestedScreen() {
     const view = doc.defaultView;
     const search = view && view.location && typeof view.location.search === "string" ? view.location.search : "";

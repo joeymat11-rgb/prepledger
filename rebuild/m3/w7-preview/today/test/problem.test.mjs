@@ -3074,6 +3074,7 @@ const s6At = (y, m, d, h, min) => new Date(y, m - 1, d, h, min, 0, 0);
 const S6_EVE = s6At(2026, 9, 16, 23, 59);
 const S6_PAST_MIDNIGHT = s6At(2026, 9, 17, 0, 1);
 const S6_AFTERNOON = s6At(2026, 9, 16, 14, 0);
+const S6_MORNING = s6At(2026, 9, 16, 8, 0);
 const S6_REST_DAY = '2026-09-16';
 const S6_SESSION_DAY = '2026-09-17';
 /* The fixture athlete's own distinctive figures and words, as P0B.12 names them:
@@ -3288,7 +3289,7 @@ test('S6C.6 - at 23:59 and at 00:01 the page stands on the right local day, both
   past.booted.hosts.close();
 });
 
-test('S6C.6b - the engine stamp is the NEXT session, and is carried only where it is true', () => {
+test('S6C.6b - the engine stamp is the NEXT session, and is carried only where it is true', async () => {
   /* The engine's own answer on the two days, unchanged and untouched. */
   const rest = createTodayModel({ today: S6_REST_DAY }).read();
   const session = createTodayModel({ today: S6_SESSION_DAY }).read();
@@ -3297,8 +3298,19 @@ test('S6C.6b - the engine stamp is the NEXT session, and is carried only where i
   assert.equal(rest.workout.exerciseCount, null);
   assert.equal(session.workout.title, 'UPPER BODY · TODAY');
   assert.equal(session.workout.today, true);
-  /* The hour cannot move it: the same day at 23:59 and at 14:00 reads the same. */
-  assert.equal(createTodayModel({ today: S6_REST_DAY }).read().workout.title, rest.workout.title);
+  /* THE HOUR CANNOT MOVE IT, with the hour actually varied (review R2 minor 4).
+     Two live-clock page loads on ONE local day, 08:00 and 23:59, each resolving
+     its own day off the device: both stand on the 16th and both carry the SAME
+     stamp, so what follows is a property of the day and not of the evening. */
+  const morning = await s6BootLive(faultDatabase(), S6_MORNING);
+  const evening = await s6BootLive(faultDatabase(), S6_EVE);
+  for (const [at, hour] of [[morning, '08:00'], [evening, '23:59']]) {
+    assert.equal(at.booted.today, S6_REST_DAY, hour + ' local is the 16th');
+    assert.equal(at.booted.model.read().workout.title, rest.workout.title, hour);
+    assert.equal(at.booted.model.read().workout.today, false, hour);
+    if (at.booted.rollover) at.booted.rollover.stop();
+    at.booted.teardown();
+  }
 
   /* THE CTA. Where the stamp describes today, the engine's words are kept
      verbatim; where it does not, the button names the tap and claims no day. */
@@ -3314,6 +3326,45 @@ test('S6C.6b - the engine stamp is the NEXT session, and is carried only where i
   assert.equal(TodayApp.resumeLabel(null), TodayApp.RESUME_TODAYS_WORKOUT);
   assert.equal(TodayApp.resumeLabel({ today: true, title: '' }), TodayApp.RESUME_TODAYS_WORKOUT);
   assert.equal(AI_DASH.test(TodayApp.RESUME_TODAYS_WORKOUT), false);
+});
+
+/* REVIEW R2 FINDING 2 - THE CTA'S RED SIDE, AT THE SCREEN. S6C.6b asserts
+   resumeLabel's own branches; this one pins that renderToday CALLS it, over the
+   shipped template, on the page state that actually reaches the defect. A session
+   is "active" for as long as THIS device holds it open, and the page can stand on
+   a day that is not the day it was opened on - a tab through local midnight
+   (today-entry.mjs rollover), or the abandoned-session lane gym-model closes by
+   hand. So: one session opened on the 17th, still open, with Today standing on the
+   16th, which is the same shape gym.test.mjs:606 already drives one model apart.
+   With the pre-fix line restored ("Resume " + view.workout.title) this button reads
+   "Resume UPPER BODY · TOMORROW" for the workout in hand. */
+test('S6C.6e - the Resume button on the PAGE names the tap, not the engine\'s next day', async () => {
+  const fault = faultDatabase();
+  const lane = { indexedDB: fault.indexedDB, crypto: webcrypto };
+  const readings = await createReadingHost({ day: S6_SESSION_DAY, ...lane });
+  const onSession = createTodayModel({ today: S6_SESSION_DAY, readings });
+  const workout = await createWorkoutEntry(onSession, lane);
+  assert.equal((await onSession.weighIn(179.4)).ok, true, 'the workout opens after the weigh-in');
+  await workout.refresh();
+  const started = await workout.gym.start();
+  assert.equal(started.ok, true, started.code);
+  await workout.refresh();
+
+  /* The page, standing on the 16th, holding that open session. */
+  const onRest = createTodayModel({ today: S6_REST_DAY });
+  assert.equal(onRest.read().workout.title, 'UPPER BODY · TOMORROW',
+    'the engine stamp the CTA used to echo is on this view');
+  const doc = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' }).window.document;
+  mountToday(doc, onRest, { workout });
+  const label = doc.querySelector('[data-slot="primary-label"]');
+  assert(label, 'Today paints its primary label');
+  assert.equal(label.textContent, 'Resume today’s workout');
+  assert.equal(label.textContent, TodayApp.RESUME_TODAYS_WORKOUT, 'and it is the declared sentence');
+  assert.equal(label.textContent.includes('TOMORROW'), false,
+    'the defect of :452, at the screen: a Resume button naming another day');
+  assert.equal(label.hidden, false, 'and the button is not hidden');
+  workout.gymHost.close();
+  readings.close();
 });
 
 test('S6C.6c - the gym card is headed with the stamp only on a day the stamp describes', async () => {
