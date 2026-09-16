@@ -101,9 +101,16 @@ export function weekDates(startDate, index) {
    THE DERIVED MEASURES (plan section 4 (2)).
    --------------------------------------------------------------------------- */
 
-/* 7-day rolling weight average, read weekly: the average of the seven daily reads
-   in that week. A week with fewer than seven qualifying reads reports null rather
-   than an average over a shorter, undisclosed window. */
+/* 7-day rolling weight average, read weekly: a REAL rolling mean over the reads
+   actually present in the trailing seven days (the week's own seven dates),
+   divided by how many there are.
+
+   ROUND 3, CLOSING REVIEW-R2 FINDING 8. Round 1 required all seven days and
+   returned null otherwise, which is not a rolling average and blanks the
+   primary measure in almost every real week: Joe misses a morning. It is also
+   what rebuild/engine/seed.cjs's own `t7` does with the same rows - the mean of
+   whatever reads fall inside the window. Null now means exactly one thing: NO
+   read exists in the window at all. */
 export function weeklyWeightAverage(reads, startDate, index) {
   const byDate = new Map();
   for (const r of Array.isArray(reads) ? reads : []) {
@@ -111,9 +118,9 @@ export function weeklyWeightAverage(reads, startDate, index) {
   }
   const dates = weekDates(startDate, index);
   const values = dates.map((d) => byDate.get(d)).filter((v) => typeof v === "number");
-  if (values.length < 7) return null;
+  if (!values.length) return null;
   const sum = values.reduce((a, b) => a + b, 0);
-  return Math.round((sum / 7) * 100) / 100;
+  return Math.round((sum / values.length) * 100) / 100;
 }
 
 /* The weekly waist value: the entry recorded inside that week's own seven dates.
@@ -189,8 +196,15 @@ export function elapsedDaysInWeek(dates, today) {
    read of the engine's cleanAtDate(state, date) for that night - this module never
    calls the engine itself and never invents the rule; it only counts what it is
    handed, exactly as every reader above reads what it is handed. */
+/* ROUND 3, CLOSING REVIEW-R2 FINDING 5. A window with NO night in it is an
+   ABSENCE, not a week of zero qualifying nights: round 2's baseline column
+   printed "0/7" over an imported history whose nights it had never read, which
+   is a claim the frozen app made zero. No nights now reads null, which the view
+   renders as "Not enough data yet". */
 export function sleepQualifyingCount(nights) {
-  return (Array.isArray(nights) ? nights : []).filter((n) => n && n.clean === true).length;
+  const rows = (Array.isArray(nights) ? nights : []).filter((n) => n && typeof n.date === "string");
+  if (!rows.length) return null;
+  return rows.filter((n) => n.clean === true).length;
 }
 
 /* ---------------------------------------------------------------------------

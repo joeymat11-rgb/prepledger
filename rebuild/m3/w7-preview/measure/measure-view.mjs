@@ -13,6 +13,21 @@
 
 "use strict";
 
+import { ONE_RM_FORMULA_TEXT, WAIST_MIN, WAIST_MAX } from './measure-model.mjs';
+
+/* THE FORMULA, NAMED ON THE SCREEN (ticket BUILD (2), "Epley, named in the
+   UI"). The words come from measure-model.mjs so the screen can never name one
+   formula while the arithmetic runs another. */
+export const ONE_RM_NOTE = "Estimated 1RM uses the Epley formula: " + ONE_RM_FORMULA_TEXT + ".";
+export const EXPORT_LABEL = "Export as text";
+export const EXPORT_HIDE = "Hide the text table";
+export const EXPORT_NOTE = "This table is on this device only. Select it and copy it.";
+export const MARKERS_HEAD = "Strength markers";
+export const MARKERS_LEAD = "Choose 3 or 4 lifts to follow for the whole trial. This is chosen once and is not changed afterwards.";
+export const MARKERS_SAVE = "Use these markers";
+export const MARKERS_NONE = "This device has no lifts to choose markers from yet.";
+export const WAIST_RANGE_NOTE = "Waist in inches, between " + WAIST_MIN + " and " + WAIST_MAX + ".";
+
 export const NO_BASELINE_YET =
   "No baseline yet. Baseline window: the last 8 to 12 complete weeks on the frozen app, "
   + "taken from the imported history after the import lands.";
@@ -121,11 +136,42 @@ function weekRow(doc, week, rows) {
   return tr;
 }
 
+/* ONE window's table: the same header and the same measure rows either side, so
+   the two columns of the comparison are read against each other line by line. */
+function windowTable(doc, { slot, title, weeks, rows }) {
+  const section = doc.createElement("section");
+  section.dataset.slot = slot;
+  const heading = doc.createElement("h3");
+  heading.textContent = title;
+  section.append(heading);
+  const table = doc.createElement("table");
+  table.dataset.slot = slot + "-table";
+  const thead = doc.createElement("thead");
+  const headRow = doc.createElement("tr");
+  const weekTh = doc.createElement("th");
+  weekTh.scope = "col"; weekTh.textContent = "Week";
+  headRow.append(weekTh);
+  for (const r of rows) {
+    const th = doc.createElement("th");
+    th.scope = "col";
+    th.textContent = r.label + " (" + r.unit + ")";
+    headRow.append(th);
+  }
+  thead.append(headRow);
+  table.append(thead);
+  const tbody = doc.createElement("tbody");
+  for (const week of weeks) tbody.append(weekRow(doc, week, rows));
+  table.append(tbody);
+  section.append(table);
+  return section;
+}
+
 /* `view` is buildComparisonView()'s own return shape. `container` is the
    element this screen owns (today-app.cjs hands it #phone's own child, never
    #phone itself, exactly as checkin-app.mjs's mountCheckIn does). */
-export function mountMeasureComparison(doc, container, view) {
+export function mountMeasureComparison(doc, container, view, options = {}) {
   if (!container) throw new Error("Measure: no host element");
+  const { exportOpen = false, onExport = null } = options;
   const root = doc.createElement("section");
   root.dataset.slot = "measure-comparison";
 
@@ -144,29 +190,45 @@ export function mountMeasureComparison(doc, container, view) {
   runInNote.textContent = RUN_IN_NOTE;
   root.append(runInNote);
 
-  const table = doc.createElement("table");
-  table.dataset.slot = "measure-table";
-  const thead = doc.createElement("thead");
-  const headRow = doc.createElement("tr");
-  const weekTh = doc.createElement("th");
-  weekTh.scope = "col"; weekTh.textContent = "Week";
-  headRow.append(weekTh);
-  for (const r of view.rows) {
-    const th = doc.createElement("th");
-    th.scope = "col";
-    th.textContent = r.label + " (" + r.unit + ")";
-    headRow.append(th);
-  }
-  thead.append(headRow);
-  table.append(thead);
+  const formulaNote = doc.createElement("p");
+  formulaNote.dataset.slot = "measure-formula-note";
+  formulaNote.textContent = ONE_RM_NOTE;
+  root.append(formulaNote);
 
-  const tbody = doc.createElement("tbody");
+  /* BASELINE LEFT, TRIAL RIGHT (plan section 4 (3)). Two tables, same measures,
+     same units, weekly rows - never one table whose rows cannot be told apart. */
+  const windows = doc.createElement("div");
+  windows.dataset.slot = "measure-windows";
   if (view.hasBaseline) {
-    for (const week of view.baseline) tbody.append(weekRow(doc, week, view.rows));
+    windows.append(windowTable(doc, { slot: "measure-baseline", title: "Baseline",
+      weeks: view.baseline, rows: view.rows }));
   }
-  for (const week of view.trial) tbody.append(weekRow(doc, week, view.rows));
-  table.append(tbody);
-  root.append(table);
+  windows.append(windowTable(doc, { slot: "measure-trial", title: "Trial",
+    weeks: view.trial, rows: view.rows }));
+  root.append(windows);
+
+  /* THE EXPORT CONTROL (ticket BUILD (4)). One button, one copyable block, and
+     nothing else: no download, no clipboard reach, no network. The text is
+     exportText(view) itself, so the block and the table cannot disagree. */
+  const exportButton = doc.createElement("button");
+  exportButton.type = "button";
+  exportButton.dataset.slot = "measure-export";
+  exportButton.textContent = exportOpen ? EXPORT_HIDE : EXPORT_LABEL;
+  if (typeof onExport === "function") exportButton.addEventListener("click", () => onExport());
+  root.append(exportButton);
+
+  if (exportOpen) {
+    const exportNote = doc.createElement("p");
+    exportNote.dataset.slot = "measure-export-note";
+    exportNote.textContent = EXPORT_NOTE;
+    const block = doc.createElement("textarea");
+    block.dataset.slot = "measure-export-text";
+    block.readOnly = true;
+    block.rows = 20;
+    block.value = exportText(view);
+    block.textContent = block.value;
+    root.append(exportNote, block);
+  }
 
   container.replaceChildren(root);
   return root;
@@ -188,6 +250,10 @@ export function mountWaistEntry(doc, container, { today, onSave, error = null } 
   dateInput.dataset.slot = "measure-waist-date";
   if (today) dateInput.max = today;
   dateLabel.append(dateInput);
+
+  const rangeNote = doc.createElement("p");
+  rangeNote.dataset.slot = "measure-waist-range";
+  rangeNote.textContent = WAIST_RANGE_NOTE;
 
   const valueLabel = doc.createElement("label");
   valueLabel.textContent = "Waist (in)";
@@ -215,5 +281,65 @@ export function mountWaistEntry(doc, container, { today, onSave, error = null } 
   return root;
 }
 
+/* THE MARKERS PICK SCREEN (ticket BUILD (2), "chosen ONCE from a screen and
+   stored write-once on device"; review R2 finding 7: storable but not
+   pickable). `candidates` is { id, name } for the lifts THIS device's own
+   enrolled week carries - this module invents no lift and offers none. */
+export function mountMarkerPick(doc, container,
+  { candidates = [], chosen = [], min = 3, max = 4, error = null, onPick = null } = {}) {
+  if (!container) throw new Error("Measure: no host element");
+  const root = doc.createElement("form");
+  root.dataset.slot = "measure-marker-pick";
+
+  const heading = doc.createElement("h2");
+  heading.textContent = MARKERS_HEAD;
+  const lead = doc.createElement("p");
+  lead.textContent = MARKERS_LEAD;
+  root.append(heading, lead);
+
+  const picked = new Set(chosen);
+  if (!candidates.length) {
+    const none = doc.createElement("p");
+    none.dataset.slot = "measure-marker-none";
+    none.textContent = MARKERS_NONE;
+    root.append(none);
+  }
+  for (const candidate of candidates) {
+    const label = doc.createElement("label");
+    const box = doc.createElement("input");
+    box.type = "checkbox";
+    box.dataset.slot = "measure-marker-option";
+    box.value = candidate.name;
+    box.checked = picked.has(candidate.name);
+    box.addEventListener("change", () => {
+      if (box.checked) picked.add(candidate.name); else picked.delete(candidate.name);
+    });
+    label.append(box, doc.createTextNode(candidate.name));
+    root.append(label);
+  }
+
+  const errorEl = doc.createElement("p");
+  errorEl.dataset.slot = "measure-marker-error";
+  errorEl.textContent = error || "";
+  errorEl.hidden = !error;
+
+  const save = doc.createElement("button");
+  save.type = "submit";
+  save.dataset.slot = "measure-marker-save";
+  save.textContent = MARKERS_SAVE;
+  root.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (typeof onPick === "function") onPick([...picked]);
+  });
+  root.append(errorEl, save);
+  root.dataset.min = String(min);
+  root.dataset.max = String(max);
+
+  container.replaceChildren(root);
+  return root;
+}
+
 export default { NO_BASELINE_YET, RUN_IN_NOTE, MEASURES, buildComparisonView, exportText,
-  mountMeasureComparison, mountWaistEntry };
+  mountMeasureComparison, mountWaistEntry, mountMarkerPick,
+  ONE_RM_NOTE, EXPORT_LABEL, EXPORT_HIDE, EXPORT_NOTE, WAIST_RANGE_NOTE,
+  MARKERS_HEAD, MARKERS_LEAD, MARKERS_SAVE, MARKERS_NONE };
