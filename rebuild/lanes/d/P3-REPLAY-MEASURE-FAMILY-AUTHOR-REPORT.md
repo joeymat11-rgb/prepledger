@@ -56,3 +56,4 @@ PACKAGE S5 PUBLIC CI EVIDENCE PASS`.
    wants its own lane D ticket; until then the runbook must say "do not open Sleep before importing" exactly as it said for Measure. The check-in (F5, class `event`) is fine.
 3. The family refuses a correction or tombstone of the measure class by name rather than interpreting it. The producer writes neither, so nothing is lost today; a later Measure undo teaches
    the family that edit rather than widening the class.
+CI note (integrator): run 35154496702 at 951858f7 was red on windows-latest only, in S5-sealed measure/test/journey.test.mjs cells (a) and (d) (80 s render then null element), ubuntu green, PC green 666/666 for author and both reviewers; known one-OS flake class (DECISIONS:467); retriggered with this line.
