@@ -392,6 +392,14 @@ function mountToday(doc, model, options = {}) {
      Every paint takes the CURRENT token; a save that resolves after the athlete has
      navigated holds a stale one and applies nothing - no render, no navigation. */
   let mountToken = 0;
+  /* S4 REAL DAY r3 (review round 2, finding 1) - THIS MOUNT'S OWN LIFE. Set by
+     dispose() at the bottom of this function, which today-entry.mjs's midnight
+     re-boot calls BEFORE the new mount paints. A disposed mount is inert: its
+     #phone listener is off, its screen guard refuses to paint, and every
+     deferred paint it still holds finds a stale token. Nothing in this module
+     ever sets it on its own, and a caller that declared its day never re-boots,
+     so the page that ships and every suite that mounts it are unchanged. */
+  let disposed = false;
   let sleepBusy = false;         // a save is in flight: the screen says so and refuses a second
   /* D2 ROUND 1, FINDING 5 - the night's date is CHOSEN, never guessed. Null means "the
      page's own default, the day before today"; a string is the athlete's own choice and
@@ -1962,6 +1970,15 @@ function mountToday(doc, model, options = {}) {
   }
 
   function render(next, focus = false) {
+    /* S4 REAL DAY r3 (review round 2, finding 1) - A DISPOSED MOUNT PAINTS
+       NOTHING. #phone is the ONE node every mount of this page shares, so the
+       keydown bound to it below outlived its own mount, and after the midnight
+       re-boot its closure still held the PREVIOUS day's screen, model and
+       hosts. dispose() takes the listener off; this is the same guard said
+       again for everything the old mount had already handed out - a lane that
+       opens late, a rebind that settles, a refresh callback boot() wired - so
+       none of it can put yesterday's Today back over the new page. */
+    if (disposed) return null;
     /* A4 — the first-run route. It is REFUSED, not merely hidden, once the record
        says this installation has been set up: an installation that is no longer
        fresh falls straight back to Today, so no URL, no stale link and no second
@@ -2037,9 +2054,19 @@ function mountToday(doc, model, options = {}) {
     return renderToday(focus);
   }
 
-  phone.addEventListener("keydown", (event) => {
+  /* S4 REAL DAY r3 (review round 2, finding 1) - NAMED, SO IT CAN BE TAKEN OFF.
+     This listener is bound to the #phone ELEMENT, and render() only does
+     phone.replaceChildren(root), so the element - and this listener with it -
+     survives every re-mount of the page over it. Measured on the shipped path:
+     with the tab off Today at local midnight, one Escape ran the PREVIOUS
+     mount's render, with the previous day's model and hosts, over the page the
+     rollover had just booted, and one tap of the primary button on that
+     repainted screen wrote a weigh-in stamped with YESTERDAY's local_date.
+     dispose() below removes it. */
+  const onPhoneKeydown = (event) => {
     if (event.key === "Escape" && !phone.querySelector('[role="dialog"]') && screen !== "today") render("today", true);
-  });
+  };
+  phone.addEventListener("keydown", onPhoneKeydown);
 
   /* THE SCREEN THIS PAGE LOAD OPENS ON. Today, as it always has, with the
      first-run tile on it while this installation is fresh. `?screen=` names a
@@ -2207,7 +2234,26 @@ function mountToday(doc, model, options = {}) {
        the in-page transition off "Start using Earned", and a caller reading
        this property after that point must see that later settle, not the
        already-resolved promise this function returned at boot. */
-    get ready() { return ready; } };
+    get ready() { return ready; },
+    /* S4 REAL DAY r3 (review round 2, finding 1) - THE TEARDOWN, AND ITS ONE
+       CALLER. today-entry.mjs's midnight re-boot calls this before boot() paints
+       the new day, and nothing else in this repository calls it at all: a caller
+       that DECLARED its day is never given a watcher, so it never reaches this.
+       It takes this mount's #phone listener off the shared element, invalidates
+       the screen guard so no late lane, rebind or refresh callback of this
+       mount's can paint again, and stales every deferred paint through the same
+       mountToken the settings lane already uses. It owns no timer and no
+       visibilitychange listener: this module takes neither (the midnight
+       watcher's are today-entry.mjs's own, and watchDayRollover.stop() detaches
+       both). Idempotent, and it records nothing. */
+    dispose() {
+      if (disposed) return false;
+      disposed = true;
+      mountToken += 1;
+      if (typeof phone.removeEventListener === "function") phone.removeEventListener("keydown", onPhoneKeydown);
+      return true;
+    },
+    disposed: () => disposed };
 }
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by

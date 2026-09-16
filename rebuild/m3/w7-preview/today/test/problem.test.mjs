@@ -1571,8 +1571,25 @@ test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', 
   assert.equal(pinned['checkin-host.mjs'],
     /'checkin-host\.mjs':\s*'([a-f0-9]{64})'/.exec(readRepo('rebuild/m3/w6/test/local-today-journey.test.mjs'))[1],
     'checkin-host.mjs is a PAGE_PINS file and must stay byte-identical');
-  assert.equal(shaOf('rebuild/m3/w6/local/today-bindings.mjs'),
-    head.product['rebuild/m3/w6/local/today-bindings.mjs'].post,
+  /* S4 (M2-S4-REAL-DAY) reads the DECLARING-SPEC CHAIN here, in the ruled order
+     and youngest first, exactly as setup / food / machine-settings-ui now do.
+     The question is still "did N2 move a B-NTC pin", not "did anybody": S4 moves
+     today-bindings.mjs by name (the live clock the real day needs) and declares
+     it, and a file is exempt only while it stands at a post a package DECLARED.
+     An undeclared move, a declared move that has not landed, and drift in a file
+     no spec names are all still red. */
+  const bound = 'rebuild/m3/w6/local/today-bindings.mjs';
+  const declaredPost = (file) => {
+    for (const id of ['S4', 'S3', 'H3']) {
+      let product = null;
+      try { product = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/' + id + '.json')).product; }
+      catch { product = null; }
+      if (product && Object.hasOwn(product, file) && typeof product[file].post === 'string')
+        return product[file].post;
+    }
+    return null;
+  };
+  assert.equal(shaOf(bound) === head.product[bound].post || shaOf(bound) === declaredPost(bound), true,
     'today-bindings.mjs is pinned ON DISK by the merged B-NTC artifact (DECISIONS:144)');
   for (const name of ['today-entry.mjs', 'gym-host.mjs', 'reading-host.mjs', 'checkin-host.mjs']) {
     const pin = new RegExp("'" + name.replace('.', '\\.') + "':\\s*'([a-f0-9]{64})'")

@@ -2299,6 +2299,24 @@ test(':132 (3) - screen 2 uses ONE apostrophe, the curly one, in every sentence'
    the pin out of the package itself rather than restating a hash, so it also
    goes red if the package moves and nobody re-reads it.
    ===================================================================== */
+/* S4 — THE CHAIN OF DECLARING SPECS, in the ruled order (DECISIONS:124, extended
+   by :414 (2) and this package), searched YOUNGEST FIRST. It answers one
+   question and only one: what post-image, if any, has some package on this
+   branch DECLARED for this file? A file no spec names gets null and is exempt
+   from nothing. This is the same licence H3 wrote and S3 re-pointed, widened
+   from one name to the chain so a grandchild need not restate its ancestors. */
+const CHILD_SPECS = ['H3', 'S3', 'S4'];
+function declaredPost(file) {
+  for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
+    let product = null;
+    try { product = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/' + CHILD_SPECS[i] + '.json')).product; }
+    catch { product = null; }
+    if (product && Object.hasOwn(product, file) && typeof product[file].post === 'string')
+      return product[file].post;
+  }
+  return null;
+}
+
 test('re-pin - every file the B-NTC package pins is untouched by A4b, on disk', () => {
   const pkg = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/B-NTC.json'));
   const pins = pkg.product;
@@ -2321,12 +2339,13 @@ test('re-pin - every file the B-NTC package pins is untouched by A4b, on disk', 
      every H3 post it does not move (pre == post), so H3's licences survive
      through it, S3's own posts are licensed by the same one rule, and the
      guard is unchanged - an undeclared move or a declared move that has not
-     landed is still red. */
-  const child = (() => {
-    try { return JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/S3.json')).product || {}; }
-    catch { return {}; }
-  })();
-  const declared = (file, onDisk) => Object.hasOwn(child, file) && child[file].post === onDisk;
+     landed is still red.
+     S4 (M2-S4-REAL-DAY, S3's child) makes the read a CHAIN rather than one
+     name: the youngest spec that DECLARES a file is the one that licensed its
+     move, and a package four deep must not have to restate its grandparent's
+     declarations. `declaredPost` below searches the ruled order newest first;
+     a file no spec names is not exempt at all, so the guard is the same guard. */
+  const declared = (file, onDisk) => declaredPost(file) === onDisk;
 
   const missed = [], licensed = [];
   for (const [file, pin] of entries) {
@@ -2346,8 +2365,15 @@ test('re-pin - the three files A4b used to touch are the tip\'s bytes', () => {
   for (const file of ['rebuild/m3/w6/local/today-bindings.mjs',
     'rebuild/m3/w6/test/local-today-journey.test.mjs']) {
     assert(pins[file], file + ' is pinned by the package');
-    assert.equal(shaOf(file),
-      pins[file].post, file + ' must stay byte-identical');
+    /* S4: the same one rule the cell above now applies, applied here too. These
+       two files are B-NTC's, and S4 MOVES both by name - today-bindings.mjs
+       gains the live clock the real day needs, the journey suite re-pins
+       PAGE_PINS and carries S4's own cells. So the question is still "does it
+       stand where a package DECLARED it", and the answer must come from a
+       declared post, never from this file restating a hash. A4b itself still
+       touches neither, which is what this cell has always been for. */
+    assert.equal(shaOf(file) === pins[file].post || shaOf(file) === declaredPost(file), true,
+      file + ' must stay byte-identical, or stand at a post a declaring spec names');
   }
   /* today-entry.mjs is not pinned by the package, but the pinned journey suite
      pins it by sha in PAGE_PINS, so it is in the same class. */

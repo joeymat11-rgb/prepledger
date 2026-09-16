@@ -622,11 +622,62 @@ export const PAGE_PINS = Object.freeze({
      leaving a red suite behind it. Re-read against today-bindings.mjs at every
      re-pin: boot() still opens the local era BY DEFAULT (the `hosts` branch is
      byte-unchanged) and no wrapper opens a store of its own. */
-  'today-entry.mjs': 'b50b92314b8e7730b4aab56e79a9bff2f03d949d234eeaf2a7270ec83f3fa111',
-  'gym-host.mjs': '70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18',
-  'reading-host.mjs': 'a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa',
+  /* S4 REAL DAY re-pin (DECISIONS:432). Three of the four moved, and the reason
+     is one product change read end to end: today-entry.mjs boot() with NO
+     declared day now resolves the device's own calendar date, hands the hosts a
+     MOVING clock and watches for local midnight; gym-host.mjs openTodayHosts and
+     reading-host.mjs createReadingHost forward that `live` provider to the
+     installation, and gym-host.mjs re-exports the local era's own localDayOf /
+     localOffsetOf so there is one copy of each in the tree. checkin-host.mjs did
+     NOT move: the check-in lane is opened by boot() through the installation it
+     already holds, so it needed nothing.
+     Re-read against today-bindings.mjs at this re-pin, as every re-pin must:
+     boot() still opens the local era BY DEFAULT (the `hosts` branch is
+     byte-unchanged), no wrapper opens a store of its own, and a caller that
+     DECLARES its day gets the pinned preview instant byte-for-byte.
+     S4 review round 1, finding 1: today-entry.mjs is re-pinned once more. The
+     midnight re-boot now stops the watcher that fired before it arms the new
+     one, so a page left open over several nights holds ONE watcher, one timer
+     and one visibilitychange listener rather than doubling them every night.
+     Re-read again at this re-pin: the `hosts` branch is still byte-unchanged,
+     no wrapper opens a store of its own, and a declared-day caller is still
+     never given a watcher at all.
+     S4 review round 2, BLOCKING finding 1: today-entry.mjs is re-pinned once
+     more. Stopping the watcher was not the whole teardown - the MOUNT the
+     previous boot left behind kept its Escape handler on the shared #phone
+     element, so off Today at midnight one key repainted yesterday over the new
+     page and the next tap dated a weigh-in with the PREVIOUS day. The re-boot
+     now disposes that mount and releases every host handle the boot took
+     (open item 6's growth closed by the same line) before the new day paints.
+     Re-read again at this re-pin: the `hosts` branch is still byte-unchanged,
+     an INJECTED installation is still never closed by this page, and a
+     declared-day caller still gets no watcher and so never reaches any of it. */
+  'today-entry.mjs': '029e096b7c9e7dfc501b05e699c0d83f0f1b1d2eb6b0e20fc17ee0cfb498bebe',
+  'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
+  'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',
 });
+
+/* THE CHAIN OF DECLARING SPECS, youngest last, in the ruled order
+   (DECISIONS:124, extended by :414 (2) and this package). A guard that asks
+   "did this file move" is answered honestly by a package that DECLARED the
+   move: H3 pointed the B-NTC re-pin cell at packages/H3.json, S3 moved it to
+   packages/S3.json, and S4 makes the read a CHAIN rather than one name, so a
+   file is exempt only while it stands at the post-image the YOUNGEST spec that
+   declares it declares for it. An undeclared move, a declared move that has not
+   landed, and drift in anything no spec names are all still red; with no spec on
+   the branch the exemption set is empty and every cell is the original cell. */
+export const CHILD_SPECS = Object.freeze(['H3', 'S3', 'S4']);
+export function declaredPostIn(read, file) {
+  for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
+    let product = null;
+    try { product = JSON.parse(read('rebuild/lanes/b/tooling/packages/' + CHILD_SPECS[i] + '.json')).product; }
+    catch { product = null; }
+    if (product && Object.hasOwn(product, file) && typeof product[file].post === 'string')
+      return product[file].post;
+  }
+  return null;
+}
 const pageFile = name => fileURLToPath(new URL('../../w7-preview/today/' + name, import.meta.url));
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 

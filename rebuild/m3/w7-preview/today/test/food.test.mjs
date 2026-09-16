@@ -776,15 +776,37 @@ test('N1.16 - the entry sets no width a 390px or 320px phone cannot hold', () =>
   assert.match(css, /\.view \.hours,?[\s\S]{0,80}font-size: 16px/);
 });
 
+/* S4 (M2-S4-REAL-DAY) — THE DECLARING-SPEC CHAIN, in the ruled order and
+   searched youngest first. The cell below asks "did N1 move a B-NTC pin", not
+   "did anybody", and S4 moves two of them by name (today-bindings.mjs takes the
+   live clock the real day needs; the journey suite re-pins PAGE_PINS). A file is
+   exempt only while it stands at the post-image a package DECLARED for it, so an
+   undeclared move, a declared move that has not landed, and drift in anything no
+   spec names are all still red - and with no such spec on the branch the
+   exemption set is empty and this is the original cell. Same licence H3 wrote
+   and S3 re-pointed (setup.test.mjs), widened from one name to the chain. */
+const CHILD_SPECS = ['H3', 'S3', 'S4'];
+function declaredPost(file) {
+  for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
+    let product = null;
+    try { product = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/' + CHILD_SPECS[i] + '.json')).product; }
+    catch { product = null; }
+    if (product && Object.hasOwn(product, file) && typeof product[file].post === 'string')
+      return product[file].post;
+  }
+  return null;
+}
+const standsWhereDeclared = (file, pin) => shaOf(file) === pin || shaOf(file) === declaredPost(file);
+
 test('N1.18 - today-bindings.mjs and the four PAGE_PINS files are BYTE-UNCHANGED', () => {
   const pkg = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/B-NTC.json'));
   const pinned = 'rebuild/m3/w6/local/today-bindings.mjs';
   assert(pkg.product[pinned], 'the package still pins it');
-  assert.equal(shaOf(pinned), pkg.product[pinned].post,
+  assert.equal(standsWhereDeclared(pinned, pkg.product[pinned].post), true,
     'N1 must not touch a file the B-NTC artifact pins ON DISK (DECISIONS:144)');
   const journey = readRepo('rebuild/m3/w6/test/local-today-journey.test.mjs');
-  assert.equal(shaOf('rebuild/m3/w6/test/local-today-journey.test.mjs'),
-    pkg.product['rebuild/m3/w6/test/local-today-journey.test.mjs'].post);
+  assert.equal(standsWhereDeclared('rebuild/m3/w6/test/local-today-journey.test.mjs',
+    pkg.product['rebuild/m3/w6/test/local-today-journey.test.mjs'].post), true);
   for (const name of ['today-entry.mjs', 'gym-host.mjs', 'reading-host.mjs', 'checkin-host.mjs']) {
     const pin = new RegExp("'" + name.replace('.', '\\.') + "':\\s*'([a-f0-9]{64})'").exec(journey);
     assert(pin, 'PAGE_PINS still pins ' + name);

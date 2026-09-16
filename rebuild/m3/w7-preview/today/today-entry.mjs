@@ -18,7 +18,7 @@
 // enrolment.
 import app from "./today-app.cjs";
 import TodayModel from "./today-model.cjs";
-import { createGymHost, openTodayHosts, RESTORE_REQUIRED } from "./gym-host.mjs";
+import { createGymHost, openTodayHosts, RESTORE_REQUIRED, localDayOf } from "./gym-host.mjs";
 import { createReadingHost } from "./reading-host.mjs";
 import { createGymModel } from "./gym-model.mjs";
 import { mountGym, newGymDraft } from "./gym-app.mjs";
@@ -228,6 +228,32 @@ export async function boot(options = {}) {
   const doc = options.document || document;
   const failures = [];
   const day = options.today || undefined;
+  /* S4 REAL DAY (owner ruling DECISIONS:432). A caller that DECLARES its day —
+     every fixture, every check script, every suite, and A2's own day-2 re-boot —
+     gets exactly what it always got: that day, and the pinned preview instant
+     under it. Every figure those callers record is byte-for-byte unchanged.
+
+     A caller that declares NONE is the shipped page, and the shipped page is a
+     real athlete on a real morning. It resolves today from THIS DEVICE'S own
+     local calendar date and hands the hosts a MOVING clock (`live`), so a
+     weigh-in, a set, a check-in and a night are stamped with the instant they
+     actually happened and with the offset in force then — which is also what
+     makes the installation's own setup operation admissible in September
+     (a fixed -05:00 refused it, LOCAL_SOURCE_CONTEXT_UNRESOLVED).
+
+     `options.now` exists for exactly one reason: a cell has to be able to stand
+     the page on a chosen instant without freezing it. It is a Date provider, not
+     a day, and it never decides which day a HOST stands on — that stays the
+     `day` argument, C4b-D1's rule, unchanged.
+
+     SYNTHETIC_DAY is still the floor. A device whose Date cannot produce a
+     well-formed calendar date falls back to it rather than opening a store on a
+     day-shaped string nothing can read. */
+  const live = day ? null : (options.now || (() => new Date()));
+  const resolved = live ? localDayOf(live()) : null;
+  const today = day
+    || (typeof resolved === "string" && /^\d{4}-\d{2}-\d{2}$/.test(resolved)
+      ? resolved : TodayModel.SYNTHETIC_DAY);
   const idb = options.indexedDB || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
   const web = options.crypto || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
   /* `hosts` IS THE DEFAULT. An injected installation is used as given; with none,
@@ -247,7 +273,8 @@ export async function boot(options = {}) {
      absent, so a fresh phone opens silently and a damaged one never does. */
   let restoreRequired = null;
   if (!hosts) {
-    try { hosts = await openTodayHosts({ indexedDB: idb, crypto: web, day: day || TodayModel.SYNTHETIC_DAY }); }
+    try { hosts = await openTodayHosts({ indexedDB: idb, crypto: web, day: today,
+      ...(live ? { live } : {}) }); }
     catch (error) {
       if (error && error.state === 18) restoreRequired = error.code || "RESTORE_UNPROVEN";
       failures.push("device store: " + (error && error.message ? error.message : String(error)));
@@ -263,7 +290,7 @@ export async function boot(options = {}) {
   let setup = null;
   if (!restoreRequired) {
     try {
-      setup = await createSetupEntry({ today: day || TodayModel.SYNTHETIC_DAY }, { ...lane,
+      setup = await createSetupEntry({ today }, { ...lane,
         onFailure: (error) => failures.push("first-run store: " + (error && error.message ? error.message : String(error))) });
     } catch (error) { failures.push("first-run store: " + (error && error.message ? error.message : String(error))); }
   }
@@ -279,8 +306,8 @@ export async function boot(options = {}) {
 
   let readings = null;
   const openReading = (hosts && hosts.createReadingHost) || createReadingHost;
-  try { readings = await openReading({ day: day || TodayModel.SYNTHETIC_DAY,
-    ...(hosts ? {} : { indexedDB: idb, crypto: web }) }); }
+  try { readings = await openReading({ day: today,
+    ...(hosts ? {} : { indexedDB: idb, crypto: web, ...(live ? { live } : {}) }) }); }
   catch (error) { failures.push("weigh-in store: " + (error && error.message ? error.message : String(error))); }
 
   /* basisState joins today / model / indexedDB / crypto as an injection point.
@@ -301,7 +328,7 @@ export async function boot(options = {}) {
      A4-REPORT.md as register item H3 with this exact line, and
      test/setup.test.mjs executes the throw so the gap cannot be forgotten.
      Until it is closed, Today keeps the basis it has always had. */
-  const model = options.model || createTodayModel({ ...(day ? { today: day } : {}),
+  const model = options.model || createTodayModel({ today,
     ...(options.basisState ? { basisState: options.basisState } : {}),
     ...(readings ? { readings } : {}) });
 
@@ -329,7 +356,98 @@ export async function boot(options = {}) {
   if (restoreRequired && status) status.textContent = plainOrDrop(RESTORE_REQUIRED + " (" + restoreRequired + ")", "today-status");
   else if (failures.length && status) status.textContent = plainOrDrop("Not everything opened: " + failures.join("; ")
     + ". Nothing was recorded.", "today-status");
-  return { api, workout, checkin, setup, model, readings, hosts, restoreRequired, failures };
+
+  /* S4 REAL DAY (2) — MIDNIGHT, WITH THE APP STILL OPEN. A phone left on the
+     Today screen overnight used to keep the day it opened on for as long as the
+     tab lived, so the first weigh-in of the new morning was stamped yesterday.
+     `rollover` asks the device's own clock again, and when the calendar date has
+     moved it opens the page again on the new day — which is exactly what A2's
+     gym-check.mjs already does by hand, and what the installation's recorded
+     clock adoption (C4b-D1) exists to order. Nothing is re-opened while the day
+     is unchanged, and a declared-day caller gets no watcher at all.
+
+     ONE WATCHER PER PAGE (review R1, finding 1). The re-boot below arms a
+     watcher of its own, so the watcher that fired has to stand down in the same
+     breath. Left standing, it would keep its timer and its `visibilitychange`
+     listener on the SAME document beside the new one; both would then be on the
+     new day, so neither fires early, but at the NEXT midnight BOTH fire and BOTH
+     re-boot, and the watchers, timers, listeners and store handles double every
+     night a tab is left open. `stop()` before `boot()` holds the count at one
+     for as many nights as the page lives. Cell S4/7 stands two midnights. */
+  /* S4 REAL DAY r3 (review round 2, finding 1 and minor 3) - THE PREVIOUS MOUNT
+     IS TORN DOWN BEFORE THE NEW ONE PAINTS. Round 1's `stop()` ended the
+     doubling watchers, but it left the MOUNT standing, and a mount is not a
+     watcher: mountToday binds its Escape handler to the #phone ELEMENT and
+     render() only replaces that element's children, so the old handler survived
+     the re-boot holding the OLD screen, the OLD model, the OLD day and the OLD
+     hosts. Measured off Today at local midnight: one Escape repainted YESTERDAY
+     over the new page, and the next tap of the primary button on that repainted
+     screen wrote a weigh-in stamped with the PREVIOUS local_date, into the store
+     the new page was using. api.dispose() takes the listener off and invalidates
+     that mount's screen guard.
+
+     AND THE HOSTS IT HELD (open item 6, review minor 3). Each night's re-boot
+     used to open fresh reading / workout / check-in / setup hosts and release
+     none of the night before's: linear growth for as many nights as the tab
+     lives, and the same root the wrong-dated record grew from. Every handle this
+     boot took is released here, installation holder last - gym-host.mjs says why
+     that order is the right one ("close() detaches one holder - the last one out
+     closes the client, which is what makes the next open a real relaunch off
+     disk"), so the page that opens on the new day reads it off disk rather than
+     inheriting yesterday's memo. An INJECTED `hosts` belongs to the caller that
+     brought it and is never closed here. A handle that refuses to close is not a
+     reason to leave the athlete on yesterday, so each close stands alone. */
+  const owned = options.hosts ? null : hosts;
+  function teardown() {
+    try { if (api && typeof api.dispose === "function") api.dispose(); }
+    catch (_) { /* a mount that will not come down must not keep the new day out */ }
+    for (const handle of [readings, workout ? workout.gymHost : null,
+      checkin ? checkin.host : null, setup ? setup.host : null, owned]) {
+      try { if (handle && typeof handle.close === "function") handle.close(); }
+      catch (_) { /* the same: one handle's refusal is not the whole page's */ }
+    }
+  }
+  let rollover = null;
+  if (live) {
+    rollover = watchDayRollover(doc, { day: today, now: live,
+      reopen: () => { rollover.stop(); teardown(); return boot({ ...options, document: doc }); } });
+  }
+  return { api, workout, checkin, setup, model, readings, hosts, restoreRequired, failures,
+    today, live, rollover, teardown };
+}
+
+/* The watcher, separated from boot() so a cell can drive it on a chosen instant
+   instead of waiting out a real midnight. `check()` is the whole rule: read the
+   device's day, and if it is not the day this page is standing on, adopt it and
+   re-open. It is called on every visibility change (the phone coming back from
+   the lock screen is the common case) and on a slow tick for a page left open
+   and visible. `stop()` detaches both. */
+export function watchDayRollover(doc, { day, now = () => new Date(), reopen,
+  intervalMs = 60000 } = {}) {
+  let standing = day, last = null, stopped = false;
+  function check() {
+    if (stopped) return null;
+    const at = localDayOf(now());
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(at) || at === standing) return null;
+    standing = at;
+    last = typeof reopen === "function" ? reopen(at) : null;
+    return at;
+  }
+  const timer = typeof setInterval === "function" ? setInterval(check, intervalMs) : null;
+  if (timer && typeof timer.unref === "function") timer.unref();
+  const onVisible = () => { if (!doc || doc.visibilityState !== "hidden") check(); };
+  if (doc && typeof doc.addEventListener === "function") doc.addEventListener("visibilitychange", onVisible);
+  return Object.freeze({
+    check,
+    day: () => standing,
+    reopened: () => last,
+    stop() {
+      if (stopped) return;
+      stopped = true;
+      if (timer && typeof clearInterval === "function") clearInterval(timer);
+      if (doc && typeof doc.removeEventListener === "function") doc.removeEventListener("visibilitychange", onVisible);
+    },
+  });
 }
 
 /* The two sentences of the last-chance screen, as functions of the cause, so the three
@@ -346,6 +464,10 @@ export const bootFailureCopy = Object.freeze({
     : "Today did not open. ") + "Nothing was recorded.",
 });
 
+/* THE SHIPPED PAGE. It calls boot() with NO arguments, and that is now the whole
+   of S4's product change: no argument means no declared day, which means this
+   device's own calendar date, a moving clock under it, and a midnight watcher.
+   Nothing else on this line moves — the last-chance screen below is unchanged. */
 if (typeof document !== "undefined" && document.getElementById("phone")) {
   boot().catch((error) => {
     const host = document.getElementById("phone");

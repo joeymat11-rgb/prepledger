@@ -128,7 +128,16 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // the artifact path it determines is acceptance-s3-companion.json, the path the plan
 // names. It stands after H3, whose artifact is its parent, and before B1, which the plan
 // says re-pins at its own rebase behind it.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
+// M2-S4-REAL-DAY. The owner's ruling DECISIONS:432 (Joe logs fresh daily from now) and the
+// PM's finding of 2026-09-16 (the shipped page still boots on the frozen preview day) give
+// the theme; S3's sealed artifact acceptance-s3-companion.json is its parent, exactly as
+// H3's was S3's. Its packageId is `M2-S4-REAL-DAY`, so the `^M2-<ID>-` shape enforces the id
+// `S4` and the artifact path acceptance-s4-real-day.json. It stands after S3 and before B1,
+// which re-pins the runner at its own rebase behind it, as B1 already owed behind S3.
+// It changes NO byte under rebuild/engine, so it declares NO gate supersession: the five
+// byte-identity carriers are inherited through the parent map exactly as they stand, and no
+// token line is needed or claimed. See the README section S4.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
 // The real chain branch, resolved from GIT REFS and never from a spec (X2/R3-B). Every
 // ancestry assertion that decides whether a commit is on the accepted chain names THIS.
 const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
@@ -223,7 +232,11 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // Y1 own-child rule (CRITICAL-PATH-2026-09-15 section 4 P1, "45/45 laws executed with no new
 // D-id, so the Y1 own-child rule (:110) supplies the obligation"). The letter joins the
 // asserted shape below beside H and F; a B- id still needs the PM's own line.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM', 'H3', 'S3']);
+// M2-S4-REAL-DAY enters under the same S- half as S3: a SLICE-PLAN item with no D-id, whose
+// obligation is the Y1 own-child rule. The owner ruled the behaviour (DECISIONS:432); no
+// entry of the 45-law register describes "which day the page boots on", so there is nothing
+// for it to register and the exemption is by name here, never by a spec's own say-so.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM', 'H3', 'S3', 'S4']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).

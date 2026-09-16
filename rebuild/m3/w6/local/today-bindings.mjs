@@ -160,13 +160,62 @@ export function startOrderRefusalOf(generation, resolvedParents) {
 }
 
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/* S4 REAL DAY — the two facts a device knows about itself, taken from ITS OWN
+   zone (DECISIONS:432). `localDayOf` is the calendar date the athlete is
+   standing on, formatted YYYY-MM-DD; `localOffsetOf` is the civil offset in
+   force AT THAT INSTANT, so a summer instant reads -04:00 and a winter one
+   -05:00 on the same machine. Both are plain Date arithmetic over the host's
+   zone — the same arithmetic wallClock() below has always used — so no zone
+   name is invented and no table is carried. */
+export function localDayOf(at) {
+  return new Date(at.getTime() - at.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+export function localOffsetOf(at) {
+  const pad = value => String(Math.floor(Math.abs(value))).padStart(2, "0");
+  const minutes = -at.getTimezoneOffset();
+  return (minutes < 0 ? "-" : "+") + pad(minutes / 60) + ":" + pad(Math.abs(minutes) % 60);
+}
+
 /* The page's own clocks, restated: the client wants ISO strings, the engine
-   readers want a Date. Both are pinned to one instant on the host's own day, as
-   gym-host.mjs and today-model.cjs already pin them. */
-export const clientClockFor = day => ({ today: () => day, now: () => day + "T13:00:00.000Z",
-  tz: "-05:00", monotonicMs: () => 0 });
-const engineClockFor = day => ({ today: () => day, hour: () => 8,
-  now: () => new Date(day + "T13:00:00.000Z"), stamp: () => day + "T13:00:00.000Z" });
+   readers want a Date.
+
+   WITHOUT `live` these are byte-for-byte the clocks this module has always
+   built: one pinned instant on the host's own day (13:00Z, -05:00, hour 8,
+   monotonicMs 0), as gym-host.mjs and today-model.cjs pin them. Every caller
+   that declares its day — every fixture, every check script, every suite —
+   still gets exactly that, so no recorded figure moves.
+
+   WITH `live` (a function returning the instant NOW) they are the REAL device
+   clock: the ISO stamp is this instant, the offset is the offset in force at
+   this instant, the hour is the local hour, and monotonicMs is performance.now.
+   `tz` is a GETTER because rebuild/client reads it once when it binds
+   (index.cjs:46) and an eager string would freeze the offset at module load
+   rather than at bind. The day is still the HOST'S day argument and never the
+   clock's: which day a host stands on is decided by its caller (C4b-D1), and
+   this only answers "when is now" for the operations that host writes. */
+export const clientClockFor = (day, live) => (live
+  ? { today: () => day, now: () => live().toISOString(),
+      get tz() { return localOffsetOf(live()); },
+      monotonicMs: () => (typeof performance !== "undefined" && typeof performance.now === "function"
+        ? performance.now() : Date.now()) }
+  : { today: () => day, now: () => day + "T13:00:00.000Z",
+      tz: "-05:00", monotonicMs: () => 0 });
+const engineClockFor = (day, live) => (live
+  ? { today: () => day, hour: () => live().getHours(),
+      now: () => live(), stamp: () => live().toISOString() }
+  : { today: () => day, hour: () => 8,
+      now: () => new Date(day + "T13:00:00.000Z"), stamp: () => day + "T13:00:00.000Z" });
+
+/* The INSTALLATION clock a caller gets when it brings a live instant provider
+   and no clock of its own. Its day is live too — a direct caller has no
+   `state.day` to adopt through, so the honest answer to "what day is this
+   installation stamping with" is "whatever day it is on the device now". A
+   caller that hands over an explicit `clock` still wins, as it always did. */
+const liveEraClock = live => ({ today: () => localDayOf(live()), now: () => live().toISOString(),
+  get tz() { return localOffsetOf(live()); },
+  monotonicMs: () => (typeof performance !== "undefined" && typeof performance.now === "function"
+    ? performance.now() : Date.now()) });
 
 /* ONE installation. Opened once per page load, handed to both hosts.
    `enroll` is the only thing that may create an era, and it runs only when C1
@@ -177,7 +226,7 @@ const engineClockFor = day => ({ today: () => day, hour: () => 8,
 export async function openTodayOverLocalEra({
   indexedDB = globalThis.indexedDB, crypto = globalThis.crypto,
   databaseName = TODAY_DATABASE, namespace = TODAY_NAMESPACE,
-  athleteId, deviceId, clock, liveDay,
+  athleteId, deviceId, clock, liveDay, live = null,
   enroll = true, cleanInit,
   producerIdentity = PRODUCER, planBasis = PLAN_BASIS, inputBasis = INPUT_BASIS,
   resumeReason = RESUME_REASON, nativeTrendContext,
@@ -185,8 +234,9 @@ export async function openTodayOverLocalEra({
   const prescriptionCapture = Capture.createPrescriptionCapture({ parseStrictJson,
     profile: Capture.SOURCE_PROFILE, sourceCodec: Source });
   const workoutCommands = Commands.createWorkoutCommands({ prescriptionCapture });
+  const eraClock = clock || (live ? liveEraClock(live) : clock);
   const client = await openLocalDurableClient({ indexedDB, crypto, databaseName, namespace,
-    athleteId, deviceId, clock, workoutCommands });
+    athleteId, deviceId, clock: eraClock, workoutCommands });
 
   try {
     const opening = client.status();
@@ -199,13 +249,13 @@ export async function openTodayOverLocalEra({
     // NEVER a re-enrolment. C1's own verdict is the answer, code and state intact.
     if (booted.ready !== true) throw new StorageFailure(booted.code || "LOCAL_HOST_BINDINGS_BOOT_REQUIRED", booted.state ?? 18);
     return buildEra({ client, prescriptionCapture, workoutCommands, booted, indexedDB, crypto,
-      databaseName, namespace, athleteId, deviceId, clock, liveDay, producerIdentity, planBasis, inputBasis,
+      databaseName, namespace, athleteId, deviceId, clock: eraClock, liveDay, live, producerIdentity, planBasis, inputBasis,
       resumeReason, nativeTrendContext });
   } catch (error) { client.close(); throw error; }
 }
 
 function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexedDB, crypto,
-  databaseName, namespace, athleteId, deviceId, clock, liveDay, producerIdentity, planBasis, inputBasis,
+  databaseName, namespace, athleteId, deviceId, clock, liveDay, live = null, producerIdentity, planBasis, inputBasis,
   resumeReason, nativeTrendContext }) {
   let open = true;
   const ignored = [];
@@ -253,7 +303,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
         .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     }
     // The reading host's own day, for the same reason the gym host has one.
-    const sealed = (await client.hostBindings({ workoutCommands, clock: clientClockFor(day) })).repository;
+    const sealed = (await client.hostBindings({ workoutCommands, clock: clientClockFor(day, live) })).repository;
     const lease = (await sealed.load()).generation.metadata.authorityLease;
     return Object.freeze({
       repository: sealed, client, day, namespace, databaseName,
@@ -319,7 +369,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
        this, the stage came from the installation (the first caller's day) while
        the host stood on its own: a Start written on day 2 was stamped day 1 and
        the next read refused it WORKOUT_HISTORY_RECONCILIATION_REQUIRED forever. */
-    const bindings = await client.hostBindings({ workoutCommands, clock: clientClockFor(day) });
+    const bindings = await client.hostBindings({ workoutCommands, clock: clientClockFor(day, live) });
     let alive = true;
     // B-NTC's qualified default lives at C4's actual shared-store composition.
     // An explicitly injected resolver remains the caller's; storage, clocks,
@@ -329,7 +379,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       if (!dayReader) throw new Error("GYM_NATIVE_TREND_DAY_READER_UNCOMPOSED");
       return dayReader.dayFacts(iso);
     } });
-    const runtime = HostRuntime.createEngineRuntime({ clock: engineClockFor(day),
+    const runtime = HostRuntime.createEngineRuntime({ clock: engineClockFor(day, live),
       nativeTrendContext: nativeTrendContext || trendBinding.resolve });
     dayReader = NativeTrend.createDayFactsReader({ state: engineState, engine: runtime });
     // readPrevious runs after the producer returns. Scope each engine read to
@@ -415,7 +465,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     if (!commands || typeof commands !== "object") throw new TypeError("createCheckInHost requires commands");
     if (typeof profile !== "string" || !profile) throw new TypeError("createCheckInHost requires profile");
 
-    const bindings = await client.hostBindings({ workoutCommands: commands, clock: clientClockFor(day) });
+    const bindings = await client.hostBindings({ workoutCommands: commands, clock: clientClockFor(day, live) });
     const lease = (await bindings.repository.load()).generation.metadata.authorityLease;
     const checkInClient = createDurablePublicClient({ ...bindings,
       schemaVersion: LOCAL_ERA_SCHEMA_VERSION });
@@ -505,7 +555,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     if (!commands || typeof commands !== "object") throw new TypeError("createSetupHost requires commands");
     if (typeof profile !== "string" || !profile) throw new TypeError("createSetupHost requires profile");
 
-    const bindings = await client.hostBindings({ workoutCommands: commands, clock: clientClockFor(day) });
+    const bindings = await client.hostBindings({ workoutCommands: commands, clock: clientClockFor(day, live) });
     const lease = (await bindings.repository.load()).generation.metadata.authorityLease;
     const setupClient = createDurablePublicClient({ ...bindings,
       schemaVersion: LOCAL_ERA_SCHEMA_VERSION });
@@ -657,20 +707,28 @@ const installations = new WeakMap();
    The HOST half is independent and does not go through here: every host binds
    its own stage, host clock and engine clock to its own `day`
    (`createGymHost` / `createReadingHost` above), so two hosts on two days in one
-   page load each stamp their own day correctly. */
-function liveClockOver(state) {
-  return Object.freeze({
-    today: () => state.day,
-    now: () => state.day + "T13:00:00.000Z",
-    tz: "-05:00",
-    monotonicMs: () => 0,
-  });
+   page load each stamp their own day correctly.
+
+   S4 REAL DAY adds the second half of the same idea. The DAY half is unchanged
+   — it is still `state.day`, still moved only by a recorded adoption — but the
+   INSTANT half now follows the device when the page opened live: with `live`
+   the era's lease window, the enrolment stamp and the client's own stamps read
+   the real now and the real offset instead of the pinned 13:00Z / -05:00. With
+   no `live` every value is byte-for-byte what it was. */
+function liveClockOver(state, live) {
+  return Object.freeze(live
+    ? { today: () => state.day, now: () => live().toISOString(),
+        get tz() { return localOffsetOf(live()); },
+        monotonicMs: () => (typeof performance !== "undefined" && typeof performance.now === "function"
+          ? performance.now() : Date.now()) }
+    : { today: () => state.day, now: () => state.day + "T13:00:00.000Z",
+        tz: "-05:00", monotonicMs: () => 0 });
 }
 
 export async function openTodayInstallation({
   indexedDB = globalThis.indexedDB, crypto = globalThis.crypto,
   databaseName = TODAY_DATABASE, namespace = TODAY_NAMESPACE,
-  athleteId = TODAY_ATHLETE, deviceId, day, clock, ...rest } = {}) {
+  athleteId = TODAY_ATHLETE, deviceId, day, clock, live = null, ...rest } = {}) {
   if (!indexedDB || !crypto?.subtle) throw new StorageFailure("LOCAL_ERA_STORE_UNAVAILABLE", 18);
   if (day !== undefined && (typeof day !== "string" || !DAY_RE.test(day)))
     throw new StorageFailure("LOCAL_ERA_DAY_INVALID", 18);
@@ -681,20 +739,20 @@ export async function openTodayInstallation({
   if (!entry) {
     // The one mutable value the live clock reads. `clock` (an explicit provider)
     // wins over `day`; with neither, the wall clock's own day seeds it.
-    const state = { day: day || wallClock().today() };
-    const live = clock || liveClockOver(state);
+    const state = { day: day || (live ? localDayOf(live()) : wallClock().today()) };
+    const provider = clock || liveClockOver(state, live);
     /* THE DAY THIS INSTALLATION IS ACTUALLY STAMPING WITH — asked of the clock
        it is really using, never of the seed it was opened with (review round 2,
        nit 2). With no declared provider the two are the same value by
        construction (`liveClockOver` reads `state.day`); with one, `state.day` is
        only a seed the provider never agreed to, so reporting it would have
        `liveDay()` name a day nothing is stamped on. */
-    const dayNow = () => (typeof live.today === "function" ? live.today() : state.day);
-    entry = { handles: 0, state, live, dayNow, adoptions: [], declaredClock: clock !== undefined };
+    const dayNow = () => (typeof provider.today === "function" ? provider.today() : state.day);
+    entry = { handles: 0, state, live: provider, dayNow, adoptions: [], declaredClock: clock !== undefined };
     entry.opening = (async () => {
       const device = deviceId || (await openLocalDeviceIdentity({ indexedDB, crypto, databaseName })).deviceId;
       return openTodayOverLocalEra({ indexedDB, crypto, databaseName, namespace,
-        athleteId, deviceId: device, clock: live, liveDay: dayNow, ...rest });
+        athleteId, deviceId: device, clock: provider, liveDay: dayNow, live, ...rest });
     })();
     byKey.set(key, entry);
     // A failed open must not be remembered: the next page load has to try again.
@@ -738,5 +796,6 @@ export async function openTodayInstallation({
 }
 
 export default { openTodayOverLocalEra, openTodayInstallation, wallClock,
+  localDayOf, localOffsetOf, clientClockFor,
   causalTips, startOrderRefusalOf,
   TODAY_DATABASE, TODAY_NAMESPACE, TODAY_ATHLETE, PLAN_BASIS, INPUT_BASIS, RESUME_REASON, PRODUCER };

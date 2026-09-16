@@ -694,15 +694,35 @@ test('S10 - PAGE_PINS names exactly four files, and all four are sha-identical',
   }
 });
 
+/* S4 (M2-S4-REAL-DAY) — THE DECLARING-SPEC CHAIN, in the ruled order and
+   searched youngest first, exactly as setup.test.mjs and food.test.mjs now read
+   it. The cell below asks "did THIS build move a B-NTC pin", not "did anybody":
+   S4 moves today-bindings.mjs and the journey suite by name and declares both,
+   and a file is exempt only while it stands at the post a package DECLARED. An
+   undeclared move, a declared move that has not landed, and drift in anything no
+   spec names are all still red; with no such spec on the branch the exemption
+   set is empty and this is the original cell. */
+const CHILD_SPECS = ['H3', 'S3', 'S4'];
+function declaredPost(file) {
+  for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
+    let product = null;
+    try { product = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/' + CHILD_SPECS[i] + '.json')).product; }
+    catch { product = null; }
+    if (product && Object.hasOwn(product, file) && typeof product[file].post === 'string')
+      return product[file].post;
+  }
+  return null;
+}
+
 test('S10 - today-bindings.mjs is byte-identical to the B-NTC package\'s own hash', () => {
   const pkg = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/B-NTC.json'));
   const pinned = 'rebuild/m3/w6/local/today-bindings.mjs';
   assert(pkg.product[pinned], 'the package still pins it');
-  assert.equal(shaOf(pinned), pkg.product[pinned].post,
+  assert.equal(shaOf(pinned) === pkg.product[pinned].post || shaOf(pinned) === declaredPost(pinned), true,
     'this build must not touch a file the B-NTC artifact pins ON DISK (DECISIONS:144)');
-  assert.equal(shaOf('rebuild/m3/w6/test/local-today-journey.test.mjs'),
-    pkg.product['rebuild/m3/w6/test/local-today-journey.test.mjs'].post,
-    'and the journey suite itself is unmoved');
+  const journey = 'rebuild/m3/w6/test/local-today-journey.test.mjs';
+  assert.equal(shaOf(journey) === pkg.product[journey].post || shaOf(journey) === declaredPost(journey), true,
+    'and the journey suite itself is unmoved, or stands at a post a declaring spec names');
 });
 
 test('S10 - the lane is opened through client.hostBindings, not a w6 factory', () => {

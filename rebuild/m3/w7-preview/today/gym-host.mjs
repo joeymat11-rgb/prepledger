@@ -38,6 +38,10 @@ export { causalTips, startOrderRefusalOf, PLAN_BASIS, INPUT_BASIS, RESUME_REASON
 /* rebuild/client's own words for a state-18 refusal, carried through w6 so the
    page never writes its own sentence for one. */
 export { RESTORE_REQUIRED } from '../../w6/local/today-bindings.mjs';
+/* S4 REAL DAY. The device's own calendar date and civil offset, re-exported for
+   the same reason: one copy in the tree, the local era's, so the page and the
+   store can never disagree about which day the athlete is standing on. */
+export { localDayOf, localOffsetOf } from '../../w6/local/today-bindings.mjs';
 
 export const DATABASE = TODAY_DATABASE;
 export const NAMESPACE = TODAY_NAMESPACE;
@@ -47,16 +51,22 @@ export const ATHLETE_ID = TODAY_ATHLETE;
    close() detaches one holder — the last one out closes the client, which is
    what makes the next open a real relaunch off disk. */
 export function openTodayHosts({ indexedDB, crypto, databaseName = DATABASE,
-  namespace = NAMESPACE, athleteId = ATHLETE_ID, deviceId, day, clock } = {}) {
+  namespace = NAMESPACE, athleteId = ATHLETE_ID, deviceId, day, clock, live } = {}) {
   /* The installation's clock is the PAGE'S OWN DAY, exactly as this module's
      stage clock always was (`day + 'T13:00:00.000Z'`) — the page's day is its
      today, and an operation has to be stamped on the day the screen is standing
      on or the accepted resume policy reads yesterday's open session as
      unfinished. `day` is passed AS A DAY, not pre-baked into a clock, so that a
      later boot in the same page load (day 2) is ADOPTED and recorded on
-     `clockAdoptions()` rather than silently dropped — C4b review D1. */
+     `clockAdoptions()` rather than silently dropped — C4b review D1.
+
+     S4 REAL DAY: `live` is the page's REAL instant provider, and it is a
+     separate question from `day`. A caller that passes none gets the pinned
+     preview instant this page has always written; the shipped page passes one,
+     so its records carry the real time and the real offset. */
   return openTodayInstallation({ indexedDB, crypto, databaseName, namespace, athleteId, deviceId,
-    day: typeof day === 'string' ? day : undefined, ...(clock ? { clock } : {}) });
+    day: typeof day === 'string' ? day : undefined, ...(clock ? { clock } : {}),
+    ...(live ? { live } : {}) });
 }
 
 /* A handle that owns its share of the installation: closing it detaches the

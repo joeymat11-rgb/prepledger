@@ -30,9 +30,13 @@ import { LOCAL_ERA_SCHEMA_VERSION } from '../../w6/local/local-era.mjs';
 export const READING_SCHEMA_VERSION = 1;
 export const ERA_SCHEMA_VERSION = LOCAL_ERA_SCHEMA_VERSION;
 
-export async function createReadingHost({ day, indexedDB, crypto, deviceKeys,
+/* S4 REAL DAY: `live` is the page's real instant provider, forwarded to the
+   installation unchanged. With none, this host writes the pinned preview
+   instant it always has. */
+export async function createReadingHost({ day, indexedDB, crypto, deviceKeys, live,
   databaseName = DATABASE, namespace = NAMESPACE } = {}) {
-  const era = await openTodayHosts({ indexedDB, crypto, databaseName, namespace, day });
+  const era = await openTodayHosts({ indexedDB, crypto, databaseName, namespace, day,
+    ...(live ? { live } : {}) });
   try {
     const handle = await era.createReadingHost({ day,
       ...(deviceKeys !== undefined ? { deviceKeys } : {}) });
