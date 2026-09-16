@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "03afc18192455aa5cc51695fc5fb2d4c98a23c29",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-09-16 · cowork · POSTFIX-ACCEPTANCE M2-S4-REAL-DAY e0c4e3c949a5e3cdb9967c88be4543d69308dc9a rebuild/m4/spec/acceptance-s4-real-day.json 12779767123e5b0983bcce4028c2c3213b0a6bf05a1661909ee5949f96d8a972 ACCEPTED",
+    "lineSha256": "e59e328cff220b3698f35b24e78c7115d93873f7e3a5b45dc3da662421db14da"
+  }
+}
