@@ -1133,3 +1133,116 @@ test('D2.R2 - a read that FAILS after navigation is equally silent', async () =>
   assert.equal(doc.querySelector('#phone [data-slot="settings-block"]'), null);
   kit.settings.close(); kit.gymHost.close(); dom.window.close();
 });
+
+/* -----------------------------------------------------------------------
+   P-MEASURE v1 (rebuild/lanes/pm/MEASUREMENT-PLAN-v1.md section 4). Pure
+   arithmetic cells over measure-model.mjs / measure-view.mjs and a committed
+   synthetic 12-week fixture with a hand-computed expected table (section 4's
+   acceptance bar). No store, no client, no DOM is opened for these cells: the
+   modules under test open none of those themselves.
+   ----------------------------------------------------------------------- */
+import MeasureModel from '../measure-model.mjs';
+import MeasureView from '../measure-view.mjs';
+
+const { computeWeek, ONE_RM_FORMULA_NAME, ONE_RM_FORMULA_TEXT, estimate1RM,
+  waistRefusalFor, waistFromEntry, WAIST_REFUSALS } = MeasureModel;
+const { buildComparisonView, exportText, NO_BASELINE_YET } = MeasureView;
+const FIXTURE = JSON.parse(fs.readFileSync(path.join(ROOT,
+  'rebuild/m3/w7-preview/today/measure-fixture.json'), 'utf8'));
+
+function trialWeeks(fixture) {
+  return fixture.expected.map((_, i) => computeWeek({
+    startDate: fixture.startDate, index: i, reads: fixture.reads, waistRows: fixture.waistRows,
+    sets: fixture.sets, markers: fixture.markers,
+    sessionsCompleted: fixture.sessions[i].completed, sessionsPlanned: fixture.sessions[i].planned,
+    foodDaysLogged: fixture.logging[i].foodDaysLogged, energyDaysLogged: fixture.logging[i].energyDaysLogged,
+    nights: fixture.nights[i].nights,
+  }));
+}
+
+test('P-MEASURE - the 1RM formula is Epley and named', () => {
+  assert.equal(ONE_RM_FORMULA_NAME, 'epley');
+  assert.match(ONE_RM_FORMULA_TEXT, /1RM = load x \(1 \+ reps \/ 30\)/);
+  assert.equal(estimate1RM(200, 5), 233.33);
+});
+
+test('P-MEASURE - every synthetic week matches its hand-computed expected row', () => {
+  const weeks = trialWeeks(FIXTURE);
+  assert.equal(weeks.length, FIXTURE.expected.length);
+  for (let i = 0; i < weeks.length; i++) {
+    const got = weeks[i], want = FIXTURE.expected[i];
+    assert.equal(got.week, want.week, 'week number ' + want.week);
+    assert.equal(got.weightAvg, want.weightAvg, 'weightAvg week ' + want.week);
+    assert.equal(got.waist, want.waist, 'waist week ' + want.week);
+    assert.equal(got.waistTrend4Week, want.waistTrend4Week, 'waistTrend4Week week ' + want.week);
+    for (const marker of FIXTURE.markers) {
+      assert.equal(got.marker1RM[marker], want.marker1RM[marker], marker + ' week ' + want.week);
+    }
+    assert.equal(got.trainingAdherencePct, want.trainingAdherencePct, 'trainingAdherencePct week ' + want.week);
+    assert.equal(got.foodAdherencePct, want.foodAdherencePct, 'foodAdherencePct week ' + want.week);
+    assert.equal(got.energyAdherencePct, want.energyAdherencePct, 'energyAdherencePct week ' + want.week);
+    assert.equal(got.sleepQualifyingNights, want.sleepQualifyingNights, 'sleepQualifyingNights week ' + want.week);
+  }
+});
+
+test('P-MEASURE - adherence percentages match the fixture at the edges (100 and reduced)', () => {
+  const weeks = trialWeeks(FIXTURE);
+  assert.equal(weeks[0].trainingAdherencePct, 100);
+  assert.equal(weeks[9].trainingAdherencePct, 100);
+  assert.equal(weeks[10].trainingAdherencePct, 75);
+  assert.equal(weeks[11].trainingAdherencePct, 75);
+  assert.equal(weeks[9].foodAdherencePct, 100);
+  assert.equal(weeks[10].foodAdherencePct, 71.4);
+  assert.equal(weeks[0].energyAdherencePct, 85.7);
+});
+
+test('P-MEASURE - the comparison view: no baseline yet, weeks 1-2 flagged run in, no verdict copy', () => {
+  const weeks = trialWeeks(FIXTURE);
+  const view = buildComparisonView({ baselineWeeks: [], trialWeeks: weeks, markers: FIXTURE.markers });
+  assert.equal(view.hasBaseline, false);
+  assert.equal(view.baselineNote, NO_BASELINE_YET);
+  assert.match(view.baselineNote, /last 8 to 12 complete weeks/);
+  assert.equal(view.trial.length, 12);
+  assert.deepEqual(view.trial.slice(0, 2).map((w) => w.runIn), [true, true]);
+  assert.deepEqual(view.trial.slice(2).map((w) => w.runIn), Array(10).fill(false));
+  const text = exportText(view).toLowerCase();
+  for (const word of ['pass', 'fail', 'good', 'bad', 'better', 'worse', 'verdict', 'recommend']) {
+    assert(!text.includes(word), 'no coaching or verdict word: ' + word);
+  }
+});
+
+test('P-MEASURE - the export is a plain text table naming every measure and marker', () => {
+  const weeks = trialWeeks(FIXTURE);
+  const view = buildComparisonView({ baselineWeeks: [], trialWeeks: weeks, markers: FIXTURE.markers });
+  const text = exportText(view);
+  assert.match(text, /EARNED MEASUREMENT COMPARISON/);
+  assert.match(text, /Weight, 7 day average \(lb\)/);
+  assert.match(text, /Sleep nights qualifying \(\/7\)/);
+  for (const marker of FIXTURE.markers) assert.match(text, new RegExp(marker.replace(/ /g, '\\s')));
+  assert.match(text, /Week 12/);
+  assert.match(text, /Week 1 \(run in\)/);
+  assert(!/[–—]/.test(text), 'no en or em dash in the exported table');
+});
+
+test('P-MEASURE - the waist entry refuses blank, future and out of range, and accepts a valid one', () => {
+  assert.equal(waistRefusalFor({ date: '', in: '' }, '2026-03-30'), WAIST_REFUSALS.NOTHING);
+  assert.equal(waistRefusalFor({ date: '2026-04-01', in: '34' }, '2026-03-30'), WAIST_REFUSALS.WEEK_DATE);
+  assert.equal(waistRefusalFor({ date: '2026-03-30', in: '5' }, '2026-03-30'), WAIST_REFUSALS.OUT_OF_RANGE);
+  assert.equal(waistRefusalFor({ date: '2026-03-30', in: '34.0' }, '2026-03-30'), null);
+  assert.deepEqual(waistFromEntry({ date: '2026-03-30', in: '34.0' }, '2026-03-30'), { date: '2026-03-30', in: 34 });
+  assert.equal(waistFromEntry({ date: '2026-04-01', in: '34' }, '2026-03-30'), null);
+});
+
+test('P-MEASURE - no measure is read from or written to any path outside the device store', () => {
+  const sources = ['measure-model.mjs', 'measure-view.mjs'].map((name) =>
+    fs.readFileSync(path.join(ROOT, 'rebuild/m3/w7-preview/today', name), 'utf8'));
+  for (const text of sources) {
+    const code = codeOf(text);
+    assert(!/fetch\s*\(|XMLHttpRequest|sendBeacon|WebSocket|navigator\.|localStorage|sessionStorage|indexedDB/.test(code),
+      'no network call and no storage API opened directly');
+    assert(!/https?:\/\//.test(code), 'no network reference');
+    assert(!/require\s*\(|from\s+['"](?!\.\/)/.test(code.replace(/^\s*import[^\n]*$/gm, '')) ,
+      'no import beyond this same directory, and no require');
+    assert(!/\bfs\b|\bnode:fs\b|readFile|writeFile/.test(code), 'no filesystem access of its own');
+  }
+});
