@@ -1,6 +1,6 @@
 # PLAN EDIT COMPANION v2 - lane D author report
 
-Builder evidence only: no acceptance, no independent review claim, no merge, not pushed. Branch `rebuild/d-plan-edit-v2` over `origin/rebuild/t2-client-core` 0ac72eadf8cfe55c010af7f0d40034d133cdccba (:468). Authority :176 (2); brief accepted by name at :195 (`rebuild/lanes/d/BRIEF-PLAN-EDIT-COMPANION-v1.0.md`).
+Builder evidence only: no acceptance, no independent review claim, no merge, not pushed. Branch `rebuild/d-plan-edit-v2`, round 2, rebased over `origin/rebuild/t2-client-core` 60cb6187200c15356aa8ccff9f2cb6cb5ffc94cb (:471); round 1 stood over 0ac72ea (:468). Authority :176 (2); brief accepted by name at :195 (`rebuild/lanes/d/BRIEF-PLAN-EDIT-COMPANION-v1.0.md`).
 
 ## 1. Cherry-picked / skipped
 `-x` from `origin/rebuild/lane-d-plan-edit-r1`, in order, all clean: **12a837f** brief, **8a094da** three runtime modules + two suites + two mutant harnesses, **6b3465e** candidate report, **7b073a8** stale-ack witness, **3694645** save-retry and unproved-rejection fixes, **74920fb** r1 fix report.
@@ -29,13 +29,13 @@ Skipped **f3e9561** and the nine F1/F2 commits below it: lane D's separate, unme
 | EW-13 | PE10 reopen-from-ops, PE11 (measurements, session facts, notes byte-identical), PE16 imported readings and renames survive a save |
 | EW-14 half | I16 (basis follows real plan operations across projection dates and factual writes) + PE16's real-store admitted-import read. The CONSUMER half - future gym creation, preserved open workout / check-in drafts - is C's and is NOT claimed. |
 
-New: PE15 x4 (live day vs frozen host clock; stale-with-result; disagreeing stamp clock; a local midnight with the two in step), PE16 x3 durable + x4 model (admitted import, unadmitted import, no fallback, collections trip-wire, F2 adapter identity), client-P6 x3; host mutants `frozen-host-day`, `unchecked-basis-source`; model mutants `open-collections`, `declared-basis-unchecked`, `admitted-basis-unmatched`. Every pre-existing mutant anchor was re-pointed, never removed.
+New: PE15 x4 (live day vs frozen host clock; stale-with-result; disagreeing stamp clock; a local midnight with the two in step), PE16 x3 durable + x4 model (admitted import, unadmitted import, no fallback, collections trip-wire, F2 adapter identity), client-P6 x3; host mutants `frozen-host-day`, `unchecked-basis-source`; model mutants `open-collections`, `declared-basis-unchecked`, `admitted-basis-unmatched`. Round 2 adds PE15 stamp-clock (named `PLAN_EDIT_DAY_TURNED`), PE17 (host identity required) and four model rejection cells, with host mutants `day-turned-unnamed`, `identity-optional` and model mutants `unrelated-rejection-dark-screens`, `unclassifiable-rejection-waved-through`, `only-mutations-are-plan-class` - see section 9. Every pre-existing mutant anchor was re-pointed, never removed.
 
 ## 5. Astra REJECT witnesses, re-run and closed
-`lanes/d/plan-edit/astra-rerun.mjs` copies the reviewer's published files (committed unchanged beside it; ANNEX sha256 5662293f8c6f976c9ebbb1a8f19dbac4534744b085ac2ff1537cd76644732c7e, the value the r1 retest names; R1-ANNEX e88619e449f818cecb80051baaa15521addcd2673df22a31744a71a07c85fe7a) to a directory at the same depth, applies FOUR anchored, counted adaptations and nothing else, and runs them. Each is a dependency this tip does not carry, never a weakened assertion: (1) F2's `setup-tags.cjs` require -> the lane's byte-identical copy; (2) `liveDay: () => clock.today()`, exactly the value the Sept-13 host derived internally; (3) the fixture's F1 FULL-BODY split restated in the tip's `DAY_KINDS` (`['U','L']`), covering the same two families its lifts use - without it the reviewer's own first-run setup refuses before any companion code runs; (4) F1's engine `orderedExercisesForDay` (not on the tip; `rebuild/engine` is pinned) -> the tip's own ordered-pool reader, the M2-S3 companion `sessionMembership` through `m4/workout/engine-runtime.cjs`. Result **22/22 PASS**: I01-I16, including the blocking REJECT witnesses I08/I09 (R1) and I10 (R2), plus R1-A..R1-D. Both findings are closed at this head.
+`lanes/d/plan-edit/astra-rerun.mjs` copies the reviewer's published files (committed unchanged beside it; ANNEX sha256 5662293f8c6f976c9ebbb1a8f19dbac4534744b085ac2ff1537cd76644732c7e, the value the r1 retest names; R1-ANNEX e88619e449f818cecb80051baaa15521addcd2673df22a31744a71a07c85fe7a) to a `mkdtemp` under the ignored `rebuild/lanes/.tmp/`, at the depth both kinds of specifier need (r1 finding 4), applies FOUR anchored, counted adaptations and nothing else, and runs them. Each is a dependency this tip does not carry, never a weakened assertion: (1) F2's `setup-tags.cjs` require -> the lane's byte-identical copy; (2) `liveDay: () => clock.today()`, exactly the value the Sept-13 host derived internally; (3) the fixture's F1 FULL-BODY split restated in the tip's `DAY_KINDS` (`['U','L']`), covering the same two families its lifts use - without it the reviewer's own first-run setup refuses before any companion code runs; (4) F1's engine `orderedExercisesForDay` (not on the tip; `rebuild/engine` is pinned) -> the tip's own ordered-pool reader, the M2-S3 companion `sessionMembership` through `m4/workout/engine-runtime.cjs`. Result **22/22 PASS**: I01-I16, including the blocking REJECT witnesses I08/I09 (R1) and I10 (R2), plus R1-A..R1-D. Both findings are closed at this head.
 
 ## 6. Verbatim tails
-All taken at the head this report names, after the rebase in section 9.
+ALL taken on the PC at `1cb334e`, the round 2 code head, rebased onto `origin/rebuild/t2-client-core` 60cb6187 (:471). Nothing below comes from an intermediate commit. The only file that changes after that head is this report, which is not a declared S5 product file and which no suite reads; the S5 gate was re-run at the report head too and is exit 0 there as well.
 
 ```text
 # tests 68 / # suites 0 / # pass 68 / # fail 0 / # cancelled 0 / # skipped 0   (lane companion suites)
@@ -49,10 +49,13 @@ A1 TODAY BUILD PASS: 3 assets; 121 pinned inputs (13 engine, 12 client); build e
   approved design pinned; 69 bound classes; 2 pinned typefaces inlined; no literal figure in the
   template; 3/3 assets scanned and free of any network reference; no em/en dash in any text the
   athlete can see
-b-package --ci --package S5 at HEAD <R2-HEAD>, EXIT 0:
+b-package --ci --package S5 at HEAD 1cb334e, EXIT 0:
+  B PACKAGE S5 SEAL BASE ON THE TIP; refs/remotes/origin/rebuild/t2-client-core is at 60cb618 and
+    that commit is an ancestor of this HEAD (DECISIONS:135 (4), rule=ancestor)
   B PACKAGE S5 PRODUCT IMPLEMENTED; 33 at the declared post-image / 0 at the pinned pre-image / 81
-    carried byte-identical from the parent / ... / 0 unlisted drift; the inventory covers all 90
-    parent-pinned product files
+    carried byte-identical from the parent / 0 declared role "pinned-unchanged" / 0 unlisted drift;
+    the inventory covers all 90 parent-pinned product files
+  B PACKAGE S5 CHILD today-17 .. engine-files-differential OBSERVED; exit 0 (10 of 10)
   B PACKAGE S5 PUBLIC CI EVIDENCE PASS - public evidence only, NOT the package verdict; the 19
     original gates, the private oracle and independent exact-artifact acceptance remain separate,
     and POSTFIX PACKAGE PASS is unavailable on this mode at any time
@@ -60,7 +63,7 @@ b-package --ci --package S5 at HEAD <R2-HEAD>, EXIT 0:
 The new host file is NOT an input to the Today build: `build.mjs` still reports 121 pinned inputs, because the page imports nothing from `m3/w6/host/plan-edit-host.mjs`.
 
 ## 7. Drift list
-`git diff --name-only <BASE> HEAD`, each `findstr`'d against `lanes/b/tooling/packages/S5.json`: **18 files, 0 named in S5.json. Pinned-by-S5: NONE.** (r1 finding 3: the count said 17 while the list below held 18.) Unpinned: `m4/workout/{plan-edit-commands.cjs, plan-edit-model.cjs}`; `m3/w6/host/plan-edit-host.mjs`; `lanes/d/{BRIEF-PLAN-EDIT-COMPANION-v1.0.md, PLAN-EDIT-CANDIDATE-REPORT.md, PLAN-EDIT-R1-FIX-REPORT.md, PLAN-EDIT-V2-AUTHOR-REPORT.md}`; `lanes/d/plan-edit/{astra-rerun.mjs, browser-build.test.mjs, client-p6.test.cjs, durable-host.test.mjs, f2-tag-adapter.cjs, host-mutants.mjs, model-mutants.cjs, model.test.cjs}`; `lanes/astra/reviews/PLAN-EDIT-{BROWSER-IMPORT.mjs, REVIEW-ANNEX.mjs, REVIEW-R1-ANNEX.mjs}`.
+`git diff --name-only 60cb6187 HEAD` at 1cb334e, each `findstr`'d against `lanes/b/tooling/packages/S5.json`: **18 files, 0 named in S5.json. Pinned-by-S5: NONE.** (r1 finding 3: the count said 17 while the list below held 18.) Unpinned: `m4/workout/{plan-edit-commands.cjs, plan-edit-model.cjs}`; `m3/w6/host/plan-edit-host.mjs`; `lanes/d/{BRIEF-PLAN-EDIT-COMPANION-v1.0.md, PLAN-EDIT-CANDIDATE-REPORT.md, PLAN-EDIT-R1-FIX-REPORT.md, PLAN-EDIT-V2-AUTHOR-REPORT.md}`; `lanes/d/plan-edit/{astra-rerun.mjs, browser-build.test.mjs, client-p6.test.cjs, durable-host.test.mjs, f2-tag-adapter.cjs, host-mutants.mjs, model-mutants.cjs, model.test.cjs}`; `lanes/astra/reviews/PLAN-EDIT-{BROWSER-IMPORT.mjs, REVIEW-ANNEX.mjs, REVIEW-R1-ANNEX.mjs}`.
 
 NO engine byte and NO `m3/w7-preview/today/**` file is touched, and no S5-declared product file moves. So `b-package --ci --package S5` does NOT go red here: the three runtime files are new under fixed roots but are not among S5's 114 declared product files, so the profile recomputes unchanged (`0 unlisted drift`, exit 0). The ticket predicted WORKTREE-SOURCE-PIN or SEALED-PROFILE-RECOMPUTATION; neither fires. Reported as observed, not argued. The custody question it raises is the PM's: whether S6 should DECLARE these three runtime files as product, which is what would make a later change to them recompute the seal.
 
