@@ -2,11 +2,16 @@
   "version": 1,
   "lanePackage": "S5",
   "packageId": "M2-S5-TODAY-CHILD",
-  "status": "PROPOSED",
+  "status": "BRIEF-ACCEPTED",
   "brief": {
     "file": "rebuild/lanes/b/S5-TODAY-CHILD-BRIEF.md",
     "sha256": "5163b634423d0dceef4834579eb52057007a84e0a988a7175f7ed6a1a074faf9",
-    "acceptedLedgerLine": null
+    "acceptedLedgerLine": {
+      "ledgerLine": 461,
+      "role": "cowork",
+      "line": "- 2026-09-16 · cowork · BRIEF ACCEPTED BY SHA for M2-S5-TODAY-CHILD: rebuild/lanes/b/S5-TODAY-CHILD-BRIEF.md, sha256 5163b634423d0dceef4834579eb52057007a84e0a988a7175f7ed6a1a074faf9 (21744 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "2e84f8499c1b634c4225f7ac6da69e99999541d946175ef71bb7463c15ae10ab"
+    }
   },
   "sourceBase": "c76fb7f56c9f4c6eff1531c6d5105a0f02d1770f",
   "dIds": [],
@@ -616,10 +621,10 @@
     "moves": {},
     "successors": null,
     "superseded": {
-      "rulingLineSha256": null,
+      "rulingLineSha256": "f9de6a7bc0514fd03d640370c07d005dbc91a77e12dc3ead728d5f816f176fdb",
       "gates": {
         "source-carriers": {
-          "why": "DECISIONS:153 (the standing role) and the token clause this package cites by its own sha256 for M2-S5-TODAY-CHILD: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37, and the three original programmes rebuild migrate.cjs from the frozen fe516c1:src/app.jsx declarations; this package changes NO engine byte, yet four files the reconstruction rebuilds (constants.cjs and writers.cjs from M2-H3-CLEAN-INIT, merge.cjs and today.cjs from M2-S3-COMPANION) already stand outside it, and the parent M2-S4-REAL-DAY inherited them unmoved and retired these same gates at DECISIONS:444, so the gates refuse on this tree and no package that moves nothing can mend them - executed and measured in s5-supersede-source-carriers",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:462 (RULED) for M2-S5-TODAY-CHILD, located by its own sha256 f9de6a7bc051...: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37, and the three original programmes rebuild migrate.cjs from the frozen fe516c1:src/app.jsx declarations; this package changes NO engine byte, yet four files the reconstruction rebuilds (constants.cjs and writers.cjs from M2-H3-CLEAN-INIT, merge.cjs and today.cjs from M2-S3-COMPANION) already stand outside it, and the parent M2-S4-REAL-DAY inherited them unmoved and retired these same gates at DECISIONS:444, so the gates refuse on this tree and no package that moves nothing can mend them - executed and measured in s5-supersede-source-carriers",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -632,7 +637,7 @@
           }
         },
         "inherited-carriers": {
-          "why": "DECISIONS:153 (the standing role) and the token clause this package cites by its own sha256 for M2-S5-TODAY-CHILD: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs) and pins the visit order and the per-module carrier counts, so today.cjs (nine declared carriers) and writers.cjs are refused there for the same reason as source-carriers, at the parent's own post which this package carries unmoved - executed and measured in s5-supersede-inherited-carriers",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:462 (RULED) for M2-S5-TODAY-CHILD, located by its own sha256 f9de6a7bc051...: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs) and pins the visit order and the per-module carrier counts, so today.cjs (nine declared carriers) and writers.cjs are refused there for the same reason as source-carriers, at the parent's own post which this package carries unmoved - executed and measured in s5-supersede-inherited-carriers",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -645,7 +650,7 @@
           }
         },
         "defect-witnesses": {
-          "why": "DECISIONS:153 (the standing role) and the token clause this package cites by its own sha256 for M2-S5-TODAY-CHILD: the FROZEN side of every one of its ten complete comparisons is built through native-carriers-parent-source.cjs into the same pinned reconstruction, so no witness can be produced on both sides once an inherited engine byte stands outside it; M2-S5-TODAY-CHILD closes no register defect and moves no engine byte, and the complete comparison it owes is measured instead against the accepted engine read from Git at this package's own sourceBase",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:462 (RULED) for M2-S5-TODAY-CHILD, located by its own sha256 f9de6a7bc051...: the FROZEN side of every one of its ten complete comparisons is built through native-carriers-parent-source.cjs into the same pinned reconstruction, so no witness can be produced on both sides once an inherited engine byte stands outside it; M2-S5-TODAY-CHILD closes no register defect and moves no engine byte, and the complete comparison it owes is measured instead against the accepted engine read from Git at this package's own sourceBase",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -658,7 +663,7 @@
           }
         },
         "writers-differential": {
-          "why": "DECISIONS:153 (the standing role) and the token clause this package cites by its own sha256 for M2-S5-TODAY-CHILD: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and writers.cjs on this tree is neither that reconstruction's declared pre-image nor its declared post-image - it was moved by M2-H3-CLEAN-INIT, carried unmoved by M2-S3-COMPANION and by the parent M2-S4-REAL-DAY, and is carried here byte-identical to the parent's post, asserted at S5/SUP-11",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:462 (RULED) for M2-S5-TODAY-CHILD, located by its own sha256 f9de6a7bc051...: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and writers.cjs on this tree is neither that reconstruction's declared pre-image nor its declared post-image - it was moved by M2-H3-CLEAN-INIT, carried unmoved by M2-S3-COMPANION and by the parent M2-S4-REAL-DAY, and is carried here byte-identical to the parent's post, asserted at S5/SUP-11",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -671,7 +676,7 @@
           }
         },
         "second-gate": {
-          "why": "DECISIONS:153 (the standing role) and the token clause this package cites by its own sha256 for M2-S5-TODAY-CHILD: the independent second reading is taken over the reconstructed engine and pins the frozen source commit fe516c1 with a static inventory, so it refuses this tree before it compares anything; the second reading this package puts in its place is taken from Git at its own sourceBase against the disk composition",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:462 (RULED) for M2-S5-TODAY-CHILD, located by its own sha256 f9de6a7bc051...: the independent second reading is taken over the reconstructed engine and pins the frozen source commit fe516c1 with a static inventory, so it refuses this tree before it compares anything; the second reading this package puts in its place is taken from Git at its own sourceBase against the disk composition",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -705,7 +710,12 @@
       "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
       "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
     },
-    "theme": null,
+    "theme": {
+      "ledgerLine": 460,
+      "role": "cowork",
+      "line": "- 2026-09-16 · cowork · THEME M2-S5-TODAY-CHILD — the reseal child that carries lane C's ACCEPTED P-MEASURE bytes onto the tip: it pins rebuild/m3/w7-preview/today/today-app.cjs at post 016a1e4f096d24e69b0b4e308879679e8582d0fdf475f28c7b24d2cb9cd9c97e, declares the fifteen files of rebuild/m3/w7-preview/measure/ as its own product, gives the four page-stack measure suites a CI home in rebuild.yml's today step as a disclosed hunk (DECISIONS:117 (4)), and has NO product behaviour of its own. Standing ruling DECISIONS:455 (S4 sealed all of today/**, so a lane C change under today/ lands only inside a lane B reseal child); briefed at DECISIONS:457. Its behaviour/delta contract is rebuild/lanes/b/S5-TODAY-CHILD-BRIEF.md; its parent is M2-S4-REAL-DAY, rebuild/m4/spec/acceptance-s4-real-day.json sha256 12779767123e5b0983bcce4028c2c3213b0a6bf05a1661909ee5949f96d8a972 (receipt DECISIONS:449, merge :450); it changes no rebuild/engine byte, and as a second-generation descendant of M2-S3-COMPANION it retires the same nine byte-identity gates again under its own token line below. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "00f955e7e582812708d7073055da36a73356b61300aee20eca754bd7c3ca4a20"
+    },
     "review": {
       "role": "cowork",
       "prefix": "POSTFIX-ACCEPTANCE M2-S5-TODAY-CHILD",
