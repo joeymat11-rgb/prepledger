@@ -334,7 +334,10 @@ test('F8 -- PUBLIC_TAIL_ROOTS and TAIL_DENYLIST are the fixed lists the tail dia
     'rebuild/m4/workout/test/',
   ]);
   assert.deepEqual(api.TAIL_DENYLIST, ['conform/private', 'golden', 'live.json', 'ledger/']);
-  // A prepended root or needle is a real widening and must be visible as a failing array,
-  // not merely a longer one nobody notices.
-  assert.notDeepEqual(['rebuild/conform/v4/postfix/', ...api.PUBLIC_TAIL_ROOTS], api.PUBLIC_TAIL_ROOTS);
+  // S6-B round-3 review, finding 4 (MINOR, tautology removal, not an assertion removal):
+  // the notDeepEqual below compared a 5-element array against the 4-element
+  // api.PUBLIC_TAIL_ROOTS it was built from -- deepEqual refuses on length alone before
+  // either array's CONTENT is examined, so the assertion passed regardless of what either
+  // list actually held and pinned nothing the two deepEqual calls above do not already
+  // pin. Removed; those two calls do the real work of this test.
 });

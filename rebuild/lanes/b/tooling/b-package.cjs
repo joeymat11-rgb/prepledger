@@ -344,6 +344,11 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
 const PUBLIC_TAIL_ROOTS = ['rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m4/workout/test/'];
 const TAIL_DENYLIST = ['conform/private', 'golden', 'live.json', 'ledger/'];
 const TAIL_LINES = 60;
+// S6-B round-3 review, finding 3 (MINOR): TAIL_LINES caps LINE COUNT only, and
+// spawnSync's own maxBuffer allows up to 32 MB of child output -- one pathological line
+// (no newline in it at all) could still flood CI even after the 60-line cap. Cap the
+// printed tail in bytes too, independently of the line cap.
+const TAIL_BYTES = 16 * 1024;
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
 // --require=, --import=) are caught with the bare ones; NO_RUN catches every form that
@@ -1988,10 +1993,25 @@ function childDiagnosticTail(c, targets, r, wall) {
   // child that prints a backslash path (path.join's native separator) matched none of them
   // and its tail printed uncensored. Scan a '/'-normalized copy of the WHOLE stream (same
   // scope as before, not only the printed 60 lines) and keep printing the ORIGINAL lines.
-  const normalized = combined.replace(/\\/g, '/');
+  // RV18-13/14/15/16 (S6-B round-3 review, finding 1, BLOCKING): a bare replace(/\\/g,'/')
+  // turns a DOUBLED backslash -- the shape node:test's own reporter emits for a failing
+  // string value via JSON.stringify (each '\' becomes '\\') -- into a DOUBLED slash, so
+  // 'conform\\private' (the literal two-backslash text a JSON.stringify'd private path
+  // prints) normalized to 'conform//private', which does not contain the single-slash
+  // needle 'conform/private' at all. Collapsing repeated slashes after the backslash swap
+  // closes that gap without touching a real single-slash path, which already had none to
+  // collapse.
+  const normalized = combined.replace(/\\/g, '/').replace(/\/{2,}/g, '/');
   const denylisted = TAIL_DENYLIST.some(needle => normalized.includes(needle));
   if (!isPublic || denylisted) return header + 'tail withheld (path policy)';
-  return header + 'last ' + TAIL_LINES + ' lines of stdout+stderr follow\n' + lines.slice(-TAIL_LINES).join('\n');
+  // S6-B round-3 review, finding 3 (MINOR): also cap by bytes, not only by line count --
+  // see TAIL_BYTES' own definition. Printed lines are unchanged when the tail already fits.
+  const tail = lines.slice(-TAIL_LINES).join('\n');
+  const tailBuf = Buffer.from(tail, 'utf8');
+  const byteCapped = tailBuf.length > TAIL_BYTES;
+  const printed = byteCapped ? tailBuf.slice(-TAIL_BYTES).toString('utf8') : tail;
+  return header + 'last ' + TAIL_LINES + ' lines of stdout+stderr follow' +
+    (byteCapped ? ' (last ' + TAIL_BYTES + ' bytes of that)' : '') + '\n' + printed;
 }
 // Every declared child runs IN THIS PROCESS and must exit 0 with its exact declared
 // verdict. The returned map is the only evidence a gate may be counted as covered by.

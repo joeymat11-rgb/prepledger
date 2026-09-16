@@ -64,6 +64,25 @@ write(publicDenylisted, 'console.log("touches rebuild/conform/private/census.jso
 // with backslashes, the way path.join would actually print it on this OS.
 const publicDenylistedBackslash = 'rebuild/m4/workout/test/probe-tail-denylisted-backslash.test.cjs';
 write(publicDenylistedBackslash, 'console.log("touches rebuild\\\\conform\\\\private\\\\census.json");\nprocess.exitCode = 1;');
+// RV18-13/14/15/16 (S6-B round-3 review, finding 1, BLOCKING): RV17's fix normalized a
+// SINGLE backslash (path.join's own separator). It does not cover a DOUBLED backslash --
+// the shape node:test's own reporter emits for a failing string value via
+// JSON.stringify, which escapes each real backslash to two -- because a bare
+// replace(/\\/g,'/') turns a doubled backslash into a doubled SLASH, which does not
+// contain the single-slash needle. Two fixtures pin the class. Both child sources below
+// hold the private path as an ordinary SINGLE-backslash string (the realistic in-memory
+// value); each then prints it through JSON.stringify, which is what actually produces the
+// doubled backslash on the child's stdout.
+const publicDenylistedNodeTest = 'rebuild/m4/workout/test/probe-tail-denylisted-nodetest.test.cjs';
+write(publicDenylistedNodeTest,
+  "const test = require('node:test');\n" +
+  "const assert = require('node:assert/strict');\n" +
+  "test('leaks a backslash private path via an assert message', () => {\n" +
+  "  assert.fail('touches ' + JSON.stringify('rebuild\\\\conform\\\\private\\\\census.json'));\n" +
+  "});\n");
+const publicDenylistedDoubledBackslash = 'rebuild/m4/workout/test/probe-tail-denylisted-doubled-backslash.test.cjs';
+write(publicDenylistedDoubledBackslash,
+  'console.log(JSON.stringify("touches rebuild\\\\conform\\\\private\\\\census.json"));\nprocess.exitCode = 1;');
 const privateRootFail = 'rebuild/m4/spec/probe-tail-private-root.cjs';
 write(privateRootFail, 'console.log("PRIVATE ROOT FAIL");\nprocess.exitCode = 1;');
 const publicPass = 'rebuild/m4/workout/test/probe-tail-pass.test.cjs';
@@ -123,6 +142,18 @@ test('RV17 -- a denylisted path spelled with backslashes (Windows path.join) wit
   const caught = throwsOf(() => apiCi.children(packageFor(c), env));
   assert.match(caught.diagnostic, /tail withheld \(path policy\)$/);
   assert.doesNotMatch(caught.diagnostic, /touches rebuild\\conform\\private/);
+});
+test('RV18 -- a node:test-shaped child whose failing assert message JSON.stringifies a backslash private path withholds too', () => {
+  const c = child([publicDenylistedNodeTest], 'tail-denylisted-nodetest');
+  const caught = throwsOf(() => apiCi.children(packageFor(c), env));
+  assert.match(caught.diagnostic, /tail withheld \(path policy\)$/);
+  assert.doesNotMatch(caught.diagnostic, /touches rebuild/);
+});
+test('RV18 -- a plain-stdout doubled backslash (JSON.stringify shape, no test runner involved) withholds too', () => {
+  const c = child([publicDenylistedDoubledBackslash], 'tail-denylisted-doubled-backslash');
+  const caught = throwsOf(() => apiCi.children(packageFor(c), env));
+  assert.match(caught.diagnostic, /tail withheld \(path policy\)$/);
+  assert.doesNotMatch(caught.diagnostic, /touches rebuild/);
 });
 test('RV17 -- a spawnSync timeout (r.status null, r.error set) prints "exit timeout <code>", not "exit null"', () => {
   const fakeTimedOut = { status: null, error: { code: 'ETIMEDOUT' }, stdout: '', stderr: '' };
