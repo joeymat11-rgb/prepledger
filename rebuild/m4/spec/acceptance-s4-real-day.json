@@ -14,7 +14,7 @@
   },
   "spec": {
     "file": "rebuild/lanes/b/tooling/packages/S4.json",
-    "sha256": "b4a229231c7296b1f0031352c205e41ca5ea9d5058da66a5a092178d6530c252"
+    "sha256": "a0e8413a2f31729a965b1a332c5006c89ffdfce1635b2db2ffe6d10e6147a0fc"
   },
   "runner": {
     "file": "rebuild/lanes/b/tooling/b-package.cjs",
@@ -95,7 +95,12 @@
       "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
       "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
     },
-    "theme": null,
+    "theme": {
+      "ledgerLine": 441,
+      "role": "cowork",
+      "line": "- 2026-09-16 · cowork · THEME M2-S4-REAL-DAY — the shipped page boots on the device's real local date with moving real clocks and real offsets and rolls over at local midnight with the previous mount torn down, options.today keeping the frozen path byte-identical; owner ruling DECISIONS:432 (fresh daily use) and the PM finding at :437. Its behaviour/delta contract is rebuild/lanes/b/S4-REAL-DAY-BRIEF.md; its parent is M2-S3-COMPANION, rebuild/m4/spec/acceptance-s3-companion.json sha256 fb2f6a023ac6bcfc584c115078b16fb8ec21eba3a71c1c231c573d52dbab74f2 (receipt DECISIONS:423); it changes no rebuild/engine byte, so every parent carrier is carried and no gate is superseded. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "3fd215acc47f97962ce5dcf73e84927b705ce31bf6a335c1a17ca49fbf90918d"
+    },
     "review": {
       "role": "cowork",
       "prefix": "POSTFIX-ACCEPTANCE M2-S4-REAL-DAY",
@@ -573,7 +578,7 @@
   },
   "executionPins": {
     "rebuild/lanes/b/tooling/b-package.cjs": "422d1e9fd5174047a2eb5f92845826e22023d6d297a54e7a6a796f6824e20340",
-    "rebuild/lanes/b/tooling/packages/S4.json": "b4a229231c7296b1f0031352c205e41ca5ea9d5058da66a5a092178d6530c252",
+    "rebuild/lanes/b/tooling/packages/S4.json": "a0e8413a2f31729a965b1a332c5006c89ffdfce1635b2db2ffe6d10e6147a0fc",
     "rebuild/lanes/b/S4-REAL-DAY-BRIEF.md": "5f1ee6f36c1d59087ef12a5819cbf338347e4dc0529ad6954630ea32e434bc09",
     "rebuild/m3/w6/host/test/local-real-day.test.mjs": "f6cc4c657276078c6d2de65cb94f325b64a53972e24e9e2c14ff6be2c358bc55",
     "rebuild/m3/w7-preview/today/test/adapter.test.mjs": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
