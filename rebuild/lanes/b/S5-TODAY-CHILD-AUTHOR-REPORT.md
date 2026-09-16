@@ -117,3 +117,5 @@ stands from r1: one byte appended to `rebuild/engine/index.cjs` takes the five s
    engine byte, so it goes to the next engine package unchanged.
 3. `review-s5-today-child.json` is deliberately absent, so `ENVELOPE ABSENT` and the non-blocking
    `closed cumulative profile not sealed` stand exactly as at S4's author head.
+
+CI note (integrator, 2026-09-16): at a085caf4 the rebuild job was red on windows-latest only with CHILD-REQUIRED-EXIT-ZERO at the today-17 child while ubuntu-latest was green and B PACKAGE S5 PUBLIC CI EVIDENCE PASS printed on both; the same head passed today-17 (666/666) and the authorized byte-identity re-verify on the PC. Retriggered by this docs-only commit; the today child flake (ubuntu at P6 ca01491, windows here) is ticketed for S6: print the failing child tail on CHILD-REQUIRED-EXIT-ZERO in --ci.
