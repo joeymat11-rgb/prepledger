@@ -45,7 +45,7 @@ export async function createPlanEditHost({ client, clock, liveDay, basisState, s
   const localDay = () => { const day = liveDayOf(); Commands.dateOf(day); return day; };
   const commands = Commands.createPlanEditCommands({ validateTags });
   /* WHICH BASIS THIS INSTALLATION IS ON is a fact about the durable generation,
-     not a caller's claim, and there is no generation to read at construction —
+     not a caller's claim, and there is no generation to read at construction:
      the first authenticated read produces it. So the projector is built on that
      first read, from the generation itself, and is then FIXED: a later read
      whose import presence disagrees refuses rather than rebuilding, because a
