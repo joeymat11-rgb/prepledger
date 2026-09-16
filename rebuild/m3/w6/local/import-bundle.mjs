@@ -717,9 +717,13 @@ async function priorSidecar(scope, entry, snapshot) {
      That is deliberately wider than the one direction the review reproduced
      (retracting the OLDER of two): retracting the newer would need this module
      to reason that the newer entry's checkpoint is the older one's cache, and
-     inferring a cache is the thing it will not do. The retract is not lost -
-     retract the other entry first, or retract this one once the sibling is
-     gone, and the register keeps the whole account either way. */
+     inferring a cache is the thing it will not do. KNOWN BOUNDARY (Fable
+     final, P3-D-FOLLOWONS-REVIEW-R3.md MAJOR 1): because the rule reads ANY
+     other seeded entry, two seeded zero-op imports refuse in BOTH directions
+     and neither can be retracted again; the sound narrower rule, refuse only
+     when a seeded sibling was staged AFTER this entry, is carried to
+     P3-IMPORT-UI-2 / S6 (DECISIONS:479). One port, one file: not reachable on
+     the owner's path. */
   if (importEntries(snapshot.generation)
     .some(other => other.name !== entry.name && seeded(other)))
     fail("LOCAL_IMPORT_RETRACT_BASIS_UNPROVEN", 3);
