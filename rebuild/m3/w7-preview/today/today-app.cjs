@@ -657,13 +657,23 @@ function mountToday(doc, model, options = {}) {
     const Screen = await import("../import/import-screen.mjs");
     if (token !== mountToken) return root;
     if (!importScreen) importScreen = Screen.createImportScreen(importDeps());
+    /* Round 2, review r1 finding 7. The screen is cached for the page session,
+       so "Imported. Today and your gym card now use it." - which belongs to the
+       import the athlete just confirmed - would greet him again every time he
+       re-entered the route. `focus` is true only when a LINK brought him here
+       (a repaint passes false), and on that tap the route hands back the
+       read-only summary DECISIONS:470 asks for. */
+    if (focus) importScreen.reopen();
     await importScreen.paint(root, () => token === mountToken);
     return root;
   }
 
-  /* The link itself. It is deliberately NOT a lazy load: the two words it shows
-     come from this file, so neither the Measure screen nor the setup screen can
-     pull the admission stack onto the boot path just by painting. */
+  /* The link itself, painted twice: once on Today and once on Measure. It is
+     deliberately NOT a lazy load - the two words it shows come from this file,
+     so no screen can pull the admission stack onto the boot path just by
+     painting one. import-screen.mjs owns the same two words for its own title
+     and summary; P3-U1 and P3-U5 assert the painted text against Screen.COPY,
+     which is what keeps the two copies honest (review r1 finding 5). */
   const IMPORT_LINK_NEW = "Import my history";
   const IMPORT_LINK_DONE = "History imported";
   function importLink(root, after) {
@@ -863,6 +873,19 @@ function mountToday(doc, model, options = {}) {
     measureTile.dataset.go = "measure";
     measureTile.textContent = "Measure";
     root.append(measureTile);
+
+    /* P3-IMPORT-UI-2 round 2, review r1 finding 1: THE ENTRY THAT CAN ACTUALLY
+       ADMIT, and the only one on this page that can. The Measure entry below is
+       where DECISIONS:470 put the primary, and it is kept - but opening Measure
+       writes this installation's trial-start operations before it paints a
+       thing, and the S3 admission replay has no family for them, so from THAT
+       link the walk refuses LOCAL_SOURCE_CONTEXT_UNRESOLVED every time (P3-X9,
+       and P3-X10 takes the tap from the link itself). This link is reachable on
+       the frame the first run lands on, before Measure has ever been opened,
+       which is the one configuration a phone has in which the import admits
+       (P3-U6). It is the same two words and the same route as the other entry;
+       nothing here is lazy-loaded, so painting it pulls no admission stack. */
+    importLink(root, null);
 
     wire(root);
     show(root, focus);
@@ -2130,11 +2153,16 @@ function mountToday(doc, model, options = {}) {
     if (next === "setup") {
       return setup.open({ doc, phone,
         back: () => render("today", true),
-        /* P3-IMPORT-UI-2 entry link 2 of 2 (DECISIONS:470 "from setup's end").
-           The label and the route are this file's; setup-app.mjs only paints it
-           on its last screen and knows nothing about what it opens. */
-        importLink: { label: () => (importAdmitted ? IMPORT_LINK_DONE : IMPORT_LINK_NEW),
-          onTap: () => render("import", true) },
+        /* P3-IMPORT-UI-2 round 2, review r1 finding 1. THE SETUP SCREENS CARRY
+           NO IMPORT LINK, and the reason is written here rather than left as a
+           deletion: on setup's LAST screen the installation has not yet written
+           its first-run operation, so source-admission.mjs programme() finds no
+           setup document and the whole walk refuses
+           LOCAL_SOURCE_PROGRAMME_UNRESOLVED - executed, both sides, by P3-U5.
+           "From setup's end" (DECISIONS:470) is therefore served on the screen
+           setup ENDS on, which is Today: renderToday() below offers the link
+           the moment the first run is saved. setup-app.mjs is byte-identical to
+           the shipped file again. */
         /* P0-C item (a) - the in-page transition off "Start using Earned" must
            adopt his own state the same way a fresh enrolled mount does: arm
            the same gates BEFORE this first Today paint, then run the same

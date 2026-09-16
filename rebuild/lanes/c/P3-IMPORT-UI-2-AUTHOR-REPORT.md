@@ -1,112 +1,100 @@
-# P3-IMPORT-UI-2 - the Import route on the shipped page (lane C author)
+# P3-IMPORT-UI-2 - the Import route on the shipped page (lane C author, round 2)
 
-DECISIONS:475 (1) and (4); screen :470; constraints :472 (a)-(d); carries :477.
-## 1. Files and hunks
-NEW: `import/import-screen.mjs` (the route, and the ONE module the law lets reach
-migrate/merge/m4-import); `import/test/route.test.mjs` (5), `refusal-route.test.mjs` (9),
-`edge-route.mjs` + `edge-seed-entry.mjs` (the real-Edge run); this report.
-S5-DECLARED DRIFT (5): `today/today-app.cjs`, 4 hunks - `options.installation`; the screen
-case + lazy loader + `importDeps`; `importLink()` and its two call sites; one clause in
-`athleteBasisState()` recording whether an import is admitted, which `renderMeasure` awaits
-before painting the link - the Edge run found the link reading "Import my history" over an
-installation that already had one, because the read is the same async chain Today adopts
-through and nothing repainted after it. `today/today-entry.mjs`, 2
-pass-throughs - `installation: hosts` into mountToday, `importLink` to mountSetup.
-`w6/test/local-today-journey.test.mjs` - the PAGE_PINS re-pin for it, with the re-read the
-pin's own message demands written in place. `today/test/package.test.cjs` - the law's own
-test, amended with the new rule stated (13 engine inputs became 15, and why), nothing
-deleted, plus one cell running the new law and its red side.
-`measure/test/boundary.test.mjs` - P-MEASURE (g)'s named drift set widened from one file to
-five, each named, old reason kept above the new one; a sixth file under `today/` is still red.
-UNPINNED DRIFT (7): `today/build.mjs`; `today/setup-app.mjs` (one optional link, last screen
-only); `today/preview.css` (16/48/44 here); `lanes/c/P3-RUNBOOK.md`;
-`import/test/page-bundle.test.mjs`; `import/test/support.mjs`; `today/test/copy.test.mjs` -
-one cell was reading app.js back out of the SHARED dist while the other suites of the
-directory wrote their own builds into it, and read a half-written file once the bundle grew;
-it now passes the dist/scratch arguments build.mjs offers for exactly that (bytes identical).
-## 2. The law (BUILD 1)
-FORBIDDEN is split. `IMPORT_ROUTE_ONLY` holds migrate.cjs, merge.cjs and `m4/import/*`,
-with the OLD reason kept above the new one: the page is a reader of migrated state EXCEPT
-on the Import route, where it must reproduce the PC's walk to prove the bundle it is about
-to adopt. Every other FORBIDDEN name keeps its reason and its outright ban.
-The new law cell is `assertImportRouteIsolation(metafile)`, exported and RUN BY THE BUILD
-before a byte is written: it walks esbuild's graph from `today-entry.mjs` over static edges
-only, refusing to cross the one dynamic edge into `IMPORT_ENTRY` =
-`rebuild/m3/w7-preview/import/import-screen.mjs`, and refuses if any of the three is
-reachable, naming the file AND who reached it. It also requires the route to be in the
-graph, its only importer to be today-app.cjs, and every edge into it to be dynamic.
-`REQUIRED_INPUTS` gains import-screen.mjs and production-mapping.cjs.
-## 3. Bundle figures, measured
-before 121 modules / 1,668,330 B; after 136 / 1,961,006; delta +15 / +292,676 (+17.5%).
-Today BOOT graph 121 modules, UNCHANGED, carrying none of the three. The route's 15 own
-modules are named by P3-B4. The brief measured +260 KB for source-admission alone; the
-extra ~33 KB is the route's own four modules its probe did not carry.
-DEVIATION, stated: the ticket says "chunk". The accepted bundler answers a dynamic import
-inside an `outfile` build with a LAZILY INITIALISED module in the same file - P3-B6
-executes that (`init_import_screen = __esm({...})`, exactly one call site, and it is the
-dynamic import). So the boot path runs none of the admission stack, the page is still three
-assets, A5 is unchanged, and the asset the route is in IS precached (P3-B7). The
-alternative was measured: esbuild `splitting:true` gives the same total (boot 1,672,770 +
-chunk 271,508) across 25 output files, moving the asset allowlist, package.test, design,
-the service worker and A5. Worth a PM word.
-## 4. The tap sequence, with the served labels (all read off the page by the Edge run)
-`Import my history` (Measure, beside the "No baseline yet" line; and setup's last screen) ->
-`Choose the earned-port file` (file input, accept .json) -> `Type the six words from the PC`
-+ `Unlock` (unsealBundle + qualifyBundle, write-free; "Unlocked. Nothing has been written to
-this phone yet.") -> the identity question VERBATIM with `Yes` / `No` -> (Yes) importBundle,
-then the controller review with `createProductionProducerRegistry({ hash })` bound, never a
-TEST-ONLY registry, showing `Checked against engine revision ...` -> `Import this history`
--> prepareSource({identityConfirmed:true, prefixAnswer:true}) -> publish -> reconcile ->
-`Imported. Today and your gym card now use it.` -> the existing local-source-basis adoption.
-After admission both links read `History imported` and open the read-only summary
-(`Your import`, `Files you took back`). Every displayed figure is a labelled machinery field
-(sealed-at, oracle verdict, dataLossGuard safe/lost, engine schemaV and sha256, file sha256;
-legacy days, native count, file size, day standing on, ordering-answer-needed,
-ENGINE_REVISION); nothing composed. The screen states the question as a constant and refuses
-`LOCAL_SOURCE_IDENTITY_QUESTION_CHANGED` (then retracts) if the controller's
-`prefix_question` ever differs. Refusals print the code verbatim; one sentence is added, for
-`BUNDLE_AUTH_FAILED` only. Any refusal or cancel after custody calls `retractImport(name,
-reason)` with a label; a refused retract (seeded sibling) shows
-`LOCAL_IMPORT_RETRACT_BASIS_UNPROVEN` and the entry stays listed. No fetch, XHR, share,
-download, createObjectURL or window.open anywhere on the route.
-## 5. Cells per bar item
-a: P3-U1. b: P3-U2. c: P3-X1, P3-X2. d: P3-X3, P3-X4, P3-X5, P3-X6 (:477 carry).
-e: P3-U3. f: P3-U4. g: P3-X7. h: P3-X8. i: P3-B1..B7. j: `edge-route.mjs`.
-Also P3-U5 (setup's last screen only) and P3-X9 (open item 1).
-## 6. Verbatim tails
-import/test `tests 32 / pass 32 / fail 0`; today-17 + 4 measure suites
-(MEASURED_TEST_NOW=2026-09-03) `tests 667 / pass 662 / fail 5`; W6 `tests 586 / pass 586 /
-fail 0`; m4/import `tests 86 / pass 86 / fail 0`; retract + admission-swap +
-production-mapping `tests 34 / pass 34 / fail 0`; coach `tests 231 / pass 231 / fail 0`;
-client `tests 18 / pass 18 / fail 0`; port `tests 65 / pass 65 / fail 0`; w6/host
-`tests 33 / pass 33 / fail 0`; A5 suites `tests 56 / pass 56 / fail 0`; `rig187 => PASS`.
-A1 `A1 TODAY BUILD PASS: 3 assets; 136 pinned inputs (15 engine, 12 client); Today boot
-graph 121 modules, carrying no migrate.cjs, no merge.cjs and none of the m4/import lane`.
-A5 `A5 PWA BUILD PASS: 13 files; 11 precached and pinned by sha256`.
-`b-package --ci --package S5` exit 1, `B PACKAGE S5 FAIL SEALED-PROFILE-RECOMPUTATION` -
-expected, lands in S6. Edge `P3 EDGE-ROUTE PASS - the shipped A1 dist, real msedge.exe,
-real clock, America/New_York, 14 labels recorded`.
-THE FIVE REDS, one cause: local-today-journey.test.mjs, today-entry.mjs, today-app.cjs,
-setup-app.mjs, preview.css and build.mjs move and no package on this branch declares the
-bytes they stand at. They close when packages/S6.json declares them and CHILD_SPECS gains
-'S6' in measure/test/boundary.test.mjs, today/test/food.test.mjs, machine-settings-ui.test.mjs,
-problem.test.mjs and setup.test.mjs. Same shape as S6-C (DECISIONS:476 (2)).
-## 7. Runbook diff
-Phone half rewritten from BLOCKED to eight real steps, every label quoted from the served
-page by the Edge run. Pre-check 6's caveat LIFTED with the reason: the screen binds
-production-mapping.cjs's production registry and the law names the module, so a build that
-lost it is refused; the live clock is proved on the page by P3-U1/U2 and by Edge. Pre-check
-7, the PC section, go/no-go, reporting and rollback unchanged. One new instruction: do not
-open Measure before importing (open item 1).
-## 8. Open items
-1. OPENING MEASURE BEFORE IMPORTING MAKES THE IMPORT REFUSE. measure-host.mjs opens the SAME
-   installation and writes its trial-start operation into the generation admission replays;
-   the S3 replay has no family for it, so the import refuses LOCAL_SOURCE_CONTEXT_UNRESOLVED,
-   retracts, and leaves nothing behind. Found by the real-Edge run, pinned by P3-X9, written
-   into the runbook as an ordering instruction. The fix is a family in rebuild/m4/import's
-   replay: the admission stack, lane D's, not an author's. No guard weakened.
-2. The "chunk" deviation in section 3 - a PM word, not a defect.
-3. P3-U1/U2 hand the measure lane a SEPARATE IDBFactory; P3-X9 stands on one store, and says so.
-4. edge-route.mjs needs W6_BROWSER_BIN and the w6 playwright-core (exit 2 BLOCKED without
-   them) and is not in rebuild.yml; the S6 author enumerates
-   `rebuild/m3/w7-preview/import/test/*.test.mjs` there (carry at :476).
+DECISIONS:475 (1) and (4); screen :470; constraints :472 (a)-(d); carries :477. Base
+rebuild/d-p3-followons 26ab3ab, re-fetched before this round: UNMOVED.
+
+## 1. Files (17; setup-app.mjs left the set this round)
+NEW (6) `import/import-screen.mjs` (the route, and the ONE module the law lets reach migrate/
+merge/m4-import); `route.test.mjs` (6), `refusal-route.test.mjs` (10), `edge-route.mjs` +
+`edge-seed-entry.mjs`; this report. S5-DECLARED (5): `today-app.cjs` (installation, screen case,
+lazy loader, `importDeps`, `importLink()` and its TWO call sites - Today and Measure - and the
+`athleteBasisState()` clause saying whether an import is admitted, awaited by `renderMeasure`);
+`today-entry.mjs` (ONE pass-through, `installation: hosts`); `local-today-journey.test.mjs`
+(PAGE_PINS re-pin with its own demanded re-read); `package.test.cjs` (13 engine inputs became 15
+with the rule stated, nothing deleted, plus a cell running the new law and its red side);
+`boundary.test.mjs` (P-MEASURE (g)'s drift set widened to four NAMED files). UNPINNED (6):
+`build.mjs`, `preview.css` (16/48/44), `P3-RUNBOOK.md`, `page-bundle.test.mjs`, `import/test/
+support.mjs`, `copy.test.mjs` (now passing build.mjs's dist/scratch arguments; bytes same).
+
+## 2. The law, and the route's own rules
+FORBIDDEN is split. `IMPORT_ROUTE_ONLY` holds migrate.cjs, merge.cjs and `m4/import/*`, with the OLD
+reason kept above the new one: the page is a reader of migrated state EXCEPT on the Import route,
+where it must reproduce the PC's walk to prove the bundle it is about to adopt. Every other
+FORBIDDEN name keeps its reason and its ban. `assertImportRouteIsolation`, RUN BY THE BUILD, walks
+esbuild's graph from `today-entry.mjs` over static edges only, refuses to cross the one dynamic edge
+into `IMPORT_ENTRY`, refuses if any of the three is reachable (naming the file AND its importer),
+and requires the route in the graph, one importer, every edge dynamic. ON THE ROUTE (labels and
+order: `lanes/c/P3-RUNBOOK.md`): unseal and qualify are WRITE-FREE and the identity question is
+asked before the first write, held as a constant (source-admission.mjs:96, byte for byte, with
+`LOCAL_SOURCE_IDENTITY_QUESTION_CHANGED` if the controller's differs); the PRODUCTION registry is
+bound, never a TEST-ONLY one; every figure is a labelled machinery field; refusals print the code
+verbatim and ONCE, one added sentence for `BUNDLE_AUTH_FAILED` only; any refusal or cancel after
+custody calls `retractImport`; no fetch, XHR, share, download, createObjectURL or window.open on the
+route.
+
+## 3. Bundle figures, and the "chunk" deviation
+Base 26ab3ab built in its own worktree: 121 pinned inputs / 1,668,331 B. HEAD: 136 / 1,961,495 B;
++15 modules, +293,164 B (+17.6%). Today BOOT graph 121 modules, UNCHANGED. Those whole-asset figures
+are HAND-MEASURED against a base build, said here rather than implied by a cell; P3-B5 proves the
+route's own weight where the bundler records it - per-input `bytesInOutput`, 287,887 B of the
+1,953,002 B accounted (14.7%), over the 15 modules P3-B4 proves route-only. DEVIATION, unresolved:
+the ticket says "chunk", but the accepted bundler answers a dynamic import inside an `outfile` build
+with a LAZILY INITIALISED module in the SAME file, so there is NO second output file and 293 KB of
+admission stack rides in the one boot asset every athlete downloads whether or not he ever imports.
+What IS enforced is the property that matters, that the boot path never RUNS a byte of it (P3-B6:
+`init_import_screen = __esm({...})`, one call site, and it is the dynamic import); the asset it is
+in is precached (P3-B7). `splitting:true` costs 25 output files for the same total, moving the asset
+allowlist, design, the sw and A5. PM word due.
+
+## 4. ROUND 2 - every review finding, and what it changed
+1 (BLOCKING) is right, and worse than measured. On the phone's own configuration (ONE IDBFactory,
+ONE installation via gym-host `openTodayHosts`) the FIRST render of Measure writes TWO
+`earned/measure-trial-start/v1` operations before it paints and the markers pick adds
+`earned/measure-markers/v1`; all three are class `body-composition-source`, and
+source-admission.mjs:148 turns each into LOCAL_SOURCE_CONTEXT_UNRESOLVED - not a race the athlete
+loses, a certainty. The setup-end entry was a second trap: on setup's last screen the first run is
+unsaved, so the walk refuses LOCAL_SOURCE_PROGRAMME_UNRESOLVED. Both executed. FIX, in custody: the
+entry that CAN admit is on TODAY, on the frame the first run lands (renderToday, one
+`importLink(root, null)`); the setup-screen link is GONE and setup-app.mjs is back to the shipped
+bytes; the Measure link stays where :470 put it. Cells: P3-U6 (bar a, one store, tapped on Today,
+ADMITS end to end, no operation minted, basis adopted); P3-U5 (no setup screen offers it, red side
+executed, device unchanged but for the two revisions retract leaves on disk); P3-X10 (the MEASURE
+link itself, tapped on one store: refuses, prints the code once, retracts, every consumer
+byte-identical); P3-X9 kept. edge-route.mjs no longer navigates `?screen=import`: it CLICKS the
+Today link in real Edge and checks its painted height is >= 44 px. DEVIATION FROM :470, FOR THE PM:
+:470 names Measure and "setup's end"; Measure is kept and proven unable to admit, and "setup's end"
+is served on the screen setup ends on. The real fix for the Measure entry is a lane D replay family
+for that op class, outside this ticket's custody and its sealed-drift budget. 2: section 3. 3
+(P3-B5): the toothless `built - before < 400000` is REPLACED with the rule written where it stood -
+per-input `bytesInOutput` over the route-only set, plus the module delta against a named base
+constant. 4: `codeLine` no longer prints CODE (CODE), and `confirm()` passes the codes AFTER the
+first as detail, so a multi-code refusal still shows all of them (P3-U5, P3-X10). 5: `entryLabel`
+deleted, its untrue comment replaced by one naming the cells that keep the two label copies honest.
+6: P-MEASURE (g)'s widening now says in place it is UNPROVEN until S6 declares the bytes. 7:
+`reopen()`, called only when a LINK opened the route (P3-U6). 8: the U+2014 is gone; no added line
+carries a dash but the detector's own regex. 9/10: comments corrected to source-admission.mjs:96 and
+"Strength markers".
+
+## 5. Cells per bar item, verbatim tails (TZ=America/New_York), and open items
+a: P3-U6 (one store) + P3-U1. b: P3-U2. c: P3-X1-2. d: P3-X3-6 (:477 carry). e: P3-U3. f: P3-U4. g:
+P3-X7. h: P3-X8. i: P3-B1-B7. j: `edge-route.mjs`. Plus P3-U5, P3-X9, P3-X10. TAILS: import/test
+`tests 34 / pass 34 / fail 0`; today-17 (MEASURED_TEST_NOW=2026-09-03) `tests 667 / pass 662 / fail
+5`; W6 `tests 586 / pass 586 / fail 0`; w6/host `tests 38 / pass 38 / fail 0`; m4/import `tests 86 /
+pass 86 / fail 0`; port `tests 65 / pass 65 / fail 0`; coach `tests 231 / pass 231 / fail 0`; client
+`tests 18 / pass 18 / fail 0`; A5 suites `tests 56 / pass 56 / fail 0`; `rig187 => PASS`. A1 `A1
+TODAY BUILD PASS: 3 assets; 136 pinned inputs (15 engine, 12 client); build earned-669539fe19ae;
+Today boot graph 121 modules, carrying no migrate.cjs, no merge.cjs and none of the m4/import lane`.
+A5 `A5 PWA BUILD PASS: 13 files; 11 precached and pinned by sha256`. `b-package --ci --package S5`
+exit 1, `B PACKAGE S5 FAIL SEALED-PROFILE-RECOMPUTATION` - expected here, lands in S6. Edge `P3
+EDGE-ROUTE PASS - the shipped A1 dist, real msedge.exe, real clock, America/New_York, 15 labels
+recorded`, engine revision `M2-S5-TODAY-CHILD@0df73b01f3d2d935`. THE FIVE REDS, one cause:
+local-today-journey.test.mjs, today-entry.mjs, today-app.cjs, preview.css and build.mjs move and no
+package here declares the bytes they stand at; they close when packages/S6.json declares them and
+CHILD_SPECS gains 'S6' in boundary, food, machine-settings-ui, problem and setup.test (S6-C's shape,
+:476). OPEN ITEMS. 1. THE MEASURE ENTRY CANNOT ADMIT (section 4): fixed as far as an author may, the
+rest is a replay family for class `body-composition-source` at source-admission.mjs:148, lane D's;
+no guard weakened; PM ruling wanted on :470's entry wording. 2. The "chunk" deviation (section 3).
+3. P3-U1/U2/U3/U4 still hand the measure lane a SEPARATE IDBFactory and say so in place. 4. Opening
+Measure writes TWO trial-start operations on the first render, not one: a measure lane defect found
+here, reported, untouched. 5. edge-route.mjs needs W6_BROWSER_BIN and the w6 playwright-core;
+`import/test/*.test.mjs` is still absent from rebuild.yml (S6's, :476).

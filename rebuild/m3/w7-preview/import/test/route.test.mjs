@@ -2,9 +2,14 @@
 
    Nothing here mounts the Import screen by hand. Each cell boots the shipped
    page (today-entry.mjs boot() into design.shellHtml(), over fake-indexeddb and
-   the real encrypted repository), taps the entry link the Measure screen shows,
-   and then taps its way through the route the athlete taps: pick, the six
-   words, Unlock, the identity question, the review, the confirm.
+   the real encrypted repository), taps an entry link the page painted, and then
+   taps its way through the route the athlete taps: pick, the six words, Unlock,
+   the identity question, the review, the confirm.
+
+   ROUND 2 (review r1 finding 1): P3-U5 and P3-U6 open the page the way a PHONE
+   has it - ONE IDBFactory and ONE installation, gym-host.mjs's own - and it is
+   those two that carry bar (a). The cells above them keep a second store for
+   the measure lane and say so where they use it.
 
    The bundle is SYNTHETIC and sealed by the real port.cjs from the PUBLIC
    journey fixture through the accepted clean-init constructor. See ./support.mjs:
@@ -14,7 +19,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, durable, SETUP,
-  STRANGER_SETUP, Entry, shellWindow, slot, tap, type, textOf, pickBundle } from './support.mjs';
+  STRANGER_SETUP, Entry, shellWindow, slot, tap, type, textOf, pickBundle,
+  phoneDevice } from './support.mjs';
 import { baselineWeeks } from '../../measure/measure-baseline.mjs';
 import Screen from '../import-screen.mjs';
 
@@ -43,12 +49,18 @@ async function openPage(era, when) {
   return { win, doc: win.document, booted };
 }
 
-/* THE MEASURE SCREEN, driven the way the athlete drives it, because the entry
-   link this ticket adds sits on ITS "No baseline yet" line. jsdom gives the page
-   no IndexedDB of its own, so the measure lane is handed one here (it opens its
-   own database, exactly as it does on a phone) and then the markers pick - the
-   screen that stands before the comparison until a pick exists - is answered
-   with three of this athlete's own lifts. */
+/* THE MEASURE SCREEN, driven the way the athlete drives it, because one of the
+   two entry links sits on ITS "No baseline yet" line. Then the markers pick -
+   the screen that stands before the comparison until a pick exists - is
+   answered with three of this athlete's own lifts.
+
+   THE SEPARATE IDBFactory HERE IS NOT A PHONE'S CONFIGURATION, and round 2 says
+   so out loud (review r1 finding 1). It isolates the measure lane's operations
+   from the generation admission replays, which is what lets the cells below be
+   about the ROUTE. What an athlete's phone actually does with ONE store is
+   executed by P3-U6 (from the Today link, which admits), by P3-X10 (from THIS
+   link, which refuses LOCAL_SOURCE_CONTEXT_UNRESOLVED and retracts) and by
+   P3-X9; none of them uses this helper. */
 async function openMeasure(win, booted, { pick = true } = {}) {
   const doc = win.document;
   if (!win.indexedDB) Object.defineProperty(win, 'indexedDB',
@@ -277,31 +289,118 @@ test('P3-U4 (bar f) - a NEW SET saved after the import, then dispose and reopen:
   reopened.booted.rollover.stop(); reopened.booted.teardown(); again.close();
 });
 
-test('P3-U5 - THE SECOND ENTRY LINK, on setup\'s LAST screen and nowhere else, '
-  + 'while no import is admitted', async () => {
-  /* A FRESH INSTALLATION: no first run, so the setup route is the one the page
-     will open. The screens before the last carry no link at all. */
-  const indexedDB = new IDBFactory();
-  const era = await eraFor({ indexedDB, live: liveAt(SUMMER.at), ...scope('setup-link') });
-  const win = shellWindow();
-  const booted = await Entry.boot({ document: win.document, hosts: era, now: liveAt(SUMMER.at) });
-  await booted.api.ready;
-  const doc = win.document;
-  assert.equal(booted.setup.firstRun(), true, 'this installation is not fresh');
-  const model = booted.setup.setup;
-  for (let screen = 1; screen < 6; screen++) {
+/* P3-U5, RESTATED IN ROUND 2 (review r1 finding 1). WHAT IT USED TO SAY: the
+   second entry link is on setup's LAST screen and on no earlier one. That was
+   true and it was a trap, and the reason is written here rather than left as a
+   deletion: on setup's last screen the athlete's first run has NOT been saved,
+   so the installation holds no first-run operation, source-admission.mjs
+   programme() finds no setup document, and the walk refuses
+   LOCAL_SOURCE_PROGRAMME_UNRESOLVED after taking custody. THE NEW RULE, wider
+   than the old one because it covers every setup screen and the Today screen
+   too: no setup screen offers the route at all, and "from setup's end"
+   (DECISIONS:470) is served on the screen setup ends on - Today, on the very
+   frame the first run lands. Both halves are executed below. */
+test('P3-U5 - NO SETUP SCREEN offers the route, because on setup\'s last screen '
+  + 'the walk refuses LOCAL_SOURCE_PROGRAMME_UNRESOLVED; the entry is on TODAY, '
+  + 'from the frame the first run lands', async () => {
+  const fresh = await phoneDevice({ at: SUMMER.at, day: SUMMER.day, firstRun: false });
+  const doc = fresh.doc, model = fresh.booted.setup.setup;
+  assert.equal(fresh.booted.setup.firstRun(), true, 'this installation is not fresh');
+  for (let screen = 1; screen <= 6; screen++) {
     model.goto(screen);
-    await booted.api.render('setup', false);
+    await fresh.booted.api.render('setup', false);
     assert.equal(slot(doc, 'import-entry'), null, 'the link is on setup screen ' + screen);
   }
-  model.goto(6);
-  await booted.api.render('setup', false);
-  const link = slot(doc, 'import-entry');
-  assert.ok(link, 'setup\'s last screen offers no Import link');
+  /* THE RED SIDE, executed rather than argued: the route opened from where that
+     link stood refuses, names the code, and leaves the device exactly as it
+     was. */
+  const before = await durable(fresh.era);
+  await fresh.booted.api.render('import', true);
+  const refused = await walkFromHere(fresh.win, fresh.booted, SEALED);
+  assert.equal(refused.refusal().code, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED',
+    'the setup-screen entry would have worked after all: ' + JSON.stringify(refused.refusal()));
+  /* "Nothing was written" means every consumer reads what it read before. The
+     REVISION is the one number that moves and must: retract deletes nothing, so
+     the custody commit and the retraction record are both still on disk
+     (P3-IMPORT-RETRACT, DECISIONS:477), and a revision that had gone back would
+     mean something had been erased. */
+  const after = await durable(fresh.era);
+  assert.deepEqual({ ...after, revision: null }, { ...before, revision: null },
+    'the refused walk left something behind');
+  assert.equal(after.revision, before.revision + 2,
+    'the custody commit and its retraction are not both on disk: ' + after.revision);
+  /* AND FINDING 4: the painted refusal prints the code ONCE. */
+  assert.equal(slot(doc, 'import-refusal').textContent, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+  fresh.close();
+
+  /* THE GREEN SIDE: the same words, on Today, the moment the first run exists. */
+  const enrolled = await phoneDevice({ at: SUMMER.at, day: SUMMER.day });
+  await enrolled.booted.api.render('today', true);
+  const link = slot(enrolled.doc, 'import-entry');
+  assert.ok(link, 'Today offers no Import link');
   assert.equal(link.textContent, Screen.COPY.entryNew);
   tap(link);
+  await enrolled.booted.api.render('import', false);
+  assert.equal(enrolled.booted.api.screen(), 'import', 'the link opened nothing');
+  assert.ok(textOf(enrolled.doc).includes(Screen.COPY.pickLabel),
+    'it opened something other than the route');
+  enrolled.close();
+});
+
+/* ONE TAP AT A TIME from wherever the route is already open. Shared by the
+   phone-configuration cells below so each of them differs only in WHERE the
+   athlete tapped. */
+async function walkFromHere(win, booted, sealed) {
+  const doc = win.document;
+  pickBundle(win, doc.getElementById('import-file'), sealed.bytes);
   await booted.api.render('import', false);
-  assert.equal(booted.api.screen(), 'import', 'the link opened nothing');
-  assert.ok(textOf(doc).includes(Screen.COPY.pickLabel), 'it opened something other than the route');
-  booted.rollover.stop(); booted.teardown(); era.close();
+  type(doc.getElementById('import-passphrase'), sealed.passphrase);
+  await afterTap(booted, slot(doc, 'import-unlock'));
+  await afterTap(booted, slot(doc, 'import-identity-yes'));
+  const confirm = slot(doc, 'import-confirm');
+  return confirm ? afterTap(booted, confirm) : booted.api.importScreen();
+}
+
+/* BAR (a), ON THE CONFIGURATION A PHONE HAS (round 2, review r1 finding 1).
+   ONE IDBFactory, ONE installation - gym-host.mjs's own openTodayHosts with its
+   own defaults, which is the installation the measure lane opens too - a first
+   run, and then the athlete taps the link on Today and walks the whole sequence.
+   No second store anywhere, and no helper hands the page a store the phone does
+   not have. This is the cell bar (a) is judged by. */
+test('P3-U6 (bar a, ONE STORE) - on the phone\'s own installation the athlete '
+  + 'taps Import on Today and the whole sequence ADMITS', async () => {
+  const phone = await phoneDevice({ at: SUMMER.at, day: SUMMER.day });
+  const doc = phone.doc;
+  const before = await durable(phone.era);
+  assert.equal(before.ops, 1, 'this installation holds more than its first run: ' + before.ops);
+  await phone.booted.api.render('today', true);
+  const link = slot(doc, 'import-entry');
+  assert.ok(link, 'Today offers no Import link');
+  tap(link);
+  await phone.booted.api.render('import', false);
+  const screen = await walkFromHere(phone.win, phone.booted, SEALED);
+  assert.equal(screen.refusal(), null, 'the route refused: ' + JSON.stringify(screen.refusal()));
+  assert.equal(screen.step(), 'done');
+  assert.ok(textOf(doc).includes(Screen.COPY.done));
+  const after = await durable(phone.era);
+  assert.equal(after.applied, true, 'no basis was committed');
+  assert.equal(after.basis, true);
+  assert.equal(after.ops, before.ops, 'admission minted an operation of its own');
+  assert.deepEqual(after.rebaseRequired, []);
+  /* AND THE ATHLETE'S OWN STATE, adopted: Today and the gym card stand on the
+     loads the file carried, not on the fixture's. */
+  const basis = phone.booted.model.basisState();
+  assert.deepEqual(basis.exercises.map(e => [e.id, e.w]),
+    [['db-bench', 45], ['lat-pulldown', 80], ['leg-press', 120]], 'the import is not the basis');
+  /* FINDING 7: re-entering the route hands back the summary, not the sentence
+     that belongs to the import he just confirmed. */
+  await phone.booted.api.render('today', true);
+  tap(slot(doc, 'import-entry'));
+  await phone.booted.api.render('import', false);
+  const text = textOf(doc);
+  assert.ok(text.includes(Screen.COPY.summaryHead), 're-opening shows no summary');
+  assert.equal(text.includes(Screen.COPY.done), false,
+    're-opening still shows the done sentence: ' + text);
+  assert.equal(slot(doc, 'import-entry'), null, 'the route paints an entry link of its own');
+  phone.close();
 });

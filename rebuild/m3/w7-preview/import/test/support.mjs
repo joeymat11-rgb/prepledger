@@ -300,3 +300,30 @@ export function installTraps(win) {
   };
   return { fired: () => fired.slice() };
 }
+
+/* ---------------------------------------------------------------------------
+   THE PHONE'S OWN CONFIGURATION (round 2, review r1 finding 1).
+
+   A phone has ONE IndexedDB and ONE installation. Every other helper above
+   opens the page on a per-cell database name, which keeps cells independent but
+   also puts the measure lane - which always opens gym-host.mjs's DEFAULT
+   database and namespace (measure-screen.mjs:70 passes neither) - BESIDE the
+   page's installation instead of inside it. That difference is not cosmetic: it
+   decides whether the measure lane's operations are in the generation admission
+   replays. So the cells that make a claim about what an athlete gets open the
+   page THIS way, through gym-host.mjs's own openTodayHosts with its own
+   defaults, and the IDBFactory is put on the window as well so the measure lane
+   finds the same store.
+   --------------------------------------------------------------------------- */
+export async function phoneDevice({ at, day, firstRun: enrol = true } = {}) {
+  const { openTodayHosts } = await import('../../today/gym-host.mjs');
+  const indexedDB = new IDBFactory();
+  const win = shellWindow();
+  Object.defineProperty(win, 'indexedDB', { configurable: true, value: indexedDB });
+  const era = await openTodayHosts({ indexedDB, crypto: win.crypto, live: liveAt(at) });
+  if (enrol) await firstRun(era, day);
+  const booted = await Entry.boot({ document: win.document, hosts: era, now: liveAt(at) });
+  await booted.api.ready;
+  return { indexedDB, win, doc: win.document, era, booted,
+    close: () => { booted.rollover.stop(); booted.teardown(); era.close(); } };
+}

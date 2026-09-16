@@ -40,7 +40,7 @@ const { COPY, VALIDATION, MISSING, MG_LABELS, SETS_OPTIONS, HI_OPTIONS, WEEKDAYS
 const groupWord = (g) => GROUP_WORDS[g] || g;
 const regionWord = (r) => REGION_WORDS[r] || r;
 
-export function mountSetup(doc, phone, { model, onDone, onBack, importLink = null } = {}) {
+export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
   if (!phone) throw new Error('First run: no host element');
   let busy = false;
   let entered = false;
@@ -541,19 +541,6 @@ export function mountSetup(doc, phone, { model, onDone, onBack, importLink = nul
     /* The fine slot stays empty: screen 6 carries the no-load sentence in its own
        body, beside the week it is about, and saying it twice would be noise. */
     put(map, 'fine', '');
-
-    /* P3-IMPORT-UI-2 (DECISIONS:470, "entry ... from setup's end"). ONE link, on
-       the LAST screen only, beside the primary. Its words and its destination
-       are the caller's: this file composes no label and knows nothing about what
-       the link opens, so a page that hands over no `importLink` is byte-for-byte
-       the screen that shipped. */
-    if (importLink && n === SCREENS) {
-      const link = el('button', 'option', importLink.label(), 'import-entry');
-      link.type = 'button';
-      link.dataset.slot = 'import-entry';
-      link.addEventListener('click', () => importLink.onTap());
-      body.append(link);
-    }
 
     phone.replaceChildren(root);
     if (!entered || focus) {

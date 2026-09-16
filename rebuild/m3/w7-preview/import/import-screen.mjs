@@ -48,7 +48,8 @@ import Production from '../../../m4/import/production-mapping.cjs';
    programme fields - so this answer is the ONLY identity guard there is
    (DECISIONS:472 (a)). It has to be asked of him, before anything is written,
    and it must be the CONTROLLER'S question and not a rewording of it: this
-   constant is source-admission.mjs:80's `prefix_question` byte for byte, and
+   constant is source-admission.mjs:96's `prefix_question` byte for byte (the
+   ticket cites :80, which is where it stood before the lane D import swap), and
    identityYes() refuses to go on if the controller's own review comes back
    asking something else. */
 export const IDENTITY_QUESTION = 'Did every workout in this file happen before '
@@ -58,7 +59,7 @@ export const IDENTITY_QUESTION_CHANGED = 'LOCAL_SOURCE_IDENTITY_QUESTION_CHANGED
 /* EVERY STRING THE ATHLETE READS ON THIS ROUTE. Named here so the copy census
    cell can count them and so no sentence is composed at a call site. The one
    string this file does NOT own is the identity question: that belongs to the
-   controller and is printed exactly as source-admission.mjs:80 states it. */
+   controller and is printed exactly as source-admission.mjs:96 states it. */
 export const COPY = Object.freeze({
   title: 'Import my history',
   back: 'Back',
@@ -99,7 +100,14 @@ export const RETRACT_REASON = Object.freeze({
    anticipated. */
 export const REFUSAL_SENTENCE = Object.freeze({ BUNDLE_AUTH_FAILED: COPY.authFailed });
 
-const codeLine = (code, detail) => String(code) + (detail ? ' (' + detail + ')' : '');
+/* Round 2, review r1 finding 4: a refusal that carried ONE code printed it
+   twice - "LOCAL_SOURCE_PROGRAMME_UNRESOLVED (LOCAL_SOURCE_PROGRAMME_UNRESOLVED)"
+   - because confirm() passes the first code AND the joined list. The detail is
+   what the machinery said BESIDES the code, so a detail that repeats the code
+   is not detail. Nothing is hidden: confirm() below now hands over only the
+   codes after the first. */
+const codeLine = (code, detail) =>
+  String(code) + (detail && String(detail) !== String(code) ? ' (' + detail + ')' : '');
 
 export function refusalLines(code, detail) {
   const lines = [codeLine(code, detail)];
@@ -165,10 +173,6 @@ export function retractionRows(retractions) {
     ['Reason label', String(record.reason)],
     ['File sha256', String(record.sourceSha256)]]]);
 }
-
-/* The entry link's own words, in one place, so the Measure line and the setup
-   screen can never disagree about what the athlete is being offered. */
-export const entryLabel = admitted => (admitted ? COPY.entryDone : COPY.entryNew);
 
 /* ---------------------------------------------------------------------------
    THE SCREEN. Pure DOM with data-slot on everything, exactly as the measure
@@ -339,8 +343,11 @@ export function createImportScreen(deps = {}) {
       const prepared = await controller.prepareSource(review,
         { identityConfirmed: true, prefixAnswer: true });
       if (prepared.profile !== 'earned/local-source-qualification/v1') {
-        const codes = (prepared.issues || []).map(issue => issue.code);
-        fail(codes[0] || 'LOCAL_SOURCE_NOT_READY', [...new Set(codes)].join(' '));
+        const codes = [...new Set((prepared.issues || []).map(issue => issue.code))];
+        /* The first code is the refusal; the REST are the detail, so a walk
+           that raised one code prints it once and a walk that raised several
+           prints all of them (review r1 finding 4). */
+        fail(codes[0] || 'LOCAL_SOURCE_NOT_READY', codes.slice(1).join(' ') || null);
         await retract(RETRACT_REASON.refused);
       } else {
         const capability = localSourceCommitCapability(prepared);
@@ -478,7 +485,17 @@ export function createImportScreen(deps = {}) {
     return root;
   }
 
-  return Object.freeze({ paint, step: () => step, refusal: () => refusal,
+  /* RE-ENTERING THE ROUTE (round 2, review r1 finding 7). The page caches this
+     screen for the whole page session, so the done sentence - which belongs to
+     the import the athlete just confirmed - must not be what a LATER tap on the
+     entry link paints. today-app.cjs calls this on a tap and never on a
+     repaint. It resets nothing but the step: no custody is open at 'done', and
+     the summary below is read back from the machinery on every paint. */
+  function reopen() {
+    if (step === 'done') { step = 'summary'; note = ''; refusal = null; }
+  }
+
+  return Object.freeze({ paint, reopen, step: () => step, refusal: () => refusal,
     imports: () => imports.slice(), retractions: () => retractions.slice(),
     busy: () => busy, review: () => review, custody: () => custody,
     /* What the last tap started, so a caller can await it instead of guessing. */
@@ -487,4 +504,4 @@ export function createImportScreen(deps = {}) {
 
 export default { createImportScreen, COPY, STEPS, IDENTITY_QUESTION, RETRACT_REASON,
   REFUSAL_SENTENCE, refusalLines, unlockedFacts, reviewFacts, summaryRows, retractionRows,
-  entryLabel, ENGINE_REVISION_LABEL };
+  ENGINE_REVISION_LABEL };

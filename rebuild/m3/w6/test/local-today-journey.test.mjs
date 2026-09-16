@@ -652,21 +652,23 @@ export const PAGE_PINS = Object.freeze({
      Re-read again at this re-pin: the `hosts` branch is still byte-unchanged,
      an INJECTED installation is still never closed by this page, and a
      declared-day caller still gets no watcher and so never reaches any of it. */
-  /* P3-IMPORT-UI-2 re-pin (DECISIONS:475 (1) and (4)). today-entry.mjs moves by
-     TWO hunks and no more, both of them pass-throughs: boot() hands mountToday
-     the installation it has ALREADY opened (`installation: hosts`), because the
-     Import route is the one screen that needs the local durable client itself -
-     importBundle, listImports and retractImport are its methods, and the
-     admission controller wants its own hostBindings so it never shares staging
-     state with the setup or gym handles; and createSetupEntry's open() forwards
-     an `importLink` it composes no part of, so the link on setup's last screen
-     belongs to the page and this file knows nothing about what it opens.
-     Re-read against today-bindings.mjs at this re-pin, as every re-pin must:
-     boot() still opens the local era BY DEFAULT (the `hosts` branch is
-     byte-unchanged - the new line READS `hosts`, it does not open one), NO
-     wrapper opens a store of its own, an INJECTED installation is still never
-     closed by this page, and a declared-day caller still gets no watcher. */
-  'today-entry.mjs': '5e4701ce67a15f3b0be804e2df6877812b05427f2b953f80ff42c435ec6fbad4',
+  /* P3-IMPORT-UI-2 re-pin (DECISIONS:475 (1) and (4)), ROUND 2. today-entry.mjs
+     moves by ONE hunk and no more, and it is a pass-through: boot() hands
+     mountToday the installation it has ALREADY opened (`installation: hosts`),
+     because the Import route is the one screen that needs the local durable
+     client itself - importBundle, listImports and retractImport are its
+     methods, and the admission controller wants its own hostBindings so it
+     never shares staging state with the setup or gym handles. (Round 1 also
+     forwarded an `importLink` into createSetupEntry's open(); review r1 finding
+     1 showed that a link on setup's LAST screen can only refuse, because the
+     first run is not saved yet, so that hunk is gone and open() is byte-
+     identical to the shipped one.) Re-read against today-bindings.mjs at this
+     re-pin, as every re-pin must: boot() still opens the local era BY DEFAULT
+     (the `hosts` branch is byte-unchanged - the new line READS `hosts`, it does
+     not open one), NO wrapper opens a store of its own, an INJECTED
+     installation is still never closed by this page, and a declared-day caller
+     still gets no watcher. */
+  'today-entry.mjs': '6c2bc8f8730abf5cbd08a048d12f02e05eb18a5307403964f94f0634ce547922',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

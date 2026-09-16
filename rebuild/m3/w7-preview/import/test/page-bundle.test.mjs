@@ -59,6 +59,23 @@ const STILL_FORBIDDEN = Object.freeze([
   ['ledger/*', p => /^ledger\//.test(p)],
   ['src/history.js', p => p === 'src/history.js'],
   ['rebuild/m4/workout/engine-runtime.cjs', p => p === 'rebuild/m4/workout/engine-runtime.cjs']]);
+/* THE MODULES THE IMPORT ROUTE COSTS THE ONE PAGE, in one place because two
+   cells now need the same list: P3-B4 proves it IS the route-only set by
+   walking the built graph, and P3-B5 weighs exactly those inputs in the
+   shipped asset (round 2, review r1 finding 3). */
+const ROUTE_MODULES = Object.freeze(['rebuild/coach/engine-revision.cjs',
+  'rebuild/engine/merge.cjs', 'rebuild/engine/migrate.cjs',
+  'rebuild/m3/w6/local/browser-entry.mjs', 'rebuild/m3/w6/local/source-admission.mjs',
+  'rebuild/m3/w6/local/source-platform.mjs', 'rebuild/m3/w6/reading-history.mjs',
+  'rebuild/m3/w7-preview/import/import-screen.mjs',
+  'rebuild/m4/import/browser-replay.mjs', 'rebuild/m4/import/daily-history.cjs',
+  'rebuild/m4/import/engine-provider.cjs', 'rebuild/m4/import/local-source-order.cjs',
+  'rebuild/m4/import/local-source-profile.cjs',
+  /* SIXTEENTH SINCE THE REBASE ONTO P3-REPLAY-MEASURE-FAMILY: the F7 family.
+     source-admission.mjs reaches it, so the route carries it and the boot path
+     still does not. Named, not folded into a wildcard. */
+  'rebuild/m4/import/measure-replay.cjs',
+  'rebuild/m4/import/production-mapping.cjs', 'rebuild/m4/import/replay-core.cjs']);
 const tripped = (list, paths) => list.filter(([, m]) => paths.some(m)).map(([label]) => label);
 const graphOf = outfile => JSON.parse(fs.readFileSync(outfile + '.meta.json', 'utf8')).metafile;
 
@@ -195,15 +212,9 @@ test('P3-B4 - THE LAW CELL over the REAL page: the Today boot graph excludes '
     for (const edge of (inputs[at] || { imports: [] }).imports) if (!route.has(edge.path)) r.push(edge.path);
   }
   const only = [...route].filter(p => !boot.has(p)).sort();
-  assert.deepEqual(only, ['rebuild/coach/engine-revision.cjs', 'rebuild/engine/merge.cjs',
-    'rebuild/engine/migrate.cjs', 'rebuild/m3/w6/local/browser-entry.mjs',
-    'rebuild/m3/w6/local/source-admission.mjs', 'rebuild/m3/w6/local/source-platform.mjs',
-    'rebuild/m3/w6/reading-history.mjs', IMPORT_ENTRY,
-    'rebuild/m4/import/browser-replay.mjs', 'rebuild/m4/import/daily-history.cjs',
-    'rebuild/m4/import/engine-provider.cjs', 'rebuild/m4/import/local-source-order.cjs',
-    'rebuild/m4/import/local-source-profile.cjs', 'rebuild/m4/import/measure-replay.cjs',
-    'rebuild/m4/import/production-mapping.cjs', 'rebuild/m4/import/replay-core.cjs'],
+  assert.deepEqual(only, [...ROUTE_MODULES].sort(),
     'the Import route costs the page exactly these modules and no others');
+  assert.ok(ROUTE_MODULES.includes(IMPORT_ENTRY), 'the route entry is not in the route-only set');
 });
 
 test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
@@ -214,17 +225,47 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
     'the page is still three assets: the route is lazy, not a second document');
   assert.equal(today.importRoute.route, IMPORT_ENTRY);
   const built = fs.statSync(path.join(today.dist, 'app.js')).size;
-  const before = fs.statSync(path.join(SCRATCH, 'baseline/app.js')).size;
-  /* Measured on this tree: the shipped page WITHOUT the route was 1 668 330 B /
-     121 modules; with it, 1 961 006 B / 136 modules, +292 676 B (+17.5%). The
-     brief measured +260 KB for source-admission alone (DECISIONS:475); the
-     difference is the route's own four extra modules - production-mapping.cjs,
-     engine-revision.cjs, browser-entry.mjs and import-screen.mjs itself - which
-     the brief's probe did not carry. Recorded so the next author re-measures. */
-  assert.ok(built > before, 'the route costs bytes and this cell records how many');
-  assert.ok(built - before < 400000,
-    'the route now costs +' + (built - before) + ' bytes on the one page');
-  assert.equal(today.inventory.length - 121, 15, 'the delta is 15 modules');
+  /* ROUND 2, REVIEW R1 FINDING 3, AND THE RULE WRITTEN WHERE THE OLD ONE STOOD.
+     THE OLD ASSERTION was `built - before < 400000`, with `before` the size of
+     SCRATCH/baseline/app.js. That file is built from today-entry.mjs AT HEAD and
+     therefore ALREADY CARRIES THE ROUTE, so the difference was a few hundred
+     bytes and the bound could not fail: it proved nothing and it read as though
+     it proved the report's headline figures. It is REPLACED, not dropped, by
+     the same fact measured where the bundler actually records it -
+     esbuild's per-input bytesInOutput, in the ONE asset the page ships - so
+     what the route costs is proved here instead of hand-measured. The base
+     build is still what the report quotes for the whole-asset figure, and the
+     report now says so in as many words. */
+  const outputs = JSON.parse(fs.readFileSync(path.join(REPO, '.tmp/p3-a1-scratch/app.js.meta.json'),
+    'utf8')).metafile.outputs;
+  const asset = outputs[Object.keys(outputs).find(name => name.endsWith('app.js'))];
+  assert.ok(asset && asset.inputs, 'the build recorded no per-input accounting');
+  const bytesOf = names => names.reduce((sum, name) =>
+    sum + ((asset.inputs[name] || { bytesInOutput: 0 }).bytesInOutput || 0), 0);
+  const routeOnly = ROUTE_MODULES.filter(name => asset.inputs[name]);
+  assert.deepEqual(routeOnly.sort(), [...ROUTE_MODULES].sort(),
+    'a module P3-B4 proved is route-only is not in the shipped asset');
+  const routeBytes = bytesOf(ROUTE_MODULES);
+  const allBytes = bytesOf(Object.keys(asset.inputs));
+  /* The route is a SIXTH of the asset every athlete downloads, and nothing here
+     rounds that down. The band is wide enough to survive a bundler patch and
+     narrow enough to fail if the route ever doubles or is quietly dropped; the
+     exact figure of the day is in the message. */
+  assert.ok(routeBytes > 250000 && routeBytes < 400000,
+    'the Import route contributes ' + routeBytes + ' B of the asset\'s ' + allBytes
+    + ' B (' + (100 * routeBytes / allBytes).toFixed(1) + '%): re-measure and say so');
+  assert.ok(allBytes <= built && allBytes > built - 120000,
+    'the per-input accounting (' + allBytes + ' B) does not add up to the built asset ('
+    + built + ' B), so the figure above is not the whole story');
+  /* AND THE MODULE DELTA, against the base this branch is built on. 121 is the
+     pinned-input count of the base, measured by building that commit in its own
+     worktree; it is a constant here because this cell cannot check out another
+     commit, and the report names the sha. RE-MEASURED ON THE NEW BASE
+     (origin/rebuild/d-p3-replay-measure 47a223d): the boot count is still 121 -
+     the F7 family is reached only from source-admission.mjs and so is route-only
+     - and the delta is 16, the fifteen of round 2 plus measure-replay.cjs. */
+  const BASE_PINNED_INPUTS = 121;
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 16, 'the delta is 16 modules');
 });
 
 test('P3-B6 - the route is LAZY in the built asset: its module bodies are behind '

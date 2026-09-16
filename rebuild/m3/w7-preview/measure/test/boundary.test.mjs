@@ -112,17 +112,24 @@ test('P-MEASURE (g) - no S4-sealed file drifts except where a declaring spec say
 
      THE NEW REASON (P3-IMPORT-UI-2, DECISIONS:475 (1) and (4)): a second lane C
      ticket now lands on the same branch and it cannot be held to P-MEASURE's
-     one file, because the Import route needs a screen case and a lazy loader in
-     today-app.cjs, the installation and the setup link forwarded through
-     today-entry.mjs, the link painted on setup's last screen, the route's own
-     16 px / 48 px / 44 px rule in preview.css, and the re-reasoned input law in
-     build.mjs. Each is named here, so the guard is exactly as tight as it was -
-     a SIXTH file under today/ is still red - and nothing is exempted by being
-     counted rather than named. today-app.cjs must still be in the set, because
-     without it neither ticket delivered anything. */
+     one file, because the Import route needs a screen case, a lazy loader and
+     two entry links in today-app.cjs, the installation forwarded through
+     today-entry.mjs, the route's own 16 px / 48 px / 44 px rule in preview.css,
+     and the re-reasoned input law in build.mjs. Each is named here, so the
+     guard is exactly as tight as it was - a FIFTH file under today/ is still
+     red - and nothing is exempted by being counted rather than named.
+     today-app.cjs must still be in the set, because without it neither ticket
+     delivered anything. setup-app.mjs is NOT in it: round 2 took the entry link
+     off the setup screens (review r1 finding 1, P3-U5) and the file is
+     byte-identical to the shipped one again.
+
+     UNPROVEN ON THIS BRANCH, and said so rather than left to be discovered:
+     the assertion at the top of this cell is red here, because S5 declares no
+     post for the four sealed files these two tickets move, so execution never
+     reaches the named set below. S6 declares those bytes and this widening
+     starts running the same day. */
   const MINE = 'rebuild/m3/w7-preview/today/today-app.cjs';
   const P3_IMPORT_UI_2 = ['rebuild/m3/w7-preview/today/today-entry.mjs',
-    'rebuild/m3/w7-preview/today/setup-app.mjs',
     'rebuild/m3/w7-preview/today/preview.css',
     'rebuild/m3/w7-preview/today/build.mjs'];
   assert(drifted.includes(MINE), 'today-app.cjs does not drift, so this lane delivered nothing');

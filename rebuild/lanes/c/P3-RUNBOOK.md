@@ -92,26 +92,32 @@ all say PASS; ORACLE must show `10/10` in both `frozen` and `unfrozen` modes,
 `scope FULL` (private blob present). Anything else: STOP, do not move the
 file, and report the exact line — see "If it stops" in the README.
 
-## Move + unseal (phone) — the real taps
+## Move + unseal (phone): the real taps
 
 Every label below is quoted from the SERVED page: `edge-route.mjs` runs this
 exact sequence in real headless Edge against the A1 dist on the real clock and
 prints the labels it read (P3-IMPORT-UI-2 bar item j).
 
-**Before step 2, do not open Measure on this phone.** Opening the Measure
-screen writes the measure lane's own trial-start operation into the same record
-admission replays, and the import then refuses `LOCAL_SOURCE_CONTEXT_UNRESOLVED`
-(pinned by `refusal-route.test.mjs` P3-X9; open item 1 of
-`rebuild/lanes/c/P3-IMPORT-UI-2-AUTHOR-REPORT.md`). Import first, Measure after.
-Nothing is lost either way - a refused import retracts itself - but the day goes
-faster in that order.
+**Before step 2, do not open Measure on this phone.** This is not a preference,
+it is the difference between the import working and not working. The FIRST
+render of the Measure screen writes two `earned/measure-trial-start/v1`
+operations into the very record admission replays, and the S3 replay has no
+family for that class, so from that moment every import on this installation
+refuses `LOCAL_SOURCE_CONTEXT_UNRESOLVED` until lane D teaches it one. Pinned,
+both sides, by `refusal-route.test.mjs` P3-X9 and P3-X10; open item 1 of
+`rebuild/lanes/c/P3-IMPORT-UI-2-AUTHOR-REPORT.md`. Nothing is lost if it
+happens - a refused import retracts itself and writes nothing - but the history
+cannot be admitted on that phone afterwards. Import first, Measure after.
 
 1. Move only `earned-port-<date>.json` to the phone (any route - sealed).
    Keep `earned-port-<date>-PASSPHRASE.txt` on the PC.
-2. Open Earned and tap **"Import my history"**. It is on the last setup screen
-   on a fresh install, and on the Measure screen beside the "No baseline yet"
-   line thereafter. (Once a history is admitted the same link reads
-   **"History imported"** and opens a read-only summary instead.)
+2. Open Earned and tap **"Import my history"** ON THE TODAY SCREEN, below the
+   "Measure" button. Do not tap "Measure". (The same link is also on the
+   Measure screen beside the "No baseline yet" line, and that one is the entry
+   DECISIONS:470 asked for, but see the warning above: by the time it paints,
+   the operations that refuse the import have been written.) Once a history is
+   admitted the link reads **"History imported"** and opens a read-only summary
+   instead.
 3. Step 1 of the screen, **"Choose the earned-port file"**: the file picker
    accepts `.json`. Pick the bundle you just moved. Nothing is read yet.
 4. Step 2, **"Type the six words from the PC"**: type them exactly

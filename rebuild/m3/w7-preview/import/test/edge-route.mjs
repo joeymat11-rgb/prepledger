@@ -103,16 +103,25 @@ try {
   taps.push(['Device zone and offset', seeded.zone + ' ' + seeded.offsetMinutes]);
   taps.push(['Installation first run', seeded.day + ' ' + JSON.stringify(seeded.ops)]);
 
-  /* 2. THE SHIPPED PAGE, ON THE IMPORT ROUTE - and NOT through the Measure
-     screen, for a reason this run is what found (see the report's open item 1
-     and P3-X9): opening Measure writes the measure lane's own trial-start
-     operation into THIS installation's generation, and the S3 admission replay
-     has no family for it, so an import attempted after Measure has been opened
-     refuses LOCAL_SOURCE_CONTEXT_UNRESOLVED. The athlete the runbook describes
-     opens Import from setup's last screen or straight from the route, which is
-     what this run does; the Measure link's own two labels are read off the
-     served page in step 8 and step 9. */
-  await page.goto(origin + '/index.html?screen=import', { waitUntil: 'load' });
+  /* 2. THE SHIPPED PAGE, AND THE ENTRY LINK ON TODAY, CLICKED. Round 2 (review
+     r1 finding 1): this run used to navigate straight to ?screen=import, so the
+     entry itself was never taken in a browser. It is taken here, from the Today
+     screen, which is the entry the runbook now sends the operator to and the
+     only one on this page that can admit.
+
+     NOT through the Measure screen, for a reason this run is what found (see
+     the report's open item 1, P3-X9 and P3-X10): the first render of Measure
+     writes this installation's trial-start operations, and the S3 admission
+     replay has no family for them, so an import attempted after Measure has
+     been opened refuses LOCAL_SOURCE_CONTEXT_UNRESOLVED. The Measure link's own
+     two labels are read off the served page in step 8 and step 9. */
+  await page.goto(origin + '/index.html', { waitUntil: 'load' });
+  const entry = page.locator('[data-slot="import-entry"]');
+  await entry.waitFor({ state: 'visible', timeout: 20000 });
+  taps.push(['Today entry link', await entry.textContent()]);
+  assert.equal(await entry.evaluate(node => Math.round(node.getBoundingClientRect().height) >= 44), true,
+    'the served entry link is under the 44 px tap minimum');
+  await entry.click();
 
   /* 3. PICK THE FILE. A real <input type="file"> and a real file. */
   const pick = page.locator('#import-file');

@@ -131,12 +131,9 @@ export async function createSetupEntry({ today: day }, options = {}) {
     },
     refresh,
     setOnRefresh(fn) { onRefresh = fn; },
-    open({ doc, phone, back, done, importLink = null }) {
+    open({ doc, phone, back, done }) {
       return mountSetup(doc, phone, { model: setup,
         onBack: back,
-        /* P3-IMPORT-UI-2 (DECISIONS:470 "from setup's end"). Forwarded
-           unchanged: this entry composes no label and opens no route. */
-        importLink,
         /* ONE write, at the end, all or nothing. The screen reports what the
            durable layer answered and never its own optimism. */
         async onDone(document_) {
