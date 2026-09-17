@@ -949,6 +949,36 @@
       "pre": "53ebf0c6427fb321dc025d015a1e7ff9a3043c74221d9203ca26802312daa331",
       "post": "53ebf0c6427fb321dc025d015a1e7ff9a3043c74221d9203ca26802312daa331",
       "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-engine-files-differential.cjs": {
+      "pre": null,
+      "post": "392e5e8c0d62ecba76e5ee9b883a34d31c67cd4b27debfdf41bad8a0bd0ad4d9",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s6-supersede-defect-witnesses.test.cjs": {
+      "pre": null,
+      "post": "1cbb4f92ba9ddfae0d69059734ea033820ff96df2d57f76627f16f0a832c4800",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s6-supersede-inherited-carriers.test.cjs": {
+      "pre": null,
+      "post": "1dc1a8444d67de278af4d8219b9703a0fbf05b9be1b193b7f3582df433639ed5",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s6-supersede-second-gate.test.cjs": {
+      "pre": null,
+      "post": "aabd394889930a5806fc8ab967d778d4c9d908c3eaef745f408d8478bb14da1d",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s6-supersede-source-carriers.test.cjs": {
+      "pre": null,
+      "post": "daa1635fbb7b2f012fb7bd50d244ca2bc4fd4f236d08536e9c7b045aca8576ac",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s6-supersede-writers-differential.test.cjs": {
+      "pre": null,
+      "post": "5a56bb475c193b3124b9574b19f877e6132b35763e3cb20b3a08c2fce34ecadb",
+      "role": "new"
     }
   },
   "coverage": {
