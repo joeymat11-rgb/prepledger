@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "c081cbd945cb17b4d727fcde97b572f2d85710f6",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-09-17 · cowork · POSTFIX-ACCEPTANCE M2-S7-PORT-ADMISSION e7fb94be36e13db1ff29d70a3e7ee3078f1e7f14 rebuild/m4/spec/acceptance-s7-port-admission.json 350f56885c5eb55eecada58cadfb011656ddc58b82fc8fdc514ddc4503af791b ACCEPTED",
+    "lineSha256": "285b5218b9b209dd944e61b155a32abc74e71078cfc36e2476a5e6d532556ff3"
+  }
+}
