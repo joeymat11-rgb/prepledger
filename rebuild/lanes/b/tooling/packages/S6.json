@@ -677,8 +677,8 @@
     },
     "rebuild/m4/import/test/production-mapping.test.cjs": {
       "pre": "5d7285afa1878e453ec927199d12a986d5cedd913969ea9082c3d928db2edc71",
-      "post": "5d7285afa1878e453ec927199d12a986d5cedd913969ea9082c3d928db2edc71",
-      "role": "pinned-unchanged"
+      "post": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
+      "role": "new"
     },
     "rebuild/m4/import/test/reading-replay.test.cjs": {
       "pre": "83c9f88d961af688164d345964b38018429aadff26b2e37e106e92484ed94fca",
@@ -1276,7 +1276,7 @@
         "rebuild/m4/import/test/production-mapping.test.cjs",
         "rebuild/m4/import/test/production-admission.test.mjs"
       ],
-      "needle": "# pass 25"
+      "needle": "# pass 28"
     },
     {
       "name": "d-import-retract",

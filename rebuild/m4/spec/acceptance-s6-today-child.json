@@ -14,7 +14,7 @@
   },
   "spec": {
     "file": "rebuild/lanes/b/tooling/packages/S6.json",
-    "sha256": "18583855755d2a31a543650e5eb92811543424472fb96d0f05dd13665795f1c0"
+    "sha256": "6c9bef2c2bf6d046add6e8c277f5a54cccafbb17bdb8de1b019dba14b1e94e5d"
   },
   "runner": {
     "file": "rebuild/lanes/b/tooling/b-package.cjs",
@@ -830,8 +830,8 @@
     },
     "rebuild/m4/import/test/production-mapping.test.cjs": {
       "pre": "5d7285afa1878e453ec927199d12a986d5cedd913969ea9082c3d928db2edc71",
-      "post": "5d7285afa1878e453ec927199d12a986d5cedd913969ea9082c3d928db2edc71",
-      "role": "pinned-unchanged"
+      "post": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
+      "role": "new"
     },
     "rebuild/m4/import/test/reading-replay.test.cjs": {
       "pre": "83c9f88d961af688164d345964b38018429aadff26b2e37e106e92484ed94fca",
@@ -1325,7 +1325,7 @@
         "rebuild/m4/import/test/production-mapping.test.cjs",
         "rebuild/m4/import/test/production-admission.test.mjs"
       ],
-      "needle": "# pass 25"
+      "needle": "# pass 28"
     },
     {
       "name": "d-import-retract",
@@ -1434,7 +1434,7 @@
   },
   "executionPins": {
     "rebuild/lanes/b/tooling/b-package.cjs": "8d9a94c20faa2e856db3e3bf9f9aea8e835516307c6b7c5c95b51a0b0c49a385",
-    "rebuild/lanes/b/tooling/packages/S6.json": "18583855755d2a31a543650e5eb92811543424472fb96d0f05dd13665795f1c0",
+    "rebuild/lanes/b/tooling/packages/S6.json": "6c9bef2c2bf6d046add6e8c277f5a54cccafbb17bdb8de1b019dba14b1e94e5d",
     "rebuild/lanes/b/S6-TODAY-CHILD-BRIEF.md": "8a9a63ee49b5a95260c0102ec937f0d5558e979b75fc3b9da39368c0e4dd2d1d",
     "rebuild/m3/w7-preview/today/test/adapter.test.mjs": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
     "rebuild/m3/w7-preview/today/test/catalogue.test.mjs": "a586e3eb4917302864d86937294b1eb824f32931ddaf552c5deb4f97e067322f",
@@ -1473,7 +1473,7 @@
     "rebuild/m4/import/test/engine-provider.test.cjs": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8",
     "rebuild/m4/import/test/local-source-order.test.cjs": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
     "rebuild/m4/import/test/browser-parity.test.mjs": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632",
-    "rebuild/m4/import/test/production-mapping.test.cjs": "5d7285afa1878e453ec927199d12a986d5cedd913969ea9082c3d928db2edc71",
+    "rebuild/m4/import/test/production-mapping.test.cjs": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
     "rebuild/m4/import/test/production-admission.test.mjs": "766211fc7cc27b741db189d8a92cd6233e8511726239513eb8023d7e5e8356d1",
     "rebuild/lanes/d/import-retract/retract.test.mjs": "77b9a3cdb5792c23d21e68839bcee298ddbccff06751520b0f162e32cef6fdb4",
     "rebuild/lanes/d/p3-followons/admission-swap.test.mjs": "2aa2ccf53362f5a69ceda88f153e9a9201c050b9ef355a1f9e731a45eee61300",
