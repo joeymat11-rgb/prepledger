@@ -163,6 +163,19 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER for a package that does not exist. The id is
 // removed here, the file is deleted, and the matching entry leaves NO_REGISTER_IDS below.
 const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'B1', 'B2', 'B4', 'B3'];
+// RETIRED IDS, and why this list has to exist at all. Removing an id from IDS and deleting
+// its spec file are ONE act - DECISIONS:487 stop 2 orders both for B-LOM - but TOOLING_FILES
+// below is derived from IDS, so the moment the id goes the deleted path stops being named
+// there, while `git diff` against sourceBase still reports it. Without this list the runner
+// would report UNLISTED-SOURCE-CHANGE for a deletion the PM ordered and the runner itself
+// made necessary: it would be refusing to let a package carry out an instruction. The
+// product map cannot say it instead - a declared file with post: null reads as "not written
+// yet" and puts the whole package in PARTIAL, which is a different and false sentence.
+// Fixed HERE (W7), literal, reachable by no spec, and guarded: a retired id must NOT be
+// runnable, so this can never exempt a live package's spec from the source-change
+// accounting. The entry stays until the next seal re-bases sourceBase past the deletion.
+const RETIRED_IDS = ['B-LOM'];
+for (const id of RETIRED_IDS) assert(!IDS.includes(id), 'RETIRED-ID-IS-STILL-RUNNABLE ' + id);
 // The real chain branch, resolved from GIT REFS and never from a spec (X2/R3-B). Every
 // ancestry assertion that decides whether a commit is on the accepted chain names THIS.
 const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
@@ -329,7 +342,8 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
   // It cannot be removed outright — r8 change 1 requires the receipt's bytes to stand in
   // Git, so it has to be committable — but a run of B1 has no business finding B2's receipt
   // changed under it and calling that accounted for.
-  ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
+  ...IDS.map(i => TOOLING + '/packages/' + i + '.json'),
+  ...RETIRED_IDS.map(i => TOOLING + '/packages/' + i + '.json')];
 // M2-S5-TODAY-CHILD adds the EIGHTH root, `rebuild/m3/w7-preview/measure/test/`, and it is
 // the same kind of move as adding an id to IDS: a fixed, literal directory written HERE
 // (W7), unreachable by any spec, so a package still cannot name its own child root. It is

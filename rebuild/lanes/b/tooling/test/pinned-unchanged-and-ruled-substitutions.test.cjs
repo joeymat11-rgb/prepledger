@@ -50,7 +50,7 @@ process.argv = [process.execPath, runnerFile, '--ci', '--package', 'B-NTC'];
 try {
   m._compile(source.slice(0, source.indexOf(delimiter)) +
     '\nmodule.exports={product,describes,ruledDescriptions,failCode,executedClosure,EXECUTED_CLOSURE_LIMIT,' +
-    'FAIL_CODES,IDS,PRODUCT_ROLES,NO_REGISTER_IDS,CHILD_ROOTS,PUBLIC_TAIL_ROOTS,TAIL_DENYLIST,TAIL_BYTES,' +
+    'FAIL_CODES,IDS,RETIRED_IDS,PRODUCT_ROLES,NO_REGISTER_IDS,CHILD_ROOTS,PUBLIC_TAIL_ROOTS,TAIL_DENYLIST,TAIL_BYTES,' +
     'init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
@@ -284,6 +284,17 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   assert.equal(api.IDS.length, 10);
   assert.equal(api.IDS.includes('B-LOM'), false,
     'the B-LOM id is removed with its skeleton spec, DECISIONS:487 stop 2');
+  // AND THE DELETION IS ACCOUNTED FOR RATHER THAN EXEMPTED BY ACCIDENT. Removing an id and
+  // deleting its spec is one act, but TOOLING_FILES is derived from IDS, so the deleted
+  // path would stop being named there while git still reports it - UNLISTED-SOURCE-CHANGE
+  // for a deletion the PM ordered. RETIRED_IDS names it, and is pinned here exactly so the
+  // list cannot grow unseen: every member must be a real retired id and NOT runnable, which
+  // is what stops it being used to hide a live package's spec from the same accounting.
+  assert.deepEqual(api.RETIRED_IDS, ['B-LOM']);
+  for (const id of api.RETIRED_IDS) {
+    assert.equal(api.IDS.includes(id), false, id + ' is retired and must not be runnable');
+    assert.equal(api.NO_REGISTER_IDS.has(id), false, id + ' is retired and holds no exemption');
+  }
   // THE NO-REGISTER RULE, written down and asserted: every member is either an H-/F-/S-
   // engine-tier or slice-plan item (DECISIONS:93 — feature work under the ratified slice
   // plan takes no register D-ID) or a B- id the PM ruled exempt BY NAME (DECISIONS:103 (1)).
