@@ -13,7 +13,9 @@
    the two. A file whose set counts differ from the document's therefore still
    refuses on that path, now by its own name instead of silently. This is a
    finding for the PM, not something these cells edit away: the cell measures it
-   and the author report names it.
+   and the author report names it. REVIEW R1 raised it to its one BLOCKING
+   finding, and D-PF-f3 at the foot of this file was added in the fix round to
+   pin the other half of its trigger.
 
    SYNTHETIC ONLY. Run with TZ=America/New_York. */
 import test from 'node:test';
@@ -23,6 +25,7 @@ import { IDBFactory, sealInventedBundle, eraFor, liveAt, carry, material,
   from '../../../m3/w7-preview/import/test/support.mjs';
 import { createLocalSourceController, localSourceCommitCapability }
   from '../../../m3/w6/local/source-admission.mjs';
+import Screen from '../../../m3/w7-preview/import/import-screen.mjs';
 import { createCleanInitState } from '../../../m3/w7-preview/today/setup-model.mjs';
 import { createGymModel } from '../../../m3/w7-preview/today/gym-model.mjs';
 
@@ -81,12 +84,12 @@ async function recordAWorkout(era, day) {
   gymHost.close();
 }
 
-async function importAfterAWorkout(tag, sealed) {
+async function importAfterAWorkout(tag, sealed, { workout = true } = {}) {
   const scope = scopeFor(tag);
   const era = await eraFor({ indexedDB: new IDBFactory(),
     live: liveAt(instantOn(WORKOUT_DAY)), ...scope });
   await firstRunWith(era, SETUP_DAY, PHONE.setup, PHONE.tags);
-  await recordAWorkout(era, WORKOUT_DAY);
+  if (workout) await recordAWorkout(era, WORKOUT_DAY);
   const { carried, platform } = await carry(era, sealed);
   assert.equal(carried.imported, true, 'custody refused: ' + carried.code);
   const held = await material(era, platform, carried.name);
@@ -116,6 +119,33 @@ test('D-PF-f1 (the capture_sets code, ON THE OWNER\'S PATH) - a phone that '
   assert.ok(issue, 'no issue carried field capture_sets: ' + JSON.stringify(result.issues));
   assert.ok(PHONE.setup.exercises.some(e => e.id === issue.exercise_id),
     'the lift named is one this phone holds: ' + issue.exercise_id);
+
+  /* WHAT HE WOULD READ, measured in the fix round after review R1. The detail
+     string is assembled here the way import-screen.mjs:381-395 assembles it
+     (the codes after the first, then each issue's `field` and `exercise_id`,
+     deduplicated); the RENDERING below is the screen's own refusalLines(). The
+     route is not driven here, so this measures the COPY and not the routing.
+     It is recorded because the one sentence spec 3.2 rules is keyed on the
+     CODE, and on this path the code arrives for a reason the sentence does not
+     describe: nothing is wrong with his training week. See the author report,
+     review disposition (R1). */
+  const parts = [];
+  for (const row of result.issues)
+    for (const key of ['field', 'exercise_id'])
+      if (typeof row[key] === 'string' && row[key] && !parts.includes(row[key]))
+        parts.push(row[key]);
+  const rendered = Screen.refusalLines(issue.code, parts.join(' ')).join(' ');
+  assert.equal(rendered, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (capture_sets '
+    + issue.exercise_id + ') This file was written by a different training week '
+    + 'than the one you set up on this phone. Nothing on this phone was changed.',
+  'the copy on the owner\'s second refusal moved: ' + rendered);
+  assert.equal(new RegExp('[\\u2013\\u2014]').test(rendered), false,
+    'no en dash and no em dash reaches the athlete');
+  assert.equal(/[0-9]/.test(rendered), false, 'no number reaches him');
+  for (const secret of [String(PHONE.setup.athlete_label), FILE.split.from,
+    String(FILE.exercises[0].sets), String(PHONE.setup.exercises[0].sets)])
+    assert.equal(rendered.includes(secret), false,
+      'a value rode out on the refusal: ' + secret);
 });
 
 test('D-PF-f2 (the control) - the SAME phone and the SAME recorded workout admit '
@@ -128,4 +158,33 @@ test('D-PF-f2 (the control) - the SAME phone and the SAME recorded workout admit
     PHONE.setup.exercises.map(e => e.hi), 'the control still differs in hi');
   assert.notEqual(CONTROL_FILE.split.from, PHONE.setup.split.from,
     'the control still differs in split.from');
+});
+
+/* D-PF-f3, ADDED IN THE FIX ROUND AFTER REVIEW R1 (its one BLOCKING finding).
+
+   The review calls the gap this pair measures the ticket's purpose left unmet,
+   and asks for it to be pinned rather than argued. f1 shows the refusal and f2
+   shows it is the set counts; NEITHER of them shows that the RECORDED WORKOUT
+   is the other half of the trigger. This cell holds the FILE, the phone, the
+   document, the scope shape and every answer FIXED and removes exactly one
+   thing - the workout the phone recorded before importing - and the same file
+   ADMITS. So the refusal the owner would meet is the pair (a pre-import Earned
+   workout) AND (per-lift set counts that differ from the one number the setup
+   flow can write), and nothing else.
+
+   THIS CELL IS THE PM GATE'S TRIP-WIRE. The day someone changes what
+   source-admission.mjs:273 compares (author report open question 1, options (b)
+   and (c)), f1 goes red and this one stays green, and whoever changes it must
+   come back and say which of the two is now true. It must not be edited away. */
+test('D-PF-f3 (the PM gate, the other half of the trigger) - the SAME phone, '
+  + 'the SAME file and the SAME answers ADMIT when no workout was recorded '
+  + 'before the import, so the pre-import workout is what flips f1', async () => {
+  const result = await importAfterAWorkout('sets-differ-no-workout', SEALED,
+    { workout: false });
+  assert.equal(result.admitted, true,
+    'the file f1 refuses was refused with no recorded workout either, so f1 is '
+    + 'not measuring the capture check: ' + JSON.stringify(result.issues));
+  assert.notDeepEqual(FILE.exercises.map(e => e.sets),
+    PHONE.setup.exercises.map(e => e.sets),
+    'the file must still differ in sets, or this cell proves nothing');
 });

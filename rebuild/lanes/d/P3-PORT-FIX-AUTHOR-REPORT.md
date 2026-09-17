@@ -16,7 +16,12 @@ this branch adds or changes.
 |-----|---------|
 | `54ee8da` | P3-PORT-FIX: cells, red first |
 | `8a2ac64` | P3-PORT-FIX: the programme rule (OPT-2 + OPT-3) and the companion predicate |
-| (this file) | P3-PORT-FIX: author report |
+| `05f736c` | P3-PORT-FIX: author report |
+| `68874ec` | P3-PORT-FIX: independent review R1 (ACCEPT WITH NOTES), the reviewer's own file |
+| (this file) | P3-PORT-FIX: fix round after review R1 |
+
+THE FIX ROUND (after `68874ec`) adds THREE cells and ONE assertion, and moves NO
+product file. Section 11 is the disposition of every finding the review raised.
 
 ## 2. RED FIRST (spec 5 (j))
 
@@ -92,16 +97,34 @@ host does not move at all.
 Every run is `node --test <files>` with `TZ=America/New_York` and the pinned
 node on PATH. Counts are the runner's own `pass` / `fail` lines.
 
+RE-RUN IN FULL IN THE FIX ROUND after review R1, on the tree this commit
+publishes. The only row that moves is the lane's, by the three added cells
+(`23 -> 25`; `D-PF-f1` gained assertions rather than a cell of its own).
+
 | what | pass | fail | log |
 |------|------|------|-----|
-| lane cells (a) to (g), plus the carried-forward diagnosis cells: `p3-port-fix/programme-rule.test.mjs`, `owner-route.test.mjs`, `capture-codes.test.mjs` | 23 | 0 | `%TEMP%\portfix-bar-lane.log` |
-| cell (k) and the whole companion suite: `lanes/d/plan-edit/model.test.cjs` | 54 | 0 | `%TEMP%\portfix-bar-planedit.log` |
-| the full import corpus: `route`, `refusals`, `refusal-route`, `live-clock`, `page-bundle` | 35 | 0 | `%TEMP%\portfix-bar-import.log` |
-| `rebuild/m3/w6/test/local-source-admission.test.mjs` | 19 | 0 | `%TEMP%\portfix-bar-w6admit.log` |
-| `rebuild/lanes/d/import-retract/retract.test.mjs` | 13 | 0 | `%TEMP%\portfix-bar-retract.log` |
-| S6 children under `rebuild/m4/import`: `prepare`, `reading-replay`, `engine-provider`, `local-source-order`, `browser-parity`, `production-mapping`, `production-admission` | 90 | 0 | `%TEMP%\portfix-s6-m4import.log` |
-| S6 child `rebuild/m3/w6/test/local-source-consumer.test.mjs` | 7 | 0 | `%TEMP%\portfix-s6-w6consumer.log` |
-| TOTAL | 241 | 0 | |
+| lane cells (a) to (g), the carried-forward diagnosis cells, and the three fix-round cells: `p3-port-fix/programme-rule.test.mjs`, `owner-route.test.mjs`, `capture-codes.test.mjs` | 25 | 0 | `%TEMP%\fix-lane2.log` |
+| cell (k) and the whole companion suite: `lanes/d/plan-edit/model.test.cjs` | 54 | 0 | `%TEMP%\fix-planedit.log` |
+| the full import corpus: `route`, `refusals`, `refusal-route`, `live-clock`, `page-bundle` | 35 | 0 | `%TEMP%\fix-corpus.log` |
+| `rebuild/m3/w6/test/local-source-admission.test.mjs` | 19 | 0 | `%TEMP%\fix-w6admit.log` |
+| `rebuild/lanes/d/import-retract/retract.test.mjs` | 13 | 0 | `%TEMP%\fix-retract.log` |
+| S6 children under `rebuild/m4/import`: `prepare`, `reading-replay`, `engine-provider`, `local-source-order`, `browser-parity`, `production-mapping`, `production-admission` | 90 | 0 | `%TEMP%\fix-m4import.log` |
+| S6 child `rebuild/m3/w6/test/local-source-consumer.test.mjs` | 7 | 0 | `%TEMP%\fix-consumer.log` |
+| TOTAL | 243 | 0 | |
+
+THE TWO ROWS THE REVIEWER ADDED, now part of this bar and re-run here, because a
+regression the author would not have seen is worth keeping in the standing list:
+
+| what | pass | fail | log |
+|------|------|------|-----|
+| `lanes/d/plan-edit/durable-host.test.mjs` + `browser-build.test.mjs` (the companion HOST and its browser build) | 32 | 0 | `%TEMP%\fix-planedit-extra.log` |
+| `w6/test/local-source-commit` + `local-import` + `import-custody` | 42 | 0 | `%TEMP%\fix-w6extra.log` |
+| GRAND TOTAL, all nine rows | 317 | 0 | |
+
+`w6/test/import-custody/engine-join.test.mjs` and
+`recovery-stage/source-import.test.mjs` are NOT in this bar and are not
+regressions: as the review measured, both refuse for a missing `EARNED_*_ROOT`
+env var and demand their own runner. Harness-gated at this tip either way.
 
 The S6 executed test list was read from
 `rebuild/lanes/b/tooling/packages/S6.json`; the child files it names under
@@ -382,3 +405,116 @@ owner's path, which is the finding this build made and did not fix); and
 `git diff 3d002174 -- rebuild/m4/workout/plan-edit-model.cjs`, because the
 companion is the file where a narrowing could quietly reach the first-run branch
 and the cell that would catch that is the one I wrote last.
+
+---
+
+## 11. REVIEW DISPOSITION (R1)
+
+`rebuild/lanes/d/P3-PORT-FIX-REVIEW-R1.md` (`68874ec`, ACCEPT WITH NOTES) raised
+ONE blocking finding, SEVEN notes and NINE probes. Every one is dispositioned
+here. NO PRODUCT FILE MOVED IN THIS ROUND: the fix round's diff is three added
+cells, one added assertion block, one added assertion inside D-PRR-2, and this
+report. `git diff --numstat 05f736c..HEAD -- rebuild/m3 rebuild/m4` names only
+`lanes/` test files.
+
+### BLOCKING 1. The owner's real path is still refused, at `source-admission.mjs:273`
+
+REPRODUCED, by me, first. `%TEMP%\fix-base-lane.log` is the lane run on the
+UNCHANGED reviewed tree: D-PF-f1 green, which is the refusal itself, and D-PF-f2
+green, which is the control. The finding is REAL and I do not dispute one word
+of its description.
+
+DISPOSITION: **CONFIRMED, NOT FIXED IN THE PRODUCT, PINNED BY CELLS, ESCALATED.**
+
+WHY NOT FIXED HERE, in three parts, none of them "it is inconvenient":
+
+1. NO AUTHORITY. Spec 4.1 authorises exactly one edit at `:273`: give the
+   existing `fail` a `{field:'capture_sets', exercise_id:id}`. Spec 3.4 says so
+   in the same words. What the check COMPARES is nowhere in the spec, and spec 6
+   is the lockdown that says a build does not widen on its own reading.
+2. IT IS A LIVE GUARD, not a leftover. It asserts that the athlete's own
+   recorded Earned session carries as many slots as the state says the lift
+   carries. Changing its right-hand side from the admitted state to the setup
+   document (open question 1, option (b)) makes admission accept a file it
+   refuses today, and that is a rule change. A build that quietly widens a
+   refusal guard to make its own ticket's path green is doing the thing this
+   lane's reviews exist to catch.
+3. THE FIX IS NOT ONE LINE. The capture was written under the DOCUMENT; the
+   basis under it is now the FILE. Option (b) compares against the document,
+   option (c) rebases the capture. Each needs its own argument about what a
+   recorded native workout means when the basis under it is replaced, its own
+   cells, and its own PM ruling. The reviewer reached the same conclusion
+   independently ("it wants its own small ticket").
+
+WHAT I DID INSTEAD, so the gap cannot be lost or silently changed:
+
+| added | where | what it pins |
+|-------|-------|--------------|
+| **D-PF-f3** | `p3-port-fix/capture-codes.test.mjs` | THE PM GATE'S TRIP-WIRE. The same phone, the same file, the same answers, and the pre-import workout REMOVED: the file ADMITS. So the trigger is exactly the PAIR (a workout recorded before the import) AND (per-lift set counts that differ from the one number the setup flow can write). f1 shows the refusal, f2 shows it is the set counts, f3 shows it is the workout. The day `:273` changes, f1 goes red and f3 stays green, and whoever changed it must come back and say which half is now true |
+| **the copy block in D-PF-f1** | same file | WHAT HE WOULD READ on that refusal, rendered by the screen's own `refusalLines()`: `LOCAL_SOURCE_PROGRAMME_UNRESOLVED (capture_sets db-bench)` and then the one sentence of spec 3.2. No dash, no digit, no label, no date, no set count. See the new open question 5: the sentence is keyed on the CODE, and on this path the code arrives for a reason the sentence does not describe |
+
+ESCALATED: open question 1 stands as written and is the PM gate the review asks
+for. Nothing in this branch should be read as a promise that the owner's retry
+after S7 succeeds; there are TWO things between him and that, this one and the
+producer mapping of DECISIONS:472 BLOCKER 2.
+
+### THE SEVEN NOTES
+
+| note | disposition |
+|------|-------------|
+| **2. cell (a)'s next morning is not read through the booted page** | **CLOSED IN THE FIX ROUND.** D-PRR-2 now reads `next.booted.workout.gym.read()` BEFORE it opens any host of its own, and asserts that card's `total` is the FILE's `U` set count. That card is the one `today-entry.mjs` boot() built, adopted through `today-app.cjs:2482` `athleteBasisState()` and rebased by `gym.rebase()`; no basis, no host and no day is passed in. A `read()` prepares and mints nothing, so it runs before the cell's own Start rather than after it. The projector-level companion read is UNCHANGED and stays declared as deviation 2: `plan-edit-host.mjs`'s branch choice is proved in `durable-host.test.mjs` (32/0, now a standing bar row) |
+| **3. B-B is a dead line, in the spec and in the build** | **AGREED, NOT CHANGED, RECORDED.** B-A refuses any period with `from > today`, so `periods.some(p=>p.from<=today)` is unconditionally true by the time it runs. It is spec 1.3's own diff line for line and removing it would be an unauthorised edit to the rule for no behavioural gain. The guarantee is delivered by B-A plus the non-empty check. A later reader should not believe there are two independent bounds |
+| **4. the retained numbers are bounded by nothing** | **REPRODUCED AND PINNED, NOT CLOSED.** New cell **D-PF-n4** (`programme-rule.test.mjs`): a file whose `db-bench` carries `sets: 0` and whose `lat-pulldown` carries `sets: 40` ADMITS and is ADOPTED, both numbers riding into the basis. It is labelled KNOWN GAP and says in its own comment that the day a bound lands it must be rewritten to assert the refusal, not deleted. ONE THING THE REVIEW'S PROBE DID NOT SAY, which I found writing it: the lane's own builder CANNOT make such a file through `createCleanInitState` (`athlete-state.cjs:126` refuses `sets: 0` outright, `CLEAN_INIT_EXERCISE_REQUIRED / sets`), so the cell writes the numbers into the file's state after it is built. That is the exact shape of the hazard: the bound lives in the DOCUMENT constructor, which an old app's ledger never went through, and not in admission. Closing it is a PM ticket (spec 6), not a guard this build adds on its own authority |
+| **5. the `CLEAN_INIT_*` case `detailOf` is written for cannot occur through `programme()`** | **AGREED, RECORDED.** `Setup.validate` at `:171` already runs `createCleanInitState` through `setupOf` and returns false on any throw, so an unusable document has refused with `{field:'setup_document'}` before `:172` is reached. The guard stays: it earns its place on the OTHER call site, the `:347` catch, where `storedWorkoutHistory`, `projector.project` and the engine runtime can genuinely throw a fieldless error. The missing cell is missing because the case is unreachable, which is now written down rather than implied |
+| **6. the one sentence is untrue on an unenrolled phone** | **AGREED, NOT CHANGED** (open question 2, unchanged). Spec 3.2 rules ONE sentence; inventing a second is a spec change, not a build's. The fix round found a SECOND field the same argument applies to, `capture_sets`, and open question 5 below carries both to the PM as one decision rather than two |
+| **7. B-C is enforced indirectly in admission, directly in the companion** | **AGREED, RECORDED, NO BEHAVIOURAL GAP.** `programme()` closes the period over `{from,map}` by rejecting any other key; a missing member is caught downstream (`split.from`) or upstream (`LOCAL_SOURCE_NON_JSON`). `plan-edit-model.cjs` `splitShapeOk` asserts both members directly. The two predicates are not one expression and a later reader should not read them as one |
+| **8. the declared partial cells are declared accurately** | Noted, nothing to do. Cell (f) is 2 of 6 plus the copy measurement added here; cell (i) is 3 of 7; cell (e)'s third assertion is absent; cell (a)'s companion is projector-level. All four stay declared in section 7 |
+
+The lane copy `f2-tag-adapter.cjs:166` is carried forward as the review asks: it
+is F2's `setup-tags.cjs` byte for byte, every caller passes a clean-init state at
+setup time and `m4/workout/setup-tags.cjs` is not in this tree, so it is not a
+third guard TODAY. **If F2 merges, `projectSetupTags` is re-checked against this
+rule before that merge lands.** Recorded here so it is not lost with the review.
+
+### THE NINE PROBES
+
+I reproduced PR7 (as D-PF-n4, above) and PR4 is already PF-e2 in this suite.
+PR1, PR2, PR3a, PR3b, PR5 and PR6 each reproduce a cell this lane already holds
+(PF-d2, PF-d4, PF-c2, PF-b2, PF-d4 and the `split.from` negatives) with a
+different hand, and all agree. PR8 is the one-clock-per-file row of cell (i) the
+build handed to the reviewer, and his answer is stronger than the spec expected:
+`stamp()` carries `asOf` (`:111-112`), so a local day that MOVES inside one walk
+refuses the whole walk with `LOCAL_SOURCE_STALE` before the rule could straddle
+a midnight. The hoist at `:224` is belt-and-braces and stays. Cell (i)'s
+real-midnight and offline rows remain unexecuted and stay declared.
+
+### A FIFTH OPEN QUESTION FOR THE PM, raised by the fix round
+
+THE ONE SENTENCE IS KEYED ON THE CODE, AND TWO FIELDS NOW ARRIVE UNDER IT FOR
+REASONS IT DOES NOT DESCRIBE. Measured in D-PF-f1, rendered by the screen's own
+`refusalLines()`:
+
+    LOCAL_SOURCE_PROGRAMME_UNRESOLVED (capture_sets db-bench)
+    This file was written by a different training week than the one you set up
+    on this phone. Nothing on this phone was changed.
+
+Nothing is wrong with his training week on that path: the week, the lifts, the
+days and the muscle groups all agreed, and what refused was his OWN recorded
+Earned session's slot count. The same shape of untruth is open question 2's
+`setup_document` on an unenrolled phone. The honest fix in both cases is a
+sentence keyed on the FIELD rather than the code, which is a one-line widening
+of `REFUSAL_SENTENCE` plus the copy itself, and copy is a PM decision. I did NOT
+write it: spec 3.2 rules exactly one sentence and a build does not invent copy.
+The two cases are one decision and should be taken together.
+
+### WHAT THE FIX ROUND CHANGED, file by file
+
+| file | change |
+|------|--------|
+| `rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs` | ADDED D-PF-f3 (the PM gate's trip-wire) and the copy measurement inside D-PF-f1; `importAfterAWorkout` takes `{workout}` so f3 can hold everything else fixed |
+| `rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs` | ADDED D-PF-n4 (KNOWN GAP, review finding 4) |
+| `rebuild/lanes/d/p3-port-fix/owner-route.test.mjs` | D-PRR-2 reads the BOOTED PAGE's own gym card before it opens one of its own (review note 2) |
+| `rebuild/lanes/d/P3-PORT-FIX-AUTHOR-REPORT.md` | this section, the commit table and the re-run bar |
+
+NO product file, no `support.mjs`, no pinned import suite and no `DECISIONS.md`
+line moved in this round. The seal is the same four product files as at review.

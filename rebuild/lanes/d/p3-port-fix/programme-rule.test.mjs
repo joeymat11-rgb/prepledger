@@ -369,3 +369,65 @@ test('D-PR-6 - the setup screens still write split.from = the day setup was '
     assert.equal(new Set(built.setup.exercises.map(e => e.hi)).size, 1);
   }
 });
+
+/* ===== ADDED IN THE FIX ROUND AFTER REVIEW R1 (finding 4, probe PR7) =====
+
+   CHARACTERISATION, NOT APPROVAL. Before this ticket every retained number had
+   to EQUAL the phone's document, and the document has been through
+   createCleanInitState, so the file's numbers were incidentally bounded to
+   values the engine accepts. Retaining them drops that bound and this spec puts
+   nothing in its place: the rule proves the WEEK, the LIFT IDS, the DAYS and
+   the MUSCLE GROUPS, and a set count of zero or of forty rides in untouched.
+   The reviewer measured what that costs (his probe PR7): such a file ADMITS, is
+   ADOPTED, and the next morning's gym card reads blocked /
+   ENGINE_CAPTURE_SESSION_INVALID with the import already committed, which is
+   the same dead-end shape spec 1.2's B-A bound exists to make impossible for
+   split.from.
+
+   THIS CELL EXISTS SO THE GAP IS VISIBLE AND DATED, not because the behaviour
+   is wanted. Bounding the file's own exercise rows the way athlete-state.cjs
+   :236-245 bounds the document's is a PM ticket and is not authorised by this
+   spec (spec 6), so the build does not add a guard here on its own authority.
+   THE DAY A BOUND LANDS THIS CELL GOES RED, and whoever adds it must rewrite it
+   to assert the refusal instead of deleting it. */
+test('D-PF-n4 (KNOWN GAP, review R1 finding 4) - a file whose per-lift set '
+  + 'counts are absurd ADMITS and is adopted, because nothing bounds a RETAINED '
+  + 'number: the rule proves shape and this spec bounds no value', async () => {
+  const { era, scope } = await openEra('unbounded-sets', SETUP_DAY);
+  await firstRunWith(era, SETUP_DAY, PHONE.setup, PHONE.tags);
+  /* The absurd numbers are written into the FILE'S OWN STATE after it is built,
+     because the lane's builder runs createCleanInitState and that constructor
+     refuses `sets: 0` outright (athlete-state.cjs:126, CLEAN_INIT_EXERCISE_
+     REQUIRED / sets). That refusal is the point: the bound lives in the
+     DOCUMENT constructor, which the old app's ledger never went through, and
+     NOT in admission, which is the thing this ticket changed. The file's
+     recorded sets are carried along so the history stays consistent with its
+     own programme. */
+  const ABSURD = { 'db-bench': 0, 'lat-pulldown': 40 };
+  const file = sealProgramme({ state: state => {
+    for (const ex of state.exercises) {
+      if (!Object.hasOwn(ABSURD, ex.id)) continue;
+      ex.sets = ABSURD[ex.id];
+      ex.last = Array.from({ length: ex.sets }, () => 8);
+    }
+    for (const day of Object.values(state.sessionLog || {}))
+      for (const entry of day.entries) {
+        if (!Object.hasOwn(ABSURD, entry.id)) continue;
+        entry.sets = ABSURD[entry.id];
+        entry.reps = Array.from({ length: ABSURD[entry.id] }, () => 8);
+      }
+  } });
+  const result = await admitAt(era, file.sealed, { day: IMPORT_DAY, ...scope });
+  assert.equal(result.admitted, true,
+    'a bound has landed on the retained numbers: rewrite this cell to assert '
+    + 'the refusal, and tell the PM the gap is closed: '
+    + JSON.stringify(result.issues || result.code));
+  const loaded = await era.generation();
+  const adopted = admittedLocalSourceBasis(loaded.generation,
+    { athleteLabel: PHONE.setup.athlete_label, namespace: scope.namespace });
+  assert.notEqual(adopted, null, 'the page did not adopt the admitted import');
+  for (const [id, sets] of Object.entries(ABSURD))
+    assert.equal(adopted.exercises.find(e => e.id === id).sets, sets,
+      id + ': the number rode all the way into the adopted basis');
+  era.close();
+});

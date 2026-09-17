@@ -155,6 +155,24 @@ test('D-PRR-2 (cell (a), route level) - the morning after an admitted import the
     assert.equal(landed.hi, ex.hi, ex.id + ': the adopted rep target is the FILE\'s');
   }
 
+  /* THE BOOTED PAGE'S OWN CARD, FIRST (review R1 note 2, closed in the fix
+     round). Note 2 is right that the block below opens a host this cell chose
+     the basis for, which proves the engine and the file but not the page's
+     adoption chain. This reads the card the PAGE is holding: today-entry.mjs
+     boot() built the workout entry, today-app.cjs:2482 athleteBasisState()
+     asked local-source-basis.mjs whether an admitted import stands, adoptBasis
+     took it and gym.rebase() reopened the card's host on it. Nothing is passed
+     in here: no basis, no host, no day. A read prepares and mints nothing, so
+     it runs before the block below rather than after its Start. */
+  assert.ok(next.booted.workout, 'the page booted without a workout entry');
+  const pageCard = await next.booted.workout.gym.read();
+  assert.equal(pageCard.phase, 'ready',
+    'the page\'s own card would not prepare on the adopted basis: '
+    + (pageCard.code || pageCard.phase));
+  assert.equal(pageCard.total, sumSets(FILE, 'U'),
+    'the page\'s own card prescribed ' + pageCard.total + ' sets; the FILE says '
+    + sumSets(FILE, 'U') + '. The adoption chain did not carry the file through');
+
   /* THE GYM CARD, through the real host and the real engine, on the adopted
      basis: 2026-09-18 is the Friday the file's own split map calls U, and the
      card prescribes the FILE's number of sets, not the document's. */
