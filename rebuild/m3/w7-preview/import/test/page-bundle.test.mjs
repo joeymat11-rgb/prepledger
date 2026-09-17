@@ -104,11 +104,21 @@ test('P3-B2 - the accepted page bundler now BUILDS the Import graph: no computed
        (RV-G4) - both reached ONLY from source-admission.mjs. F8's own read, the
        N2 producer sleep-commands.cjs, was already in this graph (the page ships
        the Sleep lane) and the router imports nothing at all, so the two cost
-       exactly two modules and no new leaf. */
-    assert.equal(withAdmission.inventory.length, 136,
+       exactly two modules and no new leaf.
+       RE-MEASURED AGAIN BY B-LOM (lane D, DECISIONS:486): 137. The one added
+       module is rebuild/m4/workout/legacy-order-mapping.cjs, the legacy order
+       mapping provider, reached from rebuild/m3/w6/local/today-bindings.mjs -
+       so it is in the SHIPPED PAGE's own graph (P3-B1 above), not the Import
+       route's, and the DELTA this file measures in P3-B4 is unmoved by it. It
+       imports nothing at all: it is a pure function of the recorded selection,
+       and it is written that way precisely so that the import lane's own
+       encoder and digests stay out of the page (DECISIONS:480). One module, no
+       new leaf, no new forbidden name. */
+    assert.equal(withAdmission.inventory.length, 137,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 136 (the brief\'s 133 plus the F7 family, the F8 family and the '
-      + 'shared-class router): re-measure and say so');
+      + 'measured 137 (the brief\'s 133 plus the F7 family, the F8 family, the '
+      + 'shared-class router and B-LOM\'s order-mapping provider): re-measure and say so');
+    assert.ok(paths.includes('rebuild/m4/workout/legacy-order-mapping.cjs'));
   });
 
 /* AND THE LAW STILL REFUSES. This is the old P3-B3 with its stub plugin

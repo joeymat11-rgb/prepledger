@@ -300,6 +300,18 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   // reopen or a rollback replays under the very answer its own order map
   // records and nothing is re-asked on his behalf (local-capture-start-resume).
   const answer=existingSelection?existingSelection.order_map?.assertion?.answer:prefixAnswer;
+  /* B-LOM. A selection recorded when this installation held NO native Start
+     carries no order map (`mixed` below was false), and therefore carries no
+     recorded answer to the prefix question either. Re-opening or rolling back to
+     it once native workouts DO exist would replay under `undefined`, which is
+     neither the athlete's Yes nor anything he can read: the records it would be
+     asked to order are records it never saw. That is named here, before any
+     replay, and nothing is written. The door reopens when the screen asks the
+     question again for a selection that can carry the answer. */
+  const nativeNow=Object.values(held.generation.collections.ops||{})
+   .some(op=>op?.class==='session'&&op?.kind==='session-start');
+  if(existingSelection&&!existingSelection.order_map&&nativeNow&&
+    Object.keys(existingSelection.order_input?.legacyLog||{}).length)fail('LOCAL_SOURCE_ORDER_MAP_REQUIRED');
   const replayed=replay(held,answer);if(replayed.issues.length)return freeze({ready:false,pending:true,issues:replayed.issues,families:replayed.families});
   const operations=held.generation.collections.ops,rootInterpretation=Object.fromEntries((replayed.workoutFacts?.sessions||[]).concat(replayed.workoutFacts?.incomplete_sessions||[]).map(s=>[s.start_op_id,{capture:s.capture,record:s.record,completion:s.completion_state}]));
   const orderInput={installation_id:namespace,era_id:held.eraId,athlete_id:athleteId,source_digest:held.sourceDigest,checkpoint_digest:held.checkpointDigest,legacyLog:replayed.state.sessionLog||{},operations,rootInterpretation,display_review:review};
@@ -312,7 +324,27 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   const Q=freeze({profile:'earned/local-source-basis/v1',installation_id:namespace,era_id:held.eraId,athlete_id:athleteId,device_id:deviceId,source_digest:held.sourceDigest,material_digest:held.materialDigest,checkpoint_digest:held.checkpointDigest,local_selection_id:selectionId,
    operation_digest:digest(platform.hash,'earned/local-source-operations/v1',operations),interpretation_digest:digest(platform.hash,'earned/local-source-interpretation/v1',interpretation),programme_digest:digest(platform.hash,'earned/local-source-programme/v1',replayed.programmeBasis),order_map_digest:digest(platform.hash,'earned/local-source-order-map/v1',M),engine_digest:sourceEngineContext(held.engineContext).digest,replay_profile:'earned/local-source-replay/v1',as_of:currentDay()});
   await current(held);
-  const handle=Object.freeze({profile:'earned/local-source-qualification/v1'}),view=freeze({ready:true,basis:Q,order_map:M,state:replayed.state,calculation:replayed.calculation,workout_baseline:{profile:'earned/imported-engine-history/local-v1',local_source_basis:Q,session_log:replayed.state.sessionLog},workout_facts:replayed.workoutFacts,families:replayed.families,retained:replayed.retained,/* P2 S3 IMPORT JOIN: 'today-gym-consumers' is no longer pending. An admitted
+  const handle=Object.freeze({profile:'earned/local-source-qualification/v1'}),view=freeze({ready:true,basis:Q,order_map:M,state:replayed.state,calculation:replayed.calculation,workout_baseline:{profile:'earned/imported-engine-history/local-v1',local_source_basis:Q,session_log:replayed.state.sessionLog,
+   /* B-LOM. The SAME baseline in the ENGINE's own profile, alongside the local
+      one and not in place of it, so the two ids performed.cjs:176 asks for are
+      readable from the admitted view instead of being invented downstream.
+      Their meaning on a local era, where no activation operation is minted
+      (DECISIONS:486 (b)): source_generation_id is this source's content digest
+      on this installation - WHICH imported history the baseline is - and
+      activation_op_id is the recorded selection id, the act that activated it,
+      which metadata.localSources.active names and which the generation itself
+      therefore records. Both are Q's own fields, so the three recorded copies of
+      Q that local-source-basis.mjs compares bind them.
+      This copy is the IDENTITY, not the reference: the engine also requires
+      session_log to be the same OBJECT as the state's, and copy(view) into the
+      generation cannot carry an object identity. The reference-bearing baseline
+      is built where the state and the facts finally meet, at the engine seam in
+      today-bindings.mjs, from these same two ids. Nor is order.import_anchor
+      attached to workout_facts here: the projector above ran WITHOUT an import
+      anchor, so writing one on would claim an order law that nobody ran. The
+      page runs that law itself, with this anchor, on every read. */
+   engine_baseline:{profile:'earned/imported-engine-history/v1',source_generation_id:Q.source_digest,
+    activation_op_id:selectionId,session_log:replayed.state.sessionLog}},workout_facts:replayed.workoutFacts,families:replayed.families,retained:replayed.retained,/* P2 S3 IMPORT JOIN: 'today-gym-consumers' is no longer pending. An admitted
     import is adopted as the athlete's own basis by the P0-B chain, through
     rebuild/m3/w7-preview/today/local-source-basis.mjs, and proved on Today and
     on the gym card by the cells in today/test/local-source-consumer.test.mjs.

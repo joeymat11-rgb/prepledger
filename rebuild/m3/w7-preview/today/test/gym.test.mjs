@@ -1114,7 +1114,32 @@ test('A2 — the causal frontier is DERIVED from the durable log, never remember
   });
 });
 
-test('A2 — an athlete carrying a LEGACY session log (Joe after the S3 port) is refused a second session outright', async t => {
+/* A2 (B-LOM, DECISIONS:486) — RE-REASONED WHERE IT STOOD.
+
+   This cell used to read "refused a second session OUTRIGHT", as if a legacy
+   session log were by itself the end of the athlete's week. It is not, and it
+   never was: rebuild/engine/performed.cjs:176-183 refuses because the state it
+   is handed carries no legacy_baseline and no order.import_anchor, and those
+   two exist only where an installation has RECORDED which imported history the
+   log is and when it activated it (metadata.localSources). This lane records no
+   such thing — that is measured below, it is not assumed — so the refusal here
+   is CORRECT and stays exactly as it was, assertion for assertion. What has
+   changed is the rule it stands for:
+
+     A legacy session log blocks every later scheduled day WHEN, AND ONLY WHEN,
+     this installation records no local-source selection for it. With one
+     recorded, the same athlete opens day+1, +3, +4 and +7 with a real
+     prescription, the imported prefix in the old engine's own order and the
+     native session after it, listed once.
+
+   The positive half is executed on the REAL route, where a recorded selection
+   can exist at all — a real sealed bundle, the real S3 admission controller and
+   the real card, in both orders and on two seasons: rebuild/lanes/d/b-lom/
+   legacy-order.test.mjs (LOM-A, LOM-B, LOM-C). It is not duplicated here,
+   because this lane has no admission controller and the only way to give it a
+   selection would be to fabricate one — which is precisely the caller proof the
+   engine refuses to accept. */
+test('A2 — an athlete carrying a LEGACY session log and NO recorded import is refused a second session', async t => {
   const legacy = createTodayModel({}).stateFromOps();     // the fixture keeps its legacy sessionLog
   assert(Object.keys(legacy.sessionLog).length > 0, 'this athlete really does carry a legacy log');
   const L = await lane(legacy, 'legacy');
@@ -1126,6 +1151,19 @@ test('A2 — an athlete carrying a LEGACY session log (Joe after the S3 port) is
     assert((await handle.model.finish({ startId: last.startId })).ok);
   });
   handle.host.close();
+
+  /* THE REASON, MEASURED. The store this lane stands on records no local-source
+     selection at all, so there is no evidence on it from which a baseline or an
+     import anchor could be composed, and the engine says so rather than
+     guessing. Remove this and the refusal below becomes an unexplained one. */
+  await t.test('this installation records NO local-source selection, which is why', async () => {
+    handle = await L.on(DAY);
+    const generation = (await handle.host.repository.load()).generation;
+    assert.equal(generation.metadata.localSources, undefined,
+      'the lane records a selection after all, and the refusal below would then be a defect');
+    assert.equal(generation.metadata.localSourceApplication, undefined);
+    handle.host.close();
+  });
 
   await t.test('every later scheduled day refuses PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED', async () => {
     for (const offset of [1, 3, 4, 7]) {

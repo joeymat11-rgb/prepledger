@@ -119,6 +119,14 @@ async function recordWorkout(era, day) {
 const adopted = async era => admittedLocalSourceBasis(
   (await era.generation()).generation, { namespace: era.namespace ?? null });
 
+/* THE NATIVE SESSIONS THIS INSTALLATION ACTUALLY HOLDS, by day, read off its own
+   generation. P3-CSR5 needs this because `adopted()` is the IMPORTED replay and
+   nothing else: see the repair stated at that cell. */
+const nativeStarts = async era => Object.values(
+  (await era.generation()).generation.collections.ops || {})
+  .filter(op => op && op.class === 'session' && op.kind === 'session-start')
+  .map(op => op.effective.local_date).sort();
+
 /* The imported history, as the athlete sees it afterwards. */
 function assertImportedHistory(state) {
   assert.ok(state, 'the admitted import is not visible to Today');
@@ -259,7 +267,20 @@ for (const season of SEASONS) for (const answer of [false, undefined]) {
    on has to be the same, and it is measured member for member rather than
    asserted. The basis RECORD cannot be identical, and the six members that
    differ are named here with their reason instead of being waved at: B's
-   generation simply does not hold the workout yet when it admits. */
+   generation simply does not hold the workout yet when it admits.
+
+   THE REPAIR (B-LOM, DECISIONS:486 MAJOR 2). As first written this cell was
+   INSENSITIVE to a dropped workout: `adopted()` is the IMPORTED replay and
+   nothing else, so `adopted(a) deepEqual adopted(b)` holds just as well when B
+   never recorded the workout at all, and interpretation_digest and
+   order_map_digest sit on MIRROR_DIFFERS because the two orders genuinely
+   record different admission snapshots and can never be compared for equality
+   across them. THE RULE NOW: two mirror installations are compared on the
+   RECORDS as well as on the replay - the imported prefix AND every native
+   session-start, by day, member for member - and the cell carries a MUTANT
+   that really does drop the workout, so the comparison that would have missed
+   it is the one that goes red. Nothing is removed: every assertion the cell
+   made before still stands, above the two new ones. */
 const MIRROR_DIFFERS = ['era_id', 'checkpoint_digest', 'local_selection_id',
   'operation_digest', 'interpretation_digest', 'order_map_digest'];
 
@@ -290,5 +311,26 @@ for (const season of SEASONS) {
         JSON.stringify(rA.view.basis[k]) !== JSON.stringify(rB.view.basis[k]));
       assert.deepEqual(differ.sort(), MIRROR_DIFFERS.slice().sort(),
         'a basis member changed with the order that should not have: ' + JSON.stringify(differ));
+
+      /* THE REPAIR, executed. The two installations must hold the SAME native
+         sessions, by day, and not merely the same imported replay. */
+      assert.deepEqual(await nativeStarts(a.era), await nativeStarts(b.era),
+        'a native workout is missing from one of the two orders');
+      assert.deepEqual(await nativeStarts(b.era), [season.day]);
+
+      /* THE MUTANT: a third installation that imports and never records the
+         workout at all. Every member this cell compared before is STILL equal,
+         which is exactly the insensitivity; the native order is not. */
+      const c = await install(t, 'm-c-' + season.name, season);
+      const mC = await createMeasureHost({ day: season.day, era: c.era });
+      t.after(() => mC.close());
+      await mC.ensureTrialStart();
+      const rC = await admit(c.era, SEALED, { day: season.day, ...c.scope });
+      assert.equal(rC.admitted, true, JSON.stringify(rC.codes || rC.code || rC.stage));
+      assert.deepEqual(await adopted(c.era), await adopted(b.era),
+        'the imported replay is the same with the workout dropped, which is why it cannot be the only comparison');
+      assert.notDeepEqual(await nativeStarts(c.era), await nativeStarts(b.era),
+        'A DROPPED WORKOUT WENT UNDETECTED');
+      assert.deepEqual(await nativeStarts(c.era), []);
     });
 }

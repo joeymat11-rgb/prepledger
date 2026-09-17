@@ -73,6 +73,7 @@ import WorkoutBasis from "../../../m4/workout/workout-basis.cjs";
 import ResumePolicy from "../../../m4/workout/resume-policy.cjs";
 import HostRuntime from "../host/engine-runtime-host.cjs";
 import NativeTrend from "../../../m4/workout/native-trend-context.cjs";
+import LegacyOrder from "../../../m4/workout/legacy-order-mapping.cjs";
 
 const { createNullLaneWorkoutBasis } = WorkoutBasis;
 const { createWorkoutResumePolicy } = ResumePolicy;
@@ -385,9 +386,63 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     // readPrevious runs after the producer returns. Scope each engine read to
     // its own facts, restoring a surrounding window after nested reads.
     const scoped = (facts, run) => facts ? trendBinding.withFacts(facts, run) : run();
+
+    /* B-LOM. THE LEGACY ORDER MAPPING, supplied HERE and nowhere else.
+
+       rebuild/engine/performed.cjs:176-183 wants two things on the state it is
+       handed: workoutFacts.legacy_baseline, whose `session_log` must be the SAME
+       OBJECT as `s.sessionLog`, and workoutFacts.order.import_anchor carrying
+       the same two ids. The reference is the whole difficulty. The state and the
+       facts reach the engine from two different clones - the null registrar
+       clones each separately (m4/workout/source-projection.cjs), and the gym
+       card's previous-performance read clones each separately again
+       (w7-preview/today/gym-model.mjs:213-215) - so a baseline attached before
+       either clone arrives naming a DIFFERENT log object and is refused. This
+       seam is the last place the two meet: every engine read on this
+       installation, the producer's prescription and the card's own previous-
+       performance read alike, passes through these two functions, and the state
+       they build joins the log and the facts in one object. gym-model.mjs is
+       therefore NOT edited; the identity holds without it.
+
+       `attach` returns a new facts object and mutates neither argument, and the
+       spread below keeps `sessionLog` the very object the caller passed, so the
+       baseline names the log the engine is reading. An installation that has
+       admitted no import gets `mapping === null` and is handed its own state
+       unchanged, byte for byte, exactly as before this existed.
+
+       B-NTC's bind window (G8 / r2 R11) is UNTOUCHED and keeps its own rule:
+       both forwarders still open it on `s.workoutFacts`, the caller's own facts,
+       per read and restoring. What `attach` adds is `legacy_baseline` and
+       `order.import_anchor` and nothing else - `sessions`, `source_revision` and
+       every Start are the same members, carried by reference through the spread
+       - so the revision, unique-Start and effective-tuple correspondence that
+       window exists to check reads exactly what it read before. */
+    const localSelection = LegacyOrder.activeLocalSelection(
+      (await bindings.repository.load()).generation);
+    const mapping = localSelection
+      ? LegacyOrder.createLegacyOrderMapping({ selection: localSelection }) : null;
+    const composed = s => (mapping && s && s.workoutFacts && s.sessionLog &&
+      Object.keys(s.sessionLog).length
+        ? { ...s, workoutFacts: mapping.attach(s.workoutFacts, s) } : s);
     const engine = Object.freeze({
-      genSession: (s, iso, slp) => scoped(s && s.workoutFacts, () => runtime.genSession(s, iso, slp)),
-      rirPlan: (s, ex, slp) => scoped(s && s.workoutFacts, () => runtime.rirPlan(s, ex, slp)) });
+      genSession: (s, iso, slp) => scoped(s && s.workoutFacts, () => runtime.genSession(composed(s), iso, slp)),
+      rirPlan: (s, ex, slp) => scoped(s && s.workoutFacts, () => runtime.rirPlan(composed(s), ex, slp)) });
+
+    /* The ORDER the engine reads has to be a PROVEN one, not one this module
+       asserts. composeWorkoutHost's projectWorkoutHistory calls project() with
+       no import anchor, so order.import_anchor is simply absent and attaching it
+       afterwards would claim an order law nobody ran. Forwarding this mapping's
+       anchor makes rebuild/m4/workout/engine-order.cjs run its import rules over
+       the recorded selection: a native Start the recorded order map does not
+       cover still refuses WORKOUT_ORDER_IMPORT_DESCENT_UNPROVEN, and the anchor
+       that comes back on `order` is the one that law derived. The host file is
+       pinned and unedited; only the collaborator it is handed is wrapped. */
+    const createEngineHistoryProjector = config => {
+      const base = History.createEngineHistoryProjector(config);
+      return Object.freeze({ ...base, project: (history, generation, options = {}) =>
+        base.project(history, generation,
+          mapping ? { ...options, importAnchor: mapping.anchor } : options) });
+    };
 
     /* THE CAUSAL FRONTIER, DERIVED FROM THE DURABLE LOG ON EVERY RESOLUTION —
        A2 review round 2's finding, kept exactly: nothing is remembered across
@@ -411,7 +466,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       createNullSelectionRegistrar: SourceProjection.createNullSelectionRegistrar,
       createSourceProjectionReader: SourceProjection.createSourceProjectionReader,
       createEngineWorkoutCapture: Adapter.createEngineWorkoutCapture,
-      createEngineHistoryProjector: History.createEngineHistoryProjector,
+      createEngineHistoryProjector,
       createWorkoutResumePolicy, parseStrictJson, projectWorkoutRecords,
       prescriptionCapture, sourceCodec: Source, engine, engineState,
       clock: { today: () => day },
