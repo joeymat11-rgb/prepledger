@@ -234,28 +234,49 @@ expected constant through the same rule, so it is green in the window too. Both 
 the whole S7 window and become trip-wires again the moment `receipts/S7.json` lands, which is the
 same sharpness, not less. **Neither cell is edited by this package.**
 
-**5.1 What the runner needs before any of this can run, and it is not this package's to write.**
-Measured on the merged head, `b-package.cjs` at sha256 `8d9a94c2...`:
-(1) `IDS` (`b-package.cjs:165`) is `['B-NTC','H3','S3','S4','S5','S6','B1','B2','B4','B3']` and the
-argv gate at `:557` refuses any other id outright - `--package S7` prints
-`B PACKAGE USAGE REFUSED; exactly: --ci|--full --package B-NTC|H3|S3|S4|S5|S6|B1|B2|B4|B3` and exits 1
-before a byte of any spec is read; (2) `NO_REGISTER_IDS` (`:292`) must gain `'S7'` or the exemption
-assertion refuses; (3) `CHILD_ROOTS` (`:381`) does not contain `rebuild/lanes/d/p3-port-fix/`, so the
-child of 3.3 is refused `CHILD-ARGV-TARGET` and the Y1 own-child obligation cannot be met at all;
-(4) the five `s6-supersede-*.test.cjs` cells each read `packages/S6.json` by path and assert against
-S6's own parent and sourceBase, so S7's `coverage.superseded` evidence needs its own
-`s7-supersede-*` family beside them, and `s6-engine-files-differential.cjs` the same; (5) moving
-`b-package.cjs` moves `tooling.runnerSha256`, so `packages/H3.json`, `S3.json` and `S4.json` are
-re-pinned role `edited` and `S6.json` role `superseded-by-child`, exactly as S6 did to its own
-ancestors; (6) `F6` and `F7` in
-`rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs` pin `IDS`,
-`NO_REGISTER_IDS` and `CHILD_ROOTS` by literal and by `deepEqual` and take the new lists with their
-red sides re-run; (7) the four `CHILD_SPECS` cells (`measure/test/boundary.test.mjs`,
+**5.1 What the runner needed before any of this could run, and the round that landed it.**
+The seven facts below were named here before the first run, and the lane B tooling ticket
+S7-TOOLING (`DECISIONS:511`) has since landed every one of them on this branch. The refusal chain
+is recorded verbatim, with exit codes and log paths, in
+`rebuild/lanes/b/S7-TOOLING-AUTHOR-REPORT.md`; the runner now stands at sha256 `a07df1e0...`
+(`8d9a94c2...` before the round). Each fact is written as it was found, then as it now is.
+(1) `IDS` (`b-package.cjs:165`) was `['B-NTC','H3','S3','S4','S5','S6','B1','B2','B4','B3']` and the
+argv gate at `:557` refused any other id outright - `--package S7` printed
+`B PACKAGE USAGE REFUSED; exactly: --ci|--full --package B-NTC|H3|S3|S4|S5|S6|B1|B2|B4|B3` and exited 1
+before a byte of any spec was read; `'S7'` now stands directly behind `'S6'`. (2) `NO_REGISTER_IDS`
+(`:292`) gains `'S7'`; without it the run refused
+`REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT`. (3) `CHILD_ROOTS` (`:381`) gains
+`rebuild/lanes/d/p3-port-fix/` as its nineteenth root; without it the child of 3.3 was refused
+`CHILD-ARGV-TARGET` and the Y1 own-child obligation could not be met at all. (4) the five
+`s6-supersede-*.test.cjs` cells each read `packages/S6.json` by path and assert against S6's own
+parent and sourceBase, so this package now carries its own `s7-supersede-*` family beside them and
+`s7-engine-files-differential.cjs` with it, each mirrored byte for byte from its S6 sibling with
+the package, parent and generation named for S7 and no assertion weakened; the six are role `new`
+and the five suites measure 4 + 3 + 3 + 3 + 3. (5) moving `b-package.cjs` moves
+`tooling.runnerSha256`, so `packages/H3.json`, `S3.json`, `S4.json` and `S5.json` are re-pinned
+role `edited` and `S6.json` role `superseded-by-child` over the parent EXECUTION pin - S5.json is
+in that list because S6 re-pinned all four of ITS ancestors the same way (commit `7e5fcca`), and
+leaving it would have left the chain one generation stale. (6) `F6` and `F7` in
+`rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs` take the new
+lists by literal and by `deepEqual`: `IDS` of eleven, `NO_REGISTER_IDS` of seven, `CHILD_ROOTS` of
+nineteen. (7) the four `CHILD_SPECS` cells (`measure/test/boundary.test.mjs`,
 `today/test/food.test.mjs`, `today/test/machine-settings-ui.test.mjs`, `today/test/setup.test.mjs`)
-and the fifth at `today/test/problem.test.mjs` gain the `'S7'` literal. Each of those is a lane B
-author's hunk over sealed bytes and belongs inside this package's own post, declared and disclosed
-like every other. This brief names them so the omission is a decision and not a surprise at the first
-run.
+and the fifth at `today/test/problem.test.mjs` gain the `'S7'` literal; without it the `today-17`
+child went red on exactly two cells (`P-MEASURE (g)` on `rebuild.yml` and `b-package.cjs`, and
+`re-pin` on `rebuild.yml`) because moves this package declares read there as undeclared drift.
+
+**The declaration list after the round.** 206 declared paths: **23 edited**, **9 new**,
+**173 carried** and **1 superseded-by-child** (`packages/S6.json`). The eleven of 2.1 to 2.3 and
+the three of 2.4 are unchanged; the round adds `b-package.cjs`, the four ancestor specs, the
+tooling cell of (6), the five `CHILD_SPECS` cells of (7) and the six `s7-*` cells of (4), and
+moves `packages/S6.json` out of "held parent execution pin" into `superseded-by-child`, which is
+the sentence 2 said would stop being true here. **The needles were re-measured, not carried.**
+Every one of the 24 children was run the way `children()` runs it, on this head, with
+`TZ=America/New_York` and `MEASURED_TEST_NOW=2026-09-03`: 23 of 24 stand exactly where S6 left
+them, including `d-port-admission` at `# pass 31`, which `DECISIONS:510` reported and which is now
+measured rather than copied. One moved: `d-plan-edit` from `# pass 68` to `# pass 89`, because
+`plan-edit/model.test.cjs` carries binding correction B-1 and the FIX-2 cells. `today-17` reads
+`# pass 682` unchanged once (7) has landed.
 
 ## 6. The flow, in S6's order with S7's names
 

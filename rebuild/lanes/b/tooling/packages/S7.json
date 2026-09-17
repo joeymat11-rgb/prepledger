@@ -5,12 +5,12 @@
   "status": "BRIEF-ACCEPTED",
   "brief": {
     "file": "rebuild/lanes/b/S7-PORT-ADMISSION-BRIEF.md",
-    "sha256": "d1a2c3315847264134e468f71c5122bd15d3379847300b9875d9404e63c9d9e1",
+    "sha256": "41ab30cef85e2a28f617944d3f0c180d18f78e4453da1d7e74f04a5a18e85ba1",
     "acceptedLedgerLine": {
       "ledgerLine": 513,
       "role": "cowork",
-      "line": "- 2026-09-17 · cowork · BRIEF ACCEPTED BY SHA for M2-S7-PORT-ADMISSION: rebuild/lanes/b/S7-PORT-ADMISSION-BRIEF.md, sha256 d1a2c3315847264134e468f71c5122bd15d3379847300b9875d9404e63c9d9e1 (23820 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
-      "lineSha256": "b80d88f129d4a081e9fafd09e93cc97e0c9f63ec5fcca4d50d1cf7fbb8629616"
+      "line": "- 2026-09-17 · cowork · BRIEF ACCEPTED BY SHA for M2-S7-PORT-ADMISSION: rebuild/lanes/b/S7-PORT-ADMISSION-BRIEF.md, sha256 41ab30cef85e2a28f617944d3f0c180d18f78e4453da1d7e74f04a5a18e85ba1 (25683 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "b75f2c85ed642a4a269c3331905d3e27234206d28187cf43b4719e58289a2ff7"
     }
   },
   "sourceBase": "3d002174ed23738bafa50ed4a163f174f8f0ad70",
@@ -42,7 +42,7 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "8d9a94c20faa2e856db3e3bf9f9aea8e835516307c6b7c5c95b51a0b0c49a385"
+    "runnerSha256": "a07df1e0942a017f44afcfa1b6b92d8f96ee6f5e20f9e4e8450072c76e9268a5"
   },
   "product": {
     ".github/workflows/rebuild.yml": {
@@ -147,8 +147,8 @@
     },
     "rebuild/lanes/b/tooling/b-package.cjs": {
       "pre": "8d9a94c20faa2e856db3e3bf9f9aea8e835516307c6b7c5c95b51a0b0c49a385",
-      "post": "8d9a94c20faa2e856db3e3bf9f9aea8e835516307c6b7c5c95b51a0b0c49a385",
-      "role": "carried"
+      "post": "a07df1e0942a017f44afcfa1b6b92d8f96ee6f5e20f9e4e8450072c76e9268a5",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/B-NTC.json": {
       "pre": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
@@ -157,28 +157,33 @@
     },
     "rebuild/lanes/b/tooling/packages/H3.json": {
       "pre": "9add6dbc31dfc5185e70fcfdf35a8beb4e718d0b70028da5599c83175ba2b1b1",
-      "post": "9add6dbc31dfc5185e70fcfdf35a8beb4e718d0b70028da5599c83175ba2b1b1",
-      "role": "carried"
+      "post": "f6f28c14619a20c02af114c32ee1e8921cfafde3bba0a6911612313cb878c8e5",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S3.json": {
       "pre": "a7da42466f04023653ce0eed7e8a3bfa91097264a2f48948c5fa0fc3bba4a0e9",
-      "post": "a7da42466f04023653ce0eed7e8a3bfa91097264a2f48948c5fa0fc3bba4a0e9",
-      "role": "carried"
+      "post": "bf97c009c9b271f785bbd0eebc48a5dcda29b97b8c9738578d3e7cccb1c04206",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S4.json": {
       "pre": "02c96e3c85429e5b15254989ffe9550f1e72b03466c7e921cfbcf454b9afde79",
-      "post": "02c96e3c85429e5b15254989ffe9550f1e72b03466c7e921cfbcf454b9afde79",
-      "role": "carried"
+      "post": "2bc773b5778c06ccc619476750efad7549850d7980d8342f43a5b88a8de63871",
+      "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S5.json": {
       "pre": "fc60f76173d0f7f2478c8b0a29c96a90edc86e81cdd22ab09b55b849f77e4eb0",
-      "post": "fc60f76173d0f7f2478c8b0a29c96a90edc86e81cdd22ab09b55b849f77e4eb0",
-      "role": "carried"
+      "post": "4191a802683ed8e48178bfeeb72d0583222fcd4208a06c31ae2f128b4b95b8ba",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/S6.json": {
+      "pre": "2415c473b090e808acd7b5f646e11e9b9ae28883a1ccb1974d938afbe825be57",
+      "post": "8b33bf5a434f98a9fce509ad1fac1b5e3bdf562c346aa33a65c4661306514a3e",
+      "role": "superseded-by-child"
     },
     "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs": {
       "pre": "c7e5dee0d25f122443424b6fa08fee9e9bfa6c2649cea45e7a785a2f59dc783a",
-      "post": "c7e5dee0d25f122443424b6fa08fee9e9bfa6c2649cea45e7a785a2f59dc783a",
-      "role": "carried"
+      "post": "bd1e1fc724d6eebb8fd53371b6bc9b9055fcb59f1c2b4051fd48566ad9ac84c1",
+      "role": "edited"
     },
     "rebuild/lanes/d/b-lom/legacy-order.test.mjs": {
       "pre": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
@@ -502,8 +507,8 @@
     },
     "rebuild/m3/w7-preview/measure/test/boundary.test.mjs": {
       "pre": "e9522b8f5da01bc39aa43780b0221513f057b4ba33b513214766382166cc9a2d",
-      "post": "e9522b8f5da01bc39aa43780b0221513f057b4ba33b513214766382166cc9a2d",
-      "role": "carried"
+      "post": "54f5e5b45fceec060ebcc9f19cdd99f43af340dc09ffb7514370a4fdaa8b113e",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/measure/test/journey.test.mjs": {
       "pre": "2520a774e8de269af2a032b2ac7c444753a4d87698e0ac68286ac26c2290306a",
@@ -587,8 +592,8 @@
     },
     "rebuild/m3/w7-preview/today/test/food.test.mjs": {
       "pre": "11155ac4348bb5b2f04872ed57913922e5ebb038d4e8fec700054e4e95c0f6ab",
-      "post": "11155ac4348bb5b2f04872ed57913922e5ebb038d4e8fec700054e4e95c0f6ab",
-      "role": "carried"
+      "post": "e932bfb9b7003319665508dd82754927d4f6e97677803c7caa6b9884eff796d8",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
       "pre": "79aa531e5483f532736f2a387bc8839e7ac94395bcaaf67737c9e6869c12d508",
@@ -597,8 +602,8 @@
     },
     "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs": {
       "pre": "accbef94a8bbd73ce98e4a66a261849be7f5829c3337285ee9b2c21c3dbe981c",
-      "post": "accbef94a8bbd73ce98e4a66a261849be7f5829c3337285ee9b2c21c3dbe981c",
-      "role": "carried"
+      "post": "a35ad9dad96988a336fea90fcd8c6b9a56bc9e1c6fc5aec9ca4d938a201f4cb7",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": {
       "pre": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
@@ -612,13 +617,13 @@
     },
     "rebuild/m3/w7-preview/today/test/problem.test.mjs": {
       "pre": "f7552d6073090223c55fa097f1702b87fb6e12aefa5e7a1c90bcdfbd77517607",
-      "post": "f7552d6073090223c55fa097f1702b87fb6e12aefa5e7a1c90bcdfbd77517607",
-      "role": "carried"
+      "post": "19f808fc046a1a4df1e6a3b4ee22f3af5a19187181090046642ef481d942b800",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/setup.test.mjs": {
       "pre": "35ddbf756cec21f5f05c988a815ba219cf7fbda2a979f682645f0cd4a08ac2ca",
-      "post": "35ddbf756cec21f5f05c988a815ba219cf7fbda2a979f682645f0cd4a08ac2ca",
-      "role": "carried"
+      "post": "ec490b43d769f2673f6b521db0e2bf0c264366cc8bb8e153eb8ee7cb64c6776f",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/view.test.mjs": {
       "pre": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
@@ -1039,6 +1044,36 @@
       "pre": "5a56bb475c193b3124b9574b19f877e6132b35763e3cb20b3a08c2fce34ecadb",
       "post": "5a56bb475c193b3124b9574b19f877e6132b35763e3cb20b3a08c2fce34ecadb",
       "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-engine-files-differential.cjs": {
+      "pre": null,
+      "post": "29a0e28f4b6ade10970de5a1b926f813eefd0a948b5daa24a54a064d02b0194d",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s7-supersede-defect-witnesses.test.cjs": {
+      "pre": null,
+      "post": "b359f584239e0c58897cce51d846816cbc9d125c01f3c886b01c51a8f6a3dcd2",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s7-supersede-inherited-carriers.test.cjs": {
+      "pre": null,
+      "post": "91e0e87a5ac4a877762efc3d9081e47a43e445b6d679550e65c90684778b3627",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s7-supersede-second-gate.test.cjs": {
+      "pre": null,
+      "post": "7d469315ffdaf78ecbd1f977c08ec5294d94f2bd9e24e7e135c0a16ae7483c7e",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s7-supersede-source-carriers.test.cjs": {
+      "pre": null,
+      "post": "c0db22f212370ef41d412a55b8676370f7ad600b240e1097f15a9f28a7635bf1",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s7-supersede-writers-differential.test.cjs": {
+      "pre": null,
+      "post": "bf2026bc64266e709b7078d73b2289d3c2ed4eafccfc31cd03ba2ad8be663446",
+      "role": "new"
     }
   },
   "coverage": {
@@ -1268,7 +1303,7 @@
         "rebuild/lanes/d/plan-edit/browser-build.test.mjs",
         "rebuild/lanes/d/plan-edit/client-p6.test.cjs"
       ],
-      "needle": "# pass 68"
+      "needle": "# pass 89"
     },
     {
       "name": "m4-import",
@@ -1407,11 +1442,11 @@
   ],
   "notes": [
     "M2-S7-PORT-ADMISSION is M2-S6-TODAY-CHILD's child under the standing reseal ruling DECISIONS:455, briefed at rebuild/lanes/b/S7-PORT-ADMISSION-BRIEF.md, with its THEME at DECISIONS:512, its BRIEF-BY-SHA at :513 and its GATE-SUPERSESSION token line at :514. IT HAS NO PRODUCT BEHAVIOUR OF ITS OWN BEYOND THE TWO ACCEPTED LANE D ROUNDS: its product delta is exactly the P3-PORT-FIX (DECISIONS:509) and P3-PORT-FIX-2 (:510) diff, four product files and seven sibling test files, plus the three new rebuild/lanes/d/p3-port-fix cells and the standing CI step. A reviewer who finds a byte here that no accepted lane D round produced has found a finding. What it is FOR is the owner: his real history refused at review on 2026-09-17 (:504) and the four files that repair it are all pinned by the parent, so the repair reaches the tip only inside this reseal (:508).",
-    "EVERY PIN BELOW IS MEASURED, NOT CARRIED. All 196 paths packages/S6.json declares were read from Git at the package base 3d002174ed23738bafa50ed4a163f174f8f0ad70 and hashed: all 196 agree with S6's own recorded post, 0 mismatches, so the base is exactly the state S6 sealed and every `pre` here is the parent's own post. The same 196 were hashed at this branch's head: ELEVEN moved and are role `edited`, and .github/workflows/rebuild.yml is the twelfth, moved by this package itself. 184 are `carried` (pre === post), including all 45 tracked rebuild/engine files and rebuild/coach/engine-revision.cjs. THREE are role `new` with pre: null, the lane cells the two accepted rounds wrote. NO entry is `superseded-by-child`: that role needs pre !== post and rebuild/lanes/b/tooling/b-package.cjs does not move in this package as it stands, so packages/S6.json is a parent execution pin that is simply held. The note below is where that stops being true.",
-    "WHAT THIS SPEC CANNOT RUN ON YET, WRITTEN DOWN RATHER THAN DISCOVERED AT THE FIRST RUN. The integrator hand that assembled this file is barred from touching product or test bytes, and SEVEN tooling facts have to move before `--ci --package S7` can read a byte of it. (1) IDS at b-package.cjs:165 is [B-NTC,H3,S3,S4,S5,S6,B1,B2,B4,B3] and the argv gate at :557 refuses any other id outright: `--package S7` prints B PACKAGE USAGE REFUSED and exits 1 before this spec is opened. (2) NO_REGISTER_IDS at :292 must gain S7 or the exemption assertion refuses; S7 is an S- id, so the shape assertion admits it without a PM by-name ruling, exactly as S3, S4, S5 and S6 were admitted. (3) CHILD_ROOTS at :381 does not contain rebuild/lanes/d/p3-port-fix/, so the declared child `d-port-admission` is refused CHILD-ARGV-TARGET and the Y1 own-child obligation (MIN_OWN_CHILDREN = 1, and these three cells are the only role:\"new\" product this package has) cannot be met at all. (4) The five s7-supersede-*.test.cjs cells this spec names as its red-first evidence DO NOT EXIST YET, and neither does s7-engine-files-differential.cjs: the s6-* family reads packages/S6.json by path and asserts against S6's own parent and sourceBase, and a retirement is never inherited - only the gate list is - so S7 owes the same five cells in S5's and S6's shape over its own spec, as S6 owed them over S5's. (5) Moving b-package.cjs moves tooling.runnerSha256, so packages/H3.json, S3.json and S4.json are re-pinned role `edited` and packages/S6.json becomes role `superseded-by-child` over the parent EXECUTION pin. (6) F6 and F7 in rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs pin IDS, NO_REGISTER_IDS and CHILD_ROOTS by literal and by deepEqual and take the new lists with their red sides re-run. (7) The four CHILD_SPECS cells (measure/test/boundary.test.mjs, today/test/food.test.mjs, today/test/machine-settings-ui.test.mjs, today/test/setup.test.mjs) and the fifth at today/test/problem.test.mjs gain the S7 literal. Each is a lane B author's hunk over sealed bytes and belongs inside this package's own post, declared and disclosed like every other.",
-    "THE NEEDLES ARE S6'S AND SIX OF THEM ARE OVER MOVED FILES. The 23 children are S6's own, re-declared. Six execute a file this package MOVES and their needles must be RECOMPUTED on this head before any run is trusted, never copied: w6-local-source (local-source-admission.test.mjs, and the FIX-2 report measures that file alone at 19/0), w7-import (four of its five files moved; the report measures the import corpus at 35/0), d-plan-edit (model.test.cjs, measured 54/0 alone), d-import-retract (retract.test.mjs, measured 13/0), and m4-import and m4-import-production over the moved replay-registry.cjs (the report measures the m4/import children together at 90/0). The `d-port-admission` needle `# pass 31` is DECISIONS:510's lane figure and is the one number in this file that was read from a report rather than measured by the hand that wrote it; it is re-measured with the rest.",
+    "EVERY PIN BELOW IS MEASURED, NOT CARRIED. All 196 paths packages/S6.json declares were read from Git at the package base 3d002174ed23738bafa50ed4a163f174f8f0ad70 and hashed: all 196 agree with S6's own recorded post, 0 mismatches, so the base is exactly the state S6 sealed and every `pre` here is the parent's own post. The same 196 were hashed at this branch's head. AFTER THE S7-TOOLING ROUND (DECISIONS:511) the list is 206 declared paths: 23 `edited`, 9 `new` with pre: null, 173 `carried` (pre === post, including all 45 tracked rebuild/engine files and rebuild/coach/engine-revision.cjs) and 1 `superseded-by-child`, rebuild/lanes/b/tooling/packages/S6.json, which is the parent EXECUTION pin this package supersedes inside its own seal now that rebuild/lanes/b/tooling/b-package.cjs moves. The eleven of the accepted lane D diff plus .github/workflows/rebuild.yml are twelve of the 23 edited; the other eleven are the runner, the four ancestor specs H3/S3/S4/S5.json re-pinned onto the moved runner, the lane B tooling cell that pins IDS / NO_REGISTER_IDS / CHILD_ROOTS, and the five CHILD_SPECS guard cells. The nine `new` are the three lane cells the two accepted rounds wrote and the six s7-* supersession cells this package owes over its own spec.",
+    "THE SEVEN TOOLING FACTS, NAMED BEFORE THE FIRST RUN AND SINCE LANDED BY S7-TOOLING (DECISIONS:511). The integrator hand that assembled this file was barred from touching product or test bytes, so seven facts stood between it and a run; the refusal chain and the diff per file are in rebuild/lanes/b/S7-TOOLING-AUTHOR-REPORT.md. (1) IDS at b-package.cjs:165 was [B-NTC,H3,S3,S4,S5,S6,B1,B2,B4,B3] and the argv gate at :557 refused any other id outright (B PACKAGE USAGE REFUSED, exit 1, before this spec was opened); S7 now stands directly behind S6, eleven ids. (2) NO_REGISTER_IDS at :292 gains S7, and without it the run refused REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT; S7 is an S- id, so the shape assertion admits it without a PM by-name ruling, exactly as S3, S4, S5 and S6 were admitted. (3) CHILD_ROOTS at :381 gains rebuild/lanes/d/p3-port-fix/ as its nineteenth root, and without it the declared child `d-port-admission` was refused CHILD-ARGV-TARGET and the Y1 own-child obligation (MIN_OWN_CHILDREN = 1) could not be met at all; the root is deliberately NOT added to PUBLIC_TAIL_ROOTS. (4) The five s7-supersede-*.test.cjs cells and s7-engine-files-differential.cjs now exist beside the s6-* family, each mirrored from its S6 sibling with the package, parent and generation named for S7 and no assertion weakened, because the s6-* family reads packages/S6.json by path and asserts against S6's own parent and sourceBase, and a retirement is never inherited - only the gate list is. (5) Moving b-package.cjs moves tooling.runnerSha256, so packages/H3.json, S3.json, S4.json and S5.json are re-pinned role `edited` and packages/S6.json is role `superseded-by-child` over the parent EXECUTION pin; S5.json is in that list because S6 re-pinned all four of ITS ancestors the same way at commit 7e5fcca. (6) F6 and F7 in rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs take the new lists by literal and by deepEqual: IDS of eleven, NO_REGISTER_IDS of seven, CHILD_ROOTS of nineteen. (7) The four CHILD_SPECS cells (measure/test/boundary.test.mjs, today/test/food.test.mjs, today/test/machine-settings-ui.test.mjs, today/test/setup.test.mjs) and the fifth at today/test/problem.test.mjs gain the S7 literal; without it the today-17 child went red on two cells because moves this package declares read there as undeclared drift.",
+    "THE NEEDLES ARE MEASURED, NOT CARRIED. All 24 children were run on this head the way children() runs them (node, cwd = the worktree, TZ=America/New_York, MEASURED_TEST_NOW=2026-09-03), and each needle below is what its own run printed. 23 of 24 stand exactly where S6 left them, including the six that execute a file this package MOVES: w6-local-source # pass 26, w7-import # pass 35, d-import-retract # pass 13, m4-import # pass 62 and m4-import-production # pass 28. ONE MOVED: d-plan-edit, # pass 68 at S6 and # pass 89 here, because rebuild/lanes/d/plan-edit/model.test.cjs carries binding correction B-1 of the spec review and the FIX-2 cells. The `d-port-admission` needle # pass 31 was DECISIONS:510's lane figure and was the one number in this file read from a report rather than measured; it is now measured and it agrees. today-17 reads # pass 682 once fact (7) has landed, and went red on exactly two cells before it did.",
     "THE NINE GATES ARE RETIRED AGAIN, a fifth time, and the reason is structural rather than this package's doing. The nine NATIVE-CARRIERS gates are byte-identity RECONSTRUCTIONS of rebuild/engine from a frozen BASE; four of the files they rebuild were moved by this package's ancestors (constants.cjs and writers.cjs by M2-H3-CLEAN-INIT, merge.cjs and today.cjs by M2-S3-COMPANION), so no descendant of S3 can carry them whether or not it moves an engine byte of its own. S7 moves none: all 45 tracked engine files stand at the parent's own post. The parent retired them under its own token line DECISIONS:490; a retirement is never inherited, only the gate list is, so this package retires them AGAIN under its OWN token line with its OWN evidence in S6's exact shape.",
     "THE SEALING WINDOW, AND WHY NO CELL IS EDITED FOR IT. VERDICT-S6.md rule (b) and DECISIONS:499: standingSeal(repoRoot) reads the standing package off the CI flag. With the flag at S7 and receipts/S7.json absent, the window branch applies: packages/S7.json must exist and be BRIEF-ACCEPTED and name a parent.chosen whose receipt exists. It does - S6, receipts/S6.json sha256 5bff018d56223d9876c6e5600616e7c52550343daded088bc2dd95fdae7ba4c1 - so the constant must equal M2-S6-TODAY-CHILD@5bff018d56223d98, which is exactly where rebuild/coach/engine-revision.cjs stands and where it stays for the whole of this window. P3-M3 in rebuild/m4/import/test/production-mapping.test.cjs, the coach cell rebuild/coach/test/engine-revision.test.cjs and P3-P6-SEAL-WINDOW in production-admission.test.mjs all read that rule and all stay GREEN through the window; they become trip-wires again the moment receipts/S7.json lands. This package edits none of them and carries all three byte-identical.",
-    "This package registers no D-id (DECISIONS:93, the S- slice-plan half); its obligation is the Y1 own-child rule, satisfied by the `d-port-admission` child that executes its own three role:new cells once the runner's child root exists. `notes` is not carried into the sealed artifact."
+    "This package registers no D-id (DECISIONS:93, the S- slice-plan half); its obligation is the Y1 own-child rule, satisfied by the `d-port-admission` child that executes its own three role:new cells under the child root rebuild/lanes/d/p3-port-fix/ the S7-TOOLING round added. `notes` is not carried into the sealed artifact."
   ]
 }
