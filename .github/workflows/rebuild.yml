@@ -124,7 +124,7 @@ jobs:
       # branch this step reports the runner's own refusal by name rather than PASS; that is
       # the expected pre-ruling state, and the brief predicts the exact refusal.
       - name: Cumulative S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S5
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S6
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
