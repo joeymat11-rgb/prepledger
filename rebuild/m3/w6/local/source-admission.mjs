@@ -429,7 +429,18 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
        its own issue stands beside this one. The other three inner checks are
        untouched: capture_producer above, capture_lift above - which still reads
        `state`, because a lift the ADMITTED state does not carry is a different
-       fault - and capture_membership below. */
+       fault - and capture_membership below.
+
+       PROVENANCE HERE IS PROVED BY SHAPE, NOT BY A SIGNATURE (recorded after
+       independent review R1, NOTE 3). The capture is read out of THIS phone's
+       own stored history, and on top of that it must agree with the document on
+       every count, with the engine's own membership reader on the whole day's
+       pool and order, and with one of the two engine producer profiles. Nothing
+       here is a cryptographic signature over the capture, so a fabricated one
+       that agrees with all of that is still admitted - as it was before this
+       change, which widened nothing on that side. Whoever later reads the word
+       "provenance" in this comment should read it as "it came from a programme
+       this phone had", never as "it is authenticated". */
     for(const [id,count]of counts)if(documentSets.get(id)!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_sets',exercise_id:id});
     // Compare complete programme membership at the ORIGINAL Start day, under
     // the authenticated original Start local date and this source's opaque

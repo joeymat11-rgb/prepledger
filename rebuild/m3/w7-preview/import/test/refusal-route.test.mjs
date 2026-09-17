@@ -475,9 +475,17 @@ test('P3-X11 - NO STALE "Working." BESIDE A REFUSAL: the note that said work '
      AFTER: the code line carries WHICH field disagreed, and the one sentence is
      under it. This cell is about the stale "Working." note, so it asserts the
      box is exactly what refusalLines() builds and leaves the wording to the
-     cells that own it. */
+     cells that own it.
+     CHANGED AGAIN by P3-PORT-FIX-2's fix round (review R1 NOTE 1): the screen
+     carries the LEADING issue's field beside the code and the detail, and hands
+     refusalLines() all three, so the sentence describes the fault the code line
+     leads with. The box is asserted against that same three argument call. */
+  assert.equal(refused.refusal().field, 'split.map',
+    'the screen did not carry the leading issue\'s field: '
+    + JSON.stringify(refused.refusal()));
   assert.equal(slot(doc, 'import-refusal').textContent,
-    Screen.refusalLines(refused.refusal().code, refused.refusal().detail).join(' '));
+    Screen.refusalLines(refused.refusal().code, refused.refusal().detail,
+      refused.refusal().field).join(' '));
   assert.ok(slot(doc, 'import-refusal').textContent
     .startsWith('LOCAL_SOURCE_PROGRAMME_UNRESOLVED (split.map)'));
   const note = slot(doc, 'import-note');

@@ -61,6 +61,16 @@ const CONTROL_FILE = (() => {
   return varied;
 })();
 const CONTROL = sealInventedBundle(CONTROL_FILE, { state: variedLegacyState(CONTROL_FILE) });
+/* THE MIXED FILE (fix round, review R1 NOTE 1): the same programme with the two
+   day kinds of the phone's WEEK swapped, so the file disagrees about the week
+   itself. programme() throws at its first fault, so this file raises exactly one
+   issue of its own, `split.map`, and it is raised BEFORE any capture issue.
+   Nothing is hand-written: the swap is read off the phone's own map. */
+const SWAPPED_WEEK = Object.fromEntries(Object.entries(PHONE.setup.split.map)
+  .map(([day, kind]) => [day, kind === 'U' ? 'L' : 'U']));
+const MIXED_FILE = variedProgramme(PHONE.setup,
+  { split: { from: FILE.split.from, map: SWAPPED_WEEK } });
+const MIXED = sealInventedBundle(MIXED_FILE, { state: variedLegacyState(MIXED_FILE) });
 
 /* THE STATE THE GYM CARD PRESCRIBES FROM. Plain, it is the phone's own
    document, so the capture's slot count per lift IS the document's set count,
@@ -283,7 +293,14 @@ test('D-PF-f4 (the next morning, on the booted page) - after the import a phone 
 
    This is where the capture_sets SENTENCE is measured, because f1 no longer
    refuses. The sentence is keyed on the FIELD now, not on the code: nothing is
-   wrong with his training week on this path, and the copy says what is. */
+   wrong with his training week on this path, and the copy says what is.
+
+   THIS CELL IS THE PM GATE'S TRIP-WIRE (fix round, review R1 NOTE 5). The old
+   D-PF-f3 carried that role while f1 asserted a refusal; now that f1, f2 and f3
+   all ADMIT, this cell and D-PF-n4 are the two that still measure a refusal on
+   this path. If a later change makes it pass for any other reason, or makes it
+   inconvenient, it must not be edited away: it is the only cell that proves the
+   capture check still refuses a capture no programme in the story produced. */
 test('D-PF-f5 (the capture_sets refusal and its own sentence) - a capture whose '
   + 'slot count matches neither the document nor the file refuses by name, and '
   + 'the screen renders the FIELD\'s sentence, not the training-week one', async () => {
@@ -304,13 +321,19 @@ test('D-PF-f5 (the capture_sets refusal and its own sentence) - a capture whose 
 
   /* The detail string is assembled here the way import-screen.mjs assembles it
      (the codes after the first, then each issue's `field` and `exercise_id`,
-     deduplicated); the RENDERING is the screen's own refusalLines(). */
+     deduplicated); the RENDERING is the screen's own refusalLines(), called the
+     way the screen calls it: with the LEADING issue's field (fix round, review
+     R1 NOTE 1). Here the leading issue IS the capture, so the PM's capture
+     sentence is what must come out. */
   const parts = [];
   for (const row of result.issues)
     for (const key of ['field', 'exercise_id'])
       if (typeof row[key] === 'string' && row[key] && !parts.includes(row[key]))
         parts.push(row[key]);
-  const rendered = Screen.refusalLines(issue.code, parts.join(' ')).join(' ');
+  assert.equal(result.issues[0].field, 'capture_sets',
+    'the capture is not the leading fault here: ' + JSON.stringify(result.issues));
+  const rendered = Screen.refusalLines(issue.code, parts.join(' '),
+    result.issues[0].field).join(' ');
   assert.equal(rendered, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (capture_sets db-bench) '
     + 'A workout you already recorded on this phone has a different number of '
     + 'sets than this file has for that lift. Nothing on this phone was changed.',
@@ -322,4 +345,67 @@ test('D-PF-f5 (the capture_sets refusal and its own sentence) - a capture whose 
     String(file), String(document), String(STRAY['db-bench'])])
     assert.equal(rendered.includes(secret), false,
       'a value rode out on the refusal: ' + secret);
+});
+
+/* D-PF-f6, NEW IN THE FIX ROUND (independent review R1, NOTE 1).
+
+   THE SENTENCE DESCRIBES THE FAULT THE CODE LINE LEADS WITH, OR IT IS THE
+   CODE'S OWN SENTENCE. The reviewer found that refusalLines() took the first
+   token it RECOGNISED out of the whole joined detail, so a refusal whose
+   leading fault was the training WEEK and whose second fault was the capture
+   printed the CAPTURE sentence under a code line that led with `split.map`. The
+   athlete was then told his recorded workout disagreed about a lift when what
+   actually refused first was his week: a true code line with a false sentence
+   under it, which is the class of untruth DECISIONS:509 Q5 ruled against, one
+   level down. The fix round keys the sentence on the FIRST issue's field, which
+   is the fault the code line leads with, and leaves every other field - and a
+   leading issue that carries no field at all - on the code's own sentence.
+
+   This file carries a WEEK the phone does not have (its two day kinds swapped)
+   and the capture is the same stray seven-slot one D-PF-f5 uses, so admission
+   raises `split.map` first (programme() throws at its first fault) and
+   `capture_sets` after it. Both fields still ride out on the code line: nothing
+   is hidden from him, and only the SENTENCE changes. */
+test('D-PF-f6 (review R1 NOTE 1) - a refusal that leads with a WEEK fault and '
+  + 'carries a capture fault behind it prints the training-week sentence, not '
+  + 'the capture one', async () => {
+  const STRAY = { 'db-bench': 7 };
+  const document = PHONE.setup.exercises.find(e => e.id === 'db-bench').sets;
+  const file = MIXED_FILE.exercises.find(e => e.id === 'db-bench').sets;
+  assert.equal(STRAY['db-bench'] === document || STRAY['db-bench'] === file, false,
+    'the stray capture must match neither side, or this cell proves nothing');
+  assert.notEqual(JSON.stringify(MIXED_FILE.split.map),
+    JSON.stringify(PHONE.setup.split.map),
+    'the file must disagree about the week, or this cell proves nothing');
+  const result = await importAfterAWorkout('week-and-capture', MIXED,
+    { workoutState: phoneState(STRAY) });
+  assert.equal(result.admitted, false, 'a file with another week admitted');
+  assert.equal(result.issues[0] && result.issues[0].field, 'split.map',
+    'the leading fault is not the week: ' + JSON.stringify(result.issues));
+  assert.ok(result.issues.some(i => i.field === 'capture_sets'),
+    'no capture fault behind it, so this cell proves nothing: '
+    + JSON.stringify(result.issues));
+
+  /* The detail, assembled the way import-screen.mjs assembles it, and rendered
+     by the screen's own refusalLines() with the LEADING issue's field. */
+  const codes = [...new Set(result.issues.map(i => i.code))];
+  const parts = codes.slice(1);
+  for (const row of result.issues)
+    for (const key of ['field', 'exercise_id'])
+      if (typeof row[key] === 'string' && row[key] && !parts.includes(row[key]))
+        parts.push(row[key]);
+  const lines = Screen.refusalLines(codes[0], parts.join(' '), result.issues[0].field);
+  const rendered = lines.join(' ');
+  assert.equal(lines.length, 2, 'the box is not one code line and one sentence: ' + rendered);
+  assert.ok(lines[0].startsWith('LOCAL_SOURCE_PROGRAMME_UNRESOLVED (split.map'),
+    'the code line does not lead with the week: ' + rendered);
+  assert.ok(lines[0].includes('capture_sets'),
+    'the capture fault is hidden from him: ' + rendered);
+  assert.equal(lines[1], Screen.COPY.programmeMismatch,
+    'the sentence does not describe the leading fault: ' + rendered);
+  assert.equal(rendered.includes(Screen.COPY.captureSetsMismatch), false,
+    'the capture sentence is printed under a refusal that led with the week: '
+    + rendered);
+  assert.equal(new RegExp('[\\u2013\\u2014]').test(rendered), false,
+    'no en dash and no em dash reaches the athlete');
 });

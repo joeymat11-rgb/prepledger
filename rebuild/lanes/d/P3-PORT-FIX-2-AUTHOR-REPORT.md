@@ -130,6 +130,10 @@ THE REVIEWER'S TWO EXTRA ROWS, carried forward from P3-PORT-FIX:
 | `w6/test/local-source-commit` + `local-import` + `import-custody` | 42 | 0 | `%TEMP%\pf2-w6extra.log` |
 | GRAND TOTAL, all nine rows | 322 | 0 | |
 
+THIS TABLE IS THE ROUND AS THE REVIEWER RECEIVED IT. The fix round after review
+R1 re-ran all nine rows and added one cell; its counts are in 12.3 and they
+supersede these (`322 -> 323`, still `0` fail).
+
 The lane row moves `25 -> 30`: `D-PF-f4`, `D-PF-f5` and the three `D-PF-n5`
 cells. `D-PF-f1` gained assertions rather than a cell of its own, and `D-PF-n4`
 gained the floor half inside the cell it already was. Every other row is the
@@ -143,7 +147,8 @@ own runner, exactly as P3-PORT-FIX recorded.
 
 ## 5. THE R1 ARGUMENT
 
-Written in full at the check itself (`source-admission.mjs:399-432`) and
+Written in full at the check itself (`source-admission.mjs:399-443`, the check
+on `:444`; the comment grew by the NOTE 3 paragraph in the fix round) and
 repeated here so the PM has it without opening the file.
 
 WHAT THE CHECK VERIFIES. Not that the athlete's recorded workout agrees with
@@ -264,6 +269,7 @@ per admitted lift, on a pure constructor, once per import.
 | `D-PF-f3` | same | the same file and answers admit with NO recorded workout, so the two paths give the same answer |
 | `D-PF-f4` | same | THE NEXT MORNING on the booted page: ready, not `ENGINE_CAPTURE_SESSION_INVALID`, the FILE's set count, start accepted |
 | `D-PF-f5` | same | a capture matching NEITHER side refuses `capture_sets` by name, and the screen renders the FIELD's sentence |
+| `D-PF-f6` | same, ADDED IN THE FIX ROUND | a refusal that LEADS with a week fault and carries a capture fault behind it prints the training-week sentence, with both fields still on the code line (review R1 NOTE 1) |
 | `P3-U5` | `import/test/route.test.mjs` | the `setup_document` sentence, verbatim and through `refusalLines()`, on the unenrolled walk |
 | `D-PF-n4` | `programme-rule.test.mjs` | `sets: 0` REFUSED `{field:'sets', exercise_id:'db-bench'}`; `sets: 40` still ADMITTED, and the cell says why |
 | `D-PF-n5` x3 | same | `hi`, `inc` and `steps` each refused under their own field name |
@@ -376,3 +382,163 @@ dash and no digit, so a dash cannot arrive later without a cell going red.
    every admitting cell here still qualifies through a TEST-ONLY mapping except
    the route-level ones). A green bar proves the RULE on the real path; it is
    not a promise that the owner's real bundle will qualify.
+
+## 12. REVIEW DISPOSITION (R1), THE FIX ROUND
+
+The independent review (`rebuild/lanes/d/P3-PORT-FIX-2-REVIEW-R1.md`,
+`eecb0c3`) returned ACCEPT WITH NOTES with **NO BLOCKING FINDINGS**, so there is
+nothing here to reproduce as a defect and nothing was disputed. Seven NOTES.
+One of them described an untruth the athlete can actually read, and it was cheap
+to close, so this round closes it in the product and pins it with a cell; two
+more were closed in comments and cells; four are PM questions and are carried,
+not answered by a build.
+
+| note | what it said | disposition |
+|------|--------------|-------------|
+| NOTE 1 | the sentence was chosen by the FIRST KNOWN token anywhere in the joined detail, so a refusal leading with a week fault could print the CAPTURE sentence | **FIXED** in `import-screen.mjs`, pinned by `D-PF-f6` (new) and by `P3-X11` |
+| NOTE 2 | a `setup_document` refusal leaves `documentSets` empty, so every capture also raises `capture_sets` | recorded; the comment at the check already says so, and with NOTE 1 fixed the sentence is now chosen by `setup_document`, which is the leading issue, rather than by a token scan |
+| NOTE 3 | provenance is shape, not signature | **RECORDED AT THE CHECK**: a new paragraph in the R1 comment (`source-admission.mjs`) says it in the code, for whoever reads the word later |
+| NOTE 4 | Edit My Week amends the state and writes no second setup op, so a capture recorded after an edit still refuses `capture_sets` | CARRIED to the PM (open question 7 below). Not a defect in this change: the ruling named the first run document |
+| NOTE 5 | the trip-wire warning moved off `D-PF-f3` and neither `D-PF-f5` nor `D-PF-n4` carried it | **FIXED IN THE CELLS**: both now carry the warning, and `D-PF-n4` also carries the "do not invent a ceiling" half |
+| NOTE 6 | the bound probe runs `createCleanInitState` 4 x N extra times per import | recorded, no change: asking the constructor still beats restating it |
+| NOTE 7 | `DECISIONS:509` is not in this worktree | already open question 5; nothing to change |
+
+### 12.1 NOTE 1, THE FIX AND WHY IT IS THIS ONE
+
+The reviewer offered the PM two ways out: rule the precedence, or key the
+sentence on the FIRST issue's field only. A build cannot rule, so it took the
+one of the two that cannot be wrong in the meantime.
+
+`confirm()` prints `codes[0]`, which is the FIRST issue's code. The sentence
+under it is now chosen by the FIRST issue's FIELD, so both halves of the box
+describe the same fault. Every other field, and a leading issue that carries no
+field at all, falls through to `REFUSAL_SENTENCE[code]`, which is generic and
+therefore never wrong about which fault led. The worst case of the old rule was
+a SPECIFIC FALSE sentence (the capture sentence over a week fault); the worst
+case of the new one is a GENERIC TRUE sentence. Nothing is hidden either way:
+every issue's field and lift id still ride out on the code line, unchanged.
+
+If the PM rules a different precedence (say that a capture sentence should win
+because it is about his own history), it is one expression in `confirm()`.
+
+WHAT CHANGED, in three places and no more:
+
+| file, line | change |
+|------------|--------|
+| `import-screen.mjs:147-172` | `refusalLines(code, detail, leadField)`. `leadField` given (`null` included) decides; OMITTED keeps the old token scan, for a caller that has only the rendered string. `REFUSAL_FIELD_SENTENCE`, `REFUSAL_SENTENCE`, `codeLine` and both PM sentences are byte untouched |
+| `import-screen.mjs:305-313` | `fail(code, detail, field)` puts `field` on the refusal ONLY when there is one, so a refusal that never had a field is the same object it was (`P3-X1`'s `deepEqual` still holds) |
+| `import-screen.mjs:447-456`, `:503-507` | `confirm()` passes the leading issue's field; the render passes `refusal.field \|\| null` ALWAYS, so the screen never falls back to the scan |
+
+### 12.2 THE CELLS OF THE FIX ROUND, RED FIRST
+
+Written first and run against the UNCHANGED product
+(`%TEMP%\pf2r-red.log`): `tests 42, pass 40, fail 2`, and the two are exactly
+the two new assertions.
+
+| cell | file | red said |
+|------|------|----------|
+| `D-PF-f6` NEW | `p3-port-fix/capture-codes.test.mjs` | the box printed "A workout you already recorded on this phone..." under a code line that leads with `split.map`. The expected training-week sentence was absent. NOTE 1 reproduced through the REAL machinery, not through a hand call |
+| `P3-X11` STRENGTHENED | `w7-preview/import/test/refusal-route.test.mjs` | `the screen did not carry the leading issue's field: {"code":"LOCAL_SOURCE_PROGRAMME_UNRESOLVED","detail":"split.map"}` |
+
+`D-PF-f6` builds a file whose WEEK the phone does not have (the phone's own two
+day kinds swapped, read off its own map, nothing hand written) and records the
+same stray seven slot capture `D-PF-f5` uses. Admission raises `split.map`
+first, because `programme()` throws at its first fault, then `capture_sets`
+behind it. The cell asserts the code line still carries BOTH fields and the lift
+id, that the sentence is the training week one, and that the capture sentence is
+not printed at all.
+
+Two more cells changed shape because the refusal object gained `field`:
+`D-PF-g1` and `D-PF-g2` (`owner-route.test.mjs`) assert the whole object with
+`deepEqual`, so each now also pins which field led. That is an assertion gained,
+not lost, and both still assert the rendered box verbatim.
+
+`D-PF-f5` and `D-PF-n4` gained the trip-wire warning (NOTE 5) and `D-PF-f5` now
+renders through the same three argument call the screen makes.
+
+### 12.3 THE FULL BAR, RE-RUN AFTER THE FIX
+
+All nine rows again, same commands, `TZ=America/New_York`.
+
+| what | pass | fail | log |
+|------|------|------|-----|
+| lane cells (`programme-rule`, `owner-route`, `capture-codes`) | 31 | 0 | `%TEMP%\pf2f-lane.log` |
+| `lanes/d/plan-edit/model.test.cjs` | 54 | 0 | `%TEMP%\pf2f-planedit.log` |
+| import corpus (`route`, `refusals`, `refusal-route`, `live-clock`, `page-bundle`) | 35 | 0 | `%TEMP%\pf2f-corpus.log` |
+| `m3/w6/test/local-source-admission.test.mjs` | 19 | 0 | `%TEMP%\pf2f-w6admit.log` |
+| `lanes/d/import-retract/retract.test.mjs` | 13 | 0 | `%TEMP%\pf2f-retract.log` |
+| m4/import S6 children (7 files) | 90 | 0 | `%TEMP%\pf2f-m4import.log` |
+| `m3/w6/test/local-source-consumer.test.mjs` | 7 | 0 | `%TEMP%\pf2f-consumer.log` |
+| SUBTOTAL | 249 | 0 | |
+| `plan-edit/durable-host` + `browser-build` | 32 | 0 | `%TEMP%\pf2f-planedit-extra.log` |
+| w6 `local-source-commit` + `local-import` + `import-custody` | 42 | 0 | `%TEMP%\pf2f-w6extra.log` |
+| **GRAND TOTAL** | **323** | **0** | |
+
+`cancelled 0`, `skipped 0`, `todo 0` in all nine. The lane row moves `30 -> 31`:
+`D-PF-f6`. Every other row is the count the reviewer re-ran, so `322 -> 323` is
+the one new cell and nothing else moved.
+
+The two suites excluded before are still excluded and still not regressions
+(`w6/test/import-custody/engine-join.test.mjs`,
+`recovery-stage/source-import.test.mjs`: both need `EARNED_*_ROOT` and their own
+runner).
+
+### 12.4 THE FIX ROUND DIFF, AND THE LOCKDOWN
+
+`git diff 94f298d --numstat` over the whole branch after this round:
+
+    ...   0  rebuild/lanes/d/P3-PORT-FIX-2-AUTHOR-REPORT.md   (this file; it grows
+                                                               with section 12)
+    286   0  rebuild/lanes/d/P3-PORT-FIX-2-REVIEW-R1.md        (the reviewer's, untouched)
+    314  93  rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs
+      9   4  rebuild/lanes/d/p3-port-fix/owner-route.test.mjs
+     91  35  rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs
+    116   4  rebuild/m3/w6/local/source-admission.mjs
+     71   7  rebuild/m3/w7-preview/import/import-screen.mjs
+     10   2  rebuild/m3/w7-preview/import/test/refusal-route.test.mjs
+     16   4  rebuild/m3/w7-preview/import/test/route.test.mjs
+
+The PRODUCT is still the two files the ticket allows, and the whole of this
+round's product change is the three places in 12.1 plus one COMMENT paragraph in
+`source-admission.mjs` (NOTE 3). The `source-admission.mjs` diff grew by comment
+only: the single executable line of R1 (`documentSets.get(id)!==count`) and all
+of R3 are byte identical to what the reviewer read.
+
+LOCKDOWN, re-checked: `authority`, `client`, `engine`, `coach`, `port`,
+`w6-host`, `w7-today`, `rebuild/DECISIONS.md`, `m4/import/replay-core.cjs`,
+`m4/workout/athlete-state.cjs` and `m4/workout/plan-edit-model.cjs` have EMPTY
+numstat against `94f298d`. Nothing was pushed anywhere but
+`rebuild/d-p3-port-fix`.
+
+DASH AND SKIP SCAN over all six changed files and this report: zero U+2013 and
+zero U+2014 in every one of them, and zero `.skip(`, `.todo(` or `.only(` in the
+six FILES (this report names those three tokens in this sentence and in the
+table above, which is prose and not a directive), with ONE declared exception
+that is not copy and is not mine:
+`refusal-route.test.mjs:241` is the dash DETECTOR itself
+(`const dash = /[..]/;`), byte identical to `94f298d`, which is why that file
+reports two dash characters on one line. No assertion was deleted anywhere in
+this round; two were rewritten to assert MORE (`D-PF-g1`, `D-PF-g2`) and two
+cells gained assertions (`D-PF-f5`, `P3-X11`).
+
+### 12.5 TWO MORE OPEN QUESTIONS FOR THE PM
+
+7. **WHICH FIELD WINS WHEN SEVERAL ARRIVE (review NOTE 1), now answered by the
+   build in the only way that cannot be false, and reversible in one line.** The
+   sentence describes the LEADING issue, because the code line above it names
+   the leading issue's code. A refusal that leads with a week fault and carries a
+   capture fault behind it now reads: the code line with both fields, and the
+   training week sentence. If the PM wants a per field precedence instead (for
+   example: any `capture_*` field wins, because it is about his own history and
+   he is likelier to act on it), say so and it is one expression in `confirm()`
+   plus one cell. `D-PF-f6` is where that ruling would be measured.
+8. **IS THE EDIT MY WEEK ORDER REACHABLE (review NOTE 4)?** An owner who edits a
+   lift's set count through Edit My Week, records a workout under the EDITED
+   plan and only then imports writes a capture whose slot count is the EDITED
+   count, while this check reads the FIRST RUN document: `capture_sets`, the
+   same refusal shape Q1 just closed, one step further along. The ruling named
+   the first run setup document and this build followed it exactly. Two
+   questions for the PM, in order: is that order reachable on the shipped route
+   at all, and if it is, should the right hand side be the document AS AMENDED
+   at the capture's date? Neither is a build's call, and I did not widen
+   anything on my own. The reviewer could not settle it either (his section 9).

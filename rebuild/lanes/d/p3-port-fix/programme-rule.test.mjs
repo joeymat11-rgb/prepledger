@@ -392,7 +392,14 @@ test('D-PR-6 - the setup screens still write split.from = the day setup was '
    THE POSITIVE SIDE of this ruling is PF-a at the head of this file: a file
    whose varied per-lift numbers are all in bounds still admits, and what lands
    in the admitted state is the FILE's. D-PF-n5 below carries the other three
-   bounded members. */
+   bounded members.
+
+   THIS CELL IS A PM GATE TRIP-WIRE (fix round, review R1 NOTE 5). The warning
+   used to sit on D-PF-f3, which no longer measures a refusal now that f1, f2
+   and f3 all admit; this cell and D-PF-f5 are where a refusal is still
+   measured. It must not be edited away, and the `sets: 40` half must not be
+   turned into a refusal without a PM ruling: the constructor has no ceiling,
+   and inventing one here would be a new rule written by a build. */
 test('D-PF-n4 (REWRITTEN by P3-PORT-FIX-2) - a file whose set count is zero is '
   + 'REFUSED with field sets and the lift named, and a file whose set count is '
   + 'forty is ADMITTED, because the constructor bounds the floor and not the '

@@ -144,16 +144,30 @@ export const REFUSAL_FIELD_SENTENCE = Object.freeze({
 const codeLine = (code, detail) =>
   String(code) + (detail && String(detail) !== String(code) ? ' (' + detail + ')' : '');
 
-export function refusalLines(code, detail) {
+export function refusalLines(code, detail, leadField) {
   const lines = [codeLine(code, detail)];
-  /* P3-PORT-FIX-2. The detail is the space separated list confirm() built out
-     of the machinery's issues (the codes after the first, then each issue's
-     `field` and `exercise_id`), so the field is one of its tokens. The FIRST
-     token this map knows wins; a lift id is never a key, and neither is a code,
-     so a token can only match by being a field the PM ruled a sentence for. */
-  const field = String(detail == null ? '' : detail).split(' ')
-    .find(token => Object.hasOwn(REFUSAL_FIELD_SENTENCE, token));
-  const sentence = field ? REFUSAL_FIELD_SENTENCE[field] : REFUSAL_SENTENCE[code];
+  /* P3-PORT-FIX-2, AMENDED IN THE FIX ROUND (independent review R1, NOTE 1).
+     THE SENTENCE DESCRIBES THE FAULT THE CODE LINE LEADS WITH. `leadField` is
+     the FIRST issue's field, which is the fault whose code is printed above,
+     handed in by the caller that has the issues. A refusal that carries several
+     (a training week fault AND a capture fault, say) used to have its sentence
+     chosen by the first token this map RECOGNISED anywhere in the joined
+     detail, so the athlete could read the capture sentence under a code line
+     that led with `split.map`: a true code line with a false sentence beneath
+     it. A field this map does not name - which is most of them - and a leading
+     issue with no field at all both fall through to the code's own sentence,
+     which is never wrong about which fault led.
+     `leadField` OMITTED (not null) means the caller has only the rendered
+     detail string and no issues to read; then the first token this map knows
+     still wins, as before. A lift id is never a key and neither is a code, so a
+     token can only match by being a field the PM ruled a sentence for. */
+  const field = leadField === undefined
+    ? String(detail == null ? '' : detail).split(' ')
+      .find(token => Object.hasOwn(REFUSAL_FIELD_SENTENCE, token))
+    : leadField;
+  const sentence = typeof field === 'string' && field
+    && Object.hasOwn(REFUSAL_FIELD_SENTENCE, field)
+    ? REFUSAL_FIELD_SENTENCE[field] : REFUSAL_SENTENCE[code];
   if (sentence) lines.push(sentence);
   return lines;
 }
@@ -289,9 +303,14 @@ export function createImportScreen(deps = {}) {
      route goes through fail(), so clearing it here covers all of them, and the
      two notes that belong to a refusal - retractRefused and retracted - are
      written AFTER fail() by retract() and cancelAfterCustody() and stand. */
-  const fail = (code, detail) => {
+  /* `field` (fix round, review R1 NOTE 1) is the LEADING issue's field, when the
+     machinery gave one, so the sentence under the code line can describe the
+     fault the code line leads with. It is added to the refusal only when there
+     is one, so a refusal that never had a field is the same object it was. */
+  const fail = (code, detail, field) => {
     note = '';
-    refusal = { code: code || 'IMPORT_ROUTE_REFUSED', detail: detail || null };
+    refusal = { code: code || 'IMPORT_ROUTE_REFUSED', detail: detail || null,
+      ...(typeof field === 'string' && field ? { field } : {}) };
   };
 
   /* ROUND 4, REVIEW R3 MAJOR 2: THE WAY BACK TO ANOTHER FILE, with no reload.
@@ -426,7 +445,16 @@ export function createImportScreen(deps = {}) {
             if (typeof value === 'string' && value && !parts.includes(value)) parts.push(value);
           }
         }
-        fail(codes[0] || 'LOCAL_SOURCE_NOT_READY', parts.join(' ') || null);
+        /* THE LEADING ISSUE'S FIELD, and only its own (fix round, review R1
+           NOTE 1). `codes[0]` above is the FIRST issue's code, so the sentence
+           beside it is chosen by the FIRST issue's field: the two halves of the
+           box then describe the same fault. An issue behind it still prints its
+           field and its lift on the code line; it just does not choose the
+           words. A leading issue with no field leaves the code's own sentence,
+           which cannot be wrong about which fault led. */
+        const lead = (prepared.issues || [])[0];
+        fail(codes[0] || 'LOCAL_SOURCE_NOT_READY', parts.join(' ') || null,
+          lead && typeof lead.field === 'string' ? lead.field : null);
         await retract(RETRACT_REASON.refused);
       } else {
         const capability = localSourceCommitCapability(prepared);
@@ -472,7 +500,11 @@ export function createImportScreen(deps = {}) {
     if (refusal) {
       const box = el('p', 'import-refusal');
       box.className = 'error';
-      box.textContent = refusalLines(refusal.code, refusal.detail).join(' ');
+      /* The third argument is passed ALWAYS, `null` included (fix round, review
+         R1 NOTE 1): a refusal that carries no field is one the machinery gave
+         no field for, which is not the same as a caller that cannot say. */
+      box.textContent = refusalLines(refusal.code, refusal.detail,
+        refusal.field || null).join(' ');
       root.append(box);
     }
     if (note) { const p = el('p', 'import-note', note); p.className = 'note'; root.append(p); }

@@ -234,12 +234,16 @@ async function refusedOn(tag, sealed) {
 test('D-PF-g1 - a lift on the wrong day renders its own field and lift id, with '
   + 'the one sentence under it and nothing else', async () => {
   const { refusal, line } = await refusedOn('render-day', WRONG_DAY_FILE);
+  /* `field` joined this object in P3-PORT-FIX-2's fix round (review R1 NOTE 1):
+     the screen now carries the LEADING issue's field so the sentence can
+     describe the fault the code line leads with. Asserted here, not ignored,
+     so the whole refusal object is still pinned member for member. */
   assert.deepEqual(refusal,
-    { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', detail: 'day db-bench' },
+    { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', detail: 'day db-bench', field: 'day' },
     'the screen said something else: ' + JSON.stringify(refusal));
   /* The box the athlete reads is refusalLines().join(' ') (import-screen.mjs:420):
      the code line first, then the one sentence, and nothing else. */
-  const rendered = Screen.refusalLines(refusal.code, refusal.detail).join(' ');
+  const rendered = Screen.refusalLines(refusal.code, refusal.detail, refusal.field).join(' ');
   assert.equal(line, rendered, 'the screen rendered something other than refusalLines()');
   assert.equal(rendered, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (day db-bench) '
     + 'This file was written by a different training week than the one you set '
@@ -255,8 +259,9 @@ test('D-PF-g1 - a lift on the wrong day renders its own field and lift id, with 
 test('D-PF-g2 - a stranger\'s week renders (split.map) with no lift id', async () => {
   const { refusal, line } = await refusedOn('render-week', STRANGER_WEEK);
   assert.deepEqual(refusal,
-    { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', detail: 'split.map' });
-  const rendered = Screen.refusalLines(refusal.code, refusal.detail);
+    { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', detail: 'split.map',
+      field: 'split.map' });
+  const rendered = Screen.refusalLines(refusal.code, refusal.detail, refusal.field);
   assert.equal(line, rendered.join(' '));
   assert.equal(rendered[0], 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (split.map)');
   assert.equal(rendered.length, 2, 'the code line and the one sentence');
