@@ -1,12 +1,11 @@
 REBUILD: read rebuild/ROADMAP.md first — the durable plan and status.
 
-## NOW ON THE REBUILD (owner design task, filed 2026-09-17 by the PM): RIR DISPLAY
+## REBUILD NOTE (2026-09-17): RIR DISPLAY is designed by the owner in Claude Design
 
-Claude Code: `git fetch origin`, make a NEW branch `rebuild/c-rir-display` from
-`origin/rebuild/t2-client-core`, read `rebuild/lanes/c/BRIEF-RIR-DISPLAY.md` and build
-exactly that, display only. The old-app gate / deploy rules in CLAUDE.md do not apply
-on the rebuild branch. Push the branch and stop: no merge, no deploy, no PR, no edit to
-`rebuild/DECISIONS.md`. Everything else below this block is the OLD app's queue.
+The RIR display change (rebuild/lanes/c/BRIEF-RIR-DISPLAY.md) is NOT a Claude Code task.
+The owner designs it in Claude Design; the PM chat turns the design into a lane-C build
+ticket, reviews it and seals it. Claude Code has nothing to do on the rebuild branch.
+Everything below this block is the OLD app's queue.
 
 ## SHIPPED — THE VOLUME ENGINE (v7.46.0, merged 0d513a8) · and the five rounds after it
 
