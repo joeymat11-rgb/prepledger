@@ -60,7 +60,8 @@ hashed, and compared with S6's own recorded `post`. **All 196 agree, 0 mismatche
 typed. The same 196 were then hashed at this branch's head. Eleven moved. The three first
 declarations were hashed the same way and have `pre: null`, because they did not exist at the base.
 
-**Counts.** 196 carried forward from S6 + 3 first declarations = **199 declared paths**:
+**Counts, as this walk found them BEFORE the S7-TOOLING round of `DECISIONS:511`; 5.1 carries the
+declaration list of record.** 196 carried forward from S6 + 3 first declarations = **199 declared paths**:
 **12 edited** (11 of S6's pins that this change moves, plus `.github/workflows/rebuild.yml`),
 **3 new**, **184 carried** (`pre === post`). There is **no** `superseded-by-child` entry and that is
 a measured fact rather than an omission: that role is Y1's second half, for a file the PARENT pins in
@@ -69,7 +70,9 @@ a measured fact rather than an omission: that role is Y1's second half, for a fi
 `rebuild/lanes/b/tooling/packages/S6.json` does not have to be re-pinned and stays a parent execution
 pin that is simply held. Section 5.1 is where that stops being true: the moment the runner registers
 the id `S7`, `S6.json` becomes `superseded-by-child` and `H3.json`, `S3.json` and `S4.json` become
-`edited`, exactly as S6 did to its own ancestors.
+`edited`, exactly as S6 did to its own ancestors. **After that round the list is 206 declared paths:
+23 `edited`, 9 `new`, 173 `carried` and 1 `superseded-by-child`** - 5.1 names every path that moved
+between the two, and it, not this paragraph, is the count `packages/S7.json` declares.
 
 **2.1 The four product files, role `edited`.** These are the spec's own four and the only four.
 
@@ -127,12 +130,13 @@ reviews, and `rebuild/lanes/c/BRIEF-RIR-DISPLAY.md` which arrives with the tip) 
 by no package in the chain, and are not declared here either. `NEXT.md` and `rebuild/DECISIONS.md`
 move with the tip merge and are outside every package's product map by the same standing practice.
 
-**2.6 Everything else is CARRIED byte-identical.** 183 paths, `pre === post`, re-pinned at S6's own
-post. That includes all 45 tracked `rebuild/engine` files, the whole of `rebuild/m3/w7-preview/today/**`
+**2.6 Everything else is CARRIED byte-identical.** 184 paths in this walk (173 after the round of
+5.1, which moves eleven of them to `edited`), `pre === post`, re-pinned at S6's own post. That
+includes all 45 tracked `rebuild/engine` files, the whole of `rebuild/m3/w7-preview/today/**`
 that S4, S5 and S6 sealed, `rebuild/coach/engine-revision.cjs`, `rebuild/m3/setup/port/**` and
 `rebuild/m4/import/replay-core.cjs`, which both FIX reviewers measured byte-identical. If the
-runner's recomputation finds a 184th path moved, that is a finding and it comes back to the PM; it is
-not absorbed into this list.
+runner's recomputation finds a thirteenth moved path in this walk, that is a finding and it comes
+back to the PM; it is not absorbed into this list.
 
 ## 3. The bar
 
@@ -171,8 +175,10 @@ on this head and the difference is stated in the author report.
 
 **3.3 The package's own child.** `d-port-admission`, argv the three cells of 2.4, needle recomputed on
 this head. It is the Y1 own-child obligation (`MIN_OWN_CHILDREN = 1`): at least one declared child
-must execute a file this spec declares with role `new`, and these three are the only role `new` files
-S7 has. Section 5 records what the runner needs before that child can be declared at all.
+must execute a file this spec declares with role `new`, and when this walk was written these three
+were the only role `new` files S7 had. After the round of 5.1 the six `s7-*` cells are role `new`
+too, executed by five declared children of their own, and `d-port-admission` still executes exactly
+these three. Section 5 records what the runner needs before that child can be declared at all.
 
 **3.4 `--ci --package S7` prints `PUBLIC CI EVIDENCE PASS` at the current tip**, and the artifact is
 re-proposed through the runner's own `proposed()` path, never hand-written. Run on the PC at the
@@ -236,8 +242,11 @@ same sharpness, not less. **Neither cell is edited by this package.**
 
 **5.1 What the runner needed before any of this could run, and the round that landed it.**
 The seven facts below were named here before the first run, and the lane B tooling ticket
-S7-TOOLING (`DECISIONS:511`) has since landed every one of them on this branch. The refusal chain
-is recorded verbatim, with exit codes and log paths, in
+S7-TOOLING (`DECISIONS:511`, the PM's own dispatch line, appended to the chain tip
+`origin/rebuild/t2-client-core` AFTER this branch took its tip merge at `b33fce8a`, so it is not in
+this branch's own copy of `rebuild/DECISIONS.md` and arrives at step 9's merge) has since landed
+every one of them on this branch. The refusal chain is recorded verbatim, with exit codes and log
+paths, in
 `rebuild/lanes/b/S7-TOOLING-AUTHOR-REPORT.md`; the runner now stands at sha256 `a07df1e0...`
 (`8d9a94c2...` before the round). Each fact is written as it was found, then as it now is.
 (1) `IDS` (`b-package.cjs:165`) was `['B-NTC','H3','S3','S4','S5','S6','B1','B2','B4','B3']` and the

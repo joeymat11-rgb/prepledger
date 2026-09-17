@@ -5,12 +5,12 @@
   "status": "BRIEF-ACCEPTED",
   "brief": {
     "file": "rebuild/lanes/b/S7-PORT-ADMISSION-BRIEF.md",
-    "sha256": "41ab30cef85e2a28f617944d3f0c180d18f78e4453da1d7e74f04a5a18e85ba1",
+    "sha256": "e51a83297fda8a0fcbe15ffa7ce241e2dec98325c0fa72767dd36691ca660251",
     "acceptedLedgerLine": {
       "ledgerLine": 513,
       "role": "cowork",
-      "line": "- 2026-09-17 · cowork · BRIEF ACCEPTED BY SHA for M2-S7-PORT-ADMISSION: rebuild/lanes/b/S7-PORT-ADMISSION-BRIEF.md, sha256 41ab30cef85e2a28f617944d3f0c180d18f78e4453da1d7e74f04a5a18e85ba1 (25683 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
-      "lineSha256": "b75f2c85ed642a4a269c3331905d3e27234206d28187cf43b4719e58289a2ff7"
+      "line": "- 2026-09-17 · cowork · BRIEF ACCEPTED BY SHA for M2-S7-PORT-ADMISSION: rebuild/lanes/b/S7-PORT-ADMISSION-BRIEF.md, sha256 e51a83297fda8a0fcbe15ffa7ce241e2dec98325c0fa72767dd36691ca660251 (26571 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "15bb8a5d12ceecc6294b260797cb30f11a5520cd8d6300514e9a2c14b4ddb2f4"
     }
   },
   "sourceBase": "3d002174ed23738bafa50ed4a163f174f8f0ad70",
@@ -182,7 +182,7 @@
     },
     "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs": {
       "pre": "c7e5dee0d25f122443424b6fa08fee9e9bfa6c2649cea45e7a785a2f59dc783a",
-      "post": "bd1e1fc724d6eebb8fd53371b6bc9b9055fcb59f1c2b4051fd48566ad9ac84c1",
+      "post": "d17f2e45e086363e065862ace674ecee6c15f839bf1e2d536d806faafa2de4aa",
       "role": "edited"
     },
     "rebuild/lanes/d/b-lom/legacy-order.test.mjs": {

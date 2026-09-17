@@ -325,10 +325,12 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
 // nine-element slice and said so in as many words. A re-pin's rule has to read true at the
 // line a reader lands on, so the title is the thing corrected, never the assertion. Round 2
 // then adds a TENTH root, rebuild/lanes/d/b-lom/ (DECISIONS:492), and the title says ten.
-// M2-S7-PORT-ADMISSION then adds an ELEVENTH, rebuild/lanes/d/p3-port-fix/, for the same
+// M2-S7-PORT-ADMISSION then adds one more, rebuild/lanes/d/p3-port-fix/: the ELEVENTH
+// addition since S5 and the NINETEENTH element of the list, and it exists for the same
 // reason S6's ninth and tenth exist: the three cells the accepted P3-PORT-FIX and
-// P3-PORT-FIX-2 rounds wrote are that package's only role:"new" product, and the Y1
-// own-child rule cannot be met unless a declared child may execute them.
+// P3-PORT-FIX-2 rounds wrote are the only role:"new" product that package has outside
+// rebuild/m4/workout/test/ (the root its six s7-* supersession cells already stand under),
+// and the Y1 own-child rule cannot be met unless a declared child may execute them.
 test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S6-TODAY-CHILD adds exactly ten with M2-S7-PORT-ADMISSION\'s one behind them', () => {
   assert.deepEqual(api.CHILD_ROOTS, [
     'rebuild/m4/spec/',
@@ -369,8 +371,9 @@ test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may exe
   // so the root is here and the w6-local-source child runs them.
   // A TENTH, rebuild/lanes/d/b-lom/, is round 2's: DECISIONS:492 folds B-LOM into this
   // package, S6 declares its route suite as product, and the b-lom child runs it.
-  // A NINETEENTH, rebuild/lanes/d/p3-port-fix/, is S7's, and it is one root for one
-  // package's own three cells: DECISIONS:487 stop 7 again, and MIN_OWN_CHILDREN = 1.
+  // AN ELEVENTH ADDITION SINCE S5, and the NINETEENTH element of this list,
+  // rebuild/lanes/d/p3-port-fix/, is S7's, and it is one root for one package's own three
+  // cells: DECISIONS:487 stop 7 again, and MIN_OWN_CHILDREN = 1.
   assert.equal(api.CHILD_ROOTS.length, 19);
   assert.equal(api.CHILD_ROOTS[7], 'rebuild/m3/w7-preview/measure/test/');
   assert.deepEqual(api.CHILD_ROOTS.slice(8), [
