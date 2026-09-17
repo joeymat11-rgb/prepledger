@@ -304,6 +304,7 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
   TOOLING + '/test/parent-pin-shapes-and-spec-successors.test.cjs',
   TOOLING + '/test/parent-gate-closure-and-load-floor.test.cjs',
   TOOLING + '/test/gate-supersession.test.cjs',
+  TOOLING + '/test/child-diagnostic-tail.test.cjs',
   // r8 change 2. `receipts/<every id>.json` STOOD HERE and no longer does: the exemption is
   // narrowed to THIS PACKAGE'S OWN receipt and moved into fidelity(), where `ID` is known.
   // It cannot be removed outright — r8 change 1 requires the receipt's bytes to stand in
@@ -321,6 +322,37 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
 // package: every existing root is unchanged, and the new one names one real directory of
 // this repository that already exists on the branch, not a pattern.
 const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/'];
+// S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS (DECISIONS:467 process note 2, ticket
+// CI-TODAY-CHILD-FLAKE). Narrower than CHILD_ROOTS above on purpose: CHILD_ROOTS is every
+// root ANY declared child of ANY B package may execute from, including
+// rebuild/m4/spec/ and rebuild/conform/v4/postfix/, which reach the private oracle under
+// --full. Three of the four PUBLIC_TAIL_ROOTS — today, measure, w6 host — are roots
+// rebuild.yml already runs in an open step, so a --ci child whose argv stands entirely
+// under one of those three was already public before this diagnostic existed. The fourth,
+// m4/workout, is NOT run by any open rebuild.yml step — its six cells run only inside this
+// withheld `--ci --package S5` step (rebuild.yml:127) — and stands on a second basis: its
+// content was read in full (node builtins, rebuild/engine/*, native-carriers-source.cjs,
+// w7-preview/fixtures.cjs, S5.json) and contains no line naming the private census, a
+// golden, live.json or the ledger, so it is safe by audited content, not by an open step.
+// Either way, nothing here discloses a byte CI did not already print or a byte the root's
+// own content did not already clear. TAIL_DENYLIST is the
+// second, independent gate: even a public-root child's OWN STDOUT is scanned line by line,
+// and any line naming the private census, a golden, live.json or the ledger withholds the
+// tail regardless of where the child's argv pointed — argv path and printed content are
+// checked separately because a public suite can still print a path it merely rejected
+// (see package.test.cjs's traversal-refusal probes) without that path being real evidence.
+const PUBLIC_TAIL_ROOTS = ['rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m4/workout/test/'];
+const TAIL_DENYLIST = ['conform/private', 'golden', 'live.json', 'ledger/'];
+const TAIL_LINES = 60;
+// S6-B round-3 review, finding 3 (MINOR): TAIL_LINES caps LINE COUNT only, and
+// spawnSync's own maxBuffer allows up to 32 MB of child output -- one pathological line
+// (no newline in it at all) could still flood CI even after the 60-line cap. Cap the
+// printed tail in bytes too, independently of the line cap.
+const TAIL_BYTES = 16 * 1024;
+// S6-B round-4 review, finding 1 (MINOR): this constant was itself pinned by no cell.
+// Closed by pinned-unchanged-and-ruled-substitutions.test.cjs's F9 (deepEqual on the
+// exported constant) and child-diagnostic-tail.test.cjs's byte-cap probe (a 200 KB
+// single-line tail truncates to exactly TAIL_BYTES, the header saying so).
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
 // --require=, --import=) are caught with the bare ones; NO_RUN catches every form that
@@ -1936,6 +1968,55 @@ function carriers(s) {
     Object.keys(s.carrierSuccessor.witnessPins).length + ' frozen witness file(s) byte-identical (never edited)');
   if (!there) note('carrier successor ' + s.carrierSuccessor.file + ' not authored');
 }
+// S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS (DECISIONS:467 process note 2). Called ONLY from
+// children()'s own CHILD-REQUIRED-EXIT-ZERO catch, and ONLY when the caller has already
+// checked `ci` is true — never for --full, where the private oracle may be in scope and
+// nothing about a declared child's stdout is disclosed by this ticket. Two independent
+// gates, both over the FAILING CHILD's own evidence, and either one alone withholds:
+//   1. PATH — every target this child's own argv names (childArgv(c), already validated
+//      against CHILD_ROOTS) must stand under one of the four PUBLIC_TAIL_ROOTS — three of
+//      which rebuild.yml already runs in an open step, the fourth (m4/workout) safe on the
+//      separate, audited-content basis recorded at PUBLIC_TAIL_ROOTS' own definition;
+//   2. CONTENT — no line of the child's own stdout+stderr may contain a TAIL_DENYLIST
+//      needle, so a public suite that happens to print a private-looking path (a rejected
+//      traversal probe, say) still withholds rather than trusting its own root.
+// Passing both is necessary, not sufficient, for trust — it is the narrowest rule that
+// still closes the ticket: a child already public in shape and silent on the denylist adds
+// nothing a rerun of the SAME rebuild.yml step would not already have printed.
+function childDiagnosticTail(c, targets, r, wall) {
+  // RV17 (S6-B round-2 review, finding 5): r.status is null on a spawnSync timeout or
+  // ENOENT (r.error set), and the bare word "null" reads as a passed exit code rather than
+  // the hang this diagnostic exists to surface. Print "timeout" (plus the error code, when
+  // one is present) instead, and leave a real exit code exactly as before.
+  const exitLabel = r.status === null ? 'timeout' + (r.error && r.error.code ? ' ' + r.error.code : '') : r.status;
+  const header = 'B PACKAGE ' + ID + ' CHILD ' + c.name + ' DIAGNOSTIC exit ' + exitLabel + ' wall ' + wall + ' ms; ';
+  const combined = (r.stdout || '') + (r.stderr || '');
+  const lines = combined.split(/\r?\n/);
+  const isPublic = targets.length > 0 && targets.every(t => PUBLIC_TAIL_ROOTS.some(root => t.startsWith(root)));
+  // RV17 finding 1 (BLOCKING): TAIL_DENYLIST's needles are '/'-spelled, so on Windows a
+  // child that prints a backslash path (path.join's native separator) matched none of them
+  // and its tail printed uncensored. Scan a '/'-normalized copy of the WHOLE stream (same
+  // scope as before, not only the printed 60 lines) and keep printing the ORIGINAL lines.
+  // RV18-13/14/15/16 (S6-B round-3 review, finding 1, BLOCKING): a bare replace(/\\/g,'/')
+  // turns a DOUBLED backslash -- the shape node:test's own reporter emits for a failing
+  // string value via JSON.stringify (each '\' becomes '\\') -- into a DOUBLED slash, so
+  // 'conform\\private' (the literal two-backslash text a JSON.stringify'd private path
+  // prints) normalized to 'conform//private', which does not contain the single-slash
+  // needle 'conform/private' at all. Collapsing repeated slashes after the backslash swap
+  // closes that gap without touching a real single-slash path, which already had none to
+  // collapse.
+  const normalized = combined.replace(/\\/g, '/').replace(/\/{2,}/g, '/');
+  const denylisted = TAIL_DENYLIST.some(needle => normalized.includes(needle));
+  if (!isPublic || denylisted) return header + 'tail withheld (path policy)';
+  // S6-B round-3 review, finding 3 (MINOR): also cap by bytes, not only by line count --
+  // see TAIL_BYTES' own definition. Printed lines are unchanged when the tail already fits.
+  const tail = lines.slice(-TAIL_LINES).join('\n');
+  const tailBuf = Buffer.from(tail, 'utf8');
+  const byteCapped = tailBuf.length > TAIL_BYTES;
+  const printed = byteCapped ? tailBuf.slice(-TAIL_BYTES).toString('utf8') : tail;
+  return header + 'last ' + TAIL_LINES + ' lines of stdout+stderr follow' +
+    (byteCapped ? ' (last ' + TAIL_BYTES + ' bytes of that)' : '') + '\n' + printed;
+}
 // Every declared child runs IN THIS PROCESS and must exit 0 with its exact declared
 // verdict. The returned map is the only evidence a gate may be counted as covered by.
 function children(s, env) {
@@ -1951,7 +2032,9 @@ function children(s, env) {
   }
   for (const c of s.children) {
     const targets = childArgv(c); // re-asserted here: the argv that is SPAWNED is the argv that was checked
+    const wallStart = Date.now();
     const r = cp.spawnSync(process.execPath, c.argv, { cwd: root, env, encoding: 'utf8', windowsHide: true, timeout: 1800000, maxBuffer: 32 * 1024 * 1024 });
+    const wall = Date.now() - wallStart;
     const out = r.stdout || '', bytes = Buffer.byteLength(out, 'utf8');
     fs.writeFileSync(path.join(logDir, c.name + '.log'), out + (r.stderr || ''));
     // TOOLING-REVIEW-r10 F5. This refusal used to read “Required child <name>” — not a name
@@ -1960,8 +2043,19 @@ function children(s, env) {
     // GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-GREEN is belt-and-braces rather than the first
     // line of defence: children() refuses a red child here, earlier and harder, and the
     // evidence check reaches only the map this loop produced.)
-    assert(!r.error && r.status === 0, 'CHILD-REQUIRED-EXIT-ZERO ' + c.name + '; status ' + r.status +
-      (r.error ? ' ' + String(r.error.code || r.error.message).slice(0, 40) : '') + ', log ' + c.name + '.log');
+    try {
+      assert(!r.error && r.status === 0, 'CHILD-REQUIRED-EXIT-ZERO ' + c.name + '; status ' + r.status +
+        (r.error ? ' ' + String(r.error.code || r.error.message).slice(0, 40) : '') + ', log ' + c.name + '.log');
+    } catch (childFailure) {
+      // S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS. --ci ONLY (never --full, where the private
+      // census may be in scope): attach the narrowed tail to the error object itself, at
+      // the exact point of failure where r.stdout/r.stderr/wall are still in hand, and let
+      // it ride up to the catch at the bottom of main(), which prints it AFTER the FAIL
+      // line it already prints today, never instead of it. childDiagnosticTail() is the
+      // sole place the two gates (PUBLIC_TAIL_ROOTS, TAIL_DENYLIST) are applied.
+      if (ci) childFailure.diagnostic = childDiagnosticTail(c, targets, r, wall);
+      throw childFailure;
+    }
     // N3. The needle is a VERDICT, so it must stand at the head of its own line — not
     // somewhere inside a longer sentence, and not inside a negation. And a process that
     // printed a handful of bytes did not execute a gate file: `node --version` exits 0 and
@@ -1981,9 +2075,14 @@ function children(s, env) {
         ' byte(s) of stdout without ' + JSON.stringify(GATE_NEEDLE.get(gate)) + ' — the byte floor is not evidence for a moving child');
     if (!moved.length) assert(bytes >= NEEDLE_FLOOR || GATE_TERMINAL.test(out),
       'CHILD-DID-NOT-REALLY-EXECUTE ' + c.name + '; ' + bytes + ' byte(s) of stdout and no original gate terminal line');
-    ran.set(c.name, { ok: true, needle: c.needle, bytes, targets, moved });
+    ran.set(c.name, { ok: true, needle: c.needle, bytes, targets, moved, wall });
+    // S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS. Every child's wall time is now on its OBSERVED
+    // line in --ci (not only a failing one's): the diagnosable gap this ticket closes was
+    // never being ABLE to tell a slow-but-green rerun from a fast one, and OBSERVED is
+    // printed for every declared child that reaches this line, pass or fail, in every mode.
     say('CHILD ' + c.name + ' OBSERVED; exit 0, ' + bytes + ' bytes of stdout, exact declared verdict at line start; ran ' + targets.join(' ') +
-      (moved.length ? '; and emitted the original gate needle(s) ' + moved.join(' ') : ''));
+      (moved.length ? '; and emitted the original gate needle(s) ' + moved.join(' ') : '') +
+      (ci ? '; wall ' + wall + ' ms' : ''));
   }
   return ran;
 }
@@ -2974,5 +3073,12 @@ try {
   const code = blocked ? null : failCode(error && error.message);
   console.error(blocked ? 'B PACKAGE ' + ID + ' BLOCKED ' + error.code
     : 'B PACKAGE ' + ID + ' FAIL' + (code ? ' ' + code : '') + '; required evidence missing or failed; local diagnostics withheld');
+  // S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS. The ONE exception to "local diagnostics
+  // withheld" just printed above: a declared child's own CHILD-REQUIRED-EXIT-ZERO failure,
+  // in --ci only, carries a diagnostic tail already narrowed to a public-root,
+  // non-denylisted child by childDiagnosticTail() at the moment children() caught it —
+  // printed here, AFTER the FAIL line, never in place of it and never for any other
+  // refusal in this file.
+  if (ci && error && error.diagnostic) console.error(error.diagnostic);
   process.exitCode = blocked ? 2 : 1;
 }

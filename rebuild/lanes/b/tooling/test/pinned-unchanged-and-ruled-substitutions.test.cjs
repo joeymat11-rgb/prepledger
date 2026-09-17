@@ -50,7 +50,8 @@ process.argv = [process.execPath, runnerFile, '--ci', '--package', 'B-NTC'];
 try {
   m._compile(source.slice(0, source.indexOf(delimiter)) +
     '\nmodule.exports={product,describes,ruledDescriptions,failCode,executedClosure,EXECUTED_CLOSURE_LIMIT,' +
-    'FAIL_CODES,IDS,PRODUCT_ROLES,NO_REGISTER_IDS,CHILD_ROOTS,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
+    'FAIL_CODES,IDS,PRODUCT_ROLES,NO_REGISTER_IDS,CHILD_ROOTS,PUBLIC_TAIL_ROOTS,TAIL_DENYLIST,TAIL_BYTES,' +
+    'init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
 api.init();
@@ -318,4 +319,34 @@ test('F7 — CHILD_ROOTS is the fixed list of directories a declared child may e
     assert.equal(path.isAbsolute(root), false, root + ' is relative to the repository');
     assert(fs.existsSync(path.join(sourceRoot, root)), root + ' is a real directory of this repository');
   }
+});
+
+// ------------------------------------------------------ F8. the fixed tail gates (RV17)
+// S6-B round-2 review, finding 4: PUBLIC_TAIL_ROOTS and TAIL_DENYLIST were pinned by no
+// cell, unlike their wider sibling CHILD_ROOTS above (F7). Both are FIXED IN THE RUNNER
+// (W7) the same way; a spec may not widen either, so a widening is worth a red assertion,
+// not only a comment. Pinned exactly and in order, same as F7.
+test('F8 -- PUBLIC_TAIL_ROOTS and TAIL_DENYLIST are the fixed lists the tail diagnostic gates on', () => {
+  assert.deepEqual(api.PUBLIC_TAIL_ROOTS, [
+    'rebuild/m3/w7-preview/today/test/',
+    'rebuild/m3/w7-preview/measure/test/',
+    'rebuild/m3/w6/host/test/',
+    'rebuild/m4/workout/test/',
+  ]);
+  assert.deepEqual(api.TAIL_DENYLIST, ['conform/private', 'golden', 'live.json', 'ledger/']);
+  // S6-B round-3 review, finding 4 (MINOR, tautology removal, not an assertion removal):
+  // the notDeepEqual below compared a 5-element array against the 4-element
+  // api.PUBLIC_TAIL_ROOTS it was built from -- deepEqual refuses on length alone before
+  // either array's CONTENT is examined, so the assertion passed regardless of what either
+  // list actually held and pinned nothing the two deepEqual calls above do not already
+  // pin. Removed; those two calls do the real work of this test.
+});
+
+// ------------------------------------------------------- F9. the fixed tail byte cap
+// S6-B round-4 review, finding 1 (MINOR): TAIL_BYTES landed (round 3) but was pinned by
+// no cell, unlike PUBLIC_TAIL_ROOTS and TAIL_DENYLIST just above (F8). Pinned exactly,
+// same style: deleting the constant or raising it does not go unnoticed here or in
+// child-diagnostic-tail.test.cjs's byte-cap probe.
+test('F9 -- TAIL_BYTES is the fixed byte cap the diagnostic tail truncates to', () => {
+  assert.deepEqual(api.TAIL_BYTES, 16 * 1024);
 });
