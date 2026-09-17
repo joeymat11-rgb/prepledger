@@ -135,3 +135,14 @@ w7-preview/import tests 35 / pass 35 / fail 0   |   today/test/package + design 
 - `executedClosure` still cannot see a COMPUTED specifier. Lane B tooling ticket after S6, per `:493 (3)`; F10 asserts the bound so the gap cannot quietly close or quietly widen.
 - DASHES: exactly THREE added lines in the whole round 2 diff carry one, and none is a product string - the two new rebuild.yml step NAMES (written that way because all twelve step names already in that file use it) and the PM's own `:493` ledger line, which may not be edited. Zero CRLF in every touched file.
 - The `:456` trip-wire is still not armed: the standing rebuild.yml step is `--package S5`, so the coach constant moves ONCE, at the PM's ff-merge, in `:465-467`'s order.
+
+# ROUND 3 (the lane D P2-W1 full-scope fix)
+
+- Merged `rebuild/d-p2w1-scope` 67e0130 at `e5e5fba`, no rebase; what it brings over `a32e606e` is exactly two paths, the cell and lane D's 29-line report. The review `f49b370` (VERDICT ACCEPT, no stops) is carried onto this branch at `ef5b8a8`.
+- The cell now reads line 4 of the oracle by RULE - same N on both sides of each fraction, frozen = unfrozen by backreference, N >= 7, `scope FULL` captured when FULL prints it - so the PM's `--full` run reads GREEN without the PUBLIC count standing in the pattern. The guard is not weakened: a red gate, a smaller class count and a mismatched frozen/unfrozen count each still fail, and the new sibling cell executes that red side.
+- Re-measured in `packages/S6.json`: `rebuild/m3/w6/test/local-source-consumer.test.mjs` post `856b3627665b016e...`, and the `w6-local-source` needle `# pass 25` becomes `# pass 26`.
+- Its role is `new`, NOT `edited`: this file is not a parent pin (S5 pins neither w6 local-source cell, which is why both stood `pinned-unchanged`), and the runner refuses `edited` there by name - measured, `UNLISTED-PRODUCT-DRIFT ... is not parent-pinned and is not declared new`. `new` over a REAL pre-image is the same shape round 2's both-sides files carry. Disclosed side effect: the no-register obligation line now reads 12 of 12 children executing one of this package's own role `new` files, up from 11.
+- Child tail, `TZ=America/New_York MEASURED_TEST_NOW=2026-09-03`: `# tests 26 # pass 26 # fail 0`.
+- `--ci --package S6` prints `PUBLIC CI EVIDENCE PASS`, exit 0, with every ledger line resolved on the chain tip `656473bd`.
+- `today-17` FLAKED once mid-round (681 of 682, caught by the runner's own CI-TODAY-CHILD-FLAKE diagnostic tail, whose last 60 lines do not carry the failing name). Re-run on its own argv it is 682/682, and it is OBSERVED exit 0 in the passing `--ci` run. Not this round's doing; the flake itself is not diagnosed here.
+- Hygiene: LF only, no en or em dash added, tree clean, no engine byte and no private path touched.
