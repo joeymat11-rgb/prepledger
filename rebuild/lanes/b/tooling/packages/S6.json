@@ -989,7 +989,7 @@
       "rulingLineSha256": "f2e3fe7412f2bc4d558246179698f1781cc4ff39dead3444a64235fde1245f89",
       "gates": {
         "source-carriers": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:490 (RULED) for M2-S6-TODAY-CHILD, located by its own sha256 f2e3fe7412f2...: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37, and the three original programmes rebuild migrate.cjs from the frozen fe516c1:src/app.jsx declarations; this package changes NO engine byte, yet four files the reconstruction rebuilds (constants.cjs and writers.cjs from M2-H3-CLEAN-INIT, merge.cjs and today.cjs from M2-S3-COMPANION) already stand outside it, and the parent M2-S4-REAL-DAY inherited them unmoved and retired these same gates at DECISIONS:444, so the gates refuse on this tree and no package that moves nothing can mend them - executed and measured in s6-supersede-source-carriers",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:490 (RULED) for M2-S6-TODAY-CHILD, located by its own sha256 f2e3fe7412f2...: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37, and the three original programmes rebuild migrate.cjs from the frozen fe516c1:src/app.jsx declarations; this package changes NO engine byte, yet four files the reconstruction rebuilds (constants.cjs and writers.cjs from M2-H3-CLEAN-INIT, merge.cjs and today.cjs from M2-S3-COMPANION) already stand outside it, and the parent M2-S5-TODAY-CHILD inherited them unmoved and retired these same gates at DECISIONS:462, so the gates refuse on this tree and no package that moves nothing can mend them - executed and measured in s6-supersede-source-carriers",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -1028,7 +1028,7 @@
           }
         },
         "writers-differential": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:490 (RULED) for M2-S6-TODAY-CHILD, located by its own sha256 f2e3fe7412f2...: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and writers.cjs on this tree is neither that reconstruction's declared pre-image nor its declared post-image - it was moved by M2-H3-CLEAN-INIT, carried unmoved by M2-S3-COMPANION and by the parent M2-S4-REAL-DAY, and is carried here byte-identical to the parent's post, asserted at S5/SUP-11",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:490 (RULED) for M2-S6-TODAY-CHILD, located by its own sha256 f2e3fe7412f2...: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and writers.cjs on this tree is neither that reconstruction's declared pre-image nor its declared post-image - it was moved by M2-H3-CLEAN-INIT, carried unmoved by M2-S3-COMPANION and by the parent M2-S5-TODAY-CHILD, and is carried here byte-identical to the parent's post, asserted at S6/SUP-11",
           "evidence": {
             "laws": null,
             "redFirst": [
