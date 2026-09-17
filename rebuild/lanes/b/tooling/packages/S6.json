@@ -533,7 +533,7 @@
     "rebuild/m3/w7-preview/today/test/copy.test.mjs": {
       "pre": "c9ad7b5e232ee0bdc4ad7096188ccf43688ccf4c28128976c3b04bc512649e55",
       "post": "290a90ab6d79c5558a01067b9755192655cd1fe465581bdb8cc358e24fd9f9e5",
-      "role": "new"
+      "role": "superseded-by-child"
     },
     "rebuild/m3/w7-preview/today/test/design.test.cjs": {
       "pre": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
