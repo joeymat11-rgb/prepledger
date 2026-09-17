@@ -46,7 +46,7 @@ w6/host 13/5, w6/test 83/1, m4/import 30/0, m4/workout 3 named/0, lanes/d
 8+2+4+1+1+1, w7-preview/import 9/0, measure 15/15, today 57/15. All 89 named files exist
 on the tree and none is already S5-declared. No count differs from the brief.
 
-**But only 67 of the 89 are DECLARED, and that is the first stop.** The other 22 are
+**But only 66 of the 89 are DECLARED, and that is the first stop.** The other 23 are
 files this package does not move AND that no declared child EXECUTES, and the runner's
 closed role vocabulary has no honest spelling for that case: role `new` means a file that
 did not exist or one this package moves, and role `pinned-unchanged` is refused by
@@ -54,12 +54,13 @@ did not exist or one this package moves, and role `pinned-unchanged` is refused 
 argv names the file or reaches it through a RELATIVE require. Inventing a child to make a
 pin legal would be gaming that rule, so they are named here instead (section 6).
 
-`packages/S6.json` therefore declares **187**: the 114 S5 pins re-asserted (96 carried,
-18 edited), 67 new (17 `new`, 54 `pinned-unchanged`, plus this package's own six cells),
-2 `superseded-by-child` over parent EXECUTION pins (`packages/S5.json` and, measured not
-assumed, `today/test/copy.test.mjs` - the brief lists it among today's unpinned seven and
-it is unpinned only in the parent's PRODUCT map; the parent executes it), and
-`.github/workflows/rebuild.yml` at its new bytes.
+`packages/S6.json` therefore declares **187** = the 114 S5 pins re-asserted, 66 of the
+brief's 89, this package's own six cells, and `packages/S5.json`. By role: 96 `carried`,
+18 `edited` (including `.github/workflows/rebuild.yml` at its new bytes), 17 `new`, 54
+`pinned-unchanged`, and 2 `superseded-by-child` over parent EXECUTION pins -
+`packages/S5.json` and, measured rather than assumed, `today/test/copy.test.mjs`, which
+the brief lists among today's unpinned seven because it is unpinned only in the parent's
+PRODUCT map; the parent EXECUTES it, and `DECISIONS:109` gives that case its own role.
 
 ## 3. The flake: cause, reproduction, fix
 
@@ -147,9 +148,21 @@ d-capture-start 14, food-live-save 6, w7-import 35, w6-host-seams 9, w6-local-so
 and the engine-files differential `27 tracked ... 18 named and NOT ONE moves, so all 45
 tracked rebuild/engine file(s) stand byte-identical to the parent's own post`.
 
+`--ci --package S5` on this branch is RED, as the brief predicts, and the code is
+**`SEALED-PROFILE-RECOMPUTATION`** (exit 1) - reached only after SPEC OBSERVED and PARENT
+BOUND both print, so the re-pin worked and S5 stops exactly where H3, S3 and S4 stop under
+a child. It is not `RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER`: that is what it refused with
+before H3/S3/S4/S5 were re-pinned onto the moved runner, and closing that is the point of
+the re-pin. No refusal token is changed by S6 and no coverage is lost.
+
+Tip control, run in a second worktree at the clean tip `0635f4b6` with the same junctions,
+because two reds had to be adjudicated rather than assumed: `m4/import/test/s3/harness.test.mjs`
+3 pass / 14 fail HERE and 3 pass / 14 fail THERE (identical, pre-existing);
+`lanes/d/p3-replay-all` 26 pass / 0 fail THERE and 25 / 1 HERE (this merge's doing, stop 2).
+
 ## 6. Stops
 
-1. **22 of the brief's 89 cannot be declared.** Unchanged here and executed by no declared
+1. **23 of the brief's 89 cannot be declared.** Unchanged here and executed by no declared
    child, so no role in the runner's closed vocabulary fits. Build and dev-host glue:
    `w6/local/{build,source-commit}.mjs`, `w6/host/{plan-edit-host,build-host,esbuild-probe}.mjs`,
    `w6/host/index.html` (HTML - nothing can execute it at all). Harnesses reached only by
