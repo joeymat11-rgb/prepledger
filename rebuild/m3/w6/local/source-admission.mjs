@@ -77,7 +77,27 @@ const bodyComposition=BodyComposition.createBodyCompositionClass({members:[{fami
 // clock, no engine and no platform.
 const sleepFamily=SleepReplay.createSleepReplayFamily({commands:Sleep.createSleepCommands(),
  profile:Sleep.PROFILE});
-const fail=code=>{const e=new Error(code);e.code=code;throw e;};
+const fail=(code,detail)=>{const e=new Error(code);e.code=code;if(detail)Object.assign(e,detail);throw e;};
+/* THE CODES THIS MODULE RAISES (P3-PORT-FIX, spec 3.4). The recorded-workout
+   `try` at :270 also encloses storedWorkoutHistory, projector.project and the
+   engine runtime, which can throw errors this module did not name. Its catch
+   may therefore only surface a code that is on this list; anything else keeps
+   LOCAL_SOURCE_WORKOUT_UNRESOLVED, exactly as it did before. An allowlist, not
+   a bare `e.code`, so no foreign code can become the athlete's refusal. */
+const KNOWN_REPLAY_CODES=Object.freeze(new Set(['LOCAL_SOURCE_AUTHORITY_CONTEXT',
+ 'LOCAL_SOURCE_CAUSAL_CYCLE','LOCAL_SOURCE_COMMIT_UNPROVEN','LOCAL_SOURCE_COVERAGE_UNKNOWN',
+ 'LOCAL_SOURCE_EFFECT_UNMAPPED','LOCAL_SOURCE_IDENTITY_CONFIRMATION_REQUIRED',
+ 'LOCAL_SOURCE_MATERIAL_MISMATCH','LOCAL_SOURCE_ORDER_MAP_REQUIRED','LOCAL_SOURCE_ORIGINAL_CHANGED',
+ 'LOCAL_SOURCE_ORIGINAL_INVALID','LOCAL_SOURCE_PROGRAMME_UNRESOLVED','LOCAL_SOURCE_QUALIFICATION_UNOWNED',
+ 'LOCAL_SOURCE_REOPEN_UNPROVEN','LOCAL_SOURCE_REVIEW_UNOWNED','LOCAL_SOURCE_ROLLBACK_UNPROVEN',
+ 'LOCAL_SOURCE_SCOPE','LOCAL_SOURCE_SELECTION_CONFLICT','LOCAL_SOURCE_SELECTION_UNPROVEN',
+ 'LOCAL_SOURCE_STALE','SOURCE_ENGINE_CONTEXT_UNPROVEN','SOURCE_PREPARATION_REPRODUCTION_MISMATCH']));
+/* The issue detail an inner throw is allowed to carry out: a `field` from the
+   closed vocabulary of spec 3.1 and, where the field is per lift, the lift id.
+   GUARDED, so an error that carries no field (a CLEAN_INIT_* out of
+   createCleanInitState, a TypeError) produces an issue with NO `field` member
+   rather than one whose field is undefined. */
+const detailOf=e=>(e?.field?{field:e.field,...(e.exercise_id?{exercise_id:e.exercise_id}:{})}:undefined);
 const {encode,digest,freeze,validDay,sourceEngineContext,engineContextAt}=Profile;
 const copy=structuredClone;
 const COLLECTIONS=new Set(['ops','outbox','dispositions','rejected','receipts','planTxns','plan','planTransactions','planHistory','suspensions','issuances','sessionStarts','sessionResolutions','drafts','sync','meta','derived']);
@@ -137,24 +157,57 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    prefix_question:'Did every workout in this file happen before this first Earned workout, with none already recorded in Earned?'});
   reviews.set(review,held);return review;
  }
- function programme(source,ops){
+ /* THE PROGRAMME RULE (P3-PORT-FIX, DECISIONS:506/:507). The imported file is
+    proved to be THIS athlete's programme by its SHAPE, not by its numbers: the
+    week he just described, the lifts he just listed, and where each one sits.
+    His set counts, rep targets, increments, ladders, volume tags and stated
+    priorities are RETAINED from the file and never proved against the one-number
+    document the setup flow can write (setup-model.mjs:622-623,:633), because
+    the flow cannot ask him for them and a rule he cannot answer is not a rule.
+    Each retention carries its own argument in lanes/d/P3-PORT-FIX-SPEC.md 1.4. */
+ function programme(source,ops,{today}){
   const setups=Object.values(ops).filter(o=>o.payload?.profile===Setup.PROFILE);
-  if(setups.length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');const op=setups[0];
-  if(op.schema_version!==2||!Setup.validate(op,id=>ops[id]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+  if(setups.length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'setup_document'});const op=setups[0];
+  if(op.schema_version!==2||!Setup.validate(op,id=>ops[id]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'setup_document'});
   const scratch=createCleanInitState({setup:op.payload.setup});
-  const fields=['id','day','mg','sets','hi','inc','steps'];
-  if(encode(source.split)!==encode(scratch.split)||source.exercises?.length!==scratch.exercises.length)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
-  for(const ex of scratch.exercises){const matches=source.exercises.filter(x=>x.id===ex.id);if(matches.length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');for(const key of fields)if(encode(matches[0][key])!==encode(ex[key]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
-   const tag=op.payload.tags[ex.id];for(const k of ['head','secondary'])if(encode(matches[0][k]??(k==='head'?null:[]))!==encode(tag[k]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');}
-  if(encode(source.priority_muscles??[])!==encode(op.payload.setup.priority_muscles))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
-  return {op_id:op.op_id,split:source.split,exercises:source.exercises.map(ex=>Object.fromEntries([...fields,'head','secondary'].filter(k=>Object.hasOwn(ex,k)).map(k=>[k,ex[k]]))),priority_muscles:op.payload.setup.priority_muscles};
+  /* COMPARED is not PROJECTED. `fields` is what the file must AGREE with the
+     phone about; PROJECTED_FIELDS is what the admitted basis carries out to the
+     programme digest at :325, and it keeps `id` and every RETAINED number,
+     because narrowing the comparison must not narrow the record. */
+  const fields=['day','mg'];
+  const PROJECTED_FIELDS=['id','day','mg','sets','hi','inc','steps','head','secondary'];
+  const periods=Array.isArray(source.split)?source.split:null;
+  const week=scratch.split[0].map;
+  if(!periods||!periods.length)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split'});
+  for(const p of periods){
+   if(!p||typeof p!=='object'||Array.isArray(p)||
+      Object.keys(p).some(k=>k!=='from'&&k!=='map'))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split'});
+   if(encode(p.map)!==encode(week))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.map'});
+   if(!validDay(p.from)||p.from>today)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.from'});
+  }
+  if(!periods.some(p=>p.from<=today))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.from'});
+  if(source.exercises?.length!==scratch.exercises.length)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'exercises'});
+  for(const ex of scratch.exercises){
+   const matches=source.exercises.filter(x=>x.id===ex.id);
+   if(matches.length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'exercise_id',exercise_id:ex.id});
+   for(const key of fields)if(encode(matches[0][key])!==encode(ex[key]))
+    fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:key,exercise_id:ex.id});
+  }
+  return {op_id:op.op_id,split:source.split,
+   exercises:source.exercises.map(ex=>Object.fromEntries(PROJECTED_FIELDS
+     .filter(k=>Object.hasOwn(ex,k)).map(k=>[k,ex[k]]))),
+   priority_muscles:source.priority_muscles??[]};
  }
  // `prefixAnswer` is the athlete's own answer to the review's identity question
  // and nothing else. It is a value, never a default: an undefined one is a
  // question he has not answered, and F3 treats it as such.
  function replay(held,prefixAnswer){
   const g=held.generation,c=g.collections,ops=c.ops,rows=Object.values(ops).sort((a,b)=>a.device_seq-b.device_seq),issues=[],families=[];
-  const issue=(code,id)=>{issues.push({code,...(id?{op_id:id}:{})});};
+  /* `detail` is the field and, where the field is per lift, the lift id, from
+     the CLOSED vocabulary of P3-PORT-FIX-SPEC 3.1. Additive: every existing
+     call site keeps its meaning, and an issue either carries a field from that
+     table or carries none at all. */
+  const issue=(code,id,detail)=>{issues.push({code,...(id?{op_id:id}:{}),...(detail||{})});};
   if(held.raw.local_json!==null&&held.raw.local_json!==held.raw.source_json&&Object.keys(held.material.checkpoint.generation.collections.ops||{}).length)fail('LOCAL_SOURCE_COVERAGE_UNKNOWN');
   const engineFor=(day,hour)=>createSourceReplayEngine({engineContext:engineContextAt(held.engineContext,day,hour)});
   const preparationEngine=createSourceReplayEngine({engineContext:held.engineContext});let prep;
@@ -168,7 +221,13 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    const supplied=(match[1]==='+'?-1:1)*(Number(match[2])*60+Number(match[3]));
    if(new Date(clock.nowMs()).getTimezoneOffset()!==supplied)throw Error();
   }catch{issue('LOCAL_SOURCE_CONTEXT_UNRESOLVED',op.op_id);}}
-  try{programmeBasis=programme(state,ops);}catch(e){issue(e.code);}
+  /* ONE CLOCK PER FILE (P3-PORT-FIX-SPEC 1.2, B-A). `currentDay()` is a LIVE
+     function on the shipped page (import-screen.mjs:343, `asOf: () => day()`),
+     so two reads inside one replay can straddle a local midnight. It is read
+     ONCE here and passed in, so every period of one file is bounded against
+     one day. */
+  try{programmeBasis=programme(state,ops,{today:currentDay()});}
+  catch(e){issue(e.code,null,detailOf(e));}
   const facts=reading({operations:ops,dispositions:c.dispositions||{},receipts:c.receipts||{},frontier:c.sync.frontier,outbox:c.outbox,rejected:c.rejected||{}});
   const days=new Set((state.reads||[]).map(r=>r.d)),nativeReads=facts.records.filter(r=>r.original.kind==='fact').sort((a,b)=>a.original.device_seq-b.original.device_seq);
   let last=(state.reads||[]).map(r=>r.d).sort().at(-1)||null;
@@ -267,10 +326,10 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
   if(rows.some(op=>op.class==='session')&&resumeStated)try{
    const history=storedWorkoutHistory(g,{athleteId,deviceId,prescriptionCapture:captures}),runtime=Runtime.createEngineRuntime({clock:sourceEngineContext(held.engineContext).clock});
    const projector=History.createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,parseStrictJson,prescriptionCapture:captures,resolveCapturedLayout:({start})=>{
-    const producer=start.prescription_capture.producer;if(![EngineCapture.PROFILE,EngineCapture.CONFIGURATION_PROFILE].includes(producer.rule_profile))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+    const producer=start.prescription_capture.producer;if(![EngineCapture.PROFILE,EngineCapture.CONFIGURATION_PROFILE].includes(producer.rule_profile))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_producer'});
     const adapter=EngineCapture.createEngineWorkoutCapture({engine:runtime,prescriptionCapture:captures,producerIdentity:producer,sourceProjectionReader:projectionReader});
-    const layout=adapter.readLayout(start.prescription_capture),counts=new Map();for(const slot of layout.slots){if(state.exercises.filter(e=>e.id===slot.lift_lineage_id).length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');counts.set(slot.lift_lineage_id,(counts.get(slot.lift_lineage_id)||0)+1);}
-    for(const [id,count]of counts)if(state.exercises.find(e=>e.id===id).sets!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+    const layout=adapter.readLayout(start.prescription_capture),counts=new Map();for(const slot of layout.slots){if(state.exercises.filter(e=>e.id===slot.lift_lineage_id).length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_lift',exercise_id:slot.lift_lineage_id});counts.set(slot.lift_lineage_id,(counts.get(slot.lift_lineage_id)||0)+1);}
+    for(const [id,count]of counts)if(state.exercises.find(e=>e.id===id).sets!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_sets',exercise_id:id});
     // Compare complete programme membership at the ORIGINAL Start day, under
     // the authenticated original Start local date and this source's opaque
     // engineContextAt clock. The engine's own membership reader owns day
@@ -281,12 +340,16 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
     // remain untouched.
     const originalDay=start.effective.local_date,originalClock=sourceEngineContext(engineContextAt(held.engineContext,originalDay,12)).clock;
     const expected=Runtime.createEngineRuntime({clock:originalClock}).sessionMembership(state,originalDay);
-    if(!expected||!['U','L'].includes(expected.day)||encode([...counts.keys()])!==encode([...expected.exercise_ids]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+    if(!expected||!['U','L'].includes(expected.day)||encode([...counts.keys()])!==encode([...expected.exercise_ids]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_membership'});
     return layout;}});
    workoutFacts=projector.project(history,g,{sourceRevision:held.expected.revision});
    if([...workoutFacts.sessions,...workoutFacts.incomplete_sessions].some(s=>s.completion_state==='unresolved'||s.record.entries.some(e=>e.slots.some(x=>x.state==='unresolved'))))issue('LOCAL_SOURCE_WORKOUT_UNRESOLVED');
    families.push({family:'F3',state:'projected',start_ids:workoutFacts.order.start_ids});
-  }catch(e){issue('LOCAL_SOURCE_WORKOUT_UNRESOLVED');}
+  /* THE RENAME FIX (P3-PORT-FIX-SPEC 3.4). This catch used to bind `e` and never
+     read it, so all four refusals raised above came out under a code that names
+     the wrong thing. Only a code this module itself raises may pass; anything
+     else keeps LOCAL_SOURCE_WORKOUT_UNRESOLVED, exactly as today. */
+  }catch(e){issue(KNOWN_REPLAY_CODES.has(e?.code)?e.code:'LOCAL_SOURCE_WORKOUT_UNRESOLVED',null,detailOf(e));}
   // Historical decisions remain original state, without turning into new consent.
   families.push({family:'F6',state:'retained',source_fields:['accepted','decisions','feed'].filter(k=>Object.hasOwn(state,k))});
   let calculation=null;try{calculation={trend:state.trend,rate:engineFor(currentDay(),12).currentRate(state)};}catch{issue('LOCAL_SOURCE_CALCULATION_UNRESOLVED');}

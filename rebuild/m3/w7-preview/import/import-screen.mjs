@@ -81,6 +81,14 @@ export const COPY = Object.freeze({
   retractionsHead: 'Files you took back',
   noStore: 'This browser did not give the page an encrypted local store to import into.',
   authFailed: 'That passphrase or file did not unlock. Check the six words and the file.',
+  /* P3-PORT-FIX (spec 3.2). "training week", not "programme": under the new
+     admission rule the only things that can disagree ARE the week, the lift list
+     and where each lift sits, so a sentence promising a different programme
+     would be wider than the rule. The second half repeats the one fact he most
+     needs after a refusal, and which the screen already guarantees by
+     retracting below. */
+  programmeMismatch: 'This file was written by a different training week than the one you set '
+    + 'up on this phone. Nothing on this phone was changed.',
   cancelled: 'Cancelled. Nothing on this phone was changed.',
   retracted: 'That file was taken back. Nothing on this phone was changed.',
   retractRefused: 'That file could not be taken back on its own. It is still listed below.',
@@ -92,13 +100,16 @@ export const COPY = Object.freeze({
 export const RETRACT_REASON = Object.freeze({
   refused: 'review-refused', cancelled: 'athlete-cancelled' });
 
-/* THE ONE SENTENCE THIS FILE ADDS TO THE MACHINERY'S OWN WORDS. Every refusal
-   is shown as the code the machinery answered with, verbatim; BUNDLE_AUTH_FAILED
-   is the only one that reaches an athlete with nothing a person can act on, so
-   it gets one honest sentence and nothing else does. A code this map does not
-   know is printed alone, which is the honest answer to a refusal nobody here
-   anticipated. */
-export const REFUSAL_SENTENCE = Object.freeze({ BUNDLE_AUTH_FAILED: COPY.authFailed });
+/* THE SENTENCES THIS FILE ADDS TO THE MACHINERY'S OWN WORDS. Every refusal is
+   shown as the code the machinery answered with, verbatim; a code that reaches
+   an athlete with nothing a person can act on gets one honest sentence beside
+   it, and nothing else does. A code this map does not know is printed alone,
+   which is the honest answer to a refusal nobody here anticipated.
+   P3-PORT-FIX (spec 3.2) adds the second entry: before it, the athlete whose
+   own history was refused read a bare LOCAL_SOURCE_PROGRAMME_UNRESOLVED. */
+export const REFUSAL_SENTENCE = Object.freeze({
+  BUNDLE_AUTH_FAILED: COPY.authFailed,
+  LOCAL_SOURCE_PROGRAMME_UNRESOLVED: COPY.programmeMismatch });
 
 /* Round 2, review r1 finding 4: a refusal that carried ONE code printed it
    twice - "LOCAL_SOURCE_PROGRAMME_UNRESOLVED (LOCAL_SOURCE_PROGRAMME_UNRESOLVED)"
@@ -370,8 +381,21 @@ export function createImportScreen(deps = {}) {
         const codes = [...new Set((prepared.issues || []).map(issue => issue.code))];
         /* The first code is the refusal; the REST are the detail, so a walk
            that raised one code prints it once and a walk that raised several
-           prints all of them (review r1 finding 4). */
-        fail(codes[0] || 'LOCAL_SOURCE_NOT_READY', codes.slice(1).join(' ') || null);
+           prints all of them (review r1 finding 4).
+           P3-PORT-FIX (spec 3.3): plus, for each issue that carries one, its
+           `field` and its `exercise_id`, in that order. Both come from the
+           machinery's own CLOSED vocabulary (source-admission.mjs, spec 3.1);
+           no value from the file rides out here, and an issue that carries no
+           field adds nothing. Deduplicated, and never repeating the leading
+           code, which codeLine above already guards. */
+        const parts = [...codes.slice(1)];
+        for (const issue of prepared.issues || []) {
+          for (const key of ['field', 'exercise_id']) {
+            const value = issue[key];
+            if (typeof value === 'string' && value && !parts.includes(value)) parts.push(value);
+          }
+        }
+        fail(codes[0] || 'LOCAL_SOURCE_NOT_READY', parts.join(' ') || null);
         await retract(RETRACT_REASON.refused);
       } else {
         const capability = localSourceCommitCapability(prepared);

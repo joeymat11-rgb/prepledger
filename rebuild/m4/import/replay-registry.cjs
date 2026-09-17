@@ -58,9 +58,15 @@ const ENTRIES = Object.freeze([
   Object.freeze({module: 'rebuild/m3/w7-preview/today/setup-commands.mjs', class: 'event',
     kinds: Object.freeze(['fact']), profiles: Object.freeze(['earned/first-run-setup/v1']),
     disposition: 'family', family: 'F4',
-    rule: 'programme evidence: the first-run document is the programme admission proves the '
-      + 'imported file against, and is RETAINED once that proof stands; exactly one may '
-      + 'exist, and anything else refuses LOCAL_SOURCE_PROGRAMME_UNRESOLVED'}),
+    rule: 'programme evidence: the first-run document is the programme admission '
+      + 'proves the imported file against, and is RETAINED once that proof stands. '
+      + 'The proof is the SHAPE of the programme and nothing else: every split '
+      + 'period map, the lift ids, and each lift day and mg, with every split '
+      + 'from bounded not after today. Set counts, rep targets, increments, '
+      + 'ladders, volume tags and priority muscles are RETAINED from the file, '
+      + 'never proved, because the first-run flow cannot state them per lift. '
+      + 'Exactly one document may exist, and anything else refuses '
+      + 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED'}),
   Object.freeze({module: 'rebuild/coach/machine-settings-commands.cjs', class: 'event',
     kinds: Object.freeze(['fact']), profiles: Object.freeze(['earned/machine-settings/v1']),
     disposition: 'family', family: 'F4',

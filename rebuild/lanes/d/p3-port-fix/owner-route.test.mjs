@@ -219,11 +219,15 @@ test('D-PF-g1 - a lift on the wrong day renders its own field and lift id, with 
   assert.deepEqual(refusal,
     { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', detail: 'day db-bench' },
     'the screen said something else: ' + JSON.stringify(refusal));
-  assert.equal(line, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (day db-bench)');
+  /* The box the athlete reads is refusalLines().join(' ') (import-screen.mjs:420):
+     the code line first, then the one sentence, and nothing else. */
   const rendered = Screen.refusalLines(refusal.code, refusal.detail).join(' ');
+  assert.equal(line, rendered, 'the screen rendered something other than refusalLines()');
   assert.equal(rendered, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (day db-bench) '
-    + Screen.REFUSAL_SENTENCE.LOCAL_SOURCE_PROGRAMME_UNRESOLVED);
-  assert.equal(/[–—]/.test(rendered), false, 'no en dash and no em dash');
+    + 'This file was written by a different training week than the one you set '
+    + 'up on this phone. Nothing on this phone was changed.');
+  assert.equal(new RegExp('[\\u2013\\u2014]').test(rendered), false,
+    'no en dash and no em dash reaches the athlete');
   assert.equal(/[0-9]/.test(rendered), false, 'no number reaches him');
   for (const secret of [String(PHONE.setup.athlete_label), FILE.split.from,
     String(FILE.exercises[0].sets), String(FILE.exercises[0].hi)])
@@ -234,8 +238,9 @@ test('D-PF-g2 - a stranger\'s week renders (split.map) with no lift id', async (
   const { refusal, line } = await refusedOn('render-week', STRANGER_WEEK);
   assert.deepEqual(refusal,
     { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', detail: 'split.map' });
-  assert.equal(line, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (split.map)');
   const rendered = Screen.refusalLines(refusal.code, refusal.detail);
+  assert.equal(line, rendered.join(' '));
+  assert.equal(rendered[0], 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (split.map)');
   assert.equal(rendered.length, 2, 'the code line and the one sentence');
   assert.equal(rendered[1], 'This file was written by a different training week '
     + 'than the one you set up on this phone. Nothing on this phone was changed.');

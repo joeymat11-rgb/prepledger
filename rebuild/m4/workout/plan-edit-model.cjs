@@ -19,7 +19,25 @@ const documentRow = e => Object.fromEntries(C.EXERCISE.map(k => [k, e[k]]));
 const COLLECTIONS = ['ops','outbox','dispositions','rejected','receipts','planTxns','plan',
   'planTransactions','planHistory','suspensions','issuances','sessionStarts','sessionResolutions',
   'drafts','sync','meta','derived'];
-const P2_ROW = ['id','day','mg','sets','hi','inc','steps'];
+/* THE LOCAL-SOURCE ROW, narrowed by P3-PORT-FIX to exactly what admission now
+   proves (source-admission.mjs programme(), P3-PORT-FIX-SPEC 1.6). It is
+   narrowed IN PLACE rather than kept beside a new name, because a constant whose
+   only remaining reader is the assertion about it is a trip-wire pointing at
+   nothing (spec review R2, BINDING CORRECTION B-1). The lane's cell
+   lanes/d/plan-edit/model.test.cjs recomputes this list against that rule.
+   BEFORE P3-PORT-FIX: ['id','day','mg','sets','hi','inc','steps']. */
+const P2_ROW = ['id','day','mg'];
+/* THE PERIOD SHAPE the local-source branch accepts, which is admission's own
+   P-A plus B-C: a non-empty array of periods, each closed over {from, map}, each
+   map deep-equal to the document's one week. `from` is NOT compared: it is the
+   file's own history of when its week changed, retained exactly as admission
+   retains it. The "not after today" bound admission applies is NOT re-evaluated
+   here, because admission already applied it at admission time and a committed
+   import must not start refusing the athlete's editor because a clock moved. */
+const splitShapeOk = (periods, documentSplit) => Array.isArray(periods) && periods.length > 0 &&
+  periods.every(p => p && typeof p === 'object' && !Array.isArray(p) &&
+    Object.keys(p).every(k => k === 'from' || k === 'map') &&
+    own(p,'from') && own(p,'map') && equal(p.map, documentSplit.map));
 /* Does this generation carry a source import AT ALL - admitted or not? The four
    places source-admission.mjs / import-bundle.mjs leave one: the import entry
    list, the selection record, the commit marker and the derived replay. Presence
@@ -47,9 +65,20 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
   C.text(origin.op_id); C.text(origin.athlete_id); C.text(origin.device_id); C.dateOf(origin.effective?.local_date);
   const setup = origin.payload.setup;
   C.exact(setup, ['athlete_label','split','exercises','priority_muscles']);
+  /* WHICH BRANCH the split and priority comparisons below are on. Read here only
+     to CHOOSE the comparison; the DECLARATION is validated at its own line
+     further down, and an unknown value still refuses there, exactly as it did
+     before P3-PORT-FIX: an unknown basisSource takes the strict first-run
+     comparison here, which is the comparison it took before this line existed. */
+  const localSource = basisSource === 'local-source';
   if (!Array.isArray(setup.exercises) || !setup.exercises.length || setup.exercises.length !== base.exercises.length ||
-      base.athlete_label !== setup.athlete_label || !equal(base.split, [setup.split]) ||
-      !equal(base.priority_muscles || [], setup.priority_muscles)) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
+      base.athlete_label !== setup.athlete_label ||
+      (localSource ? !splitShapeOk(base.split, setup.split) : !equal(base.split, [setup.split])) ||
+      /* PRIORITY MUSCLES are RETAINED from the file on an admitted import
+         (P3-PORT-FIX-SPEC 1.4): the file's value is what admission admits and
+         what the athlete trains on, and proving it here would refuse the Edit My
+         Week screen on a bundle just accepted. The FIRST-RUN branch is unchanged. */
+      (!localSource && !equal(base.priority_muscles || [], setup.priority_muscles))) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
   /* WHICH BASIS THIS IS, and what proves it corresponds to this installation's
      own first run. today-app.cjs adoptAthleteState (P0-B) adopts ONE of two
      states and the companion edits whichever one it was handed:
@@ -62,10 +91,17 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
      LOCAL-SOURCE (P2). local-source-basis.mjs admittedLocalSourceState -> the
      admitted import's own replayed state. Its correspondence predicate is not
      ours to invent: source-admission.mjs `programme()` is what admission itself
-     proved, over id/day/mg/sets/hi/inc/steps and the setup tag snapshot, MATCHED
-     BY ID and NOT over `n` (the athlete's own name for the lift travels with his
-     import) and not over history. Renames and retirements the import replayed are
-     his facts, so they are carried, not refused.
+     proved. RESTATED BY P3-PORT-FIX, because that rule narrowed and this
+     predicate moves WITH it, by the sentence above (P3-PORT-FIX-SPEC 1.6): the
+     proof is now the SHAPE of the programme and nothing else, over every split
+     period map, the lift ids, and each lift day and mg, MATCHED BY ID. Set
+     counts, rep targets, increments, ladders, the tag snapshot and priority
+     muscles are RETAINED from the file, never proved, because the first-run flow
+     cannot state them per lift (setup-model.mjs:622-623,:633) and a rule the
+     athlete cannot answer is not a rule. Still NOT over `n` as a value (the
+     athlete's own name for the lift travels with his import, and only its shape
+     is checked) and not over history. Renames and retirements the import
+     replayed are his facts, so they are carried, not refused.
 
      `basisSource` DECLARES which one was handed over and is validated exactly
      here, at construction, before any projection exists. It cannot be a lie:
@@ -89,7 +125,11 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
         || typeof e.n !== 'string' || !e.n.trim()) rowsOk = false;
     if (origin.payload.tags !== undefined) {
       const tags = origin.payload.tags[row.id]; C.tagsOf(row, tags, validateTags);
-      if (!firstRun) { if (!equal({ head: e.head ?? null, secondary: e.secondary ?? [] }, tags)) tagsOk = false; }
+      /* LOCAL-SOURCE: the tag snapshot is RETAINED from the file and no longer
+         compared (P3-PORT-FIX-SPEC 1.4, 1.6). C.tagsOf on the line above STAYS:
+         it validates the DOCUMENT's own tag shape and reads nothing from the
+         basis, and so does the key-set check below. */
+      if (!firstRun) { /* retained, not proved */ }
       else if (own(e, 'head') || own(e, 'secondary') || own(e, 'volumeTags')) {
         if (!equal({ head: e.head ?? null, secondary: e.secondary }, tags) ||
             e.volumeTags?.profile !== 'earned/setup-volume-tags/v1' || e.volumeTags.op_id !== origin.op_id ||

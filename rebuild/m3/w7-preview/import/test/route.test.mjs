@@ -419,8 +419,19 @@ test('P3-U5 - THE UNENROLLED INSTALLATION IS OFFERED NO ROUTE AT ALL: not on '
     'the refused walk left something behind');
   assert.equal(after.revision, before.revision + 2,
     'the custody commit and its retraction are not both on disk: ' + after.revision);
-  /* AND FINDING 4: the painted refusal prints the code ONCE. */
-  assert.equal(slot(doc, 'import-refusal').textContent, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+  /* AND FINDING 4: the painted refusal prints the code ONCE.
+     CHANGED by P3-PORT-FIX (spec 3.2, 3.3). BEFORE: the bare code. AFTER: the
+     code once, carrying the field that refused, then the one sentence. On an
+     UNENROLLED installation the field is `setup_document`, because this phone
+     holds no first-run document at all, and that is exactly what the screen now
+     says. The build report raises as an open question for the PM whether the
+     sentence, which speaks of a training week the athlete set up, is the right
+     one for a phone that has not been set up at all; changing it needs a second
+     sentence and this spec rules exactly one. */
+  const box = slot(doc, 'import-refusal').textContent;
+  assert.ok(box.startsWith('LOCAL_SOURCE_PROGRAMME_UNRESOLVED (setup_document)'), box);
+  assert.equal(box.split('LOCAL_SOURCE_PROGRAMME_UNRESOLVED').length - 1, 1,
+    'the code is printed more than once: ' + box);
   fresh.close();
 
   /* THE GREEN SIDE: the same words, on Today, the moment the first run exists. */

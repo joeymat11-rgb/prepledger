@@ -148,7 +148,20 @@ test('S3-Q-F3: real captured sets are locally projected once and incomplete work
 });
 test('S3-Q-F3-LAYOUT: a valid capture with different configured set counts stays unresolved',async t=>{
  const f=await fixture(t);f.state.exercises[0].sets-=1;await appendCompletedWorkout(f);
- const result=await prepare(f);assert.equal(result.ready,false);assert.ok(result.issues.some(x=>x.code==='LOCAL_SOURCE_WORKOUT_UNRESOLVED'));
+ const result=await prepare(f);assert.equal(result.ready,false);
+ /* CHANGED by P3-PORT-FIX (spec 3.4). The refusal is unchanged and so is the
+    file's fate; what moved is its NAME. source-admission.mjs:273 raises
+    LOCAL_SOURCE_PROGRAMME_UNRESOLVED, and the catch below it used to bind the
+    error and never read its code, so every inner refusal came out as
+    LOCAL_SOURCE_WORKOUT_UNRESOLVED. It now surfaces under its own code with the
+    field that refused, which is what tells an athlete WHICH check bit.
+    BEFORE: issues includes {code:'LOCAL_SOURCE_WORKOUT_UNRESOLVED'}.
+    AFTER:  issues includes {code:'LOCAL_SOURCE_PROGRAMME_UNRESOLVED',
+            field:'capture_sets', exercise_id:<the lift>}. */
+ const issue=result.issues.find(x=>x.field==='capture_sets');
+ assert.ok(issue,'no issue carried field capture_sets: '+JSON.stringify(result.issues));
+ assert.equal(issue.code,'LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+ assert.equal(issue.exercise_id,f.state.exercises[0].id);
 });
 test('S3-Q-MIXED-PREFIX: nonempty legacy plus real native capture needs its separate factual answer',async t=>{
  const template=await fixture(t,{withFacts:false}),source=structuredClone(template.state),ex=source.exercises[0];

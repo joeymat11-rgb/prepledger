@@ -172,8 +172,18 @@ test('P3-X5 (bar d) - ANOTHER ATHLETE\'S FILE: the controller\'s refusal shown '
     'the screen invented a code: ' + JSON.stringify(at.refusal()));
   assert.ok(textOf(doc).includes('LOCAL_SOURCE_PROGRAMME_UNRESOLVED'),
     'the machinery\'s own word is not on the screen');
-  assert.equal(Screen.REFUSAL_SENTENCE.LOCAL_SOURCE_PROGRAMME_UNRESOLVED, undefined,
-    'a sentence was invented for a code that already says what it means');
+  /* CHANGED by P3-PORT-FIX (spec 3.2). BEFORE: this asserted the code reached
+     him with NO sentence beside it, which was true and was the defect the
+     diagnosis named: a fresh-start owner whose own history was refused read a
+     bare LOCAL_SOURCE_PROGRAMME_UNRESOLVED and nothing a person can act on.
+     AFTER: exactly one sentence, in plain English, with no value from the file
+     in it and no en dash or em dash. The rest of this cell is unchanged. */
+  assert.equal(Screen.REFUSAL_SENTENCE.LOCAL_SOURCE_PROGRAMME_UNRESOLVED,
+    'This file was written by a different training week than the one you set '
+    + 'up on this phone. Nothing on this phone was changed.',
+    'the one sentence this code reaches him with');
+  assert.ok(textOf(doc).includes('Nothing on this phone was changed'),
+    'the sentence is not on the screen');
   const after = await consumers(era, booted);
   assert.deepEqual(after.imports, before.imports, 'the refused file is still staged');
   assert.equal(after.durable.applied, false);
@@ -461,7 +471,15 @@ test('P3-X11 - NO STALE "Working." BESIDE A REFUSAL: the note that said work '
     ? await afterTap(phone.booted, slot(doc, 'import-confirm')) : reviewing;
   assert.equal(refused.refusal().code, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED',
     JSON.stringify(refused.refusal()));
-  assert.equal(slot(doc, 'import-refusal').textContent, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+  /* CHANGED by P3-PORT-FIX (spec 3.2, 3.3). BEFORE: the box held the bare code.
+     AFTER: the code line carries WHICH field disagreed, and the one sentence is
+     under it. This cell is about the stale "Working." note, so it asserts the
+     box is exactly what refusalLines() builds and leaves the wording to the
+     cells that own it. */
+  assert.equal(slot(doc, 'import-refusal').textContent,
+    Screen.refusalLines(refused.refusal().code, refused.refusal().detail).join(' '));
+  assert.ok(slot(doc, 'import-refusal').textContent
+    .startsWith('LOCAL_SOURCE_PROGRAMME_UNRESOLVED (split.map)'));
   const note = slot(doc, 'import-note');
   assert.equal(Boolean(note && note.textContent === Screen.COPY.working), false,
     'the refusal is painted with "Working." beside it');
