@@ -80,7 +80,18 @@ test('P-MEASURE (g) - package S4 pins none of this lane\'s new files', () => {
    file that has gone missing are all still red; and with no such spec on the
    branch the exemption set is empty and the cell is the original cell, which
    is the state lane C's own branch was reviewed in. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5'];
+/* M2-S6-TODAY-CHILD ADDS 'S6', and the cell is unchanged in every other way.
+   S6 is the reseal that closes the DECISIONS:473 custody hole: it re-asserts S5's 114
+   pins over the post-merge bytes of c-s6-small, b-s6-child-tail and c-p3-import-ui-2 and
+   declares 89 merged-but-undeclared files as its own product. Several files this guard
+   watches are moved BY THAT PACKAGE, declared and on purpose, so the declaring-spec
+   chain has to know about it or every one of those moves reads here as an undeclared
+   drift. Youngest first is what the loop below already does, so 'S6' goes last in the
+   array and is therefore consulted first. Nothing else moves: the question the cell asks
+   is still "does THIS LANE drift a sealed byte it has not declared", and the red side is
+   still red - a file that drifts with no declaring spec, a declared move that has not
+   landed, and a missing file all still fail. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6'];
 const declaredPost = (file) => {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;

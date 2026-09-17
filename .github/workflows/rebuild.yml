@@ -134,8 +134,18 @@ jobs:
       # one of the runner's fixed child roots, so the same file is ALSO executed by
       # the package step above as the declared child `s4-real-day` - named twice on
       # purpose, so it runs whether or not the package step is the standing one.
-      - name: A0 — the workout host over the real durable client, and S4's real-day cells
-        run: node --test rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs rebuild/m3/w6/host/test/local-real-day.test.mjs
+      # M2-S6-TODAY-CHILD ADDS food-live-save.test.mjs AND host-seams.test.mjs HERE, under
+      # the same DECISIONS:117 (4) licence every step below rides and for the reason
+      # DECISIONS:186 (3) gives: a file with no CI home is a file nobody runs.
+      # food-live-save.test.mjs arrived at 5c231e4a with the FOOD-LIVE-SAVE fix and is the
+      # :485 casualty of the custody hole - it repaired a defect that refused every food day
+      # and machine note written on the shipped build since 2026-09-15, and it merged on its
+      # own CI because the two files it moves were in no package at all. host-seams.test.mjs
+      # has stood in this directory with no workflow naming it. Both roots are already
+      # CHILD_ROOTS, so both are ALSO declared children of the package step above - named
+      # twice on purpose, so they run whether or not the package step is the standing one.
+      - name: A0 — the workout host over the real durable client, S4's real-day cells, the host seams and the live food/machine-note save
+        run: node --test rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs rebuild/m3/w6/host/test/local-real-day.test.mjs rebuild/m3/w6/host/test/food-live-save.test.mjs rebuild/m3/w6/host/test/host-seams.test.mjs
       # ENUMERATION COMPLETED BY M2-B-NTC, DECISIONS:109. The line below named
       # five files; two more existed under the same directory with no CI home at
       # all — A3's check-in suite (checkin.test.mjs, deferred by DECISIONS 99/101/102
@@ -209,6 +219,30 @@ jobs:
       # step above, as of H3. :117 (4) enumerated it "only if it exists on the tip when
       # B-NTC seals"; it did not, so DECISIONS:142 (2) took option (b) — it rides H3's
       # seal instead, and B-NTC is not re-sealed for it.
+      # M2-S6-TODAY-CHILD GIVES THE MERGED-BUT-UNRUN SUITES A CI HOME. This is the whole
+      # second half of the package (DECISIONS:473 as :487 extends it). Measured before it
+      # was written: rebuild.yml had exactly 12 `run:` steps and shared-preflight.yml one,
+      # and NOT ONE of them named rebuild/m4/import, rebuild/lanes/d/ or
+      # rebuild/m3/w7-preview/import - so every suite below ran in no workflow at all while
+      # the modules under it shipped to the phone. Each file is named by exact path and
+      # never globbed, so both runners agree whatever the shell does; each is also a
+      # declared child of the package step above, so it runs whether or not that step is
+      # the standing one. THREE SUITES ARE DELIBERATELY ABSENT and the author report says
+      # why: m4/import/test/s3/harness.test.mjs (3 pass / 14 fail identically HERE and on
+      # the clean tip - an environment precondition, the IMPORT_M4_DIR class of :459 NOTE
+      # 3), lanes/d/p3-replay-all (green on the tip, red after this merge: a BLOCKING
+      # finding reported, not hidden by leaving it unrun), and import/test/edge-route.mjs,
+      # which needs W6_BROWSER_BIN and a real Edge that no runner has. edge-route.mjs and
+      # its edge-seed-entry.mjs are declared and pinned as product all the same, so a file
+      # with no CI home is a file somebody decided about (DECISIONS:186 (3)).
+      - name: P3 — the Import screen route, its refusals and its page-bundle law
+        run: node --test rebuild/m3/w7-preview/import/test/route.test.mjs rebuild/m3/w7-preview/import/test/refusal-route.test.mjs rebuild/m3/w7-preview/import/test/live-clock.test.mjs rebuild/m3/w7-preview/import/test/page-bundle.test.mjs rebuild/m3/w7-preview/import/test/refusals.test.mjs
+      - name: M4 — the import lane, its production mapping and its admission
+        run: node --test rebuild/m4/import/test/prepare.test.cjs rebuild/m4/import/test/reading-replay.test.cjs rebuild/m4/import/test/engine-provider.test.cjs rebuild/m4/import/test/local-source-order.test.cjs rebuild/m4/import/test/browser-parity.test.mjs rebuild/m4/import/test/production-mapping.test.cjs rebuild/m4/import/test/production-admission.test.mjs
+      - name: D — plan edit, import retract, the admission swap, the replay measure family and capture-start
+        run: node --test rebuild/lanes/d/plan-edit/model.test.cjs rebuild/lanes/d/plan-edit/durable-host.test.mjs rebuild/lanes/d/plan-edit/browser-build.test.mjs rebuild/lanes/d/plan-edit/client-p6.test.cjs rebuild/lanes/d/import-retract/retract.test.mjs rebuild/lanes/d/p3-followons/admission-swap.test.mjs rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs rebuild/lanes/d/p3-capture-start/capture-start.test.mjs
+      - name: W6 — the local source admission and consumer cells
+        run: node --test rebuild/m3/w6/test/local-source-admission.test.mjs rebuild/m3/w6/test/local-source-consumer.test.mjs
       - name: C5 — the voice coach tool contract and text prototype
         run: node --test "rebuild/coach/test/*.test.cjs"
       - name: A5 — the PWA shell's lockfile-only suites

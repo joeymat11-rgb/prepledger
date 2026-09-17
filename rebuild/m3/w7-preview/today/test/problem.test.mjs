@@ -1562,6 +1562,25 @@ test('N2-08 - a saved night is what the check-in own reader finds, with no A3 ed
   kit.host.close();
 });
 
+/* M2-S6-TODAY-CHILD BRINGS THIS CELL ONTO THE SAME CONSTANT AS THE OTHER FOUR, and the
+   rule is stated here because this is where the old pin stood.
+   THE RULE: a cell that reads the declaring-spec chain must name EVERY generation of
+   that chain, because a file is exempt from its own pin only while it stands at a post
+   some spec DECLARED - and a generation the list omits is a generation whose declared
+   moves read here as undeclared drift.
+   WHY IT WAS STALE. The array that stood inside this cell was an inline
+   `['S4', 'S3', 'H3']` and it never gained 'S5': S5's own brief left it, correctly at
+   the time, because S5 moved no file this cell guards. S6 cannot leave it. c-s6-small
+   moves today-entry.mjs, which this cell hard-pins two ways - through PAGE_PINS in
+   rebuild/m3/w6/test/local-today-journey.test.mjs, and through the declaring-spec chain
+   below - so the chain has to reach S6, and reaching S6 while skipping S5 would leave it
+   one generation stale instead of two. Lifted to a named const in the other four cells'
+   own shape (ascending, iterated youngest-first), so the five now read alike and the
+   next seal amends one literal in five identical places rather than four and a puzzle.
+   The red side is untouched: an undeclared move, a declared move that has not landed,
+   and drift in a file no spec names are all still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6'];
+
 test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', () => {
   /* The reuse path already existed and was dead because nothing wrote a night. N2 is
      what brings it to life, and the cleanest proof that the shape is right is that
@@ -1582,12 +1601,14 @@ test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', 
      today-bindings.mjs by name (the live clock the real day needs) and declares
      it, and a file is exempt only while it stands at a post a package DECLARED.
      An undeclared move, a declared move that has not landed, and drift in a file
-     no spec names are all still red. */
+     no spec names are all still red.
+     The chain itself is now the module-level CHILD_SPECS above - see its note for why
+     this cell stood two generations stale and what the rule is. */
   const bound = 'rebuild/m3/w6/local/today-bindings.mjs';
   const declaredPost = (file) => {
-    for (const id of ['S4', 'S3', 'H3']) {
+    for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
       let product = null;
-      try { product = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/' + id + '.json')).product; }
+      try { product = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/' + CHILD_SPECS[i] + '.json')).product; }
       catch { product = null; }
       if (product && Object.hasOwn(product, file) && typeof product[file].post === 'string')
         return product[file].post;

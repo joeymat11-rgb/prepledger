@@ -153,7 +153,16 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // :443): the nine NATIVE-CARRIERS gates are byte-identity reconstructions that already
 // refuse on this tree, so S5 retires them again under its OWN token line with its OWN
 // red-first cells. See the README section S4; S5 is that section applied a second time.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
+// M2-S6-TODAY-CHILD registers itself here as S5 did, and REMOVES 'B-LOM' in the same
+// hunk, on DECISIONS:487 stop 2. The skeleton packages/B-LOM.json this id pointed at was
+// a runnable id naming nothing: status SKELETON, empty product, a sourceBase that had
+// gone stale, and no receipt - and :486 (a) rules B-LOM is not an engine-tier package at
+// all while (c) folds its work into S6, so there is no package for the id to name and no
+// second coach revision for it to mint. Its runnerSha256 went stale the moment
+// b-s6-child-tail moved this file, so leaving it would have been a spec that refuses at
+// RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER for a package that does not exist. The id is
+// removed here, the file is deleted, and the matching entry leaves NO_REGISTER_IDS below.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'B1', 'B2', 'B4', 'B3'];
 // The real chain branch, resolved from GIT REFS and never from a spec (X2/R3-B). Every
 // ancestry assertion that decides whether a commit is on the accepted chain names THIS.
 const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
@@ -257,11 +266,21 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // pins bytes lane C's own review accepted and adds the measure module's own cells - and no
 // entry of the 45-law register describes "the weekly waist entry and the comparison
 // table", so there is nothing for it to register and the exemption is by name here too.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM', 'H3', 'S3', 'S4', 'S5']);
+// M2-S6-TODAY-CHILD enters under the same S- half a third time, and for the plainest
+// reason the chain has yet had: it is a RESEAL with NO behaviour of its own (its brief
+// says so in terms - "if a reviewer finds a behaviour change here, that is a finding"),
+// so there is no entry of the 45-law register for it to register against and its whole
+// obligation is the Y1 own-child rule. 'S6' is an S- id, so the shape assertion below
+// admits it without a PM by-name ruling, exactly as S3, S4 and S5 were admitted.
+// 'B-LOM' LEAVES in the same hunk, with its id in IDS above and its skeleton spec file
+// (DECISIONS:487 stop 2); it is dropped from NO_REGISTER_RULED_B_IDS below too, because
+// an exemption for an id that is no longer runnable is dead weight that the assertion
+// underneath would not catch.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).
-const NO_REGISTER_RULED_B_IDS = new Set(['B-NTC', 'B-LOM']);
+const NO_REGISTER_RULED_B_IDS = new Set(['B-NTC']);
 for (const id of NO_REGISTER_IDS)
   assert(NO_REGISTER_RULED_B_IDS.has(id) || /^[HFS][0-9]+$/.test(id),
     'NO-REGISTER-EXEMPTION-IS-NEITHER-AN-ENGINE-TIER-ITEM-NOR-PM-RULED ' + id);
@@ -321,7 +340,32 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
 // while their directory stands outside this list. Nothing is widened for any other
 // package: every existing root is unchanged, and the new one names one real directory of
 // this repository that already exists on the branch, not a pattern.
-const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/'];
+// M2-S6-TODAY-CHILD ADDS EIGHT, the largest widening this list has had, and every one is
+// disclosed here rather than inferred from the spec that needs it. The reason is
+// DECISIONS:473 as the PM extended it at :487: the runner recomputes only what a spec
+// DECLARES, so every lane D and lane C module merged since S5 was sealed is invisible to
+// it, and `--ci --package S5` printed EXIT 0 six times running not because nothing moved
+// but because nothing that moved was declared. Closing that hole means declaring those
+// files, and a declared test file that no child EXECUTES is the same hole wearing a
+// different name (:487 stop 7's ruling), so each of these directories has to become a
+// root before the child that runs it can be declared at all - CHILD-ARGV-TARGET below
+// refuses it otherwise. The eight are real directories of this repository, each named in
+// full and none a pattern; rebuild/m4/import/test/ covers test/s3/ by startsWith, which
+// is why the harness directory is not listed separately. The list stays FIXED HERE (W7)
+// and is reachable by no spec, so a package still cannot name its own child root.
+// A NINTH, rebuild/m3/w6/test/, and it is the author's own correction to the brief rather
+// than something the brief asked for. The brief (section 3) declares three files under
+// that directory and states they are NOT made children because "they run inside the W6
+// whole-tree suite". Measured: rebuild.yml has no W6 whole-tree step, so those cells run
+// in no workflow at all - the very condition DECISIONS:186 (3) calls "a file with no CI
+// home is a file nobody runs" - and the runner's own role vocabulary then refuses to let
+// this package declare them, because role "pinned-unchanged" requires a declared child to
+// EXECUTE the file. Declaring them and running them is the only pair of answers that is
+// consistent; the root is added so the pair is available.
+const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/',
+  'rebuild/m4/import/test/', 'rebuild/lanes/d/plan-edit/', 'rebuild/lanes/d/p3-replay-measure/',
+  'rebuild/lanes/d/p3-replay-all/', 'rebuild/lanes/d/p3-capture-start/', 'rebuild/lanes/d/import-retract/',
+  'rebuild/lanes/d/p3-followons/', 'rebuild/m3/w7-preview/import/test/', 'rebuild/m3/w6/test/'];
 // S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS (DECISIONS:467 process note 2, ticket
 // CI-TODAY-CHILD-FLAKE). Narrower than CHILD_ROOTS above on purpose: CHILD_ROOTS is every
 // root ANY declared child of ANY B package may execute from, including
@@ -341,7 +385,30 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
 // tail regardless of where the child's argv pointed — argv path and printed content are
 // checked separately because a public suite can still print a path it merely rejected
 // (see package.test.cjs's traversal-refusal probes) without that path being real evidence.
-const PUBLIC_TAIL_ROOTS = ['rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m4/workout/test/'];
+// M2-S6-TODAY-CHILD WIDENS THIS BY TWO, AND WITHHOLDS SIX, and the asymmetry with
+// CHILD_ROOTS (eight added there) is the whole point: a child root says a suite may be
+// EXECUTED, this list says its output may be PRINTED. The second is a privacy-surface
+// change and is argued per root with TAIL_DENYLIST in hand, never bundled with the first.
+//
+// THE TWO ADDED: rebuild/lanes/d/p3-replay-measure/ and rebuild/lanes/d/p3-replay-all/.
+// Measured, not asserted: all six files under them were read in full and NO line of
+// either directory names the private census, a golden, live.json or the ledger. Their
+// fixtures are synthetic throughout, and both sit inside the CI-TODAY-CHILD-FLAKE blast
+// radius - they are replay families over the same page stack - so a failing tail there is
+// exactly the diagnostic the flake ticket exists to get.
+//
+// THE THIRD THE BRIEF ASKED FOR IS WITHHELD, and this is a disagreement the author is
+// recording rather than resolving. The brief of record (section 4.2 and bar row 22) asks
+// for THREE, the third being rebuild/m3/w7-preview/import/test/; the PM's dispatch line
+// DECISIONS:487 says two. It is withheld for now on the narrower reading, and on a
+// measured fact that cuts the same way: page-bundle.test.mjs under that root carries the
+// literal 'ledger/' in its own FORBIDDEN list, so TAIL_DENYLIST's content gate would
+// withhold that child's tail on any failure that prints the list anyway - widening the
+// path gate for it buys much less than it appears to, while widening the surface fully.
+// Withheld, therefore, until the PM rules: the six are the four remaining lane D roots,
+// rebuild/m4/import/test/ and rebuild/m3/w7-preview/import/test/.
+const PUBLIC_TAIL_ROOTS = ['rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m4/workout/test/',
+  'rebuild/lanes/d/p3-replay-measure/', 'rebuild/lanes/d/p3-replay-all/'];
 const TAIL_DENYLIST = ['conform/private', 'golden', 'live.json', 'ledger/'];
 const TAIL_LINES = 60;
 // S6-B round-3 review, finding 3 (MINOR): TAIL_LINES caps LINE COUNT only, and

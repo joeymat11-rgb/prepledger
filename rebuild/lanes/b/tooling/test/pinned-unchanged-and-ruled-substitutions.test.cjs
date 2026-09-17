@@ -266,16 +266,24 @@ test('F3 — the four refusals r7 fired bare now carry names in the vocabulary',
 });
 
 test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION where DECISIONS:414 (2) puts it, M2-S4-REAL-DAY as S3\'s own child directly behind it, and M2-S5-TODAY-CHILD as S4\'s', () => {
-  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'B1', 'B2', 'B4', 'B3', 'B-LOM']);
+  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'B1', 'B2', 'B4', 'B3']);
   // ":124 — ORDER B-NTC → H3 → B1 → B2 → B4 → B3". DECISIONS:414 (2) adopts the scout's
   // order as PM routing: P1 M2-S3-COMPANION is H3's child and B1 re-pins at its own rebase
   // behind it (CRITICAL-PATH-2026-09-15 section 4 P1). M2-S4-REAL-DAY is S3's own child
   // under the same rule (DECISIONS:444), so S4 sits directly behind S3 and ahead of B1.
   // M2-S5-TODAY-CHILD is S4's own child under the standing reseal ruling DECISIONS:455, so
-  // S5 sits directly behind S4 and still ahead of B1: the ruled sequence is now NINE.
-  // B-LOM is in no ruled sequence and stands after the ruled nine rather than inside them.
-  assert.deepEqual(api.IDS.slice(0, 9), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'B1', 'B2', 'B4', 'B3']);
-  assert.equal(api.IDS[9], 'B-LOM');
+  // S5 sits directly behind S4 and still ahead of B1.
+  // M2-S6-TODAY-CHILD is S5's own child under the same standing ruling, so S6 sits
+  // directly behind S5 and still ahead of B1: the ruled sequence is now TEN, and it is the
+  // WHOLE list. B-LOM is gone from it (DECISIONS:487 stop 2): :486 (a) rules B-LOM is not
+  // an engine-tier package and (c) folds its work into S6, so the id named a SKELETON spec
+  // with an empty product and no receipt - a runnable id pointing at nothing. With it
+  // removed there is no longer an id standing outside the ruled sequence, which is why
+  // this cell no longer needs a separate assertion for a tenth element after the nine.
+  assert.deepEqual(api.IDS.slice(0, 10), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'B1', 'B2', 'B4', 'B3']);
+  assert.equal(api.IDS.length, 10);
+  assert.equal(api.IDS.includes('B-LOM'), false,
+    'the B-LOM id is removed with its skeleton spec, DECISIONS:487 stop 2');
   // THE NO-REGISTER RULE, written down and asserted: every member is either an H-/F-/S-
   // engine-tier or slice-plan item (DECISIONS:93 — feature work under the ratified slice
   // plan takes no register D-ID) or a B- id the PM ruled exempt BY NAME (DECISIONS:103 (1)).
@@ -283,8 +291,11 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   // in because the plan (:414 (2), :444) adopts each as an engine package with no D-id
   // whose obligation is the Y1 own-child rule — not by discretion. S5 is in for the same
   // reason under DECISIONS:455: a reseal child of S4, slice-plan work, no register D-id.
-  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-LOM', 'B-NTC', 'H3', 'S3', 'S4', 'S5']);
-  for (const id of api.NO_REGISTER_IDS) assert(/^[HFS][0-9]+$/.test(id) || id === 'B-NTC' || id === 'B-LOM');
+  // S6 is in for the same reason a third time, and it is the clearest case yet: a reseal
+  // with no behaviour of its own has nothing the 45-law register could describe. B-LOM is
+  // OUT, with its id and its skeleton spec; the PM-ruled B- exemption list is B-NTC alone.
+  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6']);
+  for (const id of api.NO_REGISTER_IDS) assert(/^[HFS][0-9]+$/.test(id) || id === 'B-NTC');
   for (const id of api.NO_REGISTER_IDS) assert(api.IDS.includes(id));
 });
 
@@ -293,7 +304,7 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
 // of guard F6 gives IDS: the roots are FIXED IN THE RUNNER (W7) and a spec may not name
 // its own, and that is worth an assertion rather than a comment. The cell pins the exact
 // list, in order, and re-states the two properties the list exists for.
-test('F7 — CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S5-TODAY-CHILD adds exactly one', () => {
+test('F7 — CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S6-TODAY-CHILD adds exactly eight', () => {
   assert.deepEqual(api.CHILD_ROOTS, [
     'rebuild/m4/spec/',
     'rebuild/conform/v4/postfix/',
@@ -303,13 +314,57 @@ test('F7 — CHILD_ROOTS is the fixed list of directories a declared child may e
     'rebuild/m3/w6/host/test/',
     'rebuild/m3/w7-preview/today/test/',
     'rebuild/m3/w7-preview/measure/test/',
+    'rebuild/m4/import/test/',
+    'rebuild/lanes/d/plan-edit/',
+    'rebuild/lanes/d/p3-replay-measure/',
+    'rebuild/lanes/d/p3-replay-all/',
+    'rebuild/lanes/d/p3-capture-start/',
+    'rebuild/lanes/d/import-retract/',
+    'rebuild/lanes/d/p3-followons/',
+    'rebuild/m3/w7-preview/import/test/',
+    'rebuild/m3/w6/test/',
   ]);
   // The eighth is S5's, and DECISIONS:455 is why it exists: lane C's new modules go under
   // rebuild/m3/w7-preview/measure/ so that only the route wiring in today-app.cjs is a
   // sealed-byte move, and the package that declares those modules must be able to execute
   // them or the Y1 own-child rule cannot reach them at all.
-  assert.equal(api.CHILD_ROOTS.length, 8);
+  // NINE TO SIXTEEN ARE S6'S, and they are the largest widening this list has had. The
+  // reason is DECISIONS:473 as extended at :487: the runner recomputes only what a spec
+  // DECLARES, so every lane D and lane C suite merged since S5 was sealed was invisible to
+  // it. S6 declares those files, and :487 stop 7 rules that a lane D test file a declared
+  // child EXECUTES is itself declared product - so each directory must be a root before
+  // the child that runs it can exist at all. rebuild/m4/import/test/ covers test/s3/ by
+  // the startsWith rule below, which is why that harness directory is not listed twice.
+  // A NINTH, rebuild/m3/w6/test/, is the author's correction to the brief and not a
+  // widening the brief asked for: the brief declares three files there and says they are
+  // not made children because the W6 whole-tree suite runs them, and rebuild.yml has no
+  // W6 whole-tree step. A declared file no child runs cannot hold role "pinned-unchanged",
+  // so the root is here and the w6-local-source child runs them.
+  assert.equal(api.CHILD_ROOTS.length, 17);
   assert.equal(api.CHILD_ROOTS[7], 'rebuild/m3/w7-preview/measure/test/');
+  assert.deepEqual(api.CHILD_ROOTS.slice(8), [
+    'rebuild/m4/import/test/',
+    'rebuild/lanes/d/plan-edit/',
+    'rebuild/lanes/d/p3-replay-measure/',
+    'rebuild/lanes/d/p3-replay-all/',
+    'rebuild/lanes/d/p3-capture-start/',
+    'rebuild/lanes/d/import-retract/',
+    'rebuild/lanes/d/p3-followons/',
+    'rebuild/m3/w7-preview/import/test/',
+    'rebuild/m3/w6/test/',
+  ]);
+  // The first eight are UNCHANGED by S6: a widening adds, it never re-orders or edits what
+  // a previous seal pinned here.
+  assert.deepEqual(api.CHILD_ROOTS.slice(0, 8), [
+    'rebuild/m4/spec/',
+    'rebuild/conform/v4/postfix/',
+    'rebuild/engine/test/',
+    'rebuild/m4/workout/test/',
+    'rebuild/m3/w7-preview/test/',
+    'rebuild/m3/w6/host/test/',
+    'rebuild/m3/w7-preview/today/test/',
+    'rebuild/m3/w7-preview/measure/test/',
+  ]);
   // Every root is a directory prefix of this repository, relative, with no wildcard and a
   // trailing separator - so `startsWith` cannot be satisfied by a sibling whose name
   // merely begins with a root's name.
@@ -332,7 +387,26 @@ test('F8 -- PUBLIC_TAIL_ROOTS and TAIL_DENYLIST are the fixed lists the tail dia
     'rebuild/m3/w7-preview/measure/test/',
     'rebuild/m3/w6/host/test/',
     'rebuild/m4/workout/test/',
+    'rebuild/lanes/d/p3-replay-measure/',
+    'rebuild/lanes/d/p3-replay-all/',
   ]);
+  // M2-S6-TODAY-CHILD ADDS TWO, WHERE IT ADDED EIGHT TO CHILD_ROOTS, and the gap between
+  // those numbers is the assertion this cell exists to make: a child root says a suite may
+  // be EXECUTED, this list says its output may be PRINTED, and the second is a privacy
+  // surface. Six of the eight new child roots are deliberately NOT here, so a failing
+  // child under any of them withholds its tail by path policy, exactly as before.
+  assert.equal(api.PUBLIC_TAIL_ROOTS.length, 6);
+  for (const withheld of ['rebuild/m4/import/test/', 'rebuild/lanes/d/plan-edit/',
+    'rebuild/lanes/d/p3-capture-start/', 'rebuild/lanes/d/import-retract/',
+    'rebuild/lanes/d/p3-followons/', 'rebuild/m3/w7-preview/import/test/']) {
+    assert(api.CHILD_ROOTS.includes(withheld), withheld + ' is a child root');
+    assert.equal(api.PUBLIC_TAIL_ROOTS.includes(withheld), false,
+      withheld + ' executes, but its tail is withheld by path policy');
+  }
+  // And every tail root is still a child root: a directory whose output may be printed
+  // that no child may execute from would be a widening with nothing behind it.
+  for (const root of api.PUBLIC_TAIL_ROOTS)
+    assert(api.CHILD_ROOTS.includes(root), root + ' is also a child root');
   assert.deepEqual(api.TAIL_DENYLIST, ['conform/private', 'golden', 'live.json', 'ledger/']);
   // S6-B round-3 review, finding 4 (MINOR, tautology removal, not an assertion removal):
   // the notDeepEqual below compared a 5-element array against the 4-element

@@ -8,46 +8,56 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { faultDatabase, FIXTURE, enrol, enterFixture, page, tableOf,
-  pickMarkersOnScreen, typeWaist } from './support.mjs';
+  pickMarkersOnScreen, typeWaist, measureScreenReady, waitForTrialTable } from './support.mjs';
 import Model from '../../today/setup-model.mjs';
 
-/* ONE device for this file: twelve weeks of real commands cost real time, and
-   every cell below reads the SAME store the first one wrote. */
-let device = null;
-function trialDevice() {
-  if (device) return device;
-  device = (async () => {
-    const fault = faultDatabase();
-    const built = await enrol(fault);
-    const basis = Model.createCleanInitState({ setup: built.setup });
-    await enterFixture(fault, FIXTURE.entries, basis);
-    return { fault, basis };
-  })();
-  return device;
+/* A DEVICE PER CELL, and the second half of the DECISIONS:482 stop 6 cause.
+   What stood here memoised ONE trialDevice() promise for the whole file, so (a), (d)
+   and (e) all read the SAME store and the same half-drained page state. That is why
+   the windows-latest flake took (a) and (d) TOGETHER: (d) ran onMeasure() over the
+   store (a) had written and branched on `view.pick('measure-marker-pick')`, so it
+   inherited whatever (a) left behind when the old fixed drain gave up early. A cell
+   that fails because of what another cell left is not diagnosable from its own output.
+   Each cell now builds its own device and owns its own store. It costs what twelve
+   weeks of real commands cost, three times over instead of once, and that is the
+   honest price of a cell whose result depends on nothing but itself. Nothing about
+   the subjects moves: the same fixture, the same commands, the same assertions. */
+async function trialDevice() {
+  const fault = faultDatabase();
+  const built = await enrol(fault);
+  const basis = Model.createCleanInitState({ setup: built.setup });
+  await enterFixture(fault, FIXTURE.entries, basis);
+  return { fault, basis };
 }
 
 /* The screen as the athlete reaches it: pick the markers once, type the last
    two waist readings, and the comparison stands. */
 async function onMeasure(fault, basis, options = {}) {
   const view = await page(fault, { basis, ...options });
-  await view.go('measure-tile');
+  await view.go('measure-tile', measureScreenReady(view),
+    'the measure screen to finish loading into either its marker pick or its trial table');
   if (view.pick('measure-marker-pick')) {
     await pickMarkersOnScreen(view);
     for (const row of FIXTURE.entries.waist.slice(-2)) await typeWaist(view, row);
   }
+  /* The screen this helper promises its callers is the LOADED one: every cell below
+     reads the table, the export block or the trial-start line off it immediately. */
+  await waitForTrialTable(view);
   return view;
 }
 
 test('P-MEASURE (a) - the real route renders the trial table week by week, against the committed table', async () => {
   const { fault, basis } = await trialDevice();
   const view = await page(fault, { basis });
-  await view.go('measure-tile');
+  await view.go('measure-tile', measureScreenReady(view),
+    'the measure screen to finish loading into either its marker pick or its trial table');
   assert(view.pick('measure-marker-pick'), 'the markers pick screen is not offered');
   const offered = await pickMarkersOnScreen(view);
   assert.equal(offered, 3, 'the pick offers this device\'s own three lifts');
   /* The last two waist readings are TYPED INTO THE SCREEN, not written behind
      it: the box the athlete sees is the one that records them. */
   for (const row of FIXTURE.entries.waist.slice(-2)) await typeWaist(view, row);
+  await waitForTrialTable(view);
   const table = tableOf(view);
   assert(table, 'no trial table rendered');
   assert.deepEqual(table[0], FIXTURE.header, 'the rendered header');
@@ -58,7 +68,7 @@ test('P-MEASURE (a) - the real route renders the trial table week by week, again
     const label = 'Week ' + row.week + (row.week <= 2 ? ' (run in)' : '');
     assert.deepEqual(rendered, [label, ...row.cells], 'week ' + row.week + ' as rendered');
   }
-  view.close();
+  await view.close();
 });
 
 /* BAR ITEM (d). Review R2 finding 3: exportText was called from nowhere but a
@@ -67,7 +77,8 @@ test('P-MEASURE (d) - the export block text equals the rendered table, cell for 
   const { fault, basis } = await trialDevice();
   const view = await onMeasure(fault, basis);
   assert.equal(view.pick('measure-export-text'), null, 'the block is shown before it is asked for');
-  await view.go('measure-export');
+  await view.go('measure-export', () => view.pick('measure-export-text'),
+    'the copyable export block to be rendered after the export control was used');
   const block = view.pick('measure-export-text');
   assert(block, 'no copyable block after the export control was used');
   assert.equal(block.tagName, 'TEXTAREA');
@@ -88,7 +99,7 @@ test('P-MEASURE (d) - the export block text equals the rendered table, cell for 
   }
   const aiDash = new RegExp('[' + String.fromCharCode(0x2013, 0x2014) + ']');
   assert.equal(aiDash.test(block.value), false, 'an en or em dash in the exported table');
-  view.close();
+  await view.close();
 });
 
 /* BAR ITEM (e). Review R2 finding 2: `startDate: model.today` re-based the
@@ -102,13 +113,13 @@ test('P-MEASURE (e) - trial day one is the first enrolled record, and survives a
   assert.equal(await first.lane.trialStart(), FIXTURE.trialStart);
   assert.equal(await first.lane.firstEnrolledDate(), FIXTURE.trialStart,
     'day one is not the enrolment record\'s own date');
-  first.close();
+  await first.close();
 
   /* A RELOAD: a whole new page, a new lane, the same store. */
   const again = await onMeasure(fault, basis);
   assert.equal(again.pick('measure-trial-start').textContent,
     'Trial day one: ' + FIXTURE.trialStart);
-  again.close();
+  await again.close();
 
   /* A LATER DAY. The window is unchanged: week 1 still starts on day one and
      still renders the same row, and a thirteenth week is never invented. */
@@ -119,5 +130,5 @@ test('P-MEASURE (e) - trial day one is the first enrolled record, and survives a
   assert.deepEqual(table[1], ['Week 1 (run in)', ...FIXTURE.expected[0].cells],
     'week 1 changed when the clock moved');
   assert.equal(table.length, 13, 'the window past week 12 is not capped');
-  later.close();
+  await later.close();
 });

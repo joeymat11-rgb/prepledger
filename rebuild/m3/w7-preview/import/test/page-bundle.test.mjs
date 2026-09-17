@@ -75,6 +75,15 @@ const ROUTE_MODULES = Object.freeze(['rebuild/coach/engine-revision.cjs',
      source-admission.mjs reaches it, so the route carries it and the boot path
      still does not. Named, not folded into a wildcard. */
   'rebuild/m4/import/measure-replay.cjs',
+  /* SEVENTEENTH AND EIGHTEENTH, AT THE S6 RESEAL: the F8 family sleep-replay.cjs and
+     body-composition-class.cjs, the shared class's router (RV-G4). Both arrived on the tip
+     with P3-REPLAY-ALL-FAMILIES, after the base this list was last measured against, and
+     both are reached ONLY from source-admission.mjs - so, like the F7 family before them,
+     the ROUTE carries them and the Today boot path still does not. Named here rather than
+     folded into a wildcard, and measured on the post-merge tree rather than added by
+     arithmetic: this cell and P3-B5 below both moved by exactly two, which is itself the
+     evidence that neither family brought a new leaf with it. */
+  'rebuild/m4/import/body-composition-class.cjs', 'rebuild/m4/import/sleep-replay.cjs',
   'rebuild/m4/import/production-mapping.cjs', 'rebuild/m4/import/replay-core.cjs']);
 const tripped = (list, paths) => list.filter(([, m]) => paths.some(m)).map(([label]) => label);
 const graphOf = outfile => JSON.parse(fs.readFileSync(outfile + '.meta.json', 'utf8')).metafile;
@@ -298,9 +307,16 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
      commit, and the report names the sha. RE-MEASURED ON THE NEW BASE
      (origin/rebuild/d-p3-replay-measure 47a223d): the boot count is still 121 -
      the F7 family is reached only from source-admission.mjs and so is route-only
-     - and the delta is 16, the fifteen of round 2 plus measure-replay.cjs. */
+     - and the delta is 16, the fifteen of round 2 plus measure-replay.cjs.
+     RE-MEASURED AGAIN AT THE S6 RESEAL, on the post-merge tree: the boot count is
+     still 121 - P3-REPLAY-ALL-FAMILIES' two modules, sleep-replay.cjs and the
+     shared class's router body-composition-class.cjs, are reached only from
+     source-admission.mjs and so are route-only exactly as the F7 family is - and
+     the delta is 18, the sixteen above plus those two. The boot count holding at
+     121 across all three of these tickets is the fact worth keeping: every module
+     any of them added went to the ROUTE and not one reached the Today boot path. */
   const BASE_PINNED_INPUTS = 121;
-  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 16, 'the delta is 16 modules');
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 18, 'the delta is 18 modules');
 });
 
 test('P3-B6 - the route is LAZY in the built asset: its module bodies are behind '
