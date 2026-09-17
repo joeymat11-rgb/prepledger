@@ -1,6 +1,7 @@
 # P3 RUNBOOK — Joe's real port (owner act, PC + phone)
 
-Rehearsed on invented bundles only (`rebuild/lanes/c/P3-STAGE-REPORT.md`). The
+Rehearsed on invented bundles only (`rebuild/lanes/c/P3-STAGE-REPORT.md`, and
+for the phone half `rebuild/lanes/c/P3-IMPORT-UI-2-AUTHOR-REPORT.md`). The
 script for the real day. Nothing runs until Joe says the sentence in step 0,
 his own words, right before it happens (README's own rule).
 
@@ -22,7 +23,21 @@ his own words, right before it happens (README's own rule).
    a second layer, not a reason to stop checking.
 5. Phone reachable, unlocked, Home-Screen build, network for the chosen
    route, free space for the bundle.
-6. **DISCHARGED IN CODE (P3-IMPORT-UI).** The question was whether the phone's
+6. **DISCHARGED, AND THE CAVEAT IS LIFTED (P3-IMPORT-UI-2).** The caveat below
+   was "every admitting cell qualifies through a TEST-ONLY mapping". It is
+   lifted, because the shipped Import screen binds
+   `rebuild/m4/import/production-mapping.cjs`
+   `createProductionProducerRegistry({ hash })` and nothing else
+   (`import-screen.mjs` identityYes; `rebuild/m3/w7-preview/today/build.mjs`
+   REQUIRED_INPUTS names the module, so a build that lost it is refused). The
+   live clock is now proved ON the page, by real taps: `route.test.mjs` P3-U1
+   admits on 2026-09-16 with the device's own `-04:00` on the installation's
+   first-run operation, P3-U2 does the same on 2026-11-20 at `-05:00`, and
+   `edge-route.mjs` runs the whole sequence in real headless Edge against the
+   A1 dist on the real clock. This item is now an ordinary confirmation made on
+   the device and needs no separate proof on the day.
+
+   **DISCHARGED IN CODE (P3-IMPORT-UI), the original item.** The question was whether the phone's
    IMPORT screen writes its own setup/session operations with the **live**
    device clock rather than a frozen day - `today-bindings.mjs:197
    clientClockFor`'s non-live branch hardcodes tz "-05:00" year-round
@@ -42,13 +57,8 @@ his own words, right before it happens (README's own rule).
    Run it with `TZ=America/New_York`; it refuses to run in any other zone
    rather than measuring nothing.
 
-   **What is still open here, and when it lifts.** The caveat on item 6 is not
-   the clock any more; it is that the phone has no Import screen to run that
-   clock on, so the answer is proved off the page (DECISIONS:472). It lifts
-   when P3-IMPORT-UI-2 wires `rebuild/m4/import/production-mapping.cjs` into
-   the shipped page and the Import route lands: from then on this is an
-   ordinary confirmation made on the device, and the "Go / no-go" line that
-   quotes it below is discharged with it.
+   **That caveat is closed** by item 6's own first paragraph: the route is on
+   the page and the mapping it binds is the production one.
 
 7. **The phone must be standing in America/New_York when the import is
    admitted.** The production execution calendar is the New York calendar.
@@ -114,37 +124,113 @@ all say PASS; ORACLE must show `10/10` in both `frozen` and `unfrozen` modes,
 `scope FULL` (private blob present). Anything else: STOP, do not move the
 file, and report the exact line — see "If it stops" in the README.
 
-## Move + unseal (phone) — **BLOCKED: THERE IS NO IMPORT SCREEN YET**
+## Move + unseal (phone): the real taps
 
-**Do not start the real run for the phone half.** Steps 2 to 5 below describe a
-screen the shipped build does not have, and P3-IMPORT-UI could not build it:
-the review and the confirm are `rebuild/m3/w6/local/source-admission.mjs`, and
-the page's own accepted build law refuses that module's graph. The evidence is
-executed in `rebuild/m3/w7-preview/import/test/page-bundle.test.mjs` and written
-up in `rebuild/lanes/c/P3-IMPORT-UI-AUTHOR-REPORT.md`; it needs a PM ruling, not
-an author's fix. Until that ruling lands, the phone cannot admit a bundle and
-this section is a plan, not a script.
+Every label below is quoted from the SERVED page: `edge-route.mjs` runs this
+exact sequence in real headless Edge against the A1 dist on the real clock and
+prints the labels it read (P3-IMPORT-UI-2 bar item j).
 
-Sealing on the PC is unaffected and still runs on Joe's word (step 0 above); the
-bundle simply waits. Nothing about his ledger changes either way.
+**MEASURE IS NO LONGER A PRE-CHECK.** This paragraph used to read "do not open
+Measure on this phone", because the first render of that screen writes two
+`earned/measure-trial-start/v1` operations into the very record admission
+replays and the S3 replay had no family for that class, so every later import
+refused `LOCAL_SOURCE_CONTEXT_UNRESOLVED`. **That is fixed and the caution is
+withdrawn:** `P3-REPLAY-MEASURE-FAMILY` landed the F7 family
+(`rebuild/m4/import/measure-replay.cjs`), and a phone that has already opened
+Measure - and answered its markers pick - now ADMITS. Executed on one store,
+from the Measure link itself, by `refusal-route.test.mjs` P3-X9.
+
+**Before step 2, do not open Sleep on this phone.** The sleep lane writes its
+nights with `class: "sleep"` (`today/sleep-commands.cjs` `OP_CLASS`), and that
+class is exactly where Measure's was: `source-admission.mjs` replay() hands
+`reading`, `session`, the measure family, `food-day`, `steps`, `plan`, the
+setup, settings and check-in profiles to a family each, and answers everything
+else `LOCAL_SOURCE_CONTEXT_UNRESOLVED`. So a night recorded before the import
+refuses it the same way Measure used to. A family for it is in flight in lane
+D; until it lands, import first and record sleep after. Nothing is lost if it
+happens - a refused import retracts itself and writes nothing - but the history
+cannot be admitted on that phone until the family lands. (This one is a reading
+of the two files named, not an executed cell: no cell in this lane records a
+sleep night before an import. Said plainly so nobody takes it for proof.)
 
 1. Move only `earned-port-<date>.json` to the phone (any route - sealed).
    Keep `earned-port-<date>-PASSPHRASE.txt` on the PC.
-2. Earned -> IMPORT -> pick the bundle -> type the six words exactly
-   (`<REAL_PASSPHRASE_PLACEHOLDER>`). **No such route exists yet.**
-3. Confirm the review screen's identity question, then confirm admission.
-4. Confirm history visible on Today and on the gym card.
-5. Save one new set on top, force-kill the app, reopen. Confirm both the
+2. Open Earned and tap **"Import my history"**. It is in two places and EITHER
+   works: on the Today screen, below the "Measure" button, and on the Measure
+   screen beside the "No baseline yet" line (the entry DECISIONS:470 asked
+   for). Both appear only on an installation whose first run has been saved -
+   before that there is no entry anywhere, because the import could only refuse.
+   Once a history is admitted the link reads **"History imported"** and opens a
+   read-only summary instead.
+3. Step 1 of the screen, **"Choose the earned-port file"**: the file picker
+   accepts `.json`. Pick the bundle you just moved. Nothing is read yet.
+4. Step 2, **"Type the six words from the PC"**: type them exactly
+   (`<REAL_PASSPHRASE_PLACEHOLDER>`), then tap **"Unlock"**. This is still
+   write-free: the screen says **"Unlocked. Nothing has been written to this
+   phone yet."** and shows the PC's own sealed figures (sealed-at time, the PC
+   oracle verdict, `dataLossGuard safe` and `lost`, the engine schema version
+   and sha256, the file sha256).
+   - Wrong words or a damaged file: **`BUNDLE_AUTH_FAILED`** and, beneath it,
+     "That passphrase or file did not unlock. Check the six words and the
+     file." Nothing was written, on either cause: the screen keeps the file and
+     what was typed so the six words can be RETYPED in place. STOP after two
+     tries at the words.
+   - If the FILE is the problem rather than the words, pick another file: tap
+     **"Back"**, then the entry link again. The screen comes back on step 1
+     with the chooser, no refusal standing over it and the old file dropped.
+     (No reload, and nothing durable happened; `refusal-route.test.mjs`
+     P3-X10.) Move the bundle to the phone again and re-pick it.
+5. Step 3, the question, asked before anything is written:
+   **"Did every workout in this file happen before this first Earned workout,
+   with none already recorded in Earned?"** Joe answers, not the PM.
+   - **"No"** cancels and writes nothing at all.
+   - **"Yes"** takes custody and shows the review: the same question with his
+     answer beside it, how many workout days the file holds and which, how many
+     workouts Earned already has, the file size, the day the phone is standing
+     on, and **"Checked against engine revision …"** (the production mapping's
+     own `ENGINE_REVISION`; on the branch this runbook was rewritten on it read
+     `M2-S5-TODAY-CHILD@0df73b01f3d2d935`). Read the engine revision aloud and
+     check it against the S5 receipt before confirming.
+6. Tap **"Import this history"**. That is the explicit confirm and the only
+   control that admits anything.
+   - Any refusal here is the machinery's own code, shown verbatim and once
+     (`LOCAL_SOURCE_*`, `LOCAL_IMPORT_REBASE_REQUIRED`,
+     `SOURCE_ENGINE_CONTEXT_UNPROVEN`). WHAT THE SCREEN ACTUALLY PAINTS, so
+     nobody waits for a sentence that is not coming: the code alone, in the
+     error line, with no explanation beside it and no "Working." note left
+     standing; the screen returns to step 1; and the file appears under
+     **"Files you took back"**, which IS the receipt that it was taken back out
+     of custody. The one refusal that carries a sentence is
+     `BUNDLE_AUTH_FAILED` (step 4). If the take-back itself is refused the
+     screen says "That file could not be taken back on its own. It is still
+     listed below." and the entry stays in **"Your import"**. Report the code
+     and STOP - see "Go / no-go".
+   - Tapping **"Back"** on the review does the same thing deliberately, and
+     that one DOES say so: "That file was taken back. Nothing on this phone was
+     changed."
+7. The screen reads **"Imported. Today and your gym card now use it."** with
+   **"Your import"** beneath it (and **"Files you took back"** if anything was
+   ever retracted). Confirm his history on Today and on the gym card, and that
+   Measure's baseline column has stopped reading "No baseline yet".
+8. Save one new set on top, force-kill the app, reopen. Confirm both the
    imported history and the new set are still there.
 
-What IS proved today, on the real machinery over a synthetic bundle
-(`rebuild/m3/w7-preview/import/test/`): the six words open the seal and take
-custody on the device; a wrong word or one flipped byte refuses
-`BUNDLE_AUTH_FAILED` and writes nothing; another athlete's file refuses
-`LOCAL_SOURCE_PROGRAMME_UNRESOLVED` and commits no basis; a repeat is
-`LOCAL_IMPORT_ALREADY_PRESENT`; and on both a summer and a winter day the full
-admission sequence makes the imported history this athlete's own basis. All of
-it runs off the page, which is exactly the gap.
+Proved on the real machinery over a SYNTHETIC bundle before this script was
+written (`rebuild/m3/w7-preview/import/test/`): the whole tap sequence above on
+a summer and a winter day, in jsdom over the real store and once in real Edge
+against the A1 dist; a wrong word or one flipped byte refuses
+`BUNDLE_AUTH_FAILED` and writes nothing; "No" writes nothing; a cancel after
+custody retracts and every consumer reads the record it read before; another
+athlete's file refuses `LOCAL_SOURCE_PROGRAMME_UNRESOLVED`, retracts and leaves
+nothing behind; a damaged file refuses and the very next thing the athlete does
+is pick a good one and admit, in one page session with no reload (P3-X10); a
+phone that opened Measure first still admits (P3-X9); after admission the route
+opens no second import door at all, on that page session or a fresh one (P3-U3,
+which also records what the MACHINERY answers behind that door: a repeat is
+`LOCAL_IMPORT_ALREADY_PRESENT`, a re-port under the same name is
+`LOCAL_IMPORT_NAME_TAKEN`, a different file is `LOCAL_IMPORT_REBASE_REQUIRED`);
+and no fetch, XHR, share, download, createObjectURL or window.open ever fires
+on the route.
 
 ## Go / no-go (what the PM reads before proceeding)
 

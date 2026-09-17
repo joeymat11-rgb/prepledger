@@ -1,23 +1,27 @@
-/* P3-IMPORT-UI / P3-D-FOLLOWONS - WHAT THE IMPORT SCREEN STILL COSTS THE PAGE.
+/* P3-IMPORT-UI-2 - THE IMPORT ROUTE'S OWN LAW, EXECUTED.
 
-   THIS FILE HAS BEEN REWRITTEN BECAUSE THE WALL CAME DOWN, which is what its
-   first version demanded of whoever brought it down: "IT WILL GO RED THE DAY
-   THE WALL COMES DOWN ... whoever makes the admission stack page-safe (the A2
-   pattern - an accepted host-owned mirror under rebuild/m3/w6/host/, as
-   engine-runtime-host.cjs already is for engine-runtime.cjs) should have to
-   come back here and say so." That is done: source-admission.mjs now imports
-   the accepted mirror (DECISIONS:475 Route 1 step one), so the ONE computed
-   require is gone from the graph and with it the glob sweep of rebuild/engine.
+   THIS FILE HAS BEEN REWRITTEN A SECOND TIME, BECAUSE THE WALL IT WAS BUILT TO
+   GO RED ON HAS NOW FALLEN ALL THE WAY. Round one asserted that the accepted
+   bundler REFUSED the admission graph; P3-D-FOLLOWONS swapped source-admission
+   .mjs onto the accepted host mirror and round two replaced that with the
+   narrower, stronger statement of the same fact - exactly which FORBIDDEN names
+   were left. This round is the ruling on those three names (DECISIONS:475 (1)
+   and (4)) and the law that replaced the outright ban.
 
-   NOTHING BELOW IS RELAXED. The old file asserted three things: the shipped
-   page builds; the accepted bundler refuses the Import graph; and the page's
-   own input law refuses it too, over a named list. The second is now FALSE as
-   written - esbuild builds the graph - so it is replaced by the stronger,
-   narrower statement of the same fact: exactly which FORBIDDEN names are left.
-   The third is UNCHANGED in force: the page's own law still refuses, and it is
-   still run, not quoted. The screen is still not on the phone; what changed is
-   that the remaining question is two engine files and one name ban, and it is
-   a ruling for P3-IMPORT-UI-2, not a bundler defect.
+   NOTHING BELOW IS RELAXED, AND THE RULE IS STATED RATHER THAN DELETED.
+
+   THE OLD RULE: today/build.mjs FORBIDDEN refused rebuild/engine/migrate.cjs,
+   rebuild/engine/merge.cjs and rebuild/m4/import/* anywhere in the page, because
+   the page is a reader of an already migrated state.
+
+   THE NEW RULE, which is what P3-B3 and P3-B5 now execute: the page is still a
+   reader of migrated state EVERYWHERE EXCEPT the Import route, where it must
+   reproduce the PC's walk to prove the bundle it is about to adopt. Those three
+   names may therefore be in the bundle, and may be reached ONLY through
+   build.mjs IMPORT_ENTRY (rebuild/m3/w7-preview/import/import-screen.mjs). The
+   guard is build.mjs assertImportRouteIsolation, which walks today-entry.mjs's
+   graph WITHOUT crossing the dynamic edge into that module and refuses if any of
+   the three is reachable. P3-B3 proves it refuses, on a graph built to trip it.
 
    Run with TZ=America/New_York. */
 import test from 'node:test';
@@ -26,7 +30,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { REPO } from './support.mjs';
 import { buildBrowser } from '../../../w6/build-browser.mjs';
-import { assertBundleInputs } from '../../today/build.mjs';
+import { assertBundleInputs, assertImportRouteIsolation, IMPORT_ENTRY, buildToday }
+  from '../../today/build.mjs';
+import { composeSite } from '../../../../slice/pwa/build-pwa.mjs';
 
 const SCRATCH = path.join(REPO, '.tmp/p3-page-bundle-probe');
 const ENTRY = path.join(SCRATCH, 'reaches-admission.mjs');
@@ -37,43 +43,62 @@ const SOURCE = 'import * as Entry from "' + abs('rebuild/m3/w7-preview/today/tod
   + abs('rebuild/m3/w6/local/source-admission.mjs') + '";\n'
   + 'export default { Entry, createLocalSourceController };\n';
 
-/* The page's OWN FORBIDDEN list, restated by name so this cell can say WHICH
-   entries a graph trips instead of only that it trips one. assertBundleInputs
-   below is the law itself, run; this map is the reading of its answer. */
-const FORBIDDEN = Object.freeze([
-  ['rebuild/engine/seed.cjs', p => p === 'rebuild/engine/seed.cjs'],
+/* The three names the ruling re-reasoned, restated by name so these cells can
+   say WHICH one a graph carries instead of only that it carries one. */
+const ROUTE_ONLY = Object.freeze([
   ['rebuild/engine/migrate.cjs', p => p === 'rebuild/engine/migrate.cjs'],
   ['rebuild/engine/merge.cjs', p => p === 'rebuild/engine/merge.cjs'],
+  ['rebuild/m4/import/*', p => /^rebuild\/m4\/import\//.test(p)]]);
+/* The names the ruling did NOT touch. Every one keeps its own reason and its
+   outright ban, and this list is what proves the ban is still there. */
+const STILL_FORBIDDEN = Object.freeze([
+  ['rebuild/engine/seed.cjs', p => p === 'rebuild/engine/seed.cjs'],
   ['rebuild/engine/index.cjs', p => p === 'rebuild/engine/index.cjs'],
   ['rebuild/engine/test/*', p => /^rebuild\/engine\/test\//.test(p)],
   ['rebuild/conform/*', p => /^rebuild\/conform\//.test(p)],
-  ['rebuild/m4/import/*', p => /^rebuild\/m4\/import\//.test(p)],
+  ['ledger/*', p => /^ledger\//.test(p)],
+  ['src/history.js', p => p === 'src/history.js'],
   ['rebuild/m4/workout/engine-runtime.cjs', p => p === 'rebuild/m4/workout/engine-runtime.cjs']]);
-const tripped = paths => FORBIDDEN.filter(([, match]) => paths.some(match)).map(([label]) => label);
+/* THE MODULES THE IMPORT ROUTE COSTS THE ONE PAGE, in one place because two
+   cells now need the same list: P3-B4 proves it IS the route-only set by
+   walking the built graph, and P3-B5 weighs exactly those inputs in the
+   shipped asset (round 2, review r1 finding 3). */
+const ROUTE_MODULES = Object.freeze(['rebuild/coach/engine-revision.cjs',
+  'rebuild/engine/merge.cjs', 'rebuild/engine/migrate.cjs',
+  'rebuild/m3/w6/local/browser-entry.mjs', 'rebuild/m3/w6/local/source-admission.mjs',
+  'rebuild/m3/w6/local/source-platform.mjs', 'rebuild/m3/w6/reading-history.mjs',
+  'rebuild/m3/w7-preview/import/import-screen.mjs',
+  'rebuild/m4/import/browser-replay.mjs', 'rebuild/m4/import/daily-history.cjs',
+  'rebuild/m4/import/engine-provider.cjs', 'rebuild/m4/import/local-source-order.cjs',
+  'rebuild/m4/import/local-source-profile.cjs',
+  /* SIXTEENTH SINCE THE REBASE ONTO P3-REPLAY-MEASURE-FAMILY: the F7 family.
+     source-admission.mjs reaches it, so the route carries it and the boot path
+     still does not. Named, not folded into a wildcard. */
+  'rebuild/m4/import/measure-replay.cjs',
+  'rebuild/m4/import/production-mapping.cjs', 'rebuild/m4/import/replay-core.cjs']);
+const tripped = (list, paths) => list.filter(([, m]) => paths.some(m)).map(([label]) => label);
+const graphOf = outfile => JSON.parse(fs.readFileSync(outfile + '.meta.json', 'utf8')).metafile;
 
-let baseline = null, withAdmission = null;
+let baseline = null, withAdmission = null, today = null;
 
-test('P3-B1 - the SHIPPED page still builds, so this cell is measuring a change '
-  + 'and not a broken tree', async () => {
+test('P3-B1 - the SHIPPED page builds, and its graph now carries the Import '
+  + 'route: the three re-reasoned names are IN the bundle, every other FORBIDDEN '
+  + 'name is still absent', async () => {
   const out = path.join(SCRATCH, 'baseline/app.js');
   baseline = await buildBrowser({ outfile: out,
     entryPoints: [path.join(REPO, 'rebuild/m3/w7-preview/today/today-entry.mjs')] });
-  assert.doesNotThrow(() => assertBundleInputs(baseline.inventory));
   const paths = baseline.inventory.map(i => i.path);
-  assert.deepEqual(tripped(paths), [], 'the page carries no forbidden name today');
-  assert.equal(paths.filter(p => /^rebuild\/m4\/import\//.test(p)).length, 0,
-    'the page carries none of the import lane today');
-  assert.equal(paths.filter(p => /^rebuild\/engine\/test\//.test(p)).length, 0);
+  assert.doesNotThrow(() => assertBundleInputs(baseline.inventory),
+    'the page input law accepts its own page');
+  assert.deepEqual(tripped(STILL_FORBIDDEN, paths), [],
+    'a name the ruling did not touch is in the page');
+  assert.deepEqual(tripped(ROUTE_ONLY, paths).sort(),
+    ['rebuild/engine/merge.cjs', 'rebuild/engine/migrate.cjs', 'rebuild/m4/import/*'],
+    'the Import route is not in the page at all: the screen would open nothing');
+  assert.ok(paths.includes(IMPORT_ENTRY), 'the named route entry is in the graph');
 });
 
-/* WHAT THE SWAP ACTUALLY REMOVED. The old P3-B2 asserted that esbuild REFUSED
-   this graph, and named the refused files as rebuild/engine/test/** and
-   rebuild/conform/** - the glob sweep of the one computed require. With the
-   accepted mirror in source-admission.mjs there is no computed require left in
-   the graph, so the build SUCCEEDS and those two directories are absent. This
-   cell is the same fact stated from the other side, and it is the cell that
-   goes red if anyone puts the accepted engine-runtime.cjs back. */
-test('P3-B2 - the accepted page bundler now BUILDS the Import graph: no computed '
+test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed '
   + 'require, no glob sweep, no engine/test, no engine/seed.cjs, no engine/index.cjs',
   async () => {
     fs.mkdirSync(SCRATCH, { recursive: true });
@@ -89,87 +114,235 @@ test('P3-B2 - the accepted page bundler now BUILDS the Import graph: no computed
     assert.deepEqual(paths.filter(p => /^rebuild\/conform\//.test(p)), [],
       'rebuild/conform is still reached through the sweep');
     /* THE FIGURE, measured on this tree and on the brief's (DECISIONS:472 row E,
-       "133 modules"): the same 133. It is recorded exactly so that whoever
-       moves the page comes back and re-measures rather than assuming.
-       RE-MEASURED BY P3-REPLAY-MEASURE-FAMILY (lane D), and saying so as the
-       message above demands: 134. The one added module is
-       rebuild/m4/import/measure-replay.cjs, the F7 family, reached ONLY from
-       source-admission.mjs. Its own two reads, the S5 producer
-       measure-commands.cjs and client/ops.cjs, were already in this graph
-       (the page ships the Measure screen), so the family costs exactly one
-       module and no new leaf.
-       RE-MEASURED AGAIN BY P3-REPLAY-ALL-FAMILIES (lane D): 136. The two added
-       modules are rebuild/m4/import/sleep-replay.cjs, the F8 family, and
-       rebuild/m4/import/body-composition-class.cjs, the shared class's router
-       (RV-G4) - both reached ONLY from source-admission.mjs. F8's own read, the
-       N2 producer sleep-commands.cjs, was already in this graph (the page ships
-       the Sleep lane) and the router imports nothing at all, so the two cost
-       exactly two modules and no new leaf. */
-    assert.equal(withAdmission.inventory.length, 136,
+       "133 modules"). It is recorded exactly so that whoever moves the page
+       comes back and re-measures rather than assuming, and THREE tickets have
+       moved it since, each saying so here instead of editing the number:
+       P3-REPLAY-MEASURE-FAMILY (lane D) added ONE, measure-replay.cjs, the F7
+       family, reached ONLY from source-admission.mjs, whose own two reads (the
+       S5 producer measure-commands.cjs and client/ops.cjs) were already in this
+       graph because the page ships the Measure screen - one module, no new leaf.
+       P3-REPLAY-ALL-FAMILIES (lane D) added TWO: sleep-replay.cjs, the F8 family,
+       and body-composition-class.cjs, the shared class's router (RV-G4), both
+       reached ONLY from source-admission.mjs; F8's own read, the N2 producer
+       sleep-commands.cjs, was already here because the page ships the Sleep lane,
+       and the router imports nothing at all - two modules, no new leaf.
+       P3-IMPORT-UI-2 adds FOUR of the route's own: import-screen.mjs,
+       production-mapping.cjs, engine-revision.cjs and browser-entry.mjs, which
+       this entry reaches through today-entry.mjs rather than through the
+       admission stack.
+       S6 RESEAL: this cell is where the two lane-D families and the UI-2 route
+       first stand on one tree. The branch values 136 and 138 each counted their
+       own additions against a base that had not seen the other, so neither is the
+       post-merge truth and the number is RE-MEASURED here rather than summed:
+       133 + 1 + 2 + 4. */
+    assert.equal(withAdmission.inventory.length, 140,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 136 (the brief\'s 133 plus the F7 family, the F8 family and the '
-      + 'shared-class router): re-measure and say so');
+      + 'measured 140 (the brief\'s 133, the F7 family\'s one, the F8 family and '
+      + 'the shared-class router\'s two, and the route\'s own four): re-measure '
+      + 'and say so');
+    /* AND THE DELTA, which P3-REPLAY-MEASURE-FAMILY asserted (at 13) in its own
+       P3-B4 over these same two inventories, and which MEANS SOMETHING ELSE ON
+       THIS BRANCH - so it is re-measured and the change of meaning is written
+       down rather than the number quietly edited. On the family's base the
+       baseline build (today-entry.mjs at HEAD) did NOT carry the admission
+       stack, so "what a static import of source-admission.mjs adds" was the
+       whole stack: 13 modules. On this branch today-entry.mjs reaches the route
+       through the dynamic edge today-app.cjs opens, so the BASELINE already
+       carries all 16 route modules and the static import adds no module at all.
+       The delta is 1, and the 1 is this probe's own entry file. That is not a
+       weaker fact: it is why P3-B3 and P3-B4 below prove ISOLATION - which path
+       reaches them - and not presence, which the old number stood for. */
+    assert.equal(withAdmission.inventory.length - baseline.inventory.length, 1,
+      'the delta is 1 module - the probe entry itself - because the baseline '
+      + 'build already carries the whole route through the dynamic edge');
   });
 
-/* AND THE LAW STILL REFUSES. This is the old P3-B3 with its stub plugin
-   deleted (there is nothing left to stub) and its named list narrowed to what
-   the graph really carries. The assertion is the page's own assertBundleInputs,
-   run over the real inventory - the law, not a restatement of it. */
-test('P3-B3 - the page input law STILL refuses that graph, and what it refuses '
-  + 'is now EXACTLY engine/migrate.cjs, engine/merge.cjs and the m4/import lane',
+/* THE RULE CHANGE, SAID OUT LOUD AND THEN EXECUTED FROM BOTH SIDES. The old
+   P3-B3 asserted `assert.throws(assertBundleInputs)` on this graph. That is now
+   FALSE by ruling, not by accident, so the cell states the new rule and proves
+   the boundary that replaced it: the same graph, reached STATICALLY from
+   today-entry.mjs with no Import route to hide behind, is refused by the law
+   cell that now owns the question. */
+test('P3-B3 - the input law no longer bans the three names outright, and '
+  + 'assertImportRouteIsolation REFUSES a graph whose Today boot path reaches them',
   async () => {
     assert.ok(withAdmission, 'P3-B2 builds the graph this cell reads');
-    const paths = withAdmission.inventory.map(i => i.path);
-    assert.throws(() => assertBundleInputs(withAdmission.inventory), /BUNDLE-INPUTS FAIL/,
-      'the accepted page input law refuses this graph');
-    assert.deepEqual(tripped(paths).sort(),
-      ['rebuild/engine/merge.cjs', 'rebuild/engine/migrate.cjs', 'rebuild/m4/import/*'],
-      'the remaining forbidden names are not the three the brief measured');
-    /* The six import-lane files, named. rebuild/m4/import/engine-provider.cjs:3
-       requires migrate and merge by LITERAL path, to reproduce on the phone the
-       walk port.cjs already did on the PC (SOURCE_PREPARATION_REPRODUCTION_
-       MISMATCH); that is why those two are here and why removing them is a
-       ruling for P3-IMPORT-UI-2, not an author's fix.
-       SEVEN since P3-REPLAY-MEASURE-FAMILY: measure-replay.cjs, the F7 family,
-       joins them. It is the ONLY name added by that ticket, it is reached only
-       from source-admission.mjs, and it reaches nothing of its own - it takes
-       the S5 producer's validate() by injection rather than importing it. The
-       list stays EXACT: the law is not widened, one measured name is added.
-       NINE since P3-REPLAY-ALL-FAMILIES: sleep-replay.cjs, the F8 family, and
-       body-composition-class.cjs, the shared class's router (RV-G4). Both are
-       reached only from source-admission.mjs; F8 takes the N2 producer's
-       validate() by injection rather than importing it, and the router imports
-       nothing at all. Two measured names added, the list still EXACT. */
-    assert.deepEqual(paths.filter(p => /^rebuild\/m4\/import\//.test(p)).sort(),
+    /* S6 RESEAL, THE RULE THAT WON AND WHY. The tip's side of this cell asserted
+       `assert.throws(assertBundleInputs)` - the OLD law. P3-IMPORT-UI-2 did not
+       drift off it, it RULED it false at DECISIONS:475 (1): the three names are
+       admitted to the page because the Import route must reproduce the PC's walk.
+       A ruling supersedes the cell it rules on, so the UI-2 side stands here whole.
+       What the UI-2 side could NOT know is what landed on the tip after its base:
+       P3-REPLAY-ALL-FAMILIES' two names. Those are carried into the exact list
+       below, so the rule is UI-2's and the inventory is the post-merge tree's. */
+    assert.doesNotThrow(() => assertBundleInputs(withAdmission.inventory),
+      'DECISIONS:475 (1): migrate.cjs, merge.cjs and the m4/import lane are admitted '
+      + 'to the page, because the Import route must reproduce the PC\'s walk');
+
+    const planted = graphOf(path.join(SCRATCH, 'with-admission/app.js'));
+    assert.throws(() => assertImportRouteIsolation(planted,
+      { entry: path.relative(REPO, ENTRY).replaceAll('\\', '/') }),
+      /IMPORT-ROUTE FAIL/,
+      'a graph that reaches the admission stack without going through the route '
+      + 'entry is exactly what this law exists to refuse');
+    /* And the refusal NAMES what it found and who reached it. */
+    let message = '';
+    try { assertImportRouteIsolation(planted, { entry: path.relative(REPO, ENTRY).replaceAll('\\', '/') }); }
+    catch (error) { message = error.message; }
+    assert.match(message,
+      /the Today boot graph reaches rebuild\/engine\/migrate\.cjs -> rebuild\/engine\/migrate\.cjs \(from rebuild\/m4\/import\/engine-provider\.cjs\)/,
+      'the refusal must name the file it found AND the module that reached it: ' + message);
+    /* The TEN import-lane files, named. engine-provider.cjs:3 requires migrate
+       and merge by LITERAL path, to reproduce on the phone the walk port.cjs
+       already did on the PC (SOURCE_PREPARATION_REPRODUCTION_MISMATCH); that is
+       why those two are here, and why they are now permitted on ONE route.
+       S6 RESEAL: UI-2 measured EIGHT against a base that predated
+       P3-REPLAY-ALL-FAMILIES. On the post-merge tree that ticket's two names -
+       sleep-replay.cjs (the F8 family) and body-composition-class.cjs (the shared
+       class's router, RV-G4) - are in this graph too, both reached ONLY from
+       source-admission.mjs, F8 taking the N2 producer's validate() by injection
+       and the router importing nothing at all. Ten, and the list stays EXACT: the
+       law is not widened, the two measured names are named. */
+    assert.deepEqual(withAdmission.inventory.map(i => i.path)
+      .filter(p => /^rebuild\/m4\/import\//.test(p)).sort(),
       ['rebuild/m4/import/body-composition-class.cjs',
         'rebuild/m4/import/browser-replay.mjs', 'rebuild/m4/import/daily-history.cjs',
         'rebuild/m4/import/engine-provider.cjs', 'rebuild/m4/import/local-source-order.cjs',
-        'rebuild/m4/import/local-source-profile.cjs', 'rebuild/m4/import/measure-replay.cjs',
-        'rebuild/m4/import/replay-core.cjs', 'rebuild/m4/import/sleep-replay.cjs']);
+        'rebuild/m4/import/local-source-profile.cjs',
+        /* The F7 family, from P3-REPLAY-MEASURE-FAMILY, kept by name across this
+           rebase: the ONLY name that ticket added, reached only from
+           source-admission.mjs, reaching nothing of its own (it takes the S5
+           producer's validate() by injection). The list stays EXACT: the law is
+           not widened, the measured names are named. */
+        'rebuild/m4/import/measure-replay.cjs',
+        /* And the whole point of DECISIONS:475 (3): the ONE production execution
+           calendar, reached through the route and never through a TEST-ONLY
+           registry. */
+        'rebuild/m4/import/production-mapping.cjs', 'rebuild/m4/import/replay-core.cjs',
+        'rebuild/m4/import/sleep-replay.cjs']);
   });
 
-test('P3-B4 - and the size of what an Import route would put on the phone, '
-  + 'measured again now that the sweep is gone', async () => {
-  const base = fs.statSync(path.join(SCRATCH, 'baseline/app.js')).size;
-  const admission = fs.statSync(path.join(SCRATCH, 'with-admission/app.js')).size;
-  assert.ok(admission > base, 'recorded for the record, not a threshold to tune');
-  /* Measured on this tree: 121 -> 133 modules, 1 668 175 -> 1 927 799 bytes,
-     +259 624 B (+15.6%). Before the swap the same graph was 159 modules and
-     +516 670 B, and only with the swept-in engine/test harnesses STUBBED; the
-     unstubbed build did not complete at all. */
-  assert.ok(admission - base < 400000, 'the admission stack used to cost more than 400 kB '
-    + 'with the sweep stubbed; it now costs +' + (admission - base) + ' bytes');
-  /* 13 since P3-REPLAY-MEASURE-FAMILY: the seventh m4/import file, the F7
-     family measure-replay.cjs. It is ONE module and no new leaf - the delta
-     moved by exactly one, which is itself the evidence that the family's two
-     reads were already in the page. */
-  /* 15 since P3-REPLAY-ALL-FAMILIES: the eighth and ninth m4/import files, the
-     F8 family sleep-replay.cjs and the shared class's router
-     body-composition-class.cjs. Two modules and no new leaf - the delta moved
-     by exactly two, which is itself the evidence that F8's one read was
-     already in the page and that the router reads nothing. */
-  assert.equal(withAdmission.inventory.length - baseline.inventory.length, 15,
-    'the delta is 15 modules: the nine m4/import files, migrate, merge and their reach');
+test('P3-B4 - THE LAW CELL over the REAL page: the Today boot graph excludes '
+  + 'migrate.cjs, merge.cjs and the m4/import lane; the Import route includes '
+  + 'exactly them plus the lane', async () => {
+  const graph = graphOf(path.join(SCRATCH, 'baseline/app.js'));
+  const result = assertImportRouteIsolation(graph);
+  assert.equal(result.route, IMPORT_ENTRY);
+  const inputs = graph.inputs;
+  const boot = new Set(), stack = ['rebuild/m3/w7-preview/today/today-entry.mjs'];
+  while (stack.length) {
+    const at = stack.pop();
+    if (boot.has(at) || at === IMPORT_ENTRY) continue;
+    boot.add(at);
+    for (const edge of (inputs[at] || { imports: [] }).imports)
+      if (edge.path !== IMPORT_ENTRY && !boot.has(edge.path)) stack.push(edge.path);
+  }
+  assert.equal(boot.size, result.boot);
+  assert.deepEqual(tripped(ROUTE_ONLY, [...boot]), [], 'the boot path reaches one of the three');
+  const route = new Set(), r = [IMPORT_ENTRY];
+  while (r.length) {
+    const at = r.pop();
+    if (route.has(at)) continue;
+    route.add(at);
+    for (const edge of (inputs[at] || { imports: [] }).imports) if (!route.has(edge.path)) r.push(edge.path);
+  }
+  const only = [...route].filter(p => !boot.has(p)).sort();
+  assert.deepEqual(only, [...ROUTE_MODULES].sort(),
+    'the Import route costs the page exactly these modules and no others');
+  assert.ok(ROUTE_MODULES.includes(IMPORT_ENTRY), 'the route entry is not in the route-only set');
 });
 
-process.on('exit', () => { try { fs.rmSync(SCRATCH, { recursive: true, force: true }); } catch {} });
+test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
+  + 'one page is measured, not assumed', async () => {
+  today = await buildToday({ dist: path.join(REPO, '.tmp/p3-a1-dist'),
+    scratch: path.join(REPO, '.tmp/p3-a1-scratch') });
+  assert.deepEqual(today.assets, ['index.html', 'styles.css', 'app.js'],
+    'the page is still three assets: the route is lazy, not a second document');
+  assert.equal(today.importRoute.route, IMPORT_ENTRY);
+  const built = fs.statSync(path.join(today.dist, 'app.js')).size;
+  /* ROUND 2, REVIEW R1 FINDING 3, AND THE RULE WRITTEN WHERE THE OLD ONE STOOD.
+     THE OLD ASSERTION was `built - before < 400000`, with `before` the size of
+     SCRATCH/baseline/app.js. That file is built from today-entry.mjs AT HEAD and
+     therefore ALREADY CARRIES THE ROUTE, so the difference was a few hundred
+     bytes and the bound could not fail: it proved nothing and it read as though
+     it proved the report's headline figures. It is REPLACED, not dropped, by
+     the same fact measured where the bundler actually records it -
+     esbuild's per-input bytesInOutput, in the ONE asset the page ships - so
+     what the route costs is proved here instead of hand-measured. The base
+     build is still what the report quotes for the whole-asset figure, and the
+     report now says so in as many words. */
+  const outputs = JSON.parse(fs.readFileSync(path.join(REPO, '.tmp/p3-a1-scratch/app.js.meta.json'),
+    'utf8')).metafile.outputs;
+  const asset = outputs[Object.keys(outputs).find(name => name.endsWith('app.js'))];
+  assert.ok(asset && asset.inputs, 'the build recorded no per-input accounting');
+  const bytesOf = names => names.reduce((sum, name) =>
+    sum + ((asset.inputs[name] || { bytesInOutput: 0 }).bytesInOutput || 0), 0);
+  const routeOnly = ROUTE_MODULES.filter(name => asset.inputs[name]);
+  assert.deepEqual(routeOnly.sort(), [...ROUTE_MODULES].sort(),
+    'a module P3-B4 proved is route-only is not in the shipped asset');
+  const routeBytes = bytesOf(ROUTE_MODULES);
+  const allBytes = bytesOf(Object.keys(asset.inputs));
+  /* The route is a SIXTH of the asset every athlete downloads, and nothing here
+     rounds that down. The band is wide enough to survive a bundler patch and
+     narrow enough to fail if the route ever doubles or is quietly dropped; the
+     exact figure of the day is in the message. */
+  assert.ok(routeBytes > 250000 && routeBytes < 400000,
+    'the Import route contributes ' + routeBytes + ' B of the asset\'s ' + allBytes
+    + ' B (' + (100 * routeBytes / allBytes).toFixed(1) + '%): re-measure and say so');
+  assert.ok(allBytes <= built && allBytes > built - 120000,
+    'the per-input accounting (' + allBytes + ' B) does not add up to the built asset ('
+    + built + ' B), so the figure above is not the whole story');
+  /* AND THE MODULE DELTA, against the base this branch is built on. 121 is the
+     pinned-input count of the base, measured by building that commit in its own
+     worktree; it is a constant here because this cell cannot check out another
+     commit, and the report names the sha. RE-MEASURED ON THE NEW BASE
+     (origin/rebuild/d-p3-replay-measure 47a223d): the boot count is still 121 -
+     the F7 family is reached only from source-admission.mjs and so is route-only
+     - and the delta is 16, the fifteen of round 2 plus measure-replay.cjs. */
+  const BASE_PINNED_INPUTS = 121;
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 16, 'the delta is 16 modules');
+});
+
+test('P3-B6 - the route is LAZY in the built asset: its module bodies are behind '
+  + 'the initialiser the dynamic import calls, so the Today boot path does not '
+  + 'run a byte of the admission stack', async () => {
+  assert.ok(today, 'P3-B5 builds the page this cell reads');
+  const app = fs.readFileSync(path.join(today.dist, 'app.js'), 'utf8');
+  assert.match(app, /var\s+import_screen_exports\s*=\s*\{\}/,
+    'the route is not a lazily initialised module at all');
+  assert.match(app, /init_import_screen\s*=\s*__esm\(\{/,
+    'esbuild did not wrap the route in its own initialiser');
+  const calls = app.match(/init_import_screen\(\)/g) || [];
+  assert.equal(calls.length, 1, 'the initialiser is called from ' + calls.length
+    + ' places: the only caller may be the dynamic import');
+  assert.match(app, /Promise\.resolve\(\)\.then\(\(\)\s*=>\s*\(init_import_screen\(\),\s*import_screen_exports\)\)/,
+    'the one call site is not the dynamic import today-app.cjs writes');
+});
+
+test('P3-B7 - A5 builds the installable slice over that page and PRECACHES the '
+  + 'asset the route is in, so the Import screen works offline', async () => {
+  assert.ok(today, 'P3-B5 builds the page this cell reads');
+  const site = await composeSite({ a1: today });
+  const app = site.precache.find(row => /^app\.[0-9a-f]{16}\.js$/.test(row.path));
+  assert.ok(app, 'the page bundle is not in the precache manifest: ' + JSON.stringify(site.precache.map(r => r.path)));
+  const bytes = site.files.get(app.path).toString('utf8');
+  assert.ok(bytes.includes('Choose the earned-port file'),
+    'the precached asset does not carry the Import route');
+  assert.ok(bytes.includes('init_import_screen'),
+    'the precached asset does not carry the route initialiser');
+  /* ONE asset, not a second chunk. The route is loaded by a dynamic import, and
+     the accepted bundler answers a dynamic import inside an `outfile` build with
+     a lazily initialised module in the SAME file (P3-B6). So there is no second
+     file for A5 to list, A5 is unchanged, and "the chunk is precached" is true
+     of the one asset that carries it. Reported as a deviation from the ticket's
+     wording in rebuild/lanes/c/P3-IMPORT-UI-2-AUTHOR-REPORT.md, with the
+     splitting alternative measured there. */
+  assert.deepEqual(site.precache.filter(r => r.path.endsWith('.js')).map(r => r.path).sort(),
+    [app.path, 'preflight.' + site.names.preflightJs.split('.')[1] + '.js'].sort(),
+    'the slice serves more JavaScript than the page and its preflight');
+});
+
+process.on('exit', () => {
+  for (const dir of [SCRATCH, path.join(REPO, '.tmp/p3-a1-dist'), path.join(REPO, '.tmp/p3-a1-scratch')])
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+});

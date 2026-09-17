@@ -674,8 +674,29 @@ export const PAGE_PINS = Object.freeze({
      card's heading). Re-read once more against today-bindings.mjs, as every re-pin
      must: the `hosts` branch is byte-unchanged, no wrapper opens a store of its own,
      an INJECTED installation is still never closed by this page, and a declared-day
-     caller still gets no watcher at all. */
-  'today-entry.mjs': 'ae04f1131bdd068ae7cfec501a308530fd15d24a9a8e2c62a57d4278bbe32393',
+     caller still gets no watcher at all.
+     P3-IMPORT-UI-2 re-pin (DECISIONS:475 (1) and (4)), ROUND 2. today-entry.mjs
+     moves by ONE further hunk, and it is a pass-through: boot() hands mountToday
+     the installation it has ALREADY opened (`installation: hosts`), because the
+     Import route is the one screen that needs the local durable client itself -
+     importBundle, listImports and retractImport are its methods, and the
+     admission controller wants its own hostBindings so it never shares staging
+     state with the setup or gym handles. (Round 1 also forwarded an `importLink`
+     into createSetupEntry's open(); review r1 finding 1 showed that a link on
+     setup's LAST screen can only refuse, because the first run is not saved yet,
+     so that hunk is gone and open() is byte-identical to the shipped one.)
+     S6 RESEAL, THE MERGED PIN. Both branches re-pinned this file and each measured
+     its own post against a base that had not seen the other, so NEITHER branch sha
+     (c-s6-small's ae04f113..., c-p3-import-ui-2's 6c2bc8f8...) is the truth on this
+     tree. The two hunks are orthogonal - setupFirst names the SCREEN the boot lands
+     on, `installation: hosts` names the client the page MAY use - so the reseal
+     carries both on one mountToday call and pins the sha256 MEASURED over the
+     post-merge bytes. Re-read against today-bindings.mjs once more, as every re-pin
+     must: boot() still opens the local era BY DEFAULT (the `hosts` branch is
+     byte-unchanged - the new line READS `hosts`, it does not open one), NO wrapper
+     opens a store of its own, an INJECTED installation is still never closed by
+     this page, and a declared-day caller still gets no watcher at all. */
+  'today-entry.mjs': '8b1697582d7d9f21bda4668f590187e612d3d554b8be32a31cfc6fb82ab91276',
   'gym-host.mjs': '70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85',
   'reading-host.mjs': '079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

@@ -382,7 +382,16 @@ export async function boot(options = {}) {
      both directions explicitly, so a cell can drive either landing on either clock. */
   const setupFirst = options.setupFirst !== undefined ? !!options.setupFirst : !!live;
   const api = mountToday(doc, model, { ...(workout ? { workout } : {}), ...(checkin ? { checkin } : {}),
-    ...(setup ? { setup } : {}), setupFirst });
+    ...(setup ? { setup } : {}), ...(hosts ? { installation: hosts } : {}), setupFirst });
+
+  /* P3-IMPORT-UI-2 (DECISIONS:475 (4)) - the installation this boot opened is handed
+     to the page on the same call above, for the ONE route that needs the local durable
+     client itself (importBundle / listImports / retractImport, and the admission
+     controller's own hostBindings). No new lane is opened here and nothing else on the
+     page reads it. S6 MERGE NOTE: this pass-through and the setupFirst landing are
+     orthogonal - one names the installation the page MAY use, the other the screen it
+     OPENS on - so the reseal carries both hunks on one mountToday call rather than
+     choosing between them. */
   if (workout) workout.setOnRefresh(() => { if (api.screen() === "today") api.render("today"); });
   if (checkin) checkin.setOnRefresh(() => { if (api.screen() === "today") api.render("today"); });
   if (setup) setup.setOnRefresh(() => { if (api.screen() === "today") api.render("today"); });

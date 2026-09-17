@@ -43,15 +43,45 @@ const OWN_PREFIX = "rebuild/m3/w7-preview/today/";
 export const ASSETS = Object.freeze(["index.html", "styles.css", "app.js"]);
 export { APPROVED, readApproved, readFonts, assertDesignBinding, composeStyles };
 
-const FORBIDDEN = Object.freeze([
-  ["rebuild/engine/seed.cjs", (p) => p === "rebuild/engine/seed.cjs"],
+/* THE IMPORT ROUTE'S THREE NAMES, RE-REASONED IN PLACE (DECISIONS:475 (1) and
+   (4); the reason that stood here is replaced, not deleted, and the boundary it
+   used to draw is drawn again below by a cell).
+
+   THE OLD REASON, which was true and is still true everywhere else: this page is
+   a READER of an already migrated state. It never migrates, never merges and
+   never runs the import lane, so a build that dragged migrate.cjs, merge.cjs or
+   rebuild/m4/import/* into it was carrying a second, unproved way to arrive at
+   the athlete's numbers, and was refused outright.
+
+   THE NEW REASON: there is now exactly ONE screen on which the page is not
+   reading a migrated state. On the Import route the athlete offers the page a
+   sealed file, and before it will adopt a byte of it the page must REPRODUCE on
+   the phone the walk port.cjs did on the PC - that is what proves the bundle is
+   the one the PC vouched for (source-admission.mjs replay(),
+   SOURCE_PREPARATION_REPRODUCTION_MISMATCH), and the walk is
+   rebuild/m4/import/engine-provider.cjs, which requires migrate.cjs and
+   merge.cjs by literal path. So these three names are admitted to the page
+   through the Import route's entry module and through NOTHING else.
+
+   WHAT ENFORCES "NOTHING ELSE" is not this list: it is
+   assertImportRouteIsolation() below, which walks the module graph from
+   today-entry.mjs WITHOUT crossing the one dynamic edge into IMPORT_ENTRY and
+   refuses if any of the three is reachable. The Today boot path therefore still
+   carries none of them, which is the property the old outright ban was buying.
+   Every other FORBIDDEN name keeps its own reason and its outright ban. */
+export const IMPORT_ENTRY = "rebuild/m3/w7-preview/import/import-screen.mjs";
+const IMPORT_ROUTE_ONLY = Object.freeze([
   ["rebuild/engine/migrate.cjs", (p) => p === "rebuild/engine/migrate.cjs"],
   ["rebuild/engine/merge.cjs", (p) => p === "rebuild/engine/merge.cjs"],
+  ["rebuild/m4/import/*", (p) => /^rebuild\/m4\/import\//.test(p)],
+]);
+
+const FORBIDDEN = Object.freeze([
+  ["rebuild/engine/seed.cjs", (p) => p === "rebuild/engine/seed.cjs"],
   ["rebuild/engine/index.cjs", (p) => p === "rebuild/engine/index.cjs"],
   ["rebuild/engine/test/*", (p) => /^rebuild\/engine\/test\//.test(p)],
   ["rebuild/authority/* (except canonical)", (p) => /^rebuild\/authority\//.test(p) && p !== "rebuild/authority/canonical.cjs"],
   ["rebuild/m3/w5/crypto.cjs", (p) => p === "rebuild/m3/w5/crypto.cjs"],
-  ["rebuild/m4/import/*", (p) => /^rebuild\/m4\/import\//.test(p)],
   ["ledger/*", (p) => /^ledger\//.test(p)],
   ["src/history.js", (p) => p === "src/history.js"],
   /* A2: the accepted rebuild/m4/workout/engine-runtime.cjs composes its twelve
@@ -158,6 +188,16 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/m4/workout/source-projection.cjs",
   "rebuild/m4/workout/edit-values.cjs",
   "rebuild/m3/w5/source/codec.cjs",
+  /* P3-IMPORT-UI-2 (DECISIONS:475 (4)) - THE IMPORT ROUTE, and the production
+     execution calendar it qualifies his bundle against. Named here for the same
+     reason food-host.mjs and sleep-host.mjs are: the route is reached through a
+     dynamic import, so this entry is what proves the bundler really followed it.
+     A build that lost import-screen.mjs would be a page whose "Import my
+     history" link opens nothing; one that lost production-mapping.cjs would be a
+     page that could only admit a bundle through a TEST-ONLY registry, which is
+     the second blocker of DECISIONS:472 walking back in. */
+  "rebuild/m3/w7-preview/import/import-screen.mjs",
+  "rebuild/m4/import/production-mapping.cjs",
 ]);
 
 /* review D-4: EXECUTE the "no network reference" claim instead of printing it. Every
@@ -327,6 +367,56 @@ export function injectCommit(bundle, commit) {
   return bundle.replace(COMMIT_PLACEHOLDER, commit);
 }
 
+/* THE NEW LAW CELL (DECISIONS:475 (1)). The three names above are in the page,
+   and this is what keeps them off the Today boot path.
+
+   It walks esbuild's own module graph from today-entry.mjs, following every
+   static edge - an import statement, a require call, an export-from - and
+   REFUSING TO CROSS the one dynamic edge into IMPORT_ENTRY. Whatever that walk
+   reaches is what the page loads to paint Today; if any of migrate.cjs,
+   merge.cjs or the m4/import lane is in it, some other module has reached them
+   and the build is refused with the path that did it.
+
+   It also proves the door is the one named: IMPORT_ENTRY must be in the graph,
+   every edge into it must be a dynamic import, and its only importer must be
+   today-app.cjs. A second importer, or a static one, is the same defect said a
+   different way, and is refused here too. */
+export function assertImportRouteIsolation(metafile, { entry = SOURCE_REL + "/today-entry.mjs",
+  route = IMPORT_ENTRY } = {}) {
+  const inputs = metafile && metafile.inputs;
+  assert(inputs && inputs[entry], `IMPORT-ROUTE FAIL: no module graph for ${entry}`);
+  assert(inputs[route], `IMPORT-ROUTE FAIL: ${route} is not in the page graph at all`);
+  const importers = Object.entries(inputs).filter(([, node]) =>
+    (node.imports || []).some((edge) => edge.path === route));
+  assert.deepEqual(importers.map(([p]) => p), [SOURCE_REL + "/today-app.cjs"],
+    `IMPORT-ROUTE FAIL: ${route} is reached from ${importers.map(([p]) => p).join(", ") || "nothing"}`);
+  for (const [from, node] of importers) {
+    for (const edge of node.imports) {
+      if (edge.path !== route) continue;
+      assert.equal(edge.kind, "dynamic-import",
+        `IMPORT-ROUTE FAIL: ${from} reaches ${route} by ${edge.kind}, not a dynamic import`);
+    }
+  }
+  const reached = new Set(), stack = [entry], from = new Map();
+  while (stack.length) {
+    const at = stack.pop();
+    if (reached.has(at) || at === route) continue;
+    reached.add(at);
+    for (const edge of (inputs[at] && inputs[at].imports) || []) {
+      if (edge.path === route) continue;
+      if (!from.has(edge.path)) from.set(edge.path, at);
+      if (!reached.has(edge.path)) stack.push(edge.path);
+    }
+  }
+  const boot = [...reached];
+  for (const [label, match] of IMPORT_ROUTE_ONLY) {
+    const hits = boot.filter(match);
+    assert.equal(hits.length, 0, `IMPORT-ROUTE FAIL: the Today boot graph reaches ${label} -> `
+      + hits.map((p) => p + " (from " + (from.get(p) || "?") + ")").join(", "));
+  }
+  return { boot: boot.length, route, entry };
+}
+
 export function assertBundleInputs(inventory) {
   const paths = inventory.map((i) => i.path);
   for (const [label, match] of FORBIDDEN) {
@@ -388,6 +478,10 @@ export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
     entryPoints: [path.join(SOURCE, "today-entry.mjs")],
   });
   const inputs = assertBundleInputs(built.inventory);
+  /* THE IMPORT ROUTE'S OWN LAW, run over esbuild's own graph for THIS build
+     (buildBrowser writes it beside the bundle) before a byte is written. */
+  const graph = JSON.parse(await fs.readFile(built.outfile + ".meta.json", "utf8")).metafile;
+  const importRoute = assertImportRouteIsolation(graph);
   /* The build names itself, from what went into it, before a byte is written. */
   const buildId = buildIdOf(built.inventory);
   const buildTag = buildTagOf(built.inventory);
@@ -414,7 +508,7 @@ export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
   assert.deepEqual((await fs.readdir(dist)).sort(), [...ASSETS].sort(), "PACKAGE-ALLOWLIST FAIL");
 
   return { dist, assets: [...ASSETS], inputs, inventory: built.inventory, dashes, nodeGlobals,
-    buildId, buildTag, commit,
+    buildId, buildTag, commit, importRoute, graph,
     approved: APPROVED.map((a) => a.sha256), fonts: fonts.map((f) => ({ name: f.name, sha256: f.sha256 })), binding };
 }
 
@@ -424,7 +518,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     const engine = result.inputs.filter((p) => p.startsWith("rebuild/engine/"));
     const client = result.inputs.filter((p) => p.startsWith("rebuild/client/"));
     console.log(`A1 TODAY BUILD PASS: ${result.assets.length} assets; ${result.inputs.length} pinned inputs `
-      + `(${engine.length} engine, ${client.length} client); build ${result.buildTag}; commit ${result.commit}; approved design pinned; `
+      + `(${engine.length} engine, ${client.length} client); build ${result.buildTag}; commit ${result.commit}; `
+      + `Today boot graph ${result.importRoute.boot} modules, carrying no migrate.cjs, no merge.cjs and `
+      + `none of the m4/import lane: those are reached only through ${result.importRoute.route}; `
+      + `approved design pinned; `
       + `${result.binding.classes} bound classes; ${result.fonts.length} pinned typefaces inlined; `
       + `no literal figure in the template; ${result.assets.length}/${result.assets.length} assets scanned and free of any network reference; `
       + `no em/en dash in any text the athlete can see (${result.dashes.admitted} frozen-source strings carry one and `
