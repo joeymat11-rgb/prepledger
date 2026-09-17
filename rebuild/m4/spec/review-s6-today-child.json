@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "934321f443ec55a2fdc283dffc48b3044a0337f1",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-09-17 · cowork · POSTFIX-ACCEPTANCE M2-S6-TODAY-CHILD 23575c0f1e61ee714fb519cb3607c4779dcd0c24 rebuild/m4/spec/acceptance-s6-today-child.json 0e52357ed62249d4ee94b473e2dde20220b0a82c3737414bba0603fa76bf040f ACCEPTED",
+    "lineSha256": "dfbae0989cdc8348d16798314bb1c909fd1b8fef76869c1298b372b19e5e70b1"
+  }
+}
