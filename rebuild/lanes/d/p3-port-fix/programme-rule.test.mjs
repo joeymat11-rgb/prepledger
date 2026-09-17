@@ -370,40 +370,60 @@ test('D-PR-6 - the setup screens still write split.from = the day setup was '
   }
 });
 
-/* ===== ADDED IN THE FIX ROUND AFTER REVIEW R1 (finding 4, probe PR7) =====
+/* ===== REWRITTEN BY P3-PORT-FIX-2 (DECISIONS:509 NOTE 4 / D-PF-n4) =====
 
-   CHARACTERISATION, NOT APPROVAL. Before this ticket every retained number had
-   to EQUAL the phone's document, and the document has been through
-   createCleanInitState, so the file's numbers were incidentally bounded to
-   values the engine accepts. Retaining them drops that bound and this spec puts
-   nothing in its place: the rule proves the WEEK, the LIFT IDS, the DAYS and
-   the MUSCLE GROUPS, and a set count of zero or of forty rides in untouched.
-   The reviewer measured what that costs (his probe PR7): such a file ADMITS, is
-   ADOPTED, and the next morning's gym card reads blocked /
-   ENGINE_CAPTURE_SESSION_INVALID with the import already committed, which is
-   the same dead-end shape spec 1.2's B-A bound exists to make impossible for
-   split.from.
+   THE GAP THIS CELL RECORDED IS CLOSED IN ONE DIRECTION, AND THE CELL NOW
+   ASSERTS THE REFUSAL. Before P3-PORT-FIX every retained number had to EQUAL
+   the phone's document, and the document has been through createCleanInitState,
+   so the file's numbers were incidentally bounded to values the engine accepts.
+   Retaining them dropped that bound. The PM ruled that admission applies THE
+   DOCUMENT CONSTRUCTOR'S OWN BOUNDS to the retained members, and nothing else.
 
-   THIS CELL EXISTS SO THE GAP IS VISIBLE AND DATED, not because the behaviour
-   is wanted. Bounding the file's own exercise rows the way athlete-state.cjs
-   :236-245 bounds the document's is a PM ticket and is not authorised by this
-   spec (spec 6), so the build does not add a guard here on its own authority.
-   THE DAY A BOUND LANDS THIS CELL GOES RED, and whoever adds it must rewrite it
-   to assert the refusal instead of deleting it. */
-test('D-PF-n4 (KNOWN GAP, review R1 finding 4) - a file whose per-lift set '
-  + 'counts are absurd ADMITS and is adopted, because nothing bounds a RETAINED '
-  + 'number: the rule proves shape and this spec bounds no value', async () => {
+   WHAT THE CONSTRUCTOR ACTUALLY BOUNDS, read line by line at
+   rebuild/m4/workout/athlete-state.cjs:118-135: every member of
+   REQUIRED_EXERCISE must be PRESENT (the `closed` check at :119); `sets` and
+   `hi` must be positiveInt (:95, Number.isSafeInteger and > 0); `inc` must be a
+   finite number > 0 (:129); `steps` must be a non-empty array of finite numbers
+   > 0 in strictly ascending order (:130-132). THERE IS NO UPPER BOUND ON
+   ANYTHING. So `sets: 0` is refused and `sets: 40` is not, and this cell says
+   both out loud rather than pretending a ceiling exists. Inventing one here
+   would be a new rule and belongs to the PM, not to a build.
+
+   THE POSITIVE SIDE of this ruling is PF-a at the head of this file: a file
+   whose varied per-lift numbers are all in bounds still admits, and what lands
+   in the admitted state is the FILE's. D-PF-n5 below carries the other three
+   bounded members. */
+test('D-PF-n4 (REWRITTEN by P3-PORT-FIX-2) - a file whose set count is zero is '
+  + 'REFUSED with field sets and the lift named, and a file whose set count is '
+  + 'forty is ADMITTED, because the constructor bounds the floor and not the '
+  + 'ceiling', async () => {
+  /* THE FLOOR. `sets: 0` is exactly what athlete-state.cjs:126 refuses
+     (CLEAN_INIT_EXERCISE_REQUIRED / sets), and admission now refuses it too,
+     under its own code and naming the lift. */
+  const zero = sealProgramme({ state: state => {
+    for (const ex of state.exercises) {
+      if (ex.id !== 'db-bench') continue;
+      ex.sets = 0; ex.last = [];
+    }
+    for (const day of Object.values(state.sessionLog || {}))
+      for (const entry of day.entries) {
+        if (entry.id !== 'db-bench') continue;
+        entry.sets = 0; entry.reps = [];
+      }
+  } });
+  await refuses('bound-sets-zero', zero.sealed,
+    { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', field: 'sets', exercise_id: 'db-bench' });
+
+  /* THE CEILING THAT IS NOT THERE. */
   const { era, scope } = await openEra('unbounded-sets', SETUP_DAY);
   await firstRunWith(era, SETUP_DAY, PHONE.setup, PHONE.tags);
-  /* The absurd numbers are written into the FILE'S OWN STATE after it is built,
-     because the lane's builder runs createCleanInitState and that constructor
-     refuses `sets: 0` outright (athlete-state.cjs:126, CLEAN_INIT_EXERCISE_
-     REQUIRED / sets). That refusal is the point: the bound lives in the
-     DOCUMENT constructor, which the old app's ledger never went through, and
-     NOT in admission, which is the thing this ticket changed. The file's
-     recorded sets are carried along so the history stays consistent with its
-     own programme. */
-  const ABSURD = { 'db-bench': 0, 'lat-pulldown': 40 };
+  /* The number is written into the FILE'S OWN STATE after it is built, the way
+     it was before, because the lane's builder runs createCleanInitState and a
+     value the constructor refuses cannot be built through it. FORTY is not one
+     of those: positiveInt(40) is true, so the constructor accepts it and, under
+     the PM's ruling, so does admission. The file's recorded sets are carried
+     along so the history stays consistent with its own programme. */
+  const ABSURD = { 'lat-pulldown': 40 };
   const file = sealProgramme({ state: state => {
     for (const ex of state.exercises) {
       if (!Object.hasOwn(ABSURD, ex.id)) continue;
@@ -419,9 +439,10 @@ test('D-PF-n4 (KNOWN GAP, review R1 finding 4) - a file whose per-lift set '
   } });
   const result = await admitAt(era, file.sealed, { day: IMPORT_DAY, ...scope });
   assert.equal(result.admitted, true,
-    'a bound has landed on the retained numbers: rewrite this cell to assert '
-    + 'the refusal, and tell the PM the gap is closed: '
-    + JSON.stringify(result.issues || result.code));
+    'a CEILING has landed on the retained numbers. The constructor has none '
+    + '(athlete-state.cjs:95,:126), so whoever added one added a rule the '
+    + 'document does not carry: take it to the PM rather than editing this '
+    + 'cell: ' + JSON.stringify(result.issues || result.code));
   const loaded = await era.generation();
   const adopted = admittedLocalSourceBasis(loaded.generation,
     { athleteLabel: PHONE.setup.athlete_label, namespace: scope.namespace });
@@ -431,3 +452,31 @@ test('D-PF-n4 (KNOWN GAP, review R1 finding 4) - a file whose per-lift set '
       id + ': the number rode all the way into the adopted basis');
   era.close();
 });
+
+/* D-PF-n5, NEW (P3-PORT-FIX-2, DECISIONS:509 NOTE 4). THE OTHER THREE BOUNDED
+   MEMBERS, each under its own field name, so the four values the ruling adds to
+   the closed vocabulary of spec 3.1 are each executed and not merely declared.
+   Every violation below is one the DOCUMENT CONSTRUCTOR itself refuses, and
+   none of them is a bound this build invented:
+     hi: 0      - athlete-state.cjs:127, positiveInt
+     inc: 0     - athlete-state.cjs:129, a finite number > 0
+     steps desc - athlete-state.cjs:130-132, strictly ascending
+   The `steps` violation REVERSES the file's own ladder rather than replacing
+   it, so the same loads are present and only their order is wrong: the refusal
+   is then the ordering rule and nothing else. */
+const BOUND_VIOLATIONS = [
+  ['hi', 'db-bench', ex => { ex.hi = 0; }],
+  ['inc', 'lat-pulldown', ex => { ex.inc = 0; }],
+  ['steps', 'leg-press', ex => { ex.steps = ex.steps.slice().reverse(); }],
+];
+
+for (const [field, lift, mutate] of BOUND_VIOLATIONS)
+  test('D-PF-n5 (' + field + ') - a file carrying a ' + field + ' the document '
+    + 'constructor refuses is refused at admission, naming the field and the '
+    + 'lift', async () => {
+    const file = sealProgramme({ state: state => {
+      for (const ex of state.exercises) if (ex.id === lift) mutate(ex);
+    } });
+    await refuses('bound-' + field, file.sealed,
+      { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', field, exercise_id: lift });
+  });

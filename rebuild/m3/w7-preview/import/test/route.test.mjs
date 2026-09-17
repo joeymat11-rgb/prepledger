@@ -424,14 +424,26 @@ test('P3-U5 - THE UNENROLLED INSTALLATION IS OFFERED NO ROUTE AT ALL: not on '
      code once, carrying the field that refused, then the one sentence. On an
      UNENROLLED installation the field is `setup_document`, because this phone
      holds no first-run document at all, and that is exactly what the screen now
-     says. The build report raises as an open question for the PM whether the
-     sentence, which speaks of a training week the athlete set up, is the right
-     one for a phone that has not been set up at all; changing it needs a second
-     sentence and this spec rules exactly one. */
+     says.
+     CHANGED AGAIN by P3-PORT-FIX-2 (DECISIONS:509 Q5 + Q2). The build's open
+     question was whether the training-week sentence, which speaks of a week the
+     athlete set up, is the right one for a phone that has not been set up at
+     all. The PM ruled it is not, and ruled the sentence KEYED ON THE FIELD. The
+     whole box is asserted below, verbatim and through the screen's own
+     refusalLines(), so the copy cannot drift without this cell going red. */
   const box = slot(doc, 'import-refusal').textContent;
   assert.ok(box.startsWith('LOCAL_SOURCE_PROGRAMME_UNRESOLVED (setup_document)'), box);
   assert.equal(box.split('LOCAL_SOURCE_PROGRAMME_UNRESOLVED').length - 1, 1,
     'the code is printed more than once: ' + box);
+  assert.equal(box, Screen.refusalLines('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',
+    'setup_document').join(' '),
+  'the screen rendered something other than refusalLines(): ' + box);
+  assert.equal(box, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (setup_document) '
+    + 'This phone has no saved setup to compare this file with. Nothing on this '
+    + 'phone was changed.',
+  'the setup_document copy is not the PM\'s words: ' + box);
+  assert.equal(new RegExp('[\\u2013\\u2014]').test(box), false,
+    'no en dash and no em dash reaches the athlete');
   fresh.close();
 
   /* THE GREEN SIDE: the same words, on Today, the moment the first run exists. */

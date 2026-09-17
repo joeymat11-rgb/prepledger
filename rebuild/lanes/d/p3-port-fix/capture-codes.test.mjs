@@ -1,27 +1,29 @@
-/* P3-PORT-FIX (lane D, CELLS). CELL (f): THE INNER CODES SURFACE UNDER THEIR
-   OWN NAMES, and the one of them that sits on the owner's own path.
+/* P3-PORT-FIX-2 (lane D, CELLS). CELL (f): THE INNER CODES SURFACE UNDER THEIR
+   OWN NAMES, and THE PROVENANCE OF A RECORDED CAPTURE.
 
-   source-admission.mjs:289 used to bind `e` and never read `e.code`, so all four
-   refusals raised inside the recorded-workout try were renamed
-   LOCAL_SOURCE_WORKOUT_UNRESOLVED on the way out. Spec 3.4 fixes that behind an
-   ALLOWLIST and gives each inner refusal a field of its own.
+   source-admission.mjs used to bind `e` and never read `e.code`, so all four
+   refusals raised inside the recorded-workout try came out renamed
+   LOCAL_SOURCE_WORKOUT_UNRESOLVED. P3-PORT-FIX fixed that behind an ALLOWLIST
+   and gave each inner refusal a field of its own.
 
-   THE ONE THAT MATTERS TO THE OWNER is `capture_sets` (:273). A phone that
-   recorded a workout BEFORE importing wrote its capture against the PHONE's
-   document, so the slot count per lift is the DOCUMENT's set count. After
-   P3-PORT-FIX the admitted state's set count is the FILE's, and :273 compares
-   the two. A file whose set counts differ from the document's therefore still
-   refuses on that path, now by its own name instead of silently. This is a
-   finding for the PM, not something these cells edit away: the cell measures it
-   and the author report names it. REVIEW R1 raised it to its one BLOCKING
-   finding, and D-PF-f3 at the foot of this file was added in the fix round to
-   pin the other half of its trigger.
+   WHAT P3-PORT-FIX-2 CHANGES HERE (DECISIONS:509 Q1, option b). The capture the
+   phone wrote BEFORE the import was prescribed by the phone's own first-run
+   DOCUMENT, so its slot count per lift is the DOCUMENT's set count. The check at
+   source-admission.mjs:332 used to compare it with the ADMITTED state's count,
+   which after P3-PORT-FIX is the FILE's, so the owner's own path refused. The PM
+   ruled the check against the programme that PRODUCED the capture: the document.
+
+   D-PF-f1 THEREFORE INVERTS: it asserted the refusal and now asserts ADMISSION.
+   f2 and f3 stay as the controls they were, with their meaning restated below.
+   f4 is new and carries the PM's bar: the next morning on the booted page.
+   f5 is new and is the capture_sets copy, on a capture that matches NEITHER.
 
    SYNTHETIC ONLY. Run with TZ=America/New_York. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { IDBFactory, sealInventedBundle, eraFor, liveAt, carry, material,
-  producerRegistryFor, shippedSetup, firstRunWith, variedProgramme, variedLegacyState }
+  producerRegistryFor, shippedSetup, firstRunWith, variedProgramme, variedLegacyState,
+  Entry, shellWindow }
   from '../../../m3/w7-preview/import/test/support.mjs';
 import { createLocalSourceController, localSourceCommitCapability }
   from '../../../m3/w6/local/source-admission.mjs';
@@ -29,14 +31,22 @@ import Screen from '../../../m3/w7-preview/import/import-screen.mjs';
 import { createCleanInitState } from '../../../m3/w7-preview/today/setup-model.mjs';
 import { createGymModel } from '../../../m3/w7-preview/today/gym-model.mjs';
 
+/* THE CALENDAR. f1, f2, f3 and f5 import on the Saturday after a Friday
+   workout; f4 imports on the Friday evening it recorded that workout, so the
+   NEXT MORNING is the Saturday the week calls L and a card is prescribed at
+   all. `2026-09-20` is on the mapping only so a day the mapping does not name
+   still refuses SOURCE_ENGINE_CONTEXT_UNPROVEN rather than passing quietly. */
 const SETUP_DAY = '2026-09-16', WORKOUT_DAY = '2026-09-18', IMPORT_DAY = '2026-09-19';
+const MORNING_DAY = '2026-09-19';
 const clone = value => JSON.parse(JSON.stringify(value));
 const DAYS = ['2026-08-14', '2026-08-17', '2026-08-18', '2026-08-21', '2026-08-24',
-  '2026-08-31', '2026-09-16', '2026-09-17', '2026-09-18', '2026-09-19'];
+  '2026-08-31', '2026-09-16', '2026-09-17', '2026-09-18', '2026-09-19', '2026-09-20'];
 const EFFORT = { tag: 'exact', value: 2, unit: 'rep' };
 const instantOn = day => day + 'T16:00:00.000Z';
 const scopeFor = tag => ({ databaseName: 'p3-pfc-' + tag, namespace: 'joe/p3-pfc-' + tag,
   athleteId: 'ath-p3-pfc', deviceId: 'dev-p3-pfc' });
+const sumSets = (setup, kind) => setup.exercises
+  .filter(e => e.day === kind).reduce((n, e) => n + e.sets, 0);
 
 const PHONE = shippedSetup({ today: SETUP_DAY });
 /* THE FILE: the same shape, its own retained numbers. */
@@ -52,16 +62,22 @@ const CONTROL_FILE = (() => {
 })();
 const CONTROL = sealInventedBundle(CONTROL_FILE, { state: variedLegacyState(CONTROL_FILE) });
 
-function phoneState() {
+/* THE STATE THE GYM CARD PRESCRIBES FROM. Plain, it is the phone's own
+   document, so the capture's slot count per lift IS the document's set count,
+   which is the whole point of f1 to f4. `override` exists for f5 alone, which
+   needs a capture whose slot count matches NEITHER side. */
+function phoneState(override = null) {
   const state = clone(createCleanInitState({ setup: PHONE.setup }));
-  for (const ex of state.exercises) ex.w = ex.steps[0];
+  for (const ex of state.exercises) {
+    ex.w = ex.steps[0];
+    if (override && Object.hasOwn(override, ex.id)) ex.sets = override[ex.id];
+  }
   return state;
 }
 
-/* ONE WHOLE SESSION on the gym card, written by the PHONE's own document, on a
-   day the phone's split calls U. */
-async function recordAWorkout(era, day) {
-  const open = on => era.createGymHost({ day: on, engineState: phoneState(),
+/* ONE WHOLE SESSION on the gym card, on a day the phone's split calls U. */
+async function recordAWorkout(era, day, engineState) {
+  const open = on => era.createGymHost({ day: on, engineState,
     plannedSplitSlotId: 'earned-today-preview/' + on });
   const gymHost = await open(day);
   const gym = createGymModel({ gymHost, sessionTitle: null, hostForDay: open });
@@ -82,75 +98,89 @@ async function recordAWorkout(era, day) {
     'the card did not reach a complete session: ' + view.phase);
   assert.equal((await gym.finish({ startId })).ok, true);
   gymHost.close();
+  return total;
 }
 
-async function importAfterAWorkout(tag, sealed, { workout = true } = {}) {
+/* THE WHOLE PATH, once: set the phone up, record a workout on it, then import.
+   `keepOpen` leaves the IndexedDB and the era alone so f4 can reopen the page
+   on the following local day over the SAME store. */
+async function importAfterAWorkout(tag, sealed, { workout = true, workoutState = null,
+  day = IMPORT_DAY, keepOpen = false } = {}) {
   const scope = scopeFor(tag);
-  const era = await eraFor({ indexedDB: new IDBFactory(),
-    live: liveAt(instantOn(WORKOUT_DAY)), ...scope });
+  const indexedDB = new IDBFactory();
+  const era = await eraFor({ indexedDB, live: liveAt(instantOn(WORKOUT_DAY)), ...scope });
   await firstRunWith(era, SETUP_DAY, PHONE.setup, PHONE.tags);
-  if (workout) await recordAWorkout(era, WORKOUT_DAY);
+  let recordedSlots = null;
+  if (workout) recordedSlots = await recordAWorkout(era, WORKOUT_DAY, workoutState || phoneState());
   const { carried, platform } = await carry(era, sealed);
   assert.equal(carried.imported, true, 'custody refused: ' + carried.code);
   const held = await material(era, platform, carried.name);
   const controller = createLocalSourceController({ repository: held.repository,
     ...scope, producerRegistry: producerRegistryFor({ platform, context: held.context,
       materialDigest: held.materialDigest }, { days: DAYS }),
-    asOf: () => IMPORT_DAY, platform });
+    asOf: () => day, platform });
   const review = await controller.reviewSource(carried.name);
   const prepared = await controller.prepareSource(review,
     { identityConfirmed: true, prefixAnswer: true });
   const admitted = prepared.profile === 'earned/local-source-qualification/v1';
-  if (admitted) { const c = localSourceCommitCapability(prepared); await c.publish(); await c.reconcile(); }
-  era.close();
-  return { admitted, issues: clone(prepared.issues || []) };
+  let view = null;
+  if (admitted) {
+    view = clone(await controller.view(prepared));
+    const capability = localSourceCommitCapability(prepared);
+    await capability.publish(); await capability.reconcile();
+  }
+  if (!keepOpen) era.close();
+  return { admitted, issues: clone(prepared.issues || []), view, recordedSlots,
+    era, indexedDB, scope };
 }
 
-test('D-PF-f1 (the capture_sets code, ON THE OWNER\'S PATH) - a phone that '
-  + 'recorded a workout before importing refuses a file whose set counts differ '
-  + 'from the document, and now says WHICH check refused', async () => {
-  const result = await importAfterAWorkout('sets-differ', SEALED);
-  assert.equal(result.admitted, false,
-    'the capture set-count check no longer refuses; the cell is out of date');
-  assert.deepEqual([...new Set(result.issues.map(i => i.code))],
-    ['LOCAL_SOURCE_PROGRAMME_UNRESOLVED'],
-    'the inner refusal is renamed on the way out: ' + JSON.stringify(result.issues));
-  const issue = result.issues.find(i => i.field === 'capture_sets');
-  assert.ok(issue, 'no issue carried field capture_sets: ' + JSON.stringify(result.issues));
-  assert.ok(PHONE.setup.exercises.some(e => e.id === issue.exercise_id),
-    'the lift named is one this phone holds: ' + issue.exercise_id);
+/* D-PF-f1, REWRITTEN BY P3-PORT-FIX-2 (DECISIONS:509 Q1, option b). IT USED TO
+   ASSERT THE REFUSAL; IT NOW ASSERTS THE ADMISSION.
 
-  /* WHAT HE WOULD READ, measured in the fix round after review R1. The detail
-     string is assembled here the way import-screen.mjs:381-395 assembles it
-     (the codes after the first, then each issue's `field` and `exercise_id`,
-     deduplicated); the RENDERING below is the screen's own refusalLines(). The
-     route is not driven here, so this measures the COPY and not the routing.
-     It is recorded because the one sentence spec 3.2 rules is keyed on the
-     CODE, and on this path the code arrives for a reason the sentence does not
-     describe: nothing is wrong with his training week. See the author report,
-     review disposition (R1). */
-  const parts = [];
-  for (const row of result.issues)
-    for (const key of ['field', 'exercise_id'])
-      if (typeof row[key] === 'string' && row[key] && !parts.includes(row[key]))
-        parts.push(row[key]);
-  const rendered = Screen.refusalLines(issue.code, parts.join(' ')).join(' ');
-  assert.equal(rendered, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (capture_sets '
-    + issue.exercise_id + ') This file was written by a different training week '
-    + 'than the one you set up on this phone. Nothing on this phone was changed.',
-  'the copy on the owner\'s second refusal moved: ' + rendered);
-  assert.equal(new RegExp('[\\u2013\\u2014]').test(rendered), false,
-    'no en dash and no em dash reaches the athlete');
-  assert.equal(/[0-9]/.test(rendered), false, 'no number reaches him');
-  for (const secret of [String(PHONE.setup.athlete_label), FILE.split.from,
-    String(FILE.exercises[0].sets), String(PHONE.setup.exercises[0].sets)])
-    assert.equal(rendered.includes(secret), false,
-      'a value rode out on the refusal: ' + secret);
+   This is the owner's own shape: a phone set up on the shipped screens, ONE
+   Earned workout recorded on it before the import, and a file whose per-lift set
+   counts are not the one number the setup flow can write. The capture was
+   prescribed by the DOCUMENT, so it is proved against the DOCUMENT, and the
+   file's own counts are no longer the right-hand side of a check about the
+   capture's provenance. The refusal this cell used to measure is gone. */
+test('D-PF-f1 (the owner\'s path, INVERTED by P3-PORT-FIX-2) - a phone that '
+  + 'recorded a workout before importing ADMITS a file whose set counts differ '
+  + 'from the document, and the pre-import session rides in AS RECORDED', async () => {
+  const result = await importAfterAWorkout('sets-differ', SEALED);
+  assert.equal(result.admitted, true,
+    'the capture set-count check still refuses the owner\'s own path: '
+    + JSON.stringify(result.issues));
+  assert.notDeepEqual(FILE.exercises.map(e => e.sets),
+    PHONE.setup.exercises.map(e => e.sets),
+    'the file must still differ in sets, or this cell proves nothing');
+
+  /* THE PROJECTED PRE-IMPORT SESSION RIDES IN AS RECORDED (the PM's words).
+     Its slot count is the DOCUMENT's, not the file's, because that is what he
+     actually performed; admission records it, it does not rebase it. */
+  const sessions = [...(result.view.workout_facts?.sessions || []),
+    ...(result.view.workout_facts?.incomplete_sessions || [])];
+  assert.equal(sessions.length, 1, 'the pre-import session is not in the record');
+  const slots = sessions[0].record.entries.reduce((n, e) => n + e.slots.length, 0);
+  assert.equal(slots, sumSets(PHONE.setup, 'U'),
+    'the recorded session was rebased: it carries ' + slots + ' slots and he '
+    + 'performed ' + sumSets(PHONE.setup, 'U'));
+  assert.notEqual(sumSets(PHONE.setup, 'U'), sumSets(FILE, 'U'),
+    'the two documents must disagree on the U day, or this proves nothing');
+  assert.equal(result.recordedSlots, sumSets(PHONE.setup, 'U'));
 });
 
-test('D-PF-f2 (the control) - the SAME phone and the SAME recorded workout admit '
-  + 'a file whose set counts agree, with every other retained field still the '
-  + 'file\'s own, so f1 measures the set counts and not the workout', async () => {
+/* D-PF-f2, KEPT AS A CONTROL, ITS MEANING RESTATED (P3-PORT-FIX-2).
+
+   BEFORE: it was the control that proved f1's refusal was the SET COUNTS and
+   not the workout, by restoring the document's counts and watching the same
+   phone admit. AFTER: f1 admits too, so this cell no longer brackets a refusal.
+   What it still proves, and why it is not deleted: a file whose set counts
+   AGREE with the document admits exactly as it always did, so the change at
+   :332 widened nothing on the side that already worked. It is the regression
+   half of the pair; f1 is the new half. */
+test('D-PF-f2 (the control, meaning restated) - the SAME phone and the SAME '
+  + 'recorded workout still admit a file whose set counts AGREE, with every '
+  + 'other retained field still the file\'s own', async () => {
   const result = await importAfterAWorkout('sets-agree', CONTROL);
   assert.equal(result.admitted, true,
     'the control was refused: ' + JSON.stringify(result.issues));
@@ -160,31 +190,136 @@ test('D-PF-f2 (the control) - the SAME phone and the SAME recorded workout admit
     'the control still differs in split.from');
 });
 
-/* D-PF-f3, ADDED IN THE FIX ROUND AFTER REVIEW R1 (its one BLOCKING finding).
+/* D-PF-f3, KEPT AS A CONTROL, ITS MEANING RESTATED (P3-PORT-FIX-2).
 
-   The review calls the gap this pair measures the ticket's purpose left unmet,
-   and asks for it to be pinned rather than argued. f1 shows the refusal and f2
-   shows it is the set counts; NEITHER of them shows that the RECORDED WORKOUT
-   is the other half of the trigger. This cell holds the FILE, the phone, the
-   document, the scope shape and every answer FIXED and removes exactly one
-   thing - the workout the phone recorded before importing - and the same file
-   ADMITS. So the refusal the owner would meet is the pair (a pre-import Earned
-   workout) AND (per-lift set counts that differ from the one number the setup
-   flow can write), and nothing else.
-
-   THIS CELL IS THE PM GATE'S TRIP-WIRE. The day someone changes what
-   source-admission.mjs:273 compares (author report open question 1, options (b)
-   and (c)), f1 goes red and this one stays green, and whoever changes it must
-   come back and say which of the two is now true. It must not be edited away. */
-test('D-PF-f3 (the PM gate, the other half of the trigger) - the SAME phone, '
-  + 'the SAME file and the SAME answers ADMIT when no workout was recorded '
-  + 'before the import, so the pre-import workout is what flips f1', async () => {
+   BEFORE: it was the PM gate's trip-wire. It held everything fixed and removed
+   the pre-import workout, and the same file admitted, which proved the refusal
+   was the PAIR (a recorded workout) AND (differing set counts). AFTER: the PM
+   ruled that pair, so f1 and f3 now agree - both admit. What it still proves is
+   that the two paths have not diverged: a phone with no recorded workout and a
+   phone with one reach the SAME answer on the SAME file, which is what "the
+   capture is proved against the document" means when there is no capture. */
+test('D-PF-f3 (the no-workout control, meaning restated) - the SAME phone, the '
+  + 'SAME file and the SAME answers admit with NO workout recorded before the '
+  + 'import, so the recorded workout no longer changes the answer', async () => {
   const result = await importAfterAWorkout('sets-differ-no-workout', SEALED,
     { workout: false });
   assert.equal(result.admitted, true,
-    'the file f1 refuses was refused with no recorded workout either, so f1 is '
-    + 'not measuring the capture check: ' + JSON.stringify(result.issues));
+    'the file was refused with no recorded workout: ' + JSON.stringify(result.issues));
   assert.notDeepEqual(FILE.exercises.map(e => e.sets),
     PHONE.setup.exercises.map(e => e.sets),
     'the file must still differ in sets, or this cell proves nothing');
+  assert.equal(result.recordedSlots, null, 'this control records no workout');
+});
+
+/* THE PAGE ITSELF, reopened on a later local day over the SAME IndexedDB. This
+   is the technique cell (a) / D-PRR-2 use: not a frozen clock and not a 24 hour
+   wait, the same store read at a second instant by a second boot. */
+async function reopenPage(indexedDB, scope, at) {
+  const era = await eraFor({ indexedDB, live: liveAt(instantOn(at)), ...scope });
+  const win = shellWindow();
+  Object.defineProperty(win, 'indexedDB', { configurable: true, value: indexedDB });
+  const booted = await Entry.boot({ document: win.document, hosts: era,
+    now: liveAt(instantOn(at)) });
+  await booted.api.ready;
+  return { era, win, booted,
+    close: () => { booted.rollover.stop(); booted.teardown(); era.close(); } };
+}
+
+/* D-PF-f4, NEW (DECISIONS:509 Q1: "the bar must show the next morning opens").
+
+   The PM's ruling admits a projected pre-import session onto a basis that is no
+   longer the one that prescribed it. The question that ruling leaves open is
+   whether the ENGINE is happy with that the following morning, and the PM said
+   in as many words that a blocked card or ENGINE_CAPTURE_SESSION_INVALID is a
+   STOP and comes back to him rather than being widened away. This cell is that
+   measurement, on the booted page, over the same store. */
+test('D-PF-f4 (the next morning, on the booted page) - after the import a phone '
+  + 'that recorded a workout under the DOCUMENT opens the following morning on '
+  + 'the FILE\'s set count, is not blocked, and starts', async () => {
+  const kit = await importAfterAWorkout('next-morning', SEALED,
+    { day: WORKOUT_DAY, keepOpen: true });
+  assert.equal(kit.admitted, true,
+    'the import was refused, so the morning after proves nothing: '
+    + JSON.stringify(kit.issues));
+  kit.era.close();
+
+  const next = await reopenPage(kit.indexedDB, kit.scope, MORNING_DAY);
+  assert.ok(next.booted.workout, 'the page booted without a workout entry');
+  const card = await next.booted.workout.gym.read();
+  assert.notEqual(card.code, 'ENGINE_CAPTURE_SESSION_INVALID',
+    'the engine refused the projected pre-import session the morning after the '
+    + 'import. THIS IS THE STOP DECISIONS:509 Q1 names: do not widen anything, '
+    + 'record the code and the line and take it to the PM');
+  assert.equal(card.phase, 'ready',
+    'the card the page holds did not open: ' + (card.code || card.phase));
+  assert.equal(card.total, sumSets(FILE, 'L'),
+    'the card prescribed ' + card.total + ' sets; the FILE says '
+    + sumSets(FILE, 'L') + ' for this day');
+  assert.notEqual(sumSets(FILE, 'L'), sumSets(PHONE.setup, 'L'),
+    'the two documents must disagree on the L day, or this proves nothing');
+  const started = await next.booted.workout.gym.start();
+  assert.equal(started.ok, true,
+    'the start was refused the morning after: ' + (started.code || started.copy));
+  next.close();
+
+  /* AND THE PRE-IMPORT SESSION IS STILL IN THE RECORD AS RECORDED. */
+  const sessions = [...(kit.view.workout_facts?.sessions || []),
+    ...(kit.view.workout_facts?.incomplete_sessions || [])];
+  assert.equal(sessions.length, 1, 'the pre-import session is not in the record');
+  assert.equal(sessions[0].record.entries.reduce((n, e) => n + e.slots.length, 0),
+    sumSets(PHONE.setup, 'U'), 'the recorded session was rebased');
+});
+
+/* D-PF-f5, NEW (DECISIONS:509 Q5 + Q2, the capture_sets copy).
+
+   WHAT STILL REFUSES after the provenance change, and it is the case the check
+   was always for: a capture whose slot count matches NEITHER the document nor
+   the file. Here the phone prescribed seven slots for db-bench, its document
+   says three and the file says two, so no programme in the story produced that
+   capture and admission says so by name. (The other thing that still refuses is
+   a lift the DOCUMENT does not carry: that can only arise when programme()
+   itself has already refused, and its own issue is raised alongside.)
+
+   This is where the capture_sets SENTENCE is measured, because f1 no longer
+   refuses. The sentence is keyed on the FIELD now, not on the code: nothing is
+   wrong with his training week on this path, and the copy says what is. */
+test('D-PF-f5 (the capture_sets refusal and its own sentence) - a capture whose '
+  + 'slot count matches neither the document nor the file refuses by name, and '
+  + 'the screen renders the FIELD\'s sentence, not the training-week one', async () => {
+  const STRAY = { 'db-bench': 7 };
+  const document = PHONE.setup.exercises.find(e => e.id === 'db-bench').sets;
+  const file = FILE.exercises.find(e => e.id === 'db-bench').sets;
+  assert.equal(STRAY['db-bench'] === document || STRAY['db-bench'] === file, false,
+    'the stray capture must match neither side, or this cell proves nothing');
+  const result = await importAfterAWorkout('sets-stray', SEALED,
+    { workoutState: phoneState(STRAY) });
+  assert.equal(result.admitted, false, 'a capture matching neither side admitted');
+  assert.deepEqual([...new Set(result.issues.map(i => i.code))],
+    ['LOCAL_SOURCE_PROGRAMME_UNRESOLVED'],
+    'the inner refusal is renamed on the way out: ' + JSON.stringify(result.issues));
+  const issue = result.issues.find(i => i.field === 'capture_sets');
+  assert.ok(issue, 'no issue carried field capture_sets: ' + JSON.stringify(result.issues));
+  assert.equal(issue.exercise_id, 'db-bench');
+
+  /* The detail string is assembled here the way import-screen.mjs assembles it
+     (the codes after the first, then each issue's `field` and `exercise_id`,
+     deduplicated); the RENDERING is the screen's own refusalLines(). */
+  const parts = [];
+  for (const row of result.issues)
+    for (const key of ['field', 'exercise_id'])
+      if (typeof row[key] === 'string' && row[key] && !parts.includes(row[key]))
+        parts.push(row[key]);
+  const rendered = Screen.refusalLines(issue.code, parts.join(' ')).join(' ');
+  assert.equal(rendered, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (capture_sets db-bench) '
+    + 'A workout you already recorded on this phone has a different number of '
+    + 'sets than this file has for that lift. Nothing on this phone was changed.',
+  'the capture_sets copy is not the PM\'s words: ' + rendered);
+  assert.equal(new RegExp('[\\u2013\\u2014]').test(rendered), false,
+    'no en dash and no em dash reaches the athlete');
+  assert.equal(/[0-9]/.test(rendered), false, 'no number reaches him');
+  for (const secret of [String(PHONE.setup.athlete_label), FILE.split.from,
+    String(file), String(document), String(STRAY['db-bench'])])
+    assert.equal(rendered.includes(secret), false,
+      'a value rode out on the refusal: ' + secret);
 });
