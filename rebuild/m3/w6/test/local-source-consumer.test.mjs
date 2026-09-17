@@ -195,15 +195,37 @@ const visibleText = doc => (doc.getElementById('phone') || doc.body).textContent
 // The preview fixture's own athlete, in the shapes a screen could paint.
 const FIXTURE_MARKS = ['demo-press', 'demo-row', 'demo-leg', 'demo-curl', '184.8', '184.4'];
 
+/* Line 4 reads "ORACLE PASS frozen N/N unfrozen N/N", and under the FULL scope it
+   carries a trailing "scope FULL" word the public scope does not print. The rule the
+   cell holds to in EITHER scope: the verdict is PASS, one and the same N stands on
+   both sides of each fraction AND is the same for frozen and unfrozen (no class came
+   back smaller), and N >= 7. The count itself is scope-dependent, so it is not pinned. */
+const ORACLE_PASS_LINE =
+  /4\. ORACLE\s+PASS\s+frozen\s+([7-9]|[1-9]\d+)\/\1\s+unfrozen\s+\1\/\1(?:\s+scope (FULL))?/;
+
 test('P2-W1 - the REAL port seals an invented legacy bundle with its gate GREEN and no class smaller',
   () => {
     assert.match(SEALED.stdout, /1\. SOURCE\s+PASS/);
     assert.match(SEALED.stdout, /3\. COUNTS\s+PASS/);
-    assert.match(SEALED.stdout, /4\. ORACLE\s+PASS\s+frozen 7\/7\s+unfrozen 7\/7/);
+    assert.ok(ORACLE_PASS_LINE.test(SEALED.stdout),
+      'line 4 must read ORACLE PASS with the SAME count on both sides of each fraction and '
+      + 'the same count for frozen and unfrozen (N >= 7), optionally followed by "scope FULL"');
     assert.match(SEALED.stdout, /5\. SEAL\s+PASS/);
     assert.match(SEALED.stdout, /dataLossGuard\s+safe=true\s+lost=0/);
     assert.equal(SEALED.passphrase.split(/[\s-]+/).filter(Boolean).length, 6, 'six words and no more');
     assert.ok(SEALED.bytes.length > 1000, 'a sealed bundle, not an empty file');
+  });
+
+/* The red side of that rule, as a pure function of the pattern: no port runs here. */
+test('P2-W1 - the oracle pattern reads either scope GREEN but refuses a smaller class or a non-PASS verdict',
+  () => {
+    assert.match('4. ORACLE   PASS  frozen 7/7   unfrozen 7/7', ORACLE_PASS_LINE);
+    assert.match('4. ORACLE   PASS  frozen 10/10  unfrozen 10/10  scope FULL (3 blobs)', ORACLE_PASS_LINE);
+    assert.equal('4. ORACLE   PASS  frozen 10/10  unfrozen 10/10  scope FULL (3 blobs)'
+      .match(ORACLE_PASS_LINE)[2], 'FULL', 'the scope word is captured when the line carries it');
+    assert.doesNotMatch('4. ORACLE   PASS  frozen 9/10   unfrozen 10/10', ORACLE_PASS_LINE);
+    assert.doesNotMatch('4. ORACLE   PASS  frozen 10/10  unfrozen 9/9', ORACLE_PASS_LINE);
+    assert.doesNotMatch('4. ORACLE   FAIL  frozen 10/10  unfrozen 10/10  scope FULL', ORACLE_PASS_LINE);
   });
 
 test('P2-W2 - an ADMITTED import is the athlete\'s own basis on Today and on the gym card', async () => {
