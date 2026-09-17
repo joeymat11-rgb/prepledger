@@ -315,7 +315,11 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
 // of guard F6 gives IDS: the roots are FIXED IN THE RUNNER (W7) and a spec may not name
 // its own, and that is worth an assertion rather than a comment. The cell pins the exact
 // list, in order, and re-states the two properties the list exists for.
-test('F7 — CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S6-TODAY-CHILD adds exactly eight', () => {
+// ROUND 2, REVIEW R1 FINDING 5 (MINOR): the title said EIGHT while the body asserted a
+// nine-element slice and said so in as many words. A re-pin's rule has to read true at the
+// line a reader lands on, so the title is the thing corrected, never the assertion. Round 2
+// then adds a TENTH root, rebuild/lanes/d/b-lom/ (DECISIONS:492), and the title says ten.
+test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S6-TODAY-CHILD adds exactly ten', () => {
   assert.deepEqual(api.CHILD_ROOTS, [
     'rebuild/m4/spec/',
     'rebuild/conform/v4/postfix/',
@@ -334,12 +338,13 @@ test('F7 — CHILD_ROOTS is the fixed list of directories a declared child may e
     'rebuild/lanes/d/p3-followons/',
     'rebuild/m3/w7-preview/import/test/',
     'rebuild/m3/w6/test/',
+    'rebuild/lanes/d/b-lom/',
   ]);
   // The eighth is S5's, and DECISIONS:455 is why it exists: lane C's new modules go under
   // rebuild/m3/w7-preview/measure/ so that only the route wiring in today-app.cjs is a
   // sealed-byte move, and the package that declares those modules must be able to execute
   // them or the Y1 own-child rule cannot reach them at all.
-  // NINE TO SIXTEEN ARE S6'S, and they are the largest widening this list has had. The
+  // NINE TO EIGHTEEN ARE S6'S, and they are the largest widening this list has had. The
   // reason is DECISIONS:473 as extended at :487: the runner recomputes only what a spec
   // DECLARES, so every lane D and lane C suite merged since S5 was sealed was invisible to
   // it. S6 declares those files, and :487 stop 7 rules that a lane D test file a declared
@@ -351,7 +356,9 @@ test('F7 — CHILD_ROOTS is the fixed list of directories a declared child may e
   // not made children because the W6 whole-tree suite runs them, and rebuild.yml has no
   // W6 whole-tree step. A declared file no child runs cannot hold role "pinned-unchanged",
   // so the root is here and the w6-local-source child runs them.
-  assert.equal(api.CHILD_ROOTS.length, 17);
+  // A TENTH, rebuild/lanes/d/b-lom/, is round 2's: DECISIONS:492 folds B-LOM into this
+  // package, S6 declares its route suite as product, and the b-lom child runs it.
+  assert.equal(api.CHILD_ROOTS.length, 18);
   assert.equal(api.CHILD_ROOTS[7], 'rebuild/m3/w7-preview/measure/test/');
   assert.deepEqual(api.CHILD_ROOTS.slice(8), [
     'rebuild/m4/import/test/',
@@ -363,6 +370,7 @@ test('F7 — CHILD_ROOTS is the fixed list of directories a declared child may e
     'rebuild/lanes/d/p3-followons/',
     'rebuild/m3/w7-preview/import/test/',
     'rebuild/m3/w6/test/',
+    'rebuild/lanes/d/b-lom/',
   ]);
   // The first eight are UNCHANGED by S6: a widening adds, it never re-orders or edits what
   // a previous seal pinned here.
@@ -434,4 +442,48 @@ test('F8 -- PUBLIC_TAIL_ROOTS and TAIL_DENYLIST are the fixed lists the tail dia
 // child-diagnostic-tail.test.cjs's byte-cap probe.
 test('F9 -- TAIL_BYTES is the fixed byte cap the diagnostic tail truncates to', () => {
   assert.deepEqual(api.TAIL_BYTES, 16 * 1024);
+});
+
+// ---------------------------------------- F10. what "executed" reads, round 2, R1 MAJOR 3
+// The review measured a FALSE NEGATIVE, not a false claim: executedClosure() read only
+// require('...'), import('...') and from '...', so a module an ESM cell hands to a bundler
+// or a worker as `new URL('../rel.mjs', import.meta.url)` was invisible and the runner said
+// "not executed by a declared child" about a file two declared cells run. The rule is
+// widened by ONE FORM and pinned here with both sides, on fixtures in the scratch tree so
+// nothing of the real repository is read.
+const executedFiles = targets => {
+  const walk = api.executedClosure(targets);
+  assert.equal(walk.capped, false, 'the walk was truncated, so this cell proves nothing');
+  return walk.files;
+};
+const REACHED = 'rebuild/m3/w6/host/fixture-f10-host.mjs';
+const BY_URL = 'rebuild/lanes/d/plan-edit/fixture-f10-by-url.test.mjs';
+const BY_IMPORT = 'rebuild/lanes/d/plan-edit/fixture-f10-by-import.test.mjs';
+const COMPUTED = 'rebuild/lanes/d/plan-edit/fixture-f10-computed.test.mjs';
+write(REACHED, 'export const host = 1;\n');
+write(BY_URL, "const entry = new URL('../../../m3/w6/host/fixture-f10-host.mjs', import.meta.url);\n"
+  + 'export default entry;\n');
+write(BY_IMPORT, "import { host } from '../../../m3/w6/host/fixture-f10-host.mjs';\nexport default host;\n");
+write(COMPUTED, "const name = 'fixture-f10-host.mjs';\n"
+  + "const entry = new URL('../../../m3/w6/host/' + name, import.meta.url);\nexport default entry;\n");
+
+test('F10 - executedClosure reads a relative new URL(..., import.meta.url) entry point as a reach, '
+  + 'exactly as it reads a relative import, and still reads no computed specifier', () => {
+  // THE FORM THE REVIEW NAMED. Red before this round: this set did not contain REACHED.
+  assert(executedFiles([BY_URL]).has(REACHED),
+    'a module reached by new URL(relative, import.meta.url) is still invisible');
+  // THE CONTROL: the same file, the same walk, through the form that always worked - so
+  // F10 is about the specifier form and not about the fixture.
+  assert(executedFiles([BY_IMPORT]).has(REACHED));
+  // THE BOUND, ASSERTED RATHER THAN ASSUMED. A COMPUTED specifier is still unseen, which
+  // is the lane B tooling carry this round records: "executed" is a lower bound.
+  assert.equal(executedFiles([COMPUTED]).has(REACHED), false,
+    'a computed specifier is now being resolved, which this walk does not do');
+  // And the widening resolves nothing that is not a real relative file of the tree: a bare
+  // specifier and an absolute one are still ignored by the same line.
+  const ABSENT = 'rebuild/lanes/d/plan-edit/fixture-f10-absent.test.mjs';
+  write(ABSENT, "const a = new URL('node:fs', import.meta.url);\n"
+    + "const b = new URL('/etc/passwd', import.meta.url);\nexport default [a, b];\n");
+  assert.deepEqual([...executedFiles([ABSENT])], [ABSENT],
+    'the walk followed a non-relative new URL specifier');
 });

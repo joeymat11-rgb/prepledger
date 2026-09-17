@@ -230,17 +230,24 @@ jobs:
       # the standing one. THREE SUITES ARE DELIBERATELY ABSENT and the author report says
       # why: m4/import/test/s3/harness.test.mjs (3 pass / 14 fail identically HERE and on
       # the clean tip - an environment precondition, the IMPORT_M4_DIR class of :459 NOTE
-      # 3), lanes/d/p3-replay-all (green on the tip, red after this merge: a BLOCKING
-      # finding reported, not hidden by leaving it unrun), and import/test/edge-route.mjs,
-      # which needs W6_BROWSER_BIN and a real Edge that no runner has. edge-route.mjs and
-      # its edge-seed-entry.mjs are declared and pinned as product all the same, so a file
-      # with no CI home is a file somebody decided about (DECISIONS:186 (3)).
+      # 3) and import/test/edge-route.mjs, which needs W6_BROWSER_BIN and a real Edge that
+      # no runner has. edge-route.mjs and its edge-seed-entry.mjs are declared and pinned
+      # as product all the same, so a file with no CI home is a file somebody decided about
+      # (DECISIONS:186 (3)).
+      # ROUND 2: lanes/d/p3-replay-all WAS the third absentee. It was green on the tip and
+      # red after this merge, reported as BLOCKING rather than hidden by leaving it unrun,
+      # and lane D's P3-EN1-ROUTE-GRAPH (DECISIONS:493 (1)) has since landed the
+      # enumeration fix. It is 28/28 on this tree, so it has a step and a declared child.
       - name: P3 — the Import screen route, its refusals and its page-bundle law
         run: node --test rebuild/m3/w7-preview/import/test/route.test.mjs rebuild/m3/w7-preview/import/test/refusal-route.test.mjs rebuild/m3/w7-preview/import/test/live-clock.test.mjs rebuild/m3/w7-preview/import/test/page-bundle.test.mjs rebuild/m3/w7-preview/import/test/refusals.test.mjs
       - name: M4 — the import lane, its production mapping and its admission
         run: node --test rebuild/m4/import/test/prepare.test.cjs rebuild/m4/import/test/reading-replay.test.cjs rebuild/m4/import/test/engine-provider.test.cjs rebuild/m4/import/test/local-source-order.test.cjs rebuild/m4/import/test/browser-parity.test.mjs rebuild/m4/import/test/production-mapping.test.cjs rebuild/m4/import/test/production-admission.test.mjs
       - name: D — plan edit, import retract, the admission swap, the replay measure family and capture-start
         run: node --test rebuild/lanes/d/plan-edit/model.test.cjs rebuild/lanes/d/plan-edit/durable-host.test.mjs rebuild/lanes/d/plan-edit/browser-build.test.mjs rebuild/lanes/d/plan-edit/client-p6.test.cjs rebuild/lanes/d/import-retract/retract.test.mjs rebuild/lanes/d/p3-followons/admission-swap.test.mjs rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs rebuild/lanes/d/p3-capture-start/capture-start.test.mjs
+      - name: D — the replay register and the shipped page's writer enumeration
+        run: node --test rebuild/lanes/d/p3-replay-all/class-membership.test.mjs rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs rebuild/lanes/d/p3-replay-all/writer-order.test.mjs
+      - name: D — the legacy order mapping, its provider and its route
+        run: node --test rebuild/lanes/d/b-lom/legacy-order.test.mjs rebuild/m4/workout/test/legacy-order-mapping.test.cjs
       - name: W6 — the local source admission and consumer cells
         run: node --test rebuild/m3/w6/test/local-source-admission.test.mjs rebuild/m3/w6/test/local-source-consumer.test.mjs
       - name: C5 — the voice coach tool contract and text prototype

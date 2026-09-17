@@ -61,6 +61,20 @@
 // corrupted record cannot become a silently different workout order; what it
 // does not buy, and does not claim, is detection of a record rewritten by
 // something that also rewrote all three copies of Q.
+//
+// S6 CARRY, review R4 finding 1: the sentence above is NARROWER than the truth
+// and is corrected here rather than left to be found. order_input is
+// PRESENCE-bound exactly as the ten digest-valued fields are, so the undetected
+// case does not need all three copies of Q. Deleting the recorded order_map AND
+// scrubbing the session-start out of order_input.operations - two fields, no
+// copy of Q touched - makes the mixed predicate below read "nothing native was
+// there at admission", and the days OPEN where an intact record blocks them.
+// NO WRONG ORDER RESULTS, which is why the boundary still holds: the only map
+// kind is athlete-confirmed-legacy-prefix with the answer true, and the
+// ordering a missing map falls back to is that same prefix. The claim this
+// module makes is therefore "a corrupted record cannot become a silently
+// different workout order", never "a corrupted record cannot become a record
+// that looks un-imported".
 const PROFILE='earned/imported-engine-history/v1';
 const BASIS_PROFILE='earned/local-source-basis/v1';
 const MAP_PROFILE='earned/local-source-order-map/v1';

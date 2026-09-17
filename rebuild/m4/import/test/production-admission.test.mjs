@@ -26,6 +26,8 @@ import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, carry, materi
   parseStrictJson, durable } from '../../../m3/w7-preview/import/test/support.mjs';
 import { createLocalSourceController, localSourceCommitCapability }
   from '../../../m3/w6/local/source-admission.mjs';
+import { retractImport } from '../../../m3/w6/local/browser-entry.mjs';
+import { admittedLocalSourceBasis } from '../../../m3/w7-preview/today/local-source-basis.mjs';
 
 const require_ = createRequire(import.meta.url);
 const Mapping = require_('../production-mapping.cjs');
@@ -237,5 +239,142 @@ test('P3-P5 - a REVIEWED execution row pinned to the wrong material refuses '
   assert.equal(after.basis, false, 'no basis was committed');
   assert.equal(after.applied, false);
   assert.equal(after.ops, before.ops, 'and the refusal minted no operation');
+  era.close();
+});
+
+/* P3-P6 - M2-S6-TODAY-CHILD BAR ROW 23, EXECUTED AS A CELL.
+ *
+ * The row: rotating the coach's ENGINE_REVISION constant - which S6's own
+ * ff-merge does, once (DECISIONS:456, :465-467) - must not invalidate an import
+ * already admitted under the previous one. Round 1 argued it from a whole-tree
+ * scan and the review was right that an argument with no red side is not the
+ * row. So it is MEASURED here, on the real admission, in the one order that
+ * makes it a proof: admit under the STANDING constant by name, rotate the
+ * constant, and read the SAME store back through a mapping built after the
+ * rotation.
+ *
+ * THE ROTATION IS REAL AND TOUCHES NO BYTE. rebuild/coach is not edited (this
+ * package moves no coach byte and engine-revision.test.cjs must stay green):
+ * the constant is substituted in the MODULE CACHE and production-mapping.cjs is
+ * re-required over it, which is exactly what the ff-merge does to the running
+ * bundle and nothing more. The substituted value is deliberately NOT S6's real
+ * one - a literal nobody will ever ship makes the cell independent of whatever
+ * the PM pastes into that file.
+ *
+ * THE RED SIDE IS IN THE CELL. The two digests the rotation moves are asserted
+ * to DIFFER, and the admitted record is then asserted to read back unchanged
+ * anyway. A qualify() that compared the stored value to the current one would
+ * fail the read three lines below, which is the mutant the author report
+ * records as applied, run and reverted. */
+const ROTATED = 'M2-NOT-A-REAL-PACKAGE@abcdef0123456789';
+
+/* Re-require production-mapping.cjs over a substituted coach constant. Both
+   cache entries are restored before this returns to the caller's next line, so
+   the rest of the file - and every other suite in the process - keeps the real
+   module object it already holds. */
+function mappingUnder(revision) {
+  const coach = require_.resolve('../../../coach/engine-revision.cjs');
+  const mapping = require_.resolve('../production-mapping.cjs');
+  const heldCoach = require_.cache[coach], heldMapping = require_.cache[mapping];
+  require_.cache[coach] = { id: coach, filename: coach, loaded: true, children: [],
+    paths: [], exports: { ENGINE_REVISION: revision } };
+  delete require_.cache[mapping];
+  try { return require_(mapping); }
+  finally {
+    if (heldCoach) require_.cache[coach] = heldCoach; else delete require_.cache[coach];
+    if (heldMapping) require_.cache[mapping] = heldMapping; else delete require_.cache[mapping];
+  }
+}
+
+test('P3-P6 - BAR ROW 23: the coach ENGINE_REVISION rotates and an import admitted under the '
+  + 'OLD constant is still admitted, still adopted and still retractable', async () => {
+  /* 1. THE STANDING CONSTANT, BY NAME. If this line ever has to change, the
+        row has to be re-run against whatever replaced it. */
+  assert.equal(Mapping.ENGINE_REVISION, 'M2-S5-TODAY-CHILD@0df73b01f3d2d935',
+    'the standing coach constant moved: re-run bar row 23 against the new one');
+  const { era, names } = await run('row23', SUMMER);
+  const admitted = await admitWithProductionMapping(era, SEALED, { day: SUMMER.day, ...names });
+  assert.equal(admitted.admitted, true, admitted.code || (admitted.codes || []).join(','));
+  const storedDigest = admitted.view.basis.engine_digest;
+  const storedBasis = admitted.view.basis;
+  const storedState = admitted.view.state;
+  assert.equal(storedDigest, productionEngineDigest(admitted.platform, admitted.held.materialDigest),
+    'the record was not qualified by production-mapping.cjs at all');
+
+  /* 2. THE ROTATION. Only the suffix moves: the profile path in front of it is
+        the mapping's identity and is not a version. */
+  const Rotated = mappingUnder(ROTATED);
+  assert.equal(Rotated.ENGINE_REVISION, ROTATED, 'the substitution did not take');
+  assert.equal(Rotated.MAPPING_ID, 'earned/import/production-producer-mapping/' + ROTATED);
+  assert.notEqual(Rotated.MAPPING_ID, Mapping.MAPPING_ID);
+  const prefix = id => id.slice(0, id.lastIndexOf('/') + 1);
+  assert.equal(prefix(Rotated.MAPPING_ID), prefix(Mapping.MAPPING_ID),
+    'the displayed id moved somewhere other than its suffix');
+  assert.equal(Mapping.ENGINE_REVISION, 'M2-S5-TODAY-CHILD@0df73b01f3d2d935',
+    'the cache restore leaked: the live module object moved');
+
+  /* 3. THE TWO VALUES A ROTATION-SENSITIVE READ WOULD COMPARE, AND THEY DIFFER.
+        Without this the rest of the cell could pass because the rotation moves
+        nothing at all. */
+  const rotatedMapping = Rotated.productionMapping({ materialDigest: admitted.held.materialDigest });
+  const rotatedDigest = Profile.digest(admitted.platform.hash, 'earned/local-source-engine/v1',
+    { mapping: rotatedMapping, execution: rotatedMapping.executions[0] });
+  assert.notEqual(rotatedDigest, storedDigest,
+    'the rotation does not move the engine digest, so this cell would prove nothing');
+  assert.notEqual(rotatedMapping.id, admitted.view.basis.engine_digest ? Mapping.MAPPING_ID : null);
+  assert.equal(rotatedMapping.engine_revision, ROTATED);
+
+  /* 4. STILL ADMITTED, read back through a controller whose registry was built
+        AFTER the rotation - the page a rotated bundle would boot. reopen() is
+        the real route: it re-qualifies the SAME source through the ROTATED
+        registry and refuses unless the recorded selection is still the one in
+        front of it, so this is a re-admission under the new constant and not a
+        cached read. */
+  const recorded = (await era.generation()).generation.metadata.localSources;
+  const name = recorded.selections[recorded.active].name;
+  const registry = Rotated.createProductionProducerRegistry({ hash: admitted.platform.hash });
+  const controller = createLocalSourceController({ repository: admitted.held.repository,
+    ...names, producerRegistry: registry, asOf: () => SUMMER.day, platform: admitted.platform });
+  const view = await controller.view(await controller.reopen(name));
+  assert.equal(view.ready, true, 'the admitted import stopped being ready after the rotation');
+  /* AND THE ONE THING THE ROTATION DOES MOVE, MEASURED RATHER THAN GLOSSED. A
+     re-qualification names the mapping that qualified IT, so the fresh
+     qualification's engine_digest is the ROTATED one - that is what the field is
+     for. What matters for the row is that the re-qualification SUCCEEDS instead
+     of refusing, and that it commits nothing: the DURABLE record below still
+     carries the digest it was admitted under. */
+  assert.equal(view.basis.engine_digest, rotatedDigest,
+    'the reopened qualification does not name the mapping that qualified it');
+  assert.equal(view.basis.source_digest, storedBasis.source_digest,
+    'the source the record names moved under a rotation');
+  assert.deepEqual(view.state.exercises.map(e => [e.id, e.w]).sort(), IMPORTED_LOADS);
+  assert.deepEqual(Object.keys(view.state.sessionLog).sort(), SOURCE_SESSION_DAYS);
+  assert.deepEqual(view.state, storedState, 'the imported history read differently after the rotation');
+  const still = (await era.generation()).generation.metadata.localSources;
+  assert.equal(still.active, recorded.active, 'the reopen moved the active selection');
+  assert.equal(still.selections[still.active].basis.engine_digest, storedDigest,
+    'the DURABLE record was rewritten under the new constant by a read');
+
+  /* 5. STILL ADOPTED: what TODAY reads, off the same generation, by the same
+        consumer the page adopts through. */
+  const generation = (await era.generation()).generation;
+  const adopted = admittedLocalSourceBasis(generation, { namespace: names.namespace });
+  assert.ok(adopted, 'Today stopped adopting the imported history after the rotation');
+  assert.deepEqual(Object.keys(adopted.sessionLog).sort(), SOURCE_SESSION_DAYS);
+  assert.deepEqual(adopted.exercises.map(e => [e.id, e.w]).sort(), IMPORTED_LOADS);
+
+  /* 6. STILL RETRACTABLE, and the word is used the way the product uses it.
+        retractImport() REFUSES an admitted import by name (lanes/d P3D-3): his
+        history leaves by the other path, rollback(), which re-qualifies the
+        recorded selection. Both halves are executed here under the ROTATED
+        registry, because either one breaking would mean an athlete could not
+        undo an import made before the ff-merge. */
+  const refused = await retractImport(era.client, name, 'review-refused');
+  assert.equal(refused.retracted, false, 'an admitted import became retractable under a rotation');
+  assert.equal(typeof refused.code, 'string', 'the refusal lost its name under a rotation');
+  const rolled = await controller.view(await controller.rollback(recorded.active));
+  assert.equal(rolled.ready, true, 'the admitted import could not be rolled back after the rotation');
+  assert.equal(rolled.basis.source_digest, storedBasis.source_digest,
+    'the rollback re-qualified some other source');
   era.close();
 });

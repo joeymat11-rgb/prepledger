@@ -42,12 +42,12 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "d41190ec292d2601de79deb5a5a695442ec1d530ac7976b739b346ef23d1f875"
+    "runnerSha256": "8d9a94c20faa2e856db3e3bf9f9aea8e835516307c6b7c5c95b51a0b0c49a385"
   },
   "product": {
     ".github/workflows/rebuild.yml": {
       "pre": "4d1cba8ae67188317aa1e0e7133871b014d3690e1cf209a26f9d99cbd718c7ea",
-      "post": "7231826a4ca707d4bf36599390b1f9c2d9f0eddc96323676564f1f97d424b791",
+      "post": "675024cba22356ff649a8aac120548283451c4d575922e47df8cb600247ca165",
       "role": "edited"
     },
     ".github/workflows/shared-preflight.yml": {
@@ -147,7 +147,7 @@
     },
     "rebuild/lanes/b/tooling/b-package.cjs": {
       "pre": "fdf5f55052b588995d3dafb50088a3d474ed26de8171c842e3d653993dcb70eb",
-      "post": "d41190ec292d2601de79deb5a5a695442ec1d530ac7976b739b346ef23d1f875",
+      "post": "8d9a94c20faa2e856db3e3bf9f9aea8e835516307c6b7c5c95b51a0b0c49a385",
       "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/B-NTC.json": {
@@ -157,27 +157,27 @@
     },
     "rebuild/lanes/b/tooling/packages/H3.json": {
       "pre": "293e3ff49645f4f4c7ec27b0cd34fbacb4758378bef84a7945e446b834a6695f",
-      "post": "2737fe39879585a3fcc932833da6c162812fdb38a88ed6bcc73e8ffb2d030334",
+      "post": "9add6dbc31dfc5185e70fcfdf35a8beb4e718d0b70028da5599c83175ba2b1b1",
       "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S3.json": {
       "pre": "23508acb7bb6a99b363353fddadee5b1fcd373f2f6935af637c89a45ca59915b",
-      "post": "55e455d127cf9191f4b68ec772d852bbbeb2271c8d8a080eaff1147f70cd5d74",
+      "post": "a7da42466f04023653ce0eed7e8a3bfa91097264a2f48948c5fa0fc3bba4a0e9",
       "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S4.json": {
       "pre": "7a3ff49564cfdfc89abd2f450f7dfe9805dd85c36617dcef4c412f050057dde9",
-      "post": "76519eb932fdd9ee25e1cee5b0c015d4db0aa6ae32974e8a434b7800df59ef94",
+      "post": "02c96e3c85429e5b15254989ffe9550f1e72b03466c7e921cfbcf454b9afde79",
       "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S5.json": {
       "pre": "6d986c5248389f0f5f21f6501fb1cd29c245cc485da01952ded40914fd44bc0c",
-      "post": "fd07db484b396329250ac72c4a7ba30d371594c216eabebdcc1563986a948f4a",
+      "post": "fc60f76173d0f7f2478c8b0a29c96a90edc86e81cdd22ab09b55b849f77e4eb0",
       "role": "superseded-by-child"
     },
     "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs": {
       "pre": "dda2f19cc755a7ad450a4eed1a936308facba77bc015596f28c63e1fef49ecb3",
-      "post": "22c11b82ebcfb793ad6333b96640e06329c3ee5154d4912c826d84f590c6708f",
+      "post": "c7e5dee0d25f122443424b6fa08fee9e9bfa6c2649cea45e7a785a2f59dc783a",
       "role": "edited"
     },
     "rebuild/lanes/d/import-retract/retract.test.mjs": {
@@ -187,8 +187,8 @@
     },
     "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs": {
       "pre": "9258facb29829bf375ad4437847e74e5625dafcd2b208813f8c34cc94a02866c",
-      "post": "9258facb29829bf375ad4437847e74e5625dafcd2b208813f8c34cc94a02866c",
-      "role": "pinned-unchanged"
+      "post": "5c8f04e31f7e07af0313b326bcc7dbffadc5115fc509618e0232fe3e46264a88",
+      "role": "new"
     },
     "rebuild/lanes/d/p3-followons/admission-swap.test.mjs": {
       "pre": "2aa2ccf53362f5a69ceda88f153e9a9201c050b9ef355a1f9e731a45eee61300",
@@ -317,8 +317,8 @@
     },
     "rebuild/m3/w6/local/source-admission.mjs": {
       "pre": "5d950b3973b2cb45a068252a025bad114d46ba49739fb3562859a83d71da10a9",
-      "post": "5d950b3973b2cb45a068252a025bad114d46ba49739fb3562859a83d71da10a9",
-      "role": "pinned-unchanged"
+      "post": "9b33c7c15282fe3b290ae87da4d227185944dfff8bc3235e8c0841829f8f6c39",
+      "role": "new"
     },
     "rebuild/m3/w6/local/source-platform.mjs": {
       "pre": "5afc98dcb1a7891df0bf17467893eee1dcf59b324e2382ca239003f44e75cfa7",
@@ -327,8 +327,8 @@
     },
     "rebuild/m3/w6/local/today-bindings.mjs": {
       "pre": "c73ff293739abcef241de85491ea0ad625cbfb971ee71716cad64ae40348dc6b",
-      "post": "c73ff293739abcef241de85491ea0ad625cbfb971ee71716cad64ae40348dc6b",
-      "role": "carried"
+      "post": "8694a5d60481aceb739ae30db521df70335d6fbe8b1b2b67c43431ce17033d4c",
+      "role": "edited"
     },
     "rebuild/m3/w6/local/today-browser-entry.mjs": {
       "pre": "633391e2b778e0b5c1f8eb16e6e24d4cca60bcdec13333e9cefcbb185772bd27",
@@ -382,7 +382,7 @@
     },
     "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs": {
       "pre": "35b687b3ae70d898d2a737889897b1061caf587fa10e04d46cc5312299d4640e",
-      "post": "3aa1f81f65ab216b3facb6aaab16fd9d32bb17e495def19c683c42bb4d672571",
+      "post": "99762e4c4d122e72bf7de36055039fb188c085530305e4d237ff64f7f16d9b9e",
       "role": "new"
     },
     "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs": {
@@ -547,8 +547,8 @@
     },
     "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
       "pre": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
-      "post": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
-      "role": "carried"
+      "post": "79aa531e5483f532736f2a387bc8839e7ac94395bcaaf67737c9e6869c12d508",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs": {
       "pre": "f6c0e2824e28b2df3dac520f552fa2fe493c01def66c8bc8e48a525ebfb48d69",
@@ -672,8 +672,8 @@
     },
     "rebuild/m4/import/test/production-admission.test.mjs": {
       "pre": "47eb7145030704aaff1b10ef15ed2836d172356a5893f5e3b86ed7c951165872",
-      "post": "47eb7145030704aaff1b10ef15ed2836d172356a5893f5e3b86ed7c951165872",
-      "role": "pinned-unchanged"
+      "post": "766211fc7cc27b741db189d8a92cd6233e8511726239513eb8023d7e5e8356d1",
+      "role": "new"
     },
     "rebuild/m4/import/test/production-mapping.test.cjs": {
       "pre": "5d7285afa1878e453ec927199d12a986d5cedd913969ea9082c3d928db2edc71",
@@ -782,8 +782,8 @@
     },
     "rebuild/m4/workout/engine-order.cjs": {
       "pre": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a",
-      "post": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a",
-      "role": "pinned-unchanged"
+      "post": "d06fc9fcb0e8a7f3bb3f093d49ac91c98955a025e5f684c2b5454e50f93cc638",
+      "role": "new"
     },
     "rebuild/m4/workout/engine-runtime.cjs": {
       "pre": "95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30",
@@ -979,6 +979,51 @@
       "pre": null,
       "post": "5a56bb475c193b3124b9574b19f877e6132b35763e3cb20b3a08c2fce34ecadb",
       "role": "new"
+    },
+    "rebuild/m4/import/replay-registry.cjs": {
+      "pre": "33e29943291d31c5f36469a7d4d5b142e77b2045531ab72f34a81a2c643f96b1",
+      "post": "33e29943291d31c5f36469a7d4d5b142e77b2045531ab72f34a81a2c643f96b1",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs": {
+      "pre": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
+      "post": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs": {
+      "pre": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
+      "post": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs": {
+      "pre": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
+      "post": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/m3/w6/host/plan-edit-host.mjs": {
+      "pre": "b138196d20cd192bd7871ece0b2aea91a8cf0a02bffc69addc8ac027f5989b93",
+      "post": "b138196d20cd192bd7871ece0b2aea91a8cf0a02bffc69addc8ac027f5989b93",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs": {
+      "pre": "455506f07c4ac2172f343d544992314a55da772150d138c46c4907604fedf5d0",
+      "post": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
+      "role": "new"
+    },
+    "rebuild/m4/workout/legacy-order-mapping.cjs": {
+      "pre": null,
+      "post": "d85907166f910d936efee6135ed39199f51d8de9f2f311a93209bafca1f1808a",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/legacy-order-mapping.test.cjs": {
+      "pre": null,
+      "post": "f7a3e4a4b3d99f6863cbcc56d69023027c7d8b1722661d86ba1845f61d03ba15",
+      "role": "new"
+    },
+    "rebuild/lanes/d/b-lom/legacy-order.test.mjs": {
+      "pre": null,
+      "post": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
+      "role": "new"
     }
   },
   "coverage": {
@@ -1115,7 +1160,7 @@
         "rebuild/m3/w7-preview/measure/test/baseline.test.mjs",
         "rebuild/m3/w7-preview/measure/test/boundary.test.mjs"
       ],
-      "needle": "# pass 681"
+      "needle": "# pass 682"
     },
     {
       "name": "measure-hermetic",
@@ -1231,7 +1276,7 @@
         "rebuild/m4/import/test/production-mapping.test.cjs",
         "rebuild/m4/import/test/production-admission.test.mjs"
       ],
-      "needle": "# pass 24"
+      "needle": "# pass 25"
     },
     {
       "name": "d-import-retract",
@@ -1310,15 +1355,38 @@
         "rebuild/m3/w6/test/local-source-consumer.test.mjs"
       ],
       "needle": "# pass 25"
+    },
+    {
+      "name": "d-replay-all",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs"
+      ],
+      "needle": "# pass 28"
+    },
+    {
+      "name": "b-lom",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/b-lom/legacy-order.test.mjs",
+        "rebuild/m4/workout/test/legacy-order-mapping.test.cjs"
+      ],
+      "needle": "# pass 30"
     }
   ],
   "notes": [
     "M2-S6-TODAY-CHILD is S5's child under the standing reseal ruling DECISIONS:455 and the custody ruling DECISIONS:473, briefed at :487 and accepted by name there, by sha at :489, with its THEME at :488 and its GATE-SUPERSESSION token line at :490. IT HAS NO PRODUCT BEHAVIOUR OF ITS OWN: its brief says so in terms, and a reviewer who finds a behaviour change here has found a finding. It does two things. It RESEALS today/** over the post-merge bytes of rebuild/c-s6-small 6fad3472, rebuild/b-s6-child-tail d1001da9 and rebuild/c-p3-import-ui-2 4c3a5474, merged in the order :484 fixes and :486 (c) extends. And it closes the :473 custody hole by declaring as its own product the merged-but-undeclared files those branches and the lane D tickets left invisible to the runner, and by giving their suites a CI home.",
-    "THE DECLARATION IS SHORT OF THE BRIEF'S 89, AND THE DIFFERENCE IS A STOP THE AUTHOR REPORTS RATHER THAN PAPERS OVER. The brief lists 89 new files; 67 are declared here. The 22 that are not are files this package does not move AND that no declared child EXECUTES, and for those the runner's own closed role vocabulary has no honest spelling: role `new` means a file that did not exist or one this package moves (b-package.cjs PRODUCT-PRE-IMAGE-SHAPE and r7 F1), and role `pinned-unchanged` is refused by PRODUCT-PINNED-UNCHANGED-IS-NOT-EXECUTED-BY-A-DECLARED-CHILD unless a declared child's argv names the file or reaches it through a relative require. Inventing a child in order to make a pin legal would be gaming that rule, so the files are named in the author report with the reason each is unreachable, and the PM rules. They fall in three groups: build and dev-host glue nothing executes (w6/local/build.mjs, source-commit.mjs; w6/host/plan-edit-host.mjs, build-host.mjs, esbuild-probe.mjs, index.html - and index.html cannot be executed by anything at all, being HTML); harnesses reached only by spawn or by a constructed path rather than by a relative require (m4/import/test/mutations.cjs, reading-replay-faults.cjs, the four test/s3 harness files and its .json fixture, lanes/d/plan-edit/model-mutants.cjs, host-mutants.mjs, astra-rerun.mjs, w6/test/local-source-consumer-browser.mjs); and the files whose only child is red for a cause this package did not make (m4/import/replay-registry.cjs and the four lanes/d/p3-replay-all cells).",
-    "TWO CHILDREN THE BRIEF NAMED ARE NOT DECLARED, EACH FOR A MEASURED REASON. `m4-import-s3` (m4/import/test/s3/harness.test.mjs) is 3 pass / 14 fail HERE and 3 pass / 14 fail ON THE CLEAN TIP 0635f4b6 - byte for byte the same failure, `Actual owned dispatcher scratch required`, an environment precondition no workflow step provides. It is the IMPORT_M4_DIR class the S5 review recorded at DECISIONS:459 NOTE 3, it is not this package's doing, and a child must exit 0. `d-replay-all` is 26/26 GREEN on that same clean tip and 25/1 RED here, so it IS this merge's doing and it is reported as BLOCKING rather than declared: P3-EN1 finds three writers in the shipped page with no replay family and no declared reason - m4/import/body-composition-class.cjs#body-composition-source, measure-replay.cjs#body-composition-source and sleep-replay.cjs#sleep. The cause is structural and is exactly what the custody hole was hiding: c-p3-import-ui-2 puts the Import route INTO the shipped page graph, so modules that were route-only when P3-REPLAY-ALL-FAMILIES measured its register are now, by that cell's own definition, writers the page has. Both branches are green alone and red together. Whether the register gains three declared reasons or the enumeration's notion of the shipped page excludes the lazily-loaded Import route is lane D's ruling to make; this package will not edit another lane's guard to go green.",
+    "THE DECLARATION IS SHORT OF THE BRIEF'S 89, AND THE DIFFERENCE IS A STOP THE AUTHOR REPORTS RATHER THAN PAPERS OVER. The brief lists 89 new files; 72 are declared here. The 17 that are not are files this package does not move AND that no declared child EXECUTES, and for those the runner's own closed role vocabulary has no honest spelling: role `new` means a file that did not exist or one this package moves (b-package.cjs PRODUCT-PRE-IMAGE-SHAPE and r7 F1), and role `pinned-unchanged` is refused by PRODUCT-PINNED-UNCHANGED-IS-NOT-EXECUTED-BY-A-DECLARED-CHILD unless a declared child's argv names the file or reaches it through a relative specifier. Inventing a child in order to make a pin legal would be gaming that rule, so the files are named in the author report with the reason each is unreachable, and DECISIONS:493 (5) accepts the shorter list this generation. ROUND 1 MISCOUNTED ITS OWN STOP and the review (finding 2) measured it: this note said \"67 are declared here. The 22 that are not\" where the truth was 66 and 23, and the undercount was in the enumeration - m4/import/test/s3/ holds SIX undeclared paths (browser-entry.mjs, current-head.cjs, harness.test.mjs, mutations.cjs, run.mjs, s3-portable-sources.json), not \"the four test/s3 harness files and its .json fixture\". Corrected here and in the report, and round 2 then declares six more of the 89, so 66 becomes 72 and 23 becomes 17. THE 17, each with its reason: build and dev-host glue nothing executes (w6/local/build.mjs, w6/local/source-commit.mjs; w6/host/build-host.mjs, w6/host/esbuild-probe.mjs, w6/host/index.html - and index.html cannot be executed by anything at all, being HTML); harnesses reached only by spawn or by a computed path rather than by a written relative specifier (m4/import/test/mutations.cjs, m4/import/test/reading-replay-faults.cjs, the SIX m4/import/test/s3 paths above, lanes/d/plan-edit/model-mutants.cjs, lanes/d/plan-edit/host-mutants.mjs, lanes/d/plan-edit/astra-rerun.mjs, w6/test/local-source-consumer-browser.mjs). THE SIX ROUND 2 ADDS: m4/import/replay-registry.cjs and the four lanes/d/p3-replay-all cells, whose only child was red for a cause this package did not make until lane D's P3-EN1-ROUTE-GRAPH landed the enumeration fix (DECISIONS:493 (1)); and w6/host/plan-edit-host.mjs, which round 1 filed under \"glue nothing executes\" and which the review measured to be executed by the declared child d-plan-edit through new URL('../../../m3/w6/host/plan-edit-host.mjs', import.meta.url) in durable-host.test.mjs:37 and browser-build.test.mjs:13. The EXCLUSION was mechanically right and the stated REASON was false; DECISIONS:493 (3) rules the file declared and the runner's blind spot a lane B tooling matter, so executedClosure now reads a relative new URL(..., import.meta.url) specifier exactly as it reads a relative import, pinned red-first by F10 in pinned-unchanged-and-ruled-substitutions.test.cjs. A computed specifier is still unseen, which is stated at the widening and carried as a lane B tooling ticket after S6: \"executed\" is a lower bound.",
+    "ONE CHILD THE BRIEF NAMED IS STILL NOT DECLARED, FOR A MEASURED REASON, AND THE OTHER IS DECLARED THIS ROUND. `m4-import-s3` (m4/import/test/s3/harness.test.mjs) is 3 pass / 14 fail HERE and 3 pass / 14 fail ON THE CLEAN TIP - byte for byte the same failure, `Actual owned dispatcher scratch required`, an environment precondition no workflow step provides. It is the IMPORT_M4_DIR class the S5 review recorded at DECISIONS:459 NOTE 3, it is not this package's doing, and a child must exit 0. `d-replay-all` was round 1's BLOCKING finding: 26/26 green on the clean tip and 25/1 red on the merged tree, because c-p3-import-ui-2 puts the Import route INTO the shipped page graph and P3-EN1 then read three replay FAMILY readers (body-composition-class.cjs, measure-replay.cjs, sleep-replay.cjs, each carrying a class NAME for an op.class comparison) as writers the page has. Round 1 refused to edit another lane's guard to go green and was right to; leaving the suite undeclared and unrun was the wrong disposal and the review said so. DECISIONS:493 (1) dispatched lane D ticket P3-EN1-ROUTE-GRAPH, which classifies the boot graph and the route chunk separately, defines a WRITER as a module that builds an op (a class and a kind in one object literal) and a FAMILY as a reader proved by measurement, and keeps both mutants. It is merged here at 196717cf, the suite is 28/28 on this tree, its four cells and m4/import/replay-registry.cjs are declared product, and the d-replay-all child runs them at `# pass 28`.",
     "THE NINE GATES ARE RETIRED AGAIN, a fourth time, and the reason is structural rather than this package's doing. The nine NATIVE-CARRIERS gates are byte-identity RECONSTRUCTIONS of rebuild/engine from a frozen BASE; four of the files they rebuild were moved by this package's ancestors (constants.cjs, writers.cjs by M2-H3-CLEAN-INIT; merge.cjs, today.cjs by M2-S3-COMPANION), so no descendant of S3 can carry them whether or not it moves an engine byte of its own. S6 moves none: all 45 tracked engine files stand at the parent's own post. The parent M2-S5-TODAY-CHILD retired them under its own token line DECISIONS:462; a retirement is never inherited, only the gate list is (b-package.cjs parentCarrierGates reads BOTH halves of a parent's gate map, byChild and supersededByCarrier), so this package retires them AGAIN under its OWN token line :490 with its OWN evidence in S5's exact shape: five red-first s6-sup-* cells, the engine-files differential over ALL 45 files, the legacy (a0-journeys) and writers (today-17) differentials it already declares, and the runner's own clean census line.",
     "THE RUNNER MOVES, SO EVERY SPEC THAT PINS IT BY SHA IS RE-PINNED (the rule S4-REVIEW-R1 finding 4 established and S5 applied): b-s6-child-tail moved b-package.cjs and S6 moves it again (CHILD_ROOTS, PUBLIC_TAIL_ROOTS, IDS, NO_REGISTER_IDS), so packages/H3.json, S3.json and S4.json are role `edited` over the parent PRODUCT pins, tooling.runnerSha256 only, one byte range each; packages/S5.json is role `superseded-by-child` over the parent EXECUTION pin. Without that a run of H3, S3, S4 or S5 stops at RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER before any evidence is read. S5.json's own product pin for the runner is deliberately NOT re-targeted: S5 did not produce these bytes, and `--ci --package S5` on this branch is expected to stop at the sealed-profile refusal, which is where a parent stops under a child.",
-    "CHILD_ROOTS GAINS NINE DIRECTORIES, the largest widening the list has had, and PUBLIC_TAIL_ROOTS gains TWO. The gap between those numbers is deliberate and is asserted by the amended F8 cell: a child root says a suite may be EXECUTED, a tail root says its output may be PRINTED, and the second is a privacy surface argued per root with TAIL_DENYLIST in hand. The two widened, lanes/d/p3-replay-measure/ and lanes/d/p3-replay-all/, were read in full and no line of either names the private census, a golden, live.json or the ledger. The brief and bar row 22 ask for THREE, adding m3/w7-preview/import/test/; the PM's dispatch line DECISIONS:487 says two. The author takes the narrower reading and records the disagreement, with a measured fact that cuts the same way: page-bundle.test.mjs under that third root carries the literal 'ledger/' in its own FORBIDDEN list, so TAIL_DENYLIST's content gate would withhold that child's tail on any failure that prints the list anyway.",
-    "This package registers no D-id (DECISIONS:93, the S- slice-plan half); its obligation is the Y1 own-child rule, satisfied by the children that execute its own role:new and role:pinned-unchanged product. `notes` is not carried into the sealed artifact."
+    "CHILD_ROOTS GAINS TEN DIRECTORIES, the largest widening the list has had, and PUBLIC_TAIL_ROOTS gains TWO. The gap between those numbers is deliberate and is asserted by the amended F8 cell: a child root says a suite may be EXECUTED, a tail root says its output may be PRINTED, and the second is a privacy surface argued per root with TAIL_DENYLIST in hand. The two widened, lanes/d/p3-replay-measure/ and lanes/d/p3-replay-all/, were read in full and no line of either names the private census, a golden, live.json or the ledger. ROUND 2, REVIEW R1 FINDING 6: the finding was that p3-replay-all stood on the tail list while NO declared child executed anything under it - a privacy surface widened for nothing. It is answered by the thing that was missing rather than by a retreat: the d-replay-all child now executes that directory, so both added tail roots have a consumer. The tenth CHILD root is lanes/d/b-lom/ (DECISIONS:492 folds B-LOM into this package and its route suite lives there); it is NOT added to the tail list, because a root earns a tail by being argued for and never by a child appearing under it. The brief and bar row 22 ask for THREE tail roots, adding m3/w7-preview/import/test/; the PM's dispatch line DECISIONS:487 says two and DECISIONS:493 (6) confirms the narrower reading stands. The author records the disagreement with the measured fact that cuts the same way: page-bundle.test.mjs under that third root carries the literal 'ledger/' in its own FORBIDDEN list, so TAIL_DENYLIST's content gate would withhold that child's tail on any failure that prints the list anyway.",
+    "This package registers no D-id (DECISIONS:93, the S- slice-plan half); its obligation is the Y1 own-child rule, satisfied by the children that execute its own role:new and role:pinned-unchanged product. `notes` is not carried into the sealed artifact.",
+    "ROUND 2 (DECISIONS:493), WHAT MOVED AND WHAT DID NOT. Three merges, in this order: the tip origin/rebuild/t2-client-core (DECISIONS:493 only, one line, no product byte); origin/rebuild/d-en1-route-graph 196717cf, lane D's enumeration fix, clean, two lanes/d files and its review; and origin/rebuild/d-b-lom da7d5b37 LAST as DECISIONS:492 orders, whose ONE conflict was m3/w7-preview/import/test/page-bundle.test.mjs and is resolved by carrying both sides and RE-MEASURING rather than summing - the Import graph is 141 (this branch's 140 had never seen B-LOM's one boot module; B-LOM's 137 had never seen UI-2's four route modules), and P3-B5's delta is 19, which for the first time is 18 ROUTE modules plus ONE BOOT module, so the boot graph moves 121 to 122 and the cell says so where the old figure stood. today-bindings.mjs and gym.test.mjs are the sealed moves B-LOM's :492 ruling names and are declared role `edited` over their parent PRODUCT pins; source-admission.mjs, page-bundle.test.mjs and p3-capture-start/capture-start.test.mjs are both-sides files this package already declared and now declares role `new`; engine-order.cjs, legacy-order-mapping.cjs, the two new B-LOM test files and lanes/d/b-lom are declared as :492 requires, with the b-lom child at `# pass 30`. TWO CARRIES FROM B-LOM'S OWN REVIEWS ARE DISCHARGED HERE, not left in a report: R3's MINOR that attach() stamps order.import_anchor onto facts no order law derived is now the named cell LOM-S6, which measures that on the real route the anchor is already on the facts before attach re-states it, that today-bindings.mjs is the sole builder of the mapping and hands the pinned host the wrapped projector, and - said out loud rather than argued away - that attach() handed a projection no law ran over does stamp one; and R4's finding 1, that the provider header's undetected case is narrower than written (order_map deleted AND the session-start scrubbed from order_input opens the days; no wrong order can result), is now a stated paragraph in legacy-order-mapping.cjs's own header. BAR ROW 23 IS A CELL (P3-P6 in m4/import/test/production-admission.test.mjs), not a scan: an import is admitted under the standing constant M2-S5-TODAY-CHILD@0df73b01f3d2d935 by name, the constant is substituted in the module cache and production-mapping.cjs re-required over it (no rebuild/coach byte moves and engine-revision.test.cjs stays green), the displayed MAPPING_ID is asserted to differ ONLY in its suffix, the two digests a rotation-sensitive read would compare are asserted to DIFFER, and the same store is then read back through a registry built after the rotation: still ready, still adopted by Today's own consumer, the durable record's engine_digest untouched, retract still refusing an admitted import by name and rollback still re-qualifying it. The red side was executed: with qualify() mutated to compare the row's engine_revision to the current constant, P3-P6 is the ONLY cell of that file that goes red (7 pass / 1 fail, SOURCE_ENGINE_CONTEXT_UNPROVEN); mutant reverted, bytes restored."
   ]
 }

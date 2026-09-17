@@ -27,6 +27,9 @@
    git working tree. No private fixture, no ledger, no owner file. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile, readdir } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import LegacyOrder from '../../../m4/workout/legacy-order-mapping.cjs';
 import { IDBFactory, sealInventedBundle, eraFor, firstRun, admit, durable, liveAt,
   createSourcePlatform, Profile, SETUP, IMPORTED_LOADS, parseStrictJson,
   SOURCE_SESSION_DAYS } from '../../../m3/w7-preview/import/test/support.mjs';
@@ -163,6 +166,30 @@ const handTable = rows => rows.filter(row => row.lift)
 /* The facts the host itself registered for the day just read: the order the
    engine was actually given, anchor and all. Never rebuilt here. */
 const factsOf = gymHost => gymHost.host.lastProjection()?.workout_history || null;
+
+/* EVERY RUNTIME MODULE that names a provider export, READ rather than declared,
+   over the two product trees the page is built from. Test files and harnesses
+   are excluded by name because a cell naming a function is not a caller of the
+   product; the provider's own file is excluded because it declares it. Used by
+   LOM-S6 to prove the seam is the SOLE builder of the mapping. */
+const REPO = new URL('../../../../', import.meta.url);
+async function callers(symbol) {
+  const found = [], roots = ['rebuild/m3', 'rebuild/m4'];
+  const skip = /(^|\/)(test|node_modules|\.tmp)(\/|$)|\.test\.(c|m)?js$|-mutants\.(c|m)?js$/;
+  while (roots.length) {
+    const dir = roots.shift();
+    for (const entry of await readdir(fileURLToPath(new URL(dir, REPO)), { withFileTypes: true })) {
+      const rel = dir + '/' + entry.name;
+      if (skip.test(rel)) continue;
+      if (entry.isDirectory()) { roots.push(rel); continue; }
+      if (!/\.(cjs|mjs|js)$/.test(entry.name)) continue;
+      if (rel === 'rebuild/m4/workout/legacy-order-mapping.cjs') continue;
+      const src = await readFile(fileURLToPath(new URL(rel, REPO)), 'utf8');
+      if (src.includes(symbol)) found.push(rel);
+    }
+  }
+  return found.sort();
+}
 
 /* The native order, read off the card's own host on a day it prepared. */
 async function orderOn(era, day, state) {
@@ -619,3 +646,78 @@ for (const season of SEASONS) {
       gymHost.close();
     });
 }
+
+/* LOM-S6 - THE CARRY B-LOM R3 LEFT FOR S6, EXECUTED HERE INSTEAD OF DESCRIBED.
+   R3's MINOR said it in one line: attach() stamps order.import_anchor onto
+   facts, and attach() is not an order law. Stamping an anchor onto a projection
+   NO import law ran over would be claiming a proof nobody produced. What makes
+   the stamp honest on this installation is a containment, not the function: the
+   ONLY facts attach() ever sees come back from the projector today-bindings.mjs
+   wrapped, and that wrapper forwards the anchor into engine-order.cjs, which
+   DERIVES order.import_anchor under its own rules. So the stamp re-states what
+   the law already wrote, and the disagreement branch refuses rather than
+   overwrites. Both halves are measured below, and the residual - what attach()
+   does when it is NOT the sole facts source - is measured too rather than
+   argued away. */
+test('LOM-S6 - attach() IS NOT AN ORDER LAW: on the real route the anchor is already on the '
+  + 'facts before it is stamped, the wrapped projector is the sole facts source, and a '
+  + 'projection no law ran over is the one case the stamp would be a claim', async t => {
+    const season = SUMMER, day = offsetDay(season.day, 1);
+    const { era, scope } = await install(t, 's6-attach', season);
+    const result = await admit(era, SEALED, { day: season.day, ...scope });
+    assert.equal(result.admitted, true, JSON.stringify(result.codes || result.code || result.stage));
+    const state = await standing(era);
+
+    /* HALF ONE, ON THE REAL ROUTE. The facts the host registered for the day
+       already carry import_anchor, and they carry the two ids the admission
+       recorded - so the value on the state the engine reads was DERIVED by
+       engine-order.cjs over the recorded selection, not invented at the seam. */
+    const { gymHost, view } = await openCard(era, day, state);
+    const facts = factsOf(gymHost);
+    gymHost.close();
+    assert.equal(view.phase, 'ready', view.code || view.phase);
+    assert.ok(facts && facts.order && facts.order.import_anchor,
+      'the facts the engine read carry no import anchor at all');
+    assert.equal(facts.order.import_anchor.source_generation_id, result.view.basis.source_digest);
+    assert.equal(facts.order.import_anchor.activation_op_id, result.view.basis.local_selection_id);
+
+    /* HALF TWO, THE CONTAINMENT, read off the seam's own bytes rather than
+       asserted. today-bindings.mjs is the ONLY module on the tree that builds
+       this mapping at all, it calls attach() in exactly one place, and the
+       projector it hands the pinned host is the wrapped one. If any of those
+       three stops being true, the stamp stops being a re-statement and this
+       cell goes red before anything ships. */
+    const bindings = await readFile(new URL('../../../m3/w6/local/today-bindings.mjs',
+      import.meta.url), 'utf8');
+    assert.equal((bindings.match(/mapping\.attach\(/g) || []).length, 1,
+      'attach() is called from more than one place in the seam');
+    assert.match(bindings, /importAnchor: mapping\.anchor/,
+      'the wrapped projector no longer forwards the anchor into the order law');
+    assert.match(bindings, /base\.project\(history, generation,/,
+      'the projector handed to the pinned host is no longer the wrapped one');
+    const lane = await callers('createLegacyOrderMapping');
+    assert.deepEqual(lane, ['rebuild/m3/w6/local/today-bindings.mjs'],
+      'another module builds the mapping, so the seam is no longer the sole facts source: '
+      + lane.join(' '));
+
+    /* THE RESIDUAL, SAID OUT LOUD. Handed a projection whose order carries NO
+       import_anchor - a projection no import law ran over - attach() stamps one
+       rather than refusing. That is the exact case the containment above exists
+       to make unreachable, and it is asserted here so that a future caller who
+       reaches attach() from somewhere else finds this line rather than a
+       surprise. A DISAGREEING anchor is the case attach() does refuse. */
+    const selection = (await era.generation()).generation.metadata.localSources;
+    const mapping = LegacyOrder.createLegacyOrderMapping({
+      selection: selection.selections[selection.active] });
+    const lawless = { ...facts, order: { ...facts.order } };
+    delete lawless.order.import_anchor;
+    const stamped = mapping.attach(lawless, { ...state, sessionLog: state.sessionLog });
+    assert.deepEqual(stamped.order.import_anchor, facts.order.import_anchor,
+      'attach() did not stamp the anchor onto a projection no law ran over');
+    assert.throws(() => mapping.attach({ ...facts,
+      order: { ...facts.order, import_anchor: { source_generation_id: 'not-the-source',
+        activation_op_id: facts.order.import_anchor.activation_op_id } } },
+      { ...state, sessionLog: state.sessionLog }),
+    e => e && e.code === LegacyOrder.REFUSAL,
+    'a disagreeing anchor was overwritten instead of refused');
+  });

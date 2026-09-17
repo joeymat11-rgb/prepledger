@@ -376,10 +376,13 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
 // this package declare them, because role "pinned-unchanged" requires a declared child to
 // EXECUTE the file. Declaring them and running them is the only pair of answers that is
 // consistent; the root is added so the pair is available.
+// ROUND 2 ADDS A TENTH, rebuild/lanes/d/b-lom/: DECISIONS:492 folds B-LOM into this
+// package and names its files as S6 product, and its one route suite lives there.
 const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/',
   'rebuild/m4/import/test/', 'rebuild/lanes/d/plan-edit/', 'rebuild/lanes/d/p3-replay-measure/',
   'rebuild/lanes/d/p3-replay-all/', 'rebuild/lanes/d/p3-capture-start/', 'rebuild/lanes/d/import-retract/',
-  'rebuild/lanes/d/p3-followons/', 'rebuild/m3/w7-preview/import/test/', 'rebuild/m3/w6/test/'];
+  'rebuild/lanes/d/p3-followons/', 'rebuild/m3/w7-preview/import/test/', 'rebuild/m3/w6/test/',
+  'rebuild/lanes/d/b-lom/'];
 // S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS (DECISIONS:467 process note 2, ticket
 // CI-TODAY-CHILD-FLAKE). Narrower than CHILD_ROOTS above on purpose: CHILD_ROOTS is every
 // root ANY declared child of ANY B package may execute from, including
@@ -399,8 +402,8 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
 // tail regardless of where the child's argv pointed — argv path and printed content are
 // checked separately because a public suite can still print a path it merely rejected
 // (see package.test.cjs's traversal-refusal probes) without that path being real evidence.
-// M2-S6-TODAY-CHILD WIDENS THIS BY TWO, AND WITHHOLDS SIX, and the asymmetry with
-// CHILD_ROOTS (eight added there) is the whole point: a child root says a suite may be
+// M2-S6-TODAY-CHILD WIDENS THIS BY TWO, AND WITHHOLDS SEVEN, and the asymmetry with
+// CHILD_ROOTS (ten added there) is the whole point: a child root says a suite may be
 // EXECUTED, this list says its output may be PRINTED. The second is a privacy-surface
 // change and is argued per root with TAIL_DENYLIST in hand, never bundled with the first.
 //
@@ -411,6 +414,15 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
 // radius - they are replay families over the same page stack - so a failing tail there is
 // exactly the diagnostic the flake ticket exists to get.
 //
+// ROUND 2, REVIEW R1 FINDING 6, ANSWERED BY THE THING THAT WAS MISSING RATHER THAN BY A
+// RETREAT. The finding was exact: p3-replay-all was on this list while NO declared child
+// executed anything under it, so the privacy surface widened and bought nothing. Round 2
+// declares the d-replay-all child (lane D's P3-EN1-ROUTE-GRAPH landed the enumeration fix
+// the suite needed), so both added roots now have a consumer and the widening buys the
+// diagnostic it was argued for. The list is still TWO: lanes/d/b-lom/ is a new CHILD root
+// this round and is NOT added here, for the same reason the other six are withheld - a
+// root earns a tail by being argued for, never by a child appearing under it.
+//
 // THE THIRD THE BRIEF ASKED FOR IS WITHHELD, and this is a disagreement the author is
 // recording rather than resolving. The brief of record (section 4.2 and bar row 22) asks
 // for THREE, the third being rebuild/m3/w7-preview/import/test/; the PM's dispatch line
@@ -419,7 +431,8 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
 // literal 'ledger/' in its own FORBIDDEN list, so TAIL_DENYLIST's content gate would
 // withhold that child's tail on any failure that prints the list anyway - widening the
 // path gate for it buys much less than it appears to, while widening the surface fully.
-// Withheld, therefore, until the PM rules: the six are the four remaining lane D roots,
+// Withheld, therefore, until the PM rules: the seven are the five remaining lane D roots
+// (plan-edit, p3-capture-start, import-retract, p3-followons, b-lom),
 // rebuild/m4/import/test/ and rebuild/m3/w7-preview/import/test/.
 const PUBLIC_TAIL_ROOTS = ['rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m4/workout/test/',
   'rebuild/lanes/d/p3-replay-measure/', 'rebuild/lanes/d/p3-replay-all/'];
@@ -623,7 +636,25 @@ function requiresOriginal(file, original) {
 // Bounded, and the bound is REPORTED rather than silent: a truncated walk would turn "this
 // file is not executed" into "the walk stopped before reaching it", which is a different
 // sentence and must not be printed as the first one.
+//
+// S6 ROUND 2, REVIEW R1 FINDING 3 (MAJOR), and the rule is stated where the old one stood.
+// The walk above read only `require('...')`, `import('...')` and `from '...'`. A module an
+// ESM cell reaches by `new URL('../rel/path.mjs', import.meta.url)` - the way a cell hands
+// a bundler or a worker an entry point rather than importing it - was invisible, so the
+// runner said "not executed" where the truth was "not seen". rebuild/m3/w6/host/
+// plan-edit-host.mjs is exactly that file: lanes/d/plan-edit/durable-host.test.mjs:37 and
+// browser-build.test.mjs:13 both reach it that way and both stand in the argv of the
+// declared child d-plan-edit, and it is one of the three DECISIONS:473 runtime files the
+// custody hole is named for. NOTHING IS WEAKENED BY READING IT: the rule that a
+// pinned-unchanged file must be executed by a declared child is unchanged, the specifier
+// must still be a RELATIVE literal resolving to a real file of this repository, and the
+// two forms are resolved by the same line. What is closed is a FALSE NEGATIVE.
+// STILL BLIND, and carried rather than pretended away (lane B tooling ticket, after S6): a
+// specifier that is computed rather than written - `new URL(base + name, ...)`,
+// path.join(...), a spawn whose argv is built at run time - is still unseen, so "executed"
+// remains a lower bound and never an upper one.
 const EXECUTED_CLOSURE_LIMIT = 512;
+const SPECIFIERS = String.raw`(?:\brequire|\bimport)\s*\(\s*['"]([^'"]+)['"]\s*\)|\bfrom\s*['"]([^'"]+)['"]|\bnew\s+URL\s*\(\s*['"]([^'"]+)['"]\s*,`;
 function executedClosure(targets) {
   const files = new Set(), queue = [...targets];
   let capped = false;
@@ -633,8 +664,8 @@ function executedClosure(targets) {
     if (files.size >= EXECUTED_CLOSURE_LIMIT) { capped = true; break; }
     files.add(f);
     const src = fs.readFileSync(rel(f), 'utf8'), dir = path.posix.dirname(f);
-    for (const m of src.matchAll(/(?:\brequire|\bimport)\s*\(\s*['"]([^'"]+)['"]\s*\)|\bfrom\s*['"]([^'"]+)['"]/g)) {
-      const ref = m[1] || m[2];
+    for (const m of src.matchAll(new RegExp(SPECIFIERS, 'g'))) {
+      const ref = m[1] || m[2] || m[3];
       if (!ref || !ref.startsWith('.')) continue;
       const base = path.posix.normalize(path.posix.join(dir, ref));
       for (const cand of [base, base + '.cjs', base + '.js', base + '.mjs'])
