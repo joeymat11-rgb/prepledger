@@ -457,7 +457,7 @@
     },
     "rebuild/m3/w7-preview/measure/test/boundary.test.mjs": {
       "pre": "c80e50c87b60d3f18366f7416108ce8bf5d764e07faf4cc60d02e0f0161b60fe",
-      "post": "70a475995309a6f8b332b73bd4961491bea3f96263d6764fa6dc1446a2643be6",
+      "post": "e9522b8f5da01bc39aa43780b0221513f057b4ba33b513214766382166cc9a2d",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/measure/test/journey.test.mjs": {
@@ -1085,7 +1085,7 @@
         "rebuild/m3/w7-preview/measure/test/baseline.test.mjs",
         "rebuild/m3/w7-preview/measure/test/boundary.test.mjs"
       ],
-      "needle": "# pass 675"
+      "needle": "# pass 681"
     },
     {
       "name": "measure-hermetic",
@@ -1123,7 +1123,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s6-supersede-source-carriers.test.cjs"
       ],
-      "needle": "# pass 0"
+      "needle": "# pass 4"
     },
     {
       "name": "s6-sup-inherited-carriers",
@@ -1132,7 +1132,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s6-supersede-inherited-carriers.test.cjs"
       ],
-      "needle": "# pass 0"
+      "needle": "# pass 3"
     },
     {
       "name": "s6-sup-defect-witnesses",
@@ -1141,7 +1141,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s6-supersede-defect-witnesses.test.cjs"
       ],
-      "needle": "# pass 0"
+      "needle": "# pass 3"
     },
     {
       "name": "s6-sup-writers-differential",
@@ -1150,7 +1150,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s6-supersede-writers-differential.test.cjs"
       ],
-      "needle": "# pass 0"
+      "needle": "# pass 3"
     },
     {
       "name": "s6-sup-second-gate",
@@ -1159,14 +1159,14 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/s6-supersede-second-gate.test.cjs"
       ],
-      "needle": "# pass 0"
+      "needle": "# pass 3"
     },
     {
       "name": "engine-files-differential",
       "argv": [
         "rebuild/m4/workout/test/s6-engine-files-differential.cjs"
       ],
-      "needle": "PENDING"
+      "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 18 named and NOT ONE moves, so all 45 tracked rebuild/engine file(s) stand byte-identical to the parent's own post;"
     },
     {
       "name": "d-plan-edit",
@@ -1260,7 +1260,7 @@
         "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs",
         "rebuild/m3/w7-preview/import/test/refusals.test.mjs"
       ],
-      "needle": "# pass 33"
+      "needle": "# pass 35"
     },
     {
       "name": "w6-host-seams",

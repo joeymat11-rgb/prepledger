@@ -138,15 +138,34 @@ test('P-MEASURE (g) - no S4-sealed file drifts except where a declaring spec say
      the assertion at the top of this cell is red here, because S5 declares no
      post for the four sealed files these two tickets move, so execution never
      reaches the named set below. S6 declares those bytes and this widening
-     starts running the same day. */
+     starts running the same day.
+
+     AND WHEN IT RAN, THE NAMED SET WAS WRONG - S6 CORRECTION. The list above
+     named FOUR files as "the sealed-byte drift under today/", but only TWO of
+     them are sealed: S4 pins today-app.cjs and today-entry.mjs, and it pins
+     neither preview.css nor build.mjs (both are among the seven files under
+     today/ that S4 left unpinned and that S6 declares for the first time). A
+     file S4 does not pin cannot appear in a drift-from-S4 set at any time, so
+     the old list could not have passed on any tree; it was written on a branch
+     where, by its own note above, execution never reached it. The guard is kept
+     exactly as tight rather than loosened: the sealed set is asserted exactly,
+     so a THIRD sealed file under today/ is still red, and the two unsealed
+     movers are asserted separately to be genuinely unsealed AND to stand at
+     bytes some declaring spec names - so neither can drift unnoticed either. */
   const MINE = 'rebuild/m3/w7-preview/today/today-app.cjs';
-  const P3_IMPORT_UI_2 = ['rebuild/m3/w7-preview/today/today-entry.mjs',
-    'rebuild/m3/w7-preview/today/preview.css',
+  const P3_IMPORT_UI_2_SEALED = ['rebuild/m3/w7-preview/today/today-entry.mjs'];
+  const P3_IMPORT_UI_2_UNSEALED = ['rebuild/m3/w7-preview/today/preview.css',
     'rebuild/m3/w7-preview/today/build.mjs'];
   assert(drifted.includes(MINE), 'today-app.cjs does not drift, so this lane delivered nothing');
   const under = drifted.filter((f) => f.startsWith('rebuild/m3/w7-preview/today/') && !f.includes('/test/'));
-  assert.deepEqual(under.sort(), [MINE, ...P3_IMPORT_UI_2].sort(),
+  assert.deepEqual(under.sort(), [MINE, ...P3_IMPORT_UI_2_SEALED].sort(),
     'the sealed-byte drift under today/ is not the named set of these two tickets');
+  for (const f of P3_IMPORT_UI_2_UNSEALED) {
+    assert.equal(Object.hasOwn(product, f), false,
+      f + ' IS pinned by S4 after all, so it belongs in the sealed set above, not here');
+    assert.equal(shaOf(f), declaredPost(f),
+      f + ' is moved by P3-IMPORT-UI-2 and no declaring spec names the bytes it stands at');
+  }
   /* And the restore is real: the test file round 2 edited carries no byte of
      this lane's (review R2 finding 4). It is no longer held to S4's post alone,
      because S5 moves it by one literal (the declaring-spec chain), so it is
