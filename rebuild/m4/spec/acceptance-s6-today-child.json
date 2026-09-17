@@ -14,7 +14,7 @@
   },
   "spec": {
     "file": "rebuild/lanes/b/tooling/packages/S6.json",
-    "sha256": "6c9bef2c2bf6d046add6e8c277f5a54cccafbb17bdb8de1b019dba14b1e94e5d"
+    "sha256": "2415c473b090e808acd7b5f646e11e9b9ae28883a1ccb1974d938afbe825be57"
   },
   "runner": {
     "file": "rebuild/lanes/b/tooling/b-package.cjs",
@@ -825,7 +825,7 @@
     },
     "rebuild/m4/import/test/production-admission.test.mjs": {
       "pre": "47eb7145030704aaff1b10ef15ed2836d172356a5893f5e3b86ed7c951165872",
-      "post": "766211fc7cc27b741db189d8a92cd6233e8511726239513eb8023d7e5e8356d1",
+      "post": "142eb51849ba50e3b47e7480f0d23a4cd1f82624151446fa521b3e23bf556994",
       "role": "new"
     },
     "rebuild/m4/import/test/production-mapping.test.cjs": {
@@ -1434,7 +1434,7 @@
   },
   "executionPins": {
     "rebuild/lanes/b/tooling/b-package.cjs": "8d9a94c20faa2e856db3e3bf9f9aea8e835516307c6b7c5c95b51a0b0c49a385",
-    "rebuild/lanes/b/tooling/packages/S6.json": "6c9bef2c2bf6d046add6e8c277f5a54cccafbb17bdb8de1b019dba14b1e94e5d",
+    "rebuild/lanes/b/tooling/packages/S6.json": "2415c473b090e808acd7b5f646e11e9b9ae28883a1ccb1974d938afbe825be57",
     "rebuild/lanes/b/S6-TODAY-CHILD-BRIEF.md": "8a9a63ee49b5a95260c0102ec937f0d5558e979b75fc3b9da39368c0e4dd2d1d",
     "rebuild/m3/w7-preview/today/test/adapter.test.mjs": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
     "rebuild/m3/w7-preview/today/test/catalogue.test.mjs": "a586e3eb4917302864d86937294b1eb824f32931ddaf552c5deb4f97e067322f",
@@ -1474,7 +1474,7 @@
     "rebuild/m4/import/test/local-source-order.test.cjs": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
     "rebuild/m4/import/test/browser-parity.test.mjs": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632",
     "rebuild/m4/import/test/production-mapping.test.cjs": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
-    "rebuild/m4/import/test/production-admission.test.mjs": "766211fc7cc27b741db189d8a92cd6233e8511726239513eb8023d7e5e8356d1",
+    "rebuild/m4/import/test/production-admission.test.mjs": "142eb51849ba50e3b47e7480f0d23a4cd1f82624151446fa521b3e23bf556994",
     "rebuild/lanes/d/import-retract/retract.test.mjs": "77b9a3cdb5792c23d21e68839bcee298ddbccff06751520b0f162e32cef6fdb4",
     "rebuild/lanes/d/p3-followons/admission-swap.test.mjs": "2aa2ccf53362f5a69ceda88f153e9a9201c050b9ef355a1f9e731a45eee61300",
     "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs": "448193e0216cabd3eedc4a50e8b1719c0ca493c9385ec291e0fc35f5143ece2d",
