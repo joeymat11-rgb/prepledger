@@ -14,7 +14,7 @@
   },
   "spec": {
     "file": "rebuild/lanes/b/tooling/packages/S6.json",
-    "sha256": "bad4cdcba68e1d4e8919a4bc87d068f10023f432c061aab5beb3f0d05ab21b4e"
+    "sha256": "18583855755d2a31a543650e5eb92811543424472fb96d0f05dd13665795f1c0"
   },
   "runner": {
     "file": "rebuild/lanes/b/tooling/b-package.cjs",
@@ -200,7 +200,7 @@
   "product": {
     ".github/workflows/rebuild.yml": {
       "pre": "4d1cba8ae67188317aa1e0e7133871b014d3690e1cf209a26f9d99cbd718c7ea",
-      "post": "675024cba22356ff649a8aac120548283451c4d575922e47df8cb600247ca165",
+      "post": "8f1d5ba2b0872e693c3abb6a614ac9f850bfecd0df757dea2b27f32256b04c13",
       "role": "edited"
     },
     ".github/workflows/shared-preflight.yml": {
@@ -1434,7 +1434,7 @@
   },
   "executionPins": {
     "rebuild/lanes/b/tooling/b-package.cjs": "8d9a94c20faa2e856db3e3bf9f9aea8e835516307c6b7c5c95b51a0b0c49a385",
-    "rebuild/lanes/b/tooling/packages/S6.json": "bad4cdcba68e1d4e8919a4bc87d068f10023f432c061aab5beb3f0d05ab21b4e",
+    "rebuild/lanes/b/tooling/packages/S6.json": "18583855755d2a31a543650e5eb92811543424472fb96d0f05dd13665795f1c0",
     "rebuild/lanes/b/S6-TODAY-CHILD-BRIEF.md": "8a9a63ee49b5a95260c0102ec937f0d5558e979b75fc3b9da39368c0e4dd2d1d",
     "rebuild/m3/w7-preview/today/test/adapter.test.mjs": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
     "rebuild/m3/w7-preview/today/test/catalogue.test.mjs": "a586e3eb4917302864d86937294b1eb824f32931ddaf552c5deb4f97e067322f",
