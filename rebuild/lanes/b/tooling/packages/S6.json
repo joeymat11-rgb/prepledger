@@ -342,8 +342,8 @@
     },
     "rebuild/m3/w6/test/local-source-consumer.test.mjs": {
       "pre": "fb57cf9584ee18f64be361becacbb876b806651340562c33427c069a9caf7abe",
-      "post": "fb57cf9584ee18f64be361becacbb876b806651340562c33427c069a9caf7abe",
-      "role": "pinned-unchanged"
+      "post": "856b3627665b016e33d6a196e232c99981397c266ae2bab90ba4b64bc3e51af6",
+      "role": "edited"
     },
     "rebuild/m3/w6/test/local-today-journey.test.mjs": {
       "pre": "eff0df53f06ebcbd71fda4c8d0664cd68aa8750cbdcfa512533496c73dcf82a5",
@@ -1354,7 +1354,7 @@
         "rebuild/m3/w6/test/local-source-admission.test.mjs",
         "rebuild/m3/w6/test/local-source-consumer.test.mjs"
       ],
-      "needle": "# pass 25"
+      "needle": "# pass 26"
     },
     {
       "name": "d-replay-all",
