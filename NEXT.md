@@ -1,5 +1,12 @@
 REBUILD: read rebuild/ROADMAP.md first — the durable plan and status.
 
+## REBUILD NOTE (2026-09-17): RIR DISPLAY is designed by the owner in Claude Design
+
+The RIR display change (rebuild/lanes/c/BRIEF-RIR-DISPLAY.md) is NOT a Claude Code task.
+The owner designs it in Claude Design; the PM chat turns the design into a lane-C build
+ticket, reviews it and seals it. Claude Code has nothing to do on the rebuild branch.
+Everything below this block is the OLD app's queue.
+
 ## SHIPPED — THE VOLUME ENGINE (v7.46.0, merged 0d513a8) · and the five rounds after it
 
 **THIS HEADER READ "NEXT ROUND ... VERDICT: NOT YET BUILT" UNTIL 2026-08-12, LONG AFTER
