@@ -24,9 +24,55 @@ function orderWorkoutStarts(history, generation, {importAnchor} = {}) {
   // The import controller supplies the activation bound to its immutable source
   // generation. This checks the graph relationship, not that controller's
   // provenance/authorization or a hypothetical new authority operation kind.
+  //
+  // B-LOM (DECISIONS:486 (b)). On a LOCAL era the admission mints NO operation,
+  // so an imported history activated on this device can never be a member of
+  // the receipt sequence and this law would refuse an installation that holds
+  // all of the evidence. The ALTERNATIVE proof is the generation's own RECORDED
+  // SELECTION, read here out of the authenticated generation and never taken
+  // from the caller: metadata.localSources must be active on exactly this
+  // anchor's activation id, and that selection's recorded basis must carry this
+  // anchor's source generation id. It is the same question sequence.has asks -
+  // is this activation recorded in THIS generation - answered where the local
+  // era records it. When the selection also carries an order map (native Starts
+  // existed when it was admitted) the athlete's own recorded answer must be a
+  // strict true over this same source. Nothing else is relaxed: an anchor this
+  // generation does not record still refuses by this same name, and an empty
+  // activation id, which sequence.has used to reject on its own, is now
+  // rejected in its own right.
+  const localActivation = (() => {
+    const registry = generation?.metadata?.localSources;
+    if (!registry || !importAnchor || registry.active !== importAnchor.activation_op_id) return null;
+    const selection = registry.selections?.[importAnchor.activation_op_id], basis = selection?.basis;
+    if (!selection || selection.id !== importAnchor.activation_op_id || !basis ||
+        basis.profile !== 'earned/local-source-basis/v1' ||
+        basis.local_selection_id !== importAnchor.activation_op_id ||
+        basis.source_digest !== importAnchor.source_generation_id) return null;
+    const map = selection.order_map;
+    if (map === null || map === undefined) {
+      // B-LOM round 2, R3 MAJOR 1. NO MAP IS NOT PROOF ON ITS OWN. A record
+      // whose map has been deleted looks exactly like a record that never
+      // needed one, so the difference is read where the selection itself
+      // records it: order_input, the very input the map was computed over. If
+      // an imported log was adopted while a session-start was already on this
+      // installation, a map was required and this record has lost it; the
+      // anchor is then unproven by the same name as any unrecorded anchor.
+      const input = selection.order_input, operations = input?.operations, log = input?.legacyLog;
+      if (!operations || typeof operations !== 'object' || !log || typeof log !== 'object') return null;
+      if (Object.keys(log).length && Object.values(operations)
+        .some(op => op && op.class === 'session' && op.kind === 'session-start')) return null;
+      return {map: null};
+    }
+    if (map.profile !== 'earned/local-source-order-map/v1' ||
+        map.source_digest !== importAnchor.source_generation_id ||
+        map.assertion?.kind !== 'athlete-confirmed-legacy-prefix' || map.assertion.answer !== true ||
+        typeof map.native_root_id !== 'string' || !map.native_root_id) return null;
+    return {map};
+  })();
   if (importAnchor !== undefined && (!importAnchor ||
       typeof importAnchor.source_generation_id !== 'string' || !importAnchor.source_generation_id ||
-      typeof importAnchor.activation_op_id !== 'string' || !sequence.has(importAnchor.activation_op_id)))
+      typeof importAnchor.activation_op_id !== 'string' || !importAnchor.activation_op_id ||
+      !(localActivation || sequence.has(importAnchor.activation_op_id))))
     fail('WORKOUT_ORDER_IMPORT_ANCHOR_UNPROVEN');
   let athlete;
   for (const session of history.sessions) {
@@ -87,7 +133,26 @@ function orderWorkoutStarts(history, generation, {importAnchor} = {}) {
     }
     const next = ready[0], dependency = dependencies.get(next);
     // A direct Start ancestor has already proved its own import descent.
-    if (importAnchor && !dependency.followsImport && !dependency.need.size)
+    //
+    // B-LOM. A LOCAL activation is not an operation, so no Start can causally
+    // descend from it, and in the TRAIN THEN IMPORT order the Start was written
+    // before the import and never could. The generation's recorded selection
+    // answers the same question from evidence, and only that way:
+    //   - it carries an ORDER MAP: the athlete confirmed, over these very
+    //     records, that the imported file is the complete prefix, and admission
+    //     refused that answer unless every native Start is dated strictly after
+    //     the file's last workout day. The map names the one native root it saw,
+    //     and a Start with no Start ancestor must BE that root; any other
+    //     rootless Start is one the map never covered and still refuses here.
+    //   - it carries NO order map AND its own recorded order_input shows there
+    //     was nothing native to order: no native Start existed when the source
+    //     was activated, so every Start reached here was written after it. A
+    //     map merely MISSING from a record that needed one never reaches this
+    //     line; the anchor above already refused it.
+    // A graph anchor still proves descent the graph's own way; only the local
+    // era reads the record instead.
+    if (importAnchor && !dependency.followsImport && !dependency.need.size &&
+        !(localActivation && (localActivation.map === null || localActivation.map.native_root_id === next)))
       fail('WORKOUT_ORDER_IMPORT_DESCENT_UNPROVEN');
     ordered.push(next); remaining.delete(next);
   }

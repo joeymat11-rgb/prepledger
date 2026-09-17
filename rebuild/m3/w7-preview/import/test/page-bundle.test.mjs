@@ -143,12 +143,23 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
        first stand on one tree. The branch values 136 and 138 each counted their
        own additions against a base that had not seen the other, so neither is the
        post-merge truth and the number is RE-MEASURED here rather than summed:
-       133 + 1 + 2 + 4. */
-    assert.equal(withAdmission.inventory.length, 140,
+       133 + 1 + 2 + 4.
+       B-LOM (lane D, DECISIONS:486, :492) is the FOURTH ticket to move it and
+       the first to move it off the Import route: legacy-order-mapping.cjs is
+       reached from rebuild/m3/w6/local/today-bindings.mjs, so it stands in the
+       SHIPPED PAGE's own boot graph and not in the route. B-LOM measured 137 on
+       a base that had never seen UI-2's four; this cell had 140 on a base that
+       had never seen B-LOM's one. Neither is the post-merge truth, so BOTH
+       SIDES ARE RE-MEASURED HERE rather than either being carried forward: the
+       measurement is 141. It imports nothing at all, brings no forbidden name,
+       and adds no leaf. */
+    assert.equal(withAdmission.inventory.length, 141,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 140 (the brief\'s 133, the F7 family\'s one, the F8 family and '
-      + 'the shared-class router\'s two, and the route\'s own four): re-measure '
-      + 'and say so');
+      + 'measured 141 (the brief\'s 133, the F7 family\'s one, the F8 family and '
+      + 'the shared-class router\'s two, the route\'s own four, and B-LOM\'s '
+      + 'order-mapping provider): re-measure and say so');
+    assert.ok(paths.includes('rebuild/m4/workout/legacy-order-mapping.cjs'),
+      'B-LOM\'s order-mapping provider is not in this graph at all');
     /* AND THE DELTA, which P3-REPLAY-MEASURE-FAMILY asserted (at 13) in its own
        P3-B4 over these same two inventories, and which MEANS SOMETHING ELSE ON
        THIS BRANCH - so it is re-measured and the change of meaning is written
@@ -314,9 +325,26 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
      source-admission.mjs and so are route-only exactly as the F7 family is - and
      the delta is 18, the sixteen above plus those two. The boot count holding at
      121 across all three of these tickets is the fact worth keeping: every module
-     any of them added went to the ROUTE and not one reached the Today boot path. */
+     any of them added went to the ROUTE and not one reached the Today boot path.
+     RE-MEASURED AGAIN WITH B-LOM MERGED (DECISIONS:492), and this is the first
+     time that last sentence stops being true, so it is said out loud rather than
+     the number edited: legacy-order-mapping.cjs is reached from
+     rebuild/m3/w6/local/today-bindings.mjs, which is BOOT, so the Today boot
+     graph goes 121 -> 122 and the total goes 139 -> 140. The route-only set is
+     UNMOVED at 18 (P3-B4's ROUTE_MODULES is unchanged and the deepEqual above
+     still holds name for name), so this delta - total minus the constant base -
+     is 19 and is now 18 route modules PLUS ONE BOOT MODULE. The figure that
+     still means "what the Import route costs the page" is the 18 of P3-B4 and
+     the byte accounting above it, not this subtraction; the subtraction's base
+     is a frozen constant of another commit and cannot move with the boot graph.
+     BOTH SIDES RE-MEASURED: B-LOM's own 122 pinned inputs was a boot-only tree
+     with no route, and this cell's 18 was a tree that had never seen B-LOM. */
   const BASE_PINNED_INPUTS = 121;
-  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 18, 'the delta is 18 modules');
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 19,
+    'the delta is ' + (today.inventory.length - BASE_PINNED_INPUTS) + ' modules, not the '
+    + 'measured 19 (the route\'s 18 plus B-LOM\'s one boot module): re-measure and say so');
+  assert.equal(ROUTE_MODULES.length, 18,
+    'the ROUTE-ONLY count moved; the delta above is no longer 18 route plus 1 boot');
 });
 
 test('P3-B6 - the route is LAZY in the built asset: its module bodies are behind '
