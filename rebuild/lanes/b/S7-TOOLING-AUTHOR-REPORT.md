@@ -51,12 +51,13 @@ is S6's own needle unchanged. Log: `child-today-17.log`.
 
 ## 2. The diff, per file
 
-Three commits on top of `71d420c`. `git diff --stat 71d420c..HEAD` over the product tree:
+Three commits in round 1 and one more in the fix round after review R1, on top of `71d420c`.
+`git diff --numstat 71d420c..HEAD` over the product tree, cumulative:
 
 | file | lines | fact | what |
 | --- | --- | --- | --- |
 | `rebuild/lanes/b/tooling/b-package.cjs` | +26/-3 | 1, 2, 3 | `IDS` gains `'S7'` behind `'S6'` (`:165`); `NO_REGISTER_IDS` gains `'S7'` (`:292`); `CHILD_ROOTS` gains `rebuild/lanes/d/p3-port-fix/` as its nineteenth root (`:381`). Each hunk carries its own paragraph in the file's own voice. `PUBLIC_TAIL_ROOTS` is NOT widened. |
-| `rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs` | +20/-6 | 6 | F6 takes `IDS` of eleven and `NO_REGISTER_IDS` of seven by literal and by `deepEqual`; F7 takes `CHILD_ROOTS` of nineteen in the whole-list, the `slice(8)` and the length assertions. F8's `PUBLIC_TAIL_ROOTS` assertions are untouched and still pass, which is the check that the new root did not leak into the print policy. |
+| `rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs` | +23/-8 | 6 | F6 takes `IDS` of eleven and `NO_REGISTER_IDS` of seven by literal and by `deepEqual`; F7 takes `CHILD_ROOTS` of nineteen in the whole-list, the `slice(8)` and the length assertions. F8's `PUBLIC_TAIL_ROOTS` assertions are untouched and still pass, which is the check that the new root did not leak into the print policy. |
 | `rebuild/m3/w7-preview/measure/test/boundary.test.mjs` | +11/-1 | 7 | `CHILD_SPECS` gains `'S7'`, youngest last. |
 | `rebuild/m3/w7-preview/today/test/food.test.mjs` | +11/-1 | 7 | as above |
 | `rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs` | +11/-1 | 7 | as above |
@@ -73,8 +74,8 @@ Three commits on top of `71d420c`. `git diff --stat 71d420c..HEAD` over the prod
 | `rebuild/lanes/b/tooling/packages/S4.json` | +1/-1 | 5 | as above |
 | `rebuild/lanes/b/tooling/packages/S5.json` | +1/-1 | 5 | as above |
 | `rebuild/lanes/b/tooling/packages/S6.json` | +1/-1 | 5 | as above; this is the parent EXECUTION pin |
-| `rebuild/lanes/b/tooling/packages/S7.json` | +66/-31 | 5 | the re-measure, section 4 below |
-| `rebuild/lanes/b/S7-PORT-ADMISSION-BRIEF.md` | +42/-21 | - | section 5.1 only |
+| `rebuild/lanes/b/tooling/packages/S7.json` | +66/-31 | 5 | the re-measure, section 4 below; the fix round moves four sha strings inside it and nothing else |
+| `rebuild/lanes/b/S7-PORT-ADMISSION-BRIEF.md` | +59/-29 | - | section 5.1 in round 1; sections 2, 2.6, 3.3 and one clause of 5.1 in the fix round, review NOTE N3 (section 10) |
 
 **Lockdown.** `git diff --numstat 71d420c HEAD` over `rebuild/DECISIONS.md`, `rebuild/engine`,
 `rebuild/coach` and the four product files FIX and FIX-2 moved
@@ -154,12 +155,15 @@ those four rounds added cells inside files whose suites were already counted at 
   each equal to the parent byte (rebuild/lanes/b/tooling/packages/S6.json)`.
 - The five `CHILD_SPECS` cells and the lane B tooling cell are role `edited` with their pre at the
   parent's own post; the six `s7-*` cells are role `new`.
-- `brief.sha256` = `41ab30cef85e2a28f617944d3f0c180d18f78e4453da1d7e74f04a5a18e85ba1`
-  (**25683 bytes**), measured after section 5.1 was rewritten; every other section of the brief is
-  byte-identical to the accepted `d03f2f4` text.
+- `brief.sha256` = `e51a83297fda8a0fcbe15ffa7ce241e2dec98325c0fa72767dd36691ca660251`
+  (**26571 bytes**), measured after the fix round's sections 2, 2.6, 3.3 and 5.1 edits (it was
+  `41ab30ce...`, 25683 B at the review commit and `d1a2c331...`, 23820 B at the prep); every section
+  of the brief the two rounds did not name is byte-identical to the accepted `d03f2f4` text.
 - `packages/S7.json` itself: sha256
-  `cf7c69b135fa880d56951319313d78ce9334201ae3f6ee9f5636c87a46eeda8f` (83449 B), byte-identical on
-  disk and in Git at HEAD.
+  `1a11772301db5533dcb5776930767b52111cf27ffe8089cae5237439489e7f46` (83449 B), byte-identical on
+  disk and in Git at HEAD (it was `cf7c69b1...` at the review commit; the fix round moved the brief
+  sha, the brief's byte count inside the BRIEF line, that line's own sha256 and the tooling cell's
+  `post`, which are equal-length substitutions, so the file's length did not change).
 - Consistency, run rather than asserted: the nine lane B tooling suites
   (`rebuild/lanes/b/tooling/test/*.test.cjs`, which are what validate a package spec's shape,
   its product phase, its parent pins, its ledger reading, its seal/byte-identity rules and its
@@ -168,18 +172,20 @@ those four rounds added cells inside files whose suites were already counted at 
 
 ## 5. The final `--ci` terminal, verbatim
 
-`node rebuild/lanes/b/tooling/b-package.cjs --ci --package S7` at `3514616`, exit 1
-(`%TEMP%\s7out\r06.log`):
+`node rebuild/lanes/b/tooling/b-package.cjs --ci --package S7` at `776b2b4`, the fix-round commit,
+exit 1 (`%TEMP%\s7fix\ci.log`). It is the round-1 terminal (`%TEMP%\s7out\r06.log` at `3514616`) and
+the reviewer's own (at `f39a868`) line for line, the only differences being the spec sha256 and the
+HEAD sha, both of which the fix round moved:
 
 ```
-B PACKAGE S7 SPEC OBSERVED packages/S7.json cf7c69b135fa880d56951319313d78ce9334201ae3f6ee9f5636c87a46eeda8f; runner a07df1e0942a017f44afcfa1b6b92d8f96ee6f5e20f9e4e8450072c76e9268a5 byte-identical on disk and in Git at HEAD; status=BRIEF-ACCEPTED; 0 D-ids ; 206 declared product files; 24 declared child(ren), argv file-first under 19 fixed root(s) with only --test --test-reporter=tap permitted; 0 declared move(s), each naming its own original executable in a relative require specifier (moves are refused outright under this runner - TOOLING-REVIEW-r3 X1); no successor carriers declared (every inherited gate must be carried by a parent-pinned executable); 5 byte-identity carrier(s) declared SUPERSEDED under a PM line recorded by sha256 46622ec5a6b3, each with its own named and executed evidence
+B PACKAGE S7 SPEC OBSERVED packages/S7.json 1a11772301db5533dcb5776930767b52111cf27ffe8089cae5237439489e7f46; runner a07df1e0942a017f44afcfa1b6b92d8f96ee6f5e20f9e4e8450072c76e9268a5 byte-identical on disk and in Git at HEAD; status=BRIEF-ACCEPTED; 0 D-ids ; 206 declared product files; 24 declared child(ren), argv file-first under 19 fixed root(s) with only --test --test-reporter=tap permitted; 0 declared move(s), each naming its own original executable in a relative require specifier (moves are refused outright under this runner - TOOLING-REVIEW-r3 X1); no successor carriers declared (every inherited gate must be carried by a parent-pinned executable); 5 byte-identity carrier(s) declared SUPERSEDED under a PM line recorded by sha256 46622ec5a6b3, each with its own named and executed evidence
 B PACKAGE S7 PARENT OPTION S6 M2-S6-TODAY-CHILD rebuild/m4/spec/acceptance-s6-today-child.json 0e52357ed62249d4ee94b473e2dde20220b0a82c3737414bba0603fa76bf040f ACCEPTED at 23575c0f1e61ee714fb519cb3607c4779dcd0c24 (DECISIONS:500); artifact byte-identical on disk, in Git at that commit and on refs/remotes/origin/rebuild/t2-client-core; review rebuild/m4/spec/review-s6-today-child.json d21c97590030 byte-identical on disk and on that branch; receipt base 934321f is an ancestor of it
 B PACKAGE S7 PARENT BOUND S6 rebuild/m4/spec/acceptance-s6-today-child.json 0e52357ed62249d4ee94b473e2dde20220b0a82c3737414bba0603fa76bf040f; single-parent chain holds - no sibling spec claims it on disk or in Git at HEAD, and no sealed artifact on refs/remotes/origin/rebuild/t2-client-core names it as parent
 B PACKAGE S7 POSTFIX M2-S7-PORT-ADMISSION REVIEW-PENDING mode=--ci
 B PACKAGE S7 ENVELOPE ABSENT; rebuild/m4/spec/acceptance-s7-port-admission.json is not sealed yet - no PASS word is available
 B PACKAGE S7 PARENT PINS RE-ASSERTED at run time; 2 pin(s) from rebuild/m4/spec/acceptance-s6-today-child.json plus its 196 product pins through the inventory below, and 1 un-superseded grandparent pin(s) from rebuild/m4/spec/acceptance-s5-today-child.json, byte-identical on disk AND in Git at HEAD; 197 superseded pin(s) preserved in Git at sourceBase 3d00217; parent artifact byte-identical in Git at 23575c0f1e61ee714fb519cb3607c4779dcd0c24
 B PACKAGE S7 PRODUCT IMPLEMENTED; 33 at the declared post-image / 0 at the pinned pre-image / 173 carried byte-identical from the parent / 0 declared role "pinned-unchanged" - executed by a declared child, produced by nothing / 0 unlisted drift; the inventory covers all 196 parent-pinned product files; 1 declared role "superseded-by-child" over a parent EXECUTION pin, each equal to the parent byte (rebuild/lanes/b/tooling/packages/S6.json)
-B PACKAGE S7 FIDELITY OBSERVED; sourceBase 3d00217 ancestor of HEAD 3514616; 8 engine/conform/m4-spec/lane-b-tooling file(s) changed since sourceBase, all in the fixed inventory; runner a07df1e0942a and spec cf7c69b135fa pinned (artifact not sealed yet); 16 of 18 PIN_PATHS present in this tree and byte-identical Git vs disk; 2 not in this tree and therefore vacuous (rebuild/conform/goldens rebuild/conform/manifest.json)
+B PACKAGE S7 FIDELITY OBSERVED; sourceBase 3d00217 ancestor of HEAD 776b2b4; 8 engine/conform/m4-spec/lane-b-tooling file(s) changed since sourceBase, all in the fixed inventory; runner a07df1e0942a and spec 1a11772301db pinned (artifact not sealed yet); 16 of 18 PIN_PATHS present in this tree and byte-identical Git vs disk; 2 not in this tree and therefore vacuous (rebuild/conform/goldens rebuild/conform/manifest.json)
 B PACKAGE S7 FAIL RECEIPT-EXACT-LINE-MISSING; required evidence missing or failed; local diagnostics withheld
 ```
 
@@ -197,12 +203,21 @@ the leading `- ` included, no trailing newline, the file split on `/\r?\n/`. The
 `packages/S7.json` at `authorizations.theme.lineSha256`, `brief.acceptedLedgerLine.lineSha256` and
 `coverage.superseded.rulingLineSha256`. The THEME and GATE texts are the prep's, unchanged; only
 the BRIEF line moves, because the brief's own sha256 and byte count moved when section 5.1 was
-rewritten.
+rewritten in round 1 and again when the fix round closed review NOTE N3. The values below are the
+FINAL ones: they are what `packages/S7.json` carries at `776b2b4` and what
+`%TEMP%\s7fix\brief-line.txt` holds for the BRIEF line.
+
+The three ledger numbers are right as they stand. `DECISIONS:511` EXISTS: it is on the chain tip
+`refs/remotes/origin/rebuild/t2-client-core` at `e02d0cc2`, appended after this branch took its tip
+merge at `b33fce8a`, so it is not in this branch's own 510-line copy of `rebuild/DECISIONS.md` and
+arrives at step 9's merge. Lines 1 to 510 of the tip's file are byte-identical to this branch's, and
+`:511` is the PM's own S7 SEAL PREPARATION line, which ends by naming "the three token lines
+(512-514)". Section 10 records the measurement.
 
 | line | ledger | sha256 | bytes |
 | --- | --- | --- | --- |
 | THEME | `:512` | `f1746fe39a7a98fc7e6c9dd190b4e24cc7761884779d70f6f7a20414398745b5` | 1551 |
-| BRIEF-BY-SHA | `:513` | `b75f2c85ed642a4a269c3331905d3e27234206d28187cf43b4719e58289a2ff7` | (text below) |
+| BRIEF-BY-SHA | `:513` | `15bb8a5d12ceecc6294b260797cb30f11a5520cd8d6300514e9a2c14b4ddb2f4` | (text below) |
 | GATE-SUPERSESSION | `:514` | `46622ec5a6b30e0e46c2d44c1d2279c0869bceebfa8f2f8036d2ebf1c01c8023` | (text below) |
 
 The three lines, each on ONE line, exactly as they must be appended to `rebuild/DECISIONS.md`
@@ -238,12 +253,13 @@ be duplicated into a second tracked file on the same branch, and `verifyReceipt`
    reproduced S6's own needles exactly, which they could not do under a different environment.
    `ENGINE_MAIN` and `ENGINE_OLD`, which the runner adds from `Reference.create`, are read by the
    conform carriers and by no file in any of the 24 children's argv.
-5. **The brief's sections 2 and 3 still carry the pre-round counts** (199 declared paths, 12 edited,
-   3 new, 184 carried, "no superseded-by-child"). That is on purpose: the ticket said to keep every
-   section but 5.1 byte-identical, and section 2 already points forward to 5.1 in its own words
-   ("Section 5.1 is where that stops being true"). 5.1 now carries the post-round counts, 206 / 23 /
-   9 / 173 / 1. A reviewer who wants section 2 restated should say so; it changes the brief's sha256
-   and therefore the BRIEF-BY-SHA line.
+5. **The brief's sections 2 and 3 carried the pre-round counts** (199 declared paths, 12 edited,
+   3 new, 184 carried, "no superseded-by-child") against 5.1's post-round 206 / 23 / 9 / 173 / 1.
+   Round 1 left them, on the ticket's instruction to keep every section but 5.1 byte-identical.
+   Review R1 raised it as NOTE N3 and the fix round CLOSED it: sections 2, 2.6 and 3.3 now name
+   their own figures as the walk's and carry the post-round list beside them, which moved the
+   brief's sha256 and byte count and therefore the BRIEF-BY-SHA line (section 6 has the final
+   values). Section 10 has the whole disposition.
 
 ## 8. Open questions for the PM
 
@@ -259,10 +275,13 @@ be duplicated into a second tracked file on the same branch, and `verifyReceipt`
    runner, because no run has reached that far. The first run that does is the first real test of
    section 3.
 4. **The brief's own acceptance moves.** `brief.sha256` is now
-   `41ab30cef85e2a28f617944d3f0c180d18f78e4453da1d7e74f04a5a18e85ba1` (25683 bytes), not the
-   `d1a2c331...` (23820 bytes) the prep measured, because 5.1 was rewritten as this ticket required.
-   The BRIEF-BY-SHA line the PM appends must carry the new sha and the new byte count, and it is the
-   line in section 6.
+   `e51a83297fda8a0fcbe15ffa7ce241e2dec98325c0fa72767dd36691ca660251` (26571 bytes), not the
+   `d1a2c331...` (23820 bytes) the prep measured and not the `41ab30ce...` (25683 bytes) round 1
+   measured: 5.1 was rewritten as this ticket required, and the fix round closed review NOTE N3 in
+   sections 2, 2.6, 3.3 and one clause of 5.1. The BRIEF-BY-SHA line the PM appends must carry the
+   new sha and the new byte count, and it is the line in section 6; `%TEMP%\s7out\final-lines.txt`
+   was rewritten from `packages/S7.json`'s own stored texts and re-verified against all three
+   declared sha256s.
 
 ## 9. What this ticket did not touch
 
@@ -272,3 +291,87 @@ FIX-2 moved, the seven sibling test files those rounds moved, `rebuild/m4/import
 runner's own `PRODUCT IMPLEMENTED` line counts at 173. `rebuild/conform/private` was never created
 or read. `--full` was never run. No law, guard, cell or needle was weakened; every needle in the
 spec is a figure a run on this head printed.
+
+## 10. Review disposition (R1)
+
+`rebuild/lanes/b/S7-TOOLING-REVIEW-R1.md` at `ce713f6`, Opus high, blind: **ACCEPT WITH NOTES,
+0 BLOCKING**. The reviewer re-measured every claim they could test and it held - the six `s7-*`
+mirrors with no assertion removed, the three runner hunks, all 206 pre/post shas, `runnerSha256`,
+the brief sha256, the three token-line sha256s, all 24 children green at their declared needles, the
+nine suites at 105/105, and their own `--ci --package S7` terminal identical to round 1's save the
+HEAD sha. There was nothing BLOCKING to reproduce. The six notes are disposed of below; everything
+in this round was re-measured afterwards, nothing was weakened, and no needle was guessed.
+
+**N1 - "`DECISIONS:511` does not exist on this branch" - DISPUTED, with a measurement.**
+It exists, on the chain tip. `git show origin/rebuild/t2-client-core:rebuild/DECISIONS.md` splits
+into **511 lines**; this branch's splits into **510**; the first 510 are byte-identical, so `:511`
+is a pure append the tip took AFTER this branch's tip merge at `b33fce8a`. The tip ref stands at
+`e02d0cc2`. Line 511 is the PM's own `S7 SEAL PREPARATION RETURNED ... LANE B TOOLING ROUND
+DISPATCHED` line, it carries the seven tooling facts this ticket was written against, and it ends by
+naming what comes next: "Then: the three token lines (512-514)". So
+`authorizations.theme.ledgerLine 512`, `brief.acceptedLedgerLine.ledgerLine 513` and the five
+`coverage.superseded.gates[*].why` citations of `:514` are correct as built, the brief's `:511`
+citation is correct, and **nothing is renumbered**. The reviewer could not see this because a blind
+review reads the branch, and the branch does not carry the tip's newest line until step 9's merge;
+their conclusion from what they could see was the right one to raise. Their second observation
+stands either way: `verifyReceipt` finds a line by its sha256 and never by its number, so no run
+outcome ever depended on this. Section 5.1 of the brief and section 6 above now say where `:511`
+lives, so the next reader does not have to find it twice.
+
+**N2 - the four-ancestor re-pin - KEPT AS BUILT.** The reviewer checked `7e5fcca` and `S6.json`
+themselves and reached the same reading the author did: `H3/S3/S4/S5` role `edited` and `S6.json`
+role `superseded-by-child` is the exact mirror one generation on, and reverting `packages/S5.json`
+would leave a runnable spec pinning `runnerSha256 8d9a94c2...`, a runner this tree no longer has.
+Deviation 7.1 stands and open question 8.1 is answered.
+
+**N3 - the brief's own counts contradicted each other - FIXED.** In the brief of record:
+section 2's `Counts` paragraph is now headed as the walk's own figures BEFORE the S7-TOOLING round
+and ends with the post-round list (206 / 23 / 9 / 173 / 1) and the sentence that 5.1, not that
+paragraph, is what `packages/S7.json` declares; section 2.6 reads 184 carried in the walk and 173
+after the round; section 3.3 says the three lane cells were the only role `new` files when the walk
+was written and names the six `s7-*` cells that joined them. One number was WRONG rather than stale
+and is corrected: 2.6 said 183 carried where 2 said 184. I re-measured it rather than reasoning
+about it - for each of the 196 paths `packages/S6.json` declares, the blob at `3d002174` against the
+blob at `71d420c`: **12 moved, 184 identical, 0 missing**, so 199 = 12 + 3 + 184 and 184 is the
+carried count. The "184th path moved" clause, which parsed no better than the number it carried,
+now reads "a thirteenth moved path in this walk". Consequences, all re-measured and all in section
+6: brief sha256 `e51a8329...` (26571 B), BRIEF-BY-SHA line sha256 `15bb8a5d...`. The THEME and
+GATE-SUPERSESSION lines and their sha256s do NOT move.
+
+**N4 - "ELEVENTH" against "NINETEENTH" inside F7 - FIXED, prose only.** Both comments now carry
+both numbers ("the ELEVENTH addition since S5 and the NINETEENTH element of the list"), which is
+what the reviewer found defensible about each of them separately. While there, one more sentence in
+the same comment block was narrowed for the same reason: the three lane D cells are "the only
+role:"new" product that package has OUTSIDE `rebuild/m4/workout/test/`", which is where the six
+`s7-*` cells stand, so the comment no longer says S7 has three role `new` files when it has nine.
+**No assertion, title or literal changed**: `CHILD_ROOTS.length === 19`, the whole-list
+`deepEqual`, the `slice(8)` and the `slice(0, 8)` are the bytes review R1 read. The suite re-runs at
+105/105.
+
+**N5 - the empty first commit - RECORDED, unchanged.** The reviewer accepted `aa2d6e3` as red-first
+evidence for a ticket whose product is the runner's own argv table, and re-derived the base
+refusal from the argv gate itself. Deviation 7.2 stands; if the PM wants the refusal chain as a
+tracked file it is one commit, and section 1 already holds it.
+
+**N6 - `rebuild/lanes/d/p3-port-fix/` is not in `PUBLIC_TAIL_ROOTS` - RECORDED, unchanged, and the
+reviewer agrees with the choice.** Open question 8.2 stands as the PM's to see rather than to fix.
+
+**What the fix round changed, in bytes.** Three files: the brief (N3), the lane B tooling cell
+(N4, comments only) and `packages/S7.json`, which takes four equal-length sha substitutions -
+`brief.sha256`, the byte count inside `brief.acceptedLedgerLine.line`, that line's `lineSha256`, and
+the tooling cell's `post` `bd1e1fc7...` to `d17f2e45...`. Nothing else in the spec moved, its length
+did not change, and its own sha256 is now `1a117723...`.
+
+**What was re-measured afterwards, on `776b2b4`.** Every one of the 206 declared paths re-hashed
+from disk and compared with Git at HEAD and with the blob at `sourceBase 3d002174` under its own
+role: **0 mismatches** (23 edited / 9 new / 173 carried / 1 superseded-by-child). `runnerSha256`
+MATCH. `brief.sha256` MATCH at 26571 B. All three token-line sha256s MATCH the texts in
+`%TEMP%\s7out\final-lines.txt`, which was rewritten from the spec's own stored lines. The nine lane
+B tooling suites: **105 tests / 105 pass / 0 fail**, exit 0 (`%TEMP%\s7fix\suites.log`). All **24**
+declared children re-run the way `children()` runs them, not six: **every one exit 0, needle HIT,
+`# fail 0`**, the same table as round 1 and as the reviewer's (`today-17 682`, `d-plan-edit 89`,
+`d-port-admission 31`, the five `s7-sup-*` at 4/3/3/3/3, `engine-files-differential` HIT;
+`%TEMP%\s7fix\children.log`). `--ci --package S7` exit 1 at `RECEIPT-EXACT-LINE-MISSING`, the same
+refusal for the same reason, quoted in full in section 5. Lockdown numstat over `rebuild/DECISIONS.md`,
+`rebuild/engine`, `rebuild/coach` and the four product files FIX and FIX-2 moved: EMPTY. Zero
+U+2013 and zero U+2014 in every line the fix round added.
