@@ -20,7 +20,12 @@ import PlainCopy from './plain-copy.cjs';
 import MachineSettingsView from './machine-settings-view.mjs';
 
 const { plainOrDrop } = PlainCopy;
-const { ARROW } = TodayApp;
+/* REVIEW R1 FINDING 2 - the two headings the stub screen falls back to when the card
+   is handed no title (S6 item 3 hands it none on a day the engine's stamp does not
+   describe). Both are today-app.cjs's own declared sentences, already bound by
+   design.cjs and already checked ABSENT from the approved references, so the stub
+   screen gains a true heading without this file inventing a word. */
+const { ARROW, WORKOUT_CANNOT_OPEN, WORKOUT_RECORDED_TODAY } = TodayApp;
 // The approved prototype's own check mark, copied from Earned-refinement-A.html.
 export const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>';
 
@@ -210,10 +215,19 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     host.hidden = values.length === 0;
   };
 
-  function stub(view, note, detail) {
+  /* `head` is what the screen is called when the card has no title of its own.
+     REVIEW R1 FINDING 2: this used to be `view.title || ''`, which was harmless only
+     while the card was ALWAYS handed the engine's next-session stamp. Since S6 item 3
+     withholds that stamp on a day it does not describe, `view.title` is null on both
+     screens this paints - the refusal and the recorded workout - and the fallbacks at
+     renderActive/renderComplete/renderSaved cannot serve here: neither of these views
+     carries a `session`. An h1 put to '' is also HIDDEN by put() and is the element
+     show() then focuses, so the blank was a lost heading, not just a quiet one. Each
+     caller names the heading true of ITS screen. */
+  function stub(view, note, detail, head) {
     const root = template('t-workout');
     const map = slots(root);
-    put(map, 'workout-title', view.title || '');
+    put(map, 'workout-title', view.title || head);
     put(map, 'stub-note', note);
     put(map, 'workout-detail', detail || '');
     root.querySelector('[data-go="today"]').addEventListener('click', event => {
@@ -516,7 +530,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   const refusalScreen = (view, result) => stub(view,
     [COULD_NOT_PREPARE, result && result.copy && result.copy !== result.code ? result.copy : null]
       .filter(Boolean).join(' '),
-    (result && result.code) || '');
+    (result && result.code) || '', WORKOUT_CANNOT_OPEN);
 
   async function paint() {
     /* D2 round 2, R2-1 - a repaint asked for by work that started while this mount WAS
@@ -527,7 +541,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     if (!owns) return null;
     if (view.phase === 'blocked') return refusalScreen(view, view);
     if (view.phase === 'finished') return stub(view, WORKOUT_RECORDED,
-      view.sets + (view.sets === 1 ? ' set' : ' sets') + ' recorded');
+      view.sets + (view.sets === 1 ? ' set' : ' sets') + ' recorded', WORKOUT_RECORDED_TODAY);
     if (view.phase === 'ready') {
       const started = await model.start();
       if (!started.ok) return refusalScreen(view, started);

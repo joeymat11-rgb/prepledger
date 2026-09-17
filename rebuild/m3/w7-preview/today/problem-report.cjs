@@ -31,6 +31,43 @@ const { plainOrDrop } = require("./plain-copy.cjs");
 const BUILD_PLACEHOLDER = "earned-notinjected";
 const BUILD = BUILD_PLACEHOLDER;
 
+/* S6 item 4 - THE BUILT COMMIT, INJECTED AT BUILD TIME (DECISIONS:468 (b)).
+
+   The build id above names what went INTO the page; it cannot be looked up in Git.
+   A verifier standing in front of the served page needs the other half: which commit
+   the bytes were built from. build.mjs runs `git rev-parse --short HEAD` at build
+   time and replaces this one literal in the bundle it is about to write, refusing the
+   build if it is not there exactly once - the same rule, and the same refusal, as the
+   build id beside it. When git is not there to ask (a tarball, a source drop) the
+   build injects the word below rather than a guess. Unbuilt - a Node test, a module
+   loaded straight off disk - it reads as what it is, and buildFooterLine() renders
+   that as "unknown" rather than printing a placeholder at the athlete. */
+const COMMIT_PLACEHOLDER = "commitnotinjected";
+const COMMIT = COMMIT_PLACEHOLDER;
+const COMMIT_UNKNOWN = "unknown";
+
+/* REVIEW R1 FINDING 1 - WHAT THIS MUST NOT COMPARE AGAINST. The first cut asked
+   `commit !== COMMIT_PLACEHOLDER`, and on the BUILT page that test is dead: the
+   declaration above is the ONE literal build.mjs rewrites, so after injection
+   COMMIT_PLACEHOLDER *is* the sha, the comparison is false against itself, and the
+   served page printed "Build unknown" while the build log said "commit c0a4e6c".
+   The question is not "is this still the placeholder" - a replace() can always
+   reach the constant that names the placeholder - it is "is this a commit", and
+   that is decidable from the value alone.
+
+   THE ONE LINE TODAY PRINTS. Pure, so a cell can assert its shape without a build,
+   and deliberately shaped so a verifier can compare it with `git rev-parse --short`
+   by eye: "Build " then the short sha, and nothing else. SHORT_SHA is the same
+   shape build.mjs admits at injection, so what the build let in is exactly what
+   this prints; the placeholder, the honest "unknown", a missing value and a
+   non-string all fall to "unknown" because none of them is a sha, not because
+   each was listed here. */
+const SHORT_SHA = /^[0-9a-f]{4,40}$/;
+function buildFooterLine(commit) {
+  const named = typeof commit === "string" && SHORT_SHA.test(commit);
+  return "Build " + (named ? commit : COMMIT_UNKNOWN);
+}
+
 /* The eight fields of brief section 2, in the order the block prints them. */
 const FIELDS = Object.freeze(["screen", "lane open", "enrolment", "offline-ready",
   "build", "device", "user agent", "at"]);
@@ -140,4 +177,5 @@ function buildProblemReport(state = {}) {
 
 module.exports = { buildProblemReport, devicePrefix, lanesOpen, enrolmentOf,
   offlineReadinessOf, stampOf, FIELDS, ENROLMENT, LANES, OFFLINE,
-  BUILD, BUILD_PLACEHOLDER, RESTORE_MARK, NONE, UNKNOWN };
+  BUILD, BUILD_PLACEHOLDER, RESTORE_MARK, NONE, UNKNOWN,
+  COMMIT, COMMIT_PLACEHOLDER, COMMIT_UNKNOWN, buildFooterLine };

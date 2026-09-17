@@ -431,7 +431,16 @@ test('S4/8 - after two midnights the OLD mount cannot repaint and cannot date a 
   const night1 = new Date('2026-09-04T18:00:00.000Z'), night2 = new Date('2026-09-05T18:00:00.000Z');
   let first = null, second = null, third = null;
   try {
-    first = await Entry.boot({ document: doc, indexedDB: idb, crypto: webcrypto, now: () => at });
+    /* THE LANDING, DECLARED (S6 item 1, owner ruling DECISIONS:463). This cell is the
+       real-day rollover of the LIVE mount over a store nobody enrolled, and the live
+       path now opens a FRESH installation on the setup screens; what is measured here
+       is the midnight re-boot, not that landing, so the rule is opted out of by name
+       rather than weakened, and lines :458 / :468 / :472 go on measuring the Today
+       mount they always did. boot()'s own reopen carries these options into every
+       re-boot, so all three mounts land the same way. The fresh-install landing has
+       its own cells: today/test/problem.test.mjs S6C.1 - S6C.4. */
+    first = await Entry.boot({ document: doc, indexedDB: idb, crypto: webcrypto, now: () => at,
+      setupFirst: false });
     assert.equal(keydowns(), 1, 'the first mount bound one keydown to #phone');
     /* OFF Today, which is the whole trigger: the Escape guard reads the mount's
        OWN screen, so a mount left on Today refuses and a mount left anywhere
