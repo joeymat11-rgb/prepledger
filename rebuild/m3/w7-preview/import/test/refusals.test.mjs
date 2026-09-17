@@ -13,11 +13,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, durable, carry,
-  admit, STRANGER_SETUP } from './support.mjs';
+  admit, STRANGER_WEEK_SETUP } from './support.mjs';
 
 const DAY = '2026-09-16', AT = '2026-09-16T16:00:00.000Z';
 const SEALED = sealInventedBundle();
-const STRANGER = sealInventedBundle(STRANGER_SETUP);
+/* CHANGED by P3-PORT-FIX (spec 4.4). BEFORE: sealInventedBundle(STRANGER_SETUP),
+   which varied the athlete label and one lift's set count. AFTER the new
+   programme rule the label is compared by neither rule and the set count is
+   RETAINED from the file, so that bundle ADMITS and this suite's refusal would
+   have stopped being a refusal. STRANGER_WEEK_SETUP varies the split MAP as
+   well as the label, which is what a stranger's bundle looks like to the rule
+   as it now stands, and is a strict superset of what the old fixture proved. */
+const STRANGER = sealInventedBundle(STRANGER_WEEK_SETUP);
 
 const scope = tag => ({ databaseName: 'p3-refuse-' + tag, namespace: 'joe/p3r-' + tag,
   athleteId: 'ath-p3', deviceId: 'dev-p3' });

@@ -9,7 +9,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, durable, STRANGER_SETUP,
+import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, durable, STRANGER_WEEK_SETUP,
   REPO, Entry, shellWindow, slot, tap, type, textOf, pickBundle, installTraps,
   phoneDevice, SOURCE_SESSION_DAYS } from './support.mjs';
 import { listImports, listImportRetractions } from '../../../w6/local/browser-entry.mjs';
@@ -20,7 +20,12 @@ import { baselineWeeks } from '../../measure/measure-baseline.mjs';
 import Screen from '../import-screen.mjs';
 
 const SEALED = sealInventedBundle();
-const STRANGER = sealInventedBundle(STRANGER_SETUP);
+/* CHANGED by P3-PORT-FIX (spec 4.4). BEFORE: sealInventedBundle(STRANGER_SETUP).
+   AFTER the new programme rule that bundle admits, because it varies only the
+   athlete label (compared by neither rule) and one lift's set count (RETAINED
+   from the file). STRANGER_WEEK_SETUP varies the split MAP as well, which is
+   what a stranger's bundle looks like to the rule as it now stands. */
+const STRANGER = sealInventedBundle(STRANGER_WEEK_SETUP);
 const DAY = '2026-09-16', AT = '2026-09-16T16:00:00.000Z';
 /* This athlete's own three lifts, which are the markers P3-X9 draws the
    baseline column over. */

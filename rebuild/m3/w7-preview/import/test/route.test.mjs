@@ -19,7 +19,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, durable, SETUP,
-  STRANGER_SETUP, Entry, shellWindow, slot, tap, type, textOf, pickBundle,
+  STRANGER_WEEK_SETUP, Entry, shellWindow, slot, tap, type, textOf, pickBundle,
   phoneDevice } from './support.mjs';
 import { baselineWeeks } from '../../measure/measure-baseline.mjs';
 import Screen from '../import-screen.mjs';
@@ -261,7 +261,13 @@ test('P3-U3 (bar e) - after admission the entry links read History imported, '
   assert.equal(named.code, 'LOCAL_IMPORT_NAME_TAKEN', JSON.stringify(named));
   /* A DIFFERENT file: staged, and told it needs the review this device has
      already given another file. That is the rebase code, verbatim. */
-  const other = sealInventedBundle(STRANGER_SETUP);
+  /* CHANGED by P3-PORT-FIX (spec 4.4, and review R2 NOTE N-2). BEFORE:
+     sealInventedBundle(STRANGER_SETUP). This cell asserts
+     LOCAL_IMPORT_REBASE_REQUIRED, which the machinery answers BEFORE any
+     programme comparison, so it does not go red under the new rule; the seal
+     line is retargeted only so the fixture story stays straight across the
+     suites that share it. */
+  const other = sealInventedBundle(STRANGER_WEEK_SETUP);
   const third = await machinery.importBundle(era.client,
     { bundleBytes: other.bytes, passphrase: other.passphrase });
   assert.equal(third.rebaseRequired, true, JSON.stringify(third));

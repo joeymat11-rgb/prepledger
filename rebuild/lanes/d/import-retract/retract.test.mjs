@@ -15,7 +15,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, durable, carry, admit,
-  material, createSourcePlatform, webcrypto, SETUP, STRANGER_SETUP } from '../../../m3/w7-preview/import/test/support.mjs';
+  material, createSourcePlatform, webcrypto, SETUP, STRANGER_WEEK_SETUP } from '../../../m3/w7-preview/import/test/support.mjs';
 import { openTodayOverLocalEra } from '../../../m3/w6/local/today-bindings.mjs';
 import { admittedLocalSourceBasis } from '../../../m3/w7-preview/today/local-source-basis.mjs';
 import { createCleanInitState } from '../../../m3/w7-preview/today/setup-model.mjs';
@@ -25,7 +25,13 @@ import { retractImport, listImports, listImportRetractions, importRetracted,
 
 const DAY = '2026-09-16', AT = '2026-09-16T16:00:00.000Z';
 const SEALED = sealInventedBundle();
-const STRANGER = sealInventedBundle(STRANGER_SETUP);
+/* CHANGED by P3-PORT-FIX (spec 4.4). BEFORE: sealInventedBundle(STRANGER_SETUP).
+   This suite seals a stranger's bundle to drive a REFUSED-then-RETRACTED path;
+   under the new programme rule the old fixture ADMITS (it varies only the
+   athlete label, compared by neither rule, and one lift's set count, RETAINED
+   from the file), so the retract path this suite exists to exercise would have
+   stopped being exercised. STRANGER_WEEK_SETUP varies the split MAP as well. */
+const STRANGER = sealInventedBundle(STRANGER_WEEK_SETUP);
 const REASON = 'review-refused';
 
 const scope = tag => ({ databaseName: 'p3-retract-' + tag, namespace: 'joe/p3x-' + tag,

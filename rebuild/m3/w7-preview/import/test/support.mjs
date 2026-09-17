@@ -24,7 +24,7 @@ import Profile from '../../../../m4/import/local-source-profile.cjs';
 import Capture from '../../../../m4/workout/capture.cjs';
 import Commands from '../../../../m4/workout/commands.cjs';
 import Journey from '../../../w6/host/test/journey-fixture.cjs';
-import { createCleanInitState } from '../../today/setup-model.mjs';
+import { createCleanInitState, createSetupModel } from '../../today/setup-model.mjs';
 import Setup from '../../today/setup-commands.mjs';
 
 export const REPO = fileURLToPath(new URL('../../../../../', import.meta.url));
@@ -69,24 +69,40 @@ function inventedLegacyState(setup = SETUP, sessions = DEFAULT_SESSIONS) {
 }
 export const SOURCE_SESSION_DAYS = ['2026-08-14', '2026-08-17', '2026-08-21'];
 
-/* ANOTHER ATHLETE'S FILE. Same three lifts by id, but a week that is not the
-   one this installation's first run recorded (one lift carries four sets, not
-   three) and a different label. Admission proves the file's programme against
-   the very setup document the device holds, so this is what "the wrong
-   person's bundle" looks like to the controller. */
+/* ANOTHER ATHLETE'S FILE, as the rule stood BEFORE P3-PORT-FIX. Same three
+   lifts by id, a different label, and one lift carrying four sets rather than
+   three. CORRECTED (P3-PORT-FIX spec 4.4, ruling 2): this is no longer what the
+   wrong person's bundle looks like to the controller. The label is compared by
+   NEITHER rule (DECISIONS:472 (a)) and the set count is RETAINED from the file
+   by the new programme rule, so a bundle sealed from this setup ADMITS at the
+   controller and is then NOT ADOPTED by the page, because
+   today/local-source-basis.mjs:54 refuses to adopt a state whose athlete_label
+   is not this installation's. That admits-then-not-adopted pair is exactly what
+   this fixture is now for, and it is the widening of spec 1.4 measured rather
+   than argued. STRANGER_WEEK_SETUP below is what a stranger's bundle looks like
+   to the NEW rule. */
 export const STRANGER_SETUP = JSON.parse(JSON.stringify(SETUP));
 STRANGER_SETUP.athlete_label = 'synthetic-other-identity';
 STRANGER_SETUP.exercises[0].sets = 4;
 
+/* ANOTHER ATHLETE'S FILE, as the rule stands AFTER P3-PORT-FIX (spec 4.4,
+   ruling 3). A clone of SETUP whose split map differs in ONE day letter, which
+   is a thing the new rule PROVES, carrying the different label as well so it is
+   a strict superset of what STRANGER_SETUP proved. Every refusal-guard cell
+   that used to seal from STRANGER_SETUP seals from this instead. */
+export const STRANGER_WEEK_SETUP = JSON.parse(JSON.stringify(SETUP));
+STRANGER_WEEK_SETUP.athlete_label = 'synthetic-other-identity';
+STRANGER_WEEK_SETUP.split.map['4'] = 'L';
+
 /* ONE REAL SEAL, produced once per test process. --out must be outside every
    git working tree and carry no `rebuild` segment (the port's own guard), so
    the OS temp folder is the only place it can go. */
-export function sealInventedBundle(setup = SETUP, { sessions = DEFAULT_SESSIONS } = {}) {
+export function sealInventedBundle(setup = SETUP, { sessions = DEFAULT_SESSIONS, state = null } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'imp-out-'));
   const out = path.join(dir, 'out');
   fs.mkdirSync(out);
   const file = path.join(dir, 'invented-legacy-state.json');
-  fs.writeFileSync(file, JSON.stringify(inventedLegacyState(setup, sessions), null, 2));
+  fs.writeFileSync(file, JSON.stringify(state || inventedLegacyState(setup, sessions), null, 2));
   const run = spawnSync(process.execPath, [PORT, '--source', file, '--out', out],
     { cwd: REPO, encoding: 'utf8', timeout: 600000, windowsHide: true });
   if (run.status !== 0) throw new Error('port.cjs did not seal the invented bundle (status '
@@ -116,6 +132,107 @@ export async function firstRun(era, day) {
   host.close();
   if (!saved.ok) throw new Error('the first run was refused: ' + (saved.code || saved.copy));
   return saved;
+}
+
+/* ---------------------------------------------------------------------------
+   P3-PORT-FIX. THE PHONE'S OWN DOCUMENT, AS THE SHIPPED SCREENS WRITE IT.
+
+   `firstRun()` above saves the Journey fixture's document, which carries a
+   split.from of 2026-08-31 and a different sets and hi per lift. The shipped
+   setup flow can write NEITHER: setup-model.mjs:633 writes `from: today`
+   always and :622-623 write ONE global sets and ONE global hi onto every lift.
+   Every cell that claims something about the owner's own path therefore builds
+   the phone's document HERE, by driving the REAL `createSetupModel` reducer
+   through its own actions, so the document under test is the one the screens
+   actually produce. Nothing below is hand-written: only the taps are.
+   --------------------------------------------------------------------------- */
+export const SHIPPED_LIFTS = Object.freeze([
+  Object.freeze({ day: 'U', n: 'Db bench', mg: 'chest', first: '45' }),
+  Object.freeze({ day: 'U', n: 'Lat pulldown', mg: 'back', first: '80' }),
+  Object.freeze({ day: 'L', n: 'Leg press', mg: 'quads', first: '120' }),
+]);
+
+export function shippedSetup({ today, name = 'synthetic-test-identity',
+  days = { 5: 'U', 6: 'L' }, sets = 3, hi = 10, lifts = SHIPPED_LIFTS,
+  priorities = ['chest', 'back'] } = {}) {
+  const model = createSetupModel({ today });
+  model.setName(name);
+  for (const d of Object.keys(days)) { model.toggleDay(String(d)); model.setDayKind(String(d), days[d]); }
+  model.chooseSets(sets); model.chooseHi(hi);
+  for (const lift of lifts) {
+    const row = model.addExercise(lift.day);
+    model.setExerciseField(row.key, 'n', lift.n);
+    model.chooseMg(row.key, lift.mg);
+    model.setExerciseField(row.key, 'first', String(lift.first));
+  }
+  for (const p of priorities) model.togglePriority(p);
+  const built = model.document();
+  if (!built.ok) throw new Error('the shipped setup reducer refused: ' + JSON.stringify(built.missing));
+  return { setup: built.setup, tags: built.tags };
+}
+
+/* THE FIRST RUN with a NAMED document, through the same real setup lane
+   `firstRun()` uses. `firstRun()` itself, SETUP and TAGS are untouched. */
+export async function firstRunWith(era, day, setup, tags) {
+  const host = await era.createSetupHost({ day,
+    commands: Setup.createSetupCommands(), profile: Setup.PROFILE });
+  const saved = await host.save({ setup, tags });
+  host.close();
+  if (!saved.ok) throw new Error('the first run was refused: ' + (saved.code || saved.copy));
+  return saved;
+}
+
+/* THE OLD APP'S PROGRAMME, from the phone's own document: the same week, the
+   same lift ids and the same day and mg, and DIFFERENT in every field the new
+   rule RETAINS. Synthetic figures only; nothing here is any owner's. */
+const VARIED = {
+  'db-bench': { sets: 2, hi: 12, inc: 2, steps: [20, 25, 30, 35, 40, 45, 50],
+    head: 'chest-upper', secondary: [{ mg: 'triceps', lend: 0.5 }] },
+  'lat-pulldown': { sets: 5, hi: 8, inc: 10, steps: [50, 60, 70, 80, 90],
+    head: 'back-lats', secondary: [{ mg: 'biceps', lend: 0.5 }] },
+  'leg-press': { sets: 4, hi: 6, inc: 25, steps: [90, 100, 110, 120, 130],
+    head: 'quads-vmo', secondary: [{ mg: 'glutes', lend: 0.5 }] },
+};
+export const VARIED_PRIORITIES = Object.freeze(['quads', 'glutes']);
+
+export function variedProgramme(setup, { daysEarlier = 60, split = null } = {}) {
+  const varied = JSON.parse(JSON.stringify(setup));
+  const from = new Date(setup.split.from + 'T12:00:00Z');
+  from.setUTCDate(from.getUTCDate() - daysEarlier);
+  varied.split = split || { from: from.toISOString().slice(0, 10),
+    map: JSON.parse(JSON.stringify(setup.split.map)) };
+  varied.exercises = setup.exercises.map((e) => {
+    const v = VARIED[e.id];
+    return v ? { ...e, sets: v.sets, hi: v.hi, inc: v.inc, steps: v.steps.slice() } : { ...e };
+  });
+  varied.priority_muscles = VARIED_PRIORITIES.slice();
+  return varied;
+}
+
+/* The legacy state of that programme, with its own tags on the lifts and its
+   own recorded reps, one row per set the FILE says the lift carries. */
+export function variedLegacyState(varied, { sessions = DEFAULT_SESSIONS } = {}) {
+  const state = JSON.parse(JSON.stringify(createCleanInitState({ setup: varied })));
+  for (const ex of state.exercises) {
+    const v = VARIED[ex.id];
+    ex.w = LOADS[ex.id];
+    ex.last = Array.from({ length: ex.sets }, (_, i) => (REPS[ex.id] || [8])[i % (REPS[ex.id] || [8]).length]);
+    if (v) { ex.head = v.head; ex.secondary = v.secondary.map(s => ({ ...s })); }
+  }
+  const session = type => ({ type, entries: state.exercises.filter(e => e.day === type)
+    .map(e => ({ id: e.id, w: LOADS[e.id], reps: e.last.slice(), rir: 2, sets: e.sets })) });
+  state.sessionLog = Object.fromEntries(sessions.map(([day, type]) => [day, session(type)]));
+  state.reads = READS.map(([d, w]) => ({ d, w, sealed: false, note: 'INVENTED' }));
+  state.model = { anchorISO: '2026-08-14', lean: 132, drip: 0, src: 'EYE' };
+  state.trend = 176.9;
+  return state;
+}
+
+/* ONE CALL: the phone's document in, the OLD APP's sealed bundle out. */
+export function sealVariedBundle(setup, options = {}) {
+  const varied = variedProgramme(setup, options);
+  const state = variedLegacyState(varied, options);
+  return { sealed: sealInventedBundle(varied, { state }), setup: varied, state };
 }
 
 /* THE OPERATION THE INSTALLATION JUST WROTE, as admission will read it. The

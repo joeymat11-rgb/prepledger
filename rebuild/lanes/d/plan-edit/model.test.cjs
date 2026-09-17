@@ -312,7 +312,7 @@ test('full-body calendar covers both lift families while uncovered days refuse',
    generation itself, through the SAME local-source-basis.mjs join. */
 const SELECTION='local-source:synthetic-plan-edit';
 const NS='synthetic-plan-edit/device-A';
-function importedFixture({ label='Synthetic', namespace=NS, mutate=null }={}) {
+function importedFixture({ label='Synthetic', namespace=NS, mutate=null, varyBasis=null }={}) {
   const f=fixture({tags:true});
   // His own file: his own name for one lift, its rename history, and readings
   // from before this installation existed. None of it is in the setup document.
@@ -320,6 +320,10 @@ function importedFixture({ label='Synthetic', namespace=NS, mutate=null }={}) {
   imported.exercises[0].n='Flat bench';
   imported.exercises[0].renames=[{from:'2026-08-20',prevN:'Bench press'}];
   imported.reads=[{d:'2026-08-01',w:181.2},{d:'2026-09-02',w:100}];
+  /* P3-PORT-FIX cell (k). The FILE's own programme, varied ONE thing at a time,
+     BEFORE the committed view is built from it, so the admitted-basis join still
+     sees one record and the cell is measuring the predicate and nothing else. */
+  if(varyBasis)varyBasis(imported,f);
   const basis={profile:'earned/local-source-basis/v1',installation_id:namespace,local_selection_id:SELECTION};
   const view={ready:true,pending:false,issues:[],basis:copy(basis),state:copy(imported)};
   f.generation.metadata.localSources={selections:{[SELECTION]:{id:SELECTION}},active:SELECTION};
@@ -381,12 +385,82 @@ test('PE16 an unadmitted import refuses and never falls back to the clean-init b
   assert.throws(()=>createPlanEditProjector({basisState:clean.state,setupOperation:clean.origin,validateTags,
     hashBasis,basisSource:'invented'}),{code:'PLAN_EDIT_BASIS_SOURCE_UNKNOWN'});
 });
+/* ===== P3-PORT-FIX cell (k). THE COMPANION'S NEW LOCAL-SOURCE PREDICATE =====
+   P3-PORT-FIX-SPEC 1.6. The companion's own comment derives its predicate from
+   source-admission.mjs programme(): "its correspondence predicate is not ours to
+   invent". When programme() narrows, the companion narrows BY ITS OWN STATED
+   LAW, or it refuses to edit the plan the athlete was just told he would train
+   on. Every cell below is RED against the pre-fix plan-edit-model.cjs. */
+const varied=(mutate)=>importedFixture({varyBasis:mutate});
+for(const [why,mutate] of [
+  ['the file\'s week began 60 days before the document\'s',b=>{b.split[0].from='2026-07-03';}],
+  ['the file carries two periods of the same week',b=>{b.split=[{from:'2026-07-03',map:copy(b.split[0].map)},copy(b.split[0])];}],
+  ['the file states its own priority muscles',b=>{b.priority_muscles=['chest','quads'];}],
+  ['one lift carries the file\'s own set count',b=>{b.exercises[0].sets=5;}],
+  ['one lift carries the file\'s own rep target',b=>{b.exercises[0].hi=12;}],
+  ['one lift carries the file\'s own increment',b=>{b.exercises[0].inc=2.5;}],
+  ['one lift carries the file\'s own ladder',b=>{b.exercises[0].steps=[20,25,30,35];}],
+  ['one lift carries the file\'s own volume tags',b=>{b.exercises[0].head='chest-upper';b.exercises[0].secondary=[{mg:'triceps',lend:0.5}];}],
+]){
+  test('PE17 (k) an admitted import is EDITABLE when '+why,()=>{
+    const f=varied(mutate);
+    const read=f.make().read(f.generation,today);
+    assert.equal(read.state.exercises[0].id,'press');
+    assert.deepEqual(read.state.exercises[0].sets,f.imported.exercises[0].sets,
+      'the plan the companion reads carries the FILE\'s numbers');
+    assert.deepEqual(read.state.exercises[0].hi,f.imported.exercises[0].hi);
+  });
+}
+for(const [why,mutate,code] of [
+  ['a period map differs in one day letter',b=>{b.split[0].map[1]='L';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+  ['the split is not an array',b=>{b.split={from:'2026-09-01',map:{}};},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+  ['the split is empty',b=>{b.split=[];},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+  ['a period carries a third member',b=>{b.split[0].label='SYNTHETIC';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+  ['a lift the document lists is not in the basis',b=>{b.exercises[0].id='press-other';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+  ['the basis holds a lift twice',b=>{b.exercises[1].id='press';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+  ['one lift sits on another training day',b=>{b.exercises[0].day='L';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+  ['one lift is filed under another muscle group',b=>{b.exercises[0].mg='triceps';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+  ['a lift carries no name of its own',b=>{delete b.exercises[0].n;},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+  ['a lift name is blank',b=>{b.exercises[0].n='   ';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+  ['the label is not this installation\'s',b=>{b.athlete_label='Someone else';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+]){
+  test('PE17 (k) the narrowed predicate STILL REFUSES when '+why,()=>{
+    const f=varied(mutate);
+    assert.throws(()=>f.make(),{code});
+  });
+}
+test('PE17 (k) a document tag map whose key set is not the basis id set still refuses',()=>{
+  const f=importedFixture();
+  f.origin.payload.tags['ghost']=copy(emptyTags);
+  assert.throws(()=>f.make(),{code:'PLAN_EDIT_TAG_BASIS_UNPROVEN'});
+});
+test('PE17 (k) THE FIRST-RUN BRANCH IS UNTOUCHED: a clean-init basis whose set '
+  +'count has moved is still not a clean-init state',()=>{
+  const f=fixture({tags:true});
+  f.state.exercises[0].sets=5;
+  assert.throws(()=>createPlanEditProjector({basisState:f.state,setupOperation:f.origin,
+    validateTags,projectNewExerciseTags:projectNewTags,hashBasis}),{code:'PLAN_EDIT_ORIGIN_UNPROVEN'});
+  const g=fixture({tags:true});
+  g.state.split[0].from='2026-07-03';
+  assert.throws(()=>createPlanEditProjector({basisState:g.state,setupOperation:g.origin,
+    validateTags,projectNewExerciseTags:projectNewTags,hashBasis}),{code:'PLAN_EDIT_ORIGIN_UNPROVEN'});
+});
 test('PE16 the mapped collection set is exactly the collections this installation seals',()=>{
   // A trip-wire in the :456 shape: if local-client.mjs ever seals another
   // collection, this goes red here instead of an unmapped effect being projected.
   assert.deepEqual(planEditCollections(),[...sealedCollections,'derived']);
-  assert.deepEqual(P2_ROW,['id','day','mg','sets','hi','inc','steps'],
-    'source-admission.mjs programme() proves exactly these, and not the name');
+  /* CHANGED by P3-PORT-FIX (spec review R2, BINDING CORRECTION B-1). This is the
+     ONE mechanism in the tree that ties the companion's local-source field list
+     to source-admission.mjs programme(), and it is retargeted at the LIVE list
+     rather than left green over a reason the rule change made false. P2_ROW is
+     narrowed in place rather than kept beside a new name, so no constant
+     survives whose only remaining reader is the assertion about it.
+     BEFORE: ['id','day','mg','sets','hi','inc','steps'].
+     AFTER:  ['id','day','mg']. */
+  assert.deepEqual(P2_ROW,['id','day','mg'],
+    'source-admission.mjs programme() proves exactly these, and not the name: '
+    + 'set counts, rep targets, increments and ladders are RETAINED from the file '
+    + '(P3-PORT-FIX-SPEC 1.4, 1.6)');
 });
 test('PE16 f2-adapter-identity the injected tag collaborator is the published F2 source',()=>{
   // The lane copy is byte-identical to the public blob the independent reviewer
