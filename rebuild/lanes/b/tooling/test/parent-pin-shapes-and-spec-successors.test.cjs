@@ -246,3 +246,60 @@ test('F-C — the accepted verdict comes from the PARENT ARTIFACT when it has ch
   assert.throws(() => api.acceptedVerdicts(s, { acceptance: { executionPins: {} } }),
     /SUCCESSOR-ACCEPTED-SCHEDULE-UNAVAILABLE/);
 });
+
+// ------------------------------------------- S7-BASELINE-WALK (DECISIONS:516)
+// baselineOf() walks the SAME parent.artifact links pins() walks, so the cell belongs
+// beside them; what it cannot use is the fixture repository above, because the question is
+// about the REAL accepted chain. So it compiles a SECOND instance of the real runner AT
+// ITS OWN PATH: root then resolves to this checkout and rel() reads the artifacts that are
+// actually on disk. Nothing is forged and nothing is written; baselineOf only reads.
+const realRunnerFile = path.join(sourceRoot, runnerRel);
+const realModule = new Module(realRunnerFile, module);
+realModule.filename = realRunnerFile;
+realModule.paths = Module._nodeModulePaths(path.dirname(realRunnerFile));
+{
+  const savedReal = process.argv;
+  process.argv = [process.execPath, realRunnerFile, '--ci', '--package', 'S7'];
+  try {
+    realModule._compile(source.slice(0, source.indexOf(delimiter)) +
+      '\nmodule.exports={baselineOf,init(){logDir=root;specRaw=Buffer.from("{}");}};', realRunnerFile);
+  } finally { process.argv = savedReal; }
+}
+const real = realModule.exports;
+real.init();
+const onDisk = file => JSON.parse(fs.readFileSync(path.join(sourceRoot, file), 'utf8'));
+// MEASURED on this generation's chain, never assumed: hop 0 is the S7 bound's own parent
+// (acceptance-s6-today-child.json) and the baseline-bearing artifact is the NINTH read.
+// Every reseal child adds one hop, so this number is re-measured here by the generation
+// that moves it; it is a record of the chain's depth, never the walk's bound.
+const MEASURED_BASELINE_HOP = 8;
+const BASELINE_ARTIFACT = 'rebuild/conform/v4/postfix/acceptance-step-efficacy.json';
+
+test('S7-BASELINE-WALK: the audit baseline is found up the real S7 chain, and baselineOf resolves it', () => {
+  const spec = onDisk('rebuild/lanes/b/tooling/packages/S7.json');
+  const chosen = spec.parent.options.find(o => o.id === spec.parent.chosen);
+  assert(chosen && spec.parent.decided, 'S7 declares a decided parent option');
+  const proposed = onDisk(spec.artifact.file);
+  assert.equal(proposed.parent.artifact, chosen.artifact, 'the proposed artifact names the spec\'s chosen parent');
+  // (a) and (b). The walk baselineOf performs, by hand, with the hop counted. The bound
+  // here is only a cycle guard: a malformed chain must not hang the cell either.
+  let file = proposed.parent.artifact, hop = 0, found = null;
+  for (; file && hop < 64; hop++) {
+    const a = onDisk(file);
+    if (a.baseline && a.baseline.publicPins && typeof a.baseline.auditCommit === 'string') { found = file; break; }
+    file = a.parent && a.parent.artifact;
+  }
+  assert.equal(found, BASELINE_ARTIFACT, 'the baseline-bearing artifact is reached through parent.artifact links');
+  assert.equal(hop, MEASURED_BASELINE_HOP, 'the measured hop of the baseline artifact from the S7 bound');
+  // (c) The real function, on the real S7 bound. A walk that falls off its own end returns
+  // null; historical() then prints HISTORICAL AUDIT SKIPPED and notes an open obligation,
+  // and an open obligation blocks the seal (ready = last.authorized && !open.length).
+  const baseline = real.baselineOf({ option: { artifact: chosen.artifact } });
+  assert(baseline, 'BASELINE-UNRESOLVED; baselineOf returned null for the S7 bound whose baseline stands at hop ' +
+    MEASURED_BASELINE_HOP);
+  assert(baseline.publicPins && typeof baseline.auditCommit === 'string', 'the resolved baseline carries publicPins and auditCommit');
+  assert.equal(baseline.auditCommit, onDisk(BASELINE_ARTIFACT).baseline.auditCommit,
+    'the baseline the runner resolves is the one the hand walk reached');
+  assert(Object.hasOwn(baseline.publicPins, 'rebuild/conform/v4/run-defect-laws.cjs'),
+    'the resolved baseline carries the audit runner historical() requires');
+});
