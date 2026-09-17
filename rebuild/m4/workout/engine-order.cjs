@@ -49,7 +49,20 @@ function orderWorkoutStarts(history, generation, {importAnchor} = {}) {
         basis.local_selection_id !== importAnchor.activation_op_id ||
         basis.source_digest !== importAnchor.source_generation_id) return null;
     const map = selection.order_map;
-    if (map === null || map === undefined) return {map: null};
+    if (map === null || map === undefined) {
+      // B-LOM round 2, R3 MAJOR 1. NO MAP IS NOT PROOF ON ITS OWN. A record
+      // whose map has been deleted looks exactly like a record that never
+      // needed one, so the difference is read where the selection itself
+      // records it: order_input, the very input the map was computed over. If
+      // an imported log was adopted while a session-start was already on this
+      // installation, a map was required and this record has lost it; the
+      // anchor is then unproven by the same name as any unrecorded anchor.
+      const input = selection.order_input, operations = input?.operations, log = input?.legacyLog;
+      if (!operations || typeof operations !== 'object' || !log || typeof log !== 'object') return null;
+      if (Object.keys(log).length && Object.values(operations)
+        .some(op => op && op.class === 'session' && op.kind === 'session-start')) return null;
+      return {map: null};
+    }
     if (map.profile !== 'earned/local-source-order-map/v1' ||
         map.source_digest !== importAnchor.source_generation_id ||
         map.assertion?.kind !== 'athlete-confirmed-legacy-prefix' || map.assertion.answer !== true ||
@@ -131,8 +144,11 @@ function orderWorkoutStarts(history, generation, {importAnchor} = {}) {
     //     the file's last workout day. The map names the one native root it saw,
     //     and a Start with no Start ancestor must BE that root; any other
     //     rootless Start is one the map never covered and still refuses here.
-    //   - it carries NO order map: no native Start existed when the source was
-    //     activated, so every Start reached here was written after it.
+    //   - it carries NO order map AND its own recorded order_input shows there
+    //     was nothing native to order: no native Start existed when the source
+    //     was activated, so every Start reached here was written after it. A
+    //     map merely MISSING from a record that needed one never reaches this
+    //     line; the anchor above already refused it.
     // A graph anchor still proves descent the graph's own way; only the local
     // era reads the record instead.
     if (importAnchor && !dependency.followsImport && !dependency.need.size &&

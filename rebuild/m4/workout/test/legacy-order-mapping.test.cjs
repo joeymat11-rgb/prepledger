@@ -5,6 +5,7 @@
 // stub of that rule, and no cell asserts the provider against itself.
 const test=require('node:test'),assert=require('node:assert/strict');
 const {createLegacyOrderMapping,activeLocalSelection,REFUSAL}=require('../legacy-order-mapping.cjs');
+const {orderWorkoutStarts}=require('../engine-order.cjs');
 const createPerformed=require('../../../engine/performed.cjs');
 const engine=()=>createPerformed({},{});
 const REF={code:REFUSAL};
@@ -23,9 +24,17 @@ const basis=()=>({profile:'earned/local-source-basis/v1',...SHARED,device_id:'de
 const orderMap=()=>({profile:'earned/local-source-order-map/v1',...SHARED,...MAP_DIGESTS,
  native_root_id:ROOT,assertion:{kind:'athlete-confirmed-legacy-prefix',answer:true,
   prompt_version:'earned/legacy-prefix-prompt/v1',review_digest:'sha-review-1'}});
+// order_input is the input the order map was computed over, and admission
+// records it on every selection (source-admission.mjs). `operations` is the
+// generation's own op map as it stood then, which is how a record proves there
+// was nothing native to order rather than merely failing to mention it.
+const START_OP={op_id:ROOT,class:'session',kind:'session-start',athlete_id:'ath-1'};
 const selection=(over={})=>({id:SELECTION_ID,name:'earned-port.json',basis:basis(),
- order_map:orderMap(),order_input:{legacyLog:{'2026-09-01':{}}},identity_review:{},
- previous:null,action:'select',...over});
+ order_map:orderMap(),order_input:{legacyLog:{'2026-09-01':{}},operations:{[ROOT]:START_OP}},
+ identity_review:{},previous:null,action:'select',...over});
+// The selection admission records when NOTHING native was on the installation.
+const noNative=(over={})=>selection({order_map:null,
+ order_input:{legacyLog:{'2026-09-01':{}},operations:{}},...over});
 // The smallest state performed.cjs:176 actually reaches: one imported day, one
 // native session with no entries, and a well-formed order over that one Start.
 const sessionLog=()=>({'2026-09-01':{d:'2026-09-01',w:135,reps:[5,5,5]}});
@@ -111,8 +120,8 @@ test('LOM/5 the athlete answer is a STRICT true; nothing else opens the door',()
  assert.throws(()=>createLegacyOrderMapping({selection:profile}),REF);
 });
 
-test('LOM/6 NO order map is its own true answer: nothing native existed at admission',()=>{
- const m=createLegacyOrderMapping({selection:selection({order_map:null})});
+test('LOM/6 NO order map is a true answer only when the RECORD shows nothing native to order',()=>{
+ const m=createLegacyOrderMapping({selection:noNative()});
  assert.equal(m.binding.order_map,null);
  assert.deepEqual({...m.anchor},{source_generation_id:SHARED.source_digest,activation_op_id:SELECTION_ID});
  const state={sessionLog:sessionLog(),workoutFacts:facts()};
@@ -163,4 +172,71 @@ test('LOM/9 activeLocalSelection: absence is not a refusal, a corrupt record is'
  assert.throws(()=>activeLocalSelection({metadata:{localSources:{selections:
   {[SELECTION_ID]:{...sel,id:'local-source:other'}},active:SELECTION_ID}}}),REF);
  assert.throws(()=>activeLocalSelection({metadata:{localSources:{selections:{},active:''}}}),REF);
+});
+
+/* ROUND 2, R3 MAJOR 1. The inverted red side, at the provider. A map that has
+   been DELETED from a record that needed one is not the same thing as a record
+   that never needed one, and the difference is in the selection's own recorded
+   order_input. Absence is never read as proof. */
+test('LOM/10 a MISSING order map beside a recorded session-start is refused, never read as proof',()=>{
+ for(const drop of [s=>{delete s.order_map;},s=>{s.order_map=null;}]){
+  const s=selection();drop(s);
+  assert.throws(()=>createLegacyOrderMapping({selection:s}),REF,
+   'the record holds a session-start and an imported log, so a map was required');
+ }
+ // And the same record with the map back is a proof again: the refusal is the
+ // absence, not the shape of this fixture.
+ assert.equal(createLegacyOrderMapping({selection:selection()}).binding.order_map.native_root_id,ROOT);
+ // A record that cannot say what it saw cannot prove absence either.
+ for(const break_ of [s=>{delete s.order_input;},s=>{delete s.order_input.operations;},
+   s=>{delete s.order_input.legacyLog;},s=>{s.order_input.operations=null;}]){
+  const s=noNative();break_(s);
+  assert.throws(()=>createLegacyOrderMapping({selection:s}),REF,'an order_input that proves nothing');
+ }
+ // An op that is not a session-start leaves the true absence standing: this is
+ // admission's own `mixed` predicate and nothing wider.
+ const other=noNative();other.order_input.operations={'op-1':{op_id:'op-1',class:'reading',kind:'weigh-in'}};
+ assert.equal(createLegacyOrderMapping({selection:other}).binding.order_map,null);
+ // An empty legacy log is not an adoption, so no map was ever required for it.
+ const empty=noNative();empty.order_input.legacyLog={};
+ empty.order_input.operations={[ROOT]:START_OP};
+ assert.equal(createLegacyOrderMapping({selection:empty}).binding.order_map,null);
+});
+
+/* ROUND 2, R3 MAJOR 1, at the OTHER reader of the same record. engine-order.cjs
+   accepts a recorded selection as the alternative anchor proof, and it too used
+   to read a missing map as "nothing native at admission". The refusal it owes
+   has a name of its own and it is the one it already uses for an anchor this
+   generation does not record. */
+const START_OP_FULL={op_id:ROOT,class:'session',kind:'session-start',athlete_id:'ath-1',
+ causal_parents:[]};
+const generationFor=sel=>({collections:{ops:{[ROOT]:START_OP_FULL},receipts:{},
+ sync:{frontier:{W:0}}},metadata:{localSources:{active:SELECTION_ID,selections:{[SELECTION_ID]:sel}}}});
+const historyFor=()=>({frontier:0,sessions:[{start:{operation:START_OP_FULL,
+ status:'stored-on-this-device'}}]});
+const ANCHOR={source_generation_id:SHARED.source_digest,activation_op_id:SELECTION_ID};
+
+test('LOM/11 engine-order.cjs: a DELETED order map is an unproven anchor, not a free pass',()=>{
+ const order=orderWorkoutStarts(historyFor(),generationFor(selection()),{importAnchor:ANCHOR});
+ assert.deepEqual(order.start_ids,[ROOT],'the recorded map names this Start as the native root');
+ assert.deepEqual(order.import_anchor,ANCHOR);
+ for(const drop of [s=>{delete s.order_map;},s=>{s.order_map=null;}]){
+  const s=selection();drop(s);
+  assert.throws(()=>orderWorkoutStarts(historyFor(),generationFor(s),{importAnchor:ANCHOR}),
+   {code:'WORKOUT_ORDER_IMPORT_ANCHOR_UNPROVEN'},
+   'the record holds a session-start and an imported log, so the missing map is a LOST map');
+ }
+ // The genuine no-native record still proves the anchor, and the Start after it
+ // still orders: the rule narrowed, it did not close.
+ const clean=orderWorkoutStarts(historyFor(),generationFor(noNative()),{importAnchor:ANCHOR});
+ assert.deepEqual(clean.start_ids,[ROOT]);
+ assert.deepEqual(clean.import_anchor,ANCHOR);
+ // And a record that cannot say what it saw proves nothing.
+ const mute=noNative();delete mute.order_input;
+ assert.throws(()=>orderWorkoutStarts(historyFor(),generationFor(mute),{importAnchor:ANCHOR}),
+  {code:'WORKOUT_ORDER_IMPORT_ANCHOR_UNPROVEN'});
+ // The map that IS recorded still has to name THIS Start, unchanged from round 1.
+ const other=selection();other.order_map.native_root_id='start-op-2';
+ assert.throws(()=>orderWorkoutStarts(historyFor(),generationFor(other),{importAnchor:ANCHOR}),
+  {code:'WORKOUT_ORDER_IMPORT_DESCENT_UNPROVEN'});
 });

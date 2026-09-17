@@ -36,6 +36,31 @@
 // session log. No clock, no network, no I/O, no private data, nothing required
 // from rebuild/m4/import (this module ships inside the page's boot graph and
 // must not pull the import lane into it), and no argument mutated in place.
+//
+// WHAT "BOUND" MEANS HERE, stated honestly (reviews R1 finding 3, R3 finding 4).
+// This module cannot RECOMPUTE a digest: recomputing one needs the import lane,
+// which must not enter the page's boot graph (DECISIONS:480). So of the sixteen
+// recorded fields it reads, it is PRESENCE-bound on the ten digest-valued ones
+// - the six basis digests, the three map digests and native_root_id - and
+// SUBSTITUTION-bound on the six that it can cross-check without hashing
+// anything: the five shared identity fields, which the order map and the basis
+// must agree on character for character, and local_selection_id, which must be
+// the selection's own id and the id metadata.localSources.active names. The
+// athlete's answer is bound the same way, by strict identity to true.
+//
+// No wrong order can come out of that boundary, and this is why. A substituted
+// digest breaks the three recorded copies of Q that
+// rebuild/m3/w7-preview/today/local-source-basis.mjs compares before Today
+// adopts anything, so the page adopts NO imported state and the legacy branch
+// of performed.cjs is never entered. A substituted native_root_id makes
+// engine-order.cjs refuse WORKOUT_ORDER_IMPORT_DESCENT_UNPROVEN, because the
+// Start it names is not the rootless Start the graph actually holds. A
+// substituted source_digest or selection id makes it refuse
+// WORKOUT_ORDER_IMPORT_ANCHOR_UNPROVEN, because the generation records neither.
+// Every one of those is a REFUSAL BY NAME. What this module buys is that a
+// corrupted record cannot become a silently different workout order; what it
+// does not buy, and does not claim, is detection of a record rewritten by
+// something that also rewrote all three copies of Q.
 const PROFILE='earned/imported-engine-history/v1';
 const BASIS_PROFILE='earned/local-source-basis/v1';
 const MAP_PROFILE='earned/local-source-order-map/v1';
@@ -81,11 +106,20 @@ function createLegacyOrderMapping({selection,orderMap}={}){
  if(!text(selection.id)||selection.id!==basis.local_selection_id)fail();
  for(const k of SHARED)if(!text(basis[k]))fail();
  for(const k of BASIS_DIGESTS)if(!text(basis[k]))fail();
- // An order map is recorded only when native Starts existed at admission time
- // (source-admission.mjs `mixed`). Its ABSENCE is itself evidence, and a true
- // one: nothing native was here when the source was activated, so every native
- // Start on this installation was written after it. Its PRESENCE carries the
- // athlete's own answer, and that answer has to be a strict true.
+ // An order map is recorded only when an imported log was being adopted AND
+ // native Starts already existed (source-admission.mjs `mixed`). Its PRESENCE
+ // carries the athlete's own answer, and that answer has to be a strict true.
+ //
+ // Its ABSENCE is evidence too, but it has to be EARNED, and round 2's first
+ // MAJOR is that it was not: a deleted or nulled map was read as "nothing
+ // native was here at admission", which is the one reading a LOST map also
+ // produces. Absence is never proof on its own. It is proof only when the SAME
+ // recorded selection shows there was nothing native to order, and the
+ // selection records exactly that in its own `order_input` - the input the
+ // order map was computed over. So the test below is admission's own `mixed`
+ // predicate, run against the recorded input instead of against a live
+ // generation: an imported log with any recorded session-start beside it MUST
+ // carry a map, and a record that does not is refused by name.
  const map=orderMap===undefined?(selection.order_map===undefined?null:selection.order_map):orderMap;
  if(map!==null){
   if(!plain(map)||map.profile!==MAP_PROFILE)fail();
@@ -96,7 +130,13 @@ function createLegacyOrderMapping({selection,orderMap}={}){
   if(!plain(a)||a.kind!==ASSERTION||a.answer!==true||a.prompt_version!==PROMPT||!text(a.review_digest))fail();
   // A map handed in separately must be the map this selection recorded.
   if(plain(selection.order_map)&&canonical(selection.order_map)!==canonical(map))fail();
- }else if(plain(selection.order_map))fail();
+ }else{
+  if(plain(selection.order_map))fail();
+  const input=selection.order_input;
+  if(!plain(input)||!plain(input.operations)||!plain(input.legacyLog))fail();
+  if(Object.keys(input.legacyLog).length&&Object.values(input.operations)
+   .some(op=>plain(op)&&op.class==='session'&&op.kind==='session-start'))fail();
+ }
  const anchor=Object.freeze({source_generation_id:basis.source_digest,activation_op_id:selection.id});
  const binding=Object.freeze({profile:'earned/legacy-order-mapping/v1',
   ...Object.fromEntries(SHARED.map(k=>[k,basis[k]])),

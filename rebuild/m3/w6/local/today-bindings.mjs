@@ -417,13 +417,37 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
        every Start are the same members, carried by reference through the spread
        - so the revision, unique-Start and effective-tuple correspondence that
        window exists to check reads exactly what it read before. */
-    const localSelection = LegacyOrder.activeLocalSelection(
-      (await bindings.repository.load()).generation);
-    const mapping = localSelection
-      ? LegacyOrder.createLegacyOrderMapping({ selection: localSelection }) : null;
-    const composed = s => (mapping && s && s.workoutFacts && s.sessionLog &&
-      Object.keys(s.sessionLog).length
-        ? { ...s, workoutFacts: mapping.attach(s.workoutFacts, s) } : s);
+    /* CONTAINED HERE, round 2 (review R3 MAJOR 2). A refusal is a CARD refusal,
+       never a boot failure. today-entry.mjs awaits createGymHost uncaught, so a
+       provider refusal thrown from this line used to take the whole page down
+       and the athlete got no screen at all - where the base, on the identical
+       corrupt record, left Today standing and the card blocked by name. So the
+       refusal is CAUGHT here and carried, and it is re-thrown at the one place
+       it belongs: inside the engine read, on a state that actually carries an
+       imported log, where the card's own refusal path turns it into a blocked
+       card with this code on it, exactly as it turned the engine's
+       PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED into one before B-LOM existed.
+       Every other lane of Today - the plan, the weigh-in, food, sleep, the
+       reading host - boots and reads as it always did. Only this module's own
+       refusal is caught: anything else thrown here is a defect and still
+       propagates. */
+    let mapping = null, mappingRefusal = null;
+    try {
+      const localSelection = LegacyOrder.activeLocalSelection(
+        (await bindings.repository.load()).generation);
+      if (localSelection)
+        mapping = LegacyOrder.createLegacyOrderMapping({ selection: localSelection });
+    } catch (error) {
+      if (!error || error.code !== LegacyOrder.REFUSAL) throw error;
+      mappingRefusal = error.code;
+    }
+    const composed = s => {
+      const imported = !!(s && s.workoutFacts && s.sessionLog && Object.keys(s.sessionLog).length);
+      if (mappingRefusal && imported) {
+        const error = new Error(mappingRefusal); error.code = mappingRefusal; throw error;
+      }
+      return mapping && imported ? { ...s, workoutFacts: mapping.attach(s.workoutFacts, s) } : s;
+    };
     const engine = Object.freeze({
       genSession: (s, iso, slp) => scoped(s && s.workoutFacts, () => runtime.genSession(composed(s), iso, slp)),
       rirPlan: (s, ex, slp) => scoped(s && s.workoutFacts, () => runtime.rirPlan(composed(s), ex, slp)) });

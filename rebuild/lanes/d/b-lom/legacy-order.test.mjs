@@ -28,9 +28,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { IDBFactory, sealInventedBundle, eraFor, firstRun, admit, durable, liveAt,
-  createSourcePlatform, Profile, SETUP, IMPORTED_LOADS,
+  createSourcePlatform, Profile, SETUP, IMPORTED_LOADS, parseStrictJson,
   SOURCE_SESSION_DAYS } from '../../../m3/w7-preview/import/test/support.mjs';
 import { createGymModel } from '../../../m3/w7-preview/today/gym-model.mjs';
+import { createWorkoutEntry } from '../../../m3/w7-preview/today/today-entry.mjs';
+import TodayModel from '../../../m3/w7-preview/today/today-model.cjs';
+import Capture from '../../../m4/workout/capture.cjs';
+import Commands from '../../../m4/workout/commands.cjs';
 import { createMeasureHost } from '../../../m3/w7-preview/measure/measure-host.mjs';
 import { createCleanInitState } from '../../../m3/w7-preview/today/setup-model.mjs';
 import { admittedLocalSourceBasis } from '../../../m3/w7-preview/today/local-source-basis.mjs';
@@ -137,6 +141,25 @@ async function laterDays(era, from, state) {
   return seen;
 }
 
+/* BAR ROW 4, MEASURED - round 2 (review R1 finding 1, R3 MAJOR 3). laterDays
+   collected `previous` and `prev` and compared neither, so "the prescription is
+   the RIGHT one" rested on a table the reviewers built by hand. Here is that
+   table, in the cells, read off the card model itself.
+
+   `previous` is the line the card prints (gym-model.mjs previousLine). `prev` is
+   the record that line came out of, and its SHAPE says which record governs: the
+   imported file's own {d, w, reps} entry, replayed out of the old engine's
+   sessionLog, or an `earned/performed-lift/v1` record this device wrote. That
+   distinction is the whole of bar row 4: a regression that read the imported row
+   where the native row governs would print a plausible line and be caught by no
+   other assertion here. */
+const governs = prev => prev === null ? null
+  : typeof prev.d === 'string' && typeof prev.w === 'number' ? 'imported'
+    : typeof prev.profile === 'string' && prev.profile.startsWith('earned/performed-lift/')
+      ? 'native' : 'unknown';
+const handTable = rows => rows.filter(row => row.lift)
+  .map(row => [row.offset, row.lift, row.previous, governs(row.prev)]);
+
 /* The facts the host itself registered for the day just read: the order the
    engine was actually given, anchor and all. Never rebuilt here. */
 const factsOf = gymHost => gymHost.host.lastProjection()?.workout_history || null;
@@ -197,6 +220,19 @@ for (const season of SEASONS) {
       const first = await recordWorkout(era, season.day, state);
       const later = await laterDays(era, season.day, state);
       assert.ok(later.some(row => row.lift), JSON.stringify(later));
+      /* BAR ROW 4. The imported prefix governs the lift he has not trained here
+         (leg-press, off the file's own 2026-08-17 entry, 120 lb for 10); the
+         record this device wrote governs the one he has (db-bench, 45 lb for 7,
+         the first set of the session recorded on season.day). */
+      assert.deepEqual(handTable(later), [[1, 'leg-press', 'Last time: 120 lb × 10', 'imported'],
+        [7, 'db-bench', 'Last time: 45 lb × 7', 'native']], JSON.stringify(handTable(later)));
+      const importedRow = later.find(row => row.offset === 1).prev;
+      assert.equal(importedRow.d, '2026-08-17', 'the imported line came off another day of the file');
+      assert.deepEqual(importedRow.reps, [10, 10, 9], 'and off that day\'s own recorded set');
+      const nativeRow = later.find(row => row.offset === 7).prev;
+      assert.equal(nativeRow.start_op_id, first,
+        'the native line came off the very Start this installation just wrote');
+      assert.equal(nativeRow.lift_lineage_id, 'db-bench');
 
       /* THE NATIVE SESSION IS A MEMBER, ONCE: not dropped into the imported
          prefix and not counted twice, and the anchor on the order is the one
@@ -212,6 +248,41 @@ for (const season of SEASONS) {
       const after = await durable(era);
       assert.equal(after.applied, true);
       assert.ok(after.ops > staged.ops, 'the workout really was written');
+
+      /* THE SECOND WORKOUT, and the hand table again after it. This is the row
+         the owner actually reaches on his third day: the line the card prints
+         for a lift he has now trained HERE must come off the record this device
+         wrote, not off the file he imported, and the imported prefix must not
+         move under it. */
+      const secondStart = await recordWorkout(era, offsetDay(season.day, 1), state);
+      assert.notEqual(secondStart, first, 'the second workout wrote no Start of its own');
+      const trained = [], previousOf = new Map();
+      for (const offset of [3, 4, 7, 8]) {
+        const card = await openCard(era, offsetDay(season.day, offset), state);
+        const lift = card.view.set ? card.view.set.lift : null;
+        const prev = lift ? card.gym.previous().get(lift) || null : null;
+        trained.push([offset, card.view.phase, card.view.code || null, lift,
+          card.view.previous || null, governs(prev)]);
+        if (prev) previousOf.set(lift, prev);
+        if (offset === 7) assert.deepEqual(factsOf(card.gymHost).order.start_ids,
+          [first, secondStart], 'both Starts, in device order, each exactly once');
+        card.gymHost.close();
+      }
+      /* Day+8 is the row that matters and the reason the SHAPE is compared and
+         not only the line: leg-press still reads 120 lb for 10, character for
+         character what the imported file said, but it is now governed by the
+         record of the SECOND workout - which was prescribed off that imported
+         row and performed at it. A regression that kept reading the file here
+         would print exactly this line, and only `governs` tells them apart. */
+      assert.deepEqual(trained, [[3, 'blocked', 'ENGINE_CAPTURE_NO_WORKOUT', null, null, null],
+        [4, 'blocked', 'ENGINE_CAPTURE_NO_WORKOUT', null, null, null],
+        [7, 'ready', null, 'db-bench', 'Last time: 45 lb × 7', 'native'],
+        [8, 'ready', null, 'leg-press', 'Last time: 120 lb × 10', 'native']], JSON.stringify(trained));
+      assert.equal(previousOf.get('leg-press').start_op_id, secondStart,
+        'leg-press is still being read off the imported file after he trained it here');
+      assert.equal(previousOf.get('db-bench').start_op_id, first);
+      assert.deepEqual(Object.keys((await standing(era)).sessionLog).sort(), SOURCE_SESSION_DAYS,
+        'a native workout was absorbed into the imported prefix');
     });
 }
 
@@ -229,6 +300,13 @@ for (const season of SEASONS) {
       const later = await laterDays(era, season.day, state);
       const opened = later.find(row => row.lift);
       assert.ok(opened, JSON.stringify(later));
+      /* BAR ROW 4, the other order. The imported prefix still governs the lift
+         he has not trained here; the pre-import session governs the one he has,
+         on the clean-init numbers it was actually performed at - it is LATER
+         than the file's last day, which is exactly what the athlete's recorded
+         prefix answer asserted, so it governs and the file does not. */
+      assert.deepEqual(handTable(later), [[1, 'leg-press', 'Last time: 120 lb × 10', 'imported'],
+        [7, 'db-bench', 'Last time: 20 lb × 8', 'native']], JSON.stringify(handTable(later)));
       const { facts } = await orderOn(era, opened.day, state);
       assert.deepEqual(facts.order.start_ids, [first]);
       assert.deepEqual(facts.order.import_anchor,
@@ -413,3 +491,131 @@ test('LOM-F - REOPEN AND ROLLBACK to a selection recorded before any native work
     assert.equal(after.revision, staged.revision, 'a refusal moved the generation');
     assert.equal(after.applied, true, 'the admitted import is still admitted');
   });
+
+/* ROUND 2. THE DURABLE RECORD, DAMAGED - and written the way the product writes
+   anything, through the repository's own compare-and-set commit. Nothing below
+   fabricates a selection: it takes the one the REAL admission recorded and
+   removes or contradicts exactly one field of it, which is what a store damaged
+   between two page loads looks like from the page's side. */
+const workoutCommands = Commands.createWorkoutCommands({
+  prescriptionCapture: Capture.createPrescriptionCapture({ parseStrictJson }) });
+
+async function damage(era, mutate) {
+  const repository = (await era.client.hostBindings({ workoutCommands })).repository;
+  const before = await repository.load();
+  const next = JSON.parse(JSON.stringify(before.generation));
+  const registry = next.metadata.localSources;
+  mutate(registry.selections[registry.active], registry);
+  await repository.commit({ revision: before.revision, token: before.token }, next, () => null);
+  const after = await repository.load();
+  assert.equal(after.revision, before.revision + 1, 'the damage was not made durable');
+  return after.generation.metadata.localSources.selections[after.generation.metadata.localSources.active];
+}
+
+/* Every later day, read for its CODE alone. laterDays above asserts that no day
+   is blocked; this is its mirror, and it names the code rather than accepting
+   any refusal at all. */
+async function blockedDays(era, from, state, code) {
+  for (const offset of [1, 7]) {
+    const { gymHost, view } = await openCard(era, offsetDay(from, offset), state);
+    assert.equal(view.phase, 'blocked', 'day+' + offset + ' opened on a record that proves nothing');
+    assert.equal(view.code, code, 'day+' + offset + ': ' + view.code);
+    gymHost.close();
+  }
+}
+
+for (const season of SEASONS) {
+  test('LOM-G [' + season.name + '] - THE MAP\'S ABSENCE IS NOT A PROOF: a selection whose '
+    + 'recorded order_input holds a native Start and whose order map is GONE is refused', async t => {
+      /* ROUND 2, R3 MAJOR 1. The brief's section 3 red side, on the real route.
+         It was written as "with the selection's order_map removed from the
+         generation, the same four days are blocked", and round 1 had it
+         INVERTED: a deleted map read as "nothing native existed at admission",
+         which is the one reading a record that has LOST its map also produces,
+         so the days OPENED. They must not. The train-then-import order is the
+         one that records a map at all, so it is the one that can lose it. */
+      const { era, scope } = await install(t, 'g-' + season.name, season);
+      const first = await recordWorkout(era, season.day, nativeState());
+      const result = await admit(era, SEALED, { day: season.day, ...scope });
+      assert.equal(result.admitted, true, JSON.stringify(result.codes || result.code || result.stage));
+      assert.equal(result.view.order_map.native_root_id, first, 'a map really was recorded');
+      const state = await standing(era);
+      assert.deepEqual(handTable(await laterDays(era, season.day, state)),
+        [[1, 'leg-press', 'Last time: 120 lb × 10', 'imported'],
+          [7, 'db-bench', 'Last time: 20 lb × 8', 'native']], 'the intact record opens the days');
+
+      /* DELETED, then NULL. Both are the same absence and both are refused, and
+         the record still says why: its own order_input holds the session-start
+         this device wrote before the import, beside the legacy log it adopted,
+         which is exactly the condition admission records a map for. */
+      const stripped = await damage(era, selection => { delete selection.order_map; });
+      assert.equal(Object.hasOwn(stripped, 'order_map'), false);
+      assert.ok(Object.keys(stripped.order_input.legacyLog).length, 'the record still shows the adoption');
+      assert.ok(Object.values(stripped.order_input.operations)
+        .some(op => op.class === 'session' && op.kind === 'session-start'),
+      'and it still shows the native Start that made a map mandatory');
+      await blockedDays(era, season.day, state, 'LEGACY_ORDER_MAPPING_UNPROVEN');
+
+      await damage(era, selection => { selection.order_map = null; });
+      await blockedDays(era, season.day, state, 'LEGACY_ORDER_MAPPING_UNPROVEN');
+
+      /* AND IT IS THE ABSENCE, NOT THE DAMAGE: put the recorded map back,
+         byte for byte, and the same days open again. */
+      await damage(era, selection => { selection.order_map = JSON.parse(JSON.stringify(result.view.order_map)); });
+      assert.deepEqual(handTable(await laterDays(era, season.day, state)),
+        [[1, 'leg-press', 'Last time: 120 lb × 10', 'imported'],
+          [7, 'db-bench', 'Last time: 20 lb × 8', 'native']], 'the restored record opens them again');
+      const ops = await durable(era);
+      assert.equal(ops.applied, true, 'the admitted import is still admitted');
+    });
+}
+
+for (const season of SEASONS) {
+  test('LOM-H [' + season.name + '] - A PROVIDER REFUSAL IS A CARD REFUSAL: Today BOOTS through '
+    + 'the real entry and the card reads blocked by name', async t => {
+      /* ROUND 2, R3 MAJOR 2. With the recorded answer contradicted, the provider
+         refuses - correctly. Round 1 threw that refusal out of createGymHost,
+         which today-entry.mjs awaits uncaught, so the whole page failed to open
+         and the athlete got no screen at all. The BASE, on the identical record,
+         left Today standing and the card blocked PERFORMED_LEGACY_ORDER_MAPPING_
+         REQUIRED. A refusal must be a code the athlete can read on a card, not a
+         boot failure, so this cell drives the REAL entry - today-entry.mjs's own
+         createWorkoutEntry over the real gym host and the real card model. */
+      const { era, scope } = await install(t, 'h-' + season.name, season);
+      await recordWorkout(era, season.day, nativeState());
+      const result = await admit(era, SEALED, { day: season.day, ...scope });
+      assert.equal(result.admitted, true, JSON.stringify(result.codes || result.code || result.stage));
+      const damaged = await damage(era, selection => { selection.order_map.assertion.answer = false; });
+      assert.equal(damaged.order_map.assertion.answer, false, 'the record still carries his Yes');
+
+      const state = await standing(era);
+      assert.deepEqual(Object.keys(state.sessionLog).sort(), SOURCE_SESSION_DAYS,
+        'Today still adopts the imported basis, so the engine still needs the mapping');
+      const day = offsetDay(season.day, 1);
+      const model = TodayModel.createTodayModel({ today: day, basisState: state });
+      /* THE BOOT ITSELF. If this rejects, Today does not open at all. */
+      const entry = await createWorkoutEntry(model, { hosts: { createGymHost: era.createGymHost } });
+      assert.ok(entry && typeof entry.refresh === 'function', 'Today did not boot');
+      const summary = await entry.refresh();
+      assert.equal(summary.phase, 'blocked', JSON.stringify(summary));
+      assert.equal(summary.code, 'LEGACY_ORDER_MAPPING_UNPROVEN',
+        'the card refuses with a code, and it is the provider\'s own: ' + summary.code);
+      assert.equal(summary.sets, 0);
+      assert.deepEqual(entry.summary(), summary, 'the entry is standing and holds the refusal');
+
+      /* AND THE REST OF TODAY STANDS. The plan renders off the same adopted
+         state, and another lane of the same page opens over the same store. */
+      const view = model.read();
+      assert.ok(view && typeof view === 'object', 'the plan did not render');
+      const measure = await createMeasureHost({ day, era });
+      t.after(() => measure.close());
+      assert.equal(typeof await measure.ensureTrialStart(), 'string',
+        'the Measure lane went down with the gym card');
+      /* The card model, opened directly, reads the same refusal - the entry is
+         not the thing containing it, the seam is. */
+      const { gymHost, view: card } = await openCard(era, day, state);
+      assert.equal(card.phase, 'blocked');
+      assert.equal(card.code, 'LEGACY_ORDER_MAPPING_UNPROVEN');
+      gymHost.close();
+    });
+}

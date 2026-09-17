@@ -1114,7 +1114,7 @@ test('A2 — the causal frontier is DERIVED from the durable log, never remember
   });
 });
 
-/* A2 (B-LOM, DECISIONS:486) — RE-REASONED WHERE IT STOOD.
+/* A2 (B-LOM, DECISIONS:486). RE-REASONED WHERE IT STOOD.
 
    This cell used to read "refused a second session OUTRIGHT", as if a legacy
    session log were by itself the end of the athlete's week. It is not, and it
@@ -1122,7 +1122,7 @@ test('A2 — the causal frontier is DERIVED from the durable log, never remember
    is handed carries no legacy_baseline and no order.import_anchor, and those
    two exist only where an installation has RECORDED which imported history the
    log is and when it activated it (metadata.localSources). This lane records no
-   such thing — that is measured below, it is not assumed — so the refusal here
+   such thing (that is measured below, it is not assumed), so the refusal here
    is CORRECT and stays exactly as it was, assertion for assertion. What has
    changed is the rule it stands for:
 
@@ -1133,13 +1133,13 @@ test('A2 — the causal frontier is DERIVED from the durable log, never remember
      native session after it, listed once.
 
    The positive half is executed on the REAL route, where a recorded selection
-   can exist at all — a real sealed bundle, the real S3 admission controller and
+   can exist at all: a real sealed bundle, the real S3 admission controller and
    the real card, in both orders and on two seasons: rebuild/lanes/d/b-lom/
    legacy-order.test.mjs (LOM-A, LOM-B, LOM-C). It is not duplicated here,
    because this lane has no admission controller and the only way to give it a
-   selection would be to fabricate one — which is precisely the caller proof the
+   selection would be to fabricate one, which is precisely the caller proof the
    engine refuses to accept. */
-test('A2 — an athlete carrying a LEGACY session log and NO recorded import is refused a second session', async t => {
+test('A2 (B-LOM): an athlete carrying a LEGACY session log and NO recorded import is refused a second session', async t => {
   const legacy = createTodayModel({}).stateFromOps();     // the fixture keeps its legacy sessionLog
   assert(Object.keys(legacy.sessionLog).length > 0, 'this athlete really does carry a legacy log');
   const L = await lane(legacy, 'legacy');
