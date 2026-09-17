@@ -19,6 +19,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, carry, material,
@@ -259,14 +260,75 @@ test('P3-P5 - a REVIEWED execution row pinned to the wrong material refuses '
  * re-required over it, which is exactly what the ff-merge does to the running
  * bundle and nothing more. The substituted value is deliberately NOT S6's real
  * one - a literal nobody will ever ship makes the cell independent of whatever
- * the PM pastes into that file.
+ * the PM pastes into that file, and it is DERIVED from the expected constant so
+ * it moves with it.
  *
  * THE RED SIDE IS IN THE CELL. The two digests the rotation moves are asserted
  * to DIFFER, and the admitted record is then asserted to read back unchanged
  * anyway. A qualify() that compared the stored value to the current one would
  * fail the read three lines below, which is the mutant the author report
  * records as applied, run and reverted. */
-const ROTATED = 'M2-NOT-A-REAL-PACKAGE@abcdef0123456789';
+/* THE SEAL-WINDOW RULE, ONE READING, duplicated here the way
+   production-mapping.test.cjs and coach/test/engine-revision.test.cjs each
+   carry their own copy. Step 1 below names the standing constant BY RULE rather
+   than by literal: this file is S6-declared product whose post is pinned in the
+   sealed artifact, so a literal S5 value would go red the moment the seal moves
+   the constant to S6 - and could not be edited to S6 first, because the window
+   still expects S5. The rule expects S5 in the window and S6 after the seal, so
+   the row re-runs against whatever replaced it, which is what the old comment
+   asked for. */
+const REVISION_RULE =
+  'ENGINE_REVISION names the standing package\'s seal: if receipts/<standing>.json '
+  + 'EXISTS the constant is <that receipt\'s packageId>@<first 16 hex of sha256 over its '
+  + 'bytes>; if it does NOT (the sealing window) the standing spec '
+  + 'packages/<standing>.json must exist with status BRIEF-ACCEPTED and name a parent '
+  + 'whose receipt exists, and the constant is <the PARENT receipt\'s packageId>@<sha16 '
+  + 'of the PARENT receipt>, because the constant moves only after the new receipt '
+  + 'exists (DECISIONS:465-467, :495)';
+
+const sha16 = file =>
+  crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0, 16);
+const receiptId = file => {
+  const receipt = JSON.parse(fs.readFileSync(file, 'utf8'));
+  return receipt.packageId || receipt.lanePackage;
+};
+
+function standingSeal(repoRoot) {
+  const tooling = (...p) => path.join(repoRoot, 'rebuild', 'lanes', 'b', 'tooling', ...p);
+  const yml = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'rebuild.yml'), 'utf8');
+  const m = /b-package\.cjs\s+--ci\s+--package\s+(\S+)/.exec(yml);
+  if (!m) throw new Error('no standing `b-package.cjs --ci --package <id>` step in rebuild.yml');
+  const standing = m[1];
+  const receipt = tooling('receipts', standing + '.json');
+  if (fs.existsSync(receipt))
+    return { standing, state: 'sealed', named: standing, receipt,
+      expected: receiptId(receipt) + '@' + sha16(receipt) };
+  const spec = tooling('packages', standing + '.json');
+  if (!fs.existsSync(spec))
+    throw new Error('the standing package ' + standing + ' has neither a sealed receipt nor '
+      + 'a spec at rebuild/lanes/b/tooling/packages/' + standing + '.json. ' + REVISION_RULE);
+  const declared = JSON.parse(fs.readFileSync(spec, 'utf8'));
+  if (declared.status !== 'BRIEF-ACCEPTED')
+    throw new Error('packages/' + standing + '.json is ' + declared.status + ', not '
+      + 'BRIEF-ACCEPTED, so no sealing window is open. ' + REVISION_RULE);
+  const parent = declared.parent && declared.parent.chosen;
+  if (!parent)
+    throw new Error('packages/' + standing + '.json names no parent.chosen. ' + REVISION_RULE);
+  const parentReceipt = tooling('receipts', parent + '.json');
+  if (!fs.existsSync(parentReceipt))
+    throw new Error('the parent ' + parent + ' of the standing package ' + standing
+      + ' has no sealed receipt at receipts/' + parent + '.json. ' + REVISION_RULE);
+  return { standing, state: 'window', named: parent, receipt: parentReceipt,
+    expected: receiptId(parentReceipt) + '@' + sha16(parentReceipt) };
+}
+
+/* WHAT THE RULE EXPECTS AT THIS MOMENT, read once over the real tree, and the
+   fabricated rotation derived from it: same shape, a package id nobody will
+   ever seal, and only the tail moves, so steps 2 and 3 keep their meaning. */
+const EXPECTED_SEAL = standingSeal(REPO);
+const EXPECTED_REVISION = EXPECTED_SEAL.expected;
+const ROTATED = EXPECTED_REVISION.split('@')[0] + '-NOT-A-REAL-ROTATION@'
+  + crypto.createHash('sha256').update('rotate:' + EXPECTED_REVISION).digest('hex').slice(0, 16);
 
 /* Re-require production-mapping.cjs over a substituted coach constant. Both
    cache entries are restored before this returns to the caller's next line, so
@@ -288,10 +350,15 @@ function mappingUnder(revision) {
 
 test('P3-P6 - BAR ROW 23: the coach ENGINE_REVISION rotates and an import admitted under the '
   + 'OLD constant is still admitted, still adopted and still retractable', async () => {
-  /* 1. THE STANDING CONSTANT, BY NAME. If this line ever has to change, the
-        row has to be re-run against whatever replaced it. */
-  assert.equal(Mapping.ENGINE_REVISION, 'M2-S5-TODAY-CHILD@0df73b01f3d2d935',
-    'the standing coach constant moved: re-run bar row 23 against the new one');
+  /* 1. THE STANDING CONSTANT, BY RULE. Not a literal: the rule below names
+        whatever the constant must be at this moment, so the row re-runs against
+        whatever replaced it instead of deadlocking on the seal. */
+  assert.match(EXPECTED_REVISION, /^[^@]+@[0-9a-f]{16}$/, EXPECTED_REVISION);
+  assert.equal(Mapping.ENGINE_REVISION, EXPECTED_REVISION,
+    'the standing package is ' + EXPECTED_SEAL.standing + ' and its receipt is '
+    + EXPECTED_SEAL.state + ': bar row 23 runs against ' + EXPECTED_SEAL.named + ' as '
+    + EXPECTED_REVISION + ', not ' + Mapping.ENGINE_REVISION + '. ' + REVISION_RULE);
+  assert.notEqual(ROTATED, EXPECTED_REVISION, 'the rotation is not a rotation');
   const { era, names } = await run('row23', SUMMER);
   const admitted = await admitWithProductionMapping(era, SEALED, { day: SUMMER.day, ...names });
   assert.equal(admitted.admitted, true, admitted.code || (admitted.codes || []).join(','));
@@ -310,7 +377,7 @@ test('P3-P6 - BAR ROW 23: the coach ENGINE_REVISION rotates and an import admitt
   const prefix = id => id.slice(0, id.lastIndexOf('/') + 1);
   assert.equal(prefix(Rotated.MAPPING_ID), prefix(Mapping.MAPPING_ID),
     'the displayed id moved somewhere other than its suffix');
-  assert.equal(Mapping.ENGINE_REVISION, 'M2-S5-TODAY-CHILD@0df73b01f3d2d935',
+  assert.equal(Mapping.ENGINE_REVISION, EXPECTED_REVISION,
     'the cache restore leaked: the live module object moved');
 
   /* 3. THE TWO VALUES A ROTATION-SENSITIVE READ WOULD COMPARE, AND THEY DIFFER.
