@@ -162,7 +162,11 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // b-s6-child-tail moved this file, so leaving it would have been a spec that refuses at
 // RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER for a package that does not exist. The id is
 // removed here, the file is deleted, and the matching entry leaves NO_REGISTER_IDS below.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'B1', 'B2', 'B4', 'B3'];
+// M2-S7-PORT-ADMISSION ADDS 'S7', directly behind S6 and still ahead of B1, for the same
+// reason S6 sits behind S5: DECISIONS:455 makes each reseal child the previous package's
+// own child, and DECISIONS:510 dispatches this one. Without the id here the argv gate at
+// :557 refuses `--package S7` outright, before a byte of its spec is read.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'B1', 'B2', 'B4', 'B3'];
 // RETIRED IDS, and why this list has to exist at all. Removing an id from IDS and deleting
 // its spec file are ONE act - DECISIONS:487 stop 2 orders both for B-LOM - but TOOLING_FILES
 // below is derived from IDS, so the moment the id goes the deleted path stops being named
@@ -289,7 +293,15 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // (DECISIONS:487 stop 2); it is dropped from NO_REGISTER_RULED_B_IDS below too, because
 // an exemption for an id that is no longer runnable is dead weight that the assertion
 // underneath would not catch.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6']);
+// M2-S7-PORT-ADMISSION enters under the same S- half a fourth time, and its case is S6's
+// exactly: a RESEAL whose product delta is the accepted P3-PORT-FIX and P3-PORT-FIX-2
+// diff and nothing else (DECISIONS:509, :510), carried inside a lane B child only because
+// all four files it moves are pinned by the parent (:455, :508). No entry of the 45-law
+// register describes "the owner's own history is admitted against the phone he set up",
+// so there is nothing for it to register and its whole obligation is the Y1 own-child
+// rule. 'S7' is an S- id, so the shape assertion below admits it without a PM by-name
+// ruling, exactly as S3, S4, S5 and S6 were admitted.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).
@@ -382,7 +394,18 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
   'rebuild/m4/import/test/', 'rebuild/lanes/d/plan-edit/', 'rebuild/lanes/d/p3-replay-measure/',
   'rebuild/lanes/d/p3-replay-all/', 'rebuild/lanes/d/p3-capture-start/', 'rebuild/lanes/d/import-retract/',
   'rebuild/lanes/d/p3-followons/', 'rebuild/m3/w7-preview/import/test/', 'rebuild/m3/w6/test/',
-  'rebuild/lanes/d/b-lom/'];
+  'rebuild/lanes/d/b-lom/',
+// M2-S7-PORT-ADMISSION ADDS A NINETEENTH, rebuild/lanes/d/p3-port-fix/, and it is the
+// same shape as S6's ninth and tenth: the three cells the accepted P3-PORT-FIX and
+// P3-PORT-FIX-2 rounds wrote stand there, they are this package's ONLY role:"new"
+// product, and MIN_OWN_CHILDREN = 1 cannot be met by anything else it declares. Without
+// the root the d-port-admission child is refused CHILD-ARGV-TARGET and the Y1 own-child
+// obligation is unreachable, not merely unmet. DECISIONS:487 stop 7 is why the three
+// files are product at all: a lanes/d test file a declared child EXECUTES is itself
+// declared product. The root is NOT added to PUBLIC_TAIL_ROOTS below: a child root says
+// a suite may be EXECUTED, that list says its output may be PRINTED, and this suite runs
+// over the owner's own import path.
+  'rebuild/lanes/d/p3-port-fix/'];
 // S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS (DECISIONS:467 process note 2, ticket
 // CI-TODAY-CHILD-FLAKE). Narrower than CHILD_ROOTS above on purpose: CHILD_ROOTS is every
 // root ANY declared child of ANY B package may execute from, including

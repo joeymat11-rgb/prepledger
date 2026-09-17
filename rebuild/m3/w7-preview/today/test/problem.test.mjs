@@ -1579,7 +1579,17 @@ test('N2-08 - a saved night is what the check-in own reader finds, with no A3 ed
    next seal amends one literal in five identical places rather than four and a puzzle.
    The red side is untouched: an undeclared move, a declared move that has not landed,
    and drift in a file no spec names are all still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6'];
+/* M2-S7-PORT-ADMISSION ADDS 'S7', and the cell is unchanged in every other way.
+   S7 is the reseal that carries the accepted P3-PORT-FIX and P3-PORT-FIX-2 change
+   onto the tip (DECISIONS:509, :510): the four product files of the owner's import
+   path, seven sibling test files, .github/workflows/rebuild.yml and the lane B
+   runner are all moved BY THAT PACKAGE, declared and on purpose, so the
+   declaring-spec chain has to know about it or every one of those moves reads here
+   as an undeclared drift. Youngest first is what the loop below already does, so
+   'S7' goes last in the array and is therefore consulted first. Nothing else
+   moves: the question the cell asks is still "does THIS LANE drift a sealed byte
+   it has not declared", and the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7'];
 
 test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', () => {
   /* The reuse path already existed and was dead because nothing wrote a night. N2 is

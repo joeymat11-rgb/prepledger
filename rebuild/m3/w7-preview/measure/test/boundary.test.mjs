@@ -91,7 +91,17 @@ test('P-MEASURE (g) - package S4 pins none of this lane\'s new files', () => {
    is still "does THIS LANE drift a sealed byte it has not declared", and the red side is
    still red - a file that drifts with no declaring spec, a declared move that has not
    landed, and a missing file all still fail. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6'];
+/* M2-S7-PORT-ADMISSION ADDS 'S7', and the cell is unchanged in every other way.
+   S7 is the reseal that carries the accepted P3-PORT-FIX and P3-PORT-FIX-2 change
+   onto the tip (DECISIONS:509, :510): the four product files of the owner's import
+   path, seven sibling test files, .github/workflows/rebuild.yml and the lane B
+   runner are all moved BY THAT PACKAGE, declared and on purpose, so the
+   declaring-spec chain has to know about it or every one of those moves reads here
+   as an undeclared drift. Youngest first is what the loop below already does, so
+   'S7' goes last in the array and is therefore consulted first. Nothing else
+   moves: the question the cell asks is still "does THIS LANE drift a sealed byte
+   it has not declared", and the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7'];
 const declaredPost = (file) => {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;

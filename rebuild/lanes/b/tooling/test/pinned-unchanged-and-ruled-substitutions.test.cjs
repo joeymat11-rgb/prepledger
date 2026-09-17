@@ -266,7 +266,7 @@ test('F3 — the four refusals r7 fired bare now carry names in the vocabulary',
 });
 
 test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION where DECISIONS:414 (2) puts it, M2-S4-REAL-DAY as S3\'s own child directly behind it, and M2-S5-TODAY-CHILD as S4\'s', () => {
-  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'B1', 'B2', 'B4', 'B3']);
+  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'B1', 'B2', 'B4', 'B3']);
   // ":124 — ORDER B-NTC → H3 → B1 → B2 → B4 → B3". DECISIONS:414 (2) adopts the scout's
   // order as PM routing: P1 M2-S3-COMPANION is H3's child and B1 re-pins at its own rebase
   // behind it (CRITICAL-PATH-2026-09-15 section 4 P1). M2-S4-REAL-DAY is S3's own child
@@ -280,8 +280,11 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   // with an empty product and no receipt - a runnable id pointing at nothing. With it
   // removed there is no longer an id standing outside the ruled sequence, which is why
   // this cell no longer needs a separate assertion for a tenth element after the nine.
-  assert.deepEqual(api.IDS.slice(0, 10), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'B1', 'B2', 'B4', 'B3']);
-  assert.equal(api.IDS.length, 10);
+  // M2-S7-PORT-ADMISSION is S6's own child under the same standing ruling (DECISIONS:455,
+  // dispatched at :510), so S7 sits directly behind S6 and still ahead of B1: the ruled
+  // sequence is now ELEVEN, and it is still the WHOLE list.
+  assert.deepEqual(api.IDS.slice(0, 11), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'B1', 'B2', 'B4', 'B3']);
+  assert.equal(api.IDS.length, 11);
   assert.equal(api.IDS.includes('B-LOM'), false,
     'the B-LOM id is removed with its skeleton spec, DECISIONS:487 stop 2');
   // AND THE DELETION IS ACCOUNTED FOR RATHER THAN EXEMPTED BY ACCIDENT. Removing an id and
@@ -305,7 +308,10 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   // S6 is in for the same reason a third time, and it is the clearest case yet: a reseal
   // with no behaviour of its own has nothing the 45-law register could describe. B-LOM is
   // OUT, with its id and its skeleton spec; the PM-ruled B- exemption list is B-NTC alone.
-  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6']);
+  // S7 is in for the same reason a fourth time: M2-S7-PORT-ADMISSION is a reseal whose
+  // product delta is exactly the accepted P3-PORT-FIX and P3-PORT-FIX-2 diff (:509, :510),
+  // slice-plan work under DECISIONS:455 with no register D-id.
+  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7']);
   for (const id of api.NO_REGISTER_IDS) assert(/^[HFS][0-9]+$/.test(id) || id === 'B-NTC');
   for (const id of api.NO_REGISTER_IDS) assert(api.IDS.includes(id));
 });
@@ -319,7 +325,11 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
 // nine-element slice and said so in as many words. A re-pin's rule has to read true at the
 // line a reader lands on, so the title is the thing corrected, never the assertion. Round 2
 // then adds a TENTH root, rebuild/lanes/d/b-lom/ (DECISIONS:492), and the title says ten.
-test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S6-TODAY-CHILD adds exactly ten', () => {
+// M2-S7-PORT-ADMISSION then adds an ELEVENTH, rebuild/lanes/d/p3-port-fix/, for the same
+// reason S6's ninth and tenth exist: the three cells the accepted P3-PORT-FIX and
+// P3-PORT-FIX-2 rounds wrote are that package's only role:"new" product, and the Y1
+// own-child rule cannot be met unless a declared child may execute them.
+test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S6-TODAY-CHILD adds exactly ten with M2-S7-PORT-ADMISSION\'s one behind them', () => {
   assert.deepEqual(api.CHILD_ROOTS, [
     'rebuild/m4/spec/',
     'rebuild/conform/v4/postfix/',
@@ -339,6 +349,7 @@ test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may exe
     'rebuild/m3/w7-preview/import/test/',
     'rebuild/m3/w6/test/',
     'rebuild/lanes/d/b-lom/',
+    'rebuild/lanes/d/p3-port-fix/',
   ]);
   // The eighth is S5's, and DECISIONS:455 is why it exists: lane C's new modules go under
   // rebuild/m3/w7-preview/measure/ so that only the route wiring in today-app.cjs is a
@@ -358,7 +369,9 @@ test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may exe
   // so the root is here and the w6-local-source child runs them.
   // A TENTH, rebuild/lanes/d/b-lom/, is round 2's: DECISIONS:492 folds B-LOM into this
   // package, S6 declares its route suite as product, and the b-lom child runs it.
-  assert.equal(api.CHILD_ROOTS.length, 18);
+  // A NINETEENTH, rebuild/lanes/d/p3-port-fix/, is S7's, and it is one root for one
+  // package's own three cells: DECISIONS:487 stop 7 again, and MIN_OWN_CHILDREN = 1.
+  assert.equal(api.CHILD_ROOTS.length, 19);
   assert.equal(api.CHILD_ROOTS[7], 'rebuild/m3/w7-preview/measure/test/');
   assert.deepEqual(api.CHILD_ROOTS.slice(8), [
     'rebuild/m4/import/test/',
@@ -371,6 +384,7 @@ test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may exe
     'rebuild/m3/w7-preview/import/test/',
     'rebuild/m3/w6/test/',
     'rebuild/lanes/d/b-lom/',
+    'rebuild/lanes/d/p3-port-fix/',
   ]);
   // The first eight are UNCHANGED by S6: a widening adds, it never re-orders or edits what
   // a previous seal pinned here.
