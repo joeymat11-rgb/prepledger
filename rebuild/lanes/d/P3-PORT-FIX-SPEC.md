@@ -10,6 +10,18 @@ invariant rows and the stub-free rule), the diagnosis
 `...-REVIEW-R1.md`. Every line number below was read in the worktree at
 3d002174 and is cited file:line.
 
+VERSION 2, after the independent review `P3-PORT-FIX-SPEC-REVIEW-R1.md`
+(verdict REJECT, three BLOCKING findings). What v2 changes: a FOURTH product
+file moves, the Edit My Week companion `rebuild/m4/workout/plan-edit-model.cjs`,
+because it proves the admitted import against the setup document over exactly
+the fields this rule stops proving (new section 1.6, new cell 5 (k)); the
+returned basis is projected through its own constant so narrowing the
+comparison cannot narrow the programme digest, and `id` is kept in it (1.3);
+the shared stranger fixture is ruled on rather than left colliding with itself
+(new section 4.4); the period shape is closed (B-C); and the estimate is
+2.25 days larger. Section 8 is the finding-by-finding disposition, including
+the one finding disputed with evidence.
+
 ---
 
 ## 1. THE RULE, BEFORE AND AFTER
@@ -38,8 +50,10 @@ and its one call site, `:171`:
 (`source-admission.mjs:164`, `prep.candidateState()`); `scratch` is a clean
 init of THIS phone's own first-run document. The shapes differ: the setup
 DOCUMENT carries `split: {from, map}` (`setup-model.mjs:633`) and
-`createCleanInitState` stores it as a PERIOD ARRAY,
-`athlete-state.cjs:234` and the engine's own reader `plan.cjs:11-22`, which
+`createCleanInitState` stores it as a PERIOD ARRAY
+(`rebuild/m4/workout/athlete-state.cjs:331`, `split: [split],`; the header
+comment at `:234` names the document shape it wraps), and so does the engine's
+own reader `rebuild/engine/plan.cjs:11-22`, which
 walks `s.split` as a list and lets the LAST entry with `from <= iso` govern
 the day. So `:146` compares an array against an array, and the file controls
 its length. `setup-model.mjs:630-633` writes `from: today`, always, with the
@@ -69,12 +83,28 @@ PROVED against the phone's setup op (a disagreement refuses):
 BOUNDED (a disagreement refuses, but nothing on the phone is compared):
 
 - B-A. Every period entry's `from` is a valid day (`validDay`) and is NOT AFTER
-  the admission's own `currentDay()`. `currentDay()` is the controller's clock,
-  the device's LOCAL day under the source engine context already used at `:171`
-  and `:292`, taken once per replay, and it is the same clock the F1 reading
-  bound (`row.date>currentDay()`, `:177`) already reads. No UTC day and no file-supplied offset is used.
-- B-B. At least one period entry has `from <= currentDay()`, which is exactly
-  `splitInForceOn` at `workout-host.mjs:39-41`.
+  the day the rule is evaluated on. That day is `currentDay()`, the controller's
+  clock: the device's LOCAL day, and it is the same clock the F1 reading bound
+  (`row.date>currentDay()`, `source-admission.mjs:177`) already reads. No UTC
+  day and no file-supplied offset is used. `currentDay` is
+  `()=>typeof asOf==='function'?asOf():asOf` (`:92`) and the shipped page binds
+  a LIVE function (`import-screen.mjs:343`, `asOf: () => day()`), so today it is
+  read many times per `replay()` and two reads can straddle a local midnight.
+  This spec therefore REQUIRES the build to hoist ONE read and pass it in
+  (`programme(state,ops,{today:currentDay()})`, 1.3), so every period of one
+  file is bounded against one day. That is a build requirement, not a property
+  of the code as it stands, and the cell in 5 (i) executes it.
+- B-B. At least one period entry has `from <= today`, which is exactly
+  `splitInForceOn` at `rebuild/m3/w6/host/workout-host.mjs:39-41`.
+- B-C. SHAPE. Every period entry is an object carrying `from` and `map` and
+  NOTHING ELSE (`closed(p,['from','map'])`). The old `encode(source.split)!==
+  encode(scratch.split)` was shape-closed by accident: it compared whole period
+  objects against `checkSplit`'s normalised output, so an entry carrying a third
+  member refused. P-A and B-A alone would not, and that entry would land in
+  `state.split` and in the programme digest unexamined. `plan.cjs:11-22` reads
+  only `from` and `map`, so there is no engine harm today, but admitting a
+  member no rule has looked at is not something this spec does silently. This is
+  REVIEW-R1 NOTE 7, adopted as a rule rather than as a sentence.
 
 What B-A protects. The equality at `:146` was silently doing a safety job:
 with the phone's document always dated today, a file whose split starts
@@ -116,13 +146,20 @@ retain a field this spec proves.
       const scratch=createCleanInitState({setup:op.payload.setup});
     - const fields=['id','day','mg','sets','hi','inc','steps'];
     - if(encode(source.split)!==encode(scratch.split)||source.exercises?.length!==scratch.exercises.length)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
+    + /* COMPARED is not PROJECTED. `fields` is what the file must AGREE with the
+    +    phone about; PROJECTED_FIELDS is what the admitted basis carries out to
+    +    the programme digest at :325, and it keeps `id` and every RETAINED number,
+    +    because narrowing the comparison must not narrow the record. */
     + const fields=['day','mg'];
+    + const PROJECTED_FIELDS=['id','day','mg','sets','hi','inc','steps','head','secondary'];
     + const periods=Array.isArray(source.split)?source.split:null;
     + const week=scratch.split[0].map;
     + if(!periods||!periods.length)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split'});
     + for(const p of periods){
-    +  if(encode(p?.map)!==encode(week))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.map'});
-    +  if(!validDay(p?.from)||p.from>today)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.from'});
+    +  if(!p||typeof p!=='object'||Array.isArray(p)||
+    +     Object.keys(p).some(k=>k!=='from'&&k!=='map'))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split'});
+    +  if(encode(p.map)!==encode(week))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.map'});
+    +  if(!validDay(p.from)||p.from>today)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.from'});
     + }
     + if(!periods.some(p=>p.from<=today))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.from'});
     + if(source.exercises?.length!==scratch.exercises.length)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'exercises'});
@@ -136,8 +173,13 @@ retain a field this spec proves.
     + for(const key of fields)if(encode(matches[0][key])!==encode(ex[key]))
     +  fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:key,exercise_id:ex.id});
     + }
-      return {op_id:op.op_id,split:source.split,exercises:source.exercises.map(...),
+    - return {op_id:op.op_id,split:source.split,
+    -  exercises:source.exercises.map(ex=>Object.fromEntries([...fields,'head','secondary']
+    -    .filter(k=>Object.hasOwn(ex,k)).map(k=>[k,ex[k]]))),
     -  priority_muscles:op.payload.setup.priority_muscles};
+    + return {op_id:op.op_id,split:source.split,
+    +  exercises:source.exercises.map(ex=>Object.fromEntries(PROJECTED_FIELDS
+    +    .filter(k=>Object.hasOwn(ex,k)).map(k=>[k,ex[k]]))),
     +  priority_muscles:source.priority_muscles??[]};
      }
 
@@ -145,19 +187,40 @@ and at the call site:
 
     -  try{programmeBasis=programme(state,ops);}catch(e){issue(e.code);}
     +  try{programmeBasis=programme(state,ops,{today:currentDay()});}
-    +  catch(e){issue(e.code,null,{field:e.field,exercise_id:e.exercise_id});}
+    +  catch(e){issue(e.code,null,e?.field?{field:e.field,
+    +    ...(e.exercise_id?{exercise_id:e.exercise_id}:{})}:undefined);}
 
-Two notes on the returned basis. First, the `fields` list the returned
-`exercises` are projected through must KEEP `sets`, `hi`, `inc` and `steps`
-(and `head`/`secondary` where present): the return value is the PROGRAMME
-DIGEST input at `:325`
+Three notes on the returned basis. FIRST, and this is REVIEW-R1 finding 2
+adopted: today the return projects through the SAME `fields` array the
+comparison used (`source-admission.mjs:150`,
+`[...fields,'head','secondary'].filter(k=>Object.hasOwn(ex,k))`), so narrowing
+`fields` would silently narrow the record too. The two must be SEPARATE
+constants, and the diff above makes them so. `PROJECTED_FIELDS` keeps `id`,
+which the comparison no longer names but the record must, or the digest stops
+saying WHICH lift each row is and becomes positional; and it keeps `sets`,
+`hi`, `inc`, `steps`, `head` and `secondary`, the retained numbers. The return
+value is the PROGRAMME DIGEST input at `:325`
 (`digest(...,'earned/local-source-programme/v1',replayed.programmeBasis)`),
 and a basis that stopped carrying the retained fields would stop binding them,
 which would be a real weakening. Only the COMPARISON narrows; the record of
-what was admitted does not. Second, `priority_muscles` in the returned basis
+what was admitted does not. A cell asserts this directly (5 (a)): the committed
+programme digest's input carries `id` and all seven per-lift members for every
+lift, with the FILE's values. SECOND, `priority_muscles` in the returned basis
 must move from the phone's setup op to the FILE's value, because after this
 change the file's value is the one that lands in the admitted state and the
 digest must name what was admitted.
+
+THIRD, the call site's detail spread is GUARDED, and the diff above shows the
+guard rather than leaving it to 3.3's prose (REVIEW-R1 NOTE 8, adopted). Not
+every throw inside `programme()` is one of the named `fail`s: a `CLEAN_INIT_*`
+from `createCleanInitState` or a TypeError carries no `field`, and an
+unguarded `{field:e.field,exercise_id:e.exercise_id}` would push
+`{code, field:undefined, exercise_id:undefined}` into `issues` and out to the
+screen's detail builder. `e?.field?{...}:undefined` means an issue either
+carries a field from the closed table of 3.1 or carries none at all, and 3.3's
+builder therefore never has an `undefined` to print. A cell in 5 (f) throws a
+`CLEAN_INIT_*` through this path and asserts the issue has no `field` member,
+not a `field` of `undefined`.
 
 The helper `fail` is `const fail=code=>{const e=new Error(code);e.code=code;throw e;};`
 (`source-admission.mjs:80`). The build widens it to
@@ -216,9 +279,17 @@ may be left aside.
   that would refuse every real ladder in the file.
 - `head` and `secondary` (the volume tags). End up on
   `state.exercises[i].head` / `.secondary` from the FILE. Read by
-  `engine/volume.cjs:35` (`volBucket = (ex) => (ex && (ex.head || ex.mg)) || null`),
-  which is the bucket the weekly hard-set ledger counts into, and by the lend
-  table at `:41` for the half-credit convention. `mg` is PROVED (P-C) and is
+  `rebuild/engine/volume.cjs:35`
+  (`volBucket = (ex) => (ex && (ex.head || ex.mg)) || null`), which is the
+  bucket the weekly hard-set ledger counts into. That is the ONLY engine reader
+  of either member: the lend table at `:41` is `const lend = INDIRECT[e.id]`, a
+  module constant keyed by LIFT ID, not the exercise's own `secondary` list,
+  so the earlier draft's cite for `secondary` was wrong (REVIEW-R1 NOTE 5). A
+  tree-wide search for `secondary` in `rebuild/engine` and `rebuild/coach`
+  finds no reader of `ex.secondary` at all. `secondary` is therefore INERT in
+  the engine, which argues the retention more strongly than the wrong cite did,
+  and the one reader that does exist is `plan-edit-model.cjs:90`, which is
+  1.6. `mg` is PROVED (P-C) and is
   the fallback bucket, so a file whose `head` is absent still buckets exactly
   where the phone's `mg` says. What is left aside is only the finer region
   label and the lend list, both of which are catalogue enrichment
@@ -227,15 +298,26 @@ may be left aside.
   week's catalogue resolved is the normal case, not a suspicious one, and the
   ledger it feeds is a count of his own sets, not a safety gate.
 - `priority_muscles`. Ends up on `state.priority_muscles` from the FILE.
-  Read by NOTHING: `athlete-state.cjs:313-316` carries it verbatim with the
-  comment "No engine reader on the genSession/rirPlan path consumes this
-  member", and a tree-wide `git grep priority_muscles` finds no reader in
-  `rebuild/engine`, `rebuild/coach`, `rebuild/m3/w7-preview/today` or
-  `rebuild/m4` outside the constructor's own validation
-  (`athlete-state.cjs:243-245`) and this comparison. Lane C recorded the same
-  fact independently (`lanes/c/dad-first-run/A4-REPORT-ANNEX.md:517`,
-  "consumed by no reader"). Proving an inert field can only refuse; it can
-  never protect anything.
+  Read by NO ENGINE READER: `rebuild/m4/workout/athlete-state.cjs:313-316`
+  carries it verbatim with the comment "No engine reader on the genSession/
+  rirPlan path consumes this member", and a tree-wide search finds no reader in
+  `rebuild/engine`, `rebuild/coach` or `rebuild/m3/w7-preview/today` outside the
+  constructor's own validation (`athlete-state.cjs:243-245`) and this
+  comparison. Lane C recorded the same fact independently
+  (`lanes/c/dad-first-run/A4-REPORT-ANNEX.md:517`, "consumed by no reader").
+  CORRECTION, REVIEW-R1 NOTE 4 ADOPTED: the earlier draft said "Read by
+  NOTHING", and that was FALSE. There is exactly one reader outside the engine
+  and it is a GUARD, not an inert carry:
+  `rebuild/m4/workout/plan-edit-model.cjs:52`,
+  `!equal(base.priority_muscles || [], setup.priority_muscles)) fail('PLAN_EDIT_ORIGIN_UNPROVEN')`.
+  It is not an engine reader, so it cannot make the file's value WRONG for
+  training, and the engine argument for retaining the file's value stands
+  unchanged. What it does mean is that dropping `priority_muscles` from
+  `programme()` while leaving that guard alone would refuse the athlete's Edit
+  My Week on a bundle admission just accepted. That is section 1.6, and it is
+  the reason this spec now moves a second file. The general sentence "proving
+  an inert field can only refuse; it can never protect anything" holds for the
+  ENGINE, and is withdrawn as a claim about the whole tree.
 
 The widening this accepts, stated and not waved past (REVIEW-R1 finding 6 (1)):
 a stranger's file that happens to carry the same week, the same lift ids and
@@ -285,6 +367,93 @@ replacing `:61-63`:
       + 'never proved, because the first-run flow cannot state them per lift. '
       + 'Exactly one document may exist, and anything else refuses '
       + 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED'
+
+### 1.6 THE SECOND GUARD THAT READS THIS RULE: the Edit My Week companion
+
+REVIEW-R1 finding 1, verified independently here and ADOPTED IN FULL. It is the
+one finding that changes what this ticket ships.
+
+`rebuild/m4/workout/plan-edit-model.cjs` (pinned, `packages/S6.json:803`) is
+the plan-edit companion's projector. When the installation is on an ADMITTED
+IMPORT it is constructed with `basisSource:'local-source'` and `basisState` =
+the FILE's replayed state (`rebuild/m3/w6/host/plan-edit-host.mjs:68-75`:
+`const source = Model.importPresentIn(generation) ? 'local-source' : 'first-run'`,
+then `createPlanEditProjector({..., basisSource:source, admittedBasisOf:g =>
+admittedLocalSourceBasis(g,{athleteLabel, namespace})})`). Its `setupOperation`
+is the phone's first-run document. So on the local-source branch it compares
+the SAME two things `programme()` compares, and it does so with THESE lines,
+read verbatim in the worktree:
+
+    22| const P2_ROW = ['id','day','mg','sets','hi','inc','steps'];
+    51|      base.athlete_label !== setup.athlete_label || !equal(base.split, [setup.split]) ||
+    52|      !equal(base.priority_muscles || [], setup.priority_muscles)) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
+    88|    } else if (!equal(Object.fromEntries(P2_ROW.map(k => [k, e[k]])), Object.fromEntries(P2_ROW.map(k => [k, row[k]])))
+    90|    if (!firstRun) { if (!equal({ head: e.head ?? null, secondary: e.secondary ?? [] }, tags)) tagsOk = false; }
+
+and it says in its own comment (`:62-66`) exactly where that field list came
+from:
+
+    62|     LOCAL-SOURCE (P2). local-source-basis.mjs admittedLocalSourceState -> the
+    63|     admitted import's own replayed state. Its correspondence predicate is not
+    64|     ours to invent: source-admission.mjs `programme()` is what admission itself
+    65|     proved, over id/day/mg/sets/hi/inc/steps and the setup tag snapshot, MATCHED
+    66|     BY ID and NOT over `n` ...
+
+THE DEFECT, on this spec's own cell (a) fixture. The bundle of 5 (a) carries a
+`split[0].from` at least 60 days earlier than the setup day, per-lift varied
+`sets` and `hi`, and differing `inc`, `steps`, `head`, `secondary` and
+`priority_muscles`. Under the new `programme()` it ADMITS. The athlete then
+opens Edit My Week and the companion refuses: `:51` because
+`equal(base.split,[setup.split])` is false on the earlier `from` alone (and on
+the array length for a two-period file), `:52` because `priority_muscles`
+differs and 1.3 makes the returned basis carry the FILE's value on purpose,
+`:88` on every lift whose `sets`, `hi`, `inc` or `steps` this spec retains, and
+`:90` on every lift whose tags it retains, which is `PLAN_EDIT_TAG_BASIS_UNPROVEN`.
+Nothing in the existing corpus catches this: `lanes/d/plan-edit/model.test.cjs`
+(pinned, `S6.json:228`) builds its local-source basis from a state that agrees
+with the document, so it stays green while the owner's own path breaks. It
+would first appear on his phone, after S7.
+
+THE RULING THIS SPEC MAKES. Option (i) of the review, the honest one: the
+companion's local-source predicate moves WITH the admission rule, in the same
+ticket, under the same seal. The module is pinned in the SAME package as
+`source-admission.mjs`, so it costs no second merge. The argument is the
+module's own: its predicate "is not ours to invent: source-admission.mjs
+`programme()` is what admission itself proved". When `programme()` narrows, the
+companion narrows BY ITS OWN STATED LAW. This spec is not inventing a new
+correspondence for the companion; it is holding the companion to the sentence
+already written in it.
+
+THE NEW LOCAL-SOURCE PREDICATE, field by field. The FIRST-RUN branch is
+UNCHANGED in every particular: a clean-init state that has moved is still not a
+clean-init state, and nothing below touches `firstRun === true`.
+
+| line | first-run | local-source, today | local-source, after |
+|------|-----------|---------------------|---------------------|
+| `:50` count | unchanged | `setup.exercises.length === base.exercises.length` | UNCHANGED (this is P-B's count) |
+| `:51` label | unchanged | `base.athlete_label === setup.athlete_label` | UNCHANGED (this is the adoption precondition of 2.2, and `local-source-basis.mjs:54` has already enforced it upstream) |
+| `:51` split | unchanged | `equal(base.split, [setup.split])` | REPLACED by P-A + B-C: `base.split` is a non-empty array, every entry is closed over `{from,map}`, and every entry's `map` deep-equals `setup.split.map`. `from` is NOT compared: it is the file's own history of when its week changed, retained exactly as admission retains it. The B-A "not after today" bound is NOT re-evaluated here, because admission already applied it at admission time and a committed import must not start refusing the athlete's editor because a clock moved |
+| `:52` priority_muscles | unchanged | `equal(base.priority_muscles || [], setup.priority_muscles)` | DROPPED for local-source. Retained, per 1.4 |
+| `:88` `P2_ROW` | unchanged (`documentRow`, all eight members) | `['id','day','mg','sets','hi','inc','steps']` | NARROWED to `P2_SHAPE_ROW = ['id','day','mg']`, which is exactly what admission proved. The `typeof e.n === 'string' && e.n.trim()` check on the same line STAYS: the athlete's own name for the lift travels with his import and must still be a name |
+| `:90` tag snapshot | unchanged | `equal({head, secondary}, tags)` | DROPPED for local-source. Retained, per 1.4. `C.tagsOf(row, tags, validateTags)` on the line above STAYS (it validates the DOCUMENT's own tag shape and reads nothing from the basis), and so does the key-set check at `:91-93` |
+
+WHAT MUST NOT MOVE in that file, stated so the build cannot drift: the
+`COLLECTIONS` trip-wire at `:20-21`, `importPresentIn` at `:30-35`, the
+`basisSource` validation at `:78`, `PLAN_EDIT_BASIS_SOURCE_CHANGED` in the host
+(`plan-edit-host.mjs:72`), the basis hash (`:38-43`), `inspect()`, and every
+line of the first-run branch. Only the four local-source comparisons above
+change, and `P2_ROW` is kept under its own name for whatever else reads it
+while `P2_SHAPE_ROW` is added beside it.
+
+WHAT THIS COSTS THE COMPANION'S GUARANTEE, said plainly. Before: the companion
+would refuse to edit a plan whose basis disagreed with the setup document on
+any of eight members. After, on an admitted import: it refuses on the week, the
+lift ids, the day and the muscle group, and it edits a plan whose set counts,
+rep targets, increments, ladders and tags are the FILE's. That is the same
+trade the admission rule makes, for the same reason, and it is the ONLY answer
+consistent with the owner's :507 expectation: a companion that refuses to edit
+the programme he was just told he would train on would be the defect, not the
+guard.
 
 ---
 
@@ -353,7 +522,9 @@ TWO PRECONDITIONS the spec names because they sit on the same path and would
 each produce a different morning if they failed. Both must be cells (5 (a)).
 
 - The file's `state.athlete_label` must equal the label this installation's
-  first run recorded, or `local-source-basis.mjs:55` returns null and the page
+  first run recorded, or `local-source-basis.mjs:54`
+  (`if(athleteLabel&&state.athlete_label!==athleteLabel)return null;`; `:55` is
+  the successful `return clone(state);`) returns null and the page
   silently falls back to the clean init: he would see the setup document's
   single numbers the morning after a SUCCESSFUL import, with no refusal to read.
   The comment at `:49-54` states why (an import that does not carry the same
@@ -364,9 +535,17 @@ each produce a different morning if they failed. Both must be cells (5 (a)).
   it is a cell and, if it fails on his real bundle, a PM question, not a code
   change inside this ticket.
 - At least one of the file's split periods must be in force on the day he next
-  opens the gym card, or `workout-host.mjs:39-48` refuses
+  opens the gym card, or `rebuild/m3/w6/host/workout-host.mjs:39-48` refuses
   `WORKOUT_SPLIT_NOT_IN_FORCE` at the first preparation. B-B makes that
   impossible to admit in the first place, which is the whole point of the bound.
+
+A THIRD thing sits on this path and is NOT a precondition but a DEFECT this
+spec would have shipped: the Edit My Week companion refuses on the very basis
+the morning above adopts. It is section 1.6, it is fixed inside this ticket,
+and it is a cell (5 (k)). What section 2 claims about the TRAIN screen is
+unaffected by it: `today-app.cjs` never calls the companion's projector, so the
+gym card the owner sees the next morning is the file's programme either way.
+The companion is the screen he would reach for to CHANGE that programme.
 
 ### 2.3 Is there a fork? No fork on the question he asked
 
@@ -556,12 +735,15 @@ where the path is declared.
 |------|---------------------------|--------------|
 | `rebuild/m3/w6/local/source-admission.mjs` | YES (S6.json:318) | `programme()` :140-150 rewritten; `fail` :80 widened; `issue` :157 widened; call site :171; the `:289` catch and the four inner `fail`s at :270,:272,:273,:284 |
 | `rebuild/m3/w7-preview/import/import-screen.mjs` | YES (S6.json:363) | one `COPY` line, one `REFUSAL_SENTENCE` entry :101, the detail build in `confirm()` :370-374 |
+| `rebuild/m4/workout/plan-edit-model.cjs` | YES (S6.json:803) | the LOCAL-SOURCE branch only: the split comparison inside :51, the `priority_muscles` comparison at :52, the `P2_ROW` row comparison at :88 and the tag-snapshot comparison at :90, each per the table in 1.6; `P2_SHAPE_ROW` added beside `P2_ROW` at :22; the comment at :62-66 restated to the new field list. The FIRST-RUN branch and everything named in 1.6's "WHAT MUST NOT MOVE" are untouched |
 | `rebuild/m4/import/replay-registry.cjs` | YES (S6.json:983) | the F4 rule text :61-63, restated per 1.5 |
 | `rebuild/m4/import/replay-core.cjs` | YES (S6.json:643) | NO CHANGE EXPECTED. Named by the :506 ruling and checked here: `createImportPreparation` produces the candidate state and is upstream of every line this ticket touches. If the build finds no edit it needs, the file does not move, and the spec says so rather than inventing one. |
 
-All three files that DO move are pinned, so the change is a SEALED one and
+All FOUR files that DO move are pinned, so the change is a SEALED one and
 rides S7 through the :501 chain exactly as DECISIONS:506 ruled. No unpinned
 product file is touched, so there is no second, separately merging half.
+`plan-edit-host.mjs` is also pinned (S6.json:1003) and does NOT move: it
+chooses the branch and passes the basis, and 1.6 changes neither.
 
 ### 4.2 Files this ticket must NOT touch
 
@@ -569,18 +751,22 @@ product file is touched, so there is no second, separately merging half.
 today-dated `from` are left exactly as they are: the fix is in what admission
 COMPARES, not in what setup writes), `today-app.cjs` (pinned, S6.json:583),
 `today-model.cjs`, `local-source-basis.mjs` (not pinned; not touched either),
-`gym-model.mjs`, `workout-host.mjs`, `engine/*`, `port.cjs`, anything under
-`rebuild/authority` or `rebuild/client`.
+`gym-model.mjs`, `rebuild/m3/w6/host/workout-host.mjs`, `engine/*`,
+`rebuild/m3/setup/port/port.cjs`, `rebuild/m3/w6/host/plan-edit-host.mjs`
+(pinned, S6.json:1003), `rebuild/m4/workout/plan-edit-commands.cjs`, anything
+under `rebuild/authority` or `rebuild/client`.
 
 ### 4.3 Test files added or changed
 
 | file | pinned | what |
 |------|--------|------|
 | `rebuild/m3/w6/test/local-source-admission.test.mjs` | YES (S6.json:338) | CHANGED: any cell asserting the old field-by-field equality is rewritten to the new rule; new negatives for `split.from` and `mg` |
-| `rebuild/m3/w7-preview/import/test/support.mjs` | YES (S6.json:403) | CHANGED: a second builder beside `firstRun()` that drives the REAL `setup-model.mjs document()` reducer, plus a `sealVariedBundle()` that seals per-lift varied `sets`/`hi` and an older `split.from`. `firstRun()` itself and `SETUP` stay, so no existing cell moves |
-| `.../import/test/route.test.mjs` | YES (S6.json:398) | ADDED cells (a) and (h) |
-| `.../import/test/refusals.test.mjs` | YES (S6.json:393) | ADDED cells (b) to (f) |
-| `.../import/test/refusal-route.test.mjs` | YES (S6.json:388) | ADDED cell (g) |
+| `rebuild/m3/w7-preview/import/test/support.mjs` | YES (S6.json:403) | CHANGED: a second builder beside `firstRun()` that drives the REAL `setup-model.mjs document()` reducer, plus a `sealVariedBundle()` that seals per-lift varied `sets`/`hi` and an older `split.from`, plus `STRANGER_WEEK_SETUP` per 4.4. `firstRun()`, `SETUP` and `STRANGER_SETUP` itself all stay |
+| `.../import/test/route.test.mjs` | YES (S6.json:398) | CHANGED and ADDED. ADDED: cells (a) and (h). CHANGED: the rebase cell at :264, which seals from `STRANGER_SETUP` and asserts a refusal that the new rule no longer produces (4.4) |
+| `.../import/test/refusals.test.mjs` | YES (S6.json:393) | CHANGED and ADDED. ADDED: cells (b) to (f). CHANGED: the stranger refusal built from `STRANGER_SETUP` at :20 (4.4) |
+| `.../import/test/refusal-route.test.mjs` | YES (S6.json:388) | CHANGED and ADDED. ADDED: cell (g). CHANGED: the stranger refusal built from `STRANGER_SETUP` at :23 (4.4) |
+| `rebuild/lanes/d/import-retract/retract.test.mjs` | YES (S6.json:183, child `d-import-retract` at :1282-1286) | CHANGED. REVIEW-R1 finding 3 (a), adopted: it seals a `STRANGER_SETUP` bundle at :28 to drive a refused-then-retracted path, and under the new rule that bundle ADMITS, so the retract path it exists to exercise would stop being exercised. Retargeted to `STRANGER_WEEK_SETUP` per 4.4. Nothing else in the suite moves; it was missing from both lists in round 1 |
+| `rebuild/lanes/d/plan-edit/model.test.cjs` | YES (S6.json:228, child `d-plan-edit` at :1251) | CHANGED and ADDED. Its local-source cells build a basis that agrees with the setup document on all eight members, so they stay green under 1.6 and must: the narrowed predicate is a WIDENING, and a cell that passed before must pass after. ADDED: the local-source cells of 5 (k), red-first against the pre-fix model |
 | `.../import/test/live-clock.test.mjs` | YES (S6.json:378) | ADDED the moving-clock and rollover rows of cell (i) |
 | `.../import/test/page-bundle.test.mjs` | YES (S6.json:383) | UNCHANGED unless the module graph moves; re-measured, not re-summed |
 | `rebuild/lanes/d/p3-port-fix/*.test.mjs` | NO (new lane files) | the lane's own cells, including the two REWRITTEN brief cells of 5 (h) |
@@ -590,6 +776,49 @@ COMPARES, not in what setup writes), `today-app.cjs` (pinned, S6.json:583),
 diagnosis's own record. The build does not edit them in place; it carries the
 eleven cells forward into `lanes/d/p3-port-fix/` with the two rewrites named in
 5 (h), so the diagnosis branch stays readable as what it was.
+
+### 4.4 THE STRANGER FIXTURE: one ruling, four call sites
+
+REVIEW-R1 finding 3, adopted. `STRANGER_SETUP`
+(`rebuild/m3/w7-preview/import/test/support.mjs:77-79`) is a clone of `SETUP`
+varying exactly two things: `athlete_label = 'synthetic-other-identity'` and
+`exercises[0].sets = 4`. `athlete_label` is compared by NEITHER rule
+(DECISIONS:472 (a)) and `sets` is RETAINED by the new one, so under this ticket
+the stranger bundle ADMITS. Four suites seal a bundle from it and assert a
+refusal, and all four go red:
+
+    rebuild/m3/w7-preview/import/test/refusals.test.mjs:20
+    rebuild/m3/w7-preview/import/test/refusal-route.test.mjs:23
+    rebuild/m3/w7-preview/import/test/route.test.mjs:264
+    rebuild/lanes/d/import-retract/retract.test.mjs:28        (pinned, S6.json:183)
+
+Round 1 said "ADD beside `firstRun()`, never replace it" (7.1.1) and also said
+cell (e) "must vary the MAP instead", which for this fixture is a REPLACE. The
+two collided. THE RULING, which resolves it in favour of 7.1.1:
+
+1. `STRANGER_SETUP` STAYS, byte for byte. It does not become a refusal fixture
+   with different numbers; it becomes the fixture of the NEGATIVE RESULT in
+   5 (e): a bundle that differs only in label and in retained fields, which
+   ADMITS at the controller and is then NOT ADOPTED by the page. That is the
+   widening of 1.4, executed, and it needs a fixture of exactly this shape.
+2. Its COMMENT at `:72-76` is corrected, because it currently says this is
+   "what the wrong person's bundle looks like to the controller", which stops
+   being true. Correcting a comment that a rule change falsifies is not
+   replacing a fixture.
+3. `STRANGER_WEEK_SETUP` is ADDED beside it: a clone of `SETUP` whose
+   `split.map` differs in one day letter, which is what a stranger's bundle
+   looks like to the NEW rule. It carries the different `athlete_label` too, so
+   it is a strict superset of what the old fixture proved.
+4. The FOUR call sites above are rewritten BY NAME to seal from
+   `STRANGER_WEEK_SETUP`. Each rewrite is a named line in the build report with
+   its before and after, because these are refusal-guard cells and that is the
+   category where a reviewer most needs to see both. The refusal each asserts
+   is unchanged in kind; only the reason the bundle is a stranger's moves from
+   a set count to a day letter.
+
+These four rewrites, plus the pinned lane suite in (a) of 4.3, are the cost
+REVIEW-R1 finding 3 measured and round 1's estimate did not carry. 7.2 is
+re-estimated.
 
 ---
 
@@ -639,7 +868,33 @@ ASSERTIONS:
   The three lifts whose `sets` differ from the document are checked by name.
   Stub-free: the real `today-entry.mjs` boot, the real adoption chain, the real
   `hostForDay` rebase, the real engine. No stub plugin on this path.
+  HOW "the following local day" IS REACHED, because REVIEW-R1 is right that on
+  a live clock this is a wait and not a step: the cell uses the technique
+  `.../import/test/live-clock.test.mjs` already uses for the era's own clock
+  (`support.mjs` `liveAt(iso)`, an INSTANT PROVIDER the era and every host under
+  it read, so the device offset is real at that instant). The first boot runs on
+  `liveAt(T)`, the re-boot on `liveAt(T + 24h)`, over the SAME IndexedDB. That
+  is not a frozen clock and it is not a 24-hour wait: it is the same live
+  binding read at a second instant, which is exactly what the next morning is.
+  The cell states this in a comment, so it does not quietly become a row it is
+  not. The moving-clock and rollover rows of (i) are the ones that use a real
+  wait, and they say so there.
 - `state.priority_muscles` after adoption is the FILE's array.
+- THE PROGRAMME DIGEST INPUT (1.3, finding 2 executed): the committed
+  `replayed.programmeBasis` carries, for EVERY lift, `id` plus `day`, `mg`,
+  `sets`, `hi`, `inc`, `steps` and the tags the file holds, with the FILE's
+  values. A cell that asserted only the compared fields would let the
+  projection narrow silently, which is the defect finding 2 caught.
+- THE COMPANION DOES NOT REFUSE (1.6, finding 1 executed, and the one assertion
+  whose absence hid the whole of it): on the SAME admitted generation, open the
+  Edit My Week companion through the real `plan-edit-host.mjs` with the real
+  `athleteLabel` and namespace, and assert that construction SUCCEEDS, that
+  `basisSource` resolved to `local-source`, and that a read of the current day
+  returns a plan whose rows carry the FILE's `sets` and `hi`. Specifically
+  asserted NOT raised: `PLAN_EDIT_ORIGIN_UNPROVEN` and
+  `PLAN_EDIT_TAG_BASIS_UNPROVEN`. This cell is RED against the pre-fix
+  `plan-edit-model.cjs` even with the new `programme()` in place, which is what
+  makes it the finding-1 cell rather than a restatement of (a).
 
 ### (b) A LIFT THE PHONE LISTS IS MISSING FROM THE FILE
 
@@ -670,18 +925,21 @@ boundary and must be executed so the bound is proved to be "not after", not
 
 ### (e) A STRANGER'S PROGRAMME
 
-Same as (a), with a bundle whose split MAP differs in one day letter (the
-existing `STRANGER_SETUP` pattern at `support.mjs:77-79` varies `sets`, which
-under the new rule no longer refuses, so the cell must vary the MAP instead and
-must say in a comment that the old stranger fixture is no longer a refusal).
-REFUSED with `{field:'split.map'}`, nothing written.
+Same as (a), sealed from the NEW `STRANGER_WEEK_SETUP` of 4.4, whose split MAP
+differs in one day letter. REFUSED with `{field:'split.map'}`, nothing written.
 
 A second stranger cell is REQUIRED and is a NEGATIVE RESULT that must be
-written down rather than hidden: a bundle differing ONLY in `athlete_label`
-and in the retained fields ADMITS at the controller, exactly as DECISIONS:472
-(a) records, and is then NOT ADOPTED by the page
-(`local-source-basis.mjs:55` returns null on the label). The cell asserts both
-halves. This is the widening of 1.4 executed, so a reviewer can see its size.
+written down rather than hidden: a bundle sealed from the UNCHANGED
+`STRANGER_SETUP`, differing only in `athlete_label` and in the retained fields,
+ADMITS at the controller, exactly as DECISIONS:472 (a) records, and is then NOT
+ADOPTED by the page (`local-source-basis.mjs:54`,
+`if(athleteLabel&&state.athlete_label!==athleteLabel)return null;`). The cell
+asserts both halves, and a third: that the Train screen the next morning
+therefore shows the SETUP DOCUMENT's single numbers, silently, with no refusal
+anywhere. That is the 2.2 label precondition executed on the one fixture that
+produces it. This is the widening of 1.4 measured, so a reviewer can see its
+size instead of taking the argument on trust. The 4.4 ruling exists so that
+this cell and the four refusal call sites stop sharing one fixture.
 
 ### (f) THE FOUR INNER CODES SURFACE UNDER THEIR OWN NAMES
 
@@ -694,7 +952,11 @@ disagrees). Each asserts the issue's `code` is
 `LOCAL_SOURCE_WORKOUT_UNRESOLVED`. A fifth cell throws a foreign error inside
 the same `try` (an error with no `code`, and one with a `code` not on the
 allowlist) and asserts it still surfaces as `LOCAL_SOURCE_WORKOUT_UNRESOLVED`,
-so the allowlist is proved to be an allowlist.
+so the allowlist is proved to be an allowlist. A SIXTH cell covers 1.3's third
+note: a `CLEAN_INIT_*` thrown out of `createCleanInitState` inside `programme()`
+surfaces as an issue with NO `field` member at all, asserted with
+`Object.hasOwn(issue,'field') === false`, not as `field: undefined`, and the
+rendered detail on the screen contains no "undefined".
 
 ### (g) THE REFUSAL SENTENCE RENDERS
 
@@ -710,9 +972,18 @@ detail is `(split.map)` with no lift id.
 
 - `rebuild/m3/w7-preview/import/test` five suites, 35 cells at the tip
   (route, refusals, refusal-route, live-clock, page-bundle), measured green by
-  REVIEW-R1. All 35 must still pass. Any cell that goes red because it asserted
-  the OLD comparison must be rewritten to the new rule and named in the build
-  report, not deleted.
+  REVIEW-R1 and to be RE-MEASURED by the build rather than taken from this
+  spec. All must still pass. Any cell that goes red because it asserted the OLD
+  comparison must be rewritten to the new rule and named in the build report,
+  not deleted. THREE of them are already known to go red and are named here
+  rather than discovered later: the stranger refusals at `refusals.test.mjs:20`,
+  `refusal-route.test.mjs:23` and `route.test.mjs:264`, rewritten per 4.4.
+- `rebuild/lanes/d/import-retract/retract.test.mjs` (pinned, S6.json:183) and
+  `rebuild/lanes/d/plan-edit/model.test.cjs` (pinned, S6.json:228) are run in
+  full, before and after. The first has one known red cell (4.4); the second
+  must have NONE from 1.6, because 1.6 only widens what the companion accepts.
+  A red cell in `model.test.cjs` means 1.6 was implemented as something other
+  than a widening and the build stops.
 - The eleven lane-D diagnosis cells (D-PR-1, D-PR-2, D-PR-3, D-PR-4 a/b/c,
   D-PR-5, D-PR-6, D-PRR-1, D-PRR-2) carried into `lanes/d/p3-port-fix/`.
   Under the new rule their expected results INVERT where the rule changed, and
@@ -740,7 +1011,8 @@ Run against cell (a)'s composed path, on the shipped page.
 | moving clock | two `currentDay()` reads across a 60 s real wait agree; a bundle dated today admits before and after | YES |
 | device timezone offset | the offset on every stamped op matches the device offset (the `:165-170` check) under a non-UTC zone (America/New_York) | YES |
 | force-close and reopen | after `publish` + `reconcile`, force-close the page, reopen, and the gym card still shows the file's per-lift numbers | YES |
-| local-midnight rollover | admit before local midnight, cross it, reopen: the next day's card is the file's split map's letter for the NEW day, and the :451 bound holds | YES |
+| local-midnight rollover | admit before local midnight, cross it, reopen: the next day's card is the file's split map's letter for the NEW day, and the B-A bound (1.2) still holds because it can only loosen as the clock advances. The earlier draft cited "the :451 bound", which names nothing in any file this spec touches and is withdrawn (REVIEW-R1 review item 4) | YES |
+| one clock per file | the B-A build requirement of 1.2 executed: a single bundle whose two periods are bounded across a real local midnight is bounded against ONE day, because `currentDay()` is read once and passed in. Asserted by admitting a two-period bundle while the era's live instant crosses midnight between the two period checks would have fired | YES |
 | offline reload | reload with the network down: Today renders, the adopted basis is still the file's | YES |
 
 THE ONE STUB THAT STANDS, named rather than hidden: every admitting cell still
@@ -761,6 +1033,47 @@ against the pre-fix tree with exactly `LOCAL_SOURCE_PROGRAMME_UNRESOLVED`,
 which is the owner's own refusal reproduced, and green after. The build runs
 the reviewer's probe set itself before hand-off (DECISIONS:439 (3)).
 
+### (k) THE COMPANION'S NEW LOCAL-SOURCE PREDICATE (section 1.6)
+
+Model-level cells in `rebuild/lanes/d/plan-edit/model.test.cjs`, beside the
+existing local-source cells, each constructed with `basisSource:'local-source'`,
+a `basisState` that is an admitted import's replayed state, and the phone's own
+first-run document as `setupOperation`. Every one of them is RED against the
+pre-fix `plan-edit-model.cjs` and GREEN after; that red-first is what proves
+these cells are the finding and not a description of it.
+
+ACCEPTS (each was `PLAN_EDIT_ORIGIN_UNPROVEN` or `PLAN_EDIT_TAG_BASIS_UNPROVEN`
+before, one cell per row, each varying ONE thing):
+- `base.split[0].from` 60 days earlier than the document's.
+- `base.split` of length 2, both periods carrying the same map.
+- `base.priority_muscles` differing from the document's.
+- one lift's `sets` differing; one lift's `hi`; one lift's `inc`; one lift's
+  `steps`.
+- one lift's `head` and `secondary` differing from the document's tag snapshot.
+
+STILL REFUSES (the predicate is narrowed, not removed; each asserts the code):
+- a period whose `map` differs in one day letter: `PLAN_EDIT_ORIGIN_UNPROVEN`.
+- `base.split` not an array, or empty, or a period carrying a third member:
+  `PLAN_EDIT_ORIGIN_UNPROVEN`.
+- a lift id in the document that the basis does not hold, and the reverse:
+  `PLAN_EDIT_ORIGIN_UNPROVEN`.
+- one lift's `day` or `mg` differing: `PLAN_EDIT_ORIGIN_UNPROVEN`.
+- a lift whose `n` is absent, empty or not a string: `PLAN_EDIT_ORIGIN_UNPROVEN`.
+- a document tag map whose key set is not the basis's id set: unchanged,
+  `PLAN_EDIT_TAG_BASIS_UNPROVEN`.
+- `base.athlete_label` differing from the document's:
+  `PLAN_EDIT_ORIGIN_UNPROVEN`, unchanged.
+
+THE FIRST-RUN BRANCH IS UNTOUCHED, and a cell proves it: every existing
+first-run cell in the suite runs unchanged and green, and one new cell varies a
+single lift's `sets` on a FIRST-RUN basis and asserts it still refuses
+`PLAN_EDIT_ORIGIN_UNPROVEN`. Without that cell, a build could satisfy the
+ACCEPTS rows by narrowing both branches, which would be a real loss.
+
+ROUTE-LEVEL, one cell, the composed one: the companion assertion inside cell
+(a). That is the cell that would have caught finding 1 and it is the one that
+matters most; these model cells are what make the fix reviewable line by line.
+
 ---
 
 ## 6. NOT CHANGED
@@ -779,8 +1092,13 @@ the reviewer's probe set itself before hand-off (DECISIONS:439 (3)).
   side after S7.
 - THE OTHER FAMILIES. F1 reads, F2 food, F3 workouts and their order law,
   F5 check-ins, F6 historical decisions, F7 measure and F8 sleep keep their
-  rules, their codes and their projected/retained dispositions exactly. Only
-  F4's field list narrows, and only in `programme()`.
+  rules, their codes and their projected/retained dispositions exactly. F4's
+  field list narrows, in `programme()` and in the ONE other guard that derives
+  its predicate from `programme()` by its own written statement, the Edit My
+  Week companion's local-source branch (section 1.6). Round 1 said "only in
+  `programme()`" and that was FALSE, measured by REVIEW-R1 finding 1 and
+  confirmed here at `rebuild/m4/workout/plan-edit-model.cjs:51,:52,:88,:90`.
+  The narrowing is observed in exactly two files and both are named in 4.1.
 - THE /ledger LOCKDOWN. No ledger path is read, written or referenced by this
   ticket. Every figure in every cell is synthetic.
 - `setup-model.mjs`. The setup flow keeps its one-number answers and its
@@ -793,11 +1111,27 @@ the reviewer's probe set itself before hand-off (DECISIONS:439 (3)).
 
 ### 7.1 Risks, in the order I would worry about them
 
-1. THE CORPUS REWRITE IS BIGGER THAN THE FIX. `support.mjs` is the shared
-   fixture of all five pinned suites, and adding a real-`document()` builder to
-   it is the one change that can turn 35 green cells red for reasons unrelated
-   to the rule. Mitigation: ADD beside `firstRun()`, never replace it, and
-   require the build to show all 35 green before and after.
+0. A THIRD GUARD SOMEWHERE ELSE READS THIS RULE AND NOBODY HAS FOUND IT YET.
+   This is now the top risk, because round 1 shipped with exactly that mistake
+   and an independent reviewer found it by reading rather than by running
+   (finding 1, section 1.6). The countermeasure is not an argument, it is a
+   procedure the build MUST run and report: a tree-wide search for each
+   RETAINED field name (`sets`, `hi`, `inc`, `steps`, `head`, `secondary`,
+   `priority_muscles`) and for `split` compared against a setup document,
+   across `rebuild/m3`, `rebuild/m4`, `rebuild/engine` and `rebuild/coach`,
+   with EVERY hit classified as engine reader, inert carry or GUARD, and every
+   guard named in the build report with its file:line and its disposition. Two
+   are known (`source-admission.mjs` `programme()` and
+   `plan-edit-model.cjs`'s local-source branch); the report must say whether
+   there is a third and must not leave the question implicit.
+1. THE CORPUS REWRITE IS BIGGER THAN THE FIX, and bigger than round 1 said.
+   `support.mjs` is the shared fixture of all five pinned import suites AND of
+   the pinned lane suite `lanes/d/import-retract/retract.test.mjs`, so a change
+   to it reaches six suites, not five. Six refusal-guard cells are already
+   known to move (the four `STRANGER_SETUP` call sites of 4.4 plus the two
+   diagnosis rewrites of 5 (h)). Mitigation: ADD beside `firstRun()` and beside
+   `STRANGER_SETUP`, never replace either (4.4), and require the build to show
+   every suite green before and after, with each moved cell named.
 2. THE WIDENING IS REAL AND IS THE THING A REVIEWER SHOULD PUSH ON. After this
    change a file agreeing only on the week, the lift ids, the days and the
    muscle groups admits. Cell (e)'s second half exists so the size of that is
@@ -813,7 +1147,14 @@ the reviewer's probe set itself before hand-off (DECISIONS:439 (3)).
    named), but it is the judgement in this spec I am least certain of, and the
    PM should know it is a judgement. If the owner's real bundle refuses on
    `split.map` after S7, this is the first thing to look at, and OPT-3's detail
-   is what will tell us, which is part of why OPT-3 ships with OPT-2.
+   is what will tell us, which is part of why OPT-3 ships with OPT-2. ONE POINT
+   IN THE RULE'S FAVOUR ROUND 1 DID NOT MAKE, supplied by REVIEW-R1: because
+   P-A proves EVERY period's map equal, a multi-period file is semantically
+   INERT past "is one in force", so `dayType`'s last-entry-wins walk
+   (`plan.cjs:11-22`) cannot answer a letter the phone never named, whichever
+   period it lands on. The risk is therefore a risk of REFUSING his own file,
+   never of training him on a week he did not describe, and that is the right
+   direction for it to point.
 4. `replay-core.cjs` not moving means the S7 package declaration must not
    assume it did. A lane B tooling detail, but one that has bitten before.
 5. The label precondition of 2.2 is invisible to the athlete. If his phone's
@@ -823,13 +1164,72 @@ the reviewer's probe set itself before hand-off (DECISIONS:439 (3)).
 
 ### 7.2 Estimate, in working days
 
+RE-ESTIMATED after REVIEW-R1. Round 1 said 2.5 build days and the review is
+right that findings 1 and 3 were not inside that number: the companion is a
+fourth product file with its own branch, its own cells and its own red-first,
+and the stranger fixture is four named call-site rewrites across four suites,
+one of them a pinned lane suite.
+
 | step | days |
 |------|------|
-| build: the three product files, the corpus additions, the lane cells, red-first on each, the reviewer's probe set run before hand-off | 2.5 |
-| independent review, Opus high, blind and told to disagree, including its own re-run of the 35 + the lane cells | 1.0 |
-| one fix round with the same reviewer | 0.5 |
+| build A: `source-admission.mjs`, `import-screen.mjs`, `replay-registry.cjs`, the corpus additions, cells (a) to (j), red-first on each | 2.5 |
+| build B: `plan-edit-model.cjs`'s local-source branch (1.6) and cell (k), model-level red-first plus the companion assertion inside cell (a) | 1.0 |
+| build C: the 4.4 stranger fixture and its four named call-site rewrites, plus a full before/after run of all six affected suites | 0.5 |
+| build D: the risk-0 guard sweep and its report section | 0.25 |
+| the reviewer's probe set run before hand-off (DECISIONS:439 (3)) | included above |
+| independent review, Opus high, blind and told to disagree, including its own re-run of every suite named in 4.3 and its own execution of cell (a) plus one companion open (which REVIEW-R1 could not do) | 1.25 |
+| one fix round with the same reviewer | 0.75 |
 | Fable final (DECISIONS:439 (a): this is a package on the owner's data path) | 0.5 |
-| TOTAL to an accepted, unsealed branch | 4.5 |
+| TOTAL to an accepted, unsealed branch | 6.75 |
+
+That is 2.25 days more than round 1 claimed. The difference is the cost of
+finding 1 and finding 3, and it is stated rather than absorbed, because a build
+that discovers the companion halfway through would either overrun silently or
+drop cell (k).
 
 The S7 seal chain (:501) that carries this to the phone is the PM's and is not
 estimated here.
+
+---
+
+## 8. REVIEW DISPOSITION (R1)
+
+Reviewer: lane D, independent, Opus high, blind, told to disagree. Verdict
+REJECT, three BLOCKING findings and six NOTEs. Every finding below was
+re-measured in this worktree at 3d002174 by the author before disposition; the
+reviewer ran nothing, and finding 1 in particular was a code reading, so it was
+re-read line by line rather than accepted on the summary.
+
+| # | kind | disposition | where |
+|---|------|-------------|-------|
+| 1 | BLOCKING | FIXED, option (i). Verified: `plan-edit-model.cjs:51,:52,:88,:90` and the comment at `:62-66` are exactly as the reviewer quotes, and `plan-edit-host.mjs:68-75` binds `basisSource:'local-source'` on an admitted import. The companion is now a fourth touched product file with its own predicate, its own cells and its own red-first | 1.4 (correction), 1.6, 2.2, 4.1, 4.3, 5 (a), 5 (k), 6, 7.1.0, 7.2 |
+| 2 | BLOCKING | FIXED. Verified: `source-admission.mjs:150` projects through `[...fields,'head','secondary']`, so narrowing `fields` narrows the digest, and both readings dropped `id`. The diff now carries a separate `PROJECTED_FIELDS` that keeps `id` and every retained member, and the prose no longer contradicts it. A cell asserts the digest input | 1.3, 5 (a) |
+| 3 | BLOCKING | FIXED. Verified: `STRANGER_SETUP` varies only `athlete_label` and `exercises[0].sets`, and four suites seal from it, including the pinned `lanes/d/import-retract/retract.test.mjs:28` (S6.json:183). New section 4.4 rules the collision in favour of 7.1.1: the fixture stays, `STRANGER_WEEK_SETUP` is added, four call sites are rewritten by name. 4.3 now marks the three import suites CHANGED and names both missing pinned suites | 4.3, 4.4, 5 (e), 5 (h), 7.1.1, 7.2 |
+| 4 | NOTE | FIXED. "`priority_muscles` read by nothing" was false; `plan-edit-model.cjs:52` is a reader and a guard. The claim is now scoped to the engine and the guard is named | 1.4 |
+| 5 | NOTE | FIXED. `volume.cjs:41` is `INDIRECT[e.id]`, keyed by lift id, not `ex.secondary`. The cite is corrected and the stronger conclusion (no engine reader of `ex.secondary` at all) is stated | 1.4 |
+| 6 | NOTE | PARTLY FIXED, PARTLY DISPUTED. `athlete-state.cjs:234` is the header comment and the array wrap is `:331`: FIXED. `local-source-basis.mjs`'s label guard is `:54`, not `:55`: FIXED in both places. Bare paths for `athlete-state.cjs`, `workout-host.mjs`, `volume.cjs`, `plan.cjs` and `port.cjs`: FIXED. The third bullet is DISPUTED, see below | 1.1, 1.2, 2.2, 4.2, 5 (e) |
+| 7 | NOTE | FIXED, and promoted from a sentence to a rule: B-C closes the period shape over `{from,map}` and the diff carries the check | 1.2, 1.3 |
+| 8 | NOTE | FIXED. The detail spread is guarded in the diff itself, not only in 3.3's prose, and a cell asserts an issue with no `field` member rather than `field: undefined` | 1.3, 5 (f) |
+| 9 | NOTE | FIXED. "taken once per replay" was a build requirement stated as a fact; B-A now says so explicitly, cites `:92` and `import-screen.mjs:343`, and 5 (i) gains a row that executes it | 1.2, 5 (i) |
+
+Reviewer R1 finding 6, third bullet: DISPUTED because the line is right as
+round 1 had it. The reviewer says "2.1 step 2: 'reads at `:179`'. `applyRead`
+is at `source-admission.mjs:178`; `:179` is the F1 family push." Measured in
+this worktree at 3d002174, `rebuild/m3/w6/local/source-admission.mjs:178` is
+`days.add(row.date);last=row.date;`, `:179` is
+`if(row.local.state==='included')try{state=engineFor(row.date,hour).applyRead(...)`,
+and `:180` is `families.push({family:'F1',...})`. So `applyRead` IS at `:179`
+and the F1 push is at `:180`; the reviewer is off by one and the spec's cite
+stands unchanged. Nothing else in NOTE 6 is disputed.
+
+Three of the reviewer's other observations were adopted without being findings,
+and are named so the next round can see they were not missed: the multi-period
+inertness argument (now 7.1.3), the live-clock technique for "the next morning"
+(now in 5 (a)), and the withdrawal of the bare ":451" cite (now in 5 (i)).
+
+WHAT THIS ROUND DID NOT DO. It did not run anything either: this is a spec
+branch and no product file is modified by it. Finding 1 remains a code reading
+by two people rather than an executed failure, and the build's FIRST task is to
+execute cell (a) with the companion assertion against the pre-fix
+`plan-edit-model.cjs` and confirm it is red. If it is green, 1.6 is wrong and
+the build stops and says so instead of implementing it.
