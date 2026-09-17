@@ -123,8 +123,21 @@ jobs:
       # brief-by-sha and GATE-SUPERSESSION lines for M2-S5-TODAY-CHILD stand on the chain
       # branch this step reports the runner's own refusal by name rather than PASS; that is
       # the expected pre-ruling state, and the brief predicts the exact refusal.
-      - name: Cumulative S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S6
+      # M2-S7-PORT-ADMISSION SUCCEEDS M2-S6-TODAY-CHILD HERE, by the same rule a sixth
+      # time, and the flip lives INSIDE the package rather than at the fast-forward.
+      # DECISIONS:498 measured the cost of doing it after the seal: rebuild.yml is a
+      # declared product file, so a post flipped after the sealed run refuses
+      # WORKTREE-SOURCE-PIN on the byte-identity step. VERDICT-S6.md records the rule.
+      # S7 carries the accepted P3-PORT-FIX and P3-PORT-FIX-2 change on the owner's own
+      # data path (DECISIONS:508, :509, :510); it moves no rebuild/engine byte and it
+      # retires the same nine byte-identity gates again under its own token line. Until
+      # the PM's theme, brief-by-sha and GATE-SUPERSESSION lines for M2-S7-PORT-ADMISSION
+      # stand on the chain branch this step reports the runner's own refusal by name
+      # rather than PASS; that is the expected pre-ruling state.
+      # The step NAME is corrected here as DECISIONS:501 carries it (it still read S5
+      # under the S6 seal, which was cosmetic and is not any more).
+      - name: Cumulative S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S7
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -248,6 +261,13 @@ jobs:
         run: node --test rebuild/lanes/d/p3-replay-all/class-membership.test.mjs rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs rebuild/lanes/d/p3-replay-all/writer-order.test.mjs
       - name: D — the legacy order mapping, its provider and its route
         run: node --test rebuild/lanes/d/b-lom/legacy-order.test.mjs rebuild/m4/workout/test/legacy-order-mapping.test.cjs
+      # M2-S7-PORT-ADMISSION ADDS ITS OWN THREE LANE CELLS HERE, under the same
+      # DECISIONS:117 (4) licence and for the same DECISIONS:186 (3) reason: they arrived
+      # with P3-PORT-FIX and P3-PORT-FIX-2 (DECISIONS:509, :510) and no workflow names
+      # them, so without this step they are three suites the phone's admission path
+      # depends on and nobody runs. Named by exact path and never globbed.
+      - name: D - the port admission programme rule, the owner's route and the capture codes
+        run: node --test rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs rebuild/lanes/d/p3-port-fix/owner-route.test.mjs rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs
       - name: W6 — the local source admission and consumer cells
         run: node --test rebuild/m3/w6/test/local-source-admission.test.mjs rebuild/m3/w6/test/local-source-consumer.test.mjs
       - name: C5 — the voice coach tool contract and text prototype
