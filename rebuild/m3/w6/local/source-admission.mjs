@@ -96,7 +96,33 @@ const KNOWN_REPLAY_CODES=Object.freeze(new Set(['LOCAL_SOURCE_AUTHORITY_CONTEXT'
    closed vocabulary of spec 3.1 and, where the field is per lift, the lift id.
    GUARDED, so an error that carries no field (a CLEAN_INIT_* out of
    createCleanInitState, a TypeError) produces an issue with NO `field` member
-   rather than one whose field is undefined. */
+   rather than one whose field is undefined.
+
+   THE CLOSED VOCABULARY, in full. A `field` is a literal chosen by the code
+   path, never interpolated, so no value from the file can ride out on one. An
+   `exercise_id` is always the PHONE's own id, except on the four capture rows,
+   where it is the id the admitted state holds and the athlete is being told
+   about his OWN recorded Earned workout (spec 3.4).
+
+     setup_document   zero or two first-run documents on this phone, or one
+                      that does not validate
+     split            the file's split is not a non-empty period array
+     split.map        a period of the file's week is not this phone's week
+     split.from       a period starts after today, or none is in force today
+     exercises        the file lists a different number of lifts
+     exercise_id      a lift this phone lists is missing from the file, or
+                      listed twice                                    (per lift)
+     day              a lift sits on a different training day          (per lift)
+     mg               a lift is filed under a different muscle group   (per lift)
+     sets hi inc      P3-PORT-FIX-2 (DECISIONS:509 NOTE 4): a RETAINED value the
+     steps            document constructor itself would refuse         (per lift)
+     capture_producer a recorded capture names an unknown rule profile
+     capture_lift     a capture slot names a lift the admitted state does not
+                      carry exactly once                              (per lift)
+     capture_sets     a capture's slot count for a lift is not the count the
+                      document that produced it prescribed            (per lift)
+     capture_membership  the capture's lift pool or order is not the one the
+                      engine's own membership reader gives for that day */
 const detailOf=e=>(e?.field?{field:e.field,...(e.exercise_id?{exercise_id:e.exercise_id}:{})}:undefined);
 const {encode,digest,freeze,validDay,sourceEngineContext,engineContextAt}=Profile;
 const copy=structuredClone;
@@ -165,17 +191,30 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
     document the setup flow can write (setup-model.mjs:622-623,:633), because
     the flow cannot ask him for them and a rule he cannot answer is not a rule.
     Each retention carries its own argument in lanes/d/P3-PORT-FIX-SPEC.md 1.4. */
- function programme(source,ops,{today}){
+ function programme(source,ops,{today,documentSets=null}){
   const setups=Object.values(ops).filter(o=>o.payload?.profile===Setup.PROFILE);
   if(setups.length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'setup_document'});const op=setups[0];
   if(op.schema_version!==2||!Setup.validate(op,id=>ops[id]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'setup_document'});
   const scratch=createCleanInitState({setup:op.payload.setup});
+  /* THE DOCUMENT'S OWN SET COUNT PER LIFT, handed back through an OUT PARAMETER
+     (P3-PORT-FIX-2, DECISIONS:509 Q1). It is deliberately NOT a member of the
+     returned basis: that object is the programme digest's input at :325, and a
+     new member would change a digest that binds what was admitted. It is filled
+     HERE, before any comparison below can refuse, so the capture check further
+     down reads the document even on a file that never gets past this function. */
+  if(documentSets)for(const ex of scratch.exercises)documentSets.set(ex.id,ex.sets);
   /* COMPARED is not PROJECTED. `fields` is what the file must AGREE with the
      phone about; PROJECTED_FIELDS is what the admitted basis carries out to the
      programme digest at :325, and it keeps `id` and every RETAINED number,
      because narrowing the comparison must not narrow the record. */
   const fields=['day','mg'];
   const PROJECTED_FIELDS=['id','day','mg','sets','hi','inc','steps','head','secondary'];
+  /* BOUNDED is a third list and is neither of the other two (P3-PORT-FIX-2,
+     DECISIONS:509 NOTE 4). These four are still RETAINED - the file's value is
+     what lands, and nothing here compares it with the phone's - but a retained
+     value must still be one the athlete's own document constructor would accept,
+     because the state it lands in is the state the engine reads. */
+  const BOUNDED_FIELDS=['sets','hi','inc','steps'];
   const periods=Array.isArray(source.split)?source.split:null;
   const week=scratch.split[0].map;
   if(!periods||!periods.length)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split'});
@@ -192,6 +231,30 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    if(matches.length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'exercise_id',exercise_id:ex.id});
    for(const key of fields)if(encode(matches[0][key])!==encode(ex[key]))
     fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:key,exercise_id:ex.id});
+   /* THE DOCUMENT CONSTRUCTOR'S OWN BOUNDS, APPLIED TO THE RETAINED VALUES
+      (P3-PORT-FIX-2, DECISIONS:509 NOTE 4 / D-PF-n4). Until P3-PORT-FIX every
+      retained number had to EQUAL the phone's document, and the document has
+      been through createCleanInitState, so the file's numbers were incidentally
+      bounded to values the engine accepts. Retaining them dropped that bound and
+      a `sets: 0` rode all the way into the adopted basis, where the gym card
+      dead-ends. The bound is restored by ASKING THE CONSTRUCTOR ITSELF rather
+      than by restating its rule here: the phone's own valid document is rebuilt
+      with exactly ONE member of ONE lift replaced by the file's value, and if
+      athlete-state.cjs refuses that document it refuses this value. No bound is
+      invented and none is copied: what the constructor bounds
+      (athlete-state.cjs:118-135 - every member present, `sets` and `hi`
+      positiveInt, `inc` a finite number above zero, `steps` a non-empty
+      ascending list of positive loads) is what admission bounds, and what it
+      does not bound (any ceiling at all) admission does not bound either.
+      The probe is attributable: the document alone already built a state at the
+      head of this function, so the only thing that can have refused is the one
+      substituted value. `head`, `secondary` and `priority_muscles` are outside
+      REQUIRED_EXERCISE and the constructor sets no bound on the first two, so
+      they stay retained and unbounded, as the ruling's four field names say. */
+   for(const key of BOUNDED_FIELDS)
+    try{createCleanInitState({setup:{...op.payload.setup,
+     exercises:op.payload.setup.exercises.map(d=>d.id===ex.id?{...d,[key]:matches[0][key]}:d)}});}
+    catch{fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:key,exercise_id:ex.id});}
   }
   return {op_id:op.op_id,split:source.split,
    exercises:source.exercises.map(ex=>Object.fromEntries(PROJECTED_FIELDS
@@ -226,7 +289,11 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
      so two reads inside one replay can straddle a local midnight. It is read
      ONCE here and passed in, so every period of one file is bounded against
      one day. */
-  try{programmeBasis=programme(state,ops,{today:currentDay()});}
+  /* THE PHONE'S OWN DOCUMENT, per lift, for the capture provenance check below
+     (P3-PORT-FIX-2, DECISIONS:509 Q1). Read out of programme() rather than off
+     `state`, because `state` is the FILE's. */
+  const documentSets=new Map();
+  try{programmeBasis=programme(state,ops,{today:currentDay(),documentSets});}
   catch(e){issue(e.code,null,detailOf(e));}
   const facts=reading({operations:ops,dispositions:c.dispositions||{},receipts:c.receipts||{},frontier:c.sync.frontier,outbox:c.outbox,rejected:c.rejected||{}});
   const days=new Set((state.reads||[]).map(r=>r.d)),nativeReads=facts.records.filter(r=>r.original.kind==='fact').sort((a,b)=>a.original.device_seq-b.original.device_seq);
@@ -329,7 +396,41 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
     const producer=start.prescription_capture.producer;if(![EngineCapture.PROFILE,EngineCapture.CONFIGURATION_PROFILE].includes(producer.rule_profile))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_producer'});
     const adapter=EngineCapture.createEngineWorkoutCapture({engine:runtime,prescriptionCapture:captures,producerIdentity:producer,sourceProjectionReader:projectionReader});
     const layout=adapter.readLayout(start.prescription_capture),counts=new Map();for(const slot of layout.slots){if(state.exercises.filter(e=>e.id===slot.lift_lineage_id).length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_lift',exercise_id:slot.lift_lineage_id});counts.set(slot.lift_lineage_id,(counts.get(slot.lift_lineage_id)||0)+1);}
-    for(const [id,count]of counts)if(state.exercises.find(e=>e.id===id).sets!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_sets',exercise_id:id});
+    /* CAPTURE PROVENANCE (P3-PORT-FIX-2, DECISIONS:509 Q1, option b).
+       WHAT THIS CHECK VERIFIES. Not that the athlete's recorded workout agrees
+       with the programme being admitted - it cannot, and it was never asked to.
+       It verifies PROVENANCE: that this capture was prescribed by a programme
+       that actually existed on this phone, so its slot count is a real
+       prescription and not a fabricated or corrupted layout. A capture is
+       evidence of what he performed, and evidence has to come from somewhere.
+
+       WHY THE DOCUMENT IS THE RIGHT-HAND SIDE AFTER P3-PORT-FIX. The capture
+       was written by the gym card before the import, and the card prescribed
+       from the phone's own first-run DOCUMENT, so the document's set count for
+       that lift IS the number of slots it wrote. Until P3-PORT-FIX the file's
+       count had to equal the document's anyway, so `state` and the document
+       were the same number and the check could read either. P3-PORT-FIX made
+       `state` the FILE's, and reading `state` then asked the capture to match a
+       programme that did not exist when it was written - which is why a phone
+       that recorded one Earned workout before importing refused its owner's own
+       history (D-PF-f1, the PM's Q1). The document is the programme that
+       PRODUCED the capture; admission has already proved, at :180-215 above,
+       that this same document is the same SHAPE as the file (the week, the lift
+       ids, each lift's day and muscle group, the count), so the two sides of
+       this check are the same list of lifts. The projected session then rides
+       into the admitted state AS RECORDED: nothing here rebases it.
+
+       WHAT STILL REFUSES. A capture whose slot count for a lift matches NEITHER
+       the document nor the file: no programme in the story wrote it, and that is
+       exactly the corruption this check exists for (D-PF-f5). A lift the
+       DOCUMENT does not carry: `documentSets.get(id)` is undefined and no count
+       equals it, so the capture refuses; that can only happen when programme()
+       itself already refused (it is filled before any of its comparisons), and
+       its own issue stands beside this one. The other three inner checks are
+       untouched: capture_producer above, capture_lift above - which still reads
+       `state`, because a lift the ADMITTED state does not carry is a different
+       fault - and capture_membership below. */
+    for(const [id,count]of counts)if(documentSets.get(id)!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_sets',exercise_id:id});
     // Compare complete programme membership at the ORIGINAL Start day, under
     // the authenticated original Start local date and this source's opaque
     // engineContextAt clock. The engine's own membership reader owns day

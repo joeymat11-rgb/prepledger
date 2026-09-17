@@ -89,6 +89,19 @@ export const COPY = Object.freeze({
      retracting below. */
   programmeMismatch: 'This file was written by a different training week than the one you set '
     + 'up on this phone. Nothing on this phone was changed.',
+  /* P3-PORT-FIX-2 (DECISIONS:509 Q5 + Q2). TWO FIELDS ARRIVE UNDER THAT CODE
+     FOR REASONS THE SENTENCE ABOVE DOES NOT DESCRIBE, and the PM ruled the copy
+     keyed on the FIELD rather than on the code. These are his words, verbatim.
+     `capture_sets`: nothing is wrong with his training week - the week, the
+     lifts, the days and the muscle groups all agreed - and what refused was his
+     OWN recorded Earned session's slot count. `setup_document`: the phone holds
+     no first-run document at all, so "the one you set up on this phone" names
+     something that does not exist. Both keep the second half, which is the one
+     fact he most needs and which the screen guarantees by retracting. */
+  captureSetsMismatch: 'A workout you already recorded on this phone has a different number '
+    + 'of sets than this file has for that lift. Nothing on this phone was changed.',
+  noSetupDocument: 'This phone has no saved setup to compare this file with. Nothing on '
+    + 'this phone was changed.',
   cancelled: 'Cancelled. Nothing on this phone was changed.',
   retracted: 'That file was taken back. Nothing on this phone was changed.',
   retractRefused: 'That file could not be taken back on its own. It is still listed below.',
@@ -111,6 +124,17 @@ export const REFUSAL_SENTENCE = Object.freeze({
   BUNDLE_AUTH_FAILED: COPY.authFailed,
   LOCAL_SOURCE_PROGRAMME_UNRESOLVED: COPY.programmeMismatch });
 
+/* P3-PORT-FIX-2 (DECISIONS:509 Q5 + Q2). THE SENTENCE IS KEYED ON THE FIELD
+   WHEN ONE IS PRESENT, AND ON THE CODE OTHERWISE. One code, several reasons:
+   the machinery already tells the athlete WHICH field disagreed, and a sentence
+   that ignores it can be false while the code line above it is true. This map
+   is keyed by the machinery's own CLOSED vocabulary (source-admission.mjs,
+   spec 3.1 plus the four P3-PORT-FIX-2 members), and a field it does not name -
+   which is most of them - falls through to the code's sentence unchanged. */
+export const REFUSAL_FIELD_SENTENCE = Object.freeze({
+  capture_sets: COPY.captureSetsMismatch,
+  setup_document: COPY.noSetupDocument });
+
 /* Round 2, review r1 finding 4: a refusal that carried ONE code printed it
    twice - "LOCAL_SOURCE_PROGRAMME_UNRESOLVED (LOCAL_SOURCE_PROGRAMME_UNRESOLVED)"
    - because confirm() passes the first code AND the joined list. The detail is
@@ -122,7 +146,14 @@ const codeLine = (code, detail) =>
 
 export function refusalLines(code, detail) {
   const lines = [codeLine(code, detail)];
-  const sentence = REFUSAL_SENTENCE[code];
+  /* P3-PORT-FIX-2. The detail is the space separated list confirm() built out
+     of the machinery's issues (the codes after the first, then each issue's
+     `field` and `exercise_id`), so the field is one of its tokens. The FIRST
+     token this map knows wins; a lift id is never a key, and neither is a code,
+     so a token can only match by being a field the PM ruled a sentence for. */
+  const field = String(detail == null ? '' : detail).split(' ')
+    .find(token => Object.hasOwn(REFUSAL_FIELD_SENTENCE, token));
+  const sentence = field ? REFUSAL_FIELD_SENTENCE[field] : REFUSAL_SENTENCE[code];
   if (sentence) lines.push(sentence);
   return lines;
 }
@@ -578,5 +609,6 @@ export function createImportScreen(deps = {}) {
 }
 
 export default { createImportScreen, COPY, STEPS, IDENTITY_QUESTION, RETRACT_REASON,
-  REFUSAL_SENTENCE, refusalLines, unlockedFacts, reviewFacts, summaryRows, retractionRows,
+  REFUSAL_SENTENCE, REFUSAL_FIELD_SENTENCE,
+  refusalLines, unlockedFacts, reviewFacts, summaryRows, retractionRows,
   ENGINE_REVISION_LABEL };
