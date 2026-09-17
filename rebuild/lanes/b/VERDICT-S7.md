@@ -68,8 +68,15 @@ CI step already names S7 inside the package (`VERDICT-S6.md` rule (a), done at `
    controls · 104/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST OBSERVED` · 10 LEGACY gates
    re-executed, all PASS · `SEALED RUN RECORDED rebuild/lanes/b/tooling/receipts/S7.json` ·
    `POSTFIX PACKAGE PASS M2-S7-PORT-ADMISSION`, exit 0.
-4. `--full --package S7` byte-identity re-verify at the head that carries the receipt and the moved coach constant
-   (log `%TEMP%\s7-full4.log`): PENDING.
+4. `--full --package S7` at `c6c7351` (the head that carries the committed receipt and the moved coach constant; log
+   `%TEMP%\s7-full4.log`): `POSTFIX M2-S7-PORT-ADMISSION AUTHORIZED mode=--full` · `SEAL BASE ON THE TIP` ·
+   `ENVELOPE AUTHORIZED artifact=350f56885c5e... reviewed at e7fb94be36e1...; receipt base c081cbd945cb...` ·
+   `PARENT PINS RE-ASSERTED` · `AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY (DECISIONS:136 (3)); artifact, runner, spec and
+   all 206 pinned product file(s) are byte-identical to the sealed run recorded in
+   rebuild/lanes/b/tooling/receipts/S7.json 3fd8d36bd4268f145b6feb8052710efca41660a8539b490f212421a9ab4013f1, whose own
+   bytes stand IN GIT at every base checked and whose sha256 rebuild/lanes/b/VERDICT-S7.md names` ·
+   `POSTFIX PACKAGE PASS M2-S7-PORT-ADMISSION`, exit 0. The private oracle, the historical audit and the 19 original
+   gates are not re-run on this step; terminal 3 stands as their evidence.
 
 ## Notes recorded on this seal
 - The brief's section 3.3 says five children execute the six `s7-*` cells; it is six. The slip was left uncorrected on
