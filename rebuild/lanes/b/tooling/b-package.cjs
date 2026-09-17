@@ -1836,9 +1836,19 @@ function pins(s, bound) {
 }
 // Walk the accepted chain to the artifact that still carries the audit baseline (the
 // closed cumulative profiles do not: M2-STEP-EFFICACY is where it lives).
+// S7-BASELINE-WALK (DECISIONS:516). The bound below guards a walk over ACCEPTED artifacts
+// against a MALFORMED CYCLE; it is not a statement about the chain's depth. Every reseal
+// child adds one hop, so the depth grows with the chain and a bound that tracked it would
+// have to be moved by every generation. The previous literal 8 encoded the depth AT THE
+// TIME IT WAS WRITTEN and S7 is the first generation to fall off the end of it: the
+// baseline-bearing artifact stands at hop 8 from the S7 bound, the walk stopped after hop
+// 7, baselineOf returned null, and historical() printed HISTORICAL AUDIT SKIPPED and noted
+// an open obligation that blocks the seal. 64 is past any chain this project will grow and
+// still terminates a cycle in a bounded number of reads.
+const BASELINE_WALK_MAX_HOPS = 64;
 function baselineOf(bound) {
   let file = bound && bound.option.artifact;
-  for (let hop = 0; file && hop < 8; hop++) {
+  for (let hop = 0; file && hop < BASELINE_WALK_MAX_HOPS; hop++) {
     const a = J.parseExact(fs.readFileSync(rel(file)));
     if (a.baseline && a.baseline.publicPins && typeof a.baseline.auditCommit === 'string') return a.baseline;
     file = a.parent && a.parent.artifact;
