@@ -22,6 +22,6 @@
  * updated by the reseal's own ticket - a stale revision can never ship
  * silently.
  */
-const ENGINE_REVISION = "M2-S7-PORT-ADMISSION@3fd8d36bd4268f14";
+const ENGINE_REVISION = "M2-S8-REAL-SHAPE@3b1b8b91dd5a6ff0";
 
 module.exports = { ENGINE_REVISION };
