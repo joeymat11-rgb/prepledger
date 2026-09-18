@@ -91,8 +91,19 @@ step already names S8 inside the package (`VERDICT-S6.md` rule (a), done in the 
    and 9 SUPERSEDED under DECISIONS:527, each replaced by this package's own executed evidence; second gate included` ·
    `SEALED RUN RECORDED rebuild/lanes/b/tooling/receipts/S8.json; artifact=3cf58e0edd76 spec=6fbbb1b901c2
    runner=e31dd206c0fb over 224 pinned product file(s)` · `POSTFIX PACKAGE PASS M2-S8-REAL-SHAPE`, exit 0.
-5. `--full --package S8` at the head that carries the committed receipt and the moved coach constant (log
-   `%TEMP%\s8-full4.log`): PENDING - filled in by the byte-identity terminal after the coach constant moves.
+5. `--full --package S8` at `5795eba` (the head that carries the committed receipt and the moved coach constant; log
+   `%TEMP%\s8-full4.log`): `POSTFIX M2-S8-REAL-SHAPE AUTHORIZED mode=--full` ·
+   `SEAL BASE ON THE TIP; refs/remotes/origin/rebuild/t2-client-core is at 2f110c1 and that commit is an ancestor of
+   this HEAD (DECISIONS:135 (4), rule=ancestor)` ·
+   `ENVELOPE AUTHORIZED artifact=3cf58e0edd76a56353b35008ef154d484098b5017fedeb648eb64a0ae6568d48 reviewed at
+   0cd07be7cf967dfbfea8c84947ba8477f58cfb5f; receipt base 2f110c11c7b4c581e05dd694b1bcaa8ffb3514ab` ·
+   `AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY (DECISIONS:136 (3)); artifact, runner, spec and all 224 pinned product
+   file(s) are byte-identical to the sealed run recorded in rebuild/lanes/b/tooling/receipts/S8.json
+   3b1b8b91dd5a6ff049dffd721ec723b9fe550b0b71ba78e37574cfc96210d409, whose own bytes stand IN GIT at every base checked
+   and whose sha256 rebuild/lanes/b/VERDICT-S8.md names (r8 change 1: a receipt no seal step wrote, or one not
+   committed, refuses here); the private oracle, the historical audit and the 19 original gates are NOT re-run on this
+   step [cut]` · `POSTFIX PACKAGE PASS M2-S8-REAL-SHAPE`, exit 0. Terminal 4 stands as the evidence for the private
+   oracle, the historical audit and the 19 original gates.
 
 ## Notes recorded on this seal
 - The two `rebuild/lanes/d/p3-layout-v2` cells (`layout-v2.test.mjs`, `projector-parity.test.mjs`) are CI-homed by
