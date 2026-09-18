@@ -43,10 +43,18 @@ import { createLocalSourceController, localSourceCommitCapability }
 import { createSourcePlatform } from '../../w6/local/source-platform.mjs';
 import Production from '../../../m4/import/production-mapping.cjs';
 
-/* THE IDENTITY QUESTION, verbatim. The bundle carries NO athlete identity - a
-   file differing only by athlete_label admits, and programme() compares only
-   programme fields - so this answer is the ONLY identity guard there is
-   (DECISIONS:472 (a)). It has to be asked of him, before anything is written,
+/* THE IDENTITY QUESTION, verbatim. The bundle carries NO athlete identity of
+   its own, so this answer is the ONLY identity guard there is
+   (DECISIONS:472 (a)).
+   CORRECTED BY P3-REAL-SHAPE (DECISIONS:521). The sentence here used to say "a
+   file differing only by athlete_label admits", and that is no longer true:
+   P-LABEL (source-admission.mjs programme()) now REFUSES a file whose
+   athlete_label is not this installation's, by that name. What remains true,
+   and is the reason this question still carries the whole weight, is that the
+   old app writes no athlete_label AT ALL - so on the population this route
+   exists for, P-LABEL cannot fire and a file that names nobody takes this
+   phone's own label on his Yes alone (spec 6.2 (5)).
+   It has to be asked of him, before anything is written,
    and it must be the CONTROLLER'S question and not a rewording of it: this
    constant is source-admission.mjs:96's `prefix_question` byte for byte (the
    ticket cites :80, which is where it stood before the lane D import swap), and

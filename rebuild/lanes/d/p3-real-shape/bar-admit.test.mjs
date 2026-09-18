@@ -147,7 +147,11 @@ test('(e) D-RS-BAR-e2 - a file saved under a DIFFERENT name is refused by that '
   assert.equal(out.line, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (athlete_label) This file was '
     + 'saved under a different name than the one you set up on this phone. '
     + 'Nothing on this phone was changed.');
-  assert.equal(/[0-9–—]/.test(out.line), false, 'a number or a dash rode out');
+  /* The two dash code points are built rather than typed, so this source file
+     stays pure ASCII and the census over it cannot trip on its own assertion. */
+  assert.equal(/[0-9]/.test(out.line), false, 'a number rode out');
+  assert.equal(new RegExp('[' + String.fromCharCode(0x2013, 0x2014) + ']').test(out.line),
+    false, 'an en dash or an em dash rode out');
   assert.equal(out.line.includes('synthetic-other-identity'), false,
     'the file\'s own value rode out on the refusal line');
   const after = await durable(out.kit.era);
