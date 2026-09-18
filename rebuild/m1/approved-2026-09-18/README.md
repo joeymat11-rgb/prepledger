@@ -28,7 +28,7 @@ builder hits one of the open questions in section 6, each of which has a default
 | path | what it is | governs |
 |---|---|---|
 | `ref/ink-board.png`, `ref/dawn-board.png` | the owner's two rendered boards (1491 × 1055), Ink dark and Dawn light, three phones each over the mountain plate | APPEARANCE. The last word on how a screen looks. |
-| `ref/*-native.png` | the six phone screens cut from the boards at 1:1 (340 × 734) | the pixel references the gate's comparisons use |
+| `ref/*-native.png` | the six phone screens cut from the boards at 1:1 (340 × 734) | what the eye compares a render against; the gate's own comparison is against `quality/baseline/<platform>/` |
 | `app/app.html`, `app/app.css`, `app/app.js` | the working prototype of the six views: markup, every token, every rule, the scene (plate, mist, embers, grain, surface), the chassis (scrolling body + fixed stack on every screen) | the IMPLEMENTATION REFERENCE. Classes and copy here are what the port binds to. |
 | `app/states.js`, `app/states.css`, `app/states-today.js`, `app/states-workout.js`, `app/states-workout.css`, `app/states-coach.js`, `app/states-coach.css` | the state driver and all 209 drawn states (99 Today, 45 Workout, 65 Coach): every refusal, every sub screen, the proposal card in its three honest states, the coach's structural states | every state the port must reach, with its exact copy |
 | `app/states.html`, `app/states-index.js` | a browser for the states (`?screen&theme&state`) | how the owner and reviewers look at any state |
@@ -47,8 +47,9 @@ builder hits one of the open questions in section 6, each of which has a default
 
 Two boards, one prototype, one standard, two gates with a mutation list behind them, one
 inventory. If the prototype and a board disagree, `app/compare.html` says why; if it does not,
-the board wins. `quality/run/` is where both gates write; it is not committed, because a report
-in the tree is a claim and a run by the reader is evidence.
+the board wins. `quality/run/` is where both gates write; it is not committed. The evidence that
+a run was green is the PR-READY line in `rebuild/lanes/STATUS.md` and the reviewer's own run of
+the two gates, never a report file in the tree.
 
 ## 2. The owner's rulings (all recorded in the inventory, section 6)
 

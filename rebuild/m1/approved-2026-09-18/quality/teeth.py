@@ -15,6 +15,11 @@ Exit code: 0 every row as expected, 1 any row disagrees, 2 the scratch copy coul
 """
 import json, os, re, shutil, subprocess, sys, tempfile, time
 
+try:   # a Windows console or a redirected log must not choke on the multiplication sign
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    pass
 HERE = os.path.dirname(os.path.abspath(__file__))
 PACK = os.path.abspath(os.path.join(HERE, '..'))
 ARGS = sys.argv[1:]

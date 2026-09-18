@@ -15,6 +15,11 @@ import numpy as np
 from PIL import Image
 from playwright.async_api import async_playwright
 
+try:   # a Windows console or a redirected log must not choke on the multiplication sign
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    pass
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, lum_array, worst_ratio, app_url,
                     sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused)
