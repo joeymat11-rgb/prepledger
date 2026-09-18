@@ -218,12 +218,17 @@ export function ctrlScope(tag) {
     athleteId: 'ath-p3-rsb', deviceId: 'dev-p3-rsb' };
 }
 
+/* P3-LAYOUT-V2. `producerIdentity` is FORWARDED when a caller names it and
+   ABSENT otherwise, exactly as `phone`/`reopen` already forward it, so every
+   existing cell still takes the page's own default and only a cell measuring
+   the producer names one. Nothing else about this walk changes. */
 export async function admitThrough(tag, bundle, { setup = PHONE, at = IMPORT_DAY,
   workout = null, recordState = null, keepOpen = true, days = CTRL_DAYS,
-  before = null } = {}) {
+  before = null, producerIdentity } = {}) {
   const scope = ctrlScope(tag);
   const indexedDB = new IDBFactory();
-  const era = await eraFor({ indexedDB, live: liveAt(AT(workout || at)), ...scope });
+  const era = await eraFor({ indexedDB, live: liveAt(AT(workout || at)), ...scope,
+    ...(producerIdentity ? { producerIdentity } : {}) });
   await firstRunWith(era, SETUP_DAY, setup.setup, setup.tags);
   let recordedSlots = null;
   if (workout) recordedSlots = await recordAWorkout(era, workout, recordState || phoneState(setup));
