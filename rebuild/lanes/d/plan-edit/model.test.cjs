@@ -456,11 +456,19 @@ test('PE16 the mapped collection set is exactly the collections this installatio
      narrowed in place rather than kept beside a new name, so no constant
      survives whose only remaining reader is the assertion about it.
      BEFORE: ['id','day','mg','sets','hi','inc','steps'].
-     AFTER:  ['id','day','mg']. */
-  assert.deepEqual(P2_ROW,['id','day','mg'],
-    'source-admission.mjs programme() proves exactly these, and not the name: '
-    + 'set counts, rep targets, increments and ladders are RETAINED from the file '
-    + '(P3-PORT-FIX-SPEC 1.4, 1.6)');
+     AFTER:  ['id','day','mg'].
+     NARROWED AGAIN by P3-REAL-SHAPE (DECISIONS:520 option A, accepted :521).
+     `id` GOES, and it goes because the two sides no longer share an id at all:
+     the basis is the FILE's, whose ids are the old app's short handles, and the
+     document is the phone's, whose ids slugOf minted. The row is bound to its
+     basis lift by its own id FIRST and then by normalised NAME, out of the
+     shared helper, and what is still COMPARED is where the lift sits in the
+     week. AFTER: ['day','mg']. */
+  assert.deepEqual(P2_ROW,['day','mg'],
+    'source-admission.mjs programme() proves exactly these, and not the id and '
+    + 'not the name: after option A the file\'s lifts ARE the athlete\'s lifts, '
+    + 'and set counts, rep targets, increments and ladders are RETAINED from the '
+    + 'file (P3-PORT-FIX-SPEC 1.4, 1.6; P3-REAL-SHAPE-SPEC 2.3, 2.6)');
 });
 test('PE16 f2-adapter-identity the injected tag collaborator is the published F2 source',()=>{
   // The lane copy is byte-identical to the public blob the independent reviewer

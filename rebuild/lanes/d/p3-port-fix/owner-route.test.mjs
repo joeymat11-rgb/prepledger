@@ -41,13 +41,26 @@ const scopeFor = tag => ({ databaseName: 'p3-pfr-' + tag, namespace: 'joe/p3-pfr
 const PHONE = shippedSetup({ today: SETUP_DAY });
 const FILE = variedProgramme(PHONE.setup);
 const SEALED = sealInventedBundle(FILE, { state: variedLegacyState(FILE) });
-/* A stranger's week, for the refusal the sentence is rendered for. */
-const STRANGER_WEEK = sealInventedBundle(STRANGER_WEEK_SETUP);
-/* The same file with ONE lift moved to the other day, so only P-C can fire and
-   the rendered detail names a lift. */
-const WRONG_DAY_FILE = (() => {
-  const varied = clone(FILE); varied.exercises[0].day = 'L';
-  return sealInventedBundle(varied, { state: variedLegacyState(varied) });
+/* A stranger's week, for the refusal the sentence is rendered for.
+   P3-REAL-SHAPE RE-POINT. STRANGER_WEEK_SETUP carries a stranger's NAME as well
+   as a stranger's week, and P-LABEL is now tested BEFORE anything per lift
+   (spec 2.3, review R1 N9), so that bundle refuses `athlete_label` and the
+   week never gets looked at. The week cell keeps its own subject by giving the
+   stranger's file THIS phone's label; the name is its own cell below. */
+const STRANGER_WEEK = sealInventedBundle((() => {
+  const s = clone(STRANGER_WEEK_SETUP); s.athlete_label = PHONE.setup.athlete_label; return s;
+})());
+const STRANGER_NAME = sealInventedBundle(STRANGER_WEEK_SETUP);
+/* P3-REAL-SHAPE RE-POINT. The lift-level refusal this cell renders used to be
+   "one lift moved to the other day", and after option A the file's lifts ARE
+   the athlete's lifts, so a lift's day is no longer compared with the
+   document's at all. The per-lift refusal that SURVIVES option A and still
+   names a lift is the retained-number bound, so the file below carries a set
+   count the athlete's own document constructor refuses. */
+const BAD_SETS_FILE = (() => {
+  const state = variedLegacyState(FILE);
+  state.exercises[0].sets = 0;
+  return sealInventedBundle(FILE, { state });
 })();
 
 let validateTags, projectNewTags;
@@ -231,21 +244,22 @@ async function refusedOn(tag, sealed) {
   return { refusal: at.refusal(), line };
 }
 
-test('D-PF-g1 - a lift on the wrong day renders its own field and lift id, with '
-  + 'the one sentence under it and nothing else', async () => {
-  const { refusal, line } = await refusedOn('render-day', WRONG_DAY_FILE);
+test('D-PF-g1 (RE-POINTED by P3-REAL-SHAPE) - a lift whose retained set count '
+  + 'the constructor refuses renders its own field and lift id, with the one '
+  + 'sentence under it and nothing else', async () => {
+  const { refusal, line } = await refusedOn('render-sets', BAD_SETS_FILE);
   /* `field` joined this object in P3-PORT-FIX-2's fix round (review R1 NOTE 1):
      the screen now carries the LEADING issue's field so the sentence can
      describe the fault the code line leads with. Asserted here, not ignored,
      so the whole refusal object is still pinned member for member. */
   assert.deepEqual(refusal,
-    { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', detail: 'day db-bench', field: 'day' },
+    { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', detail: 'sets db-bench', field: 'sets' },
     'the screen said something else: ' + JSON.stringify(refusal));
   /* The box the athlete reads is refusalLines().join(' ') (import-screen.mjs:420):
      the code line first, then the one sentence, and nothing else. */
   const rendered = Screen.refusalLines(refusal.code, refusal.detail, refusal.field).join(' ');
   assert.equal(line, rendered, 'the screen rendered something other than refusalLines()');
-  assert.equal(rendered, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (day db-bench) '
+  assert.equal(rendered, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (sets db-bench) '
     + 'This file was written by a different training week than the one you set '
     + 'up on this phone. Nothing on this phone was changed.');
   assert.equal(new RegExp('[\\u2013\\u2014]').test(rendered), false,
@@ -269,4 +283,28 @@ test('D-PF-g2 - a stranger\'s week renders (split.map) with no lift id', async (
     + 'than the one you set up on this phone. Nothing on this phone was changed.');
   assert.equal(/db-bench|lat-pulldown|leg-press/.test(rendered.join(' ')), false,
     'a week disagreement names no lift');
+});
+
+/* NEW with P3-REAL-SHAPE (spec 2.7). THE NAME ON THE FILE, RENDERED. P-LABEL is
+   the one proof this ticket ADDS, and it is tested before anything per lift, so
+   a file that names someone else is refused BY THAT NAME. The sentence is its
+   own and carries no name, no number and no dash. */
+test('D-PF-g3 (NEW) - a file saved under a stranger\'s name renders '
+  + '(athlete_label) with its own sentence, and no name rides out', async () => {
+  const { refusal, line } = await refusedOn('render-name', STRANGER_NAME);
+  assert.deepEqual(refusal,
+    { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', detail: 'athlete_label',
+      field: 'athlete_label' });
+  const rendered = Screen.refusalLines(refusal.code, refusal.detail, refusal.field);
+  assert.equal(line, rendered.join(' '));
+  assert.equal(rendered[0], 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (athlete_label)');
+  assert.equal(rendered.length, 2, 'the code line and the one sentence');
+  assert.equal(rendered[1], 'This file was saved under a different name than the '
+    + 'one you set up on this phone. Nothing on this phone was changed.');
+  const whole = rendered.join(' ');
+  assert.equal(whole.includes(STRANGER_WEEK_SETUP.athlete_label), false,
+    'the file\'s own name rode out on the refusal');
+  assert.equal(whole.includes(PHONE.setup.athlete_label), false);
+  assert.equal(/[0-9]/.test(whole), false, 'a number reaches him');
+  assert.equal(new RegExp('[\\u2013\\u2014]').test(whole), false, 'a dash reaches him');
 });

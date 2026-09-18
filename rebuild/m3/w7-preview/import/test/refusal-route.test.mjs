@@ -480,14 +480,21 @@ test('P3-X11 - NO STALE "Working." BESIDE A REFUSAL: the note that said work '
      carries the LEADING issue's field beside the code and the detail, and hands
      refusalLines() all three, so the sentence describes the fault the code line
      leads with. The box is asserted against that same three argument call. */
-  assert.equal(refused.refusal().field, 'split.map',
+  /* RE-POINTED by P3-REAL-SHAPE (DECISIONS:521). The stranger's bundle carries
+     a stranger's NAME as well as a stranger's week, and P-LABEL is now tested
+     BEFORE anything per lift and before the week (spec 2.3, review R1 N9), so
+     the leading field is `athlete_label` and its own sentence is under it. The
+     SUBJECT of this cell - that the stale "Working." note goes when the work
+     stops - is untouched, and so is the shape it asserts: the box is exactly
+     what refusalLines() builds from the three arguments the screen hands it. */
+  assert.equal(refused.refusal().field, 'athlete_label',
     'the screen did not carry the leading issue\'s field: '
     + JSON.stringify(refused.refusal()));
   assert.equal(slot(doc, 'import-refusal').textContent,
     Screen.refusalLines(refused.refusal().code, refused.refusal().detail,
       refused.refusal().field).join(' '));
   assert.ok(slot(doc, 'import-refusal').textContent
-    .startsWith('LOCAL_SOURCE_PROGRAMME_UNRESOLVED (split.map)'));
+    .startsWith('LOCAL_SOURCE_PROGRAMME_UNRESOLVED (athlete_label)'));
   const note = slot(doc, 'import-note');
   assert.equal(Boolean(note && note.textContent === Screen.COPY.working), false,
     'the refusal is painted with "Working." beside it');

@@ -159,15 +159,23 @@ test('PF-a - the owner\'s own bundle ADMITS, F4 is retained, and the admitted '
      `id` and all seven per-lift members, with the FILE's values. Recomputed
      here from the admitted state, so a projection that dropped a member would
      produce a different digest and this cell would go red. */
-  const PROJECTED = ['id', 'day', 'mg', 'sets', 'hi', 'inc', 'steps', 'head', 'secondary'];
+  /* P3-REAL-SHAPE. `n` JOINS THE PROJECTION and `lift_correspondence` joins the
+     basis: after option A the athlete's own name for a lift is part of what was
+     admitted, and which setup lift each file lift answers for is part of it too
+     (spec 2.3). The digest therefore CHANGES SHAPE, which the spec names as a
+     risk (6.2 (3)): every recorded basis is bound to the old shape. There are
+     no such devices - the owner's import has never been committed. */
+  const PROJECTED = ['id', 'n', 'day', 'mg', 'sets', 'hi', 'inc', 'steps', 'head', 'secondary'];
   const expected = { op_id: op.op_id, split: clone(state.split),
     exercises: state.exercises.map(ex => Object.fromEntries(PROJECTED
       .filter(k => Object.hasOwn(ex, k)).map(k => [k, clone(ex[k])]))),
-    priority_muscles: clone(state.priority_muscles ?? []) };
+    priority_muscles: clone(state.priority_muscles ?? []),
+    lift_correspondence: Object.fromEntries(PHONE.setup.exercises
+      .map(row => [row.id, row.id])) };
   for (const row of expected.exercises)
     assert.deepEqual(Object.keys(row).filter(k => k !== 'head' && k !== 'secondary'),
-      ['id', 'day', 'mg', 'sets', 'hi', 'inc', 'steps'],
-      'every lift carries its id and all seven members in the digest input');
+      ['id', 'n', 'day', 'mg', 'sets', 'hi', 'inc', 'steps'],
+      'every lift carries its id, its name and all seven members in the digest input');
   assert.equal(result.view.basis.programme_digest,
     Profile.digest(result.platform.hash, 'earned/local-source-programme/v1', expected),
     'the committed programme digest is the digest of the FILE\'s own programme');
@@ -197,41 +205,114 @@ async function refuses(tag, seal, expectedIssue) {
   return result;
 }
 
-/* CELL (b). A LIFT THE PHONE LISTS IS MISSING FROM THE FILE. */
-test('PF-b1 - the file lists a different number of lifts: field exercises', async () => {
+/* CELL (b), INVERTED BY P3-REAL-SHAPE (DECISIONS:520 option A, accepted :521).
+   BEFORE: a file that listed a different number of lifts refused `exercises`,
+   and a file that substituted one id refused `exercise_id` naming the PHONE's
+   own lift. AFTER: the file's lift list IS the athlete's lift list. The count
+   comparison and the per-lift id multiset equality are both GONE, and what
+   happens instead is that the document lift with no correspondent is kept as an
+   inactive tombstoned lift so nothing of his is lost (spec 2.4). */
+test('PF-b1 (INVERTED) - a file that lists FEWER lifts than the phone ADMITS, '
+  + 'and the lift the file does not hold is kept as a retired lift', async () => {
+  const { era, scope } = await openEra('missing-count', SETUP_DAY);
+  await firstRunWith(era, SETUP_DAY, PHONE.setup, PHONE.tags);
+  let gone = null;
   const file = sealProgramme({ state: s => {
-    const gone = s.exercises.pop();
+    gone = s.exercises.pop();
     for (const day of Object.values(s.sessionLog))
       day.entries = day.entries.filter(e => e.id !== gone.id);
+    /* A well-formed old-app state does not keep an order entry for a lift it no
+       longer lists, so the file's own exOrder loses it too: what this cell
+       claims about exOrder is about the APPENDED lift, not about a dangling id
+       the fixture left behind. */
+    s.exOrder = { U: s.exOrder.U.filter(x => x !== gone.id),
+      L: s.exOrder.L.filter(x => x !== gone.id) };
   } });
-  await refuses('missing-count', file.sealed,
-    { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', field: 'exercises' });
+  const result = await admitAt(era, file.sealed, { day: IMPORT_DAY, ...scope });
+  assert.equal(result.admitted, true, JSON.stringify(result.issues || result.code));
+  const state = result.view.state;
+  assert.equal(state.exercises.some(e => e.id === gone.id), true, 'his lift was dropped');
+  assert.equal((state.retirements || {})[gone.id], IMPORT_DAY, 'it was not tombstoned');
+  assert.equal(state.exOrder.U.includes(gone.id), false);
+  assert.equal(state.exOrder.L.includes(gone.id), false);
+  era.close();
 });
 
-test('PF-b2 - the count is held equal and one id is substituted: field '
-  + 'exercise_id, naming the PHONE\'s own lift', async () => {
+test('PF-b2 (INVERTED) - a file that carries one lift under a DIFFERENT id but '
+  + 'the SAME name ADMITS, and the lift lands under the FILE\'s id because the '
+  + 'correspondence is by name and not by id', async () => {
+  const { era, scope } = await openEra('substituted-id', SETUP_DAY);
+  await firstRunWith(era, SETUP_DAY, PHONE.setup, PHONE.tags);
   const file = sealProgramme({ state: s => {
     const row = s.exercises[0], was = row.id;
     row.id = 'db-bench-other';
     for (const day of Object.values(s.sessionLog))
       for (const entry of day.entries) if (entry.id === was) entry.id = row.id;
+    s.exOrder = { U: s.exOrder.U.map(x => (x === was ? row.id : x)),
+      L: s.exOrder.L.map(x => (x === was ? row.id : x)) };
   } });
-  await refuses('substituted-id', file.sealed,
+  const result = await admitAt(era, file.sealed, { day: IMPORT_DAY, ...scope });
+  assert.equal(result.admitted, true, JSON.stringify(result.issues || result.code));
+  const state = result.view.state;
+  assert.equal(state.exercises.some(e => e.id === 'db-bench-other'), true);
+  /* Corresponded by NAME, so the phone's own row is not kept as a stranger. */
+  assert.equal(state.exercises.some(e => e.id === 'db-bench'), false);
+  assert.equal(result.view.basis.programme_digest.length > 0, true);
+  era.close();
+});
+
+/* THE NEGATIVE THAT SURVIVES, and it is the one that always mattered: TWO lifts
+   under ONE id is a file the engine cannot read, whatever the ids are. */
+test('PF-b3 (NEW) - two lifts of the FILE sharing one id still refuse '
+  + 'exercise_id, naming the id they share', async () => {
+  const file = sealProgramme({ state: s => {
+    const kept = s.exercises[0].id, was = s.exercises[1].id;
+    s.exercises[1].id = kept;
+    const remap = x => (x === was ? kept : x);
+    s.exOrder = { U: s.exOrder.U.map(remap), L: s.exOrder.L.map(remap) };
+    for (const day of Object.values(s.sessionLog))
+      for (const entry of day.entries) entry.id = remap(entry.id);
+  } });
+  await refuses('duplicate-id', file.sealed,
     { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', field: 'exercise_id',
       exercise_id: 'db-bench' });
 });
 
-/* CELL (c). SAME MAP, ONE LIFT SOMEWHERE ELSE. */
-test('PF-c1 - one lift sits on a different training day: field day', async () => {
+/* CELL (c), INVERTED BY P3-REAL-SHAPE. BEFORE: a lift the file filed on the
+   other day refused `day`, and one filed under another muscle group refused
+   `mg`; both were the `fields=['day','mg']` comparison. AFTER: where a lift
+   sits and what it trains are the FILE's answer, not the phone's - that is what
+   "the file wins" means - and what is still proved is only that the engine can
+   read them at all. */
+test('PF-c1 (INVERTED) - a lift the file files on the other training day ADMITS, '
+  + 'and lands on the FILE\'s day', async () => {
+  const { era, scope } = await openEra('wrong-day', SETUP_DAY);
+  await firstRunWith(era, SETUP_DAY, PHONE.setup, PHONE.tags);
   const file = sealProgramme({ setup: v => { v.exercises[0].day = 'L'; } });
-  await refuses('wrong-day', file.sealed,
+  const result = await admitAt(era, file.sealed, { day: IMPORT_DAY, ...scope });
+  assert.equal(result.admitted, true, JSON.stringify(result.issues || result.code));
+  assert.equal(result.view.state.exercises.find(e => e.id === 'db-bench').day, 'L');
+  assert.equal(PHONE.setup.exercises.find(e => e.id === 'db-bench').day, 'U',
+    'the document must still say U, or this cell proves nothing');
+  era.close();
+});
+
+test('PF-c1n (NEW) - a lift on a day that is NEITHER U NOR L still refuses '
+  + '`day`, naming the lift', async () => {
+  const file = sealProgramme({ state: s => { s.exercises[0].day = 'X'; } });
+  await refuses('unknown-day', file.sealed,
     { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', field: 'day', exercise_id: 'db-bench' });
 });
 
-test('PF-c2 - one lift is filed under a different muscle group: field mg', async () => {
+test('PF-c2 (INVERTED) - a lift the file files under another muscle group '
+  + 'ADMITS, and lands under the FILE\'s muscle group', async () => {
+  const { era, scope } = await openEra('wrong-mg', SETUP_DAY);
+  await firstRunWith(era, SETUP_DAY, PHONE.setup, PHONE.tags);
   const file = sealProgramme({ setup: v => { v.exercises[0].mg = 'triceps'; } });
-  await refuses('wrong-mg', file.sealed,
-    { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', field: 'mg', exercise_id: 'db-bench' });
+  const result = await admitAt(era, file.sealed, { day: IMPORT_DAY, ...scope });
+  assert.equal(result.admitted, true, JSON.stringify(result.issues || result.code));
+  assert.equal(result.view.state.exercises.find(e => e.id === 'db-bench').mg, 'triceps');
+  era.close();
 });
 
 /* CELL (d). THE BOUND. What the old equality was silently doing: a file whose
@@ -276,36 +357,53 @@ test('PF-d4 - a period carrying a third member refuses: field split', async () =
 });
 
 /* CELL (e). A STRANGER'S PROGRAMME, under the rule as it now stands. */
-test('PF-e1 - a bundle whose week differs in one day letter: field split.map',
-  async () => {
-    const stranger = sealInventedBundle(STRANGER_WEEK_SETUP);
-    await refuses('stranger-week', stranger,
+/* P3-REAL-SHAPE RE-POINT. STRANGER_WEEK_SETUP carries a stranger's NAME as well
+   as a stranger's week, and P-LABEL is tested BEFORE anything else (spec 2.3,
+   review R1 N9), so that bundle now refuses by the NAME. Both cells are kept:
+   the week keeps its own subject by carrying this phone's label. */
+test('PF-e1 - a bundle whose week differs in one day letter, under THIS phone\'s '
+  + 'own name: field split.map', async () => {
+    const same = clone(STRANGER_WEEK_SETUP);
+    same.athlete_label = PHONE.setup.athlete_label;
+    await refuses('stranger-week', sealInventedBundle(same),
       { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', field: 'split.map' });
   });
 
-/* THE NEGATIVE RESULT, WRITTEN DOWN RATHER THAN HIDDEN (spec 5 (e), 1.4). This
-   is the widening measured: a bundle differing only in athlete_label and in the
-   RETAINED fields ADMITS at the controller, exactly as DECISIONS:472 (a)
-   records, and is then NOT ADOPTED by the page, because local-source-basis.mjs
-   :54 refuses to adopt a state whose label is not this installation's. Nothing
-   refuses anywhere: the athlete would simply keep seeing his setup document's
-   numbers. */
-test('PF-e2 - a stranger\'s bundle that differs only in label and in retained '
-  + 'fields ADMITS at the controller and is NOT ADOPTED by the page', async () => {
+test('PF-e1n (NEW) - a bundle that differs in the week AND in the name is '
+  + 'refused BY THE NAME, because P-LABEL is tested first', async () => {
+    await refuses('stranger-week-and-name', sealInventedBundle(STRANGER_WEEK_SETUP),
+      { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', field: 'athlete_label' });
+  });
+
+/* INVERTED BY P3-REAL-SHAPE (spec 2.1 P-LABEL). BEFORE: a bundle differing only
+   in athlete_label and in the RETAINED fields ADMITTED at the controller and
+   was then SILENTLY NOT ADOPTED by the page - the athlete would simply keep
+   seeing his setup document's numbers, with nothing on screen to read. That
+   silence is the half of gap 3 P-LABEL exists to remove: a file that names
+   someone else is now REFUSED, BY THAT NAME, with its own sentence, and the
+   import retracts.
+   WHAT IS NOT CLOSED, and the PM should keep reading it (spec 6.2 (5)): a file
+   that names NOBODY still takes this phone's label on the owner's identity Yes
+   alone. P-LABEL cannot fire on any old-app file, because the old app has no
+   athlete_label anywhere. */
+test('PF-e2 (INVERTED) - a stranger\'s bundle that differs only in label is '
+  + 'REFUSED by name, field athlete_label, and nothing is adopted', async () => {
     const { era, scope } = await openEra('stranger-retained', SETUP_DAY);
     await firstRunWith(era, SETUP_DAY, PHONE.setup, PHONE.tags);
     const stranger = sealInventedBundle(STRANGER_SETUP);
     const result = await admitAt(era, stranger, { day: IMPORT_DAY, ...scope });
-    assert.equal(result.admitted, true,
-      'the widening this spec accepts did not happen: '
-      + JSON.stringify(result.issues || result.code));
+    assert.equal(result.admitted, false, 'a stranger\'s named file was admitted');
+    assert.deepEqual(result.issues,
+      [{ code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED', field: 'athlete_label' }]);
     const loaded = await era.generation();
     assert.equal(admittedLocalSourceBasis(loaded.generation,
-      { athleteLabel: PHONE.setup.athlete_label, namespace: scope.namespace }), null,
-    'the page adopted a state whose label is not this installation\'s');
-    assert.notEqual(admittedLocalSourceBasis(loaded.generation,
+      { athleteLabel: PHONE.setup.athlete_label, namespace: scope.namespace }), null);
+    assert.equal(admittedLocalSourceBasis(loaded.generation,
       { athleteLabel: STRANGER_SETUP.athlete_label, namespace: scope.namespace }), null,
-    'and the join is reading the record at all');
+    'nothing at all was adopted');
+    const after = await durable(era);
+    assert.equal(after.applied, false);
+    assert.equal(after.basis, false);
     era.close();
   });
 

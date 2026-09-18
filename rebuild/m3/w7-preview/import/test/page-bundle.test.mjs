@@ -84,7 +84,17 @@ const ROUTE_MODULES = Object.freeze(['rebuild/coach/engine-revision.cjs',
      arithmetic: this cell and P3-B5 below both moved by exactly two, which is itself the
      evidence that neither family brought a new leaf with it. */
   'rebuild/m4/import/body-composition-class.cjs', 'rebuild/m4/import/sleep-replay.cjs',
-  'rebuild/m4/import/production-mapping.cjs', 'rebuild/m4/import/replay-core.cjs']);
+  'rebuild/m4/import/production-mapping.cjs', 'rebuild/m4/import/replay-core.cjs',
+  /* NINETEENTH, WITH P3-REAL-SHAPE (DECISIONS:521): the shared lift
+     correspondence helper. source-admission.mjs imports it for the programme
+     rule and the capture block, and m4/workout/plan-edit-model.cjs imports it
+     for the companion - but the companion is not on the Today BOOT path, so
+     this module is reached here only through source-admission.mjs and the route
+     carries it while the boot path still does not. It is 42 lines of pure
+     function, imports nothing at all, brings no forbidden name and adds no
+     leaf. Named here rather than folded into a wildcard, and MEASURED on this
+     tree rather than added by arithmetic: the graph moved by exactly one. */
+  'rebuild/m4/workout/lift-correspondence.cjs']);
 const tripped = (list, paths) => list.filter(([, m]) => paths.some(m)).map(([label]) => label);
 const graphOf = outfile => JSON.parse(fs.readFileSync(outfile + '.meta.json', 'utf8')).metafile;
 
@@ -153,11 +163,18 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
        SIDES ARE RE-MEASURED HERE rather than either being carried forward: the
        measurement is 141. It imports nothing at all, brings no forbidden name,
        and adds no leaf. */
-    assert.equal(withAdmission.inventory.length, 141,
+    /* P3-REAL-SHAPE (DECISIONS:521) is the FIFTH ticket to move it, by ONE:
+       rebuild/m4/workout/lift-correspondence.cjs, the shared helper the
+       programme rule, the capture block and the Edit My Week companion all
+       import so the three cannot disagree. It is reached here only through
+       source-admission.mjs, so it is route-only and the Today boot count does
+       not move. RE-MEASURED on this tree rather than summed: 142. */
+    assert.equal(withAdmission.inventory.length, 142,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 141 (the brief\'s 133, the F7 family\'s one, the F8 family and '
-      + 'the shared-class router\'s two, the route\'s own four, and B-LOM\'s '
-      + 'order-mapping provider): re-measure and say so');
+      + 'measured 142 (the brief\'s 133, the F7 family\'s one, the F8 family and '
+      + 'the shared-class router\'s two, the route\'s own four, B-LOM\'s '
+      + 'order-mapping provider, and P3-REAL-SHAPE\'s lift-correspondence '
+      + 'helper): re-measure and say so');
     assert.ok(paths.includes('rebuild/m4/workout/legacy-order-mapping.cjs'),
       'B-LOM\'s order-mapping provider is not in this graph at all');
     /* AND THE DELTA, which P3-REPLAY-MEASURE-FAMILY asserted (at 13) in its own
@@ -339,12 +356,18 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
      is a frozen constant of another commit and cannot move with the boot graph.
      BOTH SIDES RE-MEASURED: B-LOM's own 122 pinned inputs was a boot-only tree
      with no route, and this cell's 18 was a tree that had never seen B-LOM. */
+  /* RE-MEASURED AGAIN WITH P3-REAL-SHAPE (DECISIONS:521). The route-only set
+     moves 18 -> 19: lift-correspondence.cjs is reached only through
+     source-admission.mjs, so the Today boot graph is UNMOVED at 122 and the
+     sentence B-LOM broke holds again for this ticket - every module it added
+     went to the ROUTE. The delta is therefore 20, which is 19 route modules
+     plus B-LOM's one boot module. */
   const BASE_PINNED_INPUTS = 121;
-  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 19,
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 20,
     'the delta is ' + (today.inventory.length - BASE_PINNED_INPUTS) + ' modules, not the '
-    + 'measured 19 (the route\'s 18 plus B-LOM\'s one boot module): re-measure and say so');
-  assert.equal(ROUTE_MODULES.length, 18,
-    'the ROUTE-ONLY count moved; the delta above is no longer 18 route plus 1 boot');
+    + 'measured 20 (the route\'s 19 plus B-LOM\'s one boot module): re-measure and say so');
+  assert.equal(ROUTE_MODULES.length, 19,
+    'the ROUTE-ONLY count moved; the delta above is no longer 19 route plus 1 boot');
 });
 
 test('P3-B6 - the route is LAZY in the built asset: its module bodies are behind '
