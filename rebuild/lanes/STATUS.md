@@ -39,3 +39,5 @@
 
 2026-09-14 22:57 ET · PM-CARETAKER · Astra · b76d3b4746b160959186326fe4024165b8d1510e · OWNER-HANDBACK412: Joe appoints original Claude sole PM; Astra review standby. Handoff published, PM heartbeat deleted, workers paused. Accepted work and unfinished drafts preserved; no automatic Astra return. Direct Claude receipt unverified; product/policy/release rules unchanged.
 2026-09-14 23:15 ET · PM (original Claude PM, resumed per DECISIONS:412) · RESUMED · ledger line 413 · wake-ups restarted (45–60 min) · first dispatch: Opus critical-path scout (read-only) over the Astra artifacts → plan for PM judgment · owner one-liners open: D40, science choices 1–3 · no lane restarted yet; Astra workers stay paused
+
+2026-09-18 13:15 ET · lane C-UI (the design chat, EARNED MAIN PM Fable 5.1, as lane lead; PM3 integrates) · BRIEF-READY · rebuild/c-ui-port @ 5f4cad0a (base 4cab65b3) · the visual design of record rebuild/m1/approved-2026-09-18 committed with tickets C-UI-1..8 (rebuild/lanes/c/ui-port) · next: C-UI-1 build (pins, fonts, scene, review hooks), then PR-READY here
