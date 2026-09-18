@@ -84,14 +84,15 @@ async def main():
                     where = f'{t}-{s} {W}x{H}'
                     await goto(pg, t, s)
                     # fit and primary action
-                    r = await pg.evaluate("""(sel)=>{const ui=document.querySelector('.screen.is-active .ui');const sc=ui.querySelector(':scope > .body')||ui;const e=document.querySelector(sel);const rr=e.getBoundingClientRect();
-                        return {scroll:sc.scrollHeight, client:sc.clientHeight, prim:[rr.top, rr.bottom], pad:getComputedStyle(ui).paddingBottom}}""", PRIMARY[s])
-                    if r['prim'][1] > H: rec('FAIL', 'primary action in first viewport', where, f"{PRIMARY[s]} bottom {r['prim'][1]:.0f} > {H}")
+                    r = await pg.evaluate("""(sel)=>{const ui=document.querySelector('.screen.is-active .ui');const sc=ui.querySelector(':scope > .body')||ui;const e=document.querySelector(sel);const rr=e?e.getBoundingClientRect():{top:-1,bottom:-1};
+                        return {scroll:sc.scrollHeight, client:sc.clientHeight, prim:[rr.top, rr.bottom], missing: !e, pad:getComputedStyle(ui).paddingBottom}}""", PRIMARY[s])
+                    if r.get('missing'): rec('FAIL', 'primary action in first viewport', where, f"{PRIMARY[s]} is not on the page")
+                    elif r['prim'][1] > H: rec('FAIL', 'primary action in first viewport', where, f"{PRIMARY[s]} bottom {r['prim'][1]:.0f} > {H}")
                     else: rec('PASS', 'primary action in first viewport', where, f"{PRIMARY[s]} at {r['prim'][0]:.0f}–{r['prim'][1]:.0f}")
                     if (W, H) == (393, 852):
                         if r['scroll'] > r['client']: rec('WARN', 'fits without scrolling at 393x852', where, f"{r['scroll']} > {r['client']}")
                         else: rec('PASS', 'fits without scrolling at 393x852', where)
-                    if s == 'workout' and (W, H) == (393, 852):
+                    if s == 'workout' and (W, H) == (393, 852) and not r.get('missing'):
                         c = (r['prim'][0] + r['prim'][1]) / 2 / H
                         rec('PASS' if c >= 0.70 else 'FAIL', 'Log in the thumb zone (centre >= 70% of height)', where, f'centre at {c*100:.0f}%')
                     # touch targets
@@ -103,10 +104,11 @@ async def main():
                     # copy rules
                     text = await pg.evaluate("()=>document.querySelector('.screen.is-active .ui').innerText")
                     low = text.lower()
-                    bad = [d for d in DASHES if d in text] + [w for w in READINESS if re.search(r'\\b' + w + r'\\b', low)] + [v for v in VENDORS if v in low]
+                    bad = [d for d in DASHES if d in text] + [w for w in READINESS if re.search(r'\b' + w + r'\b', low)] + [v for v in VENDORS if v in low]
                     rec('FAIL' if bad else 'PASS', 'copy: no dashes, readiness words, vendor names', where, ', '.join(repr(x) for x in bad))
                     if s == 'workout':
-                        lab = await pg.inner_text('#log-label'); rec('PASS' if '×' in lab and ' x ' not in lab else 'FAIL', 'Log label uses ×', where, lab)
+                        lab = await pg.evaluate("()=>{const e=document.querySelector('#log-label');return e?e.innerText:null}")
+                        rec('PASS' if lab is not None and '×' in lab and ' x ' not in lab else 'FAIL', 'Log label uses ×', where, lab if lab is not None else '#log-label is not on the page')
                     # transitions and animations
                     anim = await pg.evaluate("""()=>{const out=[];document.querySelectorAll('.screen.is-active *').forEach(e=>{if(e.tagName==='CANVAS')return;const cs=getComputedStyle(e);
                         if((cs.transitionDuration||'0s').split(',').some(v=>parseFloat(v)>0))out.push('transition '+(e.id||e.className));if(cs.animationName&&cs.animationName!=='none')out.push('animation '+(e.id||e.className))});return out.slice(0,5)}""")
@@ -117,15 +119,17 @@ async def main():
                     # right glyph column
                     offs = []
                     for gsel, csel in GLYPHS[s]:
-                        d = await pg.evaluate("([g,c])=>{const a=document.querySelector(g).getBoundingClientRect();const b=document.querySelector(c).getBoundingClientRect();return b.right-(a.left+a.right)/2}", [gsel, csel])
-                        if abs(d - 24) > 1: offs.append(f'{gsel} {d:.1f}')
+                        d = await pg.evaluate("([g,c])=>{const ge=document.querySelector(g),ce=document.querySelector(c);if(!ge||!ce)return null;const a=ge.getBoundingClientRect();const b=ce.getBoundingClientRect();return b.right-(a.left+a.right)/2}", [gsel, csel])
+                        if d is None: offs.append(f'{gsel} is not on the page')
+                        elif abs(d - 24) > 1: offs.append(f'{gsel} {d:.1f}')
                     rec('FAIL' if offs else 'PASS', 'right glyph column at 24 px', where, ', '.join(offs))
                     # icon columns and text edges
                     if s in ICON_COLUMNS:
                         bad = []
                         for a, bsel in ICON_COLUMNS[s]:
-                            d = await pg.evaluate("([a,b])=>{const ra=document.querySelector(a).getBoundingClientRect(),rb=document.querySelector(b).getBoundingClientRect();return a.includes('text')||a.includes('label')?ra.left-rb.left:(ra.left+ra.right)/2-(rb.left+rb.right)/2}", [a, bsel])
-                            if abs(d) > 1: bad.append(f'{a} vs {bsel}: {d:.1f}')
+                            d = await pg.evaluate("([a,b])=>{const ea=document.querySelector(a),eb=document.querySelector(b);if(!ea||!eb)return null;const ra=ea.getBoundingClientRect(),rb=eb.getBoundingClientRect();return a.includes('text')||a.includes('label')?ra.left-rb.left:(ra.left+ra.right)/2-(rb.left+rb.right)/2}", [a, bsel])
+                            if d is None: bad.append(f'{a} vs {bsel}: not on the page')
+                            elif abs(d) > 1: bad.append(f'{a} vs {bsel}: {d:.1f}')
                         rec('FAIL' if bad else 'PASS', 'icons share a centre line, text shares an edge', where, ', '.join(bad))
                     badabs = []
                     for sel, want in ABS_COLUMNS.get(s, []):
@@ -148,7 +152,8 @@ async def main():
                     # pressed states
                     same = []
                     for sel in PRESSABLE[s]:
-                        el = await pg.query_selector(sel); box = await el.bounding_box()
+                        el = await pg.query_selector(sel); box = await el.bounding_box() if el else None
+                        if not box: same.append(sel + ' (not on the page)'); continue
                         clip = {'x': box['x'], 'y': box['y'], 'width': box['width'], 'height': box['height']}
                         idle = await pg.screenshot(clip=clip)
                         await pg.mouse.move(box['x'] + box['width'] / 2, box['y'] + box['height'] / 2); await pg.mouse.down(); await pg.wait_for_timeout(40)
