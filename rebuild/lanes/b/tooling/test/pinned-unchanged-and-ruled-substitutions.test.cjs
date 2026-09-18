@@ -266,7 +266,7 @@ test('F3 — the four refusals r7 fired bare now carry names in the vocabulary',
 });
 
 test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION where DECISIONS:414 (2) puts it, M2-S4-REAL-DAY as S3\'s own child directly behind it, and M2-S5-TODAY-CHILD as S4\'s', () => {
-  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'B1', 'B2', 'B4', 'B3']);
+  assert.deepEqual(api.IDS, ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'B1', 'B2', 'B4', 'B3']);
   // ":124 — ORDER B-NTC → H3 → B1 → B2 → B4 → B3". DECISIONS:414 (2) adopts the scout's
   // order as PM routing: P1 M2-S3-COMPANION is H3's child and B1 re-pins at its own rebase
   // behind it (CRITICAL-PATH-2026-09-15 section 4 P1). M2-S4-REAL-DAY is S3's own child
@@ -283,8 +283,11 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   // M2-S7-PORT-ADMISSION is S6's own child under the same standing ruling (DECISIONS:455,
   // dispatched at :510), so S7 sits directly behind S6 and still ahead of B1: the ruled
   // sequence is now ELEVEN, and it is still the WHOLE list.
-  assert.deepEqual(api.IDS.slice(0, 11), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'B1', 'B2', 'B4', 'B3']);
-  assert.equal(api.IDS.length, 11);
+  // M2-S8-REAL-SHAPE is S7's own child under the same standing ruling (DECISIONS:455,
+  // dispatched at :523), so S8 sits directly behind S7 and still ahead of B1: the ruled
+  // sequence is now TWELVE, and it is still the WHOLE list.
+  assert.deepEqual(api.IDS.slice(0, 12), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'B1', 'B2', 'B4', 'B3']);
+  assert.equal(api.IDS.length, 12);
   assert.equal(api.IDS.includes('B-LOM'), false,
     'the B-LOM id is removed with its skeleton spec, DECISIONS:487 stop 2');
   // AND THE DELETION IS ACCOUNTED FOR RATHER THAN EXEMPTED BY ACCIDENT. Removing an id and
@@ -311,7 +314,10 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
   // S7 is in for the same reason a fourth time: M2-S7-PORT-ADMISSION is a reseal whose
   // product delta is exactly the accepted P3-PORT-FIX and P3-PORT-FIX-2 diff (:509, :510),
   // slice-plan work under DECISIONS:455 with no register D-id.
-  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7']);
+  // S8 is in for the same reason a fifth time: M2-S8-REAL-SHAPE is a reseal whose
+  // product delta is exactly the accepted P3-REAL-SHAPE and P3-LAYOUT-V2 diff (:522, :523),
+  // slice-plan work under DECISIONS:455 with no register D-id.
+  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8']);
   for (const id of api.NO_REGISTER_IDS) assert(/^[HFS][0-9]+$/.test(id) || id === 'B-NTC');
   for (const id of api.NO_REGISTER_IDS) assert(api.IDS.includes(id));
 });
@@ -331,7 +337,13 @@ test('F6 — IDS carries the order DECISIONS:124 rules, with M2-S3-COMPANION whe
 // P3-PORT-FIX-2 rounds wrote are the only role:"new" product that package has outside
 // rebuild/m4/workout/test/ (the root its six s7-* supersession cells already stand under),
 // and the Y1 own-child rule cannot be met unless a declared child may execute them.
-test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S6-TODAY-CHILD adds exactly ten with M2-S7-PORT-ADMISSION\'s one behind them', () => {
+// M2-S8-REAL-SHAPE then adds one more, rebuild/lanes/d/p3-real-shape/: the TWELFTH
+// addition since S5 and the TWENTIETH element of the list, and it exists for the same
+// reason S7's does: the cells the accepted P3-REAL-SHAPE and P3-LAYOUT-V2 rounds wrote
+// are that package's own lane cells outside rebuild/m4/workout/test/ (the root its six
+// s8-* supersession cells already stand under), and the Y1 own-child rule cannot be met
+// unless a declared child may execute them.
+test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S6-TODAY-CHILD adds exactly ten with M2-S7-PORT-ADMISSION\'s one and M2-S8-REAL-SHAPE\'s one behind them', () => {
   assert.deepEqual(api.CHILD_ROOTS, [
     'rebuild/m4/spec/',
     'rebuild/conform/v4/postfix/',
@@ -352,6 +364,7 @@ test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may exe
     'rebuild/m3/w6/test/',
     'rebuild/lanes/d/b-lom/',
     'rebuild/lanes/d/p3-port-fix/',
+    'rebuild/lanes/d/p3-real-shape/',
   ]);
   // The eighth is S5's, and DECISIONS:455 is why it exists: lane C's new modules go under
   // rebuild/m3/w7-preview/measure/ so that only the route wiring in today-app.cjs is a
@@ -374,7 +387,10 @@ test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may exe
   // AN ELEVENTH ADDITION SINCE S5, and the NINETEENTH element of this list,
   // rebuild/lanes/d/p3-port-fix/, is S7's, and it is one root for one package's own three
   // cells: DECISIONS:487 stop 7 again, and MIN_OWN_CHILDREN = 1.
-  assert.equal(api.CHILD_ROOTS.length, 19);
+  // A TWELFTH ADDITION SINCE S5, and the TWENTIETH element of this list,
+  // rebuild/lanes/d/p3-real-shape/, is S8's, and it is one root for one package's own
+  // lane cells: DECISIONS:487 stop 7 again, and MIN_OWN_CHILDREN = 1.
+  assert.equal(api.CHILD_ROOTS.length, 20);
   assert.equal(api.CHILD_ROOTS[7], 'rebuild/m3/w7-preview/measure/test/');
   assert.deepEqual(api.CHILD_ROOTS.slice(8), [
     'rebuild/m4/import/test/',
@@ -388,6 +404,7 @@ test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may exe
     'rebuild/m3/w6/test/',
     'rebuild/lanes/d/b-lom/',
     'rebuild/lanes/d/p3-port-fix/',
+    'rebuild/lanes/d/p3-real-shape/',
   ]);
   // The first eight are UNCHANGED by S6: a widening adds, it never re-orders or edits what
   // a previous seal pinned here.

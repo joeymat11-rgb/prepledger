@@ -1589,7 +1589,19 @@ test('N2-08 - a saved night is what the check-in own reader finds, with no A3 ed
    'S7' goes last in the array and is therefore consulted first. Nothing else
    moves: the question the cell asks is still "does THIS LANE drift a sealed byte
    it has not declared", and the red side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7'];
+/* M2-S8-REAL-SHAPE ADDS 'S8', and the cell is unchanged in every other way.
+   S8 is the reseal that carries the accepted P3-REAL-SHAPE and P3-LAYOUT-V2 change
+   onto the tip (DECISIONS:522, :523): the product files of the owner's import and
+   adoption path - today-bindings.mjs and workout-host.mjs among them - the moved
+   and new sibling test files, the rebuild/lanes/d/p3-real-shape cells,
+   .github/workflows/rebuild.yml and the lane B runner are all moved BY THAT
+   PACKAGE, declared and on purpose, so the declaring-spec chain has to know about
+   it or every one of those moves reads here as an undeclared drift. Youngest
+   first is what the loop below already does, so 'S8' goes last in the array and
+   is therefore consulted first. Nothing else moves: the question the cell asks is
+   still "does THIS LANE drift a sealed byte it has not declared", and the red
+   side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'];
 
 test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', () => {
   /* The reuse path already existed and was dead because nothing wrote a night. N2 is
