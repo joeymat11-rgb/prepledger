@@ -23,6 +23,7 @@ import { createRequire } from 'node:module';
 import { PHONE, variant, sealed, walk, reopen, phone, phoneState, recordAWorkout,
   admitThrough } from '../p3-real-shape/real-shape-support.mjs';
 import { PRODUCER } from '../../../m3/w6/local/today-bindings.mjs';
+import { admittedLocalSourceBasis } from '../../../m3/w7-preview/today/local-source-basis.mjs';
 
 const require = createRequire(import.meta.url);
 const Adapter = require('../../../m4/workout/engine-capture.cjs');
@@ -107,23 +108,37 @@ test('D-L2-c (the deciding cell, L day) - after the real-shape file is adopted '
   const fileL = totalOn(file.exercises, 'L'), phoneL = totalOn(PHONE.setup.exercises, 'L');
   assert.notEqual(fileL, phoneL, 'the two documents must disagree, or this proves nothing');
   assert.equal(card.total, fileL);
-  /* THE PAGE'S OWN HOST, probed without storing anything, so every slot of the
-     day is read and not only the active one. */
-  const prepared = await next.booted.workout.gymHost.host.client
+  /* EVERY SLOT OF THE DAY, not only the active one. The card above is the
+     PAGE's; this is the same era's own gym host standing on the same day over
+     the ADOPTED basis - which is exactly what the page's gym model rebases onto
+     after adoption (gym-model.mjs:161-166) - probed without storing anything. */
+  const loaded = await next.era.generation();
+  const adopted = admittedLocalSourceBasis(loaded.generation,
+    { athleteLabel: PHONE.setup.athlete_label, namespace: out.kit.scope.namespace });
+  assert.notEqual(adopted, null, 'the page did not adopt');
+  const host = await next.era.createGymHost({ day: L_DAY, engineState: adopted,
+    plannedSplitSlotId: 'earned-today-preview/' + L_DAY });
+  const prepared = await host.host.client
     .prepareWorkout({ planned_split_slot_id: 'earned-today-preview/' + L_DAY });
   assert.equal(prepared.prepared, true, prepared.code);
-  for (const [id, key] of [['hanging', 'BW'], ['hack', 'hold']]) {
-    const lift = file.exercises.find(e => e.id === id);
-    assert.equal(lift.w, key, 'the fixture must still carry this configuration load');
-    const slots = prepared.view.slots.filter(s => s.lift_lineage_id === id);
-    assert.equal(slots.length, lift.sets, id + ' has no slots on the card');
+  assert.equal(prepared.view.slots.length, fileL);
+  /* The two lifts are found BY THEIR OWN LOAD, because this bracket level has
+     already remapped the file's handles onto the ids the phone's setup minted
+     (real-shape-support variant, level 2) and the card is keyed by those. */
+  assert.deepEqual(file.exercises.filter(e => typeof e.w === 'string').map(e => e.w).sort(),
+    ['BW', 'hold'], 'the fixture must still carry the two configuration loads');
+  for (const key of ['BW', 'hold']) {
+    const lift = file.exercises.find(e => e.w === key);
+    const slots = prepared.view.slots.filter(s => s.lift_lineage_id === lift.id);
+    assert.equal(slots.length, lift.sets, key + ' has no slots on the card');
     for (const slot of slots) {
-      assert.equal(slot.load.state, 'specified', id);
-      assert.equal(slot.load.display, key, id);
+      assert.equal(slot.load.state, 'specified', key);
+      assert.equal(slot.load.display, key, key);
       assert.deepEqual(JSON.parse(slot.load.source_json),
-        { kind: 'configuration', configuration_key: key }, id);
+        { kind: 'configuration', configuration_key: key }, key);
     }
   }
+  host.close();
   next.close();
 });
 

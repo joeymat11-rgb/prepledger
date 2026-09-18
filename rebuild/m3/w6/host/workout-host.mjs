@@ -168,9 +168,46 @@ export function composeWorkoutHost({
     ...(stringSelectionRegistrar === undefined ? {} : { stringSelection: stringSelectionRegistrar }) });
   const adapter = createEngineWorkoutCapture({ engine, prescriptionCapture,
     producerIdentity: workoutProducerIdentity, sourceProjectionReader: reader });
+  // P3-LAYOUT-V2 (DECISIONS:522). THE PAGE PRODUCES UNDER ONE IDENTITY AND HAS
+  // TO READ EVERY CAPTURE THIS INSTALLATION ALREADY WROTE. Before this, every
+  // stored Start's layout was resolved through the ONE adapter built from the
+  // PRODUCING identity, and engine-capture.cjs readLayout refuses any capture
+  // whose producer is not that adapter's (:118-119). So the day the page's
+  // `rule_profile` moved, every workout already logged became unreadable and the
+  // card blocked on the client's own generic code (measured, D-RS-q1b).
+  //
+  // What follows is a DISPATCH, not a relaxation. A stored capture is read by a
+  // SIBLING adapter minted from THIS installation's own producer identity with
+  // only `rule_profile` taken from the capture, and only when the capture's
+  // producer is that identity in EVERY OTHER FIELD; the adapter factory itself
+  // refuses a `rule_profile` outside the two it knows. Any producer that is not
+  // such a sibling is handed to the page's own adapter and refuses exactly as it
+  // does today. Nothing here mints an adapter from a capture's own claim, and
+  // readLayout still makes its whole-producer equality check on every capture.
+  const siblings = new Map([[workoutProducerIdentity.rule_profile, adapter]]);
+  const ownFields = Object.keys(workoutProducerIdentity);
+  const isSibling = producer =>
+    !!producer && typeof producer === 'object' && !Array.isArray(producer) &&
+    Object.keys(producer).length === ownFields.length &&
+    ownFields.every(key => Object.hasOwn(producer, key)) &&
+    ownFields.every(key => key === 'rule_profile'
+      ? typeof producer.rule_profile === 'string'
+      : JSON.stringify(producer[key]) === JSON.stringify(workoutProducerIdentity[key]));
+  function readerFor(producer) {
+    if (!isSibling(producer)) return adapter;
+    if (!siblings.has(producer.rule_profile)) {
+      try {
+        siblings.set(producer.rule_profile, createEngineWorkoutCapture({ engine, prescriptionCapture,
+          producerIdentity: { ...workoutProducerIdentity, rule_profile: producer.rule_profile },
+          sourceProjectionReader: reader }));
+      } catch { return adapter; }
+    }
+    return siblings.get(producer.rule_profile);
+  }
   const historyProjector = createEngineHistoryProjector({ athleteId, deviceId, parseStrictJson,
     projectWorkoutRecords, prescriptionCapture,
-    resolveCapturedLayout: ({ start }) => adapter.readLayout(start.prescription_capture) });
+    resolveCapturedLayout: ({ start }) => readerFor(start.prescription_capture?.producer)
+      .readLayout(start.prescription_capture) });
 
   let lastProjection = null;
   // A2. The durable client CONTAINS whatever the producer throws and answers the

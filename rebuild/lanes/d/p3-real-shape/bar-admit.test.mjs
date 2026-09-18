@@ -64,14 +64,13 @@ test('(a) D-RS-BAR-a - the real-shape bundle, as the old app holds it, ADMITS '
    page adopts, and the card the PAGE itself opens carries the FILE's lifts, the
    FILE's ids and each lift's own sets and hi.
 
-   GAP 5 IS NOT CLOSED BY THIS TICKET and this cell says so rather than hiding
-   it. PM QUESTION 1 was ruled YES subject to a measurement; the measurement
-   (q1-producer.test.mjs) REFUSED in both directions, so today-bindings.mjs is
-   unmoved and the L day - which is where the `BW` raise and the `hold` hack
-   live - still has no card. The U day is proved here in full; the L day is
-   proved in full by D-RS-h2, the same day with the configuration loads replaced
-   by numbers. D-RS-d inverted in its bracket level (the label now arrives from
-   admission, not from the file). */
+   GAP 5 WAS NOT CLOSED BY P3-REAL-SHAPE and this cell said so rather than
+   hiding it: PM QUESTION 1 was ruled YES subject to a measurement, the
+   measurement (q1-producer.test.mjs) REFUSED in both directions,
+   today-bindings.mjs was unmoved, and the L day - which is where the `BW` raise
+   and the `hold` hack live - had no card. P3-LAYOUT-V2 (DECISIONS:522) closed
+   it, so BOTH DAYS are proved here now. D-RS-d inverted in its bracket level
+   (the label now arrives from admission, not from the file). */
 test('(b) D-RS-BAR-b - the next morning on the same IndexedDB the page ADOPTS '
   + 'the file: the U day\'s card is the FILE\'s lifts, ids and per-lift sets '
   + 'and hi, and its total is the file\'s and not the document\'s', async () => {
@@ -105,13 +104,18 @@ test('(b) D-RS-BAR-b - the next morning on the same IndexedDB the page ADOPTS '
   assert.equal(card.total, fileU);
   morning.close();
 
-  /* THE L DAY, AND GAP 5. Named, not hidden: the card is blocked because the
-     page's capture producer is still v1 and the old app's `w` can be `BW` or
-     `hold`. PM QUESTION 1's proviso was not met (q1-producer.test.mjs). */
+  /* THE L DAY, AND GAP 5 CLOSED. This assertion read `blocked` /
+     ENGINE_CAPTURE_LOAD_UNPROVEN while the page's capture producer was v1 and
+     the old app's `w` could be `BW` or `hold`. P3-LAYOUT-V2 (DECISIONS:522)
+     moved the producer to v2 and taught the projector's layout law to admit
+     both, so the day now has a card and it carries the FILE's set count. The
+     two configuration loads prescribing by name is D-L2-c. */
   const lday = await reopen(out.kit.indexedDB, out.kit.scope, NEXT_L);
-  const blocked = await lday.booted.workout.gym.read();
-  assert.equal(blocked.phase, 'blocked');
-  assert.equal(blocked.code, 'ENGINE_CAPTURE_LOAD_UNPROVEN');
+  const lcard = await lday.booted.workout.gym.read();
+  assert.equal(lcard.phase, 'ready', lcard.code || lcard.phase);
+  const fileL = totalOn(file.exercises, 'L'), phoneL = totalOn(PHONE.setup.exercises, 'L');
+  assert.notEqual(fileL, phoneL, 'the two documents must disagree on the L day too');
+  assert.equal(lcard.total, fileL);
   lday.close();
 });
 

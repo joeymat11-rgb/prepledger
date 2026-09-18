@@ -7,6 +7,16 @@
    on the read path the build STOPS on this item, records exactly what refused,
    and reports.
 
+   P3-LAYOUT-V2 (DECISIONS:522) FLIPPED THESE THREE CELLS. P3-REAL-SHAPE
+   measured both directions REFUSING and stopped on the item, which is what
+   :522 ruled on: the projector's layout law now admits the v2 layout beside
+   v1 (engine-history.cjs) and the host dispatches each stored capture to its
+   own reading adapter (workout-host.mjs), so the page moved to the v2 producer
+   (today-bindings.mjs). The claims below are the SAME measurements, restated to
+   what they now measure; the file's structure, its walk and its fixture are
+   untouched. The proviso's own cell - a v1 capture and a v2 capture coexisting
+   on the read path - is D-L2-a and D-L2-b in lanes/d/p3-layout-v2.
+
    The owner's own logged sessions were written under v1, so this is not a
    hypothetical: his phone holds v1 captures today.
 
@@ -24,6 +34,11 @@ import { PRODUCER } from '../../../m3/w6/local/today-bindings.mjs';
 const require = createRequire(import.meta.url);
 const Adapter = require('../../../m4/workout/engine-capture.cjs');
 const V2 = Object.freeze({ ...PRODUCER, rule_profile: Adapter.CONFIGURATION_PROFILE });
+/* NAMED, not defaulted. Before P3-LAYOUT-V2 the page's own PRODUCER was the v1
+   one and these cells could take the default; now it is the v2 one, so the v1
+   side of every direction has to be asked for by name to keep measuring the
+   same thing. Only `rule_profile` differs from the page's own identity. */
+const V1 = Object.freeze({ ...PRODUCER, rule_profile: Adapter.PROFILE });
 
 const WORKOUT_DAY = '2026-09-18';   // the Friday the phone's own week calls L
 const NEXT_U = '2026-09-20';        // the Sunday it calls U
@@ -39,69 +54,77 @@ async function cardOn(kit, day, options) {
    read back the next prescribing morning under the same producer. */
 test('D-RS-q1a (control) - a workout recorded under the v1 producer is read '
   + 'back under the v1 producer and the next card prepares', async () => {
-  const kit = await phone('q1a', { at: WORKOUT_DAY });
+  const kit = await phone('q1a', { at: WORKOUT_DAY, producerIdentity: V1 });
   await recordAWorkout(kit.era, WORKOUT_DAY, phoneState());
   kit.close();
-  const card = await cardOn(kit, NEXT_U);
+  const card = await cardOn(kit, NEXT_U, { producerIdentity: V1 });
   assert.equal(card.phase, 'ready', card.code || card.phase);
 });
 
 /* DIRECTION ONE: a PRE-EXISTING v1 capture, read after the producer moves.
-   MEASURED: it is NOT readable. The page's history projector resolves every
-   stored Start's layout through ONE adapter built from the page's own producer
-   identity (m3/w6/host/workout-host.mjs:169-173), and engine-capture.cjs
-   readLayout refuses any capture whose producer is not that adapter's
-   (:118-119, `!same(capture.producer,producer)` -> ENGINE_CAPTURE_PROFILE_INVALID).
-   The durable client contains the throw and the card blocks by its own generic
-   code. THE OWNER'S PHONE HOLDS v1 CAPTURES TODAY, so this is his case. */
+   MEASURED BY P3-REAL-SHAPE: NOT readable. The page's history projector
+   resolved every stored Start's layout through ONE adapter built from the
+   page's own producer identity (m3/w6/host/workout-host.mjs), and
+   engine-capture.cjs readLayout refuses any capture whose producer is not that
+   adapter's (:118-119, `!same(capture.producer,producer)` ->
+   ENGINE_CAPTURE_PROFILE_INVALID); the durable client contained the throw and
+   the card blocked by its own generic WORKOUT_PREPARATION_INVALID.
+   MEASURED NOW, after P3-LAYOUT-V2: readable. The host mints a SIBLING reading
+   adapter for the stored capture's own profile - this installation's identity
+   with only `rule_profile` taken from the capture - so the same morning
+   prepares under either producer, with the same card and the same total.
+   THE OWNER'S PHONE HOLDS v1 CAPTURES TODAY, so this is his case. */
 test('D-RS-q1b (PM QUESTION 1, direction one) - a v1 capture already on the '
-  + 'device is NOT readable once the page produces CONFIGURATION_PROFILE: the '
-  + 'same morning that prepared under v1 blocks under v2', async () => {
-  const kit = await phone('q1b', { at: WORKOUT_DAY });
+  + 'device is STILL readable once the page produces CONFIGURATION_PROFILE: '
+  + 'the morning that prepared under v1 prepares identically under v2', async () => {
+  const kit = await phone('q1b', { at: WORKOUT_DAY, producerIdentity: V1 });
   await recordAWorkout(kit.era, WORKOUT_DAY, phoneState());
   kit.close();
-  const under1 = await cardOn(kit, NEXT_U);
+  const under1 = await cardOn(kit, NEXT_U, { producerIdentity: V1 });
   const under2 = await cardOn(kit, NEXT_U, { producerIdentity: V2 });
   assert.deepEqual(under1, { phase: 'ready', code: null, total: under1.total },
     'the control must prepare, or this cell proves nothing');
   assert.equal(under1.total, 27);
-  assert.deepEqual(under2, { phase: 'blocked', code: 'WORKOUT_PREPARATION_INVALID', total: null });
+  assert.deepEqual(under2, under1, 'the v1 capture is not read the same way under v2');
 });
 
-/* DIRECTION TWO: the producer is v2 from the first boot. MEASURED: the v2
-   producer cannot complete a workout on the SHIPPED page at all. The layout it
-   writes is `earned/captured-lift-layout/v2` (engine-capture.cjs:18) and the
-   ACCEPTED history projector admits `earned/captured-lift-layout/v1` and
-   nothing else (engine-history.cjs:62-63 -> WORKOUT_CAPTURE_LAYOUT_UNPROVEN),
-   so the card blocks part-way through the session and the next read asks for a
-   reconciliation. The v2 history path is a CANDIDATE
-   (m4/spec/configured-history-candidate/), not an accepted one. */
+/* DIRECTION TWO: the producer is v2 from the first boot. MEASURED BY
+   P3-REAL-SHAPE: the v2 producer could not complete a workout on the shipped
+   page at all. The layout it writes is `earned/captured-lift-layout/v2`
+   (engine-capture.cjs:18) and the ACCEPTED history projector admitted
+   `earned/captured-lift-layout/v1` and nothing else (engine-history.cjs:63 ->
+   WORKOUT_CAPTURE_LAYOUT_UNPROVEN), so the card blocked part-way through the
+   session and the next read asked for a reconciliation.
+   MEASURED NOW, after P3-LAYOUT-V2: the law admits both profiles, so the whole
+   session records, projects and closes, and the next prescribing morning is
+   ready. What is NOT decided here is carrying a typed load onto the PERFORMED
+   side: that is still the candidate's question
+   (m4/spec/configured-history-candidate/) and no byte of it moved. */
 test('D-RS-q1c (PM QUESTION 1, direction two) - a device whose page produces '
-  + 'CONFIGURATION_PROFILE cannot record a whole workout: the card blocks '
-  + 'mid-session and the next morning asks for a history reconciliation', async () => {
+  + 'CONFIGURATION_PROFILE records a WHOLE workout: the session closes and the '
+  + 'next prescribing morning is ready', async () => {
   const kit = await phone('q1c', { at: WORKOUT_DAY, producerIdentity: V2 });
   let recorded = null, refusal = null;
   try { recorded = await recordAWorkout(kit.era, WORKOUT_DAY, phoneState()); }
   catch (error) { refusal = String(error && error.message); }
   kit.close();
-  assert.equal(recorded, null);
-  assert.equal(refusal, 'the session never completed: blocked');
+  assert.equal(refusal, null);
+  assert.equal(recorded, 21, 'the phone document\'s own L day is 21 slots');
   const card = await cardOn(kit, NEXT_U, { producerIdentity: V2 });
-  assert.deepEqual(card,
-    { phase: 'unfinished', code: 'WORKOUT_HISTORY_RECONCILIATION_REQUIRED', total: null });
+  assert.deepEqual(card, { phase: 'ready', code: null, total: 27 });
 });
 
-/* THE VERDICT THIS LANE RECORDS. Both directions refuse, so the proviso
-   DECISIONS:521 attached to Q1 is NOT met and this build does NOT move
-   `today-bindings.mjs`. GAP 5 therefore stands, named, and D-RS-h stays green
-   as the record of it: on the morning after an adopted import the owner's LOWER
-   day - which is where his `BW` raise and his `hold` hack live - still has no
-   card. The fallback the spec named (leave the page on v1 and refuse the import
-   by name on a configuration load) is NOT taken either: it would refuse an
-   import that otherwise succeeds, which is worse for the owner than a blocked
-   card he can see. Back to the PM (spec 6.2 (1) says so in those words). */
-test('D-RS-q1d (the verdict) - the page\'s producer is still Adapter.PROFILE, '
-  + 'and this ticket did not move it', async () => {
-  assert.equal(PRODUCER.rule_profile, Adapter.PROFILE);
+/* THE VERDICT, AS IT NOW STANDS. P3-REAL-SHAPE measured both directions
+   refusing, did NOT move `today-bindings.mjs`, and handed gap 5 back to the PM
+   with its two refusals named. The PM ruled at DECISIONS:522 and P3-LAYOUT-V2
+   built it: the projector admits both layout profiles, the host reads each
+   capture with its own adapter, and the page therefore produces v2. GAP 5 IS
+   CLOSED and its record is D-RS-h, flipped in the same round: the morning
+   after an adopted import the owner's LOWER day has a card and his `BW` raise
+   prescribes. */
+test('D-RS-q1d (the verdict) - the page\'s producer is now '
+  + 'Adapter.CONFIGURATION_PROFILE, and the two profiles are still two',
+  async () => {
+  assert.equal(PRODUCER.rule_profile, Adapter.CONFIGURATION_PROFILE);
   assert.notEqual(Adapter.PROFILE, Adapter.CONFIGURATION_PROFILE);
 });

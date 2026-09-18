@@ -8,6 +8,17 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const known=row=>['accepted-through-frontier','stored-on-this-device'].includes(row?.status);
 const text=x=>typeof x==='string'&&x.length>0;
 const fail=code=>{const e=new Error(code);e.code=code;throw e;};
+// P3-LAYOUT-V2 (DECISIONS:522). THE LAYOUT LAW ADMITS TWO PROFILES, NOT ONE.
+// A capture written by the CONFIGURATION_PROFILE producer carries
+// earned/captured-lift-layout/v2 (engine-capture.cjs), and a device holds
+// captures of BOTH: v1 for every workout recorded before its page moved, v2 for
+// every one after. The host resolves each through ITS OWN adapter; whichever
+// layout comes back then meets EXACTLY the checks below, byte for byte -
+// producer identity, basis, slot count, each slot's key, lift and position, the
+// per-lift position run, and the effort target. Nothing here reads a v2 slot's
+// prescribed_load: carrying a typed load onto the PERFORMED side is the
+// configured-history candidate's question and is not decided by this line.
+const LAYOUT_PROFILES=['earned/captured-lift-layout/v1','earned/captured-lift-layout/v2'];
 function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,resolveCapturedLayout,parseStrictJson,prescriptionCapture}={}){
  if(!text(athleteId)||!text(deviceId)||[projectWorkoutRecords,resolveCapturedLayout,parseStrictJson].some(f=>typeof f!=='function'))throw new TypeError('Scoped trusted history projector, captured-plan resolver and strict parser required');
  function project(history,generation,{sourceRevision,importAnchor,originalThrough}={}){
@@ -60,7 +71,7 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
    const completion=session.projection.close_records;
    const completed=completion.length===1&&completion[0].included===true&&!completion[0].issues.length&&known(completion[0])&&['normal','early'].includes(completion[0].kind);
    const layout=resolveCapturedLayout({start:structuredClone(start),sourceRevision});
-   if(!layout||layout.profile!=='earned/captured-lift-layout/v1'||!same(layout.producer,capture.producer)||!same(layout.basis,capture.basis)||
+   if(!layout||!LAYOUT_PROFILES.includes(layout.profile)||!same(layout.producer,capture.producer)||!same(layout.basis,capture.basis)||
      !text(layout.correspondence_profile)||!Array.isArray(layout.slots)||layout.slots.length!==capture.slots.length)fail('WORKOUT_CAPTURE_LAYOUT_UNPROVEN');
    const positions=new Map(),slots=new Map(),entries=new Map();
    for(const [i,planned]of capture.slots.entries()){

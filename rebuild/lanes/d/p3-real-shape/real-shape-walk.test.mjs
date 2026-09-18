@@ -239,19 +239,22 @@ test('D-RS-f - the OLD app\'s extra exercise members (lastMeta, setup, setupAt, 
 });
 
 /* (h) WHAT THE WALK SURFACES THAT NOBODY LISTED. The old app's working load is
-   not always a number, and the page's own capture producer is the v1 one.
+   not always a number, and the page's own capture producer used to be the v1
+   one, which refuses to prescribe one at all.
 
-   THIS CELL STAYS GREEN AND IS NOW THE NAMED RECORD OF A SHIPPED LIMITATION
+   THIS CELL WAS THE NAMED RECORD OF GAP 5 AND IS NOW THE RECORD OF ITS CLOSE
    (spec 3.3: "INVERTS ONLY IF PM QUESTION 1 is answered yes"). DECISIONS:521
-   ruled Q1 YES subject to a measurement; the measurement is
-   q1-producer.test.mjs and it REFUSED IN BOTH DIRECTIONS - a v1 capture already
-   on the device cannot be read once the page produces v2, and the v2 producer
-   cannot complete a workout on the shipped page at all. So today-bindings.mjs
-   was NOT moved, GAP 5 stands, and this is where it is written down. */
-test('D-RS-h (gap 5, unlisted, BLOCKS THE TRAIN SCREEN) - once the real-shape '
-  + 'file is adopted, a day that carries a lift whose working load is a '
-  + 'configuration string (the old app\'s `BW` and `hold`) leaves the gym card '
-  + 'BLOCKED on ENGINE_CAPTURE_LOAD_UNPROVEN', async () => {
+   ruled Q1 YES subject to a measurement; q1-producer.test.mjs measured BOTH
+   DIRECTIONS REFUSING, so P3-REAL-SHAPE stopped on the item and left this cell
+   green as the record. DECISIONS:522 then ruled on exactly that, and
+   P3-LAYOUT-V2 built it: the projector's layout law admits the v2 layout beside
+   v1, the host reads each stored capture with its own adapter, and the page
+   produces v2. The claim below is the SAME walk, restated to what it now
+   measures; the fixture and the bracket level are untouched. */
+test('D-RS-h (gap 5, CLOSED) - once the real-shape file is adopted, the day '
+  + 'that carries a lift whose working load is a configuration string (the old '
+  + 'app\'s `BW` and `hold`) has a READY gym card carrying the FILE\'s set '
+  + 'count', async () => {
   const out = await walk('h', sealed(5));
   assert.equal(out.refusal, null, 'the import must admit, or this cell proves nothing');
   out.kit.close();
@@ -259,11 +262,14 @@ test('D-RS-h (gap 5, unlisted, BLOCKS THE TRAIN SCREEN) - once the real-shape '
      the bodyweight raise ('BW') and the held hack ('hold'). */
   const next = await reopen(out.kit.indexedDB, out.kit.scope, '2026-09-18');
   const card = await next.booted.workout.gym.read();
-  assert.equal(card.phase, 'blocked');
-  assert.equal(card.code, 'ENGINE_CAPTURE_LOAD_UNPROVEN');
+  assert.equal(card.phase, 'ready', card.code || card.phase);
   const file = variant(5);
   assert.deepEqual(file.exercises.filter(e => typeof e.w === 'string').map(e => e.w).sort(),
     ['BW', 'hold'], 'the fixture must still carry the two configuration loads');
+  const fileL = file.exercises.filter(e => e.day === 'L').reduce((n, e) => n + e.sets, 0);
+  const phoneL = PHONE.setup.exercises.filter(e => e.day === 'L').reduce((n, e) => n + e.sets, 0);
+  assert.notEqual(fileL, phoneL);
+  assert.equal(card.total, fileL);
   next.close();
 });
 

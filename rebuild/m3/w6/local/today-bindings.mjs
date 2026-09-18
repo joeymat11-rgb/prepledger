@@ -90,8 +90,18 @@ export const PLAN_BASIS = "NO_ACCEPTED_PLAN";
 export const INPUT_BASIS = "native-only/zero-import";
 export const RESUME_REASON =
   "Recomputed on this device from the same stored plan; the instructions you started with are unchanged.";
+/* P3-LAYOUT-V2 (DECISIONS:522). THE PAGE PRODUCES v2 FOR NEW CAPTURES AND GOES
+   ON READING v1 FOR EVERY CAPTURE ALREADY RECORDED. The old app's working load
+   is not always a number - his bodyweight raise is `BW` and his hack squat is
+   `hold` - and the v1 producer refuses to prescribe one at all
+   (engine-capture.cjs:66 ENGINE_CAPTURE_LOAD_UNPROVEN), which left his whole
+   LOWER day without a card after a successful import. Only `rule_profile`
+   moves: every other field of this identity is unchanged, which is what lets
+   workout-host.mjs mint the v1 SIBLING reader for the captures already on the
+   device. This is the option an era takes by default and a caller may name its
+   own (openTodayOverLocalEra `producerIdentity`). */
 export const PRODUCER = Object.freeze({ app_build: "earned-today-preview",
-  engine_build: "accepted-native-carriers", rule_profile: Adapter.PROFILE,
+  engine_build: "accepted-native-carriers", rule_profile: Adapter.CONFIGURATION_PROFILE,
   source_schema: "w7-preview-synthetic" });
 
 /* ---------------------------------------------------------------------------
