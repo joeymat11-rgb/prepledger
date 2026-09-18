@@ -17,7 +17,9 @@ package's `sourceBase`. `--ci` only; the private census junction was never in sc
 | `ef21153` | S8-PREP: the standing CI step names S8, inside the package |
 | `6c55082` | S8-PREP: the brief |
 | `c07d092` | S8-PREP: packages/S8.json, needles measured |
-| this one | S8-PREP: author report |
+| `30dd4c0` | S8-PREP: author report |
+| `63d6647` | S8-PREP: independent review R1 (ACCEPT WITH NOTES, 0 BLOCKING) - not written by this seat |
+| this one | S8-PREP: fix round after review R1 - section 12, prose only, no declared byte moves |
 
 ## 1. THE REFUSAL CHAIN, MEASURED
 
@@ -256,6 +258,14 @@ B PACKAGE S8 FAIL RECEIPT-EXACT-LINE-MISSING; required evidence missing or faile
 EXIT=1
 ```
 
+**RE-RUN IN THE FIX ROUND at `63d6647`** (log `%TEMP%\s8out\fix1.log`, exit 1): the ten lines above
+are reproduced BYTE FOR BYTE with exactly one difference, `ancestor of HEAD c07d092` becomes
+`ancestor of HEAD 63d6647` in the FIDELITY line, because the three commits since `c07d092` (the
+author report, the reviewer's R1 file, this fix round) touch no file any package declares. Every
+sha256 in the terminal is unchanged: spec `6fbbb1b901c2...`, runner `e31dd206c0fb...`, parent
+`350f5688...`, ruling `0c2d0db53471`, and the counts 224 / 25 / 20 / 42 / 182 / 207 / 206 / 16 of 18
+all stand. This is also the terminal the reviewer got independently at `30dd4c0`.
+
 `RECEIPT-EXACT-LINE-MISSING` is the ONLY refusal that stands, and it is the one the ticket predicted:
 the three ledger lines the PM appends. Everything the package itself owes is observed above it.
 
@@ -286,16 +296,28 @@ sentence again: the PM's third line is not on the chain branch yet.
    product files the two rounds MOVE that the parent does not pin, and the runner's role vocabulary
    has exactly one spelling for that: `new` means `pre === null` OR `pre !== post`. Their `pre` is
    their blob at this package's own `sourceBase`.
-5. **DASH SCAN, and the two places a U+2014 survives on purpose.** `git diff -U0 1af78de..HEAD`
-   over the whole round has 33 U+2014 on added lines, and every one of them is inside the two
-   ledger lines `packages/S8.json` carries verbatim in `authorizations.owner` (`DECISIONS:60`) and
-   `authorizations.contract` (`:49`) - the owner's own words and the accepted gate contract, copied
-   byte-for-byte from `packages/S7.json` because the runner matches them by sha256 and a "corrected"
-   dash would void the citation. Everything this round AUTHORED is 0 / 0: the brief, the six `s8-*`
-   cells, the three runner hunks, the F6/F7 hunks, the five `CHILD_SPECS` hunks, the `rebuild.yml`
-   hunks and the three token lines of section 6. The four U+2014 in THIS file are the runner's own
-   bytes inside the verbatim terminal block of section 8; quoting the terminal verbatim was the
-   instruction, and editing the runner's dashes out of it would make the quotation false.
+5. **DASH SCAN, and the two places a U+2014 survives on purpose.** RESTATED IN THE FIX ROUND after
+   review R1 N2: the sentence this paragraph first carried was wrong, and is replaced by the
+   measurement below. See section 12 for the correction and what was miscounted.
+
+   Measured over every ADDED line of `git diff -U0 1af78de..HEAD` at `63d6647`
+   (`%TEMP%\s8out\dash-census3.cjs`), by file, lines and occurrences both:
+
+   | file | U+2014 | U+2013 |
+   | --- | --- | --- |
+   | `rebuild/lanes/b/tooling/packages/S8.json` | 2 lines / 17 occurrences | 2 lines / 16 occurrences |
+   | `rebuild/lanes/b/S8-PREP-AUTHOR-REPORT.md` | 4 lines / 4 occurrences | 0 / 0 |
+   | every other added line of the round | 0 / 0 | 0 / 0 |
+
+   The two `S8.json` lines are ONE PAIR: the same two verbatim ledger lines it carries in
+   `authorizations.owner` (`DECISIONS:60`) and `authorizations.contract` (`:49`) - the owner's own
+   words and the accepted gate contract, copied byte-for-byte from `packages/S7.json` because the
+   runner matches them by sha256 and a "corrected" dash would void the citation. Everything this
+   round AUTHORED is 0 / 0: the brief, the six `s8-*` cells, the three runner hunks, the F6/F7
+   hunks, the five `CHILD_SPECS` hunks, the `rebuild.yml` hunks and the three token lines of
+   section 6. The four U+2014 in THIS file are the runner's own bytes inside the verbatim terminal
+   block of section 8; quoting the terminal verbatim was the instruction, and editing the runner's
+   dashes out of it would make the quotation false.
 
 ## 10. OPEN QUESTIONS FOR THE REVIEWER AND THE PM
 
@@ -339,3 +361,92 @@ junction to `POSTFIX PACKAGE REVIEW-PENDING: 1 open obligation`, the receipt lin
 `SEALED RUN RECORDED receipts/S8.json`, `VERDICT-S8.md`, the coach constant moved ONCE to
 `M2-S8-REAL-SHAPE@<sha16>`, the byte-identity `--full`, CI both OS, the fast-forward, the slice
 deploy, and then the owner's retry with the UNCHANGED bundle and the same six words.
+
+## 12. FIX ROUND AFTER INDEPENDENT REVIEW R1
+
+`rebuild/lanes/b/S8-PREP-REVIEW-R1.md` at `63d6647` returns **ACCEPT WITH NOTES, 0 BLOCKING**,
+reviewed at `30dd4c0`. There is nothing to reproduce and nothing to repair in any file the runner
+hashes: the reviewer re-measured all 224 declared shas from Git and from disk, all 207 `pre` at
+`sourceBase`, the three ledger-line sha256, the runner diff, all 25 needles in the runner's own
+child environment, the nine tooling suites, the rule (b) cells and the lockdown numstat, and every
+figure agrees with sections 2 to 8 above. **This round therefore moves NO declared byte**: it edits
+only this report, which no package declares and no sha binds. `packages/S8.json`, the brief, the
+runner, the six ancestor specs, `rebuild.yml`, the six `s8-*` cells, the five `CHILD_SPECS` cells
+and F6/F7 are untouched, so every sha256 the PM will verify stands exactly as section 4, section 5
+and section 6 record them.
+
+### N1 - the two P3-LAYOUT-V2 cells - STANDS AS THE OPEN QUESTION, PM TO RULE
+
+The reviewer agrees with section 10.1 on the rule as written (`:523` names the p3-real-shape cells
+and only those; `:487` stop 7 makes a `lanes/d` file product only when a declared child EXECUTES it)
+and agrees the author was right to refuse to mint the licence himself. He adds the PRICE, which
+section 10.1 did not state and which is recorded here so the PM can rule on it without re-deriving
+it: after S8 seals, a pinned workflow step invokes two files whose bytes no package declares, so the
+five `CHILD_SPECS` drift cells and every parent-pin re-assert are blind to them, and the gap 5
+closure of `:523` is proved by cells a later round could edit with no seal noticing. Closing it is
+four declarations - `rebuild/lanes/d/p3-layout-v2/` as a twenty-first `CHILD_ROOT` (one more literal
+in F7, three assertions), the two cells as role `new` with `pre: null`, and one more declared child
+executing them (or their two paths appended to the `d-real-shape` child's argv, which moves that
+child's needle off `# pass 56`) - and it moves `b-package.cjs`, so `tooling.runnerSha256`, the six
+ancestor specs, `packages/S8.json`, the brief and the BRIEF-BY-SHA line all re-measure. **Not fixed
+here, deliberately: it is a PM decision and a small round, not an author correction.**
+
+### N2 - the em-dash census was wrong - FIXED, in section 9.5 above
+
+The reviewer is right and the original sentence is withdrawn. It said the U+2014 on added lines were
+"all inside the two verbatim ledger lines S8.json carries", with a count of 33. Two errors. First
+the COUNT: 33 is the sum of TWO code points on those two lines, 17 U+2014 plus 16 U+2013, reported
+as though it were a U+2014 count; the round never had 33 of either. Second the SCOPE: the sentence
+was measured at `c07d092`, before this report was itself committed, so it could not see the four
+added lines of this file that quote the runner's own U+2014 back verbatim - and the paragraph's own
+last sentence named those four, which made the paragraph contradict itself. Re-measured at `63d6647`
+by `%TEMP%\s8out\dash-census3.cjs` over every added line of `git diff -U0 1af78de..HEAD`:
+
+```
+rebuild/lanes/b/tooling/packages/S8.json  U+2014 2 line(s)/17 occ ; U+2013 2 line(s)/16 occ
+rebuild/lanes/b/S8-PREP-AUTHOR-REPORT.md  U+2014 4 line(s)/4 occ  ; U+2013 0 line(s)/0 occ
+```
+
+and nothing else on either code point. The same script over `1af78de..c07d092` returns the S8.json
+row alone, which is what the original sentence was looking at. The two `S8.json` rows are the SAME
+two lines (`authorizations.owner`, `authorizations.contract`): historical ledger text that must stay
+byte-exact or the runner's sha256 citation voids. The lane rule is intact - no authored prose and no
+product file this round wrote carries either dash - but the sentence that said so was not, and
+section 9.5 now carries the measurement instead of the claim.
+
+### N3 - the `rebuild.yml` comment's "the brief predicts the exact refusal" - NOT FIXED, ON PURPOSE
+
+The reviewer is right that the claim is loose: the brief predicts R01 verbatim (5.1 (1), the USAGE
+REFUSED string and exit 1) and points at this report for the rest of the chain, but the brief never
+names `RECEIPT-EXACT-LINE-MISSING`; this report does, in sections 1, 8 and 11. He also rules that
+correcting one word would move `rebuild.yml`'s `post`, `packages/S8.json`, the brief and the
+BRIEF-BY-SHA line for nothing measurable, and directs it into `VERDICT-S8.md` the way `VERDICT-S7.md`
+carried S7's own brief slip. **So the comment is left exactly as committed and the correction is
+recorded here for the verdict**: read it as "the brief predicts the first refusal; the author report
+predicts the exact terminal refusal." Nothing in the runner, in any cell or in any sha reads that
+comment.
+
+### RE-MEASURED IN THE FIX ROUND, FINAL FIGURES
+
+Every number below was re-run on this seat at `63d6647` after the review, not copied forward.
+
+| what | final |
+| --- | --- |
+| `--ci --package S8` terminal | `B PACKAGE S8 FAIL RECEIPT-EXACT-LINE-MISSING; required evidence missing or failed; local diagnostics withheld` / `EXIT=1` (log `%TEMP%\s8out\fix1.log`) |
+| `packages/S8.json` | sha256 `6fbbb1b901c2d7cacc0595b41b41172a8c0faab12b52b470fcb85f4686878899`, 88184 bytes |
+| `rebuild/lanes/b/S8-REAL-SHAPE-BRIEF.md` | sha256 `9fbe105744ccb9295eae866e5ac28b48397ccf6c7e3ea74cc1a97a3a1833c73a`, 35888 bytes, equal to `brief.sha256` |
+| `rebuild/lanes/b/tooling/b-package.cjs` | sha256 `e31dd206c0fb0fc0c295df45eae3992d4c59b1a76de8da04a4d0f22948e9335e`, 259614 bytes, equal to `tooling.runnerSha256` |
+| THEME line | sha256 `77a8e98680a1ff0cbbbe5c9eba86607113032551de672bcceae50f47703f3c6c`, 1842 chars, equal to `authorizations.theme.lineSha256` |
+| BRIEF-BY-SHA line | sha256 `06365949c686a90f79dc6bd33130b4737c20c71bf7792ff32af0e817500ca216`, 317 chars, equal to `brief.acceptedLedgerLine.lineSha256` |
+| GATE-SUPERSESSION line | sha256 `0c2d0db53471b8604bdfb5c19f2485a12df517b672cd04912f988812c5a41eee`, 697 chars, equal to `coverage.superseded.rulingLineSha256` |
+| roles over 224 declared paths | 24 `edited` / 17 `new` / 182 `carried` / 1 `superseded-by-child`; 25 children |
+| the nine lane B tooling suites | **106 pass / 0 fail** (`%TEMP%\s8out\fix-tooling.log`) |
+| the five `s8-supersede-*.test.cjs` cells | **16 pass / 0 fail** (`%TEMP%\s8out\fix-s8sup.log`) |
+| `s8-engine-files-differential.cjs` | exit 0, the 27 / 18 / 45 sentence unchanged |
+| the today suite | **661 pass / 0 fail** (`%TEMP%\s8out\fix-today.log`) |
+| VERDICT-S6.md rule (b), the three cells together | **34 pass / 0 fail** (`%TEMP%\s8out\fix-ruleb.log`) |
+
+The three token lines of section 6 are unchanged byte for byte in `%TEMP%\s8out\final-lines.txt`;
+their sha256 were recomputed from that file in this round and all three still match the values
+`packages/S8.json` cites. Section 11 is unchanged: the PM's next step is still to append those three
+lines byte-exact, verifying each sha256 before writing.
