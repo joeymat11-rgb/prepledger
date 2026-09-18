@@ -1,19 +1,19 @@
 {
   "version": 1,
-  "lanePackage": "S6",
-  "packageId": "M2-S6-TODAY-CHILD",
+  "lanePackage": "S8",
+  "packageId": "M2-S8-REAL-SHAPE",
   "status": "BRIEF-ACCEPTED",
   "brief": {
-    "file": "rebuild/lanes/b/S6-TODAY-CHILD-BRIEF.md",
-    "sha256": "8a9a63ee49b5a95260c0102ec937f0d5558e979b75fc3b9da39368c0e4dd2d1d",
+    "file": "rebuild/lanes/b/S8-REAL-SHAPE-BRIEF.md",
+    "sha256": "9fbe105744ccb9295eae866e5ac28b48397ccf6c7e3ea74cc1a97a3a1833c73a",
     "acceptedLedgerLine": {
-      "ledgerLine": 489,
+      "ledgerLine": 525,
       "role": "cowork",
-      "line": "- 2026-09-17 · cowork · BRIEF ACCEPTED BY SHA for M2-S6-TODAY-CHILD: rebuild/lanes/b/S6-TODAY-CHILD-BRIEF.md, sha256 8a9a63ee49b5a95260c0102ec937f0d5558e979b75fc3b9da39368c0e4dd2d1d (41900 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
-      "lineSha256": "6044b121f50648383605fecc0636d81a347acd5d0f41fde3eb36180ccd1885e8"
+      "line": "- 2026-09-18 · cowork · BRIEF ACCEPTED BY SHA for M2-S8-REAL-SHAPE: rebuild/lanes/b/S8-REAL-SHAPE-BRIEF.md, sha256 9fbe105744ccb9295eae866e5ac28b48397ccf6c7e3ea74cc1a97a3a1833c73a (35888 bytes), is the brief of record; this line carries the binding sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "06365949c686a90f79dc6bd33130b4737c20c71bf7792ff32af0e817500ca216"
     }
   },
-  "sourceBase": "0635f4b631ffca3fbabe3d602e5c50134cfc887c",
+  "sourceBase": "8ebc860c30980dc5793be15202ea1a292e3769ba",
   "dIds": [],
   "laws": {},
   "carriedAcceptedIds": [
@@ -27,16 +27,16 @@
   "privateLiveTriggered": [],
   "parent": {
     "decided": true,
-    "chosen": "S5",
+    "chosen": "S7",
     "options": [
       {
-        "id": "S5",
-        "artifact": "rebuild/m4/spec/acceptance-s5-today-child.json",
-        "sha256": "84e3430ddd851965d630cecffe4bf7ead88ec10ed53635c503671fd616c1169e",
-        "review": "rebuild/m4/spec/review-s5-today-child.json",
-        "reviewSha256": "9386945e4629cdbb4f60fad66d5f4b7c943348a753916a86a6f8f2a12002dfcf",
-        "receiptLedgerLine": 466,
-        "note": "M2-S5-TODAY-CHILD, sealed and MERGED into rebuild/t2-client-core by fast-forward (receipt DECISIONS:466, merge :467). Its standing CI step is `--ci --package S5` until the PM flips rebuild.yml to S6 at the ff-merge of this child. S6 is its child under the same standing reseal ruling DECISIONS:455, extended by the custody ruling DECISIONS:473 and the merge order :484 as :486 (c) extends it; it changes no byte under rebuild/engine."
+        "id": "S7",
+        "artifact": "rebuild/m4/spec/acceptance-s7-port-admission.json",
+        "sha256": "350f56885c5eb55eecada58cadfb011656ddc58b82fc8fdc514ddc4503af791b",
+        "review": "rebuild/m4/spec/review-s7-port-admission.json",
+        "reviewSha256": "2819e4aa22dd791665ae3af8d8fe2e7ea1f69c99b92a93bc76267b2d9d431b76",
+        "receiptLedgerLine": 518,
+        "note": "M2-S7-PORT-ADMISSION, sealed at 254bd127 and MERGED into rebuild/t2-client-core by fast-forward to 285fe08b (receipt DECISIONS:518, merge :519). Its standing CI step is `--ci --package S7` until this package flips rebuild.yml to S8, which it does INSIDE its own post before proposed() and never at the fast-forward (VERDICT-S6.md rule (a), the cost of the other order measured at DECISIONS:498). S8 is its child under the standing reseal ruling DECISIONS:455: the product files the accepted P3-REAL-SHAPE and P3-LAYOUT-V2 change moves are pinned by this parent, so the change reaches the tip only inside a reseal child (DECISIONS:523). It changes no byte under rebuild/engine and no byte of rebuild/coach."
       }
     ]
   },
@@ -46,8 +46,8 @@
   },
   "product": {
     ".github/workflows/rebuild.yml": {
-      "pre": "4d1cba8ae67188317aa1e0e7133871b014d3690e1cf209a26f9d99cbd718c7ea",
-      "post": "8f1d5ba2b0872e693c3abb6a614ac9f850bfecd0df757dea2b27f32256b04c13",
+      "pre": "afce33cf1925f304cfa115053d4c6613002677ba6e74b5bee1b04cfafc8fe93c",
+      "post": "8403d10b1a54d721a17e92cc0c2eb7fe119379b65cc4ba9625e6a7196ad9d532",
       "role": "edited"
     },
     ".github/workflows/shared-preflight.yml": {
@@ -146,8 +146,8 @@
       "role": "carried"
     },
     "rebuild/lanes/b/tooling/b-package.cjs": {
-      "pre": "fdf5f55052b588995d3dafb50088a3d474ed26de8171c842e3d653993dcb70eb",
-      "post": "8d9a94c20faa2e856db3e3bf9f9aea8e835516307c6b7c5c95b51a0b0c49a385",
+      "pre": "0fb0570d812ea1c1a9426281ae39c8101c1ddd0206b11ad5efa7a3778339cf8d",
+      "post": "e31dd206c0fb0fc0c295df45eae3992d4c59b1a76de8da04a4d0f22948e9335e",
       "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/B-NTC.json": {
@@ -156,79 +156,124 @@
       "role": "carried"
     },
     "rebuild/lanes/b/tooling/packages/H3.json": {
-      "pre": "293e3ff49645f4f4c7ec27b0cd34fbacb4758378bef84a7945e446b834a6695f",
-      "post": "9add6dbc31dfc5185e70fcfdf35a8beb4e718d0b70028da5599c83175ba2b1b1",
+      "pre": "f1934b8bcce0364fff42aa18cc90d57b8e20cb2a08e1cc96a720c686b05b70cc",
+      "post": "137cc5ee36bbdd50ab2a34b4f0c7e407e1d889063e2f176b01e9d31566ba275e",
       "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S3.json": {
-      "pre": "23508acb7bb6a99b363353fddadee5b1fcd373f2f6935af637c89a45ca59915b",
-      "post": "a7da42466f04023653ce0eed7e8a3bfa91097264a2f48948c5fa0fc3bba4a0e9",
+      "pre": "0d3bc08699f4bb25983c97f159f172410716764642ec5a521c2c3474ce35137e",
+      "post": "d354cec7bbe020912ff317477dc66e4ef6e9f94e625e729e2504d6e33143d84d",
       "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S4.json": {
-      "pre": "7a3ff49564cfdfc89abd2f450f7dfe9805dd85c36617dcef4c412f050057dde9",
-      "post": "02c96e3c85429e5b15254989ffe9550f1e72b03466c7e921cfbcf454b9afde79",
+      "pre": "797830e0b20d096a925da5e5e8427dd0b6c5d90bf3c8e56c028bd83645c1d007",
+      "post": "165bd6b16581be91a711fc63addc6835a2eac3f143e649e61d321c5d6a93bab2",
       "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/S5.json": {
-      "pre": "6d986c5248389f0f5f21f6501fb1cd29c245cc485da01952ded40914fd44bc0c",
-      "post": "fc60f76173d0f7f2478c8b0a29c96a90edc86e81cdd22ab09b55b849f77e4eb0",
-      "role": "superseded-by-child"
-    },
-    "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs": {
-      "pre": "dda2f19cc755a7ad450a4eed1a936308facba77bc015596f28c63e1fef49ecb3",
-      "post": "c7e5dee0d25f122443424b6fa08fee9e9bfa6c2649cea45e7a785a2f59dc783a",
+      "pre": "2923654580ae6ac28bce7483e9d7a1e9786dc798c93353682c9181e0409061b5",
+      "post": "60a00077b6e2ea48fc5c94832e97ea759852b9c32b9e4c835765737fef4ff1fc",
       "role": "edited"
     },
+    "rebuild/lanes/b/tooling/packages/S6.json": {
+      "pre": "77f24fd77460a10e7637fb6a181c6ecfc39db0ab55e3d5897b9b9770f9b63107",
+      "post": "45eea528180d256843a6edd71b5768a9fce0f78b0f0742e7cc70680e8a9e10cd",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs": {
+      "pre": "d17f2e45e086363e065862ace674ecee6c15f839bf1e2d536d806faafa2de4aa",
+      "post": "24525b8f97e90ef0a4501ef233c253989387281315127ed1742943acee19d3e1",
+      "role": "edited"
+    },
+    "rebuild/lanes/d/b-lom/legacy-order.test.mjs": {
+      "pre": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
+      "post": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
+      "role": "carried"
+    },
     "rebuild/lanes/d/import-retract/retract.test.mjs": {
-      "pre": "77b9a3cdb5792c23d21e68839bcee298ddbccff06751520b0f162e32cef6fdb4",
-      "post": "77b9a3cdb5792c23d21e68839bcee298ddbccff06751520b0f162e32cef6fdb4",
-      "role": "pinned-unchanged"
+      "pre": "1f1f3feb6a7d6cb4c14ffeafb19c22b49a2692cf6e4d4584364886bbd188612e",
+      "post": "1f1f3feb6a7d6cb4c14ffeafb19c22b49a2692cf6e4d4584364886bbd188612e",
+      "role": "carried"
     },
     "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs": {
-      "pre": "9258facb29829bf375ad4437847e74e5625dafcd2b208813f8c34cc94a02866c",
+      "pre": "5c8f04e31f7e07af0313b326bcc7dbffadc5115fc509618e0232fe3e46264a88",
       "post": "5c8f04e31f7e07af0313b326bcc7dbffadc5115fc509618e0232fe3e46264a88",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/lanes/d/p3-followons/admission-swap.test.mjs": {
       "pre": "2aa2ccf53362f5a69ceda88f153e9a9201c050b9ef355a1f9e731a45eee61300",
       "post": "2aa2ccf53362f5a69ceda88f153e9a9201c050b9ef355a1f9e731a45eee61300",
-      "role": "pinned-unchanged"
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs": {
+      "pre": "45b435343a7b74a7db977bbbfc792db4af3d3d25b3f81d08954ca9280731830f",
+      "post": "45b435343a7b74a7db977bbbfc792db4af3d3d25b3f81d08954ca9280731830f",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs": {
+      "pre": "f9a1cc02eb159b4a7132fe8cc6248c0bb3178f7f275f05e89103f8c5150e0f1c",
+      "post": "08f9a5fbcb4d83d70c807422578986b751b74bdce849eb046b84157e641bb383",
+      "role": "edited"
+    },
+    "rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs": {
+      "pre": "845d28d62ab9565d3dd1f722ff20850bf79d795d1abd8c1f75a7b7b6a4e693a7",
+      "post": "ae5c3c7853960885df175e46a697e817befa58fc038ab79044de9787c80ced83",
+      "role": "edited"
+    },
+    "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs": {
+      "pre": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
+      "post": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs": {
+      "pre": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
+      "post": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs": {
+      "pre": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
+      "post": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs": {
+      "pre": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
+      "post": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
+      "role": "carried"
     },
     "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs": {
       "pre": "448193e0216cabd3eedc4a50e8b1719c0ca493c9385ec291e0fc35f5143ece2d",
       "post": "448193e0216cabd3eedc4a50e8b1719c0ca493c9385ec291e0fc35f5143ece2d",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs": {
       "pre": "ab94da99c18e7c27f283d51b2a561688d313490eb76e3569681ba9a8cbd58748",
       "post": "ab94da99c18e7c27f283d51b2a561688d313490eb76e3569681ba9a8cbd58748",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/lanes/d/plan-edit/browser-build.test.mjs": {
       "pre": "20480bef0ebf788b1a4b5a9eb138fa68f4c1d0c22936d56620a1c7ec50149f1a",
       "post": "20480bef0ebf788b1a4b5a9eb138fa68f4c1d0c22936d56620a1c7ec50149f1a",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/lanes/d/plan-edit/client-p6.test.cjs": {
       "pre": "b31a25e43dc318ee9ddc900b44244edf5a02adf490a9df86e40b1c44e8102d7c",
       "post": "b31a25e43dc318ee9ddc900b44244edf5a02adf490a9df86e40b1c44e8102d7c",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/lanes/d/plan-edit/durable-host.test.mjs": {
       "pre": "e986c046bb675309eabef894706353979c5ee9e51d58bf67b5829593ea068b63",
       "post": "e986c046bb675309eabef894706353979c5ee9e51d58bf67b5829593ea068b63",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/lanes/d/plan-edit/f2-tag-adapter.cjs": {
       "pre": "d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d",
       "post": "d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/lanes/d/plan-edit/model.test.cjs": {
-      "pre": "11fc507ddee632b324bdd54277e142bd1d4034d7eeb73f9debb4c9fdf99ca69b",
-      "post": "11fc507ddee632b324bdd54277e142bd1d4034d7eeb73f9debb4c9fdf99ca69b",
-      "role": "pinned-unchanged"
+      "pre": "3338be39b58e384d19d4f2501c2fa7809c9233b9a0f15012c056d1dfff8e7338",
+      "post": "afb88e790020cc1140914c1a16eeda009b38cab7cf6dda9561cc5eaf8ea9a275",
+      "role": "edited"
     },
     "rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs": {
       "pre": "71339f43e3556323dbc1a9a3cddc7636904c3e03cd2a24a66cfe5eb54a4dbf0e",
@@ -243,7 +288,12 @@
     "rebuild/m3/w6/host/host-entry.mjs": {
       "pre": "9f996ecba92f2cb92f28457b79f52c73366657f0d4a75cb1ebe8abbcfd94c25f",
       "post": "9f996ecba92f2cb92f28457b79f52c73366657f0d4a75cb1ebe8abbcfd94c25f",
-      "role": "pinned-unchanged"
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/plan-edit-host.mjs": {
+      "pre": "b138196d20cd192bd7871ece0b2aea91a8cf0a02bffc69addc8ac027f5989b93",
+      "post": "b138196d20cd192bd7871ece0b2aea91a8cf0a02bffc69addc8ac027f5989b93",
+      "role": "carried"
     },
     "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": {
       "pre": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
@@ -253,17 +303,17 @@
     "rebuild/m3/w6/host/test/food-live-save.test.mjs": {
       "pre": "90113e78543df8848c0f148af2e6151a286df7d31c67dd660df7950afa8f7348",
       "post": "90113e78543df8848c0f148af2e6151a286df7d31c67dd660df7950afa8f7348",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/host/test/host-seams.test.mjs": {
       "pre": "bdd0b83b17c75c8b3d5158feb7ab3b10566fd45cc3180fa85dbd2294fdf175c9",
       "post": "bdd0b83b17c75c8b3d5158feb7ab3b10566fd45cc3180fa85dbd2294fdf175c9",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/host/test/journey-fixture.cjs": {
       "pre": "cbca2b7721bb2291691d7bd74bc568493d0b5b10f0bcb3e6dec34f5e4736cba4",
       "post": "cbca2b7721bb2291691d7bd74bc568493d0b5b10f0bcb3e6dec34f5e4736cba4",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/host/test/journey.test.mjs": {
       "pre": "2ac6a7f23bcc079406a1493fe01629b61abc66984c04289dc40fbbec60c20af9",
@@ -271,84 +321,84 @@
       "role": "carried"
     },
     "rebuild/m3/w6/host/test/local-real-day.test.mjs": {
-      "pre": "f6cc4c657276078c6d2de65cb94f325b64a53972e24e9e2c14ff6be2c358bc55",
+      "pre": "43780e9b692c836f33a9ea34cb1433a40f1ad11ffe6d7f8ba8a48e0f16af5084",
       "post": "43780e9b692c836f33a9ea34cb1433a40f1ad11ffe6d7f8ba8a48e0f16af5084",
-      "role": "edited"
+      "role": "carried"
     },
     "rebuild/m3/w6/host/workout-host.mjs": {
       "pre": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
-      "post": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
-      "role": "carried"
+      "post": "f0f36328595673061132d5c55d76b1a9a93de5fc5fca5171ed4a1647e85ccb9f",
+      "role": "edited"
     },
     "rebuild/m3/w6/local/browser-entry.mjs": {
       "pre": "7f7bdde8488ff43791454962407a21373a9b07316dad2dc32aa754ca7f0ff052",
       "post": "7f7bdde8488ff43791454962407a21373a9b07316dad2dc32aa754ca7f0ff052",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/local/host-bindings.mjs": {
       "pre": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
       "post": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/local/host-browser-entry.mjs": {
       "pre": "476b6c0266ccacefa82d02d5f5f5dcdd042c11ca78af45b86f01eefca6aacecb",
       "post": "476b6c0266ccacefa82d02d5f5f5dcdd042c11ca78af45b86f01eefca6aacecb",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/local/import-bundle.mjs": {
       "pre": "565ee5d84ac95c002d9fe15df1965d60882653167258d008ab3a820add7b4c85",
       "post": "565ee5d84ac95c002d9fe15df1965d60882653167258d008ab3a820add7b4c85",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/local/local-client.mjs": {
       "pre": "1f74bb2eff97fe9becb7b473def4e2e6e49f511ff32a9878a5ee817fe9d3ff9c",
       "post": "1f74bb2eff97fe9becb7b473def4e2e6e49f511ff32a9878a5ee817fe9d3ff9c",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/local/local-era.mjs": {
       "pre": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
       "post": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/local/local-keys.mjs": {
       "pre": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
       "post": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/local/source-admission.mjs": {
-      "pre": "5d950b3973b2cb45a068252a025bad114d46ba49739fb3562859a83d71da10a9",
-      "post": "9b33c7c15282fe3b290ae87da4d227185944dfff8bc3235e8c0841829f8f6c39",
-      "role": "new"
+      "pre": "d0c30f8c5ad2314b0225c92d0a8f24c8ef64cfe3d4c90527719a1a15759069b1",
+      "post": "2f477147b79d3fc1b03feae873b25f40359334425051a851570880b7423113a3",
+      "role": "edited"
     },
     "rebuild/m3/w6/local/source-platform.mjs": {
       "pre": "5afc98dcb1a7891df0bf17467893eee1dcf59b324e2382ca239003f44e75cfa7",
       "post": "5afc98dcb1a7891df0bf17467893eee1dcf59b324e2382ca239003f44e75cfa7",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/local/today-bindings.mjs": {
-      "pre": "c73ff293739abcef241de85491ea0ad625cbfb971ee71716cad64ae40348dc6b",
-      "post": "8694a5d60481aceb739ae30db521df70335d6fbe8b1b2b67c43431ce17033d4c",
+      "pre": "8694a5d60481aceb739ae30db521df70335d6fbe8b1b2b67c43431ce17033d4c",
+      "post": "23c1179794b12259c027f9b30780186211e7ac4b6f2770eaca3fe663e59bbf12",
       "role": "edited"
     },
     "rebuild/m3/w6/local/today-browser-entry.mjs": {
       "pre": "633391e2b778e0b5c1f8eb16e6e24d4cca60bcdec13333e9cefcbb185772bd27",
       "post": "633391e2b778e0b5c1f8eb16e6e24d4cca60bcdec13333e9cefcbb185772bd27",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w6/test/local-source-admission.test.mjs": {
-      "pre": "93f596a6e44210a7373e4ffbe393174b35b95d1cbc72974bf55dc41765b9f3ca",
-      "post": "93f596a6e44210a7373e4ffbe393174b35b95d1cbc72974bf55dc41765b9f3ca",
-      "role": "pinned-unchanged"
+      "pre": "6144c7863991654da3b47215ce6d2ce04f9f335c77ceb643706a3603e9ce9491",
+      "post": "6144c7863991654da3b47215ce6d2ce04f9f335c77ceb643706a3603e9ce9491",
+      "role": "carried"
     },
     "rebuild/m3/w6/test/local-source-consumer.test.mjs": {
-      "pre": "fb57cf9584ee18f64be361becacbb876b806651340562c33427c069a9caf7abe",
+      "pre": "856b3627665b016e33d6a196e232c99981397c266ae2bab90ba4b64bc3e51af6",
       "post": "856b3627665b016e33d6a196e232c99981397c266ae2bab90ba4b64bc3e51af6",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m3/w6/test/local-today-journey.test.mjs": {
-      "pre": "eff0df53f06ebcbd71fda4c8d0664cd68aa8750cbdcfa512533496c73dcf82a5",
+      "pre": "4a371979a8b52b03e393f3e72baf2daf536ff1474f48f2ffffa1233ef6dc8a7a",
       "post": "4a371979a8b52b03e393f3e72baf2daf536ff1474f48f2ffffa1233ef6dc8a7a",
-      "role": "edited"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/browser-engine.cjs": {
       "pre": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
@@ -361,49 +411,49 @@
       "role": "carried"
     },
     "rebuild/m3/w7-preview/import/import-screen.mjs": {
-      "pre": null,
-      "post": "28de17a33bbe710346b0d10afae676aeb07e26af6db0025be81d4ccc8dacccc4",
-      "role": "new"
+      "pre": "637ef3bbfd9d73e3e0236449ef596f78e76c39517b9aed73fa28bd2ed5920c3d",
+      "post": "ea4a178821ffad7f8fdcec6744e30f78fc873b9275e5da5645cb645cf730649e",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/import/test/edge-route.mjs": {
-      "pre": null,
+      "pre": "46669f53be4fd543c4a4ace4752a987bf469819903bf31ebd05ab73a30d41b72",
       "post": "46669f53be4fd543c4a4ace4752a987bf469819903bf31ebd05ab73a30d41b72",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/import/test/edge-seed-entry.mjs": {
-      "pre": null,
+      "pre": "55c22a1f4b6280e73b8c25b642ed1fc22396aa915559b8d71ea9f1432a0dd895",
       "post": "55c22a1f4b6280e73b8c25b642ed1fc22396aa915559b8d71ea9f1432a0dd895",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/import/test/live-clock.test.mjs": {
       "pre": "618471e725d4efbff2a16d9fa3e201db665444c55a162617be129434fe01b32e",
       "post": "618471e725d4efbff2a16d9fa3e201db665444c55a162617be129434fe01b32e",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs": {
-      "pre": "35b687b3ae70d898d2a737889897b1061caf587fa10e04d46cc5312299d4640e",
-      "post": "99762e4c4d122e72bf7de36055039fb188c085530305e4d237ff64f7f16d9b9e",
-      "role": "new"
+      "pre": "99762e4c4d122e72bf7de36055039fb188c085530305e4d237ff64f7f16d9b9e",
+      "post": "9b56ee6e22001296f354c77e0fa5fab6711d4c8f635e72a82e6c2977a13c62b3",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs": {
-      "pre": null,
-      "post": "a7982a5162b213f41554194353b911c7ed1f99fb845285742549ca65caa48598",
-      "role": "new"
+      "pre": "e0c4bc1a84e37127fd91b103a863675a1aa725ecee82f57cb7e7e54f1f2356a6",
+      "post": "5edb49e3d853d946ea9695cb9e9a04166f5137368e700572d185607565007579",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/import/test/refusals.test.mjs": {
-      "pre": "1ba66e1eee798488f00f979068bcef73e2a422857163bf6209213769101a3e19",
-      "post": "1ba66e1eee798488f00f979068bcef73e2a422857163bf6209213769101a3e19",
-      "role": "pinned-unchanged"
+      "pre": "5d12a328d09b42a8a5525f4f18e31161f0826e236efe4f583af9059fa5a220e3",
+      "post": "5d12a328d09b42a8a5525f4f18e31161f0826e236efe4f583af9059fa5a220e3",
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/import/test/route.test.mjs": {
-      "pre": null,
-      "post": "16629715a2a2e549ac94a5bee26d765d852c8abc0baca33da355aea7a2c4cecc",
-      "role": "new"
+      "pre": "4726474ef8931f937c7a18a79f6bb024a7dda50d25fcabdfaf8d47f21d887133",
+      "post": "4726474ef8931f937c7a18a79f6bb024a7dda50d25fcabdfaf8d47f21d887133",
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/import/test/support.mjs": {
-      "pre": "5b084f3afaf1d16fcaf30bd100f506e3c9c70155658d06148958064e42946d05",
-      "post": "05d0f0065bb25e0c849847563225f8a4b19998ce38bcf35178041e5987874a0a",
-      "role": "new"
+      "pre": "34e6a7591a85cf66419ee1a9ea7b2fd25734f13ebe72bc3f775efe8954a9c359",
+      "post": "adea55fcd2ff7aab1177385b8ac8c43135203d15e977dc88a1cd24c361edd2cb",
+      "role": "edited"
     },
     "rebuild/m3/w7-preview/measure/measure-baseline.mjs": {
       "pre": "802effc6eddff433409507e604e523deb0ea52987ba12b6523bc62080cf65be6",
@@ -456,14 +506,14 @@
       "role": "carried"
     },
     "rebuild/m3/w7-preview/measure/test/boundary.test.mjs": {
-      "pre": "c80e50c87b60d3f18366f7416108ce8bf5d764e07faf4cc60d02e0f0161b60fe",
-      "post": "e9522b8f5da01bc39aa43780b0221513f057b4ba33b513214766382166cc9a2d",
+      "pre": "54f5e5b45fceec060ebcc9f19cdd99f43af340dc09ffb7514370a4fdaa8b113e",
+      "post": "b1f066f901c6833c340ff43bffee3389bcece180544c732ad2f0db9ae5f91c6f",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/measure/test/journey.test.mjs": {
-      "pre": "937ee3a482a9005802c0cb00d994413bed2b9bfc6f3b3f97eb873f77a707b1ab",
+      "pre": "2520a774e8de269af2a032b2ac7c444753a4d87698e0ac68286ac26c2290306a",
       "post": "2520a774e8de269af2a032b2ac7c444753a4d87698e0ac68286ac26c2290306a",
-      "role": "edited"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/measure/test/lane.test.mjs": {
       "pre": "e077f07e04c14944023e1f35357397d4ac44b9f3aa45e3b6019cc2a5c01d1155",
@@ -476,24 +526,24 @@
       "role": "carried"
     },
     "rebuild/m3/w7-preview/measure/test/support.mjs": {
-      "pre": "5216b7e000a068e77c970df959bbb5d3e65efe30b098ee0a643787e8ebcd4730",
+      "pre": "f72c6176ecbaf3d60cabb731a9c4a612b4abcd8657ebe6dc260466aac8449cdf",
       "post": "f72c6176ecbaf3d60cabb731a9c4a612b4abcd8657ebe6dc260466aac8449cdf",
-      "role": "edited"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/today/build.mjs": {
-      "pre": "b7ae73d94a8c9e255307baab24343e281a4244bb9ea1dd3de211d7dfd8aa400f",
+      "pre": "d04a10ef406708b801749b1118246e82fecc53bbbafe1ac11068eb24bc52cf9c",
       "post": "d04a10ef406708b801749b1118246e82fecc53bbbafe1ac11068eb24bc52cf9c",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/today/food-host.mjs": {
       "pre": "5eca457bfbc7ec69e6edff9d9fd9a43e31a62c1937b0147491ad86397bae801f",
       "post": "5eca457bfbc7ec69e6edff9d9fd9a43e31a62c1937b0147491ad86397bae801f",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/today/gym-app.mjs": {
-      "pre": "8d5e02f6964f1020a36db3a2a78c871f166fc3f0dfe9e19a5c88af0a0a1e1f82",
+      "pre": "4c8ba0c93f48b1b38be34d08ee23d274841c55680e51a61954754d17bcf8ec53",
       "post": "4c8ba0c93f48b1b38be34d08ee23d274841c55680e51a61954754d17bcf8ec53",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/today/gym-host.mjs": {
       "pre": "70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85",
@@ -503,17 +553,17 @@
     "rebuild/m3/w7-preview/today/machine-settings-host.mjs": {
       "pre": "be586088f56d819db242f4a67402fa4cfe877062388bdaacfc5f3bdf1ab28ef3",
       "post": "be586088f56d819db242f4a67402fa4cfe877062388bdaacfc5f3bdf1ab28ef3",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/today/preview.css": {
-      "pre": "d6278685a57b1d851881fafa3c1c0d1250aadb30cb2beb56069e93d773a67bab",
+      "pre": "7cf97598c2c2cb2390dd0a7a855f322b68b27f4fa801df3e23536e4846126ea1",
       "post": "7cf97598c2c2cb2390dd0a7a855f322b68b27f4fa801df3e23536e4846126ea1",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/today/problem-report.cjs": {
-      "pre": "1ea3d6ae3280e0418f1994a62c665de19a16478f57995a22e39a0c1466c4e62c",
+      "pre": "ae59ca7d67f7f7e3a5b4985bd3ce7bbdc86eedf4cb91fc9a3fe32f4b1262e6ae",
       "post": "ae59ca7d67f7f7e3a5b4985bd3ce7bbdc86eedf4cb91fc9a3fe32f4b1262e6ae",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/today/reading-host.mjs": {
       "pre": "079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4",
@@ -531,9 +581,9 @@
       "role": "carried"
     },
     "rebuild/m3/w7-preview/today/test/copy.test.mjs": {
-      "pre": "c9ad7b5e232ee0bdc4ad7096188ccf43688ccf4c28128976c3b04bc512649e55",
+      "pre": "290a90ab6d79c5558a01067b9755192655cd1fe465581bdb8cc358e24fd9f9e5",
       "post": "290a90ab6d79c5558a01067b9755192655cd1fe465581bdb8cc358e24fd9f9e5",
-      "role": "superseded-by-child"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/today/test/design.test.cjs": {
       "pre": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
@@ -541,18 +591,18 @@
       "role": "carried"
     },
     "rebuild/m3/w7-preview/today/test/food.test.mjs": {
-      "pre": "789c096f9040774a2be5d0d6fbe2b69e9e5bdb6ffd41338d5fcd03fbc433855b",
-      "post": "11155ac4348bb5b2f04872ed57913922e5ebb038d4e8fec700054e4e95c0f6ab",
+      "pre": "e932bfb9b7003319665508dd82754927d4f6e97677803c7caa6b9884eff796d8",
+      "post": "088530cfccbba5eceb19fbae627b7977794f42bd4849126edede061f74a9c95b",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
-      "pre": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+      "pre": "79aa531e5483f532736f2a387bc8839e7ac94395bcaaf67737c9e6869c12d508",
       "post": "79aa531e5483f532736f2a387bc8839e7ac94395bcaaf67737c9e6869c12d508",
-      "role": "edited"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs": {
-      "pre": "f6c0e2824e28b2df3dac520f552fa2fe493c01def66c8bc8e48a525ebfb48d69",
-      "post": "accbef94a8bbd73ce98e4a66a261849be7f5829c3337285ee9b2c21c3dbe981c",
+      "pre": "a35ad9dad96988a336fea90fcd8c6b9a56bc9e1c6fc5aec9ca4d938a201f4cb7",
+      "post": "e532f8d4e5aa5435845908e5f76667b4933f7c7a6ffe1ac39740c14d71910a7f",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": {
@@ -561,18 +611,18 @@
       "role": "carried"
     },
     "rebuild/m3/w7-preview/today/test/package.test.cjs": {
-      "pre": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+      "pre": "1a29e3e09b9454a48866b6156688a6893b2ce2aae657f8cca68efad67a7381ad",
       "post": "1a29e3e09b9454a48866b6156688a6893b2ce2aae657f8cca68efad67a7381ad",
-      "role": "edited"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/today/test/problem.test.mjs": {
-      "pre": "ef5dbd757032601eb42a5153a0f8b9573c378e2268478cf9f4295fb2ab9cb37f",
-      "post": "f7552d6073090223c55fa097f1702b87fb6e12aefa5e7a1c90bcdfbd77517607",
+      "pre": "19f808fc046a1a4df1e6a3b4ee22f3af5a19187181090046642ef481d942b800",
+      "post": "cb42052b4aa055cc5e9a6449fe78d2fcc1425b1adf8c99916b9104608be56b4e",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/setup.test.mjs": {
-      "pre": "d2cf346401eafeadd25faa271057bdf9d1b53502b4100de12b9d53bc2543faad",
-      "post": "35ddbf756cec21f5f05c988a815ba219cf7fbda2a979f682645f0cd4a08ac2ca",
+      "pre": "ec490b43d769f2673f6b521db0e2bf0c264366cc8bb8e153eb8ee7cb64c6776f",
+      "post": "80e5e2eab1e526f7594fb2c304bdb8cc03ff21588c38a4866f53e2091464d90d",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/view.test.mjs": {
@@ -581,119 +631,124 @@
       "role": "carried"
     },
     "rebuild/m3/w7-preview/today/today-app.cjs": {
-      "pre": "016a1e4f096d24e69b0b4e308879679e8582d0fdf475f28c7b24d2cb9cd9c97e",
+      "pre": "dc9a826eda96659b6cd5d5ca63ad137507586f5a59f4acf709ee67d98736b7af",
       "post": "dc9a826eda96659b6cd5d5ca63ad137507586f5a59f4acf709ee67d98736b7af",
-      "role": "edited"
+      "role": "carried"
     },
     "rebuild/m3/w7-preview/today/today-entry.mjs": {
-      "pre": "029e096b7c9e7dfc501b05e699c0d83f0f1b1d2eb6b0e20fc17ee0cfb498bebe",
+      "pre": "8b1697582d7d9f21bda4668f590187e612d3d554b8be32a31cfc6fb82ab91276",
       "post": "8b1697582d7d9f21bda4668f590187e612d3d554b8be32a31cfc6fb82ab91276",
-      "role": "edited"
+      "role": "carried"
     },
     "rebuild/m4/import/body-composition-class.cjs": {
       "pre": "e16e2449ce2f6e0dbc7258e5338bf016b94528862c62bf4c2bf64acb017b7551",
       "post": "e16e2449ce2f6e0dbc7258e5338bf016b94528862c62bf4c2bf64acb017b7551",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/browser-replay.mjs": {
       "pre": "2b7112798db0ba41497aae0b38bdbf7deea5116b23f872ada0ebe6a52f0f10ba",
       "post": "2b7112798db0ba41497aae0b38bdbf7deea5116b23f872ada0ebe6a52f0f10ba",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/daily-history.cjs": {
       "pre": "5358b3ba6a9a92e217651f0a74d85511f50a30d276c7a483a025034de6e604f7",
       "post": "5358b3ba6a9a92e217651f0a74d85511f50a30d276c7a483a025034de6e604f7",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/engine-provider.cjs": {
       "pre": "1899ba3c451c830b904f65c8e4afd4012e59ca18fcfa0b990993c58c2786f896",
       "post": "1899ba3c451c830b904f65c8e4afd4012e59ca18fcfa0b990993c58c2786f896",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/local-source-order.cjs": {
       "pre": "6c89fd55696b846c519c8f195b1df5fa3b6aa6bf5ec1d23d2074622ad742cf43",
       "post": "6c89fd55696b846c519c8f195b1df5fa3b6aa6bf5ec1d23d2074622ad742cf43",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/local-source-profile.cjs": {
       "pre": "2de07820664ee2ec42c72fecd665a31dfb3768d607870745798c590bd79640e9",
       "post": "2de07820664ee2ec42c72fecd665a31dfb3768d607870745798c590bd79640e9",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/measure-replay.cjs": {
       "pre": "61a4a9204985a468dbfadd5df6a87d92237a0e1587b7b1c11e10c9446c42876e",
       "post": "61a4a9204985a468dbfadd5df6a87d92237a0e1587b7b1c11e10c9446c42876e",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/prepare.cjs": {
       "pre": "2f76d35232f929edd0d9f3e2c490dc8a171a6cff63373881be5b5b703d77fd8c",
       "post": "2f76d35232f929edd0d9f3e2c490dc8a171a6cff63373881be5b5b703d77fd8c",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/production-mapping.cjs": {
       "pre": "abf1ff157045b2070c030de2d473eb6784f9bcffbfca433c09897de9a8b4264a",
       "post": "abf1ff157045b2070c030de2d473eb6784f9bcffbfca433c09897de9a8b4264a",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/reading-replay.cjs": {
       "pre": "0580c0d0cd7910f4eae7960c970744ebee8a814186259f15d28aed29d46123ad",
       "post": "0580c0d0cd7910f4eae7960c970744ebee8a814186259f15d28aed29d46123ad",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/replay-core.cjs": {
       "pre": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
       "post": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
-      "role": "pinned-unchanged"
+      "role": "carried"
+    },
+    "rebuild/m4/import/replay-registry.cjs": {
+      "pre": "e8f6af5d123c47b079e682cc43b0b263d9aa0a18b397e1d57bfa42c9499b8521",
+      "post": "e8f6af5d123c47b079e682cc43b0b263d9aa0a18b397e1d57bfa42c9499b8521",
+      "role": "carried"
     },
     "rebuild/m4/import/sleep-replay.cjs": {
       "pre": "16020d1fe1ec2af9f40aeac28d6ee2098d4c21eff46a4cda4e0f39506217035a",
       "post": "16020d1fe1ec2af9f40aeac28d6ee2098d4c21eff46a4cda4e0f39506217035a",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/test/browser-parity.test.mjs": {
       "pre": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632",
       "post": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/test/engine-provider.test.cjs": {
       "pre": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8",
       "post": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/test/local-source-order.test.cjs": {
       "pre": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
       "post": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/test/prepare.test.cjs": {
       "pre": "8c9511d8e32ba2d52754288de301054e1a2b17111cc1c352b83f89ea1df7015c",
       "post": "8c9511d8e32ba2d52754288de301054e1a2b17111cc1c352b83f89ea1df7015c",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/test/production-admission.test.mjs": {
-      "pre": "47eb7145030704aaff1b10ef15ed2836d172356a5893f5e3b86ed7c951165872",
+      "pre": "142eb51849ba50e3b47e7480f0d23a4cd1f82624151446fa521b3e23bf556994",
       "post": "142eb51849ba50e3b47e7480f0d23a4cd1f82624151446fa521b3e23bf556994",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m4/import/test/production-mapping.test.cjs": {
-      "pre": "5d7285afa1878e453ec927199d12a986d5cedd913969ea9082c3d928db2edc71",
+      "pre": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
       "post": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m4/import/test/reading-replay.test.cjs": {
       "pre": "83c9f88d961af688164d345964b38018429aadff26b2e37e106e92484ed94fca",
       "post": "83c9f88d961af688164d345964b38018429aadff26b2e37e106e92484ed94fca",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/test/s3/engine.cjs": {
       "pre": "ff0db8ce9d83b75821cc1326b2110a8be0c6a371686a165c73d1571ff4acefe4",
       "post": "ff0db8ce9d83b75821cc1326b2110a8be0c6a371686a165c73d1571ff4acefe4",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/import/test/s3/fixtures.mjs": {
       "pre": "74bbba37999191d5ce5ae17061e676b96280542ed379f880c92957a6b87a3e5d",
       "post": "74bbba37999191d5ce5ae17061e676b96280542ed379f880c92957a6b87a3e5d",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/spec/b-ntc-cases.cjs": {
       "pre": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
@@ -781,13 +836,18 @@
       "role": "carried"
     },
     "rebuild/m4/workout/engine-order.cjs": {
-      "pre": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a",
+      "pre": "d06fc9fcb0e8a7f3bb3f093d49ac91c98955a025e5f684c2b5454e50f93cc638",
       "post": "d06fc9fcb0e8a7f3bb3f093d49ac91c98955a025e5f684c2b5454e50f93cc638",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m4/workout/engine-runtime.cjs": {
       "pre": "95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30",
       "post": "95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/legacy-order-mapping.cjs": {
+      "pre": "d85907166f910d936efee6135ed39199f51d8de9f2f311a93209bafca1f1808a",
+      "post": "d85907166f910d936efee6135ed39199f51d8de9f2f311a93209bafca1f1808a",
       "role": "carried"
     },
     "rebuild/m4/workout/native-trend-context.cjs": {
@@ -798,12 +858,12 @@
     "rebuild/m4/workout/plan-edit-commands.cjs": {
       "pre": "9b7f260dad01dcfa0d1839db7fb8c6144a098c0a79bd556a39e248a45a1c06e3",
       "post": "9b7f260dad01dcfa0d1839db7fb8c6144a098c0a79bd556a39e248a45a1c06e3",
-      "role": "pinned-unchanged"
+      "role": "carried"
     },
     "rebuild/m4/workout/plan-edit-model.cjs": {
-      "pre": "76af2fd39e65719d8aaca6424738720c853dcd863b65a35d1b8a1722f6d0bbcd",
-      "post": "76af2fd39e65719d8aaca6424738720c853dcd863b65a35d1b8a1722f6d0bbcd",
-      "role": "pinned-unchanged"
+      "pre": "ccaa90bb98b134ebda14e6f1a5a3c0a7688b9dfe9c0a8e6836a27e1855d89a5b",
+      "post": "7cdb4ade63c596cd2a5e6aeec7b97fc9c3f2cfc2cd4386cd116c7d8e70ee4724",
+      "role": "edited"
     },
     "rebuild/m4/workout/test/h3-clean-init.test.cjs": {
       "pre": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
@@ -838,6 +898,11 @@
     "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs": {
       "pre": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
       "post": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/legacy-order-mapping.test.cjs": {
+      "pre": "f7a3e4a4b3d99f6863cbcc56d69023027c7d8b1722661d86ba1845f61d03ba15",
+      "post": "f7a3e4a4b3d99f6863cbcc56d69023027c7d8b1722661d86ba1845f61d03ba15",
       "role": "carried"
     },
     "rebuild/m4/workout/test/native-trend-context.test.cjs": {
@@ -951,78 +1016,153 @@
       "role": "carried"
     },
     "rebuild/m4/workout/test/s6-engine-files-differential.cjs": {
-      "pre": null,
+      "pre": "392e5e8c0d62ecba76e5ee9b883a34d31c67cd4b27debfdf41bad8a0bd0ad4d9",
       "post": "392e5e8c0d62ecba76e5ee9b883a34d31c67cd4b27debfdf41bad8a0bd0ad4d9",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m4/workout/test/s6-supersede-defect-witnesses.test.cjs": {
-      "pre": null,
+      "pre": "1cbb4f92ba9ddfae0d69059734ea033820ff96df2d57f76627f16f0a832c4800",
       "post": "1cbb4f92ba9ddfae0d69059734ea033820ff96df2d57f76627f16f0a832c4800",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m4/workout/test/s6-supersede-inherited-carriers.test.cjs": {
-      "pre": null,
+      "pre": "1dc1a8444d67de278af4d8219b9703a0fbf05b9be1b193b7f3582df433639ed5",
       "post": "1dc1a8444d67de278af4d8219b9703a0fbf05b9be1b193b7f3582df433639ed5",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m4/workout/test/s6-supersede-second-gate.test.cjs": {
-      "pre": null,
+      "pre": "aabd394889930a5806fc8ab967d778d4c9d908c3eaef745f408d8478bb14da1d",
       "post": "aabd394889930a5806fc8ab967d778d4c9d908c3eaef745f408d8478bb14da1d",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m4/workout/test/s6-supersede-source-carriers.test.cjs": {
-      "pre": null,
+      "pre": "daa1635fbb7b2f012fb7bd50d244ca2bc4fd4f236d08536e9c7b045aca8576ac",
       "post": "daa1635fbb7b2f012fb7bd50d244ca2bc4fd4f236d08536e9c7b045aca8576ac",
-      "role": "new"
+      "role": "carried"
     },
     "rebuild/m4/workout/test/s6-supersede-writers-differential.test.cjs": {
-      "pre": null,
+      "pre": "5a56bb475c193b3124b9574b19f877e6132b35763e3cb20b3a08c2fce34ecadb",
       "post": "5a56bb475c193b3124b9574b19f877e6132b35763e3cb20b3a08c2fce34ecadb",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-engine-files-differential.cjs": {
+      "pre": "29a0e28f4b6ade10970de5a1b926f813eefd0a948b5daa24a54a064d02b0194d",
+      "post": "29a0e28f4b6ade10970de5a1b926f813eefd0a948b5daa24a54a064d02b0194d",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-defect-witnesses.test.cjs": {
+      "pre": "b359f584239e0c58897cce51d846816cbc9d125c01f3c886b01c51a8f6a3dcd2",
+      "post": "b359f584239e0c58897cce51d846816cbc9d125c01f3c886b01c51a8f6a3dcd2",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-inherited-carriers.test.cjs": {
+      "pre": "91e0e87a5ac4a877762efc3d9081e47a43e445b6d679550e65c90684778b3627",
+      "post": "91e0e87a5ac4a877762efc3d9081e47a43e445b6d679550e65c90684778b3627",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-second-gate.test.cjs": {
+      "pre": "7d469315ffdaf78ecbd1f977c08ec5294d94f2bd9e24e7e135c0a16ae7483c7e",
+      "post": "7d469315ffdaf78ecbd1f977c08ec5294d94f2bd9e24e7e135c0a16ae7483c7e",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-source-carriers.test.cjs": {
+      "pre": "c0db22f212370ef41d412a55b8676370f7ad600b240e1097f15a9f28a7635bf1",
+      "post": "c0db22f212370ef41d412a55b8676370f7ad600b240e1097f15a9f28a7635bf1",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-writers-differential.test.cjs": {
+      "pre": "bf2026bc64266e709b7078d73b2289d3c2ed4eafccfc31cd03ba2ad8be663446",
+      "post": "bf2026bc64266e709b7078d73b2289d3c2ed4eafccfc31cd03ba2ad8be663446",
+      "role": "carried"
+    },
+    "rebuild/lanes/b/tooling/packages/S7.json": {
+      "pre": "e7658e21f1178f8316ae6dadc3f13d1cd62210fd37693086fd7c4fcbe65ba285",
+      "post": "00d7f1f8a43f3c923f6996766cd547f0d50517d1457e5cad23a4afedd263040d",
+      "role": "superseded-by-child"
+    },
+    "rebuild/m3/w7-preview/today/local-source-basis.mjs": {
+      "pre": "d98015dba23867142147204a35e98f1df2d1b7093327c783720ab012f2f91411",
+      "post": "3e04c246e1db083b1db66df284f0910560e4a898cd8eeb038c925ddefa031675",
       "role": "new"
     },
-    "rebuild/m4/import/replay-registry.cjs": {
-      "pre": "33e29943291d31c5f36469a7d4d5b142e77b2045531ab72f34a81a2c643f96b1",
-      "post": "33e29943291d31c5f36469a7d4d5b142e77b2045531ab72f34a81a2c643f96b1",
-      "role": "pinned-unchanged"
-    },
-    "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs": {
-      "pre": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
-      "post": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
-      "role": "pinned-unchanged"
-    },
-    "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs": {
-      "pre": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
-      "post": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
-      "role": "pinned-unchanged"
-    },
-    "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs": {
-      "pre": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
-      "post": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
-      "role": "pinned-unchanged"
-    },
-    "rebuild/m3/w6/host/plan-edit-host.mjs": {
-      "pre": "b138196d20cd192bd7871ece0b2aea91a8cf0a02bffc69addc8ac027f5989b93",
-      "post": "b138196d20cd192bd7871ece0b2aea91a8cf0a02bffc69addc8ac027f5989b93",
-      "role": "pinned-unchanged"
-    },
-    "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs": {
-      "pre": "455506f07c4ac2172f343d544992314a55da772150d138c46c4907604fedf5d0",
-      "post": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
+    "rebuild/m4/workout/engine-history.cjs": {
+      "pre": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89",
+      "post": "2ec6e44b2aae61bb80babc0246bde51528685734f545210ab8d39795633e560f",
       "role": "new"
     },
-    "rebuild/m4/workout/legacy-order-mapping.cjs": {
+    "rebuild/m4/workout/lift-correspondence.cjs": {
       "pre": null,
-      "post": "d85907166f910d936efee6135ed39199f51d8de9f2f311a93209bafca1f1808a",
+      "post": "8bec2a64bbc39dc1edd5fb8fd6a06b2a15298e323ac2b17188177319813d2e7f",
       "role": "new"
     },
-    "rebuild/m4/workout/test/legacy-order-mapping.test.cjs": {
+    "rebuild/m4/workout/test/s8-supersede-source-carriers.test.cjs": {
       "pre": null,
-      "post": "f7a3e4a4b3d99f6863cbcc56d69023027c7d8b1722661d86ba1845f61d03ba15",
+      "post": "e9996b0a97980b7bd9221c822e619678b0eb84770c232d28ba38594615f5c8b9",
       "role": "new"
     },
-    "rebuild/lanes/d/b-lom/legacy-order.test.mjs": {
+    "rebuild/m4/workout/test/s8-supersede-inherited-carriers.test.cjs": {
       "pre": null,
-      "post": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
+      "post": "cfd81f4bbc05cd21d586d5a7bbf580bff0cc3887dcc6b683a508f3011d46e2d3",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s8-supersede-defect-witnesses.test.cjs": {
+      "pre": null,
+      "post": "32dc363d0a73fc9fe37c1fa729b57d71f229e769a9605c959844811278f2a42d",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s8-supersede-writers-differential.test.cjs": {
+      "pre": null,
+      "post": "684e6fb6a200e82d5b04a44b635b6781fb550b7d2bec71f7276ae0dc5b1bc68d",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s8-supersede-second-gate.test.cjs": {
+      "pre": null,
+      "post": "06a08a396a6e92ad285d7300bced68fe437117f06eb7f6f1eaca7cd4fc5ffbc3",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s8-engine-files-differential.cjs": {
+      "pre": null,
+      "post": "49ee104c00e722137fc21823b20a3f3f9207edf8e9427fa02630f593bdffbe2f",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/legacy-fixture.cjs": {
+      "pre": null,
+      "post": "e94ceba9064be78f556d69029009e7730b99087d5565d1d2906a36f31ab48ff3",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/real-shape-support.mjs": {
+      "pre": null,
+      "post": "7c27dad17968b9c1d98f5f6943e4e63549c279b4add4cd7eb0979796387d5bf1",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs": {
+      "pre": null,
+      "post": "ee82c8045c9e453b89e9acfdedb9224fb513505f9e12910389d488d7853013cb",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs": {
+      "pre": null,
+      "post": "ade7312b59412bf2532e565bf8c17de721ff9c49cea9fd8336aa512c54ec47c7",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs": {
+      "pre": null,
+      "post": "3145ebbcec86822c747a4492e43417e2a9fbc21714c6b04f0018ab6d388c9e82",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs": {
+      "pre": null,
+      "post": "f0268238eb0116d266f402be08f79f3acbc2249866a120a4b8c4879777a1a8a1",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs": {
+      "pre": null,
+      "post": "6ab4bd3598050463f6e929efcb844f2b1ea6016e2b0f641de537ed5dbf993c97",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs": {
+      "pre": null,
+      "post": "9e5d647e5fc02cdb6b319867f4ecb98984058f0a3b91f9a4717d60cf3ed6c8c4",
       "role": "new"
     }
   },
@@ -1031,14 +1171,14 @@
     "moves": {},
     "successors": null,
     "superseded": {
-      "rulingLineSha256": "f2e3fe7412f2bc4d558246179698f1781cc4ff39dead3444a64235fde1245f89",
+      "rulingLineSha256": "0c2d0db53471b8604bdfb5c19f2485a12df517b672cd04912f988812c5a41eee",
       "gates": {
         "source-carriers": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:490 (RULED) for M2-S6-TODAY-CHILD, located by its own sha256 f2e3fe7412f2...: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37, and the three original programmes rebuild migrate.cjs from the frozen fe516c1:src/app.jsx declarations; this package changes NO engine byte, yet four files the reconstruction rebuilds (constants.cjs and writers.cjs from M2-H3-CLEAN-INIT, merge.cjs and today.cjs from M2-S3-COMPANION) already stand outside it, and the parent M2-S5-TODAY-CHILD inherited them unmoved and retired these same gates at DECISIONS:462, so the gates refuse on this tree and no package that moves nothing can mend them - executed and measured in s6-supersede-source-carriers",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:526 (RULED) for M2-S8-REAL-SHAPE, located by its own sha256 0c2d0db53471...: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37, and the three original programmes rebuild migrate.cjs from the frozen fe516c1:src/app.jsx declarations; this package changes NO engine byte, yet four files the reconstruction rebuilds (constants.cjs and writers.cjs from M2-H3-CLEAN-INIT, merge.cjs and today.cjs from M2-S3-COMPANION) already stand outside it, and the parent M2-S7-PORT-ADMISSION inherited them unmoved and retired these same gates at DECISIONS:514, so the gates refuse on this tree and no package that moves nothing can mend them - executed and measured in s8-supersede-source-carriers",
           "evidence": {
             "laws": null,
             "redFirst": [
-              "s6-sup-source-carriers"
+              "s8-sup-source-carriers"
             ],
             "census": "runner-live-triggered-line",
             "legacyDifferential": "a0-journeys",
@@ -1047,11 +1187,11 @@
           }
         },
         "inherited-carriers": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:490 (RULED) for M2-S6-TODAY-CHILD, located by its own sha256 f2e3fe7412f2...: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs) and pins the visit order and the per-module carrier counts, so today.cjs (nine declared carriers) and writers.cjs are refused there for the same reason as source-carriers, at the parent's own post which this package carries unmoved - executed and measured in s6-supersede-inherited-carriers",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:526 (RULED) for M2-S8-REAL-SHAPE, located by its own sha256 0c2d0db53471...: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs) and pins the visit order and the per-module carrier counts, so today.cjs (nine declared carriers) and writers.cjs are refused there for the same reason as source-carriers, at the parent's own post which this package carries unmoved - executed and measured in s8-supersede-inherited-carriers",
           "evidence": {
             "laws": null,
             "redFirst": [
-              "s6-sup-inherited-carriers"
+              "s8-sup-inherited-carriers"
             ],
             "census": "runner-live-triggered-line",
             "legacyDifferential": "a0-journeys",
@@ -1060,11 +1200,11 @@
           }
         },
         "defect-witnesses": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:490 (RULED) for M2-S6-TODAY-CHILD, located by its own sha256 f2e3fe7412f2...: the FROZEN side of every one of its ten complete comparisons is built through native-carriers-parent-source.cjs into the same pinned reconstruction, so no witness can be produced on both sides once an inherited engine byte stands outside it; M2-S6-TODAY-CHILD closes no register defect and moves no engine byte, and the complete comparison it owes is measured instead against the accepted engine read from Git at this package's own sourceBase",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:526 (RULED) for M2-S8-REAL-SHAPE, located by its own sha256 0c2d0db53471...: the FROZEN side of every one of its ten complete comparisons is built through native-carriers-parent-source.cjs into the same pinned reconstruction, so no witness can be produced on both sides once an inherited engine byte stands outside it; M2-S8-REAL-SHAPE closes no register defect and moves no engine byte, and the complete comparison it owes is measured instead against the accepted engine read from Git at this package's own sourceBase",
           "evidence": {
             "laws": null,
             "redFirst": [
-              "s6-sup-defect-witnesses"
+              "s8-sup-defect-witnesses"
             ],
             "census": "runner-live-triggered-line",
             "legacyDifferential": "a0-journeys",
@@ -1073,11 +1213,11 @@
           }
         },
         "writers-differential": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:490 (RULED) for M2-S6-TODAY-CHILD, located by its own sha256 f2e3fe7412f2...: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and writers.cjs on this tree is neither that reconstruction's declared pre-image nor its declared post-image - it was moved by M2-H3-CLEAN-INIT, carried unmoved by M2-S3-COMPANION and by the parent M2-S5-TODAY-CHILD, and is carried here byte-identical to the parent's post, asserted at S6/SUP-11",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:526 (RULED) for M2-S8-REAL-SHAPE, located by its own sha256 0c2d0db53471...: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and writers.cjs on this tree is neither that reconstruction's declared pre-image nor its declared post-image - it was moved by M2-H3-CLEAN-INIT, carried unmoved by M2-S3-COMPANION and by the parent M2-S7-PORT-ADMISSION, and is carried here byte-identical to the parent's post, asserted at S8/SUP-11",
           "evidence": {
             "laws": null,
             "redFirst": [
-              "s6-sup-writers-differential"
+              "s8-sup-writers-differential"
             ],
             "census": "runner-live-triggered-line",
             "legacyDifferential": "a0-journeys",
@@ -1086,11 +1226,11 @@
           }
         },
         "second-gate": {
-          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:490 (RULED) for M2-S6-TODAY-CHILD, located by its own sha256 f2e3fe7412f2...: the independent second reading is taken over the reconstructed engine and pins the frozen source commit fe516c1 with a static inventory, so it refuses this tree before it compares anything; the second reading this package puts in its place is taken from Git at its own sourceBase against the disk composition",
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:526 (RULED) for M2-S8-REAL-SHAPE, located by its own sha256 0c2d0db53471...: the independent second reading is taken over the reconstructed engine and pins the frozen source commit fe516c1 with a static inventory, so it refuses this tree before it compares anything; the second reading this package puts in its place is taken from Git at its own sourceBase against the disk composition",
           "evidence": {
             "laws": null,
             "redFirst": [
-              "s6-sup-second-gate"
+              "s8-sup-second-gate"
             ],
             "census": "runner-live-triggered-line",
             "legacyDifferential": "a0-journeys",
@@ -1121,20 +1261,20 @@
       "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
     },
     "theme": {
-      "ledgerLine": 488,
+      "ledgerLine": 524,
       "role": "cowork",
-      "line": "- 2026-09-17 · cowork · THEME M2-S6-TODAY-CHILD - the reseal child that closes the DECISIONS:473 custody hole and re-pins today/** over the accepted bytes of rebuild/c-s6-small, rebuild/b-s6-child-tail, rebuild/c-p3-import-ui-2 and B-LOM (folded in by DECISIONS:486 (c)): it declares as its own product the 89 merged-but-undeclared files under rebuild/m3/w6/local, rebuild/m3/w6/host, rebuild/m3/w6/test, rebuild/m4/import, rebuild/m4/workout, rebuild/lanes/d and rebuild/m3/w7-preview/import, gives their suites a CI home in rebuild.yml as a disclosed hunk (DECISIONS:117 (4)), and has NO product behaviour of its own. Standing ruling DECISIONS:455; custody ruling DECISIONS:473; merge order DECISIONS:484 as extended by :486 (c). Its behaviour/delta contract is rebuild/lanes/b/S6-TODAY-CHILD-BRIEF.md; its parent is M2-S5-TODAY-CHILD, rebuild/m4/spec/acceptance-s5-today-child.json sha256 84e3430ddd851965d630cecffe4bf7ead88ec10ed53635c503671fd616c1169e (receipt DECISIONS:466, merge :467); it changes no rebuild/engine byte, and as a third-generation descendant of M2-S3-COMPANION it retires the same nine byte-identity gates again under its own token line below. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
-      "lineSha256": "a824d88d27cf407eb934e639f00dc325b90ac4b0d68ce5b20c6fad36f319ab6d"
+      "line": "- 2026-09-18 · cowork · THEME M2-S8-REAL-SHAPE - the reseal child that carries the accepted P3-REAL-SHAPE and P3-LAYOUT-V2 change onto the tip so the owner's own file becomes his programme: the five product files it moves that the parent pins (rebuild/m3/w6/local/source-admission.mjs, rebuild/m3/w7-preview/import/import-screen.mjs, rebuild/m4/workout/plan-edit-model.cjs, rebuild/m3/w6/host/workout-host.mjs, rebuild/m3/w6/local/today-bindings.mjs) are every one of them pinned in rebuild/lanes/b/tooling/packages/S7.json, so under the standing ruling DECISIONS:455 the change reaches the tip only inside a lane B reseal child; it declares beside them the two unpinned files the rounds move and the one they add (rebuild/m3/w7-preview/today/local-source-basis.mjs, rebuild/m4/workout/engine-history.cjs, rebuild/m4/workout/lift-correspondence.cjs), the sixteen moved sibling test files and ancestor specs, and the eight new rebuild/lanes/d/p3-real-shape cells, names the standing CI step --package S8 INSIDE its own post before proposed() as VERDICT-S6.md rule (a) requires, and has NO product behaviour of its own beyond the two accepted lane D rounds. Rule of record DECISIONS:521 over rebuild/lanes/d/P3-REAL-SHAPE-SPEC.md v2 at 6e8c9c7; build rulings :522 and :523. Its behaviour/delta contract is rebuild/lanes/b/S8-REAL-SHAPE-BRIEF.md; its parent is M2-S7-PORT-ADMISSION, rebuild/m4/spec/acceptance-s7-port-admission.json sha256 350f56885c5eb55eecada58cadfb011656ddc58b82fc8fdc514ddc4503af791b (receipt DECISIONS:518, merge :519); it changes no rebuild/engine byte and moves no coach byte, and as a fifth-generation descendant of M2-S3-COMPANION it retires the same nine byte-identity gates again under its own token line below. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "77a8e98680a1ff0cbbbe5c9eba86607113032551de672bcceae50f47703f3c6c"
     },
     "review": {
       "role": "cowork",
-      "prefix": "POSTFIX-ACCEPTANCE M2-S6-TODAY-CHILD",
+      "prefix": "POSTFIX-ACCEPTANCE M2-S8-REAL-SHAPE",
       "terminal": "ACCEPTED"
     }
   },
   "artifact": {
-    "file": "rebuild/m4/spec/acceptance-s6-today-child.json",
-    "review": "rebuild/m4/spec/review-s6-today-child.json"
+    "file": "rebuild/m4/spec/acceptance-s8-real-shape.json",
+    "review": "rebuild/m4/spec/review-s8-real-shape.json"
   },
   "children": [
     {
@@ -1192,54 +1332,54 @@
       "needle": "# pass 23"
     },
     {
-      "name": "s6-sup-source-carriers",
+      "name": "s8-sup-source-carriers",
       "argv": [
         "--test",
         "--test-reporter=tap",
-        "rebuild/m4/workout/test/s6-supersede-source-carriers.test.cjs"
+        "rebuild/m4/workout/test/s8-supersede-source-carriers.test.cjs"
       ],
       "needle": "# pass 4"
     },
     {
-      "name": "s6-sup-inherited-carriers",
+      "name": "s8-sup-inherited-carriers",
       "argv": [
         "--test",
         "--test-reporter=tap",
-        "rebuild/m4/workout/test/s6-supersede-inherited-carriers.test.cjs"
+        "rebuild/m4/workout/test/s8-supersede-inherited-carriers.test.cjs"
       ],
       "needle": "# pass 3"
     },
     {
-      "name": "s6-sup-defect-witnesses",
+      "name": "s8-sup-defect-witnesses",
       "argv": [
         "--test",
         "--test-reporter=tap",
-        "rebuild/m4/workout/test/s6-supersede-defect-witnesses.test.cjs"
+        "rebuild/m4/workout/test/s8-supersede-defect-witnesses.test.cjs"
       ],
       "needle": "# pass 3"
     },
     {
-      "name": "s6-sup-writers-differential",
+      "name": "s8-sup-writers-differential",
       "argv": [
         "--test",
         "--test-reporter=tap",
-        "rebuild/m4/workout/test/s6-supersede-writers-differential.test.cjs"
+        "rebuild/m4/workout/test/s8-supersede-writers-differential.test.cjs"
       ],
       "needle": "# pass 3"
     },
     {
-      "name": "s6-sup-second-gate",
+      "name": "s8-sup-second-gate",
       "argv": [
         "--test",
         "--test-reporter=tap",
-        "rebuild/m4/workout/test/s6-supersede-second-gate.test.cjs"
+        "rebuild/m4/workout/test/s8-supersede-second-gate.test.cjs"
       ],
       "needle": "# pass 3"
     },
     {
       "name": "engine-files-differential",
       "argv": [
-        "rebuild/m4/workout/test/s6-engine-files-differential.cjs"
+        "rebuild/m4/workout/test/s8-engine-files-differential.cjs"
       ],
       "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 18 named and NOT ONE moves, so all 45 tracked rebuild/engine file(s) stand byte-identical to the parent's own post;"
     },
@@ -1253,7 +1393,7 @@
         "rebuild/lanes/d/plan-edit/browser-build.test.mjs",
         "rebuild/lanes/d/plan-edit/client-p6.test.cjs"
       ],
-      "needle": "# pass 68"
+      "needle": "# pass 90"
     },
     {
       "name": "m4-import",
@@ -1377,16 +1517,40 @@
         "rebuild/m4/workout/test/legacy-order-mapping.test.cjs"
       ],
       "needle": "# pass 30"
+    },
+    {
+      "name": "d-port-admission",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs",
+        "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs",
+        "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs"
+      ],
+      "needle": "# pass 35"
+    },
+    {
+      "name": "d-real-shape",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs"
+      ],
+      "needle": "# pass 56"
     }
   ],
   "notes": [
-    "M2-S6-TODAY-CHILD is S5's child under the standing reseal ruling DECISIONS:455 and the custody ruling DECISIONS:473, briefed at :487 and accepted by name there, by sha at :489, with its THEME at :488 and its GATE-SUPERSESSION token line at :490. IT HAS NO PRODUCT BEHAVIOUR OF ITS OWN: its brief says so in terms, and a reviewer who finds a behaviour change here has found a finding. It does two things. It RESEALS today/** over the post-merge bytes of rebuild/c-s6-small 6fad3472, rebuild/b-s6-child-tail d1001da9 and rebuild/c-p3-import-ui-2 4c3a5474, merged in the order :484 fixes and :486 (c) extends. And it closes the :473 custody hole by declaring as its own product the merged-but-undeclared files those branches and the lane D tickets left invisible to the runner, and by giving their suites a CI home.",
-    "THE DECLARATION IS SHORT OF THE BRIEF'S 89, AND THE DIFFERENCE IS A STOP THE AUTHOR REPORTS RATHER THAN PAPERS OVER. The brief lists 89 new files; 72 are declared here. The 17 that are not are files this package does not move AND that no declared child EXECUTES, and for those the runner's own closed role vocabulary has no honest spelling: role `new` means a file that did not exist or one this package moves (b-package.cjs PRODUCT-PRE-IMAGE-SHAPE and r7 F1), and role `pinned-unchanged` is refused by PRODUCT-PINNED-UNCHANGED-IS-NOT-EXECUTED-BY-A-DECLARED-CHILD unless a declared child's argv names the file or reaches it through a relative specifier. Inventing a child in order to make a pin legal would be gaming that rule, so the files are named in the author report with the reason each is unreachable, and DECISIONS:493 (5) accepts the shorter list this generation. ROUND 1 MISCOUNTED ITS OWN STOP and the review (finding 2) measured it: this note said \"67 are declared here. The 22 that are not\" where the truth was 66 and 23, and the undercount was in the enumeration - m4/import/test/s3/ holds SIX undeclared paths (browser-entry.mjs, current-head.cjs, harness.test.mjs, mutations.cjs, run.mjs, s3-portable-sources.json), not \"the four test/s3 harness files and its .json fixture\". Corrected here and in the report, and round 2 then declares six more of the 89, so 66 becomes 72 and 23 becomes 17. THE 17, each with its reason: build and dev-host glue nothing executes (w6/local/build.mjs, w6/local/source-commit.mjs; w6/host/build-host.mjs, w6/host/esbuild-probe.mjs, w6/host/index.html - and index.html cannot be executed by anything at all, being HTML); harnesses reached only by spawn or by a computed path rather than by a written relative specifier (m4/import/test/mutations.cjs, m4/import/test/reading-replay-faults.cjs, the SIX m4/import/test/s3 paths above, lanes/d/plan-edit/model-mutants.cjs, lanes/d/plan-edit/host-mutants.mjs, lanes/d/plan-edit/astra-rerun.mjs, w6/test/local-source-consumer-browser.mjs). THE SIX ROUND 2 ADDS: m4/import/replay-registry.cjs and the four lanes/d/p3-replay-all cells, whose only child was red for a cause this package did not make until lane D's P3-EN1-ROUTE-GRAPH landed the enumeration fix (DECISIONS:493 (1)); and w6/host/plan-edit-host.mjs, which round 1 filed under \"glue nothing executes\" and which the review measured to be executed by the declared child d-plan-edit through new URL('../../../m3/w6/host/plan-edit-host.mjs', import.meta.url) in durable-host.test.mjs:37 and browser-build.test.mjs:13. The EXCLUSION was mechanically right and the stated REASON was false; DECISIONS:493 (3) rules the file declared and the runner's blind spot a lane B tooling matter, so executedClosure now reads a relative new URL(..., import.meta.url) specifier exactly as it reads a relative import, pinned red-first by F10 in pinned-unchanged-and-ruled-substitutions.test.cjs. A computed specifier is still unseen, which is stated at the widening and carried as a lane B tooling ticket after S6: \"executed\" is a lower bound.",
-    "ONE CHILD THE BRIEF NAMED IS STILL NOT DECLARED, FOR A MEASURED REASON, AND THE OTHER IS DECLARED THIS ROUND. `m4-import-s3` (m4/import/test/s3/harness.test.mjs) is 3 pass / 14 fail HERE and 3 pass / 14 fail ON THE CLEAN TIP - byte for byte the same failure, `Actual owned dispatcher scratch required`, an environment precondition no workflow step provides. It is the IMPORT_M4_DIR class the S5 review recorded at DECISIONS:459 NOTE 3, it is not this package's doing, and a child must exit 0. `d-replay-all` was round 1's BLOCKING finding: 26/26 green on the clean tip and 25/1 red on the merged tree, because c-p3-import-ui-2 puts the Import route INTO the shipped page graph and P3-EN1 then read three replay FAMILY readers (body-composition-class.cjs, measure-replay.cjs, sleep-replay.cjs, each carrying a class NAME for an op.class comparison) as writers the page has. Round 1 refused to edit another lane's guard to go green and was right to; leaving the suite undeclared and unrun was the wrong disposal and the review said so. DECISIONS:493 (1) dispatched lane D ticket P3-EN1-ROUTE-GRAPH, which classifies the boot graph and the route chunk separately, defines a WRITER as a module that builds an op (a class and a kind in one object literal) and a FAMILY as a reader proved by measurement, and keeps both mutants. It is merged here at 196717cf, the suite is 28/28 on this tree, its four cells and m4/import/replay-registry.cjs are declared product, and the d-replay-all child runs them at `# pass 28`.",
-    "THE NINE GATES ARE RETIRED AGAIN, a fourth time, and the reason is structural rather than this package's doing. The nine NATIVE-CARRIERS gates are byte-identity RECONSTRUCTIONS of rebuild/engine from a frozen BASE; four of the files they rebuild were moved by this package's ancestors (constants.cjs, writers.cjs by M2-H3-CLEAN-INIT; merge.cjs, today.cjs by M2-S3-COMPANION), so no descendant of S3 can carry them whether or not it moves an engine byte of its own. S6 moves none: all 45 tracked engine files stand at the parent's own post. The parent M2-S5-TODAY-CHILD retired them under its own token line DECISIONS:462; a retirement is never inherited, only the gate list is (b-package.cjs parentCarrierGates reads BOTH halves of a parent's gate map, byChild and supersededByCarrier), so this package retires them AGAIN under its OWN token line :490 with its OWN evidence in S5's exact shape: five red-first s6-sup-* cells, the engine-files differential over ALL 45 files, the legacy (a0-journeys) and writers (today-17) differentials it already declares, and the runner's own clean census line.",
-    "THE RUNNER MOVES, SO EVERY SPEC THAT PINS IT BY SHA IS RE-PINNED (the rule S4-REVIEW-R1 finding 4 established and S5 applied): b-s6-child-tail moved b-package.cjs and S6 moves it again (CHILD_ROOTS, PUBLIC_TAIL_ROOTS, IDS, NO_REGISTER_IDS), so packages/H3.json, S3.json and S4.json are role `edited` over the parent PRODUCT pins, tooling.runnerSha256 only, one byte range each; packages/S5.json is role `superseded-by-child` over the parent EXECUTION pin. Without that a run of H3, S3, S4 or S5 stops at RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER before any evidence is read. S5.json's own product pin for the runner is deliberately NOT re-targeted: S5 did not produce these bytes, and `--ci --package S5` on this branch is expected to stop at the sealed-profile refusal, which is where a parent stops under a child.",
-    "CHILD_ROOTS GAINS TEN DIRECTORIES, the largest widening the list has had, and PUBLIC_TAIL_ROOTS gains TWO. The gap between those numbers is deliberate and is asserted by the amended F8 cell: a child root says a suite may be EXECUTED, a tail root says its output may be PRINTED, and the second is a privacy surface argued per root with TAIL_DENYLIST in hand. The two widened, lanes/d/p3-replay-measure/ and lanes/d/p3-replay-all/, were read in full and no line of either names the private census, a golden, live.json or the ledger. ROUND 2, REVIEW R1 FINDING 6: the finding was that p3-replay-all stood on the tail list while NO declared child executed anything under it - a privacy surface widened for nothing. It is answered by the thing that was missing rather than by a retreat: the d-replay-all child now executes that directory, so both added tail roots have a consumer. The tenth CHILD root is lanes/d/b-lom/ (DECISIONS:492 folds B-LOM into this package and its route suite lives there); it is NOT added to the tail list, because a root earns a tail by being argued for and never by a child appearing under it. The brief and bar row 22 ask for THREE tail roots, adding m3/w7-preview/import/test/; the PM's dispatch line DECISIONS:487 says two and DECISIONS:493 (6) confirms the narrower reading stands. The author records the disagreement with the measured fact that cuts the same way: page-bundle.test.mjs under that third root carries the literal 'ledger/' in its own FORBIDDEN list, so TAIL_DENYLIST's content gate would withhold that child's tail on any failure that prints the list anyway.",
-    "This package registers no D-id (DECISIONS:93, the S- slice-plan half); its obligation is the Y1 own-child rule, satisfied by the children that execute its own role:new and role:pinned-unchanged product. `notes` is not carried into the sealed artifact.",
-    "ROUND 2 (DECISIONS:493), WHAT MOVED AND WHAT DID NOT. Three merges, in this order: the tip origin/rebuild/t2-client-core (DECISIONS:493 only, one line, no product byte); origin/rebuild/d-en1-route-graph 196717cf, lane D's enumeration fix, clean, two lanes/d files and its review; and origin/rebuild/d-b-lom da7d5b37 LAST as DECISIONS:492 orders, whose ONE conflict was m3/w7-preview/import/test/page-bundle.test.mjs and is resolved by carrying both sides and RE-MEASURING rather than summing - the Import graph is 141 (this branch's 140 had never seen B-LOM's one boot module; B-LOM's 137 had never seen UI-2's four route modules), and P3-B5's delta is 19, which for the first time is 18 ROUTE modules plus ONE BOOT module, so the boot graph moves 121 to 122 and the cell says so where the old figure stood. today-bindings.mjs and gym.test.mjs are the sealed moves B-LOM's :492 ruling names and are declared role `edited` over their parent PRODUCT pins; source-admission.mjs, page-bundle.test.mjs and p3-capture-start/capture-start.test.mjs are both-sides files this package already declared and now declares role `new`; engine-order.cjs, legacy-order-mapping.cjs, the two new B-LOM test files and lanes/d/b-lom are declared as :492 requires, with the b-lom child at `# pass 30`. TWO CARRIES FROM B-LOM'S OWN REVIEWS ARE DISCHARGED HERE, not left in a report: R3's MINOR that attach() stamps order.import_anchor onto facts no order law derived is now the named cell LOM-S6, which measures that on the real route the anchor is already on the facts before attach re-states it, that today-bindings.mjs is the sole builder of the mapping and hands the pinned host the wrapped projector, and - said out loud rather than argued away - that attach() handed a projection no law ran over does stamp one; and R4's finding 1, that the provider header's undetected case is narrower than written (order_map deleted AND the session-start scrubbed from order_input opens the days; no wrong order can result), is now a stated paragraph in legacy-order-mapping.cjs's own header. BAR ROW 23 IS A CELL (P3-P6 in m4/import/test/production-admission.test.mjs), not a scan: an import is admitted under the standing constant M2-S5-TODAY-CHILD@0df73b01f3d2d935 by name, the constant is substituted in the module cache and production-mapping.cjs re-required over it (no rebuild/coach byte moves and engine-revision.test.cjs stays green), the displayed MAPPING_ID is asserted to differ ONLY in its suffix, the two digests a rotation-sensitive read would compare are asserted to DIFFER, and the same store is then read back through a registry built after the rotation: still ready, still adopted by Today's own consumer, the durable record's engine_digest untouched, retract still refusing an admitted import by name and rollback still re-qualifying it. The red side was executed: with qualify() mutated to compare the row's engine_revision to the current constant, P3-P6 is the ONLY cell of that file that goes red (7 pass / 1 fail, SOURCE_ENGINE_CONTEXT_UNPROVEN); mutant reverted, bytes restored."
+    "M2-S8-REAL-SHAPE is M2-S7-PORT-ADMISSION's child under the standing reseal ruling DECISIONS:455, briefed at rebuild/lanes/b/S8-REAL-SHAPE-BRIEF.md, with its THEME at DECISIONS:524, its BRIEF-BY-SHA at :525 and its GATE-SUPERSESSION token line at :526. IT HAS NO PRODUCT BEHAVIOUR OF ITS OWN BEYOND THE TWO ACCEPTED LANE D ROUNDS: its product delta is exactly the P3-REAL-SHAPE (DECISIONS:522) and P3-LAYOUT-V2 (:523) diff - eight product files, sixteen moved sibling test files and ancestor specs, eight new rebuild/lanes/d/p3-real-shape cells - plus the standing CI step and the tooling this package's own id requires. A reviewer who finds a byte here that no accepted lane D round and no fact of notes[2] produced has found a finding. What it is FOR is the owner: his real file refused again on the shipped S7 page (:520) because the old app's migrated shape is not the fixtures' clean-init shape, and every file that repairs it is pinned by the parent, so the repair reaches the tip only inside this reseal.",
+    "EVERY PIN BELOW IS MEASURED, NOT CARRIED. All 206 paths the parent artifact rebuild/m4/spec/acceptance-s7-port-admission.json pins were read from disk at this head and hashed against S7's own recorded post: 24 moved and 182 agree, 0 unexplained, so every `pre` here is the parent's own post. The two files this change moves that the parent does NOT pin (rebuild/m3/w7-preview/today/local-source-basis.mjs, rebuild/m4/workout/engine-history.cjs) carry their blob at this package's own sourceBase 8ebc860c30980dc5793be15202ea1a292e3769ba as `pre` under role `new`, which is the runner's own rule (pre === null OR pre !== post). THE LIST IS 224 DECLARED PATHS: 24 `edited`, 17 `new`, 182 `carried` (pre === post, including all 45 tracked rebuild/engine files and rebuild/coach/engine-revision.cjs) and 1 `superseded-by-child`, rebuild/lanes/b/tooling/packages/S7.json, which is the parent EXECUTION pin this package supersedes inside its own seal now that rebuild/lanes/b/tooling/b-package.cjs moves.",
+    "THE SEVEN TOOLING FACTS, MIRRORED FROM THE S7-TOOLING ROUND (DECISIONS:511, :515) AND LANDED BY S8-PREP. The refusal chain and the diff per file are in rebuild/lanes/b/S8-PREP-AUTHOR-REPORT.md. (1) IDS at b-package.cjs was [B-NTC,H3,S3,S4,S5,S6,S7,B1,B2,B4,B3] and the argv gate at :581 refused any other id outright (B PACKAGE USAGE REFUSED, exit 1, before this spec was opened); S8 now stands directly behind S7, twelve ids. (2) NO_REGISTER_IDS gains S8; S8 is an S- id, so the shape assertion admits it without a PM by-name ruling, exactly as S3, S4, S5, S6 and S7 were admitted. (3) CHILD_ROOTS gains rebuild/lanes/d/p3-real-shape/ as its twentieth root, without which the declared child `d-real-shape` is refused CHILD-ARGV-TARGET and the Y1 own-child obligation (MIN_OWN_CHILDREN = 1) cannot be met at all; the root is deliberately NOT added to PUBLIC_TAIL_ROOTS, for the same reason p3-port-fix is not. (4) The five s8-supersede-*.test.cjs cells and s8-engine-files-differential.cjs now exist beside the s7-* family, each copied byte for byte from its s7 sibling and changed only where S7-TOOLING changed the s6 ones (S7 -> S8, the parent M2-S6-TODAY-CHILD -> M2-S7-PORT-ADMISSION, the parent token line DECISIONS:490 -> :514, packages/S7.json -> S8.json), because the s7-* family reads packages/S7.json by path and a retirement is never inherited - only the gate list is. (5) Moving b-package.cjs moves tooling.runnerSha256, so packages/H3.json, S3.json, S4.json, S5.json and S6.json are re-pinned role `edited` and packages/S7.json is role `superseded-by-child` over the parent EXECUTION pin. (6) F6 and F7 in rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs take the new lists by literal and by deepEqual: IDS of twelve, NO_REGISTER_IDS of eight, CHILD_ROOTS of twenty. (7) The five CHILD_SPECS cells (measure/test/boundary.test.mjs, today/test/food.test.mjs, today/test/machine-settings-ui.test.mjs, today/test/problem.test.mjs, today/test/setup.test.mjs) gain the S8 literal; this is also the fact that turns the five today byte-pin cells DECISIONS:523 left red green, because it is what gives today-bindings.mjs and workout-host.mjs a declaring package.",
+    "THE NEEDLES ARE MEASURED, NOT CARRIED. All 25 children were run on this head the way children() runs them (node, cwd = the worktree, TZ=America/New_York, MEASURED_TEST_NOW=2026-09-03), and each needle here is what its own run printed. The table of S7's value against the measured value, child by child, is in rebuild/lanes/b/S8-PREP-AUTHOR-REPORT.md; not one needle in this file was typed from a report.",
+    "THE NINE GATES ARE RETIRED AGAIN, a sixth time, and the reason is structural rather than this package's doing. The nine NATIVE-CARRIERS gates are byte-identity RECONSTRUCTIONS of rebuild/engine from a frozen BASE; four of the files they rebuild were moved by this package's ancestors (constants.cjs and writers.cjs by M2-H3-CLEAN-INIT, merge.cjs and today.cjs by M2-S3-COMPANION), so no descendant of S3 can carry them whether or not it moves an engine byte of its own. S8 moves none: all 45 tracked engine files stand at the parent's own post. The parent retired them under its own token line DECISIONS:514; a retirement is never inherited, only the gate list is, so this package retires them AGAIN under its OWN token line with its OWN evidence in S7's exact shape.",
+    "THE SEALING WINDOW, AND WHY NO CELL IS EDITED FOR IT. VERDICT-S6.md rule (b) and DECISIONS:499: standingSeal(repoRoot) reads the standing package off the CI flag. With the flag at S8 and receipts/S8.json absent, the window branch applies: packages/S8.json must exist and be BRIEF-ACCEPTED and name a parent.chosen whose receipt exists. It does - S7, receipts/S7.json sha256 3fd8d36bd4268f145b6feb8052710efca41660a8539b490f212421a9ab4013f1 - so the constant must equal M2-S7-PORT-ADMISSION@3fd8d36bd4268f14, which is exactly where rebuild/coach/engine-revision.cjs stands and where it stays for the whole of this window. P3-M3 in rebuild/m4/import/test/production-mapping.test.cjs, the coach cell rebuild/coach/test/engine-revision.test.cjs and P3-P6-SEAL-WINDOW in production-admission.test.mjs all read that rule and all stay GREEN through the window; they become trip-wires again the moment receipts/S8.json lands. This package edits none of them and carries all three byte-identical.",
+    "This package registers no D-id (DECISIONS:93, the S- slice-plan half); its obligation is the Y1 own-child rule, satisfied by the `d-real-shape` child that executes six of its own role:new cells under the child root rebuild/lanes/d/p3-real-shape/ this round added. NOT DECLARED, AND NAMED SO THE OMISSION IS A DECISION: the two P3-LAYOUT-V2 lane cells rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs and projector-parity.test.mjs are not declared product and rebuild/lanes/d/p3-layout-v2/ is not a child root, because DECISIONS:523 names the lanes/d/p3-real-shape cells and only those and the :487 stop-7 rule makes a lanes/d file product only when a declared child EXECUTES it. They are given a CI home by exact path in the same rebuild.yml step as the real-shape cells and are raised to the PM as this package's one open question. `notes` is not carried into the sealed artifact."
   ]
 }
