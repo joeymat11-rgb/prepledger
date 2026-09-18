@@ -35,16 +35,20 @@ builder hits one of the open questions in section 6, each of which has a default
 | `app/assets/plate-ink*.jpg`, `app/assets/plate-dawn*.jpg`, `mist.png`, `grain.png` | the two plates: the Ink photograph (the owner's chosen backdrop) and the same photograph graded light for Dawn (one scene, two lights: owner ruling 2026-09-18; the Dawn board's own background is a different photograph and is NOT the design), the mist texture, the grain | the scene assets, shipped as is |
 | `app/fonts/earned-sans.woff2` (DM Sans), `app/fonts/earned-serif.woff2` (Liberation Serif) | the two typefaces | see the note under section 2 |
 | `app/compare.html` + `app/compare/` | every deliberate departure from the boards, with the reason, in one running record | why the prototype differs from a board where it does |
-| `quality/STANDARD.md` | the numbered UI standard (12 sections): layout, type, colour, scene, motion, copy, process, the chassis, the plates | the ACCEPTANCE BAR for every screen and state |
-| `quality/gate.py` | 143 automatic checks on the six views (errors, motion, copy, targets, fit, thumb zone, columns, spacing, type scale, radii, pressed states, contrast measured behind the text, seams, mist edges, visual regression against `quality/baseline/`) | the gate the port must pass on the real client |
-| `quality/statesheet.py` | renders every state in both themes and checks each (errors, copy, targets, primary in the first viewport, contrast, label overflow, seams) | the second gate |
-| `quality/phonesheet.py` | phone-zoom contact sheets in thirds | what the reviewer looks at |
-| `quality/baseline/*.png`, `quality/run/report.txt`, `quality/run/states-report.txt` | the accepted baselines and the last green runs (143 PASS; 418 renders, 0 problems) | the starting point for the port's own baselines |
+| `quality/STANDARD.md` | the numbered UI standard (13 sections): layout, type, colour, scene, motion, copy, process, the chassis, the plates, and section 13, the full list of what the gates check | the ACCEPTANCE BAR for every screen and state |
+| `quality/gate.py` | 32 distinct checks on the six views, 354 result rows across three phone sizes, two themes and three screens (errors, motion, transitions with motion allowed and refused, copy, the multiplication sign in every set string, targets, fit, thumb zone, columns, page margin, card inner edge, icon inset, bottom safe area, spacing, type scale, radii, pressed states, contrast in two tiers measured behind the text, the two fonts by sha256 and by face, serif versus sans, the RIR lock, seams, mist edges, visual regression against `quality/baseline/<platform>/`) | the gate the port must pass on the real client |
+| `quality/statesheet.py` | renders every state in both themes, checks each (errors, copy, targets, primary in the first viewport, contrast in two tiers, label overflow, seams) and compares it to its committed record; 418 renders, exit 1 on any problem | the second gate |
+| `quality/teeth.py` | the executable mutation list: 19 forbidden changes applied one at a time to a scratch copy, each run through the scratch copy's own gate and asserted to fail for the stated reason | what proves the two gates can still refuse |
+| `quality/phonesheet.py` | phone-zoom contact sheets in thirds, of the three base screens or of any drawn state (`--state T-40`) | what the reviewer looks at |
+| `quality/baseline/<platform>/*.png` and `ENV.txt` | the six accepted screen renders for the machine that drew them, and the OS, Python, playwright and Chromium versions of that machine | what the regression check measures against |
+| `quality/baseline/states/<ID>-<theme>.json` and `.png` | one record per state and theme: the visible text, every text bearing element's text, rect, colour, family and size, and a 1/16 scale greyscale thumbnail | what the state sheet measures against, on any platform |
 | `states/STATE-INVENTORY-DRAFT.md` | the derived state inventory (205 rows: T-01..T-95, W-01..W-45, C-01..C-65) with the verbatim copy the code already carries (section 4.1) and the owner's rulings 1 to 7 (section 6) | BEHAVIOUR and copy, together with the ledger |
 | `states/TICKET-proposal-response.md` | the engine ticket that unlocks the proposal card's "Applied" state | lane B, when the PM schedules it |
 
-Two boards, one prototype, one standard, two gates, one inventory. If the prototype and a
-board disagree, `app/compare.html` says why; if it does not, the board wins.
+Two boards, one prototype, one standard, two gates with a mutation list behind them, one
+inventory. If the prototype and a board disagree, `app/compare.html` says why; if it does not,
+the board wins. `quality/run/` is where both gates write; it is not committed, because a report
+in the tree is a claim and a run by the reader is evidence.
 
 ## 2. The owner's rulings (all recorded in the inventory, section 6)
 
@@ -100,24 +104,106 @@ right mechanism here too. The port therefore is:
   the review hooks are: `?theme=ink|dawn`, `?screen=`, `?chrome=1`, `?date=board`,
   `?state=<ID>` on the preview build, so the same two gates run on the real client.
 - Acceptance is mechanical: `quality/gate.py` and `quality/statesheet.py` pointed at the
-  real client's preview build (set the environment variable `EARNED_APP` to its URL or `file://` path; the scripts default to the prototype) must
-  report the same as they do on the prototype, and every state's render must match the
-  prototype's render for that state within the gate's regression tolerance (mean shift
-  under 0.5, fewer than 10 levels on 1% of pixels). The prototype's own renders are the
-  baselines: run `python3 quality/statesheet.py` in the pack once to produce them.
+  real client's preview build (set the environment variable `EARNED_APP` to its URL or
+  `file://` path; the scripts default to the prototype) must come back with no FAIL, and
+  every state must match the record committed for that state and theme.
 
-Rigor per LANES.md, screens tier: one independent Opus reviewer told to disagree (author ≠
-reviewer), CI green on both OS, and the two gates green; the PM (Fable) judges. No ticket
+### 3.1 The two comparisons, and what they will refuse
+
+Both gates run the same way on Windows and on Linux: `python quality/gate.py` and
+`python quality/statesheet.py` from this folder. Exit 0 is green, exit 1 means at least one
+FAIL, exit 2 means the run refused (it says in one line which URL it was pointed at and what
+was missing, and writes no green report). WARN is used by two checks only, the type scale and
+the spacing scale, which STANDARD.md calls advisory in its own words.
+
+**The screen comparison (`gate.py`).** Six renders, Ink and Dawn on the three screens, at
+393x852 with the phone chrome drawn, against
+`quality/baseline/<sys.platform>/<theme>-<screen>.png`. Baselines are per platform because a
+render is a property of the machine: the same page drew 2.35% to 6.38% different pixels on the
+owner's Windows PC and on the machine that set the first baselines. `ENV.txt` beside them
+records the OS, Python, playwright and Chromium versions that drew them. The tolerance:
+
+> The gate fails a screen when more than 0.1% of its pixels differ from the baseline by more
+> than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels.
+
+A missing baseline for the current platform is a FAIL that names the path and the remedy. It is
+never set silently. The only way to write baselines is `python quality/gate.py --accept`, which
+records each screen as SET rather than PASS and puts `ACCEPT RUN: regression compared nothing`
+on the report's first line, so an accept run can never be read as evidence. `--accept` refuses
+to run with `--screens` or `--sizes`, so a partial set cannot be written. The Linux baselines in
+this pack were set on the builder's machine; the win32 set is written on the owner's PC.
+
+**The state comparison (`statesheet.py`).** Every state, both themes, against
+`quality/baseline/states/<ID>-<theme>.json` and `.png`. The record holds the screen's visible
+text with whitespace normalised, then every visible text bearing element in document order with
+its own text, its rounded rect, its computed colour, its first font family and its font size,
+and a 1/16 scale greyscale thumbnail of the render. Nothing in the record depends on how the
+machine rasterises a glyph, so the same records judge a Windows run, a Linux run and the real
+client. The tolerance:
+
+> A state fails when its visible text differs at all, when an element moves more than 3 px on
+> any edge, when its colour moves more than 3 levels in any channel, when its font family
+> changes or its size moves more than 0.5 px, or when its thumbnail mean absolute shift reaches
+> 2.0 levels or 1% of the thumbnail pixels differ by more than 24 levels.
+
+The thumbnail is 1/16 and not 1/8 so that the two halves agree: at 1/8 a 3 px shift, which the
+rect tolerance allows, already moves the thumbnail 3.5 levels. A missing record is a FAIL naming
+the state; `python quality/statesheet.py --accept` is the only way to write one and says on its
+first line that it compared nothing. Contrast is measured on the rendered screenshot in two
+tiers, on both gates, in the same words:
+
+> Primary text needs 4.5:1 against what is actually behind it; muted text, a disabled control's
+> label, the state colour and text 24 px or larger need 3.0:1.
+
+The lower tier is read from the pack's own stylesheets, not guessed: the element's computed
+colour equals the theme's `--muted`, `--faint` or `--gold` token, or it carries one of the
+classes `app.css`, `states.css`, `states-workout.css` and `states-coach.css` paint muted (the
+list and the line numbers are in `quality/common.py`), or it is a disabled control's label,
+which STANDARD.md section 10 already calls a muted label. `--gold` is the one state colour
+(STANDARD.md section 10): it marks a state and never carries a sentence, so it is held to the
+label tier. In Dawn it measures about 3.4:1 on the card, which is above 3.0 and below 4.5; that
+is recorded as an open question in `rebuild/lanes/c/ui-port/packages/C-UI-0.json` rather than
+changed here, because the Dawn token is the boards' call.
+
+**Which check runs at which size.** Copy, the multiplication sign, the type scale, the radii,
+the contrast, the two font checks, the page margin, the card inner edge, the icon inset, the
+bottom safe area, the serif versus sans assignment, the touch targets, the primary in the first
+viewport and the RIR lock run at 393x852, 375x812 and 360x780. The seam detector, the visual
+regression, the three column checks, the spacing scale, the pressed states, the fit and the
+thumb zone run at 393x852. The mist edge checks run at 393x852 at three times scale. The CSS
+transition and animation sweep runs under reduced motion at all three sizes and again with
+motion allowed at 393x852, so a transition that is correctly disabled under reduced motion and
+plays otherwise is still caught. The motion check runs on every theme and screen with reduced
+motion off (the embers hidden, nothing else may move) and on (nothing may move at all).
+
+**`quality/teeth.py`** keeps all of this honest: it copies the pack to a scratch directory,
+applies one forbidden change at a time, runs the scratch copy's own gate against it and asserts
+the exact refusal. Every row of the audit's mutation table plus a dropped RIR chip, a serif
+element switched to sans and a card moved 6 px off the margin. It prints a table and exits 1 if
+any row slips through.
+
+Rigor per LANES.md, screens tier: one independent Opus reviewer told to disagree (author is not
+the reviewer), CI green on both OS, and the two gates green; the PM (Fable) judges. No ticket
 self-accepts. The builder's cells pin every copy string they move.
 
 ## 4. What is LOCKED for every ticket
 
 - Nothing under `rebuild/engine/`, `rebuild/m4/`, `rebuild/m3/w6/local/`, `rebuild/conform/`.
 - No new numbers in markup; every value binds at runtime, as today.
-- No dashes, no readiness words, no vendor names (the gate refuses them).
-- The RIR picker values and what `logSet` stores (BRIEF-RIR-DISPLAY's lock stands).
-- Existing tests stay green; `browser-check.mjs`'s dash sweep stays and gains the
-  readiness-word and vendor-name sweeps from the gate.
+- No dashes, no readiness words, no vendor names. Both gates sweep the active screen's
+  `innerText`: the em dash, the en dash and a hyphen with a space each side as plain substrings, each word of the owner's
+  word list as `re.search(r'\b' + word + r'\b', text.lower())` (a real word boundary, so "Ready
+  to train" matches and "already" does not), and each vendor name as a plain substring of the
+  lowered text. The one sweep that matters most had been written `r'\\b'`, which is a literal
+  backslash, and could never match; it is `quality/common.py:copy_problems` now, shared by both
+  gates so it cannot be half fixed. The gate also refuses a set written with the letter x
+  anywhere on the screen, not only in the Log label.
+- The RIR picker values and what `logSet` stores (BRIEF-RIR-DISPLAY's lock stands). The gate
+  asserts the five chips in order with their `data-rir` values and their labels, all visible.
+- The two faces are pinned by sha256 of the bytes each `@font-face` rule actually points at, so
+  repointing a face at the other file fails as loudly as replacing the file would.
+- Existing tests stay green; `browser-check.mjs`'s dash sweep stays and gains the word-list and
+  vendor-name sweeps from `quality/common.py` (the fixed form, never the old line).
 - One layout per screen: a drawn state and the live behaviour must produce the same element
   in the same place (STANDARD.md section 11).
 
@@ -255,3 +341,12 @@ The PM proceeds on the defaults and asks only if a builder cannot.
 He reads one place: the PM chat's PROGRESS footer. Each ticket reports BRIEF-READY,
 PR-READY (with the reviewer's file), SEALED, and the slice URL at C-UI-8. He is shown the
 phone-zoom sheet of a ticket's screens once, at PR-READY, and answers only if he disagrees.
+
+The sheet is `python quality/phonesheet.py`, which runs on Windows and on Linux (its labels use
+whichever face the machine has, and the built in face when it has none). With no argument it
+draws the three base screens in both themes, cut into thirds at three times scale. With
+`--state T-40` it draws that drawn state instead, on the screen the state driver files it
+under, so a ticket that only changes states still has a sheet: `python quality/phonesheet.py
+--state T-40,W-20,C-05` draws one sheet per state plus the combined `phonesheet-all.png`. It
+refuses in one line, exit 2, if the build it is pointed at carries no screen or no state
+driver.
