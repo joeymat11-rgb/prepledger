@@ -401,6 +401,18 @@ for(const [why,mutate] of [
   ['one lift carries the file\'s own increment',b=>{b.exercises[0].inc=2.5;}],
   ['one lift carries the file\'s own ladder',b=>{b.exercises[0].steps=[20,25,30,35];}],
   ['one lift carries the file\'s own volume tags',b=>{b.exercises[0].head='chest-upper';b.exercises[0].secondary=[{mg:'triceps',lend:0.5}];}],
+  /* MOVED HERE from the refusal list below by the P3-REAL-SHAPE fix round
+     (review R1 BLOCKING 2). Admission stopped proving `day` and `mg` per lift
+     in P3-REAL-SHAPE itself and this predicate did not follow, so these two
+     files were ADMITTED and ADOPTED and then refused HERE for good: the failure
+     moved rather than removed. They are editable because the FILE's day and the
+     FILE's muscle group are the athlete's under option A - they are what the
+     engine reads and the card paints, and the document row's copy is never
+     shown. Both are still proved about the FILE at admission, by those field
+     names. The page-level pair is lanes/d/p3-real-shape/r1-fixes.test.mjs
+     D-RS-R1-b2a/b2b. */
+  ['one lift sits on the file\'s own training day',b=>{b.exercises[0].day='L';}],
+  ['one lift is filed under the file\'s own muscle group',b=>{b.exercises[0].mg='triceps';}],
 ]){
   test('PE17 (k) an admitted import is EDITABLE when '+why,()=>{
     const f=varied(mutate);
@@ -418,8 +430,14 @@ for(const [why,mutate,code] of [
   ['a period carries a third member',b=>{b.split[0].label='SYNTHETIC';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
   ['a lift the document lists is not in the basis',b=>{b.exercises[0].id='press-other';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
   ['the basis holds a lift twice',b=>{b.exercises[1].id='press';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
-  ['one lift sits on another training day',b=>{b.exercises[0].day='L';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
-  ['one lift is filed under another muscle group',b=>{b.exercises[0].mg='triceps';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
+  /* `day` and `mg` LEFT THIS LIST in the P3-REAL-SHAPE fix round and are now in
+     the EDITABLE list above, with the reason written there (review R1 B2). What
+     replaces them is the BINDING, which is what this predicate still proves:
+     a row that reaches TWO basis lifts cannot be edited safely either. */
+  ['two document rows reach the same basis lift, one by id and one by name',
+    (b,f)=>{const rows=f.origin.payload.setup.exercises;
+      b.exercises[0].n=rows[1].n;b.exercises[1].n='A lift by no name of his';
+      b.exercises[1].id='press-elsewhere';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
   ['a lift carries no name of its own',b=>{delete b.exercises[0].n;},'PLAN_EDIT_ORIGIN_UNPROVEN'],
   ['a lift name is blank',b=>{b.exercises[0].n='   ';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
   ['the label is not this installation\'s',b=>{b.athlete_label='Someone else';},'PLAN_EDIT_ORIGIN_UNPROVEN'],
@@ -463,12 +481,26 @@ test('PE16 the mapped collection set is exactly the collections this installatio
      document is the phone's, whose ids slugOf minted. The row is bound to its
      basis lift by its own id FIRST and then by normalised NAME, out of the
      shared helper, and what is still COMPARED is where the lift sits in the
-     week. AFTER: ['day','mg']. */
-  assert.deepEqual(P2_ROW,['day','mg'],
-    'source-admission.mjs programme() proves exactly these, and not the id and '
-    + 'not the name: after option A the file\'s lifts ARE the athlete\'s lifts, '
-    + 'and set counts, rep targets, increments and ladders are RETAINED from the '
-    + 'file (P3-PORT-FIX-SPEC 1.4, 1.6; P3-REAL-SHAPE-SPEC 2.3, 2.6)');
+     week. AFTER: ['day','mg'].
+     NARROWED TO NOTHING by the P3-REAL-SHAPE fix round (review R1 BLOCKING 2).
+     Admission deleted the per-lift `fields=['day','mg']` comparison in the same
+     ticket and this list did not follow it down, so a file that put a
+     corresponded lift on the other day was admitted, adopted and painted, and
+     then refused HERE for good. The mechanism this cell IS - the companion's
+     local-source field list recomputed against source-admission.mjs programme()
+     - is what forces the list to be empty now, and it is the reason the
+     constant stays and stays read rather than being deleted: admission proves
+     NO per-lift member, so the companion compares none. What the companion
+     still proves is the BINDING (one row, one basis lift, by id then by
+     normalised name) and the basis lift's own name, and `day` and `mg` are
+     still proved about the FILE at admission by those field names.
+     AFTER: []. */
+  assert.deepEqual(P2_ROW,[],
+    'source-admission.mjs programme() proves NOTHING per lift: after option A '
+    + 'the file\'s lifts ARE the athlete\'s lifts - their day, their muscle '
+    + 'group, their set counts, rep targets, increments and ladders are all '
+    + 'RETAINED from the file and none is compared with the document row '
+    + '(P3-PORT-FIX-SPEC 1.4, 1.6; P3-REAL-SHAPE-SPEC 2.3, 2.6; review R1 B2)');
 });
 test('PE16 f2-adapter-identity the injected tag collaborator is the published F2 source',()=>{
   // The lane copy is byte-identical to the public blob the independent reviewer

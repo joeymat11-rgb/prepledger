@@ -29,9 +29,35 @@ const COLLECTIONS = ['ops','outbox','dispositions','rejected','receipts','planTx
 /* P3-REAL-SHAPE (DECISIONS:520 option A, accepted :521). `id` GOES. The document
    row and the basis lift no longer share an id: the basis is the FILE's, whose
    ids are the old app's short handles, and the document is the phone's, whose
-   ids slugOf minted. What still has to agree is the lift's PLACE in the week.
-   BEFORE P3-REAL-SHAPE: ['id','day','mg']. */
-const P2_ROW = ['day','mg'];
+   ids slugOf minted.
+   BEFORE P3-REAL-SHAPE: ['id','day','mg'].
+   AND THEN `day` AND `mg` GO TOO (review R1 BLOCKING 2). Admission DELETED the
+   per-lift comparison in the same ticket and this predicate did not follow, so a
+   file that put a corresponded lift on the other day was ADMITTED, ADOPTED and
+   painted on the Train screen, and Edit My Week then refused
+   PLAN_EDIT_ORIGIN_UNPROVEN for good - the failure MOVED rather than removed,
+   which is the one property this ticket had to protect. The narrowing is
+   FORCED by the sentence eight lines above, not chosen: this predicate is
+   derived from source-admission.mjs programme() and follows it down. Under
+   option A the FILE's day and the FILE's muscle group are the athlete's, they
+   are what the engine reads and what the card paints, and the document row's
+   copy is never shown: `apply()` below edits the BASIS lift, found by
+   `edit.exercise_id` in the basis state. Refusing the whole editor over a
+   member the screen does not show and admission does not prove would be a rule
+   the athlete cannot answer.
+   WHAT REMAINS PROVED is the BINDING and not the content: every document row
+   must reach exactly one basis lift, no two rows may reach the same one, and
+   that lift must carry a usable name. `day` and `mg` are still proved about the
+   FILE ITSELF at admission (source-admission.mjs, fields `day` and `mg`), so
+   neither is unbounded - it is simply not compared across two id spaces any
+   more. Cells: lanes/d/p3-real-shape/r1-fixes.test.mjs D-RS-R1-b2a/b2b (both
+   directions admit AND open) and b2c (the binding still refuses).
+   THE CONSTANT STAYS AND STAYS READ, empty, because it is the ONE mechanism
+   tying this predicate to admission's proved set: PE16 in
+   lanes/d/plan-edit/model.test.cjs recomputes it against that rule, and if
+   admission ever proves a per-lift member again this comparison comes alive
+   with no other edit. */
+const P2_ROW = [];
 /* THE SAME `normaliseName` ADMISSION USES, imported from the one place that
    states it (P3-REAL-SHAPE 2.3/2.6). It must not be restated here: a second
    spelling of the rule is a second rule, and the bug would be silent. */
@@ -171,7 +197,7 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
     baseIds.add(row.id); boundBasis.add(e.id);
     if (firstRun) {
       if (!equal(documentRow(e), row) || e.renames?.length || (base.retirements || {})[row.id]) rowsOk = false;
-    } else if (!equal(Object.fromEntries(P2_ROW.map(k => [k, e[k]])), Object.fromEntries(P2_ROW.map(k => [k, row[k]])))
+    } else if (P2_ROW.some(k => !equal(e[k], row[k]))
         || typeof e.n !== 'string' || !e.n.trim()) rowsOk = false;
     if (origin.payload.tags !== undefined) {
       const tags = origin.payload.tags[row.id]; C.tagsOf(row, tags, validateTags);

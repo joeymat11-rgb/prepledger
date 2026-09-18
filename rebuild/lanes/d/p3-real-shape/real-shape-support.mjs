@@ -219,13 +219,19 @@ export function ctrlScope(tag) {
 }
 
 export async function admitThrough(tag, bundle, { setup = PHONE, at = IMPORT_DAY,
-  workout = null, recordState = null, keepOpen = true, days = CTRL_DAYS } = {}) {
+  workout = null, recordState = null, keepOpen = true, days = CTRL_DAYS,
+  before = null } = {}) {
   const scope = ctrlScope(tag);
   const indexedDB = new IDBFactory();
   const era = await eraFor({ indexedDB, live: liveAt(AT(workout || at)), ...scope });
   await firstRunWith(era, SETUP_DAY, setup.setup, setup.tags);
   let recordedSlots = null;
   if (workout) recordedSlots = await recordAWorkout(era, workout, recordState || phoneState(setup));
+  /* ONE NATIVE RECORD WRITTEN BEFORE THE IMPORT (review R1 BLOCKING 1). The
+     hook runs on the SAME era, through whichever shipped host the cell names,
+     so the operation the file's replay has to account for is a real one this
+     installation wrote and not a hand-built envelope. */
+  if (before) await before(era);
   const { carried, platform } = await carry(era, bundle);
   if (!carried.imported) { era.close(); throw new Error('custody refused: ' + carried.code); }
   const held = await material(era, platform, carried.name);

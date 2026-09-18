@@ -275,6 +275,21 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
          is the field the owner's own screenshot named. */
       (Object.hasOwn(p,'why')&&typeof p.why!=='string'))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split'});
    if(!validDay(p.from)||p.from>today)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.from'});
+   /* P3-REAL-SHAPE (review R1 NOTE 3). EVERY period's `map` IS SHAPE-CHECKED,
+      including the earlier ones nothing compares. Presence is not a shape
+      check: before this line a file whose earlier period was
+      `{from:'2026-06-01', map:null}` was admitted and the `null` was stored in
+      his state verbatim, a trap for whatever reads an earlier period next
+      (`covered()` and `dayType` read the period in force and no other, today).
+      What is asked is SHAPE and never content - the same key set as the week
+      the document already built, and a non-empty string against each key - so
+      an earlier week that genuinely differs is retained unexamined, which is
+      the PM's Q2 ruling. The document's own week is the reference because
+      createCleanInitState built it at the head of this function. */
+   if(!p.map||typeof p.map!=='object'||Array.isArray(p.map)||
+      encode(Object.keys(p.map).sort())!==encode(Object.keys(week).sort())||
+      Object.values(p.map).some(v=>typeof v!=='string'||!v.trim()))
+    fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.map'});
   }
   /* P3-REAL-SHAPE, PM QUESTION 2 (DECISIONS:521, ruled YES). THE PERIOD IN
      FORCE TODAY is what P-A proves against; the earlier periods are
@@ -284,7 +299,16 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
      typed would refuse his file for a week he stopped training months ago.
      The period in force is the latest `from` that is not after today; every
      period's `from` is already bounded above, so this is simply the last one.
-     `split.map` therefore names ONE period and never a historical one. */
+     `split.map` therefore names ONE period and never a historical one.
+     THE TIE IS A RULE AND NOT AN ACCIDENT (review R1 NOTE 4). Two periods may
+     share one `from` - the old app APPENDS a period every time he changes his
+     week, and he may change it twice in a day - and the sort below does not
+     order them. Array.prototype.sort is stable, so `.at(-1)` takes the LAST one
+     THE FILE LISTS, which is the later of the two changes he made and the one
+     he is training on. That is the rule, it is written here rather than left to
+     be read out of the sort, and D-RS-R1-n4 pins it in both orders. A duplicated
+     `from` is NOT refused: refusing it would throw away an import over a second
+     edit on one day, which is a rule the athlete cannot answer. */
   const inForce=periods.filter(p=>p.from<=today).sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:0).at(-1);
   if(!inForce)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.from'});
   if(encode(inForce.map)!==encode(week))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.map'});
@@ -483,7 +507,21 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    if(!validDay(day)||day>currentDay()){issue('LOCAL_SOURCE_CONTEXT_UNRESOLVED',op.op_id);continue;}
    if(op.class==='food-day'&&op.schema_version===2&&Food.validate(op,id=>ops[id])){food.push({op_id:op.op_id,date:day,day:copy(p.day)});continue;}
    if(p?.profile===Setup.PROFILE){families.push({family:'F4',state:programmeBasis?'retained':'unresolved',op_id:op.op_id});continue;}
-   if(op.schema_version===2&&p?.profile===Settings.PROFILE&&Settings.validate(op,id=>ops[id])&&state.exercises.some(e=>e.id===p.machine.exercise_id)){families.push({family:'F4',state:'retained',op_id:op.op_id});continue;}
+   /* P3-REAL-SHAPE (review R1 BLOCKING 1). THE NOTE'S LIFT ID IS READ THROUGH
+      THE CORRESPONDENCE, exactly as the capture block reads a capture's. A
+      machine-settings note the owner saved on THIS phone before the import
+      names a DOCUMENT lift by the slug slugOf minted; after option A a
+      CORRESPONDED document lift is not in the admitted state under that slug at
+      all - it was never appended, because the file already carries it under the
+      file's own handle - so this guard failed on his own note and the WHOLE
+      import refused, with no field for the screen to name (measured, D-RS-R1-b1a).
+      The guard is NOT weakened by this: it goes on asking that the lift the note
+      names be in the admitted state, through the same correspondence the same
+      function already recorded, and a note naming a lift neither side carries
+      still refuses (D-RS-R1-b1c). `liftAttach` is null for an UNcorresponded
+      document lift, which is appended under its own id and found as before
+      (D-RS-R1-b1b), and null for a file-side id, which is found directly. */
+   if(op.schema_version===2&&p?.profile===Settings.PROFILE&&Settings.validate(op,id=>ops[id])&&state.exercises.some(e=>e.id===(liftAttach(p.machine.exercise_id)??p.machine.exercise_id))){families.push({family:'F4',state:'retained',op_id:op.op_id});continue;}
    if(op.schema_version===2&&p?.profile===CheckIn.PROFILE&&CheckIn.validate(op,id=>ops[id])&&!checkDates.has(day)){checkDates.add(day);families.push({family:'F5',state:'retained',op_id:op.op_id});continue;}
    issue(op.class==='food-day'||op.class==='steps'?'LOCAL_SOURCE_DAILY_UNRESOLVED':op.class==='plan'?'LOCAL_SOURCE_EFFECT_UNMAPPED':'LOCAL_SOURCE_CONTEXT_UNRESOLVED',op.op_id);
   }
@@ -679,7 +717,17 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
       document prescribed: it is evidence of what that programme said, and
       rewriting evidence is not what this is. Only the record's entries move, to
       the lift the admitted state actually carries - which capture_lift has
-      already proved, one slot at a time, over this very id. */
+      already proved, one slot at a time, over this very id.
+      AND THE SLOT KEY IS DELIBERATELY LEFT WHERE IT WAS (review R1 NOTE 5).
+      Each slot also carries `logical_set_slot`, a JSON string that happens to
+      hold the lift id the capture was WRITTEN with ("[\"calves\",1]"). It is
+      NOT re-keyed: it is the capture's own address for its own set, its only
+      reader outside the capture machinery is gym-model.mjs (:87,:353,:511) for
+      the LIVE session, and moving it would rewrite the stored evidence this
+      paragraph just said it would not rewrite. So a projected entry names the
+      FILE's lift and its slot key still encodes the DOCUMENT's slug, on
+      purpose; D-RS-R1-n5 pins both halves so the next reader does not assume
+      the two agree. */
    if(workoutFacts&&programmeBasis&&Object.keys(programmeBasis.lift_correspondence||{}).length){
     const rekey=s=>({...s,record:{...s.record,
      entries:s.record.entries.map(e=>({...e,lift_lineage_id:liftAttach(e.lift_lineage_id)??e.lift_lineage_id}))}});

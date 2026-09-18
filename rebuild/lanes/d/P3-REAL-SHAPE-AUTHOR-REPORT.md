@@ -14,7 +14,7 @@ Branch `rebuild/d-p3-real-shape`, base `17c35f5`. Nothing outside
 `import-bundle.mjs` and `setup-model.mjs` are unchanged, and
 `git diff 17c35f5..HEAD --name-only` is the proof.
 
-## 0. THE HEADLINE, IN FOUR LINES
+## 0. THE HEADLINE, IN FIVE LINES
 
 1. The owner's own file shape ADMITS and is ADOPTED end to end on the shipped
    page, and Edit My Week opens on it. Gaps 1 to 4 of the spec are closed.
@@ -24,10 +24,15 @@ Branch `rebuild/d-p3-real-shape`, base `17c35f5`. Nothing outside
    is section 5 and it is the one thing that needs the PM.
 3. One new refusal the spec did not have: an id shared by two lifts that are
    not the same lift by name (spec review R2's open item 2).
-4. One finding for the PM out of the tree-wide sweep: the machine-settings F4
-   guard at `source-admission.mjs:474` reads a lift id the same way
-   `capture_lift` used to, and was not moved, because moving a guard is the
-   PM's call and not the build's. Section 7, FINDING 1.
+4. One finding out of the tree-wide sweep: the machine-settings F4 guard read a
+   lift id the same way `capture_lift` used to. FIRST REPORT: left for the PM.
+   NOW FIXED in the fix round after review R1, which MEASURED it breaking the
+   whole import - see section 7 FINDING 1 for the finding and section 11 for the
+   fix and its three cells.
+5. THE FIX ROUND after review R1 closed both of the reviewer's BLOCKINGs and all
+   five of his cheap NOTEs. Section 11. One of them, `day`/`mg` in the Edit My
+   Week companion, is a RULING the build made and named: section 11 states it in
+   four points so the PM can overrule it in one line at the seal.
 
 ## 1. COMMITS
 
@@ -37,7 +42,9 @@ Branch `rebuild/d-p3-real-shape`, base `17c35f5`. Nothing outside
 | `7ff0ce7` | P3-REAL-SHAPE: correspondence + programme rule, capture block and re-keying |
 | `99a1756` | P3-REAL-SHAPE: companion and screen |
 | `a60d194` | P3-REAL-SHAPE: the corpus re-pointed where it sealed a rule option A removed |
-| (this file) | P3-REAL-SHAPE: author report |
+| `092842b` | P3-REAL-SHAPE: author report |
+| `4f98e55` | P3-REAL-SHAPE: independent review R1 (REJECT, one fix round) |
+| (this commit) | P3-REAL-SHAPE: fix round after review R1 - see section 11 |
 
 ## 2. RED FIRST
 
@@ -182,26 +189,38 @@ See section 5.
 Every suite run through `%TEMP%\rs-bar.bat` (PATH, `TZ=America/New_York`, cwd
 the worktree, `node --test`). Logs named per row.
 
-| suite | # pass | # fail | log |
-|-------|--------|--------|-----|
-| `rebuild/lanes/d/p3-real-shape/*.test.mjs` (the bar, the measurement, Q1) | 45 | 0 | `%TEMP%\B-lane.log` |
-| `rebuild/lanes/d/p3-port-fix/*.test.mjs` (the S7 lane cells) | 35 | 0 | `%TEMP%\B-s7.log` |
-| `rebuild/m3/w7-preview/import/test/*.test.mjs` (the import corpus) | 35 | 0 | `%TEMP%\B-imp.log` |
-| `rebuild/m3/w6/test/*.test.mjs` (incl. local-source-admission, -commit, -consumer) | 587 | 0 | `%TEMP%\B-w6.log` |
-| `rebuild/lanes/d/plan-edit/*.test.*` | 89 | 0 | `%TEMP%\B-pe.log` |
-| `rebuild/lanes/d/import-retract/*.test.mjs` | 13 | 0 | `%TEMP%\B-ret.log` |
-| `rebuild/m4/import/test/*.test.*` | 90 | 0 | `%TEMP%\B-m4i.log` |
-| `rebuild/m3/w7-preview/today/test/*.test.*` | 661 | 0 | `%TEMP%\B-today.log` |
-| `rebuild/coach/test/*.test.*` (read-only check) | 234 | 0 | `%TEMP%\B-coach.log` |
-| `rebuild/m4/workout/test/*.test.cjs` | 214 | **11** | `%TEMP%\B-m4w.log` |
-| **total** | **2003** | **11** | |
+RE-RUN IN FULL AFTER THE FIX ROUND. The `A-*` logs are the fix round's; the
+`B-*` column is the first build's, kept so the two can be read side by side.
+Only two rows move, and both move UP by the cells this round added.
+
+| suite | # pass | # fail | log | was |
+|-------|--------|--------|-----|-----|
+| `rebuild/lanes/d/p3-real-shape/*.test.mjs` (the bar, the measurement, Q1, the fix round) | 56 | 0 | `%TEMP%\A-lane.log` | 45 |
+| `rebuild/lanes/d/p3-port-fix/*.test.mjs` (the S7 lane cells) | 35 | 0 | `%TEMP%\A-s7.log` | 35 |
+| `rebuild/m3/w7-preview/import/test/*.test.mjs` (the import corpus) | 35 | 0 | `%TEMP%\A-imp.log` | 35 |
+| `rebuild/m3/w6/test/*.test.*` (incl. local-source-admission, -commit, -consumer) | 587 | 0 | `%TEMP%\A-w6.log` | 587 |
+| `rebuild/lanes/d/plan-edit/*.test.*` | 90 | 0 | `%TEMP%\A-pe.log` | 89 |
+| `rebuild/lanes/d/import-retract/*.test.mjs` | 13 | 0 | `%TEMP%\A-ret.log` | 13 |
+| `rebuild/m4/import/test/*.test.*` | 90 | 0 | `%TEMP%\A-m4i.log` | 90 |
+| `rebuild/m3/w7-preview/today/test/*.test.*` | 661 | 0 | `%TEMP%\A-today.log` | 661 |
+| `rebuild/coach/test/*.test.*` (read-only check) | 234 | 0 | `%TEMP%\A-coach.log` | 234 |
+| `rebuild/m4/workout/test/*.test.cjs` | 214 | **11** | `%TEMP%\A-m4w.log` | 214/11 |
+| **total** | **2015** | **11** | | 2003/11 |
+
+The eleven are the same eleven, unmoved and unmovable by this round: nine fail
+at module load on `PERFORMED_W6_DIR` and two are the byte pins over
+`rebuild/engine/merge.cjs` and `rebuild/engine/today.cjs`
+(`h3-supersede-source-carriers`, `h3-supersede-inherited-carriers`), whose
+inputs are identical at the base - `git diff --numstat 17c35f5..HEAD --
+rebuild/engine rebuild/coach rebuild/DECISIONS.md` is still EMPTY after this
+round, and so is the same numstat over the working tree.
 
 ### 4.1 THE ELEVEN, AND WHY THEY ARE NOT THIS TICKET'S
 
 All eleven are in `rebuild/m4/workout/test` and all eleven are PRE-EXISTING on
 this branch. Two classes:
 
-1. SEVEN suites fail at module load with `Provide retained PERFORMED_W6_DIR` /
+1. NINE fail at module load with `Provide retained PERFORMED_W6_DIR` /
    `Explicit retained W6 root required`: `configuration-capture`,
    `engine-capture`, `engine-history`, `history-panel`,
    `native-next-targets-assembly`, `native-next-targets-correction`,
@@ -212,7 +231,8 @@ this branch. Two classes:
    (`h3-supersede-inherited-carriers`) report `rebuild/engine/merge.cjs` and
    `rebuild/engine/today.cjs` as differing from their `sourceBase`. This ticket
    touched NO file under `rebuild/engine/`: `git diff 17c35f5..HEAD
-   --name-only` lists twelve files and not one of them is in that tree.
+   --name-only` lists twenty files after the fix round and not one of them is in
+   that tree.
 
 THE PROOF THAT NONE OF THE ELEVEN CAN BE MINE, rather than the assertion: a
 content search of `rebuild/m4/workout/test` for `source-admission`,
@@ -342,9 +362,9 @@ could refuse or mis-read an ADOPTED old-app state. Searched: `athlete_label`
 | `engine/plan.cjs:87-95` `exActive` | `s.retirements`, with NO date comparison | SAFE, and it is what makes the append invisible to the card. Cells (d2), (n6). |
 | `engine/today.cjs:68-70` `_sessionPool`, `engine/plan.cjs:225-229` | `exOrder` | SAFE: the appended lift is never added to `exOrder`. Cell (n6) asserts it on both day kinds after a later boot. |
 | `coach/wave1-tools.cjs:133-196` `machine_settings` | an `exercise_id` handed in by the caller | SAFE: it looks the id up in whatever state it is given and answers `MACHINE_SETTINGS_INVALID` for one it does not hold. It never compares two id spaces. |
-| `m3/w6/local/source-admission.mjs:486` the F4 Settings guard | `state.exercises.some(e => e.id === p.machine.exercise_id)` | **FINDING 1 - NOT CHANGED. See below.** |
+| `m3/w6/local/source-admission.mjs:486` the F4 Settings guard | `state.exercises.some(e => e.id === p.machine.exercise_id)` | **FINDING 1 - CHANGED IN THE FIX ROUND. The id is read through `liftAttach`; see below and section 11.** |
 
-### FINDING 1 (for the PM, not fixed here)
+### FINDING 1 (left for the PM in the first build; FIXED in the fix round after review R1 - section 11)
 
 `source-admission.mjs:486`:
 
@@ -498,3 +518,136 @@ screen.
    is B-NTC's own ruling and does not name any of them. There was therefore no
    ruled-substitution entry for this build to write. `today-bindings.mjs` is
    unchanged, which removes one of the four the spec expected to need one.
+
+
+## 11. REVIEW DISPOSITION (R1)
+
+Both BLOCKINGs reproduced before anything moved, in the lane's own harness on
+the shipped page, with the reviewer's own symptoms: log `%TEMP%\A-red1.log`,
+3 RED of 6. Nothing is disputed. New file:
+`rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs`, 11 cells, all green
+(`%TEMP%\A-green2.log`).
+
+### BLOCKING 1 - FIXED
+
+`rebuild/m3/w6/local/source-admission.mjs`, the F4 machine-settings guard: the
+note's `exercise_id` is now read through `liftAttach` exactly as the capture
+block reads a capture's. One expression, the one the reviewer and FINDING 1 both
+named.
+
+RED first: `D-RS-R1-b1a` failed with
+`[{"code":"LOCAL_SOURCE_CONTEXT_UNRESOLVED","op_id":"op-dev-p3-rsb-2"}]`, the
+reviewer's measurement to the op id.
+
+| cell | claim |
+|------|-------|
+| `D-RS-R1-b1a` | a note on a CORRESPONDED document lift: the import ADMITS and the note is F4 `retained` |
+| `D-RS-R1-b1b` (control) | a note on an UNCORRESPONDED document lift is retained through the APPENDED lift, as before |
+| `D-RS-R1-b1c` (the guard) | a note naming a lift NEITHER side carries still refuses `LOCAL_SOURCE_CONTEXT_UNRESOLVED` |
+
+The note is written through the shipped lane (`machine-settings-host.mjs`, the
+module `gym-app.mjs:165` loads), on the same era, before the bundle is carried.
+`admitThrough` gained one `before` hook to allow that; nothing else in the
+harness moved.
+
+I accept the reviewer's argument that this is the build's call and not the PM's:
+the guard gets no weaker - `b1c` is the cell that says so - it goes on asking
+that the lift the note names be in the admitted state, through the same
+correspondence the same function already recorded.
+
+### BLOCKING 2 - FIXED, and the ruling is named for the PM
+
+`P2_ROW` goes from `['day','mg']` to `[]`, and the comparison over it stays,
+live and empty. This is the reviewer's option (a): the companion stops comparing
+`day` and `mg` on the LOCAL-SOURCE branch, the way it stopped comparing `id`.
+
+WHY (a) AND NOT (b), stated so the PM can overrule it in one line at the seal:
+
+1. It is FORCED by the companion's own stated law, which is the mechanism
+   `PE16` exists to enforce - "its correspondence predicate is not ours to
+   invent". Admission deleted the per-lift comparison in this same ticket. The
+   companion following it down is the rule working; the companion not following
+   it is the defect.
+2. The document row's `day` and `mg` ARE NEVER SHOWN. `apply()` edits the BASIS
+   lift, found by `edit.exercise_id` in the basis state, and the card paints the
+   basis. Refusing the whole editor over a member the screen does not show, and
+   admission does not prove, is a rule the athlete cannot answer.
+3. (b) would refuse the whole import because he typed a lift on the wrong day
+   during first-run setup - the exact failure class this ticket exists to
+   remove, in a new place.
+4. Nothing is unbounded by it. `day` and `mg` are still proved about the FILE at
+   admission, by those two field names, on every lift.
+
+What the local-source branch still proves is the BINDING and not the content:
+one row reaches exactly one basis lift (by its own id first, then by normalised
+name), no two rows reach the same one, and that lift carries a usable name.
+
+| cell | claim |
+|------|-------|
+| `D-RS-R1-b2a` | a corresponded lift the FILE puts on the other day: ADMITS, adopts on the FILE's day, Edit My Week OPENS |
+| `D-RS-R1-b2b` | the same for `mg` |
+| `D-RS-R1-b2c` (the guard) | a document row that reaches no basis lift at all still refuses `PLAN_EDIT_ORIGIN_UNPROVEN` |
+| `PE17 (k)` x2 | `one lift sits on the file's own training day` and `... own muscle group` MOVED from the refusal list to the EDITABLE list, with the reason written in place |
+| `PE17 (k)` NEW | `two document rows reach the same basis lift, one by id and one by name` still refuses - the binding is what replaced them |
+| `PE16` | `P2_ROW` re-pinned at `[]` against admission's proved set, with the whole narrowing history kept above it |
+
+### NOTE 3 - ANSWERED IN THE PRODUCT
+
+Every period's `map` is SHAPE-checked now, earlier ones included: a non-null
+plain object, the same key set as the week the document already built, a
+non-empty string against each key. Content is still never compared, so an
+earlier week that genuinely differs is retained unexamined, which is the PM's
+Q2 ruling. `D-RS-R1-n3` (a `null` earlier map refuses `split.map` by name) and
+`D-RS-R1-n3c` (a genuinely different earlier week is retained, both periods
+stored). RED first, measured by disabling the new line only
+(`%TEMP%\A-red3.log`: `n3` fails with `refusal = null`, `n3c` green), then
+restored.
+
+### NOTE 4 - ANSWERED AS A RULE, NOT A REFUSAL
+
+Two periods sharing one `from`: the LAST one the FILE LISTS is the period in
+force. That is what the stable sort already did; it is now written down at
+`inForce` as the rule, with the reason - the old app APPENDS a period per
+change, so the last is the later change. A duplicated `from` is deliberately NOT
+refused: he may change his week twice in one day, and refusing would throw the
+import away over it. `D-RS-R1-n4` drives BOTH orders and states the rule rather
+than recording which way the sort fell.
+
+### NOTE 5 - ANSWERED IN WORDS AND PINNED
+
+One paragraph added to the re-key block: `slots[].logical_set_slot` is
+deliberately left under the id the capture was WRITTEN with, because it is the
+capture's own address for its own set, its only reader outside the capture
+machinery is `gym-model.mjs` for the LIVE session, and moving it would rewrite
+the stored evidence the same paragraph says it will not rewrite. `D-RS-R1-n5`
+pins both halves on one projected record: the entry names the FILE's lift, the
+slot key still encodes the DOCUMENT's slug.
+
+### NOTE 6 - ANSWERED WITH A PAGE CELL
+
+`D-RS-R1-n6`: a file whose period IN FORCE is not the phone's week refuses ON
+THE PAGE with `split.map` leading, the painted sentence is the FIELD's own and
+not the generic one (asserted against `refusalLines` both ways), and the device
+writes nothing. That restores the page-level cover the P3-X11 re-point moved to
+`athlete_label`.
+
+### NOTE 2 - ACCEPTED, REPORT WORDING
+
+The companion is NO STRONGER than admission, not "exactly as strong". The
+direction is the safe one and this round did not change it.
+
+### NOTE 7, NOTE 8 - FOR THE PM
+
+NOTE 7 stands (DECISIONS:521 is not on this branch; see section 10 item 5).
+NOTE 8 stands and this build repeats the reviewer's ask: read the identity trade
+in spec 2.1 once more at the seal. With the per-lift id multiset equality gone,
+the identity Yes is the only proof left that the file is his, and `P-LABEL`
+cannot fire on an old-app file because it has no `athlete_label` anywhere.
+
+### WHAT THIS ROUND DID NOT DO
+
+The reviewer's six "could not verify" items are unchanged by this round, with
+one narrowing: item 4's one measured break, the F4 family, is now closed and
+cell-covered in three directions. `listImports` on his installation, the eleven
+at `17c35f5` by a second run, the fixture's header line citations and native
+F1/F5/F7/F8 records written before an import remain unmeasured here.
