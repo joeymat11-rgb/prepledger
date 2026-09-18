@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "2f110c11c7b4c581e05dd694b1bcaa8ffb3514ab",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-09-18 · cowork · POSTFIX-ACCEPTANCE M2-S8-REAL-SHAPE 0cd07be7cf967dfbfea8c84947ba8477f58cfb5f rebuild/m4/spec/acceptance-s8-real-shape.json 3cf58e0edd76a56353b35008ef154d484098b5017fedeb648eb64a0ae6568d48 ACCEPTED",
+    "lineSha256": "d928cfd5b192deecba23d2fc469fb553cee126aa9fd0f487b4a6f7d3081d06de"
+  }
+}
