@@ -37,6 +37,12 @@ import Capture from '../../../m4/workout/capture.cjs';
 import SourceCodec from '../../w5/source/codec.cjs';
 import SourceProjection from '../../../m4/workout/source-projection.cjs';
 import EngineCapture from '../../../m4/workout/engine-capture.cjs';
+/* P3-REAL-SHAPE 2.3/2.5. WHERE A LIFT OF THE FILE AND A LIFT OF THE DOCUMENT
+   ARE THE SAME LIFT, stated ONCE and imported by the three readers that ask it
+   (this module's programme rule, this module's capture block, and
+   m4/workout/plan-edit-model.cjs) so the three cannot disagree. A second
+   spelling of the rule would be a second rule. */
+import LiftCorrespondence from '../../../m4/workout/lift-correspondence.cjs';
 import History from '../../../m4/workout/engine-history.cjs';
 // ROUTE 1, STEP ONE (P3-D-FOLLOWONS, DECISIONS:475; the brief's row E). The
 // ACCEPTED host-owned MIRROR, not rebuild/m4/workout/engine-runtime.cjs. That
@@ -61,6 +67,9 @@ import {createBrowserReplay,createSourceReplayEngine} from '../../../m4/import/b
 import {createSourcePlatform} from './source-platform.mjs';
 
 const qualifications=new WeakMap(),reviews=new WeakMap();
+/* P3-REAL-SHAPE. The three names this module uses off the shared correspondence
+   helper. They are read here and nowhere restated. */
+const {normaliseName,correspondence,idCollisions}=LiftCorrespondence;
 // F7, the measure family. Pure and stateless: it is built once from the S5
 // producer's own validate() and its three profile names, holds no clock, no
 // engine and no platform, and is handed the day admission stands on per call.
@@ -191,7 +200,21 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
     document the setup flow can write (setup-model.mjs:622-623,:633), because
     the flow cannot ask him for them and a rule he cannot answer is not a rule.
     Each retention carries its own argument in lanes/d/P3-PORT-FIX-SPEC.md 1.4. */
- function programme(source,ops,{today,documentSets=null}){
+ /* P3-REAL-SHAPE (DECISIONS:520 option A, accepted DECISIONS:521). THE FILE
+    WINS. The rule above was written against a picture of the owner's file, not
+    against the file: every fixture the corpus sealed was built by the NEW app's
+    own createCleanInitState, so all of them carried a two-member split, slug
+    lift ids, an athlete_label, a `steps` ladder on every lift, a positive `inc`
+    and a numeric working load. The owner's file carries none of those, and it
+    refused on five separate fields before it could be adopted
+    (lanes/d/P3-REAL-SHAPE-SPEC.md section 1, measured end to end).
+    What is PROVED is now the week, the setup op, the owner's identity answer,
+    the retained-number bounds and the capture provenance - and nothing else.
+    Every lift the file lists is the athlete's lift, under the file's own id and
+    the file's own name. Where a lift of the file and a lift of the document are
+    THE SAME LIFT is decided by NAME, in one place three readers share
+    (m4/workout/lift-correspondence.cjs). */
+ function programme(source,ops,{today,documentSets=null,documentProgramme=null}){
   const setups=Object.values(ops).filter(o=>o.payload?.profile===Setup.PROFILE);
   if(setups.length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'setup_document'});const op=setups[0];
   if(op.schema_version!==2||!Setup.validate(op,id=>ops[id]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'setup_document'});
@@ -203,34 +226,102 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
      HERE, before any comparison below can refuse, so the capture check further
      down reads the document even on a file that never gets past this function. */
   if(documentSets)for(const ex of scratch.exercises)documentSets.set(ex.id,ex.sets);
-  /* COMPARED is not PROJECTED. `fields` is what the file must AGREE with the
-     phone about; PROJECTED_FIELDS is what the admitted basis carries out to the
-     programme digest at :325, and it keeps `id` and every RETAINED number,
-     because narrowing the comparison must not narrow the record. */
-  const fields=['day','mg'];
-  const PROJECTED_FIELDS=['id','day','mg','sets','hi','inc','steps','head','secondary'];
-  /* BOUNDED is a third list and is neither of the other two (P3-PORT-FIX-2,
-     DECISIONS:509 NOTE 4). These four are still RETAINED - the file's value is
-     what lands, and nothing here compares it with the phone's - but a retained
-     value must still be one the athlete's own document constructor would accept,
-     because the state it lands in is the state the engine reads. */
-  const BOUNDED_FIELDS=['sets','hi','inc','steps'];
+  /* P3-REAL-SHAPE 2.3. THE DOCUMENT STATE ITSELF, out of this function by the
+     SAME out-parameter discipline `documentSets` already uses and for the same
+     reason: the capture block below has to ask the engine what the programme
+     that PRODUCED a pre-import capture prescribed on that day, and that
+     programme is this document, not the file. Filled HERE, before any
+     comparison below can refuse, so the capture block reads the document even
+     on a file that never gets past this function. It is NOT a member of the
+     returned basis and therefore not a digest input. */
+  if(documentProgramme)documentProgramme.state=scratch;
+  /* P-LABEL FIRST (P3-REAL-SHAPE 2.1/2.3, review R1 N9). The file's name, when
+     it has one, must be his, and a file that names someone else must be refused
+     BY THAT NAME rather than by whichever lift member the loop below happens to
+     reach first. A file that names NOBODY - which is every old-app file - takes
+     this installation's own first-run label when it is admitted, in replay()
+     below, and that is what turns today's silent non-adoption into something
+     the owner can read. */
+  if(Object.hasOwn(source,'athlete_label')&&source.athlete_label!==op.payload.setup.athlete_label)
+   fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'athlete_label'});
+  /* P3-REAL-SHAPE. NOTHING PER LIFT IS COMPARED ANY MORE: the file's lifts are
+     the athlete's lifts, so `fields` (`day`, `mg`) and the per-lift id multiset
+     equality both go. PROJECTED_FIELDS is what the admitted basis carries out to
+     the programme digest at :325 and it GAINS `n`, because after option A the
+     athlete's own name for a lift is part of what was admitted and is what the
+     correspondence rule reads. */
+  const PROJECTED_FIELDS=['id','n','day','mg','sets','hi','inc','steps','head','secondary'];
+  /* BOUNDED is its own list (P3-PORT-FIX-2, DECISIONS:509 NOTE 4). These are
+     still RETAINED - the file's value is what lands, and nothing here compares
+     it with the phone's - but a retained value must still be one the athlete's
+     own document constructor would accept, because the state it lands in is the
+     state the engine reads. It LOSES `steps` and `inc`: the OLD app has no rung
+     ladder on any lift and writes `inc: null` where there is no plate to add,
+     and a bound on a member the file never carries is a rule the athlete cannot
+     answer (P3-PORT-FIX-SPEC 1.4's own test). Both are bounded below instead,
+     over the vocabulary the old app actually writes. */
+  const BOUNDED_FIELDS=['sets','hi'];
   const periods=Array.isArray(source.split)?source.split:null;
   const week=scratch.split[0].map;
   if(!periods||!periods.length)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split'});
   for(const p of periods){
    if(!p||typeof p!=='object'||Array.isArray(p)||
-      Object.keys(p).some(k=>k!=='from'&&k!=='map'))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split'});
-   if(encode(p.map)!==encode(week))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.map'});
+      Object.keys(p).some(k=>k!=='from'&&k!=='map'&&k!=='why')||
+      !Object.hasOwn(p,'from')||!Object.hasOwn(p,'map')||
+      /* P3-REAL-SHAPE 2.3. `why` is the file's own provenance note
+         (src/app.jsx:11057, :552). It is RETAINED as an opaque string, never
+         parsed, never shown, never a rule; a non-string one is a malformed
+         period. This one optional member is the whole of the widening, and it
+         is the field the owner's own screenshot named. */
+      (Object.hasOwn(p,'why')&&typeof p.why!=='string'))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split'});
    if(!validDay(p.from)||p.from>today)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.from'});
   }
-  if(!periods.some(p=>p.from<=today))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.from'});
-  if(source.exercises?.length!==scratch.exercises.length)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'exercises'});
-  for(const ex of scratch.exercises){
-   const matches=source.exercises.filter(x=>x.id===ex.id);
-   if(matches.length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'exercise_id',exercise_id:ex.id});
-   for(const key of fields)if(encode(matches[0][key])!==encode(ex[key]))
-    fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:key,exercise_id:ex.id});
+  /* P3-REAL-SHAPE, PM QUESTION 2 (DECISIONS:521, ruled YES). THE PERIOD IN
+     FORCE TODAY is what P-A proves against; the earlier periods are
+     shape-checked above and RETAINED UNEXAMINED as the athlete's own history of
+     his own week. A live old-app state accumulates a period every time he
+     changes his week, and requiring EVERY one of them to equal the week he just
+     typed would refuse his file for a week he stopped training months ago.
+     The period in force is the latest `from` that is not after today; every
+     period's `from` is already bounded above, so this is simply the last one.
+     `split.map` therefore names ONE period and never a historical one. */
+  const inForce=periods.filter(p=>p.from<=today).sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:0).at(-1);
+  if(!inForce)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.from'});
+  if(encode(inForce.map)!==encode(week))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'split.map'});
+  /* P3-REAL-SHAPE 2.3. THE FILE'S OWN LIFT LIST IS THE ATHLETE'S LIFT LIST.
+     What is still proved about it is only that it is a list of lifts the engine
+     can read at all: each one has a unique non-empty id, a name that survives
+     normalisation, a day the engine knows, a muscle group, and retained numbers
+     inside the constructor's own bounds. */
+  if(!Array.isArray(source.exercises)||!source.exercises.length)
+   fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'exercises'});
+  const seen=new Set();
+  for(const ex of source.exercises){
+   if(typeof ex?.id!=='string'||!ex.id.trim()||seen.has(ex.id))
+    fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'exercise_id',exercise_id:String(ex?.id??'')});
+   seen.add(ex.id);
+   /* A lift whose name normalises to EMPTY - a lift called '---' - cannot be
+      corresponded to anything and cannot be shown to him, and the alternative
+      is to guess. It refuses, with its own sentence on the screen. */
+   if(typeof ex.n!=='string'||!normaliseName(ex.n))
+    fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'exercise_n',exercise_id:ex.id});
+   if(!['U','L'].includes(ex.day))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'day',exercise_id:ex.id});
+   if(typeof ex.mg!=='string'||!ex.mg.trim())fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'mg',exercise_id:ex.id});
+   /* `inc` is bounded to the OLD APP's own vocabulary: a finite number above
+      zero, OR null, which is what it writes where there is no plate to add
+      (src/app.jsx:399, the bodyweight raise). */
+   if(!(typeof ex.inc==='number'&&Number.isFinite(ex.inc)&&ex.inc>0)&&ex.inc!==null)
+    fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'inc',exercise_id:ex.id});
+   /* `steps` is RETAINED and bounded ONLY WHEN PRESENT: a file with no ladder
+      is the normal shape of the old app and is not a fault. THIS RESTATES
+      athlete-state.cjs:130-133 (a non-empty strictly ascending list of positive
+      loads) rather than delegating to it, because the probe below cannot be the
+      whole answer for a member the file may not carry at all. If the
+      constructor's ladder rule ever changes, this line has to change with it
+      (spec review R2, small thing 1). */
+   if(Object.hasOwn(ex,'steps')&&!(Array.isArray(ex.steps)&&ex.steps.length&&
+       ex.steps.every((x,i)=>typeof x==='number'&&Number.isFinite(x)&&x>0&&(i===0||x>ex.steps[i-1]))))
+    fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'steps',exercise_id:ex.id});
    /* THE DOCUMENT CONSTRUCTOR'S OWN BOUNDS, APPLIED TO THE RETAINED VALUES
       (P3-PORT-FIX-2, DECISIONS:509 NOTE 4 / D-PF-n4). Until P3-PORT-FIX every
       retained number had to EQUAL the phone's document, and the document has
@@ -250,16 +341,37 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
       head of this function, so the only thing that can have refused is the one
       substituted value. `head`, `secondary` and `priority_muscles` are outside
       REQUIRED_EXERCISE and the constructor sets no bound on the first two, so
-      they stay retained and unbounded, as the ruling's four field names say. */
+      they stay retained and unbounded, as the ruling's four field names say.
+      P3-REAL-SHAPE: the probe now runs against the document's FIRST lift, not
+      against the document lift with this id, because after option A there is no
+      longer a document lift that corresponds to this one by id. Any valid lift
+      will do and the probe stays attributable, by the sentence above. */
    for(const key of BOUNDED_FIELDS)
-    try{createCleanInitState({setup:{...op.payload.setup,
-     exercises:op.payload.setup.exercises.map(d=>d.id===ex.id?{...d,[key]:matches[0][key]}:d)}});}
+    try{const first=op.payload.setup.exercises[0];
+     createCleanInitState({setup:{...op.payload.setup,
+      exercises:op.payload.setup.exercises.map(d=>d===first?{...d,[key]:ex[key]}:d)}});}
     catch{fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:key,exercise_id:ex.id});}
   }
+  /* P3-REAL-SHAPE (spec review R2, small thing 2). AN ID SHARED BY TWO LIFTS
+     THAT ARE NOT THE SAME LIFT IS REFUSED, not left to bind. After option A the
+     file's handles and the document's slugs are independent id spaces. Where a
+     FILE lift's id equals a DOCUMENT lift's id but the two do not answer for
+     each other by NAME, the document row is neither corresponded nor appended
+     (replay()'s `held` skip sees the id already present) and both the capture
+     block and the companion's id branch would bind that slot or row to a
+     DIFFERENT lift, silently. The tie-break is the correspondence rule itself.
+     On the owner's own shape this cannot fire: the four ids his file and his
+     setup share (press, pulldown, tricep, calves) are shared BY THE SAME NAME. */
+  const collisions=idCollisions(source.exercises,scratch.exercises);
+  if(collisions.length)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'exercise_id',exercise_id:collisions[0]});
   return {op_id:op.op_id,split:source.split,
    exercises:source.exercises.map(ex=>Object.fromEntries(PROJECTED_FIELDS
      .filter(k=>Object.hasOwn(ex,k)).map(k=>[k,ex[k]]))),
-   priority_muscles:source.priority_muscles??[]};
+   priority_muscles:source.priority_muscles??[],
+   /* THE CORRESPONDENCE, RECORDED. Which setup lift each file lift answers for,
+      by normalised name, is part of what was admitted and therefore part of the
+      programme digest at :325. */
+   lift_correspondence:correspondence(source.exercises,scratch.exercises)};
  }
  // `prefixAnswer` is the athlete's own answer to the review's identity question
  // and nothing else. It is a value, never a default: an undefined one is a
@@ -293,8 +405,60 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
      (P3-PORT-FIX-2, DECISIONS:509 Q1). Read out of programme() rather than off
      `state`, because `state` is the FILE's. */
   const documentSets=new Map();
-  try{programmeBasis=programme(state,ops,{today:currentDay(),documentSets});}
+  const documentProgramme={state:null};
+  /* P3-REAL-SHAPE 2.5. THE DOCUMENT LIFT ID A CAPTURE NAMES -> THE FILE LIFT ID
+     IT ANSWERS FOR, or null where the normalised name matched zero or several
+     file lifts. Read by the capture block and by the re-key below; it is the
+     correspondence admission itself recorded, never a second rule. */
+  const liftAttach=id=>programmeBasis?.lift_correspondence?.[id]??null;
+  try{programmeBasis=programme(state,ops,{today:currentDay(),documentSets,documentProgramme});}
   catch(e){issue(e.code,null,detailOf(e));}
+  /* P3-REAL-SHAPE 2.4 (DECISIONS:520 option A). A FILE WITH NO NAME TAKES HIS.
+     The old app has no athlete_label anywhere, and local-source-basis.mjs:54
+     will not adopt a state whose label is not this installation's - which is
+     why a fully admitted real-shape import left the Train screen on the setup
+     numbers with nothing on screen to read (measured, spec row 5). The owner's
+     identity Yes is the guard (DECISIONS:472 (a)) and P-LABEL in programme()
+     has already refused a file that names someone else, so the only case left
+     here is a file that names nobody. Written onto the REPLAYED state, which is
+     not a digest input (Q hashes operations, interpretation, programme, order
+     map and engine; `state` rides in the view).
+     THE CANDIDATE STATE IS NOT FROZEN: m4/import/replay-core.cjs:87 hands back
+     `() => copy(candidate)`, a fresh structuredClone per call, so this
+     assignment cannot throw in a strict-mode module (review R1 N5, measured
+     rather than assumed). */
+  if(programmeBasis&&!Object.hasOwn(state,'athlete_label')){
+   const setupOp=ops[programmeBasis.op_id];
+   state.athlete_label=setupOp.payload.setup.athlete_label;
+  }
+  /* AND NOTHING OF HIS IS LOST (2.4/2.5 case 2, ruled after review R1 B5).
+     EVERY document lift with no unique correspondent is appended to the
+     admitted state as an INACTIVE lift, whether or not a recorded session names
+     it, and tombstoned under the old app's own `retirements` member. The
+     appended object is the DOCUMENT CONSTRUCTOR'S OWN (documentProgramme.state,
+     built by createCleanInitState at the head of programme()), so it is valid
+     by construction and no member is invented here. It is NOT added to
+     `state.exOrder`: a retired lift leaves the day's pool by `exActive`
+     (engine/plan.cjs:87-95, no date comparison at all), so the gym card is
+     unchanged.
+     THE UNCONDITIONAL FORM IS THE RULE. Scoping it to the lifts a recorded
+     session names would leave the ordinary case - he typed sixteen lifts, the
+     file holds fifteen, and he had not yet trained the sixteenth - with a
+     permanent PLAN_EDIT_ORIGIN_UNPROVEN in Edit My Week: the exact failure this
+     ticket exists to remove, moved from admission to the companion.
+     ORDERING IS LOAD-BEARING. Both writes happen immediately after programme()
+     returns and BEFORE any family is replayed, so the capture block below and
+     every later reader see ONE state. */
+  if(programmeBasis&&documentProgramme.state){
+   const held=new Set(state.exercises.map(e=>e.id));
+   for(const row of documentProgramme.state.exercises){
+    // Corresponded, or already in the file's own list under this very id:
+    // either way the lift is there and nothing is appended for it.
+    if(programmeBasis.lift_correspondence?.[row.id]||held.has(row.id))continue;
+    state.exercises=[...state.exercises,{...row}];
+    state.retirements={...(state.retirements||{}),[row.id]:currentDay()};
+   }
+  }
   const facts=reading({operations:ops,dispositions:c.dispositions||{},receipts:c.receipts||{},frontier:c.sync.frontier,outbox:c.outbox,rejected:c.rejected||{}});
   const days=new Set((state.reads||[]).map(r=>r.d)),nativeReads=facts.records.filter(r=>r.original.kind==='fact').sort((a,b)=>a.original.device_seq-b.original.device_seq);
   let last=(state.reads||[]).map(r=>r.d).sort().at(-1)||null;
@@ -395,7 +559,26 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
    const projector=History.createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,parseStrictJson,prescriptionCapture:captures,resolveCapturedLayout:({start})=>{
     const producer=start.prescription_capture.producer;if(![EngineCapture.PROFILE,EngineCapture.CONFIGURATION_PROFILE].includes(producer.rule_profile))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_producer'});
     const adapter=EngineCapture.createEngineWorkoutCapture({engine:runtime,prescriptionCapture:captures,producerIdentity:producer,sourceProjectionReader:projectionReader});
-    const layout=adapter.readLayout(start.prescription_capture),counts=new Map();for(const slot of layout.slots){if(state.exercises.filter(e=>e.id===slot.lift_lineage_id).length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_lift',exercise_id:slot.lift_lineage_id});counts.set(slot.lift_lineage_id,(counts.get(slot.lift_lineage_id)||0)+1);}
+    const layout=adapter.readLayout(start.prescription_capture),counts=new Map();
+    /* P3-REAL-SHAPE 2.5. A workout he recorded on this phone BEFORE the import
+       was prescribed from the SETUP DOCUMENT, so every slot in it names a setup
+       lift by its slug id. Once the file's own lifts are adopted the admitted
+       state carries the file's handles, and this check refused `capture_lift`,
+       naming the athlete's own lift back at him (measured, spec row 7).
+       `liftAttach` is programmeBasis.lift_correspondence: the DOCUMENT lift id
+       the capture names -> the FILE lift id it answers for, or null where the
+       name matched zero or several file lifts. A slot with no correspondent keeps its
+       own id, and rule 2 above has already appended that setup lift to the
+       admitted state as a retired lift, so the check is total and its refusal
+       now means a corrupt capture and nothing else. */
+    for(const slot of layout.slots){
+     const target=liftAttach(slot.lift_lineage_id)??slot.lift_lineage_id;
+     if(state.exercises.filter(e=>e.id===target).length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_lift',exercise_id:slot.lift_lineage_id});
+     // COUNTED UNDER THE DOCUMENT'S OWN ID, before the re-key: capture_sets and
+     // capture_membership below both ask the DOCUMENT, and the document knows
+     // this capture only by the id it prescribed under.
+     counts.set(slot.lift_lineage_id,(counts.get(slot.lift_lineage_id)||0)+1);
+    }
     /* CAPTURE PROVENANCE (P3-PORT-FIX-2, DECISIONS:509 Q1, option b).
        WHAT THIS CHECK VERIFIES. Not that the athlete's recorded workout agrees
        with the programme being admitted - it cannot, and it was never asked to.
@@ -451,10 +634,58 @@ export function createLocalSourceController({repository,namespace,athleteId,devi
     // historical prescription loads/reps and performed/skip/incomplete facts
     // remain untouched.
     const originalDay=start.effective.local_date,originalClock=sourceEngineContext(engineContextAt(held.engineContext,originalDay,12)).clock;
-    const expected=Runtime.createEngineRuntime({clock:originalClock}).sessionMembership(state,originalDay);
-    if(!expected||!['U','L'].includes(expected.day)||encode([...counts.keys()])!==encode([...expected.exercise_ids]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_membership'});
+    /* P3-REAL-SHAPE 2.5 (review R1 B2). THE PROGRAMME THAT PRODUCED THIS
+       CAPTURE IS THE DOCUMENT, exactly as it is for capture_sets above.
+       `documentProgramme.state` is the state createCleanInitState built from the
+       setup document at the head of programme(), and it is filled before any
+       comparison there can refuse. The ADMITTED state is no longer the
+       right-hand side, for the reason P3-PORT-FIX already gave about
+       capture_sets: after option A the state is the FILE's, its `exOrder` is the
+       FILE's, and asking a capture to match a pool and an order that did not
+       exist when it was written refuses a workout he really did. It is also why
+       the retirement date of an appended lift cannot be asked about here:
+       `exActive` honours `retirements` with NO date comparison, so a setup lift
+       retired on the import day is out of the ADMITTED pool even for a day
+       before the import.
+       NOTHING IS RELAXED. Pool AND order are compared, exactly and in order,
+       against the only programme that can answer for them.
+       THE GUARD ORDER IS LOAD-BEARING: sessionMembership returns NULL for any
+       day that is not U or L (engine/today.cjs:83-85), so nothing may be read
+       off it before it has been tested (review R1 B1), and a pre-import Start on
+       a day the document's week calls REST must refuse BY NAME rather than
+       throw a TypeError inside replay(). */
+    const produced=documentProgramme.state
+     ?Runtime.createEngineRuntime({clock:originalClock}).sessionMembership(documentProgramme.state,originalDay)
+     :null;
+    if(!produced||!['U','L'].includes(produced.day)||
+       encode([...counts.keys()])!==encode([...produced.exercise_ids]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_membership'});
+    /* THE LAYOUT IS RETURNED UNCHANGED, BYTE FOR BYTE. The re-key does NOT
+       happen here and must not: engine-history.cjs:66-68 binds every layout slot
+       to the STORED capture's own `lift_lineage_id`, so a layout whose slots had
+       been re-addressed would refuse WORKOUT_CAPTURE_LAYOUT_UNPROVEN - the law
+       that proves the layout really is this capture's. The re-key is a change of
+       ADDRESS applied to the PROJECTED session, below, after that law has run on
+       the ids it was written under. */
     return layout;}});
    workoutFacts=projector.project(history,g,{sourceRevision:held.expected.revision});
+   /* THE RE-KEY (P3-REAL-SHAPE 2.5 rule 1). For a slot whose setup lift has
+      exactly one file lift with the same normalised name, the projected entry
+      is RE-KEYED to the FILE's lift id. Nothing about what he performed
+      changes: the loads, the reps, the effort and the slot count ride in AS
+      RECORDED, which is what P3-PORT-FIX-2 already guarantees and this does not
+      touch. It is a change of ADDRESS, not of content, and it is the same move
+      the old app itself made for a renamed lift (`renames`, src/app.jsx:544).
+      The stored CAPTURE is left exactly as it was written, under the ids the
+      document prescribed: it is evidence of what that programme said, and
+      rewriting evidence is not what this is. Only the record's entries move, to
+      the lift the admitted state actually carries - which capture_lift has
+      already proved, one slot at a time, over this very id. */
+   if(workoutFacts&&programmeBasis&&Object.keys(programmeBasis.lift_correspondence||{}).length){
+    const rekey=s=>({...s,record:{...s.record,
+     entries:s.record.entries.map(e=>({...e,lift_lineage_id:liftAttach(e.lift_lineage_id)??e.lift_lineage_id}))}});
+    workoutFacts={...workoutFacts,sessions:(workoutFacts.sessions||[]).map(rekey),
+     incomplete_sessions:(workoutFacts.incomplete_sessions||[]).map(rekey)};
+   }
    if([...workoutFacts.sessions,...workoutFacts.incomplete_sessions].some(s=>s.completion_state==='unresolved'||s.record.entries.some(e=>e.slots.some(x=>x.state==='unresolved'))))issue('LOCAL_SOURCE_WORKOUT_UNRESOLVED');
    families.push({family:'F3',state:'projected',start_ids:workoutFacts.order.start_ids});
   /* THE RENAME FIX (P3-PORT-FIX-SPEC 3.4). This catch used to bind `e` and never

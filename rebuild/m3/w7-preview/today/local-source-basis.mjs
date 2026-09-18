@@ -51,6 +51,18 @@ export function admittedLocalSourceBasis(generation,{athleteLabel=null,namespace
     either show a stranger's numbers as his, or show his own imported numbers
     under the sentence that says they are a sample. Either way the screen would
     be lying, so this returns null and the clean-init path stands. */
+ /* P3-REAL-SHAPE (DECISIONS:520 option A, accepted :521). THIS IS NOW THE LAST
+    GUARD, NOT THE FIRST, and the line itself is unchanged. An admitted import
+    always carries a label: a file that named someone else was refused BY THAT
+    NAME at source-admission.mjs P-LABEL, and a file that named nobody - which
+    is every old-app file, the population this ticket exists for - took this
+    installation's own first-run label when it was admitted
+    (source-admission.mjs replay(), spec 2.4). Reaching the return below
+    therefore means a generation was assembled by something other than the
+    admission path, and withholding the adoption is still the right answer.
+    BEFORE THAT CHANGE this line was the reason a fully admitted real-shape
+    import was SILENTLY not adopted: the owner saw a successful import and the
+    setup document's numbers the next morning, with nothing on screen to read. */
  if(athleteLabel&&state.athlete_label!==athleteLabel)return null;
  return clone(state);
 }
