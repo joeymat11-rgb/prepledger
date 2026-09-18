@@ -95,8 +95,14 @@ export { IDBFactory, eraFor, liveAt, firstRunWith, Entry, shellWindow, slot, tap
 export const scopeFor = tag => ({ databaseName: 'p3-rs-' + tag, namespace: 'joe/p3-rs-' + tag,
   athleteId: 'ath-p3-rs', deviceId: 'dev-p3-rs' });
 
-export async function reopen(indexedDB, scope, at) {
-  const era = await eraFor({ indexedDB, live: liveAt(AT(at)), ...scope });
+/* P3-REAL-SHAPE (PM QUESTION 1). The page's capture producer is an OPTION of
+   the era (today-bindings.mjs openTodayOverLocalEra `producerIdentity`), so a
+   cell can boot the SAME IndexedDB under the v1 producer and then under the v2
+   one and measure what a capture written by the first does under the second.
+   Nothing here is stubbed: the option is the page's own. */
+export async function reopen(indexedDB, scope, at, { producerIdentity } = {}) {
+  const era = await eraFor({ indexedDB, live: liveAt(AT(at)), ...scope,
+    ...(producerIdentity ? { producerIdentity } : {}) });
   const win = shellWindow();
   Object.defineProperty(win, 'indexedDB', { configurable: true, value: indexedDB });
   const booted = await Entry.boot({ document: win.document, hosts: era, now: liveAt(AT(at)) });
@@ -105,13 +111,13 @@ export async function reopen(indexedDB, scope, at) {
     close: () => { booted.rollover.stop(); booted.teardown(); era.close(); } };
 }
 
-export async function phone(tag, { at = IMPORT_DAY, setup = PHONE } = {}) {
+export async function phone(tag, { at = IMPORT_DAY, setup = PHONE, producerIdentity } = {}) {
   const indexedDB = new IDBFactory();
   const scope = scopeFor(tag);
   const first = await eraFor({ indexedDB, live: liveAt(AT(SETUP_DAY)), ...scope });
   await firstRunWith(first, SETUP_DAY, setup.setup, setup.tags);
   first.close();
-  return { ...(await reopen(indexedDB, scope, at)), indexedDB, scope };
+  return { ...(await reopen(indexedDB, scope, at, { producerIdentity })), indexedDB, scope, setup };
 }
 
 export async function afterTap(booted, node) {
@@ -147,4 +153,151 @@ export async function walk(tag, bundle, options = {}) {
   const line = slot(kit.doc, 'import-refusal');
   return { kit, stage: at.step(), refusal: at.refusal(), screen: at,
     line: line ? line.textContent : null };
+}
+
+/* ---------------------------------------------------------------------------
+   ONE WHOLE EARNED WORKOUT, on the real gym card, from a real document state.
+   Lifted out of real-shape-capture.test.mjs unchanged so the bar cells and the
+   PM QUESTION 1 measurement drive the same card the measurement drove.
+   --------------------------------------------------------------------------- */
+import { createGymModel } from '../../../m3/w7-preview/today/gym-model.mjs';
+import { createCleanInitState } from '../../../m3/w7-preview/today/setup-model.mjs';
+
+export const EFFORT = Object.freeze({ tag: 'exact', value: 2, unit: 'rep' });
+
+export function phoneState(setup = PHONE) {
+  const state = clone(createCleanInitState({ setup: setup.setup }));
+  for (const ex of state.exercises) ex.w = ex.steps[0];
+  return state;
+}
+
+export async function recordAWorkout(era, day, engineState, assert) {
+  const open = on => era.createGymHost({ day: on, engineState,
+    plannedSplitSlotId: 'earned-today-preview/' + on });
+  const gymHost = await open(day);
+  const gym = createGymModel({ gymHost, sessionTitle: null, hostForDay: open });
+  const ready = await gym.read();
+  if (ready.phase !== 'ready') { gymHost.close();
+    throw new Error('the gym card would not prepare: ' + (ready.code || ready.phase)); }
+  if ((await gym.start()).ok !== true) { gymHost.close(); throw new Error('start refused'); }
+  let view = await gym.read();
+  const startId = view.startId, total = view.total;
+  for (let n = 0; n <= total; n += 1) {
+    if (view.phase === 'saved' && view.complete !== true) { gym.forget(); view = await gym.read(); }
+    if (view.phase !== 'active') break;
+    const logged = await gym.logSet({ startId, slot: view.set.slot, lift: view.set.lift,
+      load: view.entry.load, reps: view.entry.reps, effort: EFFORT });
+    if (logged.ok !== true) { gymHost.close(); throw new Error('logSet refused: ' + logged.code); }
+    view = await gym.read();
+  }
+  if (!(view.complete === true || view.phase === 'complete')) { gymHost.close();
+    throw new Error('the session never completed: ' + view.phase); }
+  if ((await gym.finish({ startId })).ok !== true) { gymHost.close(); throw new Error('finish refused'); }
+  gymHost.close();
+  if (assert) assert(total);
+  return total;
+}
+
+/* ---------------------------------------------------------------------------
+   THE CONTROLLER-LEVEL WALK, for the cells whose claim is about a phone that
+   ALREADY HOLDS ONE EARNED WORKOUT. It is the same path real-shape-capture's
+   own measurement used (importAfterAWorkout), generalised so a bar cell can
+   name its own phone, its own bundle and its own recorded day. Every collaborator
+   is the product's: the real controller, the real producer registry, the real
+   custody handle and the real commit capability.
+   --------------------------------------------------------------------------- */
+import { carry, material, producerRegistryFor } from '../../../m3/w7-preview/import/test/support.mjs';
+import { createLocalSourceController, localSourceCommitCapability }
+  from '../../../m3/w6/local/source-admission.mjs';
+
+export const CTRL_DAYS = Object.freeze(['2026-08-09', '2026-08-10', '2026-08-13', '2026-08-14',
+  '2026-09-16', '2026-09-17', '2026-09-18', '2026-09-19', '2026-09-20']);
+
+export function ctrlScope(tag) {
+  return { databaseName: 'p3-rsb-' + tag, namespace: 'joe/p3-rsb-' + tag,
+    athleteId: 'ath-p3-rsb', deviceId: 'dev-p3-rsb' };
+}
+
+export async function admitThrough(tag, bundle, { setup = PHONE, at = IMPORT_DAY,
+  workout = null, recordState = null, keepOpen = true, days = CTRL_DAYS } = {}) {
+  const scope = ctrlScope(tag);
+  const indexedDB = new IDBFactory();
+  const era = await eraFor({ indexedDB, live: liveAt(AT(workout || at)), ...scope });
+  await firstRunWith(era, SETUP_DAY, setup.setup, setup.tags);
+  let recordedSlots = null;
+  if (workout) recordedSlots = await recordAWorkout(era, workout, recordState || phoneState(setup));
+  const { carried, platform } = await carry(era, bundle);
+  if (!carried.imported) { era.close(); throw new Error('custody refused: ' + carried.code); }
+  const held = await material(era, platform, carried.name);
+  const controller = createLocalSourceController({ repository: held.repository, ...scope,
+    producerRegistry: producerRegistryFor({ platform, context: held.context,
+      materialDigest: held.materialDigest }, { days }), asOf: () => at, platform });
+  const review = await controller.reviewSource(carried.name);
+  const prepared = await controller.prepareSource(review,
+    { identityConfirmed: true, prefixAnswer: true });
+  const admitted = prepared.profile === 'earned/local-source-qualification/v1';
+  let view = null;
+  if (admitted) {
+    view = clone(await controller.view(prepared));
+    const capability = localSourceCommitCapability(prepared);
+    await capability.publish(); await capability.reconcile();
+  }
+  if (!keepOpen) era.close();
+  return { admitted, issues: clone(prepared.issues || []), view, recordedSlots,
+    era, indexedDB, scope, setup };
+}
+
+/* A NAMED SEAL, cached per test process, so a cell that needs its own one-
+   variable file pays the real port once and not once per assertion. */
+const namedSeals = new Map();
+export function sealNamed(key, build) {
+  if (!namedSeals.has(key)) namedSeals.set(key, sealInventedBundle(undefined, { state: build() }));
+  return namedSeals.get(key);
+}
+
+/* A PHONE THAT NAMES ITS OWN LIFTS, through the same real setup reducer PHONE
+   is built with. `lifts` is the typed list; nothing else changes. */
+export function phoneNaming(lifts, { days = Fixture.TYPED_DAYS,
+  priorities = ['chest', 'back'], name } = {}) {
+  return shippedSetup({ today: SETUP_DAY, lifts, days, priorities,
+    ...(name ? { name } : {}) });
+}
+
+/* THE FILE WITH ONE LIFT TAKEN OUT, everywhere the old app's state names it:
+   the lift list, the day's order, the recorded entries and the insertions. */
+export function withoutLift(state, id) {
+  state.exercises = state.exercises.filter(e => e.id !== id);
+  state.exOrder = { U: state.exOrder.U.filter(x => x !== id), L: state.exOrder.L.filter(x => x !== id) };
+  for (const day of Object.values(state.sessionLog)) day.entries = day.entries.filter(e => e.id !== id);
+  delete state.insertions[id];
+  state.queue = state.queue.filter(q => q.exId !== id);
+  return state;
+}
+
+/* ---------------------------------------------------------------------------
+   THE EDIT MY WEEK COMPANION, built the way lanes/d/plan-edit builds it and the
+   way the D-RS-k measurement built it: the real projector, the real F2 tag
+   adapter, the real adopted-basis reader. Nothing is stubbed.
+   --------------------------------------------------------------------------- */
+import { createHash } from 'node:crypto';
+import { createPlanEditProjector } from '../../../m4/workout/plan-edit-model.cjs';
+import { admittedLocalSourceBasis } from '../../../m3/w7-preview/today/local-source-basis.mjs';
+
+export const hashBasis = text => createHash('sha256').update(text, 'utf8').digest('hex');
+
+export async function tagProjector() {
+  const { createSetupTagProjector } = require('../plan-edit/f2-tag-adapter.cjs');
+  const { ENGINE_MG, REGION_MG } = await import('../../../m3/w7-preview/today/exercise-catalogue.mjs');
+  const api = createSetupTagProjector({ taxonomy: { muscles: ENGINE_MG, regions: REGION_MG } });
+  return { validateTags: api.validateExerciseTags, projectNewTags: api.projectNewExerciseTags };
+}
+
+export function companionFor(generation, scope, basisState, tags, setup = PHONE) {
+  const origin = Object.values(generation.collections.ops)
+    .find(op => op.payload && op.payload.profile === 'earned/first-run-setup/v1');
+  return createPlanEditProjector({ basisState, setupOperation: origin,
+    validateTags: tags.validateTags, projectNewExerciseTags: tags.projectNewTags, hashBasis,
+    basisSource: 'local-source',
+    admittedBasisOf: g => admittedLocalSourceBasis(g,
+      { athleteLabel: setup.setup.athlete_label, namespace: scope.namespace }) });
 }

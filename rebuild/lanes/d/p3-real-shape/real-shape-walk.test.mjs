@@ -42,90 +42,116 @@ test('D-RS-e - the OLD app\'s mg values are already the setup flow\'s own '
     assert.equal(MG_LABELS.includes(lift.mg), true, lift.id + ' mg=' + lift.mg);
 });
 
-/* THE OWNER'S PATH, STEP 0. The bundle carries the REAL shape and it refuses
-   where his screenshot refused, by name. */
-test('D-RS-a0 (the owner\'s screenshot, reproduced) - the real-shape bundle '
-  + 'unlocks, takes the identity Yes, and refuses at Import this history on '
-  + 'field `split`, because the file\'s period carries a third member `why`', async () => {
+/* THE OWNER'S PATH, STEP 0. INVERTED by P3-REAL-SHAPE (DECISIONS:521).
+   BEFORE: the same walk refused at Import this history on field `split`,
+   because the file's period carries a third member `why` - which is the field
+   the owner's own screenshot named. AFTER: `why` is the file's own note,
+   retained and never read as a rule, and the walk admits. */
+test('D-RS-a0 (the owner\'s screenshot, answered) - the real-shape bundle '
+  + 'unlocks, takes the identity Yes, and is ADMITTED at Import this history: '
+  + 'the `why` on the file\'s period is no longer a refusal', async () => {
   const out = await walk('a0', sealed(0));
-  assert.deepEqual(out.refusal, { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED',
-    detail: 'split', field: 'split' }, 'the screen said something else');
-  assert.equal(out.stage, 'pick', 'the picker was not reset');
-  assert.equal(out.line, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED (split) This file was '
-    + 'written by a different training week than the one you set up on this phone. '
-    + 'Nothing on this phone was changed.');
+  assert.equal(out.refusal, null, JSON.stringify(out.refusal));
+  assert.equal(out.line, null, 'a refusal line was rendered');
+  assert.equal(out.stage, 'done');
   const after = await durable(out.kit.era);
-  assert.equal(after.applied, false);
-  assert.equal(after.basis, false);
+  assert.equal(after.applied, true);
+  assert.equal(after.basis, true);
   const taken = await listImportRetractions(out.kit.era.client);
-  assert.equal(taken.length, 1);
-  assert.equal(taken[0].reason, 'review-refused');
+  assert.equal(taken.length, 0, 'the file was taken back');
+  /* The period really does carry the member that used to refuse. */
+  assert.deepEqual(Object.keys(variant(0).split[0]).sort(), ['from', 'map', 'why']);
   out.kit.close();
 });
 
-/* (a) ONE VARIABLE: `why` removed from every period. */
-test('D-RS-a (gap 1 closed alone) - with `why` stripped the week passes and the '
-  + 'NEXT refusal is `exercise_id`: the file\'s short handles are not the ids '
-  + 'slugOf minted from the same names', async () => {
+/* (a) ONE VARIABLE: `why` removed from every period. INVERTED.
+   BEFORE: with `why` stripped the week passed and the NEXT refusal was
+   `exercise_id`, because the file's short handles are not the ids slugOf minted
+   from the same names. AFTER: the handles are the athlete's ids and nothing per
+   lift is compared, so stripping `why` changes NOTHING - which is the point:
+   `why` is no longer the variable that decides anything. */
+test('D-RS-a (gap 1 and gap 2 closed) - with `why` stripped the same file '
+  + 'admits exactly as it does with `why` present: the handle ids are no '
+  + 'longer the next refusal', async () => {
   const out = await walk('a1', sealed(1));
-  assert.deepEqual(out.refusal, { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED',
-    detail: 'exercise_id lateral-machine', field: 'exercise_id' });
+  assert.equal(out.refusal, null, JSON.stringify(out.refusal));
+  assert.equal(out.stage, 'done');
   assert.equal(PHONE_ID.lateral, 'lateral-machine');
-  assert.equal(variant(1).exercises[0].id, 'lateral');
+  assert.equal(variant(1).exercises[0].id, 'lateral', 'the file still carries handles');
+  const loaded = await out.kit.era.generation();
+  const state = loaded.generation.collections.derived.localSource.view.state;
+  assert.equal(state.exercises.some(e => e.id === 'lateral'), true);
+  assert.equal(state.exercises.some(e => e.id === 'lateral-machine'), false,
+    'the corresponded document row was kept as its own lift');
   out.kit.close();
 });
 
-/* (b) THE IDS REWRITTEN TO THE PHONE'S SLUGS. Two more fields appear that the
-   PM ruling did not name, and both are the BOUNDED probe of P3-PORT-FIX-2. */
-test('D-RS-b1 (gap 3, unlisted) - with the file\'s ids rewritten to the phone\'s '
-  + 'slugs the refusal is `steps`: the OLD app has no rung ladder on any lift, '
-  + 'and the retained-value bound asks the constructor for one', async () => {
+/* (b) THE IDS REWRITTEN TO THE PHONE'S SLUGS. INVERTED.
+   BEFORE: the refusal was `steps`, because the OLD app has no rung ladder on
+   any lift and the retained-value bound asked the constructor for one. AFTER:
+   `steps` is RETAINED and bounded ONLY WHEN PRESENT (spec 2.3), because a file
+   with no ladder is the normal shape of the old app and not a fault. */
+test('D-RS-b1 (gap 3 closed) - a file with NO rung ladder on any lift admits: '
+  + 'the ladder is bounded only when it is there', async () => {
   const out = await walk('b1', sealed(2));
-  assert.deepEqual(out.refusal, { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED',
-    detail: 'steps lateral-machine', field: 'steps' });
+  assert.equal(out.refusal, null, JSON.stringify(out.refusal));
   for (const e of variant(2).exercises) assert.equal(Object.hasOwn(e, 'steps'), false);
   out.kit.close();
 });
 
-test('D-RS-b2 (gap 4, unlisted) - with a ladder added the refusal is `inc` on '
-  + 'the bodyweight lift: the OLD app writes inc: null where there is no plate '
-  + 'to add, and the constructor requires a finite positive increment', async () => {
+/* INVERTED. BEFORE: the refusal was `inc` on the bodyweight lift, because the
+   constructor requires a finite positive increment. AFTER: `inc` is bounded to
+   the OLD APP'S own vocabulary - a finite number above zero, OR null, which is
+   what it writes where there is no plate to add. */
+test('D-RS-b2 (gap 4 closed) - a file whose bodyweight lift carries inc: null '
+  + 'admits, and the null rides through to the admitted state', async () => {
   const out = await walk('b2', sealed(3));
-  assert.deepEqual(out.refusal, { code: 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED',
-    detail: 'inc supported-leg-raise-medicine-ball-pad', field: 'inc' });
+  assert.equal(out.refusal, null, JSON.stringify(out.refusal));
   assert.equal(variant(3).exercises.find(e => e.id === PHONE_ID.hanging).inc, null);
+  const loaded = await out.kit.era.generation();
+  const state = loaded.generation.collections.derived.localSource.view.state;
+  assert.equal(state.exercises.find(e => e.id === PHONE_ID.hanging).inc, null);
   out.kit.close();
 });
 
-test('D-RS-b3 - with the ladder and the increment supplied the real-shape file '
-  + 'ADMITS: nothing else in the old app\'s programme shape refuses', async () => {
+/* INVERTED IN ITS REASON (spec 3.3). It already admitted; the bracket step it
+   seals has changed. BEFORE it was "with the ladder and the increment supplied
+   the file finally admits"; the ladder and the increment are no longer what
+   make it admit, so what this now seals is that adding them changes nothing. */
+test('D-RS-b3 - supplying a ladder and a positive increment changes NOTHING: '
+  + 'the same file admits with them and without them', async () => {
   const out = await walk('b3', sealed(4));
   assert.equal(out.refusal, null, JSON.stringify(out.refusal));
   assert.equal(out.stage, 'done');
   const after = await durable(out.kit.era);
   assert.equal(after.applied, true);
   assert.equal(after.basis, true);
+  const bare = await walk('b3-bare', sealed(0));
+  assert.equal(bare.refusal, null, JSON.stringify(bare.refusal));
+  bare.kit.close();
   out.kit.close();
 });
 
-/* (c) IT ADMITS AND IS NOT ADOPTED. The screen says nothing; the Train screen
-   keeps the setup numbers. This is the silent half of DECISIONS:520 gap 3. */
-test('D-RS-c (gap 3, measured) - an ADMITTED real-shape import is NOT ADOPTED: '
-  + 'the old app carries no athlete_label, local-source-basis.mjs:54 returns '
-  + 'null, and the page falls back to the setup document with no refusal shown', async () => {
+/* (c) IT ADMITS AND IS NOW ADOPTED. INVERTED.
+   BEFORE: an admitted real-shape import was SILENTLY NOT ADOPTED - the old app
+   carries no athlete_label, local-source-basis.mjs:54 returned null, and the
+   owner saw a successful import and the setup document's numbers the next
+   morning with nothing on screen to read. AFTER: a file that names nobody takes
+   this installation's own first-run label when it is admitted (spec 2.4), and
+   :54 is the LAST guard rather than the first. */
+test('D-RS-c (gap 3 closed) - an ADMITTED real-shape import carrying no '
+  + 'athlete_label is ADOPTED under this phone\'s own first-run label', async () => {
   const out = await walk('c', sealed(4));
   assert.equal(out.refusal, null);
   const loaded = await out.kit.era.generation();
   const state = loaded.generation.collections.derived.localSource.view.state;
-  assert.equal(Object.hasOwn(state, 'athlete_label'), false,
-    'the migrated file must carry no label, or this cell proves nothing');
-  assert.equal(admittedLocalSourceBasis(loaded.generation,
-    { athleteLabel: PHONE.setup.athlete_label, namespace: out.kit.scope.namespace }), null,
-    'the page adopted a file with no label');
-  /* The same generation, asked WITHOUT a label, does adopt: the only thing
-     withholding adoption is the label comparison. */
+  assert.equal(Object.hasOwn(variant(4), 'athlete_label'), false,
+    'the file must carry no label, or this cell proves nothing');
+  assert.equal(state.athlete_label, PHONE.setup.athlete_label,
+    'admission did not write this phone\'s label onto the admitted state');
   assert.notEqual(admittedLocalSourceBasis(loaded.generation,
-    { athleteLabel: null, namespace: out.kit.scope.namespace }), null);
+    { athleteLabel: PHONE.setup.athlete_label, namespace: out.kit.scope.namespace }), null,
+    'the page still will not adopt');
   out.kit.close();
 });
 
@@ -213,7 +239,15 @@ test('D-RS-f - the OLD app\'s extra exercise members (lastMeta, setup, setupAt, 
 });
 
 /* (h) WHAT THE WALK SURFACES THAT NOBODY LISTED. The old app's working load is
-   not always a number, and the page's own capture producer is the v1 one. */
+   not always a number, and the page's own capture producer is the v1 one.
+
+   THIS CELL STAYS GREEN AND IS NOW THE NAMED RECORD OF A SHIPPED LIMITATION
+   (spec 3.3: "INVERTS ONLY IF PM QUESTION 1 is answered yes"). DECISIONS:521
+   ruled Q1 YES subject to a measurement; the measurement is
+   q1-producer.test.mjs and it REFUSED IN BOTH DIRECTIONS - a v1 capture already
+   on the device cannot be read once the page produces v2, and the v2 producer
+   cannot complete a workout on the shipped page at all. So today-bindings.mjs
+   was NOT moved, GAP 5 stands, and this is where it is written down. */
 test('D-RS-h (gap 5, unlisted, BLOCKS THE TRAIN SCREEN) - once the real-shape '
   + 'file is adopted, a day that carries a lift whose working load is a '
   + 'configuration string (the old app\'s `BW` and `hold`) leaves the gym card '

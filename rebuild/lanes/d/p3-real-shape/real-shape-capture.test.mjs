@@ -93,19 +93,27 @@ async function importAfterAWorkout(tag, level, { keepOpen = false } = {}) {
 /* (g) THE PRE-IMPORT EARNED SESSION, against the file's OWN lift ids. This is
    the shape OPTION A leaves behind: the admitted state's lifts are the FILE's
    short handles, and the capture the phone wrote names the phone's slugs. */
-test('D-RS-g1 (gap 2, second consequence) - a phone that recorded one Earned '
-  + 'workout before importing raises TWO issues against a file with the old '
-  + 'app\'s handle ids: `exercise_id` from the programme rule AND `capture_lift` '
-  + 'from the capture provenance block, because the admitted state does not '
-  + 'carry the lift the athlete\'s own recorded session names', async () => {
+/* INVERTED. BEFORE: this raised TWO issues against a file with the old app's
+   handle ids - `exercise_id` from the programme rule AND `capture_lift` from
+   the capture provenance block, because the admitted state did not carry the
+   lift the athlete's own recorded session named, and the screen told him his
+   own lift id back. AFTER: the file's lifts ARE the athlete's lifts, and the
+   slot is RE-KEYED to the file's lift by normalised name (spec 2.5 rule 1). */
+test('D-RS-g1 (gap 2 closed, both consequences) - a phone that recorded one '
+  + 'Earned workout before importing ADMITS a file with the old app\'s handle '
+  + 'ids, and the recorded slots are re-attached to the FILE\'s lifts', async () => {
   const result = await importAfterAWorkout('handles', 1);
-  assert.equal(result.admitted, false);
-  assert.deepEqual(result.issues.map(i => i.field).sort(), ['capture_lift', 'exercise_id']);
-  const capture = result.issues.find(i => i.field === 'capture_lift');
-  assert.equal(capture.code, 'LOCAL_SOURCE_PROGRAMME_UNRESOLVED');
-  /* The lift it names is the PHONE's own slug: his recorded workout, told back
-     to him in the id his own setup minted. */
-  assert.equal(Object.values(PHONE_ID).includes(capture.exercise_id), true);
+  assert.deepEqual(result.issues, []);
+  assert.equal(result.admitted, true);
+  const sessions = [...(result.view.workout_facts?.sessions || []),
+    ...(result.view.workout_facts?.incomplete_sessions || [])];
+  assert.equal(sessions.length, 1);
+  const handles = new Set(variant(1).exercises.map(e => e.id));
+  for (const entry of sessions[0].record.entries) {
+    assert.equal(handles.has(entry.lift_lineage_id), true,
+      'a slot is still keyed to the phone\'s own slug: ' + entry.lift_lineage_id);
+    assert.equal(Object.values(PHONE_ID).includes(entry.lift_lineage_id), false);
+  }
   assert.equal(result.recordedSlots,
     PHONE.setup.exercises.filter(e => e.day === 'L').reduce((n, e) => n + e.sets, 0));
 });
@@ -124,6 +132,17 @@ test('D-RS-g2 (the control) - with the file\'s ids rewritten to the phone\'s '
   const fileL = variant(5).exercises.filter(e => e.day === 'L').reduce((n, e) => n + e.sets, 0);
   assert.notEqual(phoneL, fileL, 'the two documents must disagree');
   assert.equal(slots, phoneL, 'the recorded session was rebased');
+  /* P3-REAL-SHAPE: THIS CELL STAYS GREEN AND GAINS THE RE-KEY ASSERTION
+     (spec 3.3). Here the file's ids already ARE the phone's slugs, so the
+     correspondence maps each document lift to a file lift with the SAME id and
+     the re-key is the identity: every slot still names a lift the admitted
+     state carries, and nothing moved. */
+  const held = new Set(result.view.state.exercises.map(e => e.id));
+  for (const entry of sessions[0].record.entries) {
+    assert.equal(held.has(entry.lift_lineage_id), true, entry.lift_lineage_id);
+    assert.equal(Object.values(PHONE_ID).includes(entry.lift_lineage_id), true,
+      'the re-key moved a slot that had nowhere to go');
+  }
 });
 
 let validateTags, projectNewTags;
@@ -137,10 +156,15 @@ test.before(async () => {
 /* (k) THE EDIT MY WEEK COMPANION, measured against the two things option A
    would put into the adopted basis. Both are CONSTRUCTION-time refusals, so
    they happen before any projection exists and the screen cannot open. */
-test('D-RS-k (gap 1 and gap 2, third consequence) - the Edit My Week companion '
-  + 'refuses PLAN_EDIT_ORIGIN_UNPROVEN on an adopted basis whose split periods '
-  + 'carry the file\'s `why`, and again on one whose lift ids are the file\'s '
-  + 'own handles: its local-source predicate reads neither', async () => {
+/* INVERTED, ALL THREE ASSERTIONS (spec 3.3). BEFORE: the companion refused
+   PLAN_EDIT_ORIGIN_UNPROVEN on an adopted basis whose periods carry the file's
+   `why`, again on one whose lift ids are the file's own handles, and again on
+   one with no athlete_label. AFTER: `why` is accepted as the file's own note,
+   the row is matched to the basis lift by its own id and then by normalised
+   name, and the label always arrives from admission. */
+test('D-RS-k (gap 1 and gap 2 closed, third consequence) - the Edit My Week '
+  + 'companion OPENS on an adopted basis whose periods carry the file\'s `why` '
+  + 'and whose lift ids are the file\'s own handles', async () => {
   const result = await importAfterAWorkout('companion', 5, { keepOpen: true });
   assert.equal(result.admitted, true, JSON.stringify(result.issues));
   const loaded = await result.era.generation();
@@ -155,27 +179,31 @@ test('D-RS-k (gap 1 and gap 2, third consequence) - the Edit My Week companion '
     admittedBasisOf: g => admittedLocalSourceBasis(g,
       { athleteLabel: PHONE.setup.athlete_label, namespace: result.scope.namespace }) });
 
-  /* THE CONTROL: as the file stands today (slug ids, no `why`) it opens. */
+  /* THE CONTROL: the basis as it stands here (slug ids, no `why`) opens, and
+     still opens after this ticket - the first-run shape is untouched. */
   assert.doesNotThrow(() => build(clone(adopted)));
 
-  /* OPTION A, PART ONE: the file's own note retained on the period.
-     plan-edit-model.cjs:39 splitShapeOk closes each period over {from, map}. */
+  /* PART ONE: the file's own note retained on the period. `splitShapeOk` now
+     accepts `why` as a string it never reads (spec 2.6). */
   const withWhy = clone(adopted);
   for (const p of withWhy.split) p.why = 'SYNTHETIC note the file carried';
-  assert.throws(() => build(withWhy), { code: 'PLAN_EDIT_ORIGIN_UNPROVEN' });
+  assert.doesNotThrow(() => build(withWhy));
 
-  /* OPTION A, PART TWO: the file's own lift ids. plan-edit-model.cjs:117 looks
-     each DOCUMENT row's id up in the basis by id, and a handle is not a slug. */
+  /* PART TWO: the file's own lift ids. The document row is matched to the basis
+     lift BY ITS OWN ID FIRST and then by NORMALISED NAME (spec 2.6), which is
+     the same correspondence admission recorded. */
   const withHandles = clone(adopted);
   const back = Object.fromEntries(Object.entries(PHONE_ID).map(([handle, slug]) => [slug, handle]));
   for (const e of withHandles.exercises) e.id = back[e.id] || e.id;
-  assert.throws(() => build(withHandles), { code: 'PLAN_EDIT_ORIGIN_UNPROVEN' });
+  assert.doesNotThrow(() => build(withHandles));
 
-  /* OPTION A, PART THREE: a file with no athlete_label adopted under the
-     PHONE's label still has to carry that label in the basis, or the companion
-     refuses on the label comparison at plan-edit-model.cjs:75. */
+  /* PART THREE: the label. It always arrives from admission now (spec 2.4), so
+     a basis WITHOUT one cannot be reached from the admission path at all - and
+     the companion's own label comparison (plan-edit-model.cjs:75) is UNCHANGED
+     and still refuses one, which is the guard that must not be weakened. */
   const withoutLabel = clone(adopted);
   delete withoutLabel.athlete_label;
   assert.throws(() => build(withoutLabel), { code: 'PLAN_EDIT_ORIGIN_UNPROVEN' });
+  assert.equal(result.view.state.athlete_label, PHONE.setup.athlete_label);
   result.era.close();
 });

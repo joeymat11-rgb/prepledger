@@ -116,13 +116,35 @@ export function sealInventedBundle(setup = SETUP, { sessions = DEFAULT_SESSIONS,
     passphrase: fs.readFileSync(path.join(out, passName), 'utf8').trim() };
 }
 
+/* P3-REAL-SHAPE (spec 3.3). THE REAL-SHAPE BUNDLE, BESIDE THE INVENTED ONE.
+   `sealInventedBundle` seals a state built by the NEW app's own
+   createCleanInitState, so every fixture it makes carries a two-member split,
+   slug lift ids, an athlete_label, a `steps` ladder, a positive `inc` and a
+   numeric working load. The OWNER's file carries none of those. This seals the
+   OLD app's shape instead, from the lane's own fixture of record, through the
+   same real port.cjs. Nothing existing is removed: the invented fixture is
+   still the right fixture for the cells that are about the MACHINERY rather
+   than about the file, and the refusal-guard cells keep it deliberately. */
+export function sealRealShapeBundle(mutate = null) {
+  const Fixture = createRequire(import.meta.url)(
+    '../../../../lanes/d/p3-real-shape/legacy-fixture.cjs');
+  const state = Fixture.legacyState();
+  return sealInventedBundle(undefined, { state: mutate ? mutate(state) || state : state });
+}
+
 /* THE PAGE'S OWN CLOCK (S4). `live` is an instant provider, not a day: the era,
    every host under it and every operation it writes take the device's real
    offset at that instant, which is the whole point of the cells below. */
 export const liveAt = iso => () => new Date(iso);
-export const eraFor = ({ indexedDB, live = null, clock, databaseName, namespace, athleteId, deviceId }) =>
+/* P3-REAL-SHAPE (PM QUESTION 1). `producerIdentity` is FORWARDED when a caller
+   names it and absent otherwise, so every existing cell takes the page's own
+   default (today-bindings.mjs PRODUCER) byte for byte and only a cell that is
+   measuring the producer names one. */
+export const eraFor = ({ indexedDB, live = null, clock, databaseName, namespace, athleteId, deviceId,
+  producerIdentity }) =>
   openTodayOverLocalEra({ indexedDB, crypto: webcrypto, databaseName, namespace,
-    athleteId, deviceId, ...(clock ? { clock } : { live }) });
+    athleteId, deviceId, ...(producerIdentity ? { producerIdentity } : {}),
+    ...(clock ? { clock } : { live }) });
 
 /* THE FIRST RUN, through the real setup lane, on the era's own live day. */
 export async function firstRun(era, day) {
