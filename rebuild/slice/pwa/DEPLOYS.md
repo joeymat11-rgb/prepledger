@@ -11,3 +11,5 @@ never read by the build.
 
 - 2026-09-17 M2-S7-PORT-ADMISSION sealed and merged at 285fe08b (DECISIONS:519): the
   programme admission rule (P3-PORT-FIX + FIX-2). Deploy requested by this line.
+- 2026-09-18 M2-S8-REAL-SHAPE sealed and merged at e8712f48 (DECISIONS:529): the real-shape
+  admission rule (P3-REAL-SHAPE + P3-LAYOUT-V2, the file wins). Deploy requested by this line.
