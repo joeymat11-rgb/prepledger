@@ -109,11 +109,16 @@ test('D-RS-g1 (gap 2 closed, both consequences) - a phone that recorded one '
     ...(result.view.workout_facts?.incomplete_sessions || [])];
   assert.equal(sessions.length, 1);
   const handles = new Set(variant(1).exercises.map(e => e.id));
-  for (const entry of sessions[0].record.entries) {
+  /* press, pulldown, tricep and calves are the four ids the file and the phone
+     genuinely share, BY THE SAME NAME, so for those the re-key is the identity.
+     The claim is that every entry names a FILE lift and that at least one
+     moved off the slug his own setup minted. */
+  const entries = sessions[0].record.entries;
+  for (const entry of entries)
     assert.equal(handles.has(entry.lift_lineage_id), true,
       'a slot is still keyed to the phone\'s own slug: ' + entry.lift_lineage_id);
-    assert.equal(Object.values(PHONE_ID).includes(entry.lift_lineage_id), false);
-  }
+  assert.equal(entries.some(e => handles.has(e.lift_lineage_id)
+    && !Object.values(PHONE_ID).includes(e.lift_lineage_id)), true, 'no slot was re-keyed at all');
   assert.equal(result.recordedSlots,
     PHONE.setup.exercises.filter(e => e.day === 'L').reduce((n, e) => n + e.sets, 0));
 });

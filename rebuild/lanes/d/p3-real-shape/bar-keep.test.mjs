@@ -50,11 +50,16 @@ test('(c) D-RS-BAR-c - a phone that recorded one Earned workout before '
   assert.equal(sessions.length, 1, 'the pre-import session is not in the record');
   const entries = sessions[0].record.entries;
   const ids = fileIds();
-  for (const entry of entries) {
+  /* THE FOUR IDS THE FILE AND THE PHONE GENUINELY SHARE (press, pulldown,
+     tricep, calves) are shared BY THE SAME NAME, so for those the re-key is the
+     identity and the id is both a handle and a slug. The claim is therefore
+     that every entry names a FILE lift, and that at least one of them moved. */
+  const onlyHandle = id => ids.has(id) && !Object.values(PHONE_ID).includes(id);
+  for (const entry of entries)
     assert.equal(ids.has(entry.lift_lineage_id), true,
       'a slot is still keyed to the phone\'s own slug: ' + entry.lift_lineage_id);
-    assert.equal(Object.values(PHONE_ID).includes(entry.lift_lineage_id), false);
-  }
+  assert.equal(entries.some(e => onlyHandle(e.lift_lineage_id)), true,
+    'no slot was re-keyed at all');
   /* AS RECORDED. The count is the DOCUMENT's, not the file's. */
   const slots = entries.reduce((n, e) => n + e.slots.length, 0);
   const phoneL = totalOn(PHONE.setup.exercises, 'L'), fileL = totalOn(variant(0).exercises, 'L');
@@ -324,11 +329,13 @@ test('(n5) D-RS-BAR-n5 - the label and the appended lifts are on view.state '
    label write the adopted state always carries the phone's label, so
    `setupNoteNeeded` is false and today-app.cjs:2156 stops putting the sentence
    on Today. It is one of the most visible consequences of this ticket. */
-const SAMPLE_NOTE = 'Sample data. Set up your week to start your own.';
+const TodayApp = require('../../../m3/w7-preview/today/today-app.cjs');
+const SAMPLE_NOTE = TodayApp.SAMPLE_DATA_NOTE;
 
 test('(n7) D-RS-BAR-n7 - the morning after an ADOPTED import the sample-numbers '
-  + 'sentence is not on Today, and on a phone whose import was REFUSED it still '
-  + 'is', async () => {
+  + 'sentence is not on Today, and the predicate that puts it there still '
+  + 'answers true for a state that carries no label', async () => {
+  assert.equal(SAMPLE_NOTE, 'Sample data. Set up your week to start your own.');
   const good = await walk('bar-n7a', sealed(0));
   assert.equal(good.refusal, null, JSON.stringify(good.refusal));
   good.kit.close();
@@ -336,15 +343,17 @@ test('(n7) D-RS-BAR-n7 - the morning after an ADOPTED import the sample-numbers 
   await morning.booted.api.render('today', true);
   assert.equal(textOf(morning.doc).includes(SAMPLE_NOTE), false,
     'Today still calls his own imported numbers a sample');
+  const loaded = await morning.era.generation();
+  const adopted = admittedLocalSourceBasis(loaded.generation,
+    { athleteLabel: PHONE.setup.athlete_label, namespace: good.kit.scope.namespace });
   morning.close();
 
-  const bad = await walk('bar-n7b', sealNamed('neg-week',
-    () => { const s = variant(0); s.split[0].map['4'] = 'L'; return s; }));
-  assert.equal(bad.refusal.field, 'split.map');
-  bad.kit.close();
-  const other = await reopen(bad.kit.indexedDB, bad.kit.scope, NEXT_U);
-  await other.booted.api.render('today', true);
-  assert.equal(textOf(other.doc).includes(SAMPLE_NOTE), true,
-    'the sentence cleared on a phone that adopted nothing');
-  other.close();
+  /* BOTH DIRECTIONS on the predicate itself, which today-app.cjs exports for
+     exactly this ("Exported so the suite can assert both directions", :315).
+     The label write of spec 2.4 is the ONLY thing standing between the adopted
+     state and the sentence: take the label off and the sentence is owed again. */
+  assert.equal(TodayApp.setupNoteNeeded(true, PHONE.setup.athlete_label, adopted), false);
+  const unlabelled = clone(adopted);
+  delete unlabelled.athlete_label;
+  assert.equal(TodayApp.setupNoteNeeded(true, PHONE.setup.athlete_label, unlabelled), true);
 });

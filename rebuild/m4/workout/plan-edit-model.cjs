@@ -26,7 +26,16 @@ const COLLECTIONS = ['ops','outbox','dispositions','rejected','receipts','planTx
    nothing (spec review R2, BINDING CORRECTION B-1). The lane's cell
    lanes/d/plan-edit/model.test.cjs recomputes this list against that rule.
    BEFORE P3-PORT-FIX: ['id','day','mg','sets','hi','inc','steps']. */
-const P2_ROW = ['id','day','mg'];
+/* P3-REAL-SHAPE (DECISIONS:520 option A, accepted :521). `id` GOES. The document
+   row and the basis lift no longer share an id: the basis is the FILE's, whose
+   ids are the old app's short handles, and the document is the phone's, whose
+   ids slugOf minted. What still has to agree is the lift's PLACE in the week.
+   BEFORE P3-REAL-SHAPE: ['id','day','mg']. */
+const P2_ROW = ['day','mg'];
+/* THE SAME `normaliseName` ADMISSION USES, imported from the one place that
+   states it (P3-REAL-SHAPE 2.3/2.6). It must not be restated here: a second
+   spelling of the rule is a second rule, and the bug would be silent. */
+const { matchByName } = require('./lift-correspondence.cjs');
 /* THE PERIOD SHAPE the local-source branch accepts, which is admission's own
    P-A plus B-C: a non-empty array of periods, each closed over {from, map}, each
    map deep-equal to the document's one week. `from` is NOT compared: it is the
@@ -34,10 +43,21 @@ const P2_ROW = ['id','day','mg'];
    retains it. The "not after today" bound admission applies is NOT re-evaluated
    here, because admission already applied it at admission time and a committed
    import must not start refusing the athlete's editor because a clock moved. */
+/* P3-REAL-SHAPE (spec 2.6, and PM QUESTION 2 at DECISIONS:521). TWO CHANGES.
+   `why` is accepted, for the same reason `from` is not compared: it is the
+   file's own history of its own week, not a claim this screen adjudicates.
+   And the map comparison follows admission's own Q2 rule - the period IN FORCE
+   is what P-A proved, and the earlier periods are retained unexamined - which
+   this screen states as "at least one period's map is the document's week",
+   because it has no clock and must not re-evaluate one. It is exactly as strong
+   as admission and no stronger: a basis admission accepted cannot be refused
+   here, which is the failure this ticket exists to remove rather than move. */
 const splitShapeOk = (periods, documentSplit) => Array.isArray(periods) && periods.length > 0 &&
   periods.every(p => p && typeof p === 'object' && !Array.isArray(p) &&
-    Object.keys(p).every(k => k === 'from' || k === 'map') &&
-    own(p,'from') && own(p,'map') && equal(p.map, documentSplit.map));
+    Object.keys(p).every(k => k === 'from' || k === 'map' || k === 'why') &&
+    (!own(p,'why') || typeof p.why === 'string') &&
+    own(p,'from') && own(p,'map')) &&
+  periods.some(p => equal(p.map, documentSplit.map));
 /* Does this generation carry a source import AT ALL - admitted or not? The four
    places source-admission.mjs / import-bundle.mjs leave one: the import entry
    list, the selection record, the commit marker and the derived replay. Presence
@@ -71,7 +91,14 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
      before P3-PORT-FIX: an unknown basisSource takes the strict first-run
      comparison here, which is the comparison it took before this line existed. */
   const localSource = basisSource === 'local-source';
-  if (!Array.isArray(setup.exercises) || !setup.exercises.length || setup.exercises.length !== base.exercises.length ||
+  /* P3-REAL-SHAPE (spec 2.6). THE COUNT IS A FIRST-RUN PROOF ONLY. On the
+     local-source branch the file may list more lifts than the document, fewer,
+     or a different set - and admission appends every unmatched document lift to
+     the basis as a retired one, so the basis is routinely LONGER than the
+     document by construction. The label comparison on the next line is
+     UNCHANGED and is still the guard it always was. */
+  if (!Array.isArray(setup.exercises) || !setup.exercises.length ||
+      (!localSource && setup.exercises.length !== base.exercises.length) ||
       base.athlete_label !== setup.athlete_label ||
       (localSource ? !splitShapeOk(base.split, setup.split) : !equal(base.split, [setup.split])) ||
       /* PRIORITY MUSCLES are RETAINED from the file on an admitted import
@@ -112,13 +139,36 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
   if (basisSource !== 'first-run' && basisSource !== 'local-source') fail('PLAN_EDIT_BASIS_SOURCE_UNKNOWN');
   const firstRun = basisSource === 'first-run';
   const baseIds = new Set();
+  /* ONE ROW, ONE BASIS LIFT (P3-REAL-SHAPE, review R1 B3). `baseIds` reads as
+     the duplicate guard and WAS one only because the row's id and the basis
+     lift's id were the same id; document ids are unique by construction
+     (`slugOf` disambiguates with a numeric suffix), so on the local-source
+     branch it can never fire and it is the BASIS side that has to be guarded.
+     Two rows that reach the same basis lift - by id, by name, or one of each -
+     are a document this companion cannot edit safely, and it refuses. */
+  const boundBasis = new Set();
   let rowsOk = true, tagsOk = true;
   const byId = new Map(base.exercises.map(e => [e && e.id, e]));
   if (byId.size !== base.exercises.length) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
   for (let i = 0; i < setup.exercises.length; i++) {
-    const row = C.exerciseOf(setup.exercises[i]), e = firstRun ? base.exercises[i] : byId.get(row.id);
-    if (baseIds.has(row.id) || !byId.get(row.id) || !e) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
-    baseIds.add(row.id);
+    const row = C.exerciseOf(setup.exercises[i]);
+    /* LOCAL-SOURCE (P3-REAL-SHAPE 2.6). The document row is matched to the basis
+       lift BY ITS OWN ID FIRST and then by NORMALISED NAME, which is the same
+       correspondence admission recorded in the programme digest. The id branch
+       is what finds a lift the import RETIRED: admission appended it to the
+       basis under the DOCUMENT's own id (spec 2.4), so every row is found
+       either way. The ORDER is load-bearing: a retired document lift shares its
+       NAME with the file lifts that made it ambiguous, so `matchByName` returns
+       nothing for it and only its own id finds it. A row that matches neither,
+       or one whose basis lift a previous row already bound, is a document this
+       companion cannot edit safely and refuses.
+       THE FIRST-RUN BRANCH IS UNTOUCHED, including its `byId.get(row.id)`
+       requirement (review R1 B4): only the local-source branch stops using the
+       id lookup as its binding. */
+    const e = firstRun ? base.exercises[i] : (byId.get(row.id) || matchByName(base.exercises, row));
+    if (baseIds.has(row.id) || !e) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
+    if (firstRun ? !byId.get(row.id) : boundBasis.has(e.id)) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
+    baseIds.add(row.id); boundBasis.add(e.id);
     if (firstRun) {
       if (!equal(documentRow(e), row) || e.renames?.length || (base.retirements || {})[row.id]) rowsOk = false;
     } else if (!equal(Object.fromEntries(P2_ROW.map(k => [k, e[k]])), Object.fromEntries(P2_ROW.map(k => [k, row[k]])))

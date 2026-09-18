@@ -102,6 +102,17 @@ export const COPY = Object.freeze({
     + 'of sets than this file has for that lift. Nothing on this phone was changed.',
   noSetupDocument: 'This phone has no saved setup to compare this file with. Nothing on '
     + 'this phone was changed.',
+  /* P3-REAL-SHAPE (DECISIONS:521). THREE MORE FIELDS ARRIVE UNDER THE PROGRAMME
+     CODE FOR REASONS "a different training week" DOES NOT DESCRIBE. No value
+     from the file is in any of them - not a name, not a lift, not a number -
+     and each keeps the second half, which is the fact he most needs and which
+     the screen guarantees by retracting. */
+  differentName: 'This file was saved under a different name than the one you '
+    + 'set up on this phone. Nothing on this phone was changed.',
+  captureLiftMissing: 'A workout you already recorded on this phone names a lift '
+    + 'this file does not have. Nothing on this phone was changed.',
+  unnamedLift: 'A lift in this file has no name Earned can read. Nothing on this '
+    + 'phone was changed.',
   cancelled: 'Cancelled. Nothing on this phone was changed.',
   retracted: 'That file was taken back. Nothing on this phone was changed.',
   retractRefused: 'That file could not be taken back on its own. It is still listed below.',
@@ -133,7 +144,13 @@ export const REFUSAL_SENTENCE = Object.freeze({
    which is most of them - falls through to the code's sentence unchanged. */
 export const REFUSAL_FIELD_SENTENCE = Object.freeze({
   capture_sets: COPY.captureSetsMismatch,
-  setup_document: COPY.noSetupDocument });
+  setup_document: COPY.noSetupDocument,
+  /* P3-REAL-SHAPE (spec 2.7). The three fields option A adds to the closed
+     vocabulary. `sets`, `hi` and `inc` keep the programme sentence, which is
+     true of them; `athlete_label`, `capture_lift` and `exercise_n` do not. */
+  athlete_label: COPY.differentName,
+  capture_lift: COPY.captureLiftMissing,
+  exercise_n: COPY.unnamedLift });
 
 /* Round 2, review r1 finding 4: a refusal that carried ONE code printed it
    twice - "LOCAL_SOURCE_PROGRAMME_UNRESOLVED (LOCAL_SOURCE_PROGRAMME_UNRESOLVED)"
