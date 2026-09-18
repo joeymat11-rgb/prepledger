@@ -1,0 +1,136 @@
+/* Components the state inventory needs beyond the six boards. Same tokens, same scale, same rules (STANDARD.md). */
+
+/* A quiet line under the screen's status line: the device's store, a blocked record, stored readings.
+   It follows the day's instruction; it never precedes it and it is never body size. */
+.status-pill { margin-top: 6px; font-size: 13px; line-height: 1.35; color: var(--muted); font-weight: 430; }
+.status-pill.warn { color: var(--text-soft); }
+.screen-today .status-pill { padding-left: 4px; }
+
+/* The reason a primary is disabled sits under the button, where the eye lands after the tap fails. */
+.primary-reason { margin-top: 8px; font-size: 13px; line-height: 1.35; color: var(--text-soft); font-weight: 430; padding-left: 4px; }
+
+/* A tertiary control or a note that ends a screen's day belongs to the scrolling body, under everything else.
+   It never goes in the fixed stack: the stack's height is the screen's geometry, and a link in it moves the primary. */
+.ui > .body > .day-foot { margin-top: 16px; }
+.ui > .body > button.day-foot { align-self: flex-start; }
+/* the stack's row cards are one line wide: the text column must be allowed to shrink, or its sub runs off the card instead of truncating */
+.stack .rowcard .text { min-width: 0; }
+
+/* The weigh row's Save keeps the 35 px pill the board draws and its 44 px hit target, but the target may not hang
+   past the button on every side: an absolutely positioned halo wider and taller than its button reads to the state
+   sheet as the label overflowing the button. The halo now ends flush with the button (its transparent border goes,
+   so the pill is the full box) and takes its 44 px upward, over the card's own title line, where nothing else is
+   tappable. Same pill, same row, same target; nothing hangs outside the button's box. */
+.weigh-row .save { padding: 0 17px; border-width: 0; }
+.weigh-row .save::before { left: 0; right: 0; top: auto; bottom: 0; margin-top: 0; height: 44px; }
+
+/* A tertiary action that lands on the scene keeps its own scrim: small, separate and light (review round 1). */
+.link.on-scene { position: relative; isolation: isolate; text-shadow: 0 1px 10px color-mix(in srgb, var(--surface) 90%, transparent), 0 0 3px color-mix(in srgb, var(--surface) 80%, transparent); }
+.link.on-scene::before { content: ""; position: absolute; left: -14px; right: -14px; top: 2px; bottom: 2px; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 88%, transparent) 0, color-mix(in srgb, var(--surface) 58%, transparent) 52%, transparent 100%); }
+
+/* Provenance and sample notes: a soft block, not a card, because it is not an action */
+.note-block { margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-card); background: color-mix(in srgb, var(--card) 70%, transparent); border: 1px solid var(--line-soft); font-size: 13.5px; line-height: 1.4; color: var(--text-soft); font-weight: 430; }
+.note-block.sample { color: var(--muted); }
+
+/* A refusal says what happened and what was recorded. The tail is the app's fixed sentence.
+   One component everywhere: the note block's box, so a refusal never reads as a stray muted line. */
+.refusal { margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-card); background: color-mix(in srgb, var(--card) 70%, transparent); border: 1px solid var(--line-soft); font-size: 13.5px; line-height: 1.4; color: var(--text); font-weight: 450; }
+.refusal .refusal-tail { color: var(--muted); font-weight: 430; }
+.refusal .refusal-tail::before { content: " "; }
+/* a refusal that names a field marks it */
+.pfield.is-invalid .pfield-row input, .weigh-row .field.is-invalid { border-color: var(--line-gold); }
+
+/* Panels: sub screens under the same header */
+.panel { display: flex; flex-direction: column; margin-top: 10px; }
+.panel > * { flex: 0 0 auto; }
+.panel-title { font-family: var(--serif); font-size: 32px; line-height: 1.05; margin: 0; text-shadow: var(--text-shadow); }
+.panel-lead { font-size: 15px; line-height: 1.4; color: var(--text-soft); margin: 8px 0 0; font-weight: 430; }
+.panel-h { margin-top: 20px; }
+.panel-p { font-size: 15px; line-height: 1.4; margin: 8px 0 0; font-weight: 430; }
+.panel-p.muted { color: var(--muted); }
+.pfield { display: block; margin-top: 12px; }
+.pfield-label { display: block; font-size: 13px; color: var(--muted); font-weight: 450; margin-bottom: 4px; }
+.pfield-row { display: flex; align-items: center; gap: 10px; }
+.pfield-row input { flex: 1 1 auto; min-width: 0; height: 44px; font-size: 16px; background: color-mix(in srgb, var(--card) 86%, transparent); border: 1px solid var(--line-soft); border-radius: var(--radius-card); padding: 0 14px; color: var(--text); outline: none; }
+.pfield-row input:focus { border-color: var(--line-gold); }
+.pfield.is-disabled input { opacity: 0.55; }
+.pfield-unit { font-size: 15px; color: var(--muted); }
+.pfield-hint { display: block; font-size: 13px; color: var(--muted); margin-top: 6px; font-weight: 430; }
+.pstep { width: 44px; height: 44px; border-radius: var(--radius-card); background: color-mix(in srgb, var(--chip) 85%, transparent); border: 1px solid var(--line-soft); color: var(--text); font-size: 20px; display: inline-flex; align-items: center; justify-content: center; }
+.pstep:disabled { opacity: 0.4; }
+.pstep:active { background: var(--chip-selected); border-color: var(--line-gold); }
+.pchoice { display: flex; gap: 8px; margin-top: 12px; }
+.pchoice .chip { flex: 1 1 0; }
+.pactions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.pactions .decision { width: 100%; }
+.pactions .link { align-self: flex-start; }
+.panel-primary { margin-top: 0; }
+.recorded-block { margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-card); background: color-mix(in srgb, var(--card) 86%, transparent); border: 1px solid var(--line-soft); }
+.recorded-main { font-size: 16px; font-weight: 500; }
+.recorded-stamp, .recorded-source { font-size: 13px; color: var(--muted); margin-top: 4px; font-weight: 430; }
+.kv-rows { margin-top: 12px; border-radius: var(--radius-card); background: color-mix(in srgb, var(--card) 86%, transparent); border: 1px solid var(--line-soft); padding: 4px 14px; }
+.kv-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line-soft); font-size: 15px; }
+.kv-row:last-child { border-bottom: 0; }
+.kv-k { color: var(--muted); font-weight: 430; }
+.kv-v { font-weight: 500; }
+.marker-line { display: flex; justify-content: space-between; margin-top: 12px; font-size: 14px; }
+.marker-k { color: var(--text-soft); } .marker-v { color: var(--muted); }
+.coach-answer.is-panel { margin-top: 12px; }
+.header.has-back .wordmark { display: none; }
+
+/* Timeline card markers ("Recorded today", "Not wired yet", "N h") sit right-aligned in the sub line */
+.tcard .marker { float: right; color: var(--muted); font-size: 12.5px; margin-left: 10px; }
+.tcard .marker.on { color: var(--gold); }
+
+/* Disabled primary: the board's cream at 55% */
+/* disabled primary: see app.css review round 2 (flat chip, muted label) */
+
+/* ---------- The proposal card (ruling 2026-09-17): one card for every proposal kind, three honest states ---------- */
+.proposal .kind { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 450; margin-bottom: 4px; }
+.proposal .recorded .state-word { color: var(--gold); font-weight: 500; }
+.proposal.is-recorded { border-color: var(--line-soft); }
+/* applied: the eyebrow says it; no second mark on the serif line */
+.proposal.is-declined { opacity: 0.85; }
+.proposal.is-superseded { opacity: 0.7; }
+.proposal .change-answer { margin-left: 6px; }
+
+/* ---------- Coach conversation pieces ---------- */
+.listening { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; color: var(--text-soft); }
+.listening .bars { display: inline-flex; gap: 3px; align-items: flex-end; height: 16px; }
+.listening .bars i { display: block; width: 3px; border-radius: 2px; background: var(--gold); height: 6px; }
+.listening .bars i:nth-child(2) { height: 12px; } .listening .bars i:nth-child(3) { height: 16px; } .listening .bars i:nth-child(4) { height: 9px; }
+.confirm-row { display: flex; gap: 8px; margin-top: 10px; }
+.confirm-row .decision { flex: 1 1 0; }
+.coach-answer .said { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+.coach-answer.is-refusal { border-color: var(--line-soft); }
+.mic-refusal { margin-top: 12px; padding: 12px 14px; border-radius: var(--radius-card); background: color-mix(in srgb, var(--card) 86%, transparent); border: 1px solid var(--line-soft); font-size: 14px; line-height: 1.4; }
+.mic-refusal .quoted { color: var(--muted); font-style: normal; display: block; margin-top: 6px; }
+.text-mode { display: flex; gap: 8px; margin-top: 12px; }
+.text-mode input { flex: 1 1 auto; min-width: 0; height: 48px; font-size: 16px; background: color-mix(in srgb, var(--card) 86%, transparent); border: 1px solid var(--line-soft); border-radius: 14px; padding: 0 14px; color: var(--text); outline: none; }
+.text-mode button { height: 48px; padding: 0 16px; border-radius: 14px; background: var(--cream); color: var(--ink); font-weight: 500; }
+.screen-coach[data-mode="text"] .mic-wrap, .screen-coach[data-mode="text"] .coach-links { display: none; }
+.screen-coach[data-mode="tap"] .mic-wrap { display: none; }
+/* targets: a column of actions must not collapse; short links keep a 44 px box; empty cards keep their height */
+.pactions .decision, .pactions .primary { flex: 0 0 auto; }
+.proposal .undo, .proposal .why { position: relative; }
+.proposal .undo::before, .proposal .why::before { content: ""; position: absolute; left: -6px; right: -6px; top: 50%; height: 44px; margin-top: -22px; }
+.proposal .why { min-width: 44px; justify-content: flex-end; }
+.tcard.nav { min-height: 44px; }
+
+/* ---------- Review round 2 (2026-09-17): panels are a phone chassis, not a document ----------
+   A panel fills the screen; its last action group sits where the parent screen's own primary sits (thumb memory), and the
+   space under it gives way first when the panel carries more than a viewport. Today's Start ends at 695, Workout's Log at 712. */
+/* ---------- The panel chassis (review round 3): a scrolling body and an action group fixed at the parent screen's thumb edge ----------
+   The body carries its own backing (the surface colour behind the whole text column, easing in over its first 48 px so it meets the
+   header's surface without a seam, and dissolving 120 px after the content ends) and scrolls with the same fades as a screen body.
+   The action group's bottom edge lands where the parent's own primary ends: Today 695, Workout 716, Coach 770. */
+.panel, .screen .ui > .body > .panel, .screen .ui > .panel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; margin-top: 10px; }
+.panel > .panel-body { flex: 1 1 auto; min-height: 0; position: relative; z-index: 0; margin: 0 calc(-1 * var(--inset)); padding: 0 var(--inset) 24px; display: flex; flex-direction: column; }
+.panel > .panel-body > * { flex: 0 0 auto; }
+.panel > .panel-body::before { content: ""; position: absolute; z-index: -1; left: 0; right: 0; top: -12px; height: calc(var(--panel-end, 0px) + 12px + 36px + 120px); background: linear-gradient(to bottom, transparent 0, var(--surface) 48px, var(--surface) calc(100% - 120px), transparent 100%); pointer-events: none; }
+.panel > .pactions.is-last { margin-top: 12px; margin-bottom: var(--thumb-gap, 114px); }
+.screen-today .panel > .pactions.is-last { --thumb-gap: 135px; }
+.screen-workout .panel > .pactions.is-last { --thumb-gap: 114px; }
+.screen-coach .panel > .pactions.is-last { --thumb-gap: 60px; }
+.screen.has-panel .ui > .body { overflow: hidden; }
+.screen.has-panel .surface::after { display: none; }

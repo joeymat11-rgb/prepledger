@@ -1,0 +1,877 @@
+/* Earned: faithful UI reconstruction of the Ink and Dawn boards (2026-09-17).
+   Layers, bottom to top: plate (mountain image) -> wash -> embers -> surface (protective) -> ui. */
+
+@font-face { font-family: "Earned Serif"; src: url("fonts/earned-serif.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: block; }
+@font-face { font-family: "Earned Sans"; src: url("fonts/earned-sans.woff2") format("woff2"); font-weight: 100 1000; font-style: normal; font-display: block; }
+
+:root {
+  --serif: "Earned Serif", "Times New Roman", Tinos, Times, "Liberation Serif", serif;
+  --sans: "Earned Sans", "DM Sans", Lato, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --inset: 22px;
+  --radius-card: 14px;
+  --radius-button: 14px;
+  --radius-chip: 12px;
+  --radius-pill: 999px;
+  --hit: 44px;
+}
+
+/* ---------- Ink (default) ---------- */
+:root, :root[data-theme="ink"] {
+  color-scheme: dark;
+  --screen: #0c0b0a;
+  --surface: #0d0c0b;
+  --surface-2: #0b0a09;
+  --card: #111010;
+  --card-2: #0f0e0e;
+  --card-raised: #161514;
+  --chip: #1a1918;
+  --chip-selected: #2a241c;
+  --line: #2b2926;
+  --line-soft: #262421;
+  --line-gold: #a08a66;
+  --hairline: #2a2724;
+  --rail: #3b3229;
+  --text: #f2eee6;
+  --text-soft: #dcd7cd;
+  --muted: #bdb8ae;
+  --faint: #8f8a82;
+  --gold: #caa98a;
+  --sun: #fff2dc;
+  --dot: #f4f4f6;
+  --dot-glow: rgba(255,255,255,0.55);
+  --cream: #f8ecda;
+  --cream-log: #fbefdd;
+  --ink: #1a1815;
+  --good: #b9d6a8;
+  --save: #463f37;
+  --save-text: #f2eee6;
+  --pill: rgba(28,28,28,0.75);
+  --pill-text: #e2ded6;
+  --decision: #191919;
+  --decision-line: #3a3835;
+  --edit: #1a1918;
+  --edit-text: #f2eee6;
+  --plate: url("assets/plate-ink.jpg");
+  --wash: rgba(16,10,5,0.45);
+  --wash-workout: rgba(14,9,5,0.5);
+  --wash-coach: rgba(16,10,5,0.45);
+  --text-shadow: 0 0 10px rgba(0,0,0,0.65);
+  --orb-ring: rgba(214,180,140,0.55);
+  --orb-ring-2: rgba(202,169,138,0.16);
+  --orb-ring-3: rgba(202,169,138,0.08);
+  --orb-disc: radial-gradient(circle at 50% 50%, #fff7ea 0, #f4dcb4 4px, rgba(226,180,125,0.85) 9px, rgba(190,140,92,0.7) 15px, rgba(132,96,66,0.6) 24px, rgba(78,60,47,0.55) 34px, rgba(44,36,30,0.55) 44px, rgba(24,21,19,0.6) 55px);
+  --orb-halo: 0 0 22px 3px rgba(240,200,150,0.12);
+  --mic-fill: radial-gradient(circle at 50% 45%, #7a6350 0, #5a4838 45%, #3a2f27 80%, #2a2320 100%);
+  --mic-ring: rgba(236,206,160,0.75);
+  --mic-glow: 0 0 0 7px rgba(205,170,125,0.07), 0 0 26px 4px rgba(230,190,140,0.32), 0 0 70px 20px rgba(255,200,140,0.10);
+  --mic-glyph: #f6eee2;
+  --small-orb: radial-gradient(circle, #fffaf0 0 2.5px, rgba(255,226,190,0.75) 4px, rgba(255,205,160,0.32) 7px, rgba(120,95,70,0.22) 11px, #1c1a18 15px);
+  --small-orb-ring: rgba(255,255,255,0.16);
+  --moon-bg: #171615;
+  --ember: 255,204,140;
+}
+
+/* ---------- Dawn ---------- */
+:root[data-theme="dawn"] {
+  color-scheme: light;
+  --screen: #f7f2e7;
+  --surface: #f8f3e8;
+  --surface-2: #f6f0e4;
+  --card: #faf5ea;
+  --card-2: #f9f3e7;
+  --card-raised: #fcf7ec;
+  --chip: #f3ede1;
+  --chip-selected: #48403a;
+  --line: #d3ccbd;
+  --line-soft: #dcd5c7;
+  --line-gold: #bda98c;
+  --hairline: #e4ddcf;
+  --rail: #d4c6b1;
+  --text: #1e1b18;
+  --text-soft: #2c2823;
+  --muted: #6b655b;
+  --faint: #8c8579;
+  --gold: #9a7f5e;
+  --sun: #fff7e6;
+  --dot: #7b6a4b;
+  --dot-glow: rgba(123,106,75,0.35);
+  --cream: #2a2620;
+  --cream-log: #262019;
+  --ink: #f7efe1;
+  --good: #3f9d3f;
+  --save: #e6ddcd;
+  --save-text: #2a2620;
+  --pill: rgba(240,234,222,0.85);
+  --pill-text: #3a352e;
+  --decision: #e9e1d2;
+  --decision-line: #d8cfbd;
+  --edit: #f8f1e2;
+  --edit-text: #1e1b18;
+  --plate: url("assets/plate-dawn.jpg");
+  --wash: rgba(252,232,200,0.04);
+  --wash-workout: rgba(252,236,210,0.12);
+  --wash-coach: rgba(252,236,210,0.02);
+  --text-shadow: 0 0 10px rgba(255,250,240,0.75);
+  --orb-ring: rgba(214,180,140,0.5);
+  --orb-ring-2: rgba(200,170,130,0.22);
+  --orb-ring-3: rgba(200,170,130,0.12);
+  --orb-disc: radial-gradient(circle at 50% 50%, #ffffff 0, #fffdf6 6px, #fff6e6 16px, #fbeed8 30px, rgba(248,236,216,0.95) 44px, rgba(246,236,218,0.9) 55px);
+  --orb-halo: 0 0 40px 12px rgba(255,240,205,0.75), 0 0 90px 30px rgba(255,236,200,0.35);
+  --mic-fill: radial-gradient(circle at 50% 45%, #ffffff 0, #fdf7ea 50%, #f6ecd8 100%);
+  --mic-ring: rgba(205,175,125,0.85);
+  --mic-glow: 0 0 0 7px rgba(255,236,200,0.35), 0 0 28px 6px rgba(255,228,180,0.55), 0 0 70px 20px rgba(255,220,170,0.25);
+  --mic-glyph: #2a2420;
+  --small-orb: radial-gradient(circle, #2a2420 0 2.2px, rgba(120,95,70,0.9) 3.4px, rgba(255,230,196,0.9) 5px, rgba(255,240,215,0.6) 8px, rgba(245,232,210,0.4) 11px, #f6ecd8 15px);
+  --small-orb-ring: rgba(120,95,70,0.25);
+  --moon-bg: #f1eadb;
+  --ember: 255,214,160;
+}
+
+/* ---------- Base ---------- */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--screen);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.3;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  overflow: hidden;
+  font-variation-settings: "opsz" 14;
+}
+button, input, a { font: inherit; color: inherit; }
+h1, h2, p { margin: 0; font-weight: 400; }
+[hidden] { display: none !important; }
+.ui > * { flex: 0 0 auto; }
+button { background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+a { text-decoration: none; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* The app fills the device viewport. In review mode (?chrome=1) a status bar and home indicator are drawn for the presentation only. */
+#app { position: relative; width: 100%; height: 100%; height: 100dvh; overflow: hidden; background: var(--screen); }
+.screen { position: absolute; inset: 0; display: none; overflow: hidden; }
+.screen.is-active { display: block; }
+
+/* Layers */
+.plate { position: absolute; inset: 0; background-color: var(--screen); background-image: var(--plate); background-repeat: no-repeat; background-size: 900px auto; background-position: -240px 470px; }
+.plate::after { content: ""; position: absolute; inset: 0; background: var(--wash); }
+.plate-fade { position: absolute; left: 0; right: 0; height: 120px; }
+.embers { position: absolute; inset: 0; pointer-events: none; }
+.surface { position: absolute; left: 0; right: 0; top: 0; }
+.ui { position: absolute; inset: 0; padding: 0 var(--inset) 24px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.ui::-webkit-scrollbar { display: none; }
+
+/* Today: plate low, surface covers the top, feathered into the scene */
+.screen-today .plate { background-size: 900px auto; background-position: -240px 470px; -webkit-mask-image: linear-gradient(180deg, transparent 440px, rgba(0,0,0,0.35) 560px, rgba(0,0,0,0.8) 680px, #000 780px); mask-image: linear-gradient(180deg, transparent 440px, rgba(0,0,0,0.35) 560px, rgba(0,0,0,0.8) 680px, #000 780px); }
+.screen-today .surface { height: 852px; background: linear-gradient(180deg, var(--surface) 0, var(--surface) 470px, rgba(13,12,11,0.92) 560px, rgba(13,12,11,0.7) 650px, rgba(13,12,11,0.4) 740px, rgba(13,12,11,0.15) 852px); }
+:root[data-theme="dawn"] .screen-today .surface { background: linear-gradient(180deg, #f9f4e9 0, #f9f4e9 440px, rgba(248,242,229,0.85) 540px, rgba(248,240,224,0.55) 640px, rgba(248,238,220,0.25) 740px, rgba(248,236,216,0.05) 852px); }
+
+/* Workout: flat surface to the bottom of the machine card, then the scene */
+.screen-workout .plate { background-size: 860px auto; background-position: -280px 520px; -webkit-mask-image: linear-gradient(180deg, transparent 500px, rgba(0,0,0,0.4) 600px, rgba(0,0,0,0.85) 720px, #000 800px); mask-image: linear-gradient(180deg, transparent 500px, rgba(0,0,0,0.4) 600px, rgba(0,0,0,0.85) 720px, #000 800px); }
+.screen-workout .plate::after { background: var(--wash-workout); }
+.screen-workout .surface { height: 852px; background: linear-gradient(180deg, var(--surface) 0, var(--surface) 512px, rgba(13,12,11,0.88) 580px, rgba(13,12,11,0.7) 680px, rgba(13,12,11,0.55) 780px, rgba(13,12,11,0.35) 852px); }
+:root[data-theme="dawn"] .screen-workout .surface { background: linear-gradient(180deg, var(--surface) 0, var(--surface) 512px, rgba(248,243,232,0.8) 580px, rgba(248,243,232,0.5) 680px, rgba(248,243,232,0.3) 780px, rgba(248,243,232,0.12) 852px); }
+.screen-workout .surface::after { content: ""; position: absolute; left: 0; right: 0; top: 512px; height: 1px; background: var(--line-soft); opacity: 0.35; }
+
+/* Coach: the scene is the screen; the sky region carries the title on a soft protective haze */
+.screen-coach .plate { background-size: 860px auto; background-position: -380px 330px; -webkit-mask-image: linear-gradient(180deg, transparent 300px, rgba(0,0,0,0.12) 420px, rgba(0,0,0,0.35) 530px, rgba(0,0,0,0.65) 640px, rgba(0,0,0,0.9) 740px, #000 820px); mask-image: linear-gradient(180deg, transparent 300px, rgba(0,0,0,0.12) 420px, rgba(0,0,0,0.35) 530px, rgba(0,0,0,0.65) 640px, rgba(0,0,0,0.9) 740px, #000 820px); }
+.screen-coach .plate::after { background: var(--wash-coach); }
+.screen-coach .surface { height: 852px; background: linear-gradient(180deg, var(--surface) 0, var(--surface) 330px, rgba(13,12,11,0.85) 430px, rgba(13,12,11,0.6) 540px, rgba(13,12,11,0.35) 660px, rgba(13,12,11,0.12) 780px, rgba(13,12,11,0) 852px); }
+:root[data-theme="dawn"] .screen-coach .plate { -webkit-mask-image: linear-gradient(180deg, transparent 180px, rgba(0,0,0,0.3) 300px, rgba(0,0,0,0.6) 420px, rgba(0,0,0,0.85) 560px, #000 700px); mask-image: linear-gradient(180deg, transparent 180px, rgba(0,0,0,0.3) 300px, rgba(0,0,0,0.6) 420px, rgba(0,0,0,0.85) 560px, #000 700px); background-position: -330px 250px; background-size: 900px auto; }
+:root[data-theme="dawn"] .screen-coach .surface { height: 852px; background: radial-gradient(ellipse 60% 34% at 50% 330px, rgba(249,244,233,0.9) 0, rgba(249,244,233,0.6) 60%, rgba(249,244,233,0) 100%), linear-gradient(180deg, var(--surface) 0, var(--surface) 180px, rgba(249,244,233,0.8) 280px, rgba(249,244,233,0.62) 380px, rgba(249,244,233,0.5) 500px, rgba(249,244,233,0.3) 640px, rgba(249,244,233,0.1) 780px, rgba(249,244,233,0) 852px); }
+
+/* ---------- Header ---------- */
+.header { margin-top: 53px; height: 44px; display: flex; align-items: center; justify-content: space-between; }
+.header .brand { display: flex; align-items: center; gap: 0; min-height: 44px; }
+.header .back { display: flex; align-items: center; justify-content: flex-start; width: 40px; height: 44px; margin-left: 1px; }
+.header .back svg { width: 9px; height: 16px; }
+.wordmark { font-family: var(--serif); font-size: 30px; line-height: 1; color: var(--text); letter-spacing: 0; }
+.header .right { display: flex; align-items: center; gap: 8px; }
+.date { font-size: 12px; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: var(--radius-pill); border: 1px solid var(--line); background: var(--pill); color: var(--pill-text); font-size: 12px; line-height: 1; }
+.pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+.hairline { height: 1px; background: var(--hairline); margin-top: 9px; }
+
+/* ---------- Type ---------- */
+.screen-today .header, .screen-today .greeting, .screen-today .status-line, .screen-today .plans .label { padding-left: 4px; }
+.greeting { font-family: var(--serif); font-size: 52px; line-height: 1; margin-top: 5px; letter-spacing: 0; text-shadow: var(--text-shadow); }
+.status-line { font-size: 15.5px; line-height: 1.3; color: var(--text-soft); margin-top: 8px; font-weight: 430; }
+.eyebrow { font-size: 12px; line-height: 1.3; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 450; }
+.link { display: inline-flex; align-items: center; min-height: var(--hit); font-size: 13.5px; font-weight: 450; color: var(--text); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, var(--text) 55%, transparent); }
+
+/* ---------- Timeline ---------- */
+.timeline { position: relative; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.timeline::before { content: ""; position: absolute; left: 15px; top: 17px; bottom: 8px; width: 1.5px; background: var(--rail); z-index: 2; pointer-events: none; }
+.tcard { position: relative; background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius-card); padding: 6px 14px 7px 35px; }
+.tcard .tdot { position: absolute; left: 11px; top: 11px; width: 9px; height: 9px; border-radius: 50%; background: var(--dot); box-shadow: 0 0 6px 1px var(--dot-glow); z-index: 3; }
+.tcard .title { font-size: 14.5px; line-height: 1.35; color: var(--text); font-weight: 480; }
+.tcard .sub { font-size: 13px; line-height: 1.3; color: var(--muted); margin-top: 3px; }
+.tcard.nav { padding-right: 40px; }
+.tcard .chev { position: absolute; right: 18px; top: 50%; margin-top: -7px; width: 8px; height: 14px; }
+.chev svg, .row-chev svg { display: block; width: 100%; height: 100%; }
+.header .back svg { display: block; }
+
+.weigh-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; margin-bottom: 1px; }
+.weigh-row .field { position: relative; flex: 1 1 auto; min-width: 0; height: 40px; border-bottom: 1px solid var(--line); display: flex; align-items: center; }
+.weigh-row input { width: 100%; height: 40px; background: transparent; border: 0; padding: 0; font-size: 16px; color: var(--text); outline: none; }
+.weigh-row input::placeholder { color: var(--muted); }
+.weigh-row .unit { font-size: 15px; color: var(--muted); margin-left: 2px; margin-right: 4px; }
+.save { position: relative; height: 35px; padding: 0 16px; border-radius: var(--radius-pill); border: 1px solid rgba(202,169,138,0.45); background: var(--save); color: var(--save-text); font-size: 15px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+.save[disabled] { opacity: 0.55; cursor: default; }
+.save::before, .plans .plus::before, .proposal .why::before, .setcard .last::before { content: ""; position: absolute; left: -4px; right: -4px; top: 50%; height: 44px; margin-top: -22px; }
+.weigh-note { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.weigh-note.refusal { color: var(--text); }
+
+.proposal { padding-top: 9px; padding-bottom: 10px; }
+.proposal .tdot { top: 12px; }
+.proposal .head { display: flex; align-items: baseline; justify-content: space-between; }
+.proposal .lift { font-family: var(--serif); font-size: 24px; line-height: 1; }
+.proposal .why { position: relative; min-height: 0; font-size: 13px; padding: 0; }
+.proposal .change { font-size: 15px; line-height: 1.3; margin-top: 8px; font-weight: 450; }
+.proposal .reason { font-size: 13px; line-height: 1.3; color: var(--muted); margin-top: 3px; }
+.decisions { display: flex; gap: 9px; margin-top: 4.5px; }
+.decision { flex: 1 1 0; height: 44px; font-weight: 450; border-radius: var(--radius-pill); background: var(--decision); border: 1px solid var(--decision-line); color: var(--text); font-size: 15px; display: inline-flex; align-items: center; justify-content: center; }
+.proposal .recorded { font-size: 15px; line-height: 1.3; margin-top: 8px; }
+.proposal .undo { display: inline; min-height: 0; margin-left: 6px; }
+
+.plans { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; height: 30px; }
+.plans .label { font-family: var(--serif); font-size: 17px; line-height: 1; }
+.plans .plus { position: relative; width: 44px; height: 30px; display: flex; align-items: center; justify-content: flex-end; }
+.plans .plus svg { width: 18px; height: 18px; }
+
+.primary { display: flex; align-items: center; justify-content: space-between; height: 60px; margin-top: 10px; padding: 0 20px 0 19px; border-radius: var(--radius-button); background: var(--cream); color: var(--ink); font-family: var(--serif); font-size: 32px; line-height: 1; width: 100%; }
+.primary .arrow { width: 20px; height: 18px; }
+.primary .arrow svg { display: block; width: 100%; height: 100%; }
+
+.rowcard { position: relative; display: flex; align-items: center; gap: 15px; margin-top: 10px; min-height: 58px; padding: 8px 40px 8px 3px; background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius-card); width: 100%; }
+.rowcard .icon-square { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 10px; background: var(--moon-bg); border: 1px solid var(--line-soft); display: flex; align-items: center; justify-content: center; }
+.rowcard .icon-square svg { width: 20px; height: 20px; }
+.rowcard .text { align-self: flex-start; margin-top: 5px; }
+.rowcard .title { font-size: 16px; line-height: 1.3; color: var(--text); font-weight: 480; }
+.rowcard .sub { font-size: 13px; line-height: 1.3; color: var(--muted); margin-top: 2px; }
+.rowcard .chev { position: absolute; right: 16px; top: 50%; margin-top: -7px; width: 8px; height: 14px; }
+
+.talk { display: flex; align-items: center; gap: 14px; height: 62px; margin-top: 10px; padding: 0 20px 0 10px; border-radius: var(--radius-pill); border: 1px solid var(--line-soft); background: var(--card); color: var(--text); font-size: 16px; font-weight: 450; width: 100%; }
+.talk .orb { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--small-orb-ring); background: var(--small-orb); box-shadow: 0 0 14px 2px rgba(var(--ember),0.18); }
+.talk .label { flex: 1 1 auto; }
+.talk .mic { width: 18px; height: 24px; }
+.talk .mic svg { display: block; width: 100%; height: 100%; }
+
+/* ---------- Workout ---------- */
+.session-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 9px; line-height: 1; }
+.session-row .kind { font-size: 14.5px; color: var(--muted); }
+.session-row .count { font-size: 15px; color: var(--text); }
+.screen-title { font-family: var(--serif); font-size: 46px; line-height: 1; margin-top: -1px; text-shadow: var(--text-shadow); }
+
+.setcard { margin-top: 21px; background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius-card); padding: 12px 13px 19px 13px; }
+.setcard .top { display: flex; align-items: center; justify-content: space-between; }
+.setcard .state { display: inline-flex; align-items: center; gap: 7px; font-size: 14.5px; color: var(--muted); }
+.setcard .state .ring { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.setcard .state.logged { color: var(--good); }
+.setcard .state.logged .ring { border: 0; background: var(--good); }
+.numerals { display: flex; align-items: flex-start; justify-content: center; gap: 30px; margin-top: 11px; }
+.numerals .num { display: flex; flex-direction: column; align-items: center; }
+.numerals .value { font-family: var(--serif); font-size: 74px; line-height: 1; font-variant-numeric: tabular-nums; }
+.numerals .unit { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.numerals .times { font-family: var(--serif); font-size: 22px; line-height: 1; color: var(--muted); margin-top: 26px; }
+.setcard .divider { height: 1px; background: var(--line-soft); margin-top: 12px; }
+.setcard .last { position: relative; width: 100%; display: flex; align-items: center; justify-content: space-between; margin-top: 10px; font-size: 13px; color: var(--text-soft); }
+.setcard .last .row-chev { width: 8px; height: 14px; }
+
+.machine { position: relative; margin-top: 14px; background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius-card); padding: 5px 40px 18px 11px; width: 100%; }
+.machine .eyebrow-row { display: flex; align-items: center; gap: 8px; }
+.machine .eyebrow-row svg { width: 14px; height: 14px; }
+.machine .setting { font-family: var(--serif); font-size: 37px; line-height: 1; margin-top: 7px; }
+.machine .when { font-size: 14px; color: var(--muted); margin-top: 3px; }
+.machine .chev { position: absolute; right: 14px; top: 50%; margin-top: -7px; width: 8px; height: 14px; }
+
+.screen-workout .talk { margin-top: 4px; padding-left: 6px; gap: 12px; }
+.links { display: flex; align-items: center; justify-content: space-between; margin-top: -2px; }
+.rir-head { display: flex; align-items: baseline; justify-content: space-between; margin-top: 6px; }
+.rir-head .h { font-size: 15px; color: var(--text); font-weight: 450; }
+.rir-head .opt { font-size: 12px; color: var(--faint); }
+.chips { display: flex; gap: 8px; margin-top: 4.5px; }
+.chip { flex: 1 1 0; height: 44px; border-radius: var(--radius-chip); background: var(--chip); border: 1px solid var(--line); color: var(--text); font-size: 14px; font-weight: 450; display: inline-flex; align-items: center; justify-content: center; }
+.chip[aria-pressed="true"] { background: var(--chip-selected); border-color: var(--line-gold); }
+:root[data-theme="dawn"] .chip[aria-pressed="true"] { color: #f7efe1; }
+.chip.unsure { color: var(--muted); }
+.chip.unsure[aria-pressed="true"] { color: var(--text); }
+:root[data-theme="dawn"] .chip.unsure[aria-pressed="true"] { color: #f7efe1; }
+.log-row { display: flex; gap: 14px; margin-top: 12px; }
+.log { flex: 1 1 auto; display: flex; align-items: center; justify-content: space-between; height: 60px; padding: 0 20px 0 19px; border-radius: var(--radius-button); background: var(--cream-log); color: var(--ink); font-family: var(--serif); font-size: 31px; line-height: 1; }
+.log .arrow { width: 20px; height: 18px; }
+.log .arrow svg { display: block; width: 100%; height: 100%; }
+.edit { flex: 0 0 80px; height: 60px; border-radius: var(--radius-button); background: var(--edit); border: 1px solid var(--line); color: var(--edit-text); font-size: 15px; font-weight: 450; display: inline-flex; align-items: center; justify-content: center; }
+.screen-workout .links.bottom { margin-top: 4px; }
+
+/* ---------- Coach ---------- */
+.orb-wrap { position: relative; margin-top: 43px; height: 110px; display: flex; justify-content: center; }
+.orb-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.orb-ring.r2 { width: 160px; height: 160px; border: 1px solid var(--orb-ring-2); }
+.orb-ring.r3 { width: 200px; height: 200px; border: 1px solid var(--orb-ring-3); }
+.orb { width: 110px; height: 110px; border-radius: 50%; border: 1px solid var(--orb-ring); background: var(--orb-disc); box-shadow: var(--orb-halo); }
+.coach-title { font-family: var(--serif); font-size: 50px; line-height: 1; text-align: center; margin-top: 22px; text-shadow: var(--text-shadow); }
+.coach-sub { font-size: 14.5px; line-height: 1.3; text-align: center; color: var(--text-soft); margin-top: 7px; font-weight: 450; text-shadow: var(--text-shadow); }
+.coach-line { font-family: var(--serif); font-size: 24px; line-height: 1; text-align: center; margin-top: 8px; text-shadow: var(--text-shadow); }
+.coach-sub2 { font-size: 15px; line-height: 1.3; text-align: center; color: var(--text-soft); margin-top: 7px; font-weight: 450; text-shadow: var(--text-shadow); }
+.prompts { display: flex; flex-direction: column; gap: 6px; margin: 22px -4px 0 -4px; }
+.prompt { position: relative; display: flex; align-items: center; gap: 22px; min-height: 60px; padding: 8px 34px 8px 15px; background: var(--card); border: 1px solid var(--line-soft); border-radius: var(--radius-card); color: var(--text); font-size: 14.5px; font-weight: 460; width: 100%; white-space: nowrap; }
+.prompt svg.icon { flex: 0 0 auto; width: 20px; height: 20px; }
+.prompt .chev { position: absolute; right: 17px; top: 50%; margin-top: -7px; width: 8px; height: 14px; }
+.coach-links { display: flex; justify-content: space-between; margin: 34px 0 0 0; padding: 0 26px; background: radial-gradient(ellipse 52% 60% at 50% 50%, color-mix(in srgb, var(--surface) 88%, transparent) 0, color-mix(in srgb, var(--surface) 70%, transparent) 55%, transparent 100%); }
+.mic-wrap { display: flex; flex-direction: column; align-items: center; margin-top: 4px; }
+.mic-button { width: 80px; height: 80px; border-radius: 50%; border: 1.5px solid var(--mic-ring); background: var(--mic-fill); box-shadow: var(--mic-glow); display: flex; align-items: center; justify-content: center; }
+.mic-button svg { width: 24px; height: 32px; }
+.mic-label { font-size: 14px; color: var(--text); margin-top: 11px; padding: 2px 18px; border-radius: 12px; background: radial-gradient(ellipse 70% 100% at 50% 50%, color-mix(in srgb, var(--surface) 82%, transparent) 0, transparent 100%); text-shadow: var(--text-shadow); }
+.coach-answer { margin: 12px 0 0 0; padding: 12px 14px; background: var(--card); border: 1px solid var(--line-gold); border-radius: var(--radius-card); font-size: 15px; line-height: 1.35; }
+.coach-answer .from { font-size: 12px; color: var(--faint); margin-top: 6px; }
+.text-mode { display: flex; gap: 10px; margin-top: 12px; }
+.text-mode input { flex: 1 1 auto; height: 48px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 16px; outline: none; }
+.text-mode button { flex: 0 0 auto; height: 48px; padding: 0 16px; border-radius: 12px; background: var(--cream); color: var(--ink); font-size: 15px; }
+
+/* ---------- Review chrome (presentation only) ---------- */
+.chrome { display: none; }
+body.with-chrome .chrome { display: block; position: absolute; left: 0; right: 0; pointer-events: none; z-index: 20; }
+body.with-chrome .chrome.status { top: 0; height: 54px; }
+body.with-chrome .chrome.status .time { position: absolute; left: 39px; top: 18px; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; font-family: -apple-system, "SF Pro Text", var(--sans); }
+body.with-chrome .chrome.status .island { position: absolute; left: 50%; top: 11px; width: 124px; height: 36px; margin-left: -62px; border-radius: 20px; background: #000; }
+body.with-chrome .chrome.status .icons { position: absolute; right: 26px; top: 19px; width: 76px; height: 14px; }
+body.with-chrome .chrome.status .icons svg { display: block; width: 100%; height: 100%; }
+body.with-chrome .chrome.home { bottom: 8px; height: 5px; }
+body.with-chrome .chrome.home::after { content: ""; position: absolute; left: 50%; width: 134px; height: 5px; margin-left: -67px; border-radius: 3px; background: var(--text); opacity: 0.95; }
+
+/* Reduced motion: embers are static (drawn once, never moved). */
+@media (prefers-reduced-motion: reduce) { .embers { opacity: 0.8; } }
+
+/* ---------- Fade strength: "strong" pulls the range higher and lengthens every dissolve (?fade=strong) ---------- */
+:root[data-fade="strong"] .screen-today .plate { background-size: 960px auto; background-position: -270px 380px; -webkit-mask-image: linear-gradient(180deg, transparent 350px, rgba(0,0,0,0.15) 460px, rgba(0,0,0,0.4) 560px, rgba(0,0,0,0.7) 670px, rgba(0,0,0,0.92) 770px, #000 852px); mask-image: linear-gradient(180deg, transparent 350px, rgba(0,0,0,0.15) 460px, rgba(0,0,0,0.4) 560px, rgba(0,0,0,0.7) 670px, rgba(0,0,0,0.92) 770px, #000 852px); }
+:root[data-fade="strong"] .screen-today .surface { background: linear-gradient(180deg, var(--surface) 0, var(--surface) 370px, rgba(13,12,11,0.9) 470px, rgba(13,12,11,0.68) 580px, rgba(13,12,11,0.42) 690px, rgba(13,12,11,0.2) 790px, rgba(13,12,11,0.08) 852px); }
+:root[data-fade="strong"][data-theme="dawn"] .screen-today .surface { background: linear-gradient(180deg, #f9f4e9 0, #f9f4e9 370px, rgba(248,242,229,0.88) 470px, rgba(248,240,224,0.62) 580px, rgba(248,238,220,0.35) 690px, rgba(248,236,216,0.14) 790px, rgba(248,236,216,0.04) 852px); }
+:root[data-fade="strong"] .screen-workout .plate { background-size: 900px auto; background-position: -300px 430px; -webkit-mask-image: linear-gradient(180deg, transparent 410px, rgba(0,0,0,0.2) 520px, rgba(0,0,0,0.5) 630px, rgba(0,0,0,0.8) 740px, #000 830px); mask-image: linear-gradient(180deg, transparent 410px, rgba(0,0,0,0.2) 520px, rgba(0,0,0,0.5) 630px, rgba(0,0,0,0.8) 740px, #000 830px); }
+:root[data-fade="strong"] .screen-workout .surface { background: linear-gradient(180deg, var(--surface) 0, var(--surface) 470px, rgba(13,12,11,0.9) 540px, rgba(13,12,11,0.72) 630px, rgba(13,12,11,0.52) 730px, rgba(13,12,11,0.3) 852px); }
+:root[data-fade="strong"][data-theme="dawn"] .screen-workout .surface { background: linear-gradient(180deg, var(--surface) 0, var(--surface) 470px, rgba(248,243,232,0.85) 540px, rgba(248,243,232,0.62) 630px, rgba(248,243,232,0.4) 730px, rgba(248,243,232,0.15) 852px); }
+:root[data-fade="strong"] .screen-workout .surface::after { opacity: 0; }
+:root[data-fade="strong"] .screen-coach .plate { background-size: 900px auto; background-position: -400px 250px; -webkit-mask-image: linear-gradient(180deg, transparent 230px, rgba(0,0,0,0.1) 340px, rgba(0,0,0,0.3) 450px, rgba(0,0,0,0.55) 560px, rgba(0,0,0,0.8) 670px, rgba(0,0,0,0.95) 770px, #000 852px); mask-image: linear-gradient(180deg, transparent 230px, rgba(0,0,0,0.1) 340px, rgba(0,0,0,0.3) 450px, rgba(0,0,0,0.55) 560px, rgba(0,0,0,0.8) 670px, rgba(0,0,0,0.95) 770px, #000 852px); }
+:root[data-fade="strong"] .screen-coach .surface { background: linear-gradient(180deg, var(--surface) 0, var(--surface) 260px, rgba(13,12,11,0.88) 360px, rgba(13,12,11,0.68) 460px, rgba(13,12,11,0.45) 570px, rgba(13,12,11,0.25) 680px, rgba(13,12,11,0.08) 790px, rgba(13,12,11,0) 852px); }
+:root[data-fade="strong"][data-theme="dawn"] .screen-coach .plate { background-position: -360px 200px; background-size: 960px auto; -webkit-mask-image: linear-gradient(180deg, transparent 150px, rgba(0,0,0,0.25) 260px, rgba(0,0,0,0.5) 380px, rgba(0,0,0,0.75) 520px, rgba(0,0,0,0.92) 660px, #000 780px); mask-image: linear-gradient(180deg, transparent 150px, rgba(0,0,0,0.25) 260px, rgba(0,0,0,0.5) 380px, rgba(0,0,0,0.75) 520px, rgba(0,0,0,0.92) 660px, #000 780px); }
+:root[data-fade="strong"][data-theme="dawn"] .screen-coach .surface { background: radial-gradient(ellipse 60% 34% at 50% 330px, rgba(249,244,233,0.92) 0, rgba(249,244,233,0.6) 60%, rgba(249,244,233,0) 100%), linear-gradient(180deg, var(--surface) 0, var(--surface) 150px, rgba(249,244,233,0.78) 250px, rgba(249,244,233,0.58) 360px, rgba(249,244,233,0.42) 480px, rgba(249,244,233,0.25) 620px, rgba(249,244,233,0.08) 770px, rgba(249,244,233,0) 852px); }
+
+/* ---------- "Full": the scene is the screen ----------
+   Spec (all values in % of screen height so it holds on every phone):
+   Today    image begins 19%, fully present by 46%   sky scrim opaque to 21% (header, greeting, status line), gone by 46%
+   Coach    image begins 12%, fully present by 40%   sky scrim opaque to 12% (header), half at 24% (the orb), gone by 40%
+   Workout  image begins 24%, fully present by 54%   sky scrim opaque to 24% (header, lift name), gone by 56%; heavy wash (94% to 78%)
+   Wash on Today and Coach 55% at the top to 25% at the bottom (design-system numbers). Cards 86% so the range reads through.
+   The image is sized to 90% of the screen height and anchored past the bottom, so the framing is the same on every phone. */
+:root[data-fade="full"] .plate { background-size: auto 90%; background-position: 50% calc(100% + 96px); -webkit-mask-image: linear-gradient(180deg, transparent 24%, rgba(0,0,0,0.25) 32%, rgba(0,0,0,0.6) 42%, rgba(0,0,0,0.88) 50%, #000 56%); mask-image: linear-gradient(180deg, transparent 24%, rgba(0,0,0,0.25) 32%, rgba(0,0,0,0.6) 42%, rgba(0,0,0,0.88) 50%, #000 56%); }
+:root[data-fade="full"] .plate::after { background: linear-gradient(180deg, rgba(12,9,6,0.55) 0, rgba(12,9,6,0.45) 45%, rgba(12,9,6,0.3) 75%, rgba(12,9,6,0.25) 100%); }
+:root[data-fade="full"] .screen-today .plate { background-size: auto 94%; background-position: 50% calc(100% + 120px); -webkit-mask-image: linear-gradient(180deg, transparent 19%, rgba(0,0,0,0.25) 26%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.88) 42%, #000 46%); mask-image: linear-gradient(180deg, transparent 19%, rgba(0,0,0,0.25) 26%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.88) 42%, #000 46%); }
+:root[data-fade="full"] .screen-coach .plate { background-size: auto 96%; background-position: 54% calc(100% + 60px); -webkit-mask-image: linear-gradient(180deg, transparent 12%, rgba(0,0,0,0.25) 19%, rgba(0,0,0,0.6) 28%, rgba(0,0,0,0.88) 36%, #000 40%); mask-image: linear-gradient(180deg, transparent 12%, rgba(0,0,0,0.25) 19%, rgba(0,0,0,0.6) 28%, rgba(0,0,0,0.88) 36%, #000 40%); }
+:root[data-fade="full"] .screen-workout .plate::after { background: linear-gradient(180deg, rgba(12,10,8,0.94) 0, rgba(12,10,8,0.9) 55%, rgba(12,10,8,0.78) 100%); }
+/* sky scrims */
+:root[data-fade="full"] .screen-today .surface { height: 46%; background: linear-gradient(180deg, var(--surface) 0, var(--surface) 46%, rgba(13,12,11,0.82) 62%, rgba(13,12,11,0.45) 82%, rgba(13,12,11,0) 100%); }
+:root[data-fade="full"] .screen-workout .surface { height: 56%; background: linear-gradient(180deg, var(--surface) 0, var(--surface) 43%, rgba(13,12,11,0.85) 60%, rgba(13,12,11,0.45) 82%, rgba(13,12,11,0) 100%); }
+:root[data-fade="full"] .screen-coach .surface { height: 40%; background: linear-gradient(180deg, var(--surface) 0, var(--surface) 30%, rgba(13,12,11,0.7) 55%, rgba(13,12,11,0.35) 78%, rgba(13,12,11,0) 100%); }
+:root[data-fade="full"] .screen-workout .surface::after { opacity: 0; }
+:root[data-fade="full"] .tcard, :root[data-fade="full"] .rowcard, :root[data-fade="full"] .talk, :root[data-fade="full"] .setcard, :root[data-fade="full"] .machine, :root[data-fade="full"] .prompt { background: color-mix(in srgb, var(--card) 86%, transparent); }
+/* Dawn full */
+:root[data-fade="full"][data-theme="dawn"] .plate::after { background: linear-gradient(180deg, rgba(250,244,232,0.5) 0, rgba(250,242,226,0.35) 45%, rgba(252,238,216,0.18) 75%, rgba(252,236,212,0.1) 100%); }
+:root[data-fade="full"][data-theme="dawn"] .screen-workout .plate::after { background: linear-gradient(180deg, rgba(250,244,232,0.9) 0, rgba(250,244,232,0.84) 55%, rgba(250,242,228,0.7) 100%); }
+:root[data-fade="full"][data-theme="dawn"] .screen-today .surface { background: linear-gradient(180deg, var(--surface) 0, var(--surface) 46%, rgba(248,243,232,0.82) 62%, rgba(248,243,232,0.45) 82%, rgba(248,243,232,0) 100%); }
+:root[data-fade="full"][data-theme="dawn"] .screen-workout .surface { background: linear-gradient(180deg, var(--surface) 0, var(--surface) 43%, rgba(248,243,232,0.85) 60%, rgba(248,243,232,0.45) 82%, rgba(248,243,232,0) 100%); }
+:root[data-fade="full"][data-theme="dawn"] .screen-coach .plate { background-position: 60% calc(100% + 60px); }
+:root[data-fade="full"][data-theme="dawn"] .screen-coach .surface { height: 50%; background: radial-gradient(ellipse 60% 26% at 50% 72%, rgba(249,244,233,0.8) 0, rgba(249,244,233,0.45) 55%, rgba(249,244,233,0) 100%), linear-gradient(180deg, var(--surface) 0, var(--surface) 24%, rgba(248,243,232,0.7) 44%, rgba(248,243,232,0.35) 64%, rgba(248,243,232,0) 82%); }
+:root[data-fade="full"][data-theme="dawn"] .tcard, :root[data-fade="full"][data-theme="dawn"] .rowcard, :root[data-fade="full"][data-theme="dawn"] .talk, :root[data-fade="full"][data-theme="dawn"] .setcard, :root[data-fade="full"][data-theme="dawn"] .machine, :root[data-fade="full"][data-theme="dawn"] .prompt { background: color-mix(in srgb, var(--card) 90%, transparent); }
+/* Free-standing text lines get a feathered scrim drawn behind them; it fades to nothing inside its own box, so it has no edge */
+:root[data-fade="full"] .plans, :root[data-fade="full"] .links, :root[data-fade="full"] .rir-head, :root[data-fade="full"] .coach-links, :root[data-fade="full"] .mic-label, :root[data-fade="full"] .weigh-note, :root[data-fade="full"] .coach-sub, :root[data-fade="full"] .coach-sub2 { position: relative; isolation: isolate; text-shadow: 0 1px 10px color-mix(in srgb, var(--surface) 90%, transparent), 0 0 3px color-mix(in srgb, var(--surface) 80%, transparent); }
+:root[data-fade="full"] .plans::before, :root[data-fade="full"] .links::before, :root[data-fade="full"] .rir-head::before, :root[data-fade="full"] .coach-links::before, :root[data-fade="full"] .mic-label::before, :root[data-fade="full"] .weigh-note::before { content: ""; position: absolute; left: -24px; right: -24px; top: -18px; bottom: -18px; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 72%, transparent) 0, color-mix(in srgb, var(--surface) 45%, transparent) 45%, color-mix(in srgb, var(--surface) 12%, transparent) 80%, transparent 100%); }
+:root[data-fade="full"] .coach-links::before { left: -10px; right: -10px; }
+
+/* ---------- Coach states: alive through state, never through idle motion (the brief forbids a pulsing orb) ----------
+   idle       the orb as drawn on the board
+   listening  the core brightens, the inner ring turns gold and a second faint ring appears, the mic fills warm
+   answering  the whole disc glows warm and the rings settle back; the pill reads Answering */
+.screen-coach[data-state="listening"] .orb { --orb-disc: radial-gradient(circle at 50% 50%, #fffdf5 0, #fbe7c2 6px, rgba(240,200,140,0.9) 13px, rgba(205,155,100,0.75) 21px, rgba(140,102,70,0.62) 30px, rgba(84,64,50,0.58) 40px, rgba(40,33,28,0.6) 50px, rgba(24,21,19,0.62) 55px); border-color: rgba(232,200,150,0.9); box-shadow: 0 0 30px 6px rgba(240,200,150,0.22), 0 0 0 1px rgba(232,200,150,0.25); }
+.screen-coach[data-state="listening"] .orb-ring.r2 { border-color: rgba(214,180,140,0.55); }
+.screen-coach[data-state="listening"] .orb-ring.r3 { border-color: rgba(214,180,140,0.22); }
+.screen-coach[data-state="listening"] .mic-button { background: radial-gradient(circle at 50% 45%, #a0846a 0, #6e5744 45%, #463829 80%, #2e2620 100%); border-color: rgba(246,220,175,0.95); box-shadow: 0 0 0 9px rgba(215,180,130,0.12), 0 0 34px 8px rgba(240,200,150,0.42), 0 0 90px 26px rgba(255,205,150,0.14); }
+.screen-coach[data-state="answering"] .orb { --orb-disc: radial-gradient(circle at 50% 50%, #fff8ec 0, #f6dcb4 8px, rgba(236,190,130,0.9) 18px, rgba(200,150,98,0.8) 30px, rgba(150,108,74,0.7) 42px, rgba(96,72,54,0.62) 52px, rgba(40,33,28,0.6) 55px); border-color: rgba(232,200,150,0.8); box-shadow: 0 0 40px 10px rgba(240,200,150,0.28); }
+.screen-coach[data-state="answering"] .orb-ring.r2 { border-color: rgba(214,180,140,0.35); }
+:root[data-theme="dawn"] .screen-coach[data-state="listening"] .orb { --orb-disc: radial-gradient(circle at 50% 50%, #ffffff 0, #fffaf0 8px, #ffefd2 18px, #fbe3bd 32px, rgba(250,228,196,0.95) 46px, rgba(248,232,210,0.9) 55px); border-color: rgba(205,170,120,0.9); box-shadow: 0 0 44px 14px rgba(255,232,190,0.85), 0 0 100px 34px rgba(255,226,180,0.4); }
+:root[data-theme="dawn"] .screen-coach[data-state="listening"] .mic-button { background: radial-gradient(circle at 50% 45%, #ffffff 0, #fff4e0 50%, #f4e2c4 100%); border-color: rgba(190,150,95,0.95); box-shadow: 0 0 0 9px rgba(255,230,190,0.5), 0 0 36px 10px rgba(255,222,170,0.7), 0 0 90px 28px rgba(255,214,160,0.3); }
+:root[data-theme="dawn"] .screen-coach[data-state="answering"] .orb { --orb-disc: radial-gradient(circle at 50% 50%, #ffffff 0, #fff6e6 12px, #fde9cc 28px, rgba(250,228,196,0.95) 44px, rgba(248,232,210,0.9) 55px); box-shadow: 0 0 48px 16px rgba(255,232,190,0.7); }
+/* the small orb in the talk pills mirrors the coach state (listening) */
+.talk[data-state="listening"] .orb { background: radial-gradient(circle, #fffdf5 0 3.2px, rgba(255,232,196,0.85) 5px, rgba(255,210,165,0.4) 8px, rgba(150,118,85,0.25) 12px, #1c1a18 15px); box-shadow: 0 0 18px 4px rgba(255,204,140,0.32); border-color: rgba(255,230,190,0.4); }
+:root[data-theme="dawn"] .talk[data-state="listening"] .orb { background: radial-gradient(circle, #2a2420 0 2.6px, rgba(120,95,70,0.9) 4px, #fff3dc 6px, rgba(255,236,200,0.8) 9px, rgba(250,236,214,0.5) 12px, #f6ecd8 15px); box-shadow: 0 0 18px 4px rgba(255,214,160,0.6); }
+
+/* ---------- Level ring: feedback from your own voice while listening (not decoration) ---------- */
+.orb-level { position: absolute; top: 50%; left: 50%; width: 132px; height: 132px; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; opacity: 0; }
+.screen-coach[data-state="listening"] .orb-level { opacity: 1; border: 1.5px solid rgba(240,205,150, calc(0.25 + var(--level, 0) * 0.7)); box-shadow: 0 0 calc(6px + var(--level, 0) * 30px) calc(var(--level, 0) * 8px) rgba(240,200,150, calc(0.1 + var(--level, 0) * 0.45)), inset 0 0 calc(var(--level, 0) * 24px) rgba(240,200,150, calc(var(--level, 0) * 0.35)); }
+.screen-coach[data-state="listening"] .mic-button { box-shadow: 0 0 0 calc(9px + var(--level, 0) * 10px) rgba(215,180,130, calc(0.12 + var(--level, 0) * 0.16)), 0 0 calc(34px + var(--level, 0) * 30px) calc(8px + var(--level, 0) * 10px) rgba(240,200,150, calc(0.42 + var(--level, 0) * 0.3)), 0 0 90px 26px rgba(255,205,150,0.14); }
+:root[data-theme="dawn"] .screen-coach[data-state="listening"] .orb-level { border-color: rgba(200,160,100, calc(0.3 + var(--level, 0) * 0.6)); box-shadow: 0 0 calc(8px + var(--level, 0) * 34px) calc(var(--level, 0) * 10px) rgba(255,214,160, calc(0.25 + var(--level, 0) * 0.5)); }
+:root[data-theme="dawn"] .screen-coach[data-state="listening"] .mic-button { box-shadow: 0 0 0 calc(9px + var(--level, 0) * 10px) rgba(255,230,190, calc(0.5 + var(--level, 0) * 0.2)), 0 0 calc(36px + var(--level, 0) * 30px) calc(10px + var(--level, 0) * 10px) rgba(255,222,170, calc(0.7 + var(--level, 0) * 0.2)), 0 0 90px 28px rgba(255,214,160,0.3); }
+.screen-coach[data-level="unavailable"] .mic-label::after { content: " (no microphone)"; color: var(--faint); }
+
+/* ---------- Workout polish (2026-09-17 owner ask: "could look a lot better") ----------
+   1. The scene breathes: the range now begins under the set card (a calmer version of Today, not a black box).
+   2. The set card carries the light: a faint warm glow behind the numerals, a lifted surface, a gold ×.
+   3. The machine setting steps back: a lighter row so the prescription stays the hero.
+   4. Less noise below: quieter secondary links, chips as one soft group, room between the Log row and the footer links. */
+:root[data-fade="full"] .screen-workout .plate::after { background: linear-gradient(180deg, rgba(12,10,8,0.86) 0, rgba(12,10,8,0.72) 45%, rgba(12,10,8,0.5) 75%, rgba(12,10,8,0.42) 100%); }
+:root[data-fade="full"][data-theme="dawn"] .screen-workout .plate::after { background: linear-gradient(180deg, rgba(250,244,232,0.82) 0, rgba(250,244,232,0.66) 45%, rgba(250,242,228,0.45) 75%, rgba(250,242,228,0.35) 100%); }
+:root[data-fade="full"] .screen-workout .plate { -webkit-mask-image: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.7) 52%, #000 62%); mask-image: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.7) 52%, #000 62%); }
+:root[data-fade="full"] .screen-workout .surface { height: 62%; background: linear-gradient(180deg, var(--surface) 0, var(--surface) 48%, rgba(13,12,11,0.85) 66%, rgba(13,12,11,0.45) 86%, rgba(13,12,11,0) 100%); }
+:root[data-fade="full"][data-theme="dawn"] .screen-workout .surface { background: linear-gradient(180deg, var(--surface) 0, var(--surface) 48%, rgba(248,243,232,0.85) 66%, rgba(248,243,232,0.45) 86%, rgba(248,243,232,0) 100%); }
+
+.setcard { position: relative; overflow: hidden; background: linear-gradient(180deg, color-mix(in srgb, var(--card-raised) 92%, transparent) 0, color-mix(in srgb, var(--card) 88%, transparent) 100%); border-color: var(--line); box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 30px rgba(0,0,0,0.25); }
+.setcard::before { content: ""; position: absolute; left: 50%; top: 52%; width: 300px; height: 150px; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(ellipse at 50% 50%, rgba(255,214,160,0.13) 0, rgba(255,204,140,0.06) 40%, transparent 70%); pointer-events: none; }
+:root[data-theme="dawn"] .setcard { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 10px 30px rgba(120,95,60,0.1); }
+:root[data-theme="dawn"] .setcard::before { background: radial-gradient(ellipse at 50% 50%, rgba(255,214,150,0.35) 0, rgba(255,214,150,0.14) 40%, transparent 70%); }
+.numerals { position: relative; }
+.numerals .times { color: var(--gold); }
+.setcard .last { color: var(--muted); }
+.setcard .last .row-chev { color: var(--faint); }
+
+.machine { background: color-mix(in srgb, var(--card) 70%, transparent); border-color: var(--line-soft); padding-bottom: 14px; }
+.machine .setting { font-size: 32px; margin-top: 6px; }
+.machine .when { margin-top: 4px; color: var(--faint); }
+
+.chip { background: color-mix(in srgb, var(--chip) 85%, transparent); border-color: var(--line-soft); }
+.chip[aria-pressed="true"] { background: var(--chip-selected); border-color: var(--line-gold); box-shadow: 0 0 0 1px rgba(202,169,138,0.25), 0 0 16px rgba(230,190,140,0.15); }
+.rir-head .h { color: var(--text-soft); }
+.screen-workout .links .link { color: var(--muted); text-decoration-color: color-mix(in srgb, var(--muted) 45%, transparent); }
+.screen-workout .links.bottom { margin-top: 14px; }
+.screen-workout .links.bottom .link { color: var(--text-soft); }
+.edit { background: color-mix(in srgb, var(--edit) 85%, transparent); }
+.log { box-shadow: 0 8px 26px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,236,208,0.25); }
+:root[data-theme="dawn"] .log { box-shadow: 0 8px 26px rgba(40,30,20,0.28); }
+
+/* ---------- Organization polish (on Joe's instruction, 2026-09-17) ----------
+   One spacing scale for the whole app: 8 inside a group, 12 between related blocks, 16 around the primary action, 24 between sections.
+   One inner edge for every card (14px), one chevron edge (16px from the right), and every card sits on the same 22px page margin. */
+:root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
+
+/* Cards share one inner edge and one chevron edge */
+.tcard .chev, .rowcard .chev, .machine .chev, .prompt .chev { right: var(--chev-right); }
+.tcard.nav { padding-right: 38px; }
+.setcard { padding-left: var(--card-pad); padding-right: var(--card-pad); }
+.machine { padding-left: var(--card-pad); }
+.prompt { padding-left: var(--card-pad); padding-right: 36px; gap: 20px; }
+.prompts { margin-left: 0; margin-right: 0; gap: var(--s2); }
+
+/* Today: plan group (8) → plan footer (12) → primary action with air on both sides (16) → secondary rows (8) */
+.timeline { gap: var(--s2); }
+.plans { margin-top: var(--s3); }
+.primary { margin-top: 14px; }
+#recovery { margin-top: 14px; }
+#talk-today { margin-top: var(--s2); }
+/* The Talk pill lines up with the row card above it: same icon column, same text edge, same right edge */
+.talk { padding-left: 4px; padding-right: 15px; gap: 16px; }
+
+/* Workout: title (20) → set card (12) → machine card (12) → voice pill + its two links as one unit → RIR block (label 8 chips 12 log) → bottom links */
+.setcard { margin-top: 20px; }
+.machine { margin-top: var(--s3); }
+#workout-voice { margin-top: var(--s3); }
+#workout-voice .talk { margin-top: 0; }
+#workout-voice .links { margin-top: 0; }
+.rir-head { margin-top: var(--s1); }
+.chips { margin-top: var(--s2); }
+.log-row { margin-top: var(--s3); }
+.screen-workout .links.bottom { margin-top: var(--s2); }
+
+/* Coach: prompts on the page margin, an even 8 between them, and the links and mic pulled up so the bottom of the screen reads as one group */
+.coach-links { margin-top: 20px; }
+.mic-wrap { margin-top: var(--s1); }
+.screen-workout .talk { padding-left: 4px; gap: 16px; }
+.talk { padding-right: 11px; }
+.setcard .last { padding-right: 2px; }
+/* The Log row sits on the same five-column grid as the RIR chips: Edit lands under Unsure */
+.log-row { gap: var(--s2); }
+.edit { flex: 0 0 calc((100% - 4 * var(--s2)) / 5); }
+/* The "+" sits in the same column as every chevron on the page */
+.plans .plus { justify-content: center; width: 44px; margin-right: 0; }
+
+/* ---------- Workout, organized for the gym (on Joe's instruction, 2026-09-17) ----------
+   Reading order is the task order: the numbers, the machine, RIR, Log, then the set links; the coach is the footer, as on Today.
+   Set progress is glanceable: four dots beside the count (done · now · to come). */
+.session-row .count { display: inline-flex; align-items: center; gap: 8px; }
+.set-dots { display: inline-flex; gap: 4px; align-items: center; }
+.set-dots i { display: block; width: 6px; height: 6px; border-radius: 50%; border: 1px solid var(--muted); background: transparent; }
+.set-dots i.now { border-color: var(--gold); background: transparent; box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 35%, transparent); }
+.set-dots i.done { border-color: var(--gold); background: var(--gold); }
+.screen-workout .rir-head { margin-top: var(--s4); }
+.screen-workout .links.bottom { margin-top: var(--s2); }
+.screen-workout #workout-voice { margin-top: var(--s2); }
+.screen-workout #workout-voice .links { margin-top: 0; }
+.screen-workout #workout-note { margin-top: var(--s2); }
+.session-row .count { height: 15px; line-height: 1; }
+
+/* ---------- Today, top of screen: haze instead of a hard fill (on Joe's question, 2026-09-17) ----------
+   The scene never fully leaves: a faint veiled sky runs to the very top, the range starts to show earlier and arrives more slowly (fully in by 46% as before),
+   and the greeting's heavy shadow is no longer needed. ?top=solid restores the flat top. */
+:root[data-fade="full"] .screen-today .plate { -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.3) 0, rgba(0,0,0,0.32) 16%, rgba(0,0,0,0.55) 28%, rgba(0,0,0,0.85) 38%, #000 46%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.3) 0, rgba(0,0,0,0.32) 16%, rgba(0,0,0,0.55) 28%, rgba(0,0,0,0.85) 38%, #000 46%); }
+:root[data-fade="full"] .screen-today .surface { background: linear-gradient(180deg, rgba(13,12,11,0.62) 0, rgba(13,12,11,0.58) 40%, rgba(13,12,11,0.35) 75%, rgba(13,12,11,0) 100%); }
+:root[data-fade="full"][data-theme="dawn"] .screen-today .surface { background: linear-gradient(180deg, rgba(248,243,232,0.62) 0, rgba(248,243,232,0.58) 40%, rgba(248,243,232,0.35) 75%, rgba(248,243,232,0) 100%); }
+:root[data-fade="full"] .screen-today .greeting { text-shadow: 0 1px 6px rgba(0,0,0,0.35); }
+:root[data-fade="full"][data-theme="dawn"] .screen-today .greeting { text-shadow: 0 1px 6px rgba(255,250,240,0.5); }
+/* the previous flat top, kept for comparison */
+:root[data-fade="full"][data-top="solid"] .screen-today .plate { -webkit-mask-image: linear-gradient(180deg, transparent 19%, rgba(0,0,0,0.25) 26%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.88) 42%, #000 46%); mask-image: linear-gradient(180deg, transparent 19%, rgba(0,0,0,0.25) 26%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.88) 42%, #000 46%); }
+:root[data-fade="full"][data-top="solid"] .screen-today .surface { background: linear-gradient(180deg, var(--surface) 0, var(--surface) 46%, rgba(13,12,11,0.82) 62%, rgba(13,12,11,0.45) 82%, rgba(13,12,11,0) 100%); }
+:root[data-fade="full"][data-top="solid"][data-theme="dawn"] .screen-today .surface { background: linear-gradient(180deg, var(--surface) 0, var(--surface) 46%, rgba(248,243,232,0.82) 62%, rgba(248,243,232,0.45) 82%, rgba(248,243,232,0) 100%); }
+:root[data-fade="full"][data-top="solid"] .screen-today .greeting { text-shadow: var(--text-shadow); }
+/* Full mode uses the tall plates: the same picture with 700 px of synthesized sky above it, so the image's top edge is above the screen and the haze can run to the top.
+   Sizes are the old ones × 1755/1055 so the range sits exactly where it did. */
+:root[data-fade="full"] .plate { background-image: url("assets/plate-ink-tall.jpg"); background-size: auto 149.7%; }
+:root[data-fade="full"][data-theme="dawn"] .plate { background-image: url("assets/plate-dawn-tall.jpg"); }
+:root[data-fade="full"] .screen-today .plate { background-size: auto 156.4%; }
+:root[data-fade="full"] .screen-coach .plate { background-size: auto 159.7%; }
+/* Top of Today, one step more open (Joe, 2026-09-17): between haze and open. About a fifth of the sky shows at the top; the range arrives by 44%. */
+:root[data-fade="full"] .screen-today .plate { -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.5) 0, rgba(0,0,0,0.52) 14%, rgba(0,0,0,0.68) 26%, rgba(0,0,0,0.9) 36%, #000 44%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.5) 0, rgba(0,0,0,0.52) 14%, rgba(0,0,0,0.68) 26%, rgba(0,0,0,0.9) 36%, #000 44%); }
+:root[data-fade="full"] .screen-today .surface { background: linear-gradient(180deg, rgba(13,12,11,0.46) 0, rgba(13,12,11,0.42) 40%, rgba(13,12,11,0.24) 75%, rgba(13,12,11,0) 100%); }
+:root[data-fade="full"][data-theme="dawn"] .screen-today .surface { background: linear-gradient(180deg, rgba(248,243,232,0.46) 0, rgba(248,243,232,0.42) 40%, rgba(248,243,232,0.24) 75%, rgba(248,243,232,0) 100%); }
+:root[data-fade="full"] .screen-today .greeting { text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+:root[data-fade="full"][data-theme="dawn"] .screen-today .greeting { text-shadow: 0 1px 4px rgba(255,250,240,0.45); }
+:root[data-fade="full"] .screen-today .status-line, :root[data-fade="full"] .screen-today .header { text-shadow: 0 1px 3px color-mix(in srgb, var(--surface) 55%, transparent); }
+
+/* ---------- Today: Recovery row and Talk pill, audited against the boards (2026-09-17) ----------
+   Board: moon about 25 px inside a 40 px square with a ~1.9 px stroke; ours was 13 px at 1.5. Title and pill label read as medium (500), ours were 480/450.
+   Board orb: a small bright core with a tight warm halo on a dark disc and a thin gold ring (Ink); a cream disc with a dark core and a soft warm glow, no hard ring (Dawn).
+   Board mic: 19 × 24 with a ~1.9 px stroke. */
+.rowcard .icon-square svg { width: 33px; height: 33px; stroke-width: 1.35; margin-left: 1px; }   /* 22 px moon; the crescent's mass sits left, so it is nudged right */
+:root[data-theme="dawn"] .rowcard .icon-square { border-color: transparent; background: #eee6d5; }
+:root[data-theme="dawn"] .rowcard .icon-square svg { stroke-width: 1.5; }
+.rowcard .title { font-weight: 500; }
+.rowcard .sub { font-weight: 430; }
+.talk .label { font-weight: 500; }
+.talk .mic { width: 19px; height: 25px; }
+.talk .mic svg { stroke-width: 1.85; }
+.talk .orb { background: radial-gradient(circle, #fff8e8 0 2.6px, rgba(255,224,184,0.9) 4px, rgba(255,204,156,0.38) 7px, rgba(255,190,140,0.1) 10.5px, #1a1816 12.5px); border: 1px solid rgba(214,182,140,0.42); box-shadow: 0 0 10px 0 rgba(255,190,130,0.12); }
+:root[data-theme="dawn"] .talk .orb { background: radial-gradient(circle, #2b241f 0 2.4px, rgba(120,90,60,0.85) 3.4px, rgba(236,196,140,0.55) 5.5px, rgba(248,226,190,0.5) 8px, #f7efe0 11.5px); border: 1px solid rgba(120,95,70,0.14); box-shadow: 0 0 12px 1px rgba(240,200,140,0.32); }
+/* Icons were hugging the left edge of their cards (3 to 4 px). The Dawn board insets them about 16 px; both rows now inset 12 to 13 px, icon centres and text edges still aligned with each other. */
+.rowcard { padding-left: 12px; }
+.talk { padding-left: 13px; }
+.screen-workout .talk { padding-left: 13px; }
+/* The mic was 12 px from the pill's right edge to sit on the chevron column; the board keeps it about 18 px in. Symmetry with the orb wins over the column. */
+.talk { padding-right: 17px; }
+/* Joe's phone close-up (2026-09-17): the moon read heavy and sat low-left in its square; the orb read as a hollow ring around a dot, and a 36 px circle looks smaller than a 38 px square.
+   Moon: a little smaller and lighter, nudged up and right so its mass sits centred. Orb: 38 px, softer ring, the glow fills more of the disc. */
+.rowcard .icon-square svg { width: 29px; height: 29px; stroke-width: 1.45; margin: -1px 0 0 1px; }
+:root[data-theme="dawn"] .rowcard .icon-square svg { stroke-width: 1.6; }
+.talk .orb { width: 38px; height: 38px; background: radial-gradient(circle, #fff8e8 0 2.6px, rgba(255,226,188,0.92) 4.5px, rgba(255,206,158,0.42) 8px, rgba(255,192,142,0.14) 12px, #1c1a17 15px); border: 1px solid rgba(214,182,140,0.28); box-shadow: 0 0 12px 0 rgba(255,190,130,0.16); }
+:root[data-theme="dawn"] .talk .orb { background: radial-gradient(circle, #2b241f 0 2.4px, rgba(120,90,60,0.85) 3.4px, rgba(236,196,140,0.55) 6px, rgba(248,226,190,0.5) 9.5px, #f7efe0 13.5px); border: 1px solid rgba(120,95,70,0.12); box-shadow: 0 0 12px 1px rgba(240,200,140,0.3); }
+.talk { gap: 14px; }
+.screen-workout .talk { gap: 14px; }
+/* Joe's phone close-up of the right edge (2026-09-17): the Start arrow, the card chevrons and the mic sat on three different centre lines (30, 20 and 27 px from the edge) and the mic was the heaviest line on the screen.
+   One right-hand glyph column now: every arrow, chevron, "+" and mic is centred 24 px from its card's edge, and the mic's stroke matches the chevron's. */
+:root { --chev-right: 20px; }
+.primary, .log { padding-right: 14px; }
+.talk { padding-right: 13.5px; }
+.talk .mic { width: 18px; height: 24px; }
+.talk .mic svg { stroke-width: 1.6; }
+.plans .plus { margin-right: 2px; }
+.setcard .last { padding-right: 6px; }
+:root { --chev-right: 19px; }   /* + 1 px card border = centre 24 */
+.talk { padding-right: 14px; }
+/* The Talk pill was as tall as the cards above it (62 px), so the full round ends made it read as a fat capsule. The board's pill is about 56 px. Now 54 px with a 34 px orb: a sleeker pill, icon centre and text edge unchanged. */
+.talk { height: 54px; padding-left: 14px; gap: 17px; }
+.screen-workout .talk { padding-left: 14px; gap: 17px; }
+.talk .orb { width: 34px; height: 34px; background: radial-gradient(circle, #fff8e8 0 2.4px, rgba(255,226,188,0.92) 4px, rgba(255,206,158,0.42) 7px, rgba(255,192,142,0.14) 10.5px, #1c1a17 13.5px); }
+:root[data-theme="dawn"] .talk .orb { background: radial-gradient(circle, #2b241f 0 2.2px, rgba(120,90,60,0.85) 3.2px, rgba(236,196,140,0.55) 5.5px, rgba(248,226,190,0.5) 8.5px, #f7efe0 12px); }
+.talk .mic { width: 17px; height: 23px; }
+#talk-today { margin-top: 10px; }
+.talk { padding-right: 14.5px; }   /* 17 px mic: centre back on 24 */
+
+/* ---------- Today, bottom stack audit (2026-09-17) ----------
+   Three rows, three icon treatments: no icon, a bordered square, a ringed circle. The square inside a card made a box in a box; next to the pill's orb it read as two systems.
+   Fix: the moon sits in a 34 px disc like the orb, no border. "Plans changed?" moves onto the timeline's text edge so it reads as the plan's footer, not a stray heading.
+   Gaps tightened by 2 px each so the stack ends 8 px higher, clear of the home indicator. */
+.rowcard .icon-square { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--moon-bg); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); }
+.rowcard .icon-square svg { width: 22px; height: 22px; stroke-width: 1.6; margin: 0 0 0 1px; }
+:root[data-theme="dawn"] .rowcard .icon-square { background: #ebe3d2; box-shadow: inset 0 0 0 1px rgba(120,95,70,0.08); }
+:root[data-theme="dawn"] .rowcard .icon-square svg { stroke-width: 1.7; }
+.rowcard { padding-left: 14px; gap: 17px; }       /* disc centre and text edge match the pill */
+.screen-today .plans .label { padding-left: 36px; color: var(--text-soft); }
+.plans { margin-top: 10px; }
+.primary { margin-top: 12px; }
+#recovery { margin-top: 12px; }
+#talk-today { margin-top: 8px; }
+.rowcard .icon-square { background: #1f1d1a; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
+:root[data-theme="dawn"] .rowcard .icon-square { background: #ebe3d2; box-shadow: inset 0 0 0 1px rgba(120,95,70,0.08); }
+
+/* ---------- Workout, bottom audit (Joe, 2026-09-17): the action sits with the thing it acts on ----------
+   Order is now: numbers → Log → RIR → machine setting → set links → coach. Log is 12 px under the set card instead of 210 px below it.
+   The machine setting becomes a row card like Recovery on Today (disc icon, one line of context, chevron): the same family, a third the height. */
+.screen-workout .log-row { margin-top: var(--s3); }
+.screen-workout .rir-head { margin-top: var(--s3); }
+.machine.rowcard { margin-top: var(--s4); min-height: 60px; padding: 8px 40px 8px 14px; background: color-mix(in srgb, var(--card) 86%, transparent); border: 1px solid var(--line-soft); border-radius: var(--radius-card); box-shadow: none; }
+.machine.rowcard .text { display: flex; flex-direction: column; align-self: center; margin-top: 0; }
+.machine.rowcard .setting { font-family: var(--serif); font-size: 22px; line-height: 1; margin: 0; font-weight: 400; }
+.machine.rowcard .when { font-size: 13px; line-height: 1.3; color: var(--muted); margin-top: 4px; }
+.machine.rowcard .icon-square svg { width: 20px; height: 20px; stroke-width: 1.5; margin: 0; }
+.screen-workout .links.bottom { margin-top: var(--s2); }
+.screen-workout #workout-voice { margin-top: var(--s2); }
+/* Thumb over eye (Joe, 2026-09-17): in the gym the numbers are read at arm's length and Log is tapped without looking, so the numbers stay at the top and Log returns to the thumb zone.
+   Order: numbers → machine row → coach pill → RIR → Log → set links. The compact machine row keeps everything 37 px higher than the first gym order. */
+.machine.rowcard { margin-top: var(--s3); }
+.screen-workout #workout-voice { margin-top: var(--s3); }
+.screen-workout .rir-head { margin-top: var(--s1); }
+.screen-workout .log-row { margin-top: var(--s3); }
+.screen-workout .links.bottom { margin-top: var(--s2); }
+
+/* ---------- Four fixes from the design audit (Joe: "Go", 2026-09-17) ----------
+   1. Pressed states. Instant, while the finger is down; no transition, so nothing animates. Every tappable surface answers the touch. */
+button, .tcard.nav, .rowcard, .prompt, .chip, .decision, .save, .edit, .primary, .log, .talk, .mic-button, .link { -webkit-tap-highlight-color: transparent; }
+.primary:active, .log:active { background: color-mix(in srgb, var(--cream) 90%, #000); }
+:root[data-theme="dawn"] .primary:active, :root[data-theme="dawn"] .log:active { background: color-mix(in srgb, var(--cream) 82%, #fff); }
+.tcard.nav:active, .rowcard:active, .prompt:active, .talk:active, .machine:active { background: color-mix(in srgb, var(--card-raised) 100%, transparent); border-color: var(--line); }
+:root[data-theme="dawn"] .tcard.nav:active, :root[data-theme="dawn"] .rowcard:active, :root[data-theme="dawn"] .prompt:active, :root[data-theme="dawn"] .talk:active, :root[data-theme="dawn"] .machine:active { background: #ece5d6; }
+.chip:active { background: var(--chip-selected); border-color: var(--line-gold); }
+:root[data-theme="dawn"] .chip:active { background: #e6ded0; border-color: var(--line-gold); }
+.decision:active, .save:active, .edit:active { background: var(--chip-selected); border-color: var(--line-gold); }
+:root[data-theme="dawn"] .decision:active, :root[data-theme="dawn"] .edit:active { background: #e6ded0; }
+:root[data-theme="dawn"] .save:active { background: color-mix(in srgb, var(--save) 85%, #000); }
+.mic-button:active { background: color-mix(in srgb, var(--mic-fill) 80%, var(--gold)); }
+.setcard .last:active { color: var(--text); }
+.plans .plus:active, .header .back:active { color: var(--gold); }
+.link:active { color: var(--gold); }
+.primary:disabled:active { background: var(--cream); }
+
+/* 2. Home indicator: reserve the safe area at the bottom of every screen (iOS in an installed app), never less than the 24 px the layout already keeps. */
+.ui { padding-bottom: max(24px, env(safe-area-inset-bottom, 0px)); }
+
+/* 3. The Log label uses the same × as the set card (set in app.js and app.html).
+   4. Tertiary links: app idiom, not web. No underline; muted text, same 44 px target. */
+.link, .screen-workout .links .link, .screen-workout .links.bottom .link { text-decoration: none; color: var(--muted); font-weight: 460; }
+.proposal .why { color: var(--text-soft); }
+:root[data-fade="full"] .coach-links .link { color: var(--text-soft); }
+
+/* ---------- Gate findings, first run (2026-09-17) ----------
+   Back button was 40 px wide; the weight field 40 px tall; the Coach hero block used gaps off the scale (7 / 22 / 43); Coach did not fit a 360 × 780 phone by 2 px. */
+.header .back { width: 44px; margin-left: -3px; }
+.weigh-row .field, .weigh-row input { height: 44px; }
+.weigh-row { margin-top: 6px; margin-bottom: -1px; }
+.orb-wrap { margin-top: 44px; }
+.coach-title { margin-top: 24px; }
+.coach-sub, .coach-sub2 { margin-top: 8px; }
+.prompts { margin-top: 24px; }
+@media (max-height: 800px) { .orb-wrap { margin-top: 24px; } .coach-links { margin-top: 12px; } }
+/* Gate, second run: contrast measured behind the text. Tertiary links and small labels over the scene were below 3:1 in places (Dawn worst).
+   Links and "optional" step up one tone; scrims behind free-standing rows are stronger and wider; the Coach sub lines get a scrim too. */
+.link, .screen-workout .links .link, .screen-workout .links.bottom .link, :root[data-fade="full"] .coach-links .link { color: var(--text-soft); }
+.rir-head .opt { color: var(--muted); }
+.chip.unsure { color: var(--text-soft); }
+:root[data-fade="full"] .plans::before, :root[data-fade="full"] .links::before, :root[data-fade="full"] .rir-head::before, :root[data-fade="full"] .coach-links::before, :root[data-fade="full"] .mic-label::before, :root[data-fade="full"] .weigh-note::before, :root[data-fade="full"] .coach-sub2::before, :root[data-fade="full"] .coach-sub::before { content: ""; position: absolute; left: -28px; right: -28px; top: -20px; bottom: -20px; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 90%, transparent) 0, color-mix(in srgb, var(--surface) 70%, transparent) 45%, color-mix(in srgb, var(--surface) 25%, transparent) 78%, transparent 100%); }
+:root[data-fade="full"] .links::before, :root[data-fade="full"] .rir-head::before { background: linear-gradient(90deg, transparent 0, color-mix(in srgb, var(--surface) 88%, transparent) 6%, color-mix(in srgb, var(--surface) 88%, transparent) 94%, transparent 100%); -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 30%, #000 70%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 30%, #000 70%, transparent 100%); }
+:root[data-fade="full"] .coach-links::before { left: -12px; right: -12px; background: linear-gradient(90deg, transparent 0, color-mix(in srgb, var(--surface) 88%, transparent) 8%, color-mix(in srgb, var(--surface) 88%, transparent) 92%, transparent 100%); -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 30%, #000 70%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 30%, #000 70%, transparent 100%); }
+:root { --save: #3d362e; }   /* Save pill: cream on this reads 4.6:1 */
+/* Phone-zoom review of the stronger scrims: the linear bands read as bars over the scene. Back to feathered clouds, a little denser and taller; in Dawn the wash lifts the rocks under the bottom rows instead. */
+:root[data-fade="full"] .plans::before, :root[data-fade="full"] .links::before, :root[data-fade="full"] .rir-head::before, :root[data-fade="full"] .coach-links::before, :root[data-fade="full"] .mic-label::before, :root[data-fade="full"] .weigh-note::before, :root[data-fade="full"] .coach-sub2::before, :root[data-fade="full"] .coach-sub::before { left: -28px; right: -28px; top: -22px; bottom: -22px; background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 84%, transparent) 0, color-mix(in srgb, var(--surface) 62%, transparent) 40%, color-mix(in srgb, var(--surface) 22%, transparent) 75%, transparent 100%); -webkit-mask-image: none; mask-image: none; }
+:root[data-fade="full"] .coach-links::before { left: -12px; right: -12px; }
+:root[data-fade="full"][data-theme="dawn"] .plate::after { background: linear-gradient(180deg, rgba(250,244,232,0.5) 0, rgba(250,242,226,0.35) 45%, rgba(252,238,216,0.26) 75%, rgba(252,236,212,0.22) 100%); }
+:root[data-fade="full"][data-theme="dawn"] .screen-workout .plate::after { background: linear-gradient(180deg, rgba(250,244,232,0.82) 0, rgba(250,244,232,0.66) 45%, rgba(250,242,228,0.5) 75%, rgba(250,242,228,0.44) 100%); }
+/* Each tertiary link over the scene carries its own small cloud, centred on the word, instead of a row-wide one that thins out at the ends. */
+:root[data-fade="full"] .links::before, :root[data-fade="full"] .coach-links::before { content: none; }
+:root[data-fade="full"] .links .link, :root[data-fade="full"] .coach-links .link { position: relative; isolation: isolate; }
+:root[data-fade="full"] .links .link::before, :root[data-fade="full"] .coach-links .link::before { content: ""; position: absolute; left: -26px; right: -26px; top: -10px; bottom: -10px; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 86%, transparent) 0, color-mix(in srgb, var(--surface) 62%, transparent) 45%, color-mix(in srgb, var(--surface) 20%, transparent) 78%, transparent 100%); }
+:root[data-fade="full"] .coach-links .link::before { left: -16px; right: -16px; top: -8px; bottom: -8px; }
+
+/* ---------- Independent review, round 1 (2026-09-17): fixes ----------
+   R1 Dawn Coach orb was invisible (4% contrast). Its own recipe: a grounded disc, a warm amber core, rings that exist. */
+:root[data-theme="dawn"] .orb { background: radial-gradient(circle at 50% 50%, #fff3dc 0 4px, #f0c07a 9px, rgba(236,190,130,0.55) 20px, #efe2cc 52px, #ece0c9 56px); border-color: rgba(138,106,68,0.32); box-shadow: 0 0 30px 6px rgba(240,190,120,0.35), 0 0 80px 20px rgba(240,200,140,0.2); }
+:root[data-theme="dawn"] .orb-ring.r2 { border-color: rgba(138,106,68,0.16); }
+:root[data-theme="dawn"] .orb-ring.r3 { border-color: rgba(138,106,68,0.11); }
+/* R2 Coach link clouds merged into a band: small, separate, lighter. */
+:root[data-fade="full"] .coach-links .link::before { left: -10px; right: -10px; top: -6px; bottom: -6px; background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 70%, transparent) 0, color-mix(in srgb, var(--surface) 40%, transparent) 50%, transparent 100%); }
+/* R3 "Plans changed?" is a real button now and dresses like every other tertiary link. */
+.plans .label { font-family: var(--sans); font-size: 13.5px; font-weight: 460; color: var(--text-soft); min-height: 44px; display: inline-flex; align-items: center; background: none; border: 0; padding-left: 36px; }
+.screen-today .plans .label { padding-left: 36px; }
+.plans { height: 44px; margin-top: 4px; }
+/* R4 Edit next to Log: a ghost button, 12 px away, not a fifth chip. */
+.log-row { gap: 12px; }
+.edit { flex: 0 0 64px; background: transparent; border: 1px solid var(--line); color: var(--text-soft); }
+:root[data-theme="dawn"] .edit { background: transparent; }
+.edit:active { background: var(--chip-selected); }
+/* R5 Dawn Talk orb: an ember, not a smudge. Bright core with a crisp edge on a slightly darker disc. */
+:root[data-theme="dawn"] .talk .orb { background: radial-gradient(circle, #fff6e4 0 2.2px, #e9a755 2.4px, rgba(233,167,85,0.75) 4px, rgba(240,200,140,0.35) 7px, #e6d8c0 11px, #e4d6be 13px); border: 1px solid rgba(120,95,70,0.22); box-shadow: 0 0 10px 1px rgba(233,167,85,0.28); }
+/* R6 Radii: 14 for cards, buttons and chips; full round only for pills (Save, Use/Keep, Talk, header pills, per the boards). */
+:root { --radius-chip: 14px; }
+.mic-label, .text-mode input, .text-mode button { border-radius: 14px; }
+/* R7 Timeline rail: centred on the dots, behind the cards, ending at the last dot. */
+.timeline::before { left: 14.25px; z-index: 0; bottom: var(--rail-end, 8px); }
+.tcard { z-index: 1; }
+/* R8 Set-progress dots: fill, not hue. */
+.set-dots i { width: 6px; height: 6px; border: 1px solid var(--muted); background: transparent; }
+.set-dots i.done { width: 7px; height: 7px; border-color: var(--muted); background: var(--muted); }
+.set-dots i.now { width: 8px; height: 8px; border-color: var(--gold); background: var(--gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 30%, transparent); }
+/* R9 One row-card component on Coach too: 34 px disc, 15/500 title, same text edge; long prompts may wrap. */
+.prompt { padding: 8px 40px 8px 14px; gap: 17px; font-size: 15px; font-weight: 500; white-space: normal; min-height: 60px; }
+.prompt .icon-square { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; background: #1f1d1a; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; }
+.prompt .icon-square svg.icon { width: 20px; height: 20px; }
+:root[data-theme="dawn"] .prompt .icon-square { background: #ebe3d2; box-shadow: inset 0 0 0 1px rgba(120,95,70,0.08); }
+/* R10 Commit controls: Save gets the primary treatment at its own size; the proposed option carries a gold edge. */
+.save { background: var(--cream); color: var(--ink); border-color: transparent; font-weight: 500; }
+:root[data-theme="dawn"] .save { background: var(--cream); color: var(--ink); }
+.save:active { background: color-mix(in srgb, var(--cream) 90%, #000); }
+:root[data-theme="dawn"] .save:active { background: color-mix(in srgb, var(--cream) 82%, #fff); }
+#use-105 { border-color: var(--line-gold); box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 30%, transparent); }
+/* R11 Ink mic: the primary treatment Dawn already has. */
+:root:not([data-theme="dawn"]) .mic-button { background: radial-gradient(circle at 50% 45%, #fff8ec 0, var(--cream) 60%, #ecdfc8 100%); color: var(--ink); border-color: rgba(236,206,160,0.9); }
+:root:not([data-theme="dawn"]) .mic-button:active { background: color-mix(in srgb, var(--cream) 90%, #000); }
+/* R12 Structural drift. */
+.screen-workout .surface::after { display: none; }
+.setcard { padding-top: 14px; padding-bottom: 14px; }
+.decisions, .chips { margin-top: 4px; }
+.edit { background: color-mix(in srgb, var(--card) 60%, transparent); }
+:root[data-theme="dawn"] .edit { background: color-mix(in srgb, var(--card) 60%, transparent); }
+:root { --mic-glyph: #1a1815; }   /* Ink mic is cream now, so its glyph is ink */
+.screen-coach[data-state="listening"] .mic-button { color: var(--text); }
+.screen-coach[data-state="listening"] .mic-button svg { color: var(--text) !important; }
+.prompt { font-size: 14.5px; padding-right: 36px; }   /* all three prompts on one line at 393 wide; they wrap on narrower phones instead of clipping */
+
+/* ---------- Today: a little less mountain (Joe and his girlfriend, 2026-09-17) ----------
+   The range now arrives fully by 52% instead of 44% and carries a touch more wash, so the plan cards sit on calm ground and the scene holds the bottom third.
+   ?mountain=more restores the previous Today. Coach and the workout are unchanged. */
+:root[data-fade="full"]:not([data-mountain="more"]) .screen-today .plate { -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.42) 0, rgba(0,0,0,0.44) 16%, rgba(0,0,0,0.56) 30%, rgba(0,0,0,0.82) 42%, #000 52%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.42) 0, rgba(0,0,0,0.44) 16%, rgba(0,0,0,0.56) 30%, rgba(0,0,0,0.82) 42%, #000 52%); }
+:root[data-fade="full"]:not([data-mountain="more"]) .screen-today .surface { height: 52%; background: linear-gradient(180deg, rgba(13,12,11,0.5) 0, rgba(13,12,11,0.46) 40%, rgba(13,12,11,0.28) 75%, rgba(13,12,11,0) 100%); }
+:root[data-fade="full"]:not([data-mountain="more"])[data-theme="dawn"] .screen-today .surface { background: linear-gradient(180deg, rgba(248,243,232,0.5) 0, rgba(248,243,232,0.46) 40%, rgba(248,243,232,0.28) 75%, rgba(248,243,232,0) 100%); }
+:root[data-fade="full"]:not([data-mountain="more"]) .screen-today .plate::after { background: linear-gradient(180deg, rgba(12,9,6,0.6) 0, rgba(12,9,6,0.5) 45%, rgba(12,9,6,0.36) 75%, rgba(12,9,6,0.3) 100%); }
+:root[data-fade="full"]:not([data-mountain="more"])[data-theme="dawn"] .screen-today .plate::after { background: linear-gradient(180deg, rgba(250,244,232,0.56) 0, rgba(250,242,226,0.42) 45%, rgba(252,238,216,0.32) 75%, rgba(252,236,212,0.28) 100%); }
+
+/* ---------- Scene "strong" (Joe's pick, 2026-09-17): the shape of the old Strong fade on the new machinery ----------
+   Flat top, the range low and heavy, every dissolve long. Same tall plates, scrims, pressed states, occlusion mask and checks as before; only the geometry changes.
+   Numbers are the old px spec expressed as shares of the screen so they hold on every phone. ?fade=full brings back the open scene. */
+:root[data-fade="full"][data-scene="strong"] .screen-today .plate { background-size: auto 132.6%; background-position: 47.6% calc(100% + 207px); -webkit-mask-image: linear-gradient(180deg, transparent 41%, rgba(0,0,0,0.15) 54%, rgba(0,0,0,0.4) 66%, rgba(0,0,0,0.7) 79%, rgba(0,0,0,0.92) 90%, #000 100%); mask-image: linear-gradient(180deg, transparent 41%, rgba(0,0,0,0.15) 54%, rgba(0,0,0,0.4) 66%, rgba(0,0,0,0.7) 79%, rgba(0,0,0,0.92) 90%, #000 100%); }
+:root[data-fade="full"][data-scene="strong"] .screen-today .surface { height: 100%; background: linear-gradient(180deg, var(--surface) 0, var(--surface) 43%, rgba(13,12,11,0.9) 55%, rgba(13,12,11,0.68) 68%, rgba(13,12,11,0.42) 81%, rgba(13,12,11,0.2) 93%, rgba(13,12,11,0.08) 100%); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-today .surface { background: linear-gradient(180deg, #f9f4e9 0, #f9f4e9 43%, rgba(248,242,229,0.88) 55%, rgba(248,240,224,0.62) 68%, rgba(248,238,220,0.35) 81%, rgba(248,236,216,0.14) 93%, rgba(248,236,216,0.04) 100%); }
+:root[data-fade="full"][data-scene="strong"] .screen-today .greeting { text-shadow: var(--text-shadow); }
+:root[data-fade="full"][data-scene="strong"] .screen-workout .plate { background-size: auto 124.3%; background-position: 59.2% calc(100% + 215px); -webkit-mask-image: linear-gradient(180deg, transparent 48%, rgba(0,0,0,0.2) 61%, rgba(0,0,0,0.5) 74%, rgba(0,0,0,0.8) 87%, #000 97%); mask-image: linear-gradient(180deg, transparent 48%, rgba(0,0,0,0.2) 61%, rgba(0,0,0,0.5) 74%, rgba(0,0,0,0.8) 87%, #000 97%); }
+:root[data-fade="full"][data-scene="strong"] .screen-workout .surface { height: 100%; background: linear-gradient(180deg, var(--surface) 0, var(--surface) 55%, rgba(13,12,11,0.9) 63%, rgba(13,12,11,0.72) 74%, rgba(13,12,11,0.52) 86%, rgba(13,12,11,0.3) 100%); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-workout .surface { background: linear-gradient(180deg, var(--surface) 0, var(--surface) 55%, rgba(248,243,232,0.85) 63%, rgba(248,243,232,0.62) 74%, rgba(248,243,232,0.4) 86%, rgba(248,243,232,0.15) 100%); }
+:root[data-fade="full"][data-scene="strong"] .screen-coach .plate { background-size: auto 124.3%; background-position: 78.9% calc(100% + 35px); -webkit-mask-image: linear-gradient(180deg, transparent 27%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.3) 53%, rgba(0,0,0,0.55) 66%, rgba(0,0,0,0.8) 79%, rgba(0,0,0,0.95) 90%, #000 100%); mask-image: linear-gradient(180deg, transparent 27%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.3) 53%, rgba(0,0,0,0.55) 66%, rgba(0,0,0,0.8) 79%, rgba(0,0,0,0.95) 90%, #000 100%); }
+:root[data-fade="full"][data-scene="strong"] .screen-coach .surface { height: 100%; background: linear-gradient(180deg, var(--surface) 0, var(--surface) 30.5%, rgba(13,12,11,0.88) 42%, rgba(13,12,11,0.68) 54%, rgba(13,12,11,0.45) 67%, rgba(13,12,11,0.25) 80%, rgba(13,12,11,0.08) 93%, rgba(13,12,11,0) 100%); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-coach .plate { background-size: auto 132.6%; background-position: 63.5% calc(100% + 27px); -webkit-mask-image: linear-gradient(180deg, transparent 17.6%, rgba(0,0,0,0.25) 30.5%, rgba(0,0,0,0.5) 44.6%, rgba(0,0,0,0.75) 61%, rgba(0,0,0,0.92) 77.5%, #000 91.5%); mask-image: linear-gradient(180deg, transparent 17.6%, rgba(0,0,0,0.25) 30.5%, rgba(0,0,0,0.5) 44.6%, rgba(0,0,0,0.75) 61%, rgba(0,0,0,0.92) 77.5%, #000 91.5%); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-coach .surface { background: radial-gradient(ellipse 60% 34% at 50% 38.7%, rgba(249,244,233,0.92) 0, rgba(249,244,233,0.6) 60%, rgba(249,244,233,0) 100%), linear-gradient(180deg, var(--surface) 0, var(--surface) 17.6%, rgba(249,244,233,0.78) 29%, rgba(249,244,233,0.58) 42%, rgba(249,244,233,0.42) 56%, rgba(249,244,233,0.25) 73%, rgba(249,244,233,0.08) 90%, rgba(249,244,233,0) 100%); }
+/* Coach mic, Ink (Joe, 2026-09-17): the cream disc read as a white spot on the scene. Back to the ember family: a dark disc with a gold ring, a warm inner glow and a cream glyph, one step richer than the old taupe so it still leads the prompts. */
+:root:not([data-theme="dawn"]) .mic-button { background: radial-gradient(circle at 50% 42%, #4a3b2e 0, #2e2621 55%, #1d1917 100%); color: #f6eee2; border: 1.5px solid rgba(236,206,160,0.85); box-shadow: 0 0 0 6px rgba(205,170,125,0.08), 0 0 28px 6px rgba(230,190,140,0.28), inset 0 0 18px rgba(255,200,140,0.12); }
+:root:not([data-theme="dawn"]) .mic-button svg { color: #f6eee2 !important; }
+:root:not([data-theme="dawn"]) .mic-button:active { background: radial-gradient(circle at 50% 42%, #6a5340 0, #3e332a 55%, #26201b 100%); }
+
+/* ---------- One world (Joe, 2026-09-17): Strong keeps its low, heavy range, but the flat top is no longer a dead fill. A faint sky (about a tenth) runs to the top of every screen and the dissolve is continuous, so the form and the landscape are one place. */
+
+:root[data-fade="full"][data-scene="strong"] .screen-today .plate { -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.17) 30%, rgba(0,0,0,0.22) 46%, rgba(0,0,0,0.42) 62%, rgba(0,0,0,0.7) 78%, rgba(0,0,0,0.92) 90%, #000 100%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.17) 30%, rgba(0,0,0,0.22) 46%, rgba(0,0,0,0.42) 62%, rgba(0,0,0,0.7) 78%, rgba(0,0,0,0.92) 90%, #000 100%); }
+:root[data-fade="full"][data-scene="strong"]:not([data-theme="dawn"]) .screen-today .surface { background: linear-gradient(180deg, rgba(13,12,11,0.86) 0, rgba(13,12,11,0.84) 40%, rgba(13,12,11,0.7) 58%, rgba(13,12,11,0.45) 74%, rgba(13,12,11,0.2) 90%, rgba(13,12,11,0.08) 100%); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-today .surface { background: linear-gradient(180deg, rgba(249,244,233,0.86) 0, rgba(249,244,233,0.84) 40%, rgba(248,242,229,0.7) 58%, rgba(248,240,224,0.45) 74%, rgba(248,238,220,0.2) 90%, rgba(248,236,216,0.08) 100%); }
+:root[data-fade="full"][data-scene="strong"] .screen-today .greeting { text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-today .greeting { text-shadow: 0 1px 4px rgba(255,250,240,0.45); }
+:root[data-fade="full"][data-scene="strong"] .screen-workout .plate { -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.14) 0, rgba(0,0,0,0.15) 36%, rgba(0,0,0,0.24) 52%, rgba(0,0,0,0.5) 70%, rgba(0,0,0,0.8) 86%, #000 97%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.14) 0, rgba(0,0,0,0.15) 36%, rgba(0,0,0,0.24) 52%, rgba(0,0,0,0.5) 70%, rgba(0,0,0,0.8) 86%, #000 97%); }
+:root[data-fade="full"][data-scene="strong"]:not([data-theme="dawn"]) .screen-workout .surface { background: linear-gradient(180deg, rgba(13,12,11,0.88) 0, rgba(13,12,11,0.86) 50%, rgba(13,12,11,0.72) 66%, rgba(13,12,11,0.52) 82%, rgba(13,12,11,0.3) 100%); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-workout .surface { background: linear-gradient(180deg, rgba(248,243,232,0.88) 0, rgba(248,243,232,0.86) 50%, rgba(248,243,232,0.62) 66%, rgba(248,243,232,0.4) 82%, rgba(248,243,232,0.15) 100%); }
+:root[data-fade="full"][data-scene="strong"]:not([data-theme="dawn"]) .screen-coach .plate { -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.18) 22%, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0.55) 62%, rgba(0,0,0,0.8) 78%, rgba(0,0,0,0.95) 90%, #000 100%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.18) 22%, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0.55) 62%, rgba(0,0,0,0.8) 78%, rgba(0,0,0,0.95) 90%, #000 100%); }
+:root[data-fade="full"][data-scene="strong"]:not([data-theme="dawn"]) .screen-coach .surface { background: linear-gradient(180deg, rgba(13,12,11,0.86) 0, rgba(13,12,11,0.84) 26%, rgba(13,12,11,0.68) 46%, rgba(13,12,11,0.45) 64%, rgba(13,12,11,0.25) 80%, rgba(13,12,11,0.08) 93%, rgba(13,12,11,0) 100%); }
+
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-coach .plate { -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.18) 14%, rgba(0,0,0,0.3) 32%, rgba(0,0,0,0.5) 46%, rgba(0,0,0,0.75) 61%, rgba(0,0,0,0.92) 77.5%, #000 91.5%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.16) 0, rgba(0,0,0,0.18) 14%, rgba(0,0,0,0.3) 32%, rgba(0,0,0,0.5) 46%, rgba(0,0,0,0.75) 61%, rgba(0,0,0,0.92) 77.5%, #000 91.5%); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-coach .surface { background: radial-gradient(ellipse 60% 34% at 50% 38.7%, rgba(249,244,233,0.92) 0, rgba(249,244,233,0.6) 60%, rgba(249,244,233,0) 100%), linear-gradient(180deg, rgba(249,244,233,0.88) 0, rgba(249,244,233,0.84) 16%, rgba(249,244,233,0.72) 30%, rgba(249,244,233,0.56) 44%, rgba(249,244,233,0.4) 58%, rgba(249,244,233,0.24) 74%, rgba(249,244,233,0.08) 90%, rgba(249,244,233,0) 100%); }
+/* One world, second pass: the first haze was arithmetically invisible (mask × wash × surface ≈ 2%). About 8% of the sky now reaches the top. */
+:root[data-fade="full"][data-scene="strong"] .screen-today .plate { -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.45) 0, rgba(0,0,0,0.47) 30%, rgba(0,0,0,0.5) 46%, rgba(0,0,0,0.6) 62%, rgba(0,0,0,0.78) 78%, rgba(0,0,0,0.94) 90%, #000 100%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.45) 0, rgba(0,0,0,0.47) 30%, rgba(0,0,0,0.5) 46%, rgba(0,0,0,0.6) 62%, rgba(0,0,0,0.78) 78%, rgba(0,0,0,0.94) 90%, #000 100%); }
+:root[data-fade="full"][data-scene="strong"]:not([data-theme="dawn"]) .screen-today .surface { background: linear-gradient(180deg, rgba(13,12,11,0.62) 0, rgba(13,12,11,0.6) 40%, rgba(13,12,11,0.5) 58%, rgba(13,12,11,0.34) 74%, rgba(13,12,11,0.16) 90%, rgba(13,12,11,0.06) 100%); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-today .surface { background: linear-gradient(180deg, rgba(249,244,233,0.62) 0, rgba(249,244,233,0.6) 40%, rgba(248,242,229,0.5) 58%, rgba(248,240,224,0.34) 74%, rgba(248,238,220,0.16) 90%, rgba(248,236,216,0.06) 100%); }
+:root[data-fade="full"][data-scene="strong"] .screen-workout .plate { -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.42) 0, rgba(0,0,0,0.44) 36%, rgba(0,0,0,0.5) 52%, rgba(0,0,0,0.66) 70%, rgba(0,0,0,0.86) 86%, #000 97%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.42) 0, rgba(0,0,0,0.44) 36%, rgba(0,0,0,0.5) 52%, rgba(0,0,0,0.66) 70%, rgba(0,0,0,0.86) 86%, #000 97%); }
+:root[data-fade="full"][data-scene="strong"]:not([data-theme="dawn"]) .screen-workout .surface { background: linear-gradient(180deg, rgba(13,12,11,0.66) 0, rgba(13,12,11,0.64) 50%, rgba(13,12,11,0.56) 66%, rgba(13,12,11,0.42) 82%, rgba(13,12,11,0.26) 100%); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-workout .surface { background: linear-gradient(180deg, rgba(248,243,232,0.66) 0, rgba(248,243,232,0.64) 50%, rgba(248,243,232,0.5) 66%, rgba(248,243,232,0.34) 82%, rgba(248,243,232,0.14) 100%); }
+:root[data-fade="full"][data-scene="strong"]:not([data-theme="dawn"]) .screen-coach .plate { -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.45) 0, rgba(0,0,0,0.47) 22%, rgba(0,0,0,0.52) 45%, rgba(0,0,0,0.66) 62%, rgba(0,0,0,0.84) 78%, rgba(0,0,0,0.96) 90%, #000 100%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.45) 0, rgba(0,0,0,0.47) 22%, rgba(0,0,0,0.52) 45%, rgba(0,0,0,0.66) 62%, rgba(0,0,0,0.84) 78%, rgba(0,0,0,0.96) 90%, #000 100%); }
+:root[data-fade="full"][data-scene="strong"]:not([data-theme="dawn"]) .screen-coach .surface { background: linear-gradient(180deg, rgba(13,12,11,0.62) 0, rgba(13,12,11,0.6) 26%, rgba(13,12,11,0.5) 46%, rgba(13,12,11,0.36) 64%, rgba(13,12,11,0.2) 80%, rgba(13,12,11,0.06) 93%, rgba(13,12,11,0) 100%); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-coach .plate { -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.45) 0, rgba(0,0,0,0.47) 14%, rgba(0,0,0,0.52) 32%, rgba(0,0,0,0.64) 46%, rgba(0,0,0,0.8) 61%, rgba(0,0,0,0.94) 77.5%, #000 91.5%); mask-image: linear-gradient(180deg, rgba(0,0,0,0.45) 0, rgba(0,0,0,0.47) 14%, rgba(0,0,0,0.52) 32%, rgba(0,0,0,0.64) 46%, rgba(0,0,0,0.8) 61%, rgba(0,0,0,0.94) 77.5%, #000 91.5%); }
+:root[data-fade="full"][data-scene="strong"][data-theme="dawn"] .screen-coach .surface { background: radial-gradient(ellipse 60% 34% at 50% 38.7%, rgba(249,244,233,0.9) 0, rgba(249,244,233,0.55) 60%, rgba(249,244,233,0) 100%), linear-gradient(180deg, rgba(249,244,233,0.64) 0, rgba(249,244,233,0.62) 16%, rgba(249,244,233,0.54) 30%, rgba(249,244,233,0.44) 44%, rgba(249,244,233,0.32) 58%, rgba(249,244,233,0.2) 74%, rgba(249,244,233,0.06) 90%, rgba(249,244,233,0) 100%); }
+
+/* ---------- Grain (2026-09-17): long shallow gradients band on 8-bit screens, worst on OLED near black and on pale Dawn skies. A fine static grain at 3 to 4% breaks the bands. It never moves. */
+.grain { position: absolute; inset: 0; background: url("assets/grain.png") repeat; background-size: 128px 128px; opacity: 0.035; mix-blend-mode: overlay; pointer-events: none; }
+:root[data-theme="dawn"] .grain { opacity: 0.045; }
+
+/* ---------- Design lead's last three (Joe: "Go", 2026-09-17) ----------
+   1. The Coach state pill shows only while listening or answering (app.js); idle shows nothing.
+   2. The header hairline is gone; the 10 px of space under the header does the separating. Geometry kept so nothing shifts.
+   3. The wordmark stays on Today, where it is the brand; inner screens carry the back arrow and their own title, so the name no longer jumps 40 px when you navigate. */
+.hairline { background: transparent; }
+.screen-workout .wordmark, .screen-coach .wordmark { display: none; }
+
+/* ---------- Coach header: two lines (Joe, 2026-09-17) ----------
+   "Coach." and "Talk through today's plan." The scope line and the "what you can ask" line are gone; the prompts show what you can ask. The prompts start about 60 px higher. */
+.coach-line { font-family: var(--sans); font-size: 15.5px; line-height: 1.3; color: var(--text-soft); font-weight: 450; margin-top: 10px; }
+.prompts { margin-top: 28px; }
+.orb-wrap { margin-top: 52px; }
+.coach-links { margin-top: 24px; }
+@media (max-height: 800px) { .orb-wrap { margin-top: 28px; } .coach-links { margin-top: 16px; } }
+.orb-wrap { margin-top: 44px; }
+.prompts { margin-top: 24px; }
+.prompt { font-size: 14px; padding-right: 34px; }   /* every prompt on one line at 393 wide with room to spare; they still wrap gracefully on narrower phones */
+
+/* ---------- Coach, more minimal (Joe, 2026-09-17) ----------
+   Idle shows the orb alone; the two outer rings appear only while listening or answering, where they mean something.
+   The prompt rows lose their chevrons: they are questions to ask, not places to go; the disc icons already give each row its identity. */
+.screen-coach[data-state="idle"] .orb-ring.r2, .screen-coach[data-state="idle"] .orb-ring.r3 { display: none; }
+.prompt .chev { display: none; }
+.prompt { padding-right: 14px; }
+
+/* ---------- Review round 2 (2026-09-17): one proposal card, one state colour, a flat disabled primary ----------
+   The proposal card is one component for every proposal kind (ruling 3): the eyebrow names the kind, the serif line carries the change,
+   the reason is the producer's own and ends with the fixed sentence, and the gold edge marks the card that needs an answer. Recorded cards
+   lose the edge and carry "Change my answer" on its own line. The only state colour is the ember gold: "Logged" and the coach pill dot
+   wore the app's one green, which belonged to no other element. A disabled primary is a flat chip, never a translucent plate. */
+:root, :root[data-theme="ink"], :root[data-theme="dawn"] { --good: var(--gold); }
+.setcard .state.logged { color: var(--text); font-weight: 500; }
+.proposal { border-color: var(--line-gold); }
+.proposal .head { align-items: baseline; }
+.proposal .head .kind { margin-bottom: 0; }
+.proposal .lift { margin-top: 5px; }
+.proposal .change:empty { display: none; }
+.proposal .change { margin-top: 6px; }
+.proposal .reason { margin-top: 4px; }
+.proposal.decided, .proposal.is-recorded, .proposal.is-applied, .proposal.is-declined, .proposal.is-superseded { border-color: var(--line-soft); }
+.proposal .recorded { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.proposal .recorded .state-word { color: var(--gold); font-weight: 500; }
+.proposal .undo { display: inline-block; margin-left: 0; color: var(--text-soft); font-size: 14px; padding: 0; }
+.primary:disabled { opacity: 1; background: var(--chip); color: var(--muted); border: 1px solid var(--line-soft); cursor: default; }
+.primary:disabled:active { background: var(--chip); }
+.primary:disabled .arrow { opacity: 0.5; }
+.proposal { padding-top: 7px; padding-bottom: 8px; }
+.proposal .lift { margin-top: 4px; }
+.proposal .decisions { margin-top: 4px; }
+
+/* ---------- Review round 2: a panel's back chevron ----------
+   Today's header carries a 4 px optical inset for the wordmark; the workout's does not. When a Today panel borrows the
+   back control, the chevron must land in the same column as the workout's, so the inset goes while the panel is open. */
+.screen-today .header.has-back { padding-left: 0; }
+
+/* ---------- The chassis (rulings 2026-09-18, review round 3): a screen is a scrolling body and a fixed stack ----------
+   On every screen the actions live in a stack anchored at the bottom, at the exact height the board draws them (the
+   board's own slack below the stack is kept as --stack-lift), and the rest of the screen scrolls above them in its own
+   region. On the boards as drawn everything fits, so nothing moves; when a day or a conversation grows, the body scrolls
+   and softens where it slides under the status bar and into the stack, only while there is more to see. */
+.screen .ui { overflow: hidden; }
+.screen-today .ui { padding-bottom: 0; }
+.scrolls, .screen .ui > .body { overflow-y: auto; overflow-x: hidden; min-height: 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.scrolls::-webkit-scrollbar, .screen .ui > .body::-webkit-scrollbar { display: none; }
+.screen .ui > .body { flex: 1 1 auto; display: flex; flex-direction: column; margin: 0 calc(-1 * var(--inset)); padding: 0 var(--inset); }
+.screen .ui > .body > * { flex: 0 0 auto; }
+.screen .ui > .body { padding-bottom: 22px; --fade-bot-inset: 22px; }   /* 22 px: the room the last row's link scrim needs, taken back by the stack below */
+.screen .ui > .stack { flex: 0 0 auto; display: flex; flex-direction: column; position: relative; z-index: 2; margin-top: -22px; }
+.screen .ui > .stack > * { flex: 0 0 auto; }
+.screen-today .ui > .stack { padding-bottom: max(24px, env(safe-area-inset-bottom, 0px)); }
+.screen-workout .ui, .screen-coach .ui { padding-bottom: 0; }
+.screen-workout .ui > .stack { --stack-lift: 60.5px; padding-bottom: calc(max(24px, env(safe-area-inset-bottom, 0px)) + var(--stack-lift)); }
+.screen-coach .ui > .stack { --stack-lift: 58px; padding-bottom: calc(max(24px, env(safe-area-inset-bottom, 0px)) + var(--stack-lift)); }
+/* the fades: 20 px into the stack, 32 px under the status bar, each only while there is more that way */
+.scrolls.can-scroll, .screen .ui > .body.can-scroll { --fade-top: 0px; --fade-top-end: 0px; --fade-bot: 100%; --fade-bot-end: 100%; -webkit-mask-image: linear-gradient(to bottom, transparent var(--fade-top), #000 var(--fade-top-end), #000 var(--fade-bot), transparent var(--fade-bot-end)); mask-image: linear-gradient(to bottom, transparent var(--fade-top), #000 var(--fade-top-end), #000 var(--fade-bot), transparent var(--fade-bot-end)); }
+.scrolls.can-scroll:not(.at-end), .screen .ui > .body.can-scroll:not(.at-end) { --fade-bot: calc(100% - 20px - var(--fade-bot-inset, 0px)); --fade-bot-end: calc(100% - var(--fade-bot-inset, 0px)); }
+.scrolls.can-scroll:not(.at-start), .screen .ui > .body.can-scroll:not(.at-start) { --fade-top: 40px; --fade-top-end: 72px; }
+/* a row's sub line never wraps into the stack */
+.stack .rowcard .sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* review round 3: the Coach link row had a full-width plate under both links (a straight-edged band on Ink, a merged slab on Dawn); the links keep only their own small clouds, like every other tertiary link */
+.coach-links { background: none; }
+
+/* ---------- Dawn is the same mountains as Ink, lighter (owner ruling 2026-09-18) ----------
+   The Dawn board's own background is a different photograph (a wide range with pines). The owner ruled that Dawn is the Ink
+   scene lightened, one world in two lights, so the Dawn plate is the graded Ink photograph and the Dawn geometry is the Ink
+   geometry. The board's photograph is kept under assets/retired for the record. */

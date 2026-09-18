@@ -1,0 +1,60 @@
+<title>Earned Reconstruction</title>
+<style>
+  @font-face { font-family: "Earned Serif"; src: url("fonts/earned-serif.woff2") format("woff2"); font-display: block; }
+  @font-face { font-family: "Earned Sans"; src: url("fonts/earned-sans.woff2") format("woff2"); font-weight: 100 1000; font-display: block; }
+  :root { --ground: #0b0a09; --text: #f2eee6; --muted: #bdb8ae; --gold: #caa98a; }
+  html { background: var(--ground); }
+  body { margin: 0; background: var(--ground); color: var(--text); font-family: "Earned Sans", "DM Sans", sans-serif; font-variation-settings: "opsz" 14; -webkit-font-smoothing: antialiased; }
+  header { padding: 40px 32px 8px; display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap; }
+  header .brand { font-family: "Earned Serif", "Times New Roman", serif; font-size: 44px; line-height: 1; }
+  header .tag { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); }
+  header .links { margin-left: auto; display: flex; gap: 18px; font-size: 14px; }
+  header .links a { color: var(--text); text-decoration: underline; text-underline-offset: 4px; }
+  header .links a:hover { color: var(--gold); }
+  p.note { margin: 0 32px 24px; color: var(--muted); font-size: 14px; max-width: 760px; line-height: 1.5; }
+  section { padding: 12px 32px 40px; }
+  h2 { font-family: "Earned Serif", "Times New Roman", serif; font-weight: 400; font-size: 28px; margin: 0 0 4px; }
+  h2 small { font-family: "Earned Sans", sans-serif; font-size: 13px; color: var(--muted); margin-left: 12px; }
+  .row { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; margin-top: 18px; }
+  .phone { position: relative; width: 393px; height: 852px; }
+  .phone .cap { position: absolute; left: 0; top: -26px; font-size: 13px; color: var(--muted); }
+  .frame { position: absolute; inset: -11px; border-radius: 58px; background: linear-gradient(160deg, #d8b98f 0%, #6b5237 30%, #f0d7b3 52%, #5a4630 75%, #cdae86 100%); box-shadow: 0 30px 80px rgba(0,0,0,0.55); }
+  .frame::after { content: ""; position: absolute; inset: 3px; border-radius: 55px; background: #0a0908; }
+  .dawn .frame { background: linear-gradient(160deg, #f4f1ea 0%, #8f8a82 30%, #ffffff 52%, #7d776e 75%, #efeae0 100%); }
+  .dawn .frame::after { background: #111; }
+  .phone iframe { position: absolute; inset: 0; width: 393px; height: 852px; border: 0; border-radius: 47px; background: #0c0b0a; }
+  .dawn .phone iframe { background: #f7f2e7; }
+  .rule { height: 1px; background: #26231f; margin: 8px 32px; }
+  @media (max-width: 1320px) { .row { gap: 22px; } }
+  .scale { transform-origin: top left; }
+</style>
+
+<header>
+  <span class="brand">Earned.</span>
+  <span class="tag">Faithful UI reconstruction · six reference views</span>
+  <nav class="links"><a href="app.html?theme=ink&screen=today">Open the app (Ink)</a><a href="app.html?theme=dawn&screen=today">Open the app (Dawn)</a><a href="states.html">Every state (209)</a><a href="compare.html">Comparisons and mismatches</a></nav>
+</header>
+<p class="note">Each phone below is the live prototype in an iframe, at real device size (393 × 852), with a status bar and home indicator drawn for this presentation only. The app itself fits the device viewport and draws neither. Tap into any phone to use it: weigh in and Save, decide on the bench proposal, log a set, pick RIR, talk to the coach.</p>
+<div class="fade-toggle" style="margin:0 32px 16px;display:flex;gap:10px;align-items:center;font-size:14px;color:#bdb8ae"><span>Mountain fade:</span><button type="button" data-fade="strong" aria-pressed="true" style="font:inherit;color:#f2eee6;background:#2a241c;border:1px solid #a08a66;border-radius:8px;padding:6px 12px;cursor:pointer">Strong (current)</button><button type="button" data-fade="full" aria-pressed="false" style="font:inherit;color:#f2eee6;background:#1a1918;border:1px solid #2b2926;border-radius:8px;padding:6px 12px;cursor:pointer">Full</button><button type="button" data-fade="soft" aria-pressed="false" style="font:inherit;color:#f2eee6;background:#1a1918;border:1px solid #2b2926;border-radius:8px;padding:6px 12px;cursor:pointer">Soft</button></div>
+<div class="mist-toggle" style="margin:0 32px 16px;display:flex;gap:10px;align-items:center;font-size:14px;color:#bdb8ae"><span>Mist:</span><button type="button" data-mist="0" aria-pressed="false" style="font:inherit;color:#f2eee6;background:#1a1918;border:1px solid #2b2926;border-radius:8px;padding:6px 12px;cursor:pointer">Off</button><button type="button" data-mist="1" aria-pressed="true" style="font:inherit;color:#f2eee6;background:#2a241c;border:1px solid #a08a66;border-radius:8px;padding:6px 12px;cursor:pointer">On (current)</button></div>
+<div class="rule"></div>
+
+<section class="ink">
+  <h2>Ink <small>dark palette</small></h2>
+  <div class="row">
+    <div class="phone"><span class="cap">1. Today</span><div class="frame"></div><iframe title="Today, Ink" src="app.html?theme=ink&screen=today&chrome=1&date=board"></iframe></div>
+    <div class="phone"><span class="cap">2. Inside the workout</span><div class="frame"></div><iframe title="Inside the workout, Ink" src="app.html?theme=ink&screen=workout&chrome=1&date=board"></iframe></div>
+    <div class="phone"><span class="cap">3. Coach</span><div class="frame"></div><iframe title="Coach, Ink" src="app.html?theme=ink&screen=coach&chrome=1&date=board"></iframe></div>
+  </div>
+</section>
+
+<section class="dawn">
+  <h2>Dawn <small>light palette</small></h2>
+  <div class="row">
+    <div class="phone"><span class="cap">1. Today</span><div class="frame"></div><iframe title="Today, Dawn" src="app.html?theme=dawn&screen=today&chrome=1&date=board"></iframe></div>
+    <div class="phone"><span class="cap">2. Inside the workout</span><div class="frame"></div><iframe title="Inside the workout, Dawn" src="app.html?theme=dawn&screen=workout&chrome=1&date=board"></iframe></div>
+    <div class="phone"><span class="cap">3. Coach</span><div class="frame"></div><iframe title="Coach, Dawn" src="app.html?theme=dawn&screen=coach&chrome=1&date=board"></iframe></div>
+  </div>
+</section>
+
+<script>(function(){var bs=document.querySelectorAll(".fade-toggle button");bs.forEach(function(b){b.addEventListener("click",function(){bs.forEach(function(x){x.setAttribute("aria-pressed",String(x===b));x.style.borderColor=(x===b)?"#a08a66":"#2b2926";x.style.background=(x===b)?"#2a241c":"#1a1918";});var f=b.getAttribute("data-fade");document.querySelectorAll("iframe").forEach(function(fr){var u=new URL(fr.getAttribute("src"),location.href);if(f)u.searchParams.set("fade",f);else u.searchParams.delete("fade");fr.src=u.pathname.split("/").pop()+u.search;});});});bs[0].style.borderColor="#a08a66";bs[0].style.background="#2a241c";var ms=document.querySelectorAll(".mist-toggle button");ms.forEach(function(b){b.addEventListener("click",function(){ms.forEach(function(x){x.setAttribute("aria-pressed",String(x===b));x.style.borderColor=(x===b)?"#a08a66":"#2b2926";x.style.background=(x===b)?"#2a241c":"#1a1918";});var v=b.getAttribute("data-mist");document.querySelectorAll("iframe").forEach(function(fr){var u=new URL(fr.getAttribute("src"),location.href);u.searchParams.set("mist",v);fr.src=u.pathname.split("/").pop()+u.search;});});});})();</script>

@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en" data-theme="ink">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0c0b0a">
+<title>Earned</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="states.css">
+<link rel="stylesheet" href="states-workout.css">
+<link rel="stylesheet" href="states-coach.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== TODAY ===================== -->
+  <section class="screen screen-today is-active" id="screen-today" aria-label="Today">
+    <div class="plate" aria-hidden="true"></div>
+    <canvas class="embers" aria-hidden="true"></canvas>
+    <div class="surface" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="ui">
+      <div class="body">
+      <header class="header">
+        <div class="brand"><span class="wordmark">Earned</span></div>
+        <div class="right">
+          <span class="date" id="today-date">Wed, Sep 16</span>
+          <span class="pill" title="Example numbers, not your data">example</span>
+        </div>
+      </header>
+      <div class="hairline"></div>
+
+      <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
+
+      <div class="timeline">
+        <div class="tcard" id="card-weigh">
+          <span class="tdot" aria-hidden="true"></span>
+          <div class="title">Weigh in before breakfast.</div>
+          <form class="weigh-row" id="weigh-form" novalidate>
+            <label for="weight" class="visually-hidden">Your weight in pounds</label>
+            <div class="field"><input id="weight" type="text" inputmode="decimal" placeholder="Your weight" autocomplete="off"></div>
+            <span class="unit">lb</span>
+            <button class="save" type="submit" id="save-weight">Save</button>
+          </form>
+          <div class="weigh-note" id="weigh-note" hidden></div>
+        </div>
+
+        <button class="tcard nav" id="card-eat" type="button">
+          <span class="tdot" aria-hidden="true"></span>
+          <div class="title">Eat about 2,300 kcal today.</div>
+          <div class="sub">Protein at least 160 g.</div>
+          <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
+        </button>
+
+        <button class="tcard nav" id="card-train" type="button" data-go="workout">
+          <span class="tdot" aria-hidden="true"></span>
+          <div class="title">Train today.</div>
+          <div class="sub">Upper body, 4 exercises.</div>
+          <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
+        </button>
+
+        <div class="tcard proposal" id="card-proposal">
+          <span class="tdot" aria-hidden="true"></span>
+          <div class="head">
+            <div class="kind" id="proposal-kind">One call needs you</div>
+            <button class="link why" type="button" id="why-105">Why 105 lb?</button>
+          </div>
+          <div class="lift" id="proposal-lift">Bench press, 105 for 8</div>
+          <div class="change" id="proposal-change"></div>
+          <div id="proposal-open">
+            <div class="reason" id="proposal-reason">Down from 115 after two short sets. Nothing changes until you say yes.</div>
+            <div class="decisions">
+              <button class="decision" type="button" id="use-105">Use 105</button>
+              <button class="decision" type="button" id="keep-115">Keep 115</button>
+            </div>
+          </div>
+          <div id="proposal-done" hidden>
+            <div class="recorded"><span id="recorded-text"></span><button class="link undo" type="button" id="undo-proposal">Change my answer</button></div>
+            <div class="reason" id="proposal-done-note" hidden></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="plans">
+        <button class="label link" type="button" id="plans-label">Plans changed?</button>
+        <button class="plus" type="button" id="plans-changed" aria-label="Plans changed? Adjust today"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 1.5v15M1.5 9h15"/></svg></button>
+      </div>
+
+      </div>
+      <div class="stack">
+      <button class="primary" type="button" id="start" data-go="workout">
+        <span>Start upper body</span>
+        <span class="arrow" aria-hidden="true"><svg viewBox="0 0 20 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 9h17M12 3l6 6-6 6"/></svg></span>
+      </button>
+
+      <button class="rowcard" type="button" id="recovery">
+        <span class="icon-square" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span>
+        <span class="text"><div class="title">Recovery check in</div><div class="sub">Optional. How are you feeling?</div></span>
+        <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
+      </button>
+
+      <button class="talk" type="button" id="talk-today" data-go="coach">
+        <span class="orb" aria-hidden="true"></span>
+        <span class="label">Talk through today’s plan</span>
+        <span class="mic" aria-hidden="true"><svg viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="1" width="7" height="12" rx="3.5"/><path d="M1.5 10.5a7.5 7.5 0 0 0 15 0M9 18v4M5.5 22h7"/></svg></span>
+      </button>
+      </div>
+    </div>
+    <div class="chrome status" aria-hidden="true"><span class="time">9:41</span><span class="island"></span><span class="icons"><svg viewBox="0 0 76 14" fill="currentColor"><rect x="0" y="9" width="3.5" height="5" rx="1"/><rect x="5.5" y="6.5" width="3.5" height="7.5" rx="1"/><rect x="11" y="3.5" width="3.5" height="10.5" rx="1"/><rect x="16.5" y="0.5" width="3.5" height="13.5" rx="1"/><path d="M33.5 3.6a10.5 10.5 0 0 1 13 0l-1.5 1.8a8.2 8.2 0 0 0-10 0zm2.6 3.1a6.6 6.6 0 0 1 7.8 0l-1.5 1.8a4.3 4.3 0 0 0-4.8 0zm2.6 3.1a2.7 2.7 0 0 1 2.6 0L40 12.2z"/><rect x="52" y="1" width="21" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.5"/><rect x="53.5" y="2.5" width="18" height="9" rx="2.2"/><path d="M74.3 5v4a2 2 0 0 0 0-4z" opacity="0.5"/></svg></span></div>
+    <div class="chrome home" aria-hidden="true"></div>
+  </section>
+
+  <!-- ===================== INSIDE THE WORKOUT ===================== -->
+  <section class="screen screen-workout" id="screen-workout" aria-label="Inside the workout">
+    <div class="plate" aria-hidden="true"></div>
+    <canvas class="embers" aria-hidden="true"></canvas>
+    <div class="surface" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="ui">
+      <div class="body">
+      <header class="header">
+        <div class="brand">
+          <button class="back" type="button" data-go="today" aria-label="Back to Today"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 1L2 10l8 9"/></svg></button>
+          <span class="wordmark">Earned</span>
+        </div>
+        <div class="right"><span class="pill" title="Example numbers, not your data">example</span></div>
+      </header>
+      <div class="hairline"></div>
+
+      <div class="session-row"><span class="kind">Upper body</span><span class="count"><span class="set-dots" id="set-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span id="set-count">Set 1 of 4</span></span></div>
+      <h1 class="screen-title">Chest press</h1>
+
+      <div class="setcard" id="setcard">
+        <div class="top">
+          <span class="eyebrow">Today’s set</span>
+          <span class="state" id="set-state"><span class="ring" aria-hidden="true"></span><span id="set-state-text">Unlogged</span></span>
+        </div>
+        <div class="numerals" id="numerals">
+          <div class="num"><div class="value" id="w-value">50</div><div class="unit">lb</div></div>
+          <div class="times" aria-hidden="true">×</div>
+          <div class="num"><div class="value" id="r-value">8</div><div class="unit">reps</div></div>
+        </div>
+        <div class="divider"></div>
+        <button class="last" type="button" id="last-time"><span>Last time: 50 lb for 8 reps</span><span class="row-chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+      </div>
+
+
+
+
+
+
+      <button class="machine rowcard" type="button" id="machine">
+        <span class="icon-square" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h9M16 7h5M3 12h3M10 12h11M3 17h11M18 17h3"/><circle cx="14" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="17" r="2"/></svg></span>
+        <span class="text"><span class="title setting">Seat 4.</span><span class="sub when">Machine setting. From you, Sep 9.</span></span>
+        <span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span>
+      </button>
+
+      <div id="workout-voice">
+        <button class="talk" type="button" id="talk-workout">
+          <span class="orb" aria-hidden="true"></span>
+          <span class="label" id="talk-workout-label">Earned is here</span>
+          <span class="mic" aria-hidden="true"><svg viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="1" width="7" height="12" rx="3.5"/><path d="M1.5 10.5a7.5 7.5 0 0 0 15 0M9 18v4M5.5 22h7"/></svg></span>
+        </button>
+        <div class="text-mode" id="workout-text" hidden><input type="text" placeholder="Type to Earned" aria-label="Type to Earned"><button type="button">Send</button></div>
+        <div class="links"><button class="link" type="button" id="workout-text-mode">Use text mode</button><button class="link" type="button" id="workout-tap">I’ll tap instead</button></div>
+      </div>
+
+      <div class="weigh-note" id="workout-note" hidden></div>
+      </div>
+      <div class="stack">
+      <div class="rir-head"><span class="h">RIR (clean reps left)</span></div>
+      <div class="chips" role="group" aria-label="RIR, clean reps left" id="rir">
+        <button class="chip" type="button" aria-pressed="false" data-rir="0">0</button>
+        <button class="chip" type="button" aria-pressed="false" data-rir="1">1</button>
+        <button class="chip" type="button" aria-pressed="false" data-rir="2">2</button>
+        <button class="chip" type="button" aria-pressed="false" data-rir="3+">3+</button>
+        <button class="chip unsure" type="button" aria-pressed="false" data-rir="unsure">Unsure</button>
+      </div>
+
+      <div class="log-row">
+        <button class="log" type="button" id="log"><span id="log-label">Log 50 × 8</span><span class="arrow" aria-hidden="true"><svg viewBox="0 0 20 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 9h17M12 3l6 6-6 6"/></svg></span></button>
+        <button class="edit" type="button" id="edit">Edit</button>
+      </div>
+
+      <div class="links bottom"><button class="link" type="button" id="plans-workout">Plans changed?</button></div>
+
+      </div>
+    </div>
+    <div class="chrome status" aria-hidden="true"><span class="time">9:41</span><span class="island"></span><span class="icons"><svg viewBox="0 0 76 14" fill="currentColor"><rect x="0" y="9" width="3.5" height="5" rx="1"/><rect x="5.5" y="6.5" width="3.5" height="7.5" rx="1"/><rect x="11" y="3.5" width="3.5" height="10.5" rx="1"/><rect x="16.5" y="0.5" width="3.5" height="13.5" rx="1"/><path d="M33.5 3.6a10.5 10.5 0 0 1 13 0l-1.5 1.8a8.2 8.2 0 0 0-10 0zm2.6 3.1a6.6 6.6 0 0 1 7.8 0l-1.5 1.8a4.3 4.3 0 0 0-4.8 0zm2.6 3.1a2.7 2.7 0 0 1 2.6 0L40 12.2z"/><rect x="52" y="1" width="21" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.5"/><rect x="53.5" y="2.5" width="18" height="9" rx="2.2"/><path d="M74.3 5v4a2 2 0 0 0 0-4z" opacity="0.5"/></svg></span></div>
+    <div class="chrome home" aria-hidden="true"></div>
+  </section>
+
+  <!-- ===================== COACH ===================== -->
+  <section class="screen screen-coach" id="screen-coach" aria-label="Coach">
+    <div class="plate" aria-hidden="true"></div>
+    <canvas class="embers" aria-hidden="true"></canvas>
+    <div class="surface" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="ui">
+      <div class="body">
+      <header class="header">
+        <div class="brand">
+          <button class="back" type="button" data-go="today" aria-label="Back to Today"><svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 1L2 10l8 9"/></svg></button>
+          <span class="wordmark">Earned</span>
+        </div>
+        <div class="right">
+          <span class="pill" id="coach-state" hidden><span class="dot" aria-hidden="true"></span><span id="coach-state-text">Idle</span></span>
+          <span class="pill" title="Example numbers, not your data">example</span>
+        </div>
+      </header>
+      <div class="hairline"></div>
+
+      <div class="orb-wrap" aria-hidden="true"><span class="orb-ring r3"></span><span class="orb-ring r2"></span><span class="orb-level"></span><span class="orb"></span></div>
+      <h1 class="coach-title">Coach.</h1>
+      <p class="coach-sub" hidden>Nutrition, training, recovery.</p>
+      <p class="coach-line">Talk through today’s plan.</p>
+      <p class="coach-sub2" hidden>The plan, your settings and the reasons.</p>
+
+      <div class="prompts" id="prompts">
+        <button class="prompt" type="button" data-answer="hitting"><span class="icon-square" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2"/></svg></span><span>What am I hitting today?</span><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+        <button class="prompt" type="button" data-answer="seat"><span class="icon-square" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h9M16 7h5M3 12h3M10 12h11M3 17h11M18 17h3"/><circle cx="14" cy="7" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="17" r="2"/></svg></span><span>What’s my seat on the chest press?</span><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+        <button class="prompt" type="button" data-answer="lighter"><span class="icon-square" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg></span><span>Why is today lighter than last week?</span><span class="chev" aria-hidden="true"><svg viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg></span></button>
+      </div>
+      <div class="coach-answer" id="coach-answer" hidden><div id="coach-answer-text"></div><div class="from">From the engine’s stored plan. Example numbers.</div></div>
+      </div>
+      <div class="stack">
+      <div class="text-mode" id="coach-text" hidden><input type="text" placeholder="Type to Earned" aria-label="Type to Earned"><button type="button">Send</button></div>
+
+      <div class="coach-links"><button class="link" type="button" id="coach-text-mode">Use text mode</button><button class="link" type="button" id="coach-tap" data-go="workout">I’ll tap instead</button></div>
+
+      <div class="mic-wrap">
+        <button class="mic-button" type="button" id="mic" aria-pressed="false" aria-label="Tap to speak"><svg viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--mic-glyph)"><rect x="5.5" y="1" width="7" height="12" rx="3.5"/><path d="M1.5 10.5a7.5 7.5 0 0 0 15 0M9 18v4M5.5 22h7"/></svg></button>
+        <div class="mic-label" id="mic-label">Tap to speak</div>
+      </div>
+      </div>
+    </div>
+    <div class="chrome status" aria-hidden="true"><span class="time">9:41</span><span class="island"></span><span class="icons"><svg viewBox="0 0 76 14" fill="currentColor"><rect x="0" y="9" width="3.5" height="5" rx="1"/><rect x="5.5" y="6.5" width="3.5" height="7.5" rx="1"/><rect x="11" y="3.5" width="3.5" height="10.5" rx="1"/><rect x="16.5" y="0.5" width="3.5" height="13.5" rx="1"/><path d="M33.5 3.6a10.5 10.5 0 0 1 13 0l-1.5 1.8a8.2 8.2 0 0 0-10 0zm2.6 3.1a6.6 6.6 0 0 1 7.8 0l-1.5 1.8a4.3 4.3 0 0 0-4.8 0zm2.6 3.1a2.7 2.7 0 0 1 2.6 0L40 12.2z"/><rect x="52" y="1" width="21" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.5"/><rect x="53.5" y="2.5" width="18" height="9" rx="2.2"/><path d="M74.3 5v4a2 2 0 0 0 0-4z" opacity="0.5"/></svg></span></div>
+    <div class="chrome home" aria-hidden="true"></div>
+  </section>
+
+</div>
+<script src="app.js"></script>
+<script src="states.js"></script>
+<script src="states-today.js"></script>
+<script src="states-workout.js"></script>
+<script src="states-coach.js"></script>
+</body>
+</html>
