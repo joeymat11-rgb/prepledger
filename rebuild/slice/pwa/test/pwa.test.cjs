@@ -679,3 +679,70 @@ test("an upstream change to A1's shell fails this build instead of shipping a pa
   }
   assert.throws(() => shell.headerRules({ ...NAMES, index: "home.html" }), /the shell must stay index\.html/);
 });
+
+/* ------------------------------- the deployed page is not the PC review harness --
+
+   DECISIONS:534 (a), P3-TODAY-COPY-DIAG S3 and S4. The owner read developer prose at
+   the bottom of his own phone screen ("The morning weigh-in and the gym card are
+   wired..."), and the page header sat under the phone's status bar. Both belong to this
+   folder: index.shell.html is A1's DESKTOP review harness, two `aside.review` blocks
+   flanking a fixed 390x844 phone frame, and the slice shipped it verbatim with a
+   manifest bolted on (diagnosis S3). S3 and S4 land together on purpose: the leading
+   aside was the only thing putting roughly 90px above the wordmark, so hiding it
+   without reserving the status bar makes the overlap strictly worse (diagnosis S4).
+
+   THE GATE IS A MARKER ON THE EMITTED BODY, not `display-mode: standalone`: standalone
+   does not match the deploy URL opened in a Safari tab, which is one of the two places
+   the owner can read this page. A1's own preview page never carries the marker, so the
+   PC harness keeps both asides and every desktop cell is untouched. */
+
+test("S3 - the page A5 emits hides A1's review asides, and A1's own page keeps them", () => {
+  const html = shell.installableHtml(A1_SHELL, NAMES);
+  /* (a) the marker is in the REAL output of installableHtml, and in nothing A1 built. */
+  assert(html.includes("<body data-earned-app>"),
+    "the emitted body carries no slice marker, so nothing can gate the harness off");
+  assert(!A1_SHELL.includes("data-earned-app"),
+    "A1's own shell must stay the desktop review harness it is");
+  /* (b) the stylesheet that marker gates really removes every one of A1's asides, and
+         leaves A5's own preflight aside alone. */
+  const css = shell.preflightCss();
+  assert.match(css, /body\[data-earned-app\][^{]*\.review:not\(#pwa-preflight\)[^{]*\{[^}]*display:\s*none/,
+    "nothing in A5's stylesheet hides A1's review asides");
+  /* (c) the rule can actually reach the page: the emitted document links that sheet. */
+  assert(html.includes(`<link rel="stylesheet" href="${NAMES.preflightCss}">`));
+  /* (d) nothing the page's own code reaches for is removed. today-app.cjs and
+         today-entry.mjs write the boot and store lines into these two by id. */
+  for (const id of ["today-storage", "today-status"]) {
+    assert(html.includes('id="' + id + '"'), id + " left the emitted document");
+  }
+  /* (e) A5's install line is the athlete's own and stays. */
+  assert(html.includes('id="pwa-preflight"'));
+  /* (f) the asides are direct children of the stage the selector names, so the
+         selector is not aimed at a structure this page does not have. */
+  assert.match(html, /<main class="stage">\s*<aside class="review">/);
+});
+
+test("S4 - the emitted page draws under the status bar and reserves it as a quantity", () => {
+  const html = shell.installableHtml(A1_SHELL, NAMES);
+  /* env() resolves to 0 without viewport-fit=cover, so the padding alone is a no-op and
+     the meta alone makes the overlap certain. Both, or neither. */
+  assert(html.includes('<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'),
+    "the emitted viewport meta does not opt into the full screen");
+  assert(!html.includes('content="width=device-width,initial-scale=1">'),
+    "the old viewport meta survived beside the new one");
+  assert(!A1_SHELL.includes("viewport-fit"), "A1's preview page is not a full-screen app");
+  const css = shell.preflightCss();
+  /* The inset is a quantity the device reports, with a fallback that keeps the approved
+     narrow-screen figures exactly (max(12px, 0px) is 12px, so a browser that reports no
+     inset renders what it renders today). */
+  assert.match(css, /body\[data-earned-app\]\s+\.stage\s*\{[^}]*padding-top:\s*max\(12px,\s*env\(safe-area-inset-top,\s*0px\)\)/,
+    "nothing reserves the top inset");
+  assert.match(css, /padding-bottom:\s*max\(25px,\s*env\(safe-area-inset-bottom,\s*0px\)\)/,
+    "nothing reserves the bottom inset");
+  /* Not a constant: a 53px-style hard figure is wrong on any device whose inset is not
+     53px, and additive on a web view that is already inset. */
+  assert.doesNotMatch(css.replace(/\/\*[\s\S]*?\*\//g, ""), /padding-top:\s*\d+px/,
+    "the top inset is a hard figure rather than the device's own");
+  /* And the rules are scoped to the emitted page: the PC preview keeps its own spacing. */
+  assert.equal(css.includes(".stage {"), false, "an unscoped .stage rule would move A1's preview");
+});
