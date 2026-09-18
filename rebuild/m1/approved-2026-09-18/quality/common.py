@@ -9,7 +9,7 @@ import numpy as np
 from PIL import ImageFont
 
 # ---------------------------------------------------------------- copy sweeps
-DASHES = ['—', '–', ' - ']
+DASHES = ['\u2014', '\u2013', ' - ']
 READINESS = ['ready', 'readiness', 'recovered', 'fatigued']
 VENDORS = ['openai', 'anthropic', 'claude', 'gpt', 'gemini', 'chatgpt', 'whisper', 'elevenlabs', 'llama']
 # a set written with the letter x instead of the multiplication sign: "50 x 8", "3x8", "50 X 8"
@@ -48,19 +48,29 @@ MUTED_CLASSES = frozenset([
     'recorded-stamp', 'recorded-source', 'kv-k', 'marker-k', 'marker-v', 'marker', 'said', 'quoted',
     'w-more', 'w-hint', 'w-facts', 'w-rest-line', 'w-next-aim', 'tail', 'coach-marker',
 ])
+# The tokens that are never body copy: the two quiet greys, and the state colour, which marks a
+# state and carries no sentence of its own (app/app.css:36, 37, 38 for Ink, 92, 93, 94 for Dawn;
+# STANDARD.md section 10, "One state colour: the ember gold").
+QUIET_TOKENS = frozenset(['--muted', '--faint', '--gold'])
 PRIMARY_RATIO = 4.5
 MUTED_RATIO = 3.0
 LARGE_TEXT_PX = 24
 
 # This sentence is quoted in README section 3 in the same words.
-CONTRAST_TOLERANCE = ('Primary text needs 4.5:1 against what is actually behind it; muted text and '
-                      'text 24 px or larger needs 3.0:1.')
+CONTRAST_TOLERANCE = ("Primary text needs 4.5:1 against what is actually behind it; muted text, a "
+                      "disabled control's label, the state colour and text 24 px or larger need 3.0:1.")
 
 
-def tier_for(cls, size, muted_colour):
-    """4.5:1 for primary text, 3.0:1 for muted text and for text 24 px or larger."""
+def tier_for(cls, size, token, disabled=False):
+    """Primary text needs 4.5:1 against what is actually behind it; muted text, a disabled
+    control's label, the state colour and text 24 px or larger need 3.0:1.
+
+    A disabled control sits at the lower tier because STANDARD.md section 10 calls its label a
+    muted label, and because an inactive control is not something the athlete is being asked to
+    read.
+    """
     classes = set((cls or '').split())
-    if muted_colour or (classes & MUTED_CLASSES) or size >= LARGE_TEXT_PX:
+    if disabled or token in QUIET_TOKENS or (classes & MUTED_CLASSES) or size >= LARGE_TEXT_PX:
         return MUTED_RATIO
     return PRIMARY_RATIO
 

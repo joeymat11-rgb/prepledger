@@ -147,8 +147,10 @@ JS_ANIM = """()=>{const out=[];document.querySelectorAll('.screen.is-active *').
     if(cs.animationName&&cs.animationName!=='none')out.push('animation '+(e.id||e.className))});return out.slice(0,5)}"""
 
 JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];const out=[];
-    const mutedTok=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim().toLowerCase();
+    const cs0=getComputedStyle(document.documentElement);const tok={};
+    ['--muted','--faint','--gold'].forEach(k=>{const v=cs0.getPropertyValue(k).trim().toLowerCase();if(v)tok[v]=k});
     const hex=s=>{const m=s.match(/\\d+/g);return m?'#'+m.slice(0,3).map(x=>(+x).toString(16).padStart(2,'0')).join(''):s.toLowerCase()};
+    const off='button:disabled, input:disabled, select:disabled, textarea:disabled, fieldset:disabled';
     ui.querySelectorAll('*').forEach(e=>{if(!e.offsetParent)return;
       const has=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim().length>1);if(!has)return;
       const r=e.getBoundingClientRect();if(r.width<8||r.height<8)return;
@@ -159,7 +161,7 @@ JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!
       if(vis){const top=Math.max(r.top,vis.top),bot=Math.min(r.bottom,vis.bottom-22);if(bot-top<r.height*0.5)return;y=top;h=bot-top}
       out.push({id:(e.id||e.className||e.tagName)+':'+e.textContent.trim().slice(0,18),x:r.left,y:y,w:r.width,h:h,
         c:m?m.slice(0,3).map(Number):null,size:parseFloat(cs.fontSize),
-        cls:(typeof e.className==='string'?e.className:''),muted: hex(cs.color)===mutedTok})});
+        cls:(typeof e.className==='string'?e.className:''),tok: tok[hex(cs.color)]||'', off: (e.disabled===true)||!!e.closest(off)})});
     return out}"""
 
 JS_FACES = """()=>{const out=[];for(const ss of document.styleSheets){let rs;try{rs=ss.cssRules}catch(e){continue}
@@ -523,7 +525,7 @@ async def check_contrast(pg, W, H, where):
         if x1 <= x0 or y1 <= y0: continue
         ratio = worst_ratio(bx['c'], bg[y0:y1, x0:x1].reshape(-1, 3))
         if ratio is None: continue
-        need = tier_for(bx['cls'], bx['size'], bx['muted'])
+        need = tier_for(bx['cls'], bx['size'], bx['tok'], bx['off'])
         tiers[need] = tiers.get(need, 0) + 1
         if ratio < need:
             low.append(f"{bx['id']} {ratio:.1f} < {need}")
