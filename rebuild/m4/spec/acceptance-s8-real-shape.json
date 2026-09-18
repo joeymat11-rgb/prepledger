@@ -1,0 +1,1673 @@
+{
+  "version": 1,
+  "lanePackage": "S8",
+  "packageId": "M2-S8-REAL-SHAPE",
+  "sourceBase": "8ebc860c30980dc5793be15202ea1a292e3769ba",
+  "parent": {
+    "id": "S7",
+    "artifact": "rebuild/m4/spec/acceptance-s7-port-admission.json",
+    "sha256": "350f56885c5eb55eecada58cadfb011656ddc58b82fc8fdc514ddc4503af791b",
+    "review": "rebuild/m4/spec/review-s7-port-admission.json",
+    "reviewSha256": "2819e4aa22dd791665ae3af8d8fe2e7ea1f69c99b92a93bc76267b2d9d431b76",
+    "receiptLedgerLine": 518,
+    "reviewedCommit": "e7fb94be36e13db1ff29d70a3e7ee3078f1e7f14"
+  },
+  "spec": {
+    "file": "rebuild/lanes/b/tooling/packages/S8.json",
+    "sha256": "6fbbb1b901c2d7cacc0595b41b41172a8c0faab12b52b470fcb85f4686878899"
+  },
+  "runner": {
+    "file": "rebuild/lanes/b/tooling/b-package.cjs",
+    "sha256": "e31dd206c0fb0fc0c295df45eae3992d4c59b1a76de8da04a4d0f22948e9335e"
+  },
+  "dIds": [],
+  "laws": {},
+  "carriedAcceptedIds": [
+    "D12",
+    "D33",
+    "D34",
+    "D35",
+    "D41",
+    "D43"
+  ],
+  "privateLiveTriggered": [],
+  "gates": [
+    "conformance",
+    "merge-differential",
+    "merge-laws",
+    "merge-source",
+    "migrate-differential",
+    "migrate-full",
+    "migrate-source",
+    "second-gate",
+    "selftest",
+    "strict",
+    "witnesses-1",
+    "witnesses-2",
+    "witnesses-3",
+    "witnesses-4",
+    "witnesses-5",
+    "witnesses-6",
+    "witnesses-7",
+    "writers-differential",
+    "writers-source"
+  ],
+  "coverage": {
+    "covered": [],
+    "superseded": [
+      "merge-source",
+      "migrate-differential",
+      "migrate-source",
+      "second-gate",
+      "witnesses-2",
+      "witnesses-5",
+      "witnesses-7",
+      "writers-differential",
+      "writers-source"
+    ],
+    "supersededByCarrier": {
+      "defect-witnesses": [
+        "witnesses-7"
+      ],
+      "inherited-carriers": [
+        "migrate-differential",
+        "witnesses-2",
+        "witnesses-5"
+      ],
+      "second-gate": [
+        "second-gate"
+      ],
+      "source-carriers": [
+        "merge-source",
+        "migrate-source",
+        "writers-source"
+      ],
+      "writers-differential": [
+        "writers-differential"
+      ]
+    },
+    "run": [
+      "conformance",
+      "merge-differential",
+      "merge-laws",
+      "migrate-full",
+      "selftest",
+      "strict",
+      "witnesses-1",
+      "witnesses-3",
+      "witnesses-4",
+      "witnesses-6"
+    ],
+    "moves": {},
+    "successors": null,
+    "supersessions": {
+      "rulingLineSha256": "0c2d0db53471b8604bdfb5c19f2485a12df517b672cd04912f988812c5a41eee",
+      "gates": {
+        "source-carriers": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:526 (RULED) for M2-S8-REAL-SHAPE, located by its own sha256 0c2d0db53471...: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37, and the three original programmes rebuild migrate.cjs from the frozen fe516c1:src/app.jsx declarations; this package changes NO engine byte, yet four files the reconstruction rebuilds (constants.cjs and writers.cjs from M2-H3-CLEAN-INIT, merge.cjs and today.cjs from M2-S3-COMPANION) already stand outside it, and the parent M2-S7-PORT-ADMISSION inherited them unmoved and retired these same gates at DECISIONS:514, so the gates refuse on this tree and no package that moves nothing can mend them - executed and measured in s8-supersede-source-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s8-sup-source-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "inherited-carriers": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:526 (RULED) for M2-S8-REAL-SHAPE, located by its own sha256 0c2d0db53471...: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs) and pins the visit order and the per-module carrier counts, so today.cjs (nine declared carriers) and writers.cjs are refused there for the same reason as source-carriers, at the parent's own post which this package carries unmoved - executed and measured in s8-supersede-inherited-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s8-sup-inherited-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "defect-witnesses": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:526 (RULED) for M2-S8-REAL-SHAPE, located by its own sha256 0c2d0db53471...: the FROZEN side of every one of its ten complete comparisons is built through native-carriers-parent-source.cjs into the same pinned reconstruction, so no witness can be produced on both sides once an inherited engine byte stands outside it; M2-S8-REAL-SHAPE closes no register defect and moves no engine byte, and the complete comparison it owes is measured instead against the accepted engine read from Git at this package's own sourceBase",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s8-sup-defect-witnesses"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "writers-differential": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:526 (RULED) for M2-S8-REAL-SHAPE, located by its own sha256 0c2d0db53471...: the gate is the differential over rebuild/engine/writers.cjs reached through the same reconstruction, and writers.cjs on this tree is neither that reconstruction's declared pre-image nor its declared post-image - it was moved by M2-H3-CLEAN-INIT, carried unmoved by M2-S3-COMPANION and by the parent M2-S7-PORT-ADMISSION, and is carried here byte-identical to the parent's post, asserted at S8/SUP-11",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s8-sup-writers-differential"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "second-gate": {
+          "why": "DECISIONS:153 (the standing role) and the token clause DECISIONS:526 (RULED) for M2-S8-REAL-SHAPE, located by its own sha256 0c2d0db53471...: the independent second reading is taken over the reconstructed engine and pins the frozen source commit fe516c1 with a static inventory, so it refuses this tree before it compares anything; the second reading this package puts in its place is taken from Git at its own sourceBase against the disk composition",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "s8-sup-second-gate"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-17",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        }
+      }
+    },
+    "byChild": {}
+  },
+  "authorizations": {
+    "owner": {
+      "ledgerLine": 60,
+      "role": "owner",
+      "line": "- 2026-09-06 · owner · M2-RULE — the owner's disposition of the M2 audit, given on rebuild/m2/OWNER-RULING-PACK-M2.md v3 (5,579 bytes, sha256 2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9, committed at 4e561e5): owner, exact words received in the Codex coordinator task 01a06e0c-39ea-7591-9666-eead44de251c — a user-role annotation selecting \"Approve Batch A and all seven recommended choices\", then user-role \"Continue\" — relayed verbatim by Astra with that provenance on 2026-09-06 14:40 UTC; cowork independently verified the pack correspondence (pack bytes/sha and the register's 38 FIX + 7 OWNER RULING split match the relay) and did NOT directly observe the Codex UI; the Message-35 route governs transport only and did not originate this ruling; recorded as the owner's ruling in his own words, not a recommendation and not an inference from the integration Go — the owner may correct it at any time by an appended line. BATCH A APPROVED as one batch — every FIX recommendation of rebuild/m2/AUDIT-REGISTER.md becomes an approved repair direction: D1 APPROVED-FIX · D2 APPROVED-FIX · D3 APPROVED-FIX · D4 APPROVED-FIX · D5 APPROVED-FIX · D6 APPROVED-FIX · D7 APPROVED-FIX · D9 APPROVED-FIX · D11 APPROVED-FIX · D12 APPROVED-FIX · D13 APPROVED-FIX · D14 APPROVED-FIX · D15 APPROVED-FIX · D17 APPROVED-FIX · D18 APPROVED-FIX · D19 APPROVED-FIX · D20 APPROVED-FIX · D21 APPROVED-FIX · D22 APPROVED-FIX · D23 APPROVED-FIX · D24 APPROVED-FIX · D26 APPROVED-FIX · D27 APPROVED-FIX · D28 APPROVED-FIX · D29 APPROVED-FIX · D30 APPROVED-FIX · D31 APPROVED-FIX · D33 APPROVED-FIX · D34 APPROVED-FIX · D35 APPROVED-FIX · D36 APPROVED-FIX · D38 APPROVED-FIX · D39 APPROVED-FIX · D41 APPROVED-FIX · D42 APPROVED-FIX · D43 APPROVED-FIX · D44 APPROVED-FIX · D45 APPROVED-FIX (38). BATCH B — all seven RECOMMENDED answers chosen, each now an approved repair direction with its exact rule: D8 APPROVED-FIX — when last night's sleep is missing, recovery is UNKNOWN and no sleep restriction is applied today; every other recovery check still applies (not carry-forward of the last logged night). D10 APPROVED-FIX — date-only week counts mean 7 CALENDAR days, not 168 elapsed hours. D16 APPROVED-FIX — a 7-day forecast hit requires an eligible weigh-in on the due day or, failing that, the next day (one grace date); with no such reading the forecast is UNGRADED, not a miss; the day arithmetic follows D10. D25 APPROVED-FIX — \"protein: good\" requires at least one successful day within the current seven-logged-days window before the one-miss allowance applies; a first missed day cannot read \"good\". D32 APPROVED-FIX — \"benefit replicated\" counts only sessions from the CURRENT technique; all other replication thresholds stay as they are. D37 APPROVED-FIX — a merged earned receipt keeps the assessment as of the day it was earned, accepting that this can change whether a single-sighting increase counts as earned and the numbers printed on past earned receipts. D40 APPROVED-FIX — when two phones disagree on a day's calories with equal detail, ONE deterministic shared winner is chosen with the conflict kept visible and BOTH original entries retained; the exact tie-break rule and how the conflict is shown are NOT decided here and must be specified in the reviewed fix brief before anything is built. Totals: 45/45 dispositions recorded, 45 APPROVED-FIX, 0 KEEP, 0 DEFER, 0 UNRULED. What this does NOT do: it approves directions, not code — each theme still needs its accepted behaviour/delta brief, its red-first laws turning GREEN on the candidate and RED on the frozen engine, the post-fix gate's PACKAGE run and cowork's execution acceptance; the frozen app and its goldens stay untouched; no private release, spending, phone gate, remote gate or M2 closure is waived; no owner-specific interval or value is set. Transport: the route ruling at line 42 applies; no additional Go was requested or given · rebuild/m2/OWNER-RULING-PACK-M2.md · M2-RULE DONE; M2-FIX unblocked for briefs (D33–D35 first, per the accepted PR #34 contract)",
+      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
+    },
+    "contract": {
+      "ledgerLine": 49,
+      "role": "cowork",
+      "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
+    },
+    "theme": {
+      "ledgerLine": 524,
+      "role": "cowork",
+      "line": "- 2026-09-18 · cowork · THEME M2-S8-REAL-SHAPE - the reseal child that carries the accepted P3-REAL-SHAPE and P3-LAYOUT-V2 change onto the tip so the owner's own file becomes his programme: the five product files it moves that the parent pins (rebuild/m3/w6/local/source-admission.mjs, rebuild/m3/w7-preview/import/import-screen.mjs, rebuild/m4/workout/plan-edit-model.cjs, rebuild/m3/w6/host/workout-host.mjs, rebuild/m3/w6/local/today-bindings.mjs) are every one of them pinned in rebuild/lanes/b/tooling/packages/S7.json, so under the standing ruling DECISIONS:455 the change reaches the tip only inside a lane B reseal child; it declares beside them the two unpinned files the rounds move and the one they add (rebuild/m3/w7-preview/today/local-source-basis.mjs, rebuild/m4/workout/engine-history.cjs, rebuild/m4/workout/lift-correspondence.cjs), the sixteen moved sibling test files and ancestor specs, and the eight new rebuild/lanes/d/p3-real-shape cells, names the standing CI step --package S8 INSIDE its own post before proposed() as VERDICT-S6.md rule (a) requires, and has NO product behaviour of its own beyond the two accepted lane D rounds. Rule of record DECISIONS:521 over rebuild/lanes/d/P3-REAL-SHAPE-SPEC.md v2 at 6e8c9c7; build rulings :522 and :523. Its behaviour/delta contract is rebuild/lanes/b/S8-REAL-SHAPE-BRIEF.md; its parent is M2-S7-PORT-ADMISSION, rebuild/m4/spec/acceptance-s7-port-admission.json sha256 350f56885c5eb55eecada58cadfb011656ddc58b82fc8fdc514ddc4503af791b (receipt DECISIONS:518, merge :519); it changes no rebuild/engine byte and moves no coach byte, and as a fifth-generation descendant of M2-S3-COMPANION it retires the same nine byte-identity gates again under its own token line below. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "77a8e98680a1ff0cbbbe5c9eba86607113032551de672bcceae50f47703f3c6c"
+    },
+    "review": {
+      "role": "cowork",
+      "prefix": "POSTFIX-ACCEPTANCE M2-S8-REAL-SHAPE",
+      "terminal": "ACCEPTED"
+    }
+  },
+  "product": {
+    ".github/workflows/rebuild.yml": {
+      "pre": "afce33cf1925f304cfa115053d4c6613002677ba6e74b5bee1b04cfafc8fe93c",
+      "post": "8403d10b1a54d721a17e92cc0c2eb7fe119379b65cc4ba9625e6a7196ad9d532",
+      "role": "edited"
+    },
+    ".github/workflows/shared-preflight.yml": {
+      "pre": "99edda0784bdcaac010bb0261d6eaa37f8ed5c0cc562928e900489d145f4f491",
+      "post": "99edda0784bdcaac010bb0261d6eaa37f8ed5c0cc562928e900489d145f4f491",
+      "role": "carried"
+    },
+    "rebuild/engine/constants.cjs": {
+      "pre": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "post": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "role": "carried"
+    },
+    "rebuild/engine/dates.cjs": {
+      "pre": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "post": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "role": "carried"
+    },
+    "rebuild/engine/earn.cjs": {
+      "pre": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "post": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "role": "carried"
+    },
+    "rebuild/engine/energy.cjs": {
+      "pre": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "post": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "role": "carried"
+    },
+    "rebuild/engine/entered-load.cjs": {
+      "pre": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "post": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "role": "carried"
+    },
+    "rebuild/engine/index.cjs": {
+      "pre": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "post": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "role": "carried"
+    },
+    "rebuild/engine/merge.cjs": {
+      "pre": "01e9d6e6000fd625b9f50c336c3440fb8f84e61f3e77bce4a9bf93fb8fb63b00",
+      "post": "01e9d6e6000fd625b9f50c336c3440fb8f84e61f3e77bce4a9bf93fb8fb63b00",
+      "role": "carried"
+    },
+    "rebuild/engine/migrate.cjs": {
+      "pre": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "post": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "role": "carried"
+    },
+    "rebuild/engine/oracle-shim.cjs": {
+      "pre": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "post": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "role": "carried"
+    },
+    "rebuild/engine/performed.cjs": {
+      "pre": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "post": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "role": "carried"
+    },
+    "rebuild/engine/plan.cjs": {
+      "pre": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "post": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "role": "carried"
+    },
+    "rebuild/engine/policy.cjs": {
+      "pre": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "post": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "role": "carried"
+    },
+    "rebuild/engine/progression.cjs": {
+      "pre": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "post": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "role": "carried"
+    },
+    "rebuild/engine/seed.cjs": {
+      "pre": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "post": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "role": "carried"
+    },
+    "rebuild/engine/sleep.cjs": {
+      "pre": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "post": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "role": "carried"
+    },
+    "rebuild/engine/today.cjs": {
+      "pre": "685f6e1e907cd9bba268e5d8f6927120172869febe1c747ffb9bd851aa17c45a",
+      "post": "685f6e1e907cd9bba268e5d8f6927120172869febe1c747ffb9bd851aa17c45a",
+      "role": "carried"
+    },
+    "rebuild/engine/volume.cjs": {
+      "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "post": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "role": "carried"
+    },
+    "rebuild/engine/writers.cjs": {
+      "pre": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+      "post": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+      "role": "carried"
+    },
+    "rebuild/lanes/b/tooling/b-package.cjs": {
+      "pre": "0fb0570d812ea1c1a9426281ae39c8101c1ddd0206b11ad5efa7a3778339cf8d",
+      "post": "e31dd206c0fb0fc0c295df45eae3992d4c59b1a76de8da04a4d0f22948e9335e",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/B-NTC.json": {
+      "pre": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
+      "post": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
+      "role": "carried"
+    },
+    "rebuild/lanes/b/tooling/packages/H3.json": {
+      "pre": "f1934b8bcce0364fff42aa18cc90d57b8e20cb2a08e1cc96a720c686b05b70cc",
+      "post": "137cc5ee36bbdd50ab2a34b4f0c7e407e1d889063e2f176b01e9d31566ba275e",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/S3.json": {
+      "pre": "0d3bc08699f4bb25983c97f159f172410716764642ec5a521c2c3474ce35137e",
+      "post": "d354cec7bbe020912ff317477dc66e4ef6e9f94e625e729e2504d6e33143d84d",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/S4.json": {
+      "pre": "797830e0b20d096a925da5e5e8427dd0b6c5d90bf3c8e56c028bd83645c1d007",
+      "post": "165bd6b16581be91a711fc63addc6835a2eac3f143e649e61d321c5d6a93bab2",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/S5.json": {
+      "pre": "2923654580ae6ac28bce7483e9d7a1e9786dc798c93353682c9181e0409061b5",
+      "post": "60a00077b6e2ea48fc5c94832e97ea759852b9c32b9e4c835765737fef4ff1fc",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/S6.json": {
+      "pre": "77f24fd77460a10e7637fb6a181c6ecfc39db0ab55e3d5897b9b9770f9b63107",
+      "post": "45eea528180d256843a6edd71b5768a9fce0f78b0f0742e7cc70680e8a9e10cd",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs": {
+      "pre": "d17f2e45e086363e065862ace674ecee6c15f839bf1e2d536d806faafa2de4aa",
+      "post": "24525b8f97e90ef0a4501ef233c253989387281315127ed1742943acee19d3e1",
+      "role": "edited"
+    },
+    "rebuild/lanes/d/b-lom/legacy-order.test.mjs": {
+      "pre": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
+      "post": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/import-retract/retract.test.mjs": {
+      "pre": "1f1f3feb6a7d6cb4c14ffeafb19c22b49a2692cf6e4d4584364886bbd188612e",
+      "post": "1f1f3feb6a7d6cb4c14ffeafb19c22b49a2692cf6e4d4584364886bbd188612e",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs": {
+      "pre": "5c8f04e31f7e07af0313b326bcc7dbffadc5115fc509618e0232fe3e46264a88",
+      "post": "5c8f04e31f7e07af0313b326bcc7dbffadc5115fc509618e0232fe3e46264a88",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-followons/admission-swap.test.mjs": {
+      "pre": "2aa2ccf53362f5a69ceda88f153e9a9201c050b9ef355a1f9e731a45eee61300",
+      "post": "2aa2ccf53362f5a69ceda88f153e9a9201c050b9ef355a1f9e731a45eee61300",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs": {
+      "pre": "45b435343a7b74a7db977bbbfc792db4af3d3d25b3f81d08954ca9280731830f",
+      "post": "45b435343a7b74a7db977bbbfc792db4af3d3d25b3f81d08954ca9280731830f",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs": {
+      "pre": "f9a1cc02eb159b4a7132fe8cc6248c0bb3178f7f275f05e89103f8c5150e0f1c",
+      "post": "08f9a5fbcb4d83d70c807422578986b751b74bdce849eb046b84157e641bb383",
+      "role": "edited"
+    },
+    "rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs": {
+      "pre": "845d28d62ab9565d3dd1f722ff20850bf79d795d1abd8c1f75a7b7b6a4e693a7",
+      "post": "ae5c3c7853960885df175e46a697e817befa58fc038ab79044de9787c80ced83",
+      "role": "edited"
+    },
+    "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs": {
+      "pre": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
+      "post": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs": {
+      "pre": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
+      "post": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs": {
+      "pre": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
+      "post": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs": {
+      "pre": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
+      "post": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs": {
+      "pre": "448193e0216cabd3eedc4a50e8b1719c0ca493c9385ec291e0fc35f5143ece2d",
+      "post": "448193e0216cabd3eedc4a50e8b1719c0ca493c9385ec291e0fc35f5143ece2d",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs": {
+      "pre": "ab94da99c18e7c27f283d51b2a561688d313490eb76e3569681ba9a8cbd58748",
+      "post": "ab94da99c18e7c27f283d51b2a561688d313490eb76e3569681ba9a8cbd58748",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/plan-edit/browser-build.test.mjs": {
+      "pre": "20480bef0ebf788b1a4b5a9eb138fa68f4c1d0c22936d56620a1c7ec50149f1a",
+      "post": "20480bef0ebf788b1a4b5a9eb138fa68f4c1d0c22936d56620a1c7ec50149f1a",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/plan-edit/client-p6.test.cjs": {
+      "pre": "b31a25e43dc318ee9ddc900b44244edf5a02adf490a9df86e40b1c44e8102d7c",
+      "post": "b31a25e43dc318ee9ddc900b44244edf5a02adf490a9df86e40b1c44e8102d7c",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/plan-edit/durable-host.test.mjs": {
+      "pre": "e986c046bb675309eabef894706353979c5ee9e51d58bf67b5829593ea068b63",
+      "post": "e986c046bb675309eabef894706353979c5ee9e51d58bf67b5829593ea068b63",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/plan-edit/f2-tag-adapter.cjs": {
+      "pre": "d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d",
+      "post": "d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/plan-edit/model.test.cjs": {
+      "pre": "3338be39b58e384d19d4f2501c2fa7809c9233b9a0f15012c056d1dfff8e7338",
+      "post": "afb88e790020cc1140914c1a16eeda009b38cab7cf6dda9561cc5eaf8ea9a275",
+      "role": "edited"
+    },
+    "rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs": {
+      "pre": "71339f43e3556323dbc1a9a3cddc7636904c3e03cd2a24a66cfe5eb54a4dbf0e",
+      "post": "71339f43e3556323dbc1a9a3cddc7636904c3e03cd2a24a66cfe5eb54a4dbf0e",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/engine-runtime-host.cjs": {
+      "pre": "836a369db3a94f340348fd2db02d6e8cd3ad636a851725518d583cfcbe07f334",
+      "post": "836a369db3a94f340348fd2db02d6e8cd3ad636a851725518d583cfcbe07f334",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/host-entry.mjs": {
+      "pre": "9f996ecba92f2cb92f28457b79f52c73366657f0d4a75cb1ebe8abbcfd94c25f",
+      "post": "9f996ecba92f2cb92f28457b79f52c73366657f0d4a75cb1ebe8abbcfd94c25f",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/plan-edit-host.mjs": {
+      "pre": "b138196d20cd192bd7871ece0b2aea91a8cf0a02bffc69addc8ac027f5989b93",
+      "post": "b138196d20cd192bd7871ece0b2aea91a8cf0a02bffc69addc8ac027f5989b93",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": {
+      "pre": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "post": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/food-live-save.test.mjs": {
+      "pre": "90113e78543df8848c0f148af2e6151a286df7d31c67dd660df7950afa8f7348",
+      "post": "90113e78543df8848c0f148af2e6151a286df7d31c67dd660df7950afa8f7348",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/host-seams.test.mjs": {
+      "pre": "bdd0b83b17c75c8b3d5158feb7ab3b10566fd45cc3180fa85dbd2294fdf175c9",
+      "post": "bdd0b83b17c75c8b3d5158feb7ab3b10566fd45cc3180fa85dbd2294fdf175c9",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/journey-fixture.cjs": {
+      "pre": "cbca2b7721bb2291691d7bd74bc568493d0b5b10f0bcb3e6dec34f5e4736cba4",
+      "post": "cbca2b7721bb2291691d7bd74bc568493d0b5b10f0bcb3e6dec34f5e4736cba4",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/journey.test.mjs": {
+      "pre": "2ac6a7f23bcc079406a1493fe01629b61abc66984c04289dc40fbbec60c20af9",
+      "post": "2ac6a7f23bcc079406a1493fe01629b61abc66984c04289dc40fbbec60c20af9",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/local-real-day.test.mjs": {
+      "pre": "43780e9b692c836f33a9ea34cb1433a40f1ad11ffe6d7f8ba8a48e0f16af5084",
+      "post": "43780e9b692c836f33a9ea34cb1433a40f1ad11ffe6d7f8ba8a48e0f16af5084",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/workout-host.mjs": {
+      "pre": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
+      "post": "f0f36328595673061132d5c55d76b1a9a93de5fc5fca5171ed4a1647e85ccb9f",
+      "role": "edited"
+    },
+    "rebuild/m3/w6/local/browser-entry.mjs": {
+      "pre": "7f7bdde8488ff43791454962407a21373a9b07316dad2dc32aa754ca7f0ff052",
+      "post": "7f7bdde8488ff43791454962407a21373a9b07316dad2dc32aa754ca7f0ff052",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/host-bindings.mjs": {
+      "pre": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
+      "post": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/host-browser-entry.mjs": {
+      "pre": "476b6c0266ccacefa82d02d5f5f5dcdd042c11ca78af45b86f01eefca6aacecb",
+      "post": "476b6c0266ccacefa82d02d5f5f5dcdd042c11ca78af45b86f01eefca6aacecb",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/import-bundle.mjs": {
+      "pre": "565ee5d84ac95c002d9fe15df1965d60882653167258d008ab3a820add7b4c85",
+      "post": "565ee5d84ac95c002d9fe15df1965d60882653167258d008ab3a820add7b4c85",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/local-client.mjs": {
+      "pre": "1f74bb2eff97fe9becb7b473def4e2e6e49f511ff32a9878a5ee817fe9d3ff9c",
+      "post": "1f74bb2eff97fe9becb7b473def4e2e6e49f511ff32a9878a5ee817fe9d3ff9c",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/local-era.mjs": {
+      "pre": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
+      "post": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/local-keys.mjs": {
+      "pre": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
+      "post": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/source-admission.mjs": {
+      "pre": "d0c30f8c5ad2314b0225c92d0a8f24c8ef64cfe3d4c90527719a1a15759069b1",
+      "post": "2f477147b79d3fc1b03feae873b25f40359334425051a851570880b7423113a3",
+      "role": "edited"
+    },
+    "rebuild/m3/w6/local/source-platform.mjs": {
+      "pre": "5afc98dcb1a7891df0bf17467893eee1dcf59b324e2382ca239003f44e75cfa7",
+      "post": "5afc98dcb1a7891df0bf17467893eee1dcf59b324e2382ca239003f44e75cfa7",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/today-bindings.mjs": {
+      "pre": "8694a5d60481aceb739ae30db521df70335d6fbe8b1b2b67c43431ce17033d4c",
+      "post": "23c1179794b12259c027f9b30780186211e7ac4b6f2770eaca3fe663e59bbf12",
+      "role": "edited"
+    },
+    "rebuild/m3/w6/local/today-browser-entry.mjs": {
+      "pre": "633391e2b778e0b5c1f8eb16e6e24d4cca60bcdec13333e9cefcbb185772bd27",
+      "post": "633391e2b778e0b5c1f8eb16e6e24d4cca60bcdec13333e9cefcbb185772bd27",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/test/local-source-admission.test.mjs": {
+      "pre": "6144c7863991654da3b47215ce6d2ce04f9f335c77ceb643706a3603e9ce9491",
+      "post": "6144c7863991654da3b47215ce6d2ce04f9f335c77ceb643706a3603e9ce9491",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/test/local-source-consumer.test.mjs": {
+      "pre": "856b3627665b016e33d6a196e232c99981397c266ae2bab90ba4b64bc3e51af6",
+      "post": "856b3627665b016e33d6a196e232c99981397c266ae2bab90ba4b64bc3e51af6",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/test/local-today-journey.test.mjs": {
+      "pre": "4a371979a8b52b03e393f3e72baf2daf536ff1474f48f2ffffa1233ef6dc8a7a",
+      "post": "4a371979a8b52b03e393f3e72baf2daf536ff1474f48f2ffffa1233ef6dc8a7a",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/browser-engine.cjs": {
+      "pre": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "post": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/build.mjs": {
+      "pre": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "post": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/import-screen.mjs": {
+      "pre": "637ef3bbfd9d73e3e0236449ef596f78e76c39517b9aed73fa28bd2ed5920c3d",
+      "post": "ea4a178821ffad7f8fdcec6744e30f78fc873b9275e5da5645cb645cf730649e",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/import/test/edge-route.mjs": {
+      "pre": "46669f53be4fd543c4a4ace4752a987bf469819903bf31ebd05ab73a30d41b72",
+      "post": "46669f53be4fd543c4a4ace4752a987bf469819903bf31ebd05ab73a30d41b72",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/test/edge-seed-entry.mjs": {
+      "pre": "55c22a1f4b6280e73b8c25b642ed1fc22396aa915559b8d71ea9f1432a0dd895",
+      "post": "55c22a1f4b6280e73b8c25b642ed1fc22396aa915559b8d71ea9f1432a0dd895",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/test/live-clock.test.mjs": {
+      "pre": "618471e725d4efbff2a16d9fa3e201db665444c55a162617be129434fe01b32e",
+      "post": "618471e725d4efbff2a16d9fa3e201db665444c55a162617be129434fe01b32e",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs": {
+      "pre": "99762e4c4d122e72bf7de36055039fb188c085530305e4d237ff64f7f16d9b9e",
+      "post": "9b56ee6e22001296f354c77e0fa5fab6711d4c8f635e72a82e6c2977a13c62b3",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs": {
+      "pre": "e0c4bc1a84e37127fd91b103a863675a1aa725ecee82f57cb7e7e54f1f2356a6",
+      "post": "5edb49e3d853d946ea9695cb9e9a04166f5137368e700572d185607565007579",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/import/test/refusals.test.mjs": {
+      "pre": "5d12a328d09b42a8a5525f4f18e31161f0826e236efe4f583af9059fa5a220e3",
+      "post": "5d12a328d09b42a8a5525f4f18e31161f0826e236efe4f583af9059fa5a220e3",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/test/route.test.mjs": {
+      "pre": "4726474ef8931f937c7a18a79f6bb024a7dda50d25fcabdfaf8d47f21d887133",
+      "post": "4726474ef8931f937c7a18a79f6bb024a7dda50d25fcabdfaf8d47f21d887133",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/test/support.mjs": {
+      "pre": "34e6a7591a85cf66419ee1a9ea7b2fd25734f13ebe72bc3f775efe8954a9c359",
+      "post": "adea55fcd2ff7aab1177385b8ac8c43135203d15e977dc88a1cd24c361edd2cb",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/measure/measure-baseline.mjs": {
+      "pre": "802effc6eddff433409507e604e523deb0ea52987ba12b6523bc62080cf65be6",
+      "post": "802effc6eddff433409507e604e523deb0ea52987ba12b6523bc62080cf65be6",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-commands.cjs": {
+      "pre": "112c67b9f05dbee2d16703d9d7b2b8825765c5d5af77f2572986a434193c8649",
+      "post": "112c67b9f05dbee2d16703d9d7b2b8825765c5d5af77f2572986a434193c8649",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-fixture.json": {
+      "pre": "a141382091a8c6323cc4830fe093051a5506f80b38afd6cade3ec2320bbc11f5",
+      "post": "a141382091a8c6323cc4830fe093051a5506f80b38afd6cade3ec2320bbc11f5",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-host.mjs": {
+      "pre": "bce23c31528d1799526da59360d0cfe291ecd8e412a4fd37861914d85e0a052b",
+      "post": "bce23c31528d1799526da59360d0cfe291ecd8e412a4fd37861914d85e0a052b",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-model.mjs": {
+      "pre": "fbdac126c2b2f3ac476bbcdf66786459f429df4a8ebc5ebe34c74b93cf91ad87",
+      "post": "fbdac126c2b2f3ac476bbcdf66786459f429df4a8ebc5ebe34c74b93cf91ad87",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-screen.mjs": {
+      "pre": "0e87b872749f6ceaa3ae04a369d4df143ab7528a3d7f15a149dbb0d57dc8e2ad",
+      "post": "0e87b872749f6ceaa3ae04a369d4df143ab7528a3d7f15a149dbb0d57dc8e2ad",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-sources.mjs": {
+      "pre": "8e7f620c5286cdde7933ec4829539b74e36f0b6aba660d89e317d468351b84d4",
+      "post": "8e7f620c5286cdde7933ec4829539b74e36f0b6aba660d89e317d468351b84d4",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": {
+      "pre": "836bc79e07899d806d33ca680d1830ebc996adc81131b7193e1f05e1580b57ac",
+      "post": "836bc79e07899d806d33ca680d1830ebc996adc81131b7193e1f05e1580b57ac",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/adherence.test.mjs": {
+      "pre": "219ad91f1e83ff97e1a61e2d1d609a28d4416e3a1e40768502789f3c4cda7446",
+      "post": "219ad91f1e83ff97e1a61e2d1d609a28d4416e3a1e40768502789f3c4cda7446",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/baseline.test.mjs": {
+      "pre": "04c81447e373bc2764e298416899139fee1e5c7801ffd2e39e64a98b6e26cd0a",
+      "post": "04c81447e373bc2764e298416899139fee1e5c7801ffd2e39e64a98b6e26cd0a",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/boundary.test.mjs": {
+      "pre": "54f5e5b45fceec060ebcc9f19cdd99f43af340dc09ffb7514370a4fdaa8b113e",
+      "post": "b1f066f901c6833c340ff43bffee3389bcece180544c732ad2f0db9ae5f91c6f",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/measure/test/journey.test.mjs": {
+      "pre": "2520a774e8de269af2a032b2ac7c444753a4d87698e0ac68286ac26c2290306a",
+      "post": "2520a774e8de269af2a032b2ac7c444753a4d87698e0ac68286ac26c2290306a",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/lane.test.mjs": {
+      "pre": "e077f07e04c14944023e1f35357397d4ac44b9f3aa45e3b6019cc2a5c01d1155",
+      "post": "e077f07e04c14944023e1f35357397d4ac44b9f3aa45e3b6019cc2a5c01d1155",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/model.test.mjs": {
+      "pre": "ff2a531fd74afe98cc9acbcfd875dc175ae3686661eda5e34e8b5d61529b566e",
+      "post": "ff2a531fd74afe98cc9acbcfd875dc175ae3686661eda5e34e8b5d61529b566e",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/support.mjs": {
+      "pre": "f72c6176ecbaf3d60cabb731a9c4a612b4abcd8657ebe6dc260466aac8449cdf",
+      "post": "f72c6176ecbaf3d60cabb731a9c4a612b4abcd8657ebe6dc260466aac8449cdf",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/build.mjs": {
+      "pre": "d04a10ef406708b801749b1118246e82fecc53bbbafe1ac11068eb24bc52cf9c",
+      "post": "d04a10ef406708b801749b1118246e82fecc53bbbafe1ac11068eb24bc52cf9c",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/food-host.mjs": {
+      "pre": "5eca457bfbc7ec69e6edff9d9fd9a43e31a62c1937b0147491ad86397bae801f",
+      "post": "5eca457bfbc7ec69e6edff9d9fd9a43e31a62c1937b0147491ad86397bae801f",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/gym-app.mjs": {
+      "pre": "4c8ba0c93f48b1b38be34d08ee23d274841c55680e51a61954754d17bcf8ec53",
+      "post": "4c8ba0c93f48b1b38be34d08ee23d274841c55680e51a61954754d17bcf8ec53",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/gym-host.mjs": {
+      "pre": "70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85",
+      "post": "70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/machine-settings-host.mjs": {
+      "pre": "be586088f56d819db242f4a67402fa4cfe877062388bdaacfc5f3bdf1ab28ef3",
+      "post": "be586088f56d819db242f4a67402fa4cfe877062388bdaacfc5f3bdf1ab28ef3",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/preview.css": {
+      "pre": "7cf97598c2c2cb2390dd0a7a855f322b68b27f4fa801df3e23536e4846126ea1",
+      "post": "7cf97598c2c2cb2390dd0a7a855f322b68b27f4fa801df3e23536e4846126ea1",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/problem-report.cjs": {
+      "pre": "ae59ca7d67f7f7e3a5b4985bd3ce7bbdc86eedf4cb91fc9a3fe32f4b1262e6ae",
+      "post": "ae59ca7d67f7f7e3a5b4985bd3ce7bbdc86eedf4cb91fc9a3fe32f4b1262e6ae",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/reading-host.mjs": {
+      "pre": "079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4",
+      "post": "079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/adapter.test.mjs": {
+      "pre": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+      "post": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/checkin.test.mjs": {
+      "pre": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+      "post": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/copy.test.mjs": {
+      "pre": "290a90ab6d79c5558a01067b9755192655cd1fe465581bdb8cc358e24fd9f9e5",
+      "post": "290a90ab6d79c5558a01067b9755192655cd1fe465581bdb8cc358e24fd9f9e5",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/design.test.cjs": {
+      "pre": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "post": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/food.test.mjs": {
+      "pre": "e932bfb9b7003319665508dd82754927d4f6e97677803c7caa6b9884eff796d8",
+      "post": "088530cfccbba5eceb19fbae627b7977794f42bd4849126edede061f74a9c95b",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
+      "pre": "79aa531e5483f532736f2a387bc8839e7ac94395bcaaf67737c9e6869c12d508",
+      "post": "79aa531e5483f532736f2a387bc8839e7ac94395bcaaf67737c9e6869c12d508",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs": {
+      "pre": "a35ad9dad96988a336fea90fcd8c6b9a56bc9e1c6fc5aec9ca4d938a201f4cb7",
+      "post": "e532f8d4e5aa5435845908e5f76667b4933f7c7a6ffe1ac39740c14d71910a7f",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": {
+      "pre": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+      "post": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/package.test.cjs": {
+      "pre": "1a29e3e09b9454a48866b6156688a6893b2ce2aae657f8cca68efad67a7381ad",
+      "post": "1a29e3e09b9454a48866b6156688a6893b2ce2aae657f8cca68efad67a7381ad",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/problem.test.mjs": {
+      "pre": "19f808fc046a1a4df1e6a3b4ee22f3af5a19187181090046642ef481d942b800",
+      "post": "cb42052b4aa055cc5e9a6449fe78d2fcc1425b1adf8c99916b9104608be56b4e",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/test/setup.test.mjs": {
+      "pre": "ec490b43d769f2673f6b521db0e2bf0c264366cc8bb8e153eb8ee7cb64c6776f",
+      "post": "80e5e2eab1e526f7594fb2c304bdb8cc03ff21588c38a4866f53e2091464d90d",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": {
+      "pre": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+      "post": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/today-app.cjs": {
+      "pre": "dc9a826eda96659b6cd5d5ca63ad137507586f5a59f4acf709ee67d98736b7af",
+      "post": "dc9a826eda96659b6cd5d5ca63ad137507586f5a59f4acf709ee67d98736b7af",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/today-entry.mjs": {
+      "pre": "8b1697582d7d9f21bda4668f590187e612d3d554b8be32a31cfc6fb82ab91276",
+      "post": "8b1697582d7d9f21bda4668f590187e612d3d554b8be32a31cfc6fb82ab91276",
+      "role": "carried"
+    },
+    "rebuild/m4/import/body-composition-class.cjs": {
+      "pre": "e16e2449ce2f6e0dbc7258e5338bf016b94528862c62bf4c2bf64acb017b7551",
+      "post": "e16e2449ce2f6e0dbc7258e5338bf016b94528862c62bf4c2bf64acb017b7551",
+      "role": "carried"
+    },
+    "rebuild/m4/import/browser-replay.mjs": {
+      "pre": "2b7112798db0ba41497aae0b38bdbf7deea5116b23f872ada0ebe6a52f0f10ba",
+      "post": "2b7112798db0ba41497aae0b38bdbf7deea5116b23f872ada0ebe6a52f0f10ba",
+      "role": "carried"
+    },
+    "rebuild/m4/import/daily-history.cjs": {
+      "pre": "5358b3ba6a9a92e217651f0a74d85511f50a30d276c7a483a025034de6e604f7",
+      "post": "5358b3ba6a9a92e217651f0a74d85511f50a30d276c7a483a025034de6e604f7",
+      "role": "carried"
+    },
+    "rebuild/m4/import/engine-provider.cjs": {
+      "pre": "1899ba3c451c830b904f65c8e4afd4012e59ca18fcfa0b990993c58c2786f896",
+      "post": "1899ba3c451c830b904f65c8e4afd4012e59ca18fcfa0b990993c58c2786f896",
+      "role": "carried"
+    },
+    "rebuild/m4/import/local-source-order.cjs": {
+      "pre": "6c89fd55696b846c519c8f195b1df5fa3b6aa6bf5ec1d23d2074622ad742cf43",
+      "post": "6c89fd55696b846c519c8f195b1df5fa3b6aa6bf5ec1d23d2074622ad742cf43",
+      "role": "carried"
+    },
+    "rebuild/m4/import/local-source-profile.cjs": {
+      "pre": "2de07820664ee2ec42c72fecd665a31dfb3768d607870745798c590bd79640e9",
+      "post": "2de07820664ee2ec42c72fecd665a31dfb3768d607870745798c590bd79640e9",
+      "role": "carried"
+    },
+    "rebuild/m4/import/measure-replay.cjs": {
+      "pre": "61a4a9204985a468dbfadd5df6a87d92237a0e1587b7b1c11e10c9446c42876e",
+      "post": "61a4a9204985a468dbfadd5df6a87d92237a0e1587b7b1c11e10c9446c42876e",
+      "role": "carried"
+    },
+    "rebuild/m4/import/prepare.cjs": {
+      "pre": "2f76d35232f929edd0d9f3e2c490dc8a171a6cff63373881be5b5b703d77fd8c",
+      "post": "2f76d35232f929edd0d9f3e2c490dc8a171a6cff63373881be5b5b703d77fd8c",
+      "role": "carried"
+    },
+    "rebuild/m4/import/production-mapping.cjs": {
+      "pre": "abf1ff157045b2070c030de2d473eb6784f9bcffbfca433c09897de9a8b4264a",
+      "post": "abf1ff157045b2070c030de2d473eb6784f9bcffbfca433c09897de9a8b4264a",
+      "role": "carried"
+    },
+    "rebuild/m4/import/reading-replay.cjs": {
+      "pre": "0580c0d0cd7910f4eae7960c970744ebee8a814186259f15d28aed29d46123ad",
+      "post": "0580c0d0cd7910f4eae7960c970744ebee8a814186259f15d28aed29d46123ad",
+      "role": "carried"
+    },
+    "rebuild/m4/import/replay-core.cjs": {
+      "pre": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "post": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "role": "carried"
+    },
+    "rebuild/m4/import/replay-registry.cjs": {
+      "pre": "e8f6af5d123c47b079e682cc43b0b263d9aa0a18b397e1d57bfa42c9499b8521",
+      "post": "e8f6af5d123c47b079e682cc43b0b263d9aa0a18b397e1d57bfa42c9499b8521",
+      "role": "carried"
+    },
+    "rebuild/m4/import/sleep-replay.cjs": {
+      "pre": "16020d1fe1ec2af9f40aeac28d6ee2098d4c21eff46a4cda4e0f39506217035a",
+      "post": "16020d1fe1ec2af9f40aeac28d6ee2098d4c21eff46a4cda4e0f39506217035a",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/browser-parity.test.mjs": {
+      "pre": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632",
+      "post": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/engine-provider.test.cjs": {
+      "pre": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8",
+      "post": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/local-source-order.test.cjs": {
+      "pre": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
+      "post": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/prepare.test.cjs": {
+      "pre": "8c9511d8e32ba2d52754288de301054e1a2b17111cc1c352b83f89ea1df7015c",
+      "post": "8c9511d8e32ba2d52754288de301054e1a2b17111cc1c352b83f89ea1df7015c",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/production-admission.test.mjs": {
+      "pre": "142eb51849ba50e3b47e7480f0d23a4cd1f82624151446fa521b3e23bf556994",
+      "post": "142eb51849ba50e3b47e7480f0d23a4cd1f82624151446fa521b3e23bf556994",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/production-mapping.test.cjs": {
+      "pre": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
+      "post": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/reading-replay.test.cjs": {
+      "pre": "83c9f88d961af688164d345964b38018429aadff26b2e37e106e92484ed94fca",
+      "post": "83c9f88d961af688164d345964b38018429aadff26b2e37e106e92484ed94fca",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/s3/engine.cjs": {
+      "pre": "ff0db8ce9d83b75821cc1326b2110a8be0c6a371686a165c73d1571ff4acefe4",
+      "post": "ff0db8ce9d83b75821cc1326b2110a8be0c6a371686a165c73d1571ff4acefe4",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/s3/fixtures.mjs": {
+      "pre": "74bbba37999191d5ce5ae17061e676b96280542ed379f880c92957a6b87a3e5d",
+      "post": "74bbba37999191d5ce5ae17061e676b96280542ed379f880c92957a6b87a3e5d",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-cases.cjs": {
+      "pre": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
+      "post": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-defect-witnesses.cjs": {
+      "pre": "d6a39f0051a5c3374ce53e0273a9fbd0b60695eaf1fa218a3d2a0c27967ceeb7",
+      "post": "d6a39f0051a5c3374ce53e0273a9fbd0b60695eaf1fa218a3d2a0c27967ceeb7",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-direct.cjs": {
+      "pre": "a043bffc9a0c99f0cfb3aa24ead3e75d4b3f4fc1635fc1df094c089b0b55142a",
+      "post": "a043bffc9a0c99f0cfb3aa24ead3e75d4b3f4fc1635fc1df094c089b0b55142a",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-focused.cjs": {
+      "pre": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+      "post": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-inherited-carriers.cjs": {
+      "pre": "505cf440ed736a4deb8cc2d7faf7c2c7b6e10a8d9b640b89ef4ee2e29b9433c1",
+      "post": "505cf440ed736a4deb8cc2d7faf7c2c7b6e10a8d9b640b89ef4ee2e29b9433c1",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-journeys.cjs": {
+      "pre": "cb59f37e39b6eaa17207b3b6a0f6d8fcba4b90798381853ba39221d7ee5271be",
+      "post": "cb59f37e39b6eaa17207b3b6a0f6d8fcba4b90798381853ba39221d7ee5271be",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-legacy.cjs": {
+      "pre": "287526762da17bbf7d46ea2b9d567e8a90752b4ba8a4b1e91aa8864c9d3309c8",
+      "post": "287526762da17bbf7d46ea2b9d567e8a90752b4ba8a4b1e91aa8864c9d3309c8",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs": {
+      "pre": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+      "post": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs": {
+      "pre": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+      "post": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-second-gate.cjs": {
+      "pre": "b87b8949f9b7f03ab8f62abf3fb9bc8293c7ab7aadfdbcfa489202f6ff9f60c8",
+      "post": "b87b8949f9b7f03ab8f62abf3fb9bc8293c7ab7aadfdbcfa489202f6ff9f60c8",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-source-carriers.cjs": {
+      "pre": "89bb7727e08d0f0783ada0b584620a793a6acae73f0efb9e6f9c72a228b0e578",
+      "post": "89bb7727e08d0f0783ada0b584620a793a6acae73f0efb9e6f9c72a228b0e578",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-successors.cjs": {
+      "pre": "2efe4a480f952a58bd2fd3e2301054334cfced297f14a46b7b4945962fabe6f9",
+      "post": "2efe4a480f952a58bd2fd3e2301054334cfced297f14a46b7b4945962fabe6f9",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-successors.test.cjs": {
+      "pre": "bf63c764a5cb0a86d24a80c9a299711c71801075288ba7339e1c94964fee7ca3",
+      "post": "bf63c764a5cb0a86d24a80c9a299711c71801075288ba7339e1c94964fee7ca3",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-traces.cjs": {
+      "pre": "0137dc617d83ed1e0171054da62f3699a32232342ed88cd54eded578a83c2325",
+      "post": "0137dc617d83ed1e0171054da62f3699a32232342ed88cd54eded578a83c2325",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-witnesses.cjs": {
+      "pre": "6a601742f8b1bfae28ca7c7ee3acb0a3930614b21b17e4271f7db0b82fe6207e",
+      "post": "6a601742f8b1bfae28ca7c7ee3acb0a3930614b21b17e4271f7db0b82fe6207e",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-writers-differential.cjs": {
+      "pre": "abf14c3f3b37954a9bcf131506d28f0ad44b9e1c6e1c3b0c24c90682735d53d9",
+      "post": "abf14c3f3b37954a9bcf131506d28f0ad44b9e1c6e1c3b0c24c90682735d53d9",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/athlete-state.cjs": {
+      "pre": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+      "post": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/engine-order.cjs": {
+      "pre": "d06fc9fcb0e8a7f3bb3f093d49ac91c98955a025e5f684c2b5454e50f93cc638",
+      "post": "d06fc9fcb0e8a7f3bb3f093d49ac91c98955a025e5f684c2b5454e50f93cc638",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/engine-runtime.cjs": {
+      "pre": "95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30",
+      "post": "95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/legacy-order-mapping.cjs": {
+      "pre": "d85907166f910d936efee6135ed39199f51d8de9f2f311a93209bafca1f1808a",
+      "post": "d85907166f910d936efee6135ed39199f51d8de9f2f311a93209bafca1f1808a",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/native-trend-context.cjs": {
+      "pre": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+      "post": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/plan-edit-commands.cjs": {
+      "pre": "9b7f260dad01dcfa0d1839db7fb8c6144a098c0a79bd556a39e248a45a1c06e3",
+      "post": "9b7f260dad01dcfa0d1839db7fb8c6144a098c0a79bd556a39e248a45a1c06e3",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/plan-edit-model.cjs": {
+      "pre": "ccaa90bb98b134ebda14e6f1a5a3c0a7688b9dfe9c0a8e6836a27e1855d89a5b",
+      "post": "7cdb4ade63c596cd2a5e6aeec7b97fc9c3f2cfc2cd4386cd116c7d8e70ee4724",
+      "role": "edited"
+    },
+    "rebuild/m4/workout/test/h3-clean-init.test.cjs": {
+      "pre": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
+      "post": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-engine-files-differential.cjs": {
+      "pre": "d0f59c48b9d50997c5cd4a8cbd9e8a48fdae4765f17c8cf74f03cffafd41d9bf",
+      "post": "d0f59c48b9d50997c5cd4a8cbd9e8a48fdae4765f17c8cf74f03cffafd41d9bf",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-supersede-defect-witnesses.test.cjs": {
+      "pre": "e41ec9f2d1ea8d7d650ce139799da783301f7d5e99365e6386c0ccf61e990c7f",
+      "post": "e41ec9f2d1ea8d7d650ce139799da783301f7d5e99365e6386c0ccf61e990c7f",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-supersede-inherited-carriers.test.cjs": {
+      "pre": "69c8d05fa3a1ccf6b3b3458706ffc633c9f83063dd604bd15549ba61d1c7f0ff",
+      "post": "69c8d05fa3a1ccf6b3b3458706ffc633c9f83063dd604bd15549ba61d1c7f0ff",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs": {
+      "pre": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+      "post": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs": {
+      "pre": "dc92e91810246fca195ab3a031236aaffba2b04522e5718fb72f9f6eda62d0dc",
+      "post": "dc92e91810246fca195ab3a031236aaffba2b04522e5718fb72f9f6eda62d0dc",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs": {
+      "pre": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+      "post": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/legacy-order-mapping.test.cjs": {
+      "pre": "f7a3e4a4b3d99f6863cbcc56d69023027c7d8b1722661d86ba1845f61d03ba15",
+      "post": "f7a3e4a4b3d99f6863cbcc56d69023027c7d8b1722661d86ba1845f61d03ba15",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/native-trend-context.test.cjs": {
+      "pre": "cb4643af81e7a7d6082ba7c2cbd1cb51c4896aa0f82ac69d9274c683659979ab",
+      "post": "cb4643af81e7a7d6082ba7c2cbd1cb51c4896aa0f82ac69d9274c683659979ab",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-companion-gensession-differential.test.cjs": {
+      "pre": "a3dcc8d37d798527df4f9d9e484419ac092db5fd9ec6d58a2ac2caffc8c787da",
+      "post": "a3dcc8d37d798527df4f9d9e484419ac092db5fd9ec6d58a2ac2caffc8c787da",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-companion-membership.test.cjs": {
+      "pre": "764ee61633c88633eaec803f4889c50628e6d1d673744641015110210bda3eb0",
+      "post": "764ee61633c88633eaec803f4889c50628e6d1d673744641015110210bda3eb0",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-companion-merge-native-date.test.cjs": {
+      "pre": "165d5adeed47cc3b65a11e511b589628f5d4695c90117b4c01d54adbb88e12f0",
+      "post": "165d5adeed47cc3b65a11e511b589628f5d4695c90117b4c01d54adbb88e12f0",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-engine-files-differential.cjs": {
+      "pre": "3951f3a08fec46879460a49666a37b54a977a8067d891dbdd2f1a39efbde3eeb",
+      "post": "3951f3a08fec46879460a49666a37b54a977a8067d891dbdd2f1a39efbde3eeb",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-supersede-defect-witnesses.test.cjs": {
+      "pre": "92781c5bff89bc4ebda34f0d86bbde0ff97345bc7c6b533a03d952e18ed96682",
+      "post": "92781c5bff89bc4ebda34f0d86bbde0ff97345bc7c6b533a03d952e18ed96682",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-supersede-inherited-carriers.test.cjs": {
+      "pre": "06300f812ac64930cf9231d82628f5a21bb47c9ff519ab910cae5034a8787691",
+      "post": "06300f812ac64930cf9231d82628f5a21bb47c9ff519ab910cae5034a8787691",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-supersede-second-gate.test.cjs": {
+      "pre": "6819e3928fd144474abe15f4b98ad78df1b49ff09bcef50098abe7ff91628755",
+      "post": "6819e3928fd144474abe15f4b98ad78df1b49ff09bcef50098abe7ff91628755",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-supersede-source-carriers.test.cjs": {
+      "pre": "ac001b53d6e9a6cd44fa02e12e5c981ed5f84795643a32882fdc515f7a8a1aff",
+      "post": "ac001b53d6e9a6cd44fa02e12e5c981ed5f84795643a32882fdc515f7a8a1aff",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-supersede-writers-differential.test.cjs": {
+      "pre": "169a815bd42f6f8c19c925608eaa67184aab47045d0ddd9a478c97eeafce8052",
+      "post": "169a815bd42f6f8c19c925608eaa67184aab47045d0ddd9a478c97eeafce8052",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-engine-files-differential.cjs": {
+      "pre": "6fde05da585d7cf5d22a8b961274074cc2cbf295cf860b17889a1b82b01beb7e",
+      "post": "6fde05da585d7cf5d22a8b961274074cc2cbf295cf860b17889a1b82b01beb7e",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-supersede-defect-witnesses.test.cjs": {
+      "pre": "034a226aa4b101c522a3cf3c85320167dba1cd0e2e52633f377a91f55f89c0c7",
+      "post": "034a226aa4b101c522a3cf3c85320167dba1cd0e2e52633f377a91f55f89c0c7",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-supersede-inherited-carriers.test.cjs": {
+      "pre": "6ae869632a7d80055bd46a0e2d46abd23558aa29c88176442f5ff8e363f0f05c",
+      "post": "6ae869632a7d80055bd46a0e2d46abd23558aa29c88176442f5ff8e363f0f05c",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-supersede-second-gate.test.cjs": {
+      "pre": "cb2c1ea96da0b0c545fda1d5910cc306d2de0da2ae93e9670ffc07032272a9f7",
+      "post": "cb2c1ea96da0b0c545fda1d5910cc306d2de0da2ae93e9670ffc07032272a9f7",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-supersede-source-carriers.test.cjs": {
+      "pre": "1dd908981b535e8501e774da30331ae4c3797beeb572fc82a1fc90fc7669d77a",
+      "post": "1dd908981b535e8501e774da30331ae4c3797beeb572fc82a1fc90fc7669d77a",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-supersede-writers-differential.test.cjs": {
+      "pre": "38c01c17d7c0e8e515823d350f583c9ac3dcafeb46d21ec8ee15b901928e5d1a",
+      "post": "38c01c17d7c0e8e515823d350f583c9ac3dcafeb46d21ec8ee15b901928e5d1a",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-engine-files-differential.cjs": {
+      "pre": "51a95754fa2a142550b9f96373b55f03d2aa97ab90808cde34d28365e09c3360",
+      "post": "51a95754fa2a142550b9f96373b55f03d2aa97ab90808cde34d28365e09c3360",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-supersede-defect-witnesses.test.cjs": {
+      "pre": "a105d3d44ae2e9a468306246f8ce6d49926df8284410651e1ef229f4fb7ba524",
+      "post": "a105d3d44ae2e9a468306246f8ce6d49926df8284410651e1ef229f4fb7ba524",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-supersede-inherited-carriers.test.cjs": {
+      "pre": "11213a18863ef81194798d263cff081870adf2d09eaa42ec81b75738e140230d",
+      "post": "11213a18863ef81194798d263cff081870adf2d09eaa42ec81b75738e140230d",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-supersede-second-gate.test.cjs": {
+      "pre": "bb4211b4fe7044fddee1178b1669ba2561f72fcb25cc1bfcf1169a27aa2dc200",
+      "post": "bb4211b4fe7044fddee1178b1669ba2561f72fcb25cc1bfcf1169a27aa2dc200",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-supersede-source-carriers.test.cjs": {
+      "pre": "bd586db17227a94dcd2557622c88654c7989b0d78f105e8a6ee6081c8a7da4c8",
+      "post": "bd586db17227a94dcd2557622c88654c7989b0d78f105e8a6ee6081c8a7da4c8",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-supersede-writers-differential.test.cjs": {
+      "pre": "53ebf0c6427fb321dc025d015a1e7ff9a3043c74221d9203ca26802312daa331",
+      "post": "53ebf0c6427fb321dc025d015a1e7ff9a3043c74221d9203ca26802312daa331",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-engine-files-differential.cjs": {
+      "pre": "392e5e8c0d62ecba76e5ee9b883a34d31c67cd4b27debfdf41bad8a0bd0ad4d9",
+      "post": "392e5e8c0d62ecba76e5ee9b883a34d31c67cd4b27debfdf41bad8a0bd0ad4d9",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-supersede-defect-witnesses.test.cjs": {
+      "pre": "1cbb4f92ba9ddfae0d69059734ea033820ff96df2d57f76627f16f0a832c4800",
+      "post": "1cbb4f92ba9ddfae0d69059734ea033820ff96df2d57f76627f16f0a832c4800",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-supersede-inherited-carriers.test.cjs": {
+      "pre": "1dc1a8444d67de278af4d8219b9703a0fbf05b9be1b193b7f3582df433639ed5",
+      "post": "1dc1a8444d67de278af4d8219b9703a0fbf05b9be1b193b7f3582df433639ed5",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-supersede-second-gate.test.cjs": {
+      "pre": "aabd394889930a5806fc8ab967d778d4c9d908c3eaef745f408d8478bb14da1d",
+      "post": "aabd394889930a5806fc8ab967d778d4c9d908c3eaef745f408d8478bb14da1d",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-supersede-source-carriers.test.cjs": {
+      "pre": "daa1635fbb7b2f012fb7bd50d244ca2bc4fd4f236d08536e9c7b045aca8576ac",
+      "post": "daa1635fbb7b2f012fb7bd50d244ca2bc4fd4f236d08536e9c7b045aca8576ac",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-supersede-writers-differential.test.cjs": {
+      "pre": "5a56bb475c193b3124b9574b19f877e6132b35763e3cb20b3a08c2fce34ecadb",
+      "post": "5a56bb475c193b3124b9574b19f877e6132b35763e3cb20b3a08c2fce34ecadb",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-engine-files-differential.cjs": {
+      "pre": "29a0e28f4b6ade10970de5a1b926f813eefd0a948b5daa24a54a064d02b0194d",
+      "post": "29a0e28f4b6ade10970de5a1b926f813eefd0a948b5daa24a54a064d02b0194d",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-defect-witnesses.test.cjs": {
+      "pre": "b359f584239e0c58897cce51d846816cbc9d125c01f3c886b01c51a8f6a3dcd2",
+      "post": "b359f584239e0c58897cce51d846816cbc9d125c01f3c886b01c51a8f6a3dcd2",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-inherited-carriers.test.cjs": {
+      "pre": "91e0e87a5ac4a877762efc3d9081e47a43e445b6d679550e65c90684778b3627",
+      "post": "91e0e87a5ac4a877762efc3d9081e47a43e445b6d679550e65c90684778b3627",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-second-gate.test.cjs": {
+      "pre": "7d469315ffdaf78ecbd1f977c08ec5294d94f2bd9e24e7e135c0a16ae7483c7e",
+      "post": "7d469315ffdaf78ecbd1f977c08ec5294d94f2bd9e24e7e135c0a16ae7483c7e",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-source-carriers.test.cjs": {
+      "pre": "c0db22f212370ef41d412a55b8676370f7ad600b240e1097f15a9f28a7635bf1",
+      "post": "c0db22f212370ef41d412a55b8676370f7ad600b240e1097f15a9f28a7635bf1",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-writers-differential.test.cjs": {
+      "pre": "bf2026bc64266e709b7078d73b2289d3c2ed4eafccfc31cd03ba2ad8be663446",
+      "post": "bf2026bc64266e709b7078d73b2289d3c2ed4eafccfc31cd03ba2ad8be663446",
+      "role": "carried"
+    },
+    "rebuild/lanes/b/tooling/packages/S7.json": {
+      "pre": "e7658e21f1178f8316ae6dadc3f13d1cd62210fd37693086fd7c4fcbe65ba285",
+      "post": "00d7f1f8a43f3c923f6996766cd547f0d50517d1457e5cad23a4afedd263040d",
+      "role": "superseded-by-child"
+    },
+    "rebuild/m3/w7-preview/today/local-source-basis.mjs": {
+      "pre": "d98015dba23867142147204a35e98f1df2d1b7093327c783720ab012f2f91411",
+      "post": "3e04c246e1db083b1db66df284f0910560e4a898cd8eeb038c925ddefa031675",
+      "role": "new"
+    },
+    "rebuild/m4/workout/engine-history.cjs": {
+      "pre": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89",
+      "post": "2ec6e44b2aae61bb80babc0246bde51528685734f545210ab8d39795633e560f",
+      "role": "new"
+    },
+    "rebuild/m4/workout/lift-correspondence.cjs": {
+      "pre": null,
+      "post": "8bec2a64bbc39dc1edd5fb8fd6a06b2a15298e323ac2b17188177319813d2e7f",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s8-supersede-source-carriers.test.cjs": {
+      "pre": null,
+      "post": "e9996b0a97980b7bd9221c822e619678b0eb84770c232d28ba38594615f5c8b9",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s8-supersede-inherited-carriers.test.cjs": {
+      "pre": null,
+      "post": "cfd81f4bbc05cd21d586d5a7bbf580bff0cc3887dcc6b683a508f3011d46e2d3",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s8-supersede-defect-witnesses.test.cjs": {
+      "pre": null,
+      "post": "32dc363d0a73fc9fe37c1fa729b57d71f229e769a9605c959844811278f2a42d",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s8-supersede-writers-differential.test.cjs": {
+      "pre": null,
+      "post": "684e6fb6a200e82d5b04a44b635b6781fb550b7d2bec71f7276ae0dc5b1bc68d",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s8-supersede-second-gate.test.cjs": {
+      "pre": null,
+      "post": "06a08a396a6e92ad285d7300bced68fe437117f06eb7f6f1eaca7cd4fc5ffbc3",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s8-engine-files-differential.cjs": {
+      "pre": null,
+      "post": "49ee104c00e722137fc21823b20a3f3f9207edf8e9427fa02630f593bdffbe2f",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/legacy-fixture.cjs": {
+      "pre": null,
+      "post": "e94ceba9064be78f556d69029009e7730b99087d5565d1d2906a36f31ab48ff3",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/real-shape-support.mjs": {
+      "pre": null,
+      "post": "7c27dad17968b9c1d98f5f6943e4e63549c279b4add4cd7eb0979796387d5bf1",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs": {
+      "pre": null,
+      "post": "ee82c8045c9e453b89e9acfdedb9224fb513505f9e12910389d488d7853013cb",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs": {
+      "pre": null,
+      "post": "ade7312b59412bf2532e565bf8c17de721ff9c49cea9fd8336aa512c54ec47c7",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs": {
+      "pre": null,
+      "post": "3145ebbcec86822c747a4492e43417e2a9fbc21714c6b04f0018ab6d388c9e82",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs": {
+      "pre": null,
+      "post": "f0268238eb0116d266f402be08f79f3acbc2249866a120a4b8c4879777a1a8a1",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs": {
+      "pre": null,
+      "post": "6ab4bd3598050463f6e929efcb844f2b1ea6016e2b0f641de537ed5dbf993c97",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs": {
+      "pre": null,
+      "post": "9e5d647e5fc02cdb6b319867f4ecb98984058f0a3b91f9a4717d60cf3ed6c8c4",
+      "role": "new"
+    }
+  },
+  "carrierSuccessor": null,
+  "witnessFlips": [],
+  "protectedSurfaces": [
+    "rebuild/conform/goldens (public census and frozen goldens)",
+    "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
+  ],
+  "children": [
+    {
+      "name": "today-17",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/today/test/adapter.test.mjs",
+        "rebuild/m3/w7-preview/today/test/catalogue.test.mjs",
+        "rebuild/m3/w7-preview/today/test/checkin.test.mjs",
+        "rebuild/m3/w7-preview/today/test/copy.test.mjs",
+        "rebuild/m3/w7-preview/today/test/design.test.cjs",
+        "rebuild/m3/w7-preview/today/test/food.test.mjs",
+        "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+        "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+        "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs",
+        "rebuild/m3/w7-preview/today/test/package.test.cjs",
+        "rebuild/m3/w7-preview/today/test/problem.test.mjs",
+        "rebuild/m3/w7-preview/today/test/setup.test.mjs",
+        "rebuild/m3/w7-preview/today/test/view.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/journey.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/lane.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/baseline.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/boundary.test.mjs"
+      ],
+      "needle": "# pass 682"
+    },
+    {
+      "name": "measure-hermetic",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/measure/test/model.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/adherence.test.mjs"
+      ],
+      "needle": "# pass 11"
+    },
+    {
+      "name": "s4-real-day",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/local-real-day.test.mjs"
+      ],
+      "needle": "# pass 15"
+    },
+    {
+      "name": "a0-journeys",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/journey.test.mjs",
+        "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
+      ],
+      "needle": "# pass 23"
+    },
+    {
+      "name": "s8-sup-source-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s8-supersede-source-carriers.test.cjs"
+      ],
+      "needle": "# pass 4"
+    },
+    {
+      "name": "s8-sup-inherited-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s8-supersede-inherited-carriers.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "s8-sup-defect-witnesses",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s8-supersede-defect-witnesses.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "s8-sup-writers-differential",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s8-supersede-writers-differential.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "s8-sup-second-gate",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s8-supersede-second-gate.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "engine-files-differential",
+      "argv": [
+        "rebuild/m4/workout/test/s8-engine-files-differential.cjs"
+      ],
+      "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 18 named and NOT ONE moves, so all 45 tracked rebuild/engine file(s) stand byte-identical to the parent's own post;"
+    },
+    {
+      "name": "d-plan-edit",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/plan-edit/model.test.cjs",
+        "rebuild/lanes/d/plan-edit/durable-host.test.mjs",
+        "rebuild/lanes/d/plan-edit/browser-build.test.mjs",
+        "rebuild/lanes/d/plan-edit/client-p6.test.cjs"
+      ],
+      "needle": "# pass 90"
+    },
+    {
+      "name": "m4-import",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/import/test/prepare.test.cjs",
+        "rebuild/m4/import/test/reading-replay.test.cjs",
+        "rebuild/m4/import/test/engine-provider.test.cjs",
+        "rebuild/m4/import/test/local-source-order.test.cjs",
+        "rebuild/m4/import/test/browser-parity.test.mjs"
+      ],
+      "needle": "# pass 62"
+    },
+    {
+      "name": "m4-import-production",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/import/test/production-mapping.test.cjs",
+        "rebuild/m4/import/test/production-admission.test.mjs"
+      ],
+      "needle": "# pass 28"
+    },
+    {
+      "name": "d-import-retract",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/import-retract/retract.test.mjs"
+      ],
+      "needle": "# pass 13"
+    },
+    {
+      "name": "d-admission-swap",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-followons/admission-swap.test.mjs"
+      ],
+      "needle": "# pass 4"
+    },
+    {
+      "name": "d-replay-measure",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs",
+        "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs"
+      ],
+      "needle": "# pass 9"
+    },
+    {
+      "name": "d-capture-start",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs"
+      ],
+      "needle": "# pass 14"
+    },
+    {
+      "name": "food-live-save",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/food-live-save.test.mjs"
+      ],
+      "needle": "# pass 6"
+    },
+    {
+      "name": "w7-import",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/import/test/route.test.mjs",
+        "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs",
+        "rebuild/m3/w7-preview/import/test/live-clock.test.mjs",
+        "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs",
+        "rebuild/m3/w7-preview/import/test/refusals.test.mjs"
+      ],
+      "needle": "# pass 35"
+    },
+    {
+      "name": "w6-host-seams",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/host-seams.test.mjs"
+      ],
+      "needle": "# pass 9"
+    },
+    {
+      "name": "w6-local-source",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/test/local-source-admission.test.mjs",
+        "rebuild/m3/w6/test/local-source-consumer.test.mjs"
+      ],
+      "needle": "# pass 26"
+    },
+    {
+      "name": "d-replay-all",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs"
+      ],
+      "needle": "# pass 28"
+    },
+    {
+      "name": "b-lom",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/b-lom/legacy-order.test.mjs",
+        "rebuild/m4/workout/test/legacy-order-mapping.test.cjs"
+      ],
+      "needle": "# pass 30"
+    },
+    {
+      "name": "d-port-admission",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs",
+        "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs",
+        "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs"
+      ],
+      "needle": "# pass 35"
+    },
+    {
+      "name": "d-real-shape",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs"
+      ],
+      "needle": "# pass 56"
+    }
+  ],
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-s8-real-shape.json",
+    "review": "rebuild/m4/spec/review-s8-real-shape.json"
+  },
+  "executionPins": {
+    "rebuild/lanes/b/tooling/b-package.cjs": "e31dd206c0fb0fc0c295df45eae3992d4c59b1a76de8da04a4d0f22948e9335e",
+    "rebuild/lanes/b/tooling/packages/S8.json": "6fbbb1b901c2d7cacc0595b41b41172a8c0faab12b52b470fcb85f4686878899",
+    "rebuild/lanes/b/S8-REAL-SHAPE-BRIEF.md": "9fbe105744ccb9295eae866e5ac28b48397ccf6c7e3ea74cc1a97a3a1833c73a",
+    "rebuild/m3/w7-preview/today/test/adapter.test.mjs": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+    "rebuild/m3/w7-preview/today/test/catalogue.test.mjs": "a586e3eb4917302864d86937294b1eb824f32931ddaf552c5deb4f97e067322f",
+    "rebuild/m3/w7-preview/today/test/checkin.test.mjs": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+    "rebuild/m3/w7-preview/today/test/copy.test.mjs": "290a90ab6d79c5558a01067b9755192655cd1fe465581bdb8cc358e24fd9f9e5",
+    "rebuild/m3/w7-preview/today/test/design.test.cjs": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+    "rebuild/m3/w7-preview/today/test/food.test.mjs": "088530cfccbba5eceb19fbae627b7977794f42bd4849126edede061f74a9c95b",
+    "rebuild/m3/w7-preview/today/test/gym.test.mjs": "79aa531e5483f532736f2a387bc8839e7ac94395bcaaf67737c9e6869c12d508",
+    "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs": "e532f8d4e5aa5435845908e5f76667b4933f7c7a6ffe1ac39740c14d71910a7f",
+    "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+    "rebuild/m3/w7-preview/today/test/package.test.cjs": "1a29e3e09b9454a48866b6156688a6893b2ce2aae657f8cca68efad67a7381ad",
+    "rebuild/m3/w7-preview/today/test/problem.test.mjs": "cb42052b4aa055cc5e9a6449fe78d2fcc1425b1adf8c99916b9104608be56b4e",
+    "rebuild/m3/w7-preview/today/test/setup.test.mjs": "80e5e2eab1e526f7594fb2c304bdb8cc03ff21588c38a4866f53e2091464d90d",
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+    "rebuild/m3/w7-preview/measure/test/journey.test.mjs": "2520a774e8de269af2a032b2ac7c444753a4d87698e0ac68286ac26c2290306a",
+    "rebuild/m3/w7-preview/measure/test/lane.test.mjs": "e077f07e04c14944023e1f35357397d4ac44b9f3aa45e3b6019cc2a5c01d1155",
+    "rebuild/m3/w7-preview/measure/test/baseline.test.mjs": "04c81447e373bc2764e298416899139fee1e5c7801ffd2e39e64a98b6e26cd0a",
+    "rebuild/m3/w7-preview/measure/test/boundary.test.mjs": "b1f066f901c6833c340ff43bffee3389bcece180544c732ad2f0db9ae5f91c6f",
+    "rebuild/m3/w7-preview/measure/test/model.test.mjs": "ff2a531fd74afe98cc9acbcfd875dc175ae3686661eda5e34e8b5d61529b566e",
+    "rebuild/m3/w7-preview/measure/test/adherence.test.mjs": "219ad91f1e83ff97e1a61e2d1d609a28d4416e3a1e40768502789f3c4cda7446",
+    "rebuild/m3/w6/host/test/local-real-day.test.mjs": "43780e9b692c836f33a9ea34cb1433a40f1ad11ffe6d7f8ba8a48e0f16af5084",
+    "rebuild/m3/w6/host/test/journey.test.mjs": "2ac6a7f23bcc079406a1493fe01629b61abc66984c04289dc40fbbec60c20af9",
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+    "rebuild/m4/workout/test/s8-supersede-source-carriers.test.cjs": "e9996b0a97980b7bd9221c822e619678b0eb84770c232d28ba38594615f5c8b9",
+    "rebuild/m4/workout/test/s8-supersede-inherited-carriers.test.cjs": "cfd81f4bbc05cd21d586d5a7bbf580bff0cc3887dcc6b683a508f3011d46e2d3",
+    "rebuild/m4/workout/test/s8-supersede-defect-witnesses.test.cjs": "32dc363d0a73fc9fe37c1fa729b57d71f229e769a9605c959844811278f2a42d",
+    "rebuild/m4/workout/test/s8-supersede-writers-differential.test.cjs": "684e6fb6a200e82d5b04a44b635b6781fb550b7d2bec71f7276ae0dc5b1bc68d",
+    "rebuild/m4/workout/test/s8-supersede-second-gate.test.cjs": "06a08a396a6e92ad285d7300bced68fe437117f06eb7f6f1eaca7cd4fc5ffbc3",
+    "rebuild/m4/workout/test/s8-engine-files-differential.cjs": "49ee104c00e722137fc21823b20a3f3f9207edf8e9427fa02630f593bdffbe2f",
+    "rebuild/lanes/d/plan-edit/model.test.cjs": "afb88e790020cc1140914c1a16eeda009b38cab7cf6dda9561cc5eaf8ea9a275",
+    "rebuild/lanes/d/plan-edit/durable-host.test.mjs": "e986c046bb675309eabef894706353979c5ee9e51d58bf67b5829593ea068b63",
+    "rebuild/lanes/d/plan-edit/browser-build.test.mjs": "20480bef0ebf788b1a4b5a9eb138fa68f4c1d0c22936d56620a1c7ec50149f1a",
+    "rebuild/lanes/d/plan-edit/client-p6.test.cjs": "b31a25e43dc318ee9ddc900b44244edf5a02adf490a9df86e40b1c44e8102d7c",
+    "rebuild/m4/import/test/prepare.test.cjs": "8c9511d8e32ba2d52754288de301054e1a2b17111cc1c352b83f89ea1df7015c",
+    "rebuild/m4/import/test/reading-replay.test.cjs": "83c9f88d961af688164d345964b38018429aadff26b2e37e106e92484ed94fca",
+    "rebuild/m4/import/test/engine-provider.test.cjs": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8",
+    "rebuild/m4/import/test/local-source-order.test.cjs": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
+    "rebuild/m4/import/test/browser-parity.test.mjs": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632",
+    "rebuild/m4/import/test/production-mapping.test.cjs": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
+    "rebuild/m4/import/test/production-admission.test.mjs": "142eb51849ba50e3b47e7480f0d23a4cd1f82624151446fa521b3e23bf556994",
+    "rebuild/lanes/d/import-retract/retract.test.mjs": "1f1f3feb6a7d6cb4c14ffeafb19c22b49a2692cf6e4d4584364886bbd188612e",
+    "rebuild/lanes/d/p3-followons/admission-swap.test.mjs": "2aa2ccf53362f5a69ceda88f153e9a9201c050b9ef355a1f9e731a45eee61300",
+    "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs": "448193e0216cabd3eedc4a50e8b1719c0ca493c9385ec291e0fc35f5143ece2d",
+    "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs": "ab94da99c18e7c27f283d51b2a561688d313490eb76e3569681ba9a8cbd58748",
+    "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs": "5c8f04e31f7e07af0313b326bcc7dbffadc5115fc509618e0232fe3e46264a88",
+    "rebuild/m3/w6/host/test/food-live-save.test.mjs": "90113e78543df8848c0f148af2e6151a286df7d31c67dd660df7950afa8f7348",
+    "rebuild/m3/w7-preview/import/test/route.test.mjs": "4726474ef8931f937c7a18a79f6bb024a7dda50d25fcabdfaf8d47f21d887133",
+    "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs": "5edb49e3d853d946ea9695cb9e9a04166f5137368e700572d185607565007579",
+    "rebuild/m3/w7-preview/import/test/live-clock.test.mjs": "618471e725d4efbff2a16d9fa3e201db665444c55a162617be129434fe01b32e",
+    "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs": "9b56ee6e22001296f354c77e0fa5fab6711d4c8f635e72a82e6c2977a13c62b3",
+    "rebuild/m3/w7-preview/import/test/refusals.test.mjs": "5d12a328d09b42a8a5525f4f18e31161f0826e236efe4f583af9059fa5a220e3",
+    "rebuild/m3/w6/host/test/host-seams.test.mjs": "bdd0b83b17c75c8b3d5158feb7ab3b10566fd45cc3180fa85dbd2294fdf175c9",
+    "rebuild/m3/w6/test/local-source-admission.test.mjs": "6144c7863991654da3b47215ce6d2ce04f9f335c77ceb643706a3603e9ce9491",
+    "rebuild/m3/w6/test/local-source-consumer.test.mjs": "856b3627665b016e33d6a196e232c99981397c266ae2bab90ba4b64bc3e51af6",
+    "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
+    "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
+    "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
+    "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
+    "rebuild/lanes/d/b-lom/legacy-order.test.mjs": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
+    "rebuild/m4/workout/test/legacy-order-mapping.test.cjs": "f7a3e4a4b3d99f6863cbcc56d69023027c7d8b1722661d86ba1845f61d03ba15",
+    "rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs": "ae5c3c7853960885df175e46a697e817befa58fc038ab79044de9787c80ced83",
+    "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs": "08f9a5fbcb4d83d70c807422578986b751b74bdce849eb046b84157e641bb383",
+    "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs": "45b435343a7b74a7db977bbbfc792db4af3d3d25b3f81d08954ca9280731830f",
+    "rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs": "ee82c8045c9e453b89e9acfdedb9224fb513505f9e12910389d488d7853013cb",
+    "rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs": "ade7312b59412bf2532e565bf8c17de721ff9c49cea9fd8336aa512c54ec47c7",
+    "rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs": "3145ebbcec86822c747a4492e43417e2a9fbc21714c6b04f0018ab6d388c9e82",
+    "rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs": "f0268238eb0116d266f402be08f79f3acbc2249866a120a4b8c4879777a1a8a1",
+    "rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs": "6ab4bd3598050463f6e929efcb844f2b1ea6016e2b0f641de537ed5dbf993c97",
+    "rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs": "9e5d647e5fc02cdb6b319867f4ecb98984058f0a3b91f9a4717d60cf3ed6c8c4"
+  }
+}
