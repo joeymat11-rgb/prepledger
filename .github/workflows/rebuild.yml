@@ -136,8 +136,18 @@ jobs:
       # rather than PASS; that is the expected pre-ruling state.
       # The step NAME is corrected here as DECISIONS:501 carries it (it still read S5
       # under the S6 seal, which was cosmetic and is not any more).
-      - name: Cumulative S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S7
+      # M2-S8-REAL-SHAPE SUCCEEDS M2-S7-PORT-ADMISSION HERE, by the same rule a seventh
+      # time, and the flip again lives INSIDE the package rather than at the
+      # fast-forward: VERDICT-S6.md rule (a), the cost of doing it afterwards measured
+      # at DECISIONS:498. S8 carries the accepted P3-REAL-SHAPE and P3-LAYOUT-V2 change
+      # on the owner's own data path (DECISIONS:521, :522, :523); it moves no
+      # rebuild/engine byte and it retires the same nine byte-identity gates again under
+      # its own token line. Until the PM's theme, brief-by-sha and GATE-SUPERSESSION
+      # lines for M2-S8-REAL-SHAPE stand on the chain branch this step reports the
+      # runner's own refusal by name rather than PASS; that is the expected pre-ruling
+      # state, and the brief predicts the exact refusal. The step NAME moves with it.
+      - name: Cumulative S8 real shape, S7 port admission, S6 today child, S5 today child, S4 real day, S3 companion, H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package S8
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -268,6 +278,15 @@ jobs:
       # depends on and nobody runs. Named by exact path and never globbed.
       - name: D - the port admission programme rule, the owner's route and the capture codes
         run: node --test rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs rebuild/lanes/d/p3-port-fix/owner-route.test.mjs rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs
+      # M2-S8-REAL-SHAPE ADDS ITS OWN LANE CELLS HERE, under the same DECISIONS:117 (4)
+      # licence and for the same DECISIONS:186 (3) reason S7's three are named above:
+      # they arrived with P3-REAL-SHAPE and P3-LAYOUT-V2 (DECISIONS:522, :523) and no
+      # workflow names them, so without this step they are six suites the phone's
+      # admission and adoption path depends on and nobody runs. The two P3-LAYOUT-V2
+      # cells under rebuild/lanes/d/p3-layout-v2/ are named in the same step for the
+      # same reason. Named by exact path and never globbed.
+      - name: D - the real-shape admission and adoption rule, the bar, and the v2 capture layout
+        run: node --test rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs
       - name: W6 — the local source admission and consumer cells
         run: node --test rebuild/m3/w6/test/local-source-admission.test.mjs rebuild/m3/w6/test/local-source-consumer.test.mjs
       - name: C5 — the voice coach tool contract and text prototype
