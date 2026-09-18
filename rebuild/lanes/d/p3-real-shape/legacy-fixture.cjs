@@ -14,10 +14,20 @@
    PRIVACY, HARD. The old app's SEED carries the seed athlete's own July
    figures. They are app source, but this lane treats them as the OWNER's
    numbers: NOT ONE weight, rep, body reading, trend, lean mass, calorie,
-   protein, step or sleep figure from SEED is copied here. Every number below is
-   SYNTHETIC and chosen so it cannot be mistaken for any athlete's. What IS
-   copied is SHAPE: member names, lift ids, lift `n` names, `mg` labels, day
-   letters, the split entry's three members, and the collection names.
+   protein, step or sleep figure from SEED is copied here, AND NOT ONE SET
+   COUNT, REP TARGET OR INCREMENT (`sets`, `hi`, `inc`) EITHER. Spec review R1
+   (B6) measured the first cut of this file lift by lift and found fifteen of
+   the sixteen carrying the seed's `sets`, `hi` and `inc` byte-identical; they
+   are the athlete's numbers as much as a weight is, and they were all changed.
+   Every number below is now chosen for this fixture: no lift's set count, rep
+   target or increment is the seed's, and no lift carries the seed's trio. The
+   ONE value kept is `inc: null` on the bodyweight raise, which is a TYPE and
+   not a figure - it is the whole point of gap 4 and it is declared here rather
+   than hidden. What else is copied is SHAPE: member names, lift ids, lift `n`
+   names, `mg` labels, day letters, the split entry's three members, the
+   collection names, and the DATES (`SPLIT_FROM`, `insertions`, `retirements`),
+   which are the shape of a dated register and are needed for the split entry to
+   be in force; no dated FIGURE of the seed's rides with them.
 
    WHAT IS DELIBERATELY ABSENT, because the old app has it nowhere:
      - `athlete_label` at the top level (the new app's REQUIRED_SETUP member)
@@ -38,27 +48,31 @@ const splitEntry = () => ({ from: SPLIT_FROM, map: { ...SPLIT_MAP }, why: SPLIT_
 
 /* THE SIXTEEN LIFTS, ids / n / mg / day as the old app's EXERCISES literal
    declares them (:386-:433) after the weave's SPLIT edits (pronated retired,
-   fly and hipthrust inserted). EVERY NUMBER IS SYNTHETIC.
+   fly and hipthrust inserted). EVERY NUMBER IS SYNTHETIC: `w`, `sets`, `hi` and
+   `inc` are this fixture's own, none of them the seed's value for that lift
+   (R1 B6). The U day's set counts total 26 and the L day's 22, against the
+   phone's 27 and 21, so the two programmes still disagree and D-RS-d / D-RS-h2
+   still have the disagreement they measure.
    `w` deliberately keeps the old app's THREE value types, because the new app's
    constructor never mints any of them: a number, the string 'BW' (hanging), the
    string 'hold' (hack) and null (a newborn lift). */
 const LIFTS = [
-  { id: 'lateral', n: 'Lateral machine', mg: 'delts', day: 'U', w: 30, inc: 5, sets: 4, hi: 15, head: 'delts_side' },
-  { id: 'rearDelt', n: 'Rear-delt fly (cable, unilateral)', mg: 'delts', day: 'U', w: 10, inc: 2.5, sets: 3, hi: 12, head: 'delts_rear' },
-  { id: 'rows', n: 'Prime seated row (hooks)', mg: 'back', day: 'U', w: 60, inc: 5, sets: 2, hi: 10 },
-  { id: 'curl', n: 'Curls (preacher)', mg: 'biceps', day: 'U', w: 25, inc: 5, sets: 3, hi: 12, wSets: [25, 25, 20] },
-  { id: 'fly', n: 'Machine fly', mg: 'chest', day: 'U', w: null, inc: 5, sets: 2, hi: 20 },
-  { id: 'press', n: 'Press', mg: 'chest', day: 'U', w: 90, inc: 5, sets: 3, hi: 9 },
-  { id: 'pulldown', n: 'Pulldown', mg: 'back', day: 'U', w: 55, inc: 5, sets: 3, hi: 10 },
-  { id: 'sulek', n: 'Sulek wrist curl (high cable)', mg: 'forearms', day: 'U', w: 17.5, inc: 2.5, sets: 2, hi: 15 },
-  { id: 'tricep', n: 'Tricep', mg: 'triceps', day: 'U', w: 20, inc: 5, sets: 3, hi: 13 },
-  { id: 'calves', n: 'Calves', mg: 'calves', day: 'L', w: 70, inc: 5, sets: 3, hi: 11, pauseSec: 2 },
-  { id: 'abs', n: 'Prime abdominal crunch', mg: 'abs', day: 'L', w: 35, inc: 5, sets: 3, hi: 14 },
-  { id: 'hanging', n: 'Supported leg raise (medicine-ball pad)', mg: 'abs', day: 'L', w: 'BW', inc: null, sets: 2, hi: 8 },
-  { id: 'hack', n: 'Hack squat', mg: 'quads', day: 'L', w: 'hold', inc: 10, sets: 2, hi: 10 },
-  { id: 'hipthrust', n: 'Hip thrust machine', mg: 'glutes', day: 'L', w: null, inc: 5, sets: 3, hi: 12 },
-  { id: 'extension', n: 'Leg extension', mg: 'quads', day: 'L', w: 40, inc: 5, sets: 2, hi: 10 },
-  { id: 'ham', n: 'Ham curl', mg: 'hams', day: 'L', w: 45, inc: 5, sets: 2, hi: 12 },
+  { id: 'lateral', n: 'Lateral machine', mg: 'delts', day: 'U', w: 30, inc: 2.5, sets: 3, hi: 14, head: 'delts_side' },
+  { id: 'rearDelt', n: 'Rear-delt fly (cable, unilateral)', mg: 'delts', day: 'U', w: 10, inc: 5, sets: 4, hi: 16, head: 'delts_rear' },
+  { id: 'rows', n: 'Prime seated row (hooks)', mg: 'back', day: 'U', w: 60, inc: 2.5, sets: 3, hi: 11 },
+  { id: 'curl', n: 'Curls (preacher)', mg: 'biceps', day: 'U', w: 25, inc: 2.5, sets: 2, hi: 14, wSets: [25, 20] },
+  { id: 'fly', n: 'Machine fly', mg: 'chest', day: 'U', w: null, inc: 2.5, sets: 3, hi: 16 },
+  { id: 'press', n: 'Press', mg: 'chest', day: 'U', w: 90, inc: 2.5, sets: 4, hi: 12 },
+  { id: 'pulldown', n: 'Pulldown', mg: 'back', day: 'U', w: 55, inc: 2.5, sets: 2, hi: 13 },
+  { id: 'sulek', n: 'Sulek wrist curl (high cable)', mg: 'forearms', day: 'U', w: 17.5, inc: 5, sets: 3, hi: 17 },
+  { id: 'tricep', n: 'Tricep', mg: 'triceps', day: 'U', w: 20, inc: 2.5, sets: 2, hi: 15 },
+  { id: 'calves', n: 'Calves', mg: 'calves', day: 'L', w: 70, inc: 2.5, sets: 4, hi: 9, pauseSec: 2 },
+  { id: 'abs', n: 'Prime abdominal crunch', mg: 'abs', day: 'L', w: 35, inc: 2.5, sets: 2, hi: 16 },
+  { id: 'hanging', n: 'Supported leg raise (medicine-ball pad)', mg: 'abs', day: 'L', w: 'BW', inc: null, sets: 3, hi: 6 },
+  { id: 'hack', n: 'Hack squat', mg: 'quads', day: 'L', w: 'hold', inc: 5, sets: 3, hi: 8 },
+  { id: 'hipthrust', n: 'Hip thrust machine', mg: 'glutes', day: 'L', w: null, inc: 2.5, sets: 2, hi: 14 },
+  { id: 'extension', n: 'Leg extension', mg: 'quads', day: 'L', w: 40, inc: 2.5, sets: 3, hi: 12 },
+  { id: 'ham', n: 'Ham curl', mg: 'hams', day: 'L', w: 45, inc: 2.5, sets: 5, hi: 10 },
 ];
 
 /* THE EXTRA EXERCISE MEMBERS the old app carries and the new app's
@@ -100,9 +114,9 @@ function legacyExercises() {
     if (typeof row.pauseSec !== 'undefined') e.pauseSec = row.pauseSec;
     if (reps) e.lastMeta = { d: LAST_DAY, w: row.w, reps: reps.slice(), debt: true,
       rirSets: new Array(reps.length).fill(null) };
-    if (row.id === 'press') { e.std = [7, 7, 6]; e.own = true; e.ownNote = 'SYNTHETIC - repeat 7,7,6'; }
-    if (row.id === 'extension') { e.std = [8, 8]; e.own = true; e.ownNote = 'SYNTHETIC - own 40x8,8'; }
-    if (row.id === 'abs') { e.first = [10, 10, 10]; e.debutNote = 'DEBUT - SYNTHETIC baseline'; e.last = null; }
+    if (row.id === 'press') { e.std = [7, 7, 6, 6]; e.own = true; e.ownNote = 'SYNTHETIC - repeat 7,7,6,6'; }
+    if (row.id === 'extension') { e.std = [8, 8, 7]; e.own = true; e.ownNote = 'SYNTHETIC - own 40x8,8,7'; }
+    if (row.id === 'abs') { e.first = [10, 10]; e.debutNote = 'DEBUT - SYNTHETIC baseline'; e.last = null; }
     if (row.id === 'hack') { e.pendingThird = true; e.last = null; }
     if (row.id === 'rearDelt') e.note = 'SYNTHETIC - log the weaker side';
     if (FORKS[row.id]) e.forks = [{ from: '2026-08-13', why: FORKS[row.id], prevN: row.n + ' (old)' }];
@@ -120,9 +134,14 @@ const READS = [['2026-08-02', 150.1], ['2026-08-09', 149.6], ['2026-08-13', 149.
 
 /* THE TOP-LEVEL STATE. Member for member, the old app's SEED (:435-:520) plus
    everything the weave (:521-:593) attaches, plus `targets` - which the SEED
-   itself does not carry (it never walks the chain) but which patchV32
-   (:10746-:10764) writes onto every MIGRATED state, and the owner's file is a
-   migrated state. `v` is 60 because the weave sets SEED.v = SCHEMA_V at :521.
+   itself does not carry (it never walks the chain) and which patchV32
+   (:10745-:10763) writes onto a migrated state ONLY where that state carries an
+   `adjustments` entry with rid 'refeed_review' (the whole body is inside
+   `if (adj)`), so `targets` is an OPTIONAL member of a migrated state and this
+   fixture carries an EMPTY one to prove the member rides through (R1 N1: the
+   first cut of this comment said "every migrated state", which is wrong).
+   Nothing on the admission path requires it: `dayType` guards with
+   `s.targets &&`. `v` is 60 because the weave sets SEED.v = SCHEMA_V at :521.
    EVERY NUMBER, DATE-STAMPED FIGURE AND PROSE STRING IS SYNTHETIC. */
 function legacyState({ sessions = SESSION_DAYS, split = null } = {}) {
   const exercises = legacyExercises();

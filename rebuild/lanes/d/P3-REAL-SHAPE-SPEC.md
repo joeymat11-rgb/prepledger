@@ -29,9 +29,24 @@ that is BEHIND 60; a state at 60 takes the `old.v === SCHEMA_V` fast path at
 `:12267` and is only settled, not patched. The fixture therefore states `v: 60`
 and cites the patch that DEFINES each member it carries rather than executing
 it. One member is carried that the seed itself does not have: `targets`, which
-`patchV32` (`:10746`) writes onto every MIGRATED state, and the owner's file is
-a migrated state. Nothing else was needed: the real `prepare.cjs` +
-`engine/migrate.cjs` accepted the state and the port sealed it first time.
+`patchV32` (`:10745-:10763`) writes onto a migrated state ONLY where that state
+carries an `adjustments` entry with `rid === 'refeed_review'` - the whole body
+is inside `if (adj)` - so it is an OPTIONAL member of a migrated state and the
+fixture carries an empty one to prove the member rides through (corrected after
+review R1, N1; the first cut of this sentence said "every migrated state" and
+that is not what the patch does). Nothing on the admission path requires it:
+`dayType` guards with `s.targets &&`. Nothing else was needed: the real
+`prepare.cjs` + `engine/migrate.cjs` accepted the state and the port sealed it
+first time.
+
+WHAT REVIEW R1 CHANGED IN THIS REVISION. The measurement (section 1), the
+fixture's SHAPE and the five gaps are unchanged and were accepted in full. Six
+blocking defects in the RULE and the FIXTURE are fixed here: a crash in the
+capture diff, an order proof pointed at the wrong programme, a lost
+one-row-one-lift guarantee, an unasked-for weakening of the FIRST-RUN path, a
+contradiction about which setup lifts are kept, and a fixture that carried the
+seed athlete's own set counts, rep targets and increments. Section 8 is the
+disposition, finding by finding.
 
 ---
 
@@ -158,7 +173,24 @@ something the owner can read:
   own first-run label onto the admitted state (2.4). If it carries the same one,
   nothing happens. This replaces the silent `return null` at
   local-source-basis.mjs:54 as the thing the OWNER experiences; that line stays
-  exactly as it is, as the page's last guard.
+  exactly as it is, as the page's last guard. It is tested BEFORE the per-lift
+  loop in 2.3, so a file that names someone else is refused by THAT name rather
+  than by whichever lift member happens to fail first (review R1, N9).
+
+  **SAY THE UNCOMFORTABLE THING OUT LOUD (review R1, N2).** P-LABEL cannot fire
+  on any old-app file. The old app has no `athlete_label` anywhere - this spec
+  proves that itself (D-RS-0) - so on the entire population this ticket exists
+  for, the new refusal is UNREACHABLE and what the rule actually does is stamp
+  the phone's label onto whatever file was admitted. Option A also removes the
+  per-lift id multiset equality, which under S7 was, accidentally, a content
+  guard. The consequence, stated plainly: another old-app athlete's file, on the
+  same Sun-U / Mon-L / Thu-U / Fri-L week, with well-formed lifts and in-bounds
+  retained numbers, is ADMITTED and ADOPTED on the owner's identity Yes alone,
+  with his own name stamped on top. That is INSIDE the PM's ruling
+  (DECISIONS:520, ":472 (a) the owner's identity Yes is the identity guard") and
+  this spec does not ask for it to be reversed - but the PM should read it here,
+  in one sentence, before he answers the questions in section 6: after this
+  change the only remaining proof that the file is his is one tap.
 
 ### 2.2 What is ADOPTED wholesale from the file
 
@@ -177,12 +209,26 @@ decided in one place that three readers share (2.5).
 ### 2.3 `programme()`, as the code the build should write
 
 ```diff
- function programme(source,ops,{today,documentSets=null}){
+-function programme(source,ops,{today,documentSets=null}){
++function programme(source,ops,{today,documentSets=null,documentProgramme=null}){
    const setups=Object.values(ops).filter(o=>o.payload?.profile===Setup.PROFILE);
    if(setups.length!==1)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'setup_document'});const op=setups[0];
    if(op.schema_version!==2||!Setup.validate(op,id=>ops[id]))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'setup_document'});
    const scratch=createCleanInitState({setup:op.payload.setup});
    if(documentSets)for(const ex of scratch.exercises)documentSets.set(ex.id,ex.sets);
++  /* THE DOCUMENT STATE ITSELF, out of this function by the SAME out-parameter
++     discipline `documentSets` already uses and for the same reason: 2.5 has to
++     ask the engine what the programme that PRODUCED a pre-import capture
++     prescribed on that day, and that programme is this document, not the file.
++     Filled HERE, before any comparison below can refuse, so the capture block
++     reads the document even on a file that never gets past this function. It is
++     NOT a member of the returned basis and therefore not a digest input. */
++  if(documentProgramme)documentProgramme.state=scratch;
++  /* P-LABEL FIRST (review R1, N9). The file's name, when it has one, must be
++     his, and a file that names someone else must be refused BY THAT NAME rather
++     than by whichever lift member the loop below happens to reach first. */
++  if(Object.hasOwn(source,'athlete_label')&&source.athlete_label!==op.payload.setup.athlete_label)
++    fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'athlete_label'});
 -  const fields=['day','mg'];
 -  const PROJECTED_FIELDS=['id','day','mg','sets','hi','inc','steps','head','secondary'];
 -  const BOUNDED_FIELDS=['sets','hi','inc','steps'];
@@ -255,9 +301,6 @@ decided in one place that three readers share (2.5).
 +        ex.steps.every((x,i)=>typeof x==='number'&&Number.isFinite(x)&&x>0&&(i===0||x>ex.steps[i-1]))))
 +      fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'steps',exercise_id:ex.id});
 +  }
-+  /* P-LABEL. The file's name, when it has one, must be his. */
-+  if(Object.hasOwn(source,'athlete_label')&&source.athlete_label!==op.payload.setup.athlete_label)
-+    fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'athlete_label'});
    return {op_id:op.op_id,split:source.split,
      exercises:source.exercises.map(ex=>Object.fromEntries(PROJECTED_FIELDS
        .filter(k=>Object.hasOwn(ex,k)).map(k=>[k,ex[k]]))),
@@ -270,18 +313,38 @@ decided in one place that three readers share (2.5).
  }
 ```
 
-`normaliseName(n)` is one exported helper: lower case, Unicode NFKD, every run
-of non-alphanumeric characters collapsed to a single space, trimmed. It is
-stated once and imported by the three readers, so they cannot disagree.
-`correspondence(fileLifts, documentLifts)` returns, for each DOCUMENT lift id,
-either the one file lift id whose normalised name equals its own, or `null`
-where zero or several match.
+**`normaliseName(n)`, IN FULL (review R1, N4).** One exported helper, stated
+once and imported by the three readers so they cannot disagree:
+`String(n).normalize('NFKD')`, combining marks removed
+(`replace(/\p{M}+/gu,'')`), lower-cased with `toLowerCase()`, then every run
+that is not a Unicode LETTER OR DIGIT collapsed to one space
+(`replace(/[^\p{L}\p{N}]+/gu,' ')`), then trimmed. The character class is
+UNICODE, not `[a-z0-9]`: a lift named in any script the athlete types in
+normalises to itself, not to the empty string. A name that survives
+normalisation as EMPTY - a lift called `"---"` - refuses the whole import,
+field `exercise_n`, with the new sentence in 2.7. That is a strong answer for
+an otherwise perfect file and it is the right one: a lift with no readable name
+cannot be corresponded to anything, cannot be shown to him, and the alternative
+is to guess.
 
-### 2.4 The label, and the returned basis
+**`correspondence(fileLifts, documentLifts)` IS INJECTIVE BY CONSTRUCTION
+(review R1, B3).** It returns, for each DOCUMENT lift id, the ONE file lift id
+it answers for, or `null`. A pair is kept only when the normalised name is
+unique on BOTH sides: exactly one document lift and exactly one file lift carry
+it. Both directions matter and only the file direction was stated before -
+several DOCUMENT lifts binding ONE file lift is the direction that would let the
+capture block count one lift twice and let the companion edit one basis lift
+from two rows. Two document rows typed `"Press"` and `"Press."` normalise alike,
+so NEITHER corresponds, both are kept as their own lifts under 2.5 case 2, and
+nothing is silently merged.
+
+### 2.4 The label, the kept setup lifts, and the returned basis
 
 ```diff
    const documentSets=new Map();
-   try{programmeBasis=programme(state,ops,{today:currentDay(),documentSets});}
+-  try{programmeBasis=programme(state,ops,{today:currentDay(),documentSets});}
++  const documentProgramme={state:null};
++  try{programmeBasis=programme(state,ops,{today:currentDay(),documentSets,documentProgramme});}
    catch(e){issue(e.code,null,detailOf(e));}
 +  /* P3-REAL-SHAPE (DECISIONS:520 option A). A FILE WITH NO NAME TAKES HIS.
 +     The old app has no athlete_label anywhere, and local-source-basis.mjs:54
@@ -297,7 +360,51 @@ where zero or several match.
 +    const op=ops[programmeBasis.op_id];
 +    state.athlete_label=op.payload.setup.athlete_label;
 +  }
++  /* AND NOTHING OF HIS IS LOST (2.5 case 2, ruled after review R1 B5). EVERY
++     document lift with no unique correspondent is appended to the admitted
++     state as an INACTIVE lift, whether or not a recorded session names it, and
++     tombstoned under the old app's own `retirements` member. The appended
++     object is the DOCUMENT CONSTRUCTOR'S OWN (documentProgramme.state, built by
++     createCleanInitState at the head of programme()), so it is valid by
++     construction and no member is invented here. It is NOT added to
++     `state.exOrder`: a retired lift leaves the day's pool by `exActive`
++     (engine/plan.cjs:87-95, no date comparison), so the gym card is unchanged
++     (2.8, cell (n6)). */
++  if(programmeBasis&&documentProgramme.state){
++    const held=new Set(state.exercises.map(e=>e.id));
++    for(const row of documentProgramme.state.exercises){
++      /* Corresponded, or already in the file's own list under this very id:
++         either way the lift is there and nothing is appended for it. */
++      if(programmeBasis.lift_correspondence?.[row.id]||held.has(row.id))continue;
++      state.exercises=[...state.exercises,{...row}];
++      state.retirements={...(state.retirements||{}),[row.id]:currentDay()};
++    }
++  }
 ```
+
+**WHY EVERY UNMATCHED ROW, AND NOT ONLY THE ONES A SESSION NAMES (review R1,
+B5).** The first cut of this spec said two things that cannot both hold: 2.5
+scoped the append to "exactly the lifts his own recorded history still needs",
+and 2.6 relied on every unmatched row still being findable in the basis. The
+ordinary case breaks the pair - he typed sixteen lifts, the file holds fifteen,
+and he had not yet trained the sixteenth - and the result would have been Edit
+My Week refusing `PLAN_EDIT_ORIGIN_UNPROVEN` forever: the exact failure this
+ticket exists to remove, moved from admission to the companion. So the rule is
+the unconditional one. The state then always contains what BOTH readers expect,
+the card is unaffected because the lift is retired, and "nothing of his is lost"
+becomes true of the programme as well as of the history. Cell (d2).
+
+**ORDERING, WHICH IS LOAD-BEARING.** The label write and this append happen
+immediately after `programme()` returns and BEFORE any family is replayed, so
+`capture_lift` (2.5) and every later reader see ONE state. `state` is
+reassigned by `applyRead` and by the food projection further down `replay()`;
+the build must prove both the label and the appended lifts survive to
+`view.state`, not assume it (review R1, N5, and the same concern applies to the
+append). And because `source-admission.mjs` is ESM and therefore strict, a
+FROZEN candidate state would make both of these THROW rather than refuse, and
+the throw is outside the `try` that wraps `programme()`:
+`createCleanInitState` freezes deeply, which is precedent enough to measure
+rather than assume. Cell (n5).
 
 `local-source-basis.mjs` is **not edited**. Its `:54` guard is what makes the
 above load-bearing: after adoption the admitted state always carries a label,
@@ -341,13 +448,18 @@ THE RULE.
    not touch. The re-key is a change of ADDRESS, not of content, and it is the
    same move the old app itself made for a renamed lift (`renames`,
    `src/app.jsx:545`).
-2. **KEPT UNDER ITS OWN LIFT, ZERO OR SEVERAL MATCHES.** The setup lift is
-   appended to the admitted state's `exercises` as an INACTIVE lift, carrying
-   the document's `id`, `n`, `mg`, `day`, `sets`, `hi`, `inc`, `steps`, `w:null`
-   and a retirement dated the import day (`state.retirements[id]=today`, the old
-   app's own tombstone member, `src/app.jsx:551`). His recorded entries stay
-   under it and are visible in his history. Nothing is dropped and nothing is
-   silently merged into a lift he did not train.
+2. **KEPT UNDER ITS OWN LIFT, ZERO OR SEVERAL MATCHES - ALWAYS, NOT ONLY WHERE
+   A SESSION NAMES IT (ruled after review R1, B5).** The setup lift is appended
+   to the admitted state's `exercises` as an INACTIVE lift, carrying the
+   document constructor's own object (`id`, `n`, `mg`, `day`, `sets`, `hi`,
+   `inc`, `steps`, `w:null`, `forks:[]`) and a retirement dated the import day
+   (`state.retirements[id]=today`, the old app's own tombstone member,
+   `src/app.jsx:551`). This happens for EVERY document lift with no unique
+   correspondent, whether or not his recorded history names it, and it happens
+   in `replay()` where the label is written (2.4), before any family is
+   replayed. His recorded entries stay under it and are visible in his history.
+   Nothing is dropped and nothing is silently merged into a lift he did not
+   train.
 3. **THE PROVENANCE RULE, RESTATED FOR BOTH CASES.**
    - `capture_producer`: unchanged.
    - `capture_lift`: reads the state AFTER re-attachment, and after the retired
@@ -357,16 +469,35 @@ THE RULE.
      that PRODUCED the capture (P3-PORT-FIX-2, DECISIONS:509 Q1). Re-keying does
      not change the count, so the check is read under the setup id, before the
      re-key, and its refusal still names the setup lift.
-   - `capture_membership`: compared over the RE-KEYED ids. The expected pool is
-     the engine's own `sessionMembership` on the admitted state for the original
-     Start day, PLUS any retired setup lift that the capture itself names and
-     whose document day is that day's kind. ORDER is compared only when the two
-     programmes list the same lifts; where adoption changed the pool, the SET is
-     compared and the order is not, because the file's order is not the order
-     the card was built in and an order comparison there would refuse a workout
-     he really did. This is the one place the spec relaxes a proof, and it
-     relaxes it exactly as far as adoption made it unanswerable. **PM QUESTION
-     3** in section 6 puts the alternative.
+   - `capture_membership`: **RE-POINTED AT THE PROGRAMME THAT PRODUCED THE
+     CAPTURE, AND NOT RELAXED AT ALL (rewritten after review R1, B1 and B2).**
+     Pool AND order are compared, exactly and in order, against the engine's own
+     `sessionMembership` run on the DOCUMENT's own state for the original Start
+     day - `documentProgramme.state`, the constructor's state built from the
+     setup document at the head of `programme()` - because the document is the
+     programme the gym card prescribed from when it wrote that capture. This is
+     the SAME ruling `capture_sets` already runs under (P3-PORT-FIX-2,
+     DECISIONS:509 Q1, and the comment at source-admission.mjs:432-445 says it
+     in those words: "The document is the programme that PRODUCED the capture").
+     The admitted state is no longer the right-hand side of this comparison, for
+     the reason P3-PORT-FIX already gave about `capture_sets`: after option A
+     the state is the FILE's, its `exOrder` is the FILE's, and asking a capture
+     to match a pool and an order that did not exist when it was written refuses
+     a workout he really did.
+
+     THE ADMITTED STATE STILL HAS TO CARRY WHAT THE CAPTURE NAMES, and that is
+     `capture_lift`'s job, one slot at a time, over the RE-KEYED id: every named
+     lift is either corresponded to a file lift or kept as its own retired lift
+     by rule 2, so the check is total and its refusal means a corrupt capture.
+     Nothing is proved twice and nothing is dropped.
+
+     WHY THIS IS NOT A RELAXATION. The first cut compared the re-keyed ids with
+     the FILE's pool and then withheld the order comparison wherever any slot
+     had been re-keyed - which, in the normal option-A case, is every slot, so
+     order was never compared at all, for the whole population this ticket
+     targets. The rule above compares order EXACTLY, always, against the only
+     programme that can answer for it. **PM QUESTION 3 is therefore withdrawn**;
+     section 6 records what it was and what replaced it.
 
 ```diff
 -    const layout=adapter.readLayout(start.prescription_capture),counts=new Map();
@@ -389,20 +520,40 @@ THE RULE.
      for(const [id,count]of counts)if(documentSets.get(id)!==count)
        fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_sets',exercise_id:id});
      const originalDay=start.effective.local_date,...
-     const expected=Runtime.createEngineRuntime({clock:originalClock}).sessionMembership(state,originalDay);
+-    const expected=Runtime.createEngineRuntime({clock:originalClock}).sessionMembership(state,originalDay);
 -    if(!expected||!['U','L'].includes(expected.day)||encode([...counts.keys()])!==encode([...expected.exercise_ids]))
 -      fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_membership'});
-+    const keyed=[...counts.keys()].map(id=>attach(id)??id);
-+    const same=encode([...keyed].sort())===encode([...expected.exercise_ids].sort());
-+    const ordered=encode(keyed)===encode([...expected.exercise_ids]);
-+    if(!expected||!['U','L'].includes(expected.day)||!same||
-+       (keyed.every((id,i)=>id===[...counts.keys()][i])&&!ordered))
++    /* P3-REAL-SHAPE. THE PROGRAMME THAT PRODUCED THIS CAPTURE IS THE DOCUMENT,
++       exactly as it is for capture_sets above. `documentProgramme.state` is the
++       state createCleanInitState built from the setup document at the head of
++       programme(), and it is filled before any comparison there can refuse.
++       THE GUARD ORDER IS LOAD-BEARING: sessionMembership returns NULL for any
++       day that is not U or L (engine/today.cjs:83-85), so nothing may be read
++       off it before it has been tested (review R1, B1). */
++    const produced=documentProgramme.state
++      ?Runtime.createEngineRuntime({clock:originalClock}).sessionMembership(documentProgramme.state,originalDay)
++      :null;
++    if(!produced||!['U','L'].includes(produced.day)||
++       encode([...counts.keys()])!==encode([...produced.exercise_ids]))
 +      fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED',{field:'capture_membership'});
 ```
 
-The retired setup lifts are appended where the label is written, in `replay()`,
-after `programme()` has returned, so `state` is the file's plus exactly the
-lifts his own recorded history still needs.
+WHAT THE THREE READERS NOW READ, IN ONE LINE EACH. `capture_sets`: the
+DOCUMENT's per-lift count, under the document's own id, before the re-key.
+`capture_membership`: the DOCUMENT's pool and order for that day, under the
+document's own ids, before the re-key. `capture_lift`: the ADMITTED state,
+under the RE-KEYED id, because that is the state the projected session lands
+in. Two readers ask the programme that wrote the capture; one asks the state
+that will hold it; none of them asks a programme a question it cannot answer.
+
+THE RETIREMENT DATE IS NOT A DATE COMPARISON, AND THAT MATTERS HERE (review R1,
+N6). `exActive` (`rebuild/engine/plan.cjs:87-95`) returns false for any id in
+`s.retirements` with NO comparison against the day being asked about. So a
+setup lift retired on the import day is out of the pool even for a day BEFORE
+the import - which is exactly why `capture_membership` cannot be asked about
+the admitted state for a pre-import day, and is one more reason the document is
+the right-hand side. It is also why the appended lift never reaches the gym
+card (2.8).
 
 ### 2.6 The Edit My Week companion
 
@@ -439,16 +590,38 @@ lifts his own recorded history still needs.
 -    baseIds.add(row.id);
 +    const row = C.exerciseOf(setup.exercises[i]);
 +    /* LOCAL-SOURCE (P3-REAL-SHAPE). The document row is matched to the basis
-+       lift by NORMALISED NAME, which is the same correspondence admission
-+       recorded in the programme digest. A row that matches nothing is a lift the
-+       import RETIRED, and admission kept that lift in the basis as an inactive
-+       one, so it is still found; a row that matches several is a document this
-+       companion cannot edit safely and refuses. */
-+    const matched = firstRun ? base.exercises[i] : matchByName(base.exercises, row);
-+    const e = matched;
++       lift BY ITS OWN ID FIRST and then by NORMALISED NAME, which is the same
++       correspondence admission recorded in the programme digest. The id branch
++       is what finds a lift the import RETIRED: admission appended it to the
++       basis under the DOCUMENT's own id (P3-REAL-SHAPE 2.4), so every row is
++       found either way. A row that matches neither, or one whose basis lift a
++       previous row already bound, is a document this companion cannot edit
++       safely and refuses.
++       THE FIRST-RUN BRANCH IS UNTOUCHED, including its `byId.get(row.id)`
++       requirement (review R1, B4): only the local-source branch stops using the
++       id lookup as its binding. */
++    const e = firstRun ? base.exercises[i] : (byId.get(row.id) || matchByName(base.exercises, row));
 +    if (baseIds.has(row.id) || !e) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
-+    baseIds.add(row.id);
++    if (firstRun ? !byId.get(row.id) : boundBasis.has(e.id)) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
++    baseIds.add(row.id); boundBasis.add(e.id);
 ```
+
+```diff
+   const baseIds = new Set();
++  /* ONE ROW, ONE BASIS LIFT (review R1, B3). `baseIds` reads as the duplicate
++     guard and WAS one only because the row's id and the basis lift's id were
++     the same id; document ids are unique by construction (`slugOf`
++     disambiguates with a numeric suffix), so on the local-source branch it can
++     never fire and it is the BASIS side that has to be guarded. */
++  const boundBasis = new Set();
+   let rowsOk = true, tagsOk = true;
+```
+
+`matchByName(base.exercises, row)` returns the basis lift whose normalised name
+equals the row's ONLY when that name is unique on both sides - the same
+injective rule `correspondence` uses in 2.3, out of the same module. Where it is
+not unique, it returns nothing, and the row's own id branch above is what finds
+the lift admission kept for it.
 
 The tag key-set check at the end of the loop keys on `row.id` and stays exactly
 as it is: it validates the DOCUMENT's own tag map against the DOCUMENT's own
@@ -493,9 +666,19 @@ sentence, which is true of them.
 **TRAIN.** The FILE's programme, per lift: its own lifts under its own names,
 its own set count, its own rep target, its own increment and its own ladder,
 on the day the FILE's split map names. Measured on the shipped page in cell
-D-RS-d: the card's total for the U day is the file's 25 and not the phone's 27.
+D-RS-d: the card's total for the U day is the file's 26 and not the phone's 27.
 The setup document supplies nothing. A lift the import retired (2.5 case 2) is
-NOT on the card - it is inactive - but its history is his and is kept.
+NOT on the card - it is inactive, and `exActive` honours `retirements` with no
+date comparison at all - but its history is his and is kept.
+
+**AND THE SENTENCE UNDER THE CARD CHANGES (review R1, N7).**
+`today-app.cjs:317-320` `setupNoteNeeded(enrolled, athleteLabel, state)` returns
+true while `state.athlete_label !== athleteLabel`, and that is what puts "these
+are sample numbers" on Today. After the 2.4 label write the adopted state always
+carries the phone's label, so the sentence CLEARS on the morning after an
+import. That is the right outcome - the numbers on the screen really are his
+now - and it is one of the most visible consequences of this ticket, so it gets
+its own cell (n7) rather than arriving as a surprise.
 
 SUBJECT TO GAP 5. On a day that carries a lift whose working load is `BW` or
 `hold`, there is no card at all until the page's capture producer is the v2
@@ -547,9 +730,30 @@ setup flow is not changed by this ticket - see 5).
 - NEW (this branch, already written and green against the unchanged tree):
   `rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs`,
   `rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs`.
-- CHANGED by the build: the twelve cells above INVERT. Each one's name says what
-  it measures today; the build rewrites the name and the assertion together, the
-  way P3-PORT-FIX-2 inverted D-PF-f1.
+- CHANGED by the build: of the FIFTEEN cells this branch carries, ELEVEN INVERT
+  and FOUR STAY AS THEY ARE (the count is corrected after review R1, N8; section
+  1's thirteen rows are not thirteen cells - rows 9-11 are one cell with three
+  assertions, and rows 12-13 are cells that measure a NON-gap). Each inverting
+  cell's name says what it measures today; the build rewrites the name and the
+  assertion together, the way P3-PORT-FIX-2 inverted D-PF-f1.
+
+  | cell | section 1 row | after the build |
+  |------|---------------|-----------------|
+  | D-RS-a0 | 1 | INVERTS: admits, no refusal line |
+  | D-RS-a | 2 | INVERTS: `why` stripped is no longer the variable that matters |
+  | D-RS-b1 | 3 | INVERTS: handle ids admit |
+  | D-RS-b2 | 4 | INVERTS: no ladder admits |
+  | D-RS-b3 | 4 | INVERTS in its reason: it already admits, but for a new reason; the name changes and the bracket step it seals changes |
+  | D-RS-c | 5 | INVERTS: an unlabelled file is ADOPTED under the phone's label |
+  | D-RS-d | 6 | STAYS green, with the label now supplied by admission, not by the bracket |
+  | D-RS-f | 13 | STAYS: the extra members still survive |
+  | D-RS-e | 12 | STAYS: `mg` is still not a gap |
+  | D-RS-0 | - | STAYS: the fixture's shape is the measurement's own premise |
+  | D-RS-g1 | 7 | INVERTS: the pre-import session admits and is re-keyed |
+  | D-RS-g2 | 7 control | STAYS green and gains the re-key assertion |
+  | D-RS-h | 8 | INVERTS ONLY IF PM QUESTION 1 is answered yes; otherwise it stays green and becomes the named record of a shipped limitation |
+  | D-RS-h2 | 8c | STAYS green |
+  | D-RS-k | 9-11 | INVERTS all three assertions |
 - RE-POINTED at the real-shape fixture (they seal an invented one today):
   `rebuild/m3/w7-preview/import/test/support.mjs` gains `sealRealShapeBundle`
   beside `sealInventedBundle` - nothing existing is removed, because the
@@ -608,6 +812,59 @@ lift the file names twice (or not at all): the import still admits, the setup
 lift is in the admitted state as an inactive lift with a retirement dated the
 import day, the recorded session stays under it, and nothing is dropped. NEW.
 
+**(d2) AN UNMATCHED LIFT WITH NO RECORDED SESSION AT ALL.** The ordinary case:
+the phone's setup names sixteen lifts, the file holds fifteen of them, and the
+sixteenth was never trained on this phone. The import admits; the sixteenth lift
+is in the admitted state as an inactive, tombstoned lift; the gym card's total
+is unchanged by it on both day kinds; and **Edit My Week opens**, with that lift
+listed as retired. NEW, and it is the cell review R1 (B5) found missing - without
+the unconditional append this is a permanent `PLAN_EDIT_ORIGIN_UNPROVEN`.
+
+**(d3) TWO DOCUMENT ROWS, ONE FILE LIFT.** A setup that names `"Press"` and
+`"Press."` against a file with one `Press`: NEITHER row corresponds, both are
+kept as their own retired lifts, the file's `Press` is bound by no row, the
+import admits, and the companion opens with every row bound to a different basis
+lift. NEW (review R1, B3). A build that makes `correspondence` injective on only
+one side fails this cell.
+
+**(d4) THE CAPTURE'S ORDER IS STILL PROVED.** A pre-import capture whose slot
+order does not match the DOCUMENT's own pool order for that day refuses
+`capture_membership`, on a file whose lifts all correspond - proving the order
+comparison of 2.5 is live and was not lost in the re-key (review R1, B2). Its
+control: the same capture, with the file's own `exOrder` shuffled so the FILE's
+pool order differs from the document's, still ADMITS, because the file's order
+is not what the capture was written against. NEW.
+
+**(d5) A START ON A DAY THE WEEK CALLS REST.** A phone holding one pre-import
+Start on a day whose map entry is `REST` refuses `capture_membership` **by
+name**, with no `TypeError` anywhere on the path and the whole refusal
+retracted. `sessionMembership` returns `null` for any day that is not U or L
+(`engine/today.cjs:83-85`), so this cell is the guard-order proof review R1 (B1)
+asked for: a diff that reads `expected.exercise_ids` before testing `!expected`
+crashes here instead of refusing, and OPT-3's diagnosis-by-field-name fails
+exactly when it is needed. NEW.
+
+**(n5) THE WRITE ITSELF, NOT JUST ITS CONSEQUENCE.** The label write and the
+retired-lift append of 2.4 are asserted DIRECTLY on `view.state`: the label is
+present and equal to the phone's, the appended lifts are present with their
+retirements, and both survive the `applyRead` and food-projection reassignments
+that follow them in `replay()`. And the negative: if `prep.candidateState()` is
+ever frozen, a strict-mode assignment THROWS outside the `try` that wraps
+`programme()`, so the build measures whether it is frozen before it writes the
+line, and uses a copy rather than a mutation if it is. NEW (review R1, N5).
+
+**(n6) THE APPENDED LIFT STAYS OUT OF THE POOL, AND STAYS OUT.** After a later
+boot on a new day, the retired setup lift is still absent from the gym card on
+both day kinds, is still absent from `state.exOrder`, and `canonicalizePlan`
+has not reinstated it. `exActive` (`engine/plan.cjs:87-95`) honours
+`retirements` with no date comparison, which is what makes this true and is
+also why 2.5's document-side membership rule is the right one. NEW (review R1,
+N6).
+
+**(n7) THE SAMPLE-NUMBERS SENTENCE CLEARS.** On the morning after an adopted
+import, `setupNoteNeeded` is false and the sentence is not on Today - and on a
+phone whose import was REFUSED it is still there. NEW (review R1, N7).
+
 **(e) THE LABEL, BOTH WAYS.** Absent in the file: admitted, and the admitted
 state carries the PHONE's first-run label, and the page adopts (D-RS-c
 inverted). Different from the phone's: REFUSED by name, field `athlete_label`,
@@ -619,8 +876,11 @@ with no number, no en dash, no em dash and no value from the file in it. NEW.
 different) still refuses `split.map` and names no lift; a future-dated
 `split.from` still refuses `split.from`; a period array that is not an array
 still refuses `split`; a file with two lifts sharing one id refuses
-`exercise_id`; a lift with no readable name refuses `exercise_n`; a `sets: 0`
-still refuses `sets` with its lift id. Every one retracts and writes nothing.
+`exercise_id`; a lift whose name normalises to nothing at all
+(`"---"`) refuses `exercise_n`; a `sets: 0` still refuses `sets` with its lift
+id. And the control review R1 (N4) asked for: a lift named in a NON-LATIN
+script admits and corresponds normally, because `normaliseName`'s class is
+`\p{L}\p{N}` and not `[a-z0-9]`. Every refusal retracts and writes nothing.
 
 **(g) THE COMPANION.** Edit My Week opens on the adopted real-shape basis -
 `why` retained, handle ids, the phone's label - and lists both the file's active
@@ -639,10 +899,13 @@ nothing on the whole walk); the passphrase never appears in any rendered text;
 no value from the file rides out on a refusal line.
 
 **(j) RED FIRST.** Each cell of (a) to (g) is run against the UNCHANGED tree
-first and must fail with the code and field section 1 records. The twelve cells
-in this branch ARE that red-first run, recorded green as measurements; the build
-inverts them one at a time and the report states, per cell, which S7 line made
-it red.
+first and must fail with the code and field section 1 records. The FIFTEEN cells
+in this branch ARE that red-first run, recorded green as measurements; ELEVEN of
+them invert and FOUR stay (the table in 3.3 says which, corrected after review
+R1, N8). The build inverts them one at a time and the report states, per cell,
+which S7 line made it red. The cells added by this revision - (d2), (d3), (d4),
+(d5), (n5), (n6), (n7) - are NEW and have no red-first line in this branch; each
+one's report line says instead which rule of section 2 it holds to account.
 
 ---
 
@@ -659,6 +922,13 @@ it red.
 - **The engine, the migration, the settle pass, the port and the bundle
   format.** All correct on the real shape, measured.
 - **`athlete-state.cjs`.** The constructor's bounds are right for a document.
+- **THE COMPANION'S FIRST-RUN BRANCH, INCLUDING ITS ID LOOKUP.** 2.6 changes the
+  LOCAL-SOURCE branch only. `firstRun` still binds `base.exercises[i]` AND still
+  requires `byId.get(row.id)` to exist, so a document row whose id is absent
+  from a clean-init basis still fails the proof it fails today. The first cut of
+  the 2.6 diff dropped that requirement from both branches, which review R1 (B4)
+  caught; a build that leaves it dropped weakens a path this ticket never asked
+  to touch.
 - **The identity question and the retract path.** Untouched.
 - **Who wins after an import.** `today-app.cjs:2488` already returns
   `imported || setup.athleteState()`. No seam is added and no fork is built.
@@ -722,17 +992,42 @@ week governs, not a code change guessed in the dark.
    is bound to the OLD shape. There are no such devices - the owner's import has
    never been committed - but the build must confirm that with `listImports` on
    his installation before it ships, not assume it.
-4. **`capture_membership` relaxed to a set comparison** where adoption changed
-   the pool (2.5). This is the one proof this spec weakens. **PM QUESTION 3**:
-   accept it, or keep the exact order comparison and accept that a phone which
-   recorded a workout before importing a file that lists its lifts in a
-   different order refuses. My recommendation is to accept the relaxation: the
-   order that mattered is the order the card was built in, and that order is
-   recorded in the capture itself, which is still compared slot for slot.
-5. **Three readers of one rule.** `normaliseName` in one module, imported. If
+4. **`capture_membership` is no longer relaxed at all, and PM QUESTION 3 is
+   WITHDRAWN.** The first cut compared the re-keyed ids against the FILE's pool
+   and dropped the order comparison wherever a slot had been re-keyed - which is
+   every slot in the case this ticket targets, so order would never have been
+   compared, and the question put to the PM described a narrower relaxation than
+   the code performed (review R1, B2). 2.5 now compares pool AND order exactly,
+   against the DOCUMENT's own membership for that day, which is the programme
+   that wrote the capture and the same right-hand side `capture_sets` already
+   uses. Nothing is weakened and there is nothing left to rule. The residual
+   risk is the one `capture_sets` already carries and DECISIONS:509 Q1 already
+   ruled on: if the athlete EDITED his week on the phone before importing, the
+   document is no longer exactly the programme that prescribed, and both checks
+   would refuse. That is a known, named, pre-existing bound, not a new one.
+
+5. **THE ONLY REMAINING PROOF THAT THE FILE IS HIS IS ONE TAP (review R1, N2).**
+   P-LABEL is unreachable on every old-app file (none carries a label), and
+   option A removes the per-lift id multiset equality that was, accidentally,
+   S7's last content guard. A different old-app athlete's file on the same week
+   is admitted and adopted on the identity Yes alone, with this phone's name
+   written onto it. Inside DECISIONS:520's ruling, recorded here so the PM reads
+   it before he answers, and stated in 2.1.
+
+6. **A BUNDLE IS PORTABLE AND THE LABEL IS NOT IN IT (review R1, N3).** The
+   bundle carries no name of its own, so with 2.4 an unlabelled old-app file
+   takes the label of WHATEVER installation imports it. The same bundle imported
+   on a second athlete's phone comes out bearing that athlete's name, is
+   adopted, and is thereafter indistinguishable from his own record. Harmless
+   today - there is one such file and one such phone, and the identity Yes and
+   P-LABEL stand in front of it - and not harmless the moment two installations
+   exist and a bundle is ever relayed. If the PM wants it covered, the cell
+   belongs in lane C's dad-first-run corpus (a second athlete importing the same
+   bundle), not here.
+7. **Three readers of one rule.** `normaliseName` in one module, imported. If
    the build restates it anywhere, the bug is guaranteed and will be silent.
 
-### 6.3 The three questions for the PM
+### 6.3 The questions for the PM: TWO, not three
 
 1. Switch the page's capture producer to `CONFIGURATION_PROFILE` so a `BW` or
    `hold` lift prescribes (recommended, subject to the measurement in 6.2 (1))?
@@ -743,8 +1038,18 @@ week governs, not a code change guessed in the dark.
    against, and the earlier periods are retained unexamined as his own history.
    That is a one-line change to P-A and it should be ruled now rather than after
    the next refusal.
-3. `capture_membership`: set comparison where adoption changed the pool, or
-   exact order always?
+3. ~~`capture_membership`: set comparison where adoption changed the pool, or
+   exact order always?~~ **WITHDRAWN after review R1 (B2).** The question was
+   put against a relaxation the code did not perform, and the honest fix needs
+   no ruling: 2.5 compares pool and order exactly, against the programme that
+   produced the capture. Nothing for the PM to decide. If he wants one thing
+   from this paragraph it is the sentence in 6.2 (5), which is about identity,
+   not order.
+
+AND ONE THING TO READ RATHER THAN ANSWER: 6.2 (5). After this ticket the only
+proof that an imported file is his is the identity Yes. That is his own ruling
+(DECISIONS:520, :472 (a)) and this spec implements it; it is written down here
+so it is a decision he keeps making rather than one he made once.
 
 ---
 
@@ -762,10 +1067,115 @@ round, the way S7 ran.
 | PM QUESTION 1: the producer measurement, then the change or the fallback | 0.75 |
 | re-pointing the corpus cells named in 3.3 and keeping every S7 cell green | 1.0 |
 | the bar cells (a) to (j), red-first | 1.5 |
+| the seven cells this revision adds - (d2), (d3), (d4), (d5), (n5), (n6), (n7) | 0.75 |
 | the S8 package, the ruled-substitution entries, preflight | 0.5 |
-| **total** | **6.5** |
+| **total** | **7.25** |
 
 Plus the review round. The two largest items are the capture block and the
 corpus re-point, and both are large for the same reason: they are where the
 phone's own history meets the file's, which is the one place option A cannot be
 "the file wins" and has to be "and nothing of his is lost".
+
+---
+
+## 8. REVIEW DISPOSITION (R1)
+
+Reviewed independently at `e35c296` and REJECTED with one fix round; the
+measurement half was accepted as it stands and is carried into this revision
+unchanged, as the reviewer asked. Every blocking finding is FIXED. Nothing is
+disputed. Each one below says where the fix is and what a build should look at
+to confirm it landed.
+
+### The six blocking findings
+
+**B1. `capture_membership` dereferenced `expected` before the `!expected`
+guard. FIXED (2.5).** Verified first: `sessionMembership` returns `null` for any
+day that is not U or L (`rebuild/engine/today.cjs:83-85`), so a Start on a day
+the adopted week calls REST would have thrown a `TypeError` inside `replay()`
+instead of refusing by name. The rewritten diff tests `!produced` before it
+reads anything off it, and cell (d5) is the proof: a pre-import Start on a REST
+day must refuse `capture_membership` by name, with no throw on the path.
+
+**B2. The order test implemented "no slot was re-keyed", not what the prose
+said, and PM QUESTION 3 asked about a different relaxation. FIXED (2.5), by a
+different fix than the one recommended, and the finding is accepted in full.**
+The recommendation - compare order whenever the two lists are the same SET -
+would refuse a real workout in the ordinary case, because the order it would
+compare against is the FILE's `exOrder` and the capture was written against the
+DOCUMENT's. So this revision re-points the comparison instead: pool AND order,
+exact and unrelaxed, against `sessionMembership` on the DOCUMENT's own state for
+that day, which is the programme that produced the capture and the same
+right-hand side `capture_sets` has used since P3-PORT-FIX-2 (DECISIONS:509 Q1).
+The proof is now STRONGER than either the first cut or the recommendation, the
+admitted state keeps its own job through `capture_lift`, and PM QUESTION 3 is
+withdrawn rather than restated. `documentProgramme` is a new out-parameter of
+`programme()`, filled beside `documentSets` and for the same stated reason; it
+is not a member of the returned basis, so the digest is unaffected by it. Cell
+(d4) proves the order comparison is live; its control proves the file's own
+order is NOT what a capture is asked to match.
+
+**B3. The name match lost one-row-one-lift. FIXED (2.3 and 2.6).**
+`correspondence` is now injective BY CONSTRUCTION - a pair is kept only where
+the normalised name is unique on BOTH sides - and 2.3 says so. The companion
+adds `boundBasis` and refuses a second row binding a basis lift an earlier row
+already bound. Cell (d3) is the case the reviewer named: `"Press"` and
+`"Press."`, which normalise alike, now correspond to nothing and are both kept
+as their own lifts rather than both editing one file lift.
+
+**B4. The 2.6 diff weakened the FIRST-RUN path. FIXED (2.6, and stated in 5).**
+The id lookup stays on the first-run branch; only the local-source branch stops
+using it as its binding. Section 5 now names this explicitly so a build cannot
+lose it again.
+
+**B5. 2.5 and 2.6 contradicted each other about which setup lifts are kept.
+FIXED, and RULED the way the reviewer recommended (2.4, 2.5 case 2).** EVERY
+document lift with no unique correspondent is appended as an inactive,
+tombstoned lift, whether or not a recorded session names it. The state then
+always contains what both readers expect; the card is unaffected because
+`exActive` honours `retirements`; and Edit My Week opens for the ordinary case
+the first cut would have refused forever. Cell (d2) is the missing cell, and it
+is the one that would have caught this.
+
+**B6. The fixture carried the seed athlete's own `sets`, `hi` and `inc`. FIXED
+(`legacy-fixture.cjs`).** Re-measured against `EXERCISES` (:386-:433) as amended
+by the weave (`hack.hi`, `calves.hi`, `rows.hi` at :545-:547): the reviewer's
+count was right. Every one of the sixteen lifts now carries a set count, a rep
+target and an increment chosen for this fixture; none is the seed's value for
+that lift. The single value kept is `inc: null` on the bodyweight raise, which
+is a TYPE and is the whole point of gap 4 - it is declared in the header rather
+than hidden. The file's totals still disagree with the phone's (26 v 27 on U,
+22 v 21 on L), so D-RS-d and D-RS-h2 keep the disagreement they measure, and
+all fifteen cells are still green. The header's absolute claim is rewritten so
+it is true of the file as committed, including the reviewer's lower-severity
+point about the dates, which are kept as shape and now said to be kept.
+
+### The notes
+
+- **N1 `patchV32`.** FIXED in the spec header and in `legacy-fixture.cjs`:
+  `targets` is written only inside `if (adj)`, so it is an OPTIONAL member of a
+  migrated state. Read at `src/app.jsx:10745-10763` and confirmed.
+- **N2 P-LABEL is unreachable, and option A removes the last content guard.**
+  FIXED: 2.1 says it in the reviewer's own terms, and 6.2 (5) is the risk line
+  he asked for, placed before the PM's questions.
+- **N3 a relayed bundle takes whatever phone's label.** FIXED: 6.2 (6), with
+  the cell placed in lane C's corpus rather than invented here.
+- **N4 `normaliseName`'s character class.** FIXED: the class is Unicode
+  (`\p{L}\p{N}`), stated in full with the NFKD and combining-mark steps, and a
+  name that normalises to empty refuses `exercise_n`. Cell (f) gains both the
+  empty-name refusal and the non-Latin control.
+- **N5 the label write in a strict-mode module.** FIXED as a cell: (n5) asserts
+  the write and the append directly on `view.state` and requires the build to
+  measure whether `candidateState()` is frozen before writing the line.
+- **N6 the engine is safe, and no cell said so.** FIXED: cell (n6), plus the
+  paragraph in 2.5 saying out loud that `exActive` ignores the retirement DATE -
+  which is what makes the document-side membership rule necessary as well as
+  correct.
+- **N7 the sample-numbers sentence clears.** FIXED: 2.8 and cell (n7).
+- **N8 the cell count.** FIXED: fifteen cells, eleven invert, four stay, in a
+  table in 3.3; (j) matches it.
+- **N9 P-LABEL fires late.** FIXED: the test moves above the per-lift loop in
+  2.3.
+- **N10 what could not be verified.** Unchanged and still true of this
+  revision: the owner's file is never opened, PM QUESTION 1's v1/v2 measurement
+  is the build's to make before it changes `today-bindings.mjs`, and whether
+  `prep.candidateState()` is frozen is now cell (n5) rather than an assumption.
