@@ -1,0 +1,220 @@
+{
+ "version": 1,
+ "lanePackage": "C-UI-0",
+ "packageId": "C-UI-0-GATES-WITH-TEETH",
+ "status": "PROPOSED",
+ "filed": "2026-09-18",
+ "brief": {
+  "file": "rebuild/lanes/c/ui-port/C-UI-0.md",
+  "sha256": "81e24c3cc5d2a11e9e54e15059f48157a0a2520c5e42399807d796845457f54a",
+  "ruling": "DECISIONS:531",
+  "audit": {
+   "file": "rebuild/lanes/c/ui-port/GATE-TEETH-AUDIT-R1.md",
+   "sha256": "c2093d23abdb17a4bc88962f6c75d38314c6b50ce350f48cb52089817012f110"
+  }
+ },
+ "branch": "rebuild/c-ui-0-gates",
+ "sourceBase": "e0a6c8ef2b2c7421ca8deb64ade1a7ed7f4de688",
+ "head": "df3622a03e33b51587f336fa40acae5957904949",
+ "commits": [
+  "df3622a0 C-UI-0: the four scripts write UTF-8 whatever the console is set to",
+  "da631b63 C-UI-0: the README and the standard say what the code does",
+  "fc1b141e C-UI-0: quality/teeth.py, the executable mutation list",
+  "ba7ef33a C-UI-0: the phone sheet runs on Windows and takes a state",
+  "c7a2920b C-UI-0: the state sheet compares every state to a committed record and exits non zero on a miss",
+  "cbfb26ef C-UI-0: the gate refuses again (platform keyed baselines, fonts, contrast tiers, the RIR lock, the item 11 rules)"
+ ],
+ "locked": {
+  "app": "no file under rebuild/m1/approved-2026-09-18/app/ is touched on this branch",
+  "proof": "none"
+ },
+ "files": {
+  ".gitignore": {
+   "sha256": "d2261f8459d658135f9654605a3f19e460ee9ebd6c678eb30fd08037aa7c0fe5",
+   "role": "edited: quality/run/ and __pycache__/ are untracked from here on"
+  },
+  "rebuild/m1/approved-2026-09-18/README.md": {
+   "sha256": "c5370b1c7c1cfb0507d93f53673ebe4e80601c9ff8f7ad8b7ec35237961d7272",
+   "role": "edited: sections 1, 3 (with the new 3.1), 4 and 7"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": {
+   "sha256": "b6261d48733e146daea61824c53db3ce582dca134417004d75c748d8033ec9dd",
+   "role": "edited: every gate tag names its check, section 7 item 5, new section 13"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/common.py": {
+   "sha256": "dda58d73f13734890333de18489286015e3eb8e760f84df9bf5b0e84f121ed98",
+   "role": "added: what the three gates share"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/gate.py": {
+   "sha256": "95b810fe0e4eb1e516a692498157523a89464d697fbea16e5a3126cc385d8923",
+   "role": "edited: the screen gate"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/statesheet.py": {
+   "sha256": "44c395c8a469aecfc586f5c3d3900654853c3479bbecfc2ba47df85c86566a1f",
+   "role": "edited: the state gate"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/phonesheet.py": {
+   "sha256": "17cdc1f48ab18bf554a2ad6c3908f414ed8c1c9e2cd6908fce1e1b43e89411bc",
+   "role": "edited: the review sheet"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/teeth.py": {
+   "sha256": "124f5fc7700c693161e8463751025d1e8a71b3df75053850904a70f7d1b51c05",
+   "role": "added: the executable mutation list"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": {
+   "sha256": "7b6a78737a187a03d7e7de1ef72015404809e3fb321b534de6a2a034af1e3fe3",
+   "role": "added: the machine that set the linux baselines"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-today.png": {
+   "sha256": "8d9e0b74b7ba24b7dc2b05197331108209a3d55e61e1873874ce8b98bb158719",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-workout.png": {
+   "sha256": "5bf54d76c8b345a46cf0547b7ce99df854a8e06641f53f9b6e156b17e7824663",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-coach.png": {
+   "sha256": "0d6ccde42ab4db8cafbf976a0ca92268b3a97d21913a22411371221a711525af",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-today.png": {
+   "sha256": "639132fe954a0eadd1787ae9410fe5bea031afbe776347a12c2a259476a137e4",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-workout.png": {
+   "sha256": "a240158b23b24a60d6ef3dcbec919d532321e126516b109f17a05e2f21da583b",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-coach.png": {
+   "sha256": "e2d6ddefcb24a8af3495faee5cb4ece7b5da90da6ec9e55761eff072dfd653c3",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+  }
+ },
+ "stateRecords": {
+  "path": "rebuild/m1/approved-2026-09-18/quality/baseline/states/",
+  "files": 836,
+  "bytes": 986461,
+  "megabytes": 0.94,
+  "budget": "under 3 MB",
+  "manifestSha256": "b5c889c6732a3a2e75a6d5fa4834e8666a594201ff06146acd7ee37541b665a7",
+  "manifestForm": "sha256 of the lines \"<file name> <sha256>\" for every file, sorted by name, joined by newline"
+ },
+ "runs": {
+  "command": "cd rebuild/m1/approved-2026-09-18 && python quality/gate.py",
+  "gate": {
+   "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 354 PASS",
+   "exit": 0
+  },
+  "stateSheet": {
+   "command": "python quality/statesheet.py",
+   "summary": "STATE SHEET: 418 renders, 0 with problems",
+   "exit": 0
+  },
+  "teeth": {
+   "command": "python quality/teeth.py",
+   "summary": "TEETH: 19 rows, 0 disagreeing, 462 s",
+   "exit": 0
+  },
+  "machine": "linux, the builder worktree"
+ },
+ "tolerances": {
+  "regression": "The gate fails a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels.",
+  "state": "A state fails when its visible text differs at all, when an element moves more than 3 px on any edge, when its colour moves more than 3 levels in any channel, when its font family changes or its size moves more than 0.5 px, or when its thumbnail mean absolute shift reaches 2.0 levels or 1% of the thumbnail pixels differ by more than 24 levels.",
+  "contrast": "Primary text needs 4.5:1 against what is actually behind it; muted text, a disabled control's label, the state colour and text 24 px or larger need 3.0:1.",
+  "whereQuoted": "each sentence appears in the same words in the code and in README section 3.1"
+ },
+ "teethTable": [
+  "TEETH: 19 rows, 0 disagreeing, 462 s",
+  "row   mutation                                                   verdict      note",
+  "a     an em dash in Today's status sentence                      as expected",
+  "b1    a word from the owner's word list in a card title          as expected",
+  "b2    a vendor name in a card title                              as expected",
+  "c     the sans face pointed at the serif file                    as expected",
+  "d-1   #start pushed 620 px down at 393x852                       as expected",
+  "d-2   #start pushed 200 px down at 375x812 and 360x780 only      as expected",
+  "e1    Today's titles and status line under 4.5:1 and over 3.0:1  as expected",
+  "e2    the same text under 3.0:1                                  as expected",
+  "f     a keyframe animation on #start, live under reduced motion  as expected",
+  "g     one word of T-02's copy                                    as expected",
+  "g2    an em dash inside the same state copy                      as expected",
+  "h1    T-02's status line shifted 3 px (inside the tolerance)     as expected",
+  "h2    T-02's status line shifted 60 px                           as expected",
+  "i     this platform's ink-today baseline deleted                 as expected",
+  "j1    EARNED_APP at an empty folder                              as expected",
+  "j2    EARNED_APP at app/compare.html, a real page of the pack    as expected",
+  "k1    one RIR chip dropped                                       as expected",
+  "k2    a serif element switched to sans                           as expected",
+  "k3    a card moved 6 px off the page margin                      as expected",
+  "TEETH EXIT 0"
+ ],
+ "env": {
+  "file": "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt",
+  "contents": "the machine that set these baselines\nos: Linux 6.18.44-fc-v33 (linux)\npython: 3.11.15\nplaywright: 1.56.0\nchromium: 141.0.7390.37\nscreens: ink-today, ink-workout, ink-coach, dawn-today, dawn-workout, dawn-coach\nviewport: 393x852, chrome=1, date=board\n"
+ },
+ "checks": {
+  "gate": {
+   "distinct": 32,
+   "resultRows": 354
+  },
+  "stateSheet": {
+   "renders": 418,
+   "recordFiles": 836,
+   "recordsPerRender": 2
+  },
+  "teeth": {
+   "rows": 19,
+   "disagreeing": 0
+  }
+ },
+ "openQuestions": [
+  {
+   "id": "Q1",
+   "for": "the lane lead and the boards",
+   "question": "In Dawn the one state colour (--gold, #9a7f5e) measures about 3.4:1 on the card, so the proposal eyebrow and the recorded line's gold word sit between the two tiers.",
+   "howItIsHeldNow": "The state colour is held to the 3.0:1 tier, because it marks a state and never carries a sentence (STANDARD.md section 10, \"One state colour: the ember gold\"). Nothing in app/ was changed.",
+   "whatWouldChange": "If the boards want the gold to carry 4.5:1 in Dawn, the Dawn --gold token changes and QUIET_TOKENS in quality/common.py drops it. Eleven Dawn states would FAIL until then."
+  },
+  {
+   "id": "Q2",
+   "for": "the lane lead",
+   "question": "The disabled Save button's label measures 3.3:1 in Dawn (app.css:222 dims a disabled control to 55% opacity), on T-07, T-44 and T-48.",
+   "howItIsHeldNow": "A disabled control's label is held to the 3.0:1 tier, because STANDARD.md section 10 already calls a disabled primary's label a muted label.",
+   "whatWouldChange": "Nothing, unless the standard decides an inactive control must still carry 4.5:1."
+  },
+  {
+   "id": "Q3",
+   "for": "the lane lead",
+   "question": "The state record thumbnail is 1/16 scale, not the 1/8 the ticket named.",
+   "howItIsHeldNow": "At 1/8 a 3 px shift, which the rect half of the tolerance allows, already moves the thumbnail 3.5 levels and would fail the thumbnail half, so the tolerance would contradict itself and mutation h1 could not pass. At 1/16 the same shift moves it 1.7 and a 60 px shift moves it 8.5. The 836 files come to 0.94 MB, inside the 3 MB budget.",
+   "whatWouldChange": "Nothing, unless the rect tolerance tightens below 3 px, in which case the scale can go back."
+  },
+  {
+   "id": "Q4",
+   "for": "the lane lead",
+   "question": "The win32 baselines do not exist yet.",
+   "howItIsHeldNow": "The mechanism is keyed on sys.platform and a missing baseline for the current platform is a FAIL naming the exact path and the remedy, so a Windows run today reports six FAILs and no vacuous pass.",
+   "whatWouldChange": "The lane lead runs \"python quality/gate.py --accept\" on the owner PC before PR-READY and commits quality/baseline/win32/, ENV.txt included."
+  },
+  {
+   "id": "Q5",
+   "for": "the lane lead",
+   "question": "quality/common.py is a file the ticket did not name.",
+   "howItIsHeldNow": "It holds only what gate.py and statesheet.py must agree on: the copy sweeps, the contrast tiers with the muted class list, the label font chain and the refusal type. The word sweep bug existed in one gate and not the other, which is the drift this file exists to stop. No new dependency.",
+   "whatWouldChange": "If the lane wants one file per gate, the constants are duplicated and a test has to hold them equal."
+  },
+  {
+   "id": "Q6",
+   "for": "the lane lead",
+   "question": "\"fits without scrolling at 393x852\" was a WARN and is now a FAIL, because WARN is reserved for the type scale and the spacing scale.",
+   "howItIsHeldNow": "It passes on all six prototype renders today. The chassis is designed to scroll, so a later ticket that grows the default Today could turn this into a FAIL for a screen that is behaving as ruled.",
+   "whatWouldChange": "Either the check is retired, or it stays and a scrolling default is a decision the ticket records. Nothing in this ticket depends on it."
+  },
+  {
+   "id": "Q7",
+   "for": "the second auditor",
+   "question": "teeth.py runs the gate rows with --screens and --sizes narrowed to the screen the change is on, to stay inside the 25 minute budget (19 rows in 462 s).",
+   "howItIsHeldNow": "The narrowed run is the same code on fewer iterations, and --accept refuses to run with either flag so a partial baseline cannot be written.",
+   "whatWouldChange": "A hand re-run of any row with the full gate takes about two minutes per row and should report the same FAIL plus the regression rows the change also moves."
+  }
+ ]
+}
