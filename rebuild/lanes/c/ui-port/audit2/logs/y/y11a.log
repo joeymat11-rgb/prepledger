@@ -1,0 +1,15 @@
+---- row y11a: a Refused raised inside render_one for one state
+--- a/quality/statesheet.py
++++ b/quality/statesheet.py
+@@ -456,2 +456,4 @@
+     """
++    if st['id'] == 'T-03':
++        raise Refused('audit3 probe: an injected refusal inside render_one')
+     await pg.goto(f'{APP}?theme={t}&screen={st["screen"]}&chrome=1&date=board&state={st["id"]}')
+
+
+row    source    mutation                                                   verdict      exit   note
+y11a   audit3-11 a Refused raised inside render_one for one state           as expected  2      STATE SHEET: REFUSED. audit3 probe: an injected refusal inside render_one
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

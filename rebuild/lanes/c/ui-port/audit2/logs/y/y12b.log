@@ -1,0 +1,14 @@
+---- row y12b: CONTROL for y12a: the same phone sheet with T-02 applying normally
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 y12b marker: the mutation is the argument */
+
+
+row    source    mutation                                                   verdict      exit   note
+y12b   audit3-12 CONTROL for y12a: the same phone sheet with T-02 applying  as expected  0      
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

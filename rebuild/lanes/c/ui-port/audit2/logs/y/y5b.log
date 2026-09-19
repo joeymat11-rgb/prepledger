@@ -1,0 +1,14 @@
+---- row y5b: CONTROL for y5a: the same narrowed workout gate with the chips untouched
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 y5b marker: renders identically, this row is the untouched workout control */
+
+
+row    source    mutation                                                   verdict      exit   note
+y5b    audit3-5  CONTROL for y5a: the same narrowed workout gate with the c as expected  0      EARNED UI GATE: 0 FAIL, 0 WARN, 71 PASS
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

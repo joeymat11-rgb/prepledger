@@ -1,0 +1,14 @@
+---- row y10b: CONTROL for y10a: teeth --only q5 with the state sheet untouched
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 y10b marker: the mutation is the argument */
+
+
+row    source    mutation                                                   verdict      exit   note
+y10b   audit3-10 CONTROL for y10a: teeth --only q5 with the state sheet unt as expected  0      TEETH: 1 rows, 0 disagreeing, 20 s
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

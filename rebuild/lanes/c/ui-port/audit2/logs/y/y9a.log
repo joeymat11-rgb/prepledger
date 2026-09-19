@@ -1,0 +1,14 @@
+---- row y9a: teeth.py --only with one name that is not a row
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 y9a marker: the mutation is the argument */
+
+
+row    source    mutation                                                   verdict      exit   note
+y9a    audit3-9  teeth.py --only with one name that is not a row            DISAGREES    0      exit 0, the row expects 2; no one line refusal was printed; 'REFUSED' is not in the output
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

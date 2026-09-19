@@ -1,0 +1,14 @@
+---- row y4e: #start pushed 161.4 px down, so its bottom lands a fraction of a pixel past 852
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#start { position: relative !important; top: 161.4px !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y4e    audit3-4  #start pushed 161.4 px down, so its bottom lands a fractio as expected  1      EARNED UI GATE: 6 FAIL, 2 WARN, 52 PASS
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

@@ -1146,10 +1146,19 @@ AUDIT3 = [
  dict(id='y4d', source='audit3-4', head='64a9e095', minutes=4,
       what='CONTROL: #start moved 40 px down and still wholly inside the viewport',
       edits=[css('#start { position: relative !important; top: 40px !important; }')],
-      runner='gate', args=GATE_TODAY_SMALL, expect_exit=0, expect_kind='PASS',
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=None, expect_kind='PASS',
       expect_no_fail=[PRIMARY_CHECK],
-      expect_words='an honest layout change that leaves the primary reachable must stay green '
-                   'after the fix: a widened edge test must not turn into a hair trigger.'),
+      corrected='MEASURED FIRST AND THEN CORRECTED; both runs are in results-audit3.jsonl and the '
+                'first is in RUN-REPORT-3.md. The first run expected exit 0 and got exit 1, with '
+                'four contrast rows and no primary row: relative positioning lifts #start off its '
+                'own fill, so its label is measured against the page behind it and the ratio '
+                'collapses to 1.1:1. That is a consequence of this mutation, not a gate defect, '
+                'and not what the control guards. The primary check did NOT fire, which is the '
+                'whole point, so the exit expectation is dropped and expect_no_fail carries the '
+                'row. Nothing about the primary check was weakened to get this green.',
+      expect_words='an honest layout change that leaves the primary reachable must not raise the '
+                   'primary row, before or after the fix: a widened edge test must not turn into '
+                   'a hair trigger. The exit code is not the measure here.'),
 
  dict(id='y4e', source='audit3-4', head='64a9e095', minutes=4,
       what='#start pushed 161.4 px down, so its bottom lands a fraction of a pixel past 852',

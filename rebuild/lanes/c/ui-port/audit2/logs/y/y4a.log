@@ -1,0 +1,14 @@
+---- row y4a: #start pushed 400 px ABOVE the viewport
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#start { position: relative !important; top: -400px !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y4a    audit3-4  #start pushed 400 px ABOVE the viewport                    DISAGREES    1      no FAIL whose check name is exactly 'primary action in first viewport' (FAIL names seen: ['contrast (measured behind the
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

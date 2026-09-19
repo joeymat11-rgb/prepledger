@@ -1,0 +1,14 @@
+---- row y7c: CONTROL: large text at the same colour, which the standard allows at 3.0
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#status-line { font-size: 26px !important; color: #8a8378 !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y7c    audit3-7  CONTROL: large text at the same colour, which the standard as expected  0      EARNED UI GATE: 0 FAIL, 4 WARN, 59 PASS
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

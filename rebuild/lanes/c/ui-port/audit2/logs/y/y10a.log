@@ -1,0 +1,17 @@
+---- row y10a: the state sheet's apply-error detection removed, and nothing else, then teeth --only q5
+--- a/quality/statesheet.py
++++ b/quality/statesheet.py
+@@ -483,4 +483,4 @@
+     problems = []
+-    if info['applied'] != st['id']: problems.append('state did not apply')
+-    if len(errs) > n0: problems.append('error: ' + errs[-1][:80])
++    if False: problems.append('state did not apply')
++    if False: problems.append('error: ' + errs[-1][:80])
+     sweep = await pg.evaluate(JS_SWEPT_TEXT)
+
+
+row    source    mutation                                                   verdict      exit   note
+y10a   audit3-10 the state sheet's apply-error detection removed, and nothi DISAGREES    0      exit 0, the row expects 1; 'DISAGREES' is not in the output
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

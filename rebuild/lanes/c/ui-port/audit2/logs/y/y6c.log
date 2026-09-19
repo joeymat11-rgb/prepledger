@@ -1,0 +1,14 @@
+---- row y6c: the status line font size moved 0.6 px: the first representable step past SIZE_TOL
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#status-line { font-size: 16.1px !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y6c    audit3-6  the status line font size moved 0.6 px: the first represen as expected  1      STATE SHEET: 2 renders, 2 with problems
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

@@ -1,0 +1,14 @@
+---- row y12a: T-02's apply throws, and the phone sheet is asked for T-02
+--- a/app/states-today.js
++++ b/app/states-today.js
+@@ -49,2 +49,3 @@
+   R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', component: 'sample note', apply: function (a) {
++    throw new Error('audit3 y12a: this state cannot apply');
+     face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');
+
+
+row    source    mutation                                                   verdict      exit   note
+y12a   audit3-12 T-02's apply throws, and the phone sheet is asked for T-02 DISAGREES    0      exit 0, the row expects 2; no one line refusal was printed; 'REFUSED' is not in the output
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

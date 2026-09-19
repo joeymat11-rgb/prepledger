@@ -1,0 +1,15 @@
+---- row y11b: an ordinary exception raised inside render_one for the same one state
+--- a/quality/statesheet.py
++++ b/quality/statesheet.py
+@@ -456,2 +456,4 @@
+     """
++    if st['id'] == 'T-03':
++        raise ValueError('audit3 probe: an ordinary exception inside render_one')
+     await pg.goto(f'{APP}?theme={t}&screen={st["screen"]}&chrome=1&date=board&state={st["id"]}')
+
+
+row    source    mutation                                                   verdict      exit   note
+y11b   audit3-11 an ordinary exception raised inside render_one for the sam as expected  1      STATE SHEET: 16 renders, 2 with problems
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

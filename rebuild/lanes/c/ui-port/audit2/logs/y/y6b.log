@@ -1,0 +1,14 @@
+---- row y6b: CONTROL for y6a: the same note moved +3.00 px left and NOT widened
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++.note-block.sample { position: relative !important; left: 3px !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y6b    audit3-6  CONTROL for y6a: the same note moved +3.00 px left and NOT as expected  0      STATE SHEET: 2 renders, 0 with problems
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

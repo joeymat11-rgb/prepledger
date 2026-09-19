@@ -1,0 +1,14 @@
+---- row y9d: CONTROL for y9a to y9c: teeth.py --only with one real row
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 y9d marker: the mutation is the argument */
+
+
+row    source    mutation                                                   verdict      exit   note
+y9d    audit3-9  CONTROL for y9a to y9c: teeth.py --only with one real row  as expected  0      TEETH: 1 rows, 0 disagreeing, 1 s
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl
