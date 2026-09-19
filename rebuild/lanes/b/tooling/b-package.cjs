@@ -1237,7 +1237,20 @@ function canonicalSpecPaths(s) {
   if (obj(s.carrierSuccessor)) {
     if (typeof s.carrierSuccessor.file === 'string') seen.push(['carrierSuccessor.file', s.carrierSuccessor.file]);
     if (typeof s.carrierSuccessor.parent === 'string') seen.push(['carrierSuccessor.parent', s.carrierSuccessor.parent]);
+    // H24 (P-A10 WIDENED, the PM's ruling on Astra R5 G6). At DECISIONS:579 (3) the narrow
+    // walk was not ruled by argument: Astra was asked to SHOW a comparison or a sealed byte
+    // that reads one of the fields it skipped, and she showed two. carriers() reads
+    // witnessPins BY KEY off disk and hashes what it finds, and it counts witnessFlips[].file
+    // as an assertion site - she admitted "./brief.md" and "brief.md" together and measured
+    // "2 exact expectation substitution(s) at 2 assertion site(s)" for ONE physical site.
+    // Those are path identities, so they are walked. protectedSurfaces stays OUT: it is
+    // explicitly unasserted descriptive text, and its admission is not a reason to read it
+    // as a path schema.
+    if (obj(s.carrierSuccessor.witnessPins))
+      for (const w of Object.keys(s.carrierSuccessor.witnessPins)) seen.push(['carrierSuccessor.witnessPins key', w]);
   }
+  if (Array.isArray(s.witnessFlips)) for (const f of s.witnessFlips)
+    if (obj(f) && typeof f.file === 'string') seen.push(['witnessFlips file', f.file]);
   const sup = obj(s.coverage) && s.coverage.successors;
   if (obj(sup) && obj(sup.carriers)) for (const [c, row] of Object.entries(sup.carriers)) {
     if (obj(row) && typeof row.successor === 'string') seen.push(['successor carrier ' + c, row.successor]);
