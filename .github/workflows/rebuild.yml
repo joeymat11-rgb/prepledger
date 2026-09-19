@@ -272,9 +272,12 @@ jobs:
       # steps above are named one path at a time: rebuild/m4/workout/setup-tags.cjs
       # lands as product on this branch and no workflow named it, so without this
       # step it would be a runtime file the Edit My Week door depends on that
-      # nobody runs. ONE file, named by exact path and never globbed, so both
-      # runners agree whatever the shell does. Measured on this head: 30 tests,
-      # 30 pass, 0 fail, exit 0 on win32 and on linux.
+      # nobody runs. TWO files, each named by exact path and never globbed, so
+      # both runners agree whatever the shell does. Measured on this head: 43
+      # tests, 43 pass, 0 fail, exit 0 on win32 and on linux.
+      # guard-coverage.test.mjs is the fix round's answer to F2-LAND-REVIEW-R1 B2
+      # and B1: thirteen cells for guard terms of setup-tags.cjs that no cell
+      # anywhere drove. It changes no byte of the module.
       # THREE MORE F2 CELL FILES EXIST AND ARE DELIBERATELY ABSENT, so a file with
       # no CI home is a file somebody decided about: composition.test.mjs,
       # heads.test.mjs and engine.test.cjs stay on rebuild/lane-d-f2-b1b2 because
@@ -282,7 +285,7 @@ jobs:
       # half in rebuild/engine, neither of which this branch carries. The author
       # report names each one and the measurement that left it behind.
       - name: D - the exercise-tag projector, its taxonomy and its new-exercise binding
-        run: node --test rebuild/lanes/d/f2/projector.test.mjs
+        run: node --test rebuild/lanes/d/f2/projector.test.mjs rebuild/lanes/d/f2/guard-coverage.test.mjs
       - name: D — the replay register and the shipped page's writer enumeration
         run: node --test rebuild/lanes/d/p3-replay-all/class-membership.test.mjs rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs rebuild/lanes/d/p3-replay-all/writer-order.test.mjs
       - name: D — the legacy order mapping, its provider and its route
