@@ -1,0 +1,15 @@
+---- row y1e: low contrast TEXT on a position:fixed element, which the contrast walk never measures
+--- a/app/app.html
++++ b/app/app.html
+@@ -35,3 +35,3 @@
+       <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+-      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
++      <p class="status-line" id="status-line">Upper body today. One change to review.<span id="y1efix" style="position:fixed;left:22px;top:320px;color:#8a8378;font-size:15.5px">Eat about this much today.</span></p>
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y1e    audit3-1  low contrast TEXT on a position:fixed element, which the c DISAGREES    0      exit 0, the row expects 1; 'y1efix' is not in the output
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

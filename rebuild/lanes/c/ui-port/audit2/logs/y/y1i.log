@@ -1,0 +1,15 @@
+---- row y1i: the other half of the pair: the same visible 20 px focusable box, FIXED
+--- a/app/app.html
++++ b/app/app.html
+@@ -52,3 +52,3 @@
+           <span class="tdot" aria-hidden="true"></span>
+-          <div class="title">Eat about 2,300 kcal today.</div>
++          <div class="title" tabindex="0" style="height:20px;position:fixed;left:22px;top:300px">Eat about 2,300 kcal today.</div>
+           <div class="sub">Protein at least 160 g.</div>
+
+
+row    source    mutation                                                   verdict      exit   note
+y1i    audit3-1  the other half of the pair: the same visible 20 px focusab DISAGREES    0      exit 0, the row expects 1; 'title' is not in the output
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

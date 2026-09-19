@@ -1,0 +1,15 @@
+---- row y3c: "optional" on a set screen with a FULLWIDTH i (U+FF49), carried in an attribute
+--- a/app/app.html
++++ b/app/app.html
+@@ -174,3 +174,3 @@
+       <div class="rir-head"><span class="h">RIR (clean reps left)</span></div>
+-      <div class="chips" role="group" aria-label="RIR, clean reps left" id="rir">
++      <div class="chips" role="group" aria-label="RIR, optｉonal, clean reps left" id="rir">
+         <button class="chip" type="button" aria-pressed="false" data-rir="0">0</button>
+
+
+row    source    mutation                                                   verdict      exit   note
+y3c    audit3-3  "optional" on a set screen with a FULLWIDTH i (U+FF49), ca DISAGREES    0      exit 0, the row expects 1
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

@@ -1,0 +1,21 @@
+---- row y1c: generated content on a POSITION:FIXED element (::after drawn on the screen)
+--- a/app/app.html
++++ b/app/app.html
+@@ -35,3 +35,3 @@
+       <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+-      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
++      <p class="status-line" id="status-line">Upper body today. One change to review.<span id="y1cfix" style="position:fixed;left:22px;top:320px"></span></p>
+ 
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#y1cfix::after { content: "Ready to log."; position: absolute; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y1c    audit3-1  generated content on a POSITION:FIXED element (::after dra DISAGREES    0      exit 0, the row expects 1
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

@@ -1,0 +1,14 @@
+---- row y2f: CONTROL the fix must not break: the same indent on a BLOCK, where it does hide the line
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#status-line { text-indent: -9999px !important; color: #8a8378 !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y2f    audit3-2  CONTROL the fix must not break: the same indent on a BLOCK as expected  0      EARNED UI GATE: 0 FAIL, 0 WARN, 63 PASS
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

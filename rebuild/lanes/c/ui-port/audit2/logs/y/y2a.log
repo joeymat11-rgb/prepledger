@@ -1,0 +1,14 @@
+---- row y2a: VISIBLE text under clip-path: inset(0 round 50%), painted at 3.2:1
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#status-line { clip-path: inset(0 round 50%) !important; color: #8a8378 !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y2a    audit3-2  VISIBLE text under clip-path: inset(0 round 50%), painted  DISAGREES    0      exit 0, the row expects 1; 'status-line' is not in the output
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

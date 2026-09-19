@@ -1,0 +1,15 @@
+---- row y3d: CONTROL for y3c: the same attribute with an ordinary ASCII "optional"
+--- a/app/app.html
++++ b/app/app.html
+@@ -174,3 +174,3 @@
+       <div class="rir-head"><span class="h">RIR (clean reps left)</span></div>
+-      <div class="chips" role="group" aria-label="RIR, clean reps left" id="rir">
++      <div class="chips" role="group" aria-label="RIR, optional, clean reps left" id="rir">
+         <button class="chip" type="button" aria-pressed="false" data-rir="0">0</button>
+
+
+row    source    mutation                                                   verdict      exit   note
+y3d    audit3-3  CONTROL for y3c: the same attribute with an ordinary ASCII as expected  1      STATE SHEET: 2 renders, 2 with problems
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

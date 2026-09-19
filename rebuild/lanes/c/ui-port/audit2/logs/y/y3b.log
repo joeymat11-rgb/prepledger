@@ -1,0 +1,15 @@
+---- row y3b: CONTROL for y3a: the honest set, written with the multiplication sign
+--- a/app/app.html
++++ b/app/app.html
+@@ -35,3 +35,3 @@
+       <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+-      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
++      <p class="status-line" id="status-line">Upper body today. Log 8×105 now.</p>
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y3b    audit3-3  CONTROL for y3a: the honest set, written with the multipli as expected  0      EARNED UI GATE: 0 FAIL, 0 WARN, 63 PASS
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl
