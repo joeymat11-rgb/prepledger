@@ -1681,6 +1681,7 @@
   "launch": [
    "--allow-file-access-from-files",
    "--font-render-hinting=none"
-  ]
+  ],
+  "app": "b391366fd413130672bd524c7af40046185029ca52f6c13516868393dde54550"
  }
 }
