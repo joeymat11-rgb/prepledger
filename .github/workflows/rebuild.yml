@@ -267,6 +267,22 @@ jobs:
         run: node --test rebuild/m4/import/test/prepare.test.cjs rebuild/m4/import/test/reading-replay.test.cjs rebuild/m4/import/test/engine-provider.test.cjs rebuild/m4/import/test/local-source-order.test.cjs rebuild/m4/import/test/browser-parity.test.mjs rebuild/m4/import/test/production-mapping.test.cjs rebuild/m4/import/test/production-admission.test.mjs
       - name: D — plan edit, import retract, the admission swap, the replay measure family and capture-start
         run: node --test rebuild/lanes/d/plan-edit/model.test.cjs rebuild/lanes/d/plan-edit/durable-host.test.mjs rebuild/lanes/d/plan-edit/browser-build.test.mjs rebuild/lanes/d/plan-edit/client-p6.test.cjs rebuild/lanes/d/import-retract/retract.test.mjs rebuild/lanes/d/p3-followons/admission-swap.test.mjs rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs rebuild/lanes/d/p3-capture-start/capture-start.test.mjs
+      # F2-LAND GIVES THE EXERCISE-TAG PROJECTOR ITS CI HOME, under the same
+      # DECISIONS:117 (4) licence and for the same DECISIONS:186 (3) reason the D
+      # steps above are named one path at a time: rebuild/m4/workout/setup-tags.cjs
+      # lands as product on this branch and no workflow named it, so without this
+      # step it would be a runtime file the Edit My Week door depends on that
+      # nobody runs. ONE file, named by exact path and never globbed, so both
+      # runners agree whatever the shell does. Measured on this head: 30 tests,
+      # 30 pass, 0 fail, exit 0 on win32 and on linux.
+      # THREE MORE F2 CELL FILES EXIST AND ARE DELIBERATELY ABSENT, so a file with
+      # no CI home is a file somebody decided about: composition.test.mjs,
+      # heads.test.mjs and engine.test.cjs stay on rebuild/lane-d-f2-b1b2 because
+      # they need the F1 full-body day kinds in athlete-state.cjs and the F2 volume
+      # half in rebuild/engine, neither of which this branch carries. The author
+      # report names each one and the measurement that left it behind.
+      - name: D - the exercise-tag projector, its taxonomy and its new-exercise binding
+        run: node --test rebuild/lanes/d/f2/projector.test.mjs
       - name: D — the replay register and the shipped page's writer enumeration
         run: node --test rebuild/lanes/d/p3-replay-all/class-membership.test.mjs rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs rebuild/lanes/d/p3-replay-all/writer-order.test.mjs
       - name: D — the legacy order mapping, its provider and its route
