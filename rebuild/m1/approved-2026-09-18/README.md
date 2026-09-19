@@ -38,10 +38,10 @@ builder hits one of the open questions in section 6, each of which has a default
 | `quality/STANDARD.md` | the numbered UI standard (13 sections): layout, type, colour, scene, motion, copy, process, the chassis, the plates, and section 13, the full list of what the gates check | the ACCEPTANCE BAR for every screen and state |
 | `quality/gate.py` | 33 distinct checks on the six views, 372 result rows across three phone sizes, two themes and three screens (errors, motion, transitions with motion allowed and refused, copy, generated content the sweep cannot read, the multiplication sign in every set string, targets, fit, thumb zone, columns, page margin, card inner edge, icon inset, bottom safe area, spacing, type scale, radii, pressed states, contrast in two tiers measured behind the text, the two fonts by sha256 and by face, serif versus sans, the RIR lock, seams, mist edges, visual regression against `quality/baseline/<platform>/`) | the gate the port must pass on the real client |
 | `quality/statesheet.py` | renders every state in both themes, checks each (errors, copy, targets, primary in the first viewport, contrast in two tiers, label overflow, seams) and compares it to its committed record; 418 renders, exit 1 on any problem | the second gate |
-| `quality/teeth.py` | the executable mutation list: 42 forbidden changes applied one at a time to a scratch copy, each run through the scratch copy's own gate and asserted to fail for the stated reason | what proves the two gates can still refuse |
+| `quality/teeth.py` | the executable mutation list: 55 forbidden changes applied one at a time to a scratch copy, each run through the scratch copy's own gate and asserted to fail for the stated reason | what proves the two gates can still refuse |
 | `quality/phonesheet.py` | phone-zoom contact sheets in thirds, of the three base screens or of any drawn state (`--state T-40`) | what the reviewer looks at |
 | `quality/baseline/<platform>/*.png` and `ENV.txt` | the six accepted screen renders for the machine that drew them, and the OS, Python, playwright and Chromium versions of that machine and the launch list it used | what the regression check measures against |
-| `quality/baseline/states/<ID>-<theme>.json` and `INDEX.json` | one shared record per state and theme: the visible text, every text bearing element's text, rect, colour, family and size; and the list of ids and themes, with the machine and launch list that wrote them | what the state sheet measures against, on any platform: measured at 0.00 px and 0.00 levels across two operating systems (section 3.1) |
+| `quality/baseline/states/<ID>-<theme>.json` and `INDEX.json` | one shared record per state and theme: the visible text, every text bearing element's text, rect, colour, family and size; and the list of ids and themes, with the machine and launch list that wrote them | what the state sheet measures against, on any platform: measured at a worst edge of 0.04 px and 0.00 levels across two operating systems (section 3.1) |
 | `quality/baseline/states/<platform>/*.png` and `ENV.txt` | one 1/16 scale greyscale thumbnail per state and theme for the machine that drew them, and that machine's own `ENV.txt` | the half of the record that is a raster, which a second machine sets with `--accept-thumbs` |
 | `states/STATE-INVENTORY-DRAFT.md` | the derived state inventory (205 rows: T-01..T-95, W-01..W-45, C-01..C-65) with the verbatim copy the code already carries (section 4.1) and the owner's rulings 1 to 7 (section 6) | BEHAVIOUR and copy, together with the ledger |
 | `states/TICKET-proposal-response.md` | the engine ticket that unlocks the proposal card's "Applied" state | lane B, when the PM schedules it |
@@ -171,8 +171,8 @@ this section used to make and the code did not implement.
 
 The records were then written again by `--accept` on the owner's PC and judged by a full run in
 the builder's Linux sandbox (Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37), both
-launched with `LAUNCH_ARGS`: 418 renders, every rect edge of every element moved 0.00 px of the 3
-allowed, every colour 0.00 levels of 3. The only two problems in the whole set were T-88 in each
+launched with `LAUNCH_ARGS`: 418 renders, the worst rect edge in the whole set moved 0.04 px of
+the 3 allowed (W-05 ink, element 22, "Unsure", left) and every colour 0.00 levels of 3. The only two problems in the whole set were T-88 in each
 theme, `targets: link 44x44`, which both machines reported in the same words: one real defect in
 the prototype, taken up below. Two operating systems, two text stacks, two Chromium versions.
 That is the claim measured rather than asserted.
@@ -213,14 +213,15 @@ prototype FAILs on any drawn difference, and that ticket S9 pins the whole pack 
 
 **Why the JSON records sit outside the platform directories, and why win32 wrote them.** Because
 they are platform independent and that is measured, not assumed: 418 renders, every rect edge
-0.00 px of 3 and every colour 0.00 of 3 across two operating systems, two text stacks and two
-Chromium versions. Either machine could have written them; the owner's PC did, and the index says
+a worst edge of 0.04 px of 3 and every colour 0.00 of 3 across two operating systems, two text
+stacks and two Chromium versions. Either machine could have written them; the owner's PC did, and the index says
 so in its `env`.
 
 `python quality/statesheet.py --accept` writes the shared records, the index and this platform's
 thumbnails; it refuses `--only` and says on its first line that it compared nothing. Both accept
 paths refuse to run with `EARNED_APP` set, because the records of record are drawn from the pack's
-own prototype. `--only` matches a prefix, so `--only T-0` selects T-02 and T-40h alike; it narrows
+own prototype. `--only` matches a prefix, so `--only T-0` selects T-02 and every T-0x, and `--only T-4` selects
+T-40 and T-40h alike; it narrows
 the run and the index comparison with it while someone iterates, and only a full run is evidence.
 `--accept-thumbs` is the tool for the second platform: it compares every render against the
 shared record exactly as an ordinary run does and compares no thumbnail, then writes this
@@ -311,6 +312,24 @@ baselines is a thing to measure when someone adds one, not a thing to assume: un
 measured, a runner is not evidence, and the honest shapes are for it to set its own platform
 directory or to run the checks that do not compare a render.
 
+**What these checks sample rather than sweep.** Several of the standard's rules are held over a
+named list and not over every element that could break them: the pressed state over three named
+surfaces per screen, the radii over one corner of each named class with no pill measured, the
+page margin over the named blocks and cards, and the contrast walk over the text of elements the
+shared visibility test passes, which leaves out a single character, a box under 8 px on a side,
+an input's own value, a placeholder and text drawn by `::before` or `::after`. STANDARD.md
+section 13 names each sample beside its check. Widening any of them is ticket C-UI-GATES-2, which
+also carries making `--accept` transactional and a permanent teeth row for the state sheet's
+refusal branch. Until then the honest reading is the one written down: a green run says the
+sample passed, not that nothing on the screen could break the rule.
+
+**Two known limits of the accept path.** An accept run exits 0 when the checks beside it are
+green, so an exit code alone does not say whether a baseline was written; and a full accept is
+not transactional, so `gate.py --accept` and `statesheet.py --accept` write every baseline and
+record they reach even when other checks failed in the same run. `--accept-thumbs` is the
+exception and writes only when every render was clean. The rule that follows: a baseline or a
+record is only ever accepted from a run whose ordinary twin was green.
+
 **What a baseline does not carry.** Nothing checks that a platform's baselines were drawn by that
 platform, by `--accept`, or from an unmutated tree; a hand written `quality/baseline/win32/` would
 simply sit there unread on a Linux run. The guard is that an accept run labels its own report, that
@@ -318,7 +337,7 @@ no report is committed, and that a reviewer reads the baseline diff in the pull 
 
 **`quality/teeth.py`** keeps all of this honest: it copies the pack to a scratch directory,
 applies one forbidden change at a time, runs the scratch copy's own gate against it and asserts
-the exact refusal. Forty two rows: every row of the audit's mutation table, plus a dropped RIR
+the exact refusal. Fifty five rows: every row of the audit's mutation table, plus a dropped RIR
 chip, a serif element switched to sans and a card moved 6 px off the margin, plus the rows the
 three review rounds added and the rows the PM's leads added. p1 takes the hinting argument out of
 `LAUNCH_ARGS` and the state sheet must FAIL on a moved rect, judged on T-84 where that mutation
@@ -326,10 +345,16 @@ moves a rect 170 px; p3 runs the same mutation through the screen gate, which re
 loudly. Headless Chromium hints only on Linux, so on Windows and macOS those two rows cannot fail,
 and each is printed there with the reason in words and counted as expected rather than skipped in
 silence. p2 deletes this platform's thumbnail for T-02, p4 copies another platform's over it, h1
-and h3 hold the two sides of the 3 px rect tolerance at 2 px and 4 px, and q1 to q6 are the PM's
-leads: an unknown size, a listed word split by a soft hyphen, a horizontal bar, primary text
-tagged with a muted class and painted with the muted token, a state whose apply throws, and
-`--accept` pointed at another build. It prints a table and exits 1 if any row slips through, and a
+and h3 hold the two sides of the 3 px rect tolerance at 2 px and 4 px, q1 to q6 are the PM's
+leads (an unknown size, a listed word split by a soft hyphen, a horizontal bar and a hyphen
+bullet, primary text tagged with a muted class and painted with the muted token, a state whose
+apply throws, and `--accept` pointed at another build), q8 to q11 are review R4's and R5's (a
+minus sign doing a dash's job, a spaced hyphen whose spaces are a tab and a no break space, a
+visible target behind an inert clip, and a minus sign as a range and against a letter), and u1
+to u9 are the second teeth audit's: a control positioned fixed that no walk could see, an
+`inset(0 round 50%)` that insets nothing, a text indent read on an inline box, a fullwidth x in
+a set string, "optional" written with a fullwidth letter, a primary pushed sideways, a primary
+at opacity 0, an RIR chip at visibility hidden, and a right edge moved 6 px by two 3 px moves. It prints a table and exits 1 if any row slips through, and a
 row whose anchor did not match is VOID, which is counted as disagreeing and never as a pass.
 
 Rigor per LANES.md, screens tier: one independent Opus reviewer told to disagree (author is not
@@ -353,9 +378,10 @@ self-accepts. The builder's cells pin every copy string they move.
   Unicode files under Po that draw the same stroke, U+2043 HYPHEN BULLET and U+2053 SWUNG DASH;
   a hyphen with a space each side, tested on a string in which every character Python's
   `str.isspace()` calls whitespace, except the newline characters that separate the lines of the
-  swept string, has been folded to an ordinary space, plus U+2060: that is category Zs (U+00A0,
-  U+2007, U+2009, U+202F, U+3000 and the rest), U+2028 and U+2029, the tab and the other control
-  whitespace. The newlines are kept as they are so the minus sign rule can still read a line that
+  swept string, has been folded to an ordinary space, plus U+2060: `fold_spaces` folds every
+  character `str.isspace()` calls whitespace except the line feed and the carriage return, which
+  is category Zs (U+00A0, U+2007, U+2009, U+202F, U+3000 and the rest), U+2028 and U+2029, the
+  tab and the other control whitespace. The newlines are kept as they are so the minus sign rule can still read a line that
   holds nothing but the sign; every character of Unicode category Cf, named by its code
   point, because a soft hyphen or a zero width space inside a word is drawn as nothing and
   interface copy has no honest use for one; then, on the string with those removed, NFKC

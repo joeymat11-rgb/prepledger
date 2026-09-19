@@ -53,7 +53,7 @@ Where a rule departs from the boards, the departure is recorded on the compariso
 2. `gate.py` passes with no FAIL; every WARN has a one-line reason or is fixed. Only two checks can WARN, the type scale and the spacing scale, which this standard calls advisory in its own words; every other check is PASS or FAIL, so no third advisory band can carry a defect past a green run.
 3. Reviewed on the phone-zoom sheet, both themes, top, middle and bottom thirds.
 4. An independent reviewer (a different model, given this standard and the sheets, told to disagree) has looked and its findings are triaged: fixed, or declined with a reason.
-5. The baseline screenshots are updated on purpose (`gate.py --accept`), never by accident. A run that is not an accept run FAILs a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels, and FAILs when the baseline for the current platform is missing rather than writing one. An accept run marks every screen SET, not PASS, and says on the report's first line that it compared nothing. The state records are held the same way: `statesheet.py --accept` writes the shared records, the index and this platform's thumbnails, `--accept-thumbs` writes this platform's thumbnails alone and only when every render came back clean, and each says on its own first line what it compared and what it wrote, so neither report can be read as a green run.
+5. The baseline screenshots are updated on purpose (`gate.py --accept`), never by accident. A run that is not an accept run FAILs a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels, and FAILs when the baseline for the current platform is missing rather than writing one. An accept run marks every screen SET, not PASS, and says on the report's first line that it compared nothing. Two known limits of the accept path, neither of them repaired here: an accept run exits 0 when the checks beside it are green and 1 when they are not, so an exit code alone does not say whether a baseline was written; and a full accept is not transactional, so `gate.py --accept` and `statesheet.py --accept` write every baseline and record they reach even when other checks failed in the same run (`--accept-thumbs` is the exception: it writes only when every render was clean). The rule that follows from both, and the one to hold: a baseline or a record is only ever accepted from a run whose ordinary twin was green. Making accept transactional is ticket C-UI-GATES-2. The state records are held the same way: `statesheet.py --accept` writes the shared records, the index and this platform's thumbnails, `--accept-thumbs` writes this platform's thumbnails alone and only when every render came back clean, and each says on its own first line what it compared and what it wrote, so neither report can be read as a green run.
 6. Recorded on the comparison page if it departs from the boards.
 
 ## 8. Independent review, round 1 (what it caught that the gate did not)
@@ -109,7 +109,7 @@ Both gates run the same way on Windows and on Linux, from this folder: `python q
 and `python quality/statesheet.py`. Exit 0 green, exit 1 at least one FAIL, exit 2 refused (one
 line naming the URL it was pointed at and what was missing). WARN belongs to the two advisory
 checks only. `python quality/teeth.py` proves the list below can still refuse: it applies one
-forbidden change at a time to a scratch copy and asserts the exact refusal, in 42 rows. A row that this machine cannot build, because the change does nothing here, prints the reason in words and counts as expected; a VOID row, whose anchor did not match, is never a pass.
+forbidden change at a time to a scratch copy and asserts the exact refusal, in 55 rows. A row that this machine cannot build, because the change does nothing here, prints the reason in words and counts as expected; a VOID row, whose anchor did not match, is never a pass.
 
 All three scripts launch the browser with `quality/common.py`'s `LAUNCH_ARGS` and nothing else,
 so a screen is laid out the same way whichever script draws it and whichever machine runs it. The
@@ -127,8 +127,8 @@ of 393x852, 375x812 and 360x780. Every row FAILs unless it says WARN.
 | primary action in first viewport | 3 | the screen's primary is wholly above the fold |
 | fits without scrolling at 393x852 | R | the default render needs no scroll. It is a FAIL and not a WARN because acceptance leaves no third tier; the chassis is designed to scroll, so the first ticket whose default Today grows past the viewport should change this line rather than the screen |
 | Log in the thumb zone (centre >= 70% of height) | R | workout only |
-| touch targets >= 44 px | 3 | every tappable surface, hit area included: the focusable elements, the control roles, `label[for]`, and the classes the pack's own tap highlight rule declares tappable (app/app.css:625, listed in `quality/common.py`). A box that is positioned absolute or fixed AND clipped to nothing, which is how the pack hides an assistive label, is not a target; any other small box is, a box carrying a clip its positioning makes inert included. The side that failed prints two decimals |
-| copy: no dashes, readiness words, vendor names | 3 | the owner's standing rules, word boundary matched, over the screen's text plus every visible placeholder, assistive label, tooltip, alternative text, filled in value and quoted string in ::before or ::after. A dash is every character of Unicode category Pd except the plain hyphen, plus U+2043 and U+2053, which Unicode files under Po; U+2212 unless it is the sign of a negative number (a digit directly after it, a space, a line start or an opening bracket directly before it, and no digit before that) or it is the whole of its own line, which is a control whose entire label is the sign; and a hyphen with a space each side, read after every character Python's str.isspace() calls whitespace, except the newlines that separate the swept string's lines, plus U+2060, has been folded to an ordinary space; a character of category Cf is a problem of its own, named by its code point, and the word and vendor sweeps read the string with those removed, NFKC normalised and casefolded |
+| touch targets >= 44 px | 3 | every tappable surface, hit area included: the focusable elements, the control roles, `label[for]`, and the classes the pack's own tap highlight rule declares tappable (app/app.css:625, listed in `quality/common.py`). A box that is positioned absolute or fixed AND clipped to nothing, which is how the pack hides an assistive label, is not a target; any other small box is, a box carrying a clip its positioning makes inert included. A box of zero width is skipped, and so is an element the shared visibility test rejects; nothing else is excused. The side that failed prints two decimals |
+| copy: no dashes, readiness words, vendor names | 3 | the owner's standing rules, word boundary matched, over the screen's text plus every visible placeholder, assistive label, tooltip, alternative text, filled in value and quoted string in ::before or ::after. A dash is every character of Unicode category Pd except the plain hyphen, plus U+2043 and U+2053, which Unicode files under Po; U+2212 unless it is the sign of a negative number (a digit directly after it, a space, a line start or an opening bracket directly before it, and no digit before that; two separately signed values on one line, "3 to \u22125 and \u22128", read as a range and fail, which is a known false red that fails closed, and the day a label needs it the lane keeps the two values in separate elements rather than loosening the rule) or it is the whole of its own line, which is a control whose entire label is the sign; and a hyphen with a space each side, read after every character Python's str.isspace() calls whitespace, except the newlines that separate the swept string's lines, plus U+2060, has been folded to an ordinary space; a character of category Cf is a problem of its own, named by its code point, and the word and vendor sweeps read the string with those removed, NFKC normalised and casefolded |
 | generated content the sweep cannot read | 3 | a counter() or counters() in ::before or ::after draws a string the gate cannot resolve, so it fails rather than passing unswept |
 | the multiplication sign in every set string | 3 | no digit, letter x, digit anywhere in the same swept string |
 | Log label uses × | 3 | workout only |
@@ -136,19 +136,19 @@ of 393x852, 375x812 and 360x780. Every row FAILs unless it says WARN.
 | serif and sans faces loaded and distinct | 3 | both faces load, the known serif and sans elements resolve to them, and the two draw different glyphs |
 | serif for names and numbers, sans for the rest | 3 | the listed serif selectors are serif and every other text element is sans |
 | RIR chips are the five locked values | 3 | 0, 1, 2, 3+, unsure in order, labels 0, 1, 2, 3+, Unsure, all visible |
-| page margin 22 px | 3 | every block of the body and the stack, plus the cards inside them, at 22 and width minus 22 |
+| page margin 22 px | 3 | the named blocks of the body and the stack, and the cards named in gate.py's MARGIN_INNER, at 22 and width minus 22. It is a named sample, not every element on the screen |
 | card inner edge 14 px | 3 | the named card sides' computed padding |
 | icon inset 13 to 14 px | 3 | the icon's left edge from its card's inner edge |
 | bottom safe area | 3 | the fixed stack's last row clears 24 px, the value max(24 px, env(safe-area-inset-bottom)) takes where there is no inset |
-| type sizes and weights on the scale | 3 | WARN on a size or weight off the scale |
-| radii: 14 px for cards, buttons and chips; full round only for pills | 3 | exactly one radius on the listed components |
-| contrast (measured behind the text) | 3 | 4.5:1 primary; 3.0:1 muted, a disabled control's label, the state colour where it marks a state and text 24 px or larger; measured on the screenshot |
+| type sizes and weights on the scale | 3 | WARN on a size or weight off the scale. The admitted weights are gate.py's ALLOWED_WEIGHTS, which includes 400 |
+| radii: 14 px for cards, buttons and chips; full round only for pills | 3 | one corner, the top left, of each of the named classes. No pill is measured, so the pill half of the name is a rule the eye holds and this check does not |
+| contrast (measured behind the text) | 3 | 4.5:1 primary; 3.0:1 muted, a disabled control's label, the state colour where it marks a state and text 24 px or larger; measured on the screenshot. It reads the text of elements the shared visibility test passes and does not read: a string of one character, a box under 8 px on a side, an input's own value, a placeholder, or text drawn by ::before or ::after. It compares the computed colour with the pixels behind it and makes no claim about alpha, fractional opacity or compositing |
 | tertiary links have no underline | R | |
 | right glyph column at 24 px | R | |
 | icons share a centre line, text shares an edge | R | |
 | same icon column (54) and text edge (88) on every screen | R | |
 | gaps on the spacing scale | R | WARN on a gap off the scale |
-| pressed state on every tappable surface | R | an element outside the viewport is a FAIL line, never a crash |
+| pressed state on every tappable surface | R | the three surfaces per screen named in gate.py's PRESSABLE, which is a named sample and not every tappable surface. An element outside the viewport is a FAIL line, never a crash |
 | no seams in the scene | R | |
 | visual regression vs baseline | R | over 0.1% of pixels past 10 levels, or a mean shift over 0.5; a missing baseline for this platform is a FAIL |
 | no page or console errors | 3 | one row per size |
@@ -192,7 +192,9 @@ green run, and the first line of each says so. An ordinary run compares the inde
 driver's own list and FAILs on a record whose state has left the build, and on a state with no
 record; the index's `env` object is provenance and no comparison reads it. `--only` narrows the
 run while iterating and narrows that comparison with it. Every run
-ends with a "worst measured" block. Its first four rows are this platform against its own
+ends with a "worst measured" block, except an accept run, which compares nothing and prints
+none. When nothing moved on this platform the first four rows collapse to one line, "none
+measured: nothing moved in N renders". Its first four rows are this platform against its own
 records and they are the tolerance: the largest thumbnail mean shift, rect move and colour move the
 run saw, each named with the state and element. The rows marked advisory are this platform against
 the other platforms' committed thumbnails; they are not a tolerance, nothing fails on them, and
@@ -200,5 +202,8 @@ they are there so the cross platform raster distance is measured on every run. O
 line says when the pack's `app/` no longer matches the digest the records were written against.
 
 A record holds each rect to two decimals and the comparison reads the values as they were
-measured, so "more than 3 px" means more than 3 px. A run never drops a problem in silence: the
+measured, so "more than 3 px" means more than 3 px. It is held on every edge: the four a record
+stores, left, top, width and height, and the two it implies, right and bottom, so left plus 3
+with width plus 3 is a 6 px move of the right edge and fails. The recorded font size is held to
+one decimal, which is inside the 0.5 px the tolerance allows by construction. A run never drops a problem in silence: the
 first six are printed and the rest are counted.
