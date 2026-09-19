@@ -113,7 +113,18 @@ test('P-MEASURE (g) - package S4 pins none of this lane\'s new files', () => {
    is therefore consulted first. Nothing else moves: the question the cell asks is
    still "does THIS LANE drift a sealed byte it has not declared", and the red
    side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'];
+/* M2-S9-UI-PINS ADDS 'S9', and the cell is unchanged in every other way.
+   S9 is the reseal that RELEASES preview.css and build.mjs from the sealed inventory
+   (DECISIONS:536 (2)) and carries the accepted S9-TODAY-CARRY and PASSPHRASE-NORMALIZE
+   change onto the tip (DECISIONS:542 (D), :543 (B)): today-app.cjs, two of the today
+   suite's own cells, the import lane's bundle, screen and page-bundle cell,
+   .github/workflows/rebuild.yml, today/test/package.test.cjs, THIS FILE and the lane B
+   runner are all moved BY THAT PACKAGE, declared and on purpose, so the declaring-spec
+   chain has to know about it or every one of those moves reads here as an undeclared
+   drift. Youngest first is what the loop below already does, so 'S9' goes last in the
+   array and is therefore consulted first. Nothing else moves: the question the cell asks
+   is still "does THIS LANE drift a sealed byte it has not declared". */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9'];
 const declaredPost = (file) => {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
     let product = null;
@@ -185,8 +196,19 @@ test('P-MEASURE (g) - no S4-sealed file drifts except where a declaring spec say
   for (const f of P3_IMPORT_UI_2_UNSEALED) {
     assert.equal(Object.hasOwn(product, f), false,
       f + ' IS pinned by S4 after all, so it belongs in the sealed set above, not here');
-    assert.equal(shaOf(f), declaredPost(f),
-      f + ' is moved by P3-IMPORT-UI-2 and no declaring spec names the bytes it stands at');
+    /* M2-S9-UI-PINS RELEASES BOTH OF THESE PATHS from the sealed inventory -
+       rebuild/m3/w7-preview/today/preview.css and rebuild/m3/w7-preview/today/build.mjs -
+       under DECISIONS:536 (2) through the RELEASE-FROM-SEAL token line S9 names, so the
+       byte pin that stood here (shaOf(f) === declaredPost(f)) is deleted and nothing
+       replaces it: declaredPost only takes a spec whose post is a string, S9 declares
+       post: null for a released path, and the assert would go red the first time lane C
+       edited either file. THE REST OF THE LOOP STAYS AND :186-:187 GETS STRONGER, not
+       weaker: after the release it is this cell's own statement that a RELEASED path did
+       not creep back into an older seal's inventory. What these two files owe is asserted
+       where it always was, inside the seal - today/test/copy.test.mjs for the no-dash and
+       node-only laws, today/test/package.test.cjs for the bundle laws, whose H18 cell
+       holds the 26 today/ entries of build.mjs's REQUIRED_INPUTS by literal (spec A.4,
+       C.2, PM-R7; R2 N9, which is why the loop was not deleted whole). */
   }
   /* And the restore is real: the test file round 2 edited carries no byte of
      this lane's (review R2 finding 4). It is no longer held to S4's post alone,
