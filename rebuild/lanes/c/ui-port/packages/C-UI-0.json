@@ -2,7 +2,7 @@
  "version": 1,
  "lanePackage": "C-UI-0",
  "packageId": "C-UI-0-GATES-WITH-TEETH",
- "status": "PROPOSED, revised for reviews R1, R2 and R3, phase A of the R3 notes round",
+ "status": "PROPOSED, revised for reviews R1, R2 and R3 and for the R3 notes round",
  "reviews": [
   {
    "round": "R1",
@@ -39,10 +39,21 @@
  "branch": "rebuild/c-ui-0-gates",
  "sourceBase": "e0a6c8ef2b2c7421ca8deb64ade1a7ed7f4de688",
  "head": {
-  "commit": "7d027aca1693622d409082b6cf74a7341530054b",
+  "commit": "8c117f3640cd0b6c898eaa23e1619f00d8691000",
   "note": "the commit this package was written at; the commit that adds the package is its child, so HEAD after it is one ahead of this value by construction"
  },
  "commits": [
+  "8c117f3 C-UI-0 R3 notes: the minus sign is swept by a rule that knows a button label from a dash",
+  "84512ce C-UI-0 R3 notes: the shared records written again on win32, rects to two decimals, the app digest in the index",
+  "3893530 C-UI-0 R3 notes: the package on phase A, with the owner's word and the eleven leads closed",
+  "029640e C-UI-0 R3 notes: the rest of the document edits, and the unused constant taken out",
+  "37cf01d C-UI-0 R3 notes: the minus sign clause of lead L3 is held, because the prototype uses it as a button label",
+  "f7bf2e4 C-UI-0 R3 notes: the documents carry the owner's word, the guard's limits and the machines of record",
+  "f73a83e C-UI-0 R3 notes: nine more teeth rows, and an anchor that survives a CRLF file",
+  "c606a18 C-UI-0 R3 notes: the state sheet keeps a guard per state, unrounded rects and a refusal for a copied thumbnail",
+  "528c749 C-UI-0 R3 notes: the sweeps read every dash and every invisible character, and the gate refuses an unknown value",
+  "9c03b6f C-UI-0 R3: the win32 screen baselines, the two win32 ENV.txt files and the index env",
+  "1c423cb C-UI-0: review R3 (ACCEPT WITH NOTES, 0 blocking)",
   "7d027ac C-UI-0 R3: the README and the standard say what the launch list and the records do",
   "5a003a4 C-UI-0 R3: two more teeth rows, the launch list and a missing thumbnail",
   "d32ea51 C-UI-0 R3: the 418 linux state thumbnails",
@@ -92,15 +103,15 @@
    "role": "edited in R3: line 202, the .link rule, gains \"min-width: var(--hit);\" (the locked object above says why)"
   },
   "rebuild/m1/approved-2026-09-18/README.md": {
-   "sha256": "2793fd5bdfe537862d579cbe36f88b8fd0387fe62c6530cb4bb9373babb915bd",
+   "sha256": "371e7eda6cc4059eee193f05ed26ba8bb5a8704a1f496b83ef38ea3d5e3d5a0b",
    "role": "edited: sections 1, 3 (with 3.1), 4 and 7; 3.1 rewritten in R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": {
-   "sha256": "70723e64d486df6a5ead979b05eacf74208bd301963f0b781cac58e0d112e283",
+   "sha256": "3abf257d00ae904f4db07c0396f75c271cfe4329684a3dac6a2774ff8a1bf26c",
    "role": "edited: every gate tag names its check, section 7 item 5, section 13; the launch list and the record halves added in R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/common.py": {
-   "sha256": "5400305345b811d667719388e7c561f00fe01c74fa7968a069ce47eded413785",
+   "sha256": "6ddf79ab56fcaa6fdae45e20d52ce53f43ce6e3bece32addac2bb87d5feefb0b",
    "role": "added: what the three gates share; in R3 the launch list, playwright_version() and env_text()"
   },
   "rebuild/m1/approved-2026-09-18/quality/gate.py": {
@@ -116,7 +127,7 @@
    "role": "edited: the review sheet"
   },
   "rebuild/m1/approved-2026-09-18/quality/teeth.py": {
-   "sha256": "5eaf3b4d85dfbcfee8926aea7a5b06116860984b4e7116c4a92a59b6b944a1d4",
+   "sha256": "0b8027da3320469a8a6302437754ce7d35efbc43c6138dce831e3084b45f5b5f",
    "role": "added: the executable mutation list; 33 rows after R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": {
@@ -148,8 +159,8 @@
    "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/states/INDEX.json": {
-   "sha256": "fd6159a8a7e070d1fc53d19910b617cd72a43fb1220f1d7db00af9be8a00c442",
-   "role": "the shared list of ids and themes, with the env object the lane lead's accept run wrote; the env gains an \"app\" digest when that run is made again on this round's code"
+   "sha256": "1a68c1c3a22efd7980ad8f3cbad322765176f6c2e73012679612244f3923b837",
+   "role": "the shared list of ids and themes, with the env object the lane lead's accept run wrote: the machine, the launch list and the app digest, none of which any comparison reads"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/states/linux/ENV.txt": {
    "sha256": "f388bb6d58d2d4501380e76335f611a5ebe664f8650b89df07e953d778b7197a",
@@ -191,18 +202,18 @@
  "stateRecords": {
   "path": "rebuild/m1/approved-2026-09-18/quality/baseline/states/",
   "files": 1257,
-  "bytes": 1397727,
-  "megabytes": 1.398,
+  "bytes": 1437414,
+  "megabytes": 1.437,
   "budget": "under 3 MB, and the whole tree is inside it with both platforms' thumbnails in it",
   "shape": {
    "linux": "419 files, 390586 bytes",
-   "shared": "419 files, 614516 bytes",
+   "shared": "419 files, 654203 bytes",
    "win32": "419 files, 392625 bytes"
   },
   "index": "rebuild/m1/approved-2026-09-18/quality/baseline/states/INDEX.json",
-  "manifestSha256": "52d7f3b6a1a049858328e73407824475459876340c6e255021eb9d5c36fa88f1",
+  "manifestSha256": "74995f1581cc03dc21796a71c2cc8fcce17c45c844dacdea4808b7221c10c10b",
   "manifestForm": "sha256 of the lines \"<path> <sha256>\" for every file under the tree, the path relative to the tree with forward slashes, sorted by that line, joined by newline",
-  "phase": "these are the values at the end of phase A. The shared records are rewritten on the owner's PC in phase B, with each rect to two decimals, so the manifest, the byte count and every record sha256 change once more before the round is done."
+  "rects": "each rect is held to two decimals and compared unrounded (lead L9)"
  },
  "runs": {
   "machine": "linux, the builder worktree: Linux 6.18.44-fc-v37, Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37, 2 cores",
@@ -211,28 +222,28 @@
    "command": "python quality/gate.py",
    "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
    "exit": 0,
-   "seconds": 112
+   "seconds": 113
   },
   "stateSheet": {
    "command": "python quality/statesheet.py",
    "summary": "STATE SHEET: 418 renders, 0 with problems",
    "exit": 0,
-   "seconds": 906,
-   "worstMeasured": "nothing moved on this platform; advisory against win32, thumbnail mean shift 1.26 of 2.00 at C-63 ink"
+   "seconds": 908,
+   "worstMeasured": "colour moved (levels) 0.00 of 3.00 nothing moved; rect edge moved (px) 0.04 of 3.00 W-05 ink element 22 \"Unsure\" left; thumbnail mean shift 0.00 of 2.00 nothing moved; thumbnail pixels over 24 levels 0.00 of 1.00 nothing moved; advisory, not a tolerance: this run against the win32 thumbnails, thumbnail mean shift 1.26 of 2.00 C-63 ink, thumbnail pixels over 24 levels 0.00 of 1.00"
   },
   "teeth": {
    "command": "python quality/teeth.py",
-   "summary": "TEETH: 42 rows, 0 disagreeing, 875 s",
+   "summary": "TEETH: 43 rows, 0 disagreeing, 916 s",
    "exit": 0,
-   "seconds": 875
+   "seconds": 916
   },
   "phoneSheet": {
    "command": "python quality/phonesheet.py --state T-14",
-   "summary": "wrote phonesheet-T-14.png and phonesheet-all.png",
+   "summary": "wrote phonesheet-T-14.png and phonesheet-all.png (2448, 2796)",
    "exit": 0,
    "seconds": 7
   },
-  "phase": "phase A, against the records as they stand, whose rects are whole pixels"
+  "against": "the shared records as the lane lead wrote them on the owner's PC at 84512ce, each rect to two decimals"
  },
  "tolerances": {
   "regression": "The gate fails a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels.",
@@ -241,7 +252,7 @@
   "whereQuoted": "each sentence appears in the same words in the code and in README section 3.1"
  },
  "teethTable": [
-  "TEETH: 33 rows, 0 disagreeing, 711 s",
+  "TEETH: 43 rows, 0 disagreeing, 916 s",
   "row   mutation                                                   verdict      note",
   "a     an em dash in Today's status sentence                      as expected",
   "b1    a word from the owner's word list in a card title          as expected",
@@ -254,7 +265,8 @@
   "f     a keyframe animation on #start, live under reduced motion  as expected",
   "g     one word of T-02's copy                                    as expected",
   "g2    an em dash inside the same state copy                      as expected",
-  "h1    T-02's status line shifted 3 px (inside the tolerance)     as expected",
+  "h1    T-02's status line shifted 2 px (inside the tolerance)     as expected",
+  "h3    T-02's status line shifted 4 px (outside it)               as expected",
   "h2    T-02's status line shifted 60 px                           as expected",
   "i     this platform's ink-today baseline deleted                 as expected",
   "j1    EARNED_APP at an empty folder                              as expected",
@@ -276,6 +288,15 @@
   "n5    a theme the sheet renders that the index lost              as expected",
   "p1    the hinting argument taken out of the launch list          as expected",
   "p2    this platform's thumbnail for T-02 deleted                 as expected",
+  "p3    the same launch list, judged by the screen gate            as expected",
+  "p4    the other platform's T-02 thumbnails copied over this plat as expected",
+  "q1    a size the gate does not know, which used to empty the lis as expected",
+  "q2    a word off the owner's list split by a soft hyphen         as expected",
+  "q3    a horizontal bar, a dash the old list did not name         as expected",
+  "q4    primary text tagged muted and painted with the muted token as expected",
+  "q8    a minus sign doing a dash's job in Today's status sentence as expected",
+  "q5    one state whose apply throws                               as expected",
+  "q6    --accept pointed at another build by EARNED_APP            as expected",
   "TEETH EXIT 0"
  ],
  "env": {
@@ -292,14 +313,16 @@
  "checks": {
   "gate": {
    "distinct": 33,
-   "resultRows": 372
+   "resultRows": 372,
+   "note": "quality/run/report.json's distinct check names are exactly the 33 rows of STANDARD.md section 13's table, measured on this tree"
   },
   "stateSheet": {
    "renders": 418,
-   "recordFiles": 1257
+   "recordFiles": 1257,
+   "recordFileShape": "one shared json per state and theme plus INDEX.json, and one png per state and theme under each platform that has run"
   },
   "teeth": {
-   "rows": 42,
+   "rows": 43,
    "disagreeing": 0
   }
  },
@@ -548,26 +571,37 @@
   "teeth": {
    "summary": "TEETH: 33 rows, 2 disagreeing, 544 s",
    "note": "n4 and n5 VOID because the INDEX.json then on disk in the owner's working tree had been written CRLF by a pre R3 accept run. That is review R3 SHOULD FIX 5, fixed in this round: sub() retries with the file's own line endings, proved on a scratch copy whose INDEX.json, app.html and states-today.js were converted to CRLF, where k1, m6, n4 and n5 came back 4 rows, 0 disagreeing."
+  },
+  "acceptAt3893530": {
+   "what": "the lane lead ran \"python quality/statesheet.py --accept\" on the owner's PC at 3893530 and pushed 84512ce",
+   "summary": "418 renders, 0 with problems, 418 SET",
+   "exit": 0,
+   "wrote": "419 files: the 418 JSON records with each rect to two decimals, and INDEX.json whose env gained the app digest. The 418 win32 thumbnails and quality/baseline/states/win32/ENV.txt came out byte identical, so they do not appear in that commit."
+  },
+  "acceptAt1c423cb": {
+   "what": "the lane lead ran \"python quality/gate.py --accept\" and \"python quality/statesheet.py --accept\" on the owner's PC at 1c423cb and pushed 9c03b6f",
+   "wrote": "the win32 screen baselines, both win32 ENV.txt files and INDEX.json with its env object"
   }
  },
  "r3notes": {
-  "round": "R3 notes, phase A",
+  "round": "R3 notes, phases A and B",
   "brief": "the lane C UI lead's brief of 2026-09-19, closing review R3's seven notes and the PM's leads L1 to L11",
   "standsOn": "9c03b6f0091d10c0bdf572d982dcfc7d626f3bb1, the lane lead's accept commit from the owner's PC",
   "leads": {
    "L1": "closed: an unknown --screens or --sizes value refuses in one line naming the value and the valid ones, exit 2, and a run that ends with no result rows refuses rather than reporting a green summary over nothing. Measured before: 0 FAIL, 0 WARN, 0 PASS at exit 0. Teeth row q1.",
    "L2": "closed: a character of Unicode category Cf is a problem named by its code point, and the word and vendor sweeps read the string with those removed, no break spaces made ordinary, NFKC normalised and casefolded. common.sweep_form, shared. Teeth row q2.",
-   "L3": "closed in part: a dash is every character of Unicode category Pd except the plain hyphen, and the prototype passes it (372 PASS, 418 renders 0 problems). Teeth row q3. The U+2212 clause is HELD: with it in, the full sheet was 418 renders, 2 with problems, both W-18, exit 1, because the prototype draws U+2212 as the whole label of a set's decrement button (app/states.js:113, app/states-workout.js:270). app/ is not the builder's to edit, so the clause is a comment in quality/common.py carrying the numbers, for the lane lead and the owner.",
+   "L3": "closed. A dash is every character of Unicode category Pd except the plain hyphen, and U+2212 unless a digit directly follows it or it is the whole of its own line in the swept string, which is a control whose entire label is the sign. Teeth rows q3 and q8. The second condition was measured, not assumed: sweeping U+2212 flatly made the full sheet \"418 renders, 2 with problems\", exit 1, both rows W-18, on the decrement button beside a set's load that app/states.js:113 and app/states-workout.js:270 draw, and the swept string of W-18 puts that button's label on a line of its own. Phase A held the clause and reported the numbers rather than editing app/; the lane lead ruled on those numbers that the prototype is right and the rule is refined. Nothing under app/ changed.",
    "L4": "answered by execution, and it is not a finding. Tagging a T-02 card title .sub and painting it with the muted token exits 1 on the record's colour half, \"colour (242, 238, 230) became (189, 184, 174)\", colour moved 77.00 of 3.00 in Dawn. The tier decides which ratio is demanded; the record decides the colour may not change at all. Teeth row q4, and README 3.1 says which check holds the line.",
    "L5": "closed: a render is its own function and one that throws is a problem row naming the state and the first line of the error, the run carries on, the report is written, exit 1. Proved by making one render raise: 16 renders, 2 with problems, both naming T-04. Teeth row q5.",
    "L6": "closed: --accept on both scripts and --accept-thumbs refuse with EARNED_APP set, exit 2. Teeth row q6.",
    "L7": "answered in README 3.1 in one paragraph: the shared records sit outside the platform directories because they are platform independent and that is measured rather than assumed, 0.00 px and 0.00 levels over 418 renders on two operating systems; either machine could have written them and the index env says which did.",
-   "L8": "closed: both gates measure every tappable surface through one shared definition, common.TAPPABLE_SELECTOR, built from the focusable elements, the control roles, label[for] and the classes the pack's own tap highlight rule declares tappable at app/app.css:625. Running it found one element the walk must not count, app/app.html:43's label for the weight field, which app/app.css:150 clips to nothing for assistive technology alone; common.JS_CLIPPED_AWAY skips a clip that leaves no area and nothing else. Nothing under app/ was touched and the prototype passes: 372 PASS, 418 renders 0 problems.",
+   "L8": "closed: both gates measure every tappable surface through one shared definition, common.TAPPABLE_SELECTOR, built from the focusable elements, the control roles, label[for] and the classes the pack's own tap highlight rule declares tappable at app/app.css:625. Running it found one element the walk must not count, app/app.html:43's label for the weight field, which app/app.css:150 clips to nothing for assistive technology alone; common.JS_CLIPPED_AWAY skips a clip that leaves no area and nothing else. Nothing under app/ was touched and the prototype passes: 372 PASS, 418 renders 0 problems. README 3.1 says what that skip is and what it is not: it is the target walk alone, and the record and the copy sweeps still hold the element, because its text is read aloud and is therefore interface copy.",
    "L9": "closed: a problem list longer than six ends with \"and N more\"; a record holds each rect to two decimals and the comparison reads the values as measured, so \"more than 3 px\" means more than 3 px where 3.49 px used to pass. Whole pixel records stay valid input and read back at 0.50 of 3.00. h1 moves to a 2 px shift and new row h3 holds 4 px, which answers the reviewer's warning that h1 sat on the boundary.",
    "L10": "closed in the documents: --only matches a prefix, it narrows the index comparison with it, and only a full run is evidence.",
    "L11": "closed: --accept writes an app digest into the index env, the sha256 of the sorted lines \"<path> <sha256>\" for every file under app/, and an ordinary run prints ONE advisory line when the pack's app/ no longer matches it or the index carries none. Never a problem, never an exit code, because a teeth row's job is to change app/ in a scratch copy and the row that must PASS still has to exit 0. README 3.1 says what really pins the records: a full run against the pack's own prototype, and ticket S9.",
    "machinesOfRecord": "README 3.1 gains the paragraph: the owner's PC for win32, the sandbox image for linux, each described by its own ENV.txt; a CI workflow on a hosted runner lives outside the pack, and until someone measures a runner's render against these baselines a runner is not evidence."
   },
-  "phaseB": "the lane lead runs gate.py --accept and statesheet.py --accept on the owner's PC on this code, which writes the two decimal rects, the app digest and LF files; then the builder pulls, runs the four gates again and computes the package's sha256 values and counts over that tree."
+  "phaseB": "done. The lane lead ran \"python quality/statesheet.py --accept\" on the owner's PC at 3893530 and pushed 84512ce: 419 files, the 418 JSON records with each rect to two decimals and INDEX.json whose env gained the app digest. The 418 win32 thumbnails and states/win32/ENV.txt came out byte identical. The builder then ran the four gates on that tree.",
+  "crossPlatformAtTwoDecimals": "the shared records were written by --accept on the owner's PC (Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34, DirectWrite) and judged by a full run in the builder's Linux sandbox (Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37, FreeType), both launched with common.LAUNCH_ARGS. With each rect held to two decimals and compared unrounded, 418 renders came back 0 with problems and the worst rect edge in the whole set moved 0.04 px of the 3 allowed, at W-05 ink element 22 \"Unsure\" left; colour 0.00 of 3. The round's platform claim is now measured at sub pixel precision rather than at whole pixels."
  }
 }
