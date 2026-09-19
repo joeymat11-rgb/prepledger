@@ -322,6 +322,28 @@ jobs:
         run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
       - name: A5 — the built deploy folder itself
         run: node --test rebuild/slice/pwa/test/package.test.cjs
+      # C - the two S9 design-pack pin cells (S9-RELEASE-SPEC.md C.5.1 and C.5.3, hunks
+      # H19 and H19b). PACK-PIN walks the owner-approved pack in the WORKING TREE this
+      # workflow checked out, never an object at a fixed commit, and APPROVED-PIN reads
+      # design.APPROVED at run time for its file list, so both judge the branch being
+      # pushed. Both run on ubuntu AND windows, which is where R4 N1.1's forward-slash
+      # and path-byte-order rules are proved. Both REFUSE BY NAME until the S9 integrator
+      # fills their literals at the S9 head by C.5.1's and C.5.3's procedures: that red is
+      # the cells working, and it is not closed by editing them. Named by exact path,
+      # never globbed, so both runners agree whatever the shell does.
+      # THE STEP STAYS, RED BY NAME, BY THE PM'S RULING, because nothing of S9 preparation
+      # reaches the chain before the seal: the three preparation branches merge into the S9
+      # lane branch rebuild/b-s9-ui-pins ONLY, and that lane reaches the chain by the S9
+      # fast-forward - by which time the pack has merged with C-UI-1 and both literals are
+      # filled at the re-measure, so both real rows are GREEN the first time the chain tip
+      # sees them. Until then this red lives on a preparation branch and nowhere else.
+      # AND IT IS NOT A RUNNER RESULT THAT IS PENDING: on any branch that does not contain
+      # the chain tip, or that carries undeclared sealed edits, the standing step at :150
+      # fails FIRST and GitHub SKIPS every later step, so these two cells cannot run on
+      # GitHub's runners at all until the S9 walk passes. The owner's PC (Windows) and a
+      # linux farm scratch ARE the both-OS evidence for them until that day.
+      - name: C - the design pack pin and the approved-reference pin
+        run: node --test rebuild/lanes/c/ui-port/pack-pin.test.mjs rebuild/lanes/c/ui-port/approved-pin.test.mjs
       # C - the two lane C cells over Today's plan card. Both live OUTSIDE
       # rebuild/m3/w7-preview/today/test/ on purpose: that directory is pinned by the S8
       # artifact and H3/13 requires the today step to name it exactly, so a fourteenth file
