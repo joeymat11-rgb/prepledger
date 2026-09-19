@@ -1159,6 +1159,61 @@ const SPEC_KEYS = ['version', 'lanePackage', 'packageId', 'status', 'brief', 'so
   // released declaration behind it refuses RELEASE-BLOCK-WITHOUT-A-RELEASED-DECLARATION.
   'release'];
 const CLAIM_KEYS = ['ledgerLine', 'role', 'line', 'lineSha256'];
+// H21 (P-A10, the PM's ruling on Astra F2, BLOCKING). ONE CANONICAL REPO-RELATIVE
+// SPELLING AT ADMISSION. releaseRuling()'s execution-pin collision guard (R1 BLOCKING-1)
+// compares SPELLINGS, and Astra measured what that leaves open: a brief.file of "./" + f,
+// where f is a path this package RELEASES, passes the guard because the two strings differ,
+// while the disk and Git both resolve them to ONE FILE. The artifact then released f and
+// pinned the same file through ./f, and she measured the next generation refusing
+// PARENT-PIN-BROKEN on the first lane C edit - through the parent walk, which has no skip
+// and must not get one. Her Windows controls (backslashes, an interior /./, uppercase)
+// resolve on disk and fail in Git, which is inconsistent admission rather than a seal, and
+// is refused here for the same reason.
+//
+// The rule is a REFUSAL and never a rewrite. Normalising "./x" into "x" would hand the
+// ledger token's authority to a spelling the PM did not name, which is the failure being
+// closed, spelled backwards. An ungranted spelling is refused, by name, with the place and
+// the path in the message.
+//
+// IT LANDS FOR EVERY PACKAGE, so it landed only after a MEASUREMENT, exactly as P-A1 did:
+// every path-valued string in every rebuild/lanes/b/tooling/packages/*.json and every
+// rebuild/m4/spec/acceptance-*.json was enumerated at 4e447ae6 and none is refused by this
+// rule - 22 files, 2890 strings in the guarded fields and 3366 path-like strings in the
+// broad scan, zero non-canonical in either. A guard on the seal path is never strengthened
+// in a way that voids a standing seal, and the measurement is what says it does not.
+const CANONICAL_PATH = 'a repo-relative spelling: no leading slash, no backslash, no empty segment, ' +
+  'no "." or ".." segment and no trailing slash';
+const canonicalPath = p => typeof p === 'string' && p.length > 0 && !p.startsWith('/') &&
+  !p.includes('\\') && !p.endsWith('/') &&
+  p.split('/').every(seg => seg !== '' && seg !== '.' && seg !== '..');
+// Every path the release mechanism compares: the product keys it reads as the declared
+// inventory, and the four spec-declared strings proposed() turns into executionPins (the
+// runner and this run's own package file are fixed constants of this file and cannot be
+// misspelled by an input). It is TOTAL over the shapes it walks and defensive about the
+// ones it does not own, because it runs at admission, before any other shape is decided.
+function canonicalSpecPaths(s) {
+  const seen = [];
+  const obj = v => v && typeof v === 'object' && !Array.isArray(v);
+  if (obj(s.product)) for (const file of Object.keys(s.product)) seen.push(['product key', file]);
+  if (obj(s.brief) && typeof s.brief.file === 'string') seen.push(['brief.file', s.brief.file]);
+  if (obj(s.carrierSuccessor)) {
+    if (typeof s.carrierSuccessor.file === 'string') seen.push(['carrierSuccessor.file', s.carrierSuccessor.file]);
+    if (typeof s.carrierSuccessor.parent === 'string') seen.push(['carrierSuccessor.parent', s.carrierSuccessor.parent]);
+  }
+  const sup = obj(s.coverage) && s.coverage.successors;
+  if (obj(sup) && obj(sup.carriers)) for (const [c, row] of Object.entries(sup.carriers)) {
+    if (obj(row) && typeof row.successor === 'string') seen.push(['successor carrier ' + c, row.successor]);
+    if (obj(row) && typeof row.original === 'string') seen.push(['successor original ' + c, row.original]);
+  }
+  if (Array.isArray(s.children)) for (const c of s.children)
+    if (obj(c) && Array.isArray(c.argv)) for (const a of c.argv)
+      if (typeof a === 'string' && !a.startsWith('-')) seen.push(['child argv target ' + c.name, a]);
+  for (const [where, p] of seen)
+    assert(canonicalPath(p), 'PATH-IS-NOT-CANONICAL ' + where + ' ' + JSON.stringify(p) + '; ' +
+      CANONICAL_PATH + '. A spelling that is not the granted one is refused, never rewritten into ' +
+      'authority for another spelling');
+  return seen;
+}
 function claim(v, role, label) { // a ledger citation whose text hashes to the sha it names
   keys(v, CLAIM_KEYS, 'Authorization claim ' + label);
   assert(Number.isInteger(v.ledgerLine) && v.ledgerLine > 0 && v.role === role, 'Claim coordinates ' + label);
@@ -1655,6 +1710,12 @@ function spec() {
     assert(typeof s.release === 'object' && !Array.isArray(s.release), 'RELEASE-BLOCK-SHAPE');
     keys(s.release, ['rulingLineSha256'], 'Release grant citation');
   }
+  // H22 (P-A10). AT ADMISSION, before any path in this spec is resolved, compared or read:
+  // a spelling that is not the canonical one never becomes an identity anything downstream
+  // compares. It stands here and not inside releaseRuling() because the alias is admitted
+  // by a package that releases NOTHING just as readily, and because the guard Astra defeated
+  // is the one that compares two spellings to each other.
+  canonicalSpecPaths(s);
   assert.equal(s.version, 1); assert.equal(s.lanePackage, ID);
   // The package id is BOUND to the id on the command line, not merely shaped like one: a
   // spec filed as B1.json cannot carry M2-B2-…'s id and so cannot claim B2's artifact path.
