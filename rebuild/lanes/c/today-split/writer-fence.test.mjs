@@ -17,6 +17,10 @@
  * ordinary durable-write members, acquisition of declared writer capabilities, module
  * edges, and changes to the measured sites below. today-model re-exports weighIn/reopen;
  * gym-app still holds six declared writer seams and three facade.lane acquisitions.
+ * Raw-store settings/readings sites are pinned by whole line and multiplicity;
+ * other holders with more than about eight sites stay unpinned to avoid routine pin churn.
+ * Regex-aware tokenization checks its balance, literals and keyword offsets against
+ * an independent regex stripper plus Node syntax checks; this is still no parser.
  *
  * WHAT IT REFUSES TO READ, AND THEREFORE FORBIDS except at measured literal sites:
  * quoted/template/concatenated bracket keys, capability-holder destructuring, calls in
@@ -34,6 +38,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 function repoRoot() {
@@ -265,31 +270,57 @@ function tokensOf(src, start = 0, stopAtBrace = false) {
     if (c === '/' && d === '*') {
       const end = src.indexOf('*/', i + 2); i = end < 0 ? src.length : end + 2; continue;
     }
-    if (c === '}' && stopAtBrace && braces === 0) return { tokens, end: i + 1 };
+    if (c === '}' && stopAtBrace && braces === 0) return { tokens, end: i + 1, closed: true };
+    if (c === '/' && regexMayStart(tokens.at(-1))) {
+      let inClass = false, closed = false;
+      i++;
+      while (i < src.length && !/[\r\n\u2028\u2029]/.test(src[i])) {
+        if (src[i] === '\\') { i += 2; continue; }
+        if (src[i] === '[') inClass = true;
+        else if (src[i] === ']') inClass = false;
+        else if (src[i] === '/' && !inClass) { i++; closed = true; break; }
+        i++;
+      }
+      if (closed) while (/[A-Za-z]/.test(src[i] || ' ')) i++;
+      tokens.push({ value: src.slice(at, i), at, end: i, kind: 'regex', closed });
+      continue;
+    }
     if (c === '"' || c === "'" || c === '`') {
       const expressions = [];
+      let closed = false, expressionsClosed = true;
       i++;
       while (i < src.length) {
+        if (c !== '`' && /[\r\n\u2028\u2029]/.test(src[i])) break;
         if (src[i] === '\\') { i += 2; continue; }
-        if (src[i] === c) { i++; break; }
+        if (src[i] === c) { i++; closed = true; break; }
         if (c === '`' && src[i] === '$' && src[i + 1] === '{') {
           const expression = tokensOf(src, i + 2, true);
+          expressionsClosed = expressionsClosed && expression.closed;
           expressions.push(expression.tokens); i = expression.end; continue;
         }
         i++;
       }
       tokens.push({ value: src.slice(at, i), at, end: i,
-        kind: c === '`' ? 'template' : 'string', expressions });
+        kind: c === '`' ? 'template' : 'string', expressions, closed: closed && expressionsClosed });
       continue;
     }
     const id = /^[A-Za-z_$][\w$]*/.exec(src.slice(i));
-    const value = id ? id[0] : ['?.', '=>', '...'].find((p) => src.startsWith(p, i)) || c;
+    const number = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/.exec(src.slice(i));
+    const value = id ? id[0] : number ? number[0] :
+      ['?.', '=>', '...', '++', '--', '**', '&&', '||', '??', '/='].find((p) => src.startsWith(p, i)) || c;
     i += value.length;
     if (value === '{') braces++;
     if (value === '}') braces--;
-    tokens.push({ value, at, end: i, kind: id ? 'id' : 'punct' });
+    tokens.push({ value, at, end: i, kind: id ? 'id' : number ? 'number' : 'punct' });
   }
-  return { tokens, end: i };
+  return { tokens, end: i, closed: !stopAtBrace };
+}
+function regexMayStart(previous) {
+  if (!previous) return true;
+  if (previous.kind === 'id') return /^(return|throw|case|delete|void|typeof|new|in|of|yield|await|instanceof)$/.test(previous.value);
+  return previous.kind === 'punct' &&
+    ['(', '[', '{', ',', ';', ':', '?', '=', '=>', '!', '~', '+', '-', '*', '**', '/', '/=',
+      '%', '&', '&&', '|', '||', '^', '??', '<', '>'].includes(previous.value);
 }
 const lineAt = (src, at) => src.slice(0, at).split('\n').length;
 const lineText = (src, at) => src.split('\n')[lineAt(src, at) - 1].replace(/\r$/, '');
@@ -299,6 +330,65 @@ function codeTokens(src) {
   const flatten = (ts) => ts.flatMap((t) => t.kind === 'template'
     ? [t, ...t.expressions.flatMap(flatten)] : [t]);
   return flatten(tokensOf(src).tokens);
+}
+/* Independent, plain-regex stripping: never calls tokensOf/codeTokens or uses
+ * their boundaries. Preserve offsets, then count whole identifiers with a regex.
+ * The measured files have no templates; this deliberately strips whole templates,
+ * so future keyword-bearing interpolations require review (a disagreement fails).
+ * Slash context is expressed independently as lookbehind, not regexMayStart. */
+function regexStripped(src) {
+  return src.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|`(?:\\[\s\S]|[^`\\])*`|(?<=(?:^|[=([{,:;!?&|+*%~^<>\/-])\s*|\b(?:return|throw|case|delete|void|typeof|new|in|of|yield|await|instanceof)\s+)\/(?:\\[^\r\n\u2028\u2029]|\[(?:\\[^\r\n\u2028\u2029]|[^\]\\\r\n\u2028\u2029])*\]|[^/\\[\r\n\u2028\u2029])+\/[a-z]*/g,
+    (raw) => raw.replace(/[^\r\n]/g, ' '));
+}
+const CHECK_WORDS = ['function', 'const', 'let', 'return'];
+function keywordCrossCheck(src, name, tokens = codeTokens(src)) {
+  const independent = [...regexStripped(src).matchAll(/[A-Za-z_$][\w$]*/g)];
+  const counts = {};
+  const differences = [];
+  for (const word of CHECK_WORDS) {
+    const actual = tokens.filter((t) => t.kind === 'id' && t.value === word).map((t) => t.at);
+    const expected = independent.filter((m) => m[0] === word).map((m) => m.index);
+    counts[word] = actual.length;
+    const first = Array.from({ length: Math.max(actual.length, expected.length) }, (_, i) => i)
+      .find((i) => actual[i] !== expected[i]);
+    if (first !== undefined) differences.push({ word, at: Math.min(actual[first] ?? Infinity, expected[first] ?? Infinity),
+      counts: actual.length + '/' + expected.length });
+  }
+  differences.sort((a, b) => a.at - b.at);
+  const first = differences[0];
+  assert.equal(first, undefined, 'FENCE-LEXER-CROSSCHECK: ' + name + ' first differing offset ' +
+    first?.at + ' ' + first?.word + ' token/regex counts=' + first?.counts);
+  return counts;
+}
+function balancedTokens(src, name) {
+  const visit = (tokens) => {
+    const stack = [], close = { ')': '(', ']': '[', '}': '{' };
+    for (const t of tokens) {
+      if (t.kind === 'template') for (const expression of t.expressions) visit(expression);
+      if (t.kind !== 'punct') continue;
+      if (['(', '[', '{'].includes(t.value)) stack.push(t);
+      if (Object.hasOwn(close, t.value)) {
+        assert.equal(stack.pop()?.value, close[t.value], 'FENCE-LEXER-BALANCE: ' + name + ' offset ' + t.at);
+      }
+    }
+    assert.equal(stack.length, 0, 'FENCE-LEXER-BALANCE: ' + name + ' unclosed offset ' + stack[0]?.at);
+  };
+  visit(tokensOf(src).tokens);
+}
+function checkedLiterals(src, name) {
+  for (const t of codeTokens(src)) {
+    if (!['string', 'template', 'regex'].includes(t.kind)) continue;
+    const where = name + ' offset ' + t.at;
+    assert.equal(t.closed, true, 'FENCE-LEXER-UNTERMINATED: ' + where);
+    if (t.kind !== 'template') assert.equal(/[\r\n\u2028\u2029]/.test(t.value), false,
+      'FENCE-LEXER-LINEBREAK: ' + where);
+    if (t.kind === 'string') {
+      const again = tokensOf(t.value);
+      assert.equal(again.end, t.value.length, 'FENCE-LEXER-REREAD: ' + where);
+      assert.equal(again.tokens.length, 1, 'FENCE-LEXER-REREAD: ' + where);
+      assert.deepEqual(again.tokens[0], { ...t, at: 0, end: t.value.length }, 'FENCE-LEXER-REREAD: ' + where);
+    }
+  }
 }
 function matching(tokens, from) {
   const close = { '(': ')', '[': ']', '{': '}' }[tokens[from]?.value];
@@ -429,6 +519,28 @@ const RELEASED_FILES = [
         '    read, weighIn, reopen, adoptBasis, setPendingAdoption,',
       ],
     },
+    // Explicitly requested readings exception: 18 tokens on 12 lines, not a
+    // precedent for pinning high-traffic holders such as model, doc or phone.
+    holders: { readings: [
+      '  const readings = options.readings || null;',
+      '  const readings = options.readings || null;',
+      '  const durable = !!readings;',
+      '    return readings ? readings.reads() : [];',
+      '    return readings ? readings.reads() : [];',
+      '    const paint = readings ? readings.paint() : "TRUTHFUL";',
+      '    const paint = readings ? readings.paint() : "TRUTHFUL";',
+      '    if (readings && paint !== "TRUTHFUL") {',
+      '        today: day, paint, faceState: (readings.face() || {}).state || null, blocked: true,',
+      '        blockedCopy: readings.blockedCopy(),',
+      '      today: day, paint, faceState: readings ? ((readings.face() || {}).state || null) : null,',
+      '      today: day, paint, faceState: readings ? ((readings.face() || {}).state || null) : null,',
+      '      saveLabel: readings ? readings.label() : "",',
+      '      saveLabel: readings ? readings.label() : "",',
+      '      outbox: readings ? readings.outboxRetained() : null,',
+      '      outbox: readings ? readings.outboxRetained() : null,',
+      '    createReadingsWriter({ day, readings, adoptedRead, stateFromOps,',
+      '    readings,',
+    ] },
     lane: [],
     edges: ['require:./today-engine.cjs', 'require:../fixtures.cjs', 'require:./food-model.cjs',
       'require:./sleep-model.cjs', 'require:./today-readings.cjs'],
@@ -441,6 +553,11 @@ const RELEASED_FILES = [
   {
     rel: TODAY + '/gym-app.mjs', anchor: '    const entry = facade.entryFor(liftId);',
     capabilities: {},
+    holders: { settings: [
+      'export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draft, settings } = {}) {',
+      '  const { facade, hooks } = createGymSettingsLane(doc, model, settings, painter);',
+      '  first.settings = Object.freeze({',
+    ] },
     lane: [
       '    if (!facade.lane()) { block.hidden = true; editor.hidden = true; hooks.open(); return; }',
       '    try { result = await facade.lane().save(machine); }',
@@ -468,6 +585,9 @@ function releasedRefusals(file, src) {
   const differs = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
   for (const [name, sites] of Object.entries(file.capabilities)) {
     if (differs(capabilitySites(src, name), sites)) refusals.push('FENCE-CAPABILITY-SITE:' + name);
+  }
+  for (const [name, sites] of Object.entries(file.holders)) {
+    if (differs(capabilitySites(src, name), sites)) refusals.push('FENCE-HOLDER-SITE:' + name);
   }
   if (differs(laneSites(src), file.lane)) refusals.push('FENCE-LANE-ACQUISITION');
   if (differs(moduleEdges(src), file.edges)) refusals.push('FENCE-RELEASED-MODULE-EDGE');
@@ -805,6 +925,72 @@ test("part 2's file is not here yet, and this cell says so rather than passing s
 test('S-R27: the measured table covers every released file', () => {
   assert.deepEqual(RELEASED_FILES.map((f) => f.rel), RELEASED);
 });
+for (const rel of [...RELEASED, TODAY + '/today-app.cjs']) {
+  const name = path.basename(rel);
+  test('LEXER SELF-CHECK: brackets balance in ' + name, () => balancedTokens(readRepo(rel), name));
+  test('LEXER SELF-CHECK: terminated literals and single-token string re-read in ' + name,
+    () => checkedLiterals(readRepo(rel), name));
+  test('LEXER INDEPENDENT CROSS-CHECK: keyword counts and offsets in ' + name, () => {
+    const src = readRepo(rel);
+    const counts = keywordCrossCheck(src, name);
+    const regexes = codeTokens(src).filter((t) => t.kind === 'regex');
+    console.log('  LEXER ' + name + ': regex=' + regexes.length + ', ' +
+      Object.entries(counts).map(([k, v]) => k + '=' + v).join(', ') +
+      ', templates=' + codeTokens(src).filter((t) => t.kind === 'template').length +
+      '; regex sites=' + regexes.map((t) => lineAt(src, t.at) + ':' + t.value).join(', '));
+  });
+  test('LEXER INDEPENDENT CROSS-CHECK: node --check ' + name, (t) => {
+    const result = spawnSync(process.execPath, ['--check', path.join(ROOT, rel)], { encoding: 'utf8' });
+    if (result.error && ['EPERM', 'EACCES'].includes(result.error.code)) {
+      t.skip('node --check spawn refused: ' + result.error.code + ' in ' + name);
+      return;
+    }
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, 'FENCE-NODE-SYNTAX: ' + name + '\n' + result.stderr);
+  });
+}
+for (const [name, src, reason] of [
+  ['unclosed bracket', 'const x = (1;', 'FENCE-LEXER-BALANCE'],
+  ['crossed brackets', '([)]', 'FENCE-LEXER-BALANCE'],
+  ['unclosed interpolation bracket', '`value ${[1}`', 'FENCE-LEXER-BALANCE'],
+  ['unclosed string', '"missing', 'FENCE-LEXER-UNTERMINATED'],
+  ['unclosed template', '`missing', 'FENCE-LEXER-UNTERMINATED'],
+  ['unclosed regex', 'const x = /missing', 'FENCE-LEXER-UNTERMINATED'],
+  ['string escaped newline', '"a\\\nb"', 'FENCE-LEXER-LINEBREAK'],
+  ['regex escaped newline', '/a\\\nb/', 'FENCE-LEXER-LINEBREAK'],
+]) {
+  test('RED lexer self-check: ' + name, () => {
+    assert.throws(() => reason === 'FENCE-LEXER-BALANCE' ? balancedTokens(src, name) : checkedLiterals(src, name),
+      (error) => error.message.includes(reason) && error.message.includes(name) && error.message.includes('offset'));
+  });
+}
+test('RED independent cross-check: equal counts at wrong offsets still fail at first difference', () => {
+  const src = 'const x = 1; const y = 2;';
+  const broken = codeTokens(src).map((t) => t.at === 0 ? { ...t, at: 1 } : t);
+  assert.throws(() => keywordCrossCheck(src, 'synthetic-offset.cjs', broken),
+    /FENCE-LEXER-CROSSCHECK: synthetic-offset.cjs first differing offset 0/);
+});
+test('RED independent cross-check: missing keyword fails with file and offset', () => {
+  const src = 'function probe() { return 1; }';
+  const broken = codeTokens(src).filter((t) => t.value !== 'return');
+  assert.throws(() => keywordCrossCheck(src, 'synthetic-missing.cjs', broken),
+    /FENCE-LEXER-CROSSCHECK: synthetic-missing.cjs first differing offset 19/);
+});
+test('CONTROL lexer: division operands, regex contexts, escapes, classes and flags', () => {
+  const src = 'const x = total / divisor / count; let y = 12 / 3; value++ / 2;\n' +
+    'function probe() { return /[\\/"`]/gi; }\n' +
+    'void (/x/); void [/y/]; void [0, /z/]; void typeof /w/;';
+  balancedTokens(src, 'synthetic-regex.cjs');
+  checkedLiterals(src, 'synthetic-regex.cjs');
+  assert.equal(codeTokens(src).filter((t) => t.kind === 'regex').length, 5);
+  assert.deepEqual(keywordCrossCheck(src, 'synthetic-regex.cjs'), { function: 1, const: 1, let: 1, return: 1 });
+});
+test('CONTROL independent stripper: keywords in comments, strings, templates and regexes are invisible', () => {
+  const src = '/* function const let return */\n// function const let return\n' +
+    'void "function const let return"; void `function const let return`;\n' +
+    'const probe = /function const let return "`/;';
+  assert.deepEqual(keywordCrossCheck(src, 'synthetic-prose.cjs'), { function: 0, const: 1, let: 0, return: 0 });
+});
 for (const file of RELEASED_FILES) {
   const name = path.basename(file.rel);
   test('FENCE-PRECONDITIONS: measured released sites in ' + name, () => {
@@ -813,12 +999,52 @@ for (const file of RELEASED_FILES) {
     const syntax = measuredSyntax(src);
     console.log('  S-R28 ' + name + ': ' + Object.entries(syntax).map(([k, v]) => k + '=' + v.length).join(', '));
     console.log('  S-R27 ' + name + ': edges=' + moduleEdges(src).length + ', facade.lane=' + laneSites(src).length);
+    for (const holderName of Object.keys(file.holders)) {
+      const sites = codeTokens(src).filter((t) => t.kind === 'id' && t.value === holderName);
+      console.log('  HOLDER ' + name + ': ' + holderName + '=' + sites.length +
+        '; lines=' + sites.map((t) => lineAt(src, t.at)).join(','));
+    }
   });
   test('CONTROL: comments and strings do not acquire capabilities in ' + name, () => {
     const src = plantLine(file, '/* weighIn(); facade.lane(); import("bad"); Object.save(); */\n' +
       'void "reopen facade.lane() settings[\'save\']()";');
     assert.deepEqual(releasedRefusals(file, src), []);
   });
+  for (const [holderName, sites] of Object.entries(file.holders)) {
+    for (const [shape, line] of [
+      ['bare reference', 'void ' + holderName + ';'],
+      ['template reference', 'void `${' + holderName + '}`;'],
+      ['duplicate declared line', sites[0]],
+      ['extra occurrence on declared line', null],
+    ]) {
+      test('RED S-R27(d) ' + name + ': ' + shape + ' -> FENCE-HOLDER-SITE:' + holderName, () => {
+        const src = line === null ? planted(file.rel, (s) => s.replace(sites[0], sites[0] + ' void ' + holderName + ';'))
+          : plantLine(file, line);
+        assert.ok(releasedRefusals(file, src).includes('FENCE-HOLDER-SITE:' + holderName));
+      });
+    }
+    test('CONTROL S-R27(d) ' + name + ': holder prose is not a code site', () => {
+      assert.deepEqual(releasedRefusals(file, plantLine(file, '/* ' + holderName + ' */ void "' + holderName + '";')), []);
+      assert.equal(capabilitySites(readRepo(file.rel), holderName).length, sites.length);
+    });
+  }
+  for (const [shape, line, regexCount] of [
+    ['regex containing double quote', 'const probe = /"/;', 1],
+    ['regex containing backtick', 'const probe = /`/;', 1],
+    ['division before regex', 'const probe = (12) / /"/.source.length;', 1],
+    ['template containing regex', 'const probe = `value ${/[}"`]/.source}`;', 1],
+  ]) {
+    test('RED lexer position ' + name + ': ' + shape + ' keeps next-line witness visible', () => {
+      const model = file.rel.endsWith('/today-model.cjs');
+      const witness = model ? 'void weighIn(180);' : 'void facade.lane();';
+      const refusal = model ? 'FENCE-CAPABILITY-SITE:weighIn' : 'FENCE-LANE-ACQUISITION';
+      const sample = line + '\n' + witness;
+      checkedLiterals(sample, shape);
+      balancedTokens(sample, shape);
+      assert.equal(codeTokens(line).filter((t) => t.kind === 'regex').length, regexCount);
+      assert.ok(releasedRefusals(file, plantLine(file, sample)).includes(refusal), refusal);
+    });
+  }
   test('CONTROL: Promise.all remains STORE, not PUT, in ' + name, () => {
     const src = plantLine(file, 'void Promise.all([]);');
     assert.deepEqual(releasedRefusals(file, src), []);
@@ -948,17 +1174,40 @@ test('S-R29 recorded laxity: entryFor returns a mutable cache entry visible thro
   assert.equal(pair.facade.entryFor('synthetic-lift').latest.machine.settings[0].value, 'injected');
 });
 
-/* Deliberately GREEN residue, measured for the reviewer/PM. No durability claim:
- * these strings are scanned, not executed, and require review of the actual diff. */
-const RESIDUE = [
+/* Retain every old measurement: the gym holder pin turns its three rows RED. */
+const PREVIOUS_RESIDUE = [
   "const key = 'sa' + 've'; settings[key](auditMachine);",
   "Reflect.apply(Reflect.get(settings, 'save'), settings, [auditMachine]);",
   'const alias = settings; const { save: write } = alias; write(auditMachine);',
 ];
 for (const file of RELEASED_FILES) {
-  for (const [i, line] of RESIDUE.entries()) {
-    test('RECORDED RESIDUE ' + path.basename(file.rel) + ': spelling ' + (i + 1) + ' still passes', () => {
-      assert.deepEqual(releasedRefusals(file, plantLine(file, line)), []);
+  for (const [i, line] of PREVIOUS_RESIDUE.entries()) {
+    const reason = file.holders.settings ? 'FENCE-HOLDER-SITE:settings' : null;
+    test((reason ? 'RED' : 'CONTROL') + ' former residue ' + path.basename(file.rel) + ': spelling ' + (i + 1), () => {
+      const refusals = releasedRefusals(file, plantLine(file, line));
+      if (reason) assert.ok(refusals.includes(reason), reason);
+      // today-model has no settings binding; this old synthetic spelling still
+      // scans GREEN there, but is not a path through that file's actual raw store.
+      else assert.deepEqual(refusals, []);
     });
   }
+}
+/* Deliberately GREEN residue, measured for the reviewer/PM. No durability claim:
+ * these strings are scanned, not executed, and require review of the actual diff. */
+const RESIDUE = [
+  { shape: 'computed writer through model',
+    line: "const key = 'log' + 'Set'; model[key](auditMachine);" },
+  { shape: 'mutable object returned by facade',
+    line: "const cached = facade.entryFor(liftId); if (cached) cached.state = 'failed';" },
+  { shape: 'released helper parameter mutation',
+    anchor: '  async function recordSettings(map, view, submittedDraft) {',
+    line: "    submittedDraft.cues = 'Synthetic changed cue.';" },
+];
+const gymFile = RELEASED_FILES.find((f) => f.rel.endsWith('/gym-app.mjs'));
+for (const residue of RESIDUE) {
+  test('RECORDED RESIDUE gym-app.mjs: ' + residue.shape + ' still passes', () => {
+    const src = residue.anchor ? planted(gymFile.rel,
+      (s) => s.replace(residue.anchor, residue.anchor + '\n' + residue.line)) : plantLine(gymFile, residue.line);
+    assert.deepEqual(releasedRefusals(gymFile, src), []);
+  });
 }
