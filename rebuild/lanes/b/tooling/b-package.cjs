@@ -1166,9 +1166,19 @@ const CLAIM_KEYS = ['ledgerLine', 'role', 'line', 'lineSha256'];
 // while the disk and Git both resolve them to ONE FILE. The artifact then released f and
 // pinned the same file through ./f, and she measured the next generation refusing
 // PARENT-PIN-BROKEN on the first lane C edit - through the parent walk, which has no skip
-// and must not get one. Her Windows controls (backslashes, an interior /./, uppercase)
-// resolve on disk and fail in Git, which is inconsistent admission rather than a seal, and
-// is refused here for the same reason.
+// and must not get one. Her Windows controls that this rule DOES refuse are the backslash
+// and the interior /./: they resolve on disk and fail in Git, which is inconsistent
+// admission rather than a seal, and is refused here for the same reason.
+//
+// P-A13 (Astra R5 G3) CORRECTS WHAT THIS PARAGRAPH USED TO SAY ABOUT UPPERCASE. It said a
+// case-only alias was refused "here", and no clause ever did it: an uppercase spelling is a
+// perfectly canonical repo-relative path, and standing packages carry uppercase names. What
+// refuses a LONE uppercase alias today is the Git lookup much later, inside L.checkSources,
+// as a raw "git show HEAD:A.CSS" failure carrying no name of this runner's (Astra measured
+// failCode=null) - a crash on the way rather than a guard. The case that reached an
+// AUTHORIZED artifact is the COLLISION INSIDE ONE SPEC, a.css released and A.CSS pinned
+// through the same physical file, and it is refused by canonicalSpecPaths() below, by the
+// name PATH-CASE-COLLISION: a rule about two spellings, not a rule about uppercase.
 //
 // The rule is a REFUSAL and never a rewrite. Normalising "./x" into "x" would hand the
 // ledger token's authority to a spelling the PM did not name, which is the failure being
@@ -1181,11 +1191,39 @@ const CLAIM_KEYS = ['ledgerLine', 'role', 'line', 'lineSha256'];
 // rule - 22 files, 2890 strings in the guarded fields and 3366 path-like strings in the
 // broad scan, zero non-canonical in either. A guard on the seal path is never strengthened
 // in a way that voids a standing seal, and the measurement is what says it does not.
+//
+// RE-MEASURED AT 3517eae FOR FIX ROUND 6, because P-A12, P-A13 and the widened walk below
+// land for every package too: 22 files, 3232 walked spellings (38 of them in the two fields
+// the walk gains this round), ZERO carrying a segment spelled __proto__, zero path-like
+// string anywhere in those files carrying one, zero own key anywhere in them spelled
+// __proto__, ZERO pairs of distinct walked spellings in any one file that are equal after
+// toLowerCase, and zero spellings refused by the predicate as this round leaves it.
+//
+// H23 (P-A12, the PM's ruling on Astra R5 G1, G2 and G5). ONE CHOKE POINT, AT ADMISSION.
+// Three OLDER maps in this file are still built by plain keyed assignment: proposed()'s
+// execution pin map, writeSealedRunReceipt()'s product map and envelope()'s reviewed map.
+// All three predate this lane and stand in sealed generations, and Astra measured a key
+// spelled __proto__ reaching each of them through a WELL-FORMED spec and then vanishing in
+// silence - the reviewed map lost it and the package printed ENVELOPE AUTHORIZED over a
+// reviewed Git byte it had never compared; the execution pin map lost it and the carrier
+// envelope stayed AUTHORIZED after the carrier drifted; the receipt writer reported success
+// while the committed re-read refused with moved=["__proto__"]. The ruling is NOT three
+// edits to three sealed clauses. A plain-object map keyed by a path, or by a path segment,
+// cannot hold that key as an own entry, and no file of that name has a legitimate use here,
+// so the segment is RESERVED and a path carrying one never enters the walk at all. H18 is
+// untouched: proposed() still builds both of its maps with Object.fromEntries and still
+// drops no own key, and its cells still drive proposed() DIRECTLY with all five names.
+//
+// N12 (Astra R5). The leading-slash and trailing-slash clauses that stood here were each
+// IMPLIED by the empty-segment clause - "/x" splits to ["", "x"] and "x/" to ["x", ""] -
+// and so was the length test, "" splitting to [""]. No single-clause change to any of the
+// three could turn a row red, because no row could hold one. They are gone; every spelling
+// they named still refuses, through the clause that was always doing the work, and
+// (P-A10 c) holds all three spellings so that the removal is measured and not asserted.
 const CANONICAL_PATH = 'a repo-relative spelling: no leading slash, no backslash, no empty segment, ' +
-  'no "." or ".." segment and no trailing slash';
-const canonicalPath = p => typeof p === 'string' && p.length > 0 && !p.startsWith('/') &&
-  !p.includes('\\') && !p.endsWith('/') &&
-  p.split('/').every(seg => seg !== '' && seg !== '.' && seg !== '..');
+  'no "." or ".." segment, no trailing slash and no segment spelled __proto__';
+const canonicalPath = p => typeof p === 'string' && !p.includes('\\') &&
+  p.split('/').every(seg => seg !== '' && seg !== '.' && seg !== '..' && seg !== '__proto__');
 // Every path the release mechanism compares: the product keys it reads as the declared
 // inventory, and the four spec-declared strings proposed() turns into executionPins (the
 // runner and this run's own package file are fixed constants of this file and cannot be
