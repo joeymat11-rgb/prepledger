@@ -220,9 +220,10 @@ function fence(root, chainRef) {
      seal is over those exact bytes, so today-app.cjsx is not today-app.cjs and a
      case-only rename of a sealed path is a touch. Do not "fix" a Windows case complaint
      by lowercasing either side; that would admit a sealed path under another spelling on
-     one operating system and not the other. Row (1d) holds the extension half of this on
-     both systems; the case half is measurable only on a case-sensitive filesystem and is
-     stated here rather than asserted by a row that cannot run on windows-latest. */
+     one operating system and not the other. Row (1d) holds both halves on BOTH systems:
+     the extension half (today-app.cjsx is not today-app.cjs) and the case half, built
+     WITHOUT a case-only rename - the sealed key is a spelling the tree does not carry at
+     all, so the two never have to coexist on a case-insensitive filesystem. */
   for (const t of touched)
     if (sealed.has(t.path) && !released.has(t.path))
       refusals.push("FENCE-SEALED-PATH-TOUCHED " + t.status + " " + t.path);
@@ -442,6 +443,19 @@ test("D.2 (1d) - a sealed path with a non-ASCII byte is refused BY NAME, and the
   branch(near, { edits: { [APP + "x"]: "a lane C edit\n" } });
   const rn = fence(near, CHAIN_REF);
   assert.equal(rn.status, "pass", "the sealed-path lookup is a prefix scan, not a Set: " + names(rn));
+
+  /* AND THE CASE HALF OF R1 N8, on BOTH operating systems. A case-only RENAME cannot be
+     built on a case-insensitive filesystem, so the two spellings are never both on disk
+     here: the sealed key is one the tree does not carry at all, and the branch touches
+     the other spelling. Under any case folding the touch would match the key and the
+     branch would be refused for a path nothing sealed. It must PASS. */
+  const cased = chain({ artifacts: [["acceptance-s8-fixture.json",
+    inventory({ product: ["rebuild/m3/w7-preview/today/TODAY-APP.cjs", CSS] })]],
+    product: [], free: [APP, CSS] });
+  branch(cased, { edits: { [APP]: "a lane C edit\n" } });
+  const rc = fence(cased, CHAIN_REF);
+  assert.equal(rc.status, "pass",
+    "the sealed-path lookup case-folds: a path nothing sealed was refused. " + names(rc));
 });
 
 /* R1 BLOCKING-C, RX1. git diff --name-status reports a rename as one record,
