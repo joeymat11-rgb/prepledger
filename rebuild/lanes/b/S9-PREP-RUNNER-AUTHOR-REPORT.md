@@ -46,6 +46,26 @@ executed against a committed synthetic package). **Section 12 is this
 round**, finding by finding. Sections 0, 1, 2, 4, 5 and 8 are corrected in
 place, and R3 N5's two paper numbers are corrected where they stand.
 
+**FIX ROUND 6 (sixth author), AND IT IS THE LAST AUTHOR ROUND ON THE RUNNER
+BEFORE S9.** The PM read every runner hunk of round 5 and ruled on its open
+questions at `DECISIONS:579`; Astra then RE-CHECKED round 5 at her highest
+effort and REJECTED it:
+`rebuild/lanes/astra/reviews/S9-PREP-RUNNER-RECHECK-R5.md` on
+`rebuild/r-astra-s9a-runner-r5` at `f64fa2b2`. F1 is CLOSED, there is no
+honest-chain regression and the no-release byte identity holds; six new
+findings stand, with an exact reproduction each. The PM upheld G1 to G6 and
+ruled **P-A12** (G1, G2, G5: one choke point at admission, a reserved path
+segment, and NO edit of the three older sealed maps), **P-A13** (G3: a
+case-only alias of a released path, refused as a COLLISION inside one spec,
+and the false comment corrected), **P-A9 (b) TIGHTENED** (G4: the own key SET
+and a grandparent that names a package) and **P-A10 WIDENED** (G6: the two
+fields Astra showed a comparison for, plus N12's redundant clauses).
+**Section 13 is this round**, finding by finding, with the three
+measurements, the 44-row table re-taken at this head and what was NOT closed.
+Section 0 is corrected in place; this round's four hunks stand in their own
+table at 13.1 rather than being interleaved into section 1's thirteen, so a
+reader of section 1 is reading exactly what the earlier rounds landed.
+
 Design of record: `rebuild/lanes/b/S9-RELEASE-SPEC.md` v4, as corrected by
 `rebuild/lanes/b/S9-RELEASE-SPEC-REVIEW-R4.md`; where the two disagree, R4
 stands. Precedent: `rebuild/lanes/b/S8-PREP-AUTHOR-REPORT.md`.
@@ -64,7 +84,9 @@ wherever the evidence lets them.
 | at `4e447ae6`, the bytes ASTRA reviewed BLIND and REJECTED (fix round 3's head) | `32916e509df0e38e4cb464a4b30c871f880d11a849958c5d7e9d14d1e2961be3` | 3638 |
 | after H18 alone (P-A8) | `9efd03d2e0cbd896f93c7d975a6ba877c0bb1ebf17bdbda6019e609e281c5af9` | 3658 |
 | after H19 and H20 (P-A9) | `88a0caf551abe5c47c98fbd3a2bfa19f0353706d0b7192dddbd716b90c378453` | 3700 |
-| **FINAL, at the head of this branch, after fix round 5 (P-A8, P-A9, P-A10)** | **`316f86c541f109a5876f5ea8d0557164151585f4f5940ce8878c3bec02bee43e`** | **3761** |
+| at `4ccfdfcd`, the bytes ASTRA RE-CHECKED and REJECTED (fix round 5's head) | `316f86c541f109a5876f5ea8d0557164151585f4f5940ce8878c3bec02bee43e` | 3761 |
+| after H23, H24 and H25 (P-A12, P-A10 widened, P-A13) | `4fbf39c434200501eb038401566fbb7d0874d03855e8fcd42670708afae377a9` | 3836 |
+| **FINAL, at the head of this branch, after fix round 6 (P-A12, P-A13, P-A9 (b) tightened, P-A10 widened)** | **`71c1b2592b5a3544b71c0995a9f52b88fbe24cd6b821709309aa95e5ad3012c0`** | **3864** |
 
 Line counts are `wc -l`. R1 N11 is right that `split('\n').length` says one
 more, and this table now uses the `wc -l` convention throughout so nobody
@@ -1353,3 +1375,362 @@ nowhere else.
 `test/release-from-seal.test.cjs` +508/-3), plus seven single-field re-pins
 of 58 bytes each, plus this report. **U+2013/U+2014 count over every added
 line: 0**, and over this whole report: 0.
+
+## 13. ASTRA'S RE-CHECK R5: FIXED, FINDING BY FINDING
+
+`rebuild/lanes/astra/reviews/S9-PREP-RUNNER-RECHECK-R5.md`, head checked
+`4ccfdfcd`, runner `316f86c5...`, VERDICT REJECT. Read whole before a line of
+this round was written. What she closed stays closed and is not re-argued
+here: **F1 CLOSED** (both original maps keep all five special own keys),
+**no honest-chain regression**, **the no-release byte identity holds** for S8
+and H3, and **22 of 22 applicable original mutations die**.
+
+This round is FOUR hunks, H23 to H26, and five cells. It touches
+`b-package.cjs` (+115/-12) and `test/release-from-seal.test.cjs` (+231/-4),
+plus the seven single-field re-pins of E fact 7. **U+2013/U+2014 count over
+every line this round added: 0.**
+
+### 13.0 THE THREE MEASUREMENTS, TAKEN BEFORE ANY EDIT
+
+P-A12, P-A13 and the widened walk all land FOR EVERY PACKAGE, so each was
+measured first, exactly as P-A1 and P-A10 were. One read-only script over
+the 22 standing files (`rebuild/lanes/b/tooling/packages/*.json` and
+`rebuild/m4/spec/acceptance-*.json`), run on the PC at `4ccfdfcd` before the
+first edit:
+
+```
+FILES 22
+WALKED SPELLINGS 3232 (of which the two new fields: 38)
+RESERVED SEGMENT __proto__ in a walked spelling: 0
+RESERVED SEGMENT __proto__ anywhere, broad scan of 1111 path-like strings: 0
+OWN KEY spelled __proto__ anywhere: 0
+CASE COLLISIONS among walked spellings, per file: 0
+REFUSED by the fix-round-6 predicate: 0
+```
+
+The walk it measures is the WIDENED one, and it reads product keys,
+executionPins keys and released keys of every artifact as well as every
+spec-side field, which is what the ruling asked for. Zero on every line, so
+no standing seal is voided by any of the three rules. **If any had been
+non-zero this round would have STOPPED**, and that is what the sentence in
+the runner's own comment block now records.
+
+### 13.1 THE HUNK TABLE OF THIS ROUND
+
+| H | final runner lines | what it does | the cell that proves it |
+|---|---|---|---|
+| H23 | 1205-1226 (comment), 1223-1226 (code) | `canonicalPath` refuses any path with a SEGMENT spelled exactly `__proto__`, by the existing name `PATH-IS-NOT-CANONICAL`, with the reserved segment in the message; and the three clauses N12 names (leading slash, trailing slash, `p.length > 0`) are REMOVED as implied by the empty-segment clause | `(P-A12)`; the removals by `(P-A10 c)`'s last three rows |
+| H24 | 1240-1253 | the walk gains `carrierSuccessor.witnessPins` KEYS and `witnessFlips[].file` | `(P-A10 c)` rows 2 and 3 |
+| H25 | 1268-1290 | `canonicalSpecPaths` refuses two DISTINCT walked spellings equal after `toLowerCase`, by the new name `PATH-CASE-COLLISION`, with BOTH spellings in the message | `(P-A13)` |
+| H26 | 2211-2215 (`RELEASE_RECORD_KEYS`), 2291-2322 | the ancestor release record must have exactly the four NAMED own keys, the grandparent must name a package (new name `ANCESTOR-RELEASE-GRANDPARENT-HAS-NO-PACKAGE-ID`), and the record's `sealedBy` must be that name | `(P-A9 b)`, `(P-A9 d)` |
+
+Also corrected in H23: the comment above `canonicalPath` claimed a case-only
+alias was refused "here". It was not, and now it says what is true and what
+does refuse a LONE uppercase alias (a raw Git lookup failure later, with no
+runner name on it: Astra measured `failCode=null`).
+
+**THE ORDINALS THIS ROUND MOVED.** Four new hunk ids, H23 to H26; two new
+refusal names, `PATH-CASE-COLLISION` and
+`ANCESTOR-RELEASE-GRANDPARENT-HAS-NO-PACKAGE-ID`, both harvested into
+`FAIL_CODES` by the existing rule and both asserted present by their cells;
+one new runner const, `RELEASE_RECORD_KEYS`; five new cell names,
+`(P-A9 d)`, `(P-A9 e)`, `(P-A12)`, `(P-A13)` and `(P-A10 c)`; seven new
+mutation row ids, P01 to P07; and `(P-A9 b)` keeps its name while its row
+list is re-cut. No spec ordinal, no D-id, no gate id and no artifact key
+moved. The release-from-seal suite goes from 36 cells to 41, and the bar from
+145 to 150.
+
+### 13.2 G1, G2, G5 -> P-A12: ONE CHOKE POINT, AT ADMISSION
+
+Her three measurements are three consequences of ONE fact: `m[k] = v` is not
+"create an own entry", and three maps older than this lane still build
+themselves that way. The PM did not order three edits to three sealed
+clauses; he ordered the key to stop being admissible.
+
+`canonicalPath` now refuses a segment spelled exactly `__proto__`. That
+closes her G1 witness (a product own key `__proto__` whose reviewed byte
+`envelope()` never compared, `authorized=true`, `reviewedOwnKey=false`), her
+G2 witnesses (`brief.file` and `carrierSuccessor.file`, an execution pin
+leaving the artifact in silence) and her G5 witness (the receipt written
+without the key, the committed re-read refusing `SEALED-RUN-RECEIPT-VOID`
+with `moved=["__proto__"]`) at the same door, because in all three the key
+arrives THROUGH `spec()`. Each now meets `PATH-IS-NOT-CANONICAL` with the
+place and the reserved segment named, and `(P-A12)` runs all of those
+spellings through the EXECUTED `spec()` of the stage.
+
+**WHAT P-A12 DOES NOT DO, said out loud.** The three maps are still built by
+keyed assignment. If a later round ever admits such a key by another route,
+all three defects return exactly as she measured them. This is a door, not a
+repair, and the PM chose the door because the three clauses stand in sealed
+generations. H18 is untouched on purpose: `proposed()` still builds both of
+its maps with `Object.fromEntries`, `(P-A8 a)` and `(P-A8 b)` still drive it
+DIRECTLY with all five special names, and M21 and N17 still kill the fixture
+and the filter. The runner's comment block says this in the same words.
+
+### 13.3 G3 -> P-A13: A COLLISION, NOT A CASE RULE
+
+Her witness reached an AUTHORIZED artifact: `a.css` released, `A.CSS` pinned
+through the same physical file, `released=["a.css"]`, `executionPins`
+carrying `A.CSS`, and `PARENT-PIN-BROKEN A.CSS` the first time lane C edited
+the released file. Both spellings are canonical, so H21 could not see it.
+
+`canonicalSpecPaths` now refuses two DISTINCT walked spellings of one spec
+that are equal after `String.prototype.toLowerCase()`, by the name
+`PATH-CASE-COLLISION`, with BOTH spellings and both places in the message. It
+never rewrites, and it does not forbid uppercase: `(P-A13)` carries the
+control that a LONE uppercase `brief.file` is still ADMITTED, and says in the
+cell what stops it instead. The measurement says no standing spec collides.
+
+**THE RESIDUAL, and it is hers.** A lone uppercase alias with only the
+lowercase spelling in Git still fails as a raw `git show` error with
+`failCode=null`. That is not closed by this hunk and is not ruled: it is a
+diagnostic-quality finding about `L.checkSources`, outside this lane's owned
+list, and it is named in 13.7 as a candidate debt.
+
+### 13.4 G4 -> P-A9 (b) TIGHTENED: A RECORD, READ AS A RECORD
+
+`undefined === undefined` was the whole of the `sealedBy` check when the
+grandparent artifact carried no `packageId`. H26 is THREE asserts under TWO
+names, and the shape of it is deliberate: the PM's four requirements are not
+four independent clauses, and writing them as four would have left two of
+them implied and unholdable, which is precisely the N12 defect. Ordered as
+they now are, each holds alone:
+
+| clause | its single-clause change | the row that goes red |
+|---|---|---|
+| own key SET equals the four named keys | N01 (`-> true`) | `(P-A9 b)` five-key row |
+| `role` is exactly `released` | N02 | `(P-A9 b)` role-only row |
+| `lastSealedSha256` is 64 lowercase hex | N03 | `(P-A9 b)` |
+| `rulingLineSha256` is 64 lowercase hex | N04 | `(P-A9 b)` |
+| `sealedBy` is an own, NON-EMPTY string | P05 | `(P-A9 d)` empty-name row |
+| the GRANDPARENT names a package | P06 | `(P-A9 d)` nameless-grandparent row |
+| `sealedBy` equals that name | N05 | `(P-A9 b)` wrong-package row |
+| own keys read with `getOwnPropertyNames` | P07 | `(P-A9 b)` non-enumerable row |
+
+Her second G4 witness, the in-memory object with an INHERITED `role` and four
+own keys, is refused by the same first assert and is a row of `(P-A9 b)`; it
+is reachable in this suite because `pins()` takes the bound object, and that
+is said where the row stands rather than claimed to be ordinary JSON.
+
+N19 and N20 are answered by SPLITTING the fixture, not by arguing about it:
+the row that carried role + wrong sealedBy + a fifth key at once is gone, and
+each defect now stands alone. N18 (sealedBy) and N19 (role) each turn the
+suite red at this head.
+
+N06 and N07 are closed by `(P-A9 e)`, and the honest word for them is
+COVERAGE, not defect: both clauses were already right and simply held by no
+row, so the cell is GREEN red-first and red only under the mutant it names.
+N06's discriminator is a released path spelled like an INHERITED MEMBER
+(`toString`), which the grandparent pins as an EXECUTION pin only: with
+`Object.hasOwn` it refuses by name, with `file in ga.product` it reaches
+`parentPin(Function.prototype.toString)` and refuses as something else. N07's
+is one path in BOTH grandparent maps at different hashes, where the PRODUCT
+pin decides.
+
+### 13.5 G6 -> P-A10 WIDENED, AND N08 TO N12
+
+At `DECISIONS:579 (3)` the PM refused to rule the narrow walk by argument and
+asked for a comparison or a sealed byte. G6 supplied two, so the walk gains
+`carrierSuccessor.witnessPins` KEYS and `witnessFlips[].file` and nothing
+else. `protectedSurfaces` stays out on her own reasoning: it is explicitly
+unasserted descriptive text.
+
+N08 to N11 were LIVE because `(P-A10 b)` moved two fields and no more.
+`(P-A10 c)` is ONE ROW PER WALKED FIELD with that field alone non-canonical,
+so deleting any single push goes red: measured, P02 and P03 (the two new
+pushes) and N08 to N11 (the four old ones) all die.
+
+N12 is answered by REMOVAL. `!p.startsWith('/')`, `!p.endsWith('/')` and
+`p.length > 0` are each implied by the empty-segment clause, because `"/x"`
+splits to `["", "x"]`, `"x/"` to `["x", ""]` and `""` to `[""]`. The PM's
+ruling offered "delete the redundant clause(s) and keep the refusal text
+true" or "show a spelling only they refuse"; no such spelling exists, so they
+are deleted. `CANONICAL_PATH` still names all of those properties and they
+are all still true of every admitted path. **Going beyond the two clauses the
+ruling named, to the length test, is an author decision and it is flagged
+here rather than buried**: it is the same fact about the same clause, and
+leaving one of three redundant clauses standing would have re-created the
+finding on the next pass. The three spellings are held by rows in
+`(P-A10 c)`, and N14 (the empty-segment clause `-> true`) now kills `(P-A10
+b)` AND `(P-A10 c)`, which is the measurement that the removal cost nothing.
+
+### 13.6 THE TABLE, RE-TAKEN AT THIS HEAD
+
+Astra's 44 rows re-taken, plus one single-clause change for every clause this
+round adds (P01 to P07). Method: ONE change at a time, on a **writable farm
+scratch worktree of the pushed head** (`/home/claude/farm/scratch/wt/s9a6-final`,
+detached at `2a8526b`, the runner byte-identical to the PC's), all ten suites
+per row, the file restored between rows and the worktree left clean.
+**Baseline 150 pass, 0 fail, 0 skipped; every row below has zero skipped.**
+Two differences from her run, stated rather than hidden: it is **linux, not
+Windows** (the same ten suites are green on both at this head), and three
+rows needed a re-anchored edit because the old anchor was ambiguous or would
+have left a syntax error rather than a mutant - M01 (the same expression
+occurs in `supersessionRuling()` too, so the next line anchors it), P02 and
+P03 (deleting the push deletes a loop body, so the push becomes `void w;` /
+`void f;`). Cell names are abbreviated as she abbreviated them.
+
+| Row | Exact single change | Pass/fail | Result / witness |
+|---|---|---:|---|
+| M01 | release grant `g[1] === s.packageId` -> `s.packageId.startsWith(g[1])` | 149/1 | K, R(M01) |
+| M02 | `assert(granted.has(file),` -> `assert(true \|\| granted.has(file),` | 148/2 | K, R(2),(7) |
+| M03 | `assert(declared.includes(file),` -> `assert(true \|\| ...` | 149/1 | K, R(7) |
+| M04 | release pre-image expected `parentPin(...)` -> `s.product[file].pre` | 149/1 | K, R(2) |
+| M05 | release `Object.hasOwn(pmap,file)` -> `file in pmap` | 149/1 | K, R(M05) |
+| M06 | release `assert.equal(hits.length,1,...)` -> `assert(hits.length >= 1,...)` | 149/1 | K, R(M06) |
+| M07 | `ruledTerminal` -> `/(?:^\|[ ·])RULED$/.test(line.trim())` | 148/2 | K, R/G(P-A1) |
+| M08 | release block `if(Object.hasOwn...)` -> `if(false && ...)` | 149/1 | K, executed spec R(M08) |
+| M09 | prefix released post-null assertion with `if(false)` | 149/1 | K, executed spec R(M09) |
+| M10 | `assert(!argv.has(file),` -> `assert(true \|\| ...` | 148/2 | K, R(8),(R1-B1) |
+| M11 | `assert(!epin.has(file),` -> `assert(true \|\| ...` | 149/1 | K, R(R1-B1) |
+| M12 | product released disk-skip condition -> `false && condition` | 145/5 | K, R(2),(3),(8),(R1-B1),(P-A1) |
+| M13 | proposed `releaseRuling` -> `{declared: released product keys}` | 145/5 | K, R(P-A2),(M01),(M05),(M06),(M23) |
+| M14 | emitted `sealedBy` -> `'M2-WRONG-PARENT'` | 148/2 | K, R(9),(P-A8 b) |
+| M15 | emit released block unconditionally | 146/4 | K, R(9),(X1),(X2),(P-A8 c) |
+| M16 | prefix ancestor product-pin `assert.equal` with `if(false)` | 147/3 | K, R(P-A3),(P-A9 c),(P-A9 e) |
+| M17 | remove first-writer-wins guard | NA | H19 removed the construct; NA at R5 and still NA |
+| M18 | remove grandparent argument | NA | already the shipped code since H19 |
+| M19 | receipt forward skip -> `if(false && isReleased(file))` | 148/2 | K, S release/commit |
+| M20 | receipt writer removes `role !== 'released'` filter | 146/4 | K, R(10),(P-A4), S release/commit |
+| M21 | H18 product filter additionally excludes `file === '__proto__'` | 149/1 | K, R(P-A8 a) |
+| M22 | receipt reverse loop removes `!isReleased(file)` | 148/2 | K, R(10), S release |
+| M23 | `/^RELEASE-FROM-SEAL` -> `/RELEASE-FROM-SEAL` | 149/1 | K, R(M23) |
+| M24 | bound-parent assert condition -> `true \|\| condition` | 149/1 | K, R(P-A2) |
+| N01 | H26 own key SET clause -> `true` (was `Object.keys(block).length === 4`) | 149/1 | K, R(P-A9 b) |
+| N02 | H26 `block.role === 'released'` -> `true` | 149/1 | **K** (was LIVE), R(P-A9 b) role-only row |
+| N03 | H26 `lastSealedSha256` string/hex clause -> `true` | 149/1 | K, R(P-A9 b) |
+| N04 | H26 `rulingLineSha256` string/hex clause -> `true` | 149/1 | K, R(P-A9 b) |
+| N05 | H26 `sealedBy === ga.packageId` assert -> `if (false)` | 149/1 | K, R(P-A9 b) |
+| N06 | H26 `Object.hasOwn(ga.product,file)` -> `file in ga.product` | 149/1 | **K** (was LIVE), R(P-A9 e) |
+| N07 | H26 hash expected `parentPin(ga.product[file],file)` -> `parentPin(entry,file)` | 149/1 | **K** (was LIVE), R(P-A9 e) |
+| N08 | delete the `carrierSuccessor.parent` push | 148/2 | **K** (was LIVE), R(P-A12),(P-A10 c) |
+| N09 | delete the successor original push | 149/1 | **K** (was LIVE), R(P-A10 c) |
+| N10 | delete the successor carrier push | 149/1 | **K** (was LIVE), R(P-A10 c) |
+| N11 | delete the child argv target push | 148/2 | **K** (was LIVE), R(P-A12),(P-A10 c) |
+| N12 | H21 `!p.startsWith('/')` -> `true` | NA | the clause is REMOVED (13.5); its spellings are rows of R(P-A10 c) and die under N14 |
+| N13 | `!p.includes(backslash)` -> `true` | 149/1 | K, R(P-A10 b) |
+| N14 | `seg !== ''` -> `true` | 148/2 | K, R(P-A10 b),(P-A10 c) |
+| N15 | `seg !== '..'` -> `true` | 149/1 | K, R(P-A10 b) |
+| N16 | delete the `canonicalSpecPaths(s)` call | 145/5 | K, R(P-A10 a),(P-A10 b),(P-A12),(P-A13),(P-A10 c) |
+| N17 | fixture SPECIAL_KEYS removes `'__proto__'` only | 149/1 | K, R(P-A8 b) |
+| N18 | fixture wrong sealedBy `M2-SOMEONE-ELSE` -> `M2-S8-FIXTURE` | 149/1 | K, R(P-A9 b) |
+| N19 | fixture role-only record: `carried` -> `released` | 149/1 | **K** (was LIVE), R(P-A9 b); the masked row she mutated is split |
+| N20 | same fixture record: sealedBy `M2-UNRELATED` -> `M2-S8-FIXTURE` | NA | that record no longer exists; its defects are N18 and N19 above |
+| P01 | H23 `seg !== '__proto__'` -> `true` | 149/1 | K, R(P-A12) |
+| P02 | H24 `carrierSuccessor.witnessPins` key push -> `void w;` | 149/1 | K, R(P-A10 c) |
+| P03 | H24 `witnessFlips[].file` push -> `void f;` | 149/1 | K, R(P-A10 c) |
+| P04 | H25 `assert(first[1] === p,` -> `assert(true \|\| first[1] === p,` | 149/1 | K, R(P-A13) |
+| P05 | H26 non-empty `sealedBy` clause -> `true` | 149/1 | K, R(P-A9 d) |
+| P06 | H26 grandparent packageId assert -> `true \|\| condition` | 149/1 | K, R(P-A9 d) |
+| P07 | H26 `getOwnPropertyNames` -> `Object.keys` | 149/1 | K, R(P-A9 b) non-enumerable row |
+
+**Totals: 47 rows executed, 47 killed, 0 LIVE; 4 NA (M17, M18, N12, N20),
+each NA because the construct it changes no longer exists and each said so
+above.** Astra's ten green rows are ten kills or NAs at this head. Every
+clause this round adds has a row that turns red under its own single-clause
+change, which is the property N12 was about.
+
+### 13.7 WHAT THIS ROUND DID NOT CLOSE
+
+1. **The three older maps are still built by keyed assignment** (13.2).
+   P-A12 shuts the door they are reachable through; it does not repair them.
+   If a later ruling ever admits such a key by another route, G1, G2 and G5
+   return unchanged.
+2. **A lone uppercase alias still fails as a raw Git error** with
+   `failCode=null` (13.3). Named, not fixed; outside this lane's owned list.
+3. **Astra's other Windows spellings stand as she measured them.** NTFS
+   streams (`a.css:x`, `a.css::$DATA`), percent and Unicode lookalikes,
+   trailing dot and trailing space: all ADMITTED at spec(), none shown to
+   produce an authorized alias seal, all failing later without a named runner
+   code. This round adds no clause for any of them, because none of them
+   reached an AUTHORIZED artifact in her measurement and a guard on the seal
+   path that no witness demands is surface.
+4. **`spec()` is exercised, not covered.** Unchanged from round 5 and still
+   recorded as the PM recorded it at `DECISIONS:579 (4)`.
+5. **The stage cells do not run a full package sequence.** No seal, no
+   receipt, no artifact is written by anything in this suite; `(P-A12)`,
+   `(P-A13)` and `(P-A10 c)` measure the EXECUTED `spec()` and stop there,
+   which is where the refusals they assert live.
+
+### 13.8 THE BAR AND `--ci`, AT THE FINAL BYTES
+
+**Ten tooling suites on the PC**, each file `node --test`, at `de9f3f0`:
+child-diagnostic-tail 11, execution-targets 9, gate-supersession 16,
+parent-gate-closure-and-load-floor 14, parent-pin-shapes-and-spec-successors
+9, pinned-unchanged-and-ruled-substitutions 17, product-phase-and-ledger 7,
+release-from-seal 41, seal-tip-and-byte-identity 17, successor-moves 9.
+**150 tests, 150 pass, 0 fail, 0 skipped**, every file exit 0. The same ten
+suites at the same head on **linux**, in a farm scratch of the pushed
+commit: **150 / 150 / 0 / 0**. Was 145 of 145 at `4ccfdfcd`.
+
+**(X1) AGAIN, because P-A12 and P-A13 land for every package.**
+`--ci --package S8` and `--ci --package H3`, before the first edit and on the
+final bytes:
+
+| | before (`4ccfdfcd`) | after (`de9f3f0`) |
+|---|---|---|
+| S8 terminal | `B PACKAGE S8 FAIL SEALED-PROFILE-RECOMPUTATION; required evidence missing or failed; local diagnostics withheld`, exit 1 | identical, exit 1 |
+| H3 terminal | `B PACKAGE H3 FAIL SEALED-PROFILE-RECOMPUTATION; ...`, exit 1 | identical, exit 1 |
+| S8 spec sha256 | `df3f785dad9c13eda9e27fc31ba84d1290690c621ed9fa7dc86c1bfe838c2a39` | `32f1aad82eea4e89f71ef84ba1e162ae8e2d3e33c087ed6c41c74faca9be5475` |
+| H3 spec sha256 | `119c215348aea0d49404be8fcf09cc2fb6216e3a4370878027e6ea2da61b69a6` | `36a4245f65dcc08dc6602230fb8d61352f0d733449bd1493ce040085fec6577f` |
+| runner sha256 | `316f86c5...bee43e` | `71c1b259...3012c0` |
+
+Four stdout lines each, before and after, and **the only differences are the
+two hashes E fact 7 moves**: the SPEC OBSERVED counts (224 and 64 product
+files, 25 and 10 children, 24 roots, 5 superseded carriers each), both PARENT
+OPTION lines, both PARENT BOUND lines and both terminals are character for
+character what they were. A named refusal before the ruling is the expected
+state and is what the S8 preparation report shows too.
+
+### 13.9 RED FIRST, AND THE COMMIT SHAPE
+
+`3517eae` carries all five cells against the UNCHANGED runner at `4ccfdfcd`,
+with the measured failure list in its own message: **41 tests, 36 pass, 5
+fail**, the five being `(P-A9 b)`'s inherited-role row, `(P-A9 d)`,
+`(P-A12)`'s product-key row, `(P-A13)` and `(P-A10 c)`'s witnessPins row.
+`DECISIONS:579 (2)` accepts one red commit when the cells live in one file,
+and they do. Then one runner commit per ruling, each with its measured count
+in its message: `88f9094` (P-A12, 37/4 on that file), `5e878fd` (P-A10
+widened, 38/3), `b9b4334` (P-A13, 39/2), `2a8526b` (P-A9 (b) tightened, 41/41
+on the file and 150/150 over the whole bar), then `de9f3f0` for E fact 7.
+
+`(P-A9 e)` is GREEN in the red commit and says so there and here: N06 and N07
+were coverage holes, not defects, and a cell that was never red proves only
+that it agrees with the code beside it - unless the thing it is written
+against is a MUTANT, which is what 13.6 measures.
+
+### 13.10 E FACT 7, REDONE LAST AGAIN
+
+`tooling.runnerSha256` re-pinned from `316f86c5...bee43e` to
+`71c1b2592b5a3544b71c0995a9f52b88fbe24cd6b821709309aa95e5ad3012c0` in
+`packages/H3.json`, `S3.json`, `S4.json`, `S5.json`, `S6.json`, `S7.json` and
+`S8.json`. `git diff --stat` for that commit is **7 files changed, 7
+insertions, 7 deletions**: one field, one byte range per file, and no other
+byte of any package file moves. **THE FINAL RUNNER sha256 is
+`71c1b2592b5a3544b71c0995a9f52b88fbe24cd6b821709309aa95e5ad3012c0`, 3864
+lines.** If a later round moves the runner again, this step is redone last
+again.
+
+### 13.11 WHAT I AM ASKING THE PM TO LOOK AT
+
+1. **The N12 removal went one clause further than the ruling named** (13.5).
+   `p.length > 0` is the same fact about the same predicate; keeping it would
+   have left exactly the defect the ruling is about. Say if that was not the
+   intent and it comes back.
+2. **The grandparent-packageId check has its own refusal name.** The ruling
+   listed four requirements for the record; written as four clauses of one
+   assert, two of them would have been implied and unholdable. Three asserts
+   under two names is my reading of the ruling's spirit and N12's letter, and
+   it adds one name to the vocabulary.
+3. **Own keys are read with `getOwnPropertyNames`, not `Object.keys`.** That
+   is stricter than "own key SET" strictly needs for JSON, and it is what
+   makes a non-enumerable own fifth key a fifth key. P07 holds it.
+4. **`(P-A9 e)` is a coverage cell, not a fix**, and the report says so in
+   three places rather than letting a green cell look like a closed defect.
+5. **The farm's privacy proof is not concurrency-safe.** While this round ran,
+   `farm-verify.sh` printed `FAIL: 92 excluded object(s) present`, then 113
+   thirty seconds later, then **PASS** twice more with no command of mine in
+   between. Another hand's `farm-sync.sh` was in flight. Nothing was read
+   outside the include list by this lane, and the proof passes at the end;
+   but a proof that can print FAIL for a reason that is not a breach is a
+   proof that will one day be ignored when it matters. Reported, not touched.
