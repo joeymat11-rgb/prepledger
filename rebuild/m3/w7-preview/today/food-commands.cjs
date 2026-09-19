@@ -85,8 +85,7 @@ function validate(op, readOperation) {
   if (!op.effective || !/^\d{4}-\d{2}-\d{2}$/.test(op.effective.local_date)) return false;
   if (!isMap(op.payload) || op.payload.profile !== PROFILE || !isMap(op.payload.day)) return false;
   if (Object.keys(op.payload).length !== 2) return false;
-  // Validate before serialization: JSON would erase an explicitly undefined key.
-  try { dayOf(op.payload.day); } catch { return false; }
+  try { dayOf(JSON.parse(JSON.stringify(op.payload.day))); } catch { return false; }
   if (!Array.isArray(op.causal_parents)) return false;
   for (const id of op.causal_parents) {
     const parent = readOperation(id);

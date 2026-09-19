@@ -163,7 +163,7 @@ fat, carbs; foodProjection continues passing only cal/pro to writeDaily. Read ma
 from recordedFood(today).day, not loggedFood. Existing cal/pro behavior stays on its current
 projection path. A historical record without either macro yields missing keys and no macro
 text. Preserve legacy cal-only/pro-only validation for stored-op reads/import admission;
-new prepare/save and entry validation require BOTH cal and pro. Macros alone cannot form a day.
+N3-B: new prepare/save and entry validation require BOTH cal and pro. Macros alone cannot form a day.
 
 Full-fidelity export must retain the raw food operation's optional keys and numbers exactly;
 import must restore them without zero filling, inference, rounding, or losing absent/present
@@ -224,7 +224,7 @@ Body-composition target availability must not hide a durable macro fact.
 - That day counts fully toward food logging adherence and MEASUREMENT-PLAN food days;
   comparison with the identical day carrying macros yields the same count and percentage.
 - Historical partial food days remain readable/importable and retain existing adherence credit.
-- New saves require cal and pro. Invalid optional data refuses atomically; omitted data never does.
+- N3-B: New saves require cal and pro. Invalid optional data refuses atomically; omitted data never does.
 - No reader or writer infers absent macros, zero fills them or computes nutritional advice from them.
 - OFF never mutates a food record; a later save cannot erase macros merely because OFF hid them.
 - Existing save refusal, unknown outcome, acknowledged/readback-failure and retry semantics remain.

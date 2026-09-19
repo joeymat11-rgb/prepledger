@@ -85,7 +85,7 @@ for (const key of ['fat', 'carbs']) {
     const { host } = await device(t);
     assert.equal((await host.save(BASE)).ok, true);
     const before = await generation(host);
-    for (const value of [null, undefined, '', ' ', 'no', -1, 0.5, NaN, Infinity,
+    for (const value of [null, '', ' ', 'no', -1, 0.5, NaN, Infinity,
       -Infinity, 1001, '12', true, false, {}, [], [12]]) {
       const day = { ...BASE, [key]: value };
       assert.throws(() => prepare(day), /FOOD_INPUT_INVALID/);

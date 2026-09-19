@@ -222,3 +222,84 @@ git diff --stat
  rebuild/m3/w7-preview/today/food-model.cjs    | 26 +++++++++++++++++++-------
  2 files changed, 28 insertions(+), 13 deletions(-)
 ```
+
+## Review A1: F1 reverted
+
+2026-09-19. Astra. Branch rebuild/c-n3-macros-data-astra2. UNCOMMITTED.
+F1 upheld: validate again judges the JSON-serialized day; canonical encoding
+omits own undefined keys, so the earlier report's contrary justification is
+withdrawn. Removed undefined only from the malformed-raw loop; the prepare()
+throws assertion remains. F9: added only N3-B labels to the two both-required
+sentences in spec sections 3 and 6. No other code or spec changes.
+
+Exact code diff against this branch's HEAD:
+
+```diff
+diff --git a/rebuild/m3/w7-preview/today/food-commands.cjs b/rebuild/m3/w7-preview/today/food-commands.cjs
+index 1f16004..b150423 100644
+--- a/rebuild/m3/w7-preview/today/food-commands.cjs
++++ b/rebuild/m3/w7-preview/today/food-commands.cjs
+@@ -85,8 +85,7 @@ function validate(op, readOperation) {
+   if (!op.effective || !/^\d{4}-\d{2}-\d{2}$/.test(op.effective.local_date)) return false;
+   if (!isMap(op.payload) || op.payload.profile !== PROFILE || !isMap(op.payload.day)) return false;
+   if (Object.keys(op.payload).length !== 2) return false;
+-  // Validate before serialization: JSON would erase an explicitly undefined key.
+-  try { dayOf(op.payload.day); } catch { return false; }
++  try { dayOf(JSON.parse(JSON.stringify(op.payload.day))); } catch { return false; }
+   if (!Array.isArray(op.causal_parents)) return false;
+   for (const id of op.causal_parents) {
+     const parent = readOperation(id);
+diff --git a/rebuild/m3/w7-preview/today/test/food-macros.test.mjs b/rebuild/m3/w7-preview/today/test/food-macros.test.mjs
+index 5aa3548..2de0ce1 100644
+--- a/rebuild/m3/w7-preview/today/test/food-macros.test.mjs
++++ b/rebuild/m3/w7-preview/today/test/food-macros.test.mjs
+@@ -85,7 +85,7 @@ for (const key of ['fat', 'carbs']) {
+     const { host } = await device(t);
+     assert.equal((await host.save(BASE)).ok, true);
+     const before = await generation(host);
+-    for (const value of [null, undefined, '', ' ', 'no', -1, 0.5, NaN, Infinity,
++    for (const value of [null, '', ' ', 'no', -1, 0.5, NaN, Infinity,
+       -Infinity, 1001, '12', true, false, {}, [], [12]]) {
+       const day = { ...BASE, [key]: value };
+       assert.throws(() => prepare(day), /FOOD_INPUT_INVALID/);
+```
+
+Executed on this PC using Node v24.19.0, one process per cell, sequentially:
+
+```powershell
+$env:MEASURED_TEST_NOW = '2026-09-03'
+$env:TZ = 'America/New_York'
+& 'C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' --permission '--allow-fs-read=*' 'rebuild/m3/w7-preview/today/test/<cell>'
+```
+
+| Cell | Tests | Pass | Fail | Exit |
+| --- | --- | --- | --- | --- |
+| food-macros.test.mjs | 15 | 15 | 0 | 0 |
+| food.test.mjs | 57 | 56 | 1 | 1 |
+| copy.test.mjs | 39 | 34 | 5 | 1 |
+| view.test.mjs | 23 | 23 | 0 | 0 |
+| adapter.test.mjs | 20 | 20 | 0 | 0 |
+| package.test.cjs | 11 | 0 | 11 | 1 |
+
+All cells: zero cancelled, skipped and todo. The five existing cell files are
+unchanged (scoped git diff --name-only printed nothing). Filesystem writes were
+disabled for Node to enforce this assignment's ban on worktree scratch. All 17
+failures report ERR_ACCESS_DENIED / FileSystemWrite: food N1.17, copy's three
+built-output checks and two planted-copy checks, and package's shared before
+hook. They attempt .tmp or today-plant-* inside the worktree. These checks are
+BLOCKED here, not product failures or green evidence; no build or server proof
+is claimed. This run did not reach the earlier report's esbuild failure.
+Logs: C:\Users\joeym\AppData\Local\Temp\n3-a1-903f755cec79444ea51e5549d8de2852
+
+Executed certutil -hashfile <path> SHA256, both commands completed successfully:
+
+```text
+rebuild/m3/w7-preview/today/food-commands.cjs
+30e8401a27a9a5d8969c0cd9d3b6c060cbb7b73e483fdade1b443e1f8a50b8d1
+rebuild/m3/w7-preview/today/test/food-macros.test.mjs
+07a6882b25697bde39402bdb01ea0757edb42c0be12e4be5c827628e7ec20a2e
+```
+
+ORDER FOR N3-B (F6): a malformed macro with no calories and no protein currently
+answers NOTHING before its own range word; explicitly decide and test that
+refusal ordering in N3-B, not fixed here.
