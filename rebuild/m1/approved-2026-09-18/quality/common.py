@@ -126,8 +126,13 @@ def copy_problems(text):
 
 
 def set_x_problems(text):
-    """Every set written with the letter x. The multiplication sign is the only form allowed."""
-    return sorted({m.group(0) for m in SET_LETTER_X.finditer(text)})
+    """Every set written with the letter x. The multiplication sign is the only form allowed.
+
+    It reads the folded form for the same reason the word sweeps do: a fullwidth x draws a letter x
+    and the raw scan did not see it. The Pd and Cf scans keep reading the raw string, so the
+    character a report names is still the character the markup carries.
+    """
+    return sorted({m.group(0) for m in SET_LETTER_X.finditer(sweep_form(text))})
 
 
 # ---------------------------------------------------------------- contrast
@@ -358,9 +363,27 @@ def env_text(chromium_version, drew):
 # other than inset(), a colour matched to its background, a transform off the plate and a parent
 # that paints over it are not read here. Each of these was found by a reviewer rebuilding the
 # defect, and the list grows the same way.
-JS_SEEN = """
+# ---------------------------------------------------------------- is this element drawn at all
+# The three walks used to ask "!e.offsetParent" and read a null answer as hidden. That is a proxy,
+# and it is wrong for one whole class of element: a viewport fixed box has no offset parent and is
+# drawn in front of everything. The approved prototype has no fixed or sticky position anywhere, so
+# nothing on screen escaped today, but a port will have one, and the shortcut also stood in both
+# 44 px walks, where it dropped such a control before any of the hidden text rules ran.
+#
+# So: one test, shared by the record walk, both target walks and the extra copy sweep. An element
+# is in the box tree when it has a client rect; display:none has none. Everything else the walks
+# exclude stays exactly as it was ruled.
+JS_RENDERED = """
+    const __rendered=e=>{const cs=getComputedStyle(e);
+      if(cs.display==='none')return false;
+      return e.getClientRects().length>0};
+"""
+
+JS_SEEN = JS_RENDERED + """
     const __clipEmpty=(cp,r)=>{const m=cp.match(/^inset\\(([^)]*)\\)/);if(!m)return false;
-      const parts=m[1].trim().split(/\\s+/).filter(x=>x&&x!=='round');
+      /* the radii after "round" are a corner rounding, not an inset: inset(0 round 50%) hides
+         nothing, and reading 50% as a side made the walk drop the text inside it */
+      const parts=m[1].split(/\\bround\\b/)[0].trim().split(/\\s+/).filter(x=>x);
       const v=(x,base)=>x.endsWith('%')?parseFloat(x)*base/100:parseFloat(x);
       const p=parts.slice(0,4);let t,rr,b,l;
       if(p.length===1){t=v(p[0],r.height);b=t;rr=v(p[0],r.width);l=rr}
@@ -370,7 +393,7 @@ JS_SEEN = """
       else return false;
       if([t,rr,b,l].some(x=>isNaN(x)))return false;
       return (t+b)>=r.height-0.01||(l+rr)>=r.width-0.01};
-    const __seen=e=>{if(!e.offsetParent)return false;
+    const __seen=e=>{if(!__rendered(e))return false;
       const cs=getComputedStyle(e);
       if(cs.visibility!=='visible')return false;
       let op=1,a=e;while(a&&a!==document.documentElement){op*=parseFloat(getComputedStyle(a).opacity||'1');a=a.parentElement}
@@ -378,7 +401,9 @@ JS_SEEN = """
       const r=e.getBoundingClientRect();
       if(r.width<=0||r.height<=0)return false;
       if(r.bottom<=0||r.right<=0||r.top>=window.innerHeight||r.left>=window.innerWidth)return false;
-      if(parseFloat(cs.textIndent||'0')<=-1000)return false;
+      /* a text indent carries away the first line of a block container. It does not move an
+         inline box's own text, so the exclusion is only read where it really moves the text */
+      if(!/^inline/.test(cs.display)&&parseFloat(cs.textIndent||'0')<=-1000)return false;
       const cp=(cs.clipPath||'none').trim();
       if(cp!=='none'&&__clipEmpty(cp,r))return false;
       return true};
@@ -390,7 +415,7 @@ JS_SEEN = """
 # are all read off the screen or read out loud, and all of them are outside innerText. Both gates
 # sweep this one string so neither can be stricter than the other.
 JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui');
-    if(!ui)return {text:'', unreadable:[]};
+    if(!ui)return {text:'', unreadable:[]};""" + JS_RENDERED + """
     const parts=[ui.innerText], unreadable=[];
     const attrs=['placeholder','aria-label','title','alt'];
     const push=v=>{if(typeof v==='string'&&v.trim())parts.push(v)};
@@ -403,7 +428,8 @@ JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui')
       if(m)m.forEach(q=>push(q.slice(1,-1)));
       if(/counters?\\(/.test(c.replace(/"[^"]*"|'[^']*'/g,'')))
         unreadable.push((e.id||e.className||e.tagName)+which+' '+c.slice(0,60))};
-    ui.querySelectorAll('*').forEach(e=>{if(!e.offsetParent)return;
+    
+    ui.querySelectorAll('*').forEach(e=>{if(!__rendered(e))return;
       attrs.forEach(a=>push(e.getAttribute(a)));
       if(('value' in e)&&e.tagName!=='BUTTON')push(e.value);
       gen(e,'::before');gen(e,'::after')});

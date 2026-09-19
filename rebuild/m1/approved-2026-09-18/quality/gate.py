@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, lum_array, worst_ratio, app_url,
                     sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused, JS_SWEPT_TEXT,
                     JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS, env_text, TAPPABLE_SELECTOR,
-                    TARGET_PX, JS_CLIPPED_AWAY)
+                    TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -144,16 +144,19 @@ def rec(level, check, where, detail=''):
 JS_ALIVE = "()=>!!document.querySelector('.screen.is-active .ui')"
 
 JS_FIT = """(sel)=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return null;
+    __SEEN__
     const sc=ui.querySelector(':scope > .body')||ui;const e=document.querySelector(sel);const rr=e?e.getBoundingClientRect():null;
-    return {scroll:sc.scrollHeight, client:sc.clientHeight, prim: rr?[rr.top, rr.bottom]:null, missing: !e}}"""
+    return {scroll:sc.scrollHeight, client:sc.clientHeight,
+      prim: rr?[rr.top, rr.bottom, rr.left, rr.right]:null, missing: !e, drawn: e?__seen(e):false}}"""
+JS_FIT = JS_FIT.replace('__SEEN__', JS_SEEN)
 
 JS_SMALL = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];const out=[];
     __CLIP__
     const side=v=>v<__PX__?v.toFixed(2):String(Math.round(v));   /* the side that failed prints the number that failed */
-    ui.querySelectorAll('__TAPPABLE__').forEach(e=>{if(e.offsetParent===null||__clippedAway(e))return;const r=e.getBoundingClientRect();if(r.width===0)return;
+    ui.querySelectorAll('__TAPPABLE__').forEach(e=>{if(!__rendered(e)||__clippedAway(e))return;const r=e.getBoundingClientRect();if(r.width===0)return;
     const cs=getComputedStyle(e,'::before');let h=r.height,w=r.width;if(cs.content!=='none'&&cs.height&&cs.height!=='auto'){h=Math.max(h,parseFloat(cs.height));}
     if(h<__PX__||w<__PX__)out.push((e.id||e.className)+' '+side(w)+'x'+side(h))});return out}"""
-JS_SMALL = JS_SMALL.replace('__TAPPABLE__', TAPPABLE_SELECTOR).replace('__PX__', str(TARGET_PX)).replace('__CLIP__', JS_CLIPPED_AWAY)
+JS_SMALL = JS_SMALL.replace('__TAPPABLE__', TAPPABLE_SELECTOR).replace('__PX__', str(TARGET_PX)).replace('__CLIP__', JS_RENDERED + JS_CLIPPED_AWAY)
 
 # a pseudo element moves as visibly as its host: ::before and ::after carry their own
 # transition-duration and animation-name, and the pack already draws with them (.timeline::before)
@@ -222,7 +225,9 @@ JS_FONTMAP = """(serifSels)=>{const ui=document.querySelector('.screen.is-active
     return out}"""
 
 JS_RIR = """()=>{const wrap=document.querySelector('.screen.is-active #rir');if(!wrap)return null;
-    return [...wrap.querySelectorAll('.chip')].map(c=>[c.getAttribute('data-rir'), c.textContent.trim(), !!c.offsetParent])}"""
+    __SEEN__
+    return [...wrap.querySelectorAll('.chip')].map(c=>[c.getAttribute('data-rir'), c.textContent.trim(), __seen(c)])}"""
+JS_RIR = JS_RIR.replace('__SEEN__', JS_SEEN)
 
 JS_MARGIN = """(inner)=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];
     const body=ui.querySelector(':scope > .body'), stack=ui.querySelector(':scope > .stack');const out=[];
@@ -435,12 +440,20 @@ async def main():
 async def one_screen(pg, t, s, W, H, where):
     # ---------- fit and primary action ----------
     r = await pg.evaluate(JS_FIT, PRIMARY[s])
+    # in the first viewport means WHOLLY in it, on every edge and without rounding, and really
+    # drawn: a primary pushed above the fold or sideways, or made transparent, used to pass the
+    # check that names it because only its bottom edge and its existence were read.
     if r is None or r.get('missing'):
         rec('FAIL', 'primary action in first viewport', where, f"{PRIMARY[s]} is not on the page")
-    elif r['prim'][1] > H:
-        rec('FAIL', 'primary action in first viewport', where, f"{PRIMARY[s]} bottom {r['prim'][1]:.0f} > {H}")
+    elif not r.get('drawn'):
+        rec('FAIL', 'primary action in first viewport', where, f"{PRIMARY[s]} is not drawn on the screen")
     else:
-        rec('PASS', 'primary action in first viewport', where, f"{PRIMARY[s]} at {r['prim'][0]:.0f} to {r['prim'][1]:.0f}")
+        top, bottom, left, right = r['prim']
+        off = ([f'top {top:.2f} < 0'] if top < 0 else []) + ([f'bottom {bottom:.2f} > {H}'] if bottom > H else []) \
+            + ([f'left {left:.2f} < 0'] if left < 0 else []) + ([f'right {right:.2f} > {W}'] if right > W else [])
+        rec('FAIL' if off else 'PASS', 'primary action in first viewport', where,
+            f"{PRIMARY[s]} {', '.join(off)}" if off
+            else f"{PRIMARY[s]} at {top:.0f} to {bottom:.0f}, inside every edge")
     if (W, H) == REF:
         if r['scroll'] > r['client']: rec('FAIL', 'fits without scrolling at 393x852', where, f"{r['scroll']} > {r['client']}")
         else: rec('PASS', 'fits without scrolling at 393x852', where)

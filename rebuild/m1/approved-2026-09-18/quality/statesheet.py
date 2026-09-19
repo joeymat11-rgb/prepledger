@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, worst_ratio, app_url, label_font,
                     Refused, JS_SWEPT_TEXT, JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS,
                     platform_key, playwright_version, env_text, app_digest,
-                    TAPPABLE_SELECTOR, TARGET_PX, JS_CLIPPED_AWAY)
+                    TAPPABLE_SELECTOR, TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED, sweep_form)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -79,18 +79,19 @@ TEXT_ONLY_BG_CSS = ('.ui * { color: transparent !important; text-shadow: none !i
                     ' .ui input::placeholder { color: transparent !important; } .chrome { visibility: hidden !important; }')
 
 JS_INFO = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return null;const text=ui.innerText;const small=[];
+    __SEEN__
     __CLIP__
     const side=v=>v<__PX__?v.toFixed(2):String(Math.round(v));   /* the side that failed prints the number that failed */
-    ui.querySelectorAll('__TAPPABLE__').forEach(e=>{if(e.offsetParent===null||__clippedAway(e))return;const r=e.getBoundingClientRect();if(r.width===0)return;
+    ui.querySelectorAll('__TAPPABLE__').forEach(e=>{if(!__rendered(e)||__clippedAway(e))return;const r=e.getBoundingClientRect();if(r.width===0)return;
       const cs=getComputedStyle(e,'::before');let h=r.height,w=r.width;if(cs.content!=='none'&&cs.height&&cs.height!=='auto')h=Math.max(h,parseFloat(cs.height));
       if(h<__PX__||w<__PX__)small.push((e.id||e.className||e.tagName)+' '+side(w)+'x'+side(h))});
-    const prim=Array.from(document.querySelectorAll('.screen.is-active #start, .screen.is-active #log, .screen.is-active .mic-button, .screen.is-active .panel-primary')).find(e=>e.offsetParent!==null&&e.getBoundingClientRect().width>0)||null;
+    const prim=Array.from(document.querySelectorAll('.screen.is-active #start, .screen.is-active #log, .screen.is-active .mic-button, .screen.is-active .panel-primary')).find(e=>__seen(e)&&e.getBoundingClientRect().width>0)||null;
     const pr=prim?prim.getBoundingClientRect():null;
     const overflow=[];ui.querySelectorAll('.primary, #log, .decision, .chip, .save').forEach(e=>{if(e.offsetParent===null)return;
       if(e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1)overflow.push((e.id||e.className)+' '+e.textContent.trim().slice(0,24))});
     const sc=ui.querySelector(':scope > .body')||ui;
     return {text, small, overflow, scroll: sc.scrollHeight, client: sc.clientHeight,
-      prim: pr?[Math.round(pr.top), Math.round(pr.bottom)]:null, applied: document.documentElement.getAttribute('data-state')}}"""
+      prim: pr?[pr.top, pr.bottom, pr.left, pr.right]:null, applied: document.documentElement.getAttribute('data-state')}}"""
 
 JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];const out=[];
     __SEEN__
@@ -136,11 +137,26 @@ JS_RECORD = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(
 
 JS_BOXES = JS_BOXES.replace('__SEEN__', JS_SEEN)
 JS_RECORD = JS_RECORD.replace('__SEEN__', JS_SEEN)
-JS_INFO = JS_INFO.replace('__TAPPABLE__', TAPPABLE_SELECTOR).replace('__PX__', str(TARGET_PX)).replace('__CLIP__', JS_CLIPPED_AWAY)
+JS_INFO = (JS_INFO.replace('__TAPPABLE__', TAPPABLE_SELECTOR).replace('__PX__', str(TARGET_PX))
+           .replace('__CLIP__', JS_CLIPPED_AWAY).replace('__SEEN__', JS_SEEN))
+# JS_SEEN already carries the shared __rendered helper, so __CLIP__ must not declare it twice
 
 
 def rel(p):
     return os.path.relpath(p, ROOT).replace(os.sep, '/')
+
+
+def edge_value(rect, k):
+    """An edge of a recorded rect: the four it stores, then the two it implies.
+
+    A record holds left, top, width and height. Right and bottom were never compared, so left
+    plus 3 with width plus 3 moved the right edge by 6 px and passed a tolerance that says 3 px
+    on every edge. Both are derived from what the record already holds, so no record changes and
+    none has to be written again.
+    """
+    if k < 4:
+        return float(rect[k])
+    return float(rect[0]) + float(rect[2]) if k == 4 else float(rect[1]) + float(rect[3])
 
 
 def num(v):
@@ -264,13 +280,16 @@ def compare_record(sid, theme, rec, thumb, worst=None):
         if wa[0] != wb[0]:
             problems.append(f'element {i} text "{wa[0][:24]}" became "{wb[0][:24]}"')
             continue
-        for k, edge in enumerate(['left', 'top', 'width', 'height']):
-            # the two values are compared as they were measured, never rounded first: a record
-            # holds each edge to two decimals, so "more than 3 px" means more than 3 px
-            moved = abs(float(wa[1][k]) - float(wb[1][k]))
+        # every edge, which means the four the record stores and the two it implies: left plus 3
+        # with width plus 3 moves the right edge by 6, and the tolerance says 3 px on any edge.
+        # The values are compared as measured, never rounded first: a record holds each edge to
+        # two decimals, so "more than 3 px" means more than 3 px.
+        for k, edge in enumerate(['left', 'top', 'width', 'height', 'right', 'bottom']):
+            wav, wbv = edge_value(wa[1], k), edge_value(wb[1], k)
+            moved = abs(wav - wbv)
             note(worst, 'rect edge moved (px)', moved, RECT_TOL, f'{sid} {theme} element {i} "{name}" {edge}')
             if moved > RECT_TOL:
-                problems.append(f'element {i} "{name}" {edge} {num(wa[1][k])} became {num(wb[1][k])}')
+                problems.append(f'element {i} "{name}" {edge} {num(wav)} became {num(wbv)}')
         dcol = max(abs(x - y) for x, y in zip(wa[2], wb[2]))
         note(worst, 'colour moved (levels)', dcol, COLOUR_TOL, f'{sid} {theme} element {i} "{name}"')
         if dcol > COLOUR_TOL:
@@ -493,7 +512,7 @@ async def render_one(pg, st, t, n0, errs, rows, worst, cross, pending):
     if xbad: problems.append('set written with the letter x: ' + ', '.join(repr(x) for x in xbad))
     if info['small']: problems.append('targets: ' + ', '.join(info['small'][:3]))
     if info.get('overflow'): problems.append('label overflows its button: ' + ', '.join(info['overflow'][:3]))
-    if st['screen'] == 'workout' and re.search(r'\boptional\b', swept.lower()):
+    if st['screen'] == 'workout' and re.search(r'\boptional\b', sweep_form(swept)):
         problems.append('copy: "optional" on a set screen')
     # seams: a single-row step of the scene in both margins at once, with the text hidden
     lm = bg[60:830, 4:18].mean(axis=(1, 2)); rm = bg[60:830, 375:389].mean(axis=(1, 2))
@@ -501,8 +520,15 @@ async def render_one(pg, st, t, n0, errs, rows, worst, cross, pending):
     seam = [int(y) + 60 for y in range(1, len(lm)) if abs(lm[y] - lm[y - 1]) > 5 and abs(rm[y] - rm[y - 1]) > 5 and (lm[y] - lm[y - 1]) * (rm[y] - rm[y - 1]) > 0 and flat(lm, y) and flat(rm, y)]
     if seam: problems.append('seam at rows ' + ', '.join(str(y) for y in seam[:4]))
     if lowc: problems.append('contrast: ' + ', '.join(lowc[:3]))
-    if info['prim'] and info['prim'][1] > H:
-        problems.append(f'primary action below the fold (bottom {info["prim"][1]} > {H})')
+    # in the first viewport means wholly in it, on every edge and unrounded, and the element
+    # has to be drawn (the shared visibility test, not a null offsetParent). The sheet's rule
+    # promises nothing about a state that draws no primary, and nothing is invented here.
+    if info['prim']:
+        ptop, pbottom, pleft, pright = info['prim']
+        poff = ([f'top {ptop:.2f} < 0'] if ptop < 0 else []) + ([f'bottom {pbottom:.2f} > {H}'] if pbottom > H else []) \
+            + ([f'left {pleft:.2f} < 0'] if pleft < 0 else []) + ([f'right {pright:.2f} > {W}'] if pright > W else [])
+        if poff:
+            problems.append('primary action outside the first viewport: ' + ', '.join(poff))
     # the committed record
     if rec is None:
         problems.append('the screen could not be recorded')

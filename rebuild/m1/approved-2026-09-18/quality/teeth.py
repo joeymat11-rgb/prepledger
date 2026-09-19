@@ -303,6 +303,54 @@ def mut_p2(work):
         raise AssertionError(f'there is no thumbnail to delete at {p}')
     os.remove(p)
 
+# ------------------------------------------------- the PM's second teeth audit, batch 1 and 2
+TITLE = '<div class="title">Eat about 2,300 kcal today.</div>'
+
+def mut_u1(work):
+    # one control positioned absolute, one fixed, both 30 by 20. The fixed one has no offset
+    # parent, which the walks used to read as hidden, so it was never measured at all.
+    sub(work, 'app/app.html', TITLE, TITLE +
+        '<button type="button" id="abs20" style="position:absolute;left:30px;top:300px;'
+        'width:30px;height:20px">A</button>'
+        '<button type="button" id="fix20" style="position:fixed;left:30px;top:340px;'
+        'width:30px;height:20px">F</button>')
+
+def mut_u2(work):
+    # inset(0 round 50%) insets nothing: the radii after "round" are a corner rounding. Reading
+    # them as sides made the walk call the box empty and drop the text, contrast and all.
+    _recolour(work, '#4a463f')
+    append_css(work, '.tcard .title { clip-path: inset(0 round 50%) !important; }')
+
+def mut_u3(work):
+    # a text indent does not move an inline box's own text, so excluding it hid readable text
+    sub(work, 'app/app.html', TITLE,
+        '<div class="title"><span style="text-indent:-9999px;color:#4a463f">'
+        'Eat about 2,300 kcal today.</span></div>')
+
+def mut_u4(work):
+    # a set written with a fullwidth letter x, which the raw scan did not see
+    sub(work, 'app/app.html', 'placeholder="Your weight"', 'placeholder="8 \uff58 105"')
+
+def mut_u5(work):
+    # "optional" written with a fullwidth letter i, on a set screen
+    sub(work, 'app/states-workout.js', "'Your plan does not set a rest length.'",
+        "'Your plan does not set a rest length. Opt\uff29onal.'")
+
+def mut_u6(work):
+    append_css(work, '#start { position: relative !important; left: 300px !important; }')
+
+def mut_u7(work):
+    append_css(work, '#start { opacity: 0 !important; }')
+
+def mut_u8(work):
+    append_css(work, '#rir .chip[data-rir="1"] { visibility: hidden !important; }')
+
+def mut_u9(work):
+    # left plus 3 and width plus 3: every stored edge moves 3, which the tolerance allows, and
+    # the right edge moves 6, which it does not
+    old = '.status-line { font-size: 15.5px; line-height: 1.3; color: var(--text-soft); margin-top: 8px; font-weight: 430; }'
+    sub(work, 'app/app.css', old, old + '\n.status-line { position: relative; left: 3px; width: calc(100% + 3px); }')
+
 def mut_none(work):
     pass
 
@@ -405,6 +453,27 @@ ROWS = [
      dict(exit=1, fails=[('visual regression vs baseline', 'of pixels changed')], hinted=True)),
     ('p4', "the other platform's T-02 thumbnails copied over this platform's", mut_p4, SHEET_T02,
      dict(exit=1, stdout=['is byte identical to', 'never copied', 'T-02-ink.png'])),
+    ('u1', 'a 20 px control positioned absolute and one positioned fixed', mut_u1, GATE_TODAY,
+     dict(exit=1, fails=[('touch targets >= 44 px', 'abs20 30.00x20.00'),
+                         ('touch targets >= 44 px', 'fix20 30.00x20.00')])),
+    ('u2', 'text hidden from the walk by inset(0 round 50%), which insets nothing', mut_u2, GATE_TODAY,
+     dict(exit=1, fails=[('contrast (measured behind the text)', '< 4.5')])),
+    ('u3', 'an inline span excluded by a text indent that does not move its text', mut_u3, GATE_TODAY,
+     dict(exit=1, fails=[('contrast (measured behind the text)', '< 4.5')])),
+    ('u4', 'a set written with a fullwidth letter x', mut_u4, GATE_TODAY,
+     dict(exit=1, fails=[('the multiplication sign in every set string', "'8 x 1'")])),
+    ('u5', '"optional" written with a fullwidth letter, on a set screen', mut_u5,
+     ['quality/statesheet.py', '--only', 'W-43'],
+     dict(exit=1, stdout=['copy: "optional" on a set screen'])),
+    ('u6', 'the primary pushed sideways out of the viewport', mut_u6, GATE_TODAY,
+     dict(exit=1, fails=[('primary action in first viewport', 'right')])),
+    ('u7', 'the primary at opacity 0', mut_u7, GATE_TODAY,
+     dict(exit=1, fails=[('primary action in first viewport', 'is not drawn on the screen')])),
+    ('u8', 'an RIR chip at visibility hidden', mut_u8, GATE_WORKOUT,
+     dict(exit=1, fails=[('RIR chips are the five locked values', 'not visible')])),
+    ('u9', "T-02's status line moved 3 px left and widened 3 px, so its right edge moves 6",
+     mut_u9, SHEET_T02,
+     dict(exit=1, stdout=['T-02', 'right', 'rect edge moved (px)'])),
     ('q1', 'a size the gate does not know, which used to empty the list', mut_none, GATE_BAD_SIZE,
      dict(exit=2, stdout=['REFUSED', '--sizes 390x844', 'the sizes are'])),
     ('q2', 'a word off the owner\'s list split by a soft hyphen', mut_q2, GATE_TODAY,
@@ -421,8 +490,12 @@ ROWS = [
      dict(exit=1, stdout=['T-02', 'colour', 'became', 'colour moved (levels)'])),
     ('q8', 'a minus sign doing a dash\'s job in Today\'s status sentence', mut_q8, GATE_TODAY,
      dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    # the catcher names the guarded render's own line: the state, and the first line of the
+    # error it raised. An exit code and a bare "T-02" could be supplied by any other problem.
     ('q5', 'one state whose apply throws', mut_q5, SHEET_T0,
-     dict(exit=1, stdout=['T-02'], report='states-report-T-0.txt')),
+     dict(exit=1, stdout=['T-02', 'state did not apply',
+                          'teeth q5: this state cannot apply'],
+          report='states-report-T-0.txt')),
     ('q6', '--accept pointed at another build by EARNED_APP', mut_none,
      ['quality/statesheet.py', '--accept'],
      dict(exit=2, stdout=['REFUSED', 'EARNED_APP'], app='compare')),
