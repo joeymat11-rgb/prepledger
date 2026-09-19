@@ -5,10 +5,13 @@
    %TEMP%, so a stage that outlives one tool call can be started and then polled.
 
    FOUR THINGS IT WILL NOT DO, and they are the point:
-   0. IT NEVER PUSHES A BRANCH IT WAS NOT SHOWN. Stage b6 resolves the branch this
-      worktree stands on, names it on both sides of the refspec, and refuses `main`,
-      `rebuild/t2-client-core` and a detached HEAD by name (R1 B2). The fast-forward of
-      the chain branch is stage b7 and it is a `hand` stage.
+   0. IT NEVER WRITES A BRANCH IT WAS NOT SHOWN. EVERY stage that merges, commits or
+      pushes - a3, b1 and b6, the closed list `WRITE_STAGES` - goes through ONE guard,
+      `writeBranch()`: it resolves the branch this worktree stands on and refuses `main`,
+      `rebuild/t2-client-core` and a detached HEAD BY NAME (R1 B2 for b6; R2 M1 for a3 and
+      b1, which MERGE and were not guarded). b6 additionally names the branch on both
+      sides of the refspec. The branch being written is printed in the stage banner and in
+      `--plan`. The fast-forward of the chain branch is stage b7 and it is a `hand` stage.
    1. IT NEVER RUNS --full UNLESS STARTED WITH --pm-runs-full. --full needs the private
       census and belongs to the PM alone. Without the flag a `pm` stage prints exactly
       what the PM must run and stops with exit 3.
@@ -68,10 +71,34 @@ const RUNNER = 'rebuild/lanes/b/tooling/b-package.cjs';
    branch or on main, a script has pushed the branch no script may push. So b6 names a
    BRANCH, the branch is resolved from Git, these two are refused by name, and a detached
    HEAD is refused as well (there is no branch to name). */
-const NEVER_PUSH = ['main', 'rebuild/t2-client-core'];
+const NEVER_WRITE = ['main', 'rebuild/t2-client-core'];
+const NEVER_PUSH = NEVER_WRITE;                     // the name R1 B2 introduced, kept
+/* R2 M1. The R1 fix put that guard inside pushBranch(), which only b6 calls - and a3 and
+   b1 are `run` stages whose command is `git fetch origin && git merge --no-edit <tip>`,
+   started with `cd /d "<REPO>"` where REPO is resolved from __dirname. Nothing asked which
+   branch that worktree stood on, so a3 or b1 started from a worktree on `main` was a
+   script MERGING THE CHAIN TIP INTO MAIN. "Never merge into main" is the same
+   stop-the-line rule as "never push the chain branch", so there is now ONE guard and every
+   writing stage goes through it. WRITE_STAGES is the closed list and
+   test/chain-guard.test.cjs holds it to the commands: a `run` stage whose command contains
+   a writing verb and is not in this list fails that cell. */
+const WRITE_STAGES = ['a3', 'b1', 'b6'];
 function currentBranch(root) {
   const r = M.git(root, ['symbolic-ref', '--quiet', '--short', 'HEAD'], { encoding: 'utf8' });
   return r.status === 0 ? String(r.stdout).trim() : null;
+}
+/* THE ONE GUARD. Resolves the branch this worktree stands on and refuses, BY NAME, a
+   detached HEAD and the two branches no script of this lane writes. `verb` only changes
+   the refusal code (CHAIN-PUSH-REFUSED / CHAIN-MERGE-REFUSED) so each stage's refusal
+   still says what it was about to do. */
+function writeBranch(root, verb) {
+  const here = currentBranch(root);
+  const what = verb === 'PUSH' ? 'push' : 'merge into';
+  if (!here) throw new Error('CHAIN-' + verb + '-REFUSED: HEAD is detached in ' + root + '; there is no branch to ' + what + '. Check out the lane branch first.');
+  if (NEVER_WRITE.includes(here)) throw new Error('CHAIN-' + verb + '-REFUSED: this worktree stands on ' + here + ', which no script of this lane writes. ' + (verb === 'PUSH'
+    ? 'b6 pushes a LANE branch only; the fast-forward of ' + NEVER_WRITE[1] + ' is stage b7 and it is the PM\'s hand.'
+    : 'a3 and b1 merge the chain tip INTO THE LANE BRANCH; merging it into ' + here + ' is a merge commit nobody asked for. Check out the lane branch first.'));
+  return here;
 }
 /* The command a `run` stage actually executes. Every one of them is the --ci side or a
    plain git read/merge; not one of them can reach --full. */
@@ -79,7 +106,12 @@ function commandFor(id, key, o) {
   const tip = o.tipRef || 'origin/rebuild/t2-client-core';
   switch (key) {
     case 'a1': case 'a4': case 'a6': return '"' + NODE + '" ' + RUNNER + ' --ci --package ' + id;
-    case 'a3': case 'b1': return 'git fetch origin && git merge --no-edit ' + tip;
+    /* R2 M1: resolve the branch FIRST. The command is unchanged; what changed is that it
+       is not returned at all from a worktree standing where this lane does not merge. */
+    case 'a3': case 'b1': {
+      writeBranch(o.root || REPO, 'MERGE');
+      return 'git fetch origin && git merge --no-edit ' + tip;
+    }
     case 'b4': return 'git -c core.pager=cat diff --stat -- rebuild/coach';
     case 'b6': {
       const branch = pushBranch(o);
@@ -92,12 +124,21 @@ function commandFor(id, key, o) {
    branch the worktree stands on: naming a branch you are not on is how the wrong head
    gets pushed, and this script would rather stop than guess which one was meant. */
 function pushBranch(o) {
-  const here = currentBranch(o.root || REPO);
-  if (!here) throw new Error('CHAIN-PUSH-REFUSED: HEAD is detached in ' + (o.root || REPO) + '; there is no branch to push. Check out the lane branch first.');
-  if (NEVER_PUSH.includes(here)) throw new Error('CHAIN-PUSH-REFUSED: this worktree stands on ' + here + ', which no script pushes. b6 pushes a LANE branch only; the fast-forward of ' + NEVER_PUSH[1] + ' is stage b7 and it is the PM\'s hand.');
+  const here = writeBranch(o.root || REPO, 'PUSH');
   if (o.branch && o.branch !== here) throw new Error('CHAIN-PUSH-REFUSED: --branch ' + o.branch + ' but this worktree stands on ' + here + '. Check out ' + o.branch + ', or drop --branch.');
   return here;
 }
+/* THE BANNER (R2 M1): the branch a writing stage is about to write, or its refusal, so the
+   fact the PM most wants before pressing go is on the screen in both --plan and the run.
+   A stage that writes nothing answers null and prints no banner. */
+function writeTargetFor(key, o) {
+  if (!WRITE_STAGES.includes(key)) return null;
+  try { return key === 'b6' ? pushBranch(o || {}) : writeBranch((o && o.root) || REPO, 'MERGE'); }
+  catch (e) { return e.message; }
+}
+/* R2 N4. `c.replace(NODE, 'node')` left the quotes that stood around the executable path,
+   so --plan printed `$ "node" rebuild/...`, which is not the command. */
+const pretty = c => String(c).split('"' + NODE + '"').join('node').split(NODE).join('node');
 function paths(key) {
   const base = path.join(TMP, 'sealgen-chain-' + key);
   return { cmd: base + '.cmd', log: base + '.log', done: base + '.done' };
@@ -153,10 +194,12 @@ function main(argv) {
       /* A stage that would REFUSE says so here, in the plan, rather than at the moment
          someone runs it: --plan from a worktree standing on the chain branch prints b6's
          refusal by name (R1 B2). */
+      const target = kind === 'run' ? writeTargetFor(k, o) : null;
+      if (target) console.log('           WRITES INTO: ' + target);
       let c = null;
       try { c = kind === 'run' ? commandFor(o.id || '<ID>', k, o) : null; }
       catch (e) { console.log('           $ ' + e.message); }
-      if (c) console.log('           $ ' + c.replace(NODE, 'node'));
+      if (c) console.log('           $ ' + pretty(c));
     }
     console.log('\n  [run ] this script runs; [PM  ] needs --full and the private census, refused without --pm-runs-full;');
     console.log('  [hand] a judgment or a ledger write, printed and never executed.');
@@ -187,6 +230,9 @@ function main(argv) {
     console.log('  ' + (done ? 'DONE' : 'RUNNING') + '  ' + p.log + '\n' + tail(p.log, 25));
     return done ? 0 : 4;
   }
+  /* R2 M1: the banner, before anything is started. A refusal reaches the caller through
+     commandFor below; this line is so the branch is on the screen either way. */
+  if (WRITE_STAGES.includes(key)) console.log('  WRITES INTO: ' + writeTargetFor(key, o));
   const c = commandFor(o.id, key, o);
   if (!c) throw new Error('CHAIN-STAGE-HAS-NO-COMMAND ' + key);
   startStage(o.id, key, c, o);
@@ -195,7 +241,7 @@ function main(argv) {
      to print "started detached" when it started nothing. */
   if (o.dryRun) {
     console.log('\n  DRY RUN: the stage .cmd was written and NOTHING was started.');
-    console.log('  cmd: ' + p.cmd + '\n  it would run:  ' + c.replace(NODE, 'node'));
+    console.log('  cmd: ' + p.cmd + '\n  it would run:  ' + pretty(c));
     return 0;
   }
   console.log('\n  started detached. Poll with:  node ' + path.relative(REPO, __filename).split(path.sep).join('/') + ' --id ' + o.id + ' --stage ' + key + ' --poll');
@@ -206,4 +252,4 @@ if (require.main === module) {
   try { process.exit(main(process.argv.slice(2))); }
   catch (e) { console.error('CHAIN FAILED: ' + e.message); process.exit(1); }
 }
-module.exports = { STAGES, commandFor, paths, main, pushBranch, currentBranch, NEVER_PUSH };
+module.exports = { STAGES, commandFor, paths, main, pushBranch, currentBranch, NEVER_PUSH, NEVER_WRITE, WRITE_STAGES, writeBranch, writeTargetFor, pretty };

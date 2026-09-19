@@ -86,9 +86,22 @@ function childEnv(root) {
   const env = Object.assign({}, process.env, CHILD_ENV_FIXED, { EARNED_CLIENT_DIR: path.join(root, 'rebuild/client') });
   if (r.ok) { env.ENGINE_MAIN = r.main; env.ENGINE_OLD = r.old; }
   for (const key of CHILD_ENV_DELETED) delete env[key];
+  /* THE SECOND REFUSAL, and it cost the 25-needle run to find. `node --test` sets
+     NODE_TEST_CONTEXT=child-v8 in the process running a test file, laws() copies
+     process.env, and a `node --test` grandchild that inherits it reports over the v8
+     SERIALIZER instead of TAP: measured here, stdout length 0, exit status 0, no
+     `# pass N` anywhere - and the SAME child prints `# pass 3` the moment the variable is
+     cleared. So a needle measured from inside a test runner is not the needle children()
+     will see, and worse, a RED child looks like a green one because the status is still 0.
+     This env is NOT silently repaired: laws() would not have built a repaired env either.
+     It is REFUSED, and a caller that wants to measure spawns a process that is not a test
+     child (which is what the replay cell does for the generator it runs). */
+  const inTestRunner = !!process.env.NODE_TEST_CONTEXT;
   return {
-    env, exact: r.ok,
-    why: r.ok ? null : 'the pinned reference bundles could not be built here, so ENGINE_MAIN and ENGINE_OLD are ABSENT where children() always sets them: ' + r.why,
+    env, exact: r.ok && !inTestRunner, referenceOk: r.ok, inTestRunner,
+    why: inTestRunner
+      ? 'this process is itself a `node --test` child (NODE_TEST_CONTEXT=' + process.env.NODE_TEST_CONTEXT + '). Every child spawned from here inherits it, reports over the v8 serializer instead of TAP, prints NOTHING on stdout and still exits 0, so no needle can be read and a failing child is indistinguishable from a passing one. Run the generator from a shell, not from inside a test.'
+      : r.ok ? null : 'the pinned reference bundles could not be built here, so ENGINE_MAIN and ENGINE_OLD are ABSENT where children() always sets them: ' + r.why,
   };
 }
 /* Run one declared child exactly as children() does and return { status, out }.
@@ -111,10 +124,20 @@ function needleStandsAtLineStart(out, needle) {
   return new RegExp('^' + esc, 'm').test(out);
 }
 /* A node --test tap run ends with `# pass N`. That line, verbatim, is the needle every
-   --test child of S6, S7 and S8 declares. */
+   --test child of S6, S7 and S8 declares.
+
+   THE CR. This used to be /^# pass (\d+)$/m, and on Windows the child's stdout is CRLF:
+   `$` in multiline mode matches before the \n, the \r is still there, and the pattern
+   never matched. Every --test child therefore came back with NO needle - measured on a
+   worktree standing at 82c98f8 with a whole node_modules, where 24 of the 25 children ran
+   green and 24 of the 25 needles were blank; the one that came through was the
+   engine-files differential, whose needle is a sentence matched by a prefix and not by
+   this function. That is requirement (g)'s first honest run and this is what it found.
+   The needle RETURNED is CR-free, which is the form the sealed packages carry and the
+   form children() matches: its predicate is anchored only at the start of the line. */
 function tapPassNeedle(out) {
-  const m = out.match(/^# pass (\d+)$/m);
-  return m ? m[0] : null;
+  const m = String(out).match(/^# pass (\d+)[ \t\r]*$/m);
+  return m ? '# pass ' + m[1] : null;
 }
 /* Is `a` an ancestor of `b`? `git merge-base --is-ancestor` exits 0 for yes, 1 for no and
    anything else for a bad rev, which is why the third case is its own answer (R1 N9). */

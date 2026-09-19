@@ -332,6 +332,9 @@ const TODO_BLANK = '<<<PM: this is a judgment or a hand-written line; the genera
    nothing is carried from the parent's file without being re-measured against it. */
 function buildPackage(root, ctx, todo) {
   const P = ctx.parentSpec, sb = ctx.sourceBase, ph = ctx.postHead;
+  /* R2 M3: the declared children are resolved BEFORE the package is built, because
+     "does a declared child execute this path" is a question about them. */
+  const exec = ctx.execution;
   const parentPins = P.product;
   const changed = M.diffNames(root, ctx.parentSeal, ph);
   const candidates = new Set(Object.keys(parentPins));
@@ -361,7 +364,9 @@ function buildPackage(root, ctx, todo) {
        post-image in this package. The ruling line itself goes to TODO.md. */
     if (ctx.released.includes(f)) {
       if (!pinned) { undecided.push({ f, why: 'given as --released but the parent does not pin it; only a path the parent sealed can be released from the seal' }); continue; }
-      todo.push({ what: 'the RELEASE-FROM-SEAL token line for ' + f, why: 'the runner requires the released set to equal the granted set of a PM ruling line, in both directions. The generator declares the role and nothing else; the line, and the artifact released block proposed() builds from it, are the PM\'s.' });
+      /* R2 N3: the role does not exist in the runner yet, and a TODO entry that names
+         only the ruling line lets a package be written that refuses on sight. */
+      todo.push({ what: 'the RELEASE-FROM-SEAL token line for ' + f, why: 'the runner requires the released set to equal the granted set of a PM ruling line, in both directions. The generator declares the role and nothing else; the line, and the artifact released block proposed() builds from it, are the PM\'s. AND: `released` DOES NOT EXIST IN THE RUNNER UNTIL S9-RELEASE-SPEC HUNK H1 LANDS - PRODUCT_ROLES at b-package.cjs:351 is the five-member list and :1519 refuses anything else with PRODUCT-ROLE-NOT-IN-THE-CLOSED-VOCABULARY. A package declaring this role before the hunk is applied refuses there, so the hunks go in first and the declaration second.' });
       product[f] = { pre, post: null, role: 'released' };
       continue;
     }
@@ -373,21 +378,37 @@ function buildPackage(root, ctx, todo) {
        that fails that test cannot be declared at all: it is REFUSED here, not written
        into the JSON with a TODO line contradicting it. */
     if (role === 'new' && pre !== null && pre === post) {
-      undecided.push({ f, why: 'role:new but pre === post; the runner requires pre === null OR pre !== post, so this path cannot be declared new and is NOT declared. Either it belongs to an earlier package, or the PM declares it with another role by hand.' });
+      /* R2 N6. The runner's FIFTH role is exactly this case: `pinned-unchanged` is
+         pre === post, both real bytes, NOT parent-pinned, and EXECUTED BY A DECLARED
+         CHILD (b-package.cjs:341-351, :1525-1528, :1552, :1947-1949), and :1995 says the
+         case arrives by itself ("re-declare them pinned-unchanged at the next seal"). So
+         when the path is a declared child's argv target the role is not a question and
+         the generator proposes it - with the TODO line kept, because it is still the PM
+         who decides the path is product. When it is not, the R1 N8 refusal stands. */
+      if (exec && exec.argv.has(f)) {
+        undecided.push({ f, why: 'role:pinned-unchanged PROPOSED (not `new`): pre === post, the parent does not pin it, and it IS the argv target of declared child `' + exec.origin.get(f) + '`, which is the runner\'s own test for the fifth role (b-package.cjs:1525-1528, :1552, :1947-1949; :1995 says the case arrives at the next seal). Confirm the PM means to declare it; a path the PM does not want declared is answered with --exclude.' });
+        product[f] = { pre, post, role: 'pinned-unchanged' };
+        continue;
+      }
+      undecided.push({ f, why: 'role:new but pre === post, and NO declared child executes it, so `pinned-unchanged` (the runner\'s fifth role) does not apply either. The runner requires pre === null OR pre !== post for `new`, so this path cannot be declared new and is NOT declared. Either it belongs to an earlier package, or the PM declares it with another role by hand.' });
       continue;
     }
-    /* R1 N4. A `new` path that NO DECLARED CHILD executes is the exact shape DECISIONS:524
-       N1 ruled on: the PM kept the two p3-layout-v2 cells UNDECLARED and gave them a CI
-       home by exact path instead. That path gets that reason by name; a new path under a
-       declared child root gets the ordinary one. The wording is the difference between a
-       list the PM reads and a list the PM skims. */
+    /* R1 N4 and R2 M3. A `new` path that NO DECLARED CHILD EXECUTES is the exact shape
+       DECISIONS:524 N1 ruled on: the PM kept the two p3-layout-v2 cells UNDECLARED and
+       gave them a CI home by exact path instead. Which paths those are is decided by
+       executionClosure() above - argv target, reached by import, or neither - and NOT by
+       whether the path stands under a declared child root, which was R1's fix and was
+       false for six of the eleven paths it spoke about (R2 M3). */
     if (role === 'new') {
-      const underRoot = (ctx.childRoots || []).some(r => f.startsWith(r));
+      const hops = exec && exec.hop.has(f) ? exec.hop.get(f) : null;
+      const who = exec && exec.origin.get(f);
       undecided.push({
         f,
-        why: underRoot
-          ? 'role:new and the parent does not pin it - confirm the PM means to declare it (DECISIONS:487 stop 7 makes a lanes/d file product only when a DECLARED CHILD executes it).'
-          : 'role:new, the parent does not pin it, and it stands under NO declared child root (' + ((ctx.childRoots || []).join(', ') || 'none given') + '), so no declared child executes it. This is the DECISIONS:524 N1 shape: there the PM ruled such a path UNDECLARED and gave it a CI home by exact path instead. Answer with --exclude to keep it undeclared, or add a child root that executes it.',
+        why: (exec && exec.argv.has(f))
+          ? 'role:new and the parent does not pin it - confirm the PM means to declare it. A DECLARED CHILD EXECUTES IT BY NAME: it is an argv target of child `' + who + '`, which is what DECISIONS:487 stop 7 asks, and proposed() will put it in executionPins. This is NOT the DECISIONS:524 N1 shape.'
+          : hops !== null
+            ? 'role:new and the parent does not pin it - confirm the PM means to declare it. No declared child names it in argv, but child `' + who + '` REACHES IT THROUGH ' + hops + ' IMPORT HOP(S) (nearest importer: ' + exec.by.get(f) + '), so a declared child does execute it. proposed() pins only argv targets, so this path does NOT enter executionPins and declaring it is a real decision. This is NOT the DECISIONS:524 N1 shape.'
+            : 'role:new, the parent does not pin it, and NO DECLARED CHILD EXECUTES IT: it is no declared child\'s argv target and no declared child reaches it by import at the post head. This is the DECISIONS:524 N1 shape: there the PM ruled such a path UNDECLARED and gave it a CI home by exact path instead. Answer with --exclude to keep it undeclared, or give it to a child that executes it.',
       });
     }
     product[f] = { pre, post, role };
@@ -449,6 +470,59 @@ function measureChildren(root, ctx, todo) {
 }
 /* The parent's declared children, mirrored: the supersede cells and the differential take
    the child's own slug, everything else is carried by name and re-measured. */
+/* R2 M3. "DOES A DECLARED CHILD EXECUTE THIS PATH?" - the question DECISIONS:524 N1
+   actually asked, and it is not "does the path stand under a declared child root". The
+   s8-* supersede cells ARE the child argv targets and they live under
+   rebuild/m4/workout/test/, which is no child's root; the root test called six of them
+   un-executed and invited the PM to --exclude the child cells of their own package.
+
+   THE TEST USED HERE, and why it is this one and not another:
+     (1) the path is a TARGET IN A DECLARED CHILD'S ARGV. This is the runner's own test:
+         proposed() at b-package.cjs:2800 puts every child argv target into executionPins,
+         so a path in this class is executed by name and the runner knows it;
+     (2) otherwise, the path is REACHED BY IMPORT from such a target, transitively, walking
+         the relative `require(...)` / `from '...'` / `import('...')` specifiers of the
+         GIT BLOBS at the post head (never working files, rule (1) of measure.cjs). A cell
+         that imports a module does execute it, and `node --test` proves nothing about a
+         module no cell reaches. proposed() does NOT pin this class, so a path here is a
+         real declaration decision and it is said so;
+     (3) neither: no declared child executes it. Only this class is the DECISIONS:524 N1
+         shape and only this class is invited to --exclude.
+   Measured on the S8 replay, the eleven `new` paths split 6 / 3 / 2, and the two of class
+   (3) are exactly the two p3-layout-v2 cells the PM ruled undeclared at :524 N1. */
+const IMPORT_RE = /(?:\brequire\(\s*|\bfrom\s+|\bimport\(\s*)['"]([^'"]+)['"]/g;
+const EXTS = ['', '.cjs', '.mjs', '.js', '/index.cjs', '/index.mjs', '/index.js'];
+function executionClosure(root, rev, decls) {
+  const present = new Set(M.gitText(root, ['ls-tree', '-r', '--name-only', rev]).split('\n').map(s => s.trim()).filter(Boolean));
+  const argv = new Set(), hop = new Map(), by = new Map(), origin = new Map(), q = [];
+  for (const c of decls) for (const a of c.argv) {
+    const f = String(a);
+    if (f.startsWith('--') || !present.has(f)) continue;
+    argv.add(f);
+    if (!hop.has(f)) { hop.set(f, 0); by.set(f, null); origin.set(f, c.name); q.push(f); }
+  }
+  let guard = 0;
+  while (q.length && guard < 8000) {
+    const f = q.shift(); guard += 1;
+    const b = M.blobBytes(root, rev, f);
+    if (!b) continue;
+    const src = b.toString('utf8');
+    IMPORT_RE.lastIndex = 0;
+    let m;
+    while ((m = IMPORT_RE.exec(src)) !== null) {
+      if (!m[1].startsWith('.')) continue;
+      const base = path.posix.normalize(path.posix.join(path.posix.dirname(f), m[1]));
+      for (const e of EXTS) {
+        const cand = base + e;
+        if (hop.has(cand)) break;
+        if (!present.has(cand)) continue;
+        hop.set(cand, hop.get(f) + 1); by.set(cand, f); origin.set(cand, origin.get(f)); q.push(cand);
+        break;
+      }
+    }
+  }
+  return { argv, hop, by, origin };
+}
 function childDeclsFor(ctx, newOwnChild) {
   const list = ctx.parentSpec.children.map(c => ({
     name: c.name.replace(new RegExp('^' + ctx.parent.slug + '-'), ctx.child.slug + '-'),
@@ -672,16 +746,19 @@ function finish(ctx, o, todo, wrote, runner, cells, csDone, out, say) {
     what: 'the ' + frozenPins.length + ' spec(s) pinned to an OLDER runner and left alone',
     why: 'these pin a runner sha256 that is not the one at the base (' + String(runnerAtBase).slice(0, 12) + '), so they are frozen where their own seal left them and this round does not rewrite them. The S8 round did the same with B-NTC and B1..B4. If one of them must move, that is a PM ruling and a separate hunk. Left alone: ' + frozenPins.join(', '),
   });
-  /* (e) + (g) THE PACKAGE AND THE NEEDLES. */
-  const pins = buildPackage(root, ctx, todo);
-  for (const m of pins.mismatches) todo.push({ what: 'PARENT PIN MISMATCH ' + m.f, why: 'the parent records post ' + m.parentPost.slice(0, 12) + ' and the blob at the source base is ' + String(m.measuredPre).slice(0, 12) + '; this is the check DECISIONS:511 calls "re-hashed from Git, 0 mismatches" and it did NOT pass' });
-  for (const u of pins.undecided) todo.push({ what: 'declared path ' + u.f, why: u.why });
+  /* (e) + (g) THE PACKAGE AND THE NEEDLES. The children come FIRST (R2 M3): the package
+     loop asks of every `new` path whether a declared child executes it, and it cannot ask
+     that before the declared children exist. */
   const ownName = ctx.ownChildName;
   const laneCells = ctx.laneCells;
   const ownChild = ownName && laneCells.length ? { name: ownName, argv: ['--test', '--test-reporter=tap'].concat(laneCells), needle: null } : null;
   if (ctx.childRoots.length && !ownChild) todo.push({ what: 'the Y1 own-child', why: 'no .test file stands under ' + ctx.childRoots.join(', ') + ' at the post head, so MIN_OWN_CHILDREN = 1 cannot be met' });
   const decls = childDeclsFor(ctx, ownChild);
   ctx.childDecls = decls;
+  ctx.execution = executionClosure(root, ctx.postHead, decls);
+  const pins = buildPackage(root, ctx, todo);
+  for (const m of pins.mismatches) todo.push({ what: 'PARENT PIN MISMATCH ' + m.f, why: 'the parent records post ' + m.parentPost.slice(0, 12) + ' and the blob at the source base is ' + String(m.measuredPre).slice(0, 12) + '; this is the check DECISIONS:511 calls "re-hashed from Git, 0 mismatches" and it did NOT pass' });
+  for (const u of pins.undecided) todo.push({ what: 'declared path ' + u.f, why: u.why });
   /* S9-RELEASE-SPEC B.6: a released path must NOT be a child argv target, because
      proposed() puts every child argv target into executionPins and a released path that
      re-entered there would be silently re-pinned for a generation (risk R2). Measured
@@ -708,6 +785,15 @@ function finish(ctx, o, todo, wrote, runner, cells, csDone, out, say) {
     roles: Object.values(pins.product).reduce((a, v) => (a[v.role] = (a[v.role] || 0) + 1, a), {}),
     parentPinsReHashed: Object.keys(ctx.parentSpec.product).length, parentPinMismatches: pins.mismatches.length,
     children: kids.length, needlesMeasured: kids.filter(k => k.measured).length, todo: todo.length,
+    /* R2 M3: every `new` path with the class that decided its TODO sentence, so the
+       question "which sentence does each of these get" is answered by a file and not by
+       reading prose. `argv` = a declared child's argv target; `import:N` = reached from
+       one in N hops; `none` = no declared child executes it, the DECISIONS:524 N1 shape. */
+    newPaths: Object.keys(pins.product).filter(f => pins.product[f].role === 'new').map(f => ({
+      path: f,
+      executedBy: ctx.execution.argv.has(f) ? 'argv' : ctx.execution.hop.has(f) ? 'import:' + ctx.execution.hop.get(f) : 'none',
+      child: ctx.execution.origin.get(f) || null,
+    })),
   }, null, 2) + '\n']);
   for (const [rel, text] of wrote) writeOut(out, rel, text);
   say('SEAL-AUTOMATION ' + ctx.child.name + ' generated into ' + out);
@@ -751,4 +837,4 @@ if (require.main === module) {
   try { process.exit(main(process.argv.slice(2))); }
   catch (e) { console.error('GEN FAILED: ' + e.message); process.exit(1); }
 }
-module.exports = { main, parseArgv, editRunner, editToolingCell, editChildSpecs, editWorkflow, mirrorCells, buildPackage, childDeclsFor, measureChildren, assembleSpec, finalLines, buildChain, slugOf, idSlug, words, STAGES, TODO_BLANK, specPath, RUNNER_PATH, TOOLING_CELL, WORKFLOW, CELL_DIR, childSpecsFiles, laneCellsUnder, mirroredBlockAt };
+module.exports = { main, parseArgv, editRunner, editToolingCell, editChildSpecs, editWorkflow, mirrorCells, buildPackage, childDeclsFor, executionClosure, measureChildren, assembleSpec, finalLines, buildChain, slugOf, idSlug, words, STAGES, TODO_BLANK, specPath, RUNNER_PATH, TOOLING_CELL, WORKFLOW, CELL_DIR, childSpecsFiles, laneCellsUnder, mirroredBlockAt };
