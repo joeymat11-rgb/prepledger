@@ -1152,8 +1152,35 @@ base as a git ref argument (default `cc87c072`); it extracts that ref's two card
 | **`ew2b-n-register.mjs`** | **NEW, loop round 1.** Spec 5's table counted (27 ids, so B0 writes 28), and the permitted `slugOf` minting boundary measured at 1 changed line | **exit 0** | **exit 0** |
 | `ew2b-support.mjs` | the scaffold `ew2b-b2-route1-auth.mjs` needs: ONE era client, its ONE bindings object handed back, every durable load counted | imported | imported |
 
-Every farm-capable cell's output is **byte-identical on the two systems**. No U+2013 and no U+2014
-appears in any file this lane authored, counted rather than claimed.
+### 10.1 Byte-identity on the two systems, hashed on both rather than claimed
+
+Round 1 wrote "every farm-capable cell's output is byte-identical on the two systems". **That is
+true of six of the seven and FALSE of the seventh**, and round 1 should have checked it. At the head
+this round pushed, each cell's stdout was written to a file on each system and hashed there
+(`sha256sum` in the farm scratch, `certutil -hashfile` on the PC):
+
+| cell | sha256 of its stdout, BOTH systems |
+|---|---|
+| `ew2b-r41-d3-generation.mjs` | `f37b6deba0545d0f75e458328a9191ea49e21894e22187e2d53a87b76872bb85` |
+| `ew2b-r41-d4-planbasis.mjs` | `8286cd9d8f10eb8abd0b6fcd49b3456b1c9d7c2f7f40501f2a674179b6cd39d4` |
+| `ew2b-r42-journeys.mjs` | `7de3a7891ca4e9a635aadc6365479cfe03ba98d523667b3b59afcf17d928ba32` |
+| `ew2b-b1-card-handoff.mjs` | `9e4c1e1954050062f80529d2e587e22ce0de626ae6ce6c611bb0772bb9bbd3a8` |
+| `ew2b-b2-route1-auth.mjs` | `6340d03744a1f9217816b23ba9081314f94c02628030b3f631bbcdfbf020bf91` |
+| `ew2b-n-register.mjs` | `b0e8260eab99939a90de94040df11e220a577ebf347b9297d4f572c6885f4b4f` |
+
+**`ew2b-r40-hunk-e-base.mjs` is the seventh and it DIFFERS**, by exactly one line and by design: it
+prints the checkout it measured, which is `C:\Users\joeym\AppData\Local\Temp\ew2-run\` on the PC and
+`/home/claude/farm/scratch/wt/ew2final/` in the farm. With that one line removed, both stdouts hash
+to `8f52f149e963580cdcb6e156aa4b7972bb707825131592a66ce91270caa2c123`. Every other line, including
+every count, is the same on both.
+
+The three `ew2b-r39-*` cells cannot run in the farm at all and this round re-measured why: the farm
+scratch fails at `rebuild/m3/w7-preview/import/test/support.mjs:108`,
+`port.cjs did not seal the invented bundle (status 2)`, with `4. ORACLE FAIL ... NO BUNDLE WRITTEN`.
+That is the include list refusing to hand over the port's oracle, exactly as 7.2 says, and it is not
+a defect in the cells.
+
+No U+2013 and no U+2014 appears in any file this lane authored, counted rather than claimed.
 
 ---
 
