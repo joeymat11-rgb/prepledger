@@ -563,3 +563,104 @@ test('B.8 (12) - a released block naming a path the grandparent never pinned cha
   assert.equal(wider, plain, 'the skip is a no-op over a path no ancestor pinned, not an admission');
   assert.match(wider, /1 un-superseded grandparent pin\(s\)/);
 });
+
+/* ==== (X1) THE ALREADY SEALED ARTIFACTS, which H10 and H11 must not move ==
+   The PM asked for this by name before the ancestor re-pins, and it is the
+   question every artifact sealed BEFORE this role turns on. ARTIFACT_KEYS is
+   an exact key set and :3021 is a JSON string equality, so if H10 or H11 had
+   moved one key, one order or one byte of what proposed() builds for a spec
+   that declares NO release block, then every one of those artifacts would
+   stop recomputing the moment its own spec's tooling.runnerSha256 was
+   re-pinned to these runner bytes - which is E fact 7, and it is the next
+   thing this lane does. Measured against the REAL S8 artifact's own key
+   order, read off disk, because that is the artifact E fact 7 re-points. */
+const S8_ARTIFACT_KEYS = Object.keys(JSON.parse(fs.readFileSync(
+  path.join(sourceRoot, 'rebuild/m4/spec/acceptance-s8-real-shape.json'), 'utf8')));
+const releasesNothing = () => {
+  const none = spec();
+  delete none.release;
+  none.product[RELEASED] = pin(PRE); none.product[RELEASED2] = pin(PRE2);
+  return none;
+};
+test('(X1) - a spec with NO release block recomputes byte for byte, and the artifact key set does not move', () => {
+  const b = bound(), none = releasesNothing();
+  const p = api.proposed(none, b);
+  /* The twenty-one keys S8's own sealed artifact carries, IN ITS ORDER, and
+     no twenty-second: H10's spread emits nothing when nothing is released. */
+  assert.equal(S8_ARTIFACT_KEYS.length, 21);
+  assert.deepEqual(Object.keys(p), S8_ARTIFACT_KEYS);
+  assert.equal(Object.hasOwn(p, 'released'), false);
+  /* H11 APPENDED and re-ordered nothing, which is the whole of why keys()
+     can stay an exact set and still read an artifact sealed before S9. */
+  assert.deepEqual(api.ARTIFACT_KEYS, [...S8_ARTIFACT_KEYS, 'released']);
+  /* H10 REBUILDS the product map rather than passing s.product through, so
+     the thing worth measuring is that the rebuild is byte-identical, key
+     order included, and not merely deepEqual. */
+  assert.equal(JSON.stringify(p.product), JSON.stringify(none.product));
+  /* envelope()'s own closure run over it: the freeze pattern accepts an
+     artifact with no released key, and still refuses any other stray one. */
+  api.keys({ ...p, released: null }, api.ARTIFACT_KEYS, 'an artifact that releases nothing');
+  assert.throws(() => api.keys({ ...p, released: null, invented: 1 }, api.ARTIFACT_KEYS, 'closed'), /closed/);
+  /* And :3021 itself, as the runner runs it and as the string it compares. */
+  assert.equal(api.same(p, api.proposed(none, b)), true);
+  assert.equal(JSON.stringify(p), JSON.stringify(api.proposed(none, b)));
+  /* The ruling is not consulted and the grant it hands back is empty. */
+  const r = api.releaseRuling(none, b);
+  assert.deepEqual([r.at, r.line, [...r.granted], r.declared], [null, null, [], []]);
+});
+
+/* ==== (X2) releaseRuling() IS NOT ENTERED for a package that releases =====
+   nothing, and "not entered" is MEASURED rather than argued. The runner is
+   compiled a SECOND time with CHAIN_REF pointed at a ref that does not
+   exist, so any read of the chain ledger throws where it stands. A package
+   with no release block then runs product() and proposed() to completion
+   under it; the same package with its release block back refuses, and that
+   control is what makes the green mean "no read happened" rather than "the
+   read happened to succeed". This is the cost S8, H3 and every other already
+   sealed package must not pay: no RELEASE-NOT-RULED, and no extra Git read
+   on a run that releases nothing. */
+function compiledAt(chainRef) {
+  const src = fixtureSource.replace("const CHAIN_REF = 'refs/heads/fixture-chain';",
+    "const CHAIN_REF = '" + chainRef + "';");
+  assert.notEqual(src, fixtureSource, 'the chain ref really moved');
+  const mod = new Module(runnerFile, module);
+  mod.filename = runnerFile;
+  mod.paths = Module._nodeModulePaths(path.dirname(path.join(sourceRoot, runnerRel)));
+  const inner = mod.require.bind(mod);
+  mod.require = file => inner(path.isAbsolute(file) && file.startsWith(scratch + path.sep)
+    ? path.join(sourceRoot, path.relative(scratch, file)) : file);
+  const saved = process.argv;
+  process.argv = [process.execPath, runnerFile, '--ci', '--package', 'S8'];
+  try {
+    mod._compile(src.slice(0, src.indexOf(delimiter)) +
+      '\nmodule.exports={product,proposed,releaseRuling,init(a,raw){logDir=root;ARTIFACT=a;specRaw=raw;}};', runnerFile);
+  } finally { process.argv = saved; }
+  mod.exports.init(GA_FILE, SPEC_BYTES);
+  return mod.exports;
+}
+test('(X2) - no release block, no ledger read: the chain is unreachable and the package still runs', () => {
+  const blind = compiledAt('refs/heads/no-such-chain-ref-s9a');
+  /* The shape S8, H3 and every other already sealed package has: a parent
+     that sealed nothing this package releases, and a spec that declares the
+     whole of that parent's inventory and releases none of it. The two paths
+     of the closed list are taken out of BOTH maps rather than declared
+     carried, because lane C has already edited their bytes in this fixture
+     and product() would rightly call that drift. */
+  const b = bound(), none = releasesNothing();
+  for (const f of [RELEASED, RELEASED2]) { delete b.acceptance.product[f]; delete none.product[f]; }
+  /* THE CONTROL FIRST, so the green below cannot be green for the wrong
+     reason: with the release block back, this runner must fail trying to
+     READ the chain it cannot reach, and not at any release rule. */
+  let control = null;
+  try { said(() => blind.product(spec(), bound(), null)); } catch (e) { control = e; }
+  assert(control, 'an unreachable chain must refuse, or this cell proves nothing');
+  assert.equal(/RELEASE-/.test(control.message), false,
+    'it refuses trying to read the chain, not at a release rule: ' + control.message);
+  /* And now the thing itself. No released declaration, no release block, no
+     read, no refusal, and the same answer this fixture has always given. */
+  const out = said(() => assert.equal(blind.product(none, b, null), 'NOT-IMPLEMENTED'));
+  assert.equal(/released under/.test(out), false, 'and H8 says nothing, because nothing was released');
+  assert.equal(Object.hasOwn(blind.proposed(none, b), 'released'), false);
+  const r = blind.releaseRuling(none, b);
+  assert.deepEqual([r.at, r.line, [...r.granted], r.declared], [null, null, [], []]);
+});
