@@ -249,7 +249,7 @@ function writeAt(root, rel, bytes) {
 
 /* Builds the fixture, hands (root, literal lines) to the body, and removes it again. */
 function withPack(body) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "s9c-pack-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "s9cpin-pack-"));
   try {
     for (const e of FIXTURE) writeAt(root, e.file, e.bytes);
     const lines = FIXTURE.filter((e) => e.tracked)
@@ -410,7 +410,7 @@ function tryLink(target, linkPath, type) {
    and recorded as unbuildable on Windows, and the junction half is proved on BOTH. */
 test("R4 N1.2 (a): a FILE link over a pinned file refuses NOT-A-REGULAR-FILE, naming it", () => {
   withPack((root, lines) => {
-    const outside = fs.mkdtempSync(path.join(os.tmpdir(), "s9c-twin-"));
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), "s9cpin-twin-"));
     try {
       const twin = path.join(outside, "ink-board.png");
       fs.writeFileSync(twin, png("ink-board"));
@@ -441,7 +441,7 @@ test("R4 N1.2 (a): a FILE link over a pinned file refuses NOT-A-REGULAR-FILE, na
 
 test("R4 N1.2 (b): a DIRECTORY link over a pinned directory refuses it and is not descended", () => {
   withPack((root, lines) => {
-    const outside = fs.mkdtempSync(path.join(os.tmpdir(), "s9c-twin-"));
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), "s9cpin-twin-"));
     try {
       fs.mkdirSync(path.join(outside, "states"));
       fs.writeFileSync(path.join(outside, "states", "C-02-dawn.json"), txt('{"text":"dawn"}\n'));
@@ -465,14 +465,14 @@ test("R4 N1.2 (b): a DIRECTORY link over a pinned directory refuses it and is no
    merges the refusal becomes LITERAL-EMPTY, and when the integrator runs C.5.1 it goes
    green. Three states, in that order, each with a name. */
 test("PACK-ROOT-ABSENT: a pack root that is not in the checkout refuses, naming the root", () => {
-  const gone = path.join(os.tmpdir(), "s9c-no-such-pack-" + process.pid);
+  const gone = path.join(os.tmpdir(), "s9cpin-no-such-pack-" + process.pid);
   assert.ok(!fs.existsSync(gone));
   assert.deepEqual(packPin(gone, ["README.md " + "a".repeat(64)]),
     ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(gone)]);
 });
 
 test("PACK-ROOT-ABSENT: a pack root that is a FILE is absent too, not walked", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "s9c-notdir-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "s9cpin-notdir-"));
   try {
     const f = path.join(dir, "pack");
     fs.writeFileSync(f, txt("not a directory\n"));
@@ -491,7 +491,7 @@ test("LITERAL-EMPTY: a present pack and an unfilled literal refuses, and never p
 });
 
 test("the two refusals do not both fire: an absent root is judged before an empty literal", () => {
-  const gone = path.join(os.tmpdir(), "s9c-no-such-pack-b-" + process.pid);
+  const gone = path.join(os.tmpdir(), "s9cpin-no-such-pack-b-" + process.pid);
   assert.ok(!fs.existsSync(gone));
   assert.deepEqual(packPin(gone, []), ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(gone)]);
 });
@@ -512,7 +512,7 @@ test("a literal line that is not the serialisation fails hard rather than being 
    fixture's bytes are small, which is the right shape for this measurement: the cost of
    this cell is 904 lstat-and-read round trips, not the sha256 of a few megabytes. */
 function withBigPack(body) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "s9c-904-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "s9cpin-904-"));
   try {
     const entries = [{ file: "README.md", bytes: txt("# the pack\n") }];
     const add = (f, b) => entries.push({ file: f, bytes: b });
@@ -600,7 +600,7 @@ test("R1 B2: a regular FILE named __pycache__ is ADDED, while the DIRECTORY stay
    the behaviour this cell chose and the PM can overrule with a sealed byte move. */
 test("R1 B2: a LINK at quality/run is an irregular entry and is named, not treated as output", () => {
   withPack((root, lines) => {
-    const outside = fs.mkdtempSync(path.join(os.tmpdir(), "s9c-twin-"));
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), "s9cpin-twin-"));
     try {
       fs.mkdirSync(path.join(outside, "run"));
       fs.rmSync(path.join(root, "quality", "run"), { recursive: true });
@@ -619,7 +619,7 @@ test("R1 B2: a LINK at quality/run is an irregular entry and is named, not treat
 test("R1 B3: label() names a root inside this checkout repo-relatively and one outside it absolutely", () => {
   assert.equal(label(PACK_ROOT_ABS), PACK_ROOT_REL);
   assert.equal(label(path.join(REPO_ROOT, "rebuild", "m1")), "rebuild/m1");
-  const out = fs.mkdtempSync(path.join(os.tmpdir(), "s9c-label-"));
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "s9cpin-label-"));
   try {
     assert.equal(label(out), toPosix(out));
     assert.notEqual(label(out), PACK_ROOT_REL);
@@ -676,7 +676,7 @@ test("the refusals walk the literal in path BYTE order, one line per moved file"
    MISSING beside it. It is the Windows half the first build did not have. */
 test("R4 N1.2 (c): a DIRECTORY link AT a pinned FILE refuses ONCE, on both operating systems", () => {
   withPack((root, lines) => {
-    const outside = fs.mkdtempSync(path.join(os.tmpdir(), "s9c-twin-"));
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), "s9cpin-twin-"));
     try {
       fs.mkdirSync(path.join(outside, "d"));
       fs.writeFileSync(path.join(outside, "d", "decoy.txt"), txt("not in the pack\n"));
@@ -714,6 +714,59 @@ test("RESIDUAL (R1 N5a): a file inside a __pycache__ DIRECTORY is invisible to t
   withPack((root, lines) => {
     writeAt(root, "quality/__pycache__/teeth.py", txt("# a module the pin cannot see\n"));
     assert.deepEqual(packPin(root, lines), []);
+  });
+});
+
+/* ============================ R2 FIX ROUND ============================
+   Every row below closes a finding of rebuild/lanes/b/S9-PREP-PACK-REVIEW-R2.md or takes a
+   PM ruling on a question the author asked, and names which. */
+
+/* R2 BLOCKING-1. packPin opens with lstatSync(packRoot) and the comment above it says why,
+   and R2 measured that NOTHING exercised that sentence: lstat -> stat turned no row red on
+   either operating system. The two PACK-ROOT-ABSENT rows above use a path that does not
+   exist and a path that is a regular FILE, and stat and lstat agree on both. This is R4
+   section 2's green-while-changed one level up: not a pinned file replaced by a link to a
+   twin, but the WHOLE PACK replaced by one, and the pack root is the one entry the walk
+   never sees. A directory junction needs no privilege on either operating system, so the
+   row is the same construction on both, which is what makes it the Windows row too. */
+test("R2 B1: a LINK standing AT the pack root is ABSENT, even over a twin that matches", () => {
+  withPack((root, lines) => {
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), "s9cpin-hold-"));
+    try {
+      const link = path.join(outside, "approved-2026-09-18");
+      const err = tryLink(root, link, "junction");
+      assert.equal(err, null, "a directory junction needs no privilege on either OS, got " + err);
+      assert.deepEqual(packPin(root, lines), [],
+        "the fixture must be green through its own root, or this row is not the attack");
+      assert.equal(sha256(fs.readFileSync(path.join(link, "README.md"))), sha256(txt("# the pack\n")),
+        "the twin must read back the SAME bytes through the link, or this row is not the attack");
+      assert.deepEqual(packPin(link, lines), ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(link)]);
+    } finally {
+      fs.rmSync(outside, { recursive: true, force: true });
+    }
+  });
+});
+
+/* R2 N3, SAID RATHER THAN LEFT TO BE REDISCOVERED. A LITERAL LINE NAMING A PATH OUTSIDE
+   THE PACK IS BENIGN BY CONSTRUCTION, and the reason is the engine's shape: it never OPENS
+   a literal path, it only asks the Map the walk built, and the walk only ever puts
+   pack-root-relative paths in it. So "..", a leading slash, a drive letter and "./" are
+   each a MISSING line naming the path and no traversal is reachable from any of them.
+   That is not an inconsistency with the backslash clause above, which fails HARD: a
+   backslash is a spelling defect that would make this cell's own constant disagree with
+   its own walk on ONE operating system, which is the class of defect the parser exists to
+   catch, while a path outside the pack is simply a line about a file that is not there. */
+test("R2 N3: a literal path OUTSIDE the pack is benign: it is MISSING, and is never opened", () => {
+  withPack((root, lines) => {
+    const hex = "a".repeat(64);
+    const bs = String.fromCharCode(92);
+    const outsiders = ["../../etc/hosts", "./x", "/etc/hosts", "C:/Windows/win.ini"];
+    assert.deepEqual([...outsiders].sort(byteCompare), outsiders,
+      "the four must already be in path byte order, or the literal is unsorted and fails hard");
+    assert.deepEqual(packPin(root, [...outsiders.map((p) => p + " " + hex), ...lines]),
+      outsiders.map((p) => "PACK-PIN MISSING " + p));
+    assert.throws(() => packPin(root, ["C:" + bs + "Windows " + hex, ...lines]),
+      /must use forward slashes/);
   });
 });
 
