@@ -1672,5 +1672,15 @@
     "dawn"
    ]
   }
- ]
+ ],
+ "env": {
+  "os": "Windows 11 (win32)",
+  "python": "3.14.6",
+  "playwright": "1.62.0",
+  "chromium": "151.0.7922.34",
+  "launch": [
+   "--allow-file-access-from-files",
+   "--font-render-hinting=none"
+  ]
+ }
 }
