@@ -3,6 +3,24 @@
 Lane D2, SPEC ONLY. Author: cowork (Earned lane hand), Opus, 2026-09-19. Branch `rebuild/d2-ew2-spec`
 cut from `0794771`. No product, test, tooling or workflow byte moves on this branch.
 
+**v5, FIX ROUND 5, THE SHORT ROUND, AND THE LAST DOCUMENT ROUND. THE BUILD STARTS FROM THIS FILE.**
+Independent review R4 (`EW2-SPEC-REVIEW-R4.md` at `84e09193`) returned REJECT at `f9b1c8db` with
+four BLOCKING findings and five notes, and it is **the first round that ran the product against the
+SPEC rather than against the spec's own fixture**. Its author wrote a cell to break the design and
+it broke: `E-R16` put a FILE lift id against a DOCUMENT-id set, and measured, the ruling as worded
+refused twelve of the sixteen lifts on a real old app file. **The PM has re-taken two rulings
+(`E-R16 PRIME` and `E-R17 PRIME`) and issued four more (`E-R21` to `E-R24`); nothing of R4's is
+disputed here and all five of its notes are adopted. Section 12.6 answers every one of them with
+the cell that proves it.**
+
+**THIS ROUND MEASURED BEFORE IT WROTE, AND ITS CELLS ARE COMMITTED BESIDE THIS FILE.** Six new
+throwaway cells plus R4's own, all synthetic, all under three seconds, none sealing anything, live
+in `rebuild/lanes/d2/spike/` with a README giving each one's sha256 against its farm original and
+the directory it must be copied to in order to run. **Every table in this version marked MEASURED
+names the cell that produced it.** What they could NOT measure is listed in 12.4, and the largest
+item there is the same one v4 had: nothing has yet walked a sealed bundle through
+`source-admission.mjs` with a plan edit on the record, because that needs the real port.
+
 **v4, FIX ROUND 4, AND THE METHOD CHANGED: THE FACTS ARE MEASURED BY RUNNING THE CODE.** Three
 review rounds each found six new blocking facts by READING an integration nobody had ever run
 (`DECISIONS:544`: no page constructs the companion). `DECISIONS:548` ruled that a fourth round of
@@ -51,16 +69,22 @@ section 3 is re-cut against. **ADDED IN v4: `:544` (the round 3 rulings `E-R1` t
 `:548` (round 3 judged at REJECT, THE SPIKE RULED, and rulings `E-R12` to `E-R20`, which this
 version carries out and cites by name at every landing).**
 
-**Read before this file, v4:** section 0 of this file (the spike's fact table), then
+**Read before this file, v5:** section 0 of this file (the spike's fact table) and
+`rebuild/lanes/d2/spike/README.md` (this round's cells and what each one proves), then
 `rebuild/lanes/d2/BRIEF-EDIT-MY-WEEK.md` (the brief of record, 101 lines), then
-`rebuild/lanes/c/TODAY-SPLIT-SPEC.md` at `rebuild/c-today-split@906cb056`, whose **section E.3 is
+`rebuild/lanes/c/TODAY-SPLIT-SPEC.md` at **`rebuild/c-today-split@60d6ad97`, WHICH IS ITS OWN
+REVIEW R2, A REJECT WITH EIGHT BLOCKING FINDINGS (R4 N5)**, whose **section E.3 is
 the WRITER-FENCE's entry-point list and its MAY-IMPORT closed list**, and which section 2 and
-section 3 of this file are now cut against line by line (R3 N4 and N7, `E-R12`).
+section 3 of this file are now cut against line by line (R3 N4 and N7, `E-R12`, `E-R22`).
+**That document is in a fix round, so STOP 2's four dependencies and 6.8's fourth bullet are
+dependencies on text that may move, and both say so.**
 
 Also read `rebuild/lanes/b/S9-RELEASE-SPEC.md` at `rebuild/b-s9-ui-pins@d859096a` (the release
 list, which decides part of section 3). **v3 recorded TODAY-SPLIT at `14c87fa7` and said round 2
 was not pushed. That is stale and R3 N4 is upheld: TODAY-SPLIT-SPEC v2 IS pushed, and the branch
-is now at `906cb056`.** Its MAP `:79`, `:84`, `:113`, `:119` and `:120` this spec still uses; its
+was at `906cb056`.** **CORRECTED AGAIN IN v5 (R4 N5): it is at `60d6ad97`, its own review R2, and
+its spike has since landed at `24b35244`; `git diff 60d6ad97..24b35244` over that spec file is
+EMPTY, so E.3 and E.4 are the same text at both.** Its MAP `:79`, `:84`, `:113`, `:119` and `:120` this spec still uses; its
 CUT is the one `DECISIONS:543` ruled, so it no longer reverses anything. S9's two-path closed list is now PM-ACCEPTED (`:542` (B)),
 so section 3's arithmetic is confirmed rather than provisional; S9's own document is still at
 REJECT R2 for two findings that do not move the list.
@@ -480,9 +504,12 @@ NOTHING that SHAPES adopted state or a durable operation's projection, lives in 
 WRONG, and R3 B1 is upheld.** `host.save` (`plan-edit-host.mjs:190`) is a durable write;
 `host.read` (`:162`) enqueues `readVerified` (`:145`) which calls `lane.reopen()` (`:148`).
 `DECISIONS:543` rules, verbatim, "no released file calls, imports or holds a writer", and
-TODAY-SPLIT-SPEC v2's section E.3 (`rebuild/c-today-split@906cb056`) prints the fence's entry point
+TODAY-SPLIT-SPEC v2's section E.3 (**re-read in v5 at `rebuild/c-today-split@60d6ad97`, R4 N5, and
+verified byte-identical at `24b35244`**) prints the fence's entry point
 list BY MEMBER NAME IN CODE POSITION, including `.save`, `.reopen`, `.close`, `.latest` on a lane
 identifier, and the constructors `createMachineSettingsHost` and `createPlanEditHost`'s neighbours.
+**Measured in v5, that list carries 28 member names, and `E-R22` makes this item's own callback
+table pass it: 6.8's fourth bullet is the census and `spike/r5-fence-names.mjs` is the cell.**
 A released state machine holding a host handle fails that fence, and 6.8 makes a green fence this
 spec's own bar. So the surface is re-cut.
 
@@ -1785,27 +1812,155 @@ and whoever writes the hunk says which in the diff.
    - `capture_sets` (`:665`): `documentSets` is replaced by the per lift count **FOLDED**
      prescribes on `originalDay`. One value, not two. A count that does not equal it refuses,
      exactly as `:665` refuses today (D-PF-f5).
-   - `capture_lift` (`:613-:614`): **REWRITTEN IN v4 AS A REPLACEMENT, NOT A CONJUNCTION
-     (`E-R16`, R3 B5 upheld).** v3 wrote "`state.exercises` keeps its role for the ADMITTED state,
-     and the membership of the programme is asked of FOLDED", which reads as "keep `:614` AND add
-     a FOLDED test", and R3 is right that the natural reading keeps the very refusal the ruling
-     exists to remove. Said the way the other two rows are said:
-     **`:613`'s CORRESPONDENCE RESOLUTION STAYS EXACTLY AS IT IS.** `target = liftAttach(slot.lift_lineage_id) ?? slot.lift_lineage_id`
-     is how a capture's lineage id is resolved into a lift the athlete's world knows, it is what
-     `state.exercises` is the resolution TARGET for, and P3-REAL-SHAPE's own comment at
-     `:510-:524` is why it must not move.
-     **`:614`'s MEMBERSHIP TEST IS REPLACED.** `state.exercises.filter(e => e.id === target).length !== 1`
-     becomes the same one-of test asked of **FOLDED**'s exercises INSTEAD of `state.exercises`.
-     Not both. A lift FOLDED does not carry on `originalDay` refuses, whether it was never in any
-     programme or was retired by a `replace` before that date; a lift FOLDED does carry is
-     admitted, which is precisely the `add` and `replace` case SPIKE M4 rows 8 and 9 measure
-     refusing today.
+   - `capture_lift` (`:613-:614`): **RE-TAKEN IN v5 UNDER `E-R16 PRIME`. v4's version, which
+     carried out `E-R16` exactly as it was worded, IS WITHDRAWN, and R4 B1 is UPHELD IN FULL: the
+     PM's ruling put a FILE id against a DOCUMENT-id set.** v4 wrote "`:613`'s correspondence
+     resolution stays exactly as it is" and "`:614`'s membership test is replaced by the same
+     one-of test asked of FOLDED's exercises". Both sentences are about the right thing and they
+     are about two DIFFERENT id spaces. `:613` resolves through `lift_correspondence`, whose own
+     module says it returns "for each DOCUMENT lift id, the ONE FILE lift id it answers for", and
+     FOLDED is `foldPlanEditsAt` over `createCleanInitState({setup: op.payload.setup})`, which is
+     DOCUMENT ids start to finish. **Measured on the old app's own shape, twice, by two hands:
+     R4's own cell (`spike/r4b-capture-lift.mjs`) and this round's
+     (`spike/r5-idspace.mjs`), and the two agree value for value.**
+
+     **THE RULING, IN THREE PARTS, AND EACH ONE NAMES ITS ID SPACE.**
+
+     **(a) THE MEMBERSHIP QUESTION IS ASKED IN DOCUMENT SPACE.** "Was this lift in the athlete's
+     week on the day of this session" is asked of the capture's OWN document lift id,
+     `slot.lift_lineage_id`, against FOLDED at `start.effective.local_date`. That id IS the
+     document's, which is not an assumption: `:615-:617`'s own comment says so in as many words,
+     "COUNTED UNDER THE DOCUMENT'S OWN ID, before the re-key: capture_sets and capture_membership
+     below both ask the DOCUMENT, and the document knows this capture only by the id it prescribed
+     under." So `:614` becomes the one-of test over FOLDED asked of `slot.lift_lineage_id`, and
+     `capture_lift` joins `capture_sets` (`:665`) and `capture_membership` (`:695-:699`) in the ONE
+     id space all three of them already needed. **It is reachable as worded and no third comparison
+     is invented.**
+
+     **(a2) AND THE SET IS FOLDED'S *ACTIVE* ROWS, NOT `FOLDED.exercises`. THIS IS THE ONE PLACE
+     THE RULING HAD TO BE MADE SHARPER THAN IT WAS WORDED, AND THE MEASUREMENT IS WHY.** A `remove`
+     or a `replace` records a RETIREMENT (`plan-edit-model.cjs:361-:362` puts into
+     `state.retirements`); it does not delete the row from `exercises`. **Measured
+     (`spike/r5-idspace.mjs` section 5), on a real saved `remove machine-fly` with `starts_on`
+     `2026-09-17`:** a one-of over `FOLDED.exercises` is TRUE on `2026-09-16` AND TRUE on
+     `2026-09-17`, so `(d)` would not hold at all; a one-of over FOLDED's ACTIVE rows (its
+     `exercises` minus its `retirements`) is TRUE on `2026-09-16` and FALSE on `2026-09-17`, which
+     is `(d)` exactly. **The ACTIVE spelling is also the one that agrees with `capture_membership`,
+     which already reads the engine's `sessionMembership` over the folded state and therefore
+     already honours retirements.** The DATE comparison is done by the FOLD, not by `exActive`,
+     which is what makes this safe: `:690`'s own warning that "`exActive` honours `retirements`
+     with NO date comparison" is about the ADMITTED state, and FOLDED is taken per capture date.
+
+     **(b) THE ATTACHMENT QUESTION STAYS AT `:613`, IN FILE SPACE, BYTE-UNCHANGED.** "Which lift's
+     history does this capture join" is `target = liftAttach(slot.lift_lineage_id) ?? slot.lift_lineage_id`,
+     and **not one character of `:613` moves**. It is what the re-key at `:731-:734` applies, it is
+     what P3-REAL-SHAPE's comment at `:510-:524` exists to protect, and **measured, all twelve of
+     the twelve corresponded lifts on `variant(0)` keep exactly the target they have today**
+     (`spike/r5-idspace.mjs`, row "(b) the twelve, printed"). This is not a disjunct and it is not
+     a conjunction: they are two different questions about two different id spaces, and this row
+     says which is which, which is R4's own way out (b) and the PM's ruling.
+
+     **THE MEASUREMENT, printed, on both fixtures and at both sides of `starts_on`. Seventeen slot
+     ids: the document's sixteen lifts plus one lift a plan edit added.**
+
+     | the FILE | capture date | `:613` targets that DIFFER from the slot id | PASS today (`:614` over the ADMITTED state) | PASS under `E-R16` as worded | PASS under `E-R16 PRIME` (a) + (a2) |
+     |---|---|---|---|---|---|
+     | `variant(0)`, the old app's own shape | on/after `starts_on` | **12 of 16** | 16 of 17 | **5 of 17** | **16 of 17** |
+     | `variant(0)` | before `starts_on` | 12 of 16 | 16 of 17 | **4 of 17** | 16 of 17 |
+     | `variant(7)`, the shape SPIKE M4 sealed | on/after `starts_on` | 0 of 16 | 16 of 17 | 17 of 17 | 16 of 17 |
+     | `variant(7)` | before `starts_on` | 0 of 16 | 16 of 17 | 16 of 17 | 16 of 17 |
+
+     **Under `E-R16 PRIME` the answer no longer depends on the fixture's bracket level, which is
+     the whole point.** The ONE row that differs from today is the right one in each direction, and
+     the cell prints both by name: on/after `starts_on` the lift the `remove` retired
+     (`machine-fly`) REFUSES where it passes today, which is `(d)`; before `starts_on` the lift the
+     `add` minted (`ew2-added-lift`) refuses, because it was not in his week yet, and on/after it
+     PASSES where it refuses today, which is the `add` and `replace` case SPIKE M4 rows 8 and 9
+     measure refusing. **Nothing that passes today refuses under this ruling for any other reason:
+     the cell's "refused by `E-R16 PRIME` (a) that pass today" list is EMPTY on both fixtures.**
+
+     **(c) A LIFT A PLAN EDIT ADDED HAS NO FILE LIFT, AND WHAT THE ADMITTED STATE CARRIES FOR IT IS
+     MEASURED RATHER THAN ASSUMED (`E-R16 PRIME` (c)).** Measured
+     (`spike/r5-idspace.mjs` section 4), on `variant(0)` and on `variant(7)` alike:
+
+     | question about a lift a plan edit ADDED | measured |
+     |---|---|
+     | the setup document (`createCleanInitState`) carries it | **NO** |
+     | FOLDED at or after `starts_on` carries it | **YES** |
+     | `lift_correspondence` has an entry for it | **NO, null on both fixtures** |
+     | so `:613`'s `target` for a capture naming it | **its OWN document id, unchanged** |
+     | the ADMITTED state carries a row under that id | **NO, on both fixtures** |
+
+     **Under which id its captures attach: its own document id, and the ADMITTED state has no row
+     there.** The reason is exact and it is in a block this spec never opened: `:477-:484` appends
+     every document lift the file does not answer for, but it iterates
+     `documentProgramme.state.exercises`, which is the SETUP document, and the setup document never
+     carried a lift a plan edit minted afterwards.
+     **THE CONSEQUENCE, STATED AND NOT PAPERED OVER.** `:731-:734`'s own comment says the re-key
+     moves a projected entry "to the lift the admitted state actually carries - which capture_lift
+     has already proved, one slot at a time, over this very id". Under (a) `capture_lift` no longer
+     proves that, and for a plan-added lift it is measured FALSE. For every other slot it stays
+     true by construction rather than by the check (a corresponded lift's target is a FILE lift and
+     the file's lifts are the admitted state; an uncorresponded SETUP lift is appended by
+     `:477-:484` under its own id), so the gap is exactly one case and it is the case ruling 1
+     exists for. **This spec does NOT invent the fix, because `E-R16 PRIME` tells it not to.** The
+     two shapes are named, neither is built, and STOP 18 and 9.4 Q-M carry the choice to the PM:
+     either `:477-:484` also appends the lifts FOLDED carries that the setup document does not, or
+     the re-key leaves a plan-added lift's entries under an id the admitted state has no row for.
+     **EW-17c's ROW 4 is the cell that makes it visible either way**, and 12.4 lists what is still
+     unmeasured about it: nobody has yet driven a REAL sealed bundle whose capture names a lift a
+     plan edit added, because that needs the port.
+
+     **(d) A LIFT A PLAN EDIT RETIRED, BOTH DIRECTIONS, MEASURED** (`spike/r5-idspace.mjs` section
+     5, a real saved `remove` through the real host, `starts_on` `2026-09-17`):
+
+     | the capture's own date | FOLDED records the retirement | the lift is ACTIVE in FOLDED | `capture_lift` under (a) + (a2) |
+     |---|---|---|---|
+     | `2026-09-16`, BEFORE `starts_on` | no | **yes** | **PASSES** |
+     | `2026-09-17`, ON `starts_on` | yes | **no** | **REFUSES** |
+
+     That is the behaviour the ruling asks for, and it is the same answer `capture_membership`
+     already gives for the same day, which is why the two can no longer disagree.
+
      **WHY A CONJUNCTION WOULD HAVE BEEN THE WORST OUTCOME, in R3's own words and I could not
      improve on them:** it would leave EW-17c's MAIN assertion red while its CONTROL 1 passes,
      "green control, red subject, and a builder with two readings of one sentence to choose from".
+     **AND WHY THE REPLACEMENT AS `E-R16` WORDED IT WOULD HAVE BEEN WORSE STILL:** measured, it
+     refuses twelve of sixteen lifts on the old app's own shape, which is the exact defect
+     `:600-:611` records P3-REAL-SHAPE fixing, re-introduced by the fix for a different defect, on
+     the population this ticket exists for. R4 found it by running a fixture whose file ids are NOT
+     the phone's slugs, which is why `E-R21` now makes the bracket level part of every cell.
    - `capture_membership` (`:695-:699`): the pool and order are compared against
      `sessionMembership(FOLDED, originalDay)` instead of
      `sessionMembership(documentProgramme.state, originalDay)`. Pool AND order, exactly and in order.
+     **Both sides are DOCUMENT ids already: the left side is `[...counts.keys()]`, which `:618`
+     fills from `slot.lift_lineage_id`, and the right side is the engine's membership reader over a
+     document-id state. This row did not have R4 B1's defect and does not move.**
+
+   **THE ID SPACE TABLE, NEW IN v5 (`E-R16 PRIME` (e)). EVERY ID AND EVERY SET THIS SECTION
+   COMPARES, WITH THE SPACE IT LIVES IN, SO THAT NO ROW EVER AGAIN PUTS A FILE ID AGAINST A
+   DOCUMENT-ID SET OR THE REVERSE.** DOCUMENT space is `slugOf`'s slugs, which the phone's own
+   first-run setup minted. FILE space is the old app's short handles. `lift-correspondence.cjs`'s
+   own header is the authority: "after option A the two id spaces are independent ... an id is no
+   longer an answer", and the answer is the NAME.
+
+   | the id or the set | where it comes from | id space | what it is compared against, and in which space |
+   |---|---|---|---|
+   | `slot.lift_lineage_id` | the stored capture's layout, `:613`, `:618` | **DOCUMENT** (`:615-:617`'s own comment) | under (a): FOLDED's ACTIVE rows, **DOCUMENT**. MATCHED |
+   | `target` = `liftAttach(slot.lift_lineage_id) ?? slot.lift_lineage_id` | `:613` | **FILE** where a correspondence exists, **DOCUMENT** where it does not | nothing, under this ruling. It is the ATTACHMENT answer that `:731-:734`'s re-key applies, and (b) leaves it exactly as it is |
+   | `state.exercises` (the ADMITTED state) | `:477-:484` over the file's lifts plus uncorresponded document lifts | **MIXED BY CONSTRUCTION: FILE ids, plus DOCUMENT ids for the lifts the file does not answer for** | nothing, under this ruling. v4 compared `target` against it and that was the one row that worked; (a) moves the QUESTION, not this set |
+   | `FOLDED.exercises` | `foldPlanEditsAt` over `createCleanInitState({setup})` | **DOCUMENT** | `slot.lift_lineage_id`, **DOCUMENT**, but see (a2): the ACTIVE rows, not this set |
+   | FOLDED's ACTIVE rows (`exercises` minus `retirements`) | the same fold, per capture date | **DOCUMENT** | `slot.lift_lineage_id`, **DOCUMENT**. This is `capture_lift`'s right-hand side |
+   | `counts` keys | `:618`, `counts.set(slot.lift_lineage_id, ...)` | **DOCUMENT** | `documentSets`, replaced by FOLDED's per-lift count, **DOCUMENT**. MATCHED, and it always was |
+   | `produced.exercise_ids` | `sessionMembership(FOLDED, originalDay)` | **DOCUMENT** | `[...counts.keys()]`, **DOCUMENT**. MATCHED, and it always was |
+   | `lift_correspondence` | `correspondence(source.exercises, scratch.exercises)`, `:398` | a map **DOCUMENT id -> FILE id** | it is the only bridge between the two spaces in this file, and `:613` is its only reader in this block |
+   | the re-key's `e.lift_lineage_id` | `:733`, the PROJECTED session's entries | **DOCUMENT** going in, **FILE** coming out | the ADMITTED state, **MIXED**. See (c): measured, a plan-added lift has no row there, and STOP 18 carries it |
+   | `logical_set_slot` | the capture's own slot key | **DOCUMENT**, deliberately, and it is NOT re-keyed (`:722-:731`, D-RS-R1-n5) | nothing here. Named so no hand assumes it agrees with the entry beside it |
+
+   **A reviewer of the admission hunk reads this table first and refuses any line that crosses a
+   row of it.** It is also what `E-R21` asks every cell to name: a fixture whose bracket has
+   already remapped the file's ids to the phone's slugs makes the FILE and DOCUMENT columns
+   identical and hides every defect in this table, which is exactly how `E-R16` reached the PM.
 
    **WHY THE DISJUNCT WAS WRONG AND THE MEMBERSHIP ROW WAS RIGHT, in the words R2 used and I could
    not improve on.** The whole point of a dated fold is that for a given capture date there is
@@ -2099,11 +2254,25 @@ that form. Read `plan-edit-model.cjs` at the tip, never the report.
 
 Suite: `rebuild/m3/w7-preview/today/test/edit-week.test.mjs`, run by
 `node --test rebuild/m3/w7-preview/today/test/edit-week.test.mjs`. Every cell individually
-selectable by its EW id. **NINETEEN cells in v4 (sixteen in v3):** the thirteen `:176` kept, plus
-EW-17a, EW-17b, EW-17c, **and three the spike adds: EW-17d (4.2, the plan class replay family),
-EW-18 (0.2, the day turned cell `E-R15` asks for) and EW-19 (4.2, the midnight window `E-R18`
-asks for)**. **EW-13 is written as FOUR selectable parts (EW-13a, EW-13b, EW-13c and EW-13d), so
-the suite carries TWENTY-TWO selectable ids over nineteen cells.**
+selectable by its EW id. **TWENTY cells in v5 (nineteen in v4, sixteen in v3):** the thirteen
+`:176` kept, plus EW-17a, EW-17b, EW-17c, three the spike added in v4 (EW-17d, the plan class
+replay family; EW-18, the day turned cell `E-R15` asks for; EW-19, the midnight window `E-R18`
+asks for), **and ONE this round adds: EW-20, what the import screen draws for a `field` name it has
+never seen (`E-R24` / Q-J, R4 N4)**. **EW-13 is written as FOUR selectable parts (EW-13a, EW-13b,
+EW-13c and EW-13d), so the suite carries TWENTY-THREE selectable ids over twenty cells.**
+
+**`E-R21`, NEW IN v5, AND IT BINDS EVERY CELL IN THE TABLE BELOW.** Round 3 found defects by
+reading; round 4's spike found them by running the product; round 4's REVIEW found one by running
+the product against a DIFFERENT FIXTURE, and that is the class this rule guards.
+**EVERY CELL THAT ASSERTS WHAT IS ADMITTED NAMES THE BRACKET LEVEL OF THE FIXTURE IT SEALS**, so a
+reviewer can ask what that level hides. `real-shape-support.mjs`'s bracket remaps the FILE's lift
+ids to the phone's slugs at **level 2 and every level above it**, so at `sealed(7)` the
+correspondence is the identity and the two id spaces of 4.3's id space table COINCIDE. A cell that
+only ever seals level 7 cannot see a defect that lives in the difference, which is exactly what
+happened to `E-R16`. **And at least one admitted-side row of EW-17c runs where the two spaces
+DIFFER: `variant(0)`, the old app's own shape, which `r1-fixes.test.mjs:55-:70` already proves
+admits through the real port.** R4's own cell, `spike/r4b-capture-lift.mjs`, becomes EW-17c's
+named CONTROL 1.
 
 Order of writing, and it is not negotiable: **EW-17d first of all, because SPIKE M4 FACT 1 makes
 it the refusal that fires before every other one and it needs no capture and no F2**; then EW-17a
@@ -2121,10 +2290,11 @@ purpose.
 
 | cell | what it proves | half | blocked on |
 |---|---|---|---|
-| **EW-17d** | **NEW IN v4.** 4.2, one `n` only edit and NO session: admission ADMITS and raises no `LOCAL_SOURCE_EFFECT_UNMAPPED`. Controls: no edit is admitted (SPIKE M4 row 1); two edits raise it TWICE (row 4). **Red today, measured: SPIKE M4 row 2** | composed | **nothing.** It needs no capture and no F2 |
-| EW-17a | 4.2, `update` that moves `sets`, asserting `capture_sets` by name, **with CONTROL 2: the PRE-edit count on a date at or after `starts_on` still refuses**. **Red today, measured: SPIKE M4 row 5, `capture_sets` on `calves`** | composed | nothing |
-| EW-17b | 4.2, `remove` and `day`, asserting `capture_membership` by name, pool AND order, **with the order-only control, which SPIKE M4 row 4 measures as a REAL refusal today and not a hypothetical**. Red today: SPIKE M4 rows 6 and 7 | composed | nothing |
-| EW-17c | 4.2, `add` and `replace`, asserting `capture_lift` by name, **re-written in v4 on `E-R16` as a REPLACEMENT: the main assertion is that admission ADMITS and raises no `capture_lift` issue**. Red today, measured: SPIKE M4 rows 8 and 9, naming `ew2-added-lift` and `ew2-replacement`. CONTROL 2 is marked UNMEASURED | composed | **3.5** (both kinds enter `tagsOf`) |
+| **EW-17d** | **NEW IN v4.** 4.2, one `n` only edit and NO session: admission ADMITS and raises no `LOCAL_SOURCE_EFFECT_UNMAPPED`. Controls: no edit is admitted (SPIKE M4 row 1); two edits raise it TWICE (row 4). **`E-R21`: it seals `sealed(7)`, and it says so; the bracket level cannot hide this refusal because no capture and no lift id is involved in it.** **Red today, measured: SPIKE M4 row 2** | composed | **4.3 ruling 0's hunk for GREEN, NOTHING for the RED run.** It needs no capture, no F2 and no editor (`E-R23`) |
+| EW-17a | 4.2, `update` that moves `sets`, asserting `capture_sets` by name, **with CONTROL 2: the PRE-edit count on a date at or after `starts_on` still refuses**. **`E-R21`: it seals `sealed(7)` and names it, and both sides of its comparison are DOCUMENT ids (4.3's id space table), so the bracket level does not decide its answer.** **Red today, measured: SPIKE M4 row 5, `capture_sets` on `calves`** | composed | **3.5 and 4.3 ruling 1's hunk for GREEN, nothing for the RED run** (`E-R23`) |
+| EW-17b | 4.2, `remove` and `day`, asserting `capture_membership` by name, pool AND order, **with the order-only control, which SPIKE M4 row 4 measures as a REAL refusal today and not a hypothetical**. **`E-R21`: it seals `sealed(7)` and names it, and both sides are DOCUMENT ids.** Red today: SPIKE M4 rows 6 and 7 | composed | **3.5 and 4.3 ruling 1's hunk for GREEN, nothing for the RED run** (`E-R23`) |
+| EW-17c | 4.2, `add` and `replace`, asserting `capture_lift` by name. **RE-WRITTEN AGAIN IN v5 ON `E-R16 PRIME` AND `E-R21`, AND IT IS NOW FOUR ROWS AND THREE CONTROLS, EACH NAMING THE BRACKET LEVEL OF THE FIXTURE IT SEALS.** MAIN, at **`sealed(0)`, the old app's own shape, where the two lift id spaces DIFFER**: an `add` and a `replace`, a capture dated at or after `starts_on`, admission ADMITS and raises no `capture_lift` issue. ROW 2, the same at `sealed(7)`, the shape SPIKE M4 sealed, where the two spaces coincide: same answer, and if the two rows ever disagree the fixture is hiding something. ROW 3, `E-R16 PRIME` (d): a `remove`, a capture dated BEFORE `starts_on` admits, one dated ON it raises `capture_lift`. ROW 4, `E-R16 PRIME` (c): a capture naming the lift the `add` minted, asserting BY NAME which id the projected entry carries after the re-key and whether the admitted state holds a row for it, whichever way STOP 18 is ruled. CONTROL 1, the named control `E-R21` asks for, which is R4's own cell `spike/r4b-capture-lift.mjs` reduced to four assertions and needing no seal: `correspondence(variant(0).exercises, PHONE.setup.exercises)['lateral-machine'] === 'lateral'`, the document carries no lift `lateral`, the same correspondence at `variant(7)` is the identity, and `PHONE_ID.lateral === 'lateral-machine'`. **Without CONTROL 1 the MAIN row is green on a fixture that cannot fail, which is how `E-R16` reached the PM.** CONTROL 2 (no edit, `sealed(0)`, admits) and CONTROL 3 (the twelve corresponded lifts keep their `:613` target, printed). Red today, measured: SPIKE M4 rows 8 and 9, naming `ew2-added-lift` and `ew2-replacement` | composed | **3.5** (both kinds enter `tagsOf`) for GREEN; **nothing for the RED run and nothing for CONTROL 1**, which needs no seal and no port (`spike/r5-idspace.mjs` runs it in under three seconds) |
+| **EW-20** | **NEW IN v5 (`E-R24` / Q-J, R4 N4).** What the import screen draws for a `field` name its closed map has never seen. Drives the screen's own exported `refusalLines(code, detail, leadField)` and its frozen `REFUSAL_FIELD_SENTENCE` (`import/import-screen.mjs:152-:160`, `:170-:198`) with each of 4.3 ruling 2a's three names. ASSERTS: the map does NOT name them (its five keys are `capture_sets`, `setup_document`, `athlete_label`, `capture_lift`, `exercise_n`); the code line carries the new field name verbatim; the sentence beneath it is `REFUSAL_SENTENCE[code]`, the same sentence every other programme refusal draws, on BOTH the `leadField` path and the detail-string path; and a control on `capture_lift`, which the map DOES name, draws its own sentence instead. **Measured before it was specified (`spike/r5-field-vocab.mjs`), which is what turns R4 N4 from UNMEASURED into a row** | model, no host | **nothing.** It drives one exported pure function and needs no editor, no F2 and no seal. It imports `../import/import-screen.mjs`, which is a module edge E.3 fences, but E.2's FREE definition excludes `test/`, so the suite is not a fenced file |
 | EW-01 | an enrolled athlete opens BOTH doors without first run setup; read, open, cancel and no op leave operation and outbox counts unchanged; AND the 2.2.1 boundary in both directions | composed | **3.5** (SPIKE M1 rows 1, 5, 7: the door does not open without F2) |
 | EW-02 | one lift's `sets` changed; every other id, field, established load and tag deep equal; existing non chip values render without coercion | composed | **3.5** (v3 said nothing; `E-R13`) |
 | EW-03 | rename keeps id, load, era and notes and the historical name lookup; a new eligible session uses the new name | composed | **3.5** (v3 said nothing; `E-R13`) |
@@ -2137,10 +2307,10 @@ purpose.
 | EW-13a | reopen and replay reconstruct current and pending plans; preexisting history byte equivalent | composed | **3.5** |
 | EW-13b | a rejected or tombstoned edit is not still applied by an editor local cache | composed | **3.5** |
 | **EW-13c** | **REWRITTEN IN v4 on SPIKE M3 rows 9 and 10.** On an ADMITTED import installation, a SECOND open after one saved `update` reads and its state EQUALS the companion's own read. Control c1: the adopted value reads OK and proves nothing. Control c2: the ALREADY EDITED state refuses `PLAN_EDIT_IMPORTED_BASIS_MISMATCH` at `:240`. **v3's version asserted `:240` against the adopted value, which is measured GREEN** | composed, THROUGH THE REAL ADOPTION CHAIN | **3.4's sealed lane AND 3.5** |
-| **EW-13d** | **REWRITTEN IN v4 on SPIKE M3 rows 3 to 6.** On a FIRST RUN installation, **with `projectSetupTags` run over the basis**, a SECOND open after one saved `add` reads AND the added lift appears exactly ONCE. Controls d1 `PLAN_EDIT_TAG_BASIS_UNPROVEN` at `:217`, d2 `PLAN_EDIT_ORIGIN_UNPROVEN` at `:134`. **v3 named `PLAN_EDIT_ID_REUSED`, which is measured UNREACHABLE on this path** | composed, THROUGH THE REAL ADOPTION CHAIN | **3.4's sealed lane AND 3.5** |
+| **EW-13d** | **REWRITTEN IN v4 on SPIKE M3 rows 3 to 6.** On a FIRST RUN installation, **with `projectSetupTags` run over the basis**, a SECOND open after one saved `add` reads **AT A DATE ON OR AFTER THE EDIT'S OWN `starts_on`, NAMED IN THE CELL (NEW IN v5, R4 N1)**, AND the added lift appears exactly ONCE. **CONTROL d0, NEW IN v5: the same read taken on the ADOPTION'S OWN DAY, which is strictly before `starts_on`, shows the added lift ZERO times, and that is CORRECT and not a failure.** Measured, `spike/r5-readday.mjs`: no date given, the lift appears 0 times and the pre-edit `sets` stands; at `starts_on` and after, exactly once and the edited `sets`. Controls d1 `PLAN_EDIT_TAG_BASIS_UNPROVEN` at `:217`, d2 `PLAN_EDIT_ORIGIN_UNPROVEN` at `:134`. **v3 named `PLAN_EDIT_ID_REUSED`, which is measured UNREACHABLE on this path** | composed, THROUGH THE REAL ADOPTION CHAIN | **3.4's sealed lane AND 3.5** |
 | **EW-18** | **NEW IN v4 (`E-R15`, SPIKE M2 row 9).** `PLAN_EDIT_DAY_TURNED` stays raisable: a FROZEN PAGE whose `clock.today()` is YESTERDAY while the live day is D throughout refuses `PLAN_EDIT_DAY_TURNED` at `plan-edit-host.mjs:225-:226` and draws state D. Controls: (1) frozen day equals live day, nothing moves, SAVED (row 7); (2) authored on D and saved after the live day turns refuses `PLAN_EDIT_REVIEW_STALE` at `:214`, NOT DAY_TURNED (row 8), **which is the cell R3 B4 asked for and the spike measures differently**; (3) `clock.today()` wired to `liveDay` makes DAY_TURNED unreachable in every ordering (rows 10 and 11), so the cell fails if the factory ever wires them together | composed, THROUGH THE REAL HOST | **3.4's sealed lane AND 3.5** |
 | **EW-19** | **NEW IN v4 (`E-R18`, R3 N9, SPIKE M7).** The midnight window, bounded: drive `watchDayRollover` (`today-entry.mjs:471`) with a fake `doc`. After local midnight and before any `check()` the standing day is YESTERDAY (row 2); a `visibilitychange` while HIDDEN does not move it (row 3); one while VISIBLE moves it and calls `reopen` once (row 4); `stop()` detaches (row 5) | model, no host | **nothing.** It drives one exported function |
-| EW-14 | same page commit reaches real Today and the next eligible gym entry with the new operation basis; in progress workout and check in drafts survive; **and `planEditedState` returns a STATE on EVERY path, including `read === undefined`, `read.read === false` and a reply of an unexpected shape, so adoption can never silently stop (v3, R2 N3.2)** | composed, THROUGH THE REAL HOST | **3.4's sealed hunk AND 3.5** (v2 said 3.4 alone; R2 N3.1) |
+| EW-14 | same page commit reaches real Today and the next eligible gym entry with the new operation basis, **ON A DAY NAMED IN THE CELL THAT IS ON OR AFTER THE EDIT'S `starts_on` (NEW IN v5, R4 N1: the adoption's own day shows nothing, measured, `spike/r5-readday.mjs`)**; in progress workout and check in drafts survive; **and `planEditedState` returns a STATE on EVERY path, including `read === undefined`, `read.read === false` and a reply of an unexpected shape, so adoption can never silently stop (v3, R2 N3.2)**; **and THE DURABLE LOAD COUNT PER ADOPTION IS TWO, asserted by name on an INSTRUMENTED repository that counts `repository.load()`, exactly the instrument `spike/r5-adoption.mjs` used (`E-R17 PRIME` (iii)). A control asserts the FLOOR of one with no editor composed at all, so a regression says which side it is on** | composed, THROUGH THE REAL HOST | **3.4's sealed hunk AND 3.5** (v2 said 3.4 alone; R2 N3.1) |
 | EW-15 | tagged lift, explicit secondary `[]`, rename, replacement and a changed catalogue prove the `:155` snapshots | model | **3.5** |
 | EW-16 | DOM: both doors, the before, after and date copy, the invalid, saving, saved and refusal states, keyboard labels and focus, narrow viewport, no new shell; copy census forbids em and en dash, emoji and exclamation marks | view | C-UI-9 |
 
@@ -2167,9 +2337,11 @@ written RED and left red with its reason named in the report; it is never delete
 
 ## 6. THE BAR
 
-1. **The NINETEEN cells of section 5 under their TWENTY-TWO selectable ids** (v3 said sixteen and
-   nineteen), individually selectable, green at the exact candidate head, with the red first run
-   shown. A cell blocked by 3.4 or 3.5 is red with its reason named, never removed. **And in v4
+1. **The TWENTY cells of section 5 under their TWENTY-THREE selectable ids** (v4 said nineteen and
+   twenty-two; v3 said sixteen and nineteen), individually selectable, green at the exact candidate
+   head, with the red first run shown. **And under `E-R21`, every cell that asserts what is
+   ADMITTED names in its own title or its first assertion the BRACKET LEVEL of the fixture it
+   seals, and EW-17c's main row seals `sealed(0)`.** A cell blocked by 3.4 or 3.5 is red with its reason named, never removed. **And in v4
    the red first run is not a formality: SPIKE M4 measures EW-17a, EW-17b, EW-17c and EW-17d as
    red at the tip today, on a real sealed bundle, and the report quotes the spike's rows beside
    the lane's own run.**
@@ -2250,11 +2422,17 @@ written RED and left red with its reason named in the report; it is never delete
   without the look.
 - `edit-week-view.mjs` and `edit-week-check.mjs` in the existing `*-check.mjs` pattern, over the
   same frozen objects.
-- The whole suite skeleton with all NINETEEN cells written RED, against the merged companion,
+- The whole suite skeleton with all TWENTY cells written RED, against the merged companion,
   whose API is sealed and will not move under the builder.
-- **EW-17d, EW-17a and EW-17b to their answer**, which SPIKE M4 rows 2, 5, 6 and 7 already
-  measure as red, and section 4's fix authored by its own lane on that evidence.
+- **EW-17d, EW-17a and EW-17b to their measured RED answer**, which SPIKE M4 rows 2, 5, 6 and 7
+  already measure, and section 4's fix authored by its own lane on that evidence. **They do NOT
+  reach green on acceptance: each one's green needs a SEALED hunk of section 4 that is another
+  lane's and is on nobody's desk that day (`E-R23`, R4 B4).**
 - **EW-19 to green**, because it drives one exported function and needs nothing from this lane.
+- **EW-20 to green**, for the same reason: it drives the import screen's own exported
+  `refusalLines` (NEW IN v5).
+- **EW-17c's CONTROL 1 to green**, which needs no seal and no port: it is R4's own cell reduced to
+  four assertions about `lift-correspondence.cjs` and the phone's document (`E-R21`).
 
 **`edit-week-basis.mjs` and `edit-week-tags.mjs` are NOT on this list any more, because they no
 longer exist (`E-R12`, 3.4.1 and 3.5 consequence 2).** `planEditedState` is still a pure function
@@ -2267,7 +2445,7 @@ on v3's start-today list.**
 
 **WHAT CANNOT GO GREEN, AND IT IS MOST OF THE SUITE (`E-R13`, R3 B2, SPIKE M1).** v1 said EW-04
 and EW-15 could start; R1 B3 corrected it; v2 and v3 named THREE blocked cells. **Measured, it is
-seventeen of the twenty-two ids**, because the companion refuses its FIRST READ without F2 on every
+seventeen of the twenty-three ids**, because the companion refuses its FIRST READ without F2 on every
 installation: EW-01, EW-02, EW-03, EW-04, EW-05, EW-08, EW-09, EW-11, EW-12, EW-13a, EW-13b,
 EW-13c, EW-13d, EW-14, EW-15, EW-17c and EW-18. A builder that follows an older plan opens the
 editor on a bare fixture and watches it refuse **`PLAN_EDIT_TAGS_INVALID` at
@@ -2292,11 +2470,14 @@ before C-UI-9 exists.** Everything in 7.1 is that work.
 | `preview.css`, any style hunk | S9 sealing, because it is released only then | `:536` (1): the release happens INSIDE S9, never by editing a sealed artifact |
 | `build.mjs`, if a new bundle input is needed | S9 sealing WITH hunk H18 | S9 A.6: without H18 the closed list is one path and `build.mjs` stays sealed |
 | the Machine settings door's rendering | C-UI-5, **AND whichever reseal child carries C-UI-5's own sealed files** | C-UI-5's MAY CHANGE list (`C-UI-5.md:8-9`) is `machine-settings-view.mjs`, `machine-settings-host.mjs` and "the gym stubs in `gym-app.mjs`". The last two are in `product` and S9 does not release them (its closed list is two paths), so C-UI-5 is itself a reseal-child ticket. S9's own A.3 says the same. Part 2 still takes ZERO bytes there; the WAIT is longer than v1's row said (R1 N9) |
-| **SEVENTEEN of the twenty-two ids: EW-01, EW-02, EW-03, EW-04, EW-05, EW-08, EW-09, EW-11, EW-12, EW-13a to EW-13d, EW-14, EW-15, EW-17c, EW-18** | **section 3.5's F2 package, FIRST on S10 (`E-R13`)** | **RE-SCOPED IN v4.** No `validateExerciseTags`, `projectSetupTags` or `projectNewExerciseTags` exists in product, and the FIRST READ needs the first of them on every installation (SPIKE M1 rows 1, 5, 7). v3 named four cells here; the measured answer is most of the suite |
+| **SEVENTEEN of the twenty-three ids: EW-01, EW-02, EW-03, EW-04, EW-05, EW-08, EW-09, EW-11, EW-12, EW-13a to EW-13d, EW-14, EW-15, EW-17c, EW-18** | **section 3.5's F2 package, FIRST on S10 (`E-R13`)** | **RE-SCOPED IN v4.** No `validateExerciseTags`, `projectSetupTags` or `projectNewExerciseTags` exists in product, and the FIRST READ needs the first of them on every installation (SPIKE M1 rows 1, 5, 7). v3 named four cells here; the measured answer is most of the suite |
 | **The Machine settings door and EW-09** | the same | **NEW IN v4.** It needs no F2 function of its own; it is reached through E0's ONE `host.read()`, which does (3.5 consequence 3) |
 | EW-14, EW-13c, EW-13d, EW-18, and the adoption compose's own cells | 3.4's SEALED LANE `edit-week-lane.cjs` plus the module TODAY-SPLIT creates | a route and a mount do not change what the gym card opens on; and under `E-R12` the compose is sealed, so its cells wait with it |
-| **EW-17a, EW-17b, EW-17d** | **NOTHING. They can run the day this spec is accepted** | they drive admission over a synthetic bundle and never open the editor; SPIKE M4 rows 2, 5, 6 and 7 ran them with no F2 wiring |
-| **EW-19** | **NOTHING** | it drives the exported `watchDayRollover` with a fake `doc` (SPIKE M7) |
+| **EW-17a, EW-17b, EW-17d, to their measured RED answer** | **NOTHING. They can RUN the day this spec is accepted** | they drive admission over a synthetic bundle and never open the editor; SPIKE M4 rows 2, 5, 6 and 7 ran them with no F2 wiring |
+| **EW-17a, EW-17b, EW-17d, to GREEN** | **SPLIT OUT IN v5 (`E-R23`, R4 B4 UPHELD). EW-17d waits on 4.3 ruling 0's SEALED hunk; EW-17a and EW-17b wait on 4.3 ruling 1's re-pointing AND on 3.5, because both right-hand sides are FOLDED and the fold cannot be built without F2 (3.5's own sentence, SPIKE M5 row 4)** | v4's row said these three wait on NOTHING, which conflated "can run" with "can go green". A cell whose green depends on a sealed hunk another lane has not written cannot go green on acceptance day. The RED run is still worth having and is what SPIKE M4 bought |
+| **EW-19** | **NOTHING, for the RUN and for the GREEN** | it drives the exported `watchDayRollover` with a fake `doc` (SPIKE M7). **It is the ONE id of the twenty-three that reaches GREEN on acceptance (`E-R23`)** |
+| **EW-20** | **NOTHING, for the RUN and for the GREEN** | **NEW IN v5.** It drives the import screen's own exported `refusalLines` over a frozen map and needs no editor, no F2 and no seal (`spike/r5-field-vocab.mjs` measured it before it was written) |
+| **EW-17c's CONTROL 1** | **NOTHING** | **NEW IN v5 (`E-R21`).** Four assertions about `lift-correspondence.cjs` and the phone's own document. It is R4's own cell and it needs no seal and no port. EW-17c's other rows wait with the rest |
 | **the route and the mount (3.3 line 2a)** | **TODAY-SPLIT being accepted and landing** | until then `today-app.cjs` is sealed, and this item has no child for it. `:543` releases it, `:542` (C) says the build starts only on acceptance of the spec, and the spec is in round 2 |
 | the entry point binding | C-UI-2 and S9-TODAY-CARRY finishing their `today-app.cjs` hunks | `:539` (2); three hands want that neighbourhood this week and part 2 goes last |
 | the sealed half landing | the S10 child, after S9's role, S9-TODAY-CARRY and TODAY-SPLIT | `today-entry.mjs` is sealed and `:543` does not release it; the module 3.4 lands in does not exist yet |
@@ -2488,8 +2669,23 @@ settled and neither the wording nor the routing is re-opened by round 3.
     host handle on `edit-week-model.mjs`. The fence catches three of those five; the other two are
     a reviewer's job, and 6.8 names them.
 17. **NEW in v4.** The sealed `edit-week-lane.cjs` exceeds 3.3 line 3's budget by more than about
-    20 lines, or `today-lanes.cjs`'s share of it exceeds about 20. The budget is what keeps this
+    20 lines, or `today-lanes.cjs`'s share of it exceeds about 20, **or `local-source-basis.mjs`'s
+    added export exceeds about 20 (v5)**. The budget is what keeps this
     item out of TODAY-SPLIT's way in the week it is first written.
+18. **NEW in v5 (`E-R16 PRIME` (c), measured in 4.3 ruling 1).** The re-key at
+    `source-admission.mjs:731-:734` moves a projected entry to `liftAttach(e.lift_lineage_id) ?? e.lift_lineage_id`,
+    and its own comment says the admitted state carries that id "which capture_lift has already
+    proved, one slot at a time, over this very id". **Under `E-R16 PRIME` (a) `capture_lift` no
+    longer proves it, and MEASURED, for a lift a plan edit ADDED the admitted state carries no row
+    under that id at all** (`spike/r5-idspace.mjs` section 4, on both fixtures). For every other
+    slot the property still holds by construction, so the gap is exactly one case.
+    **THIS IS A STOP AND NOT A SILENT ALLOWANCE: the admission hunk is not shipped until the PM
+    rules Q-M and the chosen answer is measured.** The two shapes are named in 4.3 ruling 1 (c) and
+    neither is built here: either `:477-:484` also appends the lifts FOLDED carries that the setup
+    document does not, which is one hunk in a block this spec never opened and needs a DATE chosen
+    for the fold it would take, or the re-key deliberately leaves a plan-added lift's entries under
+    an id the admitted state has no row for, and that is written down as intended rather than
+    discovered. EW-17c ROW 4 is the cell either way.
 
 ### 9.2 Risks
 
@@ -2526,12 +2722,12 @@ the builder what four of the cells will say.
 |---|---|---|---|
 | RELEASED half: `edit-week-model.mjs`, `edit-week-view.mjs`, `edit-week-check.mjs`, the `t-edit-week` block | 6 to 8 | 7 to 9 | **YES**, and slightly cheaper than v3 because the model no longer holds the five host methods (`E-R12`) |
 | ~~RELEASED: `edit-week-basis.mjs` and `edit-week-tags.mjs`~~ | **0** | 2 to 3 | **GONE.** Both moved into the sealed lane; their work is in the sealed row |
-| the suite: NINETEEN cells under TWENTY-TWO ids, including the rewritten EW-13c and EW-13d, the four EW-17 with their controls, EW-18 and EW-19 | 12 to 15 | 10 to 13 | **YES, written RED.** EW-17d, EW-17a, EW-17b and EW-19 run to their answer at once; the other seventeen ids are red until F2 |
-| SEALED half: `edit-week-lane.cjs` entire (`openEditWeekHost` and its ten arguments, the first run tag projection, `onWeek`, `weekFacade`, the adoption compose, `newIntentId`), `createEditWeekEntry`, and `today-lanes.cjs`'s ten lines, with their proof | 8 to 11 | 4 to 6 | NO: waits on F2, TODAY-SPLIT and S10 |
+| the suite: TWENTY cells under TWENTY-THREE ids, including the rewritten EW-13c and EW-13d, the four EW-17 with their controls (EW-17c is now four rows and three controls, `E-R16 PRIME` and `E-R21`), EW-18, EW-19 and the new EW-20 | 13 to 16 | 10 to 13 | **YES, written RED.** EW-17d, EW-17a and EW-17b RUN to their measured red answer at once; EW-19, EW-20 and EW-17c's CONTROL 1 reach GREEN; the rest are red until F2 and section 4's hunks |
+| SEALED half: `edit-week-lane.cjs` entire (`openEditWeekHost` and its ten arguments, the first run tag projection, `onWeek`, `weekFacade`, the adoption compose, `newIntentId`), `createEditWeekEntry`, `today-lanes.cjs`'s ten lines, **and `local-source-basis.mjs`'s ONE added export with its own cells (`E-R17 PRIME`, NEW IN v5)**, with their proof | 9 to 12 | 4 to 6 | NO: waits on F2, TODAY-SPLIT and S10 |
 | RELEASED route and mount inside `today-app.cjs` (about six lines) | 0.5 to 1 | 0.5 to 1 | NO: waits on TODAY-SPLIT landing |
 | one independent review round plus the fix round | 5 to 6 | 5 to 6 | follows the work |
 | D2's separate implementation review (`:176` (2)), a SECOND obligation (`E-R8`) | 2 to 3 | 2 to 3 | follows the work |
-| **EW2-BUILD total** | **33.5 to 44 hours of model time** | 30.5 to 41 | **about 18 to 23 of it can start on acceptance, and only about 3 to 4 of that can go GREEN** |
+| **EW2-BUILD total** | **35.5 to 46 hours of model time** | 30.5 to 41 | **about 19 to 24 of it can START on acceptance, and only about 1 to 1.5 of that can go GREEN (`E-R23`)** |
 
 **What moved and why, so the PM is not asked to take a number on trust.** The sealed row roughly
 doubled, which is `E-R12` paid in hours rather than in prose: `onWeek`, `weekFacade`, the tag
@@ -2539,13 +2735,28 @@ projector wiring and the adoption compose all moved there, and 3.3 line 3 prices
 line. The two released files that vanished did not vanish as WORK; they changed address. The suite
 row grew for EW-18 and EW-19 and for the rewritten EW-13c and EW-13d controls.
 
-**AND THE FOURTH COLUMN IS ANSWERED HONESTLY, WHICH IS WHAT `E-R13` ASKED FOR.** v3 said "about 19
-to 25 of it can start on acceptance" and R3 is right that the number assumed green was reachable.
-**Measured, about 18 to 23 hours of work can START, and only the four cells that need no editor
-(EW-17d, EW-17a, EW-17b, EW-19, about 3 to 4 hours) can reach GREEN before F2 lands.** Everything
-else in the released half is written against frozen objects and proved by its own cells; those
-cells are green, but the CELLS THAT OPEN THE DOOR are red, by measurement, until F2. **The start
-date does not move. What a reader may conclude from a green run on day one does.**
+**AND THE FOURTH COLUMN IS ANSWERED HONESTLY, AND IT TOOK THREE ATTEMPTS.** v3 said "about 19 to 25
+of it can start on acceptance" and R3 was right that the number assumed green was reachable. v4
+said "only the four cells that need no editor (EW-17d, EW-17a, EW-17b, EW-19) can reach GREEN", and
+**R4 B4 is UPHELD: three of those four cannot.** `E-R23` rules the column, and this is the honest
+version.
+
+| id | can it RUN on acceptance? | can it reach GREEN on acceptance? | why, and every row carries a spike row or the UNMEASURED mark |
+|---|---|---|---|
+| **EW-19** | yes | **YES, and it is the ONLY one** | it drives the exported `watchDayRollover` with a fake `doc` and needs nothing (SPIKE M7 rows 1 to 5) |
+| **EW-20** | yes | **YES** | **NEW IN v5.** It drives the import screen's exported `refusalLines` over a frozen map (`spike/r5-field-vocab.mjs`) |
+| **EW-17c's CONTROL 1** | yes | **YES** | **NEW IN v5.** Four assertions about `lift-correspondence.cjs` and the phone's document (`spike/r4b-capture-lift.mjs`, `spike/r5-idspace.mjs` section 6) |
+| **EW-17d** | yes, to RED | **NO** | its green needs 4.3 ruling 0's SEALED replay family, which is the admission lane's and is on nobody's desk on acceptance day. Its RED is measured: SPIKE M4 row 2 |
+| **EW-17a** | yes, to RED | **NO** | its green needs 4.3 ruling 1's re-pointing AND 3.5: its right-hand side is FOLDED, and SPIKE M5 row 4 measures the fold refusing `PLAN_EDIT_TAGS_INVALID` with `validateTags` withheld. Its RED is measured: SPIKE M4 row 5 |
+| **EW-17b** | yes, to RED | **NO** | the same, both halves. Its RED is measured: SPIKE M4 rows 6 and 7 |
+| **EW-17c**, its other three rows | no | **NO** | it needs 3.5 for the fold and 4.3 ruling 1 for the re-pointing, and its `sealed(0)` row additionally needs the real port, which is why 12.4 lists it |
+| **the other sixteen ids** | written RED | **NO** | the companion refuses its FIRST READ without F2 on every installation (SPIKE M1 rows 1, 5, 7) |
+
+**So: about 19 to 24 hours of work can START, and about 1 to 1.5 hours of it can reach GREEN.**
+Everything else in the released half is written against frozen objects and proved by its own cells;
+those cells are green, but they are the RELEASED half's own cells and not the twenty-three ids of
+section 5. **The start date does not move. The number of hours does not move. What a reader may
+conclude from a green run on day one does, and that was the whole of `E-R13` and now of `E-R23`.**
 
 Not counted above, because they are shared or not this lane's:
 
@@ -2581,9 +2792,10 @@ Treat two builder days as the floor for part 2, not the ceiling.
 | Q-G | Who lands the F2 package, and on which child? | **ANSWERED: `E-R6` ACCEPTS the proposal as written.** `rebuild/m4/workout/setup-tags.cjs` lands on S10 by lane D with its own review; EW-04, EW-15 and EW-17c wait on it and say so, and 3.5 adds that 3.4's adoption read and 4.3's fold wait on it too. |
 | **Q-H** | **NEW in v3.** 4.3 ruling 2 needs `inspect()` factored into its editability guards and its proofs so one spelling serves both the editor and admission. That is a hunk in a SEALED file whose twenty merged cells must stay green, and it is the premise of 4.4's price. Does the PM want it in `plan-edit-model.cjs`, or does he want admission to construct the projector and accept the guards as they are? | **In `plan-edit-model.cjs`, as `E-R4` rules.** Accepting the guards as they are does not work: 4.3 ruling 2 measures four of them refusing in admission's own context. STOP 12 covers the case where the factoring turns out to move a refusal. |
 | **Q-I** | **NEW in v3.** `newIntentId` is a THIRD host argument with no product provider (2.1), and this spec names a one line minter over the installation's own `crypto.randomUUID()`. It is trivial next to the tag pair, but it IS a new provider in a sealed file. | **Accept the one liner.** The alternative is a second id scheme, and `plan-edit-host.mjs:171-:172` already guards a collision. Flagged only because v2 said TWO arguments were missing and a builder counting on that number would be one short. |
-| **Q-J** | **NEW in v4 (`E-R14`).** 4.3 ruling 2a proposes THREE new `field` names for what admission reports when the fold refuses: `plan_edit_history`, `plan_edit_basis`, `plan_edit_context`. They are new vocabulary in a closed table the import screen draws. | **Seat the three, or reduce them to one (`plan_edit_fold`) and say so.** The recommendation is three, because the second and third are BUILD DEFECTS and the first is not; a reviewer reading an issue list should be able to tell them apart without reading the code. **This is the only new vocabulary v4 proposes, and it is not athlete-facing copy.** |
-| **Q-K** | **NEW in v4 (`E-R13`).** The Machine settings door is blocked on F2 only because 2.2's E0 serves BOTH doors from one `host.read()`. Reaching it without that read would unblock EW-09 alone. | **Do NOT open that escape.** It makes the door chooser draw a state that is not true (one door open, one shut, from a read that refused) and it buys one cell out of seventeen. 3.5 consequence 3 records it as named and not taken. If the PM rules otherwise, 2.2's E0 row and 8.2 item 14 both change. |
-| **Q-L** | **NEW in v4.** SPIKE M4 FACT 1 found a defect nobody had named: a saved plan edit refuses the whole import by itself, before any capture. 4.3 ruling 0 rules a replay family for it, priced at 2 to 3 hours in 4.4. | **This is the cheapest and most urgent of the four hunks and it is worth landing on its own, EARLY, even before the rest of section 4.** It is the only one whose absence breaks an athlete who never edits a set count. Its cell, EW-17d, needs no capture and no F2 and can run on acceptance. |
+| **Q-J** | **NEW in v4 (`E-R14`).** 4.3 ruling 2a proposes THREE new `field` names for what admission reports when the fold refuses: `plan_edit_history`, `plan_edit_basis`, `plan_edit_context`. | **ANSWERED AND CLOSED by `E-R24`: THE PM SEATS THE THREE.** They are the vocabulary, and this spec records the answer rather than re-asking it. **R4 N4 is carried and is now MEASURED rather than marked (`spike/r5-field-vocab.mjs`, EW-20):** the import screen's `REFUSAL_FIELD_SENTENCE` is a CLOSED map of five keys (`capture_sets`, `setup_document`, `athlete_label`, `capture_lift`, `exercise_n`), the three new names are not among them, and what the screen draws for one is `REFUSAL_SENTENCE['LOCAL_SOURCE_PROGRAMME_UNRESOLVED']`, the same sentence every other programme refusal draws, with the field name printed verbatim on the code line above it. **One honest consequence, recorded and NOT fixed here:** that sentence is "This file was written by a different training week than the one you set up on this phone", which is true enough of `plan_edit_history` and is not true of `plan_edit_basis` or `plan_edit_context`, both of which are build defects. **This spec proposes NO new sentence for them (law 4, STOP 8);** the PM may later rule one, and 12.4 lists the gap. |
+| **Q-K** | **NEW in v4 (`E-R13`).** The Machine settings door is blocked on F2 only because 2.2's E0 serves BOTH doors from one `host.read()`. Reaching it without that read would unblock EW-09 alone. | **ANSWERED AND CLOSED by `E-R24`: NO. THE ESCAPE STAYS SHUT.** This spec's recommendation was not to open it and the PM has ruled the same. It makes the door chooser draw a state that is not true (one door open, one shut, from a read that refused) and it buys one cell out of seventeen. 3.5 consequence 3 records it as named, not taken, and now closed. |
+| **Q-L** | **NEW in v4.** SPIKE M4 FACT 1 found a defect nobody had named: a saved plan edit refuses the whole import by itself, before any capture. 4.3 ruling 0 rules a replay family for it, priced at 2 to 3 hours in 4.4. | **ANSWERED by `E-R24`: YES, WITH A LIMIT, and both halves matter.** The plan-class replay family is the **FIRST of the four admission hunks inside S10** and it has its own cell, EW-17d. **It does NOT get a reseal child of its own.** The reason the PM gives is a fact rather than a preference: **no phone can hold a plan op before this item ships, so nothing is broken in the field today**, and the urgency is about what breaks the day the door opens, not about what is breaking now. STOP 15 is unchanged: the four hunks still ride S10 together (Q-B), and ruling 0 being first on that child is an ORDER, not a separate ship. |
+| **Q-M** | **NEW in v5, and it is the one row this round could not close by measurement alone (`E-R16 PRIME` (c), STOP 18).** Under the re-taken `capture_lift` ruling, a capture naming a lift a PLAN EDIT ADDED is admitted by the membership test, its `:613` target is its own document id, and **measured, the ADMITTED state carries no row under that id** (`spike/r5-idspace.mjs` section 4). The re-key at `:731-:734` would then move that entry to an address the admitted state does not hold. Which way does the PM want it? | **The recommendation is (a): extend `:477-:484` to append the lifts FOLDED carries that the setup document does not, under their own ids, exactly as it already appends an uncorresponded setup lift.** It is one hunk in a block this spec never opened, it keeps `:613` and the re-key byte-unchanged, and it makes the re-key's own stated property true again. **What this spec does NOT do is choose the DATE that fold would be taken at**, because `:477-:484` runs ONCE per import with `currentDay()` while FOLDED is per capture date, and `E-R16 PRIME` forbids inventing a third comparison. The alternative (b) is to write down, as intended, that a plan-added lift's projected entries stay under the document's id with no admitted row, and to price what reads them. **Either way EW-17c ROW 4 asserts the answer by name, and STOP 18 stops the admission hunk until this is ruled.** |
 
 ### 9.5 What this spec did NOT do
 
@@ -2609,13 +2821,32 @@ machines, and that is the point of the round.** What is true, stated precisely:
   include-list path in the farm's own mirror and no rule was worked around to read it.
 - The seal artifact was queried by a script that printed counts and per-path YES/NO only; its
   contents were never printed. No credential appears in this file.
-- **Heads.** The reading and the spike for this round were done in the PM's cloud farm mirror at
+- **Heads.** The reading and the spike for v4 were done in the PM's cloud farm mirror at
   **`ad8ced07`**, with `rebuild/d2-ew2-spec` at `99cfa911` and `rebuild/c-today-split` at
   `906cb056` synced beside it, and `rebuild/b-s9-ui-pins` read at `d859096a`. The writing, the
   commit and the push were done on the owner's PC.
-- **No product, test, tooling or workflow byte moves on this branch.** This file and its reviews
-  are the only things on it. Zero U+2013 and zero U+2014 in this file, and no sentence proposed by
-  it carries a dash of any kind.
+- **HEADS FOR v5, and R4 N5's correction applied (`E-R24` / N5).** This round's cells were written
+  and run in a farm scratch worktree at product head **`70113da5`**, which is the head review R4
+  measured at, over `rebuild/d2-ew2-spec` at **`84e09193`** (R4 itself). **`rebuild/c-today-split`
+  is read at `60d6ad97`, NOT `906cb056`: that is its own independent review R2, a REJECT with
+  eight blocking findings, so SECTION 3, 6.8 AND STOP 2 ALL DEPEND ON A DOCUMENT THAT IS IN A FIX
+  ROUND, and they say so.** Its spike has since landed at `24b35244`, and
+  `git diff 60d6ad97..24b35244 -- rebuild/lanes/c/TODAY-SPLIT-SPEC.md` is EMPTY, so E.3 and E.4 are
+  the same text at both, which is what 6.8's census was run against. **The PM's `:550` puts that
+  word list itself in a fix round, so 6.8's fourth bullet is a CENSUS to re-run and not a table to
+  copy.** The writing, the commit and the push for v5 were done on the owner's PC.
+- **WHAT RAN IN v5, and the cells are committed rather than described.** Six throwaway cells in a
+  farm scratch worktree, all under three seconds each, all synthetic, none sealing anything and
+  none needing the port: they are `rebuild/lanes/d2/spike/`, with a README giving the sha256 of
+  each against its farm original and the directory each must be copied to in order to run. **The
+  seventh file there is review R4's own cell, unaltered, because this round builds on it rather
+  than replacing it.** Nothing was installed, no browser was launched, no `b-package.cjs` ran, no
+  seal was attempted, and nothing was pushed from any scratch worktree.
+- **No product, test, tooling or workflow byte moves on this branch.** This file, its reviews and
+  v5's `spike/` folder are the only things on it, and nothing in `spike/` is imported by any
+  product file, registered in CI or run by the bar. Zero U+2013 and zero U+2014 in this file and in
+  every file of `spike/`, counted rather than claimed, and no sentence proposed by it carries a
+  dash of any kind.
 
 ---
 
@@ -2970,9 +3201,13 @@ interim died of it.
 row or is marked UNMEASURED. These are the marked ones, in full, so a reviewer can attack the list
 rather than hunt for it:
 
-1. **EW-17c's CONTROL 2**: a capture naming the REPLACED (retired) lift on a date at or after
-   `starts_on` still refuses `capture_lift`. The spike drove a capture on the MINTED lift, not on
-   the retired one. Derived from `plan-edit-model.cjs:362` and `result()`'s `:376`.
+1. ~~**EW-17c's CONTROL 2**: a capture naming the REPLACED (retired) lift on a date at or after
+   `starts_on` still refuses `capture_lift`.~~ **MEASURED IN v5 AND STRUCK FROM THIS LIST
+   (`E-R16 PRIME` (d), `spike/r5-idspace.mjs` section 5), on a real saved `remove` through the real
+   host: over FOLDED's ACTIVE rows it PASSES on a date before `starts_on` and REFUSES on
+   `starts_on` itself, and over `FOLDED.exercises` it passes on BOTH, which is why 4.3 ruling 1
+   (a2) names the ACTIVE set.** What is STILL unmeasured about it is narrower and is listed as
+   item 7 below: the same case driven through a REAL SEALED bundle, which needs the port.
 2. **The `hashBasis` adaptation** (4.3 ruling 2): that `platform.hash` can be made to satisfy
    `plan-edit-model.cjs:101-:105`'s 64 hex shape law. The spike supplied its own hash. 4.3 already
    says whoever writes the hunk MEASURES this rather than assuming it.
@@ -2987,10 +3222,28 @@ rather than hunt for it:
 5. **Every line count and hour in 3.3 line 3, 4.4 and 9.3.** They are estimates, not measurements,
    and they are marked as targets with a STOP (17) attached to the sealed budget.
 6. **The WRITER-FENCE's behaviour on this item's files**, because the fence does not exist yet.
-   6.8 states what it must print; nothing has run it.
+   6.8 states what it must print and its fourth bullet's census is MEASURED against E.3's text
+   (`spike/r5-fence-names.mjs`); what is unmeasured is the FENCE ITSELF, which nothing has run.
+7. **NEW IN v5. Every `capture_lift` row of 4.3 ruling 1 driven through a REAL SEALED BUNDLE.**
+   `spike/r5-idspace.mjs` measures the two id spaces, the correspondence, the fold, the admitted
+   state's append rule and all four of `E-R16 PRIME`'s questions, on both bracket levels, against
+   the REAL `lift-correspondence.cjs`, the REAL `createCleanInitState` and a REAL saved plan edit
+   through the REAL host. **What it does NOT do is seal a bundle and walk it through
+   `source-admission.mjs`: that needs `port.cjs`, which the farm cannot run.** So the table in 4.3
+   is a measurement of the PARTS and of the arithmetic between them, not of the whole walk. EW-17c
+   is the cell that closes it, on the PC, and its `sealed(0)` row is the one that has never been
+   run by anybody.
+8. **NEW IN v5. What a plan-added lift's projected entries do downstream of the re-key.** 4.3
+   ruling 1 (c) measures that the ADMITTED state carries no row under that id. What READS such an
+   entry afterwards, and what it does, is not measured here at all. STOP 18 and Q-M carry it.
+9. **NEW IN v5. The sentence the import screen draws for `plan_edit_basis` and
+   `plan_edit_context`.** EW-20 and `spike/r5-field-vocab.mjs` measure WHICH sentence is drawn
+   (the code's own, since the map does not name the field). Whether that sentence is ACCEPTABLE for
+   a build defect is a copy question this spec does not answer and does not propose a sentence for
+   (law 4, STOP 8, Q-J).
 
 **Everything else in this file about what refuses, in what order, with which code, cites section 0
-by row.**
+by row, or a row of a `spike/` cell committed beside this file.**
 
 ### 12.5 WHAT R3 COULD NOT BREAK, AND WHAT ROUND 4 DID NOT TOUCH
 
@@ -3009,3 +3262,50 @@ receiving code puts on that argument". That is exactly right, it is why `:548` r
 4.3 are the most carefully derived pages of design I have read in this repo". Round 4 rewrote large
 parts of both, not because they were badly derived, but because derivation is not measurement. That
 is the lesson of the round and it belongs in the ledger more than any single finding here does.
+
+---
+
+## 12.6 R4 FINDINGS: FIXED OR DISPUTED, WITH THE CELL THAT PROVES EACH (NEW IN v5)
+
+Independent review R4 (`EW2-SPEC-REVIEW-R4.md` at `84e09193`) returned REJECT at `f9b1c8db` with
+four BLOCKING findings and five notes. **It is the first round that RAN THE PRODUCT AGAINST THE
+SPEC, and the finding that matters came out of a cell its author wrote to break the design, not out
+of a reading.** The PM's judgement is that the method worked. **NOTHING OF R4's IS
+DISPUTED BY THIS VERSION. All four blocking findings are upheld; two were PM choices and the PM has
+re-taken them (`E-R16 PRIME`, `E-R17 PRIME`); two were document corrections and are made. All five
+notes are adopted.**
+
+| R4 | verdict | where it landed, and the cell that proves it |
+|---|---|---|
+| **B1** `E-R16` puts a FILE id against a DOCUMENT-id set, and measured it refuses twelve of sixteen lifts on a real old app file | **UPHELD IN FULL, AND THE PM HAS RE-TAKEN THE RULING (`E-R16 PRIME`)** | 4.3 ruling 1's `capture_lift` row is rewritten in three parts with the id space named in each, and 4.3 gains an **ID SPACE TABLE** covering every id and every set it compares. **PROOF: `spike/r4b-capture-lift.mjs`, which is R4's own cell kept unaltered, and `spike/r5-idspace.mjs`, which extends it to all four of `E-R16 PRIME`'s questions on `variant(0)` and `variant(7)` at both sides of `starts_on`.** The two agree value for value. R4's own numbers reproduce exactly: 12 of 16 targets differ, 16 of 17 pass today, 5 of 17 under `E-R16` as worded. Under `E-R16 PRIME` it is 16 of 17 on both fixtures, and the "refuses where it passes today" list is EMPTY |
+| **B1, second half:** EW-17c cannot catch it because the fixture's bracket hides the defect | **UPHELD** | `E-R21` is adopted: every cell that asserts what is ADMITTED names its bracket level, EW-17c's MAIN row now seals **`sealed(0)`**, and **R4's own cell becomes EW-17c's named CONTROL 1**. Section 5's preamble states the rule and says why level 2 and above hide it |
+| **B2** `E-R17` is not carried out: the adoption still costs THREE durable loads, and 3.4.4 item 5 asks TODAY-SPLIT for a binding that does not exist | **UPHELD IN FULL, AND THE PM HAS TAKEN THE HUNK (`E-R17 PRIME`)** | Item 5 is WITHDRAWN. `local-source-basis.mjs` gains ONE added export (3.2's row, 3.3 line 5 amended, about 12 sealed lines), the existing export stays byte-identical, 3.4.4's hunk is re-cut, 3.3 line 3's budget goes to about 142 and 9.3's sealed row to 9 to 12 hours. **PROOF: `spike/r5-adoption.mjs`, the same instrument R4 used: v4's text measures 3, the new design measures 2, the floor with no editor is 1, and row D isolates the one extra act as `lane.reopen()` inside `readVerified`.** Row E drives the never-throws contract of both spellings, nine drives, none throwing, which is why the existing export is left alone |
+| **B2, the three ways out R4 said were each forbidden** | **ANSWERED, and the PM took (a) with a fourth thing R4 could not have known** | (a) is taken, with the `try` staying exactly where it is. (b) is NOT taken, so `importAdmitted` keeps its meaning (3.4.4 item 4, measured). (c) is NOT taken: STOP 9 stands. **And `E-R17 PRIME` (iv) dissolves R4's D.1 objection by SEQUENCING: EW2's sealed hunks land as commits ON TOP OF TODAY-SPLIT's, so the split's verbatim proof, which is a property of its own commits, is untouched** |
+| **B3** the released callback table is named `onWeek.save` and `onWeek.close`, both on E.3's word list, and 6.8 checks only the import side | **UPHELD** | `E-R22`. The table is renamed: `save` to `saveChange`, `close` to `closeEditor`, `open` to `openWeek`, following TODAY-SPLIT's own B.3 pattern. 2.1's census paragraph and 2.2's `HOW TO READ` paragraph both move with it, and EW-12 gains a control. **6.8 gains a FOURTH bullet with the MEMBER-name census printed, all seven members. PROOF: `spike/r5-fence-names.mjs` against E.3 at `24b35244`: 28 member names on the list, v4 hits 2 of them, v5 hits 0.** STOP 2 records that the list may move under `:550` |
+| **B4** exactly one of the ids can reach green on acceptance, not four, and 9.3 is the sentence the PM approves | **UPHELD** | `E-R23`. Section 5's `blocked on` column splits RUN from GREEN for EW-17a, EW-17b and EW-17d; 7.2's row splits the same way; **9.3's fourth column is replaced by a per-id table in which EW-19 is the only id of the twenty-three that reaches GREEN on acceptance**, with EW-20 and EW-17c's CONTROL 1 added in v5 as the only other green things, and every row carries a spike row or the UNMEASURED mark. The hours do not move; the sentence does |
+| **N1** the adoption read takes no date, so two cells are red on arrival | **ADOPTED** | 3.4.4 says which day the adoption read is taken on and prints the measured table; EW-13d gains a named date and a CONTROL d0; EW-14 names a date. **PROOF: `spike/r5-readday.mjs`, which reproduces R4's table exactly: no date, the added lift appears 0 times and the pre-edit `sets` stands; at `starts_on` and after, exactly once and `sets` 5** |
+| **N2** 3.5 consequence 3's blocked list has eighteen ids and every other statement has seventeen | **ADOPTED** | EW-19 is struck from that list. It opens no editor |
+| **N3** the factory and `projectorFor` derive `basisSource` from different generations | **ADOPTED** | One paragraph at the end of 3.4.4 retires it as a RACE that is SAFE and not a wiring defect, and STOP 13 points at it so the first builder to meet the code does not hunt a bug that is not there |
+| **N4** ruling 2a's field vocabulary claim is not measured and is not on 12.4's list | **ADOPTED, AND TURNED FROM UNMEASURED INTO MEASURED** | `E-R24` seats the three names and **adds the cell R4 asked for: EW-20**. **PROOF: `spike/r5-field-vocab.mjs`**: the import screen's `REFUSAL_FIELD_SENTENCE` is a closed map of five keys, none of them the new three, and the screen falls through to the code's own sentence with the field printed verbatim above it. 12.4 item 9 carries what is still open, which is whether that sentence is acceptable for a build defect |
+| **N5** TODAY-SPLIT is at `60d6ad97` and is at REJECT R2 with eight blocking | **ADOPTED** | STOP 2 and 9.5's heads both say the head is `60d6ad97`, both name the REJECT, and both say all four dependencies are on a document in a fix round. E.3 and E.4 are verified byte-identical between `60d6ad97` and `24b35244`, so nothing is excused by drift |
+
+**WHAT R4 SAID IT COULD NOT BREAK, AND WHAT THIS ROUND DID NOT RE-OPEN.** R4's section 7 lists
+eight: 3.4.1's siting argument, 3.6's dereference, 3.4.3's pinning, the fold's exclusion of a
+retracted edit, the copy census and law 4, section 4's digest constraint, the estimate's
+arithmetic, and EW-18's three controls. **Seven are untouched.** The eighth, the estimate's
+arithmetic, moves only where `E-R17 PRIME` and `E-R23` move it, and R4 predicted exactly that:
+"B4 moves the fourth column, not the sum."
+
+**AND THE PATTERN R4 PUT TO THE PM RATHER THAN FILING AS A FINDING IS NOW A RULE.** R4 wrote that
+round 3 found defects by reading, round 4's spike found them by running the product, and round 4's
+review found one by running the product against a DIFFERENT FIXTURE, so "every cell that asserts
+what is ADMITTED names the bracket level of the file it seals, and a reviewer asks what that level
+hides". That is `E-R21`, it is in section 5's preamble and in 6.1, and it is the cheapest guard in
+this document.
+
+**THE ONE THING THIS ROUND HANDS FORWARD RATHER THAN CLOSES.** `E-R16 PRIME` (c) asked for a
+measurement and it produced one that opens a question nobody had asked: the admitted state carries
+no row for a lift a plan edit added, and the re-key's own comment relies on `capture_lift` having
+proved that it does. **That is Q-M and STOP 18. It is a smaller thing than B1 and it is the same
+kind of thing, found the same way, and it is named here rather than discovered at the first
+fixture.**
