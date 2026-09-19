@@ -295,5 +295,14 @@ jobs:
         run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
       - name: A5 — the built deploy folder itself
         run: node --test rebuild/slice/pwa/test/package.test.cjs
+      # C - the two lane C cells over Today's plan card. Both live OUTSIDE
+      # rebuild/m3/w7-preview/today/test/ on purpose: that directory is pinned by the S8
+      # artifact and H3/13 requires the today step to name it exactly, so a fourteenth file
+      # there turns H3/13 red. Until this step they ran in no workflow at all, which is the
+      # thing DECISIONS:186 (3) forbids (P3-TODAY-HOTFIX review R1 note N6, carried to this
+      # reseal child by DECISIONS:534 (b)). Named by exact path, never globbed, so both
+      # runners agree whatever the shell does.
+      - name: C - Today's headline over an open proposal (S1) and the whole plan sentence (S2)
+        run: node --test rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs
       - name: Report the evidence boundary
         run: node -e "console.log('W0 PUBLIC CI PASS; private oracle/full selftest, real backend, installed phone and final M3 SCOPE-FREEZE remain separate acceptance gates')"
