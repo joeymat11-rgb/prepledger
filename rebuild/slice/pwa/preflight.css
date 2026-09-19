@@ -14,3 +14,34 @@
 @media (display-mode: standalone) {
   #pwa-preflight [data-pwa="install"] { display: none; }
 }
+
+/* ---------------------------------------- the deployed page, DECISIONS:534 (a) S3/S4 --
+   Everything below is scoped to body[data-earned-app], the marker shell.cjs puts on the
+   page THIS folder emits. A1's preview page never carries it, so the PC review harness
+   and every desktop cell are exactly what they were. */
+
+/* S3. The two review asides are A1's desktop harness talking to a reviewer: what the
+   build is, what this device's local storage says, what is wired and what is only an
+   entry point. Launched or opened from the deploy URL there is nobody on the other side
+   of the glass, and the owner read the second one as the bottom of his own screen. The
+   elements themselves stay in the document, because today-app.cjs and today-entry.mjs
+   write the boot and store lines into #today-storage and #today-status by id. A5's own
+   preflight aside is the athlete's and stays visible. */
+body[data-earned-app] .stage > .review:not(#pwa-preflight) { display: none; }
+
+/* S4. With viewport-fit=cover (shell.cjs) the page draws under the status bar, so the
+   document reserves it as a quantity the device reports rather than a constant: a hard
+   figure is wrong on any device whose inset differs and additive on a web view that is
+   already inset.
+
+   THE 24px FALLBACKS ARE MEASURED, not read off a stylesheet. Rendering A1's own built
+   page in a real browser at 393x852 and at 900x852 computes .stage padding 24px top and
+   24px bottom at BOTH widths: the approved narrow-screen rule (@media(max-width:430px)
+   .stage{padding:12px 8px 25px}) is dead in the shipped cascade, because a later rule of
+   equal specificity (.stage{padding:24px 8px}) follows it in styles.css. So max() with
+   24px can only ever ADD the device's inset and never takes a pixel away from what the
+   page renders today, at any width. */
+body[data-earned-app] .stage {
+  padding-top: max(24px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+}

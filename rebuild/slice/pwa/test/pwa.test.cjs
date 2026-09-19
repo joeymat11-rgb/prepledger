@@ -611,7 +611,7 @@ test("the iOS guidance is the one thing the approved design cannot supply, and i
   assert.match(shell.preflightJs(), /display-mode: standalone/);
 });
 
-/* ------------------------------------------------- the two edits to A1's built page -- */
+/* ------------------------------------------------ the four edits to A1's built page -- */
 
 const A1_SHELL = fs.readFileSync(path.join(ROOT, "rebuild/m3/w7-preview/today/index.shell.html"), "utf8")
   .replace("<!-- APPROVED_TEMPLATES -->", "<template id=\"t-today\"></template>");
@@ -705,8 +705,8 @@ test("S3 - the page A5 emits hides A1's review asides, and A1's own page keeps t
     "A1's own shell must stay the desktop review harness it is");
   /* (b) the stylesheet that marker gates really removes every one of A1's asides, and
          leaves A5's own preflight aside alone. */
-  const css = shell.preflightCss();
-  assert.match(css, /body\[data-earned-app\][^{]*\.review:not\(#pwa-preflight\)[^{]*\{[^}]*display:\s*none/,
+  const rules = shell.preflightCss().replace(/\/\*[\s\S]*?\*\//g, "");
+  assert.match(rules, /body\[data-earned-app\][^{]*\.review:not\(#pwa-preflight\)[^{]*\{[^}]*display:\s*none/,
     "nothing in A5's stylesheet hides A1's review asides");
   /* (c) the rule can actually reach the page: the emitted document links that sheet. */
   assert(html.includes(`<link rel="stylesheet" href="${NAMES.preflightCss}">`));
@@ -731,18 +731,23 @@ test("S4 - the emitted page draws under the status bar and reserves it as a quan
   assert(!html.includes('content="width=device-width,initial-scale=1">'),
     "the old viewport meta survived beside the new one");
   assert(!A1_SHELL.includes("viewport-fit"), "A1's preview page is not a full-screen app");
-  const css = shell.preflightCss();
-  /* The inset is a quantity the device reports, with a fallback that keeps the approved
-     narrow-screen figures exactly (max(12px, 0px) is 12px, so a browser that reports no
-     inset renders what it renders today). */
-  assert.match(css, /body\[data-earned-app\]\s+\.stage\s*\{[^}]*padding-top:\s*max\(12px,\s*env\(safe-area-inset-top,\s*0px\)\)/,
+  /* Every check below reads the RULES and not the prose: this stylesheet's comments quote
+     the approved sheet's own selectors and figures, so a scan that cannot tell a
+     quotation from a declaration would pass, or fail, on a sentence. */
+  const rules = shell.preflightCss().replace(/\/\*[\s\S]*?\*\//g, "");
+  /* The inset is a quantity the device reports, with a fallback that cannot take a pixel
+     away from what the page renders today: A1's own built page, rendered at 393x852 and
+     at 900x852, computes .stage padding 24px top and 24px bottom at both widths, so
+     max(24px, 0px) is exactly today's figure and max(24px, inset) only ever adds. */
+  assert.match(rules, /body\[data-earned-app\]\s+\.stage\s*\{[^}]*padding-top:\s*max\(24px,\s*env\(safe-area-inset-top,\s*0px\)\)/,
     "nothing reserves the top inset");
-  assert.match(css, /padding-bottom:\s*max\(25px,\s*env\(safe-area-inset-bottom,\s*0px\)\)/,
+  assert.match(rules, /padding-bottom:\s*max\(24px,\s*env\(safe-area-inset-bottom,\s*0px\)\)/,
     "nothing reserves the bottom inset");
   /* Not a constant: a 53px-style hard figure is wrong on any device whose inset is not
      53px, and additive on a web view that is already inset. */
-  assert.doesNotMatch(css.replace(/\/\*[\s\S]*?\*\//g, ""), /padding-top:\s*\d+px/,
+  assert.doesNotMatch(rules, /padding-top:\s*\d+px/,
     "the top inset is a hard figure rather than the device's own");
   /* And the rules are scoped to the emitted page: the PC preview keeps its own spacing. */
-  assert.equal(css.includes(".stage {"), false, "an unscoped .stage rule would move A1's preview");
+  assert.doesNotMatch(rules, /^\s*\.stage\s*[,{]/m, "an unscoped .stage rule would move A1's preview");
+  assert.doesNotMatch(rules, /^\s*body\s*[,{]/m, "an unscoped body rule would move A1's preview");
 });

@@ -89,9 +89,42 @@ function createBasisState(day) {
   return state;
 }
 
+/* S1 (DECISIONS:534 (a); P3-TODAY-COPY-DIAG section S1). rebuild/engine/today.cjs:568-582
+   makes nowModel().move the FIRST UNRESOLVED PROPOSAL'S CARD TITLE whenever the state
+   carries one, on purpose: the frozen app had a decisions surface behind that headline.
+   This page has no proposal card at all (state inventory T-40; the card is C-UI-3), and
+   today-app.cjs:863 binds move.title into the slot the approved design labels "Your plan
+   for today". So a per-muscle volume proposal, which reaches Today only through the
+   admitted import's replayed state and therefore through no fixture, read as the day's
+   session on the owner's own phone.
+
+   Until Today has a card of its own, the headline is the engine's OWN next-best move:
+   the SAME function, over the SAME state with its proposals set aside, so every word on
+   screen is still an engine result and this adapter invents nothing. Nothing else is
+   taken from that second projection. The status face, the workout, the figures and
+   `decisionsN` all stay the real state's, so nothing hides what is genuinely waiting.
+
+   With no open proposal the second projection is never computed and `nowModel` is
+   returned by IDENTITY, so the fixture render is byte-identical and the engine's own
+   memoisation is not defeated. */
+function hasOpenProposal(state) {
+  return ((state && state.proposals) || []).some((p) => p && !p.resolved)
+    || ((state && state.agentProposals) || []).length > 0;
+}
+
+function planMove(E, state, nowModel) {
+  if (!hasOpenProposal(state)) return nowModel.move;
+  const bare = clone(state);
+  bare.proposals = [];
+  bare.agentProposals = [];
+  return E.nowModel(bare).move;
+}
+
 function projectionOf(E, state) {
+  const nowModel = E.nowModel(state);
+  const move = planMove(E, state, nowModel);
   return {
-    nowModel: E.nowModel(state),
+    nowModel: move === nowModel.move ? nowModel : { ...nowModel, move },
     statusFace: E.statusFace(state),
     currentRate: E.currentRate(state),
     calorieTarget: E.calorieTarget(state),

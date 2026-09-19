@@ -109,10 +109,26 @@ function headersFile(rules) {
   return lines.join("\n");
 }
 
-/* ------------------------------------------------------- the two edits to the page --
+/* ------------------------------------------------------ the four edits to the page --
    A1's index.html is taken as bytes and changed in exactly the places named here. Each
    replacement asserts it matched once, so an upstream change to A1's shell fails this
-   build instead of quietly producing a page with no manifest and no worker. */
+   build instead of quietly producing a page with no manifest and no worker.
+
+   DECISIONS:534 (a) adds the third and fourth. A1's page is a DESKTOP review harness:
+   a 390x844 phone frame flanked by two `aside.review` blocks of reviewer prose, with
+   every vertical inset a hard pixel figure from a reference that had no device chrome to
+   avoid. That is right on the PC and wrong on the athlete's phone, where the prose was
+   the bottom of his own screen and the header sat under the status bar.
+
+     (3) the BODY MARKER, `data-earned-app`, which preflight.css uses to gate the harness
+         off and to reserve the safe areas. A1's own page never carries it, so the PC
+         preview and every desktop cell are untouched. It is a marker rather than
+         `@media (display-mode: standalone)` because standalone does not match the deploy
+         URL opened in a Safari tab, which is one of the two places this page is read.
+     (4) the VIEWPORT META, which gains `viewport-fit=cover`. Without it `env(safe-area-
+         inset-*)` resolves to 0 and the padding in preflight.css is a no-op; with it and
+         without the padding the overlap is certain. The two ship together or not at all.
+*/
 function once(text, find, replace, label) {
   const parts = text.split(find);
   assert.equal(parts.length, 2, `SHELL-EDIT FAIL: ${label} matched ${parts.length - 1} times`);
@@ -124,8 +140,14 @@ const preflightCss = () => fs.readFileSync(path.join(SOURCE, "preflight.css"), "
 const preflightJs = () => fs.readFileSync(path.join(SOURCE, "preflight.js"), "utf8");
 const workerSource = () => fs.readFileSync(path.join(SOURCE, "sw-source.js"), "utf8");
 
+const VIEWPORT_META = '<meta name="viewport" content="width=device-width,initial-scale=1">';
+
 function installableHtml(indexHtml, names) {
-  let html = once(indexHtml, '<link rel="stylesheet" href="styles.css">',
+  let html = once(indexHtml, VIEWPORT_META,
+    '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
+    "the viewport meta");
+  html = once(html, "<body>", "<body data-earned-app>", "the body element");
+  html = once(html, '<link rel="stylesheet" href="styles.css">',
     [`<link rel="stylesheet" href="${names.styles}">`,
       `  <link rel="stylesheet" href="${names.preflightCss}">`,
       `  <link rel="manifest" href="${pwa.MANIFEST_FILE}">`,
@@ -143,6 +165,12 @@ function installableHtml(indexHtml, names) {
     "the end of the stage");
   assert(!/href="styles\.css"/.test(html) && !/src="app\.js"/.test(html),
     "SHELL-EDIT FAIL: an unhashed asset name survived");
+  /* DECISIONS:534 (a). The gate is only a gate if both halves are in the emitted page:
+     the marker preflight.css keys on, and the full-screen viewport that makes
+     env(safe-area-inset-*) report anything at all. */
+  assert(html.includes("<body data-earned-app>"), "SHELL-EDIT FAIL: the body marker is missing");
+  assert(html.includes("viewport-fit=cover"), "SHELL-EDIT FAIL: the viewport does not cover");
+  assert(!html.includes(VIEWPORT_META), "SHELL-EDIT FAIL: the old viewport meta survived");
   return html;
 }
 
@@ -183,6 +211,7 @@ function assertNoNetworkReference(files, allowed = ALLOWED) {
 
 module.exports = {
   SOURCE, PAGE_CSP, WORKER_CSP, ASSET_CSP, COMMON, IMMUTABLE, SVG_NAMESPACE, ALLOWED,
+  VIEWPORT_META,
   headerRules, assertHeaderRules, headersFile, installableHtml, serviceWorker,
   preflightHtml, preflightCss, preflightJs, workerSource, assertNoNetworkReference, once,
 };
