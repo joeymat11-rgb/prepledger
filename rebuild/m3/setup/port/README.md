@@ -197,8 +197,9 @@ NFKD alone, which is why every bundle sealed before that date still opens. On
 the IMPORT side the TYPED passphrase first passes through
 `passphrase.cjs normalisePassphrase()`, the one canonical form shared by this
 decoder and the phone's: NFKD, then lower case, then every run of separators
-between words (ECMAScript \s, including U+FEFF and excluding U+0085, hyphen-minus, U+2010 to U+2015, U+2212,
-underscore, comma, full stop) collapsed to a single hyphen-minus, ends trimmed.
+between words (ECMAScript \s, including U+FEFF and excluding U+0085,
+hyphen-minus, U+2010 to U+2015, U+2212, underscore, comma, full stop)
+collapsed to a single hyphen-minus, ends trimmed.
 So the six words open the file typed with spaces or with hyphens and in any
 case, which is what the PC's own printed form and a phone keyboard disagreed
 about. Whoever builds another decoder must read that helper, not re-implement

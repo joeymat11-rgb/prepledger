@@ -230,7 +230,8 @@ test('C-PN-19 - the exported separator class is STATELESS: no g, no y, and the '
    cell that says what it is changing. It is NOT a pin on a defect: see the
    author report, R1 findings, N1.
    -------------------------------------------------------------------------- */
-test('C-PN-20 - invisible FORMAT characters are not separators: they refuse, '
+test('C-PN-20 - invisible FORMAT characters (U+FEFF excepted: it is ECMAScript '
+  + 'whitespace, see C-PN-28) are not separators: they refuse, '
   + 'they refuse closed, and this lane did not widen the accepted set to them', () => {
   const ZWSP = '\u200b';
   const WORD_JOINER = '\u2060';
