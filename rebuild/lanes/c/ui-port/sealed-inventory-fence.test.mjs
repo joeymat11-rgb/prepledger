@@ -26,6 +26,11 @@
    chain rather than a cost. The only condition that COSTS anything is (4): the branch
    must put its id into IDS in b-package.cjs, a SEALED byte, which the same CI run refuses
    at fidelity() :2011 and at the runner pin :2012-:2013.
+   AND THE HONEST SENTENCE THE REVIEWER ASKED FOR (R2 N4): once the five conditions hold,
+   the skip returns before the sealed-path loop, so A VERIFIED RESEAL CHILD IS FENCED BY
+   THE SEAL AND BY fidelity(), AND BY THIS CELL NOT AT ALL. The one thing this cell still
+   holds against such a child is the artifact-tamper check, which R2 N4 moved ABOVE the
+   claim so that a child rewriting its PARENT's sealed artifact cannot stand aside.
 
    WHAT THIS CELL IS NOT (R2 N1). It is not a check that lane C touched nothing that
    matters. It asks whether a touched path is IN the sealed inventory, and
@@ -131,13 +136,40 @@ function fence(root, chainRef) {
   const chainBytes = git(root, ["show", chainRef + ":" + artifactPath]);
   const artifactSha256 = sha256(chainBytes);
   const here = { artifactPath, artifactSha256, chainCommit };
-  const inv = JSON.parse(chainBytes.toString("utf8"));
+  /* R2 N2, third of three. JSON.parse threw a raw SyntaxError here, and the ARRAY case
+     was worse than a throw: an array parses, inv.product is undefined, the sealed set
+     comes out EMPTY and the branch PASSES VACUOUSLY. Row (15) holds both halves. */
+  let inv = null;
+  try { inv = JSON.parse(chainBytes.toString("utf8")); }
+  catch (e) { return no("FENCE-INVENTORY-NOT-JSON " + artifactPath + " at " + chainRef + ": " + String(e.message).split("\n")[0], here); }
+  if (inv === null || typeof inv !== "object" || Array.isArray(inv))
+    return no("FENCE-INVENTORY-NOT-JSON " + artifactPath + " at " + chainRef + ": it parses, but not as a JSON object", here);
   const sealed = new Set([...Object.keys(inv.product || {}), ...Object.keys(inv.executionPins || {})]);
   /* R1 N1: E fact 15 says released is an OBJECT keyed by path, and Object.keys of any
      other shape yields keys that are not paths, so a released block of the wrong shape
      releases NOTHING and the sealed path stays fenced. That is the direction to fail in
      and row (12) measures it rather than leaving it to be discovered. */
   const released = new Set(Object.keys(inv.released || {}));
+
+  /* THE ARTIFACT-TAMPER CHECK, AND R2 N4 MOVED IT UP HERE, BEFORE THE RESEAL CLAIM AND
+     FOR EVERY BRANCH. It used to sit after the claim's return, so a child that satisfied
+     all five conditions AND rewrote its PARENT's sealed artifact in its own worktree
+     stood aside in silence. Condition (2) binds the spec to the sha the fence measures AT
+     THE CHAIN REF, so the tamper bought that child nothing - but the cell that exists to
+     notice artifact tampering did not notice it, and the CI log said nothing. A RESEAL
+     CHILD HAS NO BUSINESS CHANGING ITS PARENT'S SEALED ARTIFACT: one that does is not
+     entered into the claim at all and is fenced as an ordinary branch, which is F3's rule
+     applied a second time - fewer ways to stand aside is the safer fence. Row (17).
+
+     THE null LIMB IS NOT DEFENSIVE PROGRAMMING (R1 BLOCKING-C): it is the only thing
+     that notices a branch DELETING the sealed artifact from its worktree, and that
+     deletion is invisible to FENCE-SEALED-PATH-TOUCHED because the artifact is not a key
+     of its own product map (D.2 says so). "Delete the artifact, then do as you like" is
+     row (6) with the other hand, and row (6c) measures it. */
+  const refusals = [];
+  const worktree = fsBytes(path.join(root, ...artifactPath.split("/")));
+  const tampered = worktree === null || !worktree.equals(chainBytes);
+  if (tampered) refusals.push("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + artifactPath);
 
   /* THE DIFF, --name-status and not --name-only: the skip below needs the status letter
      and a deletion counts as touching, so one diff serves both (R3 N3). A rename is
@@ -147,23 +179,52 @@ function fence(root, chainRef) {
      two-dot diff against the chain ref would also report every sealed path the CHAIN has
      moved since this branch was cut, and refuse a branch that is merely BEHIND for paths
      it never touched. Row (9) builds that world and is the only row where the chain ref
-     and the merge base differ. */
-  const base = gitText(root, ["merge-base", chainRef, "HEAD"]).trim();
+     and the merge base differ.
+
+     R2 N2, first of three: an unrelated history has NO merge base, git exits non-zero and
+     this threw a raw "Command failed". Row (13), and the fence still never passes.
+
+     WHAT --name-status GIVES AND WHAT IT DOES NOT (R2 N5, and -z is NOT adopted here).
+     -c core.quotepath=false closes the NON-ASCII case (row (1d)) and only that case: a
+     path carrying a double quote or a TAB is still quoted by git, and a TAB additionally
+     breaks the split below so parts[1] is a truncated path. Windows forbids BOTH bytes in
+     a file name and this repository must check out on Windows, so no such path can exist
+     in it. -z is the complete answer the day that changes, and it costs per-record field
+     counting, because under -z a rename is three NUL-separated fields and everything else
+     is two. */
+  let base = null;
+  try { base = gitText(root, ["merge-base", chainRef, "HEAD"]).trim(); }
+  catch { return no("FENCE-NO-MERGE-BASE " + chainRef + " and HEAD share no history", here); }
   const touched = [];
   for (const line of gitLines(root, ["diff", "--name-status", base, "HEAD"])) {
     const parts = line.split("\t");
-    if (/^[RC]/.test(parts[0])) { touched.push({ status: "D", path: parts[1] }); touched.push({ status: "A", path: parts[2] }); }
+    /* R2 N3: the A record of a rename is SYNTHESISED here and the branch authored no such
+       file. renamedFrom is what lets condition (1) tell the two apart; nothing else reads
+       it, so the sealed-path loop below still counts both ends of a rename as touches. */
+    if (/^[RC]/.test(parts[0])) { touched.push({ status: "D", path: parts[1] }); touched.push({ status: "A", path: parts[2], renamedFrom: parts[1] }); }
     else touched.push({ status: parts[0][0], path: parts[1] });
   }
 
   /* THE RESEAL-CHILD CLAIM, and its DEFAULT IS FAIL (R2 BLOCKING-A, PM-R4). */
   const specRe = /^rebuild\/lanes\/b\/tooling\/packages\/([^/]+)\.json$/;
   const added = touched.filter((t) => t.status === "A" && specRe.test(t.path));
-  if (added.length > 0) {
+  /* R2 N4: a TAMPERED branch never enters the claim. It is fenced as an ordinary branch,
+     so both the tamper and its own sealed touches are named. Row (17). */
+  if (!tampered && added.length > 0) {
     const bad = (n, why) => no("FENCE-RESEAL-CHILD-UNVERIFIED (" + n + ") " + why, here);
     if (added.length !== 1)
       return bad(1, "the diff adds " + added.length + " spec files at status A: " + added.map((t) => t.path).sort().join(" "));
     const specPath = added[0].path;
+    /* R2 N3: CONDITION (1) REQUIRES A GENUINE ADD. The [RC] split synthesises an A record
+       for the new path of a rename, so "git mv packages/S8.json packages/S10.json"
+       presented a spec the branch never wrote. R2 built it and measured a SKIP. It was
+       not exploitable against today's chain - a child's spec names its PARENT's artifact
+       and the top artifact is its parent's successor, so condition (2) refused it - but a
+       fence held by the shape of the chain rather than by a clause comes undone the day
+       the shape moves. Row (16). */
+    if (added[0].renamedFrom !== undefined)
+      return bad(1, specPath + " reached status A only as the new path of a rename from "
+        + added[0].renamedFrom + ": a reseal child is authored, and moving an existing spec does not earn the skip");
     const id = specRe.exec(specPath)[1];
     let spec = null;
     try { spec = JSON.parse(git(root, ["show", "HEAD:" + specPath]).toString("utf8")); } catch { spec = null; }
@@ -193,7 +254,14 @@ function fence(root, chainRef) {
     /* (4), THE ONLY CONDITION THAT COSTS ANYTHING: a sealed byte of b-package.cjs. */
     if (!touched.some((t) => t.path === RUNNER))
       return bad(4, "the diff does not touch " + RUNNER + ", the one runner hunk no reseal child can skip");
-    if (!idsOf(git(root, ["show", "HEAD:" + RUNNER]).toString("utf8")).includes(id))
+    /* R2 N2, second of three: the first limb above is satisfied by a DELETION, and this
+       limb then read HEAD:<runner> on a path HEAD does not carry and threw. Deleting the
+       runner does not earn the skip and must not throw either. Row (14). */
+    let branchRunner = null;
+    try { branchRunner = git(root, ["show", "HEAD:" + RUNNER]).toString("utf8"); } catch { branchRunner = null; }
+    if (branchRunner === null)
+      return bad(4, "this branch's HEAD does not carry " + RUNNER + " at all: the diff touches it by DELETING it");
+    if (!idsOf(branchRunner).includes(id))
       return bad(4, id + " is not in IDS in this branch's own " + RUNNER);
 
     if (typeof spec.sourceBase !== "string" || !ancestorOf(root, spec.sourceBase, "HEAD"))
@@ -204,17 +272,13 @@ function fence(root, chainRef) {
         + " " + artifactSha256 + " at " + chainRef + " (" + chainCommit + ")" });
   }
 
-  const refusals = [];
-  /* THE ARTIFACT-TAMPER CHECK. A branch legitimately changing a sealed artifact is a
-     reseal child, which the claim above has already handled, so the two do not collide.
-     THE null LIMB IS NOT DEFENSIVE PROGRAMMING (R1 BLOCKING-C): it is the only thing
-     that notices a branch DELETING the sealed artifact from its worktree, and that
-     deletion is invisible to FENCE-SEALED-PATH-TOUCHED because the artifact is not a key
-     of its own product map (D.2 says so). "Delete the artifact, then do as you like" is
-     row (6) with the other hand, and row (6c) measures it. */
-  const worktree = fsBytes(path.join(root, ...artifactPath.split("/")));
-  if (worktree === null || !worktree.equals(chainBytes))
-    refusals.push("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + artifactPath);
+  /* F3, RULED AND NOT ADDED, and the reason belongs in the file rather than in a review.
+     Condition (2) gets NO second limb for the after-the-merge case. Once a child has
+     merged, a later push to the same lane branch no longer carries its spec at status A
+     in the merge-base diff, so the reseal claim is not entered at all and the branch is
+     fenced as an ordinary one. That is the right outcome, and row (8g) is the measurement
+     of it. Fewer ways to stand aside is the safer fence. */
+
   /* BYTE-EXACT SET MEMBERSHIP, AND IT IS DELIBERATE (R1 N8). Not a prefix scan, not a
      substring scan and NOT case-folded: an inventory key is a repository path and the
      seal is over those exact bytes, so today-app.cjsx is not today-app.cjs and a
