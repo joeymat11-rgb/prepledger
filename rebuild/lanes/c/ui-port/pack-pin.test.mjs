@@ -770,6 +770,79 @@ test("R2 N3: a literal path OUTSIDE the pack is benign: it is MISSING, and is ne
   });
 });
 
+/* THE PM'S RULING ON THE AUTHOR'S Q2: UNREADABLE JOINS THE VOCABULARY NOW, as the seventh
+   refusal, because from S9 the vocabulary is sealed bytes and a refusal added later costs
+   a reseal child. R1 N3 measured the hole on the PC with a DENY ACE: a pinned file the
+   walk cannot read made readFileSync THROW, so the cell went loudly red with a message
+   that is none of its refusals AND the walk stopped before every later path. Now the walk
+   NAMES it and CONTINUES, so a second defect further down is still named in the same run.
+   R1's DENY-ACE measurement is the one real-file witness and it is WINDOWS ONLY; the
+   author report says so.
+
+   HOW THE ROW IS BUILT ON BOTH OPERATING SYSTEMS AND UNDER uid 0. A real unreadable file
+   needs a DENY ACE on Windows and cannot be built at all in a farm scratch, which runs as
+   root, where chmod proves nothing. So THE ENGINE TAKES AN OPTIONAL READER AS ITS LAST
+   PARAMETER, defaulting to the file system's own, and ONLY FIXTURE ROWS PASS ONE. The last
+   row of this block scans this file's own source and asserts the REAL ROW passes none, so
+   the option can never become the way the real pin reads.
+
+   ONE RESIDUAL, NAMED RATHER THAN DISCOVERED: an unreadable DIRECTORY still throws out of
+   readdirSync. That is the same LOUD RED the file case used to be, it is not a silent
+   green, and closing it would mean a second optional reader for directories. It is in the
+   author report's integrator list. */
+const readerRefusing = (root, ...rels) => {
+  const denied = new Set(rels.map((r) => path.join(root, ...r.split("/"))));
+  return (abs) => {
+    if (!denied.has(abs)) return fs.readFileSync(abs);
+    const e = new Error("EACCES: permission denied, open " + abs);
+    e.code = "EACCES";
+    throw e;
+  };
+};
+
+test("R2 Q2 / UNREADABLE: a pinned file the walk cannot read is NAMED, not thrown over", () => {
+  withPack((root, lines) => {
+    assert.deepEqual(packPin(root, lines, readerRefusing(root, "quality/gate.py")),
+      ["PACK-PIN UNREADABLE quality/gate.py"]);
+  });
+});
+
+test("R2 Q2 / UNREADABLE: the walk CONTINUES, so a later defect is named in the same run", () => {
+  withPack((root, lines) => {
+    assert.deepEqual(
+      packPin(root, moved(lines, "ref/ink-board.png"), readerRefusing(root, "app/states-today.js")),
+      ["PACK-PIN MISMATCH ref/ink-board.png", "PACK-PIN UNREADABLE app/states-today.js"]);
+  });
+});
+
+/* An unreadable entry is a thing this cell cannot speak about, exactly as an irregular one
+   is, so it takes no part in the MISSING and ADDED comparisons: one defect, one line,
+   whether or not the literal names the path. */
+test("R2 Q2 / UNREADABLE: an unreadable entry is named ONCE, never also MISSING or ADDED", () => {
+  withPack((root, lines) => {
+    const reader = readerRefusing(root, "quality/gate.py", "app/quality/run/x.js");
+    const expected = [
+      "PACK-PIN UNREADABLE app/quality/run/x.js",
+      "PACK-PIN UNREADABLE quality/gate.py",
+    ];
+    assert.deepEqual(packPin(root, lines, reader), expected);
+    assert.deepEqual(packPin(root, without(lines, "quality/gate.py"), reader), expected);
+  });
+});
+
+test("R2 Q2: the OPTIONAL reader is a fixture affordance, and the REAL ROW passes none", () => {
+  const src = fs.readFileSync(fileURLToPath(import.meta.url), "utf8");
+  assert.equal(packPin.length, 2,
+    "the reader must be OPTIONAL: packPin declares two parameters before its default");
+  assert.match(src, /readFile = fs\.readFileSync/,
+    "the default reader must be the file system's own");
+  /* Built from two pieces so this row's own source does not match the pattern it searches
+     for, which would make the row pass on itself. */
+  const realCall = "packPin(" + "PACK_ROOT_ABS, LITERAL);";
+  assert.deepEqual(src.match(/packPin\(PACK_ROOT_ABS.*/g), [realCall],
+    "the real row must call the engine over the real pack with NO reader");
+});
+
 /* THE REAL ROW. It runs the SAME engine the fixture rows run, over the real pack root and
    this cell's own literal, and it is RED on this branch by construction: the pack is on
    the design lane's branches and the literal is unfilled. It does not skip, it is not

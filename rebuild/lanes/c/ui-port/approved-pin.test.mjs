@@ -520,6 +520,60 @@ test("R2 N4: an inherited property name is UNLISTED, never looked up on Object.p
   });
 });
 
+/* THE PM'S RULING ON THE AUTHOR'S Q2, THE SAME ONE PACK-PIN TAKES: UNREADABLE JOINS THIS
+   CELL'S VOCABULARY NOW, as the seventh refusal, for the same reason - from S9 these bytes
+   are sealed, so a refusal added later costs a reseal child. A named reference the cell
+   cannot read made readFileSync THROW, so the cell went red with a message that is none of
+   its refusals and said nothing about any LATER file in design.APPROVED. Now it is named
+   and the list walk CONTINUES.
+
+   HOW THE ROW IS BUILT ON BOTH OPERATING SYSTEMS AND UNDER uid 0: the engine takes an
+   OPTIONAL READER as its LAST parameter, defaulting to the file system's own, and only
+   fixture rows pass one. A real unreadable file needs a DENY ACE on Windows (R1 measured
+   one on the PC, and that measurement is the one real-file witness, Windows only) and
+   cannot be built at all in a farm scratch running as root. The last row of this block
+   scans this file's own source and asserts the REAL ROW passes no reader. */
+const readerRefusing = (root, ...rels) => {
+  const denied = new Set(rels.map((r) => path.join(root, ...r.split("/"))));
+  return (abs) => {
+    if (!denied.has(abs)) return fs.readFileSync(abs);
+    const e = new Error("EACCES: permission denied, open " + abs);
+    e.code = "EACCES";
+    throw e;
+  };
+};
+
+test("R2 Q2 / UNREADABLE: a named reference the cell cannot read is NAMED, not thrown over", () => {
+  withRefs((root, files, literal) => {
+    assert.deepEqual(approvedPin(root, files, literal, readerRefusing(root, REF_C)),
+      ["APPROVED-PIN UNREADABLE " + REF_C]);
+  });
+});
+
+/* The point of naming rather than throwing: design.APPROVED's LATER entries are still
+   judged in the same run, which is what a list walk that bails on the first exception
+   cannot do. */
+test("R2 Q2 / UNREADABLE: the list walk CONTINUES, so a later defect is named in the same run", () => {
+  withRefs((root, files, literal) => {
+    writeAt(root, REF_C, txt("<html><body>Additions C, edited</body></html>\n"));
+    assert.deepEqual(approvedPin(root, files, literal, readerRefusing(root, REF_A)),
+      ["APPROVED-PIN UNREADABLE " + REF_A, "APPROVED-PIN MISMATCH " + REF_C]);
+  });
+});
+
+test("R2 Q2: the OPTIONAL reader is a fixture affordance, and the REAL ROW passes none", () => {
+  const src = fs.readFileSync(fileURLToPath(import.meta.url), "utf8");
+  assert.equal(approvedPin.length, 3,
+    "the reader must be OPTIONAL: approvedPin declares three parameters before its default");
+  assert.match(src, /readFile = fs\.readFileSync/,
+    "the default reader must be the file system's own");
+  /* Built from two pieces so this row's own source does not match the pattern it searches
+     for, which would make the row pass on itself. */
+  const realCall = "approvedPin(" + "REPO_ROOT, namesOf(design), LITERAL);";
+  assert.deepEqual(src.match(/approvedPin\(REPO_ROOT.*/g), [realCall],
+    "the real row must call the engine over the real repository root with NO reader");
+});
+
 /* THE REAL ROW. The SAME engine the fixture rows run, over the real repository root, the
    real design.APPROVED read at run time, and this cell's own literal. It is RED on this
    branch by construction: the literal is unfilled, so every file the list names is
