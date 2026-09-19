@@ -17,6 +17,7 @@ VENDORS = ['openai', 'anthropic', 'claude', 'gpt', 'gemini', 'chatgpt', 'whisper
 # format character sweep below, which has no honest case to weigh against it.
 SET_LETTER_X = re.compile(r'\d\s*[xX]\s*\d')
 NO_BREAK_SPACES = '\u00a0\u202f\u2007\u2060'
+MINUS_SIGN = '\u2212'
 
 
 def is_dash(ch):
@@ -28,6 +29,27 @@ def is_dash(ch):
     owner ruled out, and a port that pasted one of them passed.
     """
     return ch != '-' and unicodedata.category(ch) == 'Pd'
+
+
+def minus_problems(text):
+    """U+2212 MINUS SIGN where it is doing a dash's job.
+
+    The character is filed as a maths symbol rather than as punctuation, so the dash category does
+    not reach it, and it has two honest uses that a flat ban would refuse. It is a minus sign when
+    a digit directly follows it, and it is a control's label when it is the whole of its own line
+    in the swept string, which is how the decrement button beside a set's load reads
+    (app/states.js:113 and app/states-workout.js:270 draw the pair "minus" and "plus" around
+    "50 lb"). Measured on the prototype: sweeping it flatly made the state sheet
+    "418 renders, 2 with problems", W-18 ink and W-18 dawn, exit 1, on that button alone, and the
+    swept string puts its label on a line of its own. Anywhere else it is a dash and it fails.
+    """
+    for line in text.split('\n'):
+        if line.strip() == MINUS_SIGN:
+            continue
+        for m in re.finditer(MINUS_SIGN, line):
+            if not line[m.end():m.end() + 1].isdigit():
+                return [MINUS_SIGN]
+    return []
 
 
 def sweep_form(text):
@@ -55,14 +77,7 @@ def copy_problems(text):
     """
     bad = [SPACED_HYPHEN] if SPACED_HYPHEN in text else []
     bad += sorted({c for c in text if is_dash(c)})
-    # U+2212 MINUS SIGN is filed as a maths symbol rather than as punctuation, so the category
-    # above does not reach it, and the lead's ruling of 2026-09-19 would have added it wherever a
-    # digit does not directly follow it. Measured before it was added: the prototype draws U+2212
-    # as the whole label of the decrement button beside a set's load (app/states.js:113, and
-    # app/states-workout.js:270), which is the honest use of the character and not a dash in a
-    # sentence. A full sheet with that clause in it came back "418 renders, 2 with problems",
-    # W-18 ink and W-18 dawn, "copy: '-'", exit 1, and app/ is not the builder's to edit. So the
-    # clause is held for the lane lead and the owner rather than half applied here.
+    bad += minus_problems(text)
     bad += sorted({f'U+{ord(c):04X}' for c in text if unicodedata.category(c) == 'Cf'})
     low = sweep_form(text)
     bad += [w for w in READINESS if re.search(r'\b' + w + r'\b', low)]

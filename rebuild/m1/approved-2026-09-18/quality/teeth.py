@@ -250,6 +250,13 @@ def mut_q3(work):
         'Upper body today \u2015 one change to review.')
 
 
+def mut_q8(work):
+    # a minus sign doing a dash's job in a sentence. The same character is the whole label of the
+    # decrement button on W-18, which is why the rule reads the line rather than the character.
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Upper body today \u2212 one change to review.')
+
+
 def mut_q4(work):
     # primary text tagged with a muted class and painted with the muted token: the contrast tier
     # drops to 3.0 and the tier alone stops nothing. What stops it is the record's colour half.
@@ -382,6 +389,8 @@ ROWS = [
      dict(exit=1, fails=[(COPY_CHECK, repr('\u2015'))])),
     ('q4', 'primary text tagged muted and painted with the muted token', mut_q4, SHEET_T02,
      dict(exit=1, stdout=['T-02', 'colour', 'became', 'colour moved (levels)'])),
+    ('q8', 'a minus sign doing a dash\'s job in Today\'s status sentence', mut_q8, GATE_TODAY,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
     ('q5', 'one state whose apply throws', mut_q5, SHEET_T0,
      dict(exit=1, stdout=['T-02'], report='states-report-T-0.txt')),
     ('q6', '--accept pointed at another build by EARNED_APP', mut_none,

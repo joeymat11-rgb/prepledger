@@ -269,7 +269,11 @@ rendered screenshot in two tiers, on both gates, in the same words:
 Text nobody can see is not measured and is not recorded: `display: none`, `visibility: hidden`,
 an effective `opacity` of 0 walked up the ancestors, a rect with no area or wholly outside the
 viewport, a `clip-path: inset()` that leaves no area, and a `text-indent` at or below minus 1000
-px. That list names the mechanisms the gates check, not every way a line can be hidden.
+px. That list names the mechanisms the gates check, not every way a line can be hidden. The
+legacy `clip` property is not on it, and one place reads it: the touch target walk skips a box
+clipped to nothing that way, because the pack hides an assistive label at `app/app.css:150` and
+nobody can aim a finger at it. That is the target walk alone. The record and the copy sweeps
+still hold such an element, which is right: its text is read aloud, so it is interface copy.
 
 The lower tier is read from the pack's own stylesheets, not guessed: the element's computed
 colour equals the theme's `--muted`, `--faint` or `--gold` token, or it carries one of the
@@ -350,9 +354,12 @@ self-accepts. The builder's cells pin every copy string they move.
   normalised and casefolded, each word of the owner's
   word list as `re.search(r'\b' + word + r'\b', text)` (a real word boundary, so "Ready
   to train" matches and "already" does not), and each vendor name as a plain substring. U+2212
-  MINUS SIGN is filed as a maths symbol and is not swept: the prototype draws it as the whole
-  label of a set's decrement button, which is an open question for the lane lead rather than a
-  defect, and `quality/common.py` carries the numbers. The one sweep that matters most had been written `r'\\b'`, which is a literal
+  MINUS SIGN is filed as a maths symbol rather than as punctuation, so it is swept by a rule of
+  its own: it fails unless a digit directly follows it, or it is the whole of its own line in the
+  swept string, which is a control whose entire label is the sign. The prototype draws exactly
+  that on a set's decrement button (`app/states.js:113`, `app/states-workout.js:270`); sweeping
+  the character flatly made the state sheet `418 renders, 2 with problems` on W-18 alone, which
+  is the measurement that shaped the rule. The one sweep that matters most had been written `r'\\b'`, which is a literal
   backslash, and could never match; it is `quality/common.py:copy_problems` now, shared by both
   gates so it cannot be half fixed. The gate also refuses a set written with the letter x
   anywhere on the screen, not only in the Log label.
