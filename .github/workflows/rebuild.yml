@@ -230,6 +230,33 @@ jobs:
       # a file nobody runs". Named by exact path, never globbed, so both runners agree.
       - name: A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup; and P-MEASURE's four page-stack suites
         run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs rebuild/m3/w7-preview/measure/test/journey.test.mjs rebuild/m3/w7-preview/measure/test/lane.test.mjs rebuild/m3/w7-preview/measure/test/baseline.test.mjs rebuild/m3/w7-preview/measure/test/boundary.test.mjs
+      # M2-S9-UI-PINS ADDS THE SEALED-INVENTORY FENCE HERE, beside the today step, under
+      # the same DECISIONS:117 (4) licence (S9-RELEASE-SPEC.md D.2, D.3). It asks what no
+      # other step asks: of the paths this branch touched since its merge-base with the
+      # chain branch, which are keys of the CURRENT sealed inventory and NOT in that
+      # inventory's released block. It reads the inventory OUT OF GIT at
+      # refs/remotes/origin/rebuild/t2-client-core, never from the worktree, so a branch
+      # cannot widen its own fence; :35's fetch-depth: 0 is what makes that read possible,
+      # and the cell FAILS with FENCE-CHAIN-REF-ABSENT rather than passing vacuously if it
+      # is not. The --ci --package step above proves BYTES; this one proves INTENT, in one
+      # line a human can read in the log. It lives OUTSIDE rebuild/m3/w7-preview/today/test/
+      # for the reason the lane C cells near the end of this file do: that directory is
+      # pinned and H3/13 requires the today step to name it exactly. Named by exact path,
+      # never globbed, so both runners agree (DECISIONS:117 (4), :186 (3)).
+      # AND IT CARRIES A STEP CONDITION, WHICH NO OTHER STEP IN THIS FILE DOES (PM finding
+      # P-FENCE-1). GitHub skips every step after a failed one, so without this the fence
+      # would never run on the branches it exists for: the standing --ci --package step at
+      # :150 FAILS on any branch carrying undeclared sealed edits (SEALED-PROFILE-
+      # RECOMPUTATION, local diagnostics withheld, naming nothing) and on any branch that
+      # does not contain the chain tip (SEAL-BASE-IS-NOT-THE-CHAIN-TIP, DECISIONS:554),
+      # which is exactly the world D.2 wrote this cell for. `!cancelled()` runs it after an
+      # earlier failure and NOT when the run was cancelled, so a cancelled run still stops.
+      # It does not make the job green: this step's own exit status is still the job's.
+      # The fence cell's row (18) reads this line back out of this file and goes red if it
+      # is removed. The step keeps its place, beside the today step it belongs with.
+      - name: C - the sealed-inventory fence over this branch's own diff
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs
       # DECISIONS:117 (4). rebuild.yml is pinned by the accepted engine artifact, so any
       # step lands only inside a re-pinning engine package (DECISIONS:112's standing rule) —
       # lane C's C5 voice coach therefore RIDES THE B-NTC SEAL as one more disclosed hunk,
@@ -304,5 +331,23 @@ jobs:
       # runners agree whatever the shell does.
       - name: C - Today's headline over an open proposal (S1) and the whole plan sentence (S2)
         run: node --test rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs
+      # M2-S9-UI-PINS GIVES PASSPHRASE-NORMALIZE's THREE LANE CELLS THEIR CI HOME
+      # (DECISIONS:543 (B); S9-RELEASE-SPEC.md E fact 21). That lane's review R2 is
+      # explicit that this step is the guard which keeps every sealed bundle valid and not
+      # a convenience: these three are what hold the ONE helper every site that turns a
+      # typed passphrase into key material goes through, on the phone and on the PC.
+      # Until this step they ran in no workflow at all, which is the thing DECISIONS:186
+      # (3) forbids. Named by exact path, never globbed, so both runners agree.
+      - name: C - the passphrase normalisation helper, its route and the unlock forms
+        run: node --test rebuild/lanes/c/passphrase-normalize/helper.test.mjs rebuild/lanes/c/passphrase-normalize/route.test.mjs rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs
+      # M2-S9-UI-PINS GIVES rebuild/m3/w6/test/local-import.test.mjs A CI HOME
+      # (DECISIONS:543 (B), raised three times; S9-RELEASE-SPEC.md E fact 22). Measured
+      # before this step was written: this workflow named that file ZERO times, so the
+      # cell that pins the phone's five seal constants against the PC's ran nowhere while
+      # the modules under it shipped to the phone. Its root rebuild/m3/w6/test/ is ALREADY
+      # in CHILD_ROOTS (b-package.cjs:405), so this costs a step and a declared child and
+      # no CHILD_ROOTS hunk. Named by exact path, never globbed.
+      - name: W6 - the local import's seal constants, the phone's against the PC's
+        run: node --test rebuild/m3/w6/test/local-import.test.mjs
       - name: Report the evidence boundary
         run: node -e "console.log('W0 PUBLIC CI PASS; private oracle/full selftest, real backend, installed phone and final M3 SCOPE-FREEZE remain separate acceptance gates')"

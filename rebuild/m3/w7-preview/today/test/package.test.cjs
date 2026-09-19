@@ -6,7 +6,11 @@
 
    This file needs rebuild/m3/w6's own dependencies (the browser build and the SHA-256
    boundary the phone host already uses). It is NOT part of the root-lockfile CI job for
-   the same reason the W6 browser build is not; it is run on the PC and reported there. */
+   the same reason the W6 browser build is not; it runs in the A1/A2/A3/A4 today step of
+   .github/workflows/rebuild.yml, which names it by exact path, and on the PC. (R1 N4:
+   this header used to end "it is run on the PC and reported there", which stopped being
+   true when the today step took this file, and S9 re-pins this file with a real post, so
+   the seal would have carried the sentence.) */
 
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
@@ -83,6 +87,171 @@ test("the bundle carries the real engine and the real client and nothing forbidd
   for (const p of inputs.filter((p) => /node_modules/.test(p))) assert.match(p, /@noble[+/]hashes/);
   assert.throws(() => build.assertBundleInputs([{ path: "rebuild/engine/seed.cjs" }]), /BUNDLE-INPUTS FAIL/);
   assert.throws(() => build.assertBundleInputs(result.inputs.map((p) => ({ path: p })).concat([{ path: "node_modules/left-pad/index.js" }])), /unapproved dependency/);
+});
+
+/* H18 (M2-S9-UI-PINS). rebuild/lanes/b/S9-RELEASE-SPEC.md A.4 law 2, B.8 row 2,
+   E fact 16, and the CONDITION on the second path of the closed list A.6.
+
+   THE HOLE, MEASURED BEFORE THIS CELL WAS WRITTEN. build.mjs's REQUIRED_INPUTS
+   (build.mjs:98-:201) holds 48 path literals: 26 under rebuild/m3/w7-preview/today/,
+   3 rebuild/engine/, 3 rebuild/client/, 1 rebuild/coach/, 8 rebuild/m4/ and 7 other
+   rebuild/m3/. Six of the 22 that are not under today/ are named by literal at :59-:60
+   above, and :72-:73 count the engine at 15 and the client at 12. NOTHING in this file,
+   and nothing anywhere under rebuild/m3/w7-preview/{today,import,measure}/test/,
+   asserted a single one of the 26. The cells IMPORT those modules directly
+   (view.test.mjs:17, copy.test.mjs:36, gym.test.mjs:32, checkin.test.mjs:18), which
+   proves the module exists and behaves; it does not prove the BUILD still refuses a
+   bundle that lost it. MEASURED ON THE PC: with
+   rebuild/m3/w7-preview/today/reading-host.mjs deleted from REQUIRED_INPUTS, all 24
+   cells in the three test directories under rebuild/m3/w7-preview/ report 728 tests,
+   726 pass, 2 fail - the SAME two pre-existing failures as on the untouched tree, byte
+   for byte (they are the two the carried lanes leave until packages/S9.json declares
+   their posts, and neither reads REQUIRED_INPUTS). That is the
+   failure build.mjs:112-:115 was written against ("a page whose readings can vanish on a
+   hard kill"), and after S9 releases build.mjs a lane C branch can make it in the same
+   pull request as a stylesheet swap.
+
+   HOW IT ASKS, AND THE ONE PLACE IT DIFFERS FROM B.8's WORDING, said out loud rather
+   than quietly substituted. B.8 asks for the assertion to be made "against
+   build.REQUIRED_INPUTS". THAT CONSTANT IS NOT EXPORTED: build.mjs:98 is a module-local
+   const, and :44 exports APPROVED, readApproved, readFonts, assertDesignBinding and
+   composeStyles and nothing else. This ticket does not edit build.mjs, so the cell asks
+   the LAW instead of the list: for each of the 26 it hands assertBundleInputs the real
+   built bundle MINUS that one path and requires the refusal build.mjs:438 gives, naming
+   that path. An entry deleted from REQUIRED_INPUTS stops being refused and this cell
+   goes red naming it, which is what the hunk exists for. It is strictly stronger than
+   reading the constant, because it asserts the BUILD'S REFUSAL rather than the list's
+   contents - the same shape that keeps law 7 alive over an unsealed implementation
+   (copy.test.mjs:395 and :405).
+
+   AND THE COMPLETENESS HALF IS HAD HERE TOO, WITH NO build.mjs EDIT AT ALL (R1
+   BLOCKING-D, which retracts an earlier author's finding F1). The loop below asks the
+   LAW, so it goes red when an entry LEAVES REQUIRED_INPUTS; it cannot see a 27th entry
+   ADDED. That second half does not need the constant exported: this file already reads
+   repository files, so H18b below reads build.mjs AS SOURCE TEXT and takes the frozen
+   array literal's own path lines - the same extraction that MEASURED 26 of 48, moved
+   inside the sealed cell. The two halves are complementary and neither replaces the
+   other: one asserts the build's refusal, the other asserts that this seal's literal is
+   still the whole today/ half. No product file is touched by either. */
+const TODAY_REQUIRED_INPUTS = [
+  "rebuild/m3/w7-preview/today/today-model.cjs",
+  "rebuild/m3/w7-preview/today/today-app.cjs",
+  "rebuild/m3/w7-preview/today/gym-host.mjs",
+  "rebuild/m3/w7-preview/today/gym-model.mjs",
+  "rebuild/m3/w7-preview/today/gym-app.mjs",
+  "rebuild/m3/w7-preview/today/reading-host.mjs",
+  "rebuild/m3/w7-preview/today/checkin-host.mjs",
+  "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+  "rebuild/m3/w7-preview/today/checkin-model.mjs",
+  "rebuild/m3/w7-preview/today/checkin-app.mjs",
+  "rebuild/m3/w7-preview/today/setup-host.mjs",
+  "rebuild/m3/w7-preview/today/setup-commands.mjs",
+  "rebuild/m3/w7-preview/today/setup-model.mjs",
+  "rebuild/m3/w7-preview/today/setup-app.mjs",
+  "rebuild/m3/w7-preview/today/split-kinds.mjs",
+  "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+  "rebuild/m3/w7-preview/today/starter-week.mjs",
+  "rebuild/m3/w7-preview/today/problem-report.cjs",
+  "rebuild/m3/w7-preview/today/food-commands.cjs",
+  "rebuild/m3/w7-preview/today/food-model.cjs",
+  "rebuild/m3/w7-preview/today/food-host.mjs",
+  "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
+  "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
+  "rebuild/m3/w7-preview/today/sleep-commands.cjs",
+  "rebuild/m3/w7-preview/today/sleep-model.cjs",
+  "rebuild/m3/w7-preview/today/sleep-host.mjs",
+];
+
+test("H18 - the build still refuses a bundle that lost any of the 26 today/ required inputs", () => {
+  assert.equal(TODAY_REQUIRED_INPUTS.length, 26,
+    "the literal list is not the 26 today/ entries of REQUIRED_INPUTS that A.4 measured");
+  assert.equal(new Set(TODAY_REQUIRED_INPUTS).size, 26, "the literal list repeats a path");
+  /* the green control first, so the 26 rows below fail for the reason they name rather
+     than because assertBundleInputs refuses everything it is handed. */
+  assert.doesNotThrow(() => build.assertBundleInputs(result.inputs.map((p) => ({ path: p }))));
+  for (const required of TODAY_REQUIRED_INPUTS) {
+    assert(result.inputs.includes(required),
+      required + " is not in the built bundle at all: result.inputs lost it");
+    const without = result.inputs.filter((p) => p !== required).map((p) => ({ path: p }));
+    assert.throws(() => build.assertBundleInputs(without),
+      new RegExp("BUNDLE-INPUTS FAIL: missing required input " + required.replace(/\./g, "\\.")),
+      required + " is no longer refused by build.mjs's REQUIRED_INPUTS. Either the entry "
+      + "left that constant, or it was RENAMED there and this seal's literal list below "
+      + "is the stale one. H18b says which (R1 N6)");
+  }
+});
+
+/* H18b, THE COMPLETENESS HALF (R1 BLOCKING-D). H18 above asks the LAW and therefore
+   cannot see a 27th today/ entry ADDED to build.mjs's REQUIRED_INPUTS: the added entry
+   would simply be refused like the other 26 and every assertion would still pass. This
+   cell reads build.mjs as SOURCE TEXT - no import of the constant, no export added to
+   build.mjs, no product byte touched - and holds three counts: the block still exists,
+   it still holds 48 distinct path literals, and its today/ half is still EXACTLY the 26
+   this seal pins. MEASURED: with a real 27th today/ input added to REQUIRED_INPUTS the
+   loop above stays green and this cell is the only red; with an entry deleted both go
+   red. The line rule is the file's own shape - a path literal sits alone on its line -
+   and the three prose strings inside the block span lines or carry no trailing comma,
+   which is why the count is 48 and not the 51 quoted strings the block contains. */
+const buildSource = () => fss.readFileSync(path.resolve(__dirname, "../build.mjs"), "utf8");
+/* R2 N7 asked for this to be a function of SOURCE TEXT rather than of the file, so the
+   line rule itself can be measured against a planted line instead of argued about. */
+const requiredInputsOf = (src) => {
+  const block = /\nconst REQUIRED_INPUTS = Object\.freeze\(\[\n([\s\S]*?)\n\]\);\n/.exec(src);
+  assert(block !== null,
+    "build.mjs no longer carries a frozen REQUIRED_INPUTS array literal: H18b cannot read the list");
+  const out = [];
+  for (const line of block[1].split(/\r?\n/)) {
+    /* R2 N7: the rebuild/ prefix is what a repository path always carries and a prose
+       sentence never does. Without it a bare quoted sentence alone on its own line is
+       counted, and H18b then goes red naming a NUMBER instead of a path. Row H18c. */
+    const q = /^\s*"(rebuild\/[^"]+)",?\s*$/.exec(line);
+    if (q !== null) out.push(q[1]);
+  }
+  return out;
+};
+const requiredInputsOfBuildSource = () => requiredInputsOf(buildSource());
+
+test("H18b - the 26 are still the WHOLE today/ half of build.mjs's REQUIRED_INPUTS", () => {
+  const all = requiredInputsOfBuildSource();
+  /* the today/ half FIRST, because its failure NAMES the paths that moved and the
+     counts below only name a number: R1 N6's lesson, applied to this cell's own reds. */
+  const today = all.filter((p) => p.startsWith("rebuild/m3/w7-preview/today/"));
+  assert.deepEqual(today.slice().sort(), TODAY_REQUIRED_INPUTS.slice().sort(),
+    "the today/ half of build.mjs's REQUIRED_INPUTS is no longer the " + TODAY_REQUIRED_INPUTS.length
+    + " paths this seal pins: it now holds " + today.length
+    + ". An ADDED entry is invisible to H18 and this is the cell that sees it");
+  assert.equal(all.length, 48,
+    "build.mjs's REQUIRED_INPUTS no longer holds 48 path literals but " + all.length
+    + ": A.4's seven laws are stated over that list and this seal pins 26 of it");
+  assert.equal(new Set(all).size, 48, "build.mjs's REQUIRED_INPUTS repeats a path literal");
+});
+
+/* H18c, R2 N7. H18b's per-line rule counts any bare quoted string that sits alone on its
+   own line, and the trailing comma is optional. It is correct TODAY only because none of
+   the three prose strings inside the block happens to take that shape: they span lines or
+   carry no comma. That is the file's shape and not a parser, and the day a prose line
+   does take the shape, H18b goes red naming a NUMBER (49 instead of 48) rather than a
+   path - which is R1 N6's defect, in the cell R1 N6 was fixed in. The rule now requires
+   the rebuild/ prefix a repository path always carries and a sentence never does.
+   MEASURED FIRST, with the rule as it stood: 49 against 48. All 48 entries carry the
+   prefix, so the tightening costs the cell nothing it was counting. */
+test("H18c - a prose string alone on its own line inside REQUIRED_INPUTS is not a path", () => {
+  const src = buildSource();
+  const real = requiredInputsOf(src);
+  assert.equal(real.length, 48, "the baseline is not 48: " + real.length);
+  const planted = src.replace("\nconst REQUIRED_INPUTS = Object.freeze([\n",
+    "\nconst REQUIRED_INPUTS = Object.freeze([\n  \"and this line is prose, not a path\",\n");
+  assert.notEqual(planted, src, "the plant did not land: the block header has moved");
+  const after = requiredInputsOf(planted);
+  assert.deepEqual(after, real,
+    "a prose string alone on its own line is counted as a required input: H18b would go "
+    + "red naming a NUMBER (" + after.length + " instead of " + real.length + ") and not a path");
+  /* and the control, so the row measures the RULE and not the plant: a real path planted
+     the same way IS counted, which is the half that keeps H18b able to see an addition. */
+  const real27 = src.replace("\nconst REQUIRED_INPUTS = Object.freeze([\n",
+    "\nconst REQUIRED_INPUTS = Object.freeze([\n  \"rebuild/m3/w7-preview/today/planted.mjs\",\n");
+  assert.equal(requiredInputsOf(real27).length, real.length + 1,
+    "the rule no longer sees a path planted on its own line at all: H18b is now blind");
 });
 
 /* THE OTHER HALF OF THE SAME LAW, run here so this package's own test file
