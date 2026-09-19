@@ -2061,11 +2061,22 @@ function held(s, file, hash, code) {
 // grandparent's own pin and it cannot measure what it has not carried. FIRST WRITER WINS, and
 // the parent is passed first: the parent's block is the one that records the seal this walk is
 // standing aside for, and an older ancestor's record of the same path is the weaker fact.
-const releasedAncestry = (...artifacts) => {
+// H19 (P-A9 (a), the PM's ruling on Astra F3). THE ARGUMENT IS GONE. This reader used to
+// take the parent AND the grandparent and merge their blocks first-writer-wins, and the
+// comment above says the `ga` half is a no-op on the reachable chain and is kept as defence
+// in depth. Astra measured what that defence actually bought: a GRANDPARENT's own
+// contradictory product-plus-released entry could exempt ITS OWN product pin, which is a
+// package releasing a path from itself with no later package and no parent in the story at
+// all. Her M17 and M18 measured the other half of the same fact - removing the
+// first-writer-wins guard, and dropping the `ga` argument entirely, each left all ten
+// suites green. A branch that decides nothing reachable and CAN decide something wrong is
+// not defence in depth; it is surface. The reader now takes ONE artifact, the parent, which
+// is the artifact that records the seal this walk stands aside for.
+const releasedAncestry = parentArtifact => {
   const out = new Map();
-  for (const art of artifacts)
-    if (art && art.released && typeof art.released === 'object' && !Array.isArray(art.released))
-      for (const [file, entry] of Object.entries(art.released)) if (!out.has(file)) out.set(file, entry);
+  const block = parentArtifact && parentArtifact.released;
+  if (block && typeof block === 'object' && !Array.isArray(block))
+    for (const [file, entry] of Object.entries(block)) out.set(file, entry);
   return out;
 };
 function pins(s, bound) {
@@ -2103,7 +2114,7 @@ function pins(s, bound) {
   // below those two must be the SAME number or the skip refuses. Nothing else in
   // either walk moves: every grandparent pin NOT named in a released block still gets both
   // of held()'s asserts, on disk and in Git at HEAD.
-  const releasedByAncestry = releasedAncestry(a, ga);
+  const releasedByAncestry = releasedAncestry(a);
   for (const [file, entry] of Object.entries({ ...ga.product, ...ga.executionPins })) {
     if (Object.hasOwn(a.product, file) || Object.hasOwn(a.executionPins, file)) continue;
     if (releasedByAncestry.has(file)) {
@@ -2116,11 +2127,42 @@ function pins(s, bound) {
       // the reason to write it anyway is that F.1 R9 names "nothing shows" as the risk of a
       // skip written too wide. A block that names a path at a sha the grandparent never
       // sealed now REFUSES BY NAME rather than standing a pin aside on an unchecked claim.
+      // H20 (P-A9 (b) and (c), the PM's ruling on Astra F3). P-A3 above asked ONE question
+      // of the record - does its hash match the pin - and Astra stood a grandparent pin
+      // aside with `{lastSealedSha256: H}`, and again with a record that said role
+      // "carried" and named an unrelated package, measuring "plus 2 skipped" both times. A
+      // hash that matches is not a release; it is a hash. So the record must now BE a
+      // release before it is read as one, and it must be the release of the pin it is
+      // standing aside:
+      //   (b) a CLOSED FOUR-KEY RECORD - role exactly "released", two 64-lowercase-hex
+      //       hashes, and sealedBy equal to the GRANDPARENT's own packageId, which is the
+      //       package the parent was bound to when it released the path and therefore the
+      //       only package whose seal this record can be describing; and
+      //   (c) the path must be an OWN KEY OF THE GRANDPARENT'S PRODUCT MAP, because a
+      //       release hands a path out of the PRODUCT inventory and says nothing about a
+      //       pin that exists only because a declared child EXECUTED the file - Astra
+      //       measured an execution-only pin being skipped - and lastSealedSha256 must
+      //       equal THAT product pin rather than whichever of the two maps the walk won.
+      // Everything else refuses BY NAME with the path in the message. F.2 STOP-2 is read
+      // as amended by this ruling for exactly these lines.
       const block = releasedByAncestry.get(file);
-      assert(block && typeof block === 'object' && block.lastSealedSha256 === parentPin(entry, file),
+      assert(block && typeof block === 'object' && !Array.isArray(block) &&
+        Object.keys(block).length === 4 &&
+        block.role === 'released' &&
+        typeof block.lastSealedSha256 === 'string' && /^[a-f0-9]{64}$/.test(block.lastSealedSha256) &&
+        typeof block.rulingLineSha256 === 'string' && /^[a-f0-9]{64}$/.test(block.rulingLineSha256) &&
+        block.sealedBy === ga.packageId,
+      'ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD ' + file + '; a released entry stands a pin ' +
+        'aside only as exactly role "released", lastSealedSha256, rulingLineSha256 and sealedBy ' +
+        String(ga.packageId) + ', and this one is ' + JSON.stringify(Object.keys(Object(block)).sort()));
+      assert(ga.product && typeof ga.product === 'object' && Object.hasOwn(ga.product, file),
+        'ANCESTOR-RELEASED-BLOCK-IS-NOT-A-GRANDPARENT-PRODUCT-PIN ' + file + '; ' + g.artifact +
+        ' does not declare it in its PRODUCT map, and a release hands a path out of the product ' +
+        'inventory - an execution pin is not a seal a package can be released from');
+      assert.equal(block.lastSealedSha256, parentPin(ga.product[file], file),
         'ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN ' + file + '; the released block records ' +
-        String(block && block.lastSealedSha256).slice(0, 12) + ' and ' + g.artifact + ' pins it at ' +
-        String(parentPin(entry, file)).slice(0, 12));
+        String(block.lastSealedSha256).slice(0, 12) + ' and ' + g.artifact + ' pins it at ' +
+        String(parentPin(ga.product[file], file)).slice(0, 12));
       gskipped.push(file); continue;
     } // H17
     if (held(s, file, parentPin(entry, file), 'GRANDPARENT-PIN-BROKEN')) gkept++; else base++;
