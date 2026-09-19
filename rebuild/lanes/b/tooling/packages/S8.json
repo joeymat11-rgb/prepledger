@@ -42,7 +42,7 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "efcdb700a5990cf55d6ca1d7f839cb2d0befdf2ae1d21c9dc7715b47c7ba70e2"
+    "runnerSha256": "25ddc44c32d0d71b924cf62c2e0a8647697b6e77a55a91a132388217b6789ca6"
   },
   "product": {
     ".github/workflows/rebuild.yml": {

@@ -2190,9 +2190,12 @@ function product(s, bound, sealed) {
     if (grandfathered) at.grandfathered.push(file);
     if (pin.role === 'new' && pin.post === null && !fs.existsSync(rel(file))) { at.pre.push(file); continue; }
     // H7 (S9-RELEASE-SPEC B.5), and the placement is the whole of the hunk. A released path
-    // leaves the walk HERE, one line above the disk hash and fifty-seven lines BELOW the
-    // role branch, so that every assert between the two still runs on it on its own
-    // merits, and none of them is a no-op by accident: PRODUCT-PINNED-UNCHANGED-IS-A-PARENT-PIN
+    // leaves the walk HERE, one line above the disk hash and BELOW the role branch, the
+    // pre/post shape asserts and the change-role assert, so that every assert between the
+    // two still runs on it on its own merits (the fix round dropped a LINE COUNT that stood
+    // here: it was taken in the spec's numbering and the hunks' own comments had already
+    // moved it, and an anchor that names the asserts cannot drift at all), and none of them
+    // is a no-op by accident: PRODUCT-PINNED-UNCHANGED-IS-A-PARENT-PIN
     // passes because the role is not pinned-unchanged, and PRODUCT-CHANGE-ROLE-DECLARES-NO-CHANGE
     // passes because `noChange` is pre !== null && pre === post, which is false when post is
     // null. What the skip removes is exactly the disk hash and the bucket ladder below it,
