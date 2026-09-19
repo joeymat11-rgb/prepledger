@@ -1559,7 +1559,9 @@ true through the other limb and `fsBytes` has no other caller. `chainCommit` ini
 to `""` instead of `null` differs only on the path that returns before `here` is built,
 and no row reads it there. Widening the spec-path regex from `([^/]+)` to `(.+)` makes
 MORE files count as an added spec, so it makes the fence stricter, never looser. All three
-still SURVIVE at my final head, and they are the ONLY survivors.
+still SURVIVE at my final head, and they are the ONLY survivors in this round 4
+author's declared 52-mutation sample. Astra R4 separately measured X7, X8 and X9 as
+non-equivalent survivors outside that sample; section 15 records their new rows.
 
 ## 14.5 THE MUTATION SWEEP, RE-RUN AT MY FINAL HEAD: 52 CLAUSES, 49 KILLED, 3 SURVIVED
 
@@ -1589,7 +1591,7 @@ set that ran at the final head is 52.)
 | M49 | `chainCommit` initialised to `""` | **SURVIVED** | equivalent, 14.4 |
 | M50 | the spec-path regex admits a nested path | **SURVIVED** | equivalent and STRICTER, 14.4 |
 
-The other 37 entries of R3's table are unchanged and all still KILLED by the rows R3 names,
+The other 36 entries of R3's table are unchanged and all still KILLED by the rows R3 names,
 including `P-F1a/b/c` (row (18)) and `N7-M` (`package.test.cjs` H18c). Full output:
 `/home/claude/farm/scratch/s9b4/sweep4.log`.
 
@@ -1628,9 +1630,10 @@ Linux,   farm scratch s9b4-head   38 tests, 37 pass, 1 fail   (THE REAL ROW)
 ```
 
 Rows (20), (21), (22) and (23) are green on both. **No design in D.2 or in R3's two
-findings failed to build on either system.** The four new fixture worlds build their own
-throwaway repositories the way every other row does, with `git checkout -b` on a line of
-their own, and nothing in them is system-dependent.
+findings failed to build on either system.** The four new ROWS build eight throwaway
+fixture repositories: (20) uses chain()/child() for four parent variants without
+`git checkout -b`; (21) and (22) each build one world with a separate chainline; (23)
+builds two such worlds. The measured results above agree on both operating systems.
 
 ## 14.7 THE MEASURED REFUSAL OF THE REAL ROW, AT MY FINAL HEAD
 
@@ -1717,9 +1720,12 @@ step**. Pre-existing; nothing this round did changed its state; not mine to touc
    equality over a diff record. M52 says the obvious widening is caught. What about the
    narrowing nobody has tried: a rename of the artifact, where the `[RC]` split gives a
    `D` on the old path and an `A` on the new one. If the chain's artifact is renamed away
-   by the branch, `touched` holds it at `D` and `worktree` is `null`, so it is a tamper -
-   but I have no row that says so, and row (1e) is about sealed paths rather than the
-   artifact. **I believe that is the nearest thing to a hole left in this cell.**
+   by the branch, `touched` holds it at `D`. For an ordinary rename away, `worktree`
+   is null. For a case-only rename on this Windows PC, the old spelling resolves to
+   the renamed file and returns equal bytes instead: the shipped guard PASSES an
+   ordinary branch and SKIPS an otherwise verified child. Astra R4 measured this
+   defect; section 15 adds exact HEAD-path presence and rows (24)-(25). Row (1e)
+   covers sealed paths, not this inventory-path deletion.
 2. **Row (23)'s second half rests on `touched === 2`.** If a future helper adds a file to
    every fixture branch, that assertion moves and its message would read as a real defect.
 3. **Row (20)'s four worlds all die at condition (2).** They prove the clause is reached
@@ -1731,7 +1737,172 @@ step**. Pre-existing; nothing this round did changed its state; not mine to touc
 Author: cowork (Earned lane hand), lane B, ticket S9-PREP-B, **fix round 4, micro**.
 One file moved. Both of R3's blocking findings fixed, each RED FIRST in its own commit and
 on both operating systems. **Fifty-two clause mutations at the final head, forty-nine
-killed, three survivors and all three are R3's own equivalent mutants.** The two mutants
+killed, three survivors and all three are R3's own equivalent mutants, within this
+round 4 author's declared sample.** Astra R4 found three additional non-equivalent
+survivors outside that sample (X7-X9); section 15 records the response. The two mutants
 this round's own new clause invites - M51 (the form R3 rejected) and M52 (the obvious
 widening) - are both killed by the new rows. **This report is a hypothesis: disagree with
 it where the evidence lets you.**
+
+
+## 15. Astra R4 findings: fixed
+
+Builder: Astra, 2026-09-19. Branch: rebuild/b-s9-prep-cells-astra5.
+Base: 01b88efeb92435d818f672d3ed43521719a5961e. Left UNCOMMITTED for the PM.
+This is a measured hypothesis for the independent Claude reviewer, not an approval.
+
+### 15.1 The guard and its five rows
+
+Inside the exact artifact-touch guard, HEAD must still carry the exact inventory path:
+git ls-tree --name-only -z HEAD -- <artifactPath>, followed by exact membership in
+its NUL-separated output. Absence is tampering even if the disk resolves a case alias.
+The worktree-null and byte comparisons remain beside it. A failed query returns
+FENCE-INVENTORY-HEAD-UNREADABLE <artifactPath> at HEAD; it does not throw a raw error.
+
+(24) is the ordinary two-hop case-only rename. (25) first measures the child's valid
+SKIP, then applies that rename and requires both the inventory and APP refusals.
+(26) is X7's R100 rename INTO the new inventory with different bytes. (27) is X8's
+upper-case sibling edit whose own diff never touches the exact inventory path.
+(28) is X9's one-LF edit with equal parsed JSON and unequal bytes. All are synthetic.
+No two case spellings need to coexist on disk. Each row states its finding, mutation
+and reachable world in its comment.
+
+Measured query probe on this PC: before rename, the output is the exact lower-case
+path plus NUL. After rename it is empty with core.ignorecase=true AND false, while
+fsBytes(old spelling).equals(chainBytes) is true. Row (24) also asserts the empty
+query under core.ignorecase=true and the presence of the upper-case path. A separate
+scratch probe injected an exception at this new HEAD query: fence returned status=fail
+and exactly FENCE-INVENTORY-HEAD-UNREADABLE with the inventory path and HEAD, no throw.
+This was fault injection, not a claim that a real Git process failed during the bar.
+
+### 15.2 Red first, at the shipped clause
+
+The runnable scratch copy retained the directory layout and a copy of rebuild.yml for
+row (18). The FIRST run preceded the guard edit: 43 / 40 / 3, exit 1; (24) and (25)
+newly red, (26)-(28) green. Its REAL row had no scratch chain ref. The later matched
+red-first rerun directed only the REAL row's root argument to this actual worktree;
+all 43 registrations ran and the same two fixture rows were red. Copied TAP lines:
+
+```text
+not ok 38 - Astra R4 (24) - an ordinary case-only inventory rename FAILS naming the exact path
+not ok 39 - Astra R4 (25) - a verified child with a case-only inventory rename FAILS naming both touches
+    'pass' !== 'fail'
+    'skip' !== 'fail'
+```
+
+The first assertion reports "case-only inventory rename was admitted"; the second
+reports "case-only rename still stood aside" with FENCE-RESEAL-CHILD S9 and its
+inventory path/hash. Matched red-first: 43 / 40 / 3, exit 1, 38.526 s. Fixed scratch
+control: 43 / 42 / 1, exit 1, 38.706 s. The remaining red is THE REAL ROW.
+Linux expectation, NOT measured here: (24) and (25) are green before AND after the
+fix because the old spelling does not resolve there. The PM runs that half in the
+cloud farm at the final cell hash below.
+
+### 15.3 Final-byte mutation table, measured on this PC
+
+Each variant starts from the same final bytes and makes only its named substitution.
+The M51 variant restores the exact old block read from 814d593b. Scratch runs retain
+all 43 registrations; the REAL row points to this worktree and remains design-red.
+No row was skipped, weakened or deleted. Every run below exits 1; the table's last
+column excludes the unchanged REAL failure. Counts are tests / pass / fail.
+
+| ID | Substitution | Counts | Newly red fixture rows |
+|---|---|---|---|
+| X1 | touched.some -> touched.every | 43 / 31 / 12 | (6), (6b), (6c), (17), (19), (21), (22), (23), (24), (25), (26) |
+| X2 | touch predicate -> true | 43 / 38 / 5 | (8g), (19), (23), (27) |
+| X3 | touch predicate -> false | 43 / 30 / 13 | (6), (6b), (6c), (17), (19), (21), (22), (23), (24), (25), (26), (28) |
+| X4 | outer && -> OR | 43 / 38 / 5 | (8g), (19), (23), (27) |
+| X5 | remove worktree === null OR limb | 43 / 42 / 1 | NONE (survives this cell) |
+| X6 | remove bytes-differ OR limb | 43 / 34 / 9 | (6), (6b), (17), (21), (22), (23), (26), (28) |
+| X7 | ignore renamedFrom destinations | 43 / 41 / 2 | (26) |
+| X8 | case-fold artifact-path equality | 43 / 41 / 2 | (27) |
+| X9 | parsed-JSON equality instead of bytes | 43 / 41 / 2 | (28) |
+| M31 | option === null -> stand-aside return | 43 / 41 / 2 | (20) |
+| M51 | restore exact 814d593b baseArtifact/carriedAtBase block | 43 / 36 / 7 | (21), (22), (23), (24), (25), (26) |
+| M52 | path equality -> t.path.startsWith(SPEC_DIR) | 43 / 40 / 3 | (23), (27) |
+| M29 | spec parse catch -> spec = {} | 43 / 41 / 2 | (8a) |
+| M43 | remove idsOf word boundary | 43 / 36 / 7 | (8e), (8f), (8h), (8i), (17), (25) |
+
+X7, X8 and X9 each turn ONLY their new fixture row red; no other fixture row changes:
+
+```text
+not ok 40 - Astra R4 (26) - renaming different bytes INTO the inventory FAILS by name
+not ok 41 - Astra R4 (27) - editing only an upper-case sibling of the inventory PASSES
+not ok 42 - Astra R4 (28) - a whitespace-only inventory edit FAILS by name
+```
+
+Result: 14 substitutions, 13 detected by the registered cell, 1 survivor (X5).
+X5 is NOT asserted equivalent: exact HEAD absence now catches the committed-deletion
+worlds that previously killed it. Separate synthetic probe: commit an inventory edit,
+then delete only its worktree copy. Final code names FENCE-INVENTORY-DIFFERS-FROM-CHAIN;
+X5 instead names FENCE-INVENTORY-HEAD-UNREADABLE after its null dereference is caught.
+That diagnostic distinction is outside the five requested rows and is not concealed
+as a green mutation result. The null limb remains in the shipped code.
+
+### 15.4 The final cell bar and custody
+
+Executed in this actual worktree, using only the specified Node binary:
+
+```powershell
+$env:MEASURED_TEST_NOW = '2026-09-03'
+$env:TZ = 'America/New_York'
+& 'C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' --test --test-reporter=tap rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs
+```
+
+```text
+not ok 43 - THE REAL ROW - this branch touched no sealed path the chain has not released
+# tests 43
+# pass 42
+# fail 1
+# skipped 0
+# duration_ms 38340.9427
+exit 1
+```
+
+The REAL row reports exactly nine FENCE-SEALED-PATH-TOUCHED M refusals: the same nine
+paths listed in 14.7, for acceptance-s8-real-shape.json at chain commit
+e861745868c8a020b808b03f3c239e35938c59d3. No reseal-child-unverified refusal, no other red.
+
+Executed: certutil -hashfile rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs SHA256
+```text
+7d832522f53256ae49eea7c9cf31fa0425e66634f02b3bd081cf5a676a8aeec2
+CertUtil: -hashfile command completed successfully.
+```
+
+Buffer comparisons against HEAD: registrations (6), (6b), (6c), (8g), (17), (19),
+(20), (21), (22), (23) are byte-identical. The complete cell is ASCII; every added
+report line is ASCII. git diff --check passes. Section 14 is corrected in place:
+case-only rename behavior, sample-bounded survivor claims, 36 remaining entries,
+and four rows/eight repositories instead of four checkout -b worlds.
+
+Scratch evidence retained for the reviewer (no scratch-tree deletion attempted):
+C:\Users\joeym\AppData\Local\Temp\astra-s9-r5-20260919
+Files include shipped.mjs, red-first-source.mjs, final-source.mjs, sweep.mjs,
+mutations.json, results.json, red-first.tap, control.tap, X1.tap through X9.tap,
+M31/M51/M52/M29/M43.tap, final-actual.tap, and the query/null probe sources and logs.
+Every run used the existing fixture cleanup hook; its cleanup results were not independently inventoried.
+
+### 15.5 What I did not verify
+
+The Linux half is run by the PM in the cloud farm at these final bytes. No Linux
+execution or cross-platform completion is claimed here. I did not rerun the historical
+52-mutant sample, sibling suites, the conformance gate, package runner, hosted CI,
+the real S9 reseal SKIP, or other seal gates. Historical section 14 results remain
+attributed to their author; only the specified corrections and this section are new.
+No protected/private/auth file was read; no receipt or artifact writer was run; no
+dependency, shared-repository ref, product, workflow or sealed file was changed.
+Only the two assigned tracked files were edited. No commit, push, fetch, stash,
+checkout, reset or clean was run in this worktree or the shared repository.
+
+### 15.6 Last commands
+
+```text
+git status --porcelain
+ M rebuild/lanes/b/S9-PREP-CELLS-AUTHOR-REPORT.md
+ M rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs
+
+git diff --stat
+ rebuild/lanes/b/S9-PREP-CELLS-AUTHOR-REPORT.md     | 189 ++++++++++++++++++++-
+ .../c/ui-port/sealed-inventory-fence.test.mjs      | 134 ++++++++++++++-
+ 2 files changed, 310 insertions(+), 13 deletions(-)
+```

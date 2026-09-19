@@ -201,8 +201,8 @@ function fence(root, chainRef) {
      the claim at all and is fenced as an ordinary branch, which is F3's rule applied a
      second time - fewer ways to stand aside is the safer fence. Row (17).
 
-     THE null LIMB IS NOT DEFENSIVE PROGRAMMING (R1 BLOCKING-C): it is the only thing
-     that notices a branch DELETING the sealed artifact from its worktree, and that
+     THE null LIMB IS NOT DEFENSIVE PROGRAMMING (R1 BLOCKING-C): it notices a branch
+     DELETING the sealed artifact from its worktree even if HEAD still carries it, and that
      deletion is invisible to FENCE-SEALED-PATH-TOUCHED because the artifact is not a key
      of its own product map (D.2 says so). "Delete the artifact, then do as you like" is
      row (6) with the other hand, and row (6c) measures it.
@@ -229,8 +229,17 @@ function fence(root, chainRef) {
      verdict here - the refusal is the DIAGNOSTIC that names the tamper, and R1
      BLOCKING-2's guarantee lives in the read, not in this comparison. Row (19). */
   const worktree = fsBytes(path.join(root, ...artifactPath.split("/")));
-  const tampered = touched.some((t) => t.path === artifactPath)
-    && (worktree === null || !worktree.equals(chainBytes));
+  /* ASTRA R4 FINDING 1: on a case-insensitive disk the old spelling can still read
+     equal bytes after a case-only rename. Ask Git for the exact HEAD path INSIDE the
+     touch guard, so an older branch that never touched this inventory stays innocent.
+     ls-tree plus exact membership does not inherit core.ignorecase's disk aliases.
+     A failed query is a named refusal, never a raw child-process error. Rows (24)-(25). */
+  let tampered = false;
+  try {
+    tampered = touched.some((t) => t.path === artifactPath)
+      && (!gitText(root, ["ls-tree", "--name-only", "-z", "HEAD", "--", artifactPath])
+        .split("\0").includes(artifactPath) || worktree === null || !worktree.equals(chainBytes));
+  } catch { return no("FENCE-INVENTORY-HEAD-UNREADABLE " + artifactPath + " at HEAD", here); }
   const refusals = [];
   if (tampered) refusals.push("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + artifactPath);
 
@@ -1329,6 +1338,123 @@ test("R3 BLOCKING-2 (23) - an ORDINARY branch FORGING the chain's newest artifac
   assert.equal(rq.status, "pass",
     "F9 re-opened: a branch that never touched the artifact was accused of tampering with it: "
     + names(rq));
+});
+
+/* ================== ASTRA R4 FINDINGS, WITH THEIR REACHABLE WITNESSES ============== */
+
+/* ASTRA R4 FINDING 1. (24) kills the shipped worktree-only clause: a two-hop git mv
+   changes only case without ever asking two spellings to coexist on disk. HEAD loses
+   the exact inventory path even when Windows still resolves its bytes through the old
+   spelling. core.ignorecase=true must not make the Git query accept that alias. */
+test("Astra R4 (24) - an ordinary case-only inventory rename FAILS naming the exact path", () => {
+  const root = chain({ product: [APP, CSS] });
+  git(root, ["config", "core.ignorecase", "true"]);
+  const upper = SPEC_DIR + "ACCEPTANCE-S8-FIXTURE.JSON";
+  const query = ["ls-tree", "--name-only", "-z", "HEAD", "--", FIX_ART];
+  assert.deepEqual(gitText(root, query).split("\0").filter(Boolean), [FIX_ART]);
+  git(root, ["mv", FIX_ART, SPEC_DIR + "temporary-case-hop.json"]);
+  git(root, ["mv", SPEC_DIR + "temporary-case-hop.json", upper]);
+  commit(root, "case-only rename away");
+  assert.deepEqual(gitLines(root, ["diff", "--name-status", CHAIN_REF, "HEAD"]),
+    ["R100\t" + FIX_ART + "\t" + upper], "the fixture did not make the case-only rename");
+  assert.equal(gitText(root, query), "", "Git folded the missing exact path under core.ignorecase=true");
+  assert.deepEqual(gitText(root, ["ls-tree", "--name-only", "-z", "HEAD", "--", upper])
+    .split("\0").filter(Boolean), [upper]);
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.status, "fail", "case-only inventory rename was admitted: " + names(r));
+  assert.deepEqual(r.refusals, ["FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART], names(r));
+});
+
+/* ASTRA R4 FINDING 1. (25) kills the same clause on the otherwise VERIFIED child.
+   The normal child first earns its skip; the two-hop rename then removes that right.
+   This is reachable with ordinary commits, and both the inventory and sealed edit
+   must be named when the child is fenced as an ordinary branch. */
+test("Astra R4 (25) - a verified child with a case-only inventory rename FAILS naming both touches", () => {
+  const root = chain({ product: [APP, CSS] });
+  child(root, { alsoTouch: { [APP]: "sealed edit\n" } });
+  const control = fence(root, CHAIN_REF);
+  assert.equal(control.status, "skip", "the control child never earned its skip: " + names(control));
+  assert.deepEqual(control.refusals, []);
+  git(root, ["mv", FIX_ART, SPEC_DIR + "temporary-case-hop.json"]);
+  git(root, ["mv", SPEC_DIR + "temporary-case-hop.json", SPEC_DIR + "ACCEPTANCE-S8-FIXTURE.JSON"]);
+  commit(root, "case-only rename away in a verified child");
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.status, "fail", "case-only rename still stood aside: " + JSON.stringify(r.reason));
+  assert.equal(r.reason, null, "the tampered child printed a stand-aside reason");
+  assert.deepEqual(r.refusals, ["FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART,
+    "FENCE-SEALED-PATH-TOUCHED M " + APP], names(r));
+});
+
+/* ASTRA R4 FINDING 2, X7. (26) kills ignoring a rename's DESTINATION. The branch
+   already carries a staged file when the chain seals a new inventory on another line.
+   Renaming that staged file into the inventory's place is R100 in the branch's own
+   diff, but its bytes differ from the chain. No overwrite or shared-disk alias is needed. */
+test("Astra R4 (26) - renaming different bytes INTO the inventory FAILS by name", () => {
+  const root = chain({ product: [APP, CSS] });
+  const next = SPEC_DIR + "acceptance-s9-fixture.json";
+  const staged = "staged-inventory.json";
+  put(root, staged, inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9",
+    product: [], released: [APP, CSS] }));
+  commit(root, "stage different inventory bytes before the fork");
+  git(root, ["update-ref", CHAIN_REF, "HEAD"]);
+  git(root, ["checkout", "-q", "-b", "chainline"]);
+  put(root, next, inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9", product: [APP, CSS] }));
+  commit(root, "the chain seals the new inventory");
+  git(root, ["update-ref", CHAIN_REF, "HEAD"]);
+  git(root, ["checkout", "-q", "main"]);
+  git(root, ["mv", staged, next]);
+  commit(root, "rename staged bytes into the inventory path");
+  const base = gitText(root, ["merge-base", CHAIN_REF, "HEAD"]).trim();
+  assert.deepEqual(gitLines(root, ["diff", "--name-status", base, "HEAD"]),
+    ["R100\t" + staged + "\t" + next], "the fixture did not touch the rename destination");
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.status, "fail", "the rename destination escaped: " + names(r));
+  assert.deepEqual(r.refusals, ["FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + next], names(r));
+});
+
+/* ASTRA R4 FINDING 2, X8. (27) kills case-folding the artifact-path equality, the
+   exact-path control beside (23). Before the fork both lines carry only the upper-case
+   sibling. The chain renames it through a temporary path; the branch edits only its
+   original spelling. The two spellings never coexist, and the branch never touches
+   the chain's exact inventory path, so accusing it would re-open F9. */
+test("Astra R4 (27) - editing only an upper-case sibling of the inventory PASSES", () => {
+  const root = chain({ product: [APP, CSS] });
+  const next = SPEC_DIR + "acceptance-s9-fixture.json";
+  const upper = SPEC_DIR + "ACCEPTANCE-S9-FIXTURE.JSON";
+  put(root, upper, inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9", product: [APP, CSS] }));
+  commit(root, "the upper-case sibling before the fork");
+  git(root, ["checkout", "-q", "-b", "chainline"]);
+  git(root, ["mv", upper, SPEC_DIR + "temporary-case-hop.json"]);
+  git(root, ["mv", SPEC_DIR + "temporary-case-hop.json", next]);
+  commit(root, "the chain seals the exact lower-case inventory path");
+  git(root, ["update-ref", CHAIN_REF, "HEAD"]);
+  git(root, ["checkout", "-q", "main"]);
+  put(root, upper, inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9",
+    product: [], released: [APP, CSS] }));
+  commit(root, "edit only the upper-case sibling on the branch");
+  const base = gitText(root, ["merge-base", CHAIN_REF, "HEAD"]).trim();
+  assert.deepEqual(gitLines(root, ["diff", "--name-status", base, "HEAD"]), ["M\t" + upper],
+    "the branch's own diff touched more than its upper-case sibling");
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.artifactPath, next, "the chain did not select its new exact path");
+  assert.equal(r.status, "pass", "case-folding accused an untouched inventory: " + names(r));
+  assert.deepEqual(r.refusals, []);
+  assert.equal(r.touched, 1);
+});
+
+/* ASTRA R4 FINDING 2, X9. (28) kills parsed-JSON equality in place of byte equality.
+   Appending one LF and committing it is an ordinary edit with the same JSON value,
+   yet different sealed bytes. The inventory diagnostic must still name that edit. */
+test("Astra R4 (28) - a whitespace-only inventory edit FAILS by name", () => {
+  const root = chain({ product: [APP, CSS] });
+  const original = git(root, ["show", "HEAD:" + FIX_ART]);
+  const edited = Buffer.concat([original, Buffer.from("\n")]);
+  assert.deepEqual(JSON.parse(edited), JSON.parse(original));
+  assert.equal(edited.equals(original), false);
+  branch(root, { edits: { [FIX_ART]: edited } });
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.status, "fail", "semantic JSON equality excused different bytes: " + names(r));
+  assert.deepEqual(r.refusals, ["FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART], names(r));
 });
 
 /* ================================================================ THE REAL ROW ========
