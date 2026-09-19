@@ -105,6 +105,16 @@ const OTHER_PACKAGE_LINE = head + 'RELEASE-FROM-SEAL M2-S10-TODAY-SPLIT ' + RELE
    must refuse the pair. */
 const ARGV_LINE = head + 'RELEASE-FROM-SEAL ' + PKG + ' ' + RELEASED + ',' + RELEASED2 + ',' +
   ARGV_TARGET + ' ' + MID + ' a released path that a declared child executes ' + MID + ' RULED';
+/* S9-PREP-RUNNER-REVIEW-R1 BLOCKING-1. proposed() has FIVE routes into
+   executionPins and the first cut of the guard closed the argv one alone.
+   These two lines are the two routes pinned UNCONDITIONALLY, so the cell can
+   ask about them without arranging anything: the runner itself, and the spec
+   file this run reads. The PM can write either line; the runner must refuse. */
+const SPEC_FILE = 'rebuild/lanes/b/tooling/packages/S8.json';
+const RUNNER_LINE = head + 'RELEASE-FROM-SEAL ' + PKG + ' ' + RELEASED + ',' + RELEASED2 + ',' +
+  runnerRel + ' ' + MID + ' the seal runner itself ' + MID + ' RULED';
+const SPECFILE_LINE = head + 'RELEASE-FROM-SEAL ' + PKG + ' ' + RELEASED + ',' + RELEASED2 + ',' +
+  SPEC_FILE + ' ' + MID + ' the package spec this run reads ' + MID + ' RULED';
 const UNRULED_LINE = head + GRANT + ' ' + MID + ' PROPOSED';
 /* r10b N1's own controls, carried over: the same token negated, quoted,
    bracketed, emphasised and backticked INSIDE a clause. None of them begins
@@ -136,7 +146,7 @@ write(GA_FILE, JSON.stringify({ version: 1, packageId: 'M2-S8-FIXTURE',
   executionPins: { [CELL]: CELL_SHA } }, null, 2) + '\n');
 const GA_SHA = at(GA_FILE);
 write('rebuild/DECISIONS.md', [RULING_LINE, PARTIAL_LINE, PARTIAL2_LINE, WIDE_LINE, OTHER_PACKAGE_LINE,
-  ARGV_LINE, UNRULED_LINE, ...WRAPPED_LINES, ''].join('\n'));
+  ARGV_LINE, RUNNER_LINE, SPECFILE_LINE, UNRULED_LINE, ...WRAPPED_LINES, ''].join('\n'));
 const shaOf = line => sha(Buffer.from(line));
 
 git('init', '--quiet', '-b', 'fixture-chain');
@@ -393,7 +403,19 @@ test('B.8 (5) - a token line naming another package frees nothing here', () => {
     /RELEASE-RULING-DOES-NOT-NAME-THIS-PACKAGE/);
 });
 
-test('B.8 (6) - a token line that does not end in RULED frees nothing, and neither does a wrapped token', () => {
+/* THE TITLE IS S9-PREP-RUNNER-REVIEW-R1 BLOCKING-3's CORRECTION, and it is
+   narrower than B.8 (6)'s own wording on purpose. What the terminal test
+   measures is that the LAST WORD of the line is RULED, anchored at the end of
+   the trimmed line and admitted after a space, after the clause separator, or
+   at a line start. THAT REVIEW MEASURED the one phrasing that satisfies it
+   without being a ruling - a line whose last two words are "NOT RULED" - and
+   it is ADMITTED. The weakness is INHERITED: supersessionRuling()
+   carries the same regex, frees carriers through GATE-SUPERSESSION on the same
+   test today, and this ticket required the mirror to be line for line, so it is
+   NOT strengthened here on one side only. It is put to the PM in writing, as one
+   question about BOTH functions, in the author report's "R1 findings" section.
+   This cell states what it measures and nothing wider. */
+test('B.8 (6) - a token line whose LAST WORD is not RULED frees nothing, and neither does a wrapped token', () => {
   assert.throws(() => api.product(spec({ release: { rulingLineSha256: shaOf(UNRULED_LINE) } }), bound(), null),
     /RELEASE-RULING-IS-NOT-A-RULED-LINE/);
   /* r10b N1's controls, which the keyword scan of an earlier runner admitted:
@@ -442,6 +464,65 @@ test('B.8 (8) - a released path that a declared child EXECUTES refuses, so propo
   said(() => api.product(ok, b, null));
 });
 
+/* ==== (R1-B1) EVERY ROUTE INTO executionPins, not the argv one alone =====
+   S9-PREP-RUNNER-REVIEW-R1 BLOCKING-1. proposed() has FIVE routes into
+   executionPins: the runner, this package's own spec file, the brief, the
+   carrier successor, and every declared child's argv target. The first cut above
+   closed the LAST one while its own comment named the CLASS. MEASURED by the
+   reviewer against that runner: a released path that is also the brief, or the
+   carrier successor, is ADMITTED, and the artifact then says the same path is
+   released AND execution-pinned. The next package refuses PARENT-PIN-BROKEN on
+   the first lane C edit - through the PARENT walk, which has no skip and must
+   not get one - so the release lasts exactly one generation, which is the
+   failure H17 exists to prevent arriving one generation later by another door.
+   The argv route keeps its own refusal name, because that is the name B.5 and
+   F.1 R2 give it and the name B.8 (8) pins; the other four share one. */
+test('(R1-B1) - a released path that is the brief, the carrier successor, the runner or the spec file refuses', () => {
+  const b = bound();
+  /* (a) THE BRIEF. The happy path of this fixture with one field moved, so the
+     only thing wrong with it is the thing under test. */
+  const asBrief = spec();
+  asBrief.brief = { ...asBrief.brief, file: RELEASED };
+  assert.throws(() => api.product(asBrief, b, null), /RELEASE-PATH-IS-AN-EXECUTION-PIN-TARGET/);
+  try { api.product(asBrief, b, null); assert.fail('admitted'); } catch (e) {
+    assert(e.message.includes(RELEASED), 'the refusal names the path: ' + e.message);
+    assert(e.message.includes('the brief'), 'and the route it would be re-pinned by: ' + e.message);
+  }
+  /* (b) THE CARRIER SUCCESSOR, the other conditional route. */
+  const asCarrier = spec({ carrierSuccessor: { file: RELEASED2, parent: KEPT, witnessPins: {} } });
+  assert.throws(() => api.product(asCarrier, b, null), /RELEASE-PATH-IS-AN-EXECUTION-PIN-TARGET/);
+  try { api.product(asCarrier, b, null); assert.fail('admitted'); } catch (e) {
+    assert(e.message.includes(RELEASED2) && e.message.includes('the carrier successor'), e.message);
+  }
+  /* (c) and (d) THE RUNNER and THIS PACKAGE'S OWN SPEC FILE, the two routes
+     proposed() takes unconditionally. Each needs its own ruled line, because the
+     granted set and the declared set are equal both ways; each is declared over
+     a parent that sealed it, so the only thing left wrong is the route. */
+  const three = (file, hash, lineSha) => {
+    const s = spec({ release: { rulingLineSha256: lineSha } });
+    s.product[file] = released(hash);
+    return s;
+  };
+  const b2 = bound(), rsha = at(runnerRel), ssha = 'e'.repeat(64);
+  b2.acceptance.product[runnerRel] = pin(rsha);
+  b2.acceptance.product[SPEC_FILE] = pin(ssha);
+  assert.throws(() => api.product(three(runnerRel, rsha, shaOf(RUNNER_LINE)), b2, null),
+    /RELEASE-PATH-IS-AN-EXECUTION-PIN-TARGET/, 'the runner itself');
+  assert.throws(() => api.product(three(SPEC_FILE, ssha, shaOf(SPECFILE_LINE)), b2, null),
+    /RELEASE-PATH-IS-AN-EXECUTION-PIN-TARGET/, 'the spec file this run reads');
+  /* THE CONTROL. The same package with its brief, its carrier successor and its
+     children where they belong runs to the answer this fixture always gives, so
+     the four refusals above are about the PAIR and not about the released paths. */
+  const out = said(() => assert.equal(api.product(spec(), b, null), 'NOT-IMPLEMENTED'));
+  assert.match(out, /2 released under DECISIONS:\d+/);
+  /* AND THE ARGV ROUTE STILL REFUSES BY ITS OWN NAME, so closing the class did
+     not cost B.8 (8) the refusal the spec gives it. */
+  const argvCase = spec({ release: { rulingLineSha256: shaOf(ARGV_LINE) } });
+  argvCase.product[ARGV_TARGET] = released(ARGV_SHA);
+  argvCase.children = [{ name: 's9-view-probe', argv: ['--test', ARGV_TARGET], needle: 'S9 VIEW PROBE: PASS;' }];
+  assert.throws(() => api.product(argvCase, b, null), /RELEASE-PATH-IS-A-CHILD-ARGV-TARGET/);
+});
+
 /* ==== B.8 (9) the artifact: a block of its own, recomputed exactly ====== */
 test('B.8 (9) - proposed() keeps a released path OUT of product and builds the released block', () => {
   const s = spec(), b = bound();
@@ -451,9 +532,9 @@ test('B.8 (9) - proposed() keeps a released path OUT of product and builds the r
   assert.deepEqual(Object.keys(p.product).sort(), [ARGV_TARGET, KEPT].sort());
   assert.deepEqual(Object.keys(p.released).sort(), [RELEASED, RELEASED2].sort());
   assert.deepEqual(p.released[RELEASED], { role: 'released', lastSealedSha256: PRE,
-    sealedBy: 'M2-S8-FIXTURE', rulingLine: 1, rulingLineSha256: shaOf(RULING_LINE) });
+    sealedBy: 'M2-S8-FIXTURE', rulingLineSha256: shaOf(RULING_LINE) });
   assert.deepEqual(p.released[RELEASED2], { role: 'released', lastSealedSha256: PRE2,
-    sealedBy: 'M2-S8-FIXTURE', rulingLine: 1, rulingLineSha256: shaOf(RULING_LINE) });
+    sealedBy: 'M2-S8-FIXTURE', rulingLineSha256: shaOf(RULING_LINE) });
   /* The literal role on every entry (R1 N1): the artifact reads without the
      reader having to know which block implies which role. */
   for (const e of Object.values(p.released)) assert.equal(e.role, 'released');
@@ -475,6 +556,46 @@ test('B.8 (9) - proposed() keeps a released path OUT of product and builds the r
   delete none.release;
   none.product[RELEASED] = pin(PRE); none.product[RELEASED2] = pin(PRE2);
   assert.equal(Object.hasOwn(api.proposed(none, b), 'released'), false);
+});
+
+/* ==== (R1-B2) NOTHING IN THE SEALED BLOCK IS READ OFF THE LIVE CHAIN =====
+   S9-PREP-RUNNER-REVIEW-R1 BLOCKING-2, and a reported deviation from what
+   S9-RELEASE-SPEC B.4 DRAWS.
+   The first cut wrote `rulingLine: release.at`, and `release.at` is the INDEX of
+   the ruling line in rebuild/DECISIONS.md, read off CHAIN_REF on EVERY run.
+   envelope() refuses on same(m, proposed(s, bound)), so a sealed artifact
+   carrying that index stops recomputing - SEALED-PROFILE-RECOMPUTATION, for
+   ever, for this package and for the standing CI step - the first time any line
+   is inserted ABOVE the ruling, with no byte of the package having changed. It
+   was the ONLY value in the artifact recomputed from the live chain rather than
+   declared by the spec. r7 F4 already moved the supersession ruling from an
+   index to a sha256 for this exact reason, and the sha256 locates the line at
+   least as well: it is in the block, and the say still prints the index. */
+test('(R1-B2) - the released block survives an insertion ABOVE the ruling line on the chain', () => {
+  const s = spec(), b = bound();
+  const before = api.proposed(s, b);
+  /* The closed key set of a released entry: four keys, and not one of them a
+     line number. A number in a sealed block is a number that can move without a
+     byte of this package moving with it. */
+  for (const e of Object.values(before.released))
+    assert.deepEqual(Object.keys(e), ['role', 'lastSealedSha256', 'sealedBy', 'rulingLineSha256']);
+  assert.equal(api.releaseRuling(s, b).at, 1, 'the ruling stands at line 1 of the fixture ledger');
+  /* THE EVENT, and it is the smallest one there is: the PM writes one line
+     ABOVE the ruling. Every index below it moves by one; no path, no sha and no
+     byte of this package does. */
+  const ledger = fs.readFileSync(path.join(scratch, 'rebuild/DECISIONS.md'), 'utf8');
+  write('rebuild/DECISIONS.md', head + 'an older ruling, written above this one ' + MID + ' RULED\n' + ledger);
+  git('add', '-A'); git('commit', '--quiet', '-m', 'a line inserted ABOVE the ruling line');
+  try {
+    assert.equal(api.releaseRuling(s, b).at, 2, 'the ruling really moved down one line');
+    assert.equal(JSON.stringify(api.proposed(s, b)), JSON.stringify(before),
+      'and the artifact recomputes byte for byte, key order included');
+    assert.equal(api.same(before, api.proposed(s, b)), true, ':3021 itself, as envelope() runs it');
+  } finally {
+    write('rebuild/DECISIONS.md', ledger);
+    git('add', '-A'); git('commit', '--quiet', '-m', 'the fixture ledger restored');
+  }
+  assert.equal(api.releaseRuling(s, b).at, 1, 'and the ledger is back where the other cells left it');
 });
 
 /* ==== B.8 (10) the --full byte-identity re-verify ======================= */
@@ -512,12 +633,13 @@ test('B.8 (10) - the receipt does not carry a released path, and lane C editing 
 });
 
 /* ==== B.8 (11) and (12) THE GRANDPARENT WALK ============================
-   R1 BLOCKING-1, and the reason H17 exists. This is a synthetic S10 standing
+   S9-RELEASE-SPEC-REVIEW-R1 BLOCKING-1 (the SPEC review, not the runner one),
+   and the reason H17 exists. This is a synthetic S10 standing
    over a synthetic S9 artifact that carries a `released` block, with the
    released files' bytes moved on disk AND in Git - which is to say, the first
    moment the release is used for the thing it exists for. */
 const releasedEntry = (last) => ({ role: 'released', lastSealedSha256: last,
-  sealedBy: 'M2-S8-FIXTURE', rulingLine: 1, rulingLineSha256: shaOf(RULING_LINE) });
+  sealedBy: 'M2-S8-FIXTURE', rulingLineSha256: shaOf(RULING_LINE) });
 const s9Artifact = (extra = {}) => ({ packageId: 'M2-S9-FIXTURE',
   product: { [KEPT]: pin(KEPT_SHA), [ARGV_TARGET]: pin(ARGV_SHA) },
   executionPins: { [CELL]: CELL_SHA },
