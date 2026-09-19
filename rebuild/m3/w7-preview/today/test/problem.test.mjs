@@ -1601,7 +1601,24 @@ test('N2-08 - a saved night is what the check-in own reader finds, with no A3 ed
    is therefore consulted first. Nothing else moves: the question the cell asks is
    still "does THIS LANE drift a sealed byte it has not declared", and the red
    side is still red. */
-const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'];
+/* M2-S9-UI-PINS ADDS 'S9', and the cell is unchanged in every other way.
+   S9 is the reseal that carries the accepted look work and the two accepted
+   carried lanes onto the tip (DECISIONS:536, :542 (D), :543 (B)): the screen
+   files the look tickets move, the Today carry lane's four declarations, the
+   passphrase normalisation lane's import path, the lane cells those rounds
+   wrote and the lane B runner are all moved BY THAT PACKAGE, declared and on
+   purpose, so the declaring-spec chain has to know about it or every one of
+   those moves reads here as an undeclared drift. S9 also RELEASES two
+   presentation files from the sealed inventory under DECISIONS:536, and a
+   released declaration carries post: null - which the loop below already
+   skips, because it takes a spec only when the post is a string - so a
+   released file falls through to the youngest package that still declares a
+   real post for it, and this cell's question is unchanged for it too.
+   Youngest first is what the loop below already does, so 'S9' goes last in
+   the array and is therefore consulted first. Nothing else moves: the question
+   the cell asks is still "does THIS LANE drift a sealed byte it has not
+   declared", and the red side is still red. */
+const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9'];
 
 test('N2-08 - the check-in files are BYTE-IDENTICAL: N2 changes A3 not at all', () => {
   /* The reuse path already existed and was dead because nothing wrote a night. N2 is
