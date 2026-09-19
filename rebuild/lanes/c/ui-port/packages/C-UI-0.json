@@ -2,7 +2,7 @@
  "version": 1,
  "lanePackage": "C-UI-0",
  "packageId": "C-UI-0-GATES-WITH-TEETH",
- "status": "PROPOSED, revised for reviews R1 and R2",
+ "status": "PROPOSED, revised for reviews R1 and R2 and for fix round R3",
  "reviews": [
   {
    "round": "R1",
@@ -32,10 +32,19 @@
  "branch": "rebuild/c-ui-0-gates",
  "sourceBase": "e0a6c8ef2b2c7421ca8deb64ade1a7ed7f4de688",
  "head": {
-  "commit": "8ceda9f6db8a23b05263dc933f094d3fdc5f562f",
+  "commit": "7d027aca1693622d409082b6cf74a7341530054b",
   "note": "the commit this package was written at; the commit that adds the package is its child, so HEAD after it is one ahead of this value by construction"
  },
  "commits": [
+  "7d027ac C-UI-0 R3: the README and the standard say what the launch list and the records do",
+  "5a003a4 C-UI-0 R3: two more teeth rows, the launch list and a missing thumbnail",
+  "d32ea51 C-UI-0 R3: the 418 linux state thumbnails",
+  "03f7aea C-UI-0 R3: the six linux screen baselines set again, unhinted",
+  "5c48438 C-UI-0 R3: the state thumbnails are this platform's, the records stay shared",
+  "93bb947 C-UI-0 R3: the 418 state thumbnails move under win32, the platform that drew them",
+  "449fd73 C-UI-0 R3: the one line under app/ that makes T-88's Cancel link 44 px wide",
+  "ecbef86 C-UI-0 R3: the state records set again, written on win32 with the shared launch list",
+  "ee1f191 C-UI-0 R3: one launch list for the three scripts, with glyph hinting off",
   "8ceda9f6 C-UI-0 R2: the six notes closed, and five more teeth rows",
   "672f8452 C-UI-0: review R2 (ACCEPT WITH NOTES, 0 blocking, 6 should fix)",
   "6569b4dc C-UI-0 R1: the package rewritten on the review round, and the contrast sentence kept verbatim",
@@ -53,98 +62,128 @@
   "cbfb26ef C-UI-0: the gate refuses again (platform keyed baselines, fonts, contrast tiers, the RIR lock, the item 11 rules)"
  ],
  "locked": {
-  "app": "no file under rebuild/m1/approved-2026-09-18/app/ is touched on this branch",
-  "proof": "none"
+  "app": "one line under rebuild/m1/approved-2026-09-18/app/ is changed on this branch and no more: app/app.css line 202, the .link rule, gains \"min-width: var(--hit);\" directly after \"min-height: var(--hit);\"",
+  "why": "laid out unhinted, which is how every real device lays it out, T-88's Cancel link is 43.734375 px wide by 44 px high, under the owner's standing rule that every target is 44 px. Hinted headless Chromium on Linux had rounded that advance up to 44, which is the only reason review R2 saw the state sheet green. Ticket item 16 allows a one line copy or attribute fix in the prototype when a new check finds a real defect in it, provided the round says so out loud: commit 449fd73, README section 3.1 and section 4, and this object say it",
+  "whatItMoves": "0.27 px on that one box. A record's rect is rounded to whole pixels, so 43.734375 and 44 both record as 44 and nothing either gate records moves",
+  "proof": "git diff e0a6c8ef HEAD -- rebuild/m1/approved-2026-09-18/app is 13 lines, one file, one line added and one removed"
  },
  "files": {
   ".gitignore": {
    "sha256": "d2261f8459d658135f9654605a3f19e460ee9ebd6c678eb30fd08037aa7c0fe5",
    "role": "edited: quality/run/ and __pycache__/ are untracked from here on"
   },
+  "rebuild/m1/approved-2026-09-18/app/app.css": {
+   "sha256": "bf4924e74fc4edc5cebf7fba6519613d9eec7f44397db990396fe402c124edc2",
+   "role": "edited in R3: line 202, the .link rule, gains \"min-width: var(--hit);\" (the locked object above says why)"
+  },
   "rebuild/m1/approved-2026-09-18/README.md": {
-   "sha256": "4adb5bff94b2f8ef87a2b6aa2aed57255e7c0d51c8ef9f1c6b89e8b6321a1ba9",
-   "role": "edited: sections 1, 3 (with the new 3.1), 4 and 7"
+   "sha256": "deb51a00f49426333e671a1784341b610a0ec21ae17af6000195772107cefbee",
+   "role": "edited: sections 1, 3 (with 3.1), 4 and 7; 3.1 rewritten in R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": {
-   "sha256": "25fd1110dd92b5616c1dc60b83df494d93b2ba1b8967ffcedc5f9bcec7f2a8d7",
-   "role": "edited: every gate tag names its check, section 7 item 5, new section 13"
+   "sha256": "a573d5d70231140e584e9cf0c69ff764b115d23fc779028cb3bf34176349b878",
+   "role": "edited: every gate tag names its check, section 7 item 5, section 13; the launch list and the record halves added in R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/common.py": {
-   "sha256": "2f34e7eca793d3d9977de20016fa2075488983ca51b8d6f98837fe6a17c34f8e",
-   "role": "added: what the three gates share"
+   "sha256": "8ee065776c4fd912ea41455312e5c9497d8a8e0e15efaaef44da53d42a956326",
+   "role": "added: what the three gates share; in R3 the launch list, playwright_version() and env_text()"
   },
   "rebuild/m1/approved-2026-09-18/quality/gate.py": {
-   "sha256": "1c3201b896fb28976fdd0baa183cdc3b7a162aeb532e2f518382418f3521effa",
-   "role": "edited: the screen gate"
+   "sha256": "f86e7d911a401141e5c22e98aaf7cc67bbc734625c3655603ac567698569d248",
+   "role": "edited: the screen gate; in R3 the launch list and ENV.txt"
   },
   "rebuild/m1/approved-2026-09-18/quality/statesheet.py": {
-   "sha256": "81743ba92a45f9d6d52954bf8fa233f5afc6c2a5c78f4bb65aedf83bb5c20970",
-   "role": "edited: the state gate"
+   "sha256": "bf794ff9ecd7269dc1029960f3664d12c3fe37a2b7596a1b9a4665dc5c552332",
+   "role": "edited: the state gate; in R3 the per platform thumbnails, --accept-thumbs, the index env and newline=LF"
   },
   "rebuild/m1/approved-2026-09-18/quality/phonesheet.py": {
-   "sha256": "17cdc1f48ab18bf554a2ad6c3908f414ed8c1c9e2cd6908fce1e1b43e89411bc",
+   "sha256": "ef5fd386d49e88c8576a5610cda71a1ed3a537c91564fb93cd4dc048b0f0713b",
    "role": "edited: the review sheet"
   },
   "rebuild/m1/approved-2026-09-18/quality/teeth.py": {
-   "sha256": "79854767098d7c11e4ae9177a590f68ed7240904b077a27ad098d64f389af483",
-   "role": "added: the executable mutation list"
+   "sha256": "75f308fa8fa0e3ac9a7cc796a8ef323701f7c5d3c008095ea0ccadd19e49eaaf",
+   "role": "added: the executable mutation list; 33 rows after R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": {
-   "sha256": "7b6a78737a187a03d7e7de1ef72015404809e3fb321b534de6a2a034af1e3fe3",
-   "role": "added: the machine that set the linux baselines"
+   "sha256": "c4bb05a2c2d9cf7ab9d6717e905aee809defe8056f6ad1b88c4702a2d4620ecb",
+   "role": "set by \"python quality/gate.py --accept\" on linux in R3; it carries the launch line now"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-today.png": {
-   "sha256": "8d9e0b74b7ba24b7dc2b05197331108209a3d55e61e1873874ce8b98bb158719",
-   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+   "sha256": "32f52cfd814e23e2bc688861dba4c028dea3d277ba9f33f46037aab5ad101813",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-workout.png": {
-   "sha256": "5bf54d76c8b345a46cf0547b7ce99df854a8e06641f53f9b6e156b17e7824663",
-   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+   "sha256": "7cd837db28d1403628599d495b6f49757cdbb44f985bd0a36e77b4b0dd83bcf3",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-coach.png": {
-   "sha256": "0d6ccde42ab4db8cafbf976a0ca92268b3a97d21913a22411371221a711525af",
-   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+   "sha256": "0c9b741a7174042f8f04dd338c50933c4137f784d06fb2be275e4b5f17c5c425",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-today.png": {
-   "sha256": "639132fe954a0eadd1787ae9410fe5bea031afbe776347a12c2a259476a137e4",
-   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+   "sha256": "e5417552426859f2e2f5514aa160f33d69dfb049cdd3951a08a164a90236de31",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-workout.png": {
-   "sha256": "a240158b23b24a60d6ef3dcbec919d532321e126516b109f17a05e2f21da583b",
-   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+   "sha256": "925e0fd1dc3c9aae6591aacd5d4464731c1bc0bdbff85661460920c9cfde30cc",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-coach.png": {
-   "sha256": "e2d6ddefcb24a8af3495faee5cb4ece7b5da90da6ec9e55761eff072dfd653c3",
-   "role": "set fresh by \"python quality/gate.py --accept\" on linux"
+   "sha256": "c40a1f0e8a67a9618849cc90f3d3cc14226eea0157136aa15d714765881a27f0",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/states/INDEX.json": {
+   "sha256": "fbfa03366de62a1ef936f6a900dd79f4134299c7caae4f2639160e908eaccf43",
+   "role": "the shared list of ids and themes; it gains an \"env\" object when the lane lead re-runs \"--accept\" on the owner's PC, which no comparison reads"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/states/linux/ENV.txt": {
+   "sha256": "f388bb6d58d2d4501380e76335f611a5ebe664f8650b89df07e953d778b7197a",
+   "role": "set by \"python quality/statesheet.py --accept-thumbs\" on linux in R3"
   }
  },
  "stateRecords": {
   "path": "rebuild/m1/approved-2026-09-18/quality/baseline/states/",
-  "files": 837,
-  "bytes": 1005460,
-  "megabytes": 0.96,
-  "budget": "under 3 MB",
+  "files": 1256,
+  "bytes": 1397204,
+  "megabytes": 1.397,
+  "budget": "under 3 MB, and the whole tree is inside it with both platforms' thumbnails in it",
+  "shape": {
+   "sharedRecords": "419 files, 614306 bytes: 418 <ID>-<theme>.json and INDEX.json, read on every platform",
+   "win32Thumbnails": "418 files, 392312 bytes, written by --accept on the owner's PC; its ENV.txt arrives with the lead's next accept run",
+   "linuxThumbnails": "419 files, 390586 bytes, written by --accept-thumbs in the builder's sandbox, ENV.txt included"
+  },
   "index": "rebuild/m1/approved-2026-09-18/quality/baseline/states/INDEX.json",
-  "manifestSha256": "7364202f09aa10cef9c55fe4cb86b037c6a93e5660fa360d30e0aa28da2fb092",
-  "manifestForm": "sha256 of the lines \"<file name> <sha256>\" for every file, sorted by name, joined by newline"
+  "manifestSha256": "4cf4f8f5ab8ccc8aff9f7aa7f2250af7e3c413d6d97255b38b34e723ce8c11da",
+  "manifestForm": "sha256 of the lines \"<path> <sha256>\" for every file under the tree, the path relative to the tree with forward slashes, sorted by that line, joined by newline"
  },
  "runs": {
   "command": "cd rebuild/m1/approved-2026-09-18 && python quality/gate.py",
+  "machine": "linux, the builder worktree: Linux 6.18.44-fc-v37, Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37, 2 cores",
   "gate": {
+   "command": "python quality/gate.py",
    "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
-   "exit": 0
+   "exit": 0,
+   "seconds": 112
   },
   "stateSheet": {
    "command": "python quality/statesheet.py",
    "summary": "STATE SHEET: 418 renders, 0 with problems",
-   "exit": 0
+   "exit": 0,
+   "seconds": 881,
+   "worstMeasured": "none measured: nothing moved in 418 renders"
   },
   "teeth": {
    "command": "python quality/teeth.py",
-   "summary": "TEETH: 31 rows, 0 disagreeing, 701 s",
-   "exit": 0
+   "summary": "TEETH: 33 rows, 0 disagreeing, 711 s",
+   "exit": 0,
+   "seconds": 712
   },
-  "machine": "linux, the builder worktree"
+  "phoneSheet": {
+   "command": "python quality/phonesheet.py --state T-14",
+   "summary": "wrote quality/run/phonesheet-T-14.png and phonesheet-all.png (2448, 2796)",
+   "exit": 0,
+   "seconds": 7
+  }
  },
  "tolerances": {
   "regression": "The gate fails a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels.",
@@ -153,7 +192,7 @@
   "whereQuoted": "each sentence appears in the same words in the code and in README section 3.1"
  },
  "teethTable": [
-  "TEETH: 31 rows, 0 disagreeing, 701 s",
+  "TEETH: 33 rows, 0 disagreeing, 711 s",
   "row   mutation                                                   verdict      note",
   "a     an em dash in Today's status sentence                      as expected",
   "b1    a word from the owner's word list in a card title          as expected",
@@ -186,24 +225,34 @@
   "n3    T-02's sample note hidden by text-indent: -9999px          as expected",
   "n4    a theme in the index that the sheet does not render        as expected",
   "n5    a theme the sheet renders that the index lost              as expected",
+  "p1    the hinting argument taken out of the launch list          as expected",
+  "p2    this platform's thumbnail for T-02 deleted                 as expected",
   "TEETH EXIT 0"
  ],
  "env": {
-  "file": "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt",
-  "contents": "the machine that set these baselines\nos: Linux 6.18.44-fc-v33 (linux)\npython: 3.11.15\nplaywright: 1.56.0\nchromium: 141.0.7390.37\nscreens: ink-today, ink-workout, ink-coach, dawn-today, dawn-workout, dawn-coach\nviewport: 393x852, chrome=1, date=board\n"
+  "screenBaselines": {
+   "file": "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt",
+   "contents": "the machine that set these baselines\nos: Linux 6.18.44-fc-v37 (linux)\npython: 3.11.15\nplaywright: 1.56.0\nchromium: 141.0.7390.37\nlaunch: --allow-file-access-from-files --font-render-hinting=none\nscreens: ink-today, ink-workout, ink-coach, dawn-today, dawn-workout, dawn-coach\nviewport: 393x852, chrome=1, date=board\n"
+  },
+  "stateThumbnails": {
+   "file": "rebuild/m1/approved-2026-09-18/quality/baseline/states/linux/ENV.txt",
+   "contents": "the machine that set these baselines\nos: Linux 6.18.44-fc-v37 (linux)\npython: 3.11.15\nplaywright: 1.56.0\nchromium: 141.0.7390.37\nlaunch: --allow-file-access-from-files --font-render-hinting=none\nstates: 209 ids, 418 renders, themes ink and dawn\nviewport: 393x852, chrome=1, date=board\nthumbnail: 24x53 greyscale, 1/16 scale\n"
+  },
+  "win32": "the lane lead writes quality/baseline/win32/ENV.txt and quality/baseline/states/win32/ENV.txt on the owner's PC with the same two commands"
  },
  "checks": {
   "gate": {
    "distinct": 33,
-   "resultRows": 372
+   "resultRows": 372,
+   "note": "quality/run/report.json's distinct check names are exactly the 33 rows of STANDARD.md section 13's table, measured on this tree"
   },
   "stateSheet": {
    "renders": 418,
-   "recordFiles": 837,
-   "recordFileShape": "one json and one png per state and theme, plus INDEX.json"
+   "recordFiles": 1256,
+   "recordFileShape": "one shared json per state and theme plus INDEX.json, and one png per state and theme under each platform that has run"
   },
   "teeth": {
-   "rows": 31,
+   "rows": 33,
    "disagreeing": 0
   }
  },
@@ -226,15 +275,15 @@
    "id": "Q3",
    "for": "the lane lead",
    "question": "The state record thumbnail is 1/16 scale, not the 1/8 the ticket named.",
-   "howItIsHeldNow": "At 1/8 a 3 px shift, which the rect half of the tolerance allows, already moves the thumbnail 3.5 levels and would fail the thumbnail half, so the tolerance would contradict itself and mutation h1 could not pass. At 1/16 the same shift moves it 1.7 and a 60 px shift moves it 8.5. The 836 files come to 0.94 MB, inside the 3 MB budget.",
+   "howItIsHeldNow": "At 1/8 a 3 px shift, which the rect half of the tolerance allows, already moves the thumbnail 3.5 levels and would fail the thumbnail half, so the tolerance would contradict itself and mutation h1 could not pass. At 1/16 the same shift moves it 1.7 and a 60 px shift moves it 8.5. The tree is 1256 files and 1.4 MB with both platforms' thumbnails in it, inside the 3 MB budget.",
    "whatWouldChange": "Nothing, unless the rect tolerance tightens below 3 px, in which case the scale can go back."
   },
   {
    "id": "Q4",
    "for": "the lane lead",
-   "question": "The win32 baselines do not exist yet.",
+   "question": "The win32 screen baselines do not exist yet.",
    "howItIsHeldNow": "The mechanism is keyed on sys.platform and a missing baseline for the current platform is a FAIL naming the exact path and the remedy, so a Windows run today reports six FAILs and no vacuous pass.",
-   "whatWouldChange": "The lane lead runs \"python quality/gate.py --accept\" on the owner PC before PR-READY and commits quality/baseline/win32/, ENV.txt included."
+   "whatWouldChange": "The lane lead runs \"python quality/gate.py --accept\" on the owner PC before the branch is offered, and commits quality/baseline/win32/, ENV.txt included. The win32 state thumbnails already exist, under quality/baseline/states/win32/; their ENV.txt arrives with the lead's next \"python quality/statesheet.py --accept\" run."
   },
   {
    "id": "Q5",
@@ -270,6 +319,140 @@
    "question": "The record's visible text is now the text of the elements that survive the visibility test, joined in document order, rather than innerText (review R1 SHOULD FIX 1).",
    "howItIsHeldNow": "It is the only way a line hidden at opacity 0 can read as removed, which is what the review asked for. visibility: hidden leaves the record by the same test, where before it left only because innerText excluded it.",
    "whatWouldChange": "Every record was rewritten with --accept for it. A reviewer comparing an old record to a new one will see the text field change shape on states with hidden content."
+  },
+  {
+   "id": "Q10",
+   "for": "the lane lead and the boards",
+   "question": "on every unhinted platform, which is every real device, T-14's \"Upper body, 4 exercises · Workout in progress\" line wraps to two lines: the element is 17 px high hinted and 34 px unhinted, and every element below it in the scrolling body moves down by exactly 17 px (the proposal card's \"One call needs you\" from top 383 to 400, its two buttons from 468 to 485, \"Plans changed?\" from 525 to 542; the fixed stack does not move). The hinted Linux render the boards were compared against showed one line",
+   "howItIsHeldNow": "the records carry the two line version, because that is what every real device draws. Nothing in app/ is changed for this: the one line this round changed under app/ is the .link min-width of the locked object, which does not touch T-14",
+   "whatWouldChange": "if the boards want one line, the copy is shortened in app/states-today.js and the records are written again; if they accept the wrap, nothing changes and this question closes",
+   "otherStatesWhoseLineCountChanged": [
+    "T-14 gained a line: element 9 \"Upper body, 4 exercises · Workout in progress\" 17 to 34 px",
+    "C-28 lost one: element 3 \"From your check-in on Wed, Sep 16. You were asked how your energy was...\" 81 to 61 px",
+    "C-37 lost one: element 3 \"I could not keep that, and I have kept nothing.\" 41 to 20 px",
+    "C-47 lost one: element 3 \"I have not recorded which machine you used. There is no field for equipment...\" 81 to 61 px",
+    "T-71 lost one: element 3 \"Your intake cannot be recorded on this device yet.\" 36 to 17 px",
+    "T-72 lost one: element 4 \"Sleep cannot be recorded on this device yet. Earned could not open its encrypted store...\" 93 to 74 px",
+    "T-84 lost one: element 10 \"Nothing was recorded.\" 36 to 17 px",
+    "W-19 lost one: element 10 \"Enter the weight and reps you actually completed.\" 38 to 19 px"
+   ],
+   "howThatListWasDerived": "every one of the 418 committed records at ee1f191 and at ecbef86 was read with git show and compared element by element; the eight states above are every state, in both themes, where an element's recorded height moved by 12 px or more, which is less than one line of any size the pack uses. T-14 is the only one that gained a line"
   }
- ]
+ ],
+ "r3": {
+  "round": "R3",
+  "why": "review R2 accepted the branch with the lane lead's Windows run still owed. That run was red on the second gate, which is blocking by R2's own definition: a platform claim the code does not implement",
+  "finding": {
+   "machine": "the owner's PC, Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34, at ee1f191 against the records a hinted Linux run had written",
+   "gate": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS, exit 0",
+   "stateSheet": "STATE SHEET: 418 renders, 254 with problems, exit 1",
+   "worst": "rect edge 170 px of 3 (T-84 ink, element 10, \"Nothing was recorded.\", left); thumbnail mean shift 3.53 of 2.00 (T-14 ink); colour 0.00 of 3"
+  },
+  "cause": "headless Chromium on Linux hints glyphs by default and snaps each glyph advance to a whole pixel, so a line of text is a few pixels wider or narrower than on Windows, on macOS or on a phone, and some lines wrap on a different word. An element's rect is the sum of those advances, so a rect is not free of rasterisation and README 3.1's claim that it was had no code behind it",
+  "proofOfCause": "a Linux run of the same commit launched with --font-render-hinting=none failed the committed hinted records on the same 254 renders with the same 254 report lines as the Windows run, word for word and number for number, worst thumbnail 3.03; on Windows the argument changes nothing, 372 PASS against screen baselines drawn without it",
+  "ruling": "the lane lead: the JSON half of a record stays one shared set, the thumbnail half is filed per platform the way the screen baselines already are. No tolerance is loosened and the thumbnail is not blinded to text",
+  "fix": [
+   "quality/common.py: LAUNCH_ARGS, one launch list for the three scripts, glyph hinting off (ee1f191, the lead)",
+   "app/app.css line 202: the .link rule gains min-width: var(--hit); see the locked object (449fd73)",
+   "quality/baseline/states/*.png moved to quality/baseline/states/win32/ by git mv, nothing else in that commit (93bb947)",
+   "quality/statesheet.py: thumbnails read and written at quality/baseline/states/<sys.platform>/ with an ENV.txt beside them; a missing thumbnail for the current platform is a FAIL naming the path and the remedy; --accept writes the shared records, the index and this platform's thumbnails; --accept-thumbs compares every render against the shared records, compares no thumbnail, and writes this platform's thumbnails and ENV.txt only when every render was clean, otherwise nothing, exit 1; both refuse --only and cannot be combined; INDEX.json gains an env object no comparison reads; every committed file is written with newline LF (5c48438)",
+   "quality/gate.py: ENV.txt gains a launch line and is written with newline LF, through the same common.env_text helper the state sheet uses (5c48438)",
+   "quality/teeth.py: rows p1 and p2 (5a003a4)",
+   "README 3.1 and section 1, STANDARD.md sections 7 and 13 (7d027ac)"
+  ],
+  "crossPlatformProof": {
+   "what": "the shared JSON records were written by \"python quality/statesheet.py --accept\" on the owner's PC (Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34) and judged by a full run in the builder's Linux sandbox (Linux 6.18.44-fc-v37, Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37), both launched with common.LAUNCH_ARGS",
+   "result": "418 renders; rect edge 0.00 px of 3 on every element of every render; colour 0.00 of 3; the only two problems were T-88 in each theme, \"targets: link 44x44\", which both platforms reported in the same words and which app/app.css line 202 fixes",
+   "reRunOnTheFinalCode": "\"python quality/statesheet.py --accept-thumbs\" on the final tree: \"ACCEPT THUMBS RUN: every record compared except its thumbnail, which this run wrote: 418 thumbnails and ENV.txt in quality/baseline/states/linux\", \"STATE SHEET: 418 renders, 0 with problems, 418 SET\", \"none measured: nothing moved in 418 renders\", exit 0, 879 s",
+   "thumbnailHalf": "not platform independent: rasterisation alone costs up to 1.26 levels of the 2.00 budget between those two machines (C-63 ink), and teeth row h1, the 3 px shift that must PASS, measures 1.67 on the machine that wrote the thumbnails and disagreed on Linux against win32 written thumbnails. With the thumbnails filed per platform h1 agrees again on Linux, with no tolerance touched"
+  },
+  "runs": {
+   "command": "cd rebuild/m1/approved-2026-09-18 && python quality/gate.py",
+   "machine": "linux, the builder worktree: Linux 6.18.44-fc-v37, Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37, 2 cores",
+   "gate": {
+    "command": "python quality/gate.py",
+    "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
+    "exit": 0,
+    "seconds": 112
+   },
+   "stateSheet": {
+    "command": "python quality/statesheet.py",
+    "summary": "STATE SHEET: 418 renders, 0 with problems",
+    "exit": 0,
+    "seconds": 881,
+    "worstMeasured": "none measured: nothing moved in 418 renders"
+   },
+   "teeth": {
+    "command": "python quality/teeth.py",
+    "summary": "TEETH: 33 rows, 0 disagreeing, 711 s",
+    "exit": 0,
+    "seconds": 712
+   },
+   "phoneSheet": {
+    "command": "python quality/phonesheet.py --state T-14",
+    "summary": "wrote quality/run/phonesheet-T-14.png and phonesheet-all.png (2448, 2796)",
+    "exit": 0,
+    "seconds": 7
+   }
+  },
+  "teethTable": [
+   "TEETH: 33 rows, 0 disagreeing, 711 s",
+   "row   mutation                                                   verdict      note",
+   "a     an em dash in Today's status sentence                      as expected",
+   "b1    a word from the owner's word list in a card title          as expected",
+   "b2    a vendor name in a card title                              as expected",
+   "c     the sans face pointed at the serif file                    as expected",
+   "d-1   #start pushed 620 px down at 393x852                       as expected",
+   "d-2   #start pushed 200 px down at 375x812 and 360x780 only      as expected",
+   "e1    Today's titles and status line under 4.5:1 and over 3.0:1  as expected",
+   "e2    the same text under 3.0:1                                  as expected",
+   "f     a keyframe animation on #start, live under reduced motion  as expected",
+   "g     one word of T-02's copy                                    as expected",
+   "g2    an em dash inside the same state copy                      as expected",
+   "h1    T-02's status line shifted 3 px (inside the tolerance)     as expected",
+   "h2    T-02's status line shifted 60 px                           as expected",
+   "i     this platform's ink-today baseline deleted                 as expected",
+   "j1    EARNED_APP at an empty folder                              as expected",
+   "j2    EARNED_APP at app/compare.html, a real page of the pack    as expected",
+   "k1    one RIR chip dropped                                       as expected",
+   "k2    a serif element switched to sans                           as expected",
+   "k3    a card moved 6 px off the page margin                      as expected",
+   "m1    a 4 px dot pulsing for ever on a pseudo element            as expected",
+   "m2    a transition on a pseudo element                           as expected",
+   "m3    three faults in a placeholder, judged by the gate          as expected",
+   "m4    the same three faults in CSS generated content             as expected",
+   "m5    three faults in a placeholder, judged by the state sheet   as expected",
+   "m6    T-02 dropped from the driver, its records left committed   as expected",
+   "m7    T-02's sample note hidden at opacity 0                     as expected",
+   "n1    a set string drawn by counter() in generated content       as expected",
+   "n2    T-02's sample note hidden by clip-path: inset(100%)        as expected",
+   "n3    T-02's sample note hidden by text-indent: -9999px          as expected",
+   "n4    a theme in the index that the sheet does not render        as expected",
+   "n5    a theme the sheet renders that the index lost              as expected",
+   "p1    the hinting argument taken out of the launch list          as expected",
+   "p2    this platform's thumbnail for T-02 deleted                 as expected",
+   "TEETH EXIT 0"
+  ],
+  "filesTouched": {
+   "rebuild/m1/approved-2026-09-18/README.md": "deb51a00f49426333e671a1784341b610a0ec21ae17af6000195772107cefbee",
+   "rebuild/m1/approved-2026-09-18/app/app.css": "bf4924e74fc4edc5cebf7fba6519613d9eec7f44397db990396fe402c124edc2",
+   "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": "a573d5d70231140e584e9cf0c69ff764b115d23fc779028cb3bf34176349b878",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": "c4bb05a2c2d9cf7ab9d6717e905aee809defe8056f6ad1b88c4702a2d4620ecb",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-coach.png": "c40a1f0e8a67a9618849cc90f3d3cc14226eea0157136aa15d714765881a27f0",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-today.png": "e5417552426859f2e2f5514aa160f33d69dfb049cdd3951a08a164a90236de31",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-workout.png": "925e0fd1dc3c9aae6591aacd5d4464731c1bc0bdbff85661460920c9cfde30cc",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-coach.png": "0c9b741a7174042f8f04dd338c50933c4137f784d06fb2be275e4b5f17c5c425",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-today.png": "32f52cfd814e23e2bc688861dba4c028dea3d277ba9f33f46037aab5ad101813",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-workout.png": "7cd837db28d1403628599d495b6f49757cdbb44f985bd0a36e77b4b0dd83bcf3",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/states/INDEX.json": "fbfa03366de62a1ef936f6a900dd79f4134299c7caae4f2639160e908eaccf43",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/states/linux/ENV.txt": "f388bb6d58d2d4501380e76335f611a5ebe664f8650b89df07e953d778b7197a",
+   "rebuild/m1/approved-2026-09-18/quality/common.py": "8ee065776c4fd912ea41455312e5c9497d8a8e0e15efaaef44da53d42a956326",
+   "rebuild/m1/approved-2026-09-18/quality/gate.py": "f86e7d911a401141e5c22e98aaf7cc67bbc734625c3655603ac567698569d248",
+   "rebuild/m1/approved-2026-09-18/quality/statesheet.py": "bf794ff9ecd7269dc1029960f3664d12c3fe37a2b7596a1b9a4665dc5c552332",
+   "rebuild/m1/approved-2026-09-18/quality/teeth.py": "75f308fa8fa0e3ac9a7cc796a8ef323701f7c5d3c008095ea0ccadd19e49eaaf"
+  },
+  "filesTouchedNote": "the working tree sha256 of every file this round changed. The 418 thumbnails under quality/baseline/states/win32/ moved with git mv and not one byte of them changed; the 418 under quality/baseline/states/linux/ are new; both are covered by stateRecords.manifestSha256 above",
+  "notCarriedAsPatches": "93bb947, 03f7aea and d32ea51 move or write binary files only. The patch folder carries a RECIPE for each instead: the exact command and the resulting tree hash",
+  "owed": "the lane lead re-runs \"python quality/statesheet.py --accept\" and \"python quality/gate.py --accept\" on the owner's PC after this round lands. That run rewrites the shared records with LF bytes, adds the env object to INDEX.json, and writes quality/baseline/states/win32/ENV.txt and quality/baseline/win32/. The committed INDEX.json carries no env until then, by design: an accept run from Linux would rewrite the shared records from the wrong machine"
+ }
 }
