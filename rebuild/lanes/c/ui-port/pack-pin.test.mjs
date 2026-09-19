@@ -225,6 +225,14 @@ function judge(packRoot, literalLines, readFile) {
   for (const rel of sortByBytes([...observed.keys()])) {
     if (!listed.has(rel)) refusals.push("PACK-PIN ADDED " + rel);
   }
+  /* R3's DISPUTE, UPHELD BY THE PM AND RECORDED AS A DECISION RATHER THAN AN OVERSIGHT.
+     The byte sorts on these two output lists have NO row and will not get one. Killing
+     either deterministically needs a fixture in which the walk's insertion order provably
+     differs from byte order, and insertion order is readdir order, which neither operating
+     system guarantees: such a row is a flake generator on a PC six lanes share. Neither
+     sort can produce a false green or a wrong name - both lines are printed either way and
+     only their order moves - and the comparator itself is proven by the row "the comparator
+     is byte-wise" below. The ADDED list's sort above DOES have a row. */
   for (const rel of sortByBytes([...irregular])) refusals.push("PACK-PIN NOT-A-REGULAR-FILE " + rel);
   for (const rel of sortByBytes([...unreadable])) refusals.push("PACK-PIN UNREADABLE " + rel);
   return refusals;

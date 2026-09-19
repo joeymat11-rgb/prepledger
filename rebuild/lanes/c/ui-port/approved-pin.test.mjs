@@ -43,7 +43,12 @@
    refusals come back in design.APPROVED's OWN ORDER, which is identical on both operating
    systems and is the order design.cjs's own asserts speak in (approved[0], approved[1]).
    The two places this cell sorts - the literal map's key order, and the ORPHAN lines -
-   both sort by path BYTES, and a row proves each.
+   both sort by path BYTES, and ONE row proves each BY MEASUREMENT (R3 BLOCKING-1): the row
+   "R3 B1: the ORPHAN lines come out in path BYTE order" and the row "the literal map, once
+   filled, is held in path byte order", each built over two paths whose UTF-16 code-unit
+   order and UTF-8 byte order DISAGREE. Before R3 that sentence was true of the code and
+   proven by nothing: every fixture path here is ASCII, the one alphabet where the two
+   orders agree, so replacing byteCompare with the default sort killed no row at all.
 
    ONE RESIDUAL, STATED SO IT IS A DECISION (R1 N8). A design.APPROVED that names the SAME
    file twice is green in the engine: the second visit asks the literal the same question
@@ -409,10 +414,35 @@ test("design.APPROVED is readable at run time and is a list of forward-slashed p
   assert.deepEqual([...names], [...new Set(names)], "design.APPROVED names a file twice");
 });
 
+/* R3 BLOCKING-1, the de-vacuuming half. LITERAL is EMPTY on this branch, so this check
+   compared [] with [] and its loop did not run: the row asserted nothing today, and once
+   the integrator filled the map it would still have passed under a code-unit comparator,
+   because the real paths are ASCII too. The check is lifted into a function so the row can
+   run it over a FIXTURE literal as well as over the real one, and over one whose two
+   orders DISAGREE, which is where a code-unit comparator is caught. */
+function checkKeyOrder(literal) {
+  const keys = Object.keys(literal);
+  assert.deepEqual(keys, [...keys].sort(byteCompare), "the literal map is not in path byte order");
+  for (const k of keys) assert.match(literal[k], /^[0-9a-f]{64}$/);
+  return keys;
+}
+
 test("the literal map, once filled, is held in path byte order", () => {
-  const keys = Object.keys(LITERAL);
-  assert.deepEqual(keys, [...keys].sort(byteCompare));
-  for (const k of keys) assert.match(LITERAL[k], /^[0-9a-f]{64}$/);
+  assert.deepEqual(checkKeyOrder(LITERAL), Object.keys(LITERAL));
+  /* Built from code points, so the two characters are TEXT in this file and not the
+     invisible things they name. U+E000 is one UTF-16 code unit and three UTF-8 bytes
+     starting 0xEE; U+10000 is a surrogate pair starting 0xD800 and four UTF-8 bytes
+     starting 0xF0. UTF-16 puts the surrogate FIRST; the bytes put it SECOND. */
+  const lo = "rebuild/m1/x/" + String.fromCharCode(0xe000) + ".html";
+  const hi = "rebuild/m1/x/" + String.fromCodePoint(0x10000) + ".html";
+  assert.deepEqual([hi, lo].sort(), [hi, lo], "this row proves nothing unless the orders differ");
+  assert.deepEqual([hi, lo].sort(byteCompare), [lo, hi]);
+  assert.deepEqual(checkKeyOrder(Object.freeze({ [lo]: "a".repeat(64), [hi]: "b".repeat(64) })),
+    [lo, hi]);
+  /* A literal held in CODE-UNIT order is REFUSED, which is the assertion an empty map
+     cannot make and the one a code-unit comparator cannot survive. */
+  assert.throws(() => checkKeyOrder(Object.freeze({ [hi]: "b".repeat(64), [lo]: "a".repeat(64) })),
+    /path byte order/);
 });
 
 /* ============================ R1 FIX ROUND ============================
@@ -594,6 +624,36 @@ test("R2 Q2: the OPTIONAL reader is a fixture affordance, and the REAL ROW passe
   const realCall = "approvedPin(" + "REPO_ROOT, namesOf(design), LITERAL);";
   assert.deepEqual(src.match(/approvedPin\(REPO_ROOT.*/g), [realCall],
     "the real row must call the engine over the real repository root with NO reader");
+});
+
+/* ============================ R3 FIX ROUND ============================
+   R3 BLOCKING-1, measured by the reviewer on BOTH operating systems: this cell said each of
+   its two sorts was proven by a row, and neither was. Sorting ORPHAN by the default string
+   sort, or replacing byteCompare itself, killed ZERO rows, because every fixture path in
+   this file is ASCII, the one alphabet where the two orders agree. The fix is TWO rows and
+   NO engine line: this one for the ORPHAN output, and the de-vacuumed literal-order row
+   above.
+
+   IT CANNOT FLAKE AND IT CANNOT BE PLATFORM DEPENDENT. The ORPHAN loop walks the literal's
+   OWN KEYS, which this row owns outright, so the row builds two strings and one frozen
+   object: the two odd paths never reach a file system call, and the only file it touches is
+   the ordinary ASCII reference the fixture wrote. */
+test("R3 B1: the ORPHAN lines come out in path BYTE order, not the default sort's order", () => {
+  withRefs((root, files, literal) => {
+    void files;
+    void literal;
+    const lo = "rebuild/m1/x/" + String.fromCharCode(0xe000) + ".html";
+    const hi = "rebuild/m1/x/" + String.fromCodePoint(0x10000) + ".html";
+    assert.deepEqual([hi, lo].sort(), [hi, lo], "this row proves nothing unless the orders differ");
+    assert.deepEqual([hi, lo].sort(byteCompare), [lo, hi]);
+    const lit = Object.freeze({ [hi]: "c".repeat(64), [lo]: "d".repeat(64) });
+    assert.deepEqual(Object.keys(lit), [hi, lo], "the map must be built in the OTHER order");
+    assert.deepEqual(approvedPin(root, [REF_A], lit), [
+      "APPROVED-PIN UNLISTED " + REF_A,
+      "APPROVED-PIN ORPHAN " + lo,
+      "APPROVED-PIN ORPHAN " + hi,
+    ]);
+  });
 });
 
 /* THE REAL ROW. The SAME engine the fixture rows run, over the real repository root, the
