@@ -85,6 +85,88 @@ test("the bundle carries the real engine and the real client and nothing forbidd
   assert.throws(() => build.assertBundleInputs(result.inputs.map((p) => ({ path: p })).concat([{ path: "node_modules/left-pad/index.js" }])), /unapproved dependency/);
 });
 
+/* H18 (M2-S9-UI-PINS). rebuild/lanes/b/S9-RELEASE-SPEC.md A.4 law 2, B.8 row 2,
+   E fact 16, and the CONDITION on the second path of the closed list A.6.
+
+   THE HOLE, MEASURED BEFORE THIS CELL WAS WRITTEN. build.mjs's REQUIRED_INPUTS
+   (build.mjs:98-:201) holds 48 path literals: 26 under rebuild/m3/w7-preview/today/,
+   3 rebuild/engine/, 3 rebuild/client/, 1 rebuild/coach/, 8 rebuild/m4/ and 7 other
+   rebuild/m3/. Six of the 22 that are not under today/ are named by literal at :59-:60
+   above, and :72-:73 count the engine at 15 and the client at 12. NOTHING in this file,
+   and nothing anywhere under rebuild/m3/w7-preview/{today,import,measure}/test/,
+   asserted a single one of the 26. The cells IMPORT those modules directly
+   (view.test.mjs:17, copy.test.mjs:36, gym.test.mjs:32, checkin.test.mjs:18), which
+   proves the module exists and behaves; it does not prove the BUILD still refuses a
+   bundle that lost it. MEASURED ON THE PC: with
+   rebuild/m3/w7-preview/today/reading-host.mjs deleted from REQUIRED_INPUTS, all 24
+   cells in the three test directories under rebuild/m3/w7-preview/ report 728 tests,
+   726 pass, 2 fail - the SAME two pre-existing failures as on the untouched tree, byte
+   for byte (they are the two the carried lanes leave until packages/S9.json declares
+   their posts, and neither reads REQUIRED_INPUTS). That is the
+   failure build.mjs:112-:115 was written against ("a page whose readings can vanish on a
+   hard kill"), and after S9 releases build.mjs a lane C branch can make it in the same
+   pull request as a stylesheet swap.
+
+   HOW IT ASKS, AND THE ONE PLACE IT DIFFERS FROM B.8's WORDING, said out loud rather
+   than quietly substituted. B.8 asks for the assertion to be made "against
+   build.REQUIRED_INPUTS". THAT CONSTANT IS NOT EXPORTED: build.mjs:98 is a module-local
+   const, and :44 exports APPROVED, readApproved, readFonts, assertDesignBinding and
+   composeStyles and nothing else. This ticket does not edit build.mjs, so the cell asks
+   the LAW instead of the list: for each of the 26 it hands assertBundleInputs the real
+   built bundle MINUS that one path and requires the refusal build.mjs:438 gives, naming
+   that path. An entry deleted from REQUIRED_INPUTS stops being refused and this cell
+   goes red naming it, which is what the hunk exists for. It is strictly stronger than
+   reading the constant, because it asserts the BUILD'S REFUSAL rather than the list's
+   contents - the same shape that keeps law 7 alive over an unsealed implementation
+   (copy.test.mjs:395 and :405). What it does NOT get without the export is COMPLETENESS:
+   this list cannot prove it is still the whole today/ half if somebody ADDS a 27th. That
+   is named for the PM rather than papered over. */
+const TODAY_REQUIRED_INPUTS = [
+  "rebuild/m3/w7-preview/today/today-model.cjs",
+  "rebuild/m3/w7-preview/today/today-app.cjs",
+  "rebuild/m3/w7-preview/today/gym-host.mjs",
+  "rebuild/m3/w7-preview/today/gym-model.mjs",
+  "rebuild/m3/w7-preview/today/gym-app.mjs",
+  "rebuild/m3/w7-preview/today/reading-host.mjs",
+  "rebuild/m3/w7-preview/today/checkin-host.mjs",
+  "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+  "rebuild/m3/w7-preview/today/checkin-model.mjs",
+  "rebuild/m3/w7-preview/today/checkin-app.mjs",
+  "rebuild/m3/w7-preview/today/setup-host.mjs",
+  "rebuild/m3/w7-preview/today/setup-commands.mjs",
+  "rebuild/m3/w7-preview/today/setup-model.mjs",
+  "rebuild/m3/w7-preview/today/setup-app.mjs",
+  "rebuild/m3/w7-preview/today/split-kinds.mjs",
+  "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+  "rebuild/m3/w7-preview/today/starter-week.mjs",
+  "rebuild/m3/w7-preview/today/problem-report.cjs",
+  "rebuild/m3/w7-preview/today/food-commands.cjs",
+  "rebuild/m3/w7-preview/today/food-model.cjs",
+  "rebuild/m3/w7-preview/today/food-host.mjs",
+  "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
+  "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
+  "rebuild/m3/w7-preview/today/sleep-commands.cjs",
+  "rebuild/m3/w7-preview/today/sleep-model.cjs",
+  "rebuild/m3/w7-preview/today/sleep-host.mjs",
+];
+
+test("H18 - the build still refuses a bundle that lost any of the 26 today/ required inputs", () => {
+  assert.equal(TODAY_REQUIRED_INPUTS.length, 26,
+    "the literal list is not the 26 today/ entries of REQUIRED_INPUTS that A.4 measured");
+  assert.equal(new Set(TODAY_REQUIRED_INPUTS).size, 26, "the literal list repeats a path");
+  /* the green control first, so the 26 rows below fail for the reason they name rather
+     than because assertBundleInputs refuses everything it is handed. */
+  assert.doesNotThrow(() => build.assertBundleInputs(result.inputs.map((p) => ({ path: p }))));
+  for (const required of TODAY_REQUIRED_INPUTS) {
+    assert(result.inputs.includes(required),
+      required + " is not in the built bundle at all: result.inputs lost it");
+    const without = result.inputs.filter((p) => p !== required).map((p) => ({ path: p }));
+    assert.throws(() => build.assertBundleInputs(without),
+      new RegExp("BUNDLE-INPUTS FAIL: missing required input " + required.replace(/\./g, "\\.")),
+      required + " left build.mjs's REQUIRED_INPUTS: the build no longer refuses a bundle without it");
+  }
+});
+
 /* THE OTHER HALF OF THE SAME LAW, run here so this package's own test file
    carries it: the two names admitted above are reachable ONLY through the
    Import route's entry module, and the graph the page walks to paint Today
