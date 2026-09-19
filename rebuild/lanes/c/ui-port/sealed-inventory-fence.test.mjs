@@ -26,11 +26,17 @@
    chain rather than a cost. The only condition that COSTS anything is (4): the branch
    must put its id into IDS in b-package.cjs, a SEALED byte, which the same CI run refuses
    at fidelity() :2011 and at the runner pin :2012-:2013.
-   AND THE HONEST SENTENCE THE REVIEWER ASKED FOR (R2 N4): once the five conditions hold,
-   the skip returns before the sealed-path loop, so A VERIFIED RESEAL CHILD IS FENCED BY
-   THE SEAL AND BY fidelity(), AND BY THIS CELL NOT AT ALL. The one thing this cell still
-   holds against such a child is the artifact-tamper check, which R2 N4 moved ABOVE the
-   claim so that a child rewriting its PARENT's sealed artifact cannot stand aside.
+   AND THE HONEST SENTENCE THE REVIEWER ASKED FOR (R2 N4, corrected by R3 BLOCKING-2):
+   once the five conditions hold, the skip returns before the sealed-path loop, so A
+   VERIFIED RESEAL CHILD IS FENCED BY THE SEAL AND BY fidelity(), AND BY THIS CELL NOT AT
+   ALL. The one thing this cell still holds against such a child is the artifact-tamper
+   check, which R2 N4 moved ABOVE the claim so that a child rewriting its PARENT's sealed
+   artifact cannot stand aside - and it holds it now WHEREVER THE BRANCH WAS CUT, because
+   the check asks THE DIFF and not the merge base's bytes (rows (21) and (22): until R3
+   measured them, a child cut one reseal earlier stood aside anyway). What remains is the
+   limit stated the other way round, and it is the whole of it: a branch whose own diff
+   never touches the artifact is never accused of tampering with it, and a byte-equal copy
+   of the chain's bytes is a touch and not a tamper.
 
    WHAT THIS CELL IS NOT (R2 N1). It is not a check that lane C touched nothing that
    matters. It asks whether a touched path is IN the sealed inventory, and
@@ -201,24 +207,30 @@ function fence(root, chainRef) {
      of its own product map (D.2 says so). "Delete the artifact, then do as you like" is
      row (6) with the other hand, and row (6c) measures it.
 
-     AND IT IS ASKED ONLY OF A BRANCH THAT CARRIED THE ARTIFACT TO BEGIN WITH, which is
-     why the check sits below the diff and not above it (author finding F9, measured: it
-     turned row (8g) red the moment N4's move put a branch through it). A branch cut
-     BEFORE the chain sealed the artifact the fence is now reading does not carry that
-     path at all, and the null limb read that absence as a deletion: from the day S9 seals,
-     EVERY lane branch cut before it would have been accused of tampering with a file it
-     has never seen. The question the check must ask is whether THIS BRANCH MOVED IT, so
-     the comparison is asked only where the merge base already held the chain's own bytes.
+     AND IT ASKS EXACTLY ONE QUESTION: DID THIS BRANCH MOVE THE ARTIFACT. That is why the
+     check sits below the diff and not above it (author finding F9, narrowed to this by
+     R3 BLOCKING-2). A branch cut BEFORE the chain sealed the artifact the fence is now
+     reading does not carry that path at all, and the null limb alone read that absence as
+     a deletion: from the day S9 seals, EVERY lane branch cut before it would have been
+     accused of tampering with a file it has never seen. F9's first answer asked instead
+     whether the MERGE BASE already held the chain's CURRENT bytes, and that is a DIFFERENT
+     question - it is false for every branch cut before the chain last moved that artifact,
+     so inside that window the tamper check was simply OFF. R3 built the window and
+     measured three branches inside it: a verified child widening a NEWLY sealed artifact
+     (row (21)) and a verified child widening a RE-sealed one (row (22)) both SKIPPED,
+     which is what R2 N4 ruled out, and an ordinary branch FORGING the chain's newest
+     artifact with released = every path (row (23)) PASSED with no refusal at all.
+     The limb is now the DIFF itself, which is the question the sentence above asks: a path
+     the branch's own merge-base diff never touched is never accused (F9 stays closed, row
+     (19) and row (23)'s second half), a DELETION is a touch because a D record is a touch
+     (row (6c)), and a cherry-picked byte-equal copy is a touch that is not a tamper.
      This costs the fence nothing it was relying on: the inventory is read out of Git at
      the chain ref whatever the worktree says, so a widened worktree copy changes no
      verdict here - the refusal is the DIAGNOSTIC that names the tamper, and R1
      BLOCKING-2's guarantee lives in the read, not in this comparison. Row (19). */
-  const baseArtifact = (() => {
-    try { return git(root, ["show", base + ":" + artifactPath]); } catch { return null; }
-  })();
-  const carriedAtBase = baseArtifact !== null && baseArtifact.equals(chainBytes);
   const worktree = fsBytes(path.join(root, ...artifactPath.split("/")));
-  const tampered = carriedAtBase && (worktree === null || !worktree.equals(chainBytes));
+  const tampered = touched.some((t) => t.path === artifactPath)
+    && (worktree === null || !worktree.equals(chainBytes));
   const refusals = [];
   if (tampered) refusals.push("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + artifactPath);
 
