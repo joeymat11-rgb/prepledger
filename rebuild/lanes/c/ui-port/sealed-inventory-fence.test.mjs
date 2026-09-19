@@ -1499,6 +1499,138 @@ test("Astra R4 (28) - a whitespace-only inventory edit FAILS by name", () => {
   assert.deepEqual(r.refusals, ["FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART], names(r));
 });
 
+/* ====== R6-Z2 AND R6-Z3, ONE ROW WITH TWO ASSERTS, ADDED AT INTEGRATION ==============
+   DECISIONS:591, carried from B-R6 section 6. Review R6 built two substitutions of the
+   sealed inventory that the 44 rows above did not cover: a SAME-LENGTH edit, and a
+   ZERO-BYTE file. Both are non-equivalent mutants of the tamper comparison and both left
+   all 44 existing rows green on BOTH systems, which is exactly what "the existing rows do
+   not cover them" means. The brief (section 9 item 4) orders ONE row with TWO asserts.
+
+   WHY EACH ONE IS ITS OWN ATTACK. The same-length edit is the one a length or size check
+   would miss, and `worktree.equals(chainBytes)` is a BYTE comparison precisely so that it
+   does not: the fixture below changes "M2-S8-FIXTURE" to "M2-S8-FIXTURF", one byte, the
+   file's length unchanged, the JSON still valid and still an object, so nothing above the
+   tamper check refuses it. The zero-byte file is the other end of the same range: it is
+   the shape a truncating write or an interrupted checkout leaves behind, it is not JSON
+   at all, and the point of the row is that the branch is still named as having MOVED the
+   inventory rather than being read as having supplied an empty one.
+
+   THE REFUSAL IS NAMED IN FULL in both halves, never matched by prefix. */
+test("R6-Z2/Z3 (29) - a SAME-LENGTH inventory edit and a ZERO-BYTE inventory each FAIL by name", () => {
+  /* Z2, the same-length edit. */
+  const z2 = chain({ product: [APP, CSS] });
+  const originalZ2 = git(z2, ["show", "HEAD:" + FIX_ART]);
+  const editedZ2 = Buffer.from(originalZ2.toString("utf8").replace("M2-S8-FIXTURE", "M2-S8-FIXTURF"), "utf8");
+  assert.equal(editedZ2.length, originalZ2.length, "the Z2 fixture is not a same-length edit");
+  assert.equal(editedZ2.equals(originalZ2), false, "the Z2 fixture changed no byte");
+  assert.equal(typeof JSON.parse(editedZ2.toString("utf8")), "object", "the Z2 fixture stopped being a JSON object");
+  branch(z2, { edits: { [FIX_ART]: editedZ2 } });
+  const rZ2 = fence(z2, CHAIN_REF);
+  assert.equal(rZ2.status, "fail", "a same-length inventory edit was excused: " + names(rZ2));
+  assert.deepEqual(rZ2.refusals, ["FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART], names(rZ2));
+
+  /* Z3, the zero-byte file. */
+  const z3 = chain({ product: [APP, CSS] });
+  const originalZ3 = git(z3, ["show", "HEAD:" + FIX_ART]);
+  assert.notEqual(originalZ3.length, 0, "the Z3 fixture started empty, so it proves nothing");
+  branch(z3, { edits: { [FIX_ART]: Buffer.alloc(0) } });
+  const rZ3 = fence(z3, CHAIN_REF);
+  assert.equal(rZ3.status, "fail", "a zero-byte inventory was excused: " + names(rZ3));
+  assert.deepEqual(rZ3.refusals, ["FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART], names(rZ3));
+});
+
+/* ====== THE WORKFLOW ROWS THIS CELL IS THE HOME FOR, AND WHY THEY ARE HERE ============
+   P-S9-3 (DECISIONS:627) gives the passphrase step and the local-import step the same
+   `if:` line the fence and the pack carry, EACH WITH A CONDITION-READING ROW. P-S9-5 of
+   the same ruling RETIRES the whole-workflow equality of
+   rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs:29 and RE-HOMES its two
+   invariants - both operating systems retained, and no step forgiven by an `|| true` -
+   as rows of a CI-executed cell.
+
+   WHY THIS CELL AND NOT ANOTHER, CHOSEN BY MEASUREMENT AND NOT BY TASTE. The home had to
+   satisfy three things at once: a CI step really runs it on BOTH systems, it is not
+   `pinned-unchanged`, and it reads the workflow from the WORKING TREE. Measured at this
+   head: on any branch that is not on the chain tip the standing step at rebuild.yml:150
+   is refused SEAL-BASE-IS-NOT-THE-CHAIN-TIP and GitHub SKIPS every later step that
+   carries no condition, so the only steps that REALLY run are the ones carrying
+   `if: ${{ !cancelled() }}` - the fence's, the pack's, and (from this round) the
+   passphrase and local-import steps. Of those four cells, local-import.test.mjs is role
+   `pinned-unchanged` by E fact 22 and is therefore excluded by the second rule and by the
+   brief, which says its row lives elsewhere; the pack cell owns its own condition row by
+   the brief's section 9 item 3 and its subject is the design pack; the three passphrase
+   cells' subject is key material. THIS cell is the only one of the four that ALREADY
+   reads .github/workflows/rebuild.yml as text out of the working tree (row (18)), is
+   role `new`, and is already being edited in this round, so the four rows below cost one
+   file's bytes rather than two. Its own step's condition is row (18) and is unchanged.
+
+   EVERY ROW BELOW READS THE WORKING TREE, FINDS ITS STEP BY EXACT PATH AND NEVER GLOBS,
+   which is row (18)'s method and not a new one. */
+const YML_LINES = () => fs.readFileSync(path.join(REPO, ".github", "workflows", "rebuild.yml"), "utf8").split(/\r?\n/);
+function conditionOfStepRunning(file) {
+  const yml = YML_LINES();
+  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(file));
+  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + file + " at all");
+  assert.equal(/[*?]/.test(yml[runAt]), false, "the step globs instead of naming its files: " + yml[runAt].trim());
+  let nameAt = runAt;
+  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
+  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), file + "'s run: line sits in no named step");
+  const block = yml.slice(nameAt, runAt + 1);
+  return { block, cond: block.find((l) => /^\s*if:/.test(l)) };
+}
+function assertNotCancelled(file) {
+  const { block, cond } = conditionOfStepRunning(file);
+  assert.notEqual(cond, undefined,
+    file + "'s step carries no `if:` at all, so GitHub skips it after the standing step at "
+    + ":150 fails, which is every branch this package is built on (P-S9-3, DECISIONS:627): "
+    + block.map((l) => l.trim()).join(" / "));
+  assert.match(cond, /!\s*cancelled\(\)/,
+    "the condition is not `not cancelled`, so the step either never runs after a failure "
+    + "or runs after a cancellation: " + cond.trim());
+}
+
+/* P-S9-3, first half. The passphrase lane's step is the guard that keeps every sealed
+   bundle valid (E fact 21, that lane's review R2), so it is worth less than nothing if it
+   is skipped on the branches that carry the bundle it guards. */
+test("P-S9-3 (30) - the passphrase lane's step carries the not-cancelled condition", () => {
+  assertNotCancelled("rebuild/lanes/c/passphrase-normalize/helper.test.mjs");
+});
+
+/* P-S9-3, second half, AND THIS IS THE ROW THE BRIEF MEANS BY "its row lives elsewhere".
+   rebuild/m3/w6/test/local-import.test.mjs takes role `pinned-unchanged` with equal
+   measured pre and post (E fact 22), which is honest exactly because S9 does not write
+   it - so the row that reads its step cannot live inside it. Measured before this round:
+   rebuild.yml named that file ZERO times, and the cell that pins the phone's five seal
+   constants against the PC's ran in no workflow at all. */
+test("P-S9-3 (31) - the local-import step exists and carries the not-cancelled condition", () => {
+  assertNotCancelled("rebuild/m3/w6/test/local-import.test.mjs");
+});
+
+/* P-S9-5, THE TWO RE-HOMED INVARIANTS. ci-second-gate.test.cjs:29 asserted three things
+   at once: that .github/workflows/rebuild.yml equals a 2026 baseline object with exactly
+   one command substituted, that both OS jobs are retained, and that no step was forgiven
+   by an `|| true`. The FIRST goes red on any workflow hunk at all and S9 adds several, it
+   has no CI home of its own (rebuild.yml names ci-second-gate ZERO times, measured), and
+   the file is in NEITHER S8 map (measured against
+   rebuild/m4/spec/acceptance-s8-real-shape.json: not in product, not in executionPins),
+   so retiring it is not a sealed act. DECISIONS:627 P-S9-5 retires THAT equality only and
+   re-homes these two. NOTHING IS QUIETLY DROPPED: the two assertions below are the same
+   two claims, in a cell a CI step really runs on both systems.
+
+   They are stated over the file as a whole, not over one step, because that is what they
+   are about: the matrix that makes every step run twice, and the absence of the one shell
+   idiom that turns a red step green. */
+test("P-S9-5 (32) - rebuild.yml retains both OS jobs and forgives no step with an or-true", () => {
+  const yml = YML_LINES();
+  const matrix = yml.filter((l) => /^\s*os:\s*\[/.test(l));
+  assert.equal(matrix.length, 1, "rebuild.yml has " + matrix.length + " os: matrix lines, expected exactly one");
+  assert.match(matrix[0], /ubuntu-latest/, "the ubuntu job is gone from the matrix: " + matrix[0].trim());
+  assert.match(matrix[0], /windows-latest/, "the windows job is gone from the matrix: " + matrix[0].trim());
+  const forgiven = yml.map((l, i) => [i + 1, l]).filter(([, l]) => l.includes("|| true"));
+  assert.deepEqual(forgiven, [],
+    "a step is forgiven by an or-true, so its failure cannot fail the job: "
+    + forgiven.map(([n, l]) => n + ": " + l.trim()).join(" / "));
+});
+
 /* ================================================================ THE REAL ROW ========
    Everything above runs against a repository this file built. This one runs against the
    repository this file is IN, and it is the whole point of the cell: on every push to a
