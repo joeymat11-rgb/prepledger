@@ -956,6 +956,15 @@ test("R2 N2 (14) - a reseal child that DELETES b-package.cjs is refused BY NAME 
   const r = fence(root, CHAIN_REF);
   unverified(r, 4);
   assert.ok(r.refusals[0].includes(RUNNER), names(r));
+  /* AND IT MUST SAY WHICH WORLD IT IS IN. Reported as measured: with only the two
+     assertions above, removing the branchRunner === null limb SURVIVED my sweep
+     (mutation R3-B). idsOf(null) returns [] by way of exec coercing null to "null", so
+     the second limb refuses at (4) anyway - with the wrong sentence, "S9 is not in IDS
+     in this branch's own b-package.cjs", about a file the branch deleted. The verdict was
+     never wrong; the one line this cell exists to print was. That is N2's whole complaint
+     one level down, so the answer is this assertion and not a weaker claim. */
+  assert.ok(r.refusals[0].includes("DELETING it"),
+    "the refusal reads as an IDS miss rather than as the deletion it is: " + names(r));
 });
 
 /* R2 N2, third of three. JSON.parse at :134 threw on an artifact that is not JSON. The
