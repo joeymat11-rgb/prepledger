@@ -3460,9 +3460,12 @@ that the appended retired rows deliberately share names with the file lifts that
 ambiguous. Recording costs one member; re-deriving costs an argument nobody can close.
 
 **JOURNEY J1, RED AT v5's COMPOSITION AND GREEN UNDER THIS ONE, AND I WATCHED IT WORK.** The
-mechanism above is not proposed from reading: `spike/ew2r6-proto-model-b.cjs` is a scratch COPY of
-`plan-edit-model.cjs` carrying exactly that hunk, and `spike/ew2r6-p1b-j1-noHostBytes.mjs` drives
-it over a generation built by the REAL host through the REAL durable client.
+mechanism above is not proposed from reading. **`spike/ew2r6-proto-r30.cjs` carries the hunk as two
+textual replacements, reads `plan-edit-model.cjs` AT RUN TIME, applies them and compiles the result
+under the product's own filename. It keeps NO copy of a sealed module in the repository and it
+REFUSES to run if either anchor has moved**, which is what makes it safe to commit beside this
+file. `spike/ew2r6-p1b-j1-noHostBytes.mjs` drives it over a generation built by the REAL host
+through the REAL durable client.
 
 | J1 step | v5's composition (the product as it stands) | under `E-R30` |
 |---|---|---|
@@ -3477,8 +3480,9 @@ it over a generation built by the REAL host through the REAL durable client.
 
 **THE SEALED COST OF THIS HUNK, COUNTED RATHER THAN ESTIMATED**, by `diff -u` of the product file
 against the prototype, excluding the three import lines a scratch copy must relocate:
-**23 added lines (9 of them comment), 2 removed, 0 changed elsewhere, all in
-`rebuild/m4/workout/plan-edit-model.cjs`**; plus **1 changed line in
+**24 added lines (9 of them comment), 2 removed, 0 changed elsewhere, all in
+`rebuild/m4/workout/plan-edit-model.cjs`, a NET of 22 lines, which the loader cell asserts at run
+time (`ew2r6-proto-r30.cjs` prints `HUNK_NET_LINES` and it is 22)**; plus **1 changed line in
 `rebuild/m3/w6/local/source-admission.mjs:781`** for the recorded member. `plan-edit-host.mjs`,
 `local-source-basis.mjs`, `today-bindings.mjs` and `rebuild/coach/**`: **zero bytes.**
 
@@ -3910,7 +3914,7 @@ editing one of them knows he has left the spec.
 | file | hunk | owner ruling | measured size |
 |---|---|---|---|
 | `rebuild/m4/workout/plan-edit-model.cjs` | **H1** the added export `foldPlanEditsAt` over the existing `inspect()`/`result()` pair plus the factoring of `inspect()` | 4.3 ruling 2, `E-R4` | unchanged from v4 |
-| `rebuild/m4/workout/plan-edit-model.cjs` | **H2, NEW: the ONE named translation boundary** | **`E-R30`** | **23 added (9 comment), 2 removed, 0 changed elsewhere. COUNTED by `diff -u` against the prototype, not estimated** |
+| `rebuild/m4/workout/plan-edit-model.cjs` | **H2, NEW: the ONE named translation boundary** | **`E-R30`** | **24 added (9 comment), 2 removed, net 22, 0 changed elsewhere. COUNTED by `diff -u` against the prototype and asserted at run time by the loader cell, not estimated** |
 | `rebuild/m4/workout/plan-edit-model.cjs` | **H3, NEW: the `reserved_ids` member on `result()`'s return** | **`E-R32`** | about 4 added lines, 1 changed (the `freeze({...})` list) |
 | `rebuild/m3/w6/local/source-admission.mjs` | **A** the per-capture fold call and the three re-pointed capture checks | 4.3 ruling 1, `E-R16 PRIME` | unchanged from v5 |
 | `rebuild/m3/w6/local/source-admission.mjs` | **B** the `plan` class replay family, **plus `E-R33`'s proof and status treatment over the retained set, including the ZERO-capture case** | 4.3 ruling 0, **`E-R33`** | v4's estimate plus the zero-capture proof |
