@@ -163,3 +163,23 @@ test('C-PN-18 - the passphrase box still turns the phone keyboard\'s prose '
     assert.equal(input.spellcheck, false);
   } finally { kit.close(); }
 });
+
+
+test('C-PN-29 - wrong and malformed phrases have equal refusal text and records while each input retains its draft', async () => {
+  const wrong = [...SIX.slice(0, 5), 'zzzzzz'].join(' ');
+  const malformed = ' - - ';
+  let one = null, two = null;
+  try {
+    one = await unlockWith('retained-draft', wrong);
+    two = await unlockWith('retained-draft', malformed);
+    assert.equal(one.step, 'words');
+    assert.equal(two.step, 'words');
+    const content = run => (run.kit.doc.getElementById('phone') || run.kit.doc.body).textContent;
+    assert.equal(content(one), content(two), 'refusal textContent depends on the typed draft');
+    assert.ok(content(one).includes(COPY.authFailed));
+    assert.deepEqual(one.refusal, { code: 'BUNDLE_AUTH_FAILED', detail: null });
+    assert.deepEqual(two.refusal, one.refusal, 'refusal record depends on the typed draft');
+    assert.equal(one.kit.doc.getElementById('import-passphrase').value, wrong);
+    assert.equal(two.kit.doc.getElementById('import-passphrase').value, malformed);
+  } finally { if (one) one.kit.close(); if (two) two.kit.close(); }
+});

@@ -254,3 +254,11 @@ test('C-PN-20 - invisible FORMAT characters are not separators: they refuse, '
   assert.deepEqual(WORDS.filter(w => /\p{Cf}/u.test(w)), [],
     'a wordlist word carries a format character');
 });
+
+
+test('C-PN-28 - the helper pins ECMAScript whitespace, including U+FEFF and excluding U+0085', () => {
+  assert.equal(normalisePassphrase(SIX.join('\ufeff')), PC_FORM);
+  assert.equal(normalisePassphrase(SIX.join('\u0085')), SIX.join('\u0085'));
+  assert.equal(Passphrase.PASSPHRASE_SEPARATORS.test('\ufeff'), true);
+  assert.equal(Passphrase.PASSPHRASE_SEPARATORS.test('\u0085'), false);
+});

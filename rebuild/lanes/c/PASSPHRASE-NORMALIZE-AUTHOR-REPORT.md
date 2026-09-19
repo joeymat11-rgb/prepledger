@@ -18,7 +18,7 @@ file answered BUNDLE_AUTH_FAILED. His father imports next.
 The fix is one pure helper, stated once and read by both decoders:
 
     rebuild/m3/setup/port/passphrase.cjs  normalisePassphrase(typed)
-      NFKD  ->  lower case  ->  every run of [whitespace, hyphen-minus,
+      NFKD  ->  lower case  ->  every run of [ECMAScript \s (U+FEFF in, U+0085 out), hyphen-minus,
       U+2010 to U+2015, U+2212, underscore, comma, full stop] becomes ONE
       hyphen-minus  ->  leading and trailing runs dropped  ->  NFKD again
 
@@ -136,8 +136,7 @@ onto the single form the PC already wrote, and it does not merge two draws.
 C-PN-7 proves it on the list itself rather than asserting it here:
 
 * 2048 words, **0 duplicates**.
-* **0 words contain a separator character** (the whole class: Unicode
-  whitespace, `-`, U+2010 to U+2015, U+2212, `_`, `,`, `.`). So the canonical
+* **0 words contain a separator character** (the whole class: ECMAScript \s, including U+FEFF and excluding U+0085, `-`, U+2010 to U+2015, U+2212, `_`, `,`, `.`). So the canonical
   hyphen-joined string re-splits into the same six words it was built from, and
   two different draws cannot spell one string.
 * Every word is already its own canonical form, and **no two words fold
@@ -367,13 +366,12 @@ that actually matters - a refusal does not depend on what was typed. The word
 scan is kept, over the values only, and the six probe words are fixed nonsense
 the port can never draw.
 
-*C-PN-16, route.test.mjs.* The scan of the page prose is gone. Two claims
-replace it. First, the screen does not ECHO what was typed: the six typed words
-are fixed nonsense (`zzzzzz`, `qqqqqq` and so on), so scanning the rendered page
-for them is a fact and not a lottery. Second, and this is the reviewer's own
-second remedy, which he called strictly stronger: the ENTIRE rendered text of
-the refused screen is compared character for character with the same screen
-refused after six completely different wrong words.
+*C-PN-16, route.test.mjs.* The refusal prose does not echo the fixed nonsense
+probe words; its textContent and refusal record are equal for the two wrong
+phrases tested. C-PN-29 also measures equal refusal textContent and refusal
+records for a wrong phrase and a malformed phrase. Each editable input keeps
+exactly what the athlete typed, inherited from the base. The input values
+differ, so these cells do not claim that the entire refused screen is identical.
 
 **Do the replacements still have teeth? Measured by mutation, not argued.** A
 cell that stopped raising a false alarm is worthless if it also stopped raising

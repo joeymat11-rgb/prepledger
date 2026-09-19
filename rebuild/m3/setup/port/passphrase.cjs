@@ -19,7 +19,7 @@
                        below runs over one spelling.
      lower case      - the wordlist is lower case and iOS capitalises the first
                        word of a field whether or not it is asked to.
-     separator runs  - any run of Unicode whitespace (space, tab, newline,
+     separator runs  - any run of ECMAScript \s (U+FEFF in, U+0085 out;
                        U+00A0, U+3000 ...), hyphen-minus, U+2010 to U+2015,
                        U+2212, underscore, comma or full stop becomes ONE
                        hyphen-minus. That is every character a keyboard, a
@@ -43,7 +43,7 @@
    copy of it run in Node and inside the phone bundle. */
 
 /* Written as escapes on purpose: no U+2013 or U+2014 as a character in this
-   tree. The class is, in order: Unicode whitespace, U+2010 HYPHEN through
+   tree. The class is, in order: ECMAScript \s (U+FEFF in, U+0085 out), U+2010 HYPHEN through
    U+2015 HORIZONTAL BAR, U+2212 MINUS SIGN, underscore, comma, full stop and
    hyphen-minus (last, so it is a literal and not a range). */
 const PASSPHRASE_SEPARATORS = /[\s\u2010-\u2015\u2212_,.-]+/u;
