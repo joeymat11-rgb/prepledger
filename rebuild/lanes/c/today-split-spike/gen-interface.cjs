@@ -59,14 +59,22 @@ const HOOKS = IFACE.callbacks || "hooks";
    would be a capability handed out as a getter, so the list is closed and stated. */
 const PURE_READ_CALLS = new Set(["session", "checkinSummary", "firstRun", "sleepNightDate"]);
 
-/* DECLARED RENAMES: a name whose interface spelling is not its source spelling. Each row
-   names the spec section that rules it. The list is EMPTY of anything the spec does not
-   rule; an unruled rename would be a silent behaviour change inside a pure move. */
-const RENAME = {
-  /* spec B.6: the released half stops reading a composed SENTENCE and starts reading an
-     OUTCOME. This is the one rename in the file and it is the whole of B.6's call site. */
-  sleepErrorText: { to: "sleepOutcome", why: "spec B.6: the writer returns an outcome and the view owns every word" },
-};
+/* DECLARED RENAMES: a name whose interface spelling is not its source spelling.
+   THE LIST IS EMPTY, AND THAT IS A DECISION THIS ROUND MAKES AND REPORTS.
+   Spec B.6 renames `sleepErrorText` to `sleepOutcome` and turns the eleven sentences
+   recordSleep composes into a closed set of outcome shapes mapped in the view. Every one
+   of those is a STATEMENT REWRITE INSIDE A MOVED REGION, and D.1 declares only the
+   `sleepErrorText = <expression>` family (W5) - not recordIntake's two food sentences in
+   TA-S23, and not the view-side mapper. DECISIONS:584 rules that any statement rewrite
+   outside the pre-ruled families STOPS that region. Renaming here would therefore have
+   stopped TA-S23, TA-S29 and TA-S30 - the food writer, the sleep read retry and the sleep
+   writer, the three regions this whole part exists to move.
+   So B.6 IS NOT BUILT in part 2. The twelve copy constants cross as INJECTED READ-ONLY
+   VALUES named in the factory signature, every copy byte stays exactly where it is, the
+   sealed module holds ZERO string literals (which is what S-R13's law actually asserts),
+   and the outcome discipline is reported as its own ticket. A rename with no build behind
+   it would have been a silent behaviour change inside a pure move. */
+const RENAME = {};
 
 /* ---- THE HAND-DESIGNED ROWS (spec B.5's RELEASED ASSIGNS A SEALED BINDING class) -------
  * Every one of these is a released line that DECIDES WHAT IS STORED or what is re-read, and
@@ -82,6 +90,21 @@ const RENAME = {
  * which is B.5's PASS condition and H.2 STOP 11, measured by census.cjs and not by reading.
  */
 const HAND = [
+  { why: "NOT a B.5 assignment row, and the only hand row that is not. `sleepDraft` is a " +
+      "RELEASED const object this file mutates in place and never reassigns, and the seal " +
+      "reads it once, in recordSleep. It cannot be a factory argument: the factory is " +
+      "composed at TA-S01, above this declaration, because the boot statement at :422 must " +
+      "run where it runs today (spec B.3's boot order), so at composition time this binding " +
+      "is still in its temporal dead zone. It is handed over HERE, immediately after it " +
+      "exists and long before any gesture, and the seal holds the SAME object, so every " +
+      "keystroke the view records is the keystroke the writer reads.",
+    from: ['  const sleepDraft = { mode: "times", bed: "", wake: "", awake_min: "", hours: "",',
+           '    awakeOpen: false, from_checkin_op_id: "" };'],
+    to: ['  const sleepDraft = { mode: "times", bed: "", wake: "", awake_min: "", hours: "",',
+         '    awakeOpen: false, from_checkin_op_id: "" };',
+         "  /* THE SPLIT (spec B.5). The sealed writer reads this object once, in recordSleep;",
+         "     it is the SAME object, not a copy, so it sees every keystroke. */",
+         "  hooks.bindSleepDraft(sleepDraft);"] },
   { why: "B.5 TA-M01: the released route stops owning the measure screen cache. The seal mints it and keeps it; the released half keeps its own `Screen` import and its token guard.",
     from: ["    if (!measureScreen) measureScreen = Screen.createMeasureScreen(measureDeps());"],
     to: ["    hooks.mintMeasureScreen(Screen);"] },
@@ -201,6 +224,27 @@ for (const r of replaceRegions) {
   for (const n of (r.declaresSealed || [])) SEALED_BY_REPLACE.set(n, r);
 }
 
+/* ---- THE SEALED -> RELEASED DIRECTION: the PAINT HANDLE -------------------------------
+ * The other direction of the cut. Spec B.4 bounds it to a frozen paint handle, and D.1
+ * declares the rewrites that make it work IN ADVANCE, as the W families, so they are
+ * pre-ruled statement and call-target rewrites and not discoveries (DECISIONS:584).
+ * Everything the handle does NOT carry crosses as an INJECTED read-only value named in the
+ * factory signature, where a moved byte keeps its own spelling and nothing is rewritten at
+ * all - the road part 1 took for today-readings.cjs's seven injections.
+ *
+ * Each name below produces a `substitutions` row per affected LINE, with the whole line as
+ * `from` and the rewritten line as `to`, scoped to the region it sits in. A whole line is
+ * the safest `from` cut.cjs's plain string split can take: a bare identifier as `from`
+ * would also hit `sleepCheckInScreen`, a property key and the inside of a literal.
+ */
+const PAINT = {
+  render:          { id: "W1", to: "painter.repaint",         kind: "call-target rewrite", stop: false },
+  clearSleepDraft: { id: "W3", to: "painter.clearDraft",      kind: "call-target rewrite", stop: false },
+  paintTodayEntry: { id: "W9", to: "painter.paintTodayEntry", kind: "call-target rewrite", stop: false },
+  mountToken:      { id: "W2", to: "painter.token()",         kind: "binding read to a call", stop: true },
+  screen:          { id: "W4", to: "painter.screenNow()",     kind: "binding read to a call", stop: true },
+};
+
 /* ---- the scope analysis, over the UNCUT source --------------------------------------- */
 const module_ = FILE.endsWith(".mjs");
 const ast = acorn.parse(src, { ecmaVersion: 2022, sourceType: module_ ? "module" : "script",
@@ -239,6 +283,31 @@ for (const scope of manager.scopes) {
   }
 }
 refs.sort((a, b) => a.start - b.start);
+
+/* The SEALED half's references to RELEASED bindings, by the same scope analysis and the
+   same position-exact rewriting. A reference INSIDE a move region whose declaration is
+   OUTSIDE every move region is a sealed-to-released crossing; only the five names the
+   paint handle carries are rewritten, and every other one is injected. */
+const sealedRefs = [];
+for (const scope of manager.scopes) {
+  for (const v of scope.variables) {
+    if (!v.defs.length) continue;
+    const declLine = v.defs[0].name.loc.start.line;
+    if (movedAt(declLine)) continue;              /* declared in the seal: not a crossing */
+    if (GLOBALS.has(v.name)) continue;
+    if (!PAINT[v.name]) continue;                 /* injected, not rewritten */
+    for (const ref of v.references) {
+      const id = ref.identifier;
+      const line = id.loc.start.line;
+      const inMove = movedAt(line);
+      if (!inMove) continue;                      /* stays released */
+      const kind = ref.isWriteOnly() ? "write" : ref.isReadWrite() ? "update"
+        : callees.has(id.start) ? "call" : "read";
+      sealedRefs.push({ name: v.name, kind, line, start: id.start, end: id.end, region: inMove.id });
+    }
+  }
+}
+sealedRefs.sort((a, b) => a.start - b.start);
 
 /* ---- the three rules ------------------------------------------------------------------ */
 const STOPS = [];
@@ -377,6 +446,53 @@ for (const r of rows) {
   out.push(row);
 }
 
+/* ---- the substitution rows for the paint handle ---------------------------------------- */
+const subByLine = new Map();
+for (const r of sealedRefs) {
+  if (!subByLine.has(r.line)) subByLine.set(r.line, []);
+  subByLine.get(r.line).push(r);
+}
+const subs = [];
+const subStops = [];
+for (const [line, rs] of [...subByLine.entries()].sort((a, b) => a[0] - b[0])) {
+  const base = lineOffset[line - 1];
+  let text = lines[line - 1];
+  const ids = [];
+  for (const r of rs.slice().sort((a, b) => b.start - a.start)) {
+    if (r.kind === "write" || r.kind === "update") {
+      /* The SEAL assigning a RELEASED binding is the other direction of B.5's hardest
+         class and nothing in D.1 declares a rewrite for it. Reported, and left alone. */
+      subStops.push({ line, name: r.name, region: r.region, text: lines[line - 1] });
+      ids.length = 0;
+      break;
+    }
+    const a = r.start - base, b = r.end - base;
+    if (text.slice(a, b) !== r.name) {
+      fail(FILE + ":" + line + ": the scope analysis puts " + JSON.stringify(r.name) +
+        " at columns " + a + "-" + b + " and the line holds " + JSON.stringify(text.slice(a, b)) + ".");
+    }
+    text = text.slice(0, a) + PAINT[r.name].to + text.slice(b);
+    ids.push(PAINT[r.name].id);
+  }
+  if (!ids.length) continue;
+  const names = [...new Set(rs.map((r) => r.name))];
+  const fam = [...new Set(rs.map((r) => PAINT[r.name].id))].sort();
+  /* THE ID CARRIES NO LINE NUMBER. It is the W family plus a counter in SOURCE ORDER, so
+     the row's identity is the same at both named refs - and it has to be, because the
+     declared-text witness hashes [id, file, region, from, to, kind] and a witness taken at
+     one ref would otherwise refuse at the other, which is the same class of defect the
+     line-anchored hand table had. */
+  subs.push({ id: fam.join("+") + "#" + String(subs.length + 1).padStart(2, "0"),
+    file: FILE, region: rs[0].region,
+    from: lines[line - 1], to: text,
+    kind: [...new Set(rs.map((r) => PAINT[r.name].kind))].join(" + "),
+    why: "spec B.4 / D.1 " + fam.join(", ") + ": " + names.join(", ") + " crosses SEALED -> " +
+      "RELEASED and the frozen paint handle carries it. " +
+      (rs.some((r) => PAINT[r.name].stop)
+        ? "S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+        : "Call-target rewrite, ordinary.") });
+}
+
 /* EVERY STOP MUST BE COVERED BY A HAND ROW, or it is reported and the line is left alone.
    This is the check that keeps the two lists honest: a new assignment appearing in the
    source (a look ticket adding one) shows up here as an uncovered STOP rather than being
@@ -395,8 +511,11 @@ const report = {
   ambiguousAnchors: ambiguous,
   stopsCovered: covered.length,
   stopsUncovered: uncovered,
+  paintSubstitutions: subs.length,
+  paintReferences: sealedRefs.length,
+  paintSubstitutionStops: subStops,
 };
-if (JSONOUT) fs.writeFileSync(JSONOUT, JSON.stringify({ report, rows: ALL }, null, 1) + "\n");
+if (JSONOUT) fs.writeFileSync(JSONOUT, JSON.stringify({ report, rows: ALL, subs }, null, 1) + "\n");
 
 console.log("GEN-INTERFACE over " + path.join(ROOT, TODAY, FILE));
 console.log("  references to sealed bindings from released lines: " + refs.length +
@@ -411,6 +530,20 @@ for (const h of handRows) {
   for (const l of h.replacement) console.log("        + " + l);
 }
 console.log("  ambiguous one-line anchors (carried by occurrence index): " + ambiguous);
+console.log("  PAINT-HANDLE substitution rows (spec B.4, D.1's W families): " + subs.length +
+  " lines, " + sealedRefs.length + " references");
+{
+  const byId = {};
+  for (const r of sealedRefs) {
+    const k = PAINT[r.name].id + " " + r.name;
+    byId[k] = (byId[k] || 0) + 1;
+  }
+  for (const [k, n] of Object.entries(byId).sort()) console.log("    " + k.padEnd(24) + " " + n + " reference(s)");
+}
+if (subStops.length) {
+  console.log("  SEALED ASSIGNS A RELEASED BINDING, no declared rewrite, REPORTED: " + subStops.length);
+  for (const x of subStops) console.log("    :" + x.line + "  " + x.region + "  " + x.name);
+}
 if (uncovered.length) {
   console.log("  S-R17 (g) STOPS WITH NO HAND ROW, left alone and REPORTED: " + uncovered.length);
   for (const s of uncovered) {
@@ -424,6 +557,9 @@ if (uncovered.length) {
 if (WRITE) {
   const existing = (table.files[FILE] || []).filter((r) => !/^TA-[IW]/.test(r.id));
   table.files[FILE] = existing.concat(ALL);
+  /* The paint-handle substitutions replace this generator's previous ones for this file
+     and leave every other file's rows alone. */
+  table.substitutions = (table.substitutions || []).filter((r) => r.file !== FILE).concat(subs);
   fs.writeFileSync(REGIONS, JSON.stringify(table, null, 1) + "\n");
   console.log("  " + ALL.length + " rows written into " + REGIONS +
     " (any previous TA-I and TA-W rows replaced). Re-take the witness: " +

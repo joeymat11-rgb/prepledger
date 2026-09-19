@@ -450,7 +450,12 @@ for (const [file, regions] of Object.entries(table.files)) {
   const pushLine = (t, src_) => { sealedLines.push(t); sealedMap.push(src_ || null); };
   if (P) {
     for (const l of P.head) pushLine(l);
-    pushLine(P.open);
+    /* `open` is a STRING for a factory whose signature fits on one line and an ARRAY for
+       one that does not. today-lanes.cjs's takes eighteen injected names and four
+       parameters, so it is four lines plus the three declarations that are not moved
+       bytes; keeping them as separate entries keeps the line map one to one, which is
+       what census.cjs reports a crossing's SOURCE line through. */
+    if (Array.isArray(P.open)) { for (const l of P.open) pushLine(l); } else { pushLine(P.open); }
   } else {
     for (const l of W.head.split("\n").slice(0, -1)) pushLine(l);
     pushLine("");

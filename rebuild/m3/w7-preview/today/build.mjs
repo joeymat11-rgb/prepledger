@@ -106,9 +106,13 @@ const REQUIRED_INPUTS = Object.freeze([
   /* THE SPLIT, part 1 (spec F.1, DECISIONS:550 S-R10, :562 S-R18). The weigh-in writer
      and the four sentences it refuses in are their own sealed module now. A build that
      lost it would be a page whose weigh-in form records nothing and says nothing, which
-     is exactly what this list exists to make impossible. The third entry, today-lanes.cjs,
-     arrives with part 2 and takes this array from 50 to 51. */
+     is exactly what this list exists to make impossible. THE THIRD ENTRY ARRIVED WITH
+     PART 2 (spec B.1 to B.8, :562 S-R18) and takes this array from 50 to 51: every
+     function that can put a row of the food, sleep or check-in log on disk lives in
+     today-lanes.cjs, and a build that lost it would be a page whose food and sleep forms
+     record nothing at all. */
   "rebuild/m3/w7-preview/today/today-readings.cjs",
+  "rebuild/m3/w7-preview/today/today-lanes.cjs",
   "rebuild/m3/w7-preview/today/today-app.cjs",
   /* A2 — the gym card really is the ACCEPTED W6 host composition over the accepted
      capture layer, in the page. A build that lost any of these would be a page

@@ -68,6 +68,366 @@
    "to": "await painter.repaint();",
    "kind": "call-target rewrite (ordinary under S-R17 (g))",
    "why": "B.9 / D.1 W7: the sealed open repaints the card through the paint handle."
+  },
+  {
+   "id": "W1+W4#01",
+   "file": "today-app.cjs",
+   "region": "TA-S13",
+   "from": "        if (screen === \"today\" || screen === \"sleep\") render(screen, false);",
+   "to": "        if (painter.screenNow() === \"today\" || painter.screenNow() === \"sleep\") painter.repaint(painter.screenNow(), false);",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1+W4#02",
+   "file": "today-app.cjs",
+   "region": "TA-S13",
+   "from": "        if (screen === \"sleep\") render(screen, false);",
+   "to": "        if (painter.screenNow() === \"sleep\") painter.repaint(painter.screenNow(), false);",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1+W4#03",
+   "file": "today-app.cjs",
+   "region": "TA-S18",
+   "from": "        if (screen === \"today\" || screen === \"nutrition\") render(screen, false);",
+   "to": "        if (painter.screenNow() === \"today\" || painter.screenNow() === \"nutrition\") painter.repaint(painter.screenNow(), false);",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1+W4#04",
+   "file": "today-app.cjs",
+   "region": "TA-S18",
+   "from": "        if (screen === \"nutrition\") render(screen, false);",
+   "to": "        if (painter.screenNow() === \"nutrition\") painter.repaint(painter.screenNow(), false);",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1+W4#05",
+   "file": "today-app.cjs",
+   "region": "TA-S19",
+   "from": "      repaint: () => { if (screen === \"measure\") render(\"measure\", false); },",
+   "to": "      repaint: () => { if (painter.screenNow() === \"measure\") painter.repaint(\"measure\", false); },",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1#06",
+   "file": "today-app.cjs",
+   "region": "TA-S19",
+   "from": "      back: () => render(\"today\", true),",
+   "to": "      back: () => painter.repaint(\"today\", true),",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W1+W4#07",
+   "file": "today-app.cjs",
+   "region": "TA-S20",
+   "from": "      repaint: () => { if (screen === \"import\") render(\"import\", false); },",
+   "to": "      repaint: () => { if (painter.screenNow() === \"import\") painter.repaint(\"import\", false); },",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1#08",
+   "file": "today-app.cjs",
+   "region": "TA-S20",
+   "from": "      back: () => render(\"today\", true),",
+   "to": "      back: () => painter.repaint(\"today\", true),",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W9#09",
+   "file": "today-app.cjs",
+   "region": "TA-S22",
+   "from": "    const answered = () => { adoptionSettled = true; paintTodayEntry(); };",
+   "to": "    const answered = () => { adoptionSettled = true; painter.paintTodayEntry(); };",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W9: paintTodayEntry crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W1#10",
+   "file": "today-app.cjs",
+   "region": "TA-S23",
+   "from": "        render(\"nutrition\", false);",
+   "to": "        painter.repaint(\"nutrition\", false);",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W1#11",
+   "file": "today-app.cjs",
+   "region": "TA-S23",
+   "from": "      render(\"nutrition\", false);",
+   "to": "      painter.repaint(\"nutrition\", false);",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W1#12",
+   "file": "today-app.cjs",
+   "region": "TA-S24",
+   "from": "    render(\"nutrition\", false);",
+   "to": "    painter.repaint(\"nutrition\", false);",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W2#13",
+   "file": "today-app.cjs",
+   "region": "TA-S27",
+   "from": "    const token = mountToken;",
+   "to": "    const token = painter.token();",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1+W2+W4#14",
+   "file": "today-app.cjs",
+   "region": "TA-S27",
+   "from": "      if (token === mountToken && screen === \"sleep\" && sleepNightDate() === date) render(\"sleep\", false);",
+   "to": "      if (token === painter.token() && painter.screenNow() === \"sleep\" && sleepNightDate() === date) painter.repaint(\"sleep\", false);",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W2, W4: mountToken, screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W2#15",
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "from": "    const token = mountToken;",
+   "to": "    const token = painter.token();",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1+W2#16",
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "from": "    catch (_) { if (token === mountToken) render(\"sleep\", false); return; }",
+   "to": "    catch (_) { if (token === painter.token()) painter.repaint(\"sleep\", false); return; }",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W2: mountToken, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W3#17",
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "from": "      if (present) { clearSleepDraft(); sleepCorrecting = false; sleepRollover = null; }",
+   "to": "      if (present) { painter.clearDraft(); sleepCorrecting = false; sleepRollover = null; }",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W3: clearSleepDraft crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W1+W2#18",
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "from": "      if (token === mountToken) render(\"sleep\", false);",
+   "to": "      if (token === painter.token()) painter.repaint(\"sleep\", false);",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W2: mountToken, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W3#19",
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "from": "    clearSleepDraft();",
+   "to": "    painter.clearDraft();",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W3: clearSleepDraft crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W2#20",
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "from": "    if (token !== mountToken) return;      // the record is settled; the screen is his",
+   "to": "    if (token !== painter.token()) return;      // the record is settled; the screen is his",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1#21",
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "from": "    render(\"sleep\", false);",
+   "to": "    painter.repaint(\"sleep\", false);",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W1#22",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "    const say = (sentence) => { sleepErrorText = sentence; render(\"sleep\", false); };",
+   "to": "    const say = (sentence) => { sleepErrorText = sentence; painter.repaint(\"sleep\", false); };",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W2#23",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "    const token = mountToken;",
+   "to": "    const token = painter.token();",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1#24",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "    render(\"sleep\", false);",
+   "to": "    painter.repaint(\"sleep\", false);",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W1+W2#25",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "      if (token === mountToken) render(\"sleep\", false);",
+   "to": "      if (token === painter.token()) painter.repaint(\"sleep\", false);",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W2: mountToken, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W3#26",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "        clearSleepDraft();",
+   "to": "        painter.clearDraft();",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W3: clearSleepDraft crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W2#27",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "        if (token === mountToken) say(\"\");",
+   "to": "        if (token === painter.token()) say(\"\");",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W2#28",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "        if (token === mountToken) say(SLEEP_UNCERTAIN);",
+   "to": "        if (token === painter.token()) say(SLEEP_UNCERTAIN);",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W2#29",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "      if (token !== mountToken) return;",
+   "to": "      if (token !== painter.token()) return;",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W2#30",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "      if (token !== mountToken) return;",
+   "to": "      if (token !== painter.token()) return;",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W3#31",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "      clearSleepDraft();",
+   "to": "      painter.clearDraft();",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W3: clearSleepDraft crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W2#32",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "    if (token !== mountToken) return;",
+   "to": "    if (token !== painter.token()) return;",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1#33",
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "from": "    render(\"sleep\", false);",
+   "to": "    painter.repaint(\"sleep\", false);",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W2#34",
+   "file": "today-app.cjs",
+   "region": "TA-S32",
+   "from": "    const token = mountToken;",
+   "to": "    const token = painter.token();",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W2#35",
+   "file": "today-app.cjs",
+   "region": "TA-S32",
+   "from": "        if (token !== mountToken) return null;",
+   "to": "        if (token !== painter.token()) return null;",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1#36",
+   "file": "today-app.cjs",
+   "region": "TA-S32",
+   "from": "          onBack: () => render(origin, true), onChanged: () => checkin.refresh() });",
+   "to": "          onBack: () => painter.repaint(origin, true), onChanged: () => checkin.refresh() });",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W2#37",
+   "file": "today-app.cjs",
+   "region": "TA-S32",
+   "from": "      if (token !== mountToken) return null;",
+   "to": "      if (token !== painter.token()) return null;",
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1#38",
+   "file": "today-app.cjs",
+   "region": "TA-S32",
+   "from": "        onBack: () => render(origin, true),",
+   "to": "        onBack: () => painter.repaint(origin, true),",
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "id": "W1+W4#39",
+   "file": "today-app.cjs",
+   "region": "TA-S34",
+   "from": "          next.setOnRefresh(() => { if (screen === \"today\") render(\"today\", false); });",
+   "to": "          next.setOnRefresh(() => { if (painter.screenNow() === \"today\") painter.repaint(\"today\", false); });",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "id": "W1+W4#40",
+   "file": "today-app.cjs",
+   "region": "TA-S34",
+   "from": "        if (screen === \"today\") render(\"today\", false);",
+   "to": "        if (painter.screenNow() === \"today\") painter.repaint(\"today\", false);",
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
   }
  ],
  "wiring": {
@@ -1066,6 +1426,31 @@
     "id": "TA-W01",
     "kind": "replace",
     "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). NOT a B.5 assignment row, and the only hand row that is not. `sleepDraft` is a RELEASED const object this file mutates in place and never reassigns, and the seal reads it once, in recordSleep. It cannot be a factory argument: the factory is composed at TA-S01, above this declaration, because the boot statement at :422 must run where it runs today (spec B.3's boot order), so at composition time this binding is still in its temporal dead zone. It is handed over HERE, immediately after it exists and long before any gesture, and the seal holds the SAME object, so every keystroke the view records is the keystroke the writer reads. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     476,
+     477
+    ],
+    "first": {
+     "text": "  const sleepDraft = { mode: \"times\", bed: \"\", wake: \"\", awake_min: \"\", hours: \"\",",
+     "nth": 1
+    },
+    "last": {
+     "text": "    awakeOpen: false, from_checkin_op_id: \"\" };",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "  const sleepDraft = { mode: \"times\", bed: \"\", wake: \"\", awake_min: \"\", hours: \"\",",
+     "    awakeOpen: false, from_checkin_op_id: \"\" };",
+     "  /* THE SPLIT (spec B.5). The sealed writer reads this object once, in recordSleep;",
+     "     it is the SAME object, not a copy, so it sees every keystroke. */",
+     "  hooks.bindSleepDraft(sleepDraft);"
+    ]
+   },
+   {
+    "id": "TA-W02",
+    "kind": "replace",
+    "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M01: the released route stops owning the measure screen cache. The seal mints it and keeps it; the released half keeps its own `Screen` import and its token guard. Each is an S-R17 (g) statement rewrite, declared here in advance.",
     "tipLines": [
      652,
@@ -1084,7 +1469,7 @@
     ]
    },
    {
-    "id": "TA-W02",
+    "id": "TA-W03",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M02: the import screen twin. R2 BLOCKING-8's finding is that :718-:719 go with it, and they do: gen-interface rewrites both through the facade. Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -1105,7 +1490,7 @@
     ]
    },
    {
-    "id": "TA-W03",
+    "id": "TA-W04",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the retry click handed the in-flight promise to a released binding. The seal mints and assigns it; the released half keeps the listener and the guard. Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -1126,7 +1511,7 @@
     ]
    },
    {
-    "id": "TA-W04",
+    "id": "TA-W05",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the food save click. The DOM arguments are UNCHANGED, because changing recordIntake's signature would rewrite a moved region and that is an undeclared statement rewrite (S-R17 (g)); B.3's `no entry takes a DOM node` is therefore NOT met by this part and is reported as a STOP. Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -1147,7 +1532,7 @@
     ]
    },
    {
-    "id": "TA-W05",
+    "id": "TA-W06",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M07 / R2 BLOCKING-1: the seal mints the read handle and assigns it; the `.then` body below is PURE PAINT, stays released byte-identical, and is handed to the hook as a closure. Only this one line changes. Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -1168,7 +1553,7 @@
     ]
    },
    {
-    "id": "TA-W06",
+    "id": "TA-W07",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M08 / SEAM 9a: eight assignments in one gesture. hooks.sleepNightChosen(rawDate) takes the RAW field value and the seal does all eight, including B.6's outcome reset. Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -1189,7 +1574,7 @@
     ]
    },
    {
-    "id": "TA-W07",
+    "id": "TA-W08",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M09 / SEAM 9b: four assignments, no argument at all. The night the seal keeps is the seal's own rollover value. Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -1210,7 +1595,7 @@
     ]
    },
    {
-    "id": "TA-W08",
+    "id": "TA-W09",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the sleep read retry, the twin of the food one. Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -1231,7 +1616,7 @@
     ]
    },
    {
-    "id": "TA-W09",
+    "id": "TA-W10",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: sleepCorrecting = true is a sealed flag. hooks.sleepCorrect(flag) takes it; the repaint stays released, which is where the router lives. Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -1252,7 +1637,7 @@
     ]
    },
    {
-    "id": "TA-W10",
+    "id": "TA-W11",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the cancel path, the same flag the other way. clearSleepDraft and render are RELEASED and stay released: the draft is the screen's own transient state (the file says so at :475). Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -1273,7 +1658,7 @@
     ]
    },
    {
-    "id": "TA-W11",
+    "id": "TA-W12",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the sleep save click, the one gesture that writes a night. Same DOM-argument qualification as the food save. Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -1294,7 +1679,7 @@
     ]
    },
    {
-    "id": "TA-W12",
+    "id": "TA-W13",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M10 / SEAM 10: the check-in read cache is cleared when the athlete leaves for the sleep screen. mountToken += 1 on the line above stays RELEASED (S-R15), because it is a paint concern and the file says so at :2289-:2294. Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -1315,7 +1700,7 @@
     ]
    },
    {
-    "id": "TA-W13",
+    "id": "TA-W14",
     "kind": "replace",
     "dest": null,
     "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M11 / B.3 consequence 3: the setup done chain assigns the sealed `ready`. The seal takes the adopting flag, mints the chain and assigns; the `return ready;` two lines below is rewritten through the facade by gen-interface. Each is an S-R17 (g) statement rewrite, declared here in advance.",
@@ -2365,7 +2750,7 @@
      "nthFrom": 1
     },
     "replacement": [
-     "    error.textContent = facade.sleepOutcome()"
+     "    error.textContent = facade.sleepErrorText()"
     ]
    },
    {
@@ -2386,7 +2771,7 @@
      "nthFrom": 1
     },
     "replacement": [
-     "      ? plainOrDrop(facade.sleepOutcome(), \"sleep-error\")"
+     "      ? plainOrDrop(facade.sleepErrorText(), \"sleep-error\")"
     ]
    },
    {
@@ -4621,6 +5006,24 @@
    },
    "TA-W01": {
     "s9": {
+     "sha256": "45541f99d22d61162496ffdd10a71cb98a6d5ec4081d029b3d475807eb9b275d",
+     "lines": 2,
+     "at": [
+      476,
+      477
+     ]
+    },
+    "tip": {
+     "sha256": "45541f99d22d61162496ffdd10a71cb98a6d5ec4081d029b3d475807eb9b275d",
+     "lines": 2,
+     "at": [
+      476,
+      477
+     ]
+    }
+   },
+   "TA-W02": {
+    "s9": {
      "sha256": "e64a81a0b0d80d1becc81f1628cc8a78cb8caea74c28ccb5b2d4d1c01bdd7d15",
      "lines": 1,
      "at": [
@@ -4637,7 +5040,7 @@
      ]
     }
    },
-   "TA-W02": {
+   "TA-W03": {
     "s9": {
      "sha256": "c24fde53f743c3be7653874d395fdfa69bc86e92c9fc6d089cca90b6a6b0303a",
      "lines": 1,
@@ -4655,7 +5058,7 @@
      ]
     }
    },
-   "TA-W03": {
+   "TA-W04": {
     "s9": {
      "sha256": "459b5258c8e3624cd609bbd8cadc04651b5efa84883adb05f2a370bc9ff054f3",
      "lines": 1,
@@ -4673,7 +5076,7 @@
      ]
     }
    },
-   "TA-W04": {
+   "TA-W05": {
     "s9": {
      "sha256": "96dccf2fb6b9deff3df74cc8e4655455ec4f81d6fb15e27ac703e8b03552d678",
      "lines": 1,
@@ -4691,7 +5094,7 @@
      ]
     }
    },
-   "TA-W05": {
+   "TA-W06": {
     "s9": {
      "sha256": "511307576511f00e3d6953c55f4fd170915cc547c9ed8fa6efa55393ecd2b8dc",
      "lines": 1,
@@ -4709,7 +5112,7 @@
      ]
     }
    },
-   "TA-W06": {
+   "TA-W07": {
     "s9": {
      "sha256": "e351cfef6ccc748b1949cfba3a7c347ba75ab2f788e5133eec6e3e616545b8fc",
      "lines": 4,
@@ -4727,7 +5130,7 @@
      ]
     }
    },
-   "TA-W07": {
+   "TA-W08": {
     "s9": {
      "sha256": "4b0d8c45e93e660da2c6f9702c463edc704b8962beed8735e55070b86f65d4bf",
      "lines": 3,
@@ -4745,7 +5148,7 @@
      ]
     }
    },
-   "TA-W08": {
+   "TA-W09": {
     "s9": {
      "sha256": "34cfee19547642995d180e71b9413508c5796157b578587c9dd5735a5beeb8e5",
      "lines": 1,
@@ -4763,7 +5166,7 @@
      ]
     }
    },
-   "TA-W09": {
+   "TA-W10": {
     "s9": {
      "sha256": "55a552ebf480d16cf6701872cce71f98cc6e0747921603580460ebce3fabc1ab",
      "lines": 1,
@@ -4781,7 +5184,7 @@
      ]
     }
    },
-   "TA-W10": {
+   "TA-W11": {
     "s9": {
      "sha256": "dceb770e22c7af5d09058028d12fcba2b2b70042eb996e50b87f1f68c6a1cd69",
      "lines": 1,
@@ -4799,7 +5202,7 @@
      ]
     }
    },
-   "TA-W11": {
+   "TA-W12": {
     "s9": {
      "sha256": "0a3115b484caad958124201a289082b036988037fa9aa31cd1be1085cc23751d",
      "lines": 1,
@@ -4817,7 +5220,7 @@
      ]
     }
    },
-   "TA-W12": {
+   "TA-W13": {
     "s9": {
      "sha256": "9029e514813629fdccdbeb647ccd3ec9545e6c14b3b4c6c76030e7eb481023a7",
      "lines": 1,
@@ -4832,24 +5235,6 @@
      "at": [
       2297,
       2297
-     ]
-    }
-   },
-   "TA-W13": {
-    "s9": {
-     "sha256": "dc88ec9fcde141a1706f0c427e1f0747e05539d2f6734bf775a2b81bb26c8b10",
-     "lines": 1,
-     "at": [
-      2334,
-      2334
-     ]
-    },
-    "tip": {
-     "sha256": "dc88ec9fcde141a1706f0c427e1f0747e05539d2f6734bf775a2b81bb26c8b10",
-     "lines": 1,
-     "at": [
-      2333,
-      2333
      ]
     }
    },
@@ -6526,6 +6911,24 @@
       2576
      ]
     }
+   },
+   "TA-W14": {
+    "s9": {
+     "sha256": "dc88ec9fcde141a1706f0c427e1f0747e05539d2f6734bf775a2b81bb26c8b10",
+     "lines": 1,
+     "at": [
+      2334,
+      2334
+     ]
+    },
+    "tip": {
+     "sha256": "dc88ec9fcde141a1706f0c427e1f0747e05539d2f6734bf775a2b81bb26c8b10",
+     "lines": 1,
+     "at": [
+      2333,
+      2333
+     ]
+    }
    }
   },
   "movedLines": {
@@ -6578,6 +6981,206 @@
      "sha256": "ec4369a9540178f2ea34ec44fa1ea32ed95d44fb14ef47a8251e467e302f74fe",
      "file": "gym-app.mjs",
      "region": "GA-S04"
+    },
+    "W1+W4#01": {
+     "sha256": "5859c4259038988ebf732f9bd1918aa18b1960efedc03981fad575d64b49c732",
+     "file": "today-app.cjs",
+     "region": "TA-S13"
+    },
+    "W1+W4#02": {
+     "sha256": "2bef4ceba8571efcb977829343bcda775e0e8b9223acdb172391c4760a4b6d4e",
+     "file": "today-app.cjs",
+     "region": "TA-S13"
+    },
+    "W1+W4#03": {
+     "sha256": "d45c4eb5185d1cc433168949adf69bd237da31de7ae4a4bdeaee72f9762961d9",
+     "file": "today-app.cjs",
+     "region": "TA-S18"
+    },
+    "W1+W4#04": {
+     "sha256": "bcf553482397c570568abe15d0bb00b2919a2323a6a7d880cf86b9efaea1bb6a",
+     "file": "today-app.cjs",
+     "region": "TA-S18"
+    },
+    "W1+W4#05": {
+     "sha256": "c5e5bf8760c77e2cef347512cfb4f0b17ac93b8e1d0d3d53f5a9e3a6cf4f5f82",
+     "file": "today-app.cjs",
+     "region": "TA-S19"
+    },
+    "W1#06": {
+     "sha256": "5ea1c6c437e553036c38ab8506d7b662161d314d27d6be55a5e6e5c904ef2cd4",
+     "file": "today-app.cjs",
+     "region": "TA-S19"
+    },
+    "W1+W4#07": {
+     "sha256": "94e423dbeaaa340b07e766874dc204fd2d3935950620488519296ee4753a6be9",
+     "file": "today-app.cjs",
+     "region": "TA-S20"
+    },
+    "W1#08": {
+     "sha256": "6a076832b0e57c106f867b563a4924893b4468b743bdccc92d16f289cfd780db",
+     "file": "today-app.cjs",
+     "region": "TA-S20"
+    },
+    "W9#09": {
+     "sha256": "d6a8243f86f8ea130363cf4aac462aff8bdfed5d55932acc0c5270aaeb390194",
+     "file": "today-app.cjs",
+     "region": "TA-S22"
+    },
+    "W1#10": {
+     "sha256": "4f2207f3fea0afeb01e1cbae70e188b8e194170ef5b3f85312bdb43b1a843af5",
+     "file": "today-app.cjs",
+     "region": "TA-S23"
+    },
+    "W1#11": {
+     "sha256": "f393c91cc1d85e37c4eed60c8d7a7d5161d03b7e4f37adb36d188ff9145014f7",
+     "file": "today-app.cjs",
+     "region": "TA-S23"
+    },
+    "W1#12": {
+     "sha256": "75f7af2ca732af6718566240d8b34463e028d1da0676dcdf4e7828fa7d0cb2be",
+     "file": "today-app.cjs",
+     "region": "TA-S24"
+    },
+    "W2#13": {
+     "sha256": "993777f3f283d1cc34ca581c107d7ad7189f60f748bf13e6642bc25c64ce324f",
+     "file": "today-app.cjs",
+     "region": "TA-S27"
+    },
+    "W1+W2+W4#14": {
+     "sha256": "547b2120eafd8fb734b00eed9de454ef56720d2921c3bcb90d7053f97a83f921",
+     "file": "today-app.cjs",
+     "region": "TA-S27"
+    },
+    "W2#15": {
+     "sha256": "6c41dca3eaa03648df2c34b420672b6cb8c7c17fa51c0e2f9768178e0458502b",
+     "file": "today-app.cjs",
+     "region": "TA-S29"
+    },
+    "W1+W2#16": {
+     "sha256": "12a2893f0f4c6081e70b17ae60bff93945b588848e99161390067d8ee24fc250",
+     "file": "today-app.cjs",
+     "region": "TA-S29"
+    },
+    "W3#17": {
+     "sha256": "21be3620af9942aad8ab34bdf6ed0bdb93689de2abac608ccfc688650f467d32",
+     "file": "today-app.cjs",
+     "region": "TA-S29"
+    },
+    "W1+W2#18": {
+     "sha256": "02af48d1dc4e6445641098b814554f5d9f4a2239f517da58abce632c6223aaf0",
+     "file": "today-app.cjs",
+     "region": "TA-S29"
+    },
+    "W3#19": {
+     "sha256": "b34d64529597117d1f5a3497a74354d5cee99064acfa30daa2f4dcd0fef04d13",
+     "file": "today-app.cjs",
+     "region": "TA-S29"
+    },
+    "W2#20": {
+     "sha256": "f70f10baf57ef796f4d399f8a1ae0ded99c238a2b633b1d5fcce279ce4c8ff60",
+     "file": "today-app.cjs",
+     "region": "TA-S29"
+    },
+    "W1#21": {
+     "sha256": "b15ffb87b1b6c374d26709580d3e4255e993dced3b9331150c93405b464b8cb3",
+     "file": "today-app.cjs",
+     "region": "TA-S29"
+    },
+    "W1#22": {
+     "sha256": "8e5d6dae2ce8a8d41867987259b4ba85e57ae81d3d7c331978185d2fb8522906",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W2#23": {
+     "sha256": "d0677c9d17bc82bf09ad2774a6b736e660c721e31091ac38ce70c5543d2a96c7",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W1#24": {
+     "sha256": "da53390d608fee554d550d5fa7f8f3d3d54a0c302c92b60f829a0b100479e1eb",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W1+W2#25": {
+     "sha256": "da679fb71e552679a2c28c78349fb5dd009a8993e38792e3a25b801a7194c58a",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W3#26": {
+     "sha256": "d9c2cf7266b80b2d37f3b9ab878f025620ce5a739c9cf38a7f5c4f5d774d3836",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W2#27": {
+     "sha256": "659392f3dc7541793ecbd7080ffe724713e0a3c34d72adfdbeddd231d42699d1",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W2#28": {
+     "sha256": "fcbee5f68d42ad2590122a21e8ff9be12de42e9c1c5c458dbd9f41620a4a0bec",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W2#29": {
+     "sha256": "af3722879496f4f3f5df675bd4eceb5b468a8185eba87fe44f00cf2214ed3ebd",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W2#30": {
+     "sha256": "35c65858df7493fc411aacb95d869d038692a6c08bbdda5aad6d294bd5301d64",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W3#31": {
+     "sha256": "f928632aabecde1ab5bfb5e4031cdd81106a125ec85d0a77ae3fd89b3702eac9",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W2#32": {
+     "sha256": "c67162ee9660f43bcbf58640837a4132c9db0083a664aa67fa40c9c7beba4c2e",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W1#33": {
+     "sha256": "1ba58cd6376e3a92010526f1ddbb8c2dbba4227e2387a829eb316010b2e718ca",
+     "file": "today-app.cjs",
+     "region": "TA-S30"
+    },
+    "W2#34": {
+     "sha256": "da589d49897d8c2455423be6e42588b1661fb9544ef2ffed75de176b22eb8a17",
+     "file": "today-app.cjs",
+     "region": "TA-S32"
+    },
+    "W2#35": {
+     "sha256": "88d76ead048f41137ea2fe070e8efa93fe8a4eb8f2ee2821402084fe30a23ea5",
+     "file": "today-app.cjs",
+     "region": "TA-S32"
+    },
+    "W1#36": {
+     "sha256": "f776038c9a93edff3148a089f6a24b9cb2ad82ce63f24318cda2141129479a33",
+     "file": "today-app.cjs",
+     "region": "TA-S32"
+    },
+    "W2#37": {
+     "sha256": "b1e558ff2e0677eaa7ea5a78b791bea565364589910f7007eb9280d8475713bc",
+     "file": "today-app.cjs",
+     "region": "TA-S32"
+    },
+    "W1#38": {
+     "sha256": "17d41d1de6fbf68a032a8cc8412048fa5788793fc1aec236fcd4295e96e62332",
+     "file": "today-app.cjs",
+     "region": "TA-S32"
+    },
+    "W1+W4#39": {
+     "sha256": "27dce1b3637911b956bfb40322d30931a495e38e291fa178c2b57c4bbed423c6",
+     "file": "today-app.cjs",
+     "region": "TA-S34"
+    },
+    "W1+W4#40": {
+     "sha256": "f26fe3eebb128d3095596ea65cb5f3550b2f1d7b83c49587717acec148f9e4ef",
+     "file": "today-app.cjs",
+     "region": "TA-S34"
     }
    },
    "replacements": {
@@ -6607,67 +7210,72 @@
      "lines": 1
     },
     "TA-W01": {
-     "sha256": "c2f94fcbc466d9ef023856e82422d1579d70cc44ba54fa189c646490bde7e9d2",
+     "sha256": "90c270faa7feb8fc652fa0abfb81979b583e02616e3bce6f4f60bffc074fa74e",
      "file": "today-app.cjs",
-     "lines": 1
+     "lines": 5
     },
     "TA-W02": {
-     "sha256": "8bf9cd61d290cbc4d4fa03d3547070cf0acfdb3cee81d7a51fd821cc82fc13fb",
+     "sha256": "fa67b42874a2255b1970aede0ee681b80a18df3ee110a6cfb0192dec1ed38ba9",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W03": {
-     "sha256": "1d62cc5fabe276cc3726e6833d4a3ab811140d42f090d893b50352002ba9dd95",
+     "sha256": "b98409f078af19efbe94e9dfcc4e1638af76c0759d666d18313e6ae57236616b",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W04": {
-     "sha256": "936e98330ba028fb2a40b9c8c684170b4c672ae10c8d356e4cfdc1df52c039ac",
+     "sha256": "2b35efeef7632abbeea5bddd597114688f2158c11c3f07e62f70c8644e23be74",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W05": {
-     "sha256": "b387aa96dce1c94d3ceefaa601004e9766d4d10e032bfc2f078fa3a339cc8cc9",
+     "sha256": "fb7634803f7ca1d9d616840c5d7b8f8ba05b0f1c152fcb6f730e7220d4d81e91",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W06": {
-     "sha256": "0373a067074b531d84b47ec719752365b56feb1f4846f5d64ec2417456550417",
+     "sha256": "a47f826e4a0765a0ddb198f7f5c5e75471829baf9eeca36e3ba77cb034059962",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W07": {
-     "sha256": "80eadc0c89e146f271ff08ce531e9242f8f3ae62a3b64399798cba2f4466132a",
+     "sha256": "152368c24eacb065a0c500b7627a25673698cf19581c233353c9a2cd04401b1b",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W08": {
-     "sha256": "4d739aad57761c521d05fc15c4c9e196cecf60e4db2fb364f0575dcce7c348ac",
+     "sha256": "94433d3992ced3450b1a879a531c34c1d57449398007a8319bd1f5654d37a8ec",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W09": {
-     "sha256": "0fef52b64dc2ac4eeadc7cc07327f534cbcff9128c2925c50aa44a2168fdfc81",
+     "sha256": "4c10812d871d621938f18aea1c5f891b1742be81b86c1c457270d15099feb0e1",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W10": {
-     "sha256": "bee74f071c5874b71d9c5be67c0fbd5a76e533a5e1fe2c51527229cc7ac04d59",
+     "sha256": "ba14f69d057c4eff1d2fc86dcc745c9f9392e353e8192b7591ecedf4a70e0258",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W11": {
-     "sha256": "c3e9ec6c617b89a6c5cf0c6df6f457a49d6435e03fbd1a23ca98f4c76d69bfe7",
+     "sha256": "42fa098d62af45bd00dabdd44ac887faa1fc0120e4587eba40f00e9611b80fef",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W12": {
-     "sha256": "734721ec5fea341201c982782120540a78ec3bf0b7d168c59347eb251aeff831",
+     "sha256": "a78fb0bde7277dce68b19c70e7421a5d70bf4efea1aca5d0a2ef45292bd7f3cc",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W13": {
-     "sha256": "4e8a8bb43e2f3b59e0e84708e9d388bbd848fc591544e654635619b1ff3c0f3a",
+     "sha256": "9ffe466be0dd3cac4c9fa489622920cfc23a70ce9554fb48d1f95a58a98efc4a",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W14": {
+     "sha256": "a55dabb2512b9f685d85b1918d924a130faa6f274d41c39ebe8a22f5caffb1e0",
      "file": "today-app.cjs",
      "lines": 1
     },
@@ -6912,12 +7520,12 @@
      "lines": 1
     },
     "TA-I049": {
-     "sha256": "cad15ddf0a2237b38ac9afe064c2cfb695de802c74c62d41f5b85b36abb4d62b",
+     "sha256": "b5f822ae93d3446c117746bc3176738d5051813122e4dff57f93ab816e781742",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I050": {
-     "sha256": "cc0ebfe4278734f9a7fed115c5d20244d5ea542d2d65a5abb34713c85c3fd66c",
+     "sha256": "c60c533b005f7977a4f5901b229f1cfefd8a07f53e684aa687c659a29cb24f77",
      "file": "today-app.cjs",
      "lines": 1
     },
@@ -7177,6 +7785,11 @@
      "sha256": "80e3e6609c5f75b0671e856f09d34a769a3aeb95b850c5c3f36ce6702b78a271",
      "headLines": 31,
      "closeLines": 22
+    },
+    "today-lanes.cjs": {
+     "sha256": "fe54c65c62ae1ad692d287d0fdf44588a1027f30b7866a2c3ed1ace04bf4240e",
+     "headLines": 35,
+     "closeLines": 112
     }
    },
    "composes": {
@@ -7189,13 +7802,18 @@
      "sha256": "df3372a11111e6e23fa3362a3afb9212ae1697b9a2014d31da5513e0cda45088",
      "afterLines": 3,
      "insertLines": 9
+    },
+    "today-app.cjs": {
+     "sha256": "25cbf320efc1bac79feeff8398b7269a53059127e986f74d41a890f2fe63d907",
+     "afterLines": 5,
+     "insertLines": 22
     }
    },
    "counts": {
-    "substitutions": 7,
-    "replacements": 117,
-    "products": 2,
-    "composes": 2
+    "substitutions": 47,
+    "replacements": 118,
+    "products": 3,
+    "composes": 3
    }
   }
  },
@@ -7312,6 +7930,174 @@
     "  });",
     "}"
    ]
+  },
+  "today-lanes.cjs": {
+   "why": "spec B.1 to B.8. Every line here is AUTHORED and is listed in the build report by file and physical line; everything between them is moved bytes.",
+   "head": [
+    "\"use strict\";",
+    "/* today-lanes.cjs - THE WRITERS OF THE TODAY PAGE, SEALED (spec B.1 to B.8;",
+    " * DECISIONS:550 S-R1 and S-R17, :562 S-R19 to S-R25, :574, :584).",
+    " *",
+    " * Every function on this page that can put a row of the athlete's FOOD, SLEEP or",
+    " * CHECK-IN log on disk lives in this file, together with the state it closes over. They",
+    " * were CUT OUT of today-app.cjs by rebuild/lanes/c/today-split-spike/cut.cjs, region by",
+    " * region, byte for byte: 34 move regions, 679 lines. Their bytes were compared against a",
+    " * sha256 recorded at TWO named refs BEFORE anything was written (S-R19), and the only",
+    " * substitutions are the forty declared rows of D.1's W1, W2, W3, W4 and W9 families,",
+    " * every one of them a paint-handle rewrite.",
+    " *",
+    " * THE ONLY AUTHORED LINES ARE THIS BANNER, THE THREE REQUIRES, THE FACTORY LINE BELOW,",
+    " * THE FOUR DECLARATIONS AFTER IT AND THE RETURN BLOCK AT THE END, and all of them are",
+    " * declared in regions.json's product block, not invented by the instrument.",
+    " *",
+    " * WHAT CROSSES BACK, and it is the whole interface: a FACADE of thirty-seven read-only",
+    " * getters, a callback table of twenty-eight, and nothing else. After the cut NO released",
+    " * line assigns a binding declared in here, which census.cjs prints as a class count of",
+    " * ZERO over this build's own output (spec B.5's acceptance test, H.2 STOP 11).",
+    " *",
+    " * WHAT IS NOT IN HERE, said plainly, because a reader will look for it.",
+    " *  - SPEC B.6's OUTCOME TYPE IS NOT BUILT. recordSleep still composes its eleven",
+    " *    sentences and recordIntake its two, from constants this factory is HANDED rather",
+    " *    than holding: twelve copy constants arrive by name in the signature below, so this",
+    " *    file carries zero string literals of its own and every copy byte stayed in the",
+    " *    released view where C-UI-7 edits it. Turning them into outcomes is a statement",
+    " *    rewrite inside three moved regions that D.1 does not declare, which DECISIONS:584",
+    " *    rules a STOP; it is reported in the build report and it is its own ticket.",
+    " *  - THE ONE-HANDOFF RULE IS NOT BUILT. The released today-app.cjs still names `model`.",
+    " *  - The runtime gesture guard of E.6 is not in this round.",
+    " */",
+    "const FoodModel = require(\"./food-model.cjs\");",
+    "const SleepModel = require(\"./sleep-model.cjs\");",
+    "const { plainOrDrop } = require(\"./plain-copy.cjs\");"
+   ],
+   "open": [
+    "function createTodayLanes({ doc, model, options, painter,",
+    "    phone, status, tell, athleteStateFailureCopy, reasonOf, sleepTyped,",
+    "    FOOD_REASON, FOOD_REFUSAL_COPY, FOOD_REFUSED, FOOD_REFUSED_ACTION, SLEEP_CHECKIN_CHANGED, SLEEP_KEPT,",
+    "    SLEEP_NIGHT_CHANGED, SLEEP_NOTHING_RECORDED, SLEEP_NOT_SAVED, SLEEP_REFUSAL_COPY, SLEEP_ROLLOVER, SLEEP_UNCERTAIN }) {",
+    "  /* Three bindings that are NOT moved bytes. `sleepDraft` is bound after the fact",
+    "     (hooks.bindSleepDraft) because the released object does not exist yet when this",
+    "     factory is called; `willAdopt` and `ready` move to factory scope because the two",
+    "     statements that used to declare them are now calls (spec B.3 consequences 2 and 3,",
+    "     which is why S-R21 gave the boot statements a kind of their own). */",
+    "  let sleepDraft = null;",
+    "  let willAdopt = null;",
+    "  let ready = null;"
+   ],
+   "close": [
+    "  /* THE INTERFACE, frozen. `facade` is READ-ONLY: every entry returns sealed state",
+    "     and none of them changes it. `hooks` is the only way released code changes",
+    "     anything in here. The two objects are separate on purpose, so that a later",
+    "     ticket adding a getter cannot quietly add a setter beside it.",
+    "",
+    "     A RECORDED LAXITY, in the words S-R29 uses of the gym card's twin: several of",
+    "     these getters hand back LIVE objects (the lanes, the read-backs, the two",
+    "     screens), so released code can still change sealed read state without a hook.",
+    "     That adds no power today, because before the cut the released half held those",
+    "     same objects directly; it is closed by detached frozen copies in the ticket",
+    "     that seals the writers' own decisions, and until then this comment says what",
+    "     is true rather than what is wished. */",
+    "  return Object.freeze({",
+    "    facade: Object.freeze({",
+    "      adoptionSettled: () => adoptionSettled,",
+    "      checkInKit: () => checkInKit,",
+    "      checkInKitLoading: () => checkInKitLoading,",
+    "      checkInLive: () => checkInLive,",
+    "      checkin: () => checkin,",
+    "      checkinSummary: () => checkinSummary(),",
+    "      firstRun: () => firstRun(),",
+    "      foodLane: () => foodLane,",
+    "      foodLaneFailure: () => foodLaneFailure,",
+    "      foodOpening: () => foodOpening,",
+    "      foodReadBack: () => foodReadBack,",
+    "      foodSaving: () => foodSaving,",
+    "      importAdmitted: () => importAdmitted,",
+    "      importScreen: () => importScreen,",
+    "      measureScreen: () => measureScreen,",
+    "      ready: () => ready,",
+    "      session: () => session(),",
+    "      setup: () => setup,",
+    "      setupFirst: () => setupFirst,",
+    "      sleepAck: () => sleepAck,",
+    "      sleepBusy: () => sleepBusy,",
+    "      sleepCheckInDay: () => sleepCheckInDay,",
+    "      sleepCheckInFailed: () => sleepCheckInFailed,",
+    "      sleepCheckInPending: () => sleepCheckInPending,",
+    "      sleepCheckInRow: () => sleepCheckInRow,",
+    "      sleepCheckInViewPending: () => sleepCheckInViewPending,",
+    "      sleepCorrecting: () => sleepCorrecting,",
+    "      sleepErrorText: () => sleepErrorText,",
+    "      sleepLane: () => sleepLane,",
+    "      sleepLaneFailure: () => sleepLaneFailure,",
+    "      sleepNightDate: () => sleepNightDate(),",
+    "      sleepOpening: () => sleepOpening,",
+    "      sleepReadBack: () => sleepReadBack,",
+    "      sleepSaving: () => sleepSaving,",
+    "      sleepUnknown: () => sleepUnknown,",
+    "      workout: () => workout,",
+    "      workoutRebinding: () => workoutRebinding,",
+    "    }),",
+    "    hooks: Object.freeze({",
+    "      armAdoptionGate:      () => armAdoptionGate(),",
+    "      canAdoptAthleteState: () => canAdoptAthleteState(),",
+    "      openFoodLane:         () => openFoodLane(),",
+    "      openSleepLane:        () => openSleepLane(),",
+    "      readSleepCheckIn:     (date, force) => readSleepCheckIn(date, force),",
+    "      reboundCheckIn:       (origin) => reboundCheckIn(origin),",
+    "      sleepClockCheck:      () => sleepClockCheck(),",
+    "      sleepOpsFor:          (date) => sleepOpsFor(date),",
+    "      sleepToday:           () => sleepToday(),",
+    "      /* S-R21's five boot statements. Each keeps the position it occupies today",
+    "         (spec B.3's boot order), because everything inside this factory runs at the",
+    "         ONE point the factory is called and three of these run before the first",
+    "         paint and two after it. */",
+    "      bootFoodDays:    () => { if (foodLane && typeof model.setFoodDays === \"function\") model.setFoodDays(foodLane); },",
+    "      bootSleepNights: () => { if (sleepLane && typeof model.setSleepNights === \"function\") model.setSleepNights(sleepLane); },",
+    "      bootCheckInKit:  () => { if (sleepLane) loadCheckInKit(); },",
+    "      bootAdoptionGate: () => { willAdopt = canAdoptAthleteState(); if (willAdopt) armAdoptionGate(); },",
+    "      bootSettleAdoption: () => { ready = settleAdoption(willAdopt ? adoptAthleteState() : Promise.resolve(), willAdopt); return ready; },",
+    "      /* B.5's assignment class. The seal mints the promise or sets the flag; the",
+    "         released half keeps its listener, its guard and its repaint and loses the",
+    "         assignment, so no released line can name a binding declared in here. */",
+    "      mintMeasureScreen: (Screen) => { if (!measureScreen) measureScreen = Screen.createMeasureScreen(measureDeps()); return measureScreen; },",
+    "      mintImportScreen:  (Screen) => { if (!importScreen) importScreen = Screen.createImportScreen(importDeps()); return importScreen; },",
+    "      retryFoodRead:     () => { foodSaving = retryFoodRead(); return foodSaving; },",
+    "      recordIntake:      (save, cal, pro, error) => { foodSaving = recordIntake(save, cal, pro, error); return foodSaving; },",
+    "      retrySleepRead:    () => { sleepSaving = retrySleepRead(); return sleepSaving; },",
+    "      recordSleep:       (map) => { sleepSaving = recordSleep(map); return sleepSaving; },",
+    "      sleepCorrect:      (on) => { sleepCorrecting = on; },",
+    "      forgetCheckInRead: () => { sleepCheckInDay = null; sleepCheckInPending = null; },",
+    "      settleAdoption:    (adopting) => { ready = settleAdoption(adopting ? adoptAthleteState() : Promise.resolve(), adopting); return ready; },",
+    "      /* SEAM 9a: eight assignments in one gesture, and the raw field value is all",
+    "         that crosses. SEAM 9b is the same four with no argument at all. */",
+    "      sleepNightChosen:  (raw) => {",
+    "        sleepNightChoice = raw;",
+    "        sleepRollover = null;",
+    "        sleepOpenedDay = sleepToday(); sleepOpenedNight = sleepNightDate();",
+    "        sleepAck = null; sleepReadBack = null; sleepCorrecting = false; sleepErrorText = \"\";",
+    "      },",
+    "      keepNight:         () => {",
+    "        sleepNightChoice = sleepRollover || sleepNightDate();",
+    "        sleepRollover = null;",
+    "        sleepOpenedDay = sleepToday(); sleepOpenedNight = sleepNightDate();",
+    "      },",
+    "      /* R2 BLOCKING-1: the seal mints the read handle and assigns it; the paint that",
+    "         follows it is the RELEASED half's own closure, handed in and not moved. */",
+    "      readSleepCheckInView: (date, paint) => {",
+    "        sleepCheckInViewPending = Promise.all([loadCheckInKit(), readSleepCheckIn(date, true)]).then(paint);",
+    "        return sleepCheckInViewPending;",
+    "      },",
+    "      /* The screen's own transient draft is a released object this file mutates in",
+    "         place and never reassigns, so the seal holds the SAME object and sees every",
+    "         keystroke. It is handed over after it exists, because the factory is composed",
+    "         above it: the boot statement at :422 must run where it runs today. */",
+    "      bindSleepDraft:    (draft) => { sleepDraft = draft; },",
+    "    }),",
+    "  });",
+    "}",
+    "",
+    "module.exports = { createTodayLanes };"
+   ]
   }
  },
  "compose": {
@@ -7361,6 +8147,42 @@
     "     census is what says so. */",
     "  const painter = Object.freeze({ repaint: () => paint() });",
     "  const { facade, hooks } = createGymSettingsLane(doc, model, settings, painter);"
+   ]
+  },
+  "today-app.cjs": {
+   "why": "spec B.3's composition. The three interface names were chosen by measurement (S-R23) and capture.cjs measures them at zero occurrences in code position on this build's own output.",
+   "after": "const SleepModel = require(\"./sleep-model.cjs\");",
+   "afterLines": [
+    "/* THE SPLIT (spec B.1 to B.8, DECISIONS:550 S-R1). Every function that can put a row",
+    "   of the athlete's food, sleep or check-in log on disk is sealed in today-lanes.cjs;",
+    "   what comes back is two frozen objects. The require is at module level, once, and",
+    "   not inside the mount. */",
+    "const { createTodayLanes } = require(\"./today-lanes.cjs\");"
+   ],
+   "at": "TA-S01",
+   "insert": [
+    "  /* THE SPLIT (spec B.3 and B.4). What crosses is three frozen objects and nothing",
+    "     else: `painter`, the paint handle, which is the ONLY thing the seal can reach back",
+    "     through and which can do nothing but paint; `facade`, the read-only view of the",
+    "     sealed state; and `hooks`, the callback table, which is the only way this file",
+    "     changes anything in there. The paint handle's five entries are the five names the",
+    "     census found crossing SEALED -> RELEASED that D.1 declares a rewrite for; the",
+    "     eighteen names handed in below are the ones it does not, and they are injected so",
+    "     that every moved byte keeps its own spelling. `sleepTyped` goes in wrapped because",
+    "     it is a const declared further down this file and would be in its temporal dead",
+    "     zone here; the wrapper resolves it when it is called, which is after a gesture. */",
+    "  const painter = Object.freeze({",
+    "    repaint: (name, focus) => render(name, focus),",
+    "    screenNow: () => screen,",
+    "    token: () => mountToken,",
+    "    clearDraft: () => clearSleepDraft(),",
+    "    paintTodayEntry: () => paintTodayEntry(),",
+    "  });",
+    "  const { facade, hooks } = createTodayLanes({ doc, model, options, painter,",
+    "    phone, status, tell, athleteStateFailureCopy, reasonOf,",
+    "    sleepTyped: (...a) => sleepTyped(...a),",
+    "    FOOD_REASON, FOOD_REFUSAL_COPY, FOOD_REFUSED, FOOD_REFUSED_ACTION, SLEEP_CHECKIN_CHANGED, SLEEP_KEPT,",
+    "    SLEEP_NIGHT_CHANGED, SLEEP_NOTHING_RECORDED, SLEEP_NOT_SAVED, SLEEP_REFUSAL_COPY, SLEEP_ROLLOVER, SLEEP_UNCERTAIN });"
    ]
   }
  }
