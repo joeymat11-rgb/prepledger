@@ -4,20 +4,31 @@
    :529) as named, restartable stages, each with its own log and its own .done file under
    %TEMP%, so a stage that outlives one tool call can be started and then polled.
 
-   FOUR THINGS IT WILL NOT DO, and they are the point:
-   0. IT NEVER WRITES A BRANCH IT WAS NOT SHOWN. EVERY stage that merges, commits or
+   FIVE THINGS IT WILL NOT DO, and they are the point:
+   0. IT NEVER LETS AN ARGUMENT BECOME A SECOND COMMAND. This script BUILDS A COMMAND LINE
+      BY CONCATENATION and writes it into a .cmd that cmd.exe runs, so every value that
+      reaches that string is checked for SHAPE first: `--id` must be /^[A-Za-z0-9-]{1,16}$/,
+      `--tip-ref` and `--branch` must be a plain ref name, and so must the branch Git
+      resolves. Without that, `--id "S9 & <anything>"` or
+      `--tip-ref "x & git push origin HEAD:main"` puts a SECOND command in the file and
+      walks round writeBranch() entirely - measured, before this guard: the body of
+      sealgen-chain-a3.cmd read `git fetch origin && git merge --no-edit x & git push
+      origin HEAD:main` while the banner above it said WRITES INTO: rebuild/b-seal-gen.
+      The operator is trusted; the point of this script is that it cannot be talked into a
+      write it was not shown, by a typo or by a confused hand (PM final read, G-F1).
+   1. IT NEVER WRITES A BRANCH IT WAS NOT SHOWN. EVERY stage that merges, commits or
       pushes - a3, b1 and b6, the closed list `WRITE_STAGES` - goes through ONE guard,
       `writeBranch()`: it resolves the branch this worktree stands on and refuses `main`,
       `rebuild/t2-client-core` and a detached HEAD BY NAME (R1 B2 for b6; R2 M1 for a3 and
       b1, which MERGE and were not guarded). b6 additionally names the branch on both
       sides of the refspec. The branch being written is printed in the stage banner and in
       `--plan`. The fast-forward of the chain branch is stage b7 and it is a `hand` stage.
-   1. IT NEVER RUNS --full UNLESS STARTED WITH --pm-runs-full. --full needs the private
+   2. IT NEVER RUNS --full UNLESS STARTED WITH --pm-runs-full. --full needs the private
       census and belongs to the PM alone. Without the flag a `pm` stage prints exactly
       what the PM must run and stops with exit 3.
-   2. IT NEVER CREATES THE PRIVATE JUNCTION. The PM's own s8-prep.cmd does that; nothing
+   3. IT NEVER CREATES THE PRIVATE JUNCTION. The PM's own s8-prep.cmd does that; nothing
       here does, and nothing here reads rebuild/conform/private.
-   3. IT STOPS AT EVERY JUDGMENT. The three token lines, the receipt line, the review
+   4. IT STOPS AT EVERY JUDGMENT. The three token lines, the receipt line, the review
       json and the verdict are `hand` stages: it prints the exact shape and the exact
       check to run afterwards, and it stops. A chain script that wrote a ledger line
       would be a chain script that forged an authorization.
@@ -80,9 +91,58 @@ const NEVER_PUSH = NEVER_WRITE;                     // the name R1 B2 introduced
    script MERGING THE CHAIN TIP INTO MAIN. "Never merge into main" is the same
    stop-the-line rule as "never push the chain branch", so there is now ONE guard and every
    writing stage goes through it. WRITE_STAGES is the closed list and
-   test/chain-guard.test.cjs holds it to the commands: a `run` stage whose command contains
-   a writing verb and is not in this list fails that cell. */
+   test/chain-guard.test.cjs holds it to the commands, and since R3 n6 it does so with an
+   ALLOW list rather than a list of writing verbs: a `run` stage outside this list may be
+   the runner's own --ci command or a git command whose VERB is one of eight read verbs
+   (fetch included, because it writes refs under refs/remotes and never the worktree), and
+   anything else fails that cell. A deny list of verbs was shorter than git is - `pull`,
+   `am`, `apply`, `cherry-pick`, `revert`, `stash`, `restore`, `clean`, `tag`,
+   `update-ref`, `branch -f`, `worktree add` were all missing from it. */
 const WRITE_STAGES = ['a3', 'b1', 'b6'];
+/* THE ARGV SHAPE GUARD (PM final read, G-F1). Three values reach a command line that
+   cmd.exe will run: --id (into `--ci --package <id>`), --tip-ref (into
+   `git merge --no-edit <tip>`) and the branch Git resolves (into
+   `git push -u origin <b>:<b>`). None of them was checked, so an ampersand in any one of
+   them was a SECOND COMMAND in the .cmd body - past the banner, past writeBranch(), past
+   everything this file claims about what it will not do. These two shapes are the whole
+   fix, and they are deliberately narrower than Git is: a package id is a short token, and
+   a ref this lane merges or pushes is a plain name. `..` is refused because it is the
+   revision range syntax, and a leading `-` because it is how an argument becomes an
+   option (`--upload-pack=...`). PLAN_ID is the placeholder --plan prints when no --id was
+   given; it can never come from argv, because argvShape() below rejects it there. */
+const ID_SHAPE = /^[A-Za-z0-9-]{1,16}$/;
+const REF_SHAPE = /^[A-Za-z0-9._/-]{1,200}$/;
+const PLAN_ID = '<ID>';
+const shapeError = (what, v) => new Error('CHAIN-ARGV-SHAPE ' + what + ' ' + JSON.stringify(String(v)) +
+  ' is not a shape this script will put on a command line. Nothing was built, nothing was written and nothing was started.');
+/* `$` in a JavaScript regexp matches before a TRAILING newline as well as at the end of
+   the string, so "S9\n" would satisfy /^[A-Za-z0-9-]{1,16}$/ and carry a line break into a
+   .cmd body, where a line break is a command separator. Both checks say so explicitly. */
+const oneLine = s => !/[\r\n]/.test(s);
+function checkId(id) {
+  if (id === PLAN_ID) return id;                       // --plan's own placeholder, never argv
+  const s = String(id);
+  if (!ID_SHAPE.test(s) || !oneLine(s)) throw shapeError('--id', s + ' (wanted ' + String(ID_SHAPE) + ', one line)');
+  return id;
+}
+function checkRef(what, v) {
+  const s = String(v);
+  if (!REF_SHAPE.test(s) || !oneLine(s) || s.includes('..') || s.startsWith('-')) {
+    throw shapeError(what, s + ' (wanted ' + String(REF_SHAPE) + ', no "..", no leading "-")');
+  }
+  return s;
+}
+/* Everything argv carries, checked ONCE, before --plan prints anything and before any
+   stage is looked up. */
+function argvShape(o) {
+  /* checkId() lets PLAN_ID through because --plan prints it; argv may not carry it, so
+     the exemption exists in exactly one place and never on a value a caller typed. */
+  if (o.id === PLAN_ID) throw shapeError('--id', PLAN_ID + ' (that is --plan\'s own placeholder, not a package id)');
+  if (o.id !== undefined) checkId(o.id);
+  if (o.tipRef !== undefined) checkRef('--tip-ref', o.tipRef);
+  if (o.branch !== undefined) checkRef('--branch', o.branch);
+  return o;
+}
 function currentBranch(root) {
   const r = M.git(root, ['symbolic-ref', '--quiet', '--short', 'HEAD'], { encoding: 'utf8' });
   return r.status === 0 ? String(r.stdout).trim() : null;
@@ -95,6 +155,11 @@ function writeBranch(root, verb) {
   const here = currentBranch(root);
   const what = verb === 'PUSH' ? 'push' : 'merge into';
   if (!here) throw new Error('CHAIN-' + verb + '-REFUSED: HEAD is detached in ' + root + '; there is no branch to ' + what + '. Check out the lane branch first.');
+  /* G-F1. Git allows characters in a branch name that cmd.exe reads as syntax (`&`, `|`,
+     `;`, `$`, `(`), and this name goes into `git push -u origin <b>:<b>` in a .cmd body.
+     A branch this script cannot spell safely is refused before it is compared with
+     anything, so the refusal is about the SHAPE and not about which branch it is. */
+  checkRef('the branch git resolved in ' + root, here);
   if (NEVER_WRITE.includes(here)) throw new Error('CHAIN-' + verb + '-REFUSED: this worktree stands on ' + here + ', which no script of this lane writes. ' + (verb === 'PUSH'
     ? 'b6 pushes a LANE branch only; the fast-forward of ' + NEVER_WRITE[1] + ' is stage b7 and it is the PM\'s hand.'
     : 'a3 and b1 merge the chain tip INTO THE LANE BRANCH; merging it into ' + here + ' is a merge commit nobody asked for. Check out the lane branch first.'));
@@ -103,7 +168,11 @@ function writeBranch(root, verb) {
 /* The command a `run` stage actually executes. Every one of them is the --ci side or a
    plain git read/merge; not one of them can reach --full. */
 function commandFor(id, key, o) {
-  const tip = o.tipRef || 'origin/rebuild/t2-client-core';
+  /* G-F1: THE SHAPES FIRST, in the function that builds the string, so no caller and no
+     future stage can reach concatenation without passing them. main() checks the same two
+     values off argv; this is the check that is true of every call. */
+  checkId(id);
+  const tip = checkRef('--tip-ref', o.tipRef || 'origin/rebuild/t2-client-core');
   switch (key) {
     case 'a1': case 'a4': case 'a6': return '"' + NODE + '" ' + RUNNER + ' --ci --package ' + id;
     /* R2 M1: resolve the branch FIRST. The command is unchanged; what changed is that it
@@ -139,15 +208,20 @@ function writeTargetFor(key, o) {
 /* R2 N4. `c.replace(NODE, 'node')` left the quotes that stood around the executable path,
    so --plan printed `$ "node" rebuild/...`, which is not the command. */
 const pretty = c => String(c).split('"' + NODE + '"').join('node').split(NODE).join('node');
-function paths(key) {
-  const base = path.join(TMP, 'sealgen-chain-' + key);
+/* THE STAGE FILES CARRY THE ID (PM final read, G-F2). They used to be
+   sealgen-chain-<key>.{cmd,log,done}, so two chains on one PC - and S9 and S10 WILL
+   overlap - shared a log and a .done: `--poll` of one read the other's DONE and printed
+   the other's log as this stage's evidence. The id is in the name now, and checkId() has
+   already said the id is a shape that can be a file name. */
+function paths(id, key) {
+  const base = path.join(TMP, 'sealgen-chain-' + checkId(id) + '-' + key);
   return { cmd: base + '.cmd', log: base + '.log', done: base + '.done' };
 }
 /* One stage = one .cmd that sets its env on its OWN LINES (chaining `set` with & on one
    line mis-sets TZ and turns every suite red), redirects to a log, and writes its .done
    file as the LAST line. Started detached, polled by its .done. */
 function startStage(id, key, cmdline, o) {
-  const p = paths(key);
+  const p = paths(id, key);
   const body = ['@echo off',
     'set "MEASURED_TEST_NOW=2026-09-03"',
     'set "TZ=America/New_York"',
@@ -184,26 +258,30 @@ function main(argv) {
     else if (a === '--pm-runs-full') o.pmRunsFull = true;
     else throw new Error('CHAIN-ARGV-UNKNOWN ' + a);
   }
+  /* G-F1: BEFORE ANYTHING. Not before the run - before the plan, before the stage lookup,
+     before a single string is joined. Everything below this line may be concatenated. */
+  argvShape(o);
   if (o.plan || !o.stage) {
     console.log('SEAL-AUTOMATION seal-chain.cjs --plan' + (o.id ? '  (' + o.id + ')' : ''));
     let part = null;
     for (const [k, kind, group, what] of STAGES) {
       if (group !== part) { console.log('\n== ' + group.toUpperCase() + ' =='); part = group; }
       const mark = kind === 'run' ? '[run ]' : kind === 'pm' ? '[PM  ]' : '[hand]';
-      console.log('  ' + mark + ' ' + k + '  ' + what.replace(/<ID>/g, o.id || '<ID>'));
+      console.log('  ' + mark + ' ' + k + '  ' + what.replace(/<ID>/g, o.id || PLAN_ID));
       /* A stage that would REFUSE says so here, in the plan, rather than at the moment
          someone runs it: --plan from a worktree standing on the chain branch prints b6's
          refusal by name (R1 B2). */
       const target = kind === 'run' ? writeTargetFor(k, o) : null;
       if (target) console.log('           WRITES INTO: ' + target);
       let c = null;
-      try { c = kind === 'run' ? commandFor(o.id || '<ID>', k, o) : null; }
+      try { c = kind === 'run' ? commandFor(o.id || PLAN_ID, k, o) : null; }
       catch (e) { console.log('           $ ' + e.message); }
       if (c) console.log('           $ ' + pretty(c));
     }
     console.log('\n  [run ] this script runs; [PM  ] needs --full and the private census, refused without --pm-runs-full;');
     console.log('  [hand] a judgment or a ledger write, printed and never executed.');
-    console.log('  logs and .done files: ' + path.join(TMP, 'sealgen-chain-<stage>.{cmd,log,done}'));
+    /* G-F2: the id is in the file name, so this line prints the id it was given. */
+    console.log('  logs and .done files: ' + path.join(TMP, 'sealgen-chain-' + (o.id || PLAN_ID) + '-<stage>.{cmd,log,done}'));
     return 0;
   }
   const row = STAGES.find(s => s[0] === o.stage);
@@ -224,7 +302,7 @@ function main(argv) {
     console.log('  stage exists to NAME it, not to replace it. Run it from there and come back to ' + (STAGES[STAGES.indexOf(row) + 1] || ['(done)'])[0] + '.');
     return 3;
   }
-  const p = paths(key);
+  const p = paths(o.id, key);
   if (o.poll) {
     const done = fs.existsSync(p.done);
     console.log('  ' + (done ? 'DONE' : 'RUNNING') + '  ' + p.log + '\n' + tail(p.log, 25));
@@ -252,4 +330,4 @@ if (require.main === module) {
   try { process.exit(main(process.argv.slice(2))); }
   catch (e) { console.error('CHAIN FAILED: ' + e.message); process.exit(1); }
 }
-module.exports = { STAGES, commandFor, paths, main, pushBranch, currentBranch, NEVER_PUSH, NEVER_WRITE, WRITE_STAGES, writeBranch, writeTargetFor, pretty };
+module.exports = { STAGES, commandFor, paths, main, pushBranch, currentBranch, NEVER_PUSH, NEVER_WRITE, WRITE_STAGES, writeBranch, writeTargetFor, pretty, checkId, checkRef, argvShape, ID_SHAPE, REF_SHAPE, PLAN_ID, RUNNER };
