@@ -312,6 +312,8 @@ certutil -hashfile rebuild/lanes/c/today-split/writer-fence.test.mjs SHA256:
 CertUtil: -hashfile command completed successfully.
 ```
 
+N5 correction: the committed cell at e4c15d1c has sha256 1032962b8d337c1322da8786a918bec797acd091df36f9d1842e698103675899.
+
 This is the on-disk hash of the uncommitted cell. Git warns that its CRLF bytes
 will be replaced by LF when Git next touches it. git diff --check passed; added
 lines in both owned files were checked for ASCII. No scratch files were created.
@@ -340,3 +342,131 @@ warning: in the working copy of 'rebuild/lanes/c/today-split/writer-fence.test.m
  rebuild/lanes/c/today-split/writer-fence.test.mjs  | 299 ++++++++++++++-------
  2 files changed, 344 insertions(+), 100 deletions(-)
 ```
+
+## Check F2: notes N1 and N2 fixed
+
+2026-09-19. Continued from e4c15d1c in rebuild/c-today-split-build-astra1.
+Only this report and writer-fence.test.mjs changed; work remains uncommitted.
+This section supersedes the earlier rule descriptions where N1/N2 corrected them.
+
+N1: a keyword-spelled identifier after . or ?. is a member name, so its following
+slash is division. The reserved-word regex contexts remain. Contextual of starts
+a regex only after a simple declared binding in for (const/let/var name of ...).
+This is a small token test for the measured files, not a grammar claim:
+destructured, assignment and for-await heads are outside it and named as residue
+in the header. The independent regexStripped lookbehind implements its own text
+rule, never calling the lexer; it also excludes the second + or - of a postfix
+operator from regex-prefix operators. The RED slash rows explicitly check that
+the independent reader retains the writer/acquisition witness.
+
+N2: the declaration/parameter binding walk is shared with holder-site
+classification and also visits destructuring assignment patterns. Named keys in
+patterns, including duplicate keys, count as holder sites and must match declared
+windows. Initializer expressions are skipped by the pattern walk. Member names
+after . or ?. and object-literal keys remain property positions. The settings pin
+holds named binding keys and references to two declared windows; it does not
+trace arbitrary aliases or computed keys. The windows themselves did not change.
+
+### Measured rows: before and after
+
+Colours below are releasedRefusals results, not the test runner's pass/fail
+colour. W = FENCE-WRITER-NAME; L = FENCE-LANE-ACQUISITION;
+H = FENCE-HOLDER-SITE:settings. GREEN means [].
+
+| Row planted in gym-app.mjs | Before rules changed | After |
+|---|---|---|
+| const a = o.of / 2; model.recover(); void h / 2; | GREEN | RED W |
+| const a = o.delete / 2; model.recover(); void h / 2; | GREEN | RED W |
+| const a = o.new / 2; model.recover(); void h / 2; | GREEN | RED W |
+| const of = 4; const a = of / 2; model.recover(); const b = h / 2; | GREEN | RED W |
+| const a = o.of / 2; void facade.lane().save(auditMachine); void h / 2; | GREEN | RED L, W |
+| function probe() { return /re/.test(s); } | GREEN | GREEN |
+| void typeof /re/; | GREEN | GREEN |
+| for (const x of /re/.exec(s) ? [] : []) { void x; } | GREEN | GREEN |
+| let n = 0; const pct = n++ / total; const rate = done / total; | GREEN fence, RED cross-check | GREEN fence and cross-check |
+| mount { settings: alias, model, onBack, onChanged, onCheckIn, draft, settings } = {} | GREEN | RED H |
+| mount renamed key immediately before shorthand: draft, settings: alias, settings | GREEN | RED H |
+| mount renamed key after shorthand: draft, settings, settings: alias | RED H | RED H |
+| duplicated-key mount plus export let leaked; and leaked = alias; | GREEN | RED H |
+| duplicated-key mount plus raw: () => alias on paint handle | GREEN | RED H |
+| const { settings: second } = opts; | GREEN | RED H |
+| let second; ({ settings: second } = opts); | GREEN | RED H |
+| Existing F4: const view = { settings: [] }; | GREEN | GREEN |
+| Existing F4: const rows = map.settings; | GREEN | GREEN |
+| Existing F4: void machine.settings.length; | GREEN | GREEN |
+| Existing F4: rename first to firstPaint | GREEN | GREEN |
+
+The 16 new rows were added before changing either rule. That run had 12 failing
+assertions: five missed slash refusals, six missed holder refusals and N4(b)'s
+cross-check false red. The after-shorthand row was already RED; three regex
+controls already passed. An additional in-memory comparison loaded the committed
+cell at e4c15d1c with test registration stubbed and the final cell the same way:
+every refusal above was measured directly. All nine slash cross-checks were GREEN
+before except postfix division, and all nine are GREEN after. All 16 final new
+rows also passed balance, literal, independent keyword and Node syntax checks.
+No synthetic plant was written into product bytes or executed as a durable write.
+
+N4(a) remains deliberately unfixed for the S10 brief: the settings mount pin
+includes the closing pattern/default tail. Appending theme after settings
+returns [FENCE-HOLDER-SITE:settings]; inserting theme before settings returns [].
+Both outcomes were measured before and after and are now recorded in the header
+as a known false red. This is not an added exception or a claim of soundness.
+
+### Executed bar
+
+| Cell state on this PC | Tests | Pass | Fail | Exit |
+|---|---:|---:|---:|---:|
+| Before edits | 293 | 293 | 0 | 0 |
+| New rows, original rules | 309 | 297 | 12 | 1 |
+| Final rules and rows | 309 | 309 | 0 | 0 |
+
+Net +16 rows; no existing row removed, weakened or skipped. All runs had
+zero cancelled, skipped and todo. Node v24.19.0, Windows; sequential runs:
+
+~~~powershell
+$env:MEASURED_TEST_NOW = '2026-09-03'
+$env:TZ = 'America/New_York'
+& 'C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' --test --test-isolation=none rebuild/lanes/c/today-split/writer-fence.test.mjs
+~~~
+
+The final bar was repeated after strengthening the three regex controls to assert
+that both readers actually recognize /re/ as a regex; it remained 309/309.
+The existing Node --check children and new plant syntax checks ran serially.
+git diff --check passed; added lines are ASCII. Both owned files are LF-only.
+No CRLF warning appears in the final git diff --stat.
+
+Committed cell at e4c15d1c (N5):
+1032962b8d337c1322da8786a918bec797acd091df36f9d1842e698103675899.
+The historical F1 working-file hash above was CRLF; it is not that commit's hash.
+
+Final LF cell, measured with certutil:
+
+~~~text
+certutil -hashfile rebuild/lanes/c/today-split/writer-fence.test.mjs SHA256
+0d1b43930a6fcabf8e657d939ee3623bda7807413687016cc32b7a6e02eb8614
+CertUtil: -hashfile command completed successfully.
+~~~
+
+### What I did not verify
+
+No Linux run, CI, independent Claude review, full Today suite, conformance,
+bundle, seal, browser, phone, durability/reopen behavior or part-2 acceptance.
+No parser soundness or general alias/data-flow guarantee. No protected data,
+private fixture, protected soak or auth file was read. No product byte moved.
+No install, node_modules change, file deletion, commit, push, checkout, reset,
+stash, clean or fetch. The PM and subsequent Claude hand retain their roles.
+
+### Final commands and output (Check F2)
+
+~~~text
+git status --porcelain
+warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
+ M rebuild/lanes/c/TODAY-SPLIT-FENCE-PRECONDITIONS-REPORT.md
+ M rebuild/lanes/c/today-split/writer-fence.test.mjs
+
+git diff --stat
+ .../c/TODAY-SPLIT-FENCE-PRECONDITIONS-REPORT.md    | 130 ++++++++++++++++++++
+ rebuild/lanes/c/today-split/writer-fence.test.mjs  | 132 ++++++++++++++++++---
+ 2 files changed, 243 insertions(+), 19 deletions(-)
+~~~

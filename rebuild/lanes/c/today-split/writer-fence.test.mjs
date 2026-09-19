@@ -23,6 +23,8 @@
  * ignoring whitespace and line breaks so unrelated same-line look edits need no reseal.
  * Readings uses a closed read-member/truthiness rule with declared composition and
  * returned-interface windows instead of pinning every read site.
+ * The settings pin holds named binding keys and references to two declared windows,
+ * including duplicate keys, but does not trace arbitrary aliases or computed keys.
  * Other high-traffic holders remain unpinned; every look hunk still needs review.
  * Regex-aware tokenization checks its balance, literals and keyword offsets against
  * an independent regex stripper plus Node syntax checks; this is still no parser.
@@ -37,6 +39,10 @@
  * calls, generated code, runtime replacement of a reader, and all JavaScript grammar.
  * Holder destructuring fires only when the right-hand side names a holder. One
  * intermediate local with any other name and the rule does not apply (review F1, R5).
+ * Regex after of is recognized only in a simple for (const/let/var name of head;
+ * destructured, assignment and for-await heads remain outside that lexical rule.
+ * N4(a), for S10: appending a mount option after settings is a known false RED;
+ * inserting it before settings is GREEN because the unchanged pin includes the tail.
  * It neither proves durable behavior nor deep immutability of returned data. The
  * boundary holding a released file is INDEPENDENT REVIEW OF EVERY HUNK of every look
  * ticket, followed by the PM's own final review (DECISIONS:439 and :531 (3)).
@@ -270,7 +276,15 @@ function tokensOf(src, start = 0, stopAtBrace = false) {
 }
 function regexMayStart(previous, tokens = []) {
   if (!previous) return true;
-  if (previous.kind === 'id') return /^(return|throw|case|delete|void|typeof|new|in|of|yield|await|instanceof)$/.test(previous.value);
+  if (previous.kind === 'id') {
+    if (['.', '?.'].includes(tokens.at(-2)?.value)) return false;
+    // Only a simple declared for-head binding closes before contextual `of`.
+    // Destructured/assignment bindings and for-await heads are not handled here.
+    if (previous.value === 'of') return tokens.at(-2)?.kind === 'id' &&
+      ['const', 'let', 'var'].includes(tokens.at(-3)?.value) &&
+      tokens.at(-4)?.value === '(' && tokens.at(-5)?.value === 'for';
+    return /^(return|throw|case|delete|void|typeof|new|in|yield|await|instanceof)$/.test(previous.value);
+  }
   if (previous.kind === 'punct' && previous.value === ')') {
     /* THE ONE AMBIGUITY A TOKEN SCANNER CAN RESOLVE. `Math.round(x) / 100` is a
        division; `if (ok) /re/.test(t)` is a regex. Walk back to the `(` this `)`
@@ -306,7 +320,9 @@ function codeTokens(src) {
  * so future keyword-bearing interpolations require review (a disagreement fails).
  * Slash context is expressed independently as lookbehind, not regexMayStart. */
 function regexStripped(src) {
-  return src.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|`(?:\\[\s\S]|[^`\\])*`|(?<=(?:^|[=([{,:;!?&|+*%~^<>\/-])\s*|\b(?:return|throw|case|delete|void|typeof|new|in|of|yield|await|instanceof)\s+)\/(?:\\[^\r\n\u2028\u2029]|\[(?:\\[^\r\n\u2028\u2029]|[^\]\\\r\n\u2028\u2029])*\]|[^/\\[\r\n\u2028\u2029])+\/[a-z]*/g,
+  // Exclude member keywords and postfix ++/--; recognize simple for-of text
+  // independently, without consulting the token reader or its span boundaries.
+  return src.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'|`(?:\\[\s\S]|[^`\\])*`|(?<=(?:^|[=([{,:;!?&|*%~^<>\/]|(?<!\+)\+|(?<!-)-)\s*|(?<!\.\s*)(?<![\w$])(?:return|throw|case|delete|void|typeof|new|in|yield|await|instanceof)\s+|\bfor\s*\(\s*(?:const|let|var)\s+[A-Za-z_$][\w$]*\s+of\s+)\/(?:\\[^\r\n\u2028\u2029]|\[(?:\\[^\r\n\u2028\u2029]|[^\]\\\r\n\u2028\u2029])*\]|[^/\\[\r\n\u2028\u2029])+\/[a-z]*/g,
     (raw) => raw.replace(/[^\r\n]/g, ' '));
 }
 const CHECK_WORDS = ['function', 'const', 'let', 'return'];
@@ -401,17 +417,45 @@ function interpolationCalls(tokens) {
     (t.value === '(' && (tokens[i - 1]?.kind === 'id' || [')', ']', '?.'].includes(tokens[i - 1]?.value))) ||
     (t.kind === 'template' && t.expressions.some(interpolationCalls)));
 }
+/* Share the declaration/parameter pattern walk with the holder-site rule.
+ * Initializers are expressions, so their object-literal keys are not bindings. */
+function bindingPositions(ts, decls = declarations(ts)) {
+  const positions = new Set();
+  const walk = (from, to) => {
+    for (let j = from; j < to; j++) {
+      if (ts[j].value === '=') { j = expressionEnd(ts, j + 1) - 1; continue; }
+      if (['{', '['].includes(ts[j].value)) {
+        const end = matching(ts, j);
+        walk(j + 1, end);
+        j = end;
+      } else if (ts[j].kind === 'id') positions.add(j);
+    }
+  };
+  for (const d of decls) walk(d.from, d.end + 1);
+  for (let i = 0; i < ts.length; i++) {
+    if (ts[i].value === '(') {
+      const end = matching(ts, i), after = ts[end + 1]?.value, prev = ts[i - 1];
+      const functionParams = prev?.value === 'function' || ts[i - 2]?.value === 'function' ||
+        ts[i - 3]?.value === 'function';
+      const methodParams = after === '{' && prev?.kind === 'id' &&
+        !['if', 'for', 'while', 'switch', 'with'].includes(prev.value);
+      if (after === '=>' || functionParams || methodParams) walk(i + 1, end);
+    }
+    // An object/array on the left of '=' is an assignment pattern too.
+    if (['{', '['].includes(ts[i].value)) {
+      const end = matching(ts, i);
+      if (ts[end + 1]?.value === '=') walk(i, end + 1);
+    }
+  }
+  return positions;
+}
 function measuredSyntax(src) {
   const ts = codeTokens(src), decls = declarations(ts);
   const bracket = [], destructure = [], templateCall = [], shadow = new Set(), argumentsUse = [];
-  const bindings = (from, to) => {
-    for (let j = from; j < to; j++) {
-      if (ts[j].value === '=') { j = expressionEnd(ts, j + 1) - 1; continue; }
-      if (NOT_A_STORE_RECEIVER.includes(ts[j].value) && ts[j + 1]?.value !== ':') shadow.add(ts[j].at);
-    }
-  };
+  for (const j of bindingPositions(ts, decls)) {
+    if (NOT_A_STORE_RECEIVER.includes(ts[j].value) && ts[j + 1]?.value !== ':') shadow.add(ts[j].at);
+  }
   for (const d of decls) {
-    bindings(d.from, d.end + 1);
     if (d.destructured && ts.slice(d.rhs, d.to).some(holder)) {
       // The exception names the destructure's factory, not the view fields
       // passed to that factory or other statements sharing the source line.
@@ -440,12 +484,9 @@ function measuredSyntax(src) {
     }
     if (t.value === '(') {
       const end = matching(ts, i), after = ts[end + 1]?.value;
-      const functionParams = prev?.value === 'function' || ts[i - 2]?.value === 'function' ||
-        ts[i - 3]?.value === 'function';
       const methodParams = after === '{' && prev?.kind === 'id' &&
         !['if', 'for', 'while', 'switch', 'with'].includes(prev.value);
       if (methodParams && NOT_A_STORE_RECEIVER.includes(prev.value)) shadow.add(prev.at);
-      if (after === '=>' || functionParams || methodParams) bindings(i + 1, end);
     }
     if (next?.value === '=>' && NOT_A_STORE_RECEIVER.includes(t.value)) shadow.add(t.at);
   }
@@ -530,17 +571,15 @@ function windowAt(ts, i, name, window) {
   const values = window.split(' '), offset = values.indexOf(name), start = i - offset;
   return offset >= 0 && start >= 0 && values.every((value, j) => ts[start + j]?.value === value);
 }
-/* A holder name in a PROPERTY position (`machine.settings`, `{ settings: rows }`) names a
-   field of somebody else's object and cannot be a reference to the injected capability.
-   Counting those positions made every ordinary look edit that touches the domain word
-   RED with FENCE-HOLDER-SITE (review F1, finding 4). */
-const propertyPosition = (ts, i) => ['.', '?.'].includes(ts[i - 1]?.value) ||
-  (ts[i + 1]?.value === ':' && ['{', ','].includes(ts[i - 1]?.value));
+/* Member names and object-LITERAL keys are property positions (review F1, F4).
+ * A key in a binding pattern acquires the field, so it must match a site window. */
+const propertyPosition = (ts, i, bindings) => ['.', '?.'].includes(ts[i - 1]?.value) ||
+  (!bindings.has(i) && ts[i + 1]?.value === ':' && ['{', ','].includes(ts[i - 1]?.value));
 function siteWindows(src, name, windows, lane = false) {
-  const ts = codeTokens(src);
+  const ts = codeTokens(src), bindings = bindingPositions(ts);
   return ts.flatMap((t, i) => {
     if (t.kind !== 'id' || t.value !== name) return [];
-    if (!lane && propertyPosition(ts, i)) return [];
+    if (!lane && propertyPosition(ts, i, bindings)) return [];
     if (lane && (!['.', '?.'].includes(ts[i + 1]?.value) || ts[i + 2]?.value !== 'lane')) return [];
     return [windows.find((window) => windowAt(ts, i, name, window)) ?? '<undeclared>'];
   });
@@ -1449,3 +1488,58 @@ test('RED review F5: an extra options.readings has one holder refusal name', () 
   assert.deepEqual(releasedRefusals(modelFile, plantLine(modelFile, 'void options.readings;')),
     ['FENCE-HOLDER-USE:readings']);
 });
+
+/* Check F2: N1/N2 witnesses stay synthetic and go through the released fence. */
+const F2_SLASH_ROWS = [
+  ['o.of writer', 'const a = o.of / 2; model.recover(); void h / 2;', 'FENCE-WRITER-NAME'],
+  ['o.delete writer', 'const a = o.delete / 2; model.recover(); void h / 2;', 'FENCE-WRITER-NAME'],
+  ['o.new writer', 'const a = o.new / 2; model.recover(); void h / 2;', 'FENCE-WRITER-NAME'],
+  ['variable of writer', 'const of = 4; const a = of / 2; model.recover(); const b = h / 2;', 'FENCE-WRITER-NAME'],
+  ['o.of lane', 'const a = o.of / 2; void facade.lane().save(auditMachine); void h / 2;', 'FENCE-LANE-ACQUISITION'],
+  ['return regex', 'function probe() { return /re/.test(s); }', null],
+  ['typeof regex', 'void typeof /re/;', null],
+  ['for-of regex', 'for (const x of /re/.exec(s) ? [] : []) { void x; }', null],
+  ['postfix division', 'let n = 0; const pct = n++ / total; const rate = done / total;', null],
+];
+for (const [shape, line, reason] of F2_SLASH_ROWS) {
+  test('Check F2: ' + (reason ? 'RED ' : 'GREEN ') + shape, () => {
+    const src = plantLine(gymFile, line);
+    const refusals = releasedRefusals(gymFile, src);
+    if (reason) assert.ok(refusals.includes(reason), reason + ': ' + JSON.stringify(refusals));
+    else assert.deepEqual(refusals, []);
+    if (reason) assert.ok(regexStripped(src).includes(shape === 'o.of lane'
+      ? 'facade.lane().save(auditMachine)' : 'model.recover()'), 'independent reader keeps the witness');
+    if (shape.endsWith('regex')) {
+      assert.ok(codeTokens(line).some((t) => t.kind === 'regex' && t.value === '/re/'));
+      assert.equal(regexStripped(line).includes('/re/'), false);
+    }
+    balancedTokens(src, shape);
+    checkedLiterals(src, shape);
+    keywordCrossCheck(src, shape);
+    checkPlantSyntax(gymFile, src);
+  });
+}
+const f2Mount = '{ model, onBack, onChanged, onCheckIn, draft, settings } = {}';
+const f2Duplicate = '{ settings: alias, model, onBack, onChanged, onCheckIn, draft, settings } = {}';
+const F2_BINDING_ROWS = [
+  ['duplicated-key mount', (s) => s.replace(f2Mount, f2Duplicate)],
+  ['renamed key before shorthand', (s) => s.replace('draft, settings }', 'draft, settings: alias, settings }')],
+  ['renamed key after shorthand', (s) => s.replace('draft, settings }', 'draft, settings, settings: alias }')],
+  ['duplicate plus leaked alias', (s) => 'export let leaked;\n' + s.replace(f2Mount, f2Duplicate)
+    .replace(gymFile.anchor, '    leaked = alias;\n' + gymFile.anchor)],
+  ['duplicate plus raw paint handle', (s) => s.replace(f2Mount, f2Duplicate)
+    .replace('    lane: () => facade.lane(),', '    raw: () => alias,\n    lane: () => facade.lane(),')],
+  ['const renamed key', (s) => s.replace(gymFile.anchor, '    const { settings: second } = opts;\n' + gymFile.anchor)],
+  ['assignment renamed key', (s) => s.replace(gymFile.anchor, '    let second; ({ settings: second } = opts);\n' + gymFile.anchor)],
+];
+for (const [shape, edit] of F2_BINDING_ROWS) {
+  test('Check F2: RED settings ' + shape, () => {
+    const src = planted(gymFile.rel, edit);
+    const refusals = releasedRefusals(gymFile, src);
+    assert.ok(refusals.includes('FENCE-HOLDER-SITE:settings'), JSON.stringify(refusals));
+    balancedTokens(src, shape);
+    checkedLiterals(src, shape);
+    keywordCrossCheck(src, shape);
+    checkPlantSyntax(gymFile, src);
+  });
+}
