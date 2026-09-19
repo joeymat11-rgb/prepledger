@@ -46,8 +46,13 @@ const PACKAGE_ID = 'M2-B-NTC-NATIVE-TREND-CONTEXT';
 const ARTIFACT = 'rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json';
 const VERDICT = 'rebuild/lanes/b/VERDICT-B-NTC.md';
 const PRODUCT = 'rebuild/m4/spec/fixture-seal-product.cjs';
+// M2-S9-UI-PINS, S9-RELEASE-SPEC B.6 / B.8 row 4: a path this package has RELEASED. Its
+// bytes are a lane C file after the release, which is to say they move whenever lane C
+// works, and the receipt must be indifferent to them in both directions.
+const RELEASED_PATH = 'rebuild/m3/w7-preview/today/preview.css';
 write(ARTIFACT, '{"version":1,"lanePackage":"B-NTC"}\n');
 write(PRODUCT, 'console.log("the pinned product byte");\n');
+write(RELEASED_PATH, '.card { padding: 1rem; }\n');
 write('rebuild/DECISIONS.md', '- 2026-09-12 · cowork · a chain line\n');
 write(runnerRel, source); // placeholder; the fixture runner is written below
 
@@ -297,6 +302,55 @@ test('both rulings carry their own names in the refusal vocabulary', () => {
     'SEALED-RUN-RECEIPT-UNREADABLE', 'SEALED-RUN-VERDICT-FILE-ABSENT', 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-EVIDENCE-HASHES',
     'SEALED-RUN-RECEIPT-NOT-IN-GIT', 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-RECEIPT'])
     assert(api.FAIL_CODES.has(code), 'the vocabulary carries ' + code);
+});
+
+// ------------------------- M2-S9-UI-PINS: the receipt over a RELEASED path (H12, H13)
+// S9-RELEASE-SPEC B.6 and B.8 row 4, and F.1 R3 is the risk it closes: without this the
+// FIRST lane C edit to a released stylesheet after the seal prints SEALED-RUN-RECEIPT-VOID
+// on every authorized rerun FOR EVER, and every rerun becomes a FULL run with the private
+// census - the seal chain silently loses its cheap re-verify step. BOTH directions, because
+// a receipt that CARRIED the path would be void the moment the release was used, and a
+// receipt that does not carry a path the spec declares is normally as much a change as one
+// whose bytes moved.
+test('S9 H12/H13 - a RELEASED path is in neither direction of the receipt, and every other file still is', () => {
+  const withRelease = () => ({ packageId: PACKAGE_ID, authorizations: { freeze: null },
+    product: { [PRODUCT]: { pre: null, post: sha(fs.readFileSync(path.join(scratch, PRODUCT))), role: 'new' },
+      [RELEASED_PATH]: { pre: sha(fs.readFileSync(path.join(scratch, RELEASED_PATH))), post: null, role: 'released' } } });
+  const s = withRelease();
+  const wrote = api.writeSealedRunReceipt(s, KEY);
+  // H12: the write never puts it in the map, so the two directions stay symmetric.
+  assert.deepEqual(Object.keys(wrote.sealedRun.product), [PRODUCT]);
+  const lines = ['# VERDICT B-NTC', 'artifact ' + wrote.sealedRun.artifactSha256,
+    'spec ' + wrote.sealedRun.specSha256, 'runner ' + wrote.sealedRun.runnerSha256];
+  write(VERDICT, lines.concat('sealed-run receipt ' + RECEIPT + ' sha256 ' + receiptSha()).join('\n') + '\n');
+  // --allow-empty because the receipt this seal step wrote is byte-identical to the one
+  // the cell above committed: H12 keeps the released path out of the map, which is the
+  // point, so the two receipts agree and there is nothing new to stage.
+  git('add', '-A'); git('commit', '--quiet', '--allow-empty', '-m', 'the sealed run with a released path');
+  assert.equal(api.sealedRunReceipt(s, KEY).ok, true);
+  // LANE C EDITS IT. This is the whole point of the release, and it must cost nothing here.
+  write(RELEASED_PATH, '.card { padding: 2rem; border-radius: 12px; }\n');
+  const after = api.sealedRunReceipt(withRelease(), KEY);
+  assert.equal(after.ok, true, after.code + ' ' + JSON.stringify(after.moved || []));
+  // AND THE FENCE. The pinned product file beside it still voids the receipt, by name and
+  // by path, so the skip is about the ROLE and not about the receipt having gone quiet.
+  const before = fs.readFileSync(path.join(scratch, PRODUCT), 'utf8');
+  write(PRODUCT, before.replace('byte', 'bytes'));
+  const moved = api.sealedRunReceipt(withRelease(), KEY);
+  assert.equal(moved.code, 'SEALED-RUN-RECEIPT-VOID');
+  assert.deepEqual(moved.moved, [PRODUCT]);
+  write(PRODUCT, before);
+  // A receipt written BEFORE the release, which still carries the path, does not void
+  // either: the skip is read off this package's own declared role, in both directions.
+  const stale = JSON.parse(fs.readFileSync(path.join(scratch, RECEIPT), 'utf8'));
+  stale.sealedRun.product[RELEASED_PATH] = 'a'.repeat(64);
+  write(RECEIPT, JSON.stringify(stale, null, 2) + '\n');
+  write(VERDICT, lines.concat('sealed-run receipt ' + RECEIPT + ' sha256 ' + receiptSha()).join('\n') + '\n');
+  git('add', '-A'); git('commit', '--quiet', '--allow-empty', '-m', 'a receipt taken before the release');
+  assert.equal(api.sealedRunReceipt(withRelease(), KEY).ok, true);
+  // Restore the fixture for the cells below.
+  write(RELEASED_PATH, '.card { padding: 1rem; }\n');
+  seal();
 });
 
 // -------------------------------------------------- r8 change 1: authentic, not consistent

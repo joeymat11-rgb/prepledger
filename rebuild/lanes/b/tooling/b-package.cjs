@@ -170,7 +170,11 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // reason S7 sits behind S6: DECISIONS:455 makes each reseal child the previous package's
 // own child, and DECISIONS:523 dispatches this one. Without the id here the argv gate at
 // :581 refuses `--package S8` outright, before a byte of its spec is read.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'B1', 'B2', 'B4', 'B3'];
+// M2-S9-UI-PINS ADDS 'S9', directly behind S8 and still ahead of B1, for the same
+// reason S8 sits behind S7: DECISIONS:455 makes each reseal child the previous package's
+// own child, and DECISIONS:536 dispatches this one. Without the id here the argv gate at
+// :581 refuses `--package S9` outright, before a byte of its spec is read.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'B1', 'B2', 'B4', 'B3'];
 // RETIRED IDS, and why this list has to exist at all. Removing an id from IDS and deleting
 // its spec file are ONE act - DECISIONS:487 stop 2 orders both for B-LOM - but TOOLING_FILES
 // below is derived from IDS, so the moment the id goes the deleted path stops being named
@@ -313,7 +317,11 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // there is nothing for it to register and its whole obligation is the Y1 own-child rule.
 // 'S8' is an S- id, so the shape assertion below admits it without a PM by-name ruling,
 // exactly as S3, S4, S5, S6 and S7 were admitted.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8']);
+// 'S9' is in for the same reason a sixth time: M2-S9-UI-PINS is a reseal whose product
+// delta is the accepted C-UI and carried-lane diff plus the two paths DECISIONS:536
+// releases, slice-plan work under DECISIONS:455 with no register D-id. It is an S- id, so
+// the shape assertion below admits it without a PM by-name ruling.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F-/S- id, which is the rule above stated as an assertion over this file's
 // own constants. Nothing an input can shape reaches it: both sets are fixed here (W7).
@@ -432,6 +440,30 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
 // a suite may be EXECUTED, that list says its output may be PRINTED, and this suite runs
 // over the owner's own import path.
   'rebuild/lanes/d/p3-port-fix/',
+// ---- S9's four stand at the END of this list, below S8's twentieth: a widening ADDS, it
+// never re-orders or edits what a previous seal pinned here (F7's own words).
+// M2-S9-UI-PINS ADDS FOUR, and every one of them is the same shape as S7's and S8's one:
+// a directory holding an accepted lane's own cells, which a declared child of this package
+// must be able to EXECUTE or CHILD-ARGV-TARGET refuses the child and the Y1 own-child
+// obligation is unreachable rather than merely unmet.
+//   rebuild/lanes/d/p3-layout-v2/ - DECISIONS:524 N1's two carried cells.
+//   rebuild/lanes/c/p3-today-hotfix/ - the S1 cell of DECISIONS:535.
+//   rebuild/lanes/c/passphrase-normalize/ - the three cells DECISIONS:543 (B) names, whose
+//     CI step that lane's R2 calls the guard that keeps every sealed bundle valid.
+//   rebuild/lanes/c/s9-today-carry/ - MEASURED, not taken from the spec, which does not
+//     list it (S9-RELEASE-SPEC E fact 3). The lane holds one cell, plan-sentence.test.mjs,
+//     and rebuild.yml gives it a CI home in the SAME STEP as the hotfix cell above
+//     ("C - Today's headline over an open proposal (S1) and the whole plan sentence (S2)").
+//     A declared child mirrors a CI step, so the child that runs the hotfix cell runs this
+//     one too, in one argv - and childArgv() judges EVERY target against this list, so
+//     without this root that child is refused on its second file. By the rule the spec
+//     itself applied to p3-today-hotfix, the two roots stand or fall together.
+// A FIFTH, rebuild/lanes/c/ui-port/, is NOT added in this round and the omission is
+// deliberate. C-UI-1 has not merged (DECISIONS:531 blocks its seal), the directory does
+// not exist on this branch, and F7 below asserts of every root that it "is a real
+// directory of this repository" - which is the rule that stops a root being added
+// speculatively. It is added with C-UI-1's bytes, in the single re-measure E.2 designs
+// the round around, together with its PUBLIC_TAIL_ROOTS entry.
 // M2-S8-REAL-SHAPE ADDS A TWENTIETH, rebuild/lanes/d/p3-real-shape/, and it is the same
 // shape as S7's nineteenth: the cells the accepted P3-REAL-SHAPE and P3-LAYOUT-V2 rounds
 // wrote stand there, they are this package's OWN lane cells, and MIN_OWN_CHILDREN = 1
@@ -442,7 +474,9 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
 // role:"new" under that rule. The root is NOT added to PUBLIC_TAIL_ROOTS below, for the
 // same reason p3-port-fix is not: a child root says a suite may be EXECUTED, that list
 // says its output may be PRINTED, and this suite runs over the owner's own import path.
-  'rebuild/lanes/d/p3-real-shape/'];
+  'rebuild/lanes/d/p3-real-shape/',
+  'rebuild/lanes/d/p3-layout-v2/', 'rebuild/lanes/c/p3-today-hotfix/',
+  'rebuild/lanes/c/passphrase-normalize/', 'rebuild/lanes/c/s9-today-carry/'];
 // S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS (DECISIONS:467 process note 2, ticket
 // CI-TODAY-CHILD-FLAKE). Narrower than CHILD_ROOTS above on purpose: CHILD_ROOTS is every
 // root ANY declared child of ANY B package may execute from, including
