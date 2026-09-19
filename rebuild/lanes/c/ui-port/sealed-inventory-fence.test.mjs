@@ -87,34 +87,105 @@ const idsOf = (src) => {
 const fsBytes = (p) => { try { return fs.readFileSync(p); } catch { return null; } };
 
 /* ------------------------------------------------------------------- THE FENCE.
-   RED COMMIT 1 OF 2. This is the fence D.2 was written against: it reads the sealed
-   inventory FROM THE WORKTREE, exactly as v1 of the spec said, and it has no
-   artifact-tamper check at all. Every row below runs against THIS, and row (6) is the
-   one that proves the shape is wrong: a branch that widens the released block in its
-   own worktree and then touches that path walks straight through. The commit after
-   this one replaces the body and nothing else. */
+   A function of (repository root, chain ref) and of nothing else, so the real row and
+   every throwaway fixture repository run the same code. It carries no hash and no path
+   list of its own, which is why it cannot go stale the way boundary.test.mjs did. */
 function fence(root, chainRef) {
-  const refusals = [];
-  const names = fs.readdirSync(path.join(root, ...SPEC_DIR.split("/").filter(Boolean)))
-    .map((n) => SPEC_DIR + n);
+  const out = (status, refusals, rest) => ({ status, refusals, artifactPath: null, artifactSha256: null, reason: null, touched: null, ...rest });
+  const no = (refusal, rest) => out("fail", [refusal], rest);
+
+  /* D.2, "what it does with no network": the ref is absent on a shallow clone, and the
+     cell FAILS rather than passing vacuously. rebuild.yml:35 sets fetch-depth: 0. */
+  try { git(root, ["rev-parse", "--verify", "--quiet", chainRef + "^{commit}"]); }
+  catch { return no("FENCE-CHAIN-REF-ABSENT " + chainRef); }
+
+  /* THE INVENTORY, OUT OF GIT AT THE CHAIN REF. The integer after "acceptance-s" and
+     the NUMERIC maximum of it, because a lexical walk puts s10 before s9 (R1 N9). */
   const cands = [];
-  for (const f of names) {
+  for (const f of gitLines(root, ["ls-tree", "--name-only", chainRef, SPEC_DIR])) {
     const m = /^rebuild\/m4\/spec\/acceptance-s(\d+)-[^/]*\.json$/.exec(f);
     if (m !== null) cands.push({ n: Number.parseInt(m[1], 10), path: f });
   }
+  if (cands.length === 0) return no("FENCE-NO-INVENTORY-AT-CHAIN-REF " + chainRef + ":" + SPEC_DIR);
   const top = Math.max(...cands.map((c) => c.n));
-  const artifactPath = cands.filter((c) => c.n === top)[0].path;
-  const bytes = fsBytes(path.join(root, ...artifactPath.split("/")));
-  const inv = JSON.parse(bytes.toString("utf8"));
+  const chosen = cands.filter((c) => c.n === top).map((c) => c.path).sort();
+  if (chosen.length > 1) return no("FENCE-AMBIGUOUS-INVENTORY " + chosen.join(" "));
+  const artifactPath = chosen[0];
+  const chainBytes = git(root, ["show", chainRef + ":" + artifactPath]);
+  const artifactSha256 = sha256(chainBytes);
+  const here = { artifactPath, artifactSha256 };
+  const inv = JSON.parse(chainBytes.toString("utf8"));
   const sealed = new Set([...Object.keys(inv.product || {}), ...Object.keys(inv.executionPins || {})]);
   const released = new Set(Object.keys(inv.released || {}));
+
+  /* THE DIFF, --name-status and not --name-only: the skip below needs the status letter
+     and a deletion counts as touching, so one diff serves both (R3 N3). A rename is
+     both a deletion of the old path and an addition of the new one. */
   const base = gitText(root, ["merge-base", chainRef, "HEAD"]).trim();
+  const touched = [];
   for (const line of gitLines(root, ["diff", "--name-status", base, "HEAD"])) {
     const parts = line.split("\t");
-    const p = parts[parts.length - 1];
-    if (sealed.has(p) && !released.has(p)) refusals.push("FENCE-SEALED-PATH-TOUCHED " + parts[0][0] + " " + p);
+    if (/^[RC]/.test(parts[0])) { touched.push({ status: "D", path: parts[1] }); touched.push({ status: "A", path: parts[2] }); }
+    else touched.push({ status: parts[0][0], path: parts[1] });
   }
-  return { status: refusals.length === 0 ? "pass" : "fail", refusals, artifactPath, artifactSha256: sha256(bytes), reason: null };
+
+  /* THE RESEAL-CHILD CLAIM, and its DEFAULT IS FAIL (R2 BLOCKING-A, PM-R4). */
+  const specRe = /^rebuild\/lanes\/b\/tooling\/packages\/([^/]+)\.json$/;
+  const added = touched.filter((t) => t.status === "A" && specRe.test(t.path));
+  if (added.length > 0) {
+    const bad = (n, why) => no("FENCE-RESEAL-CHILD-UNVERIFIED (" + n + ") " + why, here);
+    if (added.length !== 1)
+      return bad(1, "the diff adds " + added.length + " spec files at status A: " + added.map((t) => t.path).sort().join(" "));
+    const specPath = added[0].path;
+    const id = specRe.exec(specPath)[1];
+    let spec = null;
+    try { spec = JSON.parse(git(root, ["show", "HEAD:" + specPath]).toString("utf8")); } catch { spec = null; }
+    if (spec === null || typeof spec !== "object" || Array.isArray(spec))
+      return bad(1, specPath + " does not parse as a JSON object");
+    if (Object.keys(spec).sort().join(",") !== [...SPEC_KEYS].sort().join(","))
+      return bad(1, specPath + " is not the runner's own SPEC_KEYS key closure (b-package.cjs:1071)");
+
+    const parent = spec.parent === null || typeof spec.parent !== "object" ? {} : spec.parent;
+    const option = (Array.isArray(parent.options) ? parent.options : []).find((o) => o !== null && typeof o === "object" && o.id === parent.chosen) ?? null;
+    if (option === null) return bad(2, specPath + " names no parent option " + JSON.stringify(parent.chosen ?? null));
+    if (option.artifact !== artifactPath)
+      return bad(2, specPath + " binds parent artifact " + String(option.artifact) + "; the fence read " + artifactPath + " at " + chainRef);
+    if (option.sha256 !== artifactSha256)
+      return bad(2, specPath + " carries parent sha256 " + String(option.sha256).slice(0, 12) + "; the fence measures " + artifactSha256.slice(0, 12) + " over " + artifactPath + " at " + chainRef);
+
+    /* (3), with R3 N4's after-the-merge clause: absent from IDS at the chain ref (an
+       unmerged new child), OR present there AND the inventory the fence just read is
+       that child's own (it has merged, and the fence is reading what it sealed). */
+    /* MEASURED, and it is not what the spec's prose implies: the artifact's packageId is
+       the THEME name ("M2-S8-REAL-SHAPE") and its lanePackage is the id IDS and
+       packages/<ID>.json carry ("S8"). "That child's own" is therefore lanePackage. */
+    const mergedAlready = idsOf(git(root, ["show", chainRef + ":" + RUNNER]).toString("utf8")).includes(id);
+    if (mergedAlready && inv.lanePackage !== id)
+      return bad(3, id + " is already in IDS at " + chainRef + ", and the inventory there is lanePackage " + JSON.stringify(inv.lanePackage ?? null) + " rather than this child's own");
+
+    /* (4), THE ONLY CONDITION THAT COSTS ANYTHING: a sealed byte of b-package.cjs. */
+    if (!touched.some((t) => t.path === RUNNER))
+      return bad(4, "the diff does not touch " + RUNNER + ", the one runner hunk no reseal child can skip");
+    if (!idsOf(git(root, ["show", "HEAD:" + RUNNER]).toString("utf8")).includes(id))
+      return bad(4, id + " is not in IDS in this branch's own " + RUNNER);
+
+    if (typeof spec.sourceBase !== "string" || !ancestorOf(root, spec.sourceBase, "HEAD"))
+      return bad(5, "sourceBase " + JSON.stringify(spec.sourceBase ?? null) + " is not an ancestor of HEAD");
+
+    return out("skip", [], { ...here, touched: touched.length,
+      reason: "FENCE-RESEAL-CHILD " + id + " " + specPath + " stood aside on " + artifactPath + " " + artifactSha256 + " at " + chainRef });
+  }
+
+  const refusals = [];
+  /* THE ARTIFACT-TAMPER CHECK. A branch legitimately changing a sealed artifact is a
+     reseal child, which the claim above has already handled, so the two do not collide. */
+  const worktree = fsBytes(path.join(root, ...artifactPath.split("/")));
+  if (worktree === null || !worktree.equals(chainBytes))
+    refusals.push("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + artifactPath);
+  for (const t of touched)
+    if (sealed.has(t.path) && !released.has(t.path))
+      refusals.push("FENCE-SEALED-PATH-TOUCHED " + t.status + " " + t.path);
+  return out(refusals.length === 0 ? "pass" : "fail", refusals, { ...here, touched: touched.length });
 }
 
 /* ------------------------------------------------- throwaway repositories, ours alone.
@@ -147,8 +218,8 @@ function emptyRepo() {
 }
 
 const ZERO = "0".repeat(64);
-function inventory({ packageId = "M2-S8-FIXTURE", product = [], executionPins = [], released = null }) {
-  const obj = { version: 1, packageId, product: {}, executionPins: {} };
+function inventory({ packageId = "M2-S8-FIXTURE", lanePackage = "S8", product = [], executionPins = [], released = null }) {
+  const obj = { version: 1, packageId, lanePackage, product: {}, executionPins: {} };
   for (const p of product) obj.product[p] = { pre: ZERO, post: ZERO, role: "carried" };
   for (const p of executionPins) obj.executionPins[p] = ZERO;
   if (released !== null) {
@@ -166,10 +237,10 @@ const runnerStub = (ids) =>
 /* The chain: one commit carrying an inventory, a runner stub and every file the
    inventory pins, with the chain ref pointed at it. Nothing here is this repository. */
 function chain({ artifacts = null, product = [], executionPins = [], released = null,
-                 packageId = "M2-S8-FIXTURE", ids = ["S7", "S8"], free = [] } = {}) {
+                 packageId = "M2-S8-FIXTURE", lanePackage = "S8", ids = ["S7", "S8"], free = [] } = {}) {
   const root = emptyRepo();
   const set = artifacts === null
-    ? [["acceptance-s8-fixture.json", inventory({ packageId, product, executionPins, released })]]
+    ? [["acceptance-s8-fixture.json", inventory({ packageId, lanePackage, product, executionPins, released })]]
     : artifacts;
   for (const [name, body] of set) put(root, SPEC_DIR + name, body);
   put(root, RUNNER, runnerStub(ids));
@@ -192,7 +263,8 @@ function specFile({ packageId, parentId, artifact, sha256: s, sourceBase }) {
   const obj = {};
   for (const k of SPEC_KEYS) obj[k] = null;
   obj.version = 1;
-  obj.packageId = packageId;
+  obj.lanePackage = packageId;
+  obj.packageId = "M2-" + packageId + "-FIXTURE";
   obj.sourceBase = sourceBase;
   obj.parent = { decided: true, chosen: parentId,
     options: [{ id: parentId, artifact, sha256: s, review: SPEC_DIR + "review-fixture.json",
@@ -413,14 +485,39 @@ test("D.2 (8f) - a sourceBase that is not an ancestor of HEAD: condition (5)", (
   unverified(fence(root, CHAIN_REF), 5);
 });
 
-/* R3 N4, second half. Condition (3) requires the id to be ABSENT from IDS at the chain
-   ref, which stops being true the moment the child merges. Without the clause a later
-   push to the same lane branch would fail for a branch that had done nothing wrong. */
-test("D.2 (8g) - condition (3) after the merge: the id is in IDS at the chain ref and the inventory is the child's OWN, so it still SKIPS", () => {
-  const root = chain({ packageId: "S9", ids: ["S7", "S8", "S9"], product: [APP] });
-  child(root, { id: "S9", branchIds: ["S7", "S8", "S9"], alsoTouch: { [APP]: "a later push\n" } });
+/* R3 N4, second half, AND WHAT THE MEASUREMENT SAYS ABOUT IT. Condition (3) requires the
+   id to be ABSENT from IDS at the chain ref, which stops being true the moment the child
+   merges; without the clause a later push to the same lane branch would fail for a branch
+   that had done nothing wrong. This row builds that exact world: the branch is cut at A,
+   the chain then takes S9 by a commit that is not on the branch, so the merge-base is
+   still A and packages/S9.json is still at status A in the diff.
+
+   MEASURED, AND REPORTED TO THE PM RATHER THAN PAPERED OVER: the clause does what R3 N4
+   says of condition (3), and the branch is refused one condition earlier anyway, at (2).
+   A child's parent.chosen option names its PARENT's artifact by construction, and after
+   the merge the artifact the fence reads at the chain ref is the CHILD'S OWN, so those
+   two can never be the same path. Nothing here is softened to hide that: the row asserts
+   the refusal the fence as specified actually gives, and asserts that it is NOT (3),
+   which is the proof the clause is live rather than dead. If the PM wants the
+   after-the-merge case to skip, condition (2) needs the same second limb and that is a
+   spec change, not an author's edit. */
+test("D.2 (8g) - after the merge R3 N4's clause DOES satisfy condition (3), and condition (2) refuses anyway: measured", () => {
+  const root = chain({ product: [APP, CSS] });
+  const A = headOf(root);
+  child(root, { alsoTouch: { [APP]: "the reseal child's own edit\n" } });
+  /* the chain takes S9, on a line of its own, so the merge-base stays at A */
+  git(root, ["checkout", "-q", "-b", "chainline", A]);
+  put(root, RUNNER, runnerStub(["S7", "S8", "S9"]));
+  put(root, SPEC_DIR + "acceptance-s9-fixture.json",
+    inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9", product: [APP, CSS] }));
+  commit(root, "the chain takes S9");
+  git(root, ["update-ref", CHAIN_REF, "HEAD"]);
+  git(root, ["checkout", "-q", "main"]);
   const r = fence(root, CHAIN_REF);
-  assert.equal(r.status, "skip", names(r));
+  assert.equal(r.artifactPath, SPEC_DIR + "acceptance-s9-fixture.json", "the chain did not advance");
+  unverified(r, 2);
+  assert.ok(!r.refusals[0].startsWith("FENCE-RESEAL-CHILD-UNVERIFIED (3)"),
+    "the after-the-merge clause is dead code: " + names(r));
 });
 
 test("D.2 (8h) - an id already in IDS at the chain ref over SOMEBODY ELSE'S inventory: condition (3)", () => {
