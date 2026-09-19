@@ -73,14 +73,28 @@ function declaredSubSha(row) {
 function declaredRepSha(file, r) {
   return sha256(JSON.stringify([r.id, file, r.replacement]));
 }
+/* R2 F4. The two blocks R1 NOTE-1 left uncovered, and they are the two that carry the
+   MOST authored bytes: `product` (the banner, factory line and return block of each new
+   sealed file) and `compose` (the released half's own composition lines). R2 dropped
+   Object.freeze( from gym-settings-lane.mjs's read-only facade through the product block,
+   changed no source byte, and the cut wrote an UNFROZEN facade and exited 0. Same
+   canonical rule as above: identity plus every authored line, and nothing else.        */
+function declaredProdSha(dest, P) {
+  return sha256(JSON.stringify([dest, P.head || null, P.open || null, P.close || null]));
+}
+function declaredCompSha(file, w) {
+  return sha256(JSON.stringify([file, w.after || null, w.afterLines || null, w.at || null, w.insert || null]));
+}
 if (DECLARED_ONLY) {
   const witness = table.witness || { refs: [], regions: {}, movedLines: {} };
   const declared = { taken: TAKEN, note:
     "R1 NOTE-1. sha256 per substitution row and per replacement row, over [id, file, region, " +
     "from, to, kind] and [id, file, replacement]. TAMPER EVIDENCE over authored text, not an " +
     "independent oracle: re-taking it re-blesses, and the control is that re-taking it is a " +
-    "visible diff here, beside the row it blesses.",
-    substitutions: {}, replacements: {}, counts: { substitutions: 0, replacements: 0 } };
+    "visible diff here, beside the row it blesses. R2 F4 extends it to the `product` and " +
+    "`compose` blocks, over [dest, head, open, close] and [file, after, afterLines, at, insert].",
+    substitutions: {}, replacements: {}, products: {}, composes: {},
+    counts: { substitutions: 0, replacements: 0, products: 0, composes: 0 } };
   for (const row of (table.substitutions || [])) {
     declared.substitutions[row.id] = { sha256: declaredSubSha(row), file: row.file, region: row.region };
     declared.counts.substitutions += 1;
@@ -92,6 +106,16 @@ if (DECLARED_ONLY) {
       declared.counts.replacements += 1;
     }
   }
+  for (const [dest, P] of Object.entries(table.product || {})) {
+    declared.products[dest] = { sha256: declaredProdSha(dest, P),
+      headLines: (P.head || []).length, closeLines: (P.close || []).length };
+    declared.counts.products += 1;
+  }
+  for (const [file, w] of Object.entries(table.compose || {})) {
+    declared.composes[file] = { sha256: declaredCompSha(file, w),
+      afterLines: (w.afterLines || []).length, insertLines: (w.insert || []).length };
+    declared.counts.composes += 1;
+  }
   witness.declared = declared;
   table.witness = witness;
   console.log("DECLARED-TEXT WITNESS (R1 NOTE-1), taken " + TAKEN);
@@ -102,6 +126,16 @@ if (DECLARED_ONLY) {
   console.log("  replacement rows: " + declared.counts.replacements);
   for (const [id, w] of Object.entries(declared.replacements)) {
     console.log("    " + id.padEnd(8) + " " + w.file.padEnd(18) + " " + w.lines + " line(s)  " + w.sha256.slice(0, 16) + "...");
+  }
+  console.log("  product blocks (R2 F4): " + declared.counts.products);
+  for (const [dest, w] of Object.entries(declared.products)) {
+    console.log("    " + dest.padEnd(24) + " head " + String(w.headLines).padStart(3) +
+      " + close " + String(w.closeLines).padStart(3) + " authored line(s)  " + w.sha256.slice(0, 16) + "...");
+  }
+  console.log("  compose blocks (R2 F4): " + declared.counts.composes);
+  for (const [file, w] of Object.entries(declared.composes)) {
+    console.log("    " + file.padEnd(24) + " after " + String(w.afterLines).padStart(3) +
+      " + insert " + String(w.insertLines).padStart(3) + " authored line(s)  " + w.sha256.slice(0, 16) + "...");
   }
   if (WRITE) {
     fs.writeFileSync(REGIONS, JSON.stringify(table, null, 1) + "\n");

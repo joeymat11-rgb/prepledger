@@ -2398,7 +2398,7 @@
   },
   "declared": {
    "taken": "2026-09-19",
-   "note": "R1 NOTE-1. sha256 per substitution row and per replacement row, over [id, file, region, from, to, kind] and [id, file, replacement]. TAMPER EVIDENCE over authored text, not an independent oracle: re-taking it re-blesses, and the control is that re-taking it is a visible diff here, beside the row it blesses.",
+   "note": "R1 NOTE-1. sha256 per substitution row and per replacement row, over [id, file, region, from, to, kind] and [id, file, replacement]. TAMPER EVIDENCE over authored text, not an independent oracle: re-taking it re-blesses, and the control is that re-taking it is a visible diff here, beside the row it blesses. R2 F4 extends it to the `product` and `compose` blocks, over [dest, head, open, close] and [file, after, afterLines, at, insert].",
    "substitutions": {
     "W6a": {
      "sha256": "b161c89b450aa3da3ad248c4d7c3048f3752e7c6cea480f6ff35b41b53d15211",
@@ -2493,9 +2493,35 @@
      "lines": 7
     }
    },
+   "products": {
+    "today-readings.cjs": {
+     "sha256": "6f08e0cbce567caf06000f4327e5d4d9b150b257deb333d04a01592f59c46eff",
+     "headLines": 31,
+     "closeLines": 4
+    },
+    "gym-settings-lane.mjs": {
+     "sha256": "80e3e6609c5f75b0671e856f09d34a769a3aeb95b850c5c3f36ce6702b78a271",
+     "headLines": 31,
+     "closeLines": 22
+    }
+   },
+   "composes": {
+    "today-model.cjs": {
+     "sha256": "92ba35c93a9c8b2b2b1afa023fe842ceba80fc9c940bb13e680bf496d2ce98f3",
+     "afterLines": 5,
+     "insertLines": 13
+    },
+    "gym-app.mjs": {
+     "sha256": "df3372a11111e6e23fa3362a3afb9212ae1697b9a2014d31da5513e0cda45088",
+     "afterLines": 3,
+     "insertLines": 9
+    }
+   },
    "counts": {
     "substitutions": 7,
-    "replacements": 11
+    "replacements": 11,
+    "products": 2,
+    "composes": 2
    }
   }
  },

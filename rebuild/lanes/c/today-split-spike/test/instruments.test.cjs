@@ -459,3 +459,91 @@ test("RED R1 NOTE-1: a substitution row ADDED to the table is REFUSED by the rec
   assert.strictEqual(r.status, 1, "A NEW SUBSTITUTION ROW REACHED A PRODUCT FILE UNWITNESSED. " + r.stdout);
   assert.match(r.stderr, /the table declares 8 substitution rows; the declared-text witness records 7/);
 });
+
+/* ---- R2 F4: the PRODUCT and COMPOSE blocks are witnessed the same way ------------------
+ * R1 NOTE-1 closed the silent path through a substitution's `to`. R2 drove a line through
+ * the block beside it: it dropped `Object.freeze(` from gym-settings-lane.mjs's read-only
+ * facade in regions.json's `product` block, changed no source byte, and the cut wrote an
+ * UNFROZEN facade and exited 0. Those two blocks carry more authored bytes than every
+ * substitution row put together, and part 2's interface over 679 moved lines puts the same
+ * hole on a much larger surface. The rows below are R2's own attack and its twin.        */
+
+test("R2 F4: the declared-text witness covers every product block and every compose block", () => {
+  const D = table.witness.declared;
+  assert.ok(D, "regions.json carries no declared-text witness block");
+  const prods = Object.keys(table.product || {});
+  const comps = Object.keys(table.compose || {});
+  assert.strictEqual(D.counts.products, prods.length, "product block count");
+  assert.strictEqual(D.counts.composes, comps.length, "compose block count");
+  for (const dest of prods) {
+    assert.match(String((D.products[dest] || {}).sha256), /^[0-9a-f]{64}$/, dest);
+  }
+  for (const file of comps) {
+    assert.match(String((D.composes[file] || {}).sha256), /^[0-9a-f]{64}$/, file);
+  }
+});
+
+test("RED R2 F4: dropping Object.freeze from the read-only facade in the product block is REFUSED by name", () => {
+  const tree = tmpTree();
+  const bad = JSON.parse(JSON.stringify(table));
+  const P = bad.product["gym-settings-lane.mjs"];
+  assert.ok(P && Array.isArray(P.close), "no product block for gym-settings-lane.mjs");
+  const i = P.close.findIndex((l) => /facade: Object\.freeze\(\{/.test(l));
+  assert.ok(i >= 0, "the read-only facade line is not in the product block any more");
+  /* R2's attack, verbatim. */
+  P.close[i] = P.close[i].replace("Object.freeze({", "({");
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf, "--product", "--only", "gym-app.mjs"]);
+  assert.strictEqual(r.status, 1, "THE CUT WROTE AN UNFROZEN READ-ONLY FACADE AND EXITED 0. " +
+    "That is R2 F4 exactly. " + r.stdout);
+  assert.match(r.stderr, /REFUSED: product block gym-settings-lane\.mjs: DECLARED TEXT DOES NOT MATCH THE WITNESS/);
+  assert.ok(!fs.existsSync(path.join(tree, "..", "nope")), "no output was written");
+});
+
+test("RED R2 F4: a compose line rewritten so the released half composes the seal differently is REFUSED by name", () => {
+  const tree = tmpTree();
+  const bad = JSON.parse(JSON.stringify(table));
+  const w = bad.compose["today-model.cjs"];
+  assert.ok(w && Array.isArray(w.insert), "no compose block for today-model.cjs");
+  const i = w.insert.findIndex((l) => l.indexOf("setMessage:") >= 0);
+  assert.ok(i >= 0, "the setMessage injection is not in the compose block any more");
+  /* The one road by which the seal sets the released lastMessage, silently cut. */
+  w.insert[i] = w.insert[i].replace("setMessage: (m) => { lastMessage = m; }", "setMessage: () => {}");
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf, "--product", "--only", "today-model.cjs"]);
+  assert.strictEqual(r.status, 1, "THE CUT WROTE A RELEASED HALF THAT NEVER HEARS THE SEAL'S " +
+    "REFUSALS AND EXITED 0. " + r.stdout);
+  assert.match(r.stderr, /REFUSED: compose block today-model\.cjs: DECLARED TEXT DOES NOT MATCH THE WITNESS/);
+});
+
+test("RED R2 F4: a product block ADDED to the table is REFUSED, by name and then by the recorded count", () => {
+  const tree = tmpTree();
+  const planted = { why: "planted", head: ['"use strict";'],
+    open: "function createPlanted() {", close: ["}"] };
+  /* (a) with no witness of its own, it is refused BY NAME. */
+  const bad = JSON.parse(JSON.stringify(table));
+  bad.product["planted-lane.cjs"] = JSON.parse(JSON.stringify(planted));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-"));
+  const rf = path.join(dir, "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf]);
+  assert.strictEqual(r.status, 1, "A NEW PRODUCT BLOCK REACHED THE TABLE UNWITNESSED. " + r.stdout);
+  assert.match(r.stderr, /REFUSED: product block planted-lane\.cjs: NO DECLARED WITNESS/);
+  /* (b) and with a CORRECT digest forged for it - the attacker computing the block's own
+     sha256 the way the generator would - the RECORDED COUNT still refuses it, so adding a
+     digest beside a new block cannot smuggle it in without re-taking the counts, which is
+     a visible diff in regions.json. */
+  const worse = JSON.parse(JSON.stringify(bad));
+  const crypto = require("crypto");
+  const sha = crypto.createHash("sha256").update(JSON.stringify(
+    ["planted-lane.cjs", planted.head, planted.open, planted.close]), "utf8").digest("hex");
+  worse.witness.declared.products["planted-lane.cjs"] =
+    { sha256: sha, headLines: 1, closeLines: 1 };
+  const rf2 = path.join(dir, "regions-2.json");
+  fs.writeFileSync(rf2, JSON.stringify(worse));
+  const r2 = runCut(tree, ["--regions", rf2]);
+  assert.strictEqual(r2.status, 1, r2.stdout);
+  assert.match(r2.stderr, /the table declares 3 product blocks; the declared-text witness records 2/);
+});
