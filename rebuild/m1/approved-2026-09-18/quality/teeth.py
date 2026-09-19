@@ -245,9 +245,31 @@ def mut_q2(work):
 
 
 def mut_q3(work):
-    # U+2015 HORIZONTAL BAR: a dash the old two character list did not name
+    # U+2015 HORIZONTAL BAR, which the old two character list did not name, and U+2043 HYPHEN
+    # BULLET, which Unicode files under Po so the category rule cannot reach it either
     sub(work, 'app/app.html', 'Upper body today. One change to review.',
-        'Upper body today \u2015 one change to review.')
+        'Upper body today \u2015 one\u2043change to review.')
+
+
+def mut_q9(work):
+    # the spaced hyphen drawn with a no break space on each side: the screen reads it as the
+    # plain spaced hyphen, and so must the rule
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Upper body today\u00a0-\u00a0one change to review.')
+
+
+def mut_q10(work):
+    # a visible, focusable 274 by 20 box carrying a clip that its own positioning makes inert:
+    # clip applies to an absolutely or fixed positioned element and to nothing else
+    sub(work, 'app/app.html', '<div class="title">Eat about 2,300 kcal today.</div>',
+        '<div class="title" tabindex="0" style="height:20px;clip:rect(0 0 0 0)">'
+        'Eat about 2,300 kcal today.</div>')
+
+
+def mut_q11(work):
+    # a numeric range written with a minus sign, which is a dash and not a negative number
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Upper body today. Do 3\u22125 sets.')
 
 
 def mut_q8(work):
@@ -385,8 +407,14 @@ ROWS = [
      dict(exit=2, stdout=['REFUSED', '--sizes 390x844', 'the sizes are'])),
     ('q2', 'a word off the owner\'s list split by a soft hyphen', mut_q2, GATE_TODAY,
      dict(exit=1, fails=[(COPY_CHECK, 'U+00AD'), (COPY_CHECK, "'ready'")])),
-    ('q3', 'a horizontal bar, a dash the old list did not name', mut_q3, GATE_TODAY,
-     dict(exit=1, fails=[(COPY_CHECK, repr('\u2015'))])),
+    ('q3', 'a horizontal bar and a hyphen bullet, two dashes the old list missed', mut_q3, GATE_TODAY,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2015')), (COPY_CHECK, repr('\u2043'))])),
+    ('q9', 'a spaced hyphen whose two spaces are no break spaces', mut_q9, GATE_TODAY,
+     dict(exit=1, fails=[(COPY_CHECK, repr(' - '))])),
+    ('q10', 'a visible 20 px target carrying a clip its positioning makes inert', mut_q10, GATE_TODAY,
+     dict(exit=1, fails=[('touch targets >= 44 px', '274x20.00')])),
+    ('q11', 'a numeric range written with a minus sign', mut_q11, GATE_TODAY,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
     ('q4', 'primary text tagged muted and painted with the muted token', mut_q4, SHEET_T02,
      dict(exit=1, stdout=['T-02', 'colour', 'became', 'colour moved (levels)'])),
     ('q8', 'a minus sign doing a dash\'s job in Today\'s status sentence', mut_q8, GATE_TODAY,

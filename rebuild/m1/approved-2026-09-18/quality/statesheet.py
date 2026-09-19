@@ -417,6 +417,10 @@ async def main():
                 n0 = len(errs)
                 try:
                     await render_one(pg, st, t, n0, errs, rows, worst, cross, pending)
+                except Refused:
+                    # a refusal is one line and exit 2 by contract, never a problem row: the guard
+                    # below is for a state that throws, not for a run that cannot run at all
+                    raise
                 except Exception as e:
                     # one state that throws must not end the run with no report: gate.py already
                     # records a failing element rather than crashing, and the sheet does now too

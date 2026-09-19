@@ -16,28 +16,51 @@ VENDORS = ['openai', 'anthropic', 'claude', 'gpt', 'gemini', 'chatgpt', 'whisper
 # This one reads the raw string: a set string broken up by an invisible character is caught by the
 # format character sweep below, which has no honest case to weigh against it.
 SET_LETTER_X = re.compile(r'\d\s*[xX]\s*\d')
-NO_BREAK_SPACES = '\u00a0\u202f\u2007\u2060'
+# U+2060 WORD JOINER is a format character rather than a space separator, so the category test in
+# fold_spaces does not reach it, and it sits between two words the way a space does.
+SPACE_JOINERS = '\u2060'
 MINUS_SIGN = '\u2212'
+# U+2043 HYPHEN BULLET and U+2053 SWUNG DASH draw the same stroke as a dash, and Unicode files them
+# under Po, other punctuation, so the category rule cannot reach them. They are the two neighbours
+# the category leaves out, named here rather than left to it.
+EXTRA_DASHES = '\u2043\u2053'
 
 
 def is_dash(ch):
     """A dash for this rule is every character Unicode files under the dash punctuation category,
-    except the plain hyphen U+002D, which the spaced hyphen rule governs instead.
+    except the plain hyphen U+002D, which the spaced hyphen rule governs instead, and the two
+    characters Unicode files under Po that draw the same stroke, U+2043 and U+2053.
 
     Naming U+2013 and U+2014 was a list of two where the category is a list of two dozen: U+2010
     HYPHEN, U+2012 FIGURE DASH, U+2015 HORIZONTAL BAR and the rest all draw the same stroke the
     owner ruled out, and a port that pasted one of them passed.
     """
-    return ch != '-' and unicodedata.category(ch) == 'Pd'
+    return ch != '-' and (unicodedata.category(ch) == 'Pd' or ch in EXTRA_DASHES)
+
+
+def fold_spaces(text):
+    """Every space a reader sees as a space, written as one.
+
+    Unicode files a dozen characters under Zs, space separator, and each of them is drawn as a
+    space and read as a space: U+00A0, U+2007, U+2009, U+202F, U+3000 and the rest. A rule that
+    tests for an ordinary space misses every one of them, which is how a hyphen with a no break
+    space on each side walked through the sweep that names it. One helper, used by the spaced
+    hyphen test, the minus sign rule and the word and vendor sweeps, so the two gates cannot
+    drift and no one rule reads a different string from the others.
+    """
+    return ''.join(' ' if (c in SPACE_JOINERS or unicodedata.category(c) == 'Zs') else c
+                   for c in text)
 
 
 def minus_problems(text):
     """U+2212 MINUS SIGN where it is doing a dash's job.
 
     The character is filed as a maths symbol rather than as punctuation, so the dash category does
-    not reach it, and it has two honest uses that a flat ban would refuse. It is a minus sign when
-    a digit directly follows it, and it is a control's label when it is the whole of its own line
-    in the swept string, which is how the decrement button beside a set's load reads
+    not reach it, and it has two honest uses that a flat ban would refuse. It is a minus sign in front of
+    a negative number, which means a digit directly follows it AND the nearest character before it
+    that is not a space is not a digit; the start of the line counts as not a digit, and a digit on
+    each side is a range, which is a dash. It is a control's label when it is the whole of its own
+    line in the swept string, which is how the decrement button beside a set's load reads
     (app/states.js:113 and app/states-workout.js:270 draw the pair "minus" and "plus" around
     "50 lb"). Measured on the prototype: sweeping it flatly made the state sheet
     "418 renders, 2 with problems", W-18 ink and W-18 dawn, exit 1, on that button alone, and the
@@ -47,7 +70,9 @@ def minus_problems(text):
         if line.strip() == MINUS_SIGN:
             continue
         for m in re.finditer(MINUS_SIGN, line):
-            if not line[m.end():m.end() + 1].isdigit():
+            before = line[:m.start()].rstrip(' ')
+            negative = line[m.end():m.end() + 1].isdigit() and not before[-1:].isdigit()
+            if not negative:
                 return [MINUS_SIGN]
     return []
 
@@ -62,8 +87,7 @@ def sweep_form(text):
     letter onto the letter) and casefolded. The format characters are a problem in their own
     right, reported by copy_problems, because interface copy has no honest use for one.
     """
-    kept = ''.join(' ' if c in NO_BREAK_SPACES else c
-                   for c in text if unicodedata.category(c) != 'Cf')
+    kept = ''.join(c for c in fold_spaces(text) if unicodedata.category(c) != 'Cf')
     return unicodedata.normalize('NFKC', kept).casefold()
 
 
@@ -75,9 +99,12 @@ def copy_problems(text):
     which is backslash b, so "Ready to train" matches and "already" does not. The earlier form
     doubled the backslash and could never match anything.
     """
-    bad = [SPACED_HYPHEN] if SPACED_HYPHEN in text else []
+    # the spaced hyphen is tested on the folded string, not the raw one: the screen reads a no
+    # break space as a space, and so must the rule (review R4 B1)
+    folded = fold_spaces(text)
+    bad = [SPACED_HYPHEN] if SPACED_HYPHEN in folded else []
     bad += sorted({c for c in text if is_dash(c)})
-    bad += minus_problems(text)
+    bad += minus_problems(folded)
     bad += sorted({f'U+{ord(c):04X}' for c in text if unicodedata.category(c) == 'Cf'})
     low = sweep_form(text)
     bad += [w for w in READINESS if re.search(r'\b' + w + r'\b', low)]
@@ -132,12 +159,20 @@ TAPPABLE_SELECTOR = ', '.join(
     + TAPPABLE_CLASSES)
 TARGET_PX = 44
 # One surface the walk must not count. app/app.css:150 hides a label from sight for assistive
-# technology alone, by clipping its box to nothing ("clip: rect(0 0 0 0)"), and app/app.html:43
-# draws the weight field's label that way. Nobody can see it or aim at it, and the control it
-# labels is the target, measured on its own. Anything else 1 px wide is still a failing target:
-# only a clip that leaves no area is skipped, never a small box.
+# technology alone: it takes the box out of the flow with "position: absolute" and then clips it to
+# nothing with "clip: rect(0 0 0 0)", and app/app.html:43 draws the weight field's label that way.
+# Nobody can see it or aim at it, and the control it labels is the target, measured on its own.
+#
+# BOTH conditions are required. "clip" applies to an absolutely or fixed positioned element and to
+# nothing else: on any other element the computed value is still the declared rect while the box is
+# drawn in full, so reading the clip alone hid a visible, focusable 274 by 20 box from the 44 px
+# rule (review R4 B2). A small box is still a failing target, and so is a box carrying a clip that
+# its own positioning makes inert.
 JS_CLIPPED_AWAY = """
-    const __clippedAway=e=>{const c=(getComputedStyle(e).clip||'auto').trim();
+    const __clippedAway=e=>{const cs=getComputedStyle(e);
+      const p=cs.position;
+      if(p!=='absolute'&&p!=='fixed')return false;
+      const c=(cs.clip||'auto').trim();
       if(c==='auto'||c==='')return false;
       const m=c.match(/-?[\\d.]+/g);
       if(!m||m.length<4)return false;

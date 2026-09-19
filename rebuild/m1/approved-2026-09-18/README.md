@@ -271,8 +271,10 @@ an effective `opacity` of 0 walked up the ancestors, a rect with no area or whol
 viewport, a `clip-path: inset()` that leaves no area, and a `text-indent` at or below minus 1000
 px. That list names the mechanisms the gates check, not every way a line can be hidden. The
 legacy `clip` property is not on it, and one place reads it: the touch target walk skips a box
-clipped to nothing that way, because the pack hides an assistive label at `app/app.css:150` and
-nobody can aim a finger at it. That is the target walk alone. The record and the copy sweeps
+that is positioned `absolute` or `fixed` AND clipped to nothing that way, because the pack hides
+an assistive label at `app/app.css:150` with exactly that pair and nobody can aim a finger at it.
+Both conditions are required, because `clip` has no effect on an element that is not positioned:
+its computed value is still the declared rect while the box is drawn in full. That is the target walk alone. The record and the copy sweeps
 still hold such an element, which is right: its text is read aloud, so it is interface copy.
 
 The lower tier is read from the pack's own stylesheets, not guessed: the element's computed
@@ -347,16 +349,22 @@ self-accepts. The builder's cells pin every copy string they move.
   computed value still carries the call and the number on the screen is not available to the
   gate, so a check of its own, "generated content the sweep cannot read", FAILs on it rather than
   letting it pass unswept. On the swept string:
-  every character of Unicode category Pd except the plain hyphen U+002D, plus a hyphen with a
-  space each side, as plain substrings; every character of Unicode category Cf, named by its code
+  every character of Unicode category Pd except the plain hyphen U+002D, and the two characters
+  Unicode files under Po that draw the same stroke, U+2043 HYPHEN BULLET and U+2053 SWUNG DASH;
+  a hyphen with a space each side, tested on a string in which every character of Unicode category
+  Zs (U+00A0, U+2007, U+2009, U+202F, U+3000 and the rest) and U+2060 has been folded to an
+  ordinary space, because the screen reads all of them as a space; every character of Unicode category Cf, named by its code
   point, because a soft hyphen or a zero width space inside a word is drawn as nothing and
   interface copy has no honest use for one; then, on the string with those removed, NFKC
   normalised and casefolded, each word of the owner's
   word list as `re.search(r'\b' + word + r'\b', text)` (a real word boundary, so "Ready
   to train" matches and "already" does not), and each vendor name as a plain substring. U+2212
   MINUS SIGN is filed as a maths symbol rather than as punctuation, so it is swept by a rule of
-  its own: it fails unless a digit directly follows it, or it is the whole of its own line in the
-  swept string, which is a control whose entire label is the sign. The prototype draws exactly
+  its own: it fails unless it is the sign of a negative number, which means a digit directly
+  follows it and the nearest character before it that is not a space is not a digit (the start of
+  the line counts as not a digit, so a digit on each side is a range, which is a dash), or it is
+  the whole of its own line in the swept string, which is a control whose entire label is the
+  sign. The prototype draws exactly
   that on a set's decrement button (`app/states.js:113`, `app/states-workout.js:270`); sweeping
   the character flatly made the state sheet `418 renders, 2 with problems` on W-18 alone, which
   is the measurement that shaped the rule. The one sweep that matters most had been written `r'\\b'`, which is a literal
