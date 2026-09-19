@@ -2,7 +2,7 @@
  "version": 1,
  "lanePackage": "C-UI-0",
  "packageId": "C-UI-0-GATES-WITH-TEETH",
- "status": "PROPOSED, revised for reviews R1 to R4",
+ "status": "PROPOSED, revised for reviews R1 to R5",
  "reviews": [
   {
    "round": "R1",
@@ -31,6 +31,13 @@
    "sha256": "117af4df5dcd1b984e866e2f2d636c36647c4f78a8795cfe6a6f90efc448cb80",
    "verdict": "REJECT, 2 blocking, 4 should fix",
    "addressed": "B1 the spaced hyphen escaped when its two spaces were no break spaces, because the test read the raw string while the word sweeps read the folded one. Reproduced: copy_problems returned [] for U+00A0, U+202F, U+2007, U+2009 and U+3000 and the plain form for an ordinary space. common.fold_spaces now folds every character of Unicode category Zs and U+2060 to an ordinary space, in one shared helper that the spaced hyphen test, the minus sign rule and the word and vendor sweeps all read; all six forms fail now. Teeth row q9. B2 a clip with no visual effect hid a visible target, because clip applies to an absolutely or fixed positioned element and to nothing else. Reproduced with the reviewer's mutation: a visible focusable 274 by 20 title carrying clip: rect(0 0 0 0) gave \"2 FAIL, 0 WARN, 58 PASS\", both rows regression, no target row. The walk now requires position absolute or fixed AND a clip with no area; the same scratch copy then gave \"4 FAIL, 0 WARN, 56 PASS\" with \"touch targets >= 44 px  title 274x20.00\" in both themes, and the assistive label at app/app.html:43, which is positioned, is still skipped. Teeth row q10. SHOULD FIX 1 the minus sign arm narrowed to a negative number: a digit after the sign and no digit before it once spaces are folded. A range fails, \"-5 lb\" passes, W-18's button label passes. Teeth row q11. SHOULD FIX 2 U+2043 and U+2053, which Unicode files under Po, are named in common.EXTRA_DASHES, README section 4 and STANDARD.md, and row q3 carries a U+2043 beside its U+2015. SHOULD FIX 3 the r3 object's digests are labelled as of f543489 in the key name and the note. SHOULD FIX 4 render_one's caller re-raises Refused, so a refusal stays one line and exit 2; changed by reading, as the reviewer had it."
+  },
+  {
+   "round": "R5",
+   "file": "rebuild/lanes/c/ui-port/reviews/C-UI-0-review-R5.md",
+   "sha256": "464f3012ac5ae4aba0269e8093cdec21b138b7c7b22a1548f9cde362fe13d644",
+   "verdict": "ACCEPT WITH NOTES, 0 blocking, 2 should fix",
+   "addressed": "1 a minus sign pressed against a letter passed (\"Upper body<minus>5 today\" returned []). The negative number arm now also requires the character directly before the sign to be a space, the start of the line or an opening bracket. That case fails now, while \"<minus>5 lb\", \"(<minus>5)\", \"[<minus>5]\", \"down to <minus>5 lb\" and W-18's lone button label still pass and the range still fails. Teeth row q11 carries the range and the letter in one sentence. 2 fold_spaces folded category Zs and nothing else, so a tab, U+2028, U+2029 and U+000B each side of a hyphen all passed. It folds every character Python's str.isspace() calls whitespace now, except the newlines that separate the swept string's lines, which are kept so the minus rule can still read a line holding nothing but the sign, plus U+2060. All of those forms fail now and the lone label still passes. Teeth row q9 carries a tab on one side and a no break space on the other, so it fires only if both were folded. README section 4 and STANDARD.md section 13 state both rules in those words."
   }
  ],
  "filed": "2026-09-18",
@@ -46,10 +53,12 @@
  "branch": "rebuild/c-ui-0-gates",
  "sourceBase": "e0a6c8ef2b2c7421ca8deb64ade1a7ed7f4de688",
  "head": {
-  "commit": "894bb4068f30f66699b635c1d942e322bd9e4ae4",
+  "commit": "4bfa16062ead9cd2a8bba860b5f6701ad00cbb24",
   "note": "the commit this package was written at; the commit that adds the package is its child, so HEAD after it is one ahead of this value by construction"
  },
  "commits": [
+  "4bfa160 C-UI-0 R5 notes: a negative number is opened by a space or a bracket, and every whitespace folds",
+  "50fea4a C-UI-0: review R5 (ACCEPT WITH NOTES, 0 blocking)",
   "894bb40 C-UI-0 R4 fix: the spaced hyphen reads every space, and an inert clip no longer hides a target",
   "18c3b63 C-UI-0: review R4 (REJECT, 2 blocking)",
   "8c117f3 C-UI-0 R3 notes: the minus sign is swept by a rule that knows a button label from a dash",
@@ -112,15 +121,15 @@
    "role": "edited in R3: line 202, the .link rule, gains \"min-width: var(--hit);\" (the locked object above says why)"
   },
   "rebuild/m1/approved-2026-09-18/README.md": {
-   "sha256": "5d5b7a9a971aef5be3830f251f38ce679f0a5ea2258fb0e69af74fbc6972b21a",
+   "sha256": "d420f0728b63cf43c8f223df68422d04eb0301eaf500b61335d9ac1155a2446a",
    "role": "edited: sections 1, 3 (with 3.1), 4 and 7; 3.1 rewritten in R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": {
-   "sha256": "3f3f4489c61bfe2c774fa081ae801c5cec5e1a25fe6c44371b9c857d83c351b7",
+   "sha256": "e3d539cc4b958e08288a13e1896103834ec20e7f8239aa58885d5ce29fc6ef38",
    "role": "edited: every gate tag names its check, section 7 item 5, section 13; the launch list and the record halves added in R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/common.py": {
-   "sha256": "ce6c6a04f8e8f89975a56ecc9b6bb564ee91f7fd24534bf879b712eeb34dcbf5",
+   "sha256": "34d7e18690f1178b31f32d1c46643797d10f8df2b2f384a2ece29126327e9eae",
    "role": "added: what the three gates share; in R3 the launch list, playwright_version() and env_text()"
   },
   "rebuild/m1/approved-2026-09-18/quality/gate.py": {
@@ -136,7 +145,7 @@
    "role": "edited: the review sheet"
   },
   "rebuild/m1/approved-2026-09-18/quality/teeth.py": {
-   "sha256": "c3af5f4bfe8c1baa1a7326dc67c155f5685aff7d566458368bbace8b43c5d97e",
+   "sha256": "659eef1f071cb8c3136430c4dfbf8623b531ceb458db854728b1824bd29d5771",
    "role": "added: the executable mutation list; 33 rows after R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": {
@@ -242,9 +251,9 @@
   },
   "teeth": {
    "command": "python quality/teeth.py",
-   "summary": "TEETH: 46 rows, 0 disagreeing, 1024 s",
+   "summary": "TEETH: 46 rows, 0 disagreeing, 1021 s",
    "exit": 0,
-   "seconds": 1024
+   "seconds": 1021
   },
   "phoneSheet": {
    "command": "python quality/phonesheet.py --state T-14",
@@ -252,7 +261,13 @@
    "exit": 0,
    "seconds": 7
   },
-  "against": "the shared records as the lane lead wrote them on the owner's PC at 84512ce, each rect to two decimals"
+  "against": "the shared records as the lane lead wrote them on the owner's PC at 84512ce, each rect to two decimals",
+  "stateSheetNarrow": {
+   "command": "python quality/statesheet.py --only T-0 and --only W-1",
+   "summary": "16 renders, 0 with problems and 20 renders, 0 with problems, W-18 included",
+   "exit": 0,
+   "why": "the R5 notes touch copy_problems, which the sheet reads, and nothing the records hold. The full sheet was last run at 64a9e09: 418 renders, 0 with problems, exit 0, 910 s here, and 418 renders, 0 with problems, exit 0, 514 s by the lane lead on the owner's PC."
+  }
  },
  "tolerances": {
   "regression": "The gate fails a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels.",
@@ -261,7 +276,7 @@
   "whereQuoted": "each sentence appears in the same words in the code and in README section 3.1"
  },
  "teethTable": [
-  "TEETH: 46 rows, 0 disagreeing, 1024 s",
+  "TEETH: 46 rows, 0 disagreeing, 1021 s",
   "row   mutation                                                   verdict      note",
   "a     an em dash in Today's status sentence                      as expected",
   "b1    a word from the owner's word list in a card title          as expected",
@@ -302,9 +317,9 @@
   "q1    a size the gate does not know, which used to empty the lis as expected",
   "q2    a word off the owner's list split by a soft hyphen         as expected",
   "q3    a horizontal bar and a hyphen bullet, two dashes the old l as expected",
-  "q9    a spaced hyphen whose two spaces are no break spaces       as expected",
+  "q9    a spaced hyphen whose two spaces are a tab and a no break  as expected",
   "q10   a visible 20 px target carrying a clip its positioning mak as expected",
-  "q11   a numeric range written with a minus sign                  as expected",
+  "q11   a minus sign as a range and pressed against a letter       as expected",
   "q4    primary text tagged muted and painted with the muted token as expected",
   "q8    a minus sign doing a dash's job in Today's status sentence as expected",
   "q5    one state whose apply throws                               as expected",
@@ -617,7 +632,30 @@
     "exit": 0
    },
    "note": "the lane lead re-runs these on the final head of this round and appends them"
-  }
+  },
+  "finalTreeAt64a9e09": {
+   "what": "the lane lead's runs on the owner's PC on the real tree at 64a9e09, 2026-09-19 12:39 to 13:03 ET (Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34)",
+   "gate": {
+    "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
+    "exit": 0,
+    "seconds": 89
+   },
+   "stateSheet": {
+    "summary": "STATE SHEET: 418 renders, 0 with problems",
+    "exit": 0,
+    "seconds": 514,
+    "worstMeasured": "none measured: nothing moved in 418 renders; advisory, this run against the linux thumbnails, thumbnail mean shift 1.26 of 2.00 C-63 ink"
+   },
+   "teeth": {
+    "summary": "TEETH: 46 rows, 0 disagreeing, 776 s",
+    "exit": 0
+   },
+   "phoneSheet": {
+    "summary": "python quality/phonesheet.py --state T-14 ran",
+    "exit": 0
+   }
+  },
+  "finalHead": "the lane lead re-runs the four gates on this round's final head on the owner's PC and states those numbers in the PR-READY line and in rebuild/lanes/STATUS.md, so the package does not need another commit after this one"
  },
  "r3notes": {
   "round": "R3 notes, phases A and B",
