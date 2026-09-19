@@ -169,12 +169,23 @@ test('P3-B2 - the accepted page bundler BUILDS the admission graph: no computed 
        import so the three cannot disagree. It is reached here only through
        source-admission.mjs, so it is route-only and the Today boot count does
        not move. RE-MEASURED on this tree rather than summed: 142. */
-    assert.equal(withAdmission.inventory.length, 142,
+    /* PASSPHRASE-NORMALIZE (lane C, DECISIONS:520) is the SIXTH ticket to move
+       it, by ONE: rebuild/m3/setup/port/passphrase.cjs, the one canonical form
+       of the six words, which unseal.cjs on the PC and import-bundle.mjs on the
+       phone now BOTH read instead of each folding on its own. It is the second
+       module after B-LOM's to land on the BOOT side rather than in the route:
+       import-bundle.mjs is reached from local-client.mjs, which today-bindings
+       reaches on boot, so the Today boot graph moves 122 -> 123 and the
+       route-only set is UNMOVED at 19 (P3-B4's deepEqual below still holds name
+       for name). It is pure, imports nothing at all, brings no forbidden name
+       and adds no leaf. RE-MEASURED on this tree rather than summed: 143. */
+    assert.equal(withAdmission.inventory.length, 143,
       'the Import graph is ' + withAdmission.inventory.length + ' modules, not the '
-      + 'measured 142 (the brief\'s 133, the F7 family\'s one, the F8 family and '
+      + 'measured 143 (the brief\'s 133, the F7 family\'s one, the F8 family and '
       + 'the shared-class router\'s two, the route\'s own four, B-LOM\'s '
-      + 'order-mapping provider, and P3-REAL-SHAPE\'s lift-correspondence '
-      + 'helper): re-measure and say so');
+      + 'order-mapping provider, P3-REAL-SHAPE\'s lift-correspondence '
+      + 'helper, and PASSPHRASE-NORMALIZE\'s shared passphrase form): '
+      + 're-measure and say so');
     assert.ok(paths.includes('rebuild/m4/workout/legacy-order-mapping.cjs'),
       'B-LOM\'s order-mapping provider is not in this graph at all');
     /* AND THE DELTA, which P3-REPLAY-MEASURE-FAMILY asserted (at 13) in its own
@@ -362,10 +373,20 @@ test('P3-B5 - A1 BUILDS with the new law, and what the Import route costs the '
      sentence B-LOM broke holds again for this ticket - every module it added
      went to the ROUTE. The delta is therefore 20, which is 19 route modules
      plus B-LOM's one boot module. */
+  /* RE-MEASURED AGAIN WITH PASSPHRASE-NORMALIZE (DECISIONS:520), and it is the
+     SECOND ticket to move the Today boot graph rather than the route, so that is
+     said out loud here too: rebuild/m3/setup/port/passphrase.cjs is reached from
+     import-bundle.mjs, which local-client.mjs reaches and today-bindings.mjs
+     reaches on boot. The boot graph goes 122 -> 123, the route-only set is
+     UNMOVED at 19, and the delta is therefore 21: 19 route modules plus TWO boot
+     modules, B-LOM's order mapping and this one. The figure that still means
+     "what the Import route costs the page" is the 19 of P3-B4 and the byte
+     accounting above it, not this subtraction. */
   const BASE_PINNED_INPUTS = 121;
-  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 20,
+  assert.equal(today.inventory.length - BASE_PINNED_INPUTS, 21,
     'the delta is ' + (today.inventory.length - BASE_PINNED_INPUTS) + ' modules, not the '
-    + 'measured 20 (the route\'s 19 plus B-LOM\'s one boot module): re-measure and say so');
+    + 'measured 21 (the route\'s 19 plus the two boot modules, B-LOM\'s order '
+    + 'mapping and the shared passphrase form): re-measure and say so');
   assert.equal(ROUTE_MODULES.length, 19,
     'the ROUTE-ONLY count moved; the delta above is no longer 19 route plus 1 boot');
 });
