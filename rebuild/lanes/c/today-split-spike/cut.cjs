@@ -60,6 +60,19 @@ const ONLY_REF = opt("witness", null);
    rather than inside an instrument. --only limits the cut to the files named, so a round
    that ships two of the three cuts cannot emit the third by accident. */
 const PRODUCT = argv.includes("--product");
+/* --no-replace is a MEASUREMENT mode and never a build mode (R1's closing note, "a
+   regenerated CROSSINGS.md on the build's own output would be worth more than the prose").
+   It witnesses every replace region exactly as usual and then leaves its released lines
+   where they are instead of swapping in the declared call. The census over that output is
+   the answer to "what did the cut strand BEFORE the interface carried it", which is the
+   table a reviewer needs beside the interface; the census over the product output is 0 by
+   construction and says only that the interface carries everything. It refuses to combine
+   with --product, so it can never write a product file. */
+const NO_REPLACE = argv.includes("--no-replace");
+if (NO_REPLACE && PRODUCT) {
+  console.error("REFUSED: --no-replace is a measurement mode and cannot be combined with --product.");
+  process.exit(2);
+}
 const ONLY = (opt("only", "") || "").split(",").map((s) => s.trim()).filter(Boolean);
 if (!ROOT || !OUT) { console.error("usage: cut.cjs --root <worktree> --out <dir>"); process.exit(2); }
 
@@ -117,6 +130,84 @@ if (!WITNESS || !REF_NAMES.length) {
 }
 function sha256(s) { return crypto.createHash("sha256").update(s, "utf8").digest("hex"); }
 
+/* ---- THE DECLARED-TEXT WITNESS (R1 NOTE-1) ------------------------------------------
+ * S-R19 closed "a generator cannot be its own check" on the PRE-IMAGE. R1 showed it was
+ * still open on the POST-IMAGE: the reviewer rewrote regions.json's W6d row so its `to`
+ * read `setMessage({ ok: true, state: result.state, copy: result.copy });` - which makes
+ * the sealed weigh-in report success whatever the client answered - left every moved byte
+ * verbatim, and THE CUT EXITED 0 and put the tampered line into today-readings.cjs. The
+ * pre-image witness cannot see it, because the pre-image was not touched.
+ *
+ * So the declared TEXT is witnessed too: a sha256 per substitution row and per replacement
+ * row, and the row COUNTS, taken by gen-witness.cjs --declared. cut.cjs refuses BY ROW ID
+ * before it opens a single source file.
+ *
+ * WHAT THIS IS AND IS NOT, said here rather than left for a reviewer to find. The
+ * pre-image witness is an INDEPENDENT oracle: its digests come from git objects at a named
+ * commit, so re-running the generator against a tampered working tree cannot bless it.
+ * The declared text has no such outside source, because the text IS the declaration. This
+ * is therefore TAMPER EVIDENCE, not an oracle: re-taking it re-blesses, and the control is
+ * that re-taking it is a visible one-line-per-row diff in regions.json that the PM reads
+ * beside the row it blesses. What it removes is the SILENT path R1 drove a line through.
+ */
+function declaredSubSha(row) {
+  return sha256(JSON.stringify([row.id, row.file, row.region, row.from, row.to, row.kind || null]));
+}
+function declaredRepSha(file, r) {
+  return sha256(JSON.stringify([r.id, file, r.replacement]));
+}
+function checkDeclaredText() {
+  const D = WITNESS.declared;
+  if (!D) {
+    fail("regions.json carries no DECLARED-TEXT witness. S-R19 on the post-image (R1 NOTE-1): " +
+      "a substitution's `to` and a replacement's text are authored bytes that reach a product " +
+      "file, and nothing outside the table recorded them. Run gen-witness.cjs --declared first.");
+  }
+  const subs = SUBS.slice();
+  if (subs.length !== D.counts.substitutions) {
+    fail("the table declares " + subs.length + " substitution rows; the declared-text witness " +
+      "records " + D.counts.substitutions + ". A row ADDED to the table reaches a product file " +
+      "and nothing witnessed it (R1 NOTE-1).");
+  }
+  for (const row of subs) {
+    const w = (D.substitutions || {})[row.id];
+    if (!w) fail("substitution row " + row.id + ": NO DECLARED WITNESS (R1 NOTE-1).");
+    const sha = declaredSubSha(row);
+    if (w.sha256 !== sha) {
+      fail("substitution row " + row.id + " (" + row.file + " " + row.region + "): DECLARED " +
+        "TEXT DOES NOT MATCH THE WITNESS. The row now hashes " + sha.slice(0, 16) + "..., the " +
+        "witness records " + w.sha256.slice(0, 16) + ". The bytes this row WRITES into a sealed " +
+        "product file are not the bytes the spec was reviewed against (R1 NOTE-1).");
+    }
+  }
+  /* Replacement rows. A `replace` region with no `replacement` array at all is refused by
+     the structural check further down, which names the region and says what is missing;
+     it is skipped here so that the older and more specific message still reaches the
+     reader instead of a digest mismatch standing in for it. */
+  let nrep = 0;
+  for (const [file, regions] of Object.entries(table.files)) {
+    for (const r of regions) {
+      if (r.kind !== "replace") continue;
+      nrep += 1;
+      if (!Array.isArray(r.replacement)) continue;
+      const w = (D.replacements || {})[r.id];
+      if (!w) fail("replacement row " + r.id + " (" + file + "): NO DECLARED WITNESS (R1 NOTE-1).");
+      const sha = declaredRepSha(file, r);
+      if (w.sha256 !== sha) {
+        fail("replacement row " + r.id + " (" + file + "): DECLARED TEXT DOES NOT MATCH THE " +
+          "WITNESS. The row now hashes " + sha.slice(0, 16) + "..., the witness records " +
+          w.sha256.slice(0, 16) + ". These are released lines a hand replaces with calls into " +
+          "the seal, and they are not the lines the spec was reviewed against (R1 NOTE-1).");
+      }
+    }
+  }
+  if (nrep !== D.counts.replacements) {
+    fail("the table declares " + nrep + " replacement rows with text; the declared-text witness " +
+      "records " + D.counts.replacements + " (R1 NOTE-1).");
+  }
+  return { subs: subs.length, reps: nrep };
+}
+
 function checkWitness(file, region, start, end, body, lastHits) {
   const w = WITNESS.regions[region.id];
   if (!w) {
@@ -164,6 +255,9 @@ function applySubs(file, region, text) {
 
 /* ---- the cut ------------------------------------------------------------------------ */
 fs.mkdirSync(OUT, { recursive: true });
+/* R1 NOTE-1: the declared TEXT is checked BEFORE a single source file is opened, so a
+   tampered `to` refuses by row id and never reaches an output byte. */
+const DECLARED = checkDeclaredText();
 const report = { root: ROOT, files: {}, substitutions: [], seams: [], drift: [],
   machineSeams: [], alignedSeams: [], witness: { refsOffered: REF_NAMES, byFile: {} },
   replacements: [] };
@@ -332,7 +426,7 @@ for (const [file, regions] of Object.entries(table.files)) {
   const drop = new Set();
   for (const m of moves) for (let n = m.start; n <= m.end; n += 1) drop.add(n);
   const replaceAt = new Map();
-  for (const rp of replaces) {
+  if (!NO_REPLACE) for (const rp of replaces) {
     replaceAt.set(rp.start, rp.r.replacement);
     for (let n = rp.start; n <= rp.end; n += 1) drop.add(n);
   }
@@ -459,6 +553,9 @@ if (!QUIET) {
     console.log("    " + f.padEnd(18) + " witnessed at " + r.witnessedAt.join(" or ") +
       "; moved lines " + r.movedLines);
   }
+  console.log("  DECLARED-TEXT WITNESS (R1 NOTE-1): " + DECLARED.subs + " substitution rows and " +
+    DECLARED.reps + " replacement rows compared against regions.json's recorded sha256 per row " +
+    "and the recorded row counts, BEFORE any source file was opened; every one matched.");
   console.log("  SUBSTITUTIONS: " + report.substitutions.length +
     " rows / " + Object.values(report.files).reduce((a, b) => a + b.substitutionsApplied, 0) +
     " occurrences applied after the witness passed");

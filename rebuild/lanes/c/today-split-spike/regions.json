@@ -2395,6 +2395,108 @@
     "gym-app.mjs": 41,
     "today-model.cjs": 36
    }
+  },
+  "declared": {
+   "taken": "2026-09-19",
+   "note": "R1 NOTE-1. sha256 per substitution row and per replacement row, over [id, file, region, from, to, kind] and [id, file, replacement]. TAMPER EVIDENCE over authored text, not an independent oracle: re-taking it re-blesses, and the control is that re-taking it is a visible diff here, beside the row it blesses.",
+   "substitutions": {
+    "W6a": {
+     "sha256": "b161c89b450aa3da3ad248c4d7c3048f3752e7c6cea480f6ff35b41b53d15211",
+     "file": "today-model.cjs",
+     "region": "TM-S02"
+    },
+    "W6b": {
+     "sha256": "6ca2177353b4e5dd4cd3c1afa6fd6e77c387f02532343e1d5fd90042e097c9d2",
+     "file": "today-model.cjs",
+     "region": "TM-S02"
+    },
+    "W6c": {
+     "sha256": "df84432536437823c7d89b79fd6083627092edd4e832803280209647993b3132",
+     "file": "today-model.cjs",
+     "region": "TM-S02"
+    },
+    "W6d": {
+     "sha256": "90c0edbb7602107ef8a3af5e72e2c218d580e9a4293cf89d8a3adbd6efd50e4c",
+     "file": "today-model.cjs",
+     "region": "TM-S02"
+    },
+    "W6e": {
+     "sha256": "46e9824ec8f09a4556b9f875b8401e90bcf8bd9c4e0a86da4449753e9a7b7a7c",
+     "file": "today-model.cjs",
+     "region": "TM-S03"
+    },
+    "W7a": {
+     "sha256": "43acb318c3041a9fd827771d269ad3b8b50440d76b63cb761e024170120df35b",
+     "file": "gym-app.mjs",
+     "region": "GA-S03"
+    },
+    "W7b": {
+     "sha256": "ec4369a9540178f2ea34ec44fa1ea32ed95d44fb14ef47a8251e467e302f74fe",
+     "file": "gym-app.mjs",
+     "region": "GA-S04"
+    }
+   },
+   "replacements": {
+    "TA-S05": {
+     "sha256": "26c94a5fa076dd621b9699880ec8e458838ecd9c1687d8caa13418c032e135f5",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-S10": {
+     "sha256": "e77e266c31729fe3dbc008a536220435f65e522fee7b0c02ceac22a0e6ce1b59",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-S16": {
+     "sha256": "7482ad384f39b3e91648b930f5764140f94bc794586c81d64eb450655ea32bd6",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-S35b": {
+     "sha256": "0af91203adc0adc9ace7a803fe1dafb84f4fd3b612a0a4378bba6cf8afe15567",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-S38": {
+     "sha256": "14c5160a7c7622c84164ccba168da9b99d7d911d2880a419ecb1ea6e5e32d1fc",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "GA-R01": {
+     "sha256": "65596a71d4d33404209f0a7fce63185f79e97787c40fb1561915c45c42c1404e",
+     "file": "gym-app.mjs",
+     "lines": 1
+    },
+    "GA-R02": {
+     "sha256": "5c0f0373693de6b2d710b96aff3df2323379df4f4b61870919295754bc12ddec",
+     "file": "gym-app.mjs",
+     "lines": 2
+    },
+    "GA-R03": {
+     "sha256": "0f3a3c512e43a9f74d0d1bf52ac36800507f0f34ca809592ba09b325cebf7926",
+     "file": "gym-app.mjs",
+     "lines": 1
+    },
+    "GA-R04": {
+     "sha256": "436261392fea7747c608b22c381f702bd50c7710565e77f99d9e20c83da05962",
+     "file": "gym-app.mjs",
+     "lines": 2
+    },
+    "GA-R05": {
+     "sha256": "fc0254218d7b2a6720ff2ba28b82c59b13d86a7f9988b79c6b7bb575666e9e57",
+     "file": "gym-app.mjs",
+     "lines": 2
+    },
+    "GA-R06": {
+     "sha256": "6b5e99733dbcd8f6526c4073b14d1ba39274db3544e9cc9a9c8eecac7bd9d38c",
+     "file": "gym-app.mjs",
+     "lines": 7
+    }
+   },
+   "counts": {
+    "substitutions": 7,
+    "replacements": 11
+   }
   }
  },
  "interface": {

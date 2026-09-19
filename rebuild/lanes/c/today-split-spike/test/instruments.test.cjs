@@ -21,6 +21,17 @@
  * EVERY RED ROW BELOW WAS RUN AGAINST THE COMMITTED INSTRUMENTS FIRST AND PASSED THERE -
  * that is, the cut exited 0 and the tamper went through. The rows are written so that they
  * fail if that ever becomes true again.
+ *
+ * R1 BLOCKING-1, AND WHY THE SOURCES COME FROM GIT AND NOT FROM THE WORKING TREE. The first
+ * author's tmpTree() copied the three files out of the WORKING TREE. The moment the build's
+ * own product commit cut gym-app.mjs, GA-S01's first anchor stopped existing in it, and every
+ * row that runs the full table refused: the cell shipped at 10 of 14 and could never be
+ * re-run. That is structural, not a typo - part 2 cuts today-app.cjs and would take the
+ * remaining ten rows dark the same way. The sources are now read with `git show <ref>:<path>`
+ * at a ref the witness block itself NAMES, so this cell keeps running after the files it
+ * measures have been cut, and it measures the same bytes the witness was taken on.
+ *
+ *   SPLIT_TEST_REF=tip node --test ...     to run the whole cell at the chain tip form instead
  */
 "use strict";
 const test = require("node:test");
@@ -46,14 +57,46 @@ function repoRoot() {
 const ROOT = repoRoot();
 const FILES = Object.keys(table.files);
 
-function tmpTree() {
+/* THE REF THIS CELL MEASURES AT (R1 BLOCKING-1). It is one of the witness block's own named
+   refs, so the cell cannot drift from the table: `s9` is the S9 lane head, which is this
+   build's base and the form the product cut was taken from. */
+const REF_NAME = process.env.SPLIT_TEST_REF || "s9";
+const REF_ROW = (table.witness.refs || []).find((r) => r.name === REF_NAME);
+if (!REF_ROW) {
+  throw new Error("SPLIT_TEST_REF=" + REF_NAME + " is not a ref the witness block names (" +
+    (table.witness.refs || []).map((r) => r.name).join(", ") + ")");
+}
+
+function gitShow(ref, rel) {
+  const res = spawnSync("git", ["-C", ROOT, "show", ref + ":" + rel],
+    { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  if (res.status !== 0) {
+    throw new Error("cannot read " + rel + " at " + REF_NAME + " (" + ref + "): " +
+      (res.stderr || "").trim() + "\nThis cell reads its sources from a NAMED REF, not from " +
+      "the working tree (R1 BLOCKING-1). Run it in a worktree whose git objects hold " + ref + ".");
+  }
+  return res.stdout;
+}
+
+/* The PRE-CUT sources at the named ref, written to a throwaway tree. Nothing here ever
+   reads the working tree's copies of the three files, so a cut file in the tree is
+   invisible to every row below. */
+function tmpTreeAt(refName) {
+  const row = (table.witness.refs || []).find((r) => r.name === refName);
+  if (!row) throw new Error("no witnessed ref named " + refName);
   const d = fs.mkdtempSync(path.join(os.tmpdir(), "splitb-atk-"));
   fs.mkdirSync(path.join(d, table.today), { recursive: true });
   for (const f of FILES) {
-    fs.copyFileSync(path.join(ROOT, table.today, f), path.join(d, table.today, f));
+    fs.writeFileSync(path.join(d, table.today, f), gitShow(row.ref, table.today + "/" + f));
   }
   return d;
 }
+function tmpTree() { return tmpTreeAt(REF_NAME); }
+
+/* The ref the PRODUCT files of part 1 were cut from. It is not SPLIT_TEST_REF: the two refs
+   differ in today-model.cjs by the plan-sentence block, so only one of them can reproduce a
+   committed product file byte for byte, and it is this one. */
+const BUILD_REF = "s9";
 function readLines(tree, file) {
   return fs.readFileSync(path.join(tree, table.today, file), "utf8").split("\n");
 }
@@ -291,4 +334,128 @@ test("S-R23: census.cjs takes its pairs from the table and runs on a directory w
   const r = runNode("census.cjs", ["--root", tree, "--out", noMap]);
   assert.strictEqual(r.status, 0, r.stderr);
   assert.match(r.stdout, /crossings: \d+ references/);
+});
+
+/* ---- R1 BLOCKING-1: this cell survives the cut it measures ---------------------------- */
+
+test("R1 BLOCKING-1: the sources come from the NAMED REF, so this cell still runs after a file has been cut", () => {
+  const tree = tmpTree();
+  /* The proof is a difference: the working tree's gym-app.mjs HAS been cut, the ref's has
+     not, and this cell reads the ref's. A cell that read the working tree would see the cut
+     file here and every full-table row would refuse on GA-S01's first anchor, which is
+     exactly the state R1 measured at the shipped head. */
+  const fromTree = fs.readFileSync(path.join(ROOT, table.today, "gym-app.mjs"), "utf8");
+  const fromRef = fs.readFileSync(path.join(tree, table.today, "gym-app.mjs"), "utf8");
+  assert.notStrictEqual(fromRef, fromTree,
+    "the working tree's gym-app.mjs and the ref's are identical, so this row proves nothing " +
+    "here; it is written for the tree AFTER the cut, which is where R1 found the cell dark");
+  assert.ok(fromRef.includes("  let settingsLane = settings || null;"),
+    "GA-S01's first anchor is not in the source at " + REF_NAME + "; the ref or the table is wrong");
+  assert.strictEqual(fromTree.includes("  let settingsLane = settings || null;"), false,
+    "gym-app.mjs in the working tree still holds GA-S01's first anchor, so it has not been cut");
+  const r = runCut(tree);
+  assert.strictEqual(r.status, 0, r.stderr);
+});
+
+/* ---- R1 NOTE-2 and R1's own check 4: the product cut IS the bytes that ship ------------ */
+
+test("the PRODUCT cut at the build's base ref reproduces the four committed product files BYTE FOR BYTE", () => {
+  const tree = tmpTreeAt(BUILD_REF);
+  const r = runCut(tree, ["--product", "--only", "today-model.cjs,gym-app.mjs"]);
+  assert.strictEqual(r.status, 0, r.stderr);
+  const crypto = require("crypto");
+  const sha = (p) => crypto.createHash("sha256").update(fs.readFileSync(p)).digest("hex");
+  const PRODUCT_FILES = ["today-model.cjs", "today-readings.cjs", "gym-app.mjs", "gym-settings-lane.mjs"];
+  const rows = [];
+  for (const f of PRODUCT_FILES) {
+    const built = path.join(r.out, f);
+    const shipped = path.join(ROOT, table.today, f);
+    assert.ok(fs.existsSync(built), "the product cut wrote no " + f);
+    assert.ok(fs.existsSync(shipped), "the tree holds no " + f);
+    const a = sha(built), b = sha(shipped);
+    rows.push("    " + f.padEnd(24) + (a === b ? "IDENTICAL " : "DIFFERS   ") + a.slice(0, 16) + "...");
+    assert.strictEqual(a, b,
+      "THE COMMITTED " + f + " IS NOT WHAT THE CODEMOD PRODUCES FROM " + BUILD_REF + ". Either a " +
+      "hand edited a product file outside the declared table, or the table changed under it. " +
+      "This row is the mechanical form of R1's own check 4 (\"an unlisted hand-written line\"), " +
+      "and it is what lets capture.cjs run on the bytes that ship (R1 NOTE-2): the line map in " +
+      "this output directory is the line map OF THOSE BYTES.");
+  }
+  console.log("  product cut at " + REF_NAME + " vs the committed files:");
+  for (const l of rows) console.log(l);
+  /* And therefore capture.cjs, run here, is run on the shipped bytes with a line map. */
+  const cap = runNode("capture.cjs", ["--root", tree, "--out", r.out]);
+  assert.strictEqual(cap.status, 0, cap.stdout + cap.stderr);
+  assert.match(cap.stdout, /NAME CAPTURES \(resolves to a different declaration after the cut\): 0/);
+  assert.doesNotMatch(cap.stdout, /NO LINE MAP/,
+    "R1 NOTE-2: capture.cjs must run its comparison, not skip it for want of a line map");
+});
+
+/* ---- R1 NOTE-1: the DECLARED TEXT is witnessed too ------------------------------------ */
+
+test("R1 NOTE-1: the declared-text witness covers every substitution row and every replacement row", () => {
+  const D = table.witness.declared;
+  assert.ok(D, "regions.json carries no declared-text witness block");
+  const subs = table.substitutions || [];
+  assert.strictEqual(D.counts.substitutions, subs.length);
+  for (const row of subs) {
+    assert.match(String((D.substitutions[row.id] || {}).sha256), /^[0-9a-f]{64}$/, row.id);
+  }
+  let n = 0;
+  for (const [file, rs] of Object.entries(table.files)) {
+    for (const r of rs) {
+      if (r.kind !== "replace") continue;
+      n += 1;
+      assert.match(String((D.replacements[r.id] || {}).sha256), /^[0-9a-f]{64}$/, r.id + " in " + file);
+    }
+  }
+  assert.strictEqual(D.counts.replacements, n);
+});
+
+test("RED R1 NOTE-1: rewriting W6d's `to` so the seal reports success whatever the client answered is REFUSED by row id", () => {
+  const tree = tmpTree();
+  const bad = JSON.parse(JSON.stringify(table));
+  const row = bad.substitutions.find((s) => s.id === "W6d");
+  assert.ok(row, "W6d is not in the table any more; re-read section 5 of the build report");
+  /* R1's own attack, verbatim: every moved byte stays verbatim and the pre-image witness
+     cannot see it, because the pre-image was never touched. */
+  row.to = "    setMessage({ ok: true, state: result.state, copy: result.copy });";
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf, "--product", "--only", "today-model.cjs,gym-app.mjs"]);
+  assert.strictEqual(r.status, 1, "THE CUT EXITED 0 ON A REWRITTEN SUBSTITUTION AND PUT THE " +
+    "TAMPERED LINE INTO today-readings.cjs. That is R1 NOTE-1 exactly. " + r.stdout);
+  assert.match(r.stderr, /REFUSED: substitution row W6d \(today-model\.cjs TM-S02\): DECLARED TEXT DOES NOT MATCH THE WITNESS/);
+});
+
+test("RED R1 NOTE-1: a replacement row's text rewritten is REFUSED by row id", () => {
+  const tree = tmpTree();
+  const bad = JSON.parse(JSON.stringify(table));
+  let id = null;
+  for (const rs of Object.values(bad.files)) {
+    for (const r of rs) {
+      if (r.kind === "replace" && Array.isArray(r.replacement) && !id) {
+        id = r.id;
+        r.replacement = r.replacement.map((l) => l.replace("hooks.", "hooksTampered."));
+      }
+    }
+  }
+  assert.ok(id, "no replacement row to tamper");
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf]);
+  assert.strictEqual(r.status, 1, r.stdout);
+  assert.match(r.stderr, new RegExp("REFUSED: replacement row " + id + " .*DECLARED TEXT DOES NOT MATCH THE WITNESS"));
+});
+
+test("RED R1 NOTE-1: a substitution row ADDED to the table is REFUSED by the recorded row count", () => {
+  const tree = tmpTree();
+  const bad = JSON.parse(JSON.stringify(table));
+  bad.substitutions.push({ id: "W9z", file: "today-model.cjs", region: "TM-S02",
+    from: "if (adoptedRead)", to: "if (false)", kind: "statement rewrite", why: "planted" });
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf]);
+  assert.strictEqual(r.status, 1, "A NEW SUBSTITUTION ROW REACHED A PRODUCT FILE UNWITNESSED. " + r.stdout);
+  assert.match(r.stderr, /the table declares 8 substitution rows; the declared-text witness records 7/);
 });
