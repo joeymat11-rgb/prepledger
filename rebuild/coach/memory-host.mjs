@@ -26,10 +26,10 @@ import { createDurablePublicClient } from '../m3/w6/public-client.mjs';
 import { LOCAL_ERA_SCHEMA_VERSION } from '../m3/w6/local/local-era.mjs';
 import Memory from './memory-commands.cjs';
 
-const { createMemoryCommands, memoriesIn, forTopic, PROFILE, ACTION } = Memory;
+const { createMemoryCommands, readMemories, memoriesIn, forTopic, PROFILE, ACTION } = Memory;
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-export { PROFILE, ACTION, memoriesIn, forTopic };
+export { PROFILE, ACTION, readMemories, memoriesIn, forTopic };
 export const MEMORY_SCHEMA_VERSION = LOCAL_ERA_SCHEMA_VERSION;
 
 export async function createMemoryHost({ client, day } = {}) {
@@ -50,17 +50,22 @@ export async function createMemoryHost({ client, day } = {}) {
 
     /* THE AUTHENTICATED VIEW, or a named refusal. The repository's own load()
        is what authenticates; a store it will not vouch for throws its own code
-       here and that code travels, rather than becoming an empty list. */
+       here and that code travels, rather than becoming an empty list.
+       `skipped` is the number of memory operations in the authenticated view
+       that the producer's OWN gate refused (P-F3). It is part of the answer: a
+       view with nothing to show and rows it could not read is not the same
+       answer as a view with nothing in it. */
     async read() {
-      if (!alive) return { ok: false, code: 'LOCAL_CLIENT_CLOSED', copy: null, rows: null };
+      if (!alive) return { ok: false, code: 'LOCAL_CLIENT_CLOSED', copy: null, rows: null, skipped: null };
       let loaded;
       try { loaded = await bindings.repository.load(); }
       catch (error) {
-        return { ok: false, rows: null,
+        return { ok: false, rows: null, skipped: null,
           code: (error && error.code) || 'COACH_MEMORY_STORE_UNREADABLE',
           copy: (error && error.message) || null };
       }
-      return { ok: true, code: null, copy: null, rows: memoriesIn(loaded.generation) };
+      const view = readMemories(loaded.generation);
+      return { ok: true, code: null, copy: null, rows: view.rows, skipped: view.skipped };
     },
 
     /* Every stored memory in this generation, oldest first. It THROWS when the
@@ -79,8 +84,8 @@ export async function createMemoryHost({ client, day } = {}) {
       if (!read.ok) return read;
       const rows = forTopic(read.rows, topic);
       return rows === null
-        ? { ok: false, code: 'COACH_MEMORY_TOPIC_REQUIRED', copy: null, rows: null }
-        : { ok: true, code: null, copy: null, rows };
+        ? { ok: false, code: 'COACH_MEMORY_TOPIC_REQUIRED', copy: null, rows: null, skipped: read.skipped }
+        : { ok: true, code: null, copy: null, rows, skipped: read.skipped };
     },
 
     /* ONE op per confirmed memory. The request goes through the producer
@@ -109,4 +114,4 @@ export async function createMemoryHost({ client, day } = {}) {
   return handle;
 }
 
-export default { createMemoryHost, memoriesIn, forTopic, PROFILE, ACTION, MEMORY_SCHEMA_VERSION };
+export default { createMemoryHost, readMemories, memoriesIn, forTopic, PROFILE, ACTION, MEMORY_SCHEMA_VERSION };

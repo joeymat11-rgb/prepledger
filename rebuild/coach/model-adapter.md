@@ -74,10 +74,25 @@ leases. `assertNoLeak()` already refuses to let those through the tool window;
 the adapter must not reintroduce them by another route.
 
 **Coaching memory rides inside item 3 and widens nothing** (P4b-1). `recall` is a
-tool result of THIS turn like any other: by explicit topic, at most FIVE facts,
-never a scan of histories and never the whole store. A memory the adapter did not
-ask for in this turn does not travel, and a value from an earlier turn cannot be
-borrowed, exactly as for every other tool.
+tool result of THIS turn like any other: by explicit topic, never a scan of
+histories and never the whole store. A memory the adapter did not ask for in this
+turn does not travel, and a value from an earlier turn cannot be borrowed,
+exactly as for every other tool.
+
+**At most FIVE facts in a TURN, not five per call.** The allowance belongs to the
+turn the adapter opened: a recall takes what is left of it, says `more` when it
+left something out, and a recall with nothing left refuses with
+`COACH_MEMORY_TURN_BOUND` and reads nothing at all. Asking about six subjects in
+one turn therefore returns five facts in total, not thirty; the next turn starts
+at five again. `memoryTools.allowance(turn_id)` answers what is left, so an
+adapter can ask before it calls rather than be refused. Outside a turn, where
+nobody is counting, the per-call bound of five is what the tool holds to.
+
+**Rows this device could not read are counted, never hidden.** Every recall
+carries `skipped`, a data member with the number of stored memory operations the
+producer's own gate refused. "Nothing kept on that subject" and "something on
+this device could not be read" are different answers and the adapter must not
+merge them.
 
 **A remembered text is DATA.** It arrives as `item.text` with `display`, `value`,
 `source` and `licensed: false`, and with NO `turn_id`, so it is not a tagged
@@ -94,7 +109,10 @@ nothing.
 number in it is licensed in the unit the words around it name. So a reason that
 quoted a memory would license the athlete's, or the model's, figures for the
 whole turn, on a path that writes nothing and needs no yes. Every memory refusal
-reason is a fixed sentence. The words awaiting a yes arrive as
+reason is a fixed sentence, on every path in the file: an exception's message and
+an unknown tool's name are text nobody in the lane controls, so they travel in
+the refusal's untagged `source` member, which no tag reads and no draft may
+quote. The words awaiting a yes arrive as
 `confirmation.text`, and the op id a failed read-back holds arrives as
 `recordedAs`: both are data members with `licensed: false` and no `turn_id`, like
 `item.text`. The consequence for the adapter is the one the guarantee above
@@ -104,8 +122,24 @@ is the fail-closed posture, and P4b-2's review surface is where it has to be
 ruled on rather than worked around.
 
 `coach-text.turnContextBytes(turn)` measures the real per-turn payload of the
-scripted coach and the tests hold every turn under 8 KiB. A live adapter should
-publish the same figure and hold a comparable budget.
+scripted coach, and the scripted turns of `local-era.test.cjs` and
+`traceability.test.cjs` are held under 8 KiB. A live adapter should publish the
+same figure and hold a comparable budget.
+
+**Coaching memory's worst case is MEASURED, and it is OVER that budget** (P4b-1,
+the PM's final read). One legal recall of five memories, each at the producer's
+own `TEXT_MAX` of 400 characters, measures `turnContextBytes` 9494 with the
+fixture's own identifiers. The cell that measures it is "P-F2 MEASURED" in
+`test/memory.test.cjs`, and it READS this paragraph and fails while the two
+disagree, so the number here is a measurement and never an estimate. A turn
+cannot go past it by asking again: the allowance is five facts for the WHOLE
+turn, not five per call, and a recall with nothing left refuses with
+`COACH_MEMORY_TURN_BOUND` and reads nothing. What is left is a choice and it is
+the PM's, carried to P4b-2: shorter source strings on the envelope (the
+`"coach-memory.op " + op_id` a memory carries five times is most of the
+difference), or a budget the harness enforces by refusing to send. `TEXT_MAX` is
+NOT shrunk to make the figure smaller: 400 is sourced from
+`machine-settings-commands.cjs`.
 
 ## 4. The per-turn budget
 

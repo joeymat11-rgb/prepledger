@@ -1600,6 +1600,11 @@ test("PRB-04 recall is never a scan of histories, and it stays inside the per-tu
       assert.equal(blob.includes(opId), false, "the envelope carries op " + opId);
     }
     T.assertNoLeak(r);
+    /* THIS cell's six short fixtures are under the standing 8192 byte budget,
+       and that is all this line says. The worst case the slice's own bounds
+       permit is NOT under it: five memories at TEXT_MAX measure 9494 bytes, and
+       the cell that measures it is "P-F2 MEASURED" below. model-adapter.md
+       states that figure; do not read this assertion as the general claim. */
     assert.ok(C.turnContextBytes(turn) < 8192, "the recall turn sent too much context");
   } finally { w.close(); }
 });

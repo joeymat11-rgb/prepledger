@@ -159,26 +159,46 @@ function createMemoryCommands() {
    Narrowed by profile equality exactly as machineSettingsIn is: in ONE
    generation that equality is what keeps a weigh-in, a workout set, a check-in,
    a machine setting and a first-run setup out of this list. */
-function memoriesIn(generation) {
+/* THE ONE GATE RUNS ON THE READ SIDE TOO (the PM's final read, P-F3). A row is
+   kept only if memoryOf() accepts the memory the operation carries: the same
+   function, on the same shape, that the write went through. An operation that
+   reached this generation by another road than this tool, a merge or a damaged
+   store that still authenticates, and that carries a text which is not a string,
+   a kind nobody declared or a topic past the 80 character bound, is refused HERE
+   rather than published to the athlete. A refused row is COUNTED and the count
+   travels beside the rows, so "nothing kept" and "something on this device could
+   not be read" stay different answers all the way to the envelope. */
+function readMemories(generation) {
   const collections = (generation && generation.collections) || {};
   const rejected = collections.rejected || {};
   const dead = new Set(Object.values(collections.ops || {})
     .filter((op) => op && op.kind === "tombstone" && typeof op.target_op_id === "string")
     .map((op) => op.target_op_id));
-  return Object.values(collections.ops || {})
-    .filter((op) => op && op.kind === "fact" && op.class === "event"
+  let skipped = 0;
+  const rows = [];
+  for (const op of Object.values(collections.ops || {})) {
+    if (!(op && op.kind === "fact" && op.class === "event"
       && op.payload && op.payload.profile === PROFILE
-      && isMap(op.payload.memory) && typeof op.payload.memory.memory_id === "string"
       && op.effective && typeof op.effective.local_date === "string"
-      && !rejected[op.op_id] && !dead.has(op.op_id))
-    .sort((a, b) => (a.device_seq || 0) - (b.device_seq || 0) || (a.op_id < b.op_id ? -1 : 1))
-    .map((op) => Object.freeze({
+      && !rejected[op.op_id] && !dead.has(op.op_id))) continue;
+    let memory;
+    try { memory = memoryOf(JSON.parse(JSON.stringify(op.payload.memory))); }
+    catch { skipped += 1; continue; }
+    rows.push(Object.freeze({
       op_id: op.op_id,
       date: op.effective.local_date,
       time: op.effective.local_time || null,
       seq: op.device_seq || 0,
-      memory: JSON.parse(JSON.stringify(op.payload.memory)),
+      memory,
     }));
+  }
+  rows.sort((a, b) => a.seq - b.seq || (a.op_id < b.op_id ? -1 : 1));
+  return Object.freeze({ rows: Object.freeze(rows), skipped });
+}
+
+/* The rows alone, for every caller that only wants the list. */
+function memoriesIn(generation) {
+  return readMemories(generation).rows;
 }
 
 /* EVERY MEMORY ON ONE TOPIC, and nothing else. The topic is put through the SAME
@@ -193,6 +213,6 @@ function forTopic(rows, topic) {
 }
 
 module.exports = {
-  createMemoryCommands, prepare, validate, memoryOf, topicOf, textOf, memoriesIn, forTopic,
+  createMemoryCommands, prepare, validate, memoryOf, topicOf, textOf, readMemories, memoriesIn, forTopic,
   PROFILE, ACTION, MEMORY_SCHEMA_VERSION, KINDS, TEXT_MAX, ID_MAX, PARENTS_MAX,
 };

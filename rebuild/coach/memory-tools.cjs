@@ -30,16 +30,27 @@
  * in it in whatever unit the words around it name. So a reason that quoted the
  * memory back licensed the athlete's, or the MODEL's, figures for the whole
  * turn, with nothing written and no yes given. Every reason in this file is a
- * FIXED sentence; the words awaiting a yes and the op id a commit holds travel
- * beside it as untagged data. The accepted layer's own copy is still carried
- * verbatim when the store refuses, because reading a client refusal out loud is
- * what tools.cjs:328 intends. The turn-local cell in test/memory.test.cjs and
- * mutant M-Q are this rule's graves.
+ * FIXED sentence; the words awaiting a yes, the op id a commit holds, an
+ * exception's message and a caller's tool name all travel beside it as untagged
+ * data, in the `source` member no tag reads. The accepted layer's own copy is
+ * still carried verbatim when the store refuses, because reading a client
+ * refusal out loud is what tools.cjs:328 intends. The turn-local cell in
+ * test/memory.test.cjs and mutant M-Q are this rule's graves; the PM's final
+ * read (P-F1) closed the last two sites, the dispatch catch and the unknown
+ * tool name, and mutants M-S and M-T are their graves.
  *
- * RECALL IS BOUNDED AND BY EXPLICIT TOPIC. Five facts a turn, ordered by
- * memory-model.cjs's one stated rule, never a scan of histories and never the
- * whole store. A topic nobody named is a refusal, not an invitation to send
- * everything.
+ * RECALL IS BOUNDED AND BY EXPLICIT TOPIC. FIVE FACTS A TURN, over every recall
+ * in it and not five per call (the ruling's design point 4, as the PM's final
+ * read words it): a recall takes what is LEFT of the allowance, says so when it
+ * left something out, and a recall with nothing left refuses and reads nothing.
+ * Outside a turn, where nobody is counting, the per-call bound is what the tool
+ * holds to. The order is memory-model.cjs's one stated rule; it is never a scan
+ * of histories and never the whole store. A topic nobody named is a refusal,
+ * not an invitation to send everything.
+ *
+ * AND THE ROWS THE READ SIDE COULD NOT READ ARE COUNTED, not hidden. The count
+ * travels as untagged data on the answer and on the absence, so "nothing kept"
+ * and "something on this device could not be read" stay different answers.
  */
 
 const T = require("./tools.cjs");
@@ -59,6 +70,7 @@ const MEMORY_CODES = Object.freeze({
   MEMORY_INPUT_INVALID: "COACH_MEMORY_INPUT_INVALID",
   MEMORY_LANE_ABSENT: "COACH_MEMORY_LANE_ABSENT",
   MEMORY_TOPIC_REQUIRED: "COACH_MEMORY_TOPIC_REQUIRED",
+  MEMORY_TURN_BOUND: "COACH_MEMORY_TURN_BOUND",
   MEMORY_ABSENT: "COACH_MEMORY_ABSENT",
   MEMORY_UNREADABLE: "COACH_MEMORY_UNREADABLE",
   MEMORY_NOT_RECORDED: "COACH_MEMORY_NOT_RECORDED",
@@ -86,6 +98,12 @@ const refuse = (tool, tier, turn_id, code, reason, source, extra) =>
    anything reading the envelope. */
 const dataText = (source, value) => Object.freeze({
   display: value, value, kind: "memory-text", source, licensed: false });
+
+/* A COUNT, published the same way and for the same reason: it is a fact about
+   the store, not a figure the coach may state, so it carries no turn_id and
+   licenses nothing. */
+const dataCount = (source, value) => Object.freeze({
+  display: String(value), value, kind: "memory-count", source, licensed: false });
 
 /* What memory-model.cjs's join takes, built from an item the recall published. */
 function faceOf(item) {
@@ -118,6 +136,18 @@ function createMemoryTools({ world, coach } = {}) {
   let handles = 0;
   const bindingOf = (memory) => JSON.stringify(memory);
 
+  /* THE TURN'S ALLOWANCE, five facts, counted here because this is the only
+     place that knows how many facts a turn has already published. openTurn()
+     opens the account; every recall inside that turn draws on it. A turn_id
+     nobody opened has no account, and the per-call bound is what that call
+     holds to: the harness that never opens a turn is not thereby given more.
+     It is per INSTANCE and never durable, exactly like the pending yeses. */
+  const turns = new Map();
+  const allowanceOf = (turn_id) => {
+    const account = turns.get(turn_id);
+    return account ? Math.max(0, Model.RECALL_MAX - account.used) : Model.RECALL_MAX;
+  };
+
   function cancel(confirmation_id) {
     const entry = pending.get(confirmation_id);
     if (!entry || entry.state !== "open") return false;
@@ -139,6 +169,15 @@ function createMemoryTools({ world, coach } = {}) {
         "I need to know which one you mean. Name the subject and I will read back what you told me about it.",
         "memory-commands.cjs topicOf()");
     }
+    /* THE TURN'S ALLOWANCE IS SPENT: this call reads NOTHING. The refusal is
+       issued before the store is touched, so a turn that has had its five facts
+       cannot go on reading and then discard what it read. */
+    const allowance = allowanceOf(turn_id);
+    if (allowance <= 0) {
+      return refuse("recall", TIER.READ, turn_id, MEMORY_CODES.MEMORY_TURN_BOUND,
+        "I have read back as much as I hold to in one turn, so I have not read anything else. Ask me again and I will go on.",
+        "memory-model.cjs RECALL_MAX (the allowance is the turn's, not the call's)");
+    }
     const read = await lane.forTopic(topic);
     if (!read.ok) {
       /* unreadable is NOT empty, and the athlete is told which one happened */
@@ -147,12 +186,21 @@ function createMemoryTools({ world, coach } = {}) {
         "memory-host.mjs read() (" + read.code + ")");
     }
     if (!read.rows.length) {
+      /* nothing kept on THIS subject, and the count of rows the one gate refused
+         travels with it, because the two are different answers */
       return refuse("recall", TIER.READ, turn_id, MEMORY_CODES.MEMORY_ABSENT,
         "I have nothing kept on that subject on this device.",
-        "earned/coach-memory/v1 (no memory on this topic)");
+        "earned/coach-memory/v1 (no memory on this topic)",
+        { state_unchanged: true, skipped: skippedOf(read) });
     }
-    return T.assertNoLeak(envelopeFor(read.rows, topic, turn_id));
+    return T.assertNoLeak(envelopeFor(read, topic, turn_id, allowance));
   }
+
+  /* The rows the producer's own gate refused on the way out, as DATA. `null`
+     when the read itself could not say. */
+  const skippedOf = (read) => dataCount(
+    "memory-commands.cjs readMemories() (rows the one gate refused)",
+    typeof read.skipped === "number" ? read.skipped : null);
 
   function itemFor(entry, turn_id) {
     const row = entry.row;
@@ -168,8 +216,12 @@ function createMemoryTools({ world, coach } = {}) {
     };
   }
 
-  function envelopeFor(rows, topic, turn_id) {
-    const bounded = Model.recall(rows, { day });
+  function envelopeFor(read, topic, turn_id, allowance) {
+    const bounded = Model.recall(read.rows, { day, max: allowance });
+    /* the facts this call published are drawn from the turn's account, so the
+       next recall in the same turn sees what is left */
+    const account = turns.get(turn_id);
+    if (account) account.used += bounded.shown;
     const values = {
       topic: T.tagged(turn_id, "coach.request.topic", topic, "topic", topic),
       shown: T.tagged(turn_id, "memory-model.recall.shown", bounded.shown, "fact", ""),
@@ -180,7 +232,13 @@ function createMemoryTools({ world, coach } = {}) {
       items: bounded.items.map((entry) => itemFor(entry, turn_id)),
     };
     return ok("recall", TIER.READ, turn_id, values,
-      { state_unchanged: true, bounded: Model.RECALL_MAX, ordering: Model.ORDERING });
+      /* `shown` and `more` already say what this call published and whether it
+         left something out, and memoryTools.allowance(turn_id) answers what is
+         left of the turn's five. Neither is repeated here: the envelope is
+         measured against a per-turn byte budget, so a member that says nothing
+         new is a member that costs bytes for nothing. */
+      { state_unchanged: true, bounded: Model.RECALL_MAX, ordering: Model.ORDERING,
+        skipped: skippedOf(read) });
   }
 
   /* -------------------------------------------------- tier 1 - the MEMORY -- */
@@ -294,15 +352,27 @@ function createMemoryTools({ world, coach } = {}) {
     if (Object.prototype.hasOwnProperty.call(IMPL, name)) {
       try { return await IMPL[name](args, turn_id); }
       catch (error) {
+        /* THE FILE'S OWN LAW, ON THE LIVE PATH (the PM's final read, P-F1). An
+           exception's message is text NOBODY HERE CONTROLS: a storage error, a
+           platform error, or a message carrying words the athlete or the model
+           chose. Published as the reason it became a T.text tag, which
+           allowedTokens() reads as engine prose and licenses every figure in.
+           The sentence is fixed; the message travels in `source`, which no tag
+           reads. Mutant M-S is this line's grave. */
         return refuse(name, MEMORY_TIERS[name], turn_id, MEMORY_CODES.MEMORY_TOOL_THREW,
-          (error && error.message) || "the tool refused", "memory-tools.cjs dispatch");
+          "Something went wrong inside that on this device, so I have kept nothing and read nothing back. Try me again.",
+          "memory-tools.cjs dispatch: " + ((error && error.message) || "the tool refused"));
       }
     }
     if (typeof coach.dispatch === "function") return coach.dispatch(name, args, turn_id);
     const served = coach.TOOLS && coach.TOOLS[name];
     if (typeof served === "function") return served(args, turn_id);
+    /* The same law again (P-F1, and review R2-N3). A tool name is the MODEL's
+       word; wave1-tools.cjs already refuses an unknown tool without quoting it.
+       The name travels in `source`. Mutant M-T is this line's grave. */
     return refuse(name, TIERS[name] === undefined ? null : TIERS[name], turn_id,
-      "MEMORY_TOOL_NOT_IN_LIST", String(name) + " is not one of the coach's tools", "memory-tools.cjs TIERS");
+      "MEMORY_TOOL_NOT_IN_LIST", "That is not one of the coach's tools, so I did nothing.",
+      "memory-tools.cjs TIERS: " + String(name));
   }
 
   /* ONE TURN, every vocabulary. The memory tools push into the SAME results
@@ -310,6 +380,10 @@ function createMemoryTools({ world, coach } = {}) {
      against everything the turn actually read and nothing else. */
   function openTurn(turn_id) {
     const base = coach.openTurn(turn_id);
+    /* the turn's account of memory facts, opened once and never reset by a
+       second openTurn of the same id: an allowance that could be reopened is
+       not an allowance */
+    if (!turns.has(turn_id)) turns.set(turn_id, { used: 0 });
     const call = Object.assign({}, base.call);
     for (const name of Object.keys(IMPL)) {
       call[name] = async (args) => { const r = await dispatch(name, args, turn_id); base.results.push(r); return r; };
@@ -325,6 +399,9 @@ function createMemoryTools({ world, coach } = {}) {
     /* the athlete's no, spoken by the harness the same way his yes is */
     cancel,
     pending: () => Array.from(pending.entries()).map(([id, entry]) => ({ id, state: entry.state })),
+    /* what is left of a turn's five facts, for a harness that wants to ask
+       before it calls rather than be refused */
+    allowance: (turn_id) => allowanceOf(turn_id),
     /* THE M06 PAIR, for a consumer that has read the canonical value through its
        OWN owner in this same turn. This lane never reads another lane's store. */
     beside: (canonical, item) => Model.joinOf({ canonical, memory: faceOf(item), day }),

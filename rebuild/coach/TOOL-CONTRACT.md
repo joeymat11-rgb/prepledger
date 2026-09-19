@@ -242,22 +242,45 @@ is no fuzzy match, no substring match and no stemming anywhere in this lane, and
 the same rule runs at write time and at read time (`memory-commands.cjs`
 `topicOf()`), so the two cannot drift apart.
 **out** `topic`, `shown` (fact count), `more` (flag), `note` (text), and
-`items[]`. Each item carries `memoryId` (id), `kind`, `topic`, `label`,
-`recordedOn` (date) and `text`.
+`items[]`, plus `skipped` beside the envelope. Each item carries `memoryId`
+(id), `kind`, `topic`, `label`, `recordedOn` (date) and `text`.
+**the read side goes through the ONE gate.** A stored operation is published
+only if `memory-commands.cjs` `memoryOf()` accepts the memory it carries, the
+same function the write went through. An operation that arrived by another road
+than this tool, a merge or a damaged store that still authenticates, carrying a
+text that is not a string, a kind nobody declared or an over-long topic, is
+refused at the read. Those rows are COUNTED: `skipped` is a data member
+(`display`, `value`, `licensed: false`, no `turn_id`) and it travels on the
+answer AND on `COACH_MEMORY_ABSENT`, because "nothing kept on that subject" and
+"something on this device could not be read" are different answers.
 **`text` IS DATA, NOT A TAGGED VALUE.** It carries `display`, `value`, `source`
 (`"coach-memory.op " + op_id`, the same shape `machine_settings` uses) and
 `licensed: false`, and it deliberately carries NO `turn_id`. So `collectTagged()`
 never sees it and `allowedTokens()` never licenses a number inside it: the coach
 can read his own sentence back and can still never turn "my target is 210 grams"
 into a target it states. A figure a memory names is untraceable, by construction.
-**bounded** at most FIVE facts a turn, ordered by `memory-model.cjs`'s one stated
-rule: most recent effective date first, then the log's own order, later entry
-first. It is a total order, so the same question twice gives the same five in the
-same order. When there are more, the envelope SAYS so; the facts it left out do
-not appear anywhere in it.
+**bounded** at most FIVE facts in a TURN, over every recall in it and not five
+per call. The turn the harness opened keeps the account: a recall takes what is
+LEFT of the five, and when it leaves something out `more` says so. Six subjects
+asked in one turn therefore return five facts in total, and the next turn starts
+at five again. `memoryTools.allowance(turn_id)` answers what is left without
+calling. Outside a turn, where nobody is counting, the per-call bound of five is
+what the tool holds to. The account is per coach instance and never durable,
+like a pending yes.
+**ordered** by `memory-model.cjs`'s one stated rule: most recent effective date
+first, then the log's own order, later entry first. It is a total order, so the
+same question twice gives the same facts in the same order. The facts left out
+do not appear anywhere in the envelope.
+**measured, not claimed** the worst case this bound permits, five memories at
+`TEXT_MAX`, is `turnContextBytes` 9494, which is OVER the standing 8 KiB
+per-turn budget. `model-adapter.md` states the figure, a cell measures it and
+reads that file, and the choice between shorter source strings and an enforced
+budget is P4b-2's.
 **never** scans histories, never returns the whole store, and never answers a
 topic nobody named.
-**refuses with** `COACH_MEMORY_TOPIC_REQUIRED` (no topic), `COACH_MEMORY_ABSENT`
+**refuses with** `COACH_MEMORY_TURN_BOUND` (the turn's five facts are spent: it
+reads NOTHING, it does not read and then discard), `COACH_MEMORY_TOPIC_REQUIRED`
+(no topic), `COACH_MEMORY_ABSENT`
 (nothing kept on that subject), `COACH_MEMORY_UNREADABLE` (the store could not be
 authenticated: absence and unreadability are different answers and he is told
 which), `COACH_MEMORY_LANE_ABSENT` (no memory lane on this device).
@@ -523,6 +546,9 @@ unavailability does not become a permanent remembered limitation.
 | `COACH_MEMORY_CONFIRMATION_UNKNOWN` | no such yes in this conversation | `memory-tools.cjs` |
 | `COACH_MEMORY_CONFIRMATION_MISMATCH` | the words moved after the yes | `memory-tools.cjs` |
 | `COACH_MEMORY_READ_BACK_FAILED` | committed, and could not be read back; NOT a second write | `memory-host.mjs` `read()` |
+| `COACH_MEMORY_TURN_BOUND` | the turn's five facts are spent; this call read nothing | `memory-tools.cjs` `openTurn()` |
+| `COACH_MEMORY_TOOL_THREW` | the tool threw; a FIXED sentence, the message in `source` | `memory-tools.cjs` `dispatch()` |
+| `MEMORY_TOOL_NOT_IN_LIST` | a name that is not a coach tool; a FIXED sentence, the name in `source` | `memory-tools.cjs` `TIERS` |
 
 Engine and client codes are **never** reworded: whatever the accepted layer
 returns reaches the coach with its own code and its own sentence.
