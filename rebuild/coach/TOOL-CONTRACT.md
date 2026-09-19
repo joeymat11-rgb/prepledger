@@ -339,7 +339,13 @@ and NOTHING else: an extra member on the arguments or on the memory refuses.
 the tool checks the shape, writes nothing, and hands back
 `confirmation: { confirmation_id, kind, topic, text }` with
 `COACH_CONFIRMATION_REQUIRED`: that is the coach reading the words back and
-asking. The yes then arrives carrying that `confirmation_id`. The handle is
+asking. `text` there is a DATA member (`display`, `value`, `source`,
+`licensed: false`, and no `turn_id`), exactly like the `text` `recall` returns,
+and the refusal's own `reason` is a FIXED sentence that quotes nothing: a reason
+is published as a `text` tag, and `allowedTokens()` reads a `text` tag as engine
+prose, so a reason that quoted the memory would license every figure in it for
+the whole turn on a path that writes nothing.
+The yes then arrives carrying that `confirmation_id`. The handle is
 bound to THOSE EXACT WORDS, it is single use, it is spent before the write, and
 it lives in the conversation, never on disk, so it cannot survive a restart.
 **out** `opId` (id), `item` (the same shape `recall` returns), `consequence`
@@ -365,7 +371,10 @@ read-back then fails, the tool returns `COACH_MEMORY_READ_BACK_FAILED` with
 `committed: true` and the `op_id` it holds from the commit, and says both things
 out loud: it was kept, it could not be shown, and it was not written twice. It
 never claims the memory is absent (a lie about disk) and never claims it read it
-back (a lie about the read). There is no retry on a read failure.
+back (a lie about the read). There is no retry on a read failure. The op id
+travels as `op_id` and as the data member `recordedAs` and is NOT interpolated
+into the sentence, for the reason above: an op id carries the device id and its
+digits, and a reason tag would license them.
 
 ---
 

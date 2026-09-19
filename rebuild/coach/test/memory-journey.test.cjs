@@ -319,14 +319,21 @@ test("P39-01/P39-02 a MOVING clock moves no stamp, and the offset is the era's o
            the write in its own words (lease.cjs:31, index.cjs:282, state 20).
            The memory lane carries that refusal verbatim and writes nothing; it
            never invents a stamp to get around it. */
+        /* PINNED EXACTLY (review R1, N4): the earlier form allowed two saves, one
+           or none, so it pinned nothing about this clock. Measured, on both
+           operating systems: BOTH saves refuse, with the accepted layer's own
+           code and its own sentence, and the generation holds ZERO memory
+           operations. Pinning it means a change to the lease rule is noticed
+           here rather than passing silently. */
+        assert.equal(one.ok, false, "a backwards clock wrote the first memory");
+        assert.equal(two.ok, false, "a backwards clock wrote the second memory");
         for (const r of [one, two]) {
-          if (r.ok) continue;
           assert.equal(r.unavailable.code, "COACH_MEMORY_NOT_RECORDED");
           assert.match(r.unavailable.reason, /Connect once to keep saving/);
+          assert.equal(r.state_unchanged, true);
         }
-        assert.equal(ops.length, [one, two].filter((r) => r.ok).length,
-          "a refused save left an operation behind");
-        if (!ops.length) continue;
+        assert.equal(ops.length, 0, "a refused save left an operation behind");
+        continue;
       }
       for (const op of ops) {
         assert.equal(op.effective.local_date, w.day, label + ": the stamp is not the host's day");

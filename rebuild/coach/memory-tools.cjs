@@ -16,12 +16,25 @@
  * this source to prove it, and the remember tool sits at tier 1 in the tier map
  * so the harness knows it must hear the yes first.
  *
- * A REMEMBERED TEXT IS DATA. It is published in the envelope as a plainly
- * labelled data member and deliberately NOT as a tagged value: tools.cjs
- * collectTagged() therefore never sees it and allowedTokens() never licenses a
- * number inside it. So "my target is 210 grams" can be read back as the
- * athlete's own sentence and can still never become a figure the coach states.
- * That is design point 6 with teeth, and it is the M-H mutant's grave.
+ * A REMEMBERED TEXT IS DATA, ON EVERY PATH IN THIS FILE. It is published in the
+ * envelope as a plainly labelled data member and deliberately NOT as a tagged
+ * value: tools.cjs collectTagged() therefore never sees it and allowedTokens()
+ * never licenses a number inside it. So "my target is 210 grams" can be read
+ * back as the athlete's own sentence and can still never become a figure the
+ * coach states. That is design point 6 with teeth, and it is the M-H mutant's
+ * grave.
+ *
+ * NO REFUSAL SENTENCE HERE INTERPOLATES CALLER TEXT OR A MINTED ID. Review round
+ * one, B1: a reason is published as T.text(), whose declared unit is "text", and
+ * allowedTokens() reads a "text" tag AS ENGINE PROSE and licenses every number
+ * in it in whatever unit the words around it name. So a reason that quoted the
+ * memory back licensed the athlete's, or the MODEL's, figures for the whole
+ * turn, with nothing written and no yes given. Every reason in this file is a
+ * FIXED sentence; the words awaiting a yes and the op id a commit holds travel
+ * beside it as untagged data. The accepted layer's own copy is still carried
+ * verbatim when the store refuses, because reading a client refusal out loud is
+ * what tools.cjs:328 intends. The turn-local cell in test/memory.test.cjs and
+ * mutant M-Q are this rule's graves.
  *
  * RECALL IS BOUNDED AND BY EXPLICIT TOPIC. Five facts a turn, ordered by
  * memory-model.cjs's one stated rule, never a scan of histories and never the
@@ -204,11 +217,14 @@ function createMemoryTools({ world, coach } = {}) {
       const confirmation_id = "memconf-" + handles;
       pending.set(confirmation_id, { state: "open", binding: bindingOf(canonical) });
       return refuse("remember", TIER.FACT, turn_id, MEMORY_CODES.CONFIRMATION_REQUIRED,
-        "I have not kept that yet. Say yes and I will keep it in these words: " + canonical.text,
+        "I have not kept that yet. Your own words are in this result beside the yes I am asking for: say yes and I will keep them exactly as they are.",
         "P4B-1-CUSTODY-RULING.md section 3 point 3",
         { state_unchanged: true,
           confirmation: Object.freeze({ confirmation_id, kind: canonical.kind,
-            topic: canonical.topic, text: canonical.text }) });
+            topic: canonical.topic,
+            /* DATA, for the same reason the recalled text is: the reason above is
+               engine prose and would license every figure inside these words */
+            text: dataText("coach-memory.confirmation (your own words, not yet kept)", canonical.text) }) });
     }
 
     const entry = pending.get(a.confirmation_id);
@@ -251,10 +267,13 @@ function createMemoryTools({ world, coach } = {}) {
     const row = read.ok ? read.rows.find((r) => r.op_id === saved.op_id) : null;
     if (!row) {
       return refuse("remember", TIER.FACT, turn_id, MEMORY_CODES.MEMORY_READ_BACK_FAILED,
-        "I kept it: it is recorded on this device as " + saved.op_id
-        + ". I could not read it back just now, so I cannot show it to you yet. It was not written twice.",
+        "I kept it: it is recorded on this device, and this result names the record it is in."
+        + " I could not read it back just now, so I cannot show it to you yet. It was not written twice.",
         "memory-host.mjs read() (" + (read.code || "the operation was not in the view") + ")",
-        { committed: true, recorded: true, op_id: saved.op_id });
+        { committed: true, recorded: true, op_id: saved.op_id,
+          /* the op id names the record without being prose: an op id carries the
+             device id and its digits, and a reason tag would license them */
+          recordedAs: dataText("coach-memory.save.op_id", saved.op_id) });
     }
     const label = Model.labelFor(row, day);
     return T.assertNoLeak(ok("remember", TIER.FACT, turn_id, {
