@@ -116,6 +116,15 @@ const RUNNER_LINE = head + 'RELEASE-FROM-SEAL ' + PKG + ' ' + RELEASED + ',' + R
 const SPECFILE_LINE = head + 'RELEASE-FROM-SEAL ' + PKG + ' ' + RELEASED + ',' + RELEASED2 + ',' +
   SPEC_FILE + ' ' + MID + ' the package spec this run reads ' + MID + ' RULED';
 const UNRULED_LINE = head + GRANT + ' ' + MID + ' PROPOSED';
+/* P-A1 (the PM's ruling of 2026-09-19; S9-PREP-RUNNER-REVIEW-R1 BLOCKING-3 and
+   R2 N1). The phrasings that satisfied the OLD terminal test without being a
+   ruling: the test admitted the word RULED anywhere at the end of the trimmed
+   line, after a space as readily as after a clause separator, so a clause that
+   says the OPPOSITE freed both paths. Two of them, because the negation can be
+   flat ("NOT RULED") or temporal ("not yet RULED"), and both were measured
+   ADMITTED by two reviewers in turn. */
+const NOT_RULED_LINE = head + GRANT + ' ' + MID + ' this is NOT RULED';
+const NOT_YET_RULED_LINE = head + GRANT + ' ' + MID + ' not yet RULED';
 /* r10b N1's own controls, carried over: the same token negated, quoted,
    bracketed, emphasised and backticked INSIDE a clause. None of them begins
    a clause, so none of them frees a path. */
@@ -146,7 +155,8 @@ write(GA_FILE, JSON.stringify({ version: 1, packageId: 'M2-S8-FIXTURE',
   executionPins: { [CELL]: CELL_SHA } }, null, 2) + '\n');
 const GA_SHA = at(GA_FILE);
 write('rebuild/DECISIONS.md', [RULING_LINE, PARTIAL_LINE, PARTIAL2_LINE, WIDE_LINE, OTHER_PACKAGE_LINE,
-  ARGV_LINE, RUNNER_LINE, SPECFILE_LINE, UNRULED_LINE, ...WRAPPED_LINES, ''].join('\n'));
+  ARGV_LINE, RUNNER_LINE, SPECFILE_LINE, UNRULED_LINE, NOT_RULED_LINE, NOT_YET_RULED_LINE,
+  ...WRAPPED_LINES, ''].join('\n'));
 const shaOf = line => sha(Buffer.from(line));
 
 git('init', '--quiet', '-b', 'fixture-chain');
@@ -403,19 +413,17 @@ test('B.8 (5) - a token line naming another package frees nothing here', () => {
     /RELEASE-RULING-DOES-NOT-NAME-THIS-PACKAGE/);
 });
 
-/* THE TITLE IS S9-PREP-RUNNER-REVIEW-R1 BLOCKING-3's CORRECTION, and it is
-   narrower than B.8 (6)'s own wording on purpose. What the terminal test
-   measures is that the LAST WORD of the line is RULED, anchored at the end of
-   the trimmed line and admitted after a space, after the clause separator, or
-   at a line start. THAT REVIEW MEASURED the one phrasing that satisfies it
-   without being a ruling - a line whose last two words are "NOT RULED" - and
-   it is ADMITTED. The weakness is INHERITED: supersessionRuling()
-   carries the same regex, frees carriers through GATE-SUPERSESSION on the same
-   test today, and this ticket required the mirror to be line for line, so it is
-   NOT strengthened here on one side only. It is put to the PM in writing, as one
-   question about BOTH functions, in the author report's "R1 findings" section.
-   This cell states what it measures and nothing wider. */
-test('B.8 (6) - a token line whose LAST WORD is not RULED frees nothing, and neither does a wrapped token', () => {
+/* THE TITLE IS B.8 (6)'s OWN WORDING AGAIN, and it is true again as of the
+   PM's P-A1 ruling. R1 BLOCKING-3 measured the one phrasing that satisfied the
+   old terminal test without being a ruling - a line whose last two words are
+   "NOT RULED" - and R2 N1 re-measured it ADMITTED on its own fixture. The hole
+   was INHERITED (supersessionRuling() carried the identical test), so it could
+   not be closed on one side of a line-for-line mirror by an author; the PM
+   measured every ruling line the specs cite, found all eight still ruled under
+   the narrower rule, and closed it in BOTH functions at once. The cell that
+   measures the closure is (P-A1) below, in this suite and in
+   gate-supersession.test.cjs; this one keeps the rows B.8 gives it. */
+test('B.8 (6) - a token line that does not end in a RULED clause frees nothing, and neither does a wrapped token', () => {
   assert.throws(() => api.product(spec({ release: { rulingLineSha256: shaOf(UNRULED_LINE) } }), bound(), null),
     /RELEASE-RULING-IS-NOT-A-RULED-LINE/);
   /* r10b N1's controls, which the keyword scan of an earlier runner admitted:
@@ -785,4 +793,128 @@ test('(X2) - no release block, no ledger read: the chain is unreachable and the 
   assert.equal(Object.hasOwn(blind.proposed(none, b), 'released'), false);
   const r = blind.releaseRuling(none, b);
   assert.deepEqual([r.at, r.line, [...r.granted], r.declared], [null, null, [], []]);
+});
+
+/* ==== (P-A1) THE RULED TERMINAL TEST, STRENGTHENED IN BOTH FUNCTIONS =====
+   The PM's ruling of 2026-09-19, on R1 BLOCKING-3 and R2 N1. The old test
+   asked only that the trimmed line END in the word RULED, after a space as
+   readily as after a clause separator, so a line reading "... this is NOT
+   RULED" freed both paths; two reviewers measured it ADMITTED in turn. The
+   new rule is the line's LAST clause, trimmed, EXACTLY the word RULED.
+   IT LANDED IN BOTH RULING FUNCTIONS AT ONCE, because a chain with two
+   ruling functions that disagree about what a ruled line is has a hole
+   wherever the weaker one stands, and only after the measurement the PM
+   made the condition of the change: every ruling line the specs under
+   rebuild/lanes/b/tooling/packages/ cite by sha256 - DECISIONS:153, :160,
+   :421, :444, :462, :490, :514 and :527, eight in all - located on the
+   chain ref and tested, every one still ending in a clause that is the bare
+   word. A guard on the seal path is never strengthened in a way that voids
+   a standing seal, so the measurement came first and the hunk second. */
+test('(P-A1) - a line whose LAST clause is not the bare word RULED frees nothing', () => {
+  const b = bound();
+  for (const line of [NOT_RULED_LINE, NOT_YET_RULED_LINE])
+    assert.throws(() => api.product(spec({ release: { rulingLineSha256: shaOf(line) } }), b, null),
+      /RELEASE-RULING-IS-NOT-A-RULED-LINE/, 'frees nothing: ' + line.slice(-30));
+  /* THE REFUSAL NAMES THE LINE, so the PM who wrote one of these can find it,
+     and it is a name in the closed vocabulary rather than a bare FAIL. */
+  try { api.product(spec({ release: { rulingLineSha256: shaOf(NOT_RULED_LINE) } }), b, null); assert.fail('admitted'); }
+  catch (e) { assert.match(e.message, /RELEASE-RULING-IS-NOT-A-RULED-LINE DECISIONS:\d+/); }
+  assert(api.FAIL_CODES.has('RELEASE-RULING-IS-NOT-A-RULED-LINE'));
+  /* THE CONTROL, and it is the whole of what the strengthening may not cost:
+     the fixture's real ruled line, whose last clause IS the bare word, still
+     frees both paths and the package still runs to the answer it always gave.
+     This is the same shape as every ruling line the measurement enumerated. */
+  const out = said(() => assert.equal(api.product(spec(), b, null), 'NOT-IMPLEMENTED'));
+  assert.match(out, /2 released under DECISIONS:\d+/);
+});
+
+/* ==== (P-A2) A RELEASE IS REFUSED WITHOUT A BOUND PARENT ================
+   The first author's own note 4, adopted by the PM in the author's shape.
+   B.2 step 6 - you cannot release what the parent never sealed, and the
+   declared pre-image is that parent's own pin - stood behind `if (pmap)`.
+   A run with no bound parent, or one whose parent artifact carries no
+   product map, therefore SKIPPED the step in silence and admitted a release
+   of a path nothing had ever sealed. The skip is the defect: there is no
+   honest reading of "released" without the seal it is released from, so the
+   run refuses by name instead of quietly checking less than it says. */
+test('(P-A2) - a declared release with no bound parent product map refuses by name', () => {
+  assert.throws(() => api.releaseRuling(spec(), null), /RELEASE-WITHOUT-A-BOUND-PARENT/);
+  assert.throws(() => api.product(spec(), null, null), /RELEASE-WITHOUT-A-BOUND-PARENT/);
+  /* A bound parent whose artifact carries no product map at all is the same
+     refusal, because it is the same missing fact. */
+  const b = bound(); delete b.acceptance.product;
+  assert.throws(() => api.product(spec(), b, null), /RELEASE-WITHOUT-A-BOUND-PARENT/);
+  assert.throws(() => api.proposed(spec(), b), /RELEASE-WITHOUT-A-BOUND-PARENT/);
+  /* The refusal NAMES the paths whose parent pin went unchecked. */
+  try { api.releaseRuling(spec(), null); assert.fail('admitted'); }
+  catch (e) { assert(e.message.includes(RELEASED) && e.message.includes(RELEASED2), e.message); }
+  assert(api.FAIL_CODES.has('RELEASE-WITHOUT-A-BOUND-PARENT'));
+  /* AND IT COSTS A PACKAGE THAT RELEASES NOTHING NOTHING, which is (X2)'s
+     whole question asked of this hunk: the empty grant comes back with no
+     parent at all, exactly as it does for every package sealed before this
+     role existed, and no ledger is read to produce it. */
+  const r = api.releaseRuling(releasesNothing(), null);
+  assert.deepEqual([r.at, r.line, [...r.granted], r.declared], [null, null, [], []]);
+});
+
+/* ==== (P-A3) THE GRANDPARENT SKIP IS NARROW BY MEASUREMENT ==============
+   S9-PREP-RUNNER-REVIEW-R2 N2's own attack (NEW-1), adopted by the PM. H17
+   skipped on the PATH NAME alone: `releasedAncestry()` collected the KEYS of
+   the ancestors' released blocks, and an ancestor block naming a path at a
+   sha256 the grandparent never sealed was believed on its own say-so. It is
+   NOT reachable through this runner - proposed() writes lastSealedSha256
+   from the pre-image releaseRuling() has already held to the parent pin, and
+   the artifact's own byte-pin closes the loop - so this is defence in depth,
+   and the reason to write it anyway is that F.1 R9 names "nothing shows" as
+   the risk of a skip written too wide. The skip now MEASURES the block
+   against the grandparent's own pin for the same path before it fires. */
+test('(P-A3) - an ancestor released block at a sha the grandparent never sealed refuses', () => {
+  const wrong = bound10({ [RELEASED]: releasedEntry('a'.repeat(64)) });
+  assert.throws(() => said(() => api.pins(s10(), wrong)), /ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN/);
+  try { said(() => api.pins(s10(), wrong)); assert.fail('admitted'); }
+  catch (e) { assert(e.message.includes(RELEASED), 'the refusal names the path: ' + e.message); }
+  /* A block entry with no lastSealedSha256 at all is the same refusal: an
+     entry that records nothing is not evidence of anything either. */
+  const shapeless = bound10({ [RELEASED]: { role: 'released', sealedBy: 'M2-S8-FIXTURE' } });
+  assert.throws(() => said(() => api.pins(s10(), shapeless)), /ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN/);
+  assert(api.FAIL_CODES.has('ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN'));
+  /* THE TWO CONTROLS. The honest block still skips both paths and still says
+     how many it stood aside for; and B.8 (12)'s no-op is still a no-op,
+     because the assert stands AT THE SKIP inside the grandparent walk and a
+     released entry for a path no ancestor ever pinned never reaches it. */
+  const plain = said(() => api.pins(s10(), bound10()));
+  assert.match(plain, /plus 2 skipped as released by an ancestor artifact's released block/);
+  assert.equal(said(() => api.pins(s10(), bound10({ [NEVER_SEALED]: releasedEntry('c'.repeat(64)) }))), plain);
+});
+
+/* ==== (P-A4) H13's COUNT SENTENCE, PINNED BY READING THE RUNNER =========
+   S9-PREP-RUNNER-REVIEW-R2 BLOCKING-1, and the PM's ruling on it. H13 also
+   had to change the AUTHORIZED STEP re-verify COUNT, or it over-counts by
+   the number of released paths; B.6 states that in terms. That sentence
+   stands PAST the `// 8. main sequence` delimiter this suite slices off at
+   its own :193, so no cell in any of the ten lane-B suites can execute it:
+   the reviewer reverted the expression and measured NOTHING RED ANYWHERE.
+   The hunk is right and the EVIDENCE was a claim, so it is pinned here the
+   way B.8 (1b) pins H4 and H5 - by reading the runner's own text - and the
+   report's ordinal table names it in that same unreachable class. This cell
+   does not drive a hunk; it stops one from being deleted in silence. */
+test('(P-A4) - H13 counts the inventory MINUS the released paths, and names them', () => {
+  assert(source.includes(
+    "Object.values(s.product).filter(p => p.role !== 'released').length + ' pinned product file(s)'"),
+    'the AUTHORIZED STEP re-verify counts the inventory minus the released paths');
+  assert(source.includes("Object.values(s.product).some(p => p.role === 'released')"),
+    'the extra clause is printed only when something was released');
+  assert(source.includes("' released and NOT re-verified here,'"),
+    'and the released paths are said out loud rather than dropped in silence');
+  /* The FILTER stands once, and it is the only count over s.product that
+     needed one. The runner says "pinned product file(s)" at a SECOND site,
+     the SEALED RUN RECORDED say of the write step, and that one counts
+     `wrote.sealedRun.product` - the map H12 has already built without the
+     released paths - so a filter there would be a second rule for one fact.
+     Measured here rather than asserted from the report: two say sites, one
+     filter, and the other site's count is right for H12's reason. */
+  assert.equal(source.split("Object.values(s.product).filter(p => p.role !== 'released').length").length - 1, 1);
+  assert.equal(source.split("' pinned product file(s)'").length - 1, 2);
+  assert(source.includes("if (s.product[file].role !== 'released' && fs.existsSync(rel(file))) product[file] = diskSha(file);"),
+    'H12 keeps the released path out of the receipt map the second say counts');
 });
