@@ -156,6 +156,21 @@ function declaredSubSha(row) {
 function declaredRepSha(file, r) {
   return sha256(JSON.stringify([r.id, file, r.replacement]));
 }
+/* R2 F4, and it is the same argument one block further out. R1 NOTE-1 closed the SILENT
+   path through a substitution's `to`; R2 drove a line through the PRODUCT block instead -
+   it removed `Object.freeze(` from gym-settings-lane.mjs's read-only facade, changed no
+   source byte, and the cut wrote an unfrozen facade and exited 0. `product` and `compose`
+   carry more authored bytes than every substitution row put together (the banner, the
+   factory line, the whole return block, and the released half's composition), and for
+   part 2's interface over 679 moved lines it is the same hole on a much larger surface.
+   These two digests are duplicated verbatim from gen-witness.cjs on purpose, for the
+   reason the two above are.                                                             */
+function declaredProdSha(dest, P) {
+  return sha256(JSON.stringify([dest, P.head || null, P.open || null, P.close || null]));
+}
+function declaredCompSha(file, w) {
+  return sha256(JSON.stringify([file, w.after || null, w.afterLines || null, w.at || null, w.insert || null]));
+}
 function checkDeclaredText() {
   const D = WITNESS.declared;
   if (!D) {
@@ -205,7 +220,57 @@ function checkDeclaredText() {
     fail("the table declares " + nrep + " replacement rows with text; the declared-text witness " +
       "records " + D.counts.replacements + " (R1 NOTE-1).");
   }
-  return { subs: subs.length, reps: nrep };
+  /* R2 F4: the product blocks. These are the authored banner, factory line and return
+     block of a SEALED product file; a tamper here reaches the shipped file directly. */
+  let nprod = 0;
+  for (const [dest, P] of Object.entries(table.product || {})) {
+    nprod += 1;
+    const w = (D.products || {})[dest];
+    if (!w) {
+      fail("product block " + dest + ": NO DECLARED WITNESS. The banner, the factory line and " +
+        "the return block of a sealed product file are authored bytes that reach that file, " +
+        "and nothing outside the table recorded them (R2 F4). Run gen-witness.cjs --declared.");
+    }
+    const sha = declaredProdSha(dest, P);
+    if (w.sha256 !== sha) {
+      fail("product block " + dest + ": DECLARED TEXT DOES NOT MATCH THE WITNESS. The block now " +
+        "hashes " + sha.slice(0, 16) + "..., the witness records " + w.sha256.slice(0, 16) +
+        ". These are the authored lines of a SEALED product file - the banner, the factory " +
+        "signature and the frozen return block - and they are not the lines the spec was " +
+        "reviewed against (R2 F4: dropping Object.freeze( from the read-only facade here " +
+        "changed no source byte and exited 0).");
+    }
+  }
+  if (nprod !== D.counts.products) {
+    fail("the table declares " + nprod + " product blocks; the declared-text witness records " +
+      D.counts.products + ". A product block ADDED to the table writes a whole sealed file and " +
+      "nothing witnessed it (R2 F4).");
+  }
+  /* R2 F4: the compose blocks. These are the RELEASED half's composition lines - the
+     require or import, and the factory call that hands the seal its arguments. */
+  let ncomp = 0;
+  for (const [file, w0] of Object.entries(table.compose || {})) {
+    ncomp += 1;
+    const w = (D.composes || {})[file];
+    if (!w) {
+      fail("compose block " + file + ": NO DECLARED WITNESS. The released half's own " +
+        "composition lines are authored bytes that reach a released file (R2 F4). Run " +
+        "gen-witness.cjs --declared.");
+    }
+    const sha = declaredCompSha(file, w0);
+    if (w.sha256 !== sha) {
+      fail("compose block " + file + ": DECLARED TEXT DOES NOT MATCH THE WITNESS. The block now " +
+        "hashes " + sha.slice(0, 16) + "..., the witness records " + w.sha256.slice(0, 16) +
+        ". These are the lines by which the RELEASED file composes the seal - the require and " +
+        "the arguments the factory is handed - and they are not the lines the spec was " +
+        "reviewed against (R2 F4).");
+    }
+  }
+  if (ncomp !== D.counts.composes) {
+    fail("the table declares " + ncomp + " compose blocks; the declared-text witness records " +
+      D.counts.composes + " (R2 F4).");
+  }
+  return { subs: subs.length, reps: nrep, prods: nprod, comps: ncomp };
 }
 
 function checkWitness(file, region, start, end, body, lastHits) {
@@ -554,8 +619,9 @@ if (!QUIET) {
       "; moved lines " + r.movedLines);
   }
   console.log("  DECLARED-TEXT WITNESS (R1 NOTE-1): " + DECLARED.subs + " substitution rows and " +
-    DECLARED.reps + " replacement rows compared against regions.json's recorded sha256 per row " +
-    "and the recorded row counts, BEFORE any source file was opened; every one matched.");
+    DECLARED.reps + " replacement rows, " + DECLARED.prods + " product blocks and " +
+    DECLARED.comps + " compose blocks (R2 F4) compared against regions.json's recorded sha256 " +
+    "per row and the recorded counts, BEFORE any source file was opened; every one matched.");
   console.log("  SUBSTITUTIONS: " + report.substitutions.length +
     " rows / " + Object.values(report.files).reduce((a, b) => a + b.substitutionsApplied, 0) +
     " occurrences applied after the witness passed");

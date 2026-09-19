@@ -448,14 +448,42 @@ EXACTLY ONE durable writer, and a second fails.
 All of them are DECLARED in `regions.json`'s `product` and `compose` blocks, so they are
 reviewable beside the regions they wrap and the codemod, not a hand, put them on the page.
 
-### `rebuild/m3/w7-preview/today/today-readings.cjs` (79 lines, 43 authored)
+**CORRECTED BY PART 2 UNDER R2 F5 AND `DECISIONS:574`.** The two tables for the two NEW files
+below carried line numbers that were one or two off, so a PM reading
+`today-readings.cjs:34` read a moved byte and MISSED the authored factory signature, which is
+the single most load-bearing hand-written line of cut one. R2's CONTENT list was complete and
+no authored line was omitted; only the numbers were wrong. The numbers here are now PHYSICAL
+LINE NUMBERS of the committed files, re-derived mechanically from the tree rather than
+transcribed, and checked against R2's own table.
+
+**THE COUNTING CONVENTION, stated (`DECISIONS:574`).** Three different numbers are true of this
+part and they count three different things, so each is named where it is used:
+
+- **NOVEL LINES, 139.** Astra's blind reconstruction classified every physical line of the four
+  product files against the base: 1218 lines, 1079 verbatim, **139 novel**. A line is novel if
+  its exact bytes are not a line of the base file.
+- **SLOTS, 149.** The count of authored POSITIONS in `regions.json`'s `product` and `compose`
+  blocks plus the codemod's own region banners and blank lines. It is higher than 139 because
+  several authored lines are byte-identical to each other (blank lines, `  */`, `  });`).
+- **156 WITH THE SUBSTITUTIONS.** 149 slots plus the **seven** substitution lines of section 5
+  (`W6a` to `W6e`, `W7a`, `W7b`), which are moved lines whose bytes a declared row changed. They
+  are not authored slots and they are not verbatim moved bytes, and they are listed by line in
+  section 5 and by file below.
+- **AUTHORED LINES PER FILE**, used in the two headings below, is the file's physical line count
+  minus its moved-line total from `regions.json`'s witness: `today-readings.cjs` 78 minus 36 is
+  **42**, `gym-settings-lane.mjs` 103 minus 41 is **62**. (The headings previously said 43 and
+  63, off by the same one as the line counts.)
+
+### `rebuild/m3/w7-preview/today/today-readings.cjs` (**78** lines, **42** authored)
 
 | lines | what |
 |---|---|
-| `:1-:33` | `"use strict";` and the file banner: what was cut, from where, that the bytes were witnessed, what the file may not gain, and that the seven injections are a measurement |
-| `:34` | `function createReadingsWriter({ day, readings, adoptedRead, stateFromOps, read, NO_STORE, setMessage }) {` |
-| `:35`, `:44-:45`, `:67-:68` | the codemod's region banners `/* TM-S01 today-model.cjs:397-406 */` and their blank lines |
-| `:74-:79` | `  return { weighIn, reopen, ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX };`, the closing brace, and `module.exports = { createReadingsWriter };` |
+| `:1-:31` | `"use strict";` and the file banner: what was cut, from where, that the bytes were witnessed, what the file may not gain, and that the seven injections are a measurement. 31 lines, which is the `product` block's `head` length |
+| **`:32`** | `function createReadingsWriter({ day, readings, adoptedRead, stateFromOps, read, NO_STORE, setMessage }) {` **THE FACTORY SIGNATURE, the line R2 F5 says a PM reading `:34` misses.** It carries all seven injections |
+| `:33`, `:45`, `:68` | the codemod's region banners `/* TM-S01  today-model.cjs:397-406 */`, `/* TM-S02 ... */`, `/* TM-S03 ... */` |
+| `:44`, `:67`, `:74`, `:77` | the codemod's blank separator lines |
+| `:75-:78` | `  return { weighIn, reopen, ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX };` (`:75`), the closing brace (`:76`), a blank (`:77`) and `module.exports = { createReadingsWriter };` (`:78`) |
+| the five W6 lines, INSIDE moved regions and not authored slots | `:51`, `:56`, `:60`, `:64` in `TM-S02` and `:70` in `TM-S03`: the `setMessage(...)` calls of `W6a` to `W6e` |
 
 ### `rebuild/m3/w7-preview/today/today-model.cjs` (479 lines, 18 authored)
 
@@ -469,14 +497,16 @@ census's zero sealed-assigns-released rows after W6 is a property of the instrum
 safety property, because `setMessage` routes the five writes through a released closure the
 seal calls and the effect is identical.
 
-### `rebuild/m3/w7-preview/today/gym-settings-lane.mjs` (104 lines, 63 authored)
+### `rebuild/m3/w7-preview/today/gym-settings-lane.mjs` (**103** lines, **62** authored)
 
 | lines | what |
 |---|---|
-| `:1-:33` | the file banner, including what is NOT in it and why: `recordSettings` stays released, its released half still decides what is stored, and `:546` is byte-identical with its own ticket |
-| `:34` | `export function createGymSettingsLane(doc, model, settings, painter) {` |
-| `:35`, `:37-:38`, `:49-:50`, `:66-:67` | the codemod's region banners and blank lines |
-| `:81-:104` | the return block: `Object.freeze({ facade: Object.freeze({ 7 entries }), hooks: Object.freeze({ 4 entries }) })` and the closing brace |
+| `:1-:31` | the file banner, including what is NOT in it and why: `recordSettings` stays released, its released half still decides what is stored, and `:546` is byte-identical with its own ticket. 31 lines, the `product` block's `head` length |
+| **`:32`** | `export function createGymSettingsLane(doc, model, settings, painter) {` **THE FACTORY SIGNATURE** (R2 F5: not `:34`) |
+| `:33`, `:38`, `:50`, `:67` | the codemod's region banners `/* GA-S01  gym-app.mjs:123-125 */` and its three siblings |
+| `:37`, `:49`, `:66`, `:81` | the codemod's blank separator lines |
+| `:82-:103` | the return block, 22 lines, the `product` block's `close` length: a four-line comment (`:82-:85`), `return Object.freeze({` at **`:86`**, `facade: Object.freeze({` with seven entries, `hooks: Object.freeze({` with four, and the closing brace at **`:103`** |
+| the two W7 lines, INSIDE moved regions and not authored slots | `:63` in `GA-S03` and `:77` in `GA-S04`: the two `painter.repaint()` call-target rewrites |
 
 ### `rebuild/m3/w7-preview/today/gym-app.mjs` (560 lines, 27 authored)
 
