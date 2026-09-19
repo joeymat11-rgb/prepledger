@@ -252,10 +252,11 @@ def mut_q3(work):
 
 
 def mut_q9(work):
-    # the spaced hyphen drawn with a no break space on each side: the screen reads it as the
-    # plain spaced hyphen, and so must the rule
+    # the spaced hyphen drawn with a tab on one side and a no break space on the other: the
+    # screen reads it as the plain spaced hyphen, and so must the rule. Two different invisible
+    # widths in one string, so the row fires only if both of them were folded.
     sub(work, 'app/app.html', 'Upper body today. One change to review.',
-        'Upper body today\u00a0-\u00a0one change to review.')
+        'Upper body today\t-\u00a0one change to review.')
 
 
 def mut_q10(work):
@@ -267,9 +268,10 @@ def mut_q10(work):
 
 
 def mut_q11(work):
-    # a numeric range written with a minus sign, which is a dash and not a negative number
+    # two dash uses of the minus sign in one sentence: a numeric range, and the sign pressed
+    # against a letter. Neither is a negative number, which is opened by a space or a bracket.
     sub(work, 'app/app.html', 'Upper body today. One change to review.',
-        'Upper body today. Do 3\u22125 sets.')
+        'Upper body\u22125 today. Do 3\u22125 sets.')
 
 
 def mut_q8(work):
@@ -409,11 +411,11 @@ ROWS = [
      dict(exit=1, fails=[(COPY_CHECK, 'U+00AD'), (COPY_CHECK, "'ready'")])),
     ('q3', 'a horizontal bar and a hyphen bullet, two dashes the old list missed', mut_q3, GATE_TODAY,
      dict(exit=1, fails=[(COPY_CHECK, repr('\u2015')), (COPY_CHECK, repr('\u2043'))])),
-    ('q9', 'a spaced hyphen whose two spaces are no break spaces', mut_q9, GATE_TODAY,
+    ('q9', 'a spaced hyphen whose two spaces are a tab and a no break space', mut_q9, GATE_TODAY,
      dict(exit=1, fails=[(COPY_CHECK, repr(' - '))])),
     ('q10', 'a visible 20 px target carrying a clip its positioning makes inert', mut_q10, GATE_TODAY,
      dict(exit=1, fails=[('touch targets >= 44 px', '274x20.00')])),
-    ('q11', 'a numeric range written with a minus sign', mut_q11, GATE_TODAY,
+    ('q11', 'a minus sign as a range and pressed against a letter', mut_q11, GATE_TODAY,
      dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
     ('q4', 'primary text tagged muted and painted with the muted token', mut_q4, SHEET_T02,
      dict(exit=1, stdout=['T-02', 'colour', 'became', 'colour moved (levels)'])),

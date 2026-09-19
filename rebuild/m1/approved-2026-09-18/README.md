@@ -351,9 +351,12 @@ self-accepts. The builder's cells pin every copy string they move.
   letting it pass unswept. On the swept string:
   every character of Unicode category Pd except the plain hyphen U+002D, and the two characters
   Unicode files under Po that draw the same stroke, U+2043 HYPHEN BULLET and U+2053 SWUNG DASH;
-  a hyphen with a space each side, tested on a string in which every character of Unicode category
-  Zs (U+00A0, U+2007, U+2009, U+202F, U+3000 and the rest) and U+2060 has been folded to an
-  ordinary space, because the screen reads all of them as a space; every character of Unicode category Cf, named by its code
+  a hyphen with a space each side, tested on a string in which every character Python's
+  `str.isspace()` calls whitespace, except the newline characters that separate the lines of the
+  swept string, has been folded to an ordinary space, plus U+2060: that is category Zs (U+00A0,
+  U+2007, U+2009, U+202F, U+3000 and the rest), U+2028 and U+2029, the tab and the other control
+  whitespace. The newlines are kept as they are so the minus sign rule can still read a line that
+  holds nothing but the sign; every character of Unicode category Cf, named by its code
   point, because a soft hyphen or a zero width space inside a word is drawn as nothing and
   interface copy has no honest use for one; then, on the string with those removed, NFKC
   normalised and casefolded, each word of the owner's
@@ -361,10 +364,11 @@ self-accepts. The builder's cells pin every copy string they move.
   to train" matches and "already" does not), and each vendor name as a plain substring. U+2212
   MINUS SIGN is filed as a maths symbol rather than as punctuation, so it is swept by a rule of
   its own: it fails unless it is the sign of a negative number, which means a digit directly
-  follows it and the nearest character before it that is not a space is not a digit (the start of
-  the line counts as not a digit, so a digit on each side is a range, which is a dash), or it is
-  the whole of its own line in the swept string, which is a control whose entire label is the
-  sign. The prototype draws exactly
+  follows it, the character directly before it is a space, the start of the line or an opening
+  bracket, and the nearest character before it that is not a space is not a digit; or it is the
+  whole of its own line in the swept string, which is a control whose entire label is the sign. A
+  digit on each side is a range and a letter in front of it is a word, and both of those are a
+  dash. The prototype draws exactly
   that on a set's decrement button (`app/states.js:113`, `app/states-workout.js:270`); sweeping
   the character flatly made the state sheet `418 renders, 2 with problems` on W-18 alone, which
   is the measurement that shaped the rule. The one sweep that matters most had been written `r'\\b'`, which is a literal

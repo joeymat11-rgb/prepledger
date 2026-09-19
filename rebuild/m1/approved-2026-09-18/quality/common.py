@@ -19,6 +19,9 @@ SET_LETTER_X = re.compile(r'\d\s*[xX]\s*\d')
 # U+2060 WORD JOINER is a format character rather than a space separator, so the category test in
 # fold_spaces does not reach it, and it sits between two words the way a space does.
 SPACE_JOINERS = '\u2060'
+# the line separators of the swept string, kept unfolded so the minus sign rule can still read a
+# line that holds nothing but the sign
+KEPT_NEWLINES = '\n\r'
 MINUS_SIGN = '\u2212'
 # U+2043 HYPHEN BULLET and U+2053 SWUNG DASH draw the same stroke as a dash, and Unicode files them
 # under Po, other punctuation, so the category rule cannot reach them. They are the two neighbours
@@ -41,14 +44,20 @@ def is_dash(ch):
 def fold_spaces(text):
     """Every space a reader sees as a space, written as one.
 
-    Unicode files a dozen characters under Zs, space separator, and each of them is drawn as a
-    space and read as a space: U+00A0, U+2007, U+2009, U+202F, U+3000 and the rest. A rule that
-    tests for an ordinary space misses every one of them, which is how a hyphen with a no break
-    space on each side walked through the sweep that names it. One helper, used by the spaced
-    hyphen test, the minus sign rule and the word and vendor sweeps, so the two gates cannot
-    drift and no one rule reads a different string from the others.
+    Every character Python's str.isspace() calls whitespace is folded to an ordinary space,
+    except the newline characters that separate the lines of the swept string, which are kept as
+    they are so the minus sign rule can still ask whether a line holds nothing but the sign. That
+    covers category Zs (U+00A0, U+2007, U+2009, U+202F, U+3000 and the rest), U+2028 and U+2029,
+    the tab and the other control whitespace; U+2060 WORD JOINER is folded with them, because it
+    sits between two words the way a space does and no category reaches it.
+
+    A rule that tests for an ordinary space misses every one of these, which is how a hyphen with
+    a no break space on each side walked through the sweep that names it. One helper, used by the
+    spaced hyphen test, the minus sign rule and the word and vendor sweeps, so the two gates
+    cannot drift and no one rule reads a different string from the others.
     """
-    return ''.join(' ' if (c in SPACE_JOINERS or unicodedata.category(c) == 'Zs') else c
+    return ''.join(c if c in KEPT_NEWLINES else
+                   (' ' if (c in SPACE_JOINERS or c.isspace()) else c)
                    for c in text)
 
 
@@ -57,9 +66,10 @@ def minus_problems(text):
 
     The character is filed as a maths symbol rather than as punctuation, so the dash category does
     not reach it, and it has two honest uses that a flat ban would refuse. It is a minus sign in front of
-    a negative number, which means a digit directly follows it AND the nearest character before it
-    that is not a space is not a digit; the start of the line counts as not a digit, and a digit on
-    each side is a range, which is a dash. It is a control's label when it is the whole of its own
+    a negative number, which means a digit directly follows it, AND the character directly
+    before it is a space, the start of the line or an opening bracket, AND the nearest character
+    before it that is not a space is not a digit. A digit on each side is a range and a letter in
+    front of it is a word, and both of those are a dash. It is a control's label when it is the whole of its own
     line in the swept string, which is how the decrement button beside a set's load reads
     (app/states.js:113 and app/states-workout.js:270 draw the pair "minus" and "plus" around
     "50 lb"). Measured on the prototype: sweeping it flatly made the state sheet
@@ -71,7 +81,10 @@ def minus_problems(text):
             continue
         for m in re.finditer(MINUS_SIGN, line):
             before = line[:m.start()].rstrip(' ')
-            negative = line[m.end():m.end() + 1].isdigit() and not before[-1:].isdigit()
+            # a negative number is opened by a space, a line start or a bracket, never by a letter
+            opener = (line[m.start() - 1:m.start()] if m.start() else '') in ('', ' ', '(', '[')
+            negative = (line[m.end():m.end() + 1].isdigit() and opener
+                        and not before[-1:].isdigit())
             if not negative:
                 return [MINUS_SIGN]
     return []
