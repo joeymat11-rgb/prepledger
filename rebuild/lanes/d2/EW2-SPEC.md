@@ -3,6 +3,21 @@
 Lane D2, SPEC ONLY. Author: cowork (Earned lane hand), Opus, 2026-09-19. Branch `rebuild/d2-ew2-spec`
 cut from `0794771`. No product, test, tooling or workflow byte moves on this branch.
 
+**v6, FIX ROUND 6, THE LAST GENERAL AUTHOR ROUND (`D-EW2-FINAL`). NO EW2 BUILD STARTS FROM v5.**
+ASTRA, the independent Codex reviewer, read v5 BLIND at highest effort and returned **DO NOT BUILD
+YET**: thirteen findings, three BLOCKING, most with EXECUTED witnesses
+(`rebuild/lanes/astra/reviews/EW2-SPEC-BLIND-REVIEW.md` at `origin/rebuild/r-astra-ew2-spec`,
+`adc9347d`, 251 lines). The PM upholds the verdict and rules `E-R30` to `E-R38`. **Her finding is
+R4's B1 one level up: R4 found an id-space defect by running the product where the two lift id
+spaces DIFFER; she found that v5's own answer still does not survive the moment the spaces CHANGE,
+the first import after first-run edits. Five Claude rounds read those sections and none of them ran
+that journey.** Section 13 is this round's landing: every ruling, the cell of MY OWN writing that
+reproduces or refutes her witness, the three new acceptance journeys J1, J2 and J3, the re-priced
+sealed budget, and her superseded register with every sentence corrected or dated. **This round
+measured before it wrote and it did NOT take her findings unmeasured: every executed witness was
+reproduced in a farm scratch worktree with cells written from scratch, and where my measurement
+disagrees with her reading, section 13.10 says so by name.**
+
 **v5, FIX ROUND 5, THE SHORT ROUND, AND THE LAST DOCUMENT ROUND. THE BUILD STARTS FROM THIS FILE.**
 Independent review R4 (`EW2-SPEC-REVIEW-R4.md` at `84e09193`) returned REJECT at `f9b1c8db` with
 four BLOCKING findings and five notes, and it is **the first round that ran the product against the
@@ -1560,8 +1575,17 @@ authority line contradicted it.
 **THE MEASURED STATEMENT, and it is stronger for the PM, not weaker: the refusal is UNREACHABLE
 today because nothing constructs the companion. It becomes reachable ON THE DAY PART 2'S WIRING HALF
 SHIPS, for any athlete who edits and then admits an import.** The owner's completed import removes
-one of the two orderings; the remaining ordering (edit, train, re-admit) is still supported, and
-`rebuild/lanes/d/import-retract/retract.test.mjs` proves retract-and-re-import exists. So this
+one of the two orderings. **CORRECTED IN v6 (`E-R38` F12, Astra F12, UPHELD).** v5 said "the
+remaining ordering (edit, train, re-admit) is still supported, and
+`rebuild/lanes/d/import-retract/retract.test.mjs` proves retract-and-re-import exists". **The cited
+cell proves the OPPOSITE for an ADMITTED import: `retract.test.mjs:138-148` is the row
+"P3D-3 - retract of an ADMITTED import is REFUSED", asserting `retracted === false` and
+`LOCAL_IMPORT_RETRACT_REFUSED_ADMITTED`, and `local-client.mjs:407-411`'s own comment says an
+admitted import "leaves by another path". Its successful re-import, P3D-6 at `:189`, is of an
+UNADMITTED retracted selection. THE REACHABILITY CLAIM IS THEREFORE NARROWED TO WHAT IS
+DEMONSTRATED: first-run edit then FIRST admission is the reachable journey, and it is the one J1
+drives; admitted edit, retract, re-admit is NOT presently supported and no sentence in this spec
+may rest on it.** So this
 section ships WITH part 2 or part 2 ships the interim of 4.3 ruling 4. The schedule is unchanged from
 v1; only the stated reason is corrected, because a false reason is what gets re-litigated when S10 is
 being trimmed.
@@ -1744,8 +1768,16 @@ Adoption runs at boot (`today-app.cjs:2550`) and on `onAdmitted` (`:700`); acros
 again only through `watchDayRollover` (`today-entry.mjs:458-:459`, `:471`). R3 asked whether there
 is a window in which the gym card prescribes YESTERDAY's fold while a session started in it is
 stamped TODAY, which is the one way section 4's re-pointed checks could refuse a workout the
-athlete really did. **MEASURED: the window is real and its bound is 60 seconds** (SPIKE M7 rows 2
-to 4; `intervalMs = 60000` at `today-entry.mjs:472`, re-measured by me at `ad8ced07`), **or the
+athlete really did. **MEASURED, AND RE-STATED IN v6 (`E-R38` F11, Astra F11, UPHELD): the window is
+real and the 60 seconds is a POLLING PERIOD, not an upper bound.** `intervalMs = 60000` at
+`today-entry.mjs:472` is the argument to `setInterval(check, intervalMs)` at `:482`. The real
+scheduling assumption, stated: **the check is SCHEDULED at most 60 seconds after the day turns on a
+document the browser is not throttling, and the reopen it starts completes at an unbounded later
+time; a suspended or backgrounded page, a throttled timer or a slow reopen all widen the window,
+and `watchDayRollover` drives visibility callbacks, not elapsed time and not Start.** A hard bound
+needs a fresh-day READINESS CHECK at Start, which 13.7 specifies and EW-19 cannot today fail for.
+The 60 second figure stays as what it is: the scheduling period (SPIKE M7 rows 2
+to 4, re-measured by me at `ad8ced07`), **or the
 next `visibilitychange` while the document is VISIBLE, whichever comes first. A
 `visibilitychange` while the document is HIDDEN does NOT close it** (row 3, because `onVisible`
 tests `doc.visibilityState !== "hidden"`), so a phone that wakes straight into another app can
@@ -1783,8 +1815,16 @@ and whoever writes the hunk says which in the diff.
    remedy is the one the file has already used twice and explains in its own comments at `:9-:27`:
    **a new family, RETAINED and never projected, exactly as F7 the measure family
    (`:528-:542`) and F6 (`:745`) already are**, claiming `op.class === 'plan'` with
-   `kind === 'plan-mutation'` and `payload.value.profile === 'earned/plan-edit/v1'`
-   (`plan-edit-commands.cjs:95-:99`), pushed as
+   `kind === 'plan-mutation'`. **CORRECTED IN v6 (`E-R33`, Astra F4, MEASURED): v5 said
+   `payload.value.profile === 'earned/plan-edit/v1'` and that field DOES NOT EXIST. The stored
+   operation's `payload` is `null` by construction (`plan-edit-commands.cjs:95`, `:109` refuses any
+   other value) and the profile lives at `members[0].value.profile`, so the v5 discriminator either
+   throws on `null.value` or, written defensively, claims NO real edit at all
+   (`spike/ew2r6-w4-pending-view.mjs`: `stored op.payload = null`,
+   `members[0].value.profile = "earned/plan-edit/v1"`). The family is identified BY CLASS AND KIND
+   and then VALIDATED: `op.class === 'plan' && op.kind === 'plan-mutation'`, then
+   `Commands.validate(op, id => ops[id])`, which reads the profile from the member where it is.**
+   Pushed as
    `families.push({family:'F9', state:'retained', op_id:op.op_id})` with `F9` a working name the
    admission lane owns. A plan operation of that class that FAILS its own
    `Commands.validate` is refused **in the class's name**, not by the catch-all, which is the rule
@@ -2114,9 +2154,15 @@ and whoever writes the hunk says which in the diff.
      explicit `try` around `foldPlanEditsAt` that re-raises as
      `fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED', { field: <one of the three below> })`, which is
      already on the allowlist and is already the vocabulary the import screen draws for every
-     other programme refusal (`:219`, `:246`, `:266`, `:321`, `:598`, `:665`, `:699`). A throw
-     that carries no `PLAN_EDIT_*` code at all is NOT translated and is left to propagate, because
-     translating an unknown throw would hide a defect that is not this one's.
+     other programme refusal (`:219`, `:246`, `:266`, `:321`, `:598`, `:665`, `:699`).
+     **STRUCK IN v6 (`E-R37`, Astra F8, `E-R27` means what it says).** v5 said here: "A throw that
+     carries no `PLAN_EDIT_*` code at all is NOT translated and is left to propagate, because
+     translating an unknown throw would hide a defect that is not this one's." **That sentence
+     contradicts `E-R27` (`:568`), which rules that ANY throw from the F2 boundary is a refusal,
+     and it is superseded. ANY throw at the F2 boundary, in the editor AND in admission, is
+     contained and mapped to a named refusal with a DEFINED DEFAULT; a throw whose code this spec
+     does not list maps to the default and is RECORDED, never propagated and never silent.** The
+     exhaustive field table and the default are 13.6.
    - **(iii) THE FIELD NAMES, PROPOSED FOR THE PM as `E-R14` asks (three, not one per code, because
      the athlete cannot act on the difference between `:216` and `:285`):**
 
