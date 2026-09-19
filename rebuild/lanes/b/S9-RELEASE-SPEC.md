@@ -1,23 +1,29 @@
 # S9-RELEASE-SPEC - releasing the screen files from the sealed inventory
 
-**v3, fix round 3.** v1 (`4876fa9`) was REJECTED by R1 (`f0dc366`, four blocking, ten notes); v2
-(`c0bb04e`) fixed all fourteen and was REJECTED again by
-`rebuild/lanes/b/S9-RELEASE-SPEC-REVIEW-R2.md` (`d859096`) on BLOCKING-A, BLOCKING-B and nine notes.
-v3 carries out **nine PM rulings (PM4)** by name, cited in the body as `PM-R1` to `PM-R9`, fixes
-BLOCKING-A and BLOCKING-B and every R2 note, and answers each one in the new section
-**R2 findings: fixed or disputed** at the end. Two R2 items are DISPUTED with the measurement that
-disputes them; everything else is FIXED. Section **R1 findings** is kept unchanged below it, because
-this round continues the earlier authors' work rather than replacing it.
+**v4, fix round 4.** v1 (`4876fa9`) was REJECTED by R1 (`f0dc366`, four blocking, ten notes); v2
+(`c0bb04e`) fixed all fourteen and was REJECTED by R2 (`d859096`, BLOCKING-A, BLOCKING-B, ten notes);
+v3 (`3a5f91f9`) fixed both and was REJECTED by
+`rebuild/lanes/b/S9-RELEASE-SPEC-REVIEW-R3.md` (`143a650a`) on **BLOCKING-E** and **BLOCKING-F**,
+with notes N1 to N8. R3 found both blocking items inside C.5, which v3 built on the PM's own ruling
+PM-R6, and said so in terms. **The PM has read R3 and REVISED PM-R6; the author was not at fault.**
 
-**New measurements in v3** (farm side, read-only node scripts, no suite and no runner run):
-the PACK-PIN value over the design of record, the byte-identity of that pack between `5f4cad0a` and
-the head of `rebuild/c-ui-0-gates`, and the COPY-BIND census of all 218 declared copy strings.
-They are in C.5, and one of them makes PM-R6's literal wording unbuildable and is reported as such
-rather than bent.
+v4 carries out the revised rulings, cited in the body as **`PM-R6'(i)`, `PM-R6'(ii)`, `PM-R10` to
+`PM-R13`**, keeps `PM-R1` to `PM-R5` and `PM-R7` to `PM-R9` as they stand, fixes BLOCKING-E and
+BLOCKING-F and every R3 note, and answers each one in the new section **R3 findings: fixed or
+disputed** at the end. Sections **R2 findings** and **R1 findings** are kept below it unchanged,
+because this round continues the earlier authors' work rather than replacing it. R3 accepted the
+released role, the token line, H17, the receipt skip and the fence; **none of those is touched by
+this round, and every place v4 does touch an accepted section says so at the point of the edit.**
 
-Lane B tooling, SPEC ONLY. Authors: cowork (Earned lane hand) v1, v2, v3, 2026-09-19, worktree
+**New measurements in v4** (farm side, read-only node scripts and one in-memory require; no suite,
+no `b-package.cjs`, no build): the shape and size of the whole-pack PACK-PIN literal; the state
+records that S10's copy lock will rest on; whether `preview.css` and `build.mjs` carry on-screen
+copy; and **PM-R10's measurement, whether `today-app.cjs` is a child argv target or only imported by
+argv targets**, which is the answer the PM asked round 4 for. They are in C.5, C.6 and A.2.1.
+
+Lane B tooling, SPEC ONLY. Authors: cowork (Earned lane hand) v1, v2, v3, v4, 2026-09-19, worktree
 `%TEMP%\earned-s9` on `rebuild/b-s9-ui-pins`, cut from the chain tip `9e1ece8`
-(`rebuild/t2-client-core`).
+(`rebuild/t2-client-core`; v4's measurements were taken in the farm at `023b99f4`).
 This round authors exactly one file: this one. No runner, package, test, workflow or product byte moves.
 
 Rule of record: `DECISIONS:536` ("Yes, release the screen files"). Standing seal rule: `DECISIONS:455`.
@@ -31,7 +37,18 @@ carries a `file:line`. Where I could not measure a thing I say so by name.
 
 ## 0. THE MEASUREMENT THAT CHANGES THE SHAPE OF THE ROUND
 
-`DECISIONS:536` names eight release candidates. **Five of the eight are not sealed today.**
+`DECISIONS:536` names eight release candidates, and **v4 takes them from the ledger line itself
+rather than from a paraphrase (R3 N2, FIXED; the slip survived three rounds and two reviews).**
+Read out of `:536` verbatim, the eight are `today-app.cjs`, `screens.template.html`, `preview.css`,
+`build.mjs`, `design.cjs`, `browser-check.mjs`, `today-model.cjs` and **"the today test cells that
+pin only rendering"**. `index.shell.html` appears nowhere in line 536; v1 to v3 substituted it for
+the test-cell category and then counted the eight as eight files. The honest headline is therefore
+not "five of eight are not sealed": **four of the seven FILES the ruling names are already free,
+`today-app.cjs` fails the ruling's own test, and the eighth candidate is a CATEGORY of cells, which
+C.3 measures and releases none of.** The closed list is unchanged at two; nothing downstream moves.
+`index.shell.html` is kept in the table below as a seventh row marked for what it is, because it was
+taken out of the seal by the same hotfix as `today-model.cjs` and a reader of v3 will look for it.
+
 The sealed inventory is a closed list of 224 paths in
 `rebuild/m4/spec/acceptance-s8-real-shape.json` (`product`, 224 entries; `executionPins`, 71).
 Under `rebuild/m3/w7-preview/` it holds 49 paths; under `rebuild/m3/w7-preview/today/` it holds
@@ -46,7 +63,8 @@ Under `rebuild/m3/w7-preview/` it holds 49 paths; under `rebuild/m3/w7-preview/t
 | `today/design.cjs` | NO | already free; nothing to release |
 | `today/browser-check.mjs` | NO | already free; nothing to release |
 | `today/today-model.cjs` | NO (taken out by the hotfix, `DECISIONS:535`) | already free; nothing to release |
-| `today/index.shell.html` | NO (same) | already free; nothing to release |
+| **the today test cells that pin only rendering** (the ruling's eighth candidate, a CATEGORY) | **YES, all thirteen**: 12 product pins and 13 execution pins under `today/test/` | measured in **C.3**, which recommends releasing **none** of them, for two independent reasons |
+| `today/index.shell.html` (NOT named by `:536`; listed because v1 to v3 named it) | NO (same hotfix) | already free; nothing to release, and nothing in `:536` asks |
 
 So the CLOSED LIST the ruling asks for is not eight paths. It is at most three, and after reading
 the files it is **two**. Everything else the ruling names is already outside the seal and lane C can
@@ -59,11 +77,17 @@ release on its own. What it follows from is section A's finding about `today-app
 **PM-R1 (Q1), carried out.** The PM has ACCEPTED the two-path closed list for the files that exist
 today, and has NOT re-opened `DECISIONS:536` to release `today-app.cjs`. The split that would free
 the drawing half is now its own lane, **TODAY-SPLIT** (`rebuild/c-today-split`, spec
-`rebuild/lanes/c/TODAY-SPLIT-SPEC.md`, being written in parallel): the view modules it creates are
-NEW files that are never sealed, and the writer and binding half stays sealed. A.2.1 says exactly
-what S9's package gains if TODAY-SPLIT is accepted before the S9 re-measure, and what happens if it
-is not. **Nothing in the release mechanism of section B depends on TODAY-SPLIT**, so S9 preparation
-neither waits for it nor changes shape when it lands.
+`rebuild/lanes/c/TODAY-SPLIT-SPEC.md`).
+
+**PM-R10 changes that lane's DIRECTION, and A.2.1 is re-cut to it.** `DECISIONS:543` (A) ruled
+TODAY-SPLIT-SPEC v1 (`14c87fa7`, view extraction) superseded by round 2 on the same branch: the
+**WRITERS** leave `today-app.cjs` and `gym-app.mjs` for a new SEALED module, and `today-app.cjs` and
+`gym-app.mjs` themselves are **RELEASED by S10 through the released role S9 builds**. So the thing
+S9 hands the split is no longer a place to put new free files; it is the RELEASE MECHANISM ITSELF.
+A.2.1 now says what S9 must leave in place so S10 can release a file that eleven sealed cells import,
+and answers the runner question the PM asked round 4 for. **Nothing in the release mechanism of
+section B depends on TODAY-SPLIT**, so S9 preparation neither waits for it nor changes shape when it
+lands; what changes is that the mechanism must be built so that S10 can point it at a bigger file.
 
 ---
 
@@ -104,38 +128,84 @@ encrypted local store.
 Verdict: **SEALED**, unambiguously, by the ruling's own test. It calls three distinct durable
 writers from three distinct click handlers and opens five IndexedDB lanes.
 
-### A.2.1 TODAY-SPLIT: what S9 does about it, and why S9 does not wait (PM-R1)
+### A.2.1 TODAY-SPLIT: the direction has REVERSED, and what S9 must leave in place for S10 (PM-R1, re-cut by PM-R10)
 
-The split that would release the drawing half is a real product change with a real behaviour risk
-(the handler wiring is what `DECISIONS:454` round 2 found broken once already), so it is not a
-tooling hunk and it is not S9's work. The PM has given it its own lane, **TODAY-SPLIT**
-(`rebuild/c-today-split`, spec `rebuild/lanes/c/TODAY-SPLIT-SPEC.md`, written in parallel with this
-one, with its own independent review). Its shape, as S9 needs to understand it:
+**v4 replaces this section outright. R3 N1 was right that v3's four items were short, and the
+ledger then moved underneath them: `DECISIONS:543` (A), which landed after v3's base, REVERSES the
+cut.** v3's A.2.1 described v1 of the split spec (`14c87fa7`, 853 lines): extract about 1700 lines
+of VIEW into five new free modules and keep `today-app.cjs` sealed. That direction is overruled.
+v1's MAP, PROOFS, WRITER-FENCE and SEQUENCING are kept; its CUT is reversed. I did not re-read
+round 2 of the split spec: `farm-sync.sh rebuild/c-today-split` still returns `14c87fa7`, so round 2
+is not pushed and this section rests on `:543` (A) itself, which is the ruling and not a summary.
 
-| new file | what moves into it | what stays behind |
+| the ruling `DECISIONS:543` (A) | what it means for S9 |
+|---|---|
+| the WRITES regions move OUT of `today-app.cjs` into ONE new SEALED module (working name `today-lanes.cjs`); `gym-app.mjs`'s writers ride the same lane | the new module is a NEW file S10 declares `role: "new"`. S9 declares nothing of it and needs no hunk for it |
+| `today-app.cjs` keeps its name, `mountToday`, the router and every drawing and read-only binding region, and is **RELEASED through the role S9 builds** | **this is the whole of S9's obligation to the split.** S10 points `RELEASE-FROM-SEAL` at `today-app.cjs` and `gym-app.mjs` under its own PM token line |
+| the strict call-site rule: no released file calls, imports or holds a writer; `today-model.cjs`'s `weighIn` goes to the sealed side, its projection and the S2 composer stay free | the WRITER-FENCE (D.4) is what enforces it, and TODAY-SPLIT still owns it |
+| carrier: **S10**. The today-carry lane lands first | S9 does not carry the split at all, in either direction |
+
+**So S9 neither waits for the split nor carries it, and the "if it is accepted in time" column of
+v3 is deleted rather than re-worded.** The release mechanism of section B still names
+`today-app.cjs` nowhere, which is the test PM-R1 set and which v4 passes for the same reason v3 did.
+
+#### A.2.1.1 PM-R10's measurement: can S10 release a file that eleven sealed cells import?
+
+This is the question the PM asked round 4 to answer, and it is answered by measurement, in the farm,
+at `023b99f4`. **The short answer is YES, no runner rule blocks it, and the one thing that does
+block it is a sealed CELL, not the runner.**
+
+| question | measured answer | how |
 |---|---|---|
-| the view modules TODAY-SPLIT creates (NEW, never sealed) | every `render*` function, the `[data-go]` router (`:826`), the markup builders, the copy slots, the sheet layout, the `ARROW` glyph (`:37`) | nothing of these |
-| `today-app.cjs` and `today-model.cjs` (the writer and binding half, STAYS SEALED) | the five lane openers (`:513`, `:596`, `:637`, `:2052`, the check-in lane at `:1416`), `recordIntake` (`:1278`), `recordSleep` (`:1807`), the weigh-in submit (`:1059`), `workoutRebinding` (`:363`), `rebase` (`:2501`), and `today-model.cjs`'s `weighIn` (`:378` to `:395`) | the view is HANDED a callback table; it never sees a host |
+| is `today-app.cjs` a child argv target, so that `proposed()` `:2800` (`for (const c of s.children) for (const f of childArgv(c)) pins[f] = diskSha(f)`) re-pins it into `executionPins`? | **NO.** `packages/S8.json` declares **25 children with 68 distinct argv targets, and every one of the 68 is a test cell**: not one source module is executed by any declared child | parsed `packages/S8.json`, took `childArgv`'s own rule (`b-package.cjs:637-:658`: flags first, then explicit files under `CHILD_ROOTS`), and listed the targets |
+| so does B.6's rule "a released path must not be a child argv target" bar it? | **NO.** That rule is what keeps the thirteen today test cells out of the closed list (C.3 reason 2); it does not reach a module the cells merely import | same |
+| is it in the maps the release mechanism needs? | **YES in `product`** (role `carried`, `dc9a826eda96659b...`), **NO in `executionPins`** - the identical shape `preview.css` and `build.mjs` have, so B.2, B.4, H7, H10 and H17 release it with no new hunk | parsed `acceptance-s8-real-shape.json` |
+| how many sealed files import it? | **14**, of which **11 are cells**: `today/test/{view,copy,gym,food,setup,problem,checkin}.test.mjs`, `m3/w6/test/{local-source-consumer,local-today-journey}.test.mjs`, `lanes/d/p3-real-shape/bar-keep.test.mjs`, `m4/workout/test/h3-clean-init.test.cjs`; the other three are `today-entry.mjs`, `gym-app.mjs` and `measure/test/support.mjs`. This confirms `:543`'s "eleven test files import `today-app.cjs`" | resolved every relative `require`/`import` specifier and intersected with both S8 maps |
+| does ANY runner rule bind a pinned file's IMPORTERS? | **NO.** `closure()` (`:746`) and `requiresOriginal()` (`:663`) are gate-and-successor machinery: their call sites are `:1595` (`COVERAGE-MOVE-CHILD-DOES-NOT-EXECUTE-THE-ORIGINAL`) and `:2417` (`SUCCESSOR-REQUIRES-THE-ORIGINAL-INSTEAD-OF-COMPILING-IT`), both over gate originals under `rebuild/engine` and `rebuild/conform`. No `m3` path is a gate original. `ownChildren()` (`:728-:730`) reads argv targets only | read every call site |
 
-**If TODAY-SPLIT is ACCEPTED before the S9 re-measure** (E.2's single re-measure when C-UI-1 lands),
-S9's package gains exactly four things and no new mechanism:
+**The one thing that DOES block it, and S9's job is to name it now so S10 does not discover it.**
+`measure/test/boundary.test.mjs` P-MEASURE (g) (`:128-:190`), a SEALED cell (product AND execution
+pin), is a byte pin over `today-app.cjs` of exactly the kind C.2 found over the two released files,
+and it is one order stronger:
 
-1. `rebuild/m3/w7-preview/today/today-app.cjs` is declared `role: "edited"` with a real post, because
-   the split edits it. It is already a parent pin, so `product()` `:1894` admits `edited` with no
-   hunk; only its `pre`/`post` are measured again.
-2. `today-model.cjs` is declared `role: "new"` (the parent pins it in neither map, and S9 moves its
-   bytes), and from S9 on it is a parent pin again. This is the moment `DECISIONS:535`'s deliberate
-   removal is reversed, and it is reversed by the split rather than by S9 second-guessing the hotfix.
-3. The view modules TODAY-SPLIT creates are **not declared at all**. They are new files outside the
-   sealed inventory and stay that way: releasing them is unnecessary, because nothing ever sealed them.
-4. The **WRITER-FENCE** cell is declared (D.4). The inventory fence alone does not catch a writer
-   added to an unsealed file, and the split's whole point is that the unsealed half is where lane C
-   works from then on.
+- `packages/S4.json` pins `today-app.cjs` (`role: "new"`, post `1ae7fbc6815588b9...`), so the path is
+  in the `S4.product` map the cell walks at `:129`;
+- `:137-:139` require every drifted file to stand at `declaredPost(file)`, and `declaredPost`
+  (`:117-:126`) walks `CHILD_SPECS` youngest first and **only accepts a spec whose `post` is a
+  STRING**. A `released` declaration carries `post: null` by B.4 and PM-R5, so a released path is
+  invisible to `declaredPost` and falls through to S8's `dc9a826e...`;
+- `:181` goes further and asserts `drifted.includes(MINE)` with `MINE = today-app.cjs`, and `:183`
+  asserts the whole drifted set under `today/` equals `[MINE, today-entry.mjs]` exactly.
 
-**If TODAY-SPLIT is not accepted in time, it rides S10** and NOTHING in this spec changes: the
-closed list is still two paths, the mechanism is still H1 to H13 plus H17, the fence is still D.2,
-and `today-app.cjs` stays `carried` exactly as S8 left it. That is the test the PM asked for, and
-S9 passes it: the release mechanism does not name `today-app.cjs` anywhere.
+So the first lane C edit to a RELEASED `today-app.cjs` turns that cell red, at `:137-:139`, for a
+file no spec declares a post for any more. **S10 must re-home it exactly as C.2 re-homes the other
+two:** drop `:181` and take `MINE` out of `:183`'s expected set, leave the S4 walk and the two
+`P3_IMPORT_UI_2_UNSEALED` asserts standing, and write one comment naming the path as RELEASED by its
+token line. It cannot simply move into `P3_IMPORT_UI_2_UNSEALED`, because that branch asserts
+`Object.hasOwn(product, f) === false` (`:186-:187`) and S4 DOES pin `today-app.cjs`. **S9 changes
+none of this**; S9's obligation is to have said it.
+
+**And one thing that survives the release unharmed, which is worth the PM knowing.**
+`design.test.cjs` (SEALED, `0db62ca9...`, both maps, CI-homed at `rebuild.yml:231-:232`) pins
+`design.VIEW_SOURCES` by literal at `:79-:81` (`today-app.cjs` first of six), reads each named file's
+own bytes at `:83-:87`, and runs `assertDesignBinding` over `design.appSource()` at `:72`, where
+`appSource` (`design.cjs:619`) is the concatenation of all six. So **after S10 releases
+`today-app.cjs`, every `RUNTIME_COPY` and `PREVIEW_RUNTIME_COPY` string must still occur verbatim in
+it (`design.cjs:549`, `:554`), asserted from inside the seal.** Releasing the file does not take its
+on-screen copy out of the sealed check; it only takes its BYTES out. That distinction is the whole
+subject of C.6.
+
+#### A.2.1.2 What S9 must leave in place, hunk by hunk, so S10 can do this
+
+| what S9 must leave | why |
+|---|---|
+| H1 to H13 and H17 **path-agnostic**: not one of them may name a path, a directory or a count of released paths | S10 points the same mechanism at two bigger files. A hunk that hard-codes "two" or `w7-preview/today/preview.css` is a hunk S10 has to re-open, which is a sealed byte and a second PM line |
+| **H9 as an ASSERTION, not a list.** "the released set equals `releaseRuling().granted`", and B.6's released-versus-`childArgv` disjointness likewise asserted, never enumerated | `today-app.cjs` passes the disjointness assert today (measured above). An enumerated exclusion list would pass it for the wrong reason |
+| **H17's `releasedAncestry(a)` union over the artifacts `pins()` actually reads** (the parent's and the grandparent's), exactly as B.3 specifies | S11's grandparent is S9 and its parent S10; both carry a `released` block, and the union is what keeps two generations of releases skipped without opening a third file |
+| `today-app.cjs` left in `product` with role `carried` (or `edited`, if S9-TODAY-CARRY moves its one binding line at `:869`, which `DECISIONS:542` (D) says it does), and **never** added to `executionPins` | a path in `executionPins` is re-pinned by `proposed()` `:2800` on every run. S9 adds nothing to that map, and S10 needs the path to leave `product` cleanly |
+| **H18's 26-entry literal phrased as a BUNDLE-INPUT law, never as a byte pin.** It names `today-app.cjs` among the 26 | `REQUIRED_INPUTS` membership stays true after a release; a byte pin would not. If H18 were written as a sha comparison, S10 would have to edit a cell S9 had just sealed |
+| C.2's general rule stated as a rule, with `boundary.test.mjs` P-MEASURE (g) named as S10's instance | this is the whole content of A.2.1.1's blocking paragraph, and it is cheaper to write here than to discover in S10 |
+| D.4's WRITER-FENCE left OWNED by TODAY-SPLIT, and S9 owing it only a `CHILD_ROOTS` entry and a `rebuild.yml` step **if** it lands in S9's window | under PM-R10 the fence matters more, not less: after the split the released `today-app.cjs` is exactly the file that must never regrow a writer |
 
 **What staying sealed costs C-UI-2 to C-UI-8**, measured from the tickets
 (`git show origin/rebuild/c-ui-0-gates:rebuild/lanes/c/ui-port/C-UI-N.md`):
@@ -151,9 +221,20 @@ S9 passes it: the release mechanism does not name `today-app.cjs` anywhere.
 | C-UI-8 PWA shell | no (`rebuild/slice/pwa/**` already unpinned, `DECISIONS:536`) | plain lane C |
 
 **So: six of the seven remaining UI tickets still ride a reseal child after this release.** The
-release as ruled buys C-UI-1 and C-UI-8 their freedom and buys nobody else theirs. This is the
-finding the PM most needs, it is why TODAY-SPLIT exists as its own lane (A.2.1, PM-R1), and it is
-what F's TOLD-1 paragraph tells the owner in plain words (PM-R8).
+release as ruled buys C-UI-1 and C-UI-8 their freedom and buys nobody else theirs.
+`DECISIONS:543` (A) records the same number from the other side, measured by a third hand's
+LOOK-VERSUS-SEAL map: 2 of the 8 look tickets ship as lane C after S9, and TWO writer extractions
+(about 455 lines out of `today-app.cjs` for C-UI-2, 3, 6, 7 and about 65 out of `gym-app.mjs` for
+C-UI-4, 5) free the other six. This is the finding the PM most needs, it is why TODAY-SPLIT exists
+as its own lane and why PM-R10 reversed its cut (A.2.1), and it is what F's TOLD-1 paragraph tells
+the owner in plain words (PM-R8).
+
+**Two ticket-column slips, corrected (R3 N7, FIXED).** R3 checked A.2.1's four quotes and found them
+verbatim; it found two slips in A.5's and A.2's columns and I take both: A.5's
+`screens.template.html` row said tickets "2,3,4" and C-UI-3 does not name that file, so it reads
+**2,4**; and A.5's C-UI-7 row said `food-*` where the ticket says `food-host.mjs`. Neither changes a
+verdict, and R3 was right that the columns were read rather than guessed, which is why Appendix 8 is
+now corrected rather than defended.
 
 ### A.3 Every other S8-pinned file under `rebuild/m3/w7-preview/`, classified
 
@@ -187,19 +268,28 @@ asserts.** The seven:
 
 | # | law | implemented | called by `buildToday` | what it refuses | asserted by a SEALED cell's OWN literals? |
 |---|---|---|---|---|---|
-| 1 | `FORBIDDEN` | `build.mjs:79` | `:480` `assertBundleInputs` | modules the page may not pull into the bundle | **YES.** `today/test/package.test.cjs:76-:80` (`seed.cjs`, `index.cjs`, `engine/test/`, `authority/`, `ledger/`, `src/history.js` by literal), `:84` `assert.throws(build.assertBundleInputs([{path:'rebuild/engine/seed.cjs'}]))`; independently `import/test/page-bundle.test.mjs:54-:61` `STILL_FORBIDDEN` (sealed, execution-pinned, CI-homed at `rebuild.yml:232`) |
+| 1 | `FORBIDDEN` | `build.mjs:79` | `:480` `assertBundleInputs` | modules the page may not pull into the bundle | **YES.** `today/test/package.test.cjs:76-:80` (`seed.cjs`, `index.cjs`, `engine/test/`, `authority/`, `ledger/`, `src/history.js` by literal), `:84` `assert.throws(build.assertBundleInputs([{path:'rebuild/engine/seed.cjs'}]))`; independently `import/test/page-bundle.test.mjs:54-:61` `STILL_FORBIDDEN` (sealed, execution-pinned, CI-homed at **`rebuild.yml:264-:265`**, the `- name: P3` step and its run line; **R3 N6, FIXED and re-read in the farm**: `:231-:232` is the A1/A2/A3/A4 step, whose 17 named cells are the thirteen `today/test/*` and four `measure/test/*` and carry no `import/` path at all. R2 supplied the wrong number first and v3 took it) |
 | 2 | `REQUIRED_INPUTS` | `build.mjs:98-:201` | `:480` `assertBundleInputs` | a bundle that lost a module the page needs | **NO for 26 of its 48 entries.** `package.test.cjs:59-:60` names six by literal (`engine/today.cjs`, `energy.cjs`, `writers.cjs`, `client/index.cjs`, `ops.cjs`, `store.cjs`) and `:72-:73` counts engine at 15 and client at 12. There is NO count and NO literal for the `today/**` half. **H18** |
 | 3 | `assertImportRouteIsolation` | `build.mjs:384` | `:484` | the Import route leaking into the Today entry | **YES.** `package.test.cjs:94-:107` plants an import-statement edge and requires `IMPORT-ROUTE FAIL` |
 | 4 | `assertNoNetworkReference` | `build.mjs:209` | `:497` | any remote origin in the emitted assets | **YES.** `package.test.cjs:127-:138`, four bad literals, each must throw `NETWORK-REFERENCE FAIL` |
 | 5 | `assertNoNodeOnlyGlobals` / `NODE_ONLY` | `build.mjs:244-:249` | `:499` | a bundle that only runs under Node | **YES.** `copy.test.mjs:207`, `:264`, `:303` |
-| 6 | `assertDesignBinding` (R2 N7, added) | `design.cjs:527-:554` | `:472` | a class or a sentence on the screen that the approved design does not carry | **CALL SITE yes, CONTENT no.** `design.test.cjs:72` runs it and `:109-:115` proves it can fail, by its own literals, for `"Your plan for today"`, `"Eat about"` and `"Weight trend"`. `design.test.cjs` is sealed (`0db62ca9...`, both maps). But the three things it compares (`design.cjs`'s arrays, `screens.template.html`, the approved references) are ALL unsealed: C.4 and C.5 |
-| 7 | `assertNoAiDashesInAssets` (R2 N7, added) | `build.mjs:31` | `:501` | an em or en dash in anything the athlete reads | **YES, and of an unusual kind that survives a released call site.** `copy.test.mjs:395` and `:405` plant a dash in a COPY of the tree, run the real `buildToday` over it and require `AI_DASH_IN_BUILD`. A `build.mjs` that dropped the CALL goes red, because the cell asserts the build's refusal, not the function's |
+| 6 | `assertDesignBinding` (R2 N7, added) | **`design.cjs:527-:570`**, copy rules `:538-:556` (v4, re-read for R3 BLOCKING-E) | `:472` | a class or a sentence on the screen that the approved design does not carry | **CALL SITE yes, CONTENT no.** `design.test.cjs:72` runs it and `:109-:115` proves it can fail, by its own literals, for `"Your plan for today"`, `"Eat about"` and `"Weight trend"`. `design.test.cjs` is sealed (`0db62ca9...`, both maps). But the three things it compares (`design.cjs`'s arrays, `screens.template.html`, the approved references) are ALL unsealed: C.4 and C.5 |
+| 7 | `assertNoAiDashesInAssets` (R2 N7, added) | **`plain-copy.cjs:288`**, exported `:305`, destructured into `build.mjs` at `:31` (**R3 N6, FIXED**: `build.mjs:31` is `const { assertNoAiDashesInAssets } = PlainCopy`, an import and not the implementation) | **`:501`** (`const dashes = assertNoAiDashesInAssets(Object.entries(contents))`) | an em or en dash in anything the athlete reads | **YES, and of an unusual kind that survives a released call site.** `copy.test.mjs:395` and `:405` plant a dash in a COPY of the tree, run the real `buildToday` over it and require `AI_DASH_IN_BUILD`. A `build.mjs` that dropped the CALL goes red, because the cell asserts the build's refusal, not the function's |
 
 The four hygiene asserts, named so the table is complete rather than seven-exactly: `:466`
 `readApproved()` and `:467` `readFonts()` re-enforce the design-of-record and font pins at build
 time (C.5); `:471` `TEMPLATE-SLOT FAIL`; `:452-:455` `realDirectory` / `OUTPUT-DIRECTORY FAIL`;
 `:504` `OUTPUT-CLEAN FAIL` with `:508` `PACKAGE-ALLOWLIST FAIL`. None of the four decides what the
 athlete's page may contain, which is why they are listed rather than tabled.
+
+**One measurement v4 adds to law 7, because it strengthens the row rather than weakening it.**
+`plain-copy.cjs` and `dash-check.mjs` are **in neither S8 map** (I parsed the artifact for both), so
+the no-dash rule's IMPLEMENTATION is as free as `build.mjs` is about to be. The row still holds, and
+for the reason the row already gave: `copy.test.mjs:395` and `:405` plant a dash in a COPY of the
+tree and run the real `buildToday` over it, so they assert the BUILD's refusal. An unsealed
+implementation that stopped refusing turns those two red from inside the seal. This is the one
+pattern in the document where an unsealed file is genuinely held, and it is worth naming as the
+shape C.6 should copy for the copy lock.
 
 Released, a lane C ticket can edit any of the seven in the same PR as a stylesheet swap. So the
 question is not "is the law in a released file" but "is the law ALSO asserted, by its own literals,
@@ -246,14 +336,15 @@ Without H18 the honest list is one path, not two (R1's option (b)), and F.2 STOP
 
 | path | ticket | already free? | note |
 |---|---|---|---|
-| `today/screens.template.html` | 2,3,4 | yes | markup only, 508 lines |
+| `today/screens.template.html` | **2,4** (R3 N7: C-UI-3 does not name this file) | yes | markup only, 508 lines. **It carries on-screen copy and S9 does not release it, because nothing ever sealed it: C.6** |
 | `today/design.cjs` | 1 | yes | the design-of-record pins live here; section C |
 | `today/browser-check.mjs` | 1 | yes | `browser-check.mjs:60` reads `design.headlineVocabulary()`; stale-red at the tip (`DECISIONS:535`). **PM-R3: it STAYS OUTSIDE the seal. RULED: no CI home (it needs a real browser binary, which no GitHub runner has), run on the PC before each seal, the result recorded in the VERDICT.** Sealing a stale-red file would pin a broken byte; a step that cannot exist is not a CI home. This is now a decision, not a question |
 | `today/today-model.cjs` | - | yes | **computes AND writes** (v1 said only "computes"; R1 N10 is right and I re-measured it): `today-model.cjs:120` `planMove`, `:128` `projectionOf` compute; `:378` `async function weighIn(lb)` writes through `readings.weighIn(...)` at `:395`, behind the admission refusals `ALREADY_RECORDED` `:365` and `OUT_OF_RANGE` `:373` and the form bounds `FORM_MIN`/`FORM_MAX` `:372`. By :536's own words ("any file that calls `logSet` or writes state") it is a SEALED-class file standing outside the seal. **PM-R3: this spec does NOT declare it.** Its writer (`:378` to `:395`) goes into the sealed half under TODAY-SPLIT (A.2.1); its pure projection (`:120`, `:128`) stays free. Until the split lands it is carried OUT LOUD in the S9 brief as a named exception: *one file that writes an athlete's weight reading stands outside the sealed inventory, by the accepted hotfix `DECISIONS:535` (a), and TODAY-SPLIT is what puts its writing half back* |
 | `today/gym-model.mjs` | 4 | yes | **`gym-model.mjs:502` `async function logSet(...)`**; by :536's own words ("any file that calls `logSet`") this is a SEALED-class file standing outside the seal. **PM-R3: S9 DECLARES it `pinned-unchanged` (E fact 17).** It writes athlete state and stands outside the seal, and S9 neither writes it nor needs to |
 | `today/machine-settings-view.mjs` | 5 | yes | render only (`:124`, `:154` are DOM appends) |
 | `today/checkin-*.mjs` | 2 | yes | `checkin-app.mjs:150` `await model.save()`; SEALED-class, outside the seal. **PM-R3: S9 DECLARES `checkin-app.mjs` `pinned-unchanged` (E fact 17)**, for the same reason as `gym-model.mjs`. The other three `checkin-*` files are not declared by this spec |
-| `today/food-model.cjs`, `food-commands.cjs`, `sleep-*` | 7 | yes | model and command layers, outside the seal |
+| `today/food-model.cjs`, `food-commands.cjs`, `sleep-*` | 7 (the ticket names **`food-host.mjs`**, not `food-*`; R3 N7) | yes | model and command layers, outside the seal |
+| `today/plain-copy.cjs`, `today/dash-check.mjs` | - | yes | **v4 adds this row**: the no-dash rule's implementation is unsealed too, and it is held anyway, by `copy.test.mjs:395`/`:405` asserting the BUILD's refusal over a planted copy of the tree (A.4 law 7) |
 | `rebuild/slice/pwa/**` | 8 | yes | `DECISIONS:536` says so. **Said out loud, per R1 N6:** `rebuild/slice/pwa/build-pwa.mjs:19` does `import { buildToday, DIST as A1_DIST, ROOT } from "../../m3/w7-preview/today/build.mjs"`, and nothing under `rebuild/slice/` is in `product` or `executionPins`. So releasing `build.mjs` makes the DEPLOYED PWA's build chain unsealed end to end. That is a consequence of the ruling, not a surprise inside it, and the S9 brief must state it in one sentence rather than let a later reader discover it |
 
 ### A.6 THE CLOSED LIST
@@ -268,8 +359,12 @@ PM token line; neither is a pattern. Nothing else in `DECISIONS:536`'s candidate
 `today-app.cjs` fails the ruling's own test.
 
 **PM-R1 has ACCEPTED this list** for the files that exist today, and has not re-opened `:536`.
-If TODAY-SPLIT is accepted before the S9 re-measure, the list does NOT grow: the split's view
-modules are new unsealed files and need no release (A.2.1).
+**Under PM-R10 the list does not grow either, and for a sharper reason than v3 gave:** TODAY-SPLIT
+now rides S10, not S9 (`DECISIONS:543` (A), "CARRIER: S10, which USES the released role S9 builds"),
+so S9's closed list is two paths whatever the split decides, and the paths the split frees
+(`today-app.cjs`, `gym-app.mjs`) are released under **S10's own** `RELEASE-FROM-SEAL` line. There is
+no branch of this document in which S9's token line names a third path. A.2.1.2 says what S9 must
+leave in place so that S10's line works; nothing there changes A.6.
 
 **The second path is CONDITIONAL, and the condition is code, not intent (v2, R1 BLOCKING-3;
 RATIFIED by PM-R2).**
@@ -491,13 +586,17 @@ paths to skip, so the block and the hunk are one design, not two.
 | H16 | `CHILD_ROOTS` | `:405` | see section E | section E |
 | **H17** | `pins()`, the GRANDPARENT walk | `:1852`, **and the terminal say at `:1855-:1858`** | a second `continue` for any path in `releasedAncestry(a)`; **and the say's `gkept` clause gains ` (plus N skipped as released by an ancestor artifact's released block)`** | **B.3. Without it the release lasts exactly one generation and then re-seals itself at the S8 pin with no ledger line.** R1 BLOCKING-1. **The say clause is R2 N2, FIXED and CONFIRMED in the farm:** `:1856` prints `gkept` as "N un-superseded grandparent pin(s)", and H17's skip lowers that number by the number of released paths. The document holds H13 to exactly this standard for the `:3191` count, and H8 to it for the product say; H17 gets the same clause, so no count in this runner ever moves in silence |
 | **H18** | `today/test/package.test.cjs` (a sealed cell, not the runner) | new cell in the file | its own literal list of the 26 `rebuild/m3/w7-preview/today/**` entries of `build.mjs`'s `REQUIRED_INPUTS` (of 48, not 51: A.4, R2 N6), asserted both against `build.REQUIRED_INPUTS` and against `result.inputs` | **A.4. Six of the seven build laws are already asserted by sealed cells' own literals; `REQUIRED_INPUTS`' today half is asserted by nothing outside the file being released.** R1 BLOCKING-3, ratified by PM-R2 |
-| **H19** | `rebuild/lanes/c/ui-port/` | new cells | the two design-of-record cells **PACK-PIN** and **COPY-BIND** of C.5, plus their `rebuild.yml` step | **C.5, PM-R6.** They are lane C cells like the D.2 fence, declared by S9, and they are what make `DECISIONS:536`'s two promises ("the design of record stays pinned by sha256"; "the copy locks stay as tests") true of the tree rather than of an intention |
+| **H19** | `rebuild/lanes/c/ui-port/pack-pin.test.mjs` | new cell | **PACK-PIN** (C.5.1): the WHOLE owner-approved pack pinned by a literal, sorted `(path, sha256)` list read from the WORKING TREE, `README.md` and `quality/**` INCLUDED, plus its `rebuild.yml` step | **C.5.1, PM-R6'(i).** A lane C cell like the D.2 fence, declared by S9. **R3 BLOCKING-F and N5 are what changed it**: one composite sha cannot name a path, and a value taken at a fixed commit cannot be read on a CI runner. **COPY-BIND is GONE from this row: see H19b** |
+| **H19b** | `rebuild/lanes/c/ui-port/approved-pin.test.mjs` (or the same file as H19) | new cell | **APPROVED-PIN** (C.5.3): whatever files `design.APPROVED` names at the S9 head are pinned by content, PARAMETRICALLY, because C-UI-1's final state is not yet known | **C.5.3, PM-R6'(i) second half.** It is a sibling of PACK-PIN, not a second design |
+| ~~H19c~~ | ~~`copy-bind.test.mjs`~~ | **WITHDRAWN** | **COPY-BIND IS WITHDRAWN FROM S9 BY PM-R6'(ii).** R3 BLOCKING-E proved by execution that it asserts nothing `assertDesignBinding` already asserts from inside the seal, and that it cannot see a sentence leaving the array and the template together | **C.5.2 and C.6.** The gap is stated as it is and the lock becomes a NAMED PRECONDITION OF S10 |
 
-Nineteen hunks. H14 to H16 are the ordinary reseal-child three that S8 also had
-(`S8-PREP-AUTHOR-REPORT.md:60-73`). The release mechanism is H1 to H13 plus **H17**; **H18** is the
-price of the second path in the closed list and is a test cell, not a runner change; **H19** is
-PM-R6's pair of cells and touches no runner line either. H17 and H18 are v2, from R1; H19 is v3,
-from R2 BLOCKING-B and PM-R6.
+**Eighteen hunks in force, plus one withdrawn.** H14 to H16 are the ordinary reseal-child three
+that S8 also had (`S8-PREP-AUTHOR-REPORT.md:60-73`). The release mechanism is H1 to H13 plus
+**H17**, and **R1, R2 and R3 all accept it; v4 does not touch one character of H1 to H13, H17, B.2,
+B.3, B.4, B.6 or B.7.** **H18** is the price of the second path in the closed list and is a test
+cell, not a runner change. **H19 and H19b** are PM-R6'(i)'s pack pins and touch no runner line
+either. H17 and H18 are v2, from R1; H19 is v3 rebuilt in v4 on PM-R6'(i); H19c is v3's COPY-BIND,
+withdrawn in v4 by PM-R6'(ii).
 
 ### B.6 What happens to every other guarantee
 
@@ -537,8 +636,9 @@ step on its own RULED line, with the runner asserting the truth at every hop.
 | `today/test/package.test.cjs` (H18, a SEALED cell edited inside S9) | the 26-entry literal list: with the cell added and one `today/` entry deleted from `build.mjs`'s `REQUIRED_INPUTS`, the cell FAILS naming that path; with the entry restored it passes; and the same deletion on today's tree, before H18, is green in every cell under `w7-preview/**/test/` (that is the red the hunk exists for) |
 | `tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs` (F6/F7, edited) | `PRODUCT_ROLES` of six by literal and `deepEqual`; `IDS` of thirteen; `NO_REGISTER_IDS` of nine; `CHILD_ROOTS` of its new length in both the whole-list literal and the `slice(8)` literal (the S8 shape, `S8-PREP-AUTHOR-REPORT.md:73`) |
 | `tooling/test/seal-tip-and-byte-identity.test.cjs` (edited) | the receipt's product map excludes released paths in both directions |
-| `rebuild/lanes/c/ui-port/pack-pin.test.mjs` (H19, new) | (1) the cell FAILS `PACK-PIN MISMATCH` when any pinned pack file's bytes move, naming the path; (2) it PASSES when a `quality/**` file or `README.md` moves, because C-UI-0 legitimately moves those; (3) it FAILS `PACK-PIN MISSING` when a pinned pack file is deleted and `PACK-PIN ADDED` when one appears, so the list is closed in both directions; (4) on today's tree, before the cell, every one of (1), (3) is green everywhere: that is the red the cell exists for |
-| `rebuild/lanes/c/ui-port/copy-bind.test.mjs` (H19, new) | (1) every string of `APPROVED_COPY`, `RUNTIME_COPY` and `CHECKIN_RUNTIME_COPY` (99) occurs verbatim in the files `design.APPROVED` names, and the cell FAILS `COPY-BIND UNBOUND` naming the string when one does not; (2) every string of `PREVIEW_COPY` and `PREVIEW_RUNTIME_COPY` (119) occurs in NONE of them, `COPY-BIND SMUGGLED`; (3) removing one sentence from BOTH `design.cjs` and the reference file in the same fixture still FAILS, because the reference files are `pinned-unchanged` in S9 and `product()` `:1967` refuses the byte move first; (4) on today's tree, before the cell and before the declarations, the same coordinated edit is green everywhere |
+| `rebuild/lanes/c/ui-port/pack-pin.test.mjs` (H19, new; **REBUILT in v4 on PM-R6'(i), R3 BLOCKING-F and R3 N5**) | Six red-first rows, one per way of moving the pack, each asserting the REFUSAL NAMES THE PATH: (1) **a board moved** (`ref/ink-board.png`) FAILS `PACK-PIN MISMATCH ref/ink-board.png`; (2) **an app file moved** (`app/states-today.js`) FAILS `PACK-PIN MISMATCH app/states-today.js`; (3) **a gate script moved** (`quality/gate.py`) FAILS `PACK-PIN MISMATCH quality/gate.py`, which is the row that would have passed under v3's exclusion and is the whole point of PM-R6'(i); (4) **a baseline moved** (`quality/baseline/states/C-02-dawn.json`) FAILS naming it; (5) **a file added** (`quality/baseline/states/C-99-dawn.json`) FAILS `PACK-PIN ADDED` naming it; (6) **a file removed** (`states/STATE-INVENTORY-DRAFT.md`) FAILS `PACK-PIN MISSING` naming it. A seventh row is the green control: an untracked file written under `quality/run/` changes nothing. (8) on today's tree, before the cell, every one of (1) to (6) is green everywhere: that is the red the cell exists for |
+| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` (H19b, new) | (1) the cell reads `design.APPROVED` for its FILE LIST at run time and FAILS `APPROVED-PIN LIST-EMPTY` if it is empty; (2) each named file's working-tree bytes must equal the cell's own literal sha256, else `APPROVED-PIN MISMATCH <path>`; (3) a file `design.APPROVED` names that does not exist FAILS `APPROVED-PIN MISSING <path>` rather than skipping; (4) **the red-first pair that makes it worth having**: change an approved reference's bytes AND `design.cjs`'s matching sha256 constant in one fixture, and this cell FAILS while `design.test.cjs:15-:20` and `readApproved` (`design.cjs:338-:341`) both pass, which is exactly the coordinated edit R1 BLOCKING-4 found and nothing in the tree catches today |
+| ~~`rebuild/lanes/c/ui-port/copy-bind.test.mjs`~~ | **WITHDRAWN (PM-R6'(ii)).** R3 BLOCKING-E is right about this row twice over. Its rule (3) as v3 wrote it ("removing one sentence from BOTH `design.cjs` and the reference file still FAILS, because `product()` `:1967` refuses the byte move first") describes a refusal that comes from the `pinned-unchanged` DECLARATION and not from the cell, so it was never a red-first plan for the cell at all. That declaration is kept (E fact 17); the cell is not built |
 
 The first and third and fourth rows are `rebuild/lanes/b/tooling/test/` cells, already in
 `TOOLING_FILES` (`:355`) for the existing five; the new file must be ADDED to `TOOLING_FILES` in the
@@ -632,8 +732,8 @@ the sentence above must say thirteen. It does not change the recommendation: rel
 
 | lock | implemented in | executed by | CI home | OS |
 |---|---|---|---|---|
-| the no-dash rule | `today/plain-copy.cjs`, `today/dash-check.mjs`, `build.mjs` (`assertNoAiDashesInAssets`, `build.mjs:31`) | `today/test/copy.test.mjs` (20 tests) | the A1/A2/A3/A4 step, `.github/workflows/rebuild.yml:231` (its `- name:` line; v1 said `:232`), 17 cells named by exact path | ubuntu + windows (`rebuild.yml:22` `os: [ubuntu-latest, windows-latest]`, `:24` `runs-on`) |
-| the verbatim copy locks | `design.cjs:65` `PREVIEW_COPY`, `:77` `APPROVED_COPY`, `:112` `RUNTIME_COPY`, `:125` `CHECKIN_RUNTIME_COPY`, `:145` `PREVIEW_RUNTIME_COPY`; asserted by `design.assertDesignBinding` `design.cjs:527-:554` | `today/test/design.test.cjs:70`; and at BUILD time by `build.mjs:472` | same step, plus every build | both |
+| the no-dash rule | `today/plain-copy.cjs` (**`assertNoAiDashesInAssets` is implemented at `plain-copy.cjs:288` and exported `:305`; `build.mjs:31` destructures it and `build.mjs:501` calls it. R3 N6, FIXED**), `today/dash-check.mjs` | `today/test/copy.test.mjs` (20 tests) | the A1/A2/A3/A4 step, `.github/workflows/rebuild.yml:231` (its `- name:` line; v1 said `:232`), 17 cells named by exact path | ubuntu + windows (`rebuild.yml:22` `os: [ubuntu-latest, windows-latest]`, `:24` `runs-on`) |
+| the verbatim copy locks | `design.cjs:65` `PREVIEW_COPY`, `:77` `APPROVED_COPY`, `:112` `RUNTIME_COPY`, `:125` `CHECKIN_RUNTIME_COPY`, `:145` `PREVIEW_RUNTIME_COPY`; asserted by `design.assertDesignBinding` **`design.cjs:527-:570`, whose copy rules are `:538-:556` in THREE loops** (`:538-:541` template-to-approved, `:542-:545` `APPROVED_COPY`, `:547-:555` runtime and preview-owned; **re-read in v4 for R3 BLOCKING-E**) | `today/test/design.test.cjs:70` (the `test(` line; the call is `:72`); and at BUILD time by `build.mjs:472` | same step, plus every build | both. **But see C.5.2: all three loops iterate a declared list, so a sentence leaving the ARRAY and the template together passes every one of them** |
 | the design-of-record sha256 pins | `design.cjs:43-:47` `APPROVED`, checked in `readApproved` `design.cjs:338-:341` (`APPROVED-PIN FAIL`) | `today/test/design.test.cjs:15` and `:31` (one-byte tamper must throw) | same step | both |
 | the font pins | `design.cjs:54` `FONTS` + `rebuild/m4/workout/fonts/SOURCES.json`, `readFonts` `design.cjs:351-:361` | `today/test/design.test.cjs:52` | same step | both |
 | `headlineVocabulary` | `design.cjs:588-:599` (reads the engine's own title literals) | `today/test/copy.test.mjs:149`; and on a real browser by `browser-check.mjs:60` | copy.test.mjs in the same step; `browser-check.mjs` has **no CI step** and is stale-red at the tip (`DECISIONS:535`) | both / none |
@@ -659,7 +759,7 @@ are all lane C's to edit, in one commit, exactly as BLOCKING-4's coordinated edi
 cells make that worse rather than better, and both are worth naming: `design.test.cjs:74-:75`
 asserts `report.copy` equals the SUM of the five array lengths, and both sides of that equation are
 `design.cjs`'s own arrays, so deleting an entry lowers both by one and the cell stays green; and
-`design.assertDesignBinding` (`design.cjs:527-:554`) compares the unsealed template against the
+`design.assertDesignBinding` (**`design.cjs:527-:570`**) compares the unsealed template against the
 unsealed approved HTML using the unsealed `APPROVED_COPY` list (`design.cjs:77`).
 
 **R2 quantified the hole and I re-measured it in the farm and got the same number.** The five
@@ -730,50 +830,149 @@ A.5 row said "`design.cjs`, ticket 1 only", and the spec's Appendix point 8 admi
 bodies were never re-read, so that row could not carry the weight v2 put on it. **PM-R6 stands and
 v2's Q7 recommendation is withdrawn.**
 
-In its place, **two small sealed cells that do not seal `design.cjs`**, each measured before it was
-specified. Both are lane C cells under `rebuild/lanes/c/ui-port/`, declared by S9 (hunk H19).
+**AND PM-R6 IS NOW REVISED, AFTER R3.** R3 REJECTED v3's pair of cells on two blocking findings,
+both inside C.5, and said in terms that the ruling's own wording was the cause. The PM has read R3
+and revised. **The revision, in one paragraph, so a reader of v3 knows exactly what moved:**
+PACK-PIN survives and is made much wider and much more concrete (`PM-R6'(i)`); **COPY-BIND is
+withdrawn from S9 altogether** (`PM-R6'(ii)`), because R3 proved by execution that it asserts
+nothing the sealed `design.test.cjs:72` does not already assert; the gap COPY-BIND was meant to
+close is stated as it is, in C.5.2, and the real lock becomes a **named precondition of S10**, in
+C.6. v3's four `pinned-unchanged` declarations are KEPT unchanged (E fact 17): R3 checked the role
+at the line and confirmed it, and they are the part of C.5 that already makes `DECISIONS:536`'s
+first promise true.
 
-#### C.5.1 PACK-PIN: the owner-approved pack, pinned by content
+In its place, **two sibling pack cells that do not seal `design.cjs`**. Both are lane C cells under
+`rebuild/lanes/c/ui-port/`, declared by S9 (hunks H19 and H19b).
+
+#### C.5.1 PACK-PIN: the WHOLE owner-approved pack, pinned by a literal list read from the working tree (REBUILT in v4 on PM-R6'(i))
 
 `DECISIONS:530` records the design of record as `rebuild/m1/approved-2026-09-18/` as committed at
 `5f4cad0a2b11baa9794d9d8c5538db76a1bf8162` on `rebuild/c-ui-port` (pack tree
-`6d7710467408f69e61a2917c583540fc2336a3fa`). **PACK-PIN pins that pack by CONTENT**, so a pack file
-and its fingerprint in `design.cjs` can no longer move together unseen.
+`6d7710467408f69e61a2917c583540fc2336a3fa`). **PM-R12 answers OQ-1 on the ledger: the tree id
+`6d771046` is confirmed exact and is the binding identity; the `README.md sha256` cited beside it
+(`c151a79d...`) is not reproducible and the blob is `e4e9effd...`. The spec need only cite the tree
+id, and does.** PACK-PIN pins the pack by CONTENT, so a pack file and its fingerprint in `design.cjs`
+can no longer move together unseen.
 
-| property | design |
+| property | design (PM-R6'(i)) |
 |---|---|
-| what is pinned | **one sha256 over the sorted list of `(path, sha256 of the file's git blob bytes)`** for every file in the pack EXCEPT `quality/**` and `README.md` |
-| the exact serialisation, so the value is reproducible | for each included file, one line `<path relative to the pack root> <space> <64-hex blob sha256> <newline>`; the lines sorted by path bytes ascending; the sha256 taken over the UTF-8 bytes of the concatenation. The blob sha256 is `sha256` over the bytes AS THEY STAND IN GIT, which is exactly the runner's own `gitSha` (`b-package.cjs:613`, `sha(L.object(root, commit, file))`), so no CRLF conversion can move it |
-| which commit's pack | **`5f4cad0a`**, the tree `DECISIONS:530` names. Not "the current head of a lane branch" |
-| the expected value, a literal inside the sealed cell | **`6121aa91904d10abdbbd8ad55f8c3436f9ddc0908887ba6f2634cb744d94953b`** |
-| what it covers | **53 files.** The pack holds 75 at `5f4cad0a`; 22 are excluded (21 under `quality/` and `README.md`) |
-| why those two are excluded | C-UI-0 legitimately moves them (`DECISIONS:531` is the ruling that sent it to fix the gates), and the gate teeth audit is what guards them. **Measured: at `ecbef86a`, the head of `rebuild/c-ui-0-gates`, the pack holds 904 files, 851 of them under `quality/` or `README.md`.** Pinning the excluded half would refuse C-UI-0 on its first commit |
-| what it does NOT cover, said out loud | the 851. PACK-PIN is a pin over the APPROVED DESIGN, not over the gate harness |
+| WHAT IS PINNED | **THE ENTIRE owner-approved pack `rebuild/m1/approved-2026-09-18/` as it stands at the S9 head: every git-tracked file, `README.md` and `quality/**` INCLUDED** - the gate code, the per-platform screen baselines and the state records. **No exclusion except untracked run output.** v3 excluded `quality/**` and `README.md`; the PM has reversed that |
+| WHY, and this is the reason to put in the spec | **after S9 the acceptance of every lane C look ticket IS the design gates being green** (`DECISIONS:536` (4)). A gate that judges a ticket must not be editable by the ticket it judges, so the gate code and its baselines have to be inside the pin, not outside it. And the pinned **state records** (`quality/baseline/states/*.json`, whose `text` field is the exact on-screen wording per state) are what the new look's copy lock will rest on: C.6 |
+| WHAT THE CELL READS | **THE WORKING TREE AT RUN TIME**, which on CI is the `actions/checkout` working tree of the branch being pushed. **Never an object at a fixed commit** (R3 BLOCKING-F: at a fixed commit the value can never change, red-first rows (1) and (3) are unreachable by construction, and on a runner the object is not even present, because `actions/checkout` fetches the pushed ref and `5f4cad0a` is on an unmerged lane branch) |
+| WHAT THE CELL HOLDS | **the FULL sorted list of `(path, sha256)` lines, as its literal** - not one composite sha256 (R3 N5: "a single composite sha256 over the whole serialisation can only say `different`"). Holding the list is what lets a mismatch NAME THE PATH, and what lets a MISSING file and an ADDED file each be named too |
+| the exact serialisation | for each file, one line `<path relative to the pack root> <space> <64-hex sha256 of the file's bytes> <newline>`; sorted by path bytes ascending; compared line by line against the literal. `.gitattributes` sets `* text=auto eol=lf` for the whole repository with `*.png`, `*.jpg`, `*.woff2` and the rest marked `binary`, so **the working tree and the git blob are the same bytes on both OS** and the literal can be generated from git and matched against the checkout. R3 verified this independently and it is not load bearing: if someone ever changed `.gitattributes`, the cell would go red loudly, naming every text file, which is the correct behaviour and not a hole |
+| the three refusals | `PACK-PIN MISMATCH <path>` (a line's sha differs), `PACK-PIN MISSING <path>` (a literal line has no file), `PACK-PIN ADDED <path>` (a file has no literal line). All three name the path, which is what R3 N5 required and what v3's single value could not do |
+| THE ONLY EXCLUSION, and how the cell ignores it | **untracked run output.** `.gitignore` on the lane branch carries `rebuild/m1/approved-2026-09-18/quality/run/` (line 7) and `__pycache__/` (line 8), so the gate's own output and Python caches are never committed but ARE present in a working tree the gates have been run in. Since the cell reads the working tree, it must skip them or every local run would read as ADDED. **The cell holds its OWN literal ignore list** - a pack-root-relative path is skipped when it begins `quality/run/` or contains a `__pycache__/` segment - **and does NOT read `.gitignore` to decide**, because `.gitignore` is in neither S8 map (measured) and a branch that could widen the ignore file could widen the pin. The ignore list is inside a cell S9 declares `role: "new"`, so from S9 on widening it is a sealed byte move that `product()` `:1970`/`:1972` refuses |
+| EXCLUSIONS ARE ANCHORED AT THE PACK ROOT (R3 N5, second half) | the two prefixes are matched against the path relative to `rebuild/m1/approved-2026-09-18/`, from its first character. On an unanchored segment match a file placed at `app/quality/run/x.js` would leave the pin; anchored, it cannot |
+| what it does NOT cover, said out loud | nothing, except the untracked run output named above. That sentence is the whole change from v3 |
 
-**The measurement that makes the exclusion honest (farm side, `git ls-tree -r` plus `git cat-file
-blob`, read-only):** between `5f4cad0a` (the design of record) and `ecbef86a` (the head of
-`rebuild/c-ui-0-gates`, C-UI-0 R3), **all 53 pinned paths are byte-identical: 53 identical, 0 moved,
-0 added, 0 removed.** Every one of C-UI-0's 868 changes to the pack is inside the excluded half.
-So the lane's own branch already satisfies the pin it is about to be held to, which is the condition
-PM-R6 asked to have measured, and PACK-PIN can be shipped without a single lane C byte moving.
+**WHEN THE LITERAL IS MEASURED, and why that is safe.** `DECISIONS:531` already rules the
+precondition: **C-UI-1 seals only after C-UI-0 is accepted by the second teeth audit.** So by the
+time the S9 re-measure happens, the pack is stable: C-UI-0 has finished moving the gates and the
+baselines, and C-UI-1's own changes to the pack (if any) are in the same checkout. **The literal is
+therefore measured THEN, at the S9 head, by the seal generator or by hand - never copied out of this
+document.** That is the same rule E fact 9 applies to every `pre`/`post`, and it is why v4 publishes
+a PROCEDURE and no value.
 
-**One thing I could not reproduce, recorded rather than smoothed over.** `DECISIONS:530` also cites
-`README.md sha256 c151a79daaa050bfcbe342beeea4a01d5852990e1aec2aa10a89f74f958de48d`. I hashed the
-README blob at `5f4cad0a` and got `e4e9effdcaa1b828c8addae0d8908977c114050620d63daeebdabaa2c602ba7a`;
-I then hashed every one of the six committed versions of that file, under LF and under CRLF, and
-none of the twelve values is `c151a79d...`. This does not touch PACK-PIN, because `README.md` is
-excluded from it by the ruling, and it may simply be a working-file sha taken at a moment between
-commits. It is reported because a hand-copied sha in the ledger that nothing reproduces is the exact
-failure PACK-PIN exists to remove, and because the PM should decide whether `:530`'s cite is
-corrected on a later line. **Open question OQ-1.**
+**THE EXACT PROCEDURE, for the S9 integrator, on the day of the re-measure:**
 
-#### C.5.2 COPY-BIND: measured first, and the ruling's literal wording does not survive the measurement
+```
+ROOT=rebuild/m1/approved-2026-09-18
+1. git ls-tree -r --name-only HEAD -- $ROOT/          # git-tracked files only, so run/ and
+                                                     # __pycache__/ cannot appear
+2. for each path: sha256 over `git cat-file blob HEAD:<path>`
+3. emit one line `<path minus "$ROOT/"> <space> <64-hex>`; sort by path bytes ascending
+4. paste the sorted lines into pack-pin.test.mjs as its literal
+5. re-run the cell against the WORKING TREE and require zero MISMATCH, MISSING and ADDED
+```
 
-PM-R6 (ii) asks that every string of `design.cjs`'s approved-copy arrays occur verbatim in **the
-pinned pack's own copy sources**, asserted by a sealed cell. I measured that before specifying it,
-as the ruling required. **The measurement says the literal wording cannot be built honestly, so
-this section reports the numbers and specifies the cell against the corpus the strings are actually
-bound to, and says plainly that it is doing so.**
+Step 5 is not ceremony: it is what proves the literal a git walk produced matches what a working-tree
+walk reads, which is the whole of the `.gitattributes` argument taken as a measurement rather than
+as an assurance.
+
+**WHAT THE INTEGRATOR SHOULD EXPECT TO SEE, measured in the farm so the size is not a surprise.**
+At `ecbef86a` (the head of `rebuild/c-ui-0-gates`, the youngest pack state that exists today) the
+whole pack holds **904 git-tracked files**: 850 under `quality/` (844 `baseline/`, plus
+`STANDARD.md`, `common.py`, `gate.py`, `phonesheet.py`, `statesheet.py`, `teeth.py`), 42 under
+`app/`, 8 under `ref/`, 3 under `states/`, and `README.md`. The `baseline/` half is 419 `.json`
+state records, 424 `.png` screens, 7 files under `baseline/linux/` and one `ENV.txt`.
+**The serialisation is 904 lines and about 90 KB**, and the longest pack-root-relative path is 43
+characters. **These are the shape, not the value**: the pack at the S9 head will differ, and any
+hand rebuilding H19 must re-measure rather than copy. v3's 53-file, `quality`-excluded value
+(`6121aa91...` at `5f4cad0a`) is **superseded and must not be used**; it is named here only so a
+reader of v3 does not carry it forward by accident.
+
+**Also measured, and it is what the exclusion reversal buys.** At `5f4cad0a` the pack held 75 files
+and at `ecbef86a` it holds 904; **851 of those 904 are exactly the files v3's PACK-PIN excluded.**
+Under v3, C-UI-0 could move 850 gate and baseline files and the pin would not notice - which is to
+say the gates that judge every post-S9 look ticket were outside the thing that guards them. Under
+PM-R6'(i) they are inside it. That is the single largest correction this round makes, and the cost
+is that C-UI-0 and C-UI-1 must be FINISHED with the pack before the literal is taken, which
+`DECISIONS:531` already requires.
+
+**The cost to lane C, said plainly rather than assumed away.** After the literal is taken, ANY
+further pack change - a re-baselined screen, a gate script fix, a new state record - moves the pin
+and must ride a reseal child, exactly as a sealed source byte does. That is the intended price of
+"the gates are the acceptance". If it turns out to be the wrong price, it is a PM decision and not
+an author's, and **F.2 STOP-9 is the place the round stops and says so**.
+
+#### C.5.2 THE COPY GAP AS IT IS: COPY-BIND is WITHDRAWN, and the hole is stated rather than covered (PM-R6'(ii))
+
+**PM-R6'(ii) withdraws COPY-BIND from S9. R3 BLOCKING-E is upheld in full, and it was proved by
+execution rather than by reading, which is the standard this document asks of itself.** v3 specified
+a sealed cell asserting (1) that every APPROVED-DERIVED string occurs in the files `design.APPROVED`
+names and (2) that no PREVIEW-OWNED string does. R3 measured that those are **already in the tree**,
+word for word, inside `assertDesignBinding`, which a sealed cell runs:
+
+| v3's COPY-BIND rule | where it already lives | who already runs it |
+|---|---|---|
+| every `APPROVED_COPY` string is in the approved references | `design.cjs:543` `assert(approvedText.includes(line), 'COPY-BINDING FAIL: declared approved copy missing upstream')` | `design.test.cjs:72`, a cell sealed in BOTH maps (`0db62ca9...`), CI-homed on ubuntu AND windows at `rebuild.yml:231-:232`; and `build.mjs:472` on every build |
+| every `RUNTIME_COPY` and `CHECKIN_RUNTIME_COPY` string likewise | `design.cjs:548` | same |
+| no `PREVIEW_RUNTIME_COPY` string is in them | `design.cjs:552` `assert(!approvedText.includes(line), ...)` | same |
+
+**One correction to R3, which makes its finding stronger and not weaker.** R3's block quote numbers
+those lines `:541`, `:542`, `:543`, `:546`, `:547`, `:550`, `:551`; re-read in the farm at
+`023b99f4` they are `:542`, `:543`, `:544`, `:547`, `:548`, `:551`, `:552`, each one line lower than
+R3 gives - the same class of off-by-one R2 N4 and R3 N6 both caught in this document, now caught in
+the review. And R3 quoted two loops where there are **three**: `design.cjs:538-:541` iterates the
+TEMPLATE and requires every text line of `screens.template.html` to be in the approved references.
+That third loop does not save the finding, and it is worth saying why: it catches a sentence ADDED
+to the template that the approved design does not carry, and R3's fixture removed the sentence from
+the template and the array TOGETHER, so the loop had nothing left to look at. **The finding stands
+exactly as written, at corrected cites: `assertDesignBinding` runs `:527-:570`, the copy rules are
+`:538-:556`, and a coordinated deletion passes all three loops.**
+
+**THE GAP, STATED AS IT IS.** These are the sentences the S9 brief and the verdict must carry, and
+none of them is softened:
+
+1. **`design.cjs`, `screens.template.html` and the five approved-copy arrays were NEVER sealed.**
+   Measured by parsing `acceptance-s8-real-shape.json`: `design.cjs` is in neither map,
+   `screens.template.html` is in neither map, and ZERO paths under `rebuild/m1/` are in either.
+2. **A coordinated deletion passes every check in the tree today.** Remove one sentence from
+   `screens.template.html` and from `APPROVED_COPY` in the same commit and it is green: green in CI,
+   green under `--ci --package S8` and `--package S9`, green under the D.2 fence (which knows only
+   the sealed inventory, and none of the three files is in it), and green under
+   `design.test.cjs:74-:75`, whose count compares `design.cjs`'s arrays against their own lengths so
+   both sides fall by one. R3 executed this against the real function with the real references.
+3. **S9 NEITHER WIDENS NOR CLOSES IT.** S9 releases no file that carries on-screen copy.
+   **Measured, not asserted:** I loaded `design.cjs` in the farm and searched both released files for
+   all 200 distinct declared copy strings. `preview.css` (6310 bytes) contains two of them and
+   `build.mjs` (30974 bytes) four; **outside comments, `preview.css` contains ZERO**, and `build.mjs`
+   contains only `"Today"` (in the function name `buildToday`, in an `IMPORT-ROUTE FAIL` diagnostic
+   at `:248` and in a build log line at `:344`) and `" of "` (in sixteen `for (... of ...)` loops).
+   The two remaining comment hits in `build.mjs` are `"Report a problem"` at `:142` and `" recorded"`
+   at `:168`, both inside the `REQUIRED_INPUTS` comment prose that R2 N6 already identified as prose.
+   **Neither released file emits a single string that reaches the screen.** The files that DO carry
+   on-screen copy - `screens.template.html`, `design.cjs`, `today-app.cjs` and the other five
+   `VIEW_SOURCES` - are every one of them either already free or still sealed, and none of them is on
+   A.6's closed list.
+4. **So the copy lock is not S9's to close, and S9 must not claim it is.** v3's C.5.2, its R2
+   section and its TOLD-3 each claimed the two cells made the copy locks real. **All three claims are
+   withdrawn in v4.** What replaces them is C.6: a named precondition of S10.
+
+**THE CENSUS IS KEPT, because S10's design needs it.** Everything below this line is v3's
+measurement, unchanged and re-confirmed by R3 figure for figure. It is no longer the justification
+for a cell; it is the input to C.6.
 
 **Measurement 1, the whole population.** The five arrays hold **218 strings** (200 distinct).
 Against the pinned half of the 09-18 pack (its 18 text files, `quality/**` and `README.md`
@@ -804,7 +1003,9 @@ references" so that it "can never be used to smuggle in approved-looking words" 
 | APPROVED-DERIVED: `APPROVED_COPY` + `RUNTIME_COPY` + `CHECKIN_RUNTIME_COPY` | 99 (81 distinct) | MUST occur in the approved references | **99 of 99** | 35 of 99 |
 | PREVIEW-OWNED: `PREVIEW_COPY` + `PREVIEW_RUNTIME_COPY` | 119 | MUST NOT occur in the approved references | **0 of 119** | 104 of 119 |
 
-**Why the literal wording fails, in one sentence with the number attached:** `design.APPROVED` today
+**Why the 64-of-99 wall exists, in one sentence with the number attached** (v3 wrote this to show
+that PM-R6's literal wording could not be built; it is kept because it is the content of OQ-2, which
+PM-R12 has now sent to lane C-UI): `design.APPROVED` today
 names the two files of the OLDER pack `rebuild/m1/approved-2026-09-08/`, and `DECISIONS:530` says in
 terms that `design.cjs`'s pins move to the 09-18 pack only "when C-UI-1 seals"; the 09-18 prototype
 draws Today, Workout and Coach and draws **no check-in sheet at all**, which is why
@@ -813,23 +1014,19 @@ approved-derived strings to the 09-18 pack today would put **64 of 99 red on the
 is not a rule anybody could keep, and bending it (substring rules, allowlists, a tolerance) is
 exactly what PM-R6 forbade.
 
-**What COPY-BIND therefore is, and it is stronger than the wording it replaces.** The cell binds
-the arrays to **whatever files `design.APPROVED` names**, and S9 seals those files:
+**WHAT THE MEASUREMENT IS FOR NOW.** v3 used it to justify pointing COPY-BIND at
+`design.APPROVED`'s own files instead of at the pack, where the two populations measure 99 of 99 and
+0 of 119. R3 showed that a cell built that way asserts nothing `design.cjs:543`, `:548` and `:552`
+do not already assert from inside the seal, so **the cell is not built and the numbers stay as
+numbers.** They are the input to two things: C.6's design questions, and **OQ-2, which PM-R12 has
+now sent to lane C-UI** - on the day C-UI-1 moves `design.APPROVED` to the 09-18 pack, 64 of the 99
+approved-derived strings stop occurring in the corpus, because the 09-18 prototype draws no check-in
+sheet (`CHECKIN_RUNTIME_COPY` binds 0 of 18 against it). That is still the most useful thing this
+measurement produced; it is simply not a reason to write a cell. **The S9 integrator must have lane
+C-UI's answer to OQ-2 in hand before the re-measure**, because it decides whether the four
+`pinned-unchanged` paths of E fact 17 are still the right four (C.5.3).
 
-1. every string of the APPROVED-DERIVED population occurs verbatim in at least one file
-   `design.APPROVED` names, else `COPY-BIND UNBOUND` naming the string and the array. Measured
-   today: **99 of 99 pass.**
-2. every string of the PREVIEW-OWNED population occurs in NONE of them, else `COPY-BIND SMUGGLED`.
-   Measured today: **119 of 119 pass.**
-3. the cell reads `design.APPROVED` for the FILE LIST only and never for its sha256s, so it cannot
-   be satisfied by editing a constant.
-4. it is expressed against `design.APPROVED` rather than against a fixed path, so it **survives**
-   C-UI-1 moving the pins to the 09-18 pack, and it turns that move into a measured event rather
-   than a silent one: on the day the pins move, 64 of the 99 go red unless the 09-18 pack has grown
-   the check-in copy or the arrays have moved with it. **That is a finding lane C-UI needs before
-   C-UI-1 is written, not after**, and it is the single most useful thing this measurement produced.
-
-**And the seal underneath it.** A cell is only worth what the things it reads are worth, which is
+**And the seal underneath it, which is KEPT.** A cell is only worth what the things it reads are worth, which is
 the whole lesson of R1 BLOCKING-4. So S9 declares **four** paths `pinned-unchanged` with
 `pre === post`, and `design.cjs` is NOT among them (PM-R6):
 
@@ -853,7 +1050,11 @@ halves: change an approved reference and `product()` `:1967` refuses the byte mo
 reference has not moved, so `readApproved` (`design.cjs:338-:341`) throws `APPROVED-PIN FAIL` on
 every build and in `design.test.cjs:15`. Neither half can move alone and the pair can no longer
 move together. **This adds `rebuild/m1/` to the sealed inventory for the first time, so the S9 brief
-must say so by name.**
+must say so by name.** R3 re-checked the role for all six paths at `:1909`, `:1915-:1916`, `:1967`
+and `:1945-:1949` and confirmed it, and called these four declarations "the part of C.5 that
+actually makes `DECISIONS:536`'s first promise true". **v4 changes nothing here except the caveat in
+C.5.3 step 3: the four are right for the list `design.APPROVED` names TODAY, and the integrator
+re-decides them against the list at the S9 head.**
 
 **And if `design.cjs` itself were ever released:** it is not sealed today and PM-R6 rules it stays
 that way, so the question is moot as a release question. What matters is that the pins it holds are
@@ -861,6 +1062,118 @@ worth something, and after C.5 they are: the files they point at are sealed byte
 holds the pack the owner actually approved. The build-time re-enforcement in `build.mjs:472` becomes
 lane C's to edit after the release (that is the cost named in A.4 row 6), so the cell side is the
 only side that can be relied on, and C.5 is what makes the cell side worth relying on.
+
+#### C.5.3 APPROVED-PIN: whatever `design.APPROVED` names at the S9 head, pinned parametrically (PM-R6'(i), second half)
+
+PM-R6'(i) asks that the files `design.APPROVED` names be pinned as well as the pack, and asks for it
+**parametrically, because C-UI-1's final state is not yet known.** That is right, and R3 BLOCKING-F
+is the reason: on the day C-UI-1 seals inside this package, `design.APPROVED` may still name the two
+09-08 references or may have moved to the 09-18 pack, and the four `pinned-unchanged` paths of E
+fact 17 would then pin four files nothing reads any more.
+
+| property | design |
+|---|---|
+| the file list | read from `design.APPROVED` **at run time, on every run, never cached and never copied into the cell** - the same rule as `CHAIN_REF` at `b-package.cjs:1201` |
+| the expected sha256s | the cell's OWN literal, one per file, measured at the S9 head. It never reads `design.APPROVED[n].sha256`, so it cannot be satisfied by editing a constant |
+| what it refuses | `APPROVED-PIN MISMATCH <path>`, `APPROVED-PIN MISSING <path>`, `APPROVED-PIN LIST-EMPTY` |
+| what it closes that nothing closes today | `design.test.cjs:15-:20` compares each file to `design.APPROVED`'s own sha256, so BOTH sides are unsealed and move together. APPROVED-PIN supplies the third, sealed side |
+| relation to PACK-PIN | if `design.APPROVED` has moved INTO `rebuild/m1/approved-2026-09-18/` by the S9 head, PACK-PIN already covers those bytes and APPROVED-PIN becomes a second, narrower statement of the same fact. That is not waste: it is what turns a silent pin move into a named one |
+
+**WHAT THE S9 INTEGRATOR MUST MEASURE ON THE DAY**, in one list, because this is the part that
+cannot be decided in advance:
+
+1. read `design.APPROVED` at the S9 head and write down the file list. Today it is
+   `rebuild/m1/approved-2026-09-08/Earned-refinement-A.html` and
+   `.../Earned-additions-C-approved.html` (`design.cjs:43-:48`).
+2. take a sha256 of each named file from Git at the S9 head; those are APPROVED-PIN's literals.
+3. **re-decide E fact 17's four `pinned-unchanged` paths against that list**, adding the two files
+   `design.test.cjs`'s own cross-check reads by hard-coded path (`ADDITIONS-C-APPROVED-HANDOFF.md`
+   at `:181-:182` and `rebuild/m1/MOCK.md` at `:185`). If the list has moved to the 09-18 pack, the
+   09-08 paths leave the declaration and the 09-18 ones do not need to join it, because PACK-PIN
+   covers them.
+4. **record whether C-UI-1 had to edit `design.test.cjs`, and name the hunks.** This is R3
+   BLOCKING-F point 3, confirmed at the line and re-cited: `design.test.cjs:17` asserts
+   `approved.length === 2`; **`:25` and `:26`** (R3 cited `:23-:24`, which is the comment above them)
+   assert `approved[0].file` matches `/Earned-refinement-A\.html$/` and `approved[1].file` matches
+   `/Earned-additions-C-approved\.html$/`; and `:184` asserts that line 9 of
+   `ADDITIONS-C-APPROVED-HANDOFF.md` contains `design.APPROVED[1].sha256`. **Those names exist
+   nowhere in the 09-18 pack.** So if C-UI-1 moves the pins inside this package, it must edit a
+   SEALED cell (`design.test.cjs`, `0db62ca9...`, both maps) and S9 must declare that cell
+   `role: "edited"` with a real post and move its execution pin. **That is a hunk, and it belongs in
+   the S9 declaration list the day it is known.**
+5. take lane C-UI's answer to **OQ-2** before doing any of the above. If the arrays move with the
+   pins, step 3's answer changes.
+
+**AND THE SCHEDULING CONSEQUENCE, which is R3 BLOCKING-F's real content.** R3 is right that v3
+scheduled H19 on day 1-2 while its own dependencies said otherwise, and right that E.2's
+"depends on C-UI-1?" column answered "no" where the measurement says yes. **v4 splits the answer
+rather than arguing with it:**
+
+| piece | can it be written before C-UI-1? | where it sits in E.2 |
+|---|---|---|
+| PACK-PIN's CODE (the walk, the ignore list, the three refusals, the six red-first rows against a throwaway fixture pack) | **YES**, and it should be, because none of it depends on the literal | **NOW, day 1-2** |
+| PACK-PIN's LITERAL (904-odd lines) | **NO.** It is measured at the S9 head, after C-UI-0's teeth audit and C-UI-1's seal (`DECISIONS:531`) | **ONE RE-MEASURE**, with every other pre/post |
+| APPROVED-PIN's CODE | **YES** | **NOW, day 1-2** |
+| APPROVED-PIN's LITERALS, and E fact 17's re-decided path list | **NO**, and OQ-2 must be answered first | **WAIT**, then the re-measure |
+| the `design.test.cjs` edit, if C-UI-1 moves the pins | **NO**, and it may be zero hunks or two | **WAIT**; F.2 gains STOP-10 for it |
+
+So H19 and H19b are **half NOW and half WAIT**, and the round says so rather than scheduling the
+whole of them on day 1-2. R3 asked for exactly this and I do not dispute any part of it.
+
+### C.6 What S10 must have before it releases a file that carries copy (PM-R6'(ii))
+
+**This section names a precondition. It does not design the lock, and S9 does not build it.**
+The lock is a joint design by lane C-UI and lane B, and S9's only obligation is that the obligation
+exists in writing before anybody needs it.
+
+**WHY S10 AND NOT LATER.** `DECISIONS:543` (A) rules that `today-app.cjs` is RELEASED by S10 through
+the role S9 builds. `today-app.cjs` is **the first released file that carries on-screen copy**: it
+is one of the six `design.VIEW_SOURCES` (`design.cjs:607`), its bytes are what `appSource()`
+(`design.cjs:619`) concatenates, and its own copy block near `:49-:86` is byte-pinned today only
+because the whole file is. S9's two released files carry none (C.5.2 item 3, measured). **So the
+line S10 crosses is not "one more file"; it is the first time a file whose words the athlete reads
+leaves the seal.** Before that release a real lock must exist.
+
+**THE DIRECTION, NAMED ONLY.** The pieces are already in the tree and PM-R6'(ii) points at them:
+
+| piece | what it is | measured |
+|---|---|---|
+| the corpus | `quality/baseline/states/*.json` in the approved pack: each record carries the exact on-screen `text` for one state in one theme | **419 records over 210 distinct state ids; for all 210 the `text` is IDENTICAL across the dawn and ink themes; 201 distinct text blocks.** So "text identical per state" is not an aspiration, it is what the pack already holds, and it is a corpus with no theme ambiguity in it |
+| the pin | **PACK-PIN** (C.5.1) now covers those 419 records, because PM-R6'(i) stopped excluding `quality/**` | this is the second reason the exclusion was reversed, and it is why C.6 can be written at all |
+| the enforcement | the **state sheet** (`quality/statesheet.py` in the pack) run in CI against the CLIENT BUILD, so the text the built page renders per state is compared against the pinned record | not measured by me: I did not read or run the gate scripts, and their teeth are `DECISIONS:531`'s audit, not mine |
+| the residue | a rule for **old-look screens not yet ported**, which have no state record in the 09-18 pack. This is the same hole OQ-2 measures from the other side: 64 of the 99 approved-derived strings, led by all 18 of `CHECKIN_RUNTIME_COPY` | 0 of 18 check-in strings occur in the 09-18 pack, because the prototype draws no check-in sheet |
+| the shape to copy | **A.4 law 7.** `plain-copy.cjs` is unsealed and its rule is still held, because `copy.test.mjs:395`/`:405` plant a dash in a COPY of the tree and assert the BUILD's refusal. A copy lock built that way - a sealed cell asserting what the BUILD renders, against a pinned corpus - is held even though every file it judges is free | this is the one pattern in the tree that already solves the problem C.6 states |
+
+**THE QUESTIONS THE DESIGN MUST ANSWER**, written so lane C-UI and lane B can divide them:
+
+1. **What is the unit of comparison?** The record's whole `text` field, or its `els` array line by
+   line? The `els` form names the element, which would let a refusal say which line moved; the
+   `text` form is one string per state and cannot.
+2. **What produces the observed side?** The state sheet rendering the client build, or the client
+   build's own emitted assets read statically? The first catches a binding that stopped firing; the
+   second runs on any runner with no browser, which matters because `browser-check.mjs` has no CI
+   home and never will (PM-R3).
+3. **Which states are in scope on day one?** The 210 with records, or all of them? A lock over a
+   subset must say which subset and why, or it becomes the next "139 of 218 are asserted by nothing".
+4. **What is the rule for a screen with no record yet?** Refuse the release of any file that carries
+   its copy; or admit it against an explicit, PINNED allowlist of un-ported states that shrinks with
+   each look ticket. The second is the only one that does not stop C-UI-2.
+5. **What happens when a look ticket legitimately changes the words?** The record moves, which moves
+   PACK-PIN, which is a reseal child. Is that the intended price, and if not, what is the narrower
+   pin that still refuses an unannounced change?
+6. **Where does `design.cjs`'s array census fit?** The five arrays and the template are still
+   unsealed and PM-R6 rules they stay that way. Does the state-record lock make the arrays redundant,
+   or must both exist? C.5.2's census (218, 200 distinct, 99 approved-derived, 119 preview-owned) is
+   the input to that answer.
+7. **What is red first?** The fixture R3 executed: remove one sentence from `screens.template.html`
+   AND from `APPROVED_COPY` in the same commit. **The lock is only real when that fixture FAILS
+   naming the sentence.** Nothing shorter is a lock, and this document has now claimed otherwise
+   twice.
+
+**WHAT S9 OWES C.6, and it is only this:** the whole-pack PACK-PIN (so the corpus exists as a pinned
+thing), the released role itself (so S10 has a mechanism to release `today-app.cjs` through), and
+this section, so that S10's author reads a named precondition instead of discovering a gap. **S9
+claims nothing else about the copy, and the brief, the verdict and TOLD-3 all say so.**
 
 ---
 
@@ -888,11 +1201,13 @@ two until S9 seals.
 
 | property | design |
 |---|---|
-| what it asks | of every path in `git diff --name-only <merge-base with origin/rebuild/t2-client-core> HEAD`, is any path a key of the CURRENT sealed inventory and NOT in that inventory's `released` block? |
+| what it asks | of every path in `git diff --name-status <merge-base with origin/rebuild/t2-client-core> HEAD` (**`--name-status`, not `--name-only`; R3 N3**, because the skip row below needs the status letter and one diff should serve both), is any path a key of the CURRENT sealed inventory and NOT in that inventory's `released` block? A deletion (status `D`) of a sealed path counts as touching it |
 | how it learns the inventory | **v2, R1 BLOCKING-2: OUT OF GIT AT THE CHAIN REF, never from the worktree.** `git show refs/remotes/origin/rebuild/t2-client-core:rebuild/m4/spec/acceptance-s<N>-*.json`, the same ref the runner fixes at `b-package.cjs:189` (`CHAIN_REF`) and re-reads on every call with NO CACHE for exactly this reason (the r10 F4 lesson, `:1195-:1200`, and the read itself at `:1201`). Which N: **parse the integer after `acceptance-s` in the file name and take the numeric maximum** (a lexical walk puts `s10` before `s9`; R1 N9); if two artifacts carry the same N the cell FAILS `FENCE-AMBIGUOUS-INVENTORY` naming both, rather than picking one. It reads `product`, `executionPins` and `released`. It carries no hash and no path list of its own, so it cannot go stale the way `boundary.test.mjs` did |
 | why not the worktree (the R1 finding, restated so nobody re-introduces it) | v1 said "the youngest sealed artifact present in the tree". The tree is the lane C branch's own worktree, so a branch that wanted to touch a sealed path could add that path to the artifact's `released` block, or edit its `product` map, and the fence would measure the change against an inventory the change itself wrote. Nothing else catches it: the artifact is NOT a key of its own `product` map (an artifact does not pin itself, confirmed by parsing `packages/S8.json`), so `product()` never hashes it; `fidelity()` `:2010` explicitly exempts `f === ARTIFACT` from `UNLISTED-SOURCE-CHANGE`; and the only thing that notices, `sealedRunReceipt()` `:2963`, does not fail the run - it reports `SEALED-RUN-RECEIPT-VOID` at `:3196-:3198` and asks for a FULL run. A fence whose fenceposts move with the animal is not a fence |
 | the artifact-tamper check | the cell ALSO refuses when the artifact it reads at the chain ref and the artifact of the same path in the worktree differ: `FENCE-INVENTORY-DIFFERS-FROM-CHAIN`. A branch legitimately changing a sealed artifact is a reseal child, which the skip row below already handles, so the two rules do not collide |
-| what it does on a reseal child branch | **v3, R2 BLOCKING-A, PM-R4: THE SKIP IS DERIVED FROM THE CHAIN, NOT FROM THE DIFF, and the default is FAIL.** v2 said "a branch whose diff contains `rebuild/lanes/b/tooling/packages/S<N+1>.json` is a reseal child and the cell SKIPS". Nothing verified that claim, so a lane C branch that wanted to touch `today-app.cjs` could add an empty `packages/S10.json` and the fence would stand aside: BLOCKING-2's own sentence ("a fence whose fenceposts move with the animal is not a fence") applied to the gate instead of the map. The cell now SKIPS only when ALL FIVE of these hold, and otherwise FAILS **`FENCE-RESEAL-CHILD-UNVERIFIED`** naming the one that did not: (1) the diff contains EXACTLY ONE new `rebuild/lanes/b/tooling/packages/<ID>.json`, and it parses as JSON with the runner's own `SPEC_KEYS` (`:1071`) key closure; (2) its `parent.chosen` option's `artifact` is the EXACT path of the artifact the fence just read at `CHAIN_REF`, and that option's `sha256` equals the sha256 the FENCE ITSELF measures over that artifact's bytes at `CHAIN_REF` (never the value the spec file carries, and never a value read from the worktree); (3) `<ID>` is NOT an id `IDS` carries at `CHAIN_REF` (a new child, not a re-run of a sealed one); (4) the diff ALSO contains `rebuild/lanes/b/tooling/b-package.cjs`, and the branch's copy of it carries `<ID>` in `IDS`, which is the one runner hunk no reseal child can skip; (5) the spec's `sourceBase` is an ancestor of `HEAD` (`git merge-base --is-ancestor`). The skip then PRINTS the id, the artifact and its measured sha256, so the CI log names what stood aside and on whose authority |
+| what it does on a reseal child branch | **v3, R2 BLOCKING-A, PM-R4: THE SKIP IS DERIVED FROM THE CHAIN, NOT FROM THE DIFF, and the default is FAIL.** v2 said "a branch whose diff contains `rebuild/lanes/b/tooling/packages/S<N+1>.json` is a reseal child and the cell SKIPS". Nothing verified that claim, so a lane C branch that wanted to touch `today-app.cjs` could add an empty `packages/S10.json` and the fence would stand aside: BLOCKING-2's own sentence ("a fence whose fenceposts move with the animal is not a fence") applied to the gate instead of the map. The cell now SKIPS only when ALL FIVE of these hold, and otherwise FAILS **`FENCE-RESEAL-CHILD-UNVERIFIED`** naming the one that did not: (1) **the diff, built with `git diff --name-status` and NOT `--name-only` (R3 N3, FIXED)**, contains EXACTLY ONE `rebuild/lanes/b/tooling/packages/<ID>.json` **at status `A`**, and it parses as JSON with the runner's own `SPEC_KEYS` (`:1071`) key closure. **Why the word matters, with the number:** `--name-only` cannot tell an added file from a modified one, and E fact 7 re-pins the runner sha in `packages/H3.json`, `S3`, `S4`, `S5`, `S6`, `S7` and `S8`, so a REAL reseal child's diff carries **eight** `packages/*.json` paths, one added and seven modified. Under `--name-only` the condition reads eight and refuses S9's own diff. Only status `A` counts, and status `M` on an ancestor spec is expected and ignored; (2) its `parent.chosen` option's `artifact` is the EXACT path of the artifact the fence just read at `CHAIN_REF`, and that option's `sha256` equals the sha256 the FENCE ITSELF measures over that artifact's bytes at `CHAIN_REF` (never the value the spec file carries, and never a value read from the worktree); (3) `<ID>` is NOT an id `IDS` carries at `CHAIN_REF` (a new child, not a re-run of a sealed one); (4) the diff ALSO contains `rebuild/lanes/b/tooling/b-package.cjs`, and the branch's copy of it carries `<ID>` in `IDS`, which is the one runner hunk no reseal child can skip; (5) the spec's `sourceBase` is an ancestor of `HEAD` (`git merge-base --is-ancestor`). The skip then PRINTS the id, the artifact and its measured sha256, so the CI log names what stood aside and on whose authority |
+| **WHAT ACTUALLY HOLDS THIS GATE, said in one sentence so no reader mistakes it (R3 N4, FIXED)** | **the SEAL behind the fence holds it, not the fence.** Conditions (1), (2) and (5) are all values a forging branch can copy out of the chain, because the artifact path and its sha256 at `CHAIN_REF` are public; condition (3) is a fact about the chain, not a cost. **The only condition that COSTS anything is (4)**: the branch must add its id to `IDS` in `b-package.cjs`, which is a SEALED byte, caught by `fidelity()` (`:2005`'s diff roots include `rebuild/lanes/b/tooling`) and by the runner pin at `:2012` on the same CI run. That is a real bar and this spec asks for no more, but a reader of the row above would otherwise think the fence holds the gate when what holds it is the seal behind the fence. R3 is right and the sentence is now in the document |
+| **condition (3) after the merge, and it is one clause (R3 N4, second half, FIXED)** | condition (3) requires `<ID>` to be ABSENT from `IDS` at `CHAIN_REF`, which stops being true the moment the child merges to the chain. A later push to the same lane branch would then fail `FENCE-RESEAL-CHILD-UNVERIFIED` for a branch that had done nothing wrong. **The clause: condition (3) is satisfied EITHER when `<ID>` is absent from `IDS` at `CHAIN_REF` (an unmerged new child) OR when `<ID>` is present at `CHAIN_REF` AND the artifact the fence read at `CHAIN_REF` is that child's own** (it has merged, and the fence is now reading the inventory this branch itself sealed). Harmless in practice, as R3 says, and worth the clause because the alternative is a red nobody can explain |
 | one clause of R2 BLOCKING-A I could not build, and why | R2 asks the cell to "require its `packageId` to be an id `IDS` carries at `CHAIN_REF`". Measured: `IDS` at `b-package.cjs:173` on the chain tip is `['B-NTC','H3','S3','S4','S5','S6','S7','S8','B1','B2','B4','B3']`. A reseal child's own id is added to `IDS` BY THAT CHILD'S OWN BRANCH (fact 1 of section E does exactly this for `'S9'`), so at `CHAIN_REF` a genuine new child's id is always ABSENT. The clause as written would refuse every legitimate reseal child, S9 included. Condition (3) INVERTS it (the id must be absent at the chain ref) and condition (4) supplies the teeth R2 wanted from it (the id must be present in `IDS` on the branch). This is a partial DISPUTE of BLOCKING-A, recorded with its measurement in the R2 section; the finding itself is CONFIRMED and fixed |
 | what it does with no network | `git merge-base` against `refs/remotes/origin/rebuild/t2-client-core`; if that ref is absent (a shallow clone) the cell FAILS with `FENCE-CHAIN-REF-ABSENT` rather than passing vacuously. `rebuild.yml:35` already sets `fetch-depth: 0` |
 | red first | (1) a branch touching `today/today-app.cjs` FAILS naming that path; (2) a branch touching `today/preview.css` PASSES after S9 and FAILS before it; (3) a branch touching `today/screens.template.html` PASSES (never sealed); (4) a deleted `origin/rebuild/t2-client-core` ref FAILS, not passes; (5) a reseal-child branch SKIPS with its reason printed; **(6) v2, R1 BLOCKING-2: a branch that edits the sealed artifact IN ITS WORKTREE to widen `released` (or to drop a path out of `product`) and then touches that path FAILS, both because the inventory is read at the chain ref and because the worktree artifact differs from it. This is the cell that proves the fence is not self-certifying, and it is the one to write first**; **(7) two artifacts with the same N present at the chain ref FAIL `FENCE-AMBIGUOUS-INVENTORY`; `acceptance-s10-*.json` beside `acceptance-s9-*.json` selects s10, not s9 (the numeric-max rule, R1 N9)**; **(8) v3, R2 BLOCKING-A, PM-R4, AND IT IS WRITTEN FIRST, BEFORE THE SKIP HAS A HAPPY PATH AT ALL: a branch that adds a `rebuild/lanes/b/tooling/packages/S10.json` it did not earn must FAIL `FENCE-RESEAL-CHILD-UNVERIFIED`, not skip. Four sub-rows, one per way of not earning it: an empty or non-spec JSON file; a spec whose `parent.chosen` option names a different artifact than the one the fence read at `CHAIN_REF`; a spec that names the right artifact but a sha256 that is not the one the fence measures at `CHAIN_REF`; and a spec whose id is not in `IDS` in the branch's own `b-package.cjs`. A fifth sub-row is the green control: the real S10 preparation branch SKIPS and prints its id, its artifact and the measured sha256** |
@@ -922,9 +1237,10 @@ that the two specs cannot both assume the other has it:
 | | |
 |---|---|
 | name | **WRITER-FENCE** |
-| owner | the TODAY-SPLIT spec (`rebuild/lanes/c/TODAY-SPLIT-SPEC.md`), which is where the view/writer boundary is defined and therefore where the list of "files that may not write" is defined |
-| what it would ask | of every file the split declares a VIEW module, and of every unsealed file under `rebuild/m3/w7-preview/today/`, does the source contain a durable write: a call to `logSet`, a `.save(`, a `readings.` writer, or an `indexedDB` reference |
-| what S9 owes it | its `CHILD_ROOTS` entry and its `rebuild.yml` step, IF TODAY-SPLIT is accepted before the S9 re-measure (A.2.1 item 4). Nothing else: S9 does not specify its rule, its refusal names or its red-first rows |
+| owner | the TODAY-SPLIT spec (`rebuild/lanes/c/TODAY-SPLIT-SPEC.md`), which is where the view/writer boundary is defined and therefore where the list of "files that may not write" is defined. `DECISIONS:542` (C) and `:543` (A) both name it as that lane's cell |
+| what it would ask | **UNDER PM-R10 the question sharpens.** `DECISIONS:543` (A) states the rule the fence enforces: "no released file calls, imports or holds a writer". So: of every RELEASED file and of every unsealed file under `rebuild/m3/w7-preview/today/`, does the source contain a durable write - a call to `logSet`, a `.save(`, a `readings.` writer, an `indexedDB` reference, or an import of a host module |
+| what S9 owes it | its `CHILD_ROOTS` entry and its `rebuild.yml` step, **IF** TODAY-SPLIT lands in S9's window - which under PM-R10 it does not, because `:543` (A) makes S10 the carrier. So in the expected case S9 owes it **nothing but this section**. Nothing else: S9 does not specify its rule, its refusal names or its red-first rows |
+| **why it matters MORE after PM-R10** | under v1 of the split the released files were new view modules nobody had ever sealed. Under `:543` the released file is `today-app.cjs` itself, which held five IndexedDB lane openers and three durable writers last week. **A released `today-app.cjs` with no WRITER-FENCE is a file that can silently regrow the exact thing that kept it sealed.** S10 must not release it without one, and that is a sentence for S10's spec, not a hunk for S9 |
 | what S9 does NOT claim | S9 does not claim the WRITER-FENCE exists. Until it does, the honest sentence for the brief and the verdict is the one D.2's "what it is NOT" row carries: the fence proves which SEALED paths were touched, and it proves nothing about a writer added to an unsealed one |
 
 ---
@@ -952,8 +1268,11 @@ Shape taken from `S8-PREP-AUTHOR-REPORT.md:60-117` and `S8-REAL-SHAPE-BRIEF.md:2
 | 15 | The `released` block appears in `rebuild/m4/spec/acceptance-s9-ui-pins.json` with both paths, each with `role: "released"`, `lastSealedSha256`, `sealedBy: "M2-S8-REAL-SHAPE"` and the token line's sha256 | section B.4 |
 | **16** | **H18**: `today/test/package.test.cjs` declared `role: "edited"` with a real post, carrying the 26-entry `REQUIRED_INPUTS` literal for `rebuild/m3/w7-preview/today/**` (26 of 48, not of 51: A.4, R2 N6); its execution pin moves with it | A.4, R1 BLOCKING-3, PM-R2 |
 | **17** | **SIX paths declared `role: "pinned-unchanged"`, `pre === post`, and `design.cjs` is NOT one of them (PM-R6, changed from v2).** Four for the design of record: `rebuild/m1/approved-2026-09-08/Earned-refinement-A.html`, `.../Earned-additions-C-approved.html`, `.../ADDITIONS-C-APPROVED-HANDOFF.md`, `rebuild/m1/MOCK.md`. Two for the writers that stand outside the seal (PM-R3): `rebuild/m3/w7-preview/today/gym-model.mjs` and `.../checkin-app.mjs`. This adds `rebuild/m1/` to the sealed inventory for the first time, so the S9 brief must say so by name | C.5 and A.5; R1 BLOCKING-4, R2 BLOCKING-B, PM-R3, PM-R6 |
-| **18** | **H19**: the two design-of-record cells under `rebuild/lanes/c/ui-port/`, `pack-pin.test.mjs` (expected value `6121aa91904d10abdbbd8ad55f8c3436f9ddc0908887ba6f2634cb744d94953b` over 53 files of the pack at `5f4cad0a`) and `copy-bind.test.mjs` (99 bound, 119 absent), declared `role: "new"`, with their `rebuild.yml` step beside the fence's | C.5, PM-R6 |
+| **18** | **H19 and H19b, REBUILT in v4**: the two pack cells under `rebuild/lanes/c/ui-port/`, **`pack-pin.test.mjs`** (the WHOLE pack, `README.md` and `quality/**` included, a literal sorted `(path, sha256)` list read against the WORKING TREE, measured at the S9 head by the procedure in C.5.1 and **never copied from this document**) and **`approved-pin.test.mjs`** (whatever `design.APPROVED` names at the S9 head, parametrically), both declared `role: "new"`, with their `rebuild.yml` step beside the fence's. **`copy-bind.test.mjs` is WITHDRAWN** | C.5.1, C.5.3, PM-R6'(i) and PM-R6'(ii) |
 | **19** | `rebuild/m3/w7-preview/today/today-model.cjs` is **NOT declared by this spec** and is carried OUT LOUD in the brief as a named exception until TODAY-SPLIT seals its writer; `browser-check.mjs` is **NOT declared and has NO CI home**, run on the PC before each seal and recorded in the VERDICT | A.5, PM-R3 |
+| **20** | **S9-TODAY-CARRY's FOUR declarations, named (PM-R11, R3 N8).** `DECISIONS:542` (D) measured them after v2 was written and said "FOUR, not the three the ticket named": **`rebuild/m3/w7-preview/today/today-app.cjs`** (role `edited`, the one binding line at `:869`), **`rebuild/m3/w7-preview/today/test/view.test.mjs`** (`edited`, product AND execution pin), **`rebuild/m3/w7-preview/today/test/adapter.test.mjs`** (`edited`, product AND execution pin) and **`.github/workflows/rebuild.yml`** (`edited`, product pin; the two lane C cells get their CI home in it). I confirmed all four seal statuses by parsing the S8 artifact, and confirmed at `c26081ad` that the lane's other moved files (`design.cjs`, `today-model.cjs`, `rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs`, `rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs`, the three reports) are in NEITHER S8 map and are therefore not declarations. **`today-app.cjs` is one of the four, which is why A.2.1 says its `edited` role is true whatever TODAY-SPLIT does** | `DECISIONS:542` (D); the branch at `c26081ad` |
+| **21** | **PASSPHRASE-NORMALIZE's declarations, named (PM-R11).** `DECISIONS:543` (B) states them: **`rebuild/m3/w6/local/import-bundle.mjs`** (`edited`, product pin), **`rebuild/m3/w7-preview/import/import-screen.mjs`** (`edited`, product pin), **`rebuild/m3/w7-preview/import/test/page-bundle.test.mjs`** (`edited`, product AND execution pin, its two measured module counts re-measured 142 to 143 and 20 to 21 with the reason beside them, which both reviewers and the PM decline to overrule); **`rebuild/m3/setup/port/passphrase.cjs` role `new` and SEALED** (it decides key material on the phone); **the three lane cells** `rebuild/lanes/c/passphrase-normalize/{helper,route,unlock-forms}.test.mjs` with a CI STEP and a CHILD ROOT (R2 of that lane: the step is the guard that keeps every sealed bundle valid, not a convenience). I confirmed the four seal statuses by parsing the S8 artifact and the three cell names at `ba04c07f` | `DECISIONS:543` (B) |
+| **22** | **S9 gives `rebuild/m3/w6/test/local-import.test.mjs` a CI HOME** (`DECISIONS:543` (B), raised three times). Measured: the file exists at the chain tip and `rebuild.yml` names it **zero** times, so it pins the phone's five seal constants against the PC's and runs in no workflow. Its root `rebuild/m3/w6/test/` is **already** in `CHILD_ROOTS` (`b-package.cjs:405`), so this costs a `rebuild.yml` step and a declared child and no `CHILD_ROOTS` hunk | `DECISIONS:543` (B); `rebuild.yml`, `b-package.cjs:405` |
 
 ### E.1 What S9 carries besides the release (context, not this round's build)
 
@@ -962,6 +1281,19 @@ fix, the hotfix cell's CI home, the `adapter.test.mjs` identity lines, `DECISION
 passphrase normalisation lane `rebuild/c-passphrase-normalize` (import path, stays SEALED); the
 `rebuild/lanes/d/p3-layout-v2` root and its two cells (`layout-v2.test.mjs`,
 `projector-parity.test.mjs`, `DECISIONS:524` N1); and this release.
+
+**Both carried lanes are now FABLE FINAL ACCEPT and both have their declaration lists measured, so
+E.1 is no longer context only (PM-R11).** S9-TODAY-CARRY is accepted at `DECISIONS:542` (D) and its
+four declarations are **E fact 20**; PASSPHRASE-NORMALIZE is accepted at `DECISIONS:543` (B) and its
+declarations are **E fact 21**, with the `local-import.test.mjs` CI home at **E fact 22**. That is
+eleven more declared paths, three more lane cells, two more `rebuild.yml` steps and one more child
+root than v3's E carried, and all of them are MEASURED facts rather than reservations. **What they
+do NOT change: the closed list is still two, the mechanism is still H1 to H13 plus H17, and no
+carried lane touches the release.** `today-app.cjs` appears in fact 20 as an `edited` declaration,
+which is the ordinary reseal-child treatment and not a release.
+
+**TODAY-SPLIT is NOT in this list.** Under `DECISIONS:543` (A) its carrier is S10. S9 carries
+neither its spec nor its build, and A.2.1 is the whole of what S9 says about it.
 
 ### E.2 THE ORDER OF WORK, so S9 preparation starts NOW
 
@@ -986,11 +1318,14 @@ longer hand work, and the hand work moves to the front.** F.3 restates the estim
 | **NOW, day 1-2** | runner hunks H1 to H13 **and H17** (section B.5), red first, with `release-from-seal.test.cjs` failing on today's runner before any hunk lands. **H17 and its grandparent cell (11) are written in the SAME sitting as H10**, because H10 is what creates the hole H17 closes | no |
 | **NOW, day 1-2** | the D.2 fence cell, red first, **starting with red-first row (6)** (the worktree-artifact tamper), and its `rebuild.yml` step drafted | no |
 | **NOW, day 1-2** | **H18**: the 26-entry `REQUIRED_INPUTS` literal in `today/test/package.test.cjs`, red first by deleting one entry from `build.mjs` and watching every existing cell stay green | no |
-| **NOW, day 1-2** | **H19**, the two C.5 cells, red first. `pack-pin.test.mjs` can be written and measured TODAY: its expected value is already measured (C.5.1) and the pack it pins is already byte-identical on the lane's own branch. `copy-bind.test.mjs` likewise: 99 of 99 and 119 of 119 pass on today's tree | no |
+| **NOW, day 1-2** | **H19 and H19b, THE CODE ONLY, red first** (v4, R3 BLOCKING-F): `pack-pin.test.mjs`'s walk, its anchored ignore list, its three path-naming refusals and its six red-first rows against a THROWAWAY FIXTURE pack; `approved-pin.test.mjs`'s run-time read of `design.APPROVED` and its three refusals. **None of this needs the real pack or the real literal** | no |
+| **WAIT** | **H19's and H19b's LITERALS**, and E fact 17's re-decided path list. The pack literal is measured at the S9 head after C-UI-0's second teeth audit and C-UI-1's seal (`DECISIONS:531`); APPROVED-PIN's literals need lane C-UI's answer to OQ-2 first. **v3 put this in the day 1-2 column and R3 BLOCKING-F was right to refuse that** | **yes** |
+| **WAIT** | the `design.test.cjs` hunks, **if** C-UI-1 moves `design.APPROVED` to the 09-18 pack: `:17`'s `approved.length === 2`, `:25` and `:26`'s two filename regexes, and `:184`'s handoff-line-9 bind. It may be zero hunks or three, and it is a SEALED cell either way (C.5.3 step 4, F.2 STOP-10) | **yes** |
 | **NOW, day 2** | the SIX `pinned-unchanged` declarations of E fact 17 (four design-of-record files, `gym-model.mjs`, `checkin-app.mjs`). They are pins measured from Git; no code. **The generator measures them** | no |
 | **NOW, day 2, mostly GENERATED** | facts 1 to 7 and 12 of E (IDS, NO_REGISTER_IDS, CHILD_ROOTS, the six `s9-*` cells, F6/F7, the ancestor re-pins, the five `CHILD_SPECS` cells). All are name-for-name mirrors of S8 and depend on nothing lane C does. **What stays hand work here is the reading: every mirrored ordinal (the generator does not shift them, by design), the product story inside a mirrored comment, and which candidate paths are declared** | no |
 | **NOW, day 2** | `boundary.test.mjs`: delete `:188-:189` only, keep the loop and `:186-:187` (C.2, PM-R7), red first | no |
-| **WHEN TODAY-SPLIT IS ACCEPTED, if before the re-measure** | A.2.1's four items: `today-app.cjs` role `edited`, `today-model.cjs` role `new`, the view modules NOT declared, the WRITER-FENCE's `CHILD_ROOTS` entry and `rebuild.yml` step. **This column can stay empty and the round still ships** | no |
+| **NOW, day 2** | **the CARRIED LANES' declarations, E facts 20, 21 and 22** (S9-TODAY-CARRY's four; PASSPHRASE-NORMALIZE's four plus three lane cells, a CI step and a child root; `local-import.test.mjs`'s CI home). Both lanes are FABLE FINAL ACCEPT and their branches are pushed at `c26081ad` and `ba04c07f`, so every path is measurable today | no |
+| ~~WHEN TODAY-SPLIT IS ACCEPTED~~ | **ROW DELETED in v4 (PM-R10).** `DECISIONS:543` (A) makes **S10** TODAY-SPLIT's carrier, so there is no S9 column for it at all. What replaced this row is A.2.1.2, which is a list of things S9 must NOT do rather than a list of things it might have to | - |
 | **NOW, day 2-3** | the S9 brief `rebuild/lanes/b/S9-UI-PINS-BRIEF.md` written with every declaration list EXCEPT the C-UI-1 file set; one independent review of the mechanism and of the closed list | no |
 | **WAIT** | `packages/S9.json`'s `product` map: the pre/post of every file C-UI-1 moves, and the needle table (each needle MEASURED by running each child) | **yes** |
 | **WAIT** | the `--ci --package S9` walk to its predicted refusal, and the artifact through `proposed()` | yes, it hashes the C-UI-1 bytes |
@@ -1019,9 +1354,13 @@ judgements changes when C-UI-1's bytes arrive.
 | R8 | timing flake on an 8-core PC shared with other lanes and the design chat | a suite that is green twice and red once | ONE re-run, reported as such. Never "fixed" by loosening anything |
 | **R9** (v2) | H17 is built but its skip is written too WIDE (for example keyed on the file name, or on any artifact found on disk rather than the ones `pins()` reads) | nothing shows. The chain stays green and a grandparent pin stops being asserted for a path nobody released | cell (11)'s second half: in the same fixture, a DIFFERENT grandparent pin whose bytes moved must still refuse. A widened skip turns that cell red |
 | **R10** (v2) | the fence is built to read the artifact from the worktree after all, because it is easier | the fence passes on exactly the branch it exists to stop | D.2 red-first row (6) is written FIRST, before the fence has a happy path at all |
-| **R11** (v2, now CLOSED by PM-R6) | the design-of-record hole is recorded and then forgotten | the new look lands, a reference HTML and `design.cjs` move together, and nobody notices for a generation | C.5's two cells and the four `pinned-unchanged` declarations. The risk is retired, not carried |
-| **R12** (v3) | COPY-BIND is written against a fixed path instead of against `design.APPROVED`, so C-UI-1 moving the pins to the 09-18 pack silently takes the cell out of the loop | the cell stays green over two files nothing points at any more | C.5.2 item 3 and 4; the cell reads `design.APPROVED` for the file list on every run and never caches it, the same rule as `CHAIN_REF` at `:1201` |
-| **R13** (v3) | C-UI-1 moves `design.APPROVED` to the 09-18 pack and **64 of the 99 approved-derived strings go red in one commit** (C.5.2's measurement) | lane C-UI hits a wall on the ticket that is already the critical path | it is measured HERE, before C-UI-1 is written, and named in the brief. The honest options are all lane C-UI's: grow the 09-18 pack's check-in copy, move the arrays with the pins, or move the pins in two steps. **What S9 must not do is soften the cell to make the wall go away** |
+| **R11** (v2, CLOSED for the DESIGN half by PM-R6'(i), and OPEN for the COPY half by PM-R6'(ii)) | the design-of-record hole is recorded and then forgotten | the new look lands, a reference HTML and `design.cjs` move together, and nobody notices for a generation | **DESIGN half: retired.** PACK-PIN over the WHOLE pack, APPROVED-PIN over whatever `design.APPROVED` names, and the four `pinned-unchanged` declarations. **COPY half: NOT retired, and v3 wrongly said it was.** It is carried as a named precondition of S10 in C.6, with seven questions the design must answer, and it is the one place this document tells the owner that something is still open (TOLD-3) |
+| **R12** (v3, **REPOINTED in v4**) | **APPROVED-PIN** is written against a fixed path instead of against `design.APPROVED`, so C-UI-1 moving the pins silently takes the cell out of the loop | the cell stays green over two files nothing points at any more | C.5.3: the cell reads `design.APPROVED` for the file list on every run and never caches it, the same rule as `CHAIN_REF` at `:1201`, and FAILS `APPROVED-PIN LIST-EMPTY` rather than passing on an empty list |
+| **R13** (v3, **NO LONGER A CELL RISK**) | C-UI-1 moves `design.APPROVED` to the 09-18 pack and **64 of the 99 approved-derived strings stop occurring in the corpus** (C.5.2's measurement) | under v3 a cell would have gone red; under v4 there is no such cell, so the risk is that the fact is simply LOST | **PM-R12 has sent it to lane C-UI as OQ-2**, and C.5.3 step 5 makes the answer an input the S9 integrator must hold before the re-measure. It is measured HERE, before C-UI-1 is written, and named in the brief |
+| **R15** (v4) | **PACK-PIN's literal is copied out of this document instead of measured at the S9 head** | the cell is green against a pack that no longer exists, or red on its first run against the real one, and either way the number in the sealed cell is a number nobody took | C.5.1 publishes a PROCEDURE and no value, says in terms that v3's `6121aa91...` is superseded and must not be used, and E fact 9's rule ("measured from Git, never copied from a report") is applied to it by name. The generator measures it (F.3) |
+| **R16** (v4) | **PACK-PIN reads `.gitignore` to decide what to skip** | a lane C branch widens `.gitignore` and files leave the pin with no refusal. `.gitignore` is in NEITHER S8 map (measured), so nothing would notice | C.5.1: the cell holds its OWN anchored ignore list, inside a cell S9 declares `role: "new"`, so widening it is a sealed byte `product()` `:1970`/`:1972` refuses |
+| **R17** (v4) | **the whole-pack pin is built and then quietly narrowed** the first time C-UI-0 needs to re-baseline a screen | the gates go back outside the thing that guards them, which is the hole PM-R6'(i) reversed | F.2 STOP-9 as rewritten: a narrowing is a PM decision on the record, not an author's convenience, and the round stops and says so |
+| **R18** (v4) | **S10 releases `today-app.cjs` and nobody re-homes `boundary.test.mjs` P-MEASURE (g)** | the first lane C edit after the release turns a SEALED cell red at `:137-:139`, for a file no spec declares a post for; it reads as a mystery failure two packages downstream | A.2.1.1 names the cell, the lines and the fix, and A.2.1.2 makes "C.2's general rule stated as a rule" one of the things S9 must leave in place. **This is the single most useful thing round 4 tells the PM** |
 | **R14** (v3) | the SEAL-AUTOMATION generator produces a fact that is one generation stale (a mirrored ordinal, a parent's product story) and it is committed unread | a comment in the sealed package tells the PARENT's story, and the reviewer believes it | the generator's own `TODO.md` lists every one of them on every run, and F.3's estimate keeps the reading hours rather than the typing hours. The generator has no `--write` |
 
 ### F.2 STOP conditions (the round stops and reports rather than proceeding)
@@ -1063,12 +1402,32 @@ judgements changes when C-UI-1's bytes arrive.
    way to ship the fence is with a branch-declared skip. Then the fence is not shipped with a skip
    at all: a reseal child's own CI run is allowed to fail the fence and the PM reads the failure,
    which is honest, rather than a gate any branch can open.
-9. **(v3, PM-R6)** COPY-BIND cannot be built so that it goes red on a sentence removed from
-   `design.cjs` and from the reference in the same commit, or PACK-PIN cannot be built so that it
-   goes red on a moved pack byte. Then the cell is not shipped and the S9 verdict says in one
-   sentence that the design of record and the copy locks remain conventions. The measurement in
-   C.5.2 says both CAN be built today (99 of 99, 119 of 119, 53 of 53), so this stop is a guard
-   against a build that quietly weakens them, not a prediction.
+9. **(v3, REWRITTEN in v4 by PM-R6'(i) and PM-R6'(ii)).** Two halves, because v3's STOP-9 bundled
+   a cell that is now withdrawn with one that is now wider.
+   **(a) PACK-PIN cannot be built to name the path.** If the cell cannot be made to fail with
+   `PACK-PIN MISMATCH <path>`, `PACK-PIN MISSING <path>` and `PACK-PIN ADDED <path>` on the six
+   red-first rows of B.8, it is not shipped, and the S9 verdict says in one sentence that the design
+   of record remains a convention. A single composite value that can only say "different" is NOT an
+   acceptable fallback: that is exactly what R3 N5 refused.
+   **(b) THE WHOLE PACK CANNOT BE PINNED, and somebody proposes narrowing it.** If it turns out that
+   C-UI-0 or C-UI-1 must keep moving `quality/**` after the literal is taken, **the round STOPS and
+   the PM decides**, on the record, whether to narrow the pin or to re-sequence the tickets.
+   **An author may not re-introduce v3's exclusion**, because PM-R6'(i) reversed it for a stated
+   reason (the gates are the acceptance of every look ticket after S9, so they must not be editable
+   by the ticket they judge) and that reason does not weaken because the pin is inconvenient.
+   `DECISIONS:531` already sequences it so this should not arise.
+10. **(v4, PM-R6'(i) second half and R3 BLOCKING-F)** On the day C-UI-1 seals inside this package,
+    `design.APPROVED` has moved and `design.test.cjs` must be edited to follow it (`:17`'s
+    `approved.length === 2`, `:25` and `:26`'s two filename regexes, `:184`'s handoff-line-9 bind),
+    **and that edit cannot be made honestly** - for example because the 09-18 pack has no file that
+    answers to `approved[1]`, or because the handoff line pins a sha that no longer exists. Then S9
+    does NOT invent a substitute: the round reports that C-UI-1 cannot seal inside this package as
+    specified, and the PM decides whether C-UI-1 moves to S10 or the pins move in two steps. **A
+    sealed cell edited to make a red go away is the one thing this document exists to prevent.**
+11. **(v4, PM-R6'(ii))** Anyone proposes to ship S9 with a sentence saying the copy locks are now
+    real. They are not, C.5.2 measures exactly how they are not, and C.6 is the precondition that
+    closes them. The round stops and the sentence is struck. This has now been claimed and withdrawn
+    twice, in v2 and in v3, which is why it is a STOP and not a note.
 
 ### F.3 Estimate for the S9 PREPARATION round (lane B, one author, one independent review, one fix round)
 
@@ -1087,7 +1446,12 @@ sha256s.** I synced that branch into the farm and read
 | H18, the 26-entry `REQUIRED_INPUTS` literal | 1 | **1** | unchanged |
 | the D.2 fence cell + its `rebuild.yml` step | 4 | **4** | unchanged |
 | **D.2's chain-derived reseal-child skip and red-first row (8)** (v3, PM-R4) | - | **+1** | five conditions and five sub-rows |
-| **H19: `pack-pin.test.mjs` and `copy-bind.test.mjs`** (v3, PM-R6) | 1 | **+2** | two cells, not five declarations. Both are already measured, which is why it is 2 and not 4 |
+| D.2's `--name-status` fix and the two clauses R3 N4 asked for | - | **0** | three sentences inside the same hunk |
+| **H19: `pack-pin.test.mjs`, the CODE** (v4, PM-R6'(i)) | 1 | **+2** | a working-tree walk, an anchored ignore list, three path-naming refusals, six red-first rows against a fixture pack. It is more than v3's cell because it must name the path, and it is not more than 2 because the walk is twenty lines |
+| **H19's LITERAL, about 904 lines** (v4) | - | **+0.5, and it moves to the RE-MEASURE** | **GENERATED**: it is exactly the generator's row e (`pre`/`post` from a git blob) applied to a directory instead of a file, and the 0.5 is reading the diff when it is re-taken |
+| **H19b: `approved-pin.test.mjs`** (v4, PM-R6'(i) second half) | - | **+1** | parametric, three refusals, one red-first pair |
+| ~~`copy-bind.test.mjs`~~ (v3) | 1 | **-1, REMOVED** | **WITHDRAWN by PM-R6'(ii).** v3 costed it at 1 hour inside the H19 row and R3 added an hour for a literal corpus; v4 spends neither, because the cell is not built |
+| **C.6, the S10 precondition** (v4, PM-R6'(ii)) | - | **+1** | it is document work: the corpus measurement, the seven questions and the direction. No code |
 | the SIX `pinned-unchanged` declarations (E fact 17) | (in the 1 above) | **0** | **GENERATED** (README row e: every `pre`/`post` from a git blob) |
 | facts 1 to 7 and 12 (IDS, NO_REGISTER_IDS, CHILD_ROOTS, six `s9-*` mirrors, F6/F7, seven ancestor re-pins, five `CHILD_SPECS` cells) | 4 | **1** | **GENERATED** (README rows a, b, c, d, f). The 1 hour left is READING: every mirrored ordinal, the product story in each mirrored comment, and the `TODO.md` |
 | `boundary.test.mjs` `:188-:189` deletion (C.2, PM-R7) | 1 | **0.5** | two lines now, not a loop |
@@ -1095,16 +1459,85 @@ sha256s.** I synced that branch into the farm and read
 | `S9-UI-PINS-BRIEF.md` + the three token line texts with their sha256 | 3 | **2.5** | **the sha256s are GENERATED** (row i), the THEME sentence and the brief are not (README, "What stays human, always") |
 | `--ci --package S9` to its predicted refusal, plus the author report | 3 | **3** | unchanged |
 | independent review + one fix round | 6 | **6** | unchanged, and not for trade |
+| the carried lanes' declarations, E facts 20, 21 and 22 (eleven paths, three cells, two CI steps, one child root) | - | **+1** | **GENERATED for the pins** (row e); the 1 hour is reading two accepted lanes' hunk lists and deciding nothing |
 | the re-measure when C-UI-1 lands | 2 | **0.5** | **GENERATED**: the re-measure is exactly rows e, f and g run again |
-| **total** | **39** | **32 hours, about 4 working days of lane B time** | |
+| **total** | **39** | **v3 said 32. v4 says 37.5 hours, about 4.5 to 5 working days of lane B time** | |
+
+**PM-R13, the estimate restated without COPY-BIND and with the whole-pack pin.** The arithmetic,
+stated so the PM can see exactly which way each item moved:
+
+| | hours |
+|---|---|
+| v3's total | 32.0 |
+| minus `copy-bind.test.mjs` | -1.0 |
+| minus the hour R3 would have added to it for a literal corpus | (never spent) |
+| plus PACK-PIN's code, widened to name the path over the whole pack | +2.0 |
+| plus PACK-PIN's literal, generated, read at the re-measure | +0.5 |
+| plus APPROVED-PIN | +1.0 |
+| plus C.6, document work | +1.0 |
+| plus the carried lanes' declarations, E facts 20 to 22 | +1.0 |
+| plus D.2's `--name-status` and R3 N4's two clauses | 0.0 |
+| **v4 total** | **37.5** |
+
+**The cost of PM-R6' is +4.5 hours net, and what it buys is stated rather than assumed:** the gate
+code and 844 baselines that judge every post-S9 look ticket come inside the pin; a mismatch names
+the path instead of saying "different"; the cell reads a tree it can actually reach on a runner;
+and the copy lock stops being claimed and starts being scheduled. **The 37.5 is still less than v2's
+39 without the generator**, and the generator still takes the same 7 hours of typing.
+
+**What the SEAL GENERATOR does and does not take, re-stated for the two new cells (PM-R9 and
+PM-R13).** `rebuild/b-seal-gen` is at `5bad0dc8`; I read `gen/README.md` in the farm and did not run
+it. It measures every `pre`/`post` from a git blob (row e), which is exactly what PACK-PIN's literal
+is, one directory at a time - **so the 904-line literal is generated, not typed**. It does NOT write
+a cell, does not decide an ignore list, and has no `--write`. **The hand work in H19 and H19b is
+the code and the red-first rows; the numbers are the generator's.**
 
 **What remains hand work, in one list:** the runner hunks and their cells (H1 to H13, H17, H18,
-H19, the fence); the reading of every generated ordinal and mirrored comment; the decision about
-which candidate paths are declared; the brief and the THEME sentence; the `--ci` walk and the
-author report; and the independent review. That is 32 of the 39, and the 7 the generator takes are
-the 7 that were typing.
+H19, H19b, the fence); the reading of every generated ordinal and mirrored comment; the decision
+about which candidate paths are declared; the brief and the THEME sentence; the `--ci` walk and the
+author report; and the independent review. That is 30.5 of the 37.5, and the 7 the generator takes
+are the 7 that were typing.
 
-**What can start TODAY, and in what order** (this is E.2's table read as a schedule):
+#### PM-R13: WHAT S9 PREPARATION CAN START TODAY, HUNK BY HUNK, WITHOUT WAITING FOR ROUND 4's REVIEW
+
+**R1, R2 and R3 all accept sections B and D. Saying so explicitly is the point of this list, so the
+PM can dispatch this half now and let the review argue only about C.** R3's own words: "the release
+mechanism itself (H1 to H13, H17, the token grammar, the artifact `released` block, the receipt
+skip, STOP-2 as amended) is now, in my reading, correct and I could not break it. H18 is right. The
+fence's chain-derived skip is a real fix." R3's section 7 lists what it "would not re-litigate" and
+it includes H1 to H13, H17, H18, the token grammar and its six binding steps, the artifact
+`released` block, C.2 as PM-R7 ratified it, the fence's chain-ref read and its chain-derived skip,
+D.4, the six `pinned-unchanged` declarations, TOLD-1 and TOLD-2. **v4 changes none of those.**
+
+| hunk or piece | accepted by | can start today? | what v4 changed in it |
+|---|---|---|---|
+| **H1** `PRODUCT_ROLES` + `'released'` | R1, R2, R3 | **YES** | nothing |
+| **H2** `RELEASE_GRANT` + `RELEASE_GRANT_SHAPE` | R1, R2, R3 (R3 re-read the regex and the token line and found them byte-identical to v2) | **YES** | nothing |
+| **H3** `releaseRuling(s)`, B.2 steps 1 to 6 | R1, R2, R3 | **YES** | nothing |
+| **H4, H5** `spec()` role rule and key closure | R1, R2, R3 | **YES** | nothing |
+| **H6** `product()` `:1894` | R1, R2, R3 | **YES** | nothing |
+| **H7** the single placement above `:1952`, plus `at.released` at `:1888` | R2 N3 asked for it, R3 re-derived it at the line and called it exact | **YES** | nothing |
+| **H8** the `product()` say at `:1983-:1987` | R2 N4, R3 confirmed | **YES** | nothing |
+| **H9** released set equals `releaseRuling().granted` | R1, R2, R3 | **YES** | **one clarification, not a change**: A.2.1.2 requires it to be an ASSERTION and never an enumerated list, so S10 can point it at `today-app.cjs` |
+| **H10, H11** `proposed()`'s `released` block and `ARTIFACT_KEYS` | R1, R2, R3 (R3 checked the block, the literal role and the argument are unchanged from v2) | **YES** | nothing |
+| **H12, H13** the receipt skip and its count | R1 N3, R2, R3 | **YES** | nothing |
+| **H17** the grandparent skip and its say clause | R1 BLOCKING-1, R2, R3 ("I re-derived the whole of `pins()` and B.3's S10 trace is exactly what the code does") | **YES** | nothing |
+| **H18** the 26-entry `REQUIRED_INPUTS` literal | R1 BLOCKING-3, PM-R2, R2 N6, R3 | **YES** | **one clarification**: A.2.1.2 requires it to be phrased as a bundle-input law, never a byte pin |
+| `release-from-seal.test.cjs`, all twelve red-first cells | R1, R2, R3 | **YES** | nothing |
+| **the D.2 fence**, its chain-ref read, its worktree-tamper row, its numeric-max rule, its five skip conditions and red-first row (8) | R1 BLOCKING-2, R2 BLOCKING-A, PM-R4, R3 | **YES** | **`--name-status` instead of `--name-only` (R3 N3)**, plus two clauses R3 N4 asked for. All three are one-line edits to the same hunk and none changes the design |
+| **C.2**, deleting `boundary.test.mjs:188-:189` only | R2 N9, PM-R7, R3 | **YES** | nothing |
+| **E facts 1 to 16**, the S8 mirrors, the ancestor re-pins, the `CHILD_SPECS` cells | R1, R2, R3 | **YES**, and mostly generated | nothing |
+| **E fact 17**, the six `pinned-unchanged` declarations | R1 BLOCKING-4, R2 N5, R3 ("the role is right for all six") | **YES** for the two writers; **the four design-of-record paths are re-decided at the S9 head** (C.5.3 step 3) | the caveat only |
+| **E facts 20, 21, 22**, the carried lanes | new in v4, from `DECISIONS:542` (D) and `:543` (B), both FABLE FINAL ACCEPT | **YES**: both branches are pushed and every path is measurable today | new |
+| **H19, H19b: the CODE** | new shape in v4 | **YES** | rebuilt |
+| **H19, H19b: the LITERALS** | - | **NO**, and R3 BLOCKING-F was right to refuse the schedule that said otherwise | rebuilt |
+| **C.6**, the S10 precondition | new in v4 | **YES**: it is document work and it blocks nobody | new |
+
+**So the answer to PM-R13 is: everything except the two literals and the possible
+`design.test.cjs` hunks can start today.** In hours that is about **31 of the 37.5**, and the 6.5
+that wait are the ones that were always going to wait for C-UI-1's bytes.
+
+**The order, unchanged from v3 except where noted:**
 
 1. the PM's `RELEASE-FROM-SEAL` and THEME lines (B.2). Nothing else needs them, but everything
    downstream cites them.
@@ -1112,12 +1545,13 @@ the 7 that were typing.
    has no `--write`; this is a proposal, and reading it first is what keeps R14 from happening.
 3. in parallel, three hand jobs that share nothing: (a) H1 to H13 and H17 with
    `release-from-seal.test.cjs`, written red first, H17 in the same sitting as H10; (b) the D.2
-   fence starting with red-first rows (6) and (8), before it has a happy path; (c) H18 and H19,
-   all three of which are measured already.
-4. then the brief, then one independent review of the mechanism and the closed list, both of which
-   can happen before C-UI-1 exists.
+   fence starting with red-first rows (6) and (8), before it has a happy path; (c) H18, and
+   **H19 and H19b's CODE against a throwaway fixture pack** (v4: their literals wait).
+4. then the carried lanes' declarations (E facts 20 to 22), then the brief, then one independent
+   review of the mechanism and the closed list, both of which can happen before C-UI-1 exists.
 
-Nothing in 1 to 4 waits on C-UI-1, on TODAY-SPLIT or on the second teeth audit.
+Nothing in 1 to 4 waits on C-UI-1, on TODAY-SPLIT or on the second teeth audit. **What DOES wait on
+the second teeth audit is PACK-PIN's literal, and `DECISIONS:531` already sequences it.**
 
 This is preparation only. It excludes the PM's token lines, the `--full` with the private census,
 the receipt, the chain merge and the slice deploy, which `DECISIONS:455` costs at roughly half a day
@@ -1135,22 +1569,39 @@ question list.** Each ruling, and the section that now carries it:
 | **PM-R3** (Q3, Q4, R2 N1) | `gym-model.mjs` and `checkin-app.mjs` declared `pinned-unchanged`; `today-model.cjs` NOT declared, carried out loud until TODAY-SPLIT; `browser-check.mjs` stays outside with no CI home, run on the PC, recorded in the VERDICT | **A.5** (three rows), E facts 17 and 19, D.2's "what it is NOT" row, F.1 R7 |
 | **PM-R4** (Q5, BLOCKING-A) | the fence lives under `rebuild/lanes/c/ui-port/`; its reseal-child skip is derived from the chain, `FENCE-RESEAL-CHILD-UNVERIFIED` otherwise; red-first row (8); section D REFERENCES the WRITER-FENCE | **D.2** (two rewritten rows plus row (8)), **D.4** |
 | **PM-R5** (Q6) | the `released` block records no post sha | B.4 (unchanged from v2, now ratified); B.7 |
-| **PM-R6** (Q7, OWNER-3, BLOCKING-B) | do NOT seal `design.cjs`; two sealed cells instead, PACK-PIN and COPY-BIND, both measured before being specified | **C.4** (the measurement that replaces the reassurance), **C.5.1**, **C.5.2**, B.5 H19, B.8, E facts 17 and 18, F.5 TOLD-3 |
+| ~~**PM-R6**~~ (Q7, OWNER-3, BLOCKING-B) | do NOT seal `design.cjs`; two sealed cells instead, PACK-PIN and COPY-BIND, both measured before being specified | **SUPERSEDED by PM-R6'(i) and PM-R6'(ii) after R3.** Its first clause (do not seal `design.cjs`) stands unchanged |
+| **PM-R6'(i)** (R3 BLOCKING-F, R3 N5) | PACK-PIN reads the WORKING TREE, holds the FULL sorted `(path, sha256)` list as its literal so a mismatch names the path, covers the ENTIRE pack with `README.md` and `quality/**` INCLUDED, anchors its one exclusion at the pack root, and is measured at the S9 head; and whatever `design.APPROVED` names is pinned too, parametrically | **C.5.1** (the whole section rebuilt, with the reason, the procedure and the measured shape), **C.5.3** (APPROVED-PIN and the integrator's five steps), B.5 H19 and H19b, B.8's two rewritten rows, E fact 18, E.2's split NOW/WAIT rows, F.1 R15 to R17, F.2 STOP-9 and STOP-10 |
+| **PM-R6'(ii)** (R3 BLOCKING-E) | COPY-BIND is WITHDRAWN from S9; the gap is stated as it is; the copy lock becomes a named precondition of S10 | **C.5.2** (rebuilt: the three loops that already exist, the gap in four numbered sentences, and the measurement that S9 releases no file carrying on-screen copy), **C.6** (the S10 precondition and its seven questions), B.5 H19c struck, B.8's row struck, F.1 R11 and R13 repointed, F.2 STOP-11, **F.5 TOLD-3 rewritten** |
+| **PM-R10** (R3 N1, `DECISIONS:543`) | the split's direction reversed: the WRITERS leave, and `today-app.cjs` and `gym-app.mjs` are RELEASED by S10 through the role S9 builds. S9 does not wait for the split and does not carry it. Measure whether any runner rule blocks releasing such a file | **A.2.1** rebuilt, **A.2.1.1** (the measurement: not an argv target; 11 sealed cells import it; no runner rule binds importers; `boundary.test.mjs` P-MEASURE (g) is the one thing that does block it), **A.2.1.2** (what S9 must leave in place), A.6, D.4, E.1, E.2's deleted row, F.1 R18 |
+| **PM-R11** (R3 N2 to N8) | land every note | section 0 (N2), D.2 (N3, N4), A.4 and C.4 (N6), A.5 and A.2.1 (N7), Appendix 4 (N1), Appendix 8 (N7), Appendix 11 (section 4 item 4), E facts 20 to 22 (N8) |
+| **PM-R12** (OQ-1, OQ-2) | OQ-1 is answered on the ledger: the tree id `6d771046` is exact and binding, the README sha is not reproducible, the blob is `e4e9effd`; cite the tree id. OQ-2 goes to lane C-UI now, and the spec records it as an input the S9 integrator must have before the re-measure | **C.5.1**'s opening paragraph, **C.5.3** step 5, F.4's open-question table |
+| **PM-R13** (the estimate) | restate it without COPY-BIND and with the whole-pack pin, on the generator; and list what preparation can start TODAY, hunk by hunk, given that R1, R2 and R3 all accept sections B and D | **F.3**'s rebuilt table, its arithmetic table and the hunk-by-hunk "what can start today" table |
 | **PM-R7** (Q8) | the amended STOP-2 is RATIFIED; fix R2 N2, N3, N4, N9 | **F.2 STOP-2**, B.5 H17 and H7 and H8, C.5.2, **C.2** |
 | **PM-R8** (OWNER-1) | OWNER-1 is decided by the PM and replaced by a TOLD paragraph | **F.5 TOLD-1**, F.2 STOP-5, A.2's closing paragraph |
 | **PM-R9** (the estimate) | restate the estimate assuming the SEAL-AUTOMATION generator; say what remains hand work and what starts today | **F.3** (the two-column table, the hand-work list and the four-step schedule), E.2's generator paragraph |
 
 **The eight v2 questions, closed:** Q1 by PM-R1; Q2 by PM-R2; Q3 and Q4 by PM-R3; Q5 by PM-R4;
-Q6 by PM-R5; Q7 by PM-R6 (and answered differently from v2's recommendation, which is withdrawn);
-Q8 by PM-R7. **No question in this document is open to the owner.**
+Q6 by PM-R5; Q7 by PM-R6 as revised by PM-R6'(i) and PM-R6'(ii); Q8 by PM-R7. **No question in this
+document is open to the owner.**
 
-**What v3 leaves open, and it is three things, none of which blocks the round:**
+**And v3's three open questions are now two answered and one closed (PM-R12, R3 N1):**
+
+| v3's OQ | status in v4 |
+|---|---|
+| **OQ-1** (the unreproducible `README.md` sha at `DECISIONS:530`) | **ANSWERED BY THE PM ON THE LEDGER.** The tree id `6d771046` is confirmed exact and is the binding identity; the README sha `c151a79d...` is not reproducible and the blob is `e4e9effd...`. **C.5.1 now cites the tree id and nothing else.** It is also moot for the pin, in the opposite direction from v3: `README.md` is now INSIDE PACK-PIN, so its bytes are held by a value somebody took rather than by a value nobody can reproduce |
+| **OQ-2** (64 of 99 approved-derived strings when C-UI-1 moves the pins) | **SENT BY THE PM TO LANE C-UI NOW.** It is no longer this spec's question. **The spec records it as an INPUT the S9 integrator must have before the re-measure** (C.5.3 step 5), because the answer decides E fact 17's four design-of-record paths |
+| **OQ-3** (`rebuild/c-today-split` not on origin) | **CLOSED.** It is on origin and R3 read it. `DECISIONS:543` (A) then overruled its direction, so A.2.1 rests on the ruling rather than on either version of the spec, and Appendix 4 is corrected |
+
+**What v4 leaves open, and it is two things, neither of which blocks the round:**
 
 | # | open question | who decides | what happens if nobody does |
 |---|---|---|---|
-| **OQ-1** | `DECISIONS:530` cites `README.md sha256 c151a79d...` for the design-of-record pack. I hashed all six committed versions of that file under both line endings and none of the twelve values matches (C.5.1). Should `:530`'s cite be corrected on a later ledger line? | the PM | nothing in S9 changes. PACK-PIN excludes `README.md` by the ruling, so the pin is unaffected. The ledger keeps one sha nobody can reproduce |
-| **OQ-2** | when C-UI-1 moves `design.APPROVED` to the 09-18 pack, **64 of the 99 approved-derived strings stop binding** (C.5.2, R13). Does lane C-UI grow the 09-18 pack's check-in copy, move the arrays with the pins, or move the pins in two steps? | lane C-UI, before C-UI-1 is written | C-UI-1 hits the wall on the day it moves the pins, on the ticket that is already the critical path. **This is the reason to send C.5.2's table to the design chat now** |
-| **OQ-3** | `rebuild/c-today-split` is not on origin yet, so A.2.1's shape is taken from the dispatch's description and not from the TODAY-SPLIT spec itself. Does A.2.1 need re-reading against that spec before S9's re-measure? | the PM, when the split spec lands | A.2.1's four items are additive and each is independently checkable, so a mismatch is caught at the re-measure rather than at the seal. Recorded so it is not assumed |
+| **OQ-4** (v4) | **C.6's seven questions**: the unit of comparison, what produces the observed side, which states are in scope, the rule for an un-ported screen, the price of a legitimate wording change, whether `design.cjs`'s arrays stay, and the red-first fixture. | **lane C-UI and lane B jointly, and it is S10's precondition, not S9's work** | S10 releases `today-app.cjs`, the first released file that carries the athlete's own words, with the copy held by nothing. C.6 exists so that is a decision somebody makes rather than a thing that happens |
+| **OQ-5** (v4) | **does round 2 of TODAY-SPLIT-SPEC match `DECISIONS:543` (A)?** A.2.1 is written from the ruling; the spec's round 2 is not pushed (`farm-sync.sh rebuild/c-today-split` still returns `14c87fa7`, v1). | the PM, when round 2 lands | A.2.1.2's list is a list of things S9 must NOT do, so a mismatch costs nothing in S9 and is caught when S10's spec is reviewed. Recorded so it is not assumed |
+
+**Neither OQ-4 nor OQ-5 is an owner question, and neither blocks S9 preparation.** OQ-4 is TOLD to
+the owner in TOLD-3, as an open thing rather than a solved one, which is the change R3 BLOCKING-E
+forced and PM-R6'(ii) ruled.
 
 ### F.5 WHAT THE OWNER IS TOLD (nothing in this round asks him to decide)
 
@@ -1182,47 +1633,62 @@ assembling it, that program enforces seven rules about what may and may not go i
 including "the part that saves your weight readings must be in the page". We checked each of the
 seven against the locked tests. Five are fully re-checked by locked test files, so freeing the
 program does not free them. One, the rule that the wording on screen matches your approved design,
-is re-checked by a locked test, but the things that test compares were themselves not locked, and
-TOLD-3 is the fix for that. One was not checked anywhere else at all, and we found that this week.
+is re-checked by a locked test, but the things that test compares were themselves not locked.
+TOLD-3 says which half of that we are fixing this week and which half is honestly still open. One
+was not checked anywhere else at all, and we found that this week.
 We are adding that check to a locked test file in the same change. If for any reason it cannot be
 added, we will free only the stylesheet and leave the page builder locked. You do not have to
 decide anything here; this is recorded so that "we freed it safely" is a measurement and not a
 claim.
 
-**TOLD-3: the design you approved, and your words on the screens, are now actually locked.**
-When you approved the design pack, you also said two things should stay protected: the approved
-design stays pinned by its fingerprint, and the exact wording on the screens stays locked by tests.
-We checked whether the machine really enforces those two promises. It does not yet.
+**TOLD-3: the design you approved is being locked properly. Your wording on the screens is not
+locked yet, and I want to be straight with you about that.**
+When you approved the design pack, you said two things should stay protected: the approved design
+stays pinned by its fingerprint, and the exact wording on the screens stays locked by tests. We
+checked whether the machine really enforces those two promises. **One of them we are fixing this
+week. The other we are not, and the last two write-ups of this said we were. That was wrong and
+this paragraph corrects it.**
 
-The approved design files and the file that holds their fingerprints are all outside the locked
+**The design pack: being locked, this week, and wider than we first planned.**
+The approved design files and the file that holds their fingerprints were all outside the locked
 set, so someone working on the design could change an approved file and update its fingerprint in
-the same edit, and every check would still pass, because each is only being compared with the
-other. The same turns out to be true of the wording: of the 218 locked sentences, 139 are not
-checked by anything inside the locked set, so a sentence could be taken off the screen and off the
-list in one edit and nothing would notice.
+the same edit, and every check would still pass, because each was only being compared with the
+other. We are fixing that in the same change that frees the stylesheet. We take a fingerprint of
+every single file in your approved design pack and lock the whole list, so that changing any one of
+them fails loudly and says which file changed.
 
-Nothing suggests anyone has done either of these. We are fixing both this week, inside the same
-change that frees the stylesheet. It costs about two hours and it blocks nobody:
+We first planned to leave the design team's own testing tools and screen images out of that lock,
+because those are the parts they work on every day. **We changed our minds and put them in**, for a
+reason worth one sentence: after this change, "the design tests are green" IS how a new screen gets
+accepted. A test that decides whether work is good must not be editable by the same piece of work.
+So the tools, the 844 reference screen images and the record of what each screen says are all
+inside the lock now. The price is that the design team has to finish tidying those tools before we
+take the fingerprints, which is already the plan.
 
-- we take one fingerprint over the whole approved design pack, and lock that single number. From
-  then on, changing any approved file fails loudly. The design team's own quality tools and the
-  pack's readme are deliberately left out of it, because those are the parts they work on every
-  day, and we measured that everything else in the pack is byte for byte identical on their own
-  working branch, so this costs them nothing today.
-- we lock the approved reference files themselves, and we add a check that every sentence on the
-  locked list really appears in them. Measured today: all 99 of the sentences that are supposed to
-  come from your approved design do appear in it, and all 119 of the sentences the app adds on its
-  own correctly appear nowhere in it. So the check goes in green and stays honest from here.
+**Your wording: honestly still open, and here is what we are doing about it.**
+Of the 218 sentences on the locked list, 139 are checked by nothing inside the locked set. A
+sentence could be taken off a screen and off the list in one edit and nothing would notice. We
+thought a small new test would close that. An independent reviewer proved, by actually running it,
+that the test we designed would have asserted only things the machine already asserts, and would
+not have caught that exact edit. **So we are not shipping it and calling the problem solved.**
 
-We are deliberately NOT locking the one file the design team edits in almost every ticket. Locking
-that would put the new look back inside the slow round, which is the opposite of what you asked
-for.
+What we are doing instead: nothing we free this week carries any of your on-screen words. We
+checked both files sentence by sentence and neither contains one. The first file that carries your
+words is the big Today screen file, and it is scheduled to be freed in the NEXT change, not this
+one. **Before that happens, a real wording lock has to exist, and it is now written down as a
+condition of that change rather than as a good intention.** The pack we are locking this week
+already contains a record of exactly what each screen says, so the lock has something true to
+compare against. The design team and the tooling side are designing it together now.
+
+We are also deliberately NOT locking the one file the design team edits in almost every ticket.
+Locking that would put the new look back inside the slow round, which is the opposite of what you
+asked for.
 
 One thing worth knowing for later: when the design work moves the fingerprints over to the newer
-approved pack, 64 of those 99 sentences will not be found there, because the newer pack does not
-draw the daily check-in screens at all. That is not a problem today, and we have told the design
-team now rather than letting them discover it mid ticket. Nothing here touches your training data,
-and nothing here needs a decision from you.
+approved pack, 64 of those sentences will not be found there, because the newer pack does not draw
+the daily check-in screens at all. We have told the design team now rather than letting them
+discover it mid ticket. Nothing here touches your training data, and nothing here needs a decision
+from you.
 
 **TOLD-4: nothing else in this document needs your decision.** Every other choice here is
 engineering inside the rules you already set. No guard is lowered beyond what you already granted,
@@ -1240,9 +1706,15 @@ attack, and the two files being freed do not store, compute or touch anything ab
    read. The ticket text is the only source for "what the look will touch" in A.5.
 3. I did not read `rebuild/conform/private`, `src/history.js`, any `ledger/`, `EarnedPort`, the
    protected soak or the private census, and no owner measurement entered this session.
-4. **(v3)** `rebuild/c-today-split` is NOT on origin: `farm-sync.sh rebuild/c-today-split` answers
-   `couldn't find remote ref`. A.2.1's shape is the dispatch's description of TODAY-SPLIT, not a
-   reading of its spec. OQ-3.
+4. **(v3, CORRECTED in v4; R3 N1 was right and the sentence was stale when R3 read it.)**
+   `rebuild/c-today-split` **IS** on origin, at `14c87fa7`, carrying
+   `rebuild/lanes/c/TODAY-SPLIT-SPEC.md` (853 lines). It was pushed five minutes before v3's commit,
+   which is why v3's sentence was true when written and false when read. **What is still true in
+   v4:** `14c87fa7` is **v1** of that spec, whose CUT `DECISIONS:543` (A) has since REVERSED, and
+   round 2 is NOT pushed: a fresh `farm-sync.sh rebuild/c-today-split` today still returns
+   `14c87fa7`. **So A.2.1 is written from the RULING (`:543` (A)) and not from either version of the
+   spec, and I did not read v1 either.** That is OQ-5, and it is a narrower and more honest
+   reservation than v3's.
 5. The S8 ARTIFACT sha256 for fact 8 was not re-measured here; `DECISIONS:529` names the RECEIPT
    sha, and the two are different objects. The S9 round must take the artifact sha from Git.
 6. `rebuild/lanes/d/p3-layout-v2/` was confirmed to hold `layout-v2.test.mjs` and
@@ -1252,29 +1724,116 @@ attack, and the two files being freed do not store, compute or touch anything ab
    file at the line or by running a read-only node script. I did NOT re-run anything: this round
    still authors exactly one file and executes no suite and no runner. Cells (11) and (12), H17,
    H18, H19 and the fence are designs, not observations.
-8. **(v2, still true in v3)** I did not re-read the C-UI ticket bodies; A.2's and A.5's ticket
-   columns are v1's reading of them, which neither review checked. R2 N8 is right that this matters:
-   it is why PM-R6 does not rest on A.5's "`design.cjs`, ticket 1 only" row, and why C.5's ruling is
-   now built so that it does not need that row to be true.
+8. **(CORRECTED in v4; R3 N7 is right and this was the untrue sentence.)** v2 and v3 both said "I
+   did not re-read the C-UI ticket bodies", while A.2.1's table is headed "measured from the tickets
+   (`git show origin/rebuild/c-ui-0-gates:rebuild/lanes/c/ui-port/C-UI-N.md`)" and quotes four of
+   them. **R3 checked the four quotes and found them verbatim and correct**, so the tickets WERE
+   read and this appendix point was the stale claim, not the table. **The true statement:** the
+   ticket bodies were read at `origin/rebuild/c-ui-0-gates` for A.2.1's table; A.5's ticket column
+   carried two slips, which R3 found and v4 takes (`screens.template.html` is 2,4 not 2,3,4;
+   C-UI-7 names `food-host.mjs` not `food-*`). What remains true is the point R2 N8 made: PM-R6 does
+   not rest on A.5's "`design.cjs`, ticket 1 only" row, and R3 measured that the row is in fact
+   accurate (`design.cjs` is named in C-UI-1 only) while the RULING is better supported by
+   `DECISIONS:542` (D), where S9-TODAY-CARRY edits `design.cjs` inside this very package. **I did
+   not re-read the ticket bodies in v4 either, so the columns are v1's reading as R3 checked them,
+   and that is now stated as the limit rather than as a denial.**
 9. **(v3)** I did not run the SEAL-AUTOMATION generator. F.3's numbers assume the acceptance its
    own README reports (791 of 800, 4 of 15 byte-identical, 21 seconds). If its review round finds
-   that number to be lower, F.3's 32 hours moves back toward 39 and nothing else in this spec
-   changes.
-10. **(v3)** The two C.5 measurements were taken in the cloud farm, from git blobs at
-    `5f4cad0a` and `ecbef86a`, with `design.cjs` loaded from the chain tip `724ef3fc`. They were not
-    re-taken on the PC. Any hand rebuilding H19 must re-measure both values rather than copy them
-    from this document, which is the same rule E fact 9 applies to every pre/post.
-11. **(v3)** COPY-BIND's census is a verbatim substring search, so it is a LOWER bound on binding
-    and an exact count of non-binding. R2's point 6 makes the same reservation about its own
-    number and it is correct: a string that occurs in a file is not necessarily ASSERTED by it.
-    17 of the 99 approved-derived strings are six characters or fewer (`Earned`, `Today`, `Low`,
-    `High`, `None`, `Mild`, `Poor`, `Okay`, `Good`, `Pain`, `New` and six fragments), and those are
-    the ones most likely to match by accident. They are named here so the H19 builder can decide
-    whether to anchor them.
+   that number to be lower, F.3's 37.5 hours moves upward and nothing else in this spec changes.
+10. **(v3, RESTATED in v4)** The C.5 measurements were taken in the cloud farm, from git blobs at
+    `5f4cad0a` and `ecbef86a`, with `design.cjs` loaded from the chain tip; v4's were taken at
+    `023b99f4`. They were not re-taken on the PC. **v4 publishes NO pack value at all, only the
+    procedure and the shape** (904 files, about 90 KB at `ecbef86a`), precisely so that nothing here
+    can be copied into a cell. Any hand building H19 or H19b must measure at the S9 head, which is
+    the same rule E fact 9 applies to every pre/post.
+11. **(v3, CORRECTED in v4; R3 section 4 item 4 re-counted it and R3 is right.)** The copy census
+    is a verbatim substring search, so it is a LOWER bound on binding and an exact count of
+    non-binding: a string that occurs in a file is not necessarily ASSERTED by it. v3 said "17 of
+    the 99 approved-derived strings are six characters or fewer" and named eleven. **The measured
+    figure is 14 occurrences over 13 distinct strings**: `Earned`, `Today`, `Low`, `High`, `None`,
+    `Mild`, `Poor`, `Okay`, `Good`, `Pain` (twice, in two arrays), `New`, and the two fragments
+    `" of "` and `" reps"`. Those are the ones most likely to match by accident. They are named here
+    because C.6 question 1 has to decide what to do about them, and because a census that overstates
+    its own weakness is no better than one that understates it.
+12. **(v4)** I did not read or run the design gate scripts (`quality/gate.py`, `teeth.py`,
+    `statesheet.py`, `phonesheet.py`, `common.py`) and I pass no judgement on their teeth; that is
+    `DECISIONS:531`'s audit. C.6's "enforcement" row is a direction, not a measurement of those
+    files.
+13. **(v4)** I did not run the design gates, the state sheet or any build, and I did not open
+    `%TEMP%\earned-split`, `%TEMP%\earned-s9carry`, `%TEMP%\earned-passphrase` or any worktree but
+    `%TEMP%\earned-s9`. The S9-TODAY-CARRY and PASSPHRASE-NORMALIZE facts in E facts 20 to 22 come
+    from `DECISIONS:542` (D) and `:543` (B) plus a seal-status parse of the S8 artifact and a
+    directory listing of each lane's branch in the farm.
+14. **(v4)** A.2.1.1's PM-R10 measurement is a reading of the runner and of the S8 spec, not an
+    execution: I parsed `packages/S8.json`'s children, resolved import specifiers statically, and
+    read every call site of `closure()`, `requiresOriginal()` and `ownChildren()`. **I did not run
+    `boundary.test.mjs`**, so the prediction that P-MEASURE (g) goes red after S10 releases
+    `today-app.cjs` is derived from `:117-:126`, `:137-:139` and `:181`, not observed.
+
+---
+
+## R3 findings: fixed or disputed
+
+The review is `rebuild/lanes/b/S9-RELEASE-SPEC-REVIEW-R3.md` at `143a650a`. Verdict: REJECT, two
+blocking findings and eight notes. **Two blocking: both FIXED. Eight notes: all eight FIXED.
+NOTHING IS DISPUTED.** Three of R3's own cites are CORRECTED below, each time in a direction that
+makes R3's finding stronger rather than weaker, and each time with the measurement beside it.
+
+**A word about what R3 did, because it changed how this round was dispatched.** R3 re-took both of
+v3's PM-R6 numbers before opening C.5 and both reproduced exactly, including the figures it
+expected to have to correct. It then proved BLOCKING-E **by executing the real function** with one
+array entry removed, rather than by reading it, and it proved BLOCKING-F by three tree
+measurements. Having done that, it said plainly that eight of the nine PM rulings were carried out
+faithfully, that round 3 broke nothing R1 and R2 had accepted, and that both blocking findings sat
+inside the one ruling the author had been told to build. **The PM read that and revised PM-R6
+rather than asking the author to build it again.** That is the shape of this round.
+
+### The two blocking
+
+| # | finding | verdict | what changed, and where |
+|---|---|---|---|
+| **BLOCKING-E** | COPY-BIND asserts nothing `assertDesignBinding` does not already assert from inside the seal, and does not close the hole it was built to close: a coordinated deletion from the template AND the array passes | **FIXED by WITHDRAWAL (PM-R6'(ii)), and the finding is upheld in full** | I re-read `assertDesignBinding` at the line and R3 is right. Its copy rules are `design.cjs:538-:556`, `design.test.cjs:72` runs the whole function with the real references from inside a cell sealed in both maps, and both of the loops COPY-BIND would have re-implemented iterate the ARRAY, so a string leaving the array is invisible to them whatever the corpus is. **`copy-bind.test.mjs` is not built**: B.5's H19c row and B.8's row are struck; the C.5.2 claim "it is stronger than the wording it replaces", the R2 section's "the copy locks and the sha256 pins now ride the same two cells" and TOLD-3's "your words are now actually locked" are all **withdrawn**, which is three sentences in three places and is the whole content of the finding. **C.5.2 is rebuilt as the gap stated as it is**, with R3's measurement, plus one measurement of my own R3 could not have taken: **S9 releases no file carrying on-screen copy** (`preview.css` zero outside comments; `build.mjs` only `buildToday`, an `IMPORT-ROUTE FAIL` diagnostic and sixteen `for ... of` loops). **C.6 makes the lock a named precondition of S10**, with the corpus measured (419 state records, 210 ids, text identical across themes for all 210) and seven questions the design must answer. **Estimate: -1 hour for the cell, +1 for C.6.** THREE CORRECTIONS TO R3, all of which strengthen it: (a) R3's block-quote line numbers are each one low (`:542`, `:543`, `:544`, `:547`, `:548`, `:551`, `:552` at `023b99f4`, not `:541`...`:551`); (b) there are THREE copy loops, not two - `:538-:541` iterates the TEMPLATE - and R3's fixture removed the sentence from the template too, so that loop had nothing to look at and the finding stands; (c) R3 is right that B.8 row (3) was never a red-first plan for the cell, and the row is struck rather than repaired |
+| **BLOCKING-F** | PACK-PIN and COPY-BIND are specified against a tree state S9 itself removes, and the spec never says which tree the cells read; H19 has no tree it can run in; E.2 answers "no" in the "depends on C-UI-1?" column where the measurement says yes | **FIXED, and I dispute no part of it** | All three of R3's measurements re-checked and all three hold. **(a) WHICH TREE, in one sentence per cell:** C.5.1 now says PACK-PIN reads the **WORKING TREE at run time**, which on CI is the `actions/checkout` tree of the branch being pushed, never an object at a fixed commit - R3's reason is exactly right, an object at `5f4cad0a` is not present on a runner and a value that can never change makes red-first rows unreachable by construction. C.5.3 says APPROVED-PIN reads `design.APPROVED` at run time for its file list and the WORKING TREE for the bytes. **(b) WHAT IS TRUE ON THE DAY C-UI-1 SEALS:** C.5.3's five-step list for the integrator, including the re-decision of E fact 17's four paths, the OQ-2 input, and **the `design.test.cjs` edit NAMED AS A HUNK** - `:17`'s `approved.length === 2`, `:25` and `:26`'s two filename regexes and `:184`'s handoff bind, in a cell sealed in both maps, so S9 declares it `role: "edited"` if it moves. **(c) THE SCHEDULE:** H19 and H19b are split, CODE into day 1-2 and LITERALS into the WAIT column and the single re-measure, exactly as R3 asked; E.2 carries the split rows and F.2 gains **STOP-10**. **ONE CORRECTION TO R3:** its cite `design.test.cjs:23-:24` is the comment above the statements; the two `assert.match` calls are `:25` and `:26`, and `:17` carries the `length === 2` assert R3 did not name, which makes the finding wider. **AND ONE THING R3 DID NOT SAY THAT THE PM THEN RULED:** the exclusion itself was wrong. PM-R6'(i) puts `README.md` and all of `quality/**` INSIDE the pin - at `ecbef86a` that is **851 of the 904 files v3 excluded**, including the gate code and 844 baselines that after S9 ARE the acceptance of every look ticket |
+
+### The eight notes
+
+| # | R3 note | verdict | what changed |
+|---|---|---|---|
+| **N1** | A.2.1's "exactly four things and no new mechanism" is short in three ways, and the split spec it could not read is now on origin | **FIXED, and overtaken by PM-R10** | R3 is right on both counts and the ledger then moved: `DECISIONS:543` (A) REVERSES the cut v1 proposed, so re-writing v3's four items against v1 would have been re-writing them against an overruled design. **A.2.1 is replaced outright**: the writers leave, `today-app.cjs` and `gym-app.mjs` are released by S10 through S9's role, the carrier is S10, and the "if accepted in time" column is deleted from E.2 rather than re-worded. **A.2.1.1 answers the measurement the PM asked for** and **A.2.1.2 lists what S9 must leave in place.** R3's last sentence in N1 is taken as well: `today-app.cjs` role `edited` is true either way, because `DECISIONS:542` (D) requires it for S9-TODAY-CARRY, and that is now **E fact 20** |
+| **N2** | section 0's candidate table names a file `:536` does not (`index.shell.html`) and drops one it does (the today test cells) | **FIXED** | Read line 536 again: `index.shell.html` is not in it. Section 0's headline is re-cut to R3's own honest form (four of the seven FILES the ruling names are already free, `today-app.cjs` fails its test, the eighth candidate is the test-cell category), the table gains a row for the category pointing at C.3, and `index.shell.html` stays as a marked row so a reader of v3 is not confused. **Nothing downstream moves; the closed list is still two.** R3 is right that both earlier reviews repeated this and it was the third round's to catch |
+| **N3** | D.2's skip condition (1) will refuse S9's own diff unless it reads `--name-status` | **FIXED** | Both the "what it asks" row and skip condition (1) now say `--name-status`, condition (1) counts only status `A`, and the row carries R3's number: E fact 7 re-pins seven ancestor specs, so a real reseal child's diff is **eight** `packages/*.json` paths, one added and seven modified |
+| **N4** | the chain-derived skip is backed by the seal, not by the fence, and condition (3) inverts after the merge | **FIXED, both halves, and R3's reasoning is adopted verbatim in one row each** | Two new D.2 rows. The first says in terms that (1), (2) and (5) are copyable out of the public chain and **condition (4) is the only one that costs anything**, because it requires a sealed byte in `b-package.cjs`, caught by `fidelity()` `:2005` and the runner pin `:2012`. The second adds the post-merge clause: (3) is satisfied either by absence at `CHAIN_REF` or by presence plus the fence reading that child's own artifact |
+| **N5** | one sha256 cannot produce B.8's three refusal names, and the exclusion needs anchoring at the pack root | **FIXED, and this note is half of what PM-R6'(i) rebuilt** | The cell holds the **full sorted `(path, sha256)` list as its literal**, not one value, which is what lets `PACK-PIN MISMATCH`, `MISSING` and `ADDED` each name the path. The one remaining exclusion is **anchored at the pack root**, with R3's own attack named (`app/quality/run/x.js` cannot leave the pin). **And the exclusion R3 was asking to anchor is mostly gone**: PM-R6'(i) pins `quality/**` and `README.md`, leaving only untracked run output, which the cell skips by its OWN literal ignore list and never by reading `.gitignore` (which is in neither S8 map) |
+| **N6** | `page-bundle.test.mjs`'s CI home is `:264-:265`, not `:232`; and `assertNoAiDashesInAssets` is implemented in `plain-copy.cjs`, not at `build.mjs:31` | **FIXED, both, re-read in the farm** | `rebuild.yml:231-:232` is the A1/A2/A3/A4 step and its 17 named cells carry no `import/` path; `:264-:265` is the P3 step and it names `page-bundle.test.mjs`. A.4 row 1 re-cited. `assertNoAiDashesInAssets` is implemented at **`plain-copy.cjs:288`**, exported `:305`, destructured at `build.mjs:31` and called at `build.mjs:501`: A.4 row 7 and C.4 row 1 re-cited. **One measurement added beside it**, because it strengthens the row: `plain-copy.cjs` and `dash-check.mjs` are in neither S8 map, and the law is held anyway because `copy.test.mjs:395`/`:405` assert the BUILD's refusal. That pattern is now C.6's model |
+| **N7** | Appendix 8 and A.2.1 contradict each other about the C-UI ticket bodies; and A.5 carries two slips | **FIXED, and I take the credit R3 offered and the correction with it** | **Appendix 8 was the untrue sentence** and is rewritten: the tickets WERE read at `origin/rebuild/c-ui-0-gates`, R3 checked all four quotes and found them verbatim, and what is true is that v4 did not re-read them either. Both slips taken: `screens.template.html` is tickets **2,4** (C-UI-3 does not name it) and C-UI-7 names **`food-host.mjs`**, not `food-*` |
+| **N8** | E could now name S9-TODAY-CARRY's four declarations | **FIXED, and widened** | **E fact 20** names all four (`today-app.cjs`, `test/view.test.mjs`, `test/adapter.test.mjs`, `.github/workflows/rebuild.yml`) with their seal statuses parsed from the S8 artifact, and records that the lane's other moved files are in neither map. **E facts 21 and 22 do the same for PASSPHRASE-NORMALIZE** from `DECISIONS:543` (B), which landed after R3 was written: four declarations, three lane cells with a CI step and a child root, and a CI home for `rebuild/m3/w6/test/local-import.test.mjs`, whose root is already in `CHILD_ROOTS` |
+
+### What R3 tried to break and could not, carried forward
+
+R3's section 4 lists eight attacks. **Five are carried forward unchanged and are stronger in v4:**
+the pack pin over a moved board, app file, added file or removed file (v4's literal list names the
+path instead of saying "different"); the line-ending attack, which fails because `.gitattributes`
+forces LF in every working tree, and which v4 turns from a defence into a positive requirement,
+since PM-R6'(i) makes the cell read the working tree; the exclusion-list attack, which is closed
+because the ignore list lives inside a cell S9 seals; **the re-read of the released role, the token
+line, H17 and the receipt skip, where R3 found round 3 had broken nothing R1 and R2 accepted and
+v4 changes not one character**; and H7's single placement, re-derived at the line. **Two more
+became findings and are answered above** (item 4's short strings, now measured at 14 and 13, and
+item 8's "no NOW item needs C-UI-1's bytes except H19", which is BLOCKING-F). **One is now
+answered differently**: item 5's exclusion-list attack matters less because there is almost no
+exclusion list left to widen.
 
 ---
 
 ## R2 findings: fixed or disputed
+
+**AMENDED IN v4 (PM-R6'(ii)).** BLOCKING-B's row below says "the copy locks and the sha256 pins now
+ride the same two cells, which is what BLOCKING-B asked for". **That sentence is withdrawn.** R3
+proved the copy half of it false by execution. What is true after v4: **the sha256 pins ride
+PACK-PIN, APPROVED-PIN and the four `pinned-unchanged` declarations, and the COPY LOCKS ride
+nothing yet and are a named precondition of S10** (C.5.2, C.6). The row is left standing below
+rather than rewritten, so the record of what each round claimed is readable, and this paragraph is
+the correction.
 
 The review is `rebuild/lanes/b/S9-RELEASE-SPEC-REVIEW-R2.md` at `d859096`. Verdict: REJECT, two
 blocking findings and ten notes. **Two blocking: both FIXED, one of them with a single clause
