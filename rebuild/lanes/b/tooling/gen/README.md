@@ -62,13 +62,23 @@ never passes it. `[hand]` stages are judgments and ledger writes: printed, never
 
 ## S9, and the RELEASED role
 
-S9 is being specified now on `rebuild/b-s9-ui-pins` (`rebuild/lanes/b/S9-RELEASE-SPEC.md`).
-A new **RELEASED** role plugs into stage (e): `buildPackage()` decides a role from three
-measured facts and nothing else - is the path pinned by the parent, is its blob at the
-source base equal to its blob at the post head, and is it the parent's own spec file. A
-fourth role is one more branch there plus one more line in the role tally, and the replay
-test's per-path `role` comparison covers it the moment S9's own round is history. Until
-the spec is on origin this README states no more than that.
+`rebuild/lanes/b/S9-RELEASE-SPEC.md` is on origin (`rebuild/b-s9-ui-pins`), so this is
+read off the spec rather than guessed. `released` is the sixth member of `PRODUCT_ROLES`
+(spec hunk H1); a released entry stays **declared** in `s.product` so the completeness walk
+at `:1975` still finds it, carries `pre !== null` and `post === null` (H4), is admitted
+beside `carried`/`edited` at `product()` `:1894` (H6) and skipped before the disk hash
+(H7), and the released set must equal the granted set of a `RELEASE-FROM-SEAL` token line
+in both directions (H9).
+
+`new-child.cjs` takes `--released <path>` and does exactly and only that: declares the
+role, `pre` from the parent's own post, `post: null`, and puts the ruling line itself in
+`TODO.md`. **It never proposes the role on its own**, because the role is a PM ruling and
+the runner will refuse a spec whose released set does not match the line. It also checks
+spec B.6 / risk R2 for free: a released path that is a child argv target would be silently
+re-pinned into `executionPins` by `proposed()`, so the generator names that collision if it
+sees it. The `released` block in the artifact, the `releasedAncestry()` grandparent skip
+(H17) and the receipt exclusions (H12, H13) are all runner-side and none of them is this
+folder's business.
 
 ## The time saved, and the measurement behind the number
 

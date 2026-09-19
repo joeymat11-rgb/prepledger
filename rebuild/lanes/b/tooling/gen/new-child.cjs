@@ -48,6 +48,9 @@ function parseArgv(argv) {
     else if (a === '--parent-seal') o.parentSeal = next();
     else if (a === '--tip-ref') o.tipRef = next();
     else if (a === '--exclude') (o.exclude = o.exclude || []).push(next());
+    /* --released <path>, repeatable: a path a RELEASE-FROM-SEAL ruling has granted
+       (rebuild/lanes/b/S9-RELEASE-SPEC.md). The generator never proposes this role. */
+    else if (a === '--released') (o.released = o.released || []).push(next());
     /* --subst "OLD=NEW", repeatable: one more token pair for the mirror, for the facts
        only this round knows - the accepted lane rounds this package carries and their
        ledger citations. Without them every mirrored comment still tells the PARENT's
@@ -339,6 +342,20 @@ function buildPackage(root, ctx, todo) {
     const pinned = Object.prototype.hasOwnProperty.call(parentPins, f);
     if (pinned && pre !== parentPins[f].post) mismatches.push({ f, parentPost: parentPins[f].post, measuredPre: pre });
     let role;
+    /* THE RELEASED ROLE (rebuild/lanes/b/S9-RELEASE-SPEC.md, sections B.2 and B.4). It is
+       the sixth member of PRODUCT_ROLES and it is NOT a measurement: a path is released
+       only by a RELEASE-FROM-SEAL token line the PM rules, and the runner asserts the
+       released set equals that ruling's granted set in both directions. So the generator
+       will never propose it - it only obeys --released, and then it obeys the shape the
+       spec fixes: the path stays DECLARED (the completeness walk still finds it), `pre`
+       is the parent's own post, and `post` is null because a released file has no
+       post-image in this package. The ruling line itself goes to TODO.md. */
+    if (ctx.released.includes(f)) {
+      if (!pinned) { undecided.push({ f, why: 'given as --released but the parent does not pin it; only a path the parent sealed can be released from the seal' }); continue; }
+      todo.push({ what: 'the RELEASE-FROM-SEAL token line for ' + f, why: 'the runner requires the released set to equal the granted set of a PM ruling line, in both directions. The generator declares the role and nothing else; the line, and the artifact released block proposed() builds from it, are the PM\'s.' });
+      product[f] = { pre, post: null, role: 'released' };
+      continue;
+    }
     if (f === specPath(ctx.parent.id)) role = 'superseded-by-child';
     else if (!pinned) role = 'new';
     else role = (pre === post) ? 'carried' : 'edited';
@@ -478,7 +495,7 @@ function main(argv) {
   const parentSeal = o.parentSeal || M.gitText(root, ['merge-base', sourceBase, o.tipRef || 'origin/rebuild/t2-client-core']).trim();
   const ctx = {
     root, sourceBase, base, postHead, parentSeal, chain, parent, child, parentSpec,
-    childRoots: o.childRoots, exclude: o.exclude || [], dispatchLine: o.dispatchLine,
+    childRoots: o.childRoots, exclude: o.exclude || [], released: o.released || [], dispatchLine: o.dispatchLine,
     subst: o.subst || [], noBlock: [], prose: [], laneCells: laneCellsUnder(root, postHead, o.childRoots), parentRootHint: null,
     ownChildName: o.childRoots.length ? 'd-' + slugOf(o.name).replace(/^s\d+-/, '') : null,
     briefFile: 'rebuild/lanes/b/' + o.name.replace(/^M2-/, '') + '-BRIEF.md',
@@ -578,6 +595,13 @@ function finish(ctx, o, todo, wrote, runner, cells, csDone, out, say) {
   if (ctx.childRoots.length && !ownChild) todo.push({ what: 'the Y1 own-child', why: 'no .test file stands under ' + ctx.childRoots.join(', ') + ' at the post head, so MIN_OWN_CHILDREN = 1 cannot be met' });
   const decls = childDeclsFor(ctx, ownChild);
   ctx.childDecls = decls;
+  /* S9-RELEASE-SPEC B.6: a released path must NOT be a child argv target, because
+     proposed() puts every child argv target into executionPins and a released path that
+     re-entered there would be silently re-pinned for a generation (risk R2). Measured
+     here rather than trusted. */
+  for (const f of ctx.released) for (const c of decls) if (c.argv.includes(f)) {
+    todo.push({ what: 'RELEASED PATH IS A CHILD ARGV TARGET: ' + f + ' in child `' + c.name + '`', why: 'S9-RELEASE-SPEC B.6 / risk R2: proposed() puts every child argv target into executionPins, so the release would last one generation and then quietly undo itself. Re-home the cell or do not release the path.' });
+  }
   const kids = o.stage === 'hunks' ? decls.map(d => Object.assign({}, d, { needle: d.needle || TODO_BLANK, measured: false, how: 'not run: --stage hunks' })) : measureChildren(root, ctx, todo);
   const briefBytes = M.blobBytes(root, ctx.postHead, ctx.briefFile);
   const brief = briefBytes ? { file: ctx.briefFile, sha256: M.sha256(briefBytes), bytes: briefBytes.length } : null;

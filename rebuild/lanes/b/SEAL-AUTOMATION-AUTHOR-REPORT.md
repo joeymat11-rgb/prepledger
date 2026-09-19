@@ -154,6 +154,19 @@ first commits, re-run with `--post-head HEAD --stage all` so the package's posts
 needles are measured on the landed tree, fill `final-lines.txt`, and hash it with
 `gen/hash-lines.cjs` before a single ledger byte is written.
 
+## 6b. The S9 RELEASED role
+
+`rebuild/lanes/b/S9-RELEASE-SPEC.md` is on origin, so this is measured rather than
+promised. `released` is the sixth `PRODUCT_ROLES` member (hunk H1); a released entry stays
+declared in `s.product` (the completeness walk at `:1975` still finds it), carries
+`pre !== null` and `post === null` (H4), and the released set must equal the granted set of
+a RELEASE-FROM-SEAL token line in both directions (H9). `new-child.cjs --released <path>`
+declares exactly that and nothing more, and puts the ruling line in `TODO.md`. It never
+proposes the role by itself: the role is a PM ruling and the runner refuses a spec that
+disagrees with the line. It also measures spec B.6 / risk R2 - a released path that is a
+child argv target gets silently re-pinned into `executionPins` by `proposed()` and the
+release quietly undoes itself a generation later - and names that collision if it sees one.
+
 ## 7. Exercised in this lane
 
 `seal-chain.cjs --plan` (both chains), the `a7` PM refusal, and `--stage a1`
