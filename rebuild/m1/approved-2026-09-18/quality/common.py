@@ -4,27 +4,64 @@
 Kept in one file so gate.py and statesheet.py cannot drift apart on the same rule.
 Nothing here opens a browser; it is pure helpers and constants.
 """
-import os, sys, re, hashlib, pathlib, platform as plat
+import os, sys, re, hashlib, pathlib, unicodedata, platform as plat
 import numpy as np
 from PIL import ImageFont
 
 # ---------------------------------------------------------------- copy sweeps
-DASHES = ['\u2014', '\u2013', ' - ']
+SPACED_HYPHEN = ' - '
 READINESS = ['ready', 'readiness', 'recovered', 'fatigued']
 VENDORS = ['openai', 'anthropic', 'claude', 'gpt', 'gemini', 'chatgpt', 'whisper', 'elevenlabs', 'llama']
-# a set written with the letter x instead of the multiplication sign: "50 x 8", "3x8", "50 X 8"
+# a set written with the letter x instead of the multiplication sign: "50 x 8", "3x8", "50 X 8".
+# This one reads the raw string: a set string broken up by an invisible character is caught by the
+# format character sweep below, which has no honest case to weigh against it.
 SET_LETTER_X = re.compile(r'\d\s*[xX]\s*\d')
+MINUS_SIGN = '\u2212'
+NO_BREAK_SPACES = '\u00a0\u202f\u2007\u2060'
+
+
+def is_dash(ch):
+    """A dash for this rule is every character Unicode files under the dash punctuation category,
+    except the plain hyphen U+002D, which the spaced hyphen rule governs instead.
+
+    Naming U+2013 and U+2014 was a list of two where the category is a list of two dozen: U+2010
+    HYPHEN, U+2012 FIGURE DASH, U+2015 HORIZONTAL BAR and the rest all draw the same stroke the
+    owner ruled out, and a port that pasted one of them passed.
+    """
+    return ch != '-' and unicodedata.category(ch) == 'Pd'
+
+
+def sweep_form(text):
+    """The string the word and vendor sweeps read.
+
+    An interface string can carry a character that is drawn as nothing: a soft hyphen or a zero
+    width space inside a word off the owner's list leaves the screen reading "Ready" while the
+    sweep sees two fragments. So the format characters come out, the no break spaces become
+    ordinary spaces, the string is NFKC normalised (which folds the compatibility forms of a
+    letter onto the letter) and casefolded. The format characters are a problem in their own
+    right, reported by copy_problems, because interface copy has no honest use for one.
+    """
+    kept = ''.join(' ' if c in NO_BREAK_SPACES else c
+                   for c in text if unicodedata.category(c) != 'Cf')
+    return unicodedata.normalize('NFKC', kept).casefold()
 
 
 def copy_problems(text):
-    """The three copy sweeps on one screen's visible text.
+    """The copy sweeps on one screen's visible text: dashes, invisible characters, the owner's
+    word list and vendor names.
 
     The word list is matched on a real word boundary: the pattern is built with r'\\b' + word,
     which is backslash b, so "Ready to train" matches and "already" does not. The earlier form
     doubled the backslash and could never match anything.
     """
-    low = text.lower()
-    bad = [d for d in DASHES if d in text]
+    bad = [SPACED_HYPHEN] if SPACED_HYPHEN in text else []
+    bad += sorted({c for c in text if is_dash(c)})
+    # U+2212 is filed as a maths symbol, not as punctuation, so the category does not catch it. It
+    # is a minus sign in front of a number and a dash everywhere else.
+    if any(not text[m.end():m.end() + 1].isdigit() for m in re.finditer(MINUS_SIGN, text)):
+        bad.append(MINUS_SIGN)
+    bad += sorted({f'U+{ord(c):04X}' for c in text if unicodedata.category(c) == 'Cf'})
+    low = sweep_form(text)
     bad += [w for w in READINESS if re.search(r'\b' + w + r'\b', low)]
     bad += [v for v in VENDORS if v in low]
     return bad
@@ -61,6 +98,34 @@ GOLD_MARKER_CHARS = 24
 PRIMARY_RATIO = 4.5
 MUTED_RATIO = 3.0
 LARGE_TEXT_PX = 24
+
+# ---------------------------------------------------------------- what is a target
+# The owner's rule is that every target is 44 px, and a target is anything a finger can press, not
+# only an element that happens to be a button, a link or an input. The pack's own stylesheet says
+# which surfaces answer a touch: the tap highlight rule at app/app.css:625 lists them, and its
+# class names are repeated here so both gates hold the same list. Anything the browser makes
+# focusable by keyboard is a target too, which is what the role and tabindex selectors carry.
+TAPPABLE_CLASSES = ('.tcard.nav', '.rowcard', '.prompt', '.chip', '.decision', '.save', '.edit',
+                    '.primary', '.log', '.talk', '.mic-button', '.link')
+TAPPABLE_SELECTOR = ', '.join(
+    ('button', 'a', 'input', 'select', 'textarea', 'summary',
+     '[role=button]', '[role=link]', '[role=switch]', '[role=tab]', '[role=checkbox]',
+     '[role=radio]', '[role=menuitem]', '[tabindex]:not([tabindex="-1"])', 'label[for]')
+    + TAPPABLE_CLASSES)
+TARGET_PX = 44
+# One surface the walk must not count. app/app.css:150 hides a label from sight for assistive
+# technology alone, by clipping its box to nothing ("clip: rect(0 0 0 0)"), and app/app.html:43
+# draws the weight field's label that way. Nobody can see it or aim at it, and the control it
+# labels is the target, measured on its own. Anything else 1 px wide is still a failing target:
+# only a clip that leaves no area is skipped, never a small box.
+JS_CLIPPED_AWAY = """
+    const __clippedAway=e=>{const c=(getComputedStyle(e).clip||'auto').trim();
+      if(c==='auto'||c==='')return false;
+      const m=c.match(/-?[\\d.]+/g);
+      if(!m||m.length<4)return false;
+      const t=+m[0],r=+m[1],b=+m[2],l=+m[3];
+      return (b-t)<=0||(r-l)<=0};
+"""
 
 # This sentence is quoted in README section 3 in the same words.
 CONTRAST_TOLERANCE = ("Primary text needs 4.5:1 against what is actually behind it; muted text, a "
@@ -147,6 +212,27 @@ def app_url():
 
 def sha256_bytes(b):
     return hashlib.sha256(b).hexdigest()
+
+
+def app_digest(root):
+    """One digest over the prototype: sha256 of the sorted lines "<path> <sha256>" for every file
+    under app/, the path relative to app/ with forward slashes.
+
+    It is provenance and nothing else. statesheet.py writes it into the index when --accept runs
+    and prints one advisory line when the pack's app/ no longer matches it, because a record set
+    is a record of a particular prototype; it is never a problem and never an exit code, since a
+    teeth row's whole job is to change app/ in a scratch copy and the row that must PASS still has
+    to exit 0.
+    """
+    base = os.path.join(root, 'app')
+    lines = []
+    for dirpath, _dirs, names in os.walk(base):
+        for name in names:
+            p = os.path.join(dirpath, name)
+            rel = os.path.relpath(p, base).replace(os.sep, '/')
+            with open(p, 'rb') as f:
+                lines.append(f'{rel} {sha256_bytes(f.read())}')
+    return sha256_bytes('\n'.join(sorted(lines)).encode())
 
 
 def platform_key():

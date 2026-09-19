@@ -23,7 +23,8 @@ except Exception:
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, lum_array, worst_ratio, app_url,
                     sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused, JS_SWEPT_TEXT,
-                    JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS, env_text)
+                    JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS, env_text, TAPPABLE_SELECTOR,
+                    TARGET_PX, JS_CLIPPED_AWAY)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -45,6 +46,11 @@ ALL_SIZES = [(393, 852), (375, 812), (360, 780)]
 _s = _opt('--screens'); _z = _opt('--sizes')
 SCREENS = [s for s in ALL_SCREENS if not _s or s in _s.split(',')]
 SIZES = [wh for wh in ALL_SIZES if not _z or f'{wh[0]}x{wh[1]}' in _z.split(',')]
+# A value neither list knows used to empty the list it narrows, and the run then measured nothing
+# and exited 0 with a green summary. A typed size is the likeliest way anyone meets this.
+SIZE_NAMES = [f'{w}x{h}' for w, h in ALL_SIZES]
+UNKNOWN = ([f'--screens {v}' for v in (_s.split(',') if _s else []) if v not in ALL_SCREENS]
+           + [f'--sizes {v}' for v in (_z.split(',') if _z else []) if v not in SIZE_NAMES])
 REF = (393, 852)   # seams, regression and the column checks are measured at the reference size
 
 PRIMARY = {'today': '#start', 'workout': '#log', 'coach': '.mic-button'}
@@ -142,9 +148,12 @@ JS_FIT = """(sel)=>{const ui=document.querySelector('.screen.is-active .ui');if(
     return {scroll:sc.scrollHeight, client:sc.clientHeight, prim: rr?[rr.top, rr.bottom]:null, missing: !e}}"""
 
 JS_SMALL = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];const out=[];
-    ui.querySelectorAll('button,a,input').forEach(e=>{if(e.offsetParent===null)return;const r=e.getBoundingClientRect();if(r.width===0)return;
+    __CLIP__
+    const side=v=>v<__PX__?v.toFixed(2):String(Math.round(v));   /* the side that failed prints the number that failed */
+    ui.querySelectorAll('__TAPPABLE__').forEach(e=>{if(e.offsetParent===null||__clippedAway(e))return;const r=e.getBoundingClientRect();if(r.width===0)return;
     const cs=getComputedStyle(e,'::before');let h=r.height,w=r.width;if(cs.content!=='none'&&cs.height&&cs.height!=='auto'){h=Math.max(h,parseFloat(cs.height));}
-    if(h<44||w<44)out.push((e.id||e.className)+' '+Math.round(w)+'x'+Math.round(h))});return out}"""
+    if(h<__PX__||w<__PX__)out.push((e.id||e.className)+' '+side(w)+'x'+side(h))});return out}"""
+JS_SMALL = JS_SMALL.replace('__TAPPABLE__', TAPPABLE_SELECTOR).replace('__PX__', str(TARGET_PX)).replace('__CLIP__', JS_CLIPPED_AWAY)
 
 # a pseudo element moves as visibly as its host: ::before and ::after carry their own
 # transition-duration and animation-name, and the pack already draws with them (.timeline::before)
@@ -625,6 +634,8 @@ def rel(p):
 
 
 def write_report(chromium_version=''):
+    if not results:   # a run that measured nothing is not a green run, whatever emptied its lists
+        refuse('the run produced no result rows, so there is nothing to be green about')
     order = {'FAIL': 0, 'WARN': 1, 'SET': 2, 'PASS': 3}
     results.sort(key=lambda r: (order[r[0]], r[1], r[2]))
     fails = [r for r in results if r[0] == 'FAIL']
@@ -673,8 +684,14 @@ def refuse(msg):
 
 
 if __name__ == '__main__':
+    if UNKNOWN:
+        refuse(f'{", ".join(UNKNOWN)}: the screens are {", ".join(ALL_SCREENS)} and the sizes are '
+               f'{", ".join(SIZE_NAMES)}')
     if ACCEPT and (SCREENS != ALL_SCREENS or SIZES != ALL_SIZES):
         refuse('--accept sets every baseline, so it cannot be combined with --screens or --sizes')
+    if ACCEPT and os.environ.get('EARNED_APP'):
+        refuse('--accept sets the baselines of record, which are drawn from the pack\'s own '
+               'prototype, so it refuses to run with EARNED_APP set')
     try:
         asyncio.run(main())
     except Refused as e:
