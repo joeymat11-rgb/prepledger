@@ -1906,3 +1906,214 @@ test("RED E.6: the guard is what stops it, proved on the guard's OWN SHIPPED SOU
       "E.6: " + name + " is no longer the guarded entry it was measured to be");
   }
 });
+
+/* ---- LOOP ROUND 1: the blind review's surviving mutations, and F1's boundary ------------
+ * The reviewer judged twenty-five single-clause product mutations by the whole runnable bar
+ * and TEN CONSEQUENTIAL ONES SURVIVED it, exemplified by `gestures -= 1` becoming
+ * `gestures -= 0`, after which all 395 rows here still passed while the counter stuck open
+ * permanently and an ungestured food call saved. Each row below is the specific behavioural
+ * assertion that kills one of those ten, written as the reviewer specified it. They run the
+ * real sealed module over inert stubs, like the four E.6 rows above.
+ *
+ * ONE HARNESS NOTE THE REVIEWER MADE EXPLICITLY: a row that uses two separate factory
+ * instances for the outside-gesture and inside-gesture checks CANNOT catch a leaked
+ * counter. Every row below that touches the counter uses ONE instance and checks it again
+ * after the dispatch has returned.                                                        */
+
+const laneInstance = async (over) => {
+  const { JSDOM, VirtualConsole } = await import("jsdom");
+  const { createTodayLanes } = await import("../../../m3/w7-preview/today/today-lanes.cjs");
+  /* A silent virtual console, because one row below makes a listener callback THROW on
+     purpose and jsdom would otherwise forward that deliberate exception to this process
+     and end the run. Nothing else is suppressed: every assertion below is its own. */
+  const dom = new JSDOM("<!doctype html><div id=phone></div>", { virtualConsole: new VirtualConsole() });
+  const doc = dom.window.document;
+  const base = laneStubs(doc);
+  /* jsdom re-emits a listener's exception as a window error event; the E.6 row above does
+     the same, and without it one deliberately throwing callback ends the whole process. */
+  dom.window.addEventListener("error", () => {});
+  return { dom, doc, api: createTodayLanes(Object.assign(base, over || {})) };
+};
+const fireOn = (doc, type, fn) => {
+  const el = doc.createElement("button");
+  doc.getElementById("phone").appendChild(el);
+  return { el, fire: (ev) => el.dispatchEvent(ev || new doc.defaultView.Event(type)) };
+};
+
+test("E.6 (blind F3, M02): the gesture counter CLOSES AGAIN when the dispatch returns, on the SAME instance", async () => {
+  const { doc, api } = await laneInstance();
+  const { el, fire } = fireOn(doc, "keydown");
+  let inside = null;
+  /* recordSleep(new Map()) is the admitted call, as the E.6 row above uses it: with no
+     sleep lane injected it returns without touching the DOM, so this row measures the
+     COUNTER and not the writer. */
+  api.hooks.listen(el, "keydown", () => {
+    try { api.hooks.recordSleep(new Map()); inside = "admitted"; }
+    catch (e) { inside = "refused"; }
+  });
+  fire(new doc.defaultView.Event("keydown"));
+  assert.equal(inside, "admitted", "E.6: a writer inside a real dispatch was refused, which is the athlete's save failing");
+  /* THE ROW: the same instance, after the dispatch has returned. `gestures -= 0` leaves the
+     counter open here for the rest of the page's life and every later ungestured call saves. */
+  assert.throws(() => api.hooks.recordIntake(null, null, null, null),
+    /WRITER-OUTSIDE-GESTURE: recordIntake/,
+    "E.6: THE GESTURE COUNTER STAYED OPEN AFTER THE DISPATCH RETURNED. Every later call " +
+    "from anywhere - a timer, a promise, a render - now counts as a gesture.");
+});
+
+test("E.6 (blind F3, M02): the counter closes again when the callback THROWS and when it REJECTS", async () => {
+  const { doc, api } = await laneInstance();
+  const { el, fire } = fireOn(doc, "click");
+  api.hooks.listen(el, "click", () => { throw new Error("SYNTHETIC-CALLBACK-FAILURE"); });
+  const onErr = () => {};
+  process.on("uncaughtException", onErr);
+  try { fire(new doc.defaultView.Event("click")); } catch (e) { /* jsdom may rethrow */ }
+  process.off("uncaughtException", onErr);
+  assert.throws(() => api.hooks.recordSleep(new Map()), /WRITER-OUTSIDE-GESTURE: recordSleep/,
+    "E.6: a callback that THREW left the gesture counter open");
+  const el2 = doc.createElement("button");
+  doc.getElementById("phone").appendChild(el2);
+  api.hooks.listen(el2, "click", () => Promise.reject(new Error("SYNTHETIC-REJECTION")).catch(() => {}));
+  el2.dispatchEvent(new doc.defaultView.Event("click"));
+  assert.throws(() => api.hooks.recordSleep(new Map()), /WRITER-OUTSIDE-GESTURE: recordSleep/,
+    "E.6: a callback that returned a rejected promise left the gesture counter open");
+});
+
+test("E.6 (blind F3, M05): the ORIGINAL event object reaches the view's callback", async () => {
+  const { doc, api } = await laneInstance();
+  const { el } = fireOn(doc, "keydown");
+  let seen = "nothing";
+  api.hooks.listen(el, "keydown", (ev) => { seen = ev; });
+  const sent = new doc.defaultView.KeyboardEvent("keydown", { key: "Enter" });
+  el.dispatchEvent(sent);
+  assert.strictEqual(seen, sent, "THE LISTEN SHIM DROPPED THE EVENT. `return fn()` instead " +
+    "of `return fn(ev)` leaves every keyboard handler reading `key` off undefined.");
+  assert.equal(seen.key, "Enter", "the event reached the callback without its key");
+});
+
+test("the seal (blind F3, M14/M15): each screen constructor runs ONCE and the cached object comes back", async () => {
+  const { api } = await laneInstance();
+  for (const [hook, name] of [["mintMeasureScreen", "createMeasureScreen"],
+    ["mintImportScreen", "createImportScreen"], ]) {
+    let built = 0;
+    const made = { PLANT: name };
+    const Screen = { createMeasureScreen: () => { built += 1; return made; },
+      createImportScreen: () => { built += 1; return made; } };
+    api.hooks[hook](Screen);
+    api.hooks[hook](Screen);
+    assert.equal(built, 1, "THE SEAL RE-MINTED " + name + ". `if (true)` in place of the " +
+      "cache guard builds a new screen on every paint and the old one's state is dropped.");
+  }
+  assert.strictEqual(api.facade.measureScreen().PLANT, "createMeasureScreen",
+    "the cached measure screen is not the object the constructor returned");
+  assert.strictEqual(api.facade.importScreen().PLANT, "createImportScreen",
+    "the cached import screen is not the object the constructor returned");
+});
+
+test("the seal (blind F3, M16/M17): each retry PUBLISHES a non-null Promise before it settles", async () => {
+  for (const [hook, handle] of [["retryFoodRead", "foodSaving"], ["retrySleepRead", "sleepSaving"]]) {
+    const { api } = await laneInstance();
+    const before = api.facade[handle]();
+    api.hooks[hook]();
+    const after = api.facade[handle]();
+    assert.notStrictEqual(after, before, "THE SEAL DID NOT PUBLISH " + hook + "'S PROMISE. " +
+      "Dropping the assignment leaves the released half unable to tell that a read is in " +
+      "flight, and the early-return path is exactly where it matters.");
+    assert.ok(after && typeof after.then === "function",
+      hook + " published " + String(after) + " where a Promise is owed, even on the no-work path");
+    await after.catch(() => {});
+  }
+});
+
+test("the seal (blind F3, M09): sleepCorrect sets the flag the repaint observes, both ways", async () => {
+  const seen = [];
+  const noop = () => {};
+  const { api } = await laneInstance({ painter: Object.freeze({
+    repaint: (name) => { seen.push([name, null]); }, screenNow: () => "today",
+    token: () => 0, clearDraft: noop, paintTodayEntry: noop }) });
+  api.hooks.sleepCorrect(true);
+  assert.equal(api.facade.sleepCorrecting(), true,
+    "THE CORRECTION FLAG IS INVERTED. `sleepCorrecting = !on` paints the cancel state when " +
+    "the athlete asked to correct, and the correction state when he cancelled.");
+  api.hooks.sleepCorrect(false);
+  assert.equal(api.facade.sleepCorrecting(), false, "the cancel path left the correction flag set");
+});
+
+test("the seal (blind F3, M10): forgetCheckInRead clears the day AND the in-flight read", async () => {
+  /* readSleepCheckIn only starts a read when a check-in host with forDate is injected,
+     so this row injects the smallest one that answers: a never-settling promise, which is
+     what an in-flight read IS. */
+  let release = null;
+  const held = new Promise((r) => { release = r; });
+  const { api } = await laneInstance({ options: { checkin: { host: {
+    forDate: () => held } } } });
+  api.hooks.readSleepCheckIn("2026-09-02", true);
+  const pendingBefore = api.facade.sleepCheckInPending();
+  assert.ok(pendingBefore && typeof pendingBefore.then === "function",
+    "the harness did not start a check-in read, so this row proves nothing");
+  api.hooks.forgetCheckInRead();
+  assert.equal(api.facade.sleepCheckInDay(), null, "forgetCheckInRead left the check-in day set");
+  assert.equal(api.facade.sleepCheckInPending(), null,
+    "FORGETCHECKINREAD LEFT THE IN-FLIGHT READ. A read started before the athlete left can " +
+    "still settle and repaint a screen he is no longer on.");
+  release([]);
+  await pendingBefore.catch(() => {});
+});
+
+/* ---- BLIND F1: what the guard does NOT cover, pinned rather than argued ----------------
+ * The reviewer injected a frozen painter whose repaint calls hooks.recordIntake, put it
+ * behind hooks.listen(button, "click", () => painter.repaint()), and a durable food
+ * operation was written with no save action in the click callback: the guard admits
+ * everything nested under a shimmed listener, including a paint.
+ *
+ * MEASURED IN THIS ROUND: a seal-side paint-depth counter does NOT close it, because the
+ * paint root in the counterexample is one the VIEW holds and invokes itself, which never
+ * passes through the seal. Closing it means the released half declaring its paint entries
+ * through the seal, which is released-side wiring this round may not invent; it is ticket
+ * TODAY-GESTURE-PAINT-ROOTS and the build report carries it as an open STOP.
+ *
+ * What CAN be pinned today is the shipped page, and this pins it: in the released view the
+ * two guarded writers are called at exactly two sites, each one the direct body of a
+ * hooks.listen callback, and no render function contains either call. While that holds, the
+ * boundary the reviewer crossed is not reachable in this page; the day it stops holding,
+ * this row goes red and whoever moved it has to say so.                                   */
+test("E.6 (blind F1): the two guarded writers are called at EXACTLY two released sites, both directly inside a hooks.listen callback", () => {
+  const raw = readRepo(TODAY + "/today-app.cjs");
+  const code = codeOf(raw);
+  const lines = raw.split("\n");
+  const sites = [];
+  lines.forEach((l, i) => {
+    if (/hooks\.record(Intake|Sleep)\s*\(/.test(l)) sites.push({ line: i + 1, text: l });
+  });
+  assert.equal(sites.length, 2, "THE NUMBER OF CALL SITES OF THE TWO GUARDED WRITERS CHANGED. " +
+    "Found " + sites.length + ": " + sites.map((s) => ":" + s.line).join(" ") + ". Every one of " +
+    "them must be the direct body of a hooks.listen callback, or E.6's boundary is no longer " +
+    "the boundary the build measured (blind review F1).");
+  for (const s of sites) {
+    assert.match(s.text, /hooks\.listen\([^,]+,\s*"click",\s*\(\)\s*=>\s*\{\s*hooks\.record(Intake|Sleep)\(/,
+      "E.6: the guarded writer at :" + s.line + " is no longer the direct body of a " +
+      "hooks.listen click callback: " + s.text.trim());
+  }
+  /* And no render function body reaches either of them. The two sites above are inside
+     renderNutrition and renderSleep, so the test is that the CALL is not made during a
+     paint: every occurrence is inside a listener registration, which the regexp above
+     already asserts, and there is no bare call anywhere in the file. */
+  assert.equal((code.match(/hooks\.record(Intake|Sleep)\(/g) || []).length, 2,
+    "a guarded writer is called somewhere the raw-line scan above did not see");
+});
+
+test("RED E.6 (blind F1): a guarded writer moved OUT of its listener body, into a paint, FAILS", () => {
+  /* The plant is the shape the reviewer's counterexample needs in the shipped page: the
+     food writer called from inside a render instead of from the click callback's body. */
+  const src = planted(TODAY + "/today-app.cjs", (s) => s.replace(
+    '    hooks.listen(save, "click", () => { hooks.recordIntake(save, cal, pro, error); });',
+    '    hooks.listen(save, "click", () => { armSave(); });\n' +
+    '    hooks.recordIntake(save, cal, pro, error);'));
+  const lines = src.split("\n");
+  const sites = [];
+  lines.forEach((l, i) => { if (/hooks\.record(Intake|Sleep)\s*\(/.test(l)) sites.push(l); });
+  assert.equal(sites.length, 2, "the plant did not land, so this row proves nothing");
+  const bare = sites.filter((t) => !/hooks\.listen\([^,]+,\s*"click",\s*\(\)\s*=>\s*\{\s*hooks\.record(Intake|Sleep)\(/.test(t));
+  assert.equal(bare.length, 1,
+    "THE FENCE DID NOT SEE A GUARDED WRITER CALLED OUTSIDE ITS LISTENER BODY");
+});
