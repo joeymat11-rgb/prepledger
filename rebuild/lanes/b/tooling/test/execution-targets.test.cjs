@@ -188,6 +188,26 @@ test('two exact new roots execute real tests; adjacent and foreign roots refuse'
     assert.throws(() => targets([file]), /CHILD-ARGV-TARGET/);
   }
 });
+// M2-S9-UI-PINS, THE INTEGRATION'S TWO NEW CHILD ROOTS, AND THIS IS THE ROW THAT FAILS
+// WITHOUT THE CLAUSE. rebuild.yml at this head runs three cells under
+// rebuild/lanes/c/ui-port/ (the sealed-inventory fence and the two design-pack pins) and
+// two under rebuild/lanes/d/f2/ (E fact 23, DECISIONS:582), each in its own explicit
+// step. A declared child mirrors a CI step and childArgv() judges EVERY target against
+// CHILD_ROOTS, so before those two roots are added this row refuses CHILD-ARGV-TARGET on
+// the first file of each pair and E fact 23 cannot be declared at all. The second half is
+// what stops the widening being wider than it is: the PARENT directories stay refused, so
+// the two entries are the two directories and not lanes/c and lanes/d.
+test('M2-S9-UI-PINS -- ui-port and f2 targets are admitted, and their parent directories still refuse', () => {
+  for (const file of ['rebuild/lanes/c/ui-port/probe.test.mjs', 'rebuild/lanes/d/f2/probe.test.mjs']) {
+    write(file, 'console.log("ROOT PASS\\n" + "z".repeat(240));');
+    assert.deepEqual(targets(['--test', file]), [file]);
+  }
+  for (const file of ['rebuild/lanes/c/probe.test.mjs', 'rebuild/lanes/d/probe.test.mjs',
+    'rebuild/lanes/c/ui-portish/probe.test.mjs', 'rebuild/lanes/d/f2x/probe.test.mjs']) {
+    write(file, 'console.log("SHOULD NOT RUN");');
+    assert.throws(() => targets([file]), /CHILD-ARGV-TARGET/);
+  }
+});
 test('path, extension, option and positional controls remain closed', () => {
   for (const file of ['rebuild/m4/spec/probe.txt', 'rebuild/m4/spec/nested/../probe-own.cjs']) {
     if (!file.includes('..')) write(file, 'console.log("not an executable target");');

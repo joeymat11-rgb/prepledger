@@ -378,9 +378,19 @@ test('F6b - PRODUCT_ROLES is the closed six, in order, with M2-S9-UI-PINS\'s "re
 // rebuild/lanes/c/passphrase-normalize/ (the three cells :543 (B) names) and
 // rebuild/lanes/c/s9-today-carry/ (the S2 cell, which shares ONE rebuild.yml step with the
 // hotfix cell, so one declared child runs both and childArgv() judges both against this
-// list). rebuild/lanes/c/ui-port/ is NOT among them: C-UI-1 has not merged, the directory
-// does not exist on this branch, and the last loop of this cell is the rule that says so.
-test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S6-TODAY-CHILD adds exactly ten with M2-S7-PORT-ADMISSION\'s one, M2-S8-REAL-SHAPE\'s one and M2-S9-UI-PINS\'s four behind them', () => {
+// list).
+// THE INTEGRATION ADDS THE FIFTH AND SIXTH, so S9's block is SIX and the list is
+// TWENTY-SIX: rebuild/lanes/c/ui-port/ and rebuild/lanes/d/f2/. The comment that stood
+// here said rebuild/lanes/c/ui-port/ was NOT among them because C-UI-1 had not merged and
+// the directory did not exist on this branch; both halves of that sentence were true of
+// the preparation branch and are false of this one. The fence cell and the two pack cells
+// stand under rebuild/lanes/c/ui-port/ at this head and F2-LAND's two cells stand under
+// rebuild/lanes/d/f2/ (E fact 23, DECISIONS:582), each with its own explicit rebuild.yml
+// step, and a declared child mirrors a CI step: without these two roots childArgv()
+// refuses that child CHILD-ARGV-TARGET on its first file and E fact 23 cannot be declared
+// at all (brief section 9 item 6, review L1 B2). The last loop of this cell is still the
+// rule it was: every root named here is a real directory of THIS repository.
+test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may execute under, and M2-S6-TODAY-CHILD adds exactly ten with M2-S7-PORT-ADMISSION\'s one, M2-S8-REAL-SHAPE\'s one and M2-S9-UI-PINS\'s six behind them', () => {
   assert.deepEqual(api.CHILD_ROOTS, [
     'rebuild/m4/spec/',
     'rebuild/conform/v4/postfix/',
@@ -406,6 +416,8 @@ test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may exe
     'rebuild/lanes/c/p3-today-hotfix/',
     'rebuild/lanes/c/passphrase-normalize/',
     'rebuild/lanes/c/s9-today-carry/',
+    'rebuild/lanes/c/ui-port/',
+    'rebuild/lanes/d/f2/',
   ]);
   // The eighth is S5's, and DECISIONS:455 is why it exists: lane C's new modules go under
   // rebuild/m3/w7-preview/measure/ so that only the route wiring in today-app.cjs is a
@@ -431,14 +443,19 @@ test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may exe
   // A TWELFTH ADDITION SINCE S5, and the TWENTIETH element of this list,
   // rebuild/lanes/d/p3-real-shape/, is S8's, and it is one root for one package's own
   // lane cells: DECISIONS:487 stop 7 again, and MIN_OWN_CHILDREN = 1.
-  // THE THIRTEENTH TO SIXTEENTH ADDITIONS SINCE S5, and the TWENTY-FIRST to TWENTY-FOURTH
-  // elements of this list, are S9's four. Three are named by S9-RELEASE-SPEC E fact 3;
+  // THE THIRTEENTH TO EIGHTEENTH ADDITIONS SINCE S5, and the TWENTY-FIRST to TWENTY-SIXTH
+  // elements of this list, are S9's six. Three are named by S9-RELEASE-SPEC E fact 3;
   // the fourth, rebuild/lanes/c/s9-today-carry/, was MEASURED rather than taken from the
   // spec, which omits it: rebuild.yml runs its one cell in the SAME step as the
   // p3-today-hotfix cell above, so the declared child that mirrors that step names both
   // files in one argv and childArgv() judges both against this list. The two roots stand
   // or fall together, by the rule the spec itself applied to the hotfix root.
-  assert.equal(api.CHILD_ROOTS.length, 24);
+  // The FIFTH and SIXTH are the integration's own, and they are the two the preparation
+  // branch could not add: rebuild/lanes/c/ui-port/ holds the accepted fence cell and the
+  // two accepted pack cells, and rebuild/lanes/d/f2/ holds F2-LAND's two (E fact 23).
+  // Each has an explicit rebuild.yml step at this head, so each needs a declared child,
+  // and childArgv() judges every one of that child's targets against this list.
+  assert.equal(api.CHILD_ROOTS.length, 26);
   assert.equal(api.CHILD_ROOTS[7], 'rebuild/m3/w7-preview/measure/test/');
   assert.deepEqual(api.CHILD_ROOTS.slice(8), [
     'rebuild/m4/import/test/',
@@ -457,6 +474,8 @@ test('F7 - CHILD_ROOTS is the fixed list of directories a declared child may exe
     'rebuild/lanes/c/p3-today-hotfix/',
     'rebuild/lanes/c/passphrase-normalize/',
     'rebuild/lanes/c/s9-today-carry/',
+    'rebuild/lanes/c/ui-port/',
+    'rebuild/lanes/d/f2/',
   ]);
   // The first eight are UNCHANGED by S6: a widening adds, it never re-orders or edits what
   // a previous seal pinned here.
@@ -494,16 +513,30 @@ test('F8 -- PUBLIC_TAIL_ROOTS and TAIL_DENYLIST are the fixed lists the tail dia
     'rebuild/m4/workout/test/',
     'rebuild/lanes/d/p3-replay-measure/',
     'rebuild/lanes/d/p3-replay-all/',
+    'rebuild/lanes/c/ui-port/',
   ]);
+  // M2-S9-UI-PINS WIDENS THIS BY EXACTLY ONE WHERE IT WIDENS CHILD_ROOTS BY SIX, and the
+  // gap is again the whole assertion: of S9's six child roots, ONLY
+  // rebuild/lanes/c/ui-port/ may PRINT its tail. Its three cells - the sealed-inventory
+  // fence and the two design-pack pins - read only the repository's own tracked bytes, the
+  // sealed artifact out of Git at CHAIN_REF, and fixture packs they build themselves under
+  // os.tmpdir(); none of them reads the private census, a golden, live.json or the ledger,
+  // and their refusals are the one readable sentence a human is meant to find in the CI
+  // log, which is worth nothing if the tail is withheld. rebuild/lanes/d/f2/ is NOT added,
+  // for the reason p3-port-fix and p3-real-shape are not: a child root says a suite may be
+  // EXECUTED, this list says its output may be PRINTED, and the second is argued per root
+  // with TAIL_DENYLIST in hand rather than granted because a child appeared (review L1 B2;
+  // E fact 4, which this cell's own withheld loop below now measures for f2 as well).
   // M2-S6-TODAY-CHILD ADDS TWO, WHERE IT ADDED EIGHT TO CHILD_ROOTS, and the gap between
   // those numbers is the assertion this cell exists to make: a child root says a suite may
   // be EXECUTED, this list says its output may be PRINTED, and the second is a privacy
   // surface. Six of the eight new child roots are deliberately NOT here, so a failing
   // child under any of them withholds its tail by path policy, exactly as before.
-  assert.equal(api.PUBLIC_TAIL_ROOTS.length, 6);
+  assert.equal(api.PUBLIC_TAIL_ROOTS.length, 7);
   for (const withheld of ['rebuild/m4/import/test/', 'rebuild/lanes/d/plan-edit/',
     'rebuild/lanes/d/p3-capture-start/', 'rebuild/lanes/d/import-retract/',
-    'rebuild/lanes/d/p3-followons/', 'rebuild/m3/w7-preview/import/test/']) {
+    'rebuild/lanes/d/p3-followons/', 'rebuild/m3/w7-preview/import/test/',
+    'rebuild/lanes/d/f2/']) {
     assert(api.CHILD_ROOTS.includes(withheld), withheld + ' is a child root');
     assert.equal(api.PUBLIC_TAIL_ROOTS.includes(withheld), false,
       withheld + ' executes, but its tail is withheld by path policy');
