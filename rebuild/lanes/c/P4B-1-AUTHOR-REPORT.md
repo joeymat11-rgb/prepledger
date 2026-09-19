@@ -1378,3 +1378,25 @@ the original document that are not recoverable. Nothing in it is invented.
   deleted; the six cells this round adds are additions, and the only existing
   cell that changed is "P-F2 MEASURED", which gained a second measurement and
   kept every assertion it already had.
+
+## 14.11 The chain tip merged forward, and the bar run again on the merged head
+
+Last step, as the ruling requires. `git fetch origin`, then
+`git merge --no-edit origin/rebuild/t2-client-core`. No rebase, no conflict.
+
+| what | result |
+| --- | --- |
+| the chain tip merged | `4e832c2` (DECISIONS:560), merge commit `dc5f51d` |
+| what the merge brought | `rebuild/DECISIONS.md`, 5 lines added, and nothing else |
+| the coach bar on the MERGED head, owner's PC | **tests 311, pass 311, fail 0**, EXIT 0 |
+| the two measurements on the merged head | `turnContextBytes` 9446 and 22118, unchanged |
+| `git diff --numstat c9c34aef..HEAD -- rebuild/engine rebuild/m3 rebuild/m4 rebuild/client .github` | **EMPTY** |
+| this lane's own commits touching `rebuild/DECISIONS.md` | **none**; every DECISIONS line in the range arrived by merge from the chain |
+| U+2013 and U+2014 on ADDED lines, `a40952f..HEAD` | **0** |
+
+Every path this round touched: `rebuild/coach/memory-tools.cjs`,
+`rebuild/coach/memory-host.mjs`, `rebuild/coach/TOOL-CONTRACT.md`,
+`rebuild/coach/model-adapter.md`, `rebuild/coach/test/memory.test.cjs`,
+`rebuild/lanes/c/P4B-1-AUTHOR-REPORT.md` and the new
+`rebuild/lanes/c/P4B-1-PROBES.md`. The first five are named by the ruling's
+section 2; the last two are this lane's own paper. Custody is unchanged.
