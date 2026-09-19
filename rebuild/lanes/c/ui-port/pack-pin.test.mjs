@@ -137,12 +137,49 @@ const serialise = (entries) =>
    nothing about the real one. It returns the refusals as an array of strings, so a row can
    assert the EXACT text, and an empty array is the only green.
 
-   RED FIRST. This body refuses nothing yet. Every refusal row below is therefore red on
-   this commit, which is the measurement the next commit has to move. */
+   AN ENTRY IS NAMED ONCE. An irregular entry refuses NOT-A-REGULAR-FILE and takes no part
+   in the MISSING and ADDED comparisons, so one defect prints one line. The order is
+   MISMATCH and MISSING walking the literal in byte order, then ADDED in byte order, then
+   NOT-A-REGULAR-FILE in byte order, which is stable whatever order readdir hands back. */
+function walk(root, rel, observed, irregular) {
+  const dirAbs = rel === "" ? root : path.join(root, ...rel.split("/"));
+  for (const name of fs.readdirSync(dirAbs)) {
+    const childRel = rel === "" ? name : rel + "/" + name;
+    if (isIgnored(childRel)) continue;
+    const st = fs.lstatSync(path.join(dirAbs, name));
+    if (st.isDirectory()) walk(root, childRel, observed, irregular);
+    else if (st.isFile()) observed.set(childRel, sha256(fs.readFileSync(path.join(dirAbs, name))));
+    else irregular.add(childRel);
+  }
+}
+
 function packPin(packRoot, literalLines) {
-  void packRoot;
-  void literalLines;
-  return [];
+  /* ABSENT means: there is no plain directory at the pack root. lstat, so a link standing
+     where the pack should be is absent too rather than quietly walked through. */
+  let st = null;
+  try { st = fs.lstatSync(packRoot); } catch { st = null; }
+  if (st === null || !st.isDirectory()) return ["PACK-PIN PACK-ROOT-ABSENT " + label(packRoot)];
+
+  const literal = parseLiteral(literalLines);
+  if (literal.length === 0) return ["PACK-PIN LITERAL-EMPTY"];
+
+  const observed = new Map();
+  const irregular = new Set();
+  walk(packRoot, "", observed, irregular);
+
+  const refusals = [];
+  for (const e of literal) {
+    if (irregular.has(e.file)) continue;
+    const got = observed.get(e.file);
+    if (got === undefined) refusals.push("PACK-PIN MISSING " + e.file);
+    else if (got !== e.sha256) refusals.push("PACK-PIN MISMATCH " + e.file);
+  }
+  const listed = new Set(literal.map((e) => e.file));
+  for (const rel of sortByBytes([...observed.keys()])) {
+    if (!listed.has(rel)) refusals.push("PACK-PIN ADDED " + rel);
+  }
+  for (const rel of sortByBytes([...irregular])) refusals.push("PACK-PIN NOT-A-REGULAR-FILE " + rel);
+  return refusals;
 }
 
 /* THE THROWAWAY FIXTURE PACK: the real pack's shape in miniature, built by this file in a
