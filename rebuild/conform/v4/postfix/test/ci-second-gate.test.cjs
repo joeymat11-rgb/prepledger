@@ -26,4 +26,33 @@ test.after(()=>{assert(path.resolve(temp).startsWith(path.resolve(parent)+path.s
 test('cold actual entry suppresses missing or throwing synthetic preflight dependencies',()=>{const dir=path.join(temp,'rebuild/conform/v4/postfix');fs.mkdirSync(dir,{recursive:true});const entry=path.join(dir,'ci-second-gate.cjs');fs.copyFileSync(cli,entry);const launch=()=>cp.spawnSync(process.execPath,[entry,'--profile',C.PROFILE],{cwd:temp,encoding:'utf8',windowsHide:true,timeout:30000});for(const body of [null,"process.stdout.write('SYNTHETIC PROTECTED PREFLIGHT');process.stderr.write('SYNTHETIC PROTECTED PREFLIGHT');throw Error('SYNTHETIC PROTECTED PREFLIGHT');"]){if(body!==null)fs.writeFileSync(path.join(dir,'acceptance.cjs'),body);const r=launch();assert.equal(r.status,1);assert.equal(r.stdout,'');assert.equal(r.stderr.trim(),'CI SECOND GATE FAIL');}});
 test('missing or unpinned helper fails before candidate execution',()=>{assert.throws(()=>C.requirePinnedHelper(temp,{executionPins:{[C.HELPER]:C.HELPER_SHA}}));assert.throws(()=>C.requirePinnedHelper(root,{executionPins:{[C.HELPER]:'0'.repeat(64)}}),{code:'CI-CUSTODY-PIN'});const file=path.join(temp,C.HELPER);fs.mkdirSync(path.dirname(file),{recursive:true});fs.copyFileSync(path.join(root,C.HELPER),file);assert.throws(()=>C.requirePinnedHelper(temp,{executionPins:{[C.HELPER]:C.HELPER_SHA}}),{code:'CI-CUSTODY-PENDING'});fs.appendFileSync(file,'\n// synthetic tamper\n');assert.throws(()=>C.requirePinnedHelper(temp,{executionPins:{[C.HELPER]:C.HELPER_SHA,[C.CUSTODY]:'0'.repeat(64)}}),{code:'CI-CUSTODY-PIN'});});
 test('restoring times1000 cannot satisfy the actual one-expression source gate',()=>{const p=A.parentArtifact(root),original=L.object(root,p.baseline.auditCommit,S.STEP_FILE).toString('utf8');assert(original.includes(S.STEP_BEFORE));assert.throws(()=>S.proposeStepEfficacyChange(original,original),{code:'UNAPPROVED-SOURCE-DELTA'});});
-test('workflow changes exactly one command and retains both OS jobs',()=>{const original=L.object(root,'a777f64318dfb9b4766fa336d623196d07b5fc00','.github/workflows/rebuild.yml').toString('utf8'),actual=fs.readFileSync(path.join(root,'.github/workflows/rebuild.yml'),'utf8'),before='run: node rebuild/engine/test/second-gate.mjs --candidate',after='run: node rebuild/conform/v4/postfix/ci-second-gate.cjs --profile M2-STEP-EFFICACY';assert.equal(original.split(before).length,2);assert.equal(actual,original.replace(before,after));assert(actual.includes('os: [ubuntu-latest, windows-latest]'));assert(!actual.includes('|| true'));});
+// RETIRED BY THE PM'S RULING P-S9-5 (DECISIONS:627), EXPLICITLY AND ON THE RECORD, BY THE
+// M2-S9-UI-PINS INTEGRATION HAND. What stood here was a row named 'workflow changes
+// exactly one command and retains both OS jobs'. It read .github/workflows/rebuild.yml out
+// of Git at commit a777f64318dfb9b4766fa336d623196d07b5fc00 and asserted
+// actual === original.replace(before, after) for ONE exact command substitution made in
+// 2026, so ANY later hunk of that workflow turned it red. It was stale-red before S9 was
+// written (h3-clean-init.test.cjs:718 says so in its own words), and S9 adds several
+// workflow steps. Measured by this hand before the retirement: the file was 35 tests,
+// 34 pass, 1 fail, and that one failure was this row.
+//
+// THE THREE FACTS THAT MADE RETIREMENT, AND NOT A QUIET RE-PIN, THE RULED DISPOSITION.
+// (1) This cell has NO CI HOME: rebuild.yml names ci-second-gate ZERO times, measured, so
+//     nothing runs it and a re-pin would go stale again at the next workflow hunk without
+//     anyone observing it.
+// (2) This file is in NEITHER S8 MAP: measured against rebuild/m4/spec/
+//     acceptance-s8-real-shape.json, it is not a key of product and not a key of
+//     executionPins, so editing or retiring it is not a sealed act.
+// (3) The equality was the only thing retired. THE TWO INVARIANTS IT ALSO CARRIED ARE
+//     RE-HOMED, not dropped: 'both OS jobs are retained' and 'no step is forgiven by an
+//     || true' now stand as row (32) of rebuild/lanes/c/ui-port/
+//     sealed-inventory-fence.test.mjs, which reads rebuild.yml out of the WORKING TREE and
+//     whose rebuild.yml step carries if: ${{ !cancelled() }}, so it really runs on ubuntu
+//     and on windows on the branches this package is built on.
+//
+// NOTHING ELSE IN THIS FILE IS TOUCHED. The other rows stand byte-unchanged and are what
+// this cell is for: the closed CLI profile, the cold CLI's fixed public label, the closed
+// evidence validator and its twenty-one refusal mutants, the public formatter's closed
+// result, the split-write and accessor canaries, the quiet boundary's restore and its
+// output limit, the cold actual entry over missing or throwing preflight dependencies,
+// the pinned-helper custody checks, and the one-expression source gate.
