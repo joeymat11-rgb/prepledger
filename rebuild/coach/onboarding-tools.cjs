@@ -352,11 +352,11 @@ function createOnboardingTools({ setup, catalogue, model, commands, effective = 
     let action;
     try { action = commands.prepare({ action: commands.ACTION, input }); }
     catch (error) {
-      const message = error && error.message;
+      const message = T.provenance(error);
       const code = typeof message === "string" && Object.prototype.hasOwnProperty.call(model.REFUSAL_SENTENCES || {}, message)
         ? message : C6_CODES.SETUP_INPUT_INVALID;
       return unavailable("submit", TIER.FACT, turn_id, code,
-        model.COPY.saveRefused, "setup-commands.mjs prepare(): " + T.provenance(message));
+        model.COPY.saveRefused, "setup-commands.mjs prepare(): " + T.provenance(error));
     }
     if (!host || typeof host.save !== "function") {
       return unavailable("submit", TIER.FACT, turn_id, C6_CODES.SETUP_HOST_ABSENT,
@@ -406,7 +406,7 @@ function createOnboardingTools({ setup, catalogue, model, commands, effective = 
     if (typeof turn_id !== "string" || !turn_id) throw new TypeError("dispatch: a turn_id is required");
     if (typeof name !== "string" || !Object.prototype.hasOwnProperty.call(TIERS, name) || typeof IMPL[name] !== "function") {
       return T.assertNoLeak(Object.freeze({
-        ok: false, tool: name, tier: null, turn_id,
+        ok: false, tool: typeof name === "string" ? name : "(not a tool name)", tier: null, turn_id,
         code: C6_CODES.TOOL_NOT_IN_LIST,
         reason: T.UNKNOWN_TOOL_COPY,
         allowed: ONBOARDING_TOOLS.slice(),
@@ -422,7 +422,7 @@ function createOnboardingTools({ setup, catalogue, model, commands, effective = 
       /* A refusal, never a stack past the caller. */
       return unavailable(name, TIERS[name], turn_id, C6_CODES.TOOL_THREW,
         "Something went wrong inside that tool on this device. I could not complete the request.",
-        "onboarding-tools.cjs dispatch: " + T.provenance(error && error.message));
+        "onboarding-tools.cjs dispatch: " + T.provenance(error));
     }
   }
 

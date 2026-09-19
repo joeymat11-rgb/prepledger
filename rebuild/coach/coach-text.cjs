@@ -138,8 +138,7 @@ const TEMPLATES_2 = Object.freeze({
   unavailable: (u) => {
     const said = typeof u.reason === "string" && u.reason ? u.reason : "I cannot answer that from what the app holds.";
     if (T.refusalHasOwnEnding(u.code)) return said;
-    if (u.code === T.CODES.CONFIRMATION_REQUIRED && /nothing is recorded yet/i.test(said)) return said;
-    return join([said, /nothing chang/i.test(said) ? "" : " Nothing changed."]);
+    return join([said, /nothing chang|nothing is recorded yet/i.test(said) ? "" : " Nothing changed."]);
   },
 });
 const ALL_TEMPLATES = Object.freeze({ ...TEMPLATES, ...TEMPLATES_2 });

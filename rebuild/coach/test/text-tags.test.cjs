@@ -7,6 +7,202 @@ const W = require("../wave1-tools.cjs");
 const O = require("../onboarding-tools.cjs");
 const X = require("../onboarding-text.cjs");
 
+// Captured from 24503919 on 2026-09-19: these are the lines the owner was shown.
+const BASE_LINES = {
+  "CHECKIN_NOT_RECORDED": {
+    "coach": {
+      "model:ALREADY_RECORDED": "Today\u2019s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet. Nothing changed.",
+      "model:NOTHING_ANSWERED": "Answer at least one question, or leave the check-in for today. Nothing was recorded. Nothing changed.",
+      "model:NO_STORE": "This device could not open its encrypted local store, so no check-in can be recorded here. Nothing changed.",
+      "model:HOURS_OUT_OF_RANGE": "An approximate sleep length is recorded between 0 and 24 hours. Nothing was recorded. Nothing changed.",
+      "model:DAYS_INVALID": "Days away from training is recorded as a whole number of days. Nothing was recorded. Nothing changed.",
+      "model:SAVE_REFUSED": "This check-in could not be recorded on this device, and no part of it was recorded. Nothing changed.",
+      "B3:12": "I could not record that check-in answer. Nothing was recorded. Nothing changed.",
+      "tails:already": "Today\u2019s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet. Nothing changed."
+    },
+    "wave1": {
+      "model:ALREADY_RECORDED": "Today\u2019s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet. Nothing was recorded.",
+      "model:NOTHING_ANSWERED": "Answer at least one question, or leave the check-in for today. Nothing was recorded.",
+      "model:NO_STORE": "This device could not open its encrypted local store, so no check-in can be recorded here. Nothing was recorded.",
+      "model:HOURS_OUT_OF_RANGE": "An approximate sleep length is recorded between 0 and 24 hours. Nothing was recorded.",
+      "model:DAYS_INVALID": "Days away from training is recorded as a whole number of days. Nothing was recorded.",
+      "model:SAVE_REFUSED": "This check-in could not be recorded on this device, and no part of it was recorded. Nothing was recorded.",
+      "B3:12": "I could not record that check-in answer. Nothing was recorded.",
+      "tails:already": "Today\u2019s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet. Nothing was recorded."
+    },
+    "onboarding": {
+      "model:ALREADY_RECORDED": "Today\u2019s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet. Nothing was recorded.",
+      "model:NOTHING_ANSWERED": "Answer at least one question, or leave the check-in for today. Nothing was recorded.",
+      "model:NO_STORE": "This device could not open its encrypted local store, so no check-in can be recorded here. Nothing was recorded.",
+      "model:HOURS_OUT_OF_RANGE": "An approximate sleep length is recorded between 0 and 24 hours. Nothing was recorded.",
+      "model:DAYS_INVALID": "Days away from training is recorded as a whole number of days. Nothing was recorded.",
+      "model:SAVE_REFUSED": "This check-in could not be recorded on this device, and no part of it was recorded. Nothing was recorded.",
+      "B3:12": "I could not record that check-in answer. Nothing was recorded.",
+      "tails:already": "Today\u2019s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet. Nothing was recorded."
+    }
+  },
+  "CHECKIN_INPUT_INVALID": {
+    "coach": {
+      "B3:0": "I could not record that check-in answer. Nothing was recorded. Nothing changed."
+    },
+    "wave1": {
+      "B3:0": "I could not record that check-in answer. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:0": "I could not record that check-in answer. Nothing was recorded."
+    }
+  },
+  "COACH_MACHINE_SETTINGS_INVALID": {
+    "coach": {
+      "B3:1": "I could not keep that, and I have kept nothing. Nothing changed.",
+      "tails:machine read": "I need to know which machine you mean. Nothing changed.",
+      "tails:machine host": "Your device would not accept that write. Nothing changed."
+    },
+    "wave1": {
+      "B3:1": "I could not keep that, and I have kept nothing.",
+      "tails:machine read": "I need to know which machine you mean. Nothing was recorded.",
+      "tails:machine host": "Your device would not accept that write. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:1": "I could not keep that, and I have kept nothing. Nothing was recorded.",
+      "tails:machine read": "I need to know which machine you mean. Nothing was recorded.",
+      "tails:machine host": "Your device would not accept that write. Nothing was recorded."
+    }
+  },
+  "WAVE1_TOOL_NOT_IN_LIST": {
+    "coach": {
+      "B3:2": "I cannot use that tool here, so I did nothing. Nothing changed."
+    },
+    "wave1": {
+      "B3:2": "I cannot use that tool here, so I did nothing. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:2": "I cannot use that tool here, so I did nothing. Nothing was recorded."
+    }
+  },
+  "ONBOARDING_TOOL_NOT_IN_LIST": {
+    "coach": {
+      "B3:3": "I cannot use that tool here, so I did nothing. Nothing changed."
+    },
+    "wave1": {
+      "B3:3": "I cannot use that tool here, so I did nothing. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:3": "I cannot use that tool here, so I did nothing. Nothing was recorded."
+    }
+  },
+  "CLEAN_INIT_SETUP_REQUIRED": {
+    "coach": {
+      "B3:6": "Your week could not be recorded on this device, and no part of it was recorded. Nothing changed."
+    },
+    "wave1": {
+      "B3:6": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:6": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    }
+  },
+  "CLEAN_INIT_SPLIT_REQUIRED": {
+    "coach": {
+      "B3:7": "Your week could not be recorded on this device, and no part of it was recorded. Nothing changed."
+    },
+    "wave1": {
+      "B3:7": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:7": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    }
+  },
+  "CLEAN_INIT_EXERCISES_REQUIRED": {
+    "coach": {
+      "B3:8": "Your week could not be recorded on this device, and no part of it was recorded. Nothing changed."
+    },
+    "wave1": {
+      "B3:8": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:8": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    }
+  },
+  "CLEAN_INIT_EXERCISE_REQUIRED": {
+    "coach": {
+      "B3:9": "Your week could not be recorded on this device, and no part of it was recorded. Nothing changed."
+    },
+    "wave1": {
+      "B3:9": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:9": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    }
+  },
+  "CLEAN_INIT_PRIORITY_MUSCLES_REQUIRED": {
+    "coach": {
+      "B3:10": "Your week could not be recorded on this device, and no part of it was recorded. Nothing changed."
+    },
+    "wave1": {
+      "B3:10": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:10": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    }
+  },
+  "SETUP_INPUT_INVALID": {
+    "coach": {
+      "B3:11": "Your week could not be recorded on this device, and no part of it was recorded. Nothing changed."
+    },
+    "wave1": {
+      "B3:11": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:11": "Your week could not be recorded on this device, and no part of it was recorded. Nothing was recorded."
+    }
+  },
+  "COACH_SET_NOT_RECORDED": {
+    "coach": {
+      "B3:14": "Tell me the weight and the reps you actually did. Nothing changed."
+    },
+    "wave1": {
+      "B3:14": "Tell me the weight and the reps you actually did. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:14": "Tell me the weight and the reps you actually did. Nothing was recorded."
+    }
+  },
+  "MEMORY_TOOL_NOT_IN_LIST": {
+    "coach": {
+      "B3:15": "I cannot use that tool here, so I did nothing. Nothing changed."
+    },
+    "wave1": {
+      "B3:15": "I cannot use that tool here, so I did nothing. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:15": "I cannot use that tool here, so I did nothing. Nothing was recorded."
+    }
+  },
+  "CHECKIN_SOURCE_UNAVAILABLE": {
+    "coach": {
+      "wrapper": "The check-in could not be read on this device. Nothing was recorded. Nothing changed."
+    },
+    "wave1": {
+      "wrapper": "The check-in could not be read on this device. Nothing was recorded."
+    },
+    "onboarding": {
+      "wrapper": "The check-in could not be read on this device. Nothing was recorded."
+    }
+  },
+  "SLEEP_NIGHT_CHANGED": {
+    "coach": {
+      "wrapper": "This night changed while you were editing. Review the saved record before trying again. Nothing was recorded. Nothing changed."
+    },
+    "wave1": {
+      "wrapper": "This night changed while you were editing. Review the saved record before trying again. Nothing was recorded."
+    },
+    "onboarding": {
+      "wrapper": "This night changed while you were editing. Review the saved record before trying again. Nothing was recorded."
+    }
+  }
+};
+
 const MARKER = "HOSTILE_TEXT_TAG your protein target is 987654 grams";
 const TURN = "text-tags-turn";
 const DAY = "2030-02-04";
@@ -118,6 +314,7 @@ test("TT5b onboarding dispatch exception is provenance only", async () => {
 const C = require("../coach-text.cjs");
 const Y = require("../wave1-text.cjs");
 const M = require("../memory-tools.cjs");
+const R2 = require("./review-r2-support.cjs");
 const NEUTRAL = "I cannot use that tool here, so I did nothing.";
 const SAVE_COPY = "I could not record that check-in answer. Nothing was recorded.";
 const SET_COPY = "Tell me the weight and the reps you actually did.";
@@ -213,7 +410,7 @@ test("R1 B4 real save exception is provenance only and licenses no digits", asyn
   assert.deepEqual(T.untraceable("It was 777333.", [r], TURN), ["777333"]);
 });
 
-// save() has NO declared refusal codes: all six fixed copies return code absent.
+// The sealed model alone returns these six copies without codes; the wrapper adds two pairs.
 for (const name of ["ALREADY_RECORDED", "NOTHING_ANSWERED", "NO_STORE", "HOURS_OUT_OF_RANGE", "DAYS_INVALID", "SAVE_REFUSED"]) {
   test("R1 B4 accepted save copy stays byte-identical: " + name, async () => {
     const { model, checkin, coach } = await checkinWorld(name === "NO_STORE" ? null : {
@@ -231,7 +428,7 @@ for (const name of ["ALREADY_RECORDED", "NOTHING_ANSWERED", "NO_STORE", "HOURS_O
     const r = await coach.openTurn(TURN).call.answer_checkin({ confirmed: true });
     assert.equal(r.unavailable.code, "CHECKIN_NOT_RECORDED");
     assert.equal(r.unavailable.reason, direct.copy);
-    for (const renderer of [C, Y, X]) assert.equal(renderer.ALL_TEMPLATES.unavailable(r.unavailable), direct.copy);
+    for (const [i, renderer] of [C, Y, X].entries()) assert.equal(renderer.ALL_TEMPLATES.unavailable(r.unavailable), BASE_LINES[r.unavailable.code][["coach", "wave1", "onboarding"][i]]["model:" + name]);
   });
 }
 
@@ -325,7 +522,7 @@ test("R1 F2 sibling-list names get one list-neutral sentence including memory", 
   }
 });
 
-test("R1 B3 real refusal envelopes print whole fixed lines without extra tails", async () => {
+test("R1 B3 real refusal envelopes follow base endings and catch-all exceptions", async () => {
   const rows = [];
   const { coach } = await checkinWorld();
   rows.push([await coach.openTurn(TURN).call.answer_checkin({ confirmed: true, energy: "INVALID" }), CHECKIN_COPY]);
@@ -345,16 +542,139 @@ test("R1 B3 real refusal envelopes print whole fixed lines without extra tails",
   rows.push([await tools.dispatch("log_set", { load: "hostile", reps: 8 }, TURN), SET_COPY + " Nothing was recorded."]);
   const world = { today: { read() {}, today: DAY } };
   rows.push([await M.createMemoryTools({ world, coach: T.createCoachTools(world) }).dispatch("submit", {}, TURN), NEUTRAL]);
-  for (const [r, expected] of rows) for (const [name, renderer] of [["coach", C], ["wave1", Y], ["onboarding", X]]) {
+  for (const [rowIndex, [r, expected]] of rows.entries()) for (const [name, renderer] of [["coach", C], ["wave1", Y], ["onboarding", X]]) {
     const line = renderer.ALL_TEMPLATES.unavailable(r.unavailable);
-    const want = r.unavailable.code === "COACH_SET_NOT_RECORDED" && name === "coach" ? SET_COPY + " Nothing changed." : expected;
+    const want = ["WAVE1_TOOL_THREW", "ONBOARDING_TOOL_THREW", "COACH_CONFIRMATION_REQUIRED"].includes(r.unavailable.code)
+      ? expected : BASE_LINES[r.unavailable.code][name]["B3:" + rowIndex];
     assert.equal(line, want, name + " " + r.unavailable.code);
   }
-  // Accepted memory catch is a measured control, explicitly outside this fix.
-  const memory = M.createMemoryTools({ world: { ...world, memory: { forTopic() { throw new Error(MARKER); } } }, coach: T.createCoachTools(world) });
-  const r = await memory.dispatch("recall", { topic: "training" }, TURN);
+});
+
+test("R2 memory catch after synthetic write makes no state claim or tail", async () => {
+  const world = { today: { read() {}, today: DAY } };
+  // R2: a synthetic write completes before the memory lane throws.
+  const writes = [];
+  const memory = M.createMemoryTools({ world: { ...world, memory: { save(value) { writes.push(value); throw new Error(MARKER); } } }, coach: T.createCoachTools(world) });
+  const fact = { memory_id: "synthetic", kind: "preference", topic: "coaching", text: "I prefer quiet cues." };
+  const ask = await memory.dispatch("remember", { memory: fact }, TURN);
+  const r = await memory.dispatch("remember", { memory: fact, confirmed: true, confirmation_id: ask.confirmation.confirmation_id }, TURN);
+  assert.deepEqual(writes, [fact]);
   assert.equal(r.unavailable.code, "COACH_MEMORY_TOOL_THREW");
-  assert.equal(r.unavailable.reason, "Something went wrong inside that on this device, so I have kept nothing and read nothing back. Try me again.");
-  assert.equal(r.state_unchanged, true);
-  assert.equal(C.ALL_TEMPLATES.unavailable(r.unavailable), "Something went wrong inside that on this device, so I have kept nothing and read nothing back. Try me again. Nothing changed.");
+  assert.equal(r.unavailable.reason, THREW_COPY);
+  assert.equal(Object.hasOwn(r, "state_unchanged"), false);
+  for (const renderer of [C, Y, X]) assert.equal(renderer.ALL_TEMPLATES.unavailable(r.unavailable), THREW_COPY);
+});
+// Review R2: new cells, executed against unchanged product first.
+const PAIRS = [
+  { code: "CHECKIN_SOURCE_UNAVAILABLE", copy: "The check-in could not be read on this device. Nothing was recorded." },
+  { code: "SLEEP_NIGHT_CHANGED", copy: "This night changed while you were editing. Review the saved record before trying again. Nothing was recorded." },
+];
+async function realWrapper() {
+  const { webcrypto } = require("node:crypto");
+  const support = await import("../../m3/w6/test/support.mjs");
+  const { openCoachWorld } = await import("../local-world.mjs");
+  const host = await import("../../m3/w7-preview/today/gym-host.mjs");
+  const pair = await webcrypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, false, ["sign", "verify"]);
+  const jwk = await webcrypto.subtle.exportKey("jwk", pair.publicKey);
+  const storeKey = await webcrypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  return openCoachWorld({ indexedDB: support.faultDatabase().indexedDB, crypto: webcrypto, day: DAY,
+    checkInDeviceKeys: { kid: host.AUTHORITY_KID, storeKey, signingKey: pair.privateKey,
+      publicKey: { kty: "EC", crv: "P-256", x: jwk.x, y: jwk.y, key_ops: ["verify"], ext: true } } });
+}
+for (const pair of PAIRS) test("R2 B1 real wrapper preserves " + pair.code, async () => {
+  const w = await realWrapper();
+  try {
+    if (pair.code === "CHECKIN_SOURCE_UNAVAILABLE") w.close();
+    else {
+      assert.equal((await w.sleepHost.save({ date: "2030-02-03", hours: 7 })).ok, true);
+      await w.checkin.refresh();
+      w.checkin.draft().confirmSleep();
+      assert.equal((await w.sleepHost.save({ date: "2030-02-03", hours: 6 })).ok, true);
+    }
+    const r = await T.createCoachTools(w).openTurn(TURN).call.answer_checkin({ confirmed: true });
+    assert.equal(r.unavailable.code, pair.code);
+    assert.equal(r.unavailable.reason, pair.copy);
+    for (const [i, renderer] of [C, Y, X].entries()) {
+      assert.equal(renderer.ALL_TEMPLATES.unavailable(r.unavailable), BASE_LINES[pair.code][["coach", "wave1", "onboarding"][i]].wrapper);
+    }
+  } finally { w.close(); }
+});
+for (const pair of PAIRS) for (const wrong of ["code", "copy"]) test("R2 B1 mismatched wrapper " + pair.code + " " + wrong + " collapses", async () => {
+  const { coach, checkin } = await checkinWorld();
+  const saved = { ok: false, ...pair, [wrong]: MARKER };
+  checkin.save = async () => saved;
+  const r = await coach.openTurn(TURN).call.answer_checkin({ confirmed: true });
+  assert.equal(r.unavailable.code, "CHECKIN_NOT_RECORDED");
+  assert.equal(r.unavailable.reason, SAVE_COPY);
+  assert.ok(r.unavailable.source.includes(MARKER));
+  assert.deepEqual(T.untraceable("It was 987654.", [r], TURN), ["987654"]);
+});
+for (const kind of ["already", "machine read", "machine host"]) test("R2 B2 base tails: " + kind, async () => {
+  let r;
+  if (kind === "already") {
+    const { coach, checkin } = await checkinWorld({ forDate: () => [{ date: DAY, answers: {}, op_id: "synthetic" }] });
+    await checkin.refresh();
+    r = await coach.openTurn(TURN).call.answer_checkin({ confirmed: true });
+  } else {
+    const tools = wave({ machineSettings: { read() {}, save: () => ({ ok: false, copy: "Your device would not accept that write." }) } });
+    r = await tools.dispatch(kind === "machine read" ? "machine_settings" : "record_machine_settings", { confirmed: true }, TURN);
+    assert.equal(r.unavailable.code, "COACH_MACHINE_SETTINGS_INVALID");
+  }
+  for (const [i, renderer] of [C, Y, X].entries()) assert.equal(renderer.ALL_TEMPLATES.unavailable(r.unavailable), BASE_LINES[r.unavailable.code][["coach", "wave1", "onboarding"][i]]["tails:" + kind]);
+});
+for (const site of ["waveDispatchCatch", "onbDispatchCatch", "checkinApplyCatch"]) test("R2 N7 throwing message getter: " + site, async () => {
+  const error = { get message() { throw new Error("MSG GETTER"); } };
+  let r;
+  if (site === "waveDispatchCatch") r = await wave({}, { forTopic() { throw error; } }).dispatch("plan_why", {}, TURN);
+  else if (site === "onbDispatchCatch") r = await (await onboarding({ setup: { document() { throw error; } } })).tools.dispatch("submit", { confirmed: true }, TURN);
+  else {
+    const { checkin, coach } = await checkinWorld();
+    checkin.draft().choose = () => { throw error; };
+    r = await coach.openTurn(TURN).call.answer_checkin({ confirmed: true, energy: "Good" });
+  }
+  assert.equal(r.ok, false);
+  assert.equal(r.unavailable.code, { waveDispatchCatch: "WAVE1_TOOL_THREW", onbDispatchCatch: "ONBOARDING_TOOL_THREW", checkinApplyCatch: "CHECKIN_INPUT_INVALID" }[site]);
+  assert.ok(r.unavailable.source.includes("(unprintable)"));
+});
+for (const site of ["wave", "onboarding", "memory"]) test("R2 N8 revoked Proxy name: " + site, async () => {
+  const { proxy, revoke } = Proxy.revocable({}, {}); revoke();
+  const world = { today: { read() {}, today: DAY } };
+  const tools = site === "wave" ? wave() : site === "onboarding" ? (await onboarding()).tools : M.createMemoryTools({ world, coach: T.createCoachTools(world) });
+  const r = await tools.dispatch(proxy, {}, TURN);
+  assert.equal(r.ok, false);
+  assert.equal(r.tool, "(not a tool name)");
+  assert.equal(r.unavailable.reason, NEUTRAL);
+  assert.equal(r.unavailable.code, { wave: "WAVE1_TOOL_NOT_IN_LIST", onboarding: "ONBOARDING_TOOL_NOT_IN_LIST", memory: "MEMORY_TOOL_NOT_IN_LIST" }[site]);
+  assert.ok(r.unavailable.source.includes("(unprintable)"));
+  T.assertNoLeak(r);
+});
+for (const name of ["NO_STORE", "ALREADY_RECORDED", ...PAIRS.map(pair => pair.code)]) test("R2 N4 check-in vocabulary import rejection is contained: " + name, async () => {
+  const fs = require("node:fs");
+  const source = fs.readFileSync(require.resolve("../tools.cjs"), "utf8");
+  const specifier = 'import("../m3/w7-preview/today/checkin-model.mjs")';
+  assert.ok(source.includes(specifier));
+  const injected = source.replace(specifier, 'import("data:text/javascript,throw new Error(\'SYNTHETIC_IMPORT_FAILURE\')")');
+  const isolated = R2.fromSource("tools.cjs", injected);
+  const { checkin, model } = await checkinWorld(null);
+  const pair = PAIRS.find(pair => pair.code === name);
+  if (pair) checkin.save = async () => ({ ok: false, ...pair });
+  else if (name === "ALREADY_RECORDED") checkin.save = async () => ({ ok: false, copy: model.ALREADY_RECORDED });
+  const r = await isolated.createCoachTools({ today: { read() {}, today: DAY }, checkin }).openTurn(TURN).call.answer_checkin({ confirmed: true });
+  assert.equal(r.unavailable.code, pair ? pair.code : "CHECKIN_NOT_RECORDED");
+  assert.equal(r.unavailable.reason, pair ? pair.copy : SAVE_COPY);
+  if (!pair) assert.ok(r.unavailable.source.includes("SYNTHETIC_IMPORT_FAILURE"));
+});
+test("R2 N1 own ending is independent of confirmation code", () => {
+  for (const renderer of [C, Y, X]) assert.equal(renderer.ALL_TEMPLATES.unavailable({ code: "SYNTHETIC", reason: ASK_COPY }), ASK_COPY);
+});
+test("R2 N5 invalid set copy names its coach source", async () => {
+  const { tools } = activeWave();
+  const r = await tools.dispatch("log_set", { load: "bad", reps: 8 }, TURN);
+  assert.equal(r.unavailable.reason, SET_COPY);
+  assert.equal(r.unavailable.source, "wave1-tools.cjs log_set invalid-input refusal");
+});
+
+test("R2 N4 tools source does not import local-world", () => {
+  const source = require("node:fs").readFileSync(require.resolve("../tools.cjs"), "utf8");
+  assert.doesNotMatch(source, /import\s*\([^)]*local-world/);
 });

@@ -1,20 +1,22 @@
 "use strict";
 
+const { CHECKIN_SOURCE_UNAVAILABLE, SLEEP_NIGHT_CHANGED } = require("./checkin-refusals.cjs");
+
 // Diagnostics are data, and formatting them must never throw from a catch.
 function provenance(value) {
-  try { return typeof value === "string" ? value : String(value); }
+  try {
+    const message = value && value.message;
+    const diagnostic = message === undefined ? value : message;
+    return typeof diagnostic === "string" ? diagnostic : String(diagnostic);
+  }
   catch { return "(unprintable)"; }
 }
 const UNKNOWN_TOOL_COPY = "I cannot use that tool here, so I did nothing.";
 
-// These refusal codes already carry their complete spoken line. In particular,
+// Only these catch-all codes suppress renderer tails regardless of their copy:
 // an arbitrary tool throw cannot justify any assertion about earlier writes.
 const COMPLETE_REFUSALS = new Set([
-  "WAVE1_TOOL_THREW", "ONBOARDING_TOOL_THREW",
-  "WAVE1_TOOL_NOT_IN_LIST", "ONBOARDING_TOOL_NOT_IN_LIST", "MEMORY_TOOL_NOT_IN_LIST",
-  "CHECKIN_INPUT_INVALID", "CHECKIN_NOT_RECORDED", "COACH_MACHINE_SETTINGS_INVALID",
-  "SETUP_INPUT_INVALID", "CLEAN_INIT_SETUP_REQUIRED", "CLEAN_INIT_SPLIT_REQUIRED",
-  "CLEAN_INIT_EXERCISES_REQUIRED", "CLEAN_INIT_EXERCISE_REQUIRED", "CLEAN_INIT_PRIORITY_MUSCLES_REQUIRED",
+  "WAVE1_TOOL_THREW", "ONBOARDING_TOOL_THREW", "COACH_MEMORY_TOOL_THREW",
 ]);
 const refusalHasOwnEnding = (code) => COMPLETE_REFUSALS.has(code);
 
@@ -704,17 +706,27 @@ function createCoachTools(world) {
       for (const [field, value] of Object.entries(before.fields)) draft.set(field, value);
       return unavailable(tool, TIER.FACT, turn_id, CODES.CHECKIN_INPUT_INVALID,
         "I could not record that check-in answer. Nothing was recorded.",
-        "checkin-commands.cjs answersOf(): " + provenance(error && error.message));
+        "checkin-commands.cjs answersOf(): " + provenance(error));
     }
     const saved = await checkin.save();
     if (!saved.ok) {
-      const model = await import("../m3/w7-preview/today/checkin-model.mjs");
-      // The sealed model returns NO refusal codes. These are its entire fixed
-      // copy vocabulary; host diagnostics can otherwise be joined into copy.
-      const fixed = [model.ALREADY_RECORDED, model.NOTHING_ANSWERED, model.NO_STORE,
-        model.HOURS_OUT_OF_RANGE, model.DAYS_INVALID, model.SAVE_REFUSED];
-      const known = saved.code === undefined && fixed.includes(saved.copy);
-      return unavailable(tool, TIER.FACT, turn_id, "CHECKIN_NOT_RECORDED",
+      // The wrapper's two coded pairs stay available if the model import fails.
+      const wrapperPair = [CHECKIN_SOURCE_UNAVAILABLE, SLEEP_NIGHT_CHANGED]
+        .some(pair => saved.code === pair.code && saved.copy === pair.copy);
+      let fixed = [];
+      if (!wrapperPair) {
+        try {
+          const model = await import("../m3/w7-preview/today/checkin-model.mjs");
+          fixed = [model.ALREADY_RECORDED, model.NOTHING_ANSWERED, model.NO_STORE,
+            model.HOURS_OUT_OF_RANGE, model.DAYS_INVALID, model.SAVE_REFUSED];
+        } catch (error) {
+          return unavailable(tool, TIER.FACT, turn_id, "CHECKIN_NOT_RECORDED",
+            "I could not record that check-in answer. Nothing was recorded.",
+            "tools.cjs check-in vocabulary import: " + provenance(error));
+        }
+      }
+      const known = wrapperPair || (saved.code === undefined && fixed.includes(saved.copy));
+      return unavailable(tool, TIER.FACT, turn_id, wrapperPair ? saved.code : "CHECKIN_NOT_RECORDED",
         known ? saved.copy : "I could not record that check-in answer. Nothing was recorded.",
         "checkin-model.mjs save(): code=" + provenance(saved.code) + "; copy=" + provenance(saved.copy));
     }

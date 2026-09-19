@@ -106,7 +106,7 @@ const refuse = (tool, tier, turn_id, code, reason, source, extra) =>
       code: T.tagged(turn_id, "coach.refusal.code", code, "code", ""),
       reason: T.text(turn_id, "coach.refusal." + code, reason),
     }),
-    ...(extra || { state_unchanged: true }) });
+    ...(extra || (code === MEMORY_CODES.MEMORY_TOOL_THREW ? {} : { state_unchanged: true })) });
 
 /* A REMEMBERED TEXT, published as DATA. No turn_id, so it is not a tagged value
    and licenses no number in any unit; `licensed: false` says so out loud to
@@ -320,7 +320,7 @@ function createMemoryTools({ world, coach } = {}) {
     catch (error) {
       return refuse("remember", TIER.FACT, turn_id, MEMORY_CODES.MEMORY_INPUT_INVALID,
         "I could not keep that, and I have kept nothing. Tell me again in your own words.",
-        (error && error.message) || "memory-commands.cjs memoryOf()");
+        "memory-commands.cjs memoryOf(): " + T.provenance(error));
     }
 
     /* NO YES YET: propose, and hand back a handle bound to THESE words. Nothing
@@ -411,7 +411,7 @@ function createMemoryTools({ world, coach } = {}) {
 
   async function dispatch(name, args, turn_id) {
     if (typeof turn_id !== "string" || !turn_id) throw new TypeError("dispatch: a turn_id is required");
-    if (Object.prototype.hasOwnProperty.call(IMPL, name)) {
+    if (typeof name === "string" && Object.prototype.hasOwnProperty.call(IMPL, name)) {
       try { return await IMPL[name](args, turn_id); }
       catch (error) {
         /* THE FILE'S OWN LAW, ON THE LIVE PATH (the PM's final read, P-F1). An
@@ -422,19 +422,20 @@ function createMemoryTools({ world, coach } = {}) {
            The sentence is fixed; the message travels in `source`, which no tag
            reads. Mutant M-S is this line's grave. */
         return refuse(name, MEMORY_TIERS[name], turn_id, MEMORY_CODES.MEMORY_TOOL_THREW,
-          "Something went wrong inside that on this device, so I have kept nothing and read nothing back. Try me again.",
-          "memory-tools.cjs dispatch: " + ((error && error.message) || "the tool refused"));
+          "Something went wrong inside that tool on this device. I could not complete the request.",
+          "memory-tools.cjs dispatch: " + T.provenance(error));
       }
     }
-    if (typeof coach.dispatch === "function") return coach.dispatch(name, args, turn_id);
-    const served = coach.TOOLS && coach.TOOLS[name];
+    if (typeof name === "string" && typeof coach.dispatch === "function") return coach.dispatch(name, args, turn_id);
+    const served = typeof name === "string" && coach.TOOLS && coach.TOOLS[name];
     if (typeof served === "function") return served(args, turn_id);
     /* The same law again (P-F1, and review R2-N3). A tool name is the MODEL's
        word; wave1-tools.cjs already refuses an unknown tool without quoting it.
        The name travels in `source`. Mutant M-T is this line's grave. */
-    return refuse(name, TIERS[name] === undefined ? null : TIERS[name], turn_id,
+    return refuse(typeof name === "string" ? name : "(not a tool name)",
+      typeof name === "string" && TIERS[name] !== undefined ? TIERS[name] : null, turn_id,
       "MEMORY_TOOL_NOT_IN_LIST", T.UNKNOWN_TOOL_COPY,
-      "memory-tools.cjs TIERS: " + String(name));
+      "memory-tools.cjs TIERS: " + T.provenance(name));
   }
 
   /* ONE TURN, every vocabulary. The memory tools push into the SAME results

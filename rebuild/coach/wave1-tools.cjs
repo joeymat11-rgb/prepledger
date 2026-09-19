@@ -185,7 +185,7 @@ function createWave1Tools({ world, coach, reasons = null, effortChoices = [],
     catch (error) {
       return unavailable("record_machine_settings", TIER.FACT, turn_id, W1_CODES.MACHINE_SETTINGS_INVALID,
         "I could not keep that, and I have kept nothing.",
-        "machine-settings-commands.cjs: " + T.provenance(error && error.message));
+        "machine-settings-commands.cjs: " + T.provenance(error));
     }
     if (!saved.ok) {
       return unavailable("record_machine_settings", TIER.FACT, turn_id,
@@ -235,7 +235,7 @@ function createWave1Tools({ world, coach, reasons = null, effortChoices = [],
     if (!EditValues.validValue("load", { value: load, unit: "lb" })
         || !EditValues.validValue("reps", { value: reps, unit: "rep" })) {
       return unavailable("log_set", TIER.FACT, turn_id, W1_CODES.SET_NOT_RECORDED,
-        "Tell me the weight and the reps you actually did.", "gym-model.mjs ENTER_PERFORMED");
+        "Tell me the weight and the reps you actually did.", "wave1-tools.cjs log_set invalid-input refusal");
     }
     if (a.confirmed !== true) {
       const sentence = "Say yes and I will log " + load + " lb for " + reps + " reps. Nothing is recorded yet.";
@@ -303,7 +303,7 @@ function createWave1Tools({ world, coach, reasons = null, effortChoices = [],
   async function dispatch(name, args, turn_id) {
     if (typeof turn_id !== "string" || !turn_id) throw new TypeError("dispatch: a turn_id is required");
     if (typeof name !== "string" || !Object.prototype.hasOwnProperty.call(TIERS, name) || typeof SERVED[name] !== "function") {
-      return T.assertNoLeak(Object.freeze({ ok: false, tool: name, tier: null, turn_id,
+      return T.assertNoLeak(Object.freeze({ ok: false, tool: typeof name === "string" ? name : "(not a tool name)", tier: null, turn_id,
         code: W1_CODES.TOOL_NOT_IN_LIST,
         reason: T.UNKNOWN_TOOL_COPY,
         allowed: ALLOWED.slice(), values: Object.freeze({}), state_unchanged: true,
@@ -315,7 +315,7 @@ function createWave1Tools({ world, coach, reasons = null, effortChoices = [],
     catch (error) {
       return unavailable(name, TIERS[name], turn_id, W1_CODES.TOOL_THREW,
         "Something went wrong inside that tool on this device. I could not complete the request.",
-        "wave1-tools.cjs dispatch: " + T.provenance(error && error.message));
+        "wave1-tools.cjs dispatch: " + T.provenance(error));
     }
   }
 
