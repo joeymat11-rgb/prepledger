@@ -21,7 +21,7 @@
 
 const FoodCommands = require("./food-commands.cjs");
 
-const { LIMITS, MEMBERS, PROFILE } = FoodCommands;
+const { LIMITS, MEMBERS, ENGINE_MEMBERS, PROFILE } = FoodCommands;
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /* THE REFUSALS ARE CODES HERE, AND SENTENCES IN THE VIEW. The words this screen shows
@@ -31,24 +31,36 @@ const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
    a rule change cannot quietly reword a refusal. */
 const REFUSALS = Object.freeze({ NOTHING: "NOTHING", CAL_RANGE: "CAL_RANGE", PRO_RANGE: "PRO_RANGE" });
 
+// N3-A adds optional-entry refusals separately from the sealed page's copy contract.
+// PROPOSED, NOT OWNER-APPROVED: exact section 7 sentences of N3-MACROS-DATA-SPEC.
+// N3-B must bind these in the view's copy inventory before exposing macro inputs.
+const MACRO_REFUSAL_COPY = Object.freeze({
+  FAT_RANGE: "Enter fat as a whole number of grams from 0 to 1000, or leave it blank. Nothing was recorded.",
+  CARBS_RANGE: "Enter carbs as a whole number of grams from 0 to 1000, or leave it blank. Nothing was recorded.",
+});
+const MACRO_REFUSALS = Object.freeze({ fat: "FAT_RANGE", carbs: "CARBS_RANGE" });
+
 /* The refusal for an entry, decided BEFORE anything is written. Null means the entry
    is recordable. Nothing is ever clamped into range: a figure outside the bounds is
    refused by name and no operation is made. */
 function refusalFor(entry) {
   const given = MEMBERS.filter((key) => entry && entry[key] !== undefined && entry[key] !== "");
-  if (given.length === 0) return REFUSALS.NOTHING;
+  if (!given.some((key) => ENGINE_MEMBERS.includes(key))) return REFUSALS.NOTHING;
   for (const key of given) {
+    if (MACRO_REFUSALS[key] && typeof entry[key] !== "number" && typeof entry[key] !== "string") {
+      return MACRO_REFUSALS[key];
+    }
     const raw = String(entry[key]).trim();
     const value = Number(raw);
     const limit = LIMITS[key];
     const ok = raw !== "" && /^\d+$/.test(raw) && Number.isFinite(value)
       && Number.isInteger(value) && value >= limit.min && value <= limit.max;
-    if (!ok) return key === "cal" ? REFUSALS.CAL_RANGE : REFUSALS.PRO_RANGE;
+    if (!ok) return MACRO_REFUSALS[key] || (key === "cal" ? REFUSALS.CAL_RANGE : REFUSALS.PRO_RANGE);
   }
   return null;
 }
 
-/* The screen's two boxes turned into the producer's `day`, with an unanswered box
+/* Entry fields turned into the producer's `day`, with an unanswered field
    ABSENT rather than null or zero. Returns null when the entry is refused. */
 function dayFromEntry(entry) {
   if (refusalFor(entry)) return null;
@@ -89,7 +101,7 @@ function foodProjection(state, rows, engine) {
   const unavailable = [];
   for (const row of winningRows(rows)) {
     const partial = {};
-    for (const key of MEMBERS) if (Object.hasOwn(row.day, key)) partial[key] = row.day[key];
+    for (const key of ENGINE_MEMBERS) if (Object.hasOwn(row.day, key)) partial[key] = row.day[key];
     if (Object.keys(partial).length === 0) continue;
     try { next = engine.writeDaily(next, row.date, partial); }
     catch (_) { unavailable.push(row.date); }
@@ -117,9 +129,9 @@ function loggedDay(state, date) {
   const row = logs[date];
   if (!row) return null;
   const out = {};
-  for (const key of MEMBERS) out[key] = row[key] === undefined ? null : row[key];
+  for (const key of ENGINE_MEMBERS) out[key] = row[key] === undefined ? null : row[key];
   return out;
 }
 
-module.exports = { REFUSALS, refusalFor, dayFromEntry, winningRows, foodProjection,
+module.exports = { REFUSALS, MACRO_REFUSALS, MACRO_REFUSAL_COPY, refusalFor, dayFromEntry, winningRows, foodProjection,
   projectFoodDays, recordedDay, loggedDay, LIMITS, MEMBERS, PROFILE, DAY_RE };

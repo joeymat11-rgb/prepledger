@@ -9,7 +9,7 @@
    lane writes is the accepted class for exactly this fact.
 
    NOTHING HERE INTERPRETS AN INTAKE. There is no total, no average, no target and no
-   derived figure: the payload is the athlete's own two numbers for one day. A number
+   derived figure: the payload holds supplied intake figures for one day. A number
    he did not give is ABSENT - never null, never 0. The engine's own readers filter on
    `v.cal != null` (energy.cjs:394, today.cjs:244), so an absent day is absent from
    every average rather than dragging it to zero, and N1 inherits that rule rather
@@ -31,8 +31,10 @@ const OP_KIND = "fact";
    They are refused in the page's own words rather than clamped, because a silent
    clamp would record a number the athlete did not enter. */
 const LIMITS = Object.freeze({ cal: { min: 0, max: 20000, unit: "kcal" },
-  pro: { min: 0, max: 1000, unit: "g" } });
-const MEMBERS = Object.freeze(["cal", "pro"]);
+  pro: { min: 0, max: 1000, unit: "g" },
+  fat: { min: 0, max: 1000, unit: "g" }, carbs: { min: 0, max: 1000, unit: "g" } });
+const MEMBERS = Object.freeze(["cal", "pro", "fat", "carbs"]);
+const ENGINE_MEMBERS = Object.freeze(["cal", "pro"]);
 
 const isMap = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 const bad = () => { throw new TypeError("FOOD_INPUT_INVALID"); };
@@ -54,7 +56,7 @@ function dayOf(input) {
   }
   /* A day with nothing in it is not a fact about anything, and is refused BEFORE
      anything is written - the check-in's own rule (checkin-commands.cjs:108-110). */
-  if (Object.keys(out).length === 0) bad();
+  if (!ENGINE_MEMBERS.some((key) => Object.hasOwn(out, key))) bad();
   return out;
 }
 
@@ -83,7 +85,8 @@ function validate(op, readOperation) {
   if (!op.effective || !/^\d{4}-\d{2}-\d{2}$/.test(op.effective.local_date)) return false;
   if (!isMap(op.payload) || op.payload.profile !== PROFILE || !isMap(op.payload.day)) return false;
   if (Object.keys(op.payload).length !== 2) return false;
-  try { dayOf(JSON.parse(JSON.stringify(op.payload.day))); } catch { return false; }
+  // Validate before serialization: JSON would erase an explicitly undefined key.
+  try { dayOf(op.payload.day); } catch { return false; }
   if (!Array.isArray(op.causal_parents)) return false;
   for (const id of op.causal_parents) {
     const parent = readOperation(id);
@@ -99,4 +102,4 @@ function createFoodCommands() {
 }
 
 module.exports = { createFoodCommands, prepare, validate, dayOf,
-  PROFILE, ACTION, OP_CLASS, OP_KIND, LIMITS, MEMBERS };
+  PROFILE, ACTION, OP_CLASS, OP_KIND, LIMITS, MEMBERS, ENGINE_MEMBERS };
