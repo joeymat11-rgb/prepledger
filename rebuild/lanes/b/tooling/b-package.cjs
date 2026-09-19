@@ -2208,6 +2208,11 @@ function held(s, file, hash, code) {
 // suites green. A branch that decides nothing reachable and CAN decide something wrong is
 // not defence in depth; it is surface. The reader now takes ONE artifact, the parent, which
 // is the artifact that records the seal this walk stands aside for.
+// H26 (P-A9 (b) TIGHTENED). The four names a release record carries, SORTED, because the
+// reader compares an own key SET and proposed() writes the same four in its own order
+// (role, lastSealedSha256, sealedBy, rulingLineSha256). One list, so the writer and the
+// reader cannot drift apart in a later round without this line moving.
+const RELEASE_RECORD_KEYS = ['lastSealedSha256', 'role', 'rulingLineSha256', 'sealedBy'];
 const releasedAncestry = parentArtifact => {
   const out = new Map();
   const block = parentArtifact && parentArtifact.released;
@@ -2282,15 +2287,38 @@ function pins(s, bound) {
       // Everything else refuses BY NAME with the path in the message. F.2 STOP-2 is read
       // as amended by this ruling for exactly these lines.
       const block = releasedByAncestry.get(file);
+      // H26 (P-A9 (b) TIGHTENED, the PM's ruling on Astra R5 G4). H20 counted FOUR KEYS and
+      // never asked WHICH four, so Astra stood a grandparent pin aside with a plain canonical
+      // JSON record of role, lastSealedSha256, rulingLineSha256 and `extra: true` - four keys
+      // and no sealedBy - against a grandparent artifact that carries no packageId:
+      // `undefined === undefined` was the whole of the sealedBy check, and the record "counted
+      // four" all the way to "plus 1 skipped". The own key SET is now exactly the four NAMED
+      // keys; the GRANDPARENT must name a package before any record can claim to have been
+      // sealed by it; and the record's sealedBy must BE that name.
+      //
+      // It is THREE asserts under TWO names so that every clause has a row that holds it
+      // ALONE: a clause no single-clause change can turn red is a clause nothing measures,
+      // which is N12's lesson applied here before a reviewer has to find it again. Own keys
+      // are read with getOwnPropertyNames and not Object.keys, so a non-enumerable own fifth
+      // key is a fifth key and an inherited role is not a role. Every value check and the
+      // product-pin checks below stand exactly as they did.
+      const own = Object.getOwnPropertyNames(Object(block)).sort();
       assert(block && typeof block === 'object' && !Array.isArray(block) &&
-        Object.keys(block).length === 4 &&
+        own.join(' ') === RELEASE_RECORD_KEYS.join(' ') &&
         block.role === 'released' &&
         typeof block.lastSealedSha256 === 'string' && /^[a-f0-9]{64}$/.test(block.lastSealedSha256) &&
         typeof block.rulingLineSha256 === 'string' && /^[a-f0-9]{64}$/.test(block.rulingLineSha256) &&
-        block.sealedBy === ga.packageId,
+        typeof block.sealedBy === 'string' && block.sealedBy.length > 0,
       'ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD ' + file + '; a released entry stands a pin ' +
-        'aside only as exactly role "released", lastSealedSha256, rulingLineSha256 and sealedBy ' +
-        String(ga.packageId) + ', and this one is ' + JSON.stringify(Object.keys(Object(block)).sort()));
+        'aside only as exactly the own keys ' + RELEASE_RECORD_KEYS.join(' ') + ', role "released", two ' +
+        '64-lowercase-hex hashes and a non-empty sealedBy, and this one is ' + JSON.stringify(own));
+      assert(typeof ga.packageId === 'string' && ga.packageId.length > 0,
+        'ANCESTOR-RELEASE-GRANDPARENT-HAS-NO-PACKAGE-ID ' + file + '; ' + g.artifact + ' names no package, ' +
+        'so nothing can have been sealed by it and no record can stand one of its pins aside');
+      assert.equal(block.sealedBy, ga.packageId,
+        'ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD ' + file + '; the record says it was sealed ' +
+        'by ' + String(block.sealedBy) + ' and ' + g.artifact + ' is ' + String(ga.packageId) + ', which is ' +
+        'the package the parent was bound to when it released the path');
       assert(ga.product && typeof ga.product === 'object' && Object.hasOwn(ga.product, file),
         'ANCESTOR-RELEASED-BLOCK-IS-NOT-A-GRANDPARENT-PRODUCT-PIN ' + file + '; ' + g.artifact +
         ' does not declare it in its PRODUCT map, and a release hands a path out of the product ' +
