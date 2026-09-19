@@ -10,7 +10,11 @@ stated tolerance. Prints a table and exits 1 if any row disagrees.
   python quality/teeth.py --only c,e1,i    a few rows while iterating
   python quality/teeth.py --keep           leave the scratch directory in place afterwards
 
-Rows a to j2 are the mutation table of GATE-TEETH-AUDIT-R1; k1 to k3 are the lane's additions.
+Rows a to j2 are the mutation table of GATE-TEETH-AUDIT-R1; k1 to k3 are the lane's additions;
+m1 to m7 are review R1's. The gate rows run with --screens and --sizes narrowed to the screen the
+change is on, to stay inside the budget, so a row asserts the named refusal only: the full gate
+also raises the regression rows on the screens the narrowed run drops, and a reviewer re-running
+a row at full scope should expect more FAIL rows, never fewer.
 Exit code: 0 every row as expected, 1 any row disagrees, 2 the scratch copy could not be made.
 """
 import json, os, re, shutil, subprocess, sys, tempfile, time
@@ -36,12 +40,12 @@ APPEND_ANCHOR = ':root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24p
 def sub(work, relpath, old, new, times=1):
     """Plain string replacement that has to match exactly once, or the row is void."""
     path = os.path.join(work, relpath.replace('/', os.sep))
-    with open(path, encoding='utf-8') as f:
+    with open(path, encoding='utf-8', newline='') as f:
         s = f.read()
     n = s.count(old)
     if n != times:
         raise AssertionError(f'{relpath}: the anchor matched {n} times, expected {times}: {old[:60]}')
-    with open(path, 'w', encoding='utf-8') as f:
+    with open(path, 'w', encoding='utf-8', newline='') as f:   # keep the file's own line endings
         f.write(s.replace(old, new))
 
 
@@ -125,6 +129,38 @@ def mut_k2(work):
 def mut_k3(work):
     append_css(work, '#card-eat { margin-left: 6px !important; }')
 
+# ---------------------------------------------------------------- review R1's rows
+THREE_FAULTS = 'Ready weight for Claude, 8 x 105'   # a word off the list, a vendor name, a set with the letter x
+
+def mut_m1(work):
+    # a 4 px dot pulsing for ever on Today, drawn by a pseudo element
+    append_css(work, '@keyframes teeth-blink { from { opacity: 1; } to { opacity: 0.08; } }\n'
+                     '#card-eat::after { content: ""; position: absolute; right: 6px; top: 6px; width: 4px; height: 4px;'
+                     ' border-radius: 50%; background: #caa98a; animation: teeth-blink 0.8s infinite alternate; }')
+
+def mut_m2(work):
+    append_css(work, '#start::after { content: ""; position: absolute; left: 0; top: 0; width: 1px; height: 1px;'
+                     ' transition: opacity 0.6s ease; }')
+
+def mut_m3(work):
+    sub(work, 'app/app.html', 'placeholder="Your weight"', f'placeholder="{THREE_FAULTS}"')
+
+def mut_m4(work):
+    append_css(work, '#status-line::after { content: " ' + THREE_FAULTS + '"; }')
+
+def mut_m5(work):
+    mut_m3(work)   # the same placeholder, judged by the state sheet
+
+def mut_m6(work):
+    # a state dropped from the driver while its two records stay committed
+    sub(work, 'app/states-today.js',
+        "  R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', component: 'sample note', apply: function (a) {\n"
+        "    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');\n"
+        "  } });\n", '')
+
+def mut_m7(work):
+    append_css(work, '.note-block.sample { opacity: 0 !important; }')
+
 def mut_none(work):
     pass
 
@@ -133,6 +169,7 @@ GATE_TODAY = ['quality/gate.py', '--screens', 'today', '--sizes', '393x852']
 GATE_TODAY_SMALL = ['quality/gate.py', '--screens', 'today', '--sizes', '375x812,360x780']
 GATE_WORKOUT = ['quality/gate.py', '--screens', 'workout', '--sizes', '393x852']
 SHEET_T02 = ['quality/statesheet.py', '--only', 'T-02']
+SHEET_T0 = ['quality/statesheet.py', '--only', 'T-0']
 
 COPY_CHECK = 'copy: no dashes, readiness words, vendor names'
 
@@ -180,6 +217,22 @@ ROWS = [
      dict(exit=1, fails=[('serif for names and numbers, sans for the rest', '.screen-title is Earned Sans')])),
     ('k3', 'a card moved 6 px off the page margin', mut_k3, GATE_TODAY,
      dict(exit=1, fails=[('page margin 22 px', 'card-eat left 28')])),
+    ('m1', 'a 4 px dot pulsing for ever on a pseudo element', mut_m1, GATE_TODAY,
+     dict(exit=1, fails=[('no transitions or animations outside the embers', 'animation card-eat::after')])),
+    ('m2', 'a transition on a pseudo element', mut_m2, GATE_TODAY,
+     dict(exit=1, fails=[('no transitions or animations outside the embers', 'transition start::after')])),
+    ('m3', 'three faults in a placeholder, judged by the gate', mut_m3, GATE_TODAY,
+     dict(exit=1, fails=[(COPY_CHECK, "'ready'"), (COPY_CHECK, "'claude'"),
+                         ('the multiplication sign in every set string', "'8 x 1'")])),
+    ('m4', 'the same three faults in CSS generated content', mut_m4, GATE_TODAY,
+     dict(exit=1, fails=[(COPY_CHECK, "'ready'"), (COPY_CHECK, "'claude'"),
+                         ('the multiplication sign in every set string', "'8 x 1'")])),
+    ('m5', 'three faults in a placeholder, judged by the state sheet', mut_m5, SHEET_T02,
+     dict(exit=1, stdout=["copy: 'ready'", 'set written with the letter x'])),
+    ('m6', 'T-02 dropped from the driver, its records left committed', mut_m6, SHEET_T0,
+     dict(exit=1, stdout=['no state T-02 in the build', 'records with no state'])),
+    ('m7', "T-02's sample note hidden at opacity 0", mut_m7, SHEET_T02,
+     dict(exit=1, stdout=['the visible text changed', 'T-02'])),
 ]
 
 
