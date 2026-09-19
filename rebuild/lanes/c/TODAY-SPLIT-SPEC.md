@@ -222,7 +222,7 @@ a 2625-line file does not converge. The spike replaces it with four instruments 
 **The headline numbers, and they are identical at the chain tip and at the S9 lane head
 `da9f8683`:** 65 of 65 regions resolve by content anchor, 0 ambiguously; 762 lines move (685 + 41 +
 36); 5 substitution rows; 0 regions whose bytes differ with no declared row; `node --check` 6 of 6;
-**282 crossing references, 100 distinct direction+name**; 62 reachability rows; **exactly ONE durable
+**282 crossing ROWS over 311 REFERENCES, 100 distinct direction+name** (R3 NOTE-1: `census.cjs` de-duplicates on `(file, name, kind, source line)`, so a rewrite priced off the row count is short wherever two references of the same name and kind sit on one line, as `screen`'s 9 rows over 15 occurrences do); 62 reachability rows; **exactly ONE durable
 PUT that any paint root reaches**.
 
 **What I re-ran myself, and what I did not.** I re-ran all three commands at the CURRENT chain tip
@@ -259,7 +259,7 @@ of.
 | **NOTE-3** SEAM 2's throw-path trace contradicts its own placement | **FIXED by decision** | Not a measurement question; the spike does not settle it and does not pretend to. B.8's SEAM 2 now fixes the order as today's - `[check, disable, check-sealed, save-throws, readBack-set, enable, repaint]`, which is `:1295`, `:1297`, `:1298` - and moves `render(...)` OUT of the moved region into the view's "after" half. The trace cell asserts that order |
 | **NOTE-4** B.2 is short by `session()`, `checkinSummary()`, `firstRun()` | **FIXED** | `regions.json` TA-S01 `:362-:365` carries `session()`; TA-S02 `:370-:384` carries `checkinSummary()` and `firstRun()`. Both notes are in the table's own notes column. The census then shows why they had to move: `session` is CALLED from released code at `:887`, `checkinSummary` at `:2251`, `firstRun` at six sites |
 | **NOTE-5** the gym card has no sealed in-flight flag and B.3's argument says it needs four | **ACCEPTED, and narrowed by measurement** | `REACH.md` says `logSet:419`, `finish:444`, `forget:498` and `undo:505` are listener-reached and nothing else, so they are DURABLE and guarded; the released `busy` flag is their only duplicate guard today. B.3's sealed in-flight flag is extended to all four, which is four more `if (busy) return` pairs, priced in H.4 |
-| **NOTE-6** `food.test.mjs:1152-:1153` imposes a declaration ORDER constraint | **FIXED** | `regions.json` orders TA-S17 `foodEntryFor` `:569-:591` BEFORE TA-S18 `openFoodLane` `:593-:618`, and `cut.cjs` emits moved regions in table order, so the constraint is carried by the table rather than by a sentence. D.3 names it |
+| **NOTE-6** `food.test.mjs:1152-:1153` imposes a declaration ORDER constraint | **FIXED** | `regions.json` orders TA-S17 `foodEntryFor` `:569-:591` BEFORE TA-S18 `openFoodLane` `:593-:618`, and `cut.cjs` sorts resolved regions by START LINE and filters the moves out of that sorted list, so it emits in SOURCE order. **R3 NOTE-9: that is STRONGER than the table-order claim this row used to make** - a table edit that reordered rows could not break it - and the spec claims the stronger thing. D.3 names it |
 | **NOTE-7** B.7's re-export of `createTodayModel` is unnecessary under F.1's own fork | **ACCEPTED** | B.7 now states the fork: under F.1 (the sibling, recommended) `today-model.cjs` is RELEASED and `today-app.cjs:16` keeps its own require unchanged, so the re-export and E.5 row 7 belong ONLY to F.1 (d). The RE-EXPORT RULE stays in E.3 because `createTodayLanes` still needs it |
 | **NOTE-8** G.4 should cite S9's own argv measurement | **FIXED** | G.4 now cites `S9-RELEASE-SPEC.md:160-:161` at `da9f8683`: `packages/S8.json` declares 25 children with 68 distinct argv targets and every one of the 68 is a test cell, so `today-app.cjs` is not a child argv target |
 | **NOTE-9** the estimate is again low; R2's band is 50 to 66 build | **ACCEPTED in direction and RE-COST from the other side** | H.4 is rebuilt from the spike: the MOVE is now a script that has been run, so 762 lines of cut and paste come off the estimate and the seams, the interface module, the boot order and the fence go on. My band is **51 to 67 build, 12 to 16 review**, and the review comes DOWN from R2's band for one measured reason: the census the last two reviewers had to re-derive by hand is now three commands that take a minute |
@@ -294,6 +294,96 @@ ones: `:353-:356` released, `:422` `:482` `:567` MOVED, `:2390` released, `:2440
 which moves `settleAdoption`'s synchronous `adoptionSettled = !adopting` to before the first paint,
 and `paintTodayEntry:770` reads that flag. B.3 resolves it. `gym-app.mjs` has 10 top-level statements
 with 2 moved (`:138`, `:139`), and they are contiguous, so the gym card's boot has no such problem.
+
+---
+
+## R3's BINDING CORRECTIONS, CARRIED OUT (S-R25)
+
+The PM accepted this spec BY NAME at `04d4616c` **with review R3 (`a2632a3b`) as its binding
+corrections, where they disagree R3 stands**, and ruled that the spec is NOT sent round again:
+R3's corrections land as the build round's first documentation commit, which is this section
+and the sixteen inline edits it lists (`DECISIONS:562`, S-R25). Nothing below is new design.
+Every row is either an edit made in place above, or a correction that has no single home.
+
+### The sixteen inline edits, by the R3 finding that asked for them
+
+| R3 | where | what changed |
+|---|---|---|
+| BLOCKING-3 | B.5's twelve-row table | `mountToken` 12 -> **16**; `render` 21 in 8 -> **23 in 11**; `screen`'s 9 marked as **9 rows over 15 occurrences** |
+| BLOCKING-3 | D.1's substitution table | W1 declared at 23 in 11, W2 at 16, W4 at 15 occurrences |
+| BLOCKING-5 | B.3 consequence 1 | the five boot statements are a **third region kind, `replace`**, not four `kind` flips and a split. The arithmetic is 41 move / 5 replace / 20 seam and 679 lines |
+| BLOCKING-7 | B.7 `:845`, G.4 `:1919` | "eleven sealed cells import the same surface" -> **seven import it and two name it as a literal**, which is what this spec's own R1 section already said |
+| NOTE-1 | the R2-findings summary | 282 is **282 ROWS over 311 REFERENCES** |
+| NOTE-3 | H.1 risk 1 | 25 listener ROOTS, **27 `addEventListener` SITES**; the number the census has to hit is 27 and 19 |
+| NOTE-6 | F.1's composition line | `noStore: NO_STORE` -> `NO_STORE` in shorthand, which is what went green |
+| NOTE-7 | G.4's path table sentence | three `released` and **four** `new` |
+| NOTE-8 | E.5 | the eighteen red rows cannot be counted off the page; the cell numbers them and the build report prints the numbering |
+| NOTE-9 | B's R2-NOTE-6 row and D.3 | the declaration-order constraint is carried by **SOURCE order**, not table order, which is the stronger claim |
+
+### BLOCKING-6: the UNMEASURED mark, used at the point of use
+
+S-R17 (f) rules that a claim with no spike row is marked UNMEASURED. The appendix promised
+the convention and the string occurred exactly once in 2184 lines, in the sentence promising
+it. This is the table R3 asked for. **Every section named here is DESIGN. No instrument row
+backs it, and a reader who wants one has to build it.**
+
+| section | what it claims | why it is UNMEASURED |
+|---|---|---|
+| B.4 | the paint handle's shape and its six entries | the six are read off the census's sealed-to-released rows, but the SHAPE (one frozen object, these names, `token()` captured once per path) is a design choice no instrument tested |
+| B.6 | the outcome table and its mapper | **UNMEASURED**: no cut has produced an outcome object and no suite has run against one |
+| B.7 | the two api literals as rewritten | the CROSSING rows are measured; the rewritten literals are design. Part 1 has now RUN the gym one (`first.settings`, six lines, `GA-R06`) and it is green, so that half is no longer UNMEASURED |
+| B.8 | the eleven seam-by-seam traces | **UNMEASURED**: B.8's own text says the spike does not settle SEAM 2's ordering |
+| B.9 | the stale-editor `editSeq` protocol | **UNMEASURED**, and part 1 did not build it: `recordSettings` stays released and byte-identical, and its released half still decides what is stored |
+| D.2, D.2b, D.4, D.5, D.6 | the five other proofs | **UNMEASURED**: none of them has been run |
+| E.4 | the fence's method and its exemptions | part 1 has now RUN a token scanner with these exemptions over the two small cuts, 21 rows, nine of them red first. The method is measured for those rows; the eighteen-row form is not |
+| E.5 | the eighteen red rows | **UNMEASURED as eighteen**: nine exist and are red first |
+| E.6 | "about twelve lines" for the runtime gesture guard | **UNMEASURED**: no guard has been written |
+| H.4 | the whole estimate | **UNMEASURED** by construction |
+
+### BLOCKING-8 and S-R24: the thirteenth and fourteenth blind edges, and the table is re-derived
+
+`REACH.md`'s twelve-row blind table is a HAND-WRITTEN constant inside `reach.cjs`. Under S-R24
+the build round RE-DERIVES it, and `blind.cjs` is that derivation: three syntactic shapes,
+53 rows, identical at both refs. Two rows R3 found by reading fall straight out of it:
+
+| file | line | class | edge | disposition |
+|---|---|---|---|---|
+| `today-app.cjs` | `:2080` (tip), `:2081` (S9) | foreign-callback | `next.setOnRefresh(() => { if (screen === "today") render("today", false); })` | inside `TA-S34`, a MOVE region, so after the cut it is SEALED code handing a closure to `today-entry.mjs`, which holds it and invokes it after every set. It reads the RELEASED `screen` and calls the RELEASED `render` with no paint, no boot and no gesture on the stack. **The closure becomes a paint-handle call**, `painter.repaintIfOn("today")`, and B.4 gains the sentence it does not contain: ONE paint-handle consumer is not the view, it is a foreign module calling out of band |
+| `today-app.cjs` | `:2058` (tip), `:2059` (S9) | dynamic-import | `import("./today-entry.mjs")` | inside `TA-S34`. It mints the holder above, and it is not among the blind table's dynamic-import rows although `food-host.mjs`, `sleep-host.mjs` and `machine-settings-host.mjs` are |
+
+The re-derivation also carries three dynamic imports and three foreign-callback edges the
+hand table does not, and **MISSES two that it does**: `measureDeps`'s and `importDeps`'s
+`repaint`/`back`/`onAdmitted`, because those deps objects are RETURNED by a local function and
+handed to the foreign screen elsewhere, not written as object literals at the call site. That
+is the derivation's own boundary, it is stated here rather than discovered, and a hand keeps
+those two rows.
+
+### NOTE-4: E.5's nineteenth red row
+
+E.6 makes the runtime guard depend on the released view installing EVERY listener through
+`on.listen`, over 27 and 19 call sites in two files six look tickets may edit afterwards. A
+plain `addEventListener` added by any of them leaves `gestureOpen` false and a guarded writer
+called from that handler throws `WRITER-OUTSIDE-GESTURE` in front of the athlete rather than
+saving. **Row 19: a released file calling `addEventListener` outside `on.listen` FAILS.** It
+costs one token-scan line and turns H.1 risk 1's one-time census into a standing law. It is
+part 2's row, because `on.listen` does not exist until the big cut lands.
+
+### NOTE-5, NOTE-10 and NOTE-11
+
+**NOTE-5.** B.7's quoted gym api block mis-cites three of its six lines: `read` is `:575`,
+`stateFor` `:576` and `owns` `:578`; `:579` is the closing `});`. The substance is right and
+part 1 has now moved all five thunks behind the facade (`GA-R06`, `:570-:576`). Where that
+paragraph says "the object stays extensible and in its own key order", **the object it means
+is `first`**; `first.settings` is `Object.freeze({...})`.
+
+**NOTE-10.** D.3's fourth required edit (`package.test.cjs`'s `today/**` literal, 26 -> 29) is
+**declared AND conditional**: it fires only if S9 lands H18 first. At the S9 lane head this
+build is cut from, `package.test.cjs` holds no `REQUIRED_INPUTS` literal and no `today/` count,
+so part 1 makes no edit to it. G.4's precondition list carries this.
+
+**NOTE-11.** The census's own residue - names it can neither resolve nor explain - is **ZERO**
+at both refs, and it stays zero on this build's own output. That is the strongest single fact
+about the instrument and the spec did not state it. It is stated here.
 
 ---
 
@@ -561,12 +651,17 @@ the exact positions they occupy today as calls into `on`.**
 
 **Five consequences the build round is told rather than left to find:**
 
-1. **The region table gains five seams and loses five moves.** `TA-S05`, `TA-S10`, `TA-S16` and
-   `TA-S38` change `kind` from `move` to `seam`, and `TA-S35` SPLITS: `:2430-:2439` stays a move (the
-   two function declarations) and `:2440-:2441` becomes a seam. The table goes from 45 move / 20 seam
-   to **40 move / 25 seam, and 679 lines move instead of 685**. The build round re-runs `cut.cjs`
-   with that revision as its first act; the anchors are already in the table, so it is an edit to
-   five `kind` fields and one range, not a re-derivation.
+1. **CORRECTED BY R3 BLOCKING-5 AND RULED BY S-R21: the five boot statements are a THIRD KIND,
+   not a `kind` flip.** R3 made this paragraph's own edit to a copy of `regions.json` and measured
+   the result: with `TA-S38` a seam, `cut.cjs` leaves `let ready = settleAdoption(...)` in the
+   RELEASED file - B.2 says so in terms - so `ready` is declared released, read released, and stops
+   crossing entirely, which is the opposite of consequence 3 below. A seam is an annotation; these
+   five lines are RELEASED LINES REPLACED BY CALLS, which no `kind` field can express. `regions.json`
+   gains `replace` (S-R21): the pre-image is witnessed like a move, the replacement is a declared
+   row, and nothing is moved into the seal. The arithmetic is **41 move / 5 replace / 20 seam** (R3's
+   41 and 25, counting the five replaces as seams as R3 did) **and 679 lines move instead of 685**;
+   40 counts the `TA-S35` split as a fifth flip and is wrong. `TA-S35` still splits: `:2430-:2439`
+   stays a move and `:2440-:2441` becomes `TA-S35b`, a replace.
 2. **`willAdopt` moves from a `const` in `mountToday` to a `let` at factory scope**, because `:2441`
    and `:2550` are now two separate calls separated by the first paint. That is one new declared
    substitution row, **W8**, and it is a statement rewrite, so it is an **S-R17 (g) STOP** and is
@@ -683,12 +778,12 @@ and **seven released functions the seal calls**, and nothing else crosses that w
 
 | name | refs | where the seal touches it | disposition |
 |---|---|---|---|
-| `mountToken` | 12 | `TA-S27`, `TA-S29`, `TA-S30`, `TA-S32` | `painter.token()`. Captured ONCE per path, never called twice (H.1 risk 5) |
-| `screen` | 9 | `TA-S13`, `TA-S18`, `TA-S19`, `TA-S20`, `TA-S27`, `TA-S34` | `painter.screenNow()`. **Those six regions are W4's list** (R2 NOTE-2: `rebindWorkout`, not `paintTodayEntry`) |
+| `mountToken` | **16** | `TA-S27`, `TA-S29`, `TA-S30`, `TA-S32` | `painter.token()`. Captured ONCE per path, never called twice (H.1 risk 5). **R3 BLOCKING-3: this row said 12 and the machine says 16** (`:1415 :1423 :1731 :1733 :1745 :1754 :1839 :1852 :1872 :1880 :1886 :1896 :1928 :1982 :1985 :2003`), so D.1's W2 is declared at 16 |
+| `screen` | 9 rows over **15 OCCURRENCES** | `TA-S13`, `TA-S18`, `TA-S19`, `TA-S20`, `TA-S27`, `TA-S34` | `painter.screenNow()`. **Those six regions are W4's list** (R2 NOTE-2: `rebindWorkout`, not `paintTodayEntry`) |
 | `phone` | 2 | `TA-S32` `:1986`, `:2004`, both `checkInKit.mountCheckIn(doc, phone, ...)` | a CONSTRUCTOR ARGUMENT. DOM travelling INTO the seal is not a writer travelling out |
 | `status` | 1 | `TA-S37` `:2528` `if (status) tell(...)` | inside `painter.tell`, which already carries the `if (status)` test |
 | `sleepDraft` | 1 | `TA-S30` `:1822` `const entry = { ...sleepDraft, date };` | a CALLBACK ARGUMENT: `on.recordSleep(draftValues)` hands the members raw, exactly as B.3 says |
-| `render` | 21 | eight moved regions | `painter.repaint` (D.1 W1) |
+| `render` | **23** | **ELEVEN** moved regions | `painter.repaint` (D.1 W1). **R3 BLOCKING-3: this row said 21 in 8 and the machine says 23 in 11** - `TA-S13 TA-S18 TA-S19 TA-S20 TA-S23 TA-S24 TA-S27 TA-S29 TA-S30 TA-S32 TA-S34` - so D.1's W1 is declared at 23 in 11 |
 | `paint` | 2 | `GA-S03` `:154`, `GA-S04` `:167` | the gym card's `painter.repaint` (D.1 W7) |
 | `paintTodayEntry` | 1 | `TA-S22` `:785` | the sixth paint-handle entry, and it is a CALL, not a `screen` read |
 | `tell` | 1 | `TA-S37` `:2528` | `painter.tell(error)`; the copy composer stays released |
@@ -842,7 +937,7 @@ multiset over all five files equal.
 
 **`module.exports` (`:2600-:2625`, R2 NOTE-10 (a)) is unchanged, name for name.** `today-entry.mjs`
 is pinned on disk by sha256 (`local-today-journey.test.mjs` `PAGE_PINS`, `DECISIONS:144`), `:44`
-reads `const { mountToday, createTodayModel } = app;` off it, and eleven sealed cells import the same
+reads `const { mountToday, createTodayModel } = app;` off it, and **SEVEN sealed cells import the same**
 surface. Nothing may move on it.
 
 **THE RE-EXPORT RULE BELONGS TO F.1's FALLBACK ONLY, and R2 NOTE-7 is right.** Under F.1 as
@@ -1381,10 +1476,10 @@ round reports them as RULED rather than discovering them**, and each carries its
 
 | # | from | to | where allowed | kind | S-R17 (g) |
 |---|---|---|---|---|---|
-| W1 | `render(` | `painter.repaint(` | any moved region (21 refs, 8 regions) | call-target rewrite | ordinary |
-| W2 | `mountToken` | `painter.token()` | `TA-S27`, `TA-S29`, `TA-S30`, `TA-S32` (12 refs) | binding read to a call | **STOP** |
+| W1 | `render(` | `painter.repaint(` | any moved region (**23 refs, 11 regions**, corrected by R3 BLOCKING-3 against `CROSSINGS.md`) | call-target rewrite | ordinary |
+| W2 | `mountToken` | `painter.token()` | `TA-S27`, `TA-S29`, `TA-S30`, `TA-S32` (**16 refs**, corrected by R3 BLOCKING-3) | binding read to a call | **STOP** |
 | W3 | `clearSleepDraft()` | `painter.clearDraft()` | **`recordSleep` AND `retrySleepRead`** | call-target rewrite | ordinary |
-| W4 | `screen` as a bare read | `painter.screenNow()` | `openSleepLane`, `openFoodLane`, `measureDeps`, `importDeps`, `readSleepCheckIn`, **`rebindWorkout`** | binding read to a call | **STOP** |
+| W4 | `screen` as a bare read | `painter.screenNow()` | `openSleepLane`, `openFoodLane`, `measureDeps`, `importDeps`, `readSleepCheckIn`, **`rebindWorkout`**. **15 OCCURRENCES over 9 census rows** (R3 BLOCKING-3 and NOTE-1: the census de-duplicates on `(file, name, kind, source line)`, so a rewrite priced off the row count is short) | binding read to a call | **STOP** |
 | W5 | `sleepErrorText = <expression>` | `sleepOutcome = <outcome literal from B.6>` | `recordSleep`, and `retrySleepRead` for B.6's twelfth row | statement rewrite | **STOP** |
 | W6a to W6e | `lastMessage = <object literal>` | `setMessage(<the same literal>)` | `today-model.cjs` `TM-S02` (four) and `TM-S03` (one) | statement rewrite | **STOP, five occurrences** |
 | W7 | `paint()` | `painter.repaint()` | `GA-S03`, `GA-S04` | call-target rewrite | ordinary |
@@ -1462,7 +1557,7 @@ them weakening an assertion.** v2 said three; S-R18 makes `package.test.cjs` the
 | cell | line | what it does | edit |
 |---|---|---|---|
 | the seven cells that import `../today-app.cjs`, the three that import `../today-model.cjs` only, and the two that name `today-app.cjs` as a literal | the imports and the literals | both modules keep their names and their whole export surfaces | **NONE. Zero import paths change.** All nine of v1's import-path edits are avoided |
-| **`food.test.mjs:1152-:1153`** | slices `today-app.cjs` between `'function foodEntryFor'` and `'function openFoodLane'` | both declarations move (`TA-S17`, `TA-S18`) | **REQUIRED**: `readRepo('.../today-lanes.cjs')`. One string. **And R2 NOTE-6's ordering constraint is carried by the table**: `regions.json` orders `TA-S17` `:569-:591` before `TA-S18` `:593-:618`, and `cut.cjs` emits moved regions in table order, so `foodEntryFor` is declared before `openFoodLane` in the output by construction |
+| **`food.test.mjs:1152-:1153`** | slices `today-app.cjs` between `'function foodEntryFor'` and `'function openFoodLane'` | both declarations move (`TA-S17`, `TA-S18`) | **REQUIRED**: `readRepo('.../today-lanes.cjs')`. One string. **And R2 NOTE-6's ordering constraint is carried by the table**: `regions.json` orders `TA-S17` `:569-:591` before `TA-S18` `:593-:618`, and `cut.cjs` sorts by START LINE and emits in SOURCE order, so `foodEntryFor` is declared before `openFoodLane` in the output by construction. **R3 NOTE-9: the reason is source order, not table order, and the guarantee is stronger for it** |
 | **`problem.test.mjs:1100-:1102`** | slices `function sleepEntryFor` by `/^function sleepEntryFor[\s\S]*?^  \}/m` and `Function()`-evals it | the declaration moves (`TA-S11`) | **REQUIRED**: the same one-string change, **and a two-space indentation constraint on `today-lanes.cjs`**, which every moved region meets because every one sits at depth 1 inside `createTodayLanes` |
 | **`package.test.cjs:105`** | plants a static import edge on `today-app.cjs`'s node and requires `IMPORT-ROUTE FAIL` | the dynamic import moves with `TA-S19` and `TA-S20` | **REQUIRED**: the planted key becomes `.../today-lanes.cjs`. The red side keeps every tooth |
 | **`package.test.cjs`, H18's literal list** | the `today/**` entries of `REQUIRED_INPUTS` | **S-R18** | **REQUIRED, and now declared rather than conditional**: `REQUIRED_INPUTS` is **48** entries today, **26** under `today/`; with `today-lanes.cjs`, `gym-settings-lane.mjs` and `today-readings.cjs` it becomes **51**, and the `today/` literal H18's cell holds becomes **29**. I re-measured both numbers at the current tip: lines matching `^\s*"rebuild/` between `:98` and `:201` number 48, of which 26 contain `w7-preview/today/` |
@@ -1693,7 +1788,7 @@ Plus v1's five structural rows from `S9-RELEASE-SPEC.md` D.2, and:
     declared exception with its own later ticket, so a third party adding one is a visible diff and
     not a discovery (B.9).
 
-**Eighteen red rows**, against v2's sixteen, R1's thirteen and v1's ten. Every one is planted in a
+**Eighteen red rows**, against v2's sixteen, R1's thirteen and v1's ten. **R3 NOTE-8: the list above runs 6, 7, 8 and then jumps to 12, and rows 9, 10 and 11 appear nowhere in this document. The eighteen reconcile only as v1's five planted tricks plus v1's five structural rows plus the eight numbered here, and a build round cannot count them off the page. The build round that writes the cell NUMBERS all eighteen in the cell itself and its report prints the numbering**, which is what H.3's "RED first on all eighteen rows" needs. Every one is planted in a
 copy of the tree with the `planted()` pattern `copy.test.mjs:395` already uses, never in the real
 tree.
 
@@ -1769,7 +1864,7 @@ functions into it and nothing else.**
 | | the S2 composer `marchingOrderSentence` and `view.orderSentence` (S-R3, and G.2) |
 
 `createTodayModel` composes the sibling: `const w = createReadingsWriter({ day, readings, adoptedRead,
-stateFromOps, noStore: NO_STORE, setMessage, read: () => read() });` and puts `w.weighIn` and
+stateFromOps, NO_STORE, setMessage, read: () => read() });` and puts `w.weighIn` and
 `w.reopen` on the object it returns, so the returned surface, the 120-odd `createTodayModel(...)`
 call sites, `today-entry.mjs` and `module.exports` `:459-:463` are all unchanged. **The seventh
 injection, `read`, is the census's correction to v2 and is load-bearing: `reopen` calls the released
@@ -1916,7 +2011,7 @@ screen files is given up" - and an S10 reviewer who has not been told will read 
 changed 700 lines of a file and recorded no hash for them, and call it a hole.**
 
 **G.4 now CITES S9's own argv measurement rather than leaving a reviewer to find it (R2 NOTE-8).**
-The ticket's own attack on the `released` role is whether it can carry a file eleven sealed cells
+The ticket's own attack on the `released` role is whether it can carry a file **seven sealed cells import and two more name as a literal** (R3 BLOCKING-7: this section carried a number `:163-:165` already retracts; the conclusion is unaffected and S9 v4 `:160-:161` settles it either way), which seven sealed cells
 import, which is a child argv dependency. `S9-RELEASE-SPEC.md` at `da9f8683` `:160-:161` measures it:
 `packages/S8.json` declares **25 children with 68 distinct argv targets, and every one of the 68 is a
 test cell**, so `today-app.cjs` is NOT a child argv target and B.6's rule "a released path must not be
@@ -1957,7 +2052,7 @@ precondition of the LANDING, not of the work:
 | `.github/workflows/rebuild.yml` | `edited`: one new step naming the fence cell by exact path, never globbed (`DECISIONS:117 (4)`, `:186 (3)`) |
 | `rebuild/lanes/c/today-split-spike/**` | already committed on the lane branch and **NOT product**: the region table, the codemod, the two census instruments and their tables. The build round runs them; S10 declares nothing for them |
 
-**Three `released` entries and three `new` ones**, against v1's two `edited` and six
+**Three `released` entries and FOUR `new` ones** (R3 NOTE-7: `today-lanes.cjs`, `gym-settings-lane.mjs`, `today-readings.cjs` and the writer-fence cell are all new), against v1's two `edited` and six
 `new`-plus-released. v1's stop condition 8 ("six `new` plus `released` is a combination the mechanism
 may not support") does not arise, because under this direction nothing is both.
 
@@ -1975,7 +2070,7 @@ this section is re-read against it**, and the appendix keeps that warning.
 
 | # | risk | how likely | what it costs | what reduces it |
 |---|---|---|---|---|
-| 1 | **The handler wiring breaks and nobody notices**, as `DECISIONS:454` round 2 already found once in this file | still the highest risk in the ticket, because E.6's shim touches every wiring site | a tap that records nothing, or records twice | D.2b's listener census, and `on.listen` as the single chokepoint to count at. `REACH.md` counts 25 listener installations in `today-app.cjs` and 19 in `gym-app.mjs`, so the census has a number to hit |
+| 1 | **The handler wiring breaks and nobody notices**, as `DECISIONS:454` round 2 already found once in this file | still the highest risk in the ticket, because E.6's shim touches every wiring site | a tap that records nothing, or records twice | D.2b's listener census, and `on.listen` as the single chokepoint to count at. `REACH.md` counts 25 listener ROOTS in `today-app.cjs` and 19 in `gym-app.mjs`. **R3 NOTE-3: `today-app.cjs` has 27 `addEventListener` SITES**; `reach.cjs:172-:178` takes the second argument only when it is a function node the walker recorded, so `:1054` (a named function declaration) and `:2390` (an arrow in a `const`) are roots it does not count. Neither reaches a PUT, so no REACH row and no guard subject changes. **The number the census has to hit is 27 and 19** |
 | 2 | **A seam changes the ORDER of a write and a paint** without changing either | medium, and there are 25 seams now | a refusal drawn before the write it describes, or a button enabled too early | each seam carries a trace-asserting cell, not an end-state cell. R2 NOTE-3 is settled in B.8 by fixing today's order as the asserted one |
 | 3 | **A lane opens at a different moment** because a paint opens an encrypted store as a side effect | low, and the direction is what removes it | the store opens before or after the first paint instead of because of it | `nutritionState` and `sleepState` STAY released and call `on.openFoodLane()` / `on.openSleepLane()` at exactly the line they call the opener today. Nothing moved |
 | 4 | **THE BOOT ORDER**, new and the largest thing this round found | **high if the factory is called once and the five boot seams are not declared** | `settleAdoption`'s synchronous `adoptionSettled = !adopting` runs before the first paint, and `paintTodayEntry:770` reads that flag | B.3's five boot seams, the W8 row, and `cut.cjs`'s own boot-order print, which is re-run after the kind changes and compared line for line |
