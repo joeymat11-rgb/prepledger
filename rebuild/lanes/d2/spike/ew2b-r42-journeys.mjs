@@ -70,8 +70,20 @@ function arm2(answer) {
 
 const s = await noteScaffold({ tag: 'r42' });
 let host = null;
+/* LOOP ROUND 1 FIX (Astra's N5, and ND1's first clause). Round 1 counted
+   `repository.load` on a lane object the cell built, while `all()` reached the
+   host's OWN repository OUTSIDE that counter: a build that reintroduced
+   `lane.all()` could have passed. The counter now sits at the SHARED DURABLE
+   BOUNDARY - the era client's `hostBindings` - so EVERY load the host takes,
+   direct or through `all()`, is counted once. */
+const durable = { loads: 0 };
+const countedEra = { ...s.era, client: { hostBindings: async (options) => {
+  const bindings = await s.era.client.hostBindings(options);
+  return { ...bindings, repository: { ...bindings.repository,
+    async load(...args) { durable.loads += 1; return bindings.repository.load(...args); } } };
+} } };
 try {
-  host = await createMachineSettingsHost({ day: s.day, era: s.era, namespace: s.options.namespace });
+  host = await createMachineSettingsHost({ day: s.day, era: countedEra, namespace: s.options.namespace });
 
   /* TWO notes saved through the REAL host, before any import, both in the
      DOCUMENT space the first run minted. */
@@ -154,21 +166,42 @@ try {
   console.log('');
 
   /* ---------------- D11: ONE AUTHENTICATED GENERATION ---------------- */
-  let loads = 0;
-  const counted = { repository: { load: (...a) => { loads += 1; return s.repository.load(...a); } },
-    all: () => host.all() };
-  const answer = await latestNoteOn(counted, 'file-press');
-  line('D11 repository loads taken by ONE read', loads);
+  /* Counted at the shared durable boundary, so `all()`'s own load counts too. */
+  durable.loads = 0;
+  const answer = await latestNoteOn(host, 'file-press');
+  line('D11 durable loads taken by ONE read, at the boundary', durable.loads);
   line('  and the read still answers', 'saved as ' + answer.record.saved_as + ' / ' + answer.record.saved_in);
-  assert.equal(loads, 1, 'D11: the read took more than one authenticated generation');
+  assert.equal(durable.loads, 1, 'D11: the read took more than one authenticated generation');
   assert.equal(answer.record.saved_in, 'document');
-  assert.equal(typeof answer.notice, 'string', 'the card call drops the sentence on the floor');
+  /* LOOP ROUND 1 FIX (Astra's N5): `typeof === 'string'` accepted an EMPTY
+     notice, so a silent card answer could have passed this row. The sentence is
+     asserted as a LITERAL, D14's way, and the export is checked against that
+     same literal so a prototype that renames or empties its constant cannot
+     carry the row with it. */
+  assert.equal(answer.notice,
+    'Some notes you saved could not be matched to a machine after your import.',
+    'the card call drops the sentence on the floor or answers with an empty one');
+  assert.equal(UNMATCHED_NOTICE, answer.notice, 'the exported constant is not the sentence');
+
+  /* ND1's second clause: a TWO-GENERATION read must FAIL this row. The mutant
+     takes the context off one load and the ROWS off `lane.all()`, which is
+     round 7's own shape and exactly what D11 forbids. */
+  durable.loads = 0;
+  const twoGeneration = async (lane, liftId) => latestNoteFor(await lane.all(), liftId,
+    contextOf((await lane.repository.load()).generation));
+  const mutantAnswer = await twoGeneration(host, 'file-press');
+  line('M6 a TWO-GENERATION read, durable loads', durable.loads);
+  line('  it still answers, which is why the COUNT is the row', String(mutantAnswer.ok));
+  assert.equal(durable.loads, 2, 'the two-generation mutant did not take two loads');
+  assert.notEqual(durable.loads, 1,
+    'ND1: a two-generation read passes the one-load assertion, so the row is not holding it');
+  durable.loads = 0;
 
   /* THE CARD CONTRACT on arm 2: it REJECTS, and the rejection carries the
      literal code and the keys, which is what the card's existing
      A REFUSAL IS NOT AN ABSENCE state paints. */
   let thrown = null;
-  try { await latestNoteOn(counted, 'squat-old'); } catch (error) { thrown = error; }
+  try { await latestNoteOn(host, 'squat-old'); } catch (error) { thrown = error; }
   line('D14 the card call on arm 2 rejects with', thrown ? thrown.code : 'NOTHING');
   line('  and names the keys', thrown ? JSON.stringify(thrown.untranslated) : 'none');
   assert.ok(thrown, 'the card call resolved over an unmatched note');

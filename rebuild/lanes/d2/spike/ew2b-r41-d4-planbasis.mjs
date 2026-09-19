@@ -128,6 +128,32 @@ let added = 0, removed = 0;
 for (let i = 0; i < before.length; i += 1) if (before[i] !== after[i]) { added += 1; removed += 1; }
 line('ROUTE 2 lines added / removed', added + ' / ' + removed);
 line('ROUTE 2 net lines', String(added - removed));
+
+/* ROUTE 2B, LOOP ROUND 1 FIX (Astra's N6): her SMALLER same-contract patch,
+   re-measured here rather than taken on her word. It changes the RESOLVER LINE
+   ONLY and leaves the destructure alone, reading the option off `options`
+   directly. Its scope is proved rather than assumed: the resolver line is
+   inside `createGymHost`'s own body, so `options` is that function's parameter
+   and no new binding is introduced. */
+const FN = '  async function createGymHost(options = {}) {';
+const fnAt = source.indexOf(FN), resolverAt = source.indexOf(ANCHOR_RESOLVER);
+const nextFnAt = source.indexOf('\n  async function ', fnAt + FN.length);
+line('ROUTE 2B, createGymHost\'s own body', occurrences(source, FN));
+line('  the resolver line is inside that body',
+  String(fnAt >= 0 && resolverAt > fnAt && (nextFnAt === -1 || resolverAt < nextFnAt)));
+assert.equal(occurrences(source, FN), 1, 'createGymHost is not unique');
+assert.equal(fnAt >= 0 && resolverAt > fnAt && (nextFnAt === -1 || resolverAt < nextFnAt), true,
+  'the resolver line is not inside createGymHost, so `options` is not in scope there');
+const patched2b = source.replace(ANCHOR_RESOLVER,
+  '      planBasis: options.planBasis || planBasis, inputBasis, causalParents: () => lastResolved.slice() });');
+const after2b = patched2b.split('\n');
+let added2b = 0, removed2b = 0;
+for (let i = 0; i < before.length; i += 1) if (before[i] !== after2b[i]) { added2b += 1; removed2b += 1; }
+line('ROUTE 2B lines added / removed', added2b + ' / ' + removed2b);
+let parses2b = true;
+try { await import('data:text/javascript;base64,' + Buffer.from(patched2b).toString('base64')); }
+catch (error) { parses2b = !/SyntaxError/.test(String(error && error.name)); }
+line('ROUTE 2B parses as an ES module', String(parses2b));
 line('today-bindings.mjs on disk is byte-unchanged', String(readFileSync(BINDINGS, 'utf8') === source));
 console.log('');
 
@@ -145,12 +171,20 @@ assert.equal(second.label, 'EW2B-ERA-LABEL-TWO',
   'a second era with its own label did not change the stored Start');
 console.log('  THE ZERO-PRODUCT-BYTE ROUTE WORKS: a second era over the same');
 console.log('  IndexedDB carries a different label onto a real stored Start.');
-console.log('  Its cost is a second durable client, not a byte.');
+console.log('  LOOP ROUND 1 FIX, Astra\'s N6: what this cell drove is SEQUENTIAL');
+console.log('  ERA REOPENINGS over one installation, the first session FINISHED');
+console.log('  before the second card opened. It is NOT two concurrently live');
+console.log('  durable clients and this cell never claimed to be.');
 
 assert.equal(added, 2);
 assert.equal(removed, 2);
+assert.equal(added2b, 1);
+assert.equal(removed2b, 1);
+assert.equal(parses2b, true);
 console.log('  THE SEALED ALTERNATIVE IS 2 LINES CHANGED in today-bindings.mjs,');
-console.log('  counted and not estimated, both anchors unique. That file is on');
-console.log('  13.12\'s ZERO-BYTE list, so it is the PM\'s word, not this cell\'s.');
+console.log('  counted and not estimated, both anchors unique - AND ROUTE 2B, the');
+console.log('  SMALLER same-contract patch, is 1 CHANGED LINE, measured here.');
+console.log('  ROUTE 2B is the one this brief carries. That file is on 13.12\'s');
+console.log('  ZERO-BYTE list, so it is the PM\'s word, not this cell\'s.');
 console.log('');
 console.log('ALL ASSERTIONS HELD');

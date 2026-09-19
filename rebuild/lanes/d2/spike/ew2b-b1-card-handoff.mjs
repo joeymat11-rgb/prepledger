@@ -180,19 +180,226 @@ try {
     JSON.stringify(record && record.machine ? record.machine : record));
   console.log('');
 
-  /* ---------- 6. THE INVARIANT ---------- */
-  console.log("THE INVARIANT, ASSERTED:");
-  assert.equal(blockText.includes("Seat"), true,
-    "B1: the block does not show the note the resolver resolved for this lift");
-  assert.deepEqual(draft, { rows: [{ name: "Seat", value: "4" }], cues: "Pause" },
-    "B1: the editor does not open on the note he saved");
-  assert.equal(blockText.includes(NOTICE), true,
-    "B1: the card is SILENT about the note it could not match");
-  assert.deepEqual(settingsAfter, [{ name: "Seat", value: "4" }],
-    "B1: Save superseded a saved setting the card never showed him");
-  console.log("ALL ASSERTIONS HELD");
+  /* ---------- 6. B1, PINNED ---------- */
+  console.log('B1, PINNED BY NAME (Astra\'s finding, reproduced by this author):');
+  assert.equal(blockText.includes('Seat'), false);
+  assert.equal(blockText.includes(GymApp.SETTINGS_NONE), true);
+  assert.deepEqual(draft, { rows: [{ name: '', value: '' }], cues: '' });
+  assert.equal(blockText.includes(NOTICE), false);
+  assert.deepEqual(settingsAfter, undefined);
+  console.log('  The hunk the brief specifies hands the ANSWER to a cache, a block');
+  console.log('  and a draft that all consume a bare RECORD. The block says "'
+    + GymApp.SETTINGS_NONE + '",');
+  console.log('  the sentence is nowhere, the editor opens BLANK, and one new cue');
+  console.log('  saved over that blank draft supersedes Seat=4 without ever showing');
+  console.log('  it to him. B1 STANDS AND IS NOT DISPUTED.');
+  console.log('');
+
+  /* ================= 7. THE CORRECTED HANDOFF, COUNTED ================= */
+  /* Three consumers, named, and a fourth file for the WORD. Each patch is
+     applied in memory, counted by line diff, and proved to parse. */
+  const diff = (a, b) => {
+    const m = a.length, n = b.length;
+    const lcs = Array.from({ length: m + 1 }, () => new Uint16Array(n + 1));
+    for (let i = m - 1; i >= 0; i--) for (let j = n - 1; j >= 0; j--)
+      lcs[i][j] = a[i] === b[j] ? lcs[i + 1][j + 1] + 1 : Math.max(lcs[i + 1][j], lcs[i][j + 1]);
+    let i = 0, j = 0, added = 0, removed = 0;
+    while (i < m && j < n) {
+      if (a[i] === b[j]) { i++; j++; }
+      else if (lcs[i + 1][j] >= lcs[i][j + 1]) { removed++; i++; }
+      else { added++; j++; }
+    }
+    return { added: added + (n - j), removed: removed + (m - i) };
+  };
+  const only = (text, needle) => {
+    assert.equal(occurrences(text, needle), 1, 'anchor is not unique: ' + needle.slice(0, 48));
+    return text;
+  };
+  const parses = async text => {
+    try { await import('data:text/javascript;base64,' + Buffer.from(text).toString('base64')); return true; }
+    catch (error) { return !/SyntaxError/.test(String(error && error.name)); }
+  };
+
+  /* E1, gym-settings-lane.mjs: the READ, and the CACHE that receives it. The
+     lane stores the bare record and a BOOLEAN, never a sentence: copy is not
+     this file's to own. */
+  const E1_READ_OLD = '      .then(() => settingsLane.latest(liftId))';
+  const E1_READ_NEW = "      .then(() => import('./machine-note-identity.mjs')"
+    + '\n        .then((m) => m.latestNoteOn(settingsLane, liftId)))';
+  const E1_CACHE_OLD =
+    "        (latest) => { settingsRead.set(liftId, { state: 'known', latest: latest || null }); },";
+  const E1_CACHE_NEW =
+    "        (answer) => { settingsRead.set(liftId, { state: 'known',"
+    + '\n          latest: (answer && answer.record) || null,'
+    + '\n          unmatched: !!(answer && answer.untranslated && answer.untranslated.length) }); },';
+  const e1 = only(only(holderSource, E1_READ_OLD), E1_CACHE_OLD)
+    .replace(E1_READ_OLD, E1_READ_NEW).replace(E1_CACHE_OLD, E1_CACHE_NEW);
+  const e1Count = diff(holderSource.split('\n'), e1.split('\n'));
+
+  /* E2, gym-app.mjs: the WORD, its place in the card's own copy table, and the
+     one line of `settingsPaint` that hands it to the block. */
+  const GYM = TODAY + '/gym-app.mjs';
+  const gymSource = show(GYM);
+  const E2_WORD_OLD = "export const SETTINGS_NONE = 'No settings saved yet.';";
+  const E2_WORD_NEW = E2_WORD_OLD + '\n/* E-R42, the one sentence, PROPOSED copy for the owner. It lives HERE'
+    + '\n   because design.cjs binds preview-owned words from VIEW_SOURCES, and'
+    + "\n   machine-note-identity.mjs is not one of them. */\nexport const SETTINGS_UNMATCHED ="
+    + "\n  'Some notes you saved could not be matched to a machine after your import.';";
+  const E2_COPY_OLD = '  head: SETTINGS_HEAD, none: SETTINGS_NONE, open: SETTINGS_OPEN,';
+  const E2_COPY_NEW = '  head: SETTINGS_HEAD, none: SETTINGS_NONE, open: SETTINGS_OPEN,'
+    + '\n  unmatched: SETTINGS_UNMATCHED,';
+  const E2_CALL_OLD =
+    '    MachineSettingsView.renderBlock(doc, map, { copy: SETTINGS_COPY, latest, state, put });';
+  const E2_CALL_NEW = '    MachineSettingsView.renderBlock(doc, map, { copy: SETTINGS_COPY, latest, state, put,'
+    + '\n      notice: entry && entry.unmatched ? SETTINGS_UNMATCHED : null });';
+  const e2 = only(only(only(gymSource, E2_WORD_OLD), E2_COPY_OLD), E2_CALL_OLD)
+    .replace(E2_WORD_OLD, E2_WORD_NEW).replace(E2_COPY_OLD, E2_COPY_NEW)
+    .replace(E2_CALL_OLD, E2_CALL_NEW);
+  const e2Count = diff(gymSource.split('\n'), e2.split('\n'));
+
+  /* E3, machine-settings-view.mjs: the block DRAWS the sentence. This file
+     LEAVES 6.1's zero-byte list by name. */
+  const viewSource = show(VIEW);
+  const E3_SIG_OLD = "export function renderBlock(doc, map, { copy, latest, state = 'known', put }) {";
+  const E3_SIG_NEW = "export function renderBlock(doc, map, { copy, latest, state = 'known', put,"
+    + '\n  notice = null }) {';
+  const E3_END_OLD = '  cues.hidden = !hasCue;\n  return section;';
+  const E3_END_NEW = '  cues.hidden = !hasCue;\n'
+    + '  /* E-R42 arm 1: the note he asked for is shown, AND the one sentence about\n'
+    + '     the notes this import could not match comes with it. Never silent. */\n'
+    + "  if (typeof notice === 'string' && notice !== '') {\n"
+    + "    const unmatched = doc.createElement('p');\n"
+    + "    unmatched.className = 'small quiet';\n"
+    + "    unmatched.textContent = copy.plain(notice, 'settings-unmatched');\n"
+    + '    section.append(unmatched);\n'
+    + '  }\n  return section;';
+  const e3 = only(only(viewSource, E3_SIG_OLD), E3_END_OLD)
+    .replace(E3_SIG_OLD, E3_SIG_NEW).replace(E3_END_OLD, E3_END_NEW);
+  const e3Count = diff(viewSource.split('\n'), e3.split('\n'));
+
+  /* E4, design.cjs: the sentence is DECLARED preview-owned, beside the other
+     machine-settings sentences. */
+  const DESIGN = TODAY + '/design.cjs';
+  const designSource = show(DESIGN);
+  const E4_OLD = '  "No settings saved yet.",';
+  const E4_NEW = E4_OLD + '\n  "Some notes you saved could not be matched to a machine after your import.",';
+  const e4 = only(designSource, E4_OLD).replace(E4_OLD, E4_NEW);
+  const e4Count = diff(designSource.split('\n'), e4.split('\n'));
+
+  console.log('THE CORRECTED HANDOFF, EVERY CONSUMER NAMED AND COUNTED:');
+  for (const [name, c] of [['E1 gym-settings-lane.mjs (the read AND the cache)', e1Count],
+    ['E2 gym-app.mjs (the word, the copy table, the call)', e2Count],
+    ['E3 machine-settings-view.mjs (the block DRAWS it)', e3Count],
+    ['E4 design.cjs (the sentence declared preview-owned)', e4Count]])
+    line('  ' + name, c.added + ' added / ' + c.removed + ' removed');
+  for (const [name, text] of [['E1', e1], ['E2', e2], ['E3', e3]])
+    line('  ' + name + ' parses as an ES module', String(await parses(text)));
+  console.log('');
+
+  /* ---------- 8. THE CORRECTED LINK, RE-DRIVEN ---------- */
+  const fixedLaneFile = path.join(scratch, 'ew2b-b1-fixed-lane.mjs');
+  writeFileSync(fixedLaneFile, e1.replace("'./machine-note-identity.mjs'", "'" + RESOLVER + "'"), 'utf8');
+  const fixedViewFile = path.join(scratch, 'ew2b-b1-fixed-view.mjs');
+  writeFileSync(fixedViewFile, e3.replace("'../../../coach/machine-settings-commands.cjs'",
+    "'" + pathToFileURL(path.join(ROOT, 'rebuild/coach/machine-settings-commands.cjs')).href + "'"), 'utf8');
+  const FixedLane = await import(pathToFileURL(fixedLaneFile).href);
+  const FixedView = await import(pathToFileURL(fixedViewFile).href);
+
+  /* The installation is put back where section 5 found it: the orphan is still
+     unmatched and press-old still carries Seat=4, under the LATER cue-only note
+     Save wrote above, so the corrected read has to beat that too. */
+  const host2 = await createMachineSettingsHost({ day: DAY, indexedDB, crypto: webcrypto });
+  try {
+    const replay = await host2.save({ exercise_id: 'press-old',
+      settings: [{ name: 'Seat', value: '4' }], cues: 'Pause' });
+    assert.equal(replay.ok, true, replay.code);
+    const root2 = doc.getElementById('t-gym').content.cloneNode(true);
+    const map2 = new Map([...root2.querySelectorAll('[data-slot]')].map(el => [el.dataset.slot, el]));
+    const lane2 = FixedLane.createGymSettingsLane(doc, { day: DAY }, host2, painter);
+    await lane2.hooks.startRead('file-press');
+    const entry2 = lane2.facade.entryFor('file-press');
+    const COPY2 = { ...COPY, unmatched: 'Some notes you saved could not be matched to a machine after your import.' };
+    FixedView.renderBlock(doc, map2, { copy: COPY2, latest: entry2.latest,
+      state: lane2.facade.stateFor('file-press'), put,
+      notice: entry2 && entry2.unmatched ? COPY2.unmatched : null });
+    const blockText2 = map2.get('settings-block').textContent.replace(/\s+/g, ' ').trim();
+    const draft2 = FixedView.draftFrom(entry2.latest);
+    line('the cache entry, its own members', Object.keys(entry2).sort().join(', '));
+    line('the block the athlete sees', JSON.stringify(blockText2));
+    line('the draft the editor opens', JSON.stringify(draft2));
+    line('the one sentence is on the card', String(blockText2.includes(NOTICE)));
+
+    /* THE SAVE CONTINUATION, on the corrected draft: one new cue, over a draft
+       that is seeded with what he saved. */
+    const typed2 = { rows: draft2.rows, cues: 'New cue' };
+    const machine2 = FixedView.machineFromDraft(typed2, 'file-press');
+    const saved2 = await host2.save(machine2);
+    assert.equal(saved2.ok, true, saved2.code);
+    lane2.hooks.dropRead('file-press');
+    await lane2.hooks.startRead('file-press');
+    const kept = lane2.facade.entryFor('file-press').latest;
+    line('what Save wrote', JSON.stringify(machine2));
+    line('what the card reads back for this lift', JSON.stringify(kept.machine));
+    console.log('');
+
+    console.log('THE INVARIANT, ASSERTED ON THE CORRECTED HANDOFF:');
+    assert.deepEqual(draft2, { rows: [{ name: 'Seat', value: '4' }], cues: 'Pause' },
+      'the editor does not open on the note he saved');
+    assert.equal(blockText2.includes('Seat'), true, 'the block does not show the resolved note');
+    assert.equal(blockText2.includes(NOTICE), true, 'the card is SILENT about the unmatched note');
+    assert.deepEqual(kept.machine.settings, [{ name: 'Seat', value: '4' }],
+      'Save superseded a saved setting the card never showed him');
+    assert.equal(kept.machine.cues, 'New cue', 'the new cue was not stored');
+    /* ONE MEASURED CORRECTION THIS CELL OWES AGAINST ITSELF. It first asserted
+       `saved_in === 'document'` here and exited 1. The CELL was wrong: the
+       correction he just saved is a NEW note, written under the lift he is
+       standing at, so it is `native` by construction, and the pre-import
+       document note it carried forward is untouched on disk. The product was
+       right; the assertion is corrected rather than quietly removed. */
+    assert.equal(kept.saved_in, 'native', 'the note he just saved is not in the space he saved it in');
+    const storedOriginal = (await host2.repository.load()).generation.collections.ops[savedPress.op_id];
+    assert.equal(JSON.stringify(storedOriginal), JSON.stringify(originalPressOp),
+      'the pre-import note on disk was rewritten by a read or by Save');
+    line('the pre-import note on disk is byte-unchanged', 'true');
+    line('the note he just saved is recorded as', kept.saved_in);
+    console.log('  The note is SHOWN, the sentence comes WITH it, the draft is');
+    console.log('  seeded from what he saved, and Save keeps Seat=4 while adding');
+    console.log('  the cue. Four consumers, counted above, and no more.');
+    console.log('');
+
+    /* ---------- 9. WHO OWNS THE WORD ---------- */
+    /* Measured, because the brief must not put a product sentence in a file the
+       design binding cannot see. */
+    const approved = design.readApproved();
+    const template = design.templateHtml();
+    const undeclared = design.appSource() + '\nconst X = ' + JSON.stringify(NOTICE) + ';';
+    let undeclaredPasses = true;
+    try { design.assertDesignBinding(approved, template, undeclared); }
+    catch (_) { undeclaredPasses = false; }
+    let missingFromView = 'passed';
+    try { design.assertDesignBinding(approved, template, design.appSource().replace(
+      'No settings saved yet.', 'No settings stored yet.')); }
+    catch (_) { missingFromView = 'failed'; }
+    line('the design binding holds at this head', 'true');
+    line('a DECLARED sentence missing from the view', missingFromView === 'failed'
+      ? 'fails the gate' : 'passes the gate');
+    line('an UNDECLARED new sentence in a view source', undeclaredPasses
+      ? 'passes the gate' : 'fails the gate');
+    assert.equal(missingFromView, 'failed', 'the copy binding does not hold its own declarations');
+    assert.equal(undeclaredPasses, true,
+      'the design gate DOES catch an undeclared sentence: E4 is enforced, not merely ordered');
+    console.log('  The gate iterates the DECLARED lists and asserts each is IN a view');
+    console.log('  source; it does not iterate the view for undeclared sentences. So');
+    console.log('  E4 is an ORDER this brief gives and a row must hold, not a gate');
+    console.log('  that would catch a builder who skipped it. Said here because the');
+    console.log('  opposite would have been the easy thing to assume.');
+    console.log('');
+    console.log('ALL ASSERTIONS HELD');
+  } finally { host2.close(); }
 } finally {
   host.close();
   rmSync(scratch, { recursive: true, force: true });
-  assert.equal(sha(onDisk(VIEW)), sha(show(VIEW)), "this cell wrote to a product file");
+  for (const rel of [VIEW, HOST, TODAY + '/gym-app.mjs', TODAY + '/design.cjs'])
+    assert.equal(sha(onDisk(rel)), sha(onDisk(rel)), 'unreadable: ' + rel);
+  assert.equal(sha(onDisk(VIEW)), sha(show(VIEW)), 'this cell wrote to a product file');
 }
