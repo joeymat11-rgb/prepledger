@@ -1734,3 +1734,292 @@ again.
    outside the include list by this lane, and the proof passes at the end;
    but a proof that can print FAIL for a reason that is not a breach is a
    proof that will one day be ignored when it matters. Reported, not touched.
+
+## Loop round 1: fixed or disputed
+
+The review answered is
+`rebuild/lanes/astra/reviews/S9-PREP-RUNNER-RECHECK-R6.md` on
+`rebuild/r-astra-s9a-runner-r6` at `2a20bf1d`, verdict **REJECT**. It was
+read whole before any file was opened. This is loop round 1 of 3 under
+`DECISIONS:613` L-1 and L-2: her undisputed findings are orders, and there
+is nothing here that waits on a PM ruling.
+
+**NOTHING IS DISPUTED.** Both open items are fixed, and one of them is
+fixed differently from the way she prescribed, for a reason I measured
+rather than argued (14.3).
+
+Base of this round: `397ac466`. Head: the last commit below.
+
+### 14.1 WHAT MOVED, COMMIT BY COMMIT
+
+| commit | what |
+|---|---|
+| `a94f045` | RED FIRST. `(H27)` against the UNCHANGED runner, with the measured failure in the message. |
+| `126c919` | The runner fix: H27 seeds `canonicalSpecPaths()` with the two fixed coordinates. |
+| `f7cb343` | The row that kills her LIVE single-clause change, and the correction to the reason she gives for it. |
+| `2c0283f` | E fact 7, LAST: `tooling.runnerSha256` in the seven packages. |
+
+Only the four files this ticket already owns were touched: `b-package.cjs`,
+`test/release-from-seal.test.cjs`, the seven `packages/*.json` for the one
+re-pinned field, and this report.
+
+### 14.2 BLOCKING B1, WHICH IS HER G3 STILL OPEN: FIXED (H27)
+
+**Her finding, in one sentence:** `canonicalSpecPaths()` walks only the
+spellings a SPEC declares, so the two coordinates `proposed()` supplies
+itself - `RUNNER` and `TOOLING + '/packages/' + ID + '.json'` - were never
+compared with anything, and a spec that RELEASES a case-only alias of the
+runner's own path reached `ENVELOPE AUTHORIZED` while the same physical
+file stayed pinned under its other spelling.
+
+**She is right, and the reasoning that left the hole was mine.** The
+comment above `canonicalSpecPaths()` said the two coordinates "are fixed
+constants of this file and cannot be misspelled by an input" and used that
+as the reason to leave them out. That sentence is true about the CONSTANTS
+and false about the RULE. H25 does not compare a spelling with a schema; it
+compares two spellings WITH EACH OTHER. A spec never had to misspell the
+runner in order to collide with it. It only had to declare a SECOND
+spelling of the same physical file, which is precisely what the guard
+exists to catch, and the one path whose release would take the seal itself
+out of the inventory was the one path the guard could not see.
+
+**RED FIRST, at `a94f045`, against the runner she reviewed**
+(`71c1b2592b5a3544b71c0995a9f52b88fbe24cd6b821709309aa95e5ad3012c0`):
+
+```
+node --test rebuild/lanes/b/tooling/test/release-from-seal.test.cjs
+  tests 42, pass 41, fail 1, exit 1
+  (H27) - a case alias of a FIXED execution coordinate refuses at admission
+    AssertionError: Missing expected exception: the runner
+    actual undefined, expected /PATH-CASE-COLLISION/
+```
+
+`actual undefined` is the finding: the runner ADMITTED the alias.
+
+**THE FIX, `126c919`, is the smallest one she named and nothing more:** two
+`seen.push` calls at the top of `canonicalSpecPaths()`, before any declared
+spelling, so the identity comparison below sees every path `proposed()`
+will pin. No rewrite, no normalisation, no new refusal name: the existing
+`PATH-CASE-COLLISION` does the work, and the message names the fixed
+coordinate first and the spec's alias second. The seeds are pushed FIRST
+for that reason.
+
+**THE HUNK TABLE ROW**
+
+| H | lands at | what it does | the cell that proves it |
+|---|---|---|---|
+| H27 | `b-package.cjs`, the two `seen.push` lines opening `canonicalSpecPaths()` (anchor: the comment "the two coordinates `proposed()` supplies ITSELF") | seeds the case-identity walk with `RUNNER` and `TOOLING + '/packages/' + ID + '.json'`, so a spec cannot release or pin a second spelling of either | `(H27)` in `release-from-seal.test.cjs` |
+
+**THE MUTATION TABLE ROWS, MEASURED ON THIS PC AT THE FINAL HEAD.** Every
+clause H27 adds has a row that holds it ALONE, which is N12's discipline
+and the reason H26 is three asserts.
+
+| single-clause change | suite | measured |
+|---|---|---|
+| delete `seen.push(['the runner (a fixed execution pin)', RUNNER])` | release-from-seal | 41/42, fail 1. `(H27)`: `Missing expected exception: the runner` |
+| delete `seen.push(['this package spec file (a fixed execution pin)', TOOLING + '/packages/' + ID + '.json'])` | release-from-seal | 41/42, fail 1. `(H27)`: `Missing expected exception: the package spec file` |
+| revert H27 whole (both pushes) | release-from-seal | 41/42, fail 1, which is the red-first measurement at `a94f045` |
+
+The cell also carries its own CONTROL, run in the same loop: the EXACT
+spelling of either coordinate, declared as an ordinary product key, is
+ADMITTED. That is the standing case, not a hypothetical (14.5), and it is
+what says this refuses two spellings and never a coordinate.
+
+### 14.3 HER LIVE SINGLE-CLAUSE CHANGE: KILLED, AND HER REASON CORRECTED BY MEASUREMENT
+
+**Her row:** deleting `typeof block.sealedBy === 'string'` from H26's
+closed-release-record assert leaves all the suites green.
+
+**REPRODUCED. She is right that it is live.** At `126c919` the deletion
+left `release-from-seal` at 42 of 42, fail 0.
+
+**The reason she gives for it is wrong, and this is a correction, not a
+dispute.** She wrote that the only other reader of the field is
+`assert.equal`, which is `==`, so a `new String('M2-S8-FIXTURE')` would
+slip through once the subclause went. This runner takes `assert` from
+`node:assert/strict` (`b-package.cjs:90`), so `assert.equal` IS
+`strictEqual` and the wrapper is refused with the subclause and without it.
+**I wrote her wrapper as the row first and measured it: under the mutant,
+42 of 42, fail 0. It holds nothing.** It is kept inside the cell, labelled,
+as the control that says why - because a row that cannot go red is the
+exact defect N12 is about, and leaving it unlabelled would have re-created
+it one line below the paragraph that names it.
+
+**What the subclause holds ALONE is the ordinary JSON value `null`.** The
+own key set is fixed at exactly the four names, so `sealedBy` is always
+PRESENT and only its VALUE varies, and `null` is a value JSON delivers
+every day.
+
+| single-clause change | suite | measured |
+|---|---|---|
+| delete `typeof block.sealedBy === 'string' &&`, wrapper row only (her form) | release-from-seal | 42/42, fail 0. THE CHANGE SURVIVES. |
+| delete `typeof block.sealedBy === 'string' &&`, with the `sealedBy: null` row (`f7cb343`) | release-from-seal | 41/42, fail 1. `(P-A9 d)`: `TypeError: Cannot read properties of null (reading 'length')` |
+
+That TypeError is the point. With the subclause the runner refuses BY NAME,
+with the path in the message. Without it the runner CRASHES, with no
+refusal name and no path - the `failCode=null` shape this lane already
+refused to accept from the Git lookup at P-A13, arriving at the release
+record instead. **No runner byte moves for this commit:** the clause was
+unmeasured, not absent.
+
+### 14.4 MEASURED FIRST: NO STANDING SEAL IS VOIDED
+
+H27 lands for every package, so it landed only after the measurement, the
+same way P-A1, P-A12 and P-A13 did. Two measurements, and the second is
+the stronger one.
+
+**(a) The read-only walk over the 22 standing files**, run on this PC at
+`397ac466` BEFORE the hunk and again at the final head, and independently
+in a linux farm scratch of the pushed head:
+
+```
+package files 12 | walked spellings 1512 | seeded fixed coordinates 24
+acceptance files 10 | acceptance product/execution/released keys 1431
+NONCANONICAL 0 | CASE COLLISIONS 0 | exact repeats admitted 335
+```
+
+Zero standing spellings refuse. The 335 exact repeats matter: the standing
+packages DO declare the runner and their own spec file as product keys, at
+their own spelling, and an exact repeat is admitted by the walk as it was
+before. The rule is about two spellings.
+
+**(b) The real runner over the real specs.** `--ci --package S8` and
+`--ci --package H3` on the FINAL bytes both print `SPEC OBSERVED` - which
+is `canonicalSpecPaths()` having run, seeded, over 224 and 64 declared
+product files plus every child argv and brief - and then the SAME named
+refusal as before the round, on both. This is not a scan of a copy of the
+predicate; it is the predicate itself, admitting the two packages that have
+a CLI walk.
+
+Astra's own R6 scan reports the same result for the seeded coordinates
+("Adding the fixed coordinates to the scan also found zero standing
+collisions"), reached independently.
+
+Her **D2 DISK-IDENTITY** debt stands untouched by this hunk: seeding adds
+spellings to the walk, it does not change what `toLowerCase` means, so the
+`K`/U+212A, U+1E9E/U+00DF and U+0130/i+U+0307 pairs behave exactly as her
+P-A13 table measured, and none occurs in the 22 files.
+
+### 14.5 HER THREE NAMED DEBTS, ONE LINE EACH
+
+- **D1 MAP-CONSTRUCTION.** Landed as written, and H27 widens the thing it
+  depends on: the three assignment-built maps still lose a directly
+  supplied `__proto__` key, and `canonicalSpecPaths()` admission stands in
+  front of every producer. H27 adds no producer and removes no admission;
+  it adds two values to the same choke point. Carried into S9 verbatim.
+- **D2 DISK-IDENTITY.** Accepted as stated; see 14.4. JavaScript lowercase
+  equality is not filesystem identity, this refuses more than the disk
+  collides on, and none of the three pairs occurs in the 22 standing files.
+  Carried into S9 verbatim.
+- **D3 JSON-BOUNDARY.** Accepted, and 14.3 is a worked example of it: her
+  wrapper witness is exactly an object identity JSON cannot deliver, which
+  is why it could not be the row that holds the clause. JSON-only artifact
+  ingress is retained. Carried into S9 verbatim.
+
+Her closed rows G1, G2, G4, G5 and G6 are unchanged by this round and were
+re-run as part of the whole suite, not spot-checked.
+
+### 14.6 THE BAR, AT THE FINAL HEAD `2c0283f`
+
+**The ten tooling suites, `node --test`, each file, on the owner's PC**
+(`MEASURED_TEST_NOW=2026-09-03`, `TZ=America/New_York`), exit 0 each:
+
+| suite | tests | pass | fail |
+|---|---|---|---|
+| child-diagnostic-tail | 11 | 11 | 0 |
+| execution-targets | 9 | 9 | 0 |
+| gate-supersession | 16 | 16 | 0 |
+| parent-gate-closure-and-load-floor | 14 | 14 | 0 |
+| parent-pin-shapes-and-spec-successors | 9 | 9 | 0 |
+| pinned-unchanged-and-ruled-substitutions | 17 | 17 | 0 |
+| product-phase-and-ledger | 7 | 7 | 0 |
+| release-from-seal | 42 | 42 | 0 |
+| seal-tip-and-byte-identity | 17 | 17 | 0 |
+| successor-moves | 9 | 9 | 0 |
+| **total** | **151** | **151** | **0** |
+
+150 before this round; `(H27)` is the one new cell.
+
+**AND ON LINUX**, in a farm scratch worktree of the PUSHED head (not of a
+local tree), twice: at `126c9196` and again at the final `2c0283fa`. Same
+ten files, same counts, **151 of 151, fail 0** both times. Both OS runs are
+of bytes that exist on the branch.
+
+**`--ci --package S8` and `--ci --package H3`, before and after.**
+
+| | S8 | H3 |
+|---|---|---|
+| at `397ac466`, before any edit | `B PACKAGE S8 FAIL SEALED-PROFILE-RECOMPUTATION; required evidence missing or failed; local diagnostics withheld`, exit 1 | same, `H3`, exit 1 |
+| at the final head `2c0283f` | the SAME named refusal, exit 1 | the SAME named refusal, exit 1 |
+
+A named refusal is the expected pre-ruling state, as the S8 preparation
+report sets out: the `RELEASE-FROM-SEAL` and `THEME` lines do not exist
+yet, so the sealed profile cannot recompute, and it says so by name rather
+than by crashing. What changed between the two runs is only what should:
+the runner sha on `SPEC OBSERVED` and the spec sha of the re-pinned file.
+`SPEC OBSERVED` printing at all is the load-bearing half - `spec()` ran the
+seeded walk over the real specs and admitted them.
+
+At `126c919`, between the hunk and E fact 7, both CLI runs printed
+`RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER` instead. That is correct and
+expected: E fact 7 is done LAST by order, so for exactly one commit the
+packages still named the old runner. It is recorded here so that a reader
+of that commit alone is not misled.
+
+### 14.7 E FACT 7, REDONE LAST AGAIN
+
+`tooling.runnerSha256` re-pinned from
+`71c1b2592b5a3544b71c0995a9f52b88fbe24cd6b821709309aa95e5ad3012c0` to
+`d52acc31c99845ed774c5111a261b84012538495e0ee2caa1d13827c1d28bb53` in
+`packages/H3.json`, `S3.json`, `S4.json`, `S5.json`, `S6.json`, `S7.json`
+and `S8.json`. The old value occurs EXACTLY ONCE in each file (counted
+before the edit), and `git diff --numstat` for that commit is 1 insertion
+and 1 deletion per file, **7 files, 7 insertions, 7 deletions**: one field,
+one byte range each, no other byte of any package file moved.
+
+**THE FINAL RUNNER sha256 is
+`d52acc31c99845ed774c5111a261b84012538495e0ee2caa1d13827c1d28bb53`, 3898
+lines.** If a later round moves the runner again, this step is redone last
+again.
+
+### 14.8 WHAT I DID NOT DO IN THIS ROUND, STATED SO IT IS NOT ASSUMED
+
+- **No F.2 STOP condition fired.** In particular STOP-2: H27 is inside
+  `canonicalSpecPaths()`, at admission. `held()`, the drift assert, the
+  completeness walk and `pins()` are all untouched by it; the only line of
+  `pins()` that moved in this whole lane is still H17's single `continue`.
+- **No ordinal moved in this round.** `(H27)` is appended after `(P-A13)`
+  and before `(P-A10 c)`; no existing cell was renumbered, renamed or
+  reordered, and the `(P-A9 d)` rows were added inside the cell, before its
+  closing control.
+- **Nothing was disputed**, so no finding's code was left alone.
+- **Nothing on the wait list was started**: no `packages/S9.json`, no
+  needles, no acceptance-s9, no `--ci --package S9`, no CI-step flip, no
+  PACK-PIN or APPROVED-PIN literal, no `design.test.cjs` hunk, no S9 brief,
+  no PM token line.
+- **Nothing outside this ticket's owned files was edited.** No
+  `rebuild.yml`, no `boundary.test.mjs`, no `package.test.cjs`, nothing
+  under `rebuild/lanes/c/`, no product file, no `DECISIONS.md`, no
+  `lanes/STATUS.md`, no byte under `rebuild/engine`.
+- **Nothing sealed.** No `--full`, no `seal-chain.cjs`, no receipt, no
+  artifact written into the tree. `--ci` only.
+- **No re-run was needed.** Nothing in this round failed in a way that
+  looked like timing, so the one-re-run rule was never reached.
+- **`bin/farm-verify.sh` printed PASS** on every sync of this round.
+
+### 14.9 WHAT I AM ASKING THE PM TO LOOK AT
+
+1. **The comment H27 replaces was load-bearing and wrong.** It is worth a
+   moment of the final read: the old text gave a REASON for the omission,
+   and the reason sounded right. The new text says why the reason does not
+   hold. If a future round is tempted to narrow the walk again, that
+   paragraph is what should stop it.
+2. **Astra's stated mechanism for the `sealedBy` change is wrong and her
+   finding is right** (14.3). Both halves matter. The finding is fixed; her
+   reason is corrected in the cell's own comment so the next reader is not
+   sent after `==` in a file that imports `node:assert/strict`.
+3. **One row in the suite is deliberately unkillable and labelled as such**
+   (her `new String` wrapper). It is a control, not a guard. If the PM
+   would rather no unkillable row stood in the file at all, say so and it
+   goes; I kept it because deleting it would lose the measurement that
+   explains why the real row is the one it is.
