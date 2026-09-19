@@ -1631,3 +1631,277 @@ test("PRB-05 a recall is a tool result of THIS turn, and it widens nothing", asy
     }
   } finally { w.close(); }
 });
+
+/* ------------- H: the PM's final read, P-F1, P-F2 and P-F3 ----------------- */
+
+/* P-F1. memory-tools.cjs states, as a law of the WHOLE file: "NO REFUSAL
+   SENTENCE HERE INTERPOLATES CALLER TEXT OR A MINTED ID". Two sites still did.
+   The dispatch catch published `error.message` as the reason, and a reason is a
+   T.text() tag, which allowedTokens() reads as ENGINE PROSE and licenses every
+   number in it in whatever unit the words around it name. An exception message
+   is text nobody in this lane controls: a storage error, a platform error or a
+   message carrying the athlete's own words all reach it. This is the live half
+   of the finding, and it is the grave of mutant M-S.
+
+   The lane here THROWS, which the shipped host never does (it catches at its own
+   boundary and returns a code), so the throw is injected at the lane seam, the
+   only place from which the dispatch catch is reachable. The world, the coach
+   tools and the turn are the real ones. */
+test("P-F1 a lane that THROWS: the exception's figures stay untraceable and its message travels as source", async () => {
+  const w = await world("pf1-throw");
+  try {
+    const boom = new Error("store write failed: your protein target is 999 grams");
+    const lane = { save: async () => { throw boom; }, forTopic: async () => { throw boom; },
+      read: async () => { throw boom; } };
+    const tools = MT.createMemoryTools({ world: { ...w, memory: lane }, coach: w.wave1 });
+    const turn = tools.openTurn("turn-pf1-throw");
+
+    /* POSITIVE CONTROL, in this same turn: the ENGINE's own protein figure is
+       traceable in its own unit, so an empty allowed set cannot pass this cell */
+    const plan = await turn.call.today_plan({});
+    const g = plan.values.proteinG;
+    assert.equal(g.blank, undefined, "the fixture produced no protein figure to control against");
+    assert.deepEqual(turn.untraceable("Your protein target is " + g.display + " grams."), []);
+    assert.notEqual(String(g.display), "999", "the fixture's own figure collides with this cell's");
+
+    const memory = { ...GOOD(), topic: "nutrition", text: "I keep my protein high." };
+    const asked = await turn.call.remember({ memory });
+    assert.equal(asked.unavailable.code, T.CODES.CONFIRMATION_REQUIRED);
+    const r = await turn.call.remember({ memory, confirmed: true,
+      confirmation_id: asked.confirmation.confirmation_id });
+
+    assert.equal(r.ok, false);
+    assert.equal(r.unavailable.code, MT.MEMORY_CODES.MEMORY_TOOL_THREW);
+    assert.equal(r.unavailable.reason.includes("999"), false,
+      "the reason quotes the exception back: " + r.unavailable.reason);
+    assert.equal(/\d/.test(r.unavailable.reason), false,
+      "the reason carries a digit, so it licenses one: " + r.unavailable.reason);
+    /* the message is not lost: it travels in the UNTAGGED source member */
+    assert.equal(String(r.unavailable.source).includes(boom.message), true,
+      "the exception's message was dropped instead of travelling as data");
+    for (const tag of T.collectTagged(r)) {
+      assert.equal(String(tag.display).includes("999"), false, "a tagged value carries 999: " + tag.source);
+    }
+    assert.deepEqual(turn.untraceable("Your protein target is 999 grams."), ["999"]);
+    assert.deepEqual(turn.untraceable("Your floor is 999 kcal."), ["999"]);
+
+    /* the READ side throws through the same catch, and is judged the same way */
+    const read = await turn.call.recall({ topic: "nutrition" });
+    assert.equal(read.unavailable.code, MT.MEMORY_CODES.MEMORY_TOOL_THREW);
+    assert.equal(/\d/.test(read.unavailable.reason), false, read.unavailable.reason);
+    assert.equal(String(read.unavailable.source).includes(boom.message), true);
+    assert.deepEqual(turn.untraceable("Your protein target is 999 grams."), ["999"]);
+
+    /* POSITIVE CONTROL AGAIN at the end of the turn */
+    assert.deepEqual(turn.untraceable("Your protein target is " + g.display + " grams."), []);
+  } finally { w.close(); }
+});
+
+/* P-F1, the second site (review R2-N3, dead in the shipped wiring and against
+   the file's own law all the same). The memory tools built over the C5 tools
+   ALONE expose no dispatch(), so the unknown-tool refusal is reachable there.
+   A tool name is the MODEL's word, and it was published as engine prose. */
+test("P-F1 an unknown tool name is refused with a FIXED sentence, and the name licenses nothing", async () => {
+  const w = await world("pf1-name");
+  try {
+    const tools = MT.createMemoryTools({ world: w, coach: w.c5 });
+    const name = "your protein target is 999 grams";
+    const r = await tools.dispatch(name, {}, "turn-pf1-name");
+    assert.equal(r.ok, false);
+    assert.equal(r.unavailable.code, "MEMORY_TOOL_NOT_IN_LIST");
+    assert.equal(r.unavailable.reason.includes(name), false,
+      "the refusal quotes the caller's tool name back: " + r.unavailable.reason);
+    assert.equal(/\d/.test(r.unavailable.reason), false,
+      "the reason carries a digit, so it licenses one: " + r.unavailable.reason);
+    assert.equal(String(r.unavailable.source).includes(name), true,
+      "the name was dropped instead of travelling as data");
+    /* and if this result ever reached a turn, it would license nothing */
+    assert.deepEqual(T.untraceable("Your protein target is 999 grams.", [r], "turn-pf1-name"), ["999"]);
+    /* POSITIVE CONTROL: the two memory tools still dispatch over the C5 tools */
+    const known = await tools.dispatch("recall", { topic: "nothing-kept-here" }, "turn-pf1-name");
+    assert.equal(known.unavailable.code, MT.MEMORY_CODES.MEMORY_ABSENT);
+  } finally { w.close(); }
+});
+
+/* P-F2. THE ALLOWANCE IS THE TURN'S, five facts over every recall in it (the
+   ruling's design point 4, as the PM's final read words it). The code bounded
+   five per CALL, so six calls in one turn published thirty (review R2-N1).
+   Two memories on each of six topics, on one installation. */
+async function sixTopics(label) {
+  const w = await world(label);
+  for (let i = 0; i < 6; i += 1) {
+    for (let j = 0; j < 2; j += 1) {
+      const saved = await w.memory.save({ memory_id: "mem-" + i + "-" + j, kind: "preference",
+        topic: "topic-" + i, text: "kept on topic " + i + ", number " + j });
+      assert.equal(saved.ok, true, JSON.stringify(saved));
+    }
+  }
+  return w;
+}
+
+test("P-F2 six topics in ONE turn yield at most FIVE facts in total, and the sixth call reads nothing", async () => {
+  const w = await sixTopics("pf2-turn");
+  try {
+    const turn = w.coach.openTurn("turn-pf2");
+    const out = [];
+    for (let i = 0; i < 6; i += 1) out.push(await turn.call.recall({ topic: "topic-" + i }));
+
+    const facts = out.filter((r) => r.ok).reduce((n, r) => n + r.values.items.length, 0);
+    assert.equal(facts, 5, "the turn published " + facts + " facts, not five");
+    /* two, two, one, then the allowance is spent */
+    assert.deepEqual(out.map((r) => (r.ok ? r.values.items.length : r.unavailable.code)),
+      [2, 2, 1, MT.MEMORY_CODES.MEMORY_TURN_BOUND, MT.MEMORY_CODES.MEMORY_TURN_BOUND,
+        MT.MEMORY_CODES.MEMORY_TURN_BOUND]);
+    /* the clipped call says MORE truthfully rather than pretending it showed all */
+    assert.equal(out[2].values.more.value, true, "the clipped recall claimed it showed everything");
+    assert.equal(out[2].values.shown.value, 1);
+    /* the spent calls READ NOTHING: no topic of theirs reaches the envelope */
+    for (const r of out.slice(3)) {
+      assert.equal(r.ok, false);
+      assert.equal(r.values.items, undefined);
+      assert.equal(/\d/.test(r.unavailable.reason), false, r.unavailable.reason);
+      const blob = JSON.stringify(r);
+      for (let i = 3; i < 6; i += 1) {
+        assert.equal(blob.includes("kept on topic " + i), false, "a memory reached a refused recall");
+      }
+    }
+    /* A SECOND TURN STARTS AT FIVE, so the bound is an allowance and not a lock */
+    const next = w.coach.openTurn("turn-pf2-second");
+    const again = await next.call.recall({ topic: "topic-5" });
+    assert.equal(again.ok, true, JSON.stringify(again.unavailable || {}));
+    assert.equal(again.values.items.length, 2);
+    assert.equal(again.values.more.value, false);
+  } finally { w.close(); }
+});
+
+test("P-F2 dispatch OUTSIDE a turn keeps the per-call bound, and no allowance leaks between turns", async () => {
+  const w = await sixTopics("pf2-dispatch");
+  try {
+    /* no openTurn: the harness called the tool directly, and the per-call bound
+       is what the tool holds to */
+    for (let i = 0; i < 6; i += 1) {
+      const r = await w.coach.dispatch("recall", { topic: "topic-" + i }, "turn-never-opened");
+      assert.equal(r.ok, true, JSON.stringify(r.unavailable || {}));
+      assert.equal(r.values.items.length, 2);
+    }
+    /* and five is still the per-call ceiling */
+    const { w: six } = await sixGoals("pf2-percall");
+    try {
+      const r = await six.coach.dispatch("recall", { topic: "goals" }, "turn-never-opened-2");
+      assert.equal(r.values.items.length, 5);
+      assert.equal(r.values.more.value, true);
+    } finally { six.close(); }
+  } finally { w.close(); }
+});
+
+/* P-F2, THE BYTE FACT, MEASURED AND NOT CLAIMED. PRB-04 holds one recall turn
+   under the standing 8 KiB budget with SHORT fixtures. This cell builds the
+   worst case the slice's own bounds permit, five facts in a turn, each text at
+   the producer's own TEXT_MAX of 400, and measures the real envelope. The figure
+   it measures is stated in model-adapter.md, and this cell READS that file and
+   refuses to pass while the two disagree: a contract that states a measurement
+   cannot drift from the measurement while this cell is green. TEXT_MAX is not
+   shrunk to make the number smaller: 400 is sourced from
+   machine-settings-commands.cjs. */
+test("P-F2 MEASURED: the worst-case recall envelope, five memories at TEXT_MAX, against the 8 KiB budget", async () => {
+  const w = await world("pf2-bytes");
+  try {
+    for (let i = 0; i < 5; i += 1) {
+      const text = ("memory number " + i + " ").padEnd(MEM.TEXT_MAX, "x").slice(0, MEM.TEXT_MAX);
+      assert.equal(text.length, MEM.TEXT_MAX);
+      const saved = await w.memory.save({ memory_id: "mem-max-" + i, kind: "preference",
+        topic: "coaching", text });
+      assert.equal(saved.ok, true, JSON.stringify(saved));
+    }
+    const turn = w.coach.openTurn("turn-pf2-bytes");
+    const r = await turn.call.recall({ topic: "coaching" });
+    assert.equal(r.ok, true, JSON.stringify(r.unavailable || {}));
+    assert.equal(r.values.items.length, 5);
+    for (const item of r.values.items) assert.equal(item.text.display.length, MEM.TEXT_MAX);
+
+    const bytes = C.turnContextBytes(turn);
+    console.log("P-F2 MEASURED worst case: one recall, five memories at TEXT_MAX, turnContextBytes " + bytes);
+    assert.ok(bytes > 8192,
+      "the worst case is now inside the standing budget (" + bytes + "): restate it in model-adapter.md");
+    assert.equal(src("model-adapter.md").includes(String(bytes)), true,
+      "model-adapter.md does not state the measured worst case " + bytes);
+  } finally { w.close(); }
+});
+
+/* P-F3. THE READ SIDE GOES THROUGH THE ONE GATE. memoriesIn() checked only that
+   memory_id is a string, so an operation that reached the generation by another
+   road than this tool, a merge or a damaged store that still authenticates,
+   could publish a text that is not a string, a kind nobody declared or a topic
+   past the 80 character bound. The write side has always gone through
+   memoryOf(); the read side now does too, and a row it refuses is COUNTED so
+   that "nothing kept" and "something here could not be read" stay different
+   answers. */
+const STAMP = { local_date: DAY, local_time: "13:00", utc_offset: "-05:00" };
+const opRow = (op_id, seq, memory) => ({ class: "event", kind: "fact", op_id, device_seq: seq,
+  causal_parents: [], effective: STAMP, payload: { profile: MEM.PROFILE, memory } });
+const damaged = () => ({ collections: { ops: {
+  "op-good": opRow("op-good", 1, GOOD()),
+  "op-text": opRow("op-text", 2, { ...GOOD(), memory_id: "mem-2", text: { display: "my target is 210 grams" } }),
+  "op-kind": opRow("op-kind", 3, { ...GOOD(), memory_id: "mem-3", kind: "instruction" }),
+  "op-topic": opRow("op-topic", 4, { ...GOOD(), memory_id: "mem-4", topic: "x".repeat(MEM.ID_MAX + 1) }),
+} } });
+
+test("P-F3 a generation with one good memory and three malformed ones reads back the good one, skipped 3", () => {
+  const generation = damaged();
+  /* the behaviour first: three rows the one gate refuses are NOT published */
+  assert.deepEqual(MEM.memoriesIn(generation).map((r) => r.op_id), ["op-good"],
+    "a memory the write gate would refuse was published by the read side");
+  /* and the count travels, so absence and unreadability stay different answers */
+  const read = MEM.readMemories(generation);
+  assert.equal(read.rows.length, 1);
+  assert.equal(read.rows[0].memory.text, GOOD().text);
+  assert.equal(read.skipped, 3);
+  /* a clean generation skips nothing, so the count is a fact and not a constant */
+  const clean = { collections: { ops: { "op-good": opRow("op-good", 1, GOOD()) } } };
+  assert.equal(MEM.readMemories(clean).skipped, 0);
+  assert.equal(MEM.readMemories(clean).rows.length, 1);
+  assert.equal(MEM.readMemories({ collections: { ops: {} } }).skipped, 0);
+  assert.deepEqual(MEM.memoriesIn(clean).map((r) => r.op_id), ["op-good"]);
+});
+
+test("P-F3 the recall envelope carries the skipped count as DATA, on the answer and on the absence", async () => {
+  const w = await world("pf3-envelope");
+  try {
+    /* the read side of the REAL host, over a hand-built generation: the store is
+       damaged, not the product */
+    const generation = damaged();
+    const lane = {
+      save: async () => ({ ok: false, state: 3, copy: null, code: "COACH_MEMORY_WRITE_REFUSED", op_id: null }),
+      read: async () => { const r = MEM.readMemories(generation);
+        return { ok: true, code: null, copy: null, rows: r.rows, skipped: r.skipped }; },
+      forTopic: async (topic) => {
+        const r = MEM.readMemories(generation);
+        const rows = MEM.forTopic(r.rows, topic);
+        return rows === null ? { ok: false, code: "COACH_MEMORY_TOPIC_REQUIRED", copy: null, rows: null }
+          : { ok: true, code: null, copy: null, rows, skipped: r.skipped };
+      },
+    };
+    const tools = MT.createMemoryTools({ world: { ...w, memory: lane }, coach: w.wave1 });
+    const turn = tools.openTurn("turn-pf3");
+
+    const r = await turn.call.recall({ topic: GOOD().topic });
+    assert.equal(r.ok, true, JSON.stringify(r.unavailable || {}));
+    assert.equal(r.values.items.length, 1, "a malformed memory reached the athlete");
+    assert.equal(r.values.items[0].text.display, GOOD().text);
+    assert.equal(r.skipped.value, 3, "the recall envelope does not say three rows could not be read");
+    assert.equal(r.skipped.licensed, false);
+    assert.equal(r.skipped.turn_id, undefined, "the skipped count is a tagged value");
+    /* the malformed text never travels, and three unreadable rows license nothing */
+    assert.equal(JSON.stringify(r).includes("210 grams"), false, "a malformed memory's text reached the envelope");
+    assert.deepEqual(turn.untraceable("I could not read 3 of them."), ["3"]);
+    T.assertNoLeak(r);
+
+    /* ABSENCE carries it too: nothing kept on this subject is a different answer
+       from three rows on this device that could not be read */
+    const none = await turn.call.recall({ topic: "no-such-topic" });
+    assert.equal(none.ok, false);
+    assert.equal(none.unavailable.code, MT.MEMORY_CODES.MEMORY_ABSENT);
+    assert.equal(none.skipped.value, 3);
+    assert.equal(none.skipped.licensed, false);
+  } finally { w.close(); }
+});
