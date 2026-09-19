@@ -275,7 +275,7 @@ F3: BRIEF-C6-VOICE-ONBOARDING.md:93 now documents the exact owner-ruled sentence
 F8: the title now says the attempted name is in routing and source. Its code,
 tool-name, fixed-reason and source assertions remain.
 
-## COPY FOR THE OWNER TO RULE
+## SUPERSEDED: copy table of round 2
 
 Every line below was printed by the named renderer's real unavailable function
 over a real envelope from the final cells. Identical outputs are grouped; where
@@ -418,6 +418,7 @@ its tables supersede the round-2 copy table and memory deferral above.
 | N5 | log_set invalid-input source is now wave1-tools.cjs log_set invalid-input refusal. Exact reason/source cell red then green. |
 | N6 | Required paragraph copied verbatim to TOOL-CONTRACT.md; exact-string comparison measured one occurrence. No confirmation surface was built. |
 | N7 | All caught values in the four tool modules go whole to provenance; .message is read inside its try. Three new throwing-getter cells cover waveDispatchCatch, onbDispatchCatch and checkinApplyCatch: red throws became coded refusals with (unprintable) in source. |
+| R3-N4 | Declared change, ruled by the PM: onboarding submit preserves a bare thrown string when it is a declared REFUSAL_SENTENCES key; the old .message read selected SETUP_INPUT_INVALID. An undeclared string still selects SETUP_INPUT_INVALID. R3 N4 TT4b loops over every declared key and one undeclared string, pinning code, unchanged saveRefused reason and provenance. |
 | N8 | All three dispatchers guard non-string names before lookup/delegation; tool becomes (not a tool name), source uses provenance(name). Three revoked-Proxy cells: red throws, green refusals including assertNoLeak. Contract corrected. |
 | N10 | The two tables below were generated from actual tool envelopes and renderer calls, including all four omitted renderer lines and old/new memory catches. |
 
@@ -558,6 +559,11 @@ The no-host-copy set row also captures the renderer's fallback sentence.
 | WAVE1_TOOL_THREW / catch/wave | C, W, O | Something went wrong inside that tool on this device. I could not complete the request. |
 | ONBOARDING_TOOL_THREW / catch/onboarding | C, W, O | Something went wrong inside that tool on this device. I could not complete the request. |
 | COACH_MEMORY_TOOL_THREW / catch/memory read, catch/memory write | C, W, O | Something went wrong inside that tool on this device. I could not complete the request. |
+
+Note for the owner: this sentence says the request was not completed; after an unknown failure the app cannot know that, in either direction. A sentence that claims nothing would be: Something went wrong inside that tool on this device.
+
+| Code / real-envelope path(s) | Renderer(s) | Whole printed line |
+|---|---|---|
 | COACH_MEMORY_INPUT_INVALID / memory/invalid input | C | I could not keep that, and I have kept nothing. Tell me again in your own words. Nothing changed. |
 | COACH_MEMORY_INPUT_INVALID / memory/invalid input | W | I could not keep that, and I have kept nothing. Tell me again in your own words. |
 | COACH_MEMORY_INPUT_INVALID / memory/invalid input | O | I could not keep that, and I have kept nothing. Tell me again in your own words. Nothing was recorded. |
@@ -801,7 +807,8 @@ rows retain their existing expected sentences. No test row was removed.
 
 Before removing the historical path, I loaded the written literal declaration
 and compared every entry with the existing helper's renderer output at 24503919
-for that captured synthetic envelope. Environment was set as shown below.
+for this head's refusal envelope: the lane's sentence with the base's ending,
+not a transcript of what 24503919 printed. Environment was set as shown below.
 Exact comparison output, while the historical helper was still present:
 
 ```text
@@ -979,4 +986,74 @@ git diff --stat (tracked paths; the new leaf and remaining helper appear in stat
  rebuild/coach/wave1-tools.cjs                    |   8 +-
  rebuild/lanes/c/COACH-TEXT-TAGS-AUTHOR-REPORT.md | 584 +++++++++++++++++++++++
  11 files changed, 996 insertions(+), 60 deletions(-)
+```
+
+## Check R3: notes landed
+
+Astra, 2026-09-19. Base fc896a52f56ac68029c20327e2c6053d45f870db,
+branch rebuild/c-coach-text-tags. Changes are uncommitted for PM4's final read.
+Only tools.cjs, text-tags.test.cjs and this report changed.
+
+| Note | Change and row |
+|---|---|
+| R3-N1 | Replaced the BASE_LINES comment with the review's exact sentence and corrected the matching report sentence. All 72 existing literal cells compare equal to HEAD. R3-N8 adds three effort cells; none of the original literals changed. |
+| R3-N2 | The model-import catch now carries the import error plus saved.code and saved.copy through provenance. New row R3 N2 rejected model import retains import error and host code and copy via provenance pins all three, the generic code/reason, no copy leak and no numeric license. TOOL-CONTRACT.md's sentence remains unchanged and is now true on this branch. |
+| R3-N3 | Wrapper pairs use local-world.mjs save() in source; model refusals retain checkin-model.mjs save(). Both R2 B1 real wrapper preserves rows now pin the exact source. |
+| R3-N4 | The PM-ruled bare-string behavior stands and is declared in the finding-to-evidence map above. New loop row R3 N4 TT4b submit preserves declared bare-string codes and rejects an undeclared string throws every declared key and one undeclared string; code, saveRefused reason and provenance are pinned. |
+| R3-N5 | Added the owner's exact note under the three catch-all rows in the current copy table. No product sentence changed. The table header resumes after the note so the remaining rows still render as a table. |
+| R3-N6 | Restored the throwing recall/forTopic read inside R2 memory catch after synthetic write makes no state claim or tail: exact code, neutral reason, absent own state_unchanged, and the same full line from all three renderers. The write assertions remain. |
+| R3-N7 | The same memory cell now asserts T.refusalHasOwnEnding(M.MEMORY_CODES.MEMORY_TOOL_THREW), pinning the exported memory code against the no-tail helper. |
+| R3-N8 | Appended COACH_EFFORT_REQUIRED as B3:16 in R1 B3 real refusal envelopes follow base endings and catch-all exceptions. The real log_set call omits effort after confirmation; code and all three full renderer lines are pinned to the owner's table. |
+| R3-N9 | Renamed only the first copy heading to SUPERSEDED: copy table of round 2; its body compares unchanged. The second COPY FOR THE OWNER TO RULE and LINES THIS LANE CHANGES OR REMOVES remain the owner's current pair. |
+
+Red first, before the two product changes: the focused text-tags file ran 66
+rows, 63 passed and 3 failed, NODE_EXIT=1. Failures were exactly the two wrapper
+source assertions and the new import-failure source assertion. The added
+bare-string row, memory-read assertions, no-tail assertion and effort matrix
+row were green controls. No test row or assertion was removed or weakened.
+
+Final Windows coach bar: 377 tests, 377 pass, 0 fail, 0 cancelled, 0 skipped,
+0 todo, NODE_EXIT=0. The focused file now has 66 rows (64 + N2 + N4), included
+in that full run; the suite grew from 375 to 377. N6/N7 extend the existing
+memory row; N8 adds one internal matrix row, making 17 rows in B3.
+
+Executed, each environment assignment on its own line before each test run:
+
+```powershell
+$env:MEASURED_TEST_NOW='2026-09-03'
+$env:TZ='America/New_York'
+& 'C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' --test --test-isolation=none --test-reporter=tap 'rebuild/coach/test/*.test.cjs'
+$env:MEASURED_TEST_NOW='2026-09-03'
+$env:TZ='America/New_York'
+& 'C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' rebuild/t2/rig187.cjs
+```
+
+rig187 PASS, NODE_EXIT=0. Node runs were sequential; coach isolation was disabled
+so the runner used one process. The client suite was not run: its existing
+reason-on-disk.test.cjs:335 calls cp.execFileSync(process.execPath, ...), which
+would start a second Node process while the test runner lives. No rows were
+skipped or modified to evade that constraint. Linux was not available here.
+No private conformance, protected soak, phone or deployed-surface check was run.
+
+Verification: git diff --check passes; added lines are ASCII; all three changed
+files use LF. All 72 existing BASE_LINES literals and all 163 table rows in the
+current owner-copy section compare unchanged against HEAD. The superseded
+first table's body is unchanged. git diff --numstat for rebuild/engine,
+rebuild/m3, rebuild/m4, rebuild/client and .github is empty. No protected data,
+auth file or forbidden path was opened; no install or git mutation was run.
+git status --porcelain:
+
+```text
+ M rebuild/coach/test/text-tags.test.cjs
+ M rebuild/coach/tools.cjs
+ M rebuild/lanes/c/COACH-TEXT-TAGS-AUTHOR-REPORT.md
+```
+
+git diff --stat:
+
+```text
+ rebuild/coach/test/text-tags.test.cjs            | 52 ++++++++++++++-
+ rebuild/coach/tools.cjs                          |  6 +-
+ rebuild/lanes/c/COACH-TEXT-TAGS-AUTHOR-REPORT.md | 81 +++++++++++++++++++++++-
+ 3 files changed, 134 insertions(+), 5 deletions(-)
 ```

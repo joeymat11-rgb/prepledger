@@ -7,7 +7,7 @@ const W = require("../wave1-tools.cjs");
 const O = require("../onboarding-tools.cjs");
 const X = require("../onboarding-text.cjs");
 
-// Captured from 24503919 on 2026-09-19: these are the lines the owner was shown.
+// Each line is this head's refusal envelope rendered by the 24503919 renderer and its refusalHasOwnEnding: the lane's sentence with the base's ending. It is not a transcript of what 24503919 printed.
 const BASE_LINES = {
   "CHECKIN_NOT_RECORDED": {
     "coach": {
@@ -190,6 +190,17 @@ const BASE_LINES = {
       "wrapper": "The check-in could not be read on this device. Nothing was recorded."
     }
   },
+  "COACH_EFFORT_REQUIRED": {
+    "coach": {
+      "B3:16": "Tell me how many clean reps you had left, or say you are unsure. Nothing changed."
+    },
+    "wave1": {
+      "B3:16": "Tell me how many clean reps you had left, or say you are unsure. Nothing was recorded."
+    },
+    "onboarding": {
+      "B3:16": "Tell me how many clean reps you had left, or say you are unsure. Nothing was recorded."
+    }
+  },
   "SLEEP_NIGHT_CHANGED": {
     "coach": {
       "wrapper": "This night changed while you were editing. Review the saved record before trying again. Nothing was recorded. Nothing changed."
@@ -296,6 +307,18 @@ test("TT4b submit preserves only declared setup codes, never inherited or prefix
     assert.equal(r.unavailable.code, known ? message : "SETUP_INPUT_INVALID");
     assert.equal(r.unavailable.reason, model.COPY.saveRefused);
     assert.ok(String(r.unavailable.source).includes(message));
+    T.assertNoLeak(r);
+  }
+});
+
+test("R3 N4 TT4b submit preserves declared bare-string codes and rejects an undeclared string", async () => {
+  const { model } = await onboarding();
+  for (const message of [...Object.keys(model.REFUSAL_SENTENCES), MARKER]) {
+    const { tools } = await onboarding({ commands: { prepare() { throw message; } } });
+    const r = await tools.dispatch("submit", { confirmed: true }, TURN);
+    assert.equal(r.unavailable.code, Object.hasOwn(model.REFUSAL_SENTENCES, message) ? message : "SETUP_INPUT_INVALID");
+    assert.equal(r.unavailable.reason, model.COPY.saveRefused);
+    assert.ok(r.unavailable.source.includes(message));
     T.assertNoLeak(r);
   }
 });
@@ -542,6 +565,9 @@ test("R1 B3 real refusal envelopes follow base endings and catch-all exceptions"
   rows.push([await tools.dispatch("log_set", { load: "hostile", reps: 8 }, TURN), SET_COPY + " Nothing was recorded."]);
   const world = { today: { read() {}, today: DAY } };
   rows.push([await M.createMemoryTools({ world, coach: T.createCoachTools(world) }).dispatch("submit", {}, TURN), NEUTRAL]);
+  const effort = await tools.dispatch("log_set", { confirmed: true, load: 110, reps: 8 }, TURN);
+  assert.equal(effort.unavailable.code, "COACH_EFFORT_REQUIRED");
+  rows.push([effort, "Tell me how many clean reps you had left, or say you are unsure."]);
   for (const [rowIndex, [r, expected]] of rows.entries()) for (const [name, renderer] of [["coach", C], ["wave1", Y], ["onboarding", X]]) {
     const line = renderer.ALL_TEMPLATES.unavailable(r.unavailable);
     const want = ["WAVE1_TOOL_THREW", "ONBOARDING_TOOL_THREW", "COACH_CONFIRMATION_REQUIRED"].includes(r.unavailable.code)
@@ -563,6 +589,13 @@ test("R2 memory catch after synthetic write makes no state claim or tail", async
   assert.equal(r.unavailable.reason, THREW_COPY);
   assert.equal(Object.hasOwn(r, "state_unchanged"), false);
   for (const renderer of [C, Y, X]) assert.equal(renderer.ALL_TEMPLATES.unavailable(r.unavailable), THREW_COPY);
+  const reader = M.createMemoryTools({ world: { ...world, memory: { forTopic() { throw new Error(MARKER); } } }, coach: T.createCoachTools(world) });
+  const read = await reader.dispatch("recall", { topic: "training" }, TURN);
+  assert.equal(read.unavailable.code, "COACH_MEMORY_TOOL_THREW");
+  assert.equal(read.unavailable.reason, THREW_COPY);
+  assert.equal(Object.hasOwn(read, "state_unchanged"), false);
+  for (const renderer of [C, Y, X]) assert.equal(renderer.ALL_TEMPLATES.unavailable(read.unavailable), THREW_COPY);
+  assert.ok(T.refusalHasOwnEnding(M.MEMORY_CODES.MEMORY_TOOL_THREW));
 });
 // Review R2: new cells, executed against unchanged product first.
 const PAIRS = [
@@ -594,6 +627,7 @@ for (const pair of PAIRS) test("R2 B1 real wrapper preserves " + pair.code, asyn
     const r = await T.createCoachTools(w).openTurn(TURN).call.answer_checkin({ confirmed: true });
     assert.equal(r.unavailable.code, pair.code);
     assert.equal(r.unavailable.reason, pair.copy);
+    assert.equal(r.unavailable.source, "local-world.mjs save(): code=" + pair.code + "; copy=" + pair.copy);
     for (const [i, renderer] of [C, Y, X].entries()) {
       assert.equal(renderer.ALL_TEMPLATES.unavailable(r.unavailable), BASE_LINES[pair.code][["coach", "wave1", "onboarding"][i]].wrapper);
     }
@@ -666,6 +700,22 @@ for (const name of ["NO_STORE", "ALREADY_RECORDED", ...PAIRS.map(pair => pair.co
 });
 test("R2 N1 own ending is independent of confirmation code", () => {
   for (const renderer of [C, Y, X]) assert.equal(renderer.ALL_TEMPLATES.unavailable({ code: "SYNTHETIC", reason: ASK_COPY }), ASK_COPY);
+});
+
+test("R3 N2 rejected model import retains import error and host code and copy via provenance", async () => {
+  const source = require("node:fs").readFileSync(require.resolve("../tools.cjs"), "utf8");
+  const specifier = 'import("../m3/w7-preview/today/checkin-model.mjs")';
+  assert.ok(source.includes(specifier));
+  const isolated = R2.fromSource("tools.cjs", source.replace(specifier, 'import("data:text/javascript,throw new Error(\'SYNTHETIC_IMPORT_FAILURE\')")'));
+  const { checkin } = await checkinWorld();
+  checkin.save = async () => ({ ok: false, code: { message: "SYNTHETIC_HOST_CODE" }, copy: { message: MARKER } });
+  const r = await isolated.createCoachTools({ today: { read() {}, today: DAY }, checkin }).openTurn(TURN).call.answer_checkin({ confirmed: true });
+  assert.equal(r.unavailable.code, "CHECKIN_NOT_RECORDED");
+  assert.equal(r.unavailable.reason, SAVE_COPY);
+  assert.equal(r.unavailable.source, "tools.cjs check-in vocabulary import: SYNTHETIC_IMPORT_FAILURE; code=SYNTHETIC_HOST_CODE; copy=" + MARKER);
+  assert.equal(JSON.stringify(r, (key, value) => key === "source" ? undefined : value).includes(MARKER), false);
+  assert.deepEqual(T.untraceable("It was 987654.", [r], TURN), ["987654"]);
+  T.assertNoLeak(r);
 });
 test("R2 N5 invalid set copy names its coach source", async () => {
   const { tools } = activeWave();

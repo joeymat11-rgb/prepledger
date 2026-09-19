@@ -722,13 +722,15 @@ function createCoachTools(world) {
         } catch (error) {
           return unavailable(tool, TIER.FACT, turn_id, "CHECKIN_NOT_RECORDED",
             "I could not record that check-in answer. Nothing was recorded.",
-            "tools.cjs check-in vocabulary import: " + provenance(error));
+            "tools.cjs check-in vocabulary import: " + provenance(error) +
+              "; code=" + provenance(saved.code) + "; copy=" + provenance(saved.copy));
         }
       }
       const known = wrapperPair || (saved.code === undefined && fixed.includes(saved.copy));
       return unavailable(tool, TIER.FACT, turn_id, wrapperPair ? saved.code : "CHECKIN_NOT_RECORDED",
         known ? saved.copy : "I could not record that check-in answer. Nothing was recorded.",
-        "checkin-model.mjs save(): code=" + provenance(saved.code) + "; copy=" + provenance(saved.copy));
+        (wrapperPair ? "local-world.mjs" : "checkin-model.mjs") + " save(): code=" +
+          provenance(saved.code) + "; copy=" + provenance(saved.copy));
     }
     const view = checkin.read();
     return assertNoLeak(ok(tool, TIER.FACT, turn_id, {
