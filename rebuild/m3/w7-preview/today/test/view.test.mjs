@@ -99,7 +99,15 @@ test("Today paints the approved design from engine values only", async () => {
   assert.equal(doc.querySelector(".brand").textContent, "Earned");
   assert.equal(doc.querySelector(".label").textContent, "Your plan for today");
   assert.equal(slot(doc, "instruction").textContent, plainCopy(reference.nowModel(state).move.title));
-  assert.equal(slot(doc, "instruction-why").textContent, plainCopy(reference.marchingOrder(state).why));
+  /* S9-TODAY-CARRY, S2 (DECISIONS:534 (b)). The slot carries the engine's WHOLE marching
+     order - the cue, the action it belongs under and the reason - and not the reason
+     alone, which is a subordinate clause and read on the owner's phone as a sentence
+     starting in its middle. Composed here from the REFERENCE engine's own parts. */
+  const order = reference.marchingOrder(state);
+  assert.equal(slot(doc, "instruction-why").textContent,
+    plainCopy(order.ifText + ", " + order.thenText + ": " + order.why));
+  assert.notEqual(slot(doc, "instruction-why").textContent, plainCopy(order.why),
+    "the slot is back to printing the clause alone");
   assert.equal(slot(doc, "workout-title").textContent, plainCopy(reference.nowModel(state).workout.title));
   assert.equal(slot(doc, "workout-count").textContent,
     reference.genSession(state, DAY, null).ex.length + " exercises · Your set targets are ready");
@@ -115,7 +123,15 @@ test("the primary action before a weigh-in is the engine's own marching order", 
   const kit = await setup();
   const view = kit.model.read();
   assert.equal(slot(kit.doc, "primary-label").textContent.toLowerCase(), view.marchingOrder.thenText.toLowerCase());
-  assert.equal(slot(kit.doc, "instruction-why").textContent, plainCopy(view.marchingOrder.why));
+  /* S9-TODAY-CARRY, S2. Same law at the other end of the same binding: whole sentence,
+     the engine's own words, and never the clause on its own. */
+  const order = view.marchingOrder;
+  assert.equal(slot(kit.doc, "instruction-why").textContent,
+    plainCopy(order.ifText + ", " + order.thenText + ": " + order.why));
+  assert.match(slot(kit.doc, "instruction-why").textContent, /^[A-Z]/,
+    "the sentence under the instruction still starts mid clause");
+  assert.notEqual(slot(kit.doc, "instruction-why").textContent, plainCopy(order.why),
+    "the slot is back to printing the clause alone");
   kit.close();
 });
 

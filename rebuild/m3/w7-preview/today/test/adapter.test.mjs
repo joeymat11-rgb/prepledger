@@ -41,6 +41,41 @@ const generationOf = async repository => (await repository.load()).generation;
 const opsOf = async repository => Object.values((await generationOf(repository)).collections.ops || {});
 const outboxOf = async repository => Object.values((await generationOf(repository)).collections.outbox || {});
 
+/* THE HEADLINE LAW (S9-TODAY-CARRY; review R1 note N5 on P3-TODAY-HOTFIX). Two cells below
+   asserted a bare identity - the Today projection's move title IS the reference engine's -
+   and were green only because no fixture carries a proposal. DECISIONS:534 (a) deliberately
+   breaks that identity for a state with an OPEN PROPOSAL: the engine makes the first
+   unresolved card's title the move (rebuild/engine/today.cjs:568-582), this page has no
+   proposal card, and so the headline comes from the same engine over the same state with
+   its proposals set aside. Both halves are stated here so what is pinned is the law and not
+   the half a fixture happens to reach; the identity half still holds for every proposal-free
+   state, which is every state these cells build, and that is asserted rather than assumed. */
+const PROPOSAL_TITLE = "A CARD TITLE THAT IS NOT TODAY'S SESSION";
+function assertHeadlineLaw(view, state) {
+  const open = (state.proposals || []).filter(p => p && !p.resolved).length
+    + (state.agentProposals || []).length;
+  assert.equal(open, 0, "this state carries no open proposal, so the identity is the law for it");
+
+  const reference = createEngine({ clock: engineClockFor(DAY) });
+  assert.equal(view.nowModel.move.title, reference.nowModel(state).move.title,
+    "with nothing open, Today's headline is the engine's own move, word for word");
+
+  /* The hotfix shape, over the SAME state with one proposal added. */
+  const waiting = JSON.parse(JSON.stringify(state));
+  waiting.proposals = [{ id: "adapter-law", rid: "adapter-law", d: DAY, resolved: false,
+    title: PROPOSAL_TITLE, why: "Synthetic proposal, this cell's own." }];
+  const bare = JSON.parse(JSON.stringify(waiting));
+  bare.proposals = [];
+  const projected = TodayModel.projectionOf(createEngine({ clock: engineClockFor(DAY) }), waiting);
+  assert.equal(reference.nowModel(waiting).move.title, PROPOSAL_TITLE,
+    "the engine no longer puts the card title on the move, so this law guards nothing");
+  assert.notEqual(projected.nowModel.move.title, PROPOSAL_TITLE,
+    "a decision card's title is the headline over 'Your plan for today' again");
+  assert.equal(projected.nowModel.move.title, reference.nowModel(bare).move.title,
+    "the headline is not the engine's own answer for the same state with its proposals set aside");
+  assert.equal(projected.nowModel.decisionsN, 1, "the count of what is waiting is not the real state's");
+}
+
 test("the composed engine's applyRead is byte-identical to the full engine's", () => {
   const model = createTodayModel({});
   const reference = createEngine({ clock: engineClockFor(DAY) });
@@ -123,7 +158,7 @@ test("the instruction changes because the ENGINE changed", async () => {
   const after = kit.model.read();
   const reference = createEngine({ clock: engineClockFor(DAY) });
   const state = reference.applyRead(createBasisState(DAY), DAY, 176.2, { hour: 8 });
-  assert.equal(after.nowModel.move.title, reference.nowModel(state).move.title);
+  assertHeadlineLaw(after, state);
   assert.notEqual(after.nowModel.headed.weight, before.nowModel.headed.weight);
   kit.readings.close();
 });
@@ -256,7 +291,7 @@ test("every number in the view DTO is reproduced independently from the engine",
   assert.equal(view.calorieTarget.hi, reference.calorieTarget(state).hi);
   assert.equal(view.proteinTarget.g, reference.proteinTarget(state).g);
   assert.equal(view.nowModel.headed.weight, reference.nowModel(state).headed.weight);
-  assert.equal(view.nowModel.move.title, reference.nowModel(state).move.title);
+  assertHeadlineLaw(view, state);
   assert.equal(view.workout.title, reference.nowModel(state).workout.title);
   assert.equal(view.workout.exerciseCount, reference.genSession(state, DAY, null).ex.length);
   kit.readings.close();

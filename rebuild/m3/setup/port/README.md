@@ -191,6 +191,19 @@ UTF-8 of `JSON.stringify(["earned/local-import-bundle/v1", sourceSha256])`; the
 passphrase is NFKD-normalised before it is used. Those map one-to-one onto
 WebCrypto (`deriveBits` then `crypto.subtle.decrypt` with `additionalData`).
 
+One correction to the sentence above, since DECISIONS:520. NFKD is the whole of
+it on the SEALING side only: `deriveKey` is unchanged and still derives from
+NFKD alone, which is why every bundle sealed before that date still opens. On
+the IMPORT side the TYPED passphrase first passes through
+`passphrase.cjs normalisePassphrase()`, the one canonical form shared by this
+decoder and the phone's: NFKD, then lower case, then every run of separators
+between words (any Unicode whitespace, hyphen-minus, U+2010 to U+2015, U+2212,
+underscore, comma, full stop) collapsed to a single hyphen-minus, ends trimmed.
+So the six words open the file typed with spaces or with hyphens and in any
+case, which is what the PC's own printed form and a phone keyboard disagreed
+about. Whoever builds another decoder must read that helper, not re-implement
+it: two implementations of this idea drifting apart is the defect it exists for.
+
 The payload carries the ORIGINAL source bytes as base64 alongside the migrated
 state, so the phone's import-custody can keep the immutable original exactly as
 its own profile requires. It also carries the counts, the gate verdict and the
