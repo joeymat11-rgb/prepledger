@@ -159,6 +159,24 @@ test("S2 - with no marching order there is no half sentence, so the slot falls b
   assert.equal(typeof view.orderSentence, "string", "the fixture shape still composes one");
 });
 
+/* The LITERAL RUNS of a vocabulary entry: the words an athlete reads whatever the entry's
+   ${...} placeholders resolve to. `covers` asks whether one entry's literal runs appear, in
+   order, inside a headline the product actually rendered. */
+const literalRuns = (entry) => entry.split(/\$\{[^}]*\}/)
+  .map((run) => plainCopy(run, "instruction").trim().toUpperCase())
+  .filter((run) => run.length >= 3);
+function covers(entry, rendered) {
+  const runs = literalRuns(entry);
+  if (!runs.length) return false;
+  let at = 0;
+  for (const run of runs) {
+    const found = rendered.indexOf(run, at);
+    if (found < 0) return false;
+    at = found + run.length;
+  }
+  return true;
+}
+
 test("S2 - the headline vocabulary now sees the title the owner actually read", () => {
   /* DECISIONS:534 (b). design.cjs harvested only quoted `title:` literals, so the volume
      push card's title - a template literal passed as propose()'s second argument, and the
@@ -168,8 +186,32 @@ test("S2 - the headline vocabulary now sees the title the owner actually read", 
   const earned = titles.filter((t) => t.includes("EARNED VOLUME:"));
   assert.equal(earned.length > 0, true, "the EARNED VOLUME card title is still invisible to the layout gate");
   assert(titles.some((t) => t.includes("VOLUME +1")), "a template-literal title is still unseen");
+
+  /* REVIEW R1, NOTE N7. What stood here - every entry equals its own upper case - could not
+     fail: headlineVocabulary upper-cases each entry as it collects it (design.cjs, the
+     `.toUpperCase()` on the add), so the assertion was satisfied by construction, which is
+     the exact flaw R1 M2 raised against the S1 cell. Two falsifiable questions replace it.
+     First: do the vocabulary's own literal words cover the headline the owner READ? The
+     tip's collector finds 15 entries and not one of them covers it; this branch's finds 30
+     and one does, so this assertion is red against the unchanged design.cjs. */
+  const rendered = plainCopy(OWNER_TITLE, "instruction").toUpperCase();
+  assert(titles.some((t) => covers(t, rendered)),
+    "no entry's literal words cover the headline the owner read: " + rendered);
+
+  /* Second: the headline the product actually puts in the slot, for every shape this cell
+     walks and for the imported shape with a decision open, is a string the approved layout
+     is measured against. This ties the S1 fix to the gate: a projection that let a card
+     title through again renders a string no entry carries, and this goes red. */
+  const waiting = importedShape();
+  waiting.proposals = [proposal(IMPORT_DAY)];
+  const walked = [...shapes(), { name: "imported + open proposal", state: waiting, day: IMPORT_DAY }];
+  for (const shape of walked) {
+    const headline = viewOf(shape.state, shape.day).nowModel.move.title;
+    assert(titles.includes(headline),
+      shape.name + ": the headline is outside the measured vocabulary: " + headline);
+  }
+
   for (const title of titles) {
-    assert.equal(title, title.toUpperCase(), "the slot renders titles in upper case: " + title);
     const plain = plainCopy(title, "instruction");
     assert.equal(DASH.test(plain), false, "a dash survives the normaliser: " + title);
   }
