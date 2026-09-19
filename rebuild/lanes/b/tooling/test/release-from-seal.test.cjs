@@ -181,7 +181,7 @@ try {
      error. Both consts are initialised long before this line runs, so there
      is no temporal-dead-zone case to worry about. */
   m._compile(fixtureSource.slice(0, fixtureSource.indexOf(delimiter)) +
-    '\nmodule.exports={product,proposed,pins,sealedRunReceipt,writeSealedRunReceipt,childArgv,same,' +
+    '\nmodule.exports={product,proposed,pins,sealedRunReceipt,writeSealedRunReceipt,childArgv,same,keys,' +
     'PRODUCT_ROLES,SPEC_KEYS,ARTIFACT_KEYS,FAIL_CODES,failCode,VERDICT_FILE,CHAIN_REF,' +
     "releaseRuling:typeof releaseRuling==='function'?releaseRuling:null," +
     "RELEASE_GRANT_SHAPE:typeof RELEASE_GRANT_SHAPE==='string'?RELEASE_GRANT_SHAPE:null," +
@@ -260,6 +260,41 @@ test('B.8 (1) - "released" is the SIXTH role, fixed at PRODUCT_ROLES and nowhere
      releaseRuling(), below. */
   assert(api.SPEC_KEYS.includes('release'));
   assert(api.ARTIFACT_KEYS.includes('released'));
+});
+
+/* ===== B.8 (1b) H4 and H5, THE TWO HUNKS THAT LIVE INSIDE spec() ========
+   FOUND BY THE MUTATION TABLE, and said plainly rather than left out: this is
+   a SOURCE pin and not an execution, because spec() cannot be called from a
+   lane-B cell. It reads packages/<ID>.json off disk, holds it to its own bytes
+   IN GIT at HEAD, and then validates a whole envelope - parent options, laws,
+   coverage, children, authorizations, artifact coordinates - so exercising it
+   needs a fixture package rather than a fixture object, which is its own
+   round's work. Every OTHER hunk in this suite is measured by executing the
+   runner; these two are measured by reading it, and the difference is stated
+   here so a reviewer does not have to infer it. Reverting either one turns
+   this cell red, which is the property the mutation table asked for.
+   The house precedent for a source pin is gate-supersession.test.cjs, which
+   asserts the runner's own refusal text at three sites the same way. */
+test('B.8 (1b) - H4 and H5 stand at their sites in spec(), pinned by reading the runner', () => {
+  // H4: a released pin declares no post-image, and the refusal has its own name.
+  assert(source.includes("assert(pin.role !== 'released' || pin.post === null,"),
+    'H4 stands in the spec() product loop');
+  assert(source.includes("'PRODUCT-RELEASED-DECLARES-A-POST ' + file"),
+    'and it refuses by name, so it can never print a bare FAIL');
+  assert(api.FAIL_CODES.has('PRODUCT-RELEASED-DECLARES-A-POST'));
+  // H5: the freeze pattern, which is what makes `release` an OPTIONAL key. The
+  // expression itself is exercised below through the runner's own keys() and
+  // SPEC_KEYS, so the RULE is executed even though the call site is only read.
+  assert(source.includes("keys({ ...s, release: null }, SPEC_KEYS, 'Closed package-spec keys');"),
+    'H5 closes the spec keys with the freeze pattern');
+  assert(source.includes("keys(s.release, ['rulingLineSha256'], 'Release grant citation');"),
+    'and the block has a closed key set of its own');
+  assert(api.FAIL_CODES.has('RELEASE-BLOCK-SHAPE'));
+  const base = Object.fromEntries(api.SPEC_KEYS.filter(k => k !== 'release').map(k => [k, null]));
+  api.keys({ ...base, release: null }, api.SPEC_KEYS, 'a spec that carries no release block');
+  api.keys({ ...base, release: { rulingLineSha256: 'a'.repeat(64) } }, api.SPEC_KEYS, 'and one that does');
+  assert.throws(() => api.keys({ ...base, release: null, invented: 1 }, api.SPEC_KEYS, 'closed'),
+    /closed/, 'and any OTHER key is still refused, which is what "optional" must not cost');
 });
 
 /* ==== B.8 (2) the parent-pin branch, the one place a role is judged ====== */
