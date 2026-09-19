@@ -53,6 +53,14 @@ const REGIONS = opt("regions", path.join(__dirname, "regions.json"));
 const QUIET = argv.includes("--quiet");
 const WIRE = argv.includes("--wire");
 const ONLY_REF = opt("witness", null);
+/* --product writes the PRODUCT form of a cut: the authored banner, factory line and return
+   line come from regions.json's `product` block instead of the spike's own WRAPPER, and the
+   released half gets the `compose` block's declared lines instead of the --wire shim. Every
+   authored byte is then in the table, where a reviewer reads it beside the regions it wraps,
+   rather than inside an instrument. --only limits the cut to the files named, so a round
+   that ships two of the three cuts cannot emit the third by accident. */
+const PRODUCT = argv.includes("--product");
+const ONLY = (opt("only", "") || "").split(",").map((s) => s.trim()).filter(Boolean);
 if (!ROOT || !OUT) { console.error("usage: cut.cjs --root <worktree> --out <dir>"); process.exit(2); }
 
 /* The DEV instrument: acorn 8, installed by the PM outside the repository. It is never a
@@ -162,6 +170,7 @@ const report = { root: ROOT, files: {}, substitutions: [], seams: [], drift: [],
 const linemap = {};
 
 for (const [file, regions] of Object.entries(table.files)) {
+  if (ONLY.length && !ONLY.includes(file)) continue;
   const srcPath = path.join(ROOT, TODAY, file);
   const src = fs.readFileSync(srcPath, "utf8");
   const lines = src.split("\n");
@@ -169,12 +178,23 @@ for (const [file, regions] of Object.entries(table.files)) {
 
   /* overlap */
   const sorted = resolved.slice().sort((a, b) => a.start - b.start);
+  /* Two regions may not overlap, with ONE declared exception: a `replace` region nested
+     wholly inside a `seam` region. A seam is an annotation - cut.cjs leaves every seam line
+     where it is - so a replace inside one is not two claims on the same bytes, it is the
+     seam saying which of its own lines the interface rewrites. gym-app.mjs's SEAM G1
+     (recordSettings, :286-:318) is the case: the function stays released and byte-identical
+     apart from the two declared rows that reach the sealed lane. The nesting is recorded. */
+  report.nested = report.nested || [];
   for (let i = 1; i < sorted.length; i += 1) {
-    if (sorted[i].start <= sorted[i - 1].end) {
-      fail(file + ": regions " + sorted[i - 1].r.id + " [" + sorted[i - 1].start + "," +
-        sorted[i - 1].end + "] and " + sorted[i].r.id + " [" + sorted[i].start + "," +
-        sorted[i].end + "] OVERLAP");
+    const prev = sorted[i - 1], here = sorted[i];
+    if (here.start > prev.end) continue;
+    const nested = prev.r.kind === "seam" && here.r.kind === "replace"
+      && here.start >= prev.start && here.end <= prev.end;
+    if (!nested) {
+      fail(file + ": regions " + prev.r.id + " [" + prev.start + "," + prev.end + "] and " +
+        here.r.id + " [" + here.start + "," + here.end + "] OVERLAP");
     }
+    report.nested.push({ file, seam: prev.r.id, replace: here.r.id, lines: [here.start, here.end] });
   }
   for (const x of sorted) {
     if (x.start !== x.r.tipLines[0] || x.end !== x.r.tipLines[1]) {
@@ -250,13 +270,24 @@ for (const [file, regions] of Object.entries(table.files)) {
   const dest = table.dest[file];
 
   /* the sealed module */
+  const P = PRODUCT ? (table.product || {})[dest] : null;
+  if (PRODUCT && !P) {
+    fail(file + ": --product, but regions.json declares no product block for " + dest +
+      ". A product file's authored lines are declared in the table, never invented by the" +
+      " instrument. Use --only to leave this cut out of the round.");
+  }
   const W = WRAPPER[dest];
   const sealedLines = [];
   const sealedMap = [];
   const pushLine = (t, src_) => { sealedLines.push(t); sealedMap.push(src_ || null); };
-  for (const l of W.head.split("\n").slice(0, -1)) pushLine(l);
-  pushLine("");
-  pushLine(W.open);
+  if (P) {
+    for (const l of P.head) pushLine(l);
+    pushLine(P.open);
+  } else {
+    for (const l of W.head.split("\n").slice(0, -1)) pushLine(l);
+    pushLine("");
+    pushLine(W.open);
+  }
   let subCount = 0, verbatimFails = 0;
   for (const m of moves) {
     const body = lines.slice(m.start - 1, m.end).join("\n");
@@ -275,7 +306,8 @@ for (const [file, regions] of Object.entries(table.files)) {
     }
     pushLine("");
   }
-  for (const l of W.close.split("\n")) pushLine(l);
+  if (P) { for (const l of P.close) pushLine(l); pushLine(""); }
+  else for (const l of W.close.split("\n")) pushLine(l);
   const destPath = path.join(OUT, dest);
   fs.writeFileSync(destPath, sealedLines.join("\n"));
   linemap[dest] = sealedMap;
@@ -308,10 +340,21 @@ for (const [file, regions] of Object.entries(table.files)) {
      the output can actually be required and the suites can be run against it. Without it
      the output is a PURE MOVE that node --check passes and node cannot run, which is the
      spike's default and the state the census is measured in. */
-  const wiring = WIRE ? (table.wiring || {})[file] : null;
+  const wiring = PRODUCT ? (table.compose || {})[file] : (WIRE ? (table.wiring || {})[file] : null);
+  if (PRODUCT && !wiring) {
+    fail(file + ": --product, but regions.json declares no compose block for it. The released" +
+      " half's composition lines are declared in the table too (S-R25: the PM reads exactly" +
+      " the hand-written lines).");
+  }
   const keptLines = [];
   const keptMap = [];
   for (let n = 1; n <= lines.length; n += 1) {
+    /* PRODUCT: the module-level lines the released half gains, anchored by exact text. */
+    if (wiring && wiring.after && lines[n - 1] === wiring.after) {
+      keptLines.push(lines[n - 1]); keptMap.push({ file, line: n, region: null });
+      for (const l of wiring.afterLines) { keptLines.push(l); keptMap.push({ file, line: 0, region: "COMPOSE" }); }
+      continue;
+    }
     if (wiring && drop.has(n)) {
       const at = moves.find((m) => m.r.id === wiring.at);
       if (at && n === at.start) for (const l of wiring.insert) { keptLines.push(l); keptMap.push({ file, line: 0, region: "WIRE" }); }
@@ -363,6 +406,7 @@ for (const [file, regions] of Object.entries(table.files)) {
   const MOUNTS = { "today-app.cjs": "mountToday", "gym-app.mjs": "mountGym", "today-model.cjs": "createTodayModel" };
   report.bootOrder = {};
   for (const [file, regions] of Object.entries(table.files)) {
+    if (ONLY.length && !ONLY.includes(file)) continue;
     const src = fs.readFileSync(path.join(ROOT, TODAY, file), "utf8");
     const lines = src.split("\n");
     const resolved = regions.map((r) => ({ r, ...resolve(lines, r, file) }))

@@ -212,12 +212,17 @@ test("S-R21: the five boot seams are declared `replace` rows, each with its repl
   for (const [file, rs] of Object.entries(table.files)) {
     for (const r of rs) if (r.kind === "replace") rows.push({ file, r });
   }
-  assert.strictEqual(rows.length, 5, "S-R21 rules FIVE boot seams as replace regions, saw " + rows.length);
+  const boot = rows.filter(({ r }) => /BOOT SEAM/.test(r.note || ""));
+  assert.strictEqual(boot.length, 5, "S-R21 rules FIVE boot seams as replace regions, saw " + boot.length);
   for (const { r } of rows) {
     assert.ok(Array.isArray(r.replacement) && r.replacement.length,
       r.id + " is kind replace with no declared replacement row");
-    assert.ok(r.note && /BOOT SEAM/.test(r.note), r.id + " does not say which boot seam it is");
+    assert.ok(r.note, r.id + " has no note saying what it is");
   }
+  /* The gym cut's own released rewrites are replace rows too, and every one of them is a
+     declared statement rewrite the build report lists. They are counted separately from the
+     five boot seams so that a later round cannot quietly turn one into the other. */
+  assert.ok(rows.length > boot.length, "the gym cut's released rewrites are replace rows as well");
 });
 
 test("RED S-R21: a `replace` region with no declared replacement is REFUSED", () => {

@@ -50,6 +50,24 @@
    "to": "    setMessage(null);",
    "kind": "statement rewrite (S-R17 (g) STOP)",
    "why": "F.1 (c) W6 - a FIFTH site F.1 does not name, and it is in reopen, not weighIn"
+  },
+  {
+   "id": "W7a",
+   "file": "gym-app.mjs",
+   "region": "GA-S03",
+   "from": "return paint();",
+   "to": "return painter.repaint();",
+   "kind": "call-target rewrite (ordinary under S-R17 (g))",
+   "why": "B.9 / D.1 W7: the sealed read repaints the card through the paint handle."
+  },
+  {
+   "id": "W7b",
+   "file": "gym-app.mjs",
+   "region": "GA-S04",
+   "from": "await paint();",
+   "to": "await painter.repaint();",
+   "kind": "call-target rewrite (ordinary under S-R17 (g))",
+   "why": "B.9 / D.1 W7: the sealed open repaints the card through the paint handle."
   }
  ],
  "wiring": {
@@ -1113,6 +1131,70 @@
     }
    },
    {
+    "id": "GA-R01",
+    "kind": "replace",
+    "dest": null,
+    "note": "B.9 interface: the released settingsPaint reads the sealed lane and opens it. The read goes through the facade and the open through the callback table.",
+    "tipLines": [
+     246,
+     246
+    ],
+    "first": {
+     "text": "    if (!settingsLane) { block.hidden = true; editor.hidden = true; openSettingsLane(); return; }",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (!settingsLane) { block.hidden = true; editor.hidden = true; openSettingsLane(); return; }",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (!facade.lane()) { block.hidden = true; editor.hidden = true; hooks.open(); return; }"
+    ]
+   },
+   {
+    "id": "GA-R02",
+    "kind": "replace",
+    "dest": null,
+    "note": "B.9 interface: the released card asks the sealed read cache whether it holds this lift and starts a read if not. Both lines keep their shape; only the owner of the cache changes.",
+    "tipLines": [
+     251,
+     252
+    ],
+    "first": {
+     "text": "    if (!settingsRead.has(liftId)) startSettingsRead(liftId);",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const entry = settingsRead.get(liftId) || null;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (!facade.hasRead(liftId)) hooks.startRead(liftId);",
+     "    const entry = facade.entryFor(liftId);"
+    ]
+   },
+   {
+    "id": "GA-R03",
+    "kind": "replace",
+    "dest": null,
+    "note": "THE ROW B.9 NEVER HAD, spike finding 1: gym-app.mjs:279 is the gym card's only RELEASED ASSIGNS A SEALED BINDING row (settingsSaving is declared at :125 and GA-S01 moves it sealed). The in-flight promise is handed to the seal, which assigns it; no released line assigns a sealed binding after this.",
+    "tipLines": [
+     279,
+     279
+    ],
+    "first": {
+     "text": "      settingsSaving = recordSettings(map, view, paintedDraft);",
+     "nth": 1
+    },
+    "last": {
+     "text": "      settingsSaving = recordSettings(map, view, paintedDraft);",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      hooks.saving(recordSettings(map, view, paintedDraft));"
+    ]
+   },
+   {
     "id": "GA-M01",
     "kind": "seam",
     "dest": null,
@@ -1129,6 +1211,50 @@
      "text": "  }",
      "nthFrom": 1
     }
+   },
+   {
+    "id": "GA-R04",
+    "kind": "replace",
+    "dest": null,
+    "note": "SEAM G1's own durable call. The lane comes through the facade; the DECISION to save is still the released recordSettings', which is the S-R17 (g) STOP this part REPORTS and does not bend: B.9's token protocol that moves the decision inside the seal is part 2.",
+    "tipLines": [
+     305,
+     306
+    ],
+    "first": {
+     "text": "    try { result = await settingsLane.save(machine); }",
+     "nth": 1
+    },
+    "last": {
+     "text": "    finally { save.disabled = false; }",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    try { result = await facade.lane().save(machine); }",
+     "    finally { save.disabled = false; }"
+    ]
+   },
+   {
+    "id": "GA-R05",
+    "kind": "replace",
+    "dest": null,
+    "note": "SEAM G1's tail: the cached read for the lift is dropped and re-started through the callback table.",
+    "tipLines": [
+     316,
+     317
+    ],
+    "first": {
+     "text": "    settingsRead.delete(view.lift.id);",
+     "nth": 1
+    },
+    "last": {
+     "text": "    await startSettingsRead(view.lift.id);",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    hooks.dropRead(view.lift.id);",
+     "    await hooks.startRead(view.lift.id);"
+    ]
    },
    {
     "id": "GA-M02",
@@ -1219,6 +1345,33 @@
      "text": "      const started = await model.start();",
      "nthFrom": 1
     }
+   },
+   {
+    "id": "GA-R06",
+    "kind": "replace",
+    "dest": null,
+    "note": "THE SECOND RETURNED API, spike finding 2: first.settings at :569-:579 hands out FIVE sealed bindings and B.9 discusses this file without mentioning it has an api at all. Every one of the five now comes through the facade. lane() still hands out the lane object itself, which is B.7's pass-through class and E.5 red row 14's third planted case.",
+    "tipLines": [
+     570,
+     576
+    ],
+    "first": {
+     "text": "    pending: () => settingsSaving,",
+     "nth": 1
+    },
+    "last": {
+     "text": "    stateFor: (liftId) => (settingsRead.has(liftId) ? settingsRead.get(liftId).state : 'reading'),",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    pending: () => facade.pending(),",
+     "    ready: () => facade.ready(),",
+     "    lane: () => facade.lane(),",
+     "    /* The optional read, exposed so a CHECK can wait for it. Nothing on the card",
+     "       waits for it, which is the whole point of finding 1. */",
+     "    read: () => facade.reading(),",
+     "    stateFor: (liftId) => facade.stateFor(liftId),"
+    ]
    }
   ],
   "today-model.cjs": [
@@ -2121,6 +2274,114 @@
       2442
      ]
     }
+   },
+   "GA-R01": {
+    "tip": {
+     "sha256": "7734d038382c3a259ddd0c1d3d1050c0f4e6ccc3ac9b5cc50950eeff7baeab37",
+     "lines": 1,
+     "at": [
+      246,
+      246
+     ]
+    },
+    "s9": {
+     "sha256": "7734d038382c3a259ddd0c1d3d1050c0f4e6ccc3ac9b5cc50950eeff7baeab37",
+     "lines": 1,
+     "at": [
+      246,
+      246
+     ]
+    }
+   },
+   "GA-R02": {
+    "tip": {
+     "sha256": "fd03a08cdf49d8964bff889f4c23b55cef9b495457e13243d5ec02b02c5a24d6",
+     "lines": 2,
+     "at": [
+      251,
+      252
+     ]
+    },
+    "s9": {
+     "sha256": "fd03a08cdf49d8964bff889f4c23b55cef9b495457e13243d5ec02b02c5a24d6",
+     "lines": 2,
+     "at": [
+      251,
+      252
+     ]
+    }
+   },
+   "GA-R03": {
+    "tip": {
+     "sha256": "715c2a090055770cade0cc96f4ebf1d015a06903ad183b994581bc684fc25732",
+     "lines": 1,
+     "at": [
+      279,
+      279
+     ]
+    },
+    "s9": {
+     "sha256": "715c2a090055770cade0cc96f4ebf1d015a06903ad183b994581bc684fc25732",
+     "lines": 1,
+     "at": [
+      279,
+      279
+     ]
+    }
+   },
+   "GA-R04": {
+    "tip": {
+     "sha256": "7d9b30a121273df0e34581afccce0d2e3d6c9c9f71c01e5ca41ddfd113d7f820",
+     "lines": 2,
+     "at": [
+      305,
+      306
+     ]
+    },
+    "s9": {
+     "sha256": "7d9b30a121273df0e34581afccce0d2e3d6c9c9f71c01e5ca41ddfd113d7f820",
+     "lines": 2,
+     "at": [
+      305,
+      306
+     ]
+    }
+   },
+   "GA-R05": {
+    "tip": {
+     "sha256": "4127bebdd27a01b1a4535cc03a1a5e910a1fd659f2f0b301959551e651de0a17",
+     "lines": 2,
+     "at": [
+      316,
+      317
+     ]
+    },
+    "s9": {
+     "sha256": "4127bebdd27a01b1a4535cc03a1a5e910a1fd659f2f0b301959551e651de0a17",
+     "lines": 2,
+     "at": [
+      316,
+      317
+     ]
+    }
+   },
+   "GA-R06": {
+    "tip": {
+     "sha256": "bf4ba4ddd153daa9c611d66a39105d22363b6fbf11cbba4487b904b3ee76a2bd",
+     "lines": 7,
+     "at": [
+      570,
+      576
+     ]
+    },
+    "s9": {
+     "sha256": "bf4ba4ddd153daa9c611d66a39105d22363b6fbf11cbba4487b904b3ee76a2bd",
+     "lines": 7,
+     "at": [
+      570,
+      576
+     ]
+    }
    }
   },
   "movedLines": {
@@ -2143,6 +2404,162 @@
   "painter": "painter",
   "rejected": {
    "on": "NOT FREE: 2 occurrences in code position, today-app.cjs:2027-:2028, inside the MOVE region TA-S33, which land at today-lanes.cjs:623-:624 and shadow the callback table for the body of that loop (R3 BLOCKING-4)."
+  }
+ },
+ "product": {
+  "today-readings.cjs": {
+   "why": "spec F.1, DECISIONS:550 S-R10. Every line here is AUTHORED and is listed in the build report by file and line; everything between them is moved bytes.",
+   "head": [
+    "\"use strict\";",
+    "/* today-readings.cjs - THE WEIGH-IN WRITER, SEALED (DECISIONS:550 S-R10, spec F.1).",
+    " *",
+    " * The two functions in this file are the only ones in the Today model that can put a row",
+    " * of the athlete's weigh-in log on disk, and the four sentences they refuse in. They were",
+    " * CUT OUT of today-model.cjs by rebuild/lanes/c/today-split-spike/cut.cjs, region by",
+    " * region, byte for byte: TM-S01, TM-S02 and TM-S03. Their bytes were compared against a",
+    " * sha256 recorded at two named refs BEFORE anything was written (S-R19), and the five",
+    " * lastMessage rewrites are the only substitutions, each one a declared row.",
+    " *",
+    " * THE ONLY AUTHORED LINES ARE THIS BANNER, THE FACTORY LINE BELOW AND THE RETURN LINE AT",
+    " * THE END, and all three are declared in regions.json's product block, not invented by",
+    " * the instrument.",
+    " *",
+    " * WHY IT IS ITS OWN FILE, and not inside today-lanes.cjs. today-model.cjs is constructed",
+    " * by every cell and by today-entry.mjs without a document; today-lanes.cjs is mountToday's",
+    " * partner and is constructed per mount. Putting the reading writer there would make the",
+    " * model depend on the page's mount for no gain. And read() with its whole projection has",
+    " * to stay FREE, so that a look ticket needing one more field on the view does not go back",
+    " * through a reseal child; the writer cannot stay beside it, so the writer leaves.",
+    " *",
+    " * WHAT IT MAY NOT GAIN. Athlete-facing copy: the four constants below are the whole of it,",
+    " * they are named one by one in the writer fence, and a FIFTH literal is a RED row",
+    " * (DECISIONS:562 S-R22, :550 S-R13). Nothing here reads the DOM, installs a listener or",
+    " * paints, and nothing here composes a sentence out of a value.",
+    " *",
+    " * EVERY BINDING IT NEEDS IS INJECTED, and the seven are a MEASUREMENT, not a choice: the",
+    " * machine census over the cut's own output named them. read() is the seventh, because",
+    " * reopen() calls the released read(), and the build does not go green without it.",
+    " */",
+    ""
+   ],
+   "open": "function createReadingsWriter({ day, readings, adoptedRead, stateFromOps, read, NO_STORE, setMessage }) {",
+   "close": [
+    "  return { weighIn, reopen, ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX };",
+    "}",
+    "",
+    "module.exports = { createReadingsWriter };"
+   ]
+  },
+  "gym-settings-lane.mjs": {
+   "why": "spec B.9, DECISIONS:550 S-R4. Every line here is AUTHORED and listed in the build report; everything between them is moved bytes.",
+   "head": [
+    "/* gym-settings-lane.mjs - THE MACHINE SETTINGS LANE, SEALED (spec B.9, DECISIONS:550 S-R4).",
+    " *",
+    " * The settings lane handle, its read cache and the two functions that open and read it",
+    " * were CUT OUT of gym-app.mjs by rebuild/lanes/c/today-split-spike/cut.cjs, region by",
+    " * region, byte for byte: GA-S01, GA-S02, GA-S03 and GA-S04, 41 lines. Their bytes were",
+    " * compared against a sha256 recorded at two named refs BEFORE anything was written",
+    " * (S-R19). Two substitutions were applied, both call-target rewrites: the two paint()",
+    " * calls become painter.repaint().",
+    " *",
+    " * THE ONLY AUTHORED LINES ARE THIS BANNER, THE FACTORY LINE BELOW AND THE RETURN BLOCK AT",
+    " * THE END, and all three are declared in regions.json's product block.",
+    " *",
+    " * WHAT CROSSES BACK, and it is the whole interface: a FACADE of seven read-only thunks, a",
+    " * callback table of four, and nothing else. The released card cannot assign a binding in",
+    " * here, which is the one rule no word list could ever have caught: settingsSaving is not",
+    " * a writer's name, and gym-app.mjs:279 assigned it from a released click handler.",
+    " *",
+    " * WHAT IS NOT IN HERE, said plainly, because a reader will look for it. recordSettings",
+    " * (gym-app.mjs:286-:318) is SEAM G1 and stays RELEASED and byte-identical in this round:",
+    " * it refuses three times on the identity of a draft object the VIEW mints, and a seal",
+    " * cannot compare an object it never saw. B.9's disposal, an editSeq token minted and",
+    " * compared inside the seal, is part 2 of this build and is not built here. Until it is,",
+    " * the released half of SEAM G1 still decides what is stored, and the build report names",
+    " * that as the S-R17 (g) STOP it is.",
+    " *",
+    " * gym-app.mjs:546 model.start() inside paint() is LEFT BYTE-IDENTICAL: it is the one",
+    " * durable PUT any paint root reaches in these three files, it is a pre-existing fact of",
+    " * the page, and S-R12 says it is named out loud and carried as its own ticket",
+    " * (GYM-START-IN-PAINT), not fixed inside a pure move.",
+    " */",
+    ""
+   ],
+   "open": "export function createGymSettingsLane(doc, model, settings, painter) {",
+   "close": [
+    "  /* THE INTERFACE, frozen. `facade` is READ-ONLY: every entry returns sealed state and",
+    "     none of them changes it. `hooks` is the only way released code changes anything in",
+    "     here. The two objects are separate on purpose, so that a later ticket adding a",
+    "     getter cannot quietly add a setter beside it. */",
+    "  return Object.freeze({",
+    "    facade: Object.freeze({",
+    "      lane: () => settingsLane,",
+    "      pending: () => settingsSaving,",
+    "      ready: () => settingsOpening,",
+    "      reading: () => settingsReading,",
+    "      hasRead: (liftId) => settingsRead.has(liftId),",
+    "      entryFor: (liftId) => settingsRead.get(liftId) || null,",
+    "      stateFor: (liftId) => (settingsRead.has(liftId) ? settingsRead.get(liftId).state : 'reading'),",
+    "    }),",
+    "    hooks: Object.freeze({",
+    "      open: () => openSettingsLane(),",
+    "      startRead: (liftId) => startSettingsRead(liftId),",
+    "      dropRead: (liftId) => { settingsRead.delete(liftId); },",
+    "      saving: (p) => { settingsSaving = p; return p; },",
+    "    }),",
+    "  });",
+    "}"
+   ]
+  }
+ },
+ "compose": {
+  "today-model.cjs": {
+   "why": "spec F.1's composition, in the destructured form that went green under the whole today step four times (R3 NOTE-6: F.1's own prose passes noStore: NO_STORE, which hands the sibling undefined for its no-store refusal).",
+   "after": "const SleepModel = require(\"./sleep-model.cjs\");",
+   "afterLines": [
+    "/* The weigh-in writer, sealed, cut out of this file by the split (spec F.1, S-R10).",
+    "   read() and the whole projection stay here and stay free; the two functions that can",
+    "   put a reading on disk do not. The require is at module level, once, and not inside",
+    "   the factory. */",
+    "const { createReadingsWriter } = require(\"./today-readings.cjs\");"
+   ],
+   "at": "TM-S01",
+   "insert": [
+    "  /* The sealed sibling, composed with the SEVEN bindings the machine census says weighIn",
+    "     and reopen reach outside themselves. F.1 (c) names five of them and leaves out read(),",
+    "     which reopen calls, and without it the build does not go green. NO_STORE is passed in",
+    "     SHORTHAND: the sibling destructures NO_STORE, so F.1 prose's `noStore: NO_STORE` would",
+    "     hand it undefined and its no-store refusal would be the word undefined in front of the",
+    "     athlete (R3 NOTE-6). setMessage is a released closure the seal calls, which is what",
+    "     keeps lastMessage released; the effect is identical to the five assignments it",
+    "     replaces, and the census's zero sealed-assigns-released rows is a property of the",
+    "     instrument and not a safety property, which this comment says so nobody reads it as",
+    "     one (R3 PART 2 (e)). */",
+    "  const { weighIn, reopen, ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX } =",
+    "    createReadingsWriter({ day, readings, adoptedRead, stateFromOps,",
+    "      read: () => read(), NO_STORE, setMessage: (m) => { lastMessage = m; } });"
+   ]
+  },
+  "gym-app.mjs": {
+   "why": "spec B.9's composition. The three interface names were chosen by measurement (S-R23): facade, hooks and painter are each 0 in code position in every output file, at both refs. `on` is not: 2 occurrences at today-app.cjs:2027-:2028.",
+   "after": "import MachineSettingsView from './machine-settings-view.mjs';",
+   "afterLines": [
+    "/* THE SPLIT (spec B.9). The settings lane, its read cache and the two functions that",
+    "   open and read it are sealed in this module; what comes back is three frozen objects. */",
+    "import { createGymSettingsLane } from './gym-settings-lane.mjs';"
+   ],
+   "at": "GA-S01",
+   "insert": [
+    "  /* THE SPLIT (spec B.9, DECISIONS:550 S-R4 and S-R12). What crosses is three frozen",
+    "     objects and nothing else: `facade`, the read-only view of the sealed state; `hooks`,",
+    "     the callback table, which is the only way released code changes it; and `painter`,",
+    "     the paint handle, which is how the seal repaints the card. The gym seal touches ONE",
+    "     released name, paint, at two call sites, which is why the handle has one entry and",
+    "     not the two B.9 predicted: `owns` is named nowhere in the moved regions, and the",
+    "     census is what says so. */",
+    "  const painter = Object.freeze({ repaint: () => paint() });",
+    "  const { facade, hooks } = createGymSettingsLane(doc, model, settings, painter);"
+   ]
   }
  }
 }

@@ -769,9 +769,16 @@ test('S10 - the lane is opened through client.hostBindings, not a w6 factory', (
     'no w6 factory is asked for a fifth lane');
   assert(host.includes('createDurablePublicClient'), 'the accepted durable client');
   assert(host.includes('LOCAL_ERA_SCHEMA_VERSION'), 'the era\'s own lease schema');
+  /* THE SPLIT, part 1 (spec B.9). openSettingsLane moved into the sealed half, so the
+     dynamic import that opens the fifth lane is now in gym-settings-lane.mjs. The tooth
+     is kept and a second one is added: the RELEASED card must NOT name the host import,
+     which is strictly more than this line asked for before. */
+  const lane = codeOf(readRepo('rebuild/m3/w7-preview/today/gym-settings-lane.mjs'));
+  assert(lane.includes("import('./machine-settings-host.mjs')"),
+    'the gym page opens the lane itself, because today-entry.mjs is pinned');
   const app = codeOf(readRepo('rebuild/m3/w7-preview/today/gym-app.mjs'));
-  assert(app.includes("import('./machine-settings-host.mjs')"),
-    'gym-app.mjs opens the lane itself, because today-entry.mjs is pinned');
+  assert.equal(app.includes("import('./machine-settings-host.mjs')"), false,
+    'and it is the SEALED half that opens it: the released card names no host import');
 });
 
 /* ==========================================================================

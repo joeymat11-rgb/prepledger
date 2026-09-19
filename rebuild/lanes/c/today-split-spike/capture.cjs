@@ -84,9 +84,9 @@ function analyse(file, src) {
  * output file: a property key (`{ on: ... }`) and a non-computed member name (`x.on`) cannot
  * shadow anything, an identifier in code position can. This is the measurement B.3 asserted
  * and got wrong.                                                                            */
-function codePositionHits(ast, names, map) {
+function codePositionHits(ast, names, map, outLines, srcLinesOf) {
   const want = new Set(names);
-  const hits = { code: [], key: [], member: [], wrapper: [] };
+  const hits = { code: [], key: [], member: [], wrapper: [], declared: [] };
   const keyStarts = new Set();
   const memberStarts = new Set();
   walk.full(ast, (n) => {
@@ -105,7 +105,16 @@ function codePositionHits(ast, names, map) {
        itself, not a name the source already used. It is counted separately or the census
        would report every interface name as colliding with itself. */
     else if (map && !(map[row.line - 1] && map[row.line - 1].line)) hits.wrapper.push(row);
-    else hits.code.push(row);
+    else if (map && outLines && srcLinesOf) {
+      /* A line a DECLARED substitution or replacement row rewrote carries the interface, not
+         a name the source already used: painter.repaint() is W7's own output. The test is
+         mechanical - the output line differs from the source line it maps to - so the census
+         cannot be talked into calling the interface a collision. */
+      const w = map[row.line - 1];
+      const src = srcLinesOf(w.file);
+      const same = src && src[w.line - 1] === outLines[row.line - 1];
+      (same ? hits.code : hits.declared).push(row);
+    } else hits.code.push(row);
   });
   return hits;
 }
@@ -123,22 +132,33 @@ const NAME_MAP = fs.existsSync(path.join(OUT, "linemap.json"))
 if (NAMES.length) {
   console.log("NAME CENSUS over " + OUT + "  (S-R23: a name is free only at ZERO in code position)");
   const total = {};
-  for (const n of NAMES) total[n] = { code: 0, key: 0, member: 0, wrapper: 0, where: [] };
+  const srcCache = {};
+  const srcLinesOf = (sf) => {
+    if (!ROOT || !sf) return null;
+    if (!(sf in srcCache)) {
+      const p = path.join(ROOT, table.today, sf);
+      srcCache[sf] = fs.existsSync(p) ? fs.readFileSync(p, "utf8").split("\n") : null;
+    }
+    return srcCache[sf];
+  };
+  for (const n of NAMES) total[n] = { code: 0, key: 0, member: 0, wrapper: 0, declared: 0, where: [] };
   for (const f of files) {
     if (!parsed[f]) continue;
-    const h = codePositionHits(parsed[f].ast, NAMES, NAME_MAP[f]);
-    for (const kind of ["code", "key", "member", "wrapper"]) {
+    const outLines = fs.readFileSync(path.join(OUT, f), "utf8").split("\n");
+    const h = codePositionHits(parsed[f].ast, NAMES, NAME_MAP[f], outLines, srcLinesOf);
+    for (const kind of ["code", "key", "member", "wrapper", "declared"]) {
       for (const r of h[kind]) {
         total[r.name][kind] += 1;
         if (kind === "code") total[r.name].where.push(f + ":" + r.line);
       }
     }
   }
-  console.log("  | name | CODE POSITION | property key | member name | the wrapper's own | free? |");
-  console.log("  |---|---|---|---|---|---|");
+  console.log("  | name | CODE POSITION | property key | member name | the wrapper's own | a declared row's | free? |");
+  console.log("  |---|---|---|---|---|---|---|");
   for (const n of NAMES) {
     const t = total[n];
-    console.log("  | " + n + " | " + t.code + " | " + t.key + " | " + t.member + " | " + t.wrapper + " | " +
+    console.log("  | " + n + " | " + t.code + " | " + t.key + " | " + t.member + " | " + t.wrapper +
+      " | " + t.declared + " | " +
       (t.code === 0 ? "FREE" : "NOT FREE: " + t.where.slice(0, 6).join(" ")) + " |");
   }
 }

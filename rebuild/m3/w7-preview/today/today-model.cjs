@@ -47,6 +47,11 @@ const FoodModel = require("./food-model.cjs");
    writer that appends a night, so that module builds the row in the shape
    rebuild/engine/sleep.cjs already reads. Pure, and HANDED the engine it must use. */
 const SleepModel = require("./sleep-model.cjs");
+/* The weigh-in writer, sealed, cut out of this file by the split (spec F.1, S-R10).
+   read() and the whole projection stay here and stay free; the two functions that can
+   put a reading on disk do not. The require is at module level, once, and not inside
+   the factory. */
+const { createReadingsWriter } = require("./today-readings.cjs");
 
 /* C4b: the three synthetic enrolment labels that used to live here
    (SYNTHETIC_DEVICE_ID, SYNTHETIC_ATHLETE_ID, SYNTHETIC_IDENTITY_KEY) are gone.
@@ -394,47 +399,24 @@ function createTodayModel(options = {}) {
 
   /* The one wired athlete action. The value is handed to the client unchanged; the
      client decides whether it is recorded, and its answer is reported verbatim. */
-  const ALREADY_RECORDED = "Today's weigh-in is already recorded on this device. Changing a recorded reading needs the correction path, which is not wired yet.";
-  /* The entry-form bound. rebuild/client accepts any finite number as a reading, so
-     without this a slip of the thumb (10000, 0, -5) is recorded as a fact and the
-     engine damps it into the trend for ever. This is a FORM bound, not an engine
-     admission rule and not a new client law — the same posture, and the same numbers,
-     as the reviewed w7-preview's weigh-in form. It refuses in words; it never refuses
-     silently and never rounds an entry into range (review F8). */
-  const FORM_MIN = 60, FORM_MAX = 400;
-  const OUT_OF_RANGE = "A morning weight is recorded between " + FORM_MIN + " and " + FORM_MAX
-    + " lb, to one decimal place. Nothing was recorded.";
+  /* The sealed sibling, composed with the SEVEN bindings the machine census says weighIn
+     and reopen reach outside themselves. F.1 (c) names five of them and leaves out read(),
+     which reopen calls, and without it the build does not go green. NO_STORE is passed in
+     SHORTHAND: the sibling destructures NO_STORE, so F.1 prose's `noStore: NO_STORE` would
+     hand it undefined and its no-store refusal would be the word undefined in front of the
+     athlete (R3 NOTE-6). setMessage is a released closure the seal calls, which is what
+     keeps lastMessage released; the effect is identical to the five assignments it
+     replaces, and the census's zero sealed-assigns-released rows is a property of the
+     instrument and not a safety property, which this comment says so nobody reads it as
+     one (R3 PART 2 (e)). */
+  const { weighIn, reopen, ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX } =
+    createReadingsWriter({ day, readings, adoptedRead, stateFromOps,
+      read: () => read(), NO_STORE, setMessage: (m) => { lastMessage = m; } });
   /* ASYNC since review B2: an entry is acknowledged only after the encrypted
      repository transaction completes, so this cannot resolve before the reading is
      genuinely on disk. A screen that wants to say "Saved" must await it. */
-  async function weighIn(lb) {
-    /* Refuse rather than write an operation the accepted writer would ignore. The engine
-       keeps the FIRST reading for a date; a second stored operation would leave the log
-       and the screen disagreeing. The correction path is named, not faked. */
-    if (adoptedRead(stateFromOps(), day)) {
-      lastMessage = { ok: false, state: null, copy: ALREADY_RECORDED };
-      return { ok: false, state: null, copy: ALREADY_RECORDED, op_id: null };
-    }
-    if (typeof lb === "number" && Number.isFinite(lb)
-      && (lb < FORM_MIN || lb > FORM_MAX || Number(lb.toFixed(1)) !== lb)) {
-      lastMessage = { ok: false, state: null, copy: OUT_OF_RANGE };
-      return { ok: false, state: null, copy: OUT_OF_RANGE, op_id: null };
-    }
-    if (!readings) {
-      lastMessage = { ok: false, state: null, copy: NO_STORE };
-      return { ok: false, state: null, copy: NO_STORE, op_id: null };
-    }
-    const result = await readings.weighIn({ date: day, lb });
-    lastMessage = { ok: result.ok, state: result.state, copy: result.copy };
-    return { ok: result.ok, state: result.state, copy: result.copy, op_id: result.op_id };
-  }
 
   /* Re-open the durable lane from disk: the page-reload path, without a page reload. */
-  async function reopen() {
-    lastMessage = null;
-    if (readings) await readings.restart();
-    return read();
-  }
 
   /* P0 HIS NUMBERS - replaces the basis operations are replayed onto. A falsy
      `state` is a no-op: nothing here invents a basis, so a constructor refusal

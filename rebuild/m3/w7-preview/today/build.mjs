@@ -103,6 +103,12 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/client/ops.cjs",
   "rebuild/client/store.cjs",
   "rebuild/m3/w7-preview/today/today-model.cjs",
+  /* THE SPLIT, part 1 (spec F.1, DECISIONS:550 S-R10, :562 S-R18). The weigh-in writer
+     and the four sentences it refuses in are their own sealed module now. A build that
+     lost it would be a page whose weigh-in form records nothing and says nothing, which
+     is exactly what this list exists to make impossible. The third entry, today-lanes.cjs,
+     arrives with part 2 and takes this array from 50 to 51. */
+  "rebuild/m3/w7-preview/today/today-readings.cjs",
   "rebuild/m3/w7-preview/today/today-app.cjs",
   /* A2 — the gym card really is the ACCEPTED W6 host composition over the accepted
      capture layer, in the page. A build that lost any of these would be a page
@@ -110,6 +116,10 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/m3/w7-preview/today/gym-host.mjs",
   "rebuild/m3/w7-preview/today/gym-model.mjs",
   "rebuild/m3/w7-preview/today/gym-app.mjs",
+  /* THE SPLIT, part 1 (spec B.9, DECISIONS:550 S-R4). The machine settings lane, its
+     read cache and the two functions that open and read it. A build that lost it would
+     be a page whose settings block never opens and never says why. */
+  "rebuild/m3/w7-preview/today/gym-settings-lane.mjs",
   /* A2 review B2 — the weigh-in's store of record is the accepted encrypted
      repository, not localStorage. A build that lost this module would be a page
      whose readings can vanish on a hard kill. */
