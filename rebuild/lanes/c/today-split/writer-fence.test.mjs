@@ -9,20 +9,29 @@
  *
  * WHAT IT JUDGES IN THIS PART. Part 1 of the split seals TWO modules: today-readings.cjs
  * (the weigh-in writer) and gym-settings-lane.mjs (the machine settings lane). The third,
- * today-lanes.cjs, arrives with part 2, and every row below is written so that it starts
- * judging the third the day it exists rather than being rewritten for it.
+ * today-lanes.cjs, arrives with part 2. Its copy row activates when it exists; part 2
+ * must measure and add today-app.cjs to the released table before claiming its fence.
  *
- * WHAT IT DOES NOT CLAIM, said here rather than discovered by a reviewer. E.3's rule "a
- * released file naming a durable writer FAILS" CANNOT hold for gym-app.mjs while its six
- * declared seams stand: recordSettings still calls .save, and the control handlers still
- * call .logSet, .finish, .forget, .undo and .start. Those six are DECLARED here by region
- * id and line, and a SEVENTH fails. That is the honest standing form of the rule for a
- * half-done split: the set is fixed and a reviewer sees any addition as a diff.
+ * S-R26 TO S-R29: THIS IS A TRIPWIRE, NOT A PROOF. A token scanner cannot be made
+ * sound one spelling at a time; three reviewers in turn found new spellings. It notices
+ * ordinary durable-write members, acquisition of declared writer capabilities, module
+ * edges, and changes to the measured sites below. today-model re-exports weighIn/reopen;
+ * gym-app still holds six declared writer seams and three facade.lane acquisitions.
+ *
+ * WHAT IT REFUSES TO READ, AND THEREFORE FORBIDS except at measured literal sites:
+ * quoted/template/concatenated bracket keys, capability-holder destructuring, calls in
+ * template interpolation, and declarations/parameters shadowing suppressed builtins.
+ * Newline-split members ARE read. PUT names never receive builtin suppression.
+ *
+ * WHAT IT CANNOT SEE: arbitrary alias/data flow, variable computed keys, reflective
+ * calls, generated code, runtime replacement of a reader, and all JavaScript grammar.
+ * It neither proves durable behavior nor deep immutability of returned data. The
+ * boundary holding a released file is INDEPENDENT REVIEW OF EVERY HUNK of every look
+ * ticket, followed by the PM's own final review (DECISIONS:439 and :531 (3)).
  */
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -54,6 +63,9 @@ const ADOPT = ["adoptBasis", "setPendingAdoption", "setFoodDays", "setSleepNight
   "holdForAdoption", "adoptEngineState"];
 
 /* ---- SUPPRESSED RECEIVERS: JAVASCRIPT BUILTINS AND NOTHING ELSE (R1 BLOCKING-2) -------
+ * S-R28: suppression no longer applies to PUT. Measured in BOTH released files:
+ * zero PUT hits have any of these receivers. Promise.all belongs to STORE, so
+ * removing PUT suppression costs no legitimate site and catches Object.save.
  * `Promise.all`, `Object.entries` and `Date.now` are not durable writes and a fence that
  * reds on them is a fence nobody runs. That is the whole reason this list exists.
  *
@@ -132,15 +144,13 @@ function codeOf(src) {
 function memberHits(code, words) {
   const want = new Set(words);
   const hits = [];
-  const lines = code.split("\n");
-  for (let k = 0; k < lines.length; k += 1) {
-    const re = /(\w+)?\s*\.\s*(\w+)/g;
-    let m;
-    while ((m = re.exec(lines[k])) !== null) {
-      if (!want.has(m[2])) continue;
-      const receiver = m[1] || null;
-      hits.push({ name: m[2], line: k + 1, receiver });
-    }
+  const re = /([A-Za-z_$][\w$]*)?\s*(?:\?\.|\.)\s*([A-Za-z_$][\w$]*)/g;
+  let m;
+  while ((m = re.exec(code)) !== null) {
+    if (!want.has(m[2])) continue;
+    const receiver = m[1] || null;
+    const memberAt = m.index + m[0].lastIndexOf(m[2]);
+    hits.push({ name: m[2], line: code.slice(0, memberAt).split("\n").length, receiver });
   }
   return hits;
 }
@@ -185,9 +195,9 @@ function withoutComments(src) {
 function literalsOf(src) {
   const code = withoutComments(src);
   const out = [];
-  const re = /"((?:[^"\\\n]|\\.)*)"|'((?:[^'\\\n]|\\.)*)'/g;
+  const re = /"((?:[^"\\\n]|\\.)*)"|'((?:[^'\\\n]|\\.)*)'|`((?:[^`\\]|\\.)*)`/g;
   let m;
-  while ((m = re.exec(code)) !== null) out.push(m[1] === undefined ? m[2] : m[1]);
+  while ((m = re.exec(code)) !== null) out.push(m[1] ?? m[2] ?? m[3]);
   return out;
 }
 /* Athlete-facing prose: two runs of letters with a REAL SPACE between them. A key, an id, a
@@ -233,11 +243,247 @@ const GYM_DECLARED_SITES = 6;
 const siteOf = (h) => (h.receiver || "(call)") + "." + h.name;
 
 function planted(rel, edit) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fence-planted-"));
   const src = readRepo(rel);
-  const out = path.join(dir, path.basename(rel));
-  fs.writeFileSync(out, edit(src));
-  return fs.readFileSync(out, "utf8");
+  const out = edit(src);
+  assert.notEqual(out, src, "the in-memory plant did not land: " + rel);
+  return out;
+}
+
+/* S-R27/S-R28. Small lexical inventory, NOT a JavaScript parser. Tokens retain
+ * offsets so exceptions compare whole source lines, including multiplicity.
+ * Strings/comments cannot masquerade as code. Templates retain their interpolations
+ * for the refusal below; this does not attempt to resolve what any call will do. */
+function tokensOf(src, start = 0, stopAtBrace = false) {
+  const tokens = [];
+  let i = start, braces = 0;
+  while (i < src.length) {
+    const at = i, c = src[i], d = src[i + 1];
+    if (/\s/.test(c)) { i++; continue; }
+    if (c === '/' && d === '/') {
+      i = src.indexOf('\n', i); if (i < 0) i = src.length; continue;
+    }
+    if (c === '/' && d === '*') {
+      const end = src.indexOf('*/', i + 2); i = end < 0 ? src.length : end + 2; continue;
+    }
+    if (c === '}' && stopAtBrace && braces === 0) return { tokens, end: i + 1 };
+    if (c === '"' || c === "'" || c === '`') {
+      const expressions = [];
+      i++;
+      while (i < src.length) {
+        if (src[i] === '\\') { i += 2; continue; }
+        if (src[i] === c) { i++; break; }
+        if (c === '`' && src[i] === '$' && src[i + 1] === '{') {
+          const expression = tokensOf(src, i + 2, true);
+          expressions.push(expression.tokens); i = expression.end; continue;
+        }
+        i++;
+      }
+      tokens.push({ value: src.slice(at, i), at, end: i,
+        kind: c === '`' ? 'template' : 'string', expressions });
+      continue;
+    }
+    const id = /^[A-Za-z_$][\w$]*/.exec(src.slice(i));
+    const value = id ? id[0] : ['?.', '=>', '...'].find((p) => src.startsWith(p, i)) || c;
+    i += value.length;
+    if (value === '{') braces++;
+    if (value === '}') braces--;
+    tokens.push({ value, at, end: i, kind: id ? 'id' : 'punct' });
+  }
+  return { tokens, end: i };
+}
+const lineAt = (src, at) => src.slice(0, at).split('\n').length;
+const lineText = (src, at) => src.split('\n')[lineAt(src, at) - 1].replace(/\r$/, '');
+const sourceLines = (src, from, to) => src.split('\n').slice(lineAt(src, from) - 1, lineAt(src, to))
+  .map((line) => line.replace(/\r$/, '')).join('\n');
+function codeTokens(src) {
+  const flatten = (ts) => ts.flatMap((t) => t.kind === 'template'
+    ? [t, ...t.expressions.flatMap(flatten)] : [t]);
+  return flatten(tokensOf(src).tokens);
+}
+function matching(tokens, from) {
+  const close = { '(': ')', '[': ']', '{': '}' }[tokens[from]?.value];
+  let depth = 0;
+  for (let i = from; i < tokens.length; i++) {
+    if (tokens[i].value === tokens[from].value) depth++;
+    if (tokens[i].value === close && --depth === 0) return i;
+  }
+  return tokens.length - 1;
+}
+/* Skip one initializer/expression up to a top-level separator. */
+function expressionEnd(tokens, from) {
+  let i = from;
+  while (i < tokens.length && ![',', ';', ')', '}', 'of', 'in'].includes(tokens[i].value)) {
+    if (['(', '[', '{'].includes(tokens[i].value)) i = matching(tokens, i);
+    i++;
+  }
+  return i;
+}
+const holder = (t) => t.kind === 'id' &&
+  /^(?:facade|hooks|model|settings|readings|foodDays|sleepNights|lane\w*|\w*Lane\w*)$/.test(t.value);
+function declarations(tokens) {
+  const found = [];
+  for (let i = 0; i < tokens.length; i++) {
+    if (!['const', 'let', 'var'].includes(tokens[i].value)) continue;
+    let from = i + 1;
+    while (from < tokens.length) {
+      const destructured = ['{', '['].includes(tokens[from].value);
+      const end = destructured ? matching(tokens, from) : from;
+      const rhs = ['=', 'of', 'in'].includes(tokens[end + 1]?.value) ? end + 2 : end + 1;
+      const to = expressionEnd(tokens, rhs);
+      found.push({ from, end, rhs, to, destructured });
+      if (tokens[to]?.value !== ',') break;
+      from = to + 1;
+    }
+  }
+  return found;
+}
+function interpolationCalls(tokens) {
+  return tokens.some((t, i) =>
+    (t.value === '(' && (tokens[i - 1]?.kind === 'id' || [')', ']', '?.'].includes(tokens[i - 1]?.value))) ||
+    (t.kind === 'template' && t.expressions.some(interpolationCalls)));
+}
+function measuredSyntax(src) {
+  const ts = codeTokens(src), decls = declarations(ts);
+  const bracket = [], destructure = [], templateCall = [], shadow = new Set();
+  const bindings = (from, to) => {
+    for (let j = from; j < to; j++) {
+      if (ts[j].value === '=') { j = expressionEnd(ts, j + 1) - 1; continue; }
+      if (NOT_A_STORE_RECEIVER.includes(ts[j].value) && ts[j + 1]?.value !== ':') shadow.add(ts[j].at);
+    }
+  };
+  for (const d of decls) {
+    bindings(d.from, d.end + 1);
+    if (d.destructured && ts.slice(d.rhs, d.to).some(holder)) {
+      destructure.push(sourceLines(src, ts[d.from].at, ts[d.to - 1].end - 1));
+    }
+  }
+  for (let i = 0; i < ts.length; i++) {
+    const t = ts[i], prev = ts[i - 1], next = ts[i + 1];
+    // A bracket following a receiver, a call, or optional chaining is a member.
+    if (t.value === '[' && (['id', 'string', 'template'].includes(prev?.kind) || [')', ']', '?.'].includes(prev?.value)) &&
+        !['const', 'let', 'var', 'return', 'yield', 'throw', 'case', 'of', 'in'].includes(prev?.value)) {
+      const key = ts.slice(i + 1, matching(ts, i));
+      // '+' might concatenate strings; this scanner cannot infer operand types.
+      if (['string', 'template'].includes(next?.kind) || key.some((k) => k.value === '+')) bracket.push(t.at);
+    }
+    if (t.kind === 'template' && t.expressions.some(interpolationCalls)) templateCall.push(t.at);
+    if (['function', 'class'].includes(t.value)) {
+      const name = next?.value === '*' ? ts[i + 2] : next;
+      if (NOT_A_STORE_RECEIVER.includes(name?.value)) shadow.add(name.at);
+    }
+    if (t.value === 'import' && !['(', '.'].includes(next?.value) && next?.kind !== 'string') {
+      for (let j = i + 1; j < ts.length && !['from', ';'].includes(ts[j].value); j++) {
+        if (NOT_A_STORE_RECEIVER.includes(ts[j].value) && ts[j + 1]?.value !== 'as') shadow.add(ts[j].at);
+      }
+    }
+    if (t.value === '(') {
+      const end = matching(ts, i), after = ts[end + 1]?.value;
+      const functionParams = prev?.value === 'function' || ts[i - 2]?.value === 'function' ||
+        ts[i - 3]?.value === 'function';
+      const methodParams = after === '{' && prev?.kind === 'id' &&
+        !['if', 'for', 'while', 'switch', 'with'].includes(prev.value);
+      if (methodParams && NOT_A_STORE_RECEIVER.includes(prev.value)) shadow.add(prev.at);
+      if (after === '=>' || functionParams || methodParams) bindings(i + 1, end);
+    }
+    if (next?.value === '=>' && NOT_A_STORE_RECEIVER.includes(t.value)) shadow.add(t.at);
+  }
+  const lines = (positions) => [...positions].sort((a, b) => a - b).map((at) => lineText(src, at));
+  return { bracket: lines(bracket), destructure,
+    templateCall: lines(templateCall), shadow: lines(shadow) };
+}
+function moduleEdges(src) {
+  const ts = codeTokens(src), edges = [];
+  for (let i = 0; i < ts.length; i++) {
+    const t = ts[i];
+    if (!['import', 'require', 'export'].includes(t.value) || t.kind !== 'id') continue;
+    if (ts[i + 1]?.value === '(') {
+      const end = matching(ts, i + 1), arg = ts[i + 2];
+      // Nonliteral expressions are never normalized into a permitted literal.
+      const literal = arg?.kind === 'string' && end === i + 3;
+      edges.push(t.value + ':' + (literal ? arg.value.slice(1, -1) : '<nonliteral>'));
+    } else if (t.value !== 'require' && ts[i + 1]?.value !== '.') {
+      let j = i + 1;
+      if (ts[j]?.kind !== 'string') {
+        while (j < ts.length && !['from', ';'].includes(ts[j].value)) j++;
+        if (ts[j]?.value !== 'from') continue;
+        j++;
+      }
+      edges.push(t.value + ':' + (ts[j]?.kind === 'string' ? ts[j].value.slice(1, -1) : '<nonliteral>'));
+    }
+  }
+  return edges;
+}
+
+/* Literal measurements at 40c355f9. Part 2 adds today-app.cjs HERE, measures its
+ * preconditions and declares its sites; no automatic snapshot update is allowed. */
+const RELEASED_FILES = [
+  {
+    rel: TODAY + '/today-model.cjs', anchor: '  function adoptBasis(state) {',
+    capabilities: {
+      weighIn: [
+        '  const { weighIn, reopen, ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX } =',
+        '    read, weighIn, reopen, adoptBasis, setPendingAdoption,',
+      ],
+      reopen: [
+        '  const { weighIn, reopen, ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX } =',
+        '    read, weighIn, reopen, adoptBasis, setPendingAdoption,',
+      ],
+    },
+    lane: [],
+    edges: ['require:./today-engine.cjs', 'require:../fixtures.cjs', 'require:./food-model.cjs',
+      'require:./sleep-model.cjs', 'require:./today-readings.cjs'],
+    syntax: { bracket: [], templateCall: [], shadow: [], destructure: [
+      '  const { weighIn, reopen, ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX } =\n' +
+      '    createReadingsWriter({ day, readings, adoptedRead, stateFromOps,\n' +
+      '      read: () => read(), NO_STORE, setMessage: (m) => { lastMessage = m; } });',
+    ] },
+  },
+  {
+    rel: TODAY + '/gym-app.mjs', anchor: '    const entry = facade.entryFor(liftId);',
+    capabilities: {},
+    lane: [
+      '    if (!facade.lane()) { block.hidden = true; editor.hidden = true; hooks.open(); return; }',
+      '    try { result = await facade.lane().save(machine); }',
+      '    lane: () => facade.lane(),',
+    ],
+    edges: ['import:./today-app.cjs', 'import:./plain-copy.cjs',
+      'import:./machine-settings-view.mjs', 'import:./gym-settings-lane.mjs'],
+    syntax: { bracket: [], templateCall: [], shadow: [], destructure: [
+      '  const { facade, hooks } = createGymSettingsLane(doc, model, settings, painter);',
+    ] },
+  },
+];
+function capabilitySites(src, name) {
+  return codeTokens(src).filter((t) => t.kind === 'id' && t.value === name).map((t) => lineText(src, t.at));
+}
+function laneSites(src) {
+  const ts = codeTokens(src);
+  return ts.filter((t, i) => t.value === 'facade' && ['.', '?.'].includes(ts[i + 1]?.value) &&
+    ts[i + 2]?.value === 'lane').map((t) => lineText(src, t.at));
+}
+const SYNTAX_REFUSALS = { bracket: 'FENCE-BRACKET-KEY', destructure: 'FENCE-CAPABILITY-DESTRUCTURE',
+  templateCall: 'FENCE-TEMPLATE-CALL', shadow: 'FENCE-BUILTIN-SHADOW' };
+function releasedRefusals(file, src) {
+  const refusals = [];
+  const differs = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
+  for (const [name, sites] of Object.entries(file.capabilities)) {
+    if (differs(capabilitySites(src, name), sites)) refusals.push('FENCE-CAPABILITY-SITE:' + name);
+  }
+  if (differs(laneSites(src), file.lane)) refusals.push('FENCE-LANE-ACQUISITION');
+  if (differs(moduleEdges(src), file.edges)) refusals.push('FENCE-RELEASED-MODULE-EDGE');
+  const syntax = measuredSyntax(src);
+  for (const kind of Object.keys(SYNTAX_REFUSALS)) {
+    if (differs(syntax[kind], file.syntax[kind])) refusals.push(SYNTAX_REFUSALS[kind]);
+  }
+  const hits = memberHits(codeOf(src), PUT);
+  if (file.rel.endsWith('/gym-app.mjs')) {
+    if (hits.length !== GYM_DECLARED_SITES || differs([...new Set(hits.map(siteOf))].sort(),
+      Object.keys(GYM_DECLARED_SEAMS).sort())) refusals.push('FENCE-WRITER-NAME');
+  } else if (hits.length) refusals.push('FENCE-WRITER-NAME');
+  return refusals;
+}
+function plantLine(file, line) {
+  return planted(file.rel, (src) => src.replace(file.anchor, line + '\n' + file.anchor));
 }
 
 /* ======================================================================================
@@ -274,7 +520,7 @@ test("RED R1 BLOCKING-2: a durable write through the local `entry` in the releas
     (s) => s.replace("    const entry = facade.entryFor(liftId);",
       "    const entry = facade.entryFor(liftId);\n    if (entry) entry.save({ lift: liftId, note: 'x' });"));
   assert.ok(src.includes("entry.save({ lift: liftId"), "the plant did not land; re-read GA-R02");
-  const hits = memberHits(codeOf(src), PUT).filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  const hits = memberHits(codeOf(src), PUT);
   assert.equal(hits.some((h) => h.name === "save" && h.receiver === "entry"), true,
     "THE FENCE DID NOT SEE A DURABLE WRITE THROUGH `entry`. This is R1 BLOCKING-2 and it is " +
     "the one class of thing this cell is in the tree to catch.");
@@ -288,7 +534,7 @@ test("RED R1 BLOCKING-2: a durable write through `importScreen` in the released 
   const src = planted(TODAY + "/today-model.cjs",
     (s) => s.replace("  const { weighIn, reopen,",
       "  importScreen.retractImport(day);\n  const { weighIn, reopen,"));
-  const hits = memberHits(codeOf(src), PUT).filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  const hits = memberHits(codeOf(src), PUT);
   assert.equal(hits.some((h) => h.name === "retractImport" && h.receiver === "importScreen"), true,
     "THE FENCE DID NOT SEE A DURABLE WRITE THROUGH `importScreen`, the second application " +
     "name R1 found on the suppression list.");
@@ -301,19 +547,17 @@ test("the three word lists are the ones the reachability instrument runs (15 PUT
   for (const w of PUT) assert.equal(STORE.includes(w) || ADOPT.includes(w), false, w + " is on two lists");
 });
 
-/* ---- ROW 1: no released file names a durable writer, except the declared seams -------- */
+/* ---- ROW 1: PUT members, except gym seams; bare capabilities are pinned separately ----- */
 
-test("FENCE-WRITER-NAME: the released today-model.cjs names NO durable writer after the cut", () => {
-  const hits = memberHits(codeOf(readRepo(TODAY + "/today-model.cjs")), PUT)
-    .filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+test("FENCE-WRITER-NAME: today-model.cjs has no PUT member; weighIn/reopen are declared re-exports", () => {
+  const hits = memberHits(codeOf(readRepo(TODAY + "/today-model.cjs")), PUT);
   assert.deepEqual(hits.map((h) => h.name + ":" + h.line), [],
-    "FENCE-WRITER-NAME in the RELEASED today-model.cjs. The whole point of F.1 is that the " +
-    "two functions that can put a reading on disk are not in this file any more.");
+    "FENCE-WRITER-NAME: implementations moved; the two bare capabilities remain and " +
+    "their composition/export sites are checked separately below.");
 });
 
 test("FENCE-WRITER-NAME: the released gym-app.mjs holds EXACTLY the six declared seam WRITE SITES, and a seventh fails", () => {
-  const hits = memberHits(codeOf(readRepo(TODAY + "/gym-app.mjs")), PUT)
-    .filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  const hits = memberHits(codeOf(readRepo(TODAY + "/gym-app.mjs")), PUT);
   const sites = [...new Set(hits.map(siteOf))].sort();
   assert.deepEqual(sites, Object.keys(GYM_DECLARED_SEAMS).sort(),
     "FENCE-WRITER-NAME: the released gym card reaches a durable writer that is not one of the " +
@@ -330,7 +574,7 @@ test("FENCE-WRITER-NAME: the released gym-app.mjs holds EXACTLY the six declared
 test("RED: a durable writer planted in the released today-model.cjs FAILS", () => {
   const src = planted(TODAY + "/today-model.cjs",
     (s) => s.replace("  const { weighIn, reopen,", "  readings.weighIn({ date: day, lb: 1 });\n  const { weighIn, reopen,"));
-  const hits = memberHits(codeOf(src), PUT).filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  const hits = memberHits(codeOf(src), PUT);
   assert.equal(hits.length > 0, true, "THE FENCE DID NOT SEE A PLANTED readings.weighIn(...)");
   assert.equal(hits[0].name, "weighIn");
 });
@@ -338,7 +582,7 @@ test("RED: a durable writer planted in the released today-model.cjs FAILS", () =
 test("RED: the E.5 row 1 alias, const s = host.save, FAILS even though it is not a call", () => {
   const src = planted(TODAY + "/today-model.cjs",
     (s) => s.replace("  const { weighIn, reopen,", "  const s = readings.save; s(1);\n  const { weighIn, reopen,"));
-  const hits = memberHits(codeOf(src), PUT).filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  const hits = memberHits(codeOf(src), PUT);
   assert.equal(hits.some((h) => h.name === "save"), true,
     "THE FENCE SCANS CALL EXPRESSIONS AND NOT MEMBER NAMES. E.5 row 1 is the reason it must not.");
 });
@@ -346,7 +590,7 @@ test("RED: the E.5 row 1 alias, const s = host.save, FAILS even though it is not
 test("RED: a SEVENTH durable writer in the released gym card FAILS", () => {
   const src = planted(TODAY + "/gym-app.mjs",
     (s) => s.replace("  const painter = Object.freeze(", "  const late = () => model.recover();\n  const painter = Object.freeze("));
-  const hits = memberHits(codeOf(src), PUT).filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  const hits = memberHits(codeOf(src), PUT);
   const sites = [...new Set(hits.map(siteOf))].sort();
   assert.notDeepEqual(sites, Object.keys(GYM_DECLARED_SEAMS).sort(),
     "THE FENCE DID NOT SEE A SEVENTH DURABLE WRITER IN THE RELEASED GYM CARD");
@@ -357,7 +601,7 @@ test("a comment naming host.save is invisible, and so is the word save inside a 
   const src = planted(TODAY + "/today-model.cjs",
     (s) => s.replace("  const { weighIn, reopen,",
       '  /* host.save is named here on purpose. */\n  const note = "Nothing to save yet.";\n  void note;\n  const { weighIn, reopen,'));
-  const hits = memberHits(codeOf(src), PUT).filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  const hits = memberHits(codeOf(src), PUT);
   assert.deepEqual(hits, [], "a fence that reds on prose loses its credibility the first time it runs");
 });
 
@@ -405,10 +649,10 @@ test("RED: a sentence planted in gym-settings-lane.mjs FAILS", () => {
 
 /* ---- ROW 3: the interface objects are frozen ------------------------------------------ */
 
-test("the interface objects are FROZEN: the gym lane returns a frozen pair of frozen tables", () => {
+test("the gym lane source declares three Object.freeze wrappers (no deep-freeze claim)", () => {
   const code = codeOf(readRepo(TODAY + "/gym-settings-lane.mjs"));
   assert.match(code, /return Object\.freeze\(\{/, "the returned interface is not frozen");
-  assert.match(code, /facade:\s*Object\.freeze\(\{/, "the read-only facade is not frozen");
+  assert.match(code, /facade:\s*Object\.freeze\(\{/, "the facade table is not frozen");
   assert.match(code, /hooks:\s*Object\.freeze\(\{/, "the callback table is not frozen");
   assert.equal((code.match(/Object\.freeze\(/g) || []).length, 3,
     "three frozen objects and no more: a fourth is an interface nobody declared");
@@ -522,8 +766,7 @@ test("E.5 row 16: the gym paint() body reaches EXACTLY ONE durable writer, model
   let to = -1;
   for (let i = from + 1; i < lines.length; i += 1) if (lines[i] === "  }") { to = i; break; }
   assert.notEqual(to, -1, "paint() does not close at factory depth");
-  const inPaint = memberHits(lines.slice(from, to + 1).join("\n"), PUT)
-    .filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  const inPaint = memberHits(lines.slice(from, to + 1).join("\n"), PUT);
   assert.deepEqual([...new Set(inPaint.map((h) => h.name))], ["start"],
     "FENCE-PAINT-REACHES-PUT: a SECOND durable write taken during a paint. The one that " +
     "exists, model.start() in paint(), is a declared pre-existing fact with its own ticket " +
@@ -538,8 +781,7 @@ test("RED: a SECOND durable write inside the gym paint() FAILS", () => {
   const from = lines.findIndex((l) => /^\s{2}async function paint\(\)\s*\{/.test(l));
   let to = -1;
   for (let i = from + 1; i < lines.length; i += 1) if (lines[i] === "  }") { to = i; break; }
-  const inPaint = memberHits(lines.slice(from, to + 1).join("\n"), PUT)
-    .filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  const inPaint = memberHits(lines.slice(from, to + 1).join("\n"), PUT);
   assert.notDeepEqual([...new Set(inPaint.map((h) => h.name))], ["start"],
     "THE FENCE DID NOT SEE A SECOND DURABLE WRITE TAKEN DURING A PAINT");
 });
@@ -557,3 +799,166 @@ test("part 2's file is not here yet, and this cell says so rather than passing s
   }
   assert.ok(true);
 });
+
+/* S-R27/S-R28: the same checker judges the released bytes and every in-memory
+ * mutation below. A RED row passes only when its named refusal is actually returned. */
+test('S-R27: the measured table covers every released file', () => {
+  assert.deepEqual(RELEASED_FILES.map((f) => f.rel), RELEASED);
+});
+for (const file of RELEASED_FILES) {
+  const name = path.basename(file.rel);
+  test('FENCE-PRECONDITIONS: measured released sites in ' + name, () => {
+    const src = readRepo(file.rel);
+    assert.deepEqual(releasedRefusals(file, src), [], name);
+    const syntax = measuredSyntax(src);
+    console.log('  S-R28 ' + name + ': ' + Object.entries(syntax).map(([k, v]) => k + '=' + v.length).join(', '));
+    console.log('  S-R27 ' + name + ': edges=' + moduleEdges(src).length + ', facade.lane=' + laneSites(src).length);
+  });
+  test('CONTROL: comments and strings do not acquire capabilities in ' + name, () => {
+    const src = plantLine(file, '/* weighIn(); facade.lane(); import("bad"); Object.save(); */\n' +
+      'void "reopen facade.lane() settings[\'save\']()";');
+    assert.deepEqual(releasedRefusals(file, src), []);
+  });
+  test('CONTROL: Promise.all remains STORE, not PUT, in ' + name, () => {
+    const src = plantLine(file, 'void Promise.all([]);');
+    assert.deepEqual(releasedRefusals(file, src), []);
+    assert.equal(memberHits(codeOf(src), STORE).some((h) => h.receiver === 'Promise' && h.name === 'all'), true);
+    assert.equal(memberHits(codeOf(readRepo(file.rel)), PUT)
+      .filter((h) => NOT_A_STORE_RECEIVER.includes(h.receiver)).length, 0, 'measured cost of dropping PUT suppression');
+  });
+  const syntaxPlants = [
+    ['quoted key', "void settings['save'](machine);", 'FENCE-BRACKET-KEY'],
+    ['backtick key', 'void settings[`save`](machine);', 'FENCE-BRACKET-KEY'],
+    ['concatenated key', "void settings[key + 've'](machine);", 'FENCE-BRACKET-KEY'],
+    ['variable concatenated key', 'void settings[key + suffix](machine);', 'FENCE-BRACKET-KEY'],
+    ['optional bracket', "void settings?.['save']?.(machine);", 'FENCE-BRACKET-KEY'],
+    ['holder destructure', 'const { save: write } = settings; write(machine);', 'FENCE-CAPABILITY-DESTRUCTURE'],
+    ['lane destructure', 'const [write] = settingsLane; write(machine);', 'FENCE-CAPABILITY-DESTRUCTURE'],
+    ['loop destructure', 'for (const { save: write } of settings) write(machine);', 'FENCE-CAPABILITY-DESTRUCTURE'],
+    ['template call', 'void `${auditStore.save(machine)}`;', 'FENCE-TEMPLATE-CALL'],
+    ['nested template call', 'void `${`${auditStore.save(machine)}`}`;', 'FENCE-TEMPLATE-CALL'],
+    ['builtin declaration', 'const Object = auditStore;', 'FENCE-BUILTIN-SHADOW'],
+    ['builtin second declaration', 'let x = 0, Set = auditStore;', 'FENCE-BUILTIN-SHADOW'],
+    ['builtin destructured declaration', 'const { sink: JSON } = auditStore;', 'FENCE-BUILTIN-SHADOW'],
+    ['builtin function name', 'function Array() {}', 'FENCE-BUILTIN-SHADOW'],
+    ['builtin method name', 'const obj = { Date() {} };', 'FENCE-BUILTIN-SHADOW'],
+    ['builtin parameter', 'function probe(Math) {}', 'FENCE-BUILTIN-SHADOW'],
+    ['builtin arrow parameter', 'const probe = Number => Number;', 'FENCE-BUILTIN-SHADOW'],
+    ['builtin parenthesized arrow parameter', 'const probe = (String) => String;', 'FENCE-BUILTIN-SHADOW'],
+    ['builtin imported binding', "import { item as Object } from './today-app.cjs';", 'FENCE-BUILTIN-SHADOW'],
+    ['builtin PUT without declaration', 'Object.save(machine);', 'FENCE-WRITER-NAME'],
+    ['newline member', 'auditStore.\nsave(machine);', 'FENCE-WRITER-NAME'],
+    ['newline before dot', 'auditStore\n.save(machine);', 'FENCE-WRITER-NAME'],
+    ['static import', "import audit from './machine-settings-host.mjs';", 'FENCE-RELEASED-MODULE-EDGE'],
+    ['side effect import', "import './machine-settings-host.mjs';", 'FENCE-RELEASED-MODULE-EDGE'],
+    ['dynamic import', "void import('./machine-settings-host.mjs');", 'FENCE-RELEASED-MODULE-EDGE'],
+    ['require', "void require('./machine-settings-host.mjs');", 'FENCE-RELEASED-MODULE-EDGE'],
+    ['nonliteral import', 'void import(moduleName);', 'FENCE-RELEASED-MODULE-EDGE'],
+    ['nonliteral require', 'void require(moduleName);', 'FENCE-RELEASED-MODULE-EDGE'],
+    ['re-export edge', "export { host } from './machine-settings-host.mjs';", 'FENCE-RELEASED-MODULE-EDGE'],
+    ['template lane reference', 'void `${facade.lane}`;', 'FENCE-LANE-ACQUISITION'],
+  ];
+  for (const [shape, line, reason] of syntaxPlants) {
+    test('RED S-R27/S-R28 ' + name + ': ' + shape + ' -> ' + reason, () => {
+      assert.ok(releasedRefusals(file, plantLine(file, line)).includes(reason), reason);
+    });
+  }
+  for (const holderName of ['facade', 'hooks', 'model', 'settings', 'readings', 'lane', 'foodDays', 'sleepNights']) {
+    test('RED S-R28 ' + name + ': destructure from ' + holderName, () => {
+      const src = plantLine(file, 'const { write } = ' + holderName + ';');
+      assert.ok(releasedRefusals(file, src).includes('FENCE-CAPABILITY-DESTRUCTURE'));
+    });
+  }
+  for (const capability of Object.keys(file.capabilities)) {
+    test('RED S-R27 ' + name + ': bare ' + capability + ' outside declared sites', () => {
+      const src = plantLine(file, '  void ' + capability + '(180);');
+      assert.ok(releasedRefusals(file, src).includes('FENCE-CAPABILITY-SITE:' + capability));
+    });
+    test('RED S-R27 ' + name + ': template reference to ' + capability, () => {
+      const src = plantLine(file, 'void `${' + capability + '}`;');
+      assert.ok(releasedRefusals(file, src).includes('FENCE-CAPABILITY-SITE:' + capability));
+    });
+  }
+  test('RED S-R28 ' + name + ': duplicated composition line is not a new exception', () => {
+    const src = plantLine(file, file.syntax.destructure[0]);
+    assert.ok(releasedRefusals(file, src).includes('FENCE-CAPABILITY-DESTRUCTURE'));
+  });
+  for (const site of file.lane) {
+    test('RED S-R27 ' + name + ': repeated acquisition ' + site.trim(), () => {
+      assert.ok(releasedRefusals(file, plantLine(file, site)).includes('FENCE-LANE-ACQUISITION'));
+    });
+  }
+}
+
+for (const rel of SEALED) {
+  test('RED R2 F1: template prose in ' + path.basename(rel), () => {
+    const src = planted(rel, (s) => s + '\nconst m = `That weight looks wrong. Nothing was recorded.`; void m;\n');
+    assert.notDeepEqual(literalsOf(src).filter(isProse), literalsOf(readRepo(rel)).filter(isProse), 'FENCE-COPY-IN-SEAL');
+  });
+}
+
+/* The exact blind-review table. Each gym snippet had these two locals FIRST;
+ * acquisition must fail even when the later save spelling is opaque. Controls
+ * that were RED must still be visible to the PUT row as well as acquisition. */
+const BLIND_GYM_TABLE = [
+  ['dot call', 'auditStore.save(auditMachine);', 'RED'],
+  ['member alias', 'const auditSave = auditStore.save; auditSave(auditMachine);', 'RED'],
+  ['destructured alias', 'const { save: auditSave } = auditStore; auditSave(auditMachine);', 'GREEN'],
+  ['concatenated bracket', "auditStore['sa' + 've'](auditMachine);", 'GREEN'],
+  ['optional call', 'auditStore.save?.(auditMachine);', 'RED'],
+  ['optional computed', "auditStore?.['save']?.(auditMachine);", 'GREEN'],
+  ['microtask', 'queueMicrotask(() => auditStore.save(auditMachine));', 'RED'],
+  ['promise', 'Promise.resolve().then(() => auditStore.save(auditMachine));', 'RED'],
+  ['builtin shadow', '{ const Object = auditStore; Object.save(auditMachine); }', 'GREEN'],
+  ['template interpolation', 'void `${auditStore.save(auditMachine)}`;', 'GREEN'],
+  ['newline', 'auditStore.\nsave(auditMachine);', 'GREEN'],
+  ['direct lane save', 'void facade.lane().save(auditMachine);', 'RED'],
+  ['direct lane bracket', "void facade.lane()['save'](auditMachine);", 'GREEN'],
+  ['hooks bracket', "hooks.saving(facade.lane()['save'](auditMachine));", 'GREEN'],
+];
+const auditLocals = "const auditMachine = { exercise_id: liftId, settings: [{ name: 'Seat', value: 'four' }], cues: 'Synthetic cue.' };\n" +
+  'const auditStore = facade.lane();\n';
+for (const file of RELEASED_FILES) {
+  for (const [shape, line, before] of BLIND_GYM_TABLE) {
+    test('RED blind table ' + path.basename(file.rel) + ': ' + shape + ' (was ' + before + ' in gym)', () => {
+      const refusals = releasedRefusals(file, plantLine(file, auditLocals + line));
+      assert.ok(refusals.includes('FENCE-LANE-ACQUISITION'), 'FENCE-LANE-ACQUISITION');
+      if (before === 'RED') assert.ok(refusals.includes('FENCE-WRITER-NAME'), 'original RED control still sees PUT');
+    });
+  }
+}
+
+test('S-R29 recorded laxity: entryFor returns a mutable cache entry visible through stateFor', async () => {
+  /* This is a recorded laxity, NOT a desired contract. The later ticket sealing
+   * recordSettings must rewrite this row on purpose for detached, deeply frozen copies. */
+  const { createGymSettingsLane } = await import('../../../m3/w7-preview/today/gym-settings-lane.mjs');
+  const latest = Object.freeze({ machine: { settings: [{ name: 'Seat', value: 'four' }] } });
+  const pair = createGymSettingsLane({}, {}, { latest: async () => latest }, { repaint: () => {} });
+  for (const object of [pair, pair.facade, pair.hooks]) assert.equal(Object.isFrozen(object), true);
+  await pair.hooks.startRead('synthetic-lift');
+  const entry = pair.facade.entryFor('synthetic-lift');
+  assert.equal(Object.isFrozen(entry), false);
+  assert.equal(pair.facade.stateFor('synthetic-lift'), 'known');
+  entry.state = 'failed';
+  assert.equal(pair.facade.stateFor('synthetic-lift'), 'failed');
+  assert.equal(pair.facade.entryFor('synthetic-lift'), entry);
+  assert.equal(Object.isFrozen(entry.latest), true);
+  assert.equal(Object.isFrozen(entry.latest.machine.settings), false);
+  entry.latest.machine.settings[0].value = 'injected';
+  assert.equal(pair.facade.entryFor('synthetic-lift').latest.machine.settings[0].value, 'injected');
+});
+
+/* Deliberately GREEN residue, measured for the reviewer/PM. No durability claim:
+ * these strings are scanned, not executed, and require review of the actual diff. */
+const RESIDUE = [
+  "const key = 'sa' + 've'; settings[key](auditMachine);",
+  "Reflect.apply(Reflect.get(settings, 'save'), settings, [auditMachine]);",
+  'const alias = settings; const { save: write } = alias; write(auditMachine);',
+];
+for (const file of RELEASED_FILES) {
+  for (const [i, line] of RESIDUE.entries()) {
+    test('RECORDED RESIDUE ' + path.basename(file.rel) + ': spelling ' + (i + 1) + ' still passes', () => {
+      assert.deepEqual(releasedRefusals(file, plantLine(file, line)), []);
+    });
+  }
+}
