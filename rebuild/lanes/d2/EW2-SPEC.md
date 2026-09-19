@@ -3355,3 +3355,647 @@ no row for a lift a plan edit added, and the re-key's own comment relies on `cap
 proved that it does. **That is Q-M and STOP 18. It is a smaller thing than B1 and it is the same
 kind of thing, found the same way, and it is named here rather than discovered at the first
 fixture.**
+
+---
+
+## 13. ASTRA BLIND REVIEW: FIXED OR DISPUTED, AND THE PM'S ROUND 6 RULINGS (NEW IN v6)
+
+Astra (Codex) read v5 BLIND at highest effort and returned **DO NOT BUILD YET**
+(`rebuild/lanes/astra/reviews/EW2-SPEC-BLIND-REVIEW.md`, `origin/rebuild/r-astra-ew2-spec`
+`adc9347d`, 251 lines). The PM upheld the verdict, upheld all thirteen findings and ruled `E-R30`
+to `E-R38`. `E-R1` to `E-R29` stand except where a ruling below changes them.
+
+**THE METHOD OF THIS ROUND, AND IT IS THE ORDER THE PM GAVE.** Her witnesses ran on the owner's PC
+in her own scratch. **None of them is evidence here.** Every executed witness below was reproduced
+by ME, in a farm scratch worktree cut from this branch's head, with cells of MY OWN writing, one
+Node process at a time, `MEASURED_TEST_NOW=2026-09-03 TZ=America/New_York`, and each row says
+REPRODUCED, NOT REPRODUCED or REPRODUCED BUT MISREAD. The cells are committed beside this file in
+`spike/` with their sha256. **Where my measurement disagrees with her reading, 13.10 says so by
+name, and two of her thirteen are narrowed by it.**
+
+**THE BASELINE THIS ROUND MEASURED ON.** In the scratch worktree at this branch's head,
+`rebuild/lanes/d/plan-edit/model.test.cjs` plus `durable-host.test.mjs` run in ONE Node process in
+1.6 seconds: **85 tests, 85 pass, 0 fail.** (The PM's dispatch expected 84 pass and one
+environmental red at PE16 `f2-adapter-identity`; in this worktree that row is GREEN, so the farm's
+copy of the tag adapter is the one the cell expects.) **`git status` over the worktree, excluding
+untracked files, is EMPTY after every cell in this section ran: no product file was edited, and
+the two prototype modules are scratch COPIES.**
+
+### 13.1 THE THIRTEEN FINDINGS, AND THE CELL THAT PROVES EACH
+
+| finding | severity | verdict | my cell | what my own run printed |
+|---|---|---|---|---|
+| **F1** the same saved edit cannot cross the import boundary | BLOCKING | **REPRODUCED, UPHELD (`E-R30`)** | `spike/ew2r6-w1-import-identity.mjs` | first run saves `sets=5` against DOCUMENT id `press-old`; import with FILE ids; **second open `read=false`, `PLAN_EDIT_TARGET_UNAVAILABLE`**; the raw imported `file-press` prescribes `sets=2`; the imported state has no row under `press-old` |
+| **F2** E-R25's append creates a row the retained add creates again | BLOCKING | **REPRODUCED, UPHELD (`E-R31`)** | `spike/ew2r6-w2-creation-owner.mjs` | save an `add`, append its folded row to the admitted base as `E-R25` (ii) words it, reopen: **`PLAN_EDIT_ID_REUSED`, whether the appended row is retired or not**. CONTROL, no append: `read=true` and a second add is offered |
+| **F3** the selected collision guard is weaker than its outcome | BLOCKING | **REPRODUCED, both halves, UPHELD (`E-R32`)** | `spike/ew2r6-w3-collision.mjs` | `slugOf('Lateral', setupIds)` is `lateral`; a FILE row `{lateral, Lateral, back}` exists; **augmented `idCollisions` returns `[]` and `held.has('lateral')` is `true`**, so a NEW identity answers for the file row. Converse: the folded rename `Renamed press` of the established `press` returns **`["press"]`**, a false collision |
+| **F4** the retained family's discriminator names a field that is always null | HIGH | **REPRODUCED (`E-R33`)** | `spike/ew2r6-w4-pending-view.mjs` | `stored op.payload` is `null`; `members[0].value.profile` is `"earned/plan-edit/v1"`; `op.class/op.kind` are `plan / plan-mutation` |
+| **F5** total fallback is not safe adoption | HIGH | **UPHELD, composed from F1 (`E-R34`)** | `spike/ew2r6-w1-import-identity.mjs` plus 3.4.4's own hunk | `planEditedState` returns `rawBasis` on `read.read === false` by its own specified totality; F1's reply IS that object, so the card would prescribe `sets=2` where `sets=5` is on disk, with nothing said |
+| **F6** the prescribed list cannot edit the pending plan | HIGH | **REPRODUCED (`E-R35`)** | `spike/ew2r6-w4-pending-view.mjs` | after a saved add, `host.read()` active ids are the three setup lifts and `host.read(starts_on)` adds `brand-new`; after a saved remove, `row-old` is STILL in today's list and gone from the pending one; a second same-day `update` composes to `sets=7` on `starts_on` while today still reads `sets=2` |
+| **F7** closing or cancelling during Save has no recovery contract | HIGH | **REPRODUCED and EXTENDED (`E-R36`)** | `spike/ew2r6-w5-inflight.mjs` | `close()` fired the instant the real durable commit returns: reply `ok=false acknowledged=false LOCAL_CLIENT_CLOSED`, **one plan-mutation operation on disk**. `cancel()` at the same instant: `PLAN_EDIT_REVIEW_REQUIRED`, **also committed**. The next open sees the intent `active` and applied, **and still offers a second review under a FRESH intent id with nothing reconciled** |
+| **F8** F2 failures escape the refusal vocabulary | HIGH | **REPRODUCED IN PART, NARROWED (`E-R37`, see 13.10)** | `spike/ew2r6-w6-f2-boundary.mjs`, `spike/ew2r6-w6b-projector-latency.mjs` | a real host `review` with an invalid head returns **`SETUP_TAGS_INVALID`**, not a `PLAN_EDIT_*` code; a bare `RangeError` from the validator surfaces as `PLAN_EDIT_READ_REFUSED`; **and a throwing `projectNewExerciseTags` is CONTAINED at `save` as `PLAN_EDIT_PROJECTION_REFUSED` with nothing committed** |
+| **F9** two machine-note contracts conflict and can erase the draft | MEDIUM | **REPRODUCED (`E-R38` F9)** | `spike/ew2r6-w7-machine-note.mjs` | `draftFrom(draftFrom({machine:{settings:[Seat=4],cues:Pause}}))` is `{"rows":[{"name":"","value":""}],"cues":""}`, and `machineFromDraft` of that is `null` |
+| **F10** "new operation basis" has no stored-field handoff | MEDIUM | **CONFIRMED BY READING (`E-R38` F10)** | source read, `workout-basis.cjs:49-61`, `today-bindings.mjs:89`, `:487` | `plan_basis` is the constructor label carried verbatim, default `PLAN_BASIS = "NO_ACCEPTED_PLAN"`; `causalTips` ARE refreshed per generation at `:488`. Adopting a plan-edited state changes NEITHER |
+| **F11** the 60 second maximum and the session stamp | MEDIUM | **CONFIRMED BY READING (`E-R38` F11)** | source read, `today-entry.mjs:472`, `:482`, `today-bindings.mjs:208-214` | `setInterval(check, 60000)` is a period; `clientClockFor(day, live).today()` returns the HOST `day` argument, never the live day |
+| **F12** the admitted-phone re-import journey is false | MEDIUM | **REPRODUCED BY READING THE CITED CELL (`E-R38` F12)** | `retract.test.mjs:138-148`, `local-client.mjs:407-411` | the cited row asserts `retracted === false` and `LOCAL_IMPORT_RETRACT_REFUSED_ADMITTED` |
+| **F13** contradictory implementation instructions | LOW | **UPHELD, every item (`E-R38` F13)** | 13.9's register | each sentence corrected or dated as history |
+
+### 13.2 `E-R30`: STORED EDITS AND CAPTURES ARE IMMUTABLE AND KEEP THE ID SPACE THEY WERE SAVED IN
+
+**THE PRINCIPLE, as the PM worded it.** Nothing rewrites a stored operation at import. This spec
+names, for every saved edit, WHICH BASE it applies to before and after an admission, and the ONE
+named boundary at which a DOCUMENT id is translated through the admitted lift correspondence, the
+same correspondence source admission already uses. No second map. Where the correspondence is null
+the fold refuses BY NAME for that edit and never falls back to the raw plan in silence (`E-R34`).
+
+**"DOCUMENT" STOPS BEING CALLED AN INVARIANT OF ALL SAVED EDITS. SAY WHAT IT IS AN INVARIANT OF.**
+It is an invariant of **the id a stored edit was MINTED under**, and of nothing else. Written out:
+
+| the thing | the space it is an invariant of | for how long |
+|---|---|---|
+| `members[0].value.edit.exercise_id` in a stored operation | **DOCUMENT**, the space of the installation THAT SAVED IT | forever. The operation is content committed and is never rewritten |
+| `members[0].value.edit.exercise.id` (an `add` or a `replace`'s new lift) | **DOCUMENT**, minted by the editor's id provider (`E-R32`) | forever, and no FILE lift ever answers for it |
+| the BASE an edit applies to, BEFORE an admission | the first-run `createCleanInitState({setup})`, **DOCUMENT** | until the first admission |
+| the BASE an edit applies to, AFTER an admission | the ADMITTED state, **MIXED** by construction (`source-admission.mjs:477-484`: FILE ids plus DOCUMENT ids for the lifts the file does not answer for) | from the first admission onwards |
+| a CAPTURE's `slot.lift_lineage_id` | **DOCUMENT** for a capture taken before the admission (`:615-:617`'s own comment); the imported engine's own space for one taken after | per capture, decided by when it was taken |
+
+**THE ONE BOUNDARY, AND IT IS ONE LINE OF THE FOLD.** It is the TARGET LOOKUP inside
+`plan-edit-model.cjs apply()`, and nothing else in the file moves. Today `apply()` resolves
+`edit.exercise_id` against `state.exercises` by EXACT id, which is why F1 refuses. Under `E-R30`:
+
+```
+targetIdOf(state, id):
+  id undefined, or the first-run branch   -> id, unchanged
+  the admitted correspondence has an entry -> that FILE id
+  the base carries a row under the raw id  -> the raw id
+                                              (a plan-created lift, or an uncorresponded
+                                               document lift admission appended)
+  otherwise                                -> fail('PLAN_EDIT_TARGET_UNTRANSLATED')
+```
+
+`PLAN_EDIT_TARGET_UNTRANSLATED` is a NEW code and it is deliberately NOT
+`PLAN_EDIT_TARGET_UNAVAILABLE`: the latter means the lift is gone or retired, which is an answer
+about the athlete's plan; the former means the two id spaces cannot be joined for this edit, which
+is an answer about the import. They reach different recovery states under `E-R34`.
+
+**WHERE THE MAP COMES FROM, AND THE HOST KEEPS ITS ZERO-BYTE ROW.** Two shapes were prototyped and
+the smaller one is specified. The map is read INSIDE the fold from
+`collections.derived.localSource.view.lift_correspondence`, the same authenticated derived record
+`admittedBasisOf` has already proved (three copies of the basis compared for identity,
+`local-source-basis.mjs`), so **`plan-edit-host.mjs` passes nothing new and 3.2's
+"CALLED ONLY, zero bytes" row for it STANDS.** Admission records the map it already computed at
+`source-admission.mjs:398` as ONE added member on the `view` object at `:781`. **That does not move
+a digest: `:779` hashes `replayed.programmeBasis`, the operations, the interpretation, the order
+map and the engine context, and never the `view`; and `admittedLocalSourceBasis`'s three-copy
+identity test compares `derived.basis`, `marker.basis` and `view.basis`, which is `Q`, not the
+whole view. S2144-2164's unchanged-digest requirement is preserved, explicitly.**
+
+**WHY IT IS RECORDED AND NOT RE-DERIVED, honestly.** I MEASURED the alternative: re-deriving
+`correspondence(admittedState.exercises, documentLifts)` at read time, on a fixture with two
+ambiguous FILE lifts of one name plus admission's own appended row, returns the SAME map as
+admission recorded (`{"row-old":"fr"}` both ways). **So re-derivation is NOT measured to drift, and
+I do not claim it does.** It is still not what this spec chooses, for one reason a builder can
+check: the inputs differ. Admission derives over `source.exercises` against `scratch.exercises`;
+a reader at fold time has only the MIXED admitted list, and `plan-edit-model.cjs:184-190` records
+that the appended retired rows deliberately share names with the file lifts that made them
+ambiguous. Recording costs one member; re-deriving costs an argument nobody can close.
+
+**JOURNEY J1, RED AT v5's COMPOSITION AND GREEN UNDER THIS ONE, AND I WATCHED IT WORK.** The
+mechanism above is not proposed from reading: `spike/ew2r6-proto-model-b.cjs` is a scratch COPY of
+`plan-edit-model.cjs` carrying exactly that hunk, and `spike/ew2r6-p1b-j1-noHostBytes.mjs` drives
+it over a generation built by the REAL host through the REAL durable client.
+
+| J1 step | v5's composition (the product as it stands) | under `E-R30` |
+|---|---|---|
+| first-run edit, `update sets=5` on `press-old`, saved | `ok=true acknowledged=true` | same |
+| import with DIFFERENT ids (`file-press`, `file-row`, `file-squat`), correspondence recorded | n/a | n/a |
+| reload, read | **`read=false PLAN_EDIT_TARGET_UNAVAILABLE`** | **`read OK, file-press sets=5`** |
+| the card and the stored Start would carry | the RAW imported `sets=2` | the saved `sets=5` |
+| NEGATIVE CONTROL, correspondence absent for that id | n/a | **`PLAN_EDIT_TARGET_UNTRANSLATED`**, never the raw plan |
+| NEGATIVE CONTROL, no map recorded at all | n/a | **`PLAN_EDIT_TARGET_UNTRANSLATED`** |
+| the STORED `edit.exercise_id` after every one of those reads | `"press-old"` | **`"press-old"`. Nothing was rewritten** |
+| CONTROL, the first-run branch | `press-old sets=5` | **`press-old sets=5`, identical** |
+
+**THE SEALED COST OF THIS HUNK, COUNTED RATHER THAN ESTIMATED**, by `diff -u` of the product file
+against the prototype, excluding the three import lines a scratch copy must relocate:
+**23 added lines (9 of them comment), 2 removed, 0 changed elsewhere, all in
+`rebuild/m4/workout/plan-edit-model.cjs`**; plus **1 changed line in
+`rebuild/m3/w6/local/source-admission.mjs:781`** for the recorded member. `plan-edit-host.mjs`,
+`local-source-basis.mjs`, `today-bindings.mjs` and `rebuild/coach/**`: **zero bytes.**
+
+### 13.3 `E-R31`: ONE OWNER OF CREATION, AND THE FOLD HORIZON IS RULED
+
+**THE PRINCIPLE.** `E-R25` shape (a) stands as the **HISTORY ROSTER**, which is what old sessions
+attach to. The **PRISTINE REPLAY BASE** never contains a row that a retained add will create.
+`PLAN_EDIT_ID_REUSED` is never suppressed and never special-cased.
+
+**THE FOLD HORIZON, WHICH `E-R25` LEFT OPEN, IS RULED: THE ROSTER IS THE UNION OVER EVERY RETAINED
+EDIT, PAST, CURRENT AND PENDING**, because the roster exists to ATTRIBUTE HISTORY and the
+PRESCRIPTION is the replay's job. A pending edit's row is in the roster on the day it is admitted,
+not on the day it becomes effective, and it is never active in any prescription before its own
+`starts_on`. S2798's fold-DATE omission is answered by this paragraph and is no longer open.
+
+**THE MECHANISM, SMALLEST FIRST, AND IT IS HER SUGGESTION WITH ONE THING MADE EXACT: SEPARATE THE
+TWO BY FIELD, NOT BY FILE.** Admission writes the roster rows to **their own member of the admitted
+state**, `state.planRoster`, keyed by the plan-created DOCUMENT id, each entry carrying the row, the
+`op_id` that created it and its `effective_from`. It does NOT write them into `state.exercises`.
+Then:
+
+- the REPLAY BASE (`state.exercises`) carries no row a retained add will create, so `apply()`'s
+  `state.exercises.some(e => e.id === row.id)` guard is untouched and ID_REUSED keeps its meaning;
+- the RE-KEY at `source-admission.mjs:731-734` and every reader that needs to know which lift a
+  plan-created id names reads the ROSTER, which is the single authenticated place that answers;
+- `capture_lift` under `E-R16 PRIME` (a) does NOT need the roster at all: its right-hand side is
+  FOLDED's ACTIVE rows, which the replay produces from the retained edits themselves.
+
+**SINGLE OWNER, STATED IN ONE SENTENCE FOR THE BUILDER: the REPLAY creates the row; the ROSTER
+records that the replay will.** A reviewer of the admission hunk refuses any line that appends a
+plan-created row to `state.exercises`.
+
+**JOURNEY J2, MEASURED ON BOTH COMPOSITIONS** (`spike/ew2r6-p2-j2-prototype.mjs`, and
+`spike/ew2r6-w2-creation-owner.mjs` is the red half on its own):
+
+| J2 step | `E-R25` (ii) as worded | under `E-R31` |
+|---|---|---|
+| save an `add` (`added-past`), `starts_on` tomorrow | `ok=true` | same |
+| import; the folded row goes to | `state.exercises`, retired | `state.planRoster` |
+| reopen the editor, read | **`read=false PLAN_EDIT_ID_REUSED`** | **`read=true`** |
+| the same, with the appended row NOT retired | **`read=false PLAN_EDIT_ID_REUSED`** (existence is the guard, retirement does not help) | n/a |
+| the replay created the row, one owner | n/a | **true** |
+| the roster still carries it for old sessions | n/a | **true** |
+| add again with a NEW label | never reached | **reviewed and saved** |
+| the SAME id again | never reached | **refuses `PLAN_EDIT_ID_REUSED`** |
+| a SETUP id again | never reached | **refuses `PLAN_EDIT_ID_REUSED`** |
+| the union the roster must carry after both adds | n/a | `["added-past","added-second"]`, the second still PENDING at the authored day |
+
+**THE CONTROL THAT KEEPS THIS HONEST, and it is the reason F2 is a finding about `E-R25` and not
+about the product:** with NO append at all, which is what the tip does today, the second open reads
+`true` and a second add is offered. **The defect is introduced by the append, and separating the
+roster removes it without removing what the append was for.**
+
+**THE SEALED COST.** The roster append is new work in `source-admission.mjs` that replaces the
+`E-R25` (ii) append nobody has written yet, so it is not a re-cost of a written line: about **6 to
+10 added lines** beside the existing `:476-:484` block, plus the collision guard of `E-R32`.
+`plan-edit-model.cjs` needs **zero bytes for `E-R31`**, which is the point of choosing a field.
+
+### 13.4 `E-R32`: WHO MAY TAKE A FILE HANDLE, AND WHO KEEPS ONE
+
+**THE PRINCIPLE.** A **NEW** identity refuses ANY occupied file handle, **an equal normalised label
+included**. An **ESTABLISHED** identity keeps its mapping across its own renames, so a folded rename
+of the same identity is **NOT** a collision.
+
+**THE TWO HALVES, MEASURED ON THE PRODUCT'S OWN FUNCTIONS** (`spike/ew2r6-w3-collision.mjs`):
+
+| the case | `idCollisions` as `E-R25` (i) words it | what must happen |
+|---|---|---|
+| FILE `{lateral, "Lateral", back}`; the athlete adds `{lateral, "Lateral", chest}` | **`[]`**, and `held.has('lateral')` is `true`, so the new identity silently answers for the file row | **refuse by name** |
+| FILE `{lateral, "Lateral", back}`; the athlete adds `{lateral, "Lateral raise", chest}` | `["lateral"]` (the already-known R5 B1 class) | refuse by name, unchanged |
+| FILE `{press, "Press", chest}`; the established `press` is folded-renamed to `"Renamed press"` | **`["press"]`, a FALSE collision on a legitimate rename** | **pass** |
+| FILE `{press, "Press", chest}`; the established `press`, not renamed | `[]` | pass |
+
+**WHY THE NAME CANNOT BE THE TEST.** `idCollisions` answers "is this id shared by two lifts that do
+NOT answer for each other by name". That is the right question at ADMISSION, between two documents
+neither of which has a history yet. It is the wrong question at FOLD time, because by then the
+answer is already recorded: the correspondence says which document ids the file answers for, and a
+rename changes the NAME on purpose. **So the test is asked of IDENTITIES, not of current names.**
+
+**THE MECHANISM** (`spike/ew2r6-p3-j3-prototype.mjs`, pure functions over the product's own
+`slugOf` and `normaliseName`; no product file edited):
+
+```
+established = keys(admitted lift_correspondence) UNION keys(state.planRoster)
+planIdCollisions(fileLifts, foldedRows):
+  for each folded row whose id is NOT established:
+     the FILE holds that handle -> PLAN_EDIT_FILE_HANDLE_OCCUPIED, whatever the labels
+```
+
+**AND THE PREVENTION, WHICH IS BETTER THAN THE REFUSAL: THE EXERCISE-ID PROVIDER IS NAMED.**
+S1124 supplies only intent ids and never an exercise id; `slugOf(name, taken)` reserves ONLY the set
+it is handed, and `setup-model.mjs:252-254`'s own comment says uniqueness is the caller's rule.
+**THE PROVIDER, ITS SET AND ITS LIFETIME:**
+
+| what | this spec's answer |
+|---|---|
+| WHO mints a plan-created exercise id | the EDITOR, at review time, by calling `slugOf(name, reserved)` with the union below. It is the released half's call and it is not `setup-model.mjs`'s screen path |
+| WHAT IT RESERVES, the union, all five | the SETUP document's ids; **the FILE's handles** (`state.exercises` of the admitted base); plan-created ids already active; **RETIRED** creations (a `remove` or the retired half of a `replace`); **TOMBSTONED** creations (an edit a tombstone killed); and the roster's ids |
+| WHERE the union comes from | ONE added field on the authenticated read's return, `reserved_ids`, computed inside `plan-edit-model.cjs result()` from `inspect()`'s existing `added` set plus the base's ids plus `state.planRoster`. The editor never assembles it itself, so review, retry and reload cannot disagree |
+| ITS LIFETIME across review, retry and reload | it is REBUILT from the authenticated read on every mint and carried nowhere. A retry of the same review reuses the id already in the stable review intent (`E-R36`); a reload re-reads and gets the same union, because every member of the union is on disk |
+| a same-label re-add after a remove | gets a FRESH id. **Measured: with `lateral-2` retired and `lateral-3` tombstoned, `slugOf('Lateral', union)` mints `lateral-4`.** There is never an implicit resurrection |
+
+**JOURNEY J3, both of her witnesses, under the mechanism** (`spike/ew2r6-p3-j3-prototype.mjs`):
+
+| J3 row | measured |
+|---|---|
+| a new identity, EQUAL label, onto the occupied handle `lateral` | **`[{"id":"lateral","why":"PLAN_EDIT_FILE_HANDLE_OCCUPIED","label_equal":true}]`**. Refuses by name |
+| the same add, minted against the RESERVED UNION instead | `slugOf('Lateral', setup ids UNION file handles)` is **`lateral-2`**, and its collisions are **`[]`**. Nothing to refuse |
+| `Press` renamed, the established identity folded | **`[]`**. Passes |
+| a roster identity later renamed | **`[]`**. Passes: it is established too |
+
+**WHERE THE GUARD LIVES.** `planIdCollisions` runs in `source-admission.mjs`, **BEFORE** the roster
+is written and before any capture is walked, beside the existing `idCollisions` call at `:389`; it
+does not replace that call, which is still the right question about the two documents. A plan-added
+id it names gets **exactly the treatment a setup-document collision gets today** (`E-R25` (i)):
+`fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED', {field:'exercise_id', exercise_id})`, never a silent
+attach. The editor-side refusal (`E-R25` (iii)) extends `PLAN_EDIT_ID_REUSED`'s subject to the file
+handles, which the `reserved_ids` field above makes reachable without a second read.
+
+**`E-R21` IS WIDENED AGAIN, by this round's own measurement:** a cell that mints a lift id says
+whether the FILE could carry that id AND whether the label is equal or unequal, because the equal
+label is the case five reviews walked past.
+
+### 13.5 `E-R33`: THE RETAINED FAMILY IS IDENTIFIED, VALIDATED, AND PROVED EVEN WITH ZERO CAPTURES
+
+The discriminator is corrected at 4.3 ruling 0 (class and kind, then `Commands.validate`, profile
+read from the MEMBER). Two further rulings land here.
+
+**THE PROOF AND STATUS TREATMENT IS NOT OPTIONAL AND IS NOT SHAPE VALIDATION.** S1797-1799 said the
+three capture checks were "the only remaining evidence". `plan-edit-commands.cjs:100-127` is SHAPE
+validation of one operation; `plan-edit-model.cjs:288-310` is what proves TOMBSTONES, the seen
+basis and causal ORDER across the whole set, and S2090 called that proof "per capture", which is
+where the gap opened. **RULED: a retained plan operation receives the model's tombstone, basis and
+causal-order treatment at admission time, and it receives it EVEN WHEN THERE ARE ZERO CAPTURES.**
+
+**WHY ZERO CAPTURES IS THE DANGEROUS CASE AND NOT THE EASY ONE.** With no session to walk, the
+three capture checks never run at all, so under v5's wording a set of edits could be RETAINED with
+nothing whatever proved about it, and the editor would then open on a history it cannot replay:
+the first read after the import would refuse, and under v5's fallback the athlete would be shown the
+raw plan and told nothing (`E-R34`). **A no-session import must not retain a history the editor
+cannot replay.** The admission hunk therefore runs the model's proofs over the retained set once,
+independently of the capture walk, and an import whose retained edits do not prove is refused by
+name at admission, where the athlete is standing in front of a screen that can say so.
+
+### 13.6 `E-R34`: NEVER SILENT. R4's N3 AND R5 ARE OVERRULED ON THIS POINT
+
+**THE PRINCIPLE.** "No edits exist" and "edits exist and could not be authenticated or replayed"
+are DIFFERENT STATES, and the second is never presented as the first. v5 presented them as the
+same: `planEditedState` returns `rawBasis` on `read.read === false` by its own specified totality,
+the gym rebases onto it, and nothing on any screen says a word. **F1 makes that concrete and I
+measured both halves: `sets=5` is on disk and `sets=2` is what the card would prescribe.**
+
+**THE PM'S PRODUCT DEFAULT, RECORDED FOR THE OWNER TO OVERRULE.** The athlete is NOT blocked from
+training. Specifically, and every clause is normative:
+
+1. the card shows **the plan the phone can PROVE** (the admitted or first-run base, unfolded), and
+   never a half-folded state;
+2. it says, in ONE plain sentence, that his saved changes could not be applied;
+3. **Start stays available**;
+4. the **stored Start carries that proven basis truthfully**: the `plan_basis` and the prescription
+   capture assert the base that was actually prescribed from, never a plan-edited one
+   (`E-R38` F10 makes that field explicit);
+5. **nothing on disk is dropped**: no operation is tombstoned, superseded, rewritten or hidden;
+6. the editor opens to a **named recovery state** and **never to Saved**.
+
+**THE FOUR STATES, AND WHICH SENTENCE EACH ONE GETS.** `EW-14`'s fallback assertion and `STOP 9`
+change together, and this table is what they now assert.
+
+| state | how it is reached | the card | the editor opens to |
+|---|---|---|---|
+| **NO EDITS** | `read=true`, `intents` empty | the proven plan, no extra sentence | the normal list |
+| **EDITS APPLIED** | `read=true`, `applied_ids` non-empty | the folded plan | the normal list, `Saved` where it is true |
+| **NOT AUTHENTICATED** | `read=false` with a `plan_edit_history` or `plan_edit_context` code | the proven plan **plus sentence C1** | **`Your saved changes need attention`**, showing the stored edits and what refused |
+| **NOT TRANSLATED** | `read=false` with `PLAN_EDIT_TARGET_UNTRANSLATED` (`E-R30`) | the proven plan **plus sentence C2** | the same recovery state, naming the lift by the NAME the athlete typed |
+
+**THE SENTENCES, PROPOSED COPY FOR THE OWNER. Plain words, and each is a hypothesis he may
+overrule.** They obey 2.3's copy laws: no jargon, no code, no blame, and nothing that asks him to
+understand an id space.
+
+- **C1, PROPOSED:** `We could not apply your saved changes to this plan, so this is the plan your
+  phone can prove. Nothing you saved has been deleted.`
+- **C2, PROPOSED:** `Your saved changes were made to a different copy of this exercise, so we have
+  not applied them. This is the plan your phone can prove, and nothing you saved has been deleted.`
+- **C3, PROPOSED, the editor's recovery heading:** `Your saved changes need attention`
+- **C4, PROPOSED, the editor's one line under it:** `These changes are still on your phone. They
+  are not part of the plan you see on Today.`
+
+**WHAT THIS SPEC WILL NOT DO, AND SAYS SO.** It does not offer an automatic repair, and it does not
+offer a "discard my changes" button in this round. Both are real answers and both need a proof of
+custody nobody has written. The recovery state SHOWS and EXPLAINS; whether it can ACT is the S10
+brief's question and is recorded as a named debt at 13.11.
+
+**I DISAGREE WITH R4 N3 AND R5 ON THIS POINT AND SO DOES ASTRA, and the disagreement is measured,
+not stylistic.** Their argument was that the raw fallback is safe because it never shows a wrong
+number. It shows a STALE number and calls it current, which is the same class of defect
+`:600-:611` records P3-REAL-SHAPE fixing: the failure MOVED rather than removed.
+
+### 13.7 `E-R35` AND `E-R36`: WHICH DATED VIEW THE EDITOR EDITS, AND WHAT A SAVE OWES
+
+**`E-R35`, THE DATED VIEWS. ONE authenticated generation returns TWO explicitly dated views.**
+S617 and S641-642 said today's read supplies the editable list. Measured
+(`spike/ew2r6-w4-pending-view.mjs`), it does not:
+
+| what the athlete did | `host.read()` (today) | `host.read(starts_on)` (pending) |
+|---|---|---|
+| saved an `add` of `brand-new` | `press-old,row-old,squat-old`. **`brand-new` is not selectable** | `press-old,row-old,squat-old,brand-new` |
+| saved a `remove` of `row-old` | `press-old,row-old,squat-old`. **the removed lift is still listed** | `press-old,squat-old,brand-new` |
+| a second same-day `update` to `sets=7` | field default seeded from today is **`2`** | the value the review applies against is **`7`** |
+
+**RULED, and it is one call, not two reads.** The editor takes ONE authenticated read and derives
+both views from it, each **explicitly dated in the returned object**: `current` for the day being
+shown and `pending` for `starts_on`. **List membership and every field default in the editor come
+from the PENDING view**, because that is the plan the athlete's edit will land on and the value he
+is about to change. **Today's workout is IMMUTABLE and is never edited from this screen**: the
+current view is what the card shows and what the athlete reads, and the editor never offers a
+control over it.
+
+**SEVERAL EDITS FOR ONE EFFECTIVE DAY COMPOSE IN SAVED ORDER, MEASURED as already true**: the
+second same-day `update` reached `sets=7` over the first, in `device_seq` order, with
+`PLAN_EDIT_DATE_ORDER_UNPROVEN` guarding the ordering (`plan-edit-model.cjs:310`). **What is NOT
+true today and is ruled here: the editor REFRESHES after each save**, so the next field default is
+the composed value and not the one the screen was opened with.
+
+**THE READ BUDGET, RESTATED PER SAVE AND MEASURED.** `E-R17 PRIME` priced the ADOPTION at two
+durable loads. A SAVE is a different operation and its budget is stated separately:
+`plan-edit-host.mjs save()` performs `readVerified()` before the commit, the commit itself, and on
+an unacknowledged reply a second `readVerified()`; each `readVerified` is one `lane.reopen()`.
+**The refresh `E-R35` adds is the read the host already does, reused, not a new one: `save()`'s
+reply already carries the committed intent, and the editor re-derives both dated views from the
+generation that reply was proved against.** A cell measures the per-save load count by name and the
+number it fixes is the number the build must not exceed.
+
+**`E-R36`, THE IN-FLIGHT SAVE. MEASURED, BOTH WAYS** (`spike/ew2r6-w5-inflight.mjs`), with the hook
+fired the instant the REAL durable commit returned:
+
+| what happened at that instant | the reply the athlete's page got | what is on disk | what the next open did |
+|---|---|---|---|
+| `close()` | `ok=false acknowledged=false LOCAL_CLIENT_CLOSED` | **1 plan-mutation operation, committed** | read `true`, intent `active` and applied, **and it offered a second review under a fresh intent id** |
+| `cancel(review_id)` | `ok=false acknowledged=false PLAN_EDIT_REVIEW_REQUIRED` | **1 plan-mutation operation, committed** | the same |
+
+**This is not a partial transaction. It is a committed write whose reply lost its identity.** Three
+rulings:
+
+1. **WHILE A SAVE IS IN FLIGHT THE EDITOR'S EXITS WAIT FOR THE OUTCOME.** Close, back and cancel
+   are DISABLED from the moment `save()` is called until its reply is in hand. The host already
+   serialises through `enqueue`; what is missing is that the SCREEN lets a person jump the queue,
+   and `plan-edit-host.mjs:252`'s synchronous `cancel` lets it. The editor owns this: no sealed
+   byte is needed for the disable.
+2. **IF THE PAGE OR THE HOST DIES MID-SAVE, THE NEXT OPEN RECONCILES BY THE STABLE REVIEW INTENT
+   BEFORE ANY NEW REVIEW OR ID IS MINTED.** The intent is durable enough to do it: it is
+   `members[0].value.intent_id` and the read already returns it in `intents`. The editor holds the
+   review intent it last attempted in its own transient state; on open, if that intent is present
+   and `active`, **the edit is shown as SAVED** and no new review or exercise id is minted until it
+   has been. `plan-edit-host.mjs review()` mints `newIntentId()` before any such lookup, which is
+   exactly the order this ruling reverses, and it reverses it in the EDITOR, not in the host.
+3. **CANCEL IS NEVER AN UNDO, and the spec says so where the athlete could think otherwise.**
+   After a save has committed, Cancel closes the screen and changes nothing. The editor's Cancel
+   control is labelled and placed so that it cannot be read as "undo my change", and the recovery
+   copy of `E-R34` never uses the word.
+
+### 13.8 `E-R37`: THE F2 BOUNDARY IS CONTAINED, AND SECTION 12'S SIX HOST DUTIES EACH GET A ROW
+
+The sentence at S2118-2119 that propagated non-`PLAN_EDIT` throws is STRUCK at its own line.
+**ANY throw at the F2 boundary, projection, validation or raw, in the EDITOR and in ADMISSION, is
+contained and mapped to a named refusal with a DEFINED DEFAULT.**
+
+**THE FIELD TABLE BECOMES EXHAUSTIVE.** The three `field` names of 4.3 ruling 3 (iii) stand and
+gain the codes S2097-2127 omitted, plus the default:
+
+| `field` | codes added in v6 | why here |
+|---|---|---|
+| `plan_edit_history` | `PLAN_EDIT_TARGET_UNAVAILABLE`, `PLAN_EDIT_WEEK_EMPTY`, `PLAN_EDIT_NO_CHANGE`, `PLAN_EDIT_DAY_UNCOVERED`, `PLAN_EDIT_REJECTION_UNPROVEN`, `PLAN_EDIT_TOMBSTONE_UNPROVEN` | all of them are answers about the athlete's own saved history or his own week |
+| `plan_edit_basis` | `PLAN_EDIT_NEW_TAG_PROJECTION_INVALID`, `PLAN_EDIT_PROJECTION_REFUSED` | both mean the fold's collaborators are wrong |
+| `plan_edit_identity`, **NEW** | `PLAN_EDIT_TARGET_UNTRANSLATED` (`E-R30`), `PLAN_EDIT_FILE_HANDLE_OCCUPIED` (`E-R32`), `PLAN_EDIT_ID_REUSED` where its subject is a FILE handle | these are answers about the JOIN between two id spaces, not about his history, and `E-R34` gives them their own sentence C2 |
+| **THE DEFAULT** | **any other throw, including one with no `code` at all** | maps to `plan_edit_basis` and is RECORDED with the raw message in the issue, because an unknown throw at this boundary is a build defect and must be visible. It is never propagated and never silent |
+
+**MEASURED, so the builder knows what the boundary does today** (`spike/ew2r6-w6-f2-boundary.mjs`,
+`spike/ew2r6-w6b-projector-latency.mjs`):
+
+| drive | today |
+|---|---|
+| real host `review` with `head` outside the taxonomy | **`SETUP_TAGS_INVALID`** reaches the editor. The vocabulary leaks |
+| real host `review` with a `secondary.mg` that is not a region | **`SETUP_TAGS_INVALID`** |
+| `lend` above 1 | `PLAN_EDIT_INPUT_INVALID` (`plan-edit-commands.cjs:63` refuses before the provider is called) |
+| a validator that throws a bare `RangeError` | **`PLAN_EDIT_READ_REFUSED`**: it fires inside the setup loop at READ, before the edit is looked at |
+| a `projectNewExerciseTags` that throws | **`PLAN_EDIT_PROJECTION_REFUSED` at `save`, nothing committed** |
+
+**THE SIX HOST DUTIES OF F2's REPORT SECTION 12, ONE ROW EACH, DISCHARGED BY A LINE OR DECIDED
+HERE** (the module is unchanged at `origin/rebuild/d-f2-land` `24bef9b9`; injecting three functions
+does not discharge a duty):
+
+| duty | discharged by, or decided here |
+|---|---|
+| **1** ANY throw refuses | **DISCHARGED BY THIS SECTION**: S2118-2119 struck, the field table exhaustive, the default defined |
+| **2** reject a duplicate id BEFORE `projectNewExerciseTags` | **DISCHARGED BY EXISTING LINES**: `plan-edit-model.cjs:346` precedes `:350`, and `:389` guards `preview`. `E-R32` extends the reserved set to the FILE handles through `reserved_ids`, and it does NOT rely on F2 to do it: measured, F2 alone projects an existing id happily |
+| **3** ONE catalogue encoding of the primary head | **DECIDED HERE.** The catalogue's encoding of the primary head is **PRESERVED AS CHOSEN**: whatever `exercise-catalogue.mjs` hands `projectNewExerciseTags` for a catalogue pick is written unaltered. **A CUSTOM pick states its identity muscle EXPLICITLY.** Measured (`spike/ew2r6-w7-machine-note.mjs`), the taxonomy has THREE cases and not two: eight IDENTITY muscles (`abs`, `biceps`, `calves`, `forearms`, `glutes`, `hams`, `quads`, `triceps`) where `head: null` and `head: <muscle>` both validate and are not the same downstream; two muscles with sub-regions (`back`, `delts`) where the head must be `null` or one of their regions; and **`chest`, which has NO region at all, where the only head that validates is `null`**. `E-R29` is right as worded and it does not cover `chest`: the picker must not offer a head there |
+| **4** absent tags return the state by identity, no context validation; a null validator returns `true` | **DISCHARGED BY A GUARD AND A ROW, not by the normal path.** S1403-1407's mandatory setup tag map means the normal EW2 flow never reaches it, so tagless success is NOT evidence. Measured: `validateSetupTags(null, null)` and `validateSetupTags(anything, null)` both return `true`. `EW-15` gains a row that drives the host boundary with the tags absent and asserts the identity projection, so the day that path becomes reachable the row speaks |
+| **5** no total-helper-credit ceiling | **DECIDED HERE: the host offers CATALOGUE SNAPSHOTS ONLY in EW2. No free helper tuples.** The athlete picks from the catalogue and the snapshot is written as given; he cannot compose an arbitrary valid helper tuple in this item. No total cap is invented, and none is needed, because no EW2 control can produce one. S594 is equipment validation and never said anything about helper totals |
+| **6** `priority_muscles` accepts arbitrary non-empty text | **DECIDED HERE: priorities are NOT edited in EW2 (S2609) and the SETUP's value is PRESERVED unchanged through every plan edit.** Recorded, because no sentence in this spec said it: **F2 is not an engine-vocabulary validator**, and nothing in this item may be built on a belief that it is |
+
+### 13.9 `E-R38`: THE DOCUMENT CORRECTIONS, F9 TO F13, AND THE SUPERSEDED REGISTER
+
+**F9, THE MACHINE NOTE CALLBACK.** S656 returns a DRAFT and the view then runs `draftFrom(latest)`
+over it. **Measured** (`spike/ew2r6-w7-machine-note.mjs`):
+`draftFrom(draftFrom({machine:{settings:[Seat=4],cues:Pause}}))` is
+`{"rows":[{"name":"","value":""}],"cues":""}` and `machineFromDraft` of that is `null`.
+**RULED: the callback returns the latest RECORD, once, and the view converts it once.** The success
+shape is named: `{ ok, state, copy, code, op_id }`, which is what
+`machine-settings-host.mjs:102-103` actually returns, and `ok` is `result.acknowledged === true`.
+**S652's `Saved` rule is therefore stated over `ok`, not over `acknowledged`**, and the two are not
+the same word. **The validation owner is the SEALED side**: `machineOf` in the producer is the one
+gate, `acceptable()` in the view only asks it, and S658's in-page validation of an assembled
+machine after S657 moved assembly sealed is withdrawn. **A note written under a DOCUMENT id is read
+through `E-R30`'s ONE boundary and through no other:** `machine-settings-host.mjs:89` does an exact
+id lookup, so after an import the read key is the translated id, and `source-admission.mjs:524`
+retaining the note is not by itself a read path.
+
+**F10, THE STORED START.** `EW-14` names three things and a changed card satisfies none of them:
+the stored **`Start.plan_basis`**, the **causal parents**, and the **prescription capture**.
+Measured by reading: `workout-basis.cjs:49-61` carries `plan_basis` as the constructor LABEL,
+verbatim, default `PLAN_BASIS = "NO_ACCEPTED_PLAN"` (`today-bindings.mjs:89`), and `causalTips` ARE
+refreshed per generation (`:488`). **So adopting a plan-edited state changes NEITHER unless a label
+is supplied, and `EW-14` must assert which.** THE CHOICE, PROPOSED TO THE PM: the stored
+`plan_basis` carries the fold's own `plan_basis` value, which `plan-edit-model.cjs` already mints
+as `earned/plan-edit-basis/v1:<sha256>`, supplied by the SEALED adoption gate where the read is
+taken; if the read refused, it carries the unchanged label, truthfully (`E-R34` clause 4).
+**The two-load metric is scoped: `r5-adoption.mjs` row B measures `athleteBasisState`'s basis
+composition and NOT the whole adopt, rebase and refresh chain, whose gym creation loads again at
+`today-bindings.mjs:447`. `EW-14` asserts the two over the operation the spike measured, by name.**
+
+**F11 is corrected at its own line** (the 60 seconds is a polling period). Two more clauses land
+here. **The stored Start at the day boundary is MEASURED, not argued**: a cell drives a Start
+inside the window and asserts the `effective.local_date` the operation carries. **And the host-day
+stamp is stated as it is**: `clientClockFor(day, live).today()` returns the host `day` argument
+(`today-bindings.mjs:208-214`), so S1756-1758's "automatically stamped the live TODAY" is FALSE and
+is corrected to "stamped the day its host stands on, which the caller chooses (C4b-D1)".
+
+**F12 is corrected at its own line.**
+
+**F13, THE CONTRADICTORY INSTRUCTIONS, each one corrected here.**
+
+| sentence | correction |
+|---|---|
+| S1018 chooses a RELEASED adoption decision | **SUPERSEDED.** S1075 and `E-R12` put `planEditedState` on the sealed side. S1018 is dated history of v3's shape and is not an implementation option |
+| S769 says THREE admission files, S2214 says two | **TWO** was right at v5 (`source-admission.mjs` and `plan-edit-model.cjs`). **In v6 it is THREE, for a reason: `E-R30` adds one changed line at `source-admission.mjs:781` and `E-R32` adds the guard, both in a file already counted; the THIRD is nothing new. 13.12 is the authoritative count and S769 and S2214 both defer to it** |
+| S2362-2367 omits the `local-source-basis.mjs` added export | **CORRECTED: the permitted sealed diff includes the ONE added export `E-R17 PRIME` licenses at S873 and S936.** It remains ONE export and v6 adds no second one |
+| S2513-2515 and S1565 offer an interim S2193 kills | **SUPERSEDED.** The interim is withdrawn; S2193 stands |
+| S2478 and S2746 call `EW-19` the only green id, S2747 says `EW-20` is green | **CORRECTED: TWO ids can reach green on acceptance, `EW-19` and `EW-20`** (R5 N2, adopted at `:557`). Every sentence that says "the only id" is dated to v4 |
+| S3285's "only id" sentence | same correction |
+| S2753's "other sixteen" | **CORRECTED: `EW-16` is a DESIGN GATE and is counted separately from the cell ids** |
+| S1851's `sessionMembership` warning cite | **CORRECTED to `source-admission.mjs:685`** (R5 N3); `:690` is a different comment |
+| S2297's import screen cites | **CORRECTED to `import-screen.mjs` map `:153-:161`, function `:172-:198`** (R5 N3) |
+| the spike's BEFORE exercise-count label | **CORRECTED: `r5-idspace.mjs:86` prints `foldedOn`, not `foldedBefore`** (R5 N4). The cell is unaltered; the label is described truthfully here |
+
+**HER REGISTER OF SUPERSEDED SENTENCES, EVERY ONE CORRECTED OR DATED AS HISTORY.** A historical
+measurement stays TRUE of the head it was taken at; what it may not do is stand as an instruction
+for the new base. That is the distinction each row draws.
+
+| sentence | what v6 does with it |
+|---|---|
+| S1797-1799 "the three capture checks ... and nothing else" | **CORRECTED** (`E-R33`): it must also include the folded-row collision check of `E-R32` and the proof/status treatment, and it is not the only evidence |
+| S1906-1909 "does NOT invent the fix", "two shapes ... choice to the PM" | **DATED to v5.** `E-R25` settled the shape and `E-R31` now settles the OWNER and the HORIZON. S1910's "either way" and S2296 ROW4's "whichever way STOP18 is ruled" **now REQUIRE the roster shape of 13.3** |
+| S1950-1951's comparison column "nothing" | **CORRECTED:** both namespaces and both rosters participate in collision prevention (`E-R25` (i), `E-R32`). S1957's "no row ... STOP18" is **baseline evidence of the tip, not allowed final behaviour** |
+| S2678-2687 and S2798's orphan-row alternative and pending Q-M ruling request | **REMOVED as live options.** The append shape is settled and the FOLD DATE that S2798 left open is **ANSWERED at 13.3: the union over past, current and pending.** S2798 may no longer be cited as "resolved by the ruling"; it is resolved by this section |
+| S3238 and S3309-3311 routing the admitted-row question to Q-M and STOP 18 | **RE-POINTED** to 13.3's adopted roster plus its red-first tests J2 and EW-17c ROW 4 |
+| S2267-2275 `E-R21` | **WIDENED:** it gains the mintable-file-id collision row AND the equal-label row (13.4) |
+| S1251-1257's displayed hunk | **CORRECTED: the dynamic import and its `.catch(() => null)` are restored around BOTH the load and the call** (`E-R26`, R5 B2). S1261's six-added and two-changed count is **RE-MEASURED in 13.12 and is not carried forward unre-counted.** S1263's requirement that the catches stay on the sealed side stands and covers BOTH failure boundaries |
+| S364-368 and S2099-2107's universal `PLAN_EDIT` TypeError characterization | **FALSE at the F2 boundary and CORRECTED** (13.8's measured table: `SETUP_TAGS_INVALID` reaches the editor today). S2126's "every listed tag failure is a wiring defect" is **NARROWED: a supplied tag VALUE can fail, and the athlete's own custom pick is a supplied value** |
+| `E-R28` and `E-R29` | **These are missing HOST OBLIGATIONS, not a licence to infer a convention from the vocabulary list.** Both are discharged as rows of 13.8's duties table |
+| S375-381, S1411-1422, S1495-1502 "never reviewed", "no review file", "one implementation", "nothing on the tip" | **DATED AS HISTORY of the pre-`:568` heads.** F2-LAND was accepted at `:577`; **S880 is corrected: `setup-tags.cjs` exists at the accepted F2 build base `origin/rebuild/d-f2-land` `24bef9b9` and the EW2 build is cut from that branch** |
+| S391-401 and S1480-1492's four old cell files, CI instruction, cherry-pick route and same-change retirement | **SUPERSEDED by `:568` and `:577`: tag-only landing, and a DEFERRED two-step retirement routed to the S10 brief.** Keep the lane copy and the landed copy EQUAL until S10 re-points ALL importers |
+| S1424-1436, S1457-1470, S2473, S2634-2639 "F2 landing is a future blocking task" | **DATED.** For a build cut from the accepted F2 branch this is INTEGRATION AND SEAL CUSTODY, not missing code. Injecting the three functions is still necessary and **the tests do not become green by itself** |
+| S629-632's 28-name census (`:577` S-R27 (e)) | **STILL A TRUE MEASUREMENT of its stated old head, and it may NOT stand in for the later full token and use-rule fence.** 6.8's fourth bullet runs the accepted fence. No historical sentence needs falsifying |
+| S2144-2164's unchanged digest requirement | **PRESERVED EXPLICITLY and it is NOT contradicted by 13.3's roster or 13.2's recorded map:** `source-admission.mjs:779` hashes `programmeBasis`, the operations, the interpretation, the order map and the engine context, and never the returned runtime state or the `view`. 13.2 states the separation and the admission hunk's reviewer checks it |
+
+### 13.10 WHERE I DISAGREE WITH HER, MEASURED
+
+The PM told me to disagree wherever my measurement lets me. Two places, and both NARROW a finding
+rather than overturn it.
+
+1. **F8 IS NOT AN ESCAPING EXCEPTION AT THE FOLD BOUNDARY, AND I MEASURED THE CASE SHE DID NOT
+   DRIVE.** Her F8 asks for the "entire F2 boundary, including raw exceptions" to be contained.
+   Measured (`spike/ew2r6-w6b-projector-latency.mjs`), **`projectNewExerciseTags` is never called at
+   `review` at all**, because `preview()` applies with `op = null` and the `if (op)` branch is
+   skipped; and when it throws at SAVE, the host's own `stage` hook contains it and returns
+   **`PLAN_EDIT_PROJECTION_REFUSED` with nothing committed.** So the fold boundary is ALREADY
+   contained by a named refusal. **What is really defective is the VOCABULARY and the TABLE**, not
+   containment: `SETUP_TAGS_INVALID` reaches the editor, a code-less throw lands on
+   `PLAN_EDIT_READ_REFUSED` rather than on a stated default, and the field table is incomplete.
+   `E-R37` is carried out on that narrower ground, which is a smaller and more honest hunk.
+2. **HER DUTY 3 ROW IS TRUE AND INCOMPLETE.** She reports "both null and biceps validate". Measured
+   over the whole shipped taxonomy (13.8), there are THREE cases, and the third one bites: **`chest`
+   has no region at all, so `head: 'chest'` REFUSES `SETUP_TAGS_INVALID` and the only head a chest
+   lift can carry is `null`.** A picker built from a two-case reading would offer the athlete a
+   head that cannot be saved, on the commonest muscle in the file.
+
+**AND ONE PLACE I EXPECTED TO DISAGREE AND COULD NOT.** I tried to show that re-deriving the lift
+correspondence at fold time drifts from the one admission recorded, which would have made 13.2's
+recorded member unavoidable. On a fixture with two ambiguous FILE lifts of one name plus
+admission's own appended row, **the two maps AGREE**. The recorded member is still what this spec
+chooses, for the reason 13.2 gives, but it is a cost-and-argument choice and NOT a measured defect,
+and I will not present it as one.
+
+### 13.11 THE THREE NEW ACCEPTANCE ROWS, RED FIRST IN THE BUILD
+
+Section 5's table gains three journeys. Each is **RED at v5's composition and GREEN under section
+13's**, and for J1, J2 and J3 that is not a prediction: 13.2, 13.3 and 13.4 print both columns from
+cells that ran. They join the twenty-three existing ids and are counted in `E-R23`'s honest green
+column as RED until their hunks land.
+
+| id | the journey, end to end | what it asserts, and the assertion that can FAIL for the defect |
+|---|---|---|
+| **`EW-21` (J1)** | first-run edit (`update sets=5` on a DOCUMENT id), import with DIFFERENT ids, reload, read, **Start** | the read succeeds; **the SAVED sets figure is what the card carries AND what the stored Start's prescription capture asserts**, not the raw imported one. NEGATIVE CONTROL: with the correspondence absent for that id, the read refuses `PLAN_EDIT_TARGET_UNTRANSLATED`, `E-R34`'s sentence C2 is on the card, Start is available, and the stored Start truthfully carries the UNFOLDED basis. CONTROL: the stored `edit.exercise_id` is byte-unchanged after every read |
+| **`EW-22` (J2)** | save an `add`, import, reopen the editor, read, **add again with a new label** | the read succeeds; the replay created the row and the roster records it; the second add reviews and saves; **`PLAN_EDIT_ID_REUSED` still fires for the same id and for a setup id**, asserted by name as a negative control so the row cannot go green by suppression. It fails for the defect because the whole editor closes on the reopen when creation has two owners |
+| **`EW-23` (J3)** | a NEW identity whose normalised label EQUALS an occupied file handle; and, in the same cell, an ESTABLISHED identity folded-renamed | the equal-label add **refuses BY NAME** (`PLAN_EDIT_FILE_HANDLE_OCCUPIED` at admission, `PLAN_EDIT_ID_REUSED` at the editor), and the minted id under the reserved union does not collide at all; the folded rename **PASSES**. Both directions in one row, because a guard that refuses everything passes the first half alone |
+| **`EW-24` (her third journey)** | the editor is CLOSED after the durable commit returns, reopened | the reopen **reconciles by the stable review intent and shows the edit as SAVED**, and **no second add is offered until it has**. It fails for the defect because today the reopen mints a fresh intent id before any lookup |
+
+`EW-13c` and `EW-17c` are narrowed rather than duplicated: `EW-13c` keeps the already-admitted
+second-open loop and hands the first-run-edits-crossing-admission case to `EW-21`; `EW-17c` ROW 4
+keeps the admitted-row question and hands the equal-label and valid-rename cases to `EW-23`.
+
+### 13.12 THE SEALED BUDGET, RESTATED, AND WHICH SEALED HUNK OWNS EACH CORRECTION
+
+**Her last bullet is upheld and is written into this table: the three-file restriction cannot
+license a change anywhere else by implication.** Every file that moves is named, and every file
+this round CONSIDERED and left at zero bytes is named too, so that a builder who finds himself
+editing one of them knows he has left the spec.
+
+| file | hunk | owner ruling | measured size |
+|---|---|---|---|
+| `rebuild/m4/workout/plan-edit-model.cjs` | **H1** the added export `foldPlanEditsAt` over the existing `inspect()`/`result()` pair plus the factoring of `inspect()` | 4.3 ruling 2, `E-R4` | unchanged from v4 |
+| `rebuild/m4/workout/plan-edit-model.cjs` | **H2, NEW: the ONE named translation boundary** | **`E-R30`** | **23 added (9 comment), 2 removed, 0 changed elsewhere. COUNTED by `diff -u` against the prototype, not estimated** |
+| `rebuild/m4/workout/plan-edit-model.cjs` | **H3, NEW: the `reserved_ids` member on `result()`'s return** | **`E-R32`** | about 4 added lines, 1 changed (the `freeze({...})` list) |
+| `rebuild/m3/w6/local/source-admission.mjs` | **A** the per-capture fold call and the three re-pointed capture checks | 4.3 ruling 1, `E-R16 PRIME` | unchanged from v5 |
+| `rebuild/m3/w6/local/source-admission.mjs` | **B** the `plan` class replay family, **plus `E-R33`'s proof and status treatment over the retained set, including the ZERO-capture case** | 4.3 ruling 0, **`E-R33`** | v4's estimate plus the zero-capture proof |
+| `rebuild/m3/w6/local/source-admission.mjs` | **C, NEW: the HISTORY ROSTER written to `state.planRoster`, and `planIdCollisions` beside `:389`** | **`E-R31`, `E-R32`** | about 6 to 10 added for the roster, 8 to 12 for the guard, beside `:476-:484` |
+| `rebuild/m3/w6/local/source-admission.mjs` | **D, NEW: one added member on the `view` object at `:781`, the recorded `lift_correspondence`** | **`E-R30`** | **1 changed line. It moves no digest: `:779` never hashes the view** |
+| `rebuild/m3/w7-preview/today/local-source-basis.mjs` | the ONE added export `E-R17 PRIME` licenses | `E-R17 PRIME` | unchanged, and **v6 adds NO second export** |
+| `rebuild/m3/w7-preview/today/today-entry.mjs` | `createEditWeekEntry` | 3.3 line 2 | unchanged |
+| `rebuild/m3/w7-preview/today/edit-week-lane.cjs` (new file) | the adoption compose, `E-R34`'s four states, `E-R36`'s reconciliation seam | `E-R12`, **`E-R34`, `E-R36`** | new file; `E-R34` and `E-R36` add to it and to nothing sealed elsewhere |
+| `.github/workflows/rebuild.yml` | the new suite registration | R1 N4 | unchanged |
+
+**FILES THIS ROUND CONSIDERED AND LEFT AT ZERO BYTES, BY NAME.** `plan-edit-host.mjs` (13.2 chose
+the shape that keeps its zero-byte row); `plan-edit-commands.cjs`; `today-bindings.mjs`;
+`workout-host.mjs`; `host-bindings.mjs`; `rebuild/coach/**` including
+`machine-settings-commands.cjs`; `machine-settings-host.mjs`; `gym-app.mjs`;
+`exercise-catalogue.mjs`; `setup-model.mjs`; `setup-host.mjs`. **`E-R38` F9's machine-note ruling
+is carried entirely by the VIEW and by `edit-week-lane.cjs`: `machine-settings-view.mjs` is already
+unsealed and C-UI-5 owns it.**
+
+**THE PRICE, RE-PRICED A FIFTH TIME (v1: 2 to 3; v2: 4 to 6; v3: 7 to 10; v4: 10 to 14; v6: 16 to
+22 plus its own review round).** v4's 10 to 14 stands for H1, A and B. Added:
+
+| what | hours |
+|---|---|
+| **H2**, the translation boundary, with J1 and its two negative controls and the first-run control | 1 to 2 |
+| **H3 plus C**, the roster, the reserved union and `planIdCollisions`, with J2, J3 and the ID_REUSED negative controls | 3 to 4 |
+| **D**, the recorded member plus the digest-invariance proof against `:779` | 1 |
+| **`E-R33`'s zero-capture proof treatment**, with its own cell | 1 to 2 |
+| **total** | **16 to 22 hours plus its own review round** |
+
+`E-R34`, `E-R35`, `E-R36` and `E-R37` are the EDITOR's and the new lane file's work and are priced
+in section 9.3's build estimate, not here: **none of them adds a sealed byte outside
+`edit-week-lane.cjs`, which is a new file.**
+
+### 13.13 WHAT THIS ROUND COULD NOT MEASURE, AND THE NAMED DEBTS
+
+**UNMEASURED, and no sentence above claims otherwise (`E-R19`).**
+
+- **Nothing here walked a REAL SEALED BUNDLE through `source-admission.mjs`.** The farm cannot:
+  the oracle files a sealed port needs are outside its include list. Every import in every cell of
+  this round installs the PE16-style admitted-state fixture directly. **So J1, J2 and the roster
+  are measured over the SHAPE admission commits and not over an admission EXECUTION**, and the
+  build's own cells must drive the real port before any of the three is called proved.
+- **No end-to-end prescription-history count after a sealed import.** `engine-history.cjs:74-80`
+  requires the original captured layout identities and the projected re-key deliberately differs;
+  a performed-set read after rename, replacement, removal and same-label re-add, on BOTH id-space
+  fixtures, asserting exact attribution and COUNT, is required by `E-R21` and is not yet written.
+  **F3 is an alias RISK. Nobody has executed a sealed import that double-counted a set.**
+- **No browser, no phone, no Windows suspension, no second-device sync, no full Today suite, no
+  rig187, no conformance or private fixture, no protected soak.** The design gates and the DOM
+  states of `EW-16` are unmeasured here as they were in v5.
+- **`E-R36`'s reconciliation is specified but not prototyped.** I measured the DEFECT end to end;
+  I did not build the editor state that fixes it, because it lives in a file that does not exist.
+- **`E-R34`'s copy is PROPOSED and unmeasured.** No cell drives a screen that renders C1 to C4.
+- **The per-save read budget of `E-R35` is STATED and not yet counted.** `r5-adoption.mjs` counted
+  ADOPTION loads; the save-path count is a cell the build writes first.
+
+**NAMED DEBTS FOR THE EW2 BUILD BRIEF, which is where `D-EW2-FINAL` sends whatever survives.**
+
+1. **RECOVERY CANNOT YET ACT.** `E-R34` gives the athlete a named recovery state that SHOWS and
+   EXPLAINS. Whether it may repair, or discard, a stored edit that cannot be replayed is not
+   decided here and needs a custody proof.
+2. **THE HOST-DAY STAMP.** `E-R38` F11 states the stamp as it is; whether Start should refuse on a
+   turned day, or restamp, is the S10 brief's question, and `EW-19` cannot fail for it today.
+3. **THE FOLD HORIZON'S SECOND ORDER.** 13.3 rules the roster is the union over pending edits. What
+   the roster must do with an edit a TOMBSTONE later kills after the import is stated only as
+   "the row stays, attribution is unchanged, the replay does not create it"; no cell drives it.
+4. **F2's GUARD COVERAGE** carries its own named debt from `:577` (4), and EW2 inherits it: a
+   future edit of `setup-tags.cjs` is reviewed term by term and never trusted to its cell alone.
+5. **THE TWO COPIES OF THE TAG MODULE** may not drift until S10 re-points ALL importers.
+
+### 13.14 WHAT ASTRA'S NARROW RE-CHECK IS FOR, AND WHAT IT IS NOT
+
+`D-EW2-FINAL` makes this the LAST general author round. Her re-check is **NARROW BY ORDER**: this
+section's rulings and journeys only, no new hunt. Concretely, the four things worth her effort:
+
+1. **RE-RUN MY SEVEN WITNESS CELLS AND MY THREE PROTOTYPES** and say whether each prints what
+   13.1 says it prints. They are committed in `spike/` with their sha256 and the directory each
+   must be copied to.
+2. **ATTACK THE PROTOTYPES, NOT THE PROSE.** `E-R30`'s boundary, `E-R31`'s roster and `E-R32`'s
+   reserved union are three mechanisms I watched work on three journeys. Find the fourth journey
+   they do not survive.
+3. **CHECK MY TWO DISAGREEMENTS AT 13.10.** If the fold boundary is not in fact contained, or if
+   the taxonomy has a fourth case, the narrowing is wrong and `E-R37` is under-specified.
+4. **CHECK THE SEALED BUDGET LINE BY LINE AGAINST 13.12's ZERO-BYTE LIST.** A correction that needs
+   a byte in a file on that list is a finding, and it is the finding her last bullet predicts.
+
+**This document is a hypothesis. It is written to be disagreed with, and the reviewer commits one
+file: the review.**
