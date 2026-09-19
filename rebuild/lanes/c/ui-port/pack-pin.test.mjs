@@ -394,7 +394,14 @@ test("R4 N1.2 (a): a FILE link over a pinned file refuses NOT-A-REGULAR-FILE, na
       } else {
         assert.equal(process.platform, "win32",
           "a file link must be buildable by an unprivileged process off win32, got " + err);
-        assert.equal(err, "EPERM");
+        /* R1 N6: the CODE is recorded, not pinned. It is EPERM on this PC with no
+           Developer Mode, and windows-latest is a different account this branch has never
+           run on. A row that pinned the errno would go red on a runner for a reason that
+           is not a defect in the pin; a runner that SUCCEEDS takes the branch above and
+           runs the whole attack, which is the outcome to prefer. */
+        assert.equal(typeof err, "string");
+        assert.ok(err.length > 0, "a failed link must report a code");
+        console.log("PACK-PIN file-link on win32 is unbuildable unprivileged, code: " + err);
       }
     } finally {
       fs.rmSync(outside, { recursive: true, force: true });
@@ -526,6 +533,156 @@ test("the cell reads the WORKING TREE on every call and caches nothing", () => {
     fs.writeFileSync(p, txt("TOL = 0.002\n"));
     assert.deepEqual(packPin(root, lines), ["PACK-PIN MISMATCH quality/gate.py"]);
     fs.writeFileSync(p, txt("TOL = 0.001\n"));
+    assert.deepEqual(packPin(root, lines), []);
+  });
+});
+
+/* ============================ R1 FIX ROUND ============================
+   Every row below closes a finding of rebuild/lanes/b/S9-PREP-PACK-REVIEW-R1.md. Each one
+   names the finding it closes, so a later reader can tell which rows exist because
+   something was measured wrong rather than because it was designed. */
+/* R1 BLOCKING-2. C.5.1's skip is "a pack-root-relative path BEGINS quality/run/ or
+   contains a __pycache__/ SEGMENT". Both are written WITH the trailing slash and both are
+   about DIRECTORIES. A regular FILE at quality/run, and a regular FILE whose LAST segment
+   is __pycache__, are ordinary files sitting inside the owner-approved pack; they are not
+   the gate's untracked output and nothing in .gitignore keeps them out of a commit. R1
+   measured that the first build swallowed both. They are pinned. */
+test("R1 B2: a regular FILE at quality/run is ADDED, not swallowed by the ignore prefix", () => {
+  withPack((root, lines) => {
+    fs.rmSync(path.join(root, "quality", "run"), { recursive: true });
+    writeAt(root, "quality/run", txt("// a FILE at the prefix, not the output directory\n"));
+    assert.deepEqual(packPin(root, lines), ["PACK-PIN ADDED quality/run"]);
+  });
+});
+
+test("R1 B2: a regular FILE named __pycache__ is ADDED, while the DIRECTORY stays ignored", () => {
+  withPack((root, lines) => {
+    writeAt(root, "app/__pycache__", txt("// a FILE, not a python cache directory\n"));
+    assert.deepEqual(packPin(root, lines), ["PACK-PIN ADDED app/__pycache__"]);
+  });
+});
+
+/* R1 B2, THE CONSEQUENCE, STATED RATHER THAN DISCOVERED. Dropping the "quality/run exactly"
+   clause means the walk now lstats that path instead of skipping it, so a LINK standing
+   there is an irregular entry and is named. That is the spec's shape: quality/run is only
+   invisible to the pin as a plain directory whose CHILDREN begin quality/run/. A design
+   machine that symlinks its own output directory gets one loud line naming it, which is
+   the behaviour this cell chose and the PM can overrule with a sealed byte move. */
+test("R1 B2: a LINK at quality/run is an irregular entry and is named, not treated as output", () => {
+  withPack((root, lines) => {
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), "s9c-twin-"));
+    try {
+      fs.mkdirSync(path.join(outside, "run"));
+      fs.rmSync(path.join(root, "quality", "run"), { recursive: true });
+      const err = tryLink(path.join(outside, "run"), path.join(root, "quality", "run"), "junction");
+      assert.equal(err, null, "a directory junction needs no privilege on either OS, got " + err);
+      assert.deepEqual(packPin(root, lines), ["PACK-PIN NOT-A-REGULAR-FILE quality/run"]);
+    } finally {
+      fs.rmSync(outside, { recursive: true, force: true });
+    }
+  });
+});
+/* R1 BLOCKING-3, first of three uncovered guards. label()'s repo-relative branch is the
+   only code that produces the refusal text the S9 integrator will read on the day the pack
+   has not merged, and R1 measured that no row asserted it. label() is pure path arithmetic
+   and touches no disk, so this row is stable whether or not the pack is in the checkout. */
+test("R1 B3: label() names a root inside this checkout repo-relatively and one outside it absolutely", () => {
+  assert.equal(label(PACK_ROOT_ABS), PACK_ROOT_REL);
+  assert.equal(label(path.join(REPO_ROOT, "rebuild", "m1")), "rebuild/m1");
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "s9c-label-"));
+  try {
+    assert.equal(label(out), toPosix(out));
+    assert.notEqual(label(out), PACK_ROOT_REL);
+    assert.ok(!label(out).includes("\\"), "a label came back with a backslash: " + label(out));
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+/* R1 BLOCKING-3, second: the literal-side half of R4 N1.1. A literal generated on Windows
+   by a procedure that used the platform separator would spell every path with a backslash,
+   and this cell's own constant would then disagree with its own walk on one OS only. The
+   backslash is built from its code point so it is TEXT in this file. */
+test("R1 B3: a literal path spelled with a BACKSLASH fails hard (R4 N1.1, the literal side)", () => {
+  withPack((root, lines) => {
+    const bs = String.fromCharCode(92);
+    const bad = "quality" + bs + "gate.py " + "a".repeat(64);
+    assert.ok(bad.includes(bs), "this row must carry a real backslash, or it proves nothing");
+    assert.throws(() => packPin(root, [...lines, bad]), /must use forward slashes/);
+  });
+});
+
+/* R1 BLOCKING-3, third, and R1 N4's first half. The first build RE-SORTED an unsorted
+   literal in silence, so the cell could not claim the pasted lines were the ones C.5.1
+   step 3 emitted. An unsorted literal is a defect in this cell's own constant, exactly
+   like a malformed line or a duplicate path, and it now fails hard in the same way. */
+test("R1 B3 / R1 N4: an UNSORTED literal fails hard rather than being silently re-sorted", () => {
+  withPack((root, lines) => {
+    assert.deepEqual(packPin(root, lines), []);
+    const swapped = [...lines];
+    const first = swapped[0];
+    swapped[0] = swapped[1];
+    swapped[1] = first;
+    assert.throws(() => packPin(root, swapped), /not sorted by path bytes/);
+  });
+});
+
+test("the refusals walk the literal in path BYTE order, one line per moved file", () => {
+  withPack((root, lines) => {
+    const two = moved(moved(lines, "ref/ink-board.png"), "app/states-today.js");
+    assert.deepEqual(packPin(root, two), [
+      "PACK-PIN MISMATCH app/states-today.js",
+      "PACK-PIN MISMATCH ref/ink-board.png",
+    ]);
+  });
+});
+/* R1 BLOCKING-3's fourth point, and the one row that changes a mutation's verdict rather
+   than only its count. R1 measured that "an entry is named ONCE" (the skip of an irregular
+   entry in the literal walk) is killed on linux only, because the directory-link row pins a
+   FILE UNDER the junction and never the junction itself, and the file-link row cannot be
+   built on Windows. A DIRECTORY JUNCTION can be created AT the path of a pinned FILE, and
+   that needs no privilege on either OS. So this row puts an irregular entry exactly where
+   the literal names a file, on BOTH operating systems: one line, NOT_A_REGULAR_FILE, and no
+   MISSING beside it. It is the Windows half the first build did not have. */
+test("R4 N1.2 (c): a DIRECTORY link AT a pinned FILE refuses ONCE, on both operating systems", () => {
+  withPack((root, lines) => {
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), "s9c-twin-"));
+    try {
+      fs.mkdirSync(path.join(outside, "d"));
+      fs.writeFileSync(path.join(outside, "d", "decoy.txt"), txt("not in the pack\n"));
+      const target = path.join(root, "ref", "ink-board.png");
+      fs.rmSync(target);
+      const err = tryLink(path.join(outside, "d"), target, "junction");
+      assert.equal(err, null, "a directory junction needs no privilege on either OS, got " + err);
+      assert.deepEqual(packPin(root, lines), ["PACK-PIN NOT-A-REGULAR-FILE ref/ink-board.png"]);
+    } finally {
+      fs.rmSync(outside, { recursive: true, force: true });
+    }
+  });
+});
+
+/* R1 N4's second half. Two spaces between the path and the hex were read as a path with a
+   TRAILING SPACE, so a typo in this cell's own constant was reported as two facts about
+   the tree (a MISSING file with a space in its name and an ADDED one without). It is a
+   defect in the constant and it fails hard. */
+test("R1 N4: two spaces between the path and the hex fails hard, not as a trailing-space path", () => {
+  withPack((root) => {
+    assert.throws(() => packPin(root, ["quality/gate.py  " + "a".repeat(64)]),
+      /literal line is not/);
+    assert.throws(() => packPin(root, [" quality/gate.py " + "a".repeat(64)]),
+      /literal line is not/);
+  });
+});
+
+/* R1 N5(a), RECORDED AS A DECISION AND NOT LEFT TO BE DISCOVERED. A python module placed
+   inside a __pycache__ DIRECTORY inside the pack is invisible to this pin by construction,
+   and python will import it if sys.path reaches it. The ignore list cannot close this
+   without un-ignoring the caches the design machine really does leave behind, which is the
+   opposite trade. This row exists so the hole is a sealed, named fact: if a later round
+   narrows the ignore list, this row goes red and somebody has to think. */
+test("RESIDUAL (R1 N5a): a file inside a __pycache__ DIRECTORY is invisible to the pin, by construction", () => {
+  withPack((root, lines) => {
+    writeAt(root, "quality/__pycache__/teeth.py", txt("# a module the pin cannot see\n"));
     assert.deepEqual(packPin(root, lines), []);
   });
 });
