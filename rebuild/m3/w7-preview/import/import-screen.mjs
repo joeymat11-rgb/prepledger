@@ -76,6 +76,13 @@ export const COPY = Object.freeze({
   pickLabel: 'Choose the earned-port file',
   pickLead: 'The file the PC wrote. It is sealed: nothing can read it without the six words.',
   wordsLabel: 'Type the six words from the PC',
+  /* PASSPHRASE-NORMALIZE (DECISIONS:520). The label above said "the six words"
+     and the screen then accepted only the hyphen-joined spelling, so the owner
+     typed them the way anybody types six words - with spaces - and his own file
+     refused. The words step now says what it accepts, in the three facts he
+     needs and no more: the separator, the other separator, and the capital his
+     keyboard puts on the first word whether he wants it or not. */
+  wordsHelp: 'You can type them with spaces or with hyphens, and capitals do not matter.',
   unlock: 'Unlock',
   unlocked: 'Unlocked. Nothing has been written to this phone yet.',
   identityLead: 'One question before anything is written.',
@@ -559,6 +566,10 @@ export function createImportScreen(deps = {}) {
     wrap.className = 'field';
     const label = el('label', null, COPY.wordsLabel);
     label.setAttribute('for', 'import-passphrase');
+    /* Beside the box, not under the refusal: he reads it while he is typing,
+       which is the only moment it can save him a refusal. Same shape as the
+       pick step's own lead line above. */
+    const help = el('p', 'import-words-help', COPY.wordsHelp);
     const input = doc.createElement('input');
     input.id = 'import-passphrase';
     input.type = 'text';
@@ -571,7 +582,7 @@ export function createImportScreen(deps = {}) {
     input.value = words;
     input.addEventListener('input', () => { words = input.value; });
     input.addEventListener('change', () => { words = input.value; });
-    wrap.append(label, input);
+    wrap.append(label, help, input);
     root.append(wrap, button('import-unlock', COPY.unlock, () => unlock()));
   }
 

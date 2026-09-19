@@ -15,6 +15,12 @@
    A decoder that distinguishes "bad passphrase" from "bad bytes" tells an
    attacker which half to keep working on, and tells Joe nothing useful either. */
 const { createDecipheriv, pbkdf2Sync } = require('node:crypto');
+/* PASSPHRASE-NORMALIZE (DECISIONS:520). The ONE canonical form of the six
+   words, stated once in passphrase.cjs and shared with the phone's decoder so
+   the two cannot drift apart again. It is applied at the IMPORT entry below,
+   not inside deriveKey: port.cjs seals with deriveKey, and a fold there would
+   move what every future bundle is sealed with. */
+const { normalisePassphrase } = require('./passphrase.cjs');
 
 const PROFILE = 'earned/local-import-bundle/v1';
 const KDF = Object.freeze({ name: 'PBKDF2', hash: 'SHA-256', iterations: 600000, saltBytes: 16, keyBits: 256 });
@@ -72,7 +78,11 @@ function unseal(bundleBytes, passphrase) {
   if (sealed.length <= TAG_BYTES) fail(FAILURE);
   const body = sealed.subarray(0, sealed.length - TAG_BYTES);
   const tag = sealed.subarray(sealed.length - TAG_BYTES);
-  const key = deriveKey(passphrase, salt, kdf.iterations);
+  /* THE ONE PLACE A TYPED PASSPHRASE BECOMES KEY MATERIAL ON THIS SIDE. What
+     the athlete typed is folded onto the form the PC wrote before anything is
+     derived from it; a wrong word is still a different string and still fails
+     with the one code below. */
+  const key = deriveKey(normalisePassphrase(passphrase), salt, kdf.iterations);
   let plain;
   try {
     const decipher = createDecipheriv('aes-256-gcm', key, iv);

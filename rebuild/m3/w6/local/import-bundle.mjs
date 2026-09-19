@@ -84,6 +84,12 @@
 import { StorageFailure } from "../repository.mjs";
 import { parseStrictJson } from "../strict-json.mjs";
 import { opsBasis, DERIVED, LOCAL_SCOPE } from "./local-client.mjs";
+// PASSPHRASE-NORMALIZE (DECISIONS:520). The ONE canonical form of the six words,
+// NOT a copy of it: the same file unseal.cjs reads, so the PC and the phone
+// cannot drift apart on what "the six words" means the way they did on
+// 2026-09-17. It is pure - no dependency, no I/O, no clock - which is what lets
+// it enter this bundle at all.
+import { normalisePassphrase } from "../../setup/port/passphrase.cjs";
 
 // --- THE SEAL CONTRACT, COPIED FROM unseal.cjs AND PINNED BY A TEST ----------
 // These five constants are the whole compatibility surface. The test does not
@@ -307,7 +313,12 @@ export async function unsealBundle(bundleBytes, passphrase,
   const iv = base64ToBytes(env.cipher.iv, CIPHER.ivBytes);
   const sealed = base64ToBytes(env.ciphertext);
   if (sealed.length <= TAG_BYTES) fail(BUNDLE_FAILURE);
-  const key = await deriveKey(crypto, passphrase, salt, env.kdf.iterations);
+  // THE ONE PLACE A TYPED PASSPHRASE BECOMES KEY MATERIAL ON THIS SIDE. What the
+  // athlete typed off the piece of paper is folded onto the form the PC wrote -
+  // spaces or hyphens, capitals or not, a smart-punctuation dash or not - before
+  // anything is derived from it. A wrong WORD is still a different string and
+  // still fails with the one code below.
+  const key = await deriveKey(crypto, normalisePassphrase(passphrase), salt, env.kdf.iterations);
   let plain;
   try {
     // port.cjs APPENDS the 16-byte tag, which is the WebCrypto convention — so
