@@ -201,7 +201,10 @@ const requiredInputsOf = (src) => {
     "build.mjs no longer carries a frozen REQUIRED_INPUTS array literal: H18b cannot read the list");
   const out = [];
   for (const line of block[1].split(/\r?\n/)) {
-    const q = /^\s*"([^"]+)",?\s*$/.exec(line);
+    /* R2 N7: the rebuild/ prefix is what a repository path always carries and a prose
+       sentence never does. Without it a bare quoted sentence alone on its own line is
+       counted, and H18b then goes red naming a NUMBER instead of a path. Row H18c. */
+    const q = /^\s*"(rebuild\/[^"]+)",?\s*$/.exec(line);
     if (q !== null) out.push(q[1]);
   }
   return out;
