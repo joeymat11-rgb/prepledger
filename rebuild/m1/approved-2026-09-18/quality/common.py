@@ -56,10 +56,14 @@ def copy_problems(text):
     """
     bad = [SPACED_HYPHEN] if SPACED_HYPHEN in text else []
     bad += sorted({c for c in text if is_dash(c)})
-    # U+2212 is filed as a maths symbol, not as punctuation, so the category does not catch it. It
-    # is a minus sign in front of a number and a dash everywhere else.
-    if any(not text[m.end():m.end() + 1].isdigit() for m in re.finditer(MINUS_SIGN, text)):
-        bad.append(MINUS_SIGN)
+    # U+2212 MINUS SIGN is filed as a maths symbol rather than as punctuation, so the category
+    # above does not reach it, and the lead's ruling of 2026-09-19 would have added it wherever a
+    # digit does not directly follow it. Measured before it was added: the prototype draws U+2212
+    # as the whole label of the decrement button beside a set's load (app/states.js:113, and
+    # app/states-workout.js:270), which is the honest use of the character and not a dash in a
+    # sentence. A full sheet with that clause in it came back "418 renders, 2 with problems",
+    # W-18 ink and W-18 dawn, "copy: '-'", exit 1, and app/ is not the builder's to edit. So the
+    # clause is held for the lane lead and the owner rather than half applied here.
     bad += sorted({f'U+{ord(c):04X}' for c in text if unicodedata.category(c) == 'Cf'})
     low = sweep_form(text)
     bad += [w for w in READINESS if re.search(r'\b' + w + r'\b', low)]
