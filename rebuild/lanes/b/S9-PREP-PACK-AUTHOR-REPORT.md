@@ -22,22 +22,39 @@ first author's number did not survive that, the new number stands and the old on
 Two things the reviewer measured and I could not reproduce or improve are reported as his,
 with attribution, rather than silently absorbed.
 
+**REVISION FOR THE R2 FIX ROUND (round 3), and this is the current state of the branch.**
+`S9-PREP-PACK-REVIEW-R2.md` rejected the second build on two BLOCKING findings, both of them
+guards with no row and neither of them a behaviour defect, and on five notes. I am the third
+author and I have continued the work rather than replaced it. **Both BLOCKING findings are
+ACCEPTED and closed by ONE fixture row each, with no engine change, and the mutant that made
+each guard look like decoration is recorded.** All five notes are taken. The PM has also
+ruled the four questions the second author asked, and one of those rulings - Q2 - is the
+only engine change in this round: **a SEVENTH refusal, `UNREADABLE`, in both cells**, added
+now because from S9 the vocabulary is sealed bytes. The rows for it were committed RED
+against the unchanged engine first. Section `R2 findings and the PM's rulings: fixed or
+disputed` at the end of this file answers R2 finding by finding. Sections 1, 2, 3, 5, 6, 7
+and 9 carry round 3's numbers; where a count moved, the old one is named.
+
 ---
 
 ## 1. WHAT LANDED
 
 | path | what it is |
 |---|---|
-| `rebuild/lanes/c/ui-port/pack-pin.test.mjs` | NEW. PACK-PIN: the whole owner-approved pack, pinned by a literal sorted `(path, sha256)` list read from the WORKING TREE. **35 rows** after the fix round (25 before) |
-| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` | NEW. APPROVED-PIN: whatever `design.APPROVED` names at run time, pinned parametrically against this cell's own literal map. **20 rows** after the fix round (16 before) |
-| `.github/workflows/rebuild.yml` | ONE new step, a pure insertion of 11 lines at `@@ -297,0 +298,11 @@` |
+| `rebuild/lanes/c/ui-port/pack-pin.test.mjs` | NEW. PACK-PIN: the whole owner-approved pack, pinned by a literal sorted `(path, sha256)` list read from the WORKING TREE. **41 rows** after round 3 (35 after R1's round, 25 before) |
+| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` | NEW. APPROVED-PIN: whatever `design.APPROVED` names at run time, pinned parametrically against this cell's own literal map. **25 rows** after round 3 (20 after R1's round, 16 before) |
+| `.github/workflows/rebuild.yml` | ONE new step, a pure insertion in ONE hunk in the same place. Round 3 added eleven COMMENT lines to it and nothing else, so it is now 22 inserted lines and still zero removed |
 | `rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md` | this file |
 
 **Nothing else is touched.** `git status` on the worktree is empty apart from these four, and
-the diff against `da9f8683` is four files plus `S9-PREP-PACK-REVIEW-R1.md`, which the
-reviewer committed and which I have not edited. **The fix round changed no line of
-`rebuild.yml`**: its one hunk is still `@@ -295,6 +295,17 @@`, eleven added and zero
-removed, so the three lanes' regions still merge.
+the diff against `da9f8683` is four files plus `S9-PREP-PACK-REVIEW-R1.md` and
+`S9-PREP-PACK-REVIEW-R2.md`, which the two reviewers committed and which I have not edited.
+**Round 3 changed ONE region of `rebuild.yml` and it is the same region**: eleven comment
+lines inside the step's own comment block, no new step, no moved line, so the two other
+lanes' regions (after `:232` and after `:306`) still merge. Measured at this head with the
+repository's own `yaml`: one job `public-gates`, **28 steps**, matrix
+`[ubuntu-latest, windows-latest]`, no job-level shell default, the step present exactly
+once, unglobbed.
 
 **The two literals are NOT taken.** Both are empty, each with one comment naming who fills
 it, when, and by which procedure. No real literal, no path list from E fact 17, no
@@ -62,7 +79,18 @@ wait list and none of it is started here.
 | (f2) | `264f7d0` | PACK-PIN: the engine to C.5.1's words (35 / 34 / **1**, the real row) |
 | (f3) | `baf0e88` | APPROVED-PIN: R1 BLOCKING-1's ORPHAN rows, RED (20 tests, 14 pass, **6 fail**) |
 | (f4) | `3601e01` | APPROVED-PIN: the sixth refusal, ORPHAN (20 / 19 / **1**, the real row) |
-| (f5) | this commit | this report |
+| (f5) | `00de876` | this report, with R1 answered finding by finding |
+
+**ROUND 3's COMMITS (the R2 fix round), in the same shape.**
+
+| # | sha | what |
+|---|---|---|
+| (r3-f1) | `392057e` | R2 B1's and R2 B2's rows, plus R2 N3, N4 and N5. **No engine line moved**: both rows are green against the SHIPPED engine, and it is the MUTANT that makes them red (section 6) |
+| (r3-f2) | `5563dca` | Q2's `UNREADABLE` rows, RED against the unchanged engine: pack-pin **41 / 36 / 5**, approved-pin **25 / 21 / 4**, on BOTH operating systems |
+| (r3-f3) | `a0e9b4a` | the seventh refusal in both engines, and the optional reader: pack-pin **41 / 40 / 1**, approved-pin **25 / 24 / 1** |
+| (r3-f4) | `51415d2` | R2 N2: the last row of each cell DERIVES the vocabulary from what the rows above emitted |
+| (r3-f5) | `1d14742` | the PM's Q4 ruling written into the `rebuild.yml` step's own comment |
+| (r3-f6) | this commit | this report |
 
 Each was pushed to `rebuild/b-s9-prep-pack` as it was made.
 
@@ -100,6 +128,39 @@ rows go red, by name. That is the whole shape of the red-first argument here, an
 reason the real rows are not written as "assert the refusal we expect today": a row that
 asserted `PACK-ROOT-ABSENT` would be green on this branch and would have to be rewritten on
 the day the pack merges, which is the day nobody is reading it.
+
+**ROUND 3's RED-FIRST, AND THERE ARE TWO KINDS OF IT, WHICH IS WORTH SAYING PLAINLY.**
+
+*(i) The Q2 rows have an ordinary red first*, because they needed an engine change. At
+`5563dca` the rows exist and the engine does not, measured on BOTH operating systems and
+identical on both:
+
+| commit | cell | tests | pass | fail | the rows that are red |
+|---|---|---|---|---|---|
+| `5563dca` (r3-f2) | pack-pin | 41 | 36 | **5** | the three `UNREADABLE` rows, the source-scan row, the real row |
+| `a0e9b4a` (r3-f3) | pack-pin | 41 | 40 | **1** | the real row |
+| `5563dca` (r3-f2) | approved-pin | 25 | 21 | **4** | the two `UNREADABLE` rows, the source-scan row, the real row |
+| `a0e9b4a` (r3-f3) | approved-pin | 25 | 24 | **1** | the real row |
+
+*(ii) R2 B1 and R2 B2 have NO red of that kind, and pretending otherwise would be a lie.*
+Both are guards the shipped engine already honoured; what was missing was the proof. The
+ticket says so in terms: for B1 and B2 **the red is the MUTANT**. So the honest evidence is
+that each new row is GREEN against the shipped engine and RED against the single named
+mutation, and that the mutation turns nothing else red. Measured on both operating systems:
+
+```
+B1  pack-pin, lstatSync(packRoot) -> statSync(packRoot)
+    shipped: 41 / 40 / 1 (the real row)   mutant: 41 / 39 / 2
+    the one extra red is "R2 B1: a LINK standing AT the pack root is ABSENT" and nothing else
+
+B2  approved-pin, lstatSync(full) -> statSync(full)
+    shipped: 25 / 24 / 1 (the real row)
+    mutant on Windows: 25 / 23 / 2   the one extra red is "R2 B2: a DANGLING link ..."
+    mutant on linux:   25 / 22 / 3   the same row, plus the linux-only FILE-link row
+```
+
+Before round 3 that same mutation turned **zero** non-real rows red on Windows and **one**
+on linux. That is the whole of R2's two findings, executed.
 
 ## 4. THE REFUSAL EACH REAL ROW PRINTS ON THIS BRANCH, MEASURED
 
@@ -140,25 +201,32 @@ Mutation A2 in section 6 is that sentence executed.
 
 ## 5. THE BAR, ON BOTH OPERATING SYSTEMS, WITH COUNTS
 
-**RE-MEASURED AT THE FIX HEAD `3601e01`.** The numbers below replace the first build's
-(41 / 39 / 2 on both); they are bigger because the fix round added ten rows.
+**RE-MEASURED AT ROUND 3's HEAD.** The numbers below replace the R1 round's (55 / 53 / 2
+together) and the first build's (41 / 39 / 2); they are bigger because round 3 added eleven
+rows across the two cells.
 
-**The PC (Windows 11, node v24.19.0), worktree `%TEMP%\earned-s9c` at `3601e01`.**
+**The PC (Windows 11, node v24.19.0), worktree `%TEMP%\earned-s9c` at `51415d2`.**
 This is the bar of record.
 
-| suite | tests | pass | fail |
-|---|---|---|---|
-| `rebuild/lanes/c/ui-port/pack-pin.test.mjs` | 35 | 34 | 1 |
-| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` | 20 | 19 | 1 |
-| the two together, which is the CI step's exact command | **55** | **53** | **2** |
-| `rebuild/m3/w7-preview/today/test/design.test.cjs`, unchanged | 11 | 11 | 0 |
+| suite | tests | pass | fail | skipped | todo |
+|---|---|---|---|---|---|
+| `rebuild/lanes/c/ui-port/pack-pin.test.mjs` | 41 | 40 | 1 | 0 | 0 |
+| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` | 25 | 24 | 1 | 0 | 0 |
+| the two together, which is the CI step's exact command | **66** | **64** | **2** | 0 | 0 |
+| `rebuild/m3/w7-preview/today/test/design.test.cjs`, unchanged | 11 | 11 | 0 | 0 | 0 |
 
-**Linux (a farm scratch worktree made with `farm-scratch.sh s9cfix 3601e011` from the
-PUSHED head, node v22.22.2, 2 CPUs).**
+**Linux (the farm scratch `/home/claude/farm/scratch/wt/s9cAuthC`, made with
+`farm-scratch.sh` and checked out at the PUSHED head `51415d2`, node v22.22.2, 2 CPUs).**
 
-| suite | tests | pass | fail |
-|---|---|---|---|
-| the two cells together | **55** | **53** | **2** |
+| suite | tests | pass | fail | skipped | todo |
+|---|---|---|---|---|---|
+| `rebuild/lanes/c/ui-port/pack-pin.test.mjs` | 41 | 40 | 1 | 0 | 0 |
+| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` | 25 | 24 | 1 | 0 | 0 |
+| the two together, the CI step's exact command | **66** | **64** | **2** | 0 | 0 |
+
+**THE TWO OPERATING SYSTEMS AGREE ROW FOR ROW at this head**, which is not the same claim as
+"the same totals": every row that is green on one is green on the other, and the only two red
+are the two real rows, with byte-identical refusal text.
 
 **`design.test.cjs` is the row that proves I did not disturb `design.cjs`.** I read
 `design.cjs` (APPROVED's shape and `readApproved`) and edited nothing in it; its own cell is
@@ -191,17 +259,25 @@ hyphen (`C - the design pack pin and the approved-reference pin`). The character
 NOT reproduced in this sentence, which is why it is named by code point. That is the standing rule that no file a lane hand authors may
 carry U+2013 or U+2014, and it wins over local style. Measured: the file holds 17 em dashes,
 at lines 66, 170, 174, 181, 214, 231, 234, 243, 264, 266, 268, 270, 272, 290, 292, 294 and
-296, and **not one of them is in the 11 inserted lines**. The three cells and this report
-hold no non-ASCII byte at all.
+296, and **not one of them is in the inserted lines**. Re-measured at round 3's head over the
+22 lines this lane has inserted: **zero U+2013 and zero U+2014**, and the two cells and this
+report hold **zero of either** (counted by code point, not by eye).
 
-**THE STEP IS RED ON THIS BRANCH AND THAT IS THE DESIGN.** `rebuild.yml` fires on every push
-to `rebuild/**` on ubuntu and windows, so CI for `rebuild/b-s9-prep-pack` will show this step
-failing with the two real rows. The step's own comment says so in the file, so the red is not
-mistaken for a defect and is not closed by editing the cells. It goes green the day the S9
-integrator fills the two literals. **If the PM would rather this branch's CI be green, the
-only honest ways are to hold the `rebuild.yml` hunk back until the re-measure, or to merge the
-pack first; I have not chosen either on my own because the ticket names the step as mine to
-add. This is the one thing in this round I would most like a ruling on.**
+**THE STEP IS RED ON THIS BRANCH AND THAT IS THE DESIGN, AND THE PM HAS NOW RULED IT (Q4).**
+The step STAYS, red by name, with its comment, and round 3 wrote the ruling into the comment
+itself:
+
+ - **nothing of S9 preparation reaches the chain before the seal.** The three preparation
+   branches merge into the S9 lane branch `rebuild/b-s9-ui-pins` ONLY, and that lane reaches
+   the chain by the S9 fast-forward - by which time the pack has merged with C-UI-1 and both
+   literals are filled at the re-measure, so **both real rows are green the first time the
+   chain tip sees them.** Until then this red lives on a preparation branch and nowhere else.
+ - **the red is not a pending runner result, and round 3 stops describing it as one.** The PM
+   measured this today: on any branch that does not contain the chain tip, or that carries
+   undeclared sealed edits, the standing step at `rebuild.yml:150` fails FIRST and GitHub
+   SKIPS every later step. So these two cells **cannot run on GitHub's runners at all** until
+   the S9 walk passes. **The PC (Windows) and a linux farm scratch ARE the both-OS evidence**
+   for them, and that is what section 5 is. Nothing here is waiting on a runner.
 
 ## 6. THE MUTATION TABLE, MEASURED
 
@@ -252,6 +328,30 @@ a silent parser failure looks like in one.
 | P18 | the ignore prefix widened back to the bare `quality/run` | **2** | **2** | **yes** (R1 B2, the regression) |
 | P19 | the `__pycache__` rule widened back to any segment | **1** | **1** | **yes** (R1 B2, the regression) |
 
+**ROUND 3's PACK-PIN ROWS: the new ones, and every row that bears on code round 3 touched,
+RE-MEASURED.** The engine's walk and its refusal loops changed, so P3 to P6 and P13 are
+re-run here under their exact edits rather than carried. Counts exclude the real row.
+
+| # | the exact edit | linux | Windows | killed? |
+|---|---|---|---|---|
+| P20 | `lstatSync(packRoot)` to `statSync(packRoot)` at the PACK ROOT | **1** | **1** | **yes, on both** (R2 B1, was 0 and 0) |
+| P21 | the `PACK-PIN UNREADABLE` push dropped (`void unreadable;`) | **4** | **4** | **yes** (Q2) |
+| P22 | the walk rethrows instead of recording (`bytes = readFile(abs);`) | **4** | **4** | **yes** (Q2: this is the OLD behaviour) |
+| P23 | the unreadable skip in the literal walk dropped, so an entry is named twice | **3** | **3** | **yes** (Q2) |
+| P24 | the REAL ROW made to pass a reader (`packPin(PACK_ROOT_ABS, LITERAL, fs.readFileSync)`) | **1** | **1** | **yes**: the source-scan row |
+| P25 | `"PACK-PIN UNREADABLE"` removed from the exported `REFUSALS` | **1** | **1** | **yes**: the derived-vocabulary row (R2 N2) |
+| P3' | the `PACK-PIN MISMATCH` push dropped | **10** | **10** | yes (was 8 and 8 over 35 rows) |
+| P4' | the `PACK-PIN MISSING` push dropped | **4** | **4** | yes (was 2 and 2) |
+| P5' | the `PACK-PIN ADDED` push dropped | **5** | **5** | yes (was 4 and 4) |
+| P6' | the WALK's `lstatSync(abs)` to `statSync(abs)` | **5** | **4** | yes, on both (was 4 and 3) |
+| P13a' | the `PACK-PIN NOT-A-REGULAR-FILE` push dropped | **5** | **4** | yes, on both |
+| P13b' | the irregular skip in the literal walk dropped, so an entry is named twice | **2** | **1** | yes, on both |
+
+**EVERY ONE OF THE TWELVE ROWS ABOVE KILLS THE SAME ROWS ON BOTH OPERATING SYSTEMS**, and
+the only difference in any of them is the linux-only FILE-link row (`R4 N1.2 (a)`), which
+takes the EPERM branch on Windows by construction. P6', P13a' and P13b' are one row redder
+on linux for exactly that reason and no other; I checked the row NAMES, not only the counts.
+
 **P13 IS THE ROW THAT CHANGED VERDICT AND NOT ONLY COUNT.** R1 was right that it was
 decoration on the PC: the directory-link row pins a FILE UNDER the junction, so
 `irregular.has(e.file)` is false there, and the file-link row cannot be built on Windows.
@@ -293,6 +393,24 @@ half asked for.
 | A9 | ORPHAN's `Object.keys(literal).sort(byteCompare)` | **1** | **1** | **yes** (R1 B1) |
 | A10 | LIST-EMPTY's precedence, inverted so ORPHAN fires with it | **3** | **3** | **yes** (R1 B1) |
 
+**ROUND 3's APPROVED-PIN ROWS, on the same rule: the new ones, and every row that bears on
+code round 3 touched.** Counts exclude the real row.
+
+| # | the exact edit | linux | Windows | killed? |
+|---|---|---|---|---|
+| A11 | `lstatSync(full)` to `statSync(full)` (this is A4, re-measured) | **2** | **1** | **YES ON BOTH NOW** (R2 B2, was 1 and **0**) |
+| A12 | `Object.hasOwn(literal, file)` to `file in literal` | **1** | **1** | **yes** (R2 N4, was 0 and 0) |
+| A13 | the engine rethrows instead of recording (`bytes = readFile(full);`) | **3** | **3** | **yes** (Q2: the OLD behaviour) |
+| A14 | the REAL ROW made to pass a reader | **1** | **1** | **yes**: the source-scan row |
+| A15 | `"APPROVED-PIN UNREADABLE"` removed from the exported `REFUSALS` | **1** | **1** | **yes**: the derived-vocabulary row (R2 N2) |
+| A3' | the `APPROVED-PIN MISSING` push dropped | **2** | **2** | yes (was 1 and 1) |
+| A5' | the `APPROVED-PIN MISMATCH` push dropped | **5** | **5** | yes (was 3 and 3) |
+| A7' | the `APPROVED-PIN NOT-A-REGULAR-FILE` push dropped | **4** | **3** | yes, on both (was 2 and 1) |
+
+**A11 IS R2 BLOCKING-2 AND IT IS THE ONE VERDICT THAT CHANGED THIS ROUND.** The mutation
+that survived on Windows now dies there, killed by ONE new fixture row and no engine line.
+A7' is one row redder on linux for the FILE-link reason and no other.
+
 **A2 and A6 are the two mutations that make the real row GREEN, and they are the two that
 matter most.** A2 is R4 N8 exactly: drop UNLISTED and a cell whose literal is empty passes
 over a list it pins nothing in. A6 is R1 BLOCKING-4 turned into a structure: let the sha come
@@ -301,7 +419,19 @@ coordinated edit is green again and the real row is green on a branch where noth
 pinned. **A reviewer who wants one thing to attack should attack these two: if either can be
 re-introduced without a fixture row going red, the cell is decoration.**
 
-**A4 IS AN OS DIFFERENCE I CANNOT CLOSE, AND I REPORT IT RATHER THAN BENDING ANYTHING.**
+**THE PARAGRAPH BELOW IS THE SECOND AUTHOR'S AND IT WAS WRONG. IT IS KEPT, STRUCK THROUGH IN
+WORDS RATHER THAN DELETED, BECAUSE THE SENTENCE THAT WAS WRONG IS THE ONE A LATER ROUND WOULD
+HAVE BELIEVED.** R2 measured what it missed: **a DANGLING link is a second entry for which
+`lstat` and `stat` disagree at a file path.** `lstat` succeeds and reports a symlink; `stat`
+throws. A directory junction needs no privilege on Windows and removing its target leaves it
+dangling, so the row builds unprivileged on BOTH operating systems, and the two refusals
+differ (`NOT-A-REGULAR-FILE` shipped, `MISSING` under the mutant). Measured by me at round
+3's head, both operating systems, and the `stat` code printed rather than pinned:
+`APPROVED-PIN dangling link on win32: stat says ENOENT` and the same line on linux. **A11 in
+the table above replaces A4: the guard now HAS a Windows row.** What survives of the old
+paragraph is only this: a row built from a FILE symlink is still linux-only.
+
+~~**A4 IS AN OS DIFFERENCE I CANNOT CLOSE, AND I REPORT IT RATHER THAN BENDING ANYTHING.**~~
 APPROVED-PIN's `lstat` guard is killed on linux and survives on Windows. The reason is
 measured, not guessed: on this PC an unprivileged process cannot create a FILE symlink
 (`EPERM`, no Developer Mode), and a DIRECTORY junction, which it can create, resolves under
@@ -322,8 +452,12 @@ The cell builds a synthetic pack of **904 files** in the real pack's shape (1 `R
 
 | machine | one full walk of 904 files |
 |---|---|
-| the PC (Windows 11, node v24.19.0, shared with at least six other lanes) | **57 to 59 ms** re-measured at the fix head (the first build printed 60) |
-| a farm scratch (linux, node v22.22.2, 2 CPUs) | **12 ms** re-measured (the first build printed 27; the farm's load varies and I would read either as "well under a twentieth of a second") |
+| the PC (Windows 11, node v24.19.0, shared with at least six other lanes) | **55 ms** at round 3's head (the R1 round printed 57 to 59, the first build 60) |
+| a farm scratch (linux, node v22.22.2, 2 CPUs) | **28 ms** at round 3's head (the R1 round printed 12, R2 measured 15; the farm's load varies by more than the figure does, and I would read any of them as "well under a twentieth of a second") |
+
+**The seventh refusal did not cost anything measurable**: the walk's read is the same call
+inside a `try`, and 55 ms on the PC is inside the spread the same row has shown all round.
+The figures are PRINTED by the row and asserted by nothing, on purpose.
 
 **AND THE FIGURE THAT BEATS BOTH, BECAUSE IT IS THE REAL PACK AND IT IS THE REVIEWER'S.**
 R1 built a literal for the REAL 904-file pack by C.5.1's five steps in a farm scratch and
@@ -334,6 +468,15 @@ against the real thing rather than argued, and it is the single most valuable me
 either document. **It is his, not mine**: the pack is not on this branch and not on the PC,
 and I did not go and get it. It remains linux-only, so step 5 ON WINDOWS is still the
 integrator's job and is the step I would least like skipped.
+
+**R2 REPEATED THAT REAL-PACK RUN INDEPENDENTLY RATHER THAN CARRYING IT, and his figures are
+the ones I would quote to the integrator**: at `ecbef86a`, a literal of **904 lines**
+generated by C.5.1's five steps, **zero refusals, 45 ms cold and 35 ms warm**, **913 files on
+disk against 904 git-tracked** so nine untracked gate leavings ignored and none of them
+named, and one flipped bit printing exactly
+`PACK-PIN MISMATCH quality/baseline/states/T-39-dawn.json`. Two independent hands have now
+run C.5.1 step 5 against the real pack on linux and both got zero. **Neither has run it on
+Windows, and that is still the integrator's job.**
 
 The whole two-cell step runs in well under a second on both. **The honest caveat on the
 number:** the synthetic files are small, so this measures 904 `lstat`-and-read round trips
@@ -361,8 +504,12 @@ BEFORE it looks at the entry's type, `lstat`ing everything else, descending only
 only regular files, and naming anything else `PACK-PIN NOT-A-REGULAR-FILE <path>` without
 reading or descending it. It compares the literal in path byte order, emitting
 `PACK-PIN MISSING <path>` and `PACK-PIN MISMATCH <path>`, then `PACK-PIN ADDED <path>` in
-byte order, then the irregular entries in byte order. An irregular entry is named ONCE and
-takes no part in the MISSING and ADDED comparisons, so one defect prints one line.
+byte order, then the irregular entries in byte order, **then, from round 3, the UNREADABLE
+entries in byte order**. An irregular OR unreadable entry is named ONCE and takes no part in
+the MISSING and ADDED comparisons, so one defect prints one line. **A file the walk cannot
+read no longer throws: it is named and the walk CONTINUES** (the PM's ruling on Q2), and the
+reader the walk uses is an OPTIONAL LAST PARAMETER that defaults to the file system's own and
+is passed by fixture rows only.
 
 **APPROVED-PIN.** One engine, `approvedPin(root, files, literal)`. The file list is read from
 `design.APPROVED` at run time on every run by `namesOf`, which returns STRINGS and drops the
@@ -370,12 +517,14 @@ takes no part in the MISSING and ADDED comparisons, so one defect prints one lin
 it is checking. An empty or absent list refuses `APPROVED-PIN LIST-EMPTY`. Each named file
 gets exactly one refusal, in the order `UNLISTED` (this cell holds no literal for the path,
 so it can say nothing else about it), `MISSING`, `NOT-A-REGULAR-FILE` (`lstat`, never
-follow), `MISMATCH`. Refusals come back in `design.APPROVED`'s own order, which is identical
+follow), `UNREADABLE` (round 3, and the list walk CONTINUES past it), `MISMATCH`. Refusals come back in `design.APPROVED`'s own order, which is identical
 on both operating systems and is the order `design.cjs`'s own asserts speak in
 (`approved[0]`, `approved[1]`). **Then, after every statement about a named file, it walks
 its OWN LITERAL'S KEYS in path byte order and refuses `APPROVED-PIN ORPHAN <path>` for every
 key the list no longer names** - the sixth refusal, added in the fix round for R1
-BLOCKING-1, and the only one of the six that can see a `design.APPROVED` which SHRANK. The
+BLOCKING-1 and confirmed by the PM in round 3 (Q1), and the only one of the seven that can
+see a `design.APPROVED` which SHRANK. **The seventh is `UNREADABLE`** (round 3, the PM's
+ruling on Q2): a named file the cell cannot read is named and the list walk CONTINUES. The
 two places the cell sorts, the literal map's key order and the ORPHAN lines, are both by
 path bytes and a row proves each.
 
@@ -415,15 +564,25 @@ so they cannot be lost.
    inside `LITERAL` carries all five. Step 5 (re-run against the working tree, requiring zero
    MISMATCH, MISSING, ADDED and NOT-A-REGULAR-FILE) **must be run on the PC, on Windows**,
    and not only in the farm: mutation P10 in section 6 shows a separator bug that is invisible
-   on linux and turns 16 rows red on Windows. v3's 53-file value `6121aa91...` is superseded
-   and must not be used.
+   on linux and turns **23** rows red on Windows (**R2 N1: the 16 in this item was the FIRST
+   build's figure over 25 rows and was stale; 23 is the measured number over 35, and the point
+   is stronger than the number it cited**). v3's 53-file value `6121aa91...` is superseded
+   and must not be used. **The design lane's own checkout is where step 5 exercises the
+   ignore list for real**: R2 re-measured 913 files on disk against 904 git-tracked at
+   `ecbef86a`, nine untracked leavings, all nine ignored and none named.
 4. **Fill APPROVED-PIN's literal by C.5.3's five steps**, in that order, with OQ-2 answered
    first. The comment inside `LITERAL` carries all five, including step 4, which is F.2
    STOP-10: if `design.test.cjs` must be edited to follow a moved `design.APPROVED` and that
    edit cannot be made honestly, the round stops and the PM decides.
 5. **Both cells are RED until both literals are filled, and so is the CI step.** That red is
    the cells working. `rebuild.yml`'s new step carries a comment saying so. Nobody closes it
-   by editing a cell.
+   by editing a cell. **The PM's Q4 ruling is in that comment too**: the three preparation
+   branches merge into `rebuild/b-s9-ui-pins` only, that lane reaches the chain by the S9
+   fast-forward, and by then both literals are filled, so the chain tip never sees the red.
+   **And these cells cannot run on GitHub's runners at all before the S9 walk passes**: the
+   standing step at `rebuild.yml:150` fails first on any branch that does not contain the
+   chain tip and GitHub skips every later step. Do not read the absence of a runner result
+   as a pending one.
 6. **The two cells are declared `role: "new"` and are NOT added to `TOOLING_FILES`**, for the
    same reason the D.2 fence is not (Q5, PM-R4): a cell that audits the sealed set must not be
    exempt from it. Their ignore list and their literals are then sealed bytes, which is what
@@ -433,31 +592,43 @@ so they cannot be lost.
    so this step rides a hunk that exists. Two other lanes are inserting steps after `:232`
    and after `:306` in the same window; this insertion is at `@@ -297,0 +298,11 @@` and
    overlaps neither.
-8. **The refusal vocabularies are asserted by a row in each cell** (six for PACK-PIN, **six**
-   for APPROVED-PIN after the fix round). If a later round adds or renames a refusal, that
-   row is the place it is noticed, and it is a sealed byte move.
-9. **APPROVED-PIN's `lstat` clause has no Windows row that kills it** (mutation A4, section
-   6.2), because an unprivileged Windows process cannot build a file symlink. The refusal it
-   feeds IS killed on both. If a later round gains a privileged Windows runner, the row to
-   strengthen is `R4 N1.2 (a)` in `approved-pin.test.mjs`. **PACK-PIN's equivalent (P13) no
-   longer has this gap**: `R4 N1.2 (c)` puts a directory junction AT a pinned FILE, which
-   needs no privilege, and kills P13 on the PC.
-10. **APPROVED-PIN HAS SIX REFUSALS, NOT FIVE, AND THE SIXTH IS ORPHAN** (R1 BLOCKING-1).
+8. **THE REFUSAL VOCABULARIES ARE SEVEN AND SEVEN after round 3**, and the last row of each
+   cell no longer asserts their shape: it DERIVES the set of verbs the rows above actually
+   emitted and compares it with the exported `REFUSALS` (R2 N2). If a later round adds,
+   renames or strands a refusal, that row is where it is noticed, and it is a sealed byte
+   move. Mutations P25 and A15 are that row, executed.
+9. **CORRECTED, AND THIS ITEM PREVIOUSLY TOLD YOU NOT TO LOOK.** It used to say APPROVED-PIN's
+   `lstat` clause has no Windows row that can kill it. **It has one**: a DANGLING directory
+   junction, which needs no privilege. `lstat` succeeds and reports a symlink where `stat`
+   throws, so the shipped engine prints `NOT-A-REGULAR-FILE` and the mutant prints `MISSING`,
+   on both operating systems (mutation A11, section 6.2, and the row
+   `R2 B2` in `approved-pin.test.mjs`). What remains linux-only is a row built from a FILE
+   symlink, because an unprivileged Windows process cannot create one (`EPERM`, measured).
+   **PACK-PIN's equivalent has no gap either**: `R4 N1.2 (c)` puts a directory junction AT a
+   pinned FILE.
+10. **APPROVED-PIN HAS SEVEN REFUSALS, NOT FIVE. THE SIXTH IS ORPHAN** (R1 BLOCKING-1; the
+   seventh is `UNREADABLE`, item 11).
    It fires for a literal key the run-time list no longer names. It CANNOT fire today,
    because the literal is empty; **it becomes live the moment C.5.3 step 2 fills the map**,
    and from then on a `design.APPROVED` that SHRINKS is named instead of silent. If C-UI-1's
    move drops the two 09-08 references, the run prints two `UNLISTED` lines for the new
    files AND two `ORPHAN` lines for the old ones, and that is correct: it is the day C.5.3
-   step 3 re-decides E fact 17's path list. The ticket named five refusals and the PM may
-   prefer R1's other remedy (rule the hole benign and say so); that is four lines of engine
-   and one block of rows to remove.
-11. **A RULING IS WANTED ON A SEVENTH PACK-PIN REFUSAL, `UNREADABLE` (R1 N3).** An
-   unreadable pinned file makes the walk THROW rather than refuse by name: the cell goes
-   loudly RED, so nothing hides, but the path appears only inside a stack and the walk stops,
-   so a second defect further down the tree is invisible until the first is cleared. I did
-   NOT add it: R1 itself called it "worth a ruling, not worth a fix round on its own", the
-   ticket enumerates six, and from S9 the vocabulary is SEALED bytes. **Rule it before the
-   literal is taken**, because adding it afterwards costs a reseal child.
+   step 3 re-decides E fact 17's path list. **THE PM HAS NOW CONFIRMED IT (Q1): ORPHAN
+   STAYS.** It is the inverse of UNLISTED and it closes the day `design.APPROVED` shrinks,
+   which is the very day `design.test.cjs:17` is expected to move. Nothing to decide here
+   any more.
+11. **RULED AND DONE (Q2): `UNREADABLE` IS THE SEVENTH REFUSAL IN BOTH CELLS, AND IT WAS
+   TAKEN NOW** because from S9 the vocabulary is sealed bytes and a later addition costs a
+   reseal child. A file the walk cannot read is NAMED and **the walk CONTINUES**, so a second
+   defect further down is still named in the same run. Two things about it the integrator
+   should know. **(a) The one real-file witness is Windows-only**: R1 built it on the PC with
+   a DENY ACE. Neither the PC unprivileged nor a farm scratch (uid 0, where `chmod` proves
+   nothing) can build one, so the fixture rows pass an OPTIONAL READER as the engine's LAST
+   parameter. **The REAL ROW passes none, and a row in each cell scans the cell's own source
+   and asserts that** (mutations P24 and A14). **(b) What is still NOT closed**: an unreadable
+   DIRECTORY throws out of `readdirSync`. That is the LOUD RED the file case used to be, never
+   a silent green, and closing it would mean a second optional reader for directories. If the
+   PM wants it closed, it must be closed BEFORE the literal is taken, for the same reason.
 12. **TWO RESIDUALS THE PIN DOES NOT CLOSE, AND MUST NOT BE CLOSED BY WIDENING (R1 N5).**
    (a) A python module at `<pack>/quality/__pycache__/teeth.py` is invisible to the pin by
    construction, and python will import it if `sys.path` reaches it. A row records that as a
@@ -469,8 +640,9 @@ so they cannot be lost.
 13. **A LINK AT `quality/run` NOW REFUSES `NOT-A-REGULAR-FILE quality/run`.** That falls out
    of R1 BLOCKING-2's fix and is the spec's shape: `quality/run` is invisible to the pin only
    as a plain directory whose CHILDREN begin `quality/run/`. If the design lane's machine
-   symlinks its own output directory, the pin prints one loud line naming it. A row records
-   the behaviour; changing it is a sealed byte move and a PM call.
+   symlinks its own output directory, the pin prints one loud line naming it. **THE PM HAS
+   CONFIRMED IT (Q3): loud is right. A design machine that links its own output folder hears
+   about it once and fixes its folder.** Changing it back is a sealed byte move.
 14. **`APPROVED-PIN` NOW EXISTS AS A TOKEN IN TWO FILES WITH TWO MEANINGS (R1 N7).**
    `design.cjs:341` already throws `APPROVED-PIN FAIL: <file>` from `readApproved()`. The
    cell never calls `readApproved` and asserts full exact strings, so it does not fall into
@@ -480,9 +652,21 @@ so they cannot be lost.
 15. **THE DESIGN LANE'S OWN CHECKOUT CARRIES UNTRACKED GATE OUTPUT INSIDE THE PACK TODAY**
    (R1's measurement, added to item 3): 8 files under `quality/run/` and one
    `quality/__pycache__/*.pyc` at `ecbef86a`. So C.5.1 step 5 run on that machine exercises
-   the ignore list for real rather than hypothetically. **If step 5 ever returns
+   the ignore list for real rather than hypothetically. R2 re-measured it as **913 on disk
+   against 904 tracked**, nine leavings, all ignored, none named. **If step 5 ever returns
    `PACK-PIN ADDED` for a path under `quality/run/` or with a `__pycache__` segment, the
    ignore list has been changed, not the pack.**
+16. **THE PACK ROOT IS THE ONE ENTRY THE WALK NEVER SEES (R2 B1).** If a day-of run ever
+   prints `PACK-PIN PACK-ROOT-ABSENT` for a path that visibly EXISTS on disk, the pack root
+   is a LINK and the refusal is correct: `lstat` at the root is deliberate, and a junction
+   standing there over a twin whose bytes match the literal line for line is exactly the
+   attack the row `R2 B1` builds. Do not "fix" it by following the link.
+17. **A LITERAL LINE NAMING A PATH OUTSIDE THE PACK IS BENIGN (R2 N3), AND THAT IS BY
+   CONSTRUCTION AND NOT BY LUCK.** `..`, a leading slash, a drive letter and `./` each come
+   back as one `PACK-PIN MISSING <path>` line: the engine never OPENS a literal path, it only
+   asks the Map the walk built. A row measures all four. A BACKSLASH in a literal path still
+   fails HARD, because that is a spelling defect that would make the cell's own constant
+   disagree with its own walk on one operating system.
 
 ## 10. WHERE I THINK A REVIEWER SHOULD PUSH, AND WHAT I DECIDED ON MY OWN
 
@@ -501,10 +685,11 @@ place the review may overrule me, and none of them is load bearing for a refusal
    says in terms that the order is load bearing. The one place APPROVED-PIN sorts, its literal
    map's key order, IS byte-sorted and asserted. **If the PM reads N1.1 as covering the
    refusal order too, this is a two-line change and a row.**
-3. **A malformed or duplicated literal line fails HARD rather than refusing.** I kept the
-   refusal vocabulary at exactly the six and the five the ticket named, and treated a broken
-   literal as what it is: a defect in the cell's own constant. A reviewer may prefer a seventh
-   refusal.
+3. **A malformed or duplicated literal line fails HARD rather than refusing.** A broken
+   literal is a defect in the cell's own constant and not a fact about the tree, so it is not
+   in the vocabulary. **That decision survives round 3's seventh refusal**: `UNREADABLE` is a
+   fact about the TREE, which is the line the vocabulary is drawn on. A reviewer may still
+   prefer a refusal for a broken constant; it would be an eighth, and a sealed byte move.
 4. **An irregular entry is named ONCE.** It refuses `NOT-A-REGULAR-FILE` and takes no part in
    MISSING or ADDED, so a link standing where a pinned FILE is pinned prints one line and not
    two. The directory case is deliberately different and prints both: the junction is named
@@ -556,6 +741,18 @@ skipped or deleted, and no row was loosened: the ten new rows are all additional
 three existing rows whose expectations changed (`C.5.3`, `the file list is re-read`, `the
 verdict comes from THIS cell's literal`) each gained a true line or named both files, which
 section "R1 findings" states one by one.
+
+**AND ROUND 3 FIRES NONE EITHER, checked the same way.** STOP-9(a): every path-naming refusal
+is built, the seventh (`UNREADABLE`) names the path too, and all six of B.8's rows still fail
+by name. STOP-9(b): **round 3 narrows the pin nowhere.** It ADDS a refusal, so a file that
+used to make the walk THROW is now named and the walk goes ON: strictly more is judged, never
+less. The optional reader does not narrow it either, because the REAL ROW passes none and a
+row in each cell asserts that by reading the cell's own source (mutations P24 and A14).
+STOP-10 and STOP-11 remain day-of conditions and belong to the integrator. **No law, guard,
+pin or test was weakened, skipped or deleted in round 3**: eleven rows were added, one clause
+was added to each engine, and the only existing row whose text changed is each cell's last
+one, which now asserts MORE than it did (the derived vocabulary, R2 N2). **No file outside
+the owned list needed an edit**, so nothing needs routing to the PM.
 
 ---
 
@@ -694,3 +891,100 @@ author's and because moving it now would disturb a region two other lanes are me
    `mkdtemp` fixtures, which it removes. My mutation harness wrote a mutated COPY beside each
    cell and deleted it every time; `git status --porcelain` on the worktree is empty. No
    owner measurement is anywhere in this round.
+
+---
+
+## R2 findings and the PM's rulings: fixed or disputed
+
+`S9-PREP-PACK-REVIEW-R2.md` rejected the second build on two BLOCKING findings and five
+notes, and it did so on an independent harness rather than on a reading: it reproduced
+fifteen of the twenty-nine mutation rows on both operating systems with every count matching,
+ran the blind attack plan with byte-identical output on both, and walked the REAL pack in the
+farm. **I accept both BLOCKING findings and all five notes. I dispute nothing in R2.** Below,
+each one with the measurement that closes it, and then the PM's four rulings.
+
+### The two BLOCKING findings
+
+**B1. The pack-root `lstat` had no row. FIXED, by ONE fixture row and no engine line.**
+R2 is exactly right, and the point is not tidiness: the pack root is the one entry the walk
+never sees, so a junction standing there over a twin whose bytes match the literal line for
+line was GREEN under the mutant while the tree had changed. That is R4 section 2's
+green-while-changed one level up. The row is
+`R2 B1: a LINK standing AT the pack root is ABSENT, even over a twin that matches`; it
+asserts the fixture is green through its own root FIRST, then that the twin reads back the
+same bytes through the link, then the refusal. Measured by me, both operating systems:
+shipped `41 / 40 / 1`, mutant (`lstatSync(packRoot)` to `statSync(packRoot)`) `41 / 39 / 2`,
+**the one extra red being this row and nothing else**. Before this round that mutant killed
+**zero** rows on either OS. It is mutation P20 in section 6.1 and integrator item 16.
+
+**B2. APPROVED-PIN's `lstat` guard was reported unclosable on Windows, and the reason given
+was false. FIXED, by ONE fixture row and no engine line, and the sentence is corrected in
+three places.** R2's measurement is the one I reproduced: a DANGLING link is a second entry
+for which `lstat` and `stat` disagree at a file path, `lstat` succeeds and reports a symlink
+where `stat` throws, and a directory junction needs no privilege on Windows. The row is
+`R2 B2: a DANGLING link at a named reference refuses NOT-A-REGULAR-FILE, on both OS`; it
+proves the link outlives its target and that `stat` fails where `lstat` does not, and it
+PRINTS the `stat` code rather than pinning it (`ENOENT` on win32 and on linux, measured, and
+R1 N6's rule says a foreign runner's errno is not a fixture's business). Shipped
+`25 / 24 / 1`; mutant `25 / 23 / 2` on Windows (was `25 / 24 / 1`, killing nothing) and
+`25 / 22 / 3` on linux, the extra linux row being the FILE-link row that takes the EPERM
+branch on Windows by construction. **Corrected in: section 6.2 (the old paragraph is kept and
+marked wrong, because the wrong sentence is the one a later round would have believed),
+integrator item 9, and the cell's own comment.** It is mutation A11.
+
+### The five notes
+
+| R2 note | verdict | what closed it |
+|---|---|---|
+| **N1** integrator item 3 carries a stale 16 | **FIXED** | it says **23** now, with the reason the old figure existed (25 rows, the first build). I re-measured P10 rather than copying R2's number, and 23 is what my harness printed on the PC |
+| **N2** the vocabulary row's title is a claim it does not make | **FIXED** | each cell now records every refusal as the engine returns it and the last row DERIVES the verb set and compares it with `REFUSALS`, in both directions. Mutations P25 and A15 kill that row, so it is load bearing and not decoration |
+| **N3** a literal path outside the pack is benign and the cell should say so | **FIXED** | one paragraph and one row (`../../etc/hosts`, `./x`, `/etc/hosts`, `C:/Windows/win.ini`, in byte order, four MISSING lines), and the same row re-asserts that a BACKSLASH still fails hard, with the reason the two are different classes |
+| **N4** `Object.hasOwn` is a real hardening with no row | **FIXED** | the row asserts `constructor`, `toString` and `__proto__` come back UNLISTED. Mutation A12 (`file in literal`) kills it on both operating systems; before, it killed nothing |
+| **N5** the fixture prefix collides with the lane's own scratch prefix | **FIXED** | every `mkdtemp` in both cells is `s9cpin-` now. R2's trap is real and it would have produced a failure that looks like a defect in the pin |
+
+### The PM's four rulings, and what each one cost
+
+| ruling | what I did |
+|---|---|
+| **Q1 ORPHAN CONFIRMED** | nothing to build; integrator item 10 stops asking |
+| **Q2 UNREADABLE, NOW** | the only engine change in this round. Seventh refusal in BOTH cells, the walk CONTINUES, an optional reader as the LAST parameter that only fixture rows pass, and a source-scan row in each cell asserting the REAL ROW passes none. Rows committed RED first at `5563dca` on both operating systems |
+| **Q3 a link at `quality/run` is LOUD** | confirmed; the existing row and integrator item 13 now say the PM ruled it |
+| **Q4 the step STAYS, red, with its comment** | eleven comment lines in `rebuild.yml`, no step change. The merge order and the `:150` fact are in the comment, in section 5 and in integrator item 5 |
+
+**ON Q4's RELATED FACT, WHICH CHANGES WHAT THIS DOCUMENT MAY CLAIM.** The PM measured that
+on any branch that does not contain the chain tip, or that carries undeclared sealed edits,
+the standing step at `rebuild.yml:150` fails FIRST and GitHub SKIPS every later step. So the
+two previous rounds' "no `rebuild-public` run exists for this branch that I have seen" was
+the right observation with the wrong implication: **there is nothing to wait for.** These
+cells cannot run on GitHub's runners until the S9 walk passes. **The PC and a linux farm
+scratch ARE the both-OS evidence**, and section 5 is that evidence, run at the pushed head on
+both. I have stopped describing a missing runner result as pending.
+
+### What I did NOT verify in round 3
+
+1. **GitHub CI, and now for a stated reason rather than as an absence.** See Q4 above.
+2. **The real pack, on either operating system.** Still not on this branch and not on the PC.
+   Every real-pack figure in this document is R1's or R2's, attributed. C.5.1 step 5 on
+   Windows remains the integrator's job and is the step I would least like skipped.
+3. **Fourteen of the twenty-nine inherited mutation rows.** I re-measured every row that
+   bears on code this round touched (P3', P4', P5', P6', P13a', P13b', A3', A5', A7') and
+   every row this round added (P20 to P25, A11 to A15), on BOTH operating systems, by
+   harness. The rest are carried from the R1 round's table, which R2 independently
+   reproduced for fifteen of them with every count matching.
+4. **A real unreadable file on either machine.** R1's DENY-ACE measurement on the PC is the
+   one real-file witness and it is Windows-only; the farm runs as uid 0, where `chmod` proves
+   nothing. That is exactly why the reader is a parameter and why a row asserts the real row
+   does not use it.
+5. **An unreadable DIRECTORY.** Not closed, stated: it throws out of `readdirSync`, which is
+   loud red and never a silent green. Integrator item 11(b).
+6. **`scripts/` and any local runner**, which is outside the farm's include list, so I cannot
+   check whether a local bar globs `rebuild/lanes/c/ui-port/`. R2 names the same gap.
+7. **I read nothing forbidden in this round either.** No `rebuild/conform/private`, no
+   `src/history.js`, no `ledger/`, no `EarnedPort`, no `port-real.log`, no protected soak, no
+   design-lane worktree. I ran no `b-package.cjs`, no seal generator, and nothing that writes
+   a receipt or an artifact. I created no junction into any tree: every link in either cell is
+   inside a `mkdtemp` folder the cell makes and removes. My mutation harness wrote a mutated
+   COPY beside each cell, ran it and deleted it every time, on both machines; the farm scratch
+   is `/home/claude/farm/scratch/wt/s9cAuthC` and nothing in it is pushed. **No owner
+   measurement is anywhere in this round: every fixture byte is generated by the cell that
+   uses it.**
