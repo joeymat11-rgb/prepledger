@@ -364,10 +364,16 @@ function inventory({ packageId = "M2-S8-FIXTURE", lanePackage = "S8", product = 
   }
   return JSON.stringify(obj, null, 1) + "\n";
 }
+/* R3 M43, ADOPTED: RETIRED_IDS comes FIRST. idsOf's `\b` word boundary is equivalent
+   today only because the real runner declares IDS at b-package.cjs:173 and RETIRED_IDS at
+   :185, so the leftmost match is the right one either way and the guard measured nothing.
+   With the retired list ahead of it, EVERY reseal row in this file measures the boundary
+   for free: drop the `\b` and idsOf reads ['B-LOM'] instead of the branch's own ids, and
+   condition (4) refuses every child. Two lines, no new row. */
 const runnerStub = (ids) =>
   "// fixture stand-in for " + RUNNER + "\n" +
-  "const SPEC_DIR = 'packages', IDS = [" + ids.map((i) => "'" + i + "'").join(", ") + "];\n" +
-  "const RETIRED_IDS = ['B-LOM'];\n";
+  "const RETIRED_IDS = ['B-LOM'];\n" +
+  "const SPEC_DIR = 'packages', IDS = [" + ids.map((i) => "'" + i + "'").join(", ") + "];\n";
 
 /* The chain: one commit carrying an inventory, a runner stub and every file the
    inventory pins, with the chain ref pointed at it. Nothing here is this repository. */
@@ -703,7 +709,16 @@ test("D.2 (8a) - an empty or non-spec JSON file does not earn the skip: conditio
 
   const rubbish = chain({ product: [APP] });
   child(rubbish, { specBody: "not a spec at all\n", alsoTouch: { [APP]: "a lane C edit\n" } });
-  unverified(fence(rubbish, CHAIN_REF), 1);
+  const rr = fence(rubbish, CHAIN_REF);
+  unverified(rr, 1);
+  /* R3 M29, ADOPTED: `catch { spec = null }` on the `git show HEAD:<spec>` read can be
+     changed to `catch { spec = {} }` and the VERDICT does not move - `{}` then fails the
+     SPEC_KEYS closure and the branch is still refused at (1). What moves is the sentence
+     a human reads: a file that is not JSON at all would be reported as "not the runner's
+     own SPEC_KEYS key closure". That is R3-B one level down, inside the fix for R3-B, and
+     the answer is the same: an assertion, not a weaker claim. */
+  assert.ok(rr.refusals[0].includes("does not parse"),
+    "a body that is not JSON is reported as a key-closure miss: " + names(rr));
 
   /* and TWO added specs are not "exactly one" either. */
   const two = chain({ product: [APP] });
