@@ -250,6 +250,13 @@ this round: `packages/S9.json` is on the WAIT list.
 | after the fix round's last edit (the H7 comment correction), re-pins redone LAST again and committed | `25ddc44c32d0d71b924cf62c2e0a8647697b6e77a55a91a132388217b6789ca6` | `SEALED-PROFILE-RECOMPUTATION`, exit 1 | `SEALED-PROFILE-RECOMPUTATION`, exit 1 |
 | **AFTER FIX ROUND 3's last edit** (P-A1, P-A2, P-A3), re-pins redone LAST again and committed at `9514673` | **`32916e509df0e38e4cb464a4b30c871f880d11a849958c5d7e9d14d1e2961be3`** | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 |
 
+**FIX ROUND 3 DID NOT RE-TAKE ITS OWN "BEFORE" ROW, and says so rather than
+implying it did.** The state before this round's first edit is the row above
+the last one - runner `25ddc44c...9ca6`, the seven specs re-pinned to it - and
+it was taken twice already: by the second author, and independently by the
+reviewer in THIS worktree at `ade31333` (R2 section 4). What round 3 measured
+itself is the last row.
+
 **FIX ROUND 3's two runs, in full, because this is X1 measured on the final
 bytes.** Both observation lines read `runner
 32916e509df0e38e4cb464a4b30c871f880d11a849958c5d7e9d14d1e2961be3
