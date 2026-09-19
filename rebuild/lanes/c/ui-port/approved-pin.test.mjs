@@ -199,8 +199,17 @@ test("C.5.3: design.APPROVED moved to two DIFFERENT files that exist refuses bot
       assert.ok(fs.existsSync(path.join(root, ...rel.split("/"))),
         "both moved files must EXIST, or this row proves only MISSING");
     }
-    assert.deepEqual(approvedPin(root, [PACK_A, PACK_C], literal),
-      ["APPROVED-PIN UNLISTED " + PACK_A, "APPROVED-PIN UNLISTED " + PACK_C]);
+    /* FOUR LINES, NOT TWO, AND THE EXTRA TWO ARE R1 BLOCKING-1. The move is two facts at
+       once: two files the literal has never heard of are now named (UNLISTED), and two
+       files the literal still pins are no longer named by anything (ORPHAN). The first
+       build printed only the first half, so the same day's other half - the 09-08
+       references falling out of every pin in the tree - was silent. */
+    assert.deepEqual(approvedPin(root, [PACK_A, PACK_C], literal), [
+      "APPROVED-PIN UNLISTED " + PACK_A,
+      "APPROVED-PIN UNLISTED " + PACK_C,
+      "APPROVED-PIN ORPHAN " + REF_C,
+      "APPROVED-PIN ORPHAN " + REF_A,
+    ]);
   });
 });
 
@@ -269,7 +278,14 @@ test("R4 N1.2 (a): a FILE link in place of a named reference refuses NOT-A-REGUL
       } else {
         assert.equal(process.platform, "win32",
           "a file link must be buildable by an unprivileged process off win32, got " + err);
-        assert.equal(err, "EPERM");
+        /* R1 N6: the CODE is recorded, not pinned. It is EPERM on this PC with no
+           Developer Mode; windows-latest is a different account this branch has never run
+           on, and a row that pinned the errno would go red there for a reason that is not
+           a defect in the pin. A runner that SUCCEEDS takes the branch above and runs the
+           whole attack, which is the outcome to prefer. */
+        assert.equal(typeof err, "string");
+        assert.ok(err.length > 0, "a failed link must report a code");
+        console.log("APPROVED-PIN file-link on win32 is unbuildable unprivileged, code: " + err);
       }
     } finally {
       fs.rmSync(outside, { recursive: true, force: true });
@@ -302,8 +318,12 @@ test("the file list is re-read on every call, and the refusals follow it", () =>
     const mod = { APPROVED: [{ file: REF_A }, { file: REF_C }] };
     assert.deepEqual(approvedPin(root, namesOf(mod), literal), []);
     mod.APPROVED = [{ file: PACK_A }, { file: PACK_C }];
-    assert.deepEqual(approvedPin(root, namesOf(mod), literal),
-      ["APPROVED-PIN UNLISTED " + PACK_A, "APPROVED-PIN UNLISTED " + PACK_C]);
+    assert.deepEqual(approvedPin(root, namesOf(mod), literal), [
+      "APPROVED-PIN UNLISTED " + PACK_A,
+      "APPROVED-PIN UNLISTED " + PACK_C,
+      "APPROVED-PIN ORPHAN " + REF_C,
+      "APPROVED-PIN ORPHAN " + REF_A,
+    ]);
     mod.APPROVED = [];
     assert.deepEqual(approvedPin(root, namesOf(mod), literal), ["APPROVED-PIN LIST-EMPTY"]);
   });
@@ -339,6 +359,78 @@ test("the literal map, once filled, is held in path byte order", () => {
   const keys = Object.keys(LITERAL);
   assert.deepEqual(keys, [...keys].sort(byteCompare));
   for (const k of keys) assert.match(LITERAL[k], /^[0-9a-f]{64}$/);
+});
+
+/* ============================ R1 FIX ROUND ============================
+   R1 BLOCKING-1, measured on both operating systems and reproduced here before the engine
+   moved. The first build walked the RUN-TIME name list and asked the literal about each
+   name; it never asked the literal's OWN KEYS whether they were still named. So a
+   design.APPROVED that SHRINKS left its dropped file pinned by NOTHING, and this cell
+   stayed green while that file's bytes moved. That is the exact inverse of R4 N8's
+   UNLISTED: UNLISTED closes the case where the list MOVES to files the literal has never
+   heard of; ORPHAN closes the case where the list STOPS NAMING a file the literal holds.
+
+   WHY IT IS NOT COVERED ELSEWHERE, which is what makes it blocking rather than tidy.
+   design.test.cjs:17 asserts approved.length === 2, so a shrink is red today - but :17 is
+   precisely the line F.2 STOP-10 and C.5.3 step 4 expect C-UI-1 to EDIT in order to follow
+   a moved list, and design.test.cjs is one of the two unsealed sides this cell exists to
+   backstop. The guard moves with the thing it guards, on the one day it matters. And
+   PACK-PIN covers rebuild/m1/approved-2026-09-18/ only, so a 09-08 reference dropped from
+   the list is covered by neither cell.
+
+   THIS IS A SIXTH REFUSAL AND THE TICKET NAMED FIVE. R1 offered two remedies: this one, or
+   a PM ruling that the hole is benign with the cell and the integrator list saying so in
+   terms. I took this one because it is the only one an author can take on his own and
+   because it errs towards more coverage, never less. If the PM prefers the other, it is
+   four lines of engine, this block of rows, and one header sentence. */
+test("R1 B1 / ORPHAN: a literal entry the run-time list no longer names is refused, naming it", () => {
+  withRefs((root, files, literal) => {
+    void files;
+    assert.deepEqual(approvedPin(root, [REF_A], literal), ["APPROVED-PIN ORPHAN " + REF_C]);
+  });
+});
+
+/* R1 BLOCKING-1 EXACTLY AS IT WAS MEASURED: the list shrinks AND the dropped file's bytes
+   move. Against the first build this returned [] on linux and on Windows. */
+test("R1 B1: the shrunk list plus an edit of the dropped file is no longer green", () => {
+  withRefs((root, files, literal) => {
+    void files;
+    writeAt(root, REF_C, txt("<html><body>Additions C, edited after the drop</body></html>\n"));
+    assert.deepEqual(approvedPin(root, [REF_A], literal), ["APPROVED-PIN ORPHAN " + REF_C]);
+  });
+});
+
+/* ORPHAN is a statement about this cell's literal, so it comes AFTER every statement about
+   a named file, and in path BYTE order rather than in the literal's key insertion order.
+   The map here is built A-then-C on purpose, while the byte order is C-then-A, so a
+   mutation that dropped the sort would be caught by this row and not only by a reading. */
+test("ORPHAN comes after the per-file refusals, in path BYTE order and not insertion order", () => {
+  withRefs((root, files, literal) => {
+    void files;
+    void literal;
+    const insertionOrdered = Object.freeze({
+      [REF_A]: sha256(txt(BODY[REF_A])),
+      [REF_C]: sha256(txt(BODY[REF_C])),
+    });
+    assert.deepEqual(Object.keys(insertionOrdered), [REF_A, REF_C]);
+    assert.deepEqual([REF_A, REF_C].sort(byteCompare), [REF_C, REF_A],
+      "this row proves nothing unless the two orders differ");
+    assert.deepEqual(approvedPin(root, [PACK_A], insertionOrdered), [
+      "APPROVED-PIN UNLISTED " + PACK_A,
+      "APPROVED-PIN ORPHAN " + REF_C,
+      "APPROVED-PIN ORPHAN " + REF_A,
+    ]);
+  });
+});
+
+/* THE PRECEDENCE, recorded so it is a decision and not an accident. An empty list is one
+   fact about design.APPROVED, not one fact per literal key, so LIST-EMPTY prints alone. */
+test("LIST-EMPTY wins over ORPHAN: an empty list prints one line, not one per literal key", () => {
+  withRefs((root, files, literal) => {
+    void files;
+    assert.ok(Object.keys(literal).length > 0, "the literal must be non-empty, or this row is vacuous");
+    assert.deepEqual(approvedPin(root, [], literal), ["APPROVED-PIN LIST-EMPTY"]);
+  });
 });
 
 /* THE REAL ROW. The SAME engine the fixture rows run, over the real repository root, the
