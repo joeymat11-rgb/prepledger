@@ -1275,6 +1275,46 @@ test("REAL ROW: the owner-approved pack at this head, against this cell's own li
     " " + PACK_ROOT_REL + " has not merged and the literal is unfilled. C.5.1 fills it.)");
 });
 
+/* P-FENCE-1, EXTENDED TO THIS STEP BY DECISIONS:559 ("the pack-pin step of S9-PREP-C
+   needs the same condition and the PM adds it as integrator") AND GIVEN A ROW OF ITS OWN
+   BY DECISIONS:570 ("plus its own row"). The brief's section 9 item 3 is explicit that
+   the row lives HERE and not as a second row inside the fence cell, because a cell that
+   reads another cell's step is a cell nobody edits when that step moves.
+
+   THE REASON THE CONDITION IS NEEDED, in one sentence: GitHub skips every step after a
+   failed one; the standing step `b-package.cjs --ci --package S8` at rebuild.yml:150
+   fails on exactly the branches this cell exists for, because a branch that does not
+   contain the chain tip is refused SEAL-BASE-IS-NOT-THE-CHAIN-TIP by the runner's own
+   rule of DECISIONS:135 (4); and a gate that is skipped in the world it was written for
+   is not a gate. `!cancelled()` runs the step after an earlier failure and NOT when the
+   run was cancelled, so a cancelled run still stops. It does not make the job green: this
+   step's own exit status is still the job's.
+
+   The row reads rebuild.yml as TEXT out of the WORKING TREE, finds the step by THIS
+   FILE'S OWN PATH rather than by a line number, and never globs - the same three rules
+   the fence's row (18) follows, so the two cannot drift apart in method. The step names
+   this cell and approved-pin.test.mjs together; either spelling finds the same block. */
+test("P-FENCE-1 / DECISIONS:570 - this cell's own step in rebuild.yml carries the not-cancelled condition", () => {
+  const SELF = path.relative(REPO_ROOT, fileURLToPath(import.meta.url)).split(path.sep).join("/");
+  const yml = fs.readFileSync(path.join(REPO_ROOT, ".github", "workflows", "rebuild.yml"), "utf8")
+    .split(/\r?\n/);
+  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(SELF));
+  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + SELF + " at all");
+  assert.equal(/[*?]/.test(yml[runAt]), false, "the step globs instead of naming its files: " + yml[runAt].trim());
+  let nameAt = runAt;
+  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
+  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), "the run: line sits in no named step");
+  const block = yml.slice(nameAt, runAt + 1);
+  const cond = block.find((l) => /^\s*if:/.test(l));
+  assert.notEqual(cond, undefined,
+    "the pack step carries no `if:` at all, so GitHub skips it after the standing step at "
+    + ":150 fails - which is every branch these two cells exist for (P-FENCE-1, "
+    + "DECISIONS:559): " + block.map((l) => l.trim()).join(" / "));
+  assert.match(cond, /!\s*cancelled\(\)/,
+    "the condition is not `not cancelled`, so the step either never runs after a failure "
+    + "or runs after a cancellation: " + cond.trim());
+});
+
 /* Named so the refusal vocabulary is readable from outside and cannot drift in silence:
    any change to this list is a change to a sealed cell's bytes. */
 export const REFUSALS = Object.freeze([
