@@ -1392,7 +1392,8 @@ Last step, as the ruling requires. `git fetch origin`, then
 | the two measurements on the merged head | `turnContextBytes` 9446 and 22118, unchanged |
 | `git diff --numstat c9c34aef..HEAD -- rebuild/engine rebuild/m3 rebuild/m4 rebuild/client .github` | **EMPTY** |
 | this lane's own commits touching `rebuild/DECISIONS.md` | **none**; every DECISIONS line in the range arrived by merge from the chain |
-| U+2013 and U+2014 on ADDED lines, `a40952f..HEAD` | **0** |
+| U+2013 and U+2014 on the ADDED lines this lane AUTHORED, `a40952f..HEAD -- rebuild/coach rebuild/lanes` | **0**, over 1030 added lines |
+| the same count over the WHOLE `a40952f..HEAD` diff | **10**, all of them inside the five `rebuild/DECISIONS.md` lines the chain-tip merge brought in. They are the PM's own ledger prose, this lane authored none of them and changed none of them, and they are reported rather than passed over in silence |
 
 Every path this round touched: `rebuild/coach/memory-tools.cjs`,
 `rebuild/coach/memory-host.mjs`, `rebuild/coach/TOOL-CONTRACT.md`,
