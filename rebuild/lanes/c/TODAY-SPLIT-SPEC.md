@@ -1,18 +1,29 @@
 # TODAY-SPLIT-SPEC v2 - extracting the WRITERS, so the two view files are released under their own names
 
-Lane C, ticket TODAY-SPLIT-SPEC, ROUND 2. Author: cowork (Earned lane hand, lane C), round 2; the v1
-author is gone and this document continues its work rather than replacing it. Branch
-`rebuild/c-today-split`. SPEC ONLY: this round authors this one file and moves no product, test,
-tooling or workflow byte.
+Lane C, ticket TODAY-SPLIT-SPEC, ROUND 2, **FIX ROUND after review R1**. Author: cowork (Earned lane
+hand, lane C); the v1 and v2 authors are gone and this document continues their work rather than
+replacing it. Branch `rebuild/c-today-split`. SPEC ONLY: this round authors this one file and moves
+no product, test, tooling or workflow byte.
+
+**Review R1 (`TODAY-SPLIT-SPEC-REVIEW-R1.md` at `af53fd17`) rejected v2 with nine blocking findings
+and seven notes, and upheld the PM's direction.** Every one is carried out or disputed with evidence
+in the new section **"R1 findings: fixed or disputed"** immediately after the change log, and the
+section that carries each fix is edited in place rather than corrected in an erratum. Where the fix
+changes an interface, the old text is gone, not annotated.
 
 **The ref.** Every line number in this document is read at the chain tip `c15a69c0`
 (`rebuild/t2-client-core`, farm-synced for this round, privacy proof PASS), not at v1's `724ef3f`.
 The two refs agree on every region boundary I re-measured in `today-app.cjs` and `today-model.cjs`;
 where a line number in this document differs from v1's or from one of the two input maps, the
-difference is named where it occurs and this ref is the one that stands.
+difference is named where it occurs and this ref is the one that stands. **The fix round re-read
+every line it disputes or re-cites at `e0e2ac75`**, the tip the reviewer used; the reviewer's own
+`git diff c15a69c0 e0e2ac75 -- rebuild/m3/w7-preview/today/` is EMPTY, so the two refs agree byte
+for byte over every file this document cites and every line number below is valid at both.
 
-Read before this: `DECISIONS:536` (the release and its rule) and `DECISIONS:542` (R2 REJECT, PM-R1
-to PM-R9, and (C), the TODAY-SPLIT ruling); `rebuild/lanes/b/S9-RELEASE-SPEC.md` sections A, B and D
+Read before this: `DECISIONS:536` (the release and its rule), `DECISIONS:542` (R2 REJECT, PM-R1
+to PM-R9, and (C), the TODAY-SPLIT ruling), `DECISIONS:543` (S-R1 to S-R9, the direction) and
+`DECISIONS:546` (S9 judged R3 REJECT; **the copy lock made a named PRECONDITION OF S10**, which is
+the child that carries this split: G.4); `rebuild/lanes/b/S9-RELEASE-SPEC.md` sections A, B and D
 at `d859096a` on `rebuild/b-s9-ui-pins`; the blind map
 `/home/claude/farm/scratch/split/blind-map.md`; the look-versus-seal map
 `/home/claude/farm/scratch/look-vs-seal/MAP.md`; `rebuild/lanes/c/ui-port/C-UI-1.md` .. `C-UI-8.md`.
@@ -36,9 +47,10 @@ changes named inside the section rather than in a separate erratum.
 
 **The seven things I found that neither v1 nor either map says, and that the build round needs.**
 
-1. **The move is about 650 lines, not the look map's 455 and not v1's 560.** The look map's nine
+1. **The move is 670 lines, not the look map's 455 and not v1's 560.** The look map's nine
    regions omit five writer regions and every writer statement in the module body. B.2 reconciles
-   the three counts region by region, as S-R1 requires.
+   the three counts region by region, as S-R1 requires. (v2 said 663; the fix round's six named
+   deltas are printed under B.2's total.)
 2. **There is a second interface, in the other direction, and it is not optional.** The sealed half
    must be able to repaint, to read the router's cursor and the mount token, to write the status
    line and to clear the view's draft: `openSleepLane:531` and `:537` already read `screen` and call
@@ -74,6 +86,114 @@ changes named inside the section rather than in a separate erratum.
 out: reason (c) is understated, reasons (e) and (f) need a correction, and clause S-R2's
 "refusal decisions for anything that gets stored live in the sealed half" cannot be met in full in
 this round without scope the PM has not granted. H.5 holds all four with their evidence.
+
+---
+
+## R1 findings: fixed or disputed
+
+Review R1 (`TODAY-SPLIT-SPEC-REVIEW-R1.md`, `af53fd17`) returned REJECT with nine blocking findings
+and seven notes, and a direction verdict that the PM's reversal is RIGHT and should stand. **I
+accept the verdict.** I re-measured every blocking finding myself at `e0e2ac75` rather than take it
+on trust, and every one of the nine is real at the lines it cites. Two I have WIDENED, because the
+reviewer's own line of attack reaches further than the finding states. Two of the seven notes I
+DISPUTE, with the measurement.
+
+| finding | verdict | carried out in |
+|---|---|---|
+| BLOCKING-1 the facade cannot be called `view` | FIXED | B.3 (the names, measured), B.7 (the `model.` census re-counted) |
+| BLOCKING-2 the gesture guard throws on the first paint | **FIXED and WIDENED** | B.3 (the two callback classes), E.6 (the guard's subject list, the new red cell) |
+| BLOCKING-3 the spread breaks `api.ready`, the order and a key | FIXED | B.7 (the api written out, twenty keys, in order), H.2 stop 7 |
+| BLOCKING-4 the router's range, and `:2297` | FIXED | B.2 row 29 re-cut, B.3 `on.forgetCheckInRead`, SEAM 10 |
+| BLOCKING-5 six released-to-sealed writes on the sleep screen | FIXED | B.3 (two new callbacks), B.5, SEAM 9 |
+| BLOCKING-6 `sleepNightChoice` is read by the write path | FIXED | B.5 (it moves SEALED), B.3 |
+| BLOCKING-7 the openers leak a lane | FIXED | B.3 (the opener return shape), B.5, B.7, SEAM 8 |
+| BLOCKING-8 the gym extraction is self-contradictory | FIXED | B.9, rewritten: facade, table, painter, the edit token, SEAM G1 |
+| BLOCKING-9 a fourth test edit | **FIXED by a different means** | B.3 (the engine crosses by reference), D.3, H.2 stop 5 |
+| N1 cite errors | **one DISPUTED, four fixed** | below, and in place |
+| N2 `.filter(Boolean)` | FIXED | B.6 row 10, char for char |
+| N3 SEAM 2's trace | FIXED | B.8 SEAM 2 |
+| N4 the S9 round-3 reject and the copy lock | FIXED | G.4, and the header's reading list |
+| N5 the estimate is low | ACCEPTED, and raised further | H.4 |
+| N6 the answers to Q1 to Q5 | agreed; Q3's framing taken from the reviewer | H.6 |
+| N7 E.4's re-decision of v1's Q7 | undisturbed | E.4 |
+
+### The two findings I WIDENED
+
+**BLOCKING-2 reaches the BOOT, not only the first paint.** The reviewer's guarded list keeps
+`openSetup`, `openCheckIn` and `openWorkout` inside the gesture guard. Those three are called from
+the ROUTER, and the router is called from the boot: `today-app.cjs:2451` is
+`render(requestedScreen() || (setupFirst && firstRun() ? "setup" : "today"))`, and `:2300` is
+`if (next === "setup") { return setup.open({ doc, phone, back: ... })`. So on a fresh installation
+the FIRST thing the page does is enter the setup screen from boot, with no DOM event anywhere in
+the stack. Guarding `on.openSetup` does not throw on the first paint of Today; it throws on the
+first boot of a new device, which is worse. The fix therefore splits the table into two classes by
+what a callback DOES (B.3) rather than by where the reviewer found it being called, and the ENTRY
+class covers the three router entries as well as the three lane openers and the two reads.
+
+**BLOCKING-8's `settingsErrors` contradiction is a DESIGN constraint, not a typo.** The WeakMap is
+keyed by the DRAFT OBJECT, and the draft object is the released editor's own state (`gym-app.mjs:262`
+mints it, `:271` reads the message back, `:279` hands it to the writer). A WeakMap in the seal keyed
+by an object the view mints would work, but it would put the view's repaint message inside the seal
+for no gain and it would keep the seal holding a reference to a released object for the life of the
+mount. So the fix is not to pick one side of v2's contradiction: `settingsDraft`, `settingsDraftLift`
+and `settingsErrors` all stay RELEASED, exactly as `sleepDraft` does on the Today side and for the
+same reason the file already gives at `today-app.cjs:475` ("The screen's own transient state.
+Nothing durable lives here"), and the STALE-EDITOR FENCE that used their identity is rebuilt in the
+seal on a token the seal mints (B.9). That changes what moves out of `gym-app.mjs`, so B.9's count
+is re-derived rather than corrected.
+
+### The two notes I DISPUTE, with the measurement
+
+**N1 row 1 is wrong: `REQUIRED_INPUTS` has 51 entries, not 48, and v2's "51 becomes 53" stands.**
+The reviewer read `build.mjs:98` and counted 48. Counted at `e0e2ac75` by reading the array from
+`const REQUIRED_INPUTS = Object.freeze([` at `:98` to its closing `])` at `:201` and extracting every
+quoted literal: **51 entries, of which 26 are `today/**`**. The reviewer's `today/**` figure of 26 is
+right and is the same measurement, which is why I think the 48 is a truncated read of the array
+rather than a different definition. B.10 is unchanged: 51 becomes 53.
+
+**N1 row 5 is right about the count and I am restating it rather than disputing it**, because v2's
+sentence "eleven sealed cells import the same surface" was mine and it is wrong. Measured: SEVEN
+cells import `today-app.cjs` (`checkin.test.mjs:25`, `copy.test.mjs:34`, `food.test.mjs:21`,
+`gym.test.mjs:33`, `problem.test.mjs:23`, `setup.test.mjs:28`, `view.test.mjs:21`), two more name it
+as a literal (`design.test.cjs:80`, `package.test.cjs:104`), and THREE import `today-model.cjs` only
+(`adapter.test.mjs:21`, `machine-settings-ui.test.mjs:31`, `ntc-h6-delta.test.mjs:61`). The PM's
+"eleven test files import today-app.cjs" is eleven files that import one or the other. The
+conclusion - zero import paths change - is unaffected and is now stated over the right census (D.3).
+
+**N5's band I accept and then exceed.** The reviewer's 42 to 58 was costed against the nine findings
+as findings. The fixes below add three named seams, a second facade and paint handle for gym, an
+api written out key by key, three sealed in-flight flags and the edit token. H.4 is restated at
+**44 to 60 build, 12 to 16 review**, and the per-ticket-freed comparison is restated with it.
+
+### Direction: the reviewer's verdict, recorded for the PM
+
+The ticket asks that if the reviewer's direction verdict argued v1's direction was better, the
+author record the argument and NOT switch direction. **It did not: R1's verdict is "extracting the
+WRITERS is BETTER than extracting the view. The PM's ruling should stand."** Its scoring, recorded
+here so the PM has it without reading the review: v2 wins size of the move, test churn, residue for
+the look tickets and future reseal cost; v1 wins data safety, regression risk of the refactor and
+contention in one file; and the reviewer reads the net as favouring v2 because "the two v1 wins are
+both about the TRANSITION, and both are bounded by proofs this spec already specifies well", while
+"the four v2 wins are permanent properties of the RESULT".
+
+**The one column the PM should still weigh, in the reviewer's own terms.** On DATA SAFETY the
+reviewer scores v1 "and it is not close", and names seven lines that decide whether or what gets
+written and that v2 left in a file six look tickets may edit: the rollover guard cleared at `:1540`
+and `:1561`; the acknowledgment dropped at `:1542`; the two in-flight `disabled` guards at `:1069`
+and `:1287`; the check-in cache invalidation at `:2297`; the mount invalidation at `:2296`; the
+landing decision at `:2451`. **All seven are disposed of by name in this version** - `:1540`,
+`:1541`, `:1542`, `:1561` and `:1562` through `on.sleepNightChosen` and `on.keepNight` (SEAM 9);
+`:2297` through `on.forgetCheckInRead` (SEAM 10); `:1069` and `:1287` by a SEALED in-flight flag per
+writer with an `{ kind: "in-flight" }` outcome, the DOM `disabled` staying as paint beside it (B.8);
+`:2451` by `facade.setupFirst()`, which also restores the one-handoff rule. `:2296`'s
+`mountToken += 1` stays released ON PURPOSE and with the file's own reason: `:1921-:1926` says
+"Ownership governs PAINTING and NAVIGATION ... it never governs the record" (B.4).
+
+So the reviewer's closing sentence - "the released half still holds the rollover guard, the
+acknowledgment, the two in-flight flags and the check-in cache, and each of those must move or be
+fenced by name before the claim 'no released file decides whether a write happens' can be made" - is
+the specification of this fix round, and C.3 and E.3 now make that claim over a list rather than in
+the abstract.
 
 ---
 
@@ -137,14 +257,16 @@ v1's A.4 table stands. Section F re-decides what moves out of it, and only that.
    half of the boot. It is **RELEASED** in the same artifact that carries the split.
 2. ONE new module, `rebuild/m3/w7-preview/today/today-lanes.cjs`, is **SEALED** (`role: new`). It
    takes every lane opener, every host and IndexedDB handle, the adoption gate and chain, the
-   rebind, and every call of a durable writer: about 650 lines.
+   rebind, and every call of a durable writer: **670 lines** (B.2).
 3. `gym-app.mjs` keeps its name and is RELEASED; ONE new module,
-   `rebuild/m3/w7-preview/today/gym-settings-lane.mjs`, is SEALED and takes the settings lane: about
-   80 lines (S-R4).
-4. The sealed module exports ONE factory. It hands the view a frozen READ-ONLY FACADE and a frozen
-   CALLBACK TABLE, and nothing else (S-R2, B.3).
-5. The view hands the sealed module a frozen PAINT HANDLE of five paint-only functions, and nothing
-   else (B.4). Nothing that can write crosses toward the view, in either direction.
+   `rebuild/m3/w7-preview/today/gym-settings-lane.mjs`, is SEALED and takes the settings lane:
+   **67 lines out of four regions totalling 79** (S-R4, B.9; the editor's draft and its error map
+   stay RELEASED, which is R1 BLOCKING-8).
+4. The sealed module exports ONE factory. It hands the view a frozen READ-ONLY FACADE (`facade`) and
+   a frozen CALLBACK TABLE (`on`) in two classes, and nothing else (S-R2, B.3).
+5. The view hands the sealed module a frozen PAINT HANDLE (`painter`) of five paint-only functions
+   for Today and two for the gym card, and nothing else (B.4, B.9). Nothing that can write crosses
+   toward the view in either direction, and **no released file ASSIGNS a sealed binding** (B.5, E.3).
 6. `today-model.cjs`'s two durable writers move to a small sealed sibling; its projection, its
    `read()`, and the S2 composer `marchingOrderSentence` stay free (F, S-R3).
 ### B.2 What moves out of `today-app.cjs`, and the two counts reconciled (S-R1)
@@ -183,19 +305,31 @@ region at all.
 | 26 | `reboundCheckIn` | `:1964-:2011` | 48 | WRITES | | YES, whole |
 | 27 | `carryCheckInDraft` | `:2018-:2036` | 19 | BINDS | | YES (it serves `reboundCheckIn` only) |
 | 28 | `workoutRebindQueued`, `rebindWorkout` | `:2048-:2092` | 45 | WRITES | row 9 | YES, whole |
-| 29 | the router's setup branch body | `:2295-:2336` | 42 | DRAWS (router) | | SEAM 5 |
+| 29 | the router's setup branch body | `:2300-:2336` | 37 | DRAWS (router) | | SEAM 5 |
+| 29b | the check-in cache clear inside the mount-invalidation block | `:2297` | 1 | DRAWS (router) | | SEAM 10 (R1 BLOCKING-4) |
 | 30 | the router's recovery branch body | `:2349-:2356` | 8 | DRAWS (router) | | SEAM 6 |
 | 31 | the router's workout branch body | `:2362-:2369` | 8 | DRAWS (router) | | SEAM 7 |
 | 32 | `canAdoptAthleteState`, `armAdoptionGate`, `willAdopt` and its arm | `:2430-:2441` | 12 | WRITES | | YES, whole |
 | 33 | `athleteBasisState` | `:2482-:2489` | 8 | WRITES | | YES, whole |
 | 34 | `adoptAthleteState` | `:2490-:2546` | 57 | WRITES | row 10 | YES, whole |
 | 35 | `ready = settleAdoption(...)` boot statement | `:2550` | 1 | BINDS | | YES |
-| 36 | the lane and write state declarations | `:362-:364`, `:366-:383`, `:410-:421`, `:432-:441`, `:454`, `:459-:464`, `:471-:474` | 42 | SHARED STATE | | YES, all but the draft |
+| 36 | the lane and write state declarations | `:362-:364`, `:366-:383`, `:410-:421`, `:432-:441`, `:454`, `:459-:464`, `:471-:474` | 42 | SHARED STATE | | YES, all but the draft. **`sleepNightChoice` `:459` is in this block and moves too** (R1 BLOCKING-6, B.5) |
 | 37 | the api getters that hand out a lane, an entry or a write promise | inside `:2552-:2619` | 12 | BINDS | | YES (B.7) |
+| 38 | `const setupFirst = options.setupFirst === true;` | `:392` | 1 | BINDS | | YES (R1 BLOCKING-9's third item; it restores the one-handoff rule, B.3) |
+| 39 | the entry read inside `sleepCheckInFor` | `:1406-:1407` | 2 | DRAWS | | SEAM 8 (R1 BLOCKING-7) |
+| 40 | the sealed assignments inside the two sleep date handlers | `:1539-:1542`, `:1560-:1562` | 7 | DRAWS | | SEAM 9 (R1 BLOCKING-5) |
 
-**The total: 663 code lines move out of `today-app.cjs`.** Of those, 601 move whole and 62 are the
-seven seams. Against `today-app.cjs`'s 2625, that is 25 percent; against v1's 1700-line extraction
+**The total: 670 code lines move out of `today-app.cjs`.** Of those, 601 move whole and 69 are the
+ten seams. Against `today-app.cjs`'s 2625, that is 26 percent; against v1's 1700-line extraction
 it is 39 percent.
+
+**How 670 differs from v2's 663, line by line, so the delta is checkable**: minus 4, because row 29
+was cut at `:2295` and the setup branch begins at `:2300` (R1 BLOCKING-4, verified: `:2295-:2298` is
+the mount-invalidation block and `:2299` is `screen = next`); plus 1 for `:2297` as its own row;
+plus 1 for `sleepNightChoice` `:459`; plus 1 for `setupFirst` `:392`; plus 2 for `sleepCheckInFor`'s
+entry read; plus 7 for the two sleep date handlers' sealed assignments. **`:2295`, `:2296`
+(`mountToken += 1`), `:2298` and `:2299` stay RELEASED**, which is what B.4 and B.5 already say
+about the token and the router's cursor, and what v2's row 29 range accidentally contradicted.
 
 **Where the look map's 455 comes from, and why it is low.** Its nine rows (ten, by its own table;
 it says nine) carry rows 3, 5, 7, 9, 10, 11, 13, 16, 17, 18, 23, 24, 28 and 34 above, and omit rows
@@ -211,31 +345,71 @@ the state.
 
 ### B.3 The interface: one factory, one facade, one callback table (S-R2)
 
+**THE NAMES, MEASURED (R1 BLOCKING-1).** v2 called the facade `view`. It cannot be called `view`:
+the identifier is already taken 64 times in code position in `today-app.cjs` and 63 in
+`gym-app.mjs`, including three top-level exported functions whose PARAMETER is `view`
+(`morningLine:65`, `trendLine:71`, `fitHeadline:330`), four `const view = model.read()` locals
+(`:840`, `:1087`, `:2098`, and `:1121`'s `return model.read()`), `const view = doc.defaultView`
+(`:512`, `:595`, `:2410`) and, in the gym card, `view` as the LIFT VIEW (`recordSettings(map, view,
+...)` `:286`, `renderActive(view)` `:321`). A facade called `view` turns `:840` into
+`const view = view.read()`, which is a TDZ `ReferenceError` on the first paint. **The interface's
+four names are chosen against a census of both released files and every one occurs ZERO times in
+code position in either:**
+
+| name | what it is | census in `today-app.cjs` / `gym-app.mjs` |
+|---|---|---|
+| `lanes` | the factory's return value | 0 / 0 in code (six prose occurrences, which `codeOf` strips) |
+| `facade` | the frozen READ-ONLY FACADE | 0 / 0 |
+| `on` | the frozen CALLBACK TABLE | 0 / 0 in code (prose only) |
+| `painter` | the frozen PAINT HANDLE (B.4) | 0 / 0. **Not `paint`**: `paint()` is a declared function in `gym-app.mjs` with 14 code occurrences, so the same name is used in both files for one rule, not two |
+
 ```
 // today-app.cjs (RELEASED), once per mount, immediately after the three element handles:
-const lanes = TodayLanes.createTodayLanes(model, options, paint);   // paint: B.4
-const view  = lanes.view;   // frozen READ-ONLY FACADE
-const cb    = lanes.on;     // frozen CALLBACK TABLE
+const lanes  = TodayLanes.createTodayLanes(model, options, painter);   // painter: B.4
+const facade = lanes.facade;   // frozen READ-ONLY FACADE
+const on     = lanes.on;       // frozen CALLBACK TABLE
 ```
 
 `createTodayLanes` is the module's only export besides the `createTodayModel` re-export of B.7. It
 receives `model` and `options` - which carry every writer and every entry object - and the released
 file **never names either of them again**. That is the one-handoff rule, and E.3 makes the fence
 assert it: in `today-app.cjs` the identifiers `model` and `options` may occur only in `mountToday`'s
-parameter list and in this one call.
+parameter list and in this one call. **`options.setupFirst` at `:392` was the one line that broke
+that rule in v2** (R1 BLOCKING-9): it moves into the factory, which computes the flag and serves it
+as `facade.setupFirst()`, so the landing decision at `:2451` stays a released router decision made
+on a released read and `options` still counts exactly 2.
 
-**The READ-ONLY FACADE `view`.** Every entry is a function or a value; not one of them is, returns
+**The READ-ONLY FACADE `facade`.** Every entry is a function or a value; not one of them is, returns
 or closes over a writer. Frozen at construction, and asserted frozen by a red-first cell.
 
 | group | entries |
 |---|---|
 | the model's projection | `read()`, `today`, `stateFromOps()`, `loggedFood(day)`, `loggedSleep(date)`, `recordedFood(date)`, `recordedSleep(date)`, `foodUnavailable(date)`, `basisState()` |
-| the engine, by named function only | `sleepSpanH(bed, wake, awakeMin)` - the one engine call a drawing region makes (`:1772`). The engine OBJECT does not cross |
+| the engine, ONE pure function, BY REFERENCE | `sleepSpanH` - see the paragraph below, which is R1 BLOCKING-9's fix. The engine OBJECT does not cross |
 | the food lane, as data | `foodLaneOpen()`, `foodOpening()`, `foodLaneFailure()`, `foodOpenedRefusal()`, `foodReadBack()` (a clone) |
-| the sleep lane, as data | `sleepLaneOpen()`, `sleepOpening()`, `sleepLaneFailure()`, `sleepToday()`, `sleepNightDate(nightChoice)`, `sleepOpsFor(date)`, `sleepReadBack()`, `sleepAck()` (a clone), `sleepUnknown()`, `sleepBusy()`, `sleepOutcome()` (B.6), `sleepCorrecting()` |
-| the check-in | `checkInDay()`, `checkInRow()`, `checkInPending()`, `checkInFailed()`, `checkInHoursOffer(date)`, `checkInLive()` |
-| the three injected entries, as RESULTS only | `session()` (the result of `workout.summary()`), `checkinSummary()`, `firstRun()`, `laneHandles()`, `installationDevice()`, `setupSummary()` |
+| the sleep lane, as data | `sleepLaneOpen()`, `sleepOpening()`, `sleepLaneFailure()`, `sleepToday()`, `sleepNightDate()`, `nightChoice()`, `sleepOpsFor(date)`, `sleepReadBack()`, `sleepAck()` (a clone), `sleepUnknown()`, `sleepBusy()`, `sleepOutcome()` (B.6), `sleepCorrecting()`, `sleepRollover()` |
+| the check-in | `checkInDay()`, `checkInRow()`, `checkInPending()`, `checkInFailed()`, `checkInHoursOffer(date)`, `checkInLive()`, `checkInRecordedRow()` (a clone; SEAM 8) |
+| the three injected entries, as RESULTS only | `session()` (the result of `workout.summary()`), `checkinSummary()`, `firstRun()`, `setupFirst()`, `laneHandles()`, `installationDevice()`, `setupSummary()` |
 | the adoption chain | `importAdmitted()`, `adoptionSettled()`, `ready()` |
+
+**`sleepNightDate()` takes no argument any more** (R1 BLOCKING-6). v2 wrote `sleepNightDate(nightChoice)`
+because it kept `sleepNightChoice` released; B.5 now moves the binding SEALED, so the sealed
+`sleepNightDate` at `:1375-:1376` reads its own state exactly as it does today and its three sealed
+callers (`recordSleep:1814`, `retrySleepRead:1728`, `readSleepCheckIn:1423`) are a pure move.
+
+**`sleepSpanH` crosses BY REFERENCE, with no call syntax in the sealed module, and that is a
+decision, not an accident (R1 BLOCKING-9).** `problem.test.mjs:2003-:2008` lists the `/sleepSpanH\(/`
+callers in the directory and asserts `['sleep-model.cjs', 'today-app.cjs']`. If the facade wrapped
+the engine (`sleepSpanH: (b, w, a) => model.engine.sleepSpanH(b, w, a)`), `today-lanes.cjs` would
+contain `sleepSpanH(` and the cell would red with a third caller - the fourth required test edit
+D.3's STOP forbids. So the factory destructures the method and places it, uncalled:
+`const { sleepSpanH } = model.engine;` and `sleepSpanH,` in the facade literal. Neither line matches
+`/sleepSpanH\(/`. The released call at `:1772` becomes `facade.sleepSpanH(...)`, which DOES match,
+so `today-app.cjs` stays on the list and the assertion keeps both of its teeth unedited.
+**What crosses is one pure function of three numbers**, not the engine: it stores nothing, opens
+nothing and closes over nothing but the engine's own arithmetic, so it is not "an object that
+carries a writer method" in S-R2's sense. The build round asserts that by naming it: a red-first
+cell plants a second engine method on the facade and the fence fails it (E.5 row 12).
 
 **The CALLBACK TABLE `on`.** Every entry takes RAW FIELD VALUES as the athlete typed or chose them
 and returns a result object for the view to paint. No entry takes or returns a DOM node, a lane, a
@@ -243,23 +417,59 @@ host or a promise minted anywhere but here. Frozen, and the sealed half asserts 
 value in it is a function it defined in this closure, by identity against a local array (v1's B.3
 rule, kept).
 
-| callback | raw arguments | what it does in the sealed half | writes? |
+**TWO CLASSES, and the class is what the gesture guard reads (R1 BLOCKING-2, widened).** v2's table
+had one `writes?` column and E.6 fenced everything in it that said YES. Six released DRAWING sites
+call an opener or a read from the PAINT path (`nutritionState:2245` `openFoodLane()`,
+`sleepState:1951` `openSleepLane()`, `renderNutrition:1180`, `renderSleep:1489` and `:1492`,
+`renderSleepCheckIn:1435`), and `renderToday` reaches the first two on EVERY paint, so a guard over
+that column throws twice on the first paint of Today. Worse, the three router entries are reached
+from the BOOT (`:2451` `render(requestedScreen() || (setupFirst && firstRun() ? "setup" : "today"))`
+into `:2300` `if (next === "setup") return setup.open(...)`), so a guard over them throws on the
+first boot of a new device. **So each callback carries a CLASS:**
+
+- **DURABLE** - it may cause a row to be written or replaced. Gesture-guarded (E.6). Every one of
+  them is reached from a listener today and from a listener after the cut.
+- **ENTRY** - it opens a store, starts a read, loads a module or hands a screen to an injected
+  entry, and it stores nothing of the athlete's. Paint-driven and boot-driven by construction, and
+  NOT gesture-guarded. The class is not a loophole: an ENTRY callback that gains a call of a durable
+  writer changes class, and E.6's cell asserts the two lists against the writer-fence's word list
+  so a writer inside an ENTRY body is a RED, not a silent pass.
+
+| callback | class | raw arguments | what it does in the sealed half |
 |---|---|---|---|
-| `on.submitWeighIn(rawText)` | the box's text, untrimmed | trims, converts (`:1070`, `:1072` `Number(raw)`), calls `model.weighIn`, catches, returns `{ ok, copy }` | YES |
-| `on.foodCheck(cal, pro)` | two box texts | `FoodModel.refusalFor` only. Returns `{ refusal }` or null. Stores nothing | no |
-| `on.recordIntake(cal, pro)` | two box texts | the whole of `recordIntake` `:1280-:1318` less its two paints. Returns an outcome (B.6) | YES |
-| `on.retryFoodRead()` | - | `retryFoodRead` `:1324-:1334` | YES |
-| `on.sleepClock(typed, nightChoice)` | a boolean and a date string or null | `sleepClockCheck` `:1384-:1393`. Returns `{ rollover, openedNight, openedDay, nightDate }` | no |
-| `on.recordSleep(draftValues, nightChoice)` | the eight draft members as typed or chosen, and the chosen night | the whole of `recordSleep` `:1808-:1929` with its sentences replaced by outcomes. Returns an outcome | YES |
-| `on.retrySleepRead()` | - | `retrySleepRead` `:1727-:1756` | YES |
-| `on.readSleepCheckIn(date, force)` | a date string | `readSleepCheckIn` `:1410-:1427` | YES (opens a lane) |
-| `on.recoverWorkout()` | - | `workout.recover()` `:954` | YES |
-| `on.openFoodLane()`, `on.openSleepLane()`, `on.loadCheckInKit()` | - | the three lane openers, unchanged | YES |
-| `on.openSetup({ back })` | a paint closure | the setup branch body `:2296-:2336`, `done` and all | YES |
-| `on.openCheckIn(origin, { back })` | a screen name and a paint closure | `reboundCheckIn` then `checkin.open` `:2349-:2356` | YES |
-| `on.openWorkout({ back, checkIn })` | two paint closures | `workout.open` `:2362-:2369` | YES |
-| `on.paintMeasure(root)`, `on.paintImport(root)` | the empty section the view drew | the dynamic import, the cache write, the deps object, and the foreign screen's own paint | YES |
-| `on.listen(el, type, fn)` | a node, an event name, a handler | installs the handler through the sealed gesture shim (E.6) | no |
+| `on.submitWeighIn(rawText)` | DURABLE | the box's text, untrimmed | trims, converts (`:1070`, `:1072` `Number(raw)`), calls `model.weighIn`, catches, returns `{ ok, copy }` or `{ kind: "in-flight" }` |
+| `on.foodCheck(cal, pro)` | ENTRY | two box texts | `FoodModel.refusalFor` only. Returns `{ refusal }` or null. Stores nothing, opens nothing |
+| `on.recordIntake(cal, pro)` | DURABLE | two box texts | the whole of `recordIntake` `:1280-:1318` less its two paints. Returns an outcome (B.6) |
+| `on.retryFoodRead()` | DURABLE | - | `retryFoodRead` `:1324-:1334` |
+| `on.sleepClock(typed)` | ENTRY | one boolean, from the released `sleepTyped()` `:1378-:1379`, which reads the released draft | `sleepClockCheck` `:1384-:1393`. Returns `{ rollover }`. **It MUTATES the rollover guard** (`sleepRollover`, `sleepOpenedDay`, `sleepOpenedNight` at `:1387`, `:1389`, `:1391`) and v2 marked it "writes? no", which was true of the STORE and false of the guard. Nothing durable is touched, so it is ENTRY; the guard state it mutates is sealed either way |
+| `on.sleepNightChosen(rawDate)` | ENTRY | the date box's value or null | **NEW (R1 BLOCKING-5).** `sleepNightChoice = rawDate \|\| null; sleepRollover = null; sleepOpenedDay = sleepToday(); sleepOpenedNight = sleepNightDate(); sleepAck = null; sleepReadBack = null; sleepCorrecting = false; sleepOutcome = null;` - `:1539-:1542`'s eight assignments, in their order, moved whole. Returns nothing; the view then repaints, as it does today at `:1543` |
+| `on.keepNight()` | ENTRY | - | **NEW (R1 BLOCKING-5).** `sleepNightChoice = sleepRollover \|\| sleepNightDate(); sleepRollover = null; sleepOpenedDay = sleepToday(); sleepOpenedNight = sleepNightDate();` - `:1560-:1562`, moved whole. Returns nothing |
+| `on.recordSleep(draftValues)` | DURABLE | the eight draft members as typed | the whole of `recordSleep` `:1808-:1929` with its sentences replaced by outcomes. The chosen night is NOT an argument any more (BLOCKING-6): `:1814` `const date = sleepNightDate()` is a sealed read of sealed state, exactly as today |
+| `on.retrySleepRead()` | DURABLE | - | `retrySleepRead` `:1727-:1756` |
+| `on.readSleepCheckIn(date, force)` | ENTRY | a date string and a boolean | `readSleepCheckIn` `:1410-:1427`. It opens the check-in store and caches a read; it writes no row |
+| `on.forgetCheckInRead()` | ENTRY | - | **NEW (R1 BLOCKING-4).** `sleepCheckInDay = null; sleepCheckInPending = null;` - `:2297`, moved whole, called by the released router from inside `if (next !== screen)` at the same statement position |
+| `on.recoverWorkout()` | DURABLE | - | `workout.recover()` `:954` |
+| `on.openFoodLane()`, `on.openSleepLane()`, `on.loadCheckInKit()` | ENTRY | - | the three lane openers, with the return shape of the paragraph below |
+| `on.openSetup({ back })` | ENTRY | a paint closure | the setup branch body `:2300-:2336`, `done` and all. The `done` chain it installs writes; the call that installs it is reached from the boot |
+| `on.openCheckIn(origin, { back })` | ENTRY | a screen name and a paint closure | `reboundCheckIn` then `checkin.open` `:2349-:2356` |
+| `on.openWorkout({ back, checkIn })` | ENTRY | two paint closures | `workout.open` `:2362-:2369` |
+| `on.paintMeasure(root)`, `on.paintImport(root)` | ENTRY | the empty section the view drew | the dynamic import, the cache write, the deps object, and the foreign screen's own paint |
+| `on.sleepCorrect(flag)` | ENTRY | a boolean | `sleepCorrecting = flag` (`:1703`, `:1710`) |
+| `on.listen(el, type, fn)` | ENTRY | a node, an event name, a handler | installs the handler through the sealed gesture shim (E.6) |
+
+**THE OPENERS RETURN A BOOLEAN, NOT A LANE (R1 BLOCKING-7).** `openSleepLane:519-:533` and
+`openFoodLane:601-:616` both end their success arm `return lane;` and their whole function
+`return foodOpening / sleepOpening`, so v2's `on.openFoodLane()` handed the released view a promise
+that RESOLVES TO `{ host, rows, refresh, save, close }`. The view keeps that value today
+(`:1180` `const opening = openFoodLane();`, `:1492` `const opening = sleepLane ? null :
+openSleepLane();`), and `.save` is one `await` away from a released file while E.3's token scan sees
+nothing. Measured, the view uses that value for TRUTHINESS ONLY: `:1181` `opening && !foodLaneFailure
+? FOOD_OPENING : ...` and `:1498` `(opening ? FOOD_OPENING : SLEEP_NO_STORE)`, and `opening` occurs
+nowhere else in the file. So `on.openFoodLane()` and `on.openSleepLane()` return the BOOLEAN
+`started`: `true` when an attempt is in flight (today's promise), `false` on the no-store refusal
+(today's `null` at `:598` / `:515`). **The two painted sentences are decided by exactly the same
+condition as today**, and no lane, host or promise crosses. `on.loadCheckInKit()` returns `undefined`.
+v2's sentence "no entry takes or returns a lane" was an assertion; it is now a shape.
 
 **Everything that parses, converts, bounds or decides a refusal for something that gets stored is
 on the sealed side of that table.** `Number(raw)` at `:1072` goes with `submitWeighIn`;
@@ -270,6 +480,28 @@ with both. **One qualification of S-R2, stated where it bites** (H.5 item 4): `F
 bounds and both files are free and named in C-UI-7's MAY CHANGE. The split moves the CALL into the
 seal and cannot move the RULE without scope this ticket was not given. H.5 measures it and
 recommends the cheap fix.
+
+**A SEALED IN-FLIGHT FLAG PER DURABLE WRITER, because after the cut the DOM flag is not enough
+(R1 BLOCKING-9, third item).** `recordSleep` carries its own guard inside the seal today -
+`sleepBusy` (`:454`, checked at `:1808`) - and `:465-:468` says why: "the save is fenced so a second
+press cannot duplicate a write that may have landed". The weigh-in's and the food entry's only
+duplicate-write guard is a DOM `disabled` flag (`:1068-:1069` and `:1287`), and both of those are
+PAINT and stay in the released file (SEAM 1, SEAM 2). Today that is safe because the check and the
+write are the same function; after the cut the only thing between two gestures and two durable
+writes would be released code six tickets will edit, and E.6's gesture guard does not help, because
+both gestures have `gestureOpen` true. So:
+
+- `on.submitWeighIn`, `on.recordIntake` and (in the gym card) `on.recordSettings` each open with
+  `if (<name>Busy) return { kind: "in-flight" };`, set the flag before the await and clear it in a
+  `finally`, exactly as `sleepBusy` is set at `:1830` and cleared at `:1918` today.
+- The view MAPS `{ kind: "in-flight" }` to nothing drawn, because the button is already disabled by
+  the paint that ran first; the flag is defence in depth, not a new sentence, and D.4's copy census
+  proves no constant was added.
+- The cell that proves it fires two clicks in one turn with the DOM `disabled` flag neutered, and
+  asserts the store holds exactly ONE operation and the second call returned `in-flight`.
+
+About six lines per writer, and it closes the reviewer's question "can a double submit now write
+twice" with a yes-it-cannot rather than with an argument.
 
 ### B.4 The PAINT HANDLE: the other direction, bounded (new, and not optional)
 
@@ -286,7 +518,7 @@ So the released half hands the factory ONE frozen object of exactly five functio
 asserts its shape:
 
 ```
-const paint = Object.freeze({
+const painter = Object.freeze({
   repaint: (name, focus) => render(name, focus),
   screenNow: () => screen,
   token: () => mountToken,
@@ -295,6 +527,11 @@ const paint = Object.freeze({
 });
 ```
 
+**It is `painter`, not `paint`** (R1 BLOCKING-1): `paint()` is a declared function with 14 code
+occurrences in `gym-app.mjs`, and the two released files take the same name for the same thing so
+the fence states one rule rather than two. Everywhere below, `painter.repaint`, `painter.token()`,
+`painter.screenNow()`, `painter.tell` and `painter.clearDraft()` are read for v2's `paint.*`.
+
 **Why this is safe when a writer the other way is not.** Every one of the five reads or writes only
 the SCREEN. None of them can store, mint, open or admit anything; the worst a bad implementation can
 do is paint the wrong screen or lie about the token, and `recordSleep:1921-:1926` already says in
@@ -302,10 +539,21 @@ the file's own words that "Ownership governs PAINTING and NAVIGATION ... it neve
 record". The token is a paint concern; the file says so; it stays with the paint. That disposes of
 v1's B.4 `mountToken` problem and the blind map's probe 7 at once, in the right direction: the token
 stays single-valued because there is still exactly one of it, in the released half, read through
-`paint.token()`.
+`painter.token()`.
 
-`paint.tell` takes the ERROR, not the sentence, so the copy composer stays in the released view
+`painter.tell` takes the ERROR, not the sentence, so the copy composer stays in the released view
 where C-UI-2 can edit it, and `athleteStateFailureCopy` does not move.
+
+**`mountToken += 1` at `:2296` stays RELEASED on purpose, and that answers the one line R1's
+data-safety column names that does not move.** The reviewer lists the mount invalidation among the
+decisions left in a file six tickets edit. It is not a decision about a record: `:2289-:2294`'s own
+comment says leaving a screen invalidates the mount so that deferred work "finds its token stale
+when it resolves and APPLIES NOTHING, so the destination the athlete chose is never repainted from
+under him", and `:1921-:1926` says ownership "never governs the record". A released file that
+stopped bumping the token paints over the athlete's chosen screen; it does not write a row. It
+belongs with the router's cursor, and moving it would put the router's own state behind two
+callbacks for no safety gained. **What sat beside it and WAS a data decision is `:2297`, and that
+moves** (SEAM 10).
 
 ### B.5 Every crossing binding of A.3, disposed of by name under the new direction (S-R2)
 | binding | declared | side after the cut | how |
@@ -315,22 +563,48 @@ where C-UI-2 can edit it, and `athleteStateFailureCopy` does not move.
 | `sleepLane`, `sleepOpening`, `sleepLaneFailure`, `sleepReadBack`, `sleepAck`, `sleepUnknown`, `sleepBusy` | `:432-:471` | SEALED | facade getters; `sleepAck` cloned |
 | `sleepSaving` | `:434` | SEALED | same as `foodSaving`; the view's `:1667` and `:1721` assignments disappear |
 | `sleepErrorText` | `:464` | SEALED, and it stops being a sentence | it becomes `sleepOutcome`, a typed value (B.6). The D2 round 1 finding 6 property is PRESERVED exactly: the outcome is module state, not a node, so a save that outlives its paint still cannot write into the element it started with |
-| `sleepCorrecting` | `:461` | SEALED | the writer clears it (`:1868`, `:1917`, `:1922`); the view sets it through `on.sleepCorrect(flag)`, a non-writing callback, and reads `view.sleepCorrecting()` |
-| `sleepRollover`, `sleepOpenedNight`, `sleepOpenedDay` | `:460`, `:462-:463` | SEALED | they are the rollover GUARD the write refuses on (`:1818`). `sleepClockCheck` moves whole and both sides call the same one, so it is never duplicated. The blind map's probe 6 is answered: it is a writer concern, consulted by the drawing through `on.sleepClock` |
-| `sleepNightChoice` | `:459` | RELEASED | it is what the athlete CHOSE in a control; it is passed raw into `on.recordSleep` and into `on.sleepClock`. Nothing durable reads it except through those two |
-| `sleepDraft` and `clearSleepDraft` | `:476-:481` | RELEASED | **the file itself settles this**: `:475` says "The screen's own transient state. Nothing durable lives here." The view owns it, mutates it on every keystroke exactly as today (v1's 14 assignment sites are UNCHANGED, and v1's accessor pair is not needed), and hands its members raw to `on.recordSleep`. The writer clears it through `paint.clearDraft()` at the two points it clears it today |
-| `sleepCheckInDay/Row/Pending/Failed/ViewPending` | `:472-:474` | SEALED | facade getters |
+| `sleepCorrecting` | `:461` | SEALED | the writer clears it (`:1868`, `:1917`, `:1922`); the view sets it through `on.sleepCorrect(flag)`, a non-writing callback, and reads `facade.sleepCorrecting()`. Its released assignments at `:1703` and `:1710` go through that callback, and `:1542`'s through `on.sleepNightChosen` |
+| `sleepRollover`, `sleepOpenedNight`, `sleepOpenedDay` | `:460`, `:462-:463` | SEALED | they are the rollover GUARD the write refuses on (`:1818`). `sleepClockCheck` moves whole and both sides call the same one, so it is never duplicated. **R1 BLOCKING-5: two RELEASED lines clear that guard today** - `:1540` and `:1561` both assign `sleepRollover = null` - and they are disposed of by `on.sleepNightChosen` and `on.keepNight` (SEAM 9), not left to the word list. `:1549`'s released `const rolled = sleepClockCheck();` becomes `on.sleepClock(sleepTyped())`, whose ENTRY class and guard mutation are stated in B.3 rather than left implied |
+| `sleepNightChoice` | `:459` | **SEALED** (v2 said RELEASED; R1 BLOCKING-6 is right) | it is read by the DURABLE write path. `:1375-:1376` `sleepNightDate = () => sleepNightChoice \|\| sleepRollover \|\| SleepModel.nightDateFor(sleepToday())` moves sealed (B.2 row 20), and three SEALED callers read it through that function: `recordSleep:1814` `const date = sleepNightDate()`, which is **the date the night is stored against** (`:1822` `const entry = { ...sleepDraft, date }`); `retrySleepRead:1728`, which decides which night is re-read; and `readSleepCheckIn:1423`, which decides whether a late read repaints. It is assigned in only two places in the whole file, `:1539` and `:1560`, both released handlers, and both now go through `on.sleepNightChosen` / `on.keepNight`. The view reads it back as `facade.nightChoice()` where the date box needs its own value |
+| `sleepDraft` and `clearSleepDraft` | `:476-:481` | RELEASED | **the file itself settles this**: `:475` says "The screen's own transient state. Nothing durable lives here." The view owns it, mutates it on every keystroke exactly as today (v1's 14 assignment sites are UNCHANGED, and v1's accessor pair is not needed), and hands its members raw to `on.recordSleep`. The writer clears it through `painter.clearDraft()` at the two points it clears it today |
+| `sleepCheckInDay/Row/Pending/Failed/ViewPending` | `:472-:474` | SEALED | facade getters, **and the one released line that assigned two of them, `:2297`, becomes `on.forgetCheckInRead()`** (R1 BLOCKING-4, SEAM 10) |
 | `checkInKit`, `checkInKitLoading`, `checkInLive` | `:551-:555` | SEALED | facade getters |
-| `workout`, `workoutRebinding`, `rebindInFlight`, `workoutRebindQueued` | `:362-:364`, `:2048` | SEALED | the entry never crosses. The view gets `view.session()` - the RESULT of `workout.summary()`, which is what `session()` `:365` already returns - and `view.laneHandles()`, `view.installationDevice()` |
-| `checkin`, `setup`, `installation` | `:370`, `:376`, `:383` | SEALED | same. `firstRun()`, `checkinSummary()`, `setupSummary()` are facade reads |
-| `importAdmitted` | `:689` | SEALED | `view.importAdmitted()` |
+| `workout`, `workoutRebinding`, `rebindInFlight`, `workoutRebindQueued` | `:362-:364`, `:2048` | SEALED | the entry never crosses. The view gets `facade.session()` - the RESULT of `workout.summary()`, which is what `session()` `:365` already returns - and `facade.laneHandles()`, `facade.installationDevice()` |
+| `checkin`, `setup`, `installation` | `:370`, `:376`, `:383` | SEALED | same. `firstRun()`, `setupFirst()`, `checkinSummary()`, `setupSummary()` are facade reads. **One released drawing line reaches the ENTRY itself and R1 BLOCKING-7 found it**: `sleepCheckInFor:1406-:1407` does `const active = checkInLive \|\| (checkin && checkin.checkin); ... active.recorded()`. `facade.checkInRecordedRow()` serves it as a cloned row and the two lines move (SEAM 8) |
+| `importAdmitted` | `:689` | SEALED | `facade.importAdmitted()`, and it is a KEY OF THE RETURNED API at `:2556` that v2's B.7 dropped (R1 BLOCKING-3): B.7 now lists all twenty keys |
 | `importScreen`, `measureScreen`, `measureState` | `:688`, `:628-:629` | SEALED | finding 5: the caches, the deps objects AND the two dynamic imports move together. The view draws the empty section and calls `on.paintMeasure(root)` / `on.paintImport(root)` |
-| `screen`, `checkinOrigin` | `:792`, `:799` | RELEASED | the router owns them. The sealed half reads `screen` through `paint.screenNow()` |
-| `mountToken`, `disposed` | `:445`, `:453` | RELEASED | B.4. `dispose()` keeps its `mountToken += 1` at `:2607` |
-| `todayEntry`, `adoptionSettled`, `paintTodayEntry`, `settleAdoption` | `:767-:790` | SPLIT, named | `todayEntry` and `paintTodayEntry` are paint and stay RELEASED. `adoptionSettled` and `settleAdoption` move SEALED (they hook the adoption chain) and `settleAdoption`'s `answered` closure calls `paint.paintTodayEntry()` - a SIXTH paint-handle entry, and the only one added after B.4's five. The sealed half exposes `view.adoptionSettled()` so the view's guard at `:770` still reads one value |
-| `ready` | `:2550` | SEALED | `api.ready` is served by the sealed half; the setup `done` callback reassigns it inside the seal, which is where it is written today |
+| `screen`, `checkinOrigin` | `:792`, `:799` | RELEASED | the router owns them. The sealed half reads `screen` through `painter.screenNow()` |
+| `mountToken`, `disposed` | `:445`, `:453` | RELEASED | B.4, including `:2296`'s bump and its reason. `dispose()` keeps its `mountToken += 1` at `:2607` |
+| `todayEntry`, `adoptionSettled`, `paintTodayEntry`, `settleAdoption` | `:767-:790` | SPLIT, named | `todayEntry` and `paintTodayEntry` are paint and stay RELEASED. `adoptionSettled` and `settleAdoption` move SEALED (they hook the adoption chain) and `settleAdoption`'s `answered` closure calls `painter.paintTodayEntry()` - a SIXTH paint-handle entry, and the only one added after B.4's five. The sealed half exposes `facade.adoptionSettled()` so the view's guard at `:770` still reads one value |
+| `ready` | `:2550` | SEALED, **and served to the api as a LIVE ACCESSOR, never a copied value** | R1 BLOCKING-3. `:2570-:2575` states the requirement in the file's own words: "P0-C item (a) - a GETTER, not a snapshot: the 'done' callback above reassigns `ready` ... and a caller reading this property after that point must see that later settle". v2's `{ ...lanes.api() }` would INVOKE the accessor once and copy its value, which is exactly the snapshot P0-C removed. B.7 re-declares it as `get ready() { return lanes.api.ready; }` over a sealed getter, and a cell drives the in-page transition off "Start using Earned" and asserts the property returns the SECOND promise |
+| `setupFirst` | `:392` | SEALED | R1 BLOCKING-9. It is `options.setupFirst === true` and the one-handoff rule forbids a third `options`; `facade.setupFirst()` serves the released router's landing decision at `:2451` unchanged |
 | `phone`, `status`, `chrome`, `doc` | `:353-:355` | RELEASED | `doc` is passed to the sealed factory once for `doc.defaultView` (the `indexedDB` and `crypto` handles) and for the three `open({ doc, phone, ... })` calls. DOM travelling INTO the seal is not a writer travelling out |
 | `model` | parameter | SEALED | the one-handoff rule, B.3 |
+
+**THE ACCEPTANCE TEST, restated so it can be checked rather than believed (R1's headline).** R1's
+BLOCKING-5 is that v2's claim "every crossing binding disposed of by name" was made over the
+bindings and not over the ASSIGNMENTS. The complete census of released-to-sealed WRITES in
+`today-app.cjs` at `e0e2ac75`, each with its disposal:
+
+| released site | what it assigns today | disposal |
+|---|---|---|
+| `:1539` | `sleepNightChoice = dateBox.value \|\| null` | `on.sleepNightChosen(dateBox.value)` |
+| `:1540` | `sleepRollover = null` | the same callback, second statement |
+| `:1541` | `sleepOpenedDay = sleepToday(); sleepOpenedNight = sleepNightDate();` | the same callback |
+| `:1542` | `sleepAck = null; sleepReadBack = null; sleepCorrecting = false; sleepErrorText = "";` | the same callback; `sleepErrorText` is `sleepOutcome = null` after B.6 |
+| `:1560` | `sleepNightChoice = sleepRollover \|\| sleepNightDate()` | `on.keepNight()` |
+| `:1561` | `sleepRollover = null` | the same callback |
+| `:1562` | `sleepOpenedDay = ...; sleepOpenedNight = ...` | the same callback |
+| `:1703` | `sleepCorrecting = true` | `on.sleepCorrect(true)` |
+| `:1710` | `sleepCorrecting = false` (with the released `clearSleepDraft()` beside it) | `on.sleepCorrect(false)`; the draft clear stays released |
+| `:1549` | none, but it CALLS `sleepClockCheck()`, which assigns three sealed bindings | `on.sleepClock(sleepTyped())`, declared ENTRY and guard-mutating in B.3 |
+| `:2297` | `sleepCheckInDay = null; sleepCheckInPending = null;` | `on.forgetCheckInRead()` |
+| `:1269`, `:1272`, `:1667`, `:1721` | `foodSaving = ...`, `sleepSaving = ...` | the sealed half mints and assigns; the view assigns nothing |
+| `:2296` | `mountToken += 1` | stays RELEASED with its reason (B.4). It is a paint decision, and the file says so |
+
+**PASS is: after the cut, `today-app.cjs` contains no assignment to any binding declared in
+`today-lanes.cjs`.** That is a mechanical check the writer-fence can make from the two files'
+declaration lists, and E.3 adds it as red row 13.
 ### B.6 The writer returns an OUTCOME; the view owns every word (S-R2)
 
 This is the change that frees C-UI-7, and it is the answer to the blind map's section 3 item (1),
@@ -353,12 +627,32 @@ twelve-line mapper that is drawing code. **No copy constant moves.**
 | 7 | `SLEEP_NOT_SAVED + FOOD_REASON + code + ". " + SLEEP_NOTHING_RECORDED + " " + SLEEP_KEPT` | `:1887-:1889` | `{ kind: "not-saved", code }` | the same five parts in the same order |
 | 8 | `SLEEP_NIGHT_CHANGED` | `:1901` | `{ kind: "late-refusal", code: "SLEEP_STALE_NIGHT" }` | the same branch on `code` |
 | 9 | `SLEEP_CHECKIN_CHANGED` | `:1902` | `{ kind: "late-refusal", code }` with `code.indexOf("SLEEP_SOURCE_") === 0` | the same test |
-| 10 | `[SLEEP_NOT_SAVED, reasonOf(result)].join(" ")` | `:1903` | `{ kind: "late-refusal", code, copy }` carrying `result.copy` verbatim | `reasonOf` stays in the view at `:1339` and runs on `{ code, copy }` |
+| 10 | `[SLEEP_NOT_SAVED, reasonOf(result)].filter(Boolean).join(" ")` | `:1903` | `{ kind: "late-refusal", code, copy }` carrying `result.copy` verbatim | `reasonOf` stays in the view at `:1339` and runs on `{ code, copy }`, **and `.filter(Boolean)` is part of the mapper** |
 | 11 | `+ " " + SLEEP_NOTHING_RECORDED` on 8, 9 and 10 | `:1904` | in `kind` | one constant, appended once |
 
+**N2 IS RIGHT AND THE ROW IS CORRECTED (R1 N2).** v2's row 10 wrote `:1903` without its
+`.filter(Boolean)`. The source line is
+`[SLEEP_NOT_SAVED, reasonOf(result)].filter(Boolean).join(" ")`, and `reasonOf` returns `""` whenever
+the refusal carries neither copy nor code (`:1339-:1344`), so the filtered form yields
+`SLEEP_NOT_SAVED` and the unfiltered form yields `SLEEP_NOT_SAVED + " "`, which `:1904` then extends
+with `" " + SLEEP_NOTHING_RECORDED` for a DOUBLE SPACE on the screen. D.4's copy census is a
+multiset of LITERALS and would not catch a concatenation change, so:
+
+**THE MAPPER IS SPECIFIED AGAINST THE SOURCE LINE, CHARACTER FOR CHARACTER**, not against this
+table's prose, and the build round copies each of the eleven expressions out of `:1815` to `:1904`
+verbatim into the view's mapper with only `result` replaced by the outcome's own fields. **Its cell
+drives the empty-reason case by name**: a late refusal carrying neither `code` nor `copy` must paint
+exactly `SLEEP_NOT_SAVED + " " + SLEEP_NOTHING_RECORDED` with one space between the two, and a
+red-first run with the filter dropped must fail on the double space. D.2's DOM snapshot covers it a
+second time, because the sentence is a text node.
+
 `recordIntake`'s two paints are the same shape and are part of SEAM 2. The whole outcome type is a
-closed set of six shapes, declared as a frozen table in the sealed module and asserted exhaustive by
-a red-first cell: an outcome the view cannot map must FAIL, never fall through to a blank slot.
+closed set of **seven** shapes - `null`, `rollover`, `refused`, `refused-before-write`, `uncertain`,
+`not-saved`, `late-refusal`, plus `in-flight` from B.3's sealed duplicate guard, which the view maps
+to NOTHING DRAWN - declared as a frozen table in the sealed module and asserted exhaustive by a
+red-first cell: an outcome the view cannot map must FAIL, never fall through to a blank slot.
+(`in-flight` and `refused-before-write` are the two the athlete never sees; they are in the table
+anyway, because an unmapped outcome must fail loudly and a silently unmapped one is the bug.)
 
 **What this buys, measured.** `VIEW_SOURCES` (`design.cjs:607`) does not change, so
 `test/design.test.cjs:79-:81` needs no edit. `NOT_AVAILABLE` stays at `today-app.cjs:38`, so
@@ -391,32 +685,81 @@ requires `./today-model.cjs` and re-exports `createTodayModel`, and `today-app.c
 is a rule the fence can state in one line. The function identity is the same object it is today, so
 the 120-odd `createTodayModel(...)` call sites in the cells and in `gym-check.mjs` are untouched.
 
-**The returned api (`:2552-:2619`).** Twelve of its getters hand out a lane, an entry, a promise a
-writer minted, or the adoption settle. A released file must not assemble those. So:
+**The returned api (`:2552-:2619`). v2's one-line spread was wrong three ways and is replaced by an
+explicit literal (R1 BLOCKING-3).** A spread INVOKES an accessor and copies its value, so
+`{ ...lanes.api() }` turns `get ready()` back into the snapshot P0-C was written to remove; it also
+reorders the keys, because the eight view keys would come first; and v2's two lists between them
+named nineteen of the twenty keys, dropping `importAdmitted` (`:2556`). `Object.freeze` is a fourth
+change v2 claimed it was not making: `:2552` returns a plain extensible object today.
+
+**So the released half writes the api out, twenty keys, in the file's own order, and freezes
+nothing:**
 
 ```
-return Object.freeze({ ...viewApi, ...lanes.api() });
+return { render, read: () => facade.read(), openWeighIn, screen: () => screen,
+  importScreen: () => importScreen, importAdmitted: () => facade.importAdmitted(),
+  foodPending: () => lanes.api.foodPending(), foodReady: () => lanes.api.foodReady(),
+  sleepPending: () => lanes.api.sleepPending(), sleepReady: () => lanes.api.sleepReady(),
+  sleepCheckInReady: () => screen === "sleep-checkin"
+    ? lanes.api.sleepCheckInViewPending() : lanes.api.sleepCheckInPending(),
+  checkInKitReady: () => lanes.api.checkInKitReady(), sleepLane: () => lanes.api.sleepLane(),
+  sleepAck: () => lanes.api.sleepAck(), sleepMount: () => mountToken,
+  workoutEntry: () => lanes.api.workoutEntry(), workoutRebound: () => lanes.api.workoutRebound(),
+  get ready() { return lanes.api.ready; },
+  dispose() { ... },                     // unchanged, :2591-:2597
+  disposed: () => disposed };
 ```
 
-where `viewApi` is the released half's own eight paint getters (`render`, `openWeighIn`,
-`screen`, `sleepMount`, `dispose`, `disposed`, `read`, `importScreen`) and `lanes.api()` is a frozen
-object built in the sealed module carrying `foodPending`, `foodReady`, `sleepPending`, `sleepReady`,
-`sleepCheckInReady`, `checkInKitReady`, `sleepLane`, `sleepAck`, `workoutEntry`, `workoutRebound`
-and the `ready` getter. The api's shape, its key order and its behaviour are unchanged, the cells
-that read it are unchanged, and **no released source line names a lane, an entry or a writer**.
+Four things this settles, each of which v2 got wrong or left open:
 
-`read: () => model.read()` at `:2553` becomes `read: () => view.read()`. `sleepMount: () =>
+1. **`ready` is a LIVE ACCESSOR over a sealed getter.** `lanes.api` is an object whose `ready` is
+   itself `get ready() { return ready; }` inside the seal, and the released property is a getter
+   that forwards. The setup `done` callback reassigns the sealed `ready` and the caller sees the
+   later settle, which is `:2570-:2575`'s stated requirement word for word.
+2. **The key ORDER is the file's, not the spread's**, and the twenty keys are: `render`, `read`,
+   `openWeighIn`, `screen`, `importScreen`, `importAdmitted`, `foodPending`, `foodReady`,
+   `sleepPending`, `sleepReady`, `sleepCheckInReady`, `checkInKitReady`, `sleepLane`, `sleepAck`,
+   `sleepMount`, `workoutEntry`, `workoutRebound`, `ready`, `dispose`, `disposed`.
+3. **`sleepCheckInReady` keeps its released `screen` test.** `:2561` reads `screen`, which B.5 keeps
+   RELEASED, so the ternary stays in the released file and only its two arms are facade reads. A
+   sealed getter reading a released binding would have needed the paint handle for a purpose B.4
+   does not cover, and does not need to.
+4. **`Object.freeze` is NOT applied.** Freezing is a behaviour change with its own cell, not a
+   tidying, and this round is not making it. If a later round wants it, it declares it.
+
+**`api.sleepLane` still hands its CALLER the lane, and that is stated rather than denied.** `:2562`
+is `sleepLane: () => sleepLane` and the cells drive the real lane through it. After the cut the
+released thunk delegates to the sealed api and the lane object passes THROUGH the released file's
+return value without ever being bound or called there: no released source line names `.save`,
+`.refresh` or `.close`. That is a narrower claim than v2's "no lane crosses", and it is the true
+one. E.5 gains a red row (14): a released file that CALLS a method on the result of
+`lanes.api.sleepLane()` FAILS `FENCE-WRITER-NAME`.
+
+**THE PROOF OF THE SURFACE, and it is a new STOP.** A cell captures `Object.keys(api)` and
+`Object.getOwnPropertyDescriptor(api, "ready")` before and after the split and asserts the key list
+is EQUAL AND IN ORDER and that `ready` is an accessor both times; and it drives the in-page
+transition off "Start using Earned" and asserts the property returns the SECOND settle, not the
+first. H.2 stop 7 covers `module.exports`; this is its twin for the mount surface, and v2 had
+nothing that would have caught any of the four faults above.
+
+`read: () => model.read()` at `:2553` becomes `read: () => facade.read()`. `sleepMount: () =>
 mountToken` at `:2567` stays released, because the token is released (B.4).
 
-**The cost of the facade, measured.** `today-app.cjs` holds 59 lines that name `model.`; after the
-split the released half holds about 24 of them, every one a READ, every one rewritten from `model.`
-to `view.`. That is a rename in drawing code, it appears in the diff, and D.2's DOM snapshot covers
-its result. The 35 that name a writer or a setter go with their regions and keep `model.` verbatim,
-which is why D.1 can still ask for byte-identity.
+**The cost of the facade, RE-MEASURED (R1 BLOCKING-1's second half).** v2 said "59 lines that name
+`model.`". That figure was a raw `grep -c 'model\.'` over the whole file and it is not a census: 16
+of the 59 are the strings `model.mjs` and `model.cjs` in comments and module specifiers (`:16`,
+`:31`, `:34`, `:104`, `:152`, `:228`, `:271`, `:278`, `:546`, `:558`, `:883`, `:1369`, `:1962`,
+`:2400`, `:2417`, `:2420`) and about a dozen more are prose. **The real census of `model.` as an
+OBJECT is about 30 code lines, of which about 15 stay released**, every one a READ and every one
+rewritten from `model.` to `facade.`. The conclusion is unchanged and the rename is smaller than v2
+made it sound; the build round plans against the code census, not against the 59.
 
-### B.8 The seven seams, line by line (S-R2)
-A seam is a region a draw and a write share, where "pure move" cannot be claimed. There are seven.
-The PM named three; rows 4 to 7 are mine and the build round must plan for them.
+### B.8 The TEN seams, line by line (S-R2)
+A seam is a region a draw and a write share, where "pure move" cannot be claimed. **There are ten in
+`today-app.cjs`, and one more in `gym-app.mjs` (SEAM G1, B.9).** The PM named three; seams 4 to 7
+are v2's; **seams 8, 9 and 10 are R1's** - BLOCKING-7, BLOCKING-5 and BLOCKING-4 respectively - and
+they are named here rather than left for the build round to discover, because H.2 stop 1 makes an
+unnamed seam a STOP and the reviewer was right that v2's list was short.
 
 **SEAM 1 - the weigh-in submit, `today-app.cjs:1059-:1082`.**
 
@@ -424,7 +767,7 @@ The PM named three; rows 4 to 7 are mine and the build round must plan for them.
 |---|---|---|
 | `:1059-:1060` | `sheet.addEventListener("submit", async (event) => { event.preventDefault();` | PAINT, unchanged, but installed through `on.listen(sheet, "submit", fn)` (E.6) |
 | `:1061-:1067` | the seven-line comment on the two refusals and the disabled button | PAINT. It describes what the view does and stays with the view; the two sentences about the client's own words are re-said in the sealed half's own comment |
-| `:1068-:1069` | `if (submit.disabled) return; submit.disabled = true;` | PAINT, unchanged, in this order |
+| `:1068-:1069` | `if (submit.disabled) return; submit.disabled = true;` | PAINT, unchanged, in this order, **and a SEALED `weighInBusy` flag is added behind it** (B.3): after the cut the DOM flag is the only thing between two gestures and two writes, and it lives in a released file six tickets edit |
 | `:1070` | `const raw = input.value.trim();` | **MOVES.** The trim is parsing. The view passes `input.value` untrimmed |
 | `:1071-:1073` | `let result; try { result = await model.weighIn(raw === "" ? raw : Number(raw)); } catch (error_) { result = { ok: false, copy: "This weight could not be recorded, and nothing was recorded. " + ... }; }` | **MOVES whole**, byte-identical inside `on.submitWeighIn(rawText)`, which returns `{ ok, copy }`. `Number(raw)` is the conversion S-R2 names |
 | `:1074` | `submit.disabled = false;` | PAINT, unchanged, immediately after the await returns |
@@ -451,10 +794,10 @@ already drives most of this; the new cell adds the untrimmed and the thrown case
 | `:1280-:1281` | `const entry = { cal: cal.value, pro: pro.value }; const refusal = FoodModel.refusalFor(entry);` | **MOVES**, into `on.foodCheck(cal.value, pro.value)`, and is re-run inside `on.recordIntake` as defence in depth (see below) |
 | `:1282-:1285` | `if (refusal) { error.textContent = plainOrDrop(FOOD_REFUSAL_COPY[refusal] \|\| FOOD_REFUSED, "food-error"); return; }` | PAINT, unchanged, driven by `on.foodCheck`'s `{ refusal }`. **v1's residue R2 ceases to be a residue** |
 | `:1286` | `const dayValues = FoodModel.dayFromEntry(entry);` | **MOVES** |
-| `:1287` | `save.disabled = true;` | PAINT, and it now runs in the view between the check and the call, which is the same point in the sequence it runs at today |
-| `:1288-:1301` | `let result = null; try { result = await foodLane.save(dayValues); } catch (thrown) { foodReadBack = {...}; save.disabled = false; render("nutrition", false); return; } finally { save.disabled = false; }` | **MOVES**, with `save.disabled = false` deleted from the catch and the finally (the view does it) and `render(...)` becoming `paint.repaint("nutrition", false)`. Returns `{ kind: "unknown" }` |
+| `:1287` | `save.disabled = true;` | PAINT, and it now runs in the view between the check and the call, which is the same point in the sequence it runs at today. **A SEALED `foodBusy` flag is added behind it** (B.3), for the reason SEAM 1's `:1068-:1069` row gives |
+| `:1288-:1301` | `let result = null; try { result = await foodLane.save(dayValues); } catch (thrown) { foodReadBack = {...}; save.disabled = false; render("nutrition", false); return; } finally { save.disabled = false; }` | **MOVES**, with `save.disabled = false` deleted from the catch and the finally (the view does it) and `render(...)` becoming `painter.repaint("nutrition", false)`. Returns `{ kind: "unknown" }` |
 | `:1302-:1309` | `if (!result \|\| result.ok !== true) { error.textContent = plainOrDrop(FOOD_REFUSED + " " + reasonOf(result) + " " + FOOD_REFUSED_ACTION, "food-error"); return; }` | SPLIT: the sealed half returns `{ kind: "refused", code: result && result.code, copy: result && result.copy }`; the PAINT, the three constants and `reasonOf` stay in the view. **v1's residue R3 ceases to be a residue** |
-| `:1310-:1317` | the `foodReadBack` assignment and `render("nutrition", false)` | **MOVES**; the repaint becomes `paint.repaint` |
+| `:1310-:1317` | the `foodReadBack` assignment and `render("nutrition", false)` | **MOVES**; the repaint becomes `painter.repaint` |
 | after | - | PAINT: `save.disabled = false;` then the outcome mapping |
 
 **Defence in depth, and it is a strengthening, not a weakening.** `on.recordIntake` re-runs
@@ -463,12 +806,17 @@ already drives most of this; the new cell adds the untrimmed and the thrown case
 that skipped `on.foodCheck` - by accident or by a future edit - still cannot put an inadmissible
 entry into the store. Today nothing stops it, because the check and the write are the same
 function; after the split the check is inside the seal twice.
-*The cell that proves it.* The order of writes and paints is asserted as a SEQUENCE, not as an end
-state: a recording cell wraps `foodLane.save`, `save.disabled`'s setter and `render` and asserts the
-trace is, for a refusal, `[check, paint-error]` with no `save` at all; for an acknowledged write,
-`[check, disable, save, enable, repaint]`; for a throw, `[check, disable, save-throws,
-readBack-set, enable, repaint]`. `food.test.mjs` already drives all three states over the real
-lane; this adds the trace.
+*The cell that proves it, with N3's contradiction resolved.* R1 N3 is right: SEAM 2 asks
+`on.recordIntake` to re-run `FoodModel.refusalFor` and then asserts a trace with ONE `check` in it.
+There are two checks after the cut and the trace names both. The order of writes and paints is
+asserted as a SEQUENCE, not as an end state: a recording cell wraps `FoodModel.refusalFor`,
+`foodLane.save`, `save.disabled`'s setter and `render`, and asserts the trace is, for a refusal the
+view catches, `[check, paint-error]` with no second check and no `save` at all; for an acknowledged
+write, `[check, disable, check-sealed, save, enable, repaint]`; for a throw, `[check, disable,
+check-sealed, save-throws, readBack-set, enable, repaint]`; and for the defence-in-depth case - the
+view's own check skipped, as a future edit might - `[disable, check-sealed, enable]` with NO `save`
+and the outcome `refused-before-write`. `food.test.mjs` already drives the first three states over
+the real lane; this adds the trace and the fourth state.
 
 **SEAM 3 - `recordSleep`, `today-app.cjs:1807-:1930`.**
 
@@ -479,19 +827,19 @@ reaches outside itself.
 | what | line | after |
 |---|---|---|
 | `if (sleepBusy \|\| sleepUnknown \|\| sleepReadBack) return;` | `:1808` | MOVES, unchanged; all three are sealed state |
-| `const say = (s) => { sleepErrorText = s; render("sleep", false); };` | `:1812` | becomes `const say = (o) => { sleepOutcome = o; paint.repaint("sleep", false); };`. One line, and the comment above it at `:1809-:1811` is kept verbatim because it is still exactly true |
-| `sleepClockCheck(); const date = sleepNightDate();` | `:1813-:1814` | MOVES with them (B.2 rows 20 and 21) |
+| `const say = (s) => { sleepErrorText = s; render("sleep", false); };` | `:1812` | becomes `const say = (o) => { sleepOutcome = o; painter.repaint("sleep", false); };`. One line, and the comment above it at `:1809-:1811` is kept verbatim because it is still exactly true |
+| `sleepClockCheck(); const date = sleepNightDate();` | `:1813-:1814` | MOVES with them (B.2 rows 20 and 21). **Both are now pure sealed reads of sealed state**, because `sleepNightChoice` moves with them (R1 BLOCKING-6): `on.recordSleep` takes the draft values only and the night is NOT passed in |
 | `const entry = { ...sleepDraft, date };` | `:1822` | becomes `const entry = { ...draftValues, date }` where `draftValues` is the raw object the callback received |
 | the eleven `say` sites | B.6 | outcomes |
-| `const token = mountToken;` and its six comparisons | `:1839` and B.4 | `paint.token()` |
-| `clearSleepDraft()` | `:1870`, `:1919` | `paint.clearDraft()` |
+| `const token = mountToken;` and its six comparisons | `:1839` and B.4 | `painter.token()` |
+| `clearSleepDraft()` | `:1870`, `:1919` | `painter.clearDraft()` |
 | `workoutRebinding = rebindWorkout();` | `:1871`, `:1927` | unchanged; both are sealed |
 | `SleepModel.rowFor(night, model.engine).h` | `:1912` | unchanged; `model` is sealed-side |
 
 **The order does not change anywhere.** Every statement keeps its position; the only substitutions
-are `sleepErrorText = <sentence>` to `sleepOutcome = <outcome>`, `render` to `paint.repaint`,
-`mountToken` to `paint.token()` and `clearSleepDraft()` to `paint.clearDraft()`. D.1 defines those
-four substitutions as the exact wrapper and proves nothing else moved.
+are `sleepErrorText = <sentence>` to `sleepOutcome = <outcome>`, `render` to `painter.repaint`,
+`mountToken` to `painter.token()` and `clearSleepDraft()` to `painter.clearDraft()`. D.1 defines
+those four substitutions as the exact wrapper and proves nothing else moved.
 
 *The cell that proves it.* The reconciliation path is the one that matters and `problem.test.mjs`
 already drives it: a save that throws, a refresh that answers, a night that landed, a navigation
@@ -505,17 +853,23 @@ stays; `await workout.recover()` becomes `await on.recoverWorkout()`; the `final
 `render("today", false)` stay. One identifier. The cell asserts the button is disabled for the whole
 await and that a failed recover still re-enables it.
 
-**SEAM 5 - the router's setup branch, `:2295-:2336`.** The released router keeps
+**SEAM 5 - the router's setup branch, `:2300-:2336` (v2 wrote `:2295-:2336`; R1 BLOCKING-4's range
+correction is right, and `:2295-:2299` is SEAM 10's business, not this one).** The released router keeps
 `if (next === "setup" && !firstRun()) next = "today";` at `:2287` (a READ through the facade) and
 `if (next === "setup") return on.openSetup({ back: () => render("today", true) });`. The whole
 `done` closure `:2317-:2333` - `canAdoptAthleteState`, `armAdoptionGate`, `ready = settleAdoption
 (...)`, `render("today", true)`, `return ready` - moves into the sealed half byte-identical except
-its last `render` call, which becomes `paint.repaint("today", true)`. The 22 lines of comment at
-`:2298-:2316` and `:2321-:2332` move with it: they explain the adoption chain, not the route.
+its last `render` call, which becomes `painter.repaint("today", true)`. The two long comment blocks
+INSIDE the branch (between `:2300` and `:2316`, and `:2321-:2332`) move with it: they explain the
+adoption chain, not the route. v2 gave the first of them as `:2298-:2316`, which straddles the
+mount-invalidation block; the build round takes the boundary from the branch's own braces, not from
+this line number.
 
 This is the seam that answers S-R8's "the boot or the router carrying a data decision that must not
-be released". The router carries exactly two data decisions: `firstRun()`, which is a READ and stays
-as a facade call; and the `done` chain, which moves. Nothing else in `render` `:2272-:2380` touches
+be released". **The router carries THREE data decisions, not v2's two** (R1 BLOCKING-4): `firstRun()`
+at `:2287`, which is a READ and stays as a facade call; the `done` chain, which moves here; and the
+check-in cache invalidation at `:2297`, which moves in SEAM 10. Nothing else in `render` `:2272-:2380`
+touches
 a store, and `food.test.mjs:696-:698`'s slice from `if (next === "setup"` to `if (next === "why")`
 still contains `firstRun()` afterwards, so that cell is unaffected.
 
@@ -527,29 +881,154 @@ they are drawing decisions about a device with no store. `reboundCheckIn(origin)
 return whatever the entry returns or `null`; the router then falls through to its own fallback on
 `null`, exactly as it does today at `:2354` and `:2371`.
 
+**SEAM 8 - `sleepCheckInFor`, `:1402-:1409` (R1 BLOCKING-7's second half).** The function is a
+released drawing helper (it is in no B.2 whole-move row and C-UI-7 paints from it), and two of its
+eight lines reach the INJECTED CHECK-IN ENTRY, which B.5 says never crosses:
+
+| line | today | after |
+|---|---|---|
+| `:1403-:1405` | `const day = SleepModel.dayAfter(date);` and the two cache tests | PAINT, unchanged; the two tests become `facade.checkInDay()`, `facade.checkInPending()`, `facade.checkInFailed()`, `facade.checkInRow()` |
+| `:1406` | `const active = checkInLive \|\| (checkin && checkin.checkin);` | **MOVES.** The entry is sealed |
+| `:1407` | `const row = active && typeof active.recorded === "function" ? active.recorded() : null;` | **MOVES**, behind `facade.checkInRecordedRow()`, which returns a CLONE and never the entry |
+| `:1408` | `return row && row.date === day ? row : null;` | PAINT, unchanged, over the clone |
+
+`recorded()` is a read; it opens nothing and writes nothing, so the facade may serve it. The clone
+matters for the same reason `sleepAck` is cloned: a row the view can mutate is a row the seal's next
+read disagrees with. *The cell*: drive a device whose check-in entry holds a row for the morning
+after, assert the same sentence is painted as today, and assert that mutating the returned row does
+not change what the next call returns.
+
+**SEAM 9 - the sleep date control and the keep-night control, `:1535-:1565` (R1 BLOCKING-5).** Two
+released handlers assign SEVEN sealed bindings between them, and two of those assignments are not
+bookkeeping.
+
+| line | today | after |
+|---|---|---|
+| `:1536-:1538` | `dateBox.disabled = ...; const latest = SleepModel.nightDateFor(sleepToday()); if (latest) dateBox.max = latest;` | PAINT, unchanged; `sleepToday()` is a facade read |
+| `:1539-:1542` | the change handler's eight assignments | **MOVE whole**, in their order, into `on.sleepNightChosen(dateBox.value)` (B.3). `sleepErrorText = ""` becomes `sleepOutcome = null` per B.6 |
+| `:1543` | `render("sleep", false);` | PAINT, unchanged, after the callback returns |
+| `:1549` | `const rolled = sleepClockCheck();` | becomes `const rolled = on.sleepClock(sleepTyped()).rollover;`. **v2 marked `on.sleepClock` "writes? no" and that was half true**: it stores nothing and it MUTATES the rollover guard. It is declared ENTRY and guard-mutating in B.3 |
+| `:1550-:1558` | the two rollover sentences and their `hidden` flags | PAINT, unchanged |
+| `:1560-:1562` | the keep-night handler's four assignments | **MOVE whole** into `on.keepNight()` |
+| `:1563` | `render("sleep", false);` | PAINT, unchanged |
+
+**Why these two are the sharpest lines in R1.** `sleepRollover = null` at `:1540` and `:1561` clears
+the guard the DURABLE write refuses on: `recordSleep:1818` is
+`if (sleepRollover) { say(SLEEP_ROLLOVER + ...); return; }`, and `:1816-:1817` says why in the file's
+own words - "a rollover that has not been answered blocks the write. The athlete confirms which
+night this is for; the page never decides for him." And `sleepAck = null; sleepReadBack = null` at
+`:1542` drops the acknowledgment of a write that landed, which `:437-:441` keeps on purpose: "A save
+that the client acknowledged is durable whatever the read-back afterwards does, so the figure it
+carries stays on the screen instead of vanishing with the draft." Left in a released file, both are
+decisions about the record taken by the view. Moved, they are two callbacks the fence can name.
+*The cell*: with a draft typed and the clock rolled over, assert the save REFUSES; then drive the
+keep-night control and assert it saves against the night the athlete confirmed; then drive the date
+control after an acknowledged save and assert the acknowledgment is cleared in the SEAL and nowhere
+else, with the store holding exactly what it held before.
+
+**SEAM 10 - the mount-invalidation block, `:2295-:2299` (R1 BLOCKING-4).**
+
+| line | today | after |
+|---|---|---|
+| `:2295` | `if (next !== screen) {` | PAINT, unchanged |
+| `:2296` | `mountToken += 1;` | PAINT, unchanged, RELEASED, with B.4's reason |
+| `:2297` | `if (next === "sleep") { sleepCheckInDay = null; sleepCheckInPending = null; }` | **MOVES** behind `if (next === "sleep") on.forgetCheckInRead();` |
+| `:2298-:2299` | `}` and `screen = next;` | PAINT, unchanged |
+
+It is one line and it is a data decision, which is why it is a seam and not a footnote:
+`readSleepCheckIn:1413` is `if (sleepCheckInDay === day && !force) return sleepCheckInPending;`, so
+nulling the cache at `:2297` is exactly what makes navigating to the sleep screen start a FRESH
+durable read of the check-in store. *The cell*: navigate away from and back to the sleep screen and
+assert the check-in host is read again; then plant a released router that omits the call and assert
+the stale row is painted, so the cell has teeth.
+
 ### B.9 The second extraction: `gym-app.mjs` (S-R4)
 
-Verified at `c15a69c0`, and the look map's line numbers are wrong by seven to nine here. The true
-regions:
+**REWRITTEN AFTER R1 BLOCKING-8.** v2's B.9 moved the whole `:123-:140` block and then said the view
+keeps `settingsErrors`, which is declared inside that block: a flat contradiction. It also left
+`settingsPaint` `:242-:282` released while moving six of the nine bindings that function reads or
+assigns; it gave the seal no way to reproduce `recordSettings`'s stale-editor fence, which is an
+OBJECT IDENTITY test over the draft; and it never mentioned that gym needs its own paint handle.
+Every one of those is right and every one is fixed below. Its measurements were also off by one and
+the reviewer's recount is correct: `openSettingsLane` is `:158-:170`, 13 lines, and the four regions
+total **79**, not 80.
 
-| region | lines | code lines | what it reaches |
+**The four regions, re-measured at `e0e2ac75`, and what actually moves:**
+
+| region | lines | of which move | of which stay RELEASED |
 |---|---|---|---|
-| the settings lane state: `settingsLane`, `settingsOpening`, `settingsSaving`, `settingsDraft`, `settingsDraftLift`, `settingsErrors`, `settingsRead`, `settingsInFlight`, `settingsReading` | `:123-:140` | 18 | the lane handle and its caches |
-| `startSettingsRead` | `:142-:156` | 15 | `:147` `settingsLane.latest(liftId)` - a LANE CALL the look map omits from its move list |
-| `openSettingsLane` | `:158-:171` | 14 | `:161` `indexedDB`, `:162` `crypto`, `:165` `import("./machine-settings-host.mjs")`, `:166` `createMachineSettingsHost` |
-| `recordSettings` | `:286-:318` | 33 | `:305` `await settingsLane.save(machine)` |
-| **total** | | **80** | |
+| the settings state block | `:123-:140` (18) | `settingsLane` `:123`, `settingsOpening` `:124`, `settingsSaving` `:125`, `settingsRead` `:138`, `settingsInFlight` `:139`, `settingsReading` `:140`, with the seven-line comment at `:131-:137` that explains the read cache | **`settingsDraft` `:126`, `settingsDraftLift` `:127`, `settingsErrors` `:130` and its two-line comment `:128-:129`** |
+| `startSettingsRead` | `:142-:156` (15) | all 15; `:147` is `settingsLane.latest(liftId)`, a LANE CALL the look map omits | - |
+| `openSettingsLane` | `:158-:170` (13) | all 13; `:161` `indexedDB`, `:162` `crypto`, `:165` `import("./machine-settings-host.mjs")`, `:166` `createMachineSettingsHost` | - |
+| `recordSettings` | `:286-:318` (33) | 26: the two admission calls, the lane save, the cache drop and the re-read | **`refuse()`'s DOM half `:292-:294` and the two `save.disabled` lines `:303`, `:306`** (SEAM G1) |
+| **total** | **79** | **67** | **12** |
 
 The look map says "about 65 lines"; it reaches 65 by leaving out `startSettingsRead` and by giving
-`openSettingsLane` six lines it does not have. **80 is the number.** `recordSettings` is a seam of
-its own: `refuse()` at `:289-:295` does `phone.querySelector('[data-slot="settings-error"]')` and
-writes `textContent`, and `:302-:307` toggles `save.disabled` around the await. The disposal is
-SEAM 2's exactly: `on.recordSettings(rawDraft, liftId)` returns
-`{ kind: "nothing" | "refused" | "not-saved" | "recorded" }`, the three sentences
-(`SETTINGS_NOTHING`, `SETTINGS_REFUSED`, `SETTINGS_NOT_SAVED`, among the 23 `SETTINGS_*` constants
-at `gym-app.mjs:56-:78` that C-UI-5 holds LOCKED verbatim) stay in the released
-`gym-app.mjs`, and the released view keeps `refuse()`
-and the `WeakMap` that carries its message across a repaint.
+`openSettingsLane` six lines it does not have. 79 is the size of the regions; 67 is what crosses.
+
+**Why the draft and its error map STAY RELEASED.** `settingsDraft` is the editor's transient state,
+exactly as `sleepDraft` is on the Today side, and `today-app.cjs:475` already states the rule for
+both: "The screen's own transient state. Nothing durable lives here." `settingsErrors` is a WeakMap
+KEYED BY THAT DRAFT OBJECT, whose whole purpose (`:128-:129`) is to carry a refusal message across a
+repaint without leaking into a replacement draft. Sealing a WeakMap keyed by an object the view
+mints would put the view's own message inside the seal and keep the seal holding a released object
+for the life of the mount. So `settingsDraft`, `settingsDraftLift`, `settingsErrors` and `refuse()`'s
+`phone.querySelector`/`textContent` half are RELEASED, and C-UI-5 may edit all of them.
+
+**THE STALE-EDITOR FENCE, REBUILT ON A SEALED TOKEN.** `recordSettings` refuses three times on
+object identity - `:287` `settingsDraft !== submittedDraft`, `:291` the same inside `refuse`, `:311`
+the same before clearing - and `:284-:285`'s comment calls those "decided BEFORE anything is
+written". `on.recordSettings(rawDraft, liftId)` hands the seal raw values, so the seal cannot compare
+the object the view is painting from, and v2 simply did not notice. The disposal:
+
+- The released view calls `on.settingsEditOpened(liftId)` where it mints a draft today (`:262-:263`),
+  and the SEAL returns an `editSeq` - a monotonically increasing integer it owns. The view carries
+  the seq beside the draft; it is an opaque number, not a handle.
+- `on.recordSettings(rawDraft, liftId, seq)` refuses immediately unless `seq === editSeq` and
+  `liftId === editLift`, which is the same refusal `:287-:288` makes today and for the same reason.
+- The seal re-checks the SAME pair after the await, which is `:311`'s check, and bumps `editSeq` when
+  it clears the draft, so a stale editor can never write.
+- The view keeps its own `settingsDraft !== paintedDraft` test on the CANCEL control (`:275`),
+  because cancelling writes nothing and is pure paint.
+
+**This is strictly stronger than the identity test it replaces**, because the token is minted and
+compared inside the seal: a released file cannot fabricate a match by holding the old object.
+*The cell*: open the editor for lift A, navigate to lift B, and drive the stale Save; assert the
+store holds nothing new and `SETTINGS_REFUSED` is not painted either (today's `:287` returns
+silently, and that behaviour is preserved exactly).
+
+**GYM'S OWN PAINT HANDLE, which v2 forgot.** `startSettingsRead:154`
+(`.then(() => { settingsInFlight.delete(liftId); return paint(); })`) and `openSettingsLane:167`
+(`.then(async (host) => { settingsLane = host; await paint(); return host; })`) both call the
+released `paint()`. So `createGymSettingsLane` takes a frozen handle of exactly TWO functions -
+`painter.repaint()` (which is `paint()`) and `painter.owns()` (which is the `owns` flag `:287` and
+`:291` read) - and nothing else. Both are paint-only by the same argument B.4 makes, and the fence
+asserts the shape. `openSettingsLane` returns a BOOLEAN under the same rule as B.3's openers, never
+the host.
+
+**SEAM G1 - `recordSettings`, `:286-:318`.**
+
+| line | today | after |
+|---|---|---|
+| `:287-:288` | the two identity refusals | **MOVE**, as the `editSeq`/`editLift` test |
+| `:289-:295` | `refuse()`: `settingsErrors.set(...)`, the re-check, `phone.querySelector`, `textContent` | **SPLIT**: the seal returns `{ kind }` and the released view runs `refuse(message)` with its WeakMap and its `querySelector` unchanged. The three sentences never move |
+| `:296` | `MachineSettingsView.machineFromDraft(submittedDraft, view.lift.id)` | **MOVES** (and H.5 item 4 holds the residue: the RULE is in a free file) |
+| `:297-:301` | `if (!machine) refuse(SETTINGS_NOTHING)`; `if (!acceptable(machine)) refuse(SETTINGS_REFUSED)` | **SPLIT**: the tests move, the sentences stay, as `{ kind: "nothing" }` and `{ kind: "refused" }` |
+| `:302-:303` | `const save = map.get('settings-save'); save.disabled = true;` | PAINT, unchanged, **with a sealed `settingsBusy` flag behind it** (B.3) |
+| `:304-:306` | `try { result = await settingsLane.save(machine); } finally { save.disabled = false; }` | the save **MOVES**; the `finally` stays in the view, because it re-enables a button |
+| `:307-:310` | `if (!result \|\| result.ok !== true) refuse(SETTINGS_NOT_SAVED)` | **SPLIT**, as `{ kind: "not-saved" }` |
+| `:311-:313` | the post-await identity check and the draft clear | **SPLIT**: the seal decides (the seq test) and returns `{ kind: "recorded", clearDraft: true }`; the view clears its own released draft |
+| `:314-:317` | `settingsRead.delete(view.lift.id); await startSettingsRead(view.lift.id);` | **MOVES**, with the two-line comment |
+
+*The cell*: the same trace discipline as SEAM 2 - `[seq-check, machineFromDraft, acceptable, disable,
+save, enable, seq-check, clear, cache-drop, re-read]` for a recorded capture, and no `save` at all
+for either refusal.
+
+**`settingsPaint` stays RELEASED and reads through the facade.** The gym facade serves
+`settingsLaneOpen()`, `settingsEntry(liftId)` (the `{ state, latest }` of `settingsRead.get`),
+`settingsReading()` and `settingsPending()`; `:246` becomes `on.openSettingsLane()` and `:251`
+`on.startSettingsRead(liftId)`, both ENTRY class. `MachineSettingsView.renderBlock` and
+`renderEditor` are unchanged and free.
 
 **The admission pair is already sealed, and that settles a question S-R2 would otherwise raise.**
 `recordSettings` calls `MachineSettingsView.machineFromDraft` (`machine-settings-view.mjs:39-:49`)
@@ -605,7 +1084,8 @@ sealed-byte moves. They are still laws and none of them is weakened.
 
 | law | line | change | why |
 |---|---|---|---|
-| `REQUIRED_INPUTS` | `:98` | **ADD two**: `.../today/today-lanes.cjs` and `.../today/gym-settings-lane.mjs`. 51 becomes 53 | its purpose (`:112-:115`) is that the page cannot silently lose a module, and a lost lane module is a page that records nothing |
+| `REQUIRED_INPUTS` | `:98` | **ADD two**: `.../today/today-lanes.cjs` and `.../today/gym-settings-lane.mjs`. **51 becomes 53**, and R1 N1's "48 entries" is refuted: read from `const REQUIRED_INPUTS = Object.freeze([` at `:98` to its closing `])` at `:201` the array holds 51 quoted paths, 26 of them `today/**`, and the reviewer's own 26 is the same measurement | its purpose (`:112-:115`) is that the page cannot silently lose a module, and a lost lane module is a page that records nothing |
+| `REQUIRED_INPUTS` | `:98` | **ADD a third if F.1 is taken**: `.../today/today-readings.cjs`. 51 becomes 54 | F.1's sibling is a module the page cannot lose either |
 | `REQUIRED_INPUTS` teeth | - | **H18 must land first or in the same package**, and then its literal list of the 26 `today/**` entries gains the same two | v1's finding, unchanged and still a dependency (G) |
 | `assertImportRouteIsolation` | `:391` | **`deepEqual(importers.map(...), [SOURCE_REL + "/today-lanes.cjs"])`** | finding 5: the dynamic import moves with `importDeps`. The guard keeps every tooth - one importer, by a dynamic edge - and now points at the SEALED module, which is strictly better than pointing at a file lane C may edit |
 | `FORBIDDEN` `:79`, `assertNoNetworkReference` `:209`, `assertNoNodeOnlyGlobals` `:244` | - | no change | |
@@ -634,7 +1114,7 @@ the two agree on every ticket.
 | ticket | what it must change | where that is after the cut | residue |
 |---|---|---|---|
 | **C-UI-1** design pins, fonts, scene, review hooks | `design.cjs`, `scene.mjs`, `preview.css`, `build.mjs`, `browser-check.mjs` | untouched by this split; freed by S9's two-path list | none |
-| **C-UI-2** Today, the face | the copy block, `calorieBand`, `trendLine`, `athleteStateFailureCopy`, `resumeLabel`, `setupNoteNeeded`, `fitHeadline`, `renderToday` `:839-:1025`, `sleepState`, `sampleNote`, `problemControl`, `nutritionState`, `recoveryState`, and `:2440` | **all of it in the released `today-app.cjs`** | **NONE.** v1's residue R4 (`:2440`, the adoption arm) was read, not edited, and it now sits in the sealed half where a reader does not need it: C-UI-2 reads `view.importAdmitted()` instead |
+| **C-UI-2** Today, the face | the copy block, `calorieBand`, `trendLine`, `athleteStateFailureCopy`, `resumeLabel`, `setupNoteNeeded`, `fitHeadline`, `renderToday` `:839-:1025`, `sleepState`, `sampleNote`, `problemControl`, `nutritionState`, `recoveryState`, and `:2440` | **all of it in the released `today-app.cjs`** | **NONE.** v1's residue R4 (`:2440`, the adoption arm) was read, not edited, and it now sits in the sealed half where a reader does not need it: C-UI-2 reads `facade.importAdmitted()` instead |
 | **C-UI-3** proposal card and weigh-in | `morningLine`, the proposal binding (new code in `renderToday`), `openWeighIn` `:1028-:1058`, the refusal placement and the field flag at `:1075-:1078` | **all of it in the released `today-app.cjs`** | **NONE.** v1's R1 is gone by SEAM 1: the sentence, the node, the slot name and the fallback string are all on the view side |
 | **C-UI-4** the set and rest screens | `renderActive` `:321-:441`, the copy `:30-:78`, the refusal paint at `:423` inside the `logSet` handler | **all of it in the released `gym-app.mjs`** | **NONE**, once B.9's five call sites are behind the table |
 | **C-UI-5** workout panels and the settings editor | `machine-settings-view.mjs` (free today), `stub()` `:227-:239` and `settingsPaint` `:242-:282` in `gym-app.mjs`; `machine-settings-host.mjs` needs no edit at all | **all of it in the released `gym-app.mjs` and the free view** | **NONE.** This is the ticket v1 could not free at all |
@@ -647,6 +1127,16 @@ the two agree on every ticket.
 **There is none.** Not one look ticket needs a byte of `today-lanes.cjs` or `gym-settings-lane.mjs`.
 That is S-R1 (d), and it is the strongest single result of the reversal: v1's five residues R1 to R5
 do not need disposing of, they do not exist, because everything that is not a writer is released.
+
+**And the claim beside it, which v2 made in the abstract and R1 showed to be false at seven lines,
+is now made over a LIST (R1 BLOCKING-5, BLOCKING-4, BLOCKING-9).** The claim is: after the cut no
+released file decides whether or what gets durably written. The evidence for it is B.5's census of
+every released-to-sealed assignment with its disposal, plus the three sealed in-flight flags of B.3,
+plus the sealed `editSeq` of B.9, plus E.3's red row 13, which fails a released file that assigns
+ANY binding declared in a sealed lane module. **The one released line that decides anything after
+this round is `mountToken += 1` at `:2296`**, and B.4 argues from the file's own comments that it
+governs painting and navigation and never the record. If a reviewer disagrees with that one
+argument, the answer is one more callback, not a change of direction.
 
 The honest counter-statement, so the PM has both halves: **a ticket that needs a NEW FIELD out of
 the model still rides a child.** C-UI-3's proposal card is the live candidate - the string
@@ -672,7 +1162,8 @@ later round moves `createTodayModel` into the seal, this result reverses.
 
 **Eight of eight, against v1's four freed and two half-freed.** The look map's arithmetic (2 of 8
 today, 8 of 8 after two extractions of about 520 lines) is right in its conclusion and wrong in its
-measurement; the true figure is 743 lines moved (663 plus 80), which is 93 lines per ticket freed.
+measurement; the true figure is **737 lines moved (670 plus 67)**, which is 92 lines per ticket
+freed. (v2 said 743 = 663 + 80; B.2 and B.9 are both re-derived after R1.)
 
 ---
 
@@ -700,23 +1191,33 @@ itself before hashing, each counted and printed:
 
 | # | from | to | where it is allowed |
 |---|---|---|---|
-| W1 | `render(` | `paint.repaint(` | any moved region |
-| W2 | `mountToken` | `paint.token()` | any moved region |
-| W3 | `clearSleepDraft()` | `paint.clearDraft()` | `recordSleep` only |
-| W4 | `screen` as a bare identifier read | `paint.screenNow()` | `openSleepLane`, `openFoodLane`, `readSleepCheckIn`, `measureDeps`, `importDeps`, `paintTodayEntry` |
+| W1 | `render(` | `painter.repaint(` | any moved region |
+| W2 | `mountToken` | `painter.token()` | any moved region |
+| W3 | `clearSleepDraft()` | `painter.clearDraft()` | `recordSleep` only |
+| W4 | `screen` as a bare identifier read | `painter.screenNow()` | `openSleepLane`, `openFoodLane`, `readSleepCheckIn`, `measureDeps`, `importDeps`, `paintTodayEntry` |
 | W5 | `sleepErrorText = <expression>` | `sleepOutcome = <outcome literal from B.6's table>` | `recordSleep` only, and the script checks the outcome literal against B.6's frozen table by name |
+| W7 | `paint()` | `painter.repaint()` | `gym-app.mjs`'s two moved regions `startSettingsRead` and `openSettingsLane` only (B.9). It is W1's twin for the gym card, where the released function is called `paint`, not `render` |
+
+(W6 is F.1's `lastMessage` substitution, allowed in `weighIn` and `reopen` only.)
 
 **Nothing else. Not identifier renaming, not comment stripping, not reordering.** If a region's body
-differs in one character after de-indentation and the five substitutions, the proof FAILS. The
+differs in one character after de-indentation and the substitutions above, the proof FAILS. The
 script prints, per region, how many of each substitution it applied, so a region that needed six
 W1s when B.6 says it has two is visible.
-**The manifest is B.2's table**, not v1's seventeen: 24 whole-move regions plus the four writer
-regions of `today-model.cjs` (F) plus `gym-app.mjs`'s four (B.9) - **32 regions**. The seven seams
-of B.8 are NOT in the manifest; they are proved by their named cells instead, and the manifest file
-carries a `seams` block listing them by name and line range so a reader can see what is and is not
-covered by sha256. **A region that is in neither block is a STOP.**
 
-**PASS is: every one of the 32 regions' post hash equals its pre hash.** The report carries the
+**The manifest is B.2's table**, not v1's seventeen: 24 whole-move regions of `today-app.cjs`, plus
+the two writer regions of `today-model.cjs` (F.1 moves `weighIn` and `reopen`), plus `gym-app.mjs`'s
+two whole-move regions (`startSettingsRead`, `openSettingsLane`) - **28 regions**. (v2 said 32,
+counting four `today-model.cjs` regions where F.1 names two and four `gym-app.mjs` regions where
+B.9 now names two whole moves, one state block and one seam. The arithmetic is restated rather than
+patched.) **The ELEVEN seams - B.8's ten plus B.9's SEAM G1 - are NOT in the manifest**; they are
+proved by their named cells instead, and the manifest file carries a `seams` block listing all
+eleven by name and line range so a reader can see what is and is not covered by sha256. The state
+blocks (B.2 row 36, B.9's `:123-:140`) go in a third block, `declarations`, hashed line by line
+after de-indentation, because a moved `let` is a move and not a seam. **A region that is in none of
+the three blocks is a STOP.**
+
+**PASS is: every one of the 28 regions' post hash equals its pre hash.** The report carries the
 table and the substitution counts.
 
 *Why this is a stronger proof than v1's, and I should say so plainly:* v1's split moved NO writer,
@@ -758,14 +1259,14 @@ file as text. The complete list:
 
 | cell | line | what it does | edit |
 |---|---|---|---|
-| `checkin.test.mjs:25`, `copy.test.mjs:34`, `food.test.mjs:21`, `gym.test.mjs:33`, `problem.test.mjs:23`, `setup.test.mjs:28`, `view.test.mjs:21`, `adapter.test.mjs:24`, `machine-settings-ui.test.mjs:35`, `ntc-h6-delta.test.mjs:64`, `package.test.cjs` | imports of `../today-app.cjs` and `../today-model.cjs` | the module keeps its name and its whole export surface | **NONE. Zero import paths change.** This is PM reason (c), and it is stronger than the PM put it: not "most of" the nine, but all nine of v1's import-path edits |
+| `checkin.test.mjs:25`, `copy.test.mjs:34`, `food.test.mjs:21`, `gym.test.mjs:33`, `problem.test.mjs:23`, `setup.test.mjs:28`, `view.test.mjs:21` (seven that import `../today-app.cjs`); `adapter.test.mjs:21`, `machine-settings-ui.test.mjs:31`, `ntc-h6-delta.test.mjs:61` (three that import `../today-model.cjs` ONLY); `design.test.cjs:80` and `package.test.cjs:104` (two that name `today-app.cjs` as a literal) | the imports and the literals | the module keeps its name and its whole export surface | **NONE. Zero import paths change.** This is PM reason (c), and it is stronger than the PM put it: not "most of" the nine, but all nine of v1's import-path edits. **R1 N1 row 4 and row 5 are right and the census above is corrected**: v2 cited `adapter.test.mjs:24`, `machine-settings-ui.test.mjs:35` and `ntc-h6-delta.test.mjs:64` (those are the DESTRUCTURING lines) and called all eleven importers of `today-app.cjs` |
 | **`food.test.mjs:1152-:1153`** | slices `today-app.cjs` between `'function foodEntryFor'` and `'function openFoodLane'` and asserts the slice holds `readBack: true`, `readBack: false` and NOT the rejecting refresh | both declarations MOVE (B.2 rows 9 and 10) | **REQUIRED**: `readRepo('.../today-lanes.cjs')`. One string. Every assertion is re-run against the new file unchanged |
-| **`problem.test.mjs:1100-:1101`** | slices `function sleepEntryFor` by `/^function sleepEntryFor[\s\S]*?^ \}/m` and `Function()`-evals it | the declaration MOVES (B.2 row 3) | **REQUIRED**: same one-string change. **And it is a CONSTRAINT on the build**: `sleepEntryFor` must sit at two-space indentation in `today-lanes.cjs`, which it does, because every moved region is at depth 1 inside `createTodayLanes` |
+| **`problem.test.mjs:1100-:1102`** (R1 N1 row 3: the slice starts at `:1100` and the regex is on `:1102`) | slices `function sleepEntryFor` by `/^function sleepEntryFor[\s\S]*?^  \}/m` and `Function()`-evals it | the declaration MOVES (B.2 row 3) | **REQUIRED**: same one-string change. **And it is a CONSTRAINT on the build**: `sleepEntryFor` must sit at two-space indentation in `today-lanes.cjs`, which it does, because every moved region is at depth 1 inside `createTodayLanes` |
 | **`package.test.cjs:105`** | plants a static import edge on `today-app.cjs`'s node and requires `IMPORT-ROUTE FAIL` | the dynamic import moves (finding 5) | **REQUIRED**: the planted key becomes `.../today-lanes.cjs`. The red side keeps every tooth |
 | `food.test.mjs:696-:698` | slices `today-app.cjs` from `if (next === "setup"` to `if (next === "why")` and asserts `firstRun()` is inside | the router stays, `:2287` stays, `firstRun()` stays (SEAM 5) | **NONE**. The reviewer must re-read the slice, because SEAM 5 rewrites the branch BODY between those two markers |
 | `copy.test.mjs:406` | plants `const NOT_AVAILABLE = "Not available yet";` into `today-app.cjs` | `:38` does not move; no copy moves (B.6) | **NONE**. v1 needed this edit; this direction does not. The dash guard keeps covering the file that owns every string |
 | `design.test.cjs:79-:81` | `deepEqual(design.VIEW_SOURCES, [six names])` | no copy moves, so `VIEW_SOURCES` is unchanged | **NONE**. v1 needed this edit |
-| `problem.test.mjs:2003-:2008` | `sleepSpanH(` callers must be `['sleep-model.cjs', 'today-app.cjs']` | the one caller is `sleepEstimate:1772`, a drawing region that STAYS | **NONE**. v1 needed this edit |
+| `problem.test.mjs:2003-:2008` | reads the DIRECTORY LISTING of `today/`, filters to `.cjs`/`.mjs`, collects every file whose `codeOf(...)` matches `/sleepSpanH\(/` and asserts `deepEqual(callers.sort(), ['sleep-model.cjs', 'today-app.cjs'])` | the one caller is `sleepEstimate:1772`, a drawing region that STAYS | **NONE, BY DESIGN, and R1 BLOCKING-9 is why it needs saying.** The cell scans the WHOLE DIRECTORY, so a new sealed module that merely wrapped the engine would red it as a third caller. B.3 therefore crosses `sleepSpanH` BY REFERENCE, with no call syntax anywhere in `today-lanes.cjs`. If the build round finds it cannot, that is the fourth required edit and H.2 stop 5 fires |
 | `setup.test.mjs:1035` | `codeOf(setupFileText('today-app.cjs'))` asserting `note.textContent = owed ? plainOrDrop(SETUP_NOT_HIS_NUMBERS, "setup-note")` | that line is `setupNote` `:2148-:2162`, drawing, STAYS | **NONE**, and v1's "unknown, flag it" is now answered: I read the assertion and it is about a drawing line |
 | `problem.test.mjs:1419-:1423` | scans `['sleep-model.cjs', 'today-app.cjs']` for `1440` and `/ 60` | neither appears in a moved region | **NONE** |
 | `food.test.mjs:707`, `:763`, `:897`; `problem.test.mjs:1945`, `:1980`, `:1989`; `machine-settings-ui.test.mjs:781`, `:841`, `:936` | nine file-name LISTS: the no-dash literal scan, the width scan, the N1.20 custody list | the new modules are not in them | **OPTIONAL, and recommended: all nine.** A sealed lane module holds no athlete-facing string, so the scans lose nothing today; a future edit could add one. See the cheaper alternative below |
@@ -860,7 +1361,18 @@ permitted in exactly two positions - the `require` that destructures it and the 
 `export` list - and a third occurrence FAILS `FENCE-REEXPORT-USED`. The fence prints the count and
 the positions for every such name, so the exception is a measurement on every run, not a hole.
 After the split it prints exactly: `createTodayModel` 2 in `today-app.cjs`; `createTodayLanes` 2;
-`model` 2; `options` 2; `createGymSettingsLane` 2 in `gym-app.mjs`.
+`model` 2; `options` 2; `createGymSettingsLane` 2 in `gym-app.mjs`. **`options` counts 2 and not 3
+because `:392`'s `options.setupFirst` moves into the factory** (B.3, B.5); v2 left that line released
+and would have printed 3, which is R1 BLOCKING-9's third item and would have gone red on the real
+tree at E.5 row 8.
+
+**THE NO-CROSSING-ASSIGNMENT RULE (new, from R1 BLOCKING-5).** The fence reads the DECLARATION LIST
+of each sealed lane module - every `let`, `const` and `function` at factory scope - and asserts that
+no released file contains an ASSIGNMENT to any of those names. A released `sleepRollover = null`
+FAILS `FENCE-SEALED-BINDING-ASSIGNED`, naming the binding and the line. This is what makes C.3's
+claim checkable rather than argued: v2 asserted that every crossing binding was disposed of by name
+and seven released assignments said otherwise, and no word list would have caught one of them,
+because `sleepRollover` is not a writer's name. It is E.5's red row 13.
 
 **What a released view MAY import:** `plain-copy.cjs`, `food-model.cjs`, `sleep-model.cjs`,
 `problem-report.cjs`, `today-model.cjs`, `machine-settings-view.mjs`, `checkin-model.mjs`,
@@ -931,8 +1443,20 @@ the re-aiming needs:**
 8. a released file naming `model` or `options` outside the parameter list and the one handoff FAILS
    `FENCE-MODEL-HELD` (the one-handoff rule, B.3).
 
-**Thirteen red rows**, against v1's ten. Every one is planted in a copy of the tree with the
-`planted()` pattern `copy.test.mjs:395` already uses, never in the real tree.
+**And three more the R1 fixes need:**
+
+12. a SECOND engine method placed on the facade (`sleepSpanH` is the only one, B.3) FAILS
+    `FENCE-ENGINE-WIDENED`. The facade's engine group is a list of exactly one name, read out of
+    this cell, so widening it is a visible diff.
+13. a released file ASSIGNING a binding declared at factory scope in its sealed partner - the
+    planted case is `sleepRollover = null` inside `renderSleep` - FAILS
+    `FENCE-SEALED-BINDING-ASSIGNED` (E.3's new rule, from R1 BLOCKING-5).
+14. a released file CALLING a method on the value returned by `lanes.api.sleepLane()` - the planted
+    case is `api.sleepLane().save(x)` - FAILS `FENCE-WRITER-NAME`, because `.save` is matched where
+    it is read. This is the honest fence around B.7's one measured pass-through.
+
+**Sixteen red rows**, against v2's thirteen and v1's ten. Every one is planted in a copy of the tree
+with the `planted()` pattern `copy.test.mjs:395` already uses, never in the real tree.
 
 ### E.6 The blind spot, and Q3 (S-R5)
 
@@ -946,13 +1470,38 @@ of v1's five free view modules and it is true of `today-app.cjs` now - and now t
 do it is 2000 lines of drawing that six tickets are about to edit, instead of a module written once
 by the split round. **The exposure is larger, so the guard matters more.**
 
-The guard, in the sealed half, about twelve lines: every writing entry in `on` is wrapped in
+**THE GUARD'S SUBJECT IS THE DURABLE CLASS, AND ONLY THAT (R1 BLOCKING-2, widened).** v2 wrapped
+"every writing entry in `on`", which was every row marked `writes? YES` - and that column included
+the three lane openers, `readSleepCheckIn` and the three router entries. Measured at `e0e2ac75`,
+six released DRAWING sites call an opener or a read from the PAINT path (`:2245`, `:1951`, `:1180`,
+`:1489`, `:1492`, `:1435`), `renderToday:908`/`:917` reach `nutritionState` and `sleepState` on
+EVERY paint, and the router reaches `setup.open` from the BOOT at `:2451`. So v2's guard throws
+twice on the first paint of Today on a device with a store, and once on the first boot of a fresh
+installation - and H.1 risk 3 depends on those exact calls staying at the exact statement they are
+at today, which is the strongest single thing the reversal buys. **It cannot buy that and fence the
+same calls.**
+
+The guard, in the sealed half, about twelve lines: every **DURABLE-class** entry in `on` -
+`submitWeighIn`, `recordIntake`, `retryFoodRead`, `recordSleep`, `retrySleepRead`, `recoverWorkout`,
+and in the gym card `recordSettings`, `logSet`, `finish`, `forget`, `undo`, `start` - is wrapped in
 `if (!gestureOpen) throw new Error("WRITER-OUTSIDE-GESTURE: " + name)`, where `gestureOpen` is set
 true by the sealed half's own `on.listen(el, type, fn)` shim for the duration of the synchronous
 part of a DOM event dispatch and false otherwise. The released view installs EVERY listener through
-`on.listen`, so a legitimate call passes and a call made during a paint throws. Its red-first cell:
-a view that calls `on.recordIntake()` from its render path throws `WRITER-OUTSIDE-GESTURE` and
-records nothing, proven against the real food lane with the store open.
+`on.listen`, so a legitimate call passes and a call made during a paint throws.
+
+**Why an ENTRY callback outside a gesture is safe, said rather than assumed.** An opener opens an
+encrypted store and stores nothing; a read caches rows and stores nothing; `openSetup`, `openCheckIn`
+and `openWorkout` hand a screen to an injected entry whose own writes are gestures inside it. None
+of them can put a row of the athlete's on disk. The class is not self-certified: E.6's cell asserts
+that no ENTRY-class body contains any name on E.3's durable-writer word list, so an ENTRY callback
+that gained a `.save` is a RED and must be reclassified, at which point the gesture guard covers it.
+
+**The red-first cell, rewritten.** v2's cell planted an OPENER, which is the case that must PASS.
+The cell now plants `on.recordIntake()` called from a render path and asserts it throws
+`WRITER-OUTSIDE-GESTURE` and records nothing, proven against the real food lane with the store
+open; and a second case asserts that a view calling `on.openFoodLane()` from `nutritionState` on
+the first paint does NOT throw, opens the store exactly once, and paints `FOOD_OPENING` - which is
+today's behaviour at `:2245` and is what the guard must not break.
 
 Two things the new direction changes about it, both in its favour: the shim is in the SEALED half
 (under v1 it lived in a free `today-chrome.cjs`, where a free file both armed and checked the
@@ -1099,6 +1648,26 @@ C-UI-7's regions (`:1086-:1806`) do not overlap C-UI-2's (`:839-:1025`) or C-UI-
 all say `today-app.cjs` stays sealed; `:542` (A) settles the two-path list; and S10 can USE the
 `released` mechanism S9 builds instead of building and using it in one round.
 
+**THE COPY LOCK IS NOW A NAMED PRECONDITION OF S10, AND THE SPLIT INHERITS IT (R1 N4).** v2's
+appendix flagged that G rested on an S9 spec that might move; it has moved. `DECISIONS:546`
+(2026-09-19, PM4) records S9 spec v3 judged **R3 REJECT** with round 4 dispatched, PM-R6 of `:542`
+revised, **COPY-BIND WITHDRAWN from S9**, the whole 2026-09-18 pack pinned at the S9 head, and this
+sentence, which is a new dependency for this split and not a note: *"THE COPY LOCK BECOMES A NAMED
+PRECONDITION OF S10, the child that releases today-app.cjs (:543), the first released file that
+carries on-screen copy"*, to be designed jointly by lanes C-UI and B as section C.6 of the S9 spec.
+Three consequences:
+
+1. **The split cannot land before the copy lock exists**, because the split is what S10 carries and
+   the lock is S10's precondition. That is a sequencing fact the build round must not discover.
+2. **B.6 is now load-bearing for that lock**, in the split's favour: because no copy constant moves
+   and `VIEW_SOURCES` does not change, the lock has the same file list to lock after the split as
+   before it, and `today-app.cjs` still owns every athlete-facing string on the page.
+3. **G.4's mechanism argument survives the reject**, and I checked which parts: `:546` (A) records
+   that R3 UPHELD the `released` role, the RELEASE-FROM-SEAL token line and the chain-derived fence,
+   which are the three things this section rests on. What it did not uphold is C.5/COPY-BIND, which
+   this split never used. **But the paths table below and the `sourceBase` argument must be re-read
+   against S9 round 4 before S10 declares anything**, and the appendix keeps that warning.
+
 **The thing that must be said out loud (finding 7).** A `released` entry in the artifact carries
 `pre` = the parent's pin and `post: null` (`S9-RELEASE-SPEC.md` H4: "a released file has no
 post-image in this package"), and walk 1 re-asserts a declared path **in Git at `sourceBase`**, not
@@ -1156,32 +1725,44 @@ being used for exactly the shape it was designed for, which is S-R1 (b) restated
 | # | risk | how likely | what it costs | what reduces it |
 |---|---|---|---|---|
 | 1 | **The handler wiring breaks and nobody notices**, as `DECISIONS:454` round 2 already found once in this file | the highest risk in the ticket, and higher than under v1 because E.6's shim touches every wiring site | a tap that records nothing, or records twice | D.2b's listener census, and `on.listen` as the single chokepoint to count at. This is where the review's first hours go |
-| 2 | **A seam changes the ORDER of a write and a paint** without changing either | medium | a refusal drawn before the write it describes, or a button enabled too early | B.8 specifies all seven line by line and each carries a trace-asserting cell, not an end-state cell. The traces are the proof, not the snapshots |
+| 2 | **A seam changes the ORDER of a write and a paint** without changing either | medium | a refusal drawn before the write it describes, or a button enabled too early | B.8 specifies all eleven line by line and each carries a trace-asserting cell, not an end-state cell. The traces are the proof, not the snapshots |
 | 3 | **A lane opens at a different moment**, because `renderToday:908`/`:917` reach `nutritionState:2245` and `sleepState:1951`, each of which opens an encrypted store as a side effect of a paint | medium, and the blind map raises it as a STOP candidate | the store opens before or after the first paint instead of because of it, which is behaviour | **The new direction removes this risk almost entirely**: `nutritionState` and `sleepState` STAY in the released view and call `on.openFoodLane()` / `on.openSleepLane()` at exactly the line they call the opener today. The paint still opens the store, at the same statement, in the same turn. Under v1's direction this was a real design problem; here the answer is that nothing moved |
-| 4 | **The outcome table misses a path** and a refusal draws nothing | medium | a silent refusal, which is the one thing this page refuses to do | B.6's six shapes are a frozen table and the mapper is asserted EXHAUSTIVE: an unmapped outcome throws, and a red-first cell plants one |
-| 5 | **`paint.token()` is called where `mountToken` was READ ONCE** and the value drifts within a writer | low but real | a late save paints over a screen the athlete navigated to, which is the bug `:2276-:2287` documents at length | `recordSleep` must capture `const token = paint.token()` at `:1839` exactly as it does today and compare that captured value, never call `paint.token()` twice in one path. D.1's W2 substitution is checked position by position for exactly this |
+| 4 | **The outcome table misses a path** and a refusal draws nothing | medium | a silent refusal, which is the one thing this page refuses to do | B.6's seven shapes are a frozen table and the mapper is asserted EXHAUSTIVE: an unmapped outcome throws, and a red-first cell plants one. R1 N2's `.filter(Boolean)` is the measured example of the near miss, and the mapper is now specified character for character |
+| 5 | **`painter.token()` is called where `mountToken` was READ ONCE** and the value drifts within a writer | low but real | a late save paints over a screen the athlete navigated to, which is the bug `:2276-:2287` documents at length | `recordSleep` must capture `const token = painter.token()` at `:1839` exactly as it does today and compare that captured value, never call `painter.token()` twice in one path. D.1's W2 substitution is checked position by position for exactly this |
 | 6 | **The re-export rule is quietly widened** by a later author who needs a third occurrence | low | the fence stops meaning anything about `createTodayModel` | the fence prints the count on every run (E.3), so widening it is a visible diff in the cell, not a silent edit |
 | 7 | **The released view drifts into calling a sealed helper directly** over the months six tickets edit it | medium over time | the interface rots | the fence is the answer and it is why S-R5 re-aims it at the released files by name |
 | 8 | **`machineFromDraft`, `FoodModel.refusalFor` and `SleepModel.refusalFor` are edited by a look ticket** and what gets stored changes | medium, and it is pre-existing | a bound silently widened | H.5 item 4 |
+| 9 | **A callback is put in the wrong CLASS** (B.3) and either the gesture guard throws on a paint or a durable writer escapes the guard | medium, and it is the risk R1 BLOCKING-2 is made of | a page that throws on its first paint, or a guard that means nothing | the class list is asserted against the writer-fence's word list by E.6's own cell, and H.2 stop 8b makes a reclassification a report, not a quiet edit |
+| 10 | **A released file assigns a sealed binding** as six tickets edit it over months | medium over time | the rollover guard or the acknowledgment cleared from the view again, which is exactly what R1 found in v2 | E.3's no-crossing-assignment rule, read out of the sealed module's own declaration list, E.5 red row 13 |
+| 11 | **A double submit writes twice**, because the only guard on the weigh-in and the food entry is a DOM `disabled` flag in a released file | low per gesture, and it is new to this direction | a duplicated durable row, which is the failure `:465-:468` already fences `recordSleep` against | the three sealed in-flight flags and the `in-flight` outcome (B.3), with a cell that neuters the DOM flag and asserts one operation |
 
 ### H.2 STOP conditions
 
 The build round STOPS and reports rather than proceeding when:
 
-1. **An eighth seam is found** - a region where a draw and a write cannot be separated by B.8's
-   shape. The seven are named; an eighth means the map is wrong and the report shows the lines.
-2. **D.1 fails**: any of the 32 manifest regions has a different sha256 after de-indentation and the
-   five (or six, with F.1's W6) declared substitutions. No exceptions, no "it is only a comment".
-3. **A region is in neither D.1's manifest nor its `seams` block.**
+1. **A TWELFTH seam is found** - a region where a draw and a write cannot be separated by B.8's
+   shape. Eleven are named (B.8's ten plus B.9's SEAM G1); a twelfth means the map is wrong and the
+   report shows the lines. (v2 named seven and R1 found three more, which is why this stop exists.)
+2. **D.1 fails**: any of the 28 manifest regions has a different sha256 after de-indentation and the
+   declared substitutions W1 to W7. No exceptions, no "it is only a comment".
+3. **A region is in none of D.1's three blocks** (`manifest`, `seams`, `declarations`).
 4. **D.2 fails**, or more than three states are NOT COVERED.
 5. **D.3 grows to a fourth required test edit**, or any edit removes or weakens an assertion rather
    than re-pointing it.
 6. **D.4 fails**: the copy multiset is not equal, or the two new files hold any copy at all.
 7. **The export surface changes**: `Object.keys(require("./today-app.cjs")).sort()` differs, which
    would force an edit to the pinned `today-entry.mjs`.
-8. **The PAINT HANDLE needs a seventh entry** that is not a paint. Six are specified (B.4's five
-   plus `paintTodayEntry`); a seventh that reads or writes anything durable means the direction is
-   wrong and the report says so with the line that forced it.
+7b. **The MOUNT surface changes** (new, R1 BLOCKING-3): `Object.keys(api)` is not equal AND IN THE
+   SAME ORDER before and after, or `ready` stops being an accessor, or the accessor stops observing
+   the setup `done` reassignment. v2 had nothing that would have caught this and its one-line spread
+   broke all three at once.
+8. **The PAINT HANDLE needs a seventh entry** that is not a paint. Six are specified for Today
+   (B.4's five plus `paintTodayEntry`) and two for the gym card (B.9); a seventh, or a third, that
+   reads or writes anything durable means the direction is wrong and the report says so with the
+   line that forced it.
+8b. **An ENTRY-class callback needs a durable writer** (new, E.6). It must then be reclassified
+   DURABLE and gesture-guarded, and if it is reached from a paint or from the boot the direction has
+   a problem the report must state rather than solve quietly.
 9. **E.6's runtime guard cannot be built in twelve lines or thereabouts** without changing what a
    writer does on the happy path. Stop and ask, not stop and abandon.
 10. **The split's commits have already been merged to the chain** when S10 runs (G.4 consequence 1).
@@ -1193,7 +1774,7 @@ LANES.md screens tier plus the seal chain's own bar: the 682-test today suite gr
 and windows; `python3 quality/gate.py` and `python3 quality/statesheet.py` from the 2026-09-18 pack
 with `EARNED_APP` pointed at the preview build, green for `today` and for every T and W state the
 suite renders; the six proofs of D plus the listener census, committed as artifacts; the
-writer-fence cell RED first on all thirteen rows of E.5, then green; one independent Opus reviewer,
+writer-fence cell RED first on all sixteen rows of E.5, then green; one independent Opus reviewer,
 author is not reviewer, told to disagree, committing ONLY the review file; `--ci --package S<N>`
 green and the inventory fence green; the browser check on the owner's PC, both themes, offline.
 
@@ -1202,54 +1783,79 @@ green and the inventory fence green; the browser check on the owner's PC, both t
 I am estimating a round I will not run, on files I read but did not execute, so the bands are wide.
 v1's own figures are in the third column for comparison.
 
-| phase | hours | v1's |
-|---|---|---|
-| the sealed `today-lanes.cjs`: 601 lines moving whole, by cut and paste, from B.2's list | 3 to 4 | 3 to 4 (for 1700 lines) |
-| the facade, the callback table and the paint handle (B.3, B.4), and the 24 `model.` to `view.` renames | 3 to 4 | 3 to 5 |
-| the seven seams of B.8, with a trace cell each | 5 to 7 | 4 to 6 (for four bindings) |
-| B.6's outcome table and the view's mapper, with the exhaustiveness cell | 2 to 3 | - (v1 did not have this) |
-| `gym-app.mjs` and `gym-settings-lane.mjs` (B.9), including the five model call sites | 3 to 4 | - (v1 did not free C-UI-4 or C-UI-5 at all) |
-| `today-readings.cjs` (F.1) | 1 to 2 | 1 |
-| `build.mjs` and the export-surface proof (B.10) | 1 | 1 |
-| the four proof scripts of D, written red-first | 4 to 6 | 4 to 6 |
-| the three test edits of D.3, each re-run red first | 1 | 2 to 3 (for nine) |
-| the writer-fence cell (E), thirteen red rows | 5 to 7 | 4 to 6 (for ten) |
-| E.6's runtime gesture guard | 2 to 3 | 2 to 3 |
-| running the bar, fixing what it finds, the browser check | 3 to 5 | 3 to 5 |
-| the author's report | 2 | 2 |
-| **BUILD ROUND TOTAL** | **35 to 48 hours** | **29 to 42** |
-| **THE INDEPENDENT REVIEW** | **10 to 14 hours** | **8 to 12** |
+| phase | hours | v2's | v1's |
+|---|---|---|---|
+| the sealed `today-lanes.cjs`: 601 lines moving whole, by cut and paste, from B.2's list | 3 to 4 | 3 to 4 | 3 to 4 (for 1700 lines) |
+| the facade, the callback table and the paint handle (B.3, B.4), the 15 `model.` to `facade.` renames, and the three sealed in-flight flags | 4 to 5 | 3 to 4 | 3 to 5 |
+| the api written out key by key with the live `ready` accessor and its surface cell (B.7) | 1 to 2 | - | - |
+| the TEN seams of B.8, with a trace cell each | 8 to 11 | 5 to 7 (for seven) | 4 to 6 (for four bindings) |
+| B.6's outcome table, the character-for-character mapper and the exhaustiveness cell | 2 to 3 | 2 to 3 | - |
+| `gym-app.mjs` and `gym-settings-lane.mjs` (B.9): the facade, the two-entry painter, the `editSeq` fence, SEAM G1 and the five model call sites | 5 to 7 | 3 to 4 | - (v1 did not free C-UI-4 or C-UI-5 at all) |
+| `today-readings.cjs` (F.1) | 1 to 2 | 1 to 2 | 1 |
+| `build.mjs` and the export-surface proof (B.10) | 1 | 1 | 1 |
+| the four proof scripts of D, written red-first, now with three manifest blocks | 5 to 7 | 4 to 6 | 4 to 6 |
+| the three test edits of D.3, each re-run red first | 1 | 1 | 2 to 3 (for nine) |
+| the writer-fence cell (E), sixteen red rows including the declaration-list rule | 7 to 9 | 5 to 7 | 4 to 6 (for ten) |
+| E.6's runtime gesture guard, with the two classes and the class-consistency assertion | 3 to 4 | 2 to 3 | 2 to 3 |
+| running the bar, fixing what it finds, the browser check | 3 to 5 | 3 to 5 | 3 to 5 |
+| the author's report | 2 | 2 | 2 |
+| **BUILD ROUND TOTAL** | **44 to 60 hours** | 35 to 48 | **29 to 42** |
+| **THE INDEPENDENT REVIEW** | **12 to 16 hours** | 10 to 14 | **8 to 12** |
+
+**R1 N5 is accepted and then exceeded, and the PM should read the growth as information.** The
+reviewer's band was 42 to 58 build and 12 to 16 review, costed against the nine findings as
+findings. Carrying them out costs more than costing them: three more seams with three more trace
+cells, a second facade and painter for the gym card, an api written out key by key, three sealed
+in-flight flags, a sealed edit token and three more fence rows. **44 to 60 is 26 percent above v2's
+35 to 48, and v2's number was wrong, not this one**; the work was always there and v2 had not
+designed it. Per ticket freed the figure moves from 5.4 hours to **6.5**, against v1's 8.6 for four
+freed and two half-freed, so the comparison still favours this direction and by less than v2 said.
 
 **It is BIGGER than v1's, and the PM should know that before accepting.** Reason (e) said "the move
-is about a third the size" and the move IS smaller - 663 lines against 1700, which is 39 percent -
-but the SIZE OF THE MOVE is not what drives the hours. What drives them is: seven seams instead of
+is about a third the size" and the move IS smaller - 670 lines against 1700, which is 39 percent -
+but the SIZE OF THE MOVE is not what drives the hours. What drives them is: eleven seams instead of
 three or four; a second file (`gym-app.mjs`) v1 did not touch at all; an outcome table v1 did not
-need; and three more red rows on the fence. The review grows for the same reasons and because the
+need; and six more red rows on the fence. The review grows for the same reasons and because the
 reviewer must now hand-check that a RELEASED 2000-line file reaches no writer, which is a larger
 reading job than checking five new modules written to a contract.
 
 **And it is worth more.** v1 freed four tickets and half-freed two, for 29 to 42 hours; this frees
-eight for 35 to 48. Per ticket freed, 5.4 hours against 8.6. The comparison the PM should hold is
+eight for 44 to 60. Per ticket freed, 6.5 hours against 8.6. The comparison the PM should hold is
 not the two estimates but the two results: v1 leaves C-UI-4 and C-UI-5 on reseal children (three to
 four hours each plus their fix rounds, and they are two of the tickets most likely to need a second
 round), and leaves C-UI-3 and C-UI-7 working around copy constraints.
 
 ### H.5 What I refuse or qualify in the PM's rulings, with the evidence (S-R8, S-R9)
 
-I did not find a reason to STOP. The direction is feasible and it is better than v1's on every
-criterion I can measure. Four things are not as the ruling states them.
+I did not find a reason to STOP, **and the fix round did not find one either, which is the sentence
+S-R8 asks for after a REJECT.** R1 attacked the interface at nine points and every one of them was
+an interface this spec had not yet designed, not a writer that cannot leave its closure, not a read
+path that cannot be made read-only, not a limit of the `released` role, and not a router carrying a
+decision that cannot move. The three hardest cases are worth naming, because they are the ones that
+could have been a STOP and were not: the stale-editor fence over an object identity (B.9 rebuilds it
+on a sealed token, which is stronger); `sleepNightChoice`, which is read by the write path (B.5
+moves it, which is a pure move); and `api.ready`, which must stay a live accessor (B.7 re-declares
+it over a sealed getter, one line). **The one thing I will not claim is that nothing released
+decides anything**: `mountToken += 1` at `:2296` stays released, with the file's own words for why
+(B.4), and a PM who does not accept that argument gets one more callback, not a different direction.
+
+Four things in the ruling itself are not as it states them.
 
 **1. Reason (c) is UNDERSTATED, and I would rather say so than let it be checked and found merely
 true.** The PM says eleven test files import `today-app.cjs`, "so keeping the name on the half they
-exercise avoids MOST of v1's nine test edits". Measured at `c15a69c0`: it avoids ALL nine. Zero
+exercise avoids MOST of v1's nine test edits". Measured at `e0e2ac75`: it avoids ALL nine. Zero
 import paths change, `VIEW_SOURCES` does not change, the planted-dash cell does not change, the
 `sleepSpanH` caller list does not change. What remains is three edits v1 did not have to make,
 because v1 moved no writer and these three cells slice writers out of the file by declaration text
-(D.3). Three, not nine, and none of them an import path.
+(D.3). Three, not nine, and none of them an import path. **Two corrections inside the reason, from
+R1 N1**: the eleven files import one or the other of the two modules - seven import `today-app.cjs`,
+three import `today-model.cjs` only, and two name `today-app.cjs` as a literal; and the `sleepSpanH`
+list stays at two only because B.3 crosses the engine function by reference on purpose.
 
 **2. Reason (e) is right about the code and wrong about the cost.** "The move is about a third the
-size": 663 lines against 1700 is 39 percent, close enough. But the ROUND is 20 percent bigger, for
-the reasons in H.4. A PM choosing on effort should choose v1; a PM choosing on tickets freed, on
+size": 670 lines against 1700 is 39 percent, close enough. But the ROUND is **45 percent** bigger
+(44 to 60 against 29 to 42), for the reasons in H.4, and the gap widened once R1's findings were
+carried out rather than costed. A PM choosing on effort should choose v1; a PM choosing on tickets freed, on
 residue, or on how small the sealed surface ends up should choose this, and those are the three
 things `:536` was about.
 
@@ -1288,17 +1894,23 @@ byte-identical to their pins, which is the same guarantee in a smaller box.**
 
 ### H.6 Open questions for the PM, each with a recommendation
 
-Five, against v1's ten. The five v1 asked that this direction answers by itself (Q1 the wider test
-rule, Q2 the coach seam, Q6 the draft accessor, Q8 five files or one, Q10 a second split) are
-withdrawn with their reasons in the sections that dispose of them.
+**Seven**, against v2's five and v1's ten: Q6 and Q7 are new and come out of R1. The five v1 asked
+that this direction answers by itself (its Q1 the wider test rule, Q2 the coach seam, Q6 the draft
+accessor, Q8 five files or one, Q10 a second split) are withdrawn with their reasons in the sections
+that dispose of them. **R1 N6 answers Q1, Q2, Q4 and Q5 the same way this table does**, which is
+worth the PM knowing: two hands who did not speak agree on four of the five, and the fifth, Q3, the
+reviewer agreed with on the answer and disagreed with on the framing. The framing is now the
+reviewer's.
 
 | # | question | recommendation |
 |---|---|---|
 | **Q1** | F.1: the weigh-in writer into a sealed sibling, at the cost of three rewritten lines and a sixth D.1 substitution; or `today-model.cjs` declared pinned-unchanged and nothing moved, at the cost of `read()` being closed to C-UI-3? | **The sibling.** The projection must stay editable or the split re-creates v1's frozen-view-model problem one file over |
 | **Q2** | H.5 item 4: are `food-model.cjs`, `sleep-model.cjs` and `machine-settings-view.mjs` declared pinned-unchanged in S10, and the two MAY CHANGE lines narrowed? | **Yes.** Zero code, the mechanism is already accepted, and it closes the last route by which a look ticket changes what is stored |
-| **Q3** | S-R5's re-ask: E.6's runtime gesture guard, about twelve lines of NEW sealed code. In scope? | **Yes, and more so than under v1**, because the file that could smuggle a callback is now 2000 lines that six tickets will edit. If no: one sentence in the S10 brief, written, not discovered |
+| **Q3** | S-R5's re-ask: E.6's runtime gesture guard, about twelve lines of NEW sealed code. In scope? | **Yes, and more so than under v1**, because the file that could smuggle a callback is now 2000 lines that six tickets will edit. **R1's framing is taken and the answer is the same**: the question was never whether to have the guard but what its SUBJECT is, and E.6 now names the twelve DURABLE callbacks and exempts the ENTRY ones with a cell that keeps the exemption honest. If no: one sentence in the S10 brief, written, not discovered |
 | **Q4** | D.3's nine optional list widenings, or the fence's zero-copy assertion over the two sealed modules? | **The fence assertion.** One new law instead of nine edits in four sealed cells, and strictly stronger. Both if the PM wants belt and braces |
 | **Q5** | G.4: does the PM accept that S10 releases `today-app.cjs` and changes it in the same package, with the changed bytes stood by the suite, the fence, CI and the gates rather than by a hash? | **Yes, and it must be written into the S10 brief in one sentence.** It is `:536`'s trade, carried out; it is not a hole, but it looks like one to a reviewer who has not been told |
+| **Q6 (NEW, from R1 BLOCKING-4 and B.4)** | `mountToken += 1` at `:2296` stays RELEASED. Does the PM accept the argument that the mount token governs painting and navigation and never the record, or does it go behind a callback too? | **Accept it**, on the file's own words at `:2289-:2294` and `:1921-:1926`. If the PM does not, it is `on.leaveScreen()` beside `on.forgetCheckInRead()`, about two lines and one more seam row, and I would rather be told than guess |
+| **Q7 (NEW, from R1 N4 and `DECISIONS:546`)** | The copy lock is a named PRECONDITION of S10 and S10 is the child that carries this split. Does the split wait for the lock, or does the PM want the split's product commits prepared against S9's head and held? | **Wait, and say so in the dispatch**, because G.4 consequence 1 already forbids landing the split's commits on the chain ahead of S10; a prepared-and-held branch is what that implies and it should be stated rather than assumed |
 
 Also carried to the PM, not a question: **the design lane should modularise the released
 `today-app.cjs` into several files as a lane C ticket after C-UI-2 and C-UI-7 land** (S-R1 (g), and
@@ -1334,6 +1946,17 @@ rather than a child.
 7. **I did not read `rebuild/conform/private`, `src/history.js`, any `ledger/` directory, the
    protected soak, or anything on the owner's data path. The owner's real measurements are not in
    this session.**
-8. **This whole document is a hypothesis**, including its estimate, its seven seams and its claim
-   that there is no residue. Disagree with it where the evidence lets you, and commit only the
-   review file.
+8. **I did not re-derive B.2's whole table after R1.** I re-read by hand, at `e0e2ac75`, every line
+   the review cites and every line this fix round moves or re-classifies: `:392`, `:459`,
+   `:510-:541`, `:593-:618`, `:1373-:1393`, `:1402-:1427`, `:1535-:1565`, `:1772`, `:1807-:1930`,
+   `:2283-:2302`, `:2448-:2455`, `:2552-:2625`, and `gym-app.mjs:123-:182` and `:242-:318`. I did
+   NOT re-read the other 100 regions a second time. The 670 is v2's 663 plus the six named deltas,
+   not a fresh derivation, and appendix item 2's warning to the build round stands doubled.
+9. **I did not re-run the reviewer's own measurements except where I dispute or restate them.**
+   Where I say the reviewer is right, I checked the cited lines; where I say the reviewer is wrong
+   (N1 row 1), I re-measured and printed the method. The reviewer's DOM census of the four lane
+   hosts, its `build.mjs:391` cite and its `food.test.mjs:696-:698` reading I took on the strength
+   of v2's own independent measurement of the same things, which agrees.
+10. **This whole document is a hypothesis**, including its estimate, its eleven seams and its claim
+   that there is no residue. Two independent hands have now attacked it and a third should.
+   Disagree with it where the evidence lets you, and commit only the review file.
