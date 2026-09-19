@@ -327,6 +327,7 @@ function profileDiff(a, b) {
   }
   return out.sort();
 }
+
 function checkControlFlow(file, region, pre) {
   const post = (region.replacement || []).join("\n");
   const d = profileDiff(controlProfile(pre), controlProfile(post));
@@ -344,7 +345,7 @@ function checkControlFlow(file, region, pre) {
   return true;
 }
 
-function checkWitness(file, region, start, end, body, lastHits, firstHits) {
+function checkWitness(file, region, start, end, body, lastHits, firstHits, lines) {
   const w = WITNESS.regions[region.id];
   if (!w) {
     fail(file + " " + region.id + ": NO WITNESS. Every " + region.kind +
@@ -364,21 +365,43 @@ function checkWitness(file, region, start, end, body, lastHits, firstHits) {
       "apart because they ARE the same line (blind review F5, incremental review F1): " +
       JSON.stringify(region.first.text));
   }
-  const lines = end - start + 1;
-  const byExtent = REF_NAMES.filter((n) => w[n] && w[n].lines === lines);
+  /* THE ANCHOR'S WITNESSED ENCLOSING CONTEXT (loop round 2, B1). The count above says HOW
+     MANY there are; it does not say WHICH one is this region's, and the reviewer kept the
+     count while moving the ordinal onto a plant. resolve.cjs picks the one occurrence that
+     sits in the declared context; this is the copy with an outside oracle behind it, so a
+     `first.context` rewritten in the table to fit a plant is refused here. */
+  if (region.first.context) {
+    const recCtx = REF_NAMES.filter((n) => w[n] && typeof w[n].contextSha === "string");
+    if (!recCtx.length) {
+      fail(file + " " + region.id + ": the row declares a `first.context` and NO named ref " +
+        "witnesses it. An ambiguous anchor's context is the thing that binds it to its own " +
+        "declaration and it is worth nothing unwitnessed (loop round 2, B1). Run " +
+        "gen-witness.cjs at each named ref.");
+    }
+    const actual = sha256(resolveAnchors.contextText(lines, start, region.first.context));
+    if (!recCtx.some((n) => w[n].contextSha === actual)) {
+      fail(file + " " + region.id + ": THE ANCHOR'S ENCLOSING CONTEXT AT :" + start +
+        " IS NOT THE WITNESSED ONE. It hashes " + actual.slice(0, 16) + "..., the witness " +
+        "records " + recCtx.map((n) => n + "=" + w[n].contextSha.slice(0, 16) + "...").join(", ") +
+        ". A context edited in the table to fit a competing occurrence of the anchor's own " +
+        "text binds this region to a DIFFERENT declaration (loop round 2, B1).");
+    }
+  }
+  const lineCount = end - start + 1;
+  const byExtent = REF_NAMES.filter((n) => w[n] && w[n].lines === lineCount);
   if (!byExtent.length) {
     const want = REF_NAMES.filter((n) => w[n]).map((n) => n + "=" + w[n].lines + " lines").join(", ");
     const near = lastHits.filter((l) => l >= start && l <= start + 400).slice(0, 8).join(" :");
     fail(file + " " + region.id + ": LAST ANCHOR IS AMBIGUOUS. The table's occurrence #" +
       region.last.nthFrom + " of " + JSON.stringify(region.last.text) + " resolves to :" + end +
-      ", which makes the region " + lines + " lines; the witness records " + want +
+      ", which makes the region " + lineCount + " lines; the witness records " + want +
       ". Candidate occurrences at or after :" + start + " are :" + near +
       ". Re-anchor the region or re-take the witness with gen-witness.cjs (S-R20).");
   }
   const sha = sha256(body);
   const byBytes = byExtent.filter((n) => w[n].sha256 === sha);
   if (!byBytes.length) {
-    fail(file + " " + region.id + ": BYTES DO NOT MATCH THE WITNESS. " + lines +
+    fail(file + " " + region.id + ": BYTES DO NOT MATCH THE WITNESS. " + lineCount +
       " lines at :" + start + "-:" + end + " hash " + sha.slice(0, 16) + "..., the witness records " +
       byExtent.map((n) => n + "=" + w[n].sha256.slice(0, 16) + "...").join(", ") +
       ". This region is not the region the spec was reviewed against (S-R19).");
@@ -478,7 +501,7 @@ for (const [file, regions] of Object.entries(table.files)) {
   for (const x of sorted) {
     if (!WITNESSED_KINDS.has(x.r.kind)) continue;
     const body = lines.slice(x.start - 1, x.end).join("\n");
-    const ok = checkWitness(file, x.r, x.start, x.end, body, x.lastHits, x.firstHits);
+    const ok = checkWitness(file, x.r, x.start, x.end, body, x.lastHits, x.firstHits, lines);
     const next = agree.filter((n) => ok.includes(n));
     if (!next.length) {
       fail(file + " " + x.r.id + ": the file's regions do not agree on one witnessed ref. " +

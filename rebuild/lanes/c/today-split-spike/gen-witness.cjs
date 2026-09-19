@@ -183,6 +183,14 @@ for (const [file, regions] of Object.entries(table.files)) {
     }
     r.first.occurrences = occ;
     row[REF_NAME] = { sha256: sha, lines: end - start + 1, at: [start, end], occurrences: occ };
+    /* THE ENCLOSING CONTEXT of an ambiguous anchor, taken at this named ref from the same git
+       objects (loop round 2, B1). resolve.cjs has already refused unless exactly ONE
+       occurrence sits in the declared context; this records what that context ACTUALLY is at
+       the ref, so that a `context` rewritten in the table to fit a plant contradicts an
+       outside number in cut.cjs instead of blessing itself. */
+    if (r.first.context) {
+      row[REF_NAME].contextSha = sha256(resolveRegion.contextText(lines, start, r.first.context));
+    }
     witness.regions[r.id] = row;
     if (r.kind === "move") moved += end - start + 1;
     n += 1;
