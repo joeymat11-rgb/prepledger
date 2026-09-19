@@ -2077,3 +2077,32 @@ git diff --stat
  .../c/ui-port/sealed-inventory-fence.test.mjs      |  55 ++++++-
  3 files changed, 221 insertions(+), 9 deletions(-)
 ```
+
+## 17. Integrator corrections after review R6
+
+Added by the PM as integrator, 2026-09-19, paper only. Review R6
+(rebuild/lanes/b/S9-PREP-CELLS-REVIEW-R6.md, ACCEPT WITH NOTES) found four
+statements in this report made stale by the integrator's own comment-only
+commit 8019abf6, which landed after section 16 was written. None is the
+builder's error. The sections above are left as written; these lines correct them.
+
+- 16.3: the certutil block names cell sha256
+  43bcda207174397681fb616b884bb951924250d48091b91bc0983d17762077e6. That is the
+  cell at 2f37a36e. At the accepted head 8019abf6 the cell is
+  673a02f9334af5e6a4469a4085ead55bcc465b1a62650a49da3896207986b199, measured on
+  Windows and on linux by the PM and again by review R6 (DECISIONS:583).
+- 16.5: the diffstat says 55 lines and 221 insertions for the cell and the whole
+  change. At the head they are 56 and 222, the one comment line 8019abf6 added.
+- 16.1: "It was not reworded" was true at 2f37a36e. At 8019abf6 the comment of
+  row (6d) says the null dereference throws and keeps the removed catch as
+  history in brackets; no code token moved (R6 hashed the comment-stripped cell
+  at both commits: identical).
+- Section 15 (:1760, :1775, :1838) describes FENCE-INVENTORY-HEAD-UNREADABLE in
+  the present tense. The refusal and its catch were removed in round 6 by the
+  PM's ruling P-FENCE-2 (DECISIONS:580); read those three places as history.
+
+Carried to the S9 integration by review R6, recorded here so the list has one
+home: one row with two asserts (a same-length edit of the sealed inventory must
+FAIL by name; a zero-byte inventory must FAIL by name: R6-Z2 and R6-Z3 left all
+44 rows green on both systems); Y2 stays killed on Windows only, as N2 already
+says of rows (24) and (25); spec D.2's new sentence means "passes THIS CHECK".
