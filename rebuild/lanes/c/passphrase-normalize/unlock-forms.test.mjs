@@ -133,17 +133,51 @@ test('C-PN-12 - deriveKey, the function port.cjs seals with, is byte for byte '
 
 /* THE WORDLIST IS PUBLIC, so knowing a word is in it is worth nothing. Knowing
    WHICH of the six is wrong is worth 2048-to-1 per word, and no refusal here
-   may be worth that. */
+   may be worth that.
+
+   FIX ROUND, REVIEW R1 BLOCKING 1. The first version of this cell serialised
+   the refusal with JSON.stringify and then searched THAT string for each of the
+   six words the port had just minted. JSON.stringify writes the KEY NAMES into
+   the haystack, and 'message', 'code', 'field' and 'detail' are all four words
+   in wordlist.cjs, so whenever the port drew one of them the cell announced
+   that the refusal "carries the word" when the refusal carried nothing of the
+   sort: 1.17% of runs, measured over the real makePassphrase. A false alarm
+   that is indistinguishable from the real alarm is worse than no cell, and it
+   cannot be cleared by re-running.
+
+   The claim is unchanged and its teeth are sharper. The four values the athlete
+   and the route can see are compared to a FIXED constant, so a word could not
+   appear in one of them without breaking that equality; the haystack is then
+   asserted to carry no lower-case letter at all, and every word in the list is
+   ^[a-z]+$ (C-PN-7, C-PN-8), so "no word is in it" follows by construction
+   rather than by luck; and the refusals from two DIFFERENT wrong passphrases
+   are compared to each other, which is the property that actually matters -
+   the refusal does not depend on what was typed. */
 test('C-PN-13 - a refusal says which HALF of the problem it is not: no field, '
-  + 'no index, no word, no count', async () => {
-  const typed = [...SIX.slice(0, 5), 'zzzzzz'].join(' ');
-  for (const refusal of [await refusalOf(() => openNode(typed)),
-    await refusalOf(() => openPhone(typed))]) {
-    const seen = JSON.stringify({ message: refusal.message, code: refusal.code,
-      field: refusal.field ?? null, detail: refusal.detail ?? null });
-    assert.equal(refusal.field ?? null, null, 'a passphrase refusal names a field');
-    for (const word of [...SIX, 'zzzzzz'])
+  + 'no index, no word, no count, and nothing that depends on what was typed',
+async () => {
+  /* Fixed nonsense the port can never draw, so searching for these is a fact
+     and not a lottery; and the two inputs share no word, so any dependence on
+     the typed string shows up as a difference between the two refusals. */
+  const PROBE = ['zzzzzz', 'qqqqqq', 'xxxxxx', 'wwwwww', 'vvvvvv', 'uuuuuu'];
+  const oneWrongWord = [...SIX.slice(0, 5), PROBE[0]].join(' ');
+  const everyWordWrong = PROBE.join(' ');
+  const SURFACE = Object.freeze({ message: 'BUNDLE_AUTH_FAILED',
+    code: 'BUNDLE_AUTH_FAILED', field: null, detail: null });
+  const surfaceOf = refusal => ({ message: refusal.message, code: refusal.code,
+    field: refusal.field ?? null, detail: refusal.detail ?? null });
+  for (const [decoder, open] of [['node', openNode], ['phone', openPhone]]) {
+    const refusal = surfaceOf(await refusalOf(() => open(oneWrongWord)));
+    const other = surfaceOf(await refusalOf(() => open(everyWordWrong)));
+    assert.deepEqual(refusal, SURFACE, decoder + ': the refusal surface moved');
+    assert.deepEqual(other, refusal, decoder + ': two different wrong passphrases '
+      + 'refuse differently, so a refusal carries something about what was typed');
+    const seen = [refusal.message, refusal.code, refusal.field, refusal.detail]
+      .map(value => value ?? '').join(' ');
+    assert.equal(/[a-z]/.test(seen), false, decoder + ': a refusal carries a '
+      + 'lower-case letter, so it is able to carry a word');
+    for (const word of [...SIX, ...PROBE])
       assert.equal(seen.includes(word), false, 'the refusal carries the word ' + word);
-    assert.equal(/\b[0-9]\b/.test(seen), false, 'the refusal carries a number');
+    assert.equal(/[0-9]/.test(seen), false, decoder + ': the refusal carries a number');
   }
 });

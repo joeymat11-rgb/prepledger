@@ -46,7 +46,15 @@
    tree. The class is, in order: Unicode whitespace, U+2010 HYPHEN through
    U+2015 HORIZONTAL BAR, U+2212 MINUS SIGN, underscore, comma, full stop and
    hyphen-minus (last, so it is a literal and not a range). */
-const PASSPHRASE_SEPARATORS = /[\s\u2010-\u2015\u2212_,.-]+/gu;
+const PASSPHRASE_SEPARATORS = /[\s\u2010-\u2015\u2212_,.-]+/u;
+/* FLAGLESS ABOVE, ON PURPOSE (fix round, review R1 note 2). A global regex
+   carries lastIndex with it, so an EXPORTED one answers a repeated .test() on
+   one input with true, false, true, false. Nothing calls it that way today,
+   which is exactly when to close it: on the import path a trap that springs
+   only for the next caller is still a trap. The fold needs a global copy to
+   replace every run rather than the first, so it keeps its own and keeps it
+   module-private. C-PN-19 is that claim, measured. */
+const SEPARATOR_RUNS = new RegExp(PASSPHRASE_SEPARATORS.source, 'gu');
 const ENDS = /^-+|-+$/g;
 
 function normalisePassphrase(typed) {
@@ -54,7 +62,7 @@ function normalisePassphrase(typed) {
   return typed
     .normalize('NFKD')
     .toLowerCase()
-    .replace(PASSPHRASE_SEPARATORS, '-')
+    .replace(SEPARATOR_RUNS, '-')
     .replace(ENDS, '')
     /* Lower-casing an NFKD string is not guaranteed to leave it NFKD, and the
        derive sites hand this straight to the KDF, so the last word is NFKD's.

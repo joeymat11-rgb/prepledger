@@ -288,3 +288,279 @@ already pays; `helper.test.mjs` seals nothing and costs milliseconds.
    Everything above is synthetic, sealed by the real `port.cjs` with passphrases
    the port itself minted one second earlier. The owner's bundle was never read
    and `C:\Users\joeym\EarnedPort` was never opened.
+
+---
+
+# FIX ROUND (round 2), after review R1
+
+**Round** 2, author. The first author is gone; nothing of his was discarded.
+The review `rebuild/lanes/c/PASSPHRASE-NORMALIZE-REVIEW-R1.md` was read whole,
+its verdict was REJECT on one blocking item, and every number it states was
+re-measured here rather than copied. Sections 1 to 10 above stand as written
+except where section 13 corrects them.
+
+**The product change did not move.** The reviewer could not break it and neither
+could I. `unseal.cjs`, `import-bundle.mjs`, `import-screen.mjs` and
+`page-bundle.test.mjs` are byte for byte what R1 reviewed. The fix round touches
+five files, **none of them pinned**, checked against
+`rebuild/m4/spec/acceptance-s8-real-shape.json` before the first edit and again
+before the commit:
+
+| path this round touched | pinned in the S8 shape | why it moved |
+| --- | --- | --- |
+| `rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs` | no | B1, site 1 |
+| `rebuild/lanes/c/passphrase-normalize/route.test.mjs` | no | B1, site 2 |
+| `rebuild/lanes/c/passphrase-normalize/helper.test.mjs` | no | N2 red first, N1 measured |
+| `rebuild/m3/setup/port/passphrase.cjs` | no | N2, the exported class |
+| `rebuild/m3/setup/port/README.md` | no | N4, one stale sentence |
+| `rebuild/lanes/c/PASSPHRASE-NORMALIZE-AUTHOR-REPORT.md` | no | this section |
+
+So the three pinned files of section 3 are still the only pinned files this lane
+touches, and the byte-pin list in section 7b is unchanged.
+
+    git diff --numstat 9e1ece8..HEAD -- rebuild/engine rebuild/coach rebuild/DECISIONS.md
+    (empty)
+
+`.github/workflows/rebuild.yml` was not touched. No literal U+2013 or U+2014
+character was added: the escape sequences in the cells were verified as escape
+TEXT by reading the files back through `JSON.stringify`, not by eye.
+
+## 11. R1 findings: fixed or disputed
+
+### B1 (BLOCKING) - FIXED. The reviewer is right, and the numbers reproduce.
+
+He found that two of this lane's own cells searched a haystack of ENGLISH PROSE
+for each of the six words the port had just minted, with `String.includes`. The
+six words are drawn fresh on every run, so this is a lottery and a re-run is not
+an honest answer to it. I measured it again, from the wordlist itself, without
+reading his figures first:
+
+| fact | measured here | R1 |
+| --- | --- | --- |
+| wordlist length | 2048 | 2048 |
+| `message`, `code`, `field`, `detail` all wordlist words | yes, all four | yes |
+| wordlist words that are substrings of the rendered refused page | 17 | 17 |
+| C-PN-16 false red per run | 4.88% | 4.87% |
+| C-PN-13 false red per run | 1.17% | 1.16% |
+| either, per CI run of the lane step | **5.99%, 1 in 17** | 5.97% |
+
+The three words `space`, `capital` and `matter` are in that prose because of the
+helper sentence THIS LANE ADDED, so the change did make its own cell flakier. He
+is also right about the worst part: the sentence a reader would have met is
+"the screen printed the word <w>", which reads as the import screen leaking a
+word of the owner's passphrase, on the owner's data path, in the week his father
+imports. A false alarm that cannot be told apart from the real alarm is worse
+than no cell.
+
+**What changed, and why each replacement is stronger rather than looser.**
+
+*C-PN-13, unlock-forms.test.mjs.* The haystack is no longer a serialised object
+(which is what wrote the key names into it). Three assertions stand where one
+stood: the four values the athlete and the route can see are compared to a FIXED
+constant, `{ message, code } = BUNDLE_AUTH_FAILED, field = null, detail = null`,
+on BOTH decoders, so a word could not appear in one of them without breaking
+that equality; the haystack is then asserted to carry no lower-case letter at
+all, and every word in the list is `^[a-z]+$` (C-PN-7, C-PN-8), so "no word is
+in it" now follows by construction instead of by luck; and the refusals from two
+DIFFERENT wrong passphrases are compared to each other, which is the property
+that actually matters - a refusal does not depend on what was typed. The word
+scan is kept, over the values only, and the six probe words are fixed nonsense
+the port can never draw.
+
+*C-PN-16, route.test.mjs.* The scan of the page prose is gone. Two claims
+replace it. First, the screen does not ECHO what was typed: the six typed words
+are fixed nonsense (`zzzzzz`, `qqqqqq` and so on), so scanning the rendered page
+for them is a fact and not a lottery. Second, and this is the reviewer's own
+second remedy, which he called strictly stronger: the ENTIRE rendered text of
+the refused screen is compared character for character with the same screen
+refused after six completely different wrong words.
+
+**Do the replacements still have teeth? Measured by mutation, not argued.** A
+cell that stopped raising a false alarm is worthless if it also stopped raising
+the true one, so the product was deliberately broken twice, on a working copy of
+`import-screen.mjs` that was restored with `git checkout --` immediately after
+(the file is byte for byte its committed self; `git status` carries it in
+neither run below nor in the commit).
+
+| mutation to the refusal box | new C-PN-16 | the R1 cell it replaced |
+| --- | --- | --- |
+| M1: print the whole typed passphrase | **RED**, "the screen printed back what was typed: zzzzzz" | RED |
+| M2: print only the FIRST CHARACTER of what was typed | **RED**, "the refused screen is not the same screen for two different wrong passphrases" | **GREEN, exit 0** |
+
+M2 is the point. A screen that leaked one character of the passphrase - which is
+one of 2048 words narrowed to about a twentieth of the list, a real loss - was
+INVISIBLE to the cell R1 reviewed, because that cell searched only for whole
+words. The replacement catches it. The old cell was run against M2 verbatim, as
+a scratch file beside the lane, and it passed; the scratch file was deleted and
+is not in the commit. So the replacement is strictly stronger on the very axis
+the original cell existed to guard, and nothing was loosened to remove the
+lottery.
+
+**The lottery is gone by construction, and corroborated by repetition.** Eight
+consecutive runs of the lane step, each with a passphrase the port minted
+seconds earlier, all green at 20 of 20 (logs `%TEMP%\c2-r1.log` to
+`%TEMP%\c2-r8.log`). I do not offer those eight runs as the proof: at the old
+5.99% they would have produced about half a red between them, so eight greens
+would be unremarkable. The proof is that neither replacement can draw a losing
+ticket. C-PN-13 searches a haystack asserted to hold no lower-case letter, and
+every wordlist word is lower-case ASCII; C-PN-16 searches only for six fixed
+strings the port cannot mint, and otherwise compares two renders of one screen
+to each other. There is no random input left in either assertion.
+
+### N1 (invisible format characters refuse) - NOT TAKEN HERE, and now MEASURED.
+
+I agree with the reviewer's own recommendation, which was a follow-on rather
+than this lane, and I am not taking it, for a narrower reason than his: it
+WIDENS the accepted set on the owner's data path, and the accepted set is the
+one thing this ticket is careful about. A widening deserves its own red-first
+round and its own independent review, and there is no user on the path who needs
+it: the owner and his father read the six words off paper the PC printed, and
+nothing in that loop can produce U+200B, U+2060, U+00AD or a directional mark.
+The current behaviour fails CLOSED - the string folds to one word, or to six
+marked words, and refuses with the one code - so this is not a security finding
+and there is nothing here that a wait can break.
+
+What did change is that the behaviour is no longer unmeasured. **C-PN-20** is
+new and states it: the three gluing format characters refuse, the marked form is
+still SIX words (so the word-count pre-check of section 7a would not have caught
+it either, which is the reviewer's point and worth keeping), and no word in the
+list carries a format character - so if the PM takes open question 2, stripping
+them cannot merge two different valid passphrases, and the widening will be a
+deliberate edit to a cell that says what it is changing.
+
+### N2 (the exported separator class carried the g flag) - FIXED, red first.
+
+The reviewer is right that nothing walks into it today and right that it is a
+trap for the next caller: a global regex carries `lastIndex`, so an exported one
+answers a repeated `.test()` on ONE input with true, false, true, false, and
+this one sits on the import path. The cell was written first and run against the
+unchanged helper:
+
+    C-PN-19 ... 9 tests, 8 pass, 1 FAIL
+    AssertionError: the exported separator class carries lastIndex, so
+      .test() alternates on one input      true !== false
+
+Then the export lost its flag - `/[...]/u` - and the fold kept a module-private
+global copy built from the same `source`, so the class is still written once and
+still written as escapes. C-PN-19 now passes, and C-PN-5, which pins that the
+helper carries this lane's stated class, passes untouched.
+
+### N3 (`passphraseWordCount` is exported and nothing calls it) - FIXED as asked.
+
+One line for the S9 notes, in section 12 below, so it is not later mistaken for
+a check that is running. It is not dead: C-PN-4 and C-PN-20 both exercise it,
+and it is the whole of the pre-check the PM may still ask for in 7a.
+
+### N4 (`rebuild/m3/setup/port/README.md:191` is stale) - FIXED.
+
+Measured first: the README is NOT pinned in the S8 shape. One paragraph now
+follows the sentence the reviewer flagged. It says that NFKD alone is the whole
+of it on the SEALING side, which is why every bundle sealed before DECISIONS:520
+still opens, and that the IMPORT side passes the typed passphrase through
+`passphrase.cjs normalisePassphrase()` first, with the fold spelled out; and it
+tells whoever builds another decoder to READ that helper rather than
+re-implement it, because two implementations of this idea drifting apart is the
+defect the helper exists for. The sentence the reviewer quoted is left standing
+and corrected underneath rather than rewritten, which is this file's own
+convention.
+
+### N5 (a .cjs helper entering the phone bundle) - agreed, nothing to do.
+
+He looked for a problem, found none, and recorded that he had checked. I agree
+and add nothing.
+
+### N6 (7c, the two re-measured integers) - agreed, nothing to do.
+
+He declined to overrule the first author and gave his reasons. I would not
+overrule him either, and the question is still open to the PM in the same terms.
+The two counts were not touched again in this round.
+
+## 12. THE BAR, re-run WHOLE on this tip, with counts
+
+`MEASURED_TEST_NOW=2026-09-03` and `TZ=America/New_York`, each set on its own
+line of the runner, node
+`C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe`.
+Every group is named by exact file path, never globbed; the list is in
+`%TEMP%\c2-bar.cmd` and the logs are `%TEMP%\c2-g1.log` to `%TEMP%\c2-g7.log`.
+
+| group | files | counted | pass | fail |
+| --- | --- | --- | --- | --- |
+| lane C cells, `rebuild/lanes/c/passphrase-normalize/` | 3 | **20** | 20 | 0 |
+| the import corpus, `w7-preview/import/test/` | 5 | 35 | 35 | 0 |
+| `rebuild/m4/import/test/` | 7 | 90 | 90 | 0 |
+| w6: local-source-admission, local-source-consumer, local-import, host-seams | 4 | 57 | 57 | 0 |
+| the port seal suites: port, seal, port-harden | 3 | 65 | 65 | 0 |
+| lane D: import-retract, p3-port-fix, p3-real-shape, p3-layout-v2 | 12 | 110 | 110 | 0 |
+| the today suite and measure (CI line 232) | 17 | **682** | 682 | 0 |
+| **total** | **51** | **1059** | **1059** | **0** |
+
+* The lane's own count moved from 18 to **20**: C-PN-19 (N2) and C-PN-20 (N1)
+  are new. C-PN-13 and C-PN-16 were rewritten, not added.
+* The import corpus is 35 and the `m4/import` children are 90, which are the
+  ticket's own expected numbers, so the files this lane moved still execute
+  exactly as they did.
+* The today suite is **682**, not the 661 the ticket quotes. It was 682 before
+  this lane and it is 682 now.
+* Every figure above is a FIRST run. Nothing was re-run to reach a green. The
+  today-17 measure journey, this lane's known residual flake, did not flake.
+* The eight extra runs of the lane step (section 11, B1) were run deliberately
+  AFTER the bar and are reported as repetition, not as a re-run of a red.
+* `rebuild/m3/w6/test/local-import.test.mjs` is in group 4 and passes. **No
+  workflow runs it.** It is the suite that pins the phone's five seal constants
+  against `unseal.cjs`, which on this ticket is precisely the drift that caused
+  the defect. Still open, still not this lane's to fix.
+
+**For the S9 notes.** `passphraseWordCount()` is exported product code that no
+product path calls. It is the pre-check of section 7a, deliberately not wired
+in; only the cells exercise it. Nobody should read its existence as a check that
+is running.
+
+## 13. THE CI LINE (unchanged by this round)
+
+      - name: C - the six words in every form the athlete can type them
+        run: node --test rebuild/lanes/c/passphrase-normalize/helper.test.mjs rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs rebuild/lanes/c/passphrase-normalize/route.test.mjs
+
+Same three files, now 20 cells instead of 18, and it needs the job's existing
+`MEASURED_TEST_NOW=2026-09-03` and `TZ=America/New_York`, each on its own line.
+R1 said "do not add this step until B1 is fixed". B1 is fixed, by construction
+and not by a re-run, so the step is safe for the S9 integrator to add.
+`.github/workflows/rebuild.yml` was not touched by this lane in either round.
+
+## 14. R1's open questions, answered, and what is still open
+
+1. **"B1 is the only thing standing between this and ACCEPT."** Fixed. Two
+   cells, no product change, both replacements strictly stronger (the M2
+   mutation is the evidence: it is invisible to the cell R1 reviewed and red
+   against its replacement). The lane step was run eight further times, green
+   every time, but the argument the R2 reviewer should test is the one from
+   construction in section 11, not the eight runs.
+2. **"Do we want the format characters stripped as well?"** Not in this lane,
+   and I agree with his own read. Now measured by C-PN-20 rather than left
+   unstated. Still open to the PM, and it should be red first with its own
+   review, because it widens the accepted set.
+3. **"The ticket's today-suite number, 661, is stale."** Confirmed a second
+   time: 682 on this tip, 682 before this lane. Somebody's bar text needs
+   correcting; it is not a finding against this change.
+4. **"`local-import.test.mjs` is run by no workflow."** Confirmed again, in
+   group 4. It passes. It still needs a CI step from somebody, and on this
+   ticket it is the guard against exactly the PC-versus-phone drift that caused
+   the defect.
+5. **"Nobody has typed the real six words into the real phone."** Still true,
+   and still the thing I would do before the father imports. Everything in both
+   rounds is synthetic, sealed by the real `port.cjs` with passphrases the port
+   minted seconds earlier. The owner's bundle was never read,
+   `C:\Users\joeym\EarnedPort` was never opened, no real measurement entered
+   this session, and `b-package.cjs --full` was never run.
+
+### Open questions this round adds
+
+6. **The escape sequences in the cells were repaired once during this round.**
+   A file written through this tooling had four escape sequences land as the
+   literal invisible characters they name; they were written back as escape TEXT
+   and verified by reading the files through `JSON.stringify` rather than by
+   eye. The lane files now carry zero literal characters in U+2010 to U+2015 and
+   U+2212, which is the law, but the verification method is worth stealing: an
+   invisible character is exactly the kind of thing a diff review cannot see.
+7. **R2 should not trust this report.** It is a hypothesis, like round 1's. The
+   three numbers most worth re-measuring independently are the 17 prose words,
+   the M2 mutation result, and the 682.

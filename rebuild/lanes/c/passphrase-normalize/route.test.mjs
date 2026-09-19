@@ -76,16 +76,47 @@ test('C-PN-15 - and the phone\'s own helpers do not break it: capitals and a '
   }
 });
 
+/* FIX ROUND, REVIEW R1 BLOCKING 1. This cell used to scan the WHOLE rendered
+   page for each of the six words the port had just minted. The rendered page is
+   prose, and seventeen wordlist words are substrings of it - among them 'space',
+   'capital' and 'matter', which the helper sentence THIS LANE ADDED put there,
+   and 'hat' out of "That", 'hen' out of "hyphens", 'phrase' out of "passphrase".
+   Measured over the real makePassphrase that is a 4.88% false red per run, with
+   a message - "the screen printed the word <w>" - that anybody meeting it in CI
+   would read as the import screen leaking a word of the owner's passphrase.
+
+   Two claims replace it, and both are stronger than the one they replace:
+
+     the screen does not ECHO what was typed - asserted with six fixed nonsense
+     words the port can never draw, so the scan is a fact and not a lottery; and
+
+     the refused screen does not DEPEND on what was typed - the entire rendered
+     text after a wrong-word refusal is compared, character for character, to
+     the same screen refused with six completely different wrong words. A screen
+     that printed any part of the typed passphrase, in prose or in a code line,
+     would differ between the two. Nothing about the fixed COPY is excused, and
+     no assertion was loosened to get here. */
 test('C-PN-16 - a wrong word still refuses on the screen, with the sentence the '
-  + 'screen already had and nothing added about which word', async () => {
-  const run = await unlockWith('wrong', [...SIX.slice(0, 5), 'zzzzzz'].join(' '));
+  + 'screen already had and nothing that depends on what was typed', async () => {
+  const PROBE = ['zzzzzz', 'qqqqqq', 'xxxxxx', 'wwwwww', 'vvvvvv', 'uuuuuu'];
+  let run = null;
+  let other = null;
   try {
+    run = await unlockWith('wrong', [...SIX.slice(0, 5), PROBE[0]].join(' '));
+    other = await unlockWith('wrong', PROBE.join(' '));
     assert.equal(run.step, 'words', 'a wrong word did not keep the athlete on the words step');
-    assert.equal(run.refusal.code, 'BUNDLE_AUTH_FAILED');
+    assert.deepEqual(run.refusal, { code: 'BUNDLE_AUTH_FAILED', detail: null },
+      'the refusal on the screen carries something it did not carry before');
     assert.ok(run.text.includes(COPY.authFailed), 'the screen changed its refusal sentence');
-    for (const word of SIX)
-      assert.equal(run.text.includes(word), false, 'the screen printed the word ' + word);
-  } finally { run.kit.close(); }
+    for (const word of PROBE) {
+      assert.equal(run.text.includes(word), false, 'the screen printed back what was typed: ' + word);
+      assert.equal(other.text.includes(word), false, 'the screen printed back what was typed: ' + word);
+    }
+    assert.equal(other.step, run.step);
+    assert.deepEqual(other.refusal, run.refusal);
+    assert.equal(other.text, run.text, 'the refused screen is not the same screen for two '
+      + 'different wrong passphrases, so something on it depends on what the athlete typed');
+  } finally { if (run) run.kit.close(); if (other) other.kit.close(); }
 });
 
 /* THE COPY. The owner did the right thing with the wrong separator because the
