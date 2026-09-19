@@ -1,5 +1,11 @@
 # TODAY-SPLIT BUILD, PART 1 - AUTHOR REPORT
 
+**FIX ROUND (R1).** The first author is gone. This report is theirs, continued: their product
+bytes are untouched and their sections stand, and every R1 finding is answered in the new
+section **"R1 findings: fixed or disputed"** below, which a reader should take first. Nothing
+in this round moves a product byte; all five files it changes are instruments, the fence, this
+report and a new crossing table. Fix-round author: cowork (Earned lane hand, lane C).
+
 Author: cowork (Earned lane hand, lane C). Branch `rebuild/c-today-split-build`, cut from
 `rebuild/c-today-split` at `a2632a3b` and MERGED with the S9 lane head
 `origin/rebuild/b-s9-ui-pins` (`da9f8683`) as the first act, no conflict, merge commit
@@ -27,9 +33,9 @@ synthetic. The owner's real measurements are not in this session.
 | the today step on the PC, BEFORE my first product edit | **682 tests, 680 pass, 2 fail**, 161.5 s |
 | the today step on the PC, AFTER my last product edit | **682 tests, 680 pass, 2 fail**, 159.0 s |
 | the two failures | `boundary.test.mjs` **P-MEASURE (g)** and `setup.test.mjs` **re-pin**, the two known pre-existing reds of `DECISIONS:552`, red on the S9 lane until `packages/S9.json` exists. They are the SAME two before and after |
-| the writer fence, on the PC | **21 rows, 21 pass**, nine of them RED first |
-| the ten lane-d cells that name either cut file, on the PC | **107 tests, 107 pass** |
-| the instruments' own cell, in the farm | **14 rows, 14 pass** in 2.4 s; **3 pass / 11 fail** against the COMMITTED instruments |
+| the writer fence, on the PC | **26 rows, 26 pass**, twelve of them RED first (was 21 / 21 with 8 red at R1) |
+| the ten lane-d cells run on the PC (**two** of which name either cut file: R1 NOTE-5 is right and the wording is corrected in section 7) | **107 tests, 107 pass** |
+| the instruments' own cell, in the farm | **20 rows, 20 pass** at the fix-round head, AT BOTH NAMED REFS (`SPLIT_TEST_REF=s9` and `=tip`); it reads its sources from git, so it no longer goes dark when a file it measures is cut (R1 BLOCKING-1) |
 | `b-package.cjs --ci --package S8` | refuses by design: `B PACKAGE S8 FAIL SEALED-PROFILE-RECOMPUTATION; required evidence missing or failed; local diagnostics withheld`, exit 1. Recorded, not chased |
 
 ### THE STOP, and I am reporting it rather than bending it
@@ -60,6 +66,132 @@ released and byte-identical**, and only the two lines that reach the sealed lane
 released gym card still carries, by region id, and a SEVENTH fails.
 
 I did not weaken a law, a guard, a pin or a test anywhere in this part.
+
+---
+
+## R1 FINDINGS: FIXED OR DISPUTED
+
+Review: `rebuild/lanes/c/TODAY-SPLIT-BUILD-REVIEW-R1.md`, REJECT on two blocking findings,
+neither in the product bytes. **I dispute none of them.** Both blocking findings reproduced
+on the first attempt, both are closed red first, and five of the seven notes are closed as
+well. Nothing in this round moves a product byte: `today-app.cjs`, `today-model.cjs`,
+`gym-app.mjs`, `today-readings.cjs`, `gym-settings-lane.mjs`, `build.mjs` and every test cell
+are byte-identical to the head R1 reviewed, which the byte-for-byte row in section 6 now
+proves mechanically rather than by assertion.
+
+| R1 | verdict | where |
+|---|---|---|
+| **BLOCKING-1** the instruments' cell is 10 of 14 at the shipped head | **FIXED, and the cause removed** | below |
+| **BLOCKING-2** the fence's suppression list has an application name in it | **FIXED, red first, and a second hole found beside it** | below |
+| NOTE-1 the declared substitution TEXT carries no witness | **FIXED, red first with R1's own attack** | below |
+| NOTE-2 `capture.cjs` has never run on the bytes that ship | **FIXED by proving the bytes identical** | section 6 |
+| NOTE-3 the fence has eight RED rows, not nine | **FIXED: the missing red row is committed, and three more** | section 7 |
+| NOTE-4 the fifth test edit is outside D.3 | **NOT MINE TO RULE. It stands, unchanged, for the PM** | below |
+| NOTE-5 the lane-d description is wrong, the result is right | **FIXED: wording corrected, number stands** | section 7 |
+| NOTE-6 the `replace` kind's witness is never the check that refuses | **AGREED, and left as it is, with the reason** | below |
+| NOTE-7 count drift, 1243 against 1277 | **RE-MEASURED, 1243, and NOT reproduced. UNMEASURED item 11** | section 6 |
+| closing note: a regenerated crossing table | **DONE: `PART1-CROSSINGS.md`, 20 rows with a disposition each** | section 6 |
+
+### BLOCKING-1, and why the fix is structural and not a number
+
+Reproduced exactly: **10 pass / 4 fail** at `62e4931f`, all four dying on
+`REFUSED: gym-app.mjs GA-S01: first anchor matches ZERO places`. R1's diagnosis is right and
+it is not a stale number: `tmpTree()` copied the three files out of the **working tree**, so
+the build's own product commit made the table stop resolving against the tree it was read
+from. Part 2 cuts `today-app.cjs` and would take the remaining ten rows dark the same way.
+
+**The cell now reads its sources with `git show <ref>:<path>`, at a ref the witness block
+itself NAMES.** Nothing in it ever opens the working tree's copy of a cut file, so it will
+keep running after part 2. `SPLIT_TEST_REF` chooses the ref and defaults to `s9`, the build's
+base; measured **20 / 20 at `s9` and 20 / 20 at `tip`**. A new row proves the fix rather than
+asserting it: it checks that the working tree's `gym-app.mjs` HAS been cut, that the ref's has
+not, and that the full cut runs green on the ref's.
+
+### BLOCKING-2, reproduced, and a second hole beside it
+
+Reproduced: `entry` and `importScreen` were application identifiers on a list of nine
+JavaScript builtins, carrying no comment and no red row, and `entry` is a live local in
+`paintSettings`. Both are **dropped**. Measured first: neither name is the receiver of a
+fenced word anywhere in the four files of this part, so dropping them costs nothing here.
+
+**Reproduced end to end, red first, on the same planted tree.** I took R1's attack line
+(`if (entry) entry.save({ lift: liftId, note: 0 });`, planted just after
+`const entry = facade.entryFor(liftId);`), pointed BOTH fences at that tree, and ran them:
+
+| fence | on R1's planted durable write |
+|---|---|
+| the fence as R1 reviewed it (`f9ec6f0f`) | **21 tests, 21 pass, 0 fail.** The write went through |
+| the fence in this round | **26 tests, 25 pass, 1 fail**, naming `FENCE-WRITER-NAME: the released gym-app.mjs holds EXACTLY the six declared seam WRITE SITES, and a seventh fails` |
+
+**The rule that keeps them out is now a measurement, not a comment.** A new row asserts that
+every suppressed receiver is an own property of `globalThis`, so no application identifier can
+be put back on that list without the row failing. Two red rows plant R1's own attack
+(`if (entry) entry.save({ lift: liftId, note: 'x' });` at `gym-app.mjs:223`) and its twin
+through `importScreen`.
+
+**Planting R1's attack found a SECOND hole in the same row, which R1 did not name.** The seam
+row compared the SET OF NAMES the released card reaches. `entry.save` adds an occurrence of
+`save`, and `save` was already one of the six declared names, so the seam row stayed green on
+it even after the receiver check went red. The row is now keyed by **SITE**
+(`receiver.name`) and asserts the **site count** as well, so neither a new receiver nor a
+second call through an already-declared one gets through:
+
+```
+released gym-app.mjs write sites: :276 (call).save, :390 model.logSet, :415 model.finish,
+                                  :469 model.forget, :476 model.undo, :517 model.start
+```
+
+**`reach.cjs` keeps its longer list and the two instruments are deliberately no longer the
+same list**, with the reason written into the fence: `reach.cjs` CLASSIFIES call sites and
+marks its own false positives in a column a reader can disagree with row by row; this cell
+REFUSES, so a suppression here is a hole and a suppression there is an annotation. The one
+real case `reach.cjs` suppresses that the fence will meet in part 2 is
+`importScreen.reopen()` at `today-app.cjs:718`, a screen reopened and not a reading; part 2
+declares it BY LINE, the way the six gym seams are declared, not by exempting the name.
+
+### NOTE-1, the declared TEXT, closed with R1's own attack
+
+R1 rewrote `regions.json`'s `W6d` row so the sealed weigh-in reports success whatever the
+client answered, left every moved byte verbatim, and the cut **exited 0**. Reproduced.
+
+`regions.json` gains `witness.declared`: a sha256 per substitution row over
+`[id, file, region, from, to, kind]`, a sha256 per replacement row over
+`[id, file, replacement]`, and the two ROW COUNTS. `gen-witness.cjs --declared` takes it;
+`cut.cjs` checks it **before it opens a single source file** and refuses by row id. The two
+digest functions are duplicated verbatim in the checker on purpose: the checker must not
+import its digest from the generator, or the generator is its own check again.
+
+```
+REFUSED: substitution row W6d (today-model.cjs TM-S02): DECLARED TEXT DOES NOT MATCH THE
+  WITNESS. The row now hashes f2ead4b596bc30bd..., the witness records 90c0edbb7602107e.
+  The bytes this row WRITES into a sealed product file are not the bytes the spec was
+  reviewed against (R1 NOTE-1).
+```
+
+Three red rows: R1's `W6d` attack, a replacement row's text rewritten, and a substitution row
+ADDED (refused by the recorded count, `the table declares 8 ... the witness records 7`).
+**What this is not** is UNMEASURED item 12: it is tamper evidence over authored text, not an
+independent oracle, and the control is the visible diff a re-take leaves in `regions.json`.
+Seven substitution rows and eleven replacement rows are witnessed.
+
+### NOTE-4, the fifth test edit: NOT MINE TO RULE
+
+R1 is right that the PM has to ratify it, and right that the edit itself is strictly stronger.
+I have changed nothing about it: `machine-settings-ui.test.mjs` is byte-identical to the head
+R1 reviewed. It stays at the top of this report as the STOP it is. **Open question for the
+PM**, carried unchanged into this round.
+
+### NOTE-6, agreed and left alone, with the reason
+
+R1 tampered a `replace` region's pre-image twice and both were refused by the anchor resolver
+rather than by the witness, because every declared `replace` region is one or two lines and
+all of its lines are anchors. That is true, I reproduce it, and it does no harm: the region
+still refuses BY ID, which is the contract. I have not restructured the witness to fire first
+on a one-line region, because the order R1 sees is the order S-R20 rules (extent before
+bytes) and changing it to make a message nicer would weaken the reason the order exists. It
+matters the day a longer `replace` row is declared, and part 2 declares five of them; the
+declared-text witness of NOTE-1 now also covers every `replace` row's REPLACEMENT text, which
+is the half of a `replace` row that reaches a product file.
 
 ---
 
@@ -227,11 +359,14 @@ rows.
 
 ### 1.7 RED FIRST, MECHANICALLY
 
-`rebuild/lanes/c/today-split-spike/test/instruments.test.cjs`, 14 rows.
+`rebuild/lanes/c/today-split-spike/test/instruments.test.cjs`, **20 rows** after the fix round
+(14 at R1, plus R1 BLOCKING-1's own row and five for R1 NOTE-1 and NOTE-2).
 
 ```
 against the COMMITTED instruments (cut.cjs and regions.json at a2632a3b):  3 pass / 11 fail
-against these instruments:                                               14 pass /  0 fail, 2.4 s
+at the ORIGINAL head 62e4931f, sources from the working tree:             10 pass /  4 fail  <- R1 BLOCKING-1
+at the fix-round head, SPLIT_TEST_REF=s9  (the default, the build's base): 20 pass /  0 fail, 3.2 s
+at the fix-round head, SPLIT_TEST_REF=tip (the chain tip form):            20 pass /  0 fail
 ```
 
 The three that pass in both are D.1's own two first-anchor reds, which were always real, and
@@ -425,7 +560,43 @@ carry: `settingsLane` read at `:246`, `:305`, `:572`; `settingsRead` read at `:2
 |---|---|---|---|
 | the pure cut at `tip` | 4213 | 467 | **0** |
 | the pure cut at `s9` | 4233 | 467 | **0** |
-| **THIS BUILD'S OWN OUTPUT** | **1243** | 50 | **0** |
+| **THIS BUILD'S OWN OUTPUT**, on bytes PROVEN identical to the four committed files (R1 NOTE-2) | **1243** | 50 | **0** |
+
+**R1 NOTE-2 is answered by a proof rather than by an argument.** R1's objection was that the
+`1243` row is over a `cut.cjs` output directory and not over the bytes that ship, and that
+`capture.cjs` on the committed files prints `NO LINE MAP ... the capture comparison is not
+run`. Measured in the fix round: the product cut taken at the named ref `s9` reproduces
+**all four committed product files BYTE FOR BYTE by sha256**, so that output directory IS the
+shipped bytes and its `linemap.json` is their line map. The identity is now a row in the
+instruments' cell, re-run in three seconds by the next hand, and it is also the mechanical
+form of R1's own check 4 ("an unlisted hand-written line"): a hand edit to any of the four
+product files outside the declared table makes that row fail.
+
+```
+product cut at s9 vs the committed files:
+    today-model.cjs         IDENTICAL fb6802f23f5bd0e5...
+    today-readings.cjs      IDENTICAL f7b3ae455bb1b90c...
+    gym-app.mjs             IDENTICAL 07ff9687e24bbe05...
+    gym-settings-lane.mjs   IDENTICAL fbe949cd2fe9e871...
+```
+
+**R1 NOTE-7, count drift, measured again and NOT reproduced.** My `capture.cjs` over that
+proven-identical output compares **1243** references, which is the number this report already
+carried; R1 measured 1277 over its own reproduction of the cut. I could not reproduce 1277 and
+I am not claiming R1 mis-measured: the two reproductions differ by 34 references and I did not
+find where. **The load-bearing number is identical in both: ZERO name captures.** This is
+listed as UNMEASURED item 11.
+
+### The crossing table, committed (R1's closing note)
+
+R1: "A regenerated `CROSSINGS.md` on the build's own output would be worth more than the
+prose." `rebuild/lanes/c/today-split/PART1-CROSSINGS.md` is that table: **20 crossings, 13
+distinct, 0 residue** before the interface, one row each, with the interface entry that
+carries it in a DISPOSITION column, and all eleven interface entries accounted for. It is
+taken with a new MEASUREMENT mode, `cut.cjs --no-replace`, which witnesses every `replace`
+region as usual and then leaves its released lines in place instead of swapping in the
+declared call, so the census can say WHAT the interface carries and not only that it carries
+everything. `--no-replace` refuses to combine with `--product`.
 
 ### reach.cjs, at this build's base
 
@@ -457,6 +628,26 @@ different machine, and I did not run the full step there at all), no browser, no
 | fail | **2** | **2** |
 | duration | 161.5 s | 159.0 s |
 
+**THE FIX ROUND'S OWN RUN, on the PC, ALONE.** This round moves NO product byte: the seven
+files it changes are four instruments, the fence, a new crossing table and this report, and
+`git status --porcelain` on the lane worktree names exactly those seven and nothing under
+`rebuild/m3`. Not one file in the today step's seventeen is among them, so the step's input
+is literally unchanged and R1's own measurement at this head is the BEFORE. I ran it anyway,
+because a claim that the input is unchanged is not a measurement:
+
+| | the fix round, at `f9ec6f0f` + these seven files |
+|---|---|
+| tests / pass / fail | **682 / 680 / 2**, exit 1 |
+| duration | **157.5 s** |
+| `boundary.test.mjs` P-MEASURE (g) | the SAME five paths: `rebuild.yml`, `adapter.test.mjs`, `view.test.mjs`, `today-app.cjs`, `machine-settings-ui.test.mjs` |
+| `setup.test.mjs` re-pin | the SAME three: `rebuild.yml`, `adapter.test.mjs`, `view.test.mjs` |
+
+Both are the pre-existing reds of `DECISIONS:552`, and both list exactly what they listed in
+the author's AFTER run and in R1's. **When I ran it, nothing else of mine was running on the
+machine**: no other node process of mine, no farm run competing (the farm is a different
+machine), no browser, no build. The fence, the lane-d cells and `b-package.cjs` were started
+only after it had finished and written its `.done` file.
+
 **The two failures, named, before and after:**
 
 1. `rebuild/m3/w7-preview/measure/test/boundary.test.mjs:128` **P-MEASURE (g)**. Before, it
@@ -475,15 +666,16 @@ exists.
 
 | | result |
 |---|---|
-| `rebuild/lanes/c/today-split/writer-fence.test.mjs` | **21 / 21**, nine rows RED first on a planted violation |
-| the ten lane-d cells that name `gym-app.mjs` or `today-model.cjs` (`plan-edit/browser-build`, `plan-edit/durable-host`, `b-lom/legacy-order`, `p3-capture-start`, `p3-layout-v2`, `p3-port-fix/capture-codes`, `p3-port-fix/owner-route`, `p3-real-shape/r1-fixes`, `p3-real-shape/real-shape-capture`, `p3-replay-all/writer-order`) | **107 / 107** |
-| `node rebuild/lanes/b/tooling/b-package.cjs --ci --package S8` | `B PACKAGE S8 SPEC OBSERVED packages/S8.json 6fbbb1b9...; runner e31dd206...` then **`B PACKAGE S8 FAIL SEALED-PROFILE-RECOMPUTATION; required evidence missing or failed; local diagnostics withheld`**, exit 1. It refuses on this branch by design, because this branch carries undeclared sealed edits. Recorded by name, not chased |
+| `rebuild/lanes/c/today-split/writer-fence.test.mjs` | **26 tests, 26 pass, 0 fail**, 102 ms, measured on the PC in the fix round, **twelve** rows RED first on a planted violation (21 / 21 with eight red at R1: R1 NOTE-3 is right, the report said nine and `grep -c '^test("RED' = 8`) |
+| the ten lane-d cells I ran, **two** of which name `gym-app.mjs` or `today-model.cjs` (`b-lom/legacy-order` and `p3-real-shape/r1-fixes`; the other eight do not, which is R1 NOTE-5 and the description here was wrong) (`plan-edit/browser-build`, `plan-edit/durable-host`, `b-lom/legacy-order`, `p3-capture-start`, `p3-layout-v2`, `p3-port-fix/capture-codes`, `p3-port-fix/owner-route`, `p3-real-shape/r1-fixes`, `p3-real-shape/real-shape-capture`, `p3-replay-all/writer-order`) | **107 tests, 107 pass, 0 fail**, 16.5 s, re-measured on the PC in the fix round |
+| `node rebuild/lanes/b/tooling/b-package.cjs --ci --package S8` | `B PACKAGE S8 SPEC OBSERVED packages/S8.json 6fbbb1b9...; runner e31dd206...` then **`B PACKAGE S8 FAIL SEALED-PROFILE-RECOMPUTATION; required evidence missing or failed; local diagnostics withheld`**, exit 1. It refuses on this branch by design, because this branch carries undeclared sealed edits. Recorded by name, not chased. **Re-run in the fix round: the same two lines, exit 1** |
+| `node --check` on the four instrument and fence files I changed, on the PC | 4 / 4, exit 0 |
 
 ### In the farm
 
 | | result |
 |---|---|
-| `rebuild/lanes/c/today-split-spike/test/instruments.test.cjs` | **14 / 14** in 2.4 s; **3 / 11 fail** against the committed instruments |
+| `rebuild/lanes/c/today-split-spike/test/instruments.test.cjs` | **20 / 20** in 3.2 s at `SPLIT_TEST_REF=s9` and **20 / 20** at `=tip`; **3 / 11 fail** against the committed instruments at `a2632a3b`; **10 / 4 fail** at the pre-fix head `62e4931f` (R1 BLOCKING-1) |
 | `gym.test.mjs`, `machine-settings-ui.test.mjs`, `view.test.mjs` on the product overlay | 142 / 142 (the fast loop while iterating; the PC run above is the bar of record) |
 | `node --check` on every product file | 4 / 4, and 6 / 6 on the full pure cut at both refs |
 
@@ -528,7 +720,9 @@ own UNMEASURED table under S-R25; this is the build's.
 4. **The in-flight flag is NOT extended to all seven gym writers.** R2 NOTE-5 and R3 record
    that it should be; `hooks.saving` covers the settings writer only. Part 2.
 5. **The gesture guard, `on.listen`, and E.5's rows 9 to 19 are UNMEASURED and unwritten.**
-   The fence has nine red rows, not eighteen, and it says so in its own header.
+   The fence has **twelve** red rows, not eighteen, and it says so in its own header. (At R1
+   the report said nine and the tree held eight: R1 NOTE-3, fixed by committing the missing
+   red row rather than by correcting the number down.)
 6. **The blind-edge derivation misses two rows a hand keeps** (section 1.6), and its
    `deferred-continuation` class of 34 is a count nobody has judged.
 7. **The paint handle's shape is design.** The gym's is now one measured entry; Today's six
@@ -542,18 +736,34 @@ own UNMEASURED table under S-R25; this is the build's.
     `FORM_MIN` comment. I authored no en dash and no em dash anywhere. It is inside a comment,
     so the bundle's dash guard and `machine-settings-ui.test.mjs`'s S11 literal scan, which
     both read string literals, are unaffected; S11 does not cover the two new files in any case.
+11. **The 34-reference difference between my `capture.cjs` count (1243) and R1's (1277)** over
+    the same four product files is UNMEASURED. Zero name captures reproduces in both.
+12. **The declared-text witness (R1 NOTE-1) is TAMPER EVIDENCE, not an independent oracle.**
+    The pre-image witness's digests come from git objects at a named commit, so re-running the
+    generator against a tampered tree cannot bless it. The declared TEXT has no outside
+    source, because the text IS the declaration: re-taking it with
+    `gen-witness.cjs --declared --write` re-blesses, and the control is that re-taking it is a
+    visible one-line-per-row diff in `regions.json`, beside the row it blesses, which the PM
+    reads. What it removes is the SILENT path R1 drove a line through.
+13. **The interface names' freedom on part 2's output is still UNMEASURED** (R1's own "what I
+    did not verify" item 6). `on` is recorded as NOT FREE with its two lines; the three chosen
+    names are 0 in code position on every file that exists today.
 
 ---
 
 ## 10. WHAT PART 2 IS, AND WHAT IT INHERITS
 
 Not started, and the ticket forbids starting it: `today-app.cjs` into `today-lanes.cjs`, the
-25 seams, the boot order, the runtime gesture guard. It inherits a witnessed table, a codemod
-that refuses three ways it did not refuse yesterday, five instruments with their own cell, the
-three interface names chosen by measurement, and a fence that already holds nine red rows and
-will hold the rest. The first thing it should do is re-run
+25 seams, the boot order, the runtime gesture guard. It inherits a witnessed table whose
+DECLARED TEXT is witnessed too, a codemod that refuses six ways it did not refuse two rounds
+ago, five instruments with their own cell that survives the cut it measures, the three
+interface names chosen by measurement, a committed crossing table with a disposition per row,
+and a fence whose suppression list can no longer hold an application name and which holds
+twelve red rows. The first thing it should do is re-run
 `rebuild/lanes/c/today-split-spike/test/instruments.test.cjs` and see 14 of 14 before it
-believes anything in this report.
+believes anything in this report: **20 of 20**, at the fix-round head, with
+`SPLIT_TEST_REF=s9` (the default) or `=tip`. It runs from git objects at a named ref, so it
+will still run after part 2 has cut `today-app.cjs`.
 
 ---
 
@@ -563,14 +773,22 @@ From a farm scratch worktree at this branch, with the spike directory as the wor
 
 ```
 node gen-witness.cjs --root <wt> --ref-name tip --ref 4d2112c9... --branch rebuild/t2-client-core
+node gen-witness.cjs --declared                      # R1 NOTE-1, add --write to record it
 node cut.cjs     --root <wt> --out out
 node cut.cjs     --root <wt> --out prod --product --only today-model.cjs,gym-app.mjs
+node cut.cjs     --root <wt> --out pre  --only today-model.cjs,gym-app.mjs --no-replace
+node census.cjs  --root <wt> --out pre  --md ../today-split/PART1-CROSSINGS.md
 node census.cjs  --root <wt> --out out  --md CROSSINGS.md
 node capture.cjs --root <wt> --out out  --names facade,hooks,painter,on
 node reach.cjs   --root <wt>            --md REACH.md
 node blind.cjs   --root <wt>            --md BLIND.md
 node --test rebuild/lanes/c/today-split-spike/test/instruments.test.cjs
+SPLIT_TEST_REF=tip node --test rebuild/lanes/c/today-split-spike/test/instruments.test.cjs
 ```
+
+The `<wt>` the codemod is pointed at is a tree of the three PRE-CUT sources, built with
+`git show <ref>:rebuild/m3/w7-preview/today/<file>`. Pointing it at the lane worktree after
+the cut is what produced R1 BLOCKING-1.
 
 On the PC, from the lane worktree:
 
