@@ -831,6 +831,168 @@ test("R1 N1 (12) - a released block of the WRONG SHAPE releases nothing: the fen
   assert.equal(fence(ok, CHAIN_REF).status, "pass", names(fence(ok, CHAIN_REF)));
 });
 
+/* ============== R2's NOTES, AND THE PM's OWN FINDING: SIX MORE ROWS ==================
+   R2 was ACCEPT WITH NOTES and the PM ruled four of them into the cell. Each one below is
+   a world the shipped fence got WRONG IN ITS OUTPUT rather than in its verdict: three
+   raw stack traces (N2), a skip nobody authored (N3), a skip that stood aside over a
+   tampered parent artifact (N4), and a step that never runs in CI at all (P-FENCE-1).
+   None of them was a bypass; every one of them costs a reader the line this cell is for. */
+
+/* R2 N2, first of three. An unrelated history has no merge base, git merge-base exits
+   non-zero and execFileSync threw a raw "Command failed: git ... merge-base" at :151.
+   It is not a bypass - the row went red either way - but the CI log said nothing a human
+   could act on, and D.2's governing property is that every outcome is a NAMED refusal. */
+test("R2 N2 (13) - a chain ref and a HEAD sharing NO history is a NAMED refusal, not a stack", () => {
+  const root = chain({ product: [APP] });
+  git(root, ["checkout", "-q", "--orphan", "unrelated"]);
+  put(root, TEMPLATE, "an unrelated history\n");
+  commit(root, "an unrelated history");
+  assert.throws(() => git(root, ["merge-base", CHAIN_REF, "HEAD"]),
+    "the fixture did not build an unrelated history at all");
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.status, "fail");
+  assert.equal(r.refusals.length, 1, names(r));
+  assert.match(r.refusals[0], /^FENCE-NO-MERGE-BASE /, names(r));
+  assert.ok(r.refusals[0].includes(CHAIN_REF), names(r));
+});
+
+/* R2 N2, second of three. Condition (4)'s FIRST limb ("the diff touches the runner") is
+   satisfied by a DELETION, and the second limb then read HEAD:<runner> on a path HEAD
+   does not carry. Deleting b-package.cjs must not earn the skip and must not throw:
+   it is refused at (4), by name, saying which. */
+test("R2 N2 (14) - a reseal child that DELETES b-package.cjs is refused BY NAME at condition (4)", () => {
+  const root = chain({ product: [APP] });
+  const sha = shaOfBlob(root, CHAIN_REF, FIX_ART);
+  const base = gitText(root, ["rev-parse", CHAIN_REF]).trim();
+  branch(root, {
+    edits: {
+      [PACKAGES + "S9.json"]: specFile({ packageId: "S9", parentId: "S8",
+        artifact: FIX_ART, sha256: sha, sourceBase: base }),
+      [APP]: "a lane C edit\n",
+    },
+    kills: [RUNNER],
+  });
+  const r = fence(root, CHAIN_REF);
+  unverified(r, 4);
+  assert.ok(r.refusals[0].includes(RUNNER), names(r));
+});
+
+/* R2 N2, third of three. JSON.parse at :134 threw on an artifact that is not JSON. The
+   ARRAY half is the one that matters most: an array parses, inv.product is undefined,
+   the sealed set is EMPTY and the branch passes vacuously - which is the one outcome D.2
+   refuses everywhere else. Both halves are one refusal now. */
+test("R2 N2 (15) - an artifact at the chain ref that is not a JSON OBJECT is a NAMED refusal", () => {
+  const root = chain({ artifacts: [["acceptance-s8-fixture.json", "not json at all\n"]],
+    product: [], free: [APP] });
+  branch(root, { edits: { [APP]: "a lane C edit\n" } });
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.status, "fail");
+  assert.equal(r.refusals.length, 1, names(r));
+  assert.match(r.refusals[0], /^FENCE-INVENTORY-NOT-JSON /, names(r));
+  assert.ok(r.refusals[0].includes(SPEC_DIR + "acceptance-s8-fixture.json"), names(r));
+
+  const arr = chain({ artifacts: [["acceptance-s8-fixture.json", "[]\n"]],
+    product: [], free: [APP] });
+  branch(arr, { edits: { [APP]: "a lane C edit\n" } });
+  const ra = fence(arr, CHAIN_REF);
+  assert.equal(ra.status, "fail",
+    "an ARRAY-valued inventory passed vacuously: nothing was in the sealed set. " + names(ra));
+  assert.match(ra.refusals[0], /^FENCE-INVENTORY-NOT-JSON /, names(ra));
+});
+
+/* R2 N3, ADOPTED AS A FIX AND NOT AS A SENTENCE. :161 filters the diff for status "A",
+   and the [RC] split synthesises an "A" record for the NEW path of a rename. So
+   "git mv packages/S8.json packages/S10.json" presented a spec file the branch never
+   wrote as an ADDED spec, and R2 built it and measured a SKIP. It was not exploitable
+   against today's chain - a child's spec names its PARENT's artifact and the top artifact
+   is its parent's successor, so condition (2) refused it - but a fence held by the shape
+   of the chain rather than by a clause is a fence that comes undone the day the shape
+   moves. Condition (1) now requires a GENUINE add. */
+test("R2 N3 (16) - a spec that reached status A by git mv does NOT earn the skip: condition (1)", () => {
+  const root = chain({ product: [APP] });
+  const first = headOf(root);
+  const sha = shaOfBlob(root, CHAIN_REF, FIX_ART);
+  put(root, PACKAGES + "S8.json", specFile({ packageId: "S8", parentId: "S8",
+    artifact: FIX_ART, sha256: sha, sourceBase: first }));
+  commit(root, "the chain carries its own spec");
+  git(root, ["update-ref", CHAIN_REF, "HEAD"]);
+
+  /* the branch authors NOTHING: it renames the ancestor spec onto a new id, puts that id
+     in its own runner stub, and touches a sealed path. Every other condition holds. */
+  git(root, ["mv", PACKAGES + "S8.json", PACKAGES + "S10.json"]);
+  put(root, RUNNER, runnerStub(["S7", "S8", "S10"]));
+  put(root, APP, "a lane C edit\n");
+  commit(root, "the lane branch renames an ancestor spec onto a new id");
+  const mb = gitText(root, ["merge-base", CHAIN_REF, "HEAD"]).trim();
+  assert.ok(gitLines(root, ["diff", "--name-status", mb, "HEAD"]).some((l) => /^R/.test(l)),
+    "the fixture did not produce a rename record at all, so it measures nothing");
+
+  const r = fence(root, CHAIN_REF);
+  unverified(r, 1);
+  assert.ok(r.refusals[0].includes(PACKAGES + "S8.json"),
+    "the refusal does not name what the spec was renamed FROM: " + names(r));
+  assert.ok(r.refusals[0].includes(PACKAGES + "S10.json"), names(r));
+});
+
+/* R2 N4, ADOPTED. The verified skip used to return BEFORE the artifact-tamper check, so a
+   child that satisfied all five conditions AND widened its PARENT's sealed artifact in
+   its worktree stood aside in silence. Condition (2) binds the spec to the sha the fence
+   measures AT THE CHAIN REF, so the tamper bought the child nothing - but the cell that
+   exists to notice artifact tampering did not notice it. THE TAMPER CHECK NOW RUNS FIRST,
+   FOR EVERY BRANCH: a reseal child has no business changing its parent's sealed artifact,
+   and one that does is not entered into the claim at all. It is fenced as an ordinary
+   branch, which is F3's rule applied a second time: fewer ways to stand aside. */
+test("R2 N4 (17) - a child that would otherwise be VERIFIED, tampering with its parent's artifact, FAILS", () => {
+  /* the green control first, so the row measures the tamper and not the child. */
+  const clean = chain({ product: [APP, CSS] });
+  child(clean, { alsoTouch: { [APP]: "the reseal child's own edit\n" } });
+  const rc = fence(clean, CHAIN_REF);
+  assert.equal(rc.status, "skip", "the control child does not skip at all: " + names(rc));
+
+  const root = chain({ product: [APP, CSS] });
+  child(root, { alsoTouch: { [APP]: "the reseal child's own edit\n",
+    [FIX_ART]: inventory({ product: [CSS], released: [APP] }) } });
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.status, "fail",
+    "a child widened its parent's inventory in its worktree and still stood aside: " + JSON.stringify(r.reason));
+  assert.equal(r.reason, null, "it printed a stand-aside reason anyway: " + String(r.reason));
+  assert.ok(r.refusals.includes("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART), names(r));
+  /* and, being fenced as an ordinary branch, its own sealed touch is named too. */
+  assert.ok(r.refusals.includes("FENCE-SEALED-PATH-TOUCHED M " + APP), names(r));
+});
+
+/* THE PM's OWN FINDING P-FENCE-1, AND IT IS ABOUT CI AND NOT ABOUT fence(). GitHub skips
+   every step after a failed one, and rebuild.yml carried no step condition anywhere. The
+   standing step at :150 (b-package.cjs --ci --package S8) FAILS on exactly the branches
+   this fence exists for: one carrying undeclared sealed edits prints
+   SEALED-PROFILE-RECOMPUTATION with local diagnostics withheld, naming nothing, and one
+   that does not contain the chain tip prints SEAL-BASE-IS-NOT-THE-CHAIN-TIP
+   (DECISIONS:554). The fence's step sits after it, so in the world D.2 wrote it for the
+   fence was SKIPPED and its one readable sentence never printed. The step now carries
+   "if: ${{ !cancelled() }}" - it runs after an earlier failure, and not when the run was
+   cancelled - and THIS ROW is what says so the day somebody takes it out again. It reads
+   rebuild.yml as TEXT, finds the step by this file's own path rather than by a line
+   number, and never globs. */
+test("P-FENCE-1 (18) - this cell's own step in rebuild.yml carries the not-cancelled condition", () => {
+  const SELF = path.relative(REPO, fileURLToPath(import.meta.url)).split(path.sep).join("/");
+  const yml = fs.readFileSync(path.join(REPO, ".github", "workflows", "rebuild.yml"), "utf8")
+    .split(/\r?\n/);
+  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(SELF));
+  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + SELF + " at all");
+  let nameAt = runAt;
+  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
+  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), "the run: line sits in no named step");
+  const block = yml.slice(nameAt, runAt + 1);
+  const cond = block.find((l) => /^\s*if:/.test(l));
+  assert.notEqual(cond, undefined,
+    "the fence's own step carries no `if:` at all, so GitHub skips it after the standing "
+    + "step at :150 fails - which is every branch this fence exists for (P-FENCE-1): "
+    + block.map((l) => l.trim()).join(" / "));
+  assert.match(cond, /!\s*cancelled\(\)/,
+    "the condition is not `not cancelled`, so the step either never runs after a failure "
+    + "or runs after a cancellation: " + cond.trim());
+});
+
 /* ================================================================ THE REAL ROW ========
    Everything above runs against a repository this file built. This one runs against the
    repository this file is IN, and it is the whole point of the cell: on every push to a
