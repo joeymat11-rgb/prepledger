@@ -547,3 +547,46 @@ test("RED R2 F4: a product block ADDED to the table is REFUSED, by name and then
   assert.strictEqual(r2.status, 1, r2.stdout);
   assert.match(r2.stderr, /the table declares 3 product blocks; the declared-text witness records 2/);
 });
+
+/* ---- part 2: the REPLACE kind's own check is the OUTPUT'S PARSE ------------------------
+ * The alignment check refuses a region whose BOUNDARY falls inside a statement, because a
+ * MOVE there leaves half a statement behind. A one-line `replace` puts its own line back at
+ * the same position, so no half is left anywhere, and part 2's interface rows rewrite lines
+ * like `if (!foodLane) {` that open a block on purpose. The rule is therefore a move's; what
+ * has to hold for a replace is that the bytes the cut WRITES still parse, and that is
+ * checked on the output rather than argued from the table.                                */
+
+test("part 2: a one-line `replace` row that opens a block is cut and the output parses", () => {
+  const tree = tmpTree();
+  const r = runCut(tree, ["--only", "today-app.cjs"]);
+  assert.strictEqual(r.status, 0, r.stderr);
+  /* The row that used to be refused by the move-boundary rule. */
+  assert.match(r.stdout, /today-app\.cjs\s+-> today-lanes\.cjs/);
+  const released = fs.readFileSync(path.join(r.out, "today-app.cjs"), "utf8");
+  assert.ok(released.indexOf("if (!facade.foodLane()) {") >= 0,
+    "the generated interface row for the food lane guard did not reach the released file");
+  assert.strictEqual(released.indexOf("if (!foodLane) {"), -1,
+    "the pre-image of that row is still in the released file");
+});
+
+test("RED part 2: a replacement that drops a brace is REFUSED because the OUTPUT does not parse", () => {
+  const tree = tmpTree();
+  const bad = JSON.parse(JSON.stringify(table));
+  const rows = bad.files["today-app.cjs"];
+  const row = rows.find((x) => x.kind === "replace" && Array.isArray(x.replacement)
+    && x.replacement.length === 1 && /\{\s*$/.test(x.replacement[0]));
+  assert.ok(row, "no block-opening interface row in the table to tamper");
+  row.replacement = [row.replacement[0].replace(/\{\s*$/, "")];
+  /* Re-bless the declared text, so the refusal under test is the PARSE and not the witness:
+     this is the attack of a hand that re-takes the witness after editing a row. */
+  const crypto = require("crypto");
+  bad.witness.declared.replacements[row.id].sha256 = crypto.createHash("sha256")
+    .update(JSON.stringify([row.id, "today-app.cjs", row.replacement]), "utf8").digest("hex");
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf, "--only", "today-app.cjs"]);
+  assert.strictEqual(r.status, 1, "THE CUT WROTE A RELEASED FILE THAT DOES NOT PARSE AND " +
+    "EXITED 0. " + r.stdout);
+  assert.match(r.stderr, /THE OUTPUT DOES NOT PARSE/);
+  assert.match(r.stderr, /look at this file's declared `replace` rows/);
+});
