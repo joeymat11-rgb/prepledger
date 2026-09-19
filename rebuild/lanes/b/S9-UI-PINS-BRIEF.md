@@ -262,7 +262,23 @@ own table only. Whatever she still holds is BLOCKING only with an executed input
 or an honest chain can reach; otherwise it is a named debt, and this brief's D-A-FINAL paragraph
 (section 8) is the one place that paragraph is amended when her verdict lands.
 
-**C's row is PENDING CHECK R5, and the check has since returned.** `DECISIONS:599` withdrew `:566`'s
+**C's row is PENDING, in this one place, and the PM has now judged the check.** `DECISIONS:608`
+upholds BOTH of narrow check R5's findings, rules **P-PACK-4** (no listing call stands outside a
+guard; an unlistable parent is `UNREADABLE` for that entry and THE LIST WALK GOES ON; an unlistable
+pack root or ancestor is refused by an EXISTING word; no eighth word enters either vocabulary; the
+ancestors are guarded and the declared residual is NOT widened) and **P-PACK-5** (PACK-PIN's `judge`
+takes the shape APPROVED-PIN already has, a trusted root plus pinned RELATIVE components, so no code
+path compares two absolute paths, the real row and every fixture run the SAME arm, and no fixture is
+ever written inside the tree), and declares **D-C-FINAL: round 6 is the LAST build round of these
+cells, the check after it reads its hunks only, and survivors become named debts in this brief**
+(section 8). Astra job 45 is building it and the narrow Claude check follows. **So C's bar below is
+the round-5 bar and it WILL move; nothing in section 2 or section 9 takes a pack number from it.**
+`DECISIONS:608` also measures two facts worth keeping: the boundary's repository-root arm, the arm
+THE REAL PACK USES, is exercised by no row, and the cells' one CI step has NEVER executed on that
+branch (run `35458561027` red at the standing package step, later steps skipped), so the PC and the
+farm are the both-system evidence until the S9 head.
+
+**The check itself, for the record.** `DECISIONS:599` withdrew `:566`'s
 acceptance and dispatched narrow Claude check R5. Measured by this author in the farm: the check is
 published at `0a74d8f2` on `rebuild/b-s9-prep-pack`
 (`rebuild/lanes/b/S9-PREP-PACK-CHECK-R5.md`, 515 lines) and its verdict is **REJECT**, on one
@@ -276,9 +292,11 @@ red, never a false green). The check re-measured the bar at `d857d775` and repro
 42/41/1 on both systems, with cell sha256s
 `82efbae2e677f15b5e2afb2cd78378a72578da0e9ee8d382657949b4da69eca6` (pack-pin) and
 `cdf4a6b4ee975201da76df054383c0a1ef2aab993d5a8b024967408a7d0a0c73` (approved-pin).
-**There is no ledger line judging R5 through `DECISIONS:603`, so C's state in this brief is:
-acceptance withdrawn, round 5 published, narrow check REJECT, PM judgment owed.** C's bar numbers
-above stand as measured at `d857d775` and will move when the R5 fixes land.
+`DECISIONS:608` measured the two questions the PM had asked from reading the hunks and answered them
+against himself: the 8.3 short spelling and the drive letter's case are NOT hazards, and the digest
+rows CANNOT be red at the base, so their red-first evidence is a digest mutant and "the PM's
+expectation otherwise was wrong". C's bar numbers above stand as measured at `d857d775` and move
+when round 6 lands.
 
 **3.2 The deciding cell.** The spec designates none, and this brief does not invent one. What S9
 must show, at integration and not before, is the release and the grant agreeing in both directions
@@ -314,8 +332,17 @@ for a reason this brief did not predict, that is F.2 STOP-3: a finding, not a fi
 - **No `rebuild/engine` byte.** All 45 tracked files stand at S8's own post; the
   `s9-engine-files-differential` child measures it and the runner recomputes the same comparison.
   **`DECISIONS:606` names an engine finding that is held for the owner and it is NOT S9's to fix.**
-  S9 declares no engine path and proposes no engine hunk, and a round that finds itself wanting one
-  stops and says so.
+  Reproduced by the PM: `rebuild/engine/today.cjs` `pickStructural` (`:55`) rightly excludes
+  `PROPOSED`, but `genSession` (`:97`) then looks the load up with a `find` over the queue by
+  exercise id that does NOT exclude it, so it takes the first entry - the unaccepted one - and
+  `rebuild/engine/earn.cjs` pushes the two-rung `PROPOSED` entry FIRST (`:80`) and the classic
+  one-rung debut second (`:88`), which is exactly the order in which the card is wrong. **The PM's
+  own sentence, and it binds this package: "both files are sealed S8 product keys and ENGINE files;
+  `:578` reserves every engine byte to the owner's own word. No byte moves."** The smallest repair
+  is one clause in `genSession`, red first with the producer's own order, **as a named reseal child
+  that is not this one**, and whether the live app is patched too is the owner's call alone. S9
+  declares no engine path and proposes no engine hunk; a round that finds itself wanting one stops
+  and says so. An independent Claude check of the finding is running (`DECISIONS:609`).
 - **No coach byte.** `rebuild/coach/engine-revision.cjs` reads
   `ENGINE_REVISION = "M2-S8-REAL-SHAPE@<the S8 receipt's first 16 hex>"` for the whole of the build,
   the review and the first authorized `--full`. It moves ONCE, after the sealed run writes
@@ -505,6 +532,18 @@ and S9 does not build it.
 may swallow the removed catch's throw** (`DECISIONS:591`; B-R6:483-496), and no restored named
 refusal was ordered. Mutation Y2 is killed only on WINDOWS; on linux it is not (B-R6:320-329).
 
+**D-C-FINAL - the pack cells' surviving coverage.** `DECISIONS:608`: round 6 of the pack cells is
+the LAST build round, the narrow check after it reads its hunks ONLY, and whatever survives is a
+named debt here. **Two items are already routed to this brief by that line and they are debts now,
+not open questions:** (1) **a junction at an ANCESTOR of the pack root and a junction AT the root
+are named by DIFFERENT words**, so a reader of a refusal must know which of the two it is looking
+at; (2) **a list entry spelled with a dot segment is now `MISSING`**, which is a consequence of
+P-PACK-1's exact-spelling comparison against each parent's own listing and is stated rather than
+repaired. A third fact from the same line belongs beside them because nothing rows it: **the trusted
+boundary's repository-root arm, which is the arm THE REAL PACK USES, is exercised by no row.**
+**This paragraph is the ONE place D-C-FINAL is stated, so it is the one place to amend when round 6
+and its check return.**
+
 **THE WHOLE-PACK RESIDUALS.** The real rows of both pack cells are held only by the eventual seal;
 `PACK_ROOT_REL` has no protecting row of its own; and the P37/P39 output-order sorts remain UNROWED
 because deterministic filesystem enumeration was unavailable. `DECISIONS:566` ordered the unrowed-
@@ -662,3 +701,289 @@ stopped moving: seven packages, `H3`, `S3`, `S4`, `S5`, `S6`, `S7`, `S8`, each r
 value, `tooling.runnerSha256`. This is not a preference; it is how round 6 was built
 (`DECISIONS:598`) and re-pinning before the last hunk means doing it twice and publishing a stale
 value in between.
+
+## 10. THE FOUR PM TOKEN LINES, AS REQUIRED TEXT
+
+**NOTHING IN THIS SECTION IS AN ISSUED LINE, AND NO LINE HERE GRANTS ANYTHING.** These are the four
+exact text requirements the runner enforces, READ OUT OF THE RUNNER'S CODE at `397ac466` and never
+from memory, so that the PM can write four real lines on the chain branch and the author can cite
+them. A brief cannot authorize itself, and a line written on a lane branch authorizes nothing: the
+runner re-reads `rebuild/DECISIONS.md` at `CHAIN_REF` on EVERY call, splits on `/\r?\n/`, hashes
+each complete UTF-8 line WITHOUT its newline, and requires EXACTLY ONE line to hash to the cited
+value (`b-package.cjs:1418-1421`, `:1485-:1488`). The leading `- ` is part of the hashed bytes; the
+trailing newline is not. There is no cache: a ruling withdrawn mid-run stops admitting mid-run.
+
+**SEP below means the single character U+00B7, and this section prints it LITERALLY, exactly as the
+spec does and as the runner's own constant `RULED_CLAUSE_SEPARATOR` at `b-package.cjs:1012` holds
+it. It is the ONE non-ASCII character in this file, it is deliberate, and a reader copying a clause
+out of this section is copying the right byte. U+2013 and U+2014 appear nowhere.**
+
+Both grant readers split the whole line on SEP, trim each clause, and require an ANCHORED FULL
+CLAUSE match. A negation, a quote, a bracket, a backtick, an emphasis marker or any surrounding
+prose leaves the clause something other than the token and **frees nothing**
+(`b-package.cjs:971-995`).
+
+**10.1 RELEASE-FROM-SEAL.** Feeds `release.rulingLineSha256` in `packages/S9.json`, a 64-hex string
+and never the text (`b-package.cjs:1474-1504`).
+
+Grammar, verbatim from `b-package.cjs:993`:
+`/^RELEASE-FROM-SEAL\s+(M2-[A-Za-z0-9-]+)\s+([A-Za-z0-9_.\/-]+(?:,[A-Za-z0-9_.\/-]+)*)$/`
+
+**The required clause, which must stand ALONE as one whole SEP-delimited clause of a real PM line
+on `rebuild/t2-client-core`:**
+
+```
+RELEASE-FROM-SEAL M2-S9-UI-PINS rebuild/m3/w7-preview/today/preview.css,rebuild/m3/w7-preview/today/build.mjs
+```
+
+No space after the comma; the path list is one token. The LINE that carries it must have as its
+LAST SEP-delimited clause, trimmed, exactly the bare word `RULED` (P-A1, `b-package.cjs:1013`,
+`ruledTerminal`): a line ending "this is NOT RULED" is not a ruling and two reviewers in turn
+measured the old last-word test admitting one. The granted path set and the declared `released` set
+must be EQUAL in BOTH directions (`:1501-:1504`), every granted path must be a key of the PARENT
+artifact's product map with its declared `pre` equal to that parent pin, and no granted path may be
+one `proposed()` would put back into `executionPins` by any of its five routes.
+
+**10.2 GATE-SUPERSESSION.** Feeds `coverage.superseded.rulingLineSha256`. A null there is a HARD
+refusal, `GATE-SUPERSESSION-RULING-NOT-CITED`, exit 1, before the theme and brief obligations are
+reached (`b-package.cjs:1408-1410`).
+
+Grammar, verbatim from `b-package.cjs:980`:
+`/^GATE-SUPERSESSION\s+(M2-[A-Za-z0-9-]+)\s+([a-z0-9]+(?:-[a-z0-9]+)*(?:,[a-z0-9]+(?:-[a-z0-9]+)*)*)$/`
+
+**The required clause shape, alone in its own SEP clause:**
+
+```
+GATE-SUPERSESSION M2-S9-UI-PINS <carrier>[,<carrier>...]
+```
+
+**The carrier vocabulary is CLOSED and measured at `b-package.cjs:926-927`:**
+`source-carriers`, `inherited-carriers`, `defect-witnesses`, `writers-differential`, `second-gate`.
+A token naming anything else refuses
+`GATE-SUPERSESSION-RULING-NAMES-A-CARRIER-THAT-IS-NOT-A-BYTE-IDENTITY-GATE` by name. **Which of the
+five S9 names is TO DECIDE AT INTEGRATION from the declared `coverage.moves` and the six `s9-*`
+mirrors, and this brief does not guess it.** Same RULED terminal rule as 10.1; the two functions
+share the single `ruledTerminal()` test on purpose, because a chain whose two ruling functions
+disagree about what a ruled line is has a hole wherever the weaker one stands.
+
+**10.3 THEME.** Feeds `authorizations.theme`, whose closed key set is
+`['ledgerLine','role','line','lineSha256']` with `role` exactly `cowork`, `line` a single line with
+no CR or LF, and `sha(line) === lineSha256` (`b-package.cjs:1161`, `:1292-:1296`). It is resolved at
+`CHAIN_REF`, not at the parent's receipt base, because it accepts work the parent never saw
+(`:2588-:2600`).
+
+**There is no THEME token regex.** The requirement is on the LINE, at `b-package.cjs:1981-1982`:
+
+```
+line.includes('M2-S9-UI-PINS') && line.endsWith(' · ACCEPTED')
+```
+
+that is, the line must name the package id and **END with SPACE, SEP, SPACE, `ACCEPTED`** - not
+`RULED`. Refusal name if it does not:
+`THEME-LINE-DOES-NOT-BIND-THIS-PACKAGE-ID M2-S9-UI-PINS`.
+
+**10.4 BRIEF-BY-SHA.** Feeds `brief`, whose closed key set is `['file','sha256','acceptedLedgerLine']`
+(`b-package.cjs:1801`), with `acceptedLedgerLine` a claim of the same four keys. `file` is
+`rebuild/lanes/b/S9-UI-PINS-BRIEF.md` and `sha256` is the sha256 of the ACCEPTED bytes of this file,
+**TO MEASURE on the day it is accepted and not before, because this file is still being written.**
+
+**There is no BRIEF-BY-SHA token regex either.** The requirement, at `b-package.cjs:1805-1806`:
+
+```
+line.includes('M2-S9-UI-PINS') && line.includes('rebuild/lanes/b/S9-UI-PINS-BRIEF.md')
+  && /(?:^|[ ·])ACCEPTED$/.test(line)
+```
+
+that is, the line names the package id AND the brief path AND ends in `ACCEPTED` preceded by a space
+or by SEP. A non-null citation additionally forces `status === 'BRIEF-ACCEPTED'`
+(`BRIEF-ACCEPTANCE-STATUS`), and `status: 'BRIEF-ACCEPTED'` with a null citation refuses
+`BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE` (`:1811-:1812`).
+
+**10.5 The two terminals do not conflict, and the PM has ruled it.** `DECISIONS:567`'s P-A7 says
+every M2-S9-UI-PINS token line ends in a separator then the bare word `RULED`; the runner requires
+the THEME and brief-acceptance lines to end in `ACCEPTED`. **RULED: P-A7 speaks of the GRANT KINDS
+only.** The two grants, `RELEASE-FROM-SEAL` and `GATE-SUPERSESSION`, stand on lines whose final
+clause is exactly `RULED`. The THEME citation line and the BRIEF-BY-SHA citation line end
+`ACCEPTED`, exactly as the runner enforces them at `:1981` and `:1806`. **This is settled and no
+grammar is invented here.** A practical consequence the PM writes around: one ledger line cannot
+carry a grant and a theme acceptance at once, because its last clause cannot be both words.
+
+**10.6 What the four lines feed, in one table, so the author cites and never composes.**
+
+| line kind | spec field it feeds | what the runner does with it |
+| --- | --- | --- |
+| RELEASE-FROM-SEAL | `release.rulingLineSha256` | unique-line lookup at `CHAIN_REF`, RULED terminal, token clause, package id, granted set equals declared `released` set both ways, parent-pin membership, execution-pin exclusion |
+| GATE-SUPERSESSION | `coverage.superseded.rulingLineSha256` | the same lookup and terminal, token clause, package id, every carrier in the closed five |
+| THEME | `authorizations.theme` (`ledgerLine`, `role`, `line`, `lineSha256`) | claim shape and self-hash, resolved at `CHAIN_REF`, line names the package id and ends SPACE SEP SPACE `ACCEPTED` |
+| BRIEF-BY-SHA | `brief.acceptedLedgerLine` plus `brief.file` and `brief.sha256` | claim shape and self-hash, resolved at `CHAIN_REF`, line names the package id and the brief path and ends in `ACCEPTED`; forces `status: BRIEF-ACCEPTED` |
+
+**All four sha256 values are TO MEASURE ON THE DAY**, over the exact bytes of the real lines the PM
+writes, with no trailing newline. The seal generator on `rebuild/b-seal-gen` can draft them, but
+**that generator is NOT accepted for use in this round and no part of this brief was produced by
+it.**
+
+## 11. WHAT S9 WAITS FOR
+
+**S9 pins the WHOLE approved pack and SEALS the passphrase normalizer, so S9 cannot take its
+literals or its hashes until the lanes that move those bytes have stopped moving them.** The
+mechanism work does not wait: an independent reviewer can judge H1 to H13, H17, H18, the token
+grammar, the closed list and the fence against the runner as it stands, and none of those judgements
+changes when the bytes arrive. What waits is measurement.
+
+**11.1 C-UI-0, accepted after its SECOND TEETH AUDIT.** The audit is `DECISIONS:593` and `:594`:
+three halves running at once (a Claude hand executing the kit of 57 rows at design head `64a9e095`
+and publishing every raw output, Astra judging and doing the static half, the PM's Fable final
+beside them, not after). **Three batches of fixes are with the design lane and none is closed:**
+batch 1 at `DECISIONS:594` (P-CUI-1 findings 1, 3 both siblings, 5 and 6 must be fixed before
+acceptance, each with a teeth row that bites, and q5's catcher made specific; P-CUI-2 narrows the
+standard's words for findings 4 and 7 to what the code measures, with C-UI-GATES-2 as the named
+later ticket; P-CUI-3 writes finding 9 and the accept path's exit status and non-transactional
+writes into the standard as known limits); batch 2 at `DECISIONS:597` (P-CUI-1 (1) WIDENED, because
+the null-`offsetParent` shortcut stands in BOTH 44 px walks, `gate.py:153` and `statesheet.py:84`,
+so a visible viewport-fixed control is dropped BEFORE the repaired helper, and one box-and-
+renderability test replaces the shortcut in all three walks with one paired row holding it; P-CUI-3
+grows by README:321 and STANDARD:112's 42-against-46 row count, q9 to q11, the U+2060 sentence and
+STANDARD:130's exclusions); and the execution half's mismatches, still outstanding; **and batch 3 at
+`DECISIONS:604`, the read half of the PM's own Fable final, which adds EIGHT items nobody had found
+(PM-1 to PM-8) and widens P-CUI-1 (1) again: the null-`offsetParent` shortcut stands at NINETEEN
+sites, not the three of `:597`, and the lane's PR-READY line is WITHDRAWN.** `DECISIONS:604` also
+rules P-CUI-4 on the minus rule's new opener clause, which Astra's static check of the same delta
+found NOT SOUND. **Until C-UI-0 is accepted the pack does not stop moving, and the day-of procedure
+of section 9 item 9 cannot start.** Nothing in this brief may be read as C-UI-0 being close: three
+batches are open and the lane's own PR-READY claim has been withdrawn once already.
+
+**11.2 C-UI-1.** Its bytes decide the final inventory: the moved product files, `design.APPROVED`'s
+resulting list, APPROVED-PIN's literal, E fact 17's re-decided path list, the zero-to-three
+`design.test.cjs` hunks with STOP-10 standing over them, `rebuild/lanes/c/ui-port/` becoming the
+twenty-fifth `CHILD_ROOTS` entry and the only new `PUBLIC_TAIL_ROOTS` entry, every needle, and the
+`--ci --package S9` walk itself, which hashes those bytes. **`DECISIONS:531` blocks its seal until
+the gates are fixed and re-audited, so C-UI-1 waits on 11.1 and S9 waits on C-UI-1.** OQ-2's
+approved-reference decision feeds the final `design.APPROVED` measurement.
+
+**11.3 The passphrase cell round, AND a comment-only correction of a file S9 SEALS.** S9 declares
+`rebuild/m3/setup/port/passphrase.cjs` role `new` and SEALED, so its sha256 is a sealed byte of this
+package. `DECISIONS:601` records Astra's blind review back and judged (ACCEPT WITH NOTES, no product
+defect; 96 of 96 generated phrases open on both decoders, 2,048 list words with no collision, all
+4,194,304 word pairs splitting back, the sealing code and `deriveKey` byte-identical), with four
+notes all upheld and ruled P-PN-1 to P-PN-4, all of them in the CELLS or the PAPER. `DECISIONS:605`
+WIDENS P-PN-3: the overstated words about Unicode whitespace stand not only in the paper but in two
+COMMENTS of `rebuild/m3/setup/port/passphrase.cjs` itself (`:22` and `:46`) and in its README
+(`:200`), and **because the file is about to be sealed the comment is corrected NOW**, comment text
+only, proved by stripping comments from old and new and comparing the rest byte for byte (Astra job
+41). **A comment-only change is still a byte change: the file's sha256 MOVES ONCE more, and S9's
+declaration must be taken after it, not before.** The same line records that the relaunched cell job
+STOPPED and rightly, because the cells' helper `sealInventedBundle` starts the port CLI as a child
+process whose gate would read the private fixture when present; the PM ruled the helper's child
+processes allowed for these cells, the private fixture absent from that worktree by construction,
+the real helper used, and any number taken with a substitute LABELLED so. The PM also re-measures `page-bundle.test.mjs`'s 142-to-143 and 20-to-21 module counts
+outside the reviewer's sandbox, which is why section 2.2 marks them doubly TO MEASURE. `ba04c07f` is
+already merged into this lane; what is NOT yet in is the cell round and that comment.
+
+**11.4 What does NOT wait, said plainly so nobody stalls on it.** The runner mechanism (section 5.1
+facts 1 to 7, 12 and 13); the fence and its step; the two pack cells' CODE, walk, ignore list,
+refusal names and red-first rows against a throwaway fixture pack; H18's 26-entry literal; the six
+`pinned-unchanged` pins that are measurable today; the carried lanes' declarations; and this brief.
+None of them needs a byte from lane C.
+
+**11.5 The order the owner set, and S9 does not re-order it.** `DECISIONS:575`, reaffirmed at
+`:578`: the look, then C-UI-0's audit, then C-UI-1, then S9, then the trial. `DECISIONS:590`'s
+question about where phone-earn sits was put to the owner and is **explicitly NOT RULED**; no
+proposed order is presented here as accepted. `DECISIONS:582` puts the EW2 build cut after S10.
+TODAY-SPLIT and the wording lock are S10's, and they are later WORK, not unfinished implementation
+for S9 to declare.
+
+## 12. WHERE THIS BRIEF DISAGREES WITH ITS INPUTS, AND WHAT IS STILL OPEN
+
+**The input pack `rebuild/lanes/b/S9-BRIEF-INPUTS.md` at `dca3f959` is a map and was written
+unreviewed; this author opened its sources. Four corrections and one gap:**
+
+1. **The pack's runner snapshot is one round stale.** It reads the runner at
+   `2a8526b58da4a8bd8a57248d4aa524cb3afba21a` and says "A still reports round 5", carrying the
+   round-5 runner post `316f86c541f109a5876f5ea8d0557164151585f4f5940ce8878c3bec02bee43e`. The
+   accepted head is `397ac466` and the runner is
+   `71c1b2592b5a3544b71c0995a9f52b88fbe24cd6b821709309aa95e5ad3012c0`, measured by this author and
+   equal to the PM's at `DECISIONS:598`. Every grammar quoted in section 10 was re-read from that
+   head, not from the pack.
+2. **The pack's `guard-coverage.test.mjs` hash is a superseded round's.** It carries
+   `b84b0b4056fbb1f82b11dd63d4a335674e57176ced31b2defd6748ed0c1002da`; measured at the accepted F2
+   head `b9777fe4` the file is
+   `78d1d73c02b115981006ab38dd0a16bfcd9fddbee8afa40c872964155281b9e7`. The pack says the file moved;
+   it does not give the value it moved to.
+
+3. **The pack's C row is out of date in both directions.** It reports C's accepted bar as "pack
+   41/40/1 and approved 26/25/1" from `C-R4`. `DECISIONS:599` WITHDREW `:566`'s acceptance, and
+   Astra's round 5 build at `d857d775` measures **58/57/1 and 42/41/1** on both systems. Section 3.1
+   carries the round-5 numbers with their head, and adds what the pack could not know: narrow check
+   R5 at `0a74d8f2` is a **REJECT**.
+4. **The pack treats "the S8 model's counts" as a starting point in places** (its section 2 row for
+   S8:199-204). S8's 224 / 24 / 17 / 182 / 1 are S8's. This brief asserts no S9 count and says so in
+   section 2.
+5. **The pack's cutoff is `DECISIONS:591`. This brief was read to `DECISIONS:609` at chain tip
+   `05466ebb`, and its author re-read the ledger's tail before finishing.** What the pack could not
+   carry, and this brief does: `:594`, `:597` and `:604`, the second teeth audit's THREE batches
+   (section 11.1); `:598`, the runner's round 6 acceptance-pending state, D-A-FINAL's NOT CLOSED
+   list and Astra job 39 (sections 3.1 and 8); `:599` and `:608`, C's withdrawn acceptance, the R5
+   REJECT upheld, P-PACK-4, P-PACK-5 and D-C-FINAL with its two routed debts (sections 3.1, 8 and
+   12.3); `:601` and `:605`, the passphrase cell round, the widened P-PN-3 and the comment-only
+   correction of a file S9 seals (section 11.3); `:606` with `:609`, an engine finding held for the
+   owner that is NOT S9's to fix (section 4).
+
+**The PM has RULED the input pack's eleven contradictions and this brief states them as settled, in
+the pack's own order:** (1) the two GRANT kinds end in a final clause that is exactly `RULED`, the
+THEME and BRIEF-BY-SHA citation lines end `ACCEPTED` exactly as the runner enforces, and P-A7 speaks
+of the grant kinds only (section 10.5); (2) P-A9 (a) governs, parent-only ancestry, and the spec's
+union sentence is superseded; (3) the runner's rule governs, every executed file is declared, so the
+two Today lane cells in child argv ARE declarations and E20's sentence is superseded (section 2.4);
+(4) the accepted fence of `DECISIONS:591` governs over the original D.2 wording, so a byte-equal
+touch passes the tamper check under the case-exact HEAD rule; (5) the runner's CLOSED OPTIONAL KEYS
+govern (`DECISIONS:560`), so there is no live `rulingLine` field in the artifact and `release` and
+`released` are optional and separately closed; (6) `DECISIONS:559` governs, there is NO after-merge
+exception in D.2's condition (3) limb, because once a child has merged its spec is no longer at
+status `A` in the merge-base diff and fewer ways to stand aside is the safer fence; (7) R4's TABLE
+governs, **215 entries asserted and three `PREVIEW_COPY` entries not asserted** (section 8); (8)
+R4's counts govern and ALL pack counts are re-measured at the pack's final head; (9)
+`DECISIONS:582` governs, F2-LAND is **E fact 23 of S9** and its own report's naming of S10 is
+superseded; (10) every post-image is MEASURED AT INTEGRATION and none is copied from a lane report,
+which is why no F2 or fence post-image in section 2 is presented as final; (11) the B report is as
+corrected at `6f808cfa` (section 9 item 5).
+
+**12.1 OPEN, and this brief does not close it: E fact 17 against the runner's
+`PRODUCT-PINNED-UNCHANGED-IS-NOT-EXECUTED-BY-A-DECLARED-CHILD`.** Measured in section 2.4.1: four
+of the six `pinned-unchanged` declarations refuse by name at the runner as it stands at `397ac466`,
+because no file in `rebuild/` reaches those four documents through a relative literal specifier of
+the four shapes `executedClosure()` reads. Three dispositions are named with their cost and none is
+recommended. **The PM rules this, and until then the sentence in E fact 17 and the assert at
+`b-package.cjs:1896` cannot both be right as written.**
+
+**12.2 OPEN: whether the E21 and E22 CI steps carry `if: ${{ !cancelled() }}`.**
+`DECISIONS:570` says the PM must decide whether those steps also run after a standing-step failure
+and no ruling is in the ledger through its current tail. Section 9 item 7.
+
+**12.3 NOT OPEN, but NOT FINISHED: C's state.** `:566`'s acceptance is withdrawn (`:599`), round 5
+is published at `d857d775`, narrow check R5 at `0a74d8f2` returned REJECT, and `DECISIONS:608`
+UPHELD both findings, ruled P-PACK-4 and P-PACK-5 and declared D-C-FINAL. **The round 6 build and
+its narrow check are running as this brief is written, so C's bar and both cells' sha256s are not
+final and nothing downstream may take a pack number from section 3.1.** The one place to amend is
+C's row there, and the one place to record what survives is D-C-FINAL in section 8.
+
+**12.4 OPEN: which carriers the GATE-SUPERSESSION line names.** The vocabulary is the closed five
+(section 10.2); which of them S9 supersedes follows from the declared `coverage.moves` and the six
+`s9-*` mirrors, which are not measurable until integration. **This brief does not guess.**
+
+**12.5 A smaller one, recorded rather than resolved: "the N5 paper numbers".** This author read that
+instruction as the four stale statements review R6 found in B's author report, which the integrator
+corrected at `6f808cfa` in a new section 17, and section 9 item 5 lists them with their values. B's
+review R6 also has a note numbered N5 of its own ("a byte-equal touch passes THIS CHECK", three
+words) and C's check R5 has a different N5 (`s9NoDescents` asserting inside its `finally`). If the
+PM meant one of those, the work is the same work at a different name and section 9 item 5 is where
+it belongs.
+
+---
+
+**This brief is a hypothesis for the PM and for one independent review, not evidence.** It seals
+nothing, runs no package with `--full`, writes no `packages/S9.json`, fills no literal and issues no
+PM token line. Its own sha256 and byte count are TO MEASURE on the day it is accepted. Its author
+read in the PM's cloud reading room at chain tip `789baf6e` and again at `05466ebb` for the ledger's
+tail, and wrote, committed and pushed on the owner's PC; every measurement attributed to this author
+above was taken with `git`, `sha256sum` or `node` against a synced worktree, never against the
+owner's data. The farm's privacy proof printed PASS at every sync of this assignment.
