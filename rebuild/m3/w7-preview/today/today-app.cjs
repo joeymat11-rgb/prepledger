@@ -862,11 +862,12 @@ function mountToday(doc, model, options = {}) {
 
     put(map, "instruction", view.nowModel.move.title);
     const owed = !view.hasReadToday;
-    /* Before a weigh-in the sentence under the instruction is the engine's reason for
-       asking; after it, the engine's reading of where the plan stands. Both are the
-       engine's own strings. */
+    /* Before a weigh-in the sentence under the instruction is the engine's whole marching
+       order (S2: the cue, the action and the reason, composed in today-model.cjs); after
+       it, the engine's reading of where the plan stands. Both are the engine's own
+       strings. */
     put(map, "instruction-why", owed
-      ? (view.marchingOrder.why || view.statusFace.cause)
+      ? (view.orderSentence || view.statusFace.cause)
       : (view.statusFace.cause || view.nowModel.move.body));
 
     const kcal = calorieHeadline(view.calorieTarget);
