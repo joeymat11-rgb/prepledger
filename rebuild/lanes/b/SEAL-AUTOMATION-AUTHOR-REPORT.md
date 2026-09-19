@@ -49,10 +49,10 @@ any S8-PREP commit), post head `82c98f8` (the accepted S8-PREP head), parent sea
 
 ```
 REPLAY OF THE S8 PREPARATION ROUND (82c98f8)
-  cross-side facts      788   (generated vs committed - this is the number that means reproduction)
-  identical             779
+  cross-side facts      786   (generated vs committed - this is the number that means reproduction)
+  identical             777
   internal consistency  19    (generated vs generated; NOT counted above)
-  self-checks           6     (committed vs committed; NOT counted above)
+  self-checks           7     (committed vs committed; NOT counted above)
   needles               not compared: ... (see 5)
   byte-identical files  4  [s8-supersede-inherited-carriers.test.cjs,
                             s8-supersede-defect-witnesses.test.cjs,
@@ -64,20 +64,25 @@ REPLAY OF THE S8 PREPARATION ROUND (82c98f8)
   UNEXPLAINED           0
 ```
 
-`node --test` says `# pass 16 # fail 0`, and `test/chain-guard.test.cjs` says
-`# pass 6 # fail 0`.
+`node --test` says `# pass 19 # fail 0`, and `test/chain-guard.test.cjs` says
+`# pass 9 # fail 0`.
 
-The headline has moved twice and both moves made it smaller and truer. R1 took it from
-"800 compared, 791 identical" to "795 cross-side, 786 identical" by pulling out the 6
+The headline has moved three times and every move made it smaller and truer. R1 took it
+from "800 compared, 791 identical" to "795 cross-side, 786 identical" by pulling out the 6
 committed-against-committed checks. R2 M4 found 19 more that were not cross-side either -
 12 in REPLAY-2 (the generated cell against a string literal) and 7 in REPLAY-6 (the
-generated spec against the sha of the generated runner) - so they are now counted under
-`internal consistency` and the headline is **788 cross-side, 779 identical**. That is 776
+generated spec against the sha of the generated runner) - so they are counted under
+`internal consistency`. **R3 n2 found the last two** and both have moved in this round: the
+GATE-SUPERSESSION line located in the COMMITTED ledger by the sha the COMMITTED spec
+records is a self-check (6 becomes 7), and "the differential child is green here" is a
+measurement of THIS tree against the literal 0, which is neither cross-side nor internal -
+it is asserted directly now and counted nowhere. So **788/779/19/6 is 786/777/19/7**, and
+that is the number this report leads with. The 786 is 774
 of the old facts plus the 12 NEW cross-side facts R2 N1 asked for: each of the six
 generated ancestor specs compared BYTE FOR BYTE with the committed blob, at the base and
 at the post head, with only `tooling.runnerSha256` swapped. All 12 pass.
 
-### What the 788 cross-side facts are made of
+### What the 786 cross-side facts are made of
 
 - the IDS literal, the NO_REGISTER_IDS literal, CHILD_ROOTS element for element, and the
   `:NNN` the IDS comment cites for the argv gate (that number is **measured** in the
@@ -95,7 +100,9 @@ at the post head, with only `tooling.runnerSha256` swapped. All 12 pass.
   diff). The value in each of the six generated specs is an INTERNAL check now, and the 6
   committed-against-committed checks are self-checks; both are counted apart (R2 M4);
 - 25 child names and 25 argv sets;
-- the three token-line sha256 rules;
+- the two token-line sha256 rules the generator computes, and the GATE-SUPERSESSION one
+  (R3 n2 moved the third check in that cell - "the line is FOUND in the ledger", committed
+  against committed - into the self-checks, where it always belonged);
 - the standing CI `run:` line and step NAME, and the lane-cell run line as a set.
 
 ### The parent-pin re-hash
@@ -469,9 +476,12 @@ b6 on rebuild/b-seal-gen               -> git push -u origin rebuild/b-seal-gen:
 ```
 
 GUARD-1 is the one that matters after this round: it walks every `run` stage, calls
-`commandFor`, and fails if a command containing `merge`, `push`, `commit`, `rebase`,
-`reset` or `checkout` comes back from a stage that is not in `WRITE_STAGES`. The next
-writing stage someone adds cannot dodge the guard the way these two did.
+`commandFor`, and fails if a stage that is not in `WRITE_STAGES` comes back with a command
+that is not on an ALLOW list. The next writing stage someone adds cannot dodge the guard
+the way these two did. (The `# pass 6` above is this round's six cells. R3 n6 found that
+the check was then a DENY list of six writing verbs and that git is longer than that list;
+it is an allow list now, and three more cells have been added since, so the cell says
+`# pass 9`. See 10.9, 10.1 and 10.2.)
 
 ### 9.2 M2 - the narrative tolerance ignored ARITY. **FIXED, red first, and the number is worse than R2 measured.**
 
@@ -569,9 +579,11 @@ under the child root and split 6 argv / 2 import. REPLAY-4 now asserts BOTH ends
 R2's arithmetic was exact: REPLAY-2's 12 (the generated cell against a string literal) and
 REPLAY-6's 7 (the generated spec against the sha of the generated runner) are the generator
 agreeing with itself. They are now counted by `internal()` and printed under their own
-heading, beside `selfCheck()`. The headline the cell prints, the README states and this
-report leads with is **788 cross-side facts, 779 identical, 19 internal consistency checks,
-6 self-checks** - R2's 776/767/19/6 plus the 12 new cross-side facts of N1 below.
+heading, beside `selfCheck()`. That made the headline **788 / 779 / 19 / 6** - R2's
+776/767/19/6 plus the 12 new cross-side facts of N1 below. **R3 n2 then found the last two
+facts in the wrong bucket and this round moved them (10.5), so the headline the cell
+prints, the README states and this report leads with is now 786 cross-side facts, 777
+identical, 19 internal consistency checks, 7 self-checks.**
 
 ### 9.5 N1 - the ancestor spec FILES were never compared, only one field. **LANDED.**
 
@@ -612,12 +624,16 @@ point as an ORDER: hunks first, generated tree second, token line third, re-meas
 
 Refusing twice was the wrong answer. The README now gives **about 1.5 hours saved per
 reseal child** and shows the arithmetic: 2.5 h of preparation, of which the six mechanical
-commits of the round's eight are about three quarters, of which the generator does 779 of
-788 facts, leaving roughly an hour of reading, prose and judgment - against about 20
+commits of the round's eight are about three quarters, of which the generator does 777 of
+786 facts, leaving roughly an hour of reading, prose and judgment - against about 20
 seconds of machine time, plus about 4 minutes 20 when `--stage all` measures 25 needles
 (timed this round). The weakest input is the 2.5 h: it is the PM's recollection and no
 round has been timed. The table says so, and says that timing the S9 preparation turns it
-into arithmetic.
+into arithmetic. **R3 n5 was right that the table did not close**, and it now carries the
+missing step as a row of its own: 2.5 x 0.75 x 777/786 is 1.85 h, and the 33 TODO entries a
+human reads and answers are the roughly 20 minutes between 1.85 h and 1.5 h. That
+allowance is an estimate too and the table says so, so there are now two weak inputs named
+instead of one hidden.
 
 ### 9.10 N6 - `pinned-unchanged` is never proposed. **LANDED, and it is free.**
 
@@ -650,8 +666,17 @@ was available for the first time.
 worktree; the three `node_modules` junctions mirrored there (root,
 `rebuild/m3/w5`, `rebuild/m3/w6`) exactly as this worktree's are; this `gen/` folder copied
 in, because it does not exist at `82c98f8`; no private junction, nothing under
-`rebuild/conform/private` read or created; `%TEMP%\earned-s5\rebuild\conform\engines` held
-nothing to copy and no child asked for it. Removed with `git worktree remove` at the end.
+`rebuild/conform/private` read or created. Removed with `git worktree remove` at the end.
+
+**R3 n8 corrects one sentence of this paragraph and the correction is upheld.** It used to
+say `%TEMP%\earned-s5\rebuild\conform\engines` "held nothing to copy". It holds three
+files, and I listed them again in this round rather than repeating the claim:
+`build-engines.mjs` (3,791 bytes), `engine-main.cjs` (813,696) and `engine-old.cjs`
+(792,806) - exactly what R3 measured. What is true, and what the sentence was reaching for,
+is that **no child asked for them**: `Reference.create(root)` builds its own two bundles
+into a scratch directory and succeeded in the scratch worktree without that folder. The
+substance stands; the sentence was wrong, and this report is the document the next hand
+will believe.
 
 **Defect one: `tapPassNeedle` could not see a `# pass N` line in CRLF stdout.** It was
 `/^# pass (\d+)$/m`; `$` in multiline mode matches before the `\n` with the `\r` still
@@ -714,10 +739,16 @@ and in this mode HEAD stands AT `82c98f8`, which PREDATES the three S8 token lin
 the ledger of record - the chain branch, the same ref the runner fixes as `CHAIN_REF` at
 `b-package.cjs:189` - falling back to HEAD, and prints which rev answered.
 
-### 9.13 The two runs that stand behind this round
+### 9.13 The two runs that stood behind the R2 fix round
+
+These are the R2 fix round's own runs, at its own head `c4ebd318`, kept as that round's
+record. **They are not this round's numbers**: R3 n2 moved two facts and this round added
+six cells, so both headlines and both pass counts have changed. The runs that stand behind
+the head this report describes are in **10.15**, and the headline everywhere else in this
+report and in the README is the one measured there.
 
 ```
-DEFAULT MODE, %TEMP%\earned-sealgen on rebuild/b-seal-gen
+DEFAULT MODE, %TEMP%\earned-sealgen on rebuild/b-seal-gen at c4ebd318
   chain-guard.test.cjs                        # pass 6   # fail 0
   replay-s8.test.cjs                          # pass 16  # fail 0
   cross-side facts 788   identical 779   internal 19   self-checks 6   UNEXPLAINED 0
@@ -740,12 +771,509 @@ orderings the runner does not read.
 1. The import walk of 9.3 resolves relative specifiers only. A path reached solely through
    a dynamic `require(variable)` would be told no child executes it. I know of no such path
    in this tree and I did not search exhaustively for one.
+   **CLOSED by this round as G-F13 (10.13):** the walk still follows literal specifiers
+   only - that is a property of reading source - but it now RECORDS every specifier it
+   could not follow and names it beside every path it calls unexecuted, so the blind spot
+   is printed instead of being known only to this paragraph. Measured on the S8 post head:
+   20 of them.
 2. `--needle-repeat 2` still has not run. The 25-needle run used the default of 1; two runs
    of 25 children is about nine minutes and the PM should spend them on the run that feeds
    the sealed S9 package, not on a replay of S8.
+   **RUN by R3, section 7:** fifty child runs from its own scratch worktree at `82c98f8`,
+   25 of 25 reproduced and 25 of 25 still equal to the committed needle. It is what found
+   n9 (10.12), which this round fixed.
 3. The `exact: true` branch of `childEnv()` now has a witness, but only on Windows. The
    CRLF defect of 9.12 could not have been found on Linux, and the reverse may also be
    true: nothing here has measured a needle on the ubuntu runner.
 4. 26 `sealgen-replay-*` folders from earlier runs remain in `%TEMP%` (9.6).
 5. `seal-chain.cjs` stages a3 and b1 are guarded but have still never been RUN. What is
    exercised is the guard and the command they would run, not the merge.
+
+## 10. R3 notes and the PM's final read: fixed or disputed
+
+**FIX ROUND (R3 + the PM's final read).** The third author is gone; this section is the
+fourth author's. Review R3 (`SEAL-AUTOMATION-REVIEW-R3.md`) is ACCEPT with nine notes n1
+to n9. The PM then read `seal-chain.cjs` whole and every write and spawn site in `gen/`
+himself and accepted the generator FOR USE on condition of this round, with three findings
+of his own: G-F1, G-F2 and G-F3. The author's own open hole 9.14 item 1 is answered here
+too, as G-F13. **Nothing in this round is disputed.** Every one of the thirteen items is
+fixed or corrected, and none of them moves a fact in a package: the S8 replay produces the
+same 224 roles, the same 224 pres and the same 224 posts as before it.
+
+Every guard in this section was **RED FIRST**, and the red is quoted from a run, not
+described.
+
+### 10.0 The red-first log
+
+A throwaway repository under `%TEMP%\sealfix-red` (git init, one seed commit, three
+branches, `gen/` copied in at its real relative depth, its own `TEMP` inside it), the
+UNFIXED files, `--dry-run` throughout so nothing could start. Removed afterwards.
+
+```
+G-F1, hostile --id, stage a1, --dry-run: EXIT 0, and the .cmd body it wrote:
+  "...\node.exe" rebuild/lanes/b/tooling/b-package.cjs --ci --package S9 & echo PWNED-BY-ARGV
+
+G-F1, hostile --tip-ref, stage a3, --dry-run, standing on rebuild/b-seal-gen:
+  WRITES INTO: rebuild/b-seal-gen          <- the banner, and it is TRUE of the merge
+  git fetch origin && git merge --no-edit x & git push origin HEAD:main
+                                           <- the .cmd body, and the push was never shown
+                                              to writeBranch() at all
+
+G-F2: paths(a1).cmd  ...\sealgen-chain-a1.cmd    arity of paths(): 1
+      (S9 and S10 get the same file, and --poll of one reads the other's DONE)
+
+G-F3: new-child.cjs --repo <throwaway> --out <throwaway>
+      GEN FAILED: Cannot read properties of null (reading 'toString')
+      - i.e. it walked past --out without a word and died measuring, which is exactly
+        what it would NOT have done with a real repository there
+```
+
+**And the same thing again, the other way round, by me:** a throwaway worktree of this
+repository detached at the REVIEWED head `0730091f` (unfixed sources), with only the NEW
+cells copied over it, so every cell of this round is asked its question against the code as
+it stood. The worktree was removed afterwards and the working tree was clean after it.
+
+```
+replay-s8.test.cjs      # pass 15   # fail 4
+  not ok REPLAY-14  assert.fail(actual, expected, message) needs two arguments in front
+                    of the message            expected 2  actual 0          (n1)
+  not ok REPLAY-17  gen.needleDisagreement is not a function                (n9)
+  not ok REPLAY-18  an --out inside the tree must be refused: "."
+                    expected 1  actual 0  - i.e. THE UNFIXED GENERATOR EXITED 0 AND
+                    WROTE THE GENERATED TREE INTO THE WORKTREE ROOT, 32 seconds of it
+                    (G-F3: this is the defect, performed)
+  not ok REPLAY-19  and the walk RECORDS what it could not follow, by file and line:
+                    undefined                                               (G-F13)
+
+chain-guard.test.cjs    # pass 0    # fail 1
+  the file does not even load: RUNNER_CI binds to chain.RUNNER, which the reviewed head
+  does not export - TypeError: Cannot read properties of undefined (reading 'replace')
+```
+
+Because a file that cannot load says nothing about which cell fails, I ran the chain guard
+a second time from a copy of `gen/` with `seal-chain.cjs` restored from the reviewed head
+and, in the RED COPY of the cell only, `chain.RUNNER` written out as the literal path. That
+copy is an instrument and nothing in it is shipped:
+
+```
+chain-guard.test.cjs    # pass 6    # fail 3
+  ok     GUARD-1, GUARD-a3, GUARD-b1, GUARD-b6, GUARD-2, GUARD-3
+         (the R2 round's guards stood, and this round did not disturb them)
+  not ok GUARD-4  Cannot read properties of undefined (reading 'test')
+                  - chain.ID_SHAPE does not exist at the reviewed head       (G-F1)
+  not ok GUARD-5  the id is in the name: ...\sealgen-chain-S9.cmd
+                  - the ID had become the KEY, which is the collision itself (G-F2)
+  not ok GUARD-6  a hostile --id must exit 1: ... it would run:
+                  node rebuild/lanes/b/tooling/b-package.cjs --ci --package S9 & echo
+                  PWNED-BY-ARGV                                              (G-F1, shipped)
+```
+
+**R3 n6's red is not a cell**, because the predicate it is about lived in the cell itself.
+I measured it the only way there is, by running the old deny-list regexp over the shapes
+the allow list refuses:
+
+```
+OLD SAYS READ-ONLY  git pull --ff-only origin rebuild/t2-client-core
+OLD SAYS READ-ONLY  git cherry-pick abc1234
+OLD SAYS READ-ONLY  git update-ref refs/heads/main HEAD
+OLD SAYS READ-ONLY  git worktree add /tmp/x HEAD
+OLD SAYS READ-ONLY  git am < patch        git apply patch
+OLD SAYS READ-ONLY  git stash             git clean -fd
+```
+
+Eight shapes, eight of them writing, and the guard that was offered as the reason the next
+writing stage could not dodge `writeBranch()` called every one of them read-only.
+
+### 10.1 G-F1 - an argument could become a second command. **FIXED, red first.**
+
+`seal-chain.cjs` builds a command line by string concatenation and writes it into a `.cmd`
+that `cmd.exe` runs. Three values reach that string and not one of them was checked: `--id`
+into `--ci --package <id>` (a1/a4/a6), `--tip-ref` into `git merge --no-edit <tip>`
+(a3/b1), and the branch Git resolves into `git push -u origin <b>:<b>` (b6). The red log
+above is the whole argument: with a hostile `--tip-ref`, the banner printed
+`WRITES INTO: rebuild/b-seal-gen` - `writeBranch()` had been asked and had answered
+honestly about the merge it was shown - and the file underneath it carried a second command
+pushing `HEAD` to `main`. Every guard this folder has built over three rounds was standing,
+and every one of them was looking the other way.
+
+The fix is three shapes and one error code:
+
+- `--id` must match `/^[A-Za-z0-9-]{1,16}$/`;
+- `--tip-ref` and `--branch` must match `/^[A-Za-z0-9._/-]{1,200}$/`, with no `..` (the
+  revision range syntax) and no leading `-` (how an argument becomes an option, e.g.
+  `--upload-pack=`);
+- the branch `currentBranch()` resolves must match the same ref shape, checked inside
+  `writeBranch()` BEFORE the name is compared with `main` or the chain branch, because Git
+  permits `&` in a ref name and `cmd.exe` reads it as a separator.
+
+Anything else is `CHAIN-ARGV-SHAPE` naming the argument, and **nothing is built, nothing is
+written and nothing is started**. The check runs in three places, deliberately: `argvShape()`
+at the top of `main()` before `--plan` prints or a stage is looked up, `commandFor()` where
+the concatenation happens, and `paths()` where the id becomes a file name. One more detail
+is in the code and not in the ticket: `$` in a JavaScript regexp matches before a TRAILING
+newline, so `"S9\n"` would have satisfied the id shape and carried a line break - a command
+separator - into a `.cmd` body. Both checks refuse CR and LF explicitly.
+
+**Carried, not narrowed: `-S9` satisfies the shape the PM fixed**, because a package id may
+contain a hyphen (`B-NTC` does) and a regexp cannot tell a leading one from an interior
+one. It cannot start a second command, which is what this guard is for. GUARD-4 asserts
+that fact rather than hiding it, so the next reader sees the edge instead of discovering it.
+
+GUARD-4 (in process, 13 hostile ids, 11 hostile tip-refs, a branch named `lane&echo-pwned`)
+and GUARD-6 (the shipped script as a child process) hold it. Both go red against the
+reviewed head: the first on `Missing expected exception`, the second on `EXIT 0` with the
+ampersand in the `.cmd` body.
+
+### 10.2 G-F2 - two chains on one PC shared a log and a .done. **FIXED, red first.**
+
+`paths(key)` was `%TEMP%\sealgen-chain-<key>.{cmd,log,done}`. S9 and S10 will overlap on
+this PC, and with that name they share `sealgen-chain-a1.done`: `--poll` of one chain reads
+the other's DONE, prints the other's log, and says DONE about a stage that is still
+running - or worse, about a stage that failed. The red log above is `arity of paths(): 1`,
+which is the whole defect in one number.
+
+It is now `paths(id, key)` -> `sealgen-chain-<ID>-<key>.{cmd,log,done}`, and the id has
+already been through `checkId()`, so nothing that could not be a file name reaches
+`path.join`. `startStage`, the poll branch of `main()` and the `--plan` footer all print
+the same name. GUARD-5 proves two ids do not collide and that `paths('S9 & echo x', 'a1')`
+refuses; it goes red against the reviewed head because `paths('S9','a1')` and
+`paths('S10','a1')` returned the same three paths there.
+
+### 10.3 G-F3 - "nothing here writes into the tree" was a sentence, not a guard. **FIXED, red first.**
+
+`run()` took `path.resolve(o.out)` and wrote there. `--out .` from the repository root
+overwrites the working `b-package.cjs` with the generated one; `--out rebuild` scatters a
+generated tree over the real one. The header of the file has promised the opposite since
+the first round.
+
+`outMustBeOutsideTheTree(root, out)` refuses `GEN-OUT-INSIDE-THE-TREE` when `--out`
+resolves inside the repository root. Three details that are not decoration:
+
+- **real paths**, because a junction or symlink pointing into the tree is how every
+  worktree on this PC has its `node_modules`, and `path.resolve` alone would walk straight
+  past one;
+- the real path of **the nearest existing ancestor** with the rest put back, because an
+  `--out` folder usually does not exist yet and `realpathSync` on it would throw;
+- **case-insensitively on win32 only**, because `C:\X` and `c:\x` are one folder there and
+  two folders on the ubuntu runner.
+
+It is called at the top of `main()` - before a rev is parsed, before a blob is read, before
+a child is run - and again at the head of `run()`, which is the line R3's reader was looking
+at, so a future caller of `run()` cannot go round it. REPLAY-18 holds it with five `--out`
+values inside the tree plus one inside a folder that is not a git repository at all (which
+proves the refusal arrives BEFORE the first `git` call), and asserts that nothing was
+written. Its red form was exercised in a throwaway repository and never here, for the
+obvious reason: without the guard, that command writes into this tree.
+
+### 10.4 n1 - `MESSAGE_ARITY.fail` was 0. **FIXED.**
+
+R3 is right, and right about why it matters more than the number: it was the one entry in
+the table that erred in the FORGIVING direction, which the file's own comment says is the
+direction the rule must never err in. `assert.fail` has two signatures and the legacy one,
+`fail(actual, expected, message, operator)`, puts an expected VALUE second, so with
+`need = 0` any last string passed and `assert.fail('x', 'MUTATED-y')` was classified
+`narrative`. It is 2 now. Four lines in REPLAY-14 hold it - the table entry, the mutated
+legacy call being `different`, `isMessageArg` answering false for one argument, and a
+three-argument `fail` whose message really is the message still being `narrative` - plus a
+standing check that **no** entry of the table is below 1, so the forgiving shape cannot
+come back through another family. Measured: zero lines of the corpus `compareFile()`
+compares are in that shape at `82c98f8`, so no number moved, which is exactly why it needed
+a cell rather than a measurement.
+
+### 10.5 n2 - two facts were still in the wrong bucket. **FIXED, and the headline is re-measured.**
+
+Both of R3's are real and both have moved:
+
+- `replay-s8.test.cjs`, the GATE-SUPERSESSION line "is found in the ledger by its sha256
+  alone": `gate` is a line of the COMMITTED ledger, located by a sha the COMMITTED spec
+  records. Committed against committed is a `selfCheck` by this cell's own definition. It
+  is one now (6 becomes 7). The line beside it - this generator's own hashing rule against
+  the sha the sealed package carries - is genuinely cross-side and stays a `fact`.
+- "the differential child is green here", `run.status` against the literal `0`: a
+  measurement of THIS tree, neither generated-against-committed nor
+  generated-against-generated. It belongs in no bucket the headline counts, so it is an
+  ordinary `assert.equal` now, which is stricter than counting it was (it fails its own
+  cell by name instead of arriving in REPLAY-10's unexplained list), and it reads as what
+  it is: the precondition for the needle line under it. The neighbouring line - the
+  committed needle standing at the head of a line of a run this tree produced - is
+  cross-side and R3 said to leave it; it is left.
+
+**R3 predicted 786/19/7 and 810/19/7. I measured, I did not copy**, and section 10.15 has
+both runs. Default mode came out at exactly **786 / 777 / 19 / 7**, and the headline is
+restated everywhere it appears: section 2 of this report and its "what the facts are made
+of" list, section 9.4, section 9.9, and the README in three places (the proof paragraph,
+the controls list and the time table).
+
+### 10.6 n3 - the README said `childEnv()` answers `exact: true` here. **FIXED.**
+
+R3 is right and it is the note I would have put first too: the README is the file the PM
+reads before S9, and that paragraph was the one sentence in this folder that could talk
+someone into trusting a needle measured from inside a test. It was R1-era text left
+standing after the 9.12 fix made it false. The shipped cell asserts the opposite on every
+run:
+
+```
+assert.equal(ce.inTestRunner, true, 'this cell runs under node --test, so childEnv must see it');
+assert.equal(ce.exact, false, 'and must refuse, whatever the reference build did');
+```
+
+The paragraph now says what the code does and splits the two halves that were run
+together. `referenceOk` IS true in `%TEMP%\earned-sealgen` since the PM re-pointed the
+three junctions, so the pinned reference bundles build and `ENGINE_MAIN` and `ENGINE_OLD`
+are set where `children()` sets them. `exact` is a different question and it can never be
+true inside `node --test`, because `NODE_TEST_CONTEXT` is set in that process and every
+child inherits it: such a child reports over the v8 serializer, prints nothing on stdout
+and still exits 0, so a failing child is indistinguishable from a passing one. The README
+quotes the two assertions, says the refusal fires by name on every run, and ends with the
+instruction that follows from it: **run the generator from a shell, never from inside a
+cell.** The process that does measure the needles is the generator, which the replay cell
+spawns with `NODE_TEST_CONTEXT` deleted.
+
+### 10.7 n4 - the decline message named the long switch only. **FIXED.**
+
+One clause in one string, and it is the string a PM reads when the comparison declines.
+Both spellings work and both are named now, in the decline and in the "HEAD is not the post
+head" message beside it:
+
+```
+needles: NOT compared against the round. To compare all 25: check a worktree out AT
+82c98f8 and set GEN_REPLAY_NEEDLES=1 (or the longer GEN_REPLAY_NEEDLES_AT_POST_HEAD=1,
+which says what it requires - either spelling works).
+```
+
+The short name is the one the ticket and the PM use; the long one says what it requires,
+which is why it is kept. Neither weakens the two conditions the comparison stands on.
+
+### 10.8 n5 - the 1.5 hours did not follow from its own table. **FIXED.**
+
+R3's arithmetic is right: 2.5 h times about three quarters is 1.9 h, and 777/786 of that is
+1.85 h, not 1.5 h. The missing step is the one the row above it mentions and the sum does
+not carry: **the 33 TODO entries a human reads and answers.** That work is judgment the
+generator CREATES rather than removes, and hiding it made the table look like arithmetic
+that closed when it did not.
+
+The table now has the step as a row of its own with a number on it: 1.85 h before any
+allowance, roughly 20 minutes of reading and answering `TODO.md`, and 1.5 h as the
+difference. The README also now says plainly that the number has **two** weak inputs
+rather than one: the 2.5 h is the PM's recollection, and the 20-minute allowance is an
+estimate. The two inputs that ARE measured are the fact count and the 20 seconds. If the
+PM times the S9 preparation, and times the TODO reading separately, both estimates stop
+being estimates.
+
+### 10.9 n6 - GUARD-1 was a list of the bad things. **FIXED.**
+
+The check was `/\b(merge|push|commit|rebase|reset|checkout)\b/` over the command of every
+`run` stage outside `WRITE_STAGES`, and it was offered as the reason the next writing stage
+could not dodge the guard. R3 is right that git is longer than that list: `pull`, `am`,
+`apply`, `cherry-pick`, `revert`, `stash`, `restore`, `clean`, `tag`, `update-ref`,
+`branch -f` and `worktree add` were all missing, and `git pull --ff-only origin <tip>`
+would have passed it and written the worktree it stands in.
+
+It is an ALLOW list now. A `run` stage outside `WRITE_STAGES` may be the runner's own
+`--ci` command, or a git command whose VERB is one of `fetch`, `diff`, `log`, `show`,
+`status`, `rev-parse`, `ls-tree`, `cat-file`. Anything else fails the cell. `fetch` is on
+the list because it writes refs under `refs/remotes` and never the worktree; it is the one
+verb there that writes anything at all, and the comment in the cell says so. The command is
+split on the shell's own separators first, so a second command smuggled in behind `&&`,
+`&`, `|` or `;` is judged on its own, which is where this note meets G-F1.
+
+Nine assertions hold the list to its own claim, and every one of them is a shape the old
+regex passed: `git pull --ff-only`, `git cherry-pick`, `git update-ref`, `git worktree
+add`, a merge behind `&&`, a push behind `&`, plus the three that must stay allowed
+(`git -c core.pager=cat diff --stat` which is stage b4, `git fetch origin`, and the
+runner's `--ci` command as `commandFor` really builds it).
+
+### 10.10 n7 - the guard cell tested a seam the command line does not use. **FIXED.**
+
+Every cell before this round passed `{root: <throwaway>}` to `commandFor`, and `main()`
+parses no `--root` and no `--repo`: in real use `writeBranch` is handed `REPO`, resolved
+from `__dirname`, which is also the folder `startStage` does `cd /d` into. So the cells
+proved the guard and not the wiring, and R3 closed that gap by hand, which means it was
+closed for exactly as long as R3's session lasted.
+
+**GUARD-6 closes it with a cell.** `gen/` is copied into a throwaway repository at its real
+relative depth `rebuild/lanes/b/tooling/gen/`, and the shipped `seal-chain.cjs` is run as
+an ordinary CHILD PROCESS from that repository, with its own `TEMP` and with
+`NODE_TEST_CONTEXT` deleted from its env. What is asserted is what a PM would see: the exit
+status, the refusal on stderr, and **the bytes of the `.cmd` file**. On `main` the three
+writing stages exit 1 and name the branch; detached they exit 1 and say HEAD is detached,
+and no stage file is written at all; a hostile `--id` and a hostile `--tip-ref` exit 1 with
+`CHAIN-ARGV-SHAPE` and write no stage file; and on the lane branch a3 exits 0, the banner
+reads `WRITES INTO: rebuild/b-seal-gen`, exactly one stage file exists and it is named
+`sealgen-chain-S9-a3.cmd`, its body carries the merge command and only the merge command,
+and it cds into the repository resolved from `__dirname`. That last assertion is the
+wiring, and it is now held by a cell.
+
+### 10.11 n8 - one sentence of this report was not true of the disk. **CORRECTED.**
+
+Section 9.12 said `%TEMP%\earned-s5\rebuild\conform\engines` "held nothing to copy". It
+holds three files. R3 listed them and I listed them again rather than repeating a claim:
+`build-engines.mjs`, `engine-main.cjs` (813,696 bytes) and `engine-old.cjs` (792,806
+bytes). The substance the sentence was reaching for is true and R3 confirmed it
+independently: **no child asked for them**, because `Reference.create(root)` builds its own
+two bundles into a scratch directory and succeeded in the scratch worktree without that
+folder. Only the sentence was wrong. It is corrected in 9.12 with the file sizes in it,
+because this report is the document the next hand will believe.
+
+### 10.12 n9 - `--needle-repeat` agreed with itself by PREFIX. **FIXED, red first.**
+
+This is the note I would put second after G-F1, and R3 puts it in the right place: before
+the run that feeds the sealed S9 package, since that is the only run the README asks
+`--needle-repeat 2` for.
+
+Run 1 produces the needle; runs 2 and 3 were checked with
+`M.needleStandsAtLineStart(x.out, needle)`, which is `^` plus the escaped needle in
+multiline mode - a PREFIX match at a line start, because that is `children()`'s own
+predicate. `^# pass 4` matches `# pass 42`. So a child printing `# pass 4` on run 1 and
+`# pass 42` on run 2 was recorded "reproduced over 2 runs", and a drifting pass count is
+the exact flake the switch exists to catch. 4 to 42, 3 to 30-39 and 1 to 1x are the shapes
+where it drifts invisibly.
+
+`needleDisagreement(runs, needle)` now answers the reproduction question on its own terms.
+Where either run printed a tap summary, the summaries are compared for **exact equality**
+of `M.tapPassNeedle(x.out)`; where neither did - the sentence needles, which never had
+anything but the prefix - the prefix predicate answers, because that is all a sentence
+needle has. A non-zero exit is still a disagreement. The message names the run that
+disagreed and prints both summaries, so `NOT REPRODUCED` says what it saw.
+
+**The prefix predicate stays where it belongs.** It is right for the question `children()`
+asks - does this child's stdout carry the needle the package pinned - and REPLAY-17 asserts
+
+that it does match `# pass 42` against `# pass 4` - the defect itself, stated with no help
+from anything this round added - before asserting that the reproduction check no longer
+does. The fixture pair is R3's own, spelled with CRLF because that is the only kind of
+stdout Windows makes.
+
+### 10.13 G-F13 - the import walk's blind spot is now printed, not just known. **FIXED.**
+
+This was my predecessor's own open item (9.14 item 1) and the PM asked for it by name.
+`executionClosure()` follows string-literal relative specifiers. A module reached only
+through `require(name)` or `await import(spec)` cannot be followed from source, so it is
+invisible to the walk, and its path then lands in class (3) - "no declared child executes
+it" - which is the one class that carries the `:524 N1` ruling and the `--exclude`
+invitation. That invitation is a real decision by the PM. **It must never be offered on a
+blind spot without saying the blind spot is there.**
+
+The walk now records every non-literal specifier it MEETS, by file and line, and three
+things carry the record:
+
+- `TODO.md`: every class (3) entry ends either with
+  `DYNAMIC-SPECIFIER-SEEN <file>:<line>` for each one (up to eight named, the rest
+  counted) and the sentence that a path reached only through one of those still lands in
+  this class, so "no declared child executes it" is what the walk could see and not what
+  is certain; or, when there were none, with the statement that this class has no blind
+  spot on this post head because every specifier the walk saw was a string literal;
+- `REPORT.json`: `dynamicSpecifiers`, the whole list, so it is a file a reader can open;
+- the README, in the paragraph that explains the three classes.
+
+It is deliberately a NOTE and not a refusal. The walk is still right about every path it
+did reach, and a generator that refused here would refuse on every round for a condition
+no round can remove.
+
+**Measured on the S8 post head: 20 non-literal specifiers.** The cell prints the first
+eight and `REPORT.json` carries all twenty. The eight it printed in both of my runs:
+
+```
+rebuild/m3/w7-preview/today/test/copy.test.mjs:380
+rebuild/m3/w7-preview/today/test/package.test.cjs:22, :24, :221
+rebuild/m3/w7-preview/today/test/setup.test.mjs:440
+rebuild/m4/workout/test/s8-supersede-defect-witnesses.test.cjs:72
+rebuild/m4/workout/test/s8-supersede-writers-differential.test.cjs:72
+rebuild/m4/workout/test/s8-supersede-second-gate.test.cjs:69
+```
+
+Since there were twenty, both `none` paths in the S8 replay carry the named blind spot,
+and REPLAY-19 asserts that; it also asserts the other end, that no path a child DOES
+execute is told it is a blind spot. The two-file fixture in a throwaway repository holds
+the mechanism itself: `a.cjs` requiring `b.cjs` through a variable leaves `b.cjs` unreached
+and records `a.cjs:3`, and the same pair with a literal specifier reaches `b.cjs` in one
+hop and records nothing.
+
+### 10.14 CARRIED, NOT THIS ROUND'S: the SEALED RUNNER matches a needle by prefix too
+
+Saying this once so it is not lost with this round's paperwork. R3 n9 is about
+`--needle-repeat` inside this generator, and 10.12 fixes it there. **The same observation
+is true of the sealed runner's own predicate**: `children()` matches a pinned needle
+against a child's stdout by looking for it at the head of a line, which is a PREFIX match,
+so a package pinning `# pass 4` is satisfied by a child that prints `# pass 42`.
+
+For the generator that was a defect, because the question `--needle-repeat` asks is
+"do two runs AGREE", and a prefix cannot answer it. For the runner it is a different
+question - "does this child still print what the seal pinned" - and a prefix match there is
+a deliberate, older decision with its own history, its own laws and its own reviews. It is
+also the predicate the 25 needles of S8 were measured and accepted against.
+
+**Nothing in `gen/` changes it and nothing in this round proposes to.** It is a runner
+question for the PM and for lane B's S9 round, and it is recorded here only so that the
+next reader of n9 does not have to rediscover that the note reaches one step further than
+the folder it was written about. `REPLAY-17` asserts the prefix behaviour of
+`needleStandsAtLineStart` as a standing fact rather than hiding it, which is the most this
+lane should do about it.
+
+### 10.15 The two runs that stand behind THIS head, both measured by me
+
+Neither number below is copied from R3's prediction or from my predecessor's log. Both are
+runs I started and read.
+
+**DEFAULT MODE**, `%TEMP%\earned-sealgen` on `rebuild/b-seal-gen`, `MEASURED_TEST_NOW` and
+`TZ` each on its own line of a .cmd:
+
+```
+chain-guard.test.cjs    # pass 9    # fail 0    duration_ms 4747.2
+replay-s8.test.cjs      # pass 19   # fail 0    duration_ms 69625.6
+  cross-side facts      786     identical 777
+  internal consistency  19      self-checks 7
+  byte-identical files  4    prose-only 9    narrative 1    ordering 2
+  UNEXPLAINED           0
+  non-literal specifiers the S8 import walk met: 20
+  needles: not compared (HEAD is not the post head), and the cell says so twice
+  removed 4 scratch folder(s) this run created
+```
+
+**786 / 777 / 19 / 7**, which is R3 n2's prediction of 786/19/7 with the identical count
+beside it. First run, no re-run needed. The nine differences are the same nine as before
+this round: comment prose in nine files, one F7 test title, two orderings the runner does
+not read. No fact in a package moved: the 224 declared paths, their roles and both shas are
+identical to what they were at the reviewed head.
+
+**25-NEEDLE MODE**, a scratch worktree of my own, `git worktree add --detach` at `82c98f8`
+with the three `node_modules` junctions mirrored (root, `rebuild/m3/w5`, `rebuild/m3/w6`)
+and `gen/` copied in because it does not exist at that commit. No private junction, nothing
+under `rebuild/conform/private` read or created, no browser, no `--full`. The worktree was
+removed afterwards, and so was the one my predecessor left behind when the account limit
+cut it off mid-round.
+
+```
+%TEMP%\sealfix2-needle-wt   git rev-parse HEAD  82c98f891cf24ad339cddc0969087e3ecb574b0b
+replay-s8.test.cjs      # pass 19   # fail 0    duration_ms 297402.2
+  cross-side facts      810     identical 801
+  internal consistency  19      self-checks 7
+  needles               compared
+  measured 25 of 25; not measured: none
+  SAME 25, DIFFERENT 0
+  UNEXPLAINED           0
+  the GATE-SUPERSESSION line was found in the ledger at origin/rebuild/t2-client-core
+```
+
+**810 / 801 / 19 / 7**, which is R3 n2's other prediction, 810/19/7. The 810 is the 786 of
+default mode, less the 1 fact the declined branch contributes and which no longer exists
+as a fact at all after n2, plus the 25 needles. **Every one of the 25 needles this tree
+measured is byte-identical to the one `packages/S8.json` committed** - the third time
+requirement (g) has completed, in a third worktree, with the same answer as the author's
+and R3's.
+
+The nine differences are the same nine in both modes, and they are the same nine as at the
+reviewed head: comment prose in nine files, one F7 test title, two orderings the runner
+does not read.
+
+### 10.16 What this round leaves open
+
+1. Everything still standing in 9.14 items 3, 4 and 5: no needle has been measured on the
+   ubuntu runner; the 26 `sealgen-replay-*` folders of earlier rounds are still in `%TEMP%`
+   and are not this hand's to delete; and stages a3 and b1 are guarded, exercised and
+   shipped, but have still never been RUN, so what is proven is the guard, the shape check
+   and the exact bytes of the `.cmd` they would run.
+2. 10.14, which is not this folder's to close.
+3. `-S9` is inside the id shape the PM fixed (10.1). It cannot start a second command, and
+   GUARD-4 asserts the edge rather than hiding it, but a leading hyphen on a `--package`
+   value is a runner-side question this lane did not answer.

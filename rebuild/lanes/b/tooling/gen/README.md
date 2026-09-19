@@ -5,9 +5,13 @@ the roughly 1.5 hours of chain, and almost all of that preparation is the same m
 facts measured and typed again. This folder generates those facts, proves it can
 regenerate S8 from S7 exactly, and leaves every judgment where it belongs.
 
-Nothing here writes into the tree. `new-child.cjs` writes into a scratch `--out` folder
-only. There is no `--write`, on purpose: the PM adds one when the generated diff has been
-reviewed in at least one real round.
+Nothing here writes into the tree, **and that is now a guard rather than a sentence**:
+`new-child.cjs` refuses an `--out` that resolves inside the repository root with
+`GEN-OUT-INSIDE-THE-TREE`, before anything is measured and before a byte is written (real
+paths compared, case-insensitively on win32). Until the PM's final read, `run()` took
+`path.resolve(o.out)` and wrote there, so `--out .` from the repository root overwrote the
+working runner with the generated one. There is still no `--write`, on purpose: the PM adds
+one when the generated diff has been reviewed in at least one real round.
 
 ## What is generated
 
@@ -19,7 +23,7 @@ reviewed in at least one real round.
 | d | the `CHILD_SPECS` arrays | the files are **found** (`git grep`), never listed, so a new cell cannot be missed |
 | e | `packages/<ID>.json` | every `pre`/`post` from a **git blob** (`git cat-file blob <rev>:<path>`), never from a working file, never with CRLF conversion; roles from the parent's pins and the lane diff |
 | f | the runner sha256 re-pinned in every ancestor spec **that pins the runner this hunk moves** | taken over the generated runner bytes, and cross-checked against the blob at the post head. A spec pinned to an OLDER runner (B-NTC, B1..B4 all pin `4482bb8a`) is frozen where its own seal left it: it is left alone and named in `TODO.md`, which is exactly what the S8 round did |
-| g | the child needles | **measured** by running each child the way `children()` runs it: node, cwd = repo root, and the env `laws()` builds at `b-package.cjs:2085` - the clock pair, `ENGINE_MAIN` and `ENGINE_OLD` from `Reference.create(root)`, `EARNED_CLIENT_DIR`, and the four variables the runner DELETES. If that env cannot be reproduced, **no needle is recorded at all** and `TODO.md` says why (`--needle-repeat 2` additionally requires every run to print the same needle) |
+| g | the child needles | **measured** by running each child the way `children()` runs it: node, cwd = repo root, and the env `laws()` builds at `b-package.cjs:2085` - the clock pair, `ENGINE_MAIN` and `ENGINE_OLD` from `Reference.create(root)`, `EARNED_CLIENT_DIR`, and the four variables the runner DELETES. If that env cannot be reproduced, **no needle is recorded at all** and `TODO.md` says why. `--needle-repeat 2` additionally requires every run to agree, and it asks that by **exact equality of the tap summary**, not by the prefix predicate `children()` uses to match a needle against stdout: `^# pass 4` matches `# pass 42`, and a drifting pass count is the flake the switch exists to catch |
 | h | the `rebuild.yml` standing step, and the lane-cell step's run line | the flip lives inside the package (VERDICT-S6.md rule (a)); the run line is by exact path, never globbed |
 | i | `final-lines.txt` | the three token lines drafted, with the sha256 rule the runner uses: over the line bytes, leading dash included, newline excluded |
 | j | `TODO.md` | everything it could not decide, each with the reason |
@@ -50,6 +54,15 @@ reviewed in at least one real round.
   one invited to `--exclude`. On the S8 replay the nineteen `new` paths split 12 / 5 / 2,
   and the two are exactly the p3-layout-v2 cells the PM ruled undeclared at `:524 N1`.
   `REPLAY-4` asserts both ends: the two carry the ruling, and no path a child executes does.
+  **The walk follows string-literal specifiers only**, so a module reached only through
+  `require(variable)` or `await import(spec)` is invisible to it and its path would land in
+  the third class with the `--exclude` invitation. Every such specifier the walk meets is
+  therefore recorded and printed beside every third-class entry as
+  `DYNAMIC-SPECIFIER-SEEN <file>:<line>` (measured on the S8 post head: **20 of them**,
+  and `REPORT.json` lists every one), so the invitation is never offered on a blind spot
+  without saying so. When there are none, the entry says that
+  instead. `REPLAY-19` holds both halves with a two-file fixture in a throwaway
+  repository.
 - **The receipt line, the review json, the verdict, and anything needing `--full`.**
 
 ## The proof
@@ -59,9 +72,14 @@ M2-S7-PORT-ADMISSION at the real S8 base and compares it with what the round com
 `82c98f8`. Run it with `node --test rebuild/lanes/b/tooling/gen/test/replay-s8.test.cjs`
 (`MEASURED_TEST_NOW=2026-09-03`, `TZ=America/New_York`, each `set` on its own line).
 
-Measured: **788 cross-side facts, 779 identical, 0 unexplained**, plus **19 internal
-consistency checks** and **6 self-checks**, both counted apart. The three kinds are kept
-apart on purpose (R2 M4), and only the first is reproduction:
+Measured: **786 cross-side facts, 777 identical, 0 unexplained**, plus **19 internal
+consistency checks** and **7 self-checks**, both counted apart. The three kinds are kept
+apart on purpose (R2 M4), and only the first is reproduction. (R3 n2 found two more facts
+in the wrong bucket and both have moved: the GATE-SUPERSESSION line located in the
+COMMITTED ledger by the sha the COMMITTED spec records is a self-check, and "the
+differential child is green here" is a measurement of this tree against the literal 0,
+which is no bucket at all - it is asserted directly now. 788/779/19/6 became
+786/777/19/7.)
 
 | kind | both sides | what it is worth |
 |---|---|---|
@@ -70,15 +88,23 @@ apart on purpose (R2 M4), and only the first is reproduction:
 | self-check | committed vs committed | a property of the S8 round, not of this generator |
 
 Four files come out byte-identical; nine differ in comment prose only; one test title and
-two orderings differ. Five controls: REPLAY-11 (a generator with one substitution broken
+two orderings differ. Eight controls: REPLAY-11 (a generator with one substitution broken
 must be caught), REPLAY-12 (a mutated data string INSIDE an assert expression is a code
 difference, not prose), REPLAY-13 (the child env is `children()`'s env, including the four
 deletions, and a reduced env records no needle), **REPLAY-14** (the last string of a
 TWO-argument assert is an expected VALUE and a mutation of it is a code difference: 144 of
 the 860 assert lines ending in a string are in that shape, the old rule tolerated all 144,
-this one tolerates 0) and **`test/chain-guard.test.cjs`** (every stage that merges, commits
-or pushes refuses `main`, `rebuild/t2-client-core` and a detached HEAD, exercised on a
-throwaway repository). REPLAY-15 removes the scratch folders the run created.
+this one tolerates 0 - and `MESSAGE_ARITY.fail` is 2, because the legacy
+`fail(actual, expected, message)` puts an expected VALUE where 0 forgave any string),
+REPLAY-16 (the tap needle is found in CRLF stdout), **REPLAY-17** (two runs agree by exact
+tap summary, the `# pass 4` / `# pass 42` pair), **REPLAY-18** (an `--out` inside the
+repository is refused before anything is measured), **REPLAY-19** (the import walk is
+literal-only and says so) and **`test/chain-guard.test.cjs`** (nine cells: every stage that
+merges, commits or pushes refuses `main`, `rebuild/t2-client-core` and a detached HEAD; no
+argument can become a second command; two chains do not share a stage file; and the shipped
+script run as a CHILD PROCESS from a throwaway repository, which holds the wiring from
+`__dirname` to `writeBranch` rather than leaving it to a reviewer). REPLAY-15 removes the
+scratch folders the run created.
 
 **The needles are compared only where that means anything.**
 `GEN_REPLAY_NEEDLES=1` (or the longer `GEN_REPLAY_NEEDLES_AT_POST_HEAD=1`, which says what
@@ -100,7 +126,10 @@ exactly why R2 N7 asked for it.
 
 `seal-chain.cjs --plan` prints chain A (DECISIONS:516 to :519) and chain B (:528 to :529)
 as named stages. `[run ]` stages this script runs, detached, with a log and a `.done` file
-under `%TEMP%\sealgen-chain-<stage>.*` so a long stage can be polled. `[PM  ]` stages need
+under `%TEMP%\sealgen-chain-<ID>-<stage>.*` so a long stage can be polled. **The id is in
+those names**, because S9 and S10 will overlap on one PC and `sealgen-chain-a1.done` was
+one file for both of them: `--poll` of one chain read the other's DONE and printed the
+other's log as this stage's evidence. `[PM  ]` stages need
 `--full` and the private census and are **refused** without `--pm-runs-full`; this lane
 never passes it. `[hand]` stages are judgments and ledger writes: printed, never executed.
 
@@ -113,9 +142,27 @@ with the worktree, never an override. The branch being written is printed as
 `WRITES INTO: <branch>` in the stage banner and in `--plan`, and a worktree that cannot run
 a stage prints the refusal there instead of the command, before anyone tries. `--dry-run`
 writes the stage `.cmd` and starts nothing, and says that. `test/chain-guard.test.cjs`
-holds the list to the commands: a `run` stage whose command contains a writing verb and is
-not in `WRITE_STAGES` fails that cell, which is how the next stage someone adds cannot
-dodge the guard the way `a3` and `b1` did (R2 M1).
+holds the list to the commands with an **allow list**: a `run` stage outside `WRITE_STAGES`
+may be the runner's own `--ci` command or a git command whose VERB is one of `fetch`,
+`diff`, `log`, `show`, `status`, `rev-parse`, `ls-tree`, `cat-file`, and anything else
+fails that cell. (`fetch` is on the list because it writes refs under `refs/remotes` and
+never the worktree.) Until R3 n6 this was a list of WRITING verbs, which is the wrong shape
+for a guard and was shorter than git is: `git pull --ff-only origin <tip>` passed it.
+
+**And no argument can become a second command.** This script builds a command line by
+concatenation and writes it into a `.cmd` that `cmd.exe` runs, so `--id` must match
+`/^[A-Za-z0-9-]{1,16}$/`, `--tip-ref` and `--branch` must be a plain ref name (no `..`, no
+leading `-`), and so must the branch Git resolves - otherwise `CHAIN-ARGV-SHAPE` names the
+argument and nothing is built, written or started. Measured before that guard existed:
+`--tip-ref "x & git push origin HEAD:main"` put
+
+```
+git fetch origin && git merge --no-edit x & git push origin HEAD:main
+```
+
+into the body of `sealgen-chain-a3.cmd`, with `WRITES INTO: rebuild/b-seal-gen` printed
+above it - `writeBranch()` had been asked, and had said yes to the merge it was shown. The
+second command was never shown to it at all.
 
 Stage **a5 is a `hand` stage**: `propose.cjs` confirms the runner still compiles to its
 main-sequence boundary and that `proposed()` is reachable, and writes nothing. Assembling
@@ -146,7 +193,7 @@ folder's business.
 
 The S8 preparation round is eight commits (`1ac0c72 .. 82c98f8`) over 25 files. What the
 generator now produces is the whole of six of those commits' mechanical content:
-**779 of 788 cross-side mechanical facts, 4 of 15 generated files byte-identical, produced
+**777 of 786 cross-side mechanical facts, 4 of 15 generated files byte-identical, produced
 in about 20 seconds of measured work** (the generator's own wall time in the replay).
 
 R2 N5 asked for the hours, and refusing to give one was the wrong answer twice running.
@@ -158,14 +205,20 @@ holds:
 | preparation per reseal child, S6 / S7 / S8, the PM's own figure | **2.5 h** |
 | of the round's 8 commits, the ones that are mechanical content | **6** (`1ac0c72`, `70b983a`, `ef21153`, `c07d092` in part, and the two re-pin/CI commits) |
 | share of the preparation those six commits are | **about three quarters**, because the other two are the brief and the report, which are prose |
-| what the generator does of that three quarters | **779 of 788 facts**; the 9 that remain are prose in comments, and the 33 TODO entries are read and answered by hand |
-| so: machine work replaces | **about 1.5 h of the 2.5 h**, leaving roughly 1 h of reading, prose and judgment |
+| what the generator does of that three quarters | **777 of 786 facts**; the 9 that remain are prose in comments |
+| so, before any allowance: 2.5 h x 0.75 x 777/786 | **1.85 h** |
+| the step the rows above do NOT carry | the **33 TODO entries** a human reads and answers, and the ordinal prose in the mirrored comments. That is judgment work the generator creates rather than removes, and it is the whole of the gap between 1.85 h and the number below |
+| so: machine work replaces | **about 1.5 h of the 2.5 h** - that is 1.85 h less roughly 20 minutes of reading and answering TODO.md - leaving roughly 1 h of reading, prose and judgment |
 | measured machine time in its place | **about 20 s** (plus minutes if `--stage all` measures 25 needles) |
 
-**1.5 hours a child** is therefore the number, and its weakest input is the 2.5 h: it is
-the PM's recollection, not a measurement, and no round has been timed. The two inputs that
-ARE measured are the fact count and the 20 seconds. If the PM times the S9 preparation, the
-first input stops being a recollection and this table becomes arithmetic.
+**1.5 hours a child** is therefore the number, and it has two weak inputs, not one. The
+2.5 h is the PM's recollection, not a measurement, and no round has been timed. The
+20-minute judgment allowance in the row above is an estimate too: R3 n5 was right that the
+arithmetic closed at 1.85 h and that the missing step was the TODO reading, so it is now a
+row of the table with a number on it rather than a sentence beside it. The two inputs that
+ARE measured are the fact count and the 20 seconds. If the PM times the S9 preparation -
+the whole of it, and the TODO-reading separately - both estimates stop being estimates and
+this table becomes arithmetic.
 
 ## Before you trust a needle: the worktree has to be whole
 
@@ -175,11 +228,29 @@ not: its `node_modules` junction chain ended in a directory that did not exist, 
 25 S8 children exited 1 with `ERR_MODULE_NOT_FOUND @noble/hashes`, and
 `Reference.create(root)` refused with `BASELINE-ESBUILD-MISSING`. **The PM re-pointed that
 worktree's three junctions at live sources at 02:38 on 2026-09-19** (root,
-`rebuild/m3/w5`, `rebuild/m3/w6`), and the reference build now succeeds here: `childEnv()`
-answers `exact: true` and REPLAY-13 exercises the green branch instead of the refusal.
+`rebuild/m3/w5`, `rebuild/m3/w6`), so `referenceOk` is true here: the pinned reference
+bundles build, and `ENGINE_MAIN` and `ENGINE_OLD` are set where `children()` always sets
+them.
 
-The generator still records **no needle at all** where the env is not `children()`'s env,
-and names the reason once in `TODO.md`. What the first completed needle run then showed is
+**That is only half of `exact`, and the other half never holds inside a test.** `childEnv()`
+answers `exact: false` whenever `NODE_TEST_CONTEXT` is set, which it always is in a process
+`node --test` is running - and REPLAY-13 ASSERTS that refusal, by name, on every run:
+
+```
+assert.equal(ce.inTestRunner, true, 'this cell runs under node --test, so childEnv must see it');
+assert.equal(ce.exact, false, 'and must refuse, whatever the reference build did');
+```
+
+A `node --test` grandchild that inherits that variable reports over the v8 serializer
+instead of TAP: empty stdout, **exit 0**, no needle, and a failing child indistinguishable
+from a passing one. So a needle measured from inside a test runner is not a needle, and
+nothing here will record one. The process that DOES measure the needles is the generator,
+which the replay cell spawns with `NODE_TEST_CONTEXT` deleted - an ordinary process, the
+kind the PM runs - and its own `childEnv()` is the exact one. **Run the generator from a
+shell, never from inside a cell.**
+
+The generator records **no needle at all** where the env is not `children()`'s env, and
+names the reason once in `TODO.md`. What the first completed needle run then showed is
 above: green children are not enough - the needle must also be READ correctly, and it was
 not until REPLAY-16. Run the needle stage from a worktree whose `node_modules` really
 resolves, prefer `--needle-repeat 2` for the run that feeds a sealed package, and read
