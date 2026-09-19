@@ -70,8 +70,11 @@ const sha256 = (s) => crypto.createHash("sha256").update(s, "utf8").digest("hex"
 function declaredSubSha(row) {
   return sha256(JSON.stringify([row.id, row.file, row.region, row.from, row.to, row.kind || null]));
 }
+/* `statementRewrite` joined this digest in loop round 1: it EXEMPTS a replacement row from
+   cut.cjs's control-flow comparison, so it is an authorization, and an authorization the
+   witness does not cover can be added for free. */
 function declaredRepSha(file, r) {
-  return sha256(JSON.stringify([r.id, file, r.replacement]));
+  return sha256(JSON.stringify([r.id, file, r.replacement, r.statementRewrite || null]));
 }
 /* R2 F4. The two blocks R1 NOTE-1 left uncovered, and they are the two that carry the
    MOST authored bytes: `product` (the banner, factory line and return block of each new
@@ -160,13 +163,26 @@ for (const [file, regions] of Object.entries(table.files)) {
   let moved = 0;
   for (const r of regions) {
     if (!WITNESSED.has(r.kind)) continue;
-    const { start, end } = resolveRegion(lines, r, file, (m) => {
+    const { start, end, firstHits } = resolveRegion(lines, r, file, (m) => {
       console.error("REFUSED: " + m); process.exit(1);
     });
     const body = lines.slice(start - 1, end).join("\n");
     const sha = crypto.createHash("sha256").update(body, "utf8").digest("hex");
     const row = witness.regions[r.id] || {};
-    row[REF_NAME] = { sha256: sha, lines: end - start + 1, at: [start, end] };
+    /* THE FIRST ANCHOR'S OCCURRENCE COUNT, recorded here from the git objects of a named
+       commit so that cut.cjs has an OUTSIDE number to compare against (blind review F5,
+       incremental review F1). The named refs must agree on it: an anchor whose text occurs
+       a different number of times at the two refs cannot carry this check, and this refuses
+       rather than recording the later ref's number over the earlier one. */
+    const occ = firstHits.length;
+    if (typeof r.first.occurrences === "number" && r.first.occurrences !== occ) {
+      console.error("REFUSED: " + file + " " + r.id + ": the table records first.occurrences=" +
+        r.first.occurrences + " and this ref has " + occ + ". The named refs must agree on an " +
+        "anchor's occurrence count before it can be enforced (blind review F5).");
+      process.exit(1);
+    }
+    r.first.occurrences = occ;
+    row[REF_NAME] = { sha256: sha, lines: end - start + 1, at: [start, end], occurrences: occ };
     witness.regions[r.id] = row;
     if (r.kind === "move") moved += end - start + 1;
     n += 1;
