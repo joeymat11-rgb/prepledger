@@ -16,7 +16,6 @@ VENDORS = ['openai', 'anthropic', 'claude', 'gpt', 'gemini', 'chatgpt', 'whisper
 # This one reads the raw string: a set string broken up by an invisible character is caught by the
 # format character sweep below, which has no honest case to weigh against it.
 SET_LETTER_X = re.compile(r'\d\s*[xX]\s*\d')
-MINUS_SIGN = '\u2212'
 NO_BREAK_SPACES = '\u00a0\u202f\u2007\u2060'
 
 

@@ -38,7 +38,7 @@ builder hits one of the open questions in section 6, each of which has a default
 | `quality/STANDARD.md` | the numbered UI standard (13 sections): layout, type, colour, scene, motion, copy, process, the chassis, the plates, and section 13, the full list of what the gates check | the ACCEPTANCE BAR for every screen and state |
 | `quality/gate.py` | 33 distinct checks on the six views, 372 result rows across three phone sizes, two themes and three screens (errors, motion, transitions with motion allowed and refused, copy, generated content the sweep cannot read, the multiplication sign in every set string, targets, fit, thumb zone, columns, page margin, card inner edge, icon inset, bottom safe area, spacing, type scale, radii, pressed states, contrast in two tiers measured behind the text, the two fonts by sha256 and by face, serif versus sans, the RIR lock, seams, mist edges, visual regression against `quality/baseline/<platform>/`) | the gate the port must pass on the real client |
 | `quality/statesheet.py` | renders every state in both themes, checks each (errors, copy, targets, primary in the first viewport, contrast in two tiers, label overflow, seams) and compares it to its committed record; 418 renders, exit 1 on any problem | the second gate |
-| `quality/teeth.py` | the executable mutation list: 33 forbidden changes applied one at a time to a scratch copy, each run through the scratch copy's own gate and asserted to fail for the stated reason | what proves the two gates can still refuse |
+| `quality/teeth.py` | the executable mutation list: 42 forbidden changes applied one at a time to a scratch copy, each run through the scratch copy's own gate and asserted to fail for the stated reason | what proves the two gates can still refuse |
 | `quality/phonesheet.py` | phone-zoom contact sheets in thirds, of the three base screens or of any drawn state (`--state T-40`) | what the reviewer looks at |
 | `quality/baseline/<platform>/*.png` and `ENV.txt` | the six accepted screen renders for the machine that drew them, and the OS, Python, playwright and Chromium versions of that machine and the launch list it used | what the regression check measures against |
 | `quality/baseline/states/<ID>-<theme>.json` and `INDEX.json` | one shared record per state and theme: the visible text, every text bearing element's text, rect, colour, family and size; and the list of ids and themes, with the machine and launch list that wrote them | what the state sheet measures against, on any platform: measured at 0.00 px and 0.00 levels across two operating systems (section 3.1) |
@@ -297,6 +297,14 @@ plays otherwise is still caught. The sweep reads each element and its `::before`
 because a pseudo element moves as visibly as its host and the pack already draws with them. The motion check runs on every theme and screen with reduced
 motion off (the embers hidden, nothing else may move) and on (nothing may move at all).
 
+**The machines of record.** The win32 machine of record is the owner's PC and the linux one is
+the sandbox image the builder runs in; each is described by the `ENV.txt` beside the baselines it
+drew, down to the launch list. A CI workflow that runs the two gates on a hosted runner lives
+outside this pack and can be added without touching it. Whether a runner's render matches these
+baselines is a thing to measure when someone adds one, not a thing to assume: until it is
+measured, a runner is not evidence, and the honest shapes are for it to set its own platform
+directory or to run the checks that do not compare a render.
+
 **What a baseline does not carry.** Nothing checks that a platform's baselines were drawn by that
 platform, by `--accept`, or from an unmutated tree; a hand written `quality/baseline/win32/` would
 simply sit there unread on a Linux run. The guard is that an accept run labels its own report, that
@@ -304,14 +312,19 @@ no report is committed, and that a reviewer reads the baseline diff in the pull 
 
 **`quality/teeth.py`** keeps all of this honest: it copies the pack to a scratch directory,
 applies one forbidden change at a time, runs the scratch copy's own gate against it and asserts
-the exact refusal. Thirty three rows: every row of the audit's mutation table, plus a dropped RIR
-chip, a serif element switched to sans and a card moved 6 px off the margin, plus the rows the two
-review rounds added, plus the two this round added, p1 and p2. p1 takes the hinting argument out
-of `LAUNCH_ARGS` and the state sheet must FAIL on a moved rect, so the launch list cannot quietly
-lose it; headless Chromium hints only on Linux, so on Windows and macOS that row cannot fail, and
-it is printed there with the reason in words and counted as expected rather than skipped in
-silence. p2 deletes this platform's thumbnail for T-02 and the sheet must name the path and the
-remedy. It prints a table and exits 1 if any row slips through.
+the exact refusal. Forty two rows: every row of the audit's mutation table, plus a dropped RIR
+chip, a serif element switched to sans and a card moved 6 px off the margin, plus the rows the
+three review rounds added and the rows the PM's leads added. p1 takes the hinting argument out of
+`LAUNCH_ARGS` and the state sheet must FAIL on a moved rect, judged on T-84 where that mutation
+moves a rect 170 px; p3 runs the same mutation through the screen gate, which refuses far more
+loudly. Headless Chromium hints only on Linux, so on Windows and macOS those two rows cannot fail,
+and each is printed there with the reason in words and counted as expected rather than skipped in
+silence. p2 deletes this platform's thumbnail for T-02, p4 copies another platform's over it, h1
+and h3 hold the two sides of the 3 px rect tolerance at 2 px and 4 px, and q1 to q6 are the PM's
+leads: an unknown size, a listed word split by a soft hyphen, a horizontal bar, primary text
+tagged with a muted class and painted with the muted token, a state whose apply throws, and
+`--accept` pointed at another build. It prints a table and exits 1 if any row slips through, and a
+row whose anchor did not match is VOID, which is counted as disagreeing and never as a pass.
 
 Rigor per LANES.md, screens tier: one independent Opus reviewer told to disagree (author is not
 the reviewer), CI green on both OS, and the two gates green; the PM (Fable) judges. No ticket
@@ -330,10 +343,16 @@ self-accepts. The builder's cells pin every copy string they move.
   computed value still carries the call and the number on the screen is not available to the
   gate, so a check of its own, "generated content the sweep cannot read", FAILs on it rather than
   letting it pass unswept. On the swept string:
-  the em dash, the en dash and a hyphen with a space each side as plain substrings, each word of the owner's
-  word list as `re.search(r'\b' + word + r'\b', text.lower())` (a real word boundary, so "Ready
-  to train" matches and "already" does not), and each vendor name as a plain substring of the
-  lowered text. The one sweep that matters most had been written `r'\\b'`, which is a literal
+  every character of Unicode category Pd except the plain hyphen U+002D, plus a hyphen with a
+  space each side, as plain substrings; every character of Unicode category Cf, named by its code
+  point, because a soft hyphen or a zero width space inside a word is drawn as nothing and
+  interface copy has no honest use for one; then, on the string with those removed, NFKC
+  normalised and casefolded, each word of the owner's
+  word list as `re.search(r'\b' + word + r'\b', text)` (a real word boundary, so "Ready
+  to train" matches and "already" does not), and each vendor name as a plain substring. U+2212
+  MINUS SIGN is filed as a maths symbol and is not swept: the prototype draws it as the whole
+  label of a set's decrement button, which is an open question for the lane lead rather than a
+  defect, and `quality/common.py` carries the numbers. The one sweep that matters most had been written `r'\\b'`, which is a literal
   backslash, and could never match; it is `quality/common.py:copy_problems` now, shared by both
   gates so it cannot be half fixed. The gate also refuses a set written with the letter x
   anywhere on the screen, not only in the Log label.
