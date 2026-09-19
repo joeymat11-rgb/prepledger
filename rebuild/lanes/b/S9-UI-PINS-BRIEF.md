@@ -363,8 +363,10 @@ are never added together, and a known red is preserved rather than hidden.
 | PASSPHRASE-NORMALIZE | `ba04c07f`, already merged into this lane | blind review ACCEPT WITH NOTES, no product defect (`DECISIONS:601`) | none in product; four cell/paper notes ruled P-PN-1 to P-PN-4 and being built |
 
 **A's row is NO LONGER PENDING. IT IS ACCEPTED, and this is the ONE place the brief says so**
-(the marker an earlier draft carried, "PENDING ASTRA R6", is removed here and nowhere else did it
-stand). `DECISIONS:598` dispatched Astra job 39, narrow by ruling, from a fresh worktree at
+(the marker an earlier draft carried, "PENDING ASTRA R6", stood here and at E fact 13 in section
+5.1; both are now ACCEPTED, and the only two places those three words still appear in this file are
+this sentence and section 5.1's preamble, both of which say the marker is HISTORICAL).
+`DECISIONS:598` dispatched Astra job 39, narrow by ruling, from a fresh worktree at
 `397ac466`. **`DECISIONS:620` ACCEPTS lane A at `a224c7b0`**: the runner is
 `d52acc31c99845ed774c5111a261b84012538495e0ee2caa1d13827c1d28bb53`, 3898 lines, the ten tooling
 suites 151 of 151 on both systems. The one code change since `397ac466` is **H27**, which seeds
