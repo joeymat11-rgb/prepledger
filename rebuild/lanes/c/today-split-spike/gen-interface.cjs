@@ -613,7 +613,6 @@ const report = {
   paintReferences: sealedRefs.length,
   paintSubstitutionStops: subStops,
 };
-if (JSONOUT) fs.writeFileSync(JSONOUT, JSON.stringify({ report, rows: ALL, subs }, null, 1) + "\n");
 
 console.log("GEN-INTERFACE over " + path.join(ROOT, TODAY, FILE));
 console.log("  references to sealed bindings from released lines: " + refs.length +
@@ -655,6 +654,21 @@ if (uncovered.length) {
   console.log("  S-R17 (g) STOPS with no hand row: NONE. Every released assignment to a " +
     "sealed binding has a declared disposition.");
 }
+/* INCREMENTAL REVIEW F7. Until loop round 1 this generator PRINTED the uncovered stops and
+   then wrote the whole table anyway and exited 0, so a released `foodSaving = ...` with no
+   hand row produced a table that looked successfully generated and a cut that ran. An
+   uncovered stop is a line that ASSIGNS A SEALED BINDING with nothing saying what becomes
+   of it; a generator that cannot express it must not hand back a table as though it had.
+   It refuses BEFORE any JSON reaches regions.json or stdout. */
+if (uncovered.length || subStops.length) {
+  console.error("REFUSED: " + uncovered.length + " released line(s) assign a sealed binding " +
+    "with no hand row, and " + subStops.length + " sealed line(s) assign a released binding " +
+    "with no declared rewrite. Every one of them is a durable-writer decision this generator " +
+    "may not invent (S-R17 (g)). Declare a hand row for each, or stop the region. No table " +
+    "was written (incremental review F7).");
+  process.exit(1);
+}
+if (JSONOUT) fs.writeFileSync(JSONOUT, JSON.stringify({ report, rows: ALL, subs }, null, 1) + "\n");
 if (WRITE) {
   const existing = (table.files[FILE] || []).filter((r) => !/^TA-[IW]/.test(r.id));
   table.files[FILE] = existing.concat(ALL);
