@@ -112,7 +112,7 @@ function namesOf(mod) {
    UNREADABLE, MISMATCH. UNLISTED comes first because a path this cell holds no literal
    for is a path it can say nothing at all about: whether the bytes are there, and what
    they are, are questions that only mean something once the path is pinned. */
-function approvedPin(root, files, literal, readFile = fs.readFileSync) {
+function judge(root, files, literal, readFile) {
   if (!Array.isArray(files) || files.length === 0) return ["APPROVED-PIN LIST-EMPTY"];
   const refusals = [];
   for (const file of files) {
@@ -140,6 +140,19 @@ function approvedPin(root, files, literal, readFile = fs.readFileSync) {
   for (const key of Object.keys(literal).sort(byteCompare)) {
     if (!named.has(key)) refusals.push("APPROVED-PIN ORPHAN " + key);
   }
+  return refusals;
+}
+
+/* R2 N2. EVERY REFUSAL THIS FILE EMITS IS RECORDED AS IT IS RETURNED, so the last row can
+   DERIVE the vocabulary from what the rows above actually produced instead of asserting
+   the shape of a constant and calling that reachability. Recording is a harness concern
+   and never a verdict: approvedPin returns exactly what the engine returned, unchanged,
+   and every caller - the fixture rows and the REAL ROW alike - goes through this door. */
+const EMITTED = new Set();
+
+function approvedPin(root, files, literal, readFile = fs.readFileSync) {
+  const refusals = judge(root, files, literal, readFile);
+  for (const r of refusals) EMITTED.add(r.split(" ", 2).join(" "));
   return refusals;
 }
 
@@ -613,8 +626,17 @@ export const REFUSALS = Object.freeze([
   "APPROVED-PIN ORPHAN",
 ]);
 
-test("the refusal vocabulary is exactly seven, and every one of them is reachable above", () => {
+/* R2 N2, AND THE TITLE IS NOW A CLAIM THE ROW MAKES. The old row asserted the length, the
+   uniqueness and the SHAPE of the strings and called that reachability. This one DERIVES
+   the set of verbs the engine actually emitted over every row above and compares it with
+   the exported vocabulary, in both directions: a refusal no row reaches, and a refusal a
+   row emits that the export does not carry, each go red here. Top-level rows in a
+   node:test file run in order, so this row, written last, sees every emission above it;
+   if that ever stopped being true this row would go RED, which is the safe direction. */
+test("the refusal vocabulary is exactly seven, and every one was EMITTED by a row above", () => {
   assert.equal(REFUSALS.length, 7);
   assert.deepEqual(REFUSALS, [...new Set(REFUSALS)]);
   for (const r of REFUSALS) assert.match(r, /^APPROVED-PIN [A-Z-]+$/);
+  assert.deepEqual([...EMITTED].sort(), [...REFUSALS].sort(),
+    "the vocabulary and what the rows above emitted must be the same set");
 });

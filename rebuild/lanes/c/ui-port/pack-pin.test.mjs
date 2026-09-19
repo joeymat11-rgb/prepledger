@@ -199,7 +199,7 @@ function walk(root, rel, observed, irregular, unreadable, readFile) {
    and passed only by the fixture rows that need an unreadable file on a machine where one
    cannot be built (Windows without a DENY ACE, and a farm scratch running as root). The
    REAL ROW passes none, and a row below asserts that by reading this file's own source. */
-function packPin(packRoot, literalLines, readFile = fs.readFileSync) {
+function judge(packRoot, literalLines, readFile) {
   /* ABSENT means: there is no plain directory at the pack root. lstat, so a link standing
      where the pack should be is absent too rather than quietly walked through. */
   let st = null;
@@ -227,6 +227,19 @@ function packPin(packRoot, literalLines, readFile = fs.readFileSync) {
   }
   for (const rel of sortByBytes([...irregular])) refusals.push("PACK-PIN NOT-A-REGULAR-FILE " + rel);
   for (const rel of sortByBytes([...unreadable])) refusals.push("PACK-PIN UNREADABLE " + rel);
+  return refusals;
+}
+
+/* R2 N2. EVERY REFUSAL THIS FILE EMITS IS RECORDED AS IT IS RETURNED, so the last row can
+   DERIVE the vocabulary from what the rows above actually produced instead of asserting
+   the shape of a constant and calling that reachability. Recording is a harness concern
+   and never a verdict: packPin returns exactly what the engine returned, unchanged, and
+   every caller - the fixture rows and the REAL ROW alike - goes through this one door. */
+const EMITTED = new Set();
+
+function packPin(packRoot, literalLines, readFile = fs.readFileSync) {
+  const refusals = judge(packRoot, literalLines, readFile);
+  for (const r of refusals) EMITTED.add(r.split(" ", 2).join(" "));
   return refusals;
 }
 
@@ -893,8 +906,19 @@ export const REFUSALS = Object.freeze([
   "PACK-PIN UNREADABLE",
 ]);
 
-test("the refusal vocabulary is exactly seven, and every one of them is reachable above", () => {
+/* R2 N2, AND THE TITLE IS NOW A CLAIM THE ROW MAKES. The old row asserted the length, the
+   uniqueness and the SHAPE of the strings and called that reachability, which is a claim it
+   did not make. This one DERIVES the set of verbs the engine actually emitted over every
+   row above - packPin records each refusal as it hands it back - and compares that set with
+   the exported vocabulary. So the export is the drift detector the comment above says it
+   is, in both directions: a refusal no row reaches, and a refusal a row emits that the
+   export does not carry, each go red here. Top-level rows in a node:test file run in
+   order, so this row, written last, sees every emission above it; if that ever stopped
+   being true this row would go RED, which is the safe direction. */
+test("the refusal vocabulary is exactly seven, and every one was EMITTED by a row above", () => {
   assert.equal(REFUSALS.length, 7);
   assert.deepEqual(REFUSALS, [...new Set(REFUSALS)]);
   for (const r of REFUSALS) assert.match(r, /^PACK-PIN [A-Z-]+$/);
+  assert.deepEqual([...EMITTED].sort(), [...REFUSALS].sort(),
+    "the vocabulary and what the rows above emitted must be the same set");
 });
