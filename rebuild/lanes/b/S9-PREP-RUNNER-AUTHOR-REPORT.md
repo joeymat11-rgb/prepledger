@@ -12,6 +12,21 @@ BOTH ruling functions rather than a change to one of them. Everything the
 first author measured was re-measured on these bytes rather than carried
 over: the whole bar, the whole mutation table, and `--ci` at both ends.
 
+**FIX ROUND 3 (third author), and it is SHORT.**
+`S9-PREP-RUNNER-REVIEW-R2.md` ACCEPTED WITH NOTES at `ade31333`, with one
+BLOCKING about EVIDENCE rather than about code, and the PM then read every
+runner hunk line by line, accepted the mechanism, and ruled four things:
+**P-A1** (strengthen the RULED terminal test in BOTH ruling functions, IF AND
+ONLY IF the measurement allows), **P-A2** (refuse a release without a bound
+parent), **P-A3** (narrow the grandparent skip by measurement) and **P-A4**
+(pin H13's count sentence by reading the runner, and correct the two wrong
+cites and H13's own mutation row). **Section 11 is this round**: the P-A1
+measurement first, then each hunk red first, the mutation table re-taken for
+every clause this round touched or added, R2's findings answered one by one,
+and the sentences the S9 brief should carry. Sections 0, 1, 2, 4, 5, 6 and 8
+are corrected in place where this round moved them, and nothing earlier is
+left standing that these bytes make false.
+
 Design of record: `rebuild/lanes/b/S9-RELEASE-SPEC.md` v4, as corrected by
 `rebuild/lanes/b/S9-RELEASE-SPEC-REVIEW-R4.md`; where the two disagree, R4
 stands. Precedent: `rebuild/lanes/b/S8-PREP-AUTHOR-REPORT.md`.
@@ -26,7 +41,8 @@ wherever the evidence lets them.
 | at `da9f8683`, the bytes the spec's line numbers are taken from | `e31dd206c0fb0fc0c295df45eae3992d4c59b1a76de8da04a4d0f22948e9335e` | 3252 |
 | at `3d143c30`, the bytes REVIEW-R1 reviewed and rejected | `d0021d5ca6871a832ee3d3853cc85370663392abaf4ce7654d0ddb5c5a66ee38` | 3522 |
 | after the fix round's four R1 hunks, before its own last correction | `efcdb700a5990cf55d6ca1d7f839cb2d0befdf2ae1d21c9dc7715b47c7ba70e2` | 3577 |
-| **FINAL, at the head of this branch** | **`25ddc44c32d0d71b924cf62c2e0a8647697b6e77a55a91a132388217b6789ca6`** | **3580** |
+| at `aa42ded0`, the bytes REVIEW-R2 reviewed and ACCEPTED WITH NOTES | `25ddc44c32d0d71b924cf62c2e0a8647697b6e77a55a91a132388217b6789ca6` | 3580 |
+| **FINAL, at the head of this branch, after fix round 3 (P-A1, P-A2, P-A3)** | **`32916e509df0e38e4cb464a4b30c871f880d11a849958c5d7e9d14d1e2961be3`** | **3638** |
 
 Line counts are `wc -l`. R1 N11 is right that `split('\n').length` says one
 more, and this table now uses the `wc -l` convention throughout so nobody
@@ -40,24 +56,31 @@ in the fix round and every one of them was re-taken, not adjusted.**
 
 ## 1. THE HUNK TABLE
 
+**EVERY NUMBER IN THIS TABLE WAS RE-TAKEN AT THE FIX-ROUND-3 HEAD**, after
+P-A1, P-A2 and P-A3 landed; the round-2 numbers are gone rather than adjusted,
+and the three new hunks are the last three rows.
+
 | H | landed at | what it does, in one sentence | the red-first cell that proves it |
 |---|---|---|---|
 | H1 | `:367` (spec `:351`) | `PRODUCT_ROLES` gains `'released'` as the sixth and last word of the closed vocabulary, fixed here and nowhere else (W7) | B.8 (1), and F6b in `pinned-unchanged-and-ruled-substitutions.test.cjs` |
 | H2 | `:993-:995` (spec beside `:932-:933`) | `RELEASE_GRANT`, `RELEASE_GRANT_SHAPE` and `releaseGrants()`, the token's grammar, beside the `GATE-SUPERSESSION` token they mirror | B.8 (1), (6) |
-| H3 | `:1320-:1384` (spec: new, beside `supersessionRuling()` `:1189`) | `releaseRuling(s, bound)`: B.2 steps 1 to 6, no cache, unique sha, ` RULED` terminal, package-named, set equality both ways, parent-pin membership, and a SEVENTH step from F.1 R2, the executionPins disjointness | B.8 (4), (5), (6), (7), (8), (R1-B1) |
-| H4 | `:1699-:1700` (spec `:1517-:1531`) | in `spec()`'s product loop, a `released` pin declares `post === null`, by its own refusal name | B.8 (1b) |
-| H5 | `:1142` and `:1617-:1621` (spec after `:1531`) | `SPEC_KEYS` gains the OPTIONAL key `release`, closed with the freeze pattern, and the block gets a closed key set of its own | B.8 (1b) |
-| H6 | `:2133` (spec `:1894`) | `product()`'s parent-pin branch admits `'released'` beside `carried` and `edited`, which is the one place a parent pin's role is judged | B.8 (2) |
-| H7 | `:2205` plus the bucket at `:2116` (spec `:1952`, `:1888`) | a released path leaves the inventory walk ONE LINE above the disk hash, into a bucket of its own, so it is never hashed and can never reach the drift assert | B.8 (3) |
-| H8 | `:2242-:2247` (spec `:1983-:1987`) | `product()`'s terminal `say` gains the released clause: the count, the ledger line, the parent that sealed them, and the paths | B.8 (3) |
-| H9 | `:2122` (spec `:1889`) | the ruling is resolved at the loop entry, BEFORE a byte of the inventory is read, so the ledger binds before the walk does | B.8 (4) to (8) |
-| H10 | `:3086-:3091` and `:3119` (spec `:2826`) | `proposed()` keeps released entries OUT of `product` and builds the `released` block from the spec and the ruling; the block is emitted only when something is released | B.8 (9), (R1-B2) and (X1) |
-| H11 | `:3137` and `:3341` (spec `:2830`) | `ARTIFACT_KEYS` gains the OPTIONAL key `released`, closed in `envelope()` with the same freeze pattern | B.8 (9), and (X1) |
-| H12 | `:3314` (spec `:2993`) | `writeSealedRunReceipt()` never puts a released path into the receipt's product map | B.8 (10) |
-| H13 | `:3286` and the count at `:3515-:3519` (spec `:2970`, `:2972`, `:3190-:3194`) | `sealedRunReceipt()` skips released paths in BOTH directions, and the AUTHORIZED STEP say no longer over-counts what it re-verified | B.8 (10) |
-| **H17** | `:2023-:2033`, `:2067`, `:2074-:2082` (spec `:1852`, `:1855-:1858`) | `releasedAncestry(a, ga)` and ONE `continue` in the GRANDPARENT walk, plus the say clause naming how many pins the skip stood aside for AND which | B.8 (11), (12) |
-| **HR-B1** (fix round) | `:1374-:1382` | the disjointness set is built the way `proposed()` builds `executionPins` - runner, spec file, brief, carrier successor, argv - so the guard closes the CLASS its own comment names; the argv route keeps its own refusal name and the other four refuse `RELEASE-PATH-IS-AN-EXECUTION-PIN-TARGET`, naming the route | (R1-B1) |
-| **HR-B2** (fix round) | `:3089-:3090` | the sealed `released` entry carries NO live line index: four keys, `role`, `lastSealedSha256`, `sealedBy`, `rulingLineSha256` | (R1-B2) |
+| H3 | `:1344-:1420` (spec: new, beside `supersessionRuling()` `:1282`) | `releaseRuling(s, bound)`: B.2 steps 1 to 6, no cache, unique sha, the RULED terminal clause, package-named, set equality both ways, parent-pin membership, and a SEVENTH step from F.1 R2, the executionPins disjointness | B.8 (4), (5), (6), (7), (8), (R1-B1) |
+| H4 | `:1735-:1736` (spec `:1517-:1531`) | in `spec()`'s product loop, a `released` pin declares `post === null`, by its own refusal name | B.8 (1b) |
+| H5 | `:1160` and `:1653-:1656` (spec after `:1531`) | `SPEC_KEYS` gains the OPTIONAL key `release`, closed with the freeze pattern, and the block gets a closed key set of its own | B.8 (1b) |
+| H6 | `:2191` (spec `:1894`) | `product()`'s parent-pin branch admits `'released'` beside `carried` and `edited`, which is the one place a parent pin's role is judged | B.8 (2) |
+| H7 | `:2263` plus the bucket at `:2174` (spec `:1952`, `:1888`) | a released path leaves the inventory walk ONE LINE above the disk hash, into a bucket of its own, so it is never hashed and can never reach the drift assert | B.8 (3) |
+| H8 | `:2300-:2305` (spec `:1983-:1987`) | `product()`'s terminal `say` gains the released clause: the count, the ledger line, the parent that sealed them, and the paths | B.8 (3) |
+| H9 | `:2180` (spec `:1889`) | the ruling is resolved at the loop entry, BEFORE a byte of the inventory is read, so the ledger binds before the walk does | B.8 (4) to (8) |
+| H10 | `:3144-:3149` and `:3177` (spec `:2826`) | `proposed()` keeps released entries OUT of `product` and builds the `released` block from the spec and the ruling; the block is emitted only when something is released | B.8 (9), (R1-B2) and (X1) |
+| H11 | `:3182` and `:3399` (spec `:2830`) | `ARTIFACT_KEYS` gains the OPTIONAL key `released`, closed in `envelope()` with the same freeze pattern | B.8 (9), and (X1) |
+| H12 | `:3372` (spec `:2993`) | `writeSealedRunReceipt()` never puts a released path into the receipt's product map | B.8 (10) |
+| H13 | `:3342-:3345` and the count at `:3573-:3577` (spec `:2970`, `:2972`, `:3190-:3194`) | `sealedRunReceipt()` skips released paths in BOTH directions, and the AUTHORIZED STEP say no longer over-counts what it re-verified | B.8 (10) for the skips; **the count by (P-A4), which reads the runner's text, because no cell can execute that say (R2 BLOCKING-1)** |
+| **H17** | `:2064-:2070`, `:2106`, `:2124`, `:2131-:2141` (spec `:1852`, `:1855-:1858`) | `releasedAncestry(a, ga)` and ONE `continue` in the GRANDPARENT walk, plus the say clause naming how many pins the skip stood aside for AND which | B.8 (11), (12) |
+| **HR-B1** (round 2) | `:1409-:1418` | the disjointness set is built the way `proposed()` builds `executionPins` - runner, spec file, brief, carrier successor, argv - so the guard closes the CLASS its own comment names; the argv route keeps its own refusal name and the other four refuse `RELEASE-PATH-IS-AN-EXECUTION-PIN-TARGET`, naming the route | (R1-B1) |
+| **HR-B2** (round 2) | `:3147-:3148` | the sealed `released` entry carries NO live line index: four keys, `role`, `lastSealedSha256`, `sealedBy`, `rulingLineSha256` | (R1-B2) |
+| **P-A1** (round 3) | `:1012-:1013`, called at `:1298` and `:1360` | `ruledTerminal()`, ONE test for BOTH ruling functions: the ledger line's LAST clause, trimmed, is exactly the word `RULED`, so a line ending "this is NOT RULED" rules nothing | (P-A1) in `release-from-seal.test.cjs` AND (P-A1) in `gate-supersession.test.cjs` |
+| **P-A2** (round 3) | `:1384-:1386` | a declared release with no bound parent product map refuses `RELEASE-WITHOUT-A-BOUND-PARENT` instead of skipping B.2 step 6 in silence | (P-A2) |
+| **P-A3** (round 3) | `:2064-:2070` (the ancestry carries the entry) and `:2119-:2123` | the grandparent skip asserts the ancestor block's `lastSealedSha256` IS the grandparent's own pin for that path before standing it aside, and otherwise refuses `ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN` naming the path and both shas | (P-A3) |
 | H14 | `:177` (spec `:173`) | `IDS` gains `'S9'`, directly behind `'S8'` and still ahead of `'B1'` | F6 |
 | H15 | `:324` (spec `:316`) | `NO_REGISTER_IDS` gains `'S9'` | F6 |
 | H16 | `:427-:479` (spec `:405`) | `CHILD_ROOTS` gains FOUR at the END of the list | F7 |
@@ -108,6 +131,24 @@ BASE: **17 pass / 0 fail**. NO HUNK IS A NO-OP, including the two new ones.
 H12 and H13 each go red ALONE, so the two directions of the receipt are
 separately observed and not jointly. H8 now also turns (R1-B1), because that
 cell's control asserts the released clause of the PRODUCT say.
+
+**THE H13 ROW UNDERSTATES ITSELF, and R2 N9 is right (round 3).** Run against
+`release-from-seal.test.cjs` alone, H13's FORWARD skip is a no-op; run against
+the whole bar it also reddens `seal-tip-and-byte-identity.test.cjs`, through
+the "a receipt written BEFORE the release, which still carries the path, does
+not void either" row. The reviewer's own numbers, which I did not re-take
+because the hunk did not move in this round: forward skip `seal-tip` twice,
+reverse skip (10) plus `seal-tip` once, H12 (10) plus `seal-tip` twice.
+
+**AND H13'S COUNT WAS PINNED BY NOTHING, which is R2 BLOCKING-1 (round 3).**
+Reverting that one expression turned NOTHING red anywhere in the ten suites,
+and this report claimed B.8 (10) covered it. It is the SAME CLASS as H4 and
+H5 below and is now named as such: the sentence stands past the
+`// 8. main sequence` delimiter every lane-B cell slices off, so no cell in
+this suite or in any other can execute it. (P-A4) pins it by reading the
+runner's own text, the way B.8 (1b) pins H4 and H5, and section 11.3 measures
+that reverting the count now reddens (P-A4) and nothing else. The runner byte
+did not move for it.
 
 **THE WEAKEST ROW, named as such.** H4 and H5 live inside `spec()`, which no
 lane-B cell can call: `spec()` reads `packages/<ID>.json` off disk, holds it
@@ -185,8 +226,9 @@ Counts that a cell pins by literal, so that none of them can move in silence.
 | `TOOLING_FILES` lane-B suites | ninth | **tenth** | the comment at `:380-:385`, and `fidelity()` itself on the first `--ci` run |
 | `SPEC_KEYS` | 21 | **22** (the new one OPTIONAL) | B.8 (1b), through the runner's own `keys()` |
 | `ARTIFACT_KEYS` | 21 | **22** (the new one OPTIONAL) | B.8 (9) and (X1) |
-| the AUTHORIZED STEP re-verify count `:3458` | whole inventory | **inventory minus released**, with the released named in a clause | B.8 (10) |
-| `pins()`'s `gkept` say `:2038` | N grandparent pins | **N, plus a clause naming how many the skip stood aside for and which** | B.8 (11) |
+| the AUTHORIZED STEP re-verify count **`:3573-:3577`** | whole inventory | **inventory minus released**, with the released named in a clause | **(P-A4), by READING the runner's text - the same class as H4 and H5 below.** R2 BLOCKING-1 is right twice over: the cite here used to read `:3458`, which is a `for (const gate of R.GATES)` line, and the row used to claim B.8 (10) pins it, which it cannot: the sentence stands past the `// 8. main sequence` delimiter every lane-B cell slices off, and reverting the count turned NOTHING red anywhere in the bar. It is now pinned the way B.8 (1b) pins H4 and H5, and reverting it reddens (P-A4) |
+| `pins()`'s `gkept` say **`:2131-:2141`** | N grandparent pins | **N, plus a clause naming how many the skip stood aside for and which** | B.8 (11). R2 N7: the cite here used to read `:2038`, which is the `GRANDPARENT-ARTIFACT-BYTES` assert (`:2079` at this head) |
+| **the released-ancestry record** | the PATH alone | **the path AND the ancestor's own entry**, so the skip can measure `lastSealedSha256` against the grandparent's pin | (P-A3) |
 | `CHILD_SPECS` in four `today/test/` cells | ends `'S8'` | **ends `'S9'`** | the four suites themselves |
 | the six `s9-*` mirrors' generation | SIXTH | **SEVENTH** | read by hand, cell by cell; see section 7 |
 
@@ -205,7 +247,22 @@ this round: `packages/S9.json` is on the WAIT list.
 | **BEFORE the FIX ROUND's first edit**, measured in this worktree at `afcc251f` | `d0021d5c...ee38` | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 |
 | after the fix-round hunks and before E fact 7 was redone | `efcdb700...70e2` | `RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER`, exit 1 | not taken |
 | after the R1 hunks, re-pins redone and committed | `efcdb700...70e2` | `SEALED-PROFILE-RECOMPUTATION`, exit 1 | `SEALED-PROFILE-RECOMPUTATION`, exit 1 |
-| **AFTER the fix round's last edit** (the H7 comment correction), re-pins redone LAST again and committed | **`25ddc44c32d0d71b924cf62c2e0a8647697b6e77a55a91a132388217b6789ca6`** | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 |
+| after the fix round's last edit (the H7 comment correction), re-pins redone LAST again and committed | `25ddc44c32d0d71b924cf62c2e0a8647697b6e77a55a91a132388217b6789ca6` | `SEALED-PROFILE-RECOMPUTATION`, exit 1 | `SEALED-PROFILE-RECOMPUTATION`, exit 1 |
+| **AFTER FIX ROUND 3's last edit** (P-A1, P-A2, P-A3), re-pins redone LAST again and committed at `9514673` | **`32916e509df0e38e4cb464a4b30c871f880d11a849958c5d7e9d14d1e2961be3`** | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 |
+
+**FIX ROUND 3's two runs, in full, because this is X1 measured on the final
+bytes.** Both observation lines read `runner
+32916e509df0e38e4cb464a4b30c871f880d11a849958c5d7e9d14d1e2961be3
+byte-identical on disk and in Git at HEAD`, `status=BRIEF-ACCEPTED`, `argv
+file-first under 24 fixed root(s)`, and `5 byte-identity carrier(s) declared
+SUPERSEDED under a PM line recorded by sha256 0c2d0db53471` (S8) and
+`3746ff573af4` (H3) - **which is P-A1's own evidence at the run level: those
+two ruling lines are `DECISIONS:527` and `:160`, they are read through the
+STRENGTHENED terminal test on these runs, and both packages still resolve
+their supersessions exactly as before.** Then the same named refusal at the
+same exit code as at `da9f8683`: `SEALED-PROFILE-RECOMPUTATION`, with the
+declared counts (224 product files for S8, 64 for H3; 25 and 10 children)
+unmoved.
 
 **The first row and the last row are the same refusal**, which is (X1) at the
 run level: the runner grew a role and neither of these two packages notices.
@@ -281,6 +338,13 @@ sealed". It is bounded in practice - `envelope()` asserts
 for the PM's line-by-line review and not a STOP. If the PM wants it
 unconditional, the honest shape is a refusal when `bound` is absent AND
 something is declared released, rather than a silent skip.
+**FIXED IN FIX ROUND 3, in exactly that shape, because the PM ruled it
+(P-A2).** `releaseRuling()` `:1384-:1386` now refuses
+`RELEASE-WITHOUT-A-BOUND-PARENT`, naming the declared paths, when a release is
+declared and `bound.acceptance.product` is absent for any reason. A package
+that releases nothing returns above the assert, so neither (X1) nor (X2)
+moves. Red-first cell (P-A2); reverting the assert reddens that cell and
+nothing else in the bar.
 
 **(5) H17's say clause can NAME one more path than it COUNTS.** `greleased`
 is incremented only inside the grandparent loop, so it counts paths that are
@@ -386,23 +450,24 @@ for all seven. The pins on this branch name `25ddc44c...9ca6`.
 `MEASURED_TEST_NOW=2026-09-03`, `TZ=America/New_York`, `node --test
 --test-reporter=tap`, each file on its own.
 
-**RE-RUN WHOLE IN THE FIX ROUND** on the final bytes, after the ancestor
-re-pins were redone and committed. The only number that moved is the new
-suite's, from 15 to 17, and the two new cells are the fix round's own.
+**RE-RUN WHOLE IN FIX ROUND 3** on this head's bytes. Two numbers moved and
+both are this round's own cells: `release-from-seal` from 17 to 21, and
+`gate-supersession` from 15 to 16. Nothing else in the bar moved by one test
+or by one assertion.
 
-**Every file under `rebuild/lanes/b/tooling/test/` - 125 pass, 0 fail, ten
+**Every file under `rebuild/lanes/b/tooling/test/` - 130 pass, 0 fail, ten
 suites, every one exit 0:**
 
 | suite | pass | fail |
 |---|---|---|
 | `child-diagnostic-tail` | 11 | 0 |
 | `execution-targets` | 9 | 0 |
-| `gate-supersession` | 15 | 0 |
+| **`gate-supersession`** | **16** | 0 |
 | `parent-gate-closure-and-load-floor` | 14 | 0 |
 | `parent-pin-shapes-and-spec-successors` | 9 | 0 |
 | `pinned-unchanged-and-ruled-substitutions` | 17 | 0 |
 | `product-phase-and-ledger` | 7 | 0 |
-| **`release-from-seal`** (new) | **17** | **0** |
+| **`release-from-seal`** (new) | **21** | **0** |
 | `seal-tip-and-byte-identity` | 17 | 0 |
 | `successor-moves` | 9 | 0 |
 
@@ -508,21 +573,28 @@ which is worse than the hole; strengthening both is a change to an accepted,
 sealed mechanism that is not in this ticket, and F.2 says to report rather
 than to widen. So:
 
-- B.8 (6)'s title now reads "a token line whose LAST WORD is not RULED frees
-  nothing", which is what it measures, and the cell carries the measured
-  exception in its comment;
-- step 3 of `releaseRuling()`'s own header states the exception, names
-  `supersessionRuling()` as carrying the same regex, and says the question is
-  the PM's;
+- B.8 (6)'s title was narrowed to "a token line whose LAST WORD is not RULED
+  frees nothing", which was what it then measured, and the cell carried the
+  measured exception in its comment (round 3 put B.8's own wording back);
+- step 3 of `releaseRuling()`'s own header stated the exception, named
+  `supersessionRuling()` as carrying the same regex, and said the question
+  was the PM's (round 3 rewrote that step to the closed rule);
 - **THE QUESTION, for the PM, about BOTH functions:** should the terminal
-  test require the clause separator before the word (`/ · RULED$/` rather
-  than `/(?:^|[ ·])RULED$/`), so that a line whose last clause is prose
-  ending in the word RULED cannot rule anything? If yes, it is one line in
-  each of the two functions, one cell in each of two suites, and it moves the
-  runner sha again, so E fact 7 is redone after it.
+  test require the clause separator before the word, so that a line whose
+  last clause is prose ending in the word RULED cannot rule anything? If yes,
+  it is one line in each of the two functions, one cell in each of two
+  suites, and it moves the runner sha again, so E fact 7 is redone after it.
 
 No cell in this branch asserts that the weak phrasing is ADMITTED; pinning
 the hole as intended behaviour is the one thing that would make it permanent.
+
+**ANSWERED IN FIX ROUND 3: THE PM RULED IT (P-A1), AND IT IS CLOSED.** The
+ruling made the measurement its condition, and the measurement came first:
+section 11.1. The rule is now the LAST clause rather than the last word, it
+landed in BOTH functions in one hunk, and the two red-first cells are (P-A1)
+in `release-from-seal.test.cjs` and (P-A1) in `gate-supersession.test.cjs`.
+B.8 (6)'s title is B.8's own wording again. E fact 7 was redone after it, and
+the runner sha in section 0's last row is the result.
 
 **BLOCKING-4 (nine U+2014 in eight added comment lines) - FIXED.** All eight
 lines rewritten with a colon, a comma or a semicolon. MEASURED over every
@@ -624,3 +696,234 @@ files: `b-package.cjs`, `test/release-from-seal.test.cjs`, the seven
 `packages/*.json` re-pins, and this report. It did NOT touch the six mirrors, the four
 `CHILD_SPECS` cells, F6/F6b/F7 or the seal-tip suite, because no R1 finding
 reaches them; their bar was re-run anyway and reproduces to the test.
+
+## 11. FIX ROUND 3: THE PM'S FOUR RULINGS
+
+The PM read every runner hunk line by line, accepted the mechanism (X1 and X2
+hold, H10's block is an OBJECT keyed by path, `rulingLine` is rightly dropped,
+`release` and `released` are optional and closed by the freeze pattern) and
+ruled four things. Each is below with its own measurement. Nothing in this
+round was done on the strength of an earlier round's numbers.
+
+### 11.1 P-A1, AND THE MEASUREMENT CAME FIRST
+
+The ruling was conditional: strengthen the RULED terminal test in BOTH ruling
+functions **if and only if** every ruling line any spec under
+`rebuild/lanes/b/tooling/packages/` cites by sha256 still passes the narrower
+rule. A guard on the seal path is never strengthened in a way that voids a
+standing seal, so the enumeration came before the hunk and it is recorded here
+whatever it showed.
+
+METHOD, on the PC, read-only: walk every `packages/*.json` for every field
+whose name ends `lineSha256`, add the runner's own
+`SUPERSESSION_STANDING_RULING`, read `rebuild/DECISIONS.md` out of Git at
+`CHAIN_REF` (`refs/remotes/origin/rebuild/t2-client-core`, at `4e832c2a`),
+hash every line the way the runner hashes it, and test each located line under
+BOTH rules. **48 cited line-sha256 fields, every one located, exactly one line
+each. EIGHT of them are RULING lines:**
+
+| cite | line | clauses | last clause | old rule | new rule |
+|---|---|---|---|---|---|
+| `b-package.cjs` `SUPERSESSION_STANDING_RULING` | `DECISIONS:153` | 4 | `RULED` | PASS | **PASS** |
+| `H3.json` `coverage.superseded.rulingLineSha256` | `DECISIONS:160` | 5 | `RULED` | PASS | **PASS** |
+| `S3.json` same field | `DECISIONS:421` | 5 | `RULED` | PASS | **PASS** |
+| `S4.json` same field | `DECISIONS:444` | 5 | `RULED` | PASS | **PASS** |
+| `S5.json` same field | `DECISIONS:462` | 5 | `RULED` | PASS | **PASS** |
+| `S6.json` same field | `DECISIONS:490` | 5 | `RULED` | PASS | **PASS** |
+| `S7.json` same field | `DECISIONS:514` | 5 | `RULED` | PASS | **PASS** |
+| `S8.json` same field | `DECISIONS:527` | 5 | `RULED` | PASS | **PASS** |
+
+**ALL EIGHT STILL PASS, and across all 48 cited lines the old rule and the new
+one disagree NOWHERE.** The other forty are brief-acceptance, theme and
+authorization lines, which end in `ACCEPTED` or in prose and are judged by
+other tests entirely; they fail the RULED test under both rules identically,
+so nothing about them moves either. **The STOP did not fire, and the change
+landed.** The measurement is reproducible from
+`%TEMP%\s9a-measure-ruled.cjs`, a throwaway that is not committed; it reads
+and prints nothing but line numbers, clause counts and the last clause.
+
+THE RULE, in one sentence: the line's LAST clause, split on the ledger's own
+`U+00B7` separator and trimmed, is EXACTLY the word `RULED`. It is ONE
+function, `ruledTerminal()` at `:1012-:1013`, called from
+`supersessionRuling()` `:1298` and `releaseRuling()` `:1360`, so the two can
+never drift apart again; that they carried the same rule in two places is how
+this hole came to exist on both sides at once.
+
+### 11.2 THE THREE NEW HUNKS, EACH RED FIRST
+
+Red first is literal here as in every round of this lane. Commit `0d9cdeb`
+carries the cells alone, against the UNCHANGED runner
+`25ddc44c...9ca6`, with the measured failure list in its message:
+`release-from-seal` **18 pass / 3 fail**, `gate-supersession` **15 pass / 1
+fail**. Commit `c18fa1b` carries the runner hunks and takes both suites to
+**21/0** and **16/0**.
+
+| cell | what it measured on the unchanged runner |
+|---|---|
+| (P-A1) release half | `Missing expected exception /RELEASE-RULING-IS-NOT-A-RULED-LINE/` - the line ending "this is NOT RULED" frees both paths, R2 N1 reproduced a third time |
+| (P-A1) supersession half | `Missing expected exception /GATE-SUPERSESSION-RULING-IS-NOT-A-RULED-LINE/` - the same line retires five carriers |
+| (P-A2) | `Missing expected exception /RELEASE-WITHOUT-A-BOUND-PARENT/` |
+| (P-A3) | `Missing expected exception /ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN/` - R2's NEW-1 fixture, a block naming a path at a sha the grandparent never sealed, ADMITTED |
+| (P-A4) | PASSES from the start, by design: it PINS H13's count by reading the runner's text and drives no hunk. It is in the same commit because the evidence it supplies is what R2 BLOCKING-1 asked for |
+
+### 11.3 THE MUTATION TABLE FOR EVERY CLAUSE THIS ROUND TOUCHED OR ADDED
+
+My own harness (`%TEMP%\s9a-r3-mut.cjs`, throwaway, not committed): one revert
+at a time from the head bytes, **all ten lane-B tooling suites** run against
+each, the original restored in a `finally`, the sha re-checked at the end. It
+printed `BASE sha 32916e509df0` and `RESTORED sha 32916e509df0 bytes equal:
+true`. BASE: ten suites, **130 pass / 0 fail, NOTHING RED ANYWHERE**.
+
+| revert | cells that go red, across the WHOLE bar | the refusal it prints |
+|---|---|---|
+| P-A1, the release half (`:1360`) | `release-from-seal` (P-A1) | `Missing expected exception`: the "NOT RULED" line frees both paths again |
+| P-A1, the supersession half (`:1298`) | `gate-supersession` (P-A1) | `Missing expected exception`: the same line retires five carriers again |
+| P-A1, `ruledTerminal()` itself (`:1013`) | `release-from-seal` (P-A1) AND `gate-supersession` (P-A1) | both of the above at once, which is the point of there being one function |
+| P-A2, the bound-parent assert (`:1384`) | `release-from-seal` (P-A2) | `Missing expected exception`: step 6 is skipped in silence again |
+| P-A3, the grandparent-pin assert (`:2120`) | `release-from-seal` (P-A3) | `Missing expected exception`: R2's NEW-1 block is believed again |
+| P-A3, the entry the ancestry carries (`:2068`) | `release-from-seal` **B.8 (11), B.8 (12) AND (P-A3)** | `ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN rebuild/m3/w7-preview/today/preview.css` - with no entry to measure, even the HONEST skip refuses, so the two halves of P-A3 are separately observed and neither is carried by the other |
+| **H13's COUNT** (`:3574`) | **`release-from-seal` (P-A4)** | `the AUTHORIZED STEP re-verify counts the inventory minus the released paths` |
+
+**THE LAST ROW IS R2 BLOCKING-1, ANSWERED BY MEASUREMENT.** At `ade31333`
+that revert printed `NOTHING RED ANYWHERE`; at this head it reddens (P-A4).
+The hunk did not change. What changed is that the evidence for it is now a
+cell rather than a sentence in this report.
+
+Every clause this round touched or added goes red when reverted alone. No
+hunk of this round is a no-op, and no revert of this round's hunks reddens a
+cell that is not about it.
+
+### 11.4 THE BAR AT THIS HEAD
+
+`MEASURED_TEST_NOW=2026-09-03`, `TZ=America/New_York`, each file on its own,
+in `%TEMP%\earned-s9a`. The ten tooling suites were run TWICE: once at
+`c18fa1b`, before the E fact 7 re-pins, and again at `9514673` after them,
+with the same 130/0 both times, so nothing in the bar depends on the seven
+re-pinned shas and nothing in this round is green only before them.
+
+- **Every file under `rebuild/lanes/b/tooling/test/`: ten suites, 130 pass /
+  0 fail, every one exit 0.** Section 8 carries the per-suite table. Only
+  this round's own two suites moved: 17 to 21, and 15 to 16.
+- **The six `s8-*` siblings: 16 pass / 0 fail** over the five `*.test.cjs`
+  (3/3/3/4/3), and `s8-engine-files-differential.cjs` exit 0. Unchanged by
+  this round, and re-run rather than assumed.
+- **The six `s9-*` mirrors: 0 pass / 1 fail each, exit 1**, every one the
+  same `ENOENT ...\packages\S9.json`. WAIT list, as in R2 and in the S8
+  round before it.
+- **The four `CHILD_SPECS` suites:** `food` 57/0, `machine-settings-ui` 54/0,
+  `problem` 131/0, all exit 0; **`setup` 156 pass / 1 fail, exit 1**, at
+  `not ok 151 - re-pin - every file the B-NTC package pins is untouched by
+  A4b, on disk`. **PRE-EXISTING**, proved at the branch base by two rounds
+  now (section 8, and R2 section 4, which rebuilt a worktree at `da9f8683`
+  to take it); this round changed neither the cell nor anything it reads.
+- **`--ci --package S8` and `--ci --package H3`: section 5's last row.**
+
+### 11.5 R2 FINDINGS AND THE PM'S FINAL READ: FIXED OR DISPUTED
+
+| R2 | verdict | what I did, and what I measured |
+|---|---|---|
+| **BLOCKING-1** H13's count is pinned by nothing and the report says B.8 (10) pins it | **FIXED, by the PM's option (a) plus a cell** | Both halves were true. The ordinal table's cite (`:3458`) named a `for (const gate of R.GATES)` line and its "who pins it" named a cell that cannot reach the sentence. Section 4's row now names the site (`:3573-:3577`), names the class (H4/H5, unreachable from any lane-B cell, because the say stands past the main-sequence delimiter), and names (P-A4) as what pins it. Option (b), the fixture package directory, is NOT taken: it would move the runner for nothing this round needs, and the PM's ruling says to pin by reading |
+| **N1** the NOT RULED hole, still open, the PM to rule | **CLOSED by the PM's P-A1** | Section 11.1. Measured first, landed in both functions, red first in both suites |
+| **N2** H17 skips by path name alone; one line would narrow it | **ADOPTED as P-A3** | `releasedAncestry()` carries the entry; the skip asserts the block's `lastSealedSha256` is the grandparent's own pin. R2's NEW-1 fixture is the red-first cell, and the reviewer's own reading stands: this is defence in depth, not a reachable hole |
+| **N3** H4's rule has two sites it cannot be reached from | **AGREED, no change, and the PM accepted it as built** | A second assert in `product()` would put one rule in two places. B.8 (1b) pins the site; `spec()` always runs first |
+| **N4** a released path DELETED from the working tree is admitted | **DISPUTE UPHELD by the reviewer and by the PM** | It is now one of the sentences for the S9 brief, section 11.6. No code change: an existence assert would refuse a seal because the lane that now owns the file deleted it |
+| **N5** `RELEASE-CHAIN-REF-ABSENT` does not exist | **AGREED, no change, and it is a brief sentence** | Unnamed on BOTH sides of the mirror, exactly as in `supersessionRuling()` and `parent()`; unreachable in CI because `parent()` reads the same ref first. Naming it on one side only is the divergence P-A1 exists to prevent |
+| **N6** the `ui-port` deferral is forced, and the BASIS for printing its output is owed | **AGREED; the PM has now stated the basis** | Section 11.6 carries it: `ui-port` joins `CHILD_ROOTS` and `PUBLIC_TAIL_ROOTS` at the single re-measure, and the basis is that those cells read fixtures and the public design pack only, and no owner data |
+| **N7** two cites in the ordinal table point at code they do not name | **FIXED** | Both corrected, and both re-taken at THIS head rather than at the head R2 read: the re-verify count is `:3573-:3577` and the `gkept` say is `:2131-:2141`. Section 1's whole table was re-taken with them |
+| **N8** the H7 revert differs by one cell, and the bucket alone reddens five suites | **AGREED, recorded** | I did not re-take it: H7 did not move this round, and the reviewer's measurement is the better one because it separates the two halves. Section 2's row stands with his note beside it |
+| **N9** the mutation table understates H13's coverage | **AGREED, recorded in section 2** | Same reason: the hunk did not move, and his numbers are the ones taken against the whole bar |
+| **N10** the six mirrors re-derived, eight hand-corrected regions not five | **AGREED; a counting convention** | Untouched this round |
+| **N11** the freeze pattern's closure holds in both directions | AGREED, nothing to change | |
+| **N12** nothing pins the DECISION that S9's four roots are not tail-public | **AGREED, recorded** | Precedent, not regression: S7's and S8's single additions were not added to `PUBLIC_TAIL_ROOTS` either. It rests on `PUBLIC_TAIL_ROOTS.length === 6` and on nothing that names them, and that sentence belongs in the S9 brief |
+| **R2 section 9's "what I did not verify"** | unchanged by this round | F.1 R5's residual end to end, anything that seals, `packages/S9.json`, GitHub CI on both operating systems for this head, and the real `RELEASE-FROM-SEAL` line: all still open, all still outside this ticket |
+
+### 11.6 FOR THE S9 BRIEF: the sentences, no code
+
+These are the PM's, written down here so they survive into the brief. None of
+them is a hunk, and none of them is a question.
+
+1. **A released path DELETED from the working tree is ADMITTED, and that is
+   correct.** A release hands the file OUT of the sealed inventory, and the
+   runner then has no opinion about whether it exists. An existence assert
+   would refuse a seal because the lane that now owns the file deleted it.
+   The spec was SILENT rather than agreeing (B.7 says what a re-seal looks
+   like and nothing about a deletion), so the sentence belongs in B.7 or D.
+   R2 N4, the dispute upheld.
+2. **A missing chain ref inside `releaseRuling()` is UNNAMED, exactly as it
+   is in `supersessionRuling()` and in `parent()`, and it is unreachable in
+   CI** because `parent()` reads the same ref before `releaseRuling()` is
+   ever called. Naming it on one side of a line-for-line mirror is the
+   divergence P-A1 exists to prevent. R2 N5.
+3. **`rebuild/lanes/c/ui-port/` joins `CHILD_ROOTS` and `PUBLIC_TAIL_ROOTS`
+   at the single re-measure**, not before: F7 asserts every child root is a
+   real directory and F8 asserts every tail root is a child root, so adding
+   either today ships a red bar. **THE BASIS for printing that suite's
+   output**, which R2 N6 asked for in writing before the entry lands: those
+   cells read FIXTURES and the PUBLIC design pack only, and no owner data.
+   R2 N6 and N12.
+4. **If any ticket sealed inside S9 moves a released path before S9's
+   `sourceBase`, S9 CANNOT SEAL**, because `held()` takes the `sourceBase`
+   branch for any file this package declares, and a released path is
+   declared. The release frees the DESCENDANTS of S9, not S9 itself. This is
+   the first author's R1 N6 caution, re-measured by R2 as
+   `G1 :: REFUSED :: PARENT-PIN-BROKEN-AT-SOURCEBASE preview.css` against
+   `G1b :: ADMITTED`, and it is a sequencing fact the S9 build round has to
+   know before it starts.
+5. **The four new child roots' tail policy rests on
+   `PUBLIC_TAIL_ROOTS.length === 6` and on nothing that names them** (R2
+   N12). That is precedent - S7's and S8's single additions were not
+   tail-public either - and not a regression, but it is a decision no cell
+   states, and the brief is where it should be stated.
+
+### 11.7 WHERE THE SPEC AND THE RUNNER CANNOT BOTH BE RIGHT: (8), THIS ROUND
+
+**(8) F.2 STOP-2, AS AMENDED, ADMITS TWO CHANGES INSIDE `pins()` AND P-A3 IS
+A THIRD.** STOP-2 reads: "`pins()` is admitted for H17 and for H17 only: ONE
+`continue` ... One further change inside `pins()` is admitted and it asserts
+nothing: the terminal `say` ... **Any OTHER change to `pins()` stops the
+round.**" P-A3 adds an ASSERT inside `pins()`, at the H17 skip. I landed it
+and I am naming it rather than letting it pass as an author's judgement:
+
+- the PM's P-A3 ruling names exactly this assert, at exactly this site, with
+  exactly this comparison (`lastSealedSha256` against `parentPin` of the
+  grandparent entry), so the change is the PM's and not mine;
+- STOP-2 exists to stop an AUTHOR moving the seal's own walk to make a design
+  work. This assert moves nothing the walk did before: every path not named
+  in an ancestor `released` block still gets both of `held()`'s asserts, the
+  parent walk is untouched, `held()` is untouched, and the only paths that
+  reach the new line are the ones H17's `continue` was already skipping;
+- it NARROWS rather than widens: the set of paths that leave the walk
+  unchecked gets smaller, never larger.
+
+If the PM reads STOP-2 more strictly than I do, the revert is one `assert`
+and one map-versus-set in `releasedAncestry()`, and (P-A3) is the cell that
+would go red. **It is his call and I have not treated the ruling as making
+STOP-2 disappear.**
+
+### 11.8 E FACT 7, REDONE LAST AGAIN
+
+The runner moved for P-A1, P-A2 and P-A3, so the seven ancestor re-pins were
+redone AFTER the last runner byte, as section 7's standing instruction
+requires. **The final runner sha256 is
+`32916e509df0e38e4cb464a4b30c871f880d11a849958c5d7e9d14d1e2961be3`**
+(3638 lines by `wc -l`), and it stands in `tooling.runnerSha256` and nowhere
+else in `packages/H3.json`, `S3`, `S4`, `S5`, `S6`, `S7` and `S8`.
+`packages/S8.json` still carries `e31dd206...335e` in its own PRODUCT post for
+the runner, which is correct and which E fact 7 does not re-target.
+
+### 11.9 WHAT FIX ROUND 3 DID NOT TOUCH
+
+The WAIT list is untouched: `packages/S9.json`, the needles, the
+`acceptance-s9` artifact, the `--ci --package S9` walk, the standing CI step's
+flip to S9, the PACK-PIN and APPROVED-PIN literals, any `design.test.cjs`
+hunk, the S9 brief, and the PM's token lines. No file outside the ticket's
+owned list was edited: measured, not asserted, with
+`git diff --name-only aa42ded`, **ELEVEN files and every one on the list**,
+and over every line this round ADDS, 583 of them, **U+2013/U+2014 count 0**.
+This round touched: `b-package.cjs`,
+`test/release-from-seal.test.cjs`, `test/gate-supersession.test.cjs`, the
+seven `packages/*.json` re-pins, and this report. It did NOT touch the six
+mirrors, the four `CHILD_SPECS` cells, F6/F6b/F7 or the seal-tip suite; their
+bar was re-run anyway and reproduces to the test. Nothing sealed, no receipt
+written, no artifact written, no `--full` run, and no cell in this lane reads
+the real ledger for a `RELEASE-FROM-SEAL` line that does not exist yet.
