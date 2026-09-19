@@ -87,13 +87,23 @@ function namesOf(mod) {
    fixture row and by the REAL ROW. It returns refusals as strings so a row can assert the
    EXACT text; an empty array is the only green.
 
-   RED FIRST. This body refuses nothing yet. Every refusal row below is therefore red on
-   this commit, which is the measurement the next commit has to move. */
+   ONE REFUSAL PER NAMED FILE, in the order UNLISTED, MISSING, NOT-A-REGULAR-FILE,
+   MISMATCH. UNLISTED comes first because a path this cell holds no literal for is a path
+   it can say nothing at all about: whether the bytes are there, and what they are, are
+   questions that only mean something once the path is pinned. */
 function approvedPin(root, files, literal) {
-  void root;
-  void files;
-  void literal;
-  return [];
+  if (!Array.isArray(files) || files.length === 0) return ["APPROVED-PIN LIST-EMPTY"];
+  const refusals = [];
+  for (const file of files) {
+    if (!Object.hasOwn(literal, file)) { refusals.push("APPROVED-PIN UNLISTED " + file); continue; }
+    const full = path.join(root, ...file.split("/"));
+    let st = null;
+    try { st = fs.lstatSync(full); } catch { st = null; }
+    if (st === null) { refusals.push("APPROVED-PIN MISSING " + file); continue; }
+    if (!st.isFile()) { refusals.push("APPROVED-PIN NOT-A-REGULAR-FILE " + file); continue; }
+    if (sha256(fs.readFileSync(full)) !== literal[file]) refusals.push("APPROVED-PIN MISMATCH " + file);
+  }
+  return refusals;
 }
 
 const txt = (s) => Buffer.from(s, "utf8");
