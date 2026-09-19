@@ -14,8 +14,17 @@
  * The declaration index is built from the UNCUT source by the same scope analysis, so
  * "the region that declares it" is a measurement and not a lookup in the spec.
  *
+ * FREED FROM THE SIX FILENAMES (S-R23, R3 NOTE-2). This used to carry a hard-coded list of
+ * the six files cut.cjs writes and to read linemap.json out of the cut directory, so it
+ * could not be pointed at the build round's own output - which H.2 STOP 11 and H.3 both
+ * require it to be. The pairs are now the table's own `dest` map (or --pairs), and a
+ * directory with no line map runs in NO-MAP mode, where a crossing is reported at its OUTPUT
+ * line with the output file named, and the declaration index still comes from the uncut
+ * source at --root.
+ *
  * Usage:
- *   node census.cjs --root <worktree> --out <cut output dir> [--md CROSSINGS.md] [--json CROSSINGS.json]
+ *   node census.cjs --root <worktree> --out <output dir> [--md CROSSINGS.md] [--json c.json]
+ *                   [--pairs out.cjs=src.cjs,...]
  */
 "use strict";
 const fs = require("fs");
@@ -34,9 +43,12 @@ const MD = opt("md");
 const JSONOUT = opt("json");
 if (!ROOT || !OUT) { console.error("usage: census.cjs --root <worktree> --out <cut dir>"); process.exit(2); }
 
-const table = JSON.parse(fs.readFileSync(path.join(__dirname, "regions.json"), "utf8"));
+const table = JSON.parse(fs.readFileSync(opt("regions", path.join(__dirname, "regions.json")), "utf8"));
 const TODAY = table.today;
-const linemap = JSON.parse(fs.readFileSync(path.join(OUT, "linemap.json"), "utf8"));
+const MAPPATH = path.join(OUT, "linemap.json");
+const HAS_MAP = fs.existsSync(MAPPATH);
+const linemap = HAS_MAP ? JSON.parse(fs.readFileSync(MAPPATH, "utf8")) : {};
+const resolveAnchors = require("./resolve.cjs");
 
 /* The language's own globals, plus the two the page legitimately reaches. Anything on this
    list is NOT a crossing; anything off it is. The list is stated here so a reader can
@@ -77,19 +89,17 @@ function calleeLines(ast) {
 
 /* ---- the declaration index, from the UNCUT source ---------------------------------- */
 function regionsOf(file) { return table.files[file] || []; }
+/* The ONE resolver (resolve.cjs), so a mangled anchor refuses here too. This file used to
+   carry its own silent copy: it took hits[nth-1] with no check at all, so a first anchor
+   that matched zero places gave `start === undefined` and the region simply vanished from
+   the declaration index, with no row and no message. */
 function resolveRegions(file, lines) {
-  const out = [];
-  for (const r of regionsOf(file)) {
-    const hits = [];
-    for (let i = 0; i < lines.length; i += 1) if (lines[i] === r.first.text) hits.push(i + 1);
-    const start = hits[r.first.nth - 1];
-    let seen = 0, end = -1;
-    for (let i = start - 1; i < lines.length; i += 1) {
-      if (lines[i] === r.last.text) { seen += 1; if (seen === r.last.nthFrom) { end = i + 1; break; } }
-    }
-    out.push({ ...r, start, end });
-  }
-  return out;
+  return regionsOf(file).map((r) => {
+    const { start, end } = resolveAnchors(lines, r, file, (m) => {
+      console.error("REFUSED: " + m); process.exit(1);
+    });
+    return { ...r, start, end };
+  });
 }
 function regionAt(regions, line) {
   for (const r of regions) if (line >= r.start && line <= r.end) return r;
@@ -135,36 +145,48 @@ for (const file of Object.keys(table.files)) {
 function scopeDepth(scope) { let d = 0, s = scope; while (s.upper) { d += 1; s = s.upper; } return d; }
 
 /* ---- the census over the OUTPUT ------------------------------------------------------ */
-const OUTPUT_PAIRS = [
-  ["today-app.cjs", "today-lanes.cjs", "today-app.cjs"],
-  ["today-lanes.cjs", "today-app.cjs", "today-app.cjs"],
-  ["gym-app.mjs", "gym-settings-lane.mjs", "gym-app.mjs"],
-  ["gym-settings-lane.mjs", "gym-app.mjs", "gym-app.mjs"],
-  ["today-model.cjs", "today-readings.cjs", "today-model.cjs"],
-  ["today-readings.cjs", "today-model.cjs", "today-model.cjs"],
-];
+function defaultPairs() {
+  const out = [];
+  for (const [src, dest] of Object.entries(table.dest)) {
+    out.push([src, dest, src]);
+    out.push([dest, src, src]);
+  }
+  return out;
+}
+const OUTPUT_PAIRS = opt("pairs", null)
+  ? opt("pairs").split(",").map((s) => { const [o, sr] = s.split("=").map((x) => x.trim()); return [o, null, sr]; })
+  : defaultPairs();
 
+/* The interface names the declared `replace` rows introduce (S-R21, S-R23). They resolve to
+   nothing in the released file BY DESIGN - the factory hands them in - so they are neither a
+   crossing nor instrument residue, and counting them as residue would hide R3 NOTE-11's
+   strongest single fact about this census, that the residue is zero. */
+const IFACE = new Set(Object.values(table.interface || {}).filter((v) => typeof v === "string"));
 const crossings = [];
 const unexplained = [];
+const ifaceRows = [];
 for (const [outFile, partner, srcFile] of OUTPUT_PAIRS) {
   const p = path.join(OUT, outFile);
   if (!fs.existsSync(p)) continue;
   const src = fs.readFileSync(p, "utf8");
   const { ast, manager } = parse(outFile, src);
   const callees = calleeLines(ast);
-  const map = linemap[outFile];
+  const map = linemap[outFile] || null;
   const globalScope = manager.globalScope;
   const seen = new Set();
   for (const ref of globalScope.through) {
     const name = ref.identifier.name;
     if (GLOBALS.has(name)) continue;
     const outLine = ref.identifier.loc.start.line;
-    const where = map[outLine - 1] || null;
+    /* NO-MAP MODE: without a line map a crossing is reported at its OUTPUT line, which is
+       the only line that exists for a directory the codemod did not write. Every other
+       column is unchanged, because the declaration index comes from --root either way. */
+    const where = map ? (map[outLine - 1] || null) : { file: outFile, line: outLine, region: null };
     const kind = ref.isWriteOnly() ? "write" : ref.isReadWrite() ? "update"
       : callees.has(ref.identifier.start) ? "call" : "read";
     const decl = declIndex[srcFile][name] || null;
     const sitsIn = where && where.region ? where.region
-      : (where ? regionIdAt(srcFile, where.line) : null);
+      : (where && HAS_MAP ? regionIdAt(srcFile, where.line) : null);
     const row = {
       outFile, name, kind,
       sourceFile: where ? where.file : null,
@@ -178,7 +200,7 @@ for (const [outFile, partner, srcFile] of OUTPUT_PAIRS) {
     const key = [outFile, name, kind, row.sourceLine].join("|");
     if (seen.has(key)) continue;
     seen.add(key);
-    if (!decl) { unexplained.push(row); continue; }
+    if (!decl) { (IFACE.has(name) ? ifaceRows : unexplained).push(row); continue; }
     crossings.push(row);
   }
 }
@@ -272,5 +294,7 @@ if (MD) {
 console.log("CENSUS over " + OUT);
 console.log("  crossings: " + crossings.length + " references, " + Object.keys(names).length + " distinct direction+name");
 for (const [k, v] of Object.entries(byClass).sort((a, b) => b[1] - a[1])) console.log("    " + String(v).padStart(4) + "  " + k);
-if (unexplained.length) console.log("  unresolved and not declared in the source file either: " +
-  unexplained.length + " (" + summary.unexplainedNames.join(", ") + ")");
+if (ifaceRows.length) console.log("  interface names handed in by the factory (declared in regions.json's interface block): " +
+  ifaceRows.length + " (" + [...new Set(ifaceRows.map((r) => r.name))].sort().join(", ") + ")");
+console.log("  the instrument's own residue (unresolved AND not declared in the source file either): " +
+  unexplained.length + (unexplained.length ? " (" + summary.unexplainedNames.join(", ") + ")" : ""));

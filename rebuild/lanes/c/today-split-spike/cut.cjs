@@ -1,21 +1,36 @@
 #!/usr/bin/env node
-/* cut.cjs - THE CODEMOD (S-R17 (b)).
+/* cut.cjs - THE CODEMOD (S-R17 (b)), WITH THE WITNESS (S-R19) AND THE EXTENT CHECK (S-R20).
  *
  * Reads regions.json and a worktree; writes the three new sealed modules and the three
- * edited originals into an output directory; prints the VERBATIM CHECK.
+ * edited originals into an output directory; prints the WITNESS CHECK.
  *
  * The rule it enforces: a MOVED region's bytes in the output equal its bytes in the source,
  * except for the substitution rows declared in regions.json. Nothing is renamed, nothing is
  * reformatted, nothing is reordered. Regions of kind "seam" are NOT moved: the spike leaves
  * them in the released file on purpose, so that census.cjs names every one of them
- * mechanically as a released reference to a sealed binding (S-R17 (c), (g)).
+ * mechanically as a released reference to a sealed binding (S-R17 (c), (g)). Regions of kind
+ * "replace" are the third kind S-R21 rules: released lines replaced IN PLACE by a declared
+ * replacement, nothing moved, the pre-image witnessed like a move.
+ *
+ * WHAT R3 FOUND AND THIS FIXES. The old verbatim check was `if (applied.length === 0 && out
+ * !== body) verbatimFails += 1;`, and applySubs returns out === body whenever no row
+ * matched, so the counter could never be non-zero for any input. R3 removed two thirds of
+ * the sleep writer's double-write fence inside a moved region and the cut exited 0 reporting
+ * zero differing regions. A GENERATOR CANNOT BE ITS OWN CHECK (S-R19). The reference point
+ * is now OUTSIDE the run: regions.json's witness block, a sha256 and a line count per
+ * witnessed region at a NAMED ref, taken by gen-witness.cjs. This compares BOTH, BEFORE any
+ * substitution, and refuses BY REGION ID.
  *
  * It REFUSES BY NAME on an anchor that matches zero places, on an anchor whose occurrence
- * index does not exist, on a last anchor it cannot find after the first, and on two regions
- * that overlap.
+ * index does not exist, on a last anchor it cannot find after the first, on a region whose
+ * EXTENT matches no witnessed ref (the last anchor resolved to the wrong line: S-R20), on a
+ * region whose BYTES match no witnessed ref (S-R19), on a file whose regions do not agree on
+ * one ref, on a per-file moved-line total that is not the recorded one (S-R20), and on two
+ * regions that overlap.
  *
  * Usage:
  *   node cut.cjs --root <worktree> --out <dir> [--regions regions.json] [--quiet]
+ *                [--witness <ref name>]   restrict the witness to one recorded ref
  *
  * It writes, beside the output files, linemap.json: for every output line, the source file,
  * the source line and the region it came from. census.cjs reads it to report a crossing at
@@ -24,6 +39,8 @@
 "use strict";
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
+const resolveAnchors = require("./resolve.cjs");
 
 const argv = process.argv.slice(2);
 function opt(name, dflt) {
@@ -35,6 +52,7 @@ const OUT = opt("out");
 const REGIONS = opt("regions", path.join(__dirname, "regions.json"));
 const QUIET = argv.includes("--quiet");
 const WIRE = argv.includes("--wire");
+const ONLY_REF = opt("witness", null);
 if (!ROOT || !OUT) { console.error("usage: cut.cjs --root <worktree> --out <dir>"); process.exit(2); }
 
 /* The DEV instrument: acorn 8, installed by the PM outside the repository. It is never a
@@ -71,35 +89,52 @@ const WRAPPER = {
 function fail(msg) { console.error("REFUSED: " + msg); process.exit(1); }
 
 /* ---- anchor resolution ------------------------------------------------------------- */
-function resolve(lines, region, file) {
-  const wanted = region.first.text;
-  const hits = [];
-  for (let i = 0; i < lines.length; i += 1) if (lines[i] === wanted) hits.push(i + 1);
-  if (hits.length === 0) {
-    fail(file + " " + region.id + ": first anchor matches ZERO places: " + JSON.stringify(wanted));
+function resolve(lines, region, file) { return resolveAnchors(lines, region, file, fail); }
+
+/* ---- THE WITNESS (S-R19) AND THE EXTENT CHECK (S-R20) -------------------------------
+ * A region is MOVED or REPLACED only if its bytes are bytes somebody recorded at a named
+ * ref. The witness block is regions.json's, written by gen-witness.cjs; a region may be
+ * witnessed at several refs because the one content-anchored table serves the chain tip and
+ * the S9 lane head, and the two differ. The order of the two refusals matters and is the
+ * order of R3's two attacks: the EXTENT is checked first, because a region that holds the
+ * wrong LINES is an ambiguous last anchor and saying "the bytes differ" about it would send
+ * the reader to the wrong place; only a region of the right length whose bytes differ is a
+ * tampered region.                                                                        */
+const WITNESS = table.witness || null;
+const WITNESSED_KINDS = new Set(["move", "replace"]);
+const REF_NAMES = WITNESS ? WITNESS.refs.map((r) => r.name).filter((n) => !ONLY_REF || n === ONLY_REF) : [];
+if (!WITNESS || !REF_NAMES.length) {
+  fail("regions.json carries no witness" + (ONLY_REF ? " for ref " + JSON.stringify(ONLY_REF) : "") +
+    ". S-R19: a generator cannot be its own check. Run gen-witness.cjs at a named ref first.");
+}
+function sha256(s) { return crypto.createHash("sha256").update(s, "utf8").digest("hex"); }
+
+function checkWitness(file, region, start, end, body, lastHits) {
+  const w = WITNESS.regions[region.id];
+  if (!w) {
+    fail(file + " " + region.id + ": NO WITNESS. Every " + region.kind +
+      " region must carry a sha256 and a line count at a named ref (S-R19).");
   }
-  if (hits.length < region.first.nth) {
-    fail(file + " " + region.id + ": first anchor has " + hits.length + " matches, wanted #" +
-      region.first.nth + ": " + JSON.stringify(wanted));
+  const lines = end - start + 1;
+  const byExtent = REF_NAMES.filter((n) => w[n] && w[n].lines === lines);
+  if (!byExtent.length) {
+    const want = REF_NAMES.filter((n) => w[n]).map((n) => n + "=" + w[n].lines + " lines").join(", ");
+    const near = lastHits.filter((l) => l >= start && l <= start + 400).slice(0, 8).join(" :");
+    fail(file + " " + region.id + ": LAST ANCHOR IS AMBIGUOUS. The table's occurrence #" +
+      region.last.nthFrom + " of " + JSON.stringify(region.last.text) + " resolves to :" + end +
+      ", which makes the region " + lines + " lines; the witness records " + want +
+      ". Candidate occurrences at or after :" + start + " are :" + near +
+      ". Re-anchor the region or re-take the witness with gen-witness.cjs (S-R20).");
   }
-  if (hits.length > 1 && region.first.nth === 1 && hits.length !== 1) {
-    /* An index of 1 over several identical lines is ambiguous unless the table says so. */
-    if (!region.first.ambiguousOk) {
-      fail(file + " " + region.id + ": first anchor matches " + hits.length +
-        " places and the table gives no disambiguating index: " + JSON.stringify(wanted));
-    }
+  const sha = sha256(body);
+  const byBytes = byExtent.filter((n) => w[n].sha256 === sha);
+  if (!byBytes.length) {
+    fail(file + " " + region.id + ": BYTES DO NOT MATCH THE WITNESS. " + lines +
+      " lines at :" + start + "-:" + end + " hash " + sha.slice(0, 16) + "..., the witness records " +
+      byExtent.map((n) => n + "=" + w[n].sha256.slice(0, 16) + "...").join(", ") +
+      ". This region is not the region the spec was reviewed against (S-R19).");
   }
-  const start = hits[region.first.nth - 1];
-  const lastText = region.last.text;
-  let seen = 0, end = -1;
-  for (let i = start - 1; i < lines.length; i += 1) {
-    if (lines[i] === lastText) { seen += 1; if (seen === region.last.nthFrom) { end = i + 1; break; } }
-  }
-  if (end < 0) {
-    fail(file + " " + region.id + ": last anchor #" + region.last.nthFrom +
-      " not found after line " + start + ": " + JSON.stringify(lastText));
-  }
-  return { start, end };
+  return byBytes;
 }
 
 /* ---- substitutions ----------------------------------------------------------------- */
@@ -122,7 +157,8 @@ function applySubs(file, region, text) {
 /* ---- the cut ------------------------------------------------------------------------ */
 fs.mkdirSync(OUT, { recursive: true });
 const report = { root: ROOT, files: {}, substitutions: [], seams: [], drift: [],
-  machineSeams: [], alignedSeams: [] };
+  machineSeams: [], alignedSeams: [], witness: { refsOffered: REF_NAMES, byFile: {} },
+  replacements: [] };
 const linemap = {};
 
 for (const [file, regions] of Object.entries(table.files)) {
@@ -146,6 +182,24 @@ for (const [file, regions] of Object.entries(table.files)) {
     }
     if (x.r.kind === "seam") report.seams.push({ file, id: x.r.id, lines: [x.start, x.end], note: x.r.note });
   }
+
+  /* THE WITNESS, BEFORE ANY SUBSTITUTION (S-R19, S-R20). Every witnessed region of this
+     file must match one recorded ref, and they must all match the SAME one: a table half at
+     the tip and half at S9 is a table nobody took at any ref. */
+  let agree = REF_NAMES.slice();
+  for (const x of sorted) {
+    if (!WITNESSED_KINDS.has(x.r.kind)) continue;
+    const body = lines.slice(x.start - 1, x.end).join("\n");
+    const ok = checkWitness(file, x.r, x.start, x.end, body, x.lastHits);
+    const next = agree.filter((n) => ok.includes(n));
+    if (!next.length) {
+      fail(file + " " + x.r.id + ": the file's regions do not agree on one witnessed ref. " +
+        "This region matches " + ok.join(", ") + "; the regions before it matched " +
+        agree.join(", ") + " (S-R19).");
+    }
+    agree = next;
+  }
+  report.witness.byFile[file] = agree;
 
   /* ---- THE ALIGNMENT CHECK ----------------------------------------------------------
    * A region boundary that falls INSIDE a statement is the failure `node --check` cannot
@@ -181,7 +235,7 @@ for (const [file, regions] of Object.entries(table.files)) {
          statement cannot be a pure move, because a cut there leaves half a statement in
          the released file. A region whose boundaries align CAN be a pure move. So the
          seam list is the machine's, not the author's (S-R17 (g)). */
-      if (straddles && x.r.kind === "move") {
+      if (straddles && WITNESSED_KINDS.has(x.r.kind)) {
         fail(file + " " + x.r.id + ": region " + straddles.end + " at :" + straddles.at +
           " inside a " + straddles.t + " that runs :" + straddles.a + "-:" + straddles.b +
           ". A cut there leaves half a statement behind, so this is a SEAM, not a move.");
@@ -208,9 +262,12 @@ for (const [file, regions] of Object.entries(table.files)) {
     const body = lines.slice(m.start - 1, m.end).join("\n");
     const { out, applied } = applySubs(file, m.r, body);
     for (const a of applied) { subCount += a.count; report.substitutions.push({ file, region: m.r.id, ...a }); }
-    /* the verbatim check: re-apply the substitutions in reverse is not sound, so the check
-       is stated as: out equals body when no substitution row matched this region. */
-    if (applied.length === 0 && out !== body) verbatimFails += 1;
+    /* R3's BLOCKING-1: the old check here was `if (applied.length === 0 && out !== body)
+       verbatimFails += 1;`, and applySubs returns out === body whenever no row matched, so
+       the counter was unreachable for every possible input. The real check is the witness
+       above, taken before applySubs ran. This counter is kept at zero only so the report's
+       shape does not change under a reader who knew the old one. */
+    void body;
     pushLine("  /* " + m.r.id + "  " + file + ":" + m.start + "-" + m.end + " */");
     const outLines = out.split("\n");
     for (let i = 0; i < outLines.length; i += 1) {
@@ -223,9 +280,30 @@ for (const [file, regions] of Object.entries(table.files)) {
   fs.writeFileSync(destPath, sealedLines.join("\n"));
   linemap[dest] = sealedMap;
 
-  /* the edited original: the moved lines removed, everything else byte-identical */
+  /* the edited original: the moved lines removed, everything else byte-identical, and the
+     REPLACE regions (S-R21) swapped for their declared replacement. A replace region is the
+     third kind: it moves nothing into the seal and it is not left alone either - its
+     released lines are replaced IN PLACE by the declared rows, which is what the five boot
+     seams are. R3's BLOCKING-5 is that a `kind` flip from move to seam cannot express them:
+     with TA-S38 a seam, `let ready = settleAdoption(...)` stays declared released, read
+     released and stops crossing, which is the opposite of the design B.3 describes. */
+  const replaces = sorted.filter((x) => x.r.kind === "replace");
+  for (const rp of replaces) {
+    if (!Array.isArray(rp.r.replacement)) {
+      fail(file + " " + rp.r.id + ": kind \"replace\" with no declared `replacement` row (S-R21).");
+    }
+    report.replacements.push({ file, id: rp.r.id, lines: [rp.start, rp.end],
+      removed: rp.end - rp.start + 1, inserted: rp.r.replacement.length,
+      from: lines.slice(rp.start - 1, rp.end), to: rp.r.replacement,
+      kind: "statement rewrite (S-R17 (g) STOP, declared in advance)", why: rp.r.note });
+  }
   const drop = new Set();
   for (const m of moves) for (let n = m.start; n <= m.end; n += 1) drop.add(n);
+  const replaceAt = new Map();
+  for (const rp of replaces) {
+    replaceAt.set(rp.start, rp.r.replacement);
+    for (let n = rp.start; n <= rp.end; n += 1) drop.add(n);
+  }
   /* --wire: the ONE authored shim per file, declared in regions.json's `wiring` block, so
      the output can actually be required and the suites can be run against it. Without it
      the output is a PURE MOVE that node --check passes and node cannot run, which is the
@@ -238,6 +316,9 @@ for (const [file, regions] of Object.entries(table.files)) {
       const at = moves.find((m) => m.r.id === wiring.at);
       if (at && n === at.start) for (const l of wiring.insert) { keptLines.push(l); keptMap.push({ file, line: 0, region: "WIRE" }); }
     }
+    if (replaceAt.has(n)) {
+      for (const l of replaceAt.get(n)) { keptLines.push(l); keptMap.push({ file, line: 0, region: "REPLACE" }); }
+    }
     if (drop.has(n)) continue;
     keptLines.push(lines[n - 1]);
     keptMap.push({ file, line: n, region: null });
@@ -246,13 +327,27 @@ for (const [file, regions] of Object.entries(table.files)) {
   fs.writeFileSync(editedPath, keptLines.join("\n"));
   linemap[file] = keptMap;
 
-  /* the verbatim check, stated as a count */
+  /* THE PER-FILE MOVED-LINE TOTAL, ASSERTED (S-R20). R3's second and third attacks both
+     left every anchor resolvable and every boundary statement-aligned, and the ONE number
+     that moved was this one: 673 and 695 against 685. Nothing asserted it, so the only
+     signal was a LINE DRIFT row, and drift is the normal output at the S9 ref where 30
+     regions drift. It is asserted here, per ref, against the witness. */
   let movedLines = 0;
   for (const m of moves) movedLines += m.end - m.start + 1;
+  const totals = agree.filter((n) => (WITNESS.movedLines[n] || {})[file] === movedLines);
+  if (!totals.length) {
+    fail(file + ": moved " + movedLines + " lines in " + moves.length +
+      " move regions; the witness records " +
+      agree.map((n) => n + "=" + (WITNESS.movedLines[n] || {})[file]).join(", ") +
+      ". A per-file moved-line total that is not the recorded one is a region holding the" +
+      " wrong lines (S-R20).");
+  }
+  report.witness.byFile[file] = totals;
   report.files[file] = {
     dest, sourceLines: lines.length, regions: regions.length,
-    moveRegions: moves.length, seamRegions: sorted.length - moves.length,
-    movedLines, releasedLines: keptLines.length,
+    moveRegions: moves.length, replaceRegions: replaces.length,
+    seamRegions: sorted.length - moves.length - replaces.length,
+    movedLines, releasedLines: keptLines.length, witnessedAt: totals,
     substitutionsApplied: subCount, verbatimFailures: verbatimFails,
   };
 }
@@ -271,7 +366,7 @@ for (const [file, regions] of Object.entries(table.files)) {
     const src = fs.readFileSync(path.join(ROOT, TODAY, file), "utf8");
     const lines = src.split("\n");
     const resolved = regions.map((r) => ({ r, ...resolve(lines, r, file) }))
-      .filter((x) => x.r.kind === "move");
+      .filter((x) => WITNESSED_KINDS.has(x.r.kind));
     const ast = acorn.parse(src, { ecmaVersion: 2022, locations: true,
       sourceType: file.endsWith(".mjs") ? "module" : "script" });
     let body = null;
@@ -292,7 +387,8 @@ for (const [file, regions] of Object.entries(table.files)) {
           || d.init.type === "Literal" || d.init.type === "ArrowFunctionExpression"
           || d.init.type === "FunctionExpression" || d.init.type === "ObjectExpression"
           || d.init.type === "LogicalExpression" || d.init.type === "BinaryExpression")));
-      return { line, type: st.type, exec, region: inRegion ? inRegion.r.id : null };
+      return { line, type: st.type, exec, region: inRegion ? inRegion.r.id : null,
+        regionKind: inRegion ? inRegion.r.kind : null };
     });
     report.bootOrder[file] = rows.filter((r) => r.exec);
   }
@@ -306,13 +402,31 @@ if (!QUIET) {
   for (const [f, r] of Object.entries(report.files)) {
     console.log("  " + f.padEnd(18) + " -> " + r.dest.padEnd(24) +
       " moved " + String(r.movedLines).padStart(4) + " lines in " + String(r.moveRegions).padStart(2) +
-      " regions; " + String(r.seamRegions).padStart(2) + " seams left released;" +
+      " regions; " + String(r.replaceRegions).padStart(2) + " replace; " +
+      String(r.seamRegions).padStart(2) + " seams left released;" +
       " released file " + r.releasedLines + " lines");
   }
-  console.log("  VERBATIM CHECK: substitutions applied " + report.substitutions.length +
+  const witnessed = Object.values(report.files).reduce((a, b) => a + b.moveRegions + b.replaceRegions, 0);
+  console.log("  WITNESS CHECK (S-R19, S-R20): " + witnessed +
+    " regions compared against regions.json's recorded sha256 and line count BEFORE any" +
+    " substitution; every one matched, every file agreed on one ref, and every per-file" +
+    " moved-line total is the recorded one.");
+  for (const [f, r] of Object.entries(report.files)) {
+    console.log("    " + f.padEnd(18) + " witnessed at " + r.witnessedAt.join(" or ") +
+      "; moved lines " + r.movedLines);
+  }
+  console.log("  SUBSTITUTIONS: " + report.substitutions.length +
     " rows / " + Object.values(report.files).reduce((a, b) => a + b.substitutionsApplied, 0) +
-    " occurrences; regions whose bytes differ with no declared row: " +
-    Object.values(report.files).reduce((a, b) => a + b.verbatimFailures, 0));
+    " occurrences applied after the witness passed");
+  if (report.replacements.length) {
+    console.log("  REPLACEMENTS (S-R21, each an S-R17 (g) STOP declared in advance): " +
+      report.replacements.length + " rows");
+    for (const rp of report.replacements) {
+      console.log("    " + rp.file + " " + rp.id + " :" + rp.lines[0] + "-:" + rp.lines[1] +
+        "  " + rp.removed + " released line(s) -> " + rp.inserted + " call line(s)");
+      for (const l of rp.to) console.log("        + " + l);
+    }
+  }
   if (report.drift.length) {
     console.log("  LINE DRIFT from the tip cross-check (content anchors still resolved):");
     for (const d of report.drift) console.log("    " + d.file + " " + d.id + " tip " + d.tip.join("-") + " -> " + d.here.join("-"));
@@ -325,7 +439,9 @@ if (!QUIET) {
     console.log("  BOOT ORDER in " + file + ": " + rows.length +
       " executable statements at the mount's own top level, " + moved.length + " of them moved");
     for (const r of rows) {
-      console.log("    :" + String(r.line).padStart(4) + "  " + (r.region ? "MOVED   " + r.region : "released") + "  " + r.type);
+      console.log("    :" + String(r.line).padStart(4) + "  " +
+        (r.region ? (r.regionKind === "replace" ? "REPLACE " : "MOVED   ") + r.region : "released") +
+        "  " + r.type);
     }
   }
 }
