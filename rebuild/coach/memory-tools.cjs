@@ -46,7 +46,17 @@
  * Outside a turn, where nobody is counting, the per-call bound is what the tool
  * holds to. The order is memory-model.cjs's one stated rule; it is never a scan
  * of histories and never the whole store. A topic nobody named is a refusal,
- * not an invitation to send everything.
+ * not an invitation to send everything. THE ALLOWANCE IS RESERVED BEFORE THE
+ * STORE READ, not spent after it (review R3-B1): recalls that are in flight
+ * together in one turn cannot each spend the same five, and what a call did not
+ * use goes straight back.
+ *
+ * AND A TOPIC LICENSES NOTHING EITHER. Both topic tags publish an EMPTY display,
+ * exactly as memoryId does, because the topic is the athlete's own word: this
+ * lane bounds its length and constrains no character, and the traceability gate
+ * promotes a declared unit to `date` whenever the display reads as a date, so a
+ * memory filed under the topic "2019-04-17" let the coach state a date nothing
+ * dated (review R3-N5/H1). The topic travels as the tag's value.
  *
  * AND THE ROWS THE READ SIDE COULD NOT READ ARE COUNTED, not hidden. The count
  * travels as untagged data on the answer and on the absence, so "nothing kept"
@@ -60,6 +70,11 @@ const Model = require("./memory-model.cjs");
 const TIER = T.TIER;
 
 const MEMORY_TIERS = Object.freeze({ recall: TIER.READ, remember: TIER.FACT });
+
+/* How many turn accounts one coach instance keeps (review R3-N2). Small and
+   fixed: the account is worth a few dozen bytes and only the turns still in
+   flight can spend one. */
+const TURNS_MAX = 64;
 
 const MEMORY_CODES = Object.freeze({
   CONFIRMATION_REQUIRED: T.CODES.CONFIRMATION_REQUIRED,
@@ -114,6 +129,11 @@ function faceOf(item) {
     kind: item.kind ? item.kind.value : null,
     topic: item.topic ? item.topic.value : null,
     label: item.label ? item.label.value : null,
+    /* DEAD FOR AN ITEM THIS TOOL PUBLISHED, and named so a later hand does not
+       trust it (review R3-N4). itemFor() publishes no `interval` member, so this
+       is always null for a recall item and joinOf() falls back to the published
+       `label`, which already carries needs-review. The line stays because faceOf
+       also takes a face built by hand from a row, where the interval is real. */
     interval: item.interval || null };
 }
 
@@ -141,7 +161,12 @@ function createMemoryTools({ world, coach } = {}) {
      opens the account; every recall inside that turn draws on it. A turn_id
      nobody opened has no account, and the per-call bound is what that call
      holds to: the harness that never opens a turn is not thereby given more.
-     It is per INSTANCE and never durable, exactly like the pending yeses. */
+     It is per INSTANCE and never durable, exactly like the pending yeses.
+     IT IS ALSO BOUNDED (review R3-N2): an account is dropped when its turn is
+     closed, and the map keeps at most TURNS_MAX of the most recent turns, oldest
+     evicted, so a long lived process does not leak one small object per turn. An
+     evicted turn that recalls again is a turn nobody opened: the per-call bound
+     is what it gets, and never more. */
   const turns = new Map();
   const allowanceOf = (turn_id) => {
     const account = turns.get(turn_id);
@@ -172,28 +197,51 @@ function createMemoryTools({ world, coach } = {}) {
     /* THE TURN'S ALLOWANCE IS SPENT: this call reads NOTHING. The refusal is
        issued before the store is touched, so a turn that has had its five facts
        cannot go on reading and then discard what it read. */
+    const account = turns.get(turn_id);
     const allowance = allowanceOf(turn_id);
     if (allowance <= 0) {
       return refuse("recall", TIER.READ, turn_id, MEMORY_CODES.MEMORY_TURN_BOUND,
         "I have read back as much as I hold to in one turn, so I have not read anything else. Ask me again and I will go on.",
         "memory-model.cjs RECALL_MAX (the allowance is the turn's, not the call's)");
     }
-    const read = await lane.forTopic(topic);
-    if (!read.ok) {
-      /* unreadable is NOT empty, and the athlete is told which one happened */
-      return refuse("recall", TIER.READ, turn_id, MEMORY_CODES.MEMORY_UNREADABLE,
-        "I could not read what this device has kept, so I will not tell you it is empty. Nothing was changed.",
-        "memory-host.mjs read() (" + read.code + ")");
+    /* THE WHOLE REMAINING ALLOWANCE IS RESERVED HERE, BEFORE THE AWAIT (review
+       R3-B1). Reading the allowance and spending it AFTER the store read let
+       recalls issued together in one turn all pass the check above and each
+       publish their own facts, so six concurrent recalls published twelve. This
+       is remember()'s own discipline, sixty lines below: the handle is spent
+       BEFORE the write. What this call does not use is refunded the moment the
+       rows are known, and the finally gives the WHOLE reserve back on every
+       refusal and every throw, so no path leaks allowance. A reserve is
+       conservative: recalls in flight together get the facts of the one that
+       took it and the turn's refusal for the rest, which is fewer than five and
+       never more. */
+    if (account) account.used += allowance;
+    let refund = allowance;
+    try {
+      const read = await lane.forTopic(topic);
+      if (!read.ok) {
+        /* unreadable is NOT empty, and the athlete is told which one happened */
+        return refuse("recall", TIER.READ, turn_id, MEMORY_CODES.MEMORY_UNREADABLE,
+          "I could not read what this device has kept, so I will not tell you it is empty. Nothing was changed.",
+          "memory-host.mjs read() (" + read.code + ")");
+      }
+      if (!read.rows.length) {
+        /* nothing kept on THIS subject, and the count of rows the one gate refused
+           travels with it, because the two are different answers */
+        return refuse("recall", TIER.READ, turn_id, MEMORY_CODES.MEMORY_ABSENT,
+          "I have nothing kept on that subject on this device.",
+          "earned/coach-memory/v1 (no memory on this topic)",
+          { state_unchanged: true, skipped: skippedOf(read) });
+      }
+      const bounded = Model.recall(read.rows, { day, max: allowance });
+      const envelope = T.assertNoLeak(envelopeFor(read, topic, turn_id, bounded));
+      /* the facts this call published are what the turn keeps; the rest of the
+         reserve goes back before the envelope leaves */
+      refund = allowance - bounded.shown;
+      return envelope;
+    } finally {
+      if (account) account.used -= refund;
     }
-    if (!read.rows.length) {
-      /* nothing kept on THIS subject, and the count of rows the one gate refused
-         travels with it, because the two are different answers */
-      return refuse("recall", TIER.READ, turn_id, MEMORY_CODES.MEMORY_ABSENT,
-        "I have nothing kept on that subject on this device.",
-        "earned/coach-memory/v1 (no memory on this topic)",
-        { state_unchanged: true, skipped: skippedOf(read) });
-    }
-    return T.assertNoLeak(envelopeFor(read, topic, turn_id, allowance));
   }
 
   /* The rows the producer's own gate refused on the way out, as DATA. `null`
@@ -208,7 +256,8 @@ function createMemoryTools({ world, coach } = {}) {
     return {
       memoryId: T.tagged(turn_id, from + " memory_id", row.memory.memory_id, "id", ""),
       kind: T.tagged(turn_id, from + " kind", row.memory.kind, "kind", row.memory.kind),
-      topic: T.tagged(turn_id, from + " topic", row.memory.topic, "topic", row.memory.topic),
+      /* AN EMPTY DISPLAY, for the reason envelopeFor() gives below */
+      topic: T.tagged(turn_id, from + " topic", row.memory.topic, "topic", ""),
       label: T.tagged(turn_id, "memory-model.labelFor", entry.label, "label", entry.label),
       recordedOn: T.tagged(turn_id, from + " effective.local_date", row.date, "date", row.date),
       /* DATA, not a tagged value: see the head of this file */
@@ -216,18 +265,25 @@ function createMemoryTools({ world, coach } = {}) {
     };
   }
 
-  function envelopeFor(read, topic, turn_id, allowance) {
-    const bounded = Model.recall(read.rows, { day, max: allowance });
-    /* the facts this call published are drawn from the turn's account, so the
-       next recall in the same turn sees what is left */
-    const account = turns.get(turn_id);
-    if (account) account.used += bounded.shown;
+  function envelopeFor(read, topic, turn_id, bounded) {
     const values = {
-      topic: T.tagged(turn_id, "coach.request.topic", topic, "topic", topic),
+      /* AN EMPTY DISPLAY, exactly as memoryId carries (review R3-N5/H1). The
+         topic is the athlete's own word and this lane constrains no character in
+         it, while allowedTokens() promotes a declared unit to `date` whenever the
+         display itself reads as a date. A memory filed under the topic
+         "2019-04-17" therefore licensed a date nothing dated. The topic travels
+         as the tag's VALUE, which is what every reader of this envelope uses, and
+         a topic carrying a figure now fails closed the way a memory text does. */
+      topic: T.tagged(turn_id, "coach.request.topic", topic, "topic", ""),
       shown: T.tagged(turn_id, "memory-model.recall.shown", bounded.shown, "fact", ""),
       more: T.tagged(turn_id, "memory-model.recall.more", bounded.more, "flag", ""),
+      /* THE NOTE MUST BE TRUE. The turn's allowance can clip a recall to fewer
+         than five, so "I am showing the five most recent" was a sentence that
+         could be false while `shown` and `more` were true. It states no number
+         now, so no allowance can make it false. */
       note: T.text(turn_id, "coach.memory.bound", bounded.more
-        ? "I am showing the five most recent. There are more kept on this subject."
+        ? "I am showing the most recent ones I can show in this turn."
+          + " There are more kept on this subject."
         : "That is everything I have kept on this subject."),
       items: bounded.items.map((entry) => itemFor(entry, turn_id)),
     };
@@ -313,10 +369,16 @@ function createMemoryTools({ world, coach } = {}) {
 
     const saved = await lane.save(canonical);
     if (!saved.ok) {
-      /* the accepted layer's OWN code and copy, carried unedited */
+      /* THE ACCEPTED LAYER'S OWN CODE AND COPY, carried unedited. Both are the
+         accepted layer's fixed vocabulary: see the standing condition on that
+         layer in TOOL-CONTRACT.md. A save that THREW answers the host's own fixed
+         COACH_MEMORY_WRITE_REFUSED with a null copy, and the exception's message
+         arrives as an untagged `detail`, which travels on in `source` beside the
+         fixed sentence, the same channel the dispatch catch uses (R3-N3). */
       return refuse("remember", TIER.FACT, turn_id, saved.code || MEMORY_CODES.MEMORY_NOT_RECORDED,
         saved.copy || "I could not keep that on this device, and I have kept nothing.",
-        "memory-host.mjs save() -> client.execute('workout', {action:'coach-memory'})");
+        "memory-host.mjs save() -> client.execute('workout', {action:'coach-memory'})"
+          + (saved.detail ? " (" + saved.detail + ")" : ""));
     }
     /* THE READ-BACK. A commit that landed is a commit that landed: if the store
        cannot be read afterwards the tool says BOTH of those things, names the
@@ -383,13 +445,23 @@ function createMemoryTools({ world, coach } = {}) {
     /* the turn's account of memory facts, opened once and never reset by a
        second openTurn of the same id: an allowance that could be reopened is
        not an allowance */
-    if (!turns.has(turn_id)) turns.set(turn_id, { used: 0 });
+    if (!turns.has(turn_id)) {
+      turns.set(turn_id, { used: 0 });
+      /* oldest first, because a Map iterates in insertion order */
+      while (turns.size > TURNS_MAX) turns.delete(turns.keys().next().value);
+    }
     const call = Object.assign({}, base.call);
     for (const name of Object.keys(IMPL)) {
       call[name] = async (args) => { const r = await dispatch(name, args, turn_id); base.results.push(r); return r; };
     }
+    /* A CLOSED TURN GIVES ITS ACCOUNT BACK AT ONCE, when the coach's own turn
+       object has a close to close. The shipped C5 and wave-one turns carry none
+       today, so a turn here grows no close it did not already have. */
+    const closing = typeof base.close === "function"
+      ? { close: () => { turns.delete(turn_id); return base.close(); } }
+      : null;
     return Object.freeze({ turn_id, results: base.results, call,
-      untraceable: base.untraceable, traceable: base.traceable });
+      untraceable: base.untraceable, traceable: base.traceable, ...(closing || {}) });
   }
 
   return Object.freeze({
@@ -408,4 +480,4 @@ function createMemoryTools({ world, coach } = {}) {
   });
 }
 
-module.exports = { createMemoryTools, MEMORY_TIERS, MEMORY_CODES, faceOf, TIER };
+module.exports = { createMemoryTools, MEMORY_TIERS, MEMORY_CODES, TURNS_MAX, faceOf, TIER };

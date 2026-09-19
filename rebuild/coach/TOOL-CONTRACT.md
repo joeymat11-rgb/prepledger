@@ -262,20 +262,46 @@ into a target it states. A figure a memory names is untraceable, by construction
 **bounded** at most FIVE facts in a TURN, over every recall in it and not five
 per call. The turn the harness opened keeps the account: a recall takes what is
 LEFT of the five, and when it leaves something out `more` says so. Six subjects
-asked in one turn therefore return five facts in total, and the next turn starts
-at five again. `memoryTools.allowance(turn_id)` answers what is left without
-calling. Outside a turn, where nobody is counting, the per-call bound of five is
-what the tool holds to. The account is per coach instance and never durable,
-like a pending yes.
+asked in one turn therefore return at most five facts in total, and the next turn
+starts at five again. `memoryTools.allowance(turn_id)` answers what is left
+without calling. Outside a turn, where nobody is counting, the per-call bound of
+five is what the tool holds to.
+**and the bound holds against CONCURRENT recalls** (review R3-B1). The allowance
+is RESERVED before the store read, not spent after it, so recalls in flight
+together in one turn cannot each spend the same five; what a call did not use is
+refunded the moment its rows are known, and a refusal or a throw after the
+reserve gives the whole reserve back. A reserve is conservative: recalls issued
+in parallel return FEWER than five facts in the turn, never more, and a caller
+that wants all five issues them one after another.
+**the account is per COACH INSTANCE** and never durable, like a pending yes. It
+belongs to the instance whose `openTurn()` opened it: two `createMemoryTools`
+over one world and one turn id keep two accounts and publish five facts each, so
+a consumer must not stack instances over one installation. The shipped wiring
+builds exactly ONE instance per world, in `local-world.mjs`'s coach world and the
+harness that calls it, and this sentence is here so a later consumer does not
+read "per instance" as an invitation.
+**the map of accounts is BOUNDED** (review R3-N2): an account is dropped when its
+turn is closed, if the coach's own turn object has a close, and in any case at
+most 64 of the most recent turns are kept, oldest evicted. A turn whose account
+has been evicted is treated as a turn nobody opened, which is the per-call bound
+and never more than it.
 **ordered** by `memory-model.cjs`'s one stated rule: most recent effective date
 first, then the log's own order, later entry first. It is a total order, so the
 same question twice gives the same facts in the same order. The facts left out
 do not appear anywhere in the envelope.
-**measured, not claimed** the worst case this bound permits, five memories at
-`TEXT_MAX`, is `turnContextBytes` 9494, which is OVER the standing 8 KiB
-per-turn budget. `model-adapter.md` states the figure, a cell measures it and
-reads that file, and the choice between shorter source strings and an enforced
-budget is P4b-2's.
+**measured, not claimed** the worst case this bound permits, one recall of five
+memories at `TEXT_MAX`, is `turnContextBytes` 9446, which is OVER the standing
+8 KiB per-turn budget. That is the RECALL envelope's figure and not the turn's: a
+turn that also WRITES memories measures more, because `remember()` publishes an
+item of its own on every success (review R3-N6). `model-adapter.md` states both
+figures, a cell measures both and reads that file, and the choice between shorter
+source strings and an enforced budget is P4b-2's.
+**topics carry an EMPTY display** (review R3-N5). Both topic tags publish
+`display: ""` and carry the topic as the tag's `value`, exactly as `memoryId`
+does. The topic is the athlete's own word: the lane bounds its length and
+constrains no character, and `allowedTokens()` promotes a declared unit to `date`
+whenever the display reads as a date, so a memory filed under the topic
+"2019-04-17" licensed a date nothing dated. Read a topic from `value`.
 **never** scans histories, never returns the whole store, and never answers a
 topic nobody named.
 **refuses with** `COACH_MEMORY_TURN_BOUND` (the turn's five facts are spent: it
@@ -388,7 +414,24 @@ sentence from "not asked yet"), `COACH_MEMORY_CONFIRMATION_SPENT` (one yes, one
 write), `COACH_MEMORY_CONFIRMATION_UNKNOWN` (no such yes in this conversation),
 `COACH_MEMORY_CONFIRMATION_MISMATCH` (the words moved after the yes),
 `COACH_MEMORY_INPUT_INVALID` (the shape), `COACH_MEMORY_LANE_ABSENT`, or the
-accepted layer's OWN code and sentence when the store refuses.
+accepted layer's OWN code and sentence when the store refuses. A save that THREW
+answers the host's own fixed `COACH_MEMORY_WRITE_REFUSED` with a null copy, so no
+exception message can answer the code table below; the message travels as an
+untagged `detail` and reaches the refusal's untagged `source` (review R3-N3).
+**A STANDING CONDITION ON THE ACCEPTED LAYER.** When the store refuses, the
+accepted layer's own `copy` is carried into the refusal's `reason` VERBATIM, and
+a `reason` is a `text` tag, which `allowedTokens()` reads as engine prose and
+licenses every figure in. That carve-out is deliberate: reading a client refusal
+out loud is what `tools.cjs:328` intends. It is safe only while every refusal
+sentence that can reach `saved.copy` is a FIXED sentence with no interpolation of
+SUBMITTED INPUT. Review R3 read the two client files on that path,
+`rebuild/m3/w6/public-client.mjs` and `rebuild/m3/w6/local/local-client.mjs`, and
+found only fixed sentences; the one interpolation measured there appends the
+layer's own fixed code (for example "... `WORKOUT_INPUT_INVALID`"), which is not
+input. Nothing enforces this and no cell would notice if it changed, so it is
+written down here: an accepted layer that ever quotes the athlete's or the
+model's words back in a refusal copy breaks this contract, not merely this lane's
+taste.
 **and one refusal that is not a failure to write.** If the commit LANDS and the
 read-back then fails, the tool returns `COACH_MEMORY_READ_BACK_FAILED` with
 `committed: true` and the `op_id` it holds from the commit, and says both things
@@ -547,6 +590,7 @@ unavailability does not become a permanent remembered limitation.
 | `COACH_MEMORY_CONFIRMATION_MISMATCH` | the words moved after the yes | `memory-tools.cjs` |
 | `COACH_MEMORY_READ_BACK_FAILED` | committed, and could not be read back; NOT a second write | `memory-host.mjs` `read()` |
 | `COACH_MEMORY_TURN_BOUND` | the turn's five facts are spent; this call read nothing | `memory-tools.cjs` `openTurn()` |
+| `COACH_MEMORY_WRITE_REFUSED` | the save THREW; a fixed code, the message in `detail` and then in `source` | `memory-host.mjs` `save()` |
 | `COACH_MEMORY_TOOL_THREW` | the tool threw; a FIXED sentence, the message in `source` | `memory-tools.cjs` `dispatch()` |
 | `MEMORY_TOOL_NOT_IN_LIST` | a name that is not a coach tool; a FIXED sentence, the name in `source` | `memory-tools.cjs` `TIERS` |
 

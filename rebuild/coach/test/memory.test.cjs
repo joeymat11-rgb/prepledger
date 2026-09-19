@@ -1830,6 +1830,23 @@ test("P-F2 MEASURED: the worst-case recall envelope, five memories at TEXT_MAX, 
       "the worst case is now inside the standing budget (" + bytes + "): restate it in model-adapter.md");
     assert.equal(src("model-adapter.md").includes(String(bytes)), true,
       "model-adapter.md does not state the measured worst case " + bytes);
+
+    /* AND THE TURN'S FIGURE, WHICH IS NOT THE ENVELOPE'S (review R3-N6). The
+       allowance counts RECALLS; remember() publishes an item of its own with a
+       full TEXT_MAX text on every success, so a turn that also writes memories
+       measures more and the contract must not pin the smaller number as if it
+       were the turn's ceiling. Three remembers of the same size, same turn. */
+    for (let i = 0; i < 3; i += 1) {
+      const text = ("written number " + i + " ").padEnd(MEM.TEXT_MAX, "y").slice(0, MEM.TEXT_MAX);
+      const stored = await remember(w, { memory_id: "mem-w-" + i, kind: "preference",
+        topic: "coaching", text }, turn);
+      assert.equal(stored.ok, true, JSON.stringify(stored.unavailable || {}));
+    }
+    const turnBytes = C.turnContextBytes(turn);
+    console.log("P-F2 MEASURED turn: one recall of five plus three remembers, turnContextBytes " + turnBytes);
+    assert.ok(turnBytes > bytes, "a turn that also writes is not larger than the recall envelope alone");
+    assert.equal(src("model-adapter.md").includes(String(turnBytes)), true,
+      "model-adapter.md does not state the measured turn figure " + turnBytes);
   } finally { w.close(); }
 });
 
@@ -1908,5 +1925,299 @@ test("P-F3 the recall envelope carries the skipped count as DATA, on the answer 
     assert.equal(none.unavailable.code, MT.MEMORY_CODES.MEMORY_ABSENT);
     assert.equal(none.skipped.value, 3);
     assert.equal(none.skipped.licensed, false);
+  } finally { w.close(); }
+});
+
+/* ------------------------------------------- R3: the fourth fix round's cells */
+
+/* R3-B1, THE BLOCKING FINDING. The turn's five facts were not held against
+   CONCURRENT recalls. recall() READ the allowance, AWAITED the store read, and
+   only then spent it, so recalls issued together in one turn all passed the
+   `allowance <= 0` check and each published its own facts: six topics with two
+   memories each, under Promise.all, published TWELVE facts in one turn.
+   THE REMEDY IS THE FILE'S OWN DISCIPLINE, thirteen lines below: remember()
+   spends the confirmation handle BEFORE the write. The whole remaining allowance
+   is RESERVED at the check, before any await; what the call did not use is
+   REFUNDED once the rows are known; and a refusal or a throw after the reserve
+   gives the WHOLE reserve back, in a finally, so no path leaks allowance.
+   A reserve is conservative by construction. Six recalls in flight together now
+   publish the facts of the ONE that took the reserve, and the other five are told
+   the turn is spent: fewer than five, never more, which is the direction design
+   point 4 exists to bound. */
+test("R3-B1 six CONCURRENT recalls in ONE turn never publish more than five facts", async () => {
+  const w = await sixTopics("r3b1-concurrent");
+  try {
+    const turn = w.coach.openTurn("turn-r3b1");
+    const out = await Promise.all([0, 1, 2, 3, 4, 5]
+      .map((i) => turn.call.recall({ topic: "topic-" + i })));
+    const shape = out.map((r) => (r.ok ? r.values.items.length : r.unavailable.code));
+    const facts = out.filter((r) => r.ok).reduce((n, r) => n + r.values.items.length, 0);
+    assert.ok(facts <= MODEL.RECALL_MAX,
+      "the turn published " + facts + " facts in flight together: " + JSON.stringify(shape));
+    /* THE MEASURED SHAPE, PINNED: one call holds the reserve and five are told
+       the turn is spent. Before the fix this row was [2,2,2,2,2,2]. */
+    const BOUND = MT.MEMORY_CODES.MEMORY_TURN_BOUND;
+    assert.deepEqual(shape, [2, BOUND, BOUND, BOUND, BOUND, BOUND]);
+    /* the refused calls READ NOTHING: no memory of theirs is anywhere in them */
+    for (const r of out.slice(1)) {
+      assert.equal(r.values.items, undefined);
+      const blob = JSON.stringify(r);
+      for (let i = 1; i < 6; i += 1) {
+        assert.equal(blob.includes("kept on topic " + i), false, "a memory reached a refused recall");
+      }
+    }
+    /* THE REFUND LANDED: the reserve was five, two were used, three are left */
+    assert.equal(w.coach.allowance("turn-r3b1"), MODEL.RECALL_MAX - facts,
+      "the reserve was not refunded down to what the turn actually published");
+    /* and a later recall in the SAME turn still gets those three */
+    const after = await turn.call.recall({ topic: "topic-1" });
+    assert.equal(after.ok, true, JSON.stringify(after.unavailable || {}));
+    assert.equal(after.values.items.length, 2);
+    /* the next turn starts at five, so the bound is still an allowance */
+    const next = w.coach.openTurn("turn-r3b1-second");
+    const again = await next.call.recall({ topic: "topic-5" });
+    assert.equal(again.ok, true, JSON.stringify(again.unavailable || {}));
+    assert.equal(again.values.items.length, 2);
+  } finally { w.close(); }
+});
+
+/* R3-B1's other half: A RESERVE THAT IS NOT USED IS GIVEN BACK. Every refusal
+   after the reserve, and every throw after it, must return the WHOLE reserve, or
+   a turn whose first recall finds nothing would refuse the next one. Four recalls
+   in ONE turn over a lane that throws, then refuses unreadable, then answers
+   empty, then answers: the first three leave the allowance untouched and the
+   fourth still gets its facts. */
+test("R3-B1 a recall that THROWS, is UNREADABLE or is ABSENT gives its whole reserve back", async () => {
+  const w = await world("r3b1-refund");
+  try {
+    const generation = { collections: { ops: {
+      "op-a": opRow("op-a", 1, GOOD()),
+      "op-b": opRow("op-b", 2, { ...GOOD(), memory_id: "mem-2", text: "and the second one." }),
+    } } };
+    let call = 0;
+    const lane = {
+      save: async () => ({ ok: false, state: 3, copy: null, code: "COACH_MEMORY_WRITE_REFUSED", op_id: null }),
+      read: async () => { const r = MEM.readMemories(generation);
+        return { ok: true, code: null, copy: null, rows: r.rows, skipped: r.skipped }; },
+      forTopic: async (topic) => {
+        call += 1;
+        if (call === 1) throw new Error("the store fell over");
+        if (call === 2) return { ok: false, code: "COACH_MEMORY_STORE_UNREADABLE", copy: null, rows: null, skipped: null };
+        if (call === 3) return { ok: true, code: null, copy: null, rows: [], skipped: 0 };
+        const r = MEM.readMemories(generation);
+        return { ok: true, code: null, copy: null, rows: MEM.forTopic(r.rows, topic), skipped: r.skipped };
+      },
+    };
+    const tools = MT.createMemoryTools({ world: { ...w, memory: lane }, coach: w.wave1 });
+    const id = "turn-r3b1-refund";
+    const turn = tools.openTurn(id);
+
+    const threw = await turn.call.recall({ topic: GOOD().topic });
+    assert.equal(threw.ok, false);
+    assert.equal(threw.unavailable.code, MT.MEMORY_CODES.MEMORY_TOOL_THREW);
+    assert.equal(tools.allowance(id), MODEL.RECALL_MAX, "a throw after the reserve kept the allowance");
+
+    const unreadable = await turn.call.recall({ topic: GOOD().topic });
+    assert.equal(unreadable.unavailable.code, MT.MEMORY_CODES.MEMORY_UNREADABLE);
+    assert.equal(tools.allowance(id), MODEL.RECALL_MAX, "an unreadable store kept the allowance");
+
+    const absent = await turn.call.recall({ topic: GOOD().topic });
+    assert.equal(absent.unavailable.code, MT.MEMORY_CODES.MEMORY_ABSENT);
+    assert.equal(tools.allowance(id), MODEL.RECALL_MAX, "an absent topic kept the allowance");
+
+    /* POSITIVE CONTROL, in the same turn: the next recall still gets its facts */
+    const good = await turn.call.recall({ topic: GOOD().topic });
+    assert.equal(good.ok, true, JSON.stringify(good.unavailable || {}));
+    assert.equal(good.values.items.length, 2);
+    assert.equal(tools.allowance(id), MODEL.RECALL_MAX - 2, "the facts published were not drawn from the turn");
+  } finally { w.close(); }
+});
+
+/* R3-N5/H1, THE THIRD SITE, closed inside this lane by the PM's ruling. The two
+   topic tags published a `display` EQUAL to the topic string, and
+   allowedTokens() promotes a declared unit to `date` whenever the display itself
+   reads as a date. So a memory filed under the topic "2019-07-13" licensed 2019,
+   07 and 13 in the date unit and let the coach state a date that nothing dated.
+   RULED: both topic tags carry an EMPTY display, exactly as memoryId does, and
+   the topic travels as the tag's VALUE. Nothing is lost that was allowed before:
+   words were never checked, and a topic carrying a figure now fails closed the
+   way a memory text already does. */
+test("R3-H1 a topic that READS AS A DATE licenses no date, and the topic still travels", async () => {
+  const w = await world("r3h1-topic");
+  try {
+    const topic = "2019-07-13";
+    const saved = await w.memory.save({ memory_id: "mem-h1", kind: "preference", topic,
+      text: "I keep my notes under that heading." });
+    assert.equal(saved.ok, true, JSON.stringify(saved));
+    const turn = w.coach.openTurn("turn-r3h1");
+    const r = await turn.call.recall({ topic });
+    assert.equal(r.ok, true, JSON.stringify(r.unavailable || {}));
+    /* THE FIX, at both sites */
+    assert.equal(r.values.topic.display, "", "the request topic tag still publishes a display");
+    assert.equal(r.values.items[0].topic.display, "", "the item's topic tag still publishes a display");
+    /* and nothing is lost: the topic is the tag's VALUE, which is what every
+       reader of this envelope already uses */
+    assert.equal(r.values.topic.value, topic);
+    assert.equal(r.values.items[0].topic.value, topic);
+    assert.equal(w.coach.faceOf(r.values.items[0]).topic, topic);
+    /* THE FINDING: a date nothing dated is not licensed, in either form */
+    assert.deepEqual(turn.untraceable("You told me that on 2019-07-13."), ["2019", "07", "13"],
+      "a topic that reads as a date licensed a date");
+    assert.deepEqual(turn.untraceable("That is 2019 of them."), ["2019"]);
+    /* POSITIVE CONTROL: the memory's OWN date still licenses the day he said it */
+    assert.equal(r.values.items[0].recordedOn.display, DAY);
+    assert.deepEqual(turn.untraceable("You told me that on " + DAY + "."), []);
+    /* and no topic tag licenses anything at all now */
+    for (const tag of T.collectTagged(r)) {
+      if (tag.unit === "topic") assert.equal(tag.display, "", "a topic tag publishes " + tag.display);
+    }
+    T.assertNoLeak(r);
+  } finally { w.close(); }
+});
+
+/* THE RECALL NOTE MUST BE TRUE (the copy list, row 6). Since P-F2 the turn's
+   allowance can clip a recall to fewer than five, and "I am showing the five most
+   recent" was then untrue while `shown` and `more` stayed true. A false sentence
+   to the athlete is a defect, not a taste question. The clipped sentence states
+   no number at all; the other note is unchanged. Both stay marked PROPOSED. */
+const NOTE_MORE = "I am showing the most recent ones I can show in this turn."
+  + " There are more kept on this subject.";
+const NOTE_ALL = "That is everything I have kept on this subject.";
+
+test("R3 copy row 6: the recall note is TRUE when the turn's allowance clipped it", async () => {
+  const w = await sixTopics("r3-note");
+  try {
+    const turn = w.coach.openTurn("turn-r3-note");
+    /* NOTHING LEFT OUT: the note that was never in question */
+    const all = await turn.call.recall({ topic: "topic-0" });
+    assert.equal(all.values.shown.value, 2);
+    assert.equal(all.values.more.value, false);
+    assert.equal(all.values.note.value, NOTE_ALL);
+
+    /* CLIPPED BY THE TURN: two, two, then ONE with more still true. This is the
+       case the old sentence lied about: it said five and showed one. */
+    await turn.call.recall({ topic: "topic-1" });
+    const clipped = await turn.call.recall({ topic: "topic-2" });
+    assert.equal(clipped.values.shown.value, 1);
+    assert.equal(clipped.values.more.value, true);
+    assert.equal(clipped.values.note.value, NOTE_MORE);
+    /* the sentence states no number, so no allowance can make it false */
+    assert.equal(/\d/.test(NOTE_MORE), false, NOTE_MORE);
+    assert.equal(NOTE_MORE.includes("five"), false, NOTE_MORE);
+
+    /* CLIPPED BY THE STORE, not by the turn: a fresh turn, six on one topic, and
+       the same sentence is still the true one */
+    const { w: six } = await sixGoals("r3-note-six");
+    try {
+      const t2 = six.coach.openTurn("turn-r3-note-six");
+      const full = await t2.call.recall({ topic: "goals" });
+      assert.equal(full.values.shown.value, MODEL.RECALL_MAX);
+      assert.equal(full.values.more.value, true);
+      assert.equal(full.values.note.value, NOTE_MORE);
+    } finally { six.close(); }
+  } finally { w.close(); }
+});
+
+/* R3-N3. `unavailable.code` COULD CARRY AN EXCEPTION MESSAGE. memory-host.mjs
+   save() put `error.message` in `code` on a throw and memory-tools.cjs passed it
+   through as the refusal code, so the TOOL-CONTRACT.md code table, which reads as
+   a closed set, could be answered by a message nobody in this lane controls. It
+   was never a licensing hole, because the code tag publishes an empty display; it
+   is now not a code-table hole either. A throw answers the fixed
+   COACH_MEMORY_WRITE_REFUSED and the message travels as an untagged `detail`,
+   which the tool carries into the refusal's untagged `source`, the same channel
+   the dispatch catch uses.
+   MEASURED AND REPORTED RATHER THAN HIDDEN: no fault this harness can inject
+   makes the accepted durable client throw out of execute(). A quota fault, a
+   repository load that throws, a repository commit that throws and a load that
+   answers a malformed object all come back as TRANSACTION_WRITE_FAILED or
+   STAGING_FAILED. That catch is defensive, so this cell drives the two seams that
+   CAN be driven: the source of the catch, and the tool that publishes whatever
+   the host hands it. */
+test("R3-N3 a save that THROWS answers a FIXED code, and the message travels untagged", async () => {
+  const host = src("memory-host.mjs");
+  assert.equal(host.includes("code: (error && error.message)"), false,
+    "memory-host.mjs save() still publishes an exception message as a code");
+  assert.equal(host.includes("code: 'COACH_MEMORY_WRITE_REFUSED'"), true,
+    "memory-host.mjs save() does not answer the contract's own code on a throw");
+  assert.equal(src("TOOL-CONTRACT.md").includes("COACH_MEMORY_WRITE_REFUSED"), true,
+    "TOOL-CONTRACT.md does not list COACH_MEMORY_WRITE_REFUSED, so the table is not closed");
+
+  const w = await world("r3n3-code");
+  try {
+    const lane = {
+      forTopic: async () => ({ ok: true, code: null, copy: null, rows: [], skipped: 0 }),
+      read: async () => ({ ok: true, code: null, copy: null, rows: [], skipped: 0 }),
+      save: async () => ({ ok: false, state: 3, copy: null, code: "COACH_MEMORY_WRITE_REFUSED",
+        op_id: null, detail: "the store threw: your protein target is 777 grams" }),
+    };
+    const tools = MT.createMemoryTools({ world: { ...w, memory: lane }, coach: w.wave1 });
+    const turn = tools.openTurn("turn-r3n3");
+    const memory = { ...GOOD(), topic: "goals", text: "I want to press my bodyweight." };
+    const asked = await turn.call.remember({ memory });
+    assert.equal(asked.unavailable.code, T.CODES.CONFIRMATION_REQUIRED);
+    const refused = await turn.call.remember({ memory, confirmed: true,
+      confirmation_id: asked.confirmation.confirmation_id });
+    assert.equal(refused.ok, false);
+    assert.equal(refused.unavailable.code, "COACH_MEMORY_WRITE_REFUSED");
+    /* the reason is this file's own fixed sentence, with no digit in it */
+    assert.equal(/\d/.test(refused.unavailable.reason), false, refused.unavailable.reason);
+    /* the message is not lost, and it licenses nothing */
+    assert.equal(String(refused.unavailable.source).includes("777 grams"), true,
+      "the exception's message was dropped instead of travelling untagged");
+    for (const tag of T.collectTagged(refused)) {
+      assert.equal(String(tag.display).includes("777"), false, "a tagged value carries 777: " + tag.source);
+    }
+    assert.deepEqual(turn.untraceable("Your protein target is 777 grams."), ["777"]);
+  } finally { w.close(); }
+});
+
+/* R3-N2. THE TURNS MAP IS BOUNDED. `turns.set()` ran on every openTurn and
+   nothing ever deleted, so a long lived process leaked one small object per turn.
+   An account is now dropped when its turn is CLOSED, if the coach's own turn
+   object has a close to close; and in any case the map keeps at most TURNS_MAX of
+   the most recent turns, oldest evicted. An evicted turn that recalls again is
+   treated as a turn nobody opened, which is the per-call bound and never more. */
+test("R3-N2 the turns map is BOUNDED, and an evicted turn is a turn nobody opened", async () => {
+  const w = await sixTopics("r3n2-bound");
+  try {
+    const first = w.coach.openTurn("turn-oldest");
+    assert.equal((await first.call.recall({ topic: "topic-0" })).values.items.length, 2);
+    assert.equal(w.coach.allowance("turn-oldest"), MODEL.RECALL_MAX - 2);
+
+    /* AT the cap the oldest account is still there */
+    assert.equal(Number.isSafeInteger(MT.TURNS_MAX) && MT.TURNS_MAX > 1, true, "TURNS_MAX is not a bound");
+    for (let i = 1; i < MT.TURNS_MAX; i += 1) w.coach.openTurn("turn-filler-" + i);
+    assert.equal(w.coach.allowance("turn-oldest"), MODEL.RECALL_MAX - 2,
+      "the oldest account was evicted before the map was full");
+    /* ONE PAST the cap it is gone, and the turn is one nobody opened */
+    w.coach.openTurn("turn-one-too-many");
+    assert.equal(w.coach.allowance("turn-oldest"), MODEL.RECALL_MAX,
+      "the oldest account was not evicted when the map overflowed");
+    const { w: six } = await sixGoals("r3n2-percall");
+    try {
+      const r = await six.coach.dispatch("recall", { topic: "goals" }, "turn-evicted");
+      assert.equal(r.values.items.length, MODEL.RECALL_MAX, "an evicted turn got more than the per-call bound");
+      assert.equal(r.values.more.value, true);
+    } finally { six.close(); }
+
+    /* A CLOSED TURN gives its account back at once, when the coach's own turn
+       object has a close. The shipped C5 and wave-one turns carry none today, so
+       this drives the seam with a coach that does. */
+    let closed = 0;
+    const closable = { ...w.wave1, openTurn: (id) => {
+      const base = w.wave1.openTurn(id);
+      return Object.freeze({ ...base, close: () => { closed += 1; return "closed"; } }); } };
+    const tools = MT.createMemoryTools({ world: w, coach: closable });
+    const t = tools.openTurn("turn-closable");
+    assert.equal((await t.call.recall({ topic: "topic-0" })).values.items.length, 2);
+    assert.equal(tools.allowance("turn-closable"), MODEL.RECALL_MAX - 2);
+    assert.equal(typeof t.close, "function", "the memory turn does not carry the coach's close");
+    assert.equal(t.close(), "closed", "the coach's own close did not run");
+    assert.equal(closed, 1);
+    assert.equal(tools.allowance("turn-closable"), MODEL.RECALL_MAX, "a closed turn kept its account");
+    /* and a coach WITHOUT a close does not grow one here */
+    const plain = w.coach.openTurn("turn-plain");
+    assert.equal(plain.close, undefined, "a turn whose coach has no close was given one");
   } finally { w.close(); }
 });

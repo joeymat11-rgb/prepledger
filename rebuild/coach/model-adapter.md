@@ -83,10 +83,21 @@ exactly as for every other tool.
 turn the adapter opened: a recall takes what is left of it, says `more` when it
 left something out, and a recall with nothing left refuses with
 `COACH_MEMORY_TURN_BOUND` and reads nothing at all. Asking about six subjects in
-one turn therefore returns five facts in total, not thirty; the next turn starts
-at five again. `memoryTools.allowance(turn_id)` answers what is left, so an
+one turn therefore returns AT MOST five facts in total, not thirty; the next turn
+starts at five again. `memoryTools.allowance(turn_id)` answers what is left, so an
 adapter can ask before it calls rather than be refused. Outside a turn, where
 nobody is counting, the per-call bound of five is what the tool holds to.
+
+**AND THAT HOLDS FOR PARALLEL TOOL CALLS** (review R3-B1). An adapter that emits
+several recalls in one turn without awaiting each other is the ordinary case this
+document exists for, and the allowance is reserved before the store read rather
+than spent after it, so those calls cannot each spend the same five. A reserve is
+conservative by design: the recall that takes it publishes its facts and the
+others are told the turn is spent, so six concurrent recalls return FEWER than
+five facts, never more. An adapter that wants all five in one turn issues its
+recalls one after another. The account belongs to the coach INSTANCE that opened
+the turn; the shipped wiring builds exactly one, and stacking a second instance
+over the same world would refill the allowance.
 
 **Rows this device could not read are counted, never hidden.** Every recall
 carries `skipped`, a data member with the number of stored memory operations the
@@ -103,6 +114,14 @@ untraceable; if the coach says it, the draft is discarded like any other invente
 figure. The item's own `source` names the memory operation and its own
 `recordedOn` names the day he said it; a date written INSIDE the text licenses
 nothing.
+
+**A TOPIC licenses nothing either** (review R3-N5). Both topic tags publish an
+EMPTY `display` and carry the topic as the tag's `value`. The topic is the
+athlete's own word: the lane bounds its length and constrains no character, and
+`allowedTokens()` promotes a declared unit to `date` whenever the display reads
+as a date, so a memory filed under the topic "2019-04-17" used to license 2019,
+04 and 17 in the date unit and let the coach state a date nothing dated. Read the
+topic from `value`, never from `display`.
 
 **And no memory refusal quotes him back.** A refusal's `reason` is published as a
 `text` tag, and `allowedTokens()` reads a `text` tag as engine prose: every
@@ -127,18 +146,28 @@ scripted coach, and the scripted turns of `local-era.test.cjs` and
 same figure and hold a comparable budget.
 
 **Coaching memory's worst case is MEASURED, and it is OVER that budget** (P4b-1,
-the PM's final read). One legal recall of five memories, each at the producer's
-own `TEXT_MAX` of 400 characters, measures `turnContextBytes` 9494 with the
-fixture's own identifiers. The cell that measures it is "P-F2 MEASURED" in
+the PM's final read). ONE RECALL of five memories, each at the producer's own
+`TEXT_MAX` of 400 characters, measures `turnContextBytes` 9446 with the fixture's
+own identifiers. The cell that measures it is "P-F2 MEASURED" in
 `test/memory.test.cjs`, and it READS this paragraph and fails while the two
-disagree, so the number here is a measurement and never an estimate. A turn
-cannot go past it by asking again: the allowance is five facts for the WHOLE
-turn, not five per call, and a recall with nothing left refuses with
-`COACH_MEMORY_TURN_BOUND` and reads nothing. What is left is a choice and it is
-the PM's, carried to P4b-2: shorter source strings on the envelope (the
-`"coach-memory.op " + op_id` a memory carries five times is most of the
-difference), or a budget the harness enforces by refusing to send. `TEXT_MAX` is
-NOT shrunk to make the figure smaller: 400 is sourced from
+disagree, so the numbers here are measurements and never estimates.
+
+**That figure is the RECALL's, not the TURN's** (review R3-N6, and the honest
+wording the PM ruled). The allowance counts recalls; `remember()` publishes an
+item of its own, with a full `TEXT_MAX` text, on every success, and a write is
+not a recall. A turn that also writes memories therefore measures more: the same
+cell measures one recall of five plus three remembers of the same size at
+`turnContextBytes` 22118, each write going through its propose step and its yes,
+which is the only way a memory is written through this boundary. (Review R3
+measured 20183 for the same shape counting the yes alone, before the topic
+displays were emptied.) What a turn cannot do is go past FIVE
+FACTS by asking again, because the allowance is the turn's and a recall with
+nothing left refuses with `COACH_MEMORY_TURN_BOUND` and reads nothing; the BYTES
+are a different bound and nothing enforces them today. Bringing the turn under
+the standing budget is P4b-2's named choice: shorter source strings on the
+envelope (the `"coach-memory.op " + op_id` a memory carries five times is most of
+the difference), or a budget the harness enforces by refusing to send. `TEXT_MAX`
+is NOT shrunk to make the figure smaller: 400 is sourced from
 `machine-settings-commands.cjs`.
 
 ## 4. The per-turn budget

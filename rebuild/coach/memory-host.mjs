@@ -99,8 +99,14 @@ export async function createMemoryHost({ client, day } = {}) {
       let result;
       try { result = await laneClient.execute('workout', { action: ACTION, input }); }
       catch (error) {
+        /* A FIXED CODE, AND THE MESSAGE BESIDE IT (review R3-N3). `code` used to
+           be `error.message`, so a message nobody in this lane controls could
+           answer the TOOL-CONTRACT.md code table, which that table presents as a
+           closed set. The message is not lost: it travels as `detail`, untagged,
+           and memory-tools.cjs carries it into the refusal's untagged `source`. */
         return { ok: false, state: 3, copy: null,
-          code: (error && error.message) || 'COACH_MEMORY_WRITE_REFUSED', op_id: null };
+          code: 'COACH_MEMORY_WRITE_REFUSED', op_id: null,
+          detail: (error && error.message) || null };
       }
       return { ok: result.acknowledged === true, state: result.state, copy: result.copy,
         code: result.code || null, op_id: result.op_id || null };
