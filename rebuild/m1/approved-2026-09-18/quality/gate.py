@@ -445,15 +445,20 @@ async def one_screen(pg, t, s, W, H, where):
     # check that names it because only its bottom edge and its existence were read.
     if r is None or r.get('missing'):
         rec('FAIL', 'primary action in first viewport', where, f"{PRIMARY[s]} is not on the page")
-    elif not r.get('drawn'):
-        rec('FAIL', 'primary action in first viewport', where, f"{PRIMARY[s]} is not drawn on the screen")
     else:
+        # the edges first, so a primary pushed off the viewport is reported as the edge it crossed
+        # rather than as an element nobody can see; "not drawn" is then what it says, an element
+        # inside the viewport that is hidden rather than one that has been pushed out of it.
         top, bottom, left, right = r['prim']
         off = ([f'top {top:.2f} < 0'] if top < 0 else []) + ([f'bottom {bottom:.2f} > {H}'] if bottom > H else []) \
             + ([f'left {left:.2f} < 0'] if left < 0 else []) + ([f'right {right:.2f} > {W}'] if right > W else [])
-        rec('FAIL' if off else 'PASS', 'primary action in first viewport', where,
-            f"{PRIMARY[s]} {', '.join(off)}" if off
-            else f"{PRIMARY[s]} at {top:.0f} to {bottom:.0f}, inside every edge")
+        if off:
+            rec('FAIL', 'primary action in first viewport', where, f"{PRIMARY[s]} {', '.join(off)}")
+        elif not r.get('drawn'):
+            rec('FAIL', 'primary action in first viewport', where, f"{PRIMARY[s]} is not drawn on the screen")
+        else:
+            rec('PASS', 'primary action in first viewport', where,
+                f"{PRIMARY[s]} at {top:.0f} to {bottom:.0f}, inside every edge")
     if (W, H) == REF:
         if r['scroll'] > r['client']: rec('FAIL', 'fits without scrolling at 393x852', where, f"{r['scroll']} > {r['client']}")
         else: rec('PASS', 'fits without scrolling at 393x852', where)
