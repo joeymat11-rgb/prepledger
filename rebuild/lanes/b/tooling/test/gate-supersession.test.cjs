@@ -118,7 +118,17 @@ const OTHER_PACKAGE_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-B1-GR
 const SIXTH_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-H3-CLEAN-INIT conformance · RULED';
 const ONE_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-H3-CLEAN-INIT second-gate · RULED';
 const UNRULED_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-H3-CLEAN-INIT source-carriers · PROPOSED';
-const LEDGER = [RULING_LINE, PROSE_LINE, REFUSING_LINE, OTHER_PACKAGE_LINE, SIXTH_LINE, ONE_LINE, UNRULED_LINE, ...WRAPPED_LINES];
+// P-A1 (the PM's ruling of 2026-09-19, on S9-PREP-RUNNER-REVIEW-R1 BLOCKING-3 and R2 N1).
+// The two phrasings the OLD terminal test admitted without their being rulings: the test
+// asked only that the trimmed line END in the word RULED, so a clause that says the
+// opposite satisfied it and superseded five carriers. The separator is BUILT rather than
+// typed in these two lines, so the bytes this hunk adds are pure ASCII; it is the same
+// U+00B7 the lines above carry.
+const MIDB = String.fromCharCode(0xB7);
+const NOT_RULED_LINE = '- 2026-09-12 ' + MIDB + ' cowork ' + MIDB + ' ' + GRANT + ' ' + MIDB + ' this is NOT RULED';
+const NOT_YET_RULED_LINE = '- 2026-09-12 ' + MIDB + ' cowork ' + MIDB + ' ' + GRANT + ' ' + MIDB + ' not yet RULED';
+const LEDGER = [RULING_LINE, PROSE_LINE, REFUSING_LINE, OTHER_PACKAGE_LINE, SIXTH_LINE, ONE_LINE, UNRULED_LINE,
+  NOT_RULED_LINE, NOT_YET_RULED_LINE, ...WRAPPED_LINES];
 write('rebuild/DECISIONS.md', [...LEDGER, ''].join('\n'));
 const shaOf = line => sha(Buffer.from(line));
 
@@ -610,4 +620,34 @@ test('S3 — the grandchild path inherits nothing but the gate list: ruling, evi
   assert.equal(api.supersededGates(spec(), old, ran()).size, 9);
   for (const code of ['PARENT-SUPERSEDED-BY-CARRIER-SHAPE', 'PARENT-CARRIER-BOTH-COVERED-AND-SUPERSEDED'])
     assert(api.FAIL_CODES.has(code), 'the vocabulary carries ' + code);
+});
+
+// (P-A1) THE RULED TERMINAL TEST, the SUPERSESSION half of one change.
+// The PM's ruling of 2026-09-19, on S9-PREP-RUNNER-REVIEW-R1 BLOCKING-3 and R2 N1. The old
+// test asked only that the trimmed line END in the word RULED, after a space as readily as
+// after a clause separator, so a line reading "... this is NOT RULED" carried the grant token
+// and retired five carriers; two reviewers measured it ADMITTED in turn, on this function as
+// well as on releaseRuling(). The new rule is the line's LAST clause, trimmed, EXACTLY the
+// word RULED, and it landed in BOTH ruling functions in one hunk, because a chain whose two
+// ruling functions disagree about what a ruled line is has a hole wherever the weaker one
+// stands. The PM made the measurement the condition of the change: all eight ruling lines the
+// specs under rebuild/lanes/b/tooling/packages/ cite by sha256 - DECISIONS:153, :160, :421,
+// :444, :462, :490, :514, :527 - were located on the chain ref and tested first, and every
+// one still ends in a clause that is the bare word. A guard on the seal path is never
+// strengthened in a way that voids a standing seal.
+test('(P-A1) - a line whose LAST clause is not the bare word RULED supersedes nothing', () => {
+  for (const line of [NOT_RULED_LINE, NOT_YET_RULED_LINE])
+    assert.throws(() => api.supersessionRuling(spec(CARRIERS, shaOf(line))),
+      /GATE-SUPERSESSION-RULING-IS-NOT-A-RULED-LINE/, 'supersedes nothing: ' + line.slice(-30));
+  // The refusal names the line, and the name is in the closed vocabulary.
+  try { api.supersessionRuling(spec(CARRIERS, shaOf(NOT_RULED_LINE))); assert.fail('admitted'); }
+  catch (e) { assert.match(e.message, /GATE-SUPERSESSION-RULING-IS-NOT-A-RULED-LINE DECISIONS:\d+/); }
+  assert(api.FAIL_CODES.has('GATE-SUPERSESSION-RULING-IS-NOT-A-RULED-LINE'));
+  // THE CONTROL, which is the whole of what the strengthening may not cost: the real ruling
+  // line, whose last clause IS the bare word, still grants the five carriers. It is the same
+  // shape as DECISIONS:160 and the six package lines after it, which is why the change is
+  // allowed to land at all.
+  const ok = api.supersessionRuling(spec());
+  assert.deepEqual([...ok.granted].sort(), api.BYTE_IDENTITY_CARRIERS.slice().sort());
+  assert.equal(ok.line, RULING_LINE);
 });
