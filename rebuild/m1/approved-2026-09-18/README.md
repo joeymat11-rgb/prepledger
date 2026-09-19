@@ -30,7 +30,7 @@ builder hits one of the open questions in section 6, each of which has a default
 | `ref/ink-board.png`, `ref/dawn-board.png` | the owner's two rendered boards (1491 × 1055), Ink dark and Dawn light, three phones each over the mountain plate | APPEARANCE. The last word on how a screen looks. |
 | `ref/*-native.png` | the six phone screens cut from the boards at 1:1 (340 × 734) | what the eye compares a render against; the gate's own comparison is against `quality/baseline/<platform>/` |
 | `app/app.html`, `app/app.css`, `app/app.js` | the working prototype of the six views: markup, every token, every rule, the scene (plate, mist, embers, grain, surface), the chassis (scrolling body + fixed stack on every screen) | the IMPLEMENTATION REFERENCE. Classes and copy here are what the port binds to. |
-| `app/states.js`, `app/states.css`, `app/states-today.js`, `app/states-workout.js`, `app/states-workout.css`, `app/states-coach.js`, `app/states-coach.css` | the state driver and all 209 drawn states (99 Today, 45 Workout, 65 Coach): every refusal, every sub screen, the proposal card in its three honest states, the coach's structural states | every state the port must reach, with its exact copy |
+| `app/states.js`, `app/states.css`, `app/states-today.js`, `app/states-workout.js`, `app/states-workout.css`, `app/states-coach.js`, `app/states-coach.css` | the state driver and all 209 drawn states (99 Today, 45 Workout, 65 Coach; the inventory below counts 205 rows because four of the proposal card's drawn variants, T-40b to T-40h, share one inventory row): every refusal, every sub screen, the proposal card in its three honest states, the coach's structural states | every state the port must reach, with its exact copy |
 | `app/states.html`, `app/states-index.js` | a browser for the states (`?screen&theme&state`) | how the owner and reviewers look at any state |
 | `app/assets/plate-ink*.jpg`, `app/assets/plate-dawn*.jpg`, `mist.png`, `grain.png` | the two plates: the Ink photograph (the owner's chosen backdrop) and the same photograph graded light for Dawn (one scene, two lights: owner ruling 2026-09-18; the Dawn board's own background is a different photograph and is NOT the design), the mist texture, the grain | the scene assets, shipped as is |
 | `app/fonts/earned-sans.woff2` (DM Sans), `app/fonts/earned-serif.woff2` (Liberation Serif) | the two typefaces | see the note under section 2 |
@@ -138,14 +138,29 @@ this pack were set on the builder's machine; the win32 set is written on the own
 `quality/baseline/states/<ID>-<theme>.json` and `.png`. The record holds the screen's visible
 text with whitespace normalised, then every visible text bearing element in document order with
 its own text, its rounded rect, its computed colour, its first font family and its font size,
-and a 1/16 scale greyscale thumbnail of the render. Nothing in the record depends on how the
-machine rasterises a glyph, so the same records judge a Windows run, a Linux run and the real
-client. The tolerance:
+and a 1/16 scale greyscale thumbnail of the render. The text, the rects, the colours and the
+font names do not depend on how a machine rasterises a glyph at all; the thumbnail is a
+downsampled raster, so it depends on rasterisation less, not none. Measured: a glyph level change
+and no layout change (`text-rendering: geometricPrecision`) costs 0.73 of the 2.00 level
+thumbnail budget and moves one rect by 4 px, and a 3 px shift already sits at 1.67 of 2.00. The
+records are made to be read by a second machine, and no Windows run has judged them yet, which is
+why every run now prints a "worst measured" block: the largest thumbnail mean shift, the largest
+rect move and the largest colour move it saw, each with the state and element that produced it,
+so the lane lead's Windows run reports headroom in numbers rather than a bare verdict. The
+tolerance:
 
 > A state fails when its visible text differs at all, when an element moves more than 3 px on
 > any edge, when its colour moves more than 3 levels in any channel, when its font family
 > changes or its size moves more than 0.5 px, or when its thumbnail mean absolute shift reaches
 > 2.0 levels or 1% of the thumbnail pixels differ by more than 24 levels.
+
+The run also compares the two lists of states. `--accept` writes
+`quality/baseline/states/INDEX.json`, the ids and themes it recorded; an ordinary run reads it and
+FAILs naming every id that is in the index and no longer in the build, and every id in the build
+with no entry in the index. A state quietly dropped from a port is the case a port actually
+produces, and without this the sheet would simply render one fewer screen and stay green. Under
+`--only` the comparison is restricted to the ids the run selected, so a narrowed run still refuses
+a state that has left the build.
 
 The thumbnail is 1/16 and not 1/8 so that the two halves agree: at 1/8 a 3 px shift, which the
 rect tolerance allows, already moves the thumbnail 3.5 levels. A missing record is a FAIL naming
@@ -167,15 +182,22 @@ is recorded as an open question in `rebuild/lanes/c/ui-port/packages/C-UI-0.json
 changed here, because the Dawn token is the boards' call.
 
 **Which check runs at which size.** Copy, the multiplication sign, the type scale, the radii,
-the contrast, the two font checks, the page margin, the card inner edge, the icon inset, the
+the contrast, the face check, the page margin, the card inner edge, the icon inset, the
 bottom safe area, the serif versus sans assignment, the touch targets, the primary in the first
 viewport and the RIR lock run at 393x852, 375x812 and 360x780. The seam detector, the visual
 regression, the three column checks, the spacing scale, the pressed states, the fit and the
-thumb zone run at 393x852. The mist edge checks run at 393x852 at three times scale. The CSS
+thumb zone run at 393x852. The sha256 pin runs once for the build, not per size. The mist edge
+checks run at 393x852 at three times scale. The CSS
 transition and animation sweep runs under reduced motion at all three sizes and again with
 motion allowed at 393x852, so a transition that is correctly disabled under reduced motion and
-plays otherwise is still caught. The motion check runs on every theme and screen with reduced
+plays otherwise is still caught. The sweep reads each element and its `::before` and `::after`,
+because a pseudo element moves as visibly as its host and the pack already draws with them. The motion check runs on every theme and screen with reduced
 motion off (the embers hidden, nothing else may move) and on (nothing may move at all).
+
+**What a baseline does not carry.** Nothing checks that a platform's baselines were drawn by that
+platform, by `--accept`, or from an unmutated tree; a hand written `quality/baseline/win32/` would
+simply sit there unread on a Linux run. The guard is that an accept run labels its own report, that
+no report is committed, and that a reviewer reads the baseline diff in the pull request.
 
 **`quality/teeth.py`** keeps all of this honest: it copies the pack to a scratch directory,
 applies one forbidden change at a time, runs the scratch copy's own gate against it and asserts
@@ -191,8 +213,12 @@ self-accepts. The builder's cells pin every copy string they move.
 
 - Nothing under `rebuild/engine/`, `rebuild/m4/`, `rebuild/m3/w6/local/`, `rebuild/conform/`.
 - No new numbers in markup; every value binds at runtime, as today.
-- No dashes, no readiness words, no vendor names. Both gates sweep the active screen's
-  `innerText`: the em dash, the en dash and a hyphen with a space each side as plain substrings, each word of the owner's
+- No dashes, no readiness words, no vendor names. Both gates sweep one string: the active
+  screen's `innerText`, plus every visible element's `placeholder`, `aria-label`, `title` and
+  `alt`, plus a filled in field's value, plus any string in `::before` or `::after` generated
+  content. Interface copy the athlete reads or is read out loud is not all inside `innerText`,
+  and a rule that stops at `innerText` has a hole the width of a placeholder. On that string:
+  the em dash, the en dash and a hyphen with a space each side as plain substrings, each word of the owner's
   word list as `re.search(r'\b' + word + r'\b', text.lower())` (a real word boundary, so "Ready
   to train" matches and "already" does not), and each vendor name as a plain substring of the
   lowered text. The one sweep that matters most had been written `r'\\b'`, which is a literal

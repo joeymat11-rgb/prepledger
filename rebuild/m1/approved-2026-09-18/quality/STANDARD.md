@@ -10,16 +10,16 @@ Where a rule departs from the boards, the departure is recorded on the compariso
 - **One spacing scale.** Gaps between blocks are 8 (inside a group), 12 (between related blocks), 14 to 16 (around the primary action), 20 to 24 (between sections). Small structural gaps of 4, 5, 9 and 10 exist in the header and title areas only. Anything else is flagged. *gate (gaps on the spacing scale, the one check besides the type scale that may WARN)*
 - **One inner edge.** Cards use 14 px inner padding. Icons in row cards and pills sit 13 to 14 px from the left edge. *gate (card inner edge 14 px, icon inset 13 to 14 px)*
 - **One right-hand glyph column.** Every chevron, arrow, "+", and mic is centred 24 px from its card's right edge. *gate (right glyph column at 24 px)*
-- **Shared columns, across screens.** Every left icon in a row (Recovery, machine setting, coach prompts, Talk pill) is centred 54 px from the screen's left edge and the text after it starts at 88 px, on every screen. *gate (same icon column (54) and text edge (88) on every screen, icons share a centre line text shares an edge)*
+- **Shared columns, across screens.** Every left icon in a row (Recovery, machine setting, coach prompts, Talk pill) is centred 54 px from the screen's left edge and the text after it starts at 88 px, on every screen. *gate (same icon column (54) and text edge (88) on every screen, icons share a centre line, text shares an edge)*
 - **Pills are shorter than cards.** The Talk pill is 54 px; cards are 58 to 63 px. A fully round shape at card height reads as a fat capsule. *eye*
 - **A circle beside a square is drawn larger.** Optical sizing: a 34 px disc reads the same as a 38 px square. *eye*
 - **The primary action is in the first viewport** on every phone down to 360 × 780: Start on Today, Log on the workout, the mic on Coach. *gate (primary action in first viewport, at all three sizes)*
 - **In the gym, the thumb wins.** The Log button's centre sits at 70% of the screen height or lower. Numbers stay at the top for glancing; the tap stays at the bottom. *gate (Log in the thumb zone (centre >= 70% of height))*
-- **Bottom safe area.** The last row clears the home indicator when installed. *gate (bottom safe area: the last row of the fixed stack clears max(24 px, env(safe-area-inset-bottom)))*
+- **Bottom safe area.** The last row clears the home indicator when installed. *gate (bottom safe area: the last row of the fixed stack clears 24 px, which is what the stylesheet's max(24 px, env(safe-area-inset-bottom)) resolves to in a browser with no inset; a real device's larger inset is not measured here)*
 
 ## 2. Type
 
-- Serif (Earned Serif) for names, numbers and headlines; sans (Earned Sans) for everything else. Sizes come from the scale in the stylesheet; a new size is a decision, not a drift. *gate (serif for names and numbers sans for the rest; type sizes and weights on the scale, which WARNs on a new size)*
+- Serif (Earned Serif) for names, numbers and headlines; sans (Earned Sans) for everything else. Sizes come from the scale in the stylesheet; a new size is a decision, not a drift. *gate (serif for names and numbers, sans for the rest; type sizes and weights on the scale, which WARNs on a new size)*
 - Sans weights 430 to 500 only. Titles in row cards and pill labels are 500; body 450 to 480; sub lines 430. *gate (type sizes and weights on the scale, which WARNs on a new weight)*
 - The multiplication sign is × everywhere a set is written, never the letter x. *gate (Log label uses ×, and the multiplication sign in every set string, which sweeps the whole screen)*
 - Tertiary actions (Skip this set, Plans changed?, Use text mode, I'll tap instead, Why 105 lb?) are muted text with no underline and a 44 px target. *gate (tertiary links have no underline, touch targets >= 44 px, contrast (measured behind the text) at the 3.0:1 tier); eye (that they read as the quieter voice)*
@@ -27,6 +27,7 @@ Where a rule departs from the boards, the departure is recorded on the compariso
 ## 3. Colour and surfaces
 
 - Cards are 86 to 90% of the surface colour so the scene reads through. Text never sits straight on the picture: it has a card, a scrim or the flat surface behind it. *eye + gate (contrast)*
+- Text nobody can see is not text. A line at `opacity: 0` or `visibility: hidden` leaves the state record, so hiding a line reads as removing it and the sheet says the visible text changed. `display: none` already did.
 - Contrast: primary text 4.5:1 or better against what is actually behind it; muted labels 3:1 or better. Measured on the rendered screenshot, not on the token. The lower tier is the pack's own `--muted`, `--faint` or `--gold` token, one of the classes the stylesheets paint muted (listed with their line numbers in `quality/common.py`), a disabled control's label (section 10 calls it a muted label) or text at 24 px or larger; it is not "the colour differs from the body colour". *gate (contrast (measured behind the text), on both gates, at all three sizes)*
 - Only two radii: 14 px for cards, buttons and chips; full round only for pills (the header pills, Save, Use 105 / Keep 115 and the Talk pill, as the boards draw them). The gate asserts exactly this; if the code wants a third radius, the standard changes on the record, not the check. *gate (radii: 14 px for cards, buttons and chips; full round only for pills)*
 
@@ -49,7 +50,7 @@ Where a rule departs from the boards, the departure is recorded on the compariso
 ## 7. Process: what "done" means for a state
 
 1. Built with the existing components; a new component is a decision.
-2. `gate.py` passes with no FAIL; every WARN has a one-line reason or is fixed.
+2. `gate.py` passes with no FAIL; every WARN has a one-line reason or is fixed. Only two checks can WARN, the type scale and the spacing scale, which this standard calls advisory in its own words; every other check is PASS or FAIL, so no third advisory band can carry a defect past a green run.
 3. Reviewed on the phone-zoom sheet, both themes, top, middle and bottom thirds.
 4. An independent reviewer (a different model, given this standard and the sheets, told to disagree) has looked and its findings are triaged: fixed, or declined with a reason.
 5. The baseline screenshots are updated on purpose (`gate.py --accept`), never by accident. A run that is not an accept run FAILs a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels, and FAILs when the baseline for the current platform is missing rather than writing one. An accept run marks every screen SET, not PASS, and says on the report's first line that it compared nothing.
@@ -77,7 +78,7 @@ Where a rule departs from the boards, the departure is recorded on the compariso
 - Every state in the inventory is drawn on the live prototype, in both themes, and rendered by `quality/statesheet.py` (errors, copy, targets, primary in the first viewport, contrast measured behind the text) and compared to its own committed record under `quality/baseline/states/`. A state that fails the sheet is not done. `app/states.html` is the browser.
 - A sub screen is a phone chassis, not a document: the back chevron in the workout's place, a flat surface behind the whole text column, the body scrolling, the last action group at the parent screen's own thumb edge (Today 695, Workout 712), giving way first when the panel is long.
 - One proposal card for every proposal kind: eyebrow names the kind, serif line carries the change, the producer's reason ends with "Nothing changes until you say yes.", the gold edge marks only a card that needs an answer, and the recorded state says what the athlete said and when it applies. Applied is shown only once the engine has stored the answer. No expiry. "Change my answer" until the plan is next built.
-- One state colour: the ember gold. Nothing is green.
+- One state colour: the ember gold. Nothing is green. The gold is a marker, never a sentence, so the contrast check holds it to the label tier only where it is doing that job: a marker or eyebrow class, or a string shorter than 24 characters. Gold on a paragraph is body copy and keeps 4.5:1.
 - A disabled primary is a flat chip with a muted label and its reason under it, never a translucent plate.
 - One refusal component: a bordered block that sits under the field it names and flags that field. It names what was recorded and what was not.
 - The device or provenance line sits under the screen's status line at 13 px, said once.
@@ -116,23 +117,23 @@ of 393x852, 375x812 and 360x780. Every row FAILs unless it says WARN.
 | check | sizes | what it holds |
 |---|---|---|
 | primary action in first viewport | 3 | the screen's primary is wholly above the fold |
-| fits without scrolling at 393x852 | R | the default render needs no scroll |
+| fits without scrolling at 393x852 | R | the default render needs no scroll. It is a FAIL and not a WARN because acceptance leaves no third tier; the chassis is designed to scroll, so the first ticket whose default Today grows past the viewport should change this line rather than the screen |
 | Log in the thumb zone (centre >= 70% of height) | R | workout only |
 | touch targets >= 44 px | 3 | every button, link and input, hit area included |
-| copy: no dashes, readiness words, vendor names | 3 | the owner's standing rules, word boundary matched |
-| the multiplication sign in every set string | 3 | no digit, letter x, digit anywhere on the screen |
+| copy: no dashes, readiness words, vendor names | 3 | the owner's standing rules, word boundary matched, over the screen's text plus every visible placeholder, assistive label, tooltip, alternative text, filled in value and string in ::before or ::after |
+| the multiplication sign in every set string | 3 | no digit, letter x, digit anywhere in the same swept string |
 | Log label uses × | 3 | workout only |
-| no transitions or animations outside the embers | 3, and again at R with motion allowed | a transition only disabled under reduced motion still fails |
+| no transitions or animations outside the embers | 3, and again at R with motion allowed | the element and its ::before and ::after; a transition only disabled under reduced motion still fails |
 | serif and sans faces loaded and distinct | 3 | both faces load, the known serif and sans elements resolve to them, and the two draw different glyphs |
 | serif for names and numbers, sans for the rest | 3 | the listed serif selectors are serif and every other text element is sans |
 | RIR chips are the five locked values | 3 | 0, 1, 2, 3+, unsure in order, labels 0, 1, 2, 3+, Unsure, all visible |
 | page margin 22 px | 3 | every block of the body and the stack, plus the cards inside them, at 22 and width minus 22 |
 | card inner edge 14 px | 3 | the named card sides' computed padding |
 | icon inset 13 to 14 px | 3 | the icon's left edge from its card's inner edge |
-| bottom safe area | 3 | the fixed stack's last row clears max(24 px, env(safe-area-inset-bottom)) |
+| bottom safe area | 3 | the fixed stack's last row clears 24 px, the value max(24 px, env(safe-area-inset-bottom)) takes where there is no inset |
 | type sizes and weights on the scale | 3 | WARN on a size or weight off the scale |
 | radii: 14 px for cards, buttons and chips; full round only for pills | 3 | exactly one radius on the listed components |
-| contrast (measured behind the text) | 3 | 4.5:1 primary; 3.0:1 muted, a disabled control's label, the state colour and text 24 px or larger; measured on the screenshot |
+| contrast (measured behind the text) | 3 | 4.5:1 primary; 3.0:1 muted, a disabled control's label, the state colour where it marks a state and text 24 px or larger; measured on the screenshot |
 | tertiary links have no underline | R | |
 | right glyph column at 24 px | R | |
 | icons share a centre line, text shares an edge | R | |
@@ -144,7 +145,7 @@ of 393x852, 375x812 and 360x780. Every row FAILs unless it says WARN.
 | no page or console errors | 3 | one row per size |
 | fonts pinned by sha256 | once | the bytes each @font-face rule points at, against the two pinned digests |
 | no straight edge in the scene with the mist drawn | R at three times scale | |
-| no vertical streaks in the sky with the mist drawn | R at three times scale | WARN over 0.7, FAIL over 0.9 |
+| no vertical streaks in the sky with the mist drawn | R at three times scale | FAIL over 0.9, PASS otherwise; measured pillars were 1.3 |
 | nothing moves except the embers | R, every theme and screen | with the embers hidden and motion allowed |
 | nothing moves under reduced motion | R, every theme and screen | |
 
@@ -156,5 +157,10 @@ compared to `quality/baseline/states/<ID>-<theme>.json` and `.png`: the visible 
 identical, each element must stay within 3 px on every edge, 3 levels per channel, the same family
 and 0.5 px of the same size, and the 1/16 scale greyscale thumbnail must stay under a 2.0 level mean
 shift with fewer than 1% of its pixels past 24 levels. A missing record is a FAIL naming the state.
-`--accept` is the only way to write records, marks the run as having compared nothing, and `--only`
-narrows the run while iterating.
+A missing record names the file that is actually absent. `--accept` is the only way to write
+records; it also writes `quality/baseline/states/INDEX.json`, and it refuses `--only`, so a
+partial record set cannot be written by accident. An ordinary run compares the index against the
+driver's own list and FAILs on a record whose state has left the build, and on a state with no
+record. `--only` narrows the run while iterating and narrows that comparison with it. Every run
+ends with a "worst measured" block: the largest thumbnail mean shift, rect move and colour move it
+saw, each named with the state and element, so a run on a second machine reports its headroom.
