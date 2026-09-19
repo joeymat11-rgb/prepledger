@@ -361,7 +361,19 @@ jobs:
       # fails FIRST and GitHub SKIPS every later step, so these two cells cannot run on
       # GitHub's runners at all until the S9 walk passes. The owner's PC (Windows) and a
       # linux farm scratch ARE the both-OS evidence for them until that day.
+      # AND IT CARRIES THE SAME STEP CONDITION THE FENCE'S STEP DOES (P-FENCE-1,
+      # DECISIONS:559: "the pack-pin step of S9-PREP-C needs the same condition and the PM
+      # adds it as integrator"; DECISIONS:570 adds "plus its own row"). Added here by the
+      # S9 integration hand, brief section 9 item 3. GitHub skips every step after a failed
+      # one, and the standing --ci --package step at :150 fails on exactly the branches
+      # these two cells exist for: one that does not contain the chain tip is refused
+      # SEAL-BASE-IS-NOT-THE-CHAIN-TIP (DECISIONS:135 (4), :554), which is every
+      # preparation branch and this integration branch. `!cancelled()` runs the step after
+      # an earlier failure and NOT when the run was cancelled, so a cancelled run still
+      # stops, and the step's own exit status is still the job's. pack-pin.test.mjs's own
+      # row reads this line back out of this file and goes red if it is removed.
       - name: C - the design pack pin and the approved-reference pin
+        if: ${{ !cancelled() }}
         run: node --test rebuild/lanes/c/ui-port/pack-pin.test.mjs rebuild/lanes/c/ui-port/approved-pin.test.mjs
       # C - the two lane C cells over Today's plan card. Both live OUTSIDE
       # rebuild/m3/w7-preview/today/test/ on purpose: that directory is pinned by the S8
@@ -379,7 +391,16 @@ jobs:
       # typed passphrase into key material goes through, on the phone and on the PC.
       # Until this step they ran in no workflow at all, which is the thing DECISIONS:186
       # (3) forbids. Named by exact path, never globbed, so both runners agree.
+      # AND IT CARRIES THE STEP CONDITION, BY THE PM'S RULING P-S9-3 (DECISIONS:627),
+      # added here by the S9 integration hand. DECISIONS:570 left open whether the E21 and
+      # E22 steps also run after a failed standing step; :627 rules that they do, "each
+      # with a condition-reading row, as the fence and the pack do". Without it this guard
+      # is skipped on exactly the branches that carry the bundle it guards, because the
+      # standing step at :150 is refused SEAL-BASE-IS-NOT-THE-CHAIN-TIP on every branch
+      # that is not the chain tip. A row of sealed-inventory-fence.test.mjs reads this line
+      # back out of this file and goes red if it is removed.
       - name: C - the passphrase normalisation helper, its route and the unlock forms
+        if: ${{ !cancelled() }}
         run: node --test rebuild/lanes/c/passphrase-normalize/helper.test.mjs rebuild/lanes/c/passphrase-normalize/route.test.mjs rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs
       # M2-S9-UI-PINS GIVES rebuild/m3/w6/test/local-import.test.mjs A CI HOME
       # (DECISIONS:543 (B), raised three times; S9-RELEASE-SPEC.md E fact 22). Measured
@@ -388,7 +409,14 @@ jobs:
       # the modules under it shipped to the phone. Its root rebuild/m3/w6/test/ is ALREADY
       # in CHILD_ROOTS (b-package.cjs:405), so this costs a step and a declared child and
       # no CHILD_ROOTS hunk. Named by exact path, never globbed.
+      # AND IT CARRIES THE STEP CONDITION, BY THE SAME RULING P-S9-3 (DECISIONS:627),
+      # added here by the S9 integration hand, for the same reason: a cell that ran in no
+      # workflow at all is not given a home only to be skipped behind the standing step.
+      # The cell itself is declared `pinned-unchanged` with equal measured pre and post
+      # (E fact 22), which is honest because S9 does not write it - so the row that reads
+      # this line lives in sealed-inventory-fence.test.mjs and not in this cell.
       - name: W6 - the local import's seal constants, the phone's against the PC's
+        if: ${{ !cancelled() }}
         run: node --test rebuild/m3/w6/test/local-import.test.mjs
       - name: Report the evidence boundary
         run: node -e "console.log('W0 PUBLIC CI PASS; private oracle/full selftest, real backend, installed phone and final M3 SCOPE-FREEZE remain separate acceptance gates')"
