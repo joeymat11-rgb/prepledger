@@ -27,6 +27,8 @@ acceptance: `test/*.test.cjs`. Nothing here calls a model, a network or a key.
 | `request_replan` | 2 proposal | an engine producer issues the proposal + its reason |
 | `accept_proposal` | 2 proposal | `rebuild/client` respond() + recordIssuance() |
 | `cannot_change_via_coach` | 3 refused | phase, floors, progression rules, consent policy |
+| `recall` | 0 read | what he confirmed on ONE named subject, at most five, with source and date |
+| `remember` | 1 fact | one confirmed memory, written only on a yes bound to those exact words |
 
 Tier 0 is not a tier in the ruling — the ruling's three tiers are the ones that
 *write*. A read changes nothing, so it is numbered 0 and is never gated on a yes.
@@ -233,6 +235,82 @@ over `checkin-host.mjs` (its own database, namespace, lease and producer).
 answers mean. There is none to return: the model derives nothing.
 **refuses with** `COACH_CHECKIN_SURFACE_ABSENT` when no check-in lane is open.
 
+### `recall`: WIRED (P4b-1)
+**in** `{ "topic": str }`. The topic is REQUIRED and it is matched EXACTLY: the
+ends are trimmed, the case is kept, and it is then compared with equality. There
+is no fuzzy match, no substring match and no stemming anywhere in this lane, and
+the same rule runs at write time and at read time (`memory-commands.cjs`
+`topicOf()`), so the two cannot drift apart.
+**out** `topic`, `shown` (fact count), `more` (flag), `note` (text), and
+`items[]`, plus `skipped` beside the envelope. Each item carries `memoryId`
+(id), `kind`, `topic`, `label`, `recordedOn` (date) and `text`.
+**the read side goes through the ONE gate.** A stored operation is published
+only if `memory-commands.cjs` `memoryOf()` accepts the memory it carries, the
+same function the write went through. An operation that arrived by another road
+than this tool, a merge or a damaged store that still authenticates, carrying a
+text that is not a string, a kind nobody declared or an over-long topic, is
+refused at the read. Those rows are COUNTED: `skipped` is a data member
+(`display`, `value`, `licensed: false`, no `turn_id`) and it travels on the
+answer AND on `COACH_MEMORY_ABSENT`, because "nothing kept on that subject" and
+"something on this device could not be read" are different answers.
+**`text` IS DATA, NOT A TAGGED VALUE.** It carries `display`, `value`, `source`
+(`"coach-memory.op " + op_id`, the same shape `machine_settings` uses) and
+`licensed: false`, and it deliberately carries NO `turn_id`. So `collectTagged()`
+never sees it and `allowedTokens()` never licenses a number inside it: the coach
+can read his own sentence back and can still never turn "my target is 210 grams"
+into a target it states. A figure a memory names is untraceable, by construction.
+**bounded** at most FIVE facts in a TURN, over every recall in it and not five
+per call. The turn the harness opened keeps the account: a recall takes what is
+LEFT of the five, and when it leaves something out `more` says so. Six subjects
+asked in one turn therefore return at most five facts in total, and the next turn
+starts at five again. `memoryTools.allowance(turn_id)` answers what is left
+without calling. Outside a turn, where nobody is counting, the per-call bound of
+five is what the tool holds to.
+**and the bound holds against CONCURRENT recalls** (review R3-B1). The allowance
+is RESERVED before the store read, not spent after it, so recalls in flight
+together in one turn cannot each spend the same five; what a call did not use is
+refunded the moment its rows are known, and a refusal or a throw after the
+reserve gives the whole reserve back. A reserve is conservative: recalls issued
+in parallel return FEWER than five facts in the turn, never more, and a caller
+that wants all five issues them one after another.
+**the account is per COACH INSTANCE** and never durable, like a pending yes. It
+belongs to the instance whose `openTurn()` opened it: two `createMemoryTools`
+over one world and one turn id keep two accounts and publish five facts each, so
+a consumer must not stack instances over one installation. The shipped wiring
+builds exactly ONE instance per world, in `local-world.mjs`'s coach world and the
+harness that calls it, and this sentence is here so a later consumer does not
+read "per instance" as an invitation.
+**the map of accounts is BOUNDED** (review R3-N2): an account is dropped when its
+turn is closed, if the coach's own turn object has a close, and in any case at
+most 64 of the most recent turns are kept, oldest evicted. A turn whose account
+has been evicted is treated as a turn nobody opened, which is the per-call bound
+and never more than it.
+**ordered** by `memory-model.cjs`'s one stated rule: most recent effective date
+first, then the log's own order, later entry first. It is a total order, so the
+same question twice gives the same facts in the same order. The facts left out
+do not appear anywhere in the envelope.
+**measured, not claimed** the worst case this bound permits, one recall of five
+memories at `TEXT_MAX`, is `turnContextBytes` 9446, which is OVER the standing
+8 KiB per-turn budget. That is the RECALL envelope's figure and not the turn's: a
+turn that also WRITES memories measures more, because `remember()` publishes an
+item of its own on every success (review R3-N6). `model-adapter.md` states both
+figures, a cell measures both and reads that file, and the choice between shorter
+source strings and an enforced budget is P4b-2's.
+**topics carry an EMPTY display** (review R3-N5). Both topic tags publish
+`display: ""` and carry the topic as the tag's `value`, exactly as `memoryId`
+does. The topic is the athlete's own word: the lane bounds its length and
+constrains no character, and `allowedTokens()` promotes a declared unit to `date`
+whenever the display reads as a date, so a memory filed under the topic
+"2019-04-17" licensed a date nothing dated. Read a topic from `value`.
+**never** scans histories, never returns the whole store, and never answers a
+topic nobody named.
+**refuses with** `COACH_MEMORY_TURN_BOUND` (the turn's five facts are spent: it
+reads NOTHING, it does not read and then discard), `COACH_MEMORY_TOPIC_REQUIRED`
+(no topic), `COACH_MEMORY_ABSENT`
+(nothing kept on that subject), `COACH_MEMORY_UNREADABLE` (the store could not be
+authenticated: absence and unreadability are different answers and he is told
+which), `COACH_MEMORY_LANE_ABSENT` (no memory lane on this device).
+
 ---
 
 ## TIER 1 — facts, recorded after a spoken confirmation
@@ -300,6 +378,69 @@ consequence the model states after a real save), `lines[]` (the read-back).
 equipment field there, no workout command for it and no plan verb, so the closed
 command would refuse it. Writing it anywhere else would be a fact that cannot
 survive a reload, so the coach says plainly that it has not recorded it.
+
+### `remember`: WIRED (P4b-1)
+**in** `{ "memory": { "memory_id": str, "kind": "goal"|"preference"|
+"constraint"|"decision-note", "topic": str, "text": str, "interval":
+{"from": date, "to": date}? }, "confirmed": true?, "confirmation_id": str? }`
+and NOTHING else: an extra member on the arguments or on the memory refuses.
+**TWO STEPS, AND THE SECOND IS BOUND TO THE FIRST.** Called without the flag,
+the tool checks the shape, writes nothing, and hands back
+`confirmation: { confirmation_id, kind, topic, text }` with
+`COACH_CONFIRMATION_REQUIRED`: that is the coach reading the words back and
+asking. `text` there is a DATA member (`display`, `value`, `source`,
+`licensed: false`, and no `turn_id`), exactly like the `text` `recall` returns,
+and the refusal's own `reason` is a FIXED sentence that quotes nothing: a reason
+is published as a `text` tag, and `allowedTokens()` reads a `text` tag as engine
+prose, so a reason that quoted the memory would license every figure in it for
+the whole turn on a path that writes nothing.
+The yes then arrives carrying that `confirmation_id`. The handle is
+bound to THOSE EXACT WORDS, it is single use, it is spent before the write, and
+it lives in the conversation, never on disk, so it cannot survive a restart.
+**out** `opId` (id), `item` (the same shape `recall` returns), `consequence`
+(text: it changes no plan and no target), and `recorded: true`.
+**the shape** `memory-commands.cjs` is the ONE gate, used on the request and
+again on the envelope the client built. Identifiers are trimmed and bounded at
+80. The TEXT is bounded at 400 and is otherwise stored EXACTLY as confirmed: no
+trim, no normalising, no escaping, no case folding, no language detection. A
+trim would eat a trailing U+FEFF and the store would hold one string and read
+back another.
+**the stamp** the effective date, the local time and the UTC offset are the
+installation's own, from the envelope the accepted client builds. There is no
+clock in any memory module and a cell scans all four to prove it.
+**refuses with** `COACH_CONFIRMATION_REQUIRED` (no yes),
+`COACH_MEMORY_CONFIRMATION_CANCELLED` (he said no, and it is a different
+sentence from "not asked yet"), `COACH_MEMORY_CONFIRMATION_SPENT` (one yes, one
+write), `COACH_MEMORY_CONFIRMATION_UNKNOWN` (no such yes in this conversation),
+`COACH_MEMORY_CONFIRMATION_MISMATCH` (the words moved after the yes),
+`COACH_MEMORY_INPUT_INVALID` (the shape), `COACH_MEMORY_LANE_ABSENT`, or the
+accepted layer's OWN code and sentence when the store refuses. A save that THREW
+answers the host's own fixed `COACH_MEMORY_WRITE_REFUSED` with a null copy, so no
+exception message can answer the code table below; the message travels as an
+untagged `detail` and reaches the refusal's untagged `source` (review R3-N3).
+**A STANDING CONDITION ON THE ACCEPTED LAYER.** When the store refuses, the
+accepted layer's own `copy` is carried into the refusal's `reason` VERBATIM, and
+a `reason` is a `text` tag, which `allowedTokens()` reads as engine prose and
+licenses every figure in. That carve-out is deliberate: reading a client refusal
+out loud is what `tools.cjs:328` intends. It is safe only while every refusal
+sentence that can reach `saved.copy` is a FIXED sentence with no interpolation of
+SUBMITTED INPUT. Review R3 read the two client files on that path,
+`rebuild/m3/w6/public-client.mjs` and `rebuild/m3/w6/local/local-client.mjs`, and
+found only fixed sentences; the one interpolation measured there appends the
+layer's own fixed code (for example "... `WORKOUT_INPUT_INVALID`"), which is not
+input. Nothing enforces this and no cell would notice if it changed, so it is
+written down here: an accepted layer that ever quotes the athlete's or the
+model's words back in a refusal copy breaks this contract, not merely this lane's
+taste.
+**and one refusal that is not a failure to write.** If the commit LANDS and the
+read-back then fails, the tool returns `COACH_MEMORY_READ_BACK_FAILED` with
+`committed: true` and the `op_id` it holds from the commit, and says both things
+out loud: it was kept, it could not be shown, and it was not written twice. It
+never claims the memory is absent (a lie about disk) and never claims it read it
+back (a lie about the read). There is no retry on a read failure. The op id
+travels as `op_id` and as the data member `recordedAs` and is NOT interpolated
+into the sentence, for the reason above: an op id carries the device id and its
+digits, and a reason tag would license them.
 
 ---
 
@@ -386,6 +527,39 @@ tier-3 exchange and for every tier-2 exchange that ends without a yes.
 
 ---
 
+## CANONICAL TRUTH WINS, and a memory is labelled beside it (M06)
+
+Setup, machine settings, logged observations and the effective programme are read
+through their OWN owners and stay the truth. A memory never changes a programme,
+a target or a logged observation, and the memory lane never reads another lane's
+store to find out what it should say.
+
+When a memory contradicts one of them, the consumer reads the canonical value
+through that owner's own tool IN THE SAME TURN and hands the pair to
+`memoryTools.beside(canonical, item)`, which is `memory-model.cjs joinOf()`:
+
+```
+{ canonical: { value, source, date },
+  memory:    { text, source, date, kind, topic },
+  label:     "goal" | "preference" | "constraint" | "decision-note" | "needs-review",
+  sentence:  "What the app holds now is <value>, from <source> on <date>.
+              You told me on <date>: \"<text>\". That is your own <label>, and it
+              has not changed what the app holds." }
+```
+
+The canonical value is stated FIRST, with its own source. The memory follows,
+named as his own words with its own date. They are never merged into one figure,
+the memory is never called right or wrong, and no long dash appears anywhere in
+the sentence.
+
+**Unknown applicability is NAMED, never assumed current.** A `constraint` is a
+constraint only inside the range he actually confirmed. With no range, or on a
+day outside it, the label is `needs-review` and the sentence says "I do not know
+whether it still applies, so I am not treating it as a restriction." Yesterday's
+unavailability does not become a permanent remembered limitation.
+
+---
+
 ## Refusal codes
 
 | code | meaning | proof |
@@ -404,6 +578,21 @@ tier-3 exchange and for every tier-2 exchange that ends without a yes.
 | `COACH_COST_CAP_ABSENT` / `..._INVALID` | no verified spending cap | `cap.schema.json` |
 | `COACH_OPT_IN_REQUIRED` | no per-user opt-in | brief, privacy |
 | `COACH_NO_LIVE_ADAPTER` | correct — there is no live coach in this build | by design |
+| `CONSENT_ISSUANCE_NOT_COMPENSATED` | the compensating accepted:false write did not store, so the durable row may still claim a yes | `rebuild/client/index.cjs` `recordIssuance()` |
+| `COACH_MEMORY_TOPIC_REQUIRED` | a recall with no named subject | `memory-commands.cjs` `topicOf()` |
+| `COACH_MEMORY_ABSENT` | nothing kept on that subject on this device | `earned/coach-memory/v1` |
+| `COACH_MEMORY_UNREADABLE` | the store could not be authenticated; NOT the same as empty | `memory-host.mjs` `read()` |
+| `COACH_MEMORY_LANE_ABSENT` | no memory lane open on this device | `local-world.mjs` `createMemoryHost` |
+| `COACH_MEMORY_INPUT_INVALID` | a memory outside the closed shape | `memory-commands.cjs` `memoryOf()` |
+| `COACH_MEMORY_CONFIRMATION_CANCELLED` | he cancelled that yes | `memory-tools.cjs` `cancel()` |
+| `COACH_MEMORY_CONFIRMATION_SPENT` | one yes, one write | `memory-tools.cjs` |
+| `COACH_MEMORY_CONFIRMATION_UNKNOWN` | no such yes in this conversation | `memory-tools.cjs` |
+| `COACH_MEMORY_CONFIRMATION_MISMATCH` | the words moved after the yes | `memory-tools.cjs` |
+| `COACH_MEMORY_READ_BACK_FAILED` | committed, and could not be read back; NOT a second write | `memory-host.mjs` `read()` |
+| `COACH_MEMORY_TURN_BOUND` | the turn's five facts are spent; this call read nothing | `memory-tools.cjs` `openTurn()` |
+| `COACH_MEMORY_WRITE_REFUSED` | the save THREW; a fixed code, the message in `detail` and then in `source` | `memory-host.mjs` `save()` |
+| `COACH_MEMORY_TOOL_THREW` | the tool threw; a FIXED sentence, the message in `source` | `memory-tools.cjs` `dispatch()` |
+| `MEMORY_TOOL_NOT_IN_LIST` | a name that is not a coach tool; a FIXED sentence, the name in `source` | `memory-tools.cjs` `TIERS` |
 
 Engine and client codes are **never** reworded: whatever the accepted layer
 returns reaches the coach with its own code and its own sentence.

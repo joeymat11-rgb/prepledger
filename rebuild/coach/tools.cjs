@@ -347,6 +347,10 @@ const CODES = Object.freeze({
   /* P6-COACH-WIRE-2 (DECISIONS:456): recordIssuance() ran but reported
      stored:false, so respond() is never called. */
   CONSENT_ISSUANCE_NOT_STORED: "CONSENT_ISSUANCE_NOT_STORED",
+  /* P4b-1 (the residual DECISIONS:458 ticketed for the next coach touch): the
+     compensating accepted:false write ran and reported stored:false, so the
+     durable issuances row still claims a yes the store does not hold. */
+  CONSENT_ISSUANCE_NOT_COMPENSATED: "CONSENT_ISSUANCE_NOT_COMPENSATED",
   COST_CAP_ABSENT: "COACH_COST_CAP_ABSENT",
   COST_CAP_INVALID: "COACH_COST_CAP_INVALID",
 });
@@ -874,8 +878,19 @@ function createCoachTools(world) {
          must not leave the durable issuances row claiming accepted:true
          with no proposal-response op behind it - compensate the write so
          the row reads accepted:false before returning unavailable. */
-      consent.recordIssuance({ id, accepted: false, instance: null,
+      /* P4b-1 folds in the residual :458 carried: that compensating write must
+         CHECK ITS OWN RESULT. If it does not store, the durable row still reads
+         accepted:true with no proposal-response op behind it, and the athlete is
+         owed that sentence rather than a refusal that implies the record is
+         clean. */
+      const compensated = consent.recordIssuance({ id, accepted: false, instance: null,
         producer: record.producer, revision: ENGINE_REVISION });
+      if (!compensated || compensated.stored !== true) {
+        return unavailable("accept_proposal", TIER.PROPOSAL, turn_id, CODES.CONSENT_ISSUANCE_NOT_COMPENSATED,
+          "Your yes was not accepted, and I could not clear the record of it either. "
+          + "Nothing changed in your plan, but the record of that yes may still say otherwise. Check it in settings.",
+          "rebuild/client/index.cjs recordIssuance() (the compensating write)");
+      }
       return unavailable("accept_proposal", TIER.PROPOSAL, turn_id, (answered && answered.code) || "PLAN_CONSENT_NOT_ACKNOWLEDGED",
         (answered && answered.copy) || null, "rebuild/client/index.cjs respond()");
     }
