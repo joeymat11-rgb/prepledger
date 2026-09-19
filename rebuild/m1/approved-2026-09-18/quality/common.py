@@ -4,7 +4,7 @@
 Kept in one file so gate.py and statesheet.py cannot drift apart on the same rule.
 Nothing here opens a browser; it is pure helpers and constants.
 """
-import os, sys, re, hashlib, pathlib
+import os, sys, re, hashlib, pathlib, platform as plat
 import numpy as np
 from PIL import ImageFont
 
@@ -170,6 +170,34 @@ def platform_key():
 # screen baselines drawn without it). quality/teeth.py row p1 takes the argument out and expects
 # the state sheet to FAIL on Linux, so the list cannot quietly lose it.
 LAUNCH_ARGS = ['--allow-file-access-from-files', '--font-render-hinting=none']
+
+
+# ---------------------------------------------------------------- who drew a committed baseline
+def playwright_version():
+    try:
+        from importlib.metadata import version
+        return version('playwright')
+    except Exception:
+        return 'unknown'
+
+
+def env_text(chromium_version, drew):
+    """ENV.txt beside a committed set of baselines: the machine that drew them, how the browser
+    was launched, and what was drawn. One form, written by gate.py beside the screen baselines
+    and by statesheet.py beside this platform's thumbnails, so the two cannot drift.
+
+    The launch list is on it because a render is a property of the arguments as well as of the
+    machine: quality/teeth.py row p1 takes one argument out of LAUNCH_ARGS and the state sheet
+    fails on a moved rect, so a baseline set drawn under a different list is a different set.
+    """
+    return '\n'.join([
+        'the machine that set these baselines',
+        f'os: {plat.system()} {plat.release()} ({platform_key()})',
+        f'python: {plat.python_version()}',
+        f'playwright: {playwright_version()}',
+        f'chromium: {chromium_version}',
+        f'launch: {" ".join(LAUNCH_ARGS)}',
+    ] + list(drew)) + '\n'
 
 
 # ---------------------------------------------------------------- what counts as on the screen

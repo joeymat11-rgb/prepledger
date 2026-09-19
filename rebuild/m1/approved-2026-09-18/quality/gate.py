@@ -10,7 +10,7 @@ Point it at another build (the real client's preview) with EARNED_APP=<url or fi
 Exit code: 0 green, 1 any FAIL, 2 refused (it could not run). A report is written whenever the
 run got as far as producing results.
 """
-import asyncio, os, sys, io, json, hashlib, platform as plat, urllib.parse, urllib.request
+import asyncio, os, sys, io, json, hashlib, urllib.parse, urllib.request
 import numpy as np
 from PIL import Image
 from playwright.async_api import async_playwright
@@ -23,7 +23,7 @@ except Exception:
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, lum_array, worst_ratio, app_url,
                     sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused, JS_SWEPT_TEXT,
-                    JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS)
+                    JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS, env_text)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -645,25 +645,16 @@ def write_report(chromium_version=''):
         json.dump([list(r) for r in results], f, indent=1)
     if ACCEPT:
         os.makedirs(BASE, exist_ok=True)
-        with open(os.path.join(BASE, 'ENV.txt'), 'w', encoding='utf-8') as f:
-            f.write('\n'.join([
-                'the machine that set these baselines',
-                f'os: {plat.system()} {plat.release()} ({sys.platform})',
-                f'python: {plat.python_version()}',
-                f'playwright: {playwright_version()}',
-                f'chromium: {chromium_version}',
+        # newline='\n': ENV.txt is committed, so it has to land on disk as the same bytes on every
+        # platform. In text mode Windows would write CRLF, git would normalise it on the way in,
+        # and a sha256 taken over the working tree would then differ by platform for one file the
+        # two machines wrote identically.
+        with open(os.path.join(BASE, 'ENV.txt'), 'w', encoding='utf-8', newline='\n') as f:
+            f.write(env_text(chromium_version, [
                 f'screens: {", ".join(f"{t}-{s}" for t in THEMES for s in SCREENS)}',
                 f'viewport: {REF[0]}x{REF[1]}, chrome=1, date=board',
-            ]) + '\n')
+            ]))
     sys.exit(1 if fails else 0)
-
-
-def playwright_version():
-    try:
-        from importlib.metadata import version
-        return version('playwright')
-    except Exception:
-        return 'unknown'
 
 
 def refuse(msg):

@@ -2,9 +2,18 @@
 """State sheet: render every registered state in both themes, check each one, compare it to its
 committed record, and tile them per screen.
 
-  python quality/statesheet.py                 check every state against quality/baseline/states/
-  python quality/statesheet.py --only T-02     one state family while iterating
-  python quality/statesheet.py --accept        write the records (on purpose only)
+  python quality/statesheet.py                  check every state against quality/baseline/states/
+  python quality/statesheet.py --only T-02      one state family while iterating
+  python quality/statesheet.py --accept         write the records (on purpose only)
+  python quality/statesheet.py --accept-thumbs  set this platform's thumbnails, compare the rest
+
+A record has two halves. The JSON half (the text, the rects, the colours, the families, the
+sizes) is one shared set under quality/baseline/states/ and is read on every platform. The
+thumbnail half is a raster, and rasterisation is a property of the machine, so thumbnails are
+filed under quality/baseline/states/<sys.platform>/ the way the screen baselines already are,
+with an ENV.txt beside them. --accept writes the shared records, the index and this platform's
+thumbnails; --accept-thumbs is the tool for the second platform, which compares every render
+against the shared records and writes only thumbnails, and only when every render was clean.
 
 Point it at another build (the real client's preview) with EARNED_APP=<url or file:// path>: the
 records are keyed by state id and theme, so the same records judge the client.
@@ -13,7 +22,7 @@ Writes quality/run/states/<id>-<theme>.png, quality/run/statesheet-<screen>.jpg 
 quality/run/states-report.txt. Exit code: 0 every render clean and within tolerance, 1 any
 problem, 2 refused (it could not run).
 """
-import asyncio, os, io, sys, re, json
+import asyncio, os, io, sys, re, json, platform as plat
 import numpy as np
 from PIL import Image, ImageDraw
 from playwright.async_api import async_playwright
@@ -25,16 +34,19 @@ except Exception:
     pass
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, worst_ratio, app_url, label_font,
-                    Refused, JS_SWEPT_TEXT, JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS)
+                    Refused, JS_SWEPT_TEXT, JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS,
+                    platform_key, playwright_version, env_text)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
 OUT = os.path.join(ROOT, 'quality', 'run', 'states'); os.makedirs(OUT, exist_ok=True)
 RUN = os.path.join(ROOT, 'quality', 'run')
 BASE = os.path.join(ROOT, 'quality', 'baseline', 'states')
+THUMBS = os.path.join(BASE, platform_key())   # this platform's thumbnails and their ENV.txt
 
 ARGS = sys.argv[1:]
 ACCEPT = '--accept' in ARGS
+ACCEPT_THUMBS = '--accept-thumbs' in ARGS
 ONLY = None
 for i, a in enumerate(ARGS):
     if a == '--only' and i + 1 < len(ARGS):
@@ -127,7 +139,8 @@ def rel(p):
 
 
 def record_paths(sid, theme):
-    return os.path.join(BASE, f'{sid}-{theme}.json'), os.path.join(BASE, f'{sid}-{theme}.png')
+    """The shared record, read on every platform, and this platform's thumbnail of it."""
+    return os.path.join(BASE, f'{sid}-{theme}.json'), os.path.join(THUMBS, f'{sid}-{theme}.png')
 
 
 INDEX = os.path.join(BASE, 'INDEX.json')
@@ -168,11 +181,36 @@ def index_problems(rendered, only):
     return out
 
 
-def write_index(states):
-    with open(INDEX, 'w', encoding='utf-8') as f:
-        json.dump({'states': [{'id': st['id'], 'screen': st['screen'], 'themes': ['ink', 'dawn']} for st in states]},
+def write_index(states, chromium_version=''):
+    """The ids and themes --accept recorded, and the machine that recorded them.
+
+    "env" is provenance, not a measure. index_problems() reads "states" and nothing else, so a
+    record set written on one machine is judged on another without the env entering any
+    comparison; it is there so a reader of the diff can see which machine and which launch list
+    the shared records came from. newline='\\n': this file is committed, so it has to land on
+    disk as the same bytes on every platform.
+    """
+    with open(INDEX, 'w', encoding='utf-8', newline='\n') as f:
+        json.dump({'states': [{'id': st['id'], 'screen': st['screen'], 'themes': ['ink', 'dawn']} for st in states],
+                   'env': {'os': f'{plat.system()} {plat.release()} ({platform_key()})',
+                           'python': plat.python_version(),
+                           'playwright': playwright_version(),
+                           'chromium': chromium_version,
+                           'launch': list(LAUNCH_ARGS)}},
                   f, ensure_ascii=False, indent=1)
         f.write('\n')
+
+
+def write_env(chromium_version, states):
+    """ENV.txt beside this platform's thumbnails, in the form gate.py writes beside the screen
+    baselines. Written by --accept and by --accept-thumbs, and by neither unless it wrote."""
+    os.makedirs(THUMBS, exist_ok=True)
+    with open(os.path.join(THUMBS, 'ENV.txt'), 'w', encoding='utf-8', newline='\n') as f:
+        f.write(env_text(chromium_version, [
+            f'states: {len(states)} ids, {2 * len(states)} renders, themes ink and dawn',
+            f'viewport: {W}x{H}, chrome=1, date=board',
+            f'thumbnail: {THUMB[0]}x{THUMB[1]} greyscale, 1/{SCALE} scale',
+        ]))
 
 
 def compare_record(sid, theme, rec, thumb, worst=None):
@@ -182,15 +220,16 @@ def compare_record(sid, theme, rec, thumb, worst=None):
     edge, when its colour moves more than 3 levels in any channel, when its font family changes or
     its size moves more than 0.5 px, or when its thumbnail mean absolute shift reaches 2.0 levels or
     1% of the thumbnail pixels differ by more than 24 levels.
+
+    thumb is None on an --accept-thumbs run, which compares every other half of the record and no
+    thumbnail, because it is the run that is about to write this platform's thumbnails.
     """
     jp, pp = record_paths(sid, theme)
-    gone = [rel(x) for x in (jp, pp) if not os.path.exists(x)]
-    if gone:
-        return [f'no record at {", ".join(gone)}; run "python quality/statesheet.py --accept" and commit it']
+    if not os.path.exists(jp):
+        return [f'no record at {rel(jp)}; run "python quality/statesheet.py --accept" and commit it']
     try:
         with open(jp, encoding='utf-8') as f:
             want = json.load(f)
-        base = np.asarray(Image.open(pp).convert('L')).astype(float)
     except Exception as e:
         return [f'the record at {rel(jp)} could not be read ({type(e).__name__})']
     problems = []
@@ -216,17 +255,35 @@ def compare_record(sid, theme, rec, thumb, worst=None):
             problems.append(f'element {i} "{name}" font {wa[3]} became {wb[3]}')
         if abs(wa[4] - wb[4]) > SIZE_TOL:
             problems.append(f'element {i} "{name}" font size {wa[4]} became {wb[4]}')
+    if thumb is not None:
+        problems += compare_thumb(sid, theme, pp, thumb, worst)
+    return problems[:6]
+
+
+def compare_thumb(sid, theme, pp, thumb, worst=None):
+    """The thumbnail half of a record, which is this platform's own.
+
+    A thumbnail is a raster and rasterisation is a property of the machine, so a missing one for
+    the current platform is a FAIL that names the path and the remedy, the way a missing screen
+    baseline is in gate.py. It is never set silently.
+    """
+    if not os.path.exists(pp):
+        return [f'no thumbnail at {rel(pp)}; run "python quality/statesheet.py --accept-thumbs" '
+                'on the machine of record, then commit it']
+    try:
+        base = np.asarray(Image.open(pp).convert('L')).astype(float)
+    except Exception as e:
+        return [f'the thumbnail at {rel(pp)} could not be read ({type(e).__name__})']
     cur = np.asarray(thumb).astype(float)
     if base.shape != cur.shape:
-        problems.append(f'thumbnail {cur.shape} against the record\'s {base.shape}')
-    else:
-        d = np.abs(base - cur)
-        mean = float(d.mean()); pct = float((d > THUMB_LEVELS).mean() * 100)
-        note(worst, 'thumbnail mean shift', mean, THUMB_MEAN, f'{sid} {theme}')
-        note(worst, 'thumbnail pixels over 24 levels', pct, THUMB_PCT, f'{sid} {theme}')
-        if mean >= THUMB_MEAN or pct >= THUMB_PCT:
-            problems.append(f'thumbnail mean shift {mean:.2f}, {pct:.2f}% of pixels over {THUMB_LEVELS} levels')
-    return problems[:6]
+        return [f'thumbnail {cur.shape} against the record\'s {base.shape}']
+    d = np.abs(base - cur)
+    mean = float(d.mean()); pct = float((d > THUMB_LEVELS).mean() * 100)
+    note(worst, 'thumbnail mean shift', mean, THUMB_MEAN, f'{sid} {theme}')
+    note(worst, 'thumbnail pixels over 24 levels', pct, THUMB_PCT, f'{sid} {theme}')
+    if mean >= THUMB_MEAN or pct >= THUMB_PCT:
+        return [f'thumbnail mean shift {mean:.2f}, {pct:.2f}% of pixels over {THUMB_LEVELS} levels']
+    return []
 
 
 def note(worst, measure, value, limit, where):
@@ -247,9 +304,10 @@ def first_text_difference(a, b):
 
 
 async def main():
-    rows = []; worst = {}
+    rows = []; worst = {}; pending = []
     async with async_playwright() as p:
         b = await p.chromium.launch(args=LAUNCH_ARGS)
+        chromium_version = b.version
         ctx = await b.new_context(viewport={'width': W, 'height': H}, device_scale_factor=2, reduced_motion='reduce')
         pg = await ctx.new_page()
         errs = []; pg.on('pageerror', lambda e: errs.append(str(e))); pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
@@ -268,7 +326,7 @@ async def main():
         if not states:
             raise Refused(f'{APP} registered no states' + (f' matching {ONLY}' if ONLY else ''))
         if ACCEPT:
-            os.makedirs(BASE, exist_ok=True)
+            os.makedirs(BASE, exist_ok=True); os.makedirs(THUMBS, exist_ok=True)
         rendered_pairs = {(st['id'], t) for st in states for t in ('ink', 'dawn')}
         for st in states:
             for t in ['ink', 'dawn']:
@@ -327,21 +385,35 @@ async def main():
                     problems.append('the screen could not be recorded')
                 elif ACCEPT:
                     jp, pp = record_paths(st['id'], t)
-                    with open(jp, 'w', encoding='utf-8') as f:
+                    # newline='\n': a record is committed, so it has to land on disk as the same
+                    # bytes on every platform, whatever the platform's own line ending is.
+                    with open(jp, 'w', encoding='utf-8', newline='\n') as f:
                         json.dump({'id': st['id'], 'theme': t, 'text': rec['text'], 'els': rec['els']}, f,
                                   ensure_ascii=False, separators=(',', ':'))
                     thumb.save(pp, optimize=True)
                 else:
-                    problems += compare_record(st['id'], t, rec, thumb, worst)
+                    problems += compare_record(st['id'], t, rec, None if ACCEPT_THUMBS else thumb, worst)
+                    if ACCEPT_THUMBS:
+                        pending.append((record_paths(st['id'], t)[1], thumb))
                 rows.append((st['id'], t, st['title'], st['status'], problems))
         await b.close()
     if ACCEPT:
-        write_index(states)
+        write_index(states, chromium_version)
+        write_env(chromium_version, states)
         orphans = []
     else:
         orphans = index_problems(rendered_pairs, ONLY)
+    # --accept-thumbs writes nothing at all unless every render came back clean against the
+    # shared records, so a second platform cannot bless its own thumbnails over a real defect.
+    written = 0
+    if ACCEPT_THUMBS and not any(r[4] for r in rows) and not orphans:
+        os.makedirs(THUMBS, exist_ok=True)
+        for pp, thumb in pending:
+            thumb.save(pp, optimize=True)
+        write_env(chromium_version, states)
+        written = len(pending)
     write_sheets(states)
-    write_report(rows, orphans, worst)
+    write_report(rows, orphans, worst, written)
 
 
 def write_sheets(states):
@@ -371,12 +443,20 @@ def report_name():
     return 'states-report' + ('-' + ONLY.rstrip('-') if ONLY else '') + '.txt'
 
 
-def write_report(rows, orphans, worst):
+def write_report(rows, orphans, worst, written=0):
     bad = [r for r in rows if r[4]]
     head = (f'STATE SHEET: {len(rows)} renders, {len(bad)} with problems'
             + (f', {len(orphans)} records with no state' if orphans else '')
-            + (f', {len(rows)} SET' if ACCEPT else ''))
-    lines = (['ACCEPT RUN: the state records compared nothing'] if ACCEPT else []) + [head, '']
+            + (f', {len(rows)} SET' if ACCEPT else '')
+            + (f', {written} SET' if written else ''))
+    lines = [head, '']
+    if ACCEPT:
+        lines = ['ACCEPT RUN: the state records compared nothing'] + lines
+    elif ACCEPT_THUMBS:
+        # never evidence of a green run: it wrote half of every record it just judged
+        lines = ['ACCEPT THUMBS RUN: every record compared except its thumbnail, which this run '
+                 + (f'wrote: {written} thumbnails and ENV.txt in {rel(THUMBS)}'
+                    if written else 'did not write, because the run is not clean')] + lines
     for sid, t, title, status, probs in rows:
         if probs:
             lines.append(f'{sid:7s} {t:5s} {status:10s} {title[:44]:44s} {"; ".join(probs)}')
@@ -414,6 +494,10 @@ def refuse(msg):
 if __name__ == '__main__':
     if ACCEPT and ONLY:
         refuse('--accept writes every record and the index, so it cannot be combined with --only')
+    if ACCEPT_THUMBS and ONLY:
+        refuse('--accept-thumbs writes every thumbnail this platform has, so it cannot be combined with --only')
+    if ACCEPT and ACCEPT_THUMBS:
+        refuse('--accept already writes this platform\'s thumbnails, so --accept-thumbs cannot be combined with it')
     try:
         asyncio.run(main())
     except Refused as e:
