@@ -123,7 +123,20 @@ test('P-MEASURE (g) - package S4 pins none of this lane\'s new files', () => {
    chain has to know about it or every one of those moves reads here as an undeclared
    drift. Youngest first is what the loop below already does, so 'S9' goes last in the
    array and is therefore consulted first. Nothing else moves: the question the cell asks
-   is still "does THIS LANE drift a sealed byte it has not declared". */
+   is still "does THIS LANE drift a sealed byte it has not declared".
+
+   AND THE CONSEQUENCE FOR THIS FILE'S OWN LOOP, which is what R4 N7 is about and the
+   only place a reader of declaredPost will look for it (R1 N11). S9 declares
+   today/today-app.cjs role "edited" WITH A REAL POST, and 'S9' is now the youngest entry
+   of the array below, so from this commit declaredPost('rebuild/m3/w7-preview/today/
+   today-app.cjs') returns S9's post and no longer S8's dc9a826e. The walk is unchanged
+   and this is the walk working: youngest declaring spec wins. It matters because
+   F.1 R18 reads the same red as arriving "two packages downstream", when in fact it
+   arrives ONE package sooner - at S10, the moment a package declares that path with
+   post: null, the loop skips a non-string post, falls through the older specs and lands
+   on nothing. A.2.1.1 owns that fix and A.2.1.2 is where S9's obligation to leave the
+   rule stated lives; nothing in S9 changes because of it. The fall-through itself is
+   safe: declaredPost already try/catches an absent or unparseable spec, measured. */
 const CHILD_SPECS = ['H3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9'];
 const declaredPost = (file) => {
   for (let i = CHILD_SPECS.length - 1; i >= 0; i -= 1) {
