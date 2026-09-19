@@ -53,10 +53,36 @@ const STORE = ["all", "forDate", "latest", "rows", "refresh", "summary", "record
 const ADOPT = ["adoptBasis", "setPendingAdoption", "setFoodDays", "setSleepNights", "rebase",
   "holdForAdoption", "adoptEngineState"];
 
-/* Receivers that are not stores, shared with reach.cjs's own list so the two instruments
-   agree by construction (E.4, R2's three false positives). */
+/* ---- SUPPRESSED RECEIVERS: JAVASCRIPT BUILTINS AND NOTHING ELSE (R1 BLOCKING-2) -------
+ * `Promise.all`, `Object.entries` and `Date.now` are not durable writes and a fence that
+ * reds on them is a fence nobody runs. That is the whole reason this list exists.
+ *
+ * WHAT R1 FOUND, AND WHY THE LIST IS NOW MEASURED RATHER THAN TYPED. The list used to carry
+ * two APPLICATION identifiers as well, `entry` and `importScreen`, copied across from
+ * reach.cjs. `entry` is a live local in gym-app.mjs's paintSettings
+ * (`const entry = facade.entryFor(liftId)`). R1 planted a brand new released durable write
+ * through it - `if (entry) entry.save({ lift: liftId, note: 'x' });` - and THE FENCE STAYED
+ * AT 21 OF 21. One suppressed application name silently exempted every durable write reached
+ * through a binding of that name, on a file on the path to the athlete's data.
+ *
+ * Both are dropped, and the rule that keeps them out is a MEASUREMENT, not this comment: the
+ * row below asserts that every suppressed name is an own property of globalThis, so no
+ * application identifier can be added to this list again without that row failing. Measured
+ * on the four files of this part: neither name occurs as the receiver of a fenced word at
+ * all, so dropping them costs nothing here and closes the hole before part 2, where
+ * today-app.cjs's much larger local surface makes it proportionally wider.
+ *
+ * reach.cjs keeps a LONGER list (it also suppresses `settingsRead`, `map`, `cache`, `result`,
+ * `importScreen` and more), and the two instruments are deliberately no longer the same list.
+ * They answer different questions: reach.cjs CLASSIFIES every call site in today-app.cjs and
+ * marks the ones it believes are false positives, with its own `falsePositive` column a
+ * reader can disagree with row by row; this cell REFUSES, so a suppression here is a hole and
+ * a suppression there is an annotation. The one real case reach.cjs suppresses that this cell
+ * will meet in part 2 is `importScreen.reopen()` at today-app.cjs:718, a screen being
+ * reopened and not a reading; part 2 declares it by line the way the six gym seams are
+ * declared, not by exempting the name everywhere.                                          */
 const NOT_A_STORE_RECEIVER = ["Promise", "Object", "Array", "JSON", "Math", "Set", "Number",
-  "String", "Date", "entry", "importScreen"];
+  "String", "Date"];
 
 /* ---- codeOf: comments and string literals removed -------------------------------------
  * A comment mentioning host.save is invisible and a sentence containing the word "save" is
@@ -185,16 +211,26 @@ const READINGS_PROSE = [
   " lb, to one decimal place. Nothing was recorded.",
 ];
 
-/* gym-app.mjs's six DECLARED seams: the durable writers the released card still names,
-   each with the region id regions.json gives it. A seventh fails. */
+/* gym-app.mjs's six DECLARED seams: the durable writers the released card still names, each
+   with the region id regions.json gives it. A seventh fails.
+ *
+ * KEYED BY SITE, NOT BY NAME (R1 BLOCKING-2, second half). The first form of this row
+ * compared the SET OF NAMES, so a seventh durable write that happened to reuse one of the six
+ * declared names was invisible: R1's planted `entry.save(...)` adds an occurrence of `save`,
+ * and `save` was already in the set. The key is now `receiver.name`, and the row asserts the
+ * SITE COUNT as well, so neither a new receiver nor a second call through an old one gets in.
+ * `(call).save` is `facade.lane().save(machine)`, whose receiver is a call expression and not
+ * an identifier. */
 const GYM_DECLARED_SEAMS = {
-  save: "GA-M01 / GA-R04, SEAM G1 recordSettings: the released half still decides what is stored, and the build report names it as the S-R17 (g) STOP it is. B.9's token protocol is part 2.",
-  logSet: "GA-M02, a released control handler",
-  finish: "GA-M03, a released control handler",
-  forget: "GA-M04, a released control handler",
-  undo: "GA-M05, a released control handler",
-  start: "GA-M06, model.start() inside paint(): the ONE durable PUT any paint root reaches in these three files. A pre-existing fact of the page, left byte-identical under S-R12, with its own ticket GYM-START-IN-PAINT.",
+  "(call).save": "GA-M01 / GA-R04, SEAM G1 recordSettings: `facade.lane().save(machine)`. The released half still decides what is stored, and the build report names it as the S-R17 (g) STOP it is. B.9's token protocol is part 2.",
+  "model.logSet": "GA-M02, a released control handler",
+  "model.finish": "GA-M03, a released control handler",
+  "model.forget": "GA-M04, a released control handler",
+  "model.undo": "GA-M05, a released control handler",
+  "model.start": "GA-M06, model.start() inside paint(): the ONE durable PUT any paint root reaches in these three files. A pre-existing fact of the page, left byte-identical under S-R12, with its own ticket GYM-START-IN-PAINT.",
 };
+const GYM_DECLARED_SITES = 6;
+const siteOf = (h) => (h.receiver || "(call)") + "." + h.name;
 
 function planted(rel, edit) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fence-planted-"));
@@ -218,6 +254,46 @@ test("FENCE-NOTHING-TO-SCAN: the fence names the files it read, and the released
   console.log("  fence scanned " + scanned.length + " files: " + scanned.map((f) => path.basename(f)).join(", "));
 });
 
+/* ---- R1 BLOCKING-2: the suppression list cannot hold an application name -------------- */
+
+test("FENCE-SUPPRESSED-RECEIVER: every suppressed receiver is a JavaScript builtin, measured", () => {
+  const notGlobal = NOT_A_STORE_RECEIVER.filter((n) => !Object.prototype.hasOwnProperty.call(globalThis, n));
+  assert.deepEqual(notGlobal, [],
+    "FENCE-SUPPRESSED-RECEIVER: " + notGlobal.join(", ") + " is not a JavaScript builtin, so it " +
+    "is an APPLICATION identifier, and a suppressed application identifier exempts every " +
+    "durable write reached through a binding of that name. That is R1 BLOCKING-2: `entry` was " +
+    "on this list and a planted entry.save() went through a green fence.");
+  assert.equal(NOT_A_STORE_RECEIVER.length, 9,
+    "nine builtins and no more; a tenth name is a new suppression and needs a red row of its own");
+});
+
+test("RED R1 BLOCKING-2: a durable write through the local `entry` in the released gym card FAILS", () => {
+  /* R1's own attack, at the line it used: inside paintSettings, just after the facade hands
+     the entry out. Before the fix this planted write left the fence at 21 of 21. */
+  const src = planted(TODAY + "/gym-app.mjs",
+    (s) => s.replace("    const entry = facade.entryFor(liftId);",
+      "    const entry = facade.entryFor(liftId);\n    if (entry) entry.save({ lift: liftId, note: 'x' });"));
+  assert.ok(src.includes("entry.save({ lift: liftId"), "the plant did not land; re-read GA-R02");
+  const hits = memberHits(codeOf(src), PUT).filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  assert.equal(hits.some((h) => h.name === "save" && h.receiver === "entry"), true,
+    "THE FENCE DID NOT SEE A DURABLE WRITE THROUGH `entry`. This is R1 BLOCKING-2 and it is " +
+    "the one class of thing this cell is in the tree to catch.");
+  const sites = [...new Set(hits.map(siteOf))].sort();
+  assert.notDeepEqual(sites, Object.keys(GYM_DECLARED_SEAMS).sort(),
+    "THE SEAM ROW DID NOT FIRE ON entry.save. Keyed by NAME it could not: `save` was already " +
+    "one of the six declared names. That is why it is keyed by SITE.");
+});
+
+test("RED R1 BLOCKING-2: a durable write through `importScreen` in the released today-model.cjs FAILS", () => {
+  const src = planted(TODAY + "/today-model.cjs",
+    (s) => s.replace("  const { weighIn, reopen,",
+      "  importScreen.retractImport(day);\n  const { weighIn, reopen,"));
+  const hits = memberHits(codeOf(src), PUT).filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  assert.equal(hits.some((h) => h.name === "retractImport" && h.receiver === "importScreen"), true,
+    "THE FENCE DID NOT SEE A DURABLE WRITE THROUGH `importScreen`, the second application " +
+    "name R1 found on the suppression list.");
+});
+
 test("the three word lists are the ones the reachability instrument runs (15 PUT, 17 STORE, 7 ADOPT)", () => {
   assert.equal(PUT.length, 15);
   assert.equal(STORE.length, 17);
@@ -235,14 +311,20 @@ test("FENCE-WRITER-NAME: the released today-model.cjs names NO durable writer af
     "two functions that can put a reading on disk are not in this file any more.");
 });
 
-test("FENCE-WRITER-NAME: the released gym-app.mjs names EXACTLY the six declared seam writers, and a seventh fails", () => {
+test("FENCE-WRITER-NAME: the released gym-app.mjs holds EXACTLY the six declared seam WRITE SITES, and a seventh fails", () => {
   const hits = memberHits(codeOf(readRepo(TODAY + "/gym-app.mjs")), PUT)
     .filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
-  const names = [...new Set(hits.map((h) => h.name))].sort();
-  assert.deepEqual(names, Object.keys(GYM_DECLARED_SEAMS).sort(),
-    "FENCE-WRITER-NAME: the released gym card names a durable writer that is not one of the " +
+  const sites = [...new Set(hits.map(siteOf))].sort();
+  assert.deepEqual(sites, Object.keys(GYM_DECLARED_SEAMS).sort(),
+    "FENCE-WRITER-NAME: the released gym card reaches a durable writer that is not one of the " +
     "six declared seams. Every one of the six is a line the spec carries with a region id; a " +
     "seventh is a new released decision about what gets stored and it is a STOP.");
+  assert.equal(hits.length, GYM_DECLARED_SITES,
+    "FENCE-WRITER-SITE-COUNT: " + hits.length + " durable write sites in the released gym card, " +
+    GYM_DECLARED_SITES + " declared. A SECOND call through an already-declared receiver is a " +
+    "seventh decision about what gets stored even though it adds no new name, and the " +
+    "name-set form of this row could not see it (R1 BLOCKING-2).");
+  console.log("  released gym-app.mjs write sites: " + hits.map((h) => ":" + h.line + " " + siteOf(h)).join(", "));
 });
 
 test("RED: a durable writer planted in the released today-model.cjs FAILS", () => {
@@ -264,11 +346,11 @@ test("RED: the E.5 row 1 alias, const s = host.save, FAILS even though it is not
 test("RED: a SEVENTH durable writer in the released gym card FAILS", () => {
   const src = planted(TODAY + "/gym-app.mjs",
     (s) => s.replace("  const painter = Object.freeze(", "  const late = () => model.recover();\n  const painter = Object.freeze("));
-  const names = [...new Set(memberHits(codeOf(src), PUT)
-    .filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver)).map((h) => h.name))].sort();
-  assert.notDeepEqual(names, Object.keys(GYM_DECLARED_SEAMS).sort(),
+  const hits = memberHits(codeOf(src), PUT).filter((h) => !NOT_A_STORE_RECEIVER.includes(h.receiver));
+  const sites = [...new Set(hits.map(siteOf))].sort();
+  assert.notDeepEqual(sites, Object.keys(GYM_DECLARED_SEAMS).sort(),
     "THE FENCE DID NOT SEE A SEVENTH DURABLE WRITER IN THE RELEASED GYM CARD");
-  assert.equal(names.includes("recover"), true);
+  assert.equal(sites.includes("model.recover"), true);
 });
 
 test("a comment naming host.save is invisible, and so is the word save inside a sentence", () => {
@@ -406,6 +488,28 @@ test("FENCE-VIEW-IMPORT: today-readings.cjs reaches NOTHING, and the gym lane's 
   assert.deepEqual(edges, ["./machine-settings-host.mjs"],
     "FENCE-SECOND-SEALED-IMPORT: the gym lane opens the fifth lane and reaches nothing else");
   assert.equal(/^\s*import\s/m.test(lane), false, "and it has no static import at all");
+});
+
+/* R1 NOTE-3: this row shipped without a red counterpart. R1 planted one by hand and the row
+   did fail, so the row was sound and only its proof was missing. Here it is, committed. */
+test("RED FENCE-VIEW-IMPORT: a require of a view module added to today-readings.cjs FAILS", () => {
+  const src = planted(TODAY + "/today-readings.cjs",
+    (s) => s.replace("function createReadingsWriter(",
+      'const view = require("./machine-settings-view.mjs");\nfunction createReadingsWriter('));
+  const code = codeOf(src);
+  const edges = [...code.matchAll(/\b(?:require|import)\s*\(/g)].map((m) => m[0]);
+  assert.notDeepEqual(edges, [],
+    "THE FENCE DID NOT SEE A MODULE EDGE ADDED TO THE SEALED WEIGH-IN WRITER. The whole shape " +
+    "of F.1 is that it takes every binding it needs by injection and reaches nothing.");
+});
+
+test("RED FENCE-SECOND-SEALED-IMPORT: a second module edge in the gym lane FAILS", () => {
+  const src = planted(TODAY + "/gym-settings-lane.mjs",
+    (s) => s.replace("  let settingsReading = null;",
+      "  const extra = () => import('./checkin-model.mjs');\n  void extra;\n  let settingsReading = null;"));
+  const edges = [...src.matchAll(/\b(?:require|import)\s*\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
+  assert.notDeepEqual(edges, ["./machine-settings-host.mjs"],
+    "THE FENCE DID NOT SEE A SECOND MODULE EDGE OPENED BY THE SEALED GYM LANE");
 });
 
 /* ---- ROW 6: S-R12's standing guard, in the form a token scanner can hold --------------- */
