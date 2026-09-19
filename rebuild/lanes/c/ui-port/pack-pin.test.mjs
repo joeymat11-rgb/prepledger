@@ -52,6 +52,8 @@
    skips and it never passes vacuously. Which of the two refusals it prints is measured in
    S9-PREP-PACK-AUTHOR-REPORT.md and stated at the row.
 
+   Empty directories, hard links and NTFS streams are outside Git's byte inventory and C.5.1.
+
    NO OWNER DATA. Every fixture below is built by this file in a mkdtemp folder out of
    bytes it writes itself, and removed again. It reads no measurement of any kind. */
 
@@ -202,8 +204,23 @@ function walk(root, rel, observed, irregular, unreadable, readFile) {
 function judge(packRoot, literalLines, readFile) {
   /* ABSENT means: there is no plain directory at the pack root. lstat, so a link standing
      where the pack should be is absent too rather than quietly walked through. */
+  /* The real pack walks from the trusted checkout root; the disposable fixture packs
+     walk from the OS temp directory. Every component is lstat'ed before descending,
+     and the parent's own listing must contain the pinned spelling exactly. */
+  const boundary = path.relative(REPO_ROOT, packRoot).split(path.sep)[0] === ".." ? os.tmpdir() : REPO_ROOT;
+  const parts = path.relative(boundary, packRoot).split(path.sep);
+  let dir = boundary;
   let st = null;
-  try { st = fs.lstatSync(packRoot); } catch { st = null; }
+  for (let i = 0; i < parts.length; i++) {
+    const component = path.join(dir, parts[i]);
+    try { st = fs.lstatSync(component); } catch { st = null; }
+    if (st === null) return ["PACK-PIN PACK-ROOT-ABSENT " + label(packRoot)];
+    if (i < parts.length - 1 && !st.isDirectory()) {
+      return ["PACK-PIN NOT-A-REGULAR-FILE " + label(component)];
+    }
+    if (!fs.readdirSync(dir).includes(parts[i])) return ["PACK-PIN PACK-ROOT-ABSENT " + label(packRoot)];
+    dir = component;
+  }
   if (st === null || !st.isDirectory()) return ["PACK-PIN PACK-ROOT-ABSENT " + label(packRoot)];
 
   const literal = parseLiteral(literalLines);
@@ -880,6 +897,179 @@ test("R2 Q2: the OPTIONAL reader is a fixture affordance, and the REAL ROW passe
   const realCall = "packPin(" + "PACK_ROOT_ABS, LITERAL);";
   assert.deepEqual(src.match(/packPin\(PACK_ROOT_ABS.*/g), [realCall],
     "the real row must call the engine over the real pack with NO reader");
+});
+
+
+/* Astra P-PACK-1/2: synthetic paths and independently verified byte digests.
+   certutil SHA256 verified the five nonempty vectors; .NET SHA256 verified empty.
+   Expectations below never call the cell's sha256 helper. */
+const S9_HEX = Object.freeze({
+  empty: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ascii: "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+  lf: "5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03",
+  crlf: "cd2eca3535741f27a8ae40c31b0c41d4057a7a7b912b33b9aed86485d1c84676",
+  invalid: "eddf68639913a3cb8331cdfe7f87559e0beccf2c289c0d90ac4d89b3204004f8",
+  replacement: "2d4bf56bf338c578dae8b2b20d4d8b28801557d4c38e1d7c6699abddf69fee8d",
+});
+function s9WithRoot(body) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "s9-astra-"));
+  try { return body(root); }
+  finally { fs.rmSync(root, { recursive: true, force: true }); }
+}
+
+
+/* Observe metadata descent as well as byte reads. Restore both synchronous hooks even
+   when an assertion fails; every watched path belongs to this row's own fixture. */
+function s9NoDescents(blocked, body) {
+  const lstat = fs.lstatSync;
+  const readdir = fs.readdirSync;
+  const attempts = [];
+  const inside = (abs) => {
+    const rel = path.relative(blocked, abs);
+    return rel !== "" && rel.split(path.sep)[0] !== ".." && !path.isAbsolute(rel);
+  };
+  fs.lstatSync = (abs, ...args) => { if (inside(abs)) attempts.push("lstat"); return lstat(abs, ...args); };
+  fs.readdirSync = (abs, ...args) => { if (abs === blocked || inside(abs)) attempts.push("readdir"); return readdir(abs, ...args); };
+  try { return body(); }
+  finally {
+    fs.lstatSync = lstat;
+    fs.readdirSync = readdir;
+    assert.deepEqual(attempts, [], "refusal must precede metadata descent");
+  }
+}
+
+for (const [name, bytes] of [
+  ["empty", Buffer.alloc(0)], ["ascii", txt("abc")],
+  ["lf", txt("hello\n")], ["crlf", txt("hello\r\n")],
+  ["invalid", Buffer.from([0xc3, 0x28])], ["replacement", Buffer.from([0xef, 0xbf, 0xbd, 0x28])],
+]) {
+  test("Astra P-PACK-2: independent digest vector " + name, () => {
+    s9WithRoot((root) => {
+      writeAt(root, "a.txt", bytes);
+      assert.deepEqual(s9Pin(root, "a.txt", S9_HEX[name]), []);
+    });
+  });
+}
+
+test("Astra P-PACK-2: LF and CRLF differ against one unchanged literal", () => {
+  s9WithRoot((root) => {
+    writeAt(root, "a.txt", txt("hello\n"));
+    assert.deepEqual(s9Pin(root, "a.txt", S9_HEX.lf), []);
+    writeAt(root, "a.txt", txt("hello\r\n"));
+    assert.deepEqual(s9Pin(root, "a.txt", S9_HEX.lf), [S9_NAME + " MISMATCH a.txt"]);
+  });
+});
+
+test("Astra P-PACK-2: invalid UTF-8 and its replacement decoding differ", () => {
+  s9WithRoot((root) => {
+    const invalid = Buffer.from([0xc3, 0x28]);
+    const decoded = Buffer.from([0xef, 0xbf, 0xbd, 0x28]);
+    assert.equal(invalid.toString("utf8"), decoded.toString("utf8"));
+    writeAt(root, "a.txt", invalid);
+    assert.deepEqual(s9Pin(root, "a.txt", S9_HEX.invalid), []);
+    writeAt(root, "a.txt", decoded);
+    assert.deepEqual(s9Pin(root, "a.txt", S9_HEX.invalid), [S9_NAME + " MISMATCH a.txt"]);
+  });
+});
+
+test("Astra P-PACK-1: ordinary nested path stays green", () => {
+  s9WithRoot((root) => {
+    const file = "one/two/a.txt";
+    writeAt(root, file, txt("abc"));
+    assert.deepEqual(s9Pin(root, file, S9_HEX.ascii), []);
+  });
+});
+
+test("Astra P-PACK-1: a 455-character absolute path stays green", () => {
+  s9WithRoot((root) => {
+    const tail = "/a.txt";
+    const remaining = 455 - root.length - 1 - tail.length;
+    const first = "d".repeat(120) + "/" + "e".repeat(120) + "/";
+    const file = first + "f".repeat(remaining - first.length) + tail;
+    assert.equal(path.join(root, ...file.split("/")).length, 455);
+    writeAt(root, file, txt("abc"));
+    assert.deepEqual(s9Pin(root, file, S9_HEX.ascii), []);
+  });
+});
+
+test("Astra P-PACK-1: composed and decomposed names stay distinct and green", () => {
+  s9WithRoot((root) => {
+    const composed = String.fromCharCode(0xe9) + ".txt";
+    const decomposed = "e" + String.fromCharCode(0x301) + ".txt";
+    writeAt(root, composed, txt("abc"));
+    writeAt(root, decomposed, txt("abc"));
+    assert.deepEqual(s9Pair(root, [decomposed, composed]), []);
+  });
+});
+
+const S9_NAME = "PACK-PIN";
+const s9Pin = (root, file, hex) => packPin(root, [file + " " + hex]);
+const s9Pair = (root, files) => packPin(root, files.map((file) => file + " " + S9_HEX.ascii));
+
+for (const dangling of [false, true]) {
+  test("Astra P-PACK-1: pack root ancestor junction " + (dangling ? "dangling" : "same-byte"), () => {
+    s9WithRoot((root) => {
+      const actual = path.join(root, "actual");
+      const alias = path.join(root, "alias");
+      writeAt(actual, "pack/a.txt", txt("abc"));
+      assert.deepEqual(s9Pin(path.join(actual, "pack"), "a.txt", S9_HEX.ascii), []);
+      assert.equal(tryLink(actual, alias, "junction"), null);
+      if (dangling) fs.rmSync(actual, { recursive: true });
+      assert.equal(fs.lstatSync(alias).isSymbolicLink(), true);
+      let reads = 0;
+      const refusals = s9NoDescents(alias, () =>
+        packPin(path.join(alias, "pack"), ["a.txt " + S9_HEX.ascii], () => { reads++; return txt("abc"); }));
+      assert.deepEqual(refusals, ["PACK-PIN NOT-A-REGULAR-FILE " + toPosix(alias)]);
+      assert.equal(reads, 0, "a rejected ancestor must prevent all file reads");
+    });
+  });
+}
+
+test("Astra P-PACK-1: pack root ancestors and root require exact spelling", () => {
+  s9WithRoot((root) => {
+    writeAt(root, "nested/pack/a.txt", txt("abc"));
+    const pack = path.join(root, "nested", "pack");
+    assert.deepEqual(s9Pin(pack, "a.txt", S9_HEX.ascii), []);
+    fs.renameSync(path.join(root, "nested"), path.join(root, "NESTED"));
+    assert.deepEqual(s9Pin(pack, "a.txt", S9_HEX.ascii), ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(pack)]);
+    const correct = path.join(root, "NESTED", "pack");
+    fs.renameSync(correct, path.join(root, "NESTED", "PACK"));
+    assert.deepEqual(s9Pin(correct, "a.txt", S9_HEX.ascii), ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(correct)]);
+  });
+});
+
+test("Astra P-PACK-3: literal parsing and serialise use explicit UTF-8 byte order", () => {
+  s9WithRoot((root) => {
+    const lo = String.fromCharCode(0xe000) + ".txt";
+    const hi = String.fromCodePoint(0x10000) + ".txt";
+    for (const file of [hi, lo]) writeAt(root, file, txt("abc"));
+    const lines = [lo + " " + S9_HEX.ascii, hi + " " + S9_HEX.ascii];
+    assert.deepEqual(packPin(root, lines), []);
+    assert.throws(() => packPin(root, [lines[1], lines[0]]), /not sorted by path bytes/);
+    const entries = [{ file: hi, sha256: S9_HEX.ascii }, { file: lo, sha256: S9_HEX.ascii }];
+    const emitted = serialise(entries);
+    assert.equal(emitted, lines[0] + "\n" + lines[1] + "\n");
+    assert.deepEqual(packPin(root, emitted.split("\n")), []);
+  });
+});
+
+test("Astra P-PACK-3: ADDED uses explicit U+E000 then U+10000 order", () => {
+  s9WithRoot((root) => {
+    const lo = String.fromCharCode(0xe000) + ".txt";
+    const hi = String.fromCodePoint(0x10000) + ".txt";
+    for (const file of ["a.txt", hi, lo]) writeAt(root, file, txt("abc"));
+    assert.deepEqual(s9Pin(root, "a.txt", S9_HEX.ascii), ["PACK-PIN ADDED " + lo, "PACK-PIN ADDED " + hi]);
+  });
+});
+
+
+test("Astra P-PACK-1: missing pack ancestor stops before descent", () => {
+  s9WithRoot((root) => {
+    const missing = path.join(root, "missing");
+    const pack = path.join(missing, "pack");
+    const refused = s9NoDescents(missing, () => s9Pin(pack, "a.txt", S9_HEX.ascii));
+    assert.deepEqual(refused, ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(pack)]);
+  });
 });
 
 /* THE REAL ROW. It runs the SAME engine the fixture rows run, over the real pack root and

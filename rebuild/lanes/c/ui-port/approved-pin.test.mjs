@@ -61,6 +61,8 @@
    every file design.APPROVED names is UNLISTED. It does not skip and it cannot pass
    vacuously. The exact text is in rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md.
 
+   Empty directories, hard links and NTFS streams are outside Git's byte inventory and C.5.1.
+
    NO OWNER DATA. Every fixture is built by this file in a mkdtemp folder out of bytes it
    writes itself, and removed again. */
 
@@ -122,10 +124,22 @@ function judge(root, files, literal, readFile) {
   const refusals = [];
   for (const file of files) {
     if (!Object.hasOwn(literal, file)) { refusals.push("APPROVED-PIN UNLISTED " + file); continue; }
-    const full = path.join(root, ...file.split("/"));
+    /* Check each component below the trusted root before descending. A same-byte
+       ancestor junction is still irregular; a case-only rename is still missing.
+       The refusal keeps the literal's spelling, with no normalisation or rewrite. */
+    const parts = file.split("/");
+    let full = root;
     let st = null;
-    try { st = fs.lstatSync(full); } catch { st = null; }
-    if (st === null) { refusals.push("APPROVED-PIN MISSING " + file); continue; }
+    let problem = null;
+    for (let i = 0; i < parts.length; i++) {
+      const parent = full;
+      full = path.join(parent, parts[i]);
+      try { st = fs.lstatSync(full); } catch { st = null; }
+      if (st === null) { problem = "MISSING"; break; }
+      if (i < parts.length - 1 && !st.isDirectory()) { problem = "NOT-A-REGULAR-FILE"; break; }
+      if (!fs.readdirSync(parent).includes(parts[i])) { problem = "MISSING"; break; }
+    }
+    if (problem !== null) { refusals.push("APPROVED-PIN " + problem + " " + file); continue; }
     if (!st.isFile()) { refusals.push("APPROVED-PIN NOT-A-REGULAR-FILE " + file); continue; }
     /* NAMED, AND THE LIST WALK GOES ON (the PM's ruling on Q2): a named file the cell
        cannot read used to throw out of here and take every LATER entry of the list with
@@ -653,6 +667,152 @@ test("R3 B1: the ORPHAN lines come out in path BYTE order, not the default sort'
       "APPROVED-PIN ORPHAN " + lo,
       "APPROVED-PIN ORPHAN " + hi,
     ]);
+  });
+});
+
+
+/* Astra P-PACK-1/2: synthetic paths and independently verified byte digests.
+   certutil SHA256 verified the five nonempty vectors; .NET SHA256 verified empty.
+   Expectations below never call the cell's sha256 helper. */
+const S9_HEX = Object.freeze({
+  empty: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  ascii: "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+  lf: "5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03",
+  crlf: "cd2eca3535741f27a8ae40c31b0c41d4057a7a7b912b33b9aed86485d1c84676",
+  invalid: "eddf68639913a3cb8331cdfe7f87559e0beccf2c289c0d90ac4d89b3204004f8",
+  replacement: "2d4bf56bf338c578dae8b2b20d4d8b28801557d4c38e1d7c6699abddf69fee8d",
+});
+function s9WithRoot(body) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "s9-astra-"));
+  try { return body(root); }
+  finally { fs.rmSync(root, { recursive: true, force: true }); }
+}
+
+
+/* Observe metadata descent as well as byte reads. Restore both synchronous hooks even
+   when an assertion fails; every watched path belongs to this row's own fixture. */
+function s9NoDescents(blocked, body) {
+  const lstat = fs.lstatSync;
+  const readdir = fs.readdirSync;
+  const attempts = [];
+  const inside = (abs) => {
+    const rel = path.relative(blocked, abs);
+    return rel !== "" && rel.split(path.sep)[0] !== ".." && !path.isAbsolute(rel);
+  };
+  fs.lstatSync = (abs, ...args) => { if (inside(abs)) attempts.push("lstat"); return lstat(abs, ...args); };
+  fs.readdirSync = (abs, ...args) => { if (abs === blocked || inside(abs)) attempts.push("readdir"); return readdir(abs, ...args); };
+  try { return body(); }
+  finally {
+    fs.lstatSync = lstat;
+    fs.readdirSync = readdir;
+    assert.deepEqual(attempts, [], "refusal must precede metadata descent");
+  }
+}
+
+for (const [name, bytes] of [
+  ["empty", Buffer.alloc(0)], ["ascii", txt("abc")],
+  ["lf", txt("hello\n")], ["crlf", txt("hello\r\n")],
+  ["invalid", Buffer.from([0xc3, 0x28])], ["replacement", Buffer.from([0xef, 0xbf, 0xbd, 0x28])],
+]) {
+  test("Astra P-PACK-2: independent digest vector " + name, () => {
+    s9WithRoot((root) => {
+      writeAt(root, "a.txt", bytes);
+      assert.deepEqual(s9Pin(root, "a.txt", S9_HEX[name]), []);
+    });
+  });
+}
+
+test("Astra P-PACK-2: LF and CRLF differ against one unchanged literal", () => {
+  s9WithRoot((root) => {
+    writeAt(root, "a.txt", txt("hello\n"));
+    assert.deepEqual(s9Pin(root, "a.txt", S9_HEX.lf), []);
+    writeAt(root, "a.txt", txt("hello\r\n"));
+    assert.deepEqual(s9Pin(root, "a.txt", S9_HEX.lf), [S9_NAME + " MISMATCH a.txt"]);
+  });
+});
+
+test("Astra P-PACK-2: invalid UTF-8 and its replacement decoding differ", () => {
+  s9WithRoot((root) => {
+    const invalid = Buffer.from([0xc3, 0x28]);
+    const decoded = Buffer.from([0xef, 0xbf, 0xbd, 0x28]);
+    assert.equal(invalid.toString("utf8"), decoded.toString("utf8"));
+    writeAt(root, "a.txt", invalid);
+    assert.deepEqual(s9Pin(root, "a.txt", S9_HEX.invalid), []);
+    writeAt(root, "a.txt", decoded);
+    assert.deepEqual(s9Pin(root, "a.txt", S9_HEX.invalid), [S9_NAME + " MISMATCH a.txt"]);
+  });
+});
+
+test("Astra P-PACK-1: ordinary nested path stays green", () => {
+  s9WithRoot((root) => {
+    const file = "one/two/a.txt";
+    writeAt(root, file, txt("abc"));
+    assert.deepEqual(s9Pin(root, file, S9_HEX.ascii), []);
+  });
+});
+
+test("Astra P-PACK-1: a 455-character absolute path stays green", () => {
+  s9WithRoot((root) => {
+    const tail = "/a.txt";
+    const remaining = 455 - root.length - 1 - tail.length;
+    const first = "d".repeat(120) + "/" + "e".repeat(120) + "/";
+    const file = first + "f".repeat(remaining - first.length) + tail;
+    assert.equal(path.join(root, ...file.split("/")).length, 455);
+    writeAt(root, file, txt("abc"));
+    assert.deepEqual(s9Pin(root, file, S9_HEX.ascii), []);
+  });
+});
+
+test("Astra P-PACK-1: composed and decomposed names stay distinct and green", () => {
+  s9WithRoot((root) => {
+    const composed = String.fromCharCode(0xe9) + ".txt";
+    const decomposed = "e" + String.fromCharCode(0x301) + ".txt";
+    writeAt(root, composed, txt("abc"));
+    writeAt(root, decomposed, txt("abc"));
+    assert.deepEqual(s9Pair(root, [decomposed, composed]), []);
+  });
+});
+
+const S9_NAME = "APPROVED-PIN";
+const s9Pin = (root, file, hex) => approvedPin(root, [file], { [file]: hex });
+const s9Pair = (root, files) => approvedPin(root, files, Object.fromEntries(files.map((file) => [file, S9_HEX.ascii])));
+
+for (const dangling of [false, true]) {
+  test("Astra P-PACK-1: approved ancestor junction " + (dangling ? "dangling" : "same-byte"), () => {
+    s9WithRoot((root) => {
+      writeAt(root, "ref/a.txt", txt("abc"));
+      assert.deepEqual(s9Pin(root, "ref/a.txt", S9_HEX.ascii), []);
+      fs.renameSync(path.join(root, "ref"), path.join(root, "outside-ref"));
+      assert.equal(tryLink(path.join(root, "outside-ref"), path.join(root, "ref"), "junction"), null);
+      if (dangling) fs.rmSync(path.join(root, "outside-ref"), { recursive: true });
+      assert.equal(fs.lstatSync(path.join(root, "ref")).isSymbolicLink(), true);
+      let reads = 0;
+      const refusals = s9NoDescents(path.join(root, "ref"), () =>
+        approvedPin(root, ["ref/a.txt"], { "ref/a.txt": S9_HEX.ascii }, () => { reads++; return txt("abc"); }));
+      assert.deepEqual(refusals, ["APPROVED-PIN NOT-A-REGULAR-FILE ref/a.txt"]);
+      assert.equal(reads, 0, "a rejected ancestor must prevent all file reads");
+    });
+  });
+}
+
+for (const parent of [false, true]) {
+  test("Astra P-PACK-1: case-only rename of approved " + (parent ? "parent" : "file") + " is MISSING", () => {
+    s9WithRoot((root) => {
+      writeAt(root, "ref/a.txt", txt("abc"));
+      assert.deepEqual(s9Pin(root, "ref/a.txt", S9_HEX.ascii), []);
+      const from = parent ? "ref" : "ref/a.txt";
+      const to = parent ? "REF" : "ref/A.txt";
+      fs.renameSync(path.join(root, ...from.split("/")), path.join(root, ...to.split("/")));
+      assert.deepEqual(s9Pin(root, "ref/a.txt", S9_HEX.ascii), ["APPROVED-PIN MISSING ref/a.txt"]);
+    });
+  });
+}
+
+
+test("Astra P-PACK-1: missing approved ancestor stops before descent", () => {
+  s9WithRoot((root) => {
+    const refused = s9NoDescents(path.join(root, "missing"), () => s9Pin(root, "missing/a.txt", S9_HEX.ascii));
+    assert.deepEqual(refused, ["APPROVED-PIN MISSING missing/a.txt"]);
   });
 });
 

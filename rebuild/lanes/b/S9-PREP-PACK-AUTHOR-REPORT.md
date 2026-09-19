@@ -1203,3 +1203,322 @@ commit after `1ab24d2` in this round is the one that adds this paragraph, and it
 file and nothing else, which `git diff --stat` shows; the bar at that final head goes to the
 PM in this lane's return value rather than being claimed here before it is run. No count in
 this document is carried from a head other than the one named beside it.
+
+## Astra's blind review: fixed
+
+Builder: Astra, the named PM4 assignment; independent Claude review remains pending.
+Base: 1d0cbffa029fad12603d12857671ddaa2cc9ee0a.
+Branch: rebuild/b-s9-prep-pack-astra5. All changes are UNCOMMITTED.
+This section is a hypothesis for the next reviewer, limited to the measurements below.
+P = pack-pin.test.mjs; A = approved-pin.test.mjs, both under rebuild/lanes/c/ui-port/.
+
+### What changed
+
+P-PACK-1 / F1+F4: APPROVED checks every component below its supplied repository root;
+PACK checks the root's ancestors from REPO_ROOT and the pack root itself before its
+existing recursive walk. Disposable PACK fixtures use the OS temp directory as their
+trusted boundary. Each component is lstat'ed before descent; a non-directory ancestor
+is NOT-A-REGULAR-FILE. A final PACK root that is not a plain directory remains
+PACK-ROOT-ABSENT. Exact membership in the parent's own directory listing detects
+case-only renames without rewriting names. APPROVED refuses with the pinned spelling;
+PACK names the offending root ancestor using its existing label convention.
+New junction rows observe descendant lstat/readdir calls as well as byte-reader calls.
+
+P-PACK-2 / F2: each cell has six independently verified hard-coded digest vectors and
+unchanged-literal LF/CRLF and invalid-UTF-8/replacement comparisons. The new expectations
+never call sha256. Existing fixture rows were retained byte-for-byte, including their
+older helper-derived expectations; the new independent rows catch that shared-helper gap.
+P-PACK-3 / F5: real packPin calls exercise parseLiteral in both orders and ADDED order
+with U+E000 and U+10000. serialise is checked against explicit expected text in the same
+literal-order row. Each header now states the ruled Git-inventory exclusions.
+
+### Execution method and preservation
+
+Windows, Node v24.19.0, exactly:
+C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe
+Reported TAP runs used --test-reporter=tap followed by ONE module path, without --test
+child-process isolation. One Node process at a time. Before runs, PowerShell set these
+on separate lines:
+
+```powershell
+$env:MEASURED_TEST_NOW = '2026-09-03'
+$env:TZ = 'America/New_York'
+```
+
+Original scratch baselines measured P 41/40/1 and A 26/25/1 (tests/pass/fail).
+Scratch copies rebind only REPO_ROOT to this checkout so module-relative relocation does
+not change the real call or design-module lookup. Red-first copies otherwise retain the
+UNCHANGED engine and every old row, then insert the new rows before the real row.
+Digest/order red-first copies additionally apply only the named single-clause mutant.
+Both real literals remain empty in every copy. All mutations ran in scratch, never in
+the working cells. TAP numbers below are final numbers, not the old review's numbering.
+The original pre-real fixture blocks and real-row-to-EOF suffixes were compared as exact
+strings against the preserved original files: unchanged in both cells. Both production
+literal blocks also compared unchanged. Both complete cells are ASCII and contain no CR.
+git diff --check passed.
+
+### Red-first evidence: unchanged engines plus the new rows
+
+These are pasted failing TAP lines from the unchanged-engine copies. The real row is
+included to distinguish its deliberate failure from fixture failures. P measured
+58/53/5; A measured 42/36/6. The missing-ancestor rows also require no metadata descent.
+
+```text
+not ok 51 - Astra P-PACK-1: pack root ancestor junction same-byte
+not ok 52 - Astra P-PACK-1: pack root ancestor junction dangling
+not ok 53 - Astra P-PACK-1: pack root ancestors and root require exact spelling
+not ok 56 - Astra P-PACK-1: missing pack ancestor stops before descent
+not ok 57 - REAL ROW: the owner-approved pack at this head, against this cell's own literal
+```
+```text
+not ok 36 - Astra P-PACK-1: approved ancestor junction same-byte
+not ok 37 - Astra P-PACK-1: approved ancestor junction dangling
+not ok 38 - Astra P-PACK-1: case-only rename of approved file is MISSING
+not ok 39 - Astra P-PACK-1: case-only rename of approved parent is MISSING
+not ok 40 - Astra P-PACK-1: missing approved ancestor stops before descent
+not ok 41 - REAL ROW: whatever design.APPROVED names at this head, against this cell's literal
+```
+
+Controls P48-P50 / A33-A35 (ordinary nesting, exactly 455 absolute-path characters,
+and separate composed/decomposed names) passed both unchanged and final cells.
+They are controls, not red-first defect witnesses. Digest and ordering rows also pass
+the correct unchanged helpers; their red-first evidence is the faulty single-clause
+copy, below. No honest failure against a correct digest/order helper is claimed.
+
+Unchanged P plus P08, P09 or P10, respectively (only the new order-row failures shown;
+the unchanged-engine path failures above and real row also remain red):
+
+P08:
+```text
+not ok 54 - Astra P-PACK-3: literal parsing and serialise use explicit UTF-8 byte order
+```
+P09:
+```text
+not ok 54 - Astra P-PACK-3: literal parsing and serialise use explicit UTF-8 byte order
+```
+P10:
+```text
+not ok 55 - Astra P-PACK-3: ADDED uses explicit U+E000 then U+10000 order
+```
+
+Unchanged engines plus P18/A10 (decode UTF-8 and normalize CRLF) fail these digest rows:
+
+P18:
+```text
+not ok 43 - Astra P-PACK-2: independent digest vector crlf
+not ok 44 - Astra P-PACK-2: independent digest vector invalid
+not ok 46 - Astra P-PACK-2: LF and CRLF differ against one unchanged literal
+not ok 47 - Astra P-PACK-2: invalid UTF-8 and its replacement decoding differ
+```
+A10:
+```text
+not ok 28 - Astra P-PACK-2: independent digest vector crlf
+not ok 29 - Astra P-PACK-2: independent digest vector invalid
+not ok 31 - Astra P-PACK-2: LF and CRLF differ against one unchanged literal
+not ok 32 - Astra P-PACK-2: invalid UTF-8 and its replacement decoding differ
+```
+
+Unchanged engines plus P19/A11 (prepend wrong-domain:) fail every independent vector
+and both unchanged-literal rows. Pasted digest-row failures:
+
+P19:
+```text
+not ok 40 - Astra P-PACK-2: independent digest vector empty
+not ok 41 - Astra P-PACK-2: independent digest vector ascii
+not ok 42 - Astra P-PACK-2: independent digest vector lf
+not ok 43 - Astra P-PACK-2: independent digest vector crlf
+not ok 44 - Astra P-PACK-2: independent digest vector invalid
+not ok 45 - Astra P-PACK-2: independent digest vector replacement
+not ok 46 - Astra P-PACK-2: LF and CRLF differ against one unchanged literal
+not ok 47 - Astra P-PACK-2: invalid UTF-8 and its replacement decoding differ
+```
+A11:
+```text
+not ok 25 - Astra P-PACK-2: independent digest vector empty
+not ok 26 - Astra P-PACK-2: independent digest vector ascii
+not ok 27 - Astra P-PACK-2: independent digest vector lf
+not ok 28 - Astra P-PACK-2: independent digest vector crlf
+not ok 29 - Astra P-PACK-2: independent digest vector invalid
+not ok 30 - Astra P-PACK-2: independent digest vector replacement
+not ok 31 - Astra P-PACK-2: LF and CRLF differ against one unchanged literal
+not ok 32 - Astra P-PACK-2: invalid UTF-8 and its replacement decoding differ
+```
+
+### Independently verified vectors (the same constants in each cell)
+
+The five nonempty files were written with explicit bytes using .NET WriteAllBytes and
+verified by certutil -hashfile <scratch-file> SHA256. All five commands succeeded.
+certutil's empty-file attempt returned ERROR_FILE_INVALID (0x800703ee); the empty digest
+was instead verified by System.Security.Cryptography.SHA256.Create().ComputeHash over
+an empty byte array, rendered as lowercase hex. No vector expectation came from the
+Node helper under test.
+
+| Input bytes (hex) | SHA256 | Independent verifier |
+|---|---|---|
+| empty | e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 | .NET SHA256 |
+| 61 62 63 (abc) | ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad | certutil |
+| 68 65 6c 6c 6f 0a (hello LF) | 5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03 | certutil |
+| 68 65 6c 6c 6f 0d 0a (hello CRLF) | cd2eca3535741f27a8ae40c31b0c41d4057a7a7b912b33b9aed86485d1c84676 | certutil |
+| c3 28 (invalid UTF-8) | eddf68639913a3cb8331cdfe7f87559e0beccf2c289c0d90ac4d89b3204004f8 | certutil |
+| ef bf bd 28 (replacement decoding) | 2d4bf56bf338c578dae8b2b20d4d8b28801557d4c38e1d7c6699abddf69fee8d | certutil |
+
+### Final 30-row blind-review table, re-executed at final cell bytes
+
+Every row below is one independent copy with one clause changed. Additional red rows
+exclude P57/A41, the intentional real rows. NONE means all fixtures stayed green, not
+that the module passed. All 30 processes exited 1. Result: 28 killed, 2 survived.
+P02/A09 target the moved component lstat sites. A03 suppresses MISSING at the new shared
+problem-emission site while retaining its continue; this preserves the old mutation's
+behavior after the missing check moved into the component loop.
+
+| ID | Single-clause change | Additional red TAP rows |
+|---|---|---|
+| P01 | Root final guard drops !st.isDirectory() | 17, 34 |
+| P02 | Root component lstatSync -> statSync | 34, 51-52 |
+| P03 | Pack walk lstatSync -> statSync | 15, 26, 31 |
+| P04 | literal.length === 0 -> false | 18, 58 |
+| P05 | Ignore prefix startsWith -> includes | 1-11, 13, 15, 23-26, 29-31, 33-38 |
+| P06 | Ignore segments drop slice(0, -1) | 25 |
+| P07 | sortByBytes sort(byteCompare) -> sort() | 12, 55 |
+| P08 | serialise comparator -> code-unit comparison | 54 |
+| P09 | parseLiteral byte comparison -> string < | 54 |
+| P10 | ADDED sortByBytes(keys) -> keys.sort() | 55 |
+| P11 | Irregular-output sort -> insertion order | NONE |
+| P12 | Unreadable-output sort -> insertion order | NONE |
+| P13 | MISMATCH predicate -> false | 2-5, 9, 22-23, 30, 37, 46-47, 58 |
+| P14 | MISSING predicate -> false | 7, 15, 35, 58 |
+| P15 | ADDED predicate -> false | 6, 11, 24-25, 55, 58 |
+| P16 | Walk !st.isFile() -> false | 15, 26, 31 |
+| P17 | Read catch stops recording UNREADABLE | 36-38, 58 |
+| P18 | Digest decodes UTF-8 and normalizes CRLF to LF | 43-44, 46-47 |
+| P19 | Digest prepends wrong-domain: | 40-55 |
+| A01 | LIST-EMPTY predicate -> false | 2, 11, 18, 42 |
+| A02 | Own-literal-entry predicate -> false | 5-6, 11-12, 17, 20, 24, 42 |
+| A03 | Missing component continues without MISSING output | 4, 38-40, 42 |
+| A04 | Final !st.isFile() -> false | 10, 19 |
+| A05 | Read catch continues without UNREADABLE | 21-22, 42 |
+| A06 | MISMATCH predicate -> false | 3, 7-8, 22, 31-32, 42 |
+| A07 | ORPHAN predicate -> false | 6, 11, 15-17, 24, 42 |
+| A08 | ORPHAN byte sort -> default sort | 24 |
+| A09 | Component lstatSync -> statSync | 19, 36-37 |
+| A10 | Digest decodes UTF-8 and normalizes CRLF to LF | 28-29, 31-32 |
+| A11 | Digest prepends wrong-domain: | 25-39 |
+
+P18/A10's exact update replacement is
+`.update(Buffer.from(bytes.toString("utf8").replace(/\r\n/g, "\n")))`.
+P19/A11's is `.update(Buffer.concat([Buffer.from("wrong-domain:"), bytes]))`.
+P11/P12 remain the PM-upheld irregular/unreadable output-order residuals from the
+original review; neither can conceal a byte difference. They were re-run, not borrowed.
+
+### Added path-resolution clauses: 28 further independent single-site mutations
+
+All 28 killed fixture rows at final bytes. The table names the changed expression or
+statement; existing lstat and final-directory checks are already covered by P01/P02
+and A04/A09 above. Scratch mutations.json contains each exact from/to string.
+
+| ID | Single-clause change | Additional red TAP rows |
+|---|---|---|
+| P20 | Invert trusted boundary selection | 1-11, 13, 15, 18, 20-26, 28-38, 40-55, 58 |
+| P21 | Discard all root ancestors | 51-53 |
+| P22 | Begin descent at pack instead of boundary | 1-11, 13, 15, 18, 20-26, 28-38, 40-56, 58 |
+| P23 | Skip first component | 1-11, 13, 15, 18, 20-26, 28-38, 40-55, 58 |
+| P24 | Skip final component | 1-11, 13, 15, 17-18, 20-26, 28-38, 40-50, 53-55, 58 |
+| P25 | Lose accumulated parent | 51-53 |
+| P26 | Drop missing-stat recovery | 16, 19, 56 |
+| P27 | Drop missing-component return | 56 |
+| P28 | Drop ancestor irregular refusal | 51-52 |
+| P29 | Treat final pack root as ancestor | 17, 34 |
+| P30 | Drop exact spelling check | 53 |
+| P31 | Discard descent update | 51-53 |
+| P32 | Misname offending ancestor | 51-52 |
+| A12 | Discard approved ancestors | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 33-34, 36-39, 42 |
+| A13 | Begin above trusted root | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42 |
+| A14 | Skip first component | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42 |
+| A15 | Skip final component | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42 |
+| A16 | Lose accumulated parent | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 33-34, 36-39, 42 |
+| A17 | Repeat first component | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 33-34, 36-39, 42 |
+| A18 | Drop missing-stat recovery | 4, 40 |
+| A19 | Drop missing-component branch | 40 |
+| A20 | Drop ancestor irregular refusal | 36-37 |
+| A21 | Treat final file as ancestor | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42 |
+| A22 | Drop exact spelling check | 38-39 |
+| A23 | Descend after irregular ancestor refusal | 36-37 |
+| A24 | Drop component-problem emission/continue | 4, 38-40, 42 |
+| A25 | Lose pinned spelling in component refusal | 4, 36-40 |
+| A26 | Lose clean-path sentinel | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42 |
+
+### Final bar and final cell hashes
+
+| Cell on this PC | Tests | Pass | Fail | Skipped | Todo | Only failing row |
+|---|---:|---:|---:|---:|---:|---|
+| PACK-PIN | 58 | 57 | 1 | 0 | 0 | 57: REAL ROW |
+| APPROVED-PIN | 42 | 41 | 1 | 0 | 0 | 41: REAL ROW |
+
+Each module exited 1, as required. The emitted real refusals were:
+
+```text
+PACK-PIN PACK-ROOT-ABSENT rebuild/m1/approved-2026-09-18
+APPROVED-PIN UNLISTED rebuild/m1/approved-2026-09-08/Earned-refinement-A.html
+APPROVED-PIN UNLISTED rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html
+```
+
+certutil -hashfile, SHA256, both commands completed successfully:
+
+```text
+pack-pin.test.mjs     82efbae2e677f15b5e2afb2cd78378a72578da0e9ee8d382657949b4da69eca6
+approved-pin.test.mjs cdf4a6b4ee975201da76df054383c0a1ef2aab993d5a8b024967408a7d0a0c73
+```
+
+The existing file-link rows reported EPERM on this Windows PC and took their unchanged
+Windows fallback; no file-symlink success is claimed here. Same-byte ancestor junctions
+and dangling junctions were built and refused here. Linux's file-link branch measures
+actual file symlinks when unprivileged creation is available; its junction construction
+uses Node's directory-symlink behavior. Those Linux results await the PM's run.
+
+### Not ordered, and why
+
+F3 (growth inside readFileSync) is NOT ORDERED: the PM rules that no writer touches the
+pack during a CI-checkout cell run and applies DECISIONS:580's reachable-world rule.
+No snapshot, fstat stability or concurrency mechanism was added or claimed.
+F6 (the workflow step's if: line and its own row) is on the S9 integration list; this
+assignment does not own the workflow and did not change it.
+F7 (unreadable-directory loud red) stays a note. No directory-ACL repair is claimed.
+Empty directories, hard links and NTFS streams are outside Git's byte inventory and
+C.5.1 by the PM's ruling; each cell's header now says so.
+
+### What I did not verify
+
+No Linux execution: the PM runs the Linux half in the cloud farm at the cell hashes
+above. No hosted CI, fork policy, Node 22, real design-pack acceptance, filled production
+literal, product suite, full conformance gate, ACL-denial rerun, concurrent writer,
+immutable-snapshot proof or file-symlink success on this PC. This is a builder report,
+not independent Claude acceptance. No prohibited data/auth/soak path was accessed.
+No install, node_modules change, receipt/artifact generator, commit, push, checkout,
+reset, stash, clean, fetch, workflow change or product-file change was performed.
+Only the two owned cells and this appended report section changed in the worktree.
+All fixture bytes were synthetic. Fixture cleanup completed without a deletion refusal.
+Scratch source copies, exact mutation inventory, and TAP logs are retained for review at:
+
+```text
+C:\Users\joeym\AppData\Local\Temp\astra-s9-fix-5b9fe67795fa431a9e386963cce2e79a
+```
+
+### Last commands
+
+The final two shell commands were git status --porcelain and git diff --stat.
+Their output is pasted below.
+
+```text
+warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
+ M rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md
+ M rebuild/lanes/c/ui-port/approved-pin.test.mjs
+ M rebuild/lanes/c/ui-port/pack-pin.test.mjs
+```
+
+```text
+ rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md | 319 ++++++++++++++++++++++++++
+ rebuild/lanes/c/ui-port/approved-pin.test.mjs | 166 +++++++++++++-
+ rebuild/lanes/c/ui-port/pack-pin.test.mjs     | 192 +++++++++++++++-
+ 3 files changed, 673 insertions(+), 4 deletions(-)
+```
