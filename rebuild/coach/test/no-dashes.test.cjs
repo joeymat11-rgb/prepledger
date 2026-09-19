@@ -44,7 +44,11 @@ test("no dash survives in any source string this lane writes for the athlete", (
     /* C6 Part A: the onboarding modules are athlete-facing too. */
     "onboarding-tools.cjs", "onboarding-text.cjs",
     /* Coach wave one: so are the demo's. */
-    "wave1-tools.cjs", "wave1-text.cjs", "machine-settings-commands.cjs"]) {
+    "wave1-tools.cjs", "wave1-text.cjs", "machine-settings-commands.cjs",
+    /* P4b-1: the coaching-memory modules speak to the athlete too, and the
+       sentence that puts a canonical value beside a remembered one is written
+       here rather than in a template. */
+    "memory-commands.cjs", "memory-model.cjs", "memory-host.mjs", "memory-tools.cjs"]) {
     const code = stripComments(fs.readFileSync(at(file), "utf8"));
     const offending = code.split("\n")
       .map((line, i) => [i + 1, line])

@@ -47,6 +47,12 @@ import { createSleepHost } from '../m3/w7-preview/today/sleep-host.mjs';
 /* Coach wave one. The era's own lease schema, which is what the accepted client
    stamps every producer-injected command with. */
 import { LOCAL_ERA_SCHEMA_VERSION } from '../m3/w6/local/local-era.mjs';
+/* P4b-1 REMEMBER AND RECALL. The coaching-memory lane, opened on THIS
+   installation exactly the way the machine-settings lane below is opened: the
+   same client, the same hostBindings seam, the same one generation. This module
+   composes it and shapes nothing: the profile, the caps, the closed fact shape
+   and the read-back are memory-commands.cjs's own. */
+import { createMemoryHost } from './memory-host.mjs';
 
 const require = createRequire(import.meta.url);
 const Capture = require('../m4/workout/capture.cjs');
@@ -209,6 +215,14 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
   /* Coach wave one: the machine-settings lane, on by default because step 3 of
      the demo is a read the coach makes every time it is asked. */
   withMachineSettings = true,
+  /* P4b-1: the coaching-memory lane, on by default because a coach that cannot
+     recall what he confirmed is the gap this slice exists to close. It rides
+     THIS installation and never opens one of its own. */
+  withMemory = true,
+  /* The installation's OWN clock, injectable so a cell can prove that a clock
+     which moves between calls moves no stored stamp. The default is exactly the
+     one this module has always used, so nothing changes for any other caller. */
+  clock,
   /* N2 wave: the sleep lane, ON by default because the coach is asked about last
      night every time it is asked about today, and a consumer that cannot see the
      night the athlete recorded reports the imported basis as if it were a record
@@ -219,11 +233,13 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
   if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('openCoachWorld requires day');
   if (!idb || !web?.subtle) throw new Error('COACH_DEVICE_STORE_UNAVAILABLE');
 
-  const clock = { now: () => day + 'T13:00:00.000Z', today: () => day, tz: '-05:00', monotonicMs: () => 0 };
+  const eraClock = clock
+    || { now: () => day + 'T13:00:00.000Z', today: () => day, tz: '-05:00', monotonicMs: () => 0 };
   const prescriptionCapture = Capture.createPrescriptionCapture({ parseStrictJson,
     profile: Capture.SOURCE_PROFILE, sourceCodec: Source });
   const client = await openLocalDurableClient({ indexedDB: idb, crypto: web, databaseName, namespace,
-    athleteId, deviceId, clock, workoutCommands: Commands.createWorkoutCommands({ prescriptionCapture }) });
+    athleteId, deviceId, clock: eraClock,
+    workoutCommands: Commands.createWorkoutCommands({ prescriptionCapture }) });
 
   if (client.status().state === 'first-run') {
     const enrolled = await client.enroll({ profile: 'earned-coach-local' });
@@ -344,13 +360,20 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
     ? await createMachineSettingsHost({ client, day })
     : null;
 
+  /* P4b-1's coaching-memory lane, which IS on this era for the same reason: it
+     is opened from THIS client's own hostBindings, so a confirmed memory shares
+     the generation, the lease and the commit path with the weigh-in, the workout
+     and the machine settings. No second database, no second enrolment. */
+  const memory = withMemory ? await createMemoryHost({ client, day }) : null;
+
   return Object.freeze({
     client, bindings, today, gym, gymHost, checkin, checkInHost, setupHost, machineSettings,
-    sleepHost, consent, day, readings,
+    memory, sleepHost, consent, day, readings,
     era: { eraId: booted.eraId || null, leaseId: booted.leaseId || null, revision: booted.revision },
     checkInOnLocalEra: false,
     setupOnLocalEra: false,
     machineSettingsOnLocalEra: !!machineSettings,
+    memoryOnLocalEra: !!memory,
     /* True only when the coach can really read this device's sleep nights. When it is
        false the coach has no night of record to state, and says so. */
     get sleepOnLocalEra() { return alive && sleepReadable; },
@@ -363,6 +386,7 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
       if (checkInHost) { try { checkInHost.close(); } catch {} }
       if (setupHost) { try { setupHost.close(); } catch {} }
       if (machineSettings) { try { machineSettings.close(); } catch {} }
+      if (memory) { try { memory.close(); } catch {} }
     },
   });
 }
