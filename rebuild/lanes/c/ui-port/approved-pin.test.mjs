@@ -762,13 +762,19 @@ test("Astra P-PACK-1: ordinary nested path stays green", () => {
   });
 });
 
+/* L2 N4: pure budget arithmetic, also used by the actual long-path row. */
+function s9LongPath(rootLength) {
+  const tail = "/a.txt";
+  const remaining = 455 - rootLength - 1 - tail.length;
+  const first = "d".repeat(120) + "/" + "e".repeat(120) + "/";
+  if (remaining <= first.length) return null;
+  return first + "f".repeat(remaining - first.length) + tail;
+}
+
 test("Astra P-PACK-1: a 455-character absolute path stays green", (t) => {
   s9WithRoot((root) => {
-    const tail = "/a.txt";
-    const remaining = 455 - root.length - 1 - tail.length;
-    const first = "d".repeat(120) + "/" + "e".repeat(120) + "/";
-    if (remaining <= first.length) { t.skip("455-character path: temp root leaves no filename budget"); return; }
-    const file = first + "f".repeat(remaining - first.length) + tail;
+    const file = s9LongPath(root.length);
+    if (file === null) { t.skip("455-character path: temp root leaves no filename budget"); return; }
     assert.equal(path.join(root, ...file.split("/")).length, 455);
     writeAt(root, file, txt("abc"));
     assert.deepEqual(s9Pin(root, file, S9_HEX.ascii), []);
@@ -840,7 +846,8 @@ function s9DenyListing(denied, body) {
   finally { fs.readdirSync = original; }
 }
 
-/* Windows RD denies list-directory without denying traversal of a known child. */
+/* Windows-only permission witness: whoami/icacls child processes mutate ACLs only
+   on this row's disposable fixture. RD denies listing, and finally clears the deny. */
 function s9DenyListAcl(denied, body) {
   const identity = spawnSync("whoami.exe", [], { encoding: "utf8", windowsHide: true });
   assert.equal(identity.status, 0, "whoami must identify the actual test process account");
@@ -895,6 +902,28 @@ for (const acl of [false, true]) {
     });
   });
 }
+
+
+test("L2 N4: the 455-character budget holds both sides of its boundary", () => {
+  const first = "d".repeat(120) + "/" + "e".repeat(120) + "/";
+  assert.equal(s9LongPath(205), first + "f/a.txt");
+  assert.equal(s9LongPath(206), null);
+  assert.equal(s9LongPath(207), null);
+});
+
+test("L2 N5: denied-listing hook restores after a throwing body", () => {
+  const original = fs.readdirSync;
+  const own = new Error("listing body's original error");
+  try {
+    assert.throws(() => s9DenyListing("synthetic-denied", () => {
+      assert.notEqual(fs.readdirSync, original);
+      throw own;
+    }), (error) => error === own);
+    assert.equal(fs.readdirSync, original);
+    assert.equal(s9DenyListing("synthetic-denied", () => 42), 42);
+    assert.equal(fs.readdirSync, original);
+  } finally { fs.readdirSync = original; }
+});
 
 /* THE REAL ROW. The SAME engine the fixture rows run, over the real repository root, the
    real design.APPROVED read at run time, and this cell's own literal. It is RED on this

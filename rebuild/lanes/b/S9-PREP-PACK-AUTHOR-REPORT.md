@@ -1591,13 +1591,29 @@ unfilled. Every fixture was synthetic and its cell-created directory was removed
 PACK red-first measured 63 tests / 57 pass / 6 fail:
 
 ```text
-
+not ok 57 - R6 N5: no-descent hooks restore and preserve the body's own error
+not ok 58 - R6 P-PACK-4: unlistable pack ancestor injected
+not ok 59 - R6 P-PACK-4: unlistable pack ancestor Windows ACL
+not ok 60 - R6 P-PACK-4: unlistable pack root injected
+not ok 61 - R6 P-PACK-4: unlistable pack root Windows ACL
+not ok 62 - REAL ROW: the owner-approved pack at this head, against this cell's own literal
+# tests 63
+# pass 57
+# fail 6
+# skipped 0
 ```
 
 APPROVED red-first measured 45 tests / 41 pass / 4 fail:
 
 ```text
-
+not ok 41 - R6 N5: no-descent hooks restore and preserve the body's own error
+not ok 42 - R6 P-PACK-4: unlistable approved parent names UNREADABLE and continues injected
+not ok 43 - R6 P-PACK-4: unlistable approved parent names UNREADABLE and continues Windows ACL
+not ok 44 - REAL ROW: whatever design.APPROVED names at this head, against this cell's literal
+# tests 45
+# pass 41
+# fail 4
+# skipped 0
 ```
 
 Each new N5 row fails because the unchanged hook replaces the body's own error.
@@ -1786,4 +1802,394 @@ warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
  rebuild/lanes/c/ui-port/approved-pin.test.mjs |  92 ++++++++-
  rebuild/lanes/c/ui-port/pack-pin.test.mjs     | 106 ++++++++++-
  3 files changed, 447 insertions(+), 16 deletions(-)
+```
+
+## Loop round 2: fixed or disputed
+
+STATUS: FIXED, measured on this PC; awaiting the independent loop check. No dispute.
+Inputs: the unchanged cells at this worktree's starting head.
+Ordered changes: P-PACK-5 and notes N2, N4, N5, N7; remaining notes retained as limits.
+Measurements below are executed. Scratch: C:\Users\joeym\AppData\Local\Temp\astra-s9-loop2-72
+
+### Executed before the final table
+
+PC win32, Node v24.19.0 at the mandated runtime, one Node process at a time.
+MEASURED_TEST_NOW=2026-09-03 and TZ=America/New_York were assigned on separate lines.
+Both unchanged engines received new rows in scratch before implementation changed.
+PACK: 68 tests / 64 pass / 4 fail / 0 skip. APPROVED: 47 / 45 / 2 / 0.
+
+```text
+not ok 62 - L2 P-PACK-5: the supplied trusted root bounds the exact component walk
+not ok 63 - L2 P-PACK-5: synthetic different-drive roots use one arm without absolute differencing
+not ok 65 - L2 N4: the 455-character budget holds both sides of its boundary
+not ok 67 - REAL ROW: the owner-approved pack at this head, against this cell's own literal
+not ok 44 - L2 N4: the 455-character budget holds both sides of its boundary
+not ok 46 - REAL ROW: whatever design.APPROVED names at this head, against this cell's literal
+```
+
+The trusted-root inputs fail the unchanged two-argument interface. The synthetic
+Q:/R: test also traps path.relative, so the old absolute-path boundary selection
+throws. These inputs create no physical volume and write no synthetic path there.
+The pure long-path helper is absent in the unchanged cells and its new rows throw.
+The unchanged long-path rows are retained except for the authorized helper extraction.
+
+N2 and N5 are coverage gaps: their new rows PASS the unchanged implementation.
+Their red-first counterexamples remove just the exact clause L1 names, from scratch
+copies of the unchanged engines plus the new rows. They are not claimed base failures.
+The mutated PACK listing-reuse copy measured 68/63/5, the PACK restoration copy
+68/63/5, and the APPROVED restoration copy 47/44/3, with zero skips in each.
+The updated R2 Q2 arity/real-call pin against the unchanged interface measured
+68/63/5. Its additional failure is row 39. Exact TAP lines follow in the final evidence.
+
+First final-byte bar: PACK 68/67/1, APPROVED 47/46/1, zero skips, exit 1 each.
+Only the real rows fail; the literals remain unfilled. The whole single-clause table
+and arm instrumentation were then run sequentially in scratch.
+
+### Fixed invariants and note dispositions
+
+P-PACK-5 / BLOCKING: judge(root, packRootRel, literalLines, readFile) and
+packPin(root, packRootRel, literalLines, readFile = fs.readFileSync) now share one
+supplied-root path. packRootRel is split on the pinned forward slash. Every component
+below root is lstat'ed before listing its parent and before any descent. The listing
+must contain that component's exact spelling. The former absolute-path boundary
+selection and absolute-to-relative differencing are removed from the judge.
+
+Every old fixture call supplies os.tmpdir() and its already-constructed relative
+suffix. s9PackRel removes that known prefix and spells native separators as forward
+slashes; it never chooses a trust boundary. The real row supplies REPO_ROOT,
+PACK_ROOT_REL, LITERAL. Q2 still pins the exact real call and now pins arity three.
+The new root-boundary row checks the complete lstat/list sequence: no component at
+or above the supplied root is inspected. Its same-byte fixture returns [].
+The synthetic Q:/R: row checks both different-drive spellings through that same
+entry point with path.relative trapped; both return [] and only the pinned paths
+are inspected. No Q: or R: file is created or accessed through the real filesystem.
+
+N1: retained the declared interior-directory loud-throw residual, exactly as L1
+leaves it for the PM's final decision. The interior walk and its comment are unchanged.
+The root and ancestor listing guards remain; no residual was widened.
+N2: added the exact-once root-listing row. Both dropping rootNames at the call and
+ignoring names inside walk now produce additional reds, including row 64.
+N3: existing Windows-only exact-spelling sentence retained. P30/A22 are killed on
+this PC. No Linux claim is inferred from that result.
+N4: extracted s9LongPath(rootLength), used by the named 455-character row in each
+cell. Inputs 205, 206, 207 yield the exact one-character filename, null, null.
+The synthetic longer-temp-root controls still explicitly skip only the long-path
+row; removing the caller's null guard makes that row red. The ordinary runs skip none.
+N5: the new throwing-body row pins restoration, original error identity and successful
+return. The implementation was already correct; its finally-removal counterexample
+now fails in each cell. The row restores its own instrumentation even on failure.
+N6: measured all four equivalent ACL/status mutants; no additional row is owed by L1.
+N7: filled BOTH earlier empty red-first fences with newly executed TAP from the
+saved prior-round red-first copies, relocated only to this checkout. Their measured
+counts reproduce 63/57/6 and 45/41/4. This repairs the old evidence gap, not a cell.
+N8: each ACL helper comment now names the Windows-only child processes, disposable
+fixture ACL mutation and finally cleanup. No permission behavior changed.
+N9: label() and its row are unchanged; output remains repo-relative inside the
+checkout and absolute for temp fixtures. This is diagnostic formatting, not a choice
+of trusted root. Its existing row 27 passes.
+N10: removed the faulty judge comparison. label()'s existing cross-drive diagnostic
+guard is unchanged. The oversight was the omitted absolute-result test in a boundary
+selector that no longer exists, not an intentional cross-drive policy.
+N11: no CI/workflow edit or execution. Hosted CI remains the S9 head's job.
+N12: both real rows remain red, both literal blocks byte-identical and unfilled.
+
+### Red-first evidence for the coverage rows and updated interface pin
+
+These are exact additional TAP failures from independent copies of the unchanged
+cells plus the new rows, each with only the named counterexample. The other new
+interface/helper failures and deliberate real reds remain in their logs.
+
+N2: remove only the rootNames argument to walk.
+
+```text
+not ok 64 - L2 N2: the guarded pack-root listing is consumed exactly once
+```
+
+PACK N5: remove only s9DenyListing finally restoration.
+
+```text
+not ok 66 - L2 N5: denied-listing hook restores after a throwing body
+```
+
+APPROVED N5: same one-clause restoration removal.
+
+```text
+not ok 45 - L2 N5: denied-listing hook restores after a throwing body
+```
+
+Q2: use the updated arity/exact-real-call assertions against the unchanged interface.
+
+```text
+not ok 39 - R2 Q2: the OPTIONAL reader is a fixture affordance, and the REAL ROW passes none
+```
+
+The new N4 helper rows were red against the unchanged cells because the helper did
+not exist. On the final implementation, removing its guard is also red (PN4/AN4),
+and changing <= to < is red at the exact boundary (PN4b/AN4b). Thus helper existence
+is not the only failure those rows can detect. No old test assertion was weakened.
+
+### One-arm measurement
+
+Instrumentation appended one input record at the single judge entry in an independent
+scratch copy of the final cell. All rows ran. Output:
+
+```text
+ARM_MEASUREMENT {"supplied":79,"real":1,"distinctRoots":5}
+```
+
+There are 79 supplied-root entries: one real call and 78 synthetic calls, across five
+distinct supplied roots. There is no repo/tmp selector in the judge. The instrumented
+run retains 68 tests / 67 pass / 1 fail / 0 skip, with only REAL ROW red.
+
+### Final single-clause table: AS MEASURED on this PC
+
+114 independent copies, each running ALL rows of its cell, sequentially with the
+specified Node executable and environment. 108 killed, six survived. Every run
+exits 1 because the real row stays red. Killed means an ADDITIONAL red, not that exit.
+No mutant replaces or removes a test row. Multiple textual matches are changed only
+at the first implementation occurrence; scratch mutations.json records the exact
+from/to strings and occurrence counts. No row is silently excluded from the counts.
+
+The entire previous 77-change inventory is represented: P20 replaces the removed
+boundary selector with the supplied-root counterexample, P21/P22/P25/P31 follow its
+new variable names, and PN4/AN4 now target the extracted guard. PN4i/AN4i retain the
+long-prefix caller-guard stress input. Other added rows cover the new interface,
+relative spelling, forwarding, helper arithmetic, and L1's listed counterexamples.
+PN4i/AN4i each use the same final bytes plus a 160-character synthetic temp prefix;
+their controls pass every executable fixture and skip only the named long-path row.
+
+Linux at these final bytes: NOT RUN for every row below. The checker owns that half.
+This table makes no inferred final-byte Linux kill or survival claim.
+
+| ID | Single-clause counterexample | Additional red TAP rows on PC | Exit |
+|---|---|---|---:|
+| P01 | Root final guard drops !isDirectory | 17, 34 | 1 |
+| P02 | Component lstat -> stat | 34, 51-52, 62-63 | 1 |
+| P03 | Pack walk lstat -> stat | 15, 26, 31, 62-63 | 1 |
+| P04 | LITERAL-EMPTY disabled | 18, 68 | 1 |
+| P05 | Ignore prefix startsWith -> includes | 1-11, 13, 15, 23-26, 29-31, 33-38, 64 | 1 |
+| P06 | Ignore drops slice | 25 | 1 |
+| P07 | sortByBytes uses default sort | 12, 55 | 1 |
+| P08 | serialise uses code-unit order | 54 | 1 |
+| P09 | parseLiteral uses code-unit order | 54 | 1 |
+| P10 | ADDED uses default sort | 55 | 1 |
+| P11 | Irregular output insertion order | SURVIVED | 1 |
+| P12 | Unreadable output insertion order | SURVIVED | 1 |
+| P13 | MISMATCH disabled | 2-5, 9, 22-23, 30, 37, 46-47, 68 | 1 |
+| P14 | MISSING disabled | 7, 15, 35, 68 | 1 |
+| P15 | ADDED disabled | 6, 11, 24-25, 55, 68 | 1 |
+| P16 | Walk file guard disabled | 15, 26, 31 | 1 |
+| P17 | Read catch loses UNREADABLE | 36-38 | 1 |
+| P18 | Digest decodes UTF-8 and normalizes CRLF | 43-44, 46-47 | 1 |
+| P19 | Digest wrong domain | 40-55, 62-63 | 1 |
+| A01 | LIST-EMPTY disabled | 2, 11, 18, 47 | 1 |
+| A02 | Own-literal guard disabled | 5-6, 11-12, 17, 20, 24, 47 | 1 |
+| A03 | Missing component loses output | 4, 38-40, 47 | 1 |
+| A04 | Final file guard disabled | 10, 19 | 1 |
+| A05 | Read catch loses UNREADABLE | 21-22 | 1 |
+| A06 | MISMATCH disabled | 3, 7-8, 22, 31-32, 42-43, 47 | 1 |
+| A07 | ORPHAN disabled | 6, 11, 15-17, 24, 47 | 1 |
+| A08 | ORPHAN default sort | 24 | 1 |
+| A09 | Component lstat -> stat | 19, 36-37 | 1 |
+| A10 | Digest decodes UTF-8 and normalizes CRLF | 28-29, 31-32 | 1 |
+| A11 | Digest wrong domain | 25-39 | 1 |
+| P20 | Replace supplied trusted descent root by REPO_ROOT (P20 migrated) | 1-11, 13, 15, 18, 20-26, 28-38, 40-55, 58-64, 68 | 1 |
+| P21 | Discard supplied relative ancestors | 17, 34, 51-53, 56, 58-62 | 1 |
+| P22 | Begin descent at pack | 1-11, 13, 15, 18, 20-26, 28-38, 40-56, 58-64, 68 | 1 |
+| P23 | Skip first component | 1-11, 13, 15, 18, 20-26, 28-38, 40-55, 58-64, 68 | 1 |
+| P24 | Skip final component | 1-11, 13, 15, 17-18, 20-26, 28-38, 40-50, 53-55, 58-59, 62-64, 68 | 1 |
+| P25 | Lose accumulated parent | 51-53, 58-62 | 1 |
+| P26 | Drop missing-stat recovery | 16, 19, 56 | 1 |
+| P27 | Refuse missing only on last component | 56 | 1 |
+| P28 | Drop ancestor directory guard | 51-52 | 1 |
+| P29 | Treat final root as ancestor | 17, 34 | 1 |
+| P30 | Drop exact spelling check | 53 | 1 |
+| P31 | Discard descent update | 51-53, 58-62 | 1 |
+| P32 | Misname irregular ancestor | 51-52 | 1 |
+| A12 | Discard approved ancestors | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 33-34, 36-39, 42-43, 47 | 1 |
+| A13 | Begin above trusted root | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42-43, 47 | 1 |
+| A14 | Skip first component | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42-43, 47 | 1 |
+| A15 | Skip final component | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42-43, 47 | 1 |
+| A16 | Lose accumulated parent | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 33-34, 36-39, 42-43, 47 | 1 |
+| A17 | Repeat first component | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 33-34, 36-39, 42-43, 47 | 1 |
+| A18 | Drop missing-stat recovery | 4, 40 | 1 |
+| A19 | Refuse missing only on last component | 40 | 1 |
+| A20 | Drop ancestor directory guard | 36-37 | 1 |
+| A21 | Treat final file as ancestor | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42-43, 47 | 1 |
+| A22 | Drop exact spelling check | 38-39 | 1 |
+| A23 | Descend after irregular ancestor | 36-37 | 1 |
+| A24 | Drop component refusal/continue | 4, 38-40, 42-43, 47 | 1 |
+| A25 | Lower-case pinned refusal spelling | 4 | 1 |
+| A26 | Lose clean-path sentinel | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42-43, 47 | 1 |
+| P33 | Drop ancestor listing guard | 58-59 | 1 |
+| P34 | Drop root listing guard | 60-61 | 1 |
+| P35 | Mislabel unreadable ancestor | 58-59 | 1 |
+| P36 | Drop guarded root-list reuse | 62-64 | 1 |
+| A27 | Drop listing guard | 42-43 | 1 |
+| A28 | Wrong listing refusal | 42-43 | 1 |
+| A29 | Stop list after component refusal | 42-43 | 1 |
+| PN5a | Do not rethrow body error first | 57 | 1 |
+| PN5b | Replace body error identity | 57 | 1 |
+| PN5c | Do not restore lstat hook | 57 | 1 |
+| PN5d | Do not restore readdir hook | 57 | 1 |
+| PN5e | Drop descent assertion | 57 | 1 |
+| PN5f | Lose successful body return | 51-52, 56-57 | 1 |
+| AN5a | Do not rethrow body error first | 41 | 1 |
+| AN5b | Replace body error identity | 41 | 1 |
+| AN5c | Do not restore lstat hook | 41 | 1 |
+| AN5d | Do not restore readdir hook | 41 | 1 |
+| AN5e | Drop descent assertion | 41 | 1 |
+| AN5f | Lose successful body return | 36-37, 40-41 | 1 |
+| P37 | Replace supplied root in pack assembly | 1-11, 13, 15-26, 28-38, 40-56, 60-64, 68 | 1 |
+| P38 | Forward REPO_ROOT instead of supplied root | 1-11, 13, 15-26, 28-38, 40-56, 58-64, 68 | 1 |
+| P39 | Forward real relative path instead of supplied path | 1-11, 13, 15-26, 28-38, 40-56, 58-64, 68 | 1 |
+| P40 | Forward real literal instead of supplied literal | 1-11, 13, 15, 20-26, 28-38, 40-55, 62-64, 68 | 1 |
+| P41 | Ignore supplied reader | 36-38 | 1 |
+| P42 | Split relative spelling by native separator | 51-53, 56, 58-62 | 1 |
+| P43 | Fixture relative suffix off by one | 1-11, 13, 15, 18, 20-26, 28-38, 40-55, 58-61, 64, 68 | 1 |
+| P44 | Fixture suffix retains native separators | 51-53, 56, 58-61 | 1 |
+| P45 | Walk ignores guarded root listing (L1 P1) | 62-64 | 1 |
+| P46 | Ancestor listing guard emits wrong refusal (L1 P2) | 58-59 | 1 |
+| P47 | Root listing guard emits wrong refusal (L1 P6) | 60-61 | 1 |
+| PN4 | Remove extracted budget guard | 65 | 1 |
+| PN4b | Budget equality boundary becomes permitted | 65 | 1 |
+| PN4c | Drop separator length from budget | 49, 65 | 1 |
+| PN4d | Drop tail length from budget | 49, 65 | 1 |
+| PN4e | Ignore supplied root length | 49, 65 | 1 |
+| PN4f | Do not subtract fixed prefix from filename budget | 49, 65 | 1 |
+| PN4g | Omit filename tail | 49, 65 | 1 |
+| PN4h | Actual long-path row ignores its root length | 49 | 1 |
+| PN4i | Remove actual long-root skip (stress prefix +160) | 49 | 1 |
+| PN5g | Deny-listing hook fails to restore (L1 P12/A7) | 66 | 1 |
+| PN5h | Deny-listing hook loses successful return | 66 | 1 |
+| PN6a | Equivalent ACL denial (L1 P13/A8) | SURVIVED | 1 |
+| PN6b | Remove whoami status assertion (L1 P14/A9) | SURVIVED | 1 |
+| AN4 | Remove extracted budget guard | 44 | 1 |
+| AN4b | Budget equality boundary becomes permitted | 44 | 1 |
+| AN4c | Drop separator length from budget | 34, 44 | 1 |
+| AN4d | Drop tail length from budget | 34, 44 | 1 |
+| AN4e | Ignore supplied root length | 34, 44 | 1 |
+| AN4f | Do not subtract fixed prefix from filename budget | 34, 44 | 1 |
+| AN4g | Omit filename tail | 34, 44 | 1 |
+| AN4h | Actual long-path row ignores its root length | 34 | 1 |
+| AN4i | Remove actual long-root skip (stress prefix +160) | 34 | 1 |
+| AN5g | Deny-listing hook fails to restore (L1 P12/A7) | 45 | 1 |
+| AN5h | Deny-listing hook loses successful return | 45 | 1 |
+| AN6a | Equivalent ACL denial (L1 P13/A8) | SURVIVED | 1 |
+| AN6b | Remove whoami status assertion (L1 P14/A9) | SURVIVED | 1 |
+
+Survivors, system and reason:
+
+- P11 and P12 survive on this PC: removing the final irregular/unreadable output
+  sort is not distinguished by these fixture insertion orders. Both lines still
+  emit, so this does not hide a refusal or alter its name. This is the existing
+  declared output-order residual, not a new exemption. L1 measured survival on
+  Linux at the prior bytes; final-byte Linux survival was not measured here.
+- PN6a and AN6a survive on this PC: RD -> GR still satisfies each executed ACL
+  fixture's two observations (known child lstats; parent listing refuses). L1
+  classifies this as equivalent. The corresponding rows skip off Windows, and
+  no final-byte Linux run is claimed.
+- PN6b and AN6b survive on this PC: whoami succeeds in these inputs, so removing
+  its status assertion leaves the same principal and successful icacls sequence.
+  L1 classifies this as equivalent because an empty principal is caught by the
+  following icacls assertion. No forced whoami-error input was executed here;
+  the claimed survival is confined to this measured PC table.
+
+Previously surviving root-list reuse (P36 and L1 P1/P8), budget guard (L1 P11/A6),
+and hook restoration (L1 P12/A7) are now killed on this PC. P30/A22 still kill the
+exact-spelling mutations here. Their earlier Linux survivors are not relabeled green.
+
+### Final bar and certutil SHA256
+
+| Cell on this PC | Tests | Pass | Fail | Skip | Only failing row |
+|---|---:|---:|---:|---:|---|
+| PACK-PIN | 68 | 67 | 1 | 0 | 67 REAL ROW |
+| APPROVED-PIN | 47 | 46 | 1 | 0 | 46 REAL ROW |
+
+Both final-byte runs exited 1; neither literal was filled. All three Windows
+list-directory ACL rows execute (no skip) and pass inside this sandbox. The
+existing file-symlink row reports EPERM on this PC, using its already-declared
+Windows branch; no new file-symlink permission proof is claimed.
+
+```text
+not ok 67 - REAL ROW: the owner-approved pack at this head, against this cell's own literal
+# tests 68
+# pass 67
+# fail 1
+# skipped 0
+```
+
+```text
+not ok 46 - REAL ROW: whatever design.APPROVED names at this head, against this cell's literal
+# tests 47
+# pass 46
+# fail 1
+# skipped 0
+```
+
+```text
+PACK-PIN PACK-ROOT-ABSENT rebuild/m1/approved-2026-09-18
+APPROVED-PIN UNLISTED rebuild/m1/approved-2026-09-08/Earned-refinement-A.html
+APPROVED-PIN UNLISTED rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html
+```
+
+Both certutil -hashfile <cell> SHA256 commands completed successfully:
+
+```text
+fb8605fcf360dde8ecca02152d8b53731719471cc7f44ec9c869c9250394356a  pack-pin.test.mjs
+231e7332b66d2b0e103d6cdbc367f471255dfbb2f5cd16e7ccf1abbc8c1b618b  approved-pin.test.mjs
+```
+
+Verification compared every pre-existing row region byte-for-byte after reversing
+ONLY the authorized call-argument/Q2 edits, named long-path extraction and N8
+comment. Both comparisons passed. Both real-row-to-EOF suffixes match their saved
+inputs after reversing only PACK's required call arguments. Both empty literal
+blocks match without any reversal. All three owned files are ASCII, with zero CR
+bytes. git diff --check passed for exactly the three owned paths.
+
+### DISPUTED
+
+None. No finding was left unfixed on an argument. L1's declared residual and
+equivalent-mutant dispositions are retained as that check ordered.
+
+### What I did not verify
+
+The Linux half at final bytes, Linux real permissions, outside-sandbox Windows
+permission behavior, physical different-drive checkout/TEMP volumes, hosted CI,
+Node 22, filled literals, the real pack, product suites and conformance gates.
+The Q:/R: proof is a synthetic filesystem input on native win32 Node, not a claim
+that two real volumes were mounted. All Windows list-directory ACL fixtures were
+buildable here; any independent real-permission input the sandbox cannot build
+remains the checker's. The interior-directory residual is unchanged.
+
+No protected path or auth file was read or listed. No install, node_modules edit,
+receipt/artifact generator, commit, push, checkout, reset, stash, clean or fetch.
+Only the two cells and this report were edited in the worktree, all uncommitted.
+All probes, mutants, TAP logs and saved inputs are in the scratch directory above.
+Fixtures belong to the cells and are disposable OS-temp inputs. No scratch cleanup
+was attempted; scratch is retained for the independent check. No Claude ACCEPT is
+claimed. A PowerShell .ps1 launch was rejected by the local execution policy; the
+same sequential commands were run directly, without changing that policy.
+
+### Last commands
+
+
+git status --porcelain -- rebuild/lanes/c/ui-port/pack-pin.test.mjs rebuild/lanes/c/ui-port/approved-pin.test.mjs rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md
+
+```text
+warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
+ M rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md
+ M rebuild/lanes/c/ui-port/approved-pin.test.mjs
+ M rebuild/lanes/c/ui-port/pack-pin.test.mjs
+```
+
+
+git diff --stat -- rebuild/lanes/c/ui-port/pack-pin.test.mjs rebuild/lanes/c/ui-port/approved-pin.test.mjs rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md
+
+```text
+ rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md | 410 +++++++++++++++++++++++++-
+ rebuild/lanes/c/ui-port/approved-pin.test.mjs |  41 ++-
+ rebuild/lanes/c/ui-port/pack-pin.test.mjs     | 249 +++++++++++-----
+ 3 files changed, 616 insertions(+), 84 deletions(-)
 ```

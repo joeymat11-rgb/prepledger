@@ -172,7 +172,7 @@ const serialise = (entries) =>
     .map((e) => e.file + " " + e.sha256 + "\n").join("");
 
 /* THE ENGINE, and the only thing in this file that judges anything. It is a function of
-   (pack root, literal lines) so that the fixture rows and the REAL ROW run the same code
+   (trusted root, pinned relative pack path, literal lines) so that the fixture rows and the REAL ROW run the same code
    over different inputs: a fixture row that exercised a different engine would prove
    nothing about the real one. It returns the refusals as an array of strings, so a row can
    assert the EXACT text, and an empty array is the only green.
@@ -205,15 +205,13 @@ function walk(root, rel, observed, irregular, unreadable, readFile, names) {
    and passed only by the fixture rows that need an unreadable file on a machine where one
    cannot be built (Windows without a DENY ACE, and a farm scratch running as root). The
    REAL ROW passes none, and a row below asserts that by reading this file's own source. */
-function judge(packRoot, literalLines, readFile) {
-  /* ABSENT means: there is no plain directory at the pack root. lstat, so a link standing
-     where the pack should be is absent too rather than quietly walked through. */
-  /* The real pack walks from the trusted checkout root; the disposable fixture packs
-     walk from the OS temp directory. Every component is lstat'ed before descending,
-     and the parent's own listing must contain the pinned spelling exactly. */
-  const boundary = path.relative(REPO_ROOT, packRoot).split(path.sep)[0] === ".." ? os.tmpdir() : REPO_ROOT;
-  const parts = path.relative(boundary, packRoot).split(path.sep);
-  let dir = boundary;
+function judge(root, packRootRel, literalLines, readFile) {
+  /* P-PACK-5: the caller supplies the trusted root and exact relative spelling.
+     Real and synthetic inputs enter this single walk; no absolute-path comparison
+     selects a boundary. The trusted root itself is not inspected as a component. */
+  const parts = packRootRel.split("/");
+  const packRoot = path.join(root, ...parts);
+  let dir = root;
   let st = null;
   for (let i = 0; i < parts.length; i++) {
     const component = path.join(dir, parts[i]);
@@ -272,11 +270,15 @@ function judge(packRoot, literalLines, readFile) {
    every caller - the fixture rows and the REAL ROW alike - goes through this one door. */
 const EMITTED = new Set();
 
-function packPin(packRoot, literalLines, readFile = fs.readFileSync) {
-  const refusals = judge(packRoot, literalLines, readFile);
+function packPin(root, packRootRel, literalLines, readFile = fs.readFileSync) {
+  const refusals = judge(root, packRootRel, literalLines, readFile);
   for (const r of refusals) EMITTED.add(r.split(" ", 2).join(" "));
   return refusals;
 }
+
+/* Fixture-only conversion: every caller constructs its pack below os.tmpdir().
+   It supplies that trusted root explicitly; this helper does not select a boundary. */
+const s9PackRel = (packRoot) => packRoot.slice(os.tmpdir().length + 1).split(path.sep).join("/");
 
 /* THE THROWAWAY FIXTURE PACK: the real pack's shape in miniature, built by this file in a
    mkdtemp folder and removed again. It holds a board under ref/, an app file, a gate
@@ -335,20 +337,20 @@ const without = (lines, file) => lines.filter((l) => !l.startsWith(file + " "));
 
 test("GREEN CONTROL: the fixture pack as built, against its own literal, refuses nothing", () => {
   withPack((root, lines) => {
-    assert.deepEqual(packPin(root, lines), []);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), []);
   });
 });
 
 test("B.8 (1) a board moved FAILS PACK-PIN MISMATCH ref/ink-board.png", () => {
   withPack((root, lines) => {
-    assert.deepEqual(packPin(root, moved(lines, "ref/ink-board.png")),
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), moved(lines, "ref/ink-board.png")),
       ["PACK-PIN MISMATCH ref/ink-board.png"]);
   });
 });
 
 test("B.8 (2) an app file moved FAILS PACK-PIN MISMATCH app/states-today.js", () => {
   withPack((root, lines) => {
-    assert.deepEqual(packPin(root, moved(lines, "app/states-today.js")),
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), moved(lines, "app/states-today.js")),
       ["PACK-PIN MISMATCH app/states-today.js"]);
   });
 });
@@ -357,14 +359,14 @@ test("B.8 (2) an app file moved FAILS PACK-PIN MISMATCH app/states-today.js", ()
    a gate that judges every post-S9 look ticket must not be editable by the ticket. */
 test("B.8 (3) a gate script moved FAILS PACK-PIN MISMATCH quality/gate.py", () => {
   withPack((root, lines) => {
-    assert.deepEqual(packPin(root, moved(lines, "quality/gate.py")),
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), moved(lines, "quality/gate.py")),
       ["PACK-PIN MISMATCH quality/gate.py"]);
   });
 });
 
 test("B.8 (4) a baseline moved FAILS PACK-PIN MISMATCH naming the state record", () => {
   withPack((root, lines) => {
-    assert.deepEqual(packPin(root, moved(lines, "quality/baseline/states/C-02-dawn.json")),
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), moved(lines, "quality/baseline/states/C-02-dawn.json")),
       ["PACK-PIN MISMATCH quality/baseline/states/C-02-dawn.json"]);
   });
 });
@@ -372,7 +374,7 @@ test("B.8 (4) a baseline moved FAILS PACK-PIN MISMATCH naming the state record",
 test("B.8 (5) a file added FAILS PACK-PIN ADDED naming the new state record", () => {
   withPack((root, lines) => {
     writeAt(root, "quality/baseline/states/C-99-dawn.json", txt('{"text":"dusk"}\n'));
-    assert.deepEqual(packPin(root, lines),
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines),
       ["PACK-PIN ADDED quality/baseline/states/C-99-dawn.json"]);
   });
 });
@@ -380,7 +382,7 @@ test("B.8 (5) a file added FAILS PACK-PIN ADDED naming the new state record", ()
 test("B.8 (6) a file removed FAILS PACK-PIN MISSING naming the state inventory", () => {
   withPack((root, lines) => {
     fs.rmSync(path.join(root, "states", "STATE-INVENTORY-DRAFT.md"));
-    assert.deepEqual(packPin(root, lines),
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines),
       ["PACK-PIN MISSING states/STATE-INVENTORY-DRAFT.md"]);
   });
 });
@@ -393,7 +395,7 @@ test("GREEN CONTROL: untracked run output and __pycache__ inside the pack change
     writeAt(root, "quality/run/2026-09-19/report.html", txt("<p>run</p>\n"));
     writeAt(root, "quality/run/latest.png", png("latest"));
     writeAt(root, "app/__pycache__/helper.cpython-311.pyc", txt("cache\n"));
-    assert.deepEqual(packPin(root, lines), []);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), []);
   });
 });
 
@@ -403,16 +405,16 @@ test("THE ANCHOR: the decoy at app/quality/run/x.js is pinned, and a move of it 
   withPack((root, lines) => {
     assert.ok(lines.some((l) => l.startsWith("app/quality/run/x.js ")),
       "the decoy must be in the fixture literal, or this row proves nothing");
-    assert.deepEqual(packPin(root, moved(lines, "app/quality/run/x.js")),
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), moved(lines, "app/quality/run/x.js")),
       ["PACK-PIN MISMATCH app/quality/run/x.js"]);
   });
 });
 
 test("THE ANCHOR, the other half: a file at the anchored prefix IS skipped", () => {
   withPack((root, lines) => {
-    assert.deepEqual(packPin(root, lines), []);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), []);
     writeAt(root, "quality/run/x.js", txt("// skipped\n"));
-    assert.deepEqual(packPin(root, lines), []);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), []);
   });
 });
 
@@ -425,7 +427,7 @@ test("R4 N1.1: every path the walk emits is pack-root-relative, forward-slashed,
   withPack((root, lines) => {
     const keep = lines.filter((l) => l.startsWith("README.md "));
     assert.equal(keep.length, 1);
-    const refusals = packPin(root, keep);
+    const refusals = packPin(os.tmpdir(), s9PackRel(root), keep);
     const expected = sortByBytes(
       FIXTURE.filter((e) => e.tracked && e.file !== "README.md").map((e) => e.file),
     ).map((f) => "PACK-PIN ADDED " + f);
@@ -454,7 +456,7 @@ test("C.5.1: the serialisation round-trips through parseLiteral unchanged", () =
     const parsed = parseLiteral(lines);
     const text = serialise(parsed);
     assert.equal(text, lines.join("\n") + "\n");
-    assert.deepEqual(packPin(root, text.split("\n")), []);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), text.split("\n")), []);
   });
 });
 
@@ -486,7 +488,7 @@ test("R4 N1.2 (a): a FILE link over a pinned file refuses NOT-A-REGULAR-FILE, na
       if (err === null) {
         assert.equal(sha256(fs.readFileSync(target)), sha256(png("ink-board")),
           "the link must read back as the SAME bytes, or this row is not the attack");
-        assert.deepEqual(packPin(root, lines), ["PACK-PIN NOT-A-REGULAR-FILE ref/ink-board.png"]);
+        assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), ["PACK-PIN NOT-A-REGULAR-FILE ref/ink-board.png"]);
       } else {
         assert.equal(process.platform, "win32",
           "a file link must be buildable by an unprivileged process off win32, got " + err);
@@ -515,7 +517,7 @@ test("R4 N1.2 (b): a DIRECTORY link over a pinned directory refuses it and is no
       fs.rmSync(target, { recursive: true });
       const err = tryLink(path.join(outside, "states"), target, "junction");
       assert.equal(err, null, "a directory junction needs no privilege on either OS, got " + err);
-      assert.deepEqual(packPin(root, lines), [
+      assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), [
         "PACK-PIN MISSING quality/baseline/states/C-02-dawn.json",
         "PACK-PIN NOT-A-REGULAR-FILE quality/baseline/states",
       ]);
@@ -533,7 +535,7 @@ test("R4 N1.2 (b): a DIRECTORY link over a pinned directory refuses it and is no
 test("PACK-ROOT-ABSENT: a pack root that is not in the checkout refuses, naming the root", () => {
   const gone = path.join(os.tmpdir(), "s9cpin-no-such-pack-" + process.pid);
   assert.ok(!fs.existsSync(gone));
-  assert.deepEqual(packPin(gone, ["README.md " + "a".repeat(64)]),
+  assert.deepEqual(packPin(os.tmpdir(), s9PackRel(gone), ["README.md " + "a".repeat(64)]),
     ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(gone)]);
 });
 
@@ -542,7 +544,7 @@ test("PACK-ROOT-ABSENT: a pack root that is a FILE is absent too, not walked", (
   try {
     const f = path.join(dir, "pack");
     fs.writeFileSync(f, txt("not a directory\n"));
-    assert.deepEqual(packPin(f, ["README.md " + "a".repeat(64)]),
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(f), ["README.md " + "a".repeat(64)]),
       ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(f)]);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
@@ -551,22 +553,22 @@ test("PACK-ROOT-ABSENT: a pack root that is a FILE is absent too, not walked", (
 
 test("LITERAL-EMPTY: a present pack and an unfilled literal refuses, and never passes", () => {
   withPack((root) => {
-    assert.deepEqual(packPin(root, []), ["PACK-PIN LITERAL-EMPTY"]);
-    assert.deepEqual(packPin(root, ["", "   "]), ["PACK-PIN LITERAL-EMPTY"]);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), []), ["PACK-PIN LITERAL-EMPTY"]);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), ["", "   "]), ["PACK-PIN LITERAL-EMPTY"]);
   });
 });
 
 test("the two refusals do not both fire: an absent root is judged before an empty literal", () => {
   const gone = path.join(os.tmpdir(), "s9cpin-no-such-pack-b-" + process.pid);
   assert.ok(!fs.existsSync(gone));
-  assert.deepEqual(packPin(gone, []), ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(gone)]);
+  assert.deepEqual(packPin(os.tmpdir(), s9PackRel(gone), []), ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(gone)]);
 });
 
 test("a literal line that is not the serialisation fails hard rather than being skipped", () => {
   withPack((root, lines) => {
-    assert.throws(() => packPin(root, [...lines, "quality/gate.py deadbeef"]),
+    assert.throws(() => packPin(os.tmpdir(), s9PackRel(root), [...lines, "quality/gate.py deadbeef"]),
       /literal line is not/);
-    assert.throws(() => packPin(root, [...lines, lines[0]]),
+    assert.throws(() => packPin(os.tmpdir(), s9PackRel(root), [...lines, lines[0]]),
       /names the same path twice/);
   });
 });
@@ -604,7 +606,7 @@ test("SCALE: 904 files, the shape of the real pack, green and timed", () => {
     assert.equal(count, 904);
     assert.equal(lines.length, 904);
     const started = process.hrtime.bigint();
-    const refusals = packPin(root, lines);
+    const refusals = packPin(os.tmpdir(), s9PackRel(root), lines);
     const ms = Number(process.hrtime.bigint() - started) / 1e6;
     assert.deepEqual(refusals, []);
     console.log("PACK-PIN over 904 files on " + process.platform + ": " + ms.toFixed(0) + " ms");
@@ -613,7 +615,7 @@ test("SCALE: 904 files, the shape of the real pack, green and timed", () => {
 
 test("SCALE: one moved byte among 904 is named, and nothing else is", () => {
   withBigPack((root, lines) => {
-    assert.deepEqual(packPin(root, moved(lines, "quality/baseline/states/S-207.json")),
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), moved(lines, "quality/baseline/states/S-207.json")),
       ["PACK-PIN MISMATCH quality/baseline/states/S-207.json"]);
   });
 });
@@ -625,11 +627,11 @@ test("SCALE: one moved byte among 904 is named, and nothing else is", () => {
 test("the cell reads the WORKING TREE on every call and caches nothing", () => {
   withPack((root, lines) => {
     const p = path.join(root, "quality", "gate.py");
-    assert.deepEqual(packPin(root, lines), []);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), []);
     fs.writeFileSync(p, txt("TOL = 0.002\n"));
-    assert.deepEqual(packPin(root, lines), ["PACK-PIN MISMATCH quality/gate.py"]);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), ["PACK-PIN MISMATCH quality/gate.py"]);
     fs.writeFileSync(p, txt("TOL = 0.001\n"));
-    assert.deepEqual(packPin(root, lines), []);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), []);
   });
 });
 
@@ -647,14 +649,14 @@ test("R1 B2: a regular FILE at quality/run is ADDED, not swallowed by the ignore
   withPack((root, lines) => {
     fs.rmSync(path.join(root, "quality", "run"), { recursive: true });
     writeAt(root, "quality/run", txt("// a FILE at the prefix, not the output directory\n"));
-    assert.deepEqual(packPin(root, lines), ["PACK-PIN ADDED quality/run"]);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), ["PACK-PIN ADDED quality/run"]);
   });
 });
 
 test("R1 B2: a regular FILE named __pycache__ is ADDED, while the DIRECTORY stays ignored", () => {
   withPack((root, lines) => {
     writeAt(root, "app/__pycache__", txt("// a FILE, not a python cache directory\n"));
-    assert.deepEqual(packPin(root, lines), ["PACK-PIN ADDED app/__pycache__"]);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), ["PACK-PIN ADDED app/__pycache__"]);
   });
 });
 
@@ -672,7 +674,7 @@ test("R1 B2: a LINK at quality/run is an irregular entry and is named, not treat
       fs.rmSync(path.join(root, "quality", "run"), { recursive: true });
       const err = tryLink(path.join(outside, "run"), path.join(root, "quality", "run"), "junction");
       assert.equal(err, null, "a directory junction needs no privilege on either OS, got " + err);
-      assert.deepEqual(packPin(root, lines), ["PACK-PIN NOT-A-REGULAR-FILE quality/run"]);
+      assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), ["PACK-PIN NOT-A-REGULAR-FILE quality/run"]);
     } finally {
       fs.rmSync(outside, { recursive: true, force: true });
     }
@@ -704,7 +706,7 @@ test("R1 B3: a literal path spelled with a BACKSLASH fails hard (R4 N1.1, the li
     const bs = String.fromCharCode(92);
     const bad = "quality" + bs + "gate.py " + "a".repeat(64);
     assert.ok(bad.includes(bs), "this row must carry a real backslash, or it proves nothing");
-    assert.throws(() => packPin(root, [...lines, bad]), /must use forward slashes/);
+    assert.throws(() => packPin(os.tmpdir(), s9PackRel(root), [...lines, bad]), /must use forward slashes/);
   });
 });
 
@@ -714,19 +716,19 @@ test("R1 B3: a literal path spelled with a BACKSLASH fails hard (R4 N1.1, the li
    like a malformed line or a duplicate path, and it now fails hard in the same way. */
 test("R1 B3 / R1 N4: an UNSORTED literal fails hard rather than being silently re-sorted", () => {
   withPack((root, lines) => {
-    assert.deepEqual(packPin(root, lines), []);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), []);
     const swapped = [...lines];
     const first = swapped[0];
     swapped[0] = swapped[1];
     swapped[1] = first;
-    assert.throws(() => packPin(root, swapped), /not sorted by path bytes/);
+    assert.throws(() => packPin(os.tmpdir(), s9PackRel(root), swapped), /not sorted by path bytes/);
   });
 });
 
 test("the refusals walk the literal in path BYTE order, one line per moved file", () => {
   withPack((root, lines) => {
     const two = moved(moved(lines, "ref/ink-board.png"), "app/states-today.js");
-    assert.deepEqual(packPin(root, two), [
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), two), [
       "PACK-PIN MISMATCH app/states-today.js",
       "PACK-PIN MISMATCH ref/ink-board.png",
     ]);
@@ -750,7 +752,7 @@ test("R4 N1.2 (c): a DIRECTORY link AT a pinned FILE refuses ONCE, on both opera
       fs.rmSync(target);
       const err = tryLink(path.join(outside, "d"), target, "junction");
       assert.equal(err, null, "a directory junction needs no privilege on either OS, got " + err);
-      assert.deepEqual(packPin(root, lines), ["PACK-PIN NOT-A-REGULAR-FILE ref/ink-board.png"]);
+      assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), ["PACK-PIN NOT-A-REGULAR-FILE ref/ink-board.png"]);
     } finally {
       fs.rmSync(outside, { recursive: true, force: true });
     }
@@ -763,9 +765,9 @@ test("R4 N1.2 (c): a DIRECTORY link AT a pinned FILE refuses ONCE, on both opera
    defect in the constant and it fails hard. */
 test("R1 N4: two spaces between the path and the hex fails hard, not as a trailing-space path", () => {
   withPack((root) => {
-    assert.throws(() => packPin(root, ["quality/gate.py  " + "a".repeat(64)]),
+    assert.throws(() => packPin(os.tmpdir(), s9PackRel(root), ["quality/gate.py  " + "a".repeat(64)]),
       /literal line is not/);
-    assert.throws(() => packPin(root, [" quality/gate.py " + "a".repeat(64)]),
+    assert.throws(() => packPin(os.tmpdir(), s9PackRel(root), [" quality/gate.py " + "a".repeat(64)]),
       /literal line is not/);
   });
 });
@@ -779,7 +781,7 @@ test("R1 N4: two spaces between the path and the hex fails hard, not as a traili
 test("RESIDUAL (R1 N5a): a file inside a __pycache__ DIRECTORY is invisible to the pin, by construction", () => {
   withPack((root, lines) => {
     writeAt(root, "quality/__pycache__/teeth.py", txt("# a module the pin cannot see\n"));
-    assert.deepEqual(packPin(root, lines), []);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), []);
   });
 });
 
@@ -802,11 +804,11 @@ test("R2 B1: a LINK standing AT the pack root is ABSENT, even over a twin that m
       const link = path.join(outside, "approved-2026-09-18");
       const err = tryLink(root, link, "junction");
       assert.equal(err, null, "a directory junction needs no privilege on either OS, got " + err);
-      assert.deepEqual(packPin(root, lines), [],
+      assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), [],
         "the fixture must be green through its own root, or this row is not the attack");
       assert.equal(sha256(fs.readFileSync(path.join(link, "README.md"))), sha256(txt("# the pack\n")),
         "the twin must read back the SAME bytes through the link, or this row is not the attack");
-      assert.deepEqual(packPin(link, lines), ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(link)]);
+      assert.deepEqual(packPin(os.tmpdir(), s9PackRel(link), lines), ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(link)]);
     } finally {
       fs.rmSync(outside, { recursive: true, force: true });
     }
@@ -829,9 +831,9 @@ test("R2 N3: a literal path OUTSIDE the pack is benign: it is MISSING, and is ne
     const outsiders = ["../../etc/hosts", "./x", "/etc/hosts", "C:/Windows/win.ini"];
     assert.deepEqual([...outsiders].sort(byteCompare), outsiders,
       "the four must already be in path byte order, or the literal is unsorted and fails hard");
-    assert.deepEqual(packPin(root, [...outsiders.map((p) => p + " " + hex), ...lines]),
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), [...outsiders.map((p) => p + " " + hex), ...lines]),
       outsiders.map((p) => "PACK-PIN MISSING " + p));
-    assert.throws(() => packPin(root, ["C:" + bs + "Windows " + hex, ...lines]),
+    assert.throws(() => packPin(os.tmpdir(), s9PackRel(root), ["C:" + bs + "Windows " + hex, ...lines]),
       /must use forward slashes/);
   });
 });
@@ -868,7 +870,7 @@ const readerRefusing = (root, ...rels) => {
 
 test("R2 Q2 / UNREADABLE: a pinned file the walk cannot read is NAMED, not thrown over", () => {
   withPack((root, lines) => {
-    assert.deepEqual(packPin(root, lines, readerRefusing(root, "quality/gate.py")),
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines, readerRefusing(root, "quality/gate.py")),
       ["PACK-PIN UNREADABLE quality/gate.py"]);
   });
 });
@@ -876,7 +878,7 @@ test("R2 Q2 / UNREADABLE: a pinned file the walk cannot read is NAMED, not throw
 test("R2 Q2 / UNREADABLE: the walk CONTINUES, so a later defect is named in the same run", () => {
   withPack((root, lines) => {
     assert.deepEqual(
-      packPin(root, moved(lines, "ref/ink-board.png"), readerRefusing(root, "app/states-today.js")),
+      packPin(os.tmpdir(), s9PackRel(root), moved(lines, "ref/ink-board.png"), readerRefusing(root, "app/states-today.js")),
       ["PACK-PIN MISMATCH ref/ink-board.png", "PACK-PIN UNREADABLE app/states-today.js"]);
   });
 });
@@ -891,21 +893,21 @@ test("R2 Q2 / UNREADABLE: an unreadable entry is named ONCE, never also MISSING 
       "PACK-PIN UNREADABLE app/quality/run/x.js",
       "PACK-PIN UNREADABLE quality/gate.py",
     ];
-    assert.deepEqual(packPin(root, lines, reader), expected);
-    assert.deepEqual(packPin(root, without(lines, "quality/gate.py"), reader), expected);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines, reader), expected);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), without(lines, "quality/gate.py"), reader), expected);
   });
 });
 
 test("R2 Q2: the OPTIONAL reader is a fixture affordance, and the REAL ROW passes none", () => {
   const src = fs.readFileSync(fileURLToPath(import.meta.url), "utf8");
-  assert.equal(packPin.length, 2,
-    "the reader must be OPTIONAL: packPin declares two parameters before its default");
+  assert.equal(packPin.length, 3,
+    "the reader must be OPTIONAL: packPin declares three parameters before its default");
   assert.match(src, /readFile = fs\.readFileSync/,
     "the default reader must be the file system's own");
   /* Built from two pieces so this row's own source does not match the pattern it searches
      for, which would make the row pass on itself. */
-  const realCall = "packPin(" + "PACK_ROOT_ABS, LITERAL);";
-  assert.deepEqual(src.match(/packPin\(PACK_ROOT_ABS.*/g), [realCall],
+  const realCall = "packPin(" + "REPO_ROOT, PACK_ROOT_REL, LITERAL);";
+  assert.deepEqual(src.match(/packPin\(REPO_ROOT.*/g), [realCall],
     "the real row must call the engine over the real pack with NO reader");
 });
 
@@ -996,13 +998,19 @@ test("Astra P-PACK-1: ordinary nested path stays green", () => {
   });
 });
 
+/* L2 N4: pure budget arithmetic, also used by the actual long-path row. */
+function s9LongPath(rootLength) {
+  const tail = "/a.txt";
+  const remaining = 455 - rootLength - 1 - tail.length;
+  const first = "d".repeat(120) + "/" + "e".repeat(120) + "/";
+  if (remaining <= first.length) return null;
+  return first + "f".repeat(remaining - first.length) + tail;
+}
+
 test("Astra P-PACK-1: a 455-character absolute path stays green", (t) => {
   s9WithRoot((root) => {
-    const tail = "/a.txt";
-    const remaining = 455 - root.length - 1 - tail.length;
-    const first = "d".repeat(120) + "/" + "e".repeat(120) + "/";
-    if (remaining <= first.length) { t.skip("455-character path: temp root leaves no filename budget"); return; }
-    const file = first + "f".repeat(remaining - first.length) + tail;
+    const file = s9LongPath(root.length);
+    if (file === null) { t.skip("455-character path: temp root leaves no filename budget"); return; }
     assert.equal(path.join(root, ...file.split("/")).length, 455);
     writeAt(root, file, txt("abc"));
     assert.deepEqual(s9Pin(root, file, S9_HEX.ascii), []);
@@ -1020,8 +1028,8 @@ test("Astra P-PACK-1: composed and decomposed names stay distinct and green", ()
 });
 
 const S9_NAME = "PACK-PIN";
-const s9Pin = (root, file, hex) => packPin(root, [file + " " + hex]);
-const s9Pair = (root, files) => packPin(root, files.map((file) => file + " " + S9_HEX.ascii));
+const s9Pin = (root, file, hex) => packPin(os.tmpdir(), s9PackRel(root), [file + " " + hex]);
+const s9Pair = (root, files) => packPin(os.tmpdir(), s9PackRel(root), files.map((file) => file + " " + S9_HEX.ascii));
 
 for (const dangling of [false, true]) {
   test("Astra P-PACK-1: pack root ancestor junction " + (dangling ? "dangling" : "same-byte"), () => {
@@ -1035,7 +1043,7 @@ for (const dangling of [false, true]) {
       assert.equal(fs.lstatSync(alias).isSymbolicLink(), true);
       let reads = 0;
       const refusals = s9NoDescents(alias, () =>
-        packPin(path.join(alias, "pack"), ["a.txt " + S9_HEX.ascii], () => { reads++; return txt("abc"); }));
+        packPin(os.tmpdir(), s9PackRel(path.join(alias, "pack")), ["a.txt " + S9_HEX.ascii], () => { reads++; return txt("abc"); }));
       assert.deepEqual(refusals, ["PACK-PIN NOT-A-REGULAR-FILE " + toPosix(alias)]);
       assert.equal(reads, 0, "a rejected ancestor must prevent all file reads");
     });
@@ -1061,12 +1069,12 @@ test("Astra P-PACK-3: literal parsing and serialise use explicit UTF-8 byte orde
     const hi = String.fromCodePoint(0x10000) + ".txt";
     for (const file of [hi, lo]) writeAt(root, file, txt("abc"));
     const lines = [lo + " " + S9_HEX.ascii, hi + " " + S9_HEX.ascii];
-    assert.deepEqual(packPin(root, lines), []);
-    assert.throws(() => packPin(root, [lines[1], lines[0]]), /not sorted by path bytes/);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), []);
+    assert.throws(() => packPin(os.tmpdir(), s9PackRel(root), [lines[1], lines[0]]), /not sorted by path bytes/);
     const entries = [{ file: hi, sha256: S9_HEX.ascii }, { file: lo, sha256: S9_HEX.ascii }];
     const emitted = serialise(entries);
     assert.equal(emitted, lines[0] + "\n" + lines[1] + "\n");
-    assert.deepEqual(packPin(root, emitted.split("\n")), []);
+    assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), emitted.split("\n")), []);
   });
 });
 
@@ -1101,7 +1109,8 @@ function s9DenyListing(denied, body) {
   finally { fs.readdirSync = original; }
 }
 
-/* Windows RD denies list-directory without denying traversal of a known child. */
+/* Windows-only permission witness: whoami/icacls child processes mutate ACLs only
+   on this row's disposable fixture. RD denies listing, and finally clears the deny. */
 function s9DenyListAcl(denied, body) {
   const identity = spawnSync("whoami.exe", [], { encoding: "utf8", windowsHide: true });
   assert.equal(identity.status, 0, "whoami must identify the actual test process account");
@@ -1149,7 +1158,7 @@ for (const location of ["ancestor", "root"]) {
           assert.ok(fs.lstatSync(child), "known child remains traversable");
           assert.throws(() => fs.readdirSync(denied), (e) => ["EPERM", "EACCES"].includes(e.code));
           let reads = 0;
-          assert.deepEqual(packPin(pack, ["a.txt " + S9_HEX.ascii], () => { reads++; return txt("abc"); }),
+          assert.deepEqual(packPin(os.tmpdir(), s9PackRel(pack), ["a.txt " + S9_HEX.ascii], () => { reads++; return txt("abc"); }),
             ["PACK-PIN UNREADABLE " + toPosix(denied)]);
           assert.equal(reads, 0);
         });
@@ -1157,6 +1166,94 @@ for (const location of ["ancestor", "root"]) {
     });
   }
 }
+
+
+test("L2 P-PACK-5: the supplied trusted root bounds the exact component walk", () => {
+  s9WithRoot((root) => {
+    const pack = path.join(root, "parent", "pack");
+    const file = writeAt(pack, "a.txt", txt("abc"));
+    const lstat = fs.lstatSync;
+    const readdir = fs.readdirSync;
+    const visits = [];
+    fs.lstatSync = (p, ...args) => { visits.push(["lstat", p]); return lstat(p, ...args); };
+    fs.readdirSync = (p, ...args) => { visits.push(["readdir", p]); return readdir(p, ...args); };
+    try {
+      assert.deepEqual(packPin(root, "parent/pack", ["a.txt " + S9_HEX.ascii]), []);
+    } finally { fs.lstatSync = lstat; fs.readdirSync = readdir; }
+    assert.deepEqual(visits, [
+      ["lstat", path.join(root, "parent")], ["readdir", root],
+      ["lstat", pack], ["readdir", path.join(root, "parent")],
+      ["readdir", pack], ["lstat", file],
+    ]);
+  });
+});
+
+test("L2 P-PACK-5: synthetic different-drive roots use one arm without absolute differencing", () => {
+  const roots = process.platform === "win32" ? ["Q:\\s9-root", "R:\\s9-root"] : ["/s9-root-a", "/s9-root-b"];
+  const lstat = fs.lstatSync;
+  const readdir = fs.readdirSync;
+  const readFile = fs.readFileSync;
+  const relative = path.relative;
+  try {
+    path.relative = () => { throw new Error("absolute-path differencing is not a trust decision"); };
+    for (const root of roots) {
+      const pack = path.join(root, "pack");
+      const file = path.join(pack, "a.txt");
+      const visits = [];
+      fs.lstatSync = (p) => {
+        visits.push(["lstat", p]);
+        assert.ok(p === pack || p === file, "only pinned components below the supplied root");
+        return { isDirectory: () => p === pack, isFile: () => p === file };
+      };
+      fs.readdirSync = (p) => {
+        visits.push(["readdir", p]);
+        assert.ok(p === root || p === pack, "only the supplied root and pack are listed");
+        return p === root ? ["pack"] : ["a.txt"];
+      };
+      fs.readFileSync = (p) => { visits.push(["read", p]); assert.equal(p, file); return txt("abc"); };
+      assert.deepEqual(packPin(root, "pack", ["a.txt " + S9_HEX.ascii]), []);
+      assert.deepEqual(visits, [["lstat", pack], ["readdir", root], ["readdir", pack], ["lstat", file], ["read", file]]);
+    }
+  } finally {
+    fs.lstatSync = lstat; fs.readdirSync = readdir; fs.readFileSync = readFile; path.relative = relative;
+  }
+});
+
+test("L2 N2: the guarded pack-root listing is consumed exactly once", () => {
+  withPack((root, lines) => {
+    const original = fs.readdirSync;
+    let listings = 0;
+    fs.readdirSync = (dir, ...args) => {
+      if (dir === root) listings++;
+      return original(dir, ...args);
+    };
+    try { assert.deepEqual(packPin(os.tmpdir(), s9PackRel(root), lines), []); }
+    finally { fs.readdirSync = original; }
+    assert.equal(listings, 1);
+  });
+});
+
+
+test("L2 N4: the 455-character budget holds both sides of its boundary", () => {
+  const first = "d".repeat(120) + "/" + "e".repeat(120) + "/";
+  assert.equal(s9LongPath(205), first + "f/a.txt");
+  assert.equal(s9LongPath(206), null);
+  assert.equal(s9LongPath(207), null);
+});
+
+test("L2 N5: denied-listing hook restores after a throwing body", () => {
+  const original = fs.readdirSync;
+  const own = new Error("listing body's original error");
+  try {
+    assert.throws(() => s9DenyListing("synthetic-denied", () => {
+      assert.notEqual(fs.readdirSync, original);
+      throw own;
+    }), (error) => error === own);
+    assert.equal(fs.readdirSync, original);
+    assert.equal(s9DenyListing("synthetic-denied", () => 42), 42);
+    assert.equal(fs.readdirSync, original);
+  } finally { fs.readdirSync = original; }
+});
 
 /* THE REAL ROW. It runs the SAME engine the fixture rows run, over the real pack root and
    this cell's own literal, and it is RED on this branch by construction: the pack is on
@@ -1171,7 +1268,7 @@ for (const location of ["ancestor", "root"]) {
      (nothing)                                                  C.5.1's five steps are done
    Anyone who makes this row green by any other means has removed the cell. */
 test("REAL ROW: the owner-approved pack at this head, against this cell's own literal", () => {
-  const refusals = packPin(PACK_ROOT_ABS, LITERAL);
+  const refusals = packPin(REPO_ROOT, PACK_ROOT_REL, LITERAL);
   assert.deepEqual(refusals, [],
     "PACK-PIN is not satisfied at this head. Refusals:\n  " + refusals.join("\n  ") +
     "\n(On rebuild/b-s9-prep-pack this is EXPECTED and is the red the cell was written for:" +
