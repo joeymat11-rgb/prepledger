@@ -954,7 +954,24 @@ AssertionError: this change drew 9 refusal(s), 9 of them sealed path(s) that
 **The nine paths are the same nine R1 measured, path for path.** Two things changed and
 both are fixes, not softenings: the count sentence is now honest about what it counts
 (N7), and the line names the chain ref's COMMIT (N10) - which is how anyone reading it can
-see that the chain has moved from R1's `1d70b62` to `bd3ca328`. The refusal is still
+see that the chain has moved from R1's `1d70b62` to `bd3ca328`.
+
+**AND N10 DEMONSTRATED ITSELF WHILE THIS WAS BEING MEASURED, which is better evidence
+than the note.** The SAME commit `4f69837`, run on the two machines within minutes of
+each other:
+
+```
+the PC   (Windows): ... at refs/remotes/origin/rebuild/t2-client-core (bd3ca3286795...)
+the farm (Linux):   ... at refs/remotes/origin/rebuild/t2-client-core (70113da58afb...)
+both: tests 27, pass 26, fail 1, and THE SAME NINE PATHS
+```
+
+Two machines, one branch, two different fetches of a remote-tracking ref, the same answer.
+Before N10 the two logs were indistinguishable and a reader who compared them had no way
+to know which chain each had judged against. **The cross-OS claim of section 2.4 also
+reproduces at the fix-round head: 27 rows, 26 green, the real row red, on both.**
+
+The refusal is still
 `FENCE-SEALED-PATH-TOUCHED` and not `FENCE-RESEAL-CHILD-UNVERIFIED`, because this branch
 still carries no `packages/S9.json` and makes no reseal-child claim. **No skip, no
 environment switch and no branch-name test was added anywhere in the fix round.**
