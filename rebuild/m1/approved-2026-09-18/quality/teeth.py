@@ -11,10 +11,16 @@ stated tolerance. Prints a table and exits 1 if any row disagrees.
   python quality/teeth.py --keep           leave the scratch directory in place afterwards
 
 Rows a to j2 are the mutation table of GATE-TEETH-AUDIT-R1; k1 to k3 are the lane's additions;
-m1 to m7 are review R1's; n1 to n5 are review R2's. The gate rows run with --screens and --sizes narrowed to the screen the
+m1 to m7 are review R1's; n1 to n5 are review R2's; p1 and p2 are the lane lead's Windows run,
+R3. The gate rows run with --screens and --sizes narrowed to the screen the
 change is on, to stay inside the budget, so a row asserts the named refusal only: the full gate
 also raises the regression rows on the screens the narrowed run drops, and a reviewer re-running
 a row at full scope should expect more FAIL rows, never fewer.
+
+Row p1 takes the hinting argument out of the launch list. Headless Chromium hints glyphs by
+default on Linux and not on win32 or darwin, so on those two the mutation changes no layout and
+the row cannot fail. It is neither passed silently nor skipped silently there: the row is printed
+with the words that say the argument does nothing on this platform, and counted as expected.
 Exit code: 0 every row as expected, 1 any row disagrees, 2 the scratch copy could not be made.
 """
 import json, os, re, shutil, subprocess, sys, tempfile, time
@@ -184,6 +190,23 @@ def mut_n5(work):
     sub(work, 'quality/baseline/states/INDEX.json', INDEX_T02,
         INDEX_T02.replace('    "ink",\n    "dawn"\n', '    "ink"\n'))
 
+# ---------------------------------------------------------------- the lane lead's Windows run
+# Headless Chromium hints glyphs by default on linux and on no other platform the pack runs on,
+# and a hinted glyph's advance is snapped to a whole pixel, so a line of text comes out a few
+# pixels wider or narrower and now and then wraps on a different word. common.LAUNCH_ARGS turns
+# hinting off for every script; row p1 takes it out again, where it can make a difference.
+HINTED = ('linux',)
+HINTING_OFF = "LAUNCH_ARGS = ['--allow-file-access-from-files', '--font-render-hinting=none']"
+
+def mut_p1(work):
+    sub(work, 'quality/common.py', HINTING_OFF, "LAUNCH_ARGS = ['--allow-file-access-from-files']")
+
+def mut_p2(work):
+    p = os.path.join(work, 'quality', 'baseline', 'states', sys.platform, 'T-02-ink.png')
+    if not os.path.exists(p):
+        raise AssertionError(f'there is no thumbnail to delete at {p}')
+    os.remove(p)
+
 def mut_none(work):
     pass
 
@@ -266,6 +289,13 @@ ROWS = [
      dict(exit=1, stdout=['theme sepia, which the sheet does not render', 'records with no state'])),
     ('n5', 'a theme the sheet renders that the index lost', mut_n5, SHEET_T02,
      dict(exit=1, stdout=['T-02 theme dawn is in the build but not in', 'records with no state'])),
+    # measured on linux with Chromium 141: T-02's date moves from 228 to 224, 4 px of the 3
+    # allowed. The two pixel values are the machine's, so the row asserts the words around them.
+    ('p1', 'the hinting argument taken out of the launch list', mut_p1, SHEET_T02,
+     dict(exit=1, stdout=['T-02', 'element 1 "Wed, Sep 16" left', 'rect edge moved (px)'],
+          hinted=True)),
+    ('p2', "this platform's thumbnail for T-02 deleted", mut_p2, SHEET_T02,
+     dict(exit=1, stdout=['no thumbnail at', 'T-02-ink.png', '--accept-thumbs'])),
 ]
 
 
@@ -334,6 +364,13 @@ def main():
     started = time.time()
     for row_id, what, mutate, cmd, want in ROWS:
         if ONLY and row_id not in ONLY:
+            continue
+        if want.get('hinted') and sys.platform not in HINTED:
+            # neither passed silently nor skipped silently: the row is printed, with the reason
+            table.append((row_id, what, 'as expected',
+                          f'glyphs are not hinted on {sys.platform}, so taking the argument out of '
+                          'the launch list moves nothing here and this row cannot fail; it is a '
+                          f'row of the platforms that hint, which are {", ".join(HINTED)}', 0.0))
             continue
         t0 = time.time()
         fresh(pristine, work)
