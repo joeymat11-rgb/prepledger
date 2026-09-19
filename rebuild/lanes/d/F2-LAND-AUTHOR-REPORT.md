@@ -7,9 +7,10 @@ FIX ROUND author: cowork (Earned lane hand), commits FIX 1/3 to FIX 3/3, answeri
 MICRO FIX ROUND 3 author: cowork (Earned lane hand), answering
 `rebuild/lanes/d/F2-LAND-REVIEW-R2.md` and the PM's own two findings in section 11.
 ASTRA R3 fix: previous round based at 68ed2fc2, committed by PM4 at 963df540.
-ASTRA continuation: uncommitted work on rebuild/d-f2-land-astra4 at 963df540,
-measured on win32 with Node v24.19.0. Sections 0, 3, 7.4, 7.5, 11 B2, 12 and 13 give the
-current result. Other measurements retain their historical heads and authors;
+ASTRA R4 closure: uncommitted work on rebuild/d-f2-land-astra4 at 5ed25b9,
+following 963df540 and f4eed5fc. Measured on win32 with Node v24.19.0.
+Sections 0, 3, 7.4, 7.5, 11 B2, 12 and Review R4 give the current result.
+Section 13 retains the f4eed5fc measurements, explicitly historical. Other measurements retain their historical heads and authors;
 Astra did not rerun the earlier linux, seal, importer or retirement work.
 This report is a HYPOTHESIS. The next reviewer is told to disagree wherever the evidence lets him.
 
@@ -17,7 +18,7 @@ Scope ruled by the PM (`DECISIONS:557`): THE TAG HALF ONLY. NO ENGINE BYTE MOVES
 
 ## 0. HEADLINE
 
-ASTRA FINAL BAR: F2 is **74 tests / 74 pass / 0 fail** on this revision. The
+ASTRA R4 BAR: F2 is **81 tests / 81 pass / 0 fail** on this revision. The
 previous sandbox plan-edit run measured 90 tests / 88 pass / 2 fail because
 esbuild could not read a directory. PM4 reports rerunning the same four paths
 on the same PC outside the sandbox at the previous round's bytes: **90 tests /
@@ -53,12 +54,13 @@ and "ZERO ... acceptance ... ZERO ... raw throw" were false. R3 demonstrated two
 ACCEPTING and two DEGRADING survivors, plus an unpinned tags-absent identity path.
 G35-G39 now kill those five terms; G40-G41 record two further raw-throw laxities.
 
-**AS MEASURED on this uncommitted revision: 141 mutants, 122 killed by test rows,
-2 stopped at cell initialization, 17 survivors. The same 712-call differential
-corpus finds 0 ACCEPTING survivors, 0 DEGRADING survivors and 17 REDUNDANT only
-against those 712 calls.** G42-G44 kill the previous three outcome-changing
-survivors. Sections 7.4-7.5 name the method and every remaining survivor.
-This is finite evidence, not a proof that the remaining terms are removable or that every possible term was enumerated.
+**AS MEASURED in R4 closure: 141 variants, 130 killed by behavior rows and
+11 survivors. Two of the 130 also stop projector.test.mjs at file scope;
+G51 now reports their construction failure inside a named row.** G45-G50
+pin the six R4 witnesses. The 712-call corpus was rerun unchanged, then extended
+to 718 calls with those six inputs. Sections 7.4-7.5 list the measurements and
+the remaining terms without a redundancy classification. The eleven unpinned
+terms are one named S10 debt below, not a request for another survivor hunt.
 
 ## 1. WHAT LANDED
 
@@ -159,11 +161,20 @@ Two files, each named by exact path, never globbed. The comment above the step r
 F2 cell files that are deliberately absent and why, so a file with no CI home is still a file
 somebody decided about (`DECISIONS:186 (3)`).
 
-The F2 comment now carries the measured count values: **74 tests, 74 pass** and
-**forty-four cells** in guard-coverage.test.mjs. Only those count values change
-(71 becomes 74 twice); the run line and all other workflow bytes stay unchanged.
-The retained comment's linux attribution belongs to earlier rounds: Astra's new
-74-test measurement is win32 only. No new linux or GitHub-job result is claimed.
+The workflow comment's history was read directly with git show:
+
+| revision | test count (both occurrences) | guard cell count |
+|---|---|---|
+| 68ed2fc2 | 43 | thirteen |
+| 963df540 | 71 | forty-one |
+| f4eed5fc and this round's base 5ed25b9 | 74 | forty-four |
+| current R4 closure | 81 | fifty-one |
+
+The current edit replaces 74 twice and forty-four once, with no other workflow
+byte changed. The run line remains identical. R4's reviewer measured 74/74/0 on
+linux and win32 at f4eed5fc; this author's 81/81/0 is win32 only. The comment's
+retained linux wording is not new evidence for these final bytes. No new linux
+or GitHub-job result is claimed.
 
 ## 4. THE BAR, ON BOTH OPERATING SYSTEMS
 
@@ -619,7 +630,7 @@ and three rows of this table were wrong:
 | row of 7.2 | what round 3 measured | now |
 |---|---|---|
 | `M29` state row mg / day, "covered by `M31`" | `M31` covers it only on an UNTAGGED state. On an already tagged state the `:158` branch never runs, and with `:152`'s terms gone a stored row whose `mg` or `day` left the authored setup is **ACCEPTED** | driven by `G23` and `G24` |
-| `M32` partial marker set, "covered by `M31`" | the `:154` halves `!own(e,'head')` and `!own(e,'secondary')` are redundant, but the `:158` term `own(e,'secondary')` was not: an untagged row already carrying a helper list was **ACCEPTED** | driven by `G25` |
+| `M32` partial marker set, "covered by `M31`" | the `:154` halves `!own(e,'head')` and `!own(e,'secondary')` had no differing input in that measurement, but the `:158` term `own(e,'secondary')` was not: an untagged row already carrying a helper list was **ACCEPTED** | driven by `G25` |
 | `M20c` setup exercises is an array, "covered by `M20d`" | `M20d` covers `{}` and `[]`, both of which still refuse by name through `.length`. It does NOT cover `null`, which reads `.length` off nothing and throws a raw `TypeError` | driven by `G32` |
 
 The table below retains the earlier double-mutant observations as history, not
@@ -660,124 +671,114 @@ is measured in 7.4.** What follows is the fate of R1's fourteen and nothing wide
 | R1's undriven term | now |
 |---|---|
 | `:149` `seen.has(e.id)` (B2) | KILLED by `G01`. A state holding `x0` twice and missing `x1` is refused |
-| `:85` `own(regions, tag.head)` | proved REDUNDANT, not uncovered: `R02` survives alone, the whole clause `M13` is KILLED by `G12`/`C06`. A prototype-chain name never resolves to the exercise's `mg` |
+| `:85` `own(regions, tag.head)` | `R02` survived alone in that historical sweep; the whole clause `M13` was KILLED by `G12`/`C06`. This does not classify the single term as removable |
 | `M09` / `M09b` muscle list | KILLED by `G03`, and split into five terms `M09`/`M09a`-`M09e`, all KILLED |
 | `M11c` sets / hi / inc | KILLED by `G04`, and split into six terms, all KILLED |
 | `M11d` steps ascending | KILLED by `G05` |
-| `M20` setup document | KILLED by `G06`, and split into six terms: four KILLED, two REDUNDANT (`M20c`, `M20d`) |
+| `M20` setup document | historically four of six split terms killed; `M20c` and `M20d` subsequently gained G32 and G35 |
 | `M21` source split | KILLED by `G07`, and split into four terms, all KILLED |
 | `M24` context is a plain record | KILLED by `G02`. R1 B1 is right that the module always refused this by name; what was missing was the cell |
 | `M37b` history date calendar validity | KILLED by `G08` |
 | `M38` / `M39` history and night rows | KILLED by `G11`. R1 expected these to be redundant with `cloneData`; measured, they are NOT: a `null` row with the term gone reads `d` off `null` and the caller sees a raw `TypeError` instead of `SETUP_TAGS_INVALID` |
 | `M41` workout facts profile | KILLED by `G09`, and split into three terms, all KILLED |
-| `M42` workout fact session shape | KILLED by `G10`; the `session.effective` half `M42b` is KILLED alone and the `session` half is redundant with it |
+| `M42` workout fact session shape | KILLED by `G10`; the `session.effective` half `M42b` was killed alone, and the `session` half subsequently gained G30 |
 
 Nothing was changed to go green and no guard was weakened: the mutated bytes lived only in a
 farm scratch worktree, the driver restores the file after every row and asserts the restored
 bytes are identical, and the module's sha256 is the same before and after the sweep.
 
-### 7.4 ASTRA'S CONTINUATION RE-MEASUREMENT: METHOD AND COUNT
+### 7.4 ASTRA'S R4 CLOSURE RE-MEASUREMENT: METHOD AND COUNT
 
-Measured in an OS-temp scratch with these seven files mirrored at their relative
-paths: the landed module, the lane copy, both F2 cells, exercise-catalogue.mjs,
-athlete-state.cjs and its engine/constants.cjs dependency. The worktree module
-was never written. Each scratch mutation was restored before the next run.
+Scratch: C:\Users\joeym\AppData\Local\Temp\earned-astra-6\.tmp\f2-r4-close.
+Seven public files were mirrored at their relative paths: setup-tags.cjs, the
+lane adapter copy, both F2 cells, exercise-catalogue.mjs, athlete-state.cjs and
+engine/constants.cjs. The worktree module was never written. Each scratch
+mutation was restored before the next run. No plan-edit test or package runner
+was used. The previous scratch was read only.
 
-The retained R3 generator was reused; its 141 generated source variants compare
-identically with the previous mutants.json. The corpus.cjs copy is byte-identical
-to the retained R3 script. Only G42-G44 were added to the witness run list.
-The generator masks strings, regex literals and comments while retaining source
-offsets, finds every if condition, splits only its top-level || operators, and
-replaces one resulting exact span with false. It emits **125 mutants**. Nested
-AND/OR terms are not recursively split; these counts are not exhaustive coverage.
-This includes acceptance/return conditions, not just refusal conditions.
+The retained measure.cjs generator was rerun. All 141 generated source variants
+compare identically with its retained mutants.json. Its masking of strings,
+regex literals and comments preserves offsets; it finds if conditions, splits
+top-level OR terms and replaces each selected span with false. It emits 125
+variants. It does not recursively split nested AND/OR terms and is not an
+exhaustive enumeration of guard terms.
 
-There are **16 explicit supplemental mutants**, instead of the earlier report's
-15: text()'s whole predicate; plain()'s array exclusion and prototype allowlist;
-closed()'s key-count and required-key checks; day()'s regex, finite parse and
-calendar round-trip; equal()'s key-count and recursive key comparison;
-regionsByMuscle's identity-region exclusion and factory freeze; projection
-freeze; validateExerciseTags' two input clones together; the bucket fallback;
-and the effective-helper-target selection. Each exact anchor occurred once.
-The supplemental changes are described at this granularity, not claimed to be
-all atomic terms. The count differs from round 3 and is not a rerun of its exact
-unretained generator.
+The same 16 explicit supplements cover text's predicate, plain's array and
+prototype checks, closed's count and own-key checks, day's regex/parse/round-trip,
+equal's count and recursive comparison, identity-region exclusion, taxonomy
+freeze, projection freeze, both exercise-input clones together, bucket fallback
+and effective helper target. All exact anchors occur once. Some supplements
+change a composite expression; 141 is a variant count, not a count of atomic laws.
 
-Each of the **141** variants ran both F2 cells through node --test with the TAP
-reporter. F2-G22's standing byte-pin failure is excluded when counting survivors.
+Both cells ran for every variant with node --test and the TAP reporter. G22's
+byte pin is excluded from behavior-row kill counts. Baseline: 81/81/0.
 
-| measured on this revision, win32 | count |
+| measured in R4 closure, win32 | count |
 |---|---|
 | generated / supplemental / total | 125 / 16 / 141 |
-| killed by at least one test row besides G22 | 122 |
-| cell initialization failures, counted separately | 2 |
-| survivors, only G22 red | 17 |
-| ACCEPTING survivors against 712 calls | 0 |
-| DEGRADING survivors against 712 calls | 0 |
-| REDUNDANT against those 712 calls only | 17 |
+| killed by a behavior row, with no file-scope stop | 128 |
+| killed by behavior rows AND a projector.test.mjs file-scope stop | 2 |
+| total killed by behavior rows, excluding G22 | 130 |
+| survivors, only G22 red | 11 |
 
-The initialization failures are :27's string/boolean return term and :38's
-array-length skip; both cell files fail before registering their rows. They are
-not presented as behavior-row kills. The 122 + 2 + 17 partition is the measured
-result of rerunning all 141 variants, not a subtraction from the prior count.
+Partition: 128 + 2 + 11 = 141, or 130 row kills + 11 survivors. The two
+construction variants are :27's string/boolean return and :38's array-length-key
+skip. Previously both cells stopped before registering rows. The guard cell now
+constructs its shared projector lazily; G51 constructs a separate projector in
+its own body. For either variant the measured result is 52 tests / 21 pass /
+31 fail: 29 behavior rows including G51, G22, and the unchanged projector file
+stop. These are not isolated G51 kills. Exact messages are in Review R4 below.
 
-DIFFERENTIAL CORPUS. The same **712-call synthetic input set** from the previous
-Astra round runs each current survivor against the original module. Baseline: **609 NAMED,
-8 RAW, 95 OK**. NAMED requires code and message both SETUP_TAGS_INVALID; RAW
-records the error constructor without engine message text. OK records JSON
-output and top-level frozen status; the absent-tags cases explicitly return an
-identity comparison. Identical outcomes on all 712 calls permit the bounded
-REDUNDANT label below. Recursive freeze, input mutation and arbitrary JS object
-behavior are not fully characterized by this differential set.
+The original corpus.cjs is byte-identical to the retained 712-call script and
+was rerun: 609 NAMED, 8 RAW, 95 OK. Adding one call per R4 witness gives 718:
+615 NAMED, 8 RAW, 95 OK. NAMED requires code and message both SETUP_TAGS_INVALID;
+RAW records the error constructor, without engine text; OK records JSON output
+and top-level frozen status. Absent-tag cases return an explicit identity check.
+Recursive freeze, input mutation and arbitrary JS objects are not fully covered.
 
-The fixtures use two synthetic lifts (chest and back) and an injected three-muscle
-taxonomy (chest/back/biceps, with chest_upper/upper_back/biceps regions). Families:
-whole setup/snapshot/state values; missing setup fields; 11 scalar/container values
-for setup fields, state fields and all eight exercise fields; fresh and tagged
-states; dates; session records; missing or malformed markers; tag heads and
-helper credits; symbol/nonenumerable/accessor/cyclic/sparse/extra-property/custom-
-prototype inputs; non-JSON scalars; malformed taxonomy; and a new-exercise control.
+Families remain whole setup/snapshot/state values, missing fields, scalar and
+container substitutions, fresh and tagged states, dates, session records,
+markers, tag heads and helper credits, hostile descriptors/prototypes/arrays,
+non-JSON scalars, malformed taxonomies and a new-exercise control. The original
+8 RAW calls are two repeated null-exercise pairs, an uncoercible-id pair and a
+20000-deep-value pair. Counts are calls, not distinct semantic shapes.
 
-Explicitly included: R3's empty exercises WITH empty snapshot, duplicate setup
-ids WITH the one-key snapshot, null sleep and null sessionLog record; a context
-with NO tags property, separately from tags:null and tags:undefined; an id of
-{toString:null}; and a setup priority value nested 20000 objects deep. Both setup
-entry points see the last two. The 8 RAW calls comprise two duplicate pairs of
-null-exercise cases, one uncoercible-id pair and one deep-value pair. Thus 712
-counts calls, not 712 unique semantic shapes. A non-engine priority text input
-is also included; section 12 records it without a verdict or a test row.
+The six added calls are the wrong-key split map, hidden state member, priority
+array with a hole plus a property, primitive taxonomy marker against {}, sets:{}
+against 2, and an array snapshot keyed by numeric text ids. The identity-marker
+call injects an identity-only taxonomy and prepares its tagged state with the
+unmutated factory. Each of the six single-term variants changes its own new call
+from NAMED to OK. Rechecking the previous seventeen survivors with all 718 calls
+finds exactly those six variants changed, once each. All eleven remaining terms
+have no observed difference on either the 712-call or 718-call run. This records
+finite observations and assigns no safety or redundancy classification.
 
-### 7.5 THE SEVENTEEN SURVIVORS, NAMED AND CLASSIFIED BY MEASUREMENT
+### 7.5 THE ELEVEN REMAINING SURVIVORS: LIST, NO CLASSIFICATION
 
-All seventeen leave **only F2-G22 red** in the two cells. Every REDUNDANT entry means
-no observed change on the same **712-call differential input set**, and nothing
-wider. No covering guard is inferred from that result. No remaining survivor
-changes an outcome in this corpus; the prior three are now killed by G42-G44.
+All eleven leave only F2-G22 red. The evidence count below is 960 calls across
+two corpora and one targeted review: R3's reported 191-call corpus, Astra's
+718-call corpus (the original 712 plus six R4 witnesses), and R4's reported
+51 targeted probes. The 191 and 51 are attributed reviewer measurements, not
+reruns claimed here; 712 is a subset of 718 and is not counted twice. Inputs
+may overlap between authors. The number is not a count of unique input shapes.
 
-| line | term removed or changed | result on the 712-call set |
+| line | term removed or changed | evidence limit |
 |---|---|---|
-| :16 | plain(): !Array.isArray(x) | REDUNDANT, 712 calls unchanged |
-| :18 | closed(): keys.every(k => own(x, k)) | REDUNDANT, 712 calls unchanged |
-| :19 | day(): YYYY-MM-DD regex | REDUNDANT, 712 calls unchanged |
-| :29 | typeof value !== 'object' | REDUNDANT, 712 calls unchanged |
-| :41 | !own(descriptor, 'value') | REDUNDANT, 712 calls unchanged |
-| :41 | !descriptor.enumerable | REDUNDANT, 712 calls unchanged |
-| :42 | `array && (!/^(0\|[1-9]\d*)$/.test(key) \|\| Number(key) >= value.length)` | REDUNDANT, 712 calls unchanged |
-| :58 | b === null | REDUNDANT, 712 calls unchanged |
-| :58 | typeof a !== 'object' | REDUNDANT, 712 calls unchanged |
-| :58 | typeof b !== 'object' | REDUNDANT, 712 calls unchanged |
-| :74 | freeze(regionsByMuscle) | REDUNDANT, 712 calls unchanged |
-| :86 | tag.head fallback to e.mg | REDUNDANT, 712 calls unchanged |
-| :118 | !plain(snapshot) | REDUNDANT, 712 calls unchanged |
-| :124 | !own(snapshot, e.id) | REDUNDANT, 712 calls unchanged |
-| :154 | !own(e, 'head') | REDUNDANT, 712 calls unchanged |
-| :154 | !own(e, 'secondary') | REDUNDANT, 712 calls unchanged |
-| :181 | !plain(facts) | REDUNDANT, 712 calls unchanged |
+| :16 | plain(): !Array.isArray(x) | no behaviour row; no differing input found in 960 calls of two corpora and one targeted review |
+| :19 | day(): /^\d{4}-\d{2}-\d{2}$/ regex | no behaviour row; no differing input found in 960 calls of two corpora and one targeted review |
+| :29 | typeof value !== 'object' | no behaviour row; no differing input found in 960 calls of two corpora and one targeted review |
+| :41 | !own(descriptor, 'value') | no behaviour row; no differing input found in 960 calls of two corpora and one targeted review |
+| :58 | b === null | no behaviour row; no differing input found in 960 calls of two corpora and one targeted review |
+| :74 | freeze(regionsByMuscle) | no behaviour row; no differing input found in 960 calls of two corpora and one targeted review |
+| :86 | tag.head fallback to e.mg | no behaviour row; no differing input found in 960 calls of two corpora and one targeted review |
+| :124 | !own(snapshot, e.id) | no behaviour row; no differing input found in 960 calls of two corpora and one targeted review |
+| :154 | !own(e, 'head') | no behaviour row; no differing input found in 960 calls of two corpora and one targeted review |
+| :154 | !own(e, 'secondary') | no behaviour row; no differing input found in 960 calls of two corpora and one targeted review |
+| :181 | !plain(facts) | no behaviour row; no differing input found in 960 calls of two corpora and one targeted review |
 
-The former :36, :59 and :162 survivors now have G42-G44. Their exact witnesses
-and single-term evidence are in section 13. The historical claim that double-
-mutant kills proved these terms redundant remains withdrawn; the new evidence
-is their own behavior rows. The module itself remains byte-identical.
+The six removed from the previous seventeen-term list are now G45-G50, measured
+in Review R4 below. :27 and :38 now have G51. No covering guard is inferred for
+any remaining term and none is described as removable. The module is unchanged.
 
 ### 7.6 THE ONE HOLE NO MUTANT CAN SEE: PM FINDING P-F2-1
 
@@ -882,9 +883,8 @@ tolerant of a mutated module, which would be a pin that does not pin.
   the standing proof that reading finds what mutating cannot.
 - Astra added G35-G39 for five of round 3's survivors and G40-G41 for missing
   guards. G42-G44 now cover the three further survivors found by that corpus.
-  The current 17 survivors and their bounded classifications are in 7.5.
-- Astra does not claim to have identified covering guards for the 17 unchanged
-  survivors; the corpus does not prove those terms removable.
+  G45-G50 now cover R4's six witnesses. The eleven remaining terms are listed
+  without classification in 7.5; no covering guard or removability is inferred.
 - Round 3 did not run the five real-shape and port-fix importers against the real module (6.2):
   they carry no override, and measuring them means editing files this lane does not own.
 
@@ -922,15 +922,15 @@ projects normally when the two rows are distinct. Measured: red on the `R11` mut
 the module. **No byte of the module changed**, because the guard was never wrong; only the
 evidence was missing.
 
-R1's second, benign miss at `:85` is also answered, and here R1's classification is corrected in
-the module's favour: `own(regions, tag.head)` is REDUNDANT rather than merely undriven. `R02`
-survives alone, but the whole clause `M13` is KILLED by `G12` and `C06`, and `G12` drives
+R1's second miss at `:85` was examined in the historical sweep: `R02`
+survived alone, while the whole clause `M13` was killed by `G12` and `C06`.
+That paired observation does not classify the single term. `G12` drives
 `constructor`, `toString`, `hasOwnProperty`, `__proto__` and `valueOf` as head names and as
 helper heads and gets `SETUP_TAGS_INVALID` for every one. R1's count of 14 undriven terms was
 right when it was written. **THE CLAIM THAT FOLLOWED IT HERE, "the count is now 0", WAS FALSE
 AND IS WITHDRAWN**; R2 B2 is upheld in full. The count as measured at this head is in 7.4: 141
-mutants, 122 row kills, 2 initialization failures, 17 survivors; on 712 calls,
-0 survivors are ACCEPTING, 0 are DEGRADING and 17 are unchanged. No exhaustiveness
+variants, 130 behavior-row kills (two also stop a cell file), 11 survivors;
+the remaining terms are listed without classification in 7.5. No exhaustiveness
 claim follows. This replaces round 3's false all-redundant classification.
 
 ### N1. The absent-tags path is laxer than the rest of the module. AGREED, ESCALATED, NOT CHANGED.
@@ -995,10 +995,12 @@ left-behind cells read.
 
 ## 10. FOR THE NEXT REVIEWER
 
-Four things this author would attack first, in order:
+HISTORICAL reviewer requests from the earlier rounds, retained as their record.
+The current PM order is to check G45-G51 and carry the eleven terms as one S10
+debt, not to start another survivor hunt. The older requested checks follow:
 
 1. **The count in 7.4.** R2 was right to attack the fix round's version of this and the same
-   attack is still the right one. 141 mutants and 712 corpus calls are the current measurement, at
+   attack was the right one then. That 141-variant, 712-call measurement was at
    one granularity, by one generator. A term the generator did not split and an input the corpus
    does not hold are both invisible to it. Pick a line the tables do not name, or an input shape
    the corpus does not carry, and try it. `P-F2-1` shows that reading the module beats mutating
@@ -1051,11 +1053,11 @@ is now 0" withdrawn). Section 0's headline is rewritten around the same number.
 
 The replacement claim "all 25 REDUNDANT ... 0 ACCEPTING, 0 DEGRADING" is
 WITHDRAWN under R3 B1. It was false, as were its repeated headline versions.
-Astra's current measurement is **141 mutants: 122 row kills, 2 initialization
-failures and 17 survivors; 0 ACCEPTING, 0 DEGRADING and 17 unchanged against
-712 differential calls**. Sections 7.4-7.5 replace the old count and survivor
-table in place. G35-G39 answer R3's five terms, each red alone among behavior
-rows; G42-G44 now kill the three further outcome-changing survivors.
+Astra's current measurement is **141 variants: 130 behavior-row kills and
+11 survivors**. Two row-killed variants also stop the unchanged projector file.
+Sections 7.4-7.5 give the expanded 718-call measurement and the survivor list
+without classification. G35-G39 answer R3, G42-G44 answer the continuation,
+and G45-G50 answer the six R4 witnesses. G51 exposes both construction stops.
 
 ### N1. Two terms degrade a named refusal into a raw TypeError. PINNED, by the PM's order.
 
@@ -1064,13 +1066,13 @@ justify `G11`, so the same argument is owed to `:82` and `:144`. Both are pinned
 `F2-G19`, red alone on their own mutants. Round 3 then applied the same rule to itself and found
 five more terms of that class (`G28` to `G32`, and `G33`/`G34` from N2), all now pinned.
 
-### N2. Four redundant terms belong in the table. ADDED, AND TWO OF THE FOUR ARE NOT REDUNDANT.
+### N2. Four previously unpinned terms: current disposition.
 
-`:118 !plain(snapshot)` and `:181 !plain(facts)` are confirmed REDUNDANT by measurement and are
-in 7.5's table. `:144 !plain(out)` and `:149 !plain(e)` are NOT: R2's argument holds for `42`,
-`[]` and a string but not for `null` or `undefined`, which throw raw. They are pinned by `G33`
-and `G34` instead. The evidence is the table in 7.5; this is the one place where round 3
-disagrees with a reviewer, and it disagrees in the direction of more coverage, not less.
+The old claim that :118 !plain(snapshot) was redundant is withdrawn: R4's
+array-snapshot witness accepts without it, and G50 now pins it. :181 !plain(facts)
+remains in 7.5 without a classification. :144 !plain(out) and :149 !plain(e)
+have G33 and G34: removing them degrades named refusals for null or undefined
+into raw throws. Historical scalar probes did not establish removability.
 
 ### N4. The two-move retirement proposal is MEASURED for two importers. RECORDED IN 6.2.
 
@@ -1152,12 +1154,18 @@ are measured examples, not an exhaustive list.
    head is qualified. The module is right not to care. The host must not offer the athlete a
    choice between them, and the volume half must be told which one it is reading.
 4. **Absent tags return the state BY IDENTITY, before the context is closed** (the PM's ruling on
-   N1: INTENDED for this landing). `projectSetupTags(state, ctx)` returns `state` itself, not a
-   clone and not frozen, the moment `ctx.tags` is absent, `null` or `undefined`, and it does so
+   N1: INTENDED for this landing). `projectSetupTags(state, ctx)` returns `state` itself,
+   not cloned and not frozen BY THIS MODULE, the moment `ctx.tags` is absent, `null` or `undefined`, and it does so
    before `closed(ctx, ...)` runs, so the rest of the context is never validated on that path.
    The module's own comment at `:135` says absence preserves identity, the tagless-parent
    differential depends on it, `projector.test.mjs:69`, `F2-G02`'s last line and `F2-G39` pin it, and the
    S10 declaration should name the behaviour rather than let a later tightening discover it.
+   The reviewer's object was already frozen by createCleanInitState, its maker.
+   Companion fact: validateSetupTags(anything at all, null) returns TRUE without
+   inspecting setup. A host that validates before tags are chosen has validated
+   nothing. The same absence bypass applies to undefined tags. In this round,
+   12 synthetic setup inputs with null tags all returned true, including a
+   proxy that throws on any get, ownKeys or getPrototypeOf operation.
 5. **There is no ceiling on the TOTAL credit one lift may lend** (R2 N7, recorded, no row).
    Eight helpers each at `lend: 1`, all distinct targets, validate and project to a `secondary`
    that sums to `8.0`. The brief asks for `0 < lend <= 1` per helper, unique targets and no
@@ -1171,9 +1179,15 @@ are measured examples, not an exhaustive list.
 
 ## 13. R3 finding and Astra's continuation re-check: fixed
 
+HISTORICAL: the measurements in this section belong to f4eed5fc, not the
+current R4 closure. The workflow counts were 43 and thirteen at 68ed2fc2,
+71 and forty-one at 963df540, 74 and forty-four at f4eed5fc; they are now
+81 (both test-count occurrences) and fifty-one. Section 3 records the history
+from git show; Review R4 below records the new measurements.
+
 R3 B1 is upheld. G35-G39 cover its five terms; G40-G41 record two raw throws.
 This continuation adds G42-G44 for the three outcome-changing survivors the
-previous round named. The current partition comes from rerunning every mutant
+previous round named. That revision's partition came from rerunning every mutant
 and the same 712-call corpus, not from assuming the three additions suffice.
 All 17 remaining survivors produce unchanged outcomes in that corpus. This is
 finite evidence, not a proof that every guard now has a behavior row, and not
@@ -1306,7 +1320,7 @@ measurement scripts/results:
 C:\Users\joeym\AppData\Local\Temp\earned-astra-f2-followup-9ab5dc1101ca46e0a2d3c3f22ec71ab3
 ```
 
-Only the three authorized tracked files differ. The workflow change is exactly
+At f4eed5fc only the three authorized tracked files differed. That workflow change was
 71 to 74 in its two test-count occurrences, and forty-one to forty-four in its
 cell count; all other workflow bytes compare unchanged. Every added line is
 ASCII. git diff --check passed. The final git status --porcelain and git diff --stat are pasted below.
@@ -1323,3 +1337,117 @@ git diff --stat
  rebuild/lanes/d/f2/guard-coverage.test.mjs |  41 +++++
  3 files changed, 177 insertions(+), 131 deletions(-)
 ```
+
+
+## FOR THE S10 BRIEF: ONE NAMED DEBT
+
+F2-GUARD-TERM-COVERAGE: eleven guard terms of setup-tags.cjs still have no
+behavior row after five looks; section 7.5 lists each one. Four independent
+looks found four, three, three and six outcome-changing survivors, each with
+a method the look before it did not use. The history includes targeted term
+removals, a separate differential corpus, a broader 712-call corpus and R4's
+hand-aimed witnesses. A future edit of this module must therefore be reviewed
+term by term and never trusted to this cell alone. Carry this as one debt in
+S10; this closure does not commission a fifth survivor hunt or declare the
+remaining terms redundant.
+
+## Review R4: fixed
+
+R4 B1 upheld. Every witness was reproduced on the original module and its
+single-term scratch variant BEFORE its new row was written. Each original
+call refused with code === message === SETUP_TAGS_INVALID. Each variant
+accepted. Before the rows, both cells reported 74 tests / 73 pass / 1 fail,
+G22 alone. After the rows, each of the six variants reports 81 tests / 79 pass /
+2 fail: its named row alone among behavior rows, plus G22. The baseline is
+81 tests / 81 pass / 0 fail, exit 0, on win32 Node v24.19.0.
+
+| row | line and single term removed | measured witness and result |
+|---|---|---|
+| G45 | :18 keys.every(k => own(x, k)) | split.map keys a..g, seven U values: NAMED to true; G45 + G22 red. closed() serves eight call sites: :66, :79, :84, :89, :108, :119, :120, :141 |
+| G46 | :41 !descriptor.enumerable in cloneData | own non-enumerable r4Hidden on state: NAMED to projection; value is smuggled-past-the-boundary, output enumerable:true; G46 + G22 red |
+| G47 | :42 array index-key condition | priorities with slot 0 absent, slot 1 present and r4Junk property; own-key count exactly length + 1: NAMED to true; G47 + G22 red |
+| G48 | :58 typeof a !== 'object' | identity-only taxonomy, stored volumeTags.regionsByMuscle:42 against {} through :154: NAMED to projection; G48 + G22 red |
+| G49 | :58 typeof b !== 'object' | fresh state sets:{} against authored sets:2 through :158: NAMED to projection; G49 + G22 red |
+| G50 | :118 !plain(snapshot) | text ids '0' and '1', tags array of two valid records: NAMED to true; G50 + G22 red |
+| G51 | :27 string/boolean return; :38 array-length-key skip, separately | shipped taxonomy constructed inside the row, ordinary acceptance and frozen projection pass at baseline; each variant fails construction inside G51 and still stops projector.test.mjs at file scope |
+
+The scratch variants use one asserted exact anchor each. G46 removes only
+cloneData's enumerable term, leaving the separate :138 context check intact.
+Neither protected file in the worktree was changed. The guard cell's shared
+factory is deferred, so construction failures no longer prevent its rows from
+registering; G51 deliberately constructs its OWN projector and catches no
+failure as success. No existing assertion was weakened or skipped.
+
+For BOTH :27 and :38, the complete two-cell run now prints:
+
+```text
+not ok 51 - F2-G51 the shipped taxonomy constructs a projector that accepts and projects
+Got unwanted exception: the shipped taxonomy must construct inside this behaviour row
+Actual message: "SETUP_TAGS_INVALID"
+code: 'ERR_ASSERTION'
+# tests 52
+# pass 21
+# fail 31
+```
+
+The other red behavior rows are G01-G12, G14, G16-G17, G20-G21, G23-G24,
+G30-G31, G38-G41, G43-G44 and G48. Together with G51 that is 29 behavior
+failures. G22 and the projector.test.mjs file-scope failure make 31. The file
+failure is ERR_TEST_FAILURE with exitCode 1 and a SETUP_TAGS_INVALID stack.
+These counts are measured, not an assertion that G51 fails alone.
+
+G41's comment now states that RangeError is the engine stack limit, not a
+module property, and that a larger stack can yield a named refusal. No G41
+assertion changed. Section 12 item 4 now says not cloned and not frozen BY
+THIS MODULE and includes the tagless validator's unconditional true return.
+The historical workflow counts are corrected in sections 3 and 13.
+
+The complete 141-variant rerun, the unchanged 712-call rerun, the 718-call
+extension and the previous-seventeen comparison are recorded in 7.4. There
+is no new survivor classification. The scratch generator also reran G35-G44's
+prior witnesses/tripwires: each remained red alone among behavior rows, plus
+G22, with 81/79/2. The retained source variants compare identically.
+
+No plan-edit cells, package runner, seal/receipt generation, private fixture,
+auth file or protected input was used. No module, projector cell, decision
+file or lane status file was written. The three authorized tracked files
+remain uncommitted for PM4 and the independent Claude review. Scratch evidence
+is retained under .tmp/f2-r4-close; no cleanup was attempted in this round.
+
+Added-line ASCII and the three-file fence were checked. The workflow roundtrip
+comparison allows only 74 to 81 twice and forty-four to fifty-one once; all
+other bytes match HEAD. git diff --check passed before the final bar.
+
+### Final required bar, R4 closure
+
+Environment set on separate PowerShell lines before the final test command:
+
+```powershell
+$env:MEASURED_TEST_NOW='2026-09-03'
+$env:TZ='America/New_York'
+& 'C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' --test rebuild/lanes/d/f2/projector.test.mjs rebuild/lanes/d/f2/guard-coverage.test.mjs
+```
+
+```text
+# tests 81
+# pass 81
+# fail 0
+exit 0
+```
+
+certutil SHA256, after all mutations (identical to the before hashes):
+
+```text
+certutil -hashfile rebuild/m4/workout/setup-tags.cjs SHA256
+SHA256 hash of rebuild/m4/workout/setup-tags.cjs:
+d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d
+CertUtil: -hashfile command completed successfully.
+
+certutil -hashfile rebuild/lanes/d/f2/projector.test.mjs SHA256
+SHA256 hash of rebuild/lanes/d/f2/projector.test.mjs:
+f74bbe5f40624237a4d24536b3ead036a75ed3bc705a52d6e55032d28bdf8dd6
+CertUtil: -hashfile command completed successfully.
+```
+
+The final git status --porcelain and git diff --stat are printed in the
+execution transcript as the last two commands, after this report is written.

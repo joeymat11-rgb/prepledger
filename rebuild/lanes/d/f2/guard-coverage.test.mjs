@@ -12,8 +12,13 @@ const { readFileSync } = require('node:fs');
 const { createCleanInitState } = require('../../../m4/workout/athlete-state.cjs');
 const { createSetupTagProjector } = require('../../../m4/workout/setup-tags.cjs');
 const taxonomy = { muscles: ENGINE_MG, regions: REGION_MG };
-const projector = createSetupTagProjector({ taxonomy });
-const { validateSetupTags, projectSetupTags, validateExerciseTags } = projector;
+// Defer the shared factory so construction failures can be reported by rows.
+// The unchanged projector.test.mjs still exercises construction at file scope.
+let projector;
+const shared = () => projector ??= createSetupTagProjector({ taxonomy });
+const validateSetupTags = (...args) => shared().validateSetupTags(...args);
+const projectSetupTags = (...args) => shared().projectSetupTags(...args);
+const validateExerciseTags = (...args) => shared().validateExerciseTags(...args);
 const DATE = '2026-09-14', OP = 'synthetic-f2-guard-op';
 const copy = structuredClone;
 const bytes = JSON.stringify;
@@ -632,6 +637,8 @@ test('F2-G40 an uncoercible setup id throws and is NOT the named refusal (:124)'
 
 // Astra re-check, RECORDED LAXITY at :43: cloneData recursively visits values
 // without a depth guard. Rewrite this row on purpose the day that guard arrives.
+// The RangeError is the engine's stack limit, not a property of this module;
+// a larger runner stack can clone this input and then refuse it BY NAME.
 test('F2-G41 a setup value nested 20000 objects deep throws a raw RangeError (:43)', () => {
   const f = fixture(PAIR);
   let value = null;
@@ -684,4 +691,85 @@ test('F2-G44 a state with only the first of two exercises tagged refuses', () =>
   assert.equal(Object.hasOwn(f.state.exercises[0], 'volumeTags'), true);
   assert.equal(Object.hasOwn(f.state.exercises[1], 'volumeTags'), false);
   bad(() => project(f));
+});
+
+// R4. Mutant: :18 "keys.every(k => own(x, k))" disabled in closed(). This
+// term guards eight call sites; :120's value check cannot detect wrong day keys.
+test('F2-G45 seven valid split values under keys a through g refuse', () => {
+  const f = fixture(PAIR);
+  f.setup.split.map = Object.fromEntries('abcdefg'.split('').map(k => [k, 'U']));
+  assert.equal(Object.keys(f.setup.split.map).length, 7);
+  bad(() => validateSetupTags(f.setup, f.tags));
+});
+
+// R4. Mutant: :41 "!descriptor.enumerable" deleted in cloneData(). An extra
+// state member bypasses closed(); it must not be promoted into enumerable output.
+test('F2-G46 a non-enumerable own state member refuses without projected output', () => {
+  const f = fixture(PAIR);
+  f.state = copy(f.state);
+  Object.defineProperty(f.state, 'r4Hidden', { value: 'smuggled-past-the-boundary', enumerable: false });
+  assert.equal(Object.hasOwn(f.state, 'r4Hidden'), true);
+  assert.equal(Object.getOwnPropertyDescriptor(f.state, 'r4Hidden').enumerable, false);
+  let out;
+  bad(() => { out = project(f); });
+  assert.equal(out, undefined, 'no projection may expose the hidden member as enumerable');
+});
+
+// R4. Mutant: :42 "array && (!/^(0|[1-9]\d*)$/.test(key) || Number(key) >=
+// value.length)" disabled. One hole plus one non-index key passes :36's count.
+test('F2-G47 a priority array with one hole and one non-index property refuses', () => {
+  const f = fixture(PAIR);
+  f.setup.priority_muscles = [, 'chest'];
+  f.setup.priority_muscles.r4Junk = 'back';
+  assert.equal(Object.hasOwn(f.setup.priority_muscles, 0), false);
+  assert.equal(Reflect.ownKeys(f.setup.priority_muscles).length, f.setup.priority_muscles.length + 1);
+  bad(() => validateSetupTags(f.setup, f.tags));
+});
+
+// R4. Mutant: :58 "typeof a !== 'object'" deleted from equal(). Through :154,
+// a primitive stored regionsByMuscle must not equal an identity taxonomy's {}.
+test('F2-G48 a primitive stored taxonomy marker refuses against an empty record', () => {
+  const local = createSetupTagProjector({ taxonomy: {
+    muscles: ['chest', 'back'], regions: { chest: 'chest', back: 'back' } } });
+  const f = fixture(PAIR);
+  f.state = copy(local.projectSetupTags(f.state, context(f)));
+  assert.deepEqual(f.state.exercises[0].volumeTags.regionsByMuscle, {});
+  f.state.exercises[0].volumeTags.regionsByMuscle = 42;
+  bad(() => local.projectSetupTags(f.state, context(f)));
+});
+
+// R4. Mutant: :58 "typeof b !== 'object'" deleted from equal(). Through :158,
+// an untagged row's key-less sets object must not equal the authored number 2.
+test('F2-G49 an empty sets record refuses against an authored primitive', () => {
+  const f = fixture(PAIR);
+  f.state = copy(f.state);
+  assert.equal(f.setup.exercises[0].sets, 2);
+  f.state.exercises[0].sets = {};
+  bad(() => project(f));
+});
+
+// R4. Mutant: :118 "!plain(snapshot)" deleted. Text ids '0' and '1' address
+// array slots and satisfy :128's count, but a tag snapshot must still be a record.
+test('F2-G50 an array snapshot refuses even with matching numeric text ids', () => {
+  const f = fixture(PAIR);
+  f.setup.exercises.forEach((e, i) => { e.id = String(i); });
+  f.tags = [f.tags['renamed-0'], f.tags['renamed-1']];
+  assert.equal(Object.keys(f.tags).length, f.setup.exercises.length);
+  bad(() => validateSetupTags(f.setup, f.tags));
+});
+
+// R4. Mutants: :27 the string/boolean return and :38 the array-length-key skip
+// disabled, separately. Construct here so each factory stop has a named row.
+test('F2-G51 the shipped taxonomy constructs a projector that accepts and projects', () => {
+  let local;
+  assert.doesNotThrow(() => { local = createSetupTagProjector({ taxonomy }); },
+    'the shipped taxonomy must construct inside this behaviour row');
+  const f = fixture(PAIR);
+  assert.equal(local.validateSetupTags(f.setup, f.tags), true, 'ordinary setup acceptance');
+  const out = local.projectSetupTags(f.state, context(f));
+  assert.notEqual(out, f.state, 'ordinary projection creates a state');
+  assert.equal(out.exercises.length, 2);
+  assert.deepEqual(out.exercises[0].secondary, f.tags['renamed-0'].secondary);
+  assert.equal(out.exercises[0].volumeTags.op_id, OP);
+  assert.equal(Object.isFrozen(out), true);
 });
