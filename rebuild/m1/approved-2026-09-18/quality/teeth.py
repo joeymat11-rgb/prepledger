@@ -11,11 +11,14 @@ stated tolerance. Prints a table and exits 1 if any row disagrees.
   python quality/teeth.py --keep           leave the scratch directory in place afterwards
 
 Rows a to j2 are the mutation table of GATE-TEETH-AUDIT-R1; k1 to k3 are the lane's additions;
-m1 to m7 are review R1's; n1 to n5 are review R2's; p1 and p2 are the lane lead's Windows run,
-R3. The gate rows run with --screens and --sizes narrowed to the screen the
+m1 to m7 are review R1's; n1 to n5 are review R2's; p1 to p4 are the lane lead's Windows run and
+review R3's notes; q1 to q6 are the PM's leads of 2026-09-19. The gate rows run with --screens and --sizes narrowed to the screen the
 change is on, to stay inside the budget, so a row asserts the named refusal only: the full gate
 also raises the regression rows on the screens the narrowed run drops, and a reviewer re-running
 a row at full scope should expect more FAIL rows, never fewer.
+
+A VOID row is never a pass: it says the anchor did not match, it is counted as disagreeing and
+the run exits 1, so the list refuses to certify itself rather than quietly losing a tooth.
 
 Row p1 takes the hinting argument out of the launch list. Headless Chromium hints glyphs by
 default on Linux and not on win32 or darwin, so on those two the mutation changes no layout and
@@ -44,10 +47,19 @@ APPEND_ANCHOR = ':root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24p
 
 # ---------------------------------------------------------------- editing the scratch copy
 def sub(work, relpath, old, new, times=1):
-    """Plain string replacement that has to match exactly once, or the row is void."""
+    """Plain string replacement that has to match exactly once, or the row is void.
+
+    A file can sit on disk with CRLF while git holds it as LF, which is what a pre R3 accept run
+    in text mode left in the owner's working tree: git status is clean and nothing looks wrong,
+    but an anchor that spans a line ending matches zero times and the row goes VOID. So when the
+    anchor does not match, the same anchor is tried with its newlines written the way the file
+    writes them, and the file keeps its own line endings on the way out.
+    """
     path = os.path.join(work, relpath.replace('/', os.sep))
     with open(path, encoding='utf-8', newline='') as f:
         s = f.read()
+    if s.count(old) != times and '\r\n' in s and '\n' in old:
+        old, new = old.replace('\n', '\r\n'), new.replace('\n', '\r\n')
     n = s.count(old)
     if n != times:
         raise AssertionError(f'{relpath}: the anchor matched {n} times, expected {times}: {old[:60]}')
@@ -114,7 +126,10 @@ def _shift_status(work, px):
     sub(work, 'app/app.css', old, old.replace('margin-top: 8px', f'margin-top: {8 + px}px'))
 
 def mut_h1(work):
-    _shift_status(work, 3)      # inside the 3 px rect tolerance
+    _shift_status(work, 2)      # inside the 3 px rect tolerance, with a pixel of headroom on it
+
+def mut_h3(work):
+    _shift_status(work, 4)      # the first whole pixel outside it, both halves together
 
 def mut_h2(work):
     _shift_status(work, 60)     # far outside it
@@ -201,6 +216,56 @@ HINTING_OFF = "LAUNCH_ARGS = ['--allow-file-access-from-files', '--font-render-h
 def mut_p1(work):
     sub(work, 'quality/common.py', HINTING_OFF, "LAUNCH_ARGS = ['--allow-file-access-from-files']")
 
+class NotHere(Exception):
+    """This machine cannot carry out this row's change. The row is printed with the reason and
+    counted as expected; it is never skipped in silence and never reported as a pass."""
+
+
+def mut_p3(work):
+    mut_p1(work)          # the same launch list, judged by the other gate
+
+
+def mut_p4(work):
+    # a platform's thumbnails copied from another platform's directory, which is the set the
+    # tolerance cannot tell apart: the two differ by at most 1.26 of the 2.00 budget over all 418
+    base = os.path.join(work, 'quality', 'baseline', 'states')
+    others = [d for d in sorted(os.listdir(base))
+              if d != sys.platform and os.path.isdir(os.path.join(base, d))]
+    if not others:
+        raise NotHere('this tree holds no other platform\'s thumbnails to copy, so the row has '
+                      'nothing to build; it runs wherever a second platform has committed a set')
+    for theme in ('ink', 'dawn'):
+        shutil.copyfile(os.path.join(base, others[0], f'T-02-{theme}.png'),
+                        os.path.join(base, sys.platform, f'T-02-{theme}.png'))
+
+
+def mut_q2(work):
+    # a word off the owner's list split by a soft hyphen: the screen still reads "Ready"
+    sub(work, 'app/app.html', '>Train today.<', '>Rea\u00addy to train today.<')
+
+
+def mut_q3(work):
+    # U+2015 HORIZONTAL BAR: a dash the old two character list did not name
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Upper body today \u2015 one change to review.')
+
+
+def mut_q4(work):
+    # primary text tagged with a muted class and painted with the muted token: the contrast tier
+    # drops to 3.0 and the tier alone stops nothing. What stops it is the record's colour half.
+    sub(work, 'app/app.html', '<div class="title">Eat about 2,300 kcal today.</div>',
+        '<div class="title sub">Eat about 2,300 kcal today.</div>')
+    append_css(work, '.tcard .title.sub { color: var(--muted) !important; }')
+
+
+def mut_q5(work):
+    # one state that cannot apply: the run must carry on and still write its report
+    sub(work, 'app/states-today.js',
+        "  R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', component: 'sample note', apply: function (a) {\n",
+        "  R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', component: 'sample note', apply: function (a) {\n"
+        "    throw new Error('teeth q5: this state cannot apply');\n")
+
+
 def mut_p2(work):
     p = os.path.join(work, 'quality', 'baseline', 'states', sys.platform, 'T-02-ink.png')
     if not os.path.exists(p):
@@ -216,6 +281,8 @@ GATE_TODAY_SMALL = ['quality/gate.py', '--screens', 'today', '--sizes', '375x812
 GATE_WORKOUT = ['quality/gate.py', '--screens', 'workout', '--sizes', '393x852']
 SHEET_T02 = ['quality/statesheet.py', '--only', 'T-02']
 SHEET_T0 = ['quality/statesheet.py', '--only', 'T-0']
+SHEET_T84 = ['quality/statesheet.py', '--only', 'T-84']
+GATE_BAD_SIZE = ['quality/gate.py', '--screens', 'today', '--sizes', '390x844']
 
 COPY_CHECK = 'copy: no dashes, readiness words, vendor names'
 
@@ -247,8 +314,13 @@ ROWS = [
      dict(exit=1, stdout=['the visible text changed', 'T-02'])),
     ('g2', 'an em dash inside the same state copy', mut_g2, SHEET_T02,
      dict(exit=1, stdout=['copy: ' + repr(EM), 'T-02'])),
-    ('h1', 'T-02\'s status line shifted 3 px (inside the tolerance)', mut_h1, SHEET_T02,
+    # h1 sat on the boundary at 3 px, 3.00 of 3.00, so one pixel of drift on any future machine
+    # turned the row that must PASS into a FAIL (review R3's note). It is 2 px now, with headroom
+    # in both halves, and h3 holds the other side of the line at 4 px.
+    ('h1', 'T-02\'s status line shifted 2 px (inside the tolerance)', mut_h1, SHEET_T02,
      dict(exit=0, stdout=['0 with problems'])),
+    ('h3', 'T-02\'s status line shifted 4 px (outside it)', mut_h3, SHEET_T02,
+     dict(exit=1, stdout=['T-02', 'became', 'rect edge moved (px)', 'thumbnail mean shift'])),
     ('h2', 'T-02\'s status line shifted 60 px', mut_h2, SHEET_T02,
      dict(exit=1, stdout=['became', 'T-02'])),
     ('i',  'this platform\'s ink-today baseline deleted', mut_i, GATE_TODAY,
@@ -289,13 +361,32 @@ ROWS = [
      dict(exit=1, stdout=['theme sepia, which the sheet does not render', 'records with no state'])),
     ('n5', 'a theme the sheet renders that the index lost', mut_n5, SHEET_T02,
      dict(exit=1, stdout=['T-02 theme dawn is in the build but not in', 'records with no state'])),
-    # measured on linux with Chromium 141: T-02's date moves from 228 to 224, 4 px of the 3
-    # allowed. The two pixel values are the machine's, so the row asserts the words around them.
-    ('p1', 'the hinting argument taken out of the launch list', mut_p1, SHEET_T02,
-     dict(exit=1, stdout=['T-02', 'element 1 "Wed, Sep 16" left', 'rect edge moved (px)'],
+    # p1 is judged on T-84, where the round's own evidence says the mutation is loudest: the
+    # unhinted line wraps and "Nothing was recorded." moves 170 px of the 3 allowed, instead of the
+    # 4 px of 3 it moves on T-02, which was one pixel of headroom. The pixel values belong to this
+    # machine, so the row asserts the words around them.
+    ('p1', 'the hinting argument taken out of the launch list', mut_p1, SHEET_T84,
+     dict(exit=1, stdout=['T-84', 'element 10 "Nothing was recorded." left', 'rect edge moved (px)'],
           hinted=True)),
     ('p2', "this platform's thumbnail for T-02 deleted", mut_p2, SHEET_T02,
      dict(exit=1, stdout=['no thumbnail at', 'T-02-ink.png', '--accept-thumbs'])),
+    ('p3', 'the same launch list, judged by the screen gate', mut_p3, GATE_TODAY,
+     dict(exit=1, fails=[('visual regression vs baseline', 'of pixels changed')], hinted=True)),
+    ('p4', "the other platform's T-02 thumbnails copied over this platform's", mut_p4, SHEET_T02,
+     dict(exit=1, stdout=['is byte identical to', 'never copied', 'T-02-ink.png'])),
+    ('q1', 'a size the gate does not know, which used to empty the list', mut_none, GATE_BAD_SIZE,
+     dict(exit=2, stdout=['REFUSED', '--sizes 390x844', 'the sizes are'])),
+    ('q2', 'a word off the owner\'s list split by a soft hyphen', mut_q2, GATE_TODAY,
+     dict(exit=1, fails=[(COPY_CHECK, 'U+00AD'), (COPY_CHECK, "'ready'")])),
+    ('q3', 'a horizontal bar, a dash the old list did not name', mut_q3, GATE_TODAY,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2015'))])),
+    ('q4', 'primary text tagged muted and painted with the muted token', mut_q4, SHEET_T02,
+     dict(exit=1, stdout=['T-02', 'colour', 'became', 'colour moved (levels)'])),
+    ('q5', 'one state whose apply throws', mut_q5, SHEET_T0,
+     dict(exit=1, stdout=['T-02'], report='states-report-T-0.txt')),
+    ('q6', '--accept pointed at another build by EARNED_APP', mut_none,
+     ['quality/statesheet.py', '--accept'],
+     dict(exit=2, stdout=['REFUSED', 'EARNED_APP'], app='compare')),
 ]
 
 
@@ -339,9 +430,12 @@ def judge(row_id, want, proc, work):
             wrong.append(f'no contrast ratio was printed for "{check}"')
         elif not (lo <= min(vals) < hi):
             wrong.append(f'the worst ratio on "{check}" is {min(vals)}, expected {lo} to {hi}')
-    if want.get('report'):
-        if not os.path.exists(os.path.join(work, 'quality', 'run', 'report.txt')):
-            wrong.append('no report.txt was written')
+    name = want.get('report')
+    if name is True or want.get('report') is True:
+        name = 'report.txt'
+    if name:
+        if not os.path.exists(os.path.join(work, 'quality', 'run', name)):
+            wrong.append(f'no {name} was written')
     return wrong
 
 
@@ -376,6 +470,10 @@ def main():
         fresh(pristine, work)
         try:
             mutate(work)
+        except NotHere as e:
+            # printed, not skipped: the row says in words why this machine cannot build it
+            table.append((row_id, what, 'as expected', str(e), time.time() - t0))
+            continue
         except AssertionError as e:
             table.append((row_id, what, 'VOID', str(e), time.time() - t0))
             continue
