@@ -499,7 +499,12 @@ or closes over a writer; and one frozen object `onWeek` whose entries take RAW F
 athlete typed or chose them and return a RESULT OBJECT to paint. The names are chosen against
 TODAY-SPLIT B.3's own census rule (`lanes`, `facade`, `on`, `painter` are already taken by the
 split, so this item uses `weekFacade` and `onWeek` and asserts zero code occurrences of either in
-`today-app.cjs` and `gym-app.mjs` before it ships). **The reply objects below are what `onWeek`'s
+`today-app.cjs` and `gym-app.mjs` before it ships). **WIDENED IN v5 (`E-R22`, R4 B3): the census is
+run on the seven MEMBER names too, not only on the two object names, because E.3's word list is a
+list of MEMBER names in code position and that is where the fence actually looks. The seven are
+`openWeek`, `review`, `saveChange`, `cancel`, `closeEditor`, `machineLatest`, `machineSave`, and
+2.2's `HOW TO READ` paragraph says which two were renamed and why. 6.8's fourth bullet is the bar
+that proves it.** **The reply objects below are what `onWeek`'s
 entries RETURN; they are not a handle the released file holds.**
 
 The five methods are therefore listed here as **the SEALED lane's surface**, measured at `ad8ced07`
@@ -582,11 +587,27 @@ Everything beyond that belongs to ONE branch of `apply()` and is named per row.
 **HOW TO READ THE `call` COLUMN AFTER `E-R12`.** Every `host.*` and `machineSettings.*` name in it
 is a call the SEALED edit week lane makes. The RELEASED editor calls the matching entry of the
 frozen callback table `onWeek` with raw field values and paints the result object it gets back:
-`onWeek.open()` serves E0 from ONE `host.read()`; `onWeek.review(kind, exercise_id, fields)` serves
-E3, E4, E5 and E6; `onWeek.save(review_id)` serves S; `onWeek.cancel(review_id)` and
-`onWeek.close()` serve the two exits; `onWeek.machineLatest(exercise_id)` and
+`onWeek.openWeek()` serves E0 from ONE `host.read()`; `onWeek.review(kind, exercise_id, fields)`
+serves E3, E4, E5 and E6; `onWeek.saveChange(review_id)` serves S; `onWeek.cancel(review_id)` and
+`onWeek.closeEditor()` serve the two exits; `onWeek.machineLatest(exercise_id)` and
 `onWeek.machineSave(exercise_id, rows, cue)` serve M1 and M2. **The released file never holds a
 host, a lane, a review handle that is anything but an opaque id, or an assembled edit object.**
+
+**TWO OF THOSE SEVEN NAMES CHANGED IN v5 (`E-R22`, R4 B3 UPHELD), AND THE REASON IS THE FENCE THIS
+SPEC MAKES ITS OWN BAR.** v4 called them `onWeek.save(review_id)` and `onWeek.close()`. **`.save`
+and `.close` are BOTH on TODAY-SPLIT E.3's durable-writer word list, as MEMBER NAMES in code
+position**, and E.4 scans the call side with a TOKEN scan over identifiers and member names, which
+cannot tell `onWeek.save(...)` from `host.save(...)` and is not meant to. The census 2.1 ran was of
+the two OBJECT names (`weekFacade`, `onWeek`); the fence looks at their MEMBERS. **Measured,
+`spike/r5-fence-names.mjs` against E.3 at `rebuild/c-today-split@24b35244` (E.3 byte-identical to
+`60d6ad97`): the list carries 28 member names; v4's seven members hit TWO of them, `save`
+unqualified and `close` qualified "on a host identifier" in a way a token scan cannot honour; v5's
+seven hit ZERO.** The renames follow TODAY-SPLIT's own B.3 pattern, which renamed `on.recover` to
+`on.recoverWorkout` for the same reason: `save` becomes `saveChange`, `close` becomes `closeEditor`,
+and `open` becomes `openWeek` because a one-word verb next to a fenced list is a name waiting to
+collide. `review`, `cancel`, `machineLatest` and `machineSave` were already clear and do not move.
+**The SEALED lane's own calls are unchanged: it still calls `host.save`, `host.close` and
+`machineSettings.latest`, which is what a sealed file is for.**
 
 | state | copy | call | refusals it must draw |
 |---|---|---|---|
@@ -822,7 +843,7 @@ so a NEW file under it proves nothing by its neighbours.
 | `rebuild/m3/w7-preview/build.mjs` | YES | the OTHER pinned `build.mjs` (R1 N3). NOT this item's: a new bundle input for the preview page is added in the `today/` one. Named here so a builder who greps finds two and knows which | zero bytes |
 | `rebuild/m3/w7-preview/today/today-entry.mjs` | YES | SEALED (`:141`), and `:543` does not release it | **SEALED SIDE: `createEditWeekEntry` (3.3 line 2)** |
 | `rebuild/m3/w7-preview/today/today-app.cjs` | YES | SEALED **today**; `:543` RELEASES it once TODAY-SPLIT lands, writers and all removed | **RELEASED SIDE, LANE C: the route and the mount only (3.3 line 2a). Zero writer lines** |
-| `rebuild/m3/w7-preview/today/local-source-basis.mjs` | YES | SEALED BY NAME at `:536` (2) | NOT TOUCHED, zero bytes. **CHANGED IN v4 (`E-R17`, R3 B6, SPIKE M3 rows 14 and 17): the sealed lane calls the PURE half `admittedLocalSourceBasis(generation, {athleteLabel, namespace})` (`:32`, an export in its own right) over the generation THE ADOPTION GATE ALREADY LOADED, instead of `admittedLocalSourceState(setup)` (`:73-:82`), whose `:78 await repository.load()` is a second durable read. Same function, same two narrowing arguments, so `plan-edit-model.cjs:240`'s `equal(adopted, base)` still holds, which is what R3 verified and SPIKE M3 rows 8 and 9 confirm by execution** |
+| `rebuild/m3/w7-preview/today/local-source-basis.mjs` | YES | SEALED BY NAME at `:536` (2) | **ONE ADDED EXPORT IN v5 (`E-R17 PRIME`, R4 B2 UPHELD), and v4's "NOT TOUCHED, zero bytes" is WITHDRAWN.** The file gains ONE export, working name `admittedLocalSourceRead(setup)`, which is the read half of `:73-:82` with the SAME `try` in the SAME place, returning `{generation, basis}` instead of the basis alone. **The EXISTING export `admittedLocalSourceState` stays BYTE-IDENTICAL and is NOT re-expressed through the new one**, and the reason is measured rather than preferred: its never-throws contract (`:70-:73`) has exactly two callers in the tree that are cells, `import/test/refusal-route.test.mjs:60` and `measure/measure-baseline.mjs:42`, and both drive it only through a real booted setup entry, so NEITHER drives a throwing, rejecting or absent repository. Re-expressing it would move a contract no existing cell proves. `spike/r5-adoption.mjs` row E drives the never-throws path of BOTH spellings, nine drives, none throwing. The added export is about 12 sealed lines and 3.3 line 3 pays for them. **The v4 row's other half still stands: CHANGED IN v4 (`E-R17`, R3 B6, SPIKE M3 rows 14 and 17): the sealed lane calls the PURE half `admittedLocalSourceBasis(generation, {athleteLabel, namespace})` (`:32`, an export in its own right) over the generation THE ADOPTION GATE ALREADY LOADED, instead of `admittedLocalSourceState(setup)` (`:73-:82`), whose `:78 await repository.load()` is a second durable read. Same function, same two narrowing arguments, so `plan-edit-model.cjs:240`'s `equal(adopted, base)` still holds, which is what R3 verified and SPIKE M3 rows 8 and 9 confirm by execution** |
 | `rebuild/m3/w7-preview/today/machine-settings-host.mjs` | YES | SEALED (`:63-:85`) | WIRING, and the aim is a zero byte hunk |
 | `rebuild/m3/w7-preview/today/gym-app.mjs` | YES | SEALED (`:161-:166`) | WIRING, and the aim is a zero byte hunk |
 | `rebuild/m3/w6/host/plan-edit-host.mjs` | YES | SEALED | CALLED ONLY, zero bytes |
@@ -872,7 +893,8 @@ so a NEW file under it proves nothing by its neighbours.
    `weekFacade` and `onWeek` it hands out.
 3. **THE SEALED LINES, PAID RATHER THAN WISHED FOR (`E-R12` says "pay the sealed lines"; v1 said
    40, v2 said 55, v3 said under 70, and all three were counting a smaller thing).** The target is
-   **under 130 added sealed lines and ZERO removed**, split so a reviewer can check each part:
+   **under 142 added sealed lines in v5 (v4 said under 130) and ZERO removed except the two changed
+   lines of 3.4.4's gate hunk**, split so a reviewer can check each part:
 
    | sealed part | added lines, target |
    |---|---|
@@ -884,7 +906,18 @@ so a NEW file under it proves nothing by its neighbours.
    | `newIntentId` | 1 |
    | `createEditWeekEntry` in `today-entry.mjs` | about 15 |
    | `today-lanes.cjs`: one import, one call, the two entry groups | about 10 |
-   | **total** | **about 130** |
+   | **`local-source-basis.mjs`: the ONE added export of `E-R17 PRIME`, NEW IN v5 (3.2's row, 3.4.4). Zero existing lines change** | **about 12** |
+   | **total** | **about 142** (v4 said about 130) |
+
+   **RE-PRICED IN v5 BY `E-R17 PRIME` (iv), WHICH IS THE PART THAT DISSOLVES THE CONFLICT R4 B2
+   NAMED.** R4 is right that TODAY-SPLIT D.1 byte-proves the two moved writer regions, and that a
+   rewrite of `athleteBasisState`'s BODY in the week the split is first written would rewrite one
+   of them. **That is not what this item does, and the SEQUENCING says why: EW2's sealed hunks land
+   as COMMITS ON TOP OF TODAY-SPLIT's, inside the same S10 chain.** D.1's verbatim proof is a
+   property of the SPLIT's OWN commits, the codemod's output against its source, not of the S10
+   head, so a later declared edit to the gate inside `today-lanes.cjs` does not touch it. The gate
+   this item edits is the one the split has already moved, and it edits it by ADDING six lines and
+   changing two, under this spec's own budget and its own review.
 
    That is roughly double v3's figure and the doubling is the whole content of `E-R12`: the lines
    did not appear, they MOVED, out of released files where a lane C edit could have changed what
@@ -896,7 +929,16 @@ so a NEW file under it proves nothing by its neighbours.
    existing exported `createMachineSettingsHost` (`:63`) from the new entry and renders through the
    existing exported `renderEditor` (`machine-settings-view.mjs:115`). If a builder finds it cannot,
    that is a STOP, not a licence to edit a sealed file.
-5. `local-source-basis.mjs` takes NO hunk either. 3.4 exists to keep it that way.
+5. **AMENDED IN v5 BY `E-R17 PRIME`, AND v4's LINE 5 IS WITHDRAWN.** v4 said "`local-source-basis.mjs`
+   takes NO hunk either. 3.4 exists to keep it that way." R4 B2 measured that the design that
+   sentence protects costs THREE durable loads per adoption and not the two the spec asserted, for
+   a reason the sentence itself causes: the gate's load lives inside that file and its only export
+   throws the generation away. **The PM has taken the hunk.** The file gains **ONE ADDED EXPORT**,
+   `admittedLocalSourceRead(setup)`, about 12 sealed lines, with the existing export byte-identical
+   (3.2's row, 3.4.4). **It is still a NARROW licence and not an opening**: no existing line in that
+   file changes, no existing export changes behaviour, the `try` of `:70-:73` is not re-created by
+   eye anywhere, and anything beyond the one added export is STOP 4. 3.4 still exists to keep the
+   adoption chain honest; what it no longer does is forbid the one export that makes the count two.
 6. The child is S10, shared with N3-MACROS-ENTRY and P4b coaching memory exactly as `:540` (2)
    intends, and it also carries section 4's admission hunk, its `plan-edit-model.cjs` export and
    3.5's F2 package. One seal chain. **`:543` says S10 USES the released role S9 builds and that
@@ -1146,15 +1188,28 @@ than as an assumption:**
 2. `setup` (the setup entry) stays reachable from it, because `admittedLocalSourceState(setup)`,
    `setup.athleteState()` and `setup.athleteLabel()` are all read off it;
 3. the era (its `client`, `namespace` and `crypto`) stays reachable from it, for 3.4.2's rows;
-4. `importAdmitted` keeps its present meaning, set from the RAW `admittedLocalSourceState` at
-   `:2488` and not from anything this section adds, or the Import entry starts lying.
-5. **NEW IN v4 (`E-R17`): the gate's OWN loaded generation is reachable inside it, so it can be
-   passed to `openEditWeekHost` rather than re-loaded.** Measured, the gate already loads one:
-   `admittedLocalSourceState` (`local-source-basis.mjs:78`) is `const loaded = await
-   repository.load();`. This requirement asks TODAY-SPLIT to keep that value in a binding rather
-   than to consume it inline, which is a smaller thing than it sounds and is the difference between
-   two durable reads and four (SPIKE M3 (c)). **If TODAY-SPLIT cannot, STOP 9 is live again and
-   the PM is asked to accept a count of 3.**
+4. `importAdmitted` keeps its present meaning, set from the RAW admitted basis and not from
+   anything this section adds, or the Import entry starts lying. **UNCHANGED IN v5 AND MEASURED
+   TO BE UNCHANGED (R4 B2 way out (b) is NOT taken).** `E-R17 PRIME`'s added export returns, as
+   its `basis` member, the value of `admittedLocalSourceBasis(generation, {athleteLabel,
+   namespace})` over the SAME generation with the SAME two narrowing arguments, which is exactly
+   what `admittedLocalSourceState` returns today (`local-source-basis.mjs:73-:82`). So
+   `importAdmitted = !!read.basis` is the same boolean `:2488` sets, and no hand re-creates the
+   `try` of `:70-:73` by eye. `spike/r5-adoption.mjs` row E drives both spellings against a
+   throwing, a rejecting, an absent and a non-callable repository: all nine drives return, none
+   throws.
+5. **RE-TAKEN IN v5 (`E-R17 PRIME`, R4 B2 UPHELD). v4's item 5 IS WITHDRAWN: it asked TODAY-SPLIT
+   to keep a binding that does not exist.** v4 said "the gate already loads one" and cited
+   `local-source-basis.mjs:78`. The cite is right and the conclusion was wrong: `:78` is one frame
+   deeper and in ANOTHER FILE, inside `admittedLocalSourceState`, which returns the BASIS and
+   discards the generation. `today-app.cjs:2482-:2488` has no `loaded` to keep. **Measured
+   (`spike/r5-adoption.mjs` row A, on an instrumented repository): under v4's text an adoption
+   costs THREE `repository.load()` calls, not two.**
+   **WHAT THIS ITEM ASKS INSTEAD, and it asks TODAY-SPLIT for nothing at all:** the gate calls ONE
+   ADDED EXPORT of `local-source-basis.mjs` which returns the basis AND the generation its own
+   `repository.load()` at `:78` already produced (3.2's row, and the sealed budget pays for it).
+   The only requirement on TODAY-SPLIT is the one item 1 already states: the adoption gate stays
+   ONE function. **Measured, the count is then TWO (`spike/r5-adoption.mjs` row B).**
 
 **THE HUNK, and v2's "four added lines and zero removed" is withdrawn (R2 B2 (i)).** `:2488` ends
 with a semicolon, so v2's `.then` could not be appended without changing that line, and "zero
@@ -1162,19 +1217,47 @@ removed" was not achievable as printed. Under `:543` the point is moot in a bett
 function is being MOVED by TODAY-SPLIT, so this item's hunk is not an append to a line it does not
 own. It is, inside the sealed module's own adoption gate:
 
+**RE-CUT IN v5 (`E-R17 PRIME`). The gate's first line is the ONE ADDED EXPORT, and the generation
+it returns is what the editor host is opened over:**
+
 ```
-const loaded = await repository.load();            // the gate's OWN load, which already happens
+const admitted = await admittedLocalSourceRead(setup);   // the ONE added export (3.2's row)
+importAdmitted = !!admitted.basis;                       // item 4: the same boolean :2488 sets
+let state = admitted.basis || setup.athleteState();
 const read = await (async () => {
-  const host = await openEditWeekHost(loaded.generation);
-  try { return await host.read(); } finally { host.close(); }
+  const host = await openEditWeekHost(admitted.generation);
+  try { return await host.read(EDIT_WEEK_ADOPTION_DAY); } finally { host.close(); }
 })().catch(() => null);
 state = planEditedState(state, read);
 ```
 
-Six added lines, one changed (the assignment), zero removed, and the `try/finally` is what makes
-the `close()` unconditional. **The `catch(() => null)` belongs HERE, on the sealed side, not inside
-the pure function**, because it is the durable call that can throw and the pure function is what
-must be total.
+Six added lines, two changed (the first line of `athleteBasisState`'s chain and the assignment),
+zero removed, and the `try/finally` is what makes the `close()` unconditional. **The
+`catch(() => null)` belongs HERE, on the sealed side, not inside the pure function**, because it is
+the durable call that can throw and the pure function is what must be total. `admittedLocalSourceRead`
+is a working name for the added export; the naming is the admission lane's, and 3.2's row is the
+contract.
+
+**WHICH DAY THE ADOPTION READ IS TAKEN ON, NAMED RATHER THAN DEFAULTED (NEW IN v5, R4 N1 ADOPTED).**
+`host.read()` with no argument lets `readVerified` (`plan-edit-host.mjs:145`) default to
+`localDay()`, and an edit reviewed on day D has `starts_on` D+1 (`result()`'s `:376` is
+`if (value.starts_on <= date)`). **Measured (`spike/r5-readday.mjs`), on a real saved `add` and a
+real saved `update sets 2 to 5` through the real host, adoption day `2026-09-14`, `starts_on`
+`2026-09-15`:**
+
+| the date the adoption read is taken on | `read` | the added lift appears | `press-old` sets |
+|---|---|---|---|
+| NONE, so `localDay()` = `2026-09-14`, which is what v4's hunk wrote | true | **0 times** | **2, the pre-edit value** |
+| `2026-09-14` named explicitly | true | 0 times | 2 |
+| `2026-09-15`, which IS `starts_on` | true | **exactly once** | **5** |
+| `2026-09-20`, after it | true | exactly once | 5 |
+
+**That is CORRECT behaviour and not a defect in the design: an edit that starts tomorrow must not
+change today's week.** It is a defect in a hunk that reads with no date and in two cells that name
+none. `EDIT_WEEK_ADOPTION_DAY` above is the era's own `liveDay()`, the same value 3.4.2's row
+passes to the factory, stated as an argument so that a builder reads the day off the hunk instead
+of chasing it into the host. **A cell that asserts an edit is VISIBLE reads at or after
+`starts_on`: EW-13d and EW-14 both name a date, and 5's table says which.**
 
 **COST, RE-COUNTED BY EXECUTION AND BROUGHT BACK INSIDE THE SPEC'S OWN STOP (`E-R17`, R3 B6,
 SPIKE M3 (c)).** v3 said "one extra durable reopen per adoption" and it was wrong by three. SPIKE
@@ -1182,16 +1265,32 @@ M3 rows 11 to 17 counted on an instrumented repository: `createPlanEditHost` 0, 
 v3's `basisState` 1, v3's `setupOperation` 1, the gate's own pre-existing load 1, which is
 **FOUR loads where there was ONE, and STOP 9 fires at design time.**
 
-**THE REPAIR, which is the whole of `E-R17`: ONE DURABLE READ PER ADOPTION, and it is the one the
-gate already made.** `openEditWeekHost(generation)` takes the loaded generation; `basisState` comes
-from `admittedLocalSourceBasis(generation, ...)` (the pure half, 3.2's row); `setupOperation` is
-dereferenced out of the SAME generation (3.6). **The count becomes 2: the gate's own load, which
-existed before this item, plus the ONE `lane.reopen()` inside `readVerified`
-(`plan-edit-host.mjs:148`) that no design can avoid, because the companion re-verifies its own
-lane and that is the point of it.** So the extra durable act is exactly one reopen, which is what
-STOP 9 permits, **and STOP 9 STANDS UNCHANGED**: the spec no longer disagrees with itself.
-Adoption runs at boot (`today-app.cjs:2550`) and on `onAdmitted` (`:700`), not per frame, so this
-is two reopens in a session and not a loop. EW-14 measures the count by name.
+**THE REPAIR, RE-TAKEN IN v5 (`E-R17 PRIME`) AFTER R4 B2 MEASURED v4's VERSION AT THREE. ONE
+DURABLE READ PER ADOPTION, AND IT IS THE ONE THE GATE ALREADY MAKES, REACHED THROUGH ONE ADDED
+EXPORT.** `admittedLocalSourceRead(setup)` performs the `:78` load the gate performs today and
+returns the basis AND the generation; `openEditWeekHost(generation)` takes that generation;
+`basisState` comes from `admittedLocalSourceBasis(generation, ...)` (the pure half, 3.2's row);
+`setupOperation` is dereferenced out of the SAME generation (3.6). **The count is 2: the gate's own
+load, which existed before this item, plus the ONE `lane.reopen()` inside `readVerified`
+(`plan-edit-host.mjs:148`) that no design can avoid, because the companion re-verifies its own lane
+and that is the point of it.**
+
+**AND THIS TIME THE 2 IS MEASURED AND NOT ASSERTED (`spike/r5-adoption.mjs`, the instrument R4
+used, on the spike's real encrypted store):**
+
+| the design | gate-side `repository.load()` | host-side `repository.load()` | TOTAL |
+|---|---|---|---|
+| **C.** the gate as it stands today, `today-app.cjs:2482-:2488`, no editor: the FLOOR | 1 | 0 | **1** |
+| **A.** v4's 3.4.4 as printed, which is what R4 B2 measured | 2 | 1 | **3** |
+| **B.** `E-R17 PRIME`: the gate calls the ONE added export | **1** | **1** | **2** |
+| **D.** where B's host-side load is: `openEditWeekHost(generation)` alone | 1 | **0** | 1 |
+| **D.** and after ONE `host.read()` | 1 | **1** | 2 |
+
+So the extra durable act is exactly one reopen, which is what STOP 9 permits, **and STOP 9 STANDS
+UNCHANGED**: the spec no longer disagrees with itself, and row D says WHERE the one act is, so a
+builder who measures 3 knows which frame to look in. Adoption runs at boot (`today-app.cjs:2550`)
+and on `onAdmitted` (`:700`), not per frame, so this is two reopens in a session and not a loop.
+EW-14 measures the count by name, on an instrumented repository, the way row B was measured.
 
 **EW-14 IS BLOCKED ON 3.4 AND ON 3.5, and v3 STILL UNDERSTATED THE SCOPE (R2 N3.1 upheld, R3 B2
 (v) upheld, SPIKE M1 rows 1, 5 and 7).** v3 said the adoption read refuses without F2 "on a
@@ -1205,6 +1304,18 @@ empty one, because `plan-edit-model.cjs:202-:203` calls `C.tagsOf` for every BAS
 `setup-commands.mjs:124` guarantees `origin.payload.tags` is always present so `:202` is always
 entered. **So the adoption read is not blocked on generations carrying an `add`; it is blocked,
 full stop, until F2 lands.**
+
+**ONE SENTENCE THAT RETIRES A BUG THAT IS NOT THERE (NEW IN v5, R4 N3 ADOPTED).**
+`openEditWeekHost(generation)` decides `firstRun` and `basisState` from the generation the gate
+handed it, while `host.read()` reopens the lane and `projectorFor` (`plan-edit-host.mjs:68-:69`)
+computes `basisSource` from the REOPENED one. If an import is admitted BETWEEN the two, the host
+CONSTRUCTS, `host.read()` refuses `PLAN_EDIT_IMPORTED_BASIS_MISMATCH`, and adoption is SAFE because
+`planEditedState` returns the unchanged state on a refused read (3.4.3). **That code at E0 is a
+RACE between the gate's load and the lane's reopen before it is a wiring defect, and this spec says
+so here so that the first builder who meets it does not hunt STOP 13's defect where STOP 13's
+defect is not.** STOP 13 and EW-13c control c2 still attach the same code to the WIRING defect,
+which is the one that matters; the two are told apart by whether `basisState` is the raw value, and
+EW-13c asserts that it is.
 
 ### 3.5 THE F2 TAG PACKAGE GATES THE WHOLE DOOR, MEASURED (RE-WRITTEN IN v4, `E-R13`, PM NOTE a, R3 B2)
 
@@ -1318,13 +1429,17 @@ Consequences a builder must plan around:
    a STOP: a second spelling is a second rule (`plan-edit-model.cjs:61-63`).
 3. **UNTIL IT LANDS, THE DOOR DOES NOT OPEN, AND THE BLOCKED LIST IS MOST OF THE SUITE
    (`E-R13`, R3 B2 (1), SPIKE M1 rows 1, 5 and 7).** Blocked: **EW-01, EW-02, EW-03, EW-04,
-   EW-05, EW-08, EW-09, EW-11, EW-12, EW-13a, EW-13b, EW-13c, EW-13d, EW-14, EW-15, EW-17c, EW-18
-   and EW-19**, which is every cell that opens the editor, plus EW-09 and the Machine settings
+   EW-05, EW-08, EW-09, EW-11, EW-12, EW-13a, EW-13b, EW-13c, EW-13d, EW-14, EW-15, EW-17c and
+   EW-18**, which is every cell that opens the editor, plus EW-09 and the Machine settings
    door because 2.2's E0 serves ONE `host.read()` for BOTH doors and the athlete reaches Machine
-   settings through it. **Not blocked: EW-16 (DOM and copy, over a fixed view model), EW-17a and
-   EW-17b (they drive admission, not the editor, and SPIKE M4 rows 5, 6 and 7 ran them without
-   any F2 wiring), and every RELEASED file of 3.3 line 1, which can be written and proved against
-   frozen reply objects.** v3's sentence "EW-02, EW-03, EW-05 and the Machine settings door are
+   settings through it. **EW-19 IS STRUCK FROM THIS LIST IN v5 (R4 N2 ADOPTED).** v4's copy of it
+   carried eighteen ids while section 5, 7.1, 7.2 and 9.3 all carried seventeen; EW-19 opens no
+   editor, it drives the exported `watchDayRollover` with a fake `doc`, and every other statement
+   of the list was right. **Not blocked: EW-16 (DOM and copy, over a fixed view model), EW-17a,
+   EW-17b and EW-17d (they drive admission, not the editor, and SPIKE M4 rows 5, 6 and 7 ran them
+   without any F2 wiring), EW-19, EW-20 (it drives the import screen's own exported `refusalLines`
+   and needs nothing), and every RELEASED file of 3.3 line 1, which can be written and proved
+   against frozen reply objects.** v3's sentence "EW-02, EW-03, EW-05 and the Machine settings door are
    NOT blocked" is WITHDRAWN. 5, 7.1, 7.2 and 9.3 all carry the corrected list.
    **THE ONE CHEAP ESCAPE, named and NOT taken:** the Machine settings door could be reached
    without E0's read, which would unblock EW-09 alone. That is a design change to 2.2's entry
@@ -2018,7 +2133,7 @@ purpose.
 | EW-08 | equipment values for the selected lift only; invalid, blank and out of order `steps` use the real validation; no zero, NaN or hidden default | composed | **3.5** |
 | EW-09 | machine notes save through the existing coach command and appear on the same id's actual gym card; rename retains them; replacement does not inherit them; empty final note save refuses | composed | **3.5**, because the athlete reaches the Machine settings door through E0's ONE `host.read()` (3.5 consequence 3) |
 | EW-11 | the actual producer, validator and projector prove identity, domain, effective date, seen basis, actor edit and causal linkage; malformed and stale basis refuse | composed | **3.5** |
-| EW-12 | one deliberate save yields one durable edit intent and its complete outbox; injected pre commit failure changes neither; retry does not duplicate; lease, integrity and closed era never show Saved. **v4: the save is made by the SEALED lane through `onWeek.save`, never by a released file (`E-R12`)** | composed | **3.5** |
+| EW-12 | one deliberate save yields one durable edit intent and its complete outbox; injected pre commit failure changes neither; retry does not duplicate; lease, integrity and closed era never show Saved. **v4: the save is made by the SEALED lane through `onWeek.saveChange` (renamed from `onWeek.save` in v5, `E-R22`), never by a released file (`E-R12`)**. **A CONTROL ADDED IN v5: the three released files contain ZERO of E.3's fenced member names in code position, which is 6.8's fourth bullet asserted from inside the suite as well as from the fence** | composed | **3.5** |
 | EW-13a | reopen and replay reconstruct current and pending plans; preexisting history byte equivalent | composed | **3.5** |
 | EW-13b | a rejected or tombstoned edit is not still applied by an editor local cache | composed | **3.5** |
 | **EW-13c** | **REWRITTEN IN v4 on SPIKE M3 rows 9 and 10.** On an ADMITTED import installation, a SECOND open after one saved `update` reads and its state EQUALS the companion's own read. Control c1: the adopted value reads OK and proves nothing. Control c2: the ALREADY EDITED state refuses `PLAN_EDIT_IMPORTED_BASIS_MISMATCH` at `:240`. **v3's version asserted `:240` against the adopted value, which is measured GREEN** | composed, THROUGH THE REAL ADOPTION CHAIN | **3.4's sealed lane AND 3.5** |
@@ -2082,8 +2197,9 @@ written RED and left red with its reason named in the report; it is never delete
    with this item's files in the tree, and the claim it proves is now much narrower and much
    easier to keep. **`edit-week-model.mjs`, `edit-week-view.mjs` and `edit-week-check.mjs` are the
    only three released files this item adds; not one of them imports anything sealed, holds a
-   host, names a writer or spells a tag rule.** Three consequences the builder must be able to
-   show on the fence's own printout:
+   host, names a writer or spells a tag rule.** **FOUR** consequences the builder must be able to
+   show on the fence's own printout (three in v4; `E-R22` adds the fourth, which is the only one
+   on the fence's CALL side):
    - **no `FENCE-VIEW-IMPORT`**: their import closure is `plain-copy.cjs`, `design.cjs`,
      `machine-settings-view.mjs`, `exercise-catalogue.mjs` and each other, all on E.3's closed
      MAY-IMPORT list, and NOT `setup-model.mjs` (R3 N7, 2.2's E6 row);
@@ -2091,7 +2207,32 @@ written RED and left red with its reason named in the report; it is never delete
      is never exercised (3.4.1);
    - **`edit-week-lane.cjs` is DECLARED PRODUCT with role `new` on the same child that lands it**,
      or under E.2 the fence treats it as free and fails it on its own contents (3.4.1). That is a
-     sequencing requirement on S10, not a fence exemption.
+     sequencing requirement on S10, not a fence exemption;
+   - **A FOURTH BULLET, NEW IN v5 (`E-R22`, R4 B3 UPHELD): THE THREE RELEASED FILES CONTAIN ZERO OF
+     E.3's FENCED MEMBER NAMES IN CODE POSITION, CENSUSED THE WAY 2.1 CENSUSED THE TWO OBJECT
+     NAMES, WITH THE CENSUS PRINTED IN THE REPORT.** The first three bullets are all on the IMPORT
+     side; the fence's other half is a TOKEN scan of the CALL side (E.4), over identifiers and
+     member names, which cannot tell `onWeek.save(...)` from `host.save(...)`. v4's callback table
+     was named `onWeek.save` and `onWeek.close` and would have gone red on a fence this spec makes
+     its own bar. **Measured, `spike/r5-fence-names.mjs`, against E.3 at
+     `rebuild/c-today-split@24b35244`:**
+
+     | the seven MEMBERS of `onWeek` | v4's name | on E.3's durable-writer list? | v5's name | on the list? |
+     |---|---|---|---|---|
+     | open the door, ONE `host.read()` | `open` | no | `openWeek` | no |
+     | review a change | `review` | no | `review` | no |
+     | save the reviewed change | **`save`** | **YES, and unqualified** | `saveChange` | **no** |
+     | cancel a review | `cancel` | no | `cancel` | no |
+     | leave the editor | **`close`** | **YES, qualified "on a host identifier", which a TOKEN scan cannot honour** | `closeEditor` | **no** |
+     | read the machine draft | `machineLatest` | no (it is one token, not `.latest`) | `machineLatest` | no |
+     | save the machine record | `machineSave` | no (it is one token, not `.save`) | `machineSave` | no |
+     | **the two OBJECT names** | `weekFacade`, `onWeek` | no, neither | unchanged | no |
+     | **REDS** | **2 of 7** | | **0 of 7** | |
+
+     The list carried 28 member names on the day this was censused. **The bar is the census, not
+     the table: the builder re-runs it against whatever E.3 says on the day the fence runs**, since
+     STOP 2 records that TODAY-SPLIT is in a fix round and the PM's `:550` is splitting that word
+     list into names that PUT and names that only read.
 
    **A builder that has to make the fence skip any of these has found a STOP, not a workaround
    (STOP 4).**
@@ -2250,10 +2391,23 @@ settled and neither the wording nor the routing is re-opened by round 3.
    TODAY-SPLIT is not accepted at all. Section 3 is re-judged before a byte moves. `:543`'s own
    ESCAPE HATCH is live: its reviewer "may find for v1", and if it does, `today-app.cjs` stays
    sealed and 3.3 line 2a goes back onto S10.
-   **WIDENED IN v4, now that TODAY-SPLIT v2 is readable at `906cb056` (R3 N4). FOUR specific
-   things this item depends on and none of which it owns**, each a STOP if the split lands
-   differently: (a) the adoption gate keeps its own LOADED GENERATION reachable (3.4.4 item 5),
-   without which STOP 9 is live again; (b) E.3's re-export census after the split prints
+   **WIDENED IN v4, now that TODAY-SPLIT v2 is readable (R3 N4), AND RE-STATED IN v5 (R4 N5).
+   THE HEAD IS `60d6ad97`, NOT `906cb056`: the split's own independent review R2 is pushed on top
+   of the fix round, it is a REJECT with eight blocking findings, and the branch has since gained
+   its spike (`24b35244`). SO ALL FOUR DEPENDENCIES BELOW ARE DEPENDENCIES ON A DOCUMENT THAT IS
+   ITSELF IN A FIX ROUND, and the PM should read them that way.** I re-read E.3 and E.4 at
+   `24b35244` and `git diff 60d6ad97..24b35244 -- rebuild/lanes/c/TODAY-SPLIT-SPEC.md` is EMPTY,
+   so nothing in section 3, in 6.8 or in this STOP is excused by the drift; what may still move is
+   the WORD LIST itself, which the PM's `:550` puts in a fix round of its own (names that PUT
+   against names that only read). **6.8's fourth bullet is re-run against whatever E.3 says on the
+   day the fence runs, not against the copy printed here.** FOUR specific things this item depends
+   on and none of which it owns, each a STOP if the split lands differently:
+   (a) **RE-CUT IN v5 (`E-R17 PRIME`): the adoption gate stays ONE function (3.4.4 item 1).** v4's
+   version of this row asked for the gate's own LOADED GENERATION to be reachable, and R4 B2
+   measured that there is no such binding to keep; the requirement is withdrawn and replaced by the
+   added export of 3.2's `local-source-basis.mjs` row, which this item owns and pays for. What is
+   still a dependency is only that the gate is not split into two adoption paths.
+   (b) E.3's re-export census after the split prints
    `createTodayModel` 2, `createTodayLanes` 2, `model` 2 and `options` 2 in `today-app.cjs`, and
    3.3 line 2a's route and mount must not disturb it; (c) the seal artifact records
    `edit-week-lane.cjs` as product with role `new`, or E.2 makes the fence treat it as free and
@@ -2263,7 +2417,10 @@ settled and neither the wording nor the routing is re-opened by round 3.
    `FENCE-VIEW-IMPORT` on its own contents, independently of anything here (R3 N7, 3.2's row).
 3. `plan-edit-host` as merged cannot satisfy EW-14 through the real host composition.
 4. Any need to change a sealed byte, a package, a receipt, the ledger, the engine or the coach,
-   beyond the hunks section 3.3 lines 2a, 2b and 7, 3.5 and 4.4 name under their own custody.
+   beyond the hunks section 3.3 lines 2a, 2b, 5 and 7, 3.5 and 4.4 name under their own custody.
+   **WIDENED IN v5: line 5's ONE added export in `local-source-basis.mjs` is now a named hunk
+   (`E-R17 PRIME`), and it is a licence for THAT ONE EXPORT and nothing else. Any existing line of
+   that file changing, or its existing export changing behaviour, is this STOP.**
    **This now includes the WRITER-FENCE: a released file that has to call a writer is a STOP
    (6.8), never a fence exemption.**
 5. Any EW-17 cell comes back in a third shape that is neither of section 4's two outcomes.
@@ -2272,15 +2429,27 @@ settled and neither the wording nor the routing is re-opened by round 3.
    waits on F1 and on owner question Q3.
 8. ANY new copy sentence at all beyond 2.2.2.1's four, which are PROPOSED and not built until the
    PM rules (2.3 law 4).
-9. **NEW in v2, AND IT STANDS UNCHANGED IN v4 (`E-R17`).** 3.4's adoption read costs more than one
+9. **NEW in v2, AND IT STANDS UNCHANGED IN v5 (`E-R17 PRIME` (v): the STOP does not move).** 3.4's adoption read costs more than one
    extra durable reopen per adoption, or `planEditedState` cannot return the unchanged state on
    every refusal path. Either means the composing module is doing more than composing.
    **v3 TRIPPED THIS STOP AT DESIGN TIME AND DID NOT KNOW: SPIKE M3 rows 11 to 17 count FOUR
-   durable loads per adoption under v3's 3.4.2 and 3.6, where there was one.** 3.4.2, 3.4.4 and
-   3.6 are re-cut so the gate's own loaded generation is passed down and the count is TWO, which
-   is one extra reopen, which is what this STOP permits. **The STOP is not relaxed to fit the
-   design; the design was changed to fit the STOP.** A builder measures the count (EW-14 asserts
-   it) rather than assuming it.
+   durable loads per adoption under v3's 3.4.2 and 3.6, where there was one. AND SO DID v4, AT
+   THREE, WHICH R4 B2 MEASURED AND THIS VERSION ACCEPTS IN FULL.** v4 re-cut 3.4.2, 3.4.4 and 3.6
+   around a binding in the adoption gate that does not exist: the gate's load is
+   `local-source-basis.mjs:78`, one frame deeper and in another file, and that function discards
+   the generation. v4 then printed the number 2 in bold, which is worse than v3's silence because
+   it told a builder the count had been fixed.
+   **WHAT v5 DOES, under `E-R17 PRIME`, and the STOP still is not relaxed.** The PM has taken the
+   ONE hunk that makes the number true: `local-source-basis.mjs` gains ONE added export returning
+   the generation beside the basis (3.2's row, 3.3 line 5 amended, 3.4.4, about 12 sealed lines).
+   **Measured on an instrumented repository, `spike/r5-adoption.mjs`: v4's text costs 3, this costs
+   2, the floor with no editor at all is 1, and the one extra act is `lane.reopen()` inside
+   `readVerified` (`plan-edit-host.mjs:148`), which row D isolates.** That is one extra reopen,
+   which is what this STOP permits. **The STOP is not relaxed to fit the design; the design was
+   paid for to fit the STOP, twice, and the second time the number was measured before it was
+   printed.** A builder measures the count (EW-14 asserts it, on an instrumented repository, the
+   way row B was measured) rather than assuming it. **If the added export cannot land, this STOP is
+   live again and the PM is asked to accept a count of 3; nothing else in this spec moves.**
 10. **NEW in v2, WIDENED IN v4 (`E-R13`).** Section 3.5's F2 package cannot land on S10, or lands
     at a path other than `rebuild/m4/workout/setup-tags.cjs`, **or does not land FIRST on the
     child.** v2 and v3 said "three cells and one door's two actions depend on it"; measured, the
@@ -2298,7 +2467,11 @@ settled and neither the wording nor the routing is re-opened by round 3.
     first run state (3.4.3), or EW-13c and EW-13d cannot be written. **SPIKE M3 row 9 measures
     that on an IMPORTED installation the wrong wiring READS OK**, so this defect does not announce
     itself on the installation the owner is on; it only announces itself on first run, and later.
-    The cells are the only guard.
+    The cells are the only guard. **NEW IN v5 (R4 N3): the same code, `PLAN_EDIT_IMPORTED_BASIS_MISMATCH`,
+    is ALSO raised by a race that is not this defect, when an import is admitted between the gate's
+    load and the lane's reopen. 3.4.4's closing paragraph retires that one as SAFE. A builder who
+    meets this code checks `basisState` first; if it is the raw value, this STOP is not what he has
+    found.**
 14. **NEW in v4 (`E-R14`).** A `PLAN_EDIT_*` code reaches an athlete, an issue list or a log line
     from inside admission, or a class of fold refusal appears that 4.3 ruling 2a's three field
     names do not cover. Either means the translation was not written or was written incompletely,
