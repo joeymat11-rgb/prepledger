@@ -1,0 +1,15 @@
+---- row y14d: a minus sign pressed against a letter, alone
+--- a/app/app.html
++++ b/app/app.html
+@@ -35,3 +35,3 @@
+       <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+-      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
++      <p class="status-line" id="status-line">Upper body−5 today. One change to review.</p>
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y14d   audit3-14 a minus sign pressed against a letter, alone               as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

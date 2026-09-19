@@ -1,0 +1,15 @@
+---- row y13a: an honest negative number opened by a colon
+--- a/app/app.html
++++ b/app/app.html
+@@ -35,3 +35,3 @@
+       <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+-      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
++      <p class="status-line" id="status-line">Upper body today. Change:−3 lb.</p>
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y13a   audit3-13 an honest negative number opened by a colon                DISAGREES    1      exit 1, the row expects 0; the check 'copy: no dashes, readiness words, vendor names' FAILED and this row says it must n
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

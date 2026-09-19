@@ -1,0 +1,15 @@
+---- row y14c: a raw TAB spaced hyphen carried in an attribute rather than in the body text
+--- a/app/app.html
++++ b/app/app.html
+@@ -43,3 +43,3 @@
+             <label for="weight" class="visually-hidden">Your weight in pounds</label>
+-            <div class="field"><input id="weight" type="text" inputmode="decimal" placeholder="Your weight" autocomplete="off"></div>
++            <div class="field"><input id="weight" type="text" inputmode="decimal" placeholder="Your	-	weight" autocomplete="off"></div>
+             <span class="unit">lb</span>
+
+
+row    source    mutation                                                   verdict      exit   note
+y14c   audit3-14 a raw TAB spaced hyphen carried in an attribute rather tha as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

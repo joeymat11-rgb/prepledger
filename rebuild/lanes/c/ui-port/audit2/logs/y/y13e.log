@@ -1,0 +1,15 @@
+---- row y13e: CONTROL the fix must not lose: the two forbidden uses, a range and a sign against a letter
+--- a/app/app.html
++++ b/app/app.html
+@@ -35,3 +35,3 @@
+       <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+-      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
++      <p class="status-line" id="status-line">Upper body−5 today. Do 3−5 sets.</p>
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y13e   audit3-13 CONTROL the fix must not lose: the two forbidden uses, a r as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

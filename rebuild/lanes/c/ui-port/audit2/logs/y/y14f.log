@@ -1,0 +1,15 @@
+---- row y14f: the TAB half of the folding protection reverted alone, then teeth --only q9
+--- a/quality/common.py
++++ b/quality/common.py
+@@ -59,3 +59,3 @@
+     return ''.join(c if c in KEPT_NEWLINES else
+-                   (' ' if (c in SPACE_JOINERS or c.isspace()) else c)
++                   (' ' if (c in SPACE_JOINERS or unicodedata.category(c) == 'Zs') else c)
+                    for c in text)
+
+
+row    source    mutation                                                   verdict      exit   note
+y14f   audit3-14 the TAB half of the folding protection reverted alone, the DISAGREES    0      exit 0, the row expects 1; 'DISAGREES' is not in the output
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

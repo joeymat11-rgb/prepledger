@@ -1,0 +1,18 @@
+---- row y14g: the opener half of the minus rule reverted alone, then teeth --only q11
+--- a/quality/common.py
++++ b/quality/common.py
+@@ -83,6 +83,3 @@
+             before = line[:m.start()].rstrip(' ')
+-            # a negative number is opened by a space, a line start or a bracket, never by a letter
+-            opener = (line[m.start() - 1:m.start()] if m.start() else '') in ('', ' ', '(', '[')
+-            negative = (line[m.end():m.end() + 1].isdigit() and opener
+-                        and not before[-1:].isdigit())
++            negative = line[m.end():m.end() + 1].isdigit() and not before[-1:].isdigit()
+             if not negative:
+
+
+row    source    mutation                                                   verdict      exit   note
+y14g   audit3-14 the opener half of the minus rule reverted alone, then tee DISAGREES    0      exit 0, the row expects 1; 'DISAGREES' is not in the output
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

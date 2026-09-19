@@ -1,0 +1,15 @@
+---- row y14e: a numeric range written with a minus sign, alone
+--- a/app/app.html
++++ b/app/app.html
+@@ -35,3 +35,3 @@
+       <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+-      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
++      <p class="status-line" id="status-line">Upper body today. Do 3−5 sets.</p>
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y14e   audit3-14 a numeric range written with a minus sign, alone           as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

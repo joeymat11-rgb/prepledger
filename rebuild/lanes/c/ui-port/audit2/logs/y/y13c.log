@@ -1,0 +1,15 @@
+---- row y13c: two separate numeric cells, the second of them a negative number
+--- a/app/app.html
++++ b/app/app.html
+@@ -35,3 +35,3 @@
+       <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+-      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
++      <p class="status-line" id="status-line">Upper body today. <span>3</span> <span>−5</span> lb.</p>
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y13c   audit3-13 two separate numeric cells, the second of them a negative  DISAGREES    1      exit 1, the row expects 0; the check 'copy: no dashes, readiness words, vendor names' FAILED and this row says it must n
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl

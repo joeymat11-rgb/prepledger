@@ -1,0 +1,15 @@
+---- row y13d: CONTROL, the W-18 case: a minus sign alone on its own line, as a control's label
+--- a/app/app.html
++++ b/app/app.html
+@@ -35,3 +35,3 @@
+       <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+-      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
++      <p class="status-line" id="status-line">Upper body today. One change to review.<span style="display:block">−</span></p>
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+y13d   audit3-13 CONTROL, the W-18 case: a minus sign alone on its own line as expected  0      EARNED UI GATE: 0 FAIL, 0 WARN, 63 PASS
+
+1 rows selected: 1 run, 0 VOID and not run (none)
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results-audit3.jsonl
