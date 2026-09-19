@@ -1,0 +1,13 @@
+---- row n3: T-02's sample note hidden by text-indent: -9999px
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++.note-block.sample { text-indent: -9999px !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+n3     rev-R2    T-02's sample note hidden by text-indent: -9999px          as expected  1      STATE SHEET: 2 renders, 2 with problems
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

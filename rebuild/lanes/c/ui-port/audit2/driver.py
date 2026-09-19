@@ -297,10 +297,16 @@ def judge(rec, row):
         why.append('it printed a traceback')
     kind = row.get('expect_kind')
     catcher = row.get('expect_catcher')
-    blob = '\n'.join(rec.get('fail_lines') or []) + '\n' + (rec.get('stdout_tail') or '')
+    # gate.py ends a run with "Passed everywhere: <every check name that passed>", so a naive
+    # substring test against the whole output says the catcher is there when the catcher PASSED.
+    # Measured on row x20: the contrast check passed and the row was still judged as expected.
+    # That line is removed before the catcher and the needles are looked for (audit 2, 2026-09-19).
+    tail = '\n'.join(ln for ln in (rec.get('stdout_tail') or '').splitlines()
+                     if not ln.startswith('Passed everywhere'))
+    blob = '\n'.join(rec.get('fail_lines') or []) + '\n' + tail
     if kind == 'FAIL' and catcher:
         hit = [ln for ln in (rec.get('fail_lines') or []) if catcher in ln]
-        if not hit and catcher not in (rec.get('stdout_tail') or ''):
+        if not hit and catcher not in tail:
             why.append('no FAIL naming %r' % catcher)
     if kind == 'WARN' and catcher:
         if catcher not in '\n'.join(rec.get('warn_lines') or []):

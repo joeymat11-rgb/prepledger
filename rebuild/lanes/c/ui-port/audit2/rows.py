@@ -835,6 +835,21 @@ MORE = [
       expect_needles=['REFUSED', 'cannot be combined with --only'],
       expect_words='exit 2 before anything is written: an accept run writes every record or none'),
 
+ dict(id='x24h', source='audit2-F', minutes=4,
+      what="row x24's HAND mutation done as a text edit: a tertiary link turned into a "
+           "div[role=button] under 44 px, which the old button,a,input walk could not see",
+      edits=[html('<div class="links bottom"><button class="link" type="button" '
+                  'id="plans-workout">Plans changed?</button></div>',
+                  '<div class="links bottom"><div role="button" tabindex="0" '
+                  'id="plans-workout" style="height:20px">Plans changed?</div></div>')],
+      runner='gate', args=GATE_WORKOUT, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=TARGET_CHECK, expect_needles=['plans-workout'],
+      predict='x24 predicted PASSES GREEN at ecbef86, when gate.py JS_SMALL walked '
+              '"button,a,input" only. At this head common.TAPPABLE_SELECTOR carries [role=button] '
+              'and [tabindex]:not([tabindex="-1"]) as well, so the row is expected to FAIL now. '
+              'x24 itself ran only its marker edit and measured nothing about this.',
+      expect_words='a touch target FAIL naming plans-workout, in both themes'),
+
 ]
 
 ROWS.extend(MORE)

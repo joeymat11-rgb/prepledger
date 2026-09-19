@@ -1,0 +1,13 @@
+---- row x14: a type size off the scale: the only path that can WARN and still exit 0
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#status-line { font-size: 17px !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+x14    audit2    a type size off the scale: the only path that can WARN and as expected  0      EARNED UI GATE: 0 FAIL, 4 WARN, 59 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

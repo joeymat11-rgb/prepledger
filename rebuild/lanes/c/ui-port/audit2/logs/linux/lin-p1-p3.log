@@ -1,0 +1,37 @@
+sha256 before: ce6c6a04f8e8f89975a56ecc9b6bb564ee91f7fd24534bf879b712eeb34dcbf5
+ # as the other platforms always do; on Windows the argument changes nothing (372 PASS against
+ # screen baselines drawn without it). quality/teeth.py row p1 takes the argument out and expects
+ # the state sheet to FAIL on Linux, so the list cannot quietly lose it.
+-LAUNCH_ARGS = ['--allow-file-access-from-files', '--font-render-hinting=none']
++LAUNCH_ARGS = ['--allow-file-access-from-files']
+ 
+ 
+ # ---------------------------------------------------------------- who drew a committed baseline
+=== p1 on linux: statesheet --only T-02 ===
+wrote statesheet-today.jpg (2470, 912) 1 states
+STATE SHEET: 2 renders, 2 with problems
+
+T-02    ink   LIVE       Preview before setup, sample marked          element 1 "Wed, Sep 16" left 227.83 became 224
+T-02    dawn  LIVE       Preview before setup, sample marked          element 1 "Wed, Sep 16" left 227.83 became 224
+
+worst measured:
+  colour moved (levels)                  0.00 of   3.00   nothing moved
+  rect edge moved (px)                   3.83 of   3.00   T-02 ink element 1 "Wed, Sep 16" left
+  thumbnail mean shift                   0.37 of   2.00   T-02 ink
+  thumbnail pixels over 24 levels        0.00 of   1.00   nothing moved
+  advisory, not a tolerance: this run against the win32 thumbnails
+  thumbnail mean shift                   0.96 of   2.00   T-02 ink
+  thumbnail pixels over 24 levels        0.00 of   1.00   nothing moved
+
+clean: 
+EXIT=1
+=== p3 on linux: gate --screens today --sizes 393x852 ===
+EARNED UI GATE: 2 FAIL, 0 WARN, 58 PASS
+
+FAIL  visual regression vs baseline                        dawn-today 393x852     5.469% of pixels changed, mean shift 4.002 rows 24 to 809
+FAIL  visual regression vs baseline                        ink-today 393x852      5.532% of pixels changed, mean shift 4.345 rows 24 to 809
+
+Passed everywhere: bottom safe area; card inner edge 14 px; contrast (measured behind the text); copy: no dashes, readiness words, vendor names; fits without scrolling at 393x852; fonts pinned by sha256; gaps on the spacing scale; generated content the sweep cannot read; icon inset 13 to 14 px; icons share a centre line, text shares an edge; no page or console errors; no seams in the scene; no straight edge in the scene with the mist drawn; no transitions or animations outside the embers; no vertical streaks in the sky with the mist drawn; nothing moves except the embers; nothing moves under reduced motion; page margin 22 px; pressed state on every tappable surface; primary action in first viewport; radii: 14 px for cards, buttons and chips; full round only for pills; right glyph column at 24 px; same icon column (54) and text edge (88) on every screen; serif and sans faces loaded and distinct; serif for names and numbers, sans for the rest; tertiary links have no underline; the multiplication sign in every set string; touch targets >= 44 px; type sizes and weights on the scale
+EXIT=1
+sha256 after revert: ce6c6a04f8e8f89975a56ecc9b6bb564ee91f7fd24534bf879b712eeb34dcbf5
+REVERTED CLEAN

@@ -1,0 +1,13 @@
+---- row n2: T-02's sample note hidden by clip-path: inset(100%)
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++.note-block.sample { clip-path: inset(100%) !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+n2     rev-R2    T-02's sample note hidden by clip-path: inset(100%)        as expected  1      STATE SHEET: 2 renders, 2 with problems
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

@@ -1,0 +1,15 @@
+---- row p1 is HAND WORK: R3 is not on origin yet: at ee1f191 quality/teeth.py has no p1 row and the launch list is the only R3 change pushed. Re-read quality/common.py and quality/teeth.py at the PR-READY sha before running this. The row is a LINUX row by construction: the lane measured that on Windows the argument changes nothing (common.py, the LAUNCH_ARGS comment), so on this PC it is expected to stay green and proves nothing. Honest verification needs a Linux run.
+---- row p1: the Chromium launch list loses --font-render-hinting=none
+--- a/quality/common.py
++++ b/quality/common.py
+@@ -310,3 +310,3 @@
+ # the state sheet to FAIL on Linux, so the list cannot quietly lose it.
+-LAUNCH_ARGS = ['--allow-file-access-from-files', '--font-render-hinting=none']
++LAUNCH_ARGS = ['--allow-file-access-from-files']
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+p1     R3        the Chromium launch list loses --font-render-hinting=none  DISAGREES    0      exit 0, the row expects 1; 'rect edge' is not in the output
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

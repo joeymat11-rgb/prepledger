@@ -1,0 +1,14 @@
+---- row k2: a serif element switched to sans
+--- a/app/app.css
++++ b/app/app.css
+@@ -265,3 +265,3 @@
+ .session-row .count { font-size: 15px; color: var(--text); }
+-.screen-title { font-family: var(--serif); font-size: 46px; line-height: 1; margin-top: -1px; text-shadow: var(--text-shadow); }
++.screen-title { font-family: var(--sans); font-size: 46px; line-height: 1; margin-top: -1px; text-shadow: var(--text-shadow); }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+k2     lane      a serif element switched to sans                           as expected  1      EARNED UI GATE: 6 FAIL, 0 WARN, 60 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

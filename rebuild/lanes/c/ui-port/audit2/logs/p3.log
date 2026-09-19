@@ -1,0 +1,14 @@
+---- row p3: the hinting argument taken out of the launch list, judged by the screen gate
+--- a/quality/common.py
++++ b/quality/common.py
+@@ -310,3 +310,3 @@
+ # the state sheet to FAIL on Linux, so the list cannot quietly lose it.
+-LAUNCH_ARGS = ['--allow-file-access-from-files', '--font-render-hinting=none']
++LAUNCH_ARGS = ['--allow-file-access-from-files']
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+p3     teeth-R3  the hinting argument taken out of the launch list, judged  DISAGREES    0      exit 0, the row expects 1; 'of pixels changed' is not in the output
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

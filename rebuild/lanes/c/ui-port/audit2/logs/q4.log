@@ -1,0 +1,20 @@
+---- row q4: primary text tagged muted and painted with the muted token (the x20 pair, from the record side)
+--- a/app/app.html
++++ b/app/app.html
+@@ -52,3 +52,3 @@
+           <span class="tdot" aria-hidden="true"></span>
+-          <div class="title">Eat about 2,300 kcal today.</div>
++          <div class="title sub">Eat about 2,300 kcal today.</div>
+           <div class="sub">Protein at least 160 g.</div>
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++.tcard .title.sub { color: var(--muted) !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+q4     teeth-PM  primary text tagged muted and painted with the muted token as expected  1      STATE SHEET: 2 renders, 2 with problems
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

@@ -1,0 +1,13 @@
+---- row x19: an accept run pointed at ANOTHER build by EARNED_APP
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 x19 marker: the mutation is --accept plus the environment */
+
+
+row    source    mutation                                                   verdict      exit   note
+x19    audit2    an accept run pointed at ANOTHER build by EARNED_APP       DISAGREES    2      exit 2, the row expects 0; 'ACCEPT RUN' is not in the output
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

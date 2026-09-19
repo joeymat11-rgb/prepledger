@@ -1,0 +1,15 @@
+---- row m6: T-02 dropped from the driver, its records left committed
+--- a/app/states-today.js
++++ b/app/states-today.js
+@@ -48,5 +48,2 @@
+   /* ---------- Today's face ---------- */
+-  R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', component: 'sample note', apply: function (a) {
+-    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');
+-  } });
+   R('T-03', { screen: T, title: 'Enrolled, adoption of your record pending', rules: 'N01 N05 T02', apply: function (a) {
+
+
+row    source    mutation                                                   verdict      exit   note
+m6     rev-R1    T-02 dropped from the driver, its records left committed   as expected  1      STATE SHEET: 14 renders, 0 with problems, 2 records with no state
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

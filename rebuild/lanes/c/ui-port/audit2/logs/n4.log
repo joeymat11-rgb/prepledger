@@ -1,0 +1,15 @@
+---- row n4: a theme in the index that the sheet does not render
+--- a/quality/baseline/states/INDEX.json
++++ b/quality/baseline/states/INDEX.json
+@@ -7,3 +7,4 @@
+     "ink",
+-    "dawn"
++    "dawn",
++    "sepia"
+    ]
+
+
+row    source    mutation                                                   verdict      exit   note
+n4     rev-R2    a theme in the index that the sheet does not render        as expected  1      STATE SHEET: 2 renders, 0 with problems, 1 records with no state
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

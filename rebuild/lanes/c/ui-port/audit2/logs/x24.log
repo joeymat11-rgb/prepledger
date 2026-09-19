@@ -1,0 +1,14 @@
+---- row x24 is HAND WORK: This one cannot be a one line text edit: it needs a tappable element that is not button/a/input. By hand, in the scratch copy, replace one tertiary link element in app/app.html with <div role="button" tabindex="0" class="link" style="height:20px">Plans changed?</div> and re-run. gate.py:JS_SMALL and statesheet.py:JS_INFO both walk "button,a,input" only, so a div with role=button is never measured, against STANDARD.md section 5 ("every target ... including the invisible hit area"). Predicted: PASSES GREEN.
+---- row x24: a touch target that is not a button, an anchor or an input
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 x24 marker: the real mutation is by hand, see hand */
+
+
+row    source    mutation                                                   verdict      exit   note
+x24    audit2    a touch target that is not a button, an anchor or an input DISAGREES    0      exit 0, the row expects 1
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

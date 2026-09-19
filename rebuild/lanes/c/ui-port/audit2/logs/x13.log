@@ -1,0 +1,15 @@
+---- row x13: a NEW state with no committed record
+--- a/app/states-today.js
++++ b/app/states-today.js
+@@ -51,2 +51,5 @@
+   } });
++  R('T-99', { screen: T, title: 'Audit 2 probe: a state with no committed record', rules: 'none', component: 'probe', apply: function (a) {
++    face(a, { status: 'Upper body today. Sample data.' });
++  } });
+   R('T-03', { screen: T, title: 'Enrolled, adoption of your record pending', rules: 'N01 N05 T02', apply: function (a) {
+
+
+row    source    mutation                                                   verdict      exit   note
+x13    audit2    a NEW state with no committed record                       as expected  1      STATE SHEET: 2 renders, 2 with problems, 2 records with no state
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

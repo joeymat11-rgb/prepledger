@@ -1,0 +1,8 @@
+---- row i: this platform's ink-today baseline deleted
+binary quality/baseline/win32/ink-today.png: 312217 bytes 8b825dfb9e7f -> 0 bytes e3b0c44298fc
+
+
+row    source    mutation                                                   verdict      exit   note
+i      R1        this platform's ink-today baseline deleted                 as expected  1      EARNED UI GATE: 1 FAIL, 0 WARN, 59 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

@@ -1,0 +1,15 @@
+---- row n5: a theme the sheet renders that the index lost
+--- a/quality/baseline/states/INDEX.json
++++ b/quality/baseline/states/INDEX.json
+@@ -6,4 +6,3 @@
+    "themes": [
+-    "ink",
+-    "dawn"
++    "ink"
+    ]
+
+
+row    source    mutation                                                   verdict      exit   note
+n5     rev-R2    a theme the sheet renders that the index lost              as expected  1      STATE SHEET: 2 renders, 0 with problems, 1 records with no state
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

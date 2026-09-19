@@ -1,0 +1,14 @@
+---- row m3: three faults in a placeholder, judged by the gate
+--- a/app/app.html
++++ b/app/app.html
+@@ -43,3 +43,3 @@
+             <label for="weight" class="visually-hidden">Your weight in pounds</label>
+-            <div class="field"><input id="weight" type="text" inputmode="decimal" placeholder="Your weight" autocomplete="off"></div>
++            <div class="field"><input id="weight" type="text" inputmode="decimal" placeholder="Ready weight for Claude, 8 x 105" autocomplete="off"></div>
+             <span class="unit">lb</span>
+
+
+row    source    mutation                                                   verdict      exit   note
+m3     rev-R1    three faults in a placeholder, judged by the gate          as expected  1      EARNED UI GATE: 6 FAIL, 0 WARN, 54 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

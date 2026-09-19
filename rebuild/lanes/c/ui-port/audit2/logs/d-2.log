@@ -1,0 +1,13 @@
+---- row d-2: #start pushed 210 px down at 375x812 and 360x780 only
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++@media (max-height: 820px) { #start { position: relative !important; top: 210px !important; } }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+d-2    R1        #start pushed 210 px down at 375x812 and 360x780 only      as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

@@ -1,0 +1,14 @@
+---- row m5: three faults in a placeholder, judged by the state sheet
+--- a/app/app.html
++++ b/app/app.html
+@@ -43,3 +43,3 @@
+             <label for="weight" class="visually-hidden">Your weight in pounds</label>
+-            <div class="field"><input id="weight" type="text" inputmode="decimal" placeholder="Your weight" autocomplete="off"></div>
++            <div class="field"><input id="weight" type="text" inputmode="decimal" placeholder="Ready weight for Claude, 8 x 105" autocomplete="off"></div>
+             <span class="unit">lb</span>
+
+
+row    source    mutation                                                   verdict      exit   note
+m5     rev-R1    three faults in a placeholder, judged by the state sheet   as expected  1      STATE SHEET: 2 renders, 2 with problems
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

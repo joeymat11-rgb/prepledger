@@ -1,0 +1,14 @@
+---- row c: the sans face pointed at the serif file
+--- a/app/app.css
++++ b/app/app.css
+@@ -4,3 +4,3 @@
+ @font-face { font-family: "Earned Serif"; src: url("fonts/earned-serif.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: block; }
+-@font-face { font-family: "Earned Sans"; src: url("fonts/earned-sans.woff2") format("woff2"); font-weight: 100 1000; font-style: normal; font-display: block; }
++@font-face { font-family: "Earned Sans"; src: url("fonts/earned-serif.woff2") format("woff2"); font-weight: 100 1000; font-style: normal; font-display: block; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+c      R1        the sans face pointed at the serif file                    as expected  1      EARNED UI GATE: 5 FAIL, 0 WARN, 55 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

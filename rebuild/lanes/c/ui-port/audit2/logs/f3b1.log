@@ -1,0 +1,13 @@
+---- row f3b1: PLAN 3b: gate.py --accept combined with --screens must refuse
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 f3b1 marker: the mutation is the argument pair */
+
+
+row    source    mutation                                                   verdict      exit   note
+f3b1   audit2-F  PLAN 3b: gate.py --accept combined with --screens must ref as expected  2      EARNED UI GATE: REFUSED. --accept sets every baseline, so it cannot be combined with --screens or --sizes
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

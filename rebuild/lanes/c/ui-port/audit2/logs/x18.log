@@ -1,0 +1,13 @@
+---- row x18: an accept run with nothing changed: can it be mistaken for a green run?
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 x18 marker: the mutation is the --accept flag */
+
+
+row    source    mutation                                                   verdict      exit   note
+x18    audit2    an accept run with nothing changed: can it be mistaken for as expected  0      ACCEPT RUN: regression compared nothing
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

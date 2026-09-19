@@ -1,0 +1,8 @@
+---- row x11: a font file with the right name and different bytes
+binary app/fonts/earned-sans.woff2: 65160 bytes c04be0b43dc3 -> 65161 bytes ef1e2bad6b27
+
+
+row    source    mutation                                                   verdict      exit   note
+x11    audit2    a font file with the right name and different bytes        as expected  1      EARNED UI GATE: 5 FAIL, 0 WARN, 55 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

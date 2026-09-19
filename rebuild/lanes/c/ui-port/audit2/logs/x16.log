@@ -1,0 +1,13 @@
+---- row x16: a crash mid-run in the gate: what is the exit code, and is a report written?
+--- a/app/app.html
++++ b/app/app.html
+@@ -249,2 +249,3 @@
+ <script src="states-coach.js"></script>
++<script>if (location.search.indexOf("screen=today") >= 0) { Element.prototype.getBoundingClientRect = function () { throw new Error("audit2 crash probe"); }; }</script>
+ </body>
+
+
+row    source    mutation                                                   verdict      exit   note
+x16    audit2    a crash mid-run in the gate: what is the exit code, and is as expected  1      EARNED UI GATE: 3 FAIL, 0 WARN, 11 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

@@ -1,0 +1,19 @@
+---- row e2: the same text under 3.0:1
+--- a/app/app.css
++++ b/app/app.css
+@@ -199,3 +199,3 @@
+ .greeting { font-family: var(--serif); font-size: 52px; line-height: 1; margin-top: 5px; letter-spacing: 0; text-shadow: var(--text-shadow); }
+-.status-line { font-size: 15.5px; line-height: 1.3; color: var(--text-soft); margin-top: 8px; font-weight: 430; }
++.status-line { font-size: 15.5px; line-height: 1.3; color: #4a463f; margin-top: 8px; font-weight: 430; }
+ .eyebrow { font-size: 12px; line-height: 1.3; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 450; }
+@@ -208,3 +208,3 @@
+ .tcard .tdot { position: absolute; left: 11px; top: 11px; width: 9px; height: 9px; border-radius: 50%; background: var(--dot); box-shadow: 0 0 6px 1px var(--dot-glow); z-index: 3; }
+-.tcard .title { font-size: 14.5px; line-height: 1.35; color: var(--text); font-weight: 480; }
++.tcard .title { font-size: 14.5px; line-height: 1.35; color: #4a463f; font-weight: 480; }
+ .tcard .sub { font-size: 13px; line-height: 1.3; color: var(--muted); margin-top: 3px; }
+
+
+row    source    mutation                                                   verdict      exit   note
+e2     R1        the same text under 3.0:1                                  as expected  1      EARNED UI GATE: 3 FAIL, 0 WARN, 57 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

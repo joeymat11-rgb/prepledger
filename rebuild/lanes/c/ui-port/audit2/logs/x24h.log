@@ -1,0 +1,14 @@
+---- row x24h: row x24's HAND mutation done as a text edit: a tertiary link turned into a div[role=button] under 44 px, which the old button,a,input walk could not see
+--- a/app/app.html
++++ b/app/app.html
+@@ -187,3 +187,3 @@
+ 
+-      <div class="links bottom"><button class="link" type="button" id="plans-workout">Plans changed?</button></div>
++      <div class="links bottom"><div role="button" tabindex="0" id="plans-workout" style="height:20px">Plans changed?</div></div>
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+x24h   audit2-F  row x24's HAND mutation done as a text edit: a tertiary li as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 62 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

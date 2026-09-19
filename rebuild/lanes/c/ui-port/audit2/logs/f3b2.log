@@ -1,0 +1,13 @@
+---- row f3b2: PLAN 3b: statesheet.py --accept combined with --only must refuse
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 f3b2 marker: the mutation is the argument pair */
+
+
+row    source    mutation                                                   verdict      exit   note
+f3b2   audit2-F  PLAN 3b: statesheet.py --accept combined with --only must  as expected  2      STATE SHEET: REFUSED. --accept writes every record and the index, so it cannot be combined with --only
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

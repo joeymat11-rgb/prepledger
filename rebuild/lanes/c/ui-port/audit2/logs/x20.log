@@ -1,0 +1,20 @@
+---- row x20: primary body copy downgraded to the 3.0 tier by a class NAME alone
+--- a/app/app.html
++++ b/app/app.html
+@@ -35,3 +35,3 @@
+       <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+-      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
++      <p class="status-line from" id="status-line">Upper body today. One change to review.</p>
+ 
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#status-line { color: #8a8378 !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+x20    audit2    primary body copy downgraded to the 3.0 tier by a class NA as expected  1      EARNED UI GATE: 2 FAIL, 0 WARN, 58 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

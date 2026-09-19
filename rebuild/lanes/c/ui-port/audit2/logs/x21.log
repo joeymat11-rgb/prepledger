@@ -1,0 +1,13 @@
+---- row x21: the gate run with a size that does not exist: green on nothing
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 x21 marker: the mutation is the argument */
+
+
+row    source    mutation                                                   verdict      exit   note
+x21    audit2    the gate run with a size that does not exist: green on not DISAGREES    2      exit 2, the row expects 0; '0 FAIL, 0 WARN, 0 PASS' is not in the output
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

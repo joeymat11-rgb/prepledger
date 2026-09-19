@@ -1,0 +1,13 @@
+---- row q6: statesheet --accept pointed at another build by EARNED_APP
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 q6 marker: the mutation is --accept plus the environment */
+
+
+row    source    mutation                                                   verdict      exit   note
+q6     teeth-PM  statesheet --accept pointed at another build by EARNED_APP as expected  2      STATE SHEET: REFUSED. the records and thumbnails of record are drawn from the pack's own prototype, so --accept and --ac
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

@@ -4,7 +4,7 @@
 @@ -35,3 +35,3 @@
        <h1 class="greeting" id="greeting">Morning, Joe.</h1>
 -      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
-+      <p class="status-line" id="status-line">Upper body today — one change to review.</p>
++      <p class="status-line" id="status-line">Upper body today <U+2014> one change to review.</p>
  
 
 ---- row b1: a readiness word in a card title (the R1 hole)
@@ -102,7 +102,7 @@
 @@ -49,3 +49,3 @@
    R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', component: 'sample note', apply: function (a) {
 -    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');
-+    face(a, { status: 'Upper body today — sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');
++    face(a, { status: 'Upper body today <U+2014> sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');
    } });
 
 ---- row h1: T-02's status line shifted 3 px: INSIDE the tolerance, must PASS
@@ -731,6 +731,36 @@ binary quality/baseline/states/win32/T-02-dawn.png: 983 bytes b3fa0cba5dd7 -> 98
 +#card-eat { visibility: hidden !important; }
  
 
+---- row f3a: PLAN 3a: one character of a committed record far from T-02, to prove the comparison bites
+--- a/quality/baseline/states/W-20-ink.json
++++ b/quality/baseline/states/W-20-ink.json
+@@ -1 +1 @@
+-{"id":"W-20","theme":"ink","text":"example Upper body Set 1 of 4 Chest press Today’s set Unlogged 50 lb × 8 reps Last time: 50 lb × 8 reps Seat 4. Machine setting. From you, Sep 9. Earned is here Use text mode I’ll tap instead RIR (clean reps left) 0 1 2 3+ Unsure Choose clean reps left, or Unsure. Log 50 × 8 Edit Plans changed?","els":[["example",[302.31,62,68.69,26],[226,222,214],"Earned Sans",12],["Upper body",[22,116,79.95,14.5],[189,184,174],"Earned Sans",14.5],["Set 1 of 4",[308.39,116.5,62.61,15],[242,238,230],"Earned Sans",15],["Chest press",[22,130.5,349,46],[242,238,230],"Earned Serif",46],["Today’s set",[37,213.13,86.84,15.59],[189,184,174],"Earned Sans",12],["Unlogged",[293.42,211.5,62.58,18.84],[189,184,174],"Earned Sans",14.5],["50",[104.78,241.34,74,74],[242,238,230],"Earned Serif",74],["lb",[136.25,317.34,11.05,16.89],[189,184,174],"Earned Sans",13],["×",[208.78,267.34,12.42,22],[202,169,138],"Earned Serif",22],["8",[251.2,241.34,37,74],[242,238,230],"Earned Serif",74],["reps",[256.39,317.34,26.63,16.89],[189,184,174],"Earned Sans",13],["Last time: 50 lb × 8 reps",[37,357.23,145.34,16.89],[189,184,174],"Earned Sans",13],["Seat 4.",[88,410.13,201.94,22],[242,238,230],"Earned Serif",22],["Machine setting. From you, Sep 9.",[88,436.13,201.94,16.89],[189,184,174],"Earned Sans",13],["Earned is here",[88,490.61,233.5,20.8],[242,238,230],"Earned Sans",16],["Use text mode",[22,528.02,91.95,44],[220,215,205],"Earned Sans",13.5],["I’ll tap instead",[283.47,528.02,87.53,44],[220,215,205],"Earned Sans",13.5],["RIR (clean reps left)",[22,519.11,136.02,19.5],[220,215,205],"Earned Sans",15],["0",[22,542.61,63.39,44],[242,238,230],"Earned Sans",14],["1",[93.39,542.61,63.41,44],[242,238,230],"Earned Sans",14],["2",[164.8,542.61,63.39,44],[242,238,230],"Earned Sans",14],["3+",[236.19,542.61,63.41,44],[242,238,230],"Earned Sans",14],["Unsure",[307.59,542.61,63.41,44],[220,215,205],"Earned Sans",14],["Choose clean reps left, or Unsure.",[22,598.61,349,44.89],[242,238,230],"Earned Sans",13.5],["Log 50 × 8",[41,670,137.17,31],[26,24,21],"Earned Serif",31],["Edit",[307,655.5,64,60],[220,215,205],"Earned Sans",15],["Plans changed?",[22,723.5,98.47,44],[220,215,205],"Earned Sans",13.5]]}+{"id":"W-20","theme":"ink","text":"Example Upper body Set 1 of 4 Chest press Today’s set Unlogged 50 lb × 8 reps Last time: 50 lb × 8 reps Seat 4. Machine setting. From you, Sep 9. Earned is here Use text mode I’ll tap instead RIR (clean reps left) 0 1 2 3+ Unsure Choose clean reps left, or Unsure. Log 50 × 8 Edit Plans changed?","els":[["example",[302.31,62,68.69,26],[226,222,214],"Earned Sans",12],["Upper body",[22,116,79.95,14.5],[189,184,174],"Earned Sans",14.5],["Set 1 of 4",[308.39,116.5,62.61,15],[242,238,230],"Earned Sans",15],["Chest press",[22,130.5,349,46],[242,238,230],"Earned Serif",46],["Today’s set",[37,213.13,86.84,15.59],[189,184,174],"Earned Sans",12],["Unlogged",[293.42,211.5,62.58,18.84],[189,184,174],"Earned Sans",14.5],["50",[104.78,241.34,74,74],[242,238,230],"Earned Serif",74],["lb",[136.25,317.34,11.05,16.89],[189,184,174],"Earned Sans",13],["×",[208.78,267.34,12.42,22],[202,169,138],"Earned Serif",22],["8",[251.2,241.34,37,74],[242,238,230],"Earned Serif",74],["reps",[256.39,317.34,26.63,16.89],[189,184,174],"Earned Sans",13],["Last time: 50 lb × 8 reps",[37,357.23,145.34,16.89],[189,184,174],"Earned Sans",13],["Seat 4.",[88,410.13,201.94,22],[242,238,230],"Earned Serif",22],["Machine setting. From you, Sep 9.",[88,436.13,201.94,16.89],[189,184,174],"Earned Sans",13],["Earned is here",[88,490.61,233.5,20.8],[242,238,230],"Earned Sans",16],["Use text mode",[22,528.02,91.95,44],[220,215,205],"Earned Sans",13.5],["I’ll tap instead",[283.47,528.02,87.53,44],[220,215,205],"Earned Sans",13.5],["RIR (clean reps left)",[22,519.11,136.02,19.5],[220,215,205],"Earned Sans",15],["0",[22,542.61,63.39,44],[242,238,230],"Earned Sans",14],["1",[93.39,542.61,63.41,44],[242,238,230],"Earned Sans",14],["2",[164.8,542.61,63.39,44],[242,238,230],"Earned Sans",14],["3+",[236.19,542.61,63.41,44],[242,238,230],"Earned Sans",14],["Unsure",[307.59,542.61,63.41,44],[220,215,205],"Earned Sans",14],["Choose clean reps left, or Unsure.",[22,598.61,349,44.89],[242,238,230],"Earned Sans",13.5],["Log 50 × 8",[41,670,137.17,31],[26,24,21],"Earned Serif",31],["Edit",[307,655.5,64,60],[220,215,205],"Earned Sans",15],["Plans changed?",[22,723.5,98.47,44],[220,215,205],"Earned Sans",13.5]]}
+---- row f3b1: PLAN 3b: gate.py --accept combined with --screens must refuse
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 f3b1 marker: the mutation is the argument pair */
+
+---- row f3b2: PLAN 3b: statesheet.py --accept combined with --only must refuse
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 f3b2 marker: the mutation is the argument pair */
+
+---- row x24h: row x24's HAND mutation done as a text edit: a tertiary link turned into a div[role=button] under 44 px, which the old button,a,input walk could not see
+--- a/app/app.html
++++ b/app/app.html
+@@ -187,3 +187,3 @@
+ 
+-      <div class="links bottom"><button class="link" type="button" id="plans-workout">Plans changed?</button></div>
++      <div class="links bottom"><div role="button" tabindex="0" id="plans-workout" style="height:20px">Plans changed?</div></div>
+ 
+
 
 row    source    mutation                                                   verdict      exit   note
 a      R1        an em dash in Today's status sentence                      DRY-OK              
@@ -815,5 +845,9 @@ rb2b   audit2-R4 CONTROL the fix must not break: the same box with clip AND DRY-
 rb2c   audit2-R4 CONTROL: an untouched run of the same narrowed gate (a com DRY-OK              
 rb2d   audit2-R4 SIBLING PROBE: a focusable 20 px box hidden only by a zero DRY-OK              
 rb2e   audit2-R4 SIBLING PROBE: the same box with visibility:hidden inherit DRY-OK              
+f3a    audit2-F  PLAN 3a: one character of a committed record far from T-02 DRY-OK              
+f3b1   audit2-F  PLAN 3b: gate.py --accept combined with --screens must ref DRY-OK              
+f3b2   audit2-F  PLAN 3b: statesheet.py --accept combined with --only must  DRY-OK              
+x24h   audit2-F  row x24's HAND mutation done as a text edit: a tertiary li DRY-OK              
 
 results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

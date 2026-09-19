@@ -1,0 +1,13 @@
+---- row k1: one RIR chip dropped
+--- a/app/app.html
++++ b/app/app.html
+@@ -176,3 +176,2 @@
+         <button class="chip" type="button" aria-pressed="false" data-rir="0">0</button>
+-        <button class="chip" type="button" aria-pressed="false" data-rir="1">1</button>
+         <button class="chip" type="button" aria-pressed="false" data-rir="2">2</button>
+
+
+row    source    mutation                                                   verdict      exit   note
+k1     lane      one RIR chip dropped                                       as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 62 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

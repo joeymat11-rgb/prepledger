@@ -1,0 +1,14 @@
+---- row n1: a set string drawn by counter() in generated content
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,4 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++body { counter-reset: revx 8; }
++#status-line::after { content: " " counter(revx) " x 105"; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+n1     rev-R2    a set string drawn by counter() in generated content       as expected  1      EARNED UI GATE: 6 FAIL, 0 WARN, 54 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

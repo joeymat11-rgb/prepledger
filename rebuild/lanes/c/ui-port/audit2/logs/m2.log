@@ -1,0 +1,13 @@
+---- row m2: a transition on a pseudo element
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#start::after { content: ""; position: absolute; left: 0; top: 0; width: 1px; height: 1px; transition: opacity 0.6s ease; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+m2     rev-R1    a transition on a pseudo element                           as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 56 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

@@ -1,0 +1,8 @@
+---- row p2: this platform's committed thumbnail for T-02 deleted
+binary quality/baseline/states/win32/T-02-ink.png: 1009 bytes 3177a7cad3eb -> 0 bytes e3b0c44298fc
+
+
+row    source    mutation                                                   verdict      exit   note
+p2     teeth-R3  this platform's committed thumbnail for T-02 deleted       as expected  1      STATE SHEET: 2 renders, 1 with problems
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

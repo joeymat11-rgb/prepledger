@@ -1,14 +1,14 @@
----- row b1: a readiness word in a card title (the R1 hole)
+---- row b2: a vendor name in a card title
 --- a/app/app.html
 +++ b/app/app.html
 @@ -59,3 +59,3 @@
            <span class="tdot" aria-hidden="true"></span>
 -          <div class="title">Train today.</div>
-+          <div class="title">Ready to train today.</div>
++          <div class="title">Train today with Claude.</div>
            <div class="sub">Upper body, 4 exercises.</div>
 
 
 row    source    mutation                                                   verdict      exit   note
-b1     R1        a readiness word in a card title (the R1 hole)             as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 56 PASS
+b2     R1        a vendor name in a card title                              as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 56 PASS
 
 results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

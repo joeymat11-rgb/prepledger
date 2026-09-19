@@ -1,0 +1,14 @@
+---- row g: one word of T-02's copy (the R1 hole)
+--- a/app/states-today.js
++++ b/app/states-today.js
+@@ -49,3 +49,3 @@
+   R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', component: 'sample note', apply: function (a) {
+-    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');
++    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Example data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');
+   } });
+
+
+row    source    mutation                                                   verdict      exit   note
+g      R1        one word of T-02's copy (the R1 hole)                      as expected  1      STATE SHEET: 2 renders, 2 with problems
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

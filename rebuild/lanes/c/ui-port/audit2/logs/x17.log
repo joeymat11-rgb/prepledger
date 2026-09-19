@@ -1,0 +1,13 @@
+---- row x17: a crash mid-run in the state sheet, after clean renders
+--- a/app/app.html
++++ b/app/app.html
+@@ -249,2 +249,3 @@
+ <script src="states-coach.js"></script>
++<script>if (location.search.indexOf("state=T-03") >= 0) { Element.prototype.getBoundingClientRect = function () { throw new Error("audit2 crash probe"); }; }</script>
+ </body>
+
+
+row    source    mutation                                                   verdict      exit   note
+x17    audit2    a crash mid-run in the state sheet, after clean renders    DISAGREES    1      exit 1, the row expects 2; no one line refusal was printed; 'REFUSED' is not in the output
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

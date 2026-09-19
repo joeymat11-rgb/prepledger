@@ -1,14 +1,14 @@
----- row a: an em dash in Today's status sentence
+---- row x10: a dash the sweep does not carry: U+2015 horizontal bar
 --- a/app/app.html
 +++ b/app/app.html
 @@ -35,3 +35,3 @@
        <h1 class="greeting" id="greeting">Morning, Joe.</h1>
 -      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
-+      <p class="status-line" id="status-line">Upper body today <U+2014> one change to review.</p>
++      <p class="status-line" id="status-line">Upper body today ― one change to review.</p>
  
 
 
 row    source    mutation                                                   verdict      exit   note
-a      R1        an em dash in Today's status sentence                      as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 56 PASS
+x10    audit2    a dash the sweep does not carry: U+2015 horizontal bar     as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 56 PASS
 
 results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

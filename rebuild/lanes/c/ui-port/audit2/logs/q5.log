@@ -1,0 +1,13 @@
+---- row q5: one state whose apply throws (the row x17 predicted the whole run is lost)
+--- a/app/states-today.js
++++ b/app/states-today.js
+@@ -49,2 +49,3 @@
+   R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', component: 'sample note', apply: function (a) {
++    throw new Error('teeth q5: this state cannot apply');
+     face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');
+
+
+row    source    mutation                                                   verdict      exit   note
+q5     teeth-PM  one state whose apply throws (the row x17 predicted the wh as expected  1      STATE SHEET: 16 renders, 2 with problems
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

@@ -1,0 +1,14 @@
+---- row m1: a 4 px dot pulsing for ever on a pseudo element
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,4 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++@keyframes teeth-blink { from { opacity: 1; } to { opacity: 0.08; } }
++#card-eat::after { content: ""; position: absolute; right: 6px; top: 6px; width: 4px; height: 4px; border-radius: 50%; background: #caa98a; animation: teeth-blink 0.8s infinite alternate; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+m1     rev-R1    a 4 px dot pulsing for ever on a pseudo element            as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 56 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

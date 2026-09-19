@@ -1,0 +1,9 @@
+---- row p4: the other platform's T-02 thumbnails copied over this platform's
+binary quality/baseline/states/win32/T-02-ink.png: 1009 bytes 3177a7cad3eb -> 998 bytes 97a9dae45860
+binary quality/baseline/states/win32/T-02-dawn.png: 983 bytes b3fa0cba5dd7 -> 982 bytes be662f232f7f
+
+
+row    source    mutation                                                   verdict      exit   note
+p4     teeth-R3  the other platform's T-02 thumbnails copied over this plat as expected  1      STATE SHEET: 2 renders, 2 with problems
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

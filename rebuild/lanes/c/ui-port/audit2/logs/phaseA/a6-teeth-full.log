@@ -1,0 +1,50 @@
+TEETH: 46 rows, 0 disagreeing, 781 s
+
+row   mutation                                                   verdict      note
+a     an em dash in Today's status sentence                      as expected  
+b1    a word from the owner's word list in a card title          as expected  
+b2    a vendor name in a card title                              as expected  
+c     the sans face pointed at the serif file                    as expected  
+d-1   #start pushed 620 px down at 393x852                       as expected  
+d-2   #start pushed 200 px down at 375x812 and 360x780 only      as expected  
+e1    Today's titles and status line under 4.5:1 and over 3.0:1  as expected  
+e2    the same text under 3.0:1                                  as expected  
+f     a keyframe animation on #start, live under reduced motion  as expected  
+g     one word of T-02's copy                                    as expected  
+g2    an em dash inside the same state copy                      as expected  
+h1    T-02's status line shifted 2 px (inside the tolerance)     as expected  
+h3    T-02's status line shifted 4 px (outside it)               as expected  
+h2    T-02's status line shifted 60 px                           as expected  
+i     this platform's ink-today baseline deleted                 as expected  
+j1    EARNED_APP at an empty folder                              as expected  
+j2    EARNED_APP at app/compare.html, a real page of the pack    as expected  
+k1    one RIR chip dropped                                       as expected  
+k2    a serif element switched to sans                           as expected  
+k3    a card moved 6 px off the page margin                      as expected  
+m1    a 4 px dot pulsing for ever on a pseudo element            as expected  
+m2    a transition on a pseudo element                           as expected  
+m3    three faults in a placeholder, judged by the gate          as expected  
+m4    the same three faults in CSS generated content             as expected  
+m5    three faults in a placeholder, judged by the state sheet   as expected  
+m6    T-02 dropped from the driver, its records left committed   as expected  
+m7    T-02's sample note hidden at opacity 0                     as expected  
+n1    a set string drawn by counter() in generated content       as expected  
+n2    T-02's sample note hidden by clip-path: inset(100%)        as expected  
+n3    T-02's sample note hidden by text-indent: -9999px          as expected  
+n4    a theme in the index that the sheet does not render        as expected  
+n5    a theme the sheet renders that the index lost              as expected  
+p1    the hinting argument taken out of the launch list          as expected  glyphs are not hinted on win32, so taking the argument out of the launch list moves nothing here and this row cannot fail; it is a row of the platforms that hint, which are linux
+p2    this platform's thumbnail for T-02 deleted                 as expected  
+p3    the same launch list, judged by the screen gate            as expected  glyphs are not hinted on win32, so taking the argument out of the launch list moves nothing here and this row cannot fail; it is a row of the platforms that hint, which are linux
+p4    the other platform's T-02 thumbnails copied over this plat as expected  
+q1    a size the gate does not know, which used to empty the lis as expected  
+q2    a word off the owner's list split by a soft hyphen         as expected  
+q3    a horizontal bar and a hyphen bullet, two dashes the old l as expected  
+q9    a spaced hyphen whose two spaces are no break spaces       as expected  
+q10   a visible 20 px target carrying a clip its positioning mak as expected  
+q11   a numeric range written with a minus sign                  as expected  
+q4    primary text tagged muted and painted with the muted token as expected  
+q8    a minus sign doing a dash's job in Today's status sentence as expected  
+q5    one state whose apply throws                               as expected  
+q6    --accept pointed at another build by EARNED_APP            as expected  
+EXIT=0 
