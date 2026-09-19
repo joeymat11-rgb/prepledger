@@ -48,29 +48,40 @@ MUTED_CLASSES = frozenset([
     'recorded-stamp', 'recorded-source', 'kv-k', 'marker-k', 'marker-v', 'marker', 'said', 'quoted',
     'w-more', 'w-hint', 'w-facts', 'w-rest-line', 'w-next-aim', 'tail', 'coach-marker',
 ])
-# The tokens that are never body copy: the two quiet greys, and the state colour, which marks a
-# state and carries no sentence of its own (app/app.css:36, 37, 38 for Ink, 92, 93, 94 for Dawn;
-# STANDARD.md section 10, "One state colour: the ember gold").
-QUIET_TOKENS = frozenset(['--muted', '--faint', '--gold'])
+# The two quiet greys are never body copy anywhere (app/app.css:36, 37 for Ink, 92, 93 for Dawn).
+QUIET_TOKENS = frozenset(['--muted', '--faint'])
+# The state colour (app/app.css:38 and 93) is the lower tier only where it is doing the job
+# STANDARD.md section 10 gives it, marking a state: the element carries one of the marker or
+# eyebrow classes, or its text is too short to be a sentence. A paragraph painted gold is body
+# copy and stays at 4.5:1.
+GOLD_TOKEN = '--gold'
+GOLD_MARKER_CLASSES = frozenset(['kind', 'state-word', 'eyebrow', 'marker', 'marker-k', 'marker-v',
+                                 'coach-marker', 'status-pill', 'panel-h'])
+GOLD_MARKER_CHARS = 24
 PRIMARY_RATIO = 4.5
 MUTED_RATIO = 3.0
 LARGE_TEXT_PX = 24
 
 # This sentence is quoted in README section 3 in the same words.
 CONTRAST_TOLERANCE = ("Primary text needs 4.5:1 against what is actually behind it; muted text, a "
-                      "disabled control's label, the state colour and text 24 px or larger need 3.0:1.")
+                      "disabled control's label, the state colour where it is marking a state and "
+                      "text 24 px or larger need 3.0:1.")
 
 
-def tier_for(cls, size, token, disabled=False):
+def tier_for(cls, size, token, disabled=False, textlen=0):
     """Primary text needs 4.5:1 against what is actually behind it; muted text, a disabled
-    control's label, the state colour and text 24 px or larger need 3.0:1.
+    control's label, the state colour where it is marking a state and text 24 px or larger need
+    3.0:1.
 
     A disabled control sits at the lower tier because STANDARD.md section 10 calls its label a
     muted label, and because an inactive control is not something the athlete is being asked to
-    read.
+    read. The state colour sits there only when it is marking a state: a gold marker class, or a
+    string shorter than a sentence. Gold on a paragraph is body copy and keeps 4.5:1.
     """
     classes = set((cls or '').split())
     if disabled or token in QUIET_TOKENS or (classes & MUTED_CLASSES) or size >= LARGE_TEXT_PX:
+        return MUTED_RATIO
+    if token == GOLD_TOKEN and ((classes & GOLD_MARKER_CLASSES) or textlen < GOLD_MARKER_CHARS):
         return MUTED_RATIO
     return PRIMARY_RATIO
 
@@ -141,3 +152,23 @@ def sha256_bytes(b):
 def platform_key():
     """Renders differ by machine, so baselines are filed under the platform that drew them."""
     return sys.platform
+
+
+# ---------------------------------------------------------------- what the copy sweeps read
+# innerText is not the interface copy the athlete sees. A placeholder, an assistive label, a
+# tooltip, an image's alternative text, a filled in value and a string in CSS generated content
+# are all read off the screen or read out loud, and all of them are outside innerText. Both gates
+# sweep this one string so neither can be stricter than the other.
+JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return '';
+    const parts=[ui.innerText];
+    const attrs=['placeholder','aria-label','title','alt'];
+    const push=v=>{if(typeof v==='string'&&v.trim())parts.push(v)};
+    const gen=(e,which)=>{const c=getComputedStyle(e,which).content;
+      if(!c||c==='none'||c==='normal')return;
+      const m=c.match(/"([^"]*)"|'([^']*)'/g);if(!m)return;
+      m.forEach(q=>push(q.slice(1,-1)))};
+    ui.querySelectorAll('*').forEach(e=>{if(!e.offsetParent)return;
+      attrs.forEach(a=>push(e.getAttribute(a)));
+      if(('value' in e)&&e.tagName!=='BUTTON')push(e.value);
+      gen(e,'::before');gen(e,'::after')});
+    return parts.join('\\n')}"""

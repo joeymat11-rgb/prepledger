@@ -22,7 +22,7 @@ except Exception:
     pass
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, lum_array, worst_ratio, app_url,
-                    sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused)
+                    sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused, JS_SWEPT_TEXT)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -145,11 +145,16 @@ JS_SMALL = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!
     const cs=getComputedStyle(e,'::before');let h=r.height,w=r.width;if(cs.content!=='none'&&cs.height&&cs.height!=='auto'){h=Math.max(h,parseFloat(cs.height));}
     if(h<44||w<44)out.push((e.id||e.className)+' '+Math.round(w)+'x'+Math.round(h))});return out}"""
 
-JS_TEXT = "()=>{const ui=document.querySelector('.screen.is-active .ui');return ui?ui.innerText:''}"
-
-JS_ANIM = """()=>{const out=[];document.querySelectorAll('.screen.is-active *').forEach(e=>{if(e.tagName==='CANVAS')return;const cs=getComputedStyle(e);
-    if((cs.transitionDuration||'0s').split(',').some(v=>parseFloat(v)>0))out.push('transition '+(e.id||e.className));
-    if(cs.animationName&&cs.animationName!=='none')out.push('animation '+(e.id||e.className))});return out.slice(0,5)}"""
+# a pseudo element moves as visibly as its host: ::before and ::after carry their own
+# transition-duration and animation-name, and the pack already draws with them (.timeline::before)
+JS_ANIM = """()=>{const out=[];
+    const look=(e,which)=>{const cs=getComputedStyle(e,which);const name=(e.id||e.className||e.tagName)+(which||'');
+      if(which&&(cs.content==='none'||cs.content==='normal'))return;   /* content:"" still draws a box */
+      if((cs.transitionDuration||'0s').split(',').some(v=>parseFloat(v)>0))out.push('transition '+name);
+      if(cs.animationName&&cs.animationName!=='none')out.push('animation '+name)};
+    document.querySelectorAll('.screen.is-active *').forEach(e=>{if(e.tagName==='CANVAS')return;
+      look(e,null);look(e,'::before');look(e,'::after')});
+    return out.slice(0,5)}"""
 
 JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];const out=[];
     const cs0=getComputedStyle(document.documentElement);const tok={};
@@ -160,13 +165,18 @@ JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!
       const has=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim().length>1);if(!has)return;
       const r=e.getBoundingClientRect();if(r.width<8||r.height<8)return;
       const cs=getComputedStyle(e);const m=cs.color.match(/\\d+/g);
+      /* text nobody can see is not text: visibility is inherited, opacity is not, so walk it */
+      if(cs.visibility!=='visible')return;
+      let op=1,a=e;while(a&&a!==document.documentElement){op*=parseFloat(getComputedStyle(a).opacity||'1');a=a.parentElement}
+      if(op<=0.001)return;
       /* text scrolled under the fixed stack is not on screen: clip it to its own scroll region and skip what is mostly hidden */
       let sc=e.parentElement,vis=null;while(sc&&sc!==ui){const o=getComputedStyle(sc).overflowY;if(o==='auto'||o==='scroll'){vis=sc.getBoundingClientRect();break}sc=sc.parentElement}
       let y=r.top,h=r.height;
       if(vis){const top=Math.max(r.top,vis.top),bot=Math.min(r.bottom,vis.bottom-22);if(bot-top<r.height*0.5)return;y=top;h=bot-top}
       out.push({id:(e.id||e.className||e.tagName)+':'+e.textContent.trim().slice(0,18),x:r.left,y:y,w:r.width,h:h,
         c:m?m.slice(0,3).map(Number):null,size:parseFloat(cs.fontSize),
-        cls:(typeof e.className==='string'?e.className:''),tok: tok[hex(cs.color)]||'', off: (e.disabled===true)||!!e.closest(off)})});
+        cls:(typeof e.className==='string'?e.className:''),tok: tok[hex(cs.color)]||'', off: (e.disabled===true)||!!e.closest(off),
+        len: e.textContent.trim().length})});
     return out}"""
 
 JS_FACES = """()=>{const out=[];for(const ss of document.styleSheets){let rs;try{rs=ss.cssRules}catch(e){continue}
@@ -260,8 +270,9 @@ async def guard(pg, theme, screen):
 
 
 def file_url_to_path(u):
+    # url2pathname unquotes on both platforms, so a second unquote here would eat a literal %
     p = urllib.parse.urlparse(u)
-    return urllib.request.url2pathname(urllib.parse.unquote(p.path))
+    return urllib.request.url2pathname(p.path)
 
 
 async def face_bytes(pg, url):
@@ -389,7 +400,8 @@ async def main():
                     rec('FAIL' if hits else 'PASS', 'no straight edge in the scene with the mist drawn', f'{t}-{s}', f'rows {hits[:6]}' if hits else '')
                     # vertical structure in the sky (light pillars): high-frequency variation of column means over the top 45%
                     topband = im[int(im.shape[0] * 0.22):int(im.shape[0] * 0.45)]; cols = topband.mean(axis=0); hf = cols - np.convolve(cols, np.ones(121) / 121, mode='same'); vs = float(hf[120:-120].std())
-                    rec('FAIL' if vs > 0.9 else ('WARN' if vs > 0.7 else 'PASS'), 'no vertical streaks in the sky with the mist drawn', f'{t}-{s}', f'column variation {vs:.2f} (pillars measured 1.3)')
+                    # no advisory band: WARN is the type scale and the spacing scale, nothing else
+                    rec('FAIL' if vs > 0.9 else 'PASS', 'no vertical streaks in the sky with the mist drawn', f'{t}-{s}', f'column variation {vs:.2f} (pillars measured 1.3, the limit is 0.9)')
             await ctx.close()
 
             # ---------- motion: with embers hidden nothing moves; under reduced motion nothing moves at all ----------
@@ -430,7 +442,7 @@ async def one_screen(pg, t, s, W, H, where):
     small = await pg.evaluate(JS_SMALL)
     rec('FAIL' if small else 'PASS', 'touch targets >= 44 px', where, ', '.join(small))
     # ---------- copy ----------
-    text = await pg.evaluate(JS_TEXT)
+    text = await pg.evaluate(JS_SWEPT_TEXT)
     bad = copy_problems(text)
     rec('FAIL' if bad else 'PASS', 'copy: no dashes, readiness words, vendor names', where, ', '.join(repr(x) for x in bad))
     xbad = set_x_problems(text)
@@ -530,7 +542,7 @@ async def check_contrast(pg, W, H, where):
         if x1 <= x0 or y1 <= y0: continue
         ratio = worst_ratio(bx['c'], bg[y0:y1, x0:x1].reshape(-1, 3))
         if ratio is None: continue
-        need = tier_for(bx['cls'], bx['size'], bx['tok'], bx['off'])
+        need = tier_for(bx['cls'], bx['size'], bx['tok'], bx['off'], bx.get('len', 0))
         tiers[need] = tiers.get(need, 0) + 1
         if ratio < need:
             low.append(f"{bx['id']} {ratio:.1f} < {need}")
