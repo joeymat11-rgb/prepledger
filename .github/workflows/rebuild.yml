@@ -375,6 +375,26 @@ jobs:
       - name: C - the design pack pin and the approved-reference pin
         if: ${{ !cancelled() }}
         run: node --test rebuild/lanes/c/ui-port/pack-pin.test.mjs rebuild/lanes/c/ui-port/approved-pin.test.mjs
+      # C - THE CROSS-LANE RELEASE-OBJECT CELL, the S9 integration's own (DECISIONS:559,
+      # ruled the integration's by DECISIONS:627 P-S9-6; brief section 9 item 2). It is
+      # the one cell that holds BOTH halves of the release at once: the block proposed()
+      # builds for the `released` key of the acceptance artifact, and the one line the
+      # sealed-inventory fence reads it back with. Neither preparation lane could own it,
+      # because neither can build the other's input. Its own rows lift both sides' source
+      # by exact text, so this step is what makes the compatibility check run rather than
+      # be asserted in a report.
+      # ONE FILE, NAMED BY EXACT PATH, NEVER GLOBBED, and it carries the same condition
+      # the fence's step and the pack's step carry, for the same reason: the standing
+      # --ci --package step at :150 is refused SEAL-BASE-IS-NOT-THE-CHAIN-TIP on every
+      # branch that is not the chain tip, GitHub then skips every unconditioned step, and
+      # a gate skipped in the world it was written for is not a gate. Its row (7) reads
+      # this line back out of this file.
+      # ITS REAL ROW IS RED UNTIL THE SEAL, by construction and not by defect: it names
+      # RELEASE-OBJECT ARTIFACT-ABSENT rebuild/m4/spec/acceptance-s9-ui-pins.json until
+      # proposed() writes that artifact at integration part 2.
+      - name: C - the release object the runner writes, against the fence's reading of it
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/lanes/c/ui-port/release-object.test.mjs
       # C - the two lane C cells over Today's plan card. Both live OUTSIDE
       # rebuild/m3/w7-preview/today/test/ on purpose: that directory is pinned by the S8
       # artifact and H3/13 requires the today step to name it exactly, so a fourteenth file
