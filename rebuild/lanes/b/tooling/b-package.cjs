@@ -3141,12 +3141,32 @@ function proposed(s, bound) {
   // sha256 for exactly this reason, and rulingLineSha256 beside it carries the same fact in
   // the form this design uses everywhere else: the line is LOCATED by its own bytes. The
   // index is still SAID on every run, where a number that moves costs nothing.
-  const release = releaseRuling(s, bound), productMap = {}, releasedMap = {};
-  for (const [file, p] of Object.entries(s.product)) {
-    if (p.role !== 'released') { productMap[file] = p; continue; }
-    releasedMap[file] = { role: 'released', lastSealedSha256: p.pre,
-      sealedBy: bound.acceptance.packageId, rulingLineSha256: s.release.rulingLineSha256 };
-  }
+  //
+  // H18, and it is a REGRESSION this hunk introduced and Astra's blind review
+  // (S9-PREP-RUNNER-BLIND-REVIEW.md F1, BLOCKING) measured. The two maps were built by
+  // PLAIN ASSIGNMENT into an object literal, and `m[k] = v` is not "create an own entry":
+  // for k === '__proto__' it runs the accessor Object.prototype carries and sets the
+  // object's PROTOTYPE, so the key never appears in Object.keys, in JSON.stringify or in
+  // the sealed bytes. JSON.parse yields "__proto__" as an ORDINARY OWN KEY, so a spec may
+  // declare a file of that name; the runner at da9f8683 wrote `product: s.product` by
+  // reference and KEPT it. Astra's measurement, over the real product() and proposed():
+  // oldHas=true, newHas=false, and the artifact simply did not carry a pin the parent and
+  // the spec both still declared. The released half is worse than the product half,
+  // because that block is the PERMANENT RECORD of what the seal handed out: her sibling
+  // case admitted the grant and then wrote {"granted":["__proto__"],"released":{}}.
+  //
+  // Object.fromEntries defines every pair with CreateDataProperty, so EVERY own key of the
+  // spec becomes an own entry and NO KEY IS SPECIAL - a guard written as
+  // `if (file !== '__proto__')` would be a second rule for one fact and is exactly what
+  // Astra's M21 shows a reader cannot see. It also preserves the order Object.entries
+  // gives, which is the order the old loop assigned in, so for a package that releases
+  // nothing the serialized bytes do not move: (P-A8 c) measures that over the REAL S8 and
+  // H3 product maps and (X1) measures the whole artifact.
+  const release = releaseRuling(s, bound), declaredPins = Object.entries(s.product);
+  const productMap = Object.fromEntries(declaredPins.filter(([, p]) => p.role !== 'released'));
+  const releasedMap = Object.fromEntries(declaredPins.filter(([, p]) => p.role === 'released')
+    .map(([file, p]) => [file, { role: 'released', lastSealedSha256: p.pre,
+      sealedBy: bound.acceptance.packageId, rulingLineSha256: s.release.rulingLineSha256 }]));
   return {
     version: 1, lanePackage: ID, packageId: s.packageId, sourceBase: s.sourceBase,
     // X2: the parent's review byte-pin travels INTO the sealed artifact, so a later reader
