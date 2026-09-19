@@ -295,6 +295,17 @@ jobs:
         run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
       - name: A5 — the built deploy folder itself
         run: node --test rebuild/slice/pwa/test/package.test.cjs
+      # C - the two S9 design-pack pin cells (S9-RELEASE-SPEC.md C.5.1 and C.5.3, hunks
+      # H19 and H19b). PACK-PIN walks the owner-approved pack in the WORKING TREE this
+      # workflow checked out, never an object at a fixed commit, and APPROVED-PIN reads
+      # design.APPROVED at run time for its file list, so both judge the branch being
+      # pushed. Both run on ubuntu AND windows, which is where R4 N1.1's forward-slash
+      # and path-byte-order rules are proved. Both REFUSE BY NAME until the S9 integrator
+      # fills their literals at the S9 head by C.5.1's and C.5.3's procedures: that red is
+      # the cells working, and it is not closed by editing them. Named by exact path,
+      # never globbed, so both runners agree whatever the shell does.
+      - name: C - the design pack pin and the approved-reference pin
+        run: node --test rebuild/lanes/c/ui-port/pack-pin.test.mjs rebuild/lanes/c/ui-port/approved-pin.test.mjs
       # C - the two lane C cells over Today's plan card. Both live OUTSIDE
       # rebuild/m3/w7-preview/today/test/ on purpose: that directory is pinned by the S8
       # artifact and H3/13 requires the today step to name it exactly, so a fourteenth file
