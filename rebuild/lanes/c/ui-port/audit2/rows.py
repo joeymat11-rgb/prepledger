@@ -480,7 +480,8 @@ ROWS = [
                   '<script>if (location.search.indexOf("state=T-03") >= 0) {'
                   ' Element.prototype.getBoundingClientRect = function () {'
                   ' throw new Error("audit2 crash probe"); }; }</script>\n</body>')],
-      runner='sheet', expect_exit=2, expect_kind='REFUSE', expect_needles=['REFUSED'],
+      runner='sheet', expect_exit=1, expect_kind='FAIL', expect_needles=['the render failed'], expect_report=True,
+      corrected='judgment 4ecc1012: ROW DEFECT. The prediction below was REFUTED at 64a9e095 (exit 1, T-03 isolated, the other renders clean, a written report); the row now expects the behaviour wanted, and a return to the predicted defect DISAGREES.',
       predict='exit 2 and every earlier render is lost. statesheet.py runs its whole render loop with no per state try/except (gate.py has one: "the gate finished this screen"), so one bad state ends the run, write_report never runs, and states-report-T-0.txt holds a single REFUSED line. A run of 418 renders can be killed by render 3 and look exactly like a wrong EARNED_APP.',
       expect_words='a defect in one state should be a FAIL line for that state, not a refusal for the sheet'),
 
@@ -495,7 +496,8 @@ ROWS = [
       what='an accept run pointed at ANOTHER build by EARNED_APP',
       edits=[marker('x19 marker: the mutation is --accept plus the environment')],
       runner='gate', args=['--accept'], env={'EARNED_APP': 'file:///<PACK>/app/states.html'},
-      expect_exit=0, expect_kind='PASS', expect_needles=['ACCEPT RUN'],
+      expect_exit=2, expect_kind='REFUSE', expect_needles=['REFUSED', 'EARNED_APP'],
+      corrected='judgment 4ecc1012: ROW DEFECT. The prediction below was REFUTED at 64a9e095 (the accept run refuses before any write); the row now expects the refusal.',
       predict='the baselines of record are rewritten from a build that is not the design of record. gate.py refuses --accept with --screens or --sizes, and statesheet.py refuses --accept with --only, but neither refuses --accept with EARNED_APP set. Compare quality/baseline/win32/*.png before and after (the driver hashes them).',
       expect_words='an accept run should refuse to write the pack\'s baselines from a build it was pointed at, or say so on line 1'),
 
@@ -512,7 +514,8 @@ ROWS = [
       what='the gate run with a size that does not exist: green on nothing',
       edits=[marker('x21 marker: the mutation is the argument')],
       runner='gate', args=['--screens', 'today', '--sizes', '390x844'],
-      expect_exit=0, expect_kind='PASS', expect_needles=['0 FAIL, 0 WARN, 0 PASS'],
+      expect_exit=2, expect_kind='REFUSE', expect_needles=['REFUSED', '--sizes 390x844'],
+      corrected='judgment 4ecc1012: ROW DEFECT. The prediction below was REFUTED at 64a9e095 (exit 2, a one line refusal); the row now expects the refusal, as q1 does.',
       predict='exit 0 having measured nothing. gate.py builds SIZES by filtering ALL_SIZES, so an unknown size leaves it empty, every loop is skipped and write_report prints 0 FAIL, 0 WARN, 0 PASS. The same holds for a misspelt --screens (3 PASS, one per size, from the console error row). A green exit code with no checks behind it is what the whole ticket exists to prevent.',
       expect_words='the gate should refuse an argument that selects no screen and no size'),
 
@@ -530,7 +533,7 @@ ROWS = [
       expect_catcher='page margin 22 px', expect_needles=['card-eat left'],
       expect_words='FAIL naming the card and 22.7: with k3 (6 px) this pins the margin tolerance'),
 
- dict(id='x24', source='audit2', minutes=3,
+ dict(id='x24', source='audit2', minutes=3, void='judgment 4ecc1012: VOID, only a marker comment changed; row x24h is the real probe',
       what='a touch target that is not a button, an anchor or an input',
       edits=[marker('x24 marker: the real mutation is by hand, see hand')],
       runner='gate', args=GATE_TODAY, expect_exit=1, expect_kind='FAIL',
@@ -539,7 +542,7 @@ ROWS = [
       predict='PASSES GREEN (by reading gate.py:JS_SMALL)',
       expect_words='the 44 px rule is about what the thumb can hit, not about the tag name'),
 
- dict(id='x25', source='audit2', minutes=6,
+ dict(id='x25', source='audit2', minutes=6, void='judgment 4ecc1012: VOID, this row ran an unrelated command; the pack integrity check is the PM\'s own git diff of the delta, by hand',
       what='the whole pack integrity check: is anything outside quality/ and README.md changed?',
       edits=[marker('x25 marker: this row runs no script')],
       runner='gate', args=['--screens', 'today', '--sizes', '390x844'],

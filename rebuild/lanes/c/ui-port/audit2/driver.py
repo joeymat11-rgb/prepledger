@@ -304,12 +304,17 @@ def judge(rec, row):
     tail = '\n'.join(ln for ln in (rec.get('stdout_tail') or '').splitlines()
                      if not ln.startswith('Passed everywhere'))
     blob = '\n'.join(rec.get('fail_lines') or []) + '\n' + tail
+    names = [ln.split(' | ')[0] for ln in (rec.get('fail_lines') or [])]
     if kind == 'FAIL' and catcher:
-        hit = [ln for ln in (rec.get('fail_lines') or []) if catcher in ln]
-        if not hit and catcher not in tail:
-            why.append('no FAIL naming %r' % catcher)
+        # judgment 4ecc1012: exact identity of the FAIL row's check name; a substring or the stdout tail is not a catch
+        if catcher not in names:
+            why.append('no FAIL whose check name is exactly %r (FAIL names seen: %s)' % (catcher, sorted(set(names)) or 'none'))
+    for forbidden in (row.get('expect_no_fail') or []):
+        # P-CUI-4: a POSITIVE control says which named check must NOT fail (an honest negative number is not a dash)
+        if forbidden in names:
+            why.append('the check %r FAILED and this row says it must not' % forbidden)
     if kind == 'WARN' and catcher:
-        if catcher not in '\n'.join(rec.get('warn_lines') or []):
+        if catcher not in [ln.split(' | ')[0] for ln in (rec.get('warn_lines') or [])]:
             why.append('no WARN naming %r' % catcher)
     if kind == 'REFUSE' and not rec.get('refused_line'):
         why.append('no one line refusal was printed')
@@ -395,6 +400,10 @@ def main():
     extra = dict(kv.split('=', 1) for kv in a.env)
     chosen = ROWS if (a.all or not a.row) else [ROW_BY_ID[x] for x in a.row.split(',')]
     recs = []
+    voids = [r for r in chosen if r.get('void')]
+    for r in voids:
+        print('---- row %s is VOID and is not run: %s' % (r['id'], r['void']))
+    chosen = [r for r in chosen if not r.get('void')]
     for row in chosen:
         if row.get('hand') and not a.dry_run:
             print('---- row %s is HAND WORK: %s' % (row['id'], row['hand']))
@@ -402,7 +411,9 @@ def main():
         only = a.only or row.get('only')
         recs.append(run_one(a.pack, row, runner, only, extra, a.python, a.timeout, a.dry_run))
     print('\n' + table(recs))
-    print('\nresults appended to ' + RESULTS)
+    print('\n%d rows selected: %d run, %d VOID and not run (%s)'
+          % (len(recs) + len(voids), len(recs), len(voids), ', '.join(r['id'] for r in voids) or 'none'))
+    print('results appended to ' + RESULTS)
     bad = [r for r in recs if r.get('status') not in ('as expected', 'DRY-OK')]
     return 1 if bad else 0
 
