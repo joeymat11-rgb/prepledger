@@ -86,18 +86,35 @@ const idsOf = (src) => {
 };
 const fsBytes = (p) => { try { return fs.readFileSync(p); } catch { return null; } };
 
+/* R1 N2. A runner with no git must not be told that the CHAIN REF is missing: those are
+   different worlds and the reader needs the right one. execFileSync raises ENOENT when
+   the binary cannot be spawned at all and a non-zero exit status when the ref is simply
+   not there, so the two are distinguishable and the mapping is its own named function -
+   which is how row (10) can measure it with a REAL ENOENT raised by the same API instead
+   of unsetting PATH. (An unusable cwd raises the same ENOENT, which is why the name says
+   "could not be spawned" rather than "is not installed".) */
+const chainRefRefusal = (e, chainRef) =>
+  (e !== null && typeof e === "object" && e.code === "ENOENT")
+    ? "FENCE-GIT-UNAVAILABLE git could not be spawned: " + String(e.syscall ?? "spawnSync git")
+    : "FENCE-CHAIN-REF-ABSENT " + chainRef;
+
 /* ------------------------------------------------------------------- THE FENCE.
    A function of (repository root, chain ref) and of nothing else, so the real row and
    every throwaway fixture repository run the same code. It carries no hash and no path
    list of its own, which is why it cannot go stale the way boundary.test.mjs did. */
 function fence(root, chainRef) {
-  const out = (status, refusals, rest) => ({ status, refusals, artifactPath: null, artifactSha256: null, reason: null, touched: null, ...rest });
+  const out = (status, refusals, rest) => ({ status, refusals, artifactPath: null, artifactSha256: null, reason: null, touched: null, chainCommit: null, ...rest });
   const no = (refusal, rest) => out("fail", [refusal], rest);
 
   /* D.2, "what it does with no network": the ref is absent on a shallow clone, and the
      cell FAILS rather than passing vacuously. rebuild.yml:35 sets fetch-depth: 0. */
-  try { git(root, ["rev-parse", "--verify", "--quiet", chainRef + "^{commit}"]); }
-  catch { return no("FENCE-CHAIN-REF-ABSENT " + chainRef); }
+  let chainCommit = null;
+  try { chainCommit = git(root, ["rev-parse", "--verify", "--quiet", chainRef + "^{commit}"]).toString("utf8").trim(); }
+  catch (e) { return no(chainRefRefusal(e, chainRef)); }
+  /* R1 N10: the chain ref is a REMOTE-TRACKING ref and only a fetch moves it. In CI
+     :35's fetch-depth: 0 makes it fresh; on a developer PC the fence judges against
+     whatever was last fetched. Every outcome below carries the commit it judged by, so
+     the CI log and the local run are self-describing rather than a mystery. */
 
   /* THE INVENTORY, OUT OF GIT AT THE CHAIN REF. The integer after "acceptance-s" and
      the NUMERIC maximum of it, because a lexical walk puts s10 before s9 (R1 N9). */
@@ -106,21 +123,31 @@ function fence(root, chainRef) {
     const m = /^rebuild\/m4\/spec\/acceptance-s(\d+)-[^/]*\.json$/.exec(f);
     if (m !== null) cands.push({ n: Number.parseInt(m[1], 10), path: f });
   }
-  if (cands.length === 0) return no("FENCE-NO-INVENTORY-AT-CHAIN-REF " + chainRef + ":" + SPEC_DIR);
+  if (cands.length === 0) return no("FENCE-NO-INVENTORY-AT-CHAIN-REF " + chainRef + ":" + SPEC_DIR, { chainCommit });
   const top = Math.max(...cands.map((c) => c.n));
   const chosen = cands.filter((c) => c.n === top).map((c) => c.path).sort();
-  if (chosen.length > 1) return no("FENCE-AMBIGUOUS-INVENTORY " + chosen.join(" "));
+  if (chosen.length > 1) return no("FENCE-AMBIGUOUS-INVENTORY " + chosen.join(" "), { chainCommit });
   const artifactPath = chosen[0];
   const chainBytes = git(root, ["show", chainRef + ":" + artifactPath]);
   const artifactSha256 = sha256(chainBytes);
-  const here = { artifactPath, artifactSha256 };
+  const here = { artifactPath, artifactSha256, chainCommit };
   const inv = JSON.parse(chainBytes.toString("utf8"));
   const sealed = new Set([...Object.keys(inv.product || {}), ...Object.keys(inv.executionPins || {})]);
+  /* R1 N1: E fact 15 says released is an OBJECT keyed by path, and Object.keys of any
+     other shape yields keys that are not paths, so a released block of the wrong shape
+     releases NOTHING and the sealed path stays fenced. That is the direction to fail in
+     and row (12) measures it rather than leaving it to be discovered. */
   const released = new Set(Object.keys(inv.released || {}));
 
   /* THE DIFF, --name-status and not --name-only: the skip below needs the status letter
      and a deletion counts as touching, so one diff serves both (R3 N3). A rename is
-     both a deletion of the old path and an addition of the new one. */
+     both a deletion of the old path and an addition of the new one.
+
+     AND IT IS DIFFED FROM THE MERGE BASE, NOT FROM THE CHAIN REF (R1 BLOCKING-A). A
+     two-dot diff against the chain ref would also report every sealed path the CHAIN has
+     moved since this branch was cut, and refuse a branch that is merely BEHIND for paths
+     it never touched. Row (9) builds that world and is the only row where the chain ref
+     and the merge base differ. */
   const base = gitText(root, ["merge-base", chainRef, "HEAD"]).trim();
   const touched = [];
   for (const line of gitLines(root, ["diff", "--name-status", base, "HEAD"])) {
@@ -173,15 +200,29 @@ function fence(root, chainRef) {
       return bad(5, "sourceBase " + JSON.stringify(spec.sourceBase ?? null) + " is not an ancestor of HEAD");
 
     return out("skip", [], { ...here, touched: touched.length,
-      reason: "FENCE-RESEAL-CHILD " + id + " " + specPath + " stood aside on " + artifactPath + " " + artifactSha256 + " at " + chainRef });
+      reason: "FENCE-RESEAL-CHILD " + id + " " + specPath + " stood aside on " + artifactPath
+        + " " + artifactSha256 + " at " + chainRef + " (" + chainCommit + ")" });
   }
 
   const refusals = [];
   /* THE ARTIFACT-TAMPER CHECK. A branch legitimately changing a sealed artifact is a
-     reseal child, which the claim above has already handled, so the two do not collide. */
+     reseal child, which the claim above has already handled, so the two do not collide.
+     THE null LIMB IS NOT DEFENSIVE PROGRAMMING (R1 BLOCKING-C): it is the only thing
+     that notices a branch DELETING the sealed artifact from its worktree, and that
+     deletion is invisible to FENCE-SEALED-PATH-TOUCHED because the artifact is not a key
+     of its own product map (D.2 says so). "Delete the artifact, then do as you like" is
+     row (6) with the other hand, and row (6c) measures it. */
   const worktree = fsBytes(path.join(root, ...artifactPath.split("/")));
   if (worktree === null || !worktree.equals(chainBytes))
     refusals.push("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + artifactPath);
+  /* BYTE-EXACT SET MEMBERSHIP, AND IT IS DELIBERATE (R1 N8). Not a prefix scan, not a
+     substring scan and NOT case-folded: an inventory key is a repository path and the
+     seal is over those exact bytes, so today-app.cjsx is not today-app.cjs and a
+     case-only rename of a sealed path is a touch. Do not "fix" a Windows case complaint
+     by lowercasing either side; that would admit a sealed path under another spelling on
+     one operating system and not the other. Row (1d) holds the extension half of this on
+     both systems; the case half is measurable only on a case-sensitive filesystem and is
+     stated here rather than asserted by a row that cannot run on windows-latest. */
   for (const t of touched)
     if (sealed.has(t.path) && !released.has(t.path))
       refusals.push("FENCE-SEALED-PATH-TOUCHED " + t.status + " " + t.path);
@@ -275,12 +316,28 @@ function specFile({ packageId, parentId, artifact, sha256: s, sourceBase }) {
 const shaOfBlob = (root, ref, p) => sha256(git(root, ["show", ref + ":" + p]));
 const headOf = (root) => gitText(root, ["rev-parse", "HEAD"]).trim();
 const names = (r) => r.refusals.join(" | ");
+/* R1 N7: the failure line the real row prints counts the SEALED-PATH TOUCHES, not every
+   refusal. refusals can also hold FENCE-INVENTORY-DIFFERS-FROM-CHAIN, which is not a
+   sealed-path touch, and the old line called it one. R1 N10: it names the chain ref's
+   COMMIT too, so a stale remote-tracking ref reads as a stale ref and not as a mystery.
+   It is a function so that row (6c) can measure the counting on a real mixed result. */
+const refusalLine = (r) => {
+  const touches = r.refusals.filter((x) => x.startsWith("FENCE-SEALED-PATH-TOUCHED ")).length;
+  return "this change drew " + r.refusals.length + " refusal(s), " + touches +
+    " of them sealed path(s) that " + String(r.artifactPath) + " at " + CHAIN_REF +
+    " (" + String(r.chainCommit) + ") does not release";
+};
 
 const APP = "rebuild/m3/w7-preview/today/today-app.cjs";
 const CSS = "rebuild/m3/w7-preview/today/preview.css";
 const BUILD = "rebuild/m3/w7-preview/today/build.mjs";
 const TEMPLATE = "rebuild/m3/w7-preview/today/screens.template.html";
 const PINNED = "rebuild/m3/w7-preview/today/test/package.test.cjs";
+/* Built with String.fromCharCode on purpose, so THIS source file stays pure ASCII: a
+   literal non-ASCII byte here could be normalised away by an editor, a checkout or a
+   transport before the row ever runs, and the row would then measure nothing. 0xe9 is
+   LATIN SMALL LETTER E WITH ACUTE, one code point, two bytes in UTF-8. */
+const NONASCII = "rebuild/m3/w7-preview/today/caf" + String.fromCharCode(0xe9) + "-host.mjs";
 
 /* ============================ RED-FIRST ROW (6), WRITTEN AND COMMITTED FIRST ==========
    R1 BLOCKING-2, and F.1 R10. A branch edits the sealed artifact IN ITS OWN WORKTREE to
@@ -311,6 +368,35 @@ test("D.2 (6b) - a branch that DROPS a path out of product in its own worktree F
   assert.ok(r.refusals.includes("FENCE-SEALED-PATH-TOUCHED M " + APP), names(r));
 });
 
+/* R1 BLOCKING-C, RX7. THE SAME ATTACK WITH THE THIRD HAND, and it is the one the other
+   two do not cover: instead of editing the sealed artifact the branch DELETES it from
+   its worktree. FENCE-SEALED-PATH-TOUCHED cannot see that, because the artifact is not a
+   key of its own product map, so the worktree === null limb of the tamper check at :183
+   is the only thing between "delete the artifact" and "then do as you like". It had no
+   row, and its removal turned nothing red.
+
+   The row also carries R1 N7: refusalLine counts the SEALED-PATH TOUCHES and not every
+   refusal, and this is the mixed result that measures the difference - two refusals, one
+   of them a touch. */
+test("D.2 (6c) - a branch that DELETES the sealed artifact from its worktree FAILS by name", () => {
+  const root = chain({ product: [APP, CSS] });
+  branch(root, { edits: { [APP]: "the branch's bytes\n" }, kills: [FIX_ART] });
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.status, "fail", "deleting the inventory bought the branch a pass: " + names(r));
+  assert.ok(r.refusals.includes("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART),
+    "the deletion of the artifact is invisible: " + names(r));
+  assert.ok(r.refusals.includes("FENCE-SEALED-PATH-TOUCHED M " + APP), names(r));
+  assert.equal(r.refusals.length, 2, names(r));
+
+  /* R1 N7, measured on this result rather than argued. */
+  const line = refusalLine(r);
+  assert.match(line, /^this change drew 2 refusal\(s\), 1 of them sealed path\(s\) /,
+    "the failure line counts a non-touch refusal as a sealed-path touch: " + line);
+  /* R1 N10: and it names the commit the chain ref stood at. */
+  assert.equal(r.chainCommit, gitText(root, ["rev-parse", CHAIN_REF]).trim());
+  assert.ok(line.includes(r.chainCommit), line);
+});
+
 /* ============================================== THE REST OF D.2's RED-FIRST LIST ====== */
 
 test("D.2 (1) - a branch touching today-app.cjs FAILS, and the refusal names that path", () => {
@@ -333,6 +419,54 @@ test("D.2 (1c) - a DELETION of a sealed path counts as touching it, at status D"
   const root = chain({ product: [APP, CSS] });
   branch(root, { kills: [APP] });
   assert.deepEqual(fence(root, CHAIN_REF).refusals, ["FENCE-SEALED-PATH-TOUCHED D " + APP]);
+});
+
+/* R1 BLOCKING-C, RX4. git QUOTES and octal-escapes a non-ASCII path by default, and a
+   quoted string never matches an inventory key, so a sealed path carrying one non-ASCII
+   byte would walk straight through the fence. -c core.quotepath=false (:73) is the only
+   thing that stops it, and nothing measured it. Measured with the clause dropped:
+     DEFAULT:                    M  "rebuild/m3/w7-preview/today/caf\303\251-host.mjs"
+     core.quotepath=false:       M  rebuild/m3/w7-preview/today/cafe-host.mjs (with the real byte)
+   The second half of the row is the BYTE-EXACTNESS control of R1 N8 that CAN be run on
+   both operating systems: a path that merely EXTENDS a sealed one is not sealed, so the
+   lookup is Set membership and not a prefix or substring scan. */
+test("D.2 (1d) - a sealed path with a non-ASCII byte is refused BY NAME, and the lookup is byte-exact", () => {
+  const root = chain({ product: [NONASCII, CSS] });
+  branch(root, { edits: { [NONASCII]: "a lane C edit\n" } });
+  const r = fence(root, CHAIN_REF);
+  assert.deepEqual(r.refusals, ["FENCE-SEALED-PATH-TOUCHED M " + NONASCII],
+    "git quoted the path: -c core.quotepath=false is what stops that. " + names(r));
+
+  /* and a path that only EXTENDS a sealed one is NOT in the inventory. */
+  const near = chain({ product: [APP], free: [APP + "x"] });
+  branch(near, { edits: { [APP + "x"]: "a lane C edit\n" } });
+  const rn = fence(near, CHAIN_REF);
+  assert.equal(rn.status, "pass", "the sealed-path lookup is a prefix scan, not a Set: " + names(rn));
+});
+
+/* R1 BLOCKING-C, RX1. git diff --name-status reports a rename as one record,
+   "R100<TAB>old<TAB>new". The [RC] split at :128 reads it as a DELETION of the old path
+   plus an ADDITION of the new one (author finding F5). Both halves are load-bearing and
+   only the first had a row: without the split's second half parts[2] is never looked at
+   at all, so a file renamed ONTO a sealed path was asserted by nothing. */
+test("D.2 (1e) - a RENAME is read at BOTH ends: the old path at D and the NEW path at A", () => {
+  const away = chain({ product: [APP, CSS] });
+  git(away, ["mv", APP, APP + "2"]);
+  commit(away, "the lane branch renames a sealed path away");
+  const ra = fence(away, CHAIN_REF);
+  assert.ok(gitLines(away, ["diff", "--name-status", CHAIN_REF, "HEAD"]).some((l) => /^R/.test(l)),
+    "the fixture did not produce a rename record at all");
+  assert.deepEqual(ra.refusals, ["FENCE-SEALED-PATH-TOUCHED D " + APP], names(ra));
+
+  /* and ONTO: the sealed path is a key of the inventory that does not exist in the tree,
+     so the rename lands on it at status A. Only parts[2] can see this. */
+  const onto = chain({ artifacts: [["acceptance-s8-fixture.json", inventory({ product: [APP, CSS] })]],
+    product: [], free: [TEMPLATE, CSS] });
+  git(onto, ["mv", TEMPLATE, APP]);
+  commit(onto, "the lane branch renames another file ONTO a sealed path");
+  const ro = fence(onto, CHAIN_REF);
+  assert.ok(ro.refusals.includes("FENCE-SEALED-PATH-TOUCHED A " + APP),
+    "the NEW path of a rename was never examined: " + names(ro));
 });
 
 test("D.2 (2) - preview.css FAILS before S9 and PASSES after it, and nothing else moves", () => {
@@ -369,6 +503,24 @@ test("D.2 (4) - a deleted chain ref FAILS with FENCE-CHAIN-REF-ABSENT, it does n
   const r = fence(root, CHAIN_REF);
   assert.equal(r.status, "fail");
   assert.deepEqual(r.refusals, ["FENCE-CHAIN-REF-ABSENT " + CHAIN_REF]);
+});
+
+/* R1 BLOCKING-B. The sibling of row (4), and it had no row at all. The chain ref is
+   THERE and its rebuild/m4/spec/ holds no acceptance artifact: the fence must FAIL by
+   name rather than fall back to refs/heads, to the worktree, or to a vacuous pass, which
+   is the rule D.2 applies to every other outcome. This refusal name is the author's
+   (F4), not the spec's, and the PM may rename it; nothing depends on the spelling. The
+   row also holds the FILE-NAME rule: a .json.bak beside the real thing is not parsed. */
+test("D.2 (4b) - a chain ref whose spec directory holds NO acceptance artifact FAILS by name", () => {
+  const root = chain({ artifacts: [
+    ["review-fixture.json", "{}\n"],
+    ["acceptance-s8-old.json.bak", inventory({ product: [APP] })],
+  ], product: [], free: [APP, CSS] });
+  branch(root, { edits: { [APP]: "a lane C edit\n" } });
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.status, "fail", "an empty inventory directory passed vacuously: " + JSON.stringify(r.status));
+  assert.deepEqual(r.refusals, ["FENCE-NO-INVENTORY-AT-CHAIN-REF " + CHAIN_REF + ":" + SPEC_DIR]);
+  assert.equal(r.artifactPath, null, "it chose an artifact anyway: " + String(r.artifactPath));
 });
 
 /* R1 N9: the artifact is chosen by the NUMERIC maximum of the integer after
@@ -571,6 +723,100 @@ test("D.2 (8i) - seven MODIFIED ancestor specs beside the one ADDED spec still S
   assert.equal(r.status, "skip", names(r));
 });
 
+/* ================== THE ROWS R1 ASKED FOR THAT ARE NOT IN D.2's OWN LIST ==============
+   Each one exists because a guard clause of fence() survived removal with not a single
+   row changing colour. A clause nothing measures is a clause nobody can rely on, so the
+   answer to a surviving mutant is another row and never a weaker claim. */
+
+/* R1 BLOCKING-A, AND IT IS THE CLAUSE THAT GOVERNS THE NORMAL CASE. :124 diffs from
+   merge-base(chainRef, HEAD), not from the chain ref. In every other row of this file the
+   chain ref IS the merge base, so the two forms agree and the clause is invisible; here
+   the branch is cut at A, touches ONE file nothing ever sealed, and the chain then moves
+   TWO SEALED PATHS on a line of its own. The branch is merely BEHIND.
+
+   MEASURED ON THE REAL REPOSITORY the day this row was written, so the world it guards
+   is not hypothetical: the chain ref stood 8 commits ahead of this branch's merge base,
+   git diff --name-status <merge-base> HEAD reported 32 paths and the two-dot form
+   reported 34. The two extra were unsealed that day; the chain moves a sealed byte on
+   its next reseal. */
+test("D.2 (9) - a branch merely BEHIND the chain PASSES: the diff runs from the MERGE BASE", () => {
+  const root = chain({ product: [APP, CSS], free: [TEMPLATE] });
+  const A = headOf(root);
+  branch(root, { edits: { [TEMPLATE]: "<template id=\"t-today\"></template>\n" } });
+  const HEAD = headOf(root);
+  /* the chain moves two SEALED paths, on a line of its own, so the merge base stays A */
+  git(root, ["checkout", "-q", "-b", "chainline", A]);
+  put(root, APP, "the chain's next bytes\n");
+  put(root, CSS, ".chain{color:#000}\n");
+  commit(root, "the chain moves two sealed paths");
+  git(root, ["update-ref", CHAIN_REF, "HEAD"]);
+  git(root, ["checkout", "-q", "main"]);
+  assert.equal(headOf(root), HEAD, "the fixture moved the branch");
+
+  /* the fixture really does build the world: the two-dot diff DOES name the sealed
+     paths, and the merge-base diff names only the branch's own unsealed change. */
+  const twoDot = gitLines(root, ["diff", "--name-status", CHAIN_REF, "HEAD"]).map((l) => l.split("\t")[1]);
+  assert.ok(twoDot.includes(APP) && twoDot.includes(CSS),
+    "the fixture does not build the world the merge-base clause guards: " + twoDot.join(" "));
+  const fromBase = gitLines(root, ["diff", "--name-status",
+    gitText(root, ["merge-base", CHAIN_REF, "HEAD"]).trim(), "HEAD"]).map((l) => l.split("\t")[1]);
+  assert.deepEqual(fromBase, [TEMPLATE], "the merge-base diff is not the branch's own change");
+
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.status, "pass",
+    "a branch that is merely BEHIND the chain was refused for paths it never touched: " + names(r));
+  assert.deepEqual(r.refusals, []);
+  assert.equal(r.touched, 1, "the fence read more than the branch's own change: " + String(r.touched));
+});
+
+/* R1 N2. A runner with no git must not be told the CHAIN REF is missing: :99's try/catch
+   swallowed ENOENT into the ref-absent name, so a machine without git reported a world
+   that was not the one it was in. The mapping is chainRefRefusal() and this row measures
+   it with a REAL ENOENT raised by the same API - execFileSync on a binary that is not
+   there - and with a REAL non-zero exit from a ref that is genuinely gone. The property
+   that matters is unchanged either way: the fence never passes. */
+test("R1 N2 (10) - a git that cannot be spawned is NOT reported as a missing chain ref", () => {
+  let spawnFail = null;
+  try { execFileSync("git-s9-fence-is-not-a-binary", ["--version"], { stdio: ["ignore", "pipe", "pipe"] }); }
+  catch (e) { spawnFail = e; }
+  assert.notEqual(spawnFail, null, "the probe did not raise at all");
+  assert.equal(spawnFail.code, "ENOENT", "the probe did not raise a real ENOENT: " + String(spawnFail.code));
+  assert.match(chainRefRefusal(spawnFail, CHAIN_REF), /^FENCE-GIT-UNAVAILABLE /,
+    "a missing git reads as a missing chain ref: " + chainRefRefusal(spawnFail, CHAIN_REF));
+
+  const root = chain({ product: [APP] });
+  branch(root, { edits: { [TEMPLATE]: "harmless\n" } });
+  git(root, ["update-ref", "-d", CHAIN_REF]);
+  let refGone = null;
+  try { git(root, ["rev-parse", "--verify", "--quiet", CHAIN_REF + "^{commit}"]); }
+  catch (e) { refGone = e; }
+  assert.notEqual(refGone, null, "a deleted ref did not raise");
+  assert.notEqual(refGone.code, "ENOENT", "a deleted ref raised ENOENT: the two cannot be told apart");
+  assert.equal(chainRefRefusal(refGone, CHAIN_REF), "FENCE-CHAIN-REF-ABSENT " + CHAIN_REF);
+  assert.equal(fence(root, CHAIN_REF).status, "fail");
+});
+
+/* R1 N1. E fact 15 says the released block is an OBJECT keyed by path. Nothing on either
+   side of that asserts the shape, and the S9 sealer is the thing that will write it, so
+   this row states the DIRECTION the fence fails in if the shape is ever wrong: an array
+   releases nothing, because its Object.keys are "0", "1", ... and no index is a path.
+   Fail closed, measured, rather than a mystery red on the day it happens. */
+test("R1 N1 (12) - a released block of the WRONG SHAPE releases nothing: the fence fails CLOSED", () => {
+  const good = JSON.parse(inventory({ product: [APP, CSS], released: [CSS] }));
+  const arrayed = { ...good, released: [CSS] };
+  const root = chain({ artifacts: [["acceptance-s8-fixture.json", JSON.stringify(arrayed, null, 1) + "\n"]],
+    product: [], free: [APP, CSS] });
+  branch(root, { edits: { [CSS]: ".a{color:#fff}\n" } });
+  assert.deepEqual(fence(root, CHAIN_REF).refusals, ["FENCE-SEALED-PATH-TOUCHED M " + CSS],
+    "an array-valued released block admitted a sealed path");
+
+  /* the same inventory with the shape E fact 15 specifies DOES release it, so the row
+     above is measuring the shape and not some other difference. */
+  const ok = chain({ product: [APP, CSS], released: [CSS] });
+  branch(ok, { edits: { [CSS]: ".a{color:#fff}\n" } });
+  assert.equal(fence(ok, CHAIN_REF).status, "pass", names(fence(ok, CHAIN_REF)));
+});
+
 /* ================================================================ THE REAL ROW ========
    Everything above runs against a repository this file built. This one runs against the
    repository this file is IN, and it is the whole point of the cell: on every push to a
@@ -595,7 +841,5 @@ test("THE REAL ROW - this branch touched no sealed path the chain has not releas
     assert.deepEqual(r.refusals, []);
     return;   /* a verified reseal child; the reason is in r.reason and in the CI log */
   }
-  assert.deepEqual(r.refusals, [],
-    "this change touched " + r.refusals.length + " sealed path(s) that " +
-    String(r.artifactPath) + " at " + CHAIN_REF + " does not release");
+  assert.deepEqual(r.refusals, [], refusalLine(r));
 });
