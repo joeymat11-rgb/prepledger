@@ -38,10 +38,11 @@ builder hits one of the open questions in section 6, each of which has a default
 | `quality/STANDARD.md` | the numbered UI standard (13 sections): layout, type, colour, scene, motion, copy, process, the chassis, the plates, and section 13, the full list of what the gates check | the ACCEPTANCE BAR for every screen and state |
 | `quality/gate.py` | 33 distinct checks on the six views, 372 result rows across three phone sizes, two themes and three screens (errors, motion, transitions with motion allowed and refused, copy, generated content the sweep cannot read, the multiplication sign in every set string, targets, fit, thumb zone, columns, page margin, card inner edge, icon inset, bottom safe area, spacing, type scale, radii, pressed states, contrast in two tiers measured behind the text, the two fonts by sha256 and by face, serif versus sans, the RIR lock, seams, mist edges, visual regression against `quality/baseline/<platform>/`) | the gate the port must pass on the real client |
 | `quality/statesheet.py` | renders every state in both themes, checks each (errors, copy, targets, primary in the first viewport, contrast in two tiers, label overflow, seams) and compares it to its committed record; 418 renders, exit 1 on any problem | the second gate |
-| `quality/teeth.py` | the executable mutation list: 19 forbidden changes applied one at a time to a scratch copy, each run through the scratch copy's own gate and asserted to fail for the stated reason | what proves the two gates can still refuse |
+| `quality/teeth.py` | the executable mutation list: 33 forbidden changes applied one at a time to a scratch copy, each run through the scratch copy's own gate and asserted to fail for the stated reason | what proves the two gates can still refuse |
 | `quality/phonesheet.py` | phone-zoom contact sheets in thirds, of the three base screens or of any drawn state (`--state T-40`) | what the reviewer looks at |
-| `quality/baseline/<platform>/*.png` and `ENV.txt` | the six accepted screen renders for the machine that drew them, and the OS, Python, playwright and Chromium versions of that machine | what the regression check measures against |
-| `quality/baseline/states/<ID>-<theme>.json` and `.png` | one record per state and theme: the visible text, every text bearing element's text, rect, colour, family and size, and a 1/16 scale greyscale thumbnail | what the state sheet measures against, on any platform |
+| `quality/baseline/<platform>/*.png` and `ENV.txt` | the six accepted screen renders for the machine that drew them, and the OS, Python, playwright and Chromium versions of that machine and the launch list it used | what the regression check measures against |
+| `quality/baseline/states/<ID>-<theme>.json` and `INDEX.json` | one shared record per state and theme: the visible text, every text bearing element's text, rect, colour, family and size; and the list of ids and themes, with the machine and launch list that wrote them | what the state sheet measures against, on any platform: measured at 0.00 px and 0.00 levels across two operating systems (section 3.1) |
+| `quality/baseline/states/<platform>/*.png` and `ENV.txt` | one 1/16 scale greyscale thumbnail per state and theme for the machine that drew them, and that machine's own `ENV.txt` | the half of the record that is a raster, which a second machine sets with `--accept-thumbs` |
 | `states/STATE-INVENTORY-DRAFT.md` | the derived state inventory (205 rows: T-01..T-95, W-01..W-45, C-01..C-65) with the verbatim copy the code already carries (section 4.1) and the owner's rulings 1 to 7 (section 6) | BEHAVIOUR and copy, together with the ledger |
 | `states/TICKET-proposal-response.md` | the engine ticket that unlocks the proposal card's "Applied" state | lane B, when the PM schedules it |
 
@@ -122,7 +123,9 @@ the spacing scale, which STANDARD.md calls advisory in its own words.
 `quality/baseline/<sys.platform>/<theme>-<screen>.png`. Baselines are per platform because a
 render is a property of the machine: the same page drew 2.35% to 6.38% different pixels on the
 owner's Windows PC and on the machine that set the first baselines. `ENV.txt` beside them
-records the OS, Python, playwright and Chromium versions that drew them. The tolerance:
+records the OS, Python, playwright and Chromium versions that drew them, and the launch list they
+were drawn with, because a render is a property of the arguments as well as of the machine. The
+tolerance:
 
 > The gate fails a screen when more than 0.1% of its pixels differ from the baseline by more
 > than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels.
@@ -135,26 +138,75 @@ to run with `--screens` or `--sizes`, so a partial set cannot be written. The Li
 this pack were set on the builder's machine; the win32 set is written on the owner's PC.
 
 **The state comparison (`statesheet.py`).** Every state, both themes, against
-`quality/baseline/states/<ID>-<theme>.json` and `.png`. The record holds every text bearing
+`quality/baseline/states/<ID>-<theme>.json` and `quality/baseline/states/<sys.platform>/<ID>-<theme>.png`.
+The record holds every text bearing
 element the athlete can actually see, in document order, with its own text, its rounded rect, its
 computed colour, its first font family and its font size, then the visible text of those elements
 in element order with whitespace normalised (element order, not reading order: a word wrapped in a
 span sits beside its sentence rather than inside it, which the element list already catches),
-and a 1/16 scale greyscale thumbnail of the render. The text, the rects, the colours and the
-font names do not depend on how a machine rasterises a glyph at all; the thumbnail is a
-downsampled raster, so it depends on rasterisation less, not none. Measured: a glyph level change
-and no layout change (`text-rendering: geometricPrecision`) costs 0.73 of the 2.00 level
-thumbnail budget and moves one rect by 4 px, and a 3 px shift already sits at 1.67 of 2.00. The
-records are made to be read by a second machine, and no Windows run has judged them yet, which is
-why every run now prints a "worst measured" block: the largest thumbnail mean shift, the largest
-rect move and the largest colour move it saw, each with the state and element that produced it,
-so the lane lead's Windows run reports headroom in numbers rather than a bare verdict. The
-tolerance:
+and a 1/16 scale greyscale thumbnail of the render. The tolerance:
 
 > A state fails when its visible text differs at all, when an element moves more than 3 px on
 > any edge, when its colour moves more than 3 levels in any channel, when its font family
 > changes or its size moves more than 0.5 px, or when its thumbnail mean absolute shift reaches
 > 2.0 levels or 1% of the thumbnail pixels differ by more than 24 levels.
+
+**The two halves of a record, and which of them is this machine's.** The JSON half (the text, the
+rects, the colours, the families, the sizes) is one shared set, read on every platform. A rect is
+not free of rasterisation: an element's width is the sum of the glyph advances the text stack
+hands back, and headless Chromium on Linux hints glyphs by default, which snaps every advance to
+a whole pixel. A line then comes out a few pixels wider or narrower than the same line on
+Windows, on macOS or on a phone, and now and then it wraps on a different word. So every script
+launches the browser with `quality/common.py`'s `LAUNCH_ARGS`, whose second argument turns
+hinting off, and the advances are the font's own fractional ones on every machine.
+
+Measured 2026-09-19 against the records this pack first committed, which a hinted Linux run had
+written. The owner's Windows PC (Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34) failed
+254 of 418 renders: worst rect edge 170 px against a tolerance of 3 (T-84 ink, element 10,
+"Nothing was recorded.", left) and worst thumbnail mean shift 3.53 of 2.00 (T-14 ink). A Linux
+run launched with `LAUNCH_ARGS` failed the same 254 renders with the same 254 report lines, word
+for word and number for number, its worst thumbnail 3.03. On Windows the argument changes
+nothing: 372 PASS there against screen baselines drawn without it. That is the platform claim
+this section used to make and the code did not implement.
+
+The records were then written again by `--accept` on the owner's PC and judged by a full run in
+the builder's Linux sandbox (Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37), both
+launched with `LAUNCH_ARGS`: 418 renders, every rect edge of every element moved 0.00 px of the 3
+allowed, every colour 0.00 levels of 3. The only two problems in the whole set were T-88 in each
+theme, `targets: link 44x44`, which both machines reported in the same words: one real defect in
+the prototype, taken up below. Two operating systems, two text stacks, two Chromium versions.
+That is the claim measured rather than asserted.
+
+The thumbnail half does not travel. It is a raster, and between those same two machines
+rasterisation alone costs up to 1.26 levels of the 2.00 level budget (C-63 ink), which is most of
+the headroom the 3 px rect tolerance needs: the 3 px shift `teeth.py` row h1 must PASS measures
+1.67 on the machine that drew the thumbnails. So thumbnails are filed per platform, at
+`quality/baseline/states/<sys.platform>/<ID>-<theme>.png`, the way the screen baselines already
+are, with an `ENV.txt` beside them in the form `gate.py` writes, the `launch:` line included. A
+missing thumbnail for the current platform is a FAIL that names the path and the remedy, never a
+silent set, and a missing shared record has its own line and its own remedy, so each names the
+file that is actually absent.
+
+`python quality/statesheet.py --accept` writes the shared records, the index and this platform's
+thumbnails; it refuses `--only` and says on its first line that it compared nothing.
+`--accept-thumbs` is the tool for the second platform: it compares every render against the
+shared record exactly as an ordinary run does and compares no thumbnail, then writes this
+platform's thumbnails and `ENV.txt` only if every render came back clean, and otherwise writes
+nothing at all, reports the problems and exits 1. It refuses `--only` and refuses to be combined
+with `--accept`. Neither is evidence of a green run, and the first line of each says which it is:
+an accept run compared nothing, an accept-thumbs run wrote half of every record it just judged.
+Every run ends with a "worst measured" block, the largest thumbnail mean shift, rect move and
+colour move it saw, each with the state and element that produced it, so a run on a second
+machine reports its headroom in numbers rather than a bare verdict.
+
+**The one line under `app/`.** The state sheet found a real defect in the prototype while this
+was being settled, and under ticket item 16 it is fixed rather than filed. Laid out unhinted,
+which is how every real device lays it out, T-88's Cancel link is 43.73 px wide by 44 px high,
+under the owner's standing rule that every target is 44 px; hinted Linux had rounded it to 44,
+which is the only reason review R2 saw the sheet green. `app/app.css` line 202, the `.link` rule,
+now carries `min-width: var(--hit);` beside its `min-height: var(--hit);`. It widens that one box
+by 0.27 px, and a record's rect is rounded to whole pixels, so nothing either gate records moves.
+That line is the only change under `app/` on this branch.
 
 The run also compares the two lists of states. `--accept` writes
 `quality/baseline/states/INDEX.json`, the ids and themes it recorded; an ordinary run reads it and
@@ -162,13 +214,12 @@ FAILs naming every id that is in the index and no longer in the build, and every
 with no entry in the index. A state quietly dropped from a port is the case a port actually
 produces, and without this the sheet would simply render one fewer screen and stay green. Under
 `--only` the comparison is restricted to the ids the run selected, so a narrowed run still refuses
-a state that has left the build.
+a state that has left the build. The index also carries an `env` object, the machine and the
+launch list the shared records were written on; it is provenance and no comparison reads it.
 
 The thumbnail is 1/16 and not 1/8 so that the two halves agree: at 1/8 a 3 px shift, which the
-rect tolerance allows, already moves the thumbnail 3.5 levels. A missing record is a FAIL naming
-the state; `python quality/statesheet.py --accept` is the only way to write one and says on its
-first line that it compared nothing. Contrast is measured on the rendered screenshot in two
-tiers, on both gates, in the same words:
+rect tolerance allows, already moves the thumbnail 3.5 levels. Contrast is measured on the
+rendered screenshot in two tiers, on both gates, in the same words:
 
 > Primary text needs 4.5:1 against what is actually behind it; muted text, a disabled control's
 > label, the state colour where it is marking a state and text 24 px or larger need 3.0:1.
@@ -211,9 +262,14 @@ no report is committed, and that a reviewer reads the baseline diff in the pull 
 
 **`quality/teeth.py`** keeps all of this honest: it copies the pack to a scratch directory,
 applies one forbidden change at a time, runs the scratch copy's own gate against it and asserts
-the exact refusal. Every row of the audit's mutation table plus a dropped RIR chip, a serif
-element switched to sans and a card moved 6 px off the margin. It prints a table and exits 1 if
-any row slips through.
+the exact refusal. Thirty three rows: every row of the audit's mutation table, plus a dropped RIR
+chip, a serif element switched to sans and a card moved 6 px off the margin, plus the rows the two
+review rounds added, plus the two this round added, p1 and p2. p1 takes the hinting argument out
+of `LAUNCH_ARGS` and the state sheet must FAIL on a moved rect, so the launch list cannot quietly
+lose it; headless Chromium hints only on Linux, so on Windows and macOS that row cannot fail, and
+it is printed there with the reason in words and counted as expected rather than skipped in
+silence. p2 deletes this platform's thumbnail for T-02 and the sheet must name the path and the
+remedy. It prints a table and exits 1 if any row slips through.
 
 Rigor per LANES.md, screens tier: one independent Opus reviewer told to disagree (author is not
 the reviewer), CI green on both OS, and the two gates green; the PM (Fable) judges. No ticket
@@ -247,6 +303,12 @@ self-accepts. The builder's cells pin every copy string they move.
   vendor-name sweeps from `quality/common.py` (the fixed form, never the old line).
 - One layout per screen: a drawn state and the live behaviour must produce the same element
   in the same place (STANDARD.md section 11).
+- `app/` is the fixed target the gates are proved against, and exactly one line of it changed
+  while C-UI-0 was built: `app/app.css` line 202, the `.link` rule, gained
+  `min-width: var(--hit);` beside its `min-height: var(--hit);`, because the state sheet, laid
+  out the way every real device lays text out, measured T-88's Cancel link at 43.73 px wide
+  against the owner's standing 44 px rule (ticket item 16, and section 3.1 above). Anything else
+  a gate finds in the prototype is an open question in the ticket's package, not an edit.
 
 ## 5. The tickets (lane C, screens tier), in order
 

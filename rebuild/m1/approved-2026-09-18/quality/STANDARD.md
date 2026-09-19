@@ -53,7 +53,7 @@ Where a rule departs from the boards, the departure is recorded on the compariso
 2. `gate.py` passes with no FAIL; every WARN has a one-line reason or is fixed. Only two checks can WARN, the type scale and the spacing scale, which this standard calls advisory in its own words; every other check is PASS or FAIL, so no third advisory band can carry a defect past a green run.
 3. Reviewed on the phone-zoom sheet, both themes, top, middle and bottom thirds.
 4. An independent reviewer (a different model, given this standard and the sheets, told to disagree) has looked and its findings are triaged: fixed, or declined with a reason.
-5. The baseline screenshots are updated on purpose (`gate.py --accept`), never by accident. A run that is not an accept run FAILs a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels, and FAILs when the baseline for the current platform is missing rather than writing one. An accept run marks every screen SET, not PASS, and says on the report's first line that it compared nothing.
+5. The baseline screenshots are updated on purpose (`gate.py --accept`), never by accident. A run that is not an accept run FAILs a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels, and FAILs when the baseline for the current platform is missing rather than writing one. An accept run marks every screen SET, not PASS, and says on the report's first line that it compared nothing. The state records are held the same way: `statesheet.py --accept` writes the shared records, the index and this platform's thumbnails, `--accept-thumbs` writes this platform's thumbnails alone and only when every render came back clean, and each says on its own first line what it compared and what it wrote, so neither report can be read as a green run.
 6. Recorded on the comparison page if it departs from the boards.
 
 ## 8. Independent review, round 1 (what it caught that the gate did not)
@@ -109,7 +109,15 @@ Both gates run the same way on Windows and on Linux, from this folder: `python q
 and `python quality/statesheet.py`. Exit 0 green, exit 1 at least one FAIL, exit 2 refused (one
 line naming the URL it was pointed at and what was missing). WARN belongs to the two advisory
 checks only. `python quality/teeth.py` proves the list below can still refuse: it applies one
-forbidden change at a time to a scratch copy and asserts the exact refusal.
+forbidden change at a time to a scratch copy and asserts the exact refusal, in 33 rows.
+
+All three scripts launch the browser with `quality/common.py`'s `LAUNCH_ARGS` and nothing else,
+so a screen is laid out the same way whichever script draws it and whichever machine runs it. The
+second argument in that list turns glyph hinting off: headless Chromium hints by default on Linux
+and snaps each glyph advance to a whole pixel, which makes a line of text a few pixels wider or
+narrower than on Windows, on macOS or on a phone and now and then wraps it on a different word.
+The launch list is written into every `ENV.txt` a baseline set carries, and `teeth.py` row p1
+takes an argument out of it and requires the state sheet to FAIL.
 
 `gate.py`, 33 checks, 372 result rows. R means the reference size 393x852 only; 3 means all three
 of 393x852, 375x812 and 360x780. Every row FAILs unless it says WARN.
@@ -154,14 +162,30 @@ of 393x852, 375x812 and 360x780. Every row FAILs unless it says WARN.
 state actually applying, page and console errors, the copy sweeps, a set written with the letter x,
 touch targets, a label overflowing its button, the word "optional" on a set screen, a drawn seam in
 both margins, contrast in the same two tiers, and the primary staying above the fold. It is then
-compared to `quality/baseline/states/<ID>-<theme>.json` and `.png`: the visible text must be
+compared to `quality/baseline/states/<ID>-<theme>.json` and
+`quality/baseline/states/<sys.platform>/<ID>-<theme>.png`: the visible text must be
 identical, each element must stay within 3 px on every edge, 3 levels per channel, the same family
 and 0.5 px of the same size, and the 1/16 scale greyscale thumbnail must stay under a 2.0 level mean
 shift with fewer than 1% of its pixels past 24 levels. A missing record is a FAIL naming the state.
-A missing record names the file that is actually absent. `--accept` is the only way to write
-records; it also writes `quality/baseline/states/INDEX.json`, and it refuses `--only`, so a
-partial record set cannot be written by accident. An ordinary run compares the index against the
+A missing record names the file that is actually absent, and the shared record and this platform's
+thumbnail have their own line and their own remedy.
+
+The JSON half of a record is one shared set and is read on every platform: written by `--accept`
+on Windows and judged by a full Linux run, all 418 renders came back with every rect edge 0.00 px
+of the 3 allowed and every colour 0.00 of 3. The thumbnail half is a raster, which between those
+two machines costs up to 1.26 levels of the 2.00 level budget, so thumbnails are filed under
+`quality/baseline/states/<sys.platform>/` with an `ENV.txt` beside them, and a missing thumbnail
+for the current platform is a FAIL naming the path and the remedy, never a silent set.
+
+`--accept` is the only way to write records; it writes the shared records,
+`quality/baseline/states/INDEX.json` and this platform's thumbnails, and it refuses `--only`, so a
+partial record set cannot be written by accident. `--accept-thumbs` is the second platform's tool:
+it compares every render against the shared records, compares no thumbnail, and writes this
+platform's thumbnails and `ENV.txt` only when every render was clean, otherwise nothing at all,
+exit 1. It refuses `--only` and cannot be combined with `--accept`. Neither run is evidence of a
+green run, and the first line of each says so. An ordinary run compares the index against the
 driver's own list and FAILs on a record whose state has left the build, and on a state with no
-record. `--only` narrows the run while iterating and narrows that comparison with it. Every run
+record; the index's `env` object is provenance and no comparison reads it. `--only` narrows the
+run while iterating and narrows that comparison with it. Every run
 ends with a "worst measured" block: the largest thumbnail mean shift, rect move and colour move it
 saw, each named with the state and element, so a run on a second machine reports its headroom.
