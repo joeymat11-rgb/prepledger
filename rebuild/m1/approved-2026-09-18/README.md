@@ -169,17 +169,20 @@ first line that it compared nothing. Contrast is measured on the rendered screen
 tiers, on both gates, in the same words:
 
 > Primary text needs 4.5:1 against what is actually behind it; muted text, a disabled control's
-> label, the state colour and text 24 px or larger need 3.0:1.
+> label, the state colour where it is marking a state and text 24 px or larger need 3.0:1.
 
 The lower tier is read from the pack's own stylesheets, not guessed: the element's computed
 colour equals the theme's `--muted`, `--faint` or `--gold` token, or it carries one of the
 classes `app.css`, `states.css`, `states-workout.css` and `states-coach.css` paint muted (the
 list and the line numbers are in `quality/common.py`), or it is a disabled control's label,
 which STANDARD.md section 10 already calls a muted label. `--gold` is the one state colour
-(STANDARD.md section 10): it marks a state and never carries a sentence, so it is held to the
-label tier. In Dawn it measures about 3.4:1 on the card, which is above 3.0 and below 4.5; that
-is recorded as an open question in `rebuild/lanes/c/ui-port/packages/C-UI-0.json` rather than
-changed here, because the Dawn token is the boards' call.
+(STANDARD.md section 10), and it earns the label tier only where it is doing that job: the
+element carries a marker or eyebrow class, or its text is shorter than 24 characters. Gold on a
+paragraph is body copy and keeps 4.5:1. In Dawn the gold measures about 3.4:1 on the card, which
+is above 3.0 and below 4.5; that is recorded as an open question in
+`rebuild/lanes/c/ui-port/packages/C-UI-0.json` rather than changed here, because the Dawn token
+is the boards' call. Text at `opacity: 0` or `visibility: hidden` is not measured at all: a
+colour nobody is shown has no contrast to judge.
 
 **Which check runs at which size.** Copy, the multiplication sign, the type scale, the radii,
 the contrast, the face check, the page margin, the card inner edge, the icon inset, the

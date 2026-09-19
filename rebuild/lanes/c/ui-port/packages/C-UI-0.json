@@ -2,7 +2,13 @@
  "version": 1,
  "lanePackage": "C-UI-0",
  "packageId": "C-UI-0-GATES-WITH-TEETH",
- "status": "PROPOSED",
+ "status": "PROPOSED, revised for review R1",
+ "review": {
+  "file": "rebuild/lanes/c/ui-port/reviews/C-UI-0-review-R1.md",
+  "sha256": "e8534309659b3c7b1e535beeec44c609fa365398acd7ba27b87eb7c0227333fe",
+  "verdict": "REJECT, 4 blocking",
+  "addressed": "B1, B2, B3, B4, SHOULD FIX 1 to 11, docs mismatch 1 to 8"
+ },
  "filed": "2026-09-18",
  "brief": {
   "file": "rebuild/lanes/c/ui-port/C-UI-0.md",
@@ -15,8 +21,17 @@
  },
  "branch": "rebuild/c-ui-0-gates",
  "sourceBase": "e0a6c8ef2b2c7421ca8deb64ade1a7ed7f4de688",
- "head": "df3622a03e33b51587f336fa40acae5957904949",
+ "head": {
+  "commit": "0e721c928bba651b19074ba0ec5d16c67c41322f",
+  "note": "the commit this package was written at; the commit that adds the package is its child, so HEAD after it is one ahead of this value by construction"
+ },
  "commits": [
+  "0e721c92 C-UI-0 R1: the eight documentation mismatches review R1 listed",
+  "35495639 C-UI-0 R1: seven more teeth rows, the ones review R1 slipped through",
+  "86aa90bb C-UI-0 R1: the state sheet holds the record list, and records only what can be seen",
+  "8e4ff944 C-UI-0 R1: the gate reads pseudo elements, placeholders and generated content, and has no third advisory band",
+  "e7d7d536 C-UI-0: review R1 (REJECT, 4 blocking)",
+  "3baef85f C-UI-0: the package, with the three run summaries, the teeth table and the open questions",
   "df3622a0 C-UI-0: the four scripts write UTF-8 whatever the console is set to",
   "da631b63 C-UI-0: the README and the standard say what the code does",
   "fc1b141e C-UI-0: quality/teeth.py, the executable mutation list",
@@ -34,23 +49,23 @@
    "role": "edited: quality/run/ and __pycache__/ are untracked from here on"
   },
   "rebuild/m1/approved-2026-09-18/README.md": {
-   "sha256": "c5370b1c7c1cfb0507d93f53673ebe4e80601c9ff8f7ad8b7ec35237961d7272",
+   "sha256": "06714039545eec1a95a2566470b528d9c3bb1732d9d2fd0867c54820e85bc6c6",
    "role": "edited: sections 1, 3 (with the new 3.1), 4 and 7"
   },
   "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": {
-   "sha256": "b6261d48733e146daea61824c53db3ce582dca134417004d75c748d8033ec9dd",
+   "sha256": "6e942915d2645329018dd0ca46761d929b8ceb20c365c76b96ebcbfb6cd27e94",
    "role": "edited: every gate tag names its check, section 7 item 5, new section 13"
   },
   "rebuild/m1/approved-2026-09-18/quality/common.py": {
-   "sha256": "dda58d73f13734890333de18489286015e3eb8e760f84df9bf5b0e84f121ed98",
+   "sha256": "fb47501475612784ae4b86b7886bf520c294e7c1f65aa1e2eac91ffdad9dd198",
    "role": "added: what the three gates share"
   },
   "rebuild/m1/approved-2026-09-18/quality/gate.py": {
-   "sha256": "95b810fe0e4eb1e516a692498157523a89464d697fbea16e5a3126cc385d8923",
+   "sha256": "c37b9aed9277cb44facef398d7cee12672139f951dde0dbd5f09ae8a74305f73",
    "role": "edited: the screen gate"
   },
   "rebuild/m1/approved-2026-09-18/quality/statesheet.py": {
-   "sha256": "44c395c8a469aecfc586f5c3d3900654853c3479bbecfc2ba47df85c86566a1f",
+   "sha256": "1f0d01a677c5da3e444d19c59a94b49573b0b9ac325aebf2650957812cd94754",
    "role": "edited: the state gate"
   },
   "rebuild/m1/approved-2026-09-18/quality/phonesheet.py": {
@@ -58,7 +73,7 @@
    "role": "edited: the review sheet"
   },
   "rebuild/m1/approved-2026-09-18/quality/teeth.py": {
-   "sha256": "124f5fc7700c693161e8463751025d1e8a71b3df75053850904a70f7d1b51c05",
+   "sha256": "f1eff32aa3b4b73cb58ed9339da06c4d434fa473c3b47e4512b90097bdbc2ae4",
    "role": "added: the executable mutation list"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": {
@@ -92,11 +107,12 @@
  },
  "stateRecords": {
   "path": "rebuild/m1/approved-2026-09-18/quality/baseline/states/",
-  "files": 836,
-  "bytes": 986461,
-  "megabytes": 0.94,
+  "files": 837,
+  "bytes": 1005460,
+  "megabytes": 0.96,
   "budget": "under 3 MB",
-  "manifestSha256": "b5c889c6732a3a2e75a6d5fa4834e8666a594201ff06146acd7ee37541b665a7",
+  "index": "rebuild/m1/approved-2026-09-18/quality/baseline/states/INDEX.json",
+  "manifestSha256": "7364202f09aa10cef9c55fe4cb86b037c6a93e5660fa360d30e0aa28da2fb092",
   "manifestForm": "sha256 of the lines \"<file name> <sha256>\" for every file, sorted by name, joined by newline"
  },
  "runs": {
@@ -112,7 +128,7 @@
   },
   "teeth": {
    "command": "python quality/teeth.py",
-   "summary": "TEETH: 19 rows, 0 disagreeing, 462 s",
+   "summary": "TEETH: 26 rows, 0 disagreeing, 641 s",
    "exit": 0
   },
   "machine": "linux, the builder worktree"
@@ -120,11 +136,11 @@
  "tolerances": {
   "regression": "The gate fails a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels.",
   "state": "A state fails when its visible text differs at all, when an element moves more than 3 px on any edge, when its colour moves more than 3 levels in any channel, when its font family changes or its size moves more than 0.5 px, or when its thumbnail mean absolute shift reaches 2.0 levels or 1% of the thumbnail pixels differ by more than 24 levels.",
-  "contrast": "Primary text needs 4.5:1 against what is actually behind it; muted text, a disabled control's label, the state colour and text 24 px or larger need 3.0:1.",
+  "contrast": "Primary text needs 4.5:1 against what is actually behind it; muted text, a disabled control's label, the state colour where it is marking a state and text 24 px or larger need 3.0:1.",
   "whereQuoted": "each sentence appears in the same words in the code and in README section 3.1"
  },
  "teethTable": [
-  "TEETH: 19 rows, 0 disagreeing, 462 s",
+  "TEETH: 26 rows, 0 disagreeing, 641 s",
   "row   mutation                                                   verdict      note",
   "a     an em dash in Today's status sentence                      as expected",
   "b1    a word from the owner's word list in a card title          as expected",
@@ -145,6 +161,13 @@
   "k1    one RIR chip dropped                                       as expected",
   "k2    a serif element switched to sans                           as expected",
   "k3    a card moved 6 px off the page margin                      as expected",
+  "m1    a 4 px dot pulsing for ever on a pseudo element            as expected",
+  "m2    a transition on a pseudo element                           as expected",
+  "m3    three faults in a placeholder, judged by the gate          as expected",
+  "m4    the same three faults in CSS generated content             as expected",
+  "m5    three faults in a placeholder, judged by the state sheet   as expected",
+  "m6    T-02 dropped from the driver, its records left committed   as expected",
+  "m7    T-02's sample note hidden at opacity 0                     as expected",
   "TEETH EXIT 0"
  ],
  "env": {
@@ -158,11 +181,11 @@
   },
   "stateSheet": {
    "renders": 418,
-   "recordFiles": 836,
-   "recordsPerRender": 2
+   "recordFiles": 837,
+   "recordFileShape": "one json and one png per state and theme, plus INDEX.json"
   },
   "teeth": {
-   "rows": 19,
+   "rows": 26,
    "disagreeing": 0
   }
  },
@@ -171,8 +194,8 @@
    "id": "Q1",
    "for": "the lane lead and the boards",
    "question": "In Dawn the one state colour (--gold, #9a7f5e) measures about 3.4:1 on the card, so the proposal eyebrow and the recorded line's gold word sit between the two tiers.",
-   "howItIsHeldNow": "The state colour is held to the 3.0:1 tier, because it marks a state and never carries a sentence (STANDARD.md section 10, \"One state colour: the ember gold\"). Nothing in app/ was changed.",
-   "whatWouldChange": "If the boards want the gold to carry 4.5:1 in Dawn, the Dawn --gold token changes and QUIET_TOKENS in quality/common.py drops it. Eleven Dawn states would FAIL until then."
+   "howItIsHeldNow": "The state colour is held to the 3.0:1 tier only where it is marking a state: the element carries a marker or eyebrow class, or its text is shorter than 24 characters (review R1 SHOULD FIX 11). Gold on a paragraph is body copy and keeps 4.5:1. Nothing in app/ was changed.",
+   "whatWouldChange": "If the boards want the gold to carry 4.5:1 in Dawn even as a marker, the Dawn --gold token changes and GOLD_MARKER_CLASSES in quality/common.py goes. Eleven Dawn states would FAIL until then."
   },
   {
    "id": "Q2",
@@ -213,8 +236,22 @@
    "id": "Q7",
    "for": "the second auditor",
    "question": "teeth.py runs the gate rows with --screens and --sizes narrowed to the screen the change is on, to stay inside the 25 minute budget (19 rows in 462 s).",
-   "howItIsHeldNow": "The narrowed run is the same code on fewer iterations, and --accept refuses to run with either flag so a partial baseline cannot be written.",
+   "howItIsHeldNow": "The narrowed run is the same code on fewer iterations, and --accept refuses to run with either flag so a partial baseline cannot be written. Review R1 is right that it is not the same evidence: the full gate also raises the regression rows on the screens the narrowed run drops, so a row asserts the named refusal only. The teeth.py docstring says so now.",
    "whatWouldChange": "A hand re-run of any row with the full gate takes about two minutes per row and should report the same FAIL plus the regression rows the change also moves."
+  },
+  {
+   "id": "Q8",
+   "for": "the lane lead",
+   "question": "A baseline carries no provenance. A hand written quality/baseline/win32/ full of another platform's renders would sit there unread on a Linux run (review R1, NOTES).",
+   "howItIsHeldNow": "An accept run labels its own report, no report is committed, and README section 3.1 now says in one line that a reviewer reads the baseline diff in the pull request.",
+   "whatWouldChange": "A stronger guard would sign the baseline directory with the ENV.txt it was drawn under and refuse a set whose ENV.txt does not match the running machine, which would also refuse every legitimate machine upgrade. Not taken."
+  },
+  {
+   "id": "Q9",
+   "for": "the second auditor",
+   "question": "The record's visible text is now the text of the elements that survive the visibility test, joined in document order, rather than innerText (review R1 SHOULD FIX 1).",
+   "howItIsHeldNow": "It is the only way a line hidden at opacity 0 can read as removed, which is what the review asked for. visibility: hidden leaves the record by the same test, where before it left only because innerText excluded it.",
+   "whatWouldChange": "Every record was rewritten with --accept for it. A reviewer comparing an old record to a new one will see the text field change shape on states with hidden content."
   }
  ]
 }
