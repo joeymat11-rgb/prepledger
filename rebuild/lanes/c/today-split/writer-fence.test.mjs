@@ -171,8 +171,13 @@ const DIRECTIVES = new Set(["use strict"]);
 const isProse = (s) => !DIRECTIVES.has(s) && /[A-Za-z]{2,} [A-Za-z]{2,}/.test(s);
 
 /* ---- THE FILES OF THIS PART ---------------------------------------------------------- */
-const SEALED = [TODAY + "/today-readings.cjs", TODAY + "/gym-settings-lane.mjs"];
-const RELEASED = [TODAY + "/today-model.cjs", TODAY + "/gym-app.mjs"];
+/* PART 2 (the big cut) joins both lists: today-lanes.cjs is a SEALED lane module and
+   today-app.cjs is the released view it was cut out of. Everything below that was written
+   as a table over these arrays now covers all three pairs without a line of scanner
+   change (S-R26: this round ADDS rows and table entries and does not rewrite the scanner). */
+const SEALED = [TODAY + "/today-readings.cjs", TODAY + "/gym-settings-lane.mjs",
+  TODAY + "/today-lanes.cjs"];
+const RELEASED = [TODAY + "/today-model.cjs", TODAY + "/gym-app.mjs", TODAY + "/today-app.cjs"];
 const PART_TWO = TODAY + "/today-lanes.cjs";
 
 /* S-R22: today-readings.cjs's four refusal constants, DECLARED BY NAME, with the exact
@@ -203,6 +208,26 @@ const GYM_DECLARED_SEAMS = {
   "model.start": "GA-M06, model.start() inside paint(): the ONE durable PUT any paint root reaches in these three files. A pre-existing fact of the page, left byte-identical under S-R12, with its own ticket GYM-START-IN-PAINT.",
 };
 const GYM_DECLARED_SITES = 6;
+
+/* PART 2. today-app.cjs's OWN declared seams, the same shape and the same rule: keyed by
+ * SITE, counted, and a fourth fails. THREE, and each is a line the big cut deliberately
+ * left released:
+ *  - `model.weighIn` is SEAM 1, the weigh-in submit's write half (TA-M05). F.1 already
+ *    sealed the writer itself in today-readings.cjs; what stays here is the released view
+ *    calling the model's re-export, and S-R27 pins the ACQUISITION site below.
+ *  - `(call).recover` is SEAM 4, `facade.workout().recover()` (TA-M04): the workout entry
+ *    is a PASS-THROUGH the api hands out, which is B.7's measured class and E.5 row 14.
+ *  - `(call).reopen` is `facade.importScreen().reopen()`, which is a SCREEN reopened and
+ *    not a reading. S-R28 says what the scanner cannot read is DECLARED BY LINE where
+ *    today's count is not zero, and the part 1 report named this line in advance as the
+ *    one case part 2 would have to declare. It is declared here, by site and by count.
+ */
+const TODAY_APP_DECLARED_SEAMS = {
+  "model.weighIn": "TA-M05, SEAM 1: the weigh-in submit's write half. The writer is sealed in today-readings.cjs (F.1); this is the released view calling today-model.cjs's re-export, and it is the acquisition S-R27 pins.",
+  "(call).recover": "TA-M04, SEAM 4: facade.workout().recover() in the primary handler. The workout entry is one of B.7's measured pass-throughs (E.5 row 14).",
+  "(call).reopen": "facade.importScreen().reopen(): a SCREEN reopened, not a reading. Declared BY LINE under S-R28, as the part 1 report said part 2 would have to.",
+};
+const TODAY_APP_DECLARED_SITES = 3;
 const siteOf = (h) => (h.receiver || "(call)") + "." + h.name;
 
 function planted(rel, edit) {
@@ -558,7 +583,38 @@ const RELEASED_FILES = [
       '} = createGymSettingsLane (',
     ] },
   },
+  /* PART 2, THE BIG CUT. Every window below was MEASURED on the released today-app.cjs
+     this build produced and typed out from the measurement, never snapshotted: the two
+     capability windows are the only two places the released view still touches a durable
+     writer by name, and both of them are declared seams above. */
+  {
+    rel: TODAY + '/today-app.cjs', anchor: '    const view = model.read();',
+    /* NO `capabilities` WINDOWS, AND THE REASON IS THE MEASUREMENT. S-R27 pins a
+       capability WHERE IT IS ACQUIRED. In today-model.cjs weighIn and reopen are acquired
+       by a DESTRUCTURE of the sealed factory's result, so they are bare identifiers and a
+       site window is the right pin. In the released today-app.cjs they are never acquired
+       at all: the view reaches them as MEMBERS of the model it was handed
+       (`model.weighIn(...)`, `facade.importScreen().reopen()`), and review F1 finding 4
+       is precisely that a property position must stay free or every ordinary look edit
+       goes red. Those two sites are pinned instead by the DECLARED SEAM table above, by
+       site and by count, which is the pin that fits what the fence can actually read. */
+    capabilities: {},
+    holders: {},
+    lane: [],
+    edges: ['require:./today-model.cjs', 'require:./plain-copy.cjs', 'require:./problem-report.cjs',
+      'require:./food-model.cjs', 'require:./sleep-model.cjs', 'require:./today-lanes.cjs',
+      'import:../measure/measure-screen.mjs', 'import:../import/import-screen.mjs'],
+    syntax: { bracket: [], templateCall: [], shadow: [], arguments: [], destructure: [
+      '} = createTodayLanes (',
+    ] },
+  },
 ];
+/* The per-file declared-seam lookup. Two entries, and a released file that is not in it
+   may hold NO durable member at all, which is the rule today-model.cjs is still held to. */
+const DECLARED_SEAMS = {
+  [TODAY + '/gym-app.mjs']: { seams: GYM_DECLARED_SEAMS, sites: GYM_DECLARED_SITES },
+  [TODAY + '/today-app.cjs']: { seams: TODAY_APP_DECLARED_SEAMS, sites: TODAY_APP_DECLARED_SITES },
+};
 function capabilitySites(src, name) {
   return codeTokens(src).filter((t) => t.kind === 'id' && t.value === name);
 }
@@ -645,9 +701,13 @@ function releasedRefusals(file, src) {
     if (differs(syntax[kind], file.syntax[kind])) refusals.push(SYNTAX_REFUSALS[kind]);
   }
   const hits = memberHits(codeOf(src), PUT);
-  if (file.rel.endsWith('/gym-app.mjs')) {
-    if (hits.length !== GYM_DECLARED_SITES || differs([...new Set(hits.map(siteOf))].sort(),
-      Object.keys(GYM_DECLARED_SEAMS).sort())) refusals.push('FENCE-WRITER-NAME');
+  /* PART 2: the declared-seam table is now PER FILE and the branch is a lookup, because a
+     second released file has declared seams of its own. The RULE is unchanged - keyed by
+     site, counted, and one more fails - and no other line of the scanner moved (S-R26). */
+  const declared = DECLARED_SEAMS[file.rel] || null;
+  if (declared) {
+    if (hits.length !== declared.sites || differs([...new Set(hits.map(siteOf))].sort(),
+      Object.keys(declared.seams).sort())) refusals.push('FENCE-WRITER-NAME');
   } else if (hits.length) refusals.push('FENCE-WRITER-NAME');
   return refusals;
 }
@@ -665,7 +725,8 @@ test("FENCE-NOTHING-TO-SCAN: the fence names the files it read, and the released
   for (const r of RELEASED) {
     assert.ok(scanned.includes(r), "FENCE-RELEASED-FILE-NOT-SCANNED: " + r);
   }
-  assert.equal(scanned.length, 4, "part 1 seals two modules and releases two; part 2 adds " + PART_TWO);
+  assert.equal(scanned.length, 6, "part 1 sealed two modules and released two; part 2 adds " +
+    PART_TWO + " and the released today-app.cjs it was cut out of");
   console.log("  fence scanned " + scanned.length + " files: " + scanned.map((f) => path.basename(f)).join(", "));
 });
 
@@ -861,6 +922,10 @@ test("FENCE-SEALED-BINDING-ASSIGNED: no released file assigns a binding declared
   const pairs = [
     [TODAY + "/gym-settings-lane.mjs", TODAY + "/gym-app.mjs"],
     [TODAY + "/today-readings.cjs", TODAY + "/today-model.cjs"],
+    /* PART 2, and it is the big one: 679 lines and 37 factory-scope bindings. The census
+       over this build's own output prints the same class at ZERO (H.2 STOP 11), and this
+       row is the token-scanner tripwire that keeps it there between rounds. */
+    [TODAY + "/today-lanes.cjs", TODAY + "/today-app.cjs"],
   ];
   for (const [sealed, released] of pairs) {
     const names = factoryScopeNames(sealed);
@@ -974,7 +1039,7 @@ test("part 2's file is not here yet, and this cell says so rather than passing s
 test('S-R27: the measured table covers every released file', () => {
   assert.deepEqual(RELEASED_FILES.map((f) => f.rel), RELEASED);
 });
-for (const rel of [...RELEASED, TODAY + '/today-app.cjs']) {
+for (const rel of RELEASED) {   /* today-app.cjs is IN this list from part 2 on */
   const name = path.basename(rel);
   test('LEXER SELF-CHECK: brackets balance in ' + name, () => balancedTokens(readRepo(rel), name));
   test('LEXER SELF-CHECK: terminated literals and single-token string re-read in ' + name,
@@ -1202,6 +1267,11 @@ const LOOK_EDITS = {
   ', readings ,': ['    readings,', '    readings, lookHint: null,'],
   '} = createReadingsWriter (': ['FORM_MAX } =', 'FORM_MAX, lookHint } ='],
   '} = createGymSettingsLane (': ['settings, painter);', 'settings, painter); void painter;'],
+  /* PART 2. An ordinary look edit on the composition line: one more injected constant
+     handed to the seal, exactly the shape a later ticket would add, and the pin stays
+     GREEN because it is a token window and not a source line (S-R27 (e)). */
+  '} = createTodayLanes (': ['SLEEP_ROLLOVER, SLEEP_UNCERTAIN });',
+    'SLEEP_ROLLOVER, SLEEP_UNCERTAIN, lookHint: null });'],
 };
 for (const file of RELEASED_FILES) {
   const windows = [...Object.values(file.capabilities).flat(), ...Object.values(file.holders).flat(),
@@ -1449,7 +1519,7 @@ test('GREEN review F2: the released gym division after a closing parenthesis sta
   assert.deepEqual(releasedRefusals(gymFile, src), []);
 });
 test('Review F1: codeOf preserves length, line count and line-break offsets in all three lexer files', () => {
-  for (const rel of [...RELEASED, TODAY + '/today-app.cjs']) {
+  for (const rel of RELEASED) {   /* today-app.cjs is IN this list from part 2 on */
     const src = readRepo(rel), code = codeOf(src);
     assert.equal(code.length, src.length, rel);
     assert.equal(code.split('\n').length, src.split('\n').length, rel);
@@ -1543,3 +1613,296 @@ for (const [shape, edit] of F2_BINDING_ROWS) {
     checkPlantSyntax(gymFile, src);
   });
 }
+
+/* ======================================================================================
+   PART 2, THE BIG CUT: the rows for today-app.cjs and today-lanes.cjs
+   --------------------------------------------------------------------------------------
+   Added by the part 2 author, LAST, after merging the then-current branch, and under
+   S-R26: these are ROWS AND TABLE ENTRIES. The scanner is the fence owner's and one
+   four-line branch above became a two-entry lookup so that a SECOND released file could
+   have declared seams of its own; nothing else in it moved.
+
+   THE NUMBERING E.5 ASKS FOR (R3 NOTE-8: the build round that writes the cell numbers all
+   of them and its report prints the numbering). Rows 1 to 5 are v1's five planted tricks,
+   rows 6 to 10 v1's five structural rows, and 11 to 19 the spec's own numbered list; the
+   build report's section on the fence prints which test carries which.
+   ====================================================================================== */
+
+/* ---- E.5 ROWS 1 and 11: today-app.cjs's three declared seams, keyed by SITE ------------ */
+
+test("FENCE-WRITER-NAME: the released today-app.cjs holds EXACTLY the three declared seam WRITE SITES, and a fourth fails", () => {
+  const hits = memberHits(codeOf(readRepo(TODAY + "/today-app.cjs")), PUT);
+  const sites = [...new Set(hits.map(siteOf))].sort();
+  assert.deepEqual(sites, Object.keys(TODAY_APP_DECLARED_SEAMS).sort(),
+    "FENCE-WRITER-NAME: the released Today view reaches a durable writer that is not one of " +
+    "the three declared seams. Each of the three is a line the big cut deliberately left " +
+    "released, with a region id or a by-line declaration under S-R28; a fourth is a new " +
+    "released decision about what gets stored and it is a STOP.");
+  assert.equal(hits.length, TODAY_APP_DECLARED_SITES,
+    "FENCE-WRITER-SITE-COUNT: " + hits.length + " durable write sites in the released Today " +
+    "view, " + TODAY_APP_DECLARED_SITES + " declared. A SECOND call through an " +
+    "already-declared receiver adds no new name and is still a fourth decision.");
+});
+
+test("RED E.5 row 11: a FOURTH durable writer in the released today-app.cjs FAILS", () => {
+  const src = planted(TODAY + "/today-app.cjs",
+    (s) => s.replace("    const view = model.read();",
+      "    void facade.sleepLane().save({ date: \"2026-09-03\" });\n    const view = model.read();"));
+  const hits = memberHits(codeOf(src), PUT);
+  assert.notEqual(hits.length, TODAY_APP_DECLARED_SITES,
+    "THE FENCE DID NOT SEE A FOURTH DURABLE WRITE IN THE RELEASED TODAY VIEW");
+  assert.ok([...new Set(hits.map(siteOf))].includes("(call).save"),
+    "the planted site is not the one the row names");
+});
+
+test("RED E.5 row 1: the alias const s = facade.sleepLane().save in today-app.cjs FAILS", () => {
+  const src = planted(TODAY + "/today-app.cjs",
+    (s) => s.replace("    const view = model.read();",
+      "    const s = facade.sleepLane().save;\n    const view = model.read();"));
+  const hits = memberHits(codeOf(src), PUT);
+  assert.notEqual(hits.length, TODAY_APP_DECLARED_SITES,
+    "THE FENCE DID NOT SEE A DURABLE WRITER TAKEN AS AN ALIAS, WHICH IS NOT EVEN A CALL");
+});
+
+/* ---- E.5 ROW 15: zero athlete-facing copy in the big sealed module --------------------- */
+
+test("FENCE-COPY-IN-SEAL: today-lanes.cjs holds ZERO athlete-facing string literals", () => {
+  const prose = literalsOf(readRepo(PART_TWO)).filter(isProse);
+  assert.deepEqual(prose, [],
+    "FENCE-COPY-IN-SEAL (S-R13): the sealed lane module composes the athlete's sentences " +
+    "from constants it is HANDED and owns none of them. Every one of the twelve arrives by " +
+    "name in the factory signature, so a look ticket edits copy in the released view and " +
+    "never needs a sealed byte. A literal here is copy that C-UI-7 could not reach.");
+});
+
+test("RED E.5 row 15: a sentence planted in today-lanes.cjs FAILS", () => {
+  const src = planted(PART_TWO, (s) => s.replace("  let gestures = 0;",
+    "  const SORRY = 'That night could not be saved on this device.';\n  void SORRY;\n  let gestures = 0;"));
+  assert.ok(literalsOf(src).filter(isProse).length > 0,
+    "THE FENCE DID NOT SEE A SENTENCE PLANTED IN THE SEALED LANE MODULE");
+});
+
+/* ---- E.5 ROW 12: the interface objects of the big cut are frozen ----------------------- */
+
+test("the big sealed module declares three Object.freeze wrappers, and the paint handle is frozen", () => {
+  const code = codeOf(readRepo(PART_TWO));
+  assert.match(code, /return Object\.freeze\(\{/, "the returned interface is not frozen");
+  assert.match(code, /facade:\s*Object\.freeze\(\{/, "the facade table is not frozen");
+  assert.match(code, /hooks:\s*Object\.freeze\(\{/, "the callback table is not frozen");
+  assert.equal((code.match(/Object\.freeze\(/g) || []).length, 3,
+    "three frozen objects and no more: a fourth is an interface nobody declared");
+  const view = codeOf(readRepo(TODAY + "/today-app.cjs"));
+  assert.match(view, /const painter = Object\.freeze\(\{/,
+    "the paint handle the released view hands in is not frozen");
+});
+
+test("RED E.5 row 12: an unfrozen facade in today-lanes.cjs FAILS", () => {
+  const src = planted(PART_TWO, (s) => s.replace("    facade: Object.freeze({", "    facade: ({"));
+  assert.equal(/facade:\s*Object\.freeze\(\{/.test(codeOf(src)), false,
+    "THE FENCE DID NOT SEE AN UNFROZEN READ-ONLY FACADE");
+});
+
+/* ---- E.5 ROW 8, AS A COUNTED PIN: the one-handoff rule is NOT BUILT, and this bounds it -
+ * B.3's one-handoff rule says the released view never names `model` or `options` after the
+ * handoff. THE BIG CUT DOES NOT BUILD IT: the released today-app.cjs still names `model`,
+ * and therefore still reaches today-model.cjs's re-exported weigh-in writer, which is why
+ * `model.weighIn` is one of the three declared seams above. The build report carries that
+ * as an open STOP. What this row does is stop the debt GROWING: the count is measured and
+ * declared, so a look ticket that adds a new `model.` read goes red and has to say so.   */
+
+const TODAY_APP_MODEL_SITES = 32;
+const TODAY_APP_OPTIONS_SITES = 2;
+
+test("FENCE-MODEL-HELD: the released today-app.cjs names `model` exactly as many times as this round measured", () => {
+  const ts = codeTokens(readRepo(TODAY + "/today-app.cjs"));
+  const sites = ts.filter((t, i) => t.kind === "id" && t.value === "model"
+    && ![".", "?."].includes(ts[i - 1]?.value));
+  assert.equal(sites.length, TODAY_APP_MODEL_SITES,
+    "FENCE-MODEL-HELD: the released Today view names `model` " + sites.length + " times and " +
+    TODAY_APP_MODEL_SITES + " were measured when the big cut landed. B.3's one-handoff rule " +
+    "is NOT BUILT (the build report says so at the top), so this row is not zero; it is a " +
+    "CEILING, and a new one is a new released reach for the model's re-exported writer.");
+  assert.equal(codeTokens(readRepo(TODAY + "/today-app.cjs"))
+    .filter((t, i, a) => t.kind === "id" && t.value === "options"
+      && ![".", "?."].includes(a[i - 1]?.value)).length, TODAY_APP_OPTIONS_SITES,
+    "FENCE-OPTIONS-HELD: `options` occurs in CODE exactly twice in the released view - the " +
+    "mount's own parameter and the argument it hands the factory once - and that is B.3's " +
+    "one-handoff rule, met for `options` even though it is not met for `model`. A third is " +
+    "the released view reading the mount's injections again.");
+});
+
+test("RED E.5 row 8: one more `model` read in the released today-app.cjs FAILS", () => {
+  const src = planted(TODAY + "/today-app.cjs",
+    (s) => s.replace("    const view = model.read();", "    void model;\n    const view = model.read();"));
+  const ts = codeTokens(src);
+  const sites = ts.filter((t, i) => t.kind === "id" && t.value === "model"
+    && ![".", "?."].includes(ts[i - 1]?.value));
+  assert.notEqual(sites.length, TODAY_APP_MODEL_SITES,
+    "THE FENCE DID NOT SEE A NEW RELEASED REACH FOR THE MODEL");
+});
+
+/* ---- E.5 ROW 19 (R3 NOTE-4, and it is part 2's because hooks.listen did not exist) ------
+ * E.6's runtime guard depends on the released view installing EVERY listener through the
+ * seal's shim. A plain addEventListener added by any of the six look tickets that edit
+ * this file leaves the gesture counter at zero, and a guarded writer called from that
+ * handler throws WRITER-OUTSIDE-GESTURE IN FRONT OF THE ATHLETE instead of saving. One
+ * token-scan row turns that one-time census into a standing law.                        */
+
+/* The shim exists for ONE pair so far. gym-app.mjs's sealed partner has no listen shim
+   (E.6's five gym subjects are not this round's), so its own listeners are counted and
+   pinned instead of forbidden: the debt cannot grow silently, and the day the gym card
+   gets a shim this table entry becomes a zero like today-app.cjs's. */
+const LISTENERS_OUTSIDE_SHIM = {
+  [TODAY + "/today-app.cjs"]: 0,
+  [TODAY + "/today-model.cjs"]: 0,
+  [TODAY + "/gym-app.mjs"]: 19,
+};
+
+test("E.5 row 19: NO released file calls addEventListener outside hooks.listen, except the gym card, counted", () => {
+  for (const rel of RELEASED) {
+    const code = codeOf(readRepo(rel));
+    const hits = (code.match(/\.\s*(add|remove)EventListener\s*\(/g) || []);
+    assert.equal(hits.length, LISTENERS_OUTSIDE_SHIM[rel],
+      "FENCE-LISTENER-OUTSIDE-SHIM: " + rel + " installs or removes " + hits.length +
+      " listener(s) directly and " + LISTENERS_OUTSIDE_SHIM[rel] + " were measured. " +
+      "E.6's guard can only tell a gesture from a paint if every listener goes through the " +
+      "seal's shim, and a writer called from a handler the seal never saw throws in front " +
+      "of the athlete rather than saving (E.5 row 19, R3 NOTE-4).");
+  }
+});
+
+test("the sealed lane module is the ONLY place addEventListener is spelled, and exactly twice", () => {
+  const code = codeOf(readRepo(PART_TWO));
+  assert.equal((code.match(/\.\s*addEventListener\s*\(/g) || []).length, 1, "listen");
+  assert.equal((code.match(/\.\s*removeEventListener\s*\(/g) || []).length, 1, "unlisten");
+});
+
+test("RED E.5 row 19: a plain addEventListener added to the released today-app.cjs FAILS", () => {
+  const src = planted(TODAY + "/today-app.cjs",
+    (s) => s.replace("    const view = model.read();",
+      "    phone.addEventListener(\"click\", () => {});\n    const view = model.read();"));
+  const hits = (codeOf(src).match(/\.\s*(add|remove)EventListener\s*\(/g) || []);
+  assert.notDeepEqual(hits, [],
+    "THE FENCE DID NOT SEE A LISTENER INSTALLED OUTSIDE THE SHIM");
+});
+
+/* ---- E.6 THE RUNTIME GUARD: the rows that RUN, because nothing static can see this ------
+ * E.6's whole argument is that a callback the seal hands the view is, to any static reader,
+ * just a function, and that a token scan and a parser are both blind to where it is called
+ * from. These four rows are therefore the only ones in this cell that EXECUTE the sealed
+ * module. They build the real factory over inert stubs - no store, no host, no document
+ * beyond an empty jsdom - and drive the guard directly.
+ *
+ * The subject list is REACH.md's rule, guarded if and only if it reaches a durable PUT and
+ * no paint root reaches it, and in THIS file that is exactly two: recordIntake reaches
+ * foodLane.save and recordSleep reaches sleepLane.save. E.6's other seven subjects are not
+ * this round's - five are the gym card's and two are released seams no sealed guard can
+ * reach - and the build report names all seven.                                          */
+
+const laneStubs = (doc) => {
+  const copy = {};
+  for (const n of ["FOOD_REASON", "FOOD_REFUSAL_COPY", "FOOD_REFUSED", "FOOD_REFUSED_ACTION",
+    "SLEEP_CHECKIN_CHANGED", "SLEEP_KEPT", "SLEEP_NIGHT_CHANGED", "SLEEP_NOTHING_RECORDED",
+    "SLEEP_NOT_SAVED", "SLEEP_REFUSAL_COPY", "SLEEP_ROLLOVER", "SLEEP_UNCERTAIN"]) copy[n] = "x";
+  const noop = () => {};
+  return Object.assign({
+    doc, options: {}, model: { today: "2026-09-03", read: () => ({}), stateFromOps: () => ({}) },
+    painter: Object.freeze({ repaint: noop, screenNow: () => "today", token: () => 0,
+      clearDraft: noop, paintTodayEntry: noop }),
+    phone: doc.getElementById("phone"), status: null, tell: noop,
+    athleteStateFailureCopy: () => "x", reasonOf: () => "x", sleepTyped: () => false,
+  }, copy);
+};
+
+test("E.6: the two guarded writers THROW WRITER-OUTSIDE-GESTURE when called outside a gesture", async () => {
+  const { JSDOM } = await import("jsdom");
+  const { createTodayLanes } = await import("../../../m3/w7-preview/today/today-lanes.cjs");
+  const dom = new JSDOM("<!doctype html><div id=phone></div>");
+  const { hooks } = createTodayLanes(laneStubs(dom.window.document));
+  assert.throws(() => hooks.recordIntake(null, null, null, null), /WRITER-OUTSIDE-GESTURE: recordIntake/,
+    "E.6: the food writer ran with no gesture on the stack");
+  assert.throws(() => hooks.recordSleep(new Map()), /WRITER-OUTSIDE-GESTURE: recordSleep/,
+    "E.6: the sleep writer ran with no gesture on the stack");
+});
+
+test("E.6: a writer called from a real dispatch through hooks.listen is NOT stopped by the guard", async () => {
+  const { JSDOM } = await import("jsdom");
+  const { createTodayLanes } = await import("../../../m3/w7-preview/today/today-lanes.cjs");
+  const dom = new JSDOM("<!doctype html><div id=phone></div>");
+  const doc = dom.window.document;
+  const { hooks } = createTodayLanes(laneStubs(doc));
+  const button = doc.createElement("button");
+  let verdict = "the listener never ran";
+  hooks.listen(button, "click", () => {
+    try { hooks.recordSleep(new Map()); verdict = "past the guard"; }
+    catch (e) { verdict = /WRITER-OUTSIDE-GESTURE/.test(e.message) ? "GUARD THREW" : "past the guard"; }
+  });
+  dom.window.addEventListener("error", () => {});
+  button.dispatchEvent(new dom.window.Event("click"));
+  assert.equal(verdict, "past the guard",
+    "E.6: the guard stopped a writer called from a REAL DOM dispatch, which is the happy " +
+    "path and would be the athlete's save failing in front of him");
+});
+
+test("E.6: an ENTRY-class callback is NOT guarded and runs with no gesture at all", async () => {
+  const { JSDOM } = await import("jsdom");
+  const { createTodayLanes } = await import("../../../m3/w7-preview/today/today-lanes.cjs");
+  const dom = new JSDOM("<!doctype html><div id=phone></div>");
+  const { hooks } = createTodayLanes(laneStubs(dom.window.document));
+  /* openFoodLane reaches host.all() and model.setFoodDays(), which are STORE and ADOPT and
+     not a PUT, so E.6 measures it ENTRY and it must open on the first paint exactly as it
+     does today. A guard here would be the food block never opening. */
+  assert.doesNotThrow(() => hooks.openFoodLane(),
+    "E.6: an ENTRY-class callback was guarded, which stops the lane opening on first paint");
+});
+
+test("E.6: hooks.unlisten removes the SAME wrapper hooks.listen added", async () => {
+  const { JSDOM } = await import("jsdom");
+  const { createTodayLanes } = await import("../../../m3/w7-preview/today/today-lanes.cjs");
+  const dom = new JSDOM("<!doctype html><div id=phone></div>");
+  const doc = dom.window.document;
+  const { hooks } = createTodayLanes(laneStubs(doc));
+  const button = doc.createElement("button");
+  let fired = 0;
+  const handler = () => { fired += 1; };
+  hooks.listen(button, "click", handler);
+  button.dispatchEvent(new dom.window.Event("click"));
+  hooks.unlisten(button, "click", handler);
+  button.dispatchEvent(new dom.window.Event("click"));
+  assert.equal(fired, 1,
+    "with a shim in place the handler REGISTERED is the wrapper, so a dispose site that " +
+    "removed the bare function would leave the listener attached for the life of the page");
+});
+
+test("RED E.6: the guard is what stops it, proved on the guard's OWN SHIPPED SOURCE", () => {
+  /* No temp file and no second copy of the module: the guard is lifted out of the shipped
+     bytes and run twice, once with the gesture counter at zero and once at one. A red row
+     that planted a whole second .cjs beside the real one would leave a file in the today
+     directory that every other cell's file scans can see, which is a worse hazard than the
+     hole it proves. */
+  /* The RAW source, not codeOf's: the stripper blanks string literals, and the refusal
+     NAME is a string literal, so a guard lifted out of stripped code would throw an empty
+     message and this row would prove nothing. The count assertion below uses the stripped
+     form, where a `gesture(` inside a comment cannot be miscounted. */
+  const raw = readRepo(PART_TWO), code = codeOf(raw);
+  const guard = /const gesture = \(name, fn\)[\s\S]*?\n {2}\};/.exec(raw);
+  assert.ok(guard, "the gesture guard is not in the sealed module in the shape this row reads");
+  const make = (gestures) => new Function("gestures", guard[0] + "\n  return gesture;")(gestures);
+  const writer = () => "the row landed";
+  assert.throws(() => make(0)("recordSleep", writer)(), /WRITER-OUTSIDE-GESTURE: recordSleep/,
+    "the guard did not stop a writer with the gesture counter at zero");
+  assert.equal(make(1)("recordSleep", writer)(), "the row landed",
+    "the guard stopped a writer with a gesture open, which is the athlete's save failing");
+  /* And the plant E.5 asks for: the two entries WITHOUT the wrapper write with no gesture. */
+  assert.equal(writer(), "the row landed",
+    "THE UNWRAPPED WRITER DID NOT RUN, so this row proves nothing");
+  /* TWO ENTRIES, counted in the STRIPPED code so a `gesture(` in a comment cannot be
+     miscounted, and named in the raw source so the two are the two E.6 measured. */
+  assert.equal((code.match(/[^.\w$]gesture\(/g) || []).length, 2,
+    "exactly two entries are wrapped in the guard; a third or a first is a change to E.6's " +
+    "measured subject list and the build report has to say which line forced it");
+  for (const name of ["recordIntake", "recordSleep"]) {
+    assert.ok(raw.indexOf('gesture("' + name + '", ') >= 0,
+      "E.6: " + name + " is no longer the guarded entry it was measured to be");
+  }
+});

@@ -113,10 +113,10 @@ const HAND = [
     to: ["    hooks.mintImportScreen(Screen);"] },
   { why: "B.5 RELEASED body: the retry click handed the in-flight promise to a released binding. The seal mints and assigns it; the released half keeps the listener and the guard.",
     from: ['      if (foodReadBack) retry.addEventListener("click", () => { foodSaving = retryFoodRead(); });'],
-    to: ['      if (facade.foodReadBack()) retry.addEventListener("click", () => { hooks.retryFoodRead(); });'] },
+    to: ['      if (facade.foodReadBack()) hooks.listen(retry, "click", () => { hooks.retryFoodRead(); });'] },
   { why: "B.5 RELEASED body: the food save click. The DOM arguments are UNCHANGED, because changing recordIntake's signature would rewrite a moved region and that is an undeclared statement rewrite (S-R17 (g)); B.3's `no entry takes a DOM node` is therefore NOT met by this part and is reported as a STOP.",
     from: ['    save.addEventListener("click", () => { foodSaving = recordIntake(save, cal, pro, error); });'],
-    to: ['    save.addEventListener("click", () => { hooks.recordIntake(save, cal, pro, error); });'] },
+    to: ['    hooks.listen(save, "click", () => { hooks.recordIntake(save, cal, pro, error); });'] },
   { why: "B.5 TA-M07 / R2 BLOCKING-1: the seal mints the read handle and assigns it; the `.then` body below is PURE PAINT, stays released byte-identical, and is handed to the hook as a closure. Only this one line changes.",
     from: ["    sleepCheckInViewPending = Promise.all([loadCheckInKit(), readSleepCheckIn(date, true)]).then(() => {"],
     to: ["    hooks.readSleepCheckInView(date, () => {"] },
@@ -133,16 +133,16 @@ const HAND = [
     to: ["        hooks.keepNight();"] },
   { why: "B.5 RELEASED body: the sleep read retry, the twin of the food one.",
     from: ['      retry.addEventListener("click", () => { sleepSaving = retrySleepRead(); });'],
-    to: ['      retry.addEventListener("click", () => { hooks.retrySleepRead(); });'] },
+    to: ['      hooks.listen(retry, "click", () => { hooks.retrySleepRead(); });'] },
   { why: "B.5 RELEASED body: sleepCorrecting = true is a sealed flag. hooks.sleepCorrect(flag) takes it; the repaint stays released, which is where the router lives.",
     from: ['      change.addEventListener("click", () => { sleepCorrecting = true; render("sleep", false); });'],
-    to: ['      change.addEventListener("click", () => { hooks.sleepCorrect(true); render("sleep", false); });'] },
+    to: ['      hooks.listen(change, "click", () => { hooks.sleepCorrect(true); render("sleep", false); });'] },
   { why: "B.5 RELEASED body: the cancel path, the same flag the other way. clearSleepDraft and render are RELEASED and stay released: the draft is the screen's own transient state (the file says so at :475).",
     from: ['        sleepCorrecting = false; clearSleepDraft(); render("sleep", false);'],
     to: ['        hooks.sleepCorrect(false); clearSleepDraft(); render("sleep", false);'] },
   { why: "B.5 RELEASED body: the sleep save click, the one gesture that writes a night. Same DOM-argument qualification as the food save.",
     from: ['    save.addEventListener("click", () => { sleepSaving = recordSleep(map); });'],
-    to: ['    save.addEventListener("click", () => { hooks.recordSleep(map); });'] },
+    to: ['    hooks.listen(save, "click", () => { hooks.recordSleep(map); });'] },
   { why: "B.5 TA-M10 / SEAM 10: the check-in read cache is cleared when the athlete leaves for the sleep screen. mountToken += 1 on the line above stays RELEASED (S-R15), because it is a paint concern and the file says so at :2289-:2294.",
     from: ['      if (next === "sleep") { sleepCheckInDay = null; sleepCheckInPending = null; }'],
     to: ['      if (next === "sleep") hooks.forgetCheckInRead();'] },
@@ -237,6 +237,26 @@ for (const r of replaceRegions) {
  * the safest `from` cut.cjs's plain string split can take: a bare identifier as `from`
  * would also hit `sleepCheckInScreen`, a property key and the inside of a literal.
  */
+/* ---- ONE MORE DECLARED SUBSTITUTION, AND THE FENCE IS WHY IT EXISTS --------------------
+ * `sleepDraft` is declared at factory scope in BOTH halves after the cut: the released view
+ * owns `const sleepDraft = { ... }` and mutates it in place, and the seal holds a binding of
+ * the same name that `hooks.bindSleepDraft` fills. That is not a capability leak - the seal
+ * only ever receives the object - but the writer fence's
+ * FENCE-SEALED-BINDING-ASSIGNED row reads the released `const sleepDraft = {` as the
+ * released half assigning a name the seal declares, and it is RIGHT to: two bindings with
+ * one name across the seam is exactly the shape that would hide a real assignment.
+ * So the SEALED one takes a different name. It is a BARE IDENTIFIER rewrite, which D.1
+ * calls ORDINARY, and it touches one occurrence in one moved region.
+ */
+const W10 = { id: "W10", file: FILE, region: "TA-S30",
+  from: "    const entry = { ...sleepDraft, date };",
+  to: "    const entry = { ...sleepDraftHeld, date };",
+  kind: "bare identifier rewrite",
+  why: "spec B.5: sleepDraft crosses SEALED -> RELEASED as a callback argument. It is bound " +
+    "by hooks.bindSleepDraft and held under a name of its own inside the seal, so that no " +
+    "name is declared at factory scope on both sides of the cut and the fence's " +
+    "FENCE-SEALED-BINDING-ASSIGNED row stays a measurement rather than a declared exception." };
+
 const PAINT = {
   render:          { id: "W1", to: "painter.repaint",         kind: "call-target rewrite", stop: false },
   clearSleepDraft: { id: "W3", to: "painter.clearDraft",      kind: "call-target rewrite", stop: false },
@@ -309,6 +329,57 @@ for (const scope of manager.scopes) {
 }
 sealedRefs.sort((a, b) => a.start - b.start);
 
+/* ---- E.6's LISTENER SHIM: every released listener goes through the seal ----------------
+ * The runtime gesture guard can only be sound if the seal knows when a DOM event is being
+ * dispatched, and it only knows that if EVERY listener the released view installs goes
+ * through its shim. That is not a judgement either: the sites are taken from the AST, the
+ * rewrite is position-exact like every other one here, and the fence asserts afterwards
+ * that the released file contains ZERO remaining addEventListener - so a listener the
+ * generator missed is a RED ROW and not a silent hole.
+ *
+ * removeEventListener goes with it. today-app.cjs removes the phone keydown handler on
+ * dispose, and with a shim in place the handler actually registered is the WRAPPER, so a
+ * bare removeEventListener would stop removing anything. The seal keeps the wrapper in a
+ * WeakMap keyed by the function, hands the same one back, and the dispose site removes the
+ * same object it added.
+ */
+const LISTEN_SITES = [];
+walk.simple(ast, {
+  CallExpression(n) {
+    if (n.callee.type !== "MemberExpression" || n.callee.computed) return;
+    const prop = n.callee.property.name;
+    if (prop !== "addEventListener" && prop !== "removeEventListener") return;
+    const line = n.loc.start.line;
+    if (movedAt(line)) return;                    /* the seal installs none today */
+    if (n.callee.object.loc.start.line !== line) return;   /* object not on this line */
+    LISTEN_SITES.push({ line, prop,
+      objStart: n.callee.object.start, objEnd: n.callee.object.end,
+      callStart: n.start, argsStart: n.arguments.length ? n.arguments[0].start : n.end });
+  },
+});
+LISTEN_SITES.sort((a, b) => a.callStart - b.callStart);
+
+/* Rewrite one LINE's listener calls, right to left, given that line's own text and the
+   character offset the line starts at in the source. `el.addEventListener(type, fn)`
+   becomes `hooks.listen(el, type, fn)` and the remove twin becomes `hooks.unlisten(...)`,
+   and every other byte of the line is untouched. */
+function rewriteListeners(lineNo, text, base) {
+  const here = LISTEN_SITES.filter((x) => x.line === lineNo);
+  if (!here.length) return { text, n: 0 };
+  let out = text;
+  for (const x of here.slice().sort((a, b) => b.callStart - a.callStart)) {
+    const obj = src.slice(x.objStart, x.objEnd);
+    const a = x.callStart - base, b = x.argsStart - base;
+    const head = HOOKS + "." + (x.prop === "addEventListener" ? "listen" : "unlisten") + "(" + obj + ", ";
+    if (out.slice(a, b).indexOf("." + x.prop + "(") < 0) {
+      fail(FILE + ":" + lineNo + ": the listener site the parser found is not where the " +
+        "line holds it: " + JSON.stringify(out.slice(a, b)));
+    }
+    out = out.slice(0, a) + head + out.slice(b);
+  }
+  return { text: out, n: here.length };
+}
+
 /* ---- the three rules ------------------------------------------------------------------ */
 const STOPS = [];
 function rewriteOf(r) {
@@ -343,6 +414,13 @@ for (const [line, rs] of allByLine) {
   if (handAt(line)) continue;                     /* a hand-designed row owns this line */
   byLine.set(line, rs);
 }
+/* E.6: a released line whose ONLY change is a listener still needs a row. Hand rows own
+   their own listener rewrites (they are authored text and a reader reads them whole). */
+for (const x of LISTEN_SITES) {
+  if (handAt(x.line)) continue;
+  if (declaredAt(x.line)) continue;
+  if (!byLine.has(x.line)) byLine.set(x.line, []);
+}
 
 const rows = [];
 const lineOffset = [];
@@ -355,20 +433,38 @@ for (const [line, rs] of [...byLine.entries()].sort((a, b) => a[0] - b[0])) {
      a line is left alone here and reported. */
   if (rs.some((r) => r.kind === "write" || r.kind === "update")) continue;
   const base = lineOffset[line - 1];
-  let out = lines[line - 1];
-  /* Right to left, so an earlier replacement cannot move a later one's offsets. */
-  for (const r of rs.slice().sort((a, b) => b.start - a.start)) {
+  /* ONE right-to-left pass over BOTH kinds of edit, so an earlier rewrite can never move a
+     later one's offsets: the crossing rewrites (a name becomes a facade getter or a hook)
+     and E.6's listener rewrites are merged into one list first and applied together. */
+  const edits = [];
+  for (const r of rs) {
     const to = rewriteOf(r);
     if (to === null) continue;
-    const a = r.start - base, b = r.end - base;
-    if (out.slice(a, b) !== r.name) {
-      fail(FILE + ":" + line + ": the scope analysis puts " + JSON.stringify(r.name) +
-        " at columns " + a + "-" + b + " and the line holds " + JSON.stringify(out.slice(a, b)) +
+    edits.push({ start: r.start - base, end: r.end - base, text: to, want: r.name });
+  }
+  let listeners = 0;
+  for (const x of LISTEN_SITES) {
+    if (x.line !== line) continue;
+    listeners += 1;
+    edits.push({ start: x.callStart - base, end: x.argsStart - base,
+      text: HOOKS + "." + (x.prop === "addEventListener" ? "listen" : "unlisten") + "(" +
+        src.slice(x.objStart, x.objEnd) + ", ", want: null, listener: x.prop });
+  }
+  let out = lines[line - 1];
+  for (const e of edits.sort((a, b) => b.start - a.start)) {
+    if (e.want !== null && out.slice(e.start, e.end) !== e.want) {
+      fail(FILE + ":" + line + ": the scope analysis puts " + JSON.stringify(e.want) +
+        " at columns " + e.start + "-" + e.end + " and the line holds " +
+        JSON.stringify(out.slice(e.start, e.end)) +
         ". The generator will not rewrite a position it cannot see.");
     }
-    out = out.slice(0, a) + to + out.slice(b);
+    if (e.want === null && out.slice(e.start, e.end).indexOf("." + e.listener + "(") < 0) {
+      fail(FILE + ":" + line + ": the listener site the parser found is not where the line " +
+        "holds it: " + JSON.stringify(out.slice(e.start, e.end)));
+    }
+    out = out.slice(0, e.start) + e.text + out.slice(e.end);
   }
-  rows.push({ line, from: lines[line - 1], to: out,
+  rows.push({ line, from: lines[line - 1], to: out, listeners,
     names: [...new Set(rs.map((r) => r.name))],
     kinds: [...new Set(rs.map((r) => r.kind))],
     region: (regionAt(line) || {}).id || null });
@@ -429,10 +525,12 @@ for (const r of rows) {
     kind: "replace",
     dest: null,
     note: "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: " +
-      r.names.join(", ") + " (" + r.kinds.join(", ") + ") " +
+      (r.names.length ? r.names.join(", ") + " (" + r.kinds.join(", ") + ") " : "E.6 listener shim ") +
       (r.region ? "inside the seam " + r.region : "in the released body") +
       ". Rule: a read becomes " + FACADE + ".<name>(), a call becomes " + HOOKS +
       ".<name>( unless it is one of B.3's four pure reads." +
+      (r.listeners ? " E.6: " + r.listeners + " listener call(s) on this line go through " +
+        HOOKS + ".listen so the seal knows when a DOM event is being dispatched." : "") +
       (others.length ? " THIS LINE'S TEXT OCCURS " + (others.length + 1) + " TIMES (also at :" +
         others.join(" :") + "); the occurrence index below is the scope analysis's own, and the" +
         " other occurrence(s) hold no released reference to a sealed binding - they sit inside" +
@@ -529,6 +627,9 @@ for (const h of handRows) {
     "  " + (h.tipLines[1] - h.tipLines[0] + 1) + " line(s) -> " + h.replacement.length);
   for (const l of h.replacement) console.log("        + " + l);
 }
+console.log("  E.6 listener sites rewritten through " + HOOKS + ".listen / .unlisten: " +
+  LISTEN_SITES.length + " (" + LISTEN_SITES.filter((x) => x.prop === "addEventListener").length +
+  " add, " + LISTEN_SITES.filter((x) => x.prop === "removeEventListener").length + " remove)");
 console.log("  ambiguous one-line anchors (carried by occurrence index): " + ambiguous);
 console.log("  PAINT-HANDLE substitution rows (spec B.4, D.1's W families): " + subs.length +
   " lines, " + sealedRefs.length + " references");
@@ -559,7 +660,7 @@ if (WRITE) {
   table.files[FILE] = existing.concat(ALL);
   /* The paint-handle substitutions replace this generator's previous ones for this file
      and leave every other file's rows alone. */
-  table.substitutions = (table.substitutions || []).filter((r) => r.file !== FILE).concat(subs);
+  table.substitutions = (table.substitutions || []).filter((r) => r.file !== FILE).concat(subs).concat([W10]);
   fs.writeFileSync(REGIONS, JSON.stringify(table, null, 1) + "\n");
   console.log("  " + ALL.length + " rows written into " + REGIONS +
     " (any previous TA-I and TA-W rows replaced). Re-take the witness: " +

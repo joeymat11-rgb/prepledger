@@ -37,14 +37,43 @@ function createTodayLanes({ doc, model, options, painter,
     phone, status, tell, athleteStateFailureCopy, reasonOf, sleepTyped,
     FOOD_REASON, FOOD_REFUSAL_COPY, FOOD_REFUSED, FOOD_REFUSED_ACTION, SLEEP_CHECKIN_CHANGED, SLEEP_KEPT,
     SLEEP_NIGHT_CHANGED, SLEEP_NOTHING_RECORDED, SLEEP_NOT_SAVED, SLEEP_REFUSAL_COPY, SLEEP_ROLLOVER, SLEEP_UNCERTAIN }) {
-  /* Three bindings that are NOT moved bytes. `sleepDraft` is bound after the fact
+  /* Three bindings that are NOT moved bytes. `sleepDraftHeld` is bound after the fact
      (hooks.bindSleepDraft) because the released object does not exist yet when this
      factory is called; `willAdopt` and `ready` move to factory scope because the two
      statements that used to declare them are now calls (spec B.3 consequences 2 and 3,
      which is why S-R21 gave the boot statements a kind of their own). */
-  let sleepDraft = null;
+  let sleepDraftHeld = null;
   let willAdopt = null;
   let ready = null;
+
+  /* E.6, THE RUNTIME GESTURE GUARD. A callback the seal hands the view is, to any static
+     reader, just a function: nothing in the text tells hooks.recordSleep(map) called from
+     a click listener apart from the same call made at the top of a render. A token scan
+     cannot see it and a parser cannot see it, so the guard is a RUNTIME one. The released
+     view installs EVERY listener through hooks.listen, so `gestures` is non-zero for the
+     synchronous part of a dispatch and zero everywhere else, and a guarded writer called
+     outside a gesture throws instead of writing.
+
+     removeEventListener goes with it: with a shim in place the handler actually
+     registered is the WRAPPER, so the dispose site must remove the same object it added.
+     The wrapper is kept in a WeakMap keyed by the function, which is a WeakMap and not a
+     Map so that a listener bound to a discarded element is collected exactly as it is
+     today. The happy path is unchanged: a writer called from a gesture runs its own
+     first statement with nothing added in front of it. */
+  let gestures = 0;
+  const wrapped = new WeakMap();
+  const wrapFor = (type, fn) => {
+    let byType = wrapped.get(fn);
+    if (!byType) { byType = new Map(); wrapped.set(fn, byType); }
+    if (!byType.has(type)) {
+      byType.set(type, (ev) => { gestures += 1; try { return fn(ev); } finally { gestures -= 1; } });
+    }
+    return byType.get(type);
+  };
+  const gesture = (name, fn) => (...a) => {
+    if (!gestures) throw new Error("WRITER-OUTSIDE-GESTURE: " + name);
+    return fn(...a);
+  };
   /* TA-S01  today-app.cjs:362-365 */
   let workout = options.workout || null;
   let workoutRebinding = null;   // the rebind in flight, so a check can await it
@@ -467,7 +496,7 @@ function createTodayLanes({ doc, model, options, painter,
       say(SLEEP_ROLLOVER + " " + SLEEP_NOTHING_RECORDED);
       return;
     }
-    const entry = { ...sleepDraft, date };
+    const entry = { ...sleepDraftHeld, date };
     const refusal = SleepModel.refusalFor(entry, sleepToday());
     if (refusal) {
       say((SLEEP_REFUSAL_COPY[refusal] || SLEEP_NOT_SAVED) + " " + SLEEP_NOTHING_RECORDED);
@@ -869,9 +898,15 @@ function createTodayLanes({ doc, model, options, painter,
       mintMeasureScreen: (Screen) => { if (!measureScreen) measureScreen = Screen.createMeasureScreen(measureDeps()); return measureScreen; },
       mintImportScreen:  (Screen) => { if (!importScreen) importScreen = Screen.createImportScreen(importDeps()); return importScreen; },
       retryFoodRead:     () => { foodSaving = retryFoodRead(); return foodSaving; },
-      recordIntake:      (save, cal, pro, error) => { foodSaving = recordIntake(save, cal, pro, error); return foodSaving; },
+      /* THE TWO GUARDED ENTRIES (spec E.6). The subject list is REACH.md's rule -
+         guarded if and only if it reaches a durable PUT and no paint root reaches it -
+         and in THIS file that is exactly two: recordIntake reaches foodLane.save and
+         recordSleep reaches sleepLane.save. E.6's other seven subjects are not this
+         round's: five are gym-app.mjs's, and submitWeighIn and recoverWorkout are
+         released seams that no sealed guard can reach. The build report says so. */
+      recordIntake:      gesture("recordIntake", (save, cal, pro, error) => { foodSaving = recordIntake(save, cal, pro, error); return foodSaving; }),
       retrySleepRead:    () => { sleepSaving = retrySleepRead(); return sleepSaving; },
-      recordSleep:       (map) => { sleepSaving = recordSleep(map); return sleepSaving; },
+      recordSleep:       gesture("recordSleep", (map) => { sleepSaving = recordSleep(map); return sleepSaving; }),
       sleepCorrect:      (on) => { sleepCorrecting = on; },
       forgetCheckInRead: () => { sleepCheckInDay = null; sleepCheckInPending = null; },
       settleAdoption:    (adopting) => { ready = settleAdoption(adopting ? adoptAthleteState() : Promise.resolve(), adopting); return ready; },
@@ -898,7 +933,13 @@ function createTodayLanes({ doc, model, options, painter,
          place and never reassigns, so the seal holds the SAME object and sees every
          keystroke. It is handed over after it exists, because the factory is composed
          above it: the boot statement at :422 must run where it runs today. */
-      bindSleepDraft:    (draft) => { sleepDraft = draft; },
+      bindSleepDraft:    (draft) => { sleepDraftHeld = draft; },
+      /* E.6's shim. Every listener the released view installs comes through here, so
+         the two entries above can tell a gesture from a paint. The fence asserts that
+         the released file holds ZERO remaining addEventListener, which is what makes a
+         listener this build missed a RED ROW rather than a silent hole. */
+      listen:   (el, type, fn) => el.addEventListener(type, wrapFor(type, fn)),
+      unlisten: (el, type, fn) => el.removeEventListener(type, wrapFor(type, fn)),
     }),
   });
 }

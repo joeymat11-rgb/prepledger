@@ -547,7 +547,7 @@ function mountToday(doc, model, options = {}) {
     link.className = "option";
     link.dataset.slot = "import-entry";
     link.textContent = plainOrDrop(facade.importAdmitted() ? IMPORT_LINK_DONE : IMPORT_LINK_NEW, "import-entry");
-    link.addEventListener("click", () => render("import", true));
+    hooks.listen(link, "click", () => render("import", true));
     /* The "No baseline yet" line, when the measure screen has painted one - the
        athlete is reading the sentence that says his history is missing, and the
        way to fix it belongs on that line. The measure screen has three earlier
@@ -618,7 +618,7 @@ function mountToday(doc, model, options = {}) {
   }
   function wire(root) {
     arrows(root);
-    for (const el of root.querySelectorAll("[data-go]")) el.addEventListener("click", () => render(el.dataset.go, true));
+    for (const el of root.querySelectorAll("[data-go]")) hooks.listen(el, "click", () => render(el.dataset.go, true));
   }
   function show(root, focus) {
     phone.replaceChildren(root);
@@ -742,7 +742,7 @@ function mountToday(doc, model, options = {}) {
       : refused ? WHY_WORKOUT_CANNOT_OPEN
       : "Start " + view.workout.title;
     put(map, "primary-label", action);
-    primary.addEventListener("click", async () => {
+    hooks.listen(primary, "click", async () => {
       if (stranded) {
         /* One durable write, through the same client as everything else, and the
            screen repaints from what the layer answers — never from optimism. */
@@ -841,18 +841,18 @@ function mountToday(doc, model, options = {}) {
       if (returnFocus && returnFocus.isConnected) returnFocus.focus();
     }
     for (const step of sheet.querySelectorAll("[data-step]")) {
-      step.addEventListener("click", () => {
+      hooks.listen(step, "click", () => {
         const current = Number(input.value);
         const next = (Number.isFinite(current) ? current : 0) + Number(step.dataset.step);
         input.value = String(Math.max(0, Math.round(next * 10) / 10));
       });
     }
-    sheet.querySelector('[data-action="cancel"]').addEventListener("click", close);
-    sheet.addEventListener("keydown", (event) => {
+    hooks.listen(sheet.querySelector('[data-action="cancel"]'), "click", close);
+    hooks.listen(sheet, "keydown", (event) => {
       if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); }
     });
     const submit = sheet.querySelector('button[type="submit"]');
-    sheet.addEventListener("submit", async (event) => {
+    hooks.listen(sheet, "submit", async (event) => {
       event.preventDefault();
       /* Hand the raw entry to the model. Everything that can refuse it — the form bound,
          then the client itself — answers in words, and those words are shown. An empty
@@ -1062,10 +1062,10 @@ function mountToday(doc, model, options = {}) {
     if (retry) {
       retry.hidden = !facade.foodReadBack();
       retry.textContent = facade.foodReadBack() ? plainOrDrop(FOOD_READ_RETRY, "food-retry") : "";
-      if (facade.foodReadBack()) retry.addEventListener("click", () => { hooks.retryFoodRead(); });
+      if (facade.foodReadBack()) hooks.listen(retry, "click", () => { hooks.retryFoodRead(); });
     }
     const save = map.get("food-save");
-    save.addEventListener("click", () => { hooks.recordIntake(save, cal, pro, error); });
+    hooks.listen(save, "click", () => { hooks.recordIntake(save, cal, pro, error); });
     return section;
   }
   /* The write itself, kept as a named async function so the click handler can hand the
@@ -1242,7 +1242,7 @@ function mountToday(doc, model, options = {}) {
       dateBox.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();
       const latest = SleepModel.nightDateFor(hooks.sleepToday());
       if (latest) dateBox.max = latest;
-      dateBox.addEventListener("change", () => {
+      hooks.listen(dateBox, "change", () => {
         hooks.sleepNightChosen(dateBox.value || null);
         render("sleep", false);
       });
@@ -1260,7 +1260,7 @@ function mountToday(doc, model, options = {}) {
     if (keepNight) {
       keepNight.hidden = !rolled;
       keepNight.textContent = rolled ? plainOrDrop(SLEEP_KEEP_NIGHT, "sleep-keep-night") : "";
-      keepNight.addEventListener("click", () => {
+      hooks.listen(keepNight, "click", () => {
         hooks.keepNight();
         render("sleep", false);
       });
@@ -1276,8 +1276,8 @@ function mountToday(doc, model, options = {}) {
     times.disabled = hoursMode.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();
     /* A MODE IS NOT A FACT. Switching keeps what is typed in the other mode locally
        and submits only the visible one. */
-    times.addEventListener("click", () => { sleepDraft.mode = "times"; render("sleep", false); });
-    hoursMode.addEventListener("click", () => { sleepDraft.mode = "hours"; render("sleep", false); });
+    hooks.listen(times, "click", () => { sleepDraft.mode = "times"; render("sleep", false); });
+    hooks.listen(hoursMode, "click", () => { sleepDraft.mode = "hours"; render("sleep", false); });
 
     const timesBlock = map.get("sleep-times");
     const hoursBlock = map.get("sleep-hours-mode");
@@ -1299,15 +1299,15 @@ function mountToday(doc, model, options = {}) {
     awake.value = sleepDraft.awake_min;
     hoursBox.value = sleepDraft.hours;
     for (const box of [bed, wake, awake, hoursBox]) box.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();
-    bed.addEventListener("input", () => { sleepDraft.bed = bed.value; sleepEstimate(map); });
-    wake.addEventListener("input", () => { sleepDraft.wake = wake.value; sleepEstimate(map); });
-    awake.addEventListener("input", () => { sleepDraft.awake_min = awake.value; sleepEstimate(map); });
-    hoursBox.addEventListener("input", () => { sleepDraft.hours = hoursBox.value; });
+    hooks.listen(bed, "input", () => { sleepDraft.bed = bed.value; sleepEstimate(map); });
+    hooks.listen(wake, "input", () => { sleepDraft.wake = wake.value; sleepEstimate(map); });
+    hooks.listen(awake, "input", () => { sleepDraft.awake_min = awake.value; sleepEstimate(map); });
+    hooks.listen(hoursBox, "input", () => { sleepDraft.hours = hoursBox.value; });
 
     const toggle = map.get("sleep-awake-toggle");
     toggle.textContent = plainOrDrop(SLEEP_AWAKE_TOGGLE, "sleep-awake-toggle");
     map.get("sleep-awake-field").hidden = !sleepDraft.awakeOpen;
-    toggle.addEventListener("click", () => { sleepDraft.awakeOpen = !sleepDraft.awakeOpen; render("sleep", false); });
+    hooks.listen(toggle, "click", () => { sleepDraft.awakeOpen = !sleepDraft.awakeOpen; render("sleep", false); });
     sleepEstimate(map);
 
     /* THE CHECK-IN'S OWN ANSWER, dated, as a suggestion. Taking it fills the hours
@@ -1321,7 +1321,7 @@ function mountToday(doc, model, options = {}) {
         SLEEP_CHECKIN_PREFIX + offer.date + ": " + offer.hours + " h", "sleep-checkin");
       use.hidden = false;
       use.textContent = plainOrDrop(SLEEP_USE_CHECKIN, "sleep-use-checkin");
-      use.addEventListener("click", () => {
+      hooks.listen(use, "click", () => {
         sleepDraft.mode = "hours";
         sleepDraft.hours = String(offer.hours);
         sleepDraft.from_checkin_op_id = offer.op_id || "";
@@ -1348,7 +1348,7 @@ function mountToday(doc, model, options = {}) {
     if (openCheckIn) {
       openCheckIn.hidden = !!quality || !!facade.sleepCheckInPending();
       openCheckIn.textContent = openCheckIn.hidden ? "" : plainOrDrop(SLEEP_OPEN_CHECKIN, "sleep-open-checkin");
-      openCheckIn.addEventListener("click", () => {
+      hooks.listen(openCheckIn, "click", () => {
         if (SleepModel.dayAfter(date) === model.today) {
           checkinOrigin = "sleep"; render("recovery", true);
         } else render("sleep-checkin", true);
@@ -1366,7 +1366,7 @@ function mountToday(doc, model, options = {}) {
     if (retry) {
       retry.hidden = !owed;
       retry.textContent = owed ? plainOrDrop(SLEEP_READ_RETRY, "sleep-read-retry") : "";
-      retry.addEventListener("click", () => { hooks.retrySleepRead(); });
+      hooks.listen(retry, "click", () => { hooks.retrySleepRead(); });
     }
     const recorded = map.get("sleep-recorded");
     recorded.hidden = !known;
@@ -1402,13 +1402,13 @@ function mountToday(doc, model, options = {}) {
     if (change) {
       change.hidden = !known || facade.sleepCorrecting();
       change.textContent = change.hidden ? "" : plainOrDrop(SLEEP_CHANGE, "sleep-change");
-      change.addEventListener("click", () => { hooks.sleepCorrect(true); render("sleep", false); });
+      hooks.listen(change, "click", () => { hooks.sleepCorrect(true); render("sleep", false); });
     }
     if (cancel) {
       cancel.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();
       cancel.hidden = !facade.sleepCorrecting();
       cancel.textContent = facade.sleepCorrecting() ? plainOrDrop(SLEEP_CANCEL, "sleep-cancel") : "";
-      cancel.addEventListener("click", () => {
+      hooks.listen(cancel, "click", () => {
         hooks.sleepCorrect(false); clearSleepDraft(); render("sleep", false);
       });
     }
@@ -1420,7 +1420,7 @@ function mountToday(doc, model, options = {}) {
        second press could duplicate a night that did land, so saving waits until the
        read settles the question. The read is the way forward, and it is on screen. */
     save.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();
-    save.addEventListener("click", () => { hooks.recordSleep(map); });
+    hooks.listen(save, "click", () => { hooks.recordSleep(map); });
     return section;
   }
 
@@ -1641,7 +1641,7 @@ function mountToday(doc, model, options = {}) {
     const area = map.get("problem-text");
     said.hidden = true;
     box.hidden = true;
-    button.addEventListener("click", async () => {
+    hooks.listen(button, "click", async () => {
       const report = ProblemReport.buildProblemReport(problemState());
       area.value = report;
       let copied = false;
@@ -1687,7 +1687,7 @@ function mountToday(doc, model, options = {}) {
     for (const el of root.querySelectorAll('[data-go="today"]')) {
       const back = el.cloneNode(true);
       el.replaceWith(back);
-      back.addEventListener("click", (event) => { event.preventDefault(); render(origin, true); });
+      hooks.listen(back, "click", (event) => { event.preventDefault(); render(origin, true); });
     }
   }
 
@@ -1809,7 +1809,7 @@ function mountToday(doc, model, options = {}) {
   const onPhoneKeydown = (event) => {
     if (event.key === "Escape" && !phone.querySelector('[role="dialog"]') && screen !== "today") render("today", true);
   };
-  phone.addEventListener("keydown", onPhoneKeydown);
+  hooks.listen(phone, "keydown", onPhoneKeydown);
 
   /* THE SCREEN THIS PAGE LOAD OPENS ON. Today, as it always has, with the
      first-run tile on it while this installation is fresh. `?screen=` names a
@@ -1935,7 +1935,7 @@ function mountToday(doc, model, options = {}) {
       if (disposed) return false;
       disposed = true;
       mountToken += 1;
-      if (typeof phone.removeEventListener === "function") phone.removeEventListener("keydown", onPhoneKeydown);
+      if (typeof phone.removeEventListener === "function") hooks.unlisten(phone, "keydown", onPhoneKeydown);
       return true;
     },
     disposed: () => disposed };

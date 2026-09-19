@@ -1,0 +1,3967 @@
+{
+ "root": "/home/claude/farm/scratch/split2/base",
+ "files": {
+  "today-app.cjs": {
+   "dest": "today-lanes.cjs",
+   "sourceLines": 2627,
+   "regions": 183,
+   "moveRegions": 34,
+   "replaceRegions": 135,
+   "seamRegions": 14,
+   "movedLines": 679,
+   "releasedLines": 1972,
+   "witnessedAt": [
+    "s9",
+    "tip"
+   ],
+   "substitutionsApplied": 41,
+   "verbatimFailures": 0
+  }
+ },
+ "substitutions": [
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S13",
+   "id": "W1+W4#01",
+   "from": "        if (screen === \"today\" || screen === \"sleep\") render(screen, false);",
+   "to": "        if (painter.screenNow() === \"today\" || painter.screenNow() === \"sleep\") painter.repaint(painter.screenNow(), false);",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S13",
+   "id": "W1+W4#02",
+   "from": "        if (screen === \"sleep\") render(screen, false);",
+   "to": "        if (painter.screenNow() === \"sleep\") painter.repaint(painter.screenNow(), false);",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S18",
+   "id": "W1+W4#03",
+   "from": "        if (screen === \"today\" || screen === \"nutrition\") render(screen, false);",
+   "to": "        if (painter.screenNow() === \"today\" || painter.screenNow() === \"nutrition\") painter.repaint(painter.screenNow(), false);",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S18",
+   "id": "W1+W4#04",
+   "from": "        if (screen === \"nutrition\") render(screen, false);",
+   "to": "        if (painter.screenNow() === \"nutrition\") painter.repaint(painter.screenNow(), false);",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S19",
+   "id": "W1+W4#05",
+   "from": "      repaint: () => { if (screen === \"measure\") render(\"measure\", false); },",
+   "to": "      repaint: () => { if (painter.screenNow() === \"measure\") painter.repaint(\"measure\", false); },",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S19",
+   "id": "W1#06",
+   "from": "      back: () => render(\"today\", true),",
+   "to": "      back: () => painter.repaint(\"today\", true),",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S20",
+   "id": "W1+W4#07",
+   "from": "      repaint: () => { if (screen === \"import\") render(\"import\", false); },",
+   "to": "      repaint: () => { if (painter.screenNow() === \"import\") painter.repaint(\"import\", false); },",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S20",
+   "id": "W1#08",
+   "from": "      back: () => render(\"today\", true),",
+   "to": "      back: () => painter.repaint(\"today\", true),",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S22",
+   "id": "W9#09",
+   "from": "    const answered = () => { adoptionSettled = true; paintTodayEntry(); };",
+   "to": "    const answered = () => { adoptionSettled = true; painter.paintTodayEntry(); };",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W9: paintTodayEntry crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S23",
+   "id": "W1#10",
+   "from": "        render(\"nutrition\", false);",
+   "to": "        painter.repaint(\"nutrition\", false);",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S23",
+   "id": "W1#11",
+   "from": "      render(\"nutrition\", false);",
+   "to": "      painter.repaint(\"nutrition\", false);",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S24",
+   "id": "W1#12",
+   "from": "    render(\"nutrition\", false);",
+   "to": "    painter.repaint(\"nutrition\", false);",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S27",
+   "id": "W2#13",
+   "from": "    const token = mountToken;",
+   "to": "    const token = painter.token();",
+   "count": 1,
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S27",
+   "id": "W1+W2+W4#14",
+   "from": "      if (token === mountToken && screen === \"sleep\" && sleepNightDate() === date) render(\"sleep\", false);",
+   "to": "      if (token === painter.token() && painter.screenNow() === \"sleep\" && sleepNightDate() === date) painter.repaint(\"sleep\", false);",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W2, W4: mountToken, screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "id": "W2#15",
+   "from": "    const token = mountToken;",
+   "to": "    const token = painter.token();",
+   "count": 1,
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "id": "W1+W2#16",
+   "from": "    catch (_) { if (token === mountToken) render(\"sleep\", false); return; }",
+   "to": "    catch (_) { if (token === painter.token()) painter.repaint(\"sleep\", false); return; }",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W2: mountToken, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "id": "W3#17",
+   "from": "      if (present) { clearSleepDraft(); sleepCorrecting = false; sleepRollover = null; }",
+   "to": "      if (present) { painter.clearDraft(); sleepCorrecting = false; sleepRollover = null; }",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W3: clearSleepDraft crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "id": "W1+W2#18",
+   "from": "      if (token === mountToken) render(\"sleep\", false);",
+   "to": "      if (token === painter.token()) painter.repaint(\"sleep\", false);",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W2: mountToken, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "id": "W3#19",
+   "from": "    clearSleepDraft();",
+   "to": "    painter.clearDraft();",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W3: clearSleepDraft crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "id": "W2#20",
+   "from": "    if (token !== mountToken) return;      // the record is settled; the screen is his",
+   "to": "    if (token !== painter.token()) return;      // the record is settled; the screen is his",
+   "count": 1,
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S29",
+   "id": "W1#21",
+   "from": "    render(\"sleep\", false);",
+   "to": "    painter.repaint(\"sleep\", false);",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "id": "W1#22",
+   "from": "    const say = (sentence) => { sleepErrorText = sentence; render(\"sleep\", false); };",
+   "to": "    const say = (sentence) => { sleepErrorText = sentence; painter.repaint(\"sleep\", false); };",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "id": "W2#23",
+   "from": "    const token = mountToken;",
+   "to": "    const token = painter.token();",
+   "count": 1,
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "id": "W1#24",
+   "from": "    render(\"sleep\", false);",
+   "to": "    painter.repaint(\"sleep\", false);",
+   "count": 2,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "id": "W1+W2#25",
+   "from": "      if (token === mountToken) render(\"sleep\", false);",
+   "to": "      if (token === painter.token()) painter.repaint(\"sleep\", false);",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W2: mountToken, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "id": "W3#26",
+   "from": "        clearSleepDraft();",
+   "to": "        painter.clearDraft();",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W3: clearSleepDraft crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "id": "W2#27",
+   "from": "        if (token === mountToken) say(\"\");",
+   "to": "        if (token === painter.token()) say(\"\");",
+   "count": 1,
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "id": "W2#28",
+   "from": "        if (token === mountToken) say(SLEEP_UNCERTAIN);",
+   "to": "        if (token === painter.token()) say(SLEEP_UNCERTAIN);",
+   "count": 1,
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "id": "W2#29",
+   "from": "      if (token !== mountToken) return;",
+   "to": "      if (token !== painter.token()) return;",
+   "count": 2,
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "id": "W3#31",
+   "from": "      clearSleepDraft();",
+   "to": "      painter.clearDraft();",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W3: clearSleepDraft crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "id": "W2#32",
+   "from": "    if (token !== mountToken) return;",
+   "to": "    if (token !== painter.token()) return;",
+   "count": 1,
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S30",
+   "id": "W10",
+   "from": "    const entry = { ...sleepDraft, date };",
+   "to": "    const entry = { ...sleepDraftHeld, date };",
+   "count": 1,
+   "kind": "bare identifier rewrite",
+   "why": "spec B.5: sleepDraft crosses SEALED -> RELEASED as a callback argument. It is bound by hooks.bindSleepDraft and held under a name of its own inside the seal, so that no name is declared at factory scope on both sides of the cut and the fence's FENCE-SEALED-BINDING-ASSIGNED row stays a measurement rather than a declared exception."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S32",
+   "id": "W2#34",
+   "from": "    const token = mountToken;",
+   "to": "    const token = painter.token();",
+   "count": 1,
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S32",
+   "id": "W2#35",
+   "from": "        if (token !== mountToken) return null;",
+   "to": "        if (token !== painter.token()) return null;",
+   "count": 1,
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S32",
+   "id": "W1#36",
+   "from": "          onBack: () => render(origin, true), onChanged: () => checkin.refresh() });",
+   "to": "          onBack: () => painter.repaint(origin, true), onChanged: () => checkin.refresh() });",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S32",
+   "id": "W2#37",
+   "from": "      if (token !== mountToken) return null;",
+   "to": "      if (token !== painter.token()) return null;",
+   "count": 1,
+   "kind": "binding read to a call",
+   "why": "spec B.4 / D.1 W2: mountToken crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S32",
+   "id": "W1#38",
+   "from": "        onBack: () => render(origin, true),",
+   "to": "        onBack: () => painter.repaint(origin, true),",
+   "count": 1,
+   "kind": "call-target rewrite",
+   "why": "spec B.4 / D.1 W1: render crosses SEALED -> RELEASED and the frozen paint handle carries it. Call-target rewrite, ordinary."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S34",
+   "id": "W1+W4#39",
+   "from": "          next.setOnRefresh(() => { if (screen === \"today\") render(\"today\", false); });",
+   "to": "          next.setOnRefresh(() => { if (painter.screenNow() === \"today\") painter.repaint(\"today\", false); });",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  },
+  {
+   "file": "today-app.cjs",
+   "region": "TA-S34",
+   "id": "W1+W4#40",
+   "from": "        if (screen === \"today\") render(\"today\", false);",
+   "to": "        if (painter.screenNow() === \"today\") painter.repaint(\"today\", false);",
+   "count": 1,
+   "kind": "binding read to a call + call-target rewrite",
+   "why": "spec B.4 / D.1 W1, W4: screen, render crosses SEALED -> RELEASED and the frozen paint handle carries it. S-R17 (g) STATEMENT REWRITE, pre-ruled by D.1 and by DECISIONS:584."
+  }
+ ],
+ "seams": [
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M01",
+   "lines": [
+    650,
+    652
+   ],
+   "note": "B.2 r12: renderMeasure's dynamic import and cache write"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M02",
+   "lines": [
+    709,
+    711
+   ],
+   "note": "B.2 r14: renderImport's dynamic import and cache write"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M03",
+   "lines": [
+    718,
+    719
+   ],
+   "note": "R2 BLOCKING-8: renderImport drives the sealed import screen"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M04",
+   "lines": [
+    955,
+    955
+   ],
+   "note": "SEAM 4: workout.recover() in the primary handler"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M05",
+   "lines": [
+    1072,
+    1074
+   ],
+   "note": "SEAM 1: the weigh-in submit's write half"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M06",
+   "lines": [
+    1407,
+    1408
+   ],
+   "note": "SEAM 8: sleepCheckInFor reaches the injected check-in entry"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M07",
+   "lines": [
+    1436,
+    1436
+   ],
+   "note": "SEAM 11 (R2 BLOCKING-1): renderSleepCheckIn mints the read handle"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M08",
+   "lines": [
+    1540,
+    1543
+   ],
+   "note": "SEAM 9a: the sleep date handler's eight assignments"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M09",
+   "lines": [
+    1561,
+    1563
+   ],
+   "note": "SEAM 9b: the keep-night handler's four assignments"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M10",
+   "lines": [
+    2298,
+    2298
+   ],
+   "note": "SEAM 10: the check-in cache clear in the mount-invalidation block"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M11",
+   "lines": [
+    2301,
+    2337
+   ],
+   "note": "SEAM 5: the router's setup branch body"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M12",
+   "lines": [
+    2350,
+    2352
+   ],
+   "note": "SEAM 6, range corrected by R2 BLOCKING-5 (branch is :2343-:2354)"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M13",
+   "lines": [
+    2365,
+    2366
+   ],
+   "note": "SEAM 7, range corrected by R2 BLOCKING-5 (branch is :2359-:2374)"
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M14",
+   "lines": [
+    2553,
+    2596
+   ],
+   "note": "B.2 r37 / B.7: the returned api literal"
+  }
+ ],
+ "drift": [
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M04",
+   "tip": [
+    954,
+    954
+   ],
+   "here": [
+    955,
+    955
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M05",
+   "tip": [
+    1071,
+    1073
+   ],
+   "here": [
+    1072,
+    1074
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S23",
+   "tip": [
+    1278,
+    1319
+   ],
+   "here": [
+    1279,
+    1320
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S24",
+   "tip": [
+    1324,
+    1334
+   ],
+   "here": [
+    1325,
+    1335
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S25",
+   "tip": [
+    1373,
+    1376
+   ],
+   "here": [
+    1374,
+    1377
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S26",
+   "tip": [
+    1384,
+    1393
+   ],
+   "here": [
+    1385,
+    1394
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M06",
+   "tip": [
+    1406,
+    1407
+   ],
+   "here": [
+    1407,
+    1408
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S27",
+   "tip": [
+    1410,
+    1427
+   ],
+   "here": [
+    1411,
+    1428
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M07",
+   "tip": [
+    1435,
+    1435
+   ],
+   "here": [
+    1436,
+    1436
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S28",
+   "tip": [
+    1450,
+    1453
+   ],
+   "here": [
+    1451,
+    1454
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M08",
+   "tip": [
+    1539,
+    1542
+   ],
+   "here": [
+    1540,
+    1543
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M09",
+   "tip": [
+    1560,
+    1562
+   ],
+   "here": [
+    1561,
+    1563
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S29",
+   "tip": [
+    1727,
+    1756
+   ],
+   "here": [
+    1728,
+    1757
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S30",
+   "tip": [
+    1807,
+    1930
+   ],
+   "here": [
+    1808,
+    1931
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S31",
+   "tip": [
+    1935,
+    1948
+   ],
+   "here": [
+    1936,
+    1949
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S32",
+   "tip": [
+    1964,
+    2011
+   ],
+   "here": [
+    1965,
+    2012
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S33",
+   "tip": [
+    2018,
+    2036
+   ],
+   "here": [
+    2019,
+    2037
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S34",
+   "tip": [
+    2048,
+    2092
+   ],
+   "here": [
+    2049,
+    2093
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M10",
+   "tip": [
+    2297,
+    2297
+   ],
+   "here": [
+    2298,
+    2298
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M11",
+   "tip": [
+    2300,
+    2336
+   ],
+   "here": [
+    2301,
+    2337
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M12",
+   "tip": [
+    2349,
+    2351
+   ],
+   "here": [
+    2350,
+    2352
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M13",
+   "tip": [
+    2364,
+    2365
+   ],
+   "here": [
+    2365,
+    2366
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S35",
+   "tip": [
+    2430,
+    2439
+   ],
+   "here": [
+    2431,
+    2440
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S35b",
+   "tip": [
+    2440,
+    2441
+   ],
+   "here": [
+    2441,
+    2442
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S36",
+   "tip": [
+    2482,
+    2489
+   ],
+   "here": [
+    2483,
+    2490
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S37",
+   "tip": [
+    2490,
+    2546
+   ],
+   "here": [
+    2491,
+    2547
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S38",
+   "tip": [
+    2550,
+    2550
+   ],
+   "here": [
+    2551,
+    2551
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M14",
+   "tip": [
+    2552,
+    2595
+   ],
+   "here": [
+    2553,
+    2596
+   ]
+  }
+ ],
+ "machineSeams": [
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I011",
+   "boundary": "ENDS",
+   "at": 950,
+   "statement": "BlockStatement",
+   "statementLines": [
+    950,
+    960
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I014",
+   "boundary": "ENDS",
+   "at": 1049,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1049,
+    1053
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I016",
+   "boundary": "ENDS",
+   "at": 1056,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1056,
+    1058
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I017",
+   "boundary": "ENDS",
+   "at": 1060,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1060,
+    1083
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I018",
+   "boundary": "ENDS",
+   "at": 1166,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1166,
+    1186
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I020",
+   "boundary": "ENDS",
+   "at": 1182,
+   "statement": "VariableDeclaration",
+   "statementLines": [
+    1182,
+    1184
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I023",
+   "boundary": "ENDS",
+   "at": 1253,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1253,
+    1256
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I026",
+   "boundary": "ENDS",
+   "at": 1257,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1257,
+    1261
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I028",
+   "boundary": "ENDS",
+   "at": 1262,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1262,
+    1266
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M07",
+   "boundary": "ENDS",
+   "at": 1436,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1436,
+    1445
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W06",
+   "boundary": "ENDS",
+   "at": 1436,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1436,
+    1445
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I037",
+   "boundary": "ENDS",
+   "at": 1439,
+   "statement": "VariableDeclaration",
+   "statementLines": [
+    1439,
+    1440
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I045",
+   "boundary": "ENDS",
+   "at": 1494,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1494,
+    1501
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I046",
+   "boundary": "ENDS",
+   "at": 1497,
+   "statement": "ExpressionStatement",
+   "statementLines": [
+    1497,
+    1499
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I051",
+   "boundary": "ENDS",
+   "at": 1539,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1539,
+    1545
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I053",
+   "boundary": "ENDS",
+   "at": 1560,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1560,
+    1565
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I063",
+   "boundary": "ENDS",
+   "at": 1623,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1623,
+    1628
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I064",
+   "boundary": "ENDS",
+   "at": 1639,
+   "statement": "ExpressionStatement",
+   "statementLines": [
+    1639,
+    1640
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I066",
+   "boundary": "ENDS",
+   "at": 1650,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1650,
+    1654
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I067",
+   "boundary": "ENDS",
+   "at": 1658,
+   "statement": "ExpressionStatement",
+   "statementLines": [
+    1658,
+    1660
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I077",
+   "boundary": "ENDS",
+   "at": 1710,
+   "statement": "BlockStatement",
+   "statementLines": [
+    1710,
+    1712
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I078",
+   "boundary": "ENDS",
+   "at": 1716,
+   "statement": "ExpressionStatement",
+   "statementLines": [
+    1716,
+    1717
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I089",
+   "boundary": "ENDS",
+   "at": 2223,
+   "statement": "BlockStatement",
+   "statementLines": [
+    2223,
+    2236
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M11",
+   "boundary": "ENDS",
+   "at": 2337,
+   "statement": "BlockStatement",
+   "statementLines": [
+    2301,
+    2338
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I094",
+   "boundary": "ENDS",
+   "at": 2302,
+   "statement": "ReturnStatement",
+   "statementLines": [
+    2302,
+    2337
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I098",
+   "boundary": "ENDS",
+   "at": 2345,
+   "statement": "VariableDeclaration",
+   "statementLines": [
+    2345,
+    2346
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I099",
+   "boundary": "ENDS",
+   "at": 2348,
+   "statement": "BlockStatement",
+   "statementLines": [
+    2348,
+    2353
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I102",
+   "boundary": "ENDS",
+   "at": 2361,
+   "statement": "BlockStatement",
+   "statementLines": [
+    2361,
+    2367
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I103",
+   "boundary": "ENDS",
+   "at": 2365,
+   "statement": "ReturnStatement",
+   "statementLines": [
+    2365,
+    2366
+   ]
+  }
+ ],
+ "alignedSeams": [
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M01",
+   "lines": [
+    650,
+    652
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M02",
+   "lines": [
+    709,
+    711
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M03",
+   "lines": [
+    718,
+    719
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M04",
+   "lines": [
+    955,
+    955
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M05",
+   "lines": [
+    1072,
+    1074
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M06",
+   "lines": [
+    1407,
+    1408
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M08",
+   "lines": [
+    1540,
+    1543
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M09",
+   "lines": [
+    1561,
+    1563
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M10",
+   "lines": [
+    2298,
+    2298
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M12",
+   "lines": [
+    2350,
+    2352
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M13",
+   "lines": [
+    2365,
+    2366
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-M14",
+   "lines": [
+    2553,
+    2596
+   ]
+  }
+ ],
+ "witness": {
+  "refsOffered": [
+   "s9",
+   "tip"
+  ],
+  "byFile": {
+   "today-app.cjs": [
+    "s9",
+    "tip"
+   ]
+  }
+ },
+ "replacements": [
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S05",
+   "lines": [
+    422,
+    422
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "  if (foodLane && typeof model.setFoodDays === \"function\") model.setFoodDays(foodLane);"
+   ],
+   "to": [
+    "  hooks.bootFoodDays();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "B.2 r1 / S-R21 BOOT SEAM 1: the mount-level model.setFoodDays(foodLane) statement. It is not a move: everything inside the factory runs at the ONE point the factory is called, and this statement is INTERLEAVED with released ones (:422 :482 :567 moved, :2390 released, :2440 :2441 moved, :2451 the FIRST PAINT released, :2550 moved). A kind flip to seam leaves it running released code that reads sealed state; a move changes WHEN it runs. It is a released line replaced by a call, which is the third kind."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W01",
+   "lines": [
+    476,
+    477
+   ],
+   "removed": 2,
+   "inserted": 5,
+   "from": [
+    "  const sleepDraft = { mode: \"times\", bed: \"\", wake: \"\", awake_min: \"\", hours: \"\",",
+    "    awakeOpen: false, from_checkin_op_id: \"\" };"
+   ],
+   "to": [
+    "  const sleepDraft = { mode: \"times\", bed: \"\", wake: \"\", awake_min: \"\", hours: \"\",",
+    "    awakeOpen: false, from_checkin_op_id: \"\" };",
+    "  /* THE SPLIT (spec B.5). The sealed writer reads this object once, in recordSleep;",
+    "     it is the SAME object, not a copy, so it sees every keystroke. */",
+    "  hooks.bindSleepDraft(sleepDraft);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). NOT a B.5 assignment row, and the only hand row that is not. `sleepDraft` is a RELEASED const object this file mutates in place and never reassigns, and the seal reads it once, in recordSleep. It cannot be a factory argument: the factory is composed at TA-S01, above this declaration, because the boot statement at :422 must run where it runs today (spec B.3's boot order), so at composition time this binding is still in its temporal dead zone. It is handed over HERE, immediately after it exists and long before any gesture, and the seal holds the SAME object, so every keystroke the view records is the keystroke the writer reads. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S10",
+   "lines": [
+    482,
+    482
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "  if (sleepLane && typeof model.setSleepNights === \"function\") model.setSleepNights(sleepLane);"
+   ],
+   "to": [
+    "  hooks.bootSleepNights();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "B.2 r2 / S-R21 BOOT SEAM 2: model.setSleepNights(sleepLane) at the mount top level."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S16",
+   "lines": [
+    567,
+    567
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "  if (sleepLane) loadCheckInKit();"
+   ],
+   "to": [
+    "  hooks.bootCheckInKit();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "B.2 r8 / S-R21 BOOT SEAM 3: the loadCheckInKit() boot statement."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W02",
+   "lines": [
+    652,
+    652
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (!measureScreen) measureScreen = Screen.createMeasureScreen(measureDeps());"
+   ],
+   "to": [
+    "    hooks.mintMeasureScreen(Screen);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M01: the released route stops owning the measure screen cache. The seal mints it and keeps it; the released half keeps its own `Screen` import and its token guard. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I001",
+   "lines": [
+    653,
+    653
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    await measureScreen.paint(root, () => token === mountToken);"
+   ],
+   "to": [
+    "    await facade.measureScreen().paint(root, () => token === mountToken);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: measureScreen (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I002",
+   "lines": [
+    668,
+    668
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    try { await ready; } catch (_) { /* reported by adoptAthleteState's own catch */ }"
+   ],
+   "to": [
+    "    try { await facade.ready(); } catch (_) { /* reported by adoptAthleteState's own catch */ }"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: ready (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I003",
+   "lines": [
+    678,
+    678
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (!firstRun()) importLink(root, root.querySelector('[data-slot=\"measure-baseline-note\"]'));"
+   ],
+   "to": [
+    "    if (!facade.firstRun()) importLink(root, root.querySelector('[data-slot=\"measure-baseline-note\"]'));"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: firstRun (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W03",
+   "lines": [
+    711,
+    711
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (!importScreen) importScreen = Screen.createImportScreen(importDeps());"
+   ],
+   "to": [
+    "    hooks.mintImportScreen(Screen);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M02: the import screen twin. R2 BLOCKING-8's finding is that :718-:719 go with it, and they do: gen-interface rewrites both through the facade. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I004",
+   "lines": [
+    718,
+    718
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (focus) importScreen.reopen();"
+   ],
+   "to": [
+    "    if (focus) facade.importScreen().reopen();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: importScreen (read) inside the seam TA-M03. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I005",
+   "lines": [
+    719,
+    719
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    await importScreen.paint(root, () => token === mountToken);"
+   ],
+   "to": [
+    "    await facade.importScreen().paint(root, () => token === mountToken);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: importScreen (read) inside the seam TA-M03. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I006",
+   "lines": [
+    737,
+    737
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    link.textContent = plainOrDrop(importAdmitted ? IMPORT_LINK_DONE : IMPORT_LINK_NEW, \"import-entry\");"
+   ],
+   "to": [
+    "    link.textContent = plainOrDrop(facade.importAdmitted() ? IMPORT_LINK_DONE : IMPORT_LINK_NEW, \"import-entry\");"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: importAdmitted (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I007",
+   "lines": [
+    738,
+    738
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    link.addEventListener(\"click\", () => render(\"import\", true));"
+   ],
+   "to": [
+    "    hooks.listen(link, \"click\", () => render(\"import\", true));"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I008",
+   "lines": [
+    770,
+    770
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (!adoptionSettled || !todayEntry) return null;"
+   ],
+   "to": [
+    "    if (!facade.adoptionSettled() || !todayEntry) return null;"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: adoptionSettled (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I009",
+   "lines": [
+    826,
+    826
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    for (const el of root.querySelectorAll(\"[data-go]\")) el.addEventListener(\"click\", () => render(el.dataset.go, true));"
+   ],
+   "to": [
+    "    for (const el of root.querySelectorAll(\"[data-go]\")) hooks.listen(el, \"click\", () => render(el.dataset.go, true));"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I010",
+   "lines": [
+    888,
+    888
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const today = session();"
+   ],
+   "to": [
+    "    const today = facade.session();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: session (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I011",
+   "lines": [
+    950,
+    950
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    primary.addEventListener(\"click\", async () => {"
+   ],
+   "to": [
+    "    hooks.listen(primary, \"click\", async () => {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I012",
+   "lines": [
+    955,
+    955
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "        try { await workout.recover(); } finally { primary.disabled = false; }"
+   ],
+   "to": [
+    "        try { await facade.workout().recover(); } finally { primary.disabled = false; }"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout (read) inside the seam TA-M04. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I013",
+   "lines": [
+    992,
+    992
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    todayEntry = firstRun() ? null : { root, token };"
+   ],
+   "to": [
+    "    todayEntry = facade.firstRun() ? null : { root, token };"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: firstRun (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I014",
+   "lines": [
+    1049,
+    1049
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      step.addEventListener(\"click\", () => {"
+   ],
+   "to": [
+    "      hooks.listen(step, \"click\", () => {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I015",
+   "lines": [
+    1055,
+    1055
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    sheet.querySelector('[data-action=\"cancel\"]').addEventListener(\"click\", close);"
+   ],
+   "to": [
+    "    hooks.listen(sheet.querySelector('[data-action=\"cancel\"]'), \"click\", close);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I016",
+   "lines": [
+    1056,
+    1056
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    sheet.addEventListener(\"keydown\", (event) => {"
+   ],
+   "to": [
+    "    hooks.listen(sheet, \"keydown\", (event) => {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I017",
+   "lines": [
+    1060,
+    1060
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    sheet.addEventListener(\"submit\", async (event) => {"
+   ],
+   "to": [
+    "    hooks.listen(sheet, \"submit\", async (event) => {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I018",
+   "lines": [
+    1166,
+    1166
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (!foodLane) {"
+   ],
+   "to": [
+    "    if (!facade.foodLane()) {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodLane (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I019",
+   "lines": [
+    1181,
+    1181
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      const opening = openFoodLane();"
+   ],
+   "to": [
+    "      const opening = hooks.openFoodLane();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: openFoodLane (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I020",
+   "lines": [
+    1182,
+    1182
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      const why = opening && !foodLaneFailure ? FOOD_OPENING"
+   ],
+   "to": [
+    "      const why = opening && !facade.foodLaneFailure() ? FOOD_OPENING"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodLaneFailure (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I021",
+   "lines": [
+    1183,
+    1183
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "        : foodLaneFailure ? FOOD_NO_STORE + \" \" + FOOD_REASON + foodLaneFailure + \".\""
+   ],
+   "to": [
+    "        : facade.foodLaneFailure() ? FOOD_NO_STORE + \" \" + FOOD_REASON + facade.foodLaneFailure() + \".\""
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodLaneFailure (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I022",
+   "lines": [
+    1221,
+    1221
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const opened = foodLane && foodLane.host ? foodLane.host.openedRefusal : null;"
+   ],
+   "to": [
+    "    const opened = facade.foodLane() && facade.foodLane().host ? facade.foodLane().host.openedRefusal : null;"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodLane (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I023",
+   "lines": [
+    1253,
+    1253
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (foodReadBack && foodReadBack.entry) {"
+   ],
+   "to": [
+    "    if (facade.foodReadBack() && facade.foodReadBack().entry) {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I024",
+   "lines": [
+    1254,
+    1254
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      cal.value = foodReadBack.entry.cal === undefined ? \"\" : String(foodReadBack.entry.cal);"
+   ],
+   "to": [
+    "      cal.value = facade.foodReadBack().entry.cal === undefined ? \"\" : String(facade.foodReadBack().entry.cal);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I025",
+   "lines": [
+    1255,
+    1255
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      pro.value = foodReadBack.entry.pro === undefined ? \"\" : String(foodReadBack.entry.pro);"
+   ],
+   "to": [
+    "      pro.value = facade.foodReadBack().entry.pro === undefined ? \"\" : String(facade.foodReadBack().entry.pro);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I026",
+   "lines": [
+    1257,
+    1257
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (foodReadBack && foodReadBack.state === \"unavailable\") {"
+   ],
+   "to": [
+    "    if (facade.foodReadBack() && facade.foodReadBack().state === \"unavailable\") {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I027",
+   "lines": [
+    1259,
+    1259
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "        FOOD_SAVED + \" · \" + intakeLine(foodReadBack.day) + \" \" + FOOD_SAVED_UNREAD, \"food-recorded\");"
+   ],
+   "to": [
+    "        FOOD_SAVED + \" · \" + intakeLine(facade.foodReadBack().day) + \" \" + FOOD_SAVED_UNREAD, \"food-recorded\");"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I028",
+   "lines": [
+    1262,
+    1262
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (foodReadBack) {"
+   ],
+   "to": [
+    "    if (facade.foodReadBack()) {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I029",
+   "lines": [
+    1263,
+    1263
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      const said = foodReadBack.code ? FOOD_REASON + foodReadBack.code + \".\" : \"\";"
+   ],
+   "to": [
+    "      const said = facade.foodReadBack().code ? FOOD_REASON + facade.foodReadBack().code + \".\" : \"\";"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I030",
+   "lines": [
+    1264,
+    1264
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      const head = foodReadBack.state === \"unknown\" ? FOOD_UNKNOWN : FOOD_SAVED_UNREAD;"
+   ],
+   "to": [
+    "      const head = facade.foodReadBack().state === \"unknown\" ? FOOD_UNKNOWN : FOOD_SAVED_UNREAD;"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I031",
+   "lines": [
+    1268,
+    1268
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      retry.hidden = !foodReadBack;"
+   ],
+   "to": [
+    "      retry.hidden = !facade.foodReadBack();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I032",
+   "lines": [
+    1269,
+    1269
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      retry.textContent = foodReadBack ? plainOrDrop(FOOD_READ_RETRY, \"food-retry\") : \"\";"
+   ],
+   "to": [
+    "      retry.textContent = facade.foodReadBack() ? plainOrDrop(FOOD_READ_RETRY, \"food-retry\") : \"\";"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W04",
+   "lines": [
+    1270,
+    1270
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      if (foodReadBack) retry.addEventListener(\"click\", () => { foodSaving = retryFoodRead(); });"
+   ],
+   "to": [
+    "      if (facade.foodReadBack()) hooks.listen(retry, \"click\", () => { hooks.retryFoodRead(); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the retry click handed the in-flight promise to a released binding. The seal mints and assigns it; the released half keeps the listener and the guard. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W05",
+   "lines": [
+    1273,
+    1273
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    save.addEventListener(\"click\", () => { foodSaving = recordIntake(save, cal, pro, error); });"
+   ],
+   "to": [
+    "    hooks.listen(save, \"click\", () => { hooks.recordIntake(save, cal, pro, error); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the food save click. The DOM arguments are UNCHANGED, because changing recordIntake's signature would rewrite a moved region and that is an undeclared statement rewrite (S-R17 (g)); B.3's `no entry takes a DOM node` is therefore NOT met by this part and is reported as a STOP. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I033",
+   "lines": [
+    1405,
+    1405
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (sleepCheckInDay === day && (sleepCheckInPending || sleepCheckInFailed)) return null;"
+   ],
+   "to": [
+    "    if (facade.sleepCheckInDay() === day && (facade.sleepCheckInPending() || facade.sleepCheckInFailed())) return null;"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInDay, sleepCheckInPending, sleepCheckInFailed (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I034",
+   "lines": [
+    1406,
+    1406
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (sleepCheckInDay === day) return sleepCheckInRow;"
+   ],
+   "to": [
+    "    if (facade.sleepCheckInDay() === day) return facade.sleepCheckInRow();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInDay, sleepCheckInRow (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I035",
+   "lines": [
+    1407,
+    1407
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const active = checkInLive || (checkin && checkin.checkin);"
+   ],
+   "to": [
+    "    const active = facade.checkInLive() || (facade.checkin() && facade.checkin().checkin);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkInLive, checkin (read) inside the seam TA-M06. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I036",
+   "lines": [
+    1430,
+    1430
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const date = sleepNightDate(), day = SleepModel.dayAfter(date), token = mountToken;"
+   ],
+   "to": [
+    "    const date = facade.sleepNightDate(), day = SleepModel.dayAfter(date), token = mountToken;"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepNightDate (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W06",
+   "lines": [
+    1436,
+    1436
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    sleepCheckInViewPending = Promise.all([loadCheckInKit(), readSleepCheckIn(date, true)]).then(() => {"
+   ],
+   "to": [
+    "    hooks.readSleepCheckInView(date, () => {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M07 / R2 BLOCKING-1: the seal mints the read handle and assigns it; the `.then` body below is PURE PAINT, stays released byte-identical, and is handed to the hook as a closure. Only this one line changes. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I037",
+   "lines": [
+    1439,
+    1439
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      const lines = sleepCheckInFailed || !checkInKit ? [SLEEP_CHECKIN_UNREADABLE]"
+   ],
+   "to": [
+    "      const lines = facade.sleepCheckInFailed() || !facade.checkInKit() ? [SLEEP_CHECKIN_UNREADABLE]"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInFailed, checkInKit (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I038",
+   "lines": [
+    1440,
+    1440
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "        : row ? [SLEEP_CHECKIN_PREFIX + row.date + \".\", ...checkInKit.recordedLines(row)] : [SLEEP_CHECKIN_EMPTY];"
+   ],
+   "to": [
+    "        : row ? [SLEEP_CHECKIN_PREFIX + row.date + \".\", ...facade.checkInKit().recordedLines(row)] : [SLEEP_CHECKIN_EMPTY];"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkInKit (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I039",
+   "lines": [
+    1446,
+    1446
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    return sleepCheckInViewPending;"
+   ],
+   "to": [
+    "    return facade.sleepCheckInViewPending();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInViewPending (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I040",
+   "lines": [
+    1475,
+    1475
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const row = sleepCheckInFor(date || sleepNightDate());"
+   ],
+   "to": [
+    "    const row = sleepCheckInFor(date || facade.sleepNightDate());"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepNightDate (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I041",
+   "lines": [
+    1477,
+    1477
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const night = date || sleepNightDate();"
+   ],
+   "to": [
+    "    const night = date || facade.sleepNightDate();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepNightDate (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I042",
+   "lines": [
+    1489,
+    1489
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const date = sleepNightDate();"
+   ],
+   "to": [
+    "    const date = facade.sleepNightDate();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepNightDate (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. THIS LINE'S TEXT OCCURS 2 TIMES (also at :1815); the occurrence index below is the scope analysis's own, and the other occurrence(s) hold no released reference to a sealed binding - they sit inside a move region and go with the seal."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I043",
+   "lines": [
+    1490,
+    1490
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    readSleepCheckIn(date);"
+   ],
+   "to": [
+    "    hooks.readSleepCheckIn(date);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: readSleepCheckIn (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I044",
+   "lines": [
+    1493,
+    1493
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const opening = sleepLane ? null : openSleepLane();"
+   ],
+   "to": [
+    "    const opening = facade.sleepLane() ? null : hooks.openSleepLane();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepLane, openSleepLane (read, call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I045",
+   "lines": [
+    1494,
+    1494
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (!sleepLane) {"
+   ],
+   "to": [
+    "    if (!facade.sleepLane()) {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepLane (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I046",
+   "lines": [
+    1497,
+    1497
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      put(map, \"sleep-note\", sleepLaneFailure"
+   ],
+   "to": [
+    "      put(map, \"sleep-note\", facade.sleepLaneFailure()"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepLaneFailure (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I047",
+   "lines": [
+    1498,
+    1498
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "        ? SLEEP_NO_STORE + \" \" + FOOD_REASON + sleepLaneFailure + \".\""
+   ],
+   "to": [
+    "        ? SLEEP_NO_STORE + \" \" + FOOD_REASON + facade.sleepLaneFailure() + \".\""
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepLaneFailure (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I048",
+   "lines": [
+    1518,
+    1518
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const ack = sleepAck && sleepAck.date === date ? sleepAck : null;"
+   ],
+   "to": [
+    "    const ack = facade.sleepAck() && facade.sleepAck().date === date ? facade.sleepAck() : null;"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepAck (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I049",
+   "lines": [
+    1536,
+    1536
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      dateBox.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;"
+   ],
+   "to": [
+    "      dateBox.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy, sleepUnknown, sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I050",
+   "lines": [
+    1537,
+    1537
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      const latest = SleepModel.nightDateFor(sleepToday());"
+   ],
+   "to": [
+    "      const latest = SleepModel.nightDateFor(hooks.sleepToday());"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepToday (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I051",
+   "lines": [
+    1539,
+    1539
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      dateBox.addEventListener(\"change\", () => {"
+   ],
+   "to": [
+    "      hooks.listen(dateBox, \"change\", () => {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W07",
+   "lines": [
+    1540,
+    1543
+   ],
+   "removed": 4,
+   "inserted": 1,
+   "from": [
+    "        sleepNightChoice = dateBox.value || null;",
+    "        sleepRollover = null;",
+    "        sleepOpenedDay = sleepToday(); sleepOpenedNight = sleepNightDate();",
+    "        sleepAck = null; sleepReadBack = null; sleepCorrecting = false; sleepErrorText = \"\";"
+   ],
+   "to": [
+    "        hooks.sleepNightChosen(dateBox.value || null);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M08 / SEAM 9a: eight assignments in one gesture. hooks.sleepNightChosen(rawDate) takes the RAW field value and the seal does all eight, including B.6's outcome reset. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I052",
+   "lines": [
+    1550,
+    1550
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const rolled = sleepClockCheck();"
+   ],
+   "to": [
+    "    const rolled = hooks.sleepClockCheck();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepClockCheck (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I053",
+   "lines": [
+    1560,
+    1560
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      keepNight.addEventListener(\"click\", () => {"
+   ],
+   "to": [
+    "      hooks.listen(keepNight, \"click\", () => {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W08",
+   "lines": [
+    1561,
+    1563
+   ],
+   "removed": 3,
+   "inserted": 1,
+   "from": [
+    "        sleepNightChoice = sleepRollover || sleepNightDate();",
+    "        sleepRollover = null;",
+    "        sleepOpenedDay = sleepToday(); sleepOpenedNight = sleepNightDate();"
+   ],
+   "to": [
+    "        hooks.keepNight();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M09 / SEAM 9b: four assignments, no argument at all. The night the seal keeps is the seal's own rollover value. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I054",
+   "lines": [
+    1575,
+    1575
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    times.disabled = hoursMode.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;"
+   ],
+   "to": [
+    "    times.disabled = hoursMode.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy, sleepUnknown, sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I055",
+   "lines": [
+    1578,
+    1578
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    times.addEventListener(\"click\", () => { sleepDraft.mode = \"times\"; render(\"sleep\", false); });"
+   ],
+   "to": [
+    "    hooks.listen(times, \"click\", () => { sleepDraft.mode = \"times\"; render(\"sleep\", false); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I056",
+   "lines": [
+    1579,
+    1579
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    hoursMode.addEventListener(\"click\", () => { sleepDraft.mode = \"hours\"; render(\"sleep\", false); });"
+   ],
+   "to": [
+    "    hooks.listen(hoursMode, \"click\", () => { sleepDraft.mode = \"hours\"; render(\"sleep\", false); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I057",
+   "lines": [
+    1600,
+    1600
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    for (const box of [bed, wake, awake, hoursBox]) box.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;"
+   ],
+   "to": [
+    "    for (const box of [bed, wake, awake, hoursBox]) box.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy, sleepUnknown, sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I058",
+   "lines": [
+    1601,
+    1601
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    bed.addEventListener(\"input\", () => { sleepDraft.bed = bed.value; sleepEstimate(map); });"
+   ],
+   "to": [
+    "    hooks.listen(bed, \"input\", () => { sleepDraft.bed = bed.value; sleepEstimate(map); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I059",
+   "lines": [
+    1602,
+    1602
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    wake.addEventListener(\"input\", () => { sleepDraft.wake = wake.value; sleepEstimate(map); });"
+   ],
+   "to": [
+    "    hooks.listen(wake, \"input\", () => { sleepDraft.wake = wake.value; sleepEstimate(map); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I060",
+   "lines": [
+    1603,
+    1603
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    awake.addEventListener(\"input\", () => { sleepDraft.awake_min = awake.value; sleepEstimate(map); });"
+   ],
+   "to": [
+    "    hooks.listen(awake, \"input\", () => { sleepDraft.awake_min = awake.value; sleepEstimate(map); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I061",
+   "lines": [
+    1604,
+    1604
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    hoursBox.addEventListener(\"input\", () => { sleepDraft.hours = hoursBox.value; });"
+   ],
+   "to": [
+    "    hooks.listen(hoursBox, \"input\", () => { sleepDraft.hours = hoursBox.value; });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I062",
+   "lines": [
+    1609,
+    1609
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    toggle.addEventListener(\"click\", () => { sleepDraft.awakeOpen = !sleepDraft.awakeOpen; render(\"sleep\", false); });"
+   ],
+   "to": [
+    "    hooks.listen(toggle, \"click\", () => { sleepDraft.awakeOpen = !sleepDraft.awakeOpen; render(\"sleep\", false); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I063",
+   "lines": [
+    1623,
+    1623
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      use.addEventListener(\"click\", () => {"
+   ],
+   "to": [
+    "      hooks.listen(use, \"click\", () => {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I064",
+   "lines": [
+    1639,
+    1639
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      qualityLine.textContent = sleepCheckInPending ? \"\" : plainOrDrop(sleepCheckInFailed"
+   ],
+   "to": [
+    "      qualityLine.textContent = facade.sleepCheckInPending() ? \"\" : plainOrDrop(facade.sleepCheckInFailed()"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInPending, sleepCheckInFailed (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I065",
+   "lines": [
+    1648,
+    1648
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      openCheckIn.hidden = !!quality || !!sleepCheckInPending;"
+   ],
+   "to": [
+    "      openCheckIn.hidden = !!quality || !!facade.sleepCheckInPending();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInPending (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I066",
+   "lines": [
+    1650,
+    1650
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      openCheckIn.addEventListener(\"click\", () => {"
+   ],
+   "to": [
+    "      hooks.listen(openCheckIn, \"click\", () => {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I067",
+   "lines": [
+    1658,
+    1658
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    error.textContent = sleepErrorText"
+   ],
+   "to": [
+    "    error.textContent = facade.sleepErrorText()"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepErrorText (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I068",
+   "lines": [
+    1659,
+    1659
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      ? plainOrDrop(sleepErrorText, \"sleep-error\")"
+   ],
+   "to": [
+    "      ? plainOrDrop(facade.sleepErrorText(), \"sleep-error\")"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepErrorText (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I069",
+   "lines": [
+    1660,
+    1660
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      : (sleepReadBack ? plainOrDrop(SLEEP_READ_FAILED + \" \" + SLEEP_KEPT, \"sleep-error\") : \"\");"
+   ],
+   "to": [
+    "      : (facade.sleepReadBack() ? plainOrDrop(SLEEP_READ_FAILED + \" \" + SLEEP_KEPT, \"sleep-error\") : \"\");"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I070",
+   "lines": [
+    1664,
+    1664
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const owed = !!sleepReadBack || !!sleepUnknown || sleepCheckInFailed;"
+   ],
+   "to": [
+    "    const owed = !!facade.sleepReadBack() || !!facade.sleepUnknown() || facade.sleepCheckInFailed();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepReadBack, sleepUnknown, sleepCheckInFailed (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W09",
+   "lines": [
+    1668,
+    1668
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      retry.addEventListener(\"click\", () => { sleepSaving = retrySleepRead(); });"
+   ],
+   "to": [
+    "      hooks.listen(retry, \"click\", () => { hooks.retrySleepRead(); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the sleep read retry, the twin of the food one. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I071",
+   "lines": [
+    1679,
+    1679
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const corrected = sleepOpsFor(date).length > 1;"
+   ],
+   "to": [
+    "    const corrected = hooks.sleepOpsFor(date).length > 1;"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepOpsFor (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I072",
+   "lines": [
+    1696,
+    1696
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const editing = !known || sleepCorrecting;"
+   ],
+   "to": [
+    "    const editing = !known || facade.sleepCorrecting();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCorrecting (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I073",
+   "lines": [
+    1702,
+    1702
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      change.hidden = !known || sleepCorrecting;"
+   ],
+   "to": [
+    "      change.hidden = !known || facade.sleepCorrecting();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCorrecting (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W10",
+   "lines": [
+    1704,
+    1704
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      change.addEventListener(\"click\", () => { sleepCorrecting = true; render(\"sleep\", false); });"
+   ],
+   "to": [
+    "      hooks.listen(change, \"click\", () => { hooks.sleepCorrect(true); render(\"sleep\", false); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: sleepCorrecting = true is a sealed flag. hooks.sleepCorrect(flag) takes it; the repaint stays released, which is where the router lives. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I074",
+   "lines": [
+    1707,
+    1707
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      cancel.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;"
+   ],
+   "to": [
+    "      cancel.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy, sleepUnknown, sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I075",
+   "lines": [
+    1708,
+    1708
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      cancel.hidden = !sleepCorrecting;"
+   ],
+   "to": [
+    "      cancel.hidden = !facade.sleepCorrecting();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCorrecting (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I076",
+   "lines": [
+    1709,
+    1709
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      cancel.textContent = sleepCorrecting ? plainOrDrop(SLEEP_CANCEL, \"sleep-cancel\") : \"\";"
+   ],
+   "to": [
+    "      cancel.textContent = facade.sleepCorrecting() ? plainOrDrop(SLEEP_CANCEL, \"sleep-cancel\") : \"\";"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCorrecting (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I077",
+   "lines": [
+    1710,
+    1710
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      cancel.addEventListener(\"click\", () => {"
+   ],
+   "to": [
+    "      hooks.listen(cancel, \"click\", () => {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W11",
+   "lines": [
+    1711,
+    1711
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "        sleepCorrecting = false; clearSleepDraft(); render(\"sleep\", false);"
+   ],
+   "to": [
+    "        hooks.sleepCorrect(false); clearSleepDraft(); render(\"sleep\", false);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the cancel path, the same flag the other way. clearSleepDraft and render are RELEASED and stay released: the draft is the screen's own transient state (the file says so at :475). Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I078",
+   "lines": [
+    1716,
+    1716
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    put(map, \"sleep-save-label\", sleepBusy ? SLEEP_SAVING"
+   ],
+   "to": [
+    "    put(map, \"sleep-save-label\", facade.sleepBusy() ? SLEEP_SAVING"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I079",
+   "lines": [
+    1721,
+    1721
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    save.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;"
+   ],
+   "to": [
+    "    save.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy, sleepUnknown, sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W12",
+   "lines": [
+    1722,
+    1722
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    save.addEventListener(\"click\", () => { sleepSaving = recordSleep(map); });"
+   ],
+   "to": [
+    "    hooks.listen(save, \"click\", () => { hooks.recordSleep(map); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the sleep save click, the one gesture that writes a night. Same DOM-argument qualification as the food save. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I080",
+   "lines": [
+    1765,
+    1765
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const entry = { ...sleepDraft, mode: \"times\", date: sleepNightDate() };"
+   ],
+   "to": [
+    "    const entry = { ...sleepDraft, mode: \"times\", date: facade.sleepNightDate() };"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepNightDate (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I081",
+   "lines": [
+    1952,
+    1952
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (!sleepLane) { openSleepLane(); return \"\"; }"
+   ],
+   "to": [
+    "    if (!facade.sleepLane()) { hooks.openSleepLane(); return \"\"; }"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepLane, openSleepLane (read, call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I082",
+   "lines": [
+    2115,
+    2115
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const offer = firstRun();"
+   ],
+   "to": [
+    "    const offer = facade.firstRun();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: firstRun (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I083",
+   "lines": [
+    2136,
+    2136
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (!firstRun()) return false;"
+   ],
+   "to": [
+    "    if (!facade.firstRun()) return false;"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: firstRun (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I084",
+   "lines": [
+    2152,
+    2152
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const summary = (setup && typeof setup.summary === \"function\" ? setup.summary() : null) || null;"
+   ],
+   "to": [
+    "    const summary = (facade.setup() && typeof facade.setup().summary === \"function\" ? facade.setup().summary() : null) || null;"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setup (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I085",
+   "lines": [
+    2153,
+    2153
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const label = setup && typeof setup.athleteLabel === \"function\" ? setup.athleteLabel() : null;"
+   ],
+   "to": [
+    "    const label = facade.setup() && typeof facade.setup().athleteLabel === \"function\" ? facade.setup().athleteLabel() : null;"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setup (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I086",
+   "lines": [
+    2183,
+    2183
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "  const laneHandles = () => ({ workout: !!workout, checkin: !!checkin, setup: !!setup });"
+   ],
+   "to": [
+    "  const laneHandles = () => ({ workout: !!facade.workout(), checkin: !!facade.checkin(), setup: !!facade.setup() });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout, checkin, setup (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I087",
+   "lines": [
+    2185,
+    2185
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const holders = [setup && setup.host, workout && workout.gymHost];"
+   ],
+   "to": [
+    "    const holders = [facade.setup() && facade.setup().host, facade.workout() && facade.workout().gymHost];"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setup, workout (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I088",
+   "lines": [
+    2200,
+    2200
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "        setup: setup && typeof setup.summary === \"function\" ? setup.summary() : null,"
+   ],
+   "to": [
+    "        setup: facade.setup() && typeof facade.setup().summary === \"function\" ? facade.setup().summary() : null,"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setup (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I089",
+   "lines": [
+    2223,
+    2223
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    button.addEventListener(\"click\", async () => {"
+   ],
+   "to": [
+    "    hooks.listen(button, \"click\", async () => {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I090",
+   "lines": [
+    2246,
+    2246
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (!foodLane) { openFoodLane(); return NOT_WIRED; }"
+   ],
+   "to": [
+    "    if (!facade.foodLane()) { hooks.openFoodLane(); return NOT_WIRED; }"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodLane, openFoodLane (read, call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I091",
+   "lines": [
+    2252,
+    2252
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    const summary = checkinSummary();"
+   ],
+   "to": [
+    "    const summary = facade.checkinSummary();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkinSummary (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I092",
+   "lines": [
+    2269,
+    2269
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      back.addEventListener(\"click\", (event) => { event.preventDefault(); render(origin, true); });"
+   ],
+   "to": [
+    "      hooks.listen(back, \"click\", (event) => { event.preventDefault(); render(origin, true); });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I093",
+   "lines": [
+    2289,
+    2289
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    if (next === \"setup\" && !firstRun()) next = \"today\";"
+   ],
+   "to": [
+    "    if (next === \"setup\" && !facade.firstRun()) next = \"today\";"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: firstRun (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W13",
+   "lines": [
+    2298,
+    2298
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      if (next === \"sleep\") { sleepCheckInDay = null; sleepCheckInPending = null; }"
+   ],
+   "to": [
+    "      if (next === \"sleep\") hooks.forgetCheckInRead();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M10 / SEAM 10: the check-in read cache is cleared when the athlete leaves for the sleep screen. mountToken += 1 on the line above stays RELEASED (S-R15), because it is a paint concern and the file says so at :2289-:2294. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I094",
+   "lines": [
+    2302,
+    2302
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      return setup.open({ doc, phone,"
+   ],
+   "to": [
+    "      return facade.setup().open({ doc, phone,"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setup (read) inside the seam TA-M11. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I095",
+   "lines": [
+    2323,
+    2323
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "          const adopting = canAdoptAthleteState();"
+   ],
+   "to": [
+    "          const adopting = hooks.canAdoptAthleteState();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: canAdoptAthleteState (call) inside the seam TA-M11. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I096",
+   "lines": [
+    2324,
+    2324
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "          if (adopting) armAdoptionGate();"
+   ],
+   "to": [
+    "          if (adopting) hooks.armAdoptionGate();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: armAdoptionGate (call) inside the seam TA-M11. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-W14",
+   "lines": [
+    2334,
+    2334
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "          ready = settleAdoption(adopting ? adoptAthleteState() : Promise.resolve(), adopting);"
+   ],
+   "to": [
+    "          hooks.settleAdoption(adopting);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M11 / B.3 consequence 3: the setup done chain assigns the sealed `ready`. The seal takes the adopting flag, mints the chain and assigns; the `return ready;` two lines below is rewritten through the facade by gen-interface. Each is an S-R17 (g) statement rewrite, declared here in advance."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I097",
+   "lines": [
+    2336,
+    2336
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "          return ready;"
+   ],
+   "to": [
+    "          return facade.ready();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: ready (read) inside the seam TA-M11. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I098",
+   "lines": [
+    2345,
+    2345
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      const origin = checkinOrigin === \"workout\" && workout ? \"workout\""
+   ],
+   "to": [
+    "      const origin = checkinOrigin === \"workout\" && facade.workout() ? \"workout\""
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I099",
+   "lines": [
+    2348,
+    2348
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      if (checkin && typeof checkin.open === \"function\") {"
+   ],
+   "to": [
+    "      if (facade.checkin() && typeof facade.checkin().open === \"function\") {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkin (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I100",
+   "lines": [
+    2350,
+    2350
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "        const rebound = reboundCheckIn(origin);"
+   ],
+   "to": [
+    "        const rebound = hooks.reboundCheckIn(origin);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: reboundCheckIn (call) inside the seam TA-M12. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I101",
+   "lines": [
+    2352,
+    2352
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "        return checkin.open({ doc, phone, back: () => render(origin, true) });"
+   ],
+   "to": [
+    "        return facade.checkin().open({ doc, phone, back: () => render(origin, true) });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkin (read) inside the seam TA-M12. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I102",
+   "lines": [
+    2361,
+    2361
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      if (workout && typeof workout.open === \"function\") {"
+   ],
+   "to": [
+    "      if (facade.workout() && typeof facade.workout().open === \"function\") {"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I103",
+   "lines": [
+    2365,
+    2365
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "        return workout.open({ doc, phone, back: () => render(\"today\", true),"
+   ],
+   "to": [
+    "        return facade.workout().open({ doc, phone, back: () => render(\"today\", true),"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout (read) inside the seam TA-M13. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I104",
+   "lines": [
+    2366,
+    2366
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "          ...(checkin ? { checkIn: () => { checkinOrigin = \"workout\"; render(\"recovery\", true); } } : {}) });"
+   ],
+   "to": [
+    "          ...(facade.checkin() ? { checkIn: () => { checkinOrigin = \"workout\"; render(\"recovery\", true); } } : {}) });"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkin (read) inside the seam TA-M13. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I105",
+   "lines": [
+    2391,
+    2391
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "  phone.addEventListener(\"keydown\", onPhoneKeydown);"
+   ],
+   "to": [
+    "  hooks.listen(phone, \"keydown\", onPhoneKeydown);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S35b",
+   "lines": [
+    2441,
+    2442
+   ],
+   "removed": 2,
+   "inserted": 1,
+   "from": [
+    "  const willAdopt = canAdoptAthleteState();",
+    "  if (willAdopt) armAdoptionGate();"
+   ],
+   "to": [
+    "  hooks.bootAdoptionGate();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "B.2 r32b / S-R21 BOOT SEAM 4: const willAdopt = canAdoptAthleteState(); and if (willAdopt) armAdoptionGate(). D.1 W8 exists only if willAdopt ends at factory scope; the replacement puts it there."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I106",
+   "lines": [
+    2452,
+    2452
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "  render(requestedScreen() || (setupFirst && firstRun() ? \"setup\" : \"today\"));"
+   ],
+   "to": [
+    "  render(requestedScreen() || (facade.setupFirst() && facade.firstRun() ? \"setup\" : \"today\"));"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setupFirst, firstRun (read, call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-S38",
+   "lines": [
+    2551,
+    2551
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "  let ready = settleAdoption(willAdopt ? adoptAthleteState() : Promise.resolve(), willAdopt);"
+   ],
+   "to": [
+    "  hooks.bootSettleAdoption();"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "B.2 r35 / S-R21 BOOT SEAM 5: ready = settleAdoption(...). R3 BLOCKING-5: a kind flip to seam leaves let ready declared RELEASED, read released and crossing NOWHERE, which is the opposite of B.3 consequence 3 (ready becomes sealed state with two assignment sites). The replacement declares nothing released, so ready becomes sealed and the two released reads at :668 and :2552 appear in the census as crossings the facade must carry."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I107",
+   "lines": [
+    2557,
+    2557
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    importScreen: () => importScreen, importAdmitted: () => importAdmitted,"
+   ],
+   "to": [
+    "    importScreen: () => facade.importScreen(), importAdmitted: () => facade.importAdmitted(),"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: importScreen, importAdmitted (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I108",
+   "lines": [
+    2558,
+    2558
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    foodPending: () => foodSaving, foodReady: () => foodOpening,"
+   ],
+   "to": [
+    "    foodPending: () => facade.foodSaving(), foodReady: () => facade.foodOpening(),"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodSaving, foodOpening (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I109",
+   "lines": [
+    2561,
+    2561
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    sleepPending: () => sleepSaving, sleepReady: () => sleepOpening,"
+   ],
+   "to": [
+    "    sleepPending: () => facade.sleepSaving(), sleepReady: () => facade.sleepOpening(),"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepSaving, sleepOpening (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I110",
+   "lines": [
+    2562,
+    2562
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    sleepCheckInReady: () => screen === \"sleep-checkin\" ? sleepCheckInViewPending : sleepCheckInPending,"
+   ],
+   "to": [
+    "    sleepCheckInReady: () => screen === \"sleep-checkin\" ? facade.sleepCheckInViewPending() : facade.sleepCheckInPending(),"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInViewPending, sleepCheckInPending (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I111",
+   "lines": [
+    2563,
+    2563
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    checkInKitReady: () => checkInKitLoading, sleepLane: () => sleepLane,"
+   ],
+   "to": [
+    "    checkInKitReady: () => facade.checkInKitLoading(), sleepLane: () => facade.sleepLane(),"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkInKitLoading, sleepLane (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I112",
+   "lines": [
+    2567,
+    2567
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    sleepAck: () => (sleepAck ? { ...sleepAck } : null),"
+   ],
+   "to": [
+    "    sleepAck: () => (facade.sleepAck() ? { ...facade.sleepAck() } : null),"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepAck (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I113",
+   "lines": [
+    2569,
+    2569
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    workoutEntry: () => workout,"
+   ],
+   "to": [
+    "    workoutEntry: () => facade.workout(),"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I114",
+   "lines": [
+    2570,
+    2570
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    workoutRebound: () => workoutRebinding,"
+   ],
+   "to": [
+    "    workoutRebound: () => facade.workoutRebinding(),"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workoutRebinding (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I115",
+   "lines": [
+    2577,
+    2577
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "    get ready() { return ready; },"
+   ],
+   "to": [
+    "    get ready() { return facade.ready(); },"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: ready (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads."
+  },
+  {
+   "file": "today-app.cjs",
+   "id": "TA-I116",
+   "lines": [
+    2593,
+    2593
+   ],
+   "removed": 1,
+   "inserted": 1,
+   "from": [
+    "      if (typeof phone.removeEventListener === \"function\") phone.removeEventListener(\"keydown\", onPhoneKeydown);"
+   ],
+   "to": [
+    "      if (typeof phone.removeEventListener === \"function\") hooks.unlisten(phone, \"keydown\", onPhoneKeydown);"
+   ],
+   "kind": "statement rewrite (S-R17 (g) STOP, declared in advance)",
+   "why": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: E.6 listener shim inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. E.6: 1 listener call(s) on this line go through hooks.listen so the seal knows when a DOM event is being dispatched."
+  }
+ ],
+ "nested": [
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M01",
+   "replace": "TA-W02",
+   "lines": [
+    652,
+    652
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M02",
+   "replace": "TA-W03",
+   "lines": [
+    711,
+    711
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M03",
+   "replace": "TA-I004",
+   "lines": [
+    718,
+    718
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M04",
+   "replace": "TA-I012",
+   "lines": [
+    955,
+    955
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M06",
+   "replace": "TA-I035",
+   "lines": [
+    1407,
+    1407
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M07",
+   "replace": "TA-W06",
+   "lines": [
+    1436,
+    1436
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M08",
+   "replace": "TA-W07",
+   "lines": [
+    1540,
+    1543
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M09",
+   "replace": "TA-W08",
+   "lines": [
+    1561,
+    1563
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M10",
+   "replace": "TA-W13",
+   "lines": [
+    2298,
+    2298
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M11",
+   "replace": "TA-I094",
+   "lines": [
+    2302,
+    2302
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M12",
+   "replace": "TA-I100",
+   "lines": [
+    2350,
+    2350
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M13",
+   "replace": "TA-I103",
+   "lines": [
+    2365,
+    2365
+   ]
+  },
+  {
+   "file": "today-app.cjs",
+   "seam": "TA-M14",
+   "replace": "TA-I107",
+   "lines": [
+    2557,
+    2557
+   ]
+  }
+ ],
+ "bootOrder": {
+  "today-app.cjs": [
+   {
+    "line": 353,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "region": null,
+    "regionKind": null
+   },
+   {
+    "line": 354,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "region": null,
+    "regionKind": null
+   },
+   {
+    "line": 355,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "region": null,
+    "regionKind": null
+   },
+   {
+    "line": 356,
+    "type": "IfStatement",
+    "exec": true,
+    "region": null,
+    "regionKind": null
+   },
+   {
+    "line": 422,
+    "type": "IfStatement",
+    "exec": true,
+    "region": "TA-S05",
+    "regionKind": "replace"
+   },
+   {
+    "line": 482,
+    "type": "IfStatement",
+    "exec": true,
+    "region": "TA-S10",
+    "regionKind": "replace"
+   },
+   {
+    "line": 567,
+    "type": "IfStatement",
+    "exec": true,
+    "region": "TA-S16",
+    "regionKind": "replace"
+   },
+   {
+    "line": 2391,
+    "type": "ExpressionStatement",
+    "exec": true,
+    "region": "TA-I105",
+    "regionKind": "replace"
+   },
+   {
+    "line": 2441,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "region": "TA-S35b",
+    "regionKind": "replace"
+   },
+   {
+    "line": 2442,
+    "type": "IfStatement",
+    "exec": true,
+    "region": "TA-S35b",
+    "regionKind": "replace"
+   },
+   {
+    "line": 2452,
+    "type": "ExpressionStatement",
+    "exec": true,
+    "region": "TA-I106",
+    "regionKind": "replace"
+   },
+   {
+    "line": 2551,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "region": "TA-S38",
+    "regionKind": "replace"
+   },
+   {
+    "line": 2553,
+    "type": "ReturnStatement",
+    "exec": true,
+    "region": null,
+    "regionKind": null
+   }
+  ]
+ }
+}
