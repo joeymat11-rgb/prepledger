@@ -588,9 +588,9 @@ function composeStyles(approved, chrome, fonts) {
    S9-TODAY-CARRY (DECISIONS:534 (b)) corrects two things the note above got wrong. A title
    is not always a quoted `title:` literal: the engine also writes template literals, and a
    decision card's title is propose()'s second positional argument - which is where the
-   owner's own screen got "Side delt: EARNED VOLUME: 10 to 12 WEEKLY SETS", a 45-character
+   owner's own screen got a volume proposal's card title as its plan headline, a 45-character
    all-caps headline that had been through neither the copy gate nor the fluid-floor layout
-   check. Captured verbatim from the source, so a template's ${...} rides along as written;
+   check (DECISIONS:533; the owner's figures are deliberately not quoted here). Captured verbatim from the source, so a template's ${...} rides along as written;
    that is the superset doing its job, not a headline anyone will read. */
 const ENGINE_DIR = "rebuild/engine";
 function headlineVocabulary(root = ROOT) {
