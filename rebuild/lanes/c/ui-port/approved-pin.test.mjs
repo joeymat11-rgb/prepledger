@@ -18,14 +18,17 @@
    pins into the 09-18 pack, this cell follows the move and says so by name instead of
    going quietly green over two files nothing points at any more.
 
-   THE SIX REFUSALS. LIST-EMPTY (design.APPROVED names nothing, so the cell refuses rather
-   than passing over an empty loop), UNLISTED (a named file with no literal entry: R4 N8,
-   ADOPTED, and it is the refusal C-UI-1's own move creates), MISSING (a named file that is
-   not on disk), NOT-A-REGULAR-FILE (R4 N1.2, ADOPTED: lstat, never follow a link) and
-   MISMATCH. One refusal per named file, in that order, so one defect prints one line.
+   THE SEVEN REFUSALS. LIST-EMPTY (design.APPROVED names nothing, so the cell refuses
+   rather than passing over an empty loop), UNLISTED (a named file with no literal entry:
+   R4 N8, ADOPTED, and it is the refusal C-UI-1's own move creates), MISSING (a named file
+   that is not on disk), NOT-A-REGULAR-FILE (R4 N1.2, ADOPTED: lstat, never follow a link),
+   UNREADABLE (the PM's ruling on the author's Q2: a named file the cell cannot read is
+   NAMED and the list walk CONTINUES, rather than throwing and taking every later entry of
+   the list with it) and MISMATCH. One refusal per named file, in that order, so one defect
+   prints one line.
    THEN ORPHAN (R1 BLOCKING-1): a literal entry the run-time list NO LONGER NAMES. The
-   first five all walk the list and ask the literal; ORPHAN walks the literal and asks the
-   list, and it is the only one of the six that can see a design.APPROVED that SHRANK. Put
+   first six all walk the list and ask the literal; ORPHAN walks the literal and asks the
+   list, and it is the only one of the seven that can see a design.APPROVED that SHRANK. Put
    the other way: UNLISTED catches a list that moved to files this cell never pinned,
    ORPHAN catches a file this cell still pins that the list has let go of. Without it a
    dropped 09-08 reference is covered by neither this cell nor PACK-PIN, whose root is
@@ -106,10 +109,10 @@ function namesOf(mod) {
    EXACT text; an empty array is the only green.
 
    ONE REFUSAL PER NAMED FILE, in the order UNLISTED, MISSING, NOT-A-REGULAR-FILE,
-   MISMATCH. UNLISTED comes first because a path this cell holds no literal for is a path
-   it can say nothing at all about: whether the bytes are there, and what they are, are
-   questions that only mean something once the path is pinned. */
-function approvedPin(root, files, literal) {
+   UNREADABLE, MISMATCH. UNLISTED comes first because a path this cell holds no literal
+   for is a path it can say nothing at all about: whether the bytes are there, and what
+   they are, are questions that only mean something once the path is pinned. */
+function approvedPin(root, files, literal, readFile = fs.readFileSync) {
   if (!Array.isArray(files) || files.length === 0) return ["APPROVED-PIN LIST-EMPTY"];
   const refusals = [];
   for (const file of files) {
@@ -119,7 +122,13 @@ function approvedPin(root, files, literal) {
     try { st = fs.lstatSync(full); } catch { st = null; }
     if (st === null) { refusals.push("APPROVED-PIN MISSING " + file); continue; }
     if (!st.isFile()) { refusals.push("APPROVED-PIN NOT-A-REGULAR-FILE " + file); continue; }
-    if (sha256(fs.readFileSync(full)) !== literal[file]) refusals.push("APPROVED-PIN MISMATCH " + file);
+    /* NAMED, AND THE LIST WALK GOES ON (the PM's ruling on Q2): a named file the cell
+       cannot read used to throw out of here and take every LATER entry of the list with
+       it. readFile is the OPTIONAL READER, the file system's own by default and passed
+       only by fixture rows; the REAL ROW passes none and a row below proves it. */
+    let bytes = null;
+    try { bytes = readFile(full); } catch { refusals.push("APPROVED-PIN UNREADABLE " + file); continue; }
+    if (sha256(bytes) !== literal[file]) refusals.push("APPROVED-PIN MISMATCH " + file);
   }
   /* THEN THE OTHER DIRECTION (R1 BLOCKING-1). Walking the run-time list only ever asks
      "is this named file pinned?". This asks the inverse, "is this pinned file still
@@ -599,12 +608,13 @@ export const REFUSALS = Object.freeze([
   "APPROVED-PIN UNLISTED",
   "APPROVED-PIN MISSING",
   "APPROVED-PIN NOT-A-REGULAR-FILE",
+  "APPROVED-PIN UNREADABLE",
   "APPROVED-PIN MISMATCH",
   "APPROVED-PIN ORPHAN",
 ]);
 
-test("the refusal vocabulary is exactly six, and every one of them is reachable above", () => {
-  assert.equal(REFUSALS.length, 6);
+test("the refusal vocabulary is exactly seven, and every one of them is reachable above", () => {
+  assert.equal(REFUSALS.length, 7);
   assert.deepEqual(REFUSALS, [...new Set(REFUSALS)]);
   for (const r of REFUSALS) assert.match(r, /^APPROVED-PIN [A-Z-]+$/);
 });

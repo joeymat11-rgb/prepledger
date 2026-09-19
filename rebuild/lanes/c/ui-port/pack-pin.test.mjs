@@ -30,16 +30,21 @@
    found: a tracked pack file replaced by a link to a copy of the same bytes reads green
    under readFileSync, which follows links, while git cat-file blob does not.
 
+   AN UNREADABLE FILE IS THE SEVENTH REFUSAL (the PM's ruling on the author's Q2, taken in
+   round 3 because from S9 the vocabulary is sealed bytes and a later addition costs a
+   reseal child). R1 N3 measured the hole on the PC with a DENY ACE: readFileSync THREW, so
+   the cell went loudly red with a message that was none of its refusals and the walk
+   stopped before every later path. Now the walk refuses PACK-PIN UNREADABLE <path> AND
+   CONTINUES, so a second defect further down is still named in the same run.
+
    TWO RESIDUALS THIS CELL DOES NOT CLOSE, NAMED HERE SO THEY ARE NOT DISCOVERED LATER.
    (a) A file inside a __pycache__ DIRECTORY inside the pack is invisible to this pin by
    construction, and python will import it if sys.path reaches it. A row below records that
    as a decision. Closing it would mean un-ignoring the caches a design machine really does
-   leave behind, which is the worse trade. (b) An UNREADABLE pinned file makes the walk
-   THROW rather than refuse by name (R1 N3, measured on the PC with a DENY ACE), so the cell
-   goes loudly RED but the failure is not one of the six refusals and the walk stops before
-   any later path. A seventh refusal, PACK-PIN UNREADABLE <path>, would complete the
-   vocabulary. That vocabulary is a SEALED byte list from S9 on, so it is a PM ruling and
-   not an author's, and it is in the integrator list of S9-PREP-PACK-AUTHOR-REPORT.md.
+   leave behind, which is the worse trade. (b) An unreadable DIRECTORY still throws out of
+   readdirSync: that is the LOUD RED the file case used to be, it is never a silent green,
+   and closing it would mean a second optional reader for directories. Both are in the
+   integrator list of S9-PREP-PACK-AUTHOR-REPORT.md.
 
    THE LITERAL IS EMPTY ON THIS BRANCH AND THE PACK IS NOT IN THIS CHECKOUT.
    rebuild/m1/approved-2026-09-18/ lives on the design lane's branches and has not merged,
@@ -167,23 +172,34 @@ const serialise = (entries) =>
    nothing about the real one. It returns the refusals as an array of strings, so a row can
    assert the EXACT text, and an empty array is the only green.
 
-   AN ENTRY IS NAMED ONCE. An irregular entry refuses NOT-A-REGULAR-FILE and takes no part
-   in the MISSING and ADDED comparisons, so one defect prints one line. The order is
-   MISMATCH and MISSING walking the literal in byte order, then ADDED in byte order, then
-   NOT-A-REGULAR-FILE in byte order, which is stable whatever order readdir hands back. */
-function walk(root, rel, observed, irregular) {
+   AN ENTRY IS NAMED ONCE. An irregular entry refuses NOT-A-REGULAR-FILE, and an unreadable
+   one refuses UNREADABLE; both take no part in the MISSING and ADDED comparisons, so one
+   defect prints one line. The order is MISMATCH and MISSING walking the literal in byte
+   order, then ADDED in byte order, then NOT-A-REGULAR-FILE, then UNREADABLE, each in byte
+   order, which is stable whatever order readdir hands back. */
+function walk(root, rel, observed, irregular, unreadable, readFile) {
   const dirAbs = rel === "" ? root : path.join(root, ...rel.split("/"));
   for (const name of fs.readdirSync(dirAbs)) {
     const childRel = rel === "" ? name : rel + "/" + name;
     if (isIgnored(childRel)) continue;
-    const st = fs.lstatSync(path.join(dirAbs, name));
-    if (st.isDirectory()) walk(root, childRel, observed, irregular);
-    else if (st.isFile()) observed.set(childRel, sha256(fs.readFileSync(path.join(dirAbs, name))));
-    else irregular.add(childRel);
+    const abs = path.join(dirAbs, name);
+    const st = fs.lstatSync(abs);
+    if (st.isDirectory()) { walk(root, childRel, observed, irregular, unreadable, readFile); continue; }
+    if (!st.isFile()) { irregular.add(childRel); continue; }
+    /* NAMED, AND THE WALK GOES ON (the PM's ruling on Q2). A file the walk cannot read used
+       to throw out of here, which stopped the run before every later path; now it is one
+       more refusal and every later path is still judged in the same run. */
+    let bytes = null;
+    try { bytes = readFile(abs); } catch { unreadable.add(childRel); continue; }
+    observed.set(childRel, sha256(bytes));
   }
 }
 
-function packPin(packRoot, literalLines) {
+/* readFile is the OPTIONAL READER of the PM's Q2 ruling: the file system's own by default,
+   and passed only by the fixture rows that need an unreadable file on a machine where one
+   cannot be built (Windows without a DENY ACE, and a farm scratch running as root). The
+   REAL ROW passes none, and a row below asserts that by reading this file's own source. */
+function packPin(packRoot, literalLines, readFile = fs.readFileSync) {
   /* ABSENT means: there is no plain directory at the pack root. lstat, so a link standing
      where the pack should be is absent too rather than quietly walked through. */
   let st = null;
@@ -195,11 +211,12 @@ function packPin(packRoot, literalLines) {
 
   const observed = new Map();
   const irregular = new Set();
-  walk(packRoot, "", observed, irregular);
+  const unreadable = new Set();
+  walk(packRoot, "", observed, irregular, unreadable, readFile);
 
   const refusals = [];
   for (const e of literal) {
-    if (irregular.has(e.file)) continue;
+    if (irregular.has(e.file) || unreadable.has(e.file)) continue;
     const got = observed.get(e.file);
     if (got === undefined) refusals.push("PACK-PIN MISSING " + e.file);
     else if (got !== e.sha256) refusals.push("PACK-PIN MISMATCH " + e.file);
@@ -209,6 +226,7 @@ function packPin(packRoot, literalLines) {
     if (!listed.has(rel)) refusals.push("PACK-PIN ADDED " + rel);
   }
   for (const rel of sortByBytes([...irregular])) refusals.push("PACK-PIN NOT-A-REGULAR-FILE " + rel);
+  for (const rel of sortByBytes([...unreadable])) refusals.push("PACK-PIN UNREADABLE " + rel);
   return refusals;
 }
 
@@ -872,10 +890,11 @@ export const REFUSALS = Object.freeze([
   "PACK-PIN MISSING",
   "PACK-PIN ADDED",
   "PACK-PIN NOT-A-REGULAR-FILE",
+  "PACK-PIN UNREADABLE",
 ]);
 
-test("the refusal vocabulary is exactly six, and every one of them is reachable above", () => {
-  assert.equal(REFUSALS.length, 6);
+test("the refusal vocabulary is exactly seven, and every one of them is reachable above", () => {
+  assert.equal(REFUSALS.length, 7);
   assert.deepEqual(REFUSALS, [...new Set(REFUSALS)]);
   for (const r of REFUSALS) assert.match(r, /^PACK-PIN [A-Z-]+$/);
 });
