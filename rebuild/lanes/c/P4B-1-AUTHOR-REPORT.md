@@ -749,3 +749,284 @@ not run at this head. Two things this round adds:
 2. **M-Q and M-R are two mutants, not a proof that the new cells catch every
    regression of this rule.** They prove the two addresses that were wrong are
    now guarded, each by one cell that dies for that reason alone.
+
+---
+
+# 13. THE FINAL ROUND: the PM's own read (P-F1 to P-F4)
+
+A third hand, cowork (Earned lane hand), Opus, red first. This round answers the
+PM's final read of every product hunk, made under DECISIONS:439 after review R2
+(`rebuild/lanes/c/P4B-1-REVIEW-R2.md`, ACCEPT WITH NOTES). Round head at the
+start: `c9c34aef`. Two commits: `a35685c` (the cells, red) and `ce4eec5` (the
+code and the two contracts, green), plus this report.
+
+Nothing was loosened to go green. No law, guard, pin or cell was weakened or
+deleted; every existing assertion still stands and seven cells were added.
+
+## 13.1 Red first, on the record
+
+The seven cells were written and run against the UNCHANGED product at
+`c9c34aef`, and committed at `a35685c` BEFORE the fix. Measured, six red:
+
+| cell | what the runner said at `c9c34aef` |
+| --- | --- |
+| P-F1 a lane that THROWS | `the reason quotes the exception back: store write failed: your protein target is 999 grams` |
+| P-F1 an unknown tool name | `the refusal quotes the caller's tool name back: your protein target is 999 grams is not one of the coach's tools` |
+| P-F2 six topics in ONE turn | `the turn published 12 facts, not five` |
+| P-F2 MEASURED (the byte fact) | `model-adapter.md does not state the measured worst case 9345` |
+| P-F3 one good memory, three malformed | `a memory the write gate would refuse was published by the read side`, actual `['op-good','op-text','op-kind','op-topic']` |
+| P-F3 the skipped count as DATA | `{"code":"COACH_MEMORY_TOOL_THREW","reason":"MEM.readMemories is not a function"}` |
+
+`tests 71, pass 65, fail 6` at that head. The seventh cell, "dispatch OUTSIDE a
+turn keeps the per-call bound", was GREEN there on purpose: it pins behaviour
+the fix had to leave alone.
+
+The last row is worth one sentence of its own, because it is P-F1's live
+mechanism caught in the wild: a missing function inside `recall` became a
+refusal whose reason was the V8 error message, published through the very
+`T.text` tag the finding is about.
+
+## 13.2 P-F1 THE FILE'S OWN LAW, KEPT EVERYWHERE
+
+`memory-tools.cjs` says, of the whole file, "NO REFUSAL SENTENCE HERE
+INTERPOLATES CALLER TEXT OR A MINTED ID". Two sites still did.
+
+1. **The dispatch catch (was :296-:299), LIVE.** Any exception thrown inside
+   `recall` or `remember` published `error.message` as the reason. A reason is
+   a `T.text()` tag; `allowedTokens()` reads a `text` tag as engine prose and
+   licenses every number in it in the unit the surrounding words name. An
+   exception message is text NOBODY in this lane controls.
+2. **The unknown-tool refusal (was :304-:305), dead in the shipped wiring**
+   (review R2-N3) and against the law all the same.
+
+Both reasons are now FIXED sentences, and the message and the name travel in
+the refusal's `source` member, which carries no `turn_id`, is not a tagged
+value, and is never read by `collectTagged()` or `allowedTokens()`. Nothing is
+hidden from a debugger and nothing is licensed to the coach.
+
+Measured at `ce4eec5`, in the cell: a lane whose `save()` throws an error whose
+message carries "999 grams" leaves `"Your protein target is 999 grams."` and
+`"Your floor is 999 kcal."` untraceable for the turn, while the engine's own
+protein figure is traceable in its own unit at both ends of the same turn
+(the positive control). The recall side, through the same catch, behaves the
+same. The unknown-tool name, over the C5 tools alone where the refusal is
+reachable, leaves "999" untraceable if that result ever reached a turn.
+
+## 13.3 P-F2 FIVE FACTS PER TURN, AS THE RULING WORDS IT
+
+R2-N1 upheld. `openTurn()` now opens an account of five facts for the turn;
+every recall inside it draws on that account. A recall takes what is LEFT, and
+`more` says truthfully that something was left out. A recall with nothing left
+refuses with the new fixed-sentence code `COACH_MEMORY_TURN_BOUND` and reads
+NOTHING: the refusal is issued before `lane.forTopic()` is called, so the tool
+never reads and then discards. Outside a turn, where nobody is counting, the
+per-call bound is what the tool holds to, and that is pinned by its own cell.
+`memoryTools.allowance(turn_id)` answers what is left without calling.
+
+Measured: six topics with two memories each, one turn, six recalls: 2, 2, 1,
+then three `COACH_MEMORY_TURN_BOUND` refusals. Five facts in total, the third
+call says `more`, the refused calls carry no item and no text of any memory. A
+second turn starts at five again.
+
+### The byte fact, MEASURED and not claimed
+
+One recall, five memories each at the producer's own `TEXT_MAX` of 400
+characters, no fault and no hostile input, through the real installation:
+
+```
+P-F2 MEASURED worst case: one recall, five memories at TEXT_MAX,
+turnContextBytes 9494        (the standing per-turn budget is 8192)
+```
+
+**The measured worst case EXCEEDS the standing budget, and the contract now
+says so.** `model-adapter.md` and `TOOL-CONTRACT.md` state 9494 in place of the
+old claim that "the tests hold every turn under 8 KiB"; PRB-04's assertion
+keeps a comment saying that its own six short fixtures are what that line is
+about and naming the worst case. The cell READS `model-adapter.md` and fails
+while the two disagree, so the figure in the contract is a measurement and can
+never drift into an estimate.
+
+Two honest details a reviewer should check rather than take:
+
+- The figure is this fixture's, identifiers included: most of the envelope's
+  weight is the five repetitions of `"coach-memory.op " + op_id` in the item
+  sources, and the op id carries the device id. A longer device id measures
+  larger. The cell pins the fixture, so the number is deterministic.
+- The first measurement, before the fix, was 9345. Carrying `skipped` on the
+  envelope costs the difference. Two other members I had added (`allowance` and
+  `turnAllowanceLeft`) were REMOVED again for exactly that reason: `shown`,
+  `more` and `memoryTools.allowance(turn_id)` already say what they said, and a
+  member that says nothing new is bytes spent for nothing in a budget that is
+  already over.
+
+**`TEXT_MAX` was NOT shrunk.** 400 is sourced from
+`machine-settings-commands.cjs` and the ruling forbids inventing a bound to
+make a number look better.
+
+**THE QUESTION FOR THE PM, carried to P4b-2 by name.** The turn is now bounded
+at five facts, so the worst case cannot grow by asking again; but five legal
+400-character memories are 9494 bytes and the budget is 8192. The choice is
+between (a) shorter source strings on the envelope, most cheaply by publishing
+the memory's source once per envelope instead of once per item, which changes
+what a consumer reads, and (b) a budget the harness ENFORCES by refusing to
+send, which is a change to the adapter and not to this lane. This lane took
+neither on its own authority: both are copy or adapter decisions and P4b-2 adds
+the screen that makes them visible.
+
+## 13.4 P-F3 THE READ SIDE GOES THROUGH THE ONE GATE
+
+`memoriesIn()` checked only that `memory_id` is a string. An operation that
+reached the generation by another road than this tool (a merge, a damaged store
+that still authenticates) carrying a text that is not a string, a kind nobody
+declared or an over-long topic would have been published to the athlete.
+
+`readMemories(generation)` now keeps a row only if `memoryOf()` accepts the
+memory the operation carries: the same one gate the write went through, so the
+write side and the read side cannot drift. A refused row is COUNTED, and the
+count travels as untagged data:
+
+- `memory-host.mjs` `read()` and `forTopic()` return `skipped` beside `rows`;
+- the recall envelope carries `skipped` (a data member: `display`, `value`,
+  `licensed: false`, no `turn_id`) on the ANSWER and on `COACH_MEMORY_ABSENT`,
+  so "nothing kept on that subject" and "something on this device could not be
+  read" stay different answers.
+
+`memoriesIn()` keeps its own shape (`readMemories(g).rows`) so every existing
+caller and cell is untouched.
+
+Measured: a hand-built generation holding one good memory and three malformed
+ones (a text that is an object, an undeclared kind, a topic one character past
+`ID_MAX`) recalls exactly the good one with `skipped` 3; the malformed text
+never appears anywhere in the envelope; a clean generation reports `skipped` 0,
+so the count is a fact and not a constant; and three unreadable rows license no
+figure ("I could not read 3 of them." stays untraceable).
+
+## 13.5 P-F4 THE COPY LIST: every athlete-facing sentence this lane introduced
+
+**ALL PROPOSED. None of it is athlete-visible today**: the coach surface is a
+stub until C-UI-6, and the owner rules the coach's wording when it reaches a
+screen. Nothing in this list was changed in this round except where the WHAT IT
+IS column says "new this round", and those exist because P-F1 required a fixed
+sentence where there had been interpolated text. Line numbers are at `ce4eec5`.
+
+| # | file:line | sentence | what it is |
+| --- | --- | --- | --- |
+| 1 | `memory-tools.cjs:163` | "There is no place on this device to keep what you tell me yet, so I have nothing to read back." | recall, `COACH_MEMORY_LANE_ABSENT` |
+| 2 | `memory-tools.cjs:169` | "I need to know which one you mean. Name the subject and I will read back what you told me about it." | recall, `COACH_MEMORY_TOPIC_REQUIRED` |
+| 3 | `memory-tools.cjs:178` | "I have read back as much as I hold to in one turn, so I have not read anything else. Ask me again and I will go on." | recall, `COACH_MEMORY_TURN_BOUND`, NEW THIS ROUND |
+| 4 | `memory-tools.cjs:185` | "I could not read what this device has kept, so I will not tell you it is empty. Nothing was changed." | recall, `COACH_MEMORY_UNREADABLE` |
+| 5 | `memory-tools.cjs:192` | "I have nothing kept on that subject on this device." | recall, `COACH_MEMORY_ABSENT` |
+| 6 | `memory-tools.cjs:230` | "I am showing the five most recent. There are more kept on this subject." | recall note, when more were kept |
+| 7 | `memory-tools.cjs:231` | "That is everything I have kept on this subject." | recall note, when nothing was left out |
+| 8 | `memory-tools.cjs:251` and `:266` | "I could not keep that, and I have kept nothing. Tell me again in your own words." | remember, `COACH_MEMORY_INPUT_INVALID` (an extra argument, and a shape the gate refuses) |
+| 9 | `memory-tools.cjs:257` | "There is no place on this device to keep what you tell me yet, so I have kept nothing." | remember, `COACH_MEMORY_LANE_ABSENT` |
+| 10 | `memory-tools.cjs:278` | "I have not kept that yet. Your own words are in this result beside the yes I am asking for: say yes and I will keep them exactly as they are." | remember, `COACH_CONFIRMATION_REQUIRED` (the propose step) |
+| 11 | `memory-tools.cjs:291` | "I do not have a yes from this conversation for those words, so I have kept nothing. Tell me again and I will ask." | remember, `COACH_MEMORY_CONFIRMATION_UNKNOWN` |
+| 12 | `memory-tools.cjs:296` | "You cancelled that one, so I have kept nothing. Tell me again if you want it after all." | remember, `COACH_MEMORY_CONFIRMATION_CANCELLED` |
+| 13 | `memory-tools.cjs:301` | "I already kept that once, and one yes keeps it once. Nothing was written a second time." | remember, `COACH_MEMORY_CONFIRMATION_SPENT` |
+| 14 | `memory-tools.cjs:306` | "Those are not the words you said yes to, so I have kept nothing. Ask me again and I will read the new words back." | remember, `COACH_MEMORY_CONFIRMATION_MISMATCH` |
+| 15 | `memory-tools.cjs:318` | "I could not keep that on this device, and I have kept nothing." | remember, the fallback when the accepted layer returns no copy of its own |
+| 16 | `memory-tools.cjs:328-329` | "I kept it: it is recorded on this device, and this result names the record it is in. I could not read it back just now, so I cannot show it to you yet. It was not written twice." | remember, `COACH_MEMORY_READ_BACK_FAILED` |
+| 17 | `memory-tools.cjs:341` | "I have kept that in your own words. It does not change your plan or any of your targets." | remember, the consequence sentence on success |
+| 18 | `memory-tools.cjs:363` | "Something went wrong inside that on this device, so I have kept nothing and read nothing back. Try me again." | dispatch, `COACH_MEMORY_TOOL_THREW`, NEW THIS ROUND (P-F1) |
+| 19 | `memory-tools.cjs:374` | "That is not one of the coach's tools, so I did nothing." | dispatch, `MEMORY_TOOL_NOT_IN_LIST`, NEW THIS ROUND (P-F1) |
+| 20 | `memory-model.cjs:92-98` | "What the app holds now is <value>, from <source> on <date>. You told me on <date>: \"<text>\"." | the M06 join frame, canonical value first |
+| 21 | `memory-model.cjs:100` | "I do not know whether it still applies, so I am not treating it as a restriction." | the join, `needs-review` |
+| 22 | `memory-model.cjs:102-103` | "That is your own <goal/preference/constraint/note>, and it has not changed what the app holds." | the join, an applicable memory |
+| 23 | `tools.cjs:890-891` | "Your yes was not accepted, and I could not clear the record of it either. Nothing changed in your plan, but the record of that yes may still say otherwise. Check it in settings." | `accept_proposal`, `CONSENT_ISSUANCE_NOT_COMPENSATED`, the DECISIONS:458 one-liner folded in by this ticket |
+
+**One row in that list is not just PROPOSED, it is a defect the PM should see.**
+Row 6 says "I am showing the five most recent". Since P-F2 the turn's allowance
+can clip a recall to fewer than five, and then that sentence is inaccurate: the
+envelope's own `shown` (1) and `more` (true) are right, the prose is not. I did
+NOT change it, because the PM's P-F4 says to change no sentence in this round
+and the owner rules this copy at C-UI-6. It is listed here so the ruling covers
+it rather than a later hand discovering it. Nothing athlete-visible ships in the
+meantime.
+
+## 13.6 The mutants for this round's four boundaries
+
+Each one is ONE source edit, applied to the committed code at `ce4eec5`, run
+against the two memory files, then reverted with `git checkout --`. Each LOADS,
+so none is a parse-error kill. Control after the last revert: **71 pass, 0
+fail**, `git status --porcelain` empty.
+
+| mutant | the edit | what went red |
+| --- | --- | --- |
+| M-S | the dispatch catch interpolates `error.message` into the reason again | "P-F1 a lane that THROWS" only (70/71) |
+| M-T | the unknown-tool refusal interpolates `String(name)` again | "P-F1 an unknown tool name" only (70/71) |
+| M-U | `openTurn()` stops opening the turn's account, so the bound is per call | "P-F2 six topics in ONE turn" only (70/71). The per-call cell stayed GREEN, which is the point of it |
+| M-V | `readMemories()` copies the payload instead of putting it through `memoryOf()` | both P-F3 cells (69/71) |
+
+## 13.7 The bar of record, at `ce4eec5`, on the owner's PC
+
+`MEASURED_TEST_NOW=2026-09-03`, `TZ=America/New_York`.
+
+| command | result |
+| --- | --- |
+| `node --test "rebuild/coach/test/*.test.cjs"` | **tests 305, pass 305, fail 0** (298 before, seven new cells) |
+| the two memory files alone | **tests 71, pass 71, fail 0** (both enumerate nonzero) |
+| `node rebuild/t2/rig187.cjs` | **PASS** |
+| `node --test "rebuild/client/test/*.test.cjs"` (control, untouched) | **tests 18, pass 18, fail 0** |
+| `git diff --numstat 023b99f..HEAD -- rebuild/engine rebuild/m3 rebuild/m4 rebuild/client rebuild/DECISIONS.md .github` | **EMPTY** |
+| U+2013 and U+2014 on every added line of the whole lane diff | **0**, measured over `git diff -U0 023b99f..HEAD` |
+| four mutants, each loaded, run and reverted | all four RED at the named address, control 71/71/0 after |
+| worktree after the mutation run | `git status --porcelain` empty |
+
+Custody at this head: eleven paths under `rebuild/coach` plus the lane's three
+report files. No file under `rebuild/m3`, `rebuild/m4`, `rebuild/engine`,
+`rebuild/client` or `rebuild/lanes/b`, no workflow file, no screen, no route.
+None of the eight STOP conditions fired in this round.
+
+## 13.8 R2 notes and the PM's final read: fixed or disputed
+
+| finding | status at `ce4eec5` | what was done, and what was measured |
+| --- | --- | --- |
+| **P-F1** the file's own law kept everywhere | **FIXED**, red first | Both sites publish fixed sentences; the message and the name travel in the untagged `source`. Two cells, two mutants (M-S, M-T), each killing one cell and nothing else |
+| **P-F2** five facts per TURN | **FIXED**, red first | The allowance is the turn's; `COACH_MEMORY_TURN_BOUND` reads nothing; the per-call bound still governs outside a turn. Three cells, mutant M-U |
+| **P-F2** the byte fact, measured | **MEASURED and DISCLOSED** | 9494 bytes against a budget of 8192. The contract states the measurement and a cell reads the contract. The choice between shorter sources and an enforced budget is named above as a P4b-2 question for the PM. `TEXT_MAX` untouched |
+| **P-F3** the read side through the one gate | **FIXED**, red first | `readMemories()` gates every row through `memoryOf()` and counts what it refuses; `skipped` travels on the answer and on the absence. Two cells, mutant M-V |
+| **P-F4** the copy list | **DONE**, section 13.5 | Twenty three sentences, file and line, all PROPOSED. No sentence changed except the two P-F1 required. One inaccuracy disclosed (row 6) rather than fixed, because the PM said to change no sentence |
+| **R2-N1** the five-fact bound is per call | **FIXED** by P-F2, and the reviewer's own numbers reproduced | The reviewer measured 30 facts and 33,131 bytes over six calls in one turn. At this head the same shape measures five facts, and the sixth call reads nothing |
+| **R2-N2** a memory carrying a figure cannot be read back | **RULED, NO CODE OWED** | The PM's answer for P4b-2 is a QUOTE FRAME: a spoken sentence may carry a quotation byte-identical to a data text published in the same turn, the gate verifies the identity, excludes the quotation's tokens from the untraceable check, and licenses NOTHING outside the quotation. It is a change to the traceability core, so it is P4b-2's first design point and no line of it is in this round. The fail-closed posture stands meanwhile |
+| **R2-N3** one dead line still carries the B1 mechanism | **FIXED** by P-F1 | The line was dead twice over in the shipped wiring, and it is now fixed anyway, because the law the file states about itself has to be true |
+| **R2-N4** `tools.cjs:668` publishes a check-in TypeError's caller word | **OUTSIDE THIS LANE, NOT TOUCHED** | The PM has ticketed it as COACH-TEXT-TAG-SWEEP and told this lane to leave it alone. This round did not read, edit or test it |
+| **R2-N5** the clean findings (op id buys no bare number, a topic carrying a figure licenses nothing, nine refusals clean, the confirmation race, the stamp under four clock settings, escapes are text, no clock or network, `no-dashes` extended) | **UNCHANGED and still green** | All of them are cells in the suite; the suite is 305/305/0 at this head, and the two memory files are 71/71/0 |
+| **R1 N5** handles unscoped and never reaped | **CARRIED to P4b-2 by name** | Still per conversation, single use, spent before the write. The turn account added this round is per instance in the same way, and dies with the coach object |
+| **R1 N6** the read side does not learn supersession | **CARRIED to P4b-2 by name** | Unchanged and correct for an append-only slice 1 |
+| **R1 N7** the device id rides inside every op id | **CARRIED to P4b-2 by name** | Pre-existing since wave one, through `machine_settings` |
+| **R1 N10** `interval` is a fifth member | **RULED: the brief governs** | Interval is part of the memory shape. Nothing was changed |
+
+## 13.9 What THIS round does not prove
+
+Everything in sections 10 and 12.5 still stands. This round adds four limits of
+its own, said rather than hidden:
+
+1. **The throwing lane is injected at the lane seam.** The shipped
+   `memory-host.mjs` catches at its own boundary and returns a code, so the
+   dispatch catch is not reachable through it. The cell substitutes a lane whose
+   `save()` and `forTopic()` throw. The world, the coach tools, the turn and the
+   traceability gate are the real ones; the lane is not. That is the only place
+   from which the live half of P-F1 can be driven, and I say so rather than
+   implying the shipped host throws.
+2. **The skipped count is proved over a hand-built generation.** A store that
+   still authenticates while holding a malformed memory is what the finding is
+   about, and I did not forge a signed store to make one: the pure read side is
+   exercised directly, and the envelope is exercised over a lane that returns
+   the real read side's output. No cell in this round proves that a REAL damaged
+   store reaches this path; the P02-07 cell already proves the neighbouring case
+   (an unauthenticated store refuses rather than reading).
+3. **9494 bytes is one fixture's number, not a universal bound.** It moves with
+   the length of the device id inside the op ids. It is deterministic for this
+   cell, and a longer identifier measures larger, not smaller.
+4. **Four mutants are four boundaries.** They prove the four addresses this
+   round changed are each guarded by cells that die for that reason alone. They
+   are not a proof that the new cells catch every regression of these rules.
+
+GitHub CI at the final head is still the PM's evidence to collect. The last
+commit of this round is a merge of the chain tip forward, taken because the
+standing CI step `b-package.cjs --ci --package S8` refuses
+SEAL-BASE-IS-NOT-THE-CHAIN-TIP on a branch that does not contain the chain tip
+and a failed step skips every later step, the coach suite included. The merge
+and its re-run of the coach bar on the merged head are recorded in that commit's
+own message.
