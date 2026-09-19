@@ -2,13 +2,23 @@
  "version": 1,
  "lanePackage": "C-UI-0",
  "packageId": "C-UI-0-GATES-WITH-TEETH",
- "status": "PROPOSED, revised for review R1",
- "review": {
-  "file": "rebuild/lanes/c/ui-port/reviews/C-UI-0-review-R1.md",
-  "sha256": "e8534309659b3c7b1e535beeec44c609fa365398acd7ba27b87eb7c0227333fe",
-  "verdict": "REJECT, 4 blocking",
-  "addressed": "B1, B2, B3, B4, SHOULD FIX 1 to 11, docs mismatch 1 to 8"
- },
+ "status": "PROPOSED, revised for reviews R1 and R2",
+ "reviews": [
+  {
+   "round": "R1",
+   "file": "rebuild/lanes/c/ui-port/reviews/C-UI-0-review-R1.md",
+   "sha256": "e8534309659b3c7b1e535beeec44c609fa365398acd7ba27b87eb7c0227333fe",
+   "verdict": "REJECT, 4 blocking",
+   "addressed": "B1, B2, B3, B4, SHOULD FIX 1 to 11, docs mismatch 1 to 8"
+  },
+  {
+   "round": "R2",
+   "file": "rebuild/lanes/c/ui-port/reviews/C-UI-0-review-R2.md",
+   "sha256": "774066c3f6bc5797633fa0a9f6d21e3dfce90298fbcc06a59a215d580c3fe42b",
+   "verdict": "ACCEPT WITH NOTES, 0 blocking",
+   "addressed": "SHOULD FIX 1 to 6; the records did not change, so none was rewritten"
+  }
+ ],
  "filed": "2026-09-18",
  "brief": {
   "file": "rebuild/lanes/c/ui-port/C-UI-0.md",
@@ -22,10 +32,13 @@
  "branch": "rebuild/c-ui-0-gates",
  "sourceBase": "e0a6c8ef2b2c7421ca8deb64ade1a7ed7f4de688",
  "head": {
-  "commit": "0e721c928bba651b19074ba0ec5d16c67c41322f",
+  "commit": "8ceda9f6db8a23b05263dc933f094d3fdc5f562f",
   "note": "the commit this package was written at; the commit that adds the package is its child, so HEAD after it is one ahead of this value by construction"
  },
  "commits": [
+  "8ceda9f6 C-UI-0 R2: the six notes closed, and five more teeth rows",
+  "672f8452 C-UI-0: review R2 (ACCEPT WITH NOTES, 0 blocking, 6 should fix)",
+  "6569b4dc C-UI-0 R1: the package rewritten on the review round, and the contrast sentence kept verbatim",
   "0e721c92 C-UI-0 R1: the eight documentation mismatches review R1 listed",
   "35495639 C-UI-0 R1: seven more teeth rows, the ones review R1 slipped through",
   "86aa90bb C-UI-0 R1: the state sheet holds the record list, and records only what can be seen",
@@ -49,23 +62,23 @@
    "role": "edited: quality/run/ and __pycache__/ are untracked from here on"
   },
   "rebuild/m1/approved-2026-09-18/README.md": {
-   "sha256": "06714039545eec1a95a2566470b528d9c3bb1732d9d2fd0867c54820e85bc6c6",
+   "sha256": "4adb5bff94b2f8ef87a2b6aa2aed57255e7c0d51c8ef9f1c6b89e8b6321a1ba9",
    "role": "edited: sections 1, 3 (with the new 3.1), 4 and 7"
   },
   "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": {
-   "sha256": "6e942915d2645329018dd0ca46761d929b8ceb20c365c76b96ebcbfb6cd27e94",
+   "sha256": "25fd1110dd92b5616c1dc60b83df494d93b2ba1b8967ffcedc5f9bcec7f2a8d7",
    "role": "edited: every gate tag names its check, section 7 item 5, new section 13"
   },
   "rebuild/m1/approved-2026-09-18/quality/common.py": {
-   "sha256": "fb47501475612784ae4b86b7886bf520c294e7c1f65aa1e2eac91ffdad9dd198",
+   "sha256": "2f34e7eca793d3d9977de20016fa2075488983ca51b8d6f98837fe6a17c34f8e",
    "role": "added: what the three gates share"
   },
   "rebuild/m1/approved-2026-09-18/quality/gate.py": {
-   "sha256": "c37b9aed9277cb44facef398d7cee12672139f951dde0dbd5f09ae8a74305f73",
+   "sha256": "1c3201b896fb28976fdd0baa183cdc3b7a162aeb532e2f518382418f3521effa",
    "role": "edited: the screen gate"
   },
   "rebuild/m1/approved-2026-09-18/quality/statesheet.py": {
-   "sha256": "1f0d01a677c5da3e444d19c59a94b49573b0b9ac325aebf2650957812cd94754",
+   "sha256": "81743ba92a45f9d6d52954bf8fa233f5afc6c2a5c78f4bb65aedf83bb5c20970",
    "role": "edited: the state gate"
   },
   "rebuild/m1/approved-2026-09-18/quality/phonesheet.py": {
@@ -73,7 +86,7 @@
    "role": "edited: the review sheet"
   },
   "rebuild/m1/approved-2026-09-18/quality/teeth.py": {
-   "sha256": "f1eff32aa3b4b73cb58ed9339da06c4d434fa473c3b47e4512b90097bdbc2ae4",
+   "sha256": "79854767098d7c11e4ae9177a590f68ed7240904b077a27ad098d64f389af483",
    "role": "added: the executable mutation list"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": {
@@ -118,7 +131,7 @@
  "runs": {
   "command": "cd rebuild/m1/approved-2026-09-18 && python quality/gate.py",
   "gate": {
-   "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 354 PASS",
+   "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
    "exit": 0
   },
   "stateSheet": {
@@ -128,7 +141,7 @@
   },
   "teeth": {
    "command": "python quality/teeth.py",
-   "summary": "TEETH: 26 rows, 0 disagreeing, 641 s",
+   "summary": "TEETH: 31 rows, 0 disagreeing, 701 s",
    "exit": 0
   },
   "machine": "linux, the builder worktree"
@@ -140,7 +153,7 @@
   "whereQuoted": "each sentence appears in the same words in the code and in README section 3.1"
  },
  "teethTable": [
-  "TEETH: 26 rows, 0 disagreeing, 641 s",
+  "TEETH: 31 rows, 0 disagreeing, 701 s",
   "row   mutation                                                   verdict      note",
   "a     an em dash in Today's status sentence                      as expected",
   "b1    a word from the owner's word list in a card title          as expected",
@@ -168,6 +181,11 @@
   "m5    three faults in a placeholder, judged by the state sheet   as expected",
   "m6    T-02 dropped from the driver, its records left committed   as expected",
   "m7    T-02's sample note hidden at opacity 0                     as expected",
+  "n1    a set string drawn by counter() in generated content       as expected",
+  "n2    T-02's sample note hidden by clip-path: inset(100%)        as expected",
+  "n3    T-02's sample note hidden by text-indent: -9999px          as expected",
+  "n4    a theme in the index that the sheet does not render        as expected",
+  "n5    a theme the sheet renders that the index lost              as expected",
   "TEETH EXIT 0"
  ],
  "env": {
@@ -176,8 +194,8 @@
  },
  "checks": {
   "gate": {
-   "distinct": 32,
-   "resultRows": 354
+   "distinct": 33,
+   "resultRows": 372
   },
   "stateSheet": {
    "renders": 418,
@@ -185,7 +203,7 @@
    "recordFileShape": "one json and one png per state and theme, plus INDEX.json"
   },
   "teeth": {
-   "rows": 26,
+   "rows": 31,
    "disagreeing": 0
   }
  },
