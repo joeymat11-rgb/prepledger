@@ -1124,6 +1124,52 @@ test("P-FENCE-1 (18) - this cell's own step in rebuild.yml carries the not-cance
     + "or runs after a cancellation: " + cond.trim());
 });
 
+/* ================== R3's TWO BLOCKING FINDINGS, AND THE ROWS THAT CLOSE THEM =========
+   R3 swept 50 clauses of fence(), killed 44, and the two findings below are what the six
+   survivors came to. Each row here exists because a clause was load-bearing and silent. */
+
+/* R3 BLOCKING-1. `if (option === null) return bad(2, ...)` was A CLAUSE WITH NO ROW, and
+   the direction its mutant took is the only direction D.2 exists to refuse: R3 replaced
+   it with a stand-aside and NOT ONE ROW of this file changed colour - 33 fixture rows
+   green before, 33 green after, on Linux and again on Windows. A branch could then reach
+   a SKIP with a spec whose parent resolves to nothing at all.
+
+   It is neither dead code nor defensive programming. FOUR worlds reach the line, every
+   one of them authorable in one text editor, and the fence refuses all four today. Row
+   (8a) is the only other row that feeds a bad spec and both of its bodies die EARLIER -
+   `{}` fails the SPEC_KEYS key closure and "not a spec at all" fails JSON.parse, both at
+   condition (1) - and specFile() always builds a well-formed parent, so nothing in this
+   file had ever reached the clause.
+
+   The row pins the condition NUMBER and the CHOSEN ID the refusal names, so the sentence
+   a human reads is held too and not only the verdict. */
+test("R3 BLOCKING-1 (20) - a spec whose parent.chosen resolves to NO option is refused at (2), naming the id", () => {
+  const worlds = [
+    ["parent is null", (s) => { s.parent = null; }, "null"],
+    ["parent.chosen names no option", (s) => { s.parent.chosen = "NOBODY"; }, "\"NOBODY\""],
+    ["parent.options is empty", (s) => { s.parent.options = []; }, "\"S8\""],
+    ["parent.options is not an array", (s) => { s.parent.options = { id: "S8" }; }, "\"S8\""],
+  ];
+  for (const [what, mutate, named] of worlds) {
+    const root = chain({ product: [APP] });
+    const spec = JSON.parse(specFile({ packageId: "S9", parentId: "S8", artifact: FIX_ART,
+      sha256: shaOfBlob(root, CHAIN_REF, FIX_ART),
+      sourceBase: gitText(root, ["rev-parse", CHAIN_REF]).trim() }));
+    mutate(spec);
+    /* the key closure is intact, so condition (1) passes and the clause is REACHED. */
+    assert.deepEqual(Object.keys(spec).sort(), [...SPEC_KEYS].sort(),
+      what + ": the world does not survive condition (1) and measures nothing");
+    child(root, { specBody: JSON.stringify(spec, null, 1) + "\n",
+      alsoTouch: { [APP]: "a lane C edit\n" } });
+    const r = fence(root, CHAIN_REF);
+    /* named before the helper, so the mutant this row exists for says WHICH world. */
+    assert.equal(r.status, "fail", what + ": it SKIPPED: " + JSON.stringify(r.reason));
+    unverified(r, 2);
+    assert.ok(r.refusals[0].includes("names no parent option " + named),
+      what + ": the refusal does not name the chosen id: " + names(r));
+  }
+});
+
 /* ================================================================ THE REAL ROW ========
    Everything above runs against a repository this file built. This one runs against the
    repository this file is IN, and it is the whole point of the cell: on every push to a
