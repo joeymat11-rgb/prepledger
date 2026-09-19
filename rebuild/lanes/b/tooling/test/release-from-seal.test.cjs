@@ -91,6 +91,10 @@ const RULING_LINE = head + GRANT + ' ' + MID + ' the owner\'s ruling DECISIONS:5
 /* One path of the two: the spec releases both, so this line is the "a spec
    releases a path the token does not name" half of B.8 row (7). */
 const PARTIAL_LINE = head + 'RELEASE-FROM-SEAL ' + PKG + ' ' + RELEASED + ' ' + MID + ' one path only ' + MID + ' RULED';
+/* The other one alone, so a cell can DROP a released path from the inventory
+   with the ledger still exactly matching what the spec declares, and reach
+   the completeness walk at :1975 rather than the set-equality assert. */
+const PARTIAL2_LINE = head + 'RELEASE-FROM-SEAL ' + PKG + ' ' + RELEASED2 + ' ' + MID + ' the other path only ' + MID + ' RULED';
 /* Three paths where the spec declares two: the other half of row (7). */
 const WIDE_LINE = head + 'RELEASE-FROM-SEAL ' + PKG + ' ' + RELEASED + ',' + RELEASED2 + ',' + KEPT +
   ' ' + MID + ' one path more than the spec declares ' + MID + ' RULED';
@@ -131,7 +135,7 @@ write(GA_FILE, JSON.stringify({ version: 1, packageId: 'M2-S8-FIXTURE',
     [OTHER]: pin(OTHER_SHA), [ARGV_TARGET]: pin(ARGV_SHA) },
   executionPins: { [CELL]: CELL_SHA } }, null, 2) + '\n');
 const GA_SHA = at(GA_FILE);
-write('rebuild/DECISIONS.md', [RULING_LINE, PARTIAL_LINE, WIDE_LINE, OTHER_PACKAGE_LINE,
+write('rebuild/DECISIONS.md', [RULING_LINE, PARTIAL_LINE, PARTIAL2_LINE, WIDE_LINE, OTHER_PACKAGE_LINE,
   ARGV_LINE, UNRULED_LINE, ...WRAPPED_LINES, ''].join('\n'));
 const shaOf = line => sha(Buffer.from(line));
 
@@ -261,22 +265,34 @@ test('B.8 (1) - "released" is the SIXTH role, fixed at PRODUCT_ROLES and nowhere
 /* ==== B.8 (2) the parent-pin branch, the one place a role is judged ====== */
 test('B.8 (2) - a parent PRODUCT pin declared "released" is admitted where carried and edited are', () => {
   const s = spec(), b = bound();
-  const out = said(() => assert.equal(api.product(s, b, null), 'IMPLEMENTED'));
-  assert.match(out, /PRODUCT IMPLEMENTED/);
+  /* NOT-IMPLEMENTED, and that is the answer worth asserting: this fixture's
+     whole unreleased inventory is `carried`, so nothing stands at a post and
+     nothing is pinned-unchanged. A released path is counted in NEITHER of the
+     two buckets the phase reads, so releasing two files can never move a
+     package's phase - a release is not a thing a package PRODUCED. */
+  const out = said(() => assert.equal(api.product(s, b, null), 'NOT-IMPLEMENTED'));
+  assert.match(out, /PRODUCT NOT-IMPLEMENTED/);
+  assert.match(out, /0 at the declared post-image/);
+  assert.match(out, /2 carried byte-identical from the parent/);
   /* And nothing else was admitted with it: the roles the branch has always
      refused still refuse, by their own names, over the same parent pin. */
   for (const role of ['new', 'pinned-unchanged']) {
     const wrong = spec();
-    wrong.product[RELEASED] = { pre: PRE, post: PRE, role };
-    assert.throws(() => api.product(wrong, b, null),
-      role === 'new' ? /PARENT-PRODUCT-PIN-NOT-DECLARED-CARRIED-OR-EDITED/
-        : /PARENT-PRODUCT-PIN-NOT-DECLARED-CARRIED-OR-EDITED|PRODUCT-PINNED-UNCHANGED-IS-A-PARENT-PIN/);
+    wrong.product[KEPT] = { pre: KEPT_SHA, post: KEPT_SHA, role };
+    assert.throws(() => api.product(wrong, b, null), /PARENT-PRODUCT-PIN-NOT-DECLARED-CARRIED-OR-EDITED/,
+      'role ' + role + ' over a parent product pin');
   }
+  /* And the word cannot be borrowed for a path the ruled line does not name:
+     a parent pin declared released without a grant is refused BEFORE the
+     role branch is reached, by the ledger rather than by the vocabulary. */
+  const ungranted = spec();
+  ungranted.product[KEPT] = released(KEPT_SHA);
+  assert.throws(() => api.product(ungranted, b, null), /RELEASE-DECLARED-PATH-IS-NOT-GRANTED/);
   /* A released pin still has to be the byte the parent sealed: B.2 step 6 is
      the pre-image equality every parent pin has carried since r7b F-E. */
   const lying = spec();
   lying.product[RELEASED] = released('0'.repeat(64));
-  assert.throws(() => api.product(lying, b, null), /UNLISTED-PRODUCT-DRIFT/);
+  assert.throws(() => api.product(lying, b, null), /RELEASE-PATH-PRE-IMAGE-IS-NOT-THE-PARENT-PIN/);
 });
 
 /* ==== B.8 (3) the released path is never hashed, and the fence holds ==== */
@@ -285,7 +301,7 @@ test('B.8 (3) - a byte moved in a RELEASED file is not drift; the same move in a
   /* Both released files already stand at lane C's bytes, not at the pin. */
   assert.notEqual(at(RELEASED), PRE);
   assert.notEqual(at(RELEASED2), PRE2);
-  const out = said(() => assert.equal(api.product(s, b, null), 'IMPLEMENTED'));
+  const out = said(() => assert.equal(api.product(s, b, null), 'NOT-IMPLEMENTED'));
   /* H8: said out loud on every run, with the count and the sha the parent
      sealed each path at. A release that printed nothing would be a release
      nobody reading the log could see. */
@@ -303,9 +319,9 @@ test('B.8 (3) - a byte moved in a RELEASED file is not drift; the same move in a
      inventory. Removing it refuses by the completeness code. */
   const dropped = spec();
   delete dropped.product[RELEASED];
-  dropped.release = { rulingLineSha256: shaOf(PARTIAL_LINE) };
-  assert.throws(() => api.product(dropped, b, null),
-    /UNLISTED-PRODUCT-DRIFT|RELEASE-GRANTED-PATH-IS-NOT-DECLARED-RELEASED/);
+  dropped.release = { rulingLineSha256: shaOf(PARTIAL2_LINE) };
+  assert.throws(() => api.product(dropped, b, null), /UNLISTED-PRODUCT-DRIFT/,
+    'the completeness walk finds a parent-pinned path that left the inventory');
 });
 
 /* ==== B.8 (4) no PM line, no release ==================================== */

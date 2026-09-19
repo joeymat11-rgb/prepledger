@@ -104,7 +104,11 @@ test('F1 — the SEALED artifact grandfathers its own exact declaration, and not
 test('F1 — "pinned-unchanged" is the honest role, and it is bounded three ways', () => {
   const s = { product: { [OWN]: { pre: at(OWN), post: at(OWN), role: 'pinned-unchanged' } } };
   assert.equal(api.product(s, noParent, unsealed), 'IMPLEMENTED');
-  assert(api.PRODUCT_ROLES.includes('pinned-unchanged') && api.PRODUCT_ROLES.length === 5);
+  // M2-S9-UI-PINS adds the SIXTH role, "released" (H1). F1's own claim is unchanged -
+  // "pinned-unchanged" is in the vocabulary - and the LENGTH assertion moves with the list
+  // rather than being deleted, so the vocabulary still cannot grow unseen. The whole list,
+  // in order, is pinned by F6 below.
+  assert(api.PRODUCT_ROLES.includes('pinned-unchanged') && api.PRODUCT_ROLES.length === 6);
   // (1) the bytes must not have moved,
   const moved = { product: { [OWN]: { pre: '1'.repeat(64), post: '1'.repeat(64), role: 'pinned-unchanged' } } };
   assert.throws(() => api.product(moved, noParent, unsealed), /PRODUCT-PINNED-UNCHANGED-BYTES-MOVED/);

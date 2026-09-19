@@ -348,7 +348,15 @@ const MIN_OWN_CHILDREN = 1;
 // real, the file NOT parent-pinned (a parent-pinned unchanged file is `carried`), and a
 // declared child's argv must execute it. With the name available, role `new` means what it
 // says: a file that did not exist (pre === null) or one this package moves (pre !== post).
-const PRODUCT_ROLES = ['edited', 'carried', 'new', 'superseded-by-child', 'pinned-unchanged'];
+// M2-S9-UI-PINS adds the SIXTH and last, "released" (H1, S9-RELEASE-SPEC B.5).
+// DECISIONS:536 is the owner's ruling that presentation-only files leave the sealed
+// package inventory. "released" is that case and only that case: a file the PARENT
+// sealed, which this package hands out of the seal at the sha256 the parent sealed it
+// at, with NO post-image of its own, under a RULED PM line naming this package and that
+// exact path. It is the only role whose admission is decided by a ledger line rather
+// than by the spec alone, and the vocabulary is fixed HERE and nowhere else (W7), so a
+// spec can neither invent the word nor reach the line that admits it.
+const PRODUCT_ROLES = ['edited', 'carried', 'new', 'superseded-by-child', 'pinned-unchanged', 'released'];
 // W7: every exemption is fixed HERE and nowhere else — the lane-B tooling inventory, the
 // roots a declared child may execute from, and (in spec()) the artifact/review paths the
 // package id itself determines. A spec can never nominate its own exempt path.
@@ -361,6 +369,12 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
   TOOLING + '/test/parent-gate-closure-and-load-floor.test.cjs',
   TOOLING + '/test/gate-supersession.test.cjs',
   TOOLING + '/test/child-diagnostic-tail.test.cjs',
+  // M2-S9-UI-PINS adds the TENTH lane-B suite, release-from-seal.test.cjs, IN THE SAME
+  // HUNK that creates it (S9-RELEASE-SPEC B.8, E fact 13, F.1 R4). Without the line
+  // fidelity() calls the new file UNLISTED-SOURCE-CHANGE on the first --ci run, and it is
+  // the easiest line in this round to forget: the file is evidence for the release
+  // mechanism, so it is inside the change accounting exactly as the other nine are.
+  TOOLING + '/test/release-from-seal.test.cjs',
   // r8 change 2. `receipts/<every id>.json` STOOD HERE and no longer does: the exemption is
   // narrowed to THIS PACKAGE'S OWN receipt and moved into fidelity(), where `ID` is known.
   // It cannot be removed outright — r8 change 1 requires the receipt's bytes to stand in
@@ -933,6 +947,18 @@ const SUPERSESSION_GRANT = /^GATE-SUPERSESSION\s+(M2-[A-Za-z0-9-]+)\s+([a-z0-9]+
 const SUPERSESSION_GRANT_SHAPE = 'GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…], alone in its own · clause';
 // The grant clauses of one ledger line: every `·`-delimited clause that IS a grant token.
 const supersessionGrants = line => line.split('·').map(c => SUPERSESSION_GRANT.exec(c.trim())).filter(Boolean);
+// H2 (S9-RELEASE-SPEC B.2). THE RELEASE TOKEN, and it gets the exact treatment the
+// supersession token above gets, because it is the same kind of act: a PM grants a NAMED
+// package a NAMED exemption, by a token that stands alone in its own `·` clause on a RULED
+// line of the chain branch. DECISIONS:536 (2) requires the line; nothing else can release a
+// path, and no pattern, prefix or wildcard is admitted — the token names whole paths, one
+// by one, so "which files did this package take out of the seal" is answerable by reading
+// one line. Every wrapper r10b N1 measured against the supersession token (a negating word,
+// a quote, a bracket, an emphasis marker, a backtick) leaves the clause something other
+// than the token here too, and frees nothing.
+const RELEASE_GRANT = /^RELEASE-FROM-SEAL\s+(M2-[A-Za-z0-9-]+)\s+([A-Za-z0-9_.\/-]+(?:,[A-Za-z0-9_.\/-]+)*)$/;
+const RELEASE_GRANT_SHAPE = 'RELEASE-FROM-SEAL <packageId> <path>[,<path>...], alone in its own · clause';
+const releaseGrants = line => line.split('·').map(c => RELEASE_GRANT.exec(c.trim())).filter(Boolean);
 // What coverage() ADMITTED, so the --full gate sweep and the seal can see it without being
 // handed it through four signatures. Empty for every package that declares none, and it is
 // written exactly once, by coverage(), after the ruling and the evidence have both stood.
@@ -1070,7 +1096,16 @@ let logDir, ARTIFACT, REVIEW, specRaw;
 // ---------------------------------------------------------------- 1. the spec
 const SPEC_KEYS = ['version', 'lanePackage', 'packageId', 'status', 'brief', 'sourceBase', 'dIds', 'laws', 'carriedAcceptedIds',
   'privateLiveTriggered', 'parent', 'tooling', 'product', 'coverage', 'carrierSuccessor', 'witnessFlips', 'protectedSurfaces',
-  'authorizations', 'artifact', 'children', 'notes'];
+  'authorizations', 'artifact', 'children', 'notes',
+  // H5 (S9-RELEASE-SPEC B.5). `release` is the ONE optional spec key, and it is optional
+  // for the same reason `freeze` is optional in authorizations: every spec sealed before
+  // this role existed carries the twenty-one keys it always carried, and adding the key to
+  // the closed list must not make one of them unreadable. spec() closes it with the freeze
+  // pattern — `keys({ ...s, release: null }, SPEC_KEYS, ...)` — so an absent key is fine, a
+  // present key is fine, and a key that is NEITHER is still refused by name. Whether the
+  // block may stand at all is releaseRuling()'s question, not this list's: a block with no
+  // released declaration behind it refuses RELEASE-BLOCK-WITHOUT-A-RELEASED-DECLARATION.
+  'release'];
 const CLAIM_KEYS = ['ledgerLine', 'role', 'line', 'lineSha256'];
 function claim(v, role, label) { // a ledger citation whose text hashes to the sha it names
   keys(v, CLAIM_KEYS, 'Authorization claim ' + label);
@@ -1223,6 +1258,69 @@ function supersessionRuling(s) {
     granted.add(c);
   }
   return { at, line, granted };
+}
+// H3 (S9-RELEASE-SPEC B.2, steps 1 to 6). THE RELEASE RULING, mirroring
+// supersessionRuling() above line for line, including both of the lessons that function
+// carries: NO CACHE (TOOLING-REVIEW-r10 F4 — the chain file is re-read on EVERY call, so a
+// seal cannot stand on a ruling withdrawn mid-run) and the RULED terminal word (so a lane
+// cannot release anything by writing its own branch's ledger).
+//
+// It is called from product() and from proposed(), and it is the ONLY thing that admits
+// role "released". Six steps, each with its own name:
+//   1 the spec carries release.rulingLineSha256, a 64-hex string and never the text;
+//   2 exactly one line on CHAIN_REF hashes to it;
+//   3 that line ends in RULED;
+//   4 it carries at least one RELEASE-FROM-SEAL token naming THIS packageId;
+//   5 the granted path set and the declared `released` set are EQUAL, both directions, so
+//     the ledger and the spec cannot drift apart in either direction;
+//   6 every granted path is a key of the PARENT artifact's product map — you cannot
+//     release what the parent never sealed — and its declared pre is that parent pin.
+// A package that declares nothing released and carries no block returns an empty grant and
+// reads no ledger line at all, which is every package sealed before this role existed.
+function releaseRuling(s, bound) {
+  const declared = Object.entries(s.product || {}).filter(([, p]) => p && p.role === 'released').map(([f]) => f).sort();
+  const block = Object.hasOwn(s, 'release') ? s.release : null;
+  if (!declared.length && (block === null || block === undefined)) return { at: null, line: null, granted: new Set(), declared };
+  assert(declared.length, 'RELEASE-BLOCK-WITHOUT-A-RELEASED-DECLARATION; this spec carries a release block and declares no file role "released"' +
+    '; an unused grant standing in a sealed spec reads as a grant, so it is refused rather than ignored');
+  assert(block !== null && block !== undefined && typeof block === 'object' && !Array.isArray(block) &&
+    Object.hasOwn(block, 'rulingLineSha256') && block.rulingLineSha256 !== null,
+    'RELEASE-NOT-RULED ' + declared.join(' ') + '; DECISIONS:536 (2) requires a PM line of the shape ' +
+    RELEASE_GRANT_SHAPE + ' and this spec cites none');
+  assert(/^[a-f0-9]{64}$/.test(block.rulingLineSha256), 'RELEASE-RULING-LINE-SHA256-SHAPE');
+  const lines = L.object(root, CHAIN_REF, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
+  const hits = lines.map((line, i) => [i + 1, line]).filter(([, line]) => sha(Buffer.from(line)) === block.rulingLineSha256);
+  assert.equal(hits.length, 1, 'RELEASE-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH ' +
+    hits.length + ' line(s) on ' + CHAIN_REF + ' hash to the recorded sha256');
+  const [at, line] = hits[0];
+  assert(/(?:^|[ ·])RULED$/.test(line.trim()), 'RELEASE-RULING-IS-NOT-A-RULED-LINE DECISIONS:' + at +
+    '; a release stands on a RULED ledger line of the chain branch and on nothing else');
+  const grants = releaseGrants(line);
+  assert(grants.length, 'RELEASE-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN DECISIONS:' + at +
+    '; a release is granted by the exact token ' + RELEASE_GRANT_SHAPE + ' and never by prose about it');
+  const mine = grants.filter(g => g[1] === s.packageId);
+  assert(mine.length, 'RELEASE-RULING-DOES-NOT-NAME-THIS-PACKAGE DECISIONS:' + at +
+    '; its grant token(s) name ' + [...new Set(grants.map(g => g[1]))].join(' ') + ', not ' + s.packageId);
+  const granted = new Set();
+  for (const g of mine) for (const p of g[2].split(',')) granted.add(p);
+  for (const file of declared) assert(granted.has(file), 'RELEASE-DECLARED-PATH-IS-NOT-GRANTED ' + file +
+    ' DECISIONS:' + at + '; this spec declares it role "released" and the ruled line does not name it');
+  for (const file of granted) assert(declared.includes(file), 'RELEASE-GRANTED-PATH-IS-NOT-DECLARED-RELEASED ' + file +
+    ' DECISIONS:' + at + '; the ruled line releases it and this spec does not declare it');
+  const pmap = bound && bound.acceptance && bound.acceptance.product;
+  if (pmap) for (const file of granted) {
+    assert(Object.hasOwn(pmap, file), 'RELEASE-PATH-IS-NOT-A-PARENT-PRODUCT-PIN ' + file +
+      '; a package cannot release what its own parent never sealed');
+    assert.equal(s.product[file].pre, parentPin(pmap[file], file), 'RELEASE-PATH-PRE-IMAGE-IS-NOT-THE-PARENT-PIN ' + file);
+  }
+  // S9-RELEASE-SPEC F.1 R2, and B.6's last row. proposed() puts every child argv target
+  // into executionPins, so a released path that a declared child EXECUTES would be re-pinned
+  // by the back door and inherited by the next generation with nobody the wiser. The two
+  // sets are disjoint, and that is asserted here rather than left to the spec's author.
+  const argv = new Set((s.children || []).flatMap(c => childArgv(c)));
+  for (const file of granted) assert(!argv.has(file), 'RELEASE-PATH-IS-A-CHILD-ARGV-TARGET ' + file +
+    '; proposed() would re-pin it through executionPins and the release would last exactly one generation');
+  return { at, line, granted, declared };
 }
 // REQUESTS 08:40 (b), the SPEC-PHASE shape. Nothing here supersedes anything: it decides
 // only that the block is well formed, that every carrier named is one of the five the
@@ -1454,7 +1552,13 @@ function successorSpecShape(s) {
 function spec() {
   specRaw = fs.readFileSync(path.join(SPEC_DIR, ID + '.json'));
   const s = J.parseExact(specRaw); // exact reviewed bytes + duplicate-decoded-key refusal
-  keys(s, SPEC_KEYS, 'Closed package-spec keys');
+  // H5. The freeze pattern (see SPEC_KEYS): the optional `release` key is closed whether it
+  // stands or not, and every other key is closed exactly as before.
+  keys({ ...s, release: null }, SPEC_KEYS, 'Closed package-spec keys');
+  if (Object.hasOwn(s, 'release') && s.release !== null) {
+    assert(typeof s.release === 'object' && !Array.isArray(s.release), 'RELEASE-BLOCK-SHAPE');
+    keys(s.release, ['rulingLineSha256'], 'Release grant citation');
+  }
   assert.equal(s.version, 1); assert.equal(s.lanePackage, ID);
   // The package id is BOUND to the id on the command line, not merely shaped like one: a
   // spec filed as B1.json cannot carry M2-B2-…'s id and so cannot claim B2's artifact path.
@@ -1526,6 +1630,14 @@ function spec() {
     // real bytes. A pinned-unchanged file that declares a change is a mislabelled `edited`.
     assert(pin.role !== 'pinned-unchanged' || (pin.pre !== null && pin.pre === pin.post),
       'PRODUCT-PINNED-UNCHANGED-DECLARES-A-CHANGE ' + file + '; role "pinned-unchanged" is pre === post by definition');
+    // H4 (S9-RELEASE-SPEC B.4), the DECLARATION half of the new role. A released file has
+    // no post-image IN THIS PACKAGE: the package hands it out of the seal at the byte its
+    // parent sealed it at and stands it nowhere afterwards. `pre` is that parent byte and
+    // is never null (the assert two lines above already says only `new` may be pre: null),
+    // and a `post` of any kind is a package claiming to produce a file it has just stopped
+    // pinning — which is the one sentence this role must never be able to say.
+    assert(pin.role !== 'released' || pin.post === null,
+      'PRODUCT-RELEASED-DECLARES-A-POST ' + file + '; a released file has no post-image in this package, because this package stops standing it anywhere');
   }
   // W3 + N2/N3. Each declared child is schema-checked, its needle is non-empty, and its
   // argv carries only allow-listed flags and then real files under a fixed root — never
@@ -1831,9 +1943,24 @@ function held(s, file, hash, code) {
   assert.equal(gitSha('HEAD', file), hash, code + '-GIT-DISK-DISAGREE ' + file);
   return true;
 }
+// H17's reader (S9-RELEASE-SPEC B.3). The UNION of the `released` blocks of the artifacts
+// THIS WALK READS - the parent's, and the grandparent's if it carries one - and of nothing
+// else. It opens no file, trusts no path an input names, and reaches no artifact pins()
+// has not already read and byte-checked. Taking the union rather than the parent's block
+// alone is what makes the skip survive a second generation: S11's grandparent is S9, which
+// carries the block, and S11's parent S10 does not. Two generations after that the block
+// falls out of the walk's reach entirely and the path is an ordinary undeclared file again,
+// which is exactly what B.7 says a release means.
+const releasedAncestry = (...artifacts) => {
+  const out = new Set();
+  for (const art of artifacts)
+    if (art && art.released && typeof art.released === 'object' && !Array.isArray(art.released))
+      for (const file of Object.keys(art.released)) out.add(file);
+  return out;
+};
 function pins(s, bound) {
   if (!bound) { note('parent and grandparent artifact pins not re-asserted'); return; }
-  const a = bound.acceptance; let kept = 0, gkept = 0, base = 0;
+  const a = bound.acceptance; let kept = 0, gkept = 0, base = 0, greleased = 0;
   for (const [file, entry] of Object.entries({ ...a.product, ...a.executionPins })) {
     if (held(s, file, parentPin(entry, file), 'PARENT-PIN-BROKEN')) kept++; else base++;
   }
@@ -1848,13 +1975,37 @@ function pins(s, bound) {
   }
   // The grandparent is read through the same normaliser: the chain now has both shapes in
   // it, and a grandparent sealed by THIS runner is exactly as likely as a parent.
+  // H17 (S9-RELEASE-SPEC B.3, R1 BLOCKING-1). The skip test one line above asks only about
+  // the PARENT's two maps and knows nothing about a `released` block, so without this line
+  // a released path falls through to held() and is re-asserted against the GRANDPARENT's
+  // pin - which is the S8 pin, for a file S9 handed out of the seal. Both of held()'s
+  // branches are red the first time lane C edits that file, so the release would last
+  // exactly one generation and then re-seal itself at the old byte with no ledger line and
+  // no PM involvement. It is LATENT: the chain stays green until the release is used for
+  // the thing it exists for.
+  //
+  // The skip fires ONLY for a path that (a) stands in an ancestor artifact's `released`
+  // block, which only proposed() writes, which only writes it for a path the spec declared
+  // role "released", which releaseRuling() only admits when a RULED PM line on the chain
+  // branch names this package and that exact path; and (b) was a key of that ancestor's
+  // parent product map. The sha256 the seal stopped at survives twice over: in Git at the
+  // ancestor's own commit, and literally in the block as lastSealedSha256. Nothing else in
+  // either walk moves: every grandparent pin NOT named in a released block still gets both
+  // of held()'s asserts, on disk and in Git at HEAD.
+  const releasedByAncestry = releasedAncestry(a, ga);
   for (const [file, entry] of Object.entries({ ...ga.product, ...ga.executionPins })) {
     if (Object.hasOwn(a.product, file) || Object.hasOwn(a.executionPins, file)) continue;
+    if (releasedByAncestry.has(file)) { greleased++; continue; } // H17
     if (held(s, file, parentPin(entry, file), 'GRANDPARENT-PIN-BROKEN')) gkept++; else base++;
   }
   say('PARENT PINS RE-ASSERTED at run time; ' + kept + ' pin(s) from ' + bound.option.artifact + ' plus its ' +
     Object.keys(a.product).length + ' product pins through the inventory below, and ' + gkept + ' un-superseded grandparent pin(s) from ' +
-    g.artifact + ', byte-identical on disk AND in Git at HEAD; ' + base + ' superseded pin(s) preserved in Git at sourceBase ' +
+    g.artifact +
+    // H17's say clause (R2 N2). gkept has just gone DOWN by the number of skipped paths, and
+    // a count that moves in silence is the thing this runner refuses everywhere else.
+    (greleased ? ' (plus ' + greleased + " skipped as released by an ancestor artifact's released block: " +
+      [...releasedByAncestry].filter(f => Object.hasOwn({ ...ga.product, ...ga.executionPins }, f)).join(' ') + ')' : '') +
+    ', byte-identical on disk AND in Git at HEAD; ' + base + ' superseded pin(s) preserved in Git at sourceBase ' +
     s.sourceBase.slice(0, 7) + '; parent artifact byte-identical in Git at ' + bound.reviewedCommit);
 }
 // Walk the accepted chain to the artifact that still carries the audit baseline (the
@@ -1885,13 +2036,27 @@ function baselineOf(bound) {
 // drops from its inventory, are both UNLISTED-PRODUCT-DRIFT.
 function product(s, bound, sealed) {
   const pmap = bound && bound.acceptance.product, epins = bound && bound.acceptance.executionPins;
-  const at = { pre: [], post: [], carried: [], drift: [], superseded: [], unchanged: [], grandfathered: [] };
+  // H7's bucket (S9-RELEASE-SPEC B.5, R1 N8): released paths are counted in a bucket of
+  // their own and never in one that means "this package stands these bytes".
+  const at = { pre: [], post: [], carried: [], drift: [], superseded: [], unchanged: [], grandfathered: [], released: [] };
+  // H9 (S9-RELEASE-SPEC B.2 step 5, and B.6's last row). The ruling is resolved BEFORE the
+  // inventory walk, so a package that releases a path has already been held to the ledger
+  // line by the time any byte of it is read: the granted set and the declared `released`
+  // set are equal in both directions, every granted path is a parent product pin at the
+  // parent's own byte, and no granted path is a declared child's argv target.
+  const release = releaseRuling(s, bound);
   for (const [file, pin] of Object.entries(s.product)) {
     if (pmap && Object.hasOwn(pmap, file)) {
       // r7b F-E, the second place the flat-sha assumption stood. The child's pre-image must
       // be the byte the parent's seal stands at, whichever shape the parent artifact wrote.
       assert.equal(pin.pre, parentPin(pmap[file], file), 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin: ' + file);
-      assert(pin.role === 'carried' || pin.role === 'edited', 'PARENT-PRODUCT-PIN-NOT-DECLARED-CARRIED-OR-EDITED ' + file);
+      // H6 (S9-RELEASE-SPEC B.5). This is the ONE place a parent pin's role is judged, so
+      // it is the one place "released" has to be admitted. It is admitted beside `carried`
+      // and `edited` and not instead of them: the pre-image equality one line above is
+      // unchanged, and releaseRuling() has already held this exact path to a RULED PM line
+      // naming this package before the walk began.
+      assert(pin.role === 'carried' || pin.role === 'edited' || pin.role === 'released',
+        'PARENT-PRODUCT-PIN-NOT-DECLARED-CARRIED-OR-EDITED ' + file);
       assert(pin.role !== 'superseded-by-child', 'PRODUCT-ROLE-MISLABELLED ' + file + ' is a parent PRODUCT pin, not an execution pin');
     } else if (epins && Object.hasOwn(epins, file)) {
       // Y1 second half / r4 §5.4. The parent pinned this file in executionPins. DECISIONS:109
@@ -1949,6 +2114,17 @@ function product(s, bound, sealed) {
       '" with pre === post; a file this package edits, supersedes or writes must reach a post-image it does not already stand at — a file it declares, runs and leaves alone is role "pinned-unchanged"');
     if (grandfathered) at.grandfathered.push(file);
     if (pin.role === 'new' && pin.post === null && !fs.existsSync(rel(file))) { at.pre.push(file); continue; }
+    // H7 (S9-RELEASE-SPEC B.5), and the placement is the whole of the hunk. A released path
+    // leaves the walk HERE — one line above the disk hash and fifty-seven lines BELOW the
+    // role branch — so that every assert between the two still runs on it on its own
+    // merits, and none of them is a no-op by accident: PRODUCT-PINNED-UNCHANGED-IS-A-PARENT-PIN
+    // passes because the role is not pinned-unchanged, and PRODUCT-CHANGE-ROLE-DECLARES-NO-CHANGE
+    // passes because `noChange` is pre !== null && pre === post, which is false when post is
+    // null. What the skip removes is exactly the disk hash and the bucket ladder below it,
+    // which is the whole of what the role needs: a released path is never hashed by fidelity
+    // and can therefore never reach the drift assert. The precedent is one line above, which
+    // does the same for a `new` pin with post === null.
+    if (pin.role === 'released') { at.released.push(file); continue; }
     const disk = diskSha(file);
     // The POST-image is asked first, and the order is the whole of the change (fix r5
     // follow-up, from lane B's own §4.2 objection). A file this package declares and PINS
@@ -1984,7 +2160,13 @@ function product(s, bound, sealed) {
     ' carried byte-identical from the parent / ' + at.unchanged.length + ' declared role "pinned-unchanged" — executed by a declared child, produced by nothing' +
     ' / 0 unlisted drift' + (pmap ? '; the inventory covers all ' + Object.keys(pmap).length + ' parent-pinned product files' : '') +
     '; ' + at.superseded.length + ' declared role "superseded-by-child" over a parent EXECUTION pin, each equal to the parent byte' +
-    (at.superseded.length ? ' (' + at.superseded.join(' ') + ')' : ''));
+    (at.superseded.length ? ' (' + at.superseded.join(' ') + ')' : '') +
+    // H8 (S9-RELEASE-SPEC B.5). Said out loud on every run, with the count, the ledger line
+    // and the paths. A file leaving the sealed inventory is the largest thing a reseal child
+    // can do to a path, and it must never happen in a line nobody prints.
+    (at.released.length ? '; ' + at.released.length + ' released under DECISIONS:' + release.at +
+      ', each at the sha256 ' + (bound ? bound.acceptance.packageId : 'the parent') +
+      ' sealed it at, not hashed here (' + at.released.join(' ') + ')' : ''));
   // r7 F1, said out loud on every run of a grandfathered package: these files are counted
   // at their post-image and this package wrote none of them. The obligation is non-blocking
   // — the seal that carries them is already accepted — and it names the fix.
@@ -2799,6 +2981,22 @@ function proposed(s, bound) {
   if (s.carrierSuccessor && fs.existsSync(rel(s.carrierSuccessor.file))) pins[s.carrierSuccessor.file] = diskSha(s.carrierSuccessor.file);
   for (const c of s.children) for (const f of childArgv(c)) pins[f] = diskSha(f);
   const covered = [...Object.keys(s.coverage.inherited), ...Object.keys(s.coverage.moves)].sort(), o = bound.option;
+  // H10 (S9-RELEASE-SPEC B.4). A released path is kept OUT of `product` and put into a
+  // block of its own, and that separation is the whole of what "not inherited" means:
+  // product()'s completeness walk reads the PARENT's product map, so a path left inside
+  // this package's `product` would force the NEXT package to declare it and hold its `pre`
+  // to this package's pin, which is inheritance by another name. Out of `product`, the next
+  // package's pmap and epins both miss it and it may be declared `new` or not at all (B.7).
+  // The block is not a record of a removal: it carries the sha256 the seal STOPPED at, the
+  // package that sealed it and the PM line that released it, so the gap between the release
+  // and any later re-seal is measurable from the artifact alone, for ever. It is also what
+  // H17 reads in pins(), which is why the block and that hunk are one design and not two.
+  const release = releaseRuling(s, bound), productMap = {}, releasedMap = {};
+  for (const [file, p] of Object.entries(s.product)) {
+    if (p.role !== 'released') { productMap[file] = p; continue; }
+    releasedMap[file] = { role: 'released', lastSealedSha256: p.pre,
+      sealedBy: bound.acceptance.packageId, rulingLine: release.at, rulingLineSha256: s.release.rulingLineSha256 };
+  }
   return {
     version: 1, lanePackage: ID, packageId: s.packageId, sourceBase: s.sourceBase,
     // X2: the parent's review byte-pin travels INTO the sealed artifact, so a later reader
@@ -2823,13 +3021,28 @@ function proposed(s, bound) {
       run: GATE_IDS.filter(g => !covered.includes(g) && !supersededGateIds(s, bound).includes(g)).sort(),
       moves: s.coverage.moves, successors: s.coverage.successors, supersessions: s.coverage.superseded ?? null,
       byChild: { ...s.coverage.inherited, ...Object.fromEntries(Object.entries(s.coverage.moves).map(([g, m]) => [g, m.child])) } },
-    authorizations: s.authorizations, product: s.product, carrierSuccessor: s.carrierSuccessor, witnessFlips: s.witnessFlips,
+    authorizations: s.authorizations, product: productMap,
+    // H10. Emitted ONLY when this package releases something, so an artifact sealed before
+    // the role existed still recomputes byte-for-byte under this runner.
+    ...(release.declared.length ? { released: releasedMap } : {}),
+    carrierSuccessor: s.carrierSuccessor, witnessFlips: s.witnessFlips,
     protectedSurfaces: s.protectedSurfaces, children: s.children, artifact: { file: ARTIFACT, review: REVIEW }, executionPins: pins,
   };
 }
 const ARTIFACT_KEYS = ['version', 'lanePackage', 'packageId', 'sourceBase', 'parent', 'spec', 'runner', 'dIds', 'laws', 'carriedAcceptedIds',
   'privateLiveTriggered', 'gates', 'coverage', 'authorizations', 'product', 'carrierSuccessor', 'witnessFlips', 'protectedSurfaces',
-  'children', 'artifact', 'executionPins'];
+  'children', 'artifact', 'executionPins',
+  // H11 (S9-RELEASE-SPEC B.4). `released` is the one OPTIONAL artifact key, closed in
+  // envelope() with the same freeze pattern SPEC_KEYS uses for `release`. It has to be
+  // optional rather than required: every artifact sealed before this role existed carries
+  // twenty-one keys and no `released` block, and each of them is re-read by this runner the
+  // moment its spec's tooling.runnerSha256 is re-pinned to these bytes. A required key
+  // would make S8's own sealed artifact unreadable to the runner S8's spec names, which is
+  // a worse failure than the one it would be guarding against. Nothing is loosened by it:
+  // whether the block may stand at all, and exactly what it must contain, is decided one
+  // line below by same(m, proposed(s, bound)), which is where this artifact's real closure
+  // has always lived.
+  'released'];
 // DECISIONS:135 (4) SEAL ON THE TIP, ENFORCED — "the seal runner refuses to seal unless the
 // branch head is on origin/rebuild/t2-client-core (or the PM has written a FREEZE line
 // naming the base)". The diagnosis :135 records is a seal on a stale base costing a whole
@@ -2967,9 +3180,21 @@ function sealedRunReceipt(s, key) {
   if (sr.verdictFile !== VERDICT_FILE) moved.push('the verdict file coordinate');
   // EVERY pinned product file, in both directions — a file the receipt does not carry is as
   // much a change as one whose bytes moved.
-  for (const [file, hash] of Object.entries(sr.product))
+  // H13 (S9-RELEASE-SPEC B.6), BOTH directions. A released path is not a pinned product
+  // file: this package stopped standing its bytes anywhere the moment the PM's line was
+  // ruled, so re-verifying it here would mean the first lane C edit to a released
+  // stylesheet printed SEALED-RUN-RECEIPT-VOID on every authorized rerun FOR EVER, and
+  // every rerun became a FULL run with the private census. The skip is keyed on this
+  // package's own declared role, which releaseRuling() has already bound to a RULED PM line
+  // naming this package and that exact path; every other product file is re-verified in
+  // both directions exactly as before, and a file the receipt does not carry is still as
+  // much a change as one whose bytes moved.
+  const isReleased = file => Object.hasOwn(s.product, file) && s.product[file].role === 'released';
+  for (const [file, hash] of Object.entries(sr.product)) {
+    if (isReleased(file)) continue;
     if (!Object.hasOwn(s.product, file) || !fs.existsSync(rel(file)) || diskSha(file) !== hash) moved.push(file);
-  for (const file of Object.keys(s.product)) if (!Object.hasOwn(sr.product, file)) moved.push(file);
+  }
+  for (const file of Object.keys(s.product)) if (!isReleased(file) && !Object.hasOwn(sr.product, file)) moved.push(file);
   if (moved.length) return { ok: false, code: 'SEALED-RUN-RECEIPT-VOID', file, moved };
   // ":136 (3) … the verdict file names the sealed run's evidence hashes". The verdict is
   // prose and is appended to, so it is not byte-pinned; what is required is that it NAMES
@@ -2990,7 +3215,11 @@ function sealedRunReceipt(s, key) {
 // records are the bytes that run verified. Deterministic: no clock, no counter, no host.
 function writeSealedRunReceipt(s, key) {
   const product = {};
-  for (const file of Object.keys(s.product).sort()) if (fs.existsSync(rel(file))) product[file] = diskSha(file);
+  // H12 (S9-RELEASE-SPEC B.6). The write is the other half of H13: a receipt that carried a
+  // released path would be void the moment the release was used, so the path never enters
+  // the map in the first place and the two directions of the re-verify above stay symmetric.
+  for (const file of Object.keys(s.product).sort())
+    if (s.product[file].role !== 'released' && fs.existsSync(rel(file))) product[file] = diskSha(file);
   const body = { version: 1, lanePackage: ID, packageId: s.packageId,
     sealedRun: { artifactSha256: diskSha(ARTIFACT), specSha256: sha(specRaw), runnerSha256: diskSha(RUNNER),
       envelopeKey: key, verdictFile: VERDICT_FILE, product } };
@@ -3017,7 +3246,7 @@ function envelope(s, bound, ran) {
   }
   assert(bound && bound.decided, 'A sealed artifact requires the PM-named single parent');
   const raw = fs.readFileSync(rel(ARTIFACT)), m = J.parseExact(raw), hash = sha(raw);
-  keys(m, ARTIFACT_KEYS, 'Closed acceptance-artifact keys');
+  keys({ ...m, released: null }, ARTIFACT_KEYS, 'Closed acceptance-artifact keys'); // H11, the freeze pattern
   assert(same(m, proposed(s, bound)), 'SEALED-PROFILE-RECOMPUTATION: the artifact is not the spec, the runner and the pins it names');
   const review = J.parseExact(fs.readFileSync(rel(REVIEW)));
   keys(review, ['version', 'status', 'receipt'], 'Review envelope');
@@ -3187,8 +3416,15 @@ try {
   if (!ci) {
     reverify = first.authorized ? sealedRunReceipt(s, first.key) : { ok: false, code: 'ENVELOPE-NOT-AUTHORIZED' };
     if (reverify.ok) {
+      // H13's count (S9-RELEASE-SPEC B.6, R1 N3's corrected cite). This sentence counted the
+      // WHOLE declared inventory, so after a release it would claim to have re-verified two
+      // files it deliberately did not look at. The pinned count is the inventory minus the
+      // released paths, and the released paths are named in a clause of their own.
       say('AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY (DECISIONS:136 (3)); artifact, runner, spec and all ' +
-        Object.keys(s.product).length + ' pinned product file(s) are byte-identical to the sealed run recorded in ' + reverify.file +
+        Object.values(s.product).filter(p => p.role !== 'released').length + ' pinned product file(s)' +
+        (Object.values(s.product).some(p => p.role === 'released')
+          ? ', plus ' + Object.values(s.product).filter(p => p.role === 'released').length +
+            ' released and NOT re-verified here,' : '') + ' are byte-identical to the sealed run recorded in ' + reverify.file +
         ' ' + reverify.receiptSha + ', whose own bytes stand IN GIT at every base checked and whose sha256 ' + VERDICT_FILE +
         ' names (r8 change 1: a receipt no seal step wrote, or one not committed, refuses here); the private oracle, the historical audit and the ' +
         GATE_IDS.length + ' original gates are NOT re-run on this step — the FIRST full run with the private census stands as the evidence');
