@@ -135,6 +135,29 @@ const WRAPPED_LINES = [
   head + '**' + GRANT + '** is under discussion, not ruled ' + MID + ' RULED',
   head + '`' + GRANT + '` is the shape a future line would carry ' + MID + ' RULED',
 ];
+/* ------------------------------------- fix round 5: five more PM lines
+   Every one of them is a line the PM COULD write, and the runner is what
+   must read it correctly. They stand in the fixture ledger below, AFTER
+   RULING_LINE, so the ruling every other cell cites is still line 1. */
+/* P-A8: the five names JSON.parse yields as ORDINARY OWN KEYS, granted by
+   their own spellings, so the released role is measured over them too. */
+const SPECIAL_LINE = head + 'RELEASE-FROM-SEAL ' + PKG +
+  ' __proto__,constructor,toString,hasOwnProperty,valueOf ' + MID +
+  ' the five names an own key can carry ' + MID + ' RULED';
+/* M01: a SHORTER package id. M2-S9 is not M2-S9-UI-PINS, and a token for
+   one must not free a path of the other. */
+const PREFIX_ID_LINE = head + 'RELEASE-FROM-SEAL M2-S9 ' + RELEASED + ',' + RELEASED2 +
+  ' ' + MID + ' a package id this package merely begins with ' + MID + ' RULED';
+/* M05: a path spelled like a name every object inherits. */
+const MEMBER_LINE = head + 'RELEASE-FROM-SEAL ' + PKG + ' toString ' + MID +
+  ' a path named like an inherited member ' + MID + ' RULED';
+/* M06: written TWICE into the ledger below, so its sha256 locates two lines
+   and a ruling that is not ONE line refuses. */
+const DUPLICATED_LINE = head + GRANT + ' ' + MID + ' a line the PM wrote twice ' + MID + ' RULED';
+/* M23: the token ENDS a clause it does not BEGIN. The five wrapped lines
+   above all carry text AFTER the path list, so the closing anchor refused
+   them whether the opening one stood or not. */
+const MID_CLAUSE_LINE = head + 'the PM may write ' + GRANT + ' ' + MID + ' RULED';
 
 /* ------------------------------------------- the two ancestor artifacts
    The GRANDPARENT is the package that sealed the two paths (S8 in the real
@@ -156,6 +179,7 @@ write(GA_FILE, JSON.stringify({ version: 1, packageId: 'M2-S8-FIXTURE',
 const GA_SHA = at(GA_FILE);
 write('rebuild/DECISIONS.md', [RULING_LINE, PARTIAL_LINE, PARTIAL2_LINE, WIDE_LINE, OTHER_PACKAGE_LINE,
   ARGV_LINE, RUNNER_LINE, SPECFILE_LINE, UNRULED_LINE, NOT_RULED_LINE, NOT_YET_RULED_LINE,
+  SPECIAL_LINE, PREFIX_ID_LINE, MEMBER_LINE, DUPLICATED_LINE, DUPLICATED_LINE, MID_CLAUSE_LINE,
   ...WRAPPED_LINES, ''].join('\n'));
 const shaOf = line => sha(Buffer.from(line));
 
@@ -873,10 +897,14 @@ test('(P-A3) - an ancestor released block at a sha the grandparent never sealed 
   assert.throws(() => said(() => api.pins(s10(), wrong)), /ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN/);
   try { said(() => api.pins(s10(), wrong)); assert.fail('admitted'); }
   catch (e) { assert(e.message.includes(RELEASED), 'the refusal names the path: ' + e.message); }
-  /* A block entry with no lastSealedSha256 at all is the same refusal: an
-     entry that records nothing is not evidence of anything either. */
+  /* A block entry with no lastSealedSha256 at all records nothing and is
+     not evidence of anything either. Under P-A9 (b) it no longer reaches
+     THIS assert: an entry that is not a CLOSED FOUR-KEY RELEASE RECORD is
+     refused one line above, by its own name, which is the ruling Astra's F3
+     earned. The row is kept here, pointing at the name it now prints, so the
+     two refusals are never confused for one another. */
   const shapeless = bound10({ [RELEASED]: { role: 'released', sealedBy: 'M2-S8-FIXTURE' } });
-  assert.throws(() => said(() => api.pins(s10(), shapeless)), /ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN/);
+  assert.throws(() => said(() => api.pins(s10(), shapeless)), /ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD/);
   assert(api.FAIL_CODES.has('ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN'));
   /* THE TWO CONTROLS. The honest block still skips both paths and still says
      how many it stood aside for; and B.8 (12)'s no-op is still a no-op,
@@ -917,4 +945,481 @@ test('(P-A4) - H13 counts the inventory MINUS the released paths, and names them
   assert.equal(source.split("' pinned product file(s)'").length - 1, 2);
   assert(source.includes("if (s.product[file].role !== 'released' && fs.existsSync(rel(file))) product[file] = diskSha(file);"),
     'H12 keeps the released path out of the receipt map the second say counts');
+});
+
+/* =========================================================================
+   FIX ROUND 5. ASTRA'S BLIND REVIEW, and the PM's four rulings on it.
+
+   The review is rebuild/lanes/astra/reviews/S9-PREP-RUNNER-BLIND-REVIEW.md
+   on rebuild/r-astra-s9a-runner at 3c02b072. It REJECTED this branch at
+   4e447ae6 with two blocking integrity defects and two coverage findings,
+   every one of them carrying an exact reproduction. The PM upheld F1 to F4
+   and ruled P-A8 (own keys), P-A9 (the ancestor release record), P-A10 (one
+   canonical spelling at admission) and P-A11 (the seven mutants that lived).
+
+   The cells below are grouped by ruling. Each group says what it measured on
+   the runner AS ASTRA LEFT IT, because a cell that was never red proves only
+   that it agrees with the code beside it.
+   ========================================================================= */
+
+/* ==================== P-A8 (Astra F1, BLOCKING) ==========================
+   `m[k] = v` is not "create an own entry". For k === '__proto__' it runs the
+   accessor Object.prototype carries and sets the object's PROTOTYPE, and the
+   key never appears in Object.keys, in JSON.stringify or in the sealed bytes.
+   JSON.parse yields "__proto__" as an ORDINARY OWN KEY, so a spec or an
+   artifact can carry one and the runner at da9f8683 did keep it: it wrote
+   `product: s.product` by reference. H10 replaced that reference with a loop
+   that assigns, so a declared pin LEFT THE ARTIFACT IN SILENCE - product()
+   counted it, the say named it, the bytes did not have it. The released map
+   lost the permanent release record the same way.
+
+   THE FOUR CONTROLS are the other names that live on Object.prototype and do
+   NOT have a setter: they survived the broken build and must survive this one
+   unchanged, so the cell measures a FIX and not a new special case. */
+const SPECIAL_KEYS = ['__proto__', 'constructor', 'toString', 'hasOwnProperty', 'valueOf'];
+const SPECIAL_BYTES = 'synthetic special-key bytes\n';
+const SPECIAL_SHA = sha(Buffer.from(SPECIAL_BYTES));
+/* Built the way the runner receives every map it reads: through JSON.parse,
+   which makes all five OWN keys. An object literal would not. */
+const ownMapOf = pairs => JSON.parse('{' + pairs.map(([k, v]) =>
+  JSON.stringify(k) + ':' + JSON.stringify(v)).join(',') + '}');
+const specialCarried = () => ownMapOf(SPECIAL_KEYS.map(k => [k, pin(SPECIAL_SHA)]));
+
+test('(P-A8 a) - every own key of the spec becomes an own entry of the artifact product map', () => {
+  const s = spec(); delete s.release;
+  s.product = specialCarried();
+  s.product[KEPT] = pin(KEPT_SHA);
+  const b = bound();
+  b.acceptance.product = specialCarried();
+  const p = api.proposed(s, b);
+  /* MEASURED on the rejected head: oldKeys carried all five, newKeys carried
+     four, and the fifth had become the map's PROTOTYPE. */
+  assert.notEqual(Object.getPrototypeOf(p.product), null);
+  assert.equal(Object.getPrototypeOf(p.product), Object.prototype,
+    'the map prototype was set by a pin instead of an own entry being created');
+  for (const k of SPECIAL_KEYS) {
+    assert(Object.hasOwn(p.product, k), 'the artifact keeps the own key ' + k);
+    assert.equal(p.product[k].pre, SPECIAL_SHA);
+  }
+  assert.deepEqual(Object.keys(p.product), [...SPECIAL_KEYS, KEPT]);
+  /* THE SERIALIZED BYTES, which is what is sealed and what a later reader
+     re-pins against. Object.keys agreeing is not enough on its own. */
+  const round = JSON.parse(JSON.stringify(p));
+  assert.deepEqual(Object.keys(round.product), [...SPECIAL_KEYS, KEPT]);
+  for (const k of SPECIAL_KEYS) assert(Object.hasOwn(round.product, k), k + ' survives the round trip');
+});
+
+test('(P-A8 b) - a RELEASED own key keeps its permanent record in the released block', () => {
+  const b = bound();
+  b.acceptance.product = specialCarried();
+  const s = spec({ release: { rulingLineSha256: shaOf(SPECIAL_LINE) } });
+  /* Built through JSON, exactly as the runner receives a spec off disk:
+     object spread and Object.fromEntries both CREATE own properties and
+     keep all five, and a per-key assignment is the one construction that
+     does not. That is the whole of the defect, so the fixture must not use
+     the broken construction to build its own input. */
+  s.product = ownMapOf([...SPECIAL_KEYS.map(k => [k, released(SPECIAL_SHA)]), [KEPT, pin(KEPT_SHA)]]);
+  const p = api.proposed(s, b);
+  assert.equal(Object.getPrototypeOf(p.released), Object.prototype);
+  assert.deepEqual(Object.keys(p.released), SPECIAL_KEYS);
+  for (const k of SPECIAL_KEYS) {
+    assert(Object.hasOwn(p.released, k), 'the release record survives for ' + k);
+    assert.deepEqual(Object.keys(p.released[k]).sort(),
+      ['lastSealedSha256', 'role', 'rulingLineSha256', 'sealedBy']);
+    assert.equal(p.released[k].role, 'released');
+    assert.equal(p.released[k].lastSealedSha256, SPECIAL_SHA);
+    assert.equal(p.released[k].sealedBy, 'M2-S8-FIXTURE');
+    assert.equal(Object.hasOwn(p.product, k), false, k + ' is out of product');
+  }
+  assert.deepEqual(Object.keys(p.product), [KEPT]);
+  const round = JSON.parse(JSON.stringify(p));
+  assert.deepEqual(Object.keys(round.released), SPECIAL_KEYS);
+  /* MEASURED on the rejected head: the grant was ADMITTED and the artifact
+     said {"granted":["__proto__"],"product":{},"released":{}}. */
+});
+
+test('(P-A8 c) - a package that releases nothing seals the same bytes as the old build', () => {
+  /* THE OLD IMPLEMENTATION, character for character as it stood at 4e447ae6:
+     a plain object literal and one assignment per entry. This cell is the
+     COMPATIBILITY control and it was green before the hunk as well as after;
+     its job is to stop the fix from moving a byte of an artifact that has
+     already been sealed and accepted. */
+  const oldWay = product => { const m = {};
+    for (const [f, p] of Object.entries(product)) if (p.role !== 'released') m[f] = p;
+    return m; };
+  for (const id of ['S8', 'H3']) {
+    const real = JSON.parse(fs.readFileSync(path.join(sourceRoot,
+      'rebuild/lanes/b/tooling/packages/' + id + '.json'), 'utf8'));
+    const built = Object.fromEntries(Object.entries(real.product).filter(([, p]) => p.role !== 'released'));
+    assert.equal(JSON.stringify(built), JSON.stringify(oldWay(real.product)),
+      id + ': the product map bytes do not move');
+    assert.equal(Object.keys(built).length, Object.keys(real.product).length,
+      id + ' declares no released path today, so the whole inventory is compared');
+    assert(Object.keys(real.product).length > 0);
+  }
+  /* And through the REAL proposed(), over this suite's own no-release spec. */
+  const p = api.proposed(releasesNothing(), bound());
+  assert.equal(JSON.stringify(p.product), JSON.stringify(oldWay(releasesNothing().product)));
+  assert.equal(Object.hasOwn(p, 'released'), false);
+});
+
+/* ==================== P-A9 (Astra F3), which REPLACES P-A6 ================
+   The grandparent skip used to believe an ancestor's released entry on a
+   matching hash alone. Astra stood a pin aside with `{lastSealedSha256: H}`,
+   and with a record that said role "carried" and named an unrelated package,
+   and measured "plus 2 skipped" both times. The PM's ruling has three parts:
+
+   (a) releasedAncestry() reads ONLY THE PARENT artifact. Astra's M17 and M18
+       measured that the grandparent half decides nothing reachable, and she
+       measured something worse: a grandparent's own contradictory product +
+       released entry could exempt its own product pin. The argument goes.
+   (b) an entry stands a pin aside only if it is a CLOSED FOUR-KEY RECORD:
+       role exactly "released", two 64-lowercase-hex hashes, and sealedBy
+       equal to the GRANDPARENT's packageId - the package the parent was
+       bound to when it released the path.
+   (c) the path must be an OWN KEY OF THE GRANDPARENT'S PRODUCT MAP (an
+       execution-only pin is never stood aside by a release), and
+       lastSealedSha256 must equal that product pin.
+
+   Each row below builds its own grandparent artifact, so the two honest
+   controls of B.8 (11) and (12) above keep the fixture they were written on. */
+const GA2_FILE = 'rebuild/m4/spec/acceptance-s8-fixture-2.json';
+const ga2 = (product, executionPins, packageId = 'M2-S8-FIXTURE') => {
+  write(GA2_FILE, JSON.stringify({ version: 1, packageId, product, executionPins }, null, 2) + '\n');
+  return at(GA2_FILE);
+};
+const boundA9 = (releasedBlock, product, executionPins = {}, packageId) => ({
+  option: { id: 'S9', artifact: A_FILE, sha256: 'b'.repeat(64) }, decided: true, reviewedCommit: HEAD,
+  acceptance: { packageId: 'M2-S9-FIXTURE', product: {}, executionPins: {}, released: releasedBlock,
+    parent: { id: 'S8', artifact: GA2_FILE, sha256: ga2(product, executionPins, packageId), review: null } },
+});
+const goodEntry = () => ({ role: 'released', lastSealedSha256: PRE,
+  sealedBy: 'M2-S8-FIXTURE', rulingLineSha256: shaOf(RULING_LINE) });
+
+test('(P-A9 a) - the honest four-key record still skips, and the walk reads only the PARENT block', () => {
+  const ok = said(() => api.pins(s10(), boundA9({ [RELEASED]: goodEntry() }, { [RELEASED]: pin(PRE) })));
+  assert.match(ok, /plus 1 skipped as released by an ancestor artifact's released block: /);
+  assert.match(ok, /0 un-superseded grandparent pin\(s\)/);
+  /* (a). The SAME record standing in the GRANDPARENT alone now decides
+     nothing: the released file's bytes moved, so its own pin refuses. Astra
+     measured the old reader exempting a grandparent's own product pin on the
+     strength of a released entry the grandparent itself carried. */
+  const gaOnly = boundA9({}, { [RELEASED]: pin(PRE) });
+  const ga = JSON.parse(fs.readFileSync(path.join(scratch, GA2_FILE), 'utf8'));
+  ga.released = { [RELEASED]: goodEntry() };
+  write(GA2_FILE, JSON.stringify(ga, null, 2) + '\n');
+  gaOnly.acceptance.parent.sha256 = at(GA2_FILE);
+  assert.throws(() => said(() => api.pins(s10(), gaOnly)), /GRANDPARENT-PIN-BROKEN/);
+});
+
+test('(P-A9 b) - an entry that is not a closed four-key release record refuses by name', () => {
+  const rows = [
+    ['the one-key entry Astra used', { lastSealedSha256: PRE }],
+    ['a record that says carried, with an extra key',
+      { role: 'carried', lastSealedSha256: PRE, sealedBy: 'M2-UNRELATED',
+        rulingLineSha256: '0'.repeat(64), extra: true }],
+    ['a four-key record sealed by the wrong package',
+      { role: 'released', lastSealedSha256: PRE, sealedBy: 'M2-SOMEONE-ELSE',
+        rulingLineSha256: shaOf(RULING_LINE) }],
+    ['a four-key record whose ruling hash is not a hash',
+      { role: 'released', lastSealedSha256: PRE, sealedBy: 'M2-S8-FIXTURE', rulingLineSha256: 'not-a-hash' }],
+    ['a four-key record whose last sealed hash is upper case',
+      { role: 'released', lastSealedSha256: PRE.toUpperCase(), sealedBy: 'M2-S8-FIXTURE',
+        rulingLineSha256: shaOf(RULING_LINE) }],
+    ['a five-key record that is otherwise honest',
+      { ...goodEntry(), note: 'why it was released' }],
+  ];
+  for (const [why, entry] of rows) {
+    const b = boundA9({ [RELEASED]: entry }, { [RELEASED]: pin(PRE) });
+    assert.throws(() => said(() => api.pins(s10(), b)),
+      /ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD/, why);
+    try { said(() => api.pins(s10(), b)); assert.fail('admitted: ' + why); }
+    catch (e) { assert(e.message.includes(RELEASED), why + ': the refusal names the path'); }
+  }
+  assert(api.FAIL_CODES.has('ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD'));
+});
+
+test('(P-A9 c) - an execution-only grandparent pin is never stood aside by a release', () => {
+  /* The grandparent EXECUTED this file and never sealed it as product. A
+     release hands a path out of the PRODUCT inventory; it says nothing about
+     a pin that exists because a child ran the file, and Astra measured the
+     old reader skipping one. */
+  const b = boundA9({ [OTHER]: { ...goodEntry(), lastSealedSha256: OTHER_SHA } }, {}, { [OTHER]: OTHER_SHA });
+  assert.throws(() => said(() => api.pins(s10(), b)),
+    /ANCESTOR-RELEASED-BLOCK-IS-NOT-A-GRANDPARENT-PRODUCT-PIN/);
+  try { said(() => api.pins(s10(), b)); assert.fail('admitted'); }
+  catch (e) { assert(e.message.includes(OTHER), 'the refusal names the path: ' + e.message); }
+  assert(api.FAIL_CODES.has('ANCESTOR-RELEASED-BLOCK-IS-NOT-A-GRANDPARENT-PRODUCT-PIN'));
+  /* THE CONTROL. The same path, same record, pinned as PRODUCT: it skips. */
+  const okay = said(() => api.pins(s10(),
+    boundA9({ [OTHER]: { ...goodEntry(), lastSealedSha256: OTHER_SHA } }, { [OTHER]: pin(OTHER_SHA) })));
+  assert.match(okay, /plus 1 skipped as released by an ancestor artifact's released block/);
+  /* AND the hash is still measured against THAT product pin (P-A3's rule,
+     now reading ga.product rather than whichever of the two maps won). */
+  assert.throws(() => said(() => api.pins(s10(),
+    boundA9({ [OTHER]: goodEntry() }, { [OTHER]: pin(OTHER_SHA) }))),
+  /ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN/);
+});
+
+/* ==================== P-A11 rows that need no stage ======================
+   Seven of Astra's twenty-four changes left all ten suites green. Four of
+   them are killed here, against the runner as it stands: these cells were
+   GREEN before this round and RED under the named mutant, which is the only
+   thing a coverage row can honestly claim. M21 is killed by (P-A8 a) and
+   (P-A8 b) above, which name no key at all. M08 and M09 need spec() and are
+   in the stage below. */
+
+test('(M01) - a grant token for a SHORTER package id frees nothing here', () => {
+  /* Astra: `g[1] === s.packageId` -> `s.packageId.startsWith(g[1])`, 130/0,
+     NONE. A ledger line that releases a path of M2-S9 would then release the
+     same path of M2-S9-UI-PINS, which is a different package with a
+     different parent and a different seal. */
+  const s = spec({ release: { rulingLineSha256: shaOf(PREFIX_ID_LINE) } });
+  assert.throws(() => api.proposed(s, bound()), /RELEASE-RULING-DOES-NOT-NAME-THIS-PACKAGE/);
+  try { api.proposed(s, bound()); assert.fail('admitted'); }
+  catch (e) { assert(e.message.includes('M2-S9') && e.message.includes(PKG), e.message); }
+});
+
+test('(M05) - a path named like an inherited member is not a parent product pin', () => {
+  /* Astra: `Object.hasOwn(pmap, file)` -> `file in pmap`, 130/0, NONE. The
+     parent product map is an ordinary object, so "toString" is `in` it and
+     is not a pin of anything. */
+  const s = spec({ product: { toString: released(KEPT_SHA) },
+    release: { rulingLineSha256: shaOf(MEMBER_LINE) } });
+  const b = bound();
+  assert.equal(Object.hasOwn(b.acceptance.product, 'toString'), false);
+  assert.equal('toString' in b.acceptance.product, true, 'the mutant would read this as a pin');
+  assert.throws(() => api.proposed(s, b), /RELEASE-PATH-IS-NOT-A-PARENT-PRODUCT-PIN/);
+});
+
+test('(M06) - two ledger lines hashing alike refuse; a ruling must be ONE line', () => {
+  /* Astra: `assert.equal(hits.length, 1, ...)` -> `assert(hits.length >= 1)`,
+     130/0, NONE. R1 measured this refusal and its cell never joined the ten
+     suite bar, so the assert was free to weaken. It is in the bar now. */
+  const s = spec({ release: { rulingLineSha256: shaOf(DUPLICATED_LINE) } });
+  assert.throws(() => api.proposed(s, bound()),
+    /RELEASE-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH/);
+  try { api.proposed(s, bound()); assert.fail('admitted'); }
+  catch (e) { assert(e.message.includes('2 line(s)'), e.message); }
+  /* The CONTROL: the ordinary ruling hashes to exactly one line and is
+     admitted, so this is a uniqueness test and not a refusal of everything. */
+  assert.doesNotThrow(() => api.proposed(spec(), bound()));
+});
+
+test('(M23) - the token is anchored at the START of its clause', () => {
+  /* Astra: `/^RELEASE-FROM-SEAL` -> `/RELEASE-FROM-SEAL`, 130/0, NONE. The
+     five wrapped lines r10b N1 carried all have text AFTER the path list, so
+     the closing `$` refused them whether the opening `^` stood or not. This
+     line puts the token at the END of a clause it does not begin, which is
+     the one shape only the anchor refuses. */
+  const s = spec({ release: { rulingLineSha256: shaOf(MID_CLAUSE_LINE) } });
+  assert.throws(() => api.proposed(s, bound()), /RELEASE-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN/);
+  /* And the token on its own clause, same line shape otherwise, is admitted. */
+  assert.doesNotThrow(() => api.proposed(spec(), bound()));
+});
+
+/* ==================== THE SPEC-PHASE STAGE ===============================
+   P-A10, and P-A11's M08 and M09. S9-PREP-RUNNER-REVIEW-R2 BLOCKING-1 asked
+   for exactly this and the PM declined it at DECISIONS:567 as too large for
+   the value; Astra then MEASURED the cost of not having it. She disabled two
+   live admissions - `if (false && Object.hasOwn(s,'release')...)` and an
+   `if(false)` in front of the released post-image assert - and all ten suites
+   stayed at 130 pass, 0 fail, because B.8 (1b) pins those two hunks by
+   READING THE RUNNER'S TEXT. A source string is not an execution. The PM has
+   now ORDERED the bounded form Astra proved: spec() executed against a
+   CANONICAL, COMMITTED synthetic package file, with no main sequence, no
+   child, no seal and no receipt.
+
+   The stage is its OWN scratch tree and its OWN Git repository, so nothing
+   here moves a byte of the fixture the twelve B.8 cells were written on. The
+   runner is copied VERBATIM - not one constant is re-pointed - because
+   spec() reads no ledger and no chain ref, and a stage that changes nothing
+   is a stage whose refusals are the runner's own.
+   ========================================================================= */
+const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'earned-s9-spec-'));
+function write2(file, text) {
+  const target = path.join(stage, file);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, text);
+  return text;
+}
+const git2 = (...argv) => cp.execFileSync('git', argv, { cwd: stage, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+for (const original of ['rebuild/conform/v4/postfix/run.cjs', 'rebuild/conform/v4/postfix/target.cjs',
+  'rebuild/conform/v4/postfix/legacy-gates.cjs', 'rebuild/conform/v4/postfix/strict-json.cjs',
+  'rebuild/m4/spec/native-carriers-errors.cjs', 'rebuild/m4/spec/load-write-reference.cjs'])
+  write2(original, fs.readFileSync(path.join(sourceRoot, original)));
+const sourceBytes = fs.readFileSync(path.join(sourceRoot, runnerRel));
+write2(runnerRel, sourceBytes);
+const STAGE_RUNNER_SHA = sha(sourceBytes);
+const STAGE_CELL = 'rebuild/m4/workout/test/s9-spec-probe.test.cjs';
+write2(STAGE_CELL, "'use strict';\nconsole.log('S9 SPEC PROBE: PASS;');\n");
+const STAGE_SPEC_FILE = 'rebuild/lanes/b/tooling/packages/S8.json';
+git2('init', '--quiet', '-b', 'stage-chain');
+git2('config', 'user.email', 's9a@earned.local');
+git2('config', 'user.name', 'lane-b-s9a');
+git2('add', '-A'); git2('commit', '--quiet', '-m', 'the stage tree, with the runner verbatim');
+const STAGE_BASE = git2('rev-parse', 'HEAD').trim();
+
+const stageFile = path.join(stage, runnerRel);
+const m2 = new Module(stageFile, module);
+m2.filename = stageFile;
+m2.paths = Module._nodeModulePaths(path.dirname(path.join(sourceRoot, runnerRel)));
+const baseRequire2 = m2.require.bind(m2);
+m2.require = file => baseRequire2(path.isAbsolute(file) && file.startsWith(stage + path.sep)
+  ? path.join(sourceRoot, path.relative(stage, file)) : file);
+{
+  const saved = process.argv;
+  process.argv = [process.execPath, stageFile, '--ci', '--package', 'S8'];
+  try {
+    /* canonicalSpecPaths is reached through `typeof` for the same reason
+       releaseRuling is at :206: this block is committed RED, against a
+       runner that does not have it yet. */
+    m2._compile(source.slice(0, source.indexOf(delimiter)) +
+      '\nmodule.exports={spec,FAIL_CODES,' +
+      "canonicalSpecPaths:typeof canonicalSpecPaths==='function'?canonicalSpecPaths:null};", stageFile);
+  } finally { process.argv = saved; }
+}
+const api2 = m2.exports;
+test.after(() => {
+  const resolved = fs.realpathSync(stage);
+  assert.equal(path.dirname(resolved), fs.realpathSync(os.tmpdir()));
+  assert(path.basename(resolved).startsWith('earned-s9-spec-'));
+  fs.rmSync(resolved, { recursive: true, force: true });
+});
+
+const stageClaim = (role, text) => ({ ledgerLine: 1, role, line: text, lineSha256: sha(Buffer.from(text)) });
+const stagePin = { pre: 'e'.repeat(64), post: 'e'.repeat(64), role: 'carried' };
+const stageSpec = (over = {}) => ({
+  version: 1, lanePackage: 'S8', packageId: 'M2-S8-PROBE', status: 'PROPOSED',
+  brief: { file: 'rebuild/lanes/b/S8-SPEC-PROBE-BRIEF.md', sha256: 'd'.repeat(64), acceptedLedgerLine: null },
+  sourceBase: STAGE_BASE, dIds: [], laws: {},
+  carriedAcceptedIds: ['D12', 'D33', 'D34', 'D35', 'D41', 'D43'], privateLiveTriggered: [],
+  parent: { decided: true, chosen: null, options: [{ id: 'S7' }] },
+  tooling: { runner: runnerRel, runnerSha256: STAGE_RUNNER_SHA },
+  product: { [STAGE_CELL]: stagePin },
+  coverage: { inherited: {}, moves: {}, successors: null, superseded: null },
+  carrierSuccessor: null, witnessFlips: [], protectedSurfaces: [],
+  authorizations: {
+    owner: stageClaim('owner', '- 2026-09-19 ' + MID + ' owner ' + MID + ' a synthetic owner line ' + MID + ' ACCEPTED'),
+    contract: stageClaim('cowork', '- 2026-09-19 ' + MID + ' cowork ' + MID + ' a synthetic contract line ' + MID + ' ACCEPTED'),
+    theme: null,
+    review: { role: 'cowork', prefix: 'POSTFIX-ACCEPTANCE M2-S8-PROBE', terminal: 'ACCEPTED' },
+  },
+  artifact: { file: 'rebuild/m4/spec/acceptance-s8-probe.json', review: 'rebuild/m4/spec/review-s8-probe.json' },
+  children: [{ name: 's9-spec-probe', argv: ['--test', STAGE_CELL], needle: 'S9 SPEC PROBE: PASS;' }],
+  notes: [],
+  ...over,
+});
+let stageSeq = 0;
+/* WRITE, COMMIT, THEN EXECUTE. spec() holds the package file to its bytes on
+   disk AND to its bytes in Git at HEAD, so a stage variant that is not
+   committed refuses SPEC-BYTES-NOT-THE-REVIEWED-SPEC-IN-GIT and would prove
+   nothing about the thing under test. --allow-empty so that a cell may run
+   one spec twice (once for the throw, once for the message) without the
+   second commit failing for having nothing to record. */
+function stageRun(over = {}) {
+  write2(STAGE_SPEC_FILE, JSON.stringify(stageSpec(over), null, 2) + '\n');
+  git2('add', '-A'); git2('commit', '--quiet', '--allow-empty', '-m', 'stage spec ' + (++stageSeq));
+  return said(() => api2.spec());
+}
+
+test('(P-A10 control) - the canonical stage spec is ADMITTED, so every refusal below is the path alone', () => {
+  const out = stageRun();
+  assert.match(out, /SPEC OBSERVED packages\/S8\.json/);
+  assert.match(out, /1 declared product files/);
+  /* And the runner really executed: this is spec()'s own say, not a string
+     this suite searched the source for. */
+  assert.match(out, /byte-identical on disk and in Git at HEAD/);
+});
+
+test('(P-A10 a) - Astra\'s "./" alias: the collision guard does not see it, and admission refuses it', () => {
+  /* ASTRA'S F2 WITNESS, exactly as she built it: brief.file = "./" + f where
+     f is a path this package RELEASES. Disk and Git resolve the two
+     spellings to ONE file, so the artifact released f and pinned the same
+     file through ./f, and the next generation refused PARENT-PIN-BROKEN on
+     the first lane C edit - through the parent walk, which has no skip.
+     FIRST, measured on the runner as it stands: the execution-pin collision
+     guard inside releaseRuling() compares SPELLINGS and ADMITS the alias.
+     That is why the fix is at admission and not there, and this half of the
+     cell is what stops the spec() check being dropped on the argument that
+     the guard already covers it. */
+  const alias = { file: './' + RELEASED, sha256: 'd'.repeat(64), acceptedLedgerLine: null };
+  assert.doesNotThrow(() => api.releaseRuling(spec({ brief: alias }), bound()),
+    'the spelling comparison admits the alias; spec() is the door');
+  /* SECOND, the door. */
+  assert.throws(() => stageRun({ brief: alias }), /PATH-IS-NOT-CANONICAL/);
+  try { stageRun({ brief: alias }); assert.fail('admitted'); }
+  catch (e) {
+    assert(e.message.includes('brief.file'), 'the refusal names the place: ' + e.message);
+    assert(e.message.includes(RELEASED), 'the refusal names the path: ' + e.message);
+  }
+  assert(api2.FAIL_CODES.has('PATH-IS-NOT-CANONICAL'));
+});
+
+test('(P-A10 b) - every non-canonical spelling refuses at admission, and none is rewritten', () => {
+  /* ONE CANONICAL REPO-RELATIVE SPELLING. An ungranted spelling is REFUSED,
+     never normalised into authority for a different spelling: a guard that
+     rewrote "./x" into "x" would hand the token's authority to a path the PM
+     did not name, which is the failure this is closing, spelled backwards. */
+  const rows = [
+    ['an interior /./', 'rebuild/m3/w7-preview/today/./preview.css'],
+    ['a .. segment', 'rebuild/m3/w7-preview/today/x/../preview.css'],
+    ['a backslash', 'rebuild\\m3\\w7-preview\\today\\preview.css'],
+    ['a leading slash', '/rebuild/m3/w7-preview/today/preview.css'],
+    ['a trailing slash', 'rebuild/m3/w7-preview/today/'],
+    ['an empty segment', 'rebuild/m3//preview.css'],
+    ['a bare dot', '.'],
+    ['the empty spelling', ''],
+  ];
+  for (const [why, p] of rows) {
+    assert.throws(() => stageRun({ product: { [p]: stagePin } }), /PATH-IS-NOT-CANONICAL/, why);
+    try { stageRun({ product: { [p]: stagePin } }); assert.fail('admitted: ' + why); }
+    catch (e) { assert(e.message.includes('product key'), why + ': ' + e.message); }
+  }
+  /* THE CARRIER SUCCESSOR and the SUCCESSOR ORIGINAL are compared by the
+     same mechanism and are held to the same spelling. */
+  assert.throws(() => stageRun({ carrierSuccessor: { file: './' + STAGE_CELL,
+    parent: STAGE_CELL, witnessPins: {} } }), /PATH-IS-NOT-CANONICAL/);
+  /* AND the canonical spelling of the same file is admitted, so this is a
+     rule about spelling and not a refusal of the field. */
+  assert.doesNotThrow(() => stageRun({ carrierSuccessor: { file: STAGE_CELL,
+    parent: STAGE_CELL, witnessPins: {} } }));
+});
+
+test('(M08) - a release block with an extra key refuses THROUGH spec(), not through a source string', () => {
+  /* Astra M08: `if (Object.hasOwn(s,'release') && s.release !== null)` ->
+     `if (false && ...)`. 130 pass, 0 fail, and a live admission was gone. */
+  const releasedPin = { pre: 'e'.repeat(64), post: null, role: 'released' };
+  assert.throws(() => stageRun({ release: { rulingLineSha256: 'a'.repeat(64), extra: true },
+    product: { [STAGE_CELL]: releasedPin } }), /Release grant citation/);
+  /* The CONTROL: the one key the block is allowed, admitted. */
+  assert.doesNotThrow(() => stageRun({ release: { rulingLineSha256: 'a'.repeat(64) },
+    product: { [STAGE_CELL]: releasedPin } }));
+  /* And a block that is not an object at all. */
+  assert.throws(() => stageRun({ release: [{ rulingLineSha256: 'a'.repeat(64) }],
+    product: { [STAGE_CELL]: releasedPin } }), /RELEASE-BLOCK-SHAPE/);
+});
+
+test('(M09) - a released pin that declares a post-image refuses THROUGH spec()', () => {
+  /* Astra M09: prefix the H4 assert with `if (false)`. 130 pass, 0 fail. A
+     package claiming to produce a file it has just stopped pinning is the one
+     sentence this role must never be able to say, and until now the only
+     thing that said so was a string this suite searched for. */
+  assert.throws(() => stageRun({ release: { rulingLineSha256: 'a'.repeat(64) },
+    product: { [STAGE_CELL]: { pre: 'e'.repeat(64), post: 'f'.repeat(64), role: 'released' } } }),
+  /PRODUCT-RELEASED-DECLARES-A-POST/);
+  try {
+    stageRun({ release: { rulingLineSha256: 'a'.repeat(64) },
+      product: { [STAGE_CELL]: { pre: 'e'.repeat(64), post: 'f'.repeat(64), role: 'released' } } });
+    assert.fail('admitted');
+  } catch (e) { assert(e.message.includes(STAGE_CELL), 'the refusal names the path: ' + e.message); }
+  /* The CONTROL: post null, admitted. */
+  assert.doesNotThrow(() => stageRun({ release: { rulingLineSha256: 'a'.repeat(64) },
+    product: { [STAGE_CELL]: { pre: 'e'.repeat(64), post: null, role: 'released' } } }));
+  /* And the neighbouring role is untouched: pre === post is still what
+     "carried" means, and a released pre of null is still refused by the
+     assert two lines above H4. */
+  assert.throws(() => stageRun({ release: { rulingLineSha256: 'a'.repeat(64) },
+    product: { [STAGE_CELL]: { pre: null, post: null, role: 'released' } } }),
+  /PRODUCT-PRE-IMAGE-SHAPE/);
 });
