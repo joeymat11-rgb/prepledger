@@ -61,6 +61,8 @@
    every file design.APPROVED names is UNLISTED. It does not skip and it cannot pass
    vacuously. The exact text is in rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md.
 
+   On a case-sensitive system a case-only rename is already MISSING by lstat; the exact-spelling clause is held by rows on Windows only.
+
    Empty directories, hard links and NTFS streams are outside Git's byte inventory and C.5.1.
 
    NO OWNER DATA. Every fixture is built by this file in a mkdtemp folder out of bytes it
@@ -68,6 +70,7 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
@@ -137,7 +140,9 @@ function judge(root, files, literal, readFile) {
       try { st = fs.lstatSync(full); } catch { st = null; }
       if (st === null) { problem = "MISSING"; break; }
       if (i < parts.length - 1 && !st.isDirectory()) { problem = "NOT-A-REGULAR-FILE"; break; }
-      if (!fs.readdirSync(parent).includes(parts[i])) { problem = "MISSING"; break; }
+      let names;
+      try { names = fs.readdirSync(parent); } catch { problem = "UNREADABLE"; break; }
+      if (!names.includes(parts[i])) { problem = "MISSING"; break; }
     }
     if (problem !== null) { refusals.push("APPROVED-PIN " + problem + " " + file); continue; }
     if (!st.isFile()) { refusals.push("APPROVED-PIN NOT-A-REGULAR-FILE " + file); continue; }
@@ -689,8 +694,8 @@ function s9WithRoot(body) {
 }
 
 
-/* Observe metadata descent as well as byte reads. Restore both synchronous hooks even
-   when an assertion fails; every watched path belongs to this row's own fixture. */
+/* Hooks watch only fs.lstatSync and fs.readdirSync; statSync, opendirSync, async
+   readdir and fs.promises.readdir are not observed. Restore before any assertion. */
 function s9NoDescents(blocked, body) {
   const lstat = fs.lstatSync;
   const readdir = fs.readdirSync;
@@ -701,12 +706,18 @@ function s9NoDescents(blocked, body) {
   };
   fs.lstatSync = (abs, ...args) => { if (inside(abs)) attempts.push("lstat"); return lstat(abs, ...args); };
   fs.readdirSync = (abs, ...args) => { if (abs === blocked || inside(abs)) attempts.push("readdir"); return readdir(abs, ...args); };
-  try { return body(); }
+  let result;
+  let failed = false;
+  let bodyError;
+  try { result = body(); }
+  catch (error) { failed = true; bodyError = error; }
   finally {
     fs.lstatSync = lstat;
     fs.readdirSync = readdir;
-    assert.deepEqual(attempts, [], "refusal must precede metadata descent");
   }
+  if (failed) throw bodyError;
+  assert.deepEqual(attempts, [], "refusal must precede metadata descent");
+  return result;
 }
 
 for (const [name, bytes] of [
@@ -751,11 +762,12 @@ test("Astra P-PACK-1: ordinary nested path stays green", () => {
   });
 });
 
-test("Astra P-PACK-1: a 455-character absolute path stays green", () => {
+test("Astra P-PACK-1: a 455-character absolute path stays green", (t) => {
   s9WithRoot((root) => {
     const tail = "/a.txt";
     const remaining = 455 - root.length - 1 - tail.length;
     const first = "d".repeat(120) + "/" + "e".repeat(120) + "/";
+    if (remaining <= first.length) { t.skip("455-character path: temp root leaves no filename budget"); return; }
     const file = first + "f".repeat(remaining - first.length) + tail;
     assert.equal(path.join(root, ...file.split("/")).length, 455);
     writeAt(root, file, txt("abc"));
@@ -815,6 +827,74 @@ test("Astra P-PACK-1: missing approved ancestor stops before descent", () => {
     assert.deepEqual(refused, ["APPROVED-PIN MISSING missing/a.txt"]);
   });
 });
+
+
+/* R6 listing stub: only the named synthetic directory is denied; restore on every exit. */
+function s9DenyListing(denied, body) {
+  const original = fs.readdirSync;
+  fs.readdirSync = (dir, ...args) => {
+    if (dir === denied) throw Object.assign(new Error("synthetic listing denial"), { code: "EACCES" });
+    return original(dir, ...args);
+  };
+  try { return body(); }
+  finally { fs.readdirSync = original; }
+}
+
+/* Windows RD denies list-directory without denying traversal of a known child. */
+function s9DenyListAcl(denied, body) {
+  const identity = spawnSync("whoami.exe", [], { encoding: "utf8", windowsHide: true });
+  assert.equal(identity.status, 0, "whoami must identify the actual test process account");
+  const principal = identity.stdout.trim();
+  try {
+    const set = spawnSync("icacls.exe", [denied, "/deny", principal + ":(RD)"], { encoding: "utf8", windowsHide: true });
+    assert.equal(set.status, 0, "icacls deny: " + set.stdout + set.stderr);
+    return body();
+  } finally {
+    const clear = spawnSync("icacls.exe", [denied, "/remove:d", principal], { encoding: "utf8", windowsHide: true });
+    assert.equal(clear.status, 0, "icacls remove deny: " + clear.stdout + clear.stderr);
+  }
+}
+
+test("R6 N5: no-descent hooks restore and preserve the body's own error", () => {
+  s9WithRoot((root) => {
+    writeAt(root, "a.txt", txt("abc"));
+    const lstat = fs.lstatSync;
+    const readdir = fs.readdirSync;
+    const own = new Error("body's original error");
+    assert.throws(() => s9NoDescents(root, () => {
+      fs.lstatSync(path.join(root, "a.txt"));
+      fs.readdirSync(root);
+      throw own;
+    }), (error) => error === own);
+    assert.equal(fs.lstatSync, lstat);
+    assert.equal(fs.readdirSync, readdir);
+    assert.throws(() => s9NoDescents(root, () => fs.readdirSync(root)), /refusal must precede metadata descent/);
+    assert.equal(fs.readdirSync, readdir);
+    assert.equal(s9NoDescents(root, () => 42), 42);
+  });
+});
+
+for (const acl of [false, true]) {
+  test("R6 P-PACK-4: unlistable approved parent names UNREADABLE and continues" + (acl ? " Windows ACL" : " injected"),
+    { skip: acl && process.platform !== "win32" ? "Windows list-directory ACL row; Linux permission run belongs to PM" : false }, () => {
+    s9WithRoot((root) => {
+      writeAt(root, "locked/a.txt", txt("abc"));
+      writeAt(root, "open/b.txt", txt("changed"));
+      const denied = path.join(root, "locked");
+      const apply = acl ? s9DenyListAcl : s9DenyListing;
+      apply(denied, () => {
+        assert.equal(fs.lstatSync(path.join(denied, "a.txt")).isFile(), true);
+        assert.throws(() => fs.readdirSync(denied), (e) => ["EPERM", "EACCES"].includes(e.code));
+        const reads = [];
+        assert.deepEqual(approvedPin(root, ["locked/a.txt", "open/b.txt"],
+          { "locked/a.txt": S9_HEX.ascii, "open/b.txt": S9_HEX.ascii },
+          (full) => { reads.push(full); return fs.readFileSync(full); }),
+          ["APPROVED-PIN UNREADABLE locked/a.txt", "APPROVED-PIN MISMATCH open/b.txt"]);
+        assert.deepEqual(reads, [path.join(root, "open", "b.txt")]);
+      });
+    });
+  });
+}
 
 /* THE REAL ROW. The SAME engine the fixture rows run, over the real repository root, the
    real design.APPROVED read at run time, and this cell's own literal. It is RED on this

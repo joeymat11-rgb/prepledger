@@ -52,6 +52,8 @@
    skips and it never passes vacuously. Which of the two refusals it prints is measured in
    S9-PREP-PACK-AUTHOR-REPORT.md and stated at the row.
 
+   On a case-sensitive system a case-only rename is already MISSING by lstat; the exact-spelling clause is held by rows on Windows only.
+
    Empty directories, hard links and NTFS streams are outside Git's byte inventory and C.5.1.
 
    NO OWNER DATA. Every fixture below is built by this file in a mkdtemp folder out of
@@ -59,6 +61,7 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
@@ -179,9 +182,10 @@ const serialise = (entries) =>
    defect prints one line. The order is MISMATCH and MISSING walking the literal in byte
    order, then ADDED in byte order, then NOT-A-REGULAR-FILE, then UNREADABLE, each in byte
    order, which is stable whatever order readdir hands back. */
-function walk(root, rel, observed, irregular, unreadable, readFile) {
+function walk(root, rel, observed, irregular, unreadable, readFile, names) {
   const dirAbs = rel === "" ? root : path.join(root, ...rel.split("/"));
-  for (const name of fs.readdirSync(dirAbs)) {
+  /* The root listing is already guarded by judge; interior directories retain the declared residual. */
+  for (const name of names === undefined ? fs.readdirSync(dirAbs) : names) {
     const childRel = rel === "" ? name : rel + "/" + name;
     if (isIgnored(childRel)) continue;
     const abs = path.join(dirAbs, name);
@@ -218,10 +222,15 @@ function judge(packRoot, literalLines, readFile) {
     if (i < parts.length - 1 && !st.isDirectory()) {
       return ["PACK-PIN NOT-A-REGULAR-FILE " + label(component)];
     }
-    if (!fs.readdirSync(dir).includes(parts[i])) return ["PACK-PIN PACK-ROOT-ABSENT " + label(packRoot)];
+    let names;
+    try { names = fs.readdirSync(dir); } catch { return ["PACK-PIN UNREADABLE " + label(dir)]; }
+    if (!names.includes(parts[i])) return ["PACK-PIN PACK-ROOT-ABSENT " + label(packRoot)];
     dir = component;
   }
   if (st === null || !st.isDirectory()) return ["PACK-PIN PACK-ROOT-ABSENT " + label(packRoot)];
+
+  let rootNames;
+  try { rootNames = fs.readdirSync(packRoot); } catch { return ["PACK-PIN UNREADABLE " + label(packRoot)]; }
 
   const literal = parseLiteral(literalLines);
   if (literal.length === 0) return ["PACK-PIN LITERAL-EMPTY"];
@@ -229,7 +238,7 @@ function judge(packRoot, literalLines, readFile) {
   const observed = new Map();
   const irregular = new Set();
   const unreadable = new Set();
-  walk(packRoot, "", observed, irregular, unreadable, readFile);
+  walk(packRoot, "", observed, irregular, unreadable, readFile, rootNames);
 
   const refusals = [];
   for (const e of literal) {
@@ -249,7 +258,8 @@ function judge(packRoot, literalLines, readFile) {
      system guarantees: such a row is a flake generator on a PC six lanes share. Neither
      sort can produce a false green or a wrong name - both lines are printed either way and
      only their order moves - and the comparator itself is proven by the row "the comparator
-     is byte-wise" below. The ADDED list's sort above DOES have a row. */
+     is byte-wise" below. The ADDED list's sort above has a row on Windows; Linux readdir order may
+     already match byte order, so Linux cannot reliably hold removal of that sort. */
   for (const rel of sortByBytes([...irregular])) refusals.push("PACK-PIN NOT-A-REGULAR-FILE " + rel);
   for (const rel of sortByBytes([...unreadable])) refusals.push("PACK-PIN UNREADABLE " + rel);
   return refusals;
@@ -918,8 +928,8 @@ function s9WithRoot(body) {
 }
 
 
-/* Observe metadata descent as well as byte reads. Restore both synchronous hooks even
-   when an assertion fails; every watched path belongs to this row's own fixture. */
+/* Hooks watch only fs.lstatSync and fs.readdirSync; statSync, opendirSync, async
+   readdir and fs.promises.readdir are not observed. Restore before any assertion. */
 function s9NoDescents(blocked, body) {
   const lstat = fs.lstatSync;
   const readdir = fs.readdirSync;
@@ -930,12 +940,18 @@ function s9NoDescents(blocked, body) {
   };
   fs.lstatSync = (abs, ...args) => { if (inside(abs)) attempts.push("lstat"); return lstat(abs, ...args); };
   fs.readdirSync = (abs, ...args) => { if (abs === blocked || inside(abs)) attempts.push("readdir"); return readdir(abs, ...args); };
-  try { return body(); }
+  let result;
+  let failed = false;
+  let bodyError;
+  try { result = body(); }
+  catch (error) { failed = true; bodyError = error; }
   finally {
     fs.lstatSync = lstat;
     fs.readdirSync = readdir;
-    assert.deepEqual(attempts, [], "refusal must precede metadata descent");
   }
+  if (failed) throw bodyError;
+  assert.deepEqual(attempts, [], "refusal must precede metadata descent");
+  return result;
 }
 
 for (const [name, bytes] of [
@@ -980,11 +996,12 @@ test("Astra P-PACK-1: ordinary nested path stays green", () => {
   });
 });
 
-test("Astra P-PACK-1: a 455-character absolute path stays green", () => {
+test("Astra P-PACK-1: a 455-character absolute path stays green", (t) => {
   s9WithRoot((root) => {
     const tail = "/a.txt";
     const remaining = 455 - root.length - 1 - tail.length;
     const first = "d".repeat(120) + "/" + "e".repeat(120) + "/";
+    if (remaining <= first.length) { t.skip("455-character path: temp root leaves no filename budget"); return; }
     const file = first + "f".repeat(remaining - first.length) + tail;
     assert.equal(path.join(root, ...file.split("/")).length, 455);
     writeAt(root, file, txt("abc"));
@@ -1071,6 +1088,75 @@ test("Astra P-PACK-1: missing pack ancestor stops before descent", () => {
     assert.deepEqual(refused, ["PACK-PIN PACK-ROOT-ABSENT " + toPosix(pack)]);
   });
 });
+
+
+/* R6 listing stub: only the named synthetic directory is denied; restore on every exit. */
+function s9DenyListing(denied, body) {
+  const original = fs.readdirSync;
+  fs.readdirSync = (dir, ...args) => {
+    if (dir === denied) throw Object.assign(new Error("synthetic listing denial"), { code: "EACCES" });
+    return original(dir, ...args);
+  };
+  try { return body(); }
+  finally { fs.readdirSync = original; }
+}
+
+/* Windows RD denies list-directory without denying traversal of a known child. */
+function s9DenyListAcl(denied, body) {
+  const identity = spawnSync("whoami.exe", [], { encoding: "utf8", windowsHide: true });
+  assert.equal(identity.status, 0, "whoami must identify the actual test process account");
+  const principal = identity.stdout.trim();
+  try {
+    const set = spawnSync("icacls.exe", [denied, "/deny", principal + ":(RD)"], { encoding: "utf8", windowsHide: true });
+    assert.equal(set.status, 0, "icacls deny: " + set.stdout + set.stderr);
+    return body();
+  } finally {
+    const clear = spawnSync("icacls.exe", [denied, "/remove:d", principal], { encoding: "utf8", windowsHide: true });
+    assert.equal(clear.status, 0, "icacls remove deny: " + clear.stdout + clear.stderr);
+  }
+}
+
+test("R6 N5: no-descent hooks restore and preserve the body's own error", () => {
+  s9WithRoot((root) => {
+    writeAt(root, "a.txt", txt("abc"));
+    const lstat = fs.lstatSync;
+    const readdir = fs.readdirSync;
+    const own = new Error("body's original error");
+    assert.throws(() => s9NoDescents(root, () => {
+      fs.lstatSync(path.join(root, "a.txt"));
+      fs.readdirSync(root);
+      throw own;
+    }), (error) => error === own);
+    assert.equal(fs.lstatSync, lstat);
+    assert.equal(fs.readdirSync, readdir);
+    assert.throws(() => s9NoDescents(root, () => fs.readdirSync(root)), /refusal must precede metadata descent/);
+    assert.equal(fs.readdirSync, readdir);
+    assert.equal(s9NoDescents(root, () => 42), 42);
+  });
+});
+
+for (const location of ["ancestor", "root"]) {
+  for (const acl of [false, true]) {
+    test("R6 P-PACK-4: unlistable pack " + location + (acl ? " Windows ACL" : " injected"),
+      { skip: acl && process.platform !== "win32" ? "Windows list-directory ACL row; Linux permission run belongs to PM" : false }, () => {
+      s9WithRoot((root) => {
+        const pack = path.join(root, "parent", "pack");
+        writeAt(pack, "a.txt", txt("abc"));
+        const denied = location === "root" ? pack : path.join(root, "parent");
+        const child = location === "root" ? path.join(pack, "a.txt") : pack;
+        const apply = acl ? s9DenyListAcl : s9DenyListing;
+        apply(denied, () => {
+          assert.ok(fs.lstatSync(child), "known child remains traversable");
+          assert.throws(() => fs.readdirSync(denied), (e) => ["EPERM", "EACCES"].includes(e.code));
+          let reads = 0;
+          assert.deepEqual(packPin(pack, ["a.txt " + S9_HEX.ascii], () => { reads++; return txt("abc"); }),
+            ["PACK-PIN UNREADABLE " + toPosix(denied)]);
+          assert.equal(reads, 0);
+        });
+      });
+    });
+  }
+}
 
 /* THE REAL ROW. It runs the SAME engine the fixture rows run, over the real pack root and
    this cell's own literal, and it is RED on this branch by construction: the pack is on

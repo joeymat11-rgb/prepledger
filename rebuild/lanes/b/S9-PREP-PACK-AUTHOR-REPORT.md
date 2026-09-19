@@ -1522,3 +1522,268 @@ warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
  rebuild/lanes/c/ui-port/pack-pin.test.mjs     | 192 +++++++++++++++-
  3 files changed, 673 insertions(+), 4 deletions(-)
 ```
+
+## Check R5: fixed
+
+STATUS: PARTIAL. P-PACK-4 and N2-N6 are implemented and measured below.
+P-PACK-5 is NOT implemented; this is not a completed D-C-FINAL handoff.
+The scope clarification is pending. No commit or push was run.
+
+The requested trusted-root migration requires edits to existing PACK-PIN call-site
+rows and to the R2 Q2 interface assertion (current lines 899-909). That row asserts
+packPin.length === 2 and the exact real call packPin(PACK_ROOT_ABS, LITERAL).
+The brief separately requires every existing row to stay byte-unchanged unless named.
+I asked whether P-PACK-5 authorizes these mechanical interface edits and have not
+assumed the answer. No call site or interface assertion was changed. Consequently
+BLOCKING-2 and N1 remain open, and no cross-drive construction proof is claimed.
+The boundary inference at pack-pin.test.mjs:214-215 is still present.
+
+### Changes and limits
+
+APPROVED guards parent listings, names UNREADABLE for that entry, and continues to the
+later entry. PACK guards ancestor listings and the pack-root listing, returns its
+existing UNREADABLE with the directory's existing label, and does not read file bytes
+on either refusal. Both vocabularies still contain seven words. The root listing is
+passed into the existing walk; an unreadable interior directory retains the existing
+loud-throw residual. That interior listing has not been changed to a named refusal;
+no claim is made that every listing in the entire cell is guarded. This remaining
+literal reading of P-PACK-4's "No listing call stands outside a guard" needs resolution
+alongside the requirement to retain the declared interior-directory residual.
+
+N2: each header states the Windows-only exact-spelling witness.
+N3: PACK's ADDED-sort sentence now says Windows, with the Linux readdir-order reason.
+N4: the named 455-character row skips explicitly when the temp root leaves no filename
+budget; no existing row was changed except that expressly named row in each cell.
+N5: hooks restore in finally; the body's original error is rethrown before the descent
+assertion, which runs after restoration. The successful body's return is preserved.
+N6: the allowed documentation alternative is used: the hook comment names exactly
+lstatSync and readdirSync and explicitly names the APIs it does not watch.
+N9 and N10 were not added to the cells or an unowned brief; they remain PM S9-brief work.
+N12: the digest rows cannot be red at the base, their red-first evidence is the digest mutant.
+
+### Signature before and after (this partial state)
+
+| Cell | Before | Current | Status |
+|---|---|---|---|
+| PACK | line 204: judge(packRoot, literalLines, readFile) | line 208: judge(packRoot, literalLines, readFile) | Unchanged; P-PACK-5 pending |
+| APPROVED | line 122: judge(root, files, literal, readFile) | line 125: judge(root, files, literal, readFile) | Unchanged; listing guarded inside |
+
+The requested future PACK shape is judge(root, packRootRel, literalLines, readFile),
+with the same supplied root/relative-components path for real and fixture calls.
+That signature is a proposal here, not an executed change.
+
+### Red-first evidence
+
+Windows, Node v24.19.0 at the exact executable specified in the assignment.
+Before each TAP batch PowerShell set, on separate lines:
+
+```powershell
+$env:MEASURED_TEST_NOW = '2026-09-03'
+$env:TZ = 'America/New_York'
+```
+
+One Node process at a time. The source copies and probes were written only under the
+scratch directory below. Red-first copies retained the original engines and hooks,
+added only the new rows/helpers/import, and rebound REPO_ROOT to this checkout so
+relocation did not change the real row or design-module lookup. Both literals stayed
+unfilled. Every fixture was synthetic and its cell-created directory was removed.
+
+PACK red-first measured 63 tests / 57 pass / 6 fail:
+
+```text
+
+```
+
+APPROVED red-first measured 45 tests / 41 pass / 4 fail:
+
+```text
+
+```
+
+Each new N5 row fails because the unchanged hook replaces the body's own error.
+Each new listing row fails because the unchanged engine throws on the directory list.
+The injected rows use a guarded fs.readdirSync stub restored in finally.
+The Windows rows execute icacls deny of RD, prove lstat of a known child still works,
+prove readdir fails, then judge; icacls /remove:d runs in finally before fixture cleanup.
+These are real ACL rows, not a simulated success. whoami identifies the actual process
+account: the sandbox account differs from USERNAME. The preliminary USERNAME probe did
+not deny this process, and os.userInfo failed with uv_os_get_passwd ENOMEM; neither is
+claimed as successful permission evidence. The final whoami-based rows passed.
+The ACL rows are Windows-only; injected rows are executable on either OS.
+
+N4 stress copies lengthened only the synthetic s9WithRoot temp-prefix by 160 ASCII
+characters. At the current guard both long-path rows skip by name; removing only the
+budget guard produces these measured TAP failures and RangeError:
+
+```text
+not ok 49 - Astra P-PACK-1: a 455-character absolute path stays green
+  name: 'RangeError'
+not ok 34 - Astra P-PACK-1: a 455-character absolute path stays green
+  name: 'RangeError'
+```
+
+Long-root controls: PACK 63/61/1 with 1 named skip; APPROVED 45/43/1 with 1 named skip.
+Guard-deleted copies: PACK 63/61/2; APPROVED 45/43/2, no skips. All four exited 1.
+The ordinary final-byte runs below have no skips, including the 455-character row.
+
+### Table re-executed at the current cell bytes
+
+This is the full previous 58-mutation inventory plus 19 mutations for the listing and
+hook changes. It is a partial-round table: P-PACK-5 has not changed yet. Each row ran
+ALL rows of its cell in an independent scratch copy. Additional reds exclude the
+intentional real row P62/A44. No failed row was removed to obtain these counts.
+
+| ID | Single-clause change | Additional red TAP rows on Windows | Exit |
+|---|---|---|---:|
+| P01 | Root final guard drops !isDirectory | 17, 34 | 1 |
+| P02 | Component lstat -> stat | 34, 51-52 | 1 |
+| P03 | Pack walk lstat -> stat | 15, 26, 31 | 1 |
+| P04 | LITERAL-EMPTY disabled | 18, 63 | 1 |
+| P05 | Ignore prefix startsWith -> includes | 1-11, 13, 15, 23-26, 29-31, 33-38 | 1 |
+| P06 | Ignore drops slice | 25 | 1 |
+| P07 | sortByBytes uses default sort | 12, 55 | 1 |
+| P08 | serialise uses code-unit order | 54 | 1 |
+| P09 | parseLiteral uses code-unit order | 54 | 1 |
+| P10 | ADDED uses default sort | 55 | 1 |
+| P11 | Irregular output insertion order | NONE | 1 |
+| P12 | Unreadable output insertion order | NONE | 1 |
+| P13 | MISMATCH disabled | 2-5, 9, 22-23, 30, 37, 46-47, 63 | 1 |
+| P14 | MISSING disabled | 7, 15, 35, 63 | 1 |
+| P15 | ADDED disabled | 6, 11, 24-25, 55, 63 | 1 |
+| P16 | Walk file guard disabled | 15, 26, 31 | 1 |
+| P17 | Read catch loses UNREADABLE | 36-38 | 1 |
+| P18 | Digest decodes UTF-8 and normalizes CRLF | 43-44, 46-47 | 1 |
+| P19 | Digest wrong domain | 40-55 | 1 |
+| A01 | LIST-EMPTY disabled | 2, 11, 18, 45 | 1 |
+| A02 | Own-literal guard disabled | 5-6, 11-12, 17, 20, 24, 45 | 1 |
+| A03 | Missing component loses output | 4, 38-40, 45 | 1 |
+| A04 | Final file guard disabled | 10, 19 | 1 |
+| A05 | Read catch loses UNREADABLE | 21-22 | 1 |
+| A06 | MISMATCH disabled | 3, 7-8, 22, 31-32, 42-43, 45 | 1 |
+| A07 | ORPHAN disabled | 6, 11, 15-17, 24, 45 | 1 |
+| A08 | ORPHAN default sort | 24 | 1 |
+| A09 | Component lstat -> stat | 19, 36-37 | 1 |
+| A10 | Digest decodes UTF-8 and normalizes CRLF | 28-29, 31-32 | 1 |
+| A11 | Digest wrong domain | 25-39 | 1 |
+| P20 | Invert boundary selection (pending P-PACK-5 replacement) | 1-11, 13, 15, 18, 20-26, 28-38, 40-55, 58-61, 63 | 1 |
+| P21 | Discard root ancestors | 51-53, 58-61 | 1 |
+| P22 | Begin descent at pack | 1-11, 13, 15, 18, 20-26, 28-38, 40-56, 58-61, 63 | 1 |
+| P23 | Skip first component | 1-11, 13, 15, 18, 20-26, 28-38, 40-55, 58-61, 63 | 1 |
+| P24 | Skip final component | 1-11, 13, 15, 17-18, 20-26, 28-38, 40-50, 53-55, 58-59, 63 | 1 |
+| P25 | Lose accumulated parent | 51-53, 58-61 | 1 |
+| P26 | Drop missing-stat recovery | 16, 19, 56 | 1 |
+| P27 | Refuse missing only on last component | 56 | 1 |
+| P28 | Drop ancestor directory guard | 51-52 | 1 |
+| P29 | Treat final root as ancestor | 17, 34 | 1 |
+| P30 | Drop exact spelling check | 53 | 1 |
+| P31 | Discard descent update | 51-53, 58-61 | 1 |
+| P32 | Misname irregular ancestor | 51-52 | 1 |
+| A12 | Discard approved ancestors | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 33-34, 36-39, 42-43, 45 | 1 |
+| A13 | Begin above trusted root | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42-43, 45 | 1 |
+| A14 | Skip first component | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42-43, 45 | 1 |
+| A15 | Skip final component | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42-43, 45 | 1 |
+| A16 | Lose accumulated parent | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 33-34, 36-39, 42-43, 45 | 1 |
+| A17 | Repeat first component | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 33-34, 36-39, 42-43, 45 | 1 |
+| A18 | Drop missing-stat recovery | 4, 40 | 1 |
+| A19 | Refuse missing only on last component | 40 | 1 |
+| A20 | Drop ancestor directory guard | 36-37 | 1 |
+| A21 | Treat final file as ancestor | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42-43, 45 | 1 |
+| A22 | Drop exact spelling check | 38-39 | 1 |
+| A23 | Descend after irregular ancestor | 36-37 | 1 |
+| A24 | Drop component refusal/continue | 4, 38-40, 42-43, 45 | 1 |
+| A25 | Lower-case pinned refusal spelling | 4 | 1 |
+| A26 | Lose clean-path sentinel | 1, 3-5, 7-8, 10-11, 15-16, 19, 21-22, 25-39, 42-43, 45 | 1 |
+| P33 | Drop ancestor listing guard | 58-59 | 1 |
+| P34 | Drop root listing guard | 60-61 | 1 |
+| P35 | Mislabel unreadable ancestor | 58-59 | 1 |
+| P36 | Drop guarded root-list reuse | NONE | 1 |
+| A27 | Drop listing guard | 42-43 | 1 |
+| A28 | Wrong listing refusal | 42-43 | 1 |
+| A29 | Stop list after component refusal | 42-43 | 1 |
+| PN5a | Do not rethrow body error first | 57 | 1 |
+| PN5b | Replace body error identity | 57 | 1 |
+| PN5c | Do not restore lstat hook | 57 | 1 |
+| PN5d | Do not restore readdir hook | 57 | 1 |
+| PN5e | Drop descent assertion | 57 | 1 |
+| PN5f | Lose successful body return | 51-52, 56-57 | 1 |
+| AN5a | Do not rethrow body error first | 41 | 1 |
+| AN5b | Replace body error identity | 41 | 1 |
+| AN5c | Do not restore lstat hook | 41 | 1 |
+| AN5d | Do not restore readdir hook | 41 | 1 |
+| AN5e | Drop descent assertion | 41 | 1 |
+| AN5f | Lose successful body return | 36-37, 40-41 | 1 |
+| PN4 | Remove budget guard under long synthetic temp root | 49 | 1 |
+| AN4 | Remove budget guard under long synthetic temp root | 34 | 1 |
+
+Survivors as measured on Windows: P11 and P12 are the already-declared output-order
+residuals: these fixture insertion orders do not distinguish the two sorts. P36 also
+survives: removing reuse of rootNames causes another root listing, but the preceding
+root-listing guard has already refused every denied root. With no concurrent writer,
+this mutation changes call count, not the verdict. Linux survival was NOT measured in
+this round. R5 reported P11/P12 surviving on Linux as well; P36's Linux survival is an
+inference from its unchanged refusal path, not an executed result. The exact-spelling
+mutations P30/A22 were killed on this Windows run; R5's Linux survivors remain as stated
+in N2. No new both-system kill or survivor is claimed.
+
+### Current bar and certutil SHA256
+
+| Cell on this PC | Tests | Pass | Fail | Skip | Only failing row |
+|---|---:|---:|---:|---:|---|
+| PACK-PIN | 63 | 62 | 1 | 0 | 62 REAL ROW |
+| APPROVED-PIN | 45 | 44 | 1 | 0 | 44 REAL ROW |
+
+Both exited 1. Their expected real refusals remain:
+
+```text
+PACK-PIN PACK-ROOT-ABSENT rebuild/m1/approved-2026-09-18
+APPROVED-PIN UNLISTED rebuild/m1/approved-2026-09-08/Earned-refinement-A.html
+APPROVED-PIN UNLISTED rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html
+```
+
+Both certutil -hashfile <cell> SHA256 commands succeeded:
+
+```text
+3dee73893b7a6c37cf4e54446b2ebbf0489f75e6da1da29d74e7ae24295330b5  pack-pin.test.mjs
+ed810372bb82d375ea3ff437f02948f6e28bee9a8fd882554da74845a598f075  approved-pin.test.mjs
+```
+
+Both cell files were checked as ASCII with zero CR bytes. Both literal blocks and both
+real-row-to-EOF suffixes compare exactly to the saved originals. Every pre-Astra row
+block compares exactly too. git diff --check passed. The original report prefix was
+retained byte-for-byte; only this ASCII/LF section was appended.
+
+### What I did not verify
+
+P-PACK-5 is not implemented or verified, including the trusted-root mutant and the
+cross-drive-by-construction proof. No Linux execution, Linux real permissions, hosted
+CI, Node 22, filled real literal, real-pack acceptance, product suite or full conformance
+gate. Windows ACL rows were measured inside this sandbox; PM retains the independent
+outside-sandbox permission rerun and the Linux half. No Claude acceptance is claimed.
+No forbidden data/auth/soak path was accessed; no install, node_modules modification,
+receipt/artifact generator, commit, push, checkout, reset, stash, clean or fetch was run.
+Only the two owned cells and this report changed in the worktree. Scratch copies,
+exact mutation replacements and TAP logs are retained at:
+
+```text
+C:\Users\joeym\AppData\Local\Temp\astra-s9-r6-36d0d9a3852f44db8b0ea2bf472df1d2
+```
+
+### Last commands
+
+The final commands are git status --porcelain and git diff --stat -- followed by the
+three owned paths. Their output is pasted below.
+
+```text
+warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
+ M rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md
+ M rebuild/lanes/c/ui-port/approved-pin.test.mjs
+ M rebuild/lanes/c/ui-port/pack-pin.test.mjs
+```
+
+```text
+ rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md | 265 ++++++++++++++++++++++++++
+ rebuild/lanes/c/ui-port/approved-pin.test.mjs |  92 ++++++++-
+ rebuild/lanes/c/ui-port/pack-pin.test.mjs     | 106 ++++++++++-
+ 3 files changed, 447 insertions(+), 16 deletions(-)
+```
