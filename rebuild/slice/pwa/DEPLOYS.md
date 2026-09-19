@@ -13,3 +13,6 @@ never read by the build.
   programme admission rule (P3-PORT-FIX + FIX-2). Deploy requested by this line.
 - 2026-09-18 M2-S8-REAL-SHAPE sealed and merged at e8712f48 (DECISIONS:529): the real-shape
   admission rule (P3-REAL-SHAPE + P3-LAYOUT-V2, the file wins). Deploy requested by this line.
+- 2026-09-18 P3-TODAY-HOTFIX merged at 9742490e (DECISIONS:535): the deployed page hides the
+  desktop review asides, reserves the status bar, and keeps proposals out of the plan
+  headline. Deploy requested by this line.
