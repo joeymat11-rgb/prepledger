@@ -916,7 +916,7 @@ sentence where there had been interpolated text. Line numbers are at `ce4eec5`.
 | 3 | `memory-tools.cjs:178` | "I have read back as much as I hold to in one turn, so I have not read anything else. Ask me again and I will go on." | recall, `COACH_MEMORY_TURN_BOUND`, NEW THIS ROUND |
 | 4 | `memory-tools.cjs:185` | "I could not read what this device has kept, so I will not tell you it is empty. Nothing was changed." | recall, `COACH_MEMORY_UNREADABLE` |
 | 5 | `memory-tools.cjs:192` | "I have nothing kept on that subject on this device." | recall, `COACH_MEMORY_ABSENT` |
-| 6 | `memory-tools.cjs:230` | "I am showing the five most recent. There are more kept on this subject." | recall note, when more were kept |
+| 6 | `memory-tools.cjs:230` | "I am showing the five most recent. There are more kept on this subject." | recall note, when more were kept. **CHANGED IN ROUND 4** by the PM's ruling on R3: see section 14.3 |
 | 7 | `memory-tools.cjs:231` | "That is everything I have kept on this subject." | recall note, when nothing was left out |
 | 8 | `memory-tools.cjs:251` and `:266` | "I could not keep that, and I have kept nothing. Tell me again in your own words." | remember, `COACH_MEMORY_INPUT_INVALID` (an extra argument, and a shape the gate refuses) |
 | 9 | `memory-tools.cjs:257` | "There is no place on this device to keep what you tell me yet, so I have kept nothing." | remember, `COACH_MEMORY_LANE_ABSENT` |
@@ -943,6 +943,11 @@ NOT change it, because the PM's P-F4 says to change no sentence in this round
 and the owner rules this copy at C-UI-6. It is listed here so the ruling covers
 it rather than a later hand discovering it. Nothing athlete-visible ships in the
 meantime.
+
+**ROUND 4 UPDATE.** Review R3 agreed and the PM ruled: a false sentence to the
+athlete is a defect, not a taste question, so row 6 changed in round 4 and stays
+marked PROPOSED. Section 14.3 has the new sentence and the cell that pins both
+notes. No other row in this table changed.
 
 ## 13.6 The mutants for this round's four boundaries
 
@@ -1030,3 +1035,346 @@ SEAL-BASE-IS-NOT-THE-CHAIN-TIP on a branch that does not contain the chain tip
 and a failed step skips every later step, the coach suite included. The merge
 and its re-run of the coach bar on the merged head are recorded in that commit's
 own message.
+
+# 14. R3 finding and notes: fixed or disputed
+
+Round 4, a different hand. Review R3 (`P4B-1-REVIEW-R3.md`) REJECTS on one
+blocking finding and the PM upholds it; the PM then ruled on R3's notes. Nothing
+earlier authors built was discarded. Base for this round: `a40952f1`.
+
+| R3 item | verdict | where |
+| --- | --- | --- |
+| R3-B1 the turn's five facts are not held against concurrent recalls | **FIXED**, red first | 14.1 |
+| R3-N5/H1 the topic tag licenses date components | **FIXED** as the PM ruled, red first | 14.2 |
+| the copy catch on row 6, the recall note can be false | **FIXED**, red first | 14.3 |
+| R3-N3 `unavailable.code` can carry an exception message | **FIXED**, red first, with a measurement R3 did not have | 14.4 |
+| R3-N2 the `turns` map grows without bound | **FIXED**, red first | 14.5 |
+| R3-N1, R3-N4, H2, H3/R3-N6 the sentences | **WRITTEN**, and H3's figure re-measured | 14.6 |
+| the carried items (the budget choice, the quote frame, supersession, turn-scoping a yes, the device id in op ids) | carried to P4b-2, no code | the ruling |
+
+**One thing in this section disputes the ruling's own wording**, and it is 14.1's
+last paragraph. It is a consequence of the remedy the PM named, not a refusal to
+implement it.
+
+## 14.1 R3-B1, FIXED
+
+RED FIRST, at `a40952f1`, on the owner's PC, the cell that is now
+"R3-B1 six CONCURRENT recalls in ONE turn never publish more than five facts":
+
+```
+✖ R3-B1 six CONCURRENT recalls in ONE turn never publish more than five facts
+  AssertionError [ERR_ASSERTION]: the turn published 12 facts in flight
+  together: [2,2,2,2,2,2]
+```
+
+That is R3's own shape and R3's own number, reproduced independently before any
+edit: six topics with two memories each, one turn, `Promise.all` over the six
+recalls.
+
+THE FIX is the file's own discipline, exactly as the ruling names it.
+`memory-tools.cjs` `recall()` now takes the account BEFORE the check, RESERVES
+the whole remaining allowance the moment the check passes and before any await,
+and wraps everything after that in a `try ... finally`:
+
+- the reserve: `if (account) account.used += allowance;` and `let refund = allowance;`
+- the refund of what was not used: `refund = allowance - bounded.shown;`, set
+  only AFTER `assertNoLeak` has passed, so a throw at the last moment refunds the
+  whole reserve rather than part of it
+- the finally: `if (account) account.used -= refund;`, which is the only place
+  the account is written back, so `MEMORY_UNREADABLE`, `MEMORY_ABSENT` and any
+  throw all give the whole reserve back
+
+`envelopeFor()` no longer touches the account at all; it takes the already
+bounded answer instead of the allowance. That removes the second writer, which is
+what made the window possible.
+
+TWO CELLS, both new:
+
+1. "R3-B1 six CONCURRENT recalls in ONE turn never publish more than five facts".
+   It asserts the law (at most `RECALL_MAX` facts in the turn), pins the measured
+   shape, proves the refused calls read nothing, proves the refund landed
+   (`allowance(turn) === 5 - facts`), proves a later recall in the same turn gets
+   what is left, and proves the next turn starts at five.
+2. "R3-B1 a recall that THROWS, is UNREADABLE or is ABSENT gives its whole
+   reserve back". Four recalls in one turn over a lane that throws, then refuses
+   unreadable, then answers empty, then answers: the first three leave the
+   allowance at five and the fourth still gets its facts.
+
+Cell 2 was GREEN at `a40952f1` and is said to be, rather than dressed up as red:
+before the fix nothing was ever reserved, so nothing could be leaked. It is the
+grave for a reserve that forgets to refund, and mutant M-R2 proves it is one.
+
+**WHERE THIS DISPUTES THE TICKET'S WORDING.** The ruling asks for a cell showing
+"exactly five facts in total and the rest `COACH_MEMORY_TURN_BOUND`". A reserve
+cannot give five. `Promise.all` starts all six calls in one synchronous stretch:
+each runs as far as its first `await`, which is inside `lane.forTopic`, so all
+six reach the allowance check before any store read resolves. The first takes the
+whole reserve of five; the other five find nothing left and refuse. The first
+then publishes two and refunds three. MEASURED at the fixed head:
+
+```
+CONCURRENT.per_call       = [2, BOUND, BOUND, BOUND, BOUND, BOUND]
+CONCURRENT.facts_in_turn  = 2
+CONCURRENT.allowance_left = 3
+```
+
+Two, not five. The direction is the safe one: a reserve can only ever publish
+FEWER facts than the bound, never more, which is the data minimisation property
+design point 4 exists for. Five would need the recalls to be SERIALISED inside
+the turn (a per-turn promise chain), which the ruling did not ask for, which adds
+a way for one hung store read to block a whole turn, and which is a design
+decision and therefore the PM's. So the cell asserts the LAW (at most five) and
+pins the measured shape, and this paragraph is here so nobody reads "at most" as
+a quiet retreat from "five". The contract and `model-adapter.md` now say the same
+thing in so many words: parallel recalls return FEWER than five and a caller that
+wants all five issues them one after another.
+
+## 14.2 R3-N5/H1, the third site, FIXED
+
+RED FIRST, at `a40952f1`:
+
+```
+✖ R3-H1 a topic that READS AS A DATE licenses no date, and the topic still travels
+  AssertionError: the request topic tag still publishes a display
+  '2019-07-13' !== ''
+```
+
+Both topic tags (`memory-tools.cjs` `itemFor()` and `envelopeFor()`) now publish
+`display: ""`, exactly as `memoryId` does, and the topic travels as the tag's
+`value`. `faceOf()`, `joinOf()` and every cell that reads a topic already read
+`value`, so nothing downstream moved.
+
+The cell uses the topic `2019-07-13`, not R3's `2019-04-17`. R3's date collides
+with the fixture day `2030-02-04` on the token `04`, which the item's own
+`recordedOn` legitimately licenses in the `date` unit, so R3's sentence would have
+come back `["2019", "17"]` and hidden a third of the finding. `2019-07-13` shares
+no token with the fixture day, so the cell asserts the whole thing:
+
+```
+untraceable("You told me that on 2019-07-13.")  = ["2019", "07", "13"]   (was [])
+untraceable("That is 2019 of them.")            = ["2019"]
+untraceable("You told me that on 2030-02-04.")  = []        positive control
+```
+
+Nothing is lost that was allowed before. Words in a topic were never checked, and
+a topic carrying a figure now fails closed the way a memory text already does.
+Quoting a topic aloud is P4b-2's quote frame.
+
+## 14.3 The recall note, FIXED
+
+RED FIRST, at `a40952f1`:
+
+```
+✖ R3 copy row 6: the recall note is TRUE when the turn's allowance clipped it
+  + 'I am showing the five most recent. There are more kept on this subject.'
+  - 'I am showing the most recent ones I can show in this turn. There are more
+     kept on this subject.'
+```
+
+The clipped note is now "I am showing the most recent ones I can show in this
+turn. There are more kept on this subject." It states no number, so no allowance
+can make it false. The other note, "That is everything I have kept on this
+subject.", is unchanged. BOTH stay marked PROPOSED: the owner rules this copy at
+C-UI-6, and nothing athlete-visible ships before then.
+
+The cell pins both branches and both causes of clipping:
+
+- clipped by the TURN: `shown` 1, `more` true, the new sentence (this is the case
+  the old sentence lied about, since it said five and showed one)
+- clipped by the STORE: a fresh turn, six memories on one topic, `shown` 5,
+  `more` true, the same sentence
+- nothing left out: `shown` 2, `more` false, the old sentence unchanged
+- and `/\d/` does not match the new sentence, so the defect cannot come back in a
+  different number
+
+## 14.4 R3-N3, FIXED, with a measurement R3 did not have
+
+RED FIRST, at `a40952f1`:
+
+```
+✖ R3-N3 a save that THROWS answers a FIXED code, and the message travels untagged
+  AssertionError: memory-host.mjs save() still publishes an exception message as a code
+```
+
+`memory-host.mjs` `save()` now answers the fixed `COACH_MEMORY_WRITE_REFUSED` on
+a throw, with `copy: null`, and the exception's message travels as an untagged
+`detail`. `memory-tools.cjs` carries that `detail` into the refusal's untagged
+`source`, beside the fixed sentence, which is the same channel the dispatch catch
+uses for an exception. `TOOL-CONTRACT.md` gains the code's row, so the table is a
+closed set in fact and not only in presentation.
+
+**AND A MEASUREMENT, REPORTED RATHER THAN HIDDEN.** That catch is DEFENSIVE: no
+fault this harness can inject makes the accepted durable client throw out of
+`execute()`. Measured, four ways, through the real `createMemoryHost` over the
+real client:
+
+```
+quota fault at the IDB API        -> {ok:false, code:"TRANSACTION_WRITE_FAILED"}
+repository.load() throws          -> {ok:false, code:"STAGING_FAILED"}
+repository.commit() throws        -> {ok:false, code:"STAGING_FAILED"}
+repository.load() answers garbage -> {ok:false, code:"STAGING_FAILED"} / a clean save
+an invalid memory shape           -> {ok:false, code:null, copy:"... WORKOUT_INPUT_INVALID"}
+```
+
+So the hazard R3 named was not live on any reachable path, and the fix is right
+anyway and costs three lines. The cell therefore drives the two seams that CAN be
+driven: the source of the catch, and the tool over a lane that answers exactly
+what the fixed host answers. The tool's refusal carries the fixed code, a reason
+with no digit in it, the message in `source`, and `untraceable("Your protein
+target is 777 grams.")` is `["777"]`, so the message licenses nothing.
+
+## 14.5 R3-N2, FIXED
+
+RED FIRST, at `a40952f1`: `AssertionError: TURNS_MAX is not a bound`, then the
+eviction assertion.
+
+`memory-tools.cjs` exports `TURNS_MAX = 64`. `openTurn()` evicts oldest first
+once the map is over that, using the Map's own insertion order, and a turn whose
+account was evicted is treated as a turn nobody opened: `allowanceOf()` already
+answers `RECALL_MAX` for an unknown id and the reserve is a no-op without an
+account, so an evicted turn gets the per-call bound and never more. And when the
+coach's OWN turn object carries a `close`, the memory turn wraps it so the
+account is dropped at once; when it does not, the memory turn grows no `close` it
+did not already have. The shipped C5 and wave-one turns carry none today, which
+is why the cell drives that seam with a coach that does.
+
+The cell asserts the boundary on both sides: AT the cap the oldest account is
+still there, ONE past it the oldest is gone, and an evicted turn still gets only
+the per-call five with `more` true.
+
+## 14.6 The sentences
+
+**R3-N1, the allowance is per coach instance.** `TOOL-CONTRACT.md` now says the
+account belongs to the instance whose `openTurn()` opened it, that two instances
+over one world and one turn id publish five facts each, that a consumer must not
+stack instances, and that **the shipped wiring builds exactly ONE** per world.
+`model-adapter.md` carries the same sentence.
+
+**R3-N4, `faceOf()`'s dead interval line.** It keeps the line and gains the
+comment: `itemFor()` publishes no `interval` member, so it is always null for an
+item this tool published and `joinOf()` falls back to the published `label`,
+which already carries `needs-review`. The line stays because `faceOf` also takes
+a face built by hand from a row, where the interval is real.
+
+**H2, the standing condition on the accepted layer.** `TOOL-CONTRACT.md` now
+states it where the `remember` refusals are listed: the accepted layer's own
+`copy` is carried into the refusal's `reason` verbatim, a `reason` is a `text`
+tag, and that carve-out is safe ONLY while every refusal sentence that can reach
+`saved.copy` is a fixed sentence with no interpolation of SUBMITTED INPUT. R3
+read the two client files on that path and found only fixed sentences. One
+interpolation I measured on that path appends the layer's own fixed code (for
+example "This couldn't be saved on your phone. Nothing was recorded.
+`WORKOUT_INPUT_INVALID`"), which is the layer's word and not the athlete's, so
+the condition holds today. Nothing enforces it and no cell would notice, which is
+exactly why it is written down.
+
+**H3/R3-N6, the byte paragraph, re-worded and RE-MEASURED.** `model-adapter.md`
+now separates the two figures and says which is which:
+
+| what | measured | where |
+| --- | --- | --- |
+| one recall of five memories at `TEXT_MAX` | `turnContextBytes` **9446** | the "P-F2 MEASURED" cell |
+| the same turn plus three remembers of the same size | `turnContextBytes` **22118** | the same cell, extended this round |
+
+9494 became 9446 because the two topic displays are now empty: 14.2's fix made
+the envelope 48 bytes smaller, and the cell that READS `model-adapter.md` caught
+the drift on the first run, which is the cell doing its job.
+
+22118 is larger than R3's 20183 for the same shape because my measurement runs
+each write through its propose step AND its yes, which is the only way a memory
+is written through this boundary; R3's counted the yes alone. Both numbers are
+stated, R3's with its scope, and the cell now pins BOTH figures against the file,
+so neither can drift silently. The paragraph no longer says a turn "cannot go
+past it by asking again" without saying what it cannot go past: the FIVE FACTS
+are bounded, the BYTES are not, and bringing the turn under the standing budget
+is P4b-2's named choice.
+
+## 14.7 The mutants for this round's five boundaries
+
+Each is ONE meaningful source edit, applied to the committed code at `df7745d`,
+the WHOLE coach suite run each time, then reverted. Each LOADS and runs, so none
+is a parse-error kill. Baseline before any mutant and control after the last
+revert: **311 pass, 0 fail**, `git status --porcelain` empty.
+
+These ran in the PM's cloud reading room, in a scratch worktree cut from the
+pushed head, not on the owner's PC: the baseline there is the same 311/311 as the
+bar of record, and no mutant was ever applied to the PC worktree. The bar of
+record in 14.8 is the PC's.
+
+| mutant | the one edit | what died |
+| --- | --- | --- |
+| M-R1 | the reserve is removed and the spend goes back after the store read (the pre-fix mechanism, faithfully) | "R3-B1 six CONCURRENT recalls", and only it (310/311) |
+| M-R2 | `let refund = allowance` becomes `let refund = 0`, so a refusal keeps its reserve | "R3-B1 a recall that THROWS" AND "PRB-03 the topic match is EXACT" (309/311) |
+| M-R3 | the request topic tag publishes its display again | "R3-H1" AND "P-F2 MEASURED" (309/311) |
+| M-R4 | the clipped note claims FIVE again | the note cell, and only it (310/311) |
+| M-R5 | the eviction loop is disabled | the R3-N2 cell, and only it (310/311) |
+| M-R6 | the save catch publishes the exception message as a code again | the R3-N3 cell, and only it (310/311) |
+
+Two mutants have a second grave, and both are worth the PM's eye:
+
+- **M-R2 also kills PRB-03.** PRB-03 asks five non-existent topics in one turn
+  and then a real one. With a reserve that is never refunded on a refusal, the
+  real one is refused. That is precisely the failure the ruling warned of ("a
+  turn whose first recall finds nothing will refuse the next one"), found by a
+  cell written long before this round, which is a better proof of the refund than
+  my own cell is.
+- **M-R3 also kills "P-F2 MEASURED".** Putting the topic display back makes the
+  envelope 9494 bytes again, and the byte cell reads `model-adapter.md`. The two
+  fixes are independent; the coupling is the contract refusing to drift.
+
+## 14.8 The bar of record, on the owner's PC, at `df7745d`
+
+`MEASURED_TEST_NOW=2026-09-03`, `TZ=America/New_York`, win32, in
+`%TEMP%\earned-p4b`.
+
+| command | result |
+| --- | --- |
+| `node --test "rebuild/coach/test/*.test.cjs"` | **tests 311, pass 311, fail 0**, EXIT 0 (305 at `a40952f`, plus this round's 6) |
+| `node rebuild/t2/rig187.cjs` | **PASS**, exit 0 |
+| `node --test "rebuild/client/test/*.test.cjs"` (control, untouched) | **tests 18, pass 18, fail 0** |
+| `git diff --numstat a40952f..df7745d` | `rebuild/coach` only: `TOOL-CONTRACT.md`, `memory-host.mjs`, `memory-tools.cjs`, `model-adapter.md`, `test/memory.test.cjs` |
+| U+2013 and U+2014 on ADDED lines of that diff | **0**, counted on the diff itself |
+
+The two printed measurements in that run:
+
+```
+P-F2 MEASURED worst case: one recall, five memories at TEXT_MAX, turnContextBytes 9446
+P-F2 MEASURED turn: one recall of five plus three remembers, turnContextBytes 22118
+```
+
+Custody is unchanged: every file this round touched is one the ruling's section 2
+names, and no file outside `rebuild/coach` and `rebuild/lanes/c` moved. The
+chain-tip merge and one bar run on the merged head follow this commit, and the
+result is recorded at the end of this section.
+
+## 14.9 The probe set, committed
+
+`rebuild/lanes/c/P4B-1-PROBES.md`, as the PM asked. Read its first section
+before its tables: **the probe set's own text was never committed to this
+repository** and is not in any file this lane can read, so that file is the probe
+set as the author's report records it (ids, names, the assumed surface) and NOT
+the reviewer's wording. It says so at the top and it lists the three things about
+the original document that are not recoverable. Nothing in it is invented.
+
+## 14.10 What THIS round does not prove
+
+- **Five concurrent facts.** See 14.1's last paragraph. The turn is bounded at
+  five and measures two under `Promise.all`; it is not five, and serialising to
+  make it five is a design decision I did not take.
+- **That `memory-host.mjs`'s save catch is reachable.** 14.4 measures that it is
+  not, through four injected faults. The fix is right; the cell that proves it is
+  a source scan plus a tool-level behaviour cell, not a live fault.
+- **That no other consumer stacks a second `createMemoryTools`.** R3-N1 is now a
+  sentence in two contracts. Nothing enforces it and no cell would catch it.
+- **That the accepted layer's refusal copy will stay fixed.** H2 is a standing
+  condition, written down, unenforced, and it is now the contract's problem
+  rather than a thing only R3 knew.
+- **Anything about a screen.** The coach surface is still a stub until C-UI-6 and
+  no sentence in the copy list ships before the owner rules it.
+- I read nothing under `rebuild/conform/private`, no `ledger/` directory, no
+  `src/history.js`, no `EarnedPort`, no protected soak, on either machine, and I
+  created no junction to `rebuild\conform\private`. I never ran
+  `b-package.cjs --full`. No law, guard, pin or test was weakened, skipped or
+  deleted; the six cells this round adds are additions, and the only existing
+  cell that changed is "P-F2 MEASURED", which gained a second measurement and
+  kept every assertion it already had.
