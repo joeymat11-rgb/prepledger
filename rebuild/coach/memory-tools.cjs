@@ -433,7 +433,7 @@ function createMemoryTools({ world, coach } = {}) {
        word; wave1-tools.cjs already refuses an unknown tool without quoting it.
        The name travels in `source`. Mutant M-T is this line's grave. */
     return refuse(name, TIERS[name] === undefined ? null : TIERS[name], turn_id,
-      "MEMORY_TOOL_NOT_IN_LIST", "That is not one of the coach's tools, so I did nothing.",
+      "MEMORY_TOOL_NOT_IN_LIST", T.UNKNOWN_TOOL_COPY,
       "memory-tools.cjs TIERS: " + String(name));
   }
 

@@ -86,6 +86,7 @@ const TEMPLATES = Object.freeze({
   /* Every refusal states what happened once, in the refusing layer's own words. */
   unavailable: (u) => {
     const said = typeof u.reason === "string" && u.reason ? u.reason : "I cannot answer that from what the app holds.";
+    if (T.refusalHasOwnEnding(u.code)) return said;
     return join([said, /nothing (is|was) recorded|unchanged|I have not recorded|I have kept nothing/i.test(said)
       ? "" : " Nothing was recorded."]);
   },

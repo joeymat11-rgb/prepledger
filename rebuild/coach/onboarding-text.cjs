@@ -77,6 +77,8 @@ const TEMPLATES = Object.freeze({
     " Your week is unchanged."]),
   unavailable: (u) => {
     const said = typeof u.reason === "string" && u.reason ? u.reason : "I cannot answer that from what the app holds.";
+    if (T.refusalHasOwnEnding(u.code)) return said;
+    if (u.code === T.CODES.CONFIRMATION_REQUIRED && /nothing is recorded yet/i.test(said)) return said;
     return join([said, /unchanged|nothing was recorded|not recorded/i.test(said) ? "" : " Nothing was recorded."]);
   },
 });

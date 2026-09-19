@@ -1,5 +1,23 @@
 "use strict";
 
+// Diagnostics are data, and formatting them must never throw from a catch.
+function provenance(value) {
+  try { return typeof value === "string" ? value : String(value); }
+  catch { return "(unprintable)"; }
+}
+const UNKNOWN_TOOL_COPY = "I cannot use that tool here, so I did nothing.";
+
+// These refusal codes already carry their complete spoken line. In particular,
+// an arbitrary tool throw cannot justify any assertion about earlier writes.
+const COMPLETE_REFUSALS = new Set([
+  "WAVE1_TOOL_THREW", "ONBOARDING_TOOL_THREW",
+  "WAVE1_TOOL_NOT_IN_LIST", "ONBOARDING_TOOL_NOT_IN_LIST", "MEMORY_TOOL_NOT_IN_LIST",
+  "CHECKIN_INPUT_INVALID", "CHECKIN_NOT_RECORDED", "COACH_MACHINE_SETTINGS_INVALID",
+  "SETUP_INPUT_INVALID", "CLEAN_INIT_SETUP_REQUIRED", "CLEAN_INIT_SPLIT_REQUIRED",
+  "CLEAN_INIT_EXERCISES_REQUIRED", "CLEAN_INIT_EXERCISE_REQUIRED", "CLEAN_INIT_PRIORITY_MUSCLES_REQUIRED",
+]);
+const refusalHasOwnEnding = (code) => COMPLETE_REFUSALS.has(code);
+
 /* tools.cjs — the coach's ONLY window onto Earned.
  *
  * Binding rule (VOICE-COACH-BRIEF.md, owner ruling DECISIONS:89): voice is the
@@ -664,16 +682,41 @@ function createCoachTools(world) {
         "rebuild/m3/w7-preview/today/checkin-model.mjs");
     }
     const draft = checkin.draft();
+    const before = draft.state();
     try { apply(draft); }
     catch (error) {
+      // The model holds this live draft in a closure. Restore via its public
+      // setters, putting fields last because choice/issue/sleep setters clear
+      // dependent fields. No await occurs between snapshot, apply and rollback.
+      const after = draft.state();
+      for (const [group, value] of Object.entries(before.choices)) {
+        if (after.choices[group] !== value) draft.choose(group, value === null ? after.choices[group] : value);
+      }
+      for (const [issue, value] of Object.entries(before.issues)) {
+        if (after.issues[issue] !== value) draft.toggleIssue(issue);
+      }
+      if (after.sleepConfirm !== before.sleepConfirm) {
+        if (before.sleepConfirm === "confirmed") draft.confirmSleep();
+        else if (before.sleepConfirm === "rejected") draft.answerSleepHere();
+        else if (after.sleepConfirm === "confirmed") draft.confirmSleep();
+        else draft.answerSleepHere();
+      }
+      for (const [field, value] of Object.entries(before.fields)) draft.set(field, value);
       return unavailable(tool, TIER.FACT, turn_id, CODES.CHECKIN_INPUT_INVALID,
         "I could not record that check-in answer. Nothing was recorded.",
-        (error && error.message) || "rebuild/m3/w7-preview/today/checkin-commands.cjs answersOf()");
+        "checkin-commands.cjs answersOf(): " + provenance(error && error.message));
     }
     const saved = await checkin.save();
     if (!saved.ok) {
-      return unavailable(tool, TIER.FACT, turn_id, saved.code || "CHECKIN_NOT_RECORDED",
-        saved.copy || null, "checkin-model.save -> checkin-host.save -> client.execute('workout', {action:'checkin'})");
+      const model = await import("../m3/w7-preview/today/checkin-model.mjs");
+      // The sealed model returns NO refusal codes. These are its entire fixed
+      // copy vocabulary; host diagnostics can otherwise be joined into copy.
+      const fixed = [model.ALREADY_RECORDED, model.NOTHING_ANSWERED, model.NO_STORE,
+        model.HOURS_OUT_OF_RANGE, model.DAYS_INVALID, model.SAVE_REFUSED];
+      const known = saved.code === undefined && fixed.includes(saved.copy);
+      return unavailable(tool, TIER.FACT, turn_id, "CHECKIN_NOT_RECORDED",
+        known ? saved.copy : "I could not record that check-in answer. Nothing was recorded.",
+        "checkin-model.mjs save(): code=" + provenance(saved.code) + "; copy=" + provenance(saved.copy));
     }
     const view = checkin.read();
     return assertNoLeak(ok(tool, TIER.FACT, turn_id, {
@@ -1070,6 +1113,7 @@ function startLiveSession({ cap, now, optIn, user } = {}) {
 }
 
 module.exports = {
+  provenance, UNKNOWN_TOOL_COPY, refusalHasOwnEnding,
   createCoachTools, TIER, CODES, NEVER_VIA_COACH, TIER3_TOPICS,
   tagged, blank, num, text, numericTokens, collectTagged, allowedTokens, untraceable, traceable,
   parseUnits, UNIT_WORDS, FIELD_WORDS, BARE_SPEAKABLE, carriesNumber,

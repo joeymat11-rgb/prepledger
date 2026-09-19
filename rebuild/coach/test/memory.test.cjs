@@ -1714,6 +1714,7 @@ test("P-F1 an unknown tool name is refused with a FIXED sentence, and the name l
     const r = await tools.dispatch(name, {}, "turn-pf1-name");
     assert.equal(r.ok, false);
     assert.equal(r.unavailable.code, "MEMORY_TOOL_NOT_IN_LIST");
+    assert.equal(r.unavailable.reason, "I cannot use that tool here, so I did nothing.");
     assert.equal(r.unavailable.reason.includes(name), false,
       "the refusal quotes the caller's tool name back: " + r.unavailable.reason);
     assert.equal(/\d/.test(r.unavailable.reason), false,

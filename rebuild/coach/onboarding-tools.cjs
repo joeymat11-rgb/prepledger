@@ -94,7 +94,7 @@ const unavailable = (tool, tier, turn_id, code, reason, source) =>
       code: T.tagged(turn_id, "coach.refusal.code", code, "code", ""),
       reason: T.text(turn_id, "coach.refusal." + code, reason),
     }),
-    state_unchanged: true }));
+    ...(code === C6_CODES.TOOL_THREW ? {} : { state_unchanged: true }) }));
 
 /* ----------------------------------------------------------- the factory -- */
 
@@ -356,7 +356,7 @@ function createOnboardingTools({ setup, catalogue, model, commands, effective = 
       const code = typeof message === "string" && Object.prototype.hasOwnProperty.call(model.REFUSAL_SENTENCES || {}, message)
         ? message : C6_CODES.SETUP_INPUT_INVALID;
       return unavailable("submit", TIER.FACT, turn_id, code,
-        model.COPY.saveRefused, message || "setup-commands.mjs prepare()");
+        model.COPY.saveRefused, "setup-commands.mjs prepare(): " + T.provenance(message));
     }
     if (!host || typeof host.save !== "function") {
       return unavailable("submit", TIER.FACT, turn_id, C6_CODES.SETUP_HOST_ABSENT,
@@ -404,15 +404,15 @@ function createOnboardingTools({ setup, catalogue, model, commands, effective = 
      without a debugger. There is no default handler (mutant C4). */
   async function dispatch(name, args, turn_id) {
     if (typeof turn_id !== "string" || !turn_id) throw new TypeError("dispatch: a turn_id is required");
-    if (!Object.prototype.hasOwnProperty.call(TIERS, name) || typeof IMPL[name] !== "function") {
+    if (typeof name !== "string" || !Object.prototype.hasOwnProperty.call(TIERS, name) || typeof IMPL[name] !== "function") {
       return T.assertNoLeak(Object.freeze({
         ok: false, tool: name, tier: null, turn_id,
         code: C6_CODES.TOOL_NOT_IN_LIST,
-        reason: "That is not one of the coach's tools, so I did nothing.",
+        reason: T.UNKNOWN_TOOL_COPY,
         allowed: ONBOARDING_TOOLS.slice(),
         unavailable: Object.freeze({ code: C6_CODES.TOOL_NOT_IN_LIST,
-          reason: "That is not one of the coach's tools, so I did nothing.",
-          source: "onboarding-tools.cjs TIERS: " + String(name) }),
+          reason: T.UNKNOWN_TOOL_COPY,
+          source: "onboarding-tools.cjs TIERS: " + T.provenance(name) }),
         values: Object.freeze({}),
         state_unchanged: true,
       }));
@@ -422,7 +422,7 @@ function createOnboardingTools({ setup, catalogue, model, commands, effective = 
       /* A refusal, never a stack past the caller. */
       return unavailable(name, TIERS[name], turn_id, C6_CODES.TOOL_THREW,
         "Something went wrong inside that tool on this device. I could not complete the request.",
-        "onboarding-tools.cjs dispatch: " + ((error && error.message) || "the tool refused"));
+        "onboarding-tools.cjs dispatch: " + T.provenance(error && error.message));
     }
   }
 
