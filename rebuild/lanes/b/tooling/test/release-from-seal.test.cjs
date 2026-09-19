@@ -1216,6 +1216,22 @@ test('(P-A9 d) - four keys are not the four NAMED keys, and a grandparent with n
     boundG4({ [RELEASED]: { ...goodEntry(), sealedBy: '' } },
       { packageId: '', product: { [RELEASED]: pin(PRE) } }))),
   /ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD/);
+  /* Astra R6, HER LIVE SINGLE-CLAUSE CHANGE: deleting the `typeof
+     block.sealedBy === 'string'` subclause left all ten suites green,
+     because the only other reader of the field is assert.equal, which is
+     `==`, and `new String('M2-S8-FIXTURE') == 'M2-S8-FIXTURE'` is TRUE.
+     A wrapper object is not the name it prints: it is a distinct identity
+     with its own own-keys, and a record that carries one has not said
+     WHICH package sealed the pin it wants stood aside. The clause already
+     refuses it (she measured the refusal); what was missing was the row
+     that holds the clause ALONE, which is N12's lesson and the reason H26
+     was split into three asserts in the first place. JSON cannot deliver
+     this identity (her D3), so the witness is a direct call, exactly like
+     the rest of this cell. */
+  assert.throws(() => said(() => api.pins(s10(),
+    boundG4({ [RELEASED]: { ...goodEntry(), sealedBy: new String('M2-S8-FIXTURE') } },
+      { packageId: 'M2-S8-FIXTURE', product: { [RELEASED]: pin(PRE) } }))),
+  /ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD/);
   /* THE CONTROL: the honest record under the named grandparent still skips. */
   assert.match(said(() => api.pins(s10(), boundG4({ [RELEASED]: goodEntry() },
     { packageId: 'M2-S8-FIXTURE', product: { [RELEASED]: pin(PRE) } }))),
@@ -1593,6 +1609,60 @@ test('(P-A13) - two spellings of ONE file on a case-insensitive disk refuse at a
   /* AND THE SAME SPELLING TWICE IS NOT A COLLISION: the stage spec pins
      STAGE_CELL as a product key and runs it as a child argv target. */
   assert.doesNotThrow(() => stageRun());
+  assert(api2.FAIL_CODES.has('PATH-CASE-COLLISION'));
+});
+
+/* ============ H27 (Astra R6 BLOCKING B1, and G3 STILL OPEN) =============
+   P-A13 closed the collision between two SPEC-DECLARED spellings and left
+   the two coordinates proposed() supplies ITSELF outside the walk. The
+   comment above canonicalSpecPaths said they "cannot be misspelled by an
+   input", which is true of the constants and false of the rule: a spec
+   does not have to misspell the runner to collide with it, it only has to
+   declare a SECOND spelling of the same physical file.
+
+   ASTRA'S R6 WITNESS, EXECUTED, not a hypothetical: tooling.runner is the
+   runner's own path and product["rebuild/lanes/b/tooling/b-PACKAGE.cjs"]
+   is declared role "released" at the runner's own hash, sealed by the
+   parent at the same hash. She measured spec() ADMITTED, product()
+   IMPLEMENTED, envelope() authorized=true and released=[the alias] while
+   executionPins still held "rebuild/lanes/b/tooling/b-package.cjs": the
+   artifact handed the runner out of the seal and re-pinned the same
+   physical file through the other spelling, and appending one line to that
+   ONE file then printed PARENT-PIN-BROKEN
+   rebuild/lanes/b/tooling/b-package.cjs, actual 3606a68d4901d461...,
+   expected 71c1b2592b5a3544.... That is F2's failure again, through the
+   one door P-A13 left open.
+   THE FIX IS THE SAME RULE MADE TOTAL: the walk is SEEDED with the two
+   fixed coordinates BEFORE any spec-declared spelling is pushed, so the
+   identity comparison sees every path proposed() will pin, not only the
+   ones an input supplies. Nothing is rewritten and uppercase is still not
+   refused: the EXACT spelling of either coordinate is what the standing
+   packages already declare, and it is admitted, here, by the control. */
+test('(H27) - a case alias of a FIXED execution coordinate refuses at admission', () => {
+  const releasedPin = { pre: 'e'.repeat(64), post: null, role: 'released' };
+  const grant = { rulingLineSha256: 'a'.repeat(64) };
+  const rows = [
+    ['the runner', runnerRel, 'rebuild/lanes/b/tooling/b-PACKAGE.cjs'],
+    ['the package spec file', STAGE_SPEC_FILE, 'rebuild/lanes/b/tooling/packages/S8.JSON'],
+  ];
+  for (const [what, fixed, alias] of rows) {
+    const witness = { release: grant,
+      product: ownMapOf([[alias, releasedPin], [STAGE_CELL, stagePin]]) };
+    assert.throws(() => stageRun(witness), /PATH-CASE-COLLISION/, what);
+    try { stageRun(witness); assert.fail('admitted: ' + what); }
+    catch (e) {
+      assert(e.message.includes(JSON.stringify(fixed)),
+        what + ': the refusal names the fixed coordinate: ' + e.message);
+      assert(e.message.includes(JSON.stringify(alias)),
+        what + ': the refusal names the alias: ' + e.message);
+    }
+    /* THE CONTROL, and it is the STANDING CASE measured over the twelve
+       package files: the coordinate declared at its OWN spelling as an
+       ordinary product key is admitted. This refuses two spellings; it
+       never refuses a coordinate. */
+    assert.doesNotThrow(() => stageRun({
+      product: ownMapOf([[fixed, stagePin], [STAGE_CELL, stagePin]]) }), what);
+  }
   assert(api2.FAIL_CODES.has('PATH-CASE-COLLISION'));
 });
 
