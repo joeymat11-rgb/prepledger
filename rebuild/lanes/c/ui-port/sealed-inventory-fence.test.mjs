@@ -1170,6 +1170,140 @@ test("R3 BLOCKING-1 (20) - a spec whose parent.chosen resolves to NO option is r
   }
 });
 
+/* R3 BLOCKING-2, AND IT CORRECTS F9 RATHER THAN UNDOING IT. F9's first answer asked
+   whether the MERGE BASE held the chain's CURRENT artifact bytes. The cell's own comment
+   at the check says the question is whether THIS BRANCH MOVED IT, and those two differ
+   for every branch cut before the chain last moved that artifact - which, after any
+   reseal, is most of them. Inside that window the tamper check was simply OFF.
+
+   R3 built the window and measured it, three worlds, and the three rows below are those
+   three worlds. Against the merge-base form A and B SKIPPED and C PASSED WITH NO REFUSAL
+   AT ALL; against the diff form all three are refused by name. A and B are exactly what
+   R2 N4 ruled out - a verified child has no business changing its PARENT's sealed
+   artifact - and C is a PASS where R2's shipped fence gave a FAIL.
+
+   Rows (6), (6b), (6c), (8g), (17) and (19) are UNEDITED and stay green under both forms:
+   a mutation table proves a clause is needed, not that it is narrow enough, which is why
+   M20 and M21 both died and the window shipped anyway. */
+
+/* WORLD A: the chain seals a NEW artifact after this branch was cut, and the branch is a
+   well-formed reseal child of that new artifact which ALSO widens it in its own
+   worktree. Every one of the five conditions holds, so the claim is entered - and the
+   tamper must take it away again. */
+test("R3 BLOCKING-2 (21) - a verified child widening the chain's NEWLY sealed artifact is a tamper", () => {
+  const root = chain({ product: [APP, CSS] });
+  const A = headOf(root);
+  const NEWART = SPEC_DIR + "acceptance-s9-fixture.json";
+  /* the chain advances on a line of its own, so the merge base stays at A and the branch
+     never carried acceptance-s9-fixture.json at all. */
+  git(root, ["checkout", "-q", "-b", "chainline"]);
+  put(root, NEWART, inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9", product: [APP, CSS] }));
+  commit(root, "the chain seals a new artifact");
+  git(root, ["update-ref", CHAIN_REF, "HEAD"]);
+  const sha = shaOfBlob(root, CHAIN_REF, NEWART);
+  git(root, ["checkout", "-q", "main"]);
+
+  put(root, PACKAGES + "S10.json", specFile({ packageId: "S10", parentId: "S9",
+    artifact: NEWART, sha256: sha, sourceBase: A }));
+  put(root, RUNNER, runnerStub(["S7", "S8", "S10"]));
+  put(root, APP, "the child's own edit\n");
+  put(root, NEWART, inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9", product: [CSS], released: [APP] }));
+  commit(root, "the reseal child, widening its parent's newest artifact");
+
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.artifactPath, NEWART, "the chain did not advance");
+  assert.equal(r.status, "fail",
+    "a verified child widened the chain's newest artifact and stood aside: " + JSON.stringify(r.reason));
+  assert.equal(r.reason, null, "it printed a stand-aside reason anyway: " + String(r.reason));
+  assert.ok(r.refusals.includes("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + NEWART), names(r));
+  /* and, being fenced as an ordinary branch, its own sealed touch is named too. */
+  assert.ok(r.refusals.includes("FENCE-SEALED-PATH-TOUCHED M " + APP), names(r));
+});
+
+/* WORLD B: the same path, whose BYTES the chain moved after the branch was cut - which is
+   what every reseal of an existing artifact path does. */
+test("R3 BLOCKING-2 (22) - a verified child widening a RE-sealed artifact path is a tamper", () => {
+  const root = chain({ product: [APP, CSS] });
+  const A = headOf(root);
+  git(root, ["checkout", "-q", "-b", "chainline"]);
+  put(root, FIX_ART, inventory({ packageId: "M2-S8-FIXTURE-V2", product: [APP, CSS] }));
+  commit(root, "the chain re-seals the same artifact path");
+  git(root, ["update-ref", CHAIN_REF, "HEAD"]);
+  const sha = shaOfBlob(root, CHAIN_REF, FIX_ART);
+  git(root, ["checkout", "-q", "main"]);
+
+  put(root, PACKAGES + "S9.json", specFile({ packageId: "S9", parentId: "S8",
+    artifact: FIX_ART, sha256: sha, sourceBase: A }));
+  put(root, RUNNER, runnerStub(["S7", "S8", "S9"]));
+  put(root, APP, "the child's own edit\n");
+  put(root, FIX_ART, inventory({ product: [CSS], released: [APP] }));
+  commit(root, "the reseal child, widening the re-sealed artifact");
+
+  const r = fence(root, CHAIN_REF);
+  /* the fixture really does build the window: the merge base carried the artifact, but
+     NOT the bytes the chain now holds. */
+  const base = gitText(root, ["merge-base", CHAIN_REF, "HEAD"]).trim();
+  assert.notEqual(shaOfBlob(root, base, FIX_ART), sha,
+    "the fixture does not build the window at all: the merge base already held the chain's bytes");
+  assert.equal(r.status, "fail",
+    "a verified child widened a re-sealed artifact and stood aside: " + JSON.stringify(r.reason));
+  assert.ok(r.refusals.includes("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART), names(r));
+  assert.ok(r.refusals.includes("FENCE-SEALED-PATH-TOUCHED M " + APP), names(r));
+});
+
+/* WORLD C, AND IT IS THE PLAINEST OF THE THREE: no spec, no claim, no sealed touch. An
+   ORDINARY branch cut before the chain's newest artifact FORGES that artifact in its own
+   worktree with released = every path. Against the merge-base form it PASSED with no
+   refusal at all - and a forged inventory in a worktree is the one thing this cell was
+   written to name, whatever it does or does not buy the branch. */
+test("R3 BLOCKING-2 (23) - an ORDINARY branch FORGING the chain's newest artifact FAILS by name", () => {
+  const root = chain({ product: [APP, CSS], free: [TEMPLATE] });
+  const A = headOf(root);
+  const NEWART = SPEC_DIR + "acceptance-s9-fixture.json";
+  git(root, ["checkout", "-q", "-b", "chainline"]);
+  put(root, NEWART, inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9", product: [APP, CSS] }));
+  commit(root, "the chain seals a new artifact");
+  git(root, ["update-ref", CHAIN_REF, "HEAD"]);
+  git(root, ["checkout", "-q", "main"]);
+
+  put(root, TEMPLATE, "harmless\n");
+  put(root, NEWART, inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9", product: [], released: [APP, CSS] }));
+  commit(root, "an ordinary branch forging the chain's newest artifact in its worktree");
+
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.artifactPath, NEWART, "the chain did not advance");
+  assert.equal(r.status, "fail",
+    "a branch forged the chain's newest artifact in its worktree and PASSED: " + names(r));
+  assert.deepEqual(r.refusals, ["FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + NEWART], names(r));
+  /* and the forgery is invisible to the sealed-path loop, which is why the tamper check
+     is the only thing that can name it: the artifact is not a key of its own product map
+     and TEMPLATE was never sealed. */
+  assert.equal(r.touched, 2, "the fence read more than the branch's own change: " + String(r.touched));
+
+  /* AND THE HALF THAT MUST STILL PASS, so the diff limb is not widened into an accusation:
+     the same branch, cut at the same place, that does NOT touch the artifact - and that
+     DOES touch another file in the artifact's own directory, so the row measures that the
+     limb names the ARTIFACT PATH and not rebuild/m4/spec/. Widen it to the directory and
+     F9 re-opens for every branch that adds a review file beside the artifact. */
+  const quiet = chain({ product: [APP, CSS], free: [TEMPLATE] });
+  const B = headOf(quiet);
+  git(quiet, ["checkout", "-q", "-b", "chainline"]);
+  put(quiet, NEWART, inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9", product: [APP, CSS] }));
+  commit(quiet, "the chain seals a new artifact");
+  git(quiet, ["update-ref", CHAIN_REF, "HEAD"]);
+  git(quiet, ["checkout", "-q", "main"]);
+  put(quiet, TEMPLATE, "harmless\n");
+  put(quiet, SPEC_DIR + "review-fixture.json", "{\n \"note\": \"a review beside the artifact\"\n}\n");
+  commit(quiet, "an ordinary branch that touches nothing sealed");
+  assert.equal(B, gitText(quiet, ["merge-base", CHAIN_REF, "HEAD"]).trim(), "the fixture moved the merge base");
+  const rq = fence(quiet, CHAIN_REF);
+  assert.equal(rq.artifactPath, NEWART, "the chain did not advance in the control");
+  assert.equal(rq.touched, 2, "the control does not touch " + SPEC_DIR + " at all: " + String(rq.touched));
+  assert.equal(rq.status, "pass",
+    "F9 re-opened: a branch that never touched the artifact was accused of tampering with it: "
+    + names(rq));
+});
+
 /* ================================================================ THE REAL ROW ========
    Everything above runs against a repository this file built. This one runs against the
    repository this file is IN, and it is the whole point of the cell: on every push to a
