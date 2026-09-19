@@ -6,8 +6,9 @@ FIX ROUND author: cowork (Earned lane hand), commits FIX 1/3 to FIX 3/3, answeri
 `rebuild/lanes/d/F2-LAND-REVIEW-R1.md` finding by finding in section 9.
 MICRO FIX ROUND 3 author: cowork (Earned lane hand), answering
 `rebuild/lanes/d/F2-LAND-REVIEW-R2.md` and the PM's own two findings in section 11.
-ASTRA R3 fix: uncommitted work on the worktree based at 68ed2fc2, measured on
-win32 with Node v24.19.0. Sections 0, 3, 7.4, 7.5, 11 B2, 12 and 13 give the
+ASTRA R3 fix: previous round based at 68ed2fc2, committed by PM4 at 963df540.
+ASTRA continuation: uncommitted work on rebuild/d-f2-land-astra4 at 963df540,
+measured on win32 with Node v24.19.0. Sections 0, 3, 7.4, 7.5, 11 B2, 12 and 13 give the
 current result. Other measurements retain their historical heads and authors;
 Astra did not rerun the earlier linux, seal, importer or retirement work.
 This report is a HYPOTHESIS. The next reviewer is told to disagree wherever the evidence lets him.
@@ -16,10 +17,12 @@ Scope ruled by the PM (`DECISIONS:557`): THE TAG HALF ONLY. NO ENGINE BYTE MOVES
 
 ## 0. HEADLINE
 
-ASTRA FINAL BAR: **NOT MET in this environment.** F2 is 71/71/0; the required
-plan-edit run is 90 tests / 88 pass / 2 fail. Both failures report esbuild
-directory access denied before the browser assertions can complete. No test
-was weakened and no out-of-scope file was changed. Full evidence is in 13.
+ASTRA FINAL BAR: F2 is **74 tests / 74 pass / 0 fail** on this revision. The
+previous sandbox plan-edit run measured 90 tests / 88 pass / 2 fail because
+esbuild could not read a directory. PM4 reports rerunning the same four paths
+on the same PC outside the sandbox at the previous round's bytes: **90 tests /
+90 pass / 0 fail**, plus F2 **71 / 71 / 0**. Plan-edit was not rerun in this
+continuation. Section 13 separates those measurements and their attribution.
 
 Three commits land the module, one cell and one CI step. Three more answer review R1: a
 thirteen-cell red-first coverage file, its place in the same CI step, and this report. Two more
@@ -50,12 +53,12 @@ and "ZERO ... acceptance ... ZERO ... raw throw" were false. R3 demonstrated two
 ACCEPTING and two DEGRADING survivors, plus an unpinned tags-absent identity path.
 G35-G39 now kill those five terms; G40-G41 record two further raw-throw laxities.
 
-**AS MEASURED on this uncommitted revision: 141 mutants, 119 killed by test rows,
-2 stopped at cell initialization, 20 survivors. A fresh 712-case differential
-corpus finds 2 ACCEPTING survivors, 1 DEGRADING survivor and 17 REDUNDANT only
-against those 712 cases.** Sections 7.4-7.5 name the method, every survivor and
-the three remaining coverage gaps. This is finite evidence, not a proof that
-the remaining terms are removable or that every possible term was enumerated.
+**AS MEASURED on this uncommitted revision: 141 mutants, 122 killed by test rows,
+2 stopped at cell initialization, 17 survivors. The same 712-call differential
+corpus finds 0 ACCEPTING survivors, 0 DEGRADING survivors and 17 REDUNDANT only
+against those 712 calls.** G42-G44 kill the previous three outcome-changing
+survivors. Sections 7.4-7.5 name the method and every remaining survivor.
+This is finite evidence, not a proof that the remaining terms are removable or that every possible term was enumerated.
 
 ## 1. WHAT LANDED
 
@@ -156,11 +159,11 @@ Two files, each named by exact path, never globbed. The comment above the step r
 F2 cell files that are deliberately absent and why, so a file with no CI home is still a file
 somebody decided about (`DECISIONS:186 (3)`).
 
-The F2 comment now carries the measured count values: **71 tests, 71 pass** and
-**forty-one cells** in guard-coverage.test.mjs. Only those count values change
-(43 occurs twice); the run line and all other workflow bytes stay unchanged.
+The F2 comment now carries the measured count values: **74 tests, 74 pass** and
+**forty-four cells** in guard-coverage.test.mjs. Only those count values change
+(71 becomes 74 twice); the run line and all other workflow bytes stay unchanged.
 The retained comment's linux attribution belongs to earlier rounds: Astra's new
-71-test measurement is win32 only. No new linux or GitHub-job result is claimed.
+74-test measurement is win32 only. No new linux or GitHub-job result is claimed.
 
 ## 4. THE BAR, ON BOTH OPERATING SYSTEMS
 
@@ -673,13 +676,16 @@ Nothing was changed to go green and no guard was weakened: the mutated bytes liv
 farm scratch worktree, the driver restores the file after every row and asserts the restored
 bytes are identical, and the module's sha256 is the same before and after the sweep.
 
-### 7.4 ASTRA'S R3 RE-MEASUREMENT: METHOD AND COUNT
+### 7.4 ASTRA'S CONTINUATION RE-MEASUREMENT: METHOD AND COUNT
 
 Measured in an OS-temp scratch with these seven files mirrored at their relative
 paths: the landed module, the lane copy, both F2 cells, exercise-catalogue.mjs,
 athlete-state.cjs and its engine/constants.cjs dependency. The worktree module
 was never written. Each scratch mutation was restored before the next run.
 
+The retained R3 generator was reused; its 141 generated source variants compare
+identically with the previous mutants.json. The corpus.cjs copy is byte-identical
+to the retained R3 script. Only G42-G44 were added to the witness run list.
 The generator masks strings, regex literals and comments while retaining source
 offsets, finds every if condition, splits only its top-level || operators, and
 replaces one resulting exact span with false. It emits **125 mutants**. Nested
@@ -703,20 +709,20 @@ reporter. F2-G22's standing byte-pin failure is excluded when counting survivors
 | measured on this revision, win32 | count |
 |---|---|
 | generated / supplemental / total | 125 / 16 / 141 |
-| killed by at least one test row besides G22 | 119 |
+| killed by at least one test row besides G22 | 122 |
 | cell initialization failures, counted separately | 2 |
-| survivors, only G22 red | 20 |
-| ACCEPTING survivors against 712 calls | 2 |
-| DEGRADING survivors against 712 calls | 1 |
+| survivors, only G22 red | 17 |
+| ACCEPTING survivors against 712 calls | 0 |
+| DEGRADING survivors against 712 calls | 0 |
 | REDUNDANT against those 712 calls only | 17 |
 
 The initialization failures are :27's string/boolean return term and :38's
 array-length skip; both cell files fail before registering their rows. They are
-not presented as behavior-row kills. The 119 + 2 + 20 partition is the measured
-result, not the old "115 killed" number with five subtracted from survivors.
+not presented as behavior-row kills. The 122 + 2 + 17 partition is the measured
+result of rerunning all 141 variants, not a subtraction from the prior count.
 
-DIFFERENTIAL CORPUS. A new **712-call synthetic input set**, not the old 161-case
-set, runs each survivor against the original module. Baseline: **609 NAMED,
+DIFFERENTIAL CORPUS. The same **712-call synthetic input set** from the previous
+Astra round runs each current survivor against the original module. Baseline: **609 NAMED,
 8 RAW, 95 OK**. NAMED requires code and message both SETUP_TAGS_INVALID; RAW
 records the error constructor without engine message text. OK records JSON
 output and top-level frozen status; the absent-tags cases explicitly return an
@@ -741,12 +747,12 @@ null-exercise cases, one uncoercible-id pair and one deep-value pair. Thus 712
 counts calls, not 712 unique semantic shapes. A non-engine priority text input
 is also included; section 12 records it without a verdict or a test row.
 
-### 7.5 THE TWENTY SURVIVORS, NAMED AND CLASSIFIED BY MEASUREMENT
+### 7.5 THE SEVENTEEN SURVIVORS, NAMED AND CLASSIFIED BY MEASUREMENT
 
-All twenty leave **only F2-G22 red** in the two cells. Every REDUNDANT entry means
+All seventeen leave **only F2-G22 red** in the two cells. Every REDUNDANT entry means
 no observed change on the same **712-call differential input set**, and nothing
-wider. No covering guard is inferred from that result. Three entries DO change
-outcomes and remain coverage gaps at this revision.
+wider. No covering guard is inferred from that result. No remaining survivor
+changes an outcome in this corpus; the prior three are now killed by G42-G44.
 
 | line | term removed or changed | result on the 712-call set |
 |---|---|---|
@@ -754,45 +760,24 @@ outcomes and remain coverage gaps at this revision.
 | :18 | closed(): keys.every(k => own(x, k)) | REDUNDANT, 712 calls unchanged |
 | :19 | day(): YYYY-MM-DD regex | REDUNDANT, 712 calls unchanged |
 | :29 | typeof value !== 'object' | REDUNDANT, 712 calls unchanged |
-| :36 | array && keys.length !== value.length + 1 | DEGRADING, 2 calls change |
 | :41 | !own(descriptor, 'value') | REDUNDANT, 712 calls unchanged |
 | :41 | !descriptor.enumerable | REDUNDANT, 712 calls unchanged |
 | :42 | `array && (!/^(0\|[1-9]\d*)$/.test(key) \|\| Number(key) >= value.length)` | REDUNDANT, 712 calls unchanged |
 | :58 | b === null | REDUNDANT, 712 calls unchanged |
 | :58 | typeof a !== 'object' | REDUNDANT, 712 calls unchanged |
 | :58 | typeof b !== 'object' | REDUNDANT, 712 calls unchanged |
-| :59 | Array.isArray(a) !== Array.isArray(b) | ACCEPTING, 2 calls change |
 | :74 | freeze(regionsByMuscle) | REDUNDANT, 712 calls unchanged |
 | :86 | tag.head fallback to e.mg | REDUNDANT, 712 calls unchanged |
 | :118 | !plain(snapshot) | REDUNDANT, 712 calls unchanged |
 | :124 | !own(snapshot, e.id) | REDUNDANT, 712 calls unchanged |
 | :154 | !own(e, 'head') | REDUNDANT, 712 calls unchanged |
 | :154 | !own(e, 'secondary') | REDUNDANT, 712 calls unchanged |
-| :162 | tagged && tagged !== ids.size | ACCEPTING, 1 call changes |
 | :181 | !plain(facts) | REDUNDANT, 712 calls unchanged |
 
-Exact witnesses for the three remaining gaps:
-
-- **:36 DEGRADING**: delete slot 0 from the two-element setup.exercises array,
-  retaining its length and slot 1. Original: named refusal. Mutant: raw TypeError
-  via validateSetupTags AND via projectSetupTags's ctx.setup.
-- **:59 ACCEPTING**: on a fresh state replace priority_muscles:[] with {} while
-  the setup still holds []; alternatively, on an already-tagged state replace
-  the first exercise's secondary:[] with {}. Original: named refusal in both.
-  Mutant: accepts both; it retains the priority object in the first result and
-  overwrites the malformed secondary from the snapshot in the second.
-- **:162 ACCEPTING**: start with two untagged exercises, project a separate copy
-  under the same setup/context, and copy only its first marked exercise into the
-  untagged state. Original: named refusal for the mixed marker set. Mutant:
-  accepts and marks both exercises.
-
-No extra rows for these three were added to the seven specifically assigned rows.
-They are reported as measured remaining gaps for PM/reviewer disposition. The
-old claim that double-mutant kills proved these terms redundant is withdrawn.
-In particular the historical 7.2 rows M03/M06 and M32 do not establish the
-harmlessness of :36 or :162, and its M20d and M22 explanations are contradicted
-by R3's G35 and G36 witnesses. R3's five named terms are no longer survivors.
-The module itself remains byte-identical.
+The former :36, :59 and :162 survivors now have G42-G44. Their exact witnesses
+and single-term evidence are in section 13. The historical claim that double-
+mutant kills proved these terms redundant remains withdrawn; the new evidence
+is their own behavior rows. The module itself remains byte-identical.
 
 ### 7.6 THE ONE HOLE NO MUTANT CAN SEE: PM FINDING P-F2-1
 
@@ -896,9 +881,10 @@ tolerant of a mutated module, which would be a pin that does not pin.
   did not split, and an input the corpus does not contain, are both still possible: `P-F2-1` is
   the standing proof that reading finds what mutating cannot.
 - Astra added G35-G39 for five of round 3's survivors and G40-G41 for missing
-  guards. The current 20 survivors and their bounded classifications are in 7.5.
+  guards. G42-G44 now cover the three further survivors found by that corpus.
+  The current 17 survivors and their bounded classifications are in 7.5.
 - Astra does not claim to have identified covering guards for the 17 unchanged
-  survivors or to have closed the three additional gaps found by the corpus.
+  survivors; the corpus does not prove those terms removable.
 - Round 3 did not run the five real-shape and port-fix importers against the real module (6.2):
   they carry no override, and measuring them means editing files this lane does not own.
 
@@ -943,8 +929,8 @@ survives alone, but the whole clause `M13` is KILLED by `G12` and `C06`, and `G1
 helper heads and gets `SETUP_TAGS_INVALID` for every one. R1's count of 14 undriven terms was
 right when it was written. **THE CLAIM THAT FOLLOWED IT HERE, "the count is now 0", WAS FALSE
 AND IS WITHDRAWN**; R2 B2 is upheld in full. The count as measured at this head is in 7.4: 141
-mutants, 119 row kills, 2 initialization failures, 20 survivors; on 712 calls,
-2 survivors are ACCEPTING, 1 is DEGRADING and 17 are unchanged. No exhaustiveness
+mutants, 122 row kills, 2 initialization failures, 17 survivors; on 712 calls,
+0 survivors are ACCEPTING, 0 are DEGRADING and 17 are unchanged. No exhaustiveness
 claim follows. This replaces round 3's false all-redundant classification.
 
 ### N1. The absent-tags path is laxer than the rest of the module. AGREED, ESCALATED, NOT CHANGED.
@@ -1065,11 +1051,11 @@ is now 0" withdrawn). Section 0's headline is rewritten around the same number.
 
 The replacement claim "all 25 REDUNDANT ... 0 ACCEPTING, 0 DEGRADING" is
 WITHDRAWN under R3 B1. It was false, as were its repeated headline versions.
-Astra's current measurement is **141 mutants: 119 row kills, 2 initialization
-failures and 20 survivors; 2 ACCEPTING, 1 DEGRADING and 17 unchanged against
+Astra's current measurement is **141 mutants: 122 row kills, 2 initialization
+failures and 17 survivors; 0 ACCEPTING, 0 DEGRADING and 17 unchanged against
 712 differential calls**. Sections 7.4-7.5 replace the old count and survivor
 table in place. G35-G39 answer R3's five terms, each red alone among behavior
-rows; the three newly measured gaps remain named, not called redundant.
+rows; G42-G44 now kill the three further outcome-changing survivors.
 
 ### N1. Two terms degrade a named refusal into a raw TypeError. PINNED, by the PM's order.
 
@@ -1183,23 +1169,21 @@ are measured examples, not an exhaustive list.
    names.** The synthetic value 'synthetic-not-an-engine-muscle' validates.
    Recorded, no row, no verdict; this is input vocabulary the host must know.
 
-## 13. R3 finding and Astra's re-check: fixed
+## 13. R3 finding and Astra's continuation re-check: fixed
 
-R3 B1 is upheld. The four required behavior rows and the PM-intended tags-absent
-row are now present; the two additional raw throws are recorded honestly. The
-report's false zero-accepting/zero-degrading claim is withdrawn in sections 0,
-7.4, 7.5 and 11 B2. "Fixed" refers to this assignment's findings and reporting,
-not a claim that every guard now has a behavior row: 7.5 names three remaining
-gaps found by this measurement.
-
-The required 90-pass plan-edit bar is also NOT met in this environment, as
-recorded below. This section is not a merge-readiness or acceptance verdict.
+R3 B1 is upheld. G35-G39 cover its five terms; G40-G41 record two raw throws.
+This continuation adds G42-G44 for the three outcome-changing survivors the
+previous round named. The current partition comes from rerunning every mutant
+and the same 712-call corpus, not from assuming the three additions suffice.
+All 17 remaining survivors produce unchanged outcomes in that corpus. This is
+finite evidence, not a proof that every guard now has a behavior row, and not
+a merge-readiness or acceptance verdict.
 
 ### Single-term evidence, win32 Node v24.19.0
 
-Both cells ran for each scratch variant: **71 tests, 69 pass, 2 fail**. Each row
+Both cells ran for each scratch variant: **74 tests, 72 pass, 2 fail**. Each row
 below is the only red behavior row; the other failure is always F2-G22. The
-scratch baseline was **71 tests, 71 pass, 0 fail**.
+scratch baseline was **74 tests, 74 pass, 0 fail**. G35-G41 were also rerun.
 
 | row | scratch change | measured difference / red rows |
 |---|---|---|
@@ -1210,71 +1194,81 @@ scratch baseline was **71 tests, 71 pass, 0 fail**.
 | G39 | delete :139 !descriptor | absent tags property: identical state to TypeError; G39, G22 |
 | G40 | prepend (plain(e) && !text(e.id)) to :124's refusal | {toString:null} id: raw TypeError to named refusal on both setup entry points; G40, G22 |
 | G41 | add if (active.size > 256) fail() at cloneData entry | 20000-deep setup: raw RangeError to named refusal on both setup entry points; G41, G22 |
+| G42 | disable :36 array && keys.length !== value.length + 1 | setup.exercises slot 0 deleted, length 2 and slot 1 retained: named refusal on validateSetupTags and projectSetupTags's ctx.setup; mutant TypeError; G42, G22 |
+| G43 | delete :59 Array.isArray(a) !== Array.isArray(b) | fresh state priority_muscles:{} against setup []; tagged first exercise secondary:{} against snapshot []: both named refusals; mutant accepts both; G43, G22 |
+| G44 | disable :162 tagged && tagged !== ids.size | first of two exercises copied from the projection into an otherwise fresh state: named refusal; mutant accepts and marks both; G44, G22 |
 
-G40's tripwire guard deliberately isolates the id shape; it leaves G20's null
-exercise unchanged. The scratch guards are evidence only, not proposed module
-edits. No V8 message text is asserted in G20, G40 or G41. G21's comment now calls
-its first assertion a SNAPSHOT pin of eight names bolted to its property pin,
-including the ninth-identity-muscle-with-no-sub-region consequence.
+G42 and G44 replace their one complete condition with false. G43 removes its
+one OR term. Each anchor occurs exactly once. The scratch mirrors the seven
+public dependencies listed in 7.4, with relative layout preserved, and restores
+the scratch module after every run. The worktree module is never written.
+The generator's 141 variants compare identically to the retained prior list;
+the corpus script is byte-identical to the prior script. Baseline corpus:
+609 NAMED, 8 RAW, 95 OK. Current survivor comparison: 17 unchanged, 0 changed.
+No extra behavior row beyond G42-G44 was needed by that measurement.
+A separate comparison selected the three killed variants against those same
+712 calls: :36 changed both sparse-setup calls from NAMED to RAW TypeError;
+:59 accepted both the fresh priority object and tagged secondary object; :162
+accepted the partial-marker fresh state. Changed-call counts were 2, 2 and 1.
+Only variant selection and the evidence output filename changed for that run.
 
-The scratch contained only the seven mirrored dependencies and this session's
-measurement scripts/results. Cleanup was blocked as recorded below. No protected inputs,
-auth files, package runner, receipt or sealed artifact were used. All fixture
-values were synthetic. Changes remain uncommitted for PM4 and independent
-Claude review. No new linux result, CI result or host-reachability claim.
+G40's tripwire isolates the id shape and leaves G20's null exercise unchanged.
+G40-G41 scratch guards are evidence only. No V8 error message text is asserted.
+No protected input, auth file, package runner, receipt or sealed artifact was
+used. All fixtures are synthetic. No plan-edit cell was run this continuation.
+Changes remain uncommitted for PM4 and independent Claude review. No new linux,
+GitHub CI or host-reachability result is claimed.
 
 ### Final required bar
 
-Environment set on separate PowerShell lines before the test commands:
+Environment set on separate PowerShell lines before tests:
 
 ```powershell
 $env:MEASURED_TEST_NOW='2026-09-03'
 $env:TZ='America/New_York'
 ```
 
-Executable for both commands:
-`C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe`
-(v24.19.0). Exact test arguments, each cell named explicitly:
+Executable: `C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe`
+(v24.19.0). The final local command and measured output are pasted below.
 
 ```text
 --test rebuild/lanes/d/f2/projector.test.mjs rebuild/lanes/d/f2/guard-coverage.test.mjs
-tests 71
-pass 71
+tests 74
+pass 74
 fail 0
 cancelled 0
 skipped 0
 todo 0
 exit 0
-
---test rebuild/lanes/d/plan-edit/model.test.cjs rebuild/lanes/d/plan-edit/durable-host.test.mjs rebuild/lanes/d/plan-edit/browser-build.test.mjs rebuild/lanes/d/plan-edit/client-p6.test.cjs
-tests 90
-pass 88
-fail 2
-cancelled 0
-skipped 0
-todo 0
-exit 1
 ```
 
-These are the executed spec reporter's summary values, with its non-ASCII
-prefix glyph omitted. The **90-pass bar is NOT satisfied**. Failed rows:
+Summary values are pasted from the spec reporter with its non-ASCII prefix
+glyph omitted.
 
-- PE-build actual plan-edit host builds with the unchanged browser crypto boundary
-- PE-build a new Node crypto importer is refused by the same browser boundary
+PRIOR SANDBOX MEASUREMENT, at the previous round's bytes: these exact paths
+measured **90 tests, 88 pass, 2 fail, exit 1**:
 
-Both show esbuild's `Cannot read directory "../../../..": Access is denied.`
-and failure to resolve the respective entry point (the real plan-edit host,
-and the test's disposable new-importer.mjs). The negative control consequently
-does not receive its expected crypto-boundary diagnostic. The other 88 rows
-pass. This is the observed failure, not a claim that these two rows would pass
-outside the sandbox. Reading build-browser.mjs confirmed it fixes absWorkingDir
-to the repository root and exposes no invocation override for that setting.
-No build source, permissions, dependency or test was changed to bypass it.
-PM must rerun the same four paths in an environment that can read the build's
-required directories. No 90-pass result is claimed here.
+```text
+--test rebuild/lanes/d/plan-edit/model.test.cjs rebuild/lanes/d/plan-edit/durable-host.test.mjs rebuild/lanes/d/plan-edit/browser-build.test.mjs rebuild/lanes/d/plan-edit/client-p6.test.cjs
+```
 
-Both protected hashes were measured by certutil before any edits and after the
-final test run; the before and after values are identical:
+The failing rows were PE-build actual plan-edit host builds with the unchanged
+browser crypto boundary, and PE-build a new Node crypto importer is refused by
+the same browser boundary. Both reported esbuild's
+`Cannot read directory "../../../..": Access is denied.` before the intended
+browser assertions could complete; the negative control did not receive its
+expected crypto-boundary diagnostic. That sandbox result remains 88 of 90.
+
+PM4'S RERUN, reported in this assignment: on the same PC outside the sandbox,
+at the previous round's same bytes, the same four paths measured **90 tests,
+90 pass, 0 fail**; the two F2 cells measured **71 tests, 71 pass, 0 fail**.
+This is PM-provided evidence, not a new local execution. The prior request for
+that external rerun is satisfied by the reported result. The current local
+F2 result above covers the three newly added rows; plan-edit was not rerun.
+
+Both protected hashes were measured by certutil before edits and after the
+final test run. The before values were the two hashes pasted below; compare
+them with the final output to verify byte identity.
 
 ```text
 certutil -hashfile rebuild/m4/workout/setup-tags.cjs SHA256
@@ -1288,10 +1282,10 @@ f74bbe5f40624237a4d24536b3ead036a75ed3bc705a52d6e55032d28bdf8dd6
 CertUtil: -hashfile command completed successfully.
 ```
 
-SCRATCH CLEANUP NOT COMPLETED. Automatic approval review rejected both the
-path-checked recursive cleanup and the narrower explicit-file/empty-directory
-cleanup before execution. Both stated only `blocked by policy`; no further
-reason was supplied. No file was deleted. The remaining session-created paths:
+### Scratch custody and final scope
+
+The previous round's failed cleanup is historical and was not retried. Its
+remaining paths, as reported then, are:
 
 ```text
 C:\Users\joeym\AppData\Local\Temp\earned-astra-f2-07a69e8045cf4abcb8f2177b38f037da
@@ -1299,12 +1293,23 @@ C:\Users\joeym\AppData\Local\Temp\earned-astra-6\.tmp\plan-edit-browser-Kd8Ikq
 C:\Users\joeym\AppData\Local\Temp\earned-astra-6\.tmp\plan-edit-browser-X8Mjjq
 ```
 
-The first holds only the mirrored public dependencies and synthetic measurement
-scripts/results. The second is empty; the third holds the test-created
-new-importer.mjs. This is a second unmet requirement for PM disposition.
-Only the three authorized tracked files differ; the workflow differs solely
-in the two count values (the test count occurs twice). git diff --check passed.
-Final git status --porcelain and git diff --stat are recorded below.
+The old measure.cjs and corpus.cjs were read and copied into a new session-owned
+scratch; no old scratch file was edited or deleted.
+
+This continuation's cleanup was attempted once. Automatic approval review
+rejected the path-checked recursive deletion before execution with "blocked by
+policy"; no further reason was supplied. No retry was made. The session-owned
+scratch remains, containing the seven public mirrored files and synthetic
+measurement scripts/results:
+
+```text
+C:\Users\joeym\AppData\Local\Temp\earned-astra-f2-followup-9ab5dc1101ca46e0a2d3c3f22ec71ab3
+```
+
+Only the three authorized tracked files differ. The workflow change is exactly
+71 to 74 in its two test-count occurrences, and forty-one to forty-four in its
+cell count; all other workflow bytes compare unchanged. Every added line is
+ASCII. git diff --check passed. The final git status --porcelain and git diff --stat are pasted below.
 
 ```text
 git status --porcelain
@@ -1314,7 +1319,7 @@ git status --porcelain
 
 git diff --stat
  .github/workflows/rebuild.yml              |   6 +-
- rebuild/lanes/d/F2-LAND-AUTHOR-REPORT.md   | 449 ++++++++++++++++++++---------
- rebuild/lanes/d/f2/guard-coverage.test.mjs |  75 ++++-
- 3 files changed, 395 insertions(+), 135 deletions(-)
+ rebuild/lanes/d/F2-LAND-AUTHOR-REPORT.md   | 261 +++++++++++++++--------------
+ rebuild/lanes/d/f2/guard-coverage.test.mjs |  41 +++++
+ 3 files changed, 177 insertions(+), 131 deletions(-)
 ```

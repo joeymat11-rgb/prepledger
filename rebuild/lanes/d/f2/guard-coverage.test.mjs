@@ -644,3 +644,44 @@ test('F2-G41 a setup value nested 20000 objects deep throws a raw RangeError (:4
     assert.notEqual(e.code, 'SETUP_TAGS_INVALID', 'and NOT the module\'s named refusal');
   }
 });
+
+// Astra continuation. Mutant: :36 "array && keys.length !== value.length + 1"
+// disabled. A missing first slot with slot 1 retained reaches :124 as undefined.
+test('F2-G42 a setup exercise array with a leading hole refuses by name on both setup paths', () => {
+  const f = fixture(PAIR);
+  const second = f.setup.exercises[1];
+  delete f.setup.exercises[0];
+  assert.equal(f.setup.exercises.length, 2);
+  assert.equal(Object.hasOwn(f.setup.exercises, 0), false);
+  assert.equal(f.setup.exercises[1], second);
+  bad(() => validateSetupTags(f.setup, f.tags));
+  bad(() => project(f));
+});
+
+// Astra continuation. Mutant: :59 "Array.isArray(a) !== Array.isArray(b)"
+// deleted from equal(). Empty records must not compare equal to empty arrays.
+test('F2-G43 record priorities and tagged secondary lists refuse when the snapshot holds arrays', () => {
+  const fresh = fixture(PAIR);
+  fresh.state = copy(fresh.state);
+  assert.deepEqual(fresh.setup.priority_muscles, []);
+  fresh.state.priority_muscles = {};
+  bad(() => project(fresh));
+
+  const marked = tagged(fixture(PAIR));
+  assert.deepEqual(marked.tags['renamed-0'].secondary, []);
+  marked.state.exercises[0].secondary = {};
+  bad(() => project(marked));
+});
+
+// Astra continuation. Mutant: :162 "tagged && tagged !== ids.size" disabled.
+// Each row is valid alone, but only the first of two carries the exact marker.
+test('F2-G44 a state with only the first of two exercises tagged refuses', () => {
+  const f = fixture(PAIR);
+  const marked = project(f);
+  f.state = copy(f.state);
+  f.state.exercises[0] = copy(marked.exercises[0]);
+  assert.equal(f.state.exercises.length, 2);
+  assert.equal(Object.hasOwn(f.state.exercises[0], 'volumeTags'), true);
+  assert.equal(Object.hasOwn(f.state.exercises[1], 'volumeTags'), false);
+  bad(() => project(f));
+});

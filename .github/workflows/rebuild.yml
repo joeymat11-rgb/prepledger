@@ -273,10 +273,10 @@ jobs:
       # lands as product on this branch and no workflow named it, so without this
       # step it would be a runtime file the Edit My Week door depends on that
       # nobody runs. TWO files, each named by exact path and never globbed, so
-      # both runners agree whatever the shell does. Measured on this head: 71
-      # tests, 71 pass, 0 fail, exit 0 on win32 and on linux.
+      # both runners agree whatever the shell does. Measured on this head: 74
+      # tests, 74 pass, 0 fail, exit 0 on win32 and on linux.
       # guard-coverage.test.mjs is the fix round's answer to F2-LAND-REVIEW-R1 B2
-      # and B1: forty-one cells for guard terms of setup-tags.cjs that no cell
+      # and B1: forty-four cells for guard terms of setup-tags.cjs that no cell
       # anywhere drove. It changes no byte of the module.
       # THREE MORE F2 CELL FILES EXIST AND ARE DELIBERATELY ABSENT, so a file with
       # no CI home is a file somebody decided about: composition.test.mjs,
