@@ -17,8 +17,11 @@
  * ordinary durable-write members, acquisition of declared writer capabilities, module
  * edges, and changes to the measured sites below. today-model re-exports weighIn/reopen;
  * gym-app still holds six declared writer seams and three facade.lane acquisitions.
- * Raw-store settings/readings sites are pinned by whole line and multiplicity;
- * other holders with more than about eight sites stay unpinned to avoid routine pin churn.
+ * Capability, settings and lane sites use small token windows with multiplicity,
+ * ignoring whitespace and line breaks so unrelated same-line look edits need no reseal.
+ * Readings uses a closed read-member/truthiness rule with declared composition and
+ * returned-interface windows instead of pinning every read site.
+ * Other high-traffic holders remain unpinned; every look hunk still needs review.
  * Regex-aware tokenization checks its balance, literals and keyword offsets against
  * an independent regex stripper plus Node syntax checks; this is still no parser.
  *
@@ -255,7 +258,7 @@ function planted(rel, edit) {
 }
 
 /* S-R27/S-R28. Small lexical inventory, NOT a JavaScript parser. Tokens retain
- * offsets so exceptions compare whole source lines, including multiplicity.
+ * offsets for diagnostics; site exceptions compare token values and multiplicity.
  * Strings/comments cannot masquerade as code. Templates retain their interpolations
  * for the refusal below; this does not attempt to resolve what any call will do. */
 function tokensOf(src, start = 0, stopAtBrace = false) {
@@ -324,8 +327,6 @@ function regexMayStart(previous) {
 }
 const lineAt = (src, at) => src.slice(0, at).split('\n').length;
 const lineText = (src, at) => src.split('\n')[lineAt(src, at) - 1].replace(/\r$/, '');
-const sourceLines = (src, from, to) => src.split('\n').slice(lineAt(src, from) - 1, lineAt(src, to))
-  .map((line) => line.replace(/\r$/, '')).join('\n');
 function codeTokens(src) {
   const flatten = (ts) => ts.flatMap((t) => t.kind === 'template'
     ? [t, ...t.expressions.flatMap(flatten)] : [t]);
@@ -444,7 +445,9 @@ function measuredSyntax(src) {
   for (const d of decls) {
     bindings(d.from, d.end + 1);
     if (d.destructured && ts.slice(d.rhs, d.to).some(holder)) {
-      destructure.push(sourceLines(src, ts[d.from].at, ts[d.to - 1].end - 1));
+      // The exception names the destructure's factory, not the view fields
+      // passed to that factory or other statements sharing the source line.
+      destructure.push(ts.slice(d.end, d.rhs + 2).map((t) => t.value).join(' '));
     }
   }
   for (let i = 0; i < ts.length; i++) {
@@ -504,79 +507,99 @@ function moduleEdges(src) {
   return edges;
 }
 
-/* Literal measurements at 40c355f9. Part 2 adds today-app.cjs HERE, measures its
- * preconditions and declares its sites; no automatic snapshot update is allowed. */
+/* S-R27(e): literal token windows, not source lines. Part 2 must measure and
+ * declare today-app.cjs here; no automatic snapshot update is allowed. */
+const READINGS_READ = ['reads', 'paint', 'face', 'blockedCopy', 'label', 'outboxRetained'];
+const READINGS_PASS = [
+  'createReadingsWriter ( { day , readings ,',
+  ', readings ,',
+];
 const RELEASED_FILES = [
   {
     rel: TODAY + '/today-model.cjs', anchor: '  function adoptBasis(state) {',
     capabilities: {
-      weighIn: [
-        '  const { weighIn, reopen, ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX } =',
-        '    read, weighIn, reopen, adoptBasis, setPendingAdoption,',
-      ],
-      reopen: [
-        '  const { weighIn, reopen, ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX } =',
-        '    read, weighIn, reopen, adoptBasis, setPendingAdoption,',
-      ],
+      weighIn: ['const { weighIn ,', 'read , weighIn ,'],
+      reopen: ['const { weighIn , reopen ,', 'read , weighIn , reopen ,'],
     },
-    // Explicitly requested readings exception: 18 tokens on 12 lines, not a
-    // precedent for pinning high-traffic holders such as model, doc or phone.
-    holders: { readings: [
-      '  const readings = options.readings || null;',
-      '  const readings = options.readings || null;',
-      '  const durable = !!readings;',
-      '    return readings ? readings.reads() : [];',
-      '    return readings ? readings.reads() : [];',
-      '    const paint = readings ? readings.paint() : "TRUTHFUL";',
-      '    const paint = readings ? readings.paint() : "TRUTHFUL";',
-      '    if (readings && paint !== "TRUTHFUL") {',
-      '        today: day, paint, faceState: (readings.face() || {}).state || null, blocked: true,',
-      '        blockedCopy: readings.blockedCopy(),',
-      '      today: day, paint, faceState: readings ? ((readings.face() || {}).state || null) : null,',
-      '      today: day, paint, faceState: readings ? ((readings.face() || {}).state || null) : null,',
-      '      saveLabel: readings ? readings.label() : "",',
-      '      saveLabel: readings ? readings.label() : "",',
-      '      outbox: readings ? readings.outboxRetained() : null,',
-      '      outbox: readings ? readings.outboxRetained() : null,',
-      '    createReadingsWriter({ day, readings, adoptedRead, stateFromOps,',
-      '    readings,',
-    ] },
+    holders: {},
+    readingsUse: true,
     lane: [],
     edges: ['require:./today-engine.cjs', 'require:../fixtures.cjs', 'require:./food-model.cjs',
       'require:./sleep-model.cjs', 'require:./today-readings.cjs'],
     syntax: { bracket: [], templateCall: [], shadow: [], destructure: [
-      '  const { weighIn, reopen, ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX } =\n' +
-      '    createReadingsWriter({ day, readings, adoptedRead, stateFromOps,\n' +
-      '      read: () => read(), NO_STORE, setMessage: (m) => { lastMessage = m; } });',
+      '} = createReadingsWriter (',
     ] },
   },
   {
     rel: TODAY + '/gym-app.mjs', anchor: '    const entry = facade.entryFor(liftId);',
     capabilities: {},
     holders: { settings: [
-      'export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draft, settings } = {}) {',
-      '  const { facade, hooks } = createGymSettingsLane(doc, model, settings, painter);',
-      '  first.settings = Object.freeze({',
+      'settings } = { } )',
+      'createGymSettingsLane ( doc , model , settings ,',
+      'first . settings',
     ] },
     lane: [
-      '    if (!facade.lane()) { block.hidden = true; editor.hidden = true; hooks.open(); return; }',
-      '    try { result = await facade.lane().save(machine); }',
-      '    lane: () => facade.lane(),',
+      '! facade . lane ( )',
+      'await facade . lane ( ) . save (',
+      'lane : ( ) => facade . lane ( )',
     ],
     edges: ['import:./today-app.cjs', 'import:./plain-copy.cjs',
       'import:./machine-settings-view.mjs', 'import:./gym-settings-lane.mjs'],
     syntax: { bracket: [], templateCall: [], shadow: [], destructure: [
-      '  const { facade, hooks } = createGymSettingsLane(doc, model, settings, painter);',
+      '} = createGymSettingsLane (',
     ] },
   },
 ];
 function capabilitySites(src, name) {
-  return codeTokens(src).filter((t) => t.kind === 'id' && t.value === name).map((t) => lineText(src, t.at));
+  return codeTokens(src).filter((t) => t.kind === 'id' && t.value === name);
 }
 function laneSites(src) {
   const ts = codeTokens(src);
   return ts.filter((t, i) => t.value === 'facade' && ['.', '?.'].includes(ts[i + 1]?.value) &&
-    ts[i + 2]?.value === 'lane').map((t) => lineText(src, t.at));
+    ts[i + 2]?.value === 'lane');
+}
+function windowAt(ts, i, name, window) {
+  const values = window.split(' '), offset = values.indexOf(name), start = i - offset;
+  return offset >= 0 && start >= 0 && values.every((value, j) => ts[start + j]?.value === value);
+}
+function siteWindows(src, name, windows, lane = false) {
+  const ts = codeTokens(src);
+  return ts.flatMap((t, i) => {
+    if (t.kind !== 'id' || t.value !== name) return [];
+    if (lane && (!['.', '?.'].includes(ts[i + 1]?.value) || ts[i + 2]?.value !== 'lane')) return [];
+    return [windows.find((window) => windowAt(ts, i, name, window)) ?? '<undeclared>'];
+  });
+}
+function inReturnedObject(ts, at) {
+  const stack = [];
+  for (let i = 0; i < at; i++) {
+    if (['(', '[', '{'].includes(ts[i].value)) stack.push(i);
+    else if ([')', ']', '}'].includes(ts[i].value)) stack.pop();
+  }
+  const open = stack.at(-1);
+  return ts[open]?.value === '{' && ts[open - 1]?.value === 'return';
+}
+function readingsUseOK(src) {
+  const ts = codeTokens(src), passes = [0, 0];
+  let ownDeclaration = 0, invalid = false;
+  for (let i = 0; i < ts.length; i++) {
+    if (ts[i].kind !== 'id' || ts[i].value !== 'readings') continue;
+    const before = ts[i - 1]?.value, after = ts[i + 1]?.value;
+    if (before === '.' && ts[i - 2]?.value === 'options') continue;
+    if (['.', '?.'].includes(before)) { invalid = true; continue; }
+    if (windowAt(ts, i, 'readings', 'const readings = options . readings')) {
+      ownDeclaration++;
+      continue;
+    }
+    const pass = READINGS_PASS.findIndex((window) => windowAt(ts, i, 'readings', window));
+    if (pass >= 0 && (pass === 0 || inReturnedObject(ts, i))) { passes[pass]++; continue; }
+    if (after === '.' && READINGS_READ.includes(ts[i + 2]?.value)) continue;
+    if (['?', '&&', '||'].includes(after) ||
+        (before === '!' && [';', ')', ']', '}', ',', ':'].includes(after))) continue;
+    invalid = true;
+  }
+  // Duplicate declarations/pass-throughs cannot turn old RED rows into exceptions.
+  return !invalid && ownDeclaration === 1 && passes.every((count) => count === 1);
 }
 const SYNTAX_REFUSALS = { bracket: 'FENCE-BRACKET-KEY', destructure: 'FENCE-CAPABILITY-DESTRUCTURE',
   templateCall: 'FENCE-TEMPLATE-CALL', shadow: 'FENCE-BUILTIN-SHADOW' };
@@ -584,12 +607,17 @@ function releasedRefusals(file, src) {
   const refusals = [];
   const differs = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
   for (const [name, sites] of Object.entries(file.capabilities)) {
-    if (differs(capabilitySites(src, name), sites)) refusals.push('FENCE-CAPABILITY-SITE:' + name);
+    if (differs(siteWindows(src, name, sites), sites)) refusals.push('FENCE-CAPABILITY-SITE:' + name);
   }
   for (const [name, sites] of Object.entries(file.holders)) {
-    if (differs(capabilitySites(src, name), sites)) refusals.push('FENCE-HOLDER-SITE:' + name);
+    if (differs(siteWindows(src, name, sites), sites)) refusals.push('FENCE-HOLDER-SITE:' + name);
   }
-  if (differs(laneSites(src), file.lane)) refusals.push('FENCE-LANE-ACQUISITION');
+  if (file.readingsUse && !readingsUseOK(src)) {
+    refusals.push('FENCE-HOLDER-USE:readings');
+    // Compatibility label: all existing S-R27(d) RED rows keep their named refusal.
+    refusals.push('FENCE-HOLDER-SITE:readings');
+  }
+  if (differs(siteWindows(src, 'facade', file.lane, true), file.lane)) refusals.push('FENCE-LANE-ACQUISITION');
   if (differs(moduleEdges(src), file.edges)) refusals.push('FENCE-RELEASED-MODULE-EDGE');
   const syntax = measuredSyntax(src);
   for (const kind of Object.keys(SYNTAX_REFUSALS)) {
@@ -999,7 +1027,7 @@ for (const file of RELEASED_FILES) {
     const syntax = measuredSyntax(src);
     console.log('  S-R28 ' + name + ': ' + Object.entries(syntax).map(([k, v]) => k + '=' + v.length).join(', '));
     console.log('  S-R27 ' + name + ': edges=' + moduleEdges(src).length + ', facade.lane=' + laneSites(src).length);
-    for (const holderName of Object.keys(file.holders)) {
+    for (const holderName of [...Object.keys(file.holders), ...(file.readingsUse ? ['readings'] : [])]) {
       const sites = codeTokens(src).filter((t) => t.kind === 'id' && t.value === holderName);
       console.log('  HOLDER ' + name + ': ' + holderName + '=' + sites.length +
         '; lines=' + sites.map((t) => lineAt(src, t.at)).join(','));
@@ -1010,22 +1038,26 @@ for (const file of RELEASED_FILES) {
       'void "reopen facade.lane() settings[\'save\']()";');
     assert.deepEqual(releasedRefusals(file, src), []);
   });
-  for (const [holderName, sites] of Object.entries(file.holders)) {
+  for (const holderName of [...Object.keys(file.holders), ...(file.readingsUse ? ['readings'] : [])]) {
+    // Keep the four original mutation plants, including their actual source line.
+    const holderTokens = capabilitySites(readRepo(file.rel), holderName);
+    const firstLine = lineText(readRepo(file.rel), holderTokens[0].at);
     for (const [shape, line] of [
       ['bare reference', 'void ' + holderName + ';'],
       ['template reference', 'void `${' + holderName + '}`;'],
-      ['duplicate declared line', sites[0]],
+      ['duplicate declared line', firstLine],
       ['extra occurrence on declared line', null],
     ]) {
       test('RED S-R27(d) ' + name + ': ' + shape + ' -> FENCE-HOLDER-SITE:' + holderName, () => {
-        const src = line === null ? planted(file.rel, (s) => s.replace(sites[0], sites[0] + ' void ' + holderName + ';'))
+        const src = line === null ? planted(file.rel, (s) => s.replace(firstLine, firstLine + ' void ' + holderName + ';'))
           : plantLine(file, line);
         assert.ok(releasedRefusals(file, src).includes('FENCE-HOLDER-SITE:' + holderName));
       });
     }
     test('CONTROL S-R27(d) ' + name + ': holder prose is not a code site', () => {
       assert.deepEqual(releasedRefusals(file, plantLine(file, '/* ' + holderName + ' */ void "' + holderName + '";')), []);
-      assert.equal(capabilitySites(readRepo(file.rel), holderName).length, sites.length);
+      if (holderName === 'readings') assert.equal(readingsUseOK(readRepo(file.rel)), true);
+      else assert.equal(holderTokens.length, 3);
     });
   }
   for (const [shape, line, regexCount] of [
@@ -1106,14 +1138,121 @@ for (const file of RELEASED_FILES) {
     });
   }
   test('RED S-R28 ' + name + ': duplicated composition line is not a new exception', () => {
-    const src = plantLine(file, file.syntax.destructure[0]);
+    const original = readRepo(file.rel), ts = codeTokens(original);
+    const d = declarations(ts).find((d) => d.destructured && ts.slice(d.rhs, d.to).some(holder));
+    const src = plantLine(file, original.slice(ts[d.from - 1].at, ts[d.to].end));
     assert.ok(releasedRefusals(file, src).includes('FENCE-CAPABILITY-DESTRUCTURE'));
   });
   for (const site of file.lane) {
     test('RED S-R27 ' + name + ': repeated acquisition ' + site.trim(), () => {
-      assert.ok(releasedRefusals(file, plantLine(file, site)).includes('FENCE-LANE-ACQUISITION'));
+      const original = readRepo(file.rel), ts = codeTokens(original);
+      const at = ts.findIndex((t, i) => t.value === 'facade' && windowAt(ts, i, 'facade', site));
+      assert.ok(at >= 0, 'declared lane window must land');
+      assert.ok(releasedRefusals(file, plantLine(file, lineText(original, ts[at].at))).includes('FENCE-LANE-ACQUISITION'));
     });
   }
+}
+
+/* S-R27(e): each declared site gets an executable-syntax look edit on its
+ * original line AND a whitespace-only reformat of its token window. */
+const LOOK_EDITS = {
+  'const { weighIn ,': ['FORM_MAX } =', 'FORM_MAX, lookHint } ='],
+  'const { weighIn , reopen ,': ['FORM_MAX } =', 'FORM_MAX, lookHint } ='],
+  'read , weighIn ,': ['setPendingAdoption,', 'setPendingAdoption, lookHint: null,'],
+  'read , weighIn , reopen ,': ['setPendingAdoption,', 'setPendingAdoption, lookHint: null,'],
+  'settings } = { } )': ['{ model, onBack,', '{ lookHint, model, onBack,'],
+  'createGymSettingsLane ( doc , model , settings ,': ['settings, painter);', 'settings, painter); void painter;'],
+  'first . settings': ['first.settings = Object.freeze({', 'first.settings = Object.freeze({ lookHint: null,'],
+  '! facade . lane ( )': ['{ block.hidden = true;', '{ block.title = ""; block.hidden = true;'],
+  'await facade . lane ( ) . save (': ['await facade.lane().save(machine);', 'await facade.lane().save(machine); void machine;'],
+  'lane : ( ) => facade . lane ( )': ['lane: () => facade.lane(),', 'lane: () => facade.lane(), lookHint: null,'],
+  'createReadingsWriter ( { day , readings ,': ['readings, adoptedRead, stateFromOps,', 'readings, adoptedRead, stateFromOps, lookHint: null,'],
+  ', readings ,': ['    readings,', '    readings, lookHint: null,'],
+  '} = createReadingsWriter (': ['FORM_MAX } =', 'FORM_MAX, lookHint } ='],
+  '} = createGymSettingsLane (': ['settings, painter);', 'settings, painter); void painter;'],
+};
+for (const file of RELEASED_FILES) {
+  const windows = [...Object.values(file.capabilities).flat(), ...Object.values(file.holders).flat(),
+    ...file.lane, ...file.syntax.destructure, ...(file.readingsUse ? READINGS_PASS : [])];
+  for (const window of windows) {
+    test('GREEN unrelated same-line edit ' + path.basename(file.rel) + ': ' + window, () => {
+      const [before, after] = LOOK_EDITS[window];
+      assert.equal(before.includes('\n') || after.includes('\n'), false);
+      const src = planted(file.rel, (s) => s.replace(before, after));
+      assert.deepEqual(releasedRefusals(file, src), []);
+      balancedTokens(src, window);
+      checkPlantSyntax(file, src);
+    });
+    test('GREEN reformat ' + path.basename(file.rel) + ': ' + window, () => {
+      const src = readRepo(file.rel), ts = codeTokens(src), values = window.split(' ');
+      const start = ts.findIndex((t, i) => values.every((v, j) => ts[i + j]?.value === v) &&
+        (window !== ', readings ,' || inReturnedObject(ts, i + 1)));
+      assert.ok(start >= 0, 'window must exist');
+      const end = start + values.length - 1;
+      // JavaScript forbids a line terminator immediately before an arrow.
+      const formatted = values.join('\n').replace(/\n=>/g, ' =>');
+      const out = src.slice(0, ts[start].at) + '\n' + formatted + '\n' + src.slice(ts[end].end);
+      assert.notEqual(out, src);
+      assert.deepEqual(releasedRefusals(file, out), []);
+      balancedTokens(out, window);
+      checkPlantSyntax(file, out);
+    });
+  }
+}
+function checkPlantSyntax(file, src) {
+  const mode = file.rel.endsWith('.mjs') ? 'module' : 'commonjs';
+  const result = spawnSync(process.execPath, ['--check', '--input-type=' + mode], { input: src, encoding: 'utf8' });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr);
+}
+const modelFile = RELEASED_FILES.find((f) => f.readingsUse);
+test('S-R27(e): measured readings read list is closed and disjoint from PUT', () => {
+  const ts = codeTokens(readRepo(modelFile.rel));
+  const members = [...new Set(ts.flatMap((t, i) => t.value === 'readings' && ts[i + 1]?.value === '.'
+    ? [ts[i + 2].value] : []))];
+  // The list is closed, but deleting/repeating a permitted read is a look edit.
+  for (const member of members) assert.ok(READINGS_READ.includes(member), member);
+  for (const member of READINGS_READ) assert.equal(PUT.includes(member), false, member);
+  console.log('  READINGS closed read list: ' + members.join(', '));
+});
+test('GREEN readings.face view line accepts one more field', () => {
+  const src = planted(modelFile.rel, (s) => s.replace('blocked: true,', 'blocked: true, lookHint: null,'));
+  assert.deepEqual(releasedRefusals(modelFile, src), []);
+  checkPlantSyntax(modelFile, src);
+});
+test('GREEN readings use has no per-site or total-count pin', () => {
+  const src = planted(modelFile.rel, (s) => s.replace('readings.outboxRetained()', 'null'));
+  assert.deepEqual(releasedRefusals(modelFile, src), []);
+  checkPlantSyntax(modelFile, src);
+});
+for (const line of [
+  'const alias = readings;',
+  'void readings[key];',
+  'consume(readings);',
+  'readings.save();',
+  'readings.unknownMember();',
+  'const copy = { ...readings };',
+  'void !readings[key];',
+  'void !readings.save();',
+  'void other.readings;',
+  'consume({ engine: E, readings, lookHint: null });',
+]) {
+  test('RED readings use -> FENCE-HOLDER-USE:readings: ' + line, () => {
+    assert.ok(releasedRefusals(modelFile, plantLine(modelFile, line)).includes('FENCE-HOLDER-USE:readings'));
+  });
+}
+for (const line of [
+  'void options.readings;',
+  'void (readings ? 1 : 0);',
+  'void (readings && true);',
+  'void (readings || false);',
+  'void !readings; void !!readings;',
+  'if (readings && true) { void 0; }',
+  ...READINGS_READ.map((member) => 'void readings.' + member + '();'),
+]) {
+  test('GREEN readings use: ' + line, () => {
+    assert.deepEqual(releasedRefusals(modelFile, plantLine(modelFile, line)), []);
+  });
 }
 
 for (const rel of SEALED) {
