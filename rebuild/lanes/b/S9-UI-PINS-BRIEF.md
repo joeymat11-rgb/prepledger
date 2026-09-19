@@ -57,7 +57,10 @@ a paraphrase (spec 0, R3 N2), they are seven FILES plus one CATEGORY: `today-app
 `screens.template.html`, `preview.css`, `build.mjs`, `design.cjs`, `browser-check.mjs`,
 `today-model.cjs`, and "the today test cells that pin only rendering". **Four of the seven files are
 already free** (`screens.template.html`, `design.cjs`, `browser-check.mjs` and `today-model.cjs`,
-the last taken out by the hotfix of `DECISIONS:535`), **`today-app.cjs` fails the ruling's own test**
+**the last of which was ALREADY OUTSIDE THE SEAL WHEN THE HOTFIX OF `DECISIONS:535` LANDED -
+corrected in loop round 1, review L1 N8**, because that line reports the file as already unpinned,
+"unpinned (six paths, zero hits in acceptance-s8-real-shape...)", and does NOT say the hotfix took
+it out; re-read by this author at the chain tip), **`today-app.cjs` fails the ruling's own test**
 and rides S10 under `DECISIONS:543` (A), and the eighth candidate is a category which spec C.3
 measures and releases NONE of. `index.shell.html` appears nowhere in `:536`; v1 to v3 substituted it
 for the test-cell category and counted eight files where the ledger names seven and a category.
@@ -159,7 +162,7 @@ TO MEASURE AT INTEGRATION.
 
 | path | role | pre | post |
 | --- | --- | --- | --- |
-| `rebuild/lanes/b/tooling/b-package.cjs` | edited | S8 post `e31dd206c0fb0fc0c295df45eae3992d4c59b1a76de8da04a4d0f22948e9335e` | **round 6 head value `71c1b2592b5a3544b71c0995a9f52b88fbe24cd6b821709309aa95e5ad3012c0`**, measured by this author at `397ac466` on `rebuild/b-s9-prep-runner` and equal to the PM's at `DECISIONS:598`; final TO MEASURE |
+| `rebuild/lanes/b/tooling/b-package.cjs` | edited | S8 post `e31dd206c0fb0fc0c295df45eae3992d4c59b1a76de8da04a4d0f22948e9335e` | **ACCEPTED head value `d52acc31c99845ed774c5111a261b84012538495e0ee2caa1d13827c1d28bb53`**, re-measured by this author with `sha256sum` at `a224c7b0` on `rebuild/b-s9-prep-runner` and equal to the PM's at `DECISIONS:620` (the round-6 value `71c1b259...3012c0` at `397ac466` is SUPERSEDED by H27); **final TO MEASURE, because item 11 of section 9 moves it once more** |
 | `.github/workflows/rebuild.yml` | edited | S8 post `8403d10b1a54d721a17e92cc0c2eb7fe119379b65cc4ba9625e6a7196ad9d532` (measured from the parent artifact) | combined post TO MEASURE |
 | `rebuild/lanes/b/tooling/packages/S8.json` | superseded-by-child | TO MEASURE | TO MEASURE |
 
@@ -168,7 +171,12 @@ flag and step name, the fence step, the pack/approved step, the Today carry's tw
 passphrase step, `local-import.test.mjs`'s step and **F2-LAND's step with BOTH its cells**
 (`DECISIONS:582`). No post-image for it is copied from any lane report, including F2's
 `878baa7617f63e236d68213f672d716b67d976dcf1e4a6ce50948b7d06133499`, which is that lane's own
-historical value and not S9's.
+historical value and not S9's. **AND THAT VALUE'S HEAD IS NOT `b9777fe4`, review L1 N5, corrected in
+loop round 1:** re-measured by this author, `.github/workflows/rebuild.yml` AT the accepted F2 head
+`b9777fe4` hashes to `5e4353267924ebca1a19d996c317864475e77e0ba4deaddea09a15cdf1e776e0`, not to
+`878baa76...`. `878baa76...` belongs to F2's own earlier head `797b05c` and is HISTORICAL there.
+Review L1 measured the same pair. **The final combined post remains TO MEASURE AT INTEGRATION and
+neither value is it.**
 
 `S8.json` is `superseded-by-child` because it is the parent's own EXECUTION pin, which
 `DECISIONS:109` says a child supersedes inside its own seal and which the runner refuses under any
@@ -348,17 +356,26 @@ are never added together, and a known red is preserved rather than hidden.
 
 | lane | head | measured bar | the reds, by name |
 | --- | --- | --- | --- |
-| A, the runner | `397ac466` on `rebuild/b-s9-prep-runner`, runner sha256 `71c1b259...3012c0` | **150 of 150 on the PC and on linux** at identical runner bytes (was 145); Astra's whole table plus P01 to P07 re-taken, 47 rows executed, 47 killed, 0 live, 4 not applicable | none in the tooling suites. CI run `35458068468` is red at step 13 on both systems and nowhere else, which is this branch's expected state until S9 because the runner is a sealed execution pin (`DECISIONS:598`) |
+| A, the runner | **ACCEPTED at `a224c7b0`** on `rebuild/b-s9-prep-runner` (`DECISIONS:620`), runner sha256 `d52acc31...1d28bb53`, 3898 lines - both re-measured by this author in the farm | **151 of 151 on BOTH systems**, the ten tooling suites, at identical runner bytes (was 150 at `397ac466`, and 145 before that); Astra's whole table plus P01 to P07 re-taken, 47 rows executed, 47 killed, 0 live, 4 not applicable | none in the tooling suites. CI is red at the standing package step on both systems and nowhere else, which is this branch's expected state until S9 because the runner is a sealed execution pin (`DECISIONS:598`) |
 | B, the inventory fence | ACCEPTED at `8019abf6`, paper head `6f808cfa` (`DECISIONS:591`) | **44 tests / 43 pass / 1 fail on BOTH systems** | the one red is THE REAL ROW, naming nine touched sealed paths. It goes green only when the real S9 child satisfies the verified reseal conditions at integration |
 | C, the pack cells | Astra round 5 build `d857d775` on `rebuild/b-s9-prep-pack` | **pack-pin 58 tests / 57 pass / 1 fail; approved-pin 42 tests / 41 pass / 1 fail**, on the PC AND on linux at identical bytes, the literals unfilled (`DECISIONS:599`) | one REAL ROW in each and nothing else: `PACK-PIN PACK-ROOT-ABSENT rebuild/m1/approved-2026-09-18`, and `APPROVED-PIN UNLISTED` naming the two 09-08 HTML paths |
 | F2-LAND (E fact 23) | closed at `b9777fe4` on `rebuild/d-f2-land` (`DECISIONS:581`, carrier changed `:582`) | 81/81 and plan-edit 90/90 | none; N1/N2 wait for the next cell edit |
 | PASSPHRASE-NORMALIZE | `ba04c07f`, already merged into this lane | blind review ACCEPT WITH NOTES, no product defect (`DECISIONS:601`) | none in product; four cell/paper notes ruled P-PN-1 to P-PN-4 and being built |
 
-**A's row is PENDING ASTRA R6.** `DECISIONS:598` dispatched Astra job 39 at 13:28 ET, narrow by
-ruling, from a fresh worktree at `397ac466`: this round's hunks, her own G1 to G6 witnesses and her
-own table only. Whatever she still holds is BLOCKING only with an executed input a well-formed spec
-or an honest chain can reach; otherwise it is a named debt, and this brief's D-A-FINAL paragraph
-(section 8) is the one place that paragraph is amended when her verdict lands.
+**A's row is NO LONGER PENDING. IT IS ACCEPTED, and this is the ONE place the brief says so**
+(the marker an earlier draft carried, "PENDING ASTRA R6", is removed here and nowhere else did it
+stand). `DECISIONS:598` dispatched Astra job 39, narrow by ruling, from a fresh worktree at
+`397ac466`. **`DECISIONS:620` ACCEPTS lane A at `a224c7b0`**: the runner is
+`d52acc31c99845ed774c5111a261b84012538495e0ee2caa1d13827c1d28bb53`, 3898 lines, the ten tooling
+suites 151 of 151 on both systems. The one code change since `397ac466` is **H27**, which seeds
+`canonicalSpecPaths()` with the two fixed execution coordinates, and the seven ancestor packages are
+re-pinned to that sha. **D-A-FINAL IS SETTLED and section 8 states it as settled, not as pending.**
+**One item is NOT closed by the acceptance and it is an integration hand, PM-A1** (section 9 item
+11): the comment above `canonicalSpecPaths()` miscounts. Re-measured by this author at `a224c7b0`,
+`b-package.cjs:1228-1229` reads "EVERY FIVE of the strings `proposed()` turns into executionPins -
+the four a spec declares AND the two this file fixes itself", **and four plus two is six**;
+`proposed()` pins through FIVE routes. It is a COMMENT, it changes no behaviour, and it is corrected
+in the integration's own runner commit BEFORE E fact 7 is done for the last time.
 
 **C's row is PENDING, in this one place, and the PM has now judged the check.** `DECISIONS:608`
 upholds BOTH of narrow check R5's findings, rules **P-PACK-4** (no listing call stands outside a
@@ -679,15 +696,32 @@ wider ignore list; APPROVED-PIN refusals must be matched in full and never by th
 later reader who takes one of these lines for a closed item has misread it.** Each debt is one line,
 with the head or ledger line that states it.
 
-**D-A-FINAL - the runner's surviving coverage. PENDING ASTRA R6.** `DECISIONS:587` made round 6 the
-last runner author round before S9 and its narrow re-check the last look; whatever survives is named
-debt here. The author's own NOT CLOSED list at `DECISIONS:598`, verbatim in substance and OPEN:
-(1) the three older path maps are unreachable, not repaired; (2) a LONE uppercase alias still fails
-raw inside `L.checkSources` with `failCode=null` rather than by name; (3) the Windows spellings
-Astra measured as never reaching an authorized artifact get no clause; (4) `spec()` is exercised,
-not covered. To these `DECISIONS:598` adds one recorded item that is NOT a defect and must not be
-listed as one: `(P-A9 e)` is a COVERAGE cell that was green red-first. **This paragraph is the ONE
-place D-A-FINAL is stated, so it is the one place to amend when Astra job 39 returns.**
+**D-A-FINAL - the runner's surviving coverage. SETTLED, and OPEN as a DEBT.** `DECISIONS:587` made
+round 6 the last runner author round before S9 and its narrow re-check the last look; whatever
+survives is named debt here. **`DECISIONS:620` ACCEPTED lane A at `a224c7b0`, so this paragraph is
+no longer pending: it is the final list, and every line of it is still OPEN.** It has two halves.
+
+**Half one: Astra's three, VERBATIM from `rebuild/lanes/astra/reviews/S9-PREP-RUNNER-RECHECK-L2.md`
+at `b5139467` on `origin/rebuild/r-astra-s9a-runner-l2`, quoted character for character and read by
+this author in the farm:**
+
+> D1 MAP-CONSTRUCTION: the three assignment-built maps still lose a directly supplied __proto__ key; production safety depends on retaining canonicalSpecPaths admission before every producer, including future ones.
+
+> D2 DISK-IDENTITY: JavaScript lowercase equality is not filesystem identity; this Windows disk keeps K/U+212A, U+1E9E/U+00DF and U+0130/i+U+0307 distinct while H25 refuses them; none occurs in the 22 standing files.
+
+> D3 JSON-BOUNDARY: H26 accepts extra symbol keys, accessor values and a Proxy hiding an extra key in direct calls; retain JSON-only artifact ingress, which cannot deliver any of those object identities.
+
+**Half two: the author's own standing NOT CLOSED list at `DECISIONS:598`, verbatim in substance and
+OPEN:** (1) the three older path maps are unreachable, not repaired; (2) a LONE uppercase alias
+still fails raw inside `L.checkSources` with `failCode=null` rather than by name; (3) the Windows
+spellings Astra measured as never reaching an authorized artifact get no clause; (4) `spec()` is
+exercised, not covered. To these `DECISIONS:598` adds one recorded item that is NOT a defect and
+must not be listed as one: `(P-A9 e)` is a COVERAGE cell that was green red-first.
+
+**This paragraph is the ONE place D-A-FINAL is stated.** It is now closed to further amendment: the
+lane is accepted and the list above is what S9's verdict restates. **PM-A1, the miscounting comment
+above `canonicalSpecPaths()`, is NOT on this list, because it is not a surviving coverage gap; it
+is an integration hand and it stands at section 9 item 11.**
 
 **D-F2-1 / F2-GUARD-TERM-COVERAGE - eleven guard terms with no behaviour row.** Five looks over 960
 calls across two corpora and one targeted review leave these eleven terms of
@@ -749,15 +783,34 @@ contradictions 7 and 8), and every pack count is RE-MEASURED at the pack's final
 these numbers is a literal to paste into a cell.** COPY-BIND is withdrawn; reverse and list
 completeness are S10's precondition (`DECISIONS:546`, `:549`).
 
+**THE THREE DEBTS REVIEW L1 NAMED, ADDED IN LOOP ROUND 1 AND QUOTED VERBATIM IN THE REVIEWER'S OWN
+WORDS.** They come from `rebuild/lanes/astra/reviews/S9-UI-PINS-BRIEF-REVIEW-L1.md` at `a93367b` on
+`rebuild/r-astra-s9-brief-l1`, and this author neither rewords nor narrows them:
+
+> D-REFERENCE-CLOSURE: executedClosure is a bounded static literal-specifier walk, not proof of runtime reading or of authority. A reader added for the four design documents must assert their approved content, and a changed-document counterexample must fail. Re-measure the closure after C-UI-1; a computed path alone remains invisible.
+
+> D-INTEGRATION-COUNTS: all S9 product, execution, child, root, pack and test totals remain integration outputs. S8's 224/71/25/182 and preparation bars are historical inputs, never S9 needles. New compatibility, workflow-condition and R6-Z2/Z3 rows change the final totals.
+
+> D-PLATFORM-EVIDENCE: Windows scratch passes below do not establish Linux or hosted-CI outcomes. Final evidence must retain exact source heads, platform, command, test totals and named real-row refusals; an equal pass/fail total with a different refusal is not equivalent evidence.
+
+**D-PLATFORM-EVIDENCE binds this round's own measurements and this brief says so rather than
+letting it pass.** Every probe this author executed in loop round 1 ran on LINUX, in the PM's cloud
+reading room, against read-only synced worktrees; review L1's probes ran on WINDOWS, on the PC.
+**Neither platform establishes the other, and neither establishes hosted CI.** Where the two agree,
+as they do on every blocking finding of this round, that is two platforms and still not CI. The
+final evidence of this package carries the exact source head, the platform, the command, the test
+totals and the named real-row refusals for every row, and an equal pass/fail total with a DIFFERENT
+refusal is not equivalent evidence.
+
 **THE KNOWN REDS, and which of them the seal turns green.**
 
 | red | where it stands, measured | does the S9 seal turn it green? |
 | --- | --- | --- |
-| The six `s9-*` mirror load reds, 0 pass / 1 fail each, `ENOENT packages/S9.json` | `rebuild/b-s9-prep-runner` at `397ac466` | **YES**, the moment `packages/S9.json` exists with the measured inventory. They are reds, never skips |
+| The six `s9-*` mirror load reds, 0 pass / 1 fail each, `ENOENT packages/S9.json` | `rebuild/b-s9-prep-runner` at the ACCEPTED head `a224c7b0` (review L1 executed all six separately at `397ac466` and measured each 1 test / 0 pass / 1 fail, ENOENT at module load, zero skips) | **YES**, the moment `packages/S9.json` exists with the measured inventory. They are reds, never skips |
 | The fence's REAL ROW, 1 of 44 | `rebuild/b-s9-prep-cells` at `8019abf6`, both systems | **YES, but only at integration**, when the real S9 child satisfies the verified reseal conditions of D.2 (five conditions, default FAIL) |
 | `PACK-PIN PACK-ROOT-ABSENT rebuild/m1/approved-2026-09-18`, 1 of 58 | `rebuild/b-s9-prep-pack` at `d857d775`, both systems | **IN TWO STEPS**: `PACK-ROOT-ABSENT` now, then `LITERAL-EMPTY` when the pack arrives, then green when the literal is filled on the day |
 | `APPROVED-PIN UNLISTED` naming the two 09-08 HTML paths, 1 of 42 | same head, both systems | **YES when the literal is filled**, and only then |
-| `measure/test/boundary.test.mjs` P-MEASURE (g) and `today/test/setup.test.mjs`'s re-pin, red for carried bytes S9 had not yet declared | `DECISIONS:552`; B:79-92; A:594-605 | **YES**, by the same mechanism that turned S8's five green: declaring the files with their posts and putting `'S9'` in `CHILD_SPECS`. Preparation added its own edits to those named lists |
+| `measure/test/boundary.test.mjs` P-MEASURE (g) and `today/test/setup.test.mjs`'s re-pin, red for carried bytes S9 had not yet declared | **CITATION CORRECTED IN LOOP ROUND 1, review L1 N6: the sources an earlier draft named do not carry this.** `DECISIONS:552` reports an infrastructure outage and initial preparation status, and A:594-605 reports older tooling and mirror results. **The actual boundary and setup output and its head are TO CITE at integration, from the run that produces them, and this brief does not invent a coordinate for them.** Note also that `boundary.test.mjs` is the ONE `CHILD_SPECS` cell still missing `'S9'` (E fact 12, review L1 N11) | **YES**, by the same mechanism that turned S8's five green: declaring the files with their posts and putting `'S9'` in `CHILD_SPECS`. Preparation added its own edits to those named lists |
 | `rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs:29` | chain tip, stale-red already | **NO. See section 9, item 8** |
 
 ## 9. THE INTEGRATION HAND LIST
@@ -771,19 +824,39 @@ reaches the chain before S9 (`DECISIONS:556`, Q4).
 the lane to a reseal child instead of a merge): the runner lane `rebuild/b-s9-prep-runner`; the
 fence lane `rebuild/b-s9-prep-cells`; the pack lane `rebuild/b-s9-prep-pack`; `rebuild/d-f2-land`
 (E fact 23, whole branch); and C-UI-1 when it lands. `rebuild/c-passphrase-normalize` at `ba04c07f`
-and S9-TODAY-CARRY are already merged into this lane. **After every merge, `git rev-parse HEAD` is
-the candidate `sourceBase` and every pre/post below is re-measured against it.**
+and S9-TODAY-CARRY are already merged into this lane.
+
+**CORRECTED IN LOOP ROUND 1, review L1 B1: `git rev-parse HEAD` after a merge is NOT the
+`sourceBase`.** An earlier draft said it was. **The post-merge HEAD is the CANDIDATE UNDER REVIEW;
+the `sourceBase` is a commit that still satisfies EVERY S8 parent pin, which means an ANCESTOR
+PRESERVED FROM BEFORE THE CARRIED EDITS.** The header of this brief carries the measurement: at this
+lane's head `b1aaecf5`, 220 of the 227 parent pins hold and SEVEN are already broken by the
+passphrase and Today carries, so `held()` would refuse `PARENT-PIN-BROKEN-AT-SOURCEBASE` on each of
+the seven; at `0cd07be7cf967dfbfea8c84947ba8477f58cfb5f`, an ancestor of `b1aaecf5`, all 227 hold.
+**So the integrator's hand here is: PRESERVE a valid pre-edit `sourceBase` before merging, NAME it,
+record it in `packages/S9.json`, and never let a merge silently replace it.**
+`0cd07be7cf967dfbfea8c84947ba8477f58cfb5f` is a MEASURED CANDIDATE, offered for the PM to name and
+not named by this brief; review L1 measured the same 227 of 227 independently. **After every merge,
+every pre/post below is re-measured AGAINST THAT PRESERVED `sourceBase`, and the merge's own effect
+on the product inputs is re-checked (section 6 step 10).** Take the final accepted passphrase, pack
+and C-UI heads, including the pending passphrase comment correction of section 11.3, before
+measuring their pins.
 
 **2. The cross-lane cell: the fence's release-object shape against the runner's real artifact.**
 `DECISIONS:559` ordered this compatibility check and no lane owns it, because neither lane can build
 the other's input. Measured by this author at both heads: the runner declares `released` as the ONE
-optional artifact key in `ARTIFACT_KEYS` (`b-package.cjs:3408-3420`), closed in `envelope()` by
+optional artifact key in `ARTIFACT_KEYS` (`b-package.cjs:3442-3454` at `a224c7b0`), closed in `envelope()` by
 `same(m, proposed(s, bound))`; the fence reads it as
 `new Set(Object.keys(inv.released || {}))` (`sealed-inventory-fence.test.mjs:158`) and its own R1 N1
 comment says E fact 15 makes `released` an OBJECT KEYED BY PATH. **The cell asserts that the real
 `acceptance-s9-ui-pins.json` the runner writes satisfies the fence's reading, both paths present as
 keys, against the real artifact and not against a fixture inventory.** It is ONE new cell at
 integration and it belongs to whoever writes the artifact, not to lane B or lane C.
+**ADDED IN LOOP ROUND 1, review L1's answer (7) item 2, which measured this hand still unwritten:
+NAME the cell's path, its declared child, its product role and its CI home NOW, and check the ACTUAL
+candidate artifact before the final review, then commit the cell's bytes BEFORE pinning the
+artifact. A fixture alone does not discharge this hand.** Its row is a new test total, so
+D-INTEGRATION-COUNTS applies to it.
 
 **3. The pack-pin CI step, with its `if:` line and its own row.** `DECISIONS:559` (P-FENCE-1):
 "the pack-pin step of S9-PREP-C needs the same condition and the PM adds it as integrator", and
@@ -801,6 +874,10 @@ R6-Z3): a SAME-LENGTH edit of the sealed inventory must FAIL by name, and a ZERO
 FAIL by name. Both substitutions are non-equivalent and both left all 44 existing rows green on both
 systems, so the existing rows do not cover them. **One row, two asserts, added to
 `sealed-inventory-fence.test.mjs` at integration and reviewed by Astra with the integration.**
+**Review L1's measurement, recorded in loop round 1: neither mutation is represented by the current
+44-row total, so the new total AND the cell's sha256 both move, and BOTH are re-measured.** That is
+D-INTEGRATION-COUNTS in section 8: the 44/43/1 of section 3.1 is a historical input and is never
+S9's needle.
 
 **5. The N5 paper numbers.** Review R6 found four statements of B's author report stale, all of them
 made stale by the integrator's own comment-only commit `8019abf6` landing after section 16 was
@@ -813,8 +890,13 @@ insertions**, not 55 and 221, the one comment line `8019abf6` added; "it was not
 at `2f37a36e` and not at the head; and section 15's present-tense account of
 `FENCE-INVENTORY-HEAD-UNREADABLE` is HISTORY, because P-FENCE-2 removed the refusal and its catch.
 **At integration all four are re-taken at the integrated head, because the R6-Z2/Z3 row of item 4
-moves the cell's bytes again.** (This author reads "the N5 paper numbers" as this corrections list;
-if the PM meant another N5, the item is the same work at a different name.)
+moves the cell's bytes again.** **CORRECTED IN LOOP ROUND 1, review L1 N9: this item owns the
+fence's PAPER corrections ONLY.** The two other things called N5 - B's review R6's own byte-equal
+wording note, and C's check R5's `s9NoDescents`-inside-`finally` note - are separate items with
+separate homes, and section 12.5 routes all three. **They are not interchangeable and none is
+discharged by doing another.** Review L1 re-measured the diffstat here independently and reproduces
+56 cell lines and 222 insertions, adding that the explicit three-path diff also shows 3 files and 9
+deletions.
 
 **6. The CI homes, one explicit step each, named by exact path and never globbed**
 (`DECISIONS:117` (4), `:186` (3)): the fence; the two pack cells; the passphrase lane's three cells
@@ -824,14 +906,30 @@ if the PM meant another N5, the item is the same work at a different name.)
 **E fact 23: F2-LAND's TWO cells, `rebuild/lanes/d/f2/projector.test.mjs` and
 `rebuild/lanes/d/f2/guard-coverage.test.mjs`, in ONE explicit step with ONE declared child**
 (`DECISIONS:582`). Every step becomes a declared child, because a declared child mirrors a CI step
-and `childArgv()` judges every target against `CHILD_ROOTS`. **`rebuild/lanes/c/ui-port/` is added
-to `CHILD_ROOTS` as the twenty-fifth root and to `PUBLIC_TAIL_ROOTS` in the same hunk, and it is the
-ONLY new root that joins the tail list.** `rebuild.yml`'s combined post is measured ONCE, after all
-of them.
+and `childArgv()` judges every target against `CHILD_ROOTS`.
+
+**CORRECTED IN LOOP ROUND 1, review L1 B2: TWO new `CHILD_ROOTS` entries are needed, not one.**
+An earlier draft named only `rebuild/lanes/c/ui-port/`. Measured by this author at the accepted
+runner head `a224c7b0` with the real `childArgv()`: `CHILD-ARGV-TARGET f2-land
+rebuild/lanes/d/f2/projector.test.mjs` and the same refusal for `guard-coverage.test.mjs`, and
+`CHILD-ARGV-TARGET ui-port rebuild/lanes/c/ui-port/pack-pin.test.mjs`; `CHILD_ROOTS.length` is 24
+and neither root is in it. Review L1 measured the two F2 refusals independently at `397ac466`.
+**So BOTH `rebuild/lanes/c/ui-port/` and `rebuild/lanes/d/f2/` are added to `CHILD_ROOTS`, with F7's
+literal, its `slice(8)` window and its stated count all re-measured; and ONLY
+`rebuild/lanes/c/ui-port/` joins `PUBLIC_TAIL_ROOTS`, with F8's literal moving by exactly one.**
+**The resulting root count is TO MEASURE and this brief asserts none** (D-INTEGRATION-COUNTS).
+`rebuild/m3/w6/test/local-import.test.mjs` needs NO root hunk, but it does need a product role, and
+E fact 22 now names it: `pinned-unchanged` with equal measured `pre` and `post`. At the chain tip
+`rebuild.yml` names `local-import` **zero** times, measured. `rebuild.yml`'s combined post is
+measured ONCE, after all of them.
 
 **7. `DECISIONS:570` left one CI decision to the PM and this brief does not make it: whether the
 E21 and E22 steps also run after a failed standing step**, that is, whether they too carry
 `if: ${{ !cancelled() }}`. The fence and the pack are ruled; these two are not. **OPEN.**
+**Review L1's recommendation, recorded in loop round 1 and NOT adopted:** `!cancelled()` for both,
+plus a condition-reading row for each, so that their evidence survives an earlier standing-step
+failure while a real cancellation still stops them. It confirms the item is truly open through
+`DECISIONS:609`. **The PM rules it; this brief still picks nothing.**
 
 **8. The disposition of `rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs:29`. The PM rules
 this in review; this brief states the three options and their cost and recommends none.** The
@@ -853,6 +951,12 @@ does not by itself require a reseal child.
 | (d) DO NOTHING and carry it | zero now | it stays a red nobody can explain, which is exactly what `DECISIONS:570` routed to this brief to stop |
 
 **An unrecorded deletion or a quiet re-pin is not one of the four.**
+**Review L1's recommendation, recorded in loop round 1 and NOT adopted, and this item STAYS OPEN
+for the PM:** option (c), explicit retirement of the obsolete equality on the record, with the
+OS-matrix invariant and the no-`|| true` invariant RE-HOMED in a CI-executed workflow cell under a
+PM ruling - because a quiet re-pin leaves an unobserved check. **This author still recommends none
+of the four.** This author re-measured the load-bearing fact in loop round 1 and it stands:
+`ci-second-gate.test.cjs` is in NEITHER S8 map, so editing or retiring it is not a sealed act.
 
 **9. The day-of pack procedure for the PACK-PIN and APPROVED-PIN literals.** This is the last
 mechanical act before the seal and it is done in ONE sitting, in this order.
@@ -881,7 +985,28 @@ is matched, never the prefix `design.cjs` already uses.
 stopped moving: seven packages, `H3`, `S3`, `S4`, `S5`, `S6`, `S7`, `S8`, each re-pinned by ONE
 value, `tooling.runnerSha256`. This is not a preference; it is how round 6 was built
 (`DECISIONS:598`) and re-pinning before the last hunk means doing it twice and publishing a stale
-value in between.
+value in between. **The seven are re-pinned to `a224c7b0`'s
+`d52acc31c99845ed774c5111a261b84012538495e0ee2caa1d13827c1d28bb53` today** (`DECISIONS:620`), **and
+that value MOVES once more** the moment item 11 lands, so E fact 7 is done again after it. Review
+L1 measured all seven equal to the runner hash at `397ac466`; they are re-measured against the final
+runner and **committed before each `--ci`** (section 6 step 4).
+
+**11. PM-A1: the miscounting comment above `canonicalSpecPaths()`. ADDED IN LOOP ROUND 1, from the
+lane A acceptance.** Measured by this author at `a224c7b0`: `b-package.cjs:1228-1229` says "EVERY
+FIVE of the strings `proposed()` turns into executionPins - the four a spec declares AND the two
+this file fixes itself". **Four plus two is six, and `proposed()` pins through FIVE routes**, so the
+sentence contradicts itself and undercounts what the seeded walk now sees. **It is a COMMENT and
+changes no behaviour**, which is why the lane's acceptance was not held for it. **It is corrected in
+the INTEGRATION'S OWN runner commit, BEFORE E fact 7 is done for the last time**, so that the sha
+the seven ancestors carry is the sha of the corrected file. No preparation lane makes this edit.
+
+**12. The artifact export and the PENDING review envelope. ADDED IN LOOP ROUND 1, review L1 N10.**
+`proposed()` RETURNS an object; `--ci` does NOT write it. So the integrator names, here, the exact
+command that serializes the recomputed object and a PENDING review envelope before the review
+reads it, and RE-PROPOSES after any input changes. Without that step there is nothing for the
+reviewer to read, and a stale candidate can make `envelope()` refuse `SEALED-PROFILE-RECOMPUTATION`.
+**The command itself is TO NAME AT INTEGRATION**; this brief does not invent one, and nothing in
+this round exported, wrote or sealed any artifact.
 
 ## 10. THE FOUR PM TOKEN LINES, AS REQUIRED TEXT
 
@@ -1099,13 +1224,20 @@ for S9 to declare.
 **The input pack `rebuild/lanes/b/S9-BRIEF-INPUTS.md` at `dca3f959` is a map and was written
 unreviewed; this author opened its sources. Four corrections and one gap:**
 
-1. **The pack's runner snapshot is one round stale.** It reads the runner at
+1. **The pack's runner snapshot is one round stale - AND THE CORRECTION ITSELF WAS WRONG, review
+   L1 N4, corrected in loop round 1.** The pack reads the runner at
    `2a8526b58da4a8bd8a57248d4aa524cb3afba21a` and says "A still reports round 5", carrying the
-   round-5 runner post `316f86c541f109a5876f5ea8d0557164151585f4f5940ce8878c3bec02bee43e`. The
-   accepted head is `397ac466` and the runner is
-   `71c1b2592b5a3544b71c0995a9f52b88fbe24cd6b821709309aa95e5ad3012c0`, measured by this author and
-   equal to the PM's at `DECISIONS:598`. Every grammar quoted in section 10 was re-read from that
-   head, not from the pack.
+   round-5 runner post `316f86c541f109a5876f5ea8d0557164151585f4f5940ce8878c3bec02bee43e`.
+   **An earlier draft of this brief attached that stale hash to that commit. It does not belong to
+   it.** Re-measured by this author in the farm: the runner AT `2a8526b5` is
+   `71c1b2592b5a3544b71c0995a9f52b88fbe24cd6b821709309aa95e5ad3012c0`, not `316f86c5...`;
+   `316f86c5...` is the object at `4ccfdfcd`. **So the pack's REPORT is stale and the runner under
+   it had ALREADY been updated: the two must be distinguished and this brief now distinguishes
+   them.** Review L1 measured the same pair.
+   **And the accepted head has moved again since the review: it is `a224c7b0` (`DECISIONS:620`) and
+   the runner is `d52acc31c99845ed774c5111a261b84012538495e0ee2caa1d13827c1d28bb53`**, measured by
+   this author. Every grammar quoted in section 10 was re-read from `a224c7b0`, not from the pack
+   and not from `397ac466`.
 2. **The pack's `guard-coverage.test.mjs` hash is a superseded round's.** It carries
    `b84b0b4056fbb1f82b11dd63d4a335674e57176ced31b2defd6748ed0c1002da`; measured at the accepted F2
    head `b9777fe4` the file is
@@ -1184,20 +1316,52 @@ until integration; **and the PM's own line is obtained for it.** **This brief do
 Review L1's recommendation, recorded and not adopted: the same five S8 supersedes, conditional on
 the final executed evidence.
 
-**12.5 A smaller one, recorded rather than resolved: "the N5 paper numbers".** This author read that
-instruction as the four stale statements review R6 found in B's author report, which the integrator
-corrected at `6f808cfa` in a new section 17, and section 9 item 5 lists them with their values. B's
-review R6 also has a note numbered N5 of its own ("a byte-equal touch passes THIS CHECK", three
-words) and C's check R5 has a different N5 (`s9NoDescents` asserting inside its `finally`). If the
-PM meant one of those, the work is the same work at a different name and section 9 item 5 is where
-it belongs.
+**12.5 A smaller one, recorded rather than resolved: "the N5 paper numbers". CORRECTED IN LOOP
+ROUND 1, review L1 N9: the three N5s are NOT the same work at a different name and this brief no
+longer says they might be.** They are three separate items and each is routed on its own:
+
+1. **The fence's PAPER corrections** - the four stale statements review R6 found in B's author
+   report, corrected by the integrator at `6f808cfa` in a new section 17. **Section 9 item 5 owns
+   these**, and review L1 re-measured their diffstat independently: the explicit three-path diff
+   `68ed616d..8019abf6` gives cell 56 lines, 222 insertions and 9 deletions across 3 files, which
+   matches this brief's 56 and 222.
+2. **B's review R6's own note N5**, the fence's byte-equal-touch WORDING ("a byte-equal touch passes
+   THIS CHECK", three words). **That is a wording item of the fence's paper, not a number**, and it
+   travels with item 1's re-take at the integrated head.
+3. **C's narrow check R5's N5**, `s9NoDescents` asserting inside its `finally`. **That is CELL
+   BEHAVIOUR, not paper at all, and it is routed to P-PACK-5 and its narrow check**
+   (`DECISIONS:608`), where D-C-FINAL in section 8 records whatever survives.
+
+**None of the three is discharged by doing another.** If the PM meant a fourth thing by "the N5
+paper numbers", that is a new item and not one of these.
 
 ---
 
 **This brief is a hypothesis for the PM and for one independent review, not evidence.** It seals
 nothing, runs no package with `--full`, writes no `packages/S9.json`, fills no literal and issues no
-PM token line. Its own sha256 and byte count are TO MEASURE on the day it is accepted. Its author
-read in the PM's cloud reading room at chain tip `789baf6e` and again at `05466ebb` for the ledger's
-tail, and wrote, committed and pushed on the owner's PC; every measurement attributed to this author
-above was taken with `git`, `sha256sum` or `node` against a synced worktree, never against the
-owner's data. The farm's privacy proof printed PASS at every sync of this assignment.
+PM token line. Its own sha256 and byte count are TO MEASURE on the day it is accepted. Its first
+author read in the PM's cloud reading room at chain tip `789baf6e` and again at `05466ebb` for the
+ledger's tail, and wrote, committed and pushed on the owner's PC.
+
+**LOOP ROUND 1, the fix round, and what it did and did not do.** This round answers
+`rebuild/lanes/astra/reviews/S9-UI-PINS-BRIEF-REVIEW-L1.md` at `a93367b`, verdict REJECT, read whole
+before a word was changed. **All ten of its BLOCKING findings were RE-MEASURED by this author before
+any sentence moved, at the ACCEPTED runner head `a224c7b0` rather than at the `397ac466` the review
+had to use; all ten reproduced, and NONE is disputed.** Every correction is marked in place with the
+words "CORRECTED IN LOOP ROUND 1" and the finding that ordered it, so a later reader can tell a
+corrected sentence from an original one. The reviewer's eleven NOTES are landed or answered, its
+three NAMED DEBTS stand VERBATIM in section 8, and **the OPEN items - 12.1 first - remain OPEN with
+the reviewer's measurement and recommendation beside each; this author picked no disposition and the
+PM rules them all.** The one place lane A is marked is section 5.1 with section 3.1, and it now
+reads ACCEPTED; the one place lane C is marked is section 3.1 with 12.3, and it still reads PENDING,
+because lane C is still inside its own loop. Nothing in this round sealed, ran `--full`, wrote an
+`S9.json`, filled a literal, issued a token line or touched a code, test or CI file; the only two
+files it wrote are this brief and `rebuild/lanes/b/S9-UI-PINS-BRIEF-AUTHOR-NOTES.md`, which records
+the command and the output that settled each finding.
+
+**Every measurement attributed to this author above was taken with `git`, `sha256sum` or `node`
+against a synced read-only worktree, never against the owner's data.** Loop round 1's executed
+probes ran on **LINUX** in the reading room; review L1's ran on **WINDOWS** on the PC. Per
+D-PLATFORM-EVIDENCE in section 8, neither platform establishes the other and neither establishes
+hosted CI, and this brief claims no more than it measured. The farm's privacy proof printed PASS at
+every sync of this assignment.

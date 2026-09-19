@@ -186,3 +186,78 @@ Output: `food`, `machine-settings-ui`, `problem` and `setup` carry it; `measure/
 does NOT, its list still ends at `'S8'`.
 Settled: E fact 12 now reads FOUR BUILT, ONE TO DO, with the fifth post TO MEASURE.
 
+### N3 lane A's state - ANSWERED BY NEWS, not by argument
+`DECISIONS:620` ACCEPTS lane A at `a224c7b0`. The review's "say built, re-check pending throughout"
+is overtaken: the brief now says ACCEPTED, in the ONE place it marks lane A (section 5.1, with
+section 3.1's row), and D-A-FINAL in section 8 is stated as SETTLED with Astra's D1, D2 and D3
+quoted verbatim from `S9-PREP-RUNNER-RECHECK-L2.md` at `b5139467` plus the author's standing NOT
+CLOSED list of `DECISIONS:598`.
+
+### N4 the historical runner hash - CORRECTED
+Command: `git show 2a8526b5:rebuild/lanes/b/tooling/b-package.cjs | sha256sum`.
+Output: `71c1b2592b5a3544b71c0995a9f52b88fbe24cd6b821709309aa95e5ad3012c0`, NOT
+`316f86c541f109a5876f5ea8d0557164151585f4f5940ce8878c3bec02bee43e`.
+Settled: the stale REPORT and its already-updated RUNNER are now distinguished in section 12 item 1.
+
+### N5 the historical workflow hash - CORRECTED
+Command: `git show b9777fe4:.github/workflows/rebuild.yml | sha256sum` in the F2 worktree.
+Output: `5e4353267924ebca1a19d996c317864475e77e0ba4deaddea09a15cdf1e776e0`, NOT `878baa7617f6...`.
+Settled: section 2.3 now names `797b05c` as `878baa76...`'s head and marks the final combined post
+TO MEASURE.
+
+### N6 the reds table citations - CORRECTED
+The review measured `DECISIONS:552` as an infrastructure-outage and preparation-status line and
+A:594-605 as older tooling and mirror results; neither carries the boundary/setup red. This author
+did not find a substitute coordinate that honestly carries it either, so the row now says the actual
+output and head are TO CITE at integration rather than naming a wrong source. This is a correction
+by REMOVAL of a false citation, which is the only honest fix available inside this round.
+
+### N8 DECISIONS:535 and today-model.cjs - CORRECTED
+Command: read line 535 of `rebuild/DECISIONS.md` at the chain tip.
+Output: it reports the file as already "unpinned (six paths, zero hits in acceptance-s8-real-shape
+...)"; it does not say the hotfix removed it.
+Settled: section 1 now says "already outside the seal when the hotfix landed".
+
+### N9 the three N5s - CORRECTED
+Settled by reading, not by a new measurement: section 12.5 now routes the fence's paper corrections
+to section 9 item 5, B-R6's own byte-equal wording note to that same re-take, and C-R5's
+`s9NoDescents`-inside-`finally` note to P-PACK-5 and its narrow check, and says in those words that
+none is discharged by doing another. Section 9 item 5 carries the same sentence.
+
+### N10 the artifact export - ADDED
+Settled by reading `proposed()` and `--ci` at `a224c7b0`: `proposed()` returns an object and `--ci`
+writes no artifact. Section 6 step 4 and the new section 9 item 12 now require the serialization and
+the PENDING review envelope, and re-proposal after any input change. The command itself is TO NAME
+at integration and this author invented none.
+
+### PM-A1 the canonicalSpecPaths comment - ADDED as an integration hand
+Command: read `b-package.cjs:1228-1266` at `a224c7b0`.
+Output: `:1228-:1229` reads "EVERY FIVE of the strings proposed() turns into executionPins - the
+four a spec declares AND the two this file fixes itself". Four plus two is six; `proposed()` pins
+through five routes. The function below it seeds the two fixed coordinates at `:1265-:1266`.
+Settled: the comment is a comment, behaviour is unaffected, and it is corrected in the integration's
+own runner commit BEFORE E fact 7 is done for the last time. It is NOT on D-A-FINAL's list.
+
+## Loop round 1: what stayed OPEN, and why
+
+Nothing in this list was decided by this author.
+
+- **12.1, E fact 17 against PRODUCT-PINNED-UNCHANGED-IS-NOT-EXECUTED-BY-A-DECLARED-CHILD.** All
+  three dispositions now carry an executed measurement and the reviewer's recommendation, (b), sits
+  beside them. **The brief recommends none. The PM rules it.**
+- **12.2, whether the E21 and E22 CI steps carry `if: ${{ !cancelled() }}`.** The reviewer
+  recommends `!cancelled()` with condition-reading rows; recorded, not adopted.
+- **12.4, which carriers the GATE-SUPERSESSION line names.** The input is corrected (B9) but the
+  answer is still an integration measurement plus a PM line.
+- **Section 9 item 8, the disposition of `ci-second-gate.test.cjs:29`.** The reviewer recommends
+  explicit retirement with the two invariants re-homed; recorded, not adopted. Four options stand.
+- **Lane C, the pack cells.** Still inside its own loop; its PENDING marker stays in its ONE place
+  (section 3.1, with section 12.3) and no hand of this loop waited for it.
+
+## Loop round 1: what was NOT disputed
+
+Nothing. All ten blocking findings reproduced at the accepted head `a224c7b0`, so this round has
+**zero DISPUTED findings**. Where a re-measurement at `a224c7b0` differs from the review's value at
+`397ac466` - the runner sha256, the runner line numbers, the tooling suite total - the difference is
+the ACCEPTED HEAD MOVING, not the reviewer being wrong, and each is recorded above as such.
+
