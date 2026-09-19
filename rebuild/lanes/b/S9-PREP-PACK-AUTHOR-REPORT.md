@@ -35,6 +35,19 @@ against the unchanged engine first. Section `R2 findings and the PM's rulings: f
 disputed` at the end of this file answers R2 finding by finding. Sections 1, 2, 3, 5, 6, 7
 and 9 carry round 3's numbers; where a count moved, the old one is named.
 
+**REVISION FOR THE R3 FIX ROUND (round 4), and this is the current state of the branch.**
+`S9-PREP-PACK-REVIEW-R3.md` rejected round 3 on ONE BLOCKING finding and three notes, and
+confirmed every other item of round 3 fixed or taken on both operating systems. I am the
+fourth author and I have continued the work. **The BLOCKING finding is ACCEPTED and closed
+by TWO fixture rows and NO engine line**, and the two mutants that made the claim look
+proven - `A21` and `A24`, which killed nothing at round 3's head - now kill rows on BOTH
+operating systems. R3's notes 1 and 2 were two stale numbers in this file and both are
+re-measured at MY final head rather than corrected by arithmetic; R3's notes 4 and 5 are in
+the integrator list in R3's own words; **R3's DISPUTE over the two unrowed output sorts is
+UPHELD BY THE PM and is now recorded inside `pack-pin.test.mjs` as a decision.** The section
+`R3 finding and notes: fixed` at the end of this file answers R3 item by item. Sections 5,
+6 and 9 carry round 4's numbers; where a count moved, the old one is named.
+
 ---
 
 ## 1. WHAT LANDED
@@ -42,7 +55,7 @@ and 9 carry round 3's numbers; where a count moved, the old one is named.
 | path | what it is |
 |---|---|
 | `rebuild/lanes/c/ui-port/pack-pin.test.mjs` | NEW. PACK-PIN: the whole owner-approved pack, pinned by a literal sorted `(path, sha256)` list read from the WORKING TREE. **41 rows** after round 3 (35 after R1's round, 25 before) |
-| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` | NEW. APPROVED-PIN: whatever `design.APPROVED` names at run time, pinned parametrically against this cell's own literal map. **25 rows** after round 3 (20 after R1's round, 16 before) |
+| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` | NEW. APPROVED-PIN: whatever `design.APPROVED` names at run time, pinned parametrically against this cell's own literal map. **26 rows** after round 4's comparator row (25 after round 3, 20 after R1's round, 16 before) |
 | `.github/workflows/rebuild.yml` | ONE new step, a pure insertion in ONE hunk in the same place. Round 3 added eleven COMMENT lines to it and nothing else, so it is now 22 inserted lines and still zero removed |
 | `rebuild/lanes/b/S9-PREP-PACK-AUTHOR-REPORT.md` | this file |
 
@@ -91,6 +104,13 @@ wait list and none of it is started here.
 | (r3-f4) | `51415d2` | R2 N2: the last row of each cell DERIVES the vocabulary from what the rows above emitted |
 | (r3-f5) | `1d14742` | the PM's Q4 ruling written into the `rebuild.yml` step's own comment |
 | (r3-f6) | this commit | this report |
+
+**ROUND 4's COMMITS (the R3 fix round), in the same shape.**
+
+| # | sha | what |
+|---|---|---|
+| (r4-f1) | `75263ae` | R3 BLOCKING-1: APPROVED-PIN's comparator row and the de-vacuumed literal-order row, plus the PM-upheld decision as a COMMENT in `pack-pin.test.mjs`. **No engine line moved in either cell**: both rows are green against the SHIPPED engine, and it is the MUTANT that makes them red (`A21` and `A24`, which killed nothing before). pack-pin **41 / 40 / 1**, approved-pin **26 / 25 / 1**, on BOTH operating systems |
+| (r4-f2) | this commit | this report: section 5 re-measured at `75263ae`, sections 6.1 and 6.2 re-measured, R3's notes 1 and 2 corrected by measurement, notes 4 and 5 added to the integrator list as items 18 and 19, the dispute recorded as item 20 |
 
 Each was pushed to `rebuild/b-s9-prep-pack` as it was made.
 
@@ -201,28 +221,28 @@ Mutation A2 in section 6 is that sentence executed.
 
 ## 5. THE BAR, ON BOTH OPERATING SYSTEMS, WITH COUNTS
 
-**RE-MEASURED AT ROUND 3's HEAD.** The numbers below replace the R1 round's (55 / 53 / 2
-together) and the first build's (41 / 39 / 2); they are bigger because round 3 added eleven
-rows across the two cells.
+**RE-MEASURED AT ROUND 4's CODE HEAD `75263ae`, which is R3's NOTE 3 taken.** The numbers
+below replace round 3's (66 / 64 / 2 together), the R1 round's (55 / 53 / 2) and the first
+build's (41 / 39 / 2). One row is new: round 4's comparator row in APPROVED-PIN.
 
-**The PC (Windows 11, node v24.19.0), worktree `%TEMP%\earned-s9c` at `51415d2`.**
+**The PC (Windows 11, node v24.19.0), worktree `%TEMP%\earned-s9c` at `75263ae`.**
 This is the bar of record.
 
 | suite | tests | pass | fail | skipped | todo |
 |---|---|---|---|---|---|
 | `rebuild/lanes/c/ui-port/pack-pin.test.mjs` | 41 | 40 | 1 | 0 | 0 |
-| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` | 25 | 24 | 1 | 0 | 0 |
-| the two together, which is the CI step's exact command | **66** | **64** | **2** | 0 | 0 |
+| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` | **26** | **25** | 1 | 0 | 0 |
+| the two together, which is the CI step's exact command | **67** | **65** | **2** | 0 | 0 |
 | `rebuild/m3/w7-preview/today/test/design.test.cjs`, unchanged | 11 | 11 | 0 | 0 | 0 |
 
-**Linux (the farm scratch `/home/claude/farm/scratch/wt/s9cAuthC`, made with
-`farm-scratch.sh` and checked out at the PUSHED head `51415d2`, node v22.22.2, 2 CPUs).**
+**Linux (the farm scratch `/home/claude/farm/scratch/wt/s9cA4fin`, made with
+`farm-scratch.sh` and checked out at the PUSHED head `75263ae`, node v22.22.2, 2 CPUs).**
 
 | suite | tests | pass | fail | skipped | todo |
 |---|---|---|---|---|---|
 | `rebuild/lanes/c/ui-port/pack-pin.test.mjs` | 41 | 40 | 1 | 0 | 0 |
-| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` | 25 | 24 | 1 | 0 | 0 |
-| the two together, the CI step's exact command | **66** | **64** | **2** | 0 | 0 |
+| `rebuild/lanes/c/ui-port/approved-pin.test.mjs` | **26** | **25** | 1 | 0 | 0 |
+| the two together, the CI step's exact command | **67** | **65** | **2** | 0 | 0 |
 
 **THE TWO OPERATING SYSTEMS AGREE ROW FOR ROW at this head**, which is not the same claim as
 "the same totals": every row that is green on one is green on the other, and the only two red
@@ -244,8 +264,11 @@ and APPROVED-PIN's real row printing the two `APPROVED-PIN UNLISTED` lines of se
 node --test rebuild/lanes/c/ui-port/pack-pin.test.mjs rebuild/lanes/c/ui-port/approved-pin.test.mjs
 ```
 
-It is inserted as a pure insertion, one hunk, `@@ -297,0 +298,11 @@`, eleven lines added and
-zero removed, directly after the `A5 - the built deploy folder itself` run line at `:297` and
+It is inserted as a pure insertion, one hunk, `@@ -297,0 +298,22 @@`, **22 lines added and
+zero removed** (R3's NOTE 2: this sentence used to say eleven, which was round 2's figure
+before round 3 added eleven comment lines, while the paragraph four below it already said 22;
+22 is the measured number at every head from round 3 onwards and round 4 does not touch the
+file at all), directly after the `A5 - the built deploy folder itself` run line at `:297` and
 before the comment block at `:298`. Nothing else in `rebuild.yml` is touched, so the two
 regions another lane is adding to (after `:232` and after `:306`) cannot conflict with this
 one. The file was parsed with the repository's own `yaml` module after the edit: one job,
@@ -317,7 +340,7 @@ a silent parser failure looks like in one.
 | P7 | the ignore prefix un-anchored to a match anywhere | 22 | 21 | yes |
 | P8 | the `__pycache__` segment rule removed | 22 | 21 | yes |
 | P9 | `Buffer.compare` replaced by the default string sort | 1 | 1 | yes |
-| P10 | the walk emits the platform separator instead of `/` | **0 (it survives)** | **23** | yes, ON WINDOWS ONLY |
+| P10 | the walk emits the platform separator instead of `/` | **0 (it survives)** | **29** | yes, ON WINDOWS ONLY (re-measured at round 4's code head; it was 23 over 35 rows at round 3's) |
 | P11 | the malformed-literal-line assert | 2 | 2 | yes |
 | P12 | the duplicate-literal-path assert | 1 | 1 | yes |
 | P13 | an irregular entry skipped silently instead of named | 2 | **1** | **yes, on BOTH now** (R1 B3 closed) |
@@ -365,7 +388,13 @@ exactly one or two rows, on both operating systems.
 
 **P10 is the measurement R4 N1.1 was written for, and it got STRONGER.** On linux
 `path.sep` IS `/`, so the mutation is a no-op and not one row moves; on the PC it turns
-**23** of the 35 rows red (the first build measured 16 of 25). A cell developed only in the
+**29 of the 40 non-real rows** red. **RE-MEASURED AT ROUND 4's CODE HEAD `75263ae` BY THE
+HARNESS, ON BOTH OPERATING SYSTEMS (R3's NOTE 1, taken by measuring and not by arithmetic):
+29 red on Windows, 0 on linux, over the 40 non-real rows of a 41-row cell.** The figures
+this paragraph carried before were 23 over 35 (round 3's head, when the cell had 35 rows)
+and 16 over 25 (the first build); both were stale rather than wrong, and each understated
+the effect. Round 4 adds no PACK-PIN row, so the movement from 23/35 to 29/40 is round 3's
+six rows and nothing of mine. A cell developed only in the
 farm would ship a walk that spells `quality` and `gate.py` with a backslash between them and
 would put 904 red lines on the first `windows-latest` run.
 
@@ -406,6 +435,26 @@ code round 3 touched.** Counts exclude the real row.
 | A3' | the `APPROVED-PIN MISSING` push dropped | **2** | **2** | yes (was 1 and 1) |
 | A5' | the `APPROVED-PIN MISMATCH` push dropped | **5** | **5** | yes (was 3 and 3) |
 | A7' | the `APPROVED-PIN NOT-A-REGULAR-FILE` push dropped | **4** | **3** | yes, on both (was 2 and 1) |
+
+**ROUND 4's APPROVED-PIN ROWS: R3 BLOCKING-1, measured at `75263ae` by the same harness on
+both operating systems, and each one measured AGAINST `HEAD` BEFORE THE FIX TOO**, which is
+what makes the pair evidence rather than a claim. `A20`, `A21` and `A24` are R3's own
+mutation ids and its own numbers are the "before" column. Counts exclude the real row.
+
+| # | the exact edit | before, linux | before, Windows | after, linux | after, Windows |
+|---|---|---|---|---|---|
+| A20 | the ORPHAN sort dropped entirely (`Object.keys(literal)`) | 1 | 1 | **2** | **2** |
+| A21 | ORPHAN sorted by the DEFAULT string sort (`.sort()`) | **0** | **0** | **1** | **1** |
+| A24 | `byteCompare` replaced by `a < b ? -1 : a > b ? 1 : 0` | **0** | **0** | **2** | **2** |
+
+**A21 AND A24 ARE THE FINDING, AND THEY WERE ZERO ON BOTH MACHINES.** The rows they now kill
+are named, not counted: `A21` kills `R3 B1: the ORPHAN lines come out in path BYTE order,
+not the default sort's order`; `A24` kills that row AND `the literal map, once filled, is
+held in path byte order`, which was the vacuous one. `A20` picks up the new row as well as
+the one it already killed. The control in the same harness run - the unmutated cell - is
+**0 non-real rows red on both operating systems**, which is how I know the harness is not
+trivially red, and the mutated copy is deleted after every run (`git status` empty on the
+PC, printed at the end of the harness log).
 
 **A11 IS R2 BLOCKING-2 AND IT IS THE ONE VERDICT THAT CHANGED THIS ROUND.** The mutation
 that survived on Windows now dies there, killed by ONE new fixture row and no engine line.
@@ -564,9 +613,11 @@ so they cannot be lost.
    inside `LITERAL` carries all five. Step 5 (re-run against the working tree, requiring zero
    MISMATCH, MISSING, ADDED and NOT-A-REGULAR-FILE) **must be run on the PC, on Windows**,
    and not only in the farm: mutation P10 in section 6 shows a separator bug that is invisible
-   on linux and turns **23** rows red on Windows (**R2 N1: the 16 in this item was the FIRST
-   build's figure over 25 rows and was stale; 23 is the measured number over 35, and the point
-   is stronger than the number it cited**). v3's 53-file value `6121aa91...` is superseded
+   on linux and turns **29 of the 40 non-real rows** red on Windows (**RE-MEASURED AT ROUND
+   4's CODE HEAD `75263ae`, which is R3's NOTE 1: this item said 16 over 25 at the first
+   build and 23 over 35 at round 3's head, and each figure went stale as rows were added
+   without the mutation being re-run. 29 over 40 is the measured number at the head this
+   report names, on the PC, against 0 on linux**). v3's 53-file value `6121aa91...` is superseded
    and must not be used. **The design lane's own checkout is where step 5 exercises the
    ignore list for real**: R2 re-measured 913 files on disk against 904 git-tracked at
    `ecbef86a`, nine untracked leavings, all nine ignored and none named.
@@ -590,8 +641,9 @@ so they cannot be lost.
    cell.
 7. **`rebuild.yml` is already an S9 declaration** (E fact 20, `role: "edited"`, product pin),
    so this step rides a hunk that exists. Two other lanes are inserting steps after `:232`
-   and after `:306` in the same window; this insertion is at `@@ -297,0 +298,11 @@` and
-   overlaps neither.
+   and after `:306` in the same window; this insertion is at `@@ -297,0 +298,22 @@` - **22
+   lines, R3's NOTE 2; this item said eleven, which was round 2's figure** - and overlaps
+   neither. Round 4 does not touch `rebuild.yml` at all.
 8. **THE REFUSAL VOCABULARIES ARE SEVEN AND SEVEN after round 3**, and the last row of each
    cell no longer asserts their shape: it DERIVES the set of verbs the rows above actually
    emitted and compares it with the exported `REFUSALS` (R2 N2). If a later round adds,
@@ -667,6 +719,31 @@ so they cannot be lost.
    asks the Map the walk built. A row measures all four. A BACKSLASH in a literal path still
    fails HARD, because that is a spelling defect that would make the cell's own constant
    disagree with its own walk on one operating system.
+
+18. **(R3's NOTE 4, IN R3's OWN WORDS, AND THE PM ORDERED IT CARRIED HERE) "THE REAL ROW'S
+   OWN REDNESS IS DEFENDED BY THE SEAL AND BY NOTHING ELSE."** R3 measured four mutations of
+   the real row's BODY that leave every other row green on both operating systems: an early
+   `return` when the pack is absent (PACK-PIN) or the literal empty (APPROVED-PIN), and
+   replacing `assert.deepEqual(refusals, [])` with `assert.deepEqual(refusals, refusals)`.
+   That is correct after S9, where the cell's bytes are sealed and any of those edits is a
+   sealed byte move; before S9 the only thing standing between the step and a quietly defused
+   red is a reviewer reading the row. So: **if this CI step ever goes green before both
+   literals are filled, READ THE TWO REAL ROWS FIRST.**
+19. **(R3's NOTE 5, IN R3's OWN WORDS) `PACK_ROOT_REL` CAN BE REPOINTED AT ANY DIRECTORY
+   THAT EXISTS AND NO ROW GOES RED.** R3 measured it: pointing it at
+   `rebuild/lanes/c/ui-port` turns nothing red, because the `label()` row derives its
+   expectation from the same constant, and the real row stays red only because the literal is
+   empty. The defence is the seal plus the reader's eye. **C.5.1 step 5 must be run against
+   the pack root THE SPEC NAMES, not the one the cell happens to hold.**
+20. **THE TWO OUTPUT SORTS THAT WILL NEVER HAVE A ROW, RECORDED AS A DECISION (R3's DISPUTE,
+   UPHELD BY THE PM).** The byte sorts on PACK-PIN's `NOT-A-REGULAR-FILE` and `UNREADABLE`
+   output lists get NO row: a deterministic kill needs the walk's insertion order to differ
+   provably from byte order, and insertion order is `readdir` order, which neither operating
+   system guarantees, so such a row would be a flake generator on a PC six lanes share.
+   Neither sort can produce a false green or a wrong name; only the order of two printed
+   lines moves. The decision is now written inside `pack-pin.test.mjs` beside the two loops,
+   so a later reader finds it where the code is. The third output sort, on the `ADDED` list,
+   DOES have a row (P35, killed on Windows).
 
 ## 10. WHERE I THINK A REVIEWER SHOULD PUSH, AND WHAT I DECIDED ON MY OWN
 
@@ -988,3 +1065,129 @@ both. I have stopped describing a missing runner result as pending.
    is `/home/claude/farm/scratch/wt/s9cAuthC` and nothing in it is pushed. **No owner
    measurement is anywhere in this round: every fixture byte is generated by the cell that
    uses it.**
+
+## R3 finding and notes: fixed
+
+`S9-PREP-PACK-REVIEW-R3.md` REJECTED round 3 on ONE BLOCKING finding, confirmed every other
+item of rounds 1 to 3 fixed or taken on both operating systems, re-walked the real pack with
+the shipped engine, and left five notes and one dispute. I am the fourth author. **The
+BLOCKING finding is ACCEPTED and closed by TWO fixture rows and NO engine line**, and every
+note is taken. Nothing in this round is disputed by me: R3's measurement reproduced exactly
+on both machines before I wrote a line.
+
+### BLOCKING-1: a sentence about two byte sorts that no row proved
+
+**ACCEPTED, and R3's measurement REPRODUCED FIRST.** Before touching anything I ran R3's two
+mutants against round 3's head `f211411` on both operating systems, with the mutated copy
+placed beside the cell so `import.meta.url` still resolves to the same repository root:
+
+| mutant | round 3's head, linux | round 3's head, Windows |
+|---|---|---|
+| `A21` ORPHAN sorted by the default string sort | **0 rows red** | **0 rows red** |
+| `A24` `byteCompare` replaced by `a < b ? -1 : a > b ? 1 : 0` | **0 rows red** | **0 rows red** |
+
+So the header sentence "both sort by path BYTES, and a row proves each" was true of the code
+and proven by nothing, exactly as R3 said, and the row `the literal map, once filled, is held
+in path byte order` compared `[]` with `[]` and ran no loop.
+
+**THE FIX IS TWO ROWS AND NO ENGINE LINE.**
+
+ 1. **`R3 B1: the ORPHAN lines come out in path BYTE order, not the default sort's order`**,
+    built the way PACK-PIN's comparator row is built: `String.fromCharCode(0xe000)` against
+    `String.fromCodePoint(0x10000)`, the classic pair where UTF-16 code-unit order and UTF-8
+    byte order DISAGREE. The characters are BUILT from their code points, so they are text in
+    the file and not the invisible things they name. The row asserts, in order, that the two
+    orders really differ (or it proves nothing), that `byteCompare` puts them the other way
+    round, that the literal map is constructed in the WRONG order, and then that the engine's
+    ORPHAN lines come back in BYTE order.
+ 2. **The vacuous row made real.** The check is lifted into `checkKeyOrder()` and the row now
+    runs it over a FIXTURE literal as well as over `LITERAL`, including a fixture literal
+    held in CODE-UNIT order, which it must REFUSE. That is an assertion the empty map cannot
+    make, and it is the one a code-unit comparator cannot survive.
+
+**THE RED IS THE MUTANT, AND THAT IS THE RIGHT RED FOR THIS ROUND.** There is no engine
+change, so there is no "commit the row red against the unchanged engine" to do: a row that
+asserts the shipped behaviour is green the moment it is written. What makes it load bearing
+is that the mutants which killed NOTHING at `f211411` kill it now, measured at `75263ae` on
+both operating systems by the harness, with the unmutated control at 0 in the same run:
+
+| mutant | before, linux | before, Windows | after, linux | after, Windows | the rows it kills now |
+|---|---|---|---|---|---|
+| `A21` | 0 | 0 | **1** | **1** | `R3 B1: the ORPHAN lines come out in path BYTE order...` |
+| `A24` | 0 | 0 | **2** | **2** | that row, and `the literal map, once filled, is held in path byte order` |
+| `A20` (the sort dropped) | 1 | 1 | **2** | **2** | the insertion-order row, and now the new one |
+
+**THE SENTENCE AT `approved-pin.test.mjs:45` IS NOW A CLAIM TWO ROWS MAKE.** It names both
+rows, says what each is built from, and records what it used to claim without proof, so the
+defect cannot come back as a reading rather than as a row. R3 offered narrowing the sentence
+as the alternative; I took the row, because it errs towards more coverage and because these
+bytes are about to be sealed.
+
+**THE NEW ROW CANNOT FLAKE AND CANNOT BE PLATFORM DEPENDENT**, which matters on a PC six
+lanes share. The ORPHAN loop walks the literal's OWN KEYS, which the row owns outright, so
+the two odd paths never reach a file system call: the only file the row touches is the
+ordinary ASCII reference the fixture wrote. R3 measured its version in the farm only; I have
+measured mine on BOTH machines, in the bar and under three mutants.
+
+### R3's five notes
+
+| note | verdict |
+|---|---|
+| **N1** integrator item 3's separator figure is stale (23 over 35; R3 measured 29 over 40) | **TAKEN BY RE-MEASURING, not by arithmetic.** I re-ran `P10` at MY final code head `75263ae` on both machines: **29 of the 40 non-real rows red on Windows, 0 on linux.** Section 6.1's table, its paragraph and integrator item 3 all carry 29 of 40 now, and each says which head it was measured at |
+| **N2** the insertion is 22 lines, not eleven, and the file says both | **FIXED** in both places: section 5 and integrator item 7 now say `@@ -297,0 +298,22 @@`, 22 lines, and say that eleven was round 2's figure. Round 4 does not touch `rebuild.yml` at all |
+| **N3** round 3's bar was taken at `51415d2`, not at the head it reported | **TAKEN.** Section 5's bar is measured at `75263ae`, the head at which both cells reach their final bytes, and section 5 names that sha. The only commit after it in this round is this report, which contains no code; the closing line of this section records the re-run |
+| **N4** the real row's redness is defended by the seal and by nothing else | **CARRIED TO THE INTEGRATOR LIST as item 18, in R3's own words**, including the instruction: if the CI step ever goes green before both literals are filled, read the two real rows first |
+| **N5** `PACK_ROOT_REL` can be repointed and no row notices | **CARRIED TO THE INTEGRATOR LIST as item 19, in R3's own words**, with C.5.1 step 5 tied to the pack root the SPEC names |
+
+### R3's dispute, upheld by the PM, and the seven clauses that stay unrowed
+
+**THE DISPUTE IS UPHELD AND IS NOW A DECISION IN THE CODE.** R3 asked to be overruled rather
+than ship a flaky row, and the PM agreed: the byte sorts on PACK-PIN's `NOT-A-REGULAR-FILE`
+and `UNREADABLE` output lists (`P37`, `P39`) get NO row, because a deterministic kill needs
+the walk's insertion order to differ provably from byte order and insertion order is
+`readdir` order, which neither operating system guarantees. **Round 4's only change to
+`pack-pin.test.mjs` is that decision, written as a comment beside the two loops** - eight
+lines, no engine line, the file's behaviour byte-for-byte unchanged - plus integrator item
+20. It is recorded where a later reader will be standing when the question occurs to them.
+
+**THE SEVEN FURTHER UNROWED CLAUSES STAY AS NOTES, EACH WITH R3's REASON**, which I have not
+improved on and do not dispute:
+
+| id | the clause | R3's reason it has no row |
+|---|---|---|
+| `P01` | `label`'s leading `rel &&` (the empty relative path) | unreachable: it needs `packRoot === REPO_ROOT`, which no caller can produce |
+| `P03` | `label`'s `!path.isAbsolute(rel)` | shadowed by the `..` guard on both machines of record, where the fixture and the repository share a volume |
+| `P18` | `serialise`'s own sort | `serialise` has one caller, the round-trip row, and `parseLiteral` has already asserted its input sorted: a dead defence in a helper that judges nothing |
+| `P37` | the byte sort on the `NOT-A-REGULAR-FILE` output list | no fixture produces two irregular entries; the consequence is line ORDER, never a false green. Upheld above |
+| `P39` | the byte sort on the `UNREADABLE` output list | the two-entry row's walk order coincides with byte order on both machines. Same class as `P37`. Upheld above |
+| `A03` | `namesOf`'s `String(e)` fallback | a coercion, not a guard: a non-string name comes back UNLISTED either way |
+| `A04` | `judge`'s `!Array.isArray(files)` half of LIST-EMPTY | shadowed by `namesOf`, which already returns `[]`; reachable only by a direct engine call no caller makes |
+
+With `A21` and `A24` closed, **64 of the 73 clauses R3 enumerated now die to a row**, and of
+the nine that do not, two are R3's deliberate controls and the other seven are the table
+above. That count is R3's enumeration with this round's two kills added; I did not re-run all
+73 myself, and I say so rather than borrowing the sweep.
+
+### What I did NOT verify in round 4
+
+1. **GitHub's runners**, for the reason Q4 records: these cells cannot run there until the S9
+   walk passes. The PC and a linux farm scratch are the both-OS evidence.
+2. **R3's full 73-clause sweep.** I re-ran four mutations (`A20`, `A21`, `A24`, `P10`) plus
+   an unmutated control, on both operating systems, at both the before head and my own. Every
+   other number in sections 6.1 and 6.2 is carried from round 3, where R3 independently
+   reproduced them count for count.
+3. **The real pack.** Still not on this branch. Section 7's day-of figures are round 3's and
+   R3's, attributed; R3's own walk of the real pack (904 literal lines, zero refusals, 33 ms
+   on linux, one flipped bit named exactly) is his measurement and not mine.
+4. **A real unreadable file**, unchanged from round 3: R1's DENY-ACE witness on the PC is the
+   one real-file witness and it is Windows-only.
+5. **I read nothing forbidden in this round either.** No `rebuild/conform/private`, no
+   `src/history.js`, no `ledger/`, no `EarnedPort`, no `port-real.log`, no protected soak, no
+   design-lane worktree. I ran no `b-package.cjs`, no seal generator, nothing that seals or
+   writes a receipt or an artifact, and no browser. I created no junction into any tree: every
+   link in either cell is inside a `mkdtemp` folder the cell makes and removes. My mutation
+   harness wrote a mutated COPY beside each cell, ran it and deleted it every time, on both
+   machines, and printed `git status` afterwards to prove the tree was left clean. The farm
+   scratches are `/home/claude/farm/scratch/wt/s9cA4` and `.../s9cA4fin`, and nothing in
+   either is pushed. **No owner measurement is anywhere in this round: every fixture byte,
+   including the two odd code points, is generated by the cell that uses it.**
