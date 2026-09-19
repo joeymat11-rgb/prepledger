@@ -25,7 +25,7 @@ except Exception:
     pass
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, worst_ratio, app_url, label_font,
-                    Refused, JS_SWEPT_TEXT, JS_SEEN, UNREADABLE_CHECK)
+                    Refused, JS_SWEPT_TEXT, JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -249,7 +249,7 @@ def first_text_difference(a, b):
 async def main():
     rows = []; worst = {}
     async with async_playwright() as p:
-        b = await p.chromium.launch(args=['--allow-file-access-from-files'])
+        b = await p.chromium.launch(args=LAUNCH_ARGS)
         ctx = await b.new_context(viewport={'width': W, 'height': H}, device_scale_factor=2, reduced_motion='reduce')
         pg = await ctx.new_page()
         errs = []; pg.on('pageerror', lambda e: errs.append(str(e))); pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)

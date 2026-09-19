@@ -154,6 +154,24 @@ def platform_key():
     return sys.platform
 
 
+# ---------------------------------------------------------------- one browser for every script
+# gate.py, statesheet.py and phonesheet.py launch Chromium with this list and nothing else, so a
+# screen is laid out the same way whichever script draws it and whichever machine runs it.
+#
+# The second argument is there for the layout, not for the look. Headless Chromium on Linux hints
+# glyphs by default, and a hinted glyph's advance is snapped to a whole pixel, so a line of text
+# comes out a few pixels wider or narrower than the same line on Windows, on macOS or on a phone,
+# and now and then it wraps on a different word. Measured on 2026-09-19 against the records this
+# pack first committed, which a hinted Linux run had written: the owner's Windows PC failed 254 of
+# 418 renders (worst rect edge 170 px against a tolerance of 3), and a Linux run launched with
+# this argument failed the same 254 renders with the same 254 report lines, word for word and
+# number for number. With hinting off, Linux lays text out at the font's own fractional advances,
+# as the other platforms always do; on Windows the argument changes nothing (372 PASS against
+# screen baselines drawn without it). quality/teeth.py row p1 takes the argument out and expects
+# the state sheet to FAIL on Linux, so the list cannot quietly lose it.
+LAUNCH_ARGS = ['--allow-file-access-from-files', '--font-render-hinting=none']
+
+
 # ---------------------------------------------------------------- what counts as on the screen
 # One definition, injected into both gates wherever they walk elements, so the two cannot drift.
 # It names the mechanisms it checks, which is not every way a line can be hidden: a shape function

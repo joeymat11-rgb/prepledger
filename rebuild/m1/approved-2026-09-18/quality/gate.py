@@ -23,7 +23,7 @@ except Exception:
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, lum_array, worst_ratio, app_url,
                     sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused, JS_SWEPT_TEXT,
-                    JS_SEEN, UNREADABLE_CHECK)
+                    JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -346,7 +346,7 @@ def check_margin(rows, W, where):
 async def main():
     started = False
     async with async_playwright() as p:
-        b = await p.chromium.launch(args=['--allow-file-access-from-files'])
+        b = await p.chromium.launch(args=LAUNCH_ARGS)
         chromium_version = b.version
 
         # ---------- errors, motion, transitions, copy, targets, fit, thumb, columns, spacing, type, pressed, contrast, seams, regression ----------

@@ -19,7 +19,7 @@ try:   # a Windows console or a redirected log must not choke on the multiplicat
 except Exception:
     pass
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import app_url, label_font, Refused
+from common import app_url, label_font, Refused, LAUNCH_ARGS
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -35,7 +35,7 @@ STATE_IDS = [s.strip() for s in STATE_ARG.split(',') if s.strip()] if STATE_ARG 
 
 async def main():
     async with async_playwright() as p:
-        b = await p.chromium.launch(args=['--allow-file-access-from-files'])
+        b = await p.chromium.launch(args=LAUNCH_ARGS)
         ctx = await b.new_context(viewport={'width': 393, 'height': 852}, device_scale_factor=3, reduced_motion='reduce')
         pg = await ctx.new_page()
         f = label_font(34)
