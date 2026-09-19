@@ -230,7 +230,8 @@ test('C-PN-19 - the exported separator class is STATELESS: no g, no y, and the '
    cell that says what it is changing. It is NOT a pin on a defect: see the
    author report, R1 findings, N1.
    -------------------------------------------------------------------------- */
-test('C-PN-20 - invisible FORMAT characters are not separators: they refuse, '
+test('C-PN-20 - invisible FORMAT characters (U+FEFF excepted: it is ECMAScript '
+  + 'whitespace, see C-PN-28) are not separators: they refuse, '
   + 'they refuse closed, and this lane did not widen the accepted set to them', () => {
   const ZWSP = '\u200b';
   const WORD_JOINER = '\u2060';
@@ -253,4 +254,12 @@ test('C-PN-20 - invisible FORMAT characters are not separators: they refuse, '
   const { WORDS } = require('../../../m3/setup/port/wordlist.cjs');
   assert.deepEqual(WORDS.filter(w => /\p{Cf}/u.test(w)), [],
     'a wordlist word carries a format character');
+});
+
+
+test('C-PN-28 - the helper pins ECMAScript whitespace, including U+FEFF and excluding U+0085', () => {
+  assert.equal(normalisePassphrase(SIX.join('\ufeff')), PC_FORM);
+  assert.equal(normalisePassphrase(SIX.join('\u0085')), SIX.join('\u0085'));
+  assert.equal(Passphrase.PASSPHRASE_SEPARATORS.test('\ufeff'), true);
+  assert.equal(Passphrase.PASSPHRASE_SEPARATORS.test('\u0085'), false);
 });

@@ -56,7 +56,7 @@ const ACCEPTED = Object.freeze([
 const REFUSED = Object.freeze([
   ['five words', SIX.slice(0, 5).join(' ')],
   ['seven words', [...SIX, SIX[0]].join(' ')],
-  ['the right words in the wrong order', [SIX[1], SIX[0], ...SIX.slice(2)].join(' ')],
+  ['the right words in the wrong order', wrongOrder(SIX)],
   ['one wrong word', [...SIX.slice(0, 5), 'zzzzzz'].join(' ')],
   ['nothing typed at all', ''],
   ['separators only', ' - - '],
@@ -180,4 +180,76 @@ async () => {
       assert.equal(seen.includes(word), false, 'the refusal carries the word ' + word);
     assert.equal(/[0-9]/.test(seen), false, decoder + ': the refusal carries a number');
   }
+});
+
+function wrongOrder(words) {
+  const at = words.findIndex((word, index) => index + 1 < words.length && word !== words[index + 1]);
+  assert.notEqual(at, -1, 'C-PN-11: no unequal adjacent words to exchange');
+  const reordered = words.slice();
+  [reordered[at], reordered[at + 1]] = [reordered[at + 1], reordered[at]];
+  return reordered.join(' ');
+}
+
+test('C-PN-21 - wrong-order construction exchanges unequal adjacent words even when the first pair repeats', () => {
+  // sealInventedBundle has no supplied-passphrase option: test construction alone.
+  const repeated = ['baby', 'baby', 'close', 'soap', 'square', 'assist'];
+  const typed = wrongOrder(repeated);
+  assert.notEqual(normalisePassphrase(typed), repeated.join('-'),
+    'C-PN-21: wrong-order construction returned the sealed phrase');
+  assert.equal(typed, 'baby close baby soap square assist');
+  assert.deepEqual(repeated, ['baby', 'baby', 'close', 'soap', 'square', 'assist']);
+  assert.throws(() => wrongOrder(Array(6).fill('baby')),
+    /C-PN-11: no unequal adjacent words/, 'the all-equal case must fail loudly by name');
+});
+
+test('C-PN-22 - U+FF0C between all six words opens on both decoders', async () => {
+  const typed = SIX.join('\uff0c');
+  const node = openNode(typed);
+  const phone = await openPhone(typed);
+  assert.equal(node.source.sha256, openNode(PC_FORM).source.sha256);
+  assert.equal(phone.payload.source.sha256, node.source.sha256);
+});
+
+test('C-PN-23 - a lone U+D800 inside a word refuses on both decoders', async () => {
+  const typed = PC_FORM.slice(0, 1) + '\ud800' + PC_FORM.slice(1);
+  for (const [decoder, open] of [['node', openNode], ['phone', openPhone]]) {
+    const refusal = await refusalOf(() => open(typed));
+    assert.ok(refusal, decoder + ': a lone surrogate inside a word opened');
+    assert.equal(refusal.code, 'BUNDLE_AUTH_FAILED');
+  }
+});
+
+test('C-PN-24 - node whole refusal JSON is literal and independent of two typed strings', async () => {
+  const first = await refusalOf(() => openNode([...SIX.slice(0, 5), 'zzzzzz'].join(' ')));
+  const second = await refusalOf(() => openNode('qqqqqq xxxxxx wwwwww vvvvvv uuuuuu tttttt'));
+  assert.ok(first); assert.ok(second);
+  const one = JSON.stringify(first), two = JSON.stringify(second);
+  assert.equal(one, '{"code":"BUNDLE_AUTH_FAILED"}');
+  assert.equal(two, '{"code":"BUNDLE_AUTH_FAILED"}');
+  assert.equal(two, one);
+});
+
+test('C-PN-25 - phone whole refusal JSON is literal and independent of two typed strings', async () => {
+  const first = await refusalOf(() => openPhone([...SIX.slice(0, 5), 'zzzzzz'].join(' ')));
+  const second = await refusalOf(() => openPhone('qqqqqq xxxxxx wwwwww vvvvvv uuuuuu tttttt'));
+  assert.ok(first); assert.ok(second);
+  const one = JSON.stringify(first), two = JSON.stringify(second);
+  assert.equal(one, '{"name":"StorageFailure","code":"BUNDLE_AUTH_FAILED","state":3,"retryable":false}');
+  assert.equal(two, '{"name":"StorageFailure","code":"BUNDLE_AUTH_FAILED","state":3,"retryable":false}');
+  assert.equal(two, one);
+});
+
+test('C-PN-26 - node entry uses ECMAScript whitespace: U+FEFF opens and U+0085 refuses', async () => {
+  assert.equal(openNode(SIX.join('\ufeff')).source.sha256, openNode(PC_FORM).source.sha256);
+  const refusal = await refusalOf(() => openNode(SIX.join('\u0085')));
+  assert.ok(refusal, 'node: U+0085 was admitted as a separator');
+  assert.equal(refusal.code, 'BUNDLE_AUTH_FAILED');
+});
+
+test('C-PN-27 - phone entry uses ECMAScript whitespace: U+FEFF opens and U+0085 refuses', async () => {
+  const opened = await openPhone(SIX.join('\ufeff'));
+  assert.equal(opened.payload.source.sha256, openNode(PC_FORM).source.sha256);
+  const refusal = await refusalOf(() => openPhone(SIX.join('\u0085')));
+  assert.ok(refusal, 'phone: U+0085 was admitted as a separator');
+  assert.equal(refusal.code, 'BUNDLE_AUTH_FAILED');
 });
