@@ -1552,7 +1552,7 @@
     "id": "TA-W04",
     "kind": "replace",
     "dest": null,
-    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the retry click handed the in-flight promise to a released binding. The seal mints and assigns it; the released half keeps the listener and the guard. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the retry click handed the in-flight promise to a released binding. The seal mints and assigns it; the released half keeps the listener and the guard. Each is an S-R17 (g) statement rewrite, declared here in advance. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      1270,
      1270
@@ -1568,13 +1568,14 @@
     },
     "replacement": [
      "      if (facade.foodReadBack()) hooks.listen(retry, \"click\", () => { hooks.retryFoodRead(); });"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W05",
     "kind": "replace",
     "dest": null,
-    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the food save click. The DOM arguments are UNCHANGED, because changing recordIntake's signature would rewrite a moved region and that is an undeclared statement rewrite (S-R17 (g)); B.3's `no entry takes a DOM node` is therefore NOT met by this part and is reported as a STOP. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the food save click. The DOM arguments are UNCHANGED, because changing recordIntake's signature would rewrite a moved region and that is an undeclared statement rewrite (S-R17 (g)); B.3's `no entry takes a DOM node` is therefore NOT met by this part and is reported as a STOP. Each is an S-R17 (g) statement rewrite, declared here in advance. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      1273,
      1273
@@ -1590,13 +1591,14 @@
     },
     "replacement": [
      "    hooks.listen(save, \"click\", () => { hooks.recordIntake(save, cal, pro, error); });"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W06",
     "kind": "replace",
     "dest": null,
-    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M07 / R2 BLOCKING-1: the seal mints the read handle and assigns it; the `.then` body below is PURE PAINT, stays released byte-identical, and is handed to the hook as a closure. Only this one line changes. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M07 / R2 BLOCKING-1: the seal mints the read handle and assigns it; the `.then` body below is PURE PAINT, stays released byte-identical, and is handed to the hook as a closure. Only this one line changes. Each is an S-R17 (g) statement rewrite, declared here in advance. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      1436,
      1436
@@ -1612,7 +1614,8 @@
     },
     "replacement": [
      "    hooks.readSleepCheckInView(date, () => {"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W07",
@@ -1664,7 +1667,7 @@
     "id": "TA-W09",
     "kind": "replace",
     "dest": null,
-    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the sleep read retry, the twin of the food one. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the sleep read retry, the twin of the food one. Each is an S-R17 (g) statement rewrite, declared here in advance. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      1668,
      1668
@@ -1680,13 +1683,14 @@
     },
     "replacement": [
      "      hooks.listen(retry, \"click\", () => { hooks.retrySleepRead(); });"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W10",
     "kind": "replace",
     "dest": null,
-    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: sleepCorrecting = true is a sealed flag. hooks.sleepCorrect(flag) takes it; the repaint stays released, which is where the router lives. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: sleepCorrecting = true is a sealed flag. hooks.sleepCorrect(flag) takes it; the repaint stays released, which is where the router lives. Each is an S-R17 (g) statement rewrite, declared here in advance. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      1704,
      1704
@@ -1702,13 +1706,14 @@
     },
     "replacement": [
      "      hooks.listen(change, \"click\", () => { hooks.sleepCorrect(true); render(\"sleep\", false); });"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W11",
     "kind": "replace",
     "dest": null,
-    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the cancel path, the same flag the other way. clearSleepDraft and render are RELEASED and stay released: the draft is the screen's own transient state (the file says so at :475). Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the cancel path, the same flag the other way. clearSleepDraft and render are RELEASED and stay released: the draft is the screen's own transient state (the file says so at :475). Each is an S-R17 (g) statement rewrite, declared here in advance. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      1711,
      1711
@@ -1724,13 +1729,14 @@
     },
     "replacement": [
      "        hooks.sleepCorrect(false); clearSleepDraft(); render(\"sleep\", false);"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W12",
     "kind": "replace",
     "dest": null,
-    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the sleep save click, the one gesture that writes a night. Same DOM-argument qualification as the food save. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the sleep save click, the one gesture that writes a night. Same DOM-argument qualification as the food save. Each is an S-R17 (g) statement rewrite, declared here in advance. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      1722,
      1722
@@ -1746,7 +1752,8 @@
     },
     "replacement": [
      "    hooks.listen(save, \"click\", () => { hooks.recordSleep(map); });"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W13",
@@ -1775,7 +1782,7 @@
     "id": "TA-W14",
     "kind": "replace",
     "dest": null,
-    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M11 / B.3 consequence 3: the setup done chain assigns the sealed `ready`. The seal takes the adopting flag, mints the chain and assigns; the `return ready;` two lines below is rewritten through the facade by gen-interface. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M11 / B.3 consequence 3: the setup done chain assigns the sealed `ready`. The seal takes the adopting flag, mints the chain and assigns; the `return ready;` two lines below is rewritten through the facade by gen-interface. Each is an S-R17 (g) statement rewrite, declared here in advance. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      2334,
      2334
@@ -1791,7 +1798,8 @@
     },
     "replacement": [
      "          hooks.settleAdoption(adopting);"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-I001",
@@ -4442,7 +4450,7 @@
     "id": "GA-R01",
     "kind": "replace",
     "dest": null,
-    "note": "B.9 interface: the released settingsPaint reads the sealed lane and opens it. The read goes through the facade and the open through the callback table.",
+    "note": "B.9 interface: the released settingsPaint reads the sealed lane and opens it. The read goes through the facade and the open through the callback table. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      246,
      246
@@ -4458,13 +4466,14 @@
     },
     "replacement": [
      "    if (!facade.lane()) { block.hidden = true; editor.hidden = true; hooks.open(); return; }"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "GA-R02",
     "kind": "replace",
     "dest": null,
-    "note": "B.9 interface: the released card asks the sealed read cache whether it holds this lift and starts a read if not. Both lines keep their shape; only the owner of the cache changes.",
+    "note": "B.9 interface: the released card asks the sealed read cache whether it holds this lift and starts a read if not. Both lines keep their shape; only the owner of the cache changes. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      251,
      252
@@ -4481,13 +4490,14 @@
     "replacement": [
      "    if (!facade.hasRead(liftId)) hooks.startRead(liftId);",
      "    const entry = facade.entryFor(liftId);"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "GA-R03",
     "kind": "replace",
     "dest": null,
-    "note": "THE ROW B.9 NEVER HAD, spike finding 1: gym-app.mjs:279 is the gym card's only RELEASED ASSIGNS A SEALED BINDING row (settingsSaving is declared at :125 and GA-S01 moves it sealed). The in-flight promise is handed to the seal, which assigns it; no released line assigns a sealed binding after this.",
+    "note": "THE ROW B.9 NEVER HAD, spike finding 1: gym-app.mjs:279 is the gym card's only RELEASED ASSIGNS A SEALED BINDING row (settingsSaving is declared at :125 and GA-S01 moves it sealed). The in-flight promise is handed to the seal, which assigns it; no released line assigns a sealed binding after this. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      279,
      279
@@ -4503,7 +4513,8 @@
     },
     "replacement": [
      "      hooks.saving(recordSettings(map, view, paintedDraft));"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "GA-M01",
@@ -4527,7 +4538,7 @@
     "id": "GA-R04",
     "kind": "replace",
     "dest": null,
-    "note": "SEAM G1's own durable call. The lane comes through the facade; the DECISION to save is still the released recordSettings', which is the S-R17 (g) STOP this part REPORTS and does not bend: B.9's token protocol that moves the decision inside the seal is part 2.",
+    "note": "SEAM G1's own durable call. The lane comes through the facade; the DECISION to save is still the released recordSettings', which is the S-R17 (g) STOP this part REPORTS and does not bend: B.9's token protocol that moves the decision inside the seal is part 2. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      305,
      306
@@ -4544,7 +4555,8 @@
     "replacement": [
      "    try { result = await facade.lane().save(machine); }",
      "    finally { save.disabled = false; }"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "GA-R05",
@@ -4664,7 +4676,7 @@
     "id": "GA-R06",
     "kind": "replace",
     "dest": null,
-    "note": "THE SECOND RETURNED API, spike finding 2: first.settings at :569-:579 hands out FIVE sealed bindings and B.9 discusses this file without mentioning it has an api at all. Every one of the five now comes through the facade. lane() still hands out the lane object itself, which is B.7's pass-through class and E.5 red row 14's third planted case.",
+    "note": "THE SECOND RETURNED API, spike finding 2: first.settings at :569-:579 hands out FIVE sealed bindings and B.9 discusses this file without mentioning it has an api at all. Every one of the five now comes through the facade. lane() still hands out the lane object itself, which is B.7's pass-through class and E.5 red row 14's third planted case. LOOP ROUND 2, B2: DECLARED STATEMENT REWRITE. The structural comparison measures this row as more than a read or call rewrite, and it always was one; the token profile could not see it because an identifier is not a keyword. Nothing about the row's text changed in this round: the declaration was added so the row is PRINTED BY ID in the cut's report for the PM's line-by-line read instead of passing unremarked.",
     "tipLines": [
      570,
      576
@@ -4686,7 +4698,8 @@
      "       waits for it, which is the whole point of finding 1. */",
      "    read: () => facade.reading(),",
      "    stateFor: (liftId) => facade.stateFor(liftId),"
-    ]
+    ],
+    "statementRewrite": true
    }
   ],
   "today-model.cjs": [
@@ -8707,17 +8720,17 @@
      "lines": 1
     },
     "TA-W04": {
-     "sha256": "93a6fee90a2a6f0869951e571ceb99694856e9ee29ccebc21066d873b650927c",
+     "sha256": "3b4e953b2d765f54d83afc32188972a195ea60a5ae017dd81dd6d0481790d2f9",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W05": {
-     "sha256": "4b372c4338863af271041d233ef9d59632e95d5a9f6dba9f006dd67f3f2ec383",
+     "sha256": "84f42b336603ba011e12fdcbcc76a2a96c6d653280119c7ac54a0e8ffa50e4ea",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W06": {
-     "sha256": "532cb8505187e3b73ab952fdc05b45898f9b68e765cd5e693ab6d327c06d2a91",
+     "sha256": "a345e7f66faac825bdb9ad5af1755db0c24e94e53fc30f9d342d5f265217d2d6",
      "file": "today-app.cjs",
      "lines": 1
     },
@@ -8732,22 +8745,22 @@
      "lines": 1
     },
     "TA-W09": {
-     "sha256": "c11b94808aa6f7360466fb1e0c1d29cf90c09d5af89a91a05d9371d585f67e8e",
+     "sha256": "e866c38181e4a312323263df2b9c8067e2e50e3e7376f66de2b20ce0870f5b66",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W10": {
-     "sha256": "692025aef89254d8640475dfd45b5919e0ba68590c7f85a63434d1a59fdb7190",
+     "sha256": "ca9dd95db64513282b9e3187b67d3ea3ba3de2b23adaabcf9e4df76f7d27e7da",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W11": {
-     "sha256": "6476e80d0f219c8e57a0a936c47793d29b708dd9dfddbcaddb3dfe64513faa02",
+     "sha256": "714688a667541684a7c3a9a164503f9f7e900270dd17e921097762503996ea0a",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W12": {
-     "sha256": "cdaf2c8ceb6f88e8425474d8ed6143b4711503d477f403bf97c4efc9cfa8e7e1",
+     "sha256": "58b7cd83b1028f294cb15de1b66d657a478e5e2a565b1d61091b6025f6a62b7a",
      "file": "today-app.cjs",
      "lines": 1
     },
@@ -8757,7 +8770,7 @@
      "lines": 1
     },
     "TA-W14": {
-     "sha256": "a287973a2ae0e45289b3052bb93826a3fd02d2010460d35169d3361aac883ff0",
+     "sha256": "af79cd40d8009615a2ecc1a31833c0bf6a62829fceb8eb5356737fe04754981a",
      "file": "today-app.cjs",
      "lines": 1
     },
@@ -9342,22 +9355,22 @@
      "lines": 1
     },
     "GA-R01": {
-     "sha256": "92446e86c2db00545fe4c8016848f10876bbfce95eb11c2bdc3465333f3e1278",
+     "sha256": "f8774edf7d81c4f76f38e1bd18d540186065236ddfb6aaa8b6b238160995065b",
      "file": "gym-app.mjs",
      "lines": 1
     },
     "GA-R02": {
-     "sha256": "7718e567912113a69e467b620632f93f6f479d77e31ad85d888a1c0b77e843a5",
+     "sha256": "f37e21be2061359073276bc490be874894215e166e97d4b70c2051dec456c134",
      "file": "gym-app.mjs",
      "lines": 2
     },
     "GA-R03": {
-     "sha256": "7a3d011466b02ae64484a29cc05b841dc3fbaf87b4aad98f7d912c11fe5d6b94",
+     "sha256": "ddef8d73f66bcdcc0565693c448f5e9ba66e90c390639f1af4919f5bb22fcd0c",
      "file": "gym-app.mjs",
      "lines": 1
     },
     "GA-R04": {
-     "sha256": "2097b814ff05194e2124bc20a1fafaa628e1cb536c80d503e4f570ce0951cf00",
+     "sha256": "a62dcc5d9afc04429a0ab2490d5026b3365cfa1b6c4affdc559de34aec0cd88a",
      "file": "gym-app.mjs",
      "lines": 2
     },
@@ -9367,7 +9380,7 @@
      "lines": 2
     },
     "GA-R06": {
-     "sha256": "db5f2dda19c3a6a0284e325f63819904f3f35735c8aa13e943a710ade134aa1a",
+     "sha256": "641f14c06c99f7680bd935ae40238bbffa593c5a5427eea70d7f4a3dff985991",
      "file": "gym-app.mjs",
      "lines": 7
     }

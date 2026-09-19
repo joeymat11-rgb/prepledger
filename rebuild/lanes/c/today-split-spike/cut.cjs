@@ -328,13 +328,211 @@ function profileDiff(a, b) {
   return out.sort();
 }
 
-function checkControlFlow(file, region, pre) {
+/* ---- THE STRUCTURAL COMPARISON (loop round 2, B2) ------------------------------------
+ * The profile above counts TOKENS, and the reviewer got two replacements past it that the
+ * profile cannot see, each measured at BOTH named refs with the REAL gen-witness --declared
+ * --write and the REAL cut, both exiting 0:
+ *
+ *   (1) `    if (!facade.foodLane()) { "//"; return;` - the profile strips line comments
+ *       BEFORE strings, so the `//` INSIDE a string literal swallowed `; return;` and the
+ *       counts came out equal, while the emitted JavaScript parses and really does return.
+ *       Executed with no food lane: the control emits one
+ *       put(map,"stub-note","No store Reason STORE_UNAVAILABLE. Plan not wired"); the mutant
+ *       emits none, and the composed page loses the stub-note and the food-save elements.
+ *   (2) `    if (!facade.foodLane() && false) {` - ONE clause, no control-flow token added
+ *       or removed at all, and the same zero puts; the page instead shows exactly
+ *       "Not prescribed. The engine issues no carbohydrate or fat target."
+ *
+ * Neither is a lexical question, so the check is no longer lexical. The pre-image and the
+ * replacement are each put back into the SMALLEST ENCLOSING STATEMENT of the real file, both
+ * are PARSED, and the two parse trees are compared after the DECLARED rewrite families -
+ * and only those - are mapped onto one form on both sides:
+ *
+ *     a read   X        <-> facade.X()          (zero arguments, both sides one #READ)
+ *     a call   X(args)  <-> hooks.X(args)       (the argument list is compared)
+ *     a listen T.addEventListener(E, C)    <-> hooks.listen(T, E, C)
+ *     a listen T.removeEventListener(E, C) <-> hooks.unlisten(T, E, C)
+ *
+ * Everything else - predicates, operands, statement order, added or removed statements,
+ * literals - must be equal, and is not, for either attack: (1) adds an ExpressionStatement
+ * and a ReturnStatement inside the consequent, (2) turns the test into a LogicalExpression.
+ * A row that really does rewrite a statement still says so with `"statementRewrite": true`,
+ * which is inside the declared-text digest and is printed by id, from and to, in this cut's
+ * own report for the PM's line-by-line read (S-R12, S-R17 (g), DECISIONS:584).
+ *
+ * MEASURED on the committed table at both named refs: 141 replace resolutions per ref, 116
+ * of them structurally identical to their pre-image under the four families above, and the
+ * 25 that are not are the five S-R21 boot seams, the fourteen hand-designed B.5 rows of
+ * today-app.cjs, and GA-R01 to GA-R06 of gym-app.mjs - every one of them declared. Thirteen
+ * of those twenty-five were NOT declared before this round and were not caught by the token
+ * profile either: they drop the released in-flight assignment (`foodSaving = retryFoodRead()`
+ * becomes `hooks.retryFoodRead()`) or rename a released binding (`settingsLane` becomes
+ * `facade.lane()`), which the profile could not see because an identifier is not a keyword.
+ * They are now declared rows the PM reads, and nothing is exempt that was not exempt: the
+ * exemption's only effect is to move a row from "refused" to "printed by id".
+ *
+ * WHAT IT IS STILL NOT: a semantic oracle. `facade.foodLane()` may be a getter that writes,
+ * and a declared statement rewrite is held by the PM's reading and by the fence, not here
+ * (S-R26).                                                                                */
+const AST_CACHE = new Map();
+function acornOf() { return require(path.join(INSTR, "acorn")); }
+function fileStructure(file, src) {
+  if (!AST_CACHE.has(file)) {
+    const acorn = acornOf();
+    const ast = acorn.parse(src, { ecmaVersion: 2022,
+      sourceType: file.endsWith(".mjs") ? "module" : "script" });
+    const nodes = [];
+    (function collect(n) {
+      if (!n || typeof n !== "object") return;
+      if (n.type && /Statement|Declaration/.test(n.type)) nodes.push(n);
+      for (const k of Object.keys(n)) {
+        const v = n[k];
+        if (Array.isArray(v)) v.forEach(collect); else if (v && typeof v === "object" && v.type) collect(v);
+      }
+    })(ast);
+    nodes.sort((a, b) => (a.end - a.start) - (b.end - b.start));
+    const offs = [0];
+    for (let i = 0; i < src.length; i += 1) if (src[i] === "\n") offs.push(i + 1);
+    AST_CACHE.set(file, { nodes, offs });
+  }
+  return AST_CACHE.get(file);
+}
+/* A fragment is put back inside a function so that `return`, `await` and `yield` in a moved
+   body are legal where they were legal in the file. A fragment that will not parse there
+   (an `export`, a class member) sends the caller one enclosing statement outwards. */
+function parseFragment(text) {
+  return acornOf().parse("async function* __cut__() {\n" + text + "\n}\n",
+    { ecmaVersion: 2022, sourceType: "script" });
+}
+function parseWhole(file, text) {
+  return acornOf().parse(text, { ecmaVersion: 2022,
+    sourceType: file.endsWith(".mjs") ? "module" : "script" });
+}
+function isName(n) { return n && n.type === "Identifier"; }
+function calledOn(n, obj) {
+  if (!n || n.type !== "CallExpression") return null;
+  const c = n.callee;
+  if (!c || c.type !== "MemberExpression" || c.computed || !isName(c.object) ||
+      c.object.name !== obj || !isName(c.property)) return null;
+  return c.property.name;
+}
+function rewriteNames(ast) {
+  const F = new Set(), H = new Set();
+  (function walk(n) {
+    if (!n || typeof n !== "object") return;
+    if (n.type) {
+      const f = calledOn(n, "facade");
+      if (f && n.arguments.length === 0) F.add(f);
+      const h = calledOn(n, "hooks");
+      if (h) H.add(h);
+    }
+    for (const k of Object.keys(n)) {
+      const v = n[k];
+      if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === "object" && v.type) walk(v);
+    }
+  })(ast);
+  return { F, H };
+}
+function canon(n, F, H) {
+  if (n === null || n === undefined) return null;
+  if (Array.isArray(n)) return n.map((x) => canon(x, F, H));
+  if (typeof n !== "object" || !n.type) return null;
+  const f = calledOn(n, "facade");
+  if (f && n.arguments.length === 0 && F.has(f)) return ["#READ", f];
+  const h = calledOn(n, "hooks");
+  if ((h === "listen" || h === "unlisten") && n.arguments.length === 3) {
+    return [h === "listen" ? "#LISTEN" : "#UNLISTEN", canon(n.arguments[0], F, H),
+      canon(n.arguments[1], F, H), canon(n.arguments[2], F, H)];
+  }
+  if (h && H.has(h)) return ["#CALL", h, n.arguments.map((a) => canon(a, F, H))];
+  if (n.type === "CallExpression" && n.callee && n.callee.type === "MemberExpression" &&
+      !n.callee.computed && isName(n.callee.property) && n.arguments.length === 2 &&
+      (n.callee.property.name === "addEventListener" || n.callee.property.name === "removeEventListener")) {
+    return [n.callee.property.name === "addEventListener" ? "#LISTEN" : "#UNLISTEN",
+      canon(n.callee.object, F, H), canon(n.arguments[0], F, H), canon(n.arguments[1], F, H)];
+  }
+  if (n.type === "Identifier" && F.has(n.name)) return ["#READ", n.name];
+  if (n.type === "CallExpression" && isName(n.callee) && n.arguments.length === 0 &&
+      F.has(n.callee.name)) return ["#READ", n.callee.name];
+  if (n.type === "CallExpression" && isName(n.callee) && H.has(n.callee.name)) {
+    return ["#CALL", n.callee.name, n.arguments.map((a) => canon(a, F, H))];
+  }
+  /* A property NAME is not a binding: it is kept as text on both sides so that a facade or
+     hook name occurring as `obj.foodLane` is never confused with the read of a binding. */
+  if (n.type === "MemberExpression" && !n.computed) {
+    return ["MemberExpression", canon(n.object, F, H),
+      isName(n.property) ? ["#KEY", n.property.name] : canon(n.property, F, H), n.optional === true];
+  }
+  if ((n.type === "Property" || n.type === "PropertyDefinition" || n.type === "MethodDefinition") && !n.computed) {
+    return [n.type, n.kind || null, isName(n.key) ? ["#KEY", n.key.name] : canon(n.key, F, H),
+      canon(n.value, F, H), n.shorthand === true, n.method === true, n.static === true];
+  }
+  const out = [n.type];
+  for (const k of Object.keys(n).sort()) {
+    if (k === "type" || k === "start" || k === "end" || k === "loc" || k === "range" || k === "raw") continue;
+    const v = n[k];
+    if (Array.isArray(v)) out.push([k, v.map((x) => canon(x, F, H))]);
+    else if (v && typeof v === "object" && v.type) out.push([k, canon(v, F, H)]);
+    else if (v && typeof v === "object") out.push([k, String(v)]);
+    else out.push([k, v === undefined ? null : v]);
+  }
+  return out;
+}
+function firstDiff(a, b, where) {
+  if (JSON.stringify(a) === JSON.stringify(b)) return null;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) {
+      return where + ": " + a.length + " element(s) in the pre-image, " + b.length +
+        " in the replacement (" + JSON.stringify(a[0]) + " / " + JSON.stringify(b[0]) + ")";
+    }
+    for (let i = 0; i < a.length; i += 1) {
+      const d = firstDiff(a[i], b[i], where + "/" + (typeof a[0] === "string" && i === 0 ? a[0] : i));
+      if (d) return d;
+    }
+  }
+  return where + ": pre-image " + JSON.stringify(a).slice(0, 120) + ", replacement " +
+    JSON.stringify(b).slice(0, 120);
+}
+/* Returns null when the replacement is one of the declared rewrites of the pre-image, and a
+   one-line description of the FIRST structural difference when it is not. */
+function structuralDiff(file, src, region, start, end, replacement) {
+  const S = fileStructure(file, src);
+  const rs = S.offs[start - 1];
+  const re = end < S.offs.length ? S.offs[end] - 1 : src.length;
+  const cands = S.nodes.filter((n) => n.start <= rs && re <= n.end)
+    .map((n) => ({ start: n.start, end: n.end, whole: false }));
+  cands.push({ start: 0, end: src.length, whole: true });
+  let lastErr = null;
+  for (const c of cands) {
+    const pre = src.slice(c.start, c.end);
+    const post = src.slice(c.start, rs) + replacement.join("\n") + src.slice(re, c.end);
+    let A;
+    try { A = c.whole ? parseWhole(file, pre) : parseFragment(pre); }
+    catch (e) { lastErr = "pre-image: " + e.message; continue; }
+    let B;
+    try { B = c.whole ? parseWhole(file, post) : parseFragment(post); }
+    catch (e) {
+      return "THE REPLACEMENT DOES NOT PARSE where the pre-image does: " + e.message;
+    }
+    const { F, H } = rewriteNames(B);
+    return firstDiff(canon(A, F, H), canon(B, F, H), "body");
+  }
+  fail(file + " " + region.id + ": the pre-image could not be parsed in any enclosing " +
+    "statement, so the replacement cannot be compared with it (loop round 2, B2). " + lastErr);
+  return null;
+}
+function checkControlFlow(file, region, pre, src, start, end) {
   const post = (region.replacement || []).join("\n");
   const d = profileDiff(controlProfile(pre), controlProfile(post));
-  if (!d.length) return false;
+  /* The token profile is kept as a DIAGNOSTIC - it names the keyword that changed, which a
+     tree comparison cannot - but the authority is the structural comparison, because two of
+     the reviewer's replacements have an identical profile and a different tree. */
+  const s = structuralDiff(file, src, region, start, end, region.replacement || []);
+  if (!d.length && !s) return false;
   if (region.statementRewrite) return true;
   fail(file + " " + region.id + ": THE REPLACEMENT CHANGES CONTROL FLOW and the row does not " +
-    "declare a statement rewrite. " + d.join("; ") + ". A generated interface row rewrites a " +
+    "declare a statement rewrite. " + (s ? "PARSED STRUCTURE DIFFERS - " + s + ". " : "") +
+    d.join("; ") + ". A generated interface row rewrites a " +
     "bare read into facade.<name>() or a call into hooks.<name>(; it does not add, remove or " +
     "move a statement, and an added `return` turns a refusal into silence while the output " +
     "still parses and a re-taken digest still matches (blind review F6, incremental review " +
@@ -630,10 +828,11 @@ for (const [file, regions] of Object.entries(table.files)) {
       fail(file + " " + rp.r.id + ": kind \"replace\" with no declared `replacement` row (S-R21).");
     }
     const pre = lines.slice(rp.start - 1, rp.end).join("\n");
-    const rewrote = checkControlFlow(file, rp.r, pre);
+    const rewrote = checkControlFlow(file, rp.r, pre, src, rp.start, rp.end);
     if (rewrote) {
       report.statementRewrites.push({ file, id: rp.r.id, lines: [rp.start, rp.end],
         diff: profileDiff(controlProfile(pre), controlProfile(rp.r.replacement.join("\n"))),
+        structure: structuralDiff(file, src, rp.r, rp.start, rp.end, rp.r.replacement),
         from: lines.slice(rp.start - 1, rp.end), to: rp.r.replacement, why: rp.r.note });
     }
     report.replacements.push({ file, id: rp.r.id, lines: [rp.start, rp.end],
