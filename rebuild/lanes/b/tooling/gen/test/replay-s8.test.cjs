@@ -52,9 +52,11 @@ const AT_POST_HEAD = M.revParse(REPO, 'HEAD') === M.revParse(REPO, R.post);
 const WANT_NEEDLES = !!(process.env.GEN_REPLAY_NEEDLES_AT_POST_HEAD || process.env.GEN_REPLAY_NEEDLES);
 let NEEDLES_COMPARABLE = false, NEEDLES_WHY = '';
 if (!WANT_NEEDLES) {
-  NEEDLES_WHY = 'To compare all 25: check a worktree out AT ' + R.post + ' and set GEN_REPLAY_NEEDLES_AT_POST_HEAD=1. Anywhere else the numbers belong to a different tree.';
+  /* R3 n4: the decline named the long spelling only, and GEN_REPLAY_NEEDLES is the one
+     the ticket and the PM use. Both work; the sentence a PM reads now names both. */
+  NEEDLES_WHY = 'To compare all 25: check a worktree out AT ' + R.post + ' and set GEN_REPLAY_NEEDLES=1 (or the longer GEN_REPLAY_NEEDLES_AT_POST_HEAD=1, which says what it requires - either spelling works). Anywhere else the numbers belong to a different tree.';
 } else if (!AT_POST_HEAD) {
-  NEEDLES_WHY = 'GEN_REPLAY_NEEDLES_AT_POST_HEAD is set, but HEAD is ' + M.revParse(REPO, 'HEAD').slice(0, 8) + ' and the post head is ' + R.post + '. A needle measured against another tree is not evidence about this round, so the comparison was declined.';
+  NEEDLES_WHY = 'GEN_REPLAY_NEEDLES (or GEN_REPLAY_NEEDLES_AT_POST_HEAD) is set, but HEAD is ' + M.revParse(REPO, 'HEAD').slice(0, 8) + ' and the post head is ' + R.post + '. A needle measured against another tree is not evidence about this round, so the comparison was declined.';
 } else {
   /* `referenceOk`, not `exact`: THIS process is a `node --test` child and `childEnv()`
      refuses for that reason alone, correctly. The process that measures the needles is the
@@ -204,7 +206,11 @@ test('REPLAY-4 - every declared path, role, pre and post in packages/S8.json', (
      asserting is that each extra is named WITH THE RULING THAT APPLIES TO IT: it stands
      under no declared child root, so no declared child executes it, which is the
      DECISIONS:524 N1 shape. */
-  const entryFor = f => (todo.split('\n\n').find(p => p.includes(f)) || '');
+  /* G-F13 made this predicate matter: a class (3) entry now NAMES the files whose
+     specifiers the import walk could not follow, and some of those are themselves declared
+     paths, so "the first paragraph mentioning this path" found the wrong entry for them.
+     The entry for a path is the one whose TITLE is that path, and nothing else. */
+  const entryFor = f => (todo.split('\n\n').find(p => p.includes('**declared path ' + f + '**')) || '');
   /* R2 M3. "Under no declared child root" is not the test DECISIONS:524 N1 applied, and it
      was FALSE for six of the eleven paths this sentence reached: the s8-* supersede cells
      ARE the child argv targets and they live under rebuild/m4/workout/test/, which is no
@@ -362,7 +368,12 @@ test('REPLAY-7 - the children, their argv and their needles', () => {
     const clean = Object.assign({}, ce.env);
     delete clean.NODE_TEST_CONTEXT;
     const run = M.runChild(REPO, one.argv, clean);
-    fact('the differential child is green here', run.status, 0);
+    /* R3 n2. This was a fact() and it is not one: it is a measurement made in THIS tree
+       against the literal 0 - neither generated against committed nor generated against
+       generated - so it belongs in no bucket the headline counts. It is asserted directly
+       instead, which is stricter than counting it was, and it is the precondition for the
+       line below rather than evidence of its own. */
+    assert.equal(run.status, 0, 'the differential child must be green here, or the needle below is measured from a red child');
     fact('its recorded needle stands at the head of a line of its own stdout', M.needleStandsAtLineStart(run.out, one.needle), true);
   }
 });
@@ -393,7 +404,12 @@ test('REPLAY-8 - the three token lines: the sha256 this generator computes is th
     if (found) { gate = found; gateRev = rev; break; }
   }
   console.log('  the GATE-SUPERSESSION line was found in the ledger at ' + (gateRev || 'NO REV TRIED'));
-  fact('the GATE-SUPERSESSION line is found in the ledger by its sha256 alone', typeof gate === 'string', true);
+  /* R3 n2. COMMITTED against COMMITTED: `gate` is a line of the committed ledger, located
+     by a sha256 the committed spec records. That is a property of the S8 round, not
+     something this generator reproduced, so it is a selfCheck and it leaves the headline.
+     The line below IS cross-side - this generator's own hashing rule against the sha the
+     sealed package carries - and it stays a fact. */
+  selfCheck('the GATE-SUPERSESSION line is found in the ledger by its sha256 alone', typeof gate === 'string', true);
   fact('GATE-SUPERSESSION rulingLineSha256', gate && M.sha256Text(gate), realSpec.coverage.superseded.rulingLineSha256);
   fact('the BRIEF-BY-SHA line the generator drafts carries the measured brief sha256',
     fs.readFileSync(path.join(OUT, 'final-lines.txt'), 'utf8').includes(realSpec.brief.sha256), true);
@@ -551,6 +567,22 @@ test('REPLAY-14 - RED CONTROL: the last string of a TWO-argument assert is an ex
   const twoArg = lines.filter(l => C.isAssertCall(l) && C.withoutMessage(l) !== null && !C.isMessageArg(l));
   assert(twoArg.includes(victim), 'and the arity rule must be what says so');
 
+  /* R3 n1. `assert.fail` was the one entry in MESSAGE_ARITY that erred in the FORGIVING
+     direction - the direction compare.cjs's own comment says it must never err in.
+     `fail` has two signatures; the legacy one is fail(actual, expected, message,
+     operator), so the second argument is an expected VALUE, and need = 0 forgave any last
+     string. There are no such lines in this corpus, which is why it moves no number - and
+     why it had to be fixed by a cell rather than by a measurement. */
+  assert.equal(C.MESSAGE_ARITY.fail, 2, 'assert.fail(actual, expected, message) needs two arguments in front of the message');
+  assert.equal(C.classifyLine("assert.fail('x', 'MUTATED-y');", "assert.fail('x', 'y');"), 'different',
+    'a mutated expected VALUE in a legacy assert.fail must be a code difference');
+  assert.equal(C.isMessageArg("assert.fail('x', 'y');"), false, 'one argument in front of the string is not enough for assert.fail');
+  assert.equal(C.classifyLine("assert.fail(a, b, 'a different message');", "assert.fail(a, b, 'the message');"), 'narrative',
+    'and with two arguments in front of it, the last string really is the message');
+  /* Every entry of the table answers 1 or 2 now: not one of them can say "any last
+     string is a message", which is the shape the forgiving direction takes. */
+  for (const [k, v] of Object.entries(C.MESSAGE_ARITY)) assert(v >= 1, 'MESSAGE_ARITY.' + k + ' = ' + v + ' would forgive any last string');
+
   /* Then R2's own measurement, re-run over the committed blobs of every file compareFile
      compares, so the number is a standing fact of this cell and not a note in a review. */
   const FILES = ['rebuild/lanes/b/tooling/b-package.cjs']
@@ -615,6 +647,122 @@ test('REPLAY-16 - RED CONTROL: the tap needle is found in CRLF stdout, which is 
   /* The committed S8 needles are CR-free `# pass N` lines, which is what this returns. */
   const tapKids = realSpec.children.filter(c => /^# pass \d+$/.test(c.needle));
   assert(tapKids.length >= 20, 'the S8 package pins tap needles in this exact form: ' + tapKids.length);
+});
+
+test('REPLAY-17 - RED CONTROL: --needle-repeat agrees by EXACT tap summary, never by prefix', () => {
+  /* R3 n9. Run 1 prints `# pass 4`, run 2 prints `# pass 42`: `^# pass 4` matches both,
+     so the needle was recorded "reproduced over 2 runs" and a drifting pass count - the
+     exact flake --needle-repeat exists to catch - went through it. The fixture pair is
+     R3's own, spelled with CRLF because that is the only kind of stdout Windows makes. */
+  const gen = require('../new-child.cjs');
+  const tap = (summary, status) => ({ status: status === undefined ? 0 : status, err: '',
+    out: ['TAP version 13', 'ok 1 - a', '1..1', '# tests 1', summary, '# fail 0'].join('\r\n') + '\r\n' });
+  const four = tap('# pass 4'), fortyTwo = tap('# pass 42');
+  /* FIRST, the defect itself, with no help from anything this round added: children()'s
+     own predicate - which is RIGHT for matching a needle against stdout, and stays - says
+     `# pass 42` carries the needle `# pass 4`. */
+  assert.equal(M.needleStandsAtLineStart(fortyTwo.out, '# pass 4'), true,
+    'the prefix predicate cannot tell 4 from 42, which is why the reproduction check needs its own comparison');
+  assert.notEqual(M.tapPassNeedle(fortyTwo.out), M.tapPassNeedle(four.out), 'and exact equality of the tap summary can');
+  const d = gen.needleDisagreement([four, fortyTwo], '# pass 4');
+  assert(d, 'a run that printed `# pass 42` does NOT reproduce `# pass 4`');
+  assert.equal(d.at, 2, 'and the run that disagreed is named: ' + JSON.stringify(d));
+  assert(/# pass 42/.test(d.why) && /# pass 4"/.test(d.why), 'with both summaries in the reason: ' + d.why);
+  assert.equal(gen.needleDisagreement([four, tap('# pass 4'), tap('# pass 4')], '# pass 4'), null, 'three runs that agree still agree');
+  assert.equal(gen.needleDisagreement([four, tap('# pass 4', 1)], '# pass 4').why, 'exit 1', 'and a red run is still a disagreement');
+  /* The sentence needles keep the prefix predicate, because that is all they ever had:
+     there is no tap summary in that stdout to compare. */
+  const SENT = 'ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s)';
+  const said = tail => ({ status: 0, err: '', out: SENT + tail + '\r\n' });
+  assert.equal(gen.needleDisagreement([said(' outside'), said(' outside')], SENT), null, 'two sentence runs that agree');
+  assert.equal(gen.needleDisagreement([said(' outside'), { status: 0, err: '', out: 'something else\r\n' }], SENT).at, 2,
+    'and one that no longer prints the sentence is a disagreement');
+});
+
+test('REPLAY-18 - "nothing here writes into the tree" is true by CODE: an --out inside the repository is refused', () => {
+  /* PM final read, G-F3. run() took path.resolve(o.out) and wrote there, so `--out .`
+     from the repository root overwrote the working b-package.cjs with the generated one.
+     The red form of this control was exercised in a THROWAWAY repository and never here,
+     for the obvious reason: without the guard the command below writes into this tree. */
+  const runGen = (out, repo) => {
+    const env = Object.assign({}, process.env);
+    delete env.NODE_TEST_CONTEXT;
+    return cp.spawnSync(process.execPath, [GEN, '--id', 'S8', '--name', 'M2-S8-REAL-SHAPE', '--parent', 'S7',
+      '--head', R.sourceBase, '--repo', repo || REPO, '--out', out, '--quiet'],
+    { cwd: REPO, env, encoding: 'utf8', maxBuffer: 1 << 24, windowsHide: true });
+  };
+  for (const out of ['.', REPO, path.join(REPO, 'rebuild'), path.join(REPO, 'rebuild', 'lanes', 'b', 'tooling', 'gen'), path.join(REPO, 'does-not-exist-yet', 'deep')]) {
+    const x = runGen(out);
+    assert.equal(x.status, 1, 'an --out inside the tree must be refused: ' + out + '\n' + x.stdout + x.stderr);
+    assert(/GEN-OUT-INSIDE-THE-TREE/.test(x.stderr), 'and say so by name: ' + x.stderr);
+  }
+  /* AND IT REFUSES BEFORE IT MEASURES. --repo here is a folder that is not a git
+     repository at all: without the guard this command reaches git and fails with
+     something else entirely, which is exactly what the red run printed. */
+  const t = fs.mkdtempSync(path.join(os.tmpdir(), 'sealgen-replay-out-'));
+  MADE.push(t);
+  const x = runGen(path.join(t, 'sub', 'deeper'), t);
+  assert.equal(x.status, 1, 'and in a folder that is not a repository at all: ' + x.stdout + x.stderr);
+  assert(/GEN-OUT-INSIDE-THE-TREE/.test(x.stderr), 'the refusal arrives before the first rev is parsed: ' + x.stderr);
+  assert.equal(fs.existsSync(path.join(t, 'sub')), false, 'and nothing was written');
+  /* The other half: an --out OUTSIDE the tree is accepted, which every cell above proves
+     by having run, and the guard says so about the folder this run used. */
+  assert.equal(require('../new-child.cjs').outMustBeOutsideTheTree(REPO, OUT), path.resolve(OUT), 'a scratch --out under %TEMP% is accepted');
+});
+
+test('REPLAY-19 - the import walk is LITERAL-ONLY, and it says so beside every path it calls unexecuted', () => {
+  /* G-F13, the author's own open hole. executionClosure() follows string-literal relative
+     specifiers. A module reached only through `require(name)` or `await import(spec)` is
+     invisible to it, and the path then lands in class (3) - "no declared child executes
+     it" - which is the one class that is invited to --exclude. The invitation must never
+     be offered on a blind spot without saying the blind spot is there.
+     TWO-FILE FIXTURE, in a throwaway repository, because the walk reads GIT BLOBS. */
+  const gen = require('../new-child.cjs');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sealgen-replay-dyn-'));
+  MADE.push(dir);
+  const git = (...a) => {
+    const r = cp.spawnSync('git', a, { cwd: dir, encoding: 'utf8', windowsHide: true });
+    assert.equal(r.status, 0, 'git ' + a.join(' ') + ': ' + r.stderr);
+    return r.stdout;
+  };
+  git('init', '-q', '-b', 'main');
+  fs.writeFileSync(path.join(dir, 'a.cjs'), "'use strict';\nconst which = process.env.X ? './b.cjs' : './b.cjs';\nmodule.exports = require(which);\n");
+  fs.writeFileSync(path.join(dir, 'b.cjs'), 'module.exports = 1;\n');
+  git('add', 'a.cjs', 'b.cjs');
+  git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'fixture');
+  const exec = gen.executionClosure(dir, 'HEAD', [{ name: 'fixture-child', argv: ['--test', 'a.cjs'] }]);
+  assert.equal(exec.argv.has('a.cjs'), true, 'the argv target is an argv target');
+  assert.equal(exec.hop.has('b.cjs'), false, 'and b.cjs is NOT reached: the specifier is a variable, so the walk cannot follow it');
+  assert.deepEqual(exec.dynamic, ['a.cjs:3'], 'and the walk RECORDS what it could not follow, by file and line: ' + JSON.stringify(exec.dynamic));
+  /* A literal specifier is still followed, so the record is about the blind spot and not
+     about the walk having stopped working. */
+  fs.writeFileSync(path.join(dir, 'a.cjs'), "'use strict';\nmodule.exports = require('./b.cjs');\n");
+  git('add', 'a.cjs');
+  git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'literal');
+  const lit = gen.executionClosure(dir, 'HEAD', [{ name: 'fixture-child', argv: ['--test', 'a.cjs'] }]);
+  assert.equal(lit.hop.get('b.cjs'), 1, 'a literal relative specifier is still one hop');
+  assert.deepEqual(lit.dynamic, [], 'and nothing is recorded when there is nothing it could not follow');
+  assert.deepEqual(gen.dynamicSpecifiersIn('x.cjs', "require('./a');\nawait import(name);\nrequire(k);\n"), ['x.cjs:2', 'x.cjs:3'],
+    'the recogniser takes the computed ones and leaves the literal one alone');
+
+  /* AND THE OTHER END: the S8 run's own TODO.md. Whatever this post head holds, the class
+     (3) entries say which of the two it is - the blind spot named by file and line, or
+     that there was none. */
+  const rep = JSON.parse(fs.readFileSync(path.join(OUT, 'REPORT.json'), 'utf8'));
+  const todo = fs.readFileSync(path.join(OUT, 'TODO.md'), 'utf8');
+  const entryFor = f => (todo.split('\n\n').find(p => p.includes('**declared path ' + f + '**')) || '');
+  const seen = rep.dynamicSpecifiers || [];
+  console.log('  non-literal specifiers the S8 import walk met: ' + seen.length + (seen.length ? '  [' + seen.slice(0, 8).join(', ') + ']' : ''));
+  const none = rep.newPaths.filter(r => r.executedBy === 'none');
+  assert(none.length, 'the S8 replay has class (3) paths to speak about');
+  for (const r of none) {
+    const e = entryFor(r.path);
+    if (seen.length) assert(/DYNAMIC-SPECIFIER-SEEN/.test(e), 'a class (3) entry must name the blind spot:\n' + e);
+    else assert(/no blind spot here/.test(e), 'or say there is none:\n' + e);
+  }
+  for (const r of rep.newPaths.filter(x => x.executedBy !== 'none')) {
+    assert(!/DYNAMIC-SPECIFIER-SEEN/.test(entryFor(r.path)), 'a path a child executes is not a blind spot and is not told it is: ' + r.path);
+  }
 });
 
 test('REPLAY-15 - this cell removes the scratch folders it made', () => {

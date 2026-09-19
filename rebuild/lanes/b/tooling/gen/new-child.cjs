@@ -4,7 +4,9 @@
    Generates the MECHANICAL half of a reseal child package (S6 -> S7 -> S8 -> S9 -> ...)
    into a scratch --out folder. It never writes into the tree; --write does not exist in
    this round on purpose (DECISIONS: the PM adds it when the generated diff has been
-   reviewed once).
+   reviewed once), and since the PM's final read that sentence is a GUARD and not a
+   promise: an --out that resolves inside the repository root is refused with
+   GEN-OUT-INSIDE-THE-TREE before anything is measured (G-F3, outMustBeOutsideTheTree).
 
    WHAT IT DOES NOT DO, and says so in TODO.md every run: the brief, the theme sentence,
    the three token line texts, the receipt line, the review json, and every judgment about
@@ -29,6 +31,41 @@ const CELL_DIR = 'rebuild/m4/workout/test';
 const TOOLING_CELL = 'rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs';
 const WORKFLOW = '.github/workflows/rebuild.yml';
 const REPO = path.resolve(__dirname, '..', '..', '..', '..', '..');
+
+/* "NOTHING HERE WRITES INTO THE TREE" IS NOW TRUE BY CODE (PM final read, G-F3).
+   The header above has said it since the first round, and run() took path.resolve(o.out)
+   and wrote there without ever asking where there was: `--out .` from the repository root
+   overwrote the working b-package.cjs with the generated one, and `--out rebuild` would
+   have scattered a generated tree over the real one. A sentence in a comment is not a
+   guard. This is: an --out that resolves INSIDE the repository root is refused with
+   GEN-OUT-INSIDE-THE-TREE before anything is measured and before a byte is written.
+   REAL paths are compared, because a junction or a symlink pointing into the tree is how
+   every worktree on this PC has its node_modules, and case-insensitively on win32 because
+   `C:\X` and `c:\x` are one folder there and only there. */
+function realish(p) {
+  /* The real path of `p`, or of the nearest ancestor that exists with the rest put back:
+     an --out folder usually does not exist yet, and a path that was never resolved would
+     miss exactly the junction this check is for. */
+  let cur = path.resolve(p);
+  const rest = [];
+  for (;;) {
+    try { return path.join(fs.realpathSync.native(cur), ...rest); } catch (e) { /* not there yet */ }
+    const up = path.dirname(cur);
+    if (up === cur) return path.resolve(p);
+    rest.unshift(path.basename(cur));
+    cur = up;
+  }
+}
+const fold = s => (process.platform === 'win32' ? String(s).toLowerCase() : String(s));
+function outMustBeOutsideTheTree(root, out) {
+  const R = fold(realish(root)), O = fold(realish(out));
+  if (O === R || O.startsWith(R.endsWith(path.sep) ? R : R + path.sep)) {
+    throw new Error('GEN-OUT-INSIDE-THE-TREE --out ' + out + ' resolves to ' + realish(out) +
+      ', which is inside the repository root ' + realish(root) + '. This generator writes into a SCRATCH folder only and there is no --write: ' +
+      'an --out in the tree would overwrite the working files with generated ones and the diff would be unreadable. Give it a folder under %TEMP%.');
+  }
+  return path.resolve(out);
+}
 
 function parseArgv(argv) {
   const o = { childRoots: [], stage: 'all', plan: false, root: REPO };
@@ -402,13 +439,23 @@ function buildPackage(root, ctx, todo) {
     if (role === 'new') {
       const hops = exec && exec.hop.has(f) ? exec.hop.get(f) : null;
       const who = exec && exec.origin.get(f);
+      /* G-F13: the class (3) sentence is the one that invites --exclude, so it carries
+         what the walk could NOT see. Either every specifier it met was a string literal,
+         and it says so, or each non-literal one is named by file and line. */
+      const seen = (exec && exec.dynamic) || [];
+      const blindSpot = seen.length
+        ? ' READ THIS BEFORE ANSWERING: the import walk resolves LITERAL relative specifiers only, and on this post head it met ' + seen.length +
+          ' specifier(s) it could not follow - ' + seen.slice(0, 8).map(d => 'DYNAMIC-SPECIFIER-SEEN ' + d).join(', ') +
+          (seen.length > 8 ? ' and ' + (seen.length - 8) + ' more' : '') +
+          '. A path reached ONLY through one of those executes and still lands in this class, so "no declared child executes it" is what the walk could see, not what is certain.'
+        : ' (The import walk met no require( or import( with a computed argument anywhere it reached on this post head, so this class has no blind spot here: every specifier it saw was a string literal.)';
       undecided.push({
         f,
         why: (exec && exec.argv.has(f))
           ? 'role:new and the parent does not pin it - confirm the PM means to declare it. A DECLARED CHILD EXECUTES IT BY NAME: it is an argv target of child `' + who + '`, which is what DECISIONS:487 stop 7 asks, and proposed() will put it in executionPins. This is NOT the DECISIONS:524 N1 shape.'
           : hops !== null
             ? 'role:new and the parent does not pin it - confirm the PM means to declare it. No declared child names it in argv, but child `' + who + '` REACHES IT THROUGH ' + hops + ' IMPORT HOP(S) (nearest importer: ' + exec.by.get(f) + '), so a declared child does execute it. proposed() pins only argv targets, so this path does NOT enter executionPins and declaring it is a real decision. This is NOT the DECISIONS:524 N1 shape.'
-            : 'role:new, the parent does not pin it, and NO DECLARED CHILD EXECUTES IT: it is no declared child\'s argv target and no declared child reaches it by import at the post head. This is the DECISIONS:524 N1 shape: there the PM ruled such a path UNDECLARED and gave it a CI home by exact path instead. Answer with --exclude to keep it undeclared, or give it to a child that executes it.',
+            : 'role:new, the parent does not pin it, and NO DECLARED CHILD EXECUTES IT: it is no declared child\'s argv target and no declared child reaches it by import at the post head. This is the DECISIONS:524 N1 shape: there the PM ruled such a path UNDECLARED and gave it a CI home by exact path instead. Answer with --exclude to keep it undeclared, or give it to a child that executes it.' + blindSpot,
       });
     }
     product[f] = { pre, post, role };
@@ -421,6 +468,33 @@ function buildPackage(root, ctx, todo) {
   return { product, mismatches, undecided, changed, droppedMd };
 }
 
+/* R3 n9. HOW TWO RUNS OF A CHILD ARE ASKED WHETHER THEY AGREE.
+   The reproduction check used to be `M.needleStandsAtLineStart(x.out, needle)` on every
+   run - children()'s OWN predicate, which matches a needle by prefix at a line start.
+   That predicate is right for the question children() asks (does this child's stdout
+   carry the needle the package pinned) and it STAYS there. It is too weak for the
+   question --needle-repeat asks. `^# pass 4` matches `# pass 42`, so a child printing
+   `# pass 4` on run 1 and `# pass 42` on run 2 was recorded "reproduced over 2 runs" -
+   and a drifting pass count is the exact flake --needle-repeat exists to catch. 4 to 42,
+   3 to 30-39 and 1 to 1x are the shapes where it drifts invisibly.
+   So: where either run printed a tap summary, the summaries are compared for EXACT
+   equality; where neither did - the sentence needles, which never had anything but the
+   prefix - the prefix predicate answers, because that is all a sentence needle has.
+   Returns null when every run agrees, or { at, why } naming the run that did not. */
+function needleDisagreement(runs, needle) {
+  const first = M.tapPassNeedle(runs[0].out);
+  for (let i = 0; i < runs.length; i += 1) {
+    const x = runs[i];
+    if (x.status !== 0) return { at: i + 1, why: 'exit ' + x.status };
+    const here = M.tapPassNeedle(x.out);
+    if (first !== null || here !== null) {
+      if (here !== first) return { at: i + 1, why: 'its tap summary is ' + JSON.stringify(here) + ' and run 1 printed ' + JSON.stringify(first) };
+    } else if (!M.needleStandsAtLineStart(x.out, needle)) {
+      return { at: i + 1, why: 'the needle does not stand at the head of a line of its stdout' };
+    }
+  }
+  return null;
+}
 /* (g) THE NEEDLES. Measured by RUNNING each declared child the way children() runs it.
    A needle that does not stand at the head of a line of the child's own stdout is not
    recorded at all - it is reported, because that is the refusal the runner would raise. */
@@ -459,9 +533,9 @@ function measureChildren(root, ctx, todo) {
        before a seal, and a child that disagrees with itself is a flake the package must
        not pin. */
     if (needle && repeat > 1) {
-      const disagree = runs.findIndex(x => x.status !== 0 || !M.needleStandsAtLineStart(x.out, needle));
-      if (disagree >= 0) { how = 'NOT REPRODUCED: run ' + (disagree + 1) + ' of ' + repeat + ' did not print this needle at a line start (exit ' + runs[disagree].status + '); not recorded'; needle = null; }
-      else how += ', reproduced over ' + repeat + ' runs';
+      const d = needleDisagreement(runs, needle);
+      if (d) { how = 'NOT REPRODUCED: run ' + d.at + ' of ' + repeat + ' disagreed with run 1 - ' + d.why + '; not recorded'; needle = null; }
+      else how += ', reproduced over ' + repeat + ' runs (compared for EXACT equality of the tap summary, R3 n9)';
     }
     if (!needle) todo.push({ what: 'needle for child `' + c.name + '`', why: how });
     out.push({ name: c.name, argv: c.argv, needle: needle || TODO_BLANK, measured: !!needle, how, was: carried || null, status: r.status });
@@ -491,10 +565,31 @@ function measureChildren(root, ctx, todo) {
    Measured on the S8 replay, the eleven `new` paths split 6 / 3 / 2, and the two of class
    (3) are exactly the two p3-layout-v2 cells the PM ruled undeclared at :524 N1. */
 const IMPORT_RE = /(?:\brequire\(\s*|\bfrom\s+|\bimport\(\s*)['"]([^'"]+)['"]/g;
+/* G-F13, the author's own open hole. THIS WALK RESOLVES LITERAL RELATIVE SPECIFIERS ONLY.
+   `require(name)`, `await import(spec)` and any other computed argument cannot be followed
+   from source, so a module reached ONLY that way is invisible to the walk and the path
+   gets class (3) - "no declared child executes it" - and with it the --exclude invitation.
+   That invitation is a real decision, and it must never be offered on a blind spot without
+   saying that the blind spot is there. So every non-literal specifier the walk MEETS is
+   recorded, and TODO.md prints DYNAMIC-SPECIFIER-SEEN <file>:<line> beside every class (3)
+   sentence. It is deliberately a note and not a refusal: the walk is still right about
+   every path it did reach, and a generator that stopped here would stop on every round. */
+const DYNAMIC_RE = /\b(?:require|import)\s*\(\s*(?!['"`])/g;
+function dynamicSpecifiersIn(file, src) {
+  const out = [];
+  DYNAMIC_RE.lastIndex = 0;
+  let m;
+  while ((m = DYNAMIC_RE.exec(src)) !== null) {
+    let line = 1;
+    for (let i = 0; i < m.index; i += 1) if (src.charCodeAt(i) === 10) line += 1;
+    out.push(file + ':' + line);
+  }
+  return out;
+}
 const EXTS = ['', '.cjs', '.mjs', '.js', '/index.cjs', '/index.mjs', '/index.js'];
 function executionClosure(root, rev, decls) {
   const present = new Set(M.gitText(root, ['ls-tree', '-r', '--name-only', rev]).split('\n').map(s => s.trim()).filter(Boolean));
-  const argv = new Set(), hop = new Map(), by = new Map(), origin = new Map(), q = [];
+  const argv = new Set(), hop = new Map(), by = new Map(), origin = new Map(), q = [], dynamic = [];
   for (const c of decls) for (const a of c.argv) {
     const f = String(a);
     if (f.startsWith('--') || !present.has(f)) continue;
@@ -507,6 +602,7 @@ function executionClosure(root, rev, decls) {
     const b = M.blobBytes(root, rev, f);
     if (!b) continue;
     const src = b.toString('utf8');
+    for (const d of dynamicSpecifiersIn(f, src)) dynamic.push(d);
     IMPORT_RE.lastIndex = 0;
     let m;
     while ((m = IMPORT_RE.exec(src)) !== null) {
@@ -521,7 +617,7 @@ function executionClosure(root, rev, decls) {
       }
     }
   }
-  return { argv, hop, by, origin };
+  return { argv, hop, by, origin, dynamic };
 }
 function childDeclsFor(ctx, newOwnChild) {
   const list = ctx.parentSpec.children.map(c => ({
@@ -618,6 +714,10 @@ function main(argv) {
   if (o.plan) { console.log('SEAL-AUTOMATION new-child.cjs --plan'); STAGES.forEach(([k, d]) => console.log('  (' + k + ') ' + d)); console.log('  nothing was measured: --plan reads no blob and runs no child.'); return 0; }
   for (const k of ['id', 'name', 'parent', 'head', 'out']) if (!o[k]) throw new Error('GEN-ARGV-MISSING --' + k);
   const root = o.root;
+  /* G-F3: FIRST. Before a rev is parsed, before a blob is read, before a child is run and
+     before a folder is made. A refusal that arrives after the measurement is a refusal
+     that has already cost the thing it was guarding. */
+  outMustBeOutsideTheTree(root, o.out);
   const todo = [];
   const sourceBase = M.revParse(root, o.head);
   const base = M.revParse(root, o.base || o.head);
@@ -656,7 +756,10 @@ function main(argv) {
 }
 
 function run(ctx, o, todo) {
-  const root = ctx.root, out = path.resolve(o.out), say = m => { if (!o.quiet) console.log(m); };
+  /* G-F3, again and not by accident: main() checks it before measuring, and this is the
+     line R3's reader was looking at - the one that used to resolve --out and hand it
+     straight to writeOut(). Whoever calls run() next gets the same refusal. */
+  const root = ctx.root, out = outMustBeOutsideTheTree(ctx.root, o.out), say = m => { if (!o.quiet) console.log(m); };
   const parentRev = ctx.base;                           // the tree as it stands BEFORE these hunks
   const wrote = [];
   /* (a) the runner. Read from the blob so a dirty worktree cannot leak in. */
@@ -794,6 +897,9 @@ function finish(ctx, o, todo, wrote, runner, cells, csDone, out, say) {
       executedBy: ctx.execution.argv.has(f) ? 'argv' : ctx.execution.hop.has(f) ? 'import:' + ctx.execution.hop.get(f) : 'none',
       child: ctx.execution.origin.get(f) || null,
     })),
+    /* G-F13: what the import walk could NOT follow, by file and line, so the blind spot
+       behind every `none` above is a file a reader can open rather than a caveat. */
+    dynamicSpecifiers: ctx.execution.dynamic || [],
   }, null, 2) + '\n']);
   for (const [rel, text] of wrote) writeOut(out, rel, text);
   say('SEAL-AUTOMATION ' + ctx.child.name + ' generated into ' + out);
@@ -837,4 +943,4 @@ if (require.main === module) {
   try { process.exit(main(process.argv.slice(2))); }
   catch (e) { console.error('GEN FAILED: ' + e.message); process.exit(1); }
 }
-module.exports = { main, parseArgv, editRunner, editToolingCell, editChildSpecs, editWorkflow, mirrorCells, buildPackage, childDeclsFor, executionClosure, measureChildren, assembleSpec, finalLines, buildChain, slugOf, idSlug, words, STAGES, TODO_BLANK, specPath, RUNNER_PATH, TOOLING_CELL, WORKFLOW, CELL_DIR, childSpecsFiles, laneCellsUnder, mirroredBlockAt };
+module.exports = { needleDisagreement, dynamicSpecifiersIn, outMustBeOutsideTheTree, main, parseArgv, editRunner, editToolingCell, editChildSpecs, editWorkflow, mirrorCells, buildPackage, childDeclsFor, executionClosure, measureChildren, assembleSpec, finalLines, buildChain, slugOf, idSlug, words, STAGES, TODO_BLANK, specPath, RUNNER_PATH, TOOLING_CELL, WORKFLOW, CELL_DIR, childSpecsFiles, laneCellsUnder, mirroredBlockAt };

@@ -62,8 +62,17 @@ const isAssertCall = l => /^assert[A-Za-z0-9_.]*\(/.test(String(l));
 
 /* HOW MANY ARGUMENTS MUST STAND IN FRONT of the last string for it to be the MESSAGE.
    Read off node:assert's own signatures. Anything absent from this table answers 2. */
+/* R3 n1. `fail` was 0 and it was the one entry in this table that erred in the FORGIVING
+   direction, which the comment above says is the direction this rule must never err in.
+   `assert.fail` has two signatures: the modern `fail(message)`, which this rule never sees
+   because withoutMessage() needs a comma before the closing string, and the legacy
+   `fail(actual, expected, message, operator)`, where the SECOND argument is an expected
+   VALUE. With need = 0 any last string passed, so `assert.fail('x', 'y')` with a mutated
+   'y' was classified NARRATIVE. There are zero such lines in the corpus compareFile()
+   compares at 82c98f8, so this moves no number today; it is here because the rule must be
+   right before it is trusted on a family nobody has read. */
 const MESSAGE_ARITY = {
-  assert: 1, ok: 1, ifError: 1, fail: 0,
+  assert: 1, ok: 1, ifError: 1, fail: 2,
   equal: 2, notEqual: 2, strictEqual: 2, notStrictEqual: 2,
   deepEqual: 2, notDeepEqual: 2, deepStrictEqual: 2, notDeepStrictEqual: 2,
   match: 2, doesNotMatch: 2, throws: 2, doesNotThrow: 2, rejects: 2, doesNotReject: 2,
