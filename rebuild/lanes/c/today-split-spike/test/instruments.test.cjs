@@ -237,14 +237,28 @@ test("RED: a first anchor altered by one character is REFUSED naming the region"
     ": first anchor matches ZERO places"));
 });
 
-test("RED: a first anchor duplicated so it matches twice is REFUSED as ambiguous", () => {
+test("RED: a first anchor duplicated so it matches twice is REFUSED as ambiguous, AND by the recorded count", () => {
   const tree = tmpTree();
   const { file, r, lines, start } = resolveIn(tree, "TA-S09");
   lines.splice(start - 1, 0, lines[start - 1]);
   writeLines(tree, file, lines);
   const res = runCut(tree);
   assert.strictEqual(res.status, 1);
+  /* Since loop round 1 the RECORDED COUNT refuses this first, because it is the stronger of
+     the two rules: it catches a second occurrence whether or not the row carries an index.
+     Both rules are still live, so this row now proves both - the count here, and the older
+     ambiguity rule below with the count stripped from that one row. */
   assert.match(res.stderr, new RegExp("REFUSED: " + file.replace(/\./g, "\\.") + " " + r.id +
+    ": first anchor matches 2 places and the table RECORDED 1 at its named refs"));
+  const bare = JSON.parse(JSON.stringify(table));
+  const row = bare.files[file].find((x) => x.id === r.id);
+  delete row.first.occurrences;
+  for (const n of Object.keys(bare.witness.regions[r.id])) delete bare.witness.regions[r.id][n].occurrences;
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bare));
+  const res2 = runCut(tree, ["--regions", rf]);
+  assert.strictEqual(res2.status, 1);
+  assert.match(res2.stderr, new RegExp("REFUSED: " + file.replace(/\./g, "\\.") + " " + r.id +
     ": first anchor matches 2 places and the table gives no disambiguating index"));
 });
 
@@ -324,7 +338,30 @@ test("S-R23: census.cjs takes its pairs from the table and runs on a directory w
   assert.strictEqual(cut.status, 0, cut.stderr);
   const withMap = runNode("census.cjs", ["--root", tree, "--out", cut.out]);
   assert.strictEqual(withMap.status, 0, withMap.stderr);
-  assert.match(withMap.stdout, /the instrument's own residue \(unresolved AND not declared in the source file either\): 0/);
+  /* THE RESIDUE IS DERIVED, NOT PINNED AT ZERO (loop round 1, blind review F4's class).
+     This row asserted a literal 0 and part 2 made it 1: `sleepDraftHeld` is a binding the
+     product block's own `open` declares, so it resolves in the OUTPUT and not in the
+     SOURCE the census reads its scopes from, which is exactly what "residue" means. A
+     literal count makes the receipt wrong the first time the seal declares a binding of
+     its own; what has to stay true is that every residue name is one the table DECLARED.
+     A name the table never declared still turns this row red. */
+  const declaredNew = new Set();
+  for (const dest of Object.keys(table.product || {})) {
+    for (const l of (table.product[dest].open || []).concat(table.product[dest].head || [])) {
+      const m = /^\s*(?:let|const|var)\s+([A-Za-z_$][A-Za-z0-9_$]*)/.exec(l);
+      if (m) declaredNew.add(m[1]);
+    }
+  }
+  const res = /the instrument's own residue \(unresolved AND not declared in the source file either\): (\d+)(?: \(([^)]*)\))?/
+    .exec(withMap.stdout);
+  assert.ok(res, "the census did not print a residue line at all. " + withMap.stdout);
+  const residue = (res[2] || "").split(/,\s*/).filter(Boolean);
+  assert.strictEqual(residue.length, Number(res[1]), "the census's residue count and its list disagree");
+  for (const name of residue) {
+    assert.ok(declaredNew.has(name), "THE CENSUS FOUND A RESIDUE NAME THE TABLE NEVER DECLARED: " +
+      name + ". Every unresolved name in the seal must be a binding the product block's own " +
+      "head or open declares, or the cut has left a name behind. " + withMap.stdout);
+  }
 
   const noMap = fs.mkdtempSync(path.join(os.tmpdir(), "splitb-nomap-"));
   for (const f of fs.readdirSync(cut.out)) {
@@ -457,7 +494,14 @@ test("RED R1 NOTE-1: a substitution row ADDED to the table is REFUSED by the rec
   fs.writeFileSync(rf, JSON.stringify(bad));
   const r = runCut(tree, ["--regions", rf]);
   assert.strictEqual(r.status, 1, "A NEW SUBSTITUTION ROW REACHED A PRODUCT FILE UNWITNESSED. " + r.stdout);
-  assert.match(r.stderr, /the table declares 8 substitution rows; the declared-text witness records 7/);
+  /* DERIVED, NOT PINNED (blind review F4). This row named "8 ... 7" from the day part 1 had
+     seven substitution rows. Part 2 has forty-eight, so the row failed on its own arithmetic
+     while the checker it measures was refusing correctly, and a receipt that says 26/26 was
+     wrong about these bytes. The baseline comes from the table the cell actually loaded; the
+     +1 is still the whole point of the assertion. */
+  const nsubs = table.substitutions.length;
+  assert.match(r.stderr, new RegExp("the table declares " + (nsubs + 1) +
+    " substitution rows; the declared-text witness records " + nsubs));
 });
 
 /* ---- R2 F4: the PRODUCT and COMPOSE blocks are witnessed the same way ------------------
@@ -545,7 +589,11 @@ test("RED R2 F4: a product block ADDED to the table is REFUSED, by name and then
   fs.writeFileSync(rf2, JSON.stringify(worse));
   const r2 = runCut(tree, ["--regions", rf2]);
   assert.strictEqual(r2.status, 1, r2.stdout);
-  assert.match(r2.stderr, /the table declares 3 product blocks; the declared-text witness records 2/);
+  /* DERIVED, NOT PINNED (blind review F4), for the reason the substitution row above gives:
+     part 1 had two product blocks and part 2 has three. */
+  const nprod = Object.keys(table.product).length;
+  assert.match(r2.stderr, new RegExp("the table declares " + (nprod + 1) +
+    " product blocks; the declared-text witness records " + nprod));
 });
 
 /* ---- part 2: the REPLACE kind's own check is the OUTPUT'S PARSE ------------------------
@@ -578,10 +626,15 @@ test("RED part 2: a replacement that drops a brace is REFUSED because the OUTPUT
   assert.ok(row, "no block-opening interface row in the table to tamper");
   row.replacement = [row.replacement[0].replace(/\{\s*$/, "")];
   /* Re-bless the declared text, so the refusal under test is the PARSE and not the witness:
-     this is the attack of a hand that re-takes the witness after editing a row. */
+     this is the attack of a hand that re-takes the witness after editing a row. Since loop
+     round 1 the row must ALSO claim `statementRewrite`, because dropping a brace changes the
+     control-flow profile and the new comparison would otherwise refuse first - which makes
+     this row stronger, not weaker: it now proves that even a row that has BOUGHT the
+     statement-rewrite exemption cannot write a file that does not parse. */
+  row.statementRewrite = true;
   const crypto = require("crypto");
   bad.witness.declared.replacements[row.id].sha256 = crypto.createHash("sha256")
-    .update(JSON.stringify([row.id, "today-app.cjs", row.replacement]), "utf8").digest("hex");
+    .update(JSON.stringify([row.id, "today-app.cjs", row.replacement, true]), "utf8").digest("hex");
   const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
   fs.writeFileSync(rf, JSON.stringify(bad));
   const r = runCut(tree, ["--regions", rf, "--only", "today-app.cjs"]);
@@ -589,4 +642,195 @@ test("RED part 2: a replacement that drops a brace is REFUSED because the OUTPUT
     "EXITED 0. " + r.stdout);
   assert.match(r.stderr, /THE OUTPUT DOES NOT PARSE/);
   assert.match(r.stderr, /look at this file's declared `replace` rows/);
+});
+
+/* ---- LOOP ROUND 1: the blind review's and the incremental review's executed attacks -----
+ * Every row below was run against the UNCHANGED instruments first and the attack went
+ * through there - that is what "RED FIRST" means here and it is what the two reviewers
+ * measured. The commit before this one carries the failure list.                        */
+
+test("RED blind F5 / incremental F1: a COMPETING OCCURRENCE of a content anchor is REFUSED by the recorded occurrence count", () => {
+  /* The reviewer prepended a five-line helper that declares its OWN `sleepNightDate` and its
+     own `    const date = sleepNightDate();`. That text became occurrence #1 of TA-I042's
+     anchor, the real target slid to #2, and the cut exited 0 at BOTH refs having rewritten
+     the WRONG lexical binding: run with a facade returning "SEALED" the output returned
+     "SEALED" where the input returned "LOCAL". No digest of one line can see it, because the
+     two lines ARE the same line. What sees it is that there were two and now there are three. */
+  const shadow = [
+    "function astraShadow() {",
+    "  const sleepNightDate = () => \"LOCAL\";",
+    "    const date = sleepNightDate();",
+    "  return date;",
+    "}",
+    ""];
+  const tree = tmpTree();
+  const before = readLines(tree, "today-app.cjs");
+  writeLines(tree, "today-app.cjs", shadow.concat(before));
+  const r = runCut(tree, ["--only", "today-app.cjs"]);
+  assert.strictEqual(r.status, 1, "A COMPETING OCCURRENCE OF A CONTENT ANCHOR REWROTE ANOTHER " +
+    "BINDING AND THE CUT EXITED 0. " + r.stdout);
+  assert.match(r.stderr, /TA-I042: first anchor matches 3 places and the table RECORDED 2 at its named refs/);
+  /* And the same number is witnessed from the git objects of the named refs, so a table
+     field bumped to 3 to match the plant does not get past cut.cjs either. */
+  const bad = JSON.parse(JSON.stringify(table));
+  bad.files["today-app.cjs"].find((x) => x.id === "TA-I042").first.occurrences = 3;
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r2 = runCut(tree, ["--regions", rf, "--only", "today-app.cjs"]);
+  assert.strictEqual(r2.status, 1, "BUMPING THE TABLE'S OWN COUNT GOT THE PLANT THROUGH. " + r2.stdout);
+  assert.match(r2.stderr, /TA-I042: THE FIRST ANCHOR MATCHES 3 PLACES/);
+  assert.match(r2.stderr, /the witness records .*=2/);
+});
+
+test("the recorded occurrence count is taken at BOTH named refs and they agree", () => {
+  const names = (table.witness.refs || []).map((x) => x.name);
+  let withCount = 0;
+  for (const [file, regions] of Object.entries(table.files)) {
+    for (const reg of regions) {
+      if (reg.kind !== "move" && reg.kind !== "replace") continue;
+      const w = table.witness.regions[reg.id];
+      const rec = names.filter((n) => w && w[n] && typeof w[n].occurrences === "number");
+      assert.ok(rec.length === names.length, file + " " + reg.id +
+        ": the first anchor's occurrence count is not recorded at every named ref");
+      const set = new Set(rec.map((n) => w[n].occurrences));
+      assert.strictEqual(set.size, 1, file + " " + reg.id +
+        ": the named refs disagree on the anchor's occurrence count");
+      assert.strictEqual(reg.first.occurrences, w[names[0]].occurrences, file + " " + reg.id +
+        ": the table's first.occurrences and the witness disagree");
+      withCount += 1;
+    }
+  }
+  assert.ok(withCount >= 180, "only " + withCount + " regions carry a recorded occurrence count");
+});
+
+test("RED blind F6 / incremental F4: a RE-WITNESSED replacement that adds an early `return` is REFUSED by the control-flow comparison", () => {
+  /* The reviewer changed TA-I018 to `    if (!facade.foodLane()) { return;`, ran the REAL
+     gen-witness --declared --write on that table, and both cuts exited 0. Executed, the
+     original guard emits one put(map,"stub-note",...) and the changed one emits none and
+     returns undefined: a refusal became silence, behind a digest that had just been re-taken
+     and an output that still parsed. */
+  const tree = tmpTree();
+  const bad = JSON.parse(JSON.stringify(table));
+  const row = bad.files["today-app.cjs"].find((x) => x.id === "TA-I018");
+  assert.ok(row && Array.isArray(row.replacement), "TA-I018 is not a replacement row any more");
+  assert.deepStrictEqual(row.replacement, ["    if (!facade.foodLane()) {"],
+    "TA-I018 is no longer the food-lane guard opener this attack targets");
+  row.replacement = ["    if (!facade.foodLane()) { return;"];
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-"));
+  const rf = path.join(dir, "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const first = runCut(tree, ["--regions", rf, "--only", "today-app.cjs"]);
+  assert.strictEqual(first.status, 1, "the declared-text witness did not even refuse the edit");
+  assert.match(first.stderr, /TA-I018.*DECLARED TEXT DOES NOT MATCH THE WITNESS/);
+  /* Now the attacker re-takes the witness with the REAL generator, exactly as the reviewer
+     did. Re-blessing must no longer be enough. */
+  const w = runNode("gen-witness.cjs", ["--declared", "--regions", rf, "--write"]);
+  assert.strictEqual(w.status, 0, w.stderr);
+  const r = runCut(tree, ["--regions", rf, "--only", "today-app.cjs"]);
+  assert.strictEqual(r.status, 1, "A RE-WITNESSED EARLY RETURN TURNED A REFUSAL INTO SILENCE " +
+    "AND THE CUT EXITED 0. " + r.stdout);
+  assert.match(r.stderr, /TA-I018: THE REPLACEMENT CHANGES CONTROL FLOW/);
+  assert.match(r.stderr, /return: pre-image 0, replacement 1/);
+});
+
+test("RED: `statementRewrite` is inside the declared-text witness, so the exemption cannot be added for free", () => {
+  const tree = tmpTree();
+  const bad = JSON.parse(JSON.stringify(table));
+  const row = bad.files["today-app.cjs"].find((x) => x.id === "TA-I018");
+  row.statementRewrite = true;
+  row.replacement = ["    if (!facade.foodLane()) { return;"];
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf, "--only", "today-app.cjs"]);
+  assert.strictEqual(r.status, 1, "A ROW BOUGHT THE STATEMENT-REWRITE EXEMPTION WITHOUT A WITNESS. " + r.stdout);
+  assert.match(r.stderr, /TA-I018.*DECLARED TEXT DOES NOT MATCH THE WITNESS/);
+});
+
+test("incremental F5: REVERSING the table's row order changes neither acceptance nor one output byte", () => {
+  /* Reversing files["today-app.cjs"] and changing nothing else used to exit 1 with
+     `regions TA-I004 [718,718] and TA-M03 [718,719] OVERLAP`: the sort was by start alone
+     and containment was tested against whichever row happened to be adjacent, so a nested
+     replace that sorted ahead of its enclosing seam became the pair's `prev`. A table's
+     acceptance must not depend on the order of its rows. */
+  const tree = tmpTree();
+  const base = runCut(tree, ["--only", "today-app.cjs", "--product"]);
+  assert.strictEqual(base.status, 0, base.stderr);
+  const bad = JSON.parse(JSON.stringify(table));
+  bad.files["today-app.cjs"].reverse();
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf, "--only", "today-app.cjs", "--product"]);
+  assert.strictEqual(r.status, 0, "REVERSING THE ROW ORDER TURNED AN ACCEPTED CUT INTO A " +
+    "REFUSAL. " + r.stderr);
+  for (const f of ["today-lanes.cjs", "today-app.cjs"]) {
+    assert.strictEqual(fs.readFileSync(path.join(r.out, f), "utf8"),
+      fs.readFileSync(path.join(base.out, f), "utf8"),
+      "the reversed table produced different " + f + " bytes");
+  }
+});
+
+test("incremental F3: gen-interface.cjs is actually RUN, and its rows are the rows in the table", () => {
+  /* The reviewer changed one clause of the generator at a time - the read rewrite's FACADE
+     to HOOKS, W12's `next === "sleep"` to `!==`, W10's sleepCorrect(false) to (true) - and
+     the whole cell stayed green at both refs for all eight, because NO ROW INVOKED
+     gen-interface.cjs AT ALL. Every row compared generated output to hashes re-taken from
+     that same output. This row runs the real generator against the real source at the named
+     ref and compares its rows, anchor for anchor and replacement line for replacement line,
+     with the rows the table committed. A single changed clause in the generator now moves a
+     row's text and this goes red. */
+  const tree = tmpTree();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "splitb-gen-"));
+  const rf = path.join(dir, "regions.json");
+  const jf = path.join(dir, "rows.json");
+  fs.writeFileSync(rf, JSON.stringify(table));
+  const g = runNode("gen-interface.cjs",
+    ["--root", tree, "--file", "today-app.cjs", "--regions", rf, "--json", jf]);
+  assert.strictEqual(g.status, 0, "the generator did not run: " + g.stderr);
+  const out = JSON.parse(fs.readFileSync(jf, "utf8"));
+  const made = new Map(out.rows.map((r) => [r.id, r]));
+  const have = table.files["today-app.cjs"].filter((r) => /^TA-[IW]/.test(r.id));
+  assert.ok(have.length >= 100, "the table has only " + have.length + " generated rows");
+  assert.strictEqual(made.size, have.length,
+    "THE GENERATOR PRODUCES " + made.size + " ROWS AND THE TABLE HOLDS " + have.length);
+  for (const r of have) {
+    const m = made.get(r.id);
+    assert.ok(m, "the generator no longer produces " + r.id);
+    assert.strictEqual(m.first.text, r.first.text, r.id + ": the generator's first anchor moved");
+    assert.strictEqual(m.last.text, r.last.text, r.id + ": the generator's last anchor moved");
+    assert.deepStrictEqual(m.replacement, r.replacement,
+      r.id + ": THE GENERATOR NOW WRITES DIFFERENT BYTES THAN THE TABLE COMMITTED");
+  }
+  /* The paint-handle substitution rows are generated by the same run and get the same check. */
+  const madeSubs = new Map(out.subs.map((s) => [s.id, s]));
+  for (const s of table.substitutions.filter((x) => x.file === "today-app.cjs")) {
+    const m = madeSubs.get(s.id);
+    if (!m) continue;                       /* W10 is appended by the generator's own tail */
+    assert.strictEqual(m.from, s.from, s.id + ": the generator's pre-image moved");
+    assert.strictEqual(m.to, s.to, s.id + ": THE GENERATOR NOW WRITES A DIFFERENT SUBSTITUTION");
+  }
+});
+
+test("RED incremental F7: an UNCOVERED released assignment makes gen-interface.cjs REFUSE and write nothing", () => {
+  /* gen-interface.cjs printed its S-R17 (g) STOPS and then wrote the whole table anyway and
+     exited 0, so a released line that ASSIGNS a sealed binding with no hand row produced a
+     table that looked successfully generated. Deciding what becomes of such a line is a
+     durable-writer decision; a generator that cannot express it must not hand back a table. */
+  const tree = tmpTree();
+  const lines = readLines(tree, "today-app.cjs");
+  const at = lines.findIndex((l) => l.indexOf("  if (foodLane && typeof model.setFoodDays") === 0);
+  assert.ok(at > 0, "cannot find the mount-level line to plant beside");
+  lines.splice(at, 0, "  foodSaving = Promise.resolve();");
+  writeLines(tree, "today-app.cjs", lines);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "splitb-gen-"));
+  const rf = path.join(dir, "regions.json");
+  const jf = path.join(dir, "rows.json");
+  fs.writeFileSync(rf, JSON.stringify(table));
+  const before = fs.readFileSync(rf, "utf8");
+  const g = runNode("gen-interface.cjs",
+    ["--root", tree, "--file", "today-app.cjs", "--regions", rf, "--json", jf, "--write"]);
+  assert.notStrictEqual(g.status, 0, "THE GENERATOR WROTE A TABLE OVER AN UNCOVERED RELEASED " +
+    "ASSIGNMENT AND EXITED 0. " + g.stdout);
+  assert.match(g.stderr, /assign a sealed binding with no hand row/);
+  assert.strictEqual(fs.readFileSync(rf, "utf8"), before, "it wrote the table anyway");
+  assert.ok(!fs.existsSync(jf), "it wrote the rows file anyway");
 });
