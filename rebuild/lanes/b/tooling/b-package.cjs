@@ -985,7 +985,7 @@ const supersessionGrants = line => line.split('·').map(c => SUPERSESSION_GRANT.
 // supersession token above gets, because it is the same kind of act: a PM grants a NAMED
 // package a NAMED exemption, by a token that stands alone in its own `·` clause on a RULED
 // line of the chain branch. DECISIONS:536 (2) requires the line; nothing else can release a
-// path, and no pattern, prefix or wildcard is admitted — the token names whole paths, one
+// path, and no pattern, prefix or wildcard is admitted: the token names whole paths, one
 // by one, so "which files did this package take out of the seal" is answerable by reading
 // one line. Every wrapper r10b N1 measured against the supersession token (a negating word,
 // a quote, a bracket, an emphasis marker, a backtick) leaves the clause something other
@@ -1135,7 +1135,7 @@ const SPEC_KEYS = ['version', 'lanePackage', 'packageId', 'status', 'brief', 'so
   // for the same reason `freeze` is optional in authorizations: every spec sealed before
   // this role existed carries the twenty-one keys it always carried, and adding the key to
   // the closed list must not make one of them unreadable. spec() closes it with the freeze
-  // pattern — `keys({ ...s, release: null }, SPEC_KEYS, ...)` — so an absent key is fine, a
+  // pattern, `keys({ ...s, release: null }, SPEC_KEYS, ...)`, so an absent key is fine, a
   // present key is fine, and a key that is NEITHER is still refused by name. Whether the
   // block may stand at all is releaseRuling()'s question, not this list's: a block with no
   // released declaration behind it refuses RELEASE-BLOCK-WITHOUT-A-RELEASED-DECLARATION.
@@ -1295,20 +1295,26 @@ function supersessionRuling(s) {
 }
 // H3 (S9-RELEASE-SPEC B.2, steps 1 to 6). THE RELEASE RULING, mirroring
 // supersessionRuling() above line for line, including both of the lessons that function
-// carries: NO CACHE (TOOLING-REVIEW-r10 F4 — the chain file is re-read on EVERY call, so a
+// carries: NO CACHE (TOOLING-REVIEW-r10 F4: the chain file is re-read on EVERY call, so a
 // seal cannot stand on a ruling withdrawn mid-run) and the RULED terminal word (so a lane
 // cannot release anything by writing its own branch's ledger).
 //
 // It is called from product() and from proposed(), and it is the ONLY thing that admits
-// role "released". Six steps, each with its own name:
+// role "released". B.2's six steps, each with its own name, and a seventh from F.1 R2:
 //   1 the spec carries release.rulingLineSha256, a 64-hex string and never the text;
 //   2 exactly one line on CHAIN_REF hashes to it;
-//   3 that line ends in RULED;
+//   3 that line's LAST WORD is RULED (S9-PREP-RUNNER-REVIEW-R1 BLOCKING-3 measured the one
+//     phrasing that satisfies this test without being a ruling, a line whose last two words
+//     are "NOT RULED", and it is ADMITTED, here and in supersessionRuling(), which carries
+//     the same regex. This mirror is line for line by ticket, so it is NOT strengthened on
+//     one side only; the question is put to the PM as one question about BOTH functions);
 //   4 it carries at least one RELEASE-FROM-SEAL token naming THIS packageId;
 //   5 the granted path set and the declared `released` set are EQUAL, both directions, so
 //     the ledger and the spec cannot drift apart in either direction;
-//   6 every granted path is a key of the PARENT artifact's product map — you cannot
-//     release what the parent never sealed — and its declared pre is that parent pin.
+//   6 every granted path is a key of the PARENT artifact's product map, so you cannot
+//     release what the parent never sealed, and its declared pre is that parent pin;
+//   7 and no granted path is one proposed() would put back into executionPins by any of its
+//     five routes (S9-PREP-RUNNER-REVIEW-R1 BLOCKING-1).
 // A package that declares nothing released and carries no block returns an empty grant and
 // reads no ledger line at all, which is every package sealed before this role existed.
 function releaseRuling(s, bound) {
@@ -1351,9 +1357,29 @@ function releaseRuling(s, bound) {
   // into executionPins, so a released path that a declared child EXECUTES would be re-pinned
   // by the back door and inherited by the next generation with nobody the wiser. The two
   // sets are disjoint, and that is asserted here rather than left to the spec's author.
+  //
+  // S9-PREP-RUNNER-REVIEW-R1 BLOCKING-1. The first cut of this guard closed the argv route
+  // while its own comment named the CLASS, and proposed() has FIVE routes into
+  // executionPins, not one: the runner, this package's own spec file, the brief, the
+  // carrier successor, and the argv targets. MEASURED by the reviewer: a released path that
+  // is also the brief or the carrier successor was ADMITTED, the artifact then said the
+  // same path was released AND execution-pinned, and the NEXT package refused
+  // PARENT-PIN-BROKEN on the first lane C edit - through the PARENT walk, which has no skip
+  // and must not get one. The set is now built the way proposed() builds it, so the two
+  // cannot drift apart without this assert noticing. The routes are UNCONDITIONAL here even
+  // where proposed() pins them only if the file is on disk: a spec that both releases a path
+  // and names it as its own brief is contradictory whether or not the file exists yet.
+  // The argv route keeps the refusal name B.5 and F.1 R2 give it; the other four share one.
   const argv = new Set((s.children || []).flatMap(c => childArgv(c)));
-  for (const file of granted) assert(!argv.has(file), 'RELEASE-PATH-IS-A-CHILD-ARGV-TARGET ' + file +
-    '; proposed() would re-pin it through executionPins and the release would last exactly one generation');
+  const epin = new Map([[RUNNER, 'the seal runner'], [TOOLING + '/packages/' + ID + '.json', 'the package spec this run reads']]);
+  if (s.brief && typeof s.brief.file === 'string') epin.set(s.brief.file, 'the brief');
+  if (s.carrierSuccessor && typeof s.carrierSuccessor.file === 'string') epin.set(s.carrierSuccessor.file, 'the carrier successor');
+  for (const file of granted) {
+    assert(!argv.has(file), 'RELEASE-PATH-IS-A-CHILD-ARGV-TARGET ' + file +
+      '; proposed() would re-pin it through executionPins and the release would last exactly one generation');
+    assert(!epin.has(file), 'RELEASE-PATH-IS-AN-EXECUTION-PIN-TARGET ' + file + '; this package names it as ' +
+      epin.get(file) + ', so proposed() would re-pin it through executionPins and the release would last exactly one generation');
+  }
   return { at, line, granted, declared };
 }
 // REQUESTS 08:40 (b), the SPEC-PHASE shape. Nothing here supersedes anything: it decides
@@ -1669,7 +1695,7 @@ function spec() {
     // parent sealed it at and stands it nowhere afterwards. `pre` is that parent byte and
     // is never null (the assert two lines above already says only `new` may be pre: null),
     // and a `post` of any kind is a package claiming to produce a file it has just stopped
-    // pinning — which is the one sentence this role must never be able to say.
+    // pinning, which is the one sentence this role must never be able to say.
     assert(pin.role !== 'released' || pin.post === null,
       'PRODUCT-RELEASED-DECLARES-A-POST ' + file + '; a released file has no post-image in this package, because this package stops standing it anywhere');
   }
@@ -1980,11 +2006,20 @@ function held(s, file, hash, code) {
 // H17's reader (S9-RELEASE-SPEC B.3). The UNION of the `released` blocks of the artifacts
 // THIS WALK READS - the parent's, and the grandparent's if it carries one - and of nothing
 // else. It opens no file, trusts no path an input names, and reaches no artifact pins()
-// has not already read and byte-checked. Taking the union rather than the parent's block
-// alone is what makes the skip survive a second generation: S11's grandparent is S9, which
-// carries the block, and S11's parent S10 does not. Two generations after that the block
-// falls out of the walk's reach entirely and the path is an ordinary undeclared file again,
-// which is exactly what B.7 says a release means.
+// has not already read and byte-checked.
+//
+// S9-PREP-RUNNER-REVIEW-R1 N7, and the first cut of this comment gave a reason the
+// measurement does not support. It claimed the UNION is what makes the skip survive a
+// second generation, through S11 over S10 over S9. MEASURED on a three-generation fixture:
+// it does not, and it does not need to. The grandparent loop walks
+// { ...ga.product, ...ga.executionPins }, and H10 has already kept a released path out of
+// S9's `product`, so S11's walk never reaches it, the skip never fires and the say prints
+// no released clause. The `ga` half is a NO-OP on the reachable chain. It is kept as
+// defence in depth for an ancestor that carries both a block and a pin for one path, and
+// the reason is now written as measured rather than as hoped. The PARENT's block is the
+// half that fires, and it is the half B.8 (11) and (12) measure. One generation on, the
+// block falls out of the walk's reach entirely and the path is an ordinary undeclared file
+// again, which is exactly what B.7 says a release means.
 const releasedAncestry = (...artifacts) => {
   const out = new Set();
   for (const art of artifacts)
@@ -1994,7 +2029,7 @@ const releasedAncestry = (...artifacts) => {
 };
 function pins(s, bound) {
   if (!bound) { note('parent and grandparent artifact pins not re-asserted'); return; }
-  const a = bound.acceptance; let kept = 0, gkept = 0, base = 0, greleased = 0;
+  const a = bound.acceptance; let kept = 0, gkept = 0, base = 0; const gskipped = [];
   for (const [file, entry] of Object.entries({ ...a.product, ...a.executionPins })) {
     if (held(s, file, parentPin(entry, file), 'PARENT-PIN-BROKEN')) kept++; else base++;
   }
@@ -2029,7 +2064,7 @@ function pins(s, bound) {
   const releasedByAncestry = releasedAncestry(a, ga);
   for (const [file, entry] of Object.entries({ ...ga.product, ...ga.executionPins })) {
     if (Object.hasOwn(a.product, file) || Object.hasOwn(a.executionPins, file)) continue;
-    if (releasedByAncestry.has(file)) { greleased++; continue; } // H17
+    if (releasedByAncestry.has(file)) { gskipped.push(file); continue; } // H17
     if (held(s, file, parentPin(entry, file), 'GRANDPARENT-PIN-BROKEN')) gkept++; else base++;
   }
   say('PARENT PINS RE-ASSERTED at run time; ' + kept + ' pin(s) from ' + bound.option.artifact + ' plus its ' +
@@ -2037,8 +2072,14 @@ function pins(s, bound) {
     g.artifact +
     // H17's say clause (R2 N2). gkept has just gone DOWN by the number of skipped paths, and
     // a count that moves in silence is the thing this runner refuses everywhere else.
-    (greleased ? ' (plus ' + greleased + " skipped as released by an ancestor artifact's released block: " +
-      [...releasedByAncestry].filter(f => Object.hasOwn({ ...ga.product, ...ga.executionPins }, f)).join(' ') + ')' : '') +
+    // S9-PREP-RUNNER-REVIEW-R1 N8, and the first author's own (5): the count and the list
+    // are now THE SAME ARRAY, collected at the `continue` itself. The first cut counted
+    // inside the loop and re-derived the list outside it, so a path the PARENT re-declared
+    // (B.7's re-seal) left the loop at the first `continue` and was named without being
+    // counted. A count and a list that disagree are exactly what this design refuses
+    // everywhere else, so they cannot disagree here either.
+    (gskipped.length ? ' (plus ' + gskipped.length + " skipped as released by an ancestor artifact's released block: " +
+      gskipped.join(' ') + ')' : '') +
     ', byte-identical on disk AND in Git at HEAD; ' + base + ' superseded pin(s) preserved in Git at sourceBase ' +
     s.sourceBase.slice(0, 7) + '; parent artifact byte-identical in Git at ' + bound.reviewedCommit);
 }
@@ -2149,8 +2190,8 @@ function product(s, bound, sealed) {
     if (grandfathered) at.grandfathered.push(file);
     if (pin.role === 'new' && pin.post === null && !fs.existsSync(rel(file))) { at.pre.push(file); continue; }
     // H7 (S9-RELEASE-SPEC B.5), and the placement is the whole of the hunk. A released path
-    // leaves the walk HERE — one line above the disk hash and fifty-seven lines BELOW the
-    // role branch — so that every assert between the two still runs on it on its own
+    // leaves the walk HERE, one line above the disk hash and fifty-seven lines BELOW the
+    // role branch, so that every assert between the two still runs on it on its own
     // merits, and none of them is a no-op by accident: PRODUCT-PINNED-UNCHANGED-IS-A-PARENT-PIN
     // passes because the role is not pinned-unchanged, and PRODUCT-CHANGE-ROLE-DECLARES-NO-CHANGE
     // passes because `noChange` is pre !== null && pre === post, which is false when post is
@@ -3025,11 +3066,25 @@ function proposed(s, bound) {
   // package that sealed it and the PM line that released it, so the gap between the release
   // and any later re-seal is measurable from the artifact alone, for ever. It is also what
   // H17 reads in pins(), which is why the block and that hunk are one design and not two.
+  //
+  // S9-PREP-RUNNER-REVIEW-R1 BLOCKING-2, and a DEVIATION from what B.4 draws, reported in
+  // the author report rather than made in silence. B.4's block carries `"rulingLine": 5xx`.
+  // The first cut wrote it as `release.at`, which is the INDEX of the ruling line in
+  // rebuild/DECISIONS.md, read off CHAIN_REF on every single run, and envelope() refuses on
+  // same(m, proposed(s, bound)). A sealed artifact carrying that index would therefore stop
+  // recomputing - SEALED-PROFILE-RECOMPUTATION, for ever, for this package and for the
+  // standing CI step - the first time any line is inserted ABOVE the ruling, with no byte
+  // of the package having changed. It was the ONLY value in this artifact recomputed from
+  // the live chain; parent.receiptLedgerLine, coverage.successors and coverage.supersessions
+  // are all spec-declared. r7 F4 already moved the supersession ruling from an index to a
+  // sha256 for exactly this reason, and rulingLineSha256 beside it carries the same fact in
+  // the form this design uses everywhere else: the line is LOCATED by its own bytes. The
+  // index is still SAID on every run, where a number that moves costs nothing.
   const release = releaseRuling(s, bound), productMap = {}, releasedMap = {};
   for (const [file, p] of Object.entries(s.product)) {
     if (p.role !== 'released') { productMap[file] = p; continue; }
     releasedMap[file] = { role: 'released', lastSealedSha256: p.pre,
-      sealedBy: bound.acceptance.packageId, rulingLine: release.at, rulingLineSha256: s.release.rulingLineSha256 };
+      sealedBy: bound.acceptance.packageId, rulingLineSha256: s.release.rulingLineSha256 };
   }
   return {
     version: 1, lanePackage: ID, packageId: s.packageId, sourceBase: s.sourceBase,
