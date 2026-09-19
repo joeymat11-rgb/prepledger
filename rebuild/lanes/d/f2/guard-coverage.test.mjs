@@ -7,6 +7,8 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { CATALOGUE, ENGINE_MG, REGION_MG, customEntry } from '../../../m3/w7-preview/today/exercise-catalogue.mjs';
 const require = createRequire(import.meta.url);
+const { createHash } = require('node:crypto');
+const { readFileSync } = require('node:fs');
 const { createCleanInitState } = require('../../../m4/workout/athlete-state.cjs');
 const { createSetupTagProjector } = require('../../../m4/workout/setup-tags.cjs');
 const taxonomy = { muscles: ENGINE_MG, regions: REGION_MG };
@@ -240,5 +242,332 @@ test('F2-G13 a state-level data accessor is refused without executing it', () =>
       get() { reads++; return value; } });
     bad(() => project(f));
     assert.equal(reads, 0, key);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// MICRO FIX ROUND 3. The rows below answer F2-LAND-REVIEW-R2's two upheld
+// findings and the PM's own two, measured on the module line by line. NO BYTE
+// of rebuild/m4/workout/setup-tags.cjs and none of projector.test.mjs changes:
+// every row is green on the unmutated module and red on the single-term mutant
+// named in its comment. F2-G22 is the one exception and says so itself.
+// ---------------------------------------------------------------------------
+const thrown = fn => { try { fn(); } catch (e) { return e; } return null; };
+const ONE = entry => [{ mg: entry, kinds: ['U'], head: null, secondary: [] }];
+const DELTS = [{ mg: 'delts', kinds: ['U'], head: 'delts_front', secondary: [] }];
+
+// R2 B1, first term. Mutant: :79 "|| !text(e.id)" deleted. With it gone an empty,
+// blank or numeric athlete-facing identity is ACCEPTED by both entry points.
+test('F2-G14 the exercise identity must be non-empty text', () => {
+  assert.equal(validateExerciseTags(EX, TAG), true);
+  for (const id of ['', '   ', '\t\n', 42, 0, null, true, false]) {
+    bad(() => validateExerciseTags(exercise({ id }), TAG));
+  }
+  // And through the setup document, whose snapshot is keyed to match the id.
+  for (const id of ['', '   ']) {
+    const f = fixture(ONE('chest'));
+    f.setup.exercises[0].id = id;
+    f.tags = { [id]: { head: null, secondary: [] } };
+    bad(() => validateSetupTags(f.setup, f.tags));
+  }
+});
+
+// R2 B1, second term. Mutant: :79 "|| !text(e.n)" deleted.
+test('F2-G15 the exercise display name must be non-empty text', () => {
+  for (const n of ['', '   ', '\t', 42, 0, null, true]) {
+    bad(() => validateExerciseTags(exercise({ n }), TAG));
+  }
+  const f = fixture(ONE('chest'));
+  f.setup.exercises[0].n = '';
+  bad(() => validateSetupTags(f.setup, f.tags));
+});
+
+// R2 B1, third term, the sharpest of the four. Mutant: :80
+// "|| !['U', 'L'].includes(e.day)" deleted. The split map separately admits F and
+// REST, so with the term gone a lift parked on a rest day validates and projects.
+test('F2-G16 an exercise day outside the U/L vocabulary refuses', () => {
+  for (const day of ['F', 'REST', 'X', 'u', 'l', '', ' U', 1, null, ['U']]) {
+    bad(() => validateExerciseTags(exercise({ day }), TAG));
+  }
+  assert.equal(validateExerciseTags(exercise({ day: 'L' }), TAG), true);
+  const f = fixture(ONE('chest'));
+  f.setup.exercises[0].day = 'REST';
+  bad(() => validateSetupTags(f.setup, f.tags));
+});
+
+// R2 B1, fourth term, the re-projection tamper check. Mutant: :155
+// "|| e.head !== snapshot[e.id].head" deleted. The marker carries no head, so
+// equal(e.volumeTags, marker) cannot see the change and the sibling secondary
+// term does not either; with the term gone the tampered head is ACCEPTED and
+// silently overwritten from the snapshot at :189.
+test('F2-G17 a stored primary head that disagrees with the snapshot refuses', () => {
+  const t = tagged(fixture(DELTS));
+  assert.equal(t.state.exercises[0].head, 'delts_front');
+  for (const head of ['delts_side', 'delts_rear', null]) {
+    const g = { ...t, state: copy(t.state) };
+    g.state.exercises[0].head = head;
+    const before = bytes(g.state);
+    bad(() => project(g));
+    assert.equal(bytes(g.state), before);
+  }
+  // The control: with the stored head left alone the same context re-projects.
+  const same = { ...t, state: copy(t.state) };
+  assert.equal(bytes(project(same)), bytes(same.state));
+});
+
+// R2 N1, first DEGRADING term, PINNED by the PM's order because section 7.3 of
+// the author report uses exactly this argument for G11. Mutant: :82
+// "|| !Array.isArray(e.steps)" deleted. With it gone a string or an array-like
+// reaches e.steps.every and the caller sees a raw TypeError, not the named refusal.
+test('F2-G18 a non-array progression ladder refuses by name, not by TypeError', () => {
+  for (const steps of ['abc', { length: 2 }, { 0: 10, 1: 20, length: 2 }, null, 42,
+    new Set([10, 20])]) {
+    bad(() => validateExerciseTags(exercise({ steps }), TAG));
+  }
+});
+
+// R2 N1, second DEGRADING term. Mutant: :144 "|| !Array.isArray(out.exercises)"
+// deleted. An array-like of the right length then reaches for..of and the caller
+// sees "out.exercises is not iterable" instead of SETUP_TAGS_INVALID.
+test('F2-G19 a non-array state exercise list refuses by name, not by TypeError', () => {
+  for (const exercises of [{ length: 2 }, { 0: { id: 'renamed-0' }, 1: { id: 'renamed-1' }, length: 2 },
+    null, 2]) {
+    const f = fixture(PAIR);
+    f.state = copy(f.state);
+    f.state.exercises = exercises;
+    bad(() => project(f));
+  }
+});
+
+// PM FINDING P-F2-1. A RECORDED LAXITY, not a rule. On the module as landed a null
+// member of the setup exercises array reaches ids.has(e.id) at
+// rebuild/m4/workout/setup-tags.cjs:124 BEFORE checkExerciseTag's closed() can refuse
+// it, so the caller sees a raw TypeError and not SETUP_TAGS_INVALID. It still REFUSES
+// and nothing is admitted, and no byte of the module may move in this round, so this
+// row pins TODAY'S behaviour honestly. The day the module gains the missing guard at
+// :124 this row goes RED and is rewritten on purpose to expect the named refusal.
+// Two reviews and a 110-mutant sweep could not see it: it is a MISSING guard, not a
+// mutable one. The consequence for EW2 is in the report: THE HOST TREATS ANY THROW
+// FROM THIS MODULE AS A REFUSAL, never only err.code === 'SETUP_TAGS_INVALID'.
+test('F2-G20 a null exercise row throws, and the throw is NOT the named refusal (:124)', () => {
+  const f = fixture(PAIR);
+  const nulled = { ...f.setup, exercises: [null] };
+  for (const call of [() => validateSetupTags(nulled, f.tags),
+    () => projectSetupTags(f.state, { setup: nulled, tags: f.tags, op_id: OP, date: DATE })]) {
+    const e = thrown(call);
+    assert.notEqual(e, null, 'it refuses, by throwing');
+    assert.equal(e instanceof TypeError, true, 'today the throw is a raw TypeError');
+    assert.notEqual(e.code, 'SETUP_TAGS_INVALID', 'and NOT the module\'s named refusal');
+    assert.match(e.message, /reading 'id'/);
+  }
+  // The contrast that shows this is about null alone: a number in the same slot is
+  // refused by name, because ids.has(42) reads nothing off 42.
+  const numbered = { ...f.setup, exercises: [42] };
+  bad(() => validateSetupTags(numbered, f.tags));
+  bad(() => projectSetupTags(f.state, { setup: numbered, tags: f.tags, op_id: OP, date: DATE }));
+});
+
+// PM FINDING P-F2-2, R2's head-side-twin note made a guard. :97's rule that a COARSE
+// lift (tag.head === null) may not lend to a region of its own muscle is NOT applied
+// when the lift carries an IDENTITY head, so the two encodings of one coarse lift
+// disagree about the very same helper. It is UNREACHABLE under the shipped taxonomy,
+// and this row asserts exactly the property that makes it unreachable: no muscle of
+// ENGINE_MG has BOTH an identity entry in REGION_MG and a sub-region of its own
+// (rebuild/m3/w7-preview/today/exercise-catalogue.mjs:61). The day someone adds a
+// biceps_long this row goes RED and names :97.
+test('F2-G21 no shipped muscle has both an identity region and a sub-region (:97)', () => {
+  const identity = ENGINE_MG.filter(mg => REGION_MG[mg] === mg);
+  assert.deepEqual([...identity].sort(),
+    ['abs', 'biceps', 'calves', 'forearms', 'glutes', 'hams', 'quads', 'triceps']);
+  for (const mg of identity) {
+    assert.deepEqual(Object.keys(REGION_MG).filter(r => REGION_MG[r] === mg && r !== mg), [], mg);
+  }
+  // The two-line fixture that records WHY the property matters: invent one sub-region
+  // for a muscle that also carries an identity entry, and the head:null form refuses
+  // the helper while its head:'biceps' twin accepts it.
+  const twin = createSetupTagProjector({ taxonomy: { muscles: ['biceps'],
+    regions: { biceps: 'biceps', biceps_long: 'biceps' } } });
+  const lift = { id: 'x0', n: 'Synthetic curl', mg: 'biceps', day: 'U',
+    sets: 2, hi: 10, inc: 5, steps: [10, 15] };
+  const helper = [{ mg: 'biceps_long', lend: 0.5 }];
+  bad(() => twin.validateExerciseTags(lift, { head: null, secondary: copy(helper) }));
+  assert.equal(twin.validateExerciseTags(lift, { head: 'biceps', secondary: copy(helper) }), true);
+});
+
+// PM RULING on ticket item (4). Retiring rebuild/lanes/d/plan-edit/f2-tag-adapter.cjs is
+// STOPPED and routed to the S10 brief, so until S10 rules the landed module and the lane
+// copy MUST NOT DRIFT APART. No cell on this branch pins that: PE16
+// (plan-edit/model.test.cjs:505) compares the LANE COPY with the published blob at
+// f3e9561 and never reads the landed file from the tree at all, so an edit to
+// rebuild/m4/workout/setup-tags.cjs alone reds nothing there.
+// THIS ROW IS DELETED ON PURPOSE BY THE RETIREMENT TICKET, together with the copy.
+// It is a BYTE-IDENTITY PIN and not a behaviour row: it is red on EVERY mutant of the
+// module by construction, which is why the round-3 mutation table counts "red alone"
+// over the behaviour rows and names this row's standing red beside each one.
+test('F2-G22 the landed module and the lane copy do not drift apart', () => {
+  const sha = p => createHash('sha256').update(readFileSync(p)).digest('hex');
+  const landed = sha(require.resolve('../../../m4/workout/setup-tags.cjs'));
+  assert.equal(landed, sha(require.resolve('../plan-edit/f2-tag-adapter.cjs')),
+    'the landed module and the lane copy are the same bytes');
+  assert.equal(landed, 'd0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d',
+    'and both are the blob every reader of this landing measured');
+});
+
+// ---------------------------------------------------------------------------
+// FOUND BY THIS ROUND'S OWN RE-MEASUREMENT, and closed in the same round rather
+// than left in the report as a hole of the class R2 called BLOCKING. The 140
+// term-level mutants of section 7 of the author report left FIVE terms whose
+// removal flips the module from refusing to ACCEPTING (F2-G23 to F2-G27) and
+// SEVEN whose removal degrades a named refusal into a raw throw (F2-G28 to
+// F2-G34). The degrading rows are pinned on the PM's own rule for G11, G18 and
+// G19: a TypeError is not this module's refusal contract. Same discipline as
+// above: no module byte changes and each row is red, and red alone, on the
+// single-term mutant named in its comment.
+// ---------------------------------------------------------------------------
+
+// Mutant: :152 "e.mg !== authored.mg" deleted. On an ALREADY TAGGED state the
+// :158 first-enrichment branch never runs, so :152 is the only check that the
+// stored row still belongs to the muscle the setup authored.
+test('F2-G23 a tagged state row whose muscle left the authored setup refuses', () => {
+  const t = tagged(fixture(PAIR));
+  for (const mg of ['back', 'quads', 'chest']) {
+    const g = { ...t, state: copy(t.state) };
+    if (g.state.exercises[0].mg === mg) continue;
+    g.state.exercises[0].mg = mg;
+    bad(() => project(g));
+  }
+});
+
+// Mutant: :152 "e.day !== authored.day" deleted. The day half of the same rule.
+test('F2-G24 a tagged state row whose day left the authored setup refuses', () => {
+  const t = tagged(fixture(PAIR));
+  for (const day of ['L', 'U']) {
+    const g = { ...t, state: copy(t.state) };
+    if (g.state.exercises[0].day === day) continue;
+    g.state.exercises[0].day = day;
+    bad(() => project(g));
+  }
+});
+
+// Mutant: :158 "|| own(e, 'secondary')" deleted. The head half of the same line is
+// driven; the secondary half was not, so an untagged state already carrying a
+// helper list was ACCEPTED and then silently overwritten from the snapshot.
+test('F2-G25 an untagged state row may not already carry a helper list', () => {
+  for (const secondary of [[], [{ mg: 'triceps', lend: 0.5 }], null]) {
+    const f = fixture(PAIR);
+    f.state = copy(f.state);
+    f.state.exercises[0].secondary = secondary;
+    bad(() => project(f));
+  }
+});
+
+// Mutant: :158 "|| !Array.isArray(e.forks)" deleted. The emptiness term beside it
+// reads .length off the non-array and finds undefined, so nothing refused.
+test('F2-G26 an untagged state row fork list must be an array', () => {
+  for (const forks of [{}, { length: 0 }, 'none']) {
+    const f = fixture(PAIR);
+    f.state = copy(f.state);
+    f.state.exercises[0].forks = forks;
+    bad(() => project(f));
+  }
+});
+
+// Mutant: :164 "!plain(out[key])" deleted. Object.keys() of an array is empty, so
+// the emptiness term beside it passes and an ARRAY map history was accepted.
+test('F2-G27 the untagged map histories must be records and not arrays', () => {
+  for (const key of ['dailyLogs', 'sessionLog', 'retirements']) {
+    for (const value of [[], [1, 2]]) {
+      const f = fixture(PAIR);
+      f.state = copy(f.state);
+      f.state[key] = value;
+      bad(() => project(f));
+    }
+  }
+});
+
+// Mutant: :163 "!Array.isArray(out[key])" deleted. .length off a record is
+// undefined, so the emptiness term passes and out.reads.forEach throws raw.
+test('F2-G28 the untagged array histories must be arrays', () => {
+  for (const key of ['reads', 'queue', 'weekly', 'accepted']) {
+    for (const value of [{}, { length: 0 }, 'none', 7]) {
+      const f = fixture(PAIR);
+      f.state = copy(f.state);
+      f.state[key] = value;
+      bad(() => project(f));
+    }
+  }
+});
+
+// Mutant: :165 "|| !Array.isArray(out.sleep.nights)" deleted. Same shape: the
+// emptiness term passes and out.sleep.nights.forEach throws raw at :173.
+test('F2-G29 the untagged sleep night list must be an array', () => {
+  for (const nights of [{}, { length: 0 }, 'none', 7, null]) {
+    const f = fixture(PAIR);
+    f.state = copy(f.state);
+    f.state.sleep = { ...f.state.sleep, nights };
+    bad(() => project(f));
+  }
+});
+
+// Mutant: :184 "!plain(session)" deleted. G10 drives the OTHER members of that
+// line with [], 42 and a string, each of which still refuses by name through
+// session.effective; a NULL session reads .effective off null and throws raw.
+test('F2-G30 a null workout fact session refuses by name, not by TypeError', () => {
+  for (const sessions of [[null], [{ effective: { local_date: '2026-09-15' } }, null]]) {
+    const t = tagged(fixture(PAIR));
+    t.state = copy(t.state);
+    t.state.workoutFacts = { profile: 'earned/workout-facts/v1', sessions };
+    bad(() => project(t));
+  }
+});
+
+// Mutant: :58 "a === null" in equal() deleted. typeof null is 'object', so a null
+// stored marker reaches Object.keys(null) and throws raw instead of comparing
+// unequal. :153 reads own(e, 'volumeTags'), which a null value satisfies.
+test('F2-G31 a null stored marker refuses by name, not by TypeError', () => {
+  for (const volumeTags of [null, 0, '']) {
+    const t = tagged(fixture(PAIR));
+    t.state = copy(t.state);
+    t.state.exercises[0].volumeTags = volumeTags;
+    bad(() => project(t));
+  }
+});
+
+// Mutant: :116 "|| !Array.isArray(source.exercises)" deleted. G06 drives {} and
+// [] on the same term, and both still refuse by name through .length; a NULL
+// exercise list reads .length off null and throws raw.
+test('F2-G32 a null setup exercise list refuses by name, not by TypeError', () => {
+  const f = fixture(PAIR);
+  for (const exercises of [null, undefined]) {
+    const setup = { ...f.setup, exercises };
+    bad(() => validateSetupTags(setup, f.tags));
+    bad(() => projectSetupTags(f.state, { setup, tags: f.tags, op_id: OP, date: DATE }));
+  }
+});
+
+// Mutant: :144 "!plain(out)" deleted. R2 N2 records this term as REDUNDANT
+// ("caught by the label and identity comparisons"), which is true of 42, [] and a
+// string but NOT of null or undefined: those read .athlete_label off nothing and
+// throw raw. Measured, not argued; the report's 7.2 carries the correction.
+test('F2-G33 a null or absent state refuses by name, not by TypeError', () => {
+  const f = fixture(PAIR);
+  for (const state of [null, undefined]) {
+    bad(() => projectSetupTags(state, context(f)));
+  }
+  // The members R2 measured as redundant, kept so the row states the whole rule.
+  for (const state of [42, [], 'a state', true]) {
+    bad(() => projectSetupTags(state, context(f)));
+  }
+});
+
+// Mutant: :149 "!plain(e)" deleted. The same correction to R2 N2: a null STATE row
+// reads .id off null and throws raw. Note the contrast with F2-G20: the state side
+// of this rule HAS its guard at :149 and the setup side at :124 does not.
+test('F2-G34 a null state exercise row refuses by name, not by TypeError', () => {
+  for (const row of [null, undefined]) {
+    const f = fixture(PAIR);
+    f.state = copy(f.state);
+    f.state.exercises[1] = row;
+    bad(() => project(f));
   }
 });
