@@ -256,6 +256,13 @@ the head bytes, restored in a `finally`, and ended with the runner back at
 H12 and H13 each go red ALONE, which matters: the two directions of the receipt
 are separately observed, not jointly.
 
+BOTH MACHINES AGREE. I ran the whole table twice, once in a farm scratch worktree
+and once on the PC in a detached worktree of my own (`%TEMP%\s9a-r1-wt`,
+`node_modules` junctioned, no private junction, removed after), and the two runs
+agree ROW FOR ROW on the pass/fail counts and on the exact set of red cells. The
+PC run also re-took red-first at `acdac273`: runner `e31dd206...335e`, 0 pass /
+12 fail. Both runs end with the runner restored to `d0021d5c...ee38`.
+
 **THE SIX MIRRORS, RE-DERIVED WITH MY OWN SCRIPT.** Applying the spec's E fact 5
 substitution set to each `s8-*` sibling: three of the six are BYTE-IDENTICAL to the
 author's `s9-*` file, and the other three differ ONLY in the five hand corrections
