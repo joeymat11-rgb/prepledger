@@ -43,7 +43,7 @@ already differ.
 | `node --check` on the six output files | 6 / 6 pass | 6 / 6 pass |
 | crossings | **282** | **282** |
 | distinct direction+name | 100 | 100 |
-| reachability rows | 56 | 56 |
+| reachability rows | 62 | 62 |
 | durable PUT call sites a paint root reaches | **1** | **1** |
 
 The two runs are IDENTICAL row for row, once the S9 ref's one-line offset below `:869` is
@@ -317,6 +317,12 @@ reproduces:
 | `CROSSINGS.md`, `CROSSINGS-s9.md`, `REACH.md`, `REACH-s9.md`, `reach-tip.json`, `reach-s9.json` | byte for byte identical to the stored copies (`crossings-*.json` differ in one field: the `out` path the run was given) |
 | `node --check` on the six output files | 6 of 6 at both refs |
 | the whole today step on the WIRED output | `# tests 682` `# pass 682` `# fail 0`, 337 s, run alone this time |
+| the today step on the PURE output, `view.test.mjs` | 23 tests, 1 pass, 22 fail, `ReferenceError: weighIn is not defined` at `today-model.cjs:390`, exactly as reported |
+
+One number in the both-refs table above was wrong and is corrected here: the reachability
+table has **62 rows**, not 56 (51 in `today-app.cjs`, 7 in `gym-app.mjs`, 4 in
+`today-model.cjs`, at both refs). `REACH.md` and `reach-*.json` always carried 62; only the
+summary line said otherwise. Nothing else in the report failed to reproduce.
 
 That last row is the one worth saying twice: the F.1 cut was re-run on a fresh scratch
 worktree and the step is green a second time, on its own, with no other run competing for
