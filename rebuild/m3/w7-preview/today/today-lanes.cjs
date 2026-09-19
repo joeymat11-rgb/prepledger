@@ -8,11 +8,16 @@
  * region, byte for byte: 34 move regions, 679 lines. Their bytes were compared against a
  * sha256 recorded at TWO named refs BEFORE anything was written (S-R19), and the only
  * substitutions are the forty-one declared rows of D.1's W1, W2, W3, W4, W9 and W10
- * families, every one of them a paint-handle rewrite; thirty-nine of the forty-one
- * rewrote a line here and the other two were already covered by a wider row.
+ * families. Forty of them rewrite a paint handle or a screen handle the view still owns.
+ * The forty-first is W10, and it is a BOUND DRAFT IDENTIFIER rewrite with no painter in
+ * it: `{ ...sleepDraft, date }` becomes `{ ...sleepDraftHeld, date }`, because the draft
+ * object is the released view's and this file is handed it after the fact. Thirty-nine of
+ * the forty-one rewrote a line here and the other two were already covered by a wider row.
  *
  * THE ONLY AUTHORED LINES ARE THIS BANNER, THE THREE REQUIRES, THE FACTORY LINE BELOW,
- * THE FOUR DECLARATIONS AFTER IT AND THE RETURN BLOCK AT THE END, and all of them are
+ * THE SEVEN DECLARATIONS AFTER IT AND THE RETURN BLOCK AT THE END. The seven are three
+ * state declarations - `sleepDraftHeld`, `willAdopt`, `ready` - and the four the gesture
+ * guard is made of: `gestures`, `wrapped`, `wrapFor` and `gesture`. All of them are
  * declared in regions.json's product block, not invented by the instrument.
  *
  * WHAT CROSSES BACK, and it is the whole interface: a FACADE of thirty-seven read-only
@@ -24,13 +29,20 @@
  *  - SPEC B.6's OUTCOME TYPE IS NOT BUILT. recordSleep still composes its eleven
  *    sentences and recordIntake its two, from constants this factory is HANDED rather
  *    than holding: twelve copy constants arrive by name in the signature below, so this
- *    file carries zero string literals of its own and every copy byte stayed in the
- *    released view where C-UI-7 edits it. Turning them into outcomes is a statement
+ *    file DECLARES NO COPY CONSTANT OF ITS OWN and every copy byte the athlete reads
+ *    stayed in the released view where C-UI-7 edits it. It is not free of string
+ *    literals, and a reader must not be told that it is: 127 string literals parse in
+ *    this file and 117 of them are moved bytes. THE TEN AUTHORED ONES, and not one of
+ *    them is a word the athlete ever sees: "use strict", the three require paths, the
+ *    two `typeof` tags "function" in the boot hooks, the empty string that clears
+ *    sleepErrorText, the two guarded writer names "recordIntake" and "recordSleep",
+ *    and the gesture guard's refusal name "WRITER-OUTSIDE-GESTURE: ".
+ *    Turning the copy into outcomes is a statement
  *    rewrite inside three moved regions that D.1 does not declare, which DECISIONS:584
  *    rules a STOP; it is reported in the build report and it is its own ticket.
  *  - THE ONE-HANDOFF RULE IS NOT BUILT. The released today-app.cjs still names `model`.
  *  - THE RUNTIME GESTURE GUARD OF E.6 IS BUILT AND IT IS IN THIS FILE, in the block
- *    headed `E.6, THE RUNTIME GESTURE GUARD` below the three declarations above,
+ *    headed `E.6, THE RUNTIME GESTURE GUARD` below the three state declarations,
  *    and it is a TRIPWIRE and not a proof (S-R26). It admits the two guarded writers
  *    only while a listener installed through hooks.listen is running, and it is checked
  *    at the CALL, not at the commit: a save that has already been admitted settles
