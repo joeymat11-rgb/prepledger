@@ -25,7 +25,8 @@ wherever the evidence lets them.
 |---|---|---|
 | at `da9f8683`, the bytes the spec's line numbers are taken from | `e31dd206c0fb0fc0c295df45eae3992d4c59b1a76de8da04a4d0f22948e9335e` | 3252 |
 | at `3d143c30`, the bytes REVIEW-R1 reviewed and rejected | `d0021d5ca6871a832ee3d3853cc85370663392abaf4ce7654d0ddb5c5a66ee38` | 3522 |
-| **FINAL, at the head of this branch, after the fix round** | **`efcdb700a5990cf55d6ca1d7f839cb2d0befdf2ae1d21c9dc7715b47c7ba70e2`** | **3577** |
+| after the fix round's four R1 hunks, before its own last correction | `efcdb700a5990cf55d6ca1d7f839cb2d0befdf2ae1d21c9dc7715b47c7ba70e2` | 3577 |
+| **FINAL, at the head of this branch** | **`25ddc44c32d0d71b924cf62c2e0a8647697b6e77a55a91a132388217b6789ca6`** | **3580** |
 
 Line counts are `wc -l`. R1 N11 is right that `split('\n').length` says one
 more, and this table now uses the `wc -l` convention throughout so nobody
@@ -47,16 +48,16 @@ in the fix round and every one of them was re-taken, not adjusted.**
 | H4 | `:1699-:1700` (spec `:1517-:1531`) | in `spec()`'s product loop, a `released` pin declares `post === null`, by its own refusal name | B.8 (1b) |
 | H5 | `:1142` and `:1617-:1621` (spec after `:1531`) | `SPEC_KEYS` gains the OPTIONAL key `release`, closed with the freeze pattern, and the block gets a closed key set of its own | B.8 (1b) |
 | H6 | `:2133` (spec `:1894`) | `product()`'s parent-pin branch admits `'released'` beside `carried` and `edited`, which is the one place a parent pin's role is judged | B.8 (2) |
-| H7 | `:2202` plus the bucket at `:2116` (spec `:1952`, `:1888`) | a released path leaves the inventory walk ONE LINE above the disk hash, into a bucket of its own, so it is never hashed and can never reach the drift assert | B.8 (3) |
-| H8 | `:2239-:2244` (spec `:1983-:1987`) | `product()`'s terminal `say` gains the released clause: the count, the ledger line, the parent that sealed them, and the paths | B.8 (3) |
+| H7 | `:2205` plus the bucket at `:2116` (spec `:1952`, `:1888`) | a released path leaves the inventory walk ONE LINE above the disk hash, into a bucket of its own, so it is never hashed and can never reach the drift assert | B.8 (3) |
+| H8 | `:2242-:2247` (spec `:1983-:1987`) | `product()`'s terminal `say` gains the released clause: the count, the ledger line, the parent that sealed them, and the paths | B.8 (3) |
 | H9 | `:2122` (spec `:1889`) | the ruling is resolved at the loop entry, BEFORE a byte of the inventory is read, so the ledger binds before the walk does | B.8 (4) to (8) |
-| H10 | `:3083-:3088` and `:3116` (spec `:2826`) | `proposed()` keeps released entries OUT of `product` and builds the `released` block from the spec and the ruling; the block is emitted only when something is released | B.8 (9), (R1-B2) and (X1) |
-| H11 | `:3134` and `:3338` (spec `:2830`) | `ARTIFACT_KEYS` gains the OPTIONAL key `released`, closed in `envelope()` with the same freeze pattern | B.8 (9), and (X1) |
-| H12 | `:3311` (spec `:2993`) | `writeSealedRunReceipt()` never puts a released path into the receipt's product map | B.8 (10) |
-| H13 | `:3283` and the count at `:3512-:3516` (spec `:2970`, `:2972`, `:3190-:3194`) | `sealedRunReceipt()` skips released paths in BOTH directions, and the AUTHORIZED STEP say no longer over-counts what it re-verified | B.8 (10) |
+| H10 | `:3086-:3091` and `:3119` (spec `:2826`) | `proposed()` keeps released entries OUT of `product` and builds the `released` block from the spec and the ruling; the block is emitted only when something is released | B.8 (9), (R1-B2) and (X1) |
+| H11 | `:3137` and `:3341` (spec `:2830`) | `ARTIFACT_KEYS` gains the OPTIONAL key `released`, closed in `envelope()` with the same freeze pattern | B.8 (9), and (X1) |
+| H12 | `:3314` (spec `:2993`) | `writeSealedRunReceipt()` never puts a released path into the receipt's product map | B.8 (10) |
+| H13 | `:3286` and the count at `:3515-:3519` (spec `:2970`, `:2972`, `:3190-:3194`) | `sealedRunReceipt()` skips released paths in BOTH directions, and the AUTHORIZED STEP say no longer over-counts what it re-verified | B.8 (10) |
 | **H17** | `:2023-:2033`, `:2067`, `:2074-:2082` (spec `:1852`, `:1855-:1858`) | `releasedAncestry(a, ga)` and ONE `continue` in the GRANDPARENT walk, plus the say clause naming how many pins the skip stood aside for AND which | B.8 (11), (12) |
 | **HR-B1** (fix round) | `:1374-:1382` | the disjointness set is built the way `proposed()` builds `executionPins` - runner, spec file, brief, carrier successor, argv - so the guard closes the CLASS its own comment names; the argv route keeps its own refusal name and the other four refuse `RELEASE-PATH-IS-AN-EXECUTION-PIN-TARGET`, naming the route | (R1-B1) |
-| **HR-B2** (fix round) | `:3086-:3087` | the sealed `released` entry carries NO live line index: four keys, `role`, `lastSealedSha256`, `sealedBy`, `rulingLineSha256` | (R1-B2) |
+| **HR-B2** (fix round) | `:3089-:3090` | the sealed `released` entry carries NO live line index: four keys, `role`, `lastSealedSha256`, `sealedBy`, `rulingLineSha256` | (R1-B2) |
 | H14 | `:177` (spec `:173`) | `IDS` gains `'S9'`, directly behind `'S8'` and still ahead of `'B1'` | F6 |
 | H15 | `:324` (spec `:316`) | `NO_REGISTER_IDS` gains `'S9'` | F6 |
 | H16 | `:427-:479` (spec `:405`) | `CHILD_ROOTS` gains FOUR at the END of the list | F7 |
@@ -77,8 +78,11 @@ every run, the runner's sha256 re-checked at the end. The harness is
 `%TEMP%\s9a-r2-mut.cjs`, a throwaway, never committed; it is the reviewer's
 own R1 harness with three mutators re-anchored on the moved text and two
 rows added for the fix round's own hunks. It printed
-`BASE sha efcdb700a599...` and `RESTORED sha efcdb700a599...`, so the runner
-these rows were measured against is the runner this branch ships.
+`BASE sha 25ddc44c32d0...` and `RESTORED sha 25ddc44c32d0...`, so the runner
+these rows were measured against is the runner this branch ships. It was run
+TWICE: once on `efcdb700`, and again on the final `25ddc44c` after the H7
+comment correction, and the two runs agree row for row on the pass/fail
+counts and on the exact set of red cells.
 
 BASE: **17 pass / 0 fail**. NO HUNK IS A NO-OP, including the two new ones.
 
@@ -200,7 +204,8 @@ this round: `packages/S9.json` is on the WAIT list.
 | at `3d143c30`, the first author's head, re-pins committed | `d0021d5c...ee38` | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 |
 | **BEFORE the FIX ROUND's first edit**, measured in this worktree at `afcc251f` | `d0021d5c...ee38` | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 |
 | after the fix-round hunks and before E fact 7 was redone | `efcdb700...70e2` | `RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER`, exit 1 | not taken |
-| **AFTER the fix round's last edit**, re-pins redone and committed | **`efcdb700a5990cf55d6ca1d7f839cb2d0befdf2ae1d21c9dc7715b47c7ba70e2`** | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 |
+| after the R1 hunks, re-pins redone and committed | `efcdb700...70e2` | `SEALED-PROFILE-RECOMPUTATION`, exit 1 | `SEALED-PROFILE-RECOMPUTATION`, exit 1 |
+| **AFTER the fix round's last edit** (the H7 comment correction), re-pins redone LAST again and committed | **`25ddc44c32d0d71b924cf62c2e0a8647697b6e77a55a91a132388217b6789ca6`** | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 | **`SEALED-PROFILE-RECOMPUTATION`**, exit 1 |
 
 **The first row and the last row are the same refusal**, which is (X1) at the
 run level: the runner grew a role and neither of these two packages notices.
@@ -368,6 +373,13 @@ M2-S8-REAL-SHAPE produced and sealed. `B-NTC`, `B1`, `B2`, `B3` and `B4` are
 NOT re-pinned: they pin `4482bb8a...`, an earlier runner, and E fact 7 names
 H3 and S3 to S8 only. **If a later fix round moves the runner, this step is
 redone last again.**
+
+**AND IT WAS, TWICE, IN THIS FIX ROUND.** The R1 hunks moved the runner to
+`efcdb700...70e2` and the seven pins were redone; the H7 comment correction
+moved it again to `25ddc44c...9ca6` and the seven pins were redone after
+that. Both passes were `+1/-1` per file with every file's byte length
+unchanged, and both printed `other occurrences of the old sha left alone: 0`
+for all seven. The pins on this branch name `25ddc44c...9ca6`.
 
 ## 8. THE BAR, RUN ON THE PC AT THE HEAD OF THIS BRANCH
 
@@ -584,7 +596,25 @@ into anything. Refusing a duplicate would be a new rule about the PM's
 typing, not about the seal.
 
 **N11 (3523 vs 3522 is a counting convention) - AGREED, FIXED in section 0**,
-which now states `wc -l` throughout and says so.
+which now states `wc -l` throughout and says so. One number in BLOCKING-4's
+own text does not reproduce and it changes nothing: the review says
+`b-package.cjs` "already contains 293 such lines", and the measurement is
+**263** at `da9f8683`, **271** at the reviewed head `3d143c30` (the eight
+this lane added), and **263** again now. The delta is exactly eight in both
+directions, which is the fact BLOCKING-4 turns on, and it also proves the
+fix touched the eight added lines and no pre-existing one.
+
+### ONE THING R1 DID NOT CATCH, FOUND AND FIXED IN THIS ROUND
+
+**H7's comment carried a FALSE LINE COUNT.** It read "one line above the disk
+hash and fifty-seven lines BELOW the role branch". MEASURED in the runner the
+comment ships in, the gap is 69 lines, not 57: the number was taken in the
+SPEC's numbering (B.5's `:1894` to `:1952`) and the hunks' own comments had
+already moved it before the first commit landed. The comment now names the
+ANCHORS - the role branch, the pre/post shape asserts and the change-role
+assert - which cannot drift at all, and says in one clause why the number
+went. "One line above the disk hash" was re-measured and is TRUE (`:2205` and
+`:2206`). This moved the runner, so E fact 7 was redone LAST again after it.
 
 ### WHAT THE FIX ROUND DID NOT TOUCH
 
