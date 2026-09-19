@@ -539,3 +539,126 @@ completeness are S10's precondition (`DECISIONS:546`, `:549`).
 | `APPROVED-PIN UNLISTED` naming the two 09-08 HTML paths, 1 of 42 | same head, both systems | **YES when the literal is filled**, and only then |
 | `measure/test/boundary.test.mjs` P-MEASURE (g) and `today/test/setup.test.mjs`'s re-pin, red for carried bytes S9 had not yet declared | `DECISIONS:552`; B:79-92; A:594-605 | **YES**, by the same mechanism that turned S8's five green: declaring the files with their posts and putting `'S9'` in `CHILD_SPECS`. Preparation added its own edits to those named lists |
 | `rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs:29` | chain tip, stale-red already | **NO. See section 9, item 8** |
+
+## 9. THE INTEGRATION HAND LIST
+
+**A checklist for the integrator, in order.** The integrator is the PM (`DECISIONS:563` as amended
+by `:565`). Nothing in this section is done by a preparation lane, and no preparation lane's branch
+reaches the chain before S9 (`DECISIONS:556`, Q4).
+
+**1. The merges, in this order, each with the `DECISIONS:582` preflight run FIRST** (intersect the
+`chain...lane` changed names with the youngest `product` and `executionPins`; a sealed hit routes
+the lane to a reseal child instead of a merge): the runner lane `rebuild/b-s9-prep-runner`; the
+fence lane `rebuild/b-s9-prep-cells`; the pack lane `rebuild/b-s9-prep-pack`; `rebuild/d-f2-land`
+(E fact 23, whole branch); and C-UI-1 when it lands. `rebuild/c-passphrase-normalize` at `ba04c07f`
+and S9-TODAY-CARRY are already merged into this lane. **After every merge, `git rev-parse HEAD` is
+the candidate `sourceBase` and every pre/post below is re-measured against it.**
+
+**2. The cross-lane cell: the fence's release-object shape against the runner's real artifact.**
+`DECISIONS:559` ordered this compatibility check and no lane owns it, because neither lane can build
+the other's input. Measured by this author at both heads: the runner declares `released` as the ONE
+optional artifact key in `ARTIFACT_KEYS` (`b-package.cjs:3408-3420`), closed in `envelope()` by
+`same(m, proposed(s, bound))`; the fence reads it as
+`new Set(Object.keys(inv.released || {}))` (`sealed-inventory-fence.test.mjs:158`) and its own R1 N1
+comment says E fact 15 makes `released` an OBJECT KEYED BY PATH. **The cell asserts that the real
+`acceptance-s9-ui-pins.json` the runner writes satisfies the fence's reading, both paths present as
+keys, against the real artifact and not against a fixture inventory.** It is ONE new cell at
+integration and it belongs to whoever writes the artifact, not to lane B or lane C.
+
+**3. The pack-pin CI step, with its `if:` line and its own row.** `DECISIONS:559` (P-FENCE-1):
+"the pack-pin step of S9-PREP-C needs the same condition and the PM adds it as integrator", and
+`DECISIONS:570` adds "plus its own row". The fence's step is built and measured:
+`rebuild.yml:258` on `rebuild/b-s9-prep-cells` carries **`if: ${{ !cancelled() }}`** and the cell's
+row (18) at `sealed-inventory-fence.test.mjs:1185-1201` reads the workflow back and asserts the
+condition stands by regex `/!\s*cancelled\(\)/`. **The pack step gets the same string and a row of
+its own inside the pack cell, not a second row inside the fence cell.** The reason the condition is
+needed at all, in one sentence: GitHub skips every step after a failed one, the standing
+`--ci --package S9` step fails on exactly the branches the fence and the pack exist for, and a gate
+that is skipped in the world it was written for is not a gate.
+
+**4. R6's ONE row with TWO asserts.** `DECISIONS:591`, carried from B-R6 section 6 (R6-Z2 and
+R6-Z3): a SAME-LENGTH edit of the sealed inventory must FAIL by name, and a ZERO-BYTE inventory must
+FAIL by name. Both substitutions are non-equivalent and both left all 44 existing rows green on both
+systems, so the existing rows do not cover them. **One row, two asserts, added to
+`sealed-inventory-fence.test.mjs` at integration and reviewed by Astra with the integration.**
+
+**5. The N5 paper numbers.** Review R6 found four statements of B's author report stale, all of them
+made stale by the integrator's own comment-only commit `8019abf6` landing after section 16 was
+written, none of them the builder's error; the PM corrected them at `6f808cfa` in a new section 17,
+and `DECISIONS:591` with the PM's ruling on contradiction 11 makes that corrected text the B report
+of record. The numbers are: the cell sha256 is
+`673a02f9334af5e6a4469a4085ead55bcc465b1a62650a49da3896207986b199` at `8019abf6` and not
+`43bcda2071...762077e6`, which is the cell at `2f37a36e`; the diffstat is **56 lines and 222
+insertions**, not 55 and 221, the one comment line `8019abf6` added; "it was not reworded" is true
+at `2f37a36e` and not at the head; and section 15's present-tense account of
+`FENCE-INVENTORY-HEAD-UNREADABLE` is HISTORY, because P-FENCE-2 removed the refusal and its catch.
+**At integration all four are re-taken at the integrated head, because the R6-Z2/Z3 row of item 4
+moves the cell's bytes again.** (This author reads "the N5 paper numbers" as this corrections list;
+if the PM meant another N5, the item is the same work at a different name.)
+
+**6. The CI homes, one explicit step each, named by exact path and never globbed**
+(`DECISIONS:117` (4), `:186` (3)): the fence; the two pack cells; the passphrase lane's three cells
+(E fact 21, and that step is the guard that keeps every sealed bundle valid, not a convenience);
+`rebuild/m3/w6/test/local-import.test.mjs` (E fact 22, which at the chain tip `rebuild.yml` names
+**zero** times); the Today lane's two cells in ONE step; the `p3-layout-v2` cells; and
+**E fact 23: F2-LAND's TWO cells, `rebuild/lanes/d/f2/projector.test.mjs` and
+`rebuild/lanes/d/f2/guard-coverage.test.mjs`, in ONE explicit step with ONE declared child**
+(`DECISIONS:582`). Every step becomes a declared child, because a declared child mirrors a CI step
+and `childArgv()` judges every target against `CHILD_ROOTS`. **`rebuild/lanes/c/ui-port/` is added
+to `CHILD_ROOTS` as the twenty-fifth root and to `PUBLIC_TAIL_ROOTS` in the same hunk, and it is the
+ONLY new root that joins the tail list.** `rebuild.yml`'s combined post is measured ONCE, after all
+of them.
+
+**7. `DECISIONS:570` left one CI decision to the PM and this brief does not make it: whether the
+E21 and E22 steps also run after a failed standing step**, that is, whether they too carry
+`if: ${{ !cancelled() }}`. The fence and the pack are ruled; these two are not. **OPEN.**
+
+**8. The disposition of `rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs:29`. The PM rules
+this in review; this brief states the three options and their cost and recommends none.** The
+measured facts, taken by this author at chain tip `789baf6e`: line 29 is
+`test('workflow changes exactly one command and retains both OS jobs', ...)`, which reads
+`.github/workflows/rebuild.yml` at commit `a777f64318dfb9b4766fa336d623196d07b5fc00` out of Git and
+asserts `actual === original.replace(before, after)` for one exact command substitution, so **any
+`rebuild.yml` hunk turns it red**, and S9 adds at least seven. It is stale-red already, by
+`h3-clean-init.test.cjs:718`'s own words and not B's. `rebuild.yml` names `ci-second-gate` **zero**
+times, so it has no CI home. **And it is in NEITHER S8 map**: not in `product`, not in
+`executionPins` (measured by parsing the parent artifact), so editing it is NOT a sealed act and
+does not by itself require a reseal child.
+
+| option | what it costs | what it gives up |
+| --- | --- | --- |
+| (a) RE-PIN it: move the baseline commit from `a777f643` to S9's own `rebuild.yml` post | one edit of a free file, inside S9 so the value is the sealed post. But the cell has NO CI home, so nothing runs it and the re-pin goes stale again at the next `rebuild.yml` hunk | nothing measurable today; it buys a green nobody observes |
+| (b) GIVE IT A CI HOME and re-pin | one `rebuild.yml` step plus the re-pin; it then runs on both OS and goes red honestly the next time anyone edits the workflow | it makes every future workflow edit a red, in a cell whose subject is a step substitution that happened once |
+| (c) RETIRE it explicitly, on the record | one deletion of a free file plus a ledger line saying why | the only thing it asserts that nothing else does is that both OS jobs are retained and no `\|\| true` was added; if it goes, that assertion must be re-homed or knowingly dropped |
+| (d) DO NOTHING and carry it | zero now | it stays a red nobody can explain, which is exactly what `DECISIONS:570` routed to this brief to stop |
+
+**An unrecorded deletion or a quiet re-pin is not one of the four.**
+
+**9. The day-of pack procedure for the PACK-PIN and APPROVED-PIN literals.** This is the last
+mechanical act before the seal and it is done in ONE sitting, in this order.
+(i) **Every platform-of-record baseline must exist first** (R4's correction, adopted as a literal
+precondition at `DECISIONS:549` B): otherwise the first Windows accept forces a reseal.
+(ii) Check out the design lane's ACTUAL head, the one C-UI-0 and C-UI-1 leave behind, and confirm it
+against the binding identity, tree `6d7710467408f69e61a2917c583540fc2336a3fa` (`DECISIONS:546`);
+**the README's claimed composite sha is unreproducible and is not the identity.**
+(iii) Walk the spec's pack root, `rebuild/m1/approved-2026-09-18/**`, **the WHOLE tree including
+`README.md` and `quality/**`**, against the WORKING TREE, with forward-slash paths and byte ordering
+on both operating systems, `lstat` first and never following a link, refusing `NOT-A-REGULAR-FILE`
+by path (`DECISIONS:549`, `:556`, and P-PACK-1 at `:599`, which walks EVERY component below the
+trusted root and compares each component's spelling exactly with its parent's own listing).
+(iv) Take the sorted `(path, sha256)` literal. **The obsolete 53-file literal and v3's
+`6121aa91...` are superseded and must not be reused** (spec C.5.1, R15).
+(v) Run the Windows working-tree comparison before the literal is committed.
+(vi) APPROVED-PIN's literal is whatever runtime `design.APPROVED` names at the S9 head, read
+parametrically, **including approved paths OUTSIDE the new pack**; it needs lane C-UI's answer to
+OQ-2 first. Its vocabulary now has seven refusals, including `UNLISTED` for a runtime path absent
+from the literal (R4, `:549` B) and `ORPHAN` and `UNREADABLE` (`:556`), and the full refusal string
+is matched, never the prefix `design.cjs` already uses.
+(vii) Only then are the two real rows expected to go green. **Both literals are integrator-only**
+(`DECISIONS:566`); a preparation lane does not fill them.
+
+**10. E fact 7 is done LAST**, after every other runner hunk has landed and the runner's bytes have
+stopped moving: seven packages, `H3`, `S3`, `S4`, `S5`, `S6`, `S7`, `S8`, each re-pinned by ONE
+value, `tooling.runnerSha256`. This is not a preference; it is how round 6 was built
+(`DECISIONS:598`) and re-pinning before the last hunk means doing it twice and publishing a stale
+value in between.
