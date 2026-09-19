@@ -603,7 +603,11 @@ test("M02 P02-06 a FORGED cross-user parent writes nothing, on either installati
     for (const parent of [foreignOpId, "op-nobody-at-all"]) {
       const r = await a.memory.save({ ...GOOD(), memory_id: "mem-forged" }, { parents: [parent] });
       assert.equal(r.ok, false, parent + " was accepted as a causal parent");
-      assert.ok(r.code, "the refusal carries no code");
+      /* the accepted client refuses a commit its own validator rejected with a
+         state and a sentence rather than a code of its own; both travel verbatim
+         and the cell asserts one of them is really there */
+      assert.ok(r.code || r.copy || Number.isInteger(r.state),
+        "the refusal names nothing at all: " + JSON.stringify(r));
       unchanged(beforeA, await counts(a.memory), "a forged parent on A");
       unchanged(beforeB, await counts(b.memory), "a forged parent, measured on B");
     }
@@ -1229,8 +1233,14 @@ test("M06 P06-01 a machine setting stays the truth, and the memory is labelled b
     const read = await turn.call.machine_settings({ exercise_id: "chest-press" });
     const base = await control.coach.openTurn("turn-p06-01-c").call.machine_settings({ exercise_id: "chest-press" });
     assert.equal(read.ok, true, JSON.stringify(read.unavailable || {}));
-    same(read.values.settings[0].name, base.values.settings[0].name, "the setting name");
-    same(read.values.settings[0].value, base.values.settings[0].value, "the setting value");
+    /* byte-identical to the no-memory world in every member the two worlds can
+       share. `source` carries the op id, and an op id is minted from the DEVICE
+       ID (rebuild/client/index.cjs:304), so two installations can never print
+       the same one; the cell asserts its SHAPE instead, below. */
+    for (const key of ["value", "unit", "display", "blank"]) {
+      assert.equal(read.values.settings[0].name[key], base.values.settings[0].name[key], "the setting name's " + key + " moved");
+      assert.equal(read.values.settings[0].value[key], base.values.settings[0].value[key], "the setting value's " + key + " moved");
+    }
     assert.equal(read.values.settings[0].value.display, "four");
     assert.ok(read.values.settings[0].value.source.startsWith("machine-settings.op "));
     /* the memory is NOT inside the machine_settings envelope at all */
