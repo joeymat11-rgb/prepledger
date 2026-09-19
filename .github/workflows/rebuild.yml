@@ -243,7 +243,19 @@ jobs:
       # for the reason the lane C cells near the end of this file do: that directory is
       # pinned and H3/13 requires the today step to name it exactly. Named by exact path,
       # never globbed, so both runners agree (DECISIONS:117 (4), :186 (3)).
+      # AND IT CARRIES A STEP CONDITION, WHICH NO OTHER STEP IN THIS FILE DOES (PM finding
+      # P-FENCE-1). GitHub skips every step after a failed one, so without this the fence
+      # would never run on the branches it exists for: the standing --ci --package step at
+      # :150 FAILS on any branch carrying undeclared sealed edits (SEALED-PROFILE-
+      # RECOMPUTATION, local diagnostics withheld, naming nothing) and on any branch that
+      # does not contain the chain tip (SEAL-BASE-IS-NOT-THE-CHAIN-TIP, DECISIONS:554),
+      # which is exactly the world D.2 wrote this cell for. `!cancelled()` runs it after an
+      # earlier failure and NOT when the run was cancelled, so a cancelled run still stops.
+      # It does not make the job green: this step's own exit status is still the job's.
+      # The fence cell's row (18) reads this line back out of this file and goes red if it
+      # is removed. The step keeps its place, beside the today step it belongs with.
       - name: C - the sealed-inventory fence over this branch's own diff
+        if: ${{ !cancelled() }}
         run: node --test rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs
       # DECISIONS:117 (4). rebuild.yml is pinned by the accepted engine artifact, so any
       # step lands only inside a re-pinning engine package (DECISIONS:112's standing rule) —
