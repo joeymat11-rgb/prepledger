@@ -450,6 +450,18 @@ test("D.2 (8a) - an empty or non-spec JSON file does not earn the skip: conditio
   const two = chain({ product: [APP] });
   child(two, { alsoAdd: { [PACKAGES + "S10.json"]: "{}\n" }, alsoTouch: { [APP]: "a lane C edit\n" } });
   unverified(fence(two, CHAIN_REF), 1);
+
+  /* and TWO specs that would EACH pass on their own are still not exactly one. Without
+     this sub-row the "exactly one" clause is untestable: the key closure catches every
+     malformed second file, so nothing measures the clause itself. */
+  const both = chain({ product: [APP] });
+  const artSha = shaOfBlob(both, CHAIN_REF, FIX_ART);
+  const base = gitText(both, ["rev-parse", CHAIN_REF]).trim();
+  child(both, {
+    alsoAdd: { [PACKAGES + "S10.json"]: specFile({ packageId: "S10", parentId: "S8", artifact: FIX_ART, sha256: artSha, sourceBase: base }) },
+    branchIds: ["S7", "S8", "S9", "S10"],
+    alsoTouch: { [APP]: "a lane C edit\n" } });
+  unverified(fence(both, CHAIN_REF), 1);
 });
 
 test("D.2 (8b) - a spec naming a DIFFERENT artifact than the one read at the chain ref: condition (2)", () => {
@@ -468,8 +480,10 @@ test("D.2 (8c) - the right artifact and a sha256 the fence does not measure: con
 });
 
 test("D.2 (8d) - an id that is not in IDS in the branch's OWN b-package.cjs: condition (4)", () => {
+  /* the runner IS in the diff, and carries some other id instead. Without the second
+     limb of (4) this branch would walk through, so the two limbs are measured apart. */
   const root = chain({ product: [APP] });
-  child(root, { branchIds: ["S7", "S8"], alsoTouch: { [APP]: "a lane C edit\n" } });
+  child(root, { branchIds: ["S7", "S8", "B1"], alsoTouch: { [APP]: "a lane C edit\n" } });
   unverified(fence(root, CHAIN_REF), 4);
 
   /* and the same condition refuses a branch that never touches the runner at all: that
@@ -477,6 +491,20 @@ test("D.2 (8d) - an id that is not in IDS in the branch's OWN b-package.cjs: con
   const untouched = chain({ product: [APP] });
   child(untouched, { runnerInDiff: false, alsoTouch: { [APP]: "a lane C edit\n" } });
   unverified(fence(untouched, CHAIN_REF), 4);
+
+  /* AND THE ROW THAT MAKES THE FIRST LIMB OF (4) MEAN SOMETHING ON ITS OWN. Here the
+     chain ALREADY carries the id in IDS, so a branch that adds the spec and never opens
+     b-package.cjs would inherit the id from the chain and satisfy the second limb. The
+     first limb - the runner must be IN THE DIFF - is the only thing left, and it is the
+     one that costs a sealed byte. */
+  const inherited = chain({
+    artifacts: [["acceptance-s9-fixture.json",
+      inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9", product: [APP] })]],
+    product: [], free: [APP], ids: ["S7", "S8", "S9"] });
+  const art = SPEC_DIR + "acceptance-s9-fixture.json";
+  child(inherited, { id: "S9", artifact: art, sha: shaOfBlob(inherited, CHAIN_REF, art),
+    runnerInDiff: false, alsoTouch: { [APP]: "a lane C edit\n" } });
+  unverified(fence(inherited, CHAIN_REF), 4);
 });
 
 test("D.2 (8f) - a sourceBase that is not an ancestor of HEAD: condition (5)", () => {
