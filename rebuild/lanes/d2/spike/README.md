@@ -123,3 +123,56 @@ any of them, and each one that touches a product file or a stored operation asse
 byte-unchanged afterwards.
 
 No U+2013 and no U+2014 appears in any file in this directory, counted rather than claimed.
+
+---
+
+# EW2 BUILD BRIEF CELLS (`ew2b-`): WHAT THE BRIEF MEASURED
+
+These eight files are the BUILD BRIEF's own measuring programs (`rebuild/lanes/d2/EW2-BUILD-BRIEF.md`,
+written under `DECISIONS:621`). They are THROWAWAY CELLS, not product and not the bar. Nothing here is
+imported by any product file, nothing here is registered in CI, nothing here seals a receipt or an
+artifact, and every fixture is synthetic.
+
+**They do not run from this directory.** Copy them to `rebuild/lanes/d/plan-edit/` and run each from
+the repository root, one Node process at a time, under `MEASURED_TEST_NOW=2026-09-03
+TZ=America/New_York`. `ew2b-r42-proto-notice.mjs` is imported by `ew2b-r42-journeys.mjs` and is never
+run alone. `ew2b-r42-journeys.mjs` additionally needs round 7's `ew2r7-support.mjs`,
+`ew2r6-support.mjs` and `f2-tag-adapter.cjs` beside it; `ew2b-r41-d3-generation.mjs` needs
+`ew2r6-support.mjs`.
+
+**THREE OF THEM CANNOT RUN IN THE FARM.** `ew2b-r39-probe.mjs`,
+`ew2b-r39-second-admission.mjs` and `ew2b-r39-retention.mjs` each seal real bundles through the real
+`rebuild/m3/setup/port/port.cjs`, whose oracle files are outside the farm's include list. They ran on
+the PC only, in a worktree made by `pm4-mk-lane.cmd ... yes` so the live `node_modules` junctions are
+wired (spec 14.8), and that worktree was removed afterwards. Every bundle they seal is INVENTED: the
+port mints its own passphrase and writes its own source into an OS temp folder. No owner file, no
+private fixture and no measurement of his was read.
+
+| file | what it proves | sha256 | farm | PC |
+|---|---|---|---|---|
+| `ew2b-r39-probe.mjs` | **E-R39, the open question**: five journeys and a control through the REAL admission path, printed and not prescribed | `4f029700d31b9a8b1713bf11b7cbf8deea03954c872b8eeb912bf77488601030` | n/a, it seals | **exit 0** |
+| `ew2b-r39-second-admission.mjs` | **E-R39 ANSWERED YES**: the same file again refuses `LOCAL_IMPORT_ALREADY_PRESENT` at custody hot and cold; a DIFFERENT file is ADMITTED in the same session and after a reload; selections accumulate while `collections.derived.localSource` is REPLACED | `0b5b51d906966e2732b1adc2c1ad3edb05eabcc898b344c3eefdae2404034e70` | n/a, it seals | **exit 0** |
+| `ew2b-r39-retention.mjs` | what survives the second admission: every selection keeps its own basis, order map member and identity review. Its first run asserted order map ENTRIES and exited 1; the CELL was wrong and says so in its own output | `f93b57c1243789dcd4c859dd56c3ab0e08cf14521edd3dcd95a8a0e75189ff7e` | n/a, it seals | **exit 0** |
+| `ew2b-r40-hunk-e-base.mjs` | **E-R40 condition 1**: hunk E at the spec head is `gym-app.mjs`, 2 added 1 removed (14.4 reproduced); at the build base it is `gym-settings-lane.mjs`, which has NO static import, so a static import costs 3 and the file's own dynamic idiom costs 1. Reads files, writes nothing. Takes a checkout root as its argument | `46b8a5ddf44cba31232f49df9eb75e51ac5cd611658c803a8818e8c951989905` | exit 0 (both roots) | exit 0 (both roots) |
+| `ew2b-r41-d3-generation.mjs` | **E-R41 D3**: her first clause UPHELD, her second NARROWED (the save reply does carry `durableRevision`). ROUTE 1 at ONE load with byte-equal dated views and zero bytes; ROUTE 2 counted at 13 added lines in `plan-edit-host.mjs` | `66df72fff75734dddf48ae82fd0e1e2184ad8222e32232d3792c19e879652b79` | exit 0 | exit 0 |
+| `ew2b-r41-d4-planbasis.mjs` | **E-R41 D4**: UPHELD through a whole real workout and the label read off the durable Start. ROUTE 1 (a second era) EXECUTED; ROUTE 2 counted at 2 changed lines in `today-bindings.mjs`. Its first run read the module default because `eraFor` does not forward `planBasis`: the CELL was wrong | `e50aa1022b1bbe6eb5b6ae4d5d0748ffdd7c4f3d033373bc10908fca8c98da28` | exit 0 | exit 0 |
+| `ew2b-r42-proto-notice.mjs` | **E-R42's rule, NEW CODE ONLY, ZERO PRODUCT BYTES**: the one named boundary, the amended two-arm answer carrying its notice, and D11's ONE authenticated generation through the coach's own `machineSettingsIn` | `951a44ad7bed8e6691cee6acb02161ed8b607194aafe1d38b3f5bc45d78cd4d3` | imported | imported |
+| `ew2b-r42-journeys.mjs` | **E-R42 both arms**, against the REAL host: a resolved note shown WITH the sentence, and a refusal by name where nothing resolves. Five mutants, each one clause, each killing a journey, including the three that survived Astra's L2 round. D11's load count and D14's three literals | `11661577368fd7c6faf185ec28df39b5f15e52338f7c67e573552048b8c90e7a` | exit 0 | exit 0 |
+
+**EVERY FARM-CAPABLE CELL'S OUTPUT IS BYTE-IDENTICAL ON THE TWO SYSTEMS.** The farm baseline in the
+same scratch worktree, at `1ad61cfe`: `rebuild/lanes/d/plan-edit/model.test.cjs` plus
+`durable-host.test.mjs` in ONE process, **85 tests, 85 pass, 0 fail, 1.73 seconds**, with
+`git status` showing no tracked file modified.
+
+**TWO CELLS WERE WRONG BEFORE THEY WERE RIGHT, and both say so in their own output rather than
+quietly dropping the assertion.** `ew2b-r39-retention.mjs` expected an order map with entries on a
+file that needed none. `ew2b-r41-d4-planbasis.mjs` opened its installation through a helper that does
+not forward `planBasis`. The product was right both times.
+
+**WHAT NONE OF THEM DID.** No DOM, no browser, no phone, so hunk E is counted and parsed at two heads
+and NOT executed. No rollback and no `reopen`. No plan edit or machine note carried ACROSS the second
+admission. No full Today suite, no rig187, no conformance or private fixture, no protected soak, no CI
+and no deployment. No product file was modified by any run: each cell that reads one asserts it
+byte-unchanged afterwards.
+
+No U+2013 and no U+2014 appears in any file in this directory, counted rather than claimed.
