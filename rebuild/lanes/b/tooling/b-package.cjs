@@ -1263,6 +1263,30 @@ function canonicalSpecPaths(s) {
     assert(canonicalPath(p), 'PATH-IS-NOT-CANONICAL ' + where + ' ' + JSON.stringify(p) + '; ' +
       CANONICAL_PATH + '. A spelling that is not the granted one is refused, never rewritten into ' +
       'authority for another spelling');
+  // H25 (P-A13, the PM's ruling on Astra R5 G3). Every spelling above is canonical and they
+  // are still not one identity: on a case-insensitive disk "a.css" and "A.CSS" are ONE FILE.
+  // Astra built the spec that says so - product a.css declared released, brief.file A.CSS at
+  // the same hash, both spellings in the Git tree - and measured phase=IMPLEMENTED,
+  // authorized=true, released=["a.css"] and an execution pin on "A.CSS": the artifact handed
+  // the file out of the seal and re-pinned the same file through the other spelling, and the
+  // next generation printed PARENT-PIN-BROKEN A.CSS the first time it was edited. That is
+  // exactly F2's failure, surviving H21 because both spellings are canonical.
+  //
+  // THE RULE IS ABOUT TWO SPELLINGS, NOT ABOUT UPPERCASE. Standing packages carry uppercase
+  // names and this must never refuse one: what is refused is two DISTINCT walked spellings of
+  // one spec that are equal after String.prototype.toLowerCase(). Nothing is rewritten, here
+  // or anywhere else in this function, for the reason the paragraph above canonicalPath
+  // gives. It landed only after the measurement of record: across the 22 standing files, zero
+  // pairs of distinct walked spellings in any one file collide.
+  const byLower = new Map();
+  for (const [where, p] of seen) {
+    const first = byLower.get(p.toLowerCase());
+    if (first === undefined) { byLower.set(p.toLowerCase(), [where, p]); continue; }
+    assert(first[1] === p, 'PATH-CASE-COLLISION ' + JSON.stringify(first[1]) + ' (' + first[0] + ') and ' +
+      JSON.stringify(p) + ' (' + where + ') differ only in case, and on a case-insensitive ' +
+      'disk they are ONE file: one spec may not pin, release or execute a path through two ' +
+      'spellings. Neither spelling is rewritten into the other');
+  }
   return seen;
 }
 function claim(v, role, label) { // a ledger citation whose text hashes to the sha it names
