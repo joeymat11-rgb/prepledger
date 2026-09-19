@@ -195,3 +195,148 @@ git diff --stat
  rebuild/lanes/c/today-split/writer-fence.test.mjs  | 259 ++++++++++----
  2 files changed, 363 insertions(+), 282 deletions(-)
 ```
+
+## Review F1: fixed
+
+2026-09-19. Assignment base eaff3116ea75e44fc81ad7944180337116f44be1,
+branch rebuild/c-today-split-build-astra1. This section supersedes the earlier
+round's statements about settings windows, options.readings, duplicate refusal
+names and the legacy strippers. Hypothesis for the next independent Claude
+reviewer: the requested witnesses now hold; this is still a lexical tripwire.
+
+Hunks 2-7 from review section 10 applied as 13 exact diff blocks. All 18 added
+blocks were checked against the review after the final cell edit and remained
+verbatim. Hunk 1's implementation was replaced as commissioned. No product byte
+moved. Only this report and writer-fence.test.mjs were written, uncommitted.
+
+| Finding | Executed row and measured result |
+|---|---|
+| F1: quote regex hides a writer | RED review F1: F1-a writer between quote regexes; F1-a keyword-position regex. Both return FENCE-WRITER-NAME. |
+| F1: ordinary regex look edit reds | GREEN review F1: F1-b look regex containing both quotes returns []. |
+| PM replacement: two divisions hide a writer | Three RED review F1: PM rows return FENCE-WRITER-NAME; the plain writer control does too. GREEN PM two divisions without a writer returns []. |
+| F2: regex after control parenthesis | Three RED review F2 rows, after if (ok), while (ok), for (;;), each return FENCE-LANE-ACQUISITION and FENCE-WRITER-NAME. |
+| F2: preserve real division | GREEN review F2 keeps Math.round(next * 100) / 100 in codeOf and returns [] for the released gym file. |
+| F3: extra options.readings acquisition | RED readings use rows for void options.readings, second alias, consume(options.readings), options.readings[key]() each return FENCE-HOLDER-USE:readings. The old GREEN void row moved to RED. |
+| F4: settings property look edits | Three GREEN review F4 property rows, plus rename first to firstPaint, all return []. The first . settings window and only its two look/reformat rows were retired. |
+| F4: defensive readings look edits | Four GREEN review F4 rows: optional face, optional paint, durable !== null, and != null ternary. The review's added GREEN readings-use rows also pass. |
+| F5: misleading second refusal name | RED review F5 asserts the complete result for extra options.readings is exactly [FENCE-HOLDER-USE:readings]. The four S-R27(d) readings rows use that name; settings rows retain FENCE-HOLDER-SITE:settings. |
+
+Settings still measures three identifier tokens in the released gym source, but
+only the parameter and factory argument are site windows. Property positions are
+excluded exactly as ratified. The options.readings property name is allowed only
+inside const readings = options . readings (S-R27(f)); no blanket exemption remains.
+The header carries the review's ACTUAL writer-host sentence and the holder-name
+limitation of destructuring. Neither sentence asserts a new runtime guarantee.
+
+### Why the PM replaced hunk 1
+
+I reconstructed the review's proposed stripped function in memory, with the
+ratified lexer fixes, and ran its releasedRefusals against the same gym plants.
+The proposed stripper returned [] for each of these, while the landed replacement
+returned [FENCE-WRITER-NAME] for each:
+
+```js
+const a = w / 2; model.recover(); const b = h / 2;
+const ratio = 4 / model.recover() / 2;
+const ratio = width / model.recover() / height;
+```
+
+Both versions returned FENCE-WRITER-NAME for plain model.recover(), and [] for
+const a = w / 2; const b = h / 2;. Calling tokensOf at an interior slash loses
+left context and treats division as a regex start. The landed stripped(src, keep)
+calls tokensOf(src) once from zero, copies token spans and blanks gaps and unkept
+string/template/regex tokens while retaining line breaks. codeOf and
+withoutComments use it. No interior-offset call exists in the stripper; the
+template-interpolation recursion in tokensOf is unchanged.
+
+The row Review F1: codeOf preserves length, line count and line-break offsets in
+all three lexer files passed for today-model.cjs, gym-app.mjs and today-app.cjs.
+The independent regexStripped reader was left unchanged, as required. Its existing
+cross-checks passed on all three released/read-only sources; no claim that it
+agrees on the new control-statement regex plants.
+
+### S-R28 arguments and residue
+
+Measured before declaring the refusal, then asserted again by the final cell:
+
+| Released file | Code-position arguments identifiers | Lines |
+|---|---:|---|
+| today-model.cjs | 0 | none |
+| gym-app.mjs | 0 | none |
+
+FENCE-ARGUMENTS now forbids that identifier in code in each released file. Each
+file has a zero-count row, a RED void arguments[0].settings; row, and a GREEN
+control with arguments in a comment and a string. All six rows passed.
+
+All three existing residue rows and the review's eight added spellings R4-R11
+were scanned through releasedRefusals in gym-app.mjs and returned []. None moved
+to RED. The eight added RECORDED RESIDUE rows preserve the review's exact snippets:
+intermediate-local computed key, intermediate-local destructure, Reflect.get,
+property descriptor, loop variable key, optional variable key, cache-entry host
+key, and draft alias mutation. These are scanner observations, not durability
+proofs. The existing S-R29 mutable-entry behavior row also passed with its
+synthetic host. The older settings residue remains RED in gym, as before.
+
+### Executed bar on this PC
+
+| Cell state | Tests | Pass | Fail | Exit |
+|---|---:|---:|---:|---:|
+| Before edits, named assignment base | 253 | 253 | 0 | 0 |
+| Ratified hunks plus PM replacement, before added rows | 257 | 257 | 0 | 0 |
+| Final cell | 293 | 293 | 0 | 0 |
+
+All three runs: zero skipped, cancelled or todo. Net +40 rows: the review's -2
+retired window rows and +6 new readings rows; +13 F1/F2/offset rows; +6 arguments
+rows; +8 residue rows; +8 F4 look rows; +1 exact F5 refusal row.
+
+Node v24.19.0. The whole cell command on this PC was:
+
+```powershell
+$env:MEASURED_TEST_NOW = '2026-09-03'
+$env:TZ = 'America/New_York'
+& 'C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' --test --test-isolation=none rebuild/lanes/c/today-split/writer-fence.test.mjs
+```
+
+The independent Node --check children ran without skips. New F1/F2 plants and
+readings look edits passed syntax checks using stdin. The three exact settings
+property snippets and the residue rows are scanner-only measurements. No plant
+was written into a product file or executed as a durable write. A preliminary
+in-memory comparison command failed before measuring because its harness omitted
+assert; rerunning with assert supplied produced the comparison above. No cell row
+failed during this round and no test was weakened or skipped to obtain the bar.
+
+certutil -hashfile rebuild/lanes/c/today-split/writer-fence.test.mjs SHA256:
+
+```text
+4cf5fb506685b8bcc775c644544a618046ba2ca29d742d97f8b3c2b2e5639206
+CertUtil: -hashfile command completed successfully.
+```
+
+This is the on-disk hash of the uncommitted cell. Git warns that its CRLF bytes
+will be replaced by LF when Git next touches it. git diff --check passed; added
+lines in both owned files were checked for ASCII. No scratch files were created.
+
+### What I did not verify
+
+No full Today suite, CI, independent review, conformance, bundle, seal, package or
+receipt tool, browser, phone, private fixture, protected soak, auth material,
+real persistence/reopen trial, listener census or part-2 acceptance. No parser
+soundness or general alias/data-flow guarantee. No Linux rerun. No runtime proof
+that any synthetic scanner plant writes a store. The PM owns review, commit and
+push. No install, node_modules change, file deletion or Git mutation ran.
+
+### Final commands and output (Review F1)
+
+```text
+git status --porcelain
+warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
+warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied
+ M rebuild/lanes/c/TODAY-SPLIT-FENCE-PRECONDITIONS-REPORT.md
+ M rebuild/lanes/c/today-split/writer-fence.test.mjs
+
+git diff --stat
+warning: in the working copy of 'rebuild/lanes/c/today-split/writer-fence.test.mjs', CRLF will be replaced by LF the next time Git touches it
+ .../c/TODAY-SPLIT-FENCE-PRECONDITIONS-REPORT.md    | 145 ++++++++++
+ rebuild/lanes/c/today-split/writer-fence.test.mjs  | 299 ++++++++++++++-------
+ 2 files changed, 344 insertions(+), 100 deletions(-)
+```
