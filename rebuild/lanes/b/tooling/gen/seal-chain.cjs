@@ -4,7 +4,11 @@
    :529) as named, restartable stages, each with its own log and its own .done file under
    %TEMP%, so a stage that outlives one tool call can be started and then polled.
 
-   THREE THINGS IT WILL NOT DO, and they are the point:
+   FOUR THINGS IT WILL NOT DO, and they are the point:
+   0. IT NEVER PUSHES A BRANCH IT WAS NOT SHOWN. Stage b6 resolves the branch this
+      worktree stands on, names it on both sides of the refspec, and refuses `main`,
+      `rebuild/t2-client-core` and a detached HEAD by name (R1 B2). The fast-forward of
+      the chain branch is stage b7 and it is a `hand` stage.
    1. IT NEVER RUNS --full UNLESS STARTED WITH --pm-runs-full. --full needs the private
       census and belongs to the PM alone. Without the flag a `pm` stage prints exactly
       what the PM must run and stops with exit 3.
@@ -36,7 +40,13 @@ const STAGES = [
   ['a2', 'hand', 'chain A', 'THE THREE TOKEN LINES. The PM appends THEME, BRIEF-BY-SHA and GATE-SUPERSESSION to rebuild/DECISIONS.md BYTE-EXACT from gen/out/final-lines.txt, each verified against its sha256 first (DECISIONS:515 did exactly this with a script that re-checked before writing). Check: node gen/hash-lines.cjs <final-lines.txt> and put the three shas in the package.'],
   ['a3', 'run', 'chain A', 'MERGE THE TIP into the lane branch. Never rebase (:511, :515, :519 all say so of their own lanes).'],
   ['a4', 'run', 'chain A', '--ci --package <ID> with the lines standing. Expect AUTHORITY OBSERVED, ENVELOPE ABSENT, PUBLIC CI EVIDENCE PASS, every child OBSERVED exit 0.'],
-  ['a5', 'run', 'chain A', 'PROPOSE THE ARTIFACT through the runner\'s OWN proposed(), never by hand, into rebuild/m4/spec/acceptance-<slug>.json. The scratch script compiles the runner the way tooling/test/execution-targets.test.cjs does (b-package.cjs proposed(), DECISIONS:516).'],
+  /* R1 N10: this stage used to be marked `run`, and running it wrote nothing. propose.cjs
+     compiles the runner to its main-sequence boundary and confirms proposed() is reachable;
+     it does NOT assemble the spec/bound pair, which in S7 and S8 was a PM-read scratch
+     script (DECISIONS:516). A stage that exits 0 having written no artifact is exactly the
+     green a chain script must never show, so it is a `hand` stage that names its own
+     check. It goes back to `run` on the day the assembly exists. */
+  ['a5', 'hand', 'chain A', 'PROPOSE THE ARTIFACT through the runner\'s OWN proposed(), never by hand, into rebuild/m4/spec/acceptance-<slug>.json. This is still the PM\'s scratch script (DECISIONS:516). Check FIRST that the runner still compiles to its main-sequence boundary and proposed() is reachable: node rebuild/lanes/b/tooling/gen/propose.cjs --package <ID> (it writes nothing, by design).'],
   ['a6', 'run', 'chain A', '--ci --package <ID> again. Expect ENVELOPE PENDING artifact=... spec=... runner=..., PUBLIC CI EVIDENCE PASS; independent exact-artifact acceptance required.'],
   ['a7', 'pm', 'chain A', '--full --package <ID> WITH THE PRIVATE CENSUS, verdict-only, to POSTFIX PACKAGE REVIEW-PENDING with exactly ONE open obligation (the acceptance). S7 found a second one here and it was a runner defect, not a flake (DECISIONS:516).'],
   ['a8', 'hand', 'chain A', 'THE RECEIPT LINE, in the :500 format and matched by the runner\'s own regex at b-package.cjs RECEIPT: POSTFIX-ACCEPTANCE <NAME> <40-hex reviewed commit> <artifact path> <64-hex artifact sha256> ACCEPTED. receipt.commit must be the CHAIN-BRANCH commit carrying the line (RECEIPT-BASE-NOT-ON-THE-CHAIN-BRANCH); the reviewed commit is the lane head.'],
@@ -46,12 +56,23 @@ const STAGES = [
   ['b3', 'hand', 'chain B', 'VERDICT-<ID>.md naming the receipt sha256, the four terminals, the two reseal rules re-applied and every carried note.'],
   ['b4', 'run', 'chain B', 'THE COACH CONSTANT moves ONCE, to <NAME>@<first 16 of the receipt sha>. Check: the coach suite and the production-mapping/admission pair green in the sealed state.'],
   ['b5', 'pm', 'chain B', 'THE BYTE-IDENTITY --full on the coach commit: artifact, runner, spec and every pinned product file byte-identical to the sealed run, POSTFIX PACKAGE PASS.'],
-  ['b6', 'run', 'chain B', 'PUSH the lane branch and watch GitHub Actions on BOTH runners with the standing step --package <ID>.'],
+  ['b6', 'run', 'chain B', 'PUSH THE LANE BRANCH BY NAME (never `HEAD`, and never main or rebuild/t2-client-core: this stage refuses both by name) and watch GitHub Actions on BOTH runners with the standing step --package <ID>.'],
   ['b7', 'hand', 'chain B', 'THE FAST-FORWARD of rebuild/t2-client-core onto the lane head, and the merge line in the ledger. PM only; this lane never pushes that branch.'],
   ['b8', 'hand', 'chain B', 'THE SLICE DEPLOY. The slice-host workflow triggers only on today/** or slice/pwa/** pushes; if the seal touches neither, the commit carrying the merge line adds the docs-only rebuild/slice/pwa/DEPLOYS.md trigger (DECISIONS:519).'],
 ];
 
 const RUNNER = 'rebuild/lanes/b/tooling/b-package.cjs';
+/* R1 B2. `git push -u origin HEAD` pushes whatever branch the worktree this file sits in
+   happens to be standing on, and this file is lane B tooling: it travels to every lane
+   worktree there is. The day a stage b6 is run from a worktree standing on the chain
+   branch or on main, a script has pushed the branch no script may push. So b6 names a
+   BRANCH, the branch is resolved from Git, these two are refused by name, and a detached
+   HEAD is refused as well (there is no branch to name). */
+const NEVER_PUSH = ['main', 'rebuild/t2-client-core'];
+function currentBranch(root) {
+  const r = M.git(root, ['symbolic-ref', '--quiet', '--short', 'HEAD'], { encoding: 'utf8' });
+  return r.status === 0 ? String(r.stdout).trim() : null;
+}
 /* The command a `run` stage actually executes. Every one of them is the --ci side or a
    plain git read/merge; not one of them can reach --full. */
 function commandFor(id, key, o) {
@@ -59,11 +80,23 @@ function commandFor(id, key, o) {
   switch (key) {
     case 'a1': case 'a4': case 'a6': return '"' + NODE + '" ' + RUNNER + ' --ci --package ' + id;
     case 'a3': case 'b1': return 'git fetch origin && git merge --no-edit ' + tip;
-    case 'a5': return '"' + NODE + '" "' + path.join(__dirname, 'propose.cjs') + '" --package ' + id;
     case 'b4': return 'git -c core.pager=cat diff --stat -- rebuild/coach';
-    case 'b6': return 'git push -u origin HEAD';
+    case 'b6': {
+      const branch = pushBranch(o);
+      return 'git push -u origin ' + branch + ':' + branch;
+    }
     default: return null;
   }
+}
+/* The branch b6 will push, by name, or a refusal. --branch <name> must AGREE with the
+   branch the worktree stands on: naming a branch you are not on is how the wrong head
+   gets pushed, and this script would rather stop than guess which one was meant. */
+function pushBranch(o) {
+  const here = currentBranch(o.root || REPO);
+  if (!here) throw new Error('CHAIN-PUSH-REFUSED: HEAD is detached in ' + (o.root || REPO) + '; there is no branch to push. Check out the lane branch first.');
+  if (NEVER_PUSH.includes(here)) throw new Error('CHAIN-PUSH-REFUSED: this worktree stands on ' + here + ', which no script pushes. b6 pushes a LANE branch only; the fast-forward of ' + NEVER_PUSH[1] + ' is stage b7 and it is the PM\'s hand.');
+  if (o.branch && o.branch !== here) throw new Error('CHAIN-PUSH-REFUSED: --branch ' + o.branch + ' but this worktree stands on ' + here + '. Check out ' + o.branch + ', or drop --branch.');
+  return here;
 }
 function paths(key) {
   const base = path.join(TMP, 'sealgen-chain-' + key);
@@ -101,6 +134,9 @@ function main(argv) {
     if (a === '--id') o.id = argv[++i];
     else if (a === '--stage') o.stage = String(argv[++i]).toLowerCase();
     else if (a === '--tip-ref') o.tipRef = argv[++i];
+    /* --branch <name>: the branch stage b6 pushes. It must be the branch this worktree
+       stands on; it is a second pair of eyes, not an override (R1 B2). */
+    else if (a === '--branch') o.branch = argv[++i];
     else if (a === '--plan') o.plan = true;
     else if (a === '--poll') o.poll = true;
     else if (a === '--dry-run') o.dryRun = true;
@@ -114,7 +150,12 @@ function main(argv) {
       if (group !== part) { console.log('\n== ' + group.toUpperCase() + ' =='); part = group; }
       const mark = kind === 'run' ? '[run ]' : kind === 'pm' ? '[PM  ]' : '[hand]';
       console.log('  ' + mark + ' ' + k + '  ' + what.replace(/<ID>/g, o.id || '<ID>'));
-      const c = kind === 'run' && commandFor(o.id || '<ID>', k, o);
+      /* A stage that would REFUSE says so here, in the plan, rather than at the moment
+         someone runs it: --plan from a worktree standing on the chain branch prints b6's
+         refusal by name (R1 B2). */
+      let c = null;
+      try { c = kind === 'run' ? commandFor(o.id || '<ID>', k, o) : null; }
+      catch (e) { console.log('           $ ' + e.message); }
       if (c) console.log('           $ ' + c.replace(NODE, 'node'));
     }
     console.log('\n  [run ] this script runs; [PM  ] needs --full and the private census, refused without --pm-runs-full;');
@@ -149,6 +190,14 @@ function main(argv) {
   const c = commandFor(o.id, key, o);
   if (!c) throw new Error('CHAIN-STAGE-HAS-NO-COMMAND ' + key);
   startStage(o.id, key, c, o);
+  /* R1 N11. --dry-run writes the .cmd and starts nothing, so it says that and stops: a
+     script whose whole value is that you can trust what it tells you it did does not get
+     to print "started detached" when it started nothing. */
+  if (o.dryRun) {
+    console.log('\n  DRY RUN: the stage .cmd was written and NOTHING was started.');
+    console.log('  cmd: ' + p.cmd + '\n  it would run:  ' + c.replace(NODE, 'node'));
+    return 0;
+  }
   console.log('\n  started detached. Poll with:  node ' + path.relative(REPO, __filename).split(path.sep).join('/') + ' --id ' + o.id + ' --stage ' + key + ' --poll');
   console.log('  log: ' + p.log);
   return 0;
@@ -157,4 +206,4 @@ if (require.main === module) {
   try { process.exit(main(process.argv.slice(2))); }
   catch (e) { console.error('CHAIN FAILED: ' + e.message); process.exit(1); }
 }
-module.exports = { STAGES, commandFor, paths, main };
+module.exports = { STAGES, commandFor, paths, main, pushBranch, currentBranch, NEVER_PUSH };

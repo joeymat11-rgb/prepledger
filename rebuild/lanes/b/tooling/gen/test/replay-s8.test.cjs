@@ -27,6 +27,7 @@ const path = require('path');
 const os = require('os');
 const cp = require('child_process');
 const M = require('../lib/measure.cjs');
+const C = require('../lib/compare.cjs');
 
 const REPO = path.resolve(__dirname, '..', '..', '..', '..', '..', '..');
 const GEN = path.join(REPO, 'rebuild', 'lanes', 'b', 'tooling', 'gen', 'new-child.cjs');
@@ -38,12 +39,32 @@ const SUBST = [
   '(DECISIONS:509)=(DECISIONS:522)',
 ];
 
+/* R1 N2. THE NEEDLE COMPARISON AND WHAT IT REQUIRES.
+   A needle is a `# pass N` (or a verdict sentence) printed by the tree that is CHECKED
+   OUT. Comparing the generator's needles with the ones the S8 round recorded is therefore
+   only meaningful from a worktree standing AT the post head, under the env children()
+   builds. Those two conditions are checked here and the switch is named after them. When
+   either is missing the comparison is DECLINED with its reason printed - not skipped in
+   silence, and not reported as a proof that ran. */
+const AT_POST_HEAD = M.revParse(REPO, 'HEAD') === M.revParse(REPO, R.post);
+const WANT_NEEDLES = !!process.env.GEN_REPLAY_NEEDLES_AT_POST_HEAD;
+let NEEDLES_COMPARABLE = false, NEEDLES_WHY = '';
+if (!WANT_NEEDLES) {
+  NEEDLES_WHY = 'To compare all 25: check a worktree out AT ' + R.post + ' and set GEN_REPLAY_NEEDLES_AT_POST_HEAD=1. Anywhere else the numbers belong to a different tree.';
+} else if (!AT_POST_HEAD) {
+  NEEDLES_WHY = 'GEN_REPLAY_NEEDLES_AT_POST_HEAD is set, but HEAD is ' + M.revParse(REPO, 'HEAD').slice(0, 8) + ' and the post head is ' + R.post + '. A needle measured against another tree is not evidence about this round, so the comparison was declined.';
+} else {
+  const ce = M.childEnv(REPO);
+  if (!ce.exact) NEEDLES_WHY = 'HEAD is at the post head, but the env is not the one children() builds: ' + ce.why;
+  else NEEDLES_COMPARABLE = true;
+}
+
 function generate(extra) {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), 'sealgen-replay-'));
   const argv = [GEN, '--id', 'S8', '--name', 'M2-S8-REAL-SHAPE', '--parent', 'S7',
     '--head', R.sourceBase, '--base', R.base, '--post-head', R.post, '--parent-seal', R.parentSeal,
     '--child-root', 'rebuild/lanes/d/p3-real-shape/', '--dispatch-line', '523',
-    '--stage', process.env.GEN_REPLAY_NEEDLES ? 'all' : 'hunks', '--out', out, '--quiet', '--repo', REPO];
+    '--stage', NEEDLES_COMPARABLE ? 'all' : 'hunks', '--out', out, '--quiet', '--repo', REPO];
   for (const s of SUBST) argv.push('--subst', s);
   const r = cp.spawnSync(process.execPath, argv.concat(extra || []), { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 26, windowsHide: true });
   assert.equal(r.status, 0, 'the generator itself must exit 0: ' + (r.stderr || '').slice(0, 400));
@@ -54,32 +75,29 @@ const real = f => { const b = M.blobBytes(REPO, R.post, f); return b === null ? 
 const made = f => { const p = path.join(OUT, 'tree', f.split('/').join(path.sep)); return fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null; };
 const spec = JSON.parse(fs.readFileSync(path.join(OUT, 'packages', 'S8.json'), 'utf8'));
 const realSpec = JSON.parse(real('rebuild/lanes/b/tooling/packages/S8.json'));
-const TALLY = { compared: 0, identical: 0, prose: [], narrative: [], ordering: [], byteIdentical: [], unexplained: [] };
+const TALLY = { compared: 0, identical: 0, selfChecks: 0, prose: [], narrative: [], ordering: [], byteIdentical: [], unexplained: [] };
+/* A CROSS-SIDE fact: something this run generated against something the round committed.
+   Only these are counted in the headline (R1 N6). */
 function fact(name, got, want) {
   TALLY.compared += 1;
   if (got === want || (got !== null && typeof got === 'object' && JSON.stringify(got) === JSON.stringify(want))) { TALLY.identical += 1; return true; }
   TALLY.unexplained.push(name + '\n      generated: ' + JSON.stringify(got) + '\n      committed: ' + JSON.stringify(want));
   return false;
 }
-/* THE CODE LINES OF A FILE: every line that is not a comment. A comment is a `//` or `#`
-   line, or any line inside a `/* ... *​/` block. Nothing here is clever, because the
-   comparison has to be arguable in one reading. */
-function codeLines(text, hash) {
-  const out = []; let inBlock = false;
-  for (const raw of text.split('\n')) {
-    const l = raw.trim();
-    if (inBlock) { if (l.includes('*/')) inBlock = false; continue; }
-    if (l.startsWith('/*')) { if (!l.includes('*/')) inBlock = true; continue; }
-    if (!l || l.startsWith('//') || (hash && l.startsWith('#'))) continue;
-    out.push(l);
-  }
-  return out;
+/* A SELF-CHECK: both sides of it come from the same side of the round (committed against
+   committed, or generated against generated). It is a real check and it is reported, but
+   it is NOT a comparison of this generator with the round, so it is counted apart from
+   the headline - the number in the report is what the generator reproduced, nothing else. */
+function selfCheck(name, got, want) {
+  TALLY.selfChecks += 1;
+  if (got === want || (got !== null && typeof got === 'object' && JSON.stringify(got) === JSON.stringify(want))) return true;
+  TALLY.unexplained.push('SELF-CHECK ' + name + '\n      got: ' + JSON.stringify(got) + '\n      want: ' + JSON.stringify(want));
+  return false;
 }
-const stripStrings = l => l.replace(/'(?:[^'\\]|\\.)*'/g, "''").replace(/"(?:[^"\\]|\\.)*"/g, '""');
-/* A differing CODE line is prose only when the difference lives entirely inside a string
-   that nothing reads as data - a `test(...)` title or the message argument of an assert.
-   Every other difference is a code difference and fails this cell. */
-const isNarrative = l => /^test\(/.test(l) || /assert[A-Za-z.]*\([\s\S]*,\s*['"]/.test(l);
+/* THE CODE LINES OF A FILE and the MECHANICAL / PROSE rule both live in
+   gen/lib/compare.cjs now, so that the rule itself can be put under test with real
+   committed lines and a mutant of one (REPLAY-12). */
+const codeLines = C.codeLines;
 function compareFile(f, hash) {
   const a = made(f), b = real(f);
   if (a === null || b === null) { fact('file present ' + f, a === null ? 'MISSING' : 'present', b === null ? 'MISSING' : 'present'); return; }
@@ -89,8 +107,9 @@ function compareFile(f, hash) {
   if (A.length !== B.length) { TALLY.unexplained.push(f + ': ' + A.length + ' code lines generated, ' + B.length + ' committed'); return; }
   const bad = [];
   for (let i = 0; i < A.length; i += 1) {
-    if (A[i] === B[i]) continue;
-    if (stripStrings(A[i]) === stripStrings(B[i]) && isNarrative(B[i])) { TALLY.narrative.push(f + ': ' + B[i].slice(0, 90)); continue; }
+    const verdict = C.classifyLine(A[i], B[i]);
+    if (verdict === 'same') continue;
+    if (verdict === 'narrative') { TALLY.narrative.push(f + ': ' + B[i].slice(0, 90)); continue; }
     bad.push(f + ' code line ' + (i + 1) + '\n      generated: ' + A[i].slice(0, 150) + '\n      committed: ' + B[i].slice(0, 150));
   }
   if (bad.length) TALLY.unexplained.push(...bad); else TALLY.prose.push(f);
@@ -146,7 +165,17 @@ test('REPLAY-4 - every declared path, role, pre and post in packages/S8.json', (
      p3-layout-v2 cells UNDECLARED and gave them a CI home by exact path instead). Each
      one is named in TODO.md with that reason, and --exclude is how the PM answers. */
   const todo = fs.readFileSync(path.join(OUT, 'TODO.md'), 'utf8');
-  for (const f of extra) assert(todo.includes(f), 'an extra declared path must be named in TODO.md: ' + f);
+  /* R1 N4. "Named in TODO.md" passed trivially - every new path is named. The fact worth
+     asserting is that each extra is named WITH THE RULING THAT APPLIES TO IT: it stands
+     under no declared child root, so no declared child executes it, which is the
+     DECISIONS:524 N1 shape. */
+  const entryFor = f => (todo.split('\n\n').find(p => p.includes(f)) || '');
+  for (const f of extra) {
+    assert(todo.includes(f), 'an extra declared path must be named in TODO.md: ' + f);
+    const e = entryFor(f);
+    assert(/DECISIONS:524 N1/.test(e) && /under NO declared child root/.test(e),
+      'an extra declared path must carry the ruling that applies to it, not the generic sentence:\n' + e);
+  }
   assert.deepEqual(extra, ['rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs', 'rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs'],
     'the only paths the generator declares that the round did not are the two the PM ruled out by hand at DECISIONS:524 N1');
 });
@@ -168,14 +197,34 @@ test('REPLAY-5 - the package coordinates the runner reads, and the parent bound 
   fact('brief.sha256', spec.brief.sha256, realSpec.brief.sha256);
 });
 
-test('REPLAY-6 - the runner sha256 is re-pinned in every ancestor spec that pins it, from the generated bytes', () => {
+test('REPLAY-6 - the runner sha256 is re-pinned in exactly the specs the round re-pinned', () => {
   const want = M.sha256(Buffer.from(made('rebuild/lanes/b/tooling/b-package.cjs'), 'utf8'));
+  /* THE SET IS THE CROSS-SIDE FACT (R1 N6). The VALUE cannot be: the generated runner
+     differs from the committed one in comment prose, so its sha256 differs by
+     construction, and the old cell compared the committed specs with each other and
+     counted that as reproduction. What the round DID commit, and what this generator can
+     be held to, is WHICH specs it touched: measured here from the diff of the round
+     itself, and compared with the generator's own REPORT.json. */
+  const repinnedByTheRound = M.diffNames(REPO, R.base, R.post)
+    .filter(f => /^rebuild\/lanes\/b\/tooling\/packages\/[A-Z0-9]+\.json$/.test(f))
+    .filter(f => {
+      const before = M.blobBytes(REPO, R.base, f), after = M.blobBytes(REPO, R.post, f);
+      if (!before || !after) return false;
+      const t = b => { try { return JSON.parse(b.toString('utf8')).tooling.runnerSha256; } catch (e) { return null; } };
+      return t(before) !== t(after);
+    })
+    .map(f => f.split('/').pop().replace('.json', ''))
+    .filter(id => id !== 'S8')
+    .sort();
+  const report = JSON.parse(fs.readFileSync(path.join(OUT, 'REPORT.json'), 'utf8'));
+  fact('the SET of ancestor specs re-pinned', report.repinnedSpecs.slice().sort(), repinnedByTheRound);
   fact('the package pins the sha of the runner this run generated', spec.tooling.runnerSha256, want);
   for (const id of ANCESTORS) {
     const g = JSON.parse(made('rebuild/lanes/b/tooling/packages/' + id + '.json'));
     fact(id + '.json re-pinned to the same runner', g.tooling.runnerSha256, want);
+    /* Committed against committed: a property of the round, not of this generator. */
     const rr = JSON.parse(real('rebuild/lanes/b/tooling/packages/' + id + '.json'));
-    fact(id + '.json re-pinned to the SAME sha the round pinned, allowing for the comment prose',
+    selfCheck(id + '.json carries the one sha the committed package carries',
       rr.tooling.runnerSha256 === realSpec.tooling.runnerSha256, true);
   }
 });
@@ -193,15 +242,23 @@ test('REPLAY-7 - the children, their argv and their needles', () => {
     const sorted = x => (x || []).slice().sort();
     if (!fact('child[' + i + '].argv (as a set)', sorted(g[i] && g[i].argv), sorted(r[i].argv))) continue;
     if (JSON.stringify(g[i].argv) !== JSON.stringify(r[i].argv)) TALLY.ordering.push('child `' + r[i].name + '` argv order');
-    if (process.env.GEN_REPLAY_NEEDLES) fact('child[' + i + '].needle', g[i] && g[i].needle, r[i].needle);
+    if (NEEDLES_COMPARABLE) fact('child[' + i + '].needle', g[i] && g[i].needle, r[i].needle);
   }
-  if (!process.env.GEN_REPLAY_NEEDLES) {
-    /* The needle mechanism proved on the cheapest real child rather than on all 25: the
-       engine-files differential is the interesting one, because its needle is a whole
-       sentence the child prints and not a `# pass N`, and children() requires it to stand
-       at the head of a line. Set GEN_REPLAY_NEEDLES=1 for all 25. */
+  if (!NEEDLES_COMPARABLE) {
+    /* R1 N2. The all-25 mode was reported as "the fuller proof" and it CANNOT pass from
+       an ordinary worktree: a needle is a `# pass N` printed by the tree that is CHECKED
+       OUT, and this worktree is hundreds of commits past 82c98f8. So the comparison is
+       gated on HEAD actually standing at the post head, the gate prints why it declined,
+       and the name of the switch says what it requires. What is proved here instead is
+       the MECHANISM, on the one child whose needle is a sentence rather than a tap count:
+       children() requires that sentence to stand at the head of a line of the child's own
+       stdout, and it does. */
+    console.log('  needles: NOT compared against the round. ' + NEEDLES_WHY);
     const one = r.find(c => c.name === 'engine-files-differential');
-    const run = M.runChild(REPO, one.argv);
+    const ce = M.childEnv(REPO);
+    /* The env is children()'s env, or the run says which part of it is missing (R1 B1). */
+    if (!ce.exact) console.log('  needle env: NOT children()\'s env here - ' + ce.why);
+    const run = M.runChild(REPO, one.argv, ce.env);
     fact('the differential child is green here', run.status, 0);
     fact('its recorded needle stands at the head of a line of its own stdout', M.needleStandsAtLineStart(run.out, one.needle), true);
   }
@@ -245,8 +302,10 @@ test('REPLAY-9 - the standing CI step and the lane-cell step', () => {
 
 test('REPLAY-10 - THE VERDICT: every mechanical fact is identical, and every difference that is left is prose', () => {
   const lines = ['', 'REPLAY OF THE S8 PREPARATION ROUND (' + R.post + ')',
-    '  facts compared        ' + TALLY.compared,
+    '  cross-side facts      ' + TALLY.compared + '   (generated vs committed - this is the number that means reproduction)',
     '  identical             ' + TALLY.identical,
+    '  self-checks           ' + TALLY.selfChecks + '   (one side of the round against itself; NOT counted above)',
+    '  needles               ' + (NEEDLES_COMPARABLE ? 'compared' : 'not compared: ' + NEEDLES_WHY),
     '  byte-identical files  ' + TALLY.byteIdentical.length + (TALLY.byteIdentical.length ? '  [' + TALLY.byteIdentical.map(f => f.split('/').pop()).join(', ') + ']' : ''),
     '  files differing in comment prose only  ' + TALLY.prose.length + (TALLY.prose.length ? '  [' + TALLY.prose.map(f => f.split('/').pop()).join(', ') + ']' : ''),
     '  test titles / assert messages differing ' + TALLY.narrative.length,
@@ -283,4 +342,63 @@ test('REPLAY-11 - RED CONTROL: a generator whose mirror is missing one substitut
   assert.notEqual(grab(tc, /assert\.equal\(api\.CHILD_ROOTS\.length, \d+\);/),
     grab(made('rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs'), /assert\.equal\(api\.CHILD_ROOTS\.length, \d+\);/),
     'and F7 must count it, or REPLAY-3 proves nothing');
+});
+
+test('REPLAY-12 - RED CONTROL: a wrong string INSIDE an assert expression is a difference, not prose', () => {
+  /* R1 N1. The old rule blanked every string on the line and forgave any assert that
+     carried a message, so a mutated data string inside the EXPRESSION was classified as
+     narrative. The lines below are real: they are taken from the committed
+     s8-supersede-second-gate cell at 82c98f8, by shape, so this control cannot drift away
+     from the file it is about. */
+  const cell = real('rebuild/m4/workout/test/s8-supersede-second-gate.test.cjs');
+  const lines = C.codeLines(cell);
+  const victim = lines.find(l => C.isAssertCall(l) && C.withoutMessage(l) !== null && /'[^']+'/.test(C.withoutMessage(l)));
+  assert(victim, 'the committed cell must contain an assert with a string inside its expression AND a message');
+  const head = C.withoutMessage(victim);
+  const mutated = victim.replace(head, head.replace(/'([^']+)'/, "'MUTATED-$1'"));
+  assert.notEqual(mutated, victim, 'the mutant must really differ');
+  assert.equal(C.classifyLine(mutated, victim), 'different',
+    'a mutated data string inside an assert expression must be a CODE difference:\n  ' + victim + '\n  ' + mutated);
+  /* And the other half of the rule still holds: a differing MESSAGE, and only the
+     message, is still prose - otherwise this control would have made the cell useless
+     rather than honest. */
+  const msgOnly = victim.replace(/,\s*(['"])((?:[^'"\\]|\\.)*)\1(\s*\)\s*;?)$/, ", $1a different message$1$3");
+  assert.notEqual(msgOnly, victim, 'the message rewrite must really differ');
+  assert.equal(C.classifyLine(msgOnly, victim), 'narrative', 'only the message moved: ' + msgOnly);
+  assert.equal(C.classifyLine(victim, victim), 'same');
+});
+
+test('REPLAY-13 - the needle env is the env children() builds, and a reduced env records NOTHING', () => {
+  /* R1 B1. children() does not hand its children the bare clock env: laws()
+     (b-package.cjs:2085-2086) adds ENGINE_MAIN, ENGINE_OLD and EARNED_CLIENT_DIR and
+     DELETES four variables that would otherwise arrive from the PM's own shell. This
+     asserts all three halves of that, including the deletion - which is measured by
+     poisoning this process's own env first. */
+  const gen = require('../new-child.cjs');
+  const POISON = 'sealgen-replay-poison';
+  const saved = {};
+  for (const k of M.CHILD_ENV_DELETED) { saved[k] = process.env[k]; process.env[k] = POISON; }
+  let ce;
+  try { ce = M.childEnv(REPO); } finally {
+    for (const k of M.CHILD_ENV_DELETED) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; }
+  }
+  /* These assert directly rather than through fact(): REPLAY-10 has already printed the
+     verdict by the time this cell runs, so a fact() recorded here would never be read. */
+  for (const [k, v] of Object.entries(M.CHILD_ENV_FIXED)) assert.equal(ce.env[k], v, 'child env sets ' + k);
+  assert.equal(ce.env.EARNED_CLIENT_DIR, path.join(REPO, 'rebuild/client'), 'child env sets EARNED_CLIENT_DIR');
+  for (const k of M.CHILD_ENV_DELETED) assert.equal(ce.env[k], undefined, 'child env DELETES ' + k + ' even when the shell carries it');
+  assert.equal(!!ce.env.ENGINE_MAIN, ce.exact, 'ENGINE_MAIN is set exactly when the reference build succeeded');
+  assert.equal(!!ce.env.ENGINE_OLD, ce.exact, 'ENGINE_OLD is set exactly when the reference build succeeded');
+  assert.throws(() => M.runChild(REPO, ['--version']), /MEASURE-CHILD-ENV-REQUIRED/, 'runChild must refuse to default the env');
+  /* And the refusal itself: when the env is not children()'s env, measureChildren records
+     no needle at all and says so once. It runs no child in that case, so this is cheap. */
+  if (!ce.exact) {
+    const todo = [];
+    const kids = gen.measureChildren(REPO, { childDecls: [{ name: 'probe', argv: ['--test', 'nothing.test.cjs'], needle: '# pass 1' }] }, todo);
+    assert(kids.every(k => k.measured === false && k.needle === gen.TODO_BLANK), 'no needle may be recorded under a reduced env');
+    assert.equal(todo.length, 1, 'and the reason is named once in TODO');
+    assert(/NOT MEASURED/.test(todo[0].what), 'the TODO entry must say so in its title: ' + todo[0].what);
+  } else {
+    console.log('  the reference build works here, so the reduced-env refusal was not exercised; set it up on a worktree with a broken node_modules to see it.');
+  }
 });

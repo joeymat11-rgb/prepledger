@@ -49,11 +49,32 @@ function subsFor(ctx) {
 function mirrorText(text, subs) { return text.replace(subs.re, m => (subs.map.has(m) ? subs.map.get(m) : m)); }
 
 /* Lines a mirror must NOT be trusted on: an ordinal or a counted enumeration. The
-   generator still emits its best mirror of them, and names every one in TODO.md. */
-const ORDINAL = /\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|twenty-first|generation|grandchild|great-grandchild)\b/i;
+   generator still emits its best mirror of them, and names every one in TODO.md.
+
+   R1 N7 narrowed this, and the reason matters more than the regex. TODO.md is the first
+   thing the PM reads and it is the generator's whole answer to "what could I not decide";
+   a detector that fires on the bare word `second` turns fourteen of sixty-seven entries
+   into `second-gate`, "re-run in a second" and "a second, independent source of bytes",
+   and teaches the reader to skim the one list that must be read. So:
+     STRONG - `fourth` upward, plus `grandchild` / `great-grandchild`: these words only
+              appear in this repo when a generation is being counted. They always fire.
+     WEAK   - `first`, `second`, `third`, `generation(s)`: they fire only when the word
+              stands as a WORD (never inside `second-gate`) and something countable stands
+              NEXT TO IT - a digit, an S-id, an M2- name, or a family word. "the second
+              gate of the nineteen" fires; "re-run in a second" does not. */
+const ORDINAL_STRONG = /\b(fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|twenty-first|great-grandchild|grandchild)\b/i;
+const ORDINAL_WEAK = /(?<![-\w])(first|second|third|generations?)(?![-\w])/i;
+const COUNTABLE_NEAR = /(\bS\d+\b|\bM2-|\b\d+\b|\b(child|grandchild|generation|package|element|id)s?\b)/i;
+const NEAR = 24;                                   // characters either side: "next to it"
+function isOrdinalProse(line) {
+  if (ORDINAL_STRONG.test(line)) return true;
+  const m = ORDINAL_WEAK.exec(line);
+  if (!m) return false;
+  return COUNTABLE_NEAR.test(line.slice(Math.max(0, m.index - NEAR), m.index + m[0].length + NEAR));
+}
 function prosePlaces(text, file) {
   const out = [];
-  text.split('\n').forEach((l, i) => { if (ORDINAL.test(l)) out.push({ file, line: i + 1, text: l.trim().slice(0, 160) }); });
+  text.split('\n').forEach((l, i) => { if (isOrdinalProse(l)) out.push({ file, line: i + 1, text: l.trim().slice(0, 160) }); });
   return out;
 }
-module.exports = { compile, subsFor, mirrorText, prosePlaces, ORDINAL };
+module.exports = { compile, subsFor, mirrorText, prosePlaces, isOrdinalProse, ORDINAL_STRONG, ORDINAL_WEAK };

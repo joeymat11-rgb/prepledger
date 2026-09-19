@@ -48,6 +48,10 @@ function parseArgv(argv) {
     else if (a === '--parent-seal') o.parentSeal = next();
     else if (a === '--tip-ref') o.tipRef = next();
     else if (a === '--exclude') (o.exclude = o.exclude || []).push(next());
+    /* --needle-repeat N (1..3, default 1): run each child N times and record its needle
+       only if every run printed it at a line start. A child that disagrees with itself is
+       a flake, and a package must not pin one (R1 B1). */
+    else if (a === '--needle-repeat') o.needleRepeat = Number(next());
     /* --released <path>, repeatable: a path a RELEASE-FROM-SEAL ruling has granted
        (rebuild/lanes/b/S9-RELEASE-SPEC.md). The generator never proposes this role. */
     else if (a === '--released') (o.released = o.released || []).push(next());
@@ -333,10 +337,15 @@ function buildPackage(root, ctx, todo) {
   const candidates = new Set(Object.keys(parentPins));
   candidates.add(specPath(ctx.parent.id));
   for (const f of changed) candidates.add(f);
-  const product = {}, mismatches = [], undecided = [];
+  const product = {}, mismatches = [], undecided = [], droppedMd = [];
   for (const f of [...candidates].sort()) {
     if (f === specPath(ctx.child.id)) continue;                        // a package never pins itself
-    if (/\.md$/i.test(f) && !(f in parentPins)) continue;              // briefs, reports, reviews and the ledger are not product
+    /* briefs, reports, reviews and the ledger are not product - but the drop is RECORDED
+       (R1 N5), because it is the one skip in this loop that used to say nothing and
+       DECISIONS:519's slice-deploy trigger is exactly a new .md
+       (rebuild/slice/pwa/DEPLOYS.md). One TODO line names them all rather than one line
+       each: a round moves a dozen .md files and a wall of them would bury the rest. */
+    if (/\.md$/i.test(f) && !(f in parentPins)) { droppedMd.push(f); continue; }
     const pre = M.blobSha256(root, sb, f), post = M.blobSha256(root, ph, f);
     if (post === null) { undecided.push({ f, why: 'present in the diff but absent at the post head; deleted paths are a PM ruling (DECISIONS:487 stop 2 shape), not a generated one' }); continue; }
     const pinned = Object.prototype.hasOwnProperty.call(parentPins, f);
@@ -360,11 +369,35 @@ function buildPackage(root, ctx, todo) {
     else if (!pinned) role = 'new';
     else role = (pre === post) ? 'carried' : 'edited';
     if (ctx.exclude.includes(f)) { undecided.push({ f, why: 'EXCLUDED by --exclude: a PM ruling keeps it undeclared (the DECISIONS:524 N1 shape). It is still in the lane diff, so it must be given a CI home by exact path.' }); continue; }
-    if (role === 'new' && pre !== null && pre === post) undecided.push({ f, why: 'role:new but pre === post; the runner requires pre === null OR pre !== post, so this path cannot be declared new. Either it belongs to an earlier package or the PM rules it undeclared (--exclude).' });
-    else if (role === 'new') undecided.push({ f, why: 'role:new and the parent does not pin it - confirm the PM means to declare it (DECISIONS:487 stop 7 makes a lanes/d file product only when a DECLARED CHILD executes it).' });
+    /* R1 N8. The runner requires pre === null OR pre !== post for role `new`, so a path
+       that fails that test cannot be declared at all: it is REFUSED here, not written
+       into the JSON with a TODO line contradicting it. */
+    if (role === 'new' && pre !== null && pre === post) {
+      undecided.push({ f, why: 'role:new but pre === post; the runner requires pre === null OR pre !== post, so this path cannot be declared new and is NOT declared. Either it belongs to an earlier package, or the PM declares it with another role by hand.' });
+      continue;
+    }
+    /* R1 N4. A `new` path that NO DECLARED CHILD executes is the exact shape DECISIONS:524
+       N1 ruled on: the PM kept the two p3-layout-v2 cells UNDECLARED and gave them a CI
+       home by exact path instead. That path gets that reason by name; a new path under a
+       declared child root gets the ordinary one. The wording is the difference between a
+       list the PM reads and a list the PM skims. */
+    if (role === 'new') {
+      const underRoot = (ctx.childRoots || []).some(r => f.startsWith(r));
+      undecided.push({
+        f,
+        why: underRoot
+          ? 'role:new and the parent does not pin it - confirm the PM means to declare it (DECISIONS:487 stop 7 makes a lanes/d file product only when a DECLARED CHILD executes it).'
+          : 'role:new, the parent does not pin it, and it stands under NO declared child root (' + ((ctx.childRoots || []).join(', ') || 'none given') + '), so no declared child executes it. This is the DECISIONS:524 N1 shape: there the PM ruled such a path UNDECLARED and gave it a CI home by exact path instead. Answer with --exclude to keep it undeclared, or add a child root that executes it.',
+      });
+    }
     product[f] = { pre, post, role };
   }
-  return { product, mismatches, undecided, changed };
+  if (droppedMd.length) todo.push({
+    what: 'the ' + droppedMd.length + ' new .md path(s) this package does NOT declare',
+    why: 'a .md the parent does not already pin is dropped as prose (brief, report, review, ledger). Confirm none of them is product: DECISIONS:519\'s slice-deploy trigger is a new .md (rebuild/slice/pwa/DEPLOYS.md) and it is a real obligation of the seal. Dropped: ' +
+      droppedMd.slice(0, 12).join(', ') + (droppedMd.length > 12 ? ' and ' + (droppedMd.length - 12) + ' more' : ''),
+  });
+  return { product, mismatches, undecided, changed, droppedMd };
 }
 
 /* (g) THE NEEDLES. Measured by RUNNING each declared child the way children() runs it.
@@ -372,8 +405,26 @@ function buildPackage(root, ctx, todo) {
    recorded at all - it is reported, because that is the refusal the runner would raise. */
 function measureChildren(root, ctx, todo) {
   const out = [];
+  /* R1 B1. The env FIRST, and if it is not children()'s env then nothing is measured at
+     all. This is the one fact in the package with no second witness in Git, so it is the
+     one place where "close enough" is worth less than a named blank. */
+  const ce = M.childEnv(root);
+  if (!ce.exact) {
+    todo.push({
+      what: 'EVERY CHILD NEEDLE (' + ctx.childDecls.length + ' children) - NOT MEASURED',
+      why: 'children() runs each child under the env laws() builds at b-package.cjs:2085, and here that env cannot be reproduced: ' + ce.why +
+        '. A needle measured under a different env is a `# pass N` the runner will not reproduce, so none was recorded. Run the generator from a worktree where the pinned reference build works (node_modules must really be present, esbuild 0.28.1), or take each needle from the --ci run that proves the child green.',
+    });
+    return ctx.childDecls.map(c => ({
+      name: c.name, argv: c.argv, needle: TODO_BLANK, measured: false,
+      how: 'NOT MEASURED: ' + ce.why, was: c.needle || null, status: null,
+    }));
+  }
+  const repeat = Math.max(1, Math.min(3, ctx.needleRepeat || 1));
   for (const c of ctx.childDecls) {
-    const r = M.runChild(root, c.argv);
+    const runs = [];
+    for (let k = 0; k < repeat; k += 1) runs.push(M.runChild(root, c.argv, ce.env));
+    const r = runs[0];
     const tap = M.tapPassNeedle(r.out);
     const carried = c.needle;
     let needle = null, how = '';
@@ -382,6 +433,15 @@ function measureChildren(root, ctx, todo) {
     else if (carried && M.needleStandsAtLineStart(r.out, carried)) { needle = carried; how = 'the parent\'s needle re-measured on this head and still a terminal line'; }
     else { how = 'a non---test child whose parent needle no longer stands at a line start; the verdict text must be re-read by hand'; }
     if (needle && !M.needleStandsAtLineStart(r.out, needle)) { needle = null; how = 'CHILD-NEEDLE-NOT-A-TERMINAL-LINE; not recorded'; }
+    /* --needle-repeat: a needle only stands if every run of the child produced it. One
+       run is the default because 25 children cost minutes; two is what a PM should pass
+       before a seal, and a child that disagrees with itself is a flake the package must
+       not pin. */
+    if (needle && repeat > 1) {
+      const disagree = runs.findIndex(x => x.status !== 0 || !M.needleStandsAtLineStart(x.out, needle));
+      if (disagree >= 0) { how = 'NOT REPRODUCED: run ' + (disagree + 1) + ' of ' + repeat + ' did not print this needle at a line start (exit ' + runs[disagree].status + '); not recorded'; needle = null; }
+      else how += ', reproduced over ' + repeat + ' runs';
+    }
     if (!needle) todo.push({ what: 'needle for child `' + c.name + '`', why: how });
     out.push({ name: c.name, argv: c.argv, needle: needle || TODO_BLANK, measured: !!needle, how, was: carried || null, status: r.status });
   }
@@ -495,7 +555,7 @@ function main(argv) {
   const parentSeal = o.parentSeal || M.gitText(root, ['merge-base', sourceBase, o.tipRef || 'origin/rebuild/t2-client-core']).trim();
   const ctx = {
     root, sourceBase, base, postHead, parentSeal, chain, parent, child, parentSpec,
-    childRoots: o.childRoots, exclude: o.exclude || [], released: o.released || [], dispatchLine: o.dispatchLine,
+    childRoots: o.childRoots, exclude: o.exclude || [], released: o.released || [], dispatchLine: o.dispatchLine, needleRepeat: o.needleRepeat,
     subst: o.subst || [], noBlock: [], prose: [], laneCells: laneCellsUnder(root, postHead, o.childRoots), parentRootHint: null,
     ownChildName: o.childRoots.length ? 'd-' + slugOf(o.name).replace(/^s\d+-/, '') : null,
     briefFile: 'rebuild/lanes/b/' + o.name.replace(/^M2-/, '') + '-BRIEF.md',
@@ -503,6 +563,18 @@ function main(argv) {
     parentGateLineText: (function () { const w = parentSpec.coverage.superseded.rulingLineSha256; for (const l of decisions) if (M.sha256Text(l) === w) return l; return null; }()),
     parentReceiptLine: (function () { const re = new RegExp('POSTFIX-ACCEPTANCE ' + parent.name + ' [a-f0-9]{40} \\S+ [a-f0-9]{64} ACCEPTED$'); for (let i = 0; i < decisions.length; i += 1) if (re.test(decisions[i])) return i + 1; return null; }()),
   };
+  /* R1 N9. --post-head defaults to HEAD, and every `post` sha, the candidate set and the
+     lane cell list are read there. A post head that is not a descendant of --head is
+     measuring this package against an unrelated tip, so it is said FIRST, before any
+     other TODO line, and it is said whether or not the runner sha happens to agree. */
+  const descends = M.isAncestor(root, sourceBase, postHead);
+  if (descends !== true) todo.unshift({
+    what: 'THE POST HEAD ' + postHead.slice(0, 8) + ' IS NOT A DESCENDANT OF --head ' + sourceBase.slice(0, 8),
+    why: (descends === false
+      ? 'git merge-base --is-ancestor says it is not in this head\'s history'
+      : 'git merge-base --is-ancestor could not answer for these two revs') +
+      '. Every `post` sha256 in this package, the candidate set (diff parentSeal..postHead) and the lane cell list were measured THERE. Pass --post-head explicitly, or re-run from the lane worktree once the round\'s own commits are on it.',
+  });
   if (!ctx.parentGateLineText) todo.push({ what: 'the parent GATE-SUPERSESSION line', why: 'no line in rebuild/DECISIONS.md at ' + postHead.slice(0, 8) + ' hashes to ' + parentSpec.coverage.superseded.rulingLineSha256.slice(0, 12) + '; the mirror of the child line cannot be drafted' });
   if (!ctx.parentReceiptLine) todo.push({ what: 'parent.receiptLedgerLine', why: 'no POSTFIX-ACCEPTANCE line for ' + parent.name + ' was found in the ledger at the post head' });
   if (!o.dispatchLine) todo.push({ what: '--dispatch-line', why: 'the ledger line that dispatches this round is cited in the IDS comment; without it the mirrored comment still cites the PARENT round' });
@@ -574,17 +646,32 @@ function finish(ctx, o, todo, wrote, runner, cells, csDone, out, say) {
   /* (f) THE ANCESTOR RE-PINS. Moving the runner moves runnerSha256, so every spec that
      pins it is edited. The sha is taken over the GENERATED runner text, and cross-checked
      against the blob at the post head when the hunks have already landed there. */
-  const repinned = [];
+  const repinned = [], frozenPins = [];
   const atPost = M.blobSha256(root, ctx.postHead, RUNNER_PATH);
+  /* WHICH specs get re-pinned, and it is not "every spec that names the runner".
+     Measured on the S8 round (R1 N6 put the SET under test and this is what it found):
+     H3, S3, S4, S5, S6 and S7 all pin the sha of the runner AS IT STANDS AT THE BASE, and
+     the round moved all six. B-NTC, B1, B2, B3 and B4 pin 4482bb8a - an older runner,
+     frozen where their own seal left it - and the round did not touch one of them. A spec
+     that is already pinned to some other runner is not stale, it is HISTORY, and rewriting
+     it would put five files into the diff that no reviewer asked for and quietly restate
+     what those packages were sealed against. So the rule is: re-pin a spec only when it
+     pins the runner this hunk is moving, and name the ones left alone. */
+  const runnerAtBase = M.blobSha256(root, ctx.base, RUNNER_PATH);
   for (const id of ctx.parentIds) {
     const b = M.blobBytes(root, ctx.base, specPath(id));
     if (!b) continue;
     const s = JSON.parse(b.toString('utf8'));
     if (!s.tooling || s.tooling.runner !== RUNNER_PATH) continue;
+    if (s.tooling.runnerSha256 !== runnerAtBase) { frozenPins.push(id + ' (' + String(s.tooling.runnerSha256).slice(0, 12) + ')'); continue; }
     s.tooling.runnerSha256 = ctx.runnerSha256;
     repinned.push(id);
     wrote.push(['tree/' + specPath(id), JSON.stringify(s, null, 2) + '\n']);
   }
+  if (frozenPins.length) todo.push({
+    what: 'the ' + frozenPins.length + ' spec(s) pinned to an OLDER runner and left alone',
+    why: 'these pin a runner sha256 that is not the one at the base (' + String(runnerAtBase).slice(0, 12) + '), so they are frozen where their own seal left them and this round does not rewrite them. The S8 round did the same with B-NTC and B1..B4. If one of them must move, that is a PM ruling and a separate hunk. Left alone: ' + frozenPins.join(', '),
+  });
   /* (e) + (g) THE PACKAGE AND THE NEEDLES. */
   const pins = buildPackage(root, ctx, todo);
   for (const m of pins.mismatches) todo.push({ what: 'PARENT PIN MISMATCH ' + m.f, why: 'the parent records post ' + m.parentPost.slice(0, 12) + ' and the blob at the source base is ' + String(m.measuredPre).slice(0, 12) + '; this is the check DECISIONS:511 calls "re-hashed from Git, 0 mismatches" and it did NOT pass' });
