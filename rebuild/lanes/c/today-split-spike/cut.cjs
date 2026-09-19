@@ -413,8 +413,17 @@ for (const [file, regions] of Object.entries(table.files)) {
       /* THIS IS WHAT A SEAM IS, MECHANICALLY: a region whose boundary falls inside a
          statement cannot be a pure move, because a cut there leaves half a statement in
          the released file. A region whose boundaries align CAN be a pure move. So the
-         seam list is the machine's, not the author's (S-R17 (g)). */
-      if (straddles && WITNESSED_KINDS.has(x.r.kind)) {
+         seam list is the machine's, not the author's (S-R17 (g)).
+         PART 2: THE RULE IS A MOVE'S, NOT A REPLACE'S, and the difference is exact. A move
+         takes lines OUT of one file and puts them in another, so a boundary inside a
+         statement leaves half of it behind and the other half in the seal. A `replace` row
+         takes lines out and puts its own lines back AT THE SAME POSITION, so no half is
+         left anywhere; the interface rows of part 2 rewrite lines like
+         `if (!foodLane) {`, which open a block deliberately and whose replacement opens the
+         same block. What has to hold for a replace is that the OUTPUT still parses, and
+         that is checked directly below, on the bytes the cut actually writes, which is a
+         stronger statement than this one and not a weaker one. */
+      if (straddles && x.r.kind === "move") {
         fail(file + " " + x.r.id + ": region " + straddles.end + " at :" + straddles.at +
           " inside a " + straddles.t + " that runs :" + straddles.a + "-:" + straddles.b +
           ". A cut there leaves half a statement behind, so this is a SEAM, not a move.");
@@ -528,6 +537,30 @@ for (const [file, regions] of Object.entries(table.files)) {
   const editedPath = path.join(OUT, file);
   fs.writeFileSync(editedPath, keptLines.join("\n"));
   linemap[file] = keptMap;
+
+  /* ---- THE PARSE CHECK, ON THE BYTES THIS RUN WROTE (part 2) -----------------------
+   * The alignment check above is about a MOVE's boundary. A `replace` row's failure mode
+   * is different and this is its check: a replacement that drops a brace, an unbalanced
+   * parenthesis or a stray comma produces a file that does not parse, and the cut must
+   * refuse by region rather than hand a broken product file to the suite. It runs over the
+   * OUTPUT, so it covers the sealed file's wrapper and the released file's replacements
+   * together, and it names the replace rows of the file it failed on so a reader has
+   * somewhere to look. */
+  {
+    const acorn2 = require(path.join(INSTR, "acorn"));
+    for (const [p, who] of [[editedPath, file], [destPath, dest]]) {
+      const text = fs.readFileSync(p, "utf8");
+      try {
+        acorn2.parse(text, { ecmaVersion: 2022,
+          sourceType: who.endsWith(".mjs") ? "module" : "script", allowReturnOutsideFunction: false });
+      } catch (e) {
+        const ids = replaces.map((x) => x.r.id).join(", ") || "(none)";
+        fail(who + ": THE OUTPUT DOES NOT PARSE. " + e.message +
+          ". A move cannot cause this (its boundaries are statement-aligned and checked" +
+          " above), so look at this file's declared `replace` rows: " + ids);
+      }
+    }
+  }
 
   /* THE PER-FILE MOVED-LINE TOTAL, ASSERTED (S-R20). R3's second and third attacks both
      left every anchor resolvable and every boundary statement-aligned, and the ONE number

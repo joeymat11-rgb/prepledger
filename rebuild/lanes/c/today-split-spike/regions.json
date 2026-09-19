@@ -745,7 +745,10 @@
     "last": {
      "text": "  if (willAdopt) armAdoptionGate();",
      "nthFrom": 1
-    }
+    },
+    "declaresSealed": [
+     "willAdopt"
+    ]
    },
    {
     "id": "TA-S36",
@@ -802,6 +805,9 @@
     },
     "replacement": [
      "  hooks.bootSettleAdoption();"
+    ],
+    "declaresSealed": [
+     "ready"
     ]
    },
    {
@@ -1055,6 +1061,2236 @@
      "text": "    disposed: () => disposed };",
      "nthFrom": 1
     }
+   },
+   {
+    "id": "TA-W01",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M01: the released route stops owning the measure screen cache. The seal mints it and keeps it; the released half keeps its own `Screen` import and its token guard. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     652,
+     652
+    ],
+    "first": {
+     "text": "    if (!measureScreen) measureScreen = Screen.createMeasureScreen(measureDeps());",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (!measureScreen) measureScreen = Screen.createMeasureScreen(measureDeps());",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    hooks.mintMeasureScreen(Screen);"
+    ]
+   },
+   {
+    "id": "TA-W02",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M02: the import screen twin. R2 BLOCKING-8's finding is that :718-:719 go with it, and they do: gen-interface rewrites both through the facade. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     711,
+     711
+    ],
+    "first": {
+     "text": "    if (!importScreen) importScreen = Screen.createImportScreen(importDeps());",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (!importScreen) importScreen = Screen.createImportScreen(importDeps());",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    hooks.mintImportScreen(Screen);"
+    ]
+   },
+   {
+    "id": "TA-W03",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the retry click handed the in-flight promise to a released binding. The seal mints and assigns it; the released half keeps the listener and the guard. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     1270,
+     1270
+    ],
+    "first": {
+     "text": "      if (foodReadBack) retry.addEventListener(\"click\", () => { foodSaving = retryFoodRead(); });",
+     "nth": 1
+    },
+    "last": {
+     "text": "      if (foodReadBack) retry.addEventListener(\"click\", () => { foodSaving = retryFoodRead(); });",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      if (facade.foodReadBack()) retry.addEventListener(\"click\", () => { hooks.retryFoodRead(); });"
+    ]
+   },
+   {
+    "id": "TA-W04",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the food save click. The DOM arguments are UNCHANGED, because changing recordIntake's signature would rewrite a moved region and that is an undeclared statement rewrite (S-R17 (g)); B.3's `no entry takes a DOM node` is therefore NOT met by this part and is reported as a STOP. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     1273,
+     1273
+    ],
+    "first": {
+     "text": "    save.addEventListener(\"click\", () => { foodSaving = recordIntake(save, cal, pro, error); });",
+     "nth": 1
+    },
+    "last": {
+     "text": "    save.addEventListener(\"click\", () => { foodSaving = recordIntake(save, cal, pro, error); });",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    save.addEventListener(\"click\", () => { hooks.recordIntake(save, cal, pro, error); });"
+    ]
+   },
+   {
+    "id": "TA-W05",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M07 / R2 BLOCKING-1: the seal mints the read handle and assigns it; the `.then` body below is PURE PAINT, stays released byte-identical, and is handed to the hook as a closure. Only this one line changes. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     1436,
+     1436
+    ],
+    "first": {
+     "text": "    sleepCheckInViewPending = Promise.all([loadCheckInKit(), readSleepCheckIn(date, true)]).then(() => {",
+     "nth": 1
+    },
+    "last": {
+     "text": "    sleepCheckInViewPending = Promise.all([loadCheckInKit(), readSleepCheckIn(date, true)]).then(() => {",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    hooks.readSleepCheckInView(date, () => {"
+    ]
+   },
+   {
+    "id": "TA-W06",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M08 / SEAM 9a: eight assignments in one gesture. hooks.sleepNightChosen(rawDate) takes the RAW field value and the seal does all eight, including B.6's outcome reset. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     1540,
+     1543
+    ],
+    "first": {
+     "text": "        sleepNightChoice = dateBox.value || null;",
+     "nth": 1
+    },
+    "last": {
+     "text": "        sleepAck = null; sleepReadBack = null; sleepCorrecting = false; sleepErrorText = \"\";",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        hooks.sleepNightChosen(dateBox.value || null);"
+    ]
+   },
+   {
+    "id": "TA-W07",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M09 / SEAM 9b: four assignments, no argument at all. The night the seal keeps is the seal's own rollover value. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     1561,
+     1563
+    ],
+    "first": {
+     "text": "        sleepNightChoice = sleepRollover || sleepNightDate();",
+     "nth": 1
+    },
+    "last": {
+     "text": "        sleepOpenedDay = sleepToday(); sleepOpenedNight = sleepNightDate();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        hooks.keepNight();"
+    ]
+   },
+   {
+    "id": "TA-W08",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the sleep read retry, the twin of the food one. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     1668,
+     1668
+    ],
+    "first": {
+     "text": "      retry.addEventListener(\"click\", () => { sleepSaving = retrySleepRead(); });",
+     "nth": 1
+    },
+    "last": {
+     "text": "      retry.addEventListener(\"click\", () => { sleepSaving = retrySleepRead(); });",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      retry.addEventListener(\"click\", () => { hooks.retrySleepRead(); });"
+    ]
+   },
+   {
+    "id": "TA-W09",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: sleepCorrecting = true is a sealed flag. hooks.sleepCorrect(flag) takes it; the repaint stays released, which is where the router lives. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     1704,
+     1704
+    ],
+    "first": {
+     "text": "      change.addEventListener(\"click\", () => { sleepCorrecting = true; render(\"sleep\", false); });",
+     "nth": 1
+    },
+    "last": {
+     "text": "      change.addEventListener(\"click\", () => { sleepCorrecting = true; render(\"sleep\", false); });",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      change.addEventListener(\"click\", () => { hooks.sleepCorrect(true); render(\"sleep\", false); });"
+    ]
+   },
+   {
+    "id": "TA-W10",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the cancel path, the same flag the other way. clearSleepDraft and render are RELEASED and stay released: the draft is the screen's own transient state (the file says so at :475). Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     1711,
+     1711
+    ],
+    "first": {
+     "text": "        sleepCorrecting = false; clearSleepDraft(); render(\"sleep\", false);",
+     "nth": 1
+    },
+    "last": {
+     "text": "        sleepCorrecting = false; clearSleepDraft(); render(\"sleep\", false);",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        hooks.sleepCorrect(false); clearSleepDraft(); render(\"sleep\", false);"
+    ]
+   },
+   {
+    "id": "TA-W11",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 RELEASED body: the sleep save click, the one gesture that writes a night. Same DOM-argument qualification as the food save. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     1722,
+     1722
+    ],
+    "first": {
+     "text": "    save.addEventListener(\"click\", () => { sleepSaving = recordSleep(map); });",
+     "nth": 1
+    },
+    "last": {
+     "text": "    save.addEventListener(\"click\", () => { sleepSaving = recordSleep(map); });",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    save.addEventListener(\"click\", () => { hooks.recordSleep(map); });"
+    ]
+   },
+   {
+    "id": "TA-W12",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M10 / SEAM 10: the check-in read cache is cleared when the athlete leaves for the sleep screen. mountToken += 1 on the line above stays RELEASED (S-R15), because it is a paint concern and the file says so at :2289-:2294. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     2298,
+     2298
+    ],
+    "first": {
+     "text": "      if (next === \"sleep\") { sleepCheckInDay = null; sleepCheckInPending = null; }",
+     "nth": 1
+    },
+    "last": {
+     "text": "      if (next === \"sleep\") { sleepCheckInDay = null; sleepCheckInPending = null; }",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      if (next === \"sleep\") hooks.forgetCheckInRead();"
+    ]
+   },
+   {
+    "id": "TA-W13",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 HAND-DESIGNED interface row (spec B.5, RELEASED ASSIGNS A SEALED BINDING). B.5 TA-M11 / B.3 consequence 3: the setup done chain assigns the sealed `ready`. The seal takes the adopting flag, mints the chain and assigns; the `return ready;` two lines below is rewritten through the facade by gen-interface. Each is an S-R17 (g) statement rewrite, declared here in advance.",
+    "tipLines": [
+     2334,
+     2334
+    ],
+    "first": {
+     "text": "          ready = settleAdoption(adopting ? adoptAthleteState() : Promise.resolve(), adopting);",
+     "nth": 1
+    },
+    "last": {
+     "text": "          ready = settleAdoption(adopting ? adoptAthleteState() : Promise.resolve(), adopting);",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "          hooks.settleAdoption(adopting);"
+    ]
+   },
+   {
+    "id": "TA-I001",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: measureScreen (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     653,
+     653
+    ],
+    "first": {
+     "text": "    await measureScreen.paint(root, () => token === mountToken);",
+     "nth": 1
+    },
+    "last": {
+     "text": "    await measureScreen.paint(root, () => token === mountToken);",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    await facade.measureScreen().paint(root, () => token === mountToken);"
+    ]
+   },
+   {
+    "id": "TA-I002",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: ready (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     668,
+     668
+    ],
+    "first": {
+     "text": "    try { await ready; } catch (_) { /* reported by adoptAthleteState's own catch */ }",
+     "nth": 1
+    },
+    "last": {
+     "text": "    try { await ready; } catch (_) { /* reported by adoptAthleteState's own catch */ }",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    try { await facade.ready(); } catch (_) { /* reported by adoptAthleteState's own catch */ }"
+    ]
+   },
+   {
+    "id": "TA-I003",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: firstRun (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     678,
+     678
+    ],
+    "first": {
+     "text": "    if (!firstRun()) importLink(root, root.querySelector('[data-slot=\"measure-baseline-note\"]'));",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (!firstRun()) importLink(root, root.querySelector('[data-slot=\"measure-baseline-note\"]'));",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (!facade.firstRun()) importLink(root, root.querySelector('[data-slot=\"measure-baseline-note\"]'));"
+    ]
+   },
+   {
+    "id": "TA-I004",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: importScreen (read) inside the seam TA-M03. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     718,
+     718
+    ],
+    "first": {
+     "text": "    if (focus) importScreen.reopen();",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (focus) importScreen.reopen();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (focus) facade.importScreen().reopen();"
+    ]
+   },
+   {
+    "id": "TA-I005",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: importScreen (read) inside the seam TA-M03. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     719,
+     719
+    ],
+    "first": {
+     "text": "    await importScreen.paint(root, () => token === mountToken);",
+     "nth": 1
+    },
+    "last": {
+     "text": "    await importScreen.paint(root, () => token === mountToken);",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    await facade.importScreen().paint(root, () => token === mountToken);"
+    ]
+   },
+   {
+    "id": "TA-I006",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: importAdmitted (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     737,
+     737
+    ],
+    "first": {
+     "text": "    link.textContent = plainOrDrop(importAdmitted ? IMPORT_LINK_DONE : IMPORT_LINK_NEW, \"import-entry\");",
+     "nth": 1
+    },
+    "last": {
+     "text": "    link.textContent = plainOrDrop(importAdmitted ? IMPORT_LINK_DONE : IMPORT_LINK_NEW, \"import-entry\");",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    link.textContent = plainOrDrop(facade.importAdmitted() ? IMPORT_LINK_DONE : IMPORT_LINK_NEW, \"import-entry\");"
+    ]
+   },
+   {
+    "id": "TA-I007",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: adoptionSettled (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     770,
+     770
+    ],
+    "first": {
+     "text": "    if (!adoptionSettled || !todayEntry) return null;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (!adoptionSettled || !todayEntry) return null;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (!facade.adoptionSettled() || !todayEntry) return null;"
+    ]
+   },
+   {
+    "id": "TA-I008",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: session (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     888,
+     888
+    ],
+    "first": {
+     "text": "    const today = session();",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const today = session();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const today = facade.session();"
+    ]
+   },
+   {
+    "id": "TA-I009",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout (read) inside the seam TA-M04. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     955,
+     955
+    ],
+    "first": {
+     "text": "        try { await workout.recover(); } finally { primary.disabled = false; }",
+     "nth": 1
+    },
+    "last": {
+     "text": "        try { await workout.recover(); } finally { primary.disabled = false; }",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        try { await facade.workout().recover(); } finally { primary.disabled = false; }"
+    ]
+   },
+   {
+    "id": "TA-I010",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: firstRun (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     992,
+     992
+    ],
+    "first": {
+     "text": "    todayEntry = firstRun() ? null : { root, token };",
+     "nth": 1
+    },
+    "last": {
+     "text": "    todayEntry = firstRun() ? null : { root, token };",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    todayEntry = facade.firstRun() ? null : { root, token };"
+    ]
+   },
+   {
+    "id": "TA-I011",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodLane (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1166,
+     1166
+    ],
+    "first": {
+     "text": "    if (!foodLane) {",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (!foodLane) {",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (!facade.foodLane()) {"
+    ]
+   },
+   {
+    "id": "TA-I012",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: openFoodLane (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1181,
+     1181
+    ],
+    "first": {
+     "text": "      const opening = openFoodLane();",
+     "nth": 1
+    },
+    "last": {
+     "text": "      const opening = openFoodLane();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      const opening = hooks.openFoodLane();"
+    ]
+   },
+   {
+    "id": "TA-I013",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodLaneFailure (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1182,
+     1182
+    ],
+    "first": {
+     "text": "      const why = opening && !foodLaneFailure ? FOOD_OPENING",
+     "nth": 1
+    },
+    "last": {
+     "text": "      const why = opening && !foodLaneFailure ? FOOD_OPENING",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      const why = opening && !facade.foodLaneFailure() ? FOOD_OPENING"
+    ]
+   },
+   {
+    "id": "TA-I014",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodLaneFailure (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1183,
+     1183
+    ],
+    "first": {
+     "text": "        : foodLaneFailure ? FOOD_NO_STORE + \" \" + FOOD_REASON + foodLaneFailure + \".\"",
+     "nth": 1
+    },
+    "last": {
+     "text": "        : foodLaneFailure ? FOOD_NO_STORE + \" \" + FOOD_REASON + foodLaneFailure + \".\"",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        : facade.foodLaneFailure() ? FOOD_NO_STORE + \" \" + FOOD_REASON + facade.foodLaneFailure() + \".\""
+    ]
+   },
+   {
+    "id": "TA-I015",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodLane (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1221,
+     1221
+    ],
+    "first": {
+     "text": "    const opened = foodLane && foodLane.host ? foodLane.host.openedRefusal : null;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const opened = foodLane && foodLane.host ? foodLane.host.openedRefusal : null;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const opened = facade.foodLane() && facade.foodLane().host ? facade.foodLane().host.openedRefusal : null;"
+    ]
+   },
+   {
+    "id": "TA-I016",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1253,
+     1253
+    ],
+    "first": {
+     "text": "    if (foodReadBack && foodReadBack.entry) {",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (foodReadBack && foodReadBack.entry) {",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (facade.foodReadBack() && facade.foodReadBack().entry) {"
+    ]
+   },
+   {
+    "id": "TA-I017",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1254,
+     1254
+    ],
+    "first": {
+     "text": "      cal.value = foodReadBack.entry.cal === undefined ? \"\" : String(foodReadBack.entry.cal);",
+     "nth": 1
+    },
+    "last": {
+     "text": "      cal.value = foodReadBack.entry.cal === undefined ? \"\" : String(foodReadBack.entry.cal);",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      cal.value = facade.foodReadBack().entry.cal === undefined ? \"\" : String(facade.foodReadBack().entry.cal);"
+    ]
+   },
+   {
+    "id": "TA-I018",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1255,
+     1255
+    ],
+    "first": {
+     "text": "      pro.value = foodReadBack.entry.pro === undefined ? \"\" : String(foodReadBack.entry.pro);",
+     "nth": 1
+    },
+    "last": {
+     "text": "      pro.value = foodReadBack.entry.pro === undefined ? \"\" : String(foodReadBack.entry.pro);",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      pro.value = facade.foodReadBack().entry.pro === undefined ? \"\" : String(facade.foodReadBack().entry.pro);"
+    ]
+   },
+   {
+    "id": "TA-I019",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1257,
+     1257
+    ],
+    "first": {
+     "text": "    if (foodReadBack && foodReadBack.state === \"unavailable\") {",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (foodReadBack && foodReadBack.state === \"unavailable\") {",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (facade.foodReadBack() && facade.foodReadBack().state === \"unavailable\") {"
+    ]
+   },
+   {
+    "id": "TA-I020",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1259,
+     1259
+    ],
+    "first": {
+     "text": "        FOOD_SAVED + \" · \" + intakeLine(foodReadBack.day) + \" \" + FOOD_SAVED_UNREAD, \"food-recorded\");",
+     "nth": 1
+    },
+    "last": {
+     "text": "        FOOD_SAVED + \" · \" + intakeLine(foodReadBack.day) + \" \" + FOOD_SAVED_UNREAD, \"food-recorded\");",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        FOOD_SAVED + \" · \" + intakeLine(facade.foodReadBack().day) + \" \" + FOOD_SAVED_UNREAD, \"food-recorded\");"
+    ]
+   },
+   {
+    "id": "TA-I021",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1262,
+     1262
+    ],
+    "first": {
+     "text": "    if (foodReadBack) {",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (foodReadBack) {",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (facade.foodReadBack()) {"
+    ]
+   },
+   {
+    "id": "TA-I022",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1263,
+     1263
+    ],
+    "first": {
+     "text": "      const said = foodReadBack.code ? FOOD_REASON + foodReadBack.code + \".\" : \"\";",
+     "nth": 1
+    },
+    "last": {
+     "text": "      const said = foodReadBack.code ? FOOD_REASON + foodReadBack.code + \".\" : \"\";",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      const said = facade.foodReadBack().code ? FOOD_REASON + facade.foodReadBack().code + \".\" : \"\";"
+    ]
+   },
+   {
+    "id": "TA-I023",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1264,
+     1264
+    ],
+    "first": {
+     "text": "      const head = foodReadBack.state === \"unknown\" ? FOOD_UNKNOWN : FOOD_SAVED_UNREAD;",
+     "nth": 1
+    },
+    "last": {
+     "text": "      const head = foodReadBack.state === \"unknown\" ? FOOD_UNKNOWN : FOOD_SAVED_UNREAD;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      const head = facade.foodReadBack().state === \"unknown\" ? FOOD_UNKNOWN : FOOD_SAVED_UNREAD;"
+    ]
+   },
+   {
+    "id": "TA-I024",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1268,
+     1268
+    ],
+    "first": {
+     "text": "      retry.hidden = !foodReadBack;",
+     "nth": 1
+    },
+    "last": {
+     "text": "      retry.hidden = !foodReadBack;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      retry.hidden = !facade.foodReadBack();"
+    ]
+   },
+   {
+    "id": "TA-I025",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1269,
+     1269
+    ],
+    "first": {
+     "text": "      retry.textContent = foodReadBack ? plainOrDrop(FOOD_READ_RETRY, \"food-retry\") : \"\";",
+     "nth": 1
+    },
+    "last": {
+     "text": "      retry.textContent = foodReadBack ? plainOrDrop(FOOD_READ_RETRY, \"food-retry\") : \"\";",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      retry.textContent = facade.foodReadBack() ? plainOrDrop(FOOD_READ_RETRY, \"food-retry\") : \"\";"
+    ]
+   },
+   {
+    "id": "TA-I026",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInDay, sleepCheckInPending, sleepCheckInFailed (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1405,
+     1405
+    ],
+    "first": {
+     "text": "    if (sleepCheckInDay === day && (sleepCheckInPending || sleepCheckInFailed)) return null;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (sleepCheckInDay === day && (sleepCheckInPending || sleepCheckInFailed)) return null;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (facade.sleepCheckInDay() === day && (facade.sleepCheckInPending() || facade.sleepCheckInFailed())) return null;"
+    ]
+   },
+   {
+    "id": "TA-I027",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInDay, sleepCheckInRow (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1406,
+     1406
+    ],
+    "first": {
+     "text": "    if (sleepCheckInDay === day) return sleepCheckInRow;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (sleepCheckInDay === day) return sleepCheckInRow;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (facade.sleepCheckInDay() === day) return facade.sleepCheckInRow();"
+    ]
+   },
+   {
+    "id": "TA-I028",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkInLive, checkin (read) inside the seam TA-M06. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1407,
+     1407
+    ],
+    "first": {
+     "text": "    const active = checkInLive || (checkin && checkin.checkin);",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const active = checkInLive || (checkin && checkin.checkin);",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const active = facade.checkInLive() || (facade.checkin() && facade.checkin().checkin);"
+    ]
+   },
+   {
+    "id": "TA-I029",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepNightDate (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1430,
+     1430
+    ],
+    "first": {
+     "text": "    const date = sleepNightDate(), day = SleepModel.dayAfter(date), token = mountToken;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const date = sleepNightDate(), day = SleepModel.dayAfter(date), token = mountToken;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const date = facade.sleepNightDate(), day = SleepModel.dayAfter(date), token = mountToken;"
+    ]
+   },
+   {
+    "id": "TA-I030",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInFailed, checkInKit (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1439,
+     1439
+    ],
+    "first": {
+     "text": "      const lines = sleepCheckInFailed || !checkInKit ? [SLEEP_CHECKIN_UNREADABLE]",
+     "nth": 1
+    },
+    "last": {
+     "text": "      const lines = sleepCheckInFailed || !checkInKit ? [SLEEP_CHECKIN_UNREADABLE]",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      const lines = facade.sleepCheckInFailed() || !facade.checkInKit() ? [SLEEP_CHECKIN_UNREADABLE]"
+    ]
+   },
+   {
+    "id": "TA-I031",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkInKit (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1440,
+     1440
+    ],
+    "first": {
+     "text": "        : row ? [SLEEP_CHECKIN_PREFIX + row.date + \".\", ...checkInKit.recordedLines(row)] : [SLEEP_CHECKIN_EMPTY];",
+     "nth": 1
+    },
+    "last": {
+     "text": "        : row ? [SLEEP_CHECKIN_PREFIX + row.date + \".\", ...checkInKit.recordedLines(row)] : [SLEEP_CHECKIN_EMPTY];",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        : row ? [SLEEP_CHECKIN_PREFIX + row.date + \".\", ...facade.checkInKit().recordedLines(row)] : [SLEEP_CHECKIN_EMPTY];"
+    ]
+   },
+   {
+    "id": "TA-I032",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInViewPending (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1446,
+     1446
+    ],
+    "first": {
+     "text": "    return sleepCheckInViewPending;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    return sleepCheckInViewPending;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    return facade.sleepCheckInViewPending();"
+    ]
+   },
+   {
+    "id": "TA-I033",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepNightDate (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1475,
+     1475
+    ],
+    "first": {
+     "text": "    const row = sleepCheckInFor(date || sleepNightDate());",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const row = sleepCheckInFor(date || sleepNightDate());",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const row = sleepCheckInFor(date || facade.sleepNightDate());"
+    ]
+   },
+   {
+    "id": "TA-I034",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepNightDate (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1477,
+     1477
+    ],
+    "first": {
+     "text": "    const night = date || sleepNightDate();",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const night = date || sleepNightDate();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const night = date || facade.sleepNightDate();"
+    ]
+   },
+   {
+    "id": "TA-I035",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepNightDate (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads. THIS LINE'S TEXT OCCURS 2 TIMES (also at :1815); the occurrence index below is the scope analysis's own, and the other occurrence(s) hold no released reference to a sealed binding - they sit inside a move region and go with the seal.",
+    "tipLines": [
+     1489,
+     1489
+    ],
+    "first": {
+     "text": "    const date = sleepNightDate();",
+     "nth": 1,
+     "ambiguousOk": true
+    },
+    "last": {
+     "text": "    const date = sleepNightDate();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const date = facade.sleepNightDate();"
+    ],
+    "otherOccurrences": [
+     1815
+    ]
+   },
+   {
+    "id": "TA-I036",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: readSleepCheckIn (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1490,
+     1490
+    ],
+    "first": {
+     "text": "    readSleepCheckIn(date);",
+     "nth": 1
+    },
+    "last": {
+     "text": "    readSleepCheckIn(date);",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    hooks.readSleepCheckIn(date);"
+    ]
+   },
+   {
+    "id": "TA-I037",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepLane, openSleepLane (read, call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1493,
+     1493
+    ],
+    "first": {
+     "text": "    const opening = sleepLane ? null : openSleepLane();",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const opening = sleepLane ? null : openSleepLane();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const opening = facade.sleepLane() ? null : hooks.openSleepLane();"
+    ]
+   },
+   {
+    "id": "TA-I038",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepLane (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1494,
+     1494
+    ],
+    "first": {
+     "text": "    if (!sleepLane) {",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (!sleepLane) {",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (!facade.sleepLane()) {"
+    ]
+   },
+   {
+    "id": "TA-I039",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepLaneFailure (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1497,
+     1497
+    ],
+    "first": {
+     "text": "      put(map, \"sleep-note\", sleepLaneFailure",
+     "nth": 1
+    },
+    "last": {
+     "text": "      put(map, \"sleep-note\", sleepLaneFailure",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      put(map, \"sleep-note\", facade.sleepLaneFailure()"
+    ]
+   },
+   {
+    "id": "TA-I040",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepLaneFailure (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1498,
+     1498
+    ],
+    "first": {
+     "text": "        ? SLEEP_NO_STORE + \" \" + FOOD_REASON + sleepLaneFailure + \".\"",
+     "nth": 1
+    },
+    "last": {
+     "text": "        ? SLEEP_NO_STORE + \" \" + FOOD_REASON + sleepLaneFailure + \".\"",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        ? SLEEP_NO_STORE + \" \" + FOOD_REASON + facade.sleepLaneFailure() + \".\""
+    ]
+   },
+   {
+    "id": "TA-I041",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepAck (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1518,
+     1518
+    ],
+    "first": {
+     "text": "    const ack = sleepAck && sleepAck.date === date ? sleepAck : null;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const ack = sleepAck && sleepAck.date === date ? sleepAck : null;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const ack = facade.sleepAck() && facade.sleepAck().date === date ? facade.sleepAck() : null;"
+    ]
+   },
+   {
+    "id": "TA-I042",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy, sleepUnknown, sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1536,
+     1536
+    ],
+    "first": {
+     "text": "      dateBox.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
+     "nth": 1
+    },
+    "last": {
+     "text": "      dateBox.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      dateBox.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();"
+    ]
+   },
+   {
+    "id": "TA-I043",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepToday (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1537,
+     1537
+    ],
+    "first": {
+     "text": "      const latest = SleepModel.nightDateFor(sleepToday());",
+     "nth": 1
+    },
+    "last": {
+     "text": "      const latest = SleepModel.nightDateFor(sleepToday());",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      const latest = SleepModel.nightDateFor(hooks.sleepToday());"
+    ]
+   },
+   {
+    "id": "TA-I044",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepClockCheck (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1550,
+     1550
+    ],
+    "first": {
+     "text": "    const rolled = sleepClockCheck();",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const rolled = sleepClockCheck();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const rolled = hooks.sleepClockCheck();"
+    ]
+   },
+   {
+    "id": "TA-I045",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy, sleepUnknown, sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1575,
+     1575
+    ],
+    "first": {
+     "text": "    times.disabled = hoursMode.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    times.disabled = hoursMode.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    times.disabled = hoursMode.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();"
+    ]
+   },
+   {
+    "id": "TA-I046",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy, sleepUnknown, sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1600,
+     1600
+    ],
+    "first": {
+     "text": "    for (const box of [bed, wake, awake, hoursBox]) box.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    for (const box of [bed, wake, awake, hoursBox]) box.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    for (const box of [bed, wake, awake, hoursBox]) box.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();"
+    ]
+   },
+   {
+    "id": "TA-I047",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInPending, sleepCheckInFailed (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1639,
+     1639
+    ],
+    "first": {
+     "text": "      qualityLine.textContent = sleepCheckInPending ? \"\" : plainOrDrop(sleepCheckInFailed",
+     "nth": 1
+    },
+    "last": {
+     "text": "      qualityLine.textContent = sleepCheckInPending ? \"\" : plainOrDrop(sleepCheckInFailed",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      qualityLine.textContent = facade.sleepCheckInPending() ? \"\" : plainOrDrop(facade.sleepCheckInFailed()"
+    ]
+   },
+   {
+    "id": "TA-I048",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInPending (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1648,
+     1648
+    ],
+    "first": {
+     "text": "      openCheckIn.hidden = !!quality || !!sleepCheckInPending;",
+     "nth": 1
+    },
+    "last": {
+     "text": "      openCheckIn.hidden = !!quality || !!sleepCheckInPending;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      openCheckIn.hidden = !!quality || !!facade.sleepCheckInPending();"
+    ]
+   },
+   {
+    "id": "TA-I049",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepErrorText (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1658,
+     1658
+    ],
+    "first": {
+     "text": "    error.textContent = sleepErrorText",
+     "nth": 1
+    },
+    "last": {
+     "text": "    error.textContent = sleepErrorText",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    error.textContent = facade.sleepOutcome()"
+    ]
+   },
+   {
+    "id": "TA-I050",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepErrorText (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1659,
+     1659
+    ],
+    "first": {
+     "text": "      ? plainOrDrop(sleepErrorText, \"sleep-error\")",
+     "nth": 1
+    },
+    "last": {
+     "text": "      ? plainOrDrop(sleepErrorText, \"sleep-error\")",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      ? plainOrDrop(facade.sleepOutcome(), \"sleep-error\")"
+    ]
+   },
+   {
+    "id": "TA-I051",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1660,
+     1660
+    ],
+    "first": {
+     "text": "      : (sleepReadBack ? plainOrDrop(SLEEP_READ_FAILED + \" \" + SLEEP_KEPT, \"sleep-error\") : \"\");",
+     "nth": 1
+    },
+    "last": {
+     "text": "      : (sleepReadBack ? plainOrDrop(SLEEP_READ_FAILED + \" \" + SLEEP_KEPT, \"sleep-error\") : \"\");",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      : (facade.sleepReadBack() ? plainOrDrop(SLEEP_READ_FAILED + \" \" + SLEEP_KEPT, \"sleep-error\") : \"\");"
+    ]
+   },
+   {
+    "id": "TA-I052",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepReadBack, sleepUnknown, sleepCheckInFailed (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1664,
+     1664
+    ],
+    "first": {
+     "text": "    const owed = !!sleepReadBack || !!sleepUnknown || sleepCheckInFailed;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const owed = !!sleepReadBack || !!sleepUnknown || sleepCheckInFailed;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const owed = !!facade.sleepReadBack() || !!facade.sleepUnknown() || facade.sleepCheckInFailed();"
+    ]
+   },
+   {
+    "id": "TA-I053",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepOpsFor (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1679,
+     1679
+    ],
+    "first": {
+     "text": "    const corrected = sleepOpsFor(date).length > 1;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const corrected = sleepOpsFor(date).length > 1;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const corrected = hooks.sleepOpsFor(date).length > 1;"
+    ]
+   },
+   {
+    "id": "TA-I054",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCorrecting (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1696,
+     1696
+    ],
+    "first": {
+     "text": "    const editing = !known || sleepCorrecting;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const editing = !known || sleepCorrecting;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const editing = !known || facade.sleepCorrecting();"
+    ]
+   },
+   {
+    "id": "TA-I055",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCorrecting (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1702,
+     1702
+    ],
+    "first": {
+     "text": "      change.hidden = !known || sleepCorrecting;",
+     "nth": 1
+    },
+    "last": {
+     "text": "      change.hidden = !known || sleepCorrecting;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      change.hidden = !known || facade.sleepCorrecting();"
+    ]
+   },
+   {
+    "id": "TA-I056",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy, sleepUnknown, sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1707,
+     1707
+    ],
+    "first": {
+     "text": "      cancel.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
+     "nth": 1
+    },
+    "last": {
+     "text": "      cancel.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      cancel.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();"
+    ]
+   },
+   {
+    "id": "TA-I057",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCorrecting (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1708,
+     1708
+    ],
+    "first": {
+     "text": "      cancel.hidden = !sleepCorrecting;",
+     "nth": 1
+    },
+    "last": {
+     "text": "      cancel.hidden = !sleepCorrecting;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      cancel.hidden = !facade.sleepCorrecting();"
+    ]
+   },
+   {
+    "id": "TA-I058",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCorrecting (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1709,
+     1709
+    ],
+    "first": {
+     "text": "      cancel.textContent = sleepCorrecting ? plainOrDrop(SLEEP_CANCEL, \"sleep-cancel\") : \"\";",
+     "nth": 1
+    },
+    "last": {
+     "text": "      cancel.textContent = sleepCorrecting ? plainOrDrop(SLEEP_CANCEL, \"sleep-cancel\") : \"\";",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      cancel.textContent = facade.sleepCorrecting() ? plainOrDrop(SLEEP_CANCEL, \"sleep-cancel\") : \"\";"
+    ]
+   },
+   {
+    "id": "TA-I059",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1716,
+     1716
+    ],
+    "first": {
+     "text": "    put(map, \"sleep-save-label\", sleepBusy ? SLEEP_SAVING",
+     "nth": 1
+    },
+    "last": {
+     "text": "    put(map, \"sleep-save-label\", sleepBusy ? SLEEP_SAVING",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    put(map, \"sleep-save-label\", facade.sleepBusy() ? SLEEP_SAVING"
+    ]
+   },
+   {
+    "id": "TA-I060",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepBusy, sleepUnknown, sleepReadBack (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1721,
+     1721
+    ],
+    "first": {
+     "text": "    save.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    save.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    save.disabled = facade.sleepBusy() || !!facade.sleepUnknown() || !!facade.sleepReadBack();"
+    ]
+   },
+   {
+    "id": "TA-I061",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepNightDate (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1765,
+     1765
+    ],
+    "first": {
+     "text": "    const entry = { ...sleepDraft, mode: \"times\", date: sleepNightDate() };",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const entry = { ...sleepDraft, mode: \"times\", date: sleepNightDate() };",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const entry = { ...sleepDraft, mode: \"times\", date: facade.sleepNightDate() };"
+    ]
+   },
+   {
+    "id": "TA-I062",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepLane, openSleepLane (read, call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     1952,
+     1952
+    ],
+    "first": {
+     "text": "    if (!sleepLane) { openSleepLane(); return \"\"; }",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (!sleepLane) { openSleepLane(); return \"\"; }",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (!facade.sleepLane()) { hooks.openSleepLane(); return \"\"; }"
+    ]
+   },
+   {
+    "id": "TA-I063",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: firstRun (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2115,
+     2115
+    ],
+    "first": {
+     "text": "    const offer = firstRun();",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const offer = firstRun();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const offer = facade.firstRun();"
+    ]
+   },
+   {
+    "id": "TA-I064",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: firstRun (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2136,
+     2136
+    ],
+    "first": {
+     "text": "    if (!firstRun()) return false;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (!firstRun()) return false;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (!facade.firstRun()) return false;"
+    ]
+   },
+   {
+    "id": "TA-I065",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setup (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2152,
+     2152
+    ],
+    "first": {
+     "text": "    const summary = (setup && typeof setup.summary === \"function\" ? setup.summary() : null) || null;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const summary = (setup && typeof setup.summary === \"function\" ? setup.summary() : null) || null;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const summary = (facade.setup() && typeof facade.setup().summary === \"function\" ? facade.setup().summary() : null) || null;"
+    ]
+   },
+   {
+    "id": "TA-I066",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setup (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2153,
+     2153
+    ],
+    "first": {
+     "text": "    const label = setup && typeof setup.athleteLabel === \"function\" ? setup.athleteLabel() : null;",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const label = setup && typeof setup.athleteLabel === \"function\" ? setup.athleteLabel() : null;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const label = facade.setup() && typeof facade.setup().athleteLabel === \"function\" ? facade.setup().athleteLabel() : null;"
+    ]
+   },
+   {
+    "id": "TA-I067",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout, checkin, setup (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2183,
+     2183
+    ],
+    "first": {
+     "text": "  const laneHandles = () => ({ workout: !!workout, checkin: !!checkin, setup: !!setup });",
+     "nth": 1
+    },
+    "last": {
+     "text": "  const laneHandles = () => ({ workout: !!workout, checkin: !!checkin, setup: !!setup });",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "  const laneHandles = () => ({ workout: !!facade.workout(), checkin: !!facade.checkin(), setup: !!facade.setup() });"
+    ]
+   },
+   {
+    "id": "TA-I068",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setup, workout (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2185,
+     2185
+    ],
+    "first": {
+     "text": "    const holders = [setup && setup.host, workout && workout.gymHost];",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const holders = [setup && setup.host, workout && workout.gymHost];",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const holders = [facade.setup() && facade.setup().host, facade.workout() && facade.workout().gymHost];"
+    ]
+   },
+   {
+    "id": "TA-I069",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setup (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2200,
+     2200
+    ],
+    "first": {
+     "text": "        setup: setup && typeof setup.summary === \"function\" ? setup.summary() : null,",
+     "nth": 1
+    },
+    "last": {
+     "text": "        setup: setup && typeof setup.summary === \"function\" ? setup.summary() : null,",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        setup: facade.setup() && typeof facade.setup().summary === \"function\" ? facade.setup().summary() : null,"
+    ]
+   },
+   {
+    "id": "TA-I070",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodLane, openFoodLane (read, call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2246,
+     2246
+    ],
+    "first": {
+     "text": "    if (!foodLane) { openFoodLane(); return NOT_WIRED; }",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (!foodLane) { openFoodLane(); return NOT_WIRED; }",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (!facade.foodLane()) { hooks.openFoodLane(); return NOT_WIRED; }"
+    ]
+   },
+   {
+    "id": "TA-I071",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkinSummary (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2252,
+     2252
+    ],
+    "first": {
+     "text": "    const summary = checkinSummary();",
+     "nth": 1
+    },
+    "last": {
+     "text": "    const summary = checkinSummary();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    const summary = facade.checkinSummary();"
+    ]
+   },
+   {
+    "id": "TA-I072",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: firstRun (call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2289,
+     2289
+    ],
+    "first": {
+     "text": "    if (next === \"setup\" && !firstRun()) next = \"today\";",
+     "nth": 1
+    },
+    "last": {
+     "text": "    if (next === \"setup\" && !firstRun()) next = \"today\";",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    if (next === \"setup\" && !facade.firstRun()) next = \"today\";"
+    ]
+   },
+   {
+    "id": "TA-I073",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setup (read) inside the seam TA-M11. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2302,
+     2302
+    ],
+    "first": {
+     "text": "      return setup.open({ doc, phone,",
+     "nth": 1
+    },
+    "last": {
+     "text": "      return setup.open({ doc, phone,",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      return facade.setup().open({ doc, phone,"
+    ]
+   },
+   {
+    "id": "TA-I074",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: canAdoptAthleteState (call) inside the seam TA-M11. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2323,
+     2323
+    ],
+    "first": {
+     "text": "          const adopting = canAdoptAthleteState();",
+     "nth": 1
+    },
+    "last": {
+     "text": "          const adopting = canAdoptAthleteState();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "          const adopting = hooks.canAdoptAthleteState();"
+    ]
+   },
+   {
+    "id": "TA-I075",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: armAdoptionGate (call) inside the seam TA-M11. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2324,
+     2324
+    ],
+    "first": {
+     "text": "          if (adopting) armAdoptionGate();",
+     "nth": 1
+    },
+    "last": {
+     "text": "          if (adopting) armAdoptionGate();",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "          if (adopting) hooks.armAdoptionGate();"
+    ]
+   },
+   {
+    "id": "TA-I076",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: ready (read) inside the seam TA-M11. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2336,
+     2336
+    ],
+    "first": {
+     "text": "          return ready;",
+     "nth": 1
+    },
+    "last": {
+     "text": "          return ready;",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "          return facade.ready();"
+    ]
+   },
+   {
+    "id": "TA-I077",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2345,
+     2345
+    ],
+    "first": {
+     "text": "      const origin = checkinOrigin === \"workout\" && workout ? \"workout\"",
+     "nth": 1
+    },
+    "last": {
+     "text": "      const origin = checkinOrigin === \"workout\" && workout ? \"workout\"",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      const origin = checkinOrigin === \"workout\" && facade.workout() ? \"workout\""
+    ]
+   },
+   {
+    "id": "TA-I078",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkin (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2348,
+     2348
+    ],
+    "first": {
+     "text": "      if (checkin && typeof checkin.open === \"function\") {",
+     "nth": 1
+    },
+    "last": {
+     "text": "      if (checkin && typeof checkin.open === \"function\") {",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      if (facade.checkin() && typeof facade.checkin().open === \"function\") {"
+    ]
+   },
+   {
+    "id": "TA-I079",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: reboundCheckIn (call) inside the seam TA-M12. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2350,
+     2350
+    ],
+    "first": {
+     "text": "        const rebound = reboundCheckIn(origin);",
+     "nth": 1
+    },
+    "last": {
+     "text": "        const rebound = reboundCheckIn(origin);",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        const rebound = hooks.reboundCheckIn(origin);"
+    ]
+   },
+   {
+    "id": "TA-I080",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkin (read) inside the seam TA-M12. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2352,
+     2352
+    ],
+    "first": {
+     "text": "        return checkin.open({ doc, phone, back: () => render(origin, true) });",
+     "nth": 1
+    },
+    "last": {
+     "text": "        return checkin.open({ doc, phone, back: () => render(origin, true) });",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        return facade.checkin().open({ doc, phone, back: () => render(origin, true) });"
+    ]
+   },
+   {
+    "id": "TA-I081",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout (read) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2361,
+     2361
+    ],
+    "first": {
+     "text": "      if (workout && typeof workout.open === \"function\") {",
+     "nth": 1
+    },
+    "last": {
+     "text": "      if (workout && typeof workout.open === \"function\") {",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "      if (facade.workout() && typeof facade.workout().open === \"function\") {"
+    ]
+   },
+   {
+    "id": "TA-I082",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout (read) inside the seam TA-M13. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2365,
+     2365
+    ],
+    "first": {
+     "text": "        return workout.open({ doc, phone, back: () => render(\"today\", true),",
+     "nth": 1
+    },
+    "last": {
+     "text": "        return workout.open({ doc, phone, back: () => render(\"today\", true),",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "        return facade.workout().open({ doc, phone, back: () => render(\"today\", true),"
+    ]
+   },
+   {
+    "id": "TA-I083",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkin (read) inside the seam TA-M13. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2366,
+     2366
+    ],
+    "first": {
+     "text": "          ...(checkin ? { checkIn: () => { checkinOrigin = \"workout\"; render(\"recovery\", true); } } : {}) });",
+     "nth": 1
+    },
+    "last": {
+     "text": "          ...(checkin ? { checkIn: () => { checkinOrigin = \"workout\"; render(\"recovery\", true); } } : {}) });",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "          ...(facade.checkin() ? { checkIn: () => { checkinOrigin = \"workout\"; render(\"recovery\", true); } } : {}) });"
+    ]
+   },
+   {
+    "id": "TA-I084",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: setupFirst, firstRun (read, call) in the released body. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2452,
+     2452
+    ],
+    "first": {
+     "text": "  render(requestedScreen() || (setupFirst && firstRun() ? \"setup\" : \"today\"));",
+     "nth": 1
+    },
+    "last": {
+     "text": "  render(requestedScreen() || (setupFirst && firstRun() ? \"setup\" : \"today\"));",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "  render(requestedScreen() || (facade.setupFirst() && facade.firstRun() ? \"setup\" : \"today\"));"
+    ]
+   },
+   {
+    "id": "TA-I085",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: importScreen, importAdmitted (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2557,
+     2557
+    ],
+    "first": {
+     "text": "    importScreen: () => importScreen, importAdmitted: () => importAdmitted,",
+     "nth": 1
+    },
+    "last": {
+     "text": "    importScreen: () => importScreen, importAdmitted: () => importAdmitted,",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    importScreen: () => facade.importScreen(), importAdmitted: () => facade.importAdmitted(),"
+    ]
+   },
+   {
+    "id": "TA-I086",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: foodSaving, foodOpening (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2558,
+     2558
+    ],
+    "first": {
+     "text": "    foodPending: () => foodSaving, foodReady: () => foodOpening,",
+     "nth": 1
+    },
+    "last": {
+     "text": "    foodPending: () => foodSaving, foodReady: () => foodOpening,",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    foodPending: () => facade.foodSaving(), foodReady: () => facade.foodOpening(),"
+    ]
+   },
+   {
+    "id": "TA-I087",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepSaving, sleepOpening (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2561,
+     2561
+    ],
+    "first": {
+     "text": "    sleepPending: () => sleepSaving, sleepReady: () => sleepOpening,",
+     "nth": 1
+    },
+    "last": {
+     "text": "    sleepPending: () => sleepSaving, sleepReady: () => sleepOpening,",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    sleepPending: () => facade.sleepSaving(), sleepReady: () => facade.sleepOpening(),"
+    ]
+   },
+   {
+    "id": "TA-I088",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepCheckInViewPending, sleepCheckInPending (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2562,
+     2562
+    ],
+    "first": {
+     "text": "    sleepCheckInReady: () => screen === \"sleep-checkin\" ? sleepCheckInViewPending : sleepCheckInPending,",
+     "nth": 1
+    },
+    "last": {
+     "text": "    sleepCheckInReady: () => screen === \"sleep-checkin\" ? sleepCheckInViewPending : sleepCheckInPending,",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    sleepCheckInReady: () => screen === \"sleep-checkin\" ? facade.sleepCheckInViewPending() : facade.sleepCheckInPending(),"
+    ]
+   },
+   {
+    "id": "TA-I089",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: checkInKitLoading, sleepLane (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2563,
+     2563
+    ],
+    "first": {
+     "text": "    checkInKitReady: () => checkInKitLoading, sleepLane: () => sleepLane,",
+     "nth": 1
+    },
+    "last": {
+     "text": "    checkInKitReady: () => checkInKitLoading, sleepLane: () => sleepLane,",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    checkInKitReady: () => facade.checkInKitLoading(), sleepLane: () => facade.sleepLane(),"
+    ]
+   },
+   {
+    "id": "TA-I090",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: sleepAck (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2567,
+     2567
+    ],
+    "first": {
+     "text": "    sleepAck: () => (sleepAck ? { ...sleepAck } : null),",
+     "nth": 1
+    },
+    "last": {
+     "text": "    sleepAck: () => (sleepAck ? { ...sleepAck } : null),",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    sleepAck: () => (facade.sleepAck() ? { ...facade.sleepAck() } : null),"
+    ]
+   },
+   {
+    "id": "TA-I091",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workout (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2569,
+     2569
+    ],
+    "first": {
+     "text": "    workoutEntry: () => workout,",
+     "nth": 1
+    },
+    "last": {
+     "text": "    workoutEntry: () => workout,",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    workoutEntry: () => facade.workout(),"
+    ]
+   },
+   {
+    "id": "TA-I092",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: workoutRebinding (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2570,
+     2570
+    ],
+    "first": {
+     "text": "    workoutRebound: () => workoutRebinding,",
+     "nth": 1
+    },
+    "last": {
+     "text": "    workoutRebound: () => workoutRebinding,",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    workoutRebound: () => facade.workoutRebinding(),"
+    ]
+   },
+   {
+    "id": "TA-I093",
+    "kind": "replace",
+    "dest": null,
+    "note": "part 2 interface row, GENERATED by gen-interface.cjs from the scope analysis: ready (read) inside the seam TA-M14. Rule: a read becomes facade.<name>(), a call becomes hooks.<name>( unless it is one of B.3's four pure reads.",
+    "tipLines": [
+     2577,
+     2577
+    ],
+    "first": {
+     "text": "    get ready() { return ready; },",
+     "nth": 1
+    },
+    "last": {
+     "text": "    get ready() { return ready; },",
+     "nthFrom": 1
+    },
+    "replacement": [
+     "    get ready() { return facade.ready(); },"
+    ]
    }
   ],
   "gym-app.mjs": [
@@ -2382,6 +4618,1914 @@
       576
      ]
     }
+   },
+   "TA-W01": {
+    "s9": {
+     "sha256": "e64a81a0b0d80d1becc81f1628cc8a78cb8caea74c28ccb5b2d4d1c01bdd7d15",
+     "lines": 1,
+     "at": [
+      652,
+      652
+     ]
+    },
+    "tip": {
+     "sha256": "e64a81a0b0d80d1becc81f1628cc8a78cb8caea74c28ccb5b2d4d1c01bdd7d15",
+     "lines": 1,
+     "at": [
+      652,
+      652
+     ]
+    }
+   },
+   "TA-W02": {
+    "s9": {
+     "sha256": "c24fde53f743c3be7653874d395fdfa69bc86e92c9fc6d089cca90b6a6b0303a",
+     "lines": 1,
+     "at": [
+      711,
+      711
+     ]
+    },
+    "tip": {
+     "sha256": "c24fde53f743c3be7653874d395fdfa69bc86e92c9fc6d089cca90b6a6b0303a",
+     "lines": 1,
+     "at": [
+      711,
+      711
+     ]
+    }
+   },
+   "TA-W03": {
+    "s9": {
+     "sha256": "459b5258c8e3624cd609bbd8cadc04651b5efa84883adb05f2a370bc9ff054f3",
+     "lines": 1,
+     "at": [
+      1270,
+      1270
+     ]
+    },
+    "tip": {
+     "sha256": "459b5258c8e3624cd609bbd8cadc04651b5efa84883adb05f2a370bc9ff054f3",
+     "lines": 1,
+     "at": [
+      1269,
+      1269
+     ]
+    }
+   },
+   "TA-W04": {
+    "s9": {
+     "sha256": "96dccf2fb6b9deff3df74cc8e4655455ec4f81d6fb15e27ac703e8b03552d678",
+     "lines": 1,
+     "at": [
+      1273,
+      1273
+     ]
+    },
+    "tip": {
+     "sha256": "96dccf2fb6b9deff3df74cc8e4655455ec4f81d6fb15e27ac703e8b03552d678",
+     "lines": 1,
+     "at": [
+      1272,
+      1272
+     ]
+    }
+   },
+   "TA-W05": {
+    "s9": {
+     "sha256": "511307576511f00e3d6953c55f4fd170915cc547c9ed8fa6efa55393ecd2b8dc",
+     "lines": 1,
+     "at": [
+      1436,
+      1436
+     ]
+    },
+    "tip": {
+     "sha256": "511307576511f00e3d6953c55f4fd170915cc547c9ed8fa6efa55393ecd2b8dc",
+     "lines": 1,
+     "at": [
+      1435,
+      1435
+     ]
+    }
+   },
+   "TA-W06": {
+    "s9": {
+     "sha256": "e351cfef6ccc748b1949cfba3a7c347ba75ab2f788e5133eec6e3e616545b8fc",
+     "lines": 4,
+     "at": [
+      1540,
+      1543
+     ]
+    },
+    "tip": {
+     "sha256": "e351cfef6ccc748b1949cfba3a7c347ba75ab2f788e5133eec6e3e616545b8fc",
+     "lines": 4,
+     "at": [
+      1539,
+      1542
+     ]
+    }
+   },
+   "TA-W07": {
+    "s9": {
+     "sha256": "4b0d8c45e93e660da2c6f9702c463edc704b8962beed8735e55070b86f65d4bf",
+     "lines": 3,
+     "at": [
+      1561,
+      1563
+     ]
+    },
+    "tip": {
+     "sha256": "4b0d8c45e93e660da2c6f9702c463edc704b8962beed8735e55070b86f65d4bf",
+     "lines": 3,
+     "at": [
+      1560,
+      1562
+     ]
+    }
+   },
+   "TA-W08": {
+    "s9": {
+     "sha256": "34cfee19547642995d180e71b9413508c5796157b578587c9dd5735a5beeb8e5",
+     "lines": 1,
+     "at": [
+      1668,
+      1668
+     ]
+    },
+    "tip": {
+     "sha256": "34cfee19547642995d180e71b9413508c5796157b578587c9dd5735a5beeb8e5",
+     "lines": 1,
+     "at": [
+      1667,
+      1667
+     ]
+    }
+   },
+   "TA-W09": {
+    "s9": {
+     "sha256": "55a552ebf480d16cf6701872cce71f98cc6e0747921603580460ebce3fabc1ab",
+     "lines": 1,
+     "at": [
+      1704,
+      1704
+     ]
+    },
+    "tip": {
+     "sha256": "55a552ebf480d16cf6701872cce71f98cc6e0747921603580460ebce3fabc1ab",
+     "lines": 1,
+     "at": [
+      1703,
+      1703
+     ]
+    }
+   },
+   "TA-W10": {
+    "s9": {
+     "sha256": "dceb770e22c7af5d09058028d12fcba2b2b70042eb996e50b87f1f68c6a1cd69",
+     "lines": 1,
+     "at": [
+      1711,
+      1711
+     ]
+    },
+    "tip": {
+     "sha256": "dceb770e22c7af5d09058028d12fcba2b2b70042eb996e50b87f1f68c6a1cd69",
+     "lines": 1,
+     "at": [
+      1710,
+      1710
+     ]
+    }
+   },
+   "TA-W11": {
+    "s9": {
+     "sha256": "0a3115b484caad958124201a289082b036988037fa9aa31cd1be1085cc23751d",
+     "lines": 1,
+     "at": [
+      1722,
+      1722
+     ]
+    },
+    "tip": {
+     "sha256": "0a3115b484caad958124201a289082b036988037fa9aa31cd1be1085cc23751d",
+     "lines": 1,
+     "at": [
+      1721,
+      1721
+     ]
+    }
+   },
+   "TA-W12": {
+    "s9": {
+     "sha256": "9029e514813629fdccdbeb647ccd3ec9545e6c14b3b4c6c76030e7eb481023a7",
+     "lines": 1,
+     "at": [
+      2298,
+      2298
+     ]
+    },
+    "tip": {
+     "sha256": "9029e514813629fdccdbeb647ccd3ec9545e6c14b3b4c6c76030e7eb481023a7",
+     "lines": 1,
+     "at": [
+      2297,
+      2297
+     ]
+    }
+   },
+   "TA-W13": {
+    "s9": {
+     "sha256": "dc88ec9fcde141a1706f0c427e1f0747e05539d2f6734bf775a2b81bb26c8b10",
+     "lines": 1,
+     "at": [
+      2334,
+      2334
+     ]
+    },
+    "tip": {
+     "sha256": "dc88ec9fcde141a1706f0c427e1f0747e05539d2f6734bf775a2b81bb26c8b10",
+     "lines": 1,
+     "at": [
+      2333,
+      2333
+     ]
+    }
+   },
+   "TA-I001": {
+    "s9": {
+     "sha256": "37dc4d7d6b43d571d97871e16447792c204c72d7beb39e7f0c6ccbc7ce130eb9",
+     "lines": 1,
+     "at": [
+      653,
+      653
+     ]
+    },
+    "tip": {
+     "sha256": "37dc4d7d6b43d571d97871e16447792c204c72d7beb39e7f0c6ccbc7ce130eb9",
+     "lines": 1,
+     "at": [
+      653,
+      653
+     ]
+    }
+   },
+   "TA-I002": {
+    "s9": {
+     "sha256": "897510214cfc52c358d96886aaf1b8ba6ac7c60f7edbf76527442320aa5fe073",
+     "lines": 1,
+     "at": [
+      668,
+      668
+     ]
+    },
+    "tip": {
+     "sha256": "897510214cfc52c358d96886aaf1b8ba6ac7c60f7edbf76527442320aa5fe073",
+     "lines": 1,
+     "at": [
+      668,
+      668
+     ]
+    }
+   },
+   "TA-I003": {
+    "s9": {
+     "sha256": "7b09bf428b9e0f35c4aaa4f0eb7236a8bbbc5d90595361d3319cbd75985c02e9",
+     "lines": 1,
+     "at": [
+      678,
+      678
+     ]
+    },
+    "tip": {
+     "sha256": "7b09bf428b9e0f35c4aaa4f0eb7236a8bbbc5d90595361d3319cbd75985c02e9",
+     "lines": 1,
+     "at": [
+      678,
+      678
+     ]
+    }
+   },
+   "TA-I004": {
+    "s9": {
+     "sha256": "f76179db68005127bc7ff0a79bc0aa25823dc7a2559cbdecab89ddea4d26b9eb",
+     "lines": 1,
+     "at": [
+      718,
+      718
+     ]
+    },
+    "tip": {
+     "sha256": "f76179db68005127bc7ff0a79bc0aa25823dc7a2559cbdecab89ddea4d26b9eb",
+     "lines": 1,
+     "at": [
+      718,
+      718
+     ]
+    }
+   },
+   "TA-I005": {
+    "s9": {
+     "sha256": "81bd8f98e45e2caec0a01e58a866a1440b6dd372f4cb7d91addcc4b7b0baeddd",
+     "lines": 1,
+     "at": [
+      719,
+      719
+     ]
+    },
+    "tip": {
+     "sha256": "81bd8f98e45e2caec0a01e58a866a1440b6dd372f4cb7d91addcc4b7b0baeddd",
+     "lines": 1,
+     "at": [
+      719,
+      719
+     ]
+    }
+   },
+   "TA-I006": {
+    "s9": {
+     "sha256": "46bb561f77f22ebd7d33d94a409f9081f75818756ff27f1bf9239e02f0ab8157",
+     "lines": 1,
+     "at": [
+      737,
+      737
+     ]
+    },
+    "tip": {
+     "sha256": "46bb561f77f22ebd7d33d94a409f9081f75818756ff27f1bf9239e02f0ab8157",
+     "lines": 1,
+     "at": [
+      737,
+      737
+     ]
+    }
+   },
+   "TA-I007": {
+    "s9": {
+     "sha256": "fd9b665b8cd15489e51e87b25e5b74490d166718c4571089630ff9dd559a3714",
+     "lines": 1,
+     "at": [
+      770,
+      770
+     ]
+    },
+    "tip": {
+     "sha256": "fd9b665b8cd15489e51e87b25e5b74490d166718c4571089630ff9dd559a3714",
+     "lines": 1,
+     "at": [
+      770,
+      770
+     ]
+    }
+   },
+   "TA-I008": {
+    "s9": {
+     "sha256": "20c921174e57c96f8b08aa0ce5173eca8af902230a29ec2c7655ad62166c5e33",
+     "lines": 1,
+     "at": [
+      888,
+      888
+     ]
+    },
+    "tip": {
+     "sha256": "20c921174e57c96f8b08aa0ce5173eca8af902230a29ec2c7655ad62166c5e33",
+     "lines": 1,
+     "at": [
+      887,
+      887
+     ]
+    }
+   },
+   "TA-I009": {
+    "s9": {
+     "sha256": "6c10a293f73e2ca71ebfdf56cd91a396c51934298099e52910efcd29cb3af58d",
+     "lines": 1,
+     "at": [
+      955,
+      955
+     ]
+    },
+    "tip": {
+     "sha256": "6c10a293f73e2ca71ebfdf56cd91a396c51934298099e52910efcd29cb3af58d",
+     "lines": 1,
+     "at": [
+      954,
+      954
+     ]
+    }
+   },
+   "TA-I010": {
+    "s9": {
+     "sha256": "298f98b04640b9dbbad041f8042659f8b81a571a4a4f8dacf5f882022e63699d",
+     "lines": 1,
+     "at": [
+      992,
+      992
+     ]
+    },
+    "tip": {
+     "sha256": "298f98b04640b9dbbad041f8042659f8b81a571a4a4f8dacf5f882022e63699d",
+     "lines": 1,
+     "at": [
+      991,
+      991
+     ]
+    }
+   },
+   "TA-I011": {
+    "s9": {
+     "sha256": "a0a745311a416ff2ebfb890c6c8bae325b56f28f7e6f0220b89607e504c6f946",
+     "lines": 1,
+     "at": [
+      1166,
+      1166
+     ]
+    },
+    "tip": {
+     "sha256": "a0a745311a416ff2ebfb890c6c8bae325b56f28f7e6f0220b89607e504c6f946",
+     "lines": 1,
+     "at": [
+      1165,
+      1165
+     ]
+    }
+   },
+   "TA-I012": {
+    "s9": {
+     "sha256": "05bd5d9aa89a2f339d21df13a7af63cb497f63cba164904c781d16112f3c33ee",
+     "lines": 1,
+     "at": [
+      1181,
+      1181
+     ]
+    },
+    "tip": {
+     "sha256": "05bd5d9aa89a2f339d21df13a7af63cb497f63cba164904c781d16112f3c33ee",
+     "lines": 1,
+     "at": [
+      1180,
+      1180
+     ]
+    }
+   },
+   "TA-I013": {
+    "s9": {
+     "sha256": "ed773e89365599a81d9a6baff6d6ba357d47f27b3b36c2bdff51dbf323dfe5d6",
+     "lines": 1,
+     "at": [
+      1182,
+      1182
+     ]
+    },
+    "tip": {
+     "sha256": "ed773e89365599a81d9a6baff6d6ba357d47f27b3b36c2bdff51dbf323dfe5d6",
+     "lines": 1,
+     "at": [
+      1181,
+      1181
+     ]
+    }
+   },
+   "TA-I014": {
+    "s9": {
+     "sha256": "f14a8376197c7cb036be3051c97dababdd4357b39190d9a2e1eaab540c80d660",
+     "lines": 1,
+     "at": [
+      1183,
+      1183
+     ]
+    },
+    "tip": {
+     "sha256": "f14a8376197c7cb036be3051c97dababdd4357b39190d9a2e1eaab540c80d660",
+     "lines": 1,
+     "at": [
+      1182,
+      1182
+     ]
+    }
+   },
+   "TA-I015": {
+    "s9": {
+     "sha256": "5c4eb7bef1b4d9855bfe8db14a399095cac15a5b6e27205e4a2a17dc9e311959",
+     "lines": 1,
+     "at": [
+      1221,
+      1221
+     ]
+    },
+    "tip": {
+     "sha256": "5c4eb7bef1b4d9855bfe8db14a399095cac15a5b6e27205e4a2a17dc9e311959",
+     "lines": 1,
+     "at": [
+      1220,
+      1220
+     ]
+    }
+   },
+   "TA-I016": {
+    "s9": {
+     "sha256": "ff940882e6a6ad598933ccb1a09bbda291161482c17fe7546fb7dfb6112fa755",
+     "lines": 1,
+     "at": [
+      1253,
+      1253
+     ]
+    },
+    "tip": {
+     "sha256": "ff940882e6a6ad598933ccb1a09bbda291161482c17fe7546fb7dfb6112fa755",
+     "lines": 1,
+     "at": [
+      1252,
+      1252
+     ]
+    }
+   },
+   "TA-I017": {
+    "s9": {
+     "sha256": "fddc70600c6da0dd2b94e8bbec982a47d44ff388281c376c23a6c7a8e48884e1",
+     "lines": 1,
+     "at": [
+      1254,
+      1254
+     ]
+    },
+    "tip": {
+     "sha256": "fddc70600c6da0dd2b94e8bbec982a47d44ff388281c376c23a6c7a8e48884e1",
+     "lines": 1,
+     "at": [
+      1253,
+      1253
+     ]
+    }
+   },
+   "TA-I018": {
+    "s9": {
+     "sha256": "630ded432f76bcd1a5cbfacf2e6df6c6bd4411de6a75e4c07cba0dfba9733dfe",
+     "lines": 1,
+     "at": [
+      1255,
+      1255
+     ]
+    },
+    "tip": {
+     "sha256": "630ded432f76bcd1a5cbfacf2e6df6c6bd4411de6a75e4c07cba0dfba9733dfe",
+     "lines": 1,
+     "at": [
+      1254,
+      1254
+     ]
+    }
+   },
+   "TA-I019": {
+    "s9": {
+     "sha256": "201b0f7cdcefbdf434c83238614b44309a07282bddf3f4e2b3a304cdacd18251",
+     "lines": 1,
+     "at": [
+      1257,
+      1257
+     ]
+    },
+    "tip": {
+     "sha256": "201b0f7cdcefbdf434c83238614b44309a07282bddf3f4e2b3a304cdacd18251",
+     "lines": 1,
+     "at": [
+      1256,
+      1256
+     ]
+    }
+   },
+   "TA-I020": {
+    "s9": {
+     "sha256": "7c3b211ed1264a2884c98b5d854657dfee8bfcdb6851a2ab8717d1391a71b3ed",
+     "lines": 1,
+     "at": [
+      1259,
+      1259
+     ]
+    },
+    "tip": {
+     "sha256": "7c3b211ed1264a2884c98b5d854657dfee8bfcdb6851a2ab8717d1391a71b3ed",
+     "lines": 1,
+     "at": [
+      1258,
+      1258
+     ]
+    }
+   },
+   "TA-I021": {
+    "s9": {
+     "sha256": "ecd84e0341c7e5a383755bd13ba1c78d98ecd646e5ba66a726634f39a16edc2c",
+     "lines": 1,
+     "at": [
+      1262,
+      1262
+     ]
+    },
+    "tip": {
+     "sha256": "ecd84e0341c7e5a383755bd13ba1c78d98ecd646e5ba66a726634f39a16edc2c",
+     "lines": 1,
+     "at": [
+      1261,
+      1261
+     ]
+    }
+   },
+   "TA-I022": {
+    "s9": {
+     "sha256": "e0e9285df113aa039ac9f51dae35dbce2da04d68a85af13ee68456655e9289f7",
+     "lines": 1,
+     "at": [
+      1263,
+      1263
+     ]
+    },
+    "tip": {
+     "sha256": "e0e9285df113aa039ac9f51dae35dbce2da04d68a85af13ee68456655e9289f7",
+     "lines": 1,
+     "at": [
+      1262,
+      1262
+     ]
+    }
+   },
+   "TA-I023": {
+    "s9": {
+     "sha256": "823ff0e27d72de00dd73ec2463e2a47e3ded919fd0fd5b2ea2fdcf905b59a511",
+     "lines": 1,
+     "at": [
+      1264,
+      1264
+     ]
+    },
+    "tip": {
+     "sha256": "823ff0e27d72de00dd73ec2463e2a47e3ded919fd0fd5b2ea2fdcf905b59a511",
+     "lines": 1,
+     "at": [
+      1263,
+      1263
+     ]
+    }
+   },
+   "TA-I024": {
+    "s9": {
+     "sha256": "b9c2a4273e8a1df040684fdf381f54bf33c90ed28104da0808c9a6b2cd59411a",
+     "lines": 1,
+     "at": [
+      1268,
+      1268
+     ]
+    },
+    "tip": {
+     "sha256": "b9c2a4273e8a1df040684fdf381f54bf33c90ed28104da0808c9a6b2cd59411a",
+     "lines": 1,
+     "at": [
+      1267,
+      1267
+     ]
+    }
+   },
+   "TA-I025": {
+    "s9": {
+     "sha256": "4fba8701b48818009da57f9004e072ceaf24115ae492d2b9b87360325087c744",
+     "lines": 1,
+     "at": [
+      1269,
+      1269
+     ]
+    },
+    "tip": {
+     "sha256": "4fba8701b48818009da57f9004e072ceaf24115ae492d2b9b87360325087c744",
+     "lines": 1,
+     "at": [
+      1268,
+      1268
+     ]
+    }
+   },
+   "TA-I026": {
+    "s9": {
+     "sha256": "d33475bee83e3718a7561abae72a466776a657056ba496a9b07dddc18bb061c8",
+     "lines": 1,
+     "at": [
+      1405,
+      1405
+     ]
+    },
+    "tip": {
+     "sha256": "d33475bee83e3718a7561abae72a466776a657056ba496a9b07dddc18bb061c8",
+     "lines": 1,
+     "at": [
+      1404,
+      1404
+     ]
+    }
+   },
+   "TA-I027": {
+    "s9": {
+     "sha256": "59c1b6ac1b1bed3de17ec5997b2992b85768be827b1d854d7464e5d3d9bea20b",
+     "lines": 1,
+     "at": [
+      1406,
+      1406
+     ]
+    },
+    "tip": {
+     "sha256": "59c1b6ac1b1bed3de17ec5997b2992b85768be827b1d854d7464e5d3d9bea20b",
+     "lines": 1,
+     "at": [
+      1405,
+      1405
+     ]
+    }
+   },
+   "TA-I028": {
+    "s9": {
+     "sha256": "e75f6e4bd66199b23bd5dd411425337eb34c9d7c87c6c125167afe7b87c57e2b",
+     "lines": 1,
+     "at": [
+      1407,
+      1407
+     ]
+    },
+    "tip": {
+     "sha256": "e75f6e4bd66199b23bd5dd411425337eb34c9d7c87c6c125167afe7b87c57e2b",
+     "lines": 1,
+     "at": [
+      1406,
+      1406
+     ]
+    }
+   },
+   "TA-I029": {
+    "s9": {
+     "sha256": "2594cb6d704301ab624d16f74453ea18d4584493bf113b0cb4177ab5db061543",
+     "lines": 1,
+     "at": [
+      1430,
+      1430
+     ]
+    },
+    "tip": {
+     "sha256": "2594cb6d704301ab624d16f74453ea18d4584493bf113b0cb4177ab5db061543",
+     "lines": 1,
+     "at": [
+      1429,
+      1429
+     ]
+    }
+   },
+   "TA-I030": {
+    "s9": {
+     "sha256": "1e52dabc59c0f2064a31e2fd3eae9b82735d8ef10475a9e69fe7112a6561f65a",
+     "lines": 1,
+     "at": [
+      1439,
+      1439
+     ]
+    },
+    "tip": {
+     "sha256": "1e52dabc59c0f2064a31e2fd3eae9b82735d8ef10475a9e69fe7112a6561f65a",
+     "lines": 1,
+     "at": [
+      1438,
+      1438
+     ]
+    }
+   },
+   "TA-I031": {
+    "s9": {
+     "sha256": "5bd4456dae7d650b86cef06546298b7bb2dfba04d12e122d1a93f92acdba1c78",
+     "lines": 1,
+     "at": [
+      1440,
+      1440
+     ]
+    },
+    "tip": {
+     "sha256": "5bd4456dae7d650b86cef06546298b7bb2dfba04d12e122d1a93f92acdba1c78",
+     "lines": 1,
+     "at": [
+      1439,
+      1439
+     ]
+    }
+   },
+   "TA-I032": {
+    "s9": {
+     "sha256": "34d722810ee0a2ebf8e1d2a103f0de0cf7e4ae89ec3900b08d14477dfc27444a",
+     "lines": 1,
+     "at": [
+      1446,
+      1446
+     ]
+    },
+    "tip": {
+     "sha256": "34d722810ee0a2ebf8e1d2a103f0de0cf7e4ae89ec3900b08d14477dfc27444a",
+     "lines": 1,
+     "at": [
+      1445,
+      1445
+     ]
+    }
+   },
+   "TA-I033": {
+    "s9": {
+     "sha256": "bb1c8e9864224072206c1d293560c294a598a9874c661ef404527cfd7da03a33",
+     "lines": 1,
+     "at": [
+      1475,
+      1475
+     ]
+    },
+    "tip": {
+     "sha256": "bb1c8e9864224072206c1d293560c294a598a9874c661ef404527cfd7da03a33",
+     "lines": 1,
+     "at": [
+      1474,
+      1474
+     ]
+    }
+   },
+   "TA-I034": {
+    "s9": {
+     "sha256": "f2cfc34eb0d6edd2d0480fb225de12fb6b2aab930d0ca8832dd39ea0ce04accc",
+     "lines": 1,
+     "at": [
+      1477,
+      1477
+     ]
+    },
+    "tip": {
+     "sha256": "f2cfc34eb0d6edd2d0480fb225de12fb6b2aab930d0ca8832dd39ea0ce04accc",
+     "lines": 1,
+     "at": [
+      1476,
+      1476
+     ]
+    }
+   },
+   "TA-I035": {
+    "s9": {
+     "sha256": "295a6f7ffa616af4fd5b76b902ac49f4dfd95648afd094d1faa7469e74b5151c",
+     "lines": 1,
+     "at": [
+      1489,
+      1489
+     ]
+    },
+    "tip": {
+     "sha256": "295a6f7ffa616af4fd5b76b902ac49f4dfd95648afd094d1faa7469e74b5151c",
+     "lines": 1,
+     "at": [
+      1488,
+      1488
+     ]
+    }
+   },
+   "TA-I036": {
+    "s9": {
+     "sha256": "3bacce009d961309c9c99ce2e3f75a9ffaf2470d5ff62749cb3333c68e82db69",
+     "lines": 1,
+     "at": [
+      1490,
+      1490
+     ]
+    },
+    "tip": {
+     "sha256": "3bacce009d961309c9c99ce2e3f75a9ffaf2470d5ff62749cb3333c68e82db69",
+     "lines": 1,
+     "at": [
+      1489,
+      1489
+     ]
+    }
+   },
+   "TA-I037": {
+    "s9": {
+     "sha256": "59d72f14048c1a3e5e902bd37b055033d436c7e6219e605c69cf62d48c0d7435",
+     "lines": 1,
+     "at": [
+      1493,
+      1493
+     ]
+    },
+    "tip": {
+     "sha256": "59d72f14048c1a3e5e902bd37b055033d436c7e6219e605c69cf62d48c0d7435",
+     "lines": 1,
+     "at": [
+      1492,
+      1492
+     ]
+    }
+   },
+   "TA-I038": {
+    "s9": {
+     "sha256": "3ba56ad5b5ab71841db04e4b70c6b578462a736e0d70c576530de1d7ffb4fdf7",
+     "lines": 1,
+     "at": [
+      1494,
+      1494
+     ]
+    },
+    "tip": {
+     "sha256": "3ba56ad5b5ab71841db04e4b70c6b578462a736e0d70c576530de1d7ffb4fdf7",
+     "lines": 1,
+     "at": [
+      1493,
+      1493
+     ]
+    }
+   },
+   "TA-I039": {
+    "s9": {
+     "sha256": "5db59435ad5e96a132b211b680309c3993d5420844302fcb2853c24fdabca1cf",
+     "lines": 1,
+     "at": [
+      1497,
+      1497
+     ]
+    },
+    "tip": {
+     "sha256": "5db59435ad5e96a132b211b680309c3993d5420844302fcb2853c24fdabca1cf",
+     "lines": 1,
+     "at": [
+      1496,
+      1496
+     ]
+    }
+   },
+   "TA-I040": {
+    "s9": {
+     "sha256": "6424c7847057f10a0d5576efd7bd534dca2a7555005eac7a677590dd089c835f",
+     "lines": 1,
+     "at": [
+      1498,
+      1498
+     ]
+    },
+    "tip": {
+     "sha256": "6424c7847057f10a0d5576efd7bd534dca2a7555005eac7a677590dd089c835f",
+     "lines": 1,
+     "at": [
+      1497,
+      1497
+     ]
+    }
+   },
+   "TA-I041": {
+    "s9": {
+     "sha256": "54a217ad70f84eca391e9a07c7ccf2bd4ffb4fa2796cb1f77efd1d2a9145fffa",
+     "lines": 1,
+     "at": [
+      1518,
+      1518
+     ]
+    },
+    "tip": {
+     "sha256": "54a217ad70f84eca391e9a07c7ccf2bd4ffb4fa2796cb1f77efd1d2a9145fffa",
+     "lines": 1,
+     "at": [
+      1517,
+      1517
+     ]
+    }
+   },
+   "TA-I042": {
+    "s9": {
+     "sha256": "d93ec4175b656546d8b72605bc0923686c3a5b438e28b89272fb6a683e237687",
+     "lines": 1,
+     "at": [
+      1536,
+      1536
+     ]
+    },
+    "tip": {
+     "sha256": "d93ec4175b656546d8b72605bc0923686c3a5b438e28b89272fb6a683e237687",
+     "lines": 1,
+     "at": [
+      1535,
+      1535
+     ]
+    }
+   },
+   "TA-I043": {
+    "s9": {
+     "sha256": "d1e1adb4fcc5152c93dae0f34f0744b6b7322f4406aa40491feb2c1a774c178b",
+     "lines": 1,
+     "at": [
+      1537,
+      1537
+     ]
+    },
+    "tip": {
+     "sha256": "d1e1adb4fcc5152c93dae0f34f0744b6b7322f4406aa40491feb2c1a774c178b",
+     "lines": 1,
+     "at": [
+      1536,
+      1536
+     ]
+    }
+   },
+   "TA-I044": {
+    "s9": {
+     "sha256": "1e66c38f9997d998f78a82076234bf543e8e7bb144015d4182277c6bf5e675c9",
+     "lines": 1,
+     "at": [
+      1550,
+      1550
+     ]
+    },
+    "tip": {
+     "sha256": "1e66c38f9997d998f78a82076234bf543e8e7bb144015d4182277c6bf5e675c9",
+     "lines": 1,
+     "at": [
+      1549,
+      1549
+     ]
+    }
+   },
+   "TA-I045": {
+    "s9": {
+     "sha256": "79a0baad570a48d64952020b157b3a126117c01025656a6f36e674689cb51456",
+     "lines": 1,
+     "at": [
+      1575,
+      1575
+     ]
+    },
+    "tip": {
+     "sha256": "79a0baad570a48d64952020b157b3a126117c01025656a6f36e674689cb51456",
+     "lines": 1,
+     "at": [
+      1574,
+      1574
+     ]
+    }
+   },
+   "TA-I046": {
+    "s9": {
+     "sha256": "8f23b79902852022d7c62964a2aaf38c2e5a97af0661d8d5e0a3a7195e4a359c",
+     "lines": 1,
+     "at": [
+      1600,
+      1600
+     ]
+    },
+    "tip": {
+     "sha256": "8f23b79902852022d7c62964a2aaf38c2e5a97af0661d8d5e0a3a7195e4a359c",
+     "lines": 1,
+     "at": [
+      1599,
+      1599
+     ]
+    }
+   },
+   "TA-I047": {
+    "s9": {
+     "sha256": "1bb819af1226523f31944024cdb7276a548a8d70f2afd574bd9b47ad2765df85",
+     "lines": 1,
+     "at": [
+      1639,
+      1639
+     ]
+    },
+    "tip": {
+     "sha256": "1bb819af1226523f31944024cdb7276a548a8d70f2afd574bd9b47ad2765df85",
+     "lines": 1,
+     "at": [
+      1638,
+      1638
+     ]
+    }
+   },
+   "TA-I048": {
+    "s9": {
+     "sha256": "b9c481d37189a92adcec97ffb5db4aeb829a54cb74c747daf43d8ddfb46d4238",
+     "lines": 1,
+     "at": [
+      1648,
+      1648
+     ]
+    },
+    "tip": {
+     "sha256": "b9c481d37189a92adcec97ffb5db4aeb829a54cb74c747daf43d8ddfb46d4238",
+     "lines": 1,
+     "at": [
+      1647,
+      1647
+     ]
+    }
+   },
+   "TA-I049": {
+    "s9": {
+     "sha256": "487423c8fa2c13f508644d7f4f22e3019f376ba76e2d7b6dbd263775cf518469",
+     "lines": 1,
+     "at": [
+      1658,
+      1658
+     ]
+    },
+    "tip": {
+     "sha256": "487423c8fa2c13f508644d7f4f22e3019f376ba76e2d7b6dbd263775cf518469",
+     "lines": 1,
+     "at": [
+      1657,
+      1657
+     ]
+    }
+   },
+   "TA-I050": {
+    "s9": {
+     "sha256": "47311997686fbe81ee097f9b80d640b86c852d50a468e4ced568f6888ce9016d",
+     "lines": 1,
+     "at": [
+      1659,
+      1659
+     ]
+    },
+    "tip": {
+     "sha256": "47311997686fbe81ee097f9b80d640b86c852d50a468e4ced568f6888ce9016d",
+     "lines": 1,
+     "at": [
+      1658,
+      1658
+     ]
+    }
+   },
+   "TA-I051": {
+    "s9": {
+     "sha256": "78fe24c33834082ece3fa6469e41a31de246eede120faa53142375e39d61a720",
+     "lines": 1,
+     "at": [
+      1660,
+      1660
+     ]
+    },
+    "tip": {
+     "sha256": "78fe24c33834082ece3fa6469e41a31de246eede120faa53142375e39d61a720",
+     "lines": 1,
+     "at": [
+      1659,
+      1659
+     ]
+    }
+   },
+   "TA-I052": {
+    "s9": {
+     "sha256": "5b134c66e4fb85504115caf333b3c388d70758d1973402cf9789b6fc1fd9dad8",
+     "lines": 1,
+     "at": [
+      1664,
+      1664
+     ]
+    },
+    "tip": {
+     "sha256": "5b134c66e4fb85504115caf333b3c388d70758d1973402cf9789b6fc1fd9dad8",
+     "lines": 1,
+     "at": [
+      1663,
+      1663
+     ]
+    }
+   },
+   "TA-I053": {
+    "s9": {
+     "sha256": "39e653cbd5b35dfefdd383ec6472c4fb413551c294dab0e13ee0dfca376751bc",
+     "lines": 1,
+     "at": [
+      1679,
+      1679
+     ]
+    },
+    "tip": {
+     "sha256": "39e653cbd5b35dfefdd383ec6472c4fb413551c294dab0e13ee0dfca376751bc",
+     "lines": 1,
+     "at": [
+      1678,
+      1678
+     ]
+    }
+   },
+   "TA-I054": {
+    "s9": {
+     "sha256": "7ad38d476b8c606a57cf506c1de2c3b0246dda2b10c00f44e2adfeda189665ed",
+     "lines": 1,
+     "at": [
+      1696,
+      1696
+     ]
+    },
+    "tip": {
+     "sha256": "7ad38d476b8c606a57cf506c1de2c3b0246dda2b10c00f44e2adfeda189665ed",
+     "lines": 1,
+     "at": [
+      1695,
+      1695
+     ]
+    }
+   },
+   "TA-I055": {
+    "s9": {
+     "sha256": "b36c0187a46626b4f24cf718dc2ac5dcfc521737b6d6b2f2dabe95d6741a8755",
+     "lines": 1,
+     "at": [
+      1702,
+      1702
+     ]
+    },
+    "tip": {
+     "sha256": "b36c0187a46626b4f24cf718dc2ac5dcfc521737b6d6b2f2dabe95d6741a8755",
+     "lines": 1,
+     "at": [
+      1701,
+      1701
+     ]
+    }
+   },
+   "TA-I056": {
+    "s9": {
+     "sha256": "3abc0fa7f1489adfc1b65d26f022cd7556161c69432ded3d7acf26f53180e9fc",
+     "lines": 1,
+     "at": [
+      1707,
+      1707
+     ]
+    },
+    "tip": {
+     "sha256": "3abc0fa7f1489adfc1b65d26f022cd7556161c69432ded3d7acf26f53180e9fc",
+     "lines": 1,
+     "at": [
+      1706,
+      1706
+     ]
+    }
+   },
+   "TA-I057": {
+    "s9": {
+     "sha256": "24918fe2f9ed11b5af4426d83562ccf6ba57dc6035ce39aa2f4f3c11c66b2b53",
+     "lines": 1,
+     "at": [
+      1708,
+      1708
+     ]
+    },
+    "tip": {
+     "sha256": "24918fe2f9ed11b5af4426d83562ccf6ba57dc6035ce39aa2f4f3c11c66b2b53",
+     "lines": 1,
+     "at": [
+      1707,
+      1707
+     ]
+    }
+   },
+   "TA-I058": {
+    "s9": {
+     "sha256": "de6a064ac82b9258e622bc8add088a79b9ececcf37ed7b0d9f2bb37e78f7d54d",
+     "lines": 1,
+     "at": [
+      1709,
+      1709
+     ]
+    },
+    "tip": {
+     "sha256": "de6a064ac82b9258e622bc8add088a79b9ececcf37ed7b0d9f2bb37e78f7d54d",
+     "lines": 1,
+     "at": [
+      1708,
+      1708
+     ]
+    }
+   },
+   "TA-I059": {
+    "s9": {
+     "sha256": "fbfc6d57300ea0639c5d1160451ea473ea7f7c00234e15443761dd1dd3ea44a9",
+     "lines": 1,
+     "at": [
+      1716,
+      1716
+     ]
+    },
+    "tip": {
+     "sha256": "fbfc6d57300ea0639c5d1160451ea473ea7f7c00234e15443761dd1dd3ea44a9",
+     "lines": 1,
+     "at": [
+      1715,
+      1715
+     ]
+    }
+   },
+   "TA-I060": {
+    "s9": {
+     "sha256": "2155135275304aba2e1c7e97b3e668b5d7ac59dce320b680e553e6f8e7f687d1",
+     "lines": 1,
+     "at": [
+      1721,
+      1721
+     ]
+    },
+    "tip": {
+     "sha256": "2155135275304aba2e1c7e97b3e668b5d7ac59dce320b680e553e6f8e7f687d1",
+     "lines": 1,
+     "at": [
+      1720,
+      1720
+     ]
+    }
+   },
+   "TA-I061": {
+    "s9": {
+     "sha256": "f5403e2a51b1ca54ea3629fe41808b06bd4b44ee0e6fb96b7e84ed2b44b49145",
+     "lines": 1,
+     "at": [
+      1765,
+      1765
+     ]
+    },
+    "tip": {
+     "sha256": "f5403e2a51b1ca54ea3629fe41808b06bd4b44ee0e6fb96b7e84ed2b44b49145",
+     "lines": 1,
+     "at": [
+      1764,
+      1764
+     ]
+    }
+   },
+   "TA-I062": {
+    "s9": {
+     "sha256": "44e131edf0f21d989e8718f0249f381d308b5f27b0d92b646810131f07fdd3c4",
+     "lines": 1,
+     "at": [
+      1952,
+      1952
+     ]
+    },
+    "tip": {
+     "sha256": "44e131edf0f21d989e8718f0249f381d308b5f27b0d92b646810131f07fdd3c4",
+     "lines": 1,
+     "at": [
+      1951,
+      1951
+     ]
+    }
+   },
+   "TA-I063": {
+    "s9": {
+     "sha256": "bcdb5920bc7b0822c19d2b15d855b0339216707b5da0c7bd0d530de6f0323ba0",
+     "lines": 1,
+     "at": [
+      2115,
+      2115
+     ]
+    },
+    "tip": {
+     "sha256": "bcdb5920bc7b0822c19d2b15d855b0339216707b5da0c7bd0d530de6f0323ba0",
+     "lines": 1,
+     "at": [
+      2114,
+      2114
+     ]
+    }
+   },
+   "TA-I064": {
+    "s9": {
+     "sha256": "f1feebf8ab45cced29f8b21f047d914af88fbb515184cb31daedd74f68652c9d",
+     "lines": 1,
+     "at": [
+      2136,
+      2136
+     ]
+    },
+    "tip": {
+     "sha256": "f1feebf8ab45cced29f8b21f047d914af88fbb515184cb31daedd74f68652c9d",
+     "lines": 1,
+     "at": [
+      2135,
+      2135
+     ]
+    }
+   },
+   "TA-I065": {
+    "s9": {
+     "sha256": "faa09ae889161a8a3e81bf2b10b61dad70a62cfb72d0b67cfd6c469b6de03ec9",
+     "lines": 1,
+     "at": [
+      2152,
+      2152
+     ]
+    },
+    "tip": {
+     "sha256": "faa09ae889161a8a3e81bf2b10b61dad70a62cfb72d0b67cfd6c469b6de03ec9",
+     "lines": 1,
+     "at": [
+      2151,
+      2151
+     ]
+    }
+   },
+   "TA-I066": {
+    "s9": {
+     "sha256": "4ffcf56bf265aa3c133b18660f89e473058640a6385f87e3340a402514dc24b3",
+     "lines": 1,
+     "at": [
+      2153,
+      2153
+     ]
+    },
+    "tip": {
+     "sha256": "4ffcf56bf265aa3c133b18660f89e473058640a6385f87e3340a402514dc24b3",
+     "lines": 1,
+     "at": [
+      2152,
+      2152
+     ]
+    }
+   },
+   "TA-I067": {
+    "s9": {
+     "sha256": "d15f9417ef27e746eaa0035f9da67e13e65699dc46273cce8c5ff2daeeccf4b2",
+     "lines": 1,
+     "at": [
+      2183,
+      2183
+     ]
+    },
+    "tip": {
+     "sha256": "d15f9417ef27e746eaa0035f9da67e13e65699dc46273cce8c5ff2daeeccf4b2",
+     "lines": 1,
+     "at": [
+      2182,
+      2182
+     ]
+    }
+   },
+   "TA-I068": {
+    "s9": {
+     "sha256": "2c725da0db4c073209b594a2e4707bde866351626f602db1643a85efd0e05fbd",
+     "lines": 1,
+     "at": [
+      2185,
+      2185
+     ]
+    },
+    "tip": {
+     "sha256": "2c725da0db4c073209b594a2e4707bde866351626f602db1643a85efd0e05fbd",
+     "lines": 1,
+     "at": [
+      2184,
+      2184
+     ]
+    }
+   },
+   "TA-I069": {
+    "s9": {
+     "sha256": "866c0d8f4fd43e1892ce8bb17f59637753bd21a489f5e9528c397758cca3238a",
+     "lines": 1,
+     "at": [
+      2200,
+      2200
+     ]
+    },
+    "tip": {
+     "sha256": "866c0d8f4fd43e1892ce8bb17f59637753bd21a489f5e9528c397758cca3238a",
+     "lines": 1,
+     "at": [
+      2199,
+      2199
+     ]
+    }
+   },
+   "TA-I070": {
+    "s9": {
+     "sha256": "b5530c7399175920a6a8169d5e6a0c030e03add5ddcbbeeb37ea72704236fce7",
+     "lines": 1,
+     "at": [
+      2246,
+      2246
+     ]
+    },
+    "tip": {
+     "sha256": "b5530c7399175920a6a8169d5e6a0c030e03add5ddcbbeeb37ea72704236fce7",
+     "lines": 1,
+     "at": [
+      2245,
+      2245
+     ]
+    }
+   },
+   "TA-I071": {
+    "s9": {
+     "sha256": "548eac1d426f282c08ff0277648f0de6334a8519ba028845f2297ccb609e90df",
+     "lines": 1,
+     "at": [
+      2252,
+      2252
+     ]
+    },
+    "tip": {
+     "sha256": "548eac1d426f282c08ff0277648f0de6334a8519ba028845f2297ccb609e90df",
+     "lines": 1,
+     "at": [
+      2251,
+      2251
+     ]
+    }
+   },
+   "TA-I072": {
+    "s9": {
+     "sha256": "18e1a8554454d6533c521a3cf676e562d5cd5b2e95971ec1566a80c3b1ad958b",
+     "lines": 1,
+     "at": [
+      2289,
+      2289
+     ]
+    },
+    "tip": {
+     "sha256": "18e1a8554454d6533c521a3cf676e562d5cd5b2e95971ec1566a80c3b1ad958b",
+     "lines": 1,
+     "at": [
+      2288,
+      2288
+     ]
+    }
+   },
+   "TA-I073": {
+    "s9": {
+     "sha256": "309df8a63315fb5fc87f73514b7d45463bf07977c7fcfa8808f9490933d3a77c",
+     "lines": 1,
+     "at": [
+      2302,
+      2302
+     ]
+    },
+    "tip": {
+     "sha256": "309df8a63315fb5fc87f73514b7d45463bf07977c7fcfa8808f9490933d3a77c",
+     "lines": 1,
+     "at": [
+      2301,
+      2301
+     ]
+    }
+   },
+   "TA-I074": {
+    "s9": {
+     "sha256": "03aa69afcb324fd00f4aa82ed9326ff4cb49b3d7f144dc1a357ad8ad843edf0a",
+     "lines": 1,
+     "at": [
+      2323,
+      2323
+     ]
+    },
+    "tip": {
+     "sha256": "03aa69afcb324fd00f4aa82ed9326ff4cb49b3d7f144dc1a357ad8ad843edf0a",
+     "lines": 1,
+     "at": [
+      2322,
+      2322
+     ]
+    }
+   },
+   "TA-I075": {
+    "s9": {
+     "sha256": "a6d432f7b4f373b90546e72b833d7145e60554301a29eb59df5fc8d25c813c96",
+     "lines": 1,
+     "at": [
+      2324,
+      2324
+     ]
+    },
+    "tip": {
+     "sha256": "a6d432f7b4f373b90546e72b833d7145e60554301a29eb59df5fc8d25c813c96",
+     "lines": 1,
+     "at": [
+      2323,
+      2323
+     ]
+    }
+   },
+   "TA-I076": {
+    "s9": {
+     "sha256": "b18b869bd743fb65f7d7e00799591c2a3e29a1168cff58d88c985917c0bc9d81",
+     "lines": 1,
+     "at": [
+      2336,
+      2336
+     ]
+    },
+    "tip": {
+     "sha256": "b18b869bd743fb65f7d7e00799591c2a3e29a1168cff58d88c985917c0bc9d81",
+     "lines": 1,
+     "at": [
+      2335,
+      2335
+     ]
+    }
+   },
+   "TA-I077": {
+    "s9": {
+     "sha256": "89e67a42ddbc0703f3ec1c714b7a75c3a49492ed4772eb3cd7d17ccfcd95c2cb",
+     "lines": 1,
+     "at": [
+      2345,
+      2345
+     ]
+    },
+    "tip": {
+     "sha256": "89e67a42ddbc0703f3ec1c714b7a75c3a49492ed4772eb3cd7d17ccfcd95c2cb",
+     "lines": 1,
+     "at": [
+      2344,
+      2344
+     ]
+    }
+   },
+   "TA-I078": {
+    "s9": {
+     "sha256": "1e4aedebada8182e66418b50262c8e209ed0b7a6e39c0234e4cbbf99c5d204be",
+     "lines": 1,
+     "at": [
+      2348,
+      2348
+     ]
+    },
+    "tip": {
+     "sha256": "1e4aedebada8182e66418b50262c8e209ed0b7a6e39c0234e4cbbf99c5d204be",
+     "lines": 1,
+     "at": [
+      2347,
+      2347
+     ]
+    }
+   },
+   "TA-I079": {
+    "s9": {
+     "sha256": "0078e9af24235a20e99a00d5b071578c7ecde114c0237d3c9e473beb77590b8a",
+     "lines": 1,
+     "at": [
+      2350,
+      2350
+     ]
+    },
+    "tip": {
+     "sha256": "0078e9af24235a20e99a00d5b071578c7ecde114c0237d3c9e473beb77590b8a",
+     "lines": 1,
+     "at": [
+      2349,
+      2349
+     ]
+    }
+   },
+   "TA-I080": {
+    "s9": {
+     "sha256": "0a571d047b4c10261e0d53095b45f1a089e4256f5653a9ae419610fa42bbb0c4",
+     "lines": 1,
+     "at": [
+      2352,
+      2352
+     ]
+    },
+    "tip": {
+     "sha256": "0a571d047b4c10261e0d53095b45f1a089e4256f5653a9ae419610fa42bbb0c4",
+     "lines": 1,
+     "at": [
+      2351,
+      2351
+     ]
+    }
+   },
+   "TA-I081": {
+    "s9": {
+     "sha256": "ea9c2f6d3b5e3d76ab427c5983095163d74de17f938cc4cac4fd4624caccd590",
+     "lines": 1,
+     "at": [
+      2361,
+      2361
+     ]
+    },
+    "tip": {
+     "sha256": "ea9c2f6d3b5e3d76ab427c5983095163d74de17f938cc4cac4fd4624caccd590",
+     "lines": 1,
+     "at": [
+      2360,
+      2360
+     ]
+    }
+   },
+   "TA-I082": {
+    "s9": {
+     "sha256": "20cc2065315935ef30295ee333cab408b51e38d8357d531cfb17f51cbfe5be61",
+     "lines": 1,
+     "at": [
+      2365,
+      2365
+     ]
+    },
+    "tip": {
+     "sha256": "20cc2065315935ef30295ee333cab408b51e38d8357d531cfb17f51cbfe5be61",
+     "lines": 1,
+     "at": [
+      2364,
+      2364
+     ]
+    }
+   },
+   "TA-I083": {
+    "s9": {
+     "sha256": "2beccfc7ef85cfe764df733e1f702c2292ddbd7cb77ba670be79283e7820caca",
+     "lines": 1,
+     "at": [
+      2366,
+      2366
+     ]
+    },
+    "tip": {
+     "sha256": "2beccfc7ef85cfe764df733e1f702c2292ddbd7cb77ba670be79283e7820caca",
+     "lines": 1,
+     "at": [
+      2365,
+      2365
+     ]
+    }
+   },
+   "TA-I084": {
+    "s9": {
+     "sha256": "ba43bb2265b2ad7289c46cba4dff7a46b87c0169c16ab1510b6b4b03ff2d513d",
+     "lines": 1,
+     "at": [
+      2452,
+      2452
+     ]
+    },
+    "tip": {
+     "sha256": "ba43bb2265b2ad7289c46cba4dff7a46b87c0169c16ab1510b6b4b03ff2d513d",
+     "lines": 1,
+     "at": [
+      2451,
+      2451
+     ]
+    }
+   },
+   "TA-I085": {
+    "s9": {
+     "sha256": "fc100b0a4d45c869b85e3c0525365ba6c737b87ad977b56f8337a110d28f436d",
+     "lines": 1,
+     "at": [
+      2557,
+      2557
+     ]
+    },
+    "tip": {
+     "sha256": "fc100b0a4d45c869b85e3c0525365ba6c737b87ad977b56f8337a110d28f436d",
+     "lines": 1,
+     "at": [
+      2556,
+      2556
+     ]
+    }
+   },
+   "TA-I086": {
+    "s9": {
+     "sha256": "0fe7d9f0700b8f54af04157e62c99662d8eddcc27d368dcd8ecb7e94fd79487b",
+     "lines": 1,
+     "at": [
+      2558,
+      2558
+     ]
+    },
+    "tip": {
+     "sha256": "0fe7d9f0700b8f54af04157e62c99662d8eddcc27d368dcd8ecb7e94fd79487b",
+     "lines": 1,
+     "at": [
+      2557,
+      2557
+     ]
+    }
+   },
+   "TA-I087": {
+    "s9": {
+     "sha256": "cdcf39459979f5e4cf914665c8dedab79277b8a28e24f2f06e73ded1690aee8f",
+     "lines": 1,
+     "at": [
+      2561,
+      2561
+     ]
+    },
+    "tip": {
+     "sha256": "cdcf39459979f5e4cf914665c8dedab79277b8a28e24f2f06e73ded1690aee8f",
+     "lines": 1,
+     "at": [
+      2560,
+      2560
+     ]
+    }
+   },
+   "TA-I088": {
+    "s9": {
+     "sha256": "216a4641814810987fbeac71422026de4ea04a9209f28012b9e0dbf9ad68f44d",
+     "lines": 1,
+     "at": [
+      2562,
+      2562
+     ]
+    },
+    "tip": {
+     "sha256": "216a4641814810987fbeac71422026de4ea04a9209f28012b9e0dbf9ad68f44d",
+     "lines": 1,
+     "at": [
+      2561,
+      2561
+     ]
+    }
+   },
+   "TA-I089": {
+    "s9": {
+     "sha256": "772a30cf84f021ea74879932fa02c8589363c5665b95820c44625ee85dc91e08",
+     "lines": 1,
+     "at": [
+      2563,
+      2563
+     ]
+    },
+    "tip": {
+     "sha256": "772a30cf84f021ea74879932fa02c8589363c5665b95820c44625ee85dc91e08",
+     "lines": 1,
+     "at": [
+      2562,
+      2562
+     ]
+    }
+   },
+   "TA-I090": {
+    "s9": {
+     "sha256": "0aebc942c215b862dcb0b1db109dd307f8658682f2663ff3d0f2d56e198a5a75",
+     "lines": 1,
+     "at": [
+      2567,
+      2567
+     ]
+    },
+    "tip": {
+     "sha256": "0aebc942c215b862dcb0b1db109dd307f8658682f2663ff3d0f2d56e198a5a75",
+     "lines": 1,
+     "at": [
+      2566,
+      2566
+     ]
+    }
+   },
+   "TA-I091": {
+    "s9": {
+     "sha256": "1b512c86001238c9d6c7ae78750fc3409250878c585672fbd13c190f7e86bc99",
+     "lines": 1,
+     "at": [
+      2569,
+      2569
+     ]
+    },
+    "tip": {
+     "sha256": "1b512c86001238c9d6c7ae78750fc3409250878c585672fbd13c190f7e86bc99",
+     "lines": 1,
+     "at": [
+      2568,
+      2568
+     ]
+    }
+   },
+   "TA-I092": {
+    "s9": {
+     "sha256": "ffa89868170b4e0ab950bb52b00335292fd8ccbc2146eeee70a66d5b97a2ff55",
+     "lines": 1,
+     "at": [
+      2570,
+      2570
+     ]
+    },
+    "tip": {
+     "sha256": "ffa89868170b4e0ab950bb52b00335292fd8ccbc2146eeee70a66d5b97a2ff55",
+     "lines": 1,
+     "at": [
+      2569,
+      2569
+     ]
+    }
+   },
+   "TA-I093": {
+    "s9": {
+     "sha256": "826226c797ef9c0a4651f0d47a5ca4db44014c642fe93d8fde38333e578a5773",
+     "lines": 1,
+     "at": [
+      2577,
+      2577
+     ]
+    },
+    "tip": {
+     "sha256": "826226c797ef9c0a4651f0d47a5ca4db44014c642fe93d8fde38333e578a5773",
+     "lines": 1,
+     "at": [
+      2576,
+      2576
+     ]
+    }
    }
   },
   "movedLines": {
@@ -2462,6 +6606,536 @@
      "file": "today-app.cjs",
      "lines": 1
     },
+    "TA-W01": {
+     "sha256": "c2f94fcbc466d9ef023856e82422d1579d70cc44ba54fa189c646490bde7e9d2",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W02": {
+     "sha256": "8bf9cd61d290cbc4d4fa03d3547070cf0acfdb3cee81d7a51fd821cc82fc13fb",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W03": {
+     "sha256": "1d62cc5fabe276cc3726e6833d4a3ab811140d42f090d893b50352002ba9dd95",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W04": {
+     "sha256": "936e98330ba028fb2a40b9c8c684170b4c672ae10c8d356e4cfdc1df52c039ac",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W05": {
+     "sha256": "b387aa96dce1c94d3ceefaa601004e9766d4d10e032bfc2f078fa3a339cc8cc9",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W06": {
+     "sha256": "0373a067074b531d84b47ec719752365b56feb1f4846f5d64ec2417456550417",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W07": {
+     "sha256": "80eadc0c89e146f271ff08ce531e9242f8f3ae62a3b64399798cba2f4466132a",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W08": {
+     "sha256": "4d739aad57761c521d05fc15c4c9e196cecf60e4db2fb364f0575dcce7c348ac",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W09": {
+     "sha256": "0fef52b64dc2ac4eeadc7cc07327f534cbcff9128c2925c50aa44a2168fdfc81",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W10": {
+     "sha256": "bee74f071c5874b71d9c5be67c0fbd5a76e533a5e1fe2c51527229cc7ac04d59",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W11": {
+     "sha256": "c3e9ec6c617b89a6c5cf0c6df6f457a49d6435e03fbd1a23ca98f4c76d69bfe7",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W12": {
+     "sha256": "734721ec5fea341201c982782120540a78ec3bf0b7d168c59347eb251aeff831",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-W13": {
+     "sha256": "4e8a8bb43e2f3b59e0e84708e9d388bbd848fc591544e654635619b1ff3c0f3a",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I001": {
+     "sha256": "246d7eab63b268755c936133c95265627955f9705d5f305549d0526cf173a680",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I002": {
+     "sha256": "9d555f1523b5a7f0c52afc36e7e5af10958f19fad0c546d189a7f288ad86ce37",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I003": {
+     "sha256": "ea1c3faba70f3b59a0bc9b6d2524e9b22cb2a160253ab8d06d8f5405b1cffff3",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I004": {
+     "sha256": "25e33bf98c3883d44821a53a9f6c7b5fa1d1d056e5928290e40d5a848be2920a",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I005": {
+     "sha256": "e90ae7d3a93066703c74ac920514e90bf49d1b32e69f66b0734933bee06fcdcc",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I006": {
+     "sha256": "b379c17eee3dcd30c1a9f4ace2f7c632e38cf5158b815adb042965feac06ba0d",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I007": {
+     "sha256": "4d5ba36f4e9e5ac4137d05b7356533222ab6c5a35a161aed5ed6a75957b6ebc4",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I008": {
+     "sha256": "eb6321022258d9e7cba145447b27caba522144aed189353ab6f14d6e766b303e",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I009": {
+     "sha256": "afa66cb452f6f69f9e41f1a93a2ac8d74ba27e0201343b233a53f193124aec4d",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I010": {
+     "sha256": "6ec44650452dfd5fd19003ffff10e0cdafa93b56b236658b462afcaa0ad2fc14",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I011": {
+     "sha256": "acfab4b2432414cf176653f6dd52569d743d2d91457b5162d80447baefe697ff",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I012": {
+     "sha256": "81f2d9ba7dabd2e4dcd196c567c7bab8acf6af70b33fac1dbfbdacbe7a7ccd9f",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I013": {
+     "sha256": "2e4e4eb5eb03962b19ac7d3352a5afc542aaa02105ed11652334d63c60a53903",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I014": {
+     "sha256": "b9b48a91c9862ac8dbbf249fa120190ec9e96fc833033e65638dc66dffbf80de",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I015": {
+     "sha256": "31a0b76611252a35b86be1b6316554c3220dc82a50edc0574f6f34ff48cd9a23",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I016": {
+     "sha256": "f657eac3c70778f791ae76160feeb88f6de70e87bf3a4f61b8e697508d851c69",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I017": {
+     "sha256": "1fac846be1f37d318236fa08a2fd5666dae3240c91654aee5ca80ec1357b5a73",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I018": {
+     "sha256": "dbaa8358460d7f7db4e0875bad6e467b37661a39978f501647cffd68a41887e0",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I019": {
+     "sha256": "8a132fd509cadb87dfd1cf7057c0f9b1e6a0e968dd613b6a0f3c49094d108359",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I020": {
+     "sha256": "0a5ce23991f074a64e874a5daabe71c59b028a094bb9db99abf73937459faa0c",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I021": {
+     "sha256": "cfdd1915723244e82961577e67161ff5c048f7094e8fe93581efee1b5a0313ad",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I022": {
+     "sha256": "f4bb301d8e66b6b9160460becda254d169f8962cd1f8d5d778b330ea66209f75",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I023": {
+     "sha256": "96793eff00f930b7ebea1d3a298e22a19d7c4675f700681dbd5d5e23bfcc1cf8",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I024": {
+     "sha256": "a3301b647229cd18555bdc515e13a89d120d22a2e74467783bdeb42e4dfb63b8",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I025": {
+     "sha256": "8953c8e088a6a084f22d2757531494c2736b13ec56d1b0e019a26e9937327b93",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I026": {
+     "sha256": "f12484ab31f376d4a88214ba978bc7c5d877bdafcb81f2feff52ec724035e5ca",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I027": {
+     "sha256": "21b6676daa68870010c342cf4c82d607efe676e96e62540a015eb96edaf24688",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I028": {
+     "sha256": "a7d3056fbcba94db6420f800b578f2070da8a782f90ec7d1079ee85bb93c74f6",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I029": {
+     "sha256": "724c62848c4dea98608e0936bc40edda8fff9af53c26052ab17c5de56064f7d7",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I030": {
+     "sha256": "fc04ec0c8d31e21106175e6dea7c9ceb85be579042d5fea67ea4fff44fffd877",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I031": {
+     "sha256": "784b250c996bfb7ca2b0485efa15f11bbe1cac05f2de8a97d523fe07aff0ed7d",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I032": {
+     "sha256": "93df59767da4424182165928506f1095968281f6eb14c25d3b39963cb12c9f27",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I033": {
+     "sha256": "e726d8c0b5685704d4c9bb32fbf958ef6f643bb71d0c3a41c1f7ccc971a74b48",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I034": {
+     "sha256": "6361d2a5691ca49ddf343546222843d98987d2d3b560d3c260e2c02522b6b12a",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I035": {
+     "sha256": "fed88f2d749c731ea5f7a44a8404e45460ead2646cdefe71623887deda2a9a82",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I036": {
+     "sha256": "1ed8381caa1a430724a6329f1e772a94715e179a7bb5b657bdd640f1163116fe",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I037": {
+     "sha256": "986dd1aeffbd9ae5d38309e3ff7c8b875855a4481850135948bd944da3e01dc6",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I038": {
+     "sha256": "c8f227a3c06da2e81abfb28022633d8298cf8e423cf996525f4da5d882aabd62",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I039": {
+     "sha256": "d66cbf092eda66cb4f389ae118dbe52ae4d4cb0317ca6f6c2e1c29d9fdc52a88",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I040": {
+     "sha256": "05be98f61f40cccf355e039dcc890eeeb48e7f36de53f0043f07d3bafca3a9c1",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I041": {
+     "sha256": "5e537ea9b79485a9413b43c306f7303bb15a9008decbc133881b7d06f0b5bd15",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I042": {
+     "sha256": "d41cd2e49d8bd052312f0cabf21d35d087f667cf64bab10ef575f9dc2917d761",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I043": {
+     "sha256": "16492bc9e1469cc7491653fe46b1a6048216776d53d491a1179c2c6e8ebc510a",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I044": {
+     "sha256": "646f0afe34a357b7f910ab1939088cca3011bd4c2b42a2b9a8da6d6f074bd160",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I045": {
+     "sha256": "388ba6ee1350a596f676a108812888097bd532559abe66a5d78b17e98a3a5879",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I046": {
+     "sha256": "3d969d7d00d0c0a95f82e46091a68355a6ea9b72348d28291f0c62723ff61da4",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I047": {
+     "sha256": "0872c5d7b89dbeae7965f5e24d4972b62c8ba26033c132bcced9289416cd1455",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I048": {
+     "sha256": "79639965a01e00a2436dc19250e1cb112ad3ad231e6c3514684b1a86709430b2",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I049": {
+     "sha256": "cad15ddf0a2237b38ac9afe064c2cfb695de802c74c62d41f5b85b36abb4d62b",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I050": {
+     "sha256": "cc0ebfe4278734f9a7fed115c5d20244d5ea542d2d65a5abb34713c85c3fd66c",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I051": {
+     "sha256": "e3f089bc625de69f4d103b28fad1fd7de0c3813dff0e717ed7f661a93bc4d82a",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I052": {
+     "sha256": "496c4d7b9914f76bc411f27d1efb39bd341d85bf601cbf4794ccb1e8637eb6cf",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I053": {
+     "sha256": "6a97d30214ab3694425753d98ba0654068a91cc57367e08a897cab05e0c7481f",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I054": {
+     "sha256": "c523d2d176df0168a72d7372f871e3bdd28d41a349562b54f04351ead969485e",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I055": {
+     "sha256": "89598d00bf2b708ba4fe2f6919888810f46166520719a46fda24f302ed5e3a71",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I056": {
+     "sha256": "63e5a2490f5c5d0ecae4c4dd24c9055023af9c9c1655700984e23772e00ee817",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I057": {
+     "sha256": "b41796d6346a75a9650fc06b9f15ea072293241bba91a5b8c0393143c5b1f051",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I058": {
+     "sha256": "25a9dbc3fdd564f0c993a3cdae3cabca44ed13b6c7f6c79ac4be7b2d9f1a5dd0",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I059": {
+     "sha256": "3bb991fb823248df4b344c90facf05f4e2b84a274129628d3176a2d88734492f",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I060": {
+     "sha256": "ddfbbe19a23ceed6ddb594faa9ed032591491a3beb2d64b411be3b9525b1070d",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I061": {
+     "sha256": "65f196820432a6fd876cf38040090c221f099ee0dd081681374a7edd5751b359",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I062": {
+     "sha256": "0c084aaec9f327b11af626a2c0e4643d0e8f203e15b4705d1148db47ad634472",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I063": {
+     "sha256": "9ea07a5ab6a4ac68b59089ae9608efd7663d26f11b4898461256b85e29d80b12",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I064": {
+     "sha256": "b60bf1625fc26ea534786af4e54aba743eac572e6e85897dcedbcd6eb5eb4e19",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I065": {
+     "sha256": "47a5e21d46366d75cda651e3193bcf96f9e3fc798dc6ab785f6e3311f3bd0bbb",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I066": {
+     "sha256": "b3bc55b3939d2487495e1cfb23f06fdee2fbeabc2a5ad09834c047f28e5fffa5",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I067": {
+     "sha256": "27fe622d0a529a3dc6e046212ac16b8c468bf857f2e61ec4d5cd2b17f813e55d",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I068": {
+     "sha256": "977605afce895e21a58417b6baa07d3a347c67eeab3c641458863a455056b8ec",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I069": {
+     "sha256": "bd539d503dd297b23d96b6ff24ba83b68780c5ab84087fb86217e080968329b0",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I070": {
+     "sha256": "c40d9f918666dcf93ad6b33d9aee368a5ca2c28f542be69ae5924912f2f8f685",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I071": {
+     "sha256": "9f684d10527afb871595d348f81ab79660135a9c6ab6f4c49197c735c5f9629c",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I072": {
+     "sha256": "d38cf0f420b23970f029af21b2cd882be3a94a708b697f658f0d4347fd0d978a",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I073": {
+     "sha256": "1efb5686a9063ce6755eb8757b0d31f01a0b377026f3f65277f7d7bf99f5b8ba",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I074": {
+     "sha256": "e1fb42a7e49578807199fa3021e95b62e8ce931027c845c272c0cdd9369c6d6e",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I075": {
+     "sha256": "7c1db6f9ab35ec8b2ccae6945b69d7b3256cba3df233111e92a0b58f03371e18",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I076": {
+     "sha256": "44489ef63e21a045ce1b7d539c234f08bec1f9b322a3d0b3c9412c8c04ccac50",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I077": {
+     "sha256": "e9a420cbfd801e05947aeac9df6a427167240af3743d26fcdd9718c9c1e96d01",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I078": {
+     "sha256": "dc537cd08a9e7bce800b8345a8e83fc4b844e06eabaf109a9f117296aaaec394",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I079": {
+     "sha256": "bdd32ecda2faa7187d37c6c01b8b739759a76892f3f0152b7e729af43704c7ee",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I080": {
+     "sha256": "5daa1081a2ff6d06504df384176cb77a465744ab26b56f6f239c2319f768de07",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I081": {
+     "sha256": "c516babe65e40a6d9d14562f66e5d683d07782358b61e64ce7a71acc9fd307c2",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I082": {
+     "sha256": "4f1d894cd1587d843a1a9a80c130360edc12b1486c375f643c545848d54bf397",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I083": {
+     "sha256": "72f3275a28889694dfe27c6ce0f5f5fff444c879b10e556e088848c4aaf5b51d",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I084": {
+     "sha256": "ab4886802470aaf529a18910b89a0b3bc1f61c1185e2ec992ed618c308f3ea26",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I085": {
+     "sha256": "b5581bc7c20497a9dd08842b5816bb2889f43c08740c1561dc90dce5195a1f22",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I086": {
+     "sha256": "da70f84dec5ad17e4e8a5e9b6cbca251ae7afbbe5f429afe61c117a3f89aaaa8",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I087": {
+     "sha256": "f6295718f0edecfcda20a65f598d7e3aca33b39eb35bb7e68b54c3ee920bab97",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I088": {
+     "sha256": "24153796bbe54f16c1e590148e45a7baff0aa1515c55a7b4113b633b373b254c",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I089": {
+     "sha256": "e370338febfcb0291f922bc8ffc79c9acee7ad2af3052d7b36fe1b3f70a37cbc",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I090": {
+     "sha256": "23d4e0f19a98cf20821559d117edbbd884d41a494ebb6f34d3a4fd0f5e79cd6b",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I091": {
+     "sha256": "c0d9a5b115838eac00a886316770cc1a7c626795138db6d1f68f7192dbb21d6f",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I092": {
+     "sha256": "9c47b7c4add8262dfd2cdbbbfd8bb20bacf0fd4b8b4c89c06b8fc014ffa97208",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
+    "TA-I093": {
+     "sha256": "cd72e8a806ac4a75af27ccf46f47cdeb52adb5eda5b0c15ab1b4fd4b82e690b0",
+     "file": "today-app.cjs",
+     "lines": 1
+    },
     "GA-R01": {
      "sha256": "65596a71d4d33404209f0a7fce63185f79e97787c40fb1561915c45c42c1404e",
      "file": "gym-app.mjs",
@@ -2519,7 +7193,7 @@
    },
    "counts": {
     "substitutions": 7,
-    "replacements": 11,
+    "replacements": 117,
     "products": 2,
     "composes": 2
    }
