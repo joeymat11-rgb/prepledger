@@ -1112,12 +1112,23 @@ test('(P-A9 a) - the honest four-key record still skips, and the walk reads only
   assert.throws(() => said(() => api.pins(s10(), gaOnly)), /GRANDPARENT-PIN-BROKEN/);
 });
 
-test('(P-A9 b) - an entry that is not a closed four-key release record refuses by name', () => {
+test('(P-A9 b) - an entry that is not a closed release record refuses by name', () => {
   const rows = [
     ['the one-key entry Astra used', { lastSealedSha256: PRE }],
-    ['a record that says carried, with an extra key',
-      { role: 'carried', lastSealedSha256: PRE, sealedBy: 'M2-UNRELATED',
-        rulingLineSha256: '0'.repeat(64), extra: true }],
+    /* Astra R5 N19 and N20. This row used to carry THREE defects at once -
+       role "carried", an unrelated sealedBy and a fifth key - so flipping
+       any ONE of them in the fixture left it refusing for the other two and
+       the row measured nothing about any of them. Split, one defect each;
+       the wrong-sealedBy and five-key rows already stand below. */
+    ['a record whose ONLY defect is the role (Astra N02)', { ...goodEntry(), role: 'carried' }],
+    ['a record whose role is INHERITED and not an own key',
+      Object.assign(Object.create({ role: 'released' }),
+        { lastSealedSha256: PRE, rulingLineSha256: shaOf(RULING_LINE),
+          sealedBy: 'M2-S8-FIXTURE', extra: true })],
+    ['a record with a NON-ENUMERABLE own fifth key',
+      Object.defineProperty({ ...goodEntry() }, 'note', { value: 'why it was released' })],
+    ['a four-key record with an extra key and NO sealedBy (Astra G4)',
+      { role: 'released', lastSealedSha256: PRE, rulingLineSha256: shaOf(RULING_LINE), extra: true }],
     ['a four-key record sealed by the wrong package',
       { role: 'released', lastSealedSha256: PRE, sealedBy: 'M2-SOMEONE-ELSE',
         rulingLineSha256: shaOf(RULING_LINE) }],
@@ -1159,6 +1170,87 @@ test('(P-A9 c) - an execution-only grandparent pin is never stood aside by a rel
   assert.throws(() => said(() => api.pins(s10(),
     boundA9({ [OTHER]: goodEntry() }, { [OTHER]: pin(OTHER_SHA) }))),
   /ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN/);
+});
+
+/* ============ P-A9 (b) TIGHTENED (Astra R5 G4), fix round 6 =============
+   H20 counted FOUR KEYS and never asked WHICH four, so a record with an
+   extra key and no sealedBy at all stood a grandparent pin aside:
+   `undefined === undefined` satisfied the sealedBy test when the
+   grandparent artifact carried no packageId either. The PM's ruling: the
+   own key SET is exactly role, lastSealedSha256, rulingLineSha256 and
+   sealedBy; sealedBy is an own, non-empty string; the grandparent's
+   packageId is a non-empty string; every existing value and product-pin
+   check stays. It is THREE asserts under TWO names, so that each clause
+   has a row that holds it alone. */
+const gaBody = body => { write(GA2_FILE, JSON.stringify({ version: 1, ...body }, null, 2) + '\n'); return at(GA2_FILE); };
+const boundG4 = (releasedBlock, body) => ({
+  option: { id: 'S9', artifact: A_FILE, sha256: 'b'.repeat(64) }, decided: true, reviewedCommit: HEAD,
+  acceptance: { packageId: 'M2-S9-FIXTURE', product: {}, executionPins: {}, released: releasedBlock,
+    parent: { id: 'S8', artifact: GA2_FILE, sha256: gaBody(body), review: null } },
+});
+const G4_RECORD = { role: 'released', lastSealedSha256: PRE, rulingLineSha256: 'a'.repeat(64), extra: true };
+
+test('(P-A9 d) - four keys are not the four NAMED keys, and a grandparent with no id seals nothing', () => {
+  /* HER WITNESS, EXACTLY: canonical JSON, four keys, no sealedBy, and a
+     grandparent artifact that omits packageId. MEASURED at 4ccfdfcd: "0
+     un-superseded grandparent pin(s) ... plus 1 skipped". */
+  const witness = boundG4({ [RELEASED]: G4_RECORD }, { product: { [RELEASED]: pin(PRE) } });
+  assert.throws(() => said(() => api.pins(s10(), witness)),
+    /ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD/);
+  try { said(() => api.pins(s10(), witness)); assert.fail('admitted'); }
+  catch (e) { assert(e.message.includes(RELEASED), 'the refusal names the path: ' + e.message); }
+  /* The SAME record under a grandparent that DOES name a package: it is the
+     KEY SET that refuses, on its own. */
+  assert.throws(() => said(() => api.pins(s10(), boundG4({ [RELEASED]: G4_RECORD },
+    { packageId: 'M2-S8-FIXTURE', product: { [RELEASED]: pin(PRE) } }))),
+  /ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD/);
+  /* An HONEST record whose grandparent names no package: the grandparent is
+     what fails, and it refuses in its own name rather than blaming the
+     record. */
+  assert.throws(() => said(() => api.pins(s10(),
+    boundG4({ [RELEASED]: goodEntry() }, { product: { [RELEASED]: pin(PRE) } }))),
+  /ANCESTOR-RELEASE-GRANDPARENT-HAS-NO-PACKAGE-ID/);
+  /* An EMPTY name is not a name: a record and a grandparent that agree on
+     "" agree about nothing, and the RECORD is refused first. */
+  assert.throws(() => said(() => api.pins(s10(),
+    boundG4({ [RELEASED]: { ...goodEntry(), sealedBy: '' } },
+      { packageId: '', product: { [RELEASED]: pin(PRE) } }))),
+  /ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD/);
+  /* THE CONTROL: the honest record under the named grandparent still skips. */
+  assert.match(said(() => api.pins(s10(), boundG4({ [RELEASED]: goodEntry() },
+    { packageId: 'M2-S8-FIXTURE', product: { [RELEASED]: pin(PRE) } }))),
+  /plus 1 skipped as released by an ancestor artifact's released block/);
+  assert(api.FAIL_CODES.has('ANCESTOR-RELEASE-GRANDPARENT-HAS-NO-PACKAGE-ID'));
+});
+
+test('(P-A9 e) - the GRANDPARENT PRODUCT map decides, by OWN key and at ITS OWN pin', () => {
+  /* Astra N06: `Object.hasOwn(ga.product, file)` -> `file in ga.product`
+     left all ten suites green, because every path the suite used was an
+     ordinary name and no ordinary name is on Object.prototype. A path
+     spelled like an INHERITED MEMBER is the discriminator, and it is
+     reachable through ordinary JSON: the grandparent pins "toString" as an
+     EXECUTION pin only, so a release naming it is a release from a seal the
+     product inventory never carried. */
+  assert.throws(() => said(() => api.pins(s10(),
+    boundG4({ toString: { ...goodEntry(), lastSealedSha256: OTHER_SHA } },
+      { packageId: 'M2-S8-FIXTURE', product: { [KEPT]: pin(KEPT_SHA) },
+        executionPins: { toString: OTHER_SHA } }))),
+  /ANCESTOR-RELEASED-BLOCK-IS-NOT-A-GRANDPARENT-PRODUCT-PIN/);
+  /* Astra N07: the grandparent holds ONE path in BOTH maps at DIFFERENT
+     hashes. The spread that drives the walk ends with executionPins, so the
+     entry the loop carries is the EXECUTION one; a release is a release
+     from the PRODUCT seal, and the product pin is what the record must
+     match. Honest row first: the record stands at the product hash and the
+     pin is stood aside. */
+  const dual = record => boundG4({ [OTHER]: record },
+    { packageId: 'M2-S8-FIXTURE', product: { [OTHER]: pin(OTHER_SHA) },
+      executionPins: { [OTHER]: CELL_SHA } });
+  assert.match(said(() => api.pins(s10(), dual({ ...goodEntry(), lastSealedSha256: OTHER_SHA }))),
+    /plus 1 skipped as released by an ancestor artifact's released block: /);
+  /* And the same fixture with the record at the EXECUTION hash refuses, so
+     the row is about WHICH map decides and not about a hash being read. */
+  assert.throws(() => said(() => api.pins(s10(), dual({ ...goodEntry(), lastSealedSha256: CELL_SHA }))),
+    /ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN/);
 });
 
 /* ==================== P-A11 rows that need no stage ======================
@@ -1422,4 +1514,139 @@ test('(M09) - a released pin that declares a post-image refuses THROUGH spec()',
   assert.throws(() => stageRun({ release: { rulingLineSha256: 'a'.repeat(64) },
     product: { [STAGE_CELL]: { pre: null, post: null, role: 'released' } } }),
   /PRODUCT-PRE-IMAGE-SHAPE/);
+});
+
+/* ============ P-A12 (Astra R5 G1, G2 and G5), fix round 6 ===============
+   Three OLDER maps in this runner are still built by plain keyed
+   assignment: proposed()'s execution pin map, writeSealedRunReceipt()'s
+   product map and envelope()'s reviewed map. All three predate this lane
+   and stand in sealed generations. Astra measured what that costs once a
+   key spelled __proto__ reaches them through a WELL-FORMED spec: the
+   reviewed map drops the key and the package prints PRODUCT IMPLEMENTED and
+   ENVELOPE AUTHORIZED over a reviewed Git byte it never compared (G1); the
+   execution pin map drops the pin and the carrier envelope stays AUTHORIZED
+   after the carrier drifts (G2); the receipt writer reports success and the
+   committed re-read then refuses SEALED-RUN-RECEIPT-VOID (G5).
+
+   THE PM'S RULING IS ONE CHOKE POINT, AT ADMISSION, and no edit of those
+   three older clauses: canonicalPath() refuses any path with a SEGMENT
+   spelled exactly __proto__, because a plain-object map keyed by a path or
+   by a path segment cannot hold that key as an own entry, and no file of
+   that name has a legitimate use here. H18 is untouched: it is still right
+   that proposed() never drops an own key, and (P-A8 a) and (P-A8 b) above
+   still drive proposed() DIRECTLY with all five special names. */
+test('(P-A12) - a path with a segment spelled __proto__ never enters the walk', () => {
+  const rows = [
+    ['product key', { product: ownMapOf([['__proto__', stagePin]]) }],
+    ['product key', { product: ownMapOf([['rebuild/m4/workout/__proto__/s9.test.cjs', stagePin]]) }],
+    ['brief.file', { brief: { file: '__proto__', sha256: 'd'.repeat(64), acceptedLedgerLine: null } }],
+    ['carrierSuccessor.file', { carrierSuccessor: { file: '__proto__', parent: STAGE_CELL, witnessPins: {} } }],
+    ['carrierSuccessor.parent', { carrierSuccessor: { file: STAGE_CELL, parent: '__proto__', witnessPins: {} } }],
+    ['child argv target', { children: [{ name: 's9-spec-probe', argv: ['--test', '__proto__'], needle: 'x' }] }],
+  ];
+  for (const [where, over] of rows) {
+    assert.throws(() => stageRun(over), /PATH-IS-NOT-CANONICAL/, where);
+    try { stageRun(over); assert.fail('admitted: ' + where); }
+    catch (e) {
+      assert(e.message.includes(where), where + ': the refusal names the place: ' + e.message);
+      assert(e.message.includes('__proto__'), where + ': the refusal names the reserved segment');
+    }
+  }
+  /* THE CONTROL: the same field under an ordinary spelling is admitted, so
+     this is a rule about ONE reserved segment and not about the field. */
+  assert.doesNotThrow(() => stageRun({ carrierSuccessor: { file: STAGE_CELL, parent: STAGE_CELL, witnessPins: {} } }));
+});
+
+/* ============ P-A13 (Astra R5 G3), fix round 6 ==========================
+   HER WITNESS: product a.css declared released, brief.file A.CSS at the
+   same hash, both spellings present in the Git tree. On a case-insensitive
+   disk both read ONE file. She measured phase=IMPLEMENTED,
+   authorized=true, released=["a.css"] and an execution pin on "A.CSS" -
+   the artifact released the file and re-pinned the same file through the
+   other spelling - and then PARENT-PIN-BROKEN A.CSS the first time the
+   released file was edited. That is F2's failure surviving H21.
+
+   THE RULE IS canonicalSpecPaths', NOT canonicalPath's. Uppercase is NOT
+   refused: standing packages carry uppercase names, and nothing is ever
+   rewritten. What is refused is TWO DISTINCT SPELLINGS inside ONE spec
+   that are equal after String.prototype.toLowerCase(), by the name
+   PATH-CASE-COLLISION, with both spellings in the message. */
+test('(P-A13) - two spellings of ONE file on a case-insensitive disk refuse at admission', () => {
+  const releasedPin = { pre: 'e'.repeat(64), post: null, role: 'released' };
+  const g3 = { product: ownMapOf([['a.css', releasedPin], [STAGE_CELL, stagePin]]),
+    release: { rulingLineSha256: 'a'.repeat(64) },
+    brief: { file: 'A.CSS', sha256: 'd'.repeat(64), acceptedLedgerLine: null } };
+  assert.throws(() => stageRun(g3), /PATH-CASE-COLLISION/);
+  try { stageRun(g3); assert.fail('admitted'); }
+  catch (e) {
+    assert(e.message.includes('"a.css"'), 'the refusal names the first spelling: ' + e.message);
+    assert(e.message.includes('"A.CSS"'), 'the refusal names the second spelling: ' + e.message);
+  }
+  /* TWO PRODUCT KEYS that differ only in case collide the same way. */
+  assert.throws(() => stageRun({ product: ownMapOf([['a.css', stagePin], ['A.CSS', stagePin],
+    [STAGE_CELL, stagePin]]) }), /PATH-CASE-COLLISION/);
+  /* A LONE UPPERCASE NAME IS ADMITTED, which is the sentence the comment
+     above canonicalPath used to get wrong. Nothing at admission refuses it;
+     what stops it is the Git lookup much later, as a raw "git show
+     HEAD:A.CSS" failure with no runner name on it (Astra: failCode=null). */
+  assert.doesNotThrow(() => stageRun({ brief: { file: 'A.CSS', sha256: 'd'.repeat(64), acceptedLedgerLine: null } }));
+  /* AND THE SAME SPELLING TWICE IS NOT A COLLISION: the stage spec pins
+     STAGE_CELL as a product key and runs it as a child argv target. */
+  assert.doesNotThrow(() => stageRun());
+  assert(api2.FAIL_CODES.has('PATH-CASE-COLLISION'));
+});
+
+/* ============ P-A10 WIDENED (Astra R5 G6, N08 to N12), fix round 6 ======
+   Astra deleted each of four pushes of the walk in turn and all ten suites
+   stayed green: (P-A10 b) moved the product key and carrierSuccessor.file
+   and nothing else, so four of the six fields the walk carried were held by
+   no row at all. ONE ROW PER WALKED FIELD, each with that field ALONE
+   non-canonical, so that deleting any single push goes red.
+
+   G6 also supplied the reachable comparison the PM asked for at
+   DECISIONS:579 (3), and the walk widens to the two fields it names:
+   carriers() READS AND HASHES carrierSuccessor.witnessPins BY KEY, and
+   counts witnessFlips[].file as an assertion site - she admitted
+   "./brief.md" and "brief.md" together and measured "2 exact expectation
+   substitution(s) at 2 assertion site(s)" for ONE physical site. These are
+   path identities, not inert labels. protectedSurfaces stays out: it is
+   explicitly unasserted descriptive text. */
+test('(P-A10 c) - every field the walk pushes refuses ALONE, and the two new fields are in', () => {
+  const bad = 'rebuild/m3/w7-preview/today/./preview.css';
+  const cover = successors => ({ inherited: {}, moves: {}, superseded: null, successors });
+  const rows = [
+    ['carrierSuccessor.parent', { carrierSuccessor: { file: STAGE_CELL, parent: bad, witnessPins: {} } }],
+    ['carrierSuccessor.witnessPins key',
+      { carrierSuccessor: { file: STAGE_CELL, parent: STAGE_CELL, witnessPins: { [bad]: 'e'.repeat(64) } } }],
+    ['witnessFlips file', { witnessFlips: [{ file: bad, line: 1, from: 'a', to: 'b' }] }],
+    ['child argv target', { children: [{ name: 's9-spec-probe', argv: ['--test', bad], needle: 'x' }] }],
+    ['successor carrier c1', { coverage: cover({ carriers: { c1: { successor: bad, original: STAGE_CELL } } }) }],
+    ['successor original c1', { coverage: cover({ carriers: { c1: { successor: STAGE_CELL, original: bad } } }) }],
+  ];
+  for (const [where, over] of rows) {
+    assert.throws(() => stageRun(over), /PATH-IS-NOT-CANONICAL/, where);
+    try { stageRun(over); assert.fail('admitted: ' + where); }
+    catch (e) { assert(e.message.includes(where), where + ': the refusal names the place: ' + e.message); }
+  }
+  /* THE CONTROLS. The canonical spelling of the same file in the same field
+     is not refused by THIS rule: the two new fields pass admission, and the
+     successor block goes on to refuse for its own shape, which is what says
+     the spelling was the thing the walk objected to. */
+  assert.doesNotThrow(() => stageRun({ carrierSuccessor: { file: STAGE_CELL, parent: STAGE_CELL,
+    witnessPins: { [STAGE_CELL]: 'e'.repeat(64) } } }));
+  assert.doesNotThrow(() => stageRun({ witnessFlips: [{ file: STAGE_CELL, line: 1, from: 'a', to: 'b' }] }));
+  try {
+    stageRun({ coverage: cover({ carriers: { c1: { successor: STAGE_CELL,
+      original: 'rebuild/m4/workout/test/s9-original.test.cjs' } } }) });
+    assert.fail('the minimal successor block is not a whole one');
+  } catch (e) {
+    assert(!/PATH-IS-NOT-CANONICAL/.test(e.message),
+      'the canonical spelling is not refused by this rule: ' + e.message);
+  }
+  /* N12. The leading-slash and trailing-slash clauses were each IMPLIED by
+     the empty-segment clause, so no row could hold them and no row ever
+     did; they are gone, and both spellings still refuse - by the clause
+     that was always doing the work. */
+  for (const p of ['/' + STAGE_CELL, STAGE_CELL + '/', ''])
+    assert.throws(() => stageRun({ product: ownMapOf([[p, stagePin]]) }), /PATH-IS-NOT-CANONICAL/, p);
 });
