@@ -516,9 +516,10 @@ test("D.2 (6c) - a branch that DELETES the sealed artifact from its worktree FAI
    every COMMITTED deletion of the inventory (row (6c)), so what is left to the null limb
    is the UNCOMMITTED one: HEAD carries the path, the branch's own diff touches it with
    the chain's exact bytes, and the file is gone from the disk the fence reads. Remove the
-   limb and the byte comparison dereferences null, the new catch turns that into
-   FENCE-INVENTORY-HEAD-UNREADABLE, and the fence names a Git failure for a world in which
-   Git answered perfectly well. THE CONTROL HALF IS THE OTHER HALF OF THE ROW: a branch
+   limb and the byte comparison dereferences null and THROWS, so this row goes red. (When
+   review R5 wrote this row a catch turned that throw into FENCE-INVENTORY-HEAD-UNREADABLE,
+   naming a Git failure for a world in which Git answered perfectly well; the PM removed
+   that catch in the same round, see the comment at the check.) THE CONTROL HALF IS THE OTHER HALF OF THE ROW: a branch
    that touches the inventory path with the CHAIN'S OWN BYTES is a touch and not a tamper
    (the sentence the check's own comment ends on), and until this row nothing measured the
    new HEAD-presence limb in the direction that lets an innocent branch through. */
