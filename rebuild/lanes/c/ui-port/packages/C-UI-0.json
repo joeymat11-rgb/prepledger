@@ -2,7 +2,7 @@
  "version": 1,
  "lanePackage": "C-UI-0",
  "packageId": "C-UI-0-GATES-WITH-TEETH",
- "status": "PROPOSED, revised for reviews R1 and R2 and for fix round R3",
+ "status": "PROPOSED, revised for reviews R1, R2 and R3, phase A of the R3 notes round",
  "reviews": [
   {
    "round": "R1",
@@ -17,6 +17,13 @@
    "sha256": "774066c3f6bc5797633fa0a9f6d21e3dfce90298fbcc06a59a215d580c3fe42b",
    "verdict": "ACCEPT WITH NOTES, 0 blocking",
    "addressed": "SHOULD FIX 1 to 6; the records did not change, so none was rewritten"
+  },
+  {
+   "round": "R3",
+   "file": "rebuild/lanes/c/ui-port/reviews/C-UI-0-review-R3.md",
+   "sha256": "0dfb54be3d20161b786dda38b3370c63422685a50c04259e3f790e64a1ab8e12",
+   "verdict": "ACCEPT WITH NOTES, 0 blocking, 7 should fix",
+   "addressed": "1 the one line under app/: the owner ratified it on 2026-09-19, recorded verbatim in the locked object below and in README 3.1. 2 a copied thumbnail set: a committed thumbnail byte identical to another platform's file of the same name is a FAIL naming both files, on an ordinary run and on --accept-thumbs; teeth row p4; what it does not catch is open question Q11. 3 the worst measured block: advisory rows per other platform directory, printed on every run, never a tolerance and never an exit code; 1.26 of 2.00 at C-63 ink against win32 here. 4 teeth row p1 moved to T-84, where the mutation moves a rect 170 px instead of 4, and new row p3 runs the same mutation through the screen gate. 5 teeth sub() retries an anchor with the file's own line endings, so a CRLF file on disk no longer voids k1, m6, n4 and n5; the docstring says a VOID row is never a pass. 6 README 3.1 quotes 1.66, which is what this tree prints, and attributes 1.67 to review R2 and the thumbnails R3 replaced; h1 is a 2 px shift now in any case. 7 the target line prints the number that failed, so the T-88 case reads link 43.73x44."
   }
  ],
  "filed": "2026-09-18",
@@ -65,7 +72,15 @@
   "app": "one line under rebuild/m1/approved-2026-09-18/app/ is changed on this branch and no more: app/app.css line 202, the .link rule, gains \"min-width: var(--hit);\" directly after \"min-height: var(--hit);\"",
   "why": "laid out unhinted, which is how every real device lays it out, T-88's Cancel link is 43.734375 px wide by 44 px high, under the owner's standing rule that every target is 44 px. Hinted headless Chromium on Linux had rounded that advance up to 44, which is the only reason review R2 saw the state sheet green. Ticket item 16 allows a one line copy or attribute fix in the prototype when a new check finds a real defect in it, provided the round says so out loud: commit 449fd73, README section 3.1 and section 4, and this object say it",
   "whatItMoves": "0.27 px on that one box. A record's rect is rounded to whole pixels, so 43.734375 and 44 both record as 44 and nothing either gate records moves",
-  "proof": "git diff e0a6c8ef HEAD -- rebuild/m1/approved-2026-09-18/app is 13 lines, one file, one line added and one removed"
+  "proof": "git diff e0a6c8ef HEAD -- rebuild/m1/approved-2026-09-18/app is 13 lines, one file, one line added and one removed",
+  "ratification": {
+   "whoWasAsked": "the owner",
+   "whoAsked": "the lane C UI lead, in the lane lead's chat",
+   "when": "2026-09-19, about 08:55 ET",
+   "question": "On the 'Sleep correcting' screen the Cancel link's tap area is 43.7 px wide, and your rule is 44 px. One line of CSS makes it 44. Nothing you can see moves (0.3 px), and all 418 screens were re-checked with it. OK to make that change?",
+   "answer": "Yes, make it 44",
+   "why": "review R3 SHOULD FIX 1: ticket item 16 asks for the boards, and a lane lead's ruling is not that. The reviewer had no technical objection and had measured both sides."
+  }
  },
  "files": {
   ".gitignore": {
@@ -77,23 +92,23 @@
    "role": "edited in R3: line 202, the .link rule, gains \"min-width: var(--hit);\" (the locked object above says why)"
   },
   "rebuild/m1/approved-2026-09-18/README.md": {
-   "sha256": "deb51a00f49426333e671a1784341b610a0ec21ae17af6000195772107cefbee",
+   "sha256": "2793fd5bdfe537862d579cbe36f88b8fd0387fe62c6530cb4bb9373babb915bd",
    "role": "edited: sections 1, 3 (with 3.1), 4 and 7; 3.1 rewritten in R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": {
-   "sha256": "a573d5d70231140e584e9cf0c69ff764b115d23fc779028cb3bf34176349b878",
+   "sha256": "70723e64d486df6a5ead979b05eacf74208bd301963f0b781cac58e0d112e283",
    "role": "edited: every gate tag names its check, section 7 item 5, section 13; the launch list and the record halves added in R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/common.py": {
-   "sha256": "8ee065776c4fd912ea41455312e5c9497d8a8e0e15efaaef44da53d42a956326",
+   "sha256": "5400305345b811d667719388e7c561f00fe01c74fa7968a069ce47eded413785",
    "role": "added: what the three gates share; in R3 the launch list, playwright_version() and env_text()"
   },
   "rebuild/m1/approved-2026-09-18/quality/gate.py": {
-   "sha256": "f86e7d911a401141e5c22e98aaf7cc67bbc734625c3655603ac567698569d248",
+   "sha256": "62baa10f0707c48ed6a1eb70ec89dad8dff261fa376935357323da583616211e",
    "role": "edited: the screen gate; in R3 the launch list and ENV.txt"
   },
   "rebuild/m1/approved-2026-09-18/quality/statesheet.py": {
-   "sha256": "bf794ff9ecd7269dc1029960f3664d12c3fe37a2b7596a1b9a4665dc5c552332",
+   "sha256": "6627331fb9ca4546e1eaa22f6c016ce6b13ed489cd2971635b6ad345f232559e",
    "role": "edited: the state gate; in R3 the per platform thumbnails, --accept-thumbs, the index env and newline=LF"
   },
   "rebuild/m1/approved-2026-09-18/quality/phonesheet.py": {
@@ -101,7 +116,7 @@
    "role": "edited: the review sheet"
   },
   "rebuild/m1/approved-2026-09-18/quality/teeth.py": {
-   "sha256": "75f308fa8fa0e3ac9a7cc796a8ef323701f7c5d3c008095ea0ccadd19e49eaaf",
+   "sha256": "5eaf3b4d85dfbcfee8926aea7a5b06116860984b4e7116c4a92a59b6b944a1d4",
    "role": "added: the executable mutation list; 33 rows after R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": {
@@ -133,32 +148,65 @@
    "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/states/INDEX.json": {
-   "sha256": "fbfa03366de62a1ef936f6a900dd79f4134299c7caae4f2639160e908eaccf43",
-   "role": "the shared list of ids and themes; it gains an \"env\" object when the lane lead re-runs \"--accept\" on the owner's PC, which no comparison reads"
+   "sha256": "fd6159a8a7e070d1fc53d19910b617cd72a43fb1220f1d7db00af9be8a00c442",
+   "role": "the shared list of ids and themes, with the env object the lane lead's accept run wrote; the env gains an \"app\" digest when that run is made again on this round's code"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/states/linux/ENV.txt": {
    "sha256": "f388bb6d58d2d4501380e76335f611a5ebe664f8650b89df07e953d778b7197a",
    "role": "set by \"python quality/statesheet.py --accept-thumbs\" on linux in R3"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/ink-today.png": {
+   "sha256": "8b825dfb9e7f2222e83570585d63eeb40ea3e1c458b428e277fc4015115305de",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/ink-workout.png": {
+   "sha256": "6c6d8c6c5fe983eab78035389ded6995c28eb0cea49ba113760718141415bb15",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/ink-coach.png": {
+   "sha256": "f563a3a61571fd48332780065a14a457ebfb67fbd762c19b93ac9469afd6430c",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/dawn-today.png": {
+   "sha256": "4527c68efb5aaf850089f7e2ee3a33e918ee621ccc29d3db5b16fc5b23d8aa47",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/dawn-workout.png": {
+   "sha256": "62929ffa8b46dbb9c6c48a17f44c121092573bafb92d7839ec58adad3d461632",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/dawn-coach.png": {
+   "sha256": "42058579b3b12a38664edcd7c631ab4b27a8557982c1393057ed8b3d21965bb0",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/ENV.txt": {
+   "sha256": "4943aa6d57603ae5ccf08387b253d3356d0375a0c30a118a734aa8669befaf56",
+   "role": "the machine that set the win32 screen baselines"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/states/win32/ENV.txt": {
+   "sha256": "1c1e166caa460dc043af91a78c6b959b22c6d4824e3c3da3f1e1f88d9e410d3a",
+   "role": "the machine that drew the win32 state thumbnails"
   }
  },
  "stateRecords": {
   "path": "rebuild/m1/approved-2026-09-18/quality/baseline/states/",
-  "files": 1256,
-  "bytes": 1397204,
-  "megabytes": 1.397,
+  "files": 1257,
+  "bytes": 1397727,
+  "megabytes": 1.398,
   "budget": "under 3 MB, and the whole tree is inside it with both platforms' thumbnails in it",
   "shape": {
-   "sharedRecords": "419 files, 614306 bytes: 418 <ID>-<theme>.json and INDEX.json, read on every platform",
-   "win32Thumbnails": "418 files, 392312 bytes, written by --accept on the owner's PC; its ENV.txt arrives with the lead's next accept run",
-   "linuxThumbnails": "419 files, 390586 bytes, written by --accept-thumbs in the builder's sandbox, ENV.txt included"
+   "linux": "419 files, 390586 bytes",
+   "shared": "419 files, 614516 bytes",
+   "win32": "419 files, 392625 bytes"
   },
   "index": "rebuild/m1/approved-2026-09-18/quality/baseline/states/INDEX.json",
-  "manifestSha256": "4cf4f8f5ab8ccc8aff9f7aa7f2250af7e3c413d6d97255b38b34e723ce8c11da",
-  "manifestForm": "sha256 of the lines \"<path> <sha256>\" for every file under the tree, the path relative to the tree with forward slashes, sorted by that line, joined by newline"
+  "manifestSha256": "52d7f3b6a1a049858328e73407824475459876340c6e255021eb9d5c36fa88f1",
+  "manifestForm": "sha256 of the lines \"<path> <sha256>\" for every file under the tree, the path relative to the tree with forward slashes, sorted by that line, joined by newline",
+  "phase": "these are the values at the end of phase A. The shared records are rewritten on the owner's PC in phase B, with each rect to two decimals, so the manifest, the byte count and every record sha256 change once more before the round is done."
  },
  "runs": {
-  "command": "cd rebuild/m1/approved-2026-09-18 && python quality/gate.py",
   "machine": "linux, the builder worktree: Linux 6.18.44-fc-v37, Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37, 2 cores",
+  "command": "cd rebuild/m1/approved-2026-09-18 && python quality/gate.py",
   "gate": {
    "command": "python quality/gate.py",
    "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
@@ -169,21 +217,22 @@
    "command": "python quality/statesheet.py",
    "summary": "STATE SHEET: 418 renders, 0 with problems",
    "exit": 0,
-   "seconds": 881,
-   "worstMeasured": "none measured: nothing moved in 418 renders"
+   "seconds": 906,
+   "worstMeasured": "nothing moved on this platform; advisory against win32, thumbnail mean shift 1.26 of 2.00 at C-63 ink"
   },
   "teeth": {
    "command": "python quality/teeth.py",
-   "summary": "TEETH: 33 rows, 0 disagreeing, 711 s",
+   "summary": "TEETH: 42 rows, 0 disagreeing, 875 s",
    "exit": 0,
-   "seconds": 712
+   "seconds": 875
   },
   "phoneSheet": {
    "command": "python quality/phonesheet.py --state T-14",
-   "summary": "wrote quality/run/phonesheet-T-14.png and phonesheet-all.png (2448, 2796)",
+   "summary": "wrote phonesheet-T-14.png and phonesheet-all.png",
    "exit": 0,
    "seconds": 7
-  }
+  },
+  "phase": "phase A, against the records as they stand, whose rects are whole pixels"
  },
  "tolerances": {
   "regression": "The gate fails a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels.",
@@ -243,16 +292,14 @@
  "checks": {
   "gate": {
    "distinct": 33,
-   "resultRows": 372,
-   "note": "quality/run/report.json's distinct check names are exactly the 33 rows of STANDARD.md section 13's table, measured on this tree"
+   "resultRows": 372
   },
   "stateSheet": {
    "renders": 418,
-   "recordFiles": 1256,
-   "recordFileShape": "one shared json per state and theme plus INDEX.json, and one png per state and theme under each platform that has run"
+   "recordFiles": 1257
   },
   "teeth": {
-   "rows": 33,
+   "rows": 42,
    "disagreeing": 0
   }
  },
@@ -337,6 +384,13 @@
     "W-19 lost one: element 10 \"Enter the weight and reps you actually completed.\" 38 to 19 px"
    ],
    "howThatListWasDerived": "every one of the 418 committed records at ee1f191 and at ecbef86 was read with git show and compared element by element; the eight states above are every state, in both themes, where an element's recorded height moved by 12 px or more, which is less than one line of any size the pack uses. T-14 is the only one that gained a line"
+  },
+  {
+   "id": "Q11",
+   "for": "the lane lead and the second auditor",
+   "question": "what the per platform thumbnail split is NOT protected by. A committed thumbnail that is byte identical to another platform's file of the same name is now a FAIL (review R3 SHOULD FIX 2), and that catches a copy. It does not catch a set honestly drawn on the wrong machine, or re-encoded: the two committed sets differ by at most 1.26 of the 2.00 mean budget (0.85 on T-02) and by none of the 1% over 24 levels, so a whole wrong platform's set fits inside the tolerance with room to spare.",
+   "howItIsHeldNow": "three things, none of them a check on the file's provenance: the byte identity FAIL above; the advisory rows in the worst measured block, which print this run's distance from every other platform's thumbnails on every run and would have printed 0.85 on the reviewer's mutation; and teeth row h1, which is the detector that noticed in this round's first hours, because a 2 px shift judged against the other platform's thumbnails eats headroom the row needs. ENV.txt is still read by nothing: it is documentation.",
+   "whatWouldChange": "a real guard would sign each thumbnail directory with the ENV.txt it was drawn under and refuse a set whose ENV.txt does not match the running machine, which also refuses every legitimate machine upgrade; or the thumbnail tolerance tightens below the 1.26 the platforms genuinely differ by, which no longer leaves room for the 1.66 h1 needs. Both are the lane lead's call and neither is taken here. This is R2's Q8 with the surface multiplied from six files to 418 per platform, and it is its own question rather than a line under Q8."
   }
  ],
  "r3": {
@@ -451,8 +505,69 @@
    "rebuild/m1/approved-2026-09-18/quality/statesheet.py": "bf794ff9ecd7269dc1029960f3664d12c3fe37a2b7596a1b9a4665dc5c552332",
    "rebuild/m1/approved-2026-09-18/quality/teeth.py": "75f308fa8fa0e3ac9a7cc796a8ef323701f7c5d3c008095ea0ccadd19e49eaaf"
   },
-  "filesTouchedNote": "the working tree sha256 of every file this round changed. The 418 thumbnails under quality/baseline/states/win32/ moved with git mv and not one byte of them changed; the 418 under quality/baseline/states/linux/ are new; both are covered by stateRecords.manifestSha256 above",
+  "filesTouchedNote": "the sha256 of every file the R3 round changed, AS AT f543489, the commit that round ended on. The notes round that follows changed several of them again, so the values true for the tree now are the ones in the \"files\" object above, not these. The 418 thumbnails under quality/baseline/states/win32/ moved with git mv and not one byte of them changed; the 418 under quality/baseline/states/linux/ were new; both are covered by stateRecords.manifestSha256.",
   "notCarriedAsPatches": "93bb947, 03f7aea and d32ea51 move or write binary files only. The patch folder carries a RECIPE for each instead: the exact command and the resulting tree hash",
   "owed": "the lane lead re-runs \"python quality/statesheet.py --accept\" and \"python quality/gate.py --accept\" on the owner's PC after this round lands. That run rewrites the shared records with LF bytes, adds the env object to INDEX.json, and writes quality/baseline/states/win32/ENV.txt and quality/baseline/win32/. The committed INDEX.json carries no env until then, by design: an accept run from Linux would rewrite the shared records from the wrong machine"
+ },
+ "notesForTheSecondAuditor": [
+  {
+   "source": "review R3, NOTES",
+   "note": "h1 passed with zero headroom on the rect half, 3.00 of 3.00, so a machine that moved one rect by a single pixel would have flipped the row that must PASS.",
+   "actedOn": "yes. Lead L9 moves h1 to a 2 px shift, which has headroom in both halves, and adds row h3 at 4 px for the other side of the line. The warning was not merely noted."
+  },
+  {
+   "source": "review R3, NOTES",
+   "note": "on a platform that does not hint, the teeth count still includes rows that ran nothing, so the table can read 42 rows, 0 disagreeing while two of them launched no browser.",
+   "actedOn": "read the note column, not the count. p1 and p3 print the reason in words on that platform, and row p4 does the same where a tree holds no other platform's thumbnails to copy."
+  },
+  {
+   "source": "review R3, NOTES",
+   "note": "a raster only change is thinly held. A text-shadow on T-02's note moves no rect and no computed colour: it is caught in Dawn by the contrast check at 1.3 < 3.0 and not at all in Ink, and the thumbnail measures only 0.47 of 2.00.",
+   "actedOn": "not changed. It is the surface --accept-thumbs sits on, and it is stated here and in Q11 rather than fixed, because the fix is a tighter thumbnail tolerance and no tolerance moves in this round."
+  }
+ ],
+ "windowsRuns": {
+  "what": "a helper ran the R3 code on the owner's PC in a scratch copy, with the files verified by sha256, at f543489. These are that helper's runs and nothing else; the final tree's Windows runs are the lane lead's to add after this round.",
+  "gate": {
+   "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
+   "exit": 0,
+   "seconds": 88
+  },
+  "stateSheet": {
+   "summary": "STATE SHEET: 418 renders, 0 with problems",
+   "exit": 0,
+   "seconds": 484,
+   "worstMeasured": "nothing moved"
+  },
+  "phoneSheet": {
+   "summary": "python quality/phonesheet.py --state T-14 ran",
+   "exit": 0
+  },
+  "acceptPaths": "both wrote LF only, 0 CR bytes in every file written, and the 418 records, 418 thumbnails and 6 screen PNGs they wrote were byte identical to the committed ones",
+  "refusals": "both new refusals exit 2 and write nothing",
+  "teeth": {
+   "summary": "TEETH: 33 rows, 2 disagreeing, 544 s",
+   "note": "n4 and n5 VOID because the INDEX.json then on disk in the owner's working tree had been written CRLF by a pre R3 accept run. That is review R3 SHOULD FIX 5, fixed in this round: sub() retries with the file's own line endings, proved on a scratch copy whose INDEX.json, app.html and states-today.js were converted to CRLF, where k1, m6, n4 and n5 came back 4 rows, 0 disagreeing."
+  }
+ },
+ "r3notes": {
+  "round": "R3 notes, phase A",
+  "brief": "the lane C UI lead's brief of 2026-09-19, closing review R3's seven notes and the PM's leads L1 to L11",
+  "standsOn": "9c03b6f0091d10c0bdf572d982dcfc7d626f3bb1, the lane lead's accept commit from the owner's PC",
+  "leads": {
+   "L1": "closed: an unknown --screens or --sizes value refuses in one line naming the value and the valid ones, exit 2, and a run that ends with no result rows refuses rather than reporting a green summary over nothing. Measured before: 0 FAIL, 0 WARN, 0 PASS at exit 0. Teeth row q1.",
+   "L2": "closed: a character of Unicode category Cf is a problem named by its code point, and the word and vendor sweeps read the string with those removed, no break spaces made ordinary, NFKC normalised and casefolded. common.sweep_form, shared. Teeth row q2.",
+   "L3": "closed in part: a dash is every character of Unicode category Pd except the plain hyphen, and the prototype passes it (372 PASS, 418 renders 0 problems). Teeth row q3. The U+2212 clause is HELD: with it in, the full sheet was 418 renders, 2 with problems, both W-18, exit 1, because the prototype draws U+2212 as the whole label of a set's decrement button (app/states.js:113, app/states-workout.js:270). app/ is not the builder's to edit, so the clause is a comment in quality/common.py carrying the numbers, for the lane lead and the owner.",
+   "L4": "answered by execution, and it is not a finding. Tagging a T-02 card title .sub and painting it with the muted token exits 1 on the record's colour half, \"colour (242, 238, 230) became (189, 184, 174)\", colour moved 77.00 of 3.00 in Dawn. The tier decides which ratio is demanded; the record decides the colour may not change at all. Teeth row q4, and README 3.1 says which check holds the line.",
+   "L5": "closed: a render is its own function and one that throws is a problem row naming the state and the first line of the error, the run carries on, the report is written, exit 1. Proved by making one render raise: 16 renders, 2 with problems, both naming T-04. Teeth row q5.",
+   "L6": "closed: --accept on both scripts and --accept-thumbs refuse with EARNED_APP set, exit 2. Teeth row q6.",
+   "L7": "answered in README 3.1 in one paragraph: the shared records sit outside the platform directories because they are platform independent and that is measured rather than assumed, 0.00 px and 0.00 levels over 418 renders on two operating systems; either machine could have written them and the index env says which did.",
+   "L8": "closed: both gates measure every tappable surface through one shared definition, common.TAPPABLE_SELECTOR, built from the focusable elements, the control roles, label[for] and the classes the pack's own tap highlight rule declares tappable at app/app.css:625. Running it found one element the walk must not count, app/app.html:43's label for the weight field, which app/app.css:150 clips to nothing for assistive technology alone; common.JS_CLIPPED_AWAY skips a clip that leaves no area and nothing else. Nothing under app/ was touched and the prototype passes: 372 PASS, 418 renders 0 problems.",
+   "L9": "closed: a problem list longer than six ends with \"and N more\"; a record holds each rect to two decimals and the comparison reads the values as measured, so \"more than 3 px\" means more than 3 px where 3.49 px used to pass. Whole pixel records stay valid input and read back at 0.50 of 3.00. h1 moves to a 2 px shift and new row h3 holds 4 px, which answers the reviewer's warning that h1 sat on the boundary.",
+   "L10": "closed in the documents: --only matches a prefix, it narrows the index comparison with it, and only a full run is evidence.",
+   "L11": "closed: --accept writes an app digest into the index env, the sha256 of the sorted lines \"<path> <sha256>\" for every file under app/, and an ordinary run prints ONE advisory line when the pack's app/ no longer matches it or the index carries none. Never a problem, never an exit code, because a teeth row's job is to change app/ in a scratch copy and the row that must PASS still has to exit 0. README 3.1 says what really pins the records: a full run against the pack's own prototype, and ticket S9.",
+   "machinesOfRecord": "README 3.1 gains the paragraph: the owner's PC for win32, the sandbox image for linux, each described by its own ENV.txt; a CI workflow on a hosted runner lives outside the pack, and until someone measures a runner's render against these baselines a runner is not evidence."
+  },
+  "phaseB": "the lane lead runs gate.py --accept and statesheet.py --accept on the owner's PC on this code, which writes the two decimal rects, the app digest and LF files; then the builder pulls, runs the four gates again and computes the package's sha256 values and counts over that tree."
  }
 }
