@@ -192,8 +192,10 @@ test("H18 - the build still refuses a bundle that lost any of the 26 today/ requ
    red. The line rule is the file's own shape - a path literal sits alone on its line -
    and the three prose strings inside the block span lines or carry no trailing comma,
    which is why the count is 48 and not the 51 quoted strings the block contains. */
-const requiredInputsOfBuildSource = () => {
-  const src = fss.readFileSync(path.resolve(__dirname, "../build.mjs"), "utf8");
+const buildSource = () => fss.readFileSync(path.resolve(__dirname, "../build.mjs"), "utf8");
+/* R2 N7 asked for this to be a function of SOURCE TEXT rather than of the file, so the
+   line rule itself can be measured against a planted line instead of argued about. */
+const requiredInputsOf = (src) => {
   const block = /\nconst REQUIRED_INPUTS = Object\.freeze\(\[\n([\s\S]*?)\n\]\);\n/.exec(src);
   assert(block !== null,
     "build.mjs no longer carries a frozen REQUIRED_INPUTS array literal: H18b cannot read the list");
@@ -204,6 +206,7 @@ const requiredInputsOfBuildSource = () => {
   }
   return out;
 };
+const requiredInputsOfBuildSource = () => requiredInputsOf(buildSource());
 
 test("H18b - the 26 are still the WHOLE today/ half of build.mjs's REQUIRED_INPUTS", () => {
   const all = requiredInputsOfBuildSource();
@@ -218,6 +221,34 @@ test("H18b - the 26 are still the WHOLE today/ half of build.mjs's REQUIRED_INPU
     "build.mjs's REQUIRED_INPUTS no longer holds 48 path literals but " + all.length
     + ": A.4's seven laws are stated over that list and this seal pins 26 of it");
   assert.equal(new Set(all).size, 48, "build.mjs's REQUIRED_INPUTS repeats a path literal");
+});
+
+/* H18c, R2 N7. H18b's per-line rule counts any bare quoted string that sits alone on its
+   own line, and the trailing comma is optional. It is correct TODAY only because none of
+   the three prose strings inside the block happens to take that shape: they span lines or
+   carry no comma. That is the file's shape and not a parser, and the day a prose line
+   does take the shape, H18b goes red naming a NUMBER (49 instead of 48) rather than a
+   path - which is R1 N6's defect, in the cell R1 N6 was fixed in. The rule now requires
+   the rebuild/ prefix a repository path always carries and a sentence never does.
+   MEASURED FIRST, with the rule as it stood: 49 against 48. All 48 entries carry the
+   prefix, so the tightening costs the cell nothing it was counting. */
+test("H18c - a prose string alone on its own line inside REQUIRED_INPUTS is not a path", () => {
+  const src = buildSource();
+  const real = requiredInputsOf(src);
+  assert.equal(real.length, 48, "the baseline is not 48: " + real.length);
+  const planted = src.replace("\nconst REQUIRED_INPUTS = Object.freeze([\n",
+    "\nconst REQUIRED_INPUTS = Object.freeze([\n  \"and this line is prose, not a path\",\n");
+  assert.notEqual(planted, src, "the plant did not land: the block header has moved");
+  const after = requiredInputsOf(planted);
+  assert.deepEqual(after, real,
+    "a prose string alone on its own line is counted as a required input: H18b would go "
+    + "red naming a NUMBER (" + after.length + " instead of " + real.length + ") and not a path");
+  /* and the control, so the row measures the RULE and not the plant: a real path planted
+     the same way IS counted, which is the half that keeps H18b able to see an addition. */
+  const real27 = src.replace("\nconst REQUIRED_INPUTS = Object.freeze([\n",
+    "\nconst REQUIRED_INPUTS = Object.freeze([\n  \"rebuild/m3/w7-preview/today/planted.mjs\",\n");
+  assert.equal(requiredInputsOf(real27).length, real.length + 1,
+    "the rule no longer sees a path planted on its own line at all: H18b is now blind");
 });
 
 /* THE OTHER HALF OF THE SAME LAW, run here so this package's own test file
