@@ -685,7 +685,7 @@ named above and the `statementRewrite` flags.
 
 | row | change |
 |---|---|
-| every one of the 202 move and replace regions | `first.occurrences` recorded, and `witness.regions[id][ref].occurrences` beside it. The two named refs AGREE on all 202; `gen-witness.cjs` refuses to record a number they disagree on. Exactly one anchor in the table matches more than once: `TA-I042`, with two. |
+| every one of the 182 witnessed move and replace regions (loop round 2, D7: the earlier "202" counted the 20 seams in, and a seam carries no witness) | `first.occurrences` recorded, and `witness.regions[id][ref].occurrences` beside it. The two named refs AGREE on all 182; `gen-witness.cjs` refuses to record a number they disagree on. Exactly one anchor in the table matches more than once: `TA-I042`, with two. |
 | `TA-S05`, `TA-S10`, `TA-S16`, `TA-S35b`, `TA-S38` | `statementRewrite: true`. The five S-R21 boot seams. Already declared in prose; now declared in a field that is inside the digest. |
 | `TA-W01`, `TA-W02`, `TA-W03`, `TA-W07`, `TA-W08`, `TA-W13` | `statementRewrite: true`. Six of the fourteen hand-designed B.5 rows - the six whose replacement really does change control flow. The other eight are pure call rewrites and are held to the comparison like every generated row. |
 | `GA-R05` | `statementRewrite: true`. `gym-app.mjs`'s declared row. No byte of `gym-app.mjs` moved. |
@@ -844,3 +844,180 @@ file each (`cut.cjs`, `gen-interface.cjs`) and splitting them would have meant i
 intermediate state of a file that never existed. Each commit message separates its findings
 paragraph by paragraph. `5ce7a92` carries the table, which four findings write into; the
 table is one generated artifact and cannot be split.
+
+---
+
+## LOOP ROUND 2: FIXED OR DISPUTED
+
+Author of this round: cowork (Earned lane hand, lane C), continuing the build's author and
+loop round 1's author, both gone. This is loop round 2 of 3 under the owner's ruling at
+`DECISIONS:613`: the reviewer's UNDISPUTED findings are my orders and nobody waits for a PM
+ruling inside the loop. **I dispute nothing. All three blocking items are FIXED.**
+
+The review answered: `rebuild/lanes/astra/reviews/TODAY-SPLIT-PART2-RECHECK-L2.md` on
+`rebuild/r-astra-split-l2` at `e9d65884`, verdict REJECT, read whole before anything else.
+
+**I started from `c38ed5fb`** (`git fetch`, `git merge --ff-only origin/rebuild/c-today-split-build`,
+"Already up to date"). The PC worktree was CLEAN at that head: `git status --porcelain`
+printed nothing, there was no uncommitted edit, no untracked file and no scratch of a
+predecessor. Nothing was stashed and nothing was moved, because there was nothing to move.
+
+**What I did not open.** No `rebuild/conform/private`, no `src/history.js`, no `ledger/`,
+no `C:\Users\joeym\EarnedPort`, no `port-real.log`, no soak, no browser, no junction. I
+wrote no line of `rebuild/DECISIONS.md` and no line of `rebuild/lanes/STATUS.md`. I merged
+into nothing and pushed only `rebuild/c-today-split-build`. I installed nothing. I ran
+nothing that seals, writes a receipt or writes an artifact. I moved no byte under
+`rebuild/engine`, and I did not open `gym-app.mjs`, `today-model.cjs` or
+`today-readings.cjs`. I did not touch `writer-fence.test.mjs`, which is Astra's file. Every
+fixture named here is synthetic. I authored no en dash and no em dash; the one U+2014 in
+`today-lanes.cjs` is still the moved byte inside region `TA-S02` that a pure move keeps.
+
+### 0. ONE LINE PER FINDING
+
+| finding | disposition |
+|---|---|
+| **B1** the count still does not identify the binding | **FIXED.** An anchor that matches more than once is no longer resolved by its ordinal at all. It must declare `first.context` - the lines before and after it and its nearest enclosing block header - exactly one occurrence may match it, and the context is witnessed at both named refs from git objects. The reviewer's count-preserving input is REFUSED at both refs, and so is a plant that copies the whole context. |
+| **B2** the new control-flow comparison still accepts a hidden early return | **FIXED.** The comparison is no longer lexical: pre-image and replacement are put back into the smallest enclosing statement of the real file, PARSED, and the trees compared after the four declared rewrite families are mapped onto one form. Both of the reviewer's inputs - the return hidden inside `"//"` and the single-clause `&& false` - are REFUSED at both refs. Thirteen rows that the token profile could never see as statement rewrites now declare themselves. |
+| **B3** the corrected banner still contains false statements | **FIXED through the table**, never by hand in the output, and the file regenerated. All three statements corrected, plus a fourth line that the second correction made ambiguous. The cell now measures the banner's two counts against the file itself. |
+| **D1** `TODAY-GESTURE-PAINT-ROOTS` | **RIDES THE TICKET**, unchanged from round 1. Excluding a paint nested inside a listener and painting an async-continuation refusal are new sealed behaviour and new athlete-facing copy: both are `DECISIONS:584` STOPs for a round whose whole evidence is byte identity. |
+| **D2** `TODAY-OUTCOME-TYPE` | **RIDES THE TICKET.** Detached read DTOs, a `sleepBusy` that recovers from a throwing repaint, and an independent duplicate-save fence are inherited behaviour and new writer logic, not pure-move fixes. |
+| **D3** S10 writer cells (M18, M21) | **NOT DONE**, named. Both need a cell that drives a repeated same-date read and inspects the typed hours after a successful save; both are the S10 round's writer cells, and both are still live mutations today. |
+| **D4** S10 boot contract | **NOT DONE**, named. The residual deviation of blind F2 stands: `options.sleep` is read twice where PRE read it once, so a one-shot getter returns its lane on the first read and null on the second. Either the boot contract rules the accepted option shape or the acquisition is preserved at its original point; both are S10 brief decisions. |
+| **D5** S10 instruments (rows 12/13/14/16/32/33 under the real parser stack) | **MEASURED HERE, AND THEY PASS.** The farm holds `acorn`, `acorn-walk` and `eslint-scope`, so this cell runs whole: 41 of 41 at `s9` and 41 of 41 at `tip`, with no missing-scope row. The reviewer's six unavailable rows are unavailable on the PC only, which has no `eslint-scope`. The generator-equivalence proof the debt asks for beyond those rows is still not built. |
+| **D6** S10 negative coverage (overlap refusals) | **NOT DONE**, named. No row of the cell drives a competing replace nested in a seam, and disabling the overlap refusal still survives the cell. |
+| **D7** S10 evidence (the inventory, `headLines`/`closeLines`) | **HALF FIXED.** The inventory number is corrected here and in `resolve.cjs`'s own comment: **182 witnessed move and replace regions (41 move, 141 replace) plus 20 seams**, not 202 of either. The report line that said "202 move and replace regions" was counting the seams, which carry no witness. `headLines` and `closeLines` are still unvalidated metadata: changing either still exits 0 with identical product bytes, and that is now said in this report rather than left to be discovered. |
+
+### 1. EVERY MOVED OUTPUT BYTE, ACCOUNTED FOR
+
+`git diff --stat c38ed5fb..<head> -- rebuild/m3/w7-preview/today/` is ONE file:
+
+| file | what moved |
+|---|---|
+| `today-lanes.cjs` | **the BANNER and nothing else.** 973 -> 986 lines. `sha256 c9fe11a015d4a3543c42caefb89e1cfa9e7392d6d3b5dd548d07e8791b924d91` -> `e6ff7c388e9858aabab7b8fa78b1281709083953e1ed039a6a32f856349e4c93`. |
+| `today-app.cjs` | **BYTE-IDENTICAL**, `d1e1f1e7e69a7ed1af6dbbef8f0d1b9c5eef2017deb7e80f9d4df50da3548cad`. The released file the athlete sees did not move at all this round. |
+| every other file under `rebuild/m3/w7-preview/today/` | untouched. |
+
+The B1 and B2 fixes moved NO output byte: with the B1 table and the B1 `cut.cjs` the cut at
+`s9` still writes `today-lanes.cjs c9fe11a0...`, and the same after B2. Only B3's declared
+banner rows changed a product byte. Every regeneration was run in the farm from the git
+objects of `s9` (the PC has no `acorn`) and carried over the airlock with `sha256` compared
+on both machines; every hash in this section was read on BOTH machines.
+
+`rebuild/lanes/c/today-split/PART2-CUT-REPORT.json`, the cut's own verbatim report, is
+regenerated: `statementRewrites` grows from 11 to 19 rows for `today-app.cjs` and the
+thirteen rows' `statementRewrite` flags appear beside their replacements. Nothing else in it
+changed. It is an artifact of the instruments, not a product byte.
+
+### 2. EVERY AUTHORED LINE CHANGED, BY FILE AND PHYSICAL LINE
+
+These are the lines the PM reads. All of them are declared rows of `regions.json`; the
+physical lines are in the regenerated `today-lanes.cjs` (986 lines).
+
+**`rebuild/m3/w7-preview/today/today-lanes.cjs`**
+
+| lines | what |
+|---|---|
+| 11-15 | B3 (1). "families. Forty of them rewrite a paint handle or a screen handle the view still owns. The forty-first is W10, and it is a BOUND DRAFT IDENTIFIER rewrite with no painter in it ...". Was "families, every one of them a paint-handle rewrite". |
+| 18-20 | B3 (2). "THE SEVEN DECLARATIONS AFTER IT ... three state declarations - `sleepDraftHeld`, `willAdopt`, `ready` - and the four the gesture guard is made of: `gestures`, `wrapped`, `wrapFor` and `gesture`." Was "THE FOUR DECLARATIONS AFTER IT". |
+| 32-40 | B3 (3). "It is not free of string literals ... 127 string literals parse in this file and 117 of them are moved bytes. THE TEN AUTHORED ONES ...", enumerated. Was "this file carries zero string literals of its own". |
+| 45 | B3 (4). "below the three state declarations". Was "below the three declarations above", which the corrected count made ambiguous. |
+
+**No other authored line changed anywhere.** `writer-fence.test.mjs` was not opened.
+
+**`rebuild/lanes/c/today-split-spike/`**: `resolve.cjs` +88/-3, `gen-witness.cjs` +8,
+`cut.cjs` +242/-16 over two commits, `test/instruments.test.cjs` +208.
+`regions.json` is generated output of `gen-witness.cjs` apart from the declared edits named
+in section 3.
+
+### 3. THE DECLARED ROWS THAT CHANGED
+
+| row | change |
+|---|---|
+| `TA-I042` | gains `first.context`: two lines before, two after, and the enclosing block header `  function renderSleep(focus) {`. It is the ONLY anchor in the table that matches more than once. Its `after` deliberately holds `    readSleepCheckIn(date);`, which is `TA-I043`'s own first anchor witnessed once, so a plant that copies the context to get past B1's check duplicates another region's anchor and is refused by the recorded count. |
+| `TA-W04`, `TA-W05`, `TA-W06`, `TA-W09`, `TA-W10`, `TA-W11`, `TA-W12`, `TA-W14` | `statementRewrite: true`. Eight hand-designed B.5 rows that DROP the released in-flight assignment: `foodSaving = retryFoodRead()` becomes `hooks.retryFoodRead()`. They always did; an identifier is not a keyword, so the token profile could not see it. |
+| `GA-R01`, `GA-R02`, `GA-R03`, `GA-R04`, `GA-R06` | `statementRewrite: true`. Five hand-designed B.9 rows that RENAME a released binding: `settingsLane` becomes `facade.lane()`. No byte of `gym-app.mjs` moved. |
+| `product["today-lanes.cjs"].head` | B3, four corrections; the block grows from 41 to 54 lines. |
+| every witnessed region | `witness.regions[id][ref]` re-taken at both named refs; `TA-I042` gains `contextSha` at both. |
+
+**NOTHING WAS DELETED AND NOTHING WAS WEAKENED.** Thirteen rows GAINED a declaration that
+costs them nothing they did not already have, and the declaration's only effect is to move a
+row from "silently accepted by a check that could not see it" to "printed by id, with its
+from and its to, in the cut's own report for the PM's read". The exempt set is now pinned at
+exactly twenty-five by a row of the instruments' cell, so widening it again is a red cell and
+never a quiet field. No row lost a declaration.
+
+### 4. THE FOUR REPORT CORRECTIONS OF `AFTER-THE-CUT-TICKETS`
+
+They were made by loop round 1, in its section 4, and I re-read all four against the code
+this round. The reviewer CLOSED the finding that drove them (2b F9: "The corrected report
+describes these outputs"). They stand unchanged and I changed no word of them. The one
+report statement I DID correct this round is the inventory of D7, in section 0 above and in
+`resolve.cjs`'s comment.
+
+### 5. THE BAR
+
+**In the farm** (the instruments' cell, which is NOT a CI cell and must never become one):
+
+| cell | before | after |
+|---|---|---|
+| `test/instruments.test.cjs` at `s9` | 34 tests, 34 pass | **41 tests, 41 pass, 0 fail** |
+| `test/instruments.test.cjs` at `tip` (`SPLIT_TEST_REF=tip`) | 34 tests, 34 pass | **41 tests, 41 pass, 0 fail** |
+| the same cell at `c38ed5fb` with only the new rows added (RED FIRST) | - | **41 tests, 34 pass, 7 fail**, the failure list in commit `bcdf262`'s message |
+| the product cut at `s9` and at `tip` | exit 0 | exit 0, `today-app.cjs` byte-identical |
+| D.2 / D.2b (`PART2-DOM-LISTENERS.mjs`) over the regenerated output | 7 states equal | **7 of 7 DOM EQUAL, listener censuses EQUAL (16 kinds), 0 differing, NOT COVERED 0** |
+
+**On the PC, ALONE, and I say so because `DECISIONS:562` requires it.** `tasklist /FI
+"IMAGENAME eq node.exe"` printed no process before I started, and nothing else of mine was
+running during any run below; the only other PC work in this session was short `git`, `copy`
+and `certutil` calls that had finished.
+
+| when (ET) | what | result |
+|---|---|---|
+| 17:28 | the writer fence, `rebuild/lanes/c/today-split/writer-fence.test.mjs` | **404 tests, 404 pass, 0 fail**, 8.7 s. Astra's file, untouched by me |
+| 17:28-17:29 | the nine single today files that name a cut file, one node process at a time | checkin **28/28**, copy **39/39**, food **57/57**, gym **65/65**, problem **131/131**, setup **157: 156 pass, 1 fail**, view **23/23**, design **11/11**, package **11/11** |
+| 17:31 | the `rebuild/lanes/d` cells that name a cut file (`plan-edit/model.test.cjs`, `p3-real-shape/r1-fixes.test.mjs`, `p3-real-shape/bar-keep.test.mjs`, `p3-port-fix/owner-route.test.mjs`, `p3-replay-measure/measure-order.test.mjs`, `b-lom/legacy-order.test.mjs`, `p3-replay-all/writer-order.test.mjs`, `p3-capture-start/capture-start.test.mjs`) | ****132 tests, 132 pass, 0 fail**, exit 0. A wider set than loop round 1's 101: it is every cell under `rebuild/lanes/d` that names `today-app.cjs`, `today-lanes.cjs` or `gym-app.mjs`** |
+| 17:32:13-17:34:57 | **the whole today step**, the exact command at `.github/workflows/rebuild.yml:232` | ****682 tests, 680 pass, 2 fail**, 164 s, exit 1. The two are `boundary.test.mjs` **P-MEASURE (g)** and `setup.test.mjs` **re-pin**, the two known pre-existing reds of `DECISIONS:552`, and nothing else** |
+
+**setup.test.mjs's one failure is `re-pin - every file the B-NTC package pins is untouched
+by A4b, on disk`**, one of the two known pre-existing reds of `DECISIONS:552`. The other,
+`boundary.test.mjs` P-MEASURE (g), is in the whole step. **No row was added to the reds and
+none was lost.** The rows I added are in the instruments' cell, which is not a CI cell and
+is not in the step.
+
+`node rebuild/lanes/b/tooling/b-package.cjs --ci --package S8` was recorded by name in loop
+round 1 and refuses on this branch by design; I did not re-run it and I did not chase it.
+
+### 6. WHAT IS UNMEASURED, THIS ROUND
+
+- **The structural comparison is not a semantic oracle** and I do not claim it is. It says
+  the replacement is the declared rewrite of its pre-image; it cannot say `facade.foodLane()`
+  is not a getter that writes. What holds a released file is the independent review of every
+  hunk and the PM's final read (S-R26).
+- **A declared statement rewrite is still authorized by re-taking a digest.** The
+  declared-text witness is tamper evidence, not an oracle: an attacker who adds
+  `statementRewrite` AND re-takes the witness gets past the comparison, and what stops them
+  is that the row is then a visible diff in `regions.json` and a line printed by id in the
+  cut's report for the PM. That is the ruled design (`S-R12`, `S-R17 (g)`), not a gap I
+  closed.
+- **The context check binds ONE anchor** because one anchor is all that matches twice today.
+  A new ambiguous anchor must declare a context or the resolver refuses it, but no row
+  proves the context I chose is the strongest available for a future anchor.
+- **D3, D4, D6 are not built** and are named above. D5's six rows pass in the farm and are
+  unavailable on the PC; the generator-equivalence proof the debt asks for is not built.
+- **`headLines` and `closeLines` remain unvalidated metadata**: changing either still exits 0
+  with identical product bytes.
+- No browser, no design gate, no conformance suite, no reseal, no receipt, no artifact, no CI
+  run of my own, no phone.
+
+### 7. THE COMMITS OF THIS ROUND
+
+| commit | finding |
+|---|---|
+| `bcdf262` | **RED FIRST**: the re-check's inputs as seven rows against the UNCHANGED instruments, 41 tests / 34 pass / 7 fail, the failure list in the message |
+| `e262a18` | **B1**: the witnessed enclosing context (`resolve.cjs`, `gen-witness.cjs`, `cut.cjs`, `TA-I042`) |
+| `f20ceac` | **B2**: the parsed-structure comparison, and the thirteen rows that declare themselves |
+| `688f3e3` | **B3**: the banner corrected through the table, and the cut REGENERATED |
+| this commit | this report section, and D7's inventory correction in `resolve.cjs`'s comment |
+
+Each of the four fixes is one finding in one commit, and each was pushed before the next was
+started.

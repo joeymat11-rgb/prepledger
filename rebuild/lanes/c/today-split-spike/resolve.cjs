@@ -23,8 +23,10 @@
  * one-line digest cannot tell the two apart: they are the same line of text. What tells
  * them apart is that there were two of them at both named refs and now there are three.
  * `first.occurrences` is that number, taken by gen-witness.cjs at both refs, and a count
- * that no longer matches is refused here for every instrument at once. 202 of the 202
- * regions carry it and only TA-I042 has more than one match.
+ * that no longer matches is refused here for every instrument at once. 182 of the 182
+ * WITNESSED regions carry it - 41 move and 141 replace; the table's other 20 rows are seams,
+ * which are witnessed by nothing because nothing moves them - and only TA-I042 has more than
+ * one match. (The earlier "202 of the 202" counted the seams in; loop round 2, D7.)
  *
  * THE WITNESSED ENCLOSING CONTEXT (loop round 2, B1). The count above is not the binding.
  * The reviewer kept the count at the witnessed 2 by ADDING one occurrence and taking one
