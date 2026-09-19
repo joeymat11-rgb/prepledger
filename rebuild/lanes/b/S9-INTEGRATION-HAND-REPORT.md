@@ -468,6 +468,15 @@ step without a condition is skipped.
 **THE CELL THAT NOW HOLDS THE CONDITION ROWS** is `sealed-inventory-fence.test.mjs`, measured in
 the two rows above: 48 of 48 with the single expected real-row red, on both systems.
 
+**THE FOUR OTHER CELLS THAT READ `rebuild.yml` AND COULD HAVE BEEN BROKEN BY THE WORKFLOW HUNKS,
+RUN ON THE PC AT `e4e6a94` BECAUSE A WORKFLOW EDIT IS THE KIND OF THING THAT BREAKS THEM SILENTLY:**
+`rebuild/m4/workout/test/h3-clean-init.test.cjs` (whose H3/13 row asserts the today step names
+EXACTLY the files in `today/test/` and globs none of them),
+`rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs`,
+`rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs` and
+`rebuild/m3/w6/test/local-import.test.mjs`, in one run: **tests 45, pass 45, fail 0, skipped 0,
+exit 0.** Adding four `if:` lines and one step moved no `run:` line and broke none of them.
+
 **THE TWO TODAY-STEP REDS, and the brief's KNOWN REDS table predicts both.**
 
 ```
