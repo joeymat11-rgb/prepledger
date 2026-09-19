@@ -153,8 +153,13 @@ function sha256(s) { return crypto.createHash("sha256").update(s, "utf8").digest
 function declaredSubSha(row) {
   return sha256(JSON.stringify([row.id, row.file, row.region, row.from, row.to, row.kind || null]));
 }
+/* `statementRewrite` joined this digest in loop round 1. It is the flag that EXEMPTS a
+   replacement row from the control-flow comparison below, so it is an authorization, and an
+   authorization outside the witness is a way in: an attacker who could add
+   `"statementRewrite": true` to TA-I018 without changing its digest would have bought the
+   exemption for free. */
 function declaredRepSha(file, r) {
-  return sha256(JSON.stringify([r.id, file, r.replacement]));
+  return sha256(JSON.stringify([r.id, file, r.replacement, r.statementRewrite || null]));
 }
 /* R2 F4, and it is the same argument one block further out. R1 NOTE-1 closed the SILENT
    path through a substitution's `to`; R2 drove a line through the PRODUCT block instead -
@@ -273,11 +278,91 @@ function checkDeclaredText() {
   return { subs: subs.length, reps: nrep, prods: nprod, comps: ncomp };
 }
 
-function checkWitness(file, region, start, end, body, lastHits) {
+/* ---- THE CONTROL-FLOW COMPARISON (blind review F6, incremental review F4) -------------
+ * The reviewer changed TA-I018's replacement from `    if (!facade.foodLane()) {` to
+ * `    if (!facade.foodLane()) { return;`, re-ran the real gen-witness --declared --write on
+ * that scratch table, and the cut exited 0 at BOTH named refs. Executing the original guard
+ * with no food lane emitted one put(map,"stub-note",...); the changed guard emitted none and
+ * returned undefined. A refusal became silence, and every check the cut owned said yes: the
+ * digest had just been re-taken over the new text, and the OUTPUT still parsed, because an
+ * early return is perfectly good syntax.
+ *
+ * So the check is not "does it parse" but "is it the transform the table declares". The
+ * generated interface rows do ONE thing: a bare read becomes `facade.<name>()` and a call
+ * becomes `hooks.<name>(`. That rewrites identifiers and adds parentheses; it cannot add,
+ * remove or move a statement. This compares the two texts token-wise over the keywords and
+ * punctuators that decide CONTROL FLOW - the jump keywords, the block keywords, the
+ * declarators, `{`, `}` and `;` - with strings, template literals and comments removed, and
+ * refuses by row id when the multiset differs.
+ *
+ * A row that DOES rewrite a statement says so: `"statementRewrite": true` in the table,
+ * inside the declared-text digest, and listed by id in the cut's own report for the PM's
+ * final read (S-R12, S-R17 (g), DECISIONS:584). Measured at both named refs: 282 replace
+ * resolutions, 258 preserve their profile and the 24 that do not are exactly the five
+ * S-R21 boot seams, the eleven hand-designed B.5 rows and GA-R05 - every one of them
+ * already declared and already read line by line. Nothing is exempt that was not exempt.
+ *
+ * WHAT IT IS NOT: it is not a semantic oracle either, and no comparison of two texts is.
+ * `facade.foodLane()` could still be a getter that writes. It closes the ONE hole the
+ * reviewer drove a line through - an unruled control-flow change smuggled in behind a
+ * re-taken digest - and the independent review of every hunk remains the thing that holds
+ * a released file (S-R26).                                                              */
+const CF_WORDS = new Set(["return", "throw", "break", "continue", "if", "else", "for",
+  "while", "do", "switch", "case", "default", "try", "catch", "finally", "yield", "await",
+  "function", "var", "let", "const", "class", "new", "delete", "in", "of", "typeof", "void"]);
+function controlProfile(text) {
+  let s = String(text);
+  s = s.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ");
+  s = s.replace(/"(?:[^"\\\n]|\\.)*"/g, " S ").replace(/'(?:[^'\\\n]|\\.)*'/g, " S ");
+  s = s.replace(/`(?:[^`\\]|\\.)*`/g, " S ");
+  const p = Object.create(null);
+  for (const w of s.match(/[A-Za-z_$][A-Za-z0-9_$]*/g) || []) if (CF_WORDS.has(w)) p[w] = (p[w] || 0) + 1;
+  for (const ch of s) if (ch === "{" || ch === "}" || ch === ";") p[ch] = (p[ch] || 0) + 1;
+  return p;
+}
+function profileDiff(a, b) {
+  const out = [];
+  for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    if ((a[k] || 0) !== (b[k] || 0)) out.push(k + ": pre-image " + (a[k] || 0) + ", replacement " + (b[k] || 0));
+  }
+  return out.sort();
+}
+function checkControlFlow(file, region, pre) {
+  const post = (region.replacement || []).join("\n");
+  const d = profileDiff(controlProfile(pre), controlProfile(post));
+  if (!d.length) return false;
+  if (region.statementRewrite) return true;
+  fail(file + " " + region.id + ": THE REPLACEMENT CHANGES CONTROL FLOW and the row does not " +
+    "declare a statement rewrite. " + d.join("; ") + ". A generated interface row rewrites a " +
+    "bare read into facade.<name>() or a call into hooks.<name>(; it does not add, remove or " +
+    "move a statement, and an added `return` turns a refusal into silence while the output " +
+    "still parses and a re-taken digest still matches (blind review F6, incremental review " +
+    "F4). If this row is meant to rewrite a statement, declare \"statementRewrite\": true on " +
+    "it, re-take the declared-text witness, and it is listed by id in the cut's report for " +
+    "the PM's read (S-R12, S-R17 (g), DECISIONS:584).\n  PRE-IMAGE:   " +
+    JSON.stringify(pre) + "\n  REPLACEMENT: " + JSON.stringify(post));
+  return true;
+}
+
+function checkWitness(file, region, start, end, body, lastHits, firstHits) {
   const w = WITNESS.regions[region.id];
   if (!w) {
     fail(file + " " + region.id + ": NO WITNESS. Every " + region.kind +
       " region must carry a sha256 and a line count at a named ref (S-R19).");
+  }
+  /* THE FIRST ANCHOR'S OCCURRENCE COUNT, witnessed at the named refs from git objects
+     (blind review F5, incremental review F1). resolve.cjs enforces the same number from the
+     table so that census.cjs and capture.cjs, which hold no witness, refuse too; this is the
+     copy with an outside oracle behind it, and a table field bumped to match a plant does
+     not get past it. */
+  const recorded = REF_NAMES.filter((n) => w[n] && typeof w[n].occurrences === "number");
+  if (recorded.length && !recorded.some((n) => w[n].occurrences === firstHits.length)) {
+    fail(file + " " + region.id + ": THE FIRST ANCHOR MATCHES " + firstHits.length +
+      " PLACES; the witness records " + recorded.map((n) => n + "=" + w[n].occurrences).join(", ") +
+      " at :" + firstHits.join(" :") + ". A competing occurrence of an anchor's own text binds " +
+      "this region to a DIFFERENT declaration, and a digest of one line cannot tell the two " +
+      "apart because they ARE the same line (blind review F5, incremental review F1): " +
+      JSON.stringify(region.first.text));
   }
   const lines = end - start + 1;
   const byExtent = REF_NAMES.filter((n) => w[n] && w[n].lines === lines);
@@ -311,7 +396,11 @@ function applySubs(file, region, text) {
     if (row.region !== "*" && row.region !== region.id) continue;
     const parts = out.split(row.from);
     const n = parts.length - 1;
-    if (n === 0) continue;
+    /* A declared row that matches NOTHING is not an error - D.1's W5 family is declared and
+       deliberately not used (build report STOP 2), and a row can be made redundant by a
+       broader row applied before it - but it was invisible, so it is reported now and the
+       build report accounts for every one of them. */
+    if (n === 0) { report.unappliedSubstitutions.push({ file, region: region.id, id: row.id, from: row.from }); continue; }
     out = parts.join(row.to);
     applied.push({ id: row.id, from: row.from, to: row.to, count: n, kind: row.kind, why: row.why });
   }
@@ -325,7 +414,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const DECLARED = checkDeclaredText();
 const report = { root: ROOT, files: {}, substitutions: [], seams: [], drift: [],
   machineSeams: [], alignedSeams: [], witness: { refsOffered: REF_NAMES, byFile: {} },
-  replacements: [] };
+  replacements: [], statementRewrites: [], unappliedSubstitutions: [] };
 const linemap = {};
 
 for (const [file, regions] of Object.entries(table.files)) {
@@ -335,8 +424,22 @@ for (const [file, regions] of Object.entries(table.files)) {
   const lines = src.split("\n");
   const resolved = regions.map((r) => ({ r, ...resolve(lines, r, file) }));
 
-  /* overlap */
-  const sorted = resolved.slice().sort((a, b) => a.start - b.start);
+  /* overlap. ORDER-INDEPENDENT since loop round 1 (incremental review F5, blind review's
+     earlier-findings table F5). The sort was `a.start - b.start` alone and the containment
+     test looked only at the PREVIOUS element, so the answer depended on the order the rows
+     happen to sit in the file: reversing files["today-app.cjs"] and changing nothing else
+     turned an accepted cut into
+     `REFUSED: regions TA-I004 [718,718] and TA-M03 [718,719] OVERLAP`, because the nested
+     replace then sorted ahead of the seam that encloses it and became the `prev` of the
+     pair. A table's acceptance must not depend on the order of its rows. The tie order is
+     now total and deterministic - by start, then by widest extent, then seam before move
+     before replace, then by id - and containment is decided against EVERY seam of the file
+     rather than against whichever row happens to be adjacent. */
+  const KIND_RANK = { seam: 0, move: 1, replace: 2 };
+  const sorted = resolved.slice().sort((a, b) =>
+    a.start - b.start || b.end - a.end ||
+    (KIND_RANK[a.r.kind] || 9) - (KIND_RANK[b.r.kind] || 9) ||
+    (a.r.id < b.r.id ? -1 : a.r.id > b.r.id ? 1 : 0));
   /* Two regions may not overlap, with ONE declared exception: a `replace` region nested
      wholly inside a `seam` region. A seam is an annotation - cut.cjs leaves every seam line
      where it is - so a replace inside one is not two claims on the same bytes, it is the
@@ -344,16 +447,22 @@ for (const [file, regions] of Object.entries(table.files)) {
      (recordSettings, :286-:318) is the case: the function stays released and byte-identical
      apart from the two declared rows that reach the sealed lane. The nesting is recorded. */
   report.nested = report.nested || [];
-  for (let i = 1; i < sorted.length; i += 1) {
-    const prev = sorted[i - 1], here = sorted[i];
+  const seamsHere = sorted.filter((x) => x.r.kind === "seam");
+  const enclosing = new Map();
+  for (const x of sorted) {
+    if (x.r.kind !== "replace") continue;
+    const s = seamsHere.find((q) => q.start <= x.start && x.end <= q.end);
+    if (s) enclosing.set(x, s);
+  }
+  for (const [x, s] of enclosing) {
+    report.nested.push({ file, seam: s.r.id, replace: x.r.id, lines: [x.start, x.end] });
+  }
+  const flat = sorted.filter((x) => !enclosing.has(x));
+  for (let i = 1; i < flat.length; i += 1) {
+    const prev = flat[i - 1], here = flat[i];
     if (here.start > prev.end) continue;
-    const nested = prev.r.kind === "seam" && here.r.kind === "replace"
-      && here.start >= prev.start && here.end <= prev.end;
-    if (!nested) {
-      fail(file + ": regions " + prev.r.id + " [" + prev.start + "," + prev.end + "] and " +
-        here.r.id + " [" + here.start + "," + here.end + "] OVERLAP");
-    }
-    report.nested.push({ file, seam: prev.r.id, replace: here.r.id, lines: [here.start, here.end] });
+    fail(file + ": regions " + prev.r.id + " [" + prev.start + "," + prev.end + "] and " +
+      here.r.id + " [" + here.start + "," + here.end + "] OVERLAP");
   }
   for (const x of sorted) {
     if (x.start !== x.r.tipLines[0] || x.end !== x.r.tipLines[1]) {
@@ -369,7 +478,7 @@ for (const [file, regions] of Object.entries(table.files)) {
   for (const x of sorted) {
     if (!WITNESSED_KINDS.has(x.r.kind)) continue;
     const body = lines.slice(x.start - 1, x.end).join("\n");
-    const ok = checkWitness(file, x.r, x.start, x.end, body, x.lastHits);
+    const ok = checkWitness(file, x.r, x.start, x.end, body, x.lastHits, x.firstHits);
     const next = agree.filter((n) => ok.includes(n));
     if (!next.length) {
       fail(file + " " + x.r.id + ": the file's regions do not agree on one witnessed ref. " +
@@ -497,9 +606,17 @@ for (const [file, regions] of Object.entries(table.files)) {
     if (!Array.isArray(rp.r.replacement)) {
       fail(file + " " + rp.r.id + ": kind \"replace\" with no declared `replacement` row (S-R21).");
     }
+    const pre = lines.slice(rp.start - 1, rp.end).join("\n");
+    const rewrote = checkControlFlow(file, rp.r, pre);
+    if (rewrote) {
+      report.statementRewrites.push({ file, id: rp.r.id, lines: [rp.start, rp.end],
+        diff: profileDiff(controlProfile(pre), controlProfile(rp.r.replacement.join("\n"))),
+        from: lines.slice(rp.start - 1, rp.end), to: rp.r.replacement, why: rp.r.note });
+    }
     report.replacements.push({ file, id: rp.r.id, lines: [rp.start, rp.end],
       removed: rp.end - rp.start + 1, inserted: rp.r.replacement.length,
       from: lines.slice(rp.start - 1, rp.end), to: rp.r.replacement,
+      statementRewrite: !!rp.r.statementRewrite,
       kind: "statement rewrite (S-R17 (g) STOP, declared in advance)", why: rp.r.note });
   }
   const drop = new Set();
