@@ -109,7 +109,7 @@ Both gates run the same way on Windows and on Linux, from this folder: `python q
 and `python quality/statesheet.py`. Exit 0 green, exit 1 at least one FAIL, exit 2 refused (one
 line naming the URL it was pointed at and what was missing). WARN belongs to the two advisory
 checks only. `python quality/teeth.py` proves the list below can still refuse: it applies one
-forbidden change at a time to a scratch copy and asserts the exact refusal, in 33 rows.
+forbidden change at a time to a scratch copy and asserts the exact refusal, in 42 rows. A row that this machine cannot build, because the change does nothing here, prints the reason in words and counts as expected; a VOID row, whose anchor did not match, is never a pass.
 
 All three scripts launch the browser with `quality/common.py`'s `LAUNCH_ARGS` and nothing else,
 so a screen is laid out the same way whichever script draws it and whichever machine runs it. The
@@ -127,8 +127,8 @@ of 393x852, 375x812 and 360x780. Every row FAILs unless it says WARN.
 | primary action in first viewport | 3 | the screen's primary is wholly above the fold |
 | fits without scrolling at 393x852 | R | the default render needs no scroll. It is a FAIL and not a WARN because acceptance leaves no third tier; the chassis is designed to scroll, so the first ticket whose default Today grows past the viewport should change this line rather than the screen |
 | Log in the thumb zone (centre >= 70% of height) | R | workout only |
-| touch targets >= 44 px | 3 | every button, link and input, hit area included |
-| copy: no dashes, readiness words, vendor names | 3 | the owner's standing rules, word boundary matched, over the screen's text plus every visible placeholder, assistive label, tooltip, alternative text, filled in value and quoted string in ::before or ::after |
+| touch targets >= 44 px | 3 | every tappable surface, hit area included: the focusable elements, the control roles, `label[for]`, and the classes the pack's own tap highlight rule declares tappable (app/app.css:625, listed in `quality/common.py`). A box clipped to nothing for assistive technology alone is not a target; any other small box is. The side that failed prints two decimals |
+| copy: no dashes, readiness words, vendor names | 3 | the owner's standing rules, word boundary matched, over the screen's text plus every visible placeholder, assistive label, tooltip, alternative text, filled in value and quoted string in ::before or ::after. A dash is every character of Unicode category Pd except the plain hyphen, plus U+2212 where no digit follows it; a character of category Cf is a problem of its own, named by its code point, and the word and vendor sweeps read the string with those removed, NFKC normalised and casefolded |
 | generated content the sweep cannot read | 3 | a counter() or counters() in ::before or ::after draws a string the gate cannot resolve, so it fails rather than passing unswept |
 | the multiplication sign in every set string | 3 | no digit, letter x, digit anywhere in the same swept string |
 | Log label uses × | 3 | workout only |
@@ -177,9 +177,14 @@ two machines costs up to 1.26 levels of the 2.00 level budget, so thumbnails are
 `quality/baseline/states/<sys.platform>/` with an `ENV.txt` beside them, and a missing thumbnail
 for the current platform is a FAIL naming the path and the remedy, never a silent set.
 
+A committed thumbnail that is byte identical to the same named file of another platform's
+directory is a FAIL: a platform's thumbnails are drawn on that platform, never copied. Of the
+committed pairs not one is byte identical, because every drawn state carries text.
+
 `--accept` is the only way to write records; it writes the shared records,
 `quality/baseline/states/INDEX.json` and this platform's thumbnails, and it refuses `--only`, so a
-partial record set cannot be written by accident. `--accept-thumbs` is the second platform's tool:
+partial record set cannot be written by accident. Both accept paths refuse to run with
+`EARNED_APP` set, because the records of record are drawn from the pack's own prototype. `--accept-thumbs` is the second platform's tool:
 it compares every render against the shared records, compares no thumbnail, and writes this
 platform's thumbnails and `ENV.txt` only when every render was clean, otherwise nothing at all,
 exit 1. It refuses `--only` and cannot be combined with `--accept`. Neither run is evidence of a
@@ -187,5 +192,13 @@ green run, and the first line of each says so. An ordinary run compares the inde
 driver's own list and FAILs on a record whose state has left the build, and on a state with no
 record; the index's `env` object is provenance and no comparison reads it. `--only` narrows the
 run while iterating and narrows that comparison with it. Every run
-ends with a "worst measured" block: the largest thumbnail mean shift, rect move and colour move it
-saw, each named with the state and element, so a run on a second machine reports its headroom.
+ends with a "worst measured" block. Its first four rows are this platform against its own
+records and they are the tolerance: the largest thumbnail mean shift, rect move and colour move the
+run saw, each named with the state and element. The rows marked advisory are this platform against
+the other platforms' committed thumbnails; they are not a tolerance, nothing fails on them, and
+they are there so the cross platform raster distance is measured on every run. One more advisory
+line says when the pack's `app/` no longer matches the digest the records were written against.
+
+A record holds each rect to two decimals and the comparison reads the values as they were
+measured, so "more than 3 px" means more than 3 px. A run never drops a problem in silence: the
+first six are printed and the rest are counted.

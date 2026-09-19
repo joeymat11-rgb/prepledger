@@ -179,16 +179,49 @@ That is the claim measured rather than asserted.
 
 The thumbnail half does not travel. It is a raster, and between those same two machines
 rasterisation alone costs up to 1.26 levels of the 2.00 level budget (C-63 ink), which is most of
-the headroom the 3 px rect tolerance needs: the 3 px shift `teeth.py` row h1 must PASS measures
-1.67 on the machine that drew the thumbnails. So thumbnails are filed per platform, at
+the headroom the 3 px rect tolerance needs: the shift `teeth.py` row h1 must PASS measures
+1.66 of 2.00 at 3 px on the machine that drew the thumbnails, where review R2 measured 1.67
+against the shared thumbnails this round replaced. h1 is a 2 px shift now, off that boundary. So thumbnails are filed per platform, at
 `quality/baseline/states/<sys.platform>/<ID>-<theme>.png`, the way the screen baselines already
 are, with an `ENV.txt` beside them in the form `gate.py` writes, the `launch:` line included. A
 missing thumbnail for the current platform is a FAIL that names the path and the remedy, never a
 silent set, and a missing shared record has its own line and its own remedy, so each names the
 file that is actually absent.
 
+A platform's thumbnails are drawn on that platform and never copied: a committed thumbnail that
+is byte identical to the same named file under another platform's directory is a FAIL naming both
+files. Not one of the committed pairs is byte identical, because every drawn state carries text
+and two text stacks never rasterise text to the same bytes. What that guard does NOT catch: a set
+honestly drawn on the wrong machine, or re-encoded, still fits inside the tolerance, because the
+two committed sets differ by at most 1.26 of the 2.00 mean budget (0.85 on T-02) and by none of
+the 1% over 24 levels; nothing reads an `ENV.txt`, which is documentation rather than a check; and
+the detector that would notice is `teeth.py` row h1, which disagreed against the other platform's
+thumbnails in this round's first hours. That is open question Q11 in the ticket's package.
+
+**What the worst measured block's rows mean.** The first four are this platform against its own
+records, and they are the tolerance. The rows marked advisory are this platform against the other
+platforms' committed thumbnails, one pair of rows per platform directory: they are not a
+tolerance, nothing fails on them, the exit code never sees them, and they print even when nothing
+moved here. They exist so the cross platform raster distance is measured on every run rather than
+computed by hand once, which is what review R3 had to do to find the 1.26. One more advisory line
+says when the pack's `app/` no longer matches the digest the records were written against: the
+index's `env` carries an `app` digest, the sha256 of the sorted lines "<path> <sha256>" for every
+file under `app/`, written by `--accept`. It is advisory because a `teeth.py` row's whole job is
+to change `app/` in a scratch copy, and the row that must PASS still has to exit 0. What pins the
+records to the design of record is not that line: it is that a full run against the pack's own
+prototype FAILs on any drawn difference, and that ticket S9 pins the whole pack by content.
+
+**Why the JSON records sit outside the platform directories, and why win32 wrote them.** Because
+they are platform independent and that is measured, not assumed: 418 renders, every rect edge
+0.00 px of 3 and every colour 0.00 of 3 across two operating systems, two text stacks and two
+Chromium versions. Either machine could have written them; the owner's PC did, and the index says
+so in its `env`.
+
 `python quality/statesheet.py --accept` writes the shared records, the index and this platform's
-thumbnails; it refuses `--only` and says on its first line that it compared nothing.
+thumbnails; it refuses `--only` and says on its first line that it compared nothing. Both accept
+paths refuse to run with `EARNED_APP` set, because the records of record are drawn from the pack's
+own prototype. `--only` matches a prefix, so `--only T-0` selects T-02 and T-40h alike; it narrows
+the run and the index comparison with it while someone iterates, and only a full run is evidence.
 `--accept-thumbs` is the tool for the second platform: it compares every render against the
 shared record exactly as an ordinary run does and compares no thumbnail, then writes this
 platform's thumbnails and `ENV.txt` only if every render came back clean, and otherwise writes
@@ -199,14 +232,23 @@ Every run ends with a "worst measured" block, the largest thumbnail mean shift, 
 colour move it saw, each with the state and element that produced it, so a run on a second
 machine reports its headroom in numbers rather than a bare verdict.
 
-**The one line under `app/`.** The state sheet found a real defect in the prototype while this
-was being settled, and under ticket item 16 it is fixed rather than filed. Laid out unhinted,
-which is how every real device lays it out, T-88's Cancel link is 43.73 px wide by 44 px high,
-under the owner's standing rule that every target is 44 px; hinted Linux had rounded it to 44,
-which is the only reason review R2 saw the sheet green. `app/app.css` line 202, the `.link` rule,
-now carries `min-width: var(--hit);` beside its `min-height: var(--hit);`. It widens that one box
-by 0.27 px, and a record's rect is rounded to whole pixels, so nothing either gate records moves.
-That line is the only change under `app/` on this branch.
+**The one line under `app/`, which the owner ratified.** The state sheet found a real defect in
+the prototype while this was being settled. Laid out unhinted, which is how every real device lays
+it out, T-88's Cancel link is 43.73 px wide by 44 px high, under the owner's standing rule that
+every target is 44 px; hinted Linux had rounded it to 44, which is the only reason review R2 saw
+the sheet green. The target line prints the failing number now, so that render reads
+`targets: link 43.73x44` rather than `link 44x44`.
+
+Ticket item 16 asks for the boards, and review R3 was right that a lane lead's ruling is not that.
+The owner was asked on 2026-09-19 at about 08:55 ET, in these words: "On the 'Sleep correcting'
+screen the Cancel link's tap area is 43.7 px wide, and your rule is 44 px. One line of CSS makes
+it 44. Nothing you can see moves (0.3 px), and all 418 screens were re-checked with it. OK to make
+that change?" The owner answered: "Yes, make it 44". The package's `locked` object records that
+exchange.
+
+So `app/app.css` line 202, the `.link` rule, carries `min-width: var(--hit);` beside its
+`min-height: var(--hit);`. It widens that one box by 0.27 px and nothing either gate records
+moves. That line is the only change under `app/` on this branch.
 
 The run also compares the two lists of states. `--accept` writes
 `quality/baseline/states/INDEX.json`, the ids and themes it recorded; an ordinary run reads it and
@@ -307,8 +349,10 @@ self-accepts. The builder's cells pin every copy string they move.
   while C-UI-0 was built: `app/app.css` line 202, the `.link` rule, gained
   `min-width: var(--hit);` beside its `min-height: var(--hit);`, because the state sheet, laid
   out the way every real device lays text out, measured T-88's Cancel link at 43.73 px wide
-  against the owner's standing 44 px rule (ticket item 16, and section 3.1 above). Anything else
-  a gate finds in the prototype is an open question in the ticket's package, not an edit.
+  against the owner's standing 44 px rule. The owner was asked on 2026-09-19 and answered "Yes,
+  make it 44"; section 3.1 above quotes the question and the answer, and the package's `locked`
+  object records them. Anything else a gate finds in the prototype is an open question in the
+  ticket's package, not an edit.
 
 ## 5. The tickets (lane C, screens tier), in order
 
