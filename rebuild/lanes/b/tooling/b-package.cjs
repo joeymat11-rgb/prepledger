@@ -993,6 +993,24 @@ const supersessionGrants = line => line.split('·').map(c => SUPERSESSION_GRANT.
 const RELEASE_GRANT = /^RELEASE-FROM-SEAL\s+(M2-[A-Za-z0-9-]+)\s+([A-Za-z0-9_.\/-]+(?:,[A-Za-z0-9_.\/-]+)*)$/;
 const RELEASE_GRANT_SHAPE = 'RELEASE-FROM-SEAL <packageId> <path>[,<path>...], alone in its own · clause';
 const releaseGrants = line => line.split('·').map(c => RELEASE_GRANT.exec(c.trim())).filter(Boolean);
+// P-A1 (the PM's ruling of 2026-09-19, on S9-PREP-RUNNER-REVIEW-R1 BLOCKING-3 and R2 N1).
+// THE RULED TERMINAL TEST, and it is ONE function, called from BOTH ruling functions, because
+// a chain whose two ruling functions disagree about what a ruled line is has a hole wherever
+// the weaker one stands. The old test asked only that the TRIMMED LINE end in the word RULED,
+// after a space as readily as after the clause separator; two reviewers in turn measured a
+// line reading "... this is NOT RULED" ADMITTED, which freed both released paths here and five
+// gate carriers through supersessionRuling(). The rule now is the LINE'S LAST CLAUSE, trimmed,
+// EXACTLY the word RULED, so a clause that says the opposite of a ruling is not read as one.
+// IT LANDED ONLY AFTER THE MEASUREMENT THE PM MADE ITS CONDITION: every ruling line the specs
+// under packages/ cite by sha256 (DECISIONS:153, :160, :421, :444, :462, :490, :514 and :527,
+// eight in all) was located on CHAIN_REF and tested against this rule, and every one still
+// passes; across all 48 cited line-sha256 fields the old rule and this one disagree nowhere.
+// A guard on the seal path is never strengthened in a way that voids a standing seal, so the
+// measurement came first and this hunk second. The separator is the one character in this
+// hunk that is not ASCII: it is named here once, as the same literal U+00B7 the two grant
+// readers above split on, so the clause rule and the token rule can never drift apart.
+const RULED_CLAUSE_SEPARATOR = '·';
+const ruledTerminal = line => line.trim().split(RULED_CLAUSE_SEPARATOR).pop().trim() === 'RULED';
 // What coverage() ADMITTED, so the --full gate sweep and the seal can see it without being
 // handed it through four signatures. Empty for every package that declares none, and it is
 // written exactly once, by coverage(), after the ruling and the evidence have both stood.
@@ -1274,8 +1292,12 @@ function supersessionRuling(s) {
   const [at, line] = hits[0];
   SUPERSESSION_AT = at;
   // The ledger's own terminal word, held exactly as brief acceptance is held to ACCEPTED.
-  assert(/(?:^|[ ·])RULED$/.test(line.trim()), 'GATE-SUPERSESSION-RULING-IS-NOT-A-RULED-LINE DECISIONS:' + at +
-    '; a supersession stands on a RULED ledger line and on nothing else');
+  // P-A1: the LAST CLAUSE, not merely the last word, so "... this is NOT RULED" is not a
+  // ruling. One test, shared with releaseRuling(), which is the half of this mirror the hole
+  // was found on; neither side may be strengthened without the other.
+  assert(ruledTerminal(line), 'GATE-SUPERSESSION-RULING-IS-NOT-A-RULED-LINE DECISIONS:' + at +
+    '; a supersession stands on a RULED ledger line and on nothing else, and a ruled line is ' +
+    'one whose LAST clause is the bare word RULED');
   // F1: the POSITIVE, STRUCTURED grant. No prose is read.
   const grants = supersessionGrants(line);
   assert(grants.length, 'GATE-SUPERSESSION-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN DECISIONS:' + at +
@@ -1303,11 +1325,13 @@ function supersessionRuling(s) {
 // role "released". B.2's six steps, each with its own name, and a seventh from F.1 R2:
 //   1 the spec carries release.rulingLineSha256, a 64-hex string and never the text;
 //   2 exactly one line on CHAIN_REF hashes to it;
-//   3 that line's LAST WORD is RULED (S9-PREP-RUNNER-REVIEW-R1 BLOCKING-3 measured the one
-//     phrasing that satisfies this test without being a ruling, a line whose last two words
-//     are "NOT RULED", and it is ADMITTED, here and in supersessionRuling(), which carries
-//     the same regex. This mirror is line for line by ticket, so it is NOT strengthened on
-//     one side only; the question is put to the PM as one question about BOTH functions);
+//   3 that line's LAST CLAUSE, trimmed, is exactly the word RULED (S9-PREP-RUNNER-REVIEW-R1
+//     BLOCKING-3 measured the one phrasing that satisfied the older last-word test without
+//     being a ruling, a line whose last two words are "NOT RULED", and R2 N1 re-measured it
+//     ADMITTED. The mirror is line for line by ticket, so it could not be strengthened on
+//     one side by an author; the PM ruled it for BOTH functions at once in P-A1, after
+//     measuring that all eight ruling lines the specs cite still pass, and ruledTerminal()
+//     above is now the single test supersessionRuling() reads too);
 //   4 it carries at least one RELEASE-FROM-SEAL token naming THIS packageId;
 //   5 the granted path set and the declared `released` set are EQUAL, both directions, so
 //     the ledger and the spec cannot drift apart in either direction;
@@ -1333,8 +1357,9 @@ function releaseRuling(s, bound) {
   assert.equal(hits.length, 1, 'RELEASE-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH ' +
     hits.length + ' line(s) on ' + CHAIN_REF + ' hash to the recorded sha256');
   const [at, line] = hits[0];
-  assert(/(?:^|[ ·])RULED$/.test(line.trim()), 'RELEASE-RULING-IS-NOT-A-RULED-LINE DECISIONS:' + at +
-    '; a release stands on a RULED ledger line of the chain branch and on nothing else');
+  assert(ruledTerminal(line), 'RELEASE-RULING-IS-NOT-A-RULED-LINE DECISIONS:' + at +
+    '; a release stands on a RULED ledger line of the chain branch and on nothing else, and a ' +
+    'ruled line is one whose LAST clause is the bare word RULED');
   const grants = releaseGrants(line);
   assert(grants.length, 'RELEASE-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN DECISIONS:' + at +
     '; a release is granted by the exact token ' + RELEASE_GRANT_SHAPE + ' and never by prose about it');
@@ -1347,8 +1372,19 @@ function releaseRuling(s, bound) {
     ' DECISIONS:' + at + '; this spec declares it role "released" and the ruled line does not name it');
   for (const file of granted) assert(declared.includes(file), 'RELEASE-GRANTED-PATH-IS-NOT-DECLARED-RELEASED ' + file +
     ' DECISIONS:' + at + '; the ruled line releases it and this spec does not declare it');
+  // P-A2 (the PM's ruling, on the first author's own note 4, adopted in the author's shape).
+  // Step 6 stood behind `if (pmap)`, so a run with no bound parent - or one whose parent
+  // artifact carries no product map - SKIPPED "you cannot release what the parent never
+  // sealed" and "its declared pre is that parent pin" in silence, and admitted a release of a
+  // path nothing had ever sealed. The skip is the defect: there is no honest reading of
+  // "released" without the seal it is released from, so the run refuses BY NAME rather than
+  // quietly checking less than this function says it checks. It costs a package that releases
+  // nothing nothing at all, because such a package returned above before any of this.
   const pmap = bound && bound.acceptance && bound.acceptance.product;
-  if (pmap) for (const file of granted) {
+  assert(pmap && typeof pmap === 'object' && !Array.isArray(pmap), 'RELEASE-WITHOUT-A-BOUND-PARENT ' +
+    declared.join(' ') + '; DECISIONS:536 (2) releases a path OUT OF a parent seal, and this run has no ' +
+    'bound parent product map to hold the declared pre-image of each released path to');
+  for (const file of granted) {
     assert(Object.hasOwn(pmap, file), 'RELEASE-PATH-IS-NOT-A-PARENT-PRODUCT-PIN ' + file +
       '; a package cannot release what its own parent never sealed');
     assert.equal(s.product[file].pre, parentPin(pmap[file], file), 'RELEASE-PATH-PRE-IMAGE-IS-NOT-THE-PARENT-PIN ' + file);
@@ -2020,11 +2056,16 @@ function held(s, file, hash, code) {
 // half that fires, and it is the half B.8 (11) and (12) measure. One generation on, the
 // block falls out of the walk's reach entirely and the path is an ordinary undeclared file
 // again, which is exactly what B.7 says a release means.
+// P-A3 (S9-PREP-RUNNER-REVIEW-R2 N2, the PM's ruling). It returns the ENTRY beside the path
+// now, not the path alone, because the skip below is narrowed by MEASUREMENT against the
+// grandparent's own pin and it cannot measure what it has not carried. FIRST WRITER WINS, and
+// the parent is passed first: the parent's block is the one that records the seal this walk is
+// standing aside for, and an older ancestor's record of the same path is the weaker fact.
 const releasedAncestry = (...artifacts) => {
-  const out = new Set();
+  const out = new Map();
   for (const art of artifacts)
     if (art && art.released && typeof art.released === 'object' && !Array.isArray(art.released))
-      for (const file of Object.keys(art.released)) out.add(file);
+      for (const [file, entry] of Object.entries(art.released)) if (!out.has(file)) out.set(file, entry);
   return out;
 };
 function pins(s, bound) {
@@ -2058,13 +2099,30 @@ function pins(s, bound) {
   // role "released", which releaseRuling() only admits when a RULED PM line on the chain
   // branch names this package and that exact path; and (b) was a key of that ancestor's
   // parent product map. The sha256 the seal stopped at survives twice over: in Git at the
-  // ancestor's own commit, and literally in the block as lastSealedSha256. Nothing else in
+  // ancestor's own commit, and literally in the block as lastSealedSha256 - and under P-A3
+  // below those two must be the SAME number or the skip refuses. Nothing else in
   // either walk moves: every grandparent pin NOT named in a released block still gets both
   // of held()'s asserts, on disk and in Git at HEAD.
   const releasedByAncestry = releasedAncestry(a, ga);
   for (const [file, entry] of Object.entries({ ...ga.product, ...ga.executionPins })) {
     if (Object.hasOwn(a.product, file) || Object.hasOwn(a.executionPins, file)) continue;
-    if (releasedByAncestry.has(file)) { gskipped.push(file); continue; } // H17
+    if (releasedByAncestry.has(file)) {
+      // P-A3 (S9-PREP-RUNNER-REVIEW-R2 N2's own attack NEW-1, the PM's ruling). The skip used
+      // to ask the PATH NAME alone, so an ancestor block naming a path at a sha256 the
+      // grandparent never sealed was believed on its own say-so and the pin it stands for was
+      // never compared with anything. NOT reachable through this runner - proposed() writes
+      // lastSealedSha256 from the pre-image releaseRuling() has already held to the parent
+      // pin, and the artifact's own byte-pin closes the loop - so this is defence in depth;
+      // the reason to write it anyway is that F.1 R9 names "nothing shows" as the risk of a
+      // skip written too wide. A block that names a path at a sha the grandparent never
+      // sealed now REFUSES BY NAME rather than standing a pin aside on an unchecked claim.
+      const block = releasedByAncestry.get(file);
+      assert(block && typeof block === 'object' && block.lastSealedSha256 === parentPin(entry, file),
+        'ANCESTOR-RELEASED-BLOCK-IS-NOT-THE-GRANDPARENT-PIN ' + file + '; the released block records ' +
+        String(block && block.lastSealedSha256).slice(0, 12) + ' and ' + g.artifact + ' pins it at ' +
+        String(parentPin(entry, file)).slice(0, 12));
+      gskipped.push(file); continue;
+    } // H17
     if (held(s, file, parentPin(entry, file), 'GRANDPARENT-PIN-BROKEN')) gkept++; else base++;
   }
   say('PARENT PINS RE-ASSERTED at run time; ' + kept + ' pin(s) from ' + bound.option.artifact + ' plus its ' +
