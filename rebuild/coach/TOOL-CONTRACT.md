@@ -81,6 +81,42 @@ mints its own era rather than reading this one, which is a lane-c-today merge aw
   "state_unchanged": true }
 ```
 
+### Exception and unknown-tool refusals
+
+Check-in validation, wave-one dispatch and onboarding dispatch use fixed refusal
+sentences. Exception messages and unknown tool names travel in `unavailable.source`
+as developer provenance, never in a reason, copy or arbitrary code. As in the
+memory tools, `tool` remains routing metadata; it is not athlete-facing copy.
+The refusal helpers in these three modules, and both unknown-tool envelopes,
+pass through `assertNoLeak`, including their source members.
+
+| code | exact reason |
+|---|---|
+| `CHECKIN_INPUT_INVALID` | I could not record that check-in answer. Nothing was recorded. |
+| `COACH_MACHINE_SETTINGS_INVALID` (save throws) | I could not keep that, and I have kept nothing. |
+| `WAVE1_TOOL_NOT_IN_LIST`, `ONBOARDING_TOOL_NOT_IN_LIST` | That is not one of the coach's tools, so I did nothing. |
+| `WAVE1_TOOL_THREW`, `ONBOARDING_TOOL_THREW` | Something went wrong inside that tool on this device. I could not complete the request. |
+
+The two unknown-tool envelopes retain their top-level `code`, `reason`, `allowed`
+and empty `values`; both reason members contain the same fixed sentence.
+The exception refusals retain tagged code and reason values. Diagnostic text
+licenses no numbers. `test/text-tags.test.cjs` pins these paths with hostile text.
+
+When onboarding `submit` catches a preparation error, its code is the message
+only if the message is a string and an own key of the existing
+`setup-model.mjs REFUSAL_SENTENCES` table: `CLEAN_INIT_SETUP_REQUIRED`,
+`CLEAN_INIT_SPLIT_REQUIRED`, `CLEAN_INIT_EXERCISES_REQUIRED`,
+`CLEAN_INIT_EXERCISE_REQUIRED`, or `CLEAN_INIT_PRIORITY_MUSCLES_REQUIRED`.
+Every other message selects the fixed `SETUP_INPUT_INVALID`. A prefix match or
+an inherited object key is insufficient. The reason remains `model.COPY.saveRefused`;
+the diagnostic message travels in `source`.
+
+The new check-in and dispatch sentences are proposed copy awaiting the owner's
+ruling, listed in `rebuild/lanes/c/COACH-TEXT-TAGS-AUTHOR-REPORT.md`.
+Accepted-layer code/copy forwarding and intentional confirmed-fact read-backs
+retain their existing contracts; this rule concerns exception and unknown-tool
+diagnostics, not engine prose or the athlete's explicitly labelled facts.
+
 ### The tagged value
 
 ```jsonc

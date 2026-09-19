@@ -69,7 +69,9 @@ test("an unknown name is refused by CODE, and the refusal NAMES the tool that wa
   assert.equal(r.code, O.C6_CODES.TOOL_NOT_IN_LIST);
   assert.equal(r.code, "ONBOARDING_TOOL_NOT_IN_LIST");
   assert.equal(r.tool, "set_rep_target");
-  assert.match(r.reason, /^set_rep_target is not one of the seven onboarding tools$/);
+  assert.equal(r.reason, "That is not one of the coach's tools, so I did nothing.");
+  assert.equal(r.unavailable.reason, r.reason);
+  assert.equal(r.unavailable.source, "onboarding-tools.cjs TIERS: set_rep_target");
 });
 
 test("the refusal lists the seven, so a transcript is diagnosable without a debugger", async () => {
@@ -78,7 +80,8 @@ test("the refusal lists the seven, so a transcript is diagnosable without a debu
   assert.deepEqual(r.allowed, SEVEN);
   assert.equal(r.state_unchanged, true);
   assert.equal(r.unavailable.code, "ONBOARDING_TOOL_NOT_IN_LIST");
-  assert.match(r.unavailable.reason, /set_sets/);
+  assert.equal(r.unavailable.reason, "That is not one of the coach's tools, so I did nothing.");
+  assert.equal(r.unavailable.source, "onboarding-tools.cjs TIERS: set_sets");
 });
 
 test("there is NO default handler: every unknown name refuses, none falls through", async () => {

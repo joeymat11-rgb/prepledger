@@ -43,6 +43,8 @@ const WAVE1_TIERS = Object.freeze({
 });
 
 const W1_CODES = Object.freeze({
+  TOOL_NOT_IN_LIST: "WAVE1_TOOL_NOT_IN_LIST",
+  TOOL_THREW: "WAVE1_TOOL_THREW",
   CONFIRMATION_REQUIRED: CODES.CONFIRMATION_REQUIRED,
   GYM_SESSION_ABSENT: CODES.GYM_SESSION_ABSENT,
   MACHINE_SETTINGS_ABSENT: "COACH_MACHINE_SETTINGS_ABSENT",
@@ -69,13 +71,13 @@ const ok = (tool, tier, turn_id, values, extra) =>
   Object.freeze({ tool, tier, turn_id, ok: true, values: values || {}, ...(extra || {}) });
 
 const unavailable = (tool, tier, turn_id, code, reason, source) =>
-  Object.freeze({ tool, tier, turn_id, ok: false,
+  T.assertNoLeak(Object.freeze({ tool, tier, turn_id, ok: false,
     unavailable: Object.freeze({ code, reason, source: source || null }),
     values: Object.freeze({
       code: T.tagged(turn_id, "coach.refusal.code", code, "code", ""),
       reason: T.text(turn_id, "coach.refusal." + code, reason),
     }),
-    state_unchanged: true });
+    state_unchanged: true }));
 
 /* world  : the openCoachWorld world (today, gym, machineSettings)
  * coach  : createCoachTools(world), so one turn can call the C5 fifteen and
@@ -290,17 +292,19 @@ function createWave1Tools({ world, coach, reasons = null, effortChoices = [],
   async function dispatch(name, args, turn_id) {
     if (typeof turn_id !== "string" || !turn_id) throw new TypeError("dispatch: a turn_id is required");
     if (!Object.prototype.hasOwnProperty.call(TIERS, name) || typeof SERVED[name] !== "function") {
-      return Object.freeze({ ok: false, tool: name, tier: null, turn_id,
-        code: "WAVE1_TOOL_NOT_IN_LIST",
-        reason: String(name) + " is not one of the wave-one tools",
+      return T.assertNoLeak(Object.freeze({ ok: false, tool: name, tier: null, turn_id,
+        code: W1_CODES.TOOL_NOT_IN_LIST,
+        reason: "That is not one of the coach's tools, so I did nothing.",
         allowed: ALLOWED.slice(), values: Object.freeze({}), state_unchanged: true,
-        unavailable: Object.freeze({ code: "WAVE1_TOOL_NOT_IN_LIST",
-          reason: String(name) + " is not one of the wave-one tools", source: "wave1-tools.cjs TIERS" }) });
+        unavailable: Object.freeze({ code: W1_CODES.TOOL_NOT_IN_LIST,
+          reason: "That is not one of the coach's tools, so I did nothing.",
+          source: "wave1-tools.cjs TIERS: " + String(name) }) }));
     }
     try { return await SERVED[name](args, turn_id); }
     catch (error) {
-      return unavailable(name, TIERS[name], turn_id, "WAVE1_TOOL_THREW",
-        (error && error.message) || "the tool refused", "wave1-tools.cjs dispatch");
+      return unavailable(name, TIERS[name], turn_id, W1_CODES.TOOL_THREW,
+        "Something went wrong inside that tool on this device. I could not complete the request.",
+        "wave1-tools.cjs dispatch: " + ((error && error.message) || "the tool refused"));
     }
   }
 

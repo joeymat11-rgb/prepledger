@@ -323,7 +323,7 @@ const ok = (tool, tier, turn_id, values, extra) =>
    slice simply has no seam, the code is in the COACH_ namespace and
    TOOL-CONTRACT.md names the file:line that proves it. */
 const unavailable = (tool, tier, turn_id, code, reason, source) =>
-  Object.freeze({ tool, tier, turn_id, ok: false,
+  assertNoLeak(Object.freeze({ tool, tier, turn_id, ok: false,
     unavailable: Object.freeze({ code, reason, source: source || null }),
     /* The refusal's own words are a TOOL RESULT too. Carrying them as tagged
        values is what lets the coach read a client or engine refusal out loud —
@@ -332,11 +332,12 @@ const unavailable = (tool, tier, turn_id, code, reason, source) =>
       code: tagged(turn_id, "coach.refusal.code", code, "code", ""),
       reason: text(turn_id, "coach.refusal." + code, reason),
     }),
-    state_unchanged: true });
+    state_unchanged: true }));
 
 const CODES = Object.freeze({
   CONFIRMATION_REQUIRED: "COACH_CONFIRMATION_REQUIRED",
   CHECKIN_SURFACE_ABSENT: "COACH_CHECKIN_SURFACE_ABSENT",
+  CHECKIN_INPUT_INVALID: "CHECKIN_INPUT_INVALID",
   GYM_SESSION_ABSENT: "COACH_GYM_SESSION_ABSENT",
   NO_QUALIFIED_COMPARISON: "COACH_NO_QUALIFIED_COMPARISON",
   FACT_COMMAND_ABSENT: "COACH_FACT_COMMAND_ABSENT",
@@ -665,8 +666,9 @@ function createCoachTools(world) {
     const draft = checkin.draft();
     try { apply(draft); }
     catch (error) {
-      return unavailable(tool, TIER.FACT, turn_id, "CHECKIN_INPUT_INVALID",
-        (error && error.message) || null, "rebuild/m3/w7-preview/today/checkin-commands.cjs answersOf()");
+      return unavailable(tool, TIER.FACT, turn_id, CODES.CHECKIN_INPUT_INVALID,
+        "I could not record that check-in answer. Nothing was recorded.",
+        (error && error.message) || "rebuild/m3/w7-preview/today/checkin-commands.cjs answersOf()");
     }
     const saved = await checkin.save();
     if (!saved.ok) {
