@@ -834,3 +834,33 @@ test("RED incremental F7: an UNCOVERED released assignment makes gen-interface.c
   assert.strictEqual(fs.readFileSync(rf, "utf8"), before, "it wrote the table anyway");
   assert.ok(!fs.existsSync(jf), "it wrote the rows file anyway");
 });
+
+test("RED blind F2: the cut DECLARES every moved initializer that crosses a boot seam, and there is exactly one", () => {
+  /* The five S-R21 boot seams keep the seven boot STATEMENTS where they stand. They cannot
+     keep a moved INITIALIZER where it stands, because everything inside the factory runs at
+     the factory's one call site, above every seam. cut.cjs used to treat
+     `let sleepLane = options.sleep || null;` as inert - its initializer is a
+     LogicalExpression - so that line was not even in the boot-order list, and the reviewer
+     measured PRE api.sleepLane() === the injected lane and POST null. The rule is now "an
+     initializer that READS anything is executable", with function BODIES excluded because
+     they do not run at declaration, and every crossing is listed by physical line. */
+  const tree = tmpTree();
+  const r = runCut(tree, ["--only", "today-app.cjs", "--product"]);
+  assert.strictEqual(r.status, 0, r.stderr);
+  const rep = JSON.parse(fs.readFileSync(path.join(r.out, "cut-report.json"), "utf8"));
+  const cross = (rep.bootCrossings || {})["today-app.cjs"] || [];
+  assert.deepStrictEqual(cross.map((x) => x.region + "@" + x.line), ["TA-S06@432"],
+    "THE SET OF MOVED INITIALIZERS THAT CROSS A BOOT SEAM CHANGED. Every one of them runs " +
+    "at a different moment after the cut than it does in the source, and each needs a " +
+    "declared disposition before it ships. Found: " + JSON.stringify(cross, null, 1));
+  assert.strictEqual(cross[0].text, "  let sleepLane = options.sleep || null;");
+  assert.deepStrictEqual(cross[0].seamsCrossed, [422]);
+  /* And the fix for that one is in the table, not in the output: bootFoodDays acquires the
+     option again at its original initialization point. */
+  const sealed = fs.readFileSync(path.join(r.out, "today-lanes.cjs"), "utf8");
+  assert.ok(sealed.indexOf("sleepLane = options.sleep || null; },") > 0,
+    "the declared re-acquisition is not in the sealed file");
+  const boot = sealed.slice(sealed.indexOf("bootFoodDays:"));
+  assert.ok(boot.indexOf("model.setFoodDays(foodLane)") < boot.indexOf("sleepLane = options.sleep"),
+    "the re-acquisition must come AFTER the setFoodDays call, which is where :432 stands");
+});

@@ -9371,9 +9371,9 @@
      "closeLines": 22
     },
     "today-lanes.cjs": {
-     "sha256": "67f99242bc3020d40931e9755eff7e124d869193ea3dc84312ffb42a011ec4d9",
+     "sha256": "e29847d29e9a9cc080e452cb172f13707b9f29277684f3e028c954e81b24c2a3",
      "headLines": 42,
-     "closeLines": 124
+     "closeLines": 143
     }
    },
    "composes": {
@@ -9671,7 +9671,26 @@
     "         (spec B.3's boot order), because everything inside this factory runs at the",
     "         ONE point the factory is called and three of these run before the first",
     "         paint and two after it. */",
-    "      bootFoodDays:    () => { if (foodLane && typeof model.setFoodDays === \"function\") model.setFoodDays(foodLane); },",
+    "      /* BLIND REVIEW F2, AND IT IS THE ONE CROSSING THE FIVE BOOT SEAMS DO NOT COVER.",
+    "         The seams keep the seven boot STATEMENTS where they stand. They cannot keep a",
+    "         moved INITIALIZER where it stands, because everything in this factory runs at",
+    "         the factory's one call site, which is above every seam. cut.cjs now counts a",
+    "         declaration that READS an injected object as executable and lists every such",
+    "         crossing by line; at both named refs there is EXACTLY ONE, today-app.cjs:432,",
+    "         `let sleepLane = options.sleep || null;`, which stands immediately after :422 and",
+    "         used to run immediately after it. The reviewer measured the consequence on the two",
+    "         REAL composed pages: with model.setFoodDays assigning options.sleep - the seam the",
+    "         line below stands on - PRE api.sleepLane() is the injected lane and POST was null.",
+    "         So the option is ACQUIRED AGAIN HERE, at its original initialization point, after",
+    "         the setFoodDays call and before anything can observe it. RESIDUAL DEVIATION, stated",
+    "         rather than hidden: options.sleep is now read TWICE, once when the factory is",
+    "         composed and once here, where PRE read it once. Nothing between the two reads",
+    "         observes sleepLane. A one-shot accessor on options.sleep would see the difference;",
+    "         a plain property, which is what every composed page hands in, would not. Removing",
+    "         the first read means rewriting :432 itself, which is a statement rewrite inside a",
+    "         moved region and DECISIONS:584 rules that a STOP. */",
+    "      bootFoodDays:    () => { if (foodLane && typeof model.setFoodDays === \"function\") model.setFoodDays(foodLane);",
+    "                               sleepLane = options.sleep || null; },",
     "      bootSleepNights: () => { if (sleepLane && typeof model.setSleepNights === \"function\") model.setSleepNights(sleepLane); },",
     "      bootCheckInKit:  () => { if (sleepLane) loadCheckInKit(); },",
     "      bootAdoptionGate: () => { willAdopt = canAdoptAthleteState(); if (willAdopt) armAdoptionGate(); },",

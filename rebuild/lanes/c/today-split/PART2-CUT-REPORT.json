@@ -4385,6 +4385,7 @@
     "line": 353,
     "type": "VariableDeclaration",
     "exec": true,
+    "reads": true,
     "region": null,
     "regionKind": null
    },
@@ -4392,6 +4393,7 @@
     "line": 354,
     "type": "VariableDeclaration",
     "exec": true,
+    "reads": true,
     "region": null,
     "regionKind": null
    },
@@ -4399,6 +4401,7 @@
     "line": 355,
     "type": "VariableDeclaration",
     "exec": true,
+    "reads": true,
     "region": null,
     "regionKind": null
    },
@@ -4406,20 +4409,79 @@
     "line": 356,
     "type": "IfStatement",
     "exec": true,
+    "reads": false,
     "region": null,
     "regionKind": null
+   },
+   {
+    "line": 362,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "reads": true,
+    "region": "TA-S01",
+    "regionKind": "move"
+   },
+   {
+    "line": 370,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "reads": true,
+    "region": "TA-S02",
+    "regionKind": "move"
+   },
+   {
+    "line": 376,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "reads": true,
+    "region": "TA-S02",
+    "regionKind": "move"
+   },
+   {
+    "line": 383,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "reads": true,
+    "region": "TA-S02",
+    "regionKind": "move"
+   },
+   {
+    "line": 392,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "reads": true,
+    "region": "TA-S03",
+    "regionKind": "move"
+   },
+   {
+    "line": 410,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "reads": true,
+    "region": "TA-S04",
+    "regionKind": "move"
    },
    {
     "line": 422,
     "type": "IfStatement",
     "exec": true,
+    "reads": false,
     "region": "TA-S05",
     "regionKind": "replace"
+   },
+   {
+    "line": 432,
+    "type": "VariableDeclaration",
+    "exec": true,
+    "reads": true,
+    "region": "TA-S06",
+    "regionKind": "move"
    },
    {
     "line": 482,
     "type": "IfStatement",
     "exec": true,
+    "reads": false,
     "region": "TA-S10",
     "regionKind": "replace"
    },
@@ -4427,6 +4489,7 @@
     "line": 567,
     "type": "IfStatement",
     "exec": true,
+    "reads": false,
     "region": "TA-S16",
     "regionKind": "replace"
    },
@@ -4434,6 +4497,7 @@
     "line": 2391,
     "type": "ExpressionStatement",
     "exec": true,
+    "reads": false,
     "region": "TA-I105",
     "regionKind": "replace"
    },
@@ -4441,6 +4505,7 @@
     "line": 2441,
     "type": "VariableDeclaration",
     "exec": true,
+    "reads": true,
     "region": "TA-S35b",
     "regionKind": "replace"
    },
@@ -4448,6 +4513,7 @@
     "line": 2442,
     "type": "IfStatement",
     "exec": true,
+    "reads": false,
     "region": "TA-S35b",
     "regionKind": "replace"
    },
@@ -4455,6 +4521,7 @@
     "line": 2452,
     "type": "ExpressionStatement",
     "exec": true,
+    "reads": false,
     "region": "TA-I106",
     "regionKind": "replace"
    },
@@ -4462,6 +4529,7 @@
     "line": 2551,
     "type": "VariableDeclaration",
     "exec": true,
+    "reads": true,
     "region": "TA-S38",
     "regionKind": "replace"
    },
@@ -4469,8 +4537,22 @@
     "line": 2553,
     "type": "ReturnStatement",
     "exec": true,
+    "reads": false,
     "region": null,
     "regionKind": null
+   }
+  ]
+ },
+ "bootCrossings": {
+  "today-app.cjs": [
+   {
+    "line": 432,
+    "region": "TA-S06",
+    "type": "VariableDeclaration",
+    "text": "  let sleepLane = options.sleep || null;",
+    "seamsCrossed": [
+     422
+    ]
    }
   ]
  }

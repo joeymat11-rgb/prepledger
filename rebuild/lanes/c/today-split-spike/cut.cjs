@@ -719,6 +719,7 @@ for (const [file, regions] of Object.entries(table.files)) {
   const acorn = require(path.join(INSTR, "acorn"));
   const MOUNTS = { "today-app.cjs": "mountToday", "gym-app.mjs": "mountGym", "today-model.cjs": "createTodayModel" };
   report.bootOrder = {};
+  report.bootCrossings = {};
   for (const [file, regions] of Object.entries(table.files)) {
     if (ONLY.length && !ONLY.includes(file)) continue;
     const src = fs.readFileSync(path.join(ROOT, TODAY, file), "utf8");
@@ -740,15 +741,54 @@ for (const [file, regions] of Object.entries(table.files)) {
     const rows = body.map((st) => {
       const line = st.loc.start.line;
       const inRegion = resolved.find((x) => line >= x.start && line <= x.end);
+      /* WHAT COUNTS AS EXECUTABLE, corrected in loop round 1 by blind review F2.
+         The rule used to treat a `VariableDeclaration` whose initializer is a
+         LogicalExpression as inert, so `let sleepLane = options.sleep || null;` at :432 was
+         not in this list at all. It is not inert: it READS A PROPERTY OF AN INJECTED
+         OBJECT, and after the cut it runs at the factory's one call site instead of where
+         it stands. The reviewer measured the consequence on the two REAL composed pages:
+         with model.setFoodDays assigning options.sleep (the documented boot seam
+         hooks.bootFoodDays stands on), PRE api.sleepLane() is the injected lane and POST is
+         null, because the POST factory evaluated options.sleep BEFORE bootFoodDays ran.
+         An initializer is inert only if it reads nothing from anywhere: no call, no `new`,
+         no tagged template, no await, and no member access. */
+      let reads = false;
+      (function scan(n) {
+        if (!n || typeof n !== "object" || reads) return;
+        /* A function body does not run when the declaration is evaluated, so it is not part
+           of the initializer's reads. Without this, every `const f = () => model.x()` at the
+           mount's top level is a false crossing, and three of them are. */
+        if (n.type === "ArrowFunctionExpression" || n.type === "FunctionExpression") return;
+        if (n.type === "CallExpression" || n.type === "NewExpression"
+          || n.type === "TaggedTemplateExpression" || n.type === "AwaitExpression"
+          || n.type === "MemberExpression") { reads = true; return; }
+        for (const k of Object.keys(n)) {
+          const v = n[k];
+          if (Array.isArray(v)) v.forEach(scan); else if (v && typeof v === "object" && v.type) scan(v);
+        }
+      })(st.type === "VariableDeclaration" ? { type: "X", d: st.declarations.map((d) => d.init).filter(Boolean) } : null);
       const exec = !(st.type === "FunctionDeclaration"
-        || (st.type === "VariableDeclaration" && st.declarations.every((d) => !d.init
-          || d.init.type === "Literal" || d.init.type === "ArrowFunctionExpression"
-          || d.init.type === "FunctionExpression" || d.init.type === "ObjectExpression"
-          || d.init.type === "LogicalExpression" || d.init.type === "BinaryExpression")));
-      return { line, type: st.type, exec, region: inRegion ? inRegion.r.id : null,
+        || (st.type === "VariableDeclaration" && !reads));
+      return { line, type: st.type, exec, reads, region: inRegion ? inRegion.r.id : null,
         regionKind: inRegion ? inRegion.r.kind : null };
     });
     report.bootOrder[file] = rows.filter((r) => r.exec);
+    /* THE CROSSINGS THE BOOT SEAMS DO NOT COVER (blind review F2). The five S-R21 boot
+       seams keep the seven boot STATEMENTS where they stand. They do not keep a moved
+       INITIALIZER where it stands: everything inside the factory runs at the factory's one
+       call site, which is above every boot seam. This lists, by physical line, every moved
+       executable statement that stands AFTER a boot seam in the source and will run BEFORE
+       it after the cut. It is a DECLARED list, printed by the cut and read by the PM, and
+       the instruments' cell asserts that the list is the one the table declares, so a new
+       crossing cannot appear silently. It is not a refusal: the disposition of these lines
+       is the PM's, and the build report costs both corrections the reviewer names. */
+    const seams = rows.filter((r) => r.exec && r.regionKind === "replace").map((r) => r.line);
+    const firstSeam = seams.length ? Math.min.apply(null, seams) : Infinity;
+    report.bootCrossings[file] = rows
+      .filter((r) => r.exec && r.regionKind === "move" && r.line > firstSeam)
+      .map((r) => ({ line: r.line, region: r.region, type: r.type,
+        text: lines[r.line - 1],
+        seamsCrossed: seams.filter((s) => s < r.line) }));
   }
 }
 
