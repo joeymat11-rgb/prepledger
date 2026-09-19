@@ -154,21 +154,64 @@ def platform_key():
     return sys.platform
 
 
+# ---------------------------------------------------------------- what counts as on the screen
+# One definition, injected into both gates wherever they walk elements, so the two cannot drift.
+# It names the mechanisms it checks, which is not every way a line can be hidden: a shape function
+# other than inset(), a colour matched to its background, a transform off the plate and a parent
+# that paints over it are not read here. Each of these was found by a reviewer rebuilding the
+# defect, and the list grows the same way.
+JS_SEEN = """
+    const __clipEmpty=(cp,r)=>{const m=cp.match(/^inset\\(([^)]*)\\)/);if(!m)return false;
+      const parts=m[1].trim().split(/\\s+/).filter(x=>x&&x!=='round');
+      const v=(x,base)=>x.endsWith('%')?parseFloat(x)*base/100:parseFloat(x);
+      const p=parts.slice(0,4);let t,rr,b,l;
+      if(p.length===1){t=v(p[0],r.height);b=t;rr=v(p[0],r.width);l=rr}
+      else if(p.length===2){t=v(p[0],r.height);b=t;rr=v(p[1],r.width);l=rr}
+      else if(p.length===3){t=v(p[0],r.height);rr=v(p[1],r.width);l=rr;b=v(p[2],r.height)}
+      else if(p.length>=4){t=v(p[0],r.height);rr=v(p[1],r.width);b=v(p[2],r.height);l=v(p[3],r.width)}
+      else return false;
+      if([t,rr,b,l].some(x=>isNaN(x)))return false;
+      return (t+b)>=r.height-0.01||(l+rr)>=r.width-0.01};
+    const __seen=e=>{if(!e.offsetParent)return false;
+      const cs=getComputedStyle(e);
+      if(cs.visibility!=='visible')return false;
+      let op=1,a=e;while(a&&a!==document.documentElement){op*=parseFloat(getComputedStyle(a).opacity||'1');a=a.parentElement}
+      if(op<=0.001)return false;
+      const r=e.getBoundingClientRect();
+      if(r.width<=0||r.height<=0)return false;
+      if(r.bottom<=0||r.right<=0||r.top>=window.innerHeight||r.left>=window.innerWidth)return false;
+      if(parseFloat(cs.textIndent||'0')<=-1000)return false;
+      const cp=(cs.clipPath||'none').trim();
+      if(cp!=='none'&&__clipEmpty(cp,r))return false;
+      return true};
+"""
+
 # ---------------------------------------------------------------- what the copy sweeps read
 # innerText is not the interface copy the athlete sees. A placeholder, an assistive label, a
 # tooltip, an image's alternative text, a filled in value and a string in CSS generated content
 # are all read off the screen or read out loud, and all of them are outside innerText. Both gates
 # sweep this one string so neither can be stricter than the other.
-JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return '';
-    const parts=[ui.innerText];
+JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui');
+    if(!ui)return {text:'', unreadable:[]};
+    const parts=[ui.innerText], unreadable=[];
     const attrs=['placeholder','aria-label','title','alt'];
     const push=v=>{if(typeof v==='string'&&v.trim())parts.push(v)};
+    /* attr() is resolved into a quoted string by the time getComputedStyle answers, so it is swept.
+       counter() and counters() are not: the computed value still carries the call, and the number
+       the screen draws is not available here. That is its own FAIL, never a silent pass. */
     const gen=(e,which)=>{const c=getComputedStyle(e,which).content;
       if(!c||c==='none'||c==='normal')return;
-      const m=c.match(/"([^"]*)"|'([^']*)'/g);if(!m)return;
-      m.forEach(q=>push(q.slice(1,-1)))};
+      const m=c.match(/"([^"]*)"|'([^']*)'/g);
+      if(m)m.forEach(q=>push(q.slice(1,-1)));
+      if(/counters?\\(/.test(c.replace(/"[^"]*"|'[^']*'/g,'')))
+        unreadable.push((e.id||e.className||e.tagName)+which+' '+c.slice(0,60))};
     ui.querySelectorAll('*').forEach(e=>{if(!e.offsetParent)return;
       attrs.forEach(a=>push(e.getAttribute(a)));
       if(('value' in e)&&e.tagName!=='BUTTON')push(e.value);
       gen(e,'::before');gen(e,'::after')});
-    return parts.join('\\n')}"""
+    return {text: parts.join('\\n'), unreadable: unreadable}}"""
+
+# the check name both gates use when generated content carries a value the sweep cannot resolve
+UNREADABLE_CHECK = 'generated content the sweep cannot read'
+UNREADABLE_WHY = ('a counter() or counters() in ::before or ::after draws a string the gate cannot '
+                  'resolve, so the copy rules cannot be held over it')

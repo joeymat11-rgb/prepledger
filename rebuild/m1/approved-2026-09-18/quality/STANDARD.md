@@ -27,7 +27,7 @@ Where a rule departs from the boards, the departure is recorded on the compariso
 ## 3. Colour and surfaces
 
 - Cards are 86 to 90% of the surface colour so the scene reads through. Text never sits straight on the picture: it has a card, a scrim or the flat surface behind it. *eye + gate (contrast)*
-- Text nobody can see is not text. A line at `opacity: 0` or `visibility: hidden` leaves the state record, so hiding a line reads as removing it and the sheet says the visible text changed. `display: none` already did.
+- Text nobody can see is not text. A line leaves the state record, and is not measured for contrast, when it is `display: none`, `visibility: hidden`, at an effective `opacity` of 0 (walked up its ancestors), drawn with no area or wholly outside the viewport, clipped to nothing by `clip-path: inset()`, or carried off its own box by a `text-indent` at or below minus 1000 px. Hiding a line then reads as removing it and the sheet says the visible text changed. The list names the mechanisms the gates check, not every way a line can be hidden; it grew each time a reviewer built one that was missing, and it grows the same way again.
 - Contrast: primary text 4.5:1 or better against what is actually behind it; muted labels 3:1 or better. Measured on the rendered screenshot, not on the token. The lower tier is the pack's own `--muted`, `--faint` or `--gold` token, one of the classes the stylesheets paint muted (listed with their line numbers in `quality/common.py`), a disabled control's label (section 10 calls it a muted label) or text at 24 px or larger; it is not "the colour differs from the body colour". *gate (contrast (measured behind the text), on both gates, at all three sizes)*
 - Only two radii: 14 px for cards, buttons and chips; full round only for pills (the header pills, Save, Use 105 / Keep 115 and the Talk pill, as the boards draw them). The gate asserts exactly this; if the code wants a third radius, the standard changes on the record, not the check. *gate (radii: 14 px for cards, buttons and chips; full round only for pills)*
 
@@ -111,7 +111,7 @@ line naming the URL it was pointed at and what was missing). WARN belongs to the
 checks only. `python quality/teeth.py` proves the list below can still refuse: it applies one
 forbidden change at a time to a scratch copy and asserts the exact refusal.
 
-`gate.py`, 32 checks, 354 result rows. R means the reference size 393x852 only; 3 means all three
+`gate.py`, 33 checks, 372 result rows. R means the reference size 393x852 only; 3 means all three
 of 393x852, 375x812 and 360x780. Every row FAILs unless it says WARN.
 
 | check | sizes | what it holds |
@@ -120,7 +120,8 @@ of 393x852, 375x812 and 360x780. Every row FAILs unless it says WARN.
 | fits without scrolling at 393x852 | R | the default render needs no scroll. It is a FAIL and not a WARN because acceptance leaves no third tier; the chassis is designed to scroll, so the first ticket whose default Today grows past the viewport should change this line rather than the screen |
 | Log in the thumb zone (centre >= 70% of height) | R | workout only |
 | touch targets >= 44 px | 3 | every button, link and input, hit area included |
-| copy: no dashes, readiness words, vendor names | 3 | the owner's standing rules, word boundary matched, over the screen's text plus every visible placeholder, assistive label, tooltip, alternative text, filled in value and string in ::before or ::after |
+| copy: no dashes, readiness words, vendor names | 3 | the owner's standing rules, word boundary matched, over the screen's text plus every visible placeholder, assistive label, tooltip, alternative text, filled in value and quoted string in ::before or ::after |
+| generated content the sweep cannot read | 3 | a counter() or counters() in ::before or ::after draws a string the gate cannot resolve, so it fails rather than passing unswept |
 | the multiplication sign in every set string | 3 | no digit, letter x, digit anywhere in the same swept string |
 | Log label uses × | 3 | workout only |
 | no transitions or animations outside the embers | 3, and again at R with motion allowed | the element and its ::before and ::after; a transition only disabled under reduced motion still fails |

@@ -30,13 +30,13 @@ builder hits one of the open questions in section 6, each of which has a default
 | `ref/ink-board.png`, `ref/dawn-board.png` | the owner's two rendered boards (1491 × 1055), Ink dark and Dawn light, three phones each over the mountain plate | APPEARANCE. The last word on how a screen looks. |
 | `ref/*-native.png` | the six phone screens cut from the boards at 1:1 (340 × 734) | what the eye compares a render against; the gate's own comparison is against `quality/baseline/<platform>/` |
 | `app/app.html`, `app/app.css`, `app/app.js` | the working prototype of the six views: markup, every token, every rule, the scene (plate, mist, embers, grain, surface), the chassis (scrolling body + fixed stack on every screen) | the IMPLEMENTATION REFERENCE. Classes and copy here are what the port binds to. |
-| `app/states.js`, `app/states.css`, `app/states-today.js`, `app/states-workout.js`, `app/states-workout.css`, `app/states-coach.js`, `app/states-coach.css` | the state driver and all 209 drawn states (99 Today, 45 Workout, 65 Coach; the inventory below counts 205 rows because four of the proposal card's drawn variants, T-40b to T-40h, share one inventory row): every refusal, every sub screen, the proposal card in its three honest states, the coach's structural states | every state the port must reach, with its exact copy |
+| `app/states.js`, `app/states.css`, `app/states-today.js`, `app/states-workout.js`, `app/states-workout.css`, `app/states-coach.js`, `app/states-coach.css` | the state driver and all 209 drawn states (99 Today, 45 Workout, 65 Coach). Counted from `quality/baseline/states/INDEX.json`: 209 drawn states over 201 distinct base ids, because eight suffixed variants (T-40b to T-40h, and C-50b) share two base rows. The inventory below counts 205 nominal rows, four of which have nothing drawn (T-01, T-34, T-35, C-01), and 205 minus those four is the same 201: every refusal, every sub screen, the proposal card in its three honest states, the coach's structural states | every state the port must reach, with its exact copy |
 | `app/states.html`, `app/states-index.js` | a browser for the states (`?screen&theme&state`) | how the owner and reviewers look at any state |
 | `app/assets/plate-ink*.jpg`, `app/assets/plate-dawn*.jpg`, `mist.png`, `grain.png` | the two plates: the Ink photograph (the owner's chosen backdrop) and the same photograph graded light for Dawn (one scene, two lights: owner ruling 2026-09-18; the Dawn board's own background is a different photograph and is NOT the design), the mist texture, the grain | the scene assets, shipped as is |
 | `app/fonts/earned-sans.woff2` (DM Sans), `app/fonts/earned-serif.woff2` (Liberation Serif) | the two typefaces | see the note under section 2 |
 | `app/compare.html` + `app/compare/` | every deliberate departure from the boards, with the reason, in one running record | why the prototype differs from a board where it does |
 | `quality/STANDARD.md` | the numbered UI standard (13 sections): layout, type, colour, scene, motion, copy, process, the chassis, the plates, and section 13, the full list of what the gates check | the ACCEPTANCE BAR for every screen and state |
-| `quality/gate.py` | 32 distinct checks on the six views, 354 result rows across three phone sizes, two themes and three screens (errors, motion, transitions with motion allowed and refused, copy, the multiplication sign in every set string, targets, fit, thumb zone, columns, page margin, card inner edge, icon inset, bottom safe area, spacing, type scale, radii, pressed states, contrast in two tiers measured behind the text, the two fonts by sha256 and by face, serif versus sans, the RIR lock, seams, mist edges, visual regression against `quality/baseline/<platform>/`) | the gate the port must pass on the real client |
+| `quality/gate.py` | 33 distinct checks on the six views, 372 result rows across three phone sizes, two themes and three screens (errors, motion, transitions with motion allowed and refused, copy, generated content the sweep cannot read, the multiplication sign in every set string, targets, fit, thumb zone, columns, page margin, card inner edge, icon inset, bottom safe area, spacing, type scale, radii, pressed states, contrast in two tiers measured behind the text, the two fonts by sha256 and by face, serif versus sans, the RIR lock, seams, mist edges, visual regression against `quality/baseline/<platform>/`) | the gate the port must pass on the real client |
 | `quality/statesheet.py` | renders every state in both themes, checks each (errors, copy, targets, primary in the first viewport, contrast in two tiers, label overflow, seams) and compares it to its committed record; 418 renders, exit 1 on any problem | the second gate |
 | `quality/teeth.py` | the executable mutation list: 19 forbidden changes applied one at a time to a scratch copy, each run through the scratch copy's own gate and asserted to fail for the stated reason | what proves the two gates can still refuse |
 | `quality/phonesheet.py` | phone-zoom contact sheets in thirds, of the three base screens or of any drawn state (`--state T-40`) | what the reviewer looks at |
@@ -135,9 +135,11 @@ to run with `--screens` or `--sizes`, so a partial set cannot be written. The Li
 this pack were set on the builder's machine; the win32 set is written on the owner's PC.
 
 **The state comparison (`statesheet.py`).** Every state, both themes, against
-`quality/baseline/states/<ID>-<theme>.json` and `.png`. The record holds the screen's visible
-text with whitespace normalised, then every visible text bearing element in document order with
-its own text, its rounded rect, its computed colour, its first font family and its font size,
+`quality/baseline/states/<ID>-<theme>.json` and `.png`. The record holds every text bearing
+element the athlete can actually see, in document order, with its own text, its rounded rect, its
+computed colour, its first font family and its font size, then the visible text of those elements
+in element order with whitespace normalised (element order, not reading order: a word wrapped in a
+span sits beside its sentence rather than inside it, which the element list already catches),
 and a 1/16 scale greyscale thumbnail of the render. The text, the rects, the colours and the
 font names do not depend on how a machine rasterises a glyph at all; the thumbnail is a
 downsampled raster, so it depends on rasterisation less, not none. Measured: a glyph level change
@@ -170,6 +172,11 @@ tiers, on both gates, in the same words:
 
 > Primary text needs 4.5:1 against what is actually behind it; muted text, a disabled control's
 > label, the state colour where it is marking a state and text 24 px or larger need 3.0:1.
+
+Text nobody can see is not measured and is not recorded: `display: none`, `visibility: hidden`,
+an effective `opacity` of 0 walked up the ancestors, a rect with no area or wholly outside the
+viewport, a `clip-path: inset()` that leaves no area, and a `text-indent` at or below minus 1000
+px. That list names the mechanisms the gates check, not every way a line can be hidden.
 
 The lower tier is read from the pack's own stylesheets, not guessed: the element's computed
 colour equals the theme's `--muted`, `--faint` or `--gold` token, or it carries one of the
@@ -218,9 +225,13 @@ self-accepts. The builder's cells pin every copy string they move.
 - No new numbers in markup; every value binds at runtime, as today.
 - No dashes, no readiness words, no vendor names. Both gates sweep one string: the active
   screen's `innerText`, plus every visible element's `placeholder`, `aria-label`, `title` and
-  `alt`, plus a filled in field's value, plus any string in `::before` or `::after` generated
-  content. Interface copy the athlete reads or is read out loud is not all inside `innerText`,
-  and a rule that stops at `innerText` has a hole the width of a placeholder. On that string:
+  `alt`, plus a filled in field's value, plus any quoted string in `::before` or `::after`
+  generated content, including one an `attr()` resolves to. Interface copy the athlete reads or
+  is read out loud is not all inside `innerText`, and a rule that stops at `innerText` has a hole
+  the width of a placeholder. What the sweep cannot resolve is a `counter()` or `counters()`: the
+  computed value still carries the call and the number on the screen is not available to the
+  gate, so a check of its own, "generated content the sweep cannot read", FAILs on it rather than
+  letting it pass unswept. On the swept string:
   the em dash, the en dash and a hyphen with a space each side as plain substrings, each word of the owner's
   word list as `re.search(r'\b' + word + r'\b', text.lower())` (a real word boundary, so "Ready
   to train" matches and "already" does not), and each vendor name as a plain substring of the

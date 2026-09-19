@@ -25,7 +25,7 @@ except Exception:
     pass
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, worst_ratio, app_url, label_font,
-                    Refused, JS_SWEPT_TEXT)
+                    Refused, JS_SWEPT_TEXT, JS_SEEN, UNREADABLE_CHECK)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -78,18 +78,15 @@ JS_INFO = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!u
       prim: pr?[Math.round(pr.top), Math.round(pr.bottom)]:null, applied: document.documentElement.getAttribute('data-state')}}"""
 
 JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];const out=[];
+    __SEEN__
     const cs0=getComputedStyle(document.documentElement);const tok={};
     ['--muted','--faint','--gold'].forEach(k=>{const v=cs0.getPropertyValue(k).trim().toLowerCase();if(v)tok[v]=k});
     const hex=s=>{const m=s.match(/\\d+/g);return m?'#'+m.slice(0,3).map(x=>(+x).toString(16).padStart(2,'0')).join(''):s.toLowerCase()};
     const off='button:disabled, input:disabled, select:disabled, textarea:disabled, fieldset:disabled';
-    ui.querySelectorAll('*').forEach(e=>{if(!e.offsetParent)return;
+    ui.querySelectorAll('*').forEach(e=>{if(!__seen(e))return;
       const has=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim().length>1);if(!has)return;
       const r=e.getBoundingClientRect();if(r.width<8||r.height<8||r.top>852)return;
       const cs=getComputedStyle(e);const m=cs.color.match(/\\d+/g);
-      /* text nobody can see is not text: visibility is inherited, opacity is not, so walk it */
-      if(cs.visibility!=='visible')return;
-      let op=1,a=e;while(a&&a!==document.documentElement){op*=parseFloat(getComputedStyle(a).opacity||'1');a=a.parentElement}
-      if(op<=0.001)return;
       /* text scrolled out of its own scroll region (Today's day under the fixed stack) is not on screen */
       let sc=e.parentElement,vis=null;while(sc&&sc!==ui){const o=getComputedStyle(sc).overflowY;if(o==='auto'||o==='scroll'){vis=sc.getBoundingClientRect();break}sc=sc.parentElement}
       let y=r.top,h=r.height;
@@ -103,16 +100,14 @@ JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!
 # the committed record: every text bearing element the athlete can actually see, in document
 # order, with its own text, its rounded rect, its computed colour, its first font family and its
 # font size; the screen's visible text is those strings in order, so hiding a line changes it.
-# display:none is offsetParent, visibility is inherited and read straight, opacity is not
-# inherited and is walked up the ancestors: a note at opacity 0 leaves the record.
+# what counts as on the screen is common.JS_SEEN, shared with the contrast walk: display:none,
+# visibility, the walked opacity, a rect with no area or wholly outside the viewport, a clip path
+# that leaves no area, and a text indent that carries the line off its own box.
 JS_RECORD = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return null;
     const norm=s=>s.replace(/\\s+/g,' ').trim();
     const els=[],said=[];
-    const seen=e=>{if(!e.offsetParent)return false;
-      if(getComputedStyle(e).visibility!=='visible')return false;
-      let op=1,a=e;while(a&&a!==document.documentElement){op*=parseFloat(getComputedStyle(a).opacity||'1');a=a.parentElement}
-      return op>0.001};
-    ui.querySelectorAll('*').forEach(e=>{if(!seen(e))return;
+    __SEEN__
+    ui.querySelectorAll('*').forEach(e=>{if(!__seen(e))return;
       const own=[...e.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' ');
       if(!own.trim())return;
       const r=e.getBoundingClientRect();const cs=getComputedStyle(e);const m=cs.color.match(/\\d+/g);
@@ -121,6 +116,10 @@ JS_RECORD = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(
         m?m.slice(0,3).map(Number):[0,0,0], cs.fontFamily.split(',')[0].replace(/["']/g,'').trim(),
         Math.round(parseFloat(cs.fontSize)*10)/10])});
     return {text: norm(said.join(' ')), els: els}}"""
+
+
+JS_BOXES = JS_BOXES.replace('__SEEN__', JS_SEEN)
+JS_RECORD = JS_RECORD.replace('__SEEN__', JS_SEEN)
 
 
 def rel(p):
@@ -143,23 +142,29 @@ def read_index():
         return None
 
 
-def index_problems(driver_ids, only):
+def index_problems(rendered, only):
     """A state that leaves the driver while its records stay committed is the case a port
-    actually produces, so the run compares the two lists in both directions."""
+    actually produces, so the run compares the two lists in both directions, by id and by theme:
+    a theme in the index that the sheet does not render, and a theme the sheet renders that the
+    index does not carry, are both wrong in the same way a missing id is."""
     idx = read_index()
     if idx is None:
         return [f'no index at {rel(INDEX)}; run "python quality/statesheet.py --accept" and commit it']
     recorded = [(e['id'], t) for e in idx.get('states', []) for t in e.get('themes', [])]
     if only:
         recorded = [(sid, t) for sid, t in recorded if sid.startswith(only)]
+    drawn_ids = {sid for sid, _ in rendered}
     out = []
     for sid, t in recorded:
-        if sid not in driver_ids:
+        if (sid, t) in rendered:
+            continue
+        if sid not in drawn_ids:
             out.append(f'no state {sid} in the build, but {rel(record_paths(sid, t)[0])} is committed')
-    known = {sid for sid, _ in recorded}
-    for sid in sorted(driver_ids):
-        if sid not in known:
-            out.append(f'state {sid} is in the build but not in {rel(INDEX)}; run "python quality/statesheet.py --accept" and commit it')
+        else:
+            out.append(f'the index records {sid} in theme {t}, which the sheet does not render')
+    for sid, t in sorted(rendered):
+        if (sid, t) not in recorded:
+            out.append(f'{sid} theme {t} is in the build but not in {rel(INDEX)}; run "python quality/statesheet.py --accept" and commit it')
     return out
 
 
@@ -264,7 +269,7 @@ async def main():
             raise Refused(f'{APP} registered no states' + (f' matching {ONLY}' if ONLY else ''))
         if ACCEPT:
             os.makedirs(BASE, exist_ok=True)
-        driver_ids = {st['id'] for st in states}
+        rendered_pairs = {(st['id'], t) for st in states for t in ('ink', 'dawn')}
         for st in states:
             for t in ['ink', 'dawn']:
                 n0 = len(errs)
@@ -297,9 +302,12 @@ async def main():
                 problems = []
                 if info['applied'] != st['id']: problems.append('state did not apply')
                 if len(errs) > n0: problems.append('error: ' + errs[-1][:80])
-                swept = await pg.evaluate(JS_SWEPT_TEXT)
+                sweep = await pg.evaluate(JS_SWEPT_TEXT)
+                swept = sweep['text']
+                unread = sweep.get('unreadable') or []
                 bad = copy_problems(swept)
                 if bad: problems.append('copy: ' + ', '.join(repr(x) for x in bad))
+                if unread: problems.append(UNREADABLE_CHECK + ': ' + ', '.join(unread[:3]))
                 xbad = set_x_problems(swept)
                 if xbad: problems.append('set written with the letter x: ' + ', '.join(repr(x) for x in xbad))
                 if info['small']: problems.append('targets: ' + ', '.join(info['small'][:3]))
@@ -331,7 +339,7 @@ async def main():
         write_index(states)
         orphans = []
     else:
-        orphans = index_problems(driver_ids, ONLY)
+        orphans = index_problems(rendered_pairs, ONLY)
     write_sheets(states)
     write_report(rows, orphans, worst)
 
@@ -377,9 +385,12 @@ def write_report(rows, orphans, worst):
     if worst:
         # what the run actually measured, so a second machine can read its headroom in numbers
         lines += ['', 'worst measured:']
-        for measure in sorted(worst):
-            value, limit, where = worst[measure]
-            lines.append(f'  {measure:34s} {value:8.2f} of {limit:6.2f}   {where}')
+        if all(v[0] <= 0 for v in worst.values()):
+            lines.append(f'  none measured: nothing moved in {len(rows)} renders')
+        else:
+            for measure in sorted(worst):
+                value, limit, where = worst[measure]
+                lines.append(f'  {measure:34s} {value:8.2f} of {limit:6.2f}   ' + (where if value > 0 else 'nothing moved'))
     # the clean list is keyed on the render, so one theme failing cannot mark the other clean
     lines += ['', 'clean: ' + ', '.join(sorted({r[0] for r in rows if not r[4]} - {r[0] for r in bad}))]
     rep = '\n'.join(lines)

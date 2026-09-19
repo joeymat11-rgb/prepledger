@@ -22,7 +22,8 @@ except Exception:
     pass
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, lum_array, worst_ratio, app_url,
-                    sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused, JS_SWEPT_TEXT)
+                    sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused, JS_SWEPT_TEXT,
+                    JS_SEEN, UNREADABLE_CHECK)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -157,18 +158,15 @@ JS_ANIM = """()=>{const out=[];
     return out.slice(0,5)}"""
 
 JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];const out=[];
+    __SEEN__
     const cs0=getComputedStyle(document.documentElement);const tok={};
     ['--muted','--faint','--gold'].forEach(k=>{const v=cs0.getPropertyValue(k).trim().toLowerCase();if(v)tok[v]=k});
     const hex=s=>{const m=s.match(/\\d+/g);return m?'#'+m.slice(0,3).map(x=>(+x).toString(16).padStart(2,'0')).join(''):s.toLowerCase()};
     const off='button:disabled, input:disabled, select:disabled, textarea:disabled, fieldset:disabled';
-    ui.querySelectorAll('*').forEach(e=>{if(!e.offsetParent)return;
+    ui.querySelectorAll('*').forEach(e=>{if(!__seen(e))return;
       const has=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim().length>1);if(!has)return;
       const r=e.getBoundingClientRect();if(r.width<8||r.height<8)return;
       const cs=getComputedStyle(e);const m=cs.color.match(/\\d+/g);
-      /* text nobody can see is not text: visibility is inherited, opacity is not, so walk it */
-      if(cs.visibility!=='visible')return;
-      let op=1,a=e;while(a&&a!==document.documentElement){op*=parseFloat(getComputedStyle(a).opacity||'1');a=a.parentElement}
-      if(op<=0.001)return;
       /* text scrolled under the fixed stack is not on screen: clip it to its own scroll region and skip what is mostly hidden */
       let sc=e.parentElement,vis=null;while(sc&&sc!==ui){const o=getComputedStyle(sc).overflowY;if(o==='auto'||o==='scroll'){vis=sc.getBoundingClientRect();break}sc=sc.parentElement}
       let y=r.top,h=r.height;
@@ -250,6 +248,8 @@ JS_GAPS = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!u
 JS_TYPE = """()=>{const sizes=new Set(),weights=new Set();document.querySelectorAll('.screen.is-active .ui *').forEach(e=>{if(!e.offsetParent)return;
     const has=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim());if(!has)return;const cs=getComputedStyle(e);
     sizes.add(parseFloat(cs.fontSize));weights.add(parseInt(cs.fontWeight))});return {sizes:[...sizes],weights:[...weights]}}"""
+
+JS_BOXES = JS_BOXES.replace('__SEEN__', JS_SEEN)
 
 JS_RADII = """()=>{const out=new Set();document.querySelectorAll('.screen.is-active .tcard,.screen.is-active .rowcard,.screen.is-active .setcard,.screen.is-active .prompt,.screen.is-active .primary,.screen.is-active .log,.screen.is-active .edit,.screen.is-active .chip').forEach(e=>{if(e.offsetParent)out.add(getComputedStyle(e).borderTopLeftRadius)});return [...out]}"""
 
@@ -442,9 +442,12 @@ async def one_screen(pg, t, s, W, H, where):
     small = await pg.evaluate(JS_SMALL)
     rec('FAIL' if small else 'PASS', 'touch targets >= 44 px', where, ', '.join(small))
     # ---------- copy ----------
-    text = await pg.evaluate(JS_SWEPT_TEXT)
+    swept = await pg.evaluate(JS_SWEPT_TEXT)
+    text = swept['text']
     bad = copy_problems(text)
     rec('FAIL' if bad else 'PASS', 'copy: no dashes, readiness words, vendor names', where, ', '.join(repr(x) for x in bad))
+    unread = swept.get('unreadable') or []
+    rec('FAIL' if unread else 'PASS', UNREADABLE_CHECK, where, ', '.join(unread[:3]))
     xbad = set_x_problems(text)
     rec('FAIL' if xbad else 'PASS', 'the multiplication sign in every set string', where, ', '.join(repr(x) for x in xbad))
     if s == 'workout':

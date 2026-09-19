@@ -11,7 +11,7 @@ stated tolerance. Prints a table and exits 1 if any row disagrees.
   python quality/teeth.py --keep           leave the scratch directory in place afterwards
 
 Rows a to j2 are the mutation table of GATE-TEETH-AUDIT-R1; k1 to k3 are the lane's additions;
-m1 to m7 are review R1's. The gate rows run with --screens and --sizes narrowed to the screen the
+m1 to m7 are review R1's; n1 to n5 are review R2's. The gate rows run with --screens and --sizes narrowed to the screen the
 change is on, to stay inside the budget, so a row asserts the named refusal only: the full gate
 also raises the regression rows on the screens the narrowed run drops, and a reviewer re-running
 a row at full scope should expect more FAIL rows, never fewer.
@@ -161,6 +161,29 @@ def mut_m6(work):
 def mut_m7(work):
     append_css(work, '.note-block.sample { opacity: 0 !important; }')
 
+def mut_n1(work):
+    # the number the screen draws is built by a counter, so the sweep cannot resolve it
+    append_css(work, 'body { counter-reset: revx 8; }\n'
+                     '#status-line::after { content: " " counter(revx) " x 105"; }')
+
+def mut_n2(work):
+    append_css(work, '.note-block.sample { clip-path: inset(100%) !important; }')
+
+def mut_n3(work):
+    append_css(work, '.note-block.sample { text-indent: -9999px !important; }')
+
+INDEX_T02 = ('  {\n   "id": "T-02",\n   "screen": "today",\n   "themes": [\n    "ink",\n    "dawn"\n   ]\n  },')
+
+def mut_n4(work):
+    # a theme in the index that the sheet does not render
+    sub(work, 'quality/baseline/states/INDEX.json', INDEX_T02,
+        INDEX_T02.replace('"dawn"\n', '"dawn",\n    "sepia"\n'))
+
+def mut_n5(work):
+    # a theme the sheet renders that the index no longer carries
+    sub(work, 'quality/baseline/states/INDEX.json', INDEX_T02,
+        INDEX_T02.replace('    "ink",\n    "dawn"\n', '    "ink"\n'))
+
 def mut_none(work):
     pass
 
@@ -233,6 +256,16 @@ ROWS = [
      dict(exit=1, stdout=['no state T-02 in the build', 'records with no state'])),
     ('m7', "T-02's sample note hidden at opacity 0", mut_m7, SHEET_T02,
      dict(exit=1, stdout=['the visible text changed', 'T-02'])),
+    ('n1', 'a set string drawn by counter() in generated content', mut_n1, GATE_TODAY,
+     dict(exit=1, fails=[('generated content the sweep cannot read', 'status-line::after')])),
+    ('n2', "T-02's sample note hidden by clip-path: inset(100%)", mut_n2, SHEET_T02,
+     dict(exit=1, stdout=['the visible text changed', 'T-02'])),
+    ('n3', "T-02's sample note hidden by text-indent: -9999px", mut_n3, SHEET_T02,
+     dict(exit=1, stdout=['the visible text changed', 'T-02'])),
+    ('n4', 'a theme in the index that the sheet does not render', mut_n4, SHEET_T02,
+     dict(exit=1, stdout=['theme sepia, which the sheet does not render', 'records with no state'])),
+    ('n5', 'a theme the sheet renders that the index lost', mut_n5, SHEET_T02,
+     dict(exit=1, stdout=['T-02 theme dawn is in the build but not in', 'records with no state'])),
 ]
 
 
