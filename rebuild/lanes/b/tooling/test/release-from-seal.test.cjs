@@ -1216,18 +1216,34 @@ test('(P-A9 d) - four keys are not the four NAMED keys, and a grandparent with n
     boundG4({ [RELEASED]: { ...goodEntry(), sealedBy: '' } },
       { packageId: '', product: { [RELEASED]: pin(PRE) } }))),
   /ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD/);
-  /* Astra R6, HER LIVE SINGLE-CLAUSE CHANGE: deleting the `typeof
-     block.sealedBy === 'string'` subclause left all ten suites green,
-     because the only other reader of the field is assert.equal, which is
-     `==`, and `new String('M2-S8-FIXTURE') == 'M2-S8-FIXTURE'` is TRUE.
-     A wrapper object is not the name it prints: it is a distinct identity
-     with its own own-keys, and a record that carries one has not said
-     WHICH package sealed the pin it wants stood aside. The clause already
-     refuses it (she measured the refusal); what was missing was the row
-     that holds the clause ALONE, which is N12's lesson and the reason H26
-     was split into three asserts in the first place. JSON cannot deliver
-     this identity (her D3), so the witness is a direct call, exactly like
-     the rest of this cell. */
+  /* Astra R6, HER LIVE SINGLE-CLAUSE CHANGE, AND A CORRECTION TO THE REASON
+     SHE GIVES FOR IT. She reported that deleting `typeof block.sealedBy
+     === 'string'` leaves all ten suites green because the only other
+     reader of the field is assert.equal, which is `==`, so a
+     new String('M2-S8-FIXTURE') would slip through. MEASURED HERE: the
+     change IS live, and that is not why. This runner takes assert from
+     node:assert/strict (:90), so assert.equal IS strictEqual and a String
+     wrapper is already refused by it with or without the subclause - the
+     wrapper row below passes under the mutant too and holds nothing.
+
+     What the subclause holds ALONE is the ORDINARY JSON value null. The
+     own key set is fixed at exactly four names, so sealedBy is always
+     PRESENT; its VALUE is whatever the artifact says, and `null` is a
+     value JSON delivers every day. With the subclause: a named refusal.
+     Without it: `null.length` throws a raw TypeError carrying no runner
+     name and no path - the failCode=null shape this lane refused to accept
+     from the Git lookup at P-A13, arriving here instead. */
+  assert.throws(() => said(() => api.pins(s10(),
+    boundG4({ [RELEASED]: { ...goodEntry(), sealedBy: null } },
+      { packageId: 'M2-S8-FIXTURE', product: { [RELEASED]: pin(PRE) } }))),
+  /ANCESTOR-RELEASED-BLOCK-IS-NOT-A-CLOSED-RELEASE-RECORD/);
+  try {
+    said(() => api.pins(s10(), boundG4({ [RELEASED]: { ...goodEntry(), sealedBy: null } },
+      { packageId: 'M2-S8-FIXTURE', product: { [RELEASED]: pin(PRE) } })));
+    assert.fail('admitted');
+  } catch (e) { assert(e.message.includes(RELEASED), 'the refusal names the path: ' + e.message); }
+  /* AND HER WRAPPER, kept as the control that says WHY it is not the row:
+     it refuses under assert/strict whether the subclause stands or not. */
   assert.throws(() => said(() => api.pins(s10(),
     boundG4({ [RELEASED]: { ...goodEntry(), sealedBy: new String('M2-S8-FIXTURE') } },
       { packageId: 'M2-S8-FIXTURE', product: { [RELEASED]: pin(PRE) } }))),
