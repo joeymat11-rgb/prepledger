@@ -1225,13 +1225,47 @@ const CANONICAL_PATH = 'a repo-relative spelling: no leading slash, no backslash
 const canonicalPath = p => typeof p === 'string' && !p.includes('\\') &&
   p.split('/').every(seg => seg !== '' && seg !== '.' && seg !== '..' && seg !== '__proto__');
 // Every path the release mechanism compares: the product keys it reads as the declared
-// inventory, and the four spec-declared strings proposed() turns into executionPins (the
-// runner and this run's own package file are fixed constants of this file and cannot be
-// misspelled by an input). It is TOTAL over the shapes it walks and defensive about the
+// inventory, and EVERY FIVE of the strings proposed() turns into executionPins - the four a
+// spec declares AND the two this file fixes itself.
+//
+// H27 (Astra R6 BLOCKING B1, which is her G3 STILL OPEN). This comment used to say that the
+// runner and this run's own package file "are fixed constants of this file and cannot be
+// misspelled by an input", and used that as the reason to leave them out of the walk. The
+// sentence is true about the CONSTANTS and false about the RULE. H25 does not compare a
+// spelling with a schema; it compares two spellings WITH EACH OTHER, and a spec does not
+// have to misspell the runner in order to collide with it - it only has to declare a SECOND
+// spelling of the same physical file. Astra built exactly that and EXECUTED it:
+// product["rebuild/lanes/b/tooling/b-PACKAGE.cjs"] declared role "released" at the runner's
+// own hash, sealed by the parent at that hash, with tooling.runner spelled the ordinary way.
+// She measured spec() ADMITTED, product() IMPLEMENTED, envelope() authorized=true,
+// released=["rebuild/lanes/b/tooling/b-PACKAGE.cjs"] while executionPins still held
+// "rebuild/lanes/b/tooling/b-package.cjs": the artifact handed THE RUNNER out of the seal
+// and re-pinned the same physical file through the other spelling, and appending one line to
+// that ONE file then printed PARENT-PIN-BROKEN rebuild/lanes/b/tooling/b-package.cjs,
+// actual 3606a68d4901d4610353fb0a11a4b2669bc048feb3b72eb805c57ec9acdcdbb9, expected
+// 71c1b2592b5a3544b71c0995a9f52b88fbe24cd6b821709309aa95e5ad3012c0. That is F2's failure
+// again, on the one path whose release would take the seal itself out of the inventory.
+//
+// The fix is the rule made TOTAL and nothing else: the walk is SEEDED with the two fixed
+// coordinates before any declared spelling is pushed, so the identity comparison below sees
+// every path proposed() will pin. It is a REFUSAL and never a rewrite, here as everywhere
+// else in this function, and it does not refuse a coordinate: the EXACT spelling of either
+// one is what the standing packages declare, and an exact repeat is not a collision.
+// MEASURED at 397ac466 before it landed, over the 22 standing files: 1512 walked spellings
+// in the twelve package files with the two coordinates seeded (24 of them seeded), plus 1431
+// product/execution/released keys in the ten acceptance artifacts; ZERO non-canonical and
+// ZERO case collisions, and 335 exact repeats of an already-walked spelling, all admitted.
+// No standing seal is voided by this line.
+//
+// It is TOTAL over the shapes it walks and defensive about the
 // ones it does not own, because it runs at admission, before any other shape is decided.
 function canonicalSpecPaths(s) {
   const seen = [];
   const obj = v => v && typeof v === 'object' && !Array.isArray(v);
+  // H27: the two coordinates proposed() supplies ITSELF, first, so that a refusal names the
+  // real coordinate as the first spelling and the spec's alias as the second.
+  seen.push(['the runner (a fixed execution pin)', RUNNER]);
+  seen.push(['this package spec file (a fixed execution pin)', TOOLING + '/packages/' + ID + '.json']);
   if (obj(s.product)) for (const file of Object.keys(s.product)) seen.push(['product key', file]);
   if (obj(s.brief) && typeof s.brief.file === 'string') seen.push(['brief.file', s.brief.file]);
   if (obj(s.carrierSuccessor)) {
