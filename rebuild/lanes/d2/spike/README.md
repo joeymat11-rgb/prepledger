@@ -81,3 +81,45 @@ Windows suspension, no full Today suite, no rig187, no conformance or private fi
 soak. 13.13 is the complete list and no sentence of section 13 claims past it.
 
 No U+2013 and no U+2014 appears in any file in this directory, counted rather than claimed.
+
+---
+
+# EW2 ROUND 7 CELLS: THE ONE BLOCKING JOURNEY OF ASTRA'S NARROW RE-CHECK
+
+Round 7 is the loop's NARROW FIX ROUND (`DECISIONS:613`). It answers
+`rebuild/lanes/astra/reviews/EW2-SPEC-RECHECK-R6.md` (`rebuild/r-astra-ew2-spec-r6` `2cac2a3d`):
+one BLOCKING journey, **B1**, and ten NAMED DEBTS carried verbatim into EW2-SPEC 14.6. These six
+files are MY OWN, written in a farm scratch worktree cut from `rebuild/d2-ew2-spec` at
+`f6fd29ac` BEFORE any spec text; hers, on the PC under `astra-ew2-r6-f6fd29ac`, were read as a
+guide and never run as evidence.
+
+**They do not run from this directory.** Copy them to `rebuild/lanes/d/plan-edit/` and run each
+from the repository root: `node rebuild/lanes/d/plan-edit/<file>`. `ew2r7-support.mjs` and
+`ew2r7-proto-note.mjs` are imported by the others and are never run alone. `ew2r7-support.mjs` is
+`ew2r6-support.mjs`'s scaffold with ONE knob: it RETURNS the era's durable client, which is what
+opening the REAL machine-settings host on the same era needs.
+
+| file | what it proves | sha256 | farm | PC |
+|---|---|---|---|---|
+| `ew2r7-support.mjs` | support only | `2095e1e9d01321b8912aea86042009c428f9adf79d681f0136b7188200e13d80` | n/a | n/a |
+| `ew2r7-proto-note.mjs` | **the correction**: the ONE named boundary over the STORED note key, the selection delegated to the coach's own `latestFor`, and `MACHINE_NOTE_TARGET_UNTRANSLATED` | `7524d1dd13305aaddaba19461d55ea6813d9b1f0ebd47984303bc2117d10a6c8` | n/a | n/a |
+| `ew2r7-b1-note-read.mjs` | **B1, RED FIRST at `f6fd29ac`**: with the note saved through the REAL host, 13.9's translated-query read returns `null` and the editor opens blank, while the control still finds the note and the stored operation is byte-unchanged | `2e5cc92347e68826797c5ae5661ea9a15e5c1d35d5821a982a085a94b292620c` | **exit 1** | **exit 1** |
+| `ew2r7-p4-note-identity.mjs` | **B1 GREEN** under EW2-SPEC 14.2, with a pre-import DOCUMENT note, a native FILE note, the date permutation both ways, the same-label re-add, the first-run control and the named refusal | `6ca1c6854c4cebdf684bd9e34ee48842ff94b03d8b619201d4b64fb014d2ee57` | exit 0 | exit 0 |
+| `ew2r7-p5-card-hunk.mjs` | **the honest price**: `gym-app.mjs`'s two anchors are unique, the hunk is 2 added and 1 removed, the patched card parses, and the file on disk is byte-unchanged | `c7f7a42c9ce6f4b3caa942e435bd37ab431af32ea975c834940eeeecc93e46a1` | exit 0 | exit 0 |
+| `ew2r7-d9-labels.mjs` | **`D9` counted**: 13 `ew2r6` files, 8 witnesses, 3 prototypes, 11 executable cells; the loader prints and asserts nothing and EXPORTS 22; 13.11 carries FOUR rows; what `p1b` and `p2` actually do | `5c462839c8afa0399baa00dacc7825a9d920da45a6f5ed5b694c91dd009db856` | exit 0 | exit 0 |
+
+**THE RED ONE IS SUPPOSED TO BE RED.** `ew2r7-b1-note-read.mjs` exits 1 at this head on both
+machines, and it is the executable statement of B1: the build turns it green and `EW-25` is its
+acceptance row. Every other cell of rounds 6 and 7 exits 0 on both machines.
+
+**A MEASURED WARNING.** A PC worktree made WITHOUT the live `node_modules` junctions fails every
+cell that opens a durable client with `Cannot find package '@noble/hashes'`. That is the worktree,
+not the cell. Round 7's PC runs were taken in a worktree made by `pm4-mk-lane.cmd ... yes`.
+
+**WHAT NONE OF THEM DID.** No sealed bundle through the real port, no browser and no DOM (so the
+`gym-app.mjs` hunk is counted and parsed but NOT executed), no second admission, no Start, no full
+Today suite, no conformance or private fixture, no protected soak. No product file was edited by
+any of them, and each one that touches a product file or a stored operation asserts it is
+byte-unchanged afterwards.
+
+No U+2013 and no U+2014 appears in any file in this directory, counted rather than claimed.

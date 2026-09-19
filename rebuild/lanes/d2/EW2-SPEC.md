@@ -3,6 +3,13 @@
 Lane D2, SPEC ONLY. Author: cowork (Earned lane hand), Opus, 2026-09-19. Branch `rebuild/d2-ew2-spec`
 cut from `0794771`. No product, test, tooling or workflow byte moves on this branch.
 
+**v7, THE LOOP'S NARROW FIX ROUND (`DECISIONS:613`, round 1 of 3, no PM inside the loop). Astra
+re-checked round 6 NARROWLY and returned DO NOT BUILD YET on ONE executed journey, B1, plus TEN
+NAMED DEBTS. Section 14 is v7's whole landing: B1 reproduced RED, the correction, both of her
+required controls, the honest budget consequence, her `D9` labels corrected in place, and D1 to D10
+carried VERBATIM for the build brief at 14.6. `D-EW2-FINAL` still binds and there is no new general
+author round. Sections 0 to 13 are v6's, amended only where a v7 correction says so in place.**
+
 **v6, FIX ROUND 6, THE LAST GENERAL AUTHOR ROUND (`D-EW2-FINAL`). NO EW2 BUILD STARTS FROM v5.**
 ASTRA, the independent Codex reviewer, read v5 BLIND at highest effort and returned **DO NOT BUILD
 YET**: thirteen findings, three BLOCKING, most with EXECUTED witnesses
@@ -3482,7 +3489,11 @@ textual replacements, reads `plan-edit-model.cjs` AT RUN TIME, applies them and 
 under the product's own filename. It keeps NO copy of a sealed module in the repository and it
 REFUSES to run if either anchor has moved**, which is what makes it safe to commit beside this
 file. `spike/ew2r6-p1b-j1-noHostBytes.mjs` drives it over a generation built by the REAL host
-through the REAL durable client.
+through the REAL durable client. **CORRECTED IN v7 (`D9`): that programme executes NO patched host,
+NO Start and NO adoption, it supplies its OWN `admittedBasisOf`, and its printed `ready=true` is
+the fixture's own flag and NOT a three-copy basis identity proof. `EW-21` therefore requires the
+real admission, a new-host reload and a stored Start, and no round 6 programme is green for that
+whole row (14.7).**
 
 | J1 step | v5's composition (the product as it stands) | under `E-R30` |
 |---|---|---|
@@ -3498,8 +3509,9 @@ through the REAL durable client.
 **THE SEALED COST OF THIS HUNK, COUNTED RATHER THAN ESTIMATED**, by `diff -u` of the product file
 against the prototype, excluding the three import lines a scratch copy must relocate:
 **24 added lines (9 of them comment), 2 removed, 0 changed elsewhere, all in
-`rebuild/m4/workout/plan-edit-model.cjs`, a NET of 22 lines, which the loader cell asserts at run
-time (`ew2r6-proto-r30.cjs` prints `HUNK_NET_LINES` and it is 22)**; plus **1 changed line in
+`rebuild/m4/workout/plan-edit-model.cjs`, a NET of 22 lines, which the loader cell EXPORTS as
+`HUNK_NET_LINES` and it is 22 (CORRECTED IN v7, `D9`: the loader EXPORTS that number; it neither
+prints it nor asserts it, and 14.7 counts both facts)**; plus **1 changed line in
 `rebuild/m3/w6/local/source-admission.mjs:781`** for the recorded member. `plan-edit-host.mjs`,
 `local-source-basis.mjs`, `today-bindings.mjs` and `rebuild/coach/**`: **zero bytes.**
 
@@ -3546,7 +3558,7 @@ plan-created row to `state.exercises`.
 | add again with a NEW label | never reached | **reviewed and saved** |
 | the SAME id again | never reached | **refuses `PLAN_EDIT_ID_REUSED`** |
 | a SETUP id again | never reached | **refuses `PLAN_EDIT_ID_REUSED`** |
-| the union the roster must carry after both adds | n/a | `["added-past","added-second"]`, the second still PENDING at the authored day |
+| the union the roster must carry after both adds | n/a | `["added-past","added-second"]`, the second still PENDING at the authored day. **CORRECTED IN v7 (`D9`): that is the REQUIREMENT, computed by the cell from the FOLDED state at the second add's `starts_on`. The prototype's persisted `planRoster` is written once from its single entry and holds only `added-past`. No cell has persisted the union (14.7)** |
 
 **THE CONTROL THAT KEEPS THIS HONEST, and it is the reason F2 is a finding about `E-R25` and not
 about the product:** with NO append at all, which is what the tip does today, the second open reads
@@ -3814,8 +3826,12 @@ the same word. **The validation owner is the SEALED side**: `machineOf` in the p
 gate, `acceptable()` in the view only asks it, and S658's in-page validation of an assembled
 machine after S657 moved assembly sealed is withdrawn. **A note written under a DOCUMENT id is read
 through `E-R30`'s ONE boundary and through no other:** `machine-settings-host.mjs:89` does an exact
-id lookup, so after an import the read key is the translated id, and `source-admission.mjs:524`
-retaining the note is not by itself a read path.
+id lookup, and `source-admission.mjs:524` retaining the note is not by itself a read path.
+**CORRECTED IN v7, ASTRA'S RE-CHECK B1: the sentence that stood here, "after an import the read key
+is the translated id", is WITHDRAWN.** An immutable note keeps the key it was SAVED under, so
+translating the QUERY leaves that index unchanged and the editor opens BLANK over a saved note
+(measured, RED: `spike/ew2r7-b1-note-read.mjs`, exit 1). **14.2 replaces it: the STORED key is
+translated forward through the same recorded correspondence, and the query never is.**
 
 **F10, THE STORED START.** `EW-14` names three things and a changed card satisfies none of them:
 the stored **`Start.plan_basis`**, the **causal parents**, and the **prescription capture**.
@@ -3903,9 +3919,13 @@ admission's own appended row, **the two maps AGREE**. The recorded member is sti
 chooses, for the reason 13.2 gives, but it is a cost-and-argument choice and NOT a measured defect,
 and I will not present it as one.
 
-### 13.11 THE THREE NEW ACCEPTANCE ROWS, RED FIRST IN THE BUILD
+### 13.11 THE NEW ACCEPTANCE ROWS, RED FIRST IN THE BUILD
 
-Section 5's table gains three journeys. Each is **RED at v5's composition and GREEN under section
+**CORRECTED IN v7 (`D9`): FOUR rows were added here, `EW-21` to `EW-24`, counted from the table
+below by `spike/ew2r7-d9-labels.mjs`. The PM's ruling named three journeys and `EW-24` was added
+for `E-R36` without re-counting the heading. With 14.5's `EW-25` the spec adds five.**
+
+Section 5's table gains four journeys. Each is **RED at v5's composition and GREEN under section
 13's**, and for J1, J2 and J3 that is not a prediction: 13.2, 13.3 and 13.4 print both columns from
 cells that ran. They join the twenty-three existing ids and are counted in `E-R23`'s honest green
 column as RED until their hunks land.
@@ -3931,7 +3951,7 @@ editing one of them knows he has left the spec.
 | file | hunk | owner ruling | measured size |
 |---|---|---|---|
 | `rebuild/m4/workout/plan-edit-model.cjs` | **H1** the added export `foldPlanEditsAt` over the existing `inspect()`/`result()` pair plus the factoring of `inspect()` | 4.3 ruling 2, `E-R4` | unchanged from v4 |
-| `rebuild/m4/workout/plan-edit-model.cjs` | **H2, NEW: the ONE named translation boundary** | **`E-R30`** | **24 added (9 comment), 2 removed, net 22, 0 changed elsewhere. COUNTED by `diff -u` against the prototype and asserted at run time by the loader cell, not estimated** |
+| `rebuild/m4/workout/plan-edit-model.cjs` | **H2, NEW: the ONE named translation boundary** | **`E-R30`** | **24 added (9 comment), 2 removed, net 22, 0 changed elsewhere. COUNTED by `diff -u` against the prototype and EXPORTED by the loader cell as `HUNK_NET_LINES`, not estimated. CORRECTED IN v7 (`D9`): the loader neither prints nor asserts it** |
 | `rebuild/m4/workout/plan-edit-model.cjs` | **H3, NEW: the `reserved_ids` member on `result()`'s return** | **`E-R32`** | about 4 added lines, 1 changed (the `freeze({...})` list) |
 | `rebuild/m3/w6/local/source-admission.mjs` | **A** the per-capture fold call and the three re-pointed capture checks | 4.3 ruling 1, `E-R16 PRIME` | unchanged from v5 |
 | `rebuild/m3/w6/local/source-admission.mjs` | **B** the `plan` class replay family, **plus `E-R33`'s proof and status treatment over the retained set, including the ZERO-capture case** | 4.3 ruling 0, **`E-R33`** | v4's estimate plus the zero-capture proof |
@@ -3945,10 +3965,14 @@ editing one of them knows he has left the spec.
 **FILES THIS ROUND CONSIDERED AND LEFT AT ZERO BYTES, BY NAME.** `plan-edit-host.mjs` (13.2 chose
 the shape that keeps its zero-byte row); `plan-edit-commands.cjs`; `today-bindings.mjs`;
 `workout-host.mjs`; `host-bindings.mjs`; `rebuild/coach/**` including
-`machine-settings-commands.cjs`; `machine-settings-host.mjs`; `gym-app.mjs`;
+`machine-settings-commands.cjs`; `machine-settings-host.mjs`; **`gym-app.mjs` (CORRECTED IN v7: it
+LEAVES this list under 14.4, by a NAMED hunk of 2 added and 1 removed lines at `:147` and its
+import, counted and pending the PM's word; nothing else on this list moves)**;
 `exercise-catalogue.mjs`; `setup-model.mjs`; `setup-host.mjs`. **`E-R38` F9's machine-note ruling
-is carried entirely by the VIEW and by `edit-week-lane.cjs`: `machine-settings-view.mjs` is already
-unsealed and C-UI-5 owns it.**
+is carried by the VIEW and by `edit-week-lane.cjs`: `machine-settings-view.mjs` is already
+unsealed and C-UI-5 owns it. CORRECTED IN v7: "entirely" was wrong. The corrected READ has to reach
+the card, the card builds its own lane, and hunk E at 14.4 is the two-line consequence.
+`machine-settings-host.mjs` and `rebuild/coach/**` stay at zero bytes, measured.**
 
 **THE PRICE, RE-PRICED A FIFTH TIME (v1: 2 to 3; v2: 4 to 6; v3: 7 to 10; v4: 10 to 14; v6: 16 to
 22 plus its own review round).** v4's 10 to 14 stands for H1, A and B. Added:
@@ -4007,7 +4031,8 @@ in section 9.3's build estimate, not here: **none of them adds a sealed byte out
 `D-EW2-FINAL` makes this the LAST general author round. Her re-check is **NARROW BY ORDER**: this
 section's rulings and journeys only, no new hunt. Concretely, the four things worth her effort:
 
-1. **RE-RUN MY SEVEN WITNESS CELLS AND MY THREE PROTOTYPES** and say whether each prints what
+1. **RE-RUN MY EIGHT WITNESS CELLS AND MY THREE PROTOTYPES** (CORRECTED IN v7, `D9`: EIGHT, not
+   seven; eleven executable cells in all, the three prototypes included) and say whether each prints what
    13.1 says it prints. They are committed in `spike/` with their sha256 and the directory each
    must be copied to.
 2. **ATTACK THE PROTOTYPES, NOT THE PROSE.** `E-R30`'s boundary, `E-R31`'s roster and `E-R32`'s
@@ -4020,3 +4045,367 @@ section's rulings and journeys only, no new hunt. Concretely, the four things wo
 
 **This document is a hypothesis. It is written to be disagreed with, and the reviewer commits one
 file: the review.**
+
+## 14. ASTRA'S NARROW RE-CHECK OF ROUND 6: THE ONE BLOCKING JOURNEY, FIXED (NEW IN v7)
+
+Astra (Codex) re-checked round 6 NARROWLY at highest effort and returned **DO NOT BUILD YET**
+(`rebuild/lanes/astra/reviews/EW2-SPEC-RECHECK-R6.md`, `rebuild/r-astra-ew2-spec-r6` `2cac2a3d`,
+141 lines). She upholds one BLOCKING journey, **B1**, and words everything else she still holds as
+**TEN NAMED DEBTS, D1 to D10**, for the build brief.
+
+**WHAT THIS ROUND IS, AND WHAT IT IS NOT.** `D-EW2-FINAL` stands: round 6 was the last general
+author round and there is no new one. Under the owner's ruling at `DECISIONS:613` this loop turns
+WITHOUT the PM, so her undisputed findings are this round's orders and nobody waits for a ruling
+inside the loop. Accordingly round 7 does exactly three things: it fixes **B1** narrowly, it
+corrects the **D9** evidence labels in place, and it carries **D1 to D10 VERBATIM** into 14.6 for
+the build brief. **It solves no debt in prose.** A debt answered on paper without a cell is how
+five Claude rounds missed her findings in the first place, and 14.6 says under each one only where
+this spec touches it.
+
+**NOTHING WAS TAKEN FROM HER SCRATCH AS EVIDENCE.** Her programme was read as a guide. Every number
+in this section came out of a cell of MY OWN, written before the spec text, run one Node process at
+a time under `MEASURED_TEST_NOW=2026-09-03 TZ=America/New_York`, on BOTH machines, and committed in
+`spike/` with its sha256 and its exit code (14.7).
+
+### 14.1 B1 REPRODUCED, RED FIRST, AT THE HEAD SHE CHECKED
+
+`spike/ew2r7-b1-note-read.mjs` drives the REAL `machine-settings-host.mjs` over the REAL durable
+client and the coach's own producer, saves the note she saved, installs the same admitted state,
+and then follows **13.9 exactly**: it queries `latest` with the TRANSLATED key. **It exits 1 at
+`f6fd29ac`**, and its three closing assertions are what the corrected rule owes. Its stdout, as
+measured:
+
+```
+save({exercise_id:press-old, Seat=4, cues:Pause}).ok       true
+the key the immutable note was SAVED under                 "press-old"
+BEFORE the import, draftFrom(latest("press-old"))          {"rows":[{"name":"Seat","value":"4"}],"cues":"Pause"}
+recorded lift_correspondence                               {"press-old":"file-press","row-old":"row-old","squat-old":"squat-old"}
+13.9/M1 read: latest("file-press")                         null
+AFTER the import, draftFrom(that)                          {"rows":[{"name":"","value":""}],"cues":""}
+CONTROL latest("press-old") still finds the note           true
+CONTROL the stored operation is byte-unchanged             true
+rows the host holds in this generation                     1
+RED, as written: B1: latest(translated id) is null, so the editor opens blank over a saved note
+```
+
+**HER READING IS UPHELD IN FULL AND I DISPUTE NOTHING IN B1.** The note is not deleted: it is lost
+to the only read the athlete has. The cause is exactly as she states it. `latestFor` compares
+`row.machine.exercise_id` to the requested id (`rebuild/coach/machine-settings-commands.cjs:161`)
+and the note carries the id it was MINTED under, forever, by the same immutability `E-R30` rules
+for stored edits. **Translating the QUERY cannot change that index**, and
+`plan-edit-model.cjs`'s `targetIdOf` is private to the fold: neither
+`machine-settings-host.latest()` nor the coach's `latestFor()` ever calls it. 13.9's sentence
+"after an import the read key is the translated id" is **WITHDRAWN** and corrected in place.
+
+### 14.2 `E-R38` F9 AMENDED: THE NOTE'S OWN IDENTITY IS TRANSLATED, AND THE QUERY NEVER IS
+
+**THE RULE.** A stored machine note is IMMUTABLE and keeps the id space it was saved in, exactly as
+`E-R30` rules for stored edits and captures. Admission never rewrites one, and neither does this
+correction (measured: the stored operation is byte-identical before and after, 14.1 and 14.3).
+The join therefore happens on the STORED side of the comparison, at read time, and in one place.
+
+**THE ONE NAMED BOUNDARY.** `noteIdentityOf(context, storedId)`, in the note resolver of the new
+lane (`edit-week-lane.cjs`'s file, section 3.2's release list decides the exact path). It reads the
+SAME recorded correspondence `E-R30`'s fold reads, on the SAME authenticated derived record:
+`collections.derived.localSource.view.lift_correspondence`, the ONE member admission records at
+`source-admission.mjs:781` (hunk D). **There is no second map and no second derivation.** Its four
+branches are `targetIdOf`'s four branches, applied to the stored key in the
+DOCUMENT-to-current direction:
+
+| the stored key | the branch | the lift it answers for | the space it is reported in |
+|---|---|---|---|
+| any, with no admitted view on the generation | first run | the key, unchanged | `first-run` |
+| the correspondence has an entry for it | translated | that FILE id | `document` |
+| the admitted base carries a row under it | untranslated and unnecessary | the key, unchanged | `native` |
+| none of the above | no join exists | **no lift at all** | `untranslated` |
+
+**THE SELECTION, AND WHY IT IS NOT A SECOND LATEST-WINS RULE.** The resolver relabels a COPY of
+each stored row into the identity it answers for, carrying `saved_as` and `saved_in` beside it, and
+then calls the coach's OWN `latestFor` on those copies. **The date rule and the store's own order
+are the coach's, unchanged and not re-implemented**, so a document note and a native note compete
+on their dates exactly as two native notes do. Measured, both ways round, in 14.3.
+
+**WRITES ARE NEVER TRANSLATED.** The editor saves under the id the card is showing, which is always
+the CURRENT space (`gym-app.mjs:305` with `machineFromDraft(draft, liftId)`), so a correction made
+after an import is a NATIVE note and needs no map to be read back. **The boundary is a READ
+boundary only. Nothing is migrated, nothing is re-keyed and nothing is deleted.**
+
+**THE REFUSAL BY NAME, WHERE THE CORRESPONDENCE IS NULL.** A null from this read is allowed to open
+a blank draft ONLY when it is a CONFIRMED absence: no stored note answers for the lift AND no
+stored note is untranslatable. If any stored note falls to the fourth branch, the read **REFUSES BY
+NAME with `MACHINE_NOTE_TARGET_UNTRANSLATED`** and names the keys it could not join. It is
+deliberately NOT `PLAN_EDIT_TARGET_UNTRANSLATED`: a note is not a plan edit, it is refused in the
+gym card's own vocabulary and it reaches a different surface. It is deliberately not
+`PLAN_EDIT_TARGET_UNAVAILABLE` either, for the reason 13.2 gives: unavailable is an answer about
+the athlete's plan, untranslated is an answer about the import.
+
+**AND THE ATHLETE IS NEVER TOLD "NOTHING SAVED" OVER A NOTE THAT EXISTS.** This is `E-R34`'s
+never-silent rule applied to the note lane, and the card already carries it: `gym-app.mjs:149-152`
+records a rejected read as `state:'failed'` under the comment A REFUSAL IS NOT AN ABSENCE, and
+`machine-settings-view.mjs:71-79` paints that state with `copy.unread` instead of the empty state.
+**Zero further bytes are needed to show the refusal**, which is why the resolver rejects rather
+than returning a null: measured at 14.3.
+
+**WHAT DOES NOT CLOSE B1, stated because she says so and I agree.** A second draft conversion does
+not; an empty-state message does not; retaining the note at admission (`source-admission.mjs:524`)
+does not, because retention is not a read path. `E-R38` F9's record/`ok`/single-conversion
+corrections stand as written and are not sufficient on their own.
+
+### 14.3 THE PROTOTYPE, AND BOTH CONTROLS SHE REQUIRES
+
+`spike/ew2r7-proto-note.mjs` is the whole correction: a pure resolver plus the one call the card
+makes. **ZERO PRODUCT BYTES.** It keeps no copy of a sealed module, declares no second validator
+and no second latest-wins rule, and the only product code it calls is the real host's own `all()`
+and `repository`, and the coach's `latestFor`. `spike/ew2r7-p4-note-identity.mjs` drives it through
+the same real host and durable client the red cell uses. **It exits 0.** Its stdout, as measured:
+
+```
+BEFORE the import, draftFrom(latest("press-old"))          {"rows":[{"name":"Seat","value":"4"}],"cues":"Pause"}
+noteIdentityOf(stored "press-old")                         {"id":"file-press","space":"document"}
+latestNoteFor("file-press").ok                             true
+  its record was saved as / saved in                       press-old / document
+AFTER the import, the draft the editor opens               {"rows":[{"name":"Seat","value":"4"}],"cues":"Pause"}
+latestNoteOn(host,"file-press") saved as / in              press-old / document
+no correspondence recorded: ok / code                      false / MACHINE_NOTE_TARGET_UNTRANSLATED
+  the notes it could not join                              ["press-old"]
+  and through the lane call it REJECTS with                MACHINE_NOTE_TARGET_UNTRANSLATED
+with both notes, the winner was saved as / in              file-press / native
+  the draft it opens                                       {"rows":[{"name":"Seat","value":"5"}],"cues":"Squeeze"}
+  both notes are still on disk, rows =                     2
+document 09-14 versus file 09-15, winner                   file-press (2026-09-15)
+document 09-16 versus file 09-15, winner                   press-old (2026-09-16)
+re-add: latestNoteFor("lateral-2") ok / record             true / null
+re-add: latestNoteFor("lateral") saved as / in             lateral / native
+first-run (no admission), saved as / in                    lateral / first-run
+product bytes this prototype required                      0
+ALL ASSERTIONS HELD
+```
+
+| what she asked for | the line that answers it | asserted |
+|---|---|---|
+| **CONTROL 1, a pre-import DOCUMENT note** | the draft after the import is byte-identical to the draft before it, `saved_in=document` | yes, `deepEqual` against the pre-import draft |
+| **CONTROL 2, a native FILE note** | saved through the real host under `file-press` after the import, `saved_in=native`, never translated | yes, and its draft is asserted whole |
+| **date and order preserved** | the two spaces permuted: `09-14` document versus `09-15` file wins file; `09-16` document versus `09-15` file wins document | yes, both directions |
+| **same-label re-add** | a note on the retired `lateral` answers for `lateral` and NOT for the minted `lateral-2`, which opens as a CONFIRMED absence and not as a refusal | yes, `record === null` and `untranslated === []` |
+| **the refusal where the correspondence is null** | the named code, the keys it could not join, and a REJECTION through the lane call | yes, all three |
+| **nothing rewritten** | the stored operation is byte-identical after every read, and both notes are still on disk | yes |
+| **the first-run control** | before any admission nothing is translated at all | yes |
+
+**WHAT THE PROTOTYPE DOES NOT PROVE, said before anyone asks.** No sealed bundle went through the
+real port; the admitted state is the PE16-style fixture every cell of rounds 6 and 7 installs
+directly. No browser and no DOM: `gym-app.mjs` itself was not executed, and 14.4 says so again.
+The retired `lateral` row and the minted `lateral-2` are a synthetic admitted base in the shape
+13.2's fourth table row describes, not a sealed admission's output.
+
+### 14.4 THE SEALED BUDGET, RESTATED HONESTLY: `gym-app.mjs` LEAVES THE ZERO-BYTE LIST
+
+**This is the finding her last bullet predicted, and I am not going to move a zero-byte file by
+implication.** The resolver is new lane code and costs no sealed byte. The problem is reaching it:
+**the shipped card builds its own lane** at `gym-app.mjs:165-167` and takes the note read at
+`:147`, and its `settings` option is for tests only (`:122-123`, "Tests inject `settings`
+directly"). So the corrected read cannot be installed by injection on the shipped path.
+
+**THE HUNK, COUNTED RATHER THAN ESTIMATED** (`spike/ew2r7-p5-card-hunk.mjs`, exit 0): it reads
+`gym-app.mjs`, proves both anchors occur EXACTLY ONCE so the count is real, patches in memory,
+counts by line diff, and proves the result still parses.
+
+```
+anchor 1, the view import, occurrences                     1
+anchor 2, the note read, occurrences                       1
+added lines                                                2
+removed lines                                              1
+HUNK_NET_LINES                                             1
+the patched card parses as an ES module                    yes
+the view already imports the coach producer                true
+gym-app.mjs on disk is byte-unchanged                      true
+```
+
+| file | hunk | owner ruling | measured size |
+|---|---|---|---|
+| `rebuild/m3/w7-preview/today/gym-app.mjs` | **E, NEW: one import of the note resolver, and `:147`'s `settingsLane.latest(liftId)` becomes the resolver's `latestNoteOn(settingsLane, liftId)`** | **`E-R38` F9 as amended by 14.2** | **2 added, 1 removed, net 1. Both anchors unique; the patched file parses. NOT YET EXECUTED: no DOM was driven** |
+
+**THIS NEEDS THE PM'S WORD BEFORE THE BUILD WRITES IT.** 13.12 names `gym-app.mjs` on the
+ZERO-BYTE list and this spec does not take it off that list by itself. The sentence at 13.12 is
+corrected in place to point here. **If the PM refuses hunk E, B1 does not close on the card**, and
+that is the honest consequence: the only other routes measured are worse.
+
+**THE TWO ALTERNATIVES, AND WHY EACH IS WORSE.**
+
+1. **Change `machine-settings-host.latest()`.** Refused. That host is the coach's read for every
+   caller, her re-check warns against silently editing it by name, and it would make a note lane
+   depend on a derived admission record that most of its callers have no business reading.
+   Sharing the resolver with `apply()` has the same problem in the other direction: her sentence
+   "needs a stated contract, not the nonexistent call claimed by 13.9" is upheld, and 14.2 states
+   the contract instead of claiming the call.
+2. **Re-point the lane from `today-entry.mjs` boot.** Refused. `today-entry.mjs` is sha-pinned by
+   `local-today-journey.test.mjs` PAGE_PINS and cannot gain a fifth lane
+   (`gym-app.mjs:113-122` says why the card opens this one itself).
+
+**EVERYTHING ELSE IN THE NOTE LANE STAYS AT ZERO BYTES, and that is measured, not hoped:**
+`machine-settings-host.mjs` (the resolver uses its existing `all()` and `repository`),
+`rebuild/coach/machine-settings-commands.cjs` (its `latestFor` is CALLED), and
+`machine-settings-view.mjs` (the `state:'failed'` branch that paints the refusal already exists;
+and it is unsealed anyway, C-UI-5 owns it). The resolver adds NOTHING to the page's import graph:
+its one product import is the coach's producer, which `machine-settings-view.mjs` already pulls in.
+
+### 14.5 THE FIFTH ACCEPTANCE ROW, RED FIRST IN THE BUILD
+
+13.11 carries four rows; this is the fifth. It is RED at `f6fd29ac`, and `ew2r7-b1-note-read.mjs`
+is that red, executed, in this branch's history.
+
+| id | the journey, end to end | what it asserts, and the assertion that can FAIL for the defect |
+|---|---|---|
+| **`EW-25` (J4)** | save a machine note on a lift in the DOCUMENT space, import with DIFFERENT ids, reopen the card, read the note; then save a NATIVE note after the import and read again | the pre-import note is still the draft the editor opens, `saved_in=document`; the later native note wins on its date; **a same-label re-add opens BLANK and never inherits the retired lift's note**; and with NO correspondence recorded the read refuses `MACHINE_NOTE_TARGET_UNTRANSLATED` and the card paints the refusal, never the empty state. CONTROL: the stored note operation is byte-unchanged after every read. It fails for the defect because today the translated read returns null and the editor opens blank over a saved note |
+
+### 14.6 NAMED DEBTS FOR THE BUILD BRIEF (Astra, carried verbatim)
+
+**Every one of the ten is reproduced EXACTLY as she wrote it** (her lines 43 to 52, copied by
+machine, not retyped). Under each one is ONE line saying where this spec touches it, and nothing
+else. **Round 7 solves none of them**, in prose or otherwise: `D-EW2-FINAL` sends what survives her
+re-check to the build brief, and the PM judges ONCE at the end of this loop whether the brief may
+carry them or a ruling is owed first.
+
+> D1 - Define immutable per-edit id-space/basis provenance across first admission, native file-id edits, second selection and rollback; prove admission either resolves each saved target to the same lift or refuses before publishing, and make the document-state capture fold handle mixed histories without rewriting operations.
+
+**Where this spec touches it:** 13.2's `targetIdOf` and 14.2's `noteIdentityOf` both read the ONE recorded correspondence and nothing else. NEITHER defines provenance across a SECOND admission, no cell of rounds 6 or 7 executed one, and her wrong-lift second-map result is answered nowhere in this spec.
+
+> D2 - Implement cold-page recovery without depending on the attempted intent surviving in transient memory; reconcile authenticated stored intents before enabling any fresh review/id, and test a destroyed page/client context plus committed and uncommitted outcomes.
+
+**Where this spec touches it:** `E-R36` and 13.7 state the reconciliation gate; 13.13's fourth bullet already records that it is specified and NOT prototyped. Round 7 adds nothing to it.
+
+> D3 - Name and authorize the authenticated-generation handoff for current/pending views and post-save refresh; one host.read() exposes neither both views nor its generation, and a successful save reply exposes no committed generation; do not satisfy E-R35 by two uncoordinated reads or a second replay implementation.
+
+**Where this spec touches it:** `E-R35` and 13.7 state the dated views. 13.12 prices no host hunk for the generation handoff and round 7 adds none.
+
+> D4 - Name and authorize the per-adoption Start.plan_basis handoff through the shared gym installation; createGymHost ignores a per-call planBasis option, so the current zero-byte today-bindings contract cannot carry the proposed changing fold label by the stated route.
+
+**Where this spec touches it:** 13.9's F10 paragraph PROPOSES the stored label to the PM and names no handoff; `today-bindings.mjs` stays at zero bytes. Round 7 adds nothing to it.
+
+> D5 - Wire and test every required planRoster history consumer with exact lift attribution and counts, including past/current/pending creations, tombstoned creation, removal and same-label re-add; a roster key existing in a fixture is not a history read.
+
+**Where this spec touches it:** 13.3 rules the roster and its fold horizon; 14.7 corrects P2's union LABEL. No history consumer is wired, attributed or counted anywhere in this spec.
+
+> D6 - Specify the admission refusal envelope/reason for occupied file handles consistently with EW-23, and place slugOf/reserved-id minting on a permitted import boundary; E6 forbids the released setup-model import that 13.4's direct provider call assumes.
+
+**Where this spec touches it:** 13.4 and `E-R32` state the guard and the provider. Round 7 changes neither; 14.4 sets the precedent she asks for, that a byte in a zero-byte file is NAMED and COUNTED rather than implied.
+
+> D7 - Wrap setup-tag projection, validation and detached fold execution at admission as well as the editor; assert the defined default for raw throws and retain diagnostic detail internally, since the host's save-stage catch does not surround admission.
+
+**Where this spec touches it:** 13.8 and `E-R37`, as narrowed by 13.10. Round 7 adds nothing to admission containment.
+
+> D8 - Complete E-R34's state table for pending-only edits, plan_edit_basis/default failures and failed authentication; show retention/cause claims only when proved, and replace C2's unsupported assertion that a missing correspondence means a different exercise copy.
+
+**Where this spec touches it:** 13.6's copy and its state table. 14.2 adds ONE state to the note lane's half of it (the named refusal over a confirmed absence) and does NOT complete the table she asks for; C2's sentence is not repaired here.
+
+> D9 - Correct evidence/count labels: 11 executable cells include the 3 prototypes; the loader neither prints nor asserts its net count; J1 does not execute patched host/Start or prove three-copy identity; P2 prints a desired union rather than persisting it; four acceptance rows were added, not three.
+
+**Where this spec touches it:** 14.7 corrects every label she lists, each one measured by `spike/ew2r7-d9-labels.mjs`, and the corrections are made IN PLACE in section 13.
+
+> D10 - Carry the host-day Start/readiness choice into the build/S10 brief and execute a stored Start across midnight; a 60-second interval is not a deadline, 13.7 contains no promised Start readiness check, and EW-19's visibility callbacks cannot prove either claim.
+
+**Where this spec touches it:** 13.9's F11 paragraph and 13.13's second named debt already route this to the S10 brief. Round 7 executes no stored Start.
+
+
+### 14.7 `D9`: THE EVIDENCE LABELS, CORRECTED IN PLACE AND COUNTED
+
+**A label is not corrected by agreeing with her in prose.** `spike/ew2r7-d9-labels.mjs` (exit 0)
+counts every one of them: it censuses the committed cells, runs the loader alone and captures its
+stdout, counts the acceptance rows out of 13.11's own table, and reads the two prototype lines she
+names. Its stdout, as measured:
+
+```
+ew2r6 files committed in spike/                            13
+  witness programs                                         8 ["w1-import-identity","w2-creation-owner","w3-collision","w4-pending-view","w5-inflight","w6-f2-boundary","w6b-projector-latency","w7-machine-note"]
+  journey prototypes                                       3 ["p1b-j1-noHostBytes","p2-j2-prototype","p3-j3-prototype"]
+  support (never run alone) / loader                       1 / 1
+  EXECUTABLE cells, prototypes included                    11
+running the loader alone printed bytes                     0
+  occurrences of "assert" in the loader                    0
+  occurrences of "console." in the loader                  0
+  the value it EXPORTS as HUNK_NET_LINES                   22
+acceptance rows the 13.11 table carries                    4 ["EW-21","EW-22","EW-23","EW-24"]
+p1b reads "ready" off the fixture flag, not a join         true
+p1b supplies its own admittedBasisOf                       true
+p1b Start / adoption tokens                                []
+p2 computes the union from the FOLDED state                true
+p2 writes planRoster once, from its entries list           true
+```
+
+| the label, where it stands | what it is corrected to, measured |
+|---|---|
+| 13.14 item 1, "MY SEVEN WITNESS CELLS AND MY THREE PROTOTYPES" | **EIGHT witness cells and three prototypes: ELEVEN executable cells.** The thirteen `ew2r6` files are 8 witnesses, 3 prototypes, the support module (never run alone) and the loader |
+| 13.2, "which the loader cell asserts at run time (`ew2r6-proto-r30.cjs` prints `HUNK_NET_LINES` and it is 22)" | **The loader EXPORTS `HUNK_NET_LINES` and its value is 22. It neither prints it nor asserts it**: zero occurrences of `console.` and of `assert` in the file, and running it alone prints zero bytes. No round 6 cell reads the export. **The NUMBER stands** and her independent diff agrees with it (24 added, 2 removed, net 22); the words "prints" and "asserts" do not |
+| 13.12's H2 row, "asserted at run time by the loader cell, not estimated" | same correction: **counted and exported, not asserted** |
+| 13.2's J1 table and 13.11's `EW-21` row, on what `p1b` proves | **`p1b` executes no patched host, no Start and no adoption** (zero Start or adoption tokens in the file; the only Start-shaped token is `starts_on`, the edit's own effective day). It prints `ready=true` off the fixture's own flag and it supplies its OWN `admittedBasisOf`, so **it does not prove three-copy basis identity**. The three-copy identity sentence describes what `local-source-basis.mjs` does, which `p1b` does not execute. `EW-21` therefore REQUIRES the real admission, a new-host reload and a stored Start, and no round 6 programme may be marked green for that whole row |
+| 13.3's last table row, "the union the roster must carry after both adds" | **It is a REQUIREMENT the cell computes from the FOLDED state** at the second add's `starts_on`, not a persisted roster. The prototype writes `planRoster` ONCE from its single entry, so the roster it actually holds is `["added-past"]` and the second add is still pending on the authored day. **No cell has persisted the union** |
+| 13.11's heading, "THE THREE NEW ACCEPTANCE ROWS", and its first sentence "gains three journeys" | **FOUR rows were added, `EW-21` to `EW-24`, counted from the table itself.** The PM's ruling named three journeys; round 6 added `EW-24` for `E-R36` and did not re-count. **With 14.5's `EW-25` it is five** |
+| 13.9's F9, "after an import the read key is the translated id" | **WITHDRAWN.** 14.2 replaces it: the STORED key is translated, never the query |
+| 13.12's zero-byte list, `gym-app.mjs` | **It leaves that list under 14.4, by name, counted, and pending the PM's word** |
+| `ew2r6-w2-creation-owner.mjs`'s printed line "the replay created the row itself: false" | **The cell is unaltered; the LABEL is misleading and is corrected here.** That control reads the AUTHORED day (`:56`, `h3.read()` with no day) while the add is effective at `starts_on`; the same cell prints "folded row exists on starts_on: true" at `:29`. The `false` means NOT YET EFFECTIVE on the day read, and it is not evidence that the replay fails to create the row |
+
+**Two further corrections that are hers and are not label errors, recorded so nothing is lost.**
+13.1's F8 row and 13.10 keep their narrowing: her re-check upholds BOTH of round 6's disagreements
+by re-measurement, and 13.10 is left exactly as written. Her F13 row still reports 13.9's
+admission-file count as contradicting itself; that contradiction is `D6`'s, is carried verbatim at
+14.6, and is NOT resolved here.
+
+### 14.8 THE CELLS OF ROUND 7, AND EVERY EXIT CODE ON BOTH MACHINES
+
+**They do not run from `spike/`.** Copy them to `rebuild/lanes/d/plan-edit/` and run each from the
+repository root, one Node process at a time, under `MEASURED_TEST_NOW=2026-09-03
+TZ=America/New_York`. `ew2r7-support.mjs` and `ew2r7-proto-note.mjs` are imported by the others and
+are never run alone. `ew2r7-support.mjs` is `ew2r6-support.mjs`'s scaffold with ONE knob added: it
+RETURNS the era's durable client, which is what opening the real machine-settings host on the same
+era needs.
+
+| file | what it proves | sha256 | farm | PC |
+|---|---|---|---|---|
+| `ew2r7-support.mjs` | support only, never run alone | `2095e1e9d01321b8912aea86042009c428f9adf79d681f0136b7188200e13d80` | n/a | n/a |
+| `ew2r7-proto-note.mjs` | **the correction itself**, and it is imported, never run alone: the ONE boundary, the selection over the coach's own `latestFor`, and the named refusal | `7524d1dd13305aaddaba19461d55ea6813d9b1f0ebd47984303bc2117d10a6c8` | n/a | n/a |
+| `ew2r7-b1-note-read.mjs` | **B1, RED FIRST**: the saved note disappears from the editor after the first admission under 13.9's rule | `2e5cc92347e68826797c5ae5661ea9a15e5c1d35d5821a982a085a94b292620c` | **exit 1** | **exit 1** |
+| `ew2r7-p4-note-identity.mjs` | **B1 GREEN** under 14.2, with both her controls, the date permutation, the same-label re-add, the first-run control and the named refusal | `6ca1c6854c4cebdf684bd9e34ee48842ff94b03d8b619201d4b64fb014d2ee57` | exit 0 | exit 0 |
+| `ew2r7-p5-card-hunk.mjs` | **the price of reaching the card**: two unique anchors, 2 added and 1 removed, the patched card parses, `gym-app.mjs` byte-unchanged on disk | `c7f7a42c9ce6f4b3caa942e435bd37ab431af32ea975c834940eeeecc93e46a1` | exit 0 | exit 0 |
+| `ew2r7-d9-labels.mjs` | **`D9` counted**: the cell census, the loader's silence, the acceptance-row count, and what `p1b` and `p2` actually do | `5c462839c8afa0399baa00dacc7825a9d920da45a6f5ed5b694c91dd009db856` | exit 0 | exit 0 |
+
+**THE ROUND 6 CELLS WERE RE-RUN AT THIS HEAD ON BOTH MACHINES AND NONE OF THEM MOVED.** All eleven
+executable cells and the loader: **exit 0 in the farm scratch and exit 0 on the PC**, one process
+at a time, in the order 13.1 lists them. The farm baseline in the same worktree is unchanged:
+`rebuild/lanes/d/plan-edit/model.test.cjs` plus `durable-host.test.mjs` in ONE process, **85 tests,
+85 pass, 0 fail, 1.59 seconds.**
+
+**ONE MEASURED WARNING FOR THE NEXT HAND, and it cost this round twenty minutes.** The PC worktree
+`%TEMP%\earned-ew2` has NO `node_modules` junctions, so every cell that opens a durable client
+fails there with `Cannot find package '@noble/hashes'` and exits 1. That is the WORKTREE, not the
+cell: in a worktree made by `pm4-mk-lane.cmd ... yes`, which wires the live junctions, the same
+eleven cells all exit 0. **An exit code from a worktree without junctions is not evidence about a
+cell.** Round 7's PC runs were taken in such a junctioned worktree, at this branch's head, and the
+worktree was removed afterwards.
+
+**WHAT WAS WRITTEN AND WHERE.** `git status --porcelain` in the run worktree names only the
+untracked copies of the cells themselves; no tracked file was modified by any run, and both
+`gym-app.mjs` and the stored note operation are asserted byte-unchanged by the cells that touch
+them.
+
+### 14.9 WHAT ROUND 7 DID NOT DO, AND WHAT IT DISPUTES
+
+**IT DISPUTES NOTHING.** A finding is disputed only with a measurement that shows the reviewer
+wrong. I found none: B1 reproduced exactly as she stated it, on the first run, and every one of
+her ten debts is either true of this spec or outside what a cell of mine touched. So B1 is fixed
+and D1 to D10 are carried.
+
+**IT DID NOT** touch any product file (`git status` over the worktree names only
+`rebuild/lanes/d2/EW2-SPEC.md` and files under `rebuild/lanes/d2/spike/`); run the bar; seal a
+bundle, write a receipt or an artifact; move a byte under `rebuild/engine`; write `DECISIONS.md` or
+`STATUS.md`; merge into or push at `rebuild/t2-client-core` or `main`; install anything; or edit a
+single byte of her scratch, which was read and never run as evidence.
+
+**IT DID NOT MEASURE**, and no sentence above claims it did: a real sealed bundle through the real
+port (the farm cannot, and the PC runs here were the same synthetic fixtures); any DOM, browser or
+phone, so hunk E at 14.4 is counted and parsed but NOT executed; a second admission of any kind,
+which is `D1`; a sealed admission's own appended retired row, which 14.3 models synthetically; the
+full Today suite, rig187, the conformance or private fixtures, the protected soak, CI or
+deployment.
+
+**AND ONE THING IT DELIBERATELY LEFT ALONE.** `machine-settings-host.mjs` and
+`rebuild/coach/machine-settings-commands.cjs` are untouched, by her instruction and by the rule
+that a note is never rewritten. The resolver reads what they already return.
