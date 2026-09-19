@@ -35,7 +35,8 @@ except Exception:
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, worst_ratio, app_url, label_font,
                     Refused, JS_SWEPT_TEXT, JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS,
-                    platform_key, playwright_version, env_text)
+                    platform_key, playwright_version, env_text, app_digest,
+                    TAPPABLE_SELECTOR, TARGET_PX, JS_CLIPPED_AWAY)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -78,9 +79,11 @@ TEXT_ONLY_BG_CSS = ('.ui * { color: transparent !important; text-shadow: none !i
                     ' .ui input::placeholder { color: transparent !important; } .chrome { visibility: hidden !important; }')
 
 JS_INFO = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return null;const text=ui.innerText;const small=[];
-    ui.querySelectorAll('button,a,input').forEach(e=>{if(e.offsetParent===null)return;const r=e.getBoundingClientRect();if(r.width===0)return;
+    __CLIP__
+    const side=v=>v<__PX__?v.toFixed(2):String(Math.round(v));   /* the side that failed prints the number that failed */
+    ui.querySelectorAll('__TAPPABLE__').forEach(e=>{if(e.offsetParent===null||__clippedAway(e))return;const r=e.getBoundingClientRect();if(r.width===0)return;
       const cs=getComputedStyle(e,'::before');let h=r.height,w=r.width;if(cs.content!=='none'&&cs.height&&cs.height!=='auto')h=Math.max(h,parseFloat(cs.height));
-      if(h<44||w<44)small.push((e.id||e.className||e.tagName)+' '+Math.round(w)+'x'+Math.round(h))});
+      if(h<__PX__||w<__PX__)small.push((e.id||e.className||e.tagName)+' '+side(w)+'x'+side(h))});
     const prim=Array.from(document.querySelectorAll('.screen.is-active #start, .screen.is-active #log, .screen.is-active .mic-button, .screen.is-active .panel-primary')).find(e=>e.offsetParent!==null&&e.getBoundingClientRect().width>0)||null;
     const pr=prim?prim.getBoundingClientRect():null;
     const overflow=[];ui.querySelectorAll('.primary, #log, .decision, .chip, .save').forEach(e=>{if(e.offsetParent===null)return;
@@ -124,7 +127,8 @@ JS_RECORD = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(
       if(!own.trim())return;
       const r=e.getBoundingClientRect();const cs=getComputedStyle(e);const m=cs.color.match(/\\d+/g);
       said.push(norm(own));
-      els.push([norm(own), [Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)],
+      const px=v=>Math.round(v*100)/100;   /* two decimals: "more than 3 px" then means what it says */
+      els.push([norm(own), [px(r.left),px(r.top),px(r.width),px(r.height)],
         m?m.slice(0,3).map(Number):[0,0,0], cs.fontFamily.split(',')[0].replace(/["']/g,'').trim(),
         Math.round(parseFloat(cs.fontSize)*10)/10])});
     return {text: norm(said.join(' ')), els: els}}"""
@@ -132,10 +136,26 @@ JS_RECORD = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(
 
 JS_BOXES = JS_BOXES.replace('__SEEN__', JS_SEEN)
 JS_RECORD = JS_RECORD.replace('__SEEN__', JS_SEEN)
+JS_INFO = JS_INFO.replace('__TAPPABLE__', TAPPABLE_SELECTOR).replace('__PX__', str(TARGET_PX)).replace('__CLIP__', JS_CLIPPED_AWAY)
 
 
 def rel(p):
     return os.path.relpath(p, ROOT).replace(os.sep, '/')
+
+
+def num(v):
+    """A recorded number as it reads: a whole pixel stays whole, anything else keeps two places."""
+    return str(int(v)) if float(v) == int(v) else f'{float(v):.2f}'
+
+
+def other_platform_dirs():
+    """Every sibling platform directory under quality/baseline/states/ that is not this one."""
+    try:
+        names = sorted(os.listdir(BASE))
+    except OSError:
+        return []
+    return [os.path.join(BASE, n) for n in names
+            if n != platform_key() and os.path.isdir(os.path.join(BASE, n))]
 
 
 def record_paths(sid, theme):
@@ -196,7 +216,8 @@ def write_index(states, chromium_version=''):
                            'python': plat.python_version(),
                            'playwright': playwright_version(),
                            'chromium': chromium_version,
-                           'launch': list(LAUNCH_ARGS)}},
+                           'launch': list(LAUNCH_ARGS),
+                           'app': app_digest(ROOT)}},
                   f, ensure_ascii=False, indent=1)
         f.write('\n')
 
@@ -244,9 +265,12 @@ def compare_record(sid, theme, rec, thumb, worst=None):
             problems.append(f'element {i} text "{wa[0][:24]}" became "{wb[0][:24]}"')
             continue
         for k, edge in enumerate(['left', 'top', 'width', 'height']):
-            note(worst, 'rect edge moved (px)', abs(wa[1][k] - wb[1][k]), RECT_TOL, f'{sid} {theme} element {i} "{name}" {edge}')
-            if abs(wa[1][k] - wb[1][k]) > RECT_TOL:
-                problems.append(f'element {i} "{name}" {edge} {wa[1][k]} became {wb[1][k]}')
+            # the two values are compared as they were measured, never rounded first: a record
+            # holds each edge to two decimals, so "more than 3 px" means more than 3 px
+            moved = abs(float(wa[1][k]) - float(wb[1][k]))
+            note(worst, 'rect edge moved (px)', moved, RECT_TOL, f'{sid} {theme} element {i} "{name}" {edge}')
+            if moved > RECT_TOL:
+                problems.append(f'element {i} "{name}" {edge} {num(wa[1][k])} became {num(wb[1][k])}')
         dcol = max(abs(x - y) for x, y in zip(wa[2], wb[2]))
         note(worst, 'colour moved (levels)', dcol, COLOUR_TOL, f'{sid} {theme} element {i} "{name}"')
         if dcol > COLOUR_TOL:
@@ -255,9 +279,69 @@ def compare_record(sid, theme, rec, thumb, worst=None):
             problems.append(f'element {i} "{name}" font {wa[3]} became {wb[3]}')
         if abs(wa[4] - wb[4]) > SIZE_TOL:
             problems.append(f'element {i} "{name}" font size {wa[4]} became {wb[4]}')
+    problems += copied_thumb_problems(pp)
     if thumb is not None:
         problems += compare_thumb(sid, theme, pp, thumb, worst)
-    return problems[:6]
+    # a problem is never dropped in silence: the count of what is not shown is shown
+    return problems[:6] + ([f'and {len(problems) - 6} more'] if len(problems) > 6 else [])
+
+
+def copied_thumb_problems(pp):
+    """A platform's thumbnails are drawn on that platform, never copied from another's.
+
+    Of the 418 committed thumbnail pairs not one is byte identical across platforms, because every
+    drawn state carries text and two text stacks never rasterise text to the same bytes. So a byte
+    for byte match with another platform's file of the same name is a copy, and a copied set would
+    otherwise sit inside the tolerance unnoticed (the reviewer measured 0.85 of 2.00 on T-02 and at
+    most 1.26 over all 418). It is checked on an ordinary run and on an --accept-thumbs run.
+    """
+    if not os.path.exists(pp):
+        return []
+    try:
+        with open(pp, 'rb') as f:
+            mine = f.read()
+    except OSError:
+        return []
+    for d in other_platform_dirs():
+        q = os.path.join(d, os.path.basename(pp))
+        try:
+            with open(q, 'rb') as f:
+                if f.read() != mine:
+                    continue
+        except OSError:
+            continue
+        return [f'{rel(pp)} is byte identical to {rel(q)}: a platform\'s thumbnails are drawn on '
+                'that platform with "python quality/statesheet.py --accept-thumbs", never copied']
+    return []
+
+
+def cross_platform(sid, theme, pp, thumb, cross):
+    """How far this run's render sits from the OTHER platforms' committed thumbnails.
+
+    Advisory and nothing else: it is never a problem and never an exit code, because a thumbnail
+    is a raster and the platforms are expected to differ. It is measured on every run so the cross
+    platform raster distance is a number the sheet prints rather than one somebody computes by
+    hand once. On Linux against the committed win32 set it reads about 1.26 of 2.00 at C-63 ink.
+    """
+    cur = np.asarray(thumb).astype(float)
+    for d in other_platform_dirs():
+        q = os.path.join(d, os.path.basename(pp))
+        if not os.path.exists(q):
+            continue
+        try:
+            base = np.asarray(Image.open(q).convert('L')).astype(float)
+        except Exception:
+            continue
+        if base.shape != cur.shape:
+            continue
+        diff = np.abs(base - cur)
+        k = os.path.basename(d)
+        for measure, value in (('thumbnail mean shift', float(diff.mean())),
+                               ('thumbnail pixels over 24 levels', float((diff > THUMB_LEVELS).mean() * 100))):
+            row = cross.setdefault((k, measure), None)
+            if row is None or value > row[0]:
+                cross[(k, measure)] = (value, THUMB_MEAN if 'mean' in measure else THUMB_PCT,
+                                       f'{sid} {theme}')
 
 
 def compare_thumb(sid, theme, pp, thumb, worst=None):
@@ -304,7 +388,7 @@ def first_text_difference(a, b):
 
 
 async def main():
-    rows = []; worst = {}; pending = []
+    rows = []; worst = {}; pending = []; cross = {}
     async with async_playwright() as p:
         b = await p.chromium.launch(args=LAUNCH_ARGS)
         chromium_version = b.version
@@ -331,71 +415,14 @@ async def main():
         for st in states:
             for t in ['ink', 'dawn']:
                 n0 = len(errs)
-                await pg.goto(f'{APP}?theme={t}&screen={st["screen"]}&chrome=1&date=board&state={st["id"]}')
-                await pg.evaluate('document.fonts.ready'); await pg.wait_for_timeout(420)
-                png = await pg.screenshot()
-                shot = Image.open(io.BytesIO(png))
-                shot.save(os.path.join(OUT, f'{st["id"]}-{t}.png'))
-                thumb = shot.convert('L').resize(THUMB, Image.LANCZOS)
-                info = await pg.evaluate(JS_INFO)
-                if info is None:
-                    rows.append((st['id'], t, st['title'], st['status'], ['the screen has no ".screen.is-active .ui"']))
-                    continue
-                boxes = await pg.evaluate(JS_BOXES)
-                rec = await pg.evaluate(JS_RECORD)
-                await pg.add_style_tag(content=TEXT_ONLY_BG_CSS); await pg.wait_for_timeout(60)
-                bg = np.asarray(Image.open(io.BytesIO(await pg.screenshot())).convert('RGB').resize((W, H), Image.BILINEAR)).astype(float)
-                lowc = []
-                for bx in boxes:
-                    if not bx['c']: continue
-                    ix, iy = bx['w'] * 0.15, bx['h'] * 0.15
-                    x0, y0 = int(max(0, bx['x'] + ix)), int(max(0, bx['y'] + iy))
-                    x1, y1 = int(min(W, bx['x'] + bx['w'] - ix)), int(min(H, bx['y'] + bx['h'] - iy))
-                    if x1 <= x0 or y1 <= y0: continue
-                    ratio = worst_ratio(bx['c'], bg[y0:y1, x0:x1].reshape(-1, 3))
-                    if ratio is None: continue
-                    need = tier_for(bx['cls'], bx['size'], bx['tok'], bx['off'], bx.get('len', 0))
-                    if ratio < need:
-                        lowc.append(f"{bx['id']} {ratio:.1f} < {need}")
-                problems = []
-                if info['applied'] != st['id']: problems.append('state did not apply')
-                if len(errs) > n0: problems.append('error: ' + errs[-1][:80])
-                sweep = await pg.evaluate(JS_SWEPT_TEXT)
-                swept = sweep['text']
-                unread = sweep.get('unreadable') or []
-                bad = copy_problems(swept)
-                if bad: problems.append('copy: ' + ', '.join(repr(x) for x in bad))
-                if unread: problems.append(UNREADABLE_CHECK + ': ' + ', '.join(unread[:3]))
-                xbad = set_x_problems(swept)
-                if xbad: problems.append('set written with the letter x: ' + ', '.join(repr(x) for x in xbad))
-                if info['small']: problems.append('targets: ' + ', '.join(info['small'][:3]))
-                if info.get('overflow'): problems.append('label overflows its button: ' + ', '.join(info['overflow'][:3]))
-                if st['screen'] == 'workout' and re.search(r'\boptional\b', swept.lower()):
-                    problems.append('copy: "optional" on a set screen')
-                # seams: a single-row step of the scene in both margins at once, with the text hidden
-                lm = bg[60:830, 4:18].mean(axis=(1, 2)); rm = bg[60:830, 375:389].mean(axis=(1, 2))
-                def flat(a, y): return y >= 4 and y + 4 <= len(a) and np.abs(np.diff(a[y - 4:y])).max() < 1.5 and np.abs(np.diff(a[y + 1:y + 5])).max() < 1.5   # flat on both sides: a drawn edge, not a photograph
-                seam = [int(y) + 60 for y in range(1, len(lm)) if abs(lm[y] - lm[y - 1]) > 5 and abs(rm[y] - rm[y - 1]) > 5 and (lm[y] - lm[y - 1]) * (rm[y] - rm[y - 1]) > 0 and flat(lm, y) and flat(rm, y)]
-                if seam: problems.append('seam at rows ' + ', '.join(str(y) for y in seam[:4]))
-                if lowc: problems.append('contrast: ' + ', '.join(lowc[:3]))
-                if info['prim'] and info['prim'][1] > H:
-                    problems.append(f'primary action below the fold (bottom {info["prim"][1]} > {H})')
-                # the committed record
-                if rec is None:
-                    problems.append('the screen could not be recorded')
-                elif ACCEPT:
-                    jp, pp = record_paths(st['id'], t)
-                    # newline='\n': a record is committed, so it has to land on disk as the same
-                    # bytes on every platform, whatever the platform's own line ending is.
-                    with open(jp, 'w', encoding='utf-8', newline='\n') as f:
-                        json.dump({'id': st['id'], 'theme': t, 'text': rec['text'], 'els': rec['els']}, f,
-                                  ensure_ascii=False, separators=(',', ':'))
-                    thumb.save(pp, optimize=True)
-                else:
-                    problems += compare_record(st['id'], t, rec, None if ACCEPT_THUMBS else thumb, worst)
-                    if ACCEPT_THUMBS:
-                        pending.append((record_paths(st['id'], t)[1], thumb))
-                rows.append((st['id'], t, st['title'], st['status'], problems))
+                try:
+                    await render_one(pg, st, t, n0, errs, rows, worst, cross, pending)
+                except Exception as e:
+                    # one state that throws must not end the run with no report: gate.py already
+                    # records a failing element rather than crashing, and the sheet does now too
+                    first = (str(e).splitlines() or [''])[0][:100]
+                    rows.append((st['id'], t, st['title'], st['status'],
+                                 [f'the render failed: {type(e).__name__}: {first}']))
         await b.close()
     if ACCEPT:
         write_index(states, chromium_version)
@@ -413,7 +440,104 @@ async def main():
         write_env(chromium_version, states)
         written = len(pending)
     write_sheets(states)
-    write_report(rows, orphans, worst, written)
+    write_report(rows, orphans, worst, written, cross, app_advisory())
+
+
+async def render_one(pg, st, t, n0, errs, rows, worst, cross, pending):
+    """One state in one theme: render it, check it, compare it and file its row.
+
+    Its own function so that a state that throws is one problem row and not the end of the
+    run: the caller catches, names the state and the first line of the error, and the sheet
+    still writes its report and exits 1.
+    """
+    await pg.goto(f'{APP}?theme={t}&screen={st["screen"]}&chrome=1&date=board&state={st["id"]}')
+    await pg.evaluate('document.fonts.ready'); await pg.wait_for_timeout(420)
+    png = await pg.screenshot()
+    shot = Image.open(io.BytesIO(png))
+    shot.save(os.path.join(OUT, f'{st["id"]}-{t}.png'))
+    thumb = shot.convert('L').resize(THUMB, Image.LANCZOS)
+    info = await pg.evaluate(JS_INFO)
+    if info is None:
+        rows.append((st['id'], t, st['title'], st['status'], ['the screen has no ".screen.is-active .ui"']))
+        return
+    boxes = await pg.evaluate(JS_BOXES)
+    rec = await pg.evaluate(JS_RECORD)
+    await pg.add_style_tag(content=TEXT_ONLY_BG_CSS); await pg.wait_for_timeout(60)
+    bg = np.asarray(Image.open(io.BytesIO(await pg.screenshot())).convert('RGB').resize((W, H), Image.BILINEAR)).astype(float)
+    lowc = []
+    for bx in boxes:
+        if not bx['c']: continue
+        ix, iy = bx['w'] * 0.15, bx['h'] * 0.15
+        x0, y0 = int(max(0, bx['x'] + ix)), int(max(0, bx['y'] + iy))
+        x1, y1 = int(min(W, bx['x'] + bx['w'] - ix)), int(min(H, bx['y'] + bx['h'] - iy))
+        if x1 <= x0 or y1 <= y0: continue
+        ratio = worst_ratio(bx['c'], bg[y0:y1, x0:x1].reshape(-1, 3))
+        if ratio is None: continue
+        need = tier_for(bx['cls'], bx['size'], bx['tok'], bx['off'], bx.get('len', 0))
+        if ratio < need:
+            lowc.append(f"{bx['id']} {ratio:.1f} < {need}")
+    problems = []
+    if info['applied'] != st['id']: problems.append('state did not apply')
+    if len(errs) > n0: problems.append('error: ' + errs[-1][:80])
+    sweep = await pg.evaluate(JS_SWEPT_TEXT)
+    swept = sweep['text']
+    unread = sweep.get('unreadable') or []
+    bad = copy_problems(swept)
+    if bad: problems.append('copy: ' + ', '.join(repr(x) for x in bad))
+    if unread: problems.append(UNREADABLE_CHECK + ': ' + ', '.join(unread[:3]))
+    xbad = set_x_problems(swept)
+    if xbad: problems.append('set written with the letter x: ' + ', '.join(repr(x) for x in xbad))
+    if info['small']: problems.append('targets: ' + ', '.join(info['small'][:3]))
+    if info.get('overflow'): problems.append('label overflows its button: ' + ', '.join(info['overflow'][:3]))
+    if st['screen'] == 'workout' and re.search(r'\boptional\b', swept.lower()):
+        problems.append('copy: "optional" on a set screen')
+    # seams: a single-row step of the scene in both margins at once, with the text hidden
+    lm = bg[60:830, 4:18].mean(axis=(1, 2)); rm = bg[60:830, 375:389].mean(axis=(1, 2))
+    def flat(a, y): return y >= 4 and y + 4 <= len(a) and np.abs(np.diff(a[y - 4:y])).max() < 1.5 and np.abs(np.diff(a[y + 1:y + 5])).max() < 1.5   # flat on both sides: a drawn edge, not a photograph
+    seam = [int(y) + 60 for y in range(1, len(lm)) if abs(lm[y] - lm[y - 1]) > 5 and abs(rm[y] - rm[y - 1]) > 5 and (lm[y] - lm[y - 1]) * (rm[y] - rm[y - 1]) > 0 and flat(lm, y) and flat(rm, y)]
+    if seam: problems.append('seam at rows ' + ', '.join(str(y) for y in seam[:4]))
+    if lowc: problems.append('contrast: ' + ', '.join(lowc[:3]))
+    if info['prim'] and info['prim'][1] > H:
+        problems.append(f'primary action below the fold (bottom {info["prim"][1]} > {H})')
+    # the committed record
+    if rec is None:
+        problems.append('the screen could not be recorded')
+    elif ACCEPT:
+        jp, pp = record_paths(st['id'], t)
+        # newline='\n': a record is committed, so it has to land on disk as the same
+        # bytes on every platform, whatever the platform's own line ending is.
+        with open(jp, 'w', encoding='utf-8', newline='\n') as f:
+            json.dump({'id': st['id'], 'theme': t, 'text': rec['text'], 'els': rec['els']}, f,
+                      ensure_ascii=False, separators=(',', ':'))
+        thumb.save(pp, optimize=True)
+    else:
+        problems += compare_record(st['id'], t, rec, None if ACCEPT_THUMBS else thumb, worst)
+        cross_platform(st['id'], t, record_paths(st['id'], t)[1], thumb, cross)
+        if ACCEPT_THUMBS:
+            pending.append((record_paths(st['id'], t)[1], thumb))
+    rows.append((st['id'], t, st['title'], st['status'], problems))
+
+
+
+
+def app_advisory():
+    """One line, and only when this run judged the pack's own prototype against committed records.
+
+    A record set is a record of one prototype. --accept writes a digest of app/ into the index, and
+    an ordinary run says here when the pack's app/ no longer matches it. It is advisory: it is not
+    a problem, it is not counted, and it does not touch the exit code, because a teeth row's whole
+    job is to change app/ in a scratch copy and the row that must PASS still has to exit 0.
+    """
+    if ACCEPT or os.environ.get('EARNED_APP'):
+        return ''
+    want = ((read_index() or {}).get('env') or {}).get('app')
+    if want == app_digest(ROOT):
+        return ''
+    if not want:
+        return ('advisory, not a problem: the index carries no app digest, so nothing says which '
+                'prototype these records were written against; the next "--accept" writes one')
+    return ('advisory, not a problem: the pack\'s app/ does not match the digest in '
+            + rel(INDEX) + ' that the records were written against')
 
 
 def write_sheets(states):
@@ -443,7 +567,7 @@ def report_name():
     return 'states-report' + ('-' + ONLY.rstrip('-') if ONLY else '') + '.txt'
 
 
-def write_report(rows, orphans, worst, written=0):
+def write_report(rows, orphans, worst, written=0, cross=None, advisory=''):
     bad = [r for r in rows if r[4]]
     head = (f'STATE SHEET: {len(rows)} renders, {len(bad)} with problems'
             + (f', {len(orphans)} records with no state' if orphans else '')
@@ -462,15 +586,26 @@ def write_report(rows, orphans, worst, written=0):
             lines.append(f'{sid:7s} {t:5s} {status:10s} {title[:44]:44s} {"; ".join(probs)}')
     for o in orphans:
         lines.append(f'{"INDEX":7s} {"":5s} {"":10s} {"":44s} {o}')
-    if worst:
-        # what the run actually measured, so a second machine can read its headroom in numbers
+    if advisory:
+        lines += ['', advisory]
+    if worst or cross:
+        # what the run actually measured, so a second machine can read its headroom in numbers.
+        # The first rows are this platform against its own records and are the tolerance. The rows
+        # marked advisory are this platform against the other platforms' committed thumbnails: they
+        # are not a tolerance and nothing fails on them, and they are here so the cross platform
+        # raster distance is measured on every run rather than once by hand.
         lines += ['', 'worst measured:']
-        if all(v[0] <= 0 for v in worst.values()):
+        if worst and all(v[0] <= 0 for v in worst.values()):
             lines.append(f'  none measured: nothing moved in {len(rows)} renders')
         else:
             for measure in sorted(worst):
                 value, limit, where = worst[measure]
                 lines.append(f'  {measure:34s} {value:8.2f} of {limit:6.2f}   ' + (where if value > 0 else 'nothing moved'))
+        for name in sorted({k[0] for k in (cross or {})}):
+            lines.append(f'  advisory, not a tolerance: this run against the {name} thumbnails')
+            for key in sorted(k for k in cross if k[0] == name):
+                value, limit, where = cross[key]
+                lines.append(f'  {key[1]:34s} {value:8.2f} of {limit:6.2f}   ' + (where if value > 0 else 'nothing moved'))
     # the clean list is keyed on the render, so one theme failing cannot mark the other clean
     lines += ['', 'clean: ' + ', '.join(sorted({r[0] for r in rows if not r[4]} - {r[0] for r in bad}))]
     rep = '\n'.join(lines)
@@ -498,6 +633,9 @@ if __name__ == '__main__':
         refuse('--accept-thumbs writes every thumbnail this platform has, so it cannot be combined with --only')
     if ACCEPT and ACCEPT_THUMBS:
         refuse('--accept already writes this platform\'s thumbnails, so --accept-thumbs cannot be combined with it')
+    if (ACCEPT or ACCEPT_THUMBS) and os.environ.get('EARNED_APP'):
+        refuse('the records and thumbnails of record are drawn from the pack\'s own prototype, so '
+               '--accept and --accept-thumbs refuse to run with EARNED_APP set')
     try:
         asyncio.run(main())
     except Refused as e:
