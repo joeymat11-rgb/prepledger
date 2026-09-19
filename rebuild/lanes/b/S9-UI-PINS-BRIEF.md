@@ -11,10 +11,35 @@ not copied from a report. **It is the ARTIFACT sha and not the receipt sha
 the spec names confusing the two as the single most likely error of this round.**
 
 This brief is written on `rebuild/b-s9-ui-pins` at `da9f868`. **`da9f868` is the PREPARATION base
-and is NOT this package's `sourceBase`.** The `sourceBase` is the commit at which the chain tip is
-merged into this lane after the wait list of section 11 clears, and it is TO MEASURE AT INTEGRATION:
-`git rev-parse HEAD` on the lane immediately after that merge, recorded in `packages/S9.json` and
-never rebased (`:467` note 1, `:493` (8)).
+and is NOT this package's `sourceBase`.**
+
+**CORRECTED IN LOOP ROUND 1, review L1 B1, and this is the sentence that changed.** An earlier
+draft said the `sourceBase` is the post-merge HEAD, updated after every merge. **It is not, and the
+runner refuses it.** For every path the parent pins, `product()` requires the declared `pre` to equal
+the PARENT pin (`b-package.cjs:2425`, `UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin`) and
+`held()` then requires the blob AT THE `sourceBase` to equal that same `pre`
+(`b-package.cjs:2206-2210` called at `:2261` with code `PARENT-PIN-BROKEN`, which for a declared file
+refuses `PARENT-PIN-BROKEN-AT-SOURCEBASE`). Both can hold only at a commit whose bytes still stand at
+S8's own posts. **So the `sourceBase` must be an ANCESTOR that satisfies every S8 parent pin BEFORE
+the carried edits, and the post-merge HEAD is the CANDIDATE UNDER REVIEW, not a replacement
+`sourceBase`.**
+
+**MEASURED by this author in the farm on 2026-09-19, over all 227 distinct paths the parent pins
+(224 `product` plus 71 `executionPins`, union 227):** at this lane's head `b1aaecf5`, **220 equal and
+SEVEN different** - `.github/workflows/rebuild.yml`, `rebuild/m3/w6/local/import-bundle.mjs`,
+`rebuild/m3/w7-preview/import/import-screen.mjs`,
+`rebuild/m3/w7-preview/import/test/page-bundle.test.mjs`,
+`rebuild/m3/w7-preview/today/test/adapter.test.mjs`,
+`rebuild/m3/w7-preview/today/test/view.test.mjs` and
+`rebuild/m3/w7-preview/today/today-app.cjs`, which are exactly the passphrase and Today carries
+already merged here. At `0cd07be7cf967dfbfea8c84947ba8477f58cfb5f`, which `git merge-base
+--is-ancestor` confirms is an ANCESTOR of `b1aaecf5`, **227 equal and 0 different.** Review L1
+measured the same candidate independently and reached 227 of 227. **`0cd07be7cf967dfbfea8c84947ba8477f58cfb5f`
+is therefore a MEASURED CANDIDATE for the PM to name, and this brief does not name it:** the PM
+chooses the `sourceBase` and records it in `packages/S9.json`, where it is never rebased (`:467`
+note 1, `:493` (8)). The command that re-measures any candidate is the one used above: for each of
+the 227 paths, `git show <candidate>:<path>` hashed with sha256 and compared with the parent
+artifact's own pin.
 
 **Every number in this brief either carries the head it was measured at, or is marked TO MEASURE AT
 INTEGRATION with the exact command that will measure it.** Nothing is carried from a lane report
@@ -168,8 +193,22 @@ Measured by this author at the accepted F2 head `b9777fe4` on `rebuild/d-f2-land
 `78d1d73c02b115981006ab38dd0a16bfcd9fddbee8afa40c872964155281b9e7`. **The value
 `b84b0b4056fbb1f82b11dd63d4a335674e57176ced31b2defd6748ed0c1002da` that the input pack carries for
 `guard-coverage.test.mjs` is a SUPERSEDED round's value and must not be used.** Both final values
-are still TO MEASURE AT INTEGRATION, at the merged head, by
-`git hash-object` against the worktree or by the runner's own recomputation.
+are still TO MEASURE AT INTEGRATION, at the merged head.
+
+**CORRECTED IN LOOP ROUND 1, review L1 B4: NEVER `git hash-object`.** An earlier draft offered
+`git hash-object` as one way to take a final post-image. **It is the wrong digest.** `git
+hash-object` returns the Git OBJECT ID, a SHA-1 over a `blob <len>\0` header plus the bytes;
+`post` must be a SHA-256 over the RAW file or blob bytes with no header. Measured by this author in
+the farm over the identical input `rebuild/lanes/d/f2/guard-coverage.test.mjs` at the accepted F2
+head: `git hash-object` gives `91297a68de11b0b462986807c7a7c03106bc2783` (40 hex) while `sha256sum`
+gives `78d1d73c02b115981006ab38dd0a16bfcd9fddbee8afa40c872964155281b9e7` (64 hex); the same pair for
+`projector.test.mjs` is `cd4f4b29e1d15c09816c7ec0ebec379c159afce2` against
+`f74bbe5f40624237a4d24536b3ead036a75ed3bc705a52d6e55032d28bdf8dd6`. Review L1 measured the first
+pair independently and reached the same two values. **A 40-hex post fails
+`PRODUCT-POST-IMAGE-SHAPE` by name (`b-package.cjs:1893`), which admits only `null` or
+`/^[a-f0-9]{64}$/`.** The commands that measure a post correctly are `sha256sum <path>` against the
+worktree, `git show <rev>:<path> | sha256sum` against a revision, or the runner's own
+recomputation; the two values printed just above were taken that way and are correct.
 
 Measured by this author at the accepted fence head `8019abf6`:
 `rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs` is
@@ -236,11 +275,42 @@ spec and build, the seal generator on `rebuild/b-seal-gen`, and every lane's Mar
 not declarations of this package. `rebuild/DECISIONS.md` and `rebuild/lanes/STATUS.md` move with the
 tip merge and are outside every package's product map by standing practice.
 
-**2.6 Everything else is CARRIED byte-identical**, re-pinned at S8's own post. That includes all 45
-tracked `rebuild/engine` files and `rebuild/coach/engine-revision.cjs`. **The count is TO MEASURE:
-S8's 182 carried is NOT S9's, and this brief does not assume S8's old counts remain valid.** If the
-runner's recomputation finds a moved path that no section above names, that is a finding and it goes
-back to the PM; it is not absorbed into this list.
+**2.6 Everything else the parent PINS is CARRIED byte-identical**, re-pinned at S8's own post.
+
+**CORRECTED IN LOOP ROUND 1, review L1 B7: TRACKED IS NOT PINNED, and an earlier draft confused
+them.** That draft said the carried set "includes all 45 tracked `rebuild/engine` files and
+`rebuild/coach/engine-revision.cjs`". **Only a PARENT-PINNED path may be carried.** MEASURED by this
+author in the farm against the parent artifact on 2026-09-19: `rebuild/engine` has **45 tracked
+files**, of which **18 are parent `product` pins and 0 are parent `executionPins`**, leaving **27
+UNPARENTED**. `rebuild/coach/engine-revision.cjs` is in **NEITHER** map. Executed with the real
+`product()` compiled out of the runner at the accepted head `a224c7b0`: an unparented engine path
+declared `carried` refuses `UNLISTED-PRODUCT-DRIFT rebuild/engine/test/census-partial.cjs is not
+parent-pinned and is not declared new`, and the coach constant declared `carried` refuses the same
+word. Review L1 measured 45/18/0/27 and all 27 refusals independently and reached the same values.
+**So: the 18 parent-pinned engine paths are carried at their parent pins; the other 27 stay OUTSIDE
+the product map while all 45 tracked engine BYTES are preserved unchanged (section 4); and
+`rebuild/coach/engine-revision.cjs` stays outside BOTH maps, holding its S8 value through the
+sealing window, until the separately authorized revision update of section 4.**
+
+**ONE CARRIED PATH IS NOT CARRIED, AND IT IS A DECLARATION THIS BRIEF OWED (review L1 B8).**
+`rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs` IS an S8 parent
+`product` pin, role `edited`, post
+`24525b8f97e90ef0a4501ef233c253989387281315127ed1742943acee19d3e1` (measured from the parent
+artifact), **and its bytes have moved on the runner lane**: `git diff --name-status 789baf6e
+a224c7b0 -- rebuild/lanes/b/tooling/test` returns it `M`, and `sha256sum` at `a224c7b0` gives
+`a238242f3a78628e2235300d531a2f7a49d02c70bfc90d48190955281a79a992`. Executed with the real
+`product()` at `a224c7b0`, declaring it `carried` with changed bytes refuses
+`UNLISTED-PRODUCT-DRIFT`. **It is therefore an `edited` cell, with S8's post as `pre` and the final
+F6/F7/F8-adjusted sha256 as `post`, TO MEASURE AT INTEGRATION.** The same diff returns three more
+tooling cells - `gate-supersession.test.cjs` (`M`), `seal-tip-and-byte-identity.test.cjs` (`M`) and
+`release-from-seal.test.cjs` (`A`) - and this author measured that **none of the three is in either
+S8 map**, so none owes a parent-pin declaration; all three stand in `TOOLING_FILES`
+(`b-package.cjs:371-385`), which is what exempts them from `fidelity()`'s `UNLISTED-SOURCE-CHANGE`
+walk at `:2568`. `release-from-seal.test.cjs` remains role `new` as section 2.4 says.
+
+**The count is TO MEASURE: S8's 182 carried is NOT S9's, and this brief does not assume S8's old
+counts remain valid.** If the runner's recomputation finds a moved path that no section above names,
+that is a finding and it goes back to the PM; it is not absorbed into this list.
 
 ## 3. The bar
 
@@ -329,7 +399,9 @@ for a reason this brief did not predict, that is F.2 STOP-3: a finding, not a fi
 
 ## 4. What does not move
 
-- **No `rebuild/engine` byte.** All 45 tracked files stand at S8's own post; the
+- **No `rebuild/engine` byte.** All 45 tracked files keep the bytes they have; **the 18 that the
+  parent PINS stand at S8's own post and are carried there, and the other 27 are unparented and stay
+  outside the product map** (measured, section 2.6, review L1 B7). The
   `s9-engine-files-differential` child measures it and the runner recomputes the same comparison.
   **`DECISIONS:606` names an engine finding that is held for the owner and it is NOT S9's to fix.**
   Reproduced by the PM: `rebuild/engine/today.cjs` `pickStructural` (`:55`) rightly excludes
@@ -351,13 +423,32 @@ for a reason this brief did not predict, that is F.2 STOP-3: a finding, not a fi
   MEASURE AT INTEGRATION by reading the constant, not by copying it from S8's brief.
 - **Zero U+2013 and zero U+2014** on any line this package writes, measured.
 - **The sealed bundle and the six words are unchanged.** S9 needs nothing new from the owner.
-- **The owner's own words are not paraphrased where a release or a deploy is concerned.** Two that
-  bind this package, quoted with their ledger lines: `DECISIONS:536`, **"Yes, release the screen
-  files"**, which is the whole authority for the closed list of two; and `DECISIONS:593`, in the
-  owner's own words, **"1. C-UI-0 is the long pole for the look. ... No check is dropped."** and
-  **"4. Put Astra's gauge number in every status you send me."** S9 does not re-order anything he
-  sequenced, and `DECISIONS:590`'s trial-order question is explicitly NOT RULED and must not be
-  presented as accepted.
+- **The owner's own words are not paraphrased where a release or a deploy is concerned, and they are
+  quoted CHARACTER FOR CHARACTER, with no omission inside the quotation marks.**
+
+  **CORRECTED IN LOOP ROUND 1, review L1 B6.** An earlier draft printed point 1 of `DECISIONS:593`
+  as `"1. C-UI-0 is the long pole for the look. ... No check is dropped."`. **The owner did not
+  write that three-dot omission**, and a raw substring comparison against the ledger line proves it:
+  measured by this author in the farm, `DECISIONS:593` `includes()` that string is **false**, while
+  it `includes()` `1. C-UI-0 is the long pole for the look.` **true** and `No check is dropped.`
+  **true**. Review L1 measured the same and called the omission BLOCKING under the commission's
+  character-for-character rule. **Point 1 is therefore quoted COMPLETE below**, and each quotation
+  stands on ONE source line of this file so that a raw byte comparison succeeds without soft-wrap
+  folding (review L1's second B6 measurement: the release quotation was raw `exact=false` only
+  because this file wrapped it across two lines; the ledger line itself contains it exactly).
+
+  From `DECISIONS:536`, the whole authority for the closed list of two:
+
+  **"Yes, release the screen files"**
+
+  From `DECISIONS:593`, in the owner's own words, point 1 complete and point 4 complete:
+
+  **"1. C-UI-0 is the long pole for the look. When the design lead pushes the two R4 fixes, run Astra's second teeth audit at once as the re-check (its rows plus B1 and B2) and do your Fable final in parallel, not R5 then audit then final in series. No check is dropped."**
+
+  **"4. Put Astra's gauge number in every status you send me."**
+
+  S9 does not re-order anything he sequenced, and `DECISIONS:590`'s trial-order question is
+  explicitly NOT RULED and must not be presented as accepted.
 
 ## 5. The two reseal rules of VERDICT-S6.md, applied
 
@@ -385,18 +476,32 @@ package.
 
 **5.1 What the runner needs before any of this can run: the E fact list, 1 to 23.** Facts 1 to 22
 are spec section E; fact 23 is `DECISIONS:582`. **Facts 1 to 7 and 12 are ALREADY BUILT on
-`rebuild/b-s9-prep-runner` at `397ac466` and this brief states them as measured there, not as work
-to do.**
+`rebuild/b-s9-prep-runner` and this brief states them as measured, not as work to do.**
+
+**THE HEAD THESE FACTS ARE MEASURED AT MOVED DURING THIS REVIEW LOOP, and this is the ONE place
+lane A's state is stated.** An earlier draft measured them at `397ac466` and called lane A's row
+PENDING ASTRA R6. **`DECISIONS:620` has ACCEPTED lane A at `a224c7b0` on
+`rebuild/b-s9-prep-runner`**, runner sha256
+`d52acc31c99845ed774c5111a261b84012538495e0ee2caa1d13827c1d28bb53`, **3898 lines**, the ten tooling
+suites **151 of 151 on both systems**. This author re-measured the sha256 and the line count in the
+farm and reproduces both. The one change between the two heads is **H27**: `git diff -U0 397ac466
+a224c7b0 -- rebuild/lanes/b/tooling/b-package.cjs` returns ONE file, 37 insertions and 3 deletions,
+seeding `canonicalSpecPaths()` with the two fixed execution coordinates. **So every runner line this
+brief cites at or below `:1227` is unchanged, and every runner line it cites at or above the old
+`:1235` moves by +34; each citation below was re-located by TEXT and not by arithmetic.** The seven
+ancestor packages are re-pinned to `d52acc31...`, and **E fact 7 is still done ONCE MORE, LAST, at
+integration** (section 9 item 10), because integration adds PM-A1's runner commit (section 9 item
+11) after it.
 
 | # | fact | state, with the head it was measured at |
 | --- | --- | --- |
-| 1 | `IDS` gains `'S9'`, directly behind `'S8'` and ahead of `'B1'`; THIRTEEN ids | BUILT. Measured at `397ac466`, `b-package.cjs:177`: `['B-NTC','H3','S3','S4','S5','S6','S7','S8','S9','B1','B2','B4','B3']` |
-| 2 | `NO_REGISTER_IDS` gains `'S9'`; NINE ids | BUILT. Measured at `397ac466`, `:324`. `S9` is an S- id, so the shape assert at `:329-:330` admits it without a by-name PM ruling |
-| 3 | `CHILD_ROOTS` gains the new lane roots | BUILT to TWENTY-FOUR. Measured at `397ac466`, `:427-:481`: S8's twenty plus `rebuild/lanes/d/p3-layout-v2/`, `rebuild/lanes/c/p3-today-hotfix/`, `rebuild/lanes/c/passphrase-normalize/` and `rebuild/lanes/c/s9-today-carry/`. **`rebuild/lanes/c/ui-port/` is the TWENTY-FIFTH and is deliberately NOT in yet**: F7 asserts every root is a real directory of this repository, and it is added with C-UI-1's bytes at the single re-measure |
-| 4 | Of the new roots, ONLY `rebuild/lanes/c/ui-port/` joins `PUBLIC_TAIL_ROOTS` | NOT YET. Measured at `397ac466`, `:531-:532`: `PUBLIC_TAIL_ROOTS` still has its SIX. A child root says a suite may be EXECUTED; that list says its output may be PRINTED, and the second is argued per root with `TAIL_DENYLIST` in hand |
+| 1 | `IDS` gains `'S9'`, directly behind `'S8'` and ahead of `'B1'`; THIRTEEN ids | BUILT. Re-measured by this author at `a224c7b0`, `b-package.cjs:177`, by compiling the real runner and reading the constant: `['B-NTC','H3','S3','S4','S5','S6','S7','S8','S9','B1','B2','B4','B3']`, length 13. Unchanged from `397ac466` |
+| 2 | `NO_REGISTER_IDS` gains `'S9'`; NINE ids | BUILT. Re-measured at `a224c7b0`, `:324`: nine ids. `S9` is an S- id, so the shape assert at `:329-:330` admits it without a by-name PM ruling. Unchanged from `397ac466` |
+| 3 | `CHILD_ROOTS` gains the new lane roots | BUILT to TWENTY-FOUR. Re-measured by this author at the ACCEPTED head `a224c7b0`, `:427-:481`, by compiling the real runner and reading the constant: `CHILD_ROOTS.length === 24` - S8's twenty plus `rebuild/lanes/d/p3-layout-v2/`, `rebuild/lanes/c/p3-today-hotfix/`, `rebuild/lanes/c/passphrase-normalize/` and `rebuild/lanes/c/s9-today-carry/`. **TWO roots are still missing, not one (CORRECTED IN LOOP ROUND 1, review L1 B2): `rebuild/lanes/c/ui-port/` AND `rebuild/lanes/d/f2/`.** Both measured absent at `a224c7b0`. F7 asserts every root is a real directory of this repository, so `ui-port/` is added with C-UI-1's bytes at the single re-measure; `rebuild/lanes/d/f2/` is a real directory at the accepted F2 head today and is added with E fact 23's step. **The resulting count is TO MEASURE AT INTEGRATION and this brief asserts none** |
+| 4 | Of the new roots, ONLY `rebuild/lanes/c/ui-port/` joins `PUBLIC_TAIL_ROOTS` | NOT YET. Re-measured at `a224c7b0`, `:531-:532`: `PUBLIC_TAIL_ROOTS.length === 6`, unchanged. **This fact survives review L1 B2 exactly as written: `rebuild/lanes/d/f2/` becomes a CHILD root and does NOT join the tail list.** A child root says a suite may be EXECUTED; that list says its output may be PRINTED, and the second is argued per root with `TAIL_DENYLIST` in hand |
 | 5 | Six `s9-supersede-*` / `s9-engine-files-differential` mirrors | BUILT, and red today at 0 pass / 1 fail each with `ENOENT packages/S9.json` (section 3.4) |
-| 6 | F6 takes `IDS` of thirteen, `NO_REGISTER_IDS` of nine and `PRODUCT_ROLES` of SIX by literal and `deepEqual`; F7 takes `CHILD_ROOTS` whole and in its `slice(8)` literal | BUILT. Measured at `397ac466`: `pinned-unchanged-and-ruled-substitutions.test.cjs` F6 at `:272`, F6b at `:341` ("PRODUCT_ROLES is the closed six, in order, with M2-S9-UI-PINS's released last"), F7 at `:383`, F8 at `:489`. `PRODUCT_ROLES` at `b-package.cjs:367` is `['edited','carried','new','superseded-by-child','pinned-unchanged','released']` |
-| 7 | The runner sha re-pinned in `H3`, `S3`, `S4`, `S5`, `S6`, `S7` and `S8`, `tooling.runnerSha256` only | BUILT and **DONE LAST**, which is the rule: `DECISIONS:598` records round 6 redoing E fact 7 last, seven packages re-pinned by one value each. It is done last again at integration |
+| 6 | F6 takes `IDS` of thirteen, `NO_REGISTER_IDS` of nine and `PRODUCT_ROLES` of SIX by literal and `deepEqual`; F7 takes `CHILD_ROOTS` whole and in its `slice(8)` literal | BUILT. Re-measured at `a224c7b0`: `pinned-unchanged-and-ruled-substitutions.test.cjs` F6 at `:272`, F6b at `:341` ("PRODUCT_ROLES is the closed six, in order, with M2-S9-UI-PINS's released last"), F7 at `:383`, F8 at `:489` - all four line numbers unchanged from `397ac466`. `PRODUCT_ROLES` at `b-package.cjs:367` is `['edited','carried','new','superseded-by-child','pinned-unchanged','released']`. **CONSEQUENCE OF REVIEW L1 B2: F7's own title and literal say this package adds FOUR roots behind S8's; adding `rebuild/lanes/c/ui-port/` and `rebuild/lanes/d/f2/` makes it SIX, so F7's literal, its `slice(8)` window and its stated count all move with the hunk, and F8's `PUBLIC_TAIL_ROOTS` literal moves by exactly ONE.** Both re-measured at integration |
+| 7 | The runner sha re-pinned in `H3`, `S3`, `S4`, `S5`, `S6`, `S7` and `S8`, `tooling.runnerSha256` only | BUILT at `a224c7b0` to `d52acc31c99845ed774c5111a261b84012538495e0ee2caa1d13827c1d28bb53` (`DECISIONS:620`), and **DONE ONCE MORE, LAST**, which is the rule: `DECISIONS:598` records round 6 redoing E fact 7 last, seven packages re-pinned by one value each. It is done last again at integration, AFTER PM-A1's runner commit (section 9 item 11) and after every other runner hunk |
 
 | # | fact | state, with the head it was measured at |
 | --- | --- | --- |
@@ -404,8 +509,8 @@ to do.**
 | 9 | Every pre/post measured FROM GIT at the declared `sourceBase`, never copied from a report | A RULE, applied by this brief to itself |
 | 10 | The standing CI step becomes `--package S9`, named inside S9's own post before `proposed()` | TO DO. Section 5 rule (a) |
 | 11 | The revision cells read the sealing window | Section 5 rule (b); measured standing constant `M2-S8-REAL-SHAPE@3b1b8b91dd5a6ff0` |
-| 12 | Five `CHILD_SPECS` cells gain `'S9'` as the youngest | BUILT. Measured at `397ac466`, e.g. `today/test/setup.test.mjs:2365`: `['H3','S3','S4','S5','S6','S7','S8','S9']` |
-| 13 | H1 to H13 and H17, the release mechanism, plus `tooling/test/release-from-seal.test.cjs` added to `TOOLING_FILES` in the same hunk | BUILT through round 6, with P-A1 to P-A13 on top (`DECISIONS:560`, `:567`, `:572-:573`, `:579`, `:587`, `:598`). PENDING ASTRA R6 |
+| 12 | Five `CHILD_SPECS` cells gain `'S9'` as the youngest | **FOUR BUILT, ONE STILL TO DO (CORRECTED IN LOOP ROUND 1, review L1 N11).** Re-measured by this author at `a224c7b0` by searching each of the five cells for the `'S9'` literal: `today/test/food.test.mjs`, `today/test/machine-settings-ui.test.mjs`, `today/test/problem.test.mjs` and `today/test/setup.test.mjs` carry it (`setup.test.mjs:2365`: `['H3','S3','S4','S5','S6','S7','S8','S9']`); **`measure/test/boundary.test.mjs` does NOT - its list still ends at `'S8'`.** That fifth edit is TO DO at integration and its final post is TO MEASURE. Review L1 measured the same four-of-five at `397ac466` |
+| 13 | H1 to H13 and H17, the release mechanism, plus `tooling/test/release-from-seal.test.cjs` added to `TOOLING_FILES` in the same hunk | BUILT and **ACCEPTED** at `a224c7b0` (`DECISIONS:620`), with P-A1 to P-A13 on top (`DECISIONS:560`, `:567`, `:572-:573`, `:579`, `:587`, `:598`). This author re-measured `TOOLING_FILES` at `a224c7b0` (`b-package.cjs:371-385`) and `release-from-seal.test.cjs` stands in it |
 | 14 | The D.2 fence cell and its `rebuild.yml` step, reading the inventory out of Git at `CHAIN_REF` | ACCEPTED at `8019abf6` (`DECISIONS:591`). The step is still TO ADD to `rebuild.yml` |
 | 15 | The `released` block in `rebuild/m4/spec/acceptance-s9-ui-pins.json`, both paths, each with `role: "released"`, `lastSealedSha256`, `sealedBy: "M2-S8-REAL-SHAPE"` and the token line's sha256 | TO DO. Written by `proposed()`, never by hand |
 | 16 | H18, H18b, H18c in `today/test/package.test.cjs` | TO DO. H18 is the 26-entry `REQUIRED_INPUTS` literal for `today/**`, 26 of 48 and not of 51; H18b binds the whole 48 by count; H18c the engine pack (`DECISIONS:570`). **Without H18 that goes red on a deleted entry, `build.mjs` leaves the closed list and the token line is rewritten before it is written** (F.2 STOP-6) |
@@ -414,8 +519,8 @@ to do.**
 | 19 | `today-model.cjs` NOT declared and carried out loud; `browser-check.mjs` NOT declared and NO CI home | Section 2.5 and section 8 |
 | 20 | S9-TODAY-CARRY's FOUR declarations | `today-app.cjs` (`edited`, the one binding line), `today/test/view.test.mjs` and `today/test/adapter.test.mjs` (`edited`, product AND execution pins), `.github/workflows/rebuild.yml` (`edited`). **E20's sentence that the two lane cells are not declarations is SUPERSEDED by the runner's rule** (section 2.4) |
 | 21 | PASSPHRASE-NORMALIZE's declarations | `import-bundle.mjs`, `import-screen.mjs`, `import/test/page-bundle.test.mjs`, `rebuild/m3/setup/port/passphrase.cjs` (`new`, SEALED), plus the three lane cells with a CI STEP and a CHILD ROOT. That step is the guard that keeps every sealed bundle valid, not a convenience |
-| 22 | `rebuild/m3/w6/test/local-import.test.mjs` gets a CI HOME | Its root `rebuild/m3/w6/test/` is already in `CHILD_ROOTS`, so this costs a `rebuild.yml` step and a declared child and no `CHILD_ROOTS` hunk |
-| **23** | **F2-LAND rides S9 in its ENTIRETY**: the unchanged module, BOTH cell paths, the CI step and the combined `rebuild.yml` post (`DECISIONS:582`, which REVERSED the standalone merge plan of `:581`) | Closed at `b9777fe4`. Its two cells get ONE explicit step and ONE declared child; the workflow post is measured combined, never taken from F2's own report |
+| 22 | `rebuild/m3/w6/test/local-import.test.mjs` gets a CI HOME | Its root `rebuild/m3/w6/test/` is already in `CHILD_ROOTS`, so this costs a `rebuild.yml` step and a declared child and no `CHILD_ROOTS` hunk. **ITS ROLE, WHICH AN EARLIER DRAFT LEFT BLANK (review L1's answer (5)): it is in NEITHER parent map, and once a declared child executes it every executed file must be declared - so it takes role `pinned-unchanged` with equal MEASURED `pre` and `post`, which is honest because S9 does not write it. TO MEASURE AT INTEGRATION** |
+| **23** | **F2-LAND rides S9 in its ENTIRETY**: the unchanged module, BOTH cell paths, the CI step and the combined `rebuild.yml` post (`DECISIONS:582`, which REVERSED the standalone merge plan of `:581`) | Closed at `b9777fe4`. Its two cells get ONE explicit step and ONE declared child; the workflow post is measured combined, never taken from F2's own report. **AND `rebuild/lanes/d/f2/` MUST JOIN `CHILD_ROOTS` FIRST (review L1 B2, measured above at fact 3): without it the declared child refuses `CHILD-ARGV-TARGET` on BOTH cell paths and E fact 23 cannot be declared at all** |
 
 **The release must not collide with an execution pin.** The runner refuses a released path that
 `proposed()` would put back into `executionPins` by any of its five routes - the runner, this
