@@ -20,11 +20,19 @@ clauses of `fence()` that survived removal with not one row changing colour, plu
 finding routed to the PM on a false premise. All six are fixed; none is disputed; nothing
 was narrowed to make a claim true.
 
+**ROUND 4, A MICRO FIX ROUND, AFTER `S9-PREP-CELLS-REVIEW-R3.md` REJECTED `32c80967` ON
+TWO BLOCKING FINDINGS THE PM UPHELD.** A fourth author. **Section 14 is the new one**, and
+it is the one to read for the state of the fence at the head this report describes: round
+4 moved ONE file, `rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs`, and left
+`rebuild.yml`, `package.test.cjs` and `boundary.test.mjs` byte-identical. Every count in
+sections 0 to 13 that round 4 moved is corrected in place and marked **(R4)**; everything
+else in them is the record of the round that measured it and is left alone.
+
 ## 0. WHAT LANDED, IN ONE TABLE
 
 | ticket item | file | commit | state at the end |
 |---|---|---|---|
-| (1) the fence | `rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs` (NEW) | `eee1206` RED, `5738a96` GREEN, `b4b739c` three more rows, **(R1) `0b2538b` seven more rows, `ee70489` the case control** | **27 rows: 26 green, THE REAL ROW red by name and expected** |
+| (1) the fence | `rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs` (NEW) | `eee1206` RED, `5738a96` GREEN, `b4b739c` three more rows, **(R1) `0b2538b` seven more rows, `ee70489` the case control**, **(R4) `8033a0b` row (20), `74e2ec5` RED rows (21)(22)(23), `21f494e` the one-clause fix, `6b3e6fb` M29 and M43** | **(R4) 38 rows: 37 green, THE REAL ROW red by name and expected** (was 27 after R1, 34 after R3) |
 | (2) H18 | `rebuild/m3/w7-preview/today/test/package.test.cjs` | `4f72b08`, **(R1) `6e45e1f` H18b and notes N4, N6** | **13 tests, 13 pass** (was 11 before H18, 12 before H18b) |
 | (3) C.2 + E fact 12 | `rebuild/m3/w7-preview/measure/test/boundary.test.mjs` | `0191808`, **(R1) `6bb984c` N11's comment** | 6 tests, 5 pass, 1 fail - the SAME pre-existing red as before the ticket |
 | (4) three CI steps | `.github/workflows/rebuild.yml` | `f5517b9` | 33 insertions, 2 hunks, nothing between old :236 and old :303. **(R1) unchanged in the fix round** |
@@ -45,7 +53,7 @@ Node `C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\no
 | `b-package.cjs --ci --package S8` | `B PACKAGE S8 FAIL SEALED-PROFILE-RECOMPUTATION; required evidence missing or failed; local diagnostics withheld`, exit 1 | **identical, byte for byte**, exit 1 |
 | the whole today step (`rebuild.yml:232`, 17 cells) | see section 1.1 | see section 1.1 |
 | all 24 cells in the three test directories under `rebuild/m3/w7-preview/` | tests 728, pass 726, fail 2, 154.3 s | - |
-| the fence cell (new step a) | did not exist | tests 20, pass 19, fail 1, exit 1. **(R1) after the fix round: tests 27, pass 26, fail 1, exit 1** |
+| the fence cell (new step a) | did not exist | tests 20, pass 19, fail 1, exit 1. **(R1) after the fix round: tests 27, pass 26, fail 1, exit 1**; **(R4) at the head this report describes: tests 38, pass 37, fail 1, exit 1, on BOTH operating systems (section 14.6)** |
 | the three passphrase cells (new step b) | tests 20, pass 20, fail 0 | tests 20, pass 20, fail 0 |
 | `rebuild/m3/w6/test/local-import.test.mjs` (new step c) | tests 22, pass 22, fail 0 | tests 22, pass 22, fail 0 |
 | the lane C step at `rebuild.yml:306` | tests 9, pass 9, fail 0 | tests 9, pass 9, fail 0 |
@@ -152,7 +160,11 @@ nothing else:
 | **(9)** (R1) | a branch merely BEHIND the chain, the chain having moved two sealed paths | PASSES: the diff runs from the MERGE BASE |
 | **(10)** (R1) | a git that cannot be spawned vs a chain ref that is genuinely gone | two different refusal names; never a pass either way |
 | **(12)** (R1) | a `released` block of the wrong shape (an array) | releases NOTHING: fail closed |
-| REAL | this repository, this branch | FAILS by name; section 2.3 |
+| **(20)** (R4) | a spec with the key closure intact whose `parent.chosen` resolves to NO option, over four worlds | all four FAIL `(2)`, and the refusal NAMES the chosen id: R3 BLOCKING-1 |
+| **(21)** (R4) | a verified reseal child widening the chain's NEWLY sealed artifact in its worktree | FAILS `FENCE-INVENTORY-DIFFERS-FROM-CHAIN` and its own sealed touch: R3 BLOCKING-2 |
+| **(22)** (R4) | the same, where the chain RE-sealed the artifact path after the branch was cut | FAILS the same two ways |
+| **(23)** (R4) | an ORDINARY branch FORGING the chain's newest artifact with `released` = every path; and the same branch touching another file in `rebuild/m4/spec/` | FAILS by name / PASSES: the limb names the ARTIFACT PATH and F9 stays closed |
+| REAL | this repository, this branch | FAILS by name; section 2.3, re-measured at 14.7 |
 
 ### 2.3 THE MEASURED REFUSAL OF THE REAL ROW ON THIS BRANCH
 
@@ -486,7 +498,7 @@ Taken from the tree with a script, never copied from the spec.
 | `rebuild.yml` names `local-import.test.mjs` | **0 times** | zero (E fact 22) | CONFIRMED |
 | `rebuild/m3/w6/test/` in `CHILD_ROOTS` | **present**, `b-package.cjs:405` | present | CONFIRMED |
 | cells in the three test directories under `rebuild/m3/w7-preview/` | **24** (13 today, 6 measure, 5 import) | - | measured for step 1 |
-| the fence cell | **34 rows, 33 green, 1 red** at `45bd62c`, on BOTH systems | - | re-measured at the final head (R2 N9) |
+| the fence cell | **(R4) 38 rows, 37 green, 1 red** at `6b3e6fb`, on BOTH systems (was 34/33/1 at `45bd62c`) | - | re-measured at the final head (R2 N9, again at 14.6) |
 | `package.test.cjs` | **11 tests before H18, 14 after** (H18, H18b, H18c) | - | re-measured at the final head (R2 N9) |
 | sealed paths this branch touches | **9** | the ticket named 3 of them | the other 6 are E facts 20 and 21 |
 | `rebuild.yml` insertions | **56, in 2 hunks** (`@@ -230,6 +230,33 @@` and `@@ -304,5 +331,23 @@`), against `da9f8683` | - | re-measured after P-FENCE-1 |
@@ -1347,10 +1359,18 @@ commits, one answer and the same nine paths.** R1 N10's line earns its character
 3. **R1 N9, still unsealed.** The cell's byte-exact artifact comparison means the same
    thing on both runners because `.gitattributes` says `* text=auto eol=lf`, and
    `.gitattributes` is in **neither** S8 map. Nothing in this ticket can seal it.
-4. **The honest limit of the fence, now in the cell's header.** A verified reseal child is
-   fenced by the seal and by `fidelity()`, and by this cell not at all - except for the
-   artifact-tamper check, which N4 moved above the claim. And this cell asks only whether a
-   touched path is IN the sealed inventory: `today-model.cjs:378` writes an athlete's
+4. **(R4) The honest limit of the fence, now in the cell's header, and R3 BLOCKING-2
+   corrected what this item used to say.** A verified reseal child is fenced by the seal
+   and by `fidelity()`, and by this cell not at all - except for the artifact-tamper check,
+   which N4 moved above the claim **and which, at the head this report describes, holds
+   WHEREVER THE BRANCH WAS CUT, because it asks THE DIFF and not the merge base's bytes**.
+   At round 3's head that "except" was overstated: a verified child cut one reseal earlier
+   stood aside anyway, and an ordinary branch forging the chain's newest artifact passed
+   with no refusal at all (R3 measured all three worlds; rows (21), (22) and (23) are them).
+   **The limit that remains, stated the other way round, is the whole of it: a branch whose
+   own merge-base diff never touches the artifact is never accused of tampering with it,
+   and a byte-equal copy of the chain's bytes is a touch and not a tamper.** And this cell
+   asks only whether a touched path is IN the sealed inventory: `today-model.cjs:378` writes an athlete's
    weight reading from OUTSIDE it, so until TODAY-SPLIT seals its writer this fence passes
    a branch that rewrites the weigh-in admission bounds. That is D.4's WRITER-FENCE and S9
    does not build it.
@@ -1391,9 +1411,327 @@ assertion.
 
 ---
 
-Author: cowork (Earned lane hand), lane B, ticket S9-PREP-B, fix round 3, short.
+Author of round 3: cowork (Earned lane hand), lane B, ticket S9-PREP-B, fix round 3, short.
 Red first is literal for all eight behaviours. **Thirty-six clause mutations, one survivor
 found and closed by a row and not by a weaker claim.** Both operating systems agree row
 for row. One new finding, F9, which N4's move uncovered and which would have fired on
 every lane branch the day S9 seals. **This report is a hypothesis: disagree with it where
 the evidence lets you.**
+
+**Round 4's own footer is at the end of section 14.**
+
+---
+
+# 14. R3 FINDINGS: FIXED
+
+Round 4, a micro fix round by a fourth author. The earlier authors are gone and nothing of
+theirs was discarded. Branch `rebuild/b-s9-prep-cells`, base for this round `814d593b`
+(round 3's head `32c80967` plus R3 itself), final head `6b3e6fb`. **ONE FILE MOVED:**
+`rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs`, plus this report.
+`rebuild.yml`, `package.test.cjs` and `boundary.test.mjs` are **byte-identical to
+`814d593b`** and were not opened for edit in this round.
+
+R3 was REJECT on two blocking findings and the PM UPHELD BOTH. Both are fixed. R3's two
+cheap survivors are adopted. Its three equivalent mutants are stated and left alone.
+
+**I RE-RAN R3's OWN PROBES FIRST, before writing a line**, against the shipped bytes of
+`814d593b` (`sha256 d3b57a3d...`, byte-identical to R3's pristine copy), on Linux:
+
+```
+probe-m31   parent: null                     | fail | FENCE-RESEAL-CHILD-UNVERIFIED (2) ... names no parent option null
+            parent.chosen names no option    | fail | ... names no parent option "NOBODY"
+            parent.options: []               | fail | ... names no parent option "S8"
+            parent.options not an array      | fail | ... names no parent option "S8"
+probe-f9    A new artifact                   | skip | FENCE-RESEAL-CHILD S10 ... stood aside on .../acceptance-s9-fixture.json
+            B artifact bytes moved           | skip | FENCE-RESEAL-CHILD S9  ... stood aside on .../acceptance-s8-fixture.json
+probe-ord   ordinary branch forging it       | pass | (no refusal)
+```
+
+Both findings reproduce exactly as R3 states them. My harness is at
+`/home/claude/farm/scratch/s9b4/`, outside the repository, pushed nowhere.
+
+## 14.1 THE COMMITS, AND WHICH ARE THE RED ONES
+
+| commit | what | state of the fence cell |
+|---|---|---|
+| `8033a0b` | R3 BLOCKING-1: row (20). **The red is the MUTANT** (M31) | 35 rows, 34 green, 1 red |
+| `74e2ec5` | **RED** - rows (21)(22)(23) against the SHIPPED `carriedAtBase` limb | 38 rows, 34 green, **4 red** |
+| `21f494e` | R3 BLOCKING-2: the tamper limb asks the DIFF. One clause | 38 rows, 37 green, 1 red |
+| `6b3e6fb` | R3's two cheap survivors: M29's assertion in (8a), M43's `runnerStub` reorder. **The red is the MUTANT**, twice | 38 rows, 37 green, 1 red |
+| this commit | the report | - |
+
+The one red at the end is THE REAL ROW, which is designed red on this branch.
+
+## 14.2 R3 BLOCKING-1, FIXED: ROW (20)
+
+`if (option === null) return bad(2, ...)` was a clause with no row. R3's M31 replaced it
+with a stand-aside and not one row changed colour, on either operating system.
+
+Row (20) runs four worlds - `parent: null`, `parent.chosen` naming no option,
+`parent.options: []`, `parent.options` not an array - and for each asserts three things:
+that `Object.keys(spec)` still IS the `SPEC_KEYS` closure (so the world really does reach
+condition (2) rather than dying at (1), which is what makes row (8a)'s two bad bodies
+miss it), `unverified(r, 2)`, and that the refusal NAMES the chosen id.
+
+**RED FIRST IS THE MUTANT, and it is red on both operating systems at the committed bytes:**
+
+```
+with M31 (the stand-aside)      Windows 35 / 33 / 2      Linux 35 / 33 / 2
+  not ok 34 - R3 BLOCKING-1 (20) ...
+      parent is null: it SKIPPED: "FENCE-RESEAL-CHILD forged"
+with the shipped clause         Windows 35 / 34 / 1      Linux 35 / 34 / 1
+```
+
+**`unverified` itself is byte-identical.** My first draft gave it an optional third
+argument for the world name; my own sweep then found that argument SURVIVED as a clause
+no green run can observe, because it appears only inside an assertion's failure message.
+I removed it rather than ship a clause with no row inside the fix for a clause with no
+row. The world name is carried by the row's own `assert.equal(r.status, "fail", ...)`,
+which the M31 run above prints.
+
+## 14.3 R3 BLOCKING-2, FIXED: ONE CLAUSE, THREE ROWS
+
+The shipped limb asked whether the MERGE BASE held the chain's CURRENT bytes. The cell's
+own comment says the question is whether THIS BRANCH MOVED IT. The fix is R3's, measured
+and shipped as written:
+
+```js
+  const tampered = touched.some((t) => t.path === artifactPath)
+    && (worktree === null || !worktree.equals(chainBytes));
+```
+
+`baseArtifact` and `carriedAtBase` are gone with it, and so is the `git show <base>:<path>`
+read they needed - a clause removed rather than a clause added.
+
+**THE THREE ROWS, RED FIRST AGAINST THE SHIPPED LIMB, both operating systems at `74e2ec5`
+(Windows 38 / 34 / 4, Linux 38 / 34 / 4), the measured text:**
+
+```
+(21) a verified reseal child of a NEWLY sealed artifact, widening it in its worktree
+     "a verified child widened the chain's newest artifact and stood aside:
+      FENCE-RESEAL-CHILD S10 rebuild/lanes/b/tooling/packages/S10.json stood aside on
+      rebuild/m4/spec/acceptance-s9-fixture.json 90650c8c2ee7..."
+(22) a verified child of a RE-sealed artifact path, widening it
+     "a verified child widened a re-sealed artifact and stood aside:
+      FENCE-RESEAL-CHILD S9 rebuild/lanes/b/tooling/packages/S9.json stood aside on
+      rebuild/m4/spec/acceptance-s8-fixture.json a2f07b6a06fb..."
+(23) an ORDINARY branch cut before the chain's newest artifact, FORGING it with
+     released = every path
+     "a branch forged the chain's newest artifact in its worktree and PASSED: "
+     - and the refusal list was EMPTY, which is why that message ends in nothing
+```
+
+**GREEN AFTER, at `21f494e`: Windows 38 / 37 / 1 (39.2 s), Linux 38 / 37 / 1 (3.5 s).**
+
+**ROWS (6), (6b), (6c), (8g), (17) AND (19) ARE UNEDITED AND GREEN**, which is what makes
+this a narrowing and not a trade. I did not touch one byte of any of them.
+
+**F9 STAYS CLOSED, and row (23) now measures that too.** Its second half is the same
+branch, cut in the same place, that does NOT touch the artifact - and that DOES touch
+another file in the artifact's own directory (`rebuild/m4/spec/review-fixture.json`). It
+must PASS. That half exists because my own sweep found the widened form
+`touched.some((t) => t.path.startsWith(SPEC_DIR))` surviving: it re-opens F9 for every
+branch that adds a review file beside the artifact, and nothing measured the difference.
+It is M52 in the table below and row (23) kills it.
+
+**The deletion case stays refused** (a `D` record is a touch: rows (6c) and (19)'s second
+half). **A cherry-picked byte-equal copy is a touch and not a tamper**, because the second
+limb is unchanged.
+
+## 14.4 R3's TWO CHEAP SURVIVORS, ADOPTED
+
+**M29, a sentence and not a verdict.** One assertion in (8a): the `not a spec at all` body's
+refusal must say `does not parse`. RED on the mutant `catch { spec = {} }`, both systems:
+Windows 38 / 36 / 2, Linux 38 / 36 / 2, (8a) red with
+`"a body that is not JSON is reported as a key-closure miss: FENCE-RESEAL-CHILD-UNVERIFIED
+(1) rebuild/lanes/b/tooling/packages/S9.json is not the runner's own SPEC_KEYS key closure
+(b-package.cjs:1071)"`.
+
+**M43, `idsOf`'s word boundary.** Two lines in `runnerStub()` putting `RETIRED_IDS` FIRST,
+exactly as R3 asked. **NO ROW WENT RED ON THE REORDER ITSELF** - 38 / 37 / 1 before and
+after, on both systems - so there was nothing to stop and report. RED on the mutant (the
+`\b` removed), both systems: Windows 38 / 32 / 6, Linux 38 / 32 / 6, and **the same five
+rows on both**: (8e), (8f), (8h), (8i) and (17).
+
+**M48, M49 and M50 are equivalent mutants and I did not re-measure them as defects, in
+R3's own words.** `fsBytes` returning an empty Buffer instead of `null` leaves `tampered`
+true through the other limb and `fsBytes` has no other caller. `chainCommit` initialised
+to `""` instead of `null` differs only on the path that returns before `here` is built,
+and no row reads it there. Widening the spec-path regex from `([^/]+)` to `(.+)` makes
+MORE files count as an added spec, so it makes the fence stricter, never looser. All three
+still SURVIVE at my final head, and they are the ONLY survivors.
+
+## 14.5 THE MUTATION SWEEP, RE-RUN AT MY FINAL HEAD: 52 CLAUSES, 49 KILLED, 3 SURVIVED
+
+R3's own `sweep.mjs` and its 50 clauses, re-pointed at `6b3e6fb`, with the four entries
+that named `carriedAtBase` re-anchored on the new clause and **three mutants of my own
+added**, because a clause I wrote is a clause that needs a row. Every entry is one exact
+string substitution against the pristine shipped bytes; the cell is restored after each
+run. (One of my three, M53, was a mutant of a clause I then DELETED - see 14.2 - so the
+set that ran at the final head is 52.)
+
+| # | clause mutated | verdict | rows newly red |
+|---|---|---|---|
+| M20 | the tamper's diff limb forced true | KILLED | (8g), (19), **(23)** |
+| M21 | the tamper's diff limb forced false | KILLED | (6), (6b), (6c), (17), (19), **(21)**, **(22)**, **(23)** |
+| M22 | the tamper's `worktree === null` limb removed | KILLED | (6c), (19) |
+| M23 | the tamper's bytes-differ limb removed | KILLED | (6), (6b), (17), **(21)**, **(22)**, **(23)** |
+| M24 | the tamper refusal never pushed | KILLED | 8 rows |
+| M25 | a tampered branch may still claim | KILLED | (17), **(21)**, **(22)** |
+| **M29** | the spec-parse catch yields `{}` | **KILLED** (was SURVIVED) | (8a) |
+| **M31** | `option === null` stands aside | **KILLED** (was SURVIVED) | **(20)** |
+| **M43** | `idsOf`'s `\b` removed | **KILLED** (was SURVIVED, equivalent) | (8e), (8f), (8h), (8i), (17) |
+| M45 | the inventory read from the WORKTREE | KILLED | (6), (6b), (17), **(21)**, **(22)**, **(23)** |
+| M46 | the verdict is always `pass` | KILLED | 15 rows |
+| **M51** (new) | the tamper limb back to F9's merge-base form, i.e. **exactly what R3 rejected** | **KILLED** | **(21)**, **(22)**, **(23)** |
+| **M52** (new) | the tamper limb reads the diff for ANY `rebuild/m4/spec/` path, not the artifact | **KILLED** | **(23)** |
+| M48 | `fsBytes` returns an empty buffer | **SURVIVED** | equivalent, 14.4 |
+| M49 | `chainCommit` initialised to `""` | **SURVIVED** | equivalent, 14.4 |
+| M50 | the spec-path regex admits a nested path | **SURVIVED** | equivalent and STRICTER, 14.4 |
+
+The other 37 entries of R3's table are unchanged and all still KILLED by the rows R3 names,
+including `P-F1a/b/c` (row (18)) and `N7-M` (`package.test.cjs` H18c). Full output:
+`/home/claude/farm/scratch/s9b4/sweep4.log`.
+
+**M51 is the one to read.** It is the shipped `carriedAtBase` form, re-applied to the fixed
+cell as a mutant, and three rows kill it. That is the proof that this round's fix cannot be
+quietly reverted by a later hand.
+
+## 14.6 THE BAR AT MY FINAL HEAD
+
+`%TEMP%\earned-s9b` at `6b3e6fb`, working tree clean, node v24.19.0,
+`MEASURED_TEST_NOW=2026-09-03`, `TZ=America/New_York`, long runs through a `.cmd` with a
+log and a `.done` file. Linux: a fresh farm scratch worktree of the PUSHED head, whose
+copy of the cell has `sha256 adfda4d9...`, byte-identical to the PC's.
+
+| what | round 4 | round 3 (R3 measured) |
+|---|---|---|
+| `b-package.cjs --ci --package S8` **before my first edit** | `B PACKAGE S8 FAIL SEALED-PROFILE-RECOMPUTATION; required evidence missing or failed; local diagnostics withheld`, exit 1 | identical, word for word |
+| `b-package.cjs --ci --package S8` **after my last edit** | **the same line, word for word**, exit 1 | identical |
+| the fence cell, Windows | **38 / 37 / 1**, exit 1, 37.6 s | 34 / 33 / 1 |
+| the fence cell, Linux | **38 / 37 / 1**, exit 1, 3.5 s | 34 / 33 / 1 |
+| the whole today step (`rebuild.yml:232`, 17 cells) | **685 / 683 / 2**, exit 1 | 685 / 683 / 2, exit 1 |
+| the two today-step failures | `boundary.test.mjs P-MEASURE (g)` and `setup.test.mjs re-pin`, by name | the same two, pre-existing |
+| `package.test.cjs` alone | **14 / 14 / 0**, exit 0 | 14 / 14 / 0, exit 0 |
+| step (b), the three passphrase cells | **20 / 20 / 0**, exit 0 | 20 / 20 / 0, exit 0 |
+| step (c), `rebuild/m3/w6/test/local-import.test.mjs` | **22 / 22 / 0**, exit 0 | 22 / 22 / 0, exit 0 |
+| the lane C step | **9 / 9 / 0**, exit 0 | 9 / 9 / 0, exit 0 |
+
+**No re-run was needed anywhere. Nothing was green once and red once on either machine, so
+nothing in this round is reported as timing.**
+
+**BOTH OPERATING SYSTEMS, ROW FOR ROW.** The whole cell at the pushed head:
+
+```
+Windows, %TEMP%\earned-s9b        38 tests, 37 pass, 1 fail   (THE REAL ROW)
+Linux,   farm scratch s9b4-head   38 tests, 37 pass, 1 fail   (THE REAL ROW)
+```
+
+Rows (20), (21), (22) and (23) are green on both. **No design in D.2 or in R3's two
+findings failed to build on either system.** The four new fixture worlds build their own
+throwaway repositories the way every other row does, with `git checkout -b` on a line of
+their own, and nothing in them is system-dependent.
+
+## 14.7 THE MEASURED REFUSAL OF THE REAL ROW, AT MY FINAL HEAD
+
+Unchanged from R3's: this branch still touches nine sealed paths and carries no
+`packages/S9.json`, so it enters no claim and is refused as an ordinary branch.
+
+```
+Windows (chain ref at 2d71dd049b1b25ca7645cdbd50ff38d70694e159):
+  this change drew 9 refusal(s), 9 of them sealed path(s) that
+  rebuild/m4/spec/acceptance-s8-real-shape.json at
+  refs/remotes/origin/rebuild/t2-client-core (2d71dd04...) does not release
+    FENCE-SEALED-PATH-TOUCHED M .github/workflows/rebuild.yml
+    FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w6/local/import-bundle.mjs
+    FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/import/import-screen.mjs
+    FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/import/test/page-bundle.test.mjs
+    FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/measure/test/boundary.test.mjs
+    FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/today/test/adapter.test.mjs
+    FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/today/test/package.test.cjs
+    FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/today/test/view.test.mjs
+    FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/today/today-app.cjs
+
+Linux (chain ref at 6268e7f86c58ea44b90619116b26e6617f00ff71): the SAME nine paths, the
+  same artifact, the same sentence, a different chain commit.
+```
+
+It is `FENCE-SEALED-PATH-TOUCHED` and not `FENCE-RESEAL-CHILD-UNVERIFIED`, which is right.
+**No skip, no environment switch and no branch-name test was added to make it green.**
+R1 N10 demonstrated itself a third time: the two machines stand at different commits of
+the remote-tracking chain ref and print the same nine paths, which is what the commit in
+the refusal line is for. I did not fetch the chain ref on the PC; other lanes share it.
+
+## 14.8 WHAT THIS ROUND DID NOT TOUCH
+
+`git diff --name-status 814d593b 6b3e6fb` names exactly one file:
+
+```
+M  rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs
+```
+
+plus this report in the commit that carries it. `rebuild.yml`, `package.test.cjs` and
+`boundary.test.mjs` are **byte-identical to `814d593b`**, as this round was told they must
+be. No byte of `rebuild/lanes/b/tooling/**`, no other `CHILD_SPECS` cell, no
+`rebuild/m4/workout/test/**`, no `pack-pin.test.mjs` or `approved-pin.test.mjs`, no product
+file. The whole wait list is untouched: no `packages/S9.json`, no needle, no
+`acceptance-s9` artifact, no `--ci --package S9` walk, no flip of the standing step, no
+PACK-PIN or APPROVED-PIN literal, no `design.test.cjs` hunk, no S9 brief, no PM token line.
+I ran no seal generator, never `b-package.cjs --full`, and wrote no receipt or artifact
+into the tree. I opened nothing under `rebuild/conform/private`, no `ledger/`, no
+`src/history.js`, no `EarnedPort`, no `port-real.log` and no soak, on either machine, and
+created no junction. The authored bytes are ASCII: the cell contains not one non-ASCII
+byte, and no U+2013 or U+2014 is on any line this round adds.
+
+**Not verified, and named so nobody reads it as verified:** GitHub CI itself on this branch
+(STOP-7 is still answered only by the PM's run `35440101975` on another branch); the
+reseal-child SKIP against the real repository, which needs `packages/S9.json`; and whether
+the S9 sealer emits `released` as an object. I did not re-run the sibling lanes' cells, the
+24-cell `rebuild/m3/w7-preview/**` suite, or `coach/test/engine-revision.test.cjs`.
+
+## 14.9 CARRIED FORWARD, UNCHANGED, IN R3's WORDS
+
+**FOR THE S9 INTEGRATOR.**
+
+1. The sibling lane's pack-pin step needs the same run-after-failure condition and **its
+   own row**: row (18) finds only the fence's own step, by this cell's own repository path.
+2. The two new CI homes (b) and (c) **carry no condition**, so on any branch where the
+   standing `--ci --package S8` step fails they never run either. That is the status quo
+   for all 29 other steps and it is **a decision and not an oversight**: both steps exist
+   to give homeless cells a CI home rather than to speak on a failing branch.
+3. `shared-preflight-ci-registration.test.cjs:82` holds the OTHER public workflow's
+   protected step to **no `if:` at all**, under `REGRESSION-NO-SKIP`, with "step skip" in
+   its own mutation list. `rebuild.yml` has no equivalent cell, so nothing in the tree
+   forbids the fence's condition - but the day somebody writes that closure for
+   `rebuild.yml`, **the fence's step is the one exception it will have to name on purpose.**
+4. The `released` shape: `new Set(Object.keys(inv.released || {}))`. A path is released
+   when it is a KEY; values are unread. Row (12) measures the array direction.
+
+**FOR THE PM TO ROUTE.** `rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs:29` pins
+`rebuild.yml` byte for byte against `a777f643`, is **stale-RED**, and is **named by no CI
+step**. Pre-existing; nothing this round did changed its state; not mine to touch.
+
+## 14.10 WHAT I WOULD HAVE THE NEXT REVIEWER ATTACK
+
+1. **The one clause I wrote.** `touched.some((t) => t.path === artifactPath)` is a string
+   equality over a diff record. M52 says the obvious widening is caught. What about the
+   narrowing nobody has tried: a rename of the artifact, where the `[RC]` split gives a
+   `D` on the old path and an `A` on the new one. If the chain's artifact is renamed away
+   by the branch, `touched` holds it at `D` and `worktree` is `null`, so it is a tamper -
+   but I have no row that says so, and row (1e) is about sealed paths rather than the
+   artifact. **I believe that is the nearest thing to a hole left in this cell.**
+2. **Row (23)'s second half rests on `touched === 2`.** If a future helper adds a file to
+   every fixture branch, that assertion moves and its message would read as a real defect.
+3. **Row (20)'s four worlds all die at condition (2).** They prove the clause is reached
+   and refuses; they do not prove the clause is reached on any world a real S9 spec could
+   be in, which is an argument the S9 package itself will settle.
+
+---
+
+Author: cowork (Earned lane hand), lane B, ticket S9-PREP-B, **fix round 4, micro**.
+One file moved. Both of R3's blocking findings fixed, each RED FIRST in its own commit and
+on both operating systems. **Fifty-two clause mutations at the final head, forty-nine
+killed, three survivors and all three are R3's own equivalent mutants.** The two mutants
+this round's own new clause invites - M51 (the form R3 rejected) and M52 (the obvious
+widening) - are both killed by the new rows. **This report is a hypothesis: disagree with
+it where the evidence lets you.**
