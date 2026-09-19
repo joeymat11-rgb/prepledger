@@ -11,15 +11,24 @@ Design of record: `rebuild/lanes/b/S9-RELEASE-SPEC.md` (v4), with
 them. Everything below that says "measured" was run; everything that says "I chose" is an
 author's decision the PM can overturn.
 
+**FIX ROUND, AFTER `S9-PREP-CELLS-REVIEW-R1.md` REJECTED `576be648`.** A second author
+continued this work rather than discarding it. Sections 0 to 11 below are the FIRST
+author's report, amended only where R1 measured something in them to be wrong, and every
+such amendment is marked **(R1)**. **Section 12 is the new one: every R1 finding, fixed
+or disputed, with the measurement.** The R1 verdict was REJECT on five explicit guard
+clauses of `fence()` that survived removal with not one row changing colour, plus one
+finding routed to the PM on a false premise. All six are fixed; none is disputed; nothing
+was narrowed to make a claim true.
+
 ## 0. WHAT LANDED, IN ONE TABLE
 
 | ticket item | file | commit | state at the end |
 |---|---|---|---|
-| (1) the fence | `rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs` (NEW) | `eee1206` RED, `5738a96` GREEN, `b4b739c` three more rows | 20 rows: 19 green, THE REAL ROW red by name and expected |
-| (2) H18 | `rebuild/m3/w7-preview/today/test/package.test.cjs` | `4f72b08` | 12 tests, 12 pass (was 11 tests) |
-| (3) C.2 + E fact 12 | `rebuild/m3/w7-preview/measure/test/boundary.test.mjs` | `0191808` | 6 tests, 5 pass, 1 fail - the SAME pre-existing red as before the ticket |
-| (4) three CI steps | `.github/workflows/rebuild.yml` | `f5517b9` | 33 insertions, 2 hunks, nothing between old :236 and old :303 |
-| (5) this report | `rebuild/lanes/b/S9-PREP-CELLS-AUTHOR-REPORT.md` (NEW) | this commit | - |
+| (1) the fence | `rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs` (NEW) | `eee1206` RED, `5738a96` GREEN, `b4b739c` three more rows, **(R1) `0b2538b` seven more rows, `ee70489` the case control** | **27 rows: 26 green, THE REAL ROW red by name and expected** |
+| (2) H18 | `rebuild/m3/w7-preview/today/test/package.test.cjs` | `4f72b08`, **(R1) `6e45e1f` H18b and notes N4, N6** | **13 tests, 13 pass** (was 11 before H18, 12 before H18b) |
+| (3) C.2 + E fact 12 | `rebuild/m3/w7-preview/measure/test/boundary.test.mjs` | `0191808`, **(R1) `6bb984c` N11's comment** | 6 tests, 5 pass, 1 fail - the SAME pre-existing red as before the ticket |
+| (4) three CI steps | `.github/workflows/rebuild.yml` | `f5517b9` | 33 insertions, 2 hunks, nothing between old :236 and old :303. **(R1) unchanged in the fix round** |
+| (5) this report | `rebuild/lanes/b/S9-PREP-CELLS-AUTHOR-REPORT.md` (NEW) | `576be64`, **(R1) this commit** | - |
 
 Nothing else was touched. `build.mjs` and `preview.css` were mutated in the working tree
 for the red-first measurements below and restored with `git checkout --` both times;
@@ -36,7 +45,7 @@ Node `C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\no
 | `b-package.cjs --ci --package S8` | `B PACKAGE S8 FAIL SEALED-PROFILE-RECOMPUTATION; required evidence missing or failed; local diagnostics withheld`, exit 1 | **identical, byte for byte**, exit 1 |
 | the whole today step (`rebuild.yml:232`, 17 cells) | see section 1.1 | see section 1.1 |
 | all 24 cells in the three test directories under `rebuild/m3/w7-preview/` | tests 728, pass 726, fail 2, 154.3 s | - |
-| the fence cell (new step a) | did not exist | tests 20, pass 19, fail 1, exit 1 |
+| the fence cell (new step a) | did not exist | tests 20, pass 19, fail 1, exit 1. **(R1) after the fix round: tests 27, pass 26, fail 1, exit 1** |
 | the three passphrase cells (new step b) | tests 20, pass 20, fail 0 | tests 20, pass 20, fail 0 |
 | `rebuild/m3/w6/test/local-import.test.mjs` (new step c) | tests 22, pass 22, fail 0 | tests 22, pass 22, fail 0 |
 | the lane C step at `rebuild.yml:306` | tests 9, pass 9, fail 0 | tests 9, pass 9, fail 0 |
@@ -57,6 +66,7 @@ the strongest argument in this round for the fence: the fence names all nine.
 | all 24 cells, untouched tree, before anything | 728 | 726 | 2 | 154.3 |
 | all 24 cells, one `today/` entry deleted from `REQUIRED_INPUTS` | 728 | 726 | 2 | 154.9 |
 | the today step (`rebuild.yml:232`, 17 cells) after my last edit | 683 | 681 | 2 | 152.8 |
+| **(R1)** the same step after the fix round (H18b is the one new test) | **684** | **682** | **2** | **153.7** |
 
 **THE TWO FAILURES ARE NOT MINE AND WERE RED BEFORE THIS TICKET STARTED.** They are
 `measure/test/boundary.test.mjs` `P-MEASURE (g)` and `today/test/setup.test.mjs` `re-pin`,
@@ -135,6 +145,13 @@ nothing else:
 | (8g) | R3 N4's after-the-merge world | satisfies `(3)` and FAILS `(2)`: see finding F3 |
 | (8h) | the id in IDS at the chain ref over somebody else's inventory | FAILS `(3)` |
 | (8i) | seven MODIFIED ancestor specs beside the one ADDED spec | SKIPS: the `--name-status` point of R3 N3 |
+| **(1d)** (R1) | a sealed path with a NON-ASCII byte; a path that EXTENDS a sealed one; a sealed key in another CASE | FAILS naming the real byte (only `core.quotepath=false` makes that possible) / PASSES / PASSES: the lookup is byte-exact |
+| **(1e)** (R1) | a sealed path RENAMED AWAY; another file RENAMED ONTO a sealed path | FAILS at `D` / FAILS at `A`: the `[RC]` split is read at both ends |
+| **(4b)** (R1) | a chain ref whose `rebuild/m4/spec/` holds no acceptance artifact | FAILS `FENCE-NO-INVENTORY-AT-CHAIN-REF`; a `.json.bak` is not parsed |
+| **(6c)** (R1) | a branch that DELETES the sealed artifact from its worktree | FAILS `FENCE-INVENTORY-DIFFERS-FROM-CHAIN`; and the failure line counts the touches, not the refusals |
+| **(9)** (R1) | a branch merely BEHIND the chain, the chain having moved two sealed paths | PASSES: the diff runs from the MERGE BASE |
+| **(10)** (R1) | a git that cannot be spawned vs a chain ref that is genuinely gone | two different refusal names; never a pass either way |
+| **(12)** (R1) | a `released` block of the wrong shape (an array) | releases NOTHING: fail closed |
 | REAL | this repository, this branch | FAILS by name; section 2.3 |
 
 ### 2.3 THE MEASURED REFUSAL OF THE REAL ROW ON THIS BRANCH
@@ -200,6 +217,15 @@ and what was done about each:
    and its own comment says why). Without it a Windows checkout would rewrite LF to CRLF in
    the worktree while the blob stayed LF, and `FENCE-INVENTORY-DIFFERS-FROM-CHAIN` would
    fire on every branch.
+   **(R1 N9) AND `.gitattributes` IS IN NEITHER S8 MAP, said out loud rather than left to
+   be discovered on a Windows runner.** R1 re-measured it: the file is in neither
+   `product` nor `executionPins` of `acceptance-s8-real-shape.json`. So an UNSEALED file
+   holds the cross-OS correctness of the fence's byte-exact artifact comparison, and R4
+   N10 already had to correct one argument that leaned on that same file. The fence does
+   not depend on it for its OWN fixtures (each one writes its own `.gitattributes` and
+   forces `core.autocrlf false`); it depends on it only for THE REAL ROW, on a Windows
+   checkout. Nothing in this ticket can seal it. **It is a fact for the PM, not a defect
+   of this cell.**
 2. **Path separators.** Every repository-relative path in the cell comes out of `git`
    (`ls-tree`, `diff --name-status`), which emits forward slashes on both systems. The only
    `path.join` is where a repository path is turned into a filesystem path to read, and it
@@ -272,9 +298,22 @@ the same shape that keeps law 7 alive over an unsealed implementation
 prove that 26 is still the whole `today/` half if somebody ADDS a 27th entry. One line in
 `build.mjs` (adding `REQUIRED_INPUTS` to the `:44` export list) would let the cell also
 assert `deepEqual(build.REQUIRED_INPUTS.filter(under today/), TODAY_REQUIRED_INPUTS)` and
-close it. **This is the one edit outside my owned list that this round wants, and the PM
-routes it.** It is one line, it is a released file after S9, and it costs a re-measure of
-`build.mjs`'s post.
+close it. ~~**This is the one edit outside my owned list that this round wants, and the PM
+routes it.**~~
+
+> **(R1) RETRACTED, AND R1 BLOCKING-D IS RIGHT.** The paragraph above is true about the
+> EXPORT and wrong about the CONSEQUENCE, which is the half the PM would have ruled on.
+> The completeness assertion does NOT need `build.mjs` touched at all: `package.test.cjs`
+> already reads repository files, so the cell reads `build.mjs` AS SOURCE TEXT and takes
+> the frozen array literal's own path lines. **`H18b` is that cell** (commit `6e45e1f`),
+> it landed inside the owned file, and **nothing is routed to the PM.** The
+> supporting sentence was also wrong on its own terms: `build.mjs` carries eight
+> `export const` declarations (`:35 SOURCE`, `:36 ROOT`, `:37 DIST`, `:38 SCRATCH`,
+> `:41 SOURCE_REL`, `:43 ASSETS`, `:72 IMPORT_ENTRY`, `:324 buildTagOf`), so ":44 is the
+> file's only export" is false; `:44` is a re-export line. The FIRST half of 3.2 stands
+> and R1 agrees with it: asking `assertBundleInputs` for the refusal is stronger than
+> reading a list for the DELETION case. The two are complementary and section 12.4
+> measures exactly what each one holds that the other does not.
 
 ## 4. ITEM (3): `measure/test/boundary.test.mjs`
 
@@ -357,7 +396,17 @@ branch can open.
 
 ## 6. THE MUTATION TABLE, MEASURED
 
-Method: a harness takes each guard clause of `fence()` and of the H18 cell one at a time,
+> **(R1) THE METHOD SENTENCE BELOW CLAIMED A COMPLETENESS THIS TABLE DID NOT HAVE, AND
+> THAT IS WHY R1 REJECTED.** "takes each guard clause of `fence()`" and "ALL SEVENTEEN
+> ARE KILLED" are two different statements, and only the second was true: the seventeen
+> were killed, but five explicit clauses were not among them and each survived removal
+> with not one row changing colour. **The sentence is narrowed to "the seventeen
+> mutations below" here, and section 12.5 carries the fix-round table, which is 26
+> mutations over the whole clause set with none surviving.** In a report whose value is
+> that it says what it measured, that is the correction that matters most.
+
+Method: a harness takes **the seventeen guard clauses of `fence()` listed below** and the
+H18 cell's own asserts one at a time,
 removes or inverts it, runs the cell, and records which rows go red that were not red
 before. Run in a writable scratch worktree at the pushed head `b4b739c`, on Linux; the
 cell's own green and red are the PC measurements in sections 2 and 3. Every mutant is
@@ -386,8 +435,10 @@ kill them.
 | M16 | **v2's gate**: skip on the mere presence of an added `packages/*.json` | (8a), (8b), (8c), (8d), (8f), (8g), (8h) - this is R2 BLOCKING-A's hole and seven rows close it |
 | M17 | `--name-only`: the status letter lost, every path read as `M` | (1c), (8e), (8a), (8b), (8c), (8d), (8f), (8g), (8h), (8i) - R3 N3's point, measured |
 
-**ALL SEVENTEEN ARE KILLED. Three were not, on the first pass, and the honest answer to a
-surviving mutant is another row rather than a weaker claim** (commit `b4b739c`):
+**ALL SEVENTEEN ARE KILLED** - all seventeen OF THE SEVENTEEN LISTED, which is not the
+same as the clause set, and section 12.5 is where the clause set is swept. **Three were
+not killed on the first pass, and the honest answer to a surviving mutant is another row
+rather than a weaker claim** (commit `b4b739c`):
 
 * **M9 survived** because the `SPEC_KEYS` key closure caught every malformed second spec
   file, so the "exactly one" clause was never reached. Row (8a) gained a fourth sub-row
@@ -448,11 +499,17 @@ Taken from the tree with a script, never copied from the spec.
 Eight findings. None of them stopped the round; all of them are for the PM and the
 reviewer.
 
-**F1. B.8 and E fact 16 ask H18 to assert "against `build.REQUIRED_INPUTS`", and that
-constant is not exported.** `build.mjs:98` is a module-local `const`; `:44` exports five
-names and none of them is it. Section 3.2 has what I built instead and what it costs
-(completeness). **This is the one edit outside my owned list that the round wants: one
-line in `build.mjs`. I did not make it. The PM routes it.**
+**F1. ~~B.8 and E fact 16 ask H18 to assert "against `build.REQUIRED_INPUTS`", and that
+constant is not exported.~~ RETRACTED IN ITS LOAD-BEARING HALF (R1 BLOCKING-D).** The
+constant is indeed module-local at `build.mjs:98`, and that half stands. Everything F1
+then concluded does not. `:44` is a re-export line and not the file's only export
+(`build.mjs` carries eight `export const` declarations), and **the completeness half
+closes INSIDE the owned file with no `build.mjs` edit at all**: `H18b` reads `build.mjs`
+as source text and holds the `today/` half against this seal's 26. **NOTHING IS ROUTED TO
+THE PM.** That matters more than the finding itself, because A.6 makes `build.mjs`'s place
+on the closed list CONDITIONAL on H18 supplying the teeth, and a finding that overstates
+what H18 cannot do, in the report the PM reads to rule on that condition, is the wrong
+finding to get wrong. Section 12.4 has the measurement.
 
 **F2. D.2 condition (3) says "the artifact the fence read at `CHAIN_REF` is that child's
 own", and the obvious reading of that is wrong.** Measured: the artifact's `packageId` is
@@ -580,3 +637,364 @@ them.
 ---
 
 Author: cowork (Earned lane hand), lane B, ticket S9-PREP-B.
+
+---
+
+# 12. R1 FINDINGS: FIXED OR DISPUTED
+
+Review of record: `rebuild/lanes/b/S9-PREP-CELLS-REVIEW-R1.md`, verdict REJECT on
+`576be648`. **Four BLOCKING findings and twelve notes. All four BLOCKING findings are
+FIXED. Nothing is disputed.** Two notes (N5, N12) are answered rather than coded, one
+(N3) is a fact about the file H18 joined and is now stated, and the rest landed as
+behaviour with a row or as a corrected sentence.
+
+R1 is a good review and it is right about the thing that matters most: this is a cell
+that guards the sealed set, and **a guard clause whose removal turns nothing red is a
+clause nobody can rely on.** Every fix below is a ROW or a MEASUREMENT, never a narrowed
+claim.
+
+The fix-round commits, in order:
+
+| commit | what |
+|---|---|
+| `0b2538b` | the fence: rows (9), (4b), (1d), (1e), (6c), (10), (12); N7's count; N10's chain commit; N2's refusal mapping |
+| `6e45e1f` | `package.test.cjs`: H18b (BLOCKING-D), N4's header, N6's message |
+| `6bb984c` | `boundary.test.mjs`: N11's R4 N7 consequence, comment only |
+| `ee70489` | the fence: N8's case half, after the first fix-round sweep left it as the one surviving mutant |
+
+## 12.1 BLOCKING-A - the `merge-base` clause: FIXED, row (9)
+
+R1 measured `RX2` (a two-dot diff from the chain ref in place of the merge base) SURVIVING
+with no row changing colour, and built the missing world by hand: a branch merely BEHIND
+the chain would be refused for sealed paths the CHAIN moved and it never touched.
+
+**Row (9)** builds that world as a fixture: the branch is cut at A, touches ONE file
+nothing ever sealed, and the chain then moves TWO sealed paths on a line of its own. The
+row asserts three things and the middle one is what makes it honest - it proves the
+fixture really is the world the clause guards, rather than asserting a pass that would
+hold anyway:
+
+```
+the two-dot diff DOES name today-app.cjs and preview.css   (assert: the world is built)
+the merge-base diff names only screens.template.html       (assert: the branch's own change)
+fence() -> pass, refusals [], touched 1
+```
+
+Measured under the mutation, on Linux at `ee70489`:
+
+```
+KILLED | RX2 two-dot diff from the chain ref instead of the merge base | newly red: D.2 (9)
+```
+
+**And R1's live measurement reproduced, on the PC today at a chain ref that has since
+moved again.** R1 saw the chain 8 commits ahead of this branch's merge base at `1d70b62`;
+the fence now reports the chain ref at `bd3ca3286795`. That movement is itself N10's
+point and it is why row (9) is not a hypothetical.
+
+## 12.2 BLOCKING-B - `FENCE-NO-INVENTORY-AT-CHAIN-REF` had no row: FIXED, row (4b)
+
+R1 is right that a refusal whose whole argument is "never pass vacuously" must have the
+row that says so, and right that removing the guard was a VACUOUS PASS nothing noticed.
+
+**Row (4b)**: a chain ref that is THERE, whose `rebuild/m4/spec/` holds a
+`review-fixture.json` and an `acceptance-s8-old.json.bak` and no acceptance artifact.
+The row asserts the status, the exact refusal, AND `artifactPath === null` (it did not
+choose an artifact anyway). The `.bak` also holds the file-name rule R1 checked in attack
+A16: it is ignored, not parsed.
+
+```
+KILLED | RX5 FENCE-NO-INVENTORY-AT-CHAIN-REF guard removed (return pass) | newly red: D.2 (4b)
+```
+
+## 12.3 BLOCKING-C - three more surviving clauses: FIXED, rows (1d), (1e), (6c)
+
+**RX4, `core.quotepath=false` (`:73`).** R1 measured that git octal-escapes and QUOTES a
+non-ASCII path by default, so a quoted string never matches an inventory key and a sealed
+path carrying one non-ASCII byte walks through. **Row (1d)** seals a path with U+00E9 in
+it and asserts the refusal names the real byte.
+
+Two cross-OS decisions inside that row, both made on measurement and both reported:
+
+1. **The source file stays pure ASCII.** `NONASCII` is built with `String.fromCharCode
+   (0xe9)` and not written as a literal byte or as a `\u` escape, so no editor, checkout
+   or transport can normalise the character away before the row runs. The FILE the row
+   creates carries the real UTF-8 bytes; only this cell's source is ASCII.
+2. **The row runs green on Windows.** Measured on the PC: `D.2 (1d) ... 1833ms`, green,
+   and green in a farm scratch worktree on Linux. Node writes the name through the Win32
+   wide API, git reports it back in UTF-8 with `core.quotepath=false`, and the two match.
+
+**RX1, the `[RC]` split (`:128`).** The old path at status `D` had a row; the NEW path at
+status `A`, which is the only thing `parts[2]` can ever be read for, had none. **Row (1e)**
+now holds both ends. The second half needed one design decision worth recording: to get a
+sealed path at status `A` the sealed path must NOT exist in the tree at the base, so the
+fixture seals a path that is a key of the inventory and not a file - which is legitimate,
+because an inventory key is a path the seal names, not a file the fixture must carry.
+
+```
+away:  git mv today-app.cjs today-app.cjs2  -> R100 record -> fail [FENCE-SEALED-PATH-TOUCHED D today-app.cjs]
+onto:  git mv screens.template.html today-app.cjs -> R100 -> fail [FENCE-SEALED-PATH-TOUCHED A today-app.cjs]
+KILLED | RX1 the rename/copy split's NEW path never read | newly red: D.2 (1e)
+```
+
+**RX7, the `worktree === null` limb (`:183`).** R1 is right that this is the only thing
+that notices a branch DELETING the sealed artifact, and right that the deletion is
+invisible to `FENCE-SEALED-PATH-TOUCHED` because the artifact is not a key of its own
+`product` map. **Row (6c)** deletes it and asserts the named refusal.
+
+```
+KILLED | RX7 the worktree === null limb of the tamper check removed | newly red: D.2 (6c)
+```
+
+**The completeness claim of section 6 is narrowed in place** (see the block quote at the
+head of section 6) and section 12.5 is the sweep over the whole clause set.
+
+## 12.4 BLOCKING-D - F1 routed an edit on a false premise: FIXED, and F1 RETRACTED
+
+R1 measured the two things F1 got wrong and both reproduce here.
+
+1. **"there is no other constant export in the file" is false.** `build.mjs` carries eight
+   `export const` declarations: `:35 SOURCE`, `:36 ROOT`, `:37 DIST`, `:38 SCRATCH`,
+   `:41 SOURCE_REL`, `:43 ASSETS`, `:72 IMPORT_ENTRY`, `:324 buildTagOf`. `:44` is a
+   re-export line.
+2. **The completeness half closes inside the owned file.** `H18b` (commit `6e45e1f`)
+   reads `build.mjs` AS SOURCE TEXT, takes the frozen array literal's own path lines and
+   holds them against this seal's 26. **No `build.mjs` edit. Nothing routed to the PM.**
+
+How it reads the list, stated because the reading is the cell's only assumption: it takes
+the block between `const REQUIRED_INPUTS = Object.freeze([` and `]);`, and inside it takes
+only lines that are a quoted string alone on the line with an optional trailing comma.
+That is the file's own shape, and it is why the count is **48 and not the 51 quoted
+strings the block contains** - the three prose strings either span lines or carry no
+trailing comma. If `build.mjs` ever stops having that shape the cell says so by name
+rather than miscounting silently: `Hb-M4` below is the mutation that widens the rule to
+every quoted string, and it goes red.
+
+**RED FIRST, THE HOLE FIRST, in B.8's own order, measured on the PC.** `build.mjs` was
+mutated in the working tree and restored with `git checkout --`; `git diff` over it is
+empty at the pushed head.
+
+```
+A  a 27th today/ entry ADDED to REQUIRED_INPUTS (today-entry.mjs, a real bundle input,
+   so the build still succeeds), cells intact:
+     tests 13, pass 12, fail 1   <- H18b is THE ONLY RED, and it NAMES the added path:
+     "the today/ half of build.mjs's REQUIRED_INPUTS is no longer the 26 paths this seal
+      pins: it now holds 27. An ADDED entry is invisible to H18 and this is the cell that
+      sees it"   + 'rebuild/m3/w7-preview/today/today-entry.mjs'
+     H18 STAYS GREEN: that is the hole, in one line.
+B  one entry (reading-host.mjs) DELETED instead:
+     tests 13, pass 11, fail 2   <- H18 and H18b both red, each naming the path
+C  build.mjs restored, git diff clean over it:
+     tests 13, pass 13, fail 0
+```
+
+**AND WHAT EACH HALF HOLDS THAT THE OTHER DOES NOT**, because "complementary" is a claim
+and these are the two mutations that measure it:
+
+```
+H-M2b  the LAW broken in build.mjs (the missing-input assert made a no-op), BOTH lists intact
+         -> red: H18 only.   H18b is green: the list is still right, the build stopped
+            enforcing it. This is the clean proof the assert.throws loop IS the guard,
+            and it replaces H-M2, which H18b now also catches.
+Hb-M5b a today/ entry RENAMED inside REQUIRED_INPUTS (the COUNT stays 48), with H18b's
+       deepEqual disabled so only the counts are left
+         -> red: H18 only.   H18b is green: no count moved. The deepEqual is the ONLY
+            assert that sees a set change at constant count.
+```
+
+Section 12.6 has the whole H18 / H18b table. The `assert.deepEqual` is ordered FIRST
+inside H18b for R1 N6's reason: its failure NAMES the paths and the count assertions name
+only a number.
+
+## 12.5 THE MUTATION TABLE OF THE FIX ROUND: the whole clause set, 26 of 26 killed
+
+Method, and it is stricter than section 6's: a harness replaces ONE clause of the SHIPPED
+cell, runs the whole file, and diffs the per-row pass/fail map against the unmutated
+baseline. "SURVIVED" means not one green row changed colour. Baseline on Linux in a farm
+scratch worktree at `ee70489`: **27 rows, 26 green, THE REAL ROW red** - the same shape
+the PC reports, which is itself the both-OS control for the fixture rows.
+
+The harness is `/home/claude/farm/scratch/b/s9b-mutate.mjs`, outside the repository and
+pushed nowhere.
+
+| # | mutation | verdict | newly red |
+|---|---|---|---|
+| M1 | the `FENCE-CHAIN-REF-ABSENT` guard removed | KILLED | (4), (10) |
+| M2 | LEXICAL maximum instead of numeric | KILLED | (7), (7b) |
+| M3 | the `FENCE-AMBIGUOUS-INVENTORY` refusal removed | KILLED | (7b) |
+| M4 | the inventory read from the WORKTREE instead of the chain ref | KILLED | (6), (6b) |
+| M5 | the `FENCE-INVENTORY-DIFFERS-FROM-CHAIN` refusal removed | KILLED | (6), (6b), **(6c)** |
+| M6 | the `released` block ignored | KILLED | (2), (7), **(12)** |
+| M7 | `product` only, `executionPins` dropped | KILLED | (1b) |
+| M8 | a deletion does not count as touching | KILLED | (1c), **(1e)** |
+| M9 | condition (1) "exactly one added spec" removed | KILLED | (8a) |
+| M10 | condition (2) artifact-path equality removed | KILLED | (8b) |
+| M11 | condition (2) sha256 equality removed | KILLED | (8c) |
+| M12 | condition (3) removed | KILLED | (8h) |
+| M13 | condition (4) first limb removed | KILLED | (8d) |
+| M14 | condition (4) second limb removed | KILLED | (8d) |
+| M15 | condition (5) ancestor test removed | KILLED | (8f) |
+| M16 | v2's gate: skip on the mere presence of an added `packages/*.json` | KILLED | (8e), (8a), (8b), (8c), (8d), (8f), (8g), (8h) |
+| M17 | `--name-only`: the status letter lost | KILLED | (1c), **(1e)**, (8e), (8a), (8b), (8c), (8d), (8f), (8g), (8h), (8i) |
+| **RX2** | **BLOCKING-A**: two-dot diff from the chain ref instead of the merge base | **KILLED** | **(9)** |
+| **RX5** | **BLOCKING-B**: `FENCE-NO-INVENTORY-AT-CHAIN-REF` removed (return pass) | **KILLED** | **(4b)** |
+| **RX4** | **BLOCKING-C**: `core.quotepath=false` dropped | **KILLED** | **(1d)** |
+| **RX1** | **BLOCKING-C**: the rename/copy split's NEW path never read | **KILLED** | **(1e)** |
+| **RX7** | **BLOCKING-C**: the `worktree === null` limb removed | **KILLED** | **(6c)** |
+| **RXN2** | N2: the ENOENT limb of `chainRefRefusal` removed | **KILLED** | **(10)** |
+| **RXN7** | N7: `refusalLine` counts every refusal as a sealed-path touch | **KILLED** | **(6c)** |
+| **RXN10** | N10: the chain ref's commit dropped out of the output | **KILLED** | **(6c)** |
+| **RXN8** | N8: the sealed lookup case-folded | **KILLED** | **(1d)** |
+
+**26 MUTATIONS, 26 KILLED, NONE SURVIVING.** Two honest notes on that sentence:
+
+* **RXN8 survived the FIRST fix-round sweep** and is the reason commit `ee70489` exists.
+  N8 predicted it could not be rowed on both operating systems, because a case-only
+  RENAME cannot be built on a case-insensitive filesystem. That reasoning was right about
+  the rename and wrong about the row: an inventory key does not have to exist in the tree,
+  so the fixture seals `today/TODAY-APP.cjs`, which the tree never carries, and the branch
+  touches `today/today-app.cjs`. The two are never both on disk, the row runs identically
+  on both systems, and under any case folding the branch would be refused for a path
+  nothing sealed. **The surviving mutant is reported here with the sweep that caught it,
+  not hidden behind the sweep that killed it.**
+* **M4 no longer turns (8g) red**, where section 6's table says it did. That is a
+  difference in the MUTANT, not in the cell: this harness's M4 falls back to the chain ref
+  when the worktree has no artifact, so (8g)'s refusal is still condition (2). Recorded
+  rather than reconciled by picking the friendlier number.
+
+## 12.6 H18 AND H18b, MEASURED ON THE PC
+
+Baseline `package.test.cjs`: 13 tests, 13 pass. `build.mjs` mutated in the working tree
+and restored by the harness; `git diff --name-only` after the sweep names only
+`package.test.cjs`, which is my own committed edit.
+
+| # | mutation | red |
+|---|---|---|
+| H-M0 | nothing mutated | NONE |
+| H-M1 | `reading-host.mjs` DELETED from `REQUIRED_INPUTS`, cells intact | **H18, H18b** |
+| H-M1b | `today-entry.mjs` ADDED to `REQUIRED_INPUTS`, cells intact | **H18b** - the hole, and the cell that closes it |
+| H-M2 | the `assert.throws` loop REMOVED plus the deletion | **H18b** - H18b now catches what used to be a silent pass |
+| H-M2b | the LAW broken in `build.mjs`, both lists intact | **H18** - the loop IS the guard, and H18b cannot see it |
+| H-M3 | one entry removed from the cell's literal list | **H18, H18b** |
+| H-M4 | one entry of the literal replaced by a duplicate | **H18, H18b** |
+| H-M6 | the `result.inputs.includes` assert REMOVED | NONE - **SURVIVES**, see below |
+| Hb-M1 | H18b's `today/` deepEqual removed, plus the ADDED entry | **H18b** (the 48 count catches it) |
+| Hb-M2 | H18b's 48 count removed, plus the ADDED entry | **H18b** (the deepEqual catches it) |
+| Hb-M3 | the block regex reads `ASSETS` instead of `REQUIRED_INPUTS` | **H18b** |
+| Hb-M4 | the per-line path rule widened to EVERY quoted string | **H18b** - the 51/48 distinction is load-bearing |
+| Hb-M5 | a `today/` entry RENAMED inside `REQUIRED_INPUTS`, count still 48 | **H18, H18b** |
+| Hb-M5b | the same rename with H18b's deepEqual disabled | **H18** - the deepEqual is the only assert that sees a set change at constant count |
+
+**H-M6 still survives and is still reported rather than fixed**, for the first author's
+reason, which R1 agreed with: every one of the 26 is in the bundle today, so removing the
+assert changes nothing until a build stops emitting one of them, and the only way to kill
+it would be to fake a bundle - and a cell that asserts over a faked bundle asserts nothing
+about the real one. H-M5 (the list names a path the bundle does not carry) shows the
+assert has teeth on the day it matters.
+
+**Hb-M1 and Hb-M2 are each killed by the sibling assert on the ADD case**, which means
+neither is uniquely necessary there. They are not redundant in general: `Hb-M5b` is the
+case where only the deepEqual fires, and `Hb-M4` is the case where the count rule is what
+holds. Said plainly rather than left to read as three independent guards.
+
+## 12.7 THE TWELVE NOTES
+
+| note | state | what was done, and where |
+|---|---|---|
+| **N1** an array-valued `released` is silently lost and fails CLOSED | **FIXED, with a row** | **Row (12)**: an array-valued `released` releases nothing (its `Object.keys` are indices), and the same inventory in E fact 15's shape DOES release, so the row measures the shape and not some other difference. A comment at the `released` line says why the direction is right. `M6` also turns (12) red |
+| **N2** `git` missing from PATH reads as `FENCE-CHAIN-REF-ABSENT` | **FIXED, with a row** | `chainRefRefusal(e, chainRef)` maps ENOENT to `FENCE-GIT-UNAVAILABLE` and everything else to `FENCE-CHAIN-REF-ABSENT`. **Row (10)** feeds it a REAL ENOENT (from `execFileSync` on a binary that does not exist) and a REAL non-zero exit (from a deleted ref), and asserts the fence still never passes. The name says "could not be spawned" rather than "is not installed", because an unusable cwd raises the same ENOENT and the cell does not pretend to tell those apart |
+| **N3** if `buildToday()` throws, H18 says nothing | **STATED, not coded** | True, and it is a property of the file H18 joined: `package.test.cjs` builds once in `before()`, so an entry naming a file that does not exist errors all 13 tests with no refusal naming a path. It is loud, not silent. **H18's guarantee is conditional on the build succeeding, and that sentence is now in this report** where the first report did not have it. Changing `before()` would touch four other lanes' rows in the same file |
+| **N4** the file header carries a false sentence inside a file S9 SEALS | **FIXED** | `package.test.cjs:8-:9` said "it is run on the PC and reported there"; `rebuild.yml:232` names it by exact path. Corrected in the same hunk, so the seal does not carry the lie |
+| **N5** the honest limit of H18 is not stated | **STATED** | After S9, `build.mjs` is RELEASED and `package.test.cjs` is SEALED, so editing both in one lane C commit is refused twice (this fence, and `UNLISTED-PRODUCT-DRIFT`). **But on the next reseal child both edits are legitimate and nothing notices the law shrank**; the only guard is a PM reading a diff. A.4 says the first half; nobody says the second. R1 is right that it belongs beside F1 and it is now here |
+| **N6** a stale entry reads as the wrong failure | **FIXED** | H18's message named one reading ("left `REQUIRED_INPUTS`"). It now names both (left the constant, or renamed there and this seal's literal is stale) and points at H18b, which says which. `Hb-M5` is the measurement of the case that used to point the wrong way |
+| **N7** the real row's message miscounts | **FIXED, with a row** | `refusalLine()` counts the `FENCE-SEALED-PATH-TOUCHED` entries and reports both numbers. **Row (6c)** is the mixed result that measures it: two refusals, one of them a touch. `RXN7` goes red on (6c) |
+| **N8** byte-exactness has no row | **FIXED, with two sub-rows** | Row (1d) holds the EXTENSION half (`today-app.cjsx` is not `today-app.cjs`) and the CASE half, both on both operating systems. The comment at the lookup says in terms: do not "fix" a Windows case complaint by lowercasing either side. `RXN8` goes red on (1d) |
+| **N9** the cross-OS correctness rests on an UNSEALED file | **SAID OUT LOUD** | Section 2.4 now records that `.gitattributes` is in NEITHER S8 map, that only THE REAL ROW depends on it (every fixture writes its own and forces `core.autocrlf false`), and that nothing in this ticket can seal it. A fact for the PM |
+| **N10** the chain ref is remote-tracking and only a fetch moves it | **FIXED, with a row** | Every outcome now carries `chainCommit`, and the skip reason and the failure line print it. **Measured live: R1 saw `1d70b62`, this round's real row printed `bd3ca3286795`** - the ref moved between the review and the fix, which is exactly the confusion the line removes. `RXN10` goes red on (6c) |
+| **N11** the `'S9'` comment does not carry R4 N7's consequence | **FIXED** | `boundary.test.mjs`'s own comment now says it: with `'S9'` youngest and S9 declaring `today-app.cjs` with a real post, `declaredPost` lands on S9's post and not S8's `dc9a826e`, and F.1 R18's "two packages downstream" is one package late. Comment only; no assertion moves |
+| **N12** C.2 asked for one comment line and the hunk is thirteen | **RECORDED FOR THE PM, UNCHANGED** | R1 read the thirteen, calls them all true and all load-bearing, and would keep them; the first author would keep them; the file's house style is eleven-line package comments. **Neither author nor reviewer should decide this and neither has: the PM rules and nothing asserts on it** |
+
+## 12.8 THE WHOLE BAR, RE-RUN ON THE PC AFTER THE FIX ROUND
+
+`%TEMP%\earned-s9b` at `ee70489`, node v24.19.0 at the runtime path,
+`MEASURED_TEST_NOW=2026-09-03`, `TZ=America/New_York`, long runs through a `.cmd` with a
+log and a `.done` file.
+
+| what | before my first fix-round edit | after my last | R1's measurement of `576be648` |
+|---|---|---|---|
+| `b-package.cjs --ci --package S8` | `B PACKAGE S8 FAIL SEALED-PROFILE-RECOMPUTATION; required evidence missing or failed; local diagnostics withheld`, exit 1 | **identical, byte for byte**, exit 1 | the same, byte for byte |
+| the fence cell (step a) | tests 20, pass 19, fail 1 | **tests 27, pass 26, fail 1**, exit 1 | 20 / 19 / 1 |
+| the whole today step (`rebuild.yml:232`, 17 cells) | tests 683, pass 681, fail 2 | **tests 684, pass 682, fail 2, 153.7 s**, exit 1 | 683 / 681 / 2, 152.7 s |
+| the two failures | `boundary.test.mjs P-MEASURE (g)` and `setup.test.mjs re-pin` | **the same two, pre-existing, and `P-MEASURE (g)`'s list is UNCHANGED by the fix round** | the same two |
+| step b, the three passphrase cells | tests 20, pass 20, fail 0 | tests 20, pass 20, fail 0, exit 0 | 20 / 20 / 0 |
+| step c, `rebuild/m3/w6/test/local-import.test.mjs` | tests 22, pass 22, fail 0 | tests 22, pass 22, fail 0, exit 0 | 22 / 22 / 0 |
+| the lane C step (`:321` on this branch, base `:306`) | tests 9, pass 9, fail 0 | tests 9, pass 9, fail 0, exit 0 | 9 / 9 / 0 |
+
+The today step grew by exactly ONE test, H18b, and by nothing else. **No re-run was needed
+anywhere in this round: nothing was green once and red once, on either machine.**
+
+**THE MEASURED REFUSAL OF THE REAL ROW ON THIS BRANCH, after the fix round:**
+
+```
+THE REAL ROW - this branch touched no sealed path the chain has not released
+AssertionError: this change drew 9 refusal(s), 9 of them sealed path(s) that
+  rebuild/m4/spec/acceptance-s8-real-shape.json at
+  refs/remotes/origin/rebuild/t2-client-core (bd3ca3286795aa0a6eaef53c4fff16cb6e1f5f9e)
+  does not release
+  FENCE-SEALED-PATH-TOUCHED M .github/workflows/rebuild.yml
+  FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w6/local/import-bundle.mjs
+  FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/import/import-screen.mjs
+  FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/import/test/page-bundle.test.mjs
+  FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/measure/test/boundary.test.mjs
+  FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/today/test/adapter.test.mjs
+  FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/today/test/package.test.cjs
+  FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/today/test/view.test.mjs
+  FENCE-SEALED-PATH-TOUCHED M rebuild/m3/w7-preview/today/today-app.cjs
+```
+
+**The nine paths are the same nine R1 measured, path for path.** Two things changed and
+both are fixes, not softenings: the count sentence is now honest about what it counts
+(N7), and the line names the chain ref's COMMIT (N10) - which is how anyone reading it can
+see that the chain has moved from R1's `1d70b62` to `bd3ca328`. The refusal is still
+`FENCE-SEALED-PATH-TOUCHED` and not `FENCE-RESEAL-CHILD-UNVERIFIED`, because this branch
+still carries no `packages/S9.json` and makes no reseal-child claim. **No skip, no
+environment switch and no branch-name test was added anywhere in the fix round.**
+
+## 12.9 WHAT THE FIX ROUND DID NOT TOUCH
+
+`.github/workflows/rebuild.yml` is byte-identical to `576be648`: the fix round adds no
+step, moves no step and flips nothing. R1 verified the placement by line number and that
+verification still holds - two hunks against `da9f8683`, nothing between base `:233` and
+base `:305`, so the other lane's step after base `:297` still merges clean.
+
+The wait list is untouched, the four other `CHILD_SPECS` cells are untouched,
+`rebuild/lanes/b/tooling/**` is untouched, and every product file including `build.mjs`
+and `preview.css` is byte-identical at the pushed head. `build.mjs` was mutated in the
+working tree for section 12.4's red-first and for section 12.6's sweep and restored with
+`git checkout --` each time; `git status` was clean before every commit.
+
+Nothing under `rebuild/conform/private`, `src/history.js`, any `ledger/` directory,
+`C:\Users\joeym\EarnedPort`, `%TEMP%\port-real.log` or the protected soak was read, listed
+or grepped on either machine. No junction to `rebuild\conform\private` was created. No
+seal generator was run, no receipt or artifact was written, `b-package.cjs --full` was
+never run, and `--ci --package S8` is the only runner invocation in this round.
+
+## 12.10 WHAT THE FIX ROUND'S AUTHOR DID NOT VERIFY
+
+* **GitHub CI on ubuntu-latest and windows-latest.** That run is the both-OS evidence of
+  record and it had not reported when this was written. **R1's STOP-7 half-answer is still
+  the one thing to look for**: whether `actions/checkout@v4` with `fetch-depth: 0`
+  materialises `refs/remotes/origin/rebuild/t2-client-core` for a branch that is not the
+  checked-out one. If it does not, the fence's step is red on every push for a SECOND
+  reason, and row (4) is what it will say.
+* Anything needing `packages/S9.json`, the `acceptance-s9` artifact, the needles, the
+  `--ci --package S9` walk or the standing step's flip. All on the wait list.
+* The three passphrase cells and `local-import.test.mjs` as CELLS: run and counted, not
+  reviewed. Other lanes' accepted work.
+* Whether the S9 sealer will emit `released` as an object. E fact 15 says it will; row
+  (12) states the direction the fence fails in if it does not.
+
+---
+
+Author (fix round): cowork (Earned lane hand), lane B, ticket S9-PREP-B, after
+`S9-PREP-CELLS-REVIEW-R1.md`. Four BLOCKING findings fixed, twelve notes answered, nothing
+disputed, 26 mutations over the whole clause set with none surviving.
