@@ -233,13 +233,19 @@ function fence(root, chainRef) {
      equal bytes after a case-only rename. Ask Git for the exact HEAD path INSIDE the
      touch guard, so an older branch that never touched this inventory stays innocent.
      ls-tree plus exact membership does not inherit core.ignorecase's disk aliases.
-     A failed query is a named refusal, never a raw child-process error. Rows (24)-(25). */
-  let tampered = false;
-  try {
-    tampered = touched.some((t) => t.path === artifactPath)
-      && (!gitText(root, ["ls-tree", "--name-only", "-z", "HEAD", "--", artifactPath])
-        .split("\0").includes(artifactPath) || worktree === null || !worktree.equals(chainBytes));
-  } catch { return no("FENCE-INVENTORY-HEAD-UNREADABLE " + artifactPath + " at HEAD", here); }
+     Rows (24)-(25), and row (6d) holds the byte-equal touch in the PASS direction.
+
+     R5 N1, PM RULING: the reviewer found no reachable world where this query fails:
+     rev-parse on the chain ref and merge-base against HEAD have already succeeded,
+     and the diff that computed the touch has already walked the same trees. No row
+     can therefore hold the catch; Y9 rewrote it to fail OPEN with tampered = false
+     and left all 43 rows green on both systems. Without a catch, an unexpected Git
+     failure THROWS, the calling row goes red with Git's own message, and the fence
+     fails CLOSED by construction with no catch clause left to weaken. N4's null
+     touched count on that refusal path disappears with the path. */
+  const tampered = touched.some((t) => t.path === artifactPath)
+    && (!gitText(root, ["ls-tree", "--name-only", "-z", "HEAD", "--", artifactPath])
+      .split("\0").includes(artifactPath) || worktree === null || !worktree.equals(chainBytes));
   const refusals = [];
   if (tampered) refusals.push("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + artifactPath);
 
@@ -504,6 +510,41 @@ test("D.2 (6c) - a branch that DELETES the sealed artifact from its worktree FAI
   /* R1 N10: and it names the commit the chain ref stood at. */
   assert.equal(r.chainCommit, gitText(root, ["rev-parse", CHAIN_REF]).trim());
   assert.ok(line.includes(r.chainCommit), line);
+});
+
+/* R5 X5, AND IT IS THE ONLY WORLD THE null LIMB STILL HAS. Exact HEAD absence now covers
+   every COMMITTED deletion of the inventory (row (6c)), so what is left to the null limb
+   is the UNCOMMITTED one: HEAD carries the path, the branch's own diff touches it with
+   the chain's exact bytes, and the file is gone from the disk the fence reads. Remove the
+   limb and the byte comparison dereferences null, the new catch turns that into
+   FENCE-INVENTORY-HEAD-UNREADABLE, and the fence names a Git failure for a world in which
+   Git answered perfectly well. THE CONTROL HALF IS THE OTHER HALF OF THE ROW: a branch
+   that touches the inventory path with the CHAIN'S OWN BYTES is a touch and not a tamper
+   (the sentence the check's own comment ends on), and until this row nothing measured the
+   new HEAD-presence limb in the direction that lets an innocent branch through. */
+test("R5 (6d) - a byte-equal touch PASSES, and an UNCOMMITTED worktree deletion of it is a TAMPER", () => {
+  const root = chain({ product: [APP, CSS] });
+  git(root, ["checkout", "-q", "-b", "chainline"]);
+  put(root, FIX_ART, inventory({ product: [APP, CSS], released: [CSS] }));
+  commit(root, "the chain re-seals its inventory");
+  git(root, ["update-ref", CHAIN_REF, "HEAD"]);
+  const sealed = git(root, ["show", "HEAD:" + FIX_ART]).toString("utf8");
+  git(root, ["checkout", "-q", "main"]);
+  put(root, FIX_ART, sealed);
+  commit(root, "the branch cherry-picks the chain's exact bytes");
+  const base = gitText(root, ["merge-base", CHAIN_REF, "HEAD"]).trim();
+  assert.deepEqual(gitLines(root, ["diff", "--name-status", base, "HEAD"]), ["M\t" + FIX_ART],
+    "the fixture did not touch the inventory with byte-equal bytes");
+  const control = fence(root, CHAIN_REF);
+  assert.equal(control.status, "pass",
+    "a byte-equal copy of the chain's own bytes was accused of tampering: " + names(control));
+  assert.deepEqual(control.refusals, [], names(control));
+  assert.equal(control.touched, 1, names(control));
+  drop(root, FIX_ART);
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.status, "fail", "the deleted worktree copy bought the branch a pass: " + names(r));
+  assert.deepEqual(r.refusals, ["FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART], names(r));
+  assert.equal(r.touched, 1, names(r));
 });
 
 /* ============================================== THE REST OF D.2's RED-FIRST LIST ====== */

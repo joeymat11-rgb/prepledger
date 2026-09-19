@@ -1906,3 +1906,174 @@ git diff --stat
  .../c/ui-port/sealed-inventory-fence.test.mjs      | 134 ++++++++++++++-
  2 files changed, 310 insertions(+), 13 deletions(-)
 ```
+
+## 16. Review R5: fixed
+
+Builder: Astra, micro round 6, 2026-09-19. Base: 68ed616d.
+Branch: rebuild/b-s9-prep-cells-astra5. Left UNCOMMITTED for the PM.
+This report is a measured hypothesis for the next independent Claude reviewer.
+
+### 16.1 The row, the ruling, and the spec
+
+Copied section 4's entire js code block, comment included, directly from
+S9-PREP-CELLS-REVIEW-R5.md after (6c). Measured before removing the catch:
+(6d) GREEN; whole cell 44 tests / 43 pass / 1 fail, exit 1, 48348.4802 ms.
+The only red was THE REAL ROW. No repair to the supplied row was needed or made.
+
+N1: implemented the PM's reversal of DECISIONS:573. The guard is one const
+expression: exact inventory touch AND (case-exact HEAD absence OR absent worktree
+copy OR unequal bytes). Removed the try/catch and its executable refusal name.
+The comment at that clause records R5's finding that rev-parse, merge-base and the
+same-tree diff have already succeeded, that no reachable query failure was found,
+and that Y9's fail-open catch survived all 43 rows on both systems. Those search
+results are the reviewer's measurements, not a new search claimed here. An
+unexpected Git failure now propagates to the calling test with Git's message;
+there is no catch left to turn that failure into an admission. N4's null touched
+count on the removed refusal path disappears with it.
+
+The mandated verbatim (6d) comment still describes the old catch and names
+FENCE-INVENTORY-HEAD-UNREADABLE historically. It was not reworded. That refusal
+is no longer returned by fence(); at the final bytes X5 throws a TypeError in
+(6d), as measured below. Nothing else in fence() moved.
+
+N2: R5 measured (24) and (25) green on Linux against the round 4 clause, so only the Windows runner would notice that fix being reverted.
+
+N3: found both D.2 table rows in S9-RELEASE-SPEC.md. Appended the HEAD-presence
+and byte-equal-touch sentence to "the artifact-tamper check", and the review-row
+sentence naming (24)-(28) and (6d), as (17)-(23), to "red first". Compared with
+HEAD: exactly those two rows changed, every original word retained; no other
+spec bytes changed.
+
+### 16.2 Red-first mutation evidence at the final bytes, this Windows PC
+
+Scratch: C:\Users\joeym\AppData\Local\Temp\astra-s9-r6-AixdEC
+Copied the final cell under its own rebuild/lanes/c/ui-port path and copied
+.github/workflows/rebuild.yml for (18). Each mutation is one substitution in
+the tamper expression against pristine final bytes, run sequentially, never
+combined. All 44 registrations run in every copy, without a skip or row edit.
+The scratch REAL row stays red with FENCE-CHAIN-REF-ABSENT because this scratch
+root has no chain ref; the actual-worktree bar is recorded separately below.
+Scratch CTRL: 44 / 43 / 1, exit 1, 46500.2627 ms; only THE REAL ROW red.
+
+Counts below are tests / pass / fail. Every run exits 1 and reports cancelled 0,
+skipped 0. "Newly red" excludes the unchanged scratch REAL failure.
+
+| ID | Exact substitution in the tamper expression | Counts | Newly red fixture rows |
+|---|---|---|---|
+| X5 | remove the worktree-null OR limb | 44 / 42 / 2 | (6d) |
+| Y3 | remove the leading `!` from `!gitText(...)` | 44 / 40 / 4 | (6d), (24), (25) |
+| Y5 | `.split("\0")` becomes `.split("\n")` | 44 / 42 / 2 | (6d) |
+| Y6 | remove `"-z"` from the ls-tree args, retain `.split("\0")` | 44 / 42 / 2 | (6d) |
+| X7 | `t.path === artifactPath` becomes `t.path === artifactPath && t.renamedFrom === undefined` | 44 / 42 / 2 | (26) |
+| X8 | `t.path === artifactPath` becomes `t.path.toLowerCase() === artifactPath.toLowerCase()` | 44 / 42 / 2 | (27) |
+| X9 | `!worktree.equals(chainBytes)` becomes `JSON.stringify(JSON.parse(worktree)) !== JSON.stringify(JSON.parse(chainBytes))` | 44 / 42 / 2 | (28) |
+| Y9 | no longer applies: the catch it rewrote to `tampered = false` has been removed | not run | no catch clause to mutate |
+
+Copied red lines, grouped by run (THE REAL ROW is also red in every run):
+
+```text
+X5:
+not ok 4 - R5 (6d) - a byte-equal touch PASSES, and an UNCOMMITTED worktree deletion of it is a TAMPER
+Y3:
+not ok 4 - R5 (6d) - a byte-equal touch PASSES, and an UNCOMMITTED worktree deletion of it is a TAMPER
+not ok 39 - Astra R4 (24) - an ordinary case-only inventory rename FAILS naming the exact path
+not ok 40 - Astra R4 (25) - a verified child with a case-only inventory rename FAILS naming both touches
+Y5:
+not ok 4 - R5 (6d) - a byte-equal touch PASSES, and an UNCOMMITTED worktree deletion of it is a TAMPER
+Y6:
+not ok 4 - R5 (6d) - a byte-equal touch PASSES, and an UNCOMMITTED worktree deletion of it is a TAMPER
+X7:
+not ok 41 - Astra R4 (26) - renaming different bytes INTO the inventory FAILS by name
+X8:
+not ok 42 - Astra R4 (27) - editing only an upper-case sibling of the inventory PASSES
+X9:
+not ok 43 - Astra R4 (28) - a whitespace-only inventory edit FAILS by name
+Every run:
+not ok 44 - THE REAL ROW - this branch touched no sealed path the chain has not released
+```
+
+X5's measured error at the final bytes is:
+`Cannot read properties of null (reading 'equals')`, TypeError, ERR_TEST_FAILURE.
+Thus (6d)'s deletion half kills X5 without the removed catch. Its byte-equal
+control kills Y3, Y5 and Y6. These seven tested substitutions were all detected;
+this is not a claim about mutations outside this declared sample.
+
+### 16.3 The whole-cell bar and hash
+
+Node v24.19.0, using only the requested binary. Before test execution the two
+environment assignments were set on separate PowerShell lines and inherited by
+every sequential child in sweep.cjs:
+
+```powershell
+$env:MEASURED_TEST_NOW = '2026-09-03'
+$env:TZ = 'America/New_York'
+& 'C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' --test --test-reporter=tap rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs
+```
+
+Final-byte execution in this actual worktree, captured in final-actual.tap:
+
+```text
+not ok 44 - THE REAL ROW - this branch touched no sealed path the chain has not released
+# tests 44
+# pass 43
+# fail 1
+# cancelled 0
+# skipped 0
+# duration_ms 49658.3952
+exit 1
+```
+
+Exactly nine FENCE-SEALED-PATH-TOUCHED M refusals, the same paths listed in 14.7;
+no other row red, no reseal-child-unverified refusal. The final run names
+acceptance-s8-real-shape.json at chain commit
+4f89fb9b45fe7bbc548e35295cbb3993fa9df68f. The earlier row-only run named
+582c282caf2a0163c5caa2a6212e37a3b58ed86f; the ref resolved differently between
+those runs. I ran no fetch or ref mutation in this worktree or shared repository.
+
+Executed: certutil -hashfile rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs SHA256
+
+```text
+SHA256 hash of rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs:
+43bcda207174397681fb616b884bb951924250d48091b91bc0983d17762077e6
+CertUtil: -hashfile command completed successfully.
+```
+
+Compared each registration's bytes with both the initial disk copy and HEAD:
+43 of 43 existing rows are BYTE-IDENTICAL; the final count is 44. The review's
+entire js block is present verbatim. Removing that insertion and the guard block
+from the comparison leaves identical cell bytes. The complete cell is ASCII;
+all report additions and both spec additions are ASCII. git diff --check passes.
+Only the three assigned files differ; earlier report sections are untouched.
+
+### 16.4 What I did not verify
+
+The Linux half is run by the PM in the cloud farm at these bytes. I ran no Linux
+leg, hosted CI, historical full mutation sweep, sibling suite, conformance gate,
+package runner, real S9 reseal SKIP, or seal generator. I did not reproduce R5's
+search for a reachable ls-tree failure; the N1 comment implements the PM's ruling.
+No protected/private/auth file was read and no receipt or artifact writer was run.
+No dependency, workflow, product file, review file, DECISIONS or STATUS was edited.
+No commit, push, checkout, reset, stash, clean or fetch was run in the worktree or
+shared repository. Git mutations occurred only in the cell's own synthetic fixtures.
+
+Scratch retained for the reviewer at the path in 16.2: original.mjs, row-6d.txt,
+final-source.mjs, sweep.cjs, mutations.json, results.json, CTRL.tap, final-actual.tap,
+X5.tap, Y3.tap, Y5.tap, Y6.tap, X7.tap, X8.tap, X9.tap, and the scratch layout with
+the cell restored to the final bytes and the workflow copy. No scratch-tree deletion
+was attempted. Each run used the unchanged fixture cleanup hook; its cleanup results
+were not independently inventoried, and no refused cleanup was retried.
+
+### 16.5 Last commands
+
+```text
+git status --porcelain
+ M rebuild/lanes/b/S9-PREP-CELLS-AUTHOR-REPORT.md
+ M rebuild/lanes/b/S9-RELEASE-SPEC.md
+ M rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs
+
+git diff --stat
+ rebuild/lanes/b/S9-PREP-CELLS-AUTHOR-REPORT.md     | 171 +++++++++++++++++++++
+ rebuild/lanes/b/S9-RELEASE-SPEC.md                 |   4 +-
+ .../c/ui-port/sealed-inventory-fence.test.mjs      |  55 ++++++-
+ 3 files changed, 221 insertions(+), 9 deletions(-)
+```
