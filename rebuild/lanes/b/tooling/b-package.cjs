@@ -458,12 +458,21 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
 //     one too, in one argv - and childArgv() judges EVERY target against this list, so
 //     without this root that child is refused on its second file. By the rule the spec
 //     itself applied to p3-today-hotfix, the two roots stand or fall together.
-// A FIFTH, rebuild/lanes/c/ui-port/, is NOT added in this round and the omission is
-// deliberate. C-UI-1 has not merged (DECISIONS:531 blocks its seal), the directory does
-// not exist on this branch, and F7 below asserts of every root that it "is a real
-// directory of this repository" - which is the rule that stops a root being added
-// speculatively. It is added with C-UI-1's bytes, in the single re-measure E.2 designs
-// the round around, together with its PUBLIC_TAIL_ROOTS entry.
+// A FIFTH AND A SIXTH, rebuild/lanes/c/ui-port/ AND rebuild/lanes/d/f2/, ARE ADDED BY THE
+// INTEGRATION, and they are the two the preparation branch could not add. The comment
+// that stood here said ui-port was withheld because C-UI-1 had not merged and the
+// directory did not exist on this branch; that was true of the preparation branch and is
+// false of this one, and it named only ONE missing root where there are two (review L1
+// B2). At this head rebuild/lanes/c/ui-port/ holds the accepted sealed-inventory fence
+// cell and the two accepted design-pack pin cells, and rebuild/lanes/d/f2/ holds
+// F2-LAND's projector and guard-coverage cells (E fact 23, DECISIONS:582); rebuild.yml
+// gives each group its own explicit step. A declared child mirrors a CI step and
+// childArgv() judges EVERY target against this list, so without these two entries those
+// children are refused CHILD-ARGV-TARGET on their first file and E fact 23 cannot be
+// declared at all. Both are real directories of this repository on this branch, which is
+// the rule F7 below enforces and the rule that kept them out until now. ONLY
+// rebuild/lanes/c/ui-port/ joins PUBLIC_TAIL_ROOTS: executing is not printing, and the
+// second is argued per root with TAIL_DENYLIST in hand.
 // M2-S8-REAL-SHAPE ADDS A TWENTIETH, rebuild/lanes/d/p3-real-shape/, and it is the same
 // shape as S7's nineteenth: the cells the accepted P3-REAL-SHAPE and P3-LAYOUT-V2 rounds
 // wrote stand there, they are this package's OWN lane cells, and MIN_OWN_CHILDREN = 1
@@ -476,7 +485,8 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
 // says its output may be PRINTED, and this suite runs over the owner's own import path.
   'rebuild/lanes/d/p3-real-shape/',
   'rebuild/lanes/d/p3-layout-v2/', 'rebuild/lanes/c/p3-today-hotfix/',
-  'rebuild/lanes/c/passphrase-normalize/', 'rebuild/lanes/c/s9-today-carry/'];
+  'rebuild/lanes/c/passphrase-normalize/', 'rebuild/lanes/c/s9-today-carry/',
+  'rebuild/lanes/c/ui-port/', 'rebuild/lanes/d/f2/'];
 // S6-B CI-TODAY-CHILD-FLAKE DIAGNOSTICS (DECISIONS:467 process note 2, ticket
 // CI-TODAY-CHILD-FLAKE). Narrower than CHILD_ROOTS above on purpose: CHILD_ROOTS is every
 // root ANY declared child of ANY B package may execute from, including
@@ -528,8 +538,21 @@ const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild
 // Withheld, therefore, until the PM rules: the seven are the five remaining lane D roots
 // (plan-edit, p3-capture-start, import-retract, p3-followons, b-lom),
 // rebuild/m4/import/test/ and rebuild/m3/w7-preview/import/test/.
+//
+// M2-S9-UI-PINS WIDENS THIS BY EXACTLY ONE WHERE IT WIDENS CHILD_ROOTS BY SIX, and the
+// asymmetry is the same argument S6 made: a child root says a suite may be EXECUTED, this
+// list says its output may be PRINTED. The one is rebuild/lanes/c/ui-port/. Its three
+// cells - the sealed-inventory fence and the two design-pack pins - read the repository's
+// own tracked bytes, the sealed artifact out of Git at CHAIN_REF, and fixture packs they
+// build themselves under os.tmpdir(); none of them names the private census, a golden,
+// live.json or the ledger, and TAIL_DENYLIST below is still the second, independent gate
+// over whatever they do print. The reason to widen at all is that these three exist to
+// print ONE readable refusal sentence into the CI log, which a withheld tail deletes.
+// THE OTHER FIVE S9 CHILD ROOTS ARE WITHHELD, rebuild/lanes/d/f2/ among them: a root
+// earns a tail by being argued for, never by a child appearing under it, and F8 measures
+// f2 as a child root whose tail is withheld by path policy.
 const PUBLIC_TAIL_ROOTS = ['rebuild/m3/w7-preview/today/test/', 'rebuild/m3/w7-preview/measure/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m4/workout/test/',
-  'rebuild/lanes/d/p3-replay-measure/', 'rebuild/lanes/d/p3-replay-all/'];
+  'rebuild/lanes/d/p3-replay-measure/', 'rebuild/lanes/d/p3-replay-all/', 'rebuild/lanes/c/ui-port/'];
 const TAIL_DENYLIST = ['conform/private', 'golden', 'live.json', 'ledger/'];
 const TAIL_LINES = 60;
 // S6-B round-3 review, finding 3 (MINOR): TAIL_LINES caps LINE COUNT only, and
@@ -1225,8 +1248,20 @@ const CANONICAL_PATH = 'a repo-relative spelling: no leading slash, no backslash
 const canonicalPath = p => typeof p === 'string' && !p.includes('\\') &&
   p.split('/').every(seg => seg !== '' && seg !== '.' && seg !== '..' && seg !== '__proto__');
 // Every path the release mechanism compares: the product keys it reads as the declared
-// inventory, and EVERY FIVE of the strings proposed() turns into executionPins - the four a
-// spec declares AND the two this file fixes itself.
+// inventory, and EVERY ONE of the FIVE ROUTES by which proposed() turns a string into an
+// executionPin - the THREE a spec supplies AND the TWO this file fixes itself.
+//
+// PM-A1 (DECISIONS:620), CORRECTED HERE IN THE INTEGRATION'S OWN RUNNER COMMIT, BEFORE
+// E FACT 7 IS DONE FOR THE LAST TIME. The sentence above used to read "the four a spec
+// declares AND the two this file fixes itself", and four plus two is six while the count
+// it is attached to is five. COUNTED OFF proposed() ITSELF rather than off any report,
+// the five routes are, in the order that function writes them: (1) RUNNER, a fixed
+// coordinate of this file; (2) TOOLING + '/packages/' + ID + '.json', this run's own
+// package spec file, the other fixed coordinate; (3) s.brief.file, when it exists on
+// disk; (4) s.carrierSuccessor.file, when a carrier successor is declared and the file
+// exists; (5) every target childArgv(c) returns for every declared child c. Three of the
+// five are supplied by the spec and two are fixed here, and the seeded walk below sees
+// all five. The pins object proposed() returns has no other producer.
 //
 // H27 (Astra R6 BLOCKING B1, which is her G3 STILL OPEN). This comment used to say that the
 // runner and this run's own package file "are fixed constants of this file and cannot be
