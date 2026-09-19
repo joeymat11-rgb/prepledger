@@ -936,7 +936,7 @@ well, it grows by 13 added lines in `plan-edit-host.mjs` on top of that.
 
 | what | where | why |
 |---|---|---|
-| the twenty cells under twenty-three ids, plus `EW-25` | **the PC**, with the red first run shown | the farm has 2 CPUs and the Today suite takes 9 minutes there |
+| the suite's **TWENTY-EIGHT selectable ids** (N7: 27 counted in spec 5's table, plus `EW-25`) | **the PC**, with the red first run shown | the farm has 2 CPUs and the Today suite takes 9 minutes there |
 | every row that seals a bundle through the real port (`EW-17a` to `EW-17d`, `EW-21`'s admission half, B1) | **THE PC ONLY** | the port's oracle files are outside the farm's include list. Measured again this round: the farm cannot seal |
 | the pure cells (`EW-19`, `EW-20`, `EW-17c` control 1, the note resolver's own rows) | the farm scratch AND the PC | both, and their outputs compared byte for byte, exactly as this brief's four farm-capable cells were |
 | the inherited suites, named by real path with their counts | the PC | spec 6 item 2 |
