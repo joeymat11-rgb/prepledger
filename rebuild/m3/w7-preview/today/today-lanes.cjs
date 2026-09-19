@@ -7,15 +7,16 @@
  * were CUT OUT of today-app.cjs by rebuild/lanes/c/today-split-spike/cut.cjs, region by
  * region, byte for byte: 34 move regions, 679 lines. Their bytes were compared against a
  * sha256 recorded at TWO named refs BEFORE anything was written (S-R19), and the only
- * substitutions are the forty declared rows of D.1's W1, W2, W3, W4 and W9 families,
- * every one of them a paint-handle rewrite.
+ * substitutions are the forty-one declared rows of D.1's W1, W2, W3, W4, W9 and W10
+ * families, every one of them a paint-handle rewrite; thirty-nine of the forty-one
+ * rewrote a line here and the other two were already covered by a wider row.
  *
  * THE ONLY AUTHORED LINES ARE THIS BANNER, THE THREE REQUIRES, THE FACTORY LINE BELOW,
  * THE FOUR DECLARATIONS AFTER IT AND THE RETURN BLOCK AT THE END, and all of them are
  * declared in regions.json's product block, not invented by the instrument.
  *
  * WHAT CROSSES BACK, and it is the whole interface: a FACADE of thirty-seven read-only
- * getters, a callback table of twenty-eight, and nothing else. After the cut NO released
+ * getters, a callback table of twenty-nine, and nothing else. After the cut NO released
  * line assigns a binding declared in here, which census.cjs prints as a class count of
  * ZERO over this build's own output (spec B.5's acceptance test, H.2 STOP 11).
  *
@@ -28,7 +29,13 @@
  *    rewrite inside three moved regions that D.1 does not declare, which DECISIONS:584
  *    rules a STOP; it is reported in the build report and it is its own ticket.
  *  - THE ONE-HANDOFF RULE IS NOT BUILT. The released today-app.cjs still names `model`.
- *  - The runtime gesture guard of E.6 is not in this round.
+ *  - THE RUNTIME GESTURE GUARD OF E.6 IS BUILT AND IT IS IN THIS FILE, in the block
+ *    headed `E.6, THE RUNTIME GESTURE GUARD` below the three declarations above,
+ *    and it is a TRIPWIRE and not a proof (S-R26). It admits the two guarded writers
+ *    only while a listener installed through hooks.listen is running, and it is checked
+ *    at the CALL, not at the commit: a save that has already been admitted settles
+ *    afterwards. It covers TWO of E.6's nine subjects; the other seven are named in the
+ *    build report and five of them are the gym card's file, which this part never opens.
  */
 const FoodModel = require("./food-model.cjs");
 const SleepModel = require("./sleep-model.cjs");

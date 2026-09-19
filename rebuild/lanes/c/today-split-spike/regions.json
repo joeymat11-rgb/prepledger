@@ -467,7 +467,8 @@
     ],
     "first": {
      "text": "  let workout = options.workout || null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  const session = () => (workout && typeof workout.summary === \"function\" ? workout.summary() : null) || null;",
@@ -485,7 +486,8 @@
     ],
     "first": {
      "text": "  const checkin = options.checkin || null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  const firstRun = () => !!(setup && typeof setup.firstRun === \"function\" && setup.firstRun() === true);",
@@ -503,7 +505,8 @@
     ],
     "first": {
      "text": "  const setupFirst = options.setupFirst === true;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  const setupFirst = options.setupFirst === true;",
@@ -521,7 +524,8 @@
     ],
     "first": {
      "text": "  let foodLane = options.food || null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  let foodReadBack = null;",
@@ -539,7 +543,8 @@
     ],
     "first": {
      "text": "  if (foodLane && typeof model.setFoodDays === \"function\") model.setFoodDays(foodLane);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  if (foodLane && typeof model.setFoodDays === \"function\") model.setFoodDays(foodLane);",
@@ -547,7 +552,8 @@
     },
     "replacement": [
      "  hooks.bootFoodDays();"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-S06",
@@ -560,7 +566,8 @@
     ],
     "first": {
      "text": "  let sleepLane = options.sleep || null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  let sleepAck = null;",
@@ -578,7 +585,8 @@
     ],
     "first": {
      "text": "  let sleepBusy = false;         // a save is in flight: the screen says so and refuses a second",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  let sleepBusy = false;         // a save is in flight: the screen says so and refuses a second",
@@ -596,7 +604,8 @@
     ],
     "first": {
      "text": "  let sleepNightChoice = null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  let sleepErrorText = \"\";       // the refusal or outcome sentence the next paint draws",
@@ -614,7 +623,8 @@
     ],
     "first": {
      "text": "  /* D2 ROUND 2, FINDING 5 - AN OUTCOME NOBODY KNOWS. The command did not answer and",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  let sleepCheckInViewPending = null;",
@@ -632,7 +642,8 @@
     ],
     "first": {
      "text": "  if (sleepLane && typeof model.setSleepNights === \"function\") model.setSleepNights(sleepLane);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  if (sleepLane && typeof model.setSleepNights === \"function\") model.setSleepNights(sleepLane);",
@@ -640,7 +651,8 @@
     },
     "replacement": [
      "  hooks.bootSleepNights();"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-S11",
@@ -653,7 +665,8 @@
     ],
     "first": {
      "text": "  function sleepEntryFor(host, rows) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -671,7 +684,8 @@
     ],
     "first": {
      "text": "  /* Does this lane hold anything the gym host's captured state would not already",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    !!(lane && typeof lane.rows === \"function\" && lane.rows().length > 0);",
@@ -689,7 +703,8 @@
     ],
     "first": {
      "text": "  function openSleepLane() {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -707,7 +722,8 @@
     ],
     "first": {
      "text": "  /* D2's correction 1 - THE SAME-PAGE JOURNEY. `createCheckInEntry` captures",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  let checkInLive = null;",
@@ -725,7 +741,8 @@
     ],
     "first": {
      "text": "  function loadCheckInKit() {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -743,7 +760,8 @@
     ],
     "first": {
      "text": "  if (sleepLane) loadCheckInKit();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  if (sleepLane) loadCheckInKit();",
@@ -751,7 +769,8 @@
     },
     "replacement": [
      "  hooks.bootCheckInKit();"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-S17",
@@ -764,7 +783,8 @@
     ],
     "first": {
      "text": "  function foodEntryFor(host, rows) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -782,7 +802,8 @@
     ],
     "first": {
      "text": "  function openFoodLane() {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -800,7 +821,8 @@
     ],
     "first": {
      "text": "  let measureScreen = null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -818,7 +840,8 @@
     ],
     "first": {
      "text": "  let importScreen = null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -836,7 +859,8 @@
     ],
     "first": {
      "text": "  let adoptionSettled = false;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  let adoptionSettled = false;",
@@ -854,7 +878,8 @@
     ],
     "first": {
      "text": "  function settleAdoption(chain, adopting) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -872,7 +897,8 @@
     ],
     "first": {
      "text": "  async function recordIntake(save, cal, pro, error) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -890,7 +916,8 @@
     ],
     "first": {
      "text": "  async function retryFoodRead() {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -908,7 +935,8 @@
     ],
     "first": {
      "text": "  const sleepToday = () => sleepLane && sleepLane.host && typeof sleepLane.host.today === \"function\"",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    || SleepModel.nightDateFor(sleepToday());",
@@ -926,7 +954,8 @@
     ],
     "first": {
      "text": "  function sleepClockCheck() {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -944,7 +973,8 @@
     ],
     "first": {
      "text": "  function readSleepCheckIn(date, force = false) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -962,7 +992,8 @@
     ],
     "first": {
      "text": "  function sleepOpsFor(date) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -980,7 +1011,8 @@
     ],
     "first": {
      "text": "  async function retrySleepRead() {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -998,7 +1030,8 @@
     ],
     "first": {
      "text": "  async function recordSleep(map) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -1016,7 +1049,8 @@
     ],
     "first": {
      "text": "  function sameNight(one, two) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "",
@@ -1034,7 +1068,8 @@
     ],
     "first": {
      "text": "  function reboundCheckIn(origin) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -1052,7 +1087,8 @@
     ],
     "first": {
      "text": "  function carryCheckInDraft(previous, next) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -1070,7 +1106,8 @@
     ],
     "first": {
      "text": "  let workoutRebindQueued = false;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -1088,7 +1125,8 @@
     ],
     "first": {
      "text": "  function canAdoptAthleteState() {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -1109,7 +1147,8 @@
     ],
     "first": {
      "text": "  const willAdopt = canAdoptAthleteState();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  if (willAdopt) armAdoptionGate();",
@@ -1117,7 +1156,8 @@
     },
     "declaresSealed": [
      "willAdopt"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-S36",
@@ -1130,7 +1170,8 @@
     ],
     "first": {
      "text": "  function athleteBasisState() {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -1148,7 +1189,8 @@
     ],
     "first": {
      "text": "  function adoptAthleteState() {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -1166,7 +1208,8 @@
     ],
     "first": {
      "text": "  let ready = settleAdoption(willAdopt ? adoptAthleteState() : Promise.resolve(), willAdopt);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  let ready = settleAdoption(willAdopt ? adoptAthleteState() : Promise.resolve(), willAdopt);",
@@ -1177,7 +1220,8 @@
     ],
     "declaresSealed": [
      "ready"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-M01",
@@ -1442,7 +1486,8 @@
     ],
     "first": {
      "text": "  const sleepDraft = { mode: \"times\", bed: \"\", wake: \"\", awake_min: \"\", hours: \"\",",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    awakeOpen: false, from_checkin_op_id: \"\" };",
@@ -1454,7 +1499,8 @@
      "  /* THE SPLIT (spec B.5). The sealed writer reads this object once, in recordSleep;",
      "     it is the SAME object, not a copy, so it sees every keystroke. */",
      "  hooks.bindSleepDraft(sleepDraft);"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W02",
@@ -1467,7 +1513,8 @@
     ],
     "first": {
      "text": "    if (!measureScreen) measureScreen = Screen.createMeasureScreen(measureDeps());",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (!measureScreen) measureScreen = Screen.createMeasureScreen(measureDeps());",
@@ -1475,7 +1522,8 @@
     },
     "replacement": [
      "    hooks.mintMeasureScreen(Screen);"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W03",
@@ -1488,7 +1536,8 @@
     ],
     "first": {
      "text": "    if (!importScreen) importScreen = Screen.createImportScreen(importDeps());",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (!importScreen) importScreen = Screen.createImportScreen(importDeps());",
@@ -1496,7 +1545,8 @@
     },
     "replacement": [
      "    hooks.mintImportScreen(Screen);"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W04",
@@ -1509,7 +1559,8 @@
     ],
     "first": {
      "text": "      if (foodReadBack) retry.addEventListener(\"click\", () => { foodSaving = retryFoodRead(); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      if (foodReadBack) retry.addEventListener(\"click\", () => { foodSaving = retryFoodRead(); });",
@@ -1530,7 +1581,8 @@
     ],
     "first": {
      "text": "    save.addEventListener(\"click\", () => { foodSaving = recordIntake(save, cal, pro, error); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    save.addEventListener(\"click\", () => { foodSaving = recordIntake(save, cal, pro, error); });",
@@ -1551,7 +1603,8 @@
     ],
     "first": {
      "text": "    sleepCheckInViewPending = Promise.all([loadCheckInKit(), readSleepCheckIn(date, true)]).then(() => {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    sleepCheckInViewPending = Promise.all([loadCheckInKit(), readSleepCheckIn(date, true)]).then(() => {",
@@ -1572,7 +1625,8 @@
     ],
     "first": {
      "text": "        sleepNightChoice = dateBox.value || null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        sleepAck = null; sleepReadBack = null; sleepCorrecting = false; sleepErrorText = \"\";",
@@ -1580,7 +1634,8 @@
     },
     "replacement": [
      "        hooks.sleepNightChosen(dateBox.value || null);"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W08",
@@ -1593,7 +1648,8 @@
     ],
     "first": {
      "text": "        sleepNightChoice = sleepRollover || sleepNightDate();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        sleepOpenedDay = sleepToday(); sleepOpenedNight = sleepNightDate();",
@@ -1601,7 +1657,8 @@
     },
     "replacement": [
      "        hooks.keepNight();"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W09",
@@ -1614,7 +1671,8 @@
     ],
     "first": {
      "text": "      retry.addEventListener(\"click\", () => { sleepSaving = retrySleepRead(); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      retry.addEventListener(\"click\", () => { sleepSaving = retrySleepRead(); });",
@@ -1635,7 +1693,8 @@
     ],
     "first": {
      "text": "      change.addEventListener(\"click\", () => { sleepCorrecting = true; render(\"sleep\", false); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      change.addEventListener(\"click\", () => { sleepCorrecting = true; render(\"sleep\", false); });",
@@ -1656,7 +1715,8 @@
     ],
     "first": {
      "text": "        sleepCorrecting = false; clearSleepDraft(); render(\"sleep\", false);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        sleepCorrecting = false; clearSleepDraft(); render(\"sleep\", false);",
@@ -1677,7 +1737,8 @@
     ],
     "first": {
      "text": "    save.addEventListener(\"click\", () => { sleepSaving = recordSleep(map); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    save.addEventListener(\"click\", () => { sleepSaving = recordSleep(map); });",
@@ -1698,7 +1759,8 @@
     ],
     "first": {
      "text": "      if (next === \"sleep\") { sleepCheckInDay = null; sleepCheckInPending = null; }",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      if (next === \"sleep\") { sleepCheckInDay = null; sleepCheckInPending = null; }",
@@ -1706,7 +1768,8 @@
     },
     "replacement": [
      "      if (next === \"sleep\") hooks.forgetCheckInRead();"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "TA-W14",
@@ -1719,7 +1782,8 @@
     ],
     "first": {
      "text": "          ready = settleAdoption(adopting ? adoptAthleteState() : Promise.resolve(), adopting);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "          ready = settleAdoption(adopting ? adoptAthleteState() : Promise.resolve(), adopting);",
@@ -1740,7 +1804,8 @@
     ],
     "first": {
      "text": "    await measureScreen.paint(root, () => token === mountToken);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    await measureScreen.paint(root, () => token === mountToken);",
@@ -1761,7 +1826,8 @@
     ],
     "first": {
      "text": "    try { await ready; } catch (_) { /* reported by adoptAthleteState's own catch */ }",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    try { await ready; } catch (_) { /* reported by adoptAthleteState's own catch */ }",
@@ -1782,7 +1848,8 @@
     ],
     "first": {
      "text": "    if (!firstRun()) importLink(root, root.querySelector('[data-slot=\"measure-baseline-note\"]'));",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (!firstRun()) importLink(root, root.querySelector('[data-slot=\"measure-baseline-note\"]'));",
@@ -1803,7 +1870,8 @@
     ],
     "first": {
      "text": "    if (focus) importScreen.reopen();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (focus) importScreen.reopen();",
@@ -1824,7 +1892,8 @@
     ],
     "first": {
      "text": "    await importScreen.paint(root, () => token === mountToken);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    await importScreen.paint(root, () => token === mountToken);",
@@ -1845,7 +1914,8 @@
     ],
     "first": {
      "text": "    link.textContent = plainOrDrop(importAdmitted ? IMPORT_LINK_DONE : IMPORT_LINK_NEW, \"import-entry\");",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    link.textContent = plainOrDrop(importAdmitted ? IMPORT_LINK_DONE : IMPORT_LINK_NEW, \"import-entry\");",
@@ -1866,7 +1936,8 @@
     ],
     "first": {
      "text": "    link.addEventListener(\"click\", () => render(\"import\", true));",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    link.addEventListener(\"click\", () => render(\"import\", true));",
@@ -1887,7 +1958,8 @@
     ],
     "first": {
      "text": "    if (!adoptionSettled || !todayEntry) return null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (!adoptionSettled || !todayEntry) return null;",
@@ -1908,7 +1980,8 @@
     ],
     "first": {
      "text": "    for (const el of root.querySelectorAll(\"[data-go]\")) el.addEventListener(\"click\", () => render(el.dataset.go, true));",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    for (const el of root.querySelectorAll(\"[data-go]\")) el.addEventListener(\"click\", () => render(el.dataset.go, true));",
@@ -1929,7 +2002,8 @@
     ],
     "first": {
      "text": "    const today = session();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const today = session();",
@@ -1950,7 +2024,8 @@
     ],
     "first": {
      "text": "    primary.addEventListener(\"click\", async () => {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    primary.addEventListener(\"click\", async () => {",
@@ -1971,7 +2046,8 @@
     ],
     "first": {
      "text": "        try { await workout.recover(); } finally { primary.disabled = false; }",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        try { await workout.recover(); } finally { primary.disabled = false; }",
@@ -1992,7 +2068,8 @@
     ],
     "first": {
      "text": "    todayEntry = firstRun() ? null : { root, token };",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    todayEntry = firstRun() ? null : { root, token };",
@@ -2013,7 +2090,8 @@
     ],
     "first": {
      "text": "      step.addEventListener(\"click\", () => {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      step.addEventListener(\"click\", () => {",
@@ -2034,7 +2112,8 @@
     ],
     "first": {
      "text": "    sheet.querySelector('[data-action=\"cancel\"]').addEventListener(\"click\", close);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    sheet.querySelector('[data-action=\"cancel\"]').addEventListener(\"click\", close);",
@@ -2055,7 +2134,8 @@
     ],
     "first": {
      "text": "    sheet.addEventListener(\"keydown\", (event) => {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    sheet.addEventListener(\"keydown\", (event) => {",
@@ -2076,7 +2156,8 @@
     ],
     "first": {
      "text": "    sheet.addEventListener(\"submit\", async (event) => {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    sheet.addEventListener(\"submit\", async (event) => {",
@@ -2097,7 +2178,8 @@
     ],
     "first": {
      "text": "    if (!foodLane) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (!foodLane) {",
@@ -2118,7 +2200,8 @@
     ],
     "first": {
      "text": "      const opening = openFoodLane();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      const opening = openFoodLane();",
@@ -2139,7 +2222,8 @@
     ],
     "first": {
      "text": "      const why = opening && !foodLaneFailure ? FOOD_OPENING",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      const why = opening && !foodLaneFailure ? FOOD_OPENING",
@@ -2160,7 +2244,8 @@
     ],
     "first": {
      "text": "        : foodLaneFailure ? FOOD_NO_STORE + \" \" + FOOD_REASON + foodLaneFailure + \".\"",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        : foodLaneFailure ? FOOD_NO_STORE + \" \" + FOOD_REASON + foodLaneFailure + \".\"",
@@ -2181,7 +2266,8 @@
     ],
     "first": {
      "text": "    const opened = foodLane && foodLane.host ? foodLane.host.openedRefusal : null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const opened = foodLane && foodLane.host ? foodLane.host.openedRefusal : null;",
@@ -2202,7 +2288,8 @@
     ],
     "first": {
      "text": "    if (foodReadBack && foodReadBack.entry) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (foodReadBack && foodReadBack.entry) {",
@@ -2223,7 +2310,8 @@
     ],
     "first": {
      "text": "      cal.value = foodReadBack.entry.cal === undefined ? \"\" : String(foodReadBack.entry.cal);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      cal.value = foodReadBack.entry.cal === undefined ? \"\" : String(foodReadBack.entry.cal);",
@@ -2244,7 +2332,8 @@
     ],
     "first": {
      "text": "      pro.value = foodReadBack.entry.pro === undefined ? \"\" : String(foodReadBack.entry.pro);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      pro.value = foodReadBack.entry.pro === undefined ? \"\" : String(foodReadBack.entry.pro);",
@@ -2265,7 +2354,8 @@
     ],
     "first": {
      "text": "    if (foodReadBack && foodReadBack.state === \"unavailable\") {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (foodReadBack && foodReadBack.state === \"unavailable\") {",
@@ -2286,7 +2376,8 @@
     ],
     "first": {
      "text": "        FOOD_SAVED + \" · \" + intakeLine(foodReadBack.day) + \" \" + FOOD_SAVED_UNREAD, \"food-recorded\");",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        FOOD_SAVED + \" · \" + intakeLine(foodReadBack.day) + \" \" + FOOD_SAVED_UNREAD, \"food-recorded\");",
@@ -2307,7 +2398,8 @@
     ],
     "first": {
      "text": "    if (foodReadBack) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (foodReadBack) {",
@@ -2328,7 +2420,8 @@
     ],
     "first": {
      "text": "      const said = foodReadBack.code ? FOOD_REASON + foodReadBack.code + \".\" : \"\";",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      const said = foodReadBack.code ? FOOD_REASON + foodReadBack.code + \".\" : \"\";",
@@ -2349,7 +2442,8 @@
     ],
     "first": {
      "text": "      const head = foodReadBack.state === \"unknown\" ? FOOD_UNKNOWN : FOOD_SAVED_UNREAD;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      const head = foodReadBack.state === \"unknown\" ? FOOD_UNKNOWN : FOOD_SAVED_UNREAD;",
@@ -2370,7 +2464,8 @@
     ],
     "first": {
      "text": "      retry.hidden = !foodReadBack;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      retry.hidden = !foodReadBack;",
@@ -2391,7 +2486,8 @@
     ],
     "first": {
      "text": "      retry.textContent = foodReadBack ? plainOrDrop(FOOD_READ_RETRY, \"food-retry\") : \"\";",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      retry.textContent = foodReadBack ? plainOrDrop(FOOD_READ_RETRY, \"food-retry\") : \"\";",
@@ -2412,7 +2508,8 @@
     ],
     "first": {
      "text": "    if (sleepCheckInDay === day && (sleepCheckInPending || sleepCheckInFailed)) return null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (sleepCheckInDay === day && (sleepCheckInPending || sleepCheckInFailed)) return null;",
@@ -2433,7 +2530,8 @@
     ],
     "first": {
      "text": "    if (sleepCheckInDay === day) return sleepCheckInRow;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (sleepCheckInDay === day) return sleepCheckInRow;",
@@ -2454,7 +2552,8 @@
     ],
     "first": {
      "text": "    const active = checkInLive || (checkin && checkin.checkin);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const active = checkInLive || (checkin && checkin.checkin);",
@@ -2475,7 +2574,8 @@
     ],
     "first": {
      "text": "    const date = sleepNightDate(), day = SleepModel.dayAfter(date), token = mountToken;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const date = sleepNightDate(), day = SleepModel.dayAfter(date), token = mountToken;",
@@ -2496,7 +2596,8 @@
     ],
     "first": {
      "text": "      const lines = sleepCheckInFailed || !checkInKit ? [SLEEP_CHECKIN_UNREADABLE]",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      const lines = sleepCheckInFailed || !checkInKit ? [SLEEP_CHECKIN_UNREADABLE]",
@@ -2517,7 +2618,8 @@
     ],
     "first": {
      "text": "        : row ? [SLEEP_CHECKIN_PREFIX + row.date + \".\", ...checkInKit.recordedLines(row)] : [SLEEP_CHECKIN_EMPTY];",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        : row ? [SLEEP_CHECKIN_PREFIX + row.date + \".\", ...checkInKit.recordedLines(row)] : [SLEEP_CHECKIN_EMPTY];",
@@ -2538,7 +2640,8 @@
     ],
     "first": {
      "text": "    return sleepCheckInViewPending;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    return sleepCheckInViewPending;",
@@ -2559,7 +2662,8 @@
     ],
     "first": {
      "text": "    const row = sleepCheckInFor(date || sleepNightDate());",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const row = sleepCheckInFor(date || sleepNightDate());",
@@ -2580,7 +2684,8 @@
     ],
     "first": {
      "text": "    const night = date || sleepNightDate();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const night = date || sleepNightDate();",
@@ -2602,7 +2707,8 @@
     "first": {
      "text": "    const date = sleepNightDate();",
      "nth": 1,
-     "ambiguousOk": true
+     "ambiguousOk": true,
+     "occurrences": 2
     },
     "last": {
      "text": "    const date = sleepNightDate();",
@@ -2626,7 +2732,8 @@
     ],
     "first": {
      "text": "    readSleepCheckIn(date);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    readSleepCheckIn(date);",
@@ -2647,7 +2754,8 @@
     ],
     "first": {
      "text": "    const opening = sleepLane ? null : openSleepLane();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const opening = sleepLane ? null : openSleepLane();",
@@ -2668,7 +2776,8 @@
     ],
     "first": {
      "text": "    if (!sleepLane) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (!sleepLane) {",
@@ -2689,7 +2798,8 @@
     ],
     "first": {
      "text": "      put(map, \"sleep-note\", sleepLaneFailure",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      put(map, \"sleep-note\", sleepLaneFailure",
@@ -2710,7 +2820,8 @@
     ],
     "first": {
      "text": "        ? SLEEP_NO_STORE + \" \" + FOOD_REASON + sleepLaneFailure + \".\"",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        ? SLEEP_NO_STORE + \" \" + FOOD_REASON + sleepLaneFailure + \".\"",
@@ -2731,7 +2842,8 @@
     ],
     "first": {
      "text": "    const ack = sleepAck && sleepAck.date === date ? sleepAck : null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const ack = sleepAck && sleepAck.date === date ? sleepAck : null;",
@@ -2752,7 +2864,8 @@
     ],
     "first": {
      "text": "      dateBox.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      dateBox.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
@@ -2773,7 +2886,8 @@
     ],
     "first": {
      "text": "      const latest = SleepModel.nightDateFor(sleepToday());",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      const latest = SleepModel.nightDateFor(sleepToday());",
@@ -2794,7 +2908,8 @@
     ],
     "first": {
      "text": "      dateBox.addEventListener(\"change\", () => {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      dateBox.addEventListener(\"change\", () => {",
@@ -2815,7 +2930,8 @@
     ],
     "first": {
      "text": "    const rolled = sleepClockCheck();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const rolled = sleepClockCheck();",
@@ -2836,7 +2952,8 @@
     ],
     "first": {
      "text": "      keepNight.addEventListener(\"click\", () => {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      keepNight.addEventListener(\"click\", () => {",
@@ -2857,7 +2974,8 @@
     ],
     "first": {
      "text": "    times.disabled = hoursMode.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    times.disabled = hoursMode.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
@@ -2878,7 +2996,8 @@
     ],
     "first": {
      "text": "    times.addEventListener(\"click\", () => { sleepDraft.mode = \"times\"; render(\"sleep\", false); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    times.addEventListener(\"click\", () => { sleepDraft.mode = \"times\"; render(\"sleep\", false); });",
@@ -2899,7 +3018,8 @@
     ],
     "first": {
      "text": "    hoursMode.addEventListener(\"click\", () => { sleepDraft.mode = \"hours\"; render(\"sleep\", false); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    hoursMode.addEventListener(\"click\", () => { sleepDraft.mode = \"hours\"; render(\"sleep\", false); });",
@@ -2920,7 +3040,8 @@
     ],
     "first": {
      "text": "    for (const box of [bed, wake, awake, hoursBox]) box.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    for (const box of [bed, wake, awake, hoursBox]) box.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
@@ -2941,7 +3062,8 @@
     ],
     "first": {
      "text": "    bed.addEventListener(\"input\", () => { sleepDraft.bed = bed.value; sleepEstimate(map); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    bed.addEventListener(\"input\", () => { sleepDraft.bed = bed.value; sleepEstimate(map); });",
@@ -2962,7 +3084,8 @@
     ],
     "first": {
      "text": "    wake.addEventListener(\"input\", () => { sleepDraft.wake = wake.value; sleepEstimate(map); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    wake.addEventListener(\"input\", () => { sleepDraft.wake = wake.value; sleepEstimate(map); });",
@@ -2983,7 +3106,8 @@
     ],
     "first": {
      "text": "    awake.addEventListener(\"input\", () => { sleepDraft.awake_min = awake.value; sleepEstimate(map); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    awake.addEventListener(\"input\", () => { sleepDraft.awake_min = awake.value; sleepEstimate(map); });",
@@ -3004,7 +3128,8 @@
     ],
     "first": {
      "text": "    hoursBox.addEventListener(\"input\", () => { sleepDraft.hours = hoursBox.value; });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    hoursBox.addEventListener(\"input\", () => { sleepDraft.hours = hoursBox.value; });",
@@ -3025,7 +3150,8 @@
     ],
     "first": {
      "text": "    toggle.addEventListener(\"click\", () => { sleepDraft.awakeOpen = !sleepDraft.awakeOpen; render(\"sleep\", false); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    toggle.addEventListener(\"click\", () => { sleepDraft.awakeOpen = !sleepDraft.awakeOpen; render(\"sleep\", false); });",
@@ -3046,7 +3172,8 @@
     ],
     "first": {
      "text": "      use.addEventListener(\"click\", () => {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      use.addEventListener(\"click\", () => {",
@@ -3067,7 +3194,8 @@
     ],
     "first": {
      "text": "      qualityLine.textContent = sleepCheckInPending ? \"\" : plainOrDrop(sleepCheckInFailed",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      qualityLine.textContent = sleepCheckInPending ? \"\" : plainOrDrop(sleepCheckInFailed",
@@ -3088,7 +3216,8 @@
     ],
     "first": {
      "text": "      openCheckIn.hidden = !!quality || !!sleepCheckInPending;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      openCheckIn.hidden = !!quality || !!sleepCheckInPending;",
@@ -3109,7 +3238,8 @@
     ],
     "first": {
      "text": "      openCheckIn.addEventListener(\"click\", () => {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      openCheckIn.addEventListener(\"click\", () => {",
@@ -3130,7 +3260,8 @@
     ],
     "first": {
      "text": "    error.textContent = sleepErrorText",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    error.textContent = sleepErrorText",
@@ -3151,7 +3282,8 @@
     ],
     "first": {
      "text": "      ? plainOrDrop(sleepErrorText, \"sleep-error\")",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      ? plainOrDrop(sleepErrorText, \"sleep-error\")",
@@ -3172,7 +3304,8 @@
     ],
     "first": {
      "text": "      : (sleepReadBack ? plainOrDrop(SLEEP_READ_FAILED + \" \" + SLEEP_KEPT, \"sleep-error\") : \"\");",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      : (sleepReadBack ? plainOrDrop(SLEEP_READ_FAILED + \" \" + SLEEP_KEPT, \"sleep-error\") : \"\");",
@@ -3193,7 +3326,8 @@
     ],
     "first": {
      "text": "    const owed = !!sleepReadBack || !!sleepUnknown || sleepCheckInFailed;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const owed = !!sleepReadBack || !!sleepUnknown || sleepCheckInFailed;",
@@ -3214,7 +3348,8 @@
     ],
     "first": {
      "text": "    const corrected = sleepOpsFor(date).length > 1;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const corrected = sleepOpsFor(date).length > 1;",
@@ -3235,7 +3370,8 @@
     ],
     "first": {
      "text": "    const editing = !known || sleepCorrecting;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const editing = !known || sleepCorrecting;",
@@ -3256,7 +3392,8 @@
     ],
     "first": {
      "text": "      change.hidden = !known || sleepCorrecting;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      change.hidden = !known || sleepCorrecting;",
@@ -3277,7 +3414,8 @@
     ],
     "first": {
      "text": "      cancel.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      cancel.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
@@ -3298,7 +3436,8 @@
     ],
     "first": {
      "text": "      cancel.hidden = !sleepCorrecting;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      cancel.hidden = !sleepCorrecting;",
@@ -3319,7 +3458,8 @@
     ],
     "first": {
      "text": "      cancel.textContent = sleepCorrecting ? plainOrDrop(SLEEP_CANCEL, \"sleep-cancel\") : \"\";",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      cancel.textContent = sleepCorrecting ? plainOrDrop(SLEEP_CANCEL, \"sleep-cancel\") : \"\";",
@@ -3340,7 +3480,8 @@
     ],
     "first": {
      "text": "      cancel.addEventListener(\"click\", () => {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      cancel.addEventListener(\"click\", () => {",
@@ -3361,7 +3502,8 @@
     ],
     "first": {
      "text": "    put(map, \"sleep-save-label\", sleepBusy ? SLEEP_SAVING",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    put(map, \"sleep-save-label\", sleepBusy ? SLEEP_SAVING",
@@ -3382,7 +3524,8 @@
     ],
     "first": {
      "text": "    save.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    save.disabled = sleepBusy || !!sleepUnknown || !!sleepReadBack;",
@@ -3403,7 +3546,8 @@
     ],
     "first": {
      "text": "    const entry = { ...sleepDraft, mode: \"times\", date: sleepNightDate() };",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const entry = { ...sleepDraft, mode: \"times\", date: sleepNightDate() };",
@@ -3424,7 +3568,8 @@
     ],
     "first": {
      "text": "    if (!sleepLane) { openSleepLane(); return \"\"; }",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (!sleepLane) { openSleepLane(); return \"\"; }",
@@ -3445,7 +3590,8 @@
     ],
     "first": {
      "text": "    const offer = firstRun();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const offer = firstRun();",
@@ -3466,7 +3612,8 @@
     ],
     "first": {
      "text": "    if (!firstRun()) return false;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (!firstRun()) return false;",
@@ -3487,7 +3634,8 @@
     ],
     "first": {
      "text": "    const summary = (setup && typeof setup.summary === \"function\" ? setup.summary() : null) || null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const summary = (setup && typeof setup.summary === \"function\" ? setup.summary() : null) || null;",
@@ -3508,7 +3656,8 @@
     ],
     "first": {
      "text": "    const label = setup && typeof setup.athleteLabel === \"function\" ? setup.athleteLabel() : null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const label = setup && typeof setup.athleteLabel === \"function\" ? setup.athleteLabel() : null;",
@@ -3529,7 +3678,8 @@
     ],
     "first": {
      "text": "  const laneHandles = () => ({ workout: !!workout, checkin: !!checkin, setup: !!setup });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  const laneHandles = () => ({ workout: !!workout, checkin: !!checkin, setup: !!setup });",
@@ -3550,7 +3700,8 @@
     ],
     "first": {
      "text": "    const holders = [setup && setup.host, workout && workout.gymHost];",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const holders = [setup && setup.host, workout && workout.gymHost];",
@@ -3571,7 +3722,8 @@
     ],
     "first": {
      "text": "        setup: setup && typeof setup.summary === \"function\" ? setup.summary() : null,",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        setup: setup && typeof setup.summary === \"function\" ? setup.summary() : null,",
@@ -3592,7 +3744,8 @@
     ],
     "first": {
      "text": "    button.addEventListener(\"click\", async () => {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    button.addEventListener(\"click\", async () => {",
@@ -3613,7 +3766,8 @@
     ],
     "first": {
      "text": "    if (!foodLane) { openFoodLane(); return NOT_WIRED; }",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (!foodLane) { openFoodLane(); return NOT_WIRED; }",
@@ -3634,7 +3788,8 @@
     ],
     "first": {
      "text": "    const summary = checkinSummary();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const summary = checkinSummary();",
@@ -3655,7 +3810,8 @@
     ],
     "first": {
      "text": "      back.addEventListener(\"click\", (event) => { event.preventDefault(); render(origin, true); });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      back.addEventListener(\"click\", (event) => { event.preventDefault(); render(origin, true); });",
@@ -3676,7 +3832,8 @@
     ],
     "first": {
      "text": "    if (next === \"setup\" && !firstRun()) next = \"today\";",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (next === \"setup\" && !firstRun()) next = \"today\";",
@@ -3697,7 +3854,8 @@
     ],
     "first": {
      "text": "      return setup.open({ doc, phone,",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      return setup.open({ doc, phone,",
@@ -3718,7 +3876,8 @@
     ],
     "first": {
      "text": "          const adopting = canAdoptAthleteState();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "          const adopting = canAdoptAthleteState();",
@@ -3739,7 +3898,8 @@
     ],
     "first": {
      "text": "          if (adopting) armAdoptionGate();",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "          if (adopting) armAdoptionGate();",
@@ -3760,7 +3920,8 @@
     ],
     "first": {
      "text": "          return ready;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "          return ready;",
@@ -3781,7 +3942,8 @@
     ],
     "first": {
      "text": "      const origin = checkinOrigin === \"workout\" && workout ? \"workout\"",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      const origin = checkinOrigin === \"workout\" && workout ? \"workout\"",
@@ -3802,7 +3964,8 @@
     ],
     "first": {
      "text": "      if (checkin && typeof checkin.open === \"function\") {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      if (checkin && typeof checkin.open === \"function\") {",
@@ -3823,7 +3986,8 @@
     ],
     "first": {
      "text": "        const rebound = reboundCheckIn(origin);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        const rebound = reboundCheckIn(origin);",
@@ -3844,7 +4008,8 @@
     ],
     "first": {
      "text": "        return checkin.open({ doc, phone, back: () => render(origin, true) });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        return checkin.open({ doc, phone, back: () => render(origin, true) });",
@@ -3865,7 +4030,8 @@
     ],
     "first": {
      "text": "      if (workout && typeof workout.open === \"function\") {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      if (workout && typeof workout.open === \"function\") {",
@@ -3886,7 +4052,8 @@
     ],
     "first": {
      "text": "        return workout.open({ doc, phone, back: () => render(\"today\", true),",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "        return workout.open({ doc, phone, back: () => render(\"today\", true),",
@@ -3907,7 +4074,8 @@
     ],
     "first": {
      "text": "          ...(checkin ? { checkIn: () => { checkinOrigin = \"workout\"; render(\"recovery\", true); } } : {}) });",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "          ...(checkin ? { checkIn: () => { checkinOrigin = \"workout\"; render(\"recovery\", true); } } : {}) });",
@@ -3928,7 +4096,8 @@
     ],
     "first": {
      "text": "  phone.addEventListener(\"keydown\", onPhoneKeydown);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  phone.addEventListener(\"keydown\", onPhoneKeydown);",
@@ -3949,7 +4118,8 @@
     ],
     "first": {
      "text": "  render(requestedScreen() || (setupFirst && firstRun() ? \"setup\" : \"today\"));",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  render(requestedScreen() || (setupFirst && firstRun() ? \"setup\" : \"today\"));",
@@ -3970,7 +4140,8 @@
     ],
     "first": {
      "text": "    importScreen: () => importScreen, importAdmitted: () => importAdmitted,",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    importScreen: () => importScreen, importAdmitted: () => importAdmitted,",
@@ -3991,7 +4162,8 @@
     ],
     "first": {
      "text": "    foodPending: () => foodSaving, foodReady: () => foodOpening,",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    foodPending: () => foodSaving, foodReady: () => foodOpening,",
@@ -4012,7 +4184,8 @@
     ],
     "first": {
      "text": "    sleepPending: () => sleepSaving, sleepReady: () => sleepOpening,",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    sleepPending: () => sleepSaving, sleepReady: () => sleepOpening,",
@@ -4033,7 +4206,8 @@
     ],
     "first": {
      "text": "    sleepCheckInReady: () => screen === \"sleep-checkin\" ? sleepCheckInViewPending : sleepCheckInPending,",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    sleepCheckInReady: () => screen === \"sleep-checkin\" ? sleepCheckInViewPending : sleepCheckInPending,",
@@ -4054,7 +4228,8 @@
     ],
     "first": {
      "text": "    checkInKitReady: () => checkInKitLoading, sleepLane: () => sleepLane,",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    checkInKitReady: () => checkInKitLoading, sleepLane: () => sleepLane,",
@@ -4075,7 +4250,8 @@
     ],
     "first": {
      "text": "    sleepAck: () => (sleepAck ? { ...sleepAck } : null),",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    sleepAck: () => (sleepAck ? { ...sleepAck } : null),",
@@ -4096,7 +4272,8 @@
     ],
     "first": {
      "text": "    workoutEntry: () => workout,",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    workoutEntry: () => workout,",
@@ -4117,7 +4294,8 @@
     ],
     "first": {
      "text": "    workoutRebound: () => workoutRebinding,",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    workoutRebound: () => workoutRebinding,",
@@ -4138,7 +4316,8 @@
     ],
     "first": {
      "text": "    get ready() { return ready; },",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    get ready() { return ready; },",
@@ -4159,7 +4338,8 @@
     ],
     "first": {
      "text": "      if (typeof phone.removeEventListener === \"function\") phone.removeEventListener(\"keydown\", onPhoneKeydown);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      if (typeof phone.removeEventListener === \"function\") phone.removeEventListener(\"keydown\", onPhoneKeydown);",
@@ -4182,7 +4362,8 @@
     ],
     "first": {
      "text": "  let settingsLane = settings || null;",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  let settingsSaving = null;",
@@ -4200,7 +4381,8 @@
     ],
     "first": {
      "text": "  /* D2 ROUND 1, FINDING 1 - THE OPTIONAL READ IS NEVER A PREREQUISITE FOR THE CARD.",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  let settingsReading = null;       // the last read started, for checks and tests",
@@ -4218,7 +4400,8 @@
     ],
     "first": {
      "text": "  function startSettingsRead(liftId) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -4236,7 +4419,8 @@
     ],
     "first": {
      "text": "  function openSettingsLane() {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -4254,7 +4438,8 @@
     ],
     "first": {
      "text": "    if (!settingsLane) { block.hidden = true; editor.hidden = true; openSettingsLane(); return; }",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    if (!settingsLane) { block.hidden = true; editor.hidden = true; openSettingsLane(); return; }",
@@ -4275,7 +4460,8 @@
     ],
     "first": {
      "text": "    if (!settingsRead.has(liftId)) startSettingsRead(liftId);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    const entry = settingsRead.get(liftId) || null;",
@@ -4297,7 +4483,8 @@
     ],
     "first": {
      "text": "      settingsSaving = recordSettings(map, view, paintedDraft);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "      settingsSaving = recordSettings(map, view, paintedDraft);",
@@ -4336,7 +4523,8 @@
     ],
     "first": {
      "text": "    try { result = await settingsLane.save(machine); }",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    finally { save.disabled = false; }",
@@ -4358,7 +4546,8 @@
     ],
     "first": {
      "text": "    settingsRead.delete(view.lift.id);",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    await startSettingsRead(view.lift.id);",
@@ -4367,7 +4556,8 @@
     "replacement": [
      "    hooks.dropRead(view.lift.id);",
      "    await hooks.startRead(view.lift.id);"
-    ]
+    ],
+    "statementRewrite": true
    },
    {
     "id": "GA-M02",
@@ -4470,7 +4660,8 @@
     ],
     "first": {
      "text": "    pending: () => settingsSaving,",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    stateFor: (liftId) => (settingsRead.has(liftId) ? settingsRead.get(liftId).state : 'reading'),",
@@ -4499,7 +4690,8 @@
     ],
     "first": {
      "text": "  const ALREADY_RECORDED = \"Today's weigh-in is already recorded on this device. Changing a recorded reading needs the correction path, which is not wired yet.\";",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "    + \" lb, to one decimal place. Nothing was recorded.\";",
@@ -4517,7 +4709,8 @@
     ],
     "first": {
      "text": "  async function weighIn(lb) {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -4535,7 +4728,8 @@
     ],
     "first": {
      "text": "  async function reopen() {",
-     "nth": 1
+     "nth": 1,
+     "occurrences": 1
     },
     "last": {
      "text": "  }",
@@ -4567,7 +4761,8 @@
      "at": [
       362,
       365
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "6bb2d6e61f43ad347be6701178e0c84775bf088e70076d20b3b8e6f25932523d",
@@ -4575,7 +4770,8 @@
      "at": [
       362,
       365
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S02": {
@@ -4585,7 +4781,8 @@
      "at": [
       370,
       384
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "a33abb0f1fbe7a36309f8b68d1dd3df71586d689367a2c473ba9896edc150ada",
@@ -4593,7 +4790,8 @@
      "at": [
       370,
       384
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S03": {
@@ -4603,7 +4801,8 @@
      "at": [
       392,
       392
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "58262fc0967ffd7a0c9e2d22df3b360c0f5540f1ca5107a05152d1b56c332ea3",
@@ -4611,7 +4810,8 @@
      "at": [
       392,
       392
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S04": {
@@ -4621,7 +4821,8 @@
      "at": [
       410,
       421
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "b9cb348d4b786191b2f15d856f00d9e1ee7aea9daf8bef97a8d0a3dfa5cd2e4f",
@@ -4629,7 +4830,8 @@
      "at": [
       410,
       421
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S05": {
@@ -4639,7 +4841,8 @@
      "at": [
       422,
       422
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "9abc2e905d4f37ac0e0cce7589282dea09079e74158bb0fb9e0bb9eaccfdf54f",
@@ -4647,7 +4850,8 @@
      "at": [
       422,
       422
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S06": {
@@ -4657,7 +4861,8 @@
      "at": [
       432,
       441
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "e9d324b0f795cf302ab475f402fc14412636e8bd01a5feee10705d8135f223e5",
@@ -4665,7 +4870,8 @@
      "at": [
       432,
       441
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S07": {
@@ -4675,7 +4881,8 @@
      "at": [
       454,
       454
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "bc738bd8c192c177db651098e392fda30c16361d974330c0b8efa0c81b736a34",
@@ -4683,7 +4890,8 @@
      "at": [
       454,
       454
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S08": {
@@ -4693,7 +4901,8 @@
      "at": [
       459,
       464
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "ee1ebc4fb420617f7815067a6dae73c9971e9ba892a560382eb636a49e1bd4f9",
@@ -4701,7 +4910,8 @@
      "at": [
       459,
       464
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S09": {
@@ -4711,7 +4921,8 @@
      "at": [
       465,
       474
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "9cf1840eb310f09ba8c14e16f2608fd0a78a632adbbf012a8dd2c301a89ecd7b",
@@ -4719,7 +4930,8 @@
      "at": [
       465,
       474
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S10": {
@@ -4729,7 +4941,8 @@
      "at": [
       482,
       482
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "35666846fb8d709ecdc4ddd76952731f7732badef0ed5eb04c5c37452d68b2da",
@@ -4737,7 +4950,8 @@
      "at": [
       482,
       482
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S11": {
@@ -4747,7 +4961,8 @@
      "at": [
       484,
       503
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "9004c8442c6b22cd66325be6964d656587d0823aa9928356145e4047f6b3cab3",
@@ -4755,7 +4970,8 @@
      "at": [
       484,
       503
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S12": {
@@ -4765,7 +4981,8 @@
      "at": [
       505,
       508
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "553263882d758df5db5461d7260e67a9d3eb08dc50aaf340f2003052c0e20a20",
@@ -4773,7 +4990,8 @@
      "at": [
       505,
       508
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S13": {
@@ -4783,7 +5001,8 @@
      "at": [
       510,
       541
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "765427914c715ca14a8ceda4b9ce87a2d21e78871cdbd659de7d5b7c0bc03bd6",
@@ -4791,7 +5010,8 @@
      "at": [
       510,
       541
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S14": {
@@ -4801,7 +5021,8 @@
      "at": [
       543,
       555
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "db7384115b9a7085391b5079784993d3a5b96811b5b236922575add8c0b49a1a",
@@ -4809,7 +5030,8 @@
      "at": [
       543,
       555
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S15": {
@@ -4819,7 +5041,8 @@
      "at": [
       556,
       566
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "843bf223c30b25d1635badac6e4ccf1130be61e11c8d811725c9c19400b55fa9",
@@ -4827,7 +5050,8 @@
      "at": [
       556,
       566
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S16": {
@@ -4837,7 +5061,8 @@
      "at": [
       567,
       567
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "c80e458eca81febef7656811ee7e1e5aa1fce96a667c8c6b110c1c682e20fd58",
@@ -4845,7 +5070,8 @@
      "at": [
       567,
       567
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S17": {
@@ -4855,7 +5081,8 @@
      "at": [
       569,
       591
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "5bf4314936deeb2c7725063b077bdd98076f98c762abd09e36acc80ca59af203",
@@ -4863,7 +5090,8 @@
      "at": [
       569,
       591
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S18": {
@@ -4873,7 +5101,8 @@
      "at": [
       593,
       618
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "c5d77baea50dcfebe880f0419ff2b019e53b414a7017707b2bc2d778e346f759",
@@ -4881,7 +5110,8 @@
      "at": [
       593,
       618
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S19": {
@@ -4891,7 +5121,8 @@
      "at": [
       628,
       643
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "d437e58a27235dbed1f13d28fd9b3b78e1b4a94b74e5def7d8f1a184452e32ae",
@@ -4899,7 +5130,8 @@
      "at": [
       628,
       643
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S20": {
@@ -4909,7 +5141,8 @@
      "at": [
       688,
       701
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "4ffd0e184e4477fbdc069dcd65f36638ce10f19941220e61a05e36b3a746467c",
@@ -4917,7 +5150,8 @@
      "at": [
       688,
       701
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S21": {
@@ -4927,7 +5161,8 @@
      "at": [
       767,
       767
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "84f834bb8ff64bf71c7bdc28a0f4393e6f636555c7844353dc4f2bbbb0c500d8",
@@ -4935,7 +5170,8 @@
      "at": [
       767,
       767
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S22": {
@@ -4945,7 +5181,8 @@
      "at": [
       775,
       790
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "e858c21323626ea4cffe9b3512f7ad3eedd9264700b3fda31068ff1351ffea3e",
@@ -4953,7 +5190,8 @@
      "at": [
       775,
       790
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S23": {
@@ -4963,7 +5201,8 @@
      "at": [
       1278,
       1319
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "185afc83a8fa030215dd0b54456406093d0f43632365ed237eb363306c0d572f",
@@ -4971,7 +5210,8 @@
      "at": [
       1279,
       1320
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S24": {
@@ -4981,7 +5221,8 @@
      "at": [
       1324,
       1334
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "77cb7c3cd7b4ead3b65a9e2de66c9178c929e4c3d1d1465b1ff933244fd32207",
@@ -4989,7 +5230,8 @@
      "at": [
       1325,
       1335
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S25": {
@@ -4999,7 +5241,8 @@
      "at": [
       1373,
       1376
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "2791a36cf591bf0f1700416ad083c908af9de518ea0f6508390bd13e06812286",
@@ -5007,7 +5250,8 @@
      "at": [
       1374,
       1377
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S26": {
@@ -5017,7 +5261,8 @@
      "at": [
       1384,
       1393
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "8f7fee53c61fd9dadbba17d46b4118107eab0a1f16a6c39b57f0599e781b211e",
@@ -5025,7 +5270,8 @@
      "at": [
       1385,
       1394
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S27": {
@@ -5035,7 +5281,8 @@
      "at": [
       1410,
       1427
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "706d8327b20600a5b4e608381c8905afd359845e154c2f2c2707077f05645aec",
@@ -5043,7 +5290,8 @@
      "at": [
       1411,
       1428
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S28": {
@@ -5053,7 +5301,8 @@
      "at": [
       1450,
       1453
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "aa2957a6b986b9f93cfa54648cdf1d86b3cd8e7437ef0bcd2f432c8ddeea2e6c",
@@ -5061,7 +5310,8 @@
      "at": [
       1451,
       1454
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S29": {
@@ -5071,7 +5321,8 @@
      "at": [
       1727,
       1756
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "4dc1477b5638d974b96aa0d2d6bbad79c1e2c6eb9b8e530702e677017668bbb0",
@@ -5079,7 +5330,8 @@
      "at": [
       1728,
       1757
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S30": {
@@ -5089,7 +5341,8 @@
      "at": [
       1807,
       1930
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "6107979043b660eede58c9d77bf18e35599a6829771177907c547f913be2f154",
@@ -5097,7 +5350,8 @@
      "at": [
       1808,
       1931
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S31": {
@@ -5107,7 +5361,8 @@
      "at": [
       1935,
       1948
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "b52b040f62495f52cf898ae67bd8aa6ce673187d2fc496f909a4f3d908a0e55a",
@@ -5115,7 +5370,8 @@
      "at": [
       1936,
       1949
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S32": {
@@ -5125,7 +5381,8 @@
      "at": [
       1964,
       2011
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "113592e81e3afef5d42271a4819a1b42bec6a5a9c19b7bd0e11e902bd7dee6c9",
@@ -5133,7 +5390,8 @@
      "at": [
       1965,
       2012
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S33": {
@@ -5143,7 +5401,8 @@
      "at": [
       2018,
       2036
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "bb40f4cd3b7f7c361d58074904553e272be898b4e854cde93726cfcb5f49b5ff",
@@ -5151,7 +5410,8 @@
      "at": [
       2019,
       2037
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S34": {
@@ -5161,7 +5421,8 @@
      "at": [
       2048,
       2092
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "5b13c9d48daca7fd2c40fd0efa1492965d7567eebe3571c3e34c65d2153589a2",
@@ -5169,7 +5430,8 @@
      "at": [
       2049,
       2093
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S35": {
@@ -5179,7 +5441,8 @@
      "at": [
       2430,
       2439
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "0148b84525cdd48757cfaa843d9c0f8a6084eb4b374d6cc0c329cd8ae83605e3",
@@ -5187,7 +5450,8 @@
      "at": [
       2431,
       2440
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S36": {
@@ -5197,7 +5461,8 @@
      "at": [
       2482,
       2489
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "1214c18f98c0b685bc9c3d92fdf4e4ecb9cbce4070ba2e2767fae02caba31750",
@@ -5205,7 +5470,8 @@
      "at": [
       2483,
       2490
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S37": {
@@ -5215,7 +5481,8 @@
      "at": [
       2490,
       2546
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "598d3467c1fee1ae90d39281e5187aab56b0481271b19fd19d243f596659d890",
@@ -5223,7 +5490,8 @@
      "at": [
       2491,
       2547
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S38": {
@@ -5233,7 +5501,8 @@
      "at": [
       2550,
       2550
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "92e3de2b64d1be1e292aa69e5f546199c2f121b9a41adff4cf46035f9fadb7ab",
@@ -5241,7 +5510,8 @@
      "at": [
       2551,
       2551
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "GA-S01": {
@@ -5251,7 +5521,8 @@
      "at": [
       123,
       125
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "edf3c40379003b0a531582c426d5fd68e06e39bd371bd1f8038d0f88de7fa29a",
@@ -5259,7 +5530,8 @@
      "at": [
       123,
       125
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "GA-S02": {
@@ -5269,7 +5541,8 @@
      "at": [
       131,
       140
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "40700f8b4a16aee514128bdf09f5c38872d3d67187f20e47963bbe5141d92283",
@@ -5277,7 +5550,8 @@
      "at": [
       131,
       140
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "GA-S03": {
@@ -5287,7 +5561,8 @@
      "at": [
       142,
       156
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "335b9a58a60f51b31b3f39336bfba2691ef8e82a8e9a856cac61cd0728572dda",
@@ -5295,7 +5570,8 @@
      "at": [
       142,
       156
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "GA-S04": {
@@ -5305,7 +5581,8 @@
      "at": [
       158,
       170
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "19cd1d46e67996d3282a227708b5b27ec76abf110114ca378b89d00634fc0a8e",
@@ -5313,7 +5590,8 @@
      "at": [
       158,
       170
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TM-S01": {
@@ -5323,7 +5601,8 @@
      "at": [
       365,
       374
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "ac957a0d6da0ab2772bcbeb8006bb683e7fab1ac0514f0ca9d3d65e6ce6f5870",
@@ -5331,7 +5610,8 @@
      "at": [
       397,
       406
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TM-S02": {
@@ -5341,7 +5621,8 @@
      "at": [
       378,
       398
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "0fe603735051528ae665a4c5362e7a3940ef1bd8b7d20d07a44ca688b7b68cd3",
@@ -5349,7 +5630,8 @@
      "at": [
       410,
       430
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TM-S03": {
@@ -5359,7 +5641,8 @@
      "at": [
       401,
       405
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "fe5530e6815502efad238fcd4733d0adf31255009fafb1518959f6ccd1ea82c6",
@@ -5367,7 +5650,8 @@
      "at": [
       433,
       437
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-S35b": {
@@ -5377,7 +5661,8 @@
      "at": [
       2440,
       2441
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "20a47ce41334d88d10303ab501dfd51a2c0192ee499a8c8e2f8d57c22f55fe2e",
@@ -5385,7 +5670,8 @@
      "at": [
       2441,
       2442
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "GA-R01": {
@@ -5395,7 +5681,8 @@
      "at": [
       246,
       246
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "7734d038382c3a259ddd0c1d3d1050c0f4e6ccc3ac9b5cc50950eeff7baeab37",
@@ -5403,7 +5690,8 @@
      "at": [
       246,
       246
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "GA-R02": {
@@ -5413,7 +5701,8 @@
      "at": [
       251,
       252
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "fd03a08cdf49d8964bff889f4c23b55cef9b495457e13243d5ec02b02c5a24d6",
@@ -5421,7 +5710,8 @@
      "at": [
       251,
       252
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "GA-R03": {
@@ -5431,7 +5721,8 @@
      "at": [
       279,
       279
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "715c2a090055770cade0cc96f4ebf1d015a06903ad183b994581bc684fc25732",
@@ -5439,7 +5730,8 @@
      "at": [
       279,
       279
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "GA-R04": {
@@ -5449,7 +5741,8 @@
      "at": [
       305,
       306
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "7d9b30a121273df0e34581afccce0d2e3d6c9c9f71c01e5ca41ddfd113d7f820",
@@ -5457,7 +5750,8 @@
      "at": [
       305,
       306
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "GA-R05": {
@@ -5467,7 +5761,8 @@
      "at": [
       316,
       317
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "4127bebdd27a01b1a4535cc03a1a5e910a1fd659f2f0b301959551e651de0a17",
@@ -5475,7 +5770,8 @@
      "at": [
       316,
       317
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "GA-R06": {
@@ -5485,7 +5781,8 @@
      "at": [
       570,
       576
-     ]
+     ],
+     "occurrences": 1
     },
     "s9": {
      "sha256": "bf4ba4ddd153daa9c611d66a39105d22363b6fbf11cbba4487b904b3ee76a2bd",
@@ -5493,7 +5790,8 @@
      "at": [
       570,
       576
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W01": {
@@ -5503,7 +5801,8 @@
      "at": [
       476,
       477
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "45541f99d22d61162496ffdd10a71cb98a6d5ec4081d029b3d475807eb9b275d",
@@ -5511,7 +5810,8 @@
      "at": [
       476,
       477
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W02": {
@@ -5521,7 +5821,8 @@
      "at": [
       652,
       652
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "e64a81a0b0d80d1becc81f1628cc8a78cb8caea74c28ccb5b2d4d1c01bdd7d15",
@@ -5529,7 +5830,8 @@
      "at": [
       652,
       652
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W03": {
@@ -5539,7 +5841,8 @@
      "at": [
       711,
       711
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "c24fde53f743c3be7653874d395fdfa69bc86e92c9fc6d089cca90b6a6b0303a",
@@ -5547,7 +5850,8 @@
      "at": [
       711,
       711
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W04": {
@@ -5557,7 +5861,8 @@
      "at": [
       1270,
       1270
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "459b5258c8e3624cd609bbd8cadc04651b5efa84883adb05f2a370bc9ff054f3",
@@ -5565,7 +5870,8 @@
      "at": [
       1269,
       1269
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W05": {
@@ -5575,7 +5881,8 @@
      "at": [
       1273,
       1273
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "96dccf2fb6b9deff3df74cc8e4655455ec4f81d6fb15e27ac703e8b03552d678",
@@ -5583,7 +5890,8 @@
      "at": [
       1272,
       1272
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W06": {
@@ -5593,7 +5901,8 @@
      "at": [
       1436,
       1436
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "511307576511f00e3d6953c55f4fd170915cc547c9ed8fa6efa55393ecd2b8dc",
@@ -5601,7 +5910,8 @@
      "at": [
       1435,
       1435
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W07": {
@@ -5611,7 +5921,8 @@
      "at": [
       1540,
       1543
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "e351cfef6ccc748b1949cfba3a7c347ba75ab2f788e5133eec6e3e616545b8fc",
@@ -5619,7 +5930,8 @@
      "at": [
       1539,
       1542
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W08": {
@@ -5629,7 +5941,8 @@
      "at": [
       1561,
       1563
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "4b0d8c45e93e660da2c6f9702c463edc704b8962beed8735e55070b86f65d4bf",
@@ -5637,7 +5950,8 @@
      "at": [
       1560,
       1562
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W09": {
@@ -5647,7 +5961,8 @@
      "at": [
       1668,
       1668
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "34cfee19547642995d180e71b9413508c5796157b578587c9dd5735a5beeb8e5",
@@ -5655,7 +5970,8 @@
      "at": [
       1667,
       1667
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W10": {
@@ -5665,7 +5981,8 @@
      "at": [
       1704,
       1704
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "55a552ebf480d16cf6701872cce71f98cc6e0747921603580460ebce3fabc1ab",
@@ -5673,7 +5990,8 @@
      "at": [
       1703,
       1703
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W11": {
@@ -5683,7 +6001,8 @@
      "at": [
       1711,
       1711
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "dceb770e22c7af5d09058028d12fcba2b2b70042eb996e50b87f1f68c6a1cd69",
@@ -5691,7 +6010,8 @@
      "at": [
       1710,
       1710
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W12": {
@@ -5701,7 +6021,8 @@
      "at": [
       1722,
       1722
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "0a3115b484caad958124201a289082b036988037fa9aa31cd1be1085cc23751d",
@@ -5709,7 +6030,8 @@
      "at": [
       1721,
       1721
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W13": {
@@ -5719,7 +6041,8 @@
      "at": [
       2298,
       2298
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "9029e514813629fdccdbeb647ccd3ec9545e6c14b3b4c6c76030e7eb481023a7",
@@ -5727,7 +6050,8 @@
      "at": [
       2297,
       2297
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I001": {
@@ -5737,7 +6061,8 @@
      "at": [
       653,
       653
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "37dc4d7d6b43d571d97871e16447792c204c72d7beb39e7f0c6ccbc7ce130eb9",
@@ -5745,7 +6070,8 @@
      "at": [
       653,
       653
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I002": {
@@ -5755,7 +6081,8 @@
      "at": [
       668,
       668
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "897510214cfc52c358d96886aaf1b8ba6ac7c60f7edbf76527442320aa5fe073",
@@ -5763,7 +6090,8 @@
      "at": [
       668,
       668
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I003": {
@@ -5773,7 +6101,8 @@
      "at": [
       678,
       678
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "7b09bf428b9e0f35c4aaa4f0eb7236a8bbbc5d90595361d3319cbd75985c02e9",
@@ -5781,7 +6110,8 @@
      "at": [
       678,
       678
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I004": {
@@ -5791,7 +6121,8 @@
      "at": [
       718,
       718
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "f76179db68005127bc7ff0a79bc0aa25823dc7a2559cbdecab89ddea4d26b9eb",
@@ -5799,7 +6130,8 @@
      "at": [
       718,
       718
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I005": {
@@ -5809,7 +6141,8 @@
      "at": [
       719,
       719
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "81bd8f98e45e2caec0a01e58a866a1440b6dd372f4cb7d91addcc4b7b0baeddd",
@@ -5817,7 +6150,8 @@
      "at": [
       719,
       719
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I006": {
@@ -5827,7 +6161,8 @@
      "at": [
       737,
       737
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "46bb561f77f22ebd7d33d94a409f9081f75818756ff27f1bf9239e02f0ab8157",
@@ -5835,7 +6170,8 @@
      "at": [
       737,
       737
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I007": {
@@ -5845,7 +6181,8 @@
      "at": [
       738,
       738
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "34cfaa6c82937b88cc8bfc0944fcb6c05fb1a480acda05b6f89c53b61f2ffb9e",
@@ -5853,7 +6190,8 @@
      "at": [
       738,
       738
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I008": {
@@ -5863,7 +6201,8 @@
      "at": [
       770,
       770
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "fd9b665b8cd15489e51e87b25e5b74490d166718c4571089630ff9dd559a3714",
@@ -5871,7 +6210,8 @@
      "at": [
       770,
       770
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I009": {
@@ -5881,7 +6221,8 @@
      "at": [
       826,
       826
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "30fcbeff14cf022507555fd0578b6d6e8be84f86d0b001ca469afcfbf39155ef",
@@ -5889,7 +6230,8 @@
      "at": [
       826,
       826
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I010": {
@@ -5899,7 +6241,8 @@
      "at": [
       888,
       888
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "20c921174e57c96f8b08aa0ce5173eca8af902230a29ec2c7655ad62166c5e33",
@@ -5907,7 +6250,8 @@
      "at": [
       887,
       887
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I011": {
@@ -5917,7 +6261,8 @@
      "at": [
       950,
       950
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "fafbc31461ab5df31be3019ae578181a5f5a26490b38c47564711d7b15f1128c",
@@ -5925,7 +6270,8 @@
      "at": [
       949,
       949
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I012": {
@@ -5935,7 +6281,8 @@
      "at": [
       955,
       955
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "6c10a293f73e2ca71ebfdf56cd91a396c51934298099e52910efcd29cb3af58d",
@@ -5943,7 +6290,8 @@
      "at": [
       954,
       954
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I013": {
@@ -5953,7 +6301,8 @@
      "at": [
       992,
       992
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "298f98b04640b9dbbad041f8042659f8b81a571a4a4f8dacf5f882022e63699d",
@@ -5961,7 +6310,8 @@
      "at": [
       991,
       991
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I014": {
@@ -5971,7 +6321,8 @@
      "at": [
       1049,
       1049
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "a359ed8a6a273242a2bfaf6f071342b464a0604f7abce8a2c72bfbd1e818862f",
@@ -5979,7 +6330,8 @@
      "at": [
       1048,
       1048
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I015": {
@@ -5989,7 +6341,8 @@
      "at": [
       1055,
       1055
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "06ea47ce9f7145f1271f3f9d787509f378316dfc91e77a41fc654953bc2e9501",
@@ -5997,7 +6350,8 @@
      "at": [
       1054,
       1054
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I016": {
@@ -6007,7 +6361,8 @@
      "at": [
       1056,
       1056
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "bf758bbb7a6bc0fb0dbf9377ae4b2692bb3bffe5fd07a1461f141fe88f6235f0",
@@ -6015,7 +6370,8 @@
      "at": [
       1055,
       1055
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I017": {
@@ -6025,7 +6381,8 @@
      "at": [
       1060,
       1060
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "f404c5b82e7442149879cee048fd9f2cdfdb73d843c0f131e22c093d7aa076ff",
@@ -6033,7 +6390,8 @@
      "at": [
       1059,
       1059
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I018": {
@@ -6043,7 +6401,8 @@
      "at": [
       1166,
       1166
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "a0a745311a416ff2ebfb890c6c8bae325b56f28f7e6f0220b89607e504c6f946",
@@ -6051,7 +6410,8 @@
      "at": [
       1165,
       1165
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I019": {
@@ -6061,7 +6421,8 @@
      "at": [
       1181,
       1181
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "05bd5d9aa89a2f339d21df13a7af63cb497f63cba164904c781d16112f3c33ee",
@@ -6069,7 +6430,8 @@
      "at": [
       1180,
       1180
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I020": {
@@ -6079,7 +6441,8 @@
      "at": [
       1182,
       1182
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "ed773e89365599a81d9a6baff6d6ba357d47f27b3b36c2bdff51dbf323dfe5d6",
@@ -6087,7 +6450,8 @@
      "at": [
       1181,
       1181
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I021": {
@@ -6097,7 +6461,8 @@
      "at": [
       1183,
       1183
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "f14a8376197c7cb036be3051c97dababdd4357b39190d9a2e1eaab540c80d660",
@@ -6105,7 +6470,8 @@
      "at": [
       1182,
       1182
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I022": {
@@ -6115,7 +6481,8 @@
      "at": [
       1221,
       1221
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "5c4eb7bef1b4d9855bfe8db14a399095cac15a5b6e27205e4a2a17dc9e311959",
@@ -6123,7 +6490,8 @@
      "at": [
       1220,
       1220
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I023": {
@@ -6133,7 +6501,8 @@
      "at": [
       1253,
       1253
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "ff940882e6a6ad598933ccb1a09bbda291161482c17fe7546fb7dfb6112fa755",
@@ -6141,7 +6510,8 @@
      "at": [
       1252,
       1252
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I024": {
@@ -6151,7 +6521,8 @@
      "at": [
       1254,
       1254
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "fddc70600c6da0dd2b94e8bbec982a47d44ff388281c376c23a6c7a8e48884e1",
@@ -6159,7 +6530,8 @@
      "at": [
       1253,
       1253
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I025": {
@@ -6169,7 +6541,8 @@
      "at": [
       1255,
       1255
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "630ded432f76bcd1a5cbfacf2e6df6c6bd4411de6a75e4c07cba0dfba9733dfe",
@@ -6177,7 +6550,8 @@
      "at": [
       1254,
       1254
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I026": {
@@ -6187,7 +6561,8 @@
      "at": [
       1257,
       1257
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "201b0f7cdcefbdf434c83238614b44309a07282bddf3f4e2b3a304cdacd18251",
@@ -6195,7 +6570,8 @@
      "at": [
       1256,
       1256
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I027": {
@@ -6205,7 +6581,8 @@
      "at": [
       1259,
       1259
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "7c3b211ed1264a2884c98b5d854657dfee8bfcdb6851a2ab8717d1391a71b3ed",
@@ -6213,7 +6590,8 @@
      "at": [
       1258,
       1258
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I028": {
@@ -6223,7 +6601,8 @@
      "at": [
       1262,
       1262
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "ecd84e0341c7e5a383755bd13ba1c78d98ecd646e5ba66a726634f39a16edc2c",
@@ -6231,7 +6610,8 @@
      "at": [
       1261,
       1261
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I029": {
@@ -6241,7 +6621,8 @@
      "at": [
       1263,
       1263
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "e0e9285df113aa039ac9f51dae35dbce2da04d68a85af13ee68456655e9289f7",
@@ -6249,7 +6630,8 @@
      "at": [
       1262,
       1262
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I030": {
@@ -6259,7 +6641,8 @@
      "at": [
       1264,
       1264
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "823ff0e27d72de00dd73ec2463e2a47e3ded919fd0fd5b2ea2fdcf905b59a511",
@@ -6267,7 +6650,8 @@
      "at": [
       1263,
       1263
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I031": {
@@ -6277,7 +6661,8 @@
      "at": [
       1268,
       1268
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "b9c2a4273e8a1df040684fdf381f54bf33c90ed28104da0808c9a6b2cd59411a",
@@ -6285,7 +6670,8 @@
      "at": [
       1267,
       1267
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I032": {
@@ -6295,7 +6681,8 @@
      "at": [
       1269,
       1269
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "4fba8701b48818009da57f9004e072ceaf24115ae492d2b9b87360325087c744",
@@ -6303,7 +6690,8 @@
      "at": [
       1268,
       1268
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I033": {
@@ -6313,7 +6701,8 @@
      "at": [
       1405,
       1405
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "d33475bee83e3718a7561abae72a466776a657056ba496a9b07dddc18bb061c8",
@@ -6321,7 +6710,8 @@
      "at": [
       1404,
       1404
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I034": {
@@ -6331,7 +6721,8 @@
      "at": [
       1406,
       1406
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "59c1b6ac1b1bed3de17ec5997b2992b85768be827b1d854d7464e5d3d9bea20b",
@@ -6339,7 +6730,8 @@
      "at": [
       1405,
       1405
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I035": {
@@ -6349,7 +6741,8 @@
      "at": [
       1407,
       1407
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "e75f6e4bd66199b23bd5dd411425337eb34c9d7c87c6c125167afe7b87c57e2b",
@@ -6357,7 +6750,8 @@
      "at": [
       1406,
       1406
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I036": {
@@ -6367,7 +6761,8 @@
      "at": [
       1430,
       1430
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "2594cb6d704301ab624d16f74453ea18d4584493bf113b0cb4177ab5db061543",
@@ -6375,7 +6770,8 @@
      "at": [
       1429,
       1429
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I037": {
@@ -6385,7 +6781,8 @@
      "at": [
       1439,
       1439
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "1e52dabc59c0f2064a31e2fd3eae9b82735d8ef10475a9e69fe7112a6561f65a",
@@ -6393,7 +6790,8 @@
      "at": [
       1438,
       1438
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I038": {
@@ -6403,7 +6801,8 @@
      "at": [
       1440,
       1440
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "5bd4456dae7d650b86cef06546298b7bb2dfba04d12e122d1a93f92acdba1c78",
@@ -6411,7 +6810,8 @@
      "at": [
       1439,
       1439
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I039": {
@@ -6421,7 +6821,8 @@
      "at": [
       1446,
       1446
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "34d722810ee0a2ebf8e1d2a103f0de0cf7e4ae89ec3900b08d14477dfc27444a",
@@ -6429,7 +6830,8 @@
      "at": [
       1445,
       1445
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I040": {
@@ -6439,7 +6841,8 @@
      "at": [
       1475,
       1475
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "bb1c8e9864224072206c1d293560c294a598a9874c661ef404527cfd7da03a33",
@@ -6447,7 +6850,8 @@
      "at": [
       1474,
       1474
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I041": {
@@ -6457,7 +6861,8 @@
      "at": [
       1477,
       1477
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "f2cfc34eb0d6edd2d0480fb225de12fb6b2aab930d0ca8832dd39ea0ce04accc",
@@ -6465,7 +6870,8 @@
      "at": [
       1476,
       1476
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I042": {
@@ -6475,7 +6881,8 @@
      "at": [
       1489,
       1489
-     ]
+     ],
+     "occurrences": 2
     },
     "tip": {
      "sha256": "295a6f7ffa616af4fd5b76b902ac49f4dfd95648afd094d1faa7469e74b5151c",
@@ -6483,7 +6890,8 @@
      "at": [
       1488,
       1488
-     ]
+     ],
+     "occurrences": 2
     }
    },
    "TA-I043": {
@@ -6493,7 +6901,8 @@
      "at": [
       1490,
       1490
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "3bacce009d961309c9c99ce2e3f75a9ffaf2470d5ff62749cb3333c68e82db69",
@@ -6501,7 +6910,8 @@
      "at": [
       1489,
       1489
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I044": {
@@ -6511,7 +6921,8 @@
      "at": [
       1493,
       1493
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "59d72f14048c1a3e5e902bd37b055033d436c7e6219e605c69cf62d48c0d7435",
@@ -6519,7 +6930,8 @@
      "at": [
       1492,
       1492
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I045": {
@@ -6529,7 +6941,8 @@
      "at": [
       1494,
       1494
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "3ba56ad5b5ab71841db04e4b70c6b578462a736e0d70c576530de1d7ffb4fdf7",
@@ -6537,7 +6950,8 @@
      "at": [
       1493,
       1493
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I046": {
@@ -6547,7 +6961,8 @@
      "at": [
       1497,
       1497
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "5db59435ad5e96a132b211b680309c3993d5420844302fcb2853c24fdabca1cf",
@@ -6555,7 +6970,8 @@
      "at": [
       1496,
       1496
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I047": {
@@ -6565,7 +6981,8 @@
      "at": [
       1498,
       1498
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "6424c7847057f10a0d5576efd7bd534dca2a7555005eac7a677590dd089c835f",
@@ -6573,7 +6990,8 @@
      "at": [
       1497,
       1497
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I048": {
@@ -6583,7 +7001,8 @@
      "at": [
       1518,
       1518
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "54a217ad70f84eca391e9a07c7ccf2bd4ffb4fa2796cb1f77efd1d2a9145fffa",
@@ -6591,7 +7010,8 @@
      "at": [
       1517,
       1517
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I049": {
@@ -6601,7 +7021,8 @@
      "at": [
       1536,
       1536
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "d93ec4175b656546d8b72605bc0923686c3a5b438e28b89272fb6a683e237687",
@@ -6609,7 +7030,8 @@
      "at": [
       1535,
       1535
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I050": {
@@ -6619,7 +7041,8 @@
      "at": [
       1537,
       1537
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "d1e1adb4fcc5152c93dae0f34f0744b6b7322f4406aa40491feb2c1a774c178b",
@@ -6627,7 +7050,8 @@
      "at": [
       1536,
       1536
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I051": {
@@ -6637,7 +7061,8 @@
      "at": [
       1539,
       1539
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "0468e5f8660addb48b8fffec131e08fa67880122c4e77eaa6c094dc0d813cf18",
@@ -6645,7 +7070,8 @@
      "at": [
       1538,
       1538
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I052": {
@@ -6655,7 +7081,8 @@
      "at": [
       1550,
       1550
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "1e66c38f9997d998f78a82076234bf543e8e7bb144015d4182277c6bf5e675c9",
@@ -6663,7 +7090,8 @@
      "at": [
       1549,
       1549
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I053": {
@@ -6673,7 +7101,8 @@
      "at": [
       1560,
       1560
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "95f59920f74489dba8ef3b2cb5c43a3c5403aeac821d316431f689b511b60767",
@@ -6681,7 +7110,8 @@
      "at": [
       1559,
       1559
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I054": {
@@ -6691,7 +7121,8 @@
      "at": [
       1575,
       1575
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "79a0baad570a48d64952020b157b3a126117c01025656a6f36e674689cb51456",
@@ -6699,7 +7130,8 @@
      "at": [
       1574,
       1574
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I055": {
@@ -6709,7 +7141,8 @@
      "at": [
       1578,
       1578
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "2c55174201d038be4491328830e99b9a5e960589b07ae9e8ab7ceb47c3fcbb05",
@@ -6717,7 +7150,8 @@
      "at": [
       1577,
       1577
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I056": {
@@ -6727,7 +7161,8 @@
      "at": [
       1579,
       1579
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "58951673c4712f170358553a82ad620a6590b82b674727ca27381c67f673ee45",
@@ -6735,7 +7170,8 @@
      "at": [
       1578,
       1578
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I057": {
@@ -6745,7 +7181,8 @@
      "at": [
       1600,
       1600
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "8f23b79902852022d7c62964a2aaf38c2e5a97af0661d8d5e0a3a7195e4a359c",
@@ -6753,7 +7190,8 @@
      "at": [
       1599,
       1599
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I058": {
@@ -6763,7 +7201,8 @@
      "at": [
       1601,
       1601
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "2328022b6dec34227c478c38532fa309a4cd1c93a48c7cf46deeb18dc8e693cf",
@@ -6771,7 +7210,8 @@
      "at": [
       1600,
       1600
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I059": {
@@ -6781,7 +7221,8 @@
      "at": [
       1602,
       1602
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "cc5ebb92ff0897f6190fae6da4b3467b1fb7cb6e48dec42bc348cf4bbc041cb3",
@@ -6789,7 +7230,8 @@
      "at": [
       1601,
       1601
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I060": {
@@ -6799,7 +7241,8 @@
      "at": [
       1603,
       1603
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "8d423afeb763a1774976b75a890aa31b5aa8aaa50f60a99806df189c1645819b",
@@ -6807,7 +7250,8 @@
      "at": [
       1602,
       1602
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I061": {
@@ -6817,7 +7261,8 @@
      "at": [
       1604,
       1604
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "9aef7d9b9b292649c351e89a056db3ee0dadd94966181ab0ee7ef9f706dd919b",
@@ -6825,7 +7270,8 @@
      "at": [
       1603,
       1603
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I062": {
@@ -6835,7 +7281,8 @@
      "at": [
       1609,
       1609
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "2613def79b9a07976815118ed04dcebf953c8566000a840a17e29dd271f9f3be",
@@ -6843,7 +7290,8 @@
      "at": [
       1608,
       1608
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I063": {
@@ -6853,7 +7301,8 @@
      "at": [
       1623,
       1623
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "21be28d0e51dda6a809f3cdcf9765ca4e8fe0edbe77f6ae89336872a5a25edb0",
@@ -6861,7 +7310,8 @@
      "at": [
       1622,
       1622
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I064": {
@@ -6871,7 +7321,8 @@
      "at": [
       1639,
       1639
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "1bb819af1226523f31944024cdb7276a548a8d70f2afd574bd9b47ad2765df85",
@@ -6879,7 +7330,8 @@
      "at": [
       1638,
       1638
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I065": {
@@ -6889,7 +7341,8 @@
      "at": [
       1648,
       1648
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "b9c481d37189a92adcec97ffb5db4aeb829a54cb74c747daf43d8ddfb46d4238",
@@ -6897,7 +7350,8 @@
      "at": [
       1647,
       1647
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I066": {
@@ -6907,7 +7361,8 @@
      "at": [
       1650,
       1650
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "84d700d512f3655bc8e6a930cf4c0f6d367f23dd13e48b2c1a77dce709349990",
@@ -6915,7 +7370,8 @@
      "at": [
       1649,
       1649
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I067": {
@@ -6925,7 +7381,8 @@
      "at": [
       1658,
       1658
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "487423c8fa2c13f508644d7f4f22e3019f376ba76e2d7b6dbd263775cf518469",
@@ -6933,7 +7390,8 @@
      "at": [
       1657,
       1657
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I068": {
@@ -6943,7 +7401,8 @@
      "at": [
       1659,
       1659
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "47311997686fbe81ee097f9b80d640b86c852d50a468e4ced568f6888ce9016d",
@@ -6951,7 +7410,8 @@
      "at": [
       1658,
       1658
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I069": {
@@ -6961,7 +7421,8 @@
      "at": [
       1660,
       1660
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "78fe24c33834082ece3fa6469e41a31de246eede120faa53142375e39d61a720",
@@ -6969,7 +7430,8 @@
      "at": [
       1659,
       1659
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I070": {
@@ -6979,7 +7441,8 @@
      "at": [
       1664,
       1664
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "5b134c66e4fb85504115caf333b3c388d70758d1973402cf9789b6fc1fd9dad8",
@@ -6987,7 +7450,8 @@
      "at": [
       1663,
       1663
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I071": {
@@ -6997,7 +7461,8 @@
      "at": [
       1679,
       1679
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "39e653cbd5b35dfefdd383ec6472c4fb413551c294dab0e13ee0dfca376751bc",
@@ -7005,7 +7470,8 @@
      "at": [
       1678,
       1678
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I072": {
@@ -7015,7 +7481,8 @@
      "at": [
       1696,
       1696
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "7ad38d476b8c606a57cf506c1de2c3b0246dda2b10c00f44e2adfeda189665ed",
@@ -7023,7 +7490,8 @@
      "at": [
       1695,
       1695
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I073": {
@@ -7033,7 +7501,8 @@
      "at": [
       1702,
       1702
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "b36c0187a46626b4f24cf718dc2ac5dcfc521737b6d6b2f2dabe95d6741a8755",
@@ -7041,7 +7510,8 @@
      "at": [
       1701,
       1701
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I074": {
@@ -7051,7 +7521,8 @@
      "at": [
       1707,
       1707
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "3abc0fa7f1489adfc1b65d26f022cd7556161c69432ded3d7acf26f53180e9fc",
@@ -7059,7 +7530,8 @@
      "at": [
       1706,
       1706
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I075": {
@@ -7069,7 +7541,8 @@
      "at": [
       1708,
       1708
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "24918fe2f9ed11b5af4426d83562ccf6ba57dc6035ce39aa2f4f3c11c66b2b53",
@@ -7077,7 +7550,8 @@
      "at": [
       1707,
       1707
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I076": {
@@ -7087,7 +7561,8 @@
      "at": [
       1709,
       1709
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "de6a064ac82b9258e622bc8add088a79b9ececcf37ed7b0d9f2bb37e78f7d54d",
@@ -7095,7 +7570,8 @@
      "at": [
       1708,
       1708
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I077": {
@@ -7105,7 +7581,8 @@
      "at": [
       1710,
       1710
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "e09fafec7351d872577ed5104a3fdd6b0581bb28173da4721e23c285aad53e29",
@@ -7113,7 +7590,8 @@
      "at": [
       1709,
       1709
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I078": {
@@ -7123,7 +7601,8 @@
      "at": [
       1716,
       1716
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "fbfc6d57300ea0639c5d1160451ea473ea7f7c00234e15443761dd1dd3ea44a9",
@@ -7131,7 +7610,8 @@
      "at": [
       1715,
       1715
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I079": {
@@ -7141,7 +7621,8 @@
      "at": [
       1721,
       1721
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "2155135275304aba2e1c7e97b3e668b5d7ac59dce320b680e553e6f8e7f687d1",
@@ -7149,7 +7630,8 @@
      "at": [
       1720,
       1720
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I080": {
@@ -7159,7 +7641,8 @@
      "at": [
       1765,
       1765
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "f5403e2a51b1ca54ea3629fe41808b06bd4b44ee0e6fb96b7e84ed2b44b49145",
@@ -7167,7 +7650,8 @@
      "at": [
       1764,
       1764
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I081": {
@@ -7177,7 +7661,8 @@
      "at": [
       1952,
       1952
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "44e131edf0f21d989e8718f0249f381d308b5f27b0d92b646810131f07fdd3c4",
@@ -7185,7 +7670,8 @@
      "at": [
       1951,
       1951
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I082": {
@@ -7195,7 +7681,8 @@
      "at": [
       2115,
       2115
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "bcdb5920bc7b0822c19d2b15d855b0339216707b5da0c7bd0d530de6f0323ba0",
@@ -7203,7 +7690,8 @@
      "at": [
       2114,
       2114
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I083": {
@@ -7213,7 +7701,8 @@
      "at": [
       2136,
       2136
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "f1feebf8ab45cced29f8b21f047d914af88fbb515184cb31daedd74f68652c9d",
@@ -7221,7 +7710,8 @@
      "at": [
       2135,
       2135
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I084": {
@@ -7231,7 +7721,8 @@
      "at": [
       2152,
       2152
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "faa09ae889161a8a3e81bf2b10b61dad70a62cfb72d0b67cfd6c469b6de03ec9",
@@ -7239,7 +7730,8 @@
      "at": [
       2151,
       2151
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I085": {
@@ -7249,7 +7741,8 @@
      "at": [
       2153,
       2153
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "4ffcf56bf265aa3c133b18660f89e473058640a6385f87e3340a402514dc24b3",
@@ -7257,7 +7750,8 @@
      "at": [
       2152,
       2152
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I086": {
@@ -7267,7 +7761,8 @@
      "at": [
       2183,
       2183
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "d15f9417ef27e746eaa0035f9da67e13e65699dc46273cce8c5ff2daeeccf4b2",
@@ -7275,7 +7770,8 @@
      "at": [
       2182,
       2182
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I087": {
@@ -7285,7 +7781,8 @@
      "at": [
       2185,
       2185
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "2c725da0db4c073209b594a2e4707bde866351626f602db1643a85efd0e05fbd",
@@ -7293,7 +7790,8 @@
      "at": [
       2184,
       2184
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I088": {
@@ -7303,7 +7801,8 @@
      "at": [
       2200,
       2200
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "866c0d8f4fd43e1892ce8bb17f59637753bd21a489f5e9528c397758cca3238a",
@@ -7311,7 +7810,8 @@
      "at": [
       2199,
       2199
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I089": {
@@ -7321,7 +7821,8 @@
      "at": [
       2223,
       2223
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "1b2ea1e2e5214891682169d1d9250f7cf6cfddbecb7bd57c377c6d401a28cbdb",
@@ -7329,7 +7830,8 @@
      "at": [
       2222,
       2222
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I090": {
@@ -7339,7 +7841,8 @@
      "at": [
       2246,
       2246
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "b5530c7399175920a6a8169d5e6a0c030e03add5ddcbbeeb37ea72704236fce7",
@@ -7347,7 +7850,8 @@
      "at": [
       2245,
       2245
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I091": {
@@ -7357,7 +7861,8 @@
      "at": [
       2252,
       2252
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "548eac1d426f282c08ff0277648f0de6334a8519ba028845f2297ccb609e90df",
@@ -7365,7 +7870,8 @@
      "at": [
       2251,
       2251
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I092": {
@@ -7375,7 +7881,8 @@
      "at": [
       2269,
       2269
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "19485cadfde2a82e3c525d231615596077ea23495046b68c9f2ffe9a9b88c05c",
@@ -7383,7 +7890,8 @@
      "at": [
       2268,
       2268
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I093": {
@@ -7393,7 +7901,8 @@
      "at": [
       2289,
       2289
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "18e1a8554454d6533c521a3cf676e562d5cd5b2e95971ec1566a80c3b1ad958b",
@@ -7401,7 +7910,8 @@
      "at": [
       2288,
       2288
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-W14": {
@@ -7411,7 +7921,8 @@
      "at": [
       2334,
       2334
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "dc88ec9fcde141a1706f0c427e1f0747e05539d2f6734bf775a2b81bb26c8b10",
@@ -7419,7 +7930,8 @@
      "at": [
       2333,
       2333
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I094": {
@@ -7429,7 +7941,8 @@
      "at": [
       2302,
       2302
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "309df8a63315fb5fc87f73514b7d45463bf07977c7fcfa8808f9490933d3a77c",
@@ -7437,7 +7950,8 @@
      "at": [
       2301,
       2301
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I095": {
@@ -7447,7 +7961,8 @@
      "at": [
       2323,
       2323
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "03aa69afcb324fd00f4aa82ed9326ff4cb49b3d7f144dc1a357ad8ad843edf0a",
@@ -7455,7 +7970,8 @@
      "at": [
       2322,
       2322
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I096": {
@@ -7465,7 +7981,8 @@
      "at": [
       2324,
       2324
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "a6d432f7b4f373b90546e72b833d7145e60554301a29eb59df5fc8d25c813c96",
@@ -7473,7 +7990,8 @@
      "at": [
       2323,
       2323
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I097": {
@@ -7483,7 +8001,8 @@
      "at": [
       2336,
       2336
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "b18b869bd743fb65f7d7e00799591c2a3e29a1168cff58d88c985917c0bc9d81",
@@ -7491,7 +8010,8 @@
      "at": [
       2335,
       2335
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I098": {
@@ -7501,7 +8021,8 @@
      "at": [
       2345,
       2345
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "89e67a42ddbc0703f3ec1c714b7a75c3a49492ed4772eb3cd7d17ccfcd95c2cb",
@@ -7509,7 +8030,8 @@
      "at": [
       2344,
       2344
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I099": {
@@ -7519,7 +8041,8 @@
      "at": [
       2348,
       2348
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "1e4aedebada8182e66418b50262c8e209ed0b7a6e39c0234e4cbbf99c5d204be",
@@ -7527,7 +8050,8 @@
      "at": [
       2347,
       2347
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I100": {
@@ -7537,7 +8061,8 @@
      "at": [
       2350,
       2350
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "0078e9af24235a20e99a00d5b071578c7ecde114c0237d3c9e473beb77590b8a",
@@ -7545,7 +8070,8 @@
      "at": [
       2349,
       2349
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I101": {
@@ -7555,7 +8081,8 @@
      "at": [
       2352,
       2352
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "0a571d047b4c10261e0d53095b45f1a089e4256f5653a9ae419610fa42bbb0c4",
@@ -7563,7 +8090,8 @@
      "at": [
       2351,
       2351
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I102": {
@@ -7573,7 +8101,8 @@
      "at": [
       2361,
       2361
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "ea9c2f6d3b5e3d76ab427c5983095163d74de17f938cc4cac4fd4624caccd590",
@@ -7581,7 +8110,8 @@
      "at": [
       2360,
       2360
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I103": {
@@ -7591,7 +8121,8 @@
      "at": [
       2365,
       2365
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "20cc2065315935ef30295ee333cab408b51e38d8357d531cfb17f51cbfe5be61",
@@ -7599,7 +8130,8 @@
      "at": [
       2364,
       2364
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I104": {
@@ -7609,7 +8141,8 @@
      "at": [
       2366,
       2366
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "2beccfc7ef85cfe764df733e1f702c2292ddbd7cb77ba670be79283e7820caca",
@@ -7617,7 +8150,8 @@
      "at": [
       2365,
       2365
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I105": {
@@ -7627,7 +8161,8 @@
      "at": [
       2391,
       2391
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "3e8625af910eb3a901ca03c5234507d031c025a4cbb35011ef9cecf4fc9aff62",
@@ -7635,7 +8170,8 @@
      "at": [
       2390,
       2390
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I106": {
@@ -7645,7 +8181,8 @@
      "at": [
       2452,
       2452
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "ba43bb2265b2ad7289c46cba4dff7a46b87c0169c16ab1510b6b4b03ff2d513d",
@@ -7653,7 +8190,8 @@
      "at": [
       2451,
       2451
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I107": {
@@ -7663,7 +8201,8 @@
      "at": [
       2557,
       2557
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "fc100b0a4d45c869b85e3c0525365ba6c737b87ad977b56f8337a110d28f436d",
@@ -7671,7 +8210,8 @@
      "at": [
       2556,
       2556
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I108": {
@@ -7681,7 +8221,8 @@
      "at": [
       2558,
       2558
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "0fe7d9f0700b8f54af04157e62c99662d8eddcc27d368dcd8ecb7e94fd79487b",
@@ -7689,7 +8230,8 @@
      "at": [
       2557,
       2557
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I109": {
@@ -7699,7 +8241,8 @@
      "at": [
       2561,
       2561
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "cdcf39459979f5e4cf914665c8dedab79277b8a28e24f2f06e73ded1690aee8f",
@@ -7707,7 +8250,8 @@
      "at": [
       2560,
       2560
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I110": {
@@ -7717,7 +8261,8 @@
      "at": [
       2562,
       2562
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "216a4641814810987fbeac71422026de4ea04a9209f28012b9e0dbf9ad68f44d",
@@ -7725,7 +8270,8 @@
      "at": [
       2561,
       2561
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I111": {
@@ -7735,7 +8281,8 @@
      "at": [
       2563,
       2563
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "772a30cf84f021ea74879932fa02c8589363c5665b95820c44625ee85dc91e08",
@@ -7743,7 +8290,8 @@
      "at": [
       2562,
       2562
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I112": {
@@ -7753,7 +8301,8 @@
      "at": [
       2567,
       2567
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "0aebc942c215b862dcb0b1db109dd307f8658682f2663ff3d0f2d56e198a5a75",
@@ -7761,7 +8310,8 @@
      "at": [
       2566,
       2566
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I113": {
@@ -7771,7 +8321,8 @@
      "at": [
       2569,
       2569
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "1b512c86001238c9d6c7ae78750fc3409250878c585672fbd13c190f7e86bc99",
@@ -7779,7 +8330,8 @@
      "at": [
       2568,
       2568
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I114": {
@@ -7789,7 +8341,8 @@
      "at": [
       2570,
       2570
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "ffa89868170b4e0ab950bb52b00335292fd8ccbc2146eeee70a66d5b97a2ff55",
@@ -7797,7 +8350,8 @@
      "at": [
       2569,
       2569
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I115": {
@@ -7807,7 +8361,8 @@
      "at": [
       2577,
       2577
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "826226c797ef9c0a4651f0d47a5ca4db44014c642fe93d8fde38333e578a5773",
@@ -7815,7 +8370,8 @@
      "at": [
       2576,
       2576
-     ]
+     ],
+     "occurrences": 1
     }
    },
    "TA-I116": {
@@ -7825,7 +8381,8 @@
      "at": [
       2593,
       2593
-     ]
+     ],
+     "occurrences": 1
     },
     "tip": {
      "sha256": "faeab869e6c721c0129f63c070589303b25a7668b309b29d7ef0e455ca6d4c61",
@@ -7833,7 +8390,8 @@
      "at": [
       2592,
       2592
-     ]
+     ],
+     "occurrences": 1
     }
    }
   },
@@ -8096,707 +8654,707 @@
    },
    "replacements": {
     "TA-S05": {
-     "sha256": "26c94a5fa076dd621b9699880ec8e458838ecd9c1687d8caa13418c032e135f5",
+     "sha256": "ecd226a069e6fcc733c8711010f71d7f1fdeda31b9312cc0869a781d0f130dd9",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-S10": {
-     "sha256": "e77e266c31729fe3dbc008a536220435f65e522fee7b0c02ceac22a0e6ce1b59",
+     "sha256": "78cc91b8be2eb01ef0528c2882a398fea97c844c1d9dc1abaf5869e5a7637832",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-S16": {
-     "sha256": "7482ad384f39b3e91648b930f5764140f94bc794586c81d64eb450655ea32bd6",
+     "sha256": "758b34d291d31f56679c8f3b151f71ff9d278edafc8a29dd04a92e53a96d79c2",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-S35b": {
-     "sha256": "0af91203adc0adc9ace7a803fe1dafb84f4fd3b612a0a4378bba6cf8afe15567",
+     "sha256": "e0ef10bca976b792c65582a54a0ca49e5886d11aab8c3c6587225eb8fd8a9146",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-S38": {
-     "sha256": "14c5160a7c7622c84164ccba168da9b99d7d911d2880a419ecb1ea6e5e32d1fc",
+     "sha256": "2e2b91cbe3f0486101b6dc6430bb6879e2862d1988c869e9c27c1172af5a3419",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W01": {
-     "sha256": "90c270faa7feb8fc652fa0abfb81979b583e02616e3bce6f4f60bffc074fa74e",
+     "sha256": "365002eab32799276383a3cb0a11c13f5ecf6933066dfb867166afabc5e83fa6",
      "file": "today-app.cjs",
      "lines": 5
     },
     "TA-W02": {
-     "sha256": "fa67b42874a2255b1970aede0ee681b80a18df3ee110a6cfb0192dec1ed38ba9",
+     "sha256": "e42908182cdefaf935994f57693fc1f204f52a68d2eec3d0c9c2a04a98c85384",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W03": {
-     "sha256": "b98409f078af19efbe94e9dfcc4e1638af76c0759d666d18313e6ae57236616b",
+     "sha256": "703f5ba84ed7db0b6ff5151a8a77527e0c810a759340bc5f5846ecae57260f8c",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W04": {
-     "sha256": "4f79870c5b9944f9368121ab713ec5948d1d3f304cc5f00bc71fc3b3418d3868",
+     "sha256": "93a6fee90a2a6f0869951e571ceb99694856e9ee29ccebc21066d873b650927c",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W05": {
-     "sha256": "c2582cb386f339594c577ba5f8acfd46644fa4e292ae16c274b2dd95f984ba56",
+     "sha256": "4b372c4338863af271041d233ef9d59632e95d5a9f6dba9f006dd67f3f2ec383",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W06": {
-     "sha256": "a47f826e4a0765a0ddb198f7f5c5e75471829baf9eeca36e3ba77cb034059962",
+     "sha256": "532cb8505187e3b73ab952fdc05b45898f9b68e765cd5e693ab6d327c06d2a91",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W07": {
-     "sha256": "152368c24eacb065a0c500b7627a25673698cf19581c233353c9a2cd04401b1b",
+     "sha256": "4a521376ea00a2ef994e050908859c553c9b6602802e950125ae22326279453f",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W08": {
-     "sha256": "94433d3992ced3450b1a879a531c34c1d57449398007a8319bd1f5654d37a8ec",
+     "sha256": "71e9e745036d25eea93d2301f4d735dd747a71a58358bd8ed7a6d31d59a6958d",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W09": {
-     "sha256": "8c7bcc54e18d6bdaad2d4bda93b02dc6f2a8027117e8d67729e4f9b17d268a16",
+     "sha256": "c11b94808aa6f7360466fb1e0c1d29cf90c09d5af89a91a05d9371d585f67e8e",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W10": {
-     "sha256": "3276c7b8bd219a2187ee6a130d09b88898ac2fba210743d55756ffc4f4890b88",
+     "sha256": "692025aef89254d8640475dfd45b5919e0ba68590c7f85a63434d1a59fdb7190",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W11": {
-     "sha256": "42fa098d62af45bd00dabdd44ac887faa1fc0120e4587eba40f00e9611b80fef",
+     "sha256": "6476e80d0f219c8e57a0a936c47793d29b708dd9dfddbcaddb3dfe64513faa02",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W12": {
-     "sha256": "12762f506e0c4ec220f37bdd15ed28f3a7858149e3437ca0ff4bb3985443943a",
+     "sha256": "cdaf2c8ceb6f88e8425474d8ed6143b4711503d477f403bf97c4efc9cfa8e7e1",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W13": {
-     "sha256": "9ffe466be0dd3cac4c9fa489622920cfc23a70ce9554fb48d1f95a58a98efc4a",
+     "sha256": "72c3f156bec38741be8b2423134838bdd79032e43e0f5d95e0fdbc391921e1e2",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-W14": {
-     "sha256": "a55dabb2512b9f685d85b1918d924a130faa6f274d41c39ebe8a22f5caffb1e0",
+     "sha256": "a287973a2ae0e45289b3052bb93826a3fd02d2010460d35169d3361aac883ff0",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I001": {
-     "sha256": "246d7eab63b268755c936133c95265627955f9705d5f305549d0526cf173a680",
+     "sha256": "a81cc60cf001104332dc48cfd84fe03b2ca38972881d336d7b04cbbbb9afba08",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I002": {
-     "sha256": "9d555f1523b5a7f0c52afc36e7e5af10958f19fad0c546d189a7f288ad86ce37",
+     "sha256": "006fa98220663d0c2eac5a1e6be2e36d2a5e836de56a28282d05e64a164cc61b",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I003": {
-     "sha256": "ea1c3faba70f3b59a0bc9b6d2524e9b22cb2a160253ab8d06d8f5405b1cffff3",
+     "sha256": "eb2c32a5a205b12e52f230c8fb5ad3e94ddeb3554a1eec30988d4f0eda951086",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I004": {
-     "sha256": "25e33bf98c3883d44821a53a9f6c7b5fa1d1d056e5928290e40d5a848be2920a",
+     "sha256": "597a77518e7ad441c89a4eb8026a16b11a3780fb31bb99057160ae7b4ddde353",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I005": {
-     "sha256": "e90ae7d3a93066703c74ac920514e90bf49d1b32e69f66b0734933bee06fcdcc",
+     "sha256": "466000b17b238f94da9d028b267cf20bee094dc2eaf2a6057e99e38f685ab3bc",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I006": {
-     "sha256": "b379c17eee3dcd30c1a9f4ace2f7c632e38cf5158b815adb042965feac06ba0d",
+     "sha256": "f788558f86550a91bb0218773d9fd5902b45ba825ac06925f3822b9c176518e6",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I007": {
-     "sha256": "682e103f70ee070f4d10586e858cfb6535370181e2925774b87cbf3b475316b5",
+     "sha256": "9adae513a064b677151836241bf7e4cf5f6384624e97b3368138d659f420dd76",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I008": {
-     "sha256": "e401a10fc34828573bb0f79b954e437f7c6318ab31ead4477c084753b7190a2f",
+     "sha256": "080ba60342b05dfe121d3b8dc0d56ad2be85ba4ff2e4e5bb8508e592815b6613",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I009": {
-     "sha256": "1f22e89b4c9ea44dd84c459845d9611a53218bf835e072e17de789ed74cf0447",
+     "sha256": "907e5aeb716a356ee76fc88d73cd9a4774247726dc8e4ded5bad70aff576dabd",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I010": {
-     "sha256": "a454ad4308c2e22a3840fab6c45ac74ea1b63b5b9e05313ab4f71744d4926162",
+     "sha256": "4c010c3c127ba8b60ddd80db9da3b96fc7d27695e19def3cc4a6a5f3746e9efe",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I011": {
-     "sha256": "e776f3142c05544b20700c8a07ba7e2a01d466f4685e2d54c680b0edccfbdc6f",
+     "sha256": "465a27f21d84d4edf26b1e966caa32a84ba572e6e893b5db29596f5dff89c296",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I012": {
-     "sha256": "9ebfe6fa8bafdec06591ae7166b0540642a3b68866ae53848f954c8c1caf9234",
+     "sha256": "0c1a048835935b29e40d8be2ae4f4fc53a5a86025f2a1d53251810873e67cb44",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I013": {
-     "sha256": "ca0d695cb47412b9ba1dfd27a5e66c754bd61fa07a333f0e19959e31a80eed29",
+     "sha256": "d6239ade82b121b989dcef556170391661d4d487af2649dd71cc0d5aed6263ca",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I014": {
-     "sha256": "936f2f7f4ed902f599ff254ec5b8b37b0a84632a515fc88fd63de050ac4891e2",
+     "sha256": "79d9ef41345077d03bb3ce7c8a4407863ce52cb89940d550d616d6b397f54fa5",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I015": {
-     "sha256": "239f92a1934c8b55c785851d9eb901fa42f665d65212b16c8957cf0b1f606a42",
+     "sha256": "5d2a4dee32b39d10588cbd31892efb3c398f9dc63fa2931dfa99a9a2f3d50a51",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I016": {
-     "sha256": "6d35057fc7b31826ba7c73e1cee12f5233f449231878f981eb57ff947dafb13f",
+     "sha256": "ef702eef2ea2eea2b2e539a9805991bdc77f3e015ba783dabcd1432ef151ba87",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I017": {
-     "sha256": "148a192aa5f728b8febdefad170744b5840eb116e2199bc80bb197242065f151",
+     "sha256": "f2eaa62487882634b0b28828c4658ff01ac8ded66e35e8dda57b4dc995865efc",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I018": {
-     "sha256": "4cf5dbd100f8c0695263c41a8bff3036547c3e1d2edeb9c78da74c2e6365d09d",
+     "sha256": "a6ea1179327e1419b903536b8bd97e6ddf9fd1ce0c7f716ca6b5de9a668a9976",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I019": {
-     "sha256": "9c91149f8484fafd994dd88159a5335c937c06ec2c473f7a0bded3b4b0977c22",
+     "sha256": "3df61456da855f50b5e30c2919dc9692c75a5a0315c5d53411e6a03b3a144d7f",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I020": {
-     "sha256": "de4d558db0521264161c28aab80f47fad5a2323764147982c0ec4e7e18f7a55c",
+     "sha256": "6fbb487869fff0012ccd4f6827413bc621ebd1b3c14508694d9ab6854f06f585",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I021": {
-     "sha256": "cf4f584483e0b4ff8e0b52a46d72e10fb45bcfb6a6875eaaec186eb8cf0ec6bc",
+     "sha256": "202fbfcaad16884a1eaaac05bee793896a63ed9419df953d8932b25fa03fdad6",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I022": {
-     "sha256": "7e5df860c95f4144ed899f0e9759e2b2aff84aeeedf7ed9a0c3d735fa5db7767",
+     "sha256": "90da5b73fe0118f7aa5f2257da43abb983c5244f614263eec575104ce3196a65",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I023": {
-     "sha256": "320e33d8e5cf93078e0f9248fa1bf038dc563894ad48c0acfe306f8d934cfb4c",
+     "sha256": "e51da69e7917b24a97bd2d72d2322b0f7daf523a2793ff2b5ba847875eff92fd",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I024": {
-     "sha256": "ebfd9edce7acd27f8f2d01740af3503f3d63ca4b3c852bed3c00e5f750b0839a",
+     "sha256": "1a8a1a15d6cf2cb962c03218f38844b3204c67d81c6ad5084db60265f536f46b",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I025": {
-     "sha256": "d779049949fd9531d1b12b9acbef95c87859d42305b1b2a4d4062444dc3fc208",
+     "sha256": "fb1b296f8d99a279fbe3444d638e4790bb291be248fed7927a5aa39851d87552",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I026": {
-     "sha256": "31db7c4db5c2bdeeed87a796850f6821a900a3a43c8275e76e728dc9f119c239",
+     "sha256": "9edbf66af3cfb0c5bb548b8f3af7b496d23d12b07a337cf77e4bc7254b45c182",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I027": {
-     "sha256": "2da917081818969dc62d0fcb6605bdfed57a77f376fe95946d220bafff4ecd92",
+     "sha256": "6f965f113325a0a9c4e720e0cd874263d1d2de0c45cc23ffd270fba338ba2248",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I028": {
-     "sha256": "27d290cbb30fd140af242d49a088656becea9ebaf0f5d6655fecf8e426af84ef",
+     "sha256": "65df31a2fa7e2969774295c3f01f33a2b7ca30b2204fde487ba84b644f44da27",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I029": {
-     "sha256": "ebcb19cbd85c88758937ea1803accc6cb8120cb55f8afc3df00ddac3f815fccd",
+     "sha256": "0c471edfb119b144e70b60e3331eb87fc96820130009ffb3c4893ab19d2062c2",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I030": {
-     "sha256": "a5abc529c9e6fb23d18ce0ef76f5cecdd9e7aa4000794c3c5816c81fb45193db",
+     "sha256": "ccfbe732ffb304711e6b98e41fe9f0070c9faa119693b7f0a82040ffb0b0dc0d",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I031": {
-     "sha256": "53687c5acb9d9096df7131612b17c10728cf418937971a4762c0755fe0de24b8",
+     "sha256": "9319a49efef765f203784a80938d506faa1dda384b85b3b493708ebadc70a20d",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I032": {
-     "sha256": "aac05dc5fe62b676658e041ebaac8ac710f987ff8fdecbb8d5c8e463c2f0e5f7",
+     "sha256": "47bd550e80b4e1bc645358f0676d93121ec849bad4896855e546818a0f947aa6",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I033": {
-     "sha256": "c25be903498568e1c59865afa9771690432503c56eb95f94bc08918d13f6ca40",
+     "sha256": "ba7a6636fd6f0476cba6b4a84696ca3f948dce70fb0900e19a092747bd8ca672",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I034": {
-     "sha256": "3c2debf35ecae639e5ec84dc45095c49734247bad13ddf7736a226e6ab7fd27e",
+     "sha256": "79c53be285634142bda8e383df118a03019340675be73c12b1fef50abdfed698",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I035": {
-     "sha256": "35041cf691e56986607a53083bb963600dd87a72070ad4455a787f964a5ea090",
+     "sha256": "0d4ecc0c14534a3eb7598c3fd6cd669c81ba8674870aab7b52292d636e5c1c17",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I036": {
-     "sha256": "4de2302441ad4bf96179d5d97e4903faa69cae1b2aa7f72e8bb502a0deab8531",
+     "sha256": "dcc6af3b5bd6320d719c7ec8a8d8c9cbb15f723d7401805b4eb7dbe265e61da6",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I037": {
-     "sha256": "799519848704e791d66df319683ea71eb25966fa880f110e431da2a4c0357566",
+     "sha256": "db9a89f9cab4726bca30de365d7edc829570a184fa52bafb1cc5e299ffb2555a",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I038": {
-     "sha256": "0240cfb10a9ff8feb720b183b442f4924b96c8c4c6340a7964fc19ba3a5d0223",
+     "sha256": "39ddfae252944e74d4bba7168e26cc8d3f08f2b290e86fed22779fe0c5b1e61e",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I039": {
-     "sha256": "84b0c3d24d675f6505ce375f80277d37b9e06b03f30370e58883b6df1dfbdd1c",
+     "sha256": "3a713499c310e0635f008d7bb6f6d0ff4d91b0ffb9a7f0a0ab3474cb89e297a5",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I040": {
-     "sha256": "8494185d288fecbbfdb126db502cf2efde60f6a736bf00170a03dbbb10867367",
+     "sha256": "2febdb16b259a6c804853e638cb471d37ae0ea5089844ce5f8579ec035e0c6f9",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I041": {
-     "sha256": "0b74235396a2f71e6a380628178c1e9110b6988c931854807fc69ef04d06bc98",
+     "sha256": "19ecf5cf3bbdfac9da175f00cca23c10ddb5a68b47974c449b065c386c37cc94",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I042": {
-     "sha256": "9c741c77649a3b2590239be9999af424f74c9f5bfe8bf7a2d9574c4f0391a6b5",
+     "sha256": "e6352f16fcd2c4ac48585ea3c9cf50d57ce6f1cdb11d0e2a2330a37826153164",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I043": {
-     "sha256": "f887822af0164d2e1abdf15fb3a4f79846be8cdbe84e9befaf9684617d9bbc55",
+     "sha256": "8d52de8a213154246744149fc2f4be5b5c568e87ed6d77a0f2488b12a617c729",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I044": {
-     "sha256": "3e682a96efd977b3b2d1b7ba474c6adce24a011403e56e813edd372ecfdb1a79",
+     "sha256": "24930a4ab120fd9259e02d65c5340285358dbe708e7624273efb99a323b2d1b7",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I045": {
-     "sha256": "2f84e2f8e708d8c89f6ea8bb1a15b656db763da714fdd3be2257c4b64c6a3208",
+     "sha256": "82f1de3f2d1264a332c677879346cad866786c62dd3bf528a699b62f8b2acee5",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I046": {
-     "sha256": "507655ad50ce66a1d635117ec66ec8f69dd7fcf3ef66753413ccffd9439f6100",
+     "sha256": "d9f364089a23b33ac3b6544e7c348b721755e3bd057b143b42c84c47ee92523e",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I047": {
-     "sha256": "d0668d4c196cb7936f9c7e71dc1ef2655aee8c5b0a7cf2de8e20d903d599622f",
+     "sha256": "3a5ca212026a7c6645035e145551afc7cfc10089bf3fba3475f7967ca5a4e276",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I048": {
-     "sha256": "85df086616820c095fe7b07b548a0b647d4c4f3218dd76237196013055ebc95f",
+     "sha256": "1073866c0a0d2ca037d832d559d05281b98d0db3a6dd4c2ae5f008531418ec69",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I049": {
-     "sha256": "7d4715b6a28dd019e8eb63bee7ac869d7160640baab1190a7a65e8eaca3ceb69",
+     "sha256": "858f07a62e172a44e5f3d68c18ada4b8743a60bcdd815fa1bbbbd2191abf8af6",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I050": {
-     "sha256": "c1dbeef3b50ff5cf955225b9e53405e79b82af5554a86200b83179a3e3cbe7b0",
+     "sha256": "b9211bc8868bc9cad4e62293430564b8362e7f5ed91c41ef7c54d8abd2a1ad20",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I051": {
-     "sha256": "a7be27cc3d1af4252da77b706f856edf934cfb82a1e0211c67292b2097afcf9e",
+     "sha256": "303e28bd6f3363e395a1e18d907d58a53f69e8b80391d6aed213ac2e2ad156bb",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I052": {
-     "sha256": "7f039fb4810e3d2680b9ebcca4f78cc78a45df1ed282f15b059b0719a3e88cac",
+     "sha256": "b05e9775cf0ffdc943ce1a864a545b6d6f344121b24162877de03f8c62626a1d",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I053": {
-     "sha256": "072c3a5218bf1eb48046e19b93c7271c64c15a08b63915c2f0536d4d93fa31b6",
+     "sha256": "8f3c6d8fd0a6044dc4cb3e51a273d6d15a40e2262ef9afa5c2218cb9cc18f834",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I054": {
-     "sha256": "f3534e1b8c3f8df9564a8b2537f5c186f7154ef59533022992b6344f07b04663",
+     "sha256": "b8c9645b8913b5364a9c2005fda628ddfb1ebe5d9d15c7d31cef95415c4003f8",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I055": {
-     "sha256": "3173085d85bf0ab1f257388fbb1dbf9d99563f8899bbd1776949d0d978f7d02b",
+     "sha256": "ed52418169ff88dad86f0fa03ffe3f42cacd9ec84b7f20ee164720403cb07094",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I056": {
-     "sha256": "71e3bfd78e2f3c207e9f4af35484b3bc47312b1f8a7cc15d8464afc495de47a6",
+     "sha256": "5fe423500bb595b2c8adfa6a59c0fe15b30728174e55c7e8ef5e94413e90b06c",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I057": {
-     "sha256": "402f113c781dc4c95e704e3a6397ab5850066ff1bf7fec5997cd80b12506a8f6",
+     "sha256": "fbfa6d2a4811188e8b9d65baa3cd673218388a627944de4677ad309c5176b5bf",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I058": {
-     "sha256": "19eabb802afb78edfae44aba06ae27e25bb3e2e9fcbbe9d16df7690d14a173a3",
+     "sha256": "1ab4abf32e606994d96b4c659243278175efe159f782884cae9d6fbeeebb1949",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I059": {
-     "sha256": "9813c97337e1dfe442b4593029f68473ffec292775b0fb18cac41e157186a8e9",
+     "sha256": "58c535e873864a3e0a6549dec75f3d613f87af0911c7f2a89068db641897d002",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I060": {
-     "sha256": "156426d94537609302ddcc163455acacbda2c755ff3426233ec63e8d88988319",
+     "sha256": "354456cc1f086ffdbef08c18f919433bd7446f4c120dd03ccd0d2dc252ee8dc6",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I061": {
-     "sha256": "778ad0806467bda4a80612c56b8e322151da061f19e0d618453165a97fd5d3e9",
+     "sha256": "5cfaf19f489209816b5b22e908d5d3fd65588256e2b9961c0bc36be21fa3fc41",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I062": {
-     "sha256": "13bf44b43798932cf113302d007b7ed86828ef18f2eb477be0401c3927f5f692",
+     "sha256": "264bdbb27347b04889234fd3c27a6f0cf3168e850448468401031bd60b213df3",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I063": {
-     "sha256": "147d7b04c5da98d492dc2e925388c79fcffb91ee7d8eb5c080429169078471fb",
+     "sha256": "4c5bf9e6136a2fc8dda4af680c98d1c1390de386b683a4e436b88b5f731feec9",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I064": {
-     "sha256": "c318c3fa5f63081fa14f2db88d0d78f864bd6cf2509110234c816cc519d3d989",
+     "sha256": "350defbfcb2fc422ed31c7620a9b34cfb28aa32e821ab2949c1ebf65f9616844",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I065": {
-     "sha256": "dfc79bfb2697239d676b1fac1e3f5d6bee251db8c05ffcd38e9d3e5a0121c6fd",
+     "sha256": "fdd9a58e1124d92a106dfc8a40a5d861bba997f2e0475de30f1152abfafda4f9",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I066": {
-     "sha256": "0aef733fbcafe0c2270218f52c57b31d930e4ac2c14bb9fcb9386018609e6957",
+     "sha256": "b709d1a8e3dfb264be17fd7230922e2995e374e91ae207b40d0a1e1719b37152",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I067": {
-     "sha256": "b46c7e0634a0ce1c1ed767767010df0c32bb75e4f80a3c87f91eb6c105db5fa1",
+     "sha256": "bfc113e7d1a4ece5ccbd703dfb11a47fd4f48871bfcaec4b1ffd1f01fb9e5963",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I068": {
-     "sha256": "65418178ed7cef4bfdb315a382c666fdaab50c59a306f67296186bb4366b5977",
+     "sha256": "a7204d6a89c932cf651636143ba822b137d2eaf8a67fd6ed4e1c1488c24d999a",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I069": {
-     "sha256": "45d953f6b5762b553439c449e996849a7cb4985ebbead54c98d15a2f066ec9a1",
+     "sha256": "dd1fe26b39b723f887773152186ab5292c384df6f53a10e7c1f54f365436ac70",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I070": {
-     "sha256": "d74c33690238559a3101163e6f4b2a99d62f8f517058e9d458e9e77138120055",
+     "sha256": "bde348506cd49c62f949c109d285d4fc39d5292aa0833dd91f8dbdb044f01bde",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I071": {
-     "sha256": "910ea08283511dadf04c5312b82baa414835fe32f0eefe8285d2018367a1ccc8",
+     "sha256": "e803394cdc26f41aa733f7fd7fdf1a0967a27c1d56945f17a2bd4af8aca4672b",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I072": {
-     "sha256": "dbe717482c46a89d2da2e7f76b131ecdc5051b91e50c501eaad91cb5a027e61c",
+     "sha256": "cbf523bb5b29278b8b068bf698d3d95294aeaa60f76106211eb1f19027c78302",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I073": {
-     "sha256": "77ccefbaec72f548c00459081a2e854f9f553ff993a3ecc96a8064823c3c19ca",
+     "sha256": "46950fda1c7b2f6cb58a77b20aa996b9d919512a46974598e48af23c7b31feee",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I074": {
-     "sha256": "4aa7114483aeef8305393c78b975d359486e770cde40ca7a44eb5650d33eb338",
+     "sha256": "ecc91983206b6a0cf83933d922976faf5fbddcb1d139f07ac9ef25b11f8b92d0",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I075": {
-     "sha256": "7b260ac7c29dddbc9caeece7cbe4d214521ef5d5e8eb9ce2cd9ebdeba6e1618d",
+     "sha256": "0017f197d5dea185ec0cb38c9496e901c2fbfbf021663b39f5aa412727cb1d0b",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I076": {
-     "sha256": "3a8f422465a4d41187c16261160247fd1261c0497ec645ae0c4411933ffbe861",
+     "sha256": "9df3414b05ef25adc40a5abf368fabe4fbaffce370ea39d316df2ca8f8906f70",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I077": {
-     "sha256": "cedde8c99a817d097488a6520a114e54fa11d39f445a4df6f9f2b83d85991241",
+     "sha256": "a1de2bf5d5a6797fa83eb454da9bc7c46fe7f9280ccba87d0e50bbfecd2dac11",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I078": {
-     "sha256": "abf138f4cd132f355f65cf5e5b9d1a4ce5f74de9aced0c3566597fd840feda5b",
+     "sha256": "0d9e31d58168f82dc87287a1d651304e5a0f89bbc092d6e4e03df6b31120fb44",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I079": {
-     "sha256": "c5be970d9b76eecb0047119a1ad9ff19f6802166a03f73faeef05d6f4084b79c",
+     "sha256": "bbbb6991f2c9faf0dca8450b751eb062fdfd98a370f0b0992801aed6f4e6dd09",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I080": {
-     "sha256": "fa73040726fd40127672a40756412c3b4a1f721b0adccfe48339531a9ec5ea16",
+     "sha256": "6c4c4810198842da17107612ecdbe5549f8ffa53c945ca05c53c56aa58bcc2ad",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I081": {
-     "sha256": "9fa8378f383caab826144a955403567e76691a54aeb942016eb5381be86add38",
+     "sha256": "836f8656f93b8af8e5ad310f71f96529056499907f86528e7e681ff014ba1734",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I082": {
-     "sha256": "f19c473c25b189276291b6c9afa364374e46f6aa19fd8ea078f317ade1f7c4a7",
+     "sha256": "0076a7780bbaa0e2bbc4c9ecb029b3210e50722606ad8b32614018a6114ec8f6",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I083": {
-     "sha256": "53f7f9d3c363336d1549bacd90339ef150f4f53859c5f1615ce28a0e3f45364c",
+     "sha256": "dd49817c7cbce843f5f2e9029d0aadaab2fd08995088b1a311fee1fa859a9252",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I084": {
-     "sha256": "d8c9c351670299416d5821630c2372f6b9b1343e712fd64ced651477a3efce89",
+     "sha256": "a233f048ba722b556809f2b17ba5607d3d0a6147c46533985e32b104a18fbc98",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I085": {
-     "sha256": "dd6e81c54bd71179cd03531c290c87479731954f7754804bc9b8cc5d7b53d9a3",
+     "sha256": "940b38de3e8c2361093803ab143c02edac23a53b316ae7766f710cfcdb1d49fa",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I086": {
-     "sha256": "8922d10916c398478e5cf272d5d0a5398f52b7675589bfb410d007c0f00d0eb7",
+     "sha256": "4b9041298cc97aa5452fd6f692f2a495d7f8f6433163a2e7505995e3e0ae2a00",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I087": {
-     "sha256": "74af608243a82e33ba6f3e24e96981f269c15619864da5d687ad8601610e799c",
+     "sha256": "933b0710067e1275a35bc6ab69099b53fd01990dac9f3c3c1815c42e88ca3f2d",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I088": {
-     "sha256": "c6abf47328bf48367d68035d07e722e5ea611b2685d55c9ce2d06a76d7ad443a",
+     "sha256": "aa6424dc3c2663d640d1ba48d8db742999ff6ae410c9cb344782436267ae9b87",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I089": {
-     "sha256": "3e63df985f4e8915fec6f1de6905c2ef3a77924b1a3b74d873c34d1cc2863e85",
+     "sha256": "4c90291636dff422b6079d14dfc6d8a072fef898e73cdbe8c7ee0ddf67a3e9e8",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I090": {
-     "sha256": "538f93a9ea94fde0e92f27b47e60d278fed87672fec9bef5942622ca55a1f46a",
+     "sha256": "6c4dae5cdc30534448a05ca22557d3582d81e7030f195d56b598ac845fd8f054",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I091": {
-     "sha256": "19c443afa4a703938a2aa379bc9fce35978064a5aa0a9bebe0d709cddf727065",
+     "sha256": "ce000097e2ffaacdf79db5443a5781f1dad1c9189bf9dc26647054c1c39cb1f9",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I092": {
-     "sha256": "bfe9c9559f053eb0cdbd3fafe47ece57b16d013385285b2a407f11cc4a2cb31f",
+     "sha256": "4a93e0fc17c22b839a41331869c06a14b47874d779b99a4e237d6e846c278da1",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I093": {
-     "sha256": "e2572fc4d082d5e3fcc375732dcf9b8aeccbe308bfd348b1189a5b2573609371",
+     "sha256": "b2caa5735603a58479995e6449faed985c6ce4c85352cebe262356c56c13938d",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I094": {
-     "sha256": "43b58ee22e40f3502b43da83f905c47b44abed7a6102616cf8992c834ce00a22",
+     "sha256": "da32afaf017eca329be539a4687c0b9884fe84b4c15ce0109b8dd3787c5b28e6",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I095": {
-     "sha256": "a0738d2eaf38de1c038a06594cb694284d3c2dd6b7c0af9338923b83d738717b",
+     "sha256": "1b49d7704ae03a9623b57a5572b9f05811d24291a987acd17feae09b3f6a8aba",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I096": {
-     "sha256": "e0f0d1799f29f26c7c0609623bdc3439c698920ec1db2ea0c8870bcc5bf9682b",
+     "sha256": "ec5aa780532ea24731f71588998bcfca103fea4c0f0e9da60887cd1f0a3e922c",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I097": {
-     "sha256": "dd1e67f7cd0f93b628c0afa173e177063146209fbe087a03d871e8686acce5b5",
+     "sha256": "ea0189edc1942c1abd938aa6c8e5ffff9dadd0001faf7ee8268350963b5dac55",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I098": {
-     "sha256": "c964b07c09effe77771ec6296c42948c92fda2d754cccd62f4deb6d2edb5f714",
+     "sha256": "c8c5eb488777ce85a110b3df25a957e668d5e9045bb7417692b2290456ba3235",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I099": {
-     "sha256": "946c57b6a0b30c1202f04b62c4fcfcb37c882982b00c8c9f16615c7735d45e04",
+     "sha256": "d1e108caccd615db8b443ecbcfc10c148145be3c5ac2bde30d6e0bdafa0ee7a9",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I100": {
-     "sha256": "c437c8922ef735acdde0b497e93d634bbaf9fa30453da92cecf202af875266e2",
+     "sha256": "3aa91e98ad965caa4a8621dedc7e22e1c47c87f4046a9adf71cf458d6db6bd6d",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I101": {
-     "sha256": "d9d758d464d2b87612efbc970caf3e5429f006e64dbd4ce2b13d85ee2b7b2114",
+     "sha256": "e336336078e7e537aa613e81aa9efd9d583ebda90d8ffc56625737de02f83fdf",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I102": {
-     "sha256": "a3df70133a72f34dcf0575f99034fbf7d16d1cbab4392e701f3ac26bf2c91a8e",
+     "sha256": "7b88f43de903426c8920b3fd87f1266af0a7c4559a9470b139b15b5fa1dd6bdd",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I103": {
-     "sha256": "3dd10debe6f3c5a9ba74dc1f31190716584375d6d043076f77547d127cc89a40",
+     "sha256": "6fc5ae83d1641d763267727ccb0469b303ce4c838a93e65b12f235fb08e3d143",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I104": {
-     "sha256": "b6c9f39197a7809c4aead67e192a970a313a8794a6d1ae859863e890dffe2f1b",
+     "sha256": "60acea92a6b91290fb02c9ecaeeb83a24cec2d070b4396ca27035a650c2e60d2",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I105": {
-     "sha256": "24553da51b3bebb0d70dc768930f437e515cb29c930fa845516cb39e952bc460",
+     "sha256": "f08e9d4e4b5f472649b795f8f0b6132bc70a62b5cf9484cbbe4836636cf673ed",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I106": {
-     "sha256": "e1bb397150a956fe5809418193d10f3652d79448fe50a07196f1bd84853ef0cc",
+     "sha256": "3c9d665f25406ccf4739be38b02599ff1ef91d1be6278fcf176ae21ab51cdb00",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I107": {
-     "sha256": "309664ca03cd76ecdf1a5ad2c9a9ae7b40e9b3c034b1aa29a0af3620b55ebbab",
+     "sha256": "60bd5824cea7e722e98bd6fbec6de58a00d96aa645c4783c2b07acb20b194697",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I108": {
-     "sha256": "fdd1fd928b8e5b3e1e1be8a60abc5d1e1ce3313492e39259f1f48f17af72fc81",
+     "sha256": "5833209037dedca97ddb432ea34742be435175617e9c161d69564d0eb1319204",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I109": {
-     "sha256": "b7c9031307aca2c8f6f41fa9158f56f8c379c8cc30e70420cd093a182bddb9ef",
+     "sha256": "54e55bbfbeebba463ec7b34a9c2e09f138271f1d122e95bf1dbf7aa31c15eb73",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I110": {
-     "sha256": "fd3f2eb5908489fac2cf4955a5977876e95f313e568c0f62902e9ac3e841bf3f",
+     "sha256": "b20136c2d830f7f3d3c0ba3941867d58bb5517f6b52935c0088f189978111d33",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I111": {
-     "sha256": "439a3f13a42455c9c3980c5720d5bd55e7ee95c2c19c197fb76b4686062b3dc9",
+     "sha256": "9facaa2b63253dde955720befdc5ce6e53e36ef8404e78f11077d56182fb8850",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I112": {
-     "sha256": "23af3043d60b87badb85127d375ee7b05ce9f5eb2dd0731dbc9994d2952ecf20",
+     "sha256": "504d107e45b9ec13fdf3417f6cbcb98bb12f401e255c56e93134d4e9819f4c8a",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I113": {
-     "sha256": "f91a5eb2aa1ebab81256b215b387eda0da1736564a8397f05e0c57aeef11e535",
+     "sha256": "5db8914e98d7240a3252a316e1304824c82cfcc02636baaf463eff63c4e946b9",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I114": {
-     "sha256": "7de27e09f3edeceff88b4d940226b5dfc325a4833994312fd8b44b476512f676",
+     "sha256": "2a5b45f459a02ac51f79823489d56afa10d32f479be1c1d97af789ec781cb6be",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I115": {
-     "sha256": "6dca90b183dbfe66719cfd510ba44f8451816d4f54be4199cff720f5cc49e4d1",
+     "sha256": "93715cf7f57e31b4531d67e2d443dd2a6eaabeb68ff7f25b0afdda6cca47d2ad",
      "file": "today-app.cjs",
      "lines": 1
     },
     "TA-I116": {
-     "sha256": "29aa0eed92c062f92d161997056c3a30228a053ca410032292dc1c4d61ce4992",
+     "sha256": "899d9260fd3056fc9182507bcc1db370de1a2f277f68f5438d145bdfa936a22c",
      "file": "today-app.cjs",
      "lines": 1
     },
     "GA-R01": {
-     "sha256": "65596a71d4d33404209f0a7fce63185f79e97787c40fb1561915c45c42c1404e",
+     "sha256": "92446e86c2db00545fe4c8016848f10876bbfce95eb11c2bdc3465333f3e1278",
      "file": "gym-app.mjs",
      "lines": 1
     },
     "GA-R02": {
-     "sha256": "5c0f0373693de6b2d710b96aff3df2323379df4f4b61870919295754bc12ddec",
+     "sha256": "7718e567912113a69e467b620632f93f6f479d77e31ad85d888a1c0b77e843a5",
      "file": "gym-app.mjs",
      "lines": 2
     },
     "GA-R03": {
-     "sha256": "0f3a3c512e43a9f74d0d1bf52ac36800507f0f34ca809592ba09b325cebf7926",
+     "sha256": "7a3d011466b02ae64484a29cc05b841dc3fbaf87b4aad98f7d912c11fe5d6b94",
      "file": "gym-app.mjs",
      "lines": 1
     },
     "GA-R04": {
-     "sha256": "436261392fea7747c608b22c381f702bd50c7710565e77f99d9e20c83da05962",
+     "sha256": "2097b814ff05194e2124bc20a1fafaa628e1cb536c80d503e4f570ce0951cf00",
      "file": "gym-app.mjs",
      "lines": 2
     },
     "GA-R05": {
-     "sha256": "fc0254218d7b2a6720ff2ba28b82c59b13d86a7f9988b79c6b7bb575666e9e57",
+     "sha256": "6cec1063cf73bdca202d94aba6be3ceffbcb57a91969866a758e5fdce9f9137a",
      "file": "gym-app.mjs",
      "lines": 2
     },
     "GA-R06": {
-     "sha256": "6b5e99733dbcd8f6526c4073b14d1ba39274db3544e9cc9a9c8eecac7bd9d38c",
+     "sha256": "db5f2dda19c3a6a0284e325f63819904f3f35735c8aa13e943a710ade134aa1a",
      "file": "gym-app.mjs",
      "lines": 7
     }
@@ -8813,8 +9371,8 @@
      "closeLines": 22
     },
     "today-lanes.cjs": {
-     "sha256": "9ccb549a869324b0df4911637dcad9f9e2f72b365fcf16dee1cda9d32c266478",
-     "headLines": 35,
+     "sha256": "67f99242bc3020d40931e9755eff7e124d869193ea3dc84312ffb42a011ec4d9",
+     "headLines": 42,
      "closeLines": 124
     }
    },
@@ -8969,15 +9527,16 @@
     " * were CUT OUT of today-app.cjs by rebuild/lanes/c/today-split-spike/cut.cjs, region by",
     " * region, byte for byte: 34 move regions, 679 lines. Their bytes were compared against a",
     " * sha256 recorded at TWO named refs BEFORE anything was written (S-R19), and the only",
-    " * substitutions are the forty declared rows of D.1's W1, W2, W3, W4 and W9 families,",
-    " * every one of them a paint-handle rewrite.",
+    " * substitutions are the forty-one declared rows of D.1's W1, W2, W3, W4, W9 and W10",
+    " * families, every one of them a paint-handle rewrite; thirty-nine of the forty-one",
+    " * rewrote a line here and the other two were already covered by a wider row.",
     " *",
     " * THE ONLY AUTHORED LINES ARE THIS BANNER, THE THREE REQUIRES, THE FACTORY LINE BELOW,",
     " * THE FOUR DECLARATIONS AFTER IT AND THE RETURN BLOCK AT THE END, and all of them are",
     " * declared in regions.json's product block, not invented by the instrument.",
     " *",
     " * WHAT CROSSES BACK, and it is the whole interface: a FACADE of thirty-seven read-only",
-    " * getters, a callback table of twenty-eight, and nothing else. After the cut NO released",
+    " * getters, a callback table of twenty-nine, and nothing else. After the cut NO released",
     " * line assigns a binding declared in here, which census.cjs prints as a class count of",
     " * ZERO over this build's own output (spec B.5's acceptance test, H.2 STOP 11).",
     " *",
@@ -8990,7 +9549,13 @@
     " *    rewrite inside three moved regions that D.1 does not declare, which DECISIONS:584",
     " *    rules a STOP; it is reported in the build report and it is its own ticket.",
     " *  - THE ONE-HANDOFF RULE IS NOT BUILT. The released today-app.cjs still names `model`.",
-    " *  - The runtime gesture guard of E.6 is not in this round.",
+    " *  - THE RUNTIME GESTURE GUARD OF E.6 IS BUILT AND IT IS IN THIS FILE, in the block",
+    " *    headed `E.6, THE RUNTIME GESTURE GUARD` below the three declarations above,",
+    " *    and it is a TRIPWIRE and not a proof (S-R26). It admits the two guarded writers",
+    " *    only while a listener installed through hooks.listen is running, and it is checked",
+    " *    at the CALL, not at the commit: a save that has already been admitted settles",
+    " *    afterwards. It covers TWO of E.6's nine subjects; the other seven are named in the",
+    " *    build report and five of them are the gym card's file, which this part never opens.",
     " */",
     "const FoodModel = require(\"./food-model.cjs\");",
     "const SleepModel = require(\"./sleep-model.cjs\");",
