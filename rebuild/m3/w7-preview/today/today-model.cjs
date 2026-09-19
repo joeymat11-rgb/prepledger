@@ -100,9 +100,14 @@ function createBasisState(day) {
 
    Until Today has a card of its own, the headline is the engine's OWN next-best move:
    the SAME function, over the SAME state with its proposals set aside, so every word on
-   screen is still an engine result and this adapter invents nothing. Nothing else is
-   taken from that second projection. The status face, the workout, the figures and
-   `decisionsN` all stay the real state's, so nothing hides what is genuinely waiting.
+   screen is still an engine result and this adapter invents nothing. The WHOLE move
+   object is taken from that second projection (kind, title, body, n, lever: the body
+   reaches today-app.cjs and the "What supports" section too), and nothing else is: the
+   status face, the workout, the figures and `decisionsN` stay the real state's. The
+   count therefore survives in the projection, but no product code reads it yet, so an
+   open proposal is invisible on Today until C-UI-3 gives it its card. That is the
+   ruling's intent (DECISIONS:534 (a)), stated here so C-UI-3 inherits it on the record.
+   (Comment corrected by the integrator on review R1 MAJOR 1; no code moved.)
 
    With no open proposal the second projection is never computed and `nowModel` is
    returned by IDENTITY, so the fixture render is byte-identical and the engine's own
