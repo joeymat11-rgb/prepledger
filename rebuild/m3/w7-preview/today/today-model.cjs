@@ -125,6 +125,33 @@ function planMove(E, state, nowModel) {
   return E.nowModel(bare).move;
 }
 
+/* S2 (DECISIONS:534 (b); P3-TODAY-COPY-DIAG section S2). rebuild/engine/today.cjs's
+   marchingOrder writes FOUR parts meant to be read together: a cue (`ifText`), the action
+   it belongs under (`thenText`), the reason (`why`) and the day's target line. The why is
+   a SUBORDINATE CLAUSE - it starts lower case and never names what is being asked - so
+   today-app.cjs, which bound the why ALONE into the slot the approved design labels "Your
+   plan for today", printed a sentence that starts in its middle. On the owner's own phone,
+   with an imported history that carries no last night, that was the sleep rung's clause:
+   "bed, wake, and how long you took to drop off: the body-composition read leans on this
+   harder than anything else you enter".
+
+   This puts the cue and the action back in front of the why, in the engine's own order,
+   and invents no word: the comma and the colon are the punctuation the engine's own
+   if-then already implies. The target line is deliberately NOT appended - its two figures
+   are already bound to the kcal and protein slots, and repeating them would say the same
+   thing twice.
+
+   A missing part returns null rather than a half sentence, so the caller falls back to the
+   status face's own whole sentence. Pure: it reads only the object the engine returned. */
+function marchingOrderSentence(order) {
+  if (!order) return null;
+  const cue = typeof order.ifText === "string" ? order.ifText.trim() : "";
+  const action = typeof order.thenText === "string" ? order.thenText.trim() : "";
+  const why = typeof order.why === "string" ? order.why.trim() : "";
+  if (!cue || !action || !why) return null;
+  return cue + ", " + action + ": " + why;
+}
+
 function projectionOf(E, state) {
   const nowModel = E.nowModel(state);
   const move = planMove(E, state, nowModel);
@@ -356,6 +383,11 @@ function createTodayModel(options = {}) {
       neutral.reads = [];
       view.statusFace = E.statusFace(neutral);
     }
+    /* S2. The whole sentence for the slot under "Your plan for today", composed from the
+       engine's own marching order. Set AFTER the adoption gate above on purpose: an
+       emptied marchingOrder yields null and today-app.cjs falls back to the status face's
+       own sentence, exactly as it already did. */
+    view.orderSentence = marchingOrderSentence(view.marchingOrder);
     view.why = whySections(view);
     return clone(view);
   }
@@ -458,6 +490,7 @@ function createTodayModel(options = {}) {
 
 module.exports = {
   createTodayModel, createBasisState, previewClock, engineClockFor, projectionOf,
+  marchingOrderSentence,
   NO_STORE, NO_STORE_NOTE, STORE_NOTE,
   SYNTHETIC_DAY,
 };

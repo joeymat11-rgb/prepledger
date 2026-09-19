@@ -581,9 +581,17 @@ function composeStyles(approved, chrome, fonts) {
    the engine source at test time and the layout is measured against ALL of them — a title
    added to the engine tomorrow is covered without anyone remembering to list it here.
 
-   This is deliberately a SUPERSET: it collects every `title:` literal in the engine, not
+   This is deliberately a SUPERSET: it collects every title literal in the engine, not
    only the ones theOneFix and policy.cjs can put on this slot. Testing the layout against
-   more strings than the slot can show is safe; missing one is not. */
+   more strings than the slot can show is safe; missing one is not.
+
+   S9-TODAY-CARRY (DECISIONS:534 (b)) corrects two things the note above got wrong. A title
+   is not always a quoted `title:` literal: the engine also writes template literals, and a
+   decision card's title is propose()'s second positional argument - which is where the
+   owner's own screen got "Side delt: EARNED VOLUME: 10 to 12 WEEKLY SETS", a 45-character
+   all-caps headline that had been through neither the copy gate nor the fluid-floor layout
+   check. Captured verbatim from the source, so a template's ${...} rides along as written;
+   that is the superset doing its job, not a headline anyone will read. */
 const ENGINE_DIR = "rebuild/engine";
 function headlineVocabulary(root = ROOT) {
   const dir = path.join(root, ENGINE_DIR);
@@ -592,7 +600,15 @@ function headlineVocabulary(root = ROOT) {
     if (!name.endsWith(".cjs")) continue;
     const text = fs.readFileSync(path.join(dir, name), "utf8");
     for (const pattern of [/(?:^|[\s,{(])title\s*:\s*"((?:[^"\\\n]|\\.){3,140})"/g,
-      /(?:^|[\s,{(])title\s*:\s*'((?:[^'\\\n]|\\.){3,140})'/g]) {
+      /(?:^|[\s,{(])title\s*:\s*'((?:[^'\\\n]|\\.){3,140})'/g,
+      /* S9-TODAY-CARRY (DECISIONS:534 (b); P3-TODAY-COPY-DIAG section S1). A TEMPLATE
+         literal is a title too, and the two patterns above could not see one. */
+      /(?:^|[\s,{(])title\s*:\s*`((?:[^`\\]|\\.){3,140})`/g,
+      /* And a card's title reaches this slot as propose()'s SECOND POSITIONAL ARGUMENT,
+         which is where the owner's own "EARNED VOLUME" headline is written. It was
+         measured by neither the copy gate nor the layout gate until this line. */
+      /propose\(\s*(?:`(?:[^`\\]|\\.)*`|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')\s*,\s*`((?:[^`\\]|\\.){3,140})`/g,
+      /propose\(\s*(?:`(?:[^`\\]|\\.)*`|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')\s*,\s*"((?:[^"\\\n]|\\.){3,140})"/g]) {
       for (const match of text.matchAll(pattern)) out.add(match[1].replace(/\\(.)/g, "$1").toUpperCase());
     }
   }
