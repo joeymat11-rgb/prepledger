@@ -30,6 +30,17 @@
    found: a tracked pack file replaced by a link to a copy of the same bytes reads green
    under readFileSync, which follows links, while git cat-file blob does not.
 
+   TWO RESIDUALS THIS CELL DOES NOT CLOSE, NAMED HERE SO THEY ARE NOT DISCOVERED LATER.
+   (a) A file inside a __pycache__ DIRECTORY inside the pack is invisible to this pin by
+   construction, and python will import it if sys.path reaches it. A row below records that
+   as a decision. Closing it would mean un-ignoring the caches a design machine really does
+   leave behind, which is the worse trade. (b) An UNREADABLE pinned file makes the walk
+   THROW rather than refuse by name (R1 N3, measured on the PC with a DENY ACE), so the cell
+   goes loudly RED but the failure is not one of the six refusals and the walk stops before
+   any later path. A seventh refusal, PACK-PIN UNREADABLE <path>, would complete the
+   vocabulary. That vocabulary is a SEALED byte list from S9 on, so it is a PM ruling and
+   not an author's, and it is in the integrator list of S9-PREP-PACK-AUTHOR-REPORT.md.
+
    THE LITERAL IS EMPTY ON THIS BRANCH AND THE PACK IS NOT IN THIS CHECKOUT.
    rebuild/m1/approved-2026-09-18/ lives on the design lane's branches and has not merged,
    so the REAL ROW at the bottom FAILS BY NAME today. That is the point of it: it never
@@ -99,12 +110,23 @@ function label(root) {
   return rel && !rel.startsWith("..") && !path.isAbsolute(rel) ? toPosix(rel) : toPosix(root);
 }
 
+/* BOTH CLAUSES ARE C.5.1's WORDS AND NOT ONE CHARACTER WIDER (R1 BLOCKING-2). The spec
+   skips a path that BEGINS "quality/run/" and one that contains a "__pycache__/" SEGMENT:
+   both are written with the trailing slash and both are about DIRECTORIES. So the prefix
+   is matched with its slash and never against the bare path "quality/run", and the segment
+   rule excludes the FINAL segment. A regular FILE at either place is an ordinary pack file
+   and stays pinned. The directory cases are unchanged: the walk lstats quality/run,
+   descends it as a plain directory and skips every child by the prefix; it descends a
+   __pycache__ directory and skips every child by the segment rule. */
 function isIgnored(rel) {
-  if (rel === IGNORE_PREFIX.slice(0, -1) || rel.startsWith(IGNORE_PREFIX)) return true;
-  return rel.split("/").includes(PYCACHE_SEGMENT);
+  if (rel.startsWith(IGNORE_PREFIX)) return true;
+  return rel.split("/").slice(0, -1).includes(PYCACHE_SEGMENT);
 }
 
-const LITERAL_LINE = /^(.+) ([0-9a-f]{64})$/;
+/* NO LEADING OR TRAILING SPACE IN THE PATH (R1 N4). The first build's ".+" was greedy, so
+   two spaces between the path and the hex parsed as a path ENDING in a space and a typo in
+   this cell's own constant was reported as two facts about the tree. */
+const LITERAL_LINE = /^(\S(?:.*\S)?) ([0-9a-f]{64})$/;
 
 /* A literal line that is not "<path> <space> <64-hex>" is a defect in this cell's own
    constant and not a fact about the tree, so it fails hard here rather than joining the
@@ -122,7 +144,15 @@ function parseLiteral(lines) {
     seen.add(m[1]);
     out.push({ file: m[1], sha256: m[2] });
   }
-  out.sort((a, b) => byteCompare(a.file, b.file));
+  /* ASSERTED, NEVER RE-SORTED (R1 BLOCKING-3, R1 N4). The first build sorted the parsed
+     lines, so an unsorted literal was accepted in silence and the cell could not claim the
+     pasted lines were the ones C.5.1 step 3 emitted. Sortedness is a property of this
+     cell's own constant, so it fails hard here exactly as a malformed line does, and the
+     literal walk below is in path byte order because the literal IS. */
+  for (let i = 1; i < out.length; i++) {
+    assert.ok(byteCompare(out[i - 1].file, out[i].file) < 0,
+      "PACK-PIN literal is not sorted by path bytes: " + out[i].file + " follows " + out[i - 1].file);
+  }
   return out;
 }
 
