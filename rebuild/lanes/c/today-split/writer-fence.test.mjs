@@ -1721,7 +1721,11 @@ test("FENCE-MODEL-HELD: the released today-app.cjs names `model` exactly as many
     "FENCE-MODEL-HELD: the released Today view names `model` " + sites.length + " times and " +
     TODAY_APP_MODEL_SITES + " were measured when the big cut landed. B.3's one-handoff rule " +
     "is NOT BUILT (the build report says so at the top), so this row is not zero; it is a " +
-    "CEILING, and a new one is a new released reach for the model's re-exported writer.");
+    "PINNED COUNT, and a new one is a new released reach for the model's re-exported " +
+    "writer. It is an EQUALITY and not a ceiling, and the PM ruled it so after Astra's " +
+    "paper on the tickets found the build report calling it a ceiling while this row " +
+    "asserted equality: A DROP HAS TO BE DELIBERATE TOO. Removing one of these reads is " +
+    "work somebody did, and it lands in the report beside the count it changed.");
   assert.equal(codeTokens(readRepo(TODAY + "/today-app.cjs"))
     .filter((t, i, a) => t.kind === "id" && t.value === "options"
       && ![".", "?."].includes(a[i - 1]?.value)).length, TODAY_APP_OPTIONS_SITES,

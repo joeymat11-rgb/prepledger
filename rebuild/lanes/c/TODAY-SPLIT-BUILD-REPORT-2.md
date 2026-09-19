@@ -42,8 +42,10 @@ half of the rule holds by measurement and half does not. Building the other half
 which is SEAM 1 and a durable writer; that is new sealed writer logic inside a round whose
 whole evidence is byte identity, which is S-R12's reasoning for `recordSettings` applied to
 the same shape. **What I did instead**: the count is MEASURED and pinned in the fence as a
-CEILING (`FENCE-MODEL-HELD`, with a red row for a thirty-third), so the debt cannot grow
-silently, and `model.weighIn` is one of the three declared seam sites. The PM rules whether
+PINNED COUNT, an EQUALITY (`FENCE-MODEL-HELD`, with a red row for a thirty-third), so the
+debt can neither grow nor shrink silently
+*(CORRECTED IN LOOP ROUND 1: this said CEILING while the fence row asserted EQUALITY.
+The PM ruled that equality stays, because a drop has to be deliberate too.)*, and `model.weighIn` is one of the three declared seam sites. The PM rules whether
 the rest is its own ticket.
 
 **STOP 2. SPEC B.6's OUTCOME TYPE IS NOT BUILT.** `recordSleep` still composes its eleven
@@ -82,13 +84,30 @@ fence.
 **STOP 6, AND IT IS A TICKET LINE I DECLINED, in section 0 where the PM rules on it rather
 than in UNMEASURED where he would discover it (R2 F6).** **The in-flight flag is NOT
 extended to the seven gym writers.** B.3 asks for `if (<name>Busy) return { kind:
-"in-flight" };` on all seven; six of the seven are in `gym-app.mjs`, which this part does
-not touch by design, and extending an in-flight guard is new hand-written durable-writer
+"in-flight" };` on all seven; *(CORRECTED IN LOOP ROUND 1: of E.6's NINE subjects, TWO are
+this file's and the other SEVEN are `recordSettings`, `logSet`, `finish`, `forget` and
+`undo` - five, all of them the gym card's - plus `submitWeighIn` (`model.weighIn`, SEAM 1)
+and `recoverWorkout` (`facade.workout().recover()`, SEAM 4), which are released seams no
+sealed guard can reach. That is exactly the list STOP 5 above already gives; this
+sentence was the one that disagreed with it.)* five of the seven are in `gym-app.mjs`,
+which this part does not touch by design, and extending an in-flight guard is new hand-written durable-writer
 logic in a file whose evidence is byte identity. The two writers this part DOES seal
 (`recordIntake`, `recordSleep`) keep the duplicate-write guards they already have - the
-released `disabled` flags at the save controls and `sleepBusy`, which `recordSleep` sets at
-its own first statement and clears in its own `finally` - and both are now behind E.6's
-runtime gesture guard as well, which the flag was a weaker substitute for. **I recommend it
+released `disabled` flags at the save controls and `sleepBusy`.
+
+*(CORRECTED IN LOOP ROUND 1, and the correction is section 4 of the loop round 1 block
+below.* `recordSleep` **CHECKS** `sleepBusy` at its own first statement, **SETS** it later
+at `today-lanes.cjs:524`, and clears it on each of its **two explicit paths**, `:548` on
+the throw path and `:576` on the normal one. **THERE IS NO `finally` IN THAT FUNCTION.**
+MEASURED: with `painter.repaint` throwing during the writer's initial busy repaint, the
+promise rejects, zero saves are made, and `facade.sleepBusy()` is `true` afterwards, so
+the sleep card refuses every later save for the life of the page. That is a NAMED DEBT
+for ticket `TODAY-OUTCOME-TYPE` and it is inherited, not made here.
+
+*And the sentence that said the gesture guard is what the in-flight flag was a weaker
+substitute for IS STRUCK.* A gesture counter is **not** a duplicate-write lock: the
+guard's scope ends when the synchronous listener returns, before an awaited write
+settles, and two admitted gestures are still two admitted gestures.)* **I recommend it
 rides with GYM-SETTINGS-WRITER-SEAL**, where the six gym writers are already open.
 
 **STOP 7, A PREDICTION OF D.3 THAT MEASUREMENT CONTRADICTS, and it costs a tooth NOTHING.**
@@ -568,3 +587,260 @@ node --test rebuild/lanes/c/today-split/writer-fence.test.mjs                # 3
 node --test <the seventeen files at .github/workflows/rebuild.yml:232>       # 682 / 680 / 2
 node rebuild/lanes/b/tooling/b-package.cjs --ci --package S8                 # refuses
 ```
+
+---
+
+## LOOP ROUND 1: FIXED OR DISPUTED
+
+Author of this round: cowork (Earned lane hand, lane C), continuing the build's author, who
+is gone. This is loop round 1 of 3 under the owner's ruling at `DECISIONS:613`: the
+reviewer's UNDISPUTED findings are my orders and nobody waits for a PM ruling inside the
+loop. **I dispute nothing.** Every finding below is FIXED, or RIDES A NAMED TICKET because
+closing it needs a STOP built, or is NOT DONE and says so.
+
+The review answered: `rebuild/lanes/astra/reviews/TODAY-SPLIT-PART2-BLIND-REVIEW.md` on
+`rebuild/r-astra-split-2b` at `d3e27f44`, verdict REJECT, read whole before anything else.
+Carried as orders of the same standing: Astra's incremental review of steps 0 and 1
+(`rebuild/r-astra-split-2a` at `b360d839`, F1 to F5 upheld by the PM at `DECISIONS:607`),
+the PM's own PM-S1 (`DECISIONS:610`), and the four report contradictions of
+`rebuild/lanes/c/AFTER-THE-CUT-TICKETS.md`.
+
+**I started from `e08bc11c`** (`git fetch`, `git merge --ff-only`). The PC worktree was
+CLEAN at that head and the predecessor who died at about 15:25 ET had left nothing: no
+uncommitted edit, no untracked file, no scratch of its own. Nothing was stashed and nothing
+was moved, because there was nothing to move.
+
+**What I did not open.** No `rebuild/conform/private`, no `src/history.js`, no `ledger/`,
+no `C:\Users\joeym\EarnedPort`, no `port-real.log`, no soak, no browser, no junction. I
+wrote no line of `rebuild/DECISIONS.md` and no line of `rebuild/lanes/STATUS.md`. I merged
+into nothing and pushed only `rebuild/c-today-split-build`. I installed nothing. I moved no
+byte under `rebuild/engine`. Every fixture named here is synthetic. I authored no en dash
+and no em dash; the one U+2014 in `today-lanes.cjs` is at its line 93, inside moved region
+`TA-S02`, and is one of the twenty-six in `today-app.cjs` at `s9` that a pure move keeps.
+
+### 0. ONE LINE PER FINDING
+
+| finding | disposition |
+|---|---|
+| **blind F1** guard admits a writer nested under a paint inside a listener | **PARTLY FIXED, rest RIDES TICKET `TODAY-GESTURE-PAINT-ROOTS`.** I built the reviewer's own smallest correction - a seal-side paint-depth exclusion - and then MEASURED that it closes nothing, so it is not shipped and no product byte moved for it. The paint root in the counterexample is one the VIEW holds and invokes itself; no counter inside the seal can see it. Two fence rows now pin what can be pinned: the two guarded writers are called at exactly two released sites, each the direct body of a `hooks.listen` click callback, with a RED plant. |
+| **blind F2** the factory moves a sleep-lane read before `bootFoodDays` | **FIXED**, in the instrument and then through the table. `cut.cjs`'s boot-order rule called `let sleepLane = options.sleep \|\| null;` inert; it is not. The rule is corrected, every crossing is now declared by line, there is EXACTLY ONE in the file, and `hooks.bootFoodDays` acquires the option again at its original initialization point. Measured PRE/POST on the real factory. |
+| **blind F3** ten consequential mutations survive the bar | **EIGHT OF TEN FIXED.** Nine fence rows added; each of M02, M05, M09, M10, M14, M15, M16 and M17 measured KILLED, one mutation at a time, whole fence re-run. **M18 and M21 NOT DONE** and named below. |
+| **blind F4** the final instruments cell has stale-count failures | **FIXED, and CONFIRMED WORSE THAN REPORTED.** At `e08bc11c` with the real parser stack the cell is 26 tests, 23 pass, **3 fail**, not 26 of 26. The reviewer found two; the third (row 14, residue) needs `eslint-scope` and they could not run it. All three now derive their baseline from the table they load. |
+| **blind F5** a content anchor still captures another binding | **FIXED.** The anchor's occurrence count is recorded at both named refs from git objects and enforced in `resolve.cjs` (so `census.cjs` and `capture.cjs` refuse too) and again in `cut.cjs` against the witness. |
+| **blind F6** re-witnessing still blesses a silenced refusal | **FIXED.** `cut.cjs` compares the control-flow profile of a replacement with its pre-image and refuses by row id; a row that really rewrites a statement declares `statementRewrite`, which is inside the declared-text digest. |
+| **blind F7** live facade capabilities bypass hooks | **RIDES TICKET `TODAY-OUTCOME-TYPE` / S-R29.** Replacing writer-bearing getters with detached read DTOs is new sealed writer logic inside a round whose whole evidence is byte identity, which is `DECISIONS:584`'s STOP. The reviewer says this part did not create the lane power; it did not seal it away either, and that sentence is now in the report where the PM rules it. |
+| **blind F8** async continuation refusal is named but unpainted | **RIDES TICKET `TODAY-GESTURE-PAINT-ROOTS`.** The current behaviour REFUSES an async save, which is E.6's synchronous window working as written. Admitting one needs a rule and a painted refusal, and a painted refusal is athlete-facing copy: a STOP for this round on both counts. |
+| **blind F9** the in-flight account is inaccurate | **FIXED IN THE REPORT**, with the paths listed and the throw measured. See section C below. |
+| **incremental F1** TA-I035's content anchor carries an unchecked ordinal | same fix as blind F5. **FIXED** (the row is `TA-I042` in the final table). |
+| **incremental F2** rows TA-I049 to TA-I051 hand B.6's outcome OBJECT to `plainOrDrop` | **ALREADY CLOSED** by the build's author and re-confirmed by the reviewer: the final RENAME map is empty, the rows call `sleepErrorText()`, a string. No change. |
+| **incremental F3** no row of the cell invokes `gen-interface.cjs` at all | **FIXED.** A row runs the real generator at the named ref and compares its rows and substitutions with the committed table, anchor for anchor and line for line. |
+| **incremental F4** "the output parses" admits an added early return | same fix as blind F6. **FIXED.** |
+| **incremental F5** reversing the row order turns an accepted cut into an OVERLAP refusal | **FIXED.** A total deterministic tie order, and containment decided against every seam of the file instead of the adjacent row. Measured: the reversed table exits 0 and produces byte-identical output. |
+| **incremental F7** the generator reports uncovered STOPS and writes the table anyway | **FIXED.** It refuses before any JSON is written, and the `--json` write moved below the refusal. |
+| **PM-S1** the sealed file's banner contradicts the file in three places | **FIXED through the table**, never by hand in the output, and the file regenerated. |
+
+### 1. EVERY MOVED OUTPUT BYTE, ACCOUNTED FOR
+
+`git diff --stat e08bc11c..<head> -- rebuild/m3/w7-preview/today/` is ONE file:
+
+| file | hunks | what moved |
+|---|---|---|
+| `today-lanes.cjs` | 3 | the banner (two hunks) and `hooks.bootFoodDays` (one). Nothing else. |
+| `today-app.cjs` | 0 | **BYTE-IDENTICAL.** The released file the athlete sees did not move at all this round. |
+| every other file under `rebuild/m3/w7-preview/today/` | 0 | untouched. `gym-app.mjs`, `today-model.cjs` and `today-readings.cjs` were not opened. |
+
+Each of the three hunks is a DECLARED region of `regions.json`'s `product` block, re-witnessed
+at both named refs, and the file was regenerated by `cut.cjs` from the table. **No byte of
+generated output was hand-edited.** Every regeneration was run in the farm from the git
+objects of `s9` (the PC has no `acorn`, and the instruments' parser is a dev instrument that
+never enters a `node_modules` this repository uses) and carried over the airlock with
+`sha256` compared on both machines; the final `today-lanes.cjs` is
+`c9fe11a015d4a3543c42caefb89e1cfa9e7392d6d3b5dd548d07e8791b924d91`.
+
+### 2. EVERY AUTHORED LINE CHANGED, BY FILE AND PHYSICAL LINE
+
+These are the lines the PM reads. All of them are declared rows of `regions.json`; the
+physical lines are in the regenerated `today-lanes.cjs`.
+
+**`rebuild/m3/w7-preview/today/today-lanes.cjs`** (973 lines; was 947)
+
+| lines | what |
+|---|---|
+| 10-12 | PM-S1: "the forty-one declared rows of D.1's W1, W2, W3, W4, W9 and W10 families ... thirty-nine of the forty-one rewrote a line here and the other two were already covered by a wider row." Was "the forty declared rows of D.1's W1, W2, W3, W4 and W9 families". |
+| 19 | PM-S1: "a callback table of twenty-nine". Was "twenty-eight". Measured: the frozen `hooks` object has 29 top-level entries; the facade's thirty-seven was already right. |
+| 32-38 | PM-S1: "THE RUNTIME GESTURE GUARD OF E.6 IS BUILT AND IT IS IN THIS FILE", where it is, that it is a tripwire and not a proof, that it is checked at the call and not at the commit, and that it covers two of nine subjects. Was "The runtime gesture guard of E.6 is not in this round." No distance in lines is quoted, because a distance is the next thing to become false. |
+| 897-914 | blind F2: the comment that states the finding, the fix and the residual deviation. |
+| 915-916 | blind F2: `hooks.bootFoodDays` gains `sleepLane = options.sleep \|\| null;` after the `setFoodDays` call. **This is the one line of this round that changes what the page does.** |
+
+**`rebuild/lanes/c/today-split/writer-fence.test.mjs`**: 211 lines added at the end, nine
+new rows and one harness helper. No existing row, assertion, expectation or refusal was
+changed, weakened or removed. I did not touch the scanner (S-R26).
+
+**`rebuild/lanes/c/today-split-spike/`**: `resolve.cjs` +21, `cut.cjs` +199/-16,
+`gen-witness.cjs` +22, `gen-interface.cjs` +16/-1, `test/instruments.test.cjs` +286/-6.
+`regions.json` is generated output of `gen-witness.cjs` apart from the three declared edits
+named above and the `statementRewrite` flags.
+
+### 3. THE DECLARED ROWS THAT CHANGED
+
+| row | change |
+|---|---|
+| every one of the 202 move and replace regions | `first.occurrences` recorded, and `witness.regions[id][ref].occurrences` beside it. The two named refs AGREE on all 202; `gen-witness.cjs` refuses to record a number they disagree on. Exactly one anchor in the table matches more than once: `TA-I042`, with two. |
+| `TA-S05`, `TA-S10`, `TA-S16`, `TA-S35b`, `TA-S38` | `statementRewrite: true`. The five S-R21 boot seams. Already declared in prose; now declared in a field that is inside the digest. |
+| `TA-W01`, `TA-W02`, `TA-W03`, `TA-W07`, `TA-W08`, `TA-W13` | `statementRewrite: true`. Six of the fourteen hand-designed B.5 rows - the six whose replacement really does change control flow. The other eight are pure call rewrites and are held to the comparison like every generated row. |
+| `GA-R05` | `statementRewrite: true`. `gym-app.mjs`'s declared row. No byte of `gym-app.mjs` moved. |
+| `product["today-lanes.cjs"].head` | PM-S1, three corrections, one of them growing by six lines. |
+| `product["today-lanes.cjs"].close` | blind F2, `bootFoodDays`, plus its eighteen-line comment. |
+
+**NOTHING WAS DELETED AND NOTHING WAS WEAKENED.** Twelve rows GAINED a declaration that
+costs them nothing they did not already have; no row lost one.
+
+### 4. THE FOUR REPORT CONTRADICTIONS (AFTER-THE-CUT-TICKETS)
+
+**(a) THE 32 MODEL IDENTIFIERS ARE A PINNED COUNT, NOT A CEILING.** Section 0 STOP 1 of
+this report called it a CEILING while `FENCE-MODEL-HELD` asserts EQUALITY. The PM rules
+that **equality stays, because a drop must be deliberate too**. The word CEILING is struck
+from STOP 1 and from the fence row's own message: both now say PINNED COUNT. The debt is
+unchanged and so is the row's arithmetic; only the description of it was wrong.
+
+**(b) `sleepBusy` DOES NOT CLEAR "IN ITS OWN FINALLY". THERE IS NO `finally`.** STOP 6 of
+this report says `recordSleep` "sets at its own first statement and clears in its own
+`finally`". Measured on the shipped sealed bytes, `recordSleep` does this:
+
+| line of `today-lanes.cjs` | what |
+|---|---|
+| 492 | FIRST statement: `if (sleepBusy \|\| sleepUnknown \|\| sleepReadBack) return;` - it CHECKS the flag. It does not set it. |
+| 524 | `sleepBusy = true;`, after the draft is read and the attempt is built, immediately before the busy repaint. |
+| 548 | cleared on the THROW path, after the reconciliation read has settled. |
+| 576 | cleared on the normal path, immediately after `await sleepLane.save(...)` returns. |
+
+Those two are the only clears and **there is no `finally` in the function.** So the
+corrected sentence is: *`recordSleep` checks `sleepBusy` at its first statement, sets it
+later, and clears it on each of its two explicit paths.*
+
+**AND A THROW BETWEEN THE SET AND THE CLEAR LEAVES IT SET. MEASURED, not argued**: with
+`painter.repaint` throwing `SYNTHETIC_PAINT_FAILURE` during the writer's initial busy
+repaint, the returned promise rejects with that message, **zero saves are made, and
+`facade.sleepBusy()` is `true` afterwards** - the sleep card refuses every later save for
+the life of the page. `painter.repaint` at line 525, and again at 536 on the throw path,
+are outside any `try`. **This is a NAMED DEBT for ticket `TODAY-OUTCOME-TYPE`**, and it is
+inherited, not made here: the reviewer measured it in BOTH versions.
+
+**(c) THE GESTURE GUARD IS NOT "A WEAKER SUBSTITUTE" THE OTHER WAY ROUND, AND THE SENTENCE
+IS STRUCK.** STOP 6 said the two sealed writers "are now behind E.6's runtime gesture guard
+as well, which the flag was a weaker substitute for". That is wrong and the sentence is
+struck. A gesture counter is not a duplicate-write lock: the guard's scope ends when the
+synchronous listener returns, before an awaited write settles, and **two admitted gestures
+are still two admitted gestures**. The reviewer measured exactly that: two synthetic
+`dispatchEvent(click)` calls on the same food-save button while a save is pending give two
+save calls in BOTH versions.
+
+**(d) "SEVEN GYM WRITERS, SIX IN `gym-app`" IS WRONG; B.3 NAMES SEVEN SUBJECTS OF WHICH TWO
+ARE NOT THE GYM'S.** STOP 6 said the in-flight flag was not extended to "the seven gym
+writers... six of the seven are in `gym-app.mjs`". Corrected to the spec's own list: of
+E.6's nine subjects, **two** are this file's (`recordIntake`, `recordSleep`) and the other
+**seven** are `recordSettings`, `logSet`, `finish`, `forget` and `undo` - **five**, all of
+them the gym card's - plus `submitWeighIn` (`model.weighIn`, SEAM 1) and `recoverWorkout`
+(`facade.workout().recover()`, SEAM 4), which are **released seams no sealed guard can
+reach**. That is the list STOP 5 of this report already states correctly; STOP 6's sentence
+was the one that disagreed with it, and it now matches.
+
+### 5. THE BAR, AS MEASURED, PER SYSTEM
+
+**IN THE FARM** (2 CPUs; the dev parser at `/home/claude/farm/tools/census`, required by
+absolute path, never a CI dependency, never copied into a `node_modules` the repository
+uses), at BOTH named refs `SPLIT_TEST_REF=s9` and `=tip`:
+
+| the instruments' own cell | s9 | tip |
+|---|---|---|
+| at `e08bc11c`, the head this round started from | **26 tests, 23 pass, 3 fail** | **26 tests, 23 pass, 3 fail** |
+| at the RED FIRST commit `ca83de7`, instruments unchanged, the reviewers' attacks added | **33 tests, 26 pass, 7 fail** | **33 tests, 26 pass, 7 fail** |
+| at this round's head | **34 tests, 34 pass, 0 fail** | **34 tests, 34 pass, 0 fail** |
+
+The writer fence also runs in the farm and does: **404 tests, 404 pass, 0 fail**, up from
+395. The eight mutation kills of blind F3 were measured there, one mutation at a time.
+
+**ON THE PC**, at `%TEMP%\earned-splitbuild`, one Node process at a time, with
+`MEASURED_TEST_NOW=2026-09-03` and `TZ=America/New_York` set on their own lines and
+`C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe`:
+
+| on the PC, at this round's head | measured |
+|---|---|
+| **the whole today step**, the exact command at `.github/workflows/rebuild.yml:232` as it stands on this branch | **682 tests, 680 pass, 2 fail**, exit 1 |
+| the two failures, and there are no others | `boundary.test.mjs` **P-MEASURE (g)** - "no S4-sealed file drifts except where a declaring spec says so, and this lane's own drift is today-app.cjs" - and `setup.test.mjs` **re-pin** - "every file the B-NTC package pins is untouched by A4b, on disk". **THE SAME TWO KNOWN PRE-EXISTING REDS OF `DECISIONS:552`, before and after. No row added, none lost.** |
+| the writer fence | **404 tests, 404 pass, 0 fail**, exit 0 (395 before this round; 9 added) |
+| `food.test.mjs` | 57 tests, 57 pass, 0 fail |
+| `problem.test.mjs` (which holds the N2 sleep cells) | 131 tests, 131 pass, 0 fail |
+| `checkin.test.mjs` | 28 tests, 28 pass, 0 fail |
+| `package.test.cjs` | 11 tests, 11 pass, 0 fail |
+| `node rebuild/lanes/b/tooling/b-package.cjs --ci --package S8` | refuses by design, exit 1: `B PACKAGE S8 FAIL SEALED-PROFILE-RECOMPUTATION; required evidence missing or failed; local diagnostics withheld`. Recorded by name, not chased. |
+
+**WHEN, AND THAT NOTHING ELSE OF MINE WAS RUNNING.** The four single files plus the fence
+ran first, one Node process at a time, serially from one script, against the head that
+carried the banner correction; then again against the head that carried the blind F2 fix,
+with identical results. The whole today step ran ONCE, last, after `tasklist` showed no
+suite of mine running, detached from a `.cmd` with its environment on its own lines and its
+output to a log under `%TEMP%`. The only other `node.exe` processes on the machine for the
+whole round were the long-lived ones that were already there when I started and are still
+there now; I started no second suite beside any of these.
+
+The reviewer's own cell numbers differ from these because their sandbox could not run five
+build rows (`Cannot read directory "../../../..": Access is denied.`): they measured food
+56/57 and problem 127/131 where this machine measures 57/57 and 131/131. I do not
+substitute one set for the other and I did not treat their five as failures of mine.
+
+### 6. WHAT IS NOT DONE, AND WHAT IS UNMEASURED
+
+**NOT DONE IN THIS ROUND, each one named so round 2 can take it:**
+
+1. **blind F3 M18**: a repeated `readSleepCheckInView` for the same date must force a fresh
+   `forDate` before each paint. Needs the real sleep model and a composed page, not this
+   cell's inert stubs.
+2. **blind F3 M21**: a successful sleep save must clear the typed draft. Same reason.
+   Both belong in `problem.test.mjs`, which `D.3` does not name and `H.2 STOP 5` makes a
+   STOP for this round.
+3. **blind F1's remaining half**: a paint root the released view invokes itself. Ticket
+   `TODAY-GESTURE-PAINT-ROOTS`.
+4. **blind F8**: painting a refusal for an async continuation. Same ticket, and it is also
+   athlete-facing copy.
+5. **blind F7**: narrowing the facade's writer-bearing getters to detached read DTOs.
+   Ticket `TODAY-OUTCOME-TYPE` / S-R29.
+6. **The `sleepBusy` throw hole of 4(b)**: `TODAY-OUTCOME-TYPE`.
+7. **The seven STOPs of the build** are still not built; this round built none of them and
+   was not asked to.
+
+**UNMEASURED:**
+
+- The anchor fix is a COUNT, not a scope identity. Binding an ambiguous anchor to its
+  witnessed enclosing scope is the reviewer's further correction and is not built.
+- The control-flow comparison is not a semantic oracle and no comparison of two texts is.
+  `facade.foodLane()` could still be a getter that writes. It closes the one hole the
+  reviewer drove a line through; the independent review of every hunk remains what holds a
+  released file (S-R26).
+- The generator row compares the generator's OUTPUT with the committed table. It does not
+  compare the generator's scope analysis with an independently constructed one.
+- No browser, no native build, no phone or Safari behaviour, no design gate, no conformance
+  suite, no reseal, no CI run of my own. Those are the S10 round's.
+- The residual F2 deviation: `options.sleep` is read twice where PRE read it once. A
+  one-shot accessor would see it; a plain property would not.
+- I ran nothing that seals, writes a receipt or writes an artifact, and moved no byte under
+  `rebuild/engine`.
+
+### 7. THE COMMITS OF THIS ROUND
+
+| commit | finding |
+|---|---|
+| `ca83de7` | **RED FIRST**: the reviewers' attacks as rows, instruments unchanged, 26 pass / 7 fail at both refs recorded in the message |
+| `cc87c07` | blind F5 / incremental F1: the recorded occurrence count (`resolve.cjs`, `gen-witness.cjs`) |
+| `0a4e1d9` | blind F6 / incremental F4 (control flow) and incremental F5 (row order), in `cut.cjs` |
+| `772f009` | incremental F7 and F3: `gen-interface.cjs` refuses on an uncovered assignment |
+| `5ce7a92` | the table re-witnessed, PM-S1's banner corrected through it, the cut regenerated |
+| `84511b8` + `2df2f32` | blind F2, the instrument and the product half (the second commit is the four-of-five staging slip of the first, and carries only the regenerated sealed bytes) |
+| `ad482f2` | blind F3's nine fence rows, and blind F1 pinned where it can be pinned |
+
+**A DEVIATION I AM DECLARING RATHER THAN HIDING.** The ticket asks for one commit per
+finding. `0a4e1d9` carries TWO findings and `772f009` carries two, because they share one
+file each (`cut.cjs`, `gen-interface.cjs`) and splitting them would have meant inventing an
+intermediate state of a file that never existed. Each commit message separates its findings
+paragraph by paragraph. `5ce7a92` carries the table, which four findings write into; the
+table is one generated artifact and cannot be split.
