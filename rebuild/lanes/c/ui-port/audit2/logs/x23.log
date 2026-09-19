@@ -1,0 +1,13 @@
+---- row x23: a card 0.7 px off the page margin: JUST OUTSIDE it
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#card-eat { margin-left: 0.7px !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+x23    audit2    a card 0.7 px off the page margin: JUST OUTSIDE it         as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

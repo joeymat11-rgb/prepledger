@@ -1,0 +1,13 @@
+---- row k3: a card moved 6 px off the page margin
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#card-eat { margin-left: 6px !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+k3     lane      a card moved 6 px off the page margin                      as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 56 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

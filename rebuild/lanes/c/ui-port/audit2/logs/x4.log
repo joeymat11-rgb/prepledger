@@ -1,0 +1,14 @@
+---- row x4: an 18x18 px block on Today: 0.097% of the frame, JUST INSIDE the 0.1% pixel rule
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,4 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#card-eat { position: relative !important; }
++#card-eat::before { content: "" !important; position: absolute !important; right: 2px !important; top: 2px !important; width: 18px !important; height: 18px !important; background: #ff0000 !important; z-index: 9 !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+x4     audit2    an 18x18 px block on Today: 0.097% of the frame, JUST INSI as expected  0      EARNED UI GATE: 0 FAIL, 0 WARN, 60 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

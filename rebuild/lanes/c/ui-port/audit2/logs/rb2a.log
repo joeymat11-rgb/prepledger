@@ -1,0 +1,14 @@
+---- row rb2a: B2 exactly as R4 built it: a visible focusable 274x20 box with an INERT clip, no positioning
+--- a/app/app.html
++++ b/app/app.html
+@@ -52,3 +52,3 @@
+           <span class="tdot" aria-hidden="true"></span>
+-          <div class="title">Eat about 2,300 kcal today.</div>
++          <div class="title" tabindex="0" style="height:20px;clip:rect(0 0 0 0)">Eat about 2,300 kcal today.</div>
+           <div class="sub">Protein at least 160 g.</div>
+
+
+row    source    mutation                                                   verdict      exit   note
+rb2a   audit2-R4 B2 exactly as R4 built it: a visible focusable 274x20 box  as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 56 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

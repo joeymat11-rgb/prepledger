@@ -1,0 +1,14 @@
+---- row x2: T-02 status line colour moved 3 levels: JUST INSIDE the colour tolerance
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,4 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++:root[data-theme="dawn"] #status-line { color: rgb(47, 43, 38) !important; }
++:root:not([data-theme="dawn"]) #status-line { color: rgb(223, 218, 208) !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+x2     audit2    T-02 status line colour moved 3 levels: JUST INSIDE the co as expected  0      STATE SHEET: 2 renders, 0 with problems
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

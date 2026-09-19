@@ -1,0 +1,14 @@
+---- row x1: T-02 status line shifted 4 px: JUST OUTSIDE the 3 px rect tolerance
+--- a/app/app.css
++++ b/app/app.css
+@@ -199,3 +199,3 @@
+ .greeting { font-family: var(--serif); font-size: 52px; line-height: 1; margin-top: 5px; letter-spacing: 0; text-shadow: var(--text-shadow); }
+-.status-line { font-size: 15.5px; line-height: 1.3; color: var(--text-soft); margin-top: 8px; font-weight: 430; }
++.status-line { font-size: 15.5px; line-height: 1.3; color: var(--text-soft); margin-top: 12px; font-weight: 430; }
+ .eyebrow { font-size: 12px; line-height: 1.3; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 450; }
+
+
+row    source    mutation                                                   verdict      exit   note
+x1     audit2    T-02 status line shifted 4 px: JUST OUTSIDE the 3 px rect  as expected  1      STATE SHEET: 2 renders, 2 with problems
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

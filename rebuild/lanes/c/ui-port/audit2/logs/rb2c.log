@@ -1,0 +1,13 @@
+---- row rb2c: CONTROL: an untouched run of the same narrowed gate (a comment appended to app.css only)
+--- a/app/app.css
++++ b/app/app.css
+@@ -877 +877,3 @@
+    geometry. The board's photograph is kept under assets/retired for the record. */
++
++/* audit2 rb2c marker: renders identically, this row is the untouched control */
+
+
+row    source    mutation                                                   verdict      exit   note
+rb2c   audit2-R4 CONTROL: an untouched run of the same narrowed gate (a com as expected  0      EARNED UI GATE: 0 FAIL, 0 WARN, 60 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

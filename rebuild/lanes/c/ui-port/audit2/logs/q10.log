@@ -1,0 +1,14 @@
+---- row q10: the lane's own B2 row: a visible 20 px target carrying a clip its positioning makes inert
+--- a/app/app.html
++++ b/app/app.html
+@@ -52,3 +52,3 @@
+           <span class="tdot" aria-hidden="true"></span>
+-          <div class="title">Eat about 2,300 kcal today.</div>
++          <div class="title" tabindex="0" style="height:20px;clip:rect(0 0 0 0)">Eat about 2,300 kcal today.</div>
+           <div class="sub">Protein at least 160 g.</div>
+
+
+row    source    mutation                                                   verdict      exit   note
+q10    teeth-R4  the lane's own B2 row: a visible 20 px target carrying a c as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 56 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

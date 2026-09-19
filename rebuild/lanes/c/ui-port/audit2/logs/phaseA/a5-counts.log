@@ -1,0 +1,36 @@
+RESULT ROWS: 372
+DISTINCT CHECK NAMES: 33
+LEVELS: {'PASS': 372}
+  1 Log in the thumb zone (centre >= 70% of height)
+  2 Log label uses ×
+  3 RIR chips are the five locked values
+  4 bottom safe area
+  5 card inner edge 14 px
+  6 contrast (measured behind the text)
+  7 copy: no dashes, readiness words, vendor names
+  8 fits without scrolling at 393x852
+  9 fonts pinned by sha256
+  10 gaps on the spacing scale
+  11 generated content the sweep cannot read
+  12 icon inset 13 to 14 px
+  13 icons share a centre line, text shares an edge
+  14 no page or console errors
+  15 no seams in the scene
+  16 no straight edge in the scene with the mist drawn
+  17 no transitions or animations outside the embers
+  18 no vertical streaks in the sky with the mist drawn
+  19 nothing moves except the embers
+  20 nothing moves under reduced motion
+  21 page margin 22 px
+  22 pressed state on every tappable surface
+  23 primary action in first viewport
+  24 radii: 14 px for cards, buttons and chips; full round only for pills
+  25 right glyph column at 24 px
+  26 same icon column (54) and text edge (88) on every screen
+  27 serif and sans faces loaded and distinct
+  28 serif for names and numbers, sans for the rest
+  29 tertiary links have no underline
+  30 the multiplication sign in every set string
+  31 touch targets >= 44 px
+  32 type sizes and weights on the scale
+  33 visual regression vs baseline

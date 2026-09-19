@@ -1,0 +1,14 @@
+---- row x3: T-02 status line colour moved 4 levels: JUST OUTSIDE it
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,4 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++:root[data-theme="dawn"] #status-line { color: rgb(48, 44, 39) !important; }
++:root:not([data-theme="dawn"]) #status-line { color: rgb(224, 219, 209) !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+x3     audit2    T-02 status line colour moved 4 levels: JUST OUTSIDE it    as expected  1      STATE SHEET: 2 renders, 2 with problems
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

@@ -1,0 +1,14 @@
+---- row x5: a 19x19 px block: 0.108%, JUST OUTSIDE the 0.1% pixel rule
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,4 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#card-eat { position: relative !important; }
++#card-eat::before { content: "" !important; position: absolute !important; right: 2px !important; top: 2px !important; width: 19px !important; height: 19px !important; background: #ff0000 !important; z-index: 9 !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+x5     audit2    a 19x19 px block: 0.108%, JUST OUTSIDE the 0.1% pixel rule as expected  1      EARNED UI GATE: 2 FAIL, 0 WARN, 58 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

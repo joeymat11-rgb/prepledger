@@ -1,0 +1,13 @@
+---- row x22: a card 0.5 px off the page margin: JUST INSIDE the 0.6 px edge tolerance
+--- a/app/app.css
++++ b/app/app.css
+@@ -454,2 +454,3 @@
+ :root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }
++#card-eat { margin-left: 0.5px !important; }
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+x22    audit2    a card 0.5 px off the page margin: JUST INSIDE the 0.6 px  as expected  0      EARNED UI GATE: 0 FAIL, 0 WARN, 63 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl

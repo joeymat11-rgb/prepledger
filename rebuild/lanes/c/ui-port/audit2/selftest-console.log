@@ -1,0 +1,85 @@
+MANIFEST written: 1319 files
+MANIFEST clean: 1319 files byte identical
+64a9e0954232ad10f66029c3031b8048c1f82802
+a      R1        an em dash in Today's status sentence                      DRY-OK              
+b1     R1        a readiness word in a card title (the R1 hole)             DRY-OK              
+b2     R1        a vendor name in a card title                              DRY-OK              
+c      R1        the sans face pointed at the serif file                    DRY-OK              
+d-1    R1        #start pushed 630 px down at 393x852 (R1 crashed here)     DRY-OK              
+d-2    R1        #start pushed 210 px down at 375x812 and 360x780 only      DRY-OK              
+e1     R1        Today's titles and status line under 4.5:1 and over 3.0:1  DRY-OK              
+e2     R1        the same text under 3.0:1                                  DRY-OK              
+f      R1        a keyframe animation on #start, live under reduced motion  DRY-OK              
+g      R1        one word of T-02's copy (the R1 hole)                      DRY-OK              
+g2     R1        an em dash inside the same state copy                      DRY-OK              
+h1     R1        T-02's status line shifted 3 px: INSIDE the tolerance, mus DRY-OK              
+h2     R1        T-02's status line shifted 60 px                           DRY-OK              
+i      R1        this platform's ink-today baseline deleted                 DRY-OK              
+j1     R1        EARNED_APP at an empty folder                              DRY-OK              
+j2     R1        EARNED_APP at app/compare.html, a real page of the pack    DRY-OK              
+k1     lane      one RIR chip dropped                                       DRY-OK              
+k2     lane      a serif element switched to sans                           DRY-OK              
+k3     lane      a card moved 6 px off the page margin                      DRY-OK              
+m1     rev-R1    a 4 px dot pulsing for ever on a pseudo element            DRY-OK              
+m2     rev-R1    a transition on a pseudo element                           DRY-OK              
+m3     rev-R1    three faults in a placeholder, judged by the gate          DRY-OK              
+m4     rev-R1    the same three faults in CSS generated content             DRY-OK              
+m5     rev-R1    three faults in a placeholder, judged by the state sheet   DRY-OK              
+m6     rev-R1    T-02 dropped from the driver, its records left committed   DRY-OK              
+m7     rev-R1    T-02's sample note hidden at opacity 0                     DRY-OK              
+n1     rev-R2    a set string drawn by counter() in generated content       DRY-OK              
+n2     rev-R2    T-02's sample note hidden by clip-path: inset(100%)        DRY-OK              
+n3     rev-R2    T-02's sample note hidden by text-indent: -9999px          DRY-OK              
+n4     rev-R2    a theme in the index that the sheet does not render        DRY-OK              
+n5     rev-R2    a theme the sheet renders that the index lost              DRY-OK              
+p1     R3        the Chromium launch list loses --font-render-hinting=none  DRY-OK              
+x1     audit2    T-02 status line shifted 4 px: JUST OUTSIDE the 3 px rect  DRY-OK              
+x2     audit2    T-02 status line colour moved 3 levels: JUST INSIDE the co DRY-OK              
+x3     audit2    T-02 status line colour moved 4 levels: JUST OUTSIDE it    DRY-OK              
+x4     audit2    an 18x18 px block on Today: 0.097% of the frame, JUST INSI DRY-OK              
+x5     audit2    a 19x19 px block: 0.108%, JUST OUTSIDE the 0.1% pixel rule DRY-OK              
+x6     audit2    a readiness word split by inline markup                    DRY-OK              
+x7     audit2    a readiness word in capitals                               DRY-OK              
+x8     audit2    a readiness word split by a soft hyphen (U+00AD)           DRY-OK              
+x9     audit2    a readiness word split by a zero width space (U+200B)      DRY-OK              
+x10    audit2    a dash the sweep does not carry: U+2015 horizontal bar     DRY-OK              
+x11    audit2    a font file with the right name and different bytes        DRY-OK              
+x12    audit2    a committed RECORD edited to match a mutated render (what  DRY-OK              
+x13    audit2    a NEW state with no committed record                       DRY-OK              
+x14    audit2    a type size off the scale: the only path that can WARN and DRY-OK              
+x15    audit2    a gap off the spacing scale: the second advisory path      DRY-OK              
+x16    audit2    a crash mid-run in the gate: what is the exit code, and is DRY-OK              
+x17    audit2    a crash mid-run in the state sheet, after clean renders    DRY-OK              
+x18    audit2    an accept run with nothing changed: can it be mistaken for DRY-OK              
+x19    audit2    an accept run pointed at ANOTHER build by EARNED_APP       DRY-OK              
+x20    audit2    primary body copy downgraded to the 3.0 tier by a class NA DRY-OK              
+x21    audit2    the gate run with a size that does not exist: green on not DRY-OK              
+x22    audit2    a card 0.5 px off the page margin: JUST INSIDE the 0.6 px  DRY-OK              
+x23    audit2    a card 0.7 px off the page margin: JUST OUTSIDE it         DRY-OK              
+x24    audit2    a touch target that is not a button, an anchor or an input DRY-OK              
+x25    audit2    the whole pack integrity check: is anything outside qualit DRY-OK              
+h3     teeth-R3  T-02's status line shifted 4 px: the first whole pixel out DRY-OK              
+p2     teeth-R3  this platform's committed thumbnail for T-02 deleted       DRY-OK              
+p3     teeth-R3  the hinting argument taken out of the launch list, judged  DRY-OK              
+p4     teeth-R3  the other platform's T-02 thumbnails copied over this plat DRY-OK              
+q1     teeth-PM  the gate run with a size that does not exist (the row x21  DRY-OK              
+q2     teeth-PM  a word off the owner's list split by a soft hyphen (the ro DRY-OK              
+q3     teeth-PM  a horizontal bar and a hyphen bullet (the row x10 predicte DRY-OK              
+q4     teeth-PM  primary text tagged muted and painted with the muted token DRY-OK              
+q5     teeth-PM  one state whose apply throws (the row x17 predicted the wh DRY-OK              
+q6     teeth-PM  statesheet --accept pointed at another build by EARNED_APP DRY-OK              
+q8     teeth-PM  a minus sign doing a dash's job in Today's status sentence DRY-OK              
+q9     teeth-R4  the lane's own B1 row: a spaced hyphen whose two spaces ar DRY-OK              
+q10    teeth-R4  the lane's own B2 row: a visible 20 px target carrying a c DRY-OK              
+q11    teeth-R4  a numeric range written with a minus sign (R4 SHOULD FIX 1 DRY-OK              
+rb1a   audit2-R4 B1 exactly as R4 built it: the spaced hyphen with U+00A0 o DRY-OK              
+rb1b   audit2-R4 the same spaced hyphen with U+202F NARROW NO-BREAK SPACE o DRY-OK              
+rb1c   audit2-R4 the same spaced hyphen with U+2007 FIGURE SPACE on each si DRY-OK              
+rb1d   audit2-R4 the same spaced hyphen with U+2009 THIN SPACE on each side DRY-OK              
+rb1e   audit2-R4 the same spaced hyphen with U+3000 IDEOGRAPHIC SPACE on ea DRY-OK              
+rb1f   audit2-R4 THE CONTROL: the plain spaced hyphen, an ordinary space on DRY-OK              
+rb2a   audit2-R4 B2 exactly as R4 built it: a visible focusable 274x20 box  DRY-OK              
+rb2b   audit2-R4 CONTROL the fix must not break: the same box with clip AND DRY-OK              
+rb2c   audit2-R4 CONTROL: an untouched run of the same narrowed gate (a com DRY-OK              
+rb2d   audit2-R4 SIBLING PROBE: a focusable 20 px box hidden only by a zero DRY-OK              
+rb2e   audit2-R4 SIBLING PROBE: the same box with visibility:hidden inherit DRY-OK              

@@ -1,0 +1,14 @@
+---- row rb1b: the same spaced hyphen with U+202F NARROW NO-BREAK SPACE on each side
+--- a/app/app.html
++++ b/app/app.html
+@@ -35,3 +35,3 @@
+       <h1 class="greeting" id="greeting">Morning, Joe.</h1>
+-      <p class="status-line" id="status-line">Upper body today. One change to review.</p>
++      <p class="status-line" id="status-line">Upper body today - one change to review.</p>
+ 
+
+
+row    source    mutation                                                   verdict      exit   note
+rb1b   audit2-R4 the same spaced hyphen with U+202F NARROW NO-BREAK SPACE o as expected  1      EARNED UI GATE: 4 FAIL, 0 WARN, 56 PASS
+
+results appended to C:\Users\joeym\AppData\Local\Temp\cui-audit2\results.jsonl
