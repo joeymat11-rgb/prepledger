@@ -43,6 +43,9 @@ const { spawnSync } = require("child_process");
 
 const SPIKE = path.join(__dirname, "..");
 const resolveAnchors = require(path.join(SPIKE, "resolve.cjs"));
+/* the DEV instrument, exactly as cut.cjs locates it: outside the repository, by absolute
+   path, never a CI dependency and never copied into a node_modules this repository uses. */
+const INSTRUMENT = process.env.CENSUS_INSTRUMENT || "/home/claude/farm/tools/census/node_modules";
 const table = JSON.parse(fs.readFileSync(path.join(SPIKE, "regions.json"), "utf8"));
 
 /* The repository root: walk up until the region table's own `today` directory is under it. */
@@ -863,4 +866,209 @@ test("RED blind F2: the cut DECLARES every moved initializer that crosses a boot
   const boot = sealed.slice(sealed.indexOf("bootFoodDays:"));
   assert.ok(boot.indexOf("model.setFoodDays(foodLane)") < boot.indexOf("sleepLane = options.sleep"),
     "the re-acquisition must come AFTER the setFoodDays call, which is where :432 stands");
+});
+
+/* ---- LOOP ROUND 2: the re-check's two blocking inputs, each run RED FIRST -------------
+ * Both were measured against the UNCHANGED instruments of c38ed5fb at BOTH named refs and
+ * both exited 0 there. The commit before this one carries that failure list.            */
+
+test("RED L2 B1: a COUNT-PRESERVING competing occurrence is REFUSED by the witnessed enclosing context", () => {
+  /* The reviewer kept the witnessed occurrence count at 2 by adding one occurrence and
+     taking one away: prepend a helper holding TA-I042's anchor text, and add ONE LEADING
+     SPACE to the real target so it stops matching. The count check saw two, the ordinal
+     `nth: 1` named the PLANT, and at both refs the cut exited 0: the emitted helper called
+     with facade.sleepNightDate = () => "SEALED" returned "SEALED" where the input returned
+     "LOCAL", and the real released call stayed bare after its binding had moved into the
+     seal, so api.render("sleep") threw "sleepNightDate is not defined" on the composed
+     page. An ordinal among identical lines is not a binding. */
+  const shadow = [
+    "function astraShadow() {",
+    "  const sleepNightDate = () => \"LOCAL\";",
+    "    const date = sleepNightDate();",
+    "  return date;",
+    "}",
+    ""];
+  for (const refName of (table.witness.refs || []).map((x) => x.name)) {
+    const tree = tmpTreeAt(refName);
+    const lines = readLines(tree, "today-app.cjs");
+    const anchor = table.files["today-app.cjs"].find((x) => x.id === "TA-I042").first.text;
+    const hit = lines.findIndex((l) => l === anchor);
+    assert.ok(hit >= 0, "TA-I042's anchor is not in the source at " + refName);
+    lines[hit] = " " + lines[hit];
+    writeLines(tree, "today-app.cjs", shadow.concat(lines));
+    const after = shadow.concat(lines).filter((l) => l === anchor).length;
+    assert.strictEqual(after, 2, "the input must PRESERVE the witnessed count of 2 at " + refName);
+    const r = runCut(tree, ["--only", "today-app.cjs"]);
+    assert.strictEqual(r.status, 1, "A COUNT-PRESERVING PLANT TOOK TA-I042's ORDINAL AND THE " +
+      "CUT EXITED 0 AT " + refName + ". " + r.stdout);
+    assert.match(r.stderr, /TA-I042: the declared `first\.context` matches 0 of the 2 occurrences/);
+  }
+});
+
+test("RED L2 B1 (b): a plant that copies the WHOLE witnessed context is refused by a context line that is itself an anchor", () => {
+  /* The context is chosen so that copying it cannot be free: `    readSleepCheckIn(date);`
+     is TA-I043's own first anchor, witnessed once. A plant that reproduces the enclosing
+     header, the two lines before and the two after therefore duplicates ANOTHER region's
+     anchor and is refused by the recorded occurrence count before it can be resolved. */
+  const tree = tmpTreeAt("s9");
+  const lines = readLines(tree, "today-app.cjs");
+  const ctx = table.files["today-app.cjs"].find((x) => x.id === "TA-I042").first.context;
+  assert.ok(ctx && ctx.before && ctx.after && ctx.enclosing, "TA-I042 carries no first.context");
+  const hit = lines.findIndex((l) => l === table.files["today-app.cjs"].find((x) => x.id === "TA-I042").first.text);
+  lines[hit] = " " + lines[hit];
+  const plant = [ctx.enclosing].concat(ctx.before,
+    [table.files["today-app.cjs"].find((x) => x.id === "TA-I042").first.text], ctx.after, ["  }", ""]);
+  writeLines(tree, "today-app.cjs", plant.concat(lines));
+  const r = runCut(tree, ["--only", "today-app.cjs"]);
+  assert.strictEqual(r.status, 1, "A FULL-CONTEXT PLANT GOT THROUGH. " + r.stdout);
+  assert.match(r.stderr, /TA-I043: first anchor matches 2 places and the table RECORDED 1/);
+});
+
+test("L2 B1: TA-I042's context is witnessed at BOTH named refs, and it is the only ambiguous anchor", () => {
+  const names = (table.witness.refs || []).map((x) => x.name);
+  let withContext = 0, ambiguous = 0;
+  for (const [file, regions] of Object.entries(table.files)) {
+    for (const reg of regions) {
+      if (reg.kind !== "move" && reg.kind !== "replace") continue;
+      if (reg.first.occurrences > 1) {
+        ambiguous += 1;
+        assert.ok(reg.first.context, file + " " + reg.id +
+          ": an anchor that matches more than once and declares no context");
+      }
+      if (!reg.first.context) continue;
+      withContext += 1;
+      for (const n of names) {
+        assert.strictEqual(typeof table.witness.regions[reg.id][n].contextSha, "string",
+          file + " " + reg.id + ": no witnessed contextSha at " + n);
+      }
+    }
+  }
+  assert.strictEqual(ambiguous, 1, "the number of ambiguous anchors changed");
+  assert.strictEqual(withContext, 1, "the number of rows carrying a context changed");
+});
+
+test("RED L2 B2 (a): a return HIDDEN INSIDE A STRING is REFUSED by the parsed-structure comparison", () => {
+  /* `    if (!facade.foodLane()) { "//"; return;` - the token profile strips line comments
+     BEFORE strings, so the `//` inside the string swallowed `; return;` and the counts came
+     out equal, while the emitted JavaScript parses and really does return. Measured on the
+     emitted guard with no food lane: the control emits one put(map,"stub-note",...) and the
+     mutant emits none; the composed page loses the stub-note and the food-save elements.
+     The reviewer ran the REAL gen-witness --declared --write and the REAL cut at both refs
+     and got exit 0 twice. */
+  for (const refName of (table.witness.refs || []).map((x) => x.name)) {
+    const tree = tmpTreeAt(refName);
+    const bad = JSON.parse(JSON.stringify(table));
+    const row = bad.files["today-app.cjs"].find((x) => x.id === "TA-I018");
+    assert.deepStrictEqual(row.replacement, ["    if (!facade.foodLane()) {"],
+      "TA-I018 is no longer the food-lane guard opener this attack targets");
+    assert.ok(!row.statementRewrite, "TA-I018 must not be an exempt row");
+    row.replacement = ["    if (!facade.foodLane()) { \"//\"; return;"];
+    const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+    fs.writeFileSync(rf, JSON.stringify(bad));
+    const w = runNode("gen-witness.cjs", ["--declared", "--regions", rf, "--write"]);
+    assert.strictEqual(w.status, 0, w.stderr);
+    const r = runCut(tree, ["--regions", rf, "--only", "today-app.cjs"]);
+    assert.strictEqual(r.status, 1, "A RETURN HIDDEN IN A STRING SILENCED A REFUSAL AND THE " +
+      "CUT EXITED 0 AT " + refName + ". " + r.stdout);
+    assert.match(r.stderr, /TA-I018: THE REPLACEMENT CHANGES CONTROL FLOW/);
+    assert.match(r.stderr, /PARSED STRUCTURE DIFFERS/);
+  }
+});
+
+test("RED L2 B2 (b): a SINGLE-CLAUSE false predicate is REFUSED by the parsed-structure comparison", () => {
+  /* `    if (!facade.foodLane() && false) {` adds no control-flow token at all, so no token
+     profile can see it. Same zero puts; the real page instead displays exactly
+     "Not prescribed. The engine issues no carbohydrate or fat target." */
+  for (const refName of (table.witness.refs || []).map((x) => x.name)) {
+    const tree = tmpTreeAt(refName);
+    const bad = JSON.parse(JSON.stringify(table));
+    const row = bad.files["today-app.cjs"].find((x) => x.id === "TA-I018");
+    row.replacement = ["    if (!facade.foodLane() && false) {"];
+    const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+    fs.writeFileSync(rf, JSON.stringify(bad));
+    const w = runNode("gen-witness.cjs", ["--declared", "--regions", rf, "--write"]);
+    assert.strictEqual(w.status, 0, w.stderr);
+    const r = runCut(tree, ["--regions", rf, "--only", "today-app.cjs"]);
+    assert.strictEqual(r.status, 1, "A FALSE PREDICATE ERASED A REFUSAL AND THE CUT EXITED 0 AT " +
+      refName + ". " + r.stdout);
+    assert.match(r.stderr, /TA-I018: THE REPLACEMENT CHANGES CONTROL FLOW/);
+    assert.match(r.stderr, /pre-image "UnaryExpression", replacement "LogicalExpression"/);
+  }
+});
+
+test("L2 B2: the rows EXEMPT from the structural comparison are exactly the declared twenty-five", () => {
+  /* The exemption's only effect is to move a row from "refused" to "printed by id in the
+     cut's report for the PM's read". This pins the set so that widening it is a visible
+     diff in a cell and not a quiet field. */
+  const exempt = [];
+  for (const [file, regions] of Object.entries(table.files)) {
+    for (const r of regions) if (r.statementRewrite) exempt.push(file + " " + r.id);
+  }
+  assert.deepStrictEqual(exempt.sort(), [
+    "gym-app.mjs GA-R01", "gym-app.mjs GA-R02", "gym-app.mjs GA-R03", "gym-app.mjs GA-R04",
+    "gym-app.mjs GA-R05", "gym-app.mjs GA-R06",
+    "today-app.cjs TA-S05", "today-app.cjs TA-S10", "today-app.cjs TA-S16",
+    "today-app.cjs TA-S35b", "today-app.cjs TA-S38",
+    "today-app.cjs TA-W01", "today-app.cjs TA-W02", "today-app.cjs TA-W03",
+    "today-app.cjs TA-W04", "today-app.cjs TA-W05", "today-app.cjs TA-W06",
+    "today-app.cjs TA-W07", "today-app.cjs TA-W08", "today-app.cjs TA-W09",
+    "today-app.cjs TA-W10", "today-app.cjs TA-W11", "today-app.cjs TA-W12",
+    "today-app.cjs TA-W13", "today-app.cjs TA-W14"].sort(),
+    "THE SET OF ROWS EXEMPT FROM THE CONTROL-FLOW COMPARISON CHANGED.");
+  /* and every one of them is printed by id, with its from and its to, in the cut's report */
+  const tree = tmpTreeAt("s9");
+  const r = runCut(tree, ["--only", "today-app.cjs", "--product"]);
+  assert.strictEqual(r.status, 0, r.stderr);
+  const rep = JSON.parse(fs.readFileSync(path.join(r.out, "cut-report.json"), "utf8"));
+  const printed = rep.statementRewrites.map((x) => x.id).sort();
+  assert.deepStrictEqual(printed, ["TA-S05", "TA-S10", "TA-S16", "TA-S35b", "TA-S38",
+    "TA-W01", "TA-W02", "TA-W03", "TA-W04", "TA-W05", "TA-W06", "TA-W07", "TA-W08",
+    "TA-W09", "TA-W10", "TA-W11", "TA-W12", "TA-W13", "TA-W14"].sort(),
+    "the cut's report does not print every declared statement rewrite of today-app.cjs");
+  for (const x of rep.statementRewrites) {
+    assert.ok(Array.isArray(x.from) && Array.isArray(x.to) && x.from.length && x.to.length,
+      x.id + ": the report does not carry the row's from and to for the PM's read");
+  }
+});
+
+test("L2 B3: the corrected banner says what the file is, measured against the file itself", () => {
+  /* Three statements of the banner were false in a file that will be SEALED. The
+     corrections are declared rows of regions.json's product block; these are the
+     measurements they now have to match. */
+  const tree = tmpTreeAt(BUILD_REF);
+  const r = runCut(tree, ["--only", "today-app.cjs", "--product"]);
+  assert.strictEqual(r.status, 0, r.stderr);
+  const src = fs.readFileSync(path.join(r.out, "today-lanes.cjs"), "utf8");
+  const acorn = require(path.join(INSTRUMENT, "acorn"));
+  const ast = acorn.parse(src, { ecmaVersion: 2022, sourceType: "script", locations: true });
+  const head = table.product["today-lanes.cjs"].head.length +
+    (table.product["today-lanes.cjs"].open || []).length;
+  const close = src.split("\n").length - (table.product["today-lanes.cjs"].close || []).length - 1;
+  let total = 0, authored = 0;
+  (function walk(n) {
+    if (!n || typeof n !== "object") return;
+    if (n.type === "Literal" && typeof n.value === "string") {
+      total += 1;
+      if (n.loc.start.line <= head || n.loc.start.line >= close) authored += 1;
+    }
+    for (const k of Object.keys(n)) {
+      if (k === "loc") continue;
+      const v = n[k];
+      if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === "object" && v.type) walk(v);
+    }
+  })(ast);
+  assert.strictEqual(total, 127, "the banner's string-literal count is not the file's");
+  assert.strictEqual(authored, 10, "the banner's count of AUTHORED string literals is not the file's");
+  assert.ok(src.indexOf(" * families. Forty of them rewrite a paint handle") > 0,
+    "the banner still calls every substitution a paint-handle rewrite (B3)");
+  assert.ok(src.indexOf(" * THE SEVEN DECLARATIONS AFTER IT") > 0,
+    "the banner still says FOUR authored declarations where seven stand (B3)");
+  assert.ok(src.indexOf("this file and 117 of them are moved bytes") > 0,
+    "the banner still claims zero string literals of its own (B3)");
+  /* and the seven are really there, in order, before the first moved region */
+  const upto = src.slice(0, src.indexOf("/* TA-S01"));
+  for (const name of ["sleepDraftHeld", "willAdopt", "ready", "gestures", "wrapped", "wrapFor", "gesture"]) {
+    assert.ok(new RegExp("(let|const) " + name + "\\b").test(upto),
+      "the banner names " + name + " as an authored declaration and it is not declared before TA-S01");
+  }
 });
