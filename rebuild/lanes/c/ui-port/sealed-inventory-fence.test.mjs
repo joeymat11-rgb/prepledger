@@ -151,26 +151,6 @@ function fence(root, chainRef) {
      and row (12) measures it rather than leaving it to be discovered. */
   const released = new Set(Object.keys(inv.released || {}));
 
-  /* THE ARTIFACT-TAMPER CHECK, AND R2 N4 MOVED IT UP HERE, BEFORE THE RESEAL CLAIM AND
-     FOR EVERY BRANCH. It used to sit after the claim's return, so a child that satisfied
-     all five conditions AND rewrote its PARENT's sealed artifact in its own worktree
-     stood aside in silence. Condition (2) binds the spec to the sha the fence measures AT
-     THE CHAIN REF, so the tamper bought that child nothing - but the cell that exists to
-     notice artifact tampering did not notice it, and the CI log said nothing. A RESEAL
-     CHILD HAS NO BUSINESS CHANGING ITS PARENT'S SEALED ARTIFACT: one that does is not
-     entered into the claim at all and is fenced as an ordinary branch, which is F3's rule
-     applied a second time - fewer ways to stand aside is the safer fence. Row (17).
-
-     THE null LIMB IS NOT DEFENSIVE PROGRAMMING (R1 BLOCKING-C): it is the only thing
-     that notices a branch DELETING the sealed artifact from its worktree, and that
-     deletion is invisible to FENCE-SEALED-PATH-TOUCHED because the artifact is not a key
-     of its own product map (D.2 says so). "Delete the artifact, then do as you like" is
-     row (6) with the other hand, and row (6c) measures it. */
-  const refusals = [];
-  const worktree = fsBytes(path.join(root, ...artifactPath.split("/")));
-  const tampered = worktree === null || !worktree.equals(chainBytes);
-  if (tampered) refusals.push("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + artifactPath);
-
   /* THE DIFF, --name-status and not --name-only: the skip below needs the status letter
      and a deletion counts as touching, so one diff serves both (R3 N3). A rename is
      both a deletion of the old path and an addition of the new one.
@@ -204,6 +184,43 @@ function fence(root, chainRef) {
     if (/^[RC]/.test(parts[0])) { touched.push({ status: "D", path: parts[1] }); touched.push({ status: "A", path: parts[2], renamedFrom: parts[1] }); }
     else touched.push({ status: parts[0][0], path: parts[1] });
   }
+
+  /* THE ARTIFACT-TAMPER CHECK, AND R2 N4 MOVED IT ABOVE THE RESEAL CLAIM, FOR EVERY
+     BRANCH. It used to sit after the claim's return, so a child that satisfied all five
+     conditions AND rewrote its PARENT's sealed artifact in its own worktree stood aside
+     in silence. Condition (2) binds the spec to the sha the fence measures AT THE CHAIN
+     REF, so the tamper bought that child nothing - but the cell that exists to notice
+     artifact tampering did not notice it, and the CI log said nothing. A RESEAL CHILD HAS
+     NO BUSINESS CHANGING ITS PARENT'S SEALED ARTIFACT: one that does is not entered into
+     the claim at all and is fenced as an ordinary branch, which is F3's rule applied a
+     second time - fewer ways to stand aside is the safer fence. Row (17).
+
+     THE null LIMB IS NOT DEFENSIVE PROGRAMMING (R1 BLOCKING-C): it is the only thing
+     that notices a branch DELETING the sealed artifact from its worktree, and that
+     deletion is invisible to FENCE-SEALED-PATH-TOUCHED because the artifact is not a key
+     of its own product map (D.2 says so). "Delete the artifact, then do as you like" is
+     row (6) with the other hand, and row (6c) measures it.
+
+     AND IT IS ASKED ONLY OF A BRANCH THAT CARRIED THE ARTIFACT TO BEGIN WITH, which is
+     why the check sits below the diff and not above it (author finding F9, measured: it
+     turned row (8g) red the moment N4's move put a branch through it). A branch cut
+     BEFORE the chain sealed the artifact the fence is now reading does not carry that
+     path at all, and the null limb read that absence as a deletion: from the day S9 seals,
+     EVERY lane branch cut before it would have been accused of tampering with a file it
+     has never seen. The question the check must ask is whether THIS BRANCH MOVED IT, so
+     the comparison is asked only where the merge base already held the chain's own bytes.
+     This costs the fence nothing it was relying on: the inventory is read out of Git at
+     the chain ref whatever the worktree says, so a widened worktree copy changes no
+     verdict here - the refusal is the DIAGNOSTIC that names the tamper, and R1
+     BLOCKING-2's guarantee lives in the read, not in this comparison. Row (19). */
+  const baseArtifact = (() => {
+    try { return git(root, ["show", base + ":" + artifactPath]); } catch { return null; }
+  })();
+  const carriedAtBase = baseArtifact !== null && baseArtifact.equals(chainBytes);
+  const worktree = fsBytes(path.join(root, ...artifactPath.split("/")));
+  const tampered = carriedAtBase && (worktree === null || !worktree.equals(chainBytes));
+  const refusals = [];
+  if (tampered) refusals.push("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + artifactPath);
 
   /* THE RESEAL-CHILD CLAIM, and its DEFAULT IS FAIL (R2 BLOCKING-A, PM-R4). */
   const specRe = /^rebuild\/lanes\/b\/tooling\/packages\/([^/]+)\.json$/;
@@ -1023,6 +1040,47 @@ test("R2 N4 (17) - a child that would otherwise be VERIFIED, tampering with its 
   assert.ok(r.refusals.includes("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART), names(r));
   /* and, being fenced as an ordinary branch, its own sealed touch is named too. */
   assert.ok(r.refusals.includes("FENCE-SEALED-PATH-TOUCHED M " + APP), names(r));
+});
+
+/* AUTHOR FINDING F9, AND IT IS THE ONE R2 N4's MOVE UNCOVERED rather than caused. The
+   tamper check's worktree === null limb read "this branch does not carry the artifact" as
+   "this branch deleted the artifact". A branch cut BEFORE the chain sealed the artifact
+   the fence now reads carries no such path, and from the day S9 seals that is EVERY lane
+   branch cut before it. Measured, at the commit that moved the check and nowhere else:
+
+     D.2 (8g) ... AssertionError: FENCE-INVENTORY-DIFFERS-FROM-CHAIN
+       rebuild/m4/spec/acceptance-s9-fixture.json | FENCE-SEALED-PATH-TOUCHED M ...
+       2 !== 1
+
+   Row (8g) is not edited for it and is green again on its own assertions; this row is the
+   world stated directly, with the half that must STILL be refused beside it so the limb
+   cannot be widened into an excuse. */
+test("F9 (19) - a branch cut BEFORE the chain sealed this artifact is not accused of tampering", () => {
+  const root = chain({ product: [APP, CSS] });
+  const A = headOf(root);
+  branch(root, { edits: { [TEMPLATE]: "<template id=\"t-today\"></template>\n" } });
+  /* the chain seals a NEW artifact, on a line of its own, so the merge base stays at A
+     and the branch's worktree never carries acceptance-s9-fixture.json at all. */
+  git(root, ["checkout", "-q", "-b", "chainline", A]);
+  put(root, SPEC_DIR + "acceptance-s9-fixture.json",
+    inventory({ packageId: "M2-S9-FIXTURE", lanePackage: "S9", product: [APP, CSS] }));
+  commit(root, "the chain seals a new artifact");
+  git(root, ["update-ref", CHAIN_REF, "HEAD"]);
+  git(root, ["checkout", "-q", "main"]);
+
+  const r = fence(root, CHAIN_REF);
+  assert.equal(r.artifactPath, SPEC_DIR + "acceptance-s9-fixture.json", "the chain did not advance");
+  assert.equal(fs.existsSync(path.join(root, ...r.artifactPath.split("/"))), false,
+    "the fixture does not build the world at all: the branch DOES carry the new artifact");
+  assert.equal(r.status, "pass",
+    "a branch that predates the chain's newest artifact was accused of tampering with it: " + names(r));
+
+  /* AND THE HALF THAT MUST STILL BE REFUSED, so the limb is not an excuse: the same
+     branch, carrying the chain's own artifact and deleting it, is still a tamper. */
+  const del = chain({ product: [APP, CSS] });
+  branch(del, { edits: { [APP]: "the branch's bytes\n" }, kills: [FIX_ART] });
+  assert.ok(fence(del, CHAIN_REF).refusals.includes("FENCE-INVENTORY-DIFFERS-FROM-CHAIN " + FIX_ART),
+    "the carried-at-base limb excused a real deletion: " + names(fence(del, CHAIN_REF)));
 });
 
 /* THE PM's OWN FINDING P-FENCE-1, AND IT IS ABOUT CI AND NOT ABOUT fence(). GitHub skips
