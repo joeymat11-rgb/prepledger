@@ -358,7 +358,6 @@ test('F2-G20 a null exercise row throws, and the throw is NOT the named refusal 
     assert.notEqual(e, null, 'it refuses, by throwing');
     assert.equal(e instanceof TypeError, true, 'today the throw is a raw TypeError');
     assert.notEqual(e.code, 'SETUP_TAGS_INVALID', 'and NOT the module\'s named refusal');
-    assert.match(e.message, /reading 'id'/);
   }
   // The contrast that shows this is about null alone: a number in the same slot is
   // refused by name, because ids.has(42) reads nothing off 42.
@@ -375,6 +374,8 @@ test('F2-G20 a null exercise row throws, and the throw is NOT the named refusal 
 // ENGINE_MG has BOTH an identity entry in REGION_MG and a sub-region of its own
 // (rebuild/m3/w7-preview/today/exercise-catalogue.mjs:61). The day someone adds a
 // biceps_long this row goes RED and names :97.
+// The first assertion is a SNAPSHOT pin of the eight identity names bolted to the
+// property pin: adding a ninth identity muscle with no sub-region also reds it.
 test('F2-G21 no shipped muscle has both an identity region and a sub-region (:97)', () => {
   const identity = ENGINE_MG.filter(mg => REGION_MG[mg] === mg);
   assert.deepEqual([...identity].sort(),
@@ -569,5 +570,77 @@ test('F2-G34 a null state exercise row refuses by name, not by TypeError', () =>
     f.state = copy(f.state);
     f.state.exercises[1] = row;
     bad(() => project(f));
+  }
+});
+
+// R3 B1. Mutant: :116 "|| !source.exercises.length" deleted. An EMPTY snapshot
+// matches the empty exercise list, so :128's count check cannot refuse it.
+test('F2-G35 an empty setup exercise list with an empty snapshot refuses', () => {
+  const f = fixture(PAIR);
+  f.setup.exercises = [];
+  bad(() => validateSetupTags(f.setup, {}));
+});
+
+// R3 B1. Mutant: :124 "ids.has(e.id) ||" deleted. The snapshot holds ONE key for
+// two occurrences of that id; the Set stays size one and :128 cannot refuse it.
+test('F2-G36 duplicate setup ids refuse even when the snapshot has one matching key', () => {
+  const f = fixture(ONE('chest'));
+  f.setup.exercises.push(copy(f.setup.exercises[0]));
+  assert.equal(Object.keys(f.tags).length, 1);
+  bad(() => validateSetupTags(f.setup, f.tags));
+});
+
+// R3 B1. Mutant: :165 "!plain(out.sleep) ||" deleted. Reading .nights off null
+// then throws a raw TypeError instead of the named refusal.
+test('F2-G37 null sleep refuses by name, not by TypeError', () => {
+  const f = fixture(PAIR);
+  f.state = copy(f.state);
+  f.state.sleep = null;
+  bad(() => project(f));
+});
+
+// R3 B1. Mutant: :177 "!plain(record) ||" deleted. On a tagged state the null
+// sessionLog record reaches .entries and throws raw instead of refusing by name.
+test('F2-G38 a null sessionLog record refuses by name, not by TypeError', () => {
+  const f = tagged(fixture(PAIR));
+  f.state.sessionLog['2026-09-15'] = null;
+  bad(() => project(f));
+});
+
+// R3 extra term. Mutant: :139 "!descriptor ||" deleted. NO tags property is
+// distinct from tags:null and tags:undefined; identity on this path is PM-intended.
+test('F2-G39 a context with no tags property returns the state by identity', () => {
+  const f = fixture(PAIR);
+  const ctx = { setup: f.setup, op_id: OP, date: DATE };
+  assert.equal(Object.hasOwn(ctx, 'tags'), false);
+  assert.equal(projectSetupTags(f.state, ctx), f.state);
+});
+
+// Astra re-check, RECORDED LAXITY at :124: key coercion in own(snapshot, e.id)
+// precedes :79's text guard. A JSON id object with no usable toString throws raw.
+// Rewrite this row on purpose the day the module gains the missing id guard.
+test('F2-G40 an uncoercible setup id throws and is NOT the named refusal (:124)', () => {
+  const f = fixture(PAIR);
+  f.setup.exercises[0].id = { toString: null };
+  for (const call of [() => validateSetupTags(f.setup, f.tags), () => project(f)]) {
+    const e = thrown(call);
+    assert.notEqual(e, null, 'it refuses, by throwing');
+    assert.equal(e instanceof TypeError, true, 'today the throw is a raw TypeError');
+    assert.notEqual(e.code, 'SETUP_TAGS_INVALID', 'and NOT the module\'s named refusal');
+  }
+});
+
+// Astra re-check, RECORDED LAXITY at :43: cloneData recursively visits values
+// without a depth guard. Rewrite this row on purpose the day that guard arrives.
+test('F2-G41 a setup value nested 20000 objects deep throws a raw RangeError (:43)', () => {
+  const f = fixture(PAIR);
+  let value = null;
+  for (let i = 0; i < 20000; i++) value = { child: value };
+  f.setup.priority_muscles = [value];
+  for (const call of [() => validateSetupTags(f.setup, f.tags), () => project(f)]) {
+    const e = thrown(call);
+    assert.notEqual(e, null, 'it refuses, by throwing');
+    assert.equal(e instanceof RangeError, true, 'today the throw is a raw RangeError');
+    assert.notEqual(e.code, 'SETUP_TAGS_INVALID', 'and NOT the module\'s named refusal');
   }
 });

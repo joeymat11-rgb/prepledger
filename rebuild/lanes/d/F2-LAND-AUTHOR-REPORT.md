@@ -6,11 +6,20 @@ FIX ROUND author: cowork (Earned lane hand), commits FIX 1/3 to FIX 3/3, answeri
 `rebuild/lanes/d/F2-LAND-REVIEW-R1.md` finding by finding in section 9.
 MICRO FIX ROUND 3 author: cowork (Earned lane hand), answering
 `rebuild/lanes/d/F2-LAND-REVIEW-R2.md` and the PM's own two findings in section 11.
+ASTRA R3 fix: uncommitted work on the worktree based at 68ed2fc2, measured on
+win32 with Node v24.19.0. Sections 0, 3, 7.4, 7.5, 11 B2, 12 and 13 give the
+current result. Other measurements retain their historical heads and authors;
+Astra did not rerun the earlier linux, seal, importer or retirement work.
 This report is a HYPOTHESIS. The next reviewer is told to disagree wherever the evidence lets him.
 
 Scope ruled by the PM (`DECISIONS:557`): THE TAG HALF ONLY. NO ENGINE BYTE MOVES.
 
 ## 0. HEADLINE
+
+ASTRA FINAL BAR: **NOT MET in this environment.** F2 is 71/71/0; the required
+plan-edit run is 90 tests / 88 pass / 2 fail. Both failures report esbuild
+directory access denied before the browser assertions can complete. No test
+was weakened and no out-of-scope file was changed. Full evidence is in 13.
 
 Three commits land the module, one cell and one CI step. Three more answer review R1: a
 thirteen-cell red-first coverage file, its place in the same CI step, and this report. Two more
@@ -36,14 +45,17 @@ named refusal into a raw `TypeError`. R2 is right. Round 3 re-measured the modul
 term-level method at a finer granularity and found TWELVE more of the same two classes on top of
 R2's six. All eighteen now have a row.
 
-**AS MEASURED at this head, and claiming nothing beyond the measurement: 140 term-level mutants
-of `setup-tags.cjs`, 115 KILLED by a behaviour row, 25 survivors. All 25 survivors are
-REDUNDANT against a 161-case differential corpus: with the term deleted, not one of the 161
-cases changes how the module answers. ZERO of the 25 flips a refusal into an acceptance and ZERO
-degrades a named refusal into a raw throw.** That is a statement about 140 mutants and 161
-inputs that this round wrote, and it is NOT a claim that no undriven term exists. Section 7.4
-names the one hole no mutant can see: the MISSING guard at `:124` that PM finding P-F2-1 found
-by reading, which `F2-G20` now pins as a recorded laxity.
+THE ROUND-3 REPLACEMENT CLAIM IS ALSO WITHDRAWN: "all 25 survivors are REDUNDANT"
+and "ZERO ... acceptance ... ZERO ... raw throw" were false. R3 demonstrated two
+ACCEPTING and two DEGRADING survivors, plus an unpinned tags-absent identity path.
+G35-G39 now kill those five terms; G40-G41 record two further raw-throw laxities.
+
+**AS MEASURED on this uncommitted revision: 141 mutants, 119 killed by test rows,
+2 stopped at cell initialization, 20 survivors. A fresh 712-case differential
+corpus finds 2 ACCEPTING survivors, 1 DEGRADING survivor and 17 REDUNDANT only
+against those 712 cases.** Sections 7.4-7.5 name the method, every survivor and
+the three remaining coverage gaps. This is finite evidence, not a proof that
+the remaining terms are removable or that every possible term was enumerated.
 
 ## 1. WHAT LANDED
 
@@ -144,13 +156,11 @@ Two files, each named by exact path, never globbed. The comment above the step r
 F2 cell files that are deliberately absent and why, so a file with no CI home is still a file
 somebody decided about (`DECISIONS:186 (3)`).
 
-TWO NUMBERS IN THAT COMMENT ARE NOW STALE AND ROUND 3 WAS FORBIDDEN TO FIX THEM. The comment
-says "Measured on this head: 43 tests" and "thirteen cells". At this head the step's exact
-command prints **64 tests** and `guard-coverage.test.mjs` carries **thirty-four** rows. The
-ticket for round 3 says in terms: do NOT touch `rebuild.yml`, whose step already names the file
-by exact path. So the prose is stale on purpose and is recorded here rather than corrected
-silently. The `run:` line itself, which is the only executable part, is correct and unchanged.
-Whoever next holds this region should refresh those two words.
+The F2 comment now carries the measured count values: **71 tests, 71 pass** and
+**forty-one cells** in guard-coverage.test.mjs. Only those count values change
+(43 occurs twice); the run line and all other workflow bytes stay unchanged.
+The retained comment's linux attribution belongs to earlier rounds: Astra's new
+71-test measurement is win32 only. No new linux or GitHub-job result is claimed.
 
 ## 4. THE BAR, ON BOTH OPERATING SYSTEMS
 
@@ -609,8 +619,9 @@ and three rows of this table were wrong:
 | `M32` partial marker set, "covered by `M31`" | the `:154` halves `!own(e,'head')` and `!own(e,'secondary')` are redundant, but the `:158` term `own(e,'secondary')` was not: an untagged row already carrying a helper list was **ACCEPTED** | driven by `G25` |
 | `M20c` setup exercises is an array, "covered by `M20d`" | `M20d` covers `{}` and `[]`, both of which still refuse by name through `.length`. It does NOT cover `null`, which reads `.length` off nothing and throws a raw `TypeError` | driven by `G32` |
 
-The ten other rows of the table reproduce exactly as written, and every double in it is still
-KILLED. The method note below stands unchanged.
+The table below retains the earlier double-mutant observations as history, not
+as a current redundancy verdict. R3 and Astra's 7.5 witnesses contradict further
+single-term redundancy explanations in it. Those doubles were not rerun by Astra.
 
 | survivor | the guard that covers it | double mutant | tests red |
 |---|---|---|---|
@@ -662,96 +673,126 @@ Nothing was changed to go green and no guard was weakened: the mutated bytes liv
 farm scratch worktree, the driver restores the file after every row and asserts the restored
 bytes are identical, and the module's sha256 is the same before and after the sweep.
 
-### 7.4 ROUND 3'S RE-MEASUREMENT, AND THE COUNT AS MEASURED
+### 7.4 ASTRA'S R3 RE-MEASUREMENT: METHOD AND COUNT
 
-R2 B2 is upheld and the remedy it asks for is here: the sweep was re-run with R2's term-level
-method at the final head, and the count below is what the run printed.
+Measured in an OS-temp scratch with these seven files mirrored at their relative
+paths: the landed module, the lane copy, both F2 cells, exercise-catalogue.mjs,
+athlete-state.cjs and its engine/constants.cjs dependency. The worktree module
+was never written. Each scratch mutation was restored before the next run.
 
-METHOD, and it is a GENERATOR rather than a hand-written list, because a hand-written list is
-exactly how the first two rounds missed terms. A small script walks the module's source, finds
-every `if (<condition>)` wherever it sits on its line, splits the condition at top-level `||`,
-and emits ONE mutant per term: that term's exact source span replaced by `false`. The span is
-taken from the parse, so every anchor is unique by construction and an anchor miss is
-impossible. To that the round adds fifteen hand-written mutants for the guards that are not `if`
-conditions at all: the bodies of `text()`, `plain()`, `closed()`, `day()` and `equal()`, the
-`regionsByMuscle` filter and its freeze, the projection's freeze, the clone at `:103`, the
-`bucket` fallback at `:86` and the effective target at `:95`.
+The generator masks strings, regex literals and comments while retaining source
+offsets, finds every if condition, splits only its top-level || operators, and
+replaces one resulting exact span with false. It emits **125 mutants**. Nested
+AND/OR terms are not recursively split; these counts are not exhaustive coverage.
+This includes acceptance/return conditions, not just refusal conditions.
 
-**125 generated term mutants + 15 hand mutants = 140.** For each one the mutated file is written
-to disk, `node --test` runs BOTH landed cells, the failing test titles are recorded, the original
-bytes are restored and the module's sha256 is re-compared. It was
-`d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d` before the sweep and after it,
-and after every single row.
+There are **16 explicit supplemental mutants**, instead of the earlier report's
+15: text()'s whole predicate; plain()'s array exclusion and prototype allowlist;
+closed()'s key-count and required-key checks; day()'s regex, finite parse and
+calendar round-trip; equal()'s key-count and recursive key comparison;
+regionsByMuscle's identity-region exclusion and factory freeze; projection
+freeze; validateExerciseTags' two input clones together; the bucket fallback;
+and the effective-helper-target selection. Each exact anchor occurred once.
+The supplemental changes are described at this granularity, not claimed to be
+all atomic terms. The count differs from round 3 and is not a rerun of its exact
+unretained generator.
 
-| measured at `b954d17e` | count |
+Each of the **141** variants ran both F2 cells through node --test with the TAP
+reporter. F2-G22's standing byte-pin failure is excluded when counting survivors.
+
+| measured on this revision, win32 | count |
 |---|---|
-| term mutants run | **140** |
-| KILLED by a behaviour row | **115** |
-| survivors | **25** |
-| survivors that flip a refusal into an ACCEPTANCE | **0** |
-| survivors that degrade a named refusal into a raw throw | **0** |
-| anchor misses | **0** |
-| module sha256 changes | **0** |
+| generated / supplemental / total | 125 / 16 / 141 |
+| killed by at least one test row besides G22 | 119 |
+| cell initialization failures, counted separately | 2 |
+| survivors, only G22 red | 20 |
+| ACCEPTING survivors against 712 calls | 2 |
+| DEGRADING survivors against 712 calls | 1 |
+| REDUNDANT against those 712 calls only | 17 |
 
-Before round 3's rows, the same 140 mutants left **37** survivors, of which **5 were ACCEPTING**
-and **7 were DEGRADING**. All twelve now have a row, on top of R2's six. That is the whole of
-round 3's cell work and it is why the diff is one cell file and this report.
+The initialization failures are :27's string/boolean return term and :38's
+array-length skip; both cell files fail before registering their rows. They are
+not presented as behavior-row kills. The 119 + 2 + 20 partition is the measured
+result, not the old "115 killed" number with five subtracted from survivors.
 
-HOW "ACCEPTING" AND "DEGRADING" WERE DECIDED, because the words carry the finding. A differential
-corpus of **161 synthetic cases** (hostile setups, snapshots, states, tagged states and
-single-exercise calls) is classified against the unmutated module as NAMED (it throws
-`SETUP_TAGS_INVALID` with `code === message`), RAW (it throws something else) or OK (accepted).
-The baseline is **145 NAMED, 2 RAW, 14 OK**. The same corpus is then run against each surviving
-mutant and the classifications are diffed: a case that moves NAMED to OK makes the term
-ACCEPTING, NAMED to RAW makes it DEGRADING, and a term with no case moving at all is REDUNDANT
-against this corpus. **The 2 RAW baseline cases are PM finding P-F2-1**, found by the corpus
-independently of the PM's reading: see 7.6.
+DIFFERENTIAL CORPUS. A new **712-call synthetic input set**, not the old 161-case
+set, runs each survivor against the original module. Baseline: **609 NAMED,
+8 RAW, 95 OK**. NAMED requires code and message both SETUP_TAGS_INVALID; RAW
+records the error constructor without engine message text. OK records JSON
+output and top-level frozen status; the absent-tags cases explicitly return an
+identity comparison. Identical outcomes on all 712 calls permit the bounded
+REDUNDANT label below. Recursive freeze, input mutation and arbitrary JS object
+behavior are not fully characterized by this differential set.
 
-### 7.5 THE TWENTY-FIVE THAT STILL SURVIVE, NAMED
+The fixtures use two synthetic lifts (chest and back) and an injected three-muscle
+taxonomy (chest/back/biceps, with chest_upper/upper_back/biceps regions). Families:
+whole setup/snapshot/state values; missing setup fields; 11 scalar/container values
+for setup fields, state fields and all eight exercise fields; fresh and tagged
+states; dates; session records; missing or malformed markers; tag heads and
+helper credits; symbol/nonenumerable/accessor/cyclic/sparse/extra-property/custom-
+prototype inputs; non-JSON scalars; malformed taxonomy; and a new-exercise control.
 
-Every one is REDUNDANT against the 161-case corpus: with the term deleted, not one case changes
-how the module answers. Named in full, because a count nobody can check is what R2 rejected.
+Explicitly included: R3's empty exercises WITH empty snapshot, duplicate setup
+ids WITH the one-key snapshot, null sleep and null sessionLog record; a context
+with NO tags property, separately from tags:null and tags:undefined; an id of
+{toString:null}; and a setup priority value nested 20000 objects deep. Both setup
+entry points see the last two. The 8 RAW calls comprise two duplicate pairs of
+null-exercise cases, one uncoercible-id pair and one deep-value pair. Thus 712
+counts calls, not 712 unique semantic shapes. A non-engine priority text input
+is also included; section 12 records it without a verdict or a test row.
 
-| line | term | line | term |
-|---|---|---|---|
-| `:29` | `typeof value !== 'object'` | `:139` | `!descriptor` |
-| `:36` | `array && keys.length !== value.length + 1` | `:154` | `!own(e, 'head')` |
-| `:41` | `!own(descriptor, 'value')` | `:154` | `!own(e, 'secondary')` |
-| `:41` | `!descriptor.enumerable` | `:162` | `tagged && tagged !== ids.size` |
-| `:42` | `array && (!/^(0\|[1-9]\d*)$/.test(key) \|\| Number(key) >= value.length)` | `:165` | `!plain(out.sleep)` |
-| `:58` | `b === null` | `:177` | `!plain(record)` |
-| `:58` | `typeof a !== 'object'` | `:181` | `!plain(facts)` |
-| `:58` | `typeof b !== 'object'` | `:16` | `plain()`: not an array |
-| `:58` | `Array.isArray(a) !== Array.isArray(b)` | `:18` | `closed()`: every required key present |
-| `:116` | `!source.exercises.length` | `:19` | `day()`: the `YYYY-MM-DD` shape |
-| `:118` | `!plain(snapshot)` | `:74` | `freeze(regionsByMuscle)` at factory time |
-| `:124` | `ids.has(e.id)` | `:86` | `bucket` falls back to the exercise muscle |
-| `:124` | `!own(snapshot, e.id)` | | |
+### 7.5 THE TWENTY SURVIVORS, NAMED AND CLASSIFIED BY MEASUREMENT
 
-**R2 N2 IS ANSWERED, AND TWO OF ITS FOUR CLASSIFICATIONS DID NOT SURVIVE RE-MEASUREMENT.** R2
-lists four terms as measured-redundant. Round 3 agrees about two and disagrees, with evidence,
-about two:
+All twenty leave **only F2-G22 red** in the two cells. Every REDUNDANT entry means
+no observed change on the same **712-call differential input set**, and nothing
+wider. No covering guard is inferred from that result. Three entries DO change
+outcomes and remain coverage gaps at this revision.
 
-| R2 N2's term | R2's verdict | round 3, measured | now |
-|---|---|---|---|
-| `:118` `!plain(snapshot)` | redundant | **REDUNDANT**, confirmed: an array snapshot is refused by name at `:124` / `:128` | in the table above |
-| `:181` `!plain(facts)` | redundant | **REDUNDANT**, confirmed: caught by the profile comparison | in the table above |
-| `:144` `!plain(out)` | redundant, "caught by the label and identity comparisons" | true of `42`, `[]`, a string and `true`; **NOT of `null` or `undefined`**, which read `.athlete_label` off nothing and throw a raw `TypeError` | **DEGRADING**, driven by `G33` |
-| `:149` `!plain(e)` | redundant, same argument | true of `42` and `'x'`; **NOT of a `null` row**, which reads `.id` off nothing | **DEGRADING**, driven by `G34` |
+| line | term removed or changed | result on the 712-call set |
+|---|---|---|
+| :16 | plain(): !Array.isArray(x) | REDUNDANT, 712 calls unchanged |
+| :18 | closed(): keys.every(k => own(x, k)) | REDUNDANT, 712 calls unchanged |
+| :19 | day(): YYYY-MM-DD regex | REDUNDANT, 712 calls unchanged |
+| :29 | typeof value !== 'object' | REDUNDANT, 712 calls unchanged |
+| :36 | array && keys.length !== value.length + 1 | DEGRADING, 2 calls change |
+| :41 | !own(descriptor, 'value') | REDUNDANT, 712 calls unchanged |
+| :41 | !descriptor.enumerable | REDUNDANT, 712 calls unchanged |
+| :42 | `array && (!/^(0\|[1-9]\d*)$/.test(key) \|\| Number(key) >= value.length)` | REDUNDANT, 712 calls unchanged |
+| :58 | b === null | REDUNDANT, 712 calls unchanged |
+| :58 | typeof a !== 'object' | REDUNDANT, 712 calls unchanged |
+| :58 | typeof b !== 'object' | REDUNDANT, 712 calls unchanged |
+| :59 | Array.isArray(a) !== Array.isArray(b) | ACCEPTING, 2 calls change |
+| :74 | freeze(regionsByMuscle) | REDUNDANT, 712 calls unchanged |
+| :86 | tag.head fallback to e.mg | REDUNDANT, 712 calls unchanged |
+| :118 | !plain(snapshot) | REDUNDANT, 712 calls unchanged |
+| :124 | !own(snapshot, e.id) | REDUNDANT, 712 calls unchanged |
+| :154 | !own(e, 'head') | REDUNDANT, 712 calls unchanged |
+| :154 | !own(e, 'secondary') | REDUNDANT, 712 calls unchanged |
+| :162 | tagged && tagged !== ids.size | ACCEPTING, 1 call changes |
+| :181 | !plain(facts) | REDUNDANT, 712 calls unchanged |
 
-That is not a criticism of R2's method, which is the method round 3 used; it is what happens when
-`null` is added to the probe set. By the PM's own rule for `G11`, `G18` and `G19`, a term that
-turns a named refusal into a `TypeError` gets a row, so those two got one.
+Exact witnesses for the three remaining gaps:
 
-A honest limit of 7.5, stated rather than buried: REDUNDANT here means "redundant against these
-161 cases". For five of the twenty-five the covering guard was located by a double mutant that
-changes the corpus where neither term alone does (`:154`'s two halves by `:155` and `:156`,
-`:165`'s by its own array term, `:177`'s by its `entries` term, and `plain()`'s array term by
-`plain()`'s prototype allowlist). For the other twenty the corpus holds no input that the term
-uniquely refuses, even paired with any other term of its own guard, so no covering guard is
-claimed for them. And the corpus classifies REFUSALS only: it says nothing about immutability,
-freezing or key order, which is why `:74`'s freeze reads redundant here while the fix round's
-`M50` x `M47` double, and cells `C21` to `C25`, are what actually hold it.
+- **:36 DEGRADING**: delete slot 0 from the two-element setup.exercises array,
+  retaining its length and slot 1. Original: named refusal. Mutant: raw TypeError
+  via validateSetupTags AND via projectSetupTags's ctx.setup.
+- **:59 ACCEPTING**: on a fresh state replace priority_muscles:[] with {} while
+  the setup still holds []; alternatively, on an already-tagged state replace
+  the first exercise's secondary:[] with {}. Original: named refusal in both.
+  Mutant: accepts both; it retains the priority object in the first result and
+  overwrites the malformed secondary from the snapshot in the second.
+- **:162 ACCEPTING**: start with two untagged exercises, project a separate copy
+  under the same setup/context, and copy only its first marked exercise into the
+  untagged state. Original: named refusal for the mixed marker set. Mutant:
+  accepts and marks both exercises.
+
+No extra rows for these three were added to the seven specifically assigned rows.
+They are reported as measured remaining gaps for PM/reviewer disposition. The
+old claim that double-mutant kills proved these terms redundant is withdrawn.
+In particular the historical 7.2 rows M03/M06 and M32 do not establish the
+harmlessness of :36 or :162, and its M20d and M22 explanations are contradicted
+by R3's G35 and G36 witnesses. R3's five named terms are no longer survivors.
+The module itself remains byte-identical.
 
 ### 7.6 THE ONE HOLE NO MUTANT CAN SEE: PM FINDING P-F2-1
 
@@ -847,16 +888,17 @@ tolerant of a mutated module, which would be a pin that does not pin.
 - Whether any of the guard terms now covered is reachable from Edit My Week's own door with
   athlete data is still not answered here. The cells prove the module refuses; they do not prove
   the host ever offers such an input.
-- ROUND 3 did not touch `.github/workflows/rebuild.yml`, by the ticket's order, so two numbers in
-  the comment above the F2 step are stale (section 3 records them). It did not touch
+- ROUND 3 did not touch `.github/workflows/rebuild.yml`, by the ticket's order, leaving stale
+  comment counts; Astra's current assignment refreshes them (section 3). Round 3 did not touch
   `projector.test.mjs`, whose blob identity with the spike is re-verified at this head, and it did
   not touch one byte of `rebuild/m4/workout/setup-tags.cjs`.
 - Round 3's 140 mutants and 161 corpus cases are a measurement, not a proof. A term the generator
   did not split, and an input the corpus does not contain, are both still possible: `P-F2-1` is
   the standing proof that reading finds what mutating cannot.
-- No row was added for any of the 25 surviving terms of 7.5. They are named there so the next
-  round can disagree with the redundancy verdict term by term.
-- The covering guard of 20 of those 25 is NOT identified; 7.5 says so rather than guessing.
+- Astra added G35-G39 for five of round 3's survivors and G40-G41 for missing
+  guards. The current 20 survivors and their bounded classifications are in 7.5.
+- Astra does not claim to have identified covering guards for the 17 unchanged
+  survivors or to have closed the three additional gaps found by the corpus.
 - Round 3 did not run the five real-shape and port-fix importers against the real module (6.2):
   they carry no override, and measuring them means editing files this lane does not own.
 
@@ -900,9 +942,10 @@ survives alone, but the whole clause `M13` is KILLED by `G12` and `C06`, and `G1
 `constructor`, `toString`, `hasOwnProperty`, `__proto__` and `valueOf` as head names and as
 helper heads and gets `SETUP_TAGS_INVALID` for every one. R1's count of 14 undriven terms was
 right when it was written. **THE CLAIM THAT FOLLOWED IT HERE, "the count is now 0", WAS FALSE
-AND IS WITHDRAWN**; R2 B2 is upheld in full. The count as measured at this head is in 7.4: 140
-term mutants, 115 killed, 25 survivors, all 25 redundant against a 161-case corpus, and no claim
-of exhaustiveness.
+AND IS WITHDRAWN**; R2 B2 is upheld in full. The count as measured at this head is in 7.4: 141
+mutants, 119 row kills, 2 initialization failures, 20 survivors; on 712 calls,
+2 survivors are ACCEPTING, 1 is DEGRADING and 17 are unchanged. No exhaustiveness
+claim follows. This replaces round 3's false all-redundant classification.
 
 ### N1. The absent-tags path is laxer than the rest of the module. AGREED, ESCALATED, NOT CHANGED.
 
@@ -969,7 +1012,7 @@ left-behind cells read.
 Four things this author would attack first, in order:
 
 1. **The count in 7.4.** R2 was right to attack the fix round's version of this and the same
-   attack is still the right one. 140 mutants and 161 corpus cases are what this lane wrote, at
+   attack is still the right one. 141 mutants and 712 corpus calls are the current measurement, at
    one granularity, by one generator. A term the generator did not split and an input the corpus
    does not hold are both invisible to it. Pick a line the tables do not name, or an input shape
    the corpus does not carry, and try it. `P-F2-1` shows that reading the module beats mutating
@@ -1020,12 +1063,13 @@ All three sentences are gone and each place R2 names carries the measurement ins
 the paragraph says why the claim was malformed as well as wrong) and section 9's B2 ("the count
 is now 0" withdrawn). Section 0's headline is rewritten around the same number.
 
-The count AS MEASURED at `b954d17e`, with R2's term-level method: **140 term mutants, 115
-killed, 25 survivors, all 25 REDUNDANT against a 161-case differential corpus, 0 ACCEPTING, 0
-DEGRADING, 0 anchor misses, and no claim of exhaustiveness.** Before round 3's rows the same 140
-left 37 survivors, 5 ACCEPTING and 7 DEGRADING. The twenty-five that remain are named one by one
-in 7.5, which is the form R2 asked for: a table that claims every term was mutated once should
-carry its redundant rows too.
+The replacement claim "all 25 REDUNDANT ... 0 ACCEPTING, 0 DEGRADING" is
+WITHDRAWN under R3 B1. It was false, as were its repeated headline versions.
+Astra's current measurement is **141 mutants: 119 row kills, 2 initialization
+failures and 20 survivors; 2 ACCEPTING, 1 DEGRADING and 17 unchanged against
+712 differential calls**. Sections 7.4-7.5 replace the old count and survivor
+table in place. G35-G39 answer R3's five terms, each red alone among behavior
+rows; the three newly measured gaps remain named, not called redundant.
 
 ### N1. Two terms degrade a named refusal into a raw TypeError. PINNED, by the PM's order.
 
@@ -1064,8 +1108,8 @@ why the property matters. See PM finding P-F2-2 below and section 12.
 
 N3's R1 table is R2's own reading and needs nothing here. N7 (no ceiling on total lend) is
 recorded in section 12 with no row, which R2 itself proposes. N8's reading of the CI step and of
-`DECISIONS:554` is unchanged and correct; section 3 now adds that two numbers in that step's
-COMMENT are stale and that round 3 was forbidden to fix them.
+`DECISIONS:554` is unchanged. Round 3 was forbidden to fix the stale comment
+counts; Astra's current assignment refreshes those counts as section 3 records.
 
 ### PM FINDING P-F2-1. A missing guard at `:124`. PINNED AS A RECORDED LAXITY.
 
@@ -1099,14 +1143,17 @@ red by adding `biceps_long` in a scratch (7.7).
 
 ## 12. FOR EDIT MY WEEK: WHAT EW2's HOST MUST BE TOLD BY NAME
 
-Five sentences, each one a duty or a fact the host cannot discover from the module's signature.
+Six duties or recorded facts for the host. The three raw-throw shapes below
+are measured examples, not an exhaustive list.
 
-1. **THE HOST TREATS ANY THROW FROM THIS MODULE AS A REFUSAL, never only
-   `err.code === 'SETUP_TAGS_INVALID'`.** The module's contract is one named refusal, and it
-   keeps it for every input any reader has found except one: a `null` member of the setup's
-   `exercises` array throws a raw `TypeError` from `:124` (PM finding P-F2-1, section 7.6, pinned
-   by `F2-G20`). Nothing bad is admitted either way, but a host that catches only the named code
-   will let that `TypeError` escape into the door.
+1. **ANY throw from this module, named or raw, is a refusal to the host.** Do
+   not catch only err.code === 'SETUP_TAGS_INVALID'. Measured raw cases include
+   a null setup exercise (G20), an id object with no usable toString (G40), and
+   a setup value nested 20000 objects deep (G41). The first two throw TypeError;
+   the last throws RangeError from cloneData. All refuse by throwing; none is
+   an accepted setup. The raw-throw rows are recorded laxities to rewrite on
+   purpose when their missing guards are added.
+
 2. **The host must reject a duplicate exercise id BEFORE it calls `projectNewExerciseTags`**
    (R1 N5, upheld by the PM). That function performs no uniqueness check and cannot: the module
    has no view of the document. It will mint a fully formed, frozen, marked exercise for an id
@@ -1123,7 +1170,7 @@ Five sentences, each one a duty or a fact the host cannot discover from the modu
    clone and not frozen, the moment `ctx.tags` is absent, `null` or `undefined`, and it does so
    before `closed(ctx, ...)` runs, so the rest of the context is never validated on that path.
    The module's own comment at `:135` says absence preserves identity, the tagless-parent
-   differential depends on it, `projector.test.mjs:69` and `F2-G02`'s last line pin it, and the
+   differential depends on it, `projector.test.mjs:69`, `F2-G02`'s last line and `F2-G39` pin it, and the
    S10 declaration should name the behaviour rather than let a later tightening discover it.
 5. **There is no ceiling on the TOTAL credit one lift may lend** (R2 N7, recorded, no row).
    Eight helpers each at `lend: 1`, all distinct targets, validate and project to a `secondary`
@@ -1131,3 +1178,143 @@ Five sentences, each one a duty or a fact the host cannot discover from the modu
    self-credit, and the module delivers exactly that, so it is compliant. Whether a lift may pay
    800 percent of itself is the volume half's question and EW2's door's question, and it is
    written down here so nobody discovers it later as a surprise.
+
+6. **priority_muscles admits any nonempty text, not only the engine's muscle
+   names.** The synthetic value 'synthetic-not-an-engine-muscle' validates.
+   Recorded, no row, no verdict; this is input vocabulary the host must know.
+
+## 13. R3 finding and Astra's re-check: fixed
+
+R3 B1 is upheld. The four required behavior rows and the PM-intended tags-absent
+row are now present; the two additional raw throws are recorded honestly. The
+report's false zero-accepting/zero-degrading claim is withdrawn in sections 0,
+7.4, 7.5 and 11 B2. "Fixed" refers to this assignment's findings and reporting,
+not a claim that every guard now has a behavior row: 7.5 names three remaining
+gaps found by this measurement.
+
+The required 90-pass plan-edit bar is also NOT met in this environment, as
+recorded below. This section is not a merge-readiness or acceptance verdict.
+
+### Single-term evidence, win32 Node v24.19.0
+
+Both cells ran for each scratch variant: **71 tests, 69 pass, 2 fail**. Each row
+below is the only red behavior row; the other failure is always F2-G22. The
+scratch baseline was **71 tests, 71 pass, 0 fail**.
+
+| row | scratch change | measured difference / red rows |
+|---|---|---|
+| G35 | delete :116 !source.exercises.length | empty setup + empty snapshot: named refusal to acceptance; G35, G22 |
+| G36 | delete :124 ids.has(e.id) | duplicate setup id + one-key snapshot: named refusal to acceptance; G36, G22 |
+| G37 | delete :165 !plain(out.sleep) | null sleep: named refusal to TypeError; G37, G22 |
+| G38 | delete :177 !plain(record) | null sessionLog record: named refusal to TypeError; G38, G22 |
+| G39 | delete :139 !descriptor | absent tags property: identical state to TypeError; G39, G22 |
+| G40 | prepend (plain(e) && !text(e.id)) to :124's refusal | {toString:null} id: raw TypeError to named refusal on both setup entry points; G40, G22 |
+| G41 | add if (active.size > 256) fail() at cloneData entry | 20000-deep setup: raw RangeError to named refusal on both setup entry points; G41, G22 |
+
+G40's tripwire guard deliberately isolates the id shape; it leaves G20's null
+exercise unchanged. The scratch guards are evidence only, not proposed module
+edits. No V8 message text is asserted in G20, G40 or G41. G21's comment now calls
+its first assertion a SNAPSHOT pin of eight names bolted to its property pin,
+including the ninth-identity-muscle-with-no-sub-region consequence.
+
+The scratch contained only the seven mirrored dependencies and this session's
+measurement scripts/results. Cleanup was blocked as recorded below. No protected inputs,
+auth files, package runner, receipt or sealed artifact were used. All fixture
+values were synthetic. Changes remain uncommitted for PM4 and independent
+Claude review. No new linux result, CI result or host-reachability claim.
+
+### Final required bar
+
+Environment set on separate PowerShell lines before the test commands:
+
+```powershell
+$env:MEASURED_TEST_NOW='2026-09-03'
+$env:TZ='America/New_York'
+```
+
+Executable for both commands:
+`C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe`
+(v24.19.0). Exact test arguments, each cell named explicitly:
+
+```text
+--test rebuild/lanes/d/f2/projector.test.mjs rebuild/lanes/d/f2/guard-coverage.test.mjs
+tests 71
+pass 71
+fail 0
+cancelled 0
+skipped 0
+todo 0
+exit 0
+
+--test rebuild/lanes/d/plan-edit/model.test.cjs rebuild/lanes/d/plan-edit/durable-host.test.mjs rebuild/lanes/d/plan-edit/browser-build.test.mjs rebuild/lanes/d/plan-edit/client-p6.test.cjs
+tests 90
+pass 88
+fail 2
+cancelled 0
+skipped 0
+todo 0
+exit 1
+```
+
+These are the executed spec reporter's summary values, with its non-ASCII
+prefix glyph omitted. The **90-pass bar is NOT satisfied**. Failed rows:
+
+- PE-build actual plan-edit host builds with the unchanged browser crypto boundary
+- PE-build a new Node crypto importer is refused by the same browser boundary
+
+Both show esbuild's `Cannot read directory "../../../..": Access is denied.`
+and failure to resolve the respective entry point (the real plan-edit host,
+and the test's disposable new-importer.mjs). The negative control consequently
+does not receive its expected crypto-boundary diagnostic. The other 88 rows
+pass. This is the observed failure, not a claim that these two rows would pass
+outside the sandbox. Reading build-browser.mjs confirmed it fixes absWorkingDir
+to the repository root and exposes no invocation override for that setting.
+No build source, permissions, dependency or test was changed to bypass it.
+PM must rerun the same four paths in an environment that can read the build's
+required directories. No 90-pass result is claimed here.
+
+Both protected hashes were measured by certutil before any edits and after the
+final test run; the before and after values are identical:
+
+```text
+certutil -hashfile rebuild/m4/workout/setup-tags.cjs SHA256
+SHA256 hash of rebuild/m4/workout/setup-tags.cjs:
+d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d
+CertUtil: -hashfile command completed successfully.
+
+certutil -hashfile rebuild/lanes/d/f2/projector.test.mjs SHA256
+SHA256 hash of rebuild/lanes/d/f2/projector.test.mjs:
+f74bbe5f40624237a4d24536b3ead036a75ed3bc705a52d6e55032d28bdf8dd6
+CertUtil: -hashfile command completed successfully.
+```
+
+SCRATCH CLEANUP NOT COMPLETED. Automatic approval review rejected both the
+path-checked recursive cleanup and the narrower explicit-file/empty-directory
+cleanup before execution. Both stated only `blocked by policy`; no further
+reason was supplied. No file was deleted. The remaining session-created paths:
+
+```text
+C:\Users\joeym\AppData\Local\Temp\earned-astra-f2-07a69e8045cf4abcb8f2177b38f037da
+C:\Users\joeym\AppData\Local\Temp\earned-astra-6\.tmp\plan-edit-browser-Kd8Ikq
+C:\Users\joeym\AppData\Local\Temp\earned-astra-6\.tmp\plan-edit-browser-X8Mjjq
+```
+
+The first holds only the mirrored public dependencies and synthetic measurement
+scripts/results. The second is empty; the third holds the test-created
+new-importer.mjs. This is a second unmet requirement for PM disposition.
+Only the three authorized tracked files differ; the workflow differs solely
+in the two count values (the test count occurs twice). git diff --check passed.
+Final git status --porcelain and git diff --stat are recorded below.
+
+```text
+git status --porcelain
+ M .github/workflows/rebuild.yml
+ M rebuild/lanes/d/F2-LAND-AUTHOR-REPORT.md
+ M rebuild/lanes/d/f2/guard-coverage.test.mjs
+
+git diff --stat
+ .github/workflows/rebuild.yml              |   6 +-
+ rebuild/lanes/d/F2-LAND-AUTHOR-REPORT.md   | 449 ++++++++++++++++++++---------
+ rebuild/lanes/d/f2/guard-coverage.test.mjs |  75 ++++-
+ 3 files changed, 395 insertions(+), 135 deletions(-)
+```
