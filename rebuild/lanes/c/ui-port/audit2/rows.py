@@ -860,3 +860,648 @@ ROW_BY_ID = {r['id']: r for r in ROWS}
 for _r in ROWS:
     _r.setdefault('args', None)
     _r.setdefault('runner', 'gate')
+
+
+# ==================================================================================================
+# AUDIT 3: the y rows. Written and measured RED FIRST, before the design lane's fix arrives, so the
+# PM's executor can run the delta at once against the lane's successor head (owner ruling :593.1).
+#
+# One family per item of section 6 of Astra's judgment (origin/rebuild/r-astra-cui0-judge at
+# 4ecc1012, rebuild/lanes/astra/reviews/C-UI-0-AUDIT2-JUDGMENT.md), for every item classed M or E:
+# items 1 to 14. Each family builds exactly the probes and the controls that item's last column
+# names, and nothing else.
+#
+# WHAT AN EXPECTATION MEANS HERE: it states the behaviour WANTED AFTER THE FIX, never today's.
+# Most of these rows are expected to DISAGREE today; that disagreement is the evidence that the
+# probe bites the defect the list names. A negative probe that is already caught today, and a
+# positive control that fails today, are findings for the judge and are recorded, never adjusted.
+#
+# P-CUI-5 (DECISIONS:616): for items 1, 2 and 3 the lane MAY close the item with a check that
+# FORBIDS the construct by name instead of teaching the walks to read it. Those rows therefore
+# carry NO expect_catcher: they demand exit 1 and a FAIL row, and their expect_words say that
+# either the named check or a forbid check satisfies them. The judge decides the catcher.
+#
+# HEADS. Every row carries 'head'. Rows at 64a9e095 run against the scratch pack made from that
+# head; items 13 and 14 exist only at 814f0a03 (the minus opener and the TAB clause) and run
+# against that head's scratch pack. app/ is LOCKED and byte identical at both heads, so an anchor
+# in app/ is the same anchor at either.
+#
+# ISOLATION. The screen gate runs its regression, seam and pressed checks at the reference size
+# only (gate.py:510). A row whose point is "this check must fire, and no other" therefore runs at
+# GATE_TODAY_SMALL or GATE_WORKOUT_SMALL, where a mutation that moves pixels cannot make the row
+# exit 1 for a reason that is not the row's. Rows about the pressed state must run at the
+# reference size, and say so.
+
+FWX = chr(0xFF58)      # FULLWIDTH LATIN SMALL LETTER X: NFKC folds it onto 'x', the raw sweep does not
+FWI = chr(0xFF49)      # FULLWIDTH LATIN SMALL LETTER I
+TAB = chr(0x09)
+MULT = chr(0x00D7)     # MULTIPLICATION SIGN: the only set form STANDARD.md allows
+
+GATE_WORKOUT_SMALL = ['--screens', 'workout', '--sizes', '375x812,360x780']
+CONTRAST_CHECK = 'contrast (measured behind the text)'
+PRIMARY_CHECK = 'primary action in first viewport'
+RIR_CHECK = 'RIR chips are the five locked values'
+PRESSED_CHECK = 'pressed state on every tappable surface'
+SET_CHECK = 'the multiplication sign in every set string'
+
+STATUS_CLOSE = '</p>'
+GOTO_STATE = ('    await pg.goto(f\'{APP}?theme={t}&screen={st["screen"]}'
+              '&chrome=1&date=board&state={st["id"]}\')')
+APPLIED_LINE = "    if info['applied'] != st['id']: problems.append('state did not apply')"
+ERRS_LINE = "    if len(errs) > n0: problems.append('error: ' + errs[-1][:80])"
+FOLD_814 = "                   (' ' if (c in SPACE_JOINERS or c.isspace()) else c)"
+FOLD_PRE = "                   (' ' if (c in SPACE_JOINERS or unicodedata.category(c) == 'Zs') else c)"
+OPENER_814 = (
+    "            # a negative number is opened by a space, a line start or a bracket, never by a letter\n"
+    "            opener = (line[m.start() - 1:m.start()] if m.start() else '') in ('', ' ', '(', '[')\n"
+    "            negative = (line[m.end():m.end() + 1].isdigit() and opener\n"
+    "                        and not before[-1:].isdigit())\n")
+OPENER_PRE = "            negative = line[m.end():m.end() + 1].isdigit() and not before[-1:].isdigit()\n"
+
+
+def in_status(inner):
+    """Today's status paragraph with `inner` added inside it.
+
+    Never as a sibling: #status-line is a direct child of the page body (app/app.html:36), and
+    gate.py's page margin walk measures every visible direct child of the body against 22 px, so
+    an inserted narrow block there would fail a check the row is not about. Inside the paragraph
+    the added element is a grandchild and the margin walk does not see it.
+    """
+    return html(STATUS_HTML, STATUS_HTML.replace(STATUS_CLOSE, inner + STATUS_CLOSE))
+
+
+def sheetpy(find, replace):
+    return {'file': 'quality/statesheet.py', 'find': find, 'replace': replace}
+
+
+def commonpy(find, replace):
+    return {'file': 'quality/common.py', 'find': find, 'replace': replace}
+
+
+AUDIT3 = [
+
+ # ---------------------------------------------------------------- item 1: null offsetParent
+ # common.JS_SEEN opens with "if(!e.offsetParent)return false", and common.JS_SWEPT_TEXT skips an
+ # element the same way before it reads that element's attributes, its value and its generated
+ # content. offsetParent is null for a position:fixed box, so copy, contrast and the target walk
+ # all stop at the edge of fixed content that the athlete can see. innerText is not affected: the
+ # whole active screen's innerText is swept as one string, so a fixed element's OWN text is read.
+ # The four pairs below isolate exactly what is lost: an attribute, a pseudo element, low contrast
+ # text, and a small target. Each negative probe and its control differ in ONE declaration.
+ dict(id='y1a', source='audit3-1', head='64a9e095', minutes=3,
+      what='attribute copy on a POSITION:FIXED element (an empty span, no layout change at all)',
+      edits=[in_status('<span id="y1afix" aria-label="Ready to eat now" '
+                       'style="position:fixed;left:22px;top:300px"></span>')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_words='WANTED AFTER THE FIX: exit 1 and a FAIL row. Under P-CUI-5 either catcher '
+                   'satisfies this row: the copy sweep naming \'ready\' once it reads a fixed '
+                   'element\'s attributes, OR a forbid check naming position:fixed on y1afix. No '
+                   'expect_catcher is set on purpose; the judge reads the FAIL names and decides '
+                   'which route the lane took. The span is empty and out of flow, so it changes '
+                   'no pixel and no other check can fire: today\'s exit code is the whole measure.'),
+
+ dict(id='y1b', source='audit3-1', head='64a9e095', minutes=3,
+      what='CONTROL for y1a: the same attribute on the same empty span, IN FLOW',
+      edits=[in_status('<span id="y1bst" aria-label="Ready to eat now"></span>')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=COPY_CHECK, expect_needles=["'ready'"],
+      expect_words='the honest case that must stay red: an attribute the walk can reach is swept '
+                   'and the readiness word is named. If this row is green today the machinery is '
+                   'broken and y1a proves nothing.'),
+
+ dict(id='y1c', source='audit3-1', head='64a9e095', minutes=3,
+      what='generated content on a POSITION:FIXED element (::after drawn on the screen)',
+      edits=[in_status('<span id="y1cfix" style="position:fixed;left:22px;top:320px"></span>'),
+             css('#y1cfix::after { content: "Ready to log."; position: absolute; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_words='WANTED: exit 1 and a FAIL row, by the copy sweep naming \'ready\' in the '
+                   'generated content of a fixed element, or by a forbid check naming '
+                   'position:fixed. The pseudo element is painted and readable on the screen; the '
+                   'sweep stops at its host because offsetParent is null.'),
+
+ dict(id='y1d', source='audit3-1', head='64a9e095', minutes=3,
+      what='CONTROL for y1c: the same ::after on the same span, IN FLOW',
+      edits=[in_status('<span id="y1dst"></span>'),
+             css('#y1dst::after { content: "Ready to log."; position: absolute; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=COPY_CHECK, expect_needles=["'ready'"],
+      expect_words='generated content the walk can reach is swept: the readiness word is named.'),
+
+ dict(id='y1e', source='audit3-1', head='64a9e095', minutes=3,
+      what='low contrast TEXT on a position:fixed element, which the contrast walk never measures',
+      edits=[in_status('<span id="y1efix" style="position:fixed;left:22px;top:320px;'
+                       'color:#8a8378;font-size:15.5px">Eat about this much today.</span>')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_needles=['y1efix'],
+      expect_words='WANTED: exit 1 and a FAIL row naming y1efix, by the contrast check once the '
+                   'walk reads fixed text, or by a forbid check naming position:fixed. e1 is the '
+                   'published control: the same colour on an in-flow element FAILs contrast at '
+                   '3.2 < 4.5, so the colour is not in doubt and the position is the only variable.'),
+
+ dict(id='y1h', source='audit3-1', head='64a9e095', minutes=3,
+      what='CONTROL of the absolute/fixed target pair: a visible 20 px focusable box, ABSOLUTE',
+      edits=[html(EAT_TITLE, '<div class="title" tabindex="0" '
+                             'style="height:20px;position:absolute">Eat about 2,300 kcal today.</div>')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=TARGET_CHECK, expect_needles=['title'],
+      expect_words='an absolutely positioned box HAS an offsetParent, so the target walk reaches '
+                   'it and the 20 px height is named. This is the half of the pair that must be '
+                   'red today as well as after the fix.'),
+
+ dict(id='y1i', source='audit3-1', head='64a9e095', minutes=3,
+      what='the other half of the pair: the same visible 20 px focusable box, FIXED',
+      edits=[html(EAT_TITLE, '<div class="title" tabindex="0" '
+                             'style="height:20px;position:fixed;left:22px;top:300px">'
+                             'Eat about 2,300 kcal today.</div>')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_needles=['title'],
+      expect_words='WANTED: exit 1 and a FAIL row naming the title box, by the 44 px target rule '
+                   'once the walk reads fixed boxes, or by a forbid check naming position:fixed. '
+                   'JS_SMALL skips e.offsetParent===null, which is every fixed element, so a '
+                   'visible focusable 20 px box a finger can reach is not measured. rb2b, rb2d '
+                   'and rb2e stay as they are: the fix must not exempt an invisible hit area.'),
+
+ # ---------------------------------------------------------------- item 2: inset before round,
+ # and a negative text indent on an inline box.
+ # __clipEmpty strips the keyword 'round' from the inset() arguments and then reads what is left
+ # as the four insets, so inset(0 round 50%) is read as inset(0 50%): a corner radius is mistaken
+ # for a clip that leaves no area and VISIBLE text drops out of every __seen walk. And __seen
+ # treats text-indent <= -1000px as hidden on any element, while the property moves nothing at all
+ # on an inline box. Both directions must keep working on the honest cases, which is what y2c and
+ # y2f hold down.
+ dict(id='y2a', source='audit3-2', head='64a9e095', minutes=3,
+      what='VISIBLE text under clip-path: inset(0 round 50%), painted at 3.2:1',
+      edits=[css('#status-line { clip-path: inset(0 round 50%) !important; color: #8a8378 !important; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_needles=['status-line'],
+      expect_words='WANTED: exit 1 and a FAIL row naming status-line, by the contrast check once '
+                   'inset() is parsed before round, or by a forbid check naming a clip-path inset '
+                   'with round. The rounded inset hides nothing: the sentence is fully readable.'),
+
+ dict(id='y2c', source='audit3-2', head='64a9e095', minutes=3,
+      what='CONTROL the fix must not break: the same colour under a TRULY empty clip, inset(50%)',
+      edits=[css('#status-line { clip-path: inset(50%) !important; color: #8a8378 !important; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[CONTRAST_CHECK],
+      expect_words='inset(50%) leaves no area, so the line really is off the screen and must not '
+                   'be measured for contrast, before or after the fix.'),
+
+ dict(id='y2d', source='audit3-2', head='64a9e095', minutes=3,
+      what='a negative text-indent on an INLINE box, which hides nothing, at 3.2:1',
+      edits=[in_status('<span id="y2dsp" style="text-indent:-9999px;color:#8a8378"> '
+                       'Eat about this much.</span>')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_needles=['y2dsp'],
+      expect_words='WANTED: exit 1 and a FAIL row naming y2dsp, by the contrast check once the '
+                   'indent rule applies only where it hides the text, or by a forbid check naming '
+                   'a negative text-indent on an inline box. text-indent indents the first line of '
+                   'a block container; on an inline box it moves nothing and the words are read '
+                   'normally, while __seen drops the element.'),
+
+ dict(id='y2e', source='audit3-2', head='64a9e095', minutes=3,
+      what='CONTROL for y2d: the same inline span at the same colour, no indent',
+      edits=[in_status('<span id="y2dsp" style="color:#8a8378"> Eat about this much.</span>')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=CONTRAST_CHECK, expect_needles=['y2dsp'],
+      expect_words='the colour is a contrast failure on its own: only the indent declaration '
+                   'separates this row from y2d.'),
+
+ dict(id='y2f', source='audit3-2', head='64a9e095', minutes=3,
+      what='CONTROL the fix must not break: the same indent on a BLOCK, where it does hide the line',
+      edits=[css('#status-line { text-indent: -9999px !important; color: #8a8378 !important; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[CONTRAST_CHECK],
+      expect_words='a block container indented off its own box really is unreadable and must stay '
+                   'out of the contrast walk after the fix.'),
+
+ # ---------------------------------------------------------------- item 3: fullwidth forms
+ # common.set_x_problems reads the RAW swept string with the pattern \d\s*[xX]\s*\d, while the
+ # readiness and vendor sweeps read sweep_form(), which NFKC normalises first. So the compatibility
+ # form of the letter walks past the set rule. statesheet.py:496 has the same shape: it tests
+ # \boptional\b against swept.lower(), which is not NFKC, so a fullwidth i inside the word passes.
+ dict(id='y3a', source='audit3-3', head='64a9e095', minutes=3,
+      what='a set written with FULLWIDTH x (U+FF58) in Today\'s status sentence',
+      edits=[html(STATUS_SENTENCE, 'Upper body today. Log 8' + FWX + '105 now.')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_words='WANTED: exit 1 and a FAIL row, by the multiplication sign check once the set '
+                   'rule reads the normalized string, or by a forbid check naming a fullwidth form '
+                   'in the range U+FF00 to U+FFEF in copy. NFKC folds U+FF58 onto the letter x, so '
+                   'the screen reads "8 x 105" and the rule does not.'),
+
+ dict(id='y3b', source='audit3-3', head='64a9e095', minutes=3,
+      what='CONTROL for y3a: the honest set, written with the multiplication sign',
+      edits=[html(STATUS_SENTENCE, 'Upper body today. Log 8' + MULT + '105 now.')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[SET_CHECK, COPY_CHECK],
+      expect_words='the form the standard asks for must stay green: neither the set rule nor the '
+                   'copy sweep may fire on a multiplication sign between two numbers.'),
+
+ dict(id='y3c', source='audit3-3', head='64a9e095', minutes=4, only='W-20',
+      what='"optional" on a set screen with a FULLWIDTH i (U+FF49), carried in an attribute',
+      edits=[html('aria-label="RIR, clean reps left"',
+                  'aria-label="RIR, opt' + FWI + 'onal, clean reps left"')],
+      runner='sheet', expect_exit=1, expect_kind='FAIL',
+      expect_words='WANTED: exit 1 with the state sheet naming the forbidden word on a set screen, '
+                   'or a forbid check naming the fullwidth form. It is carried in an aria-label so '
+                   'that no pixel moves: the record, the rects and the thumbnail are untouched and '
+                   'the copy rule is the only thing that can fire.'),
+
+ dict(id='y3d', source='audit3-3', head='64a9e095', minutes=4, only='W-20',
+      what='CONTROL for y3c: the same attribute with an ordinary ASCII "optional"',
+      edits=[html('aria-label="RIR, clean reps left"',
+                  'aria-label="RIR, optional, clean reps left"')],
+      runner='sheet', expect_exit=1, expect_kind='FAIL',
+      expect_needles=['optional'],
+      expect_words='the word in its ordinary spelling is caught on a set screen today; only the '
+                   'fullwidth letter separates this row from y3c.'),
+
+ # ---------------------------------------------------------------- item 4: the primary action
+ # gate.py:437-443 asks two questions only: is the primary element on the page, and is its bottom
+ # below the viewport. A primary pushed above the top, pushed sideways off the plate, or left on
+ # the page with visibility:hidden answers both questions the safe way and passes.
+ dict(id='y4a', source='audit3-4', head='64a9e095', minutes=4,
+      what='#start pushed 400 px ABOVE the viewport',
+      edits=[css('#start { position: relative !important; top: -400px !important; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=PRIMARY_CHECK, expect_needles=['#start'],
+      expect_words='the primary action is off the top of the screen and cannot be pressed: the '
+                   'check must name every viewport edge, not the bottom alone.'),
+
+ dict(id='y4b', source='audit3-4', head='64a9e095', minutes=4,
+      what='#start pushed 500 px SIDEWAYS, off the right edge',
+      edits=[css('#start { position: relative !important; left: 500px !important; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=PRIMARY_CHECK, expect_needles=['#start'],
+      expect_words='its top and bottom are inside the viewport and the whole button is outside it.'),
+
+ dict(id='y4c', source='audit3-4', head='64a9e095', minutes=4,
+      what='#start left in place and made invisible with visibility:hidden',
+      edits=[css('#start { visibility: hidden !important; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=PRIMARY_CHECK, expect_needles=['#start'],
+      expect_words='a required control that exists but cannot be seen is a missing primary: '
+                   'PM-5 as the PM refined it keeps the EXISTENCE of a required control a policy '
+                   'of its own, so this must be an explicit failure and not a silent pass.'),
+
+ dict(id='y4d', source='audit3-4', head='64a9e095', minutes=4,
+      what='CONTROL: #start moved 40 px down and still wholly inside the viewport',
+      edits=[css('#start { position: relative !important; top: 40px !important; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[PRIMARY_CHECK],
+      expect_words='an honest layout change that leaves the primary reachable must stay green '
+                   'after the fix: a widened edge test must not turn into a hair trigger.'),
+
+ dict(id='y4e', source='audit3-4', head='64a9e095', minutes=4,
+      what='#start pushed 161.4 px down, so its bottom lands a fraction of a pixel past 852',
+      edits=[css('#start { position: relative !important; top: 161.4px !important; }')],
+      runner='gate', args=GATE_TODAY, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=PRIMARY_CHECK, expect_needles=['#start'],
+      expect_words='the fractional case Astra names. This runs at the reference size because 852 '
+                   'is where the fold is, so the regression rows are expected to fire as well; the '
+                   'measure is the named primary row. The offset is derived, not measured: row d-1 '
+                   'recorded bottom 1321 for top +630, which puts the unmutated bottom at 691, so '
+                   '+161.4 should land at 852.4. If the derivation is off by a fraction the row '
+                   'records what actually happened and the judge reads the number.'),
+
+ # ---------------------------------------------------------------- item 5: the RIR chips
+ # gate.py:224-225 reports each chip as visible if c.offsetParent is truthy. opacity 0 does not
+ # null offsetParent, so a chip that has been painted away keeps its label, its data-rir value and
+ # its place in the locked list, and the lock passes.
+ dict(id='y5a', source='audit3-5', head='64a9e095', minutes=4,
+      what='the RIR 2 chip painted away with opacity 0, label and order untouched',
+      edits=[css('#rir .chip[data-rir="2"] { opacity: 0 !important; }')],
+      runner='gate', args=GATE_WORKOUT_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=RIR_CHECK,
+      expect_words='a retained chip nobody can see is not a retained choice: the lock must name it '
+                   'as not visible. The five labels and the order are unchanged, so the only thing '
+                   'that can fail this row is the visibility half of the check.'),
+
+ dict(id='y5b', source='audit3-5', head='64a9e095', minutes=4,
+      what='CONTROL for y5a: the same narrowed workout gate with the chips untouched',
+      edits=[marker('y5b marker: renders identically, this row is the untouched workout control')],
+      runner='gate', args=GATE_WORKOUT_SMALL, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[RIR_CHECK], expect_needles=['0 FAIL'],
+      expect_words='the five real chips must stay green, so a red y5a is the opacity and not the '
+                   'machine.'),
+
+ # ---------------------------------------------------------------- item 6: far edges, precision
+ # statesheet.py:267-281 compares left, top, width and height, each against RECT_TOL = 3. A box
+ # that moves 3.00 px right AND grows 3.00 px wider moves its right edge 6 px while no compared
+ # number passes the tolerance.
+ dict(id='y6a', source='audit3-6', head='64a9e095', minutes=3, only='T-02',
+      what='T-02 sample note moved +3.00 px left AND widened +3.00 px: the right edge moves 6 px',
+      edits=[css('.note-block.sample { position: relative !important; left: 3px !important; '
+                 'width: calc(100% + 3px) !important; }')],
+      runner='sheet', expect_exit=1, expect_kind='FAIL',
+      expect_needles=['right'],
+      expect_words='WANTED: the sheet names the right edge, which moved 6 px. Each compared number '
+                   'moved exactly 3.00, which is not more than 3, so a comparison of the four '
+                   'recorded numbers alone cannot see it: the derived far edges have to be '
+                   'compared too.'),
+
+ dict(id='y6b', source='audit3-6', head='64a9e095', minutes=3, only='T-02',
+      what='CONTROL for y6a: the same note moved +3.00 px left and NOT widened',
+      edits=[css('.note-block.sample { position: relative !important; left: 3px !important; }')],
+      runner='sheet', expect_exit=0, expect_kind='PASS',
+      expect_words='an honest 3 px move is inside the stated tolerance on every edge, the far edge '
+                   'included, and must stay green after the fix.'),
+
+ dict(id='y6c', source='audit3-6', head='64a9e095', minutes=3, only='T-02',
+      what='the status line font size moved 0.6 px: the first representable step past SIZE_TOL',
+      edits=[css('#status-line { font-size: 16.1px !important; }')],
+      runner='sheet', expect_exit=1, expect_kind='FAIL',
+      expect_needles=['font size'],
+      expect_words='the record holds the size to one decimal, so 15.5 to 16.1 is the smallest '
+                   'representable move past the 0.5 px tolerance, and the sheet must name it as a '
+                   'size change and not only through the picture.'),
+
+ # ---------------------------------------------------------------- item 7: the x20 loophole
+ # common.tier_for drops to MUTED_RATIO when the element carries any word in MUTED_CLASSES,
+ # whatever the stylesheet paints. 'from' is in that set, so a bare class name moves primary body
+ # copy to the 3.0 tier. The controls hold down the three honest ways to reach 3.0.
+ dict(id='y7a', source='audit3-7', head='64a9e095', minutes=4,
+      what='the x20 pair again: the same body element and colour, with the bare class name "from"',
+      edits=[html(STATUS_HTML, STATUS_HTML.replace('class="status-line"', 'class="status-line from"')),
+             css('#status-line { color: #8a8378 !important; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=CONTRAST_CHECK, expect_needles=['status-line'],
+      expect_words='the tier must follow the paint, not the class name. e1 is the other half of '
+                   'the pair: the same colour without the class FAILs at 3.2 < 4.5. Narrowed to '
+                   'the small sizes so that the regression rows cannot supply the exit code.'),
+
+ dict(id='y7b', source='audit3-7', head='64a9e095', minutes=4,
+      what='CONTROL: genuinely muted copy, the muted class AND the muted token together',
+      edits=[html(STATUS_HTML, STATUS_HTML.replace('class="status-line"', 'class="status-line muted"')),
+             css('#status-line { color: var(--muted) !important; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[CONTRAST_CHECK],
+      expect_words='text the pack really paints with its own quiet token must keep the 3.0 tier '
+                   'after the fix: a tier that follows the paint must still grant it here.'),
+
+ dict(id='y7c', source='audit3-7', head='64a9e095', minutes=4,
+      what='CONTROL: large text at the same colour, which the standard allows at 3.0',
+      edits=[css('#status-line { font-size: 26px !important; color: #8a8378 !important; }')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[CONTRAST_CHECK],
+      expect_words='24 px and larger needs 3.0:1 and this is 3.2, so the row must stay green. A '
+                   'type WARN for a size off the scale is expected and does not change the exit '
+                   'code; the measure is that the contrast check does not fire.'),
+
+ # ---------------------------------------------------------------- item 8: pressed against idle
+ # gate.py:579-584 photographs the surface BEFORE the pointer is moved onto it, then moves, presses
+ # and photographs again. Any hover-only change makes the two pictures differ, so a surface with a
+ # hover recipe and no pressed recipe passes.
+ dict(id='y8a', source='audit3-8', head='64a9e095', minutes=6,
+      what='#card-eat given a hover recipe and a pressed recipe identical to it: press adds nothing',
+      edits=[css('#card-eat:hover, #card-eat:active { background: #3a2f22 !important; }')],
+      runner='gate', args=GATE_TODAY, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=PRESSED_CHECK, expect_needles=['card-eat'],
+      expect_words='the difference between the two photographs is entirely the hover, so pressing '
+                   'the card changes nothing a finger can see. The idle photograph has to be taken '
+                   'with the pointer already settled on the surface. This row must run at the '
+                   'reference size, which is the only place the pressed check runs; the rules touch '
+                   'no idle pixel, so the regression rows are expected to stay green.'),
+
+ dict(id='y8b', source='audit3-8', head='64a9e095', minutes=6,
+      what='CONTROL for y8a: a genuine pressed recipe on #card-eat and no hover recipe at all',
+      edits=[css('#card-eat:active { background: #3a2f22 !important; }')],
+      runner='gate', args=GATE_TODAY, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[PRESSED_CHECK],
+      expect_words='a real pressed state on a sampled surface must still pass once the idle '
+                   'photograph is taken with the pointer settled.'),
+
+ # ---------------------------------------------------------------- item 9: the teeth selection
+ # teeth.py:496-498 filters its row list with "if ONLY and row_id not in ONLY: continue" and never
+ # asks whether the names in ONLY exist, and an ONLY that strips to nothing is falsy and silently
+ # means every row. A run that measured nothing prints "0 rows, 0 disagreeing" and exits 0.
+ dict(id='y9a', source='audit3-9', head='64a9e095', minutes=4,
+      what='teeth.py --only with one name that is not a row',
+      edits=[marker('y9a marker: the mutation is the argument')],
+      runner='teeth', args=['--only', 'zzz'], expect_exit=2, expect_kind='REFUSE',
+      expect_needles=['REFUSED'],
+      expect_words='exit 2 and a one line refusal naming zzz, before anything is copied or run. A '
+                   'selection that names no row must never report success.'),
+
+ dict(id='y9b', source='audit3-9', head='64a9e095', minutes=5,
+      what='teeth.py --only with one real row and one name that is not a row',
+      edits=[marker('y9b marker: the mutation is the argument')],
+      runner='teeth', args=['--only', 'q1,zzz'], expect_exit=2, expect_kind='REFUSE',
+      expect_needles=['REFUSED'],
+      expect_words='the mixed case is the dangerous one: a typo in a list of five row names must '
+                   'refuse, not quietly run four of them and report that the list passed.'),
+
+ dict(id='y9c', source='audit3-9', head='64a9e095', minutes=4, timeout=180,
+      what='teeth.py --only with a selection that strips to nothing',
+      edits=[marker('y9c marker: the mutation is the argument')],
+      runner='teeth', args=['--only', ','], expect_exit=2, expect_kind='REFUSE',
+      expect_needles=['REFUSED'],
+      expect_words='an empty effective selection must refuse. Today an empty ONLY is falsy and '
+                   'means EVERY row, so this row is given a 180 second timeout on purpose: a run '
+                   'that starts working through the whole list instead of refusing has already '
+                   'shown the defect, and the PC is shared with other lanes.'),
+
+ dict(id='y9d', source='audit3-9', head='64a9e095', minutes=4,
+      what='CONTROL for y9a to y9c: teeth.py --only with one real row',
+      edits=[marker('y9d marker: the mutation is the argument')],
+      runner='teeth', args=['--only', 'q1'], expect_exit=0, expect_kind='PASS',
+      expect_needles=['1 rows, 0 disagreeing'],
+      expect_words='a valid selection must go on running exactly the rows it names and exit 0.'),
+
+ # ---------------------------------------------------------------- item 10: q5's tooth
+ # teeth.py:422-423 asks only for exit 1, the string T-02 anywhere in the output and a written
+ # report. q5's own mutation makes T-02's apply throw, and a state that did not apply also fails
+ # its record comparison, so the tooth is satisfied by a consequence and not by the thing it is
+ # supposed to hold down.
+ dict(id='y10a', source='audit3-10', head='64a9e095', minutes=6,
+      what='the state sheet\'s apply-error detection removed, and nothing else, then teeth --only q5',
+      edits=[sheetpy(APPLIED_LINE, "    if False: problems.append('state did not apply')"),
+             sheetpy(ERRS_LINE, "    if False: problems.append('error: ' + errs[-1][:80])")],
+      runner='teeth', args=['--only', 'q5'], expect_exit=1, expect_kind='FAIL',
+      expect_needles=['q5', 'DISAGREES'],
+      expect_words='WANTED: the q5 row DISAGREES and teeth.py exits 1. Only the apply-error '
+                   'detection is taken out; the unrelated record failures a state that did not '
+                   'apply causes are left exactly as they are. A tooth satisfied by those is not '
+                   'holding down the apply error, which is what the row is for.'),
+
+ dict(id='y10b', source='audit3-10', head='64a9e095', minutes=6,
+      what='CONTROL for y10a: teeth --only q5 with the state sheet untouched',
+      edits=[marker('y10b marker: the mutation is the argument')],
+      runner='teeth', args=['--only', 'q5'], expect_exit=0, expect_kind='PASS',
+      expect_needles=['1 rows, 0 disagreeing'],
+      expect_words='the row passes on the honest pack, so a red y10a is the removed detection.'),
+
+ # ---------------------------------------------------------------- item 11: Refused against an
+ # ordinary exception, the one item Astra classes E: an execution owed, not a source finding.
+ # statesheet.py:418-429 re-raises Refused out of the render loop and catches every other exception
+ # as one state's problem row. x17 witnessed the ordinary half only.
+ dict(id='y11a', source='audit3-11', head='64a9e095', minutes=6, only='T-0',
+      what='a Refused raised inside render_one for one state',
+      edits=[sheetpy(GOTO_STATE,
+                     "    if st['id'] == 'T-03':\n"
+                     "        raise Refused('audit3 probe: an injected refusal inside render_one')\n"
+                     + GOTO_STATE)],
+      runner='sheet', expect_exit=2, expect_kind='REFUSE',
+      expect_needles=['REFUSED', 'audit3 probe'],
+      expect_words='a refusal is one line and exit 2 by contract: the run cannot run, so no state '
+                   'may be reported as clean and no problem row may be filed.'),
+
+ dict(id='y11b', source='audit3-11', head='64a9e095', minutes=6, only='T-0',
+      what='an ordinary exception raised inside render_one for the same one state',
+      edits=[sheetpy(GOTO_STATE,
+                     "    if st['id'] == 'T-03':\n"
+                     "        raise ValueError('audit3 probe: an ordinary exception inside render_one')\n"
+                     + GOTO_STATE)],
+      runner='sheet', expect_exit=1, expect_kind='FAIL', expect_report=True,
+      expect_needles=['the render failed', 'T-03'],
+      expect_words='the twin of y11a, injected in the same place and differing only in the class '
+                   'raised: one state is named, the other renders go on, the report is written and '
+                   'the exit code is 1. The pair is the contract.'),
+
+ # ---------------------------------------------------------------- item 12: the phone sheet
+ # statesheet.py:484 reads data-state off the document and files "state did not apply" when it does
+ # not match. phonesheet.py:65-81 navigates with &state=<id>, waits, photographs and writes the
+ # picture under a heading carrying that id and title, and asks nothing. The owner approves a look
+ # from these sheets.
+ dict(id='y12a', source='audit3-12', head='64a9e095', minutes=5,
+      what='T-02\'s apply throws, and the phone sheet is asked for T-02',
+      edits=[js(T02_HEAD, T02_HEAD + "    throw new Error('audit3 y12a: this state cannot apply');\n")],
+      runner='phone', args=['--state', 'T-02'], expect_exit=2, expect_kind='REFUSE',
+      expect_needles=['REFUSED'],
+      expect_words='WANTED: exit 2 and a refusal, and NO picture written. The state did not apply, '
+                   'so the screen underneath is the base Today screen; writing it under the '
+                   'heading "T-02 Preview before setup, sample marked" is a mislabelled picture of '
+                   'the product, which is the thing the owner signs off from.'),
+
+ dict(id='y12b', source='audit3-12', head='64a9e095', minutes=5,
+      what='CONTROL for y12a: the same phone sheet with T-02 applying normally',
+      edits=[marker('y12b marker: the mutation is the argument')],
+      runner='phone', args=['--state', 'T-02'], expect_exit=0, expect_kind='PASS',
+      expect_needles=['phonesheet-T-02.png'],
+      expect_words='the good state must still be drawn in both themes and written: the refusal '
+                   'must be about the state that did not apply and nothing else.'),
+
+ # ================= items 13 and 14: the successor head only. They do not exist at 64a9e095. =====
+ # ---------------------------------------------------------------- item 13: the minus opener
+ # At 814f0a03 a U+2212 is a negative number only when the character directly before it is a space,
+ # a line start, '(' or '['. Every other honest opener a number can have in interface copy is now a
+ # refusal. The four rows below are the honest contexts that must be preserved; y13e is the pair of
+ # forbidden uses that must go on failing.
+ dict(id='y13a', source='audit3-13', head='814f0a03', minutes=4,
+      what='an honest negative number opened by a colon',
+      edits=[html(STATUS_SENTENCE, 'Upper body today. Change:' + MINUS + '3 lb.')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[COPY_CHECK],
+      expect_words='a label and its value written without a space is ordinary interface copy and '
+                   'the sign is a minus sign: the copy sweep must not name it.'),
+
+ dict(id='y13b', source='audit3-13', head='814f0a03', minutes=4,
+      what='honest negative numbers opened by a multiplication sign, a currency sign, an equals '
+           'sign, a quotation mark, a brace and a slash, in one sentence',
+      edits=[html(STATUS_SENTENCE,
+                  'Upper body today. Load 8' + MULT + MINUS + '3, $' + MINUS + '5, ='
+                  + MINUS + '2, "' + MINUS + '1", {' + MINUS + '4}, 3/' + MINUS + '2.')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[COPY_CHECK],
+      expect_words='every opener Astra names, carried in one mutation because the wanted result '
+                   'is the same for all of them: no copy failure. If this row is red after the fix '
+                   'the detail line says which opener is still refused. A digit follows the sign '
+                   'in every one of them and none of them is a dash.'),
+
+ dict(id='y13c', source='audit3-13', head='814f0a03', minutes=4,
+      what='two separate numeric cells, the second of them a negative number',
+      edits=[html(STATUS_HTML, '<p class="status-line" id="status-line">Upper body today. '
+                               '<span>3</span> <span>' + MINUS + '5</span> lb.</p>')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[COPY_CHECK],
+      expect_words='the two numbers are separate elements, drawn as separate cells; the swept '
+                   'string joins them with a space, and the rule then reads the digit of the first '
+                   'cell as the left side of a range. A negative number in its own cell is honest '
+                   'copy and must not be a refusal.'),
+
+ dict(id='y13d', source='audit3-13', head='814f0a03', minutes=4,
+      what='CONTROL, the W-18 case: a minus sign alone on its own line, as a control\'s label',
+      edits=[in_status('<span style="display:block">' + MINUS + '</span>')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=0, expect_kind='PASS',
+      expect_no_fail=[COPY_CHECK],
+      expect_words='the decrement button beside a set\'s load draws the sign on a line of its own; '
+                   'the rule exempts a line that holds nothing else, and that exemption must '
+                   'survive the repair. Sweeping it flatly was measured at two problems on W-18.'),
+
+ dict(id='y13e', source='audit3-13', head='814f0a03', minutes=4,
+      what='CONTROL the fix must not lose: the two forbidden uses, a range and a sign against a letter',
+      edits=[html(STATUS_SENTENCE, 'Upper body' + MINUS + '5 today. Do 3' + MINUS + '5 sets.')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=COPY_CHECK, expect_needles=[repr(MINUS)],
+      expect_words='neither is a negative number and both are dashes: widening the honest openers '
+                   'must not let either of these through.'),
+
+ # ---------------------------------------------------------------- item 14: one tooth per clause
+ # teeth.py at 814f0a03 carries two clauses in each of two rows: q9 folds a TAB and a NBSP in one
+ # string, q11 carries a range and a letter pressed against the sign. A row that fires on either
+ # half cannot tell the lane which half it is holding down. y14a to y14e are the isolated witnesses;
+ # y14f and y14g revert ONE protection each and measure whether the existing row notices.
+ dict(id='y14a', source='audit3-14', head='814f0a03', minutes=4,
+      what='a spaced hyphen whose two spaces are raw TABS, alone',
+      edits=[html(STATUS_SENTENCE, spaced(TAB))],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=COPY_CHECK, expect_needles=[repr(' - ')],
+      expect_words='the TAB clause on its own: the screen reads a tab as a space, so the copy '
+                   'sweep must name the spaced hyphen with no no-break space anywhere in the row.'),
+
+ dict(id='y14b', source='audit3-14', head='814f0a03', minutes=4,
+      what='a spaced hyphen whose two spaces are no-break spaces, alone, at the successor head',
+      edits=[html(STATUS_SENTENCE, spaced(NBSP))],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=COPY_CHECK, expect_needles=[repr(' - ')],
+      expect_words='the NBSP clause on its own, so that the two halves of the successor q9 have '
+                   'one witness each. rb1a is the same mutation at 64a9e095.'),
+
+ dict(id='y14c', source='audit3-14', head='814f0a03', minutes=4,
+      what='a raw TAB spaced hyphen carried in an attribute rather than in the body text',
+      edits=[html('placeholder="Your weight"', 'placeholder="Your' + TAB + '-' + TAB + 'weight"')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=COPY_CHECK, expect_needles=[repr(' - ')],
+      expect_words='the placeholder is interface copy the athlete reads, and the folding must '
+                   'reach the attribute sweep and not only innerText.'),
+
+ dict(id='y14d', source='audit3-14', head='814f0a03', minutes=4,
+      what='a minus sign pressed against a letter, alone',
+      edits=[html(STATUS_SENTENCE, 'Upper body' + MINUS + '5 today. One change to review.')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=COPY_CHECK, expect_needles=[repr(MINUS)],
+      expect_words='the opener clause on its own, with no range anywhere in the sentence.'),
+
+ dict(id='y14e', source='audit3-14', head='814f0a03', minutes=4,
+      what='a numeric range written with a minus sign, alone',
+      edits=[html(STATUS_SENTENCE, 'Upper body today. Do 3' + MINUS + '5 sets.')],
+      runner='gate', args=GATE_TODAY_SMALL, expect_exit=1, expect_kind='FAIL',
+      expect_catcher=COPY_CHECK, expect_needles=[repr(MINUS)],
+      expect_words='the range clause on its own, with no letter pressed against a sign anywhere.'),
+
+ dict(id='y14f', source='audit3-14', head='814f0a03', minutes=6,
+      what='the TAB half of the folding protection reverted alone, then teeth --only q9',
+      edits=[commonpy(FOLD_814, FOLD_PRE)],
+      runner='teeth', args=['--only', 'q9'], expect_exit=1, expect_kind='FAIL',
+      expect_needles=['q9', 'DISAGREES'],
+      expect_words='WANTED: with tabs no longer folded, a row that holds the TAB clause down must '
+                   'DISAGREE and teeth.py must exit 1. Only the tab half is reverted: the space '
+                   'separator category is still folded, so the no-break space half of the '
+                   'successor q9 still fires and can satisfy the row on its own. That is exactly '
+                   'the overlap the item asks the lane to split.'),
+
+ dict(id='y14g', source='audit3-14', head='814f0a03', minutes=6,
+      what='the opener half of the minus rule reverted alone, then teeth --only q11',
+      edits=[commonpy(OPENER_814, OPENER_PRE)],
+      runner='teeth', args=['--only', 'q11'], expect_exit=1, expect_kind='FAIL',
+      expect_needles=['q11', 'DISAGREES'],
+      expect_words='WANTED: with the opener clause gone, a row that holds it down must DISAGREE '
+                   'and teeth.py must exit 1. The range half of the successor q11 is untouched and '
+                   'still fires, so a single combined row can pass with the protection removed.'),
+
+]
+
+ROWS.extend(AUDIT3)
+ROW_BY_ID = {r['id']: r for r in ROWS}
+for _r in ROWS:
+    _r.setdefault('args', None)
+    _r.setdefault('runner', 'gate')

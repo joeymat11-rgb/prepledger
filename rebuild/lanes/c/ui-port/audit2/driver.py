@@ -30,13 +30,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from rows import ROWS, ROW_BY_ID   # noqa: E402
 
-RESULTS = os.path.join(HERE, 'results.jsonl')
+# audit 3 writes its own file so the 86 records of audit 2 are never appended to
+RESULTS = os.path.join(HERE, os.environ.get('AUDIT_RESULTS', 'results.jsonl'))
 DEFAULT_PY = os.path.join(os.environ.get('TEMP', HERE), 'cui-venv', 'Scripts', 'python.exe')
 
 RUNNERS = {
     'gate': 'quality/gate.py',
     'sheet': 'quality/statesheet.py',
     'phone': 'quality/phonesheet.py',
+    # audit 3: the pack's own mutation list is a runner too, so a row can measure whether one of
+    # ITS rows still bites when one protection alone is reverted (judgment items 9, 10 and 14)
+    'teeth': 'quality/teeth.py',
 }
 
 
@@ -202,6 +206,7 @@ def run_one(pack, row, runner, only, extra_env, py, timeout, dry):
            'files': rel_files, 'sha_before': before_sha,
            'expect_exit': row.get('expect_exit'), 'expect_kind': row.get('expect_kind'),
            'expect_catcher': row.get('expect_catcher'), 'expect_words': row.get('expect_words'),
+           'expect_no_fail': row.get('expect_no_fail'), 'head': row.get('head'),
            'hand': row.get('hand'), 'when': time.strftime('%Y-%m-%dT%H:%M:%S')}
     changed = None
     try:
@@ -233,8 +238,11 @@ def run_one(pack, row, runner, only, extra_env, py, timeout, dry):
         rec['env_set'] = {k: env[k] for k in ('EARNED_APP',) if k in env}
         t0 = time.time()
         try:
+            # a row may shorten the timeout: one of them names a defect whose shape is that the
+            # run does NOT refuse and starts working through a whole list instead (audit 3 y9c)
             proc = subprocess.run(cmd, cwd=pack, env=env, capture_output=True, text=True,
-                                  encoding='utf-8', errors='replace', timeout=timeout)
+                                  encoding='utf-8', errors='replace',
+                                  timeout=row.get('timeout') or timeout)
             out = (proc.stdout or '') + (proc.stderr or '')
             rec['exit'] = proc.returncode
             rec['timed_out'] = False
