@@ -69,8 +69,8 @@ against the parent artifact: `preview.css` stands in S8 role `carried` at post
 `7cf97598c2c2cb2390dd0a7a855f322b68b27f4fa801df3e23536e4846126ea1`, and `build.mjs` role `carried`
 at post `d04a10ef406708b801749b1118246e82fecc53bbbafe1ac11068eb24bc52cf9c`. Those two values are the
 `pre` of the two released declarations, because a released file's `pre` is the byte its parent
-sealed it at and its `post` is `null` by the runner's own rule (`b-package.cjs:1871-1872`,
-`PRODUCT-RELEASED-DECLARES-A-POST`).
+sealed it at and its `post` is `null` by the runner's own rule (`b-package.cjs:1905-1906` at the
+accepted head `a224c7b0`, `PRODUCT-RELEASED-DECLARES-A-POST`).
 
 **S9 is not only a release.** Handing two files out of a seal without saying what then judges them
 would be a net loss, so the same package carries four other things, each of which needs a sealed
@@ -114,7 +114,7 @@ parent does NOT pin carries its `sourceBase` blob as `pre`, which is the runner'
 known (section 11), and the spec's own E fact 9 forbids copying them from a report. The command that
 measures them is the runner itself: `node rebuild/lanes/b/tooling/b-package.cjs --ci --package S9`,
 whose `SPEC OBSERVED` line prints the declared product count, the D-ids, the child count and the
-root count in one sentence (`b-package.cjs:1992-1995`).
+root count in one sentence (`b-package.cjs:2026-2029` at `a224c7b0`).
 
 **2.1 The product files.** The two releases; the carried lanes' product edits; the new passphrase
 helper and the F2 projector; and C-UI-1's eventual moved files, which are not yet knowable.
@@ -231,36 +231,64 @@ and two are the writers that stand outside the seal
 (`rebuild/m3/w7-preview/today/gym-model.mjs`, `.../checkin-app.mjs`). This adds `rebuild/m1/` to the
 sealed inventory for the first time, and the brief says so by name as PM-R6 required.
 
-**MEASURED at chain tip `789baf6e` and at runner head `397ac466`, and it is a named integration
-risk, not a paper doubt.** The runner asserts at `b-package.cjs:1896-1897`:
+**MEASURED at chain tip `789baf6e` and RE-MEASURED in loop round 1 at the accepted runner head
+`a224c7b0`, and it is a named integration risk, not a paper doubt.** The runner asserts at
+`b-package.cjs:1930-1931` (the same assert stood at `:1896-:1897` before H27's +34 shift):
 
 ```
 assert(pin.role !== 'pinned-unchanged' || executed.files.has(file),
   'PRODUCT-PINNED-UNCHANGED-IS-NOT-EXECUTED-BY-A-DECLARED-CHILD ' + file + ...)
 ```
 
-`executedClosure()` (`b-package.cjs:750-760`) follows ONLY a relative literal specifier of the four
+`executedClosure()` (`b-package.cjs:752-768`, re-located by text at `a224c7b0`) follows ONLY a
+relative literal specifier of the four
 shapes `require('...')`, `import('...')`, `from '...'` and `new URL('...',` from a declared child's
 argv targets. I searched every `.mjs`, `.cjs` and `.js` under `rebuild/` for a specifier of any of
 those four shapes naming `MOCK.md`, `Earned-refinement-A.html`, `Earned-additions-C-approved.html`
-or `ADDITIONS-C-APPROVED-HANDOFF.md`: **zero matches.** `design.cjs:35-46` names all four as STRING
-PATHS inside a data structure and reads them by path at run time, which `executedClosure()` cannot
-see and, by its own stated rule, must not guess at. The two writers are fine: `gym-model.mjs` and
+or `ADDITIONS-C-APPROVED-HANDOFF.md`: **zero matches.**
+
+**CORRECTED IN LOOP ROUND 1, review L1 N2, and the correction makes the problem WORSE rather than
+better.** An earlier draft said `design.cjs:35-46` "names all four as STRING PATHS inside a data
+structure and reads them by path at run time". **It does not.** Re-measured by this author at the
+chain tip: `design.cjs:33-42` is a `/* */` COMMENT that cites
+`rebuild/m1/approved-2026-09-08/ADDITIONS-C-APPROVED-HANDOFF.md LINE 9` and
+`rebuild/m1/MOCK.md LINE 20` as the AUTHORITY for an ordering; the runtime data structure is
+`const APPROVED = Object.freeze([...])` at `:43-:48` and it holds **TWO entries and only two**,
+`Earned-refinement-A.html` and `Earned-additions-C-approved.html`, each with a `sha256`. **So two of
+the four documents are not runtime data at all, they are prose in a comment**, and nothing in
+`rebuild/` reads them by any route, literal or computed. The two writers are fine: `gym-model.mjs` and
 `checkin-app.mjs` are reached by relative `from` from sealed today cells that stand in the
 `today-17` child's argv (`today/test/problem.test.mjs:17`, `machine-settings-ui.test.mjs:26`,
 `checkin.test.mjs:23`, and others). I also confirmed the other half of the role's rule holds for all
 six: none of them is a key of the parent's `product` or `executionPins`
-(`PRODUCT-PINNED-UNCHANGED-IS-A-PARENT-PIN`, `b-package.cjs:2419-2420`).
+(`PRODUCT-PINNED-UNCHANGED-IS-A-PARENT-PIN`, `b-package.cjs:2453-2454` at `a224c7b0`, re-measured
+by this author against the parent artifact).
 
-**So as the runner stands at `397ac466`, declaring the four design-of-record documents
-`pinned-unchanged` refuses by name, four times.** The three honest dispositions, with their cost,
-for the PM to rule in review: (a) declare them `new` with `pre` the sourceBase blob and `post` the
-same bytes, which the runner admits but which says "this package wrote them" and is false;
-(b) give a declared child an argv target that genuinely reads them, which the pack cells arguably
-already are, and re-measure the closure; (c) a runner hunk widening the closure for non-executable
-declared references, which is a seal-path change and would need its own PM ruling and its own rows.
+**So as the runner stands at the ACCEPTED head `a224c7b0`, declaring the four design-of-record
+documents `pinned-unchanged` refuses by name, four times.** Re-measured by this author at
+`a224c7b0` by running the REAL `executedClosure()` over the four today targets
+(`problem.test.mjs`, `machine-settings-ui.test.mjs`, `checkin.test.mjs`, `design.test.cjs`):
+**closure uncapped, `documents reached = 0 of 4`, `writers reached = 2 of 2`.** Review L1 measured
+the same two results independently at `397ac466`. (The closure SIZE differs between the two runs -
+120 files in this author's farm mirror against review L1's 147 on the PC checkout - and that
+difference is the two mirrors' scope, not the runner; neither number is load-bearing and both are
+re-measured at integration.)
+
+**THE THREE DISPOSITIONS, EACH NOW CARRYING AN EXECUTED MEASUREMENT. THIS ITEM STAYS OPEN: THE PM
+RULES IT, AND NEITHER THIS AUTHOR NOR THE REVIEWER PICKS ONE.**
+
+| disposition | what was MEASURED | cost, and the reviewer's recommendation |
+| --- | --- | --- |
+| (a) declare them `new` with `pre` the sourceBase blob and `post` the same bytes | **REFUSED.** This author ran the real `product()` at `a224c7b0` with four synthetic unchanged document declarations and an empty parent map: `PRODUCT-CHANGE-ROLE-DECLARES-NO-CHANGE <path> is declared "new" with pre === post`, all four, from `:2486`. Review L1 measured the identical refusal at `397ac466` from its `:2452`. **An earlier draft of this brief called (a) "something the runner admits"; that sentence was WRONG and is corrected here (review L1 B3.)** The sealed-artifact grandfather clause does not reach an unsealed S9 | Zero code changes, but REFUSED; and it would also say "this package wrote them", which is false. Review L1: refused for an unsealed S9 |
+| (b) give a declared child an argv target that genuinely reads them, and re-measure the closure | Review L1 executed this: four literal `new URL` relative reads inside one declared target gave **closure 5, documents 4, no refusal**, and its scratch reader actually read all four and preserved their hashes. This author reproduces the baseline it starts from (documents 0 of 4 with no such reader) | ONE new declared cell or argv target, four LITERAL references, its own measured pin and needle, and its own content-change control. **Review L1 RECOMMENDS (b)**: no runner change, and `pinned-unchanged` stays the honest role. It warns that merely adding a COMPUTED reader to argv is not enough, because a computed path stays invisible |
+| (c) a runner hunk widening the closure for non-executable declared references | Review L1 executed a synthetic widening for literal `fs.readFileSync(path.join(__dirname,'relative'))`: before, **closure 1, documents 0, four refusals**; with its scratch regex hunk plus a fourth capture, **closure 5, documents 4, no refusal** | A seal-path change: its own PM ruling, closure-specific positive AND negative rows, independent review, seven ancestor re-pins and a new artifact. Review L1 notes regex reachability can admit a DEAD or COMMENTED read, so it is not proof of execution, and calls (c) higher cost than (b). Its widening is a measured candidate, **not a reviewed implementation and not permission to edit the seal path** |
+
 **This brief recommends none of the three and stops on the sentence**, because the spec's E fact 17
-and the runner's `:1896` cannot both be right as written. See section 12.
+and the runner's `:1930` cannot both be right as written. See section 12.1. **Review L1's N2
+measurement narrows the choice without making it:** since two of the four documents are cited only
+in a COMMENT of `design.cjs`, a reader added under (b) must be a genuine reader that ASSERTS their
+approved content, and a changed-document counterexample must fail - which is exactly the named debt
+D-REFERENCE-CLOSURE in section 8.
 
 **2.5 NOT declared, named so the omission is a decision.**
 `rebuild/m3/w7-preview/today/today-model.cjs` is NOT declared and rides TODAY-SPLIT under S10;
@@ -370,7 +398,7 @@ when round 6 lands.
 
 **3.2 The deciding cell.** The spec designates none, and this brief does not invent one. What S9
 must show, at integration and not before, is the release and the grant agreeing in both directions
-(`b-package.cjs:1501-1504`), every unrelated pin preserved, a descendant package reading the
+(`b-package.cjs:1535-1538` at `a224c7b0`), every unrelated pin preserved, a descendant package reading the
 released file and finding no pin for it, and the two real pack rows going green against the real
 pack. **TO MEASURE AT INTEGRATION**; the command is the integrated `--ci --package S9` run of 3.5
 plus the fence and pack steps on both runners.
@@ -378,7 +406,9 @@ plus the fence and pack steps on both runners.
 **3.3 The parent's children, re-executed.** All 25 children `packages/S8.json` declares are
 re-declared by S9 and must be OBSERVED exit 0 at their needles under `--ci`. Several execute a file
 this package MOVES, so **every needle is RECOMPUTED on the integrated head and none is copied**
-(E fact 9; S8's own rule at `S8-PREP-AUTHOR-REPORT.md:117`). The six `s8-*` mirrors are re-pointed
+(E fact 9; S8's own rule at `S8-PREP-AUTHOR-REPORT.md:119` onward - **CORRECTED IN LOOP ROUND 1,
+review L1 N7: `:117` is the HEADING "## 3. THE NEEDLE TABLE, MEASURED" and the instruction itself
+begins at `:119`**, re-measured by this author). The six `s8-*` mirrors are re-pointed
 at this package's own `s9-*` cells. The table of old value against measured value belongs in the
 author report, not here.
 
@@ -393,8 +423,11 @@ reason and it is not a skip:** each has 0 pass / 1 fail at module load with `ENO
 **3.5 Public CI.** `--ci --package S9` must print `PUBLIC CI EVIDENCE PASS` and the artifact must be
 re-proposed through the runner's own `proposed()` path, never hand-written. **S8's PASS is not
 copied here.** S9's own `--ci` outcome is TO MEASURE AT INTEGRATION, after the wait list of section
-11 clears, and the trip-wire of section 5 rule (a) is expected to make the rebuild job RED at C5 on
-both OS while `B PACKAGE S9 PUBLIC CI EVIDENCE PASS` prints on both. If `--ci --package S9` refuses
+11 clears. **The C5 prediction is CORRECTED IN LOOP ROUND 1, review L1 N1, and it is narrower than
+an earlier draft said**: see section 5 rule (a) for the measured reading of `standingSeal()`. In
+short, C5 is RED only in the INTERVAL between flipping the standing step to `--package S9` and
+committing an accepted `packages/S9.json`, and GREEN for the rest of the sealing window;
+`B PACKAGE S9 PUBLIC CI EVIDENCE PASS` prints on both OS throughout. If `--ci --package S9` refuses
 for a reason this brief did not predict, that is F.2 STOP-3: a finding, not a fix.
 
 ## 4. What does not move
@@ -459,11 +492,20 @@ by this author at `789baf6e`); in this branch it becomes `--package S9`, the ste
 it, and the file's post sha in `packages/S9.json` is measured AFTER that edit and after every other
 step this package adds. `DECISIONS:498` is why: `rebuild.yml` is a declared product file whose post
 the sealed run pins, so a step flipped after the seal refuses `WORKTREE-SOURCE-PIN` on the
-byte-identity step. **The C5 trip-wire behaves as it did at S7 and S8 and this brief says so in
-advance:** from the moment this branch names `--package S9`,
-`rebuild/coach/test/engine-revision.test.cjs` looks for `receipts/S9.json`, which does not exist
-until the seal, so the rebuild job is RED at C5 on both OS while
-`B PACKAGE S9 PUBLIC CI EVIDENCE PASS` prints on both.
+byte-identity step. **The C5 trip-wire behaves as it did at S7 and S8, and CORRECTED IN LOOP ROUND
+1, review L1 N1, it is NARROWER than an earlier draft of this brief said.** That draft predicted C5
+red "throughout the sealing window", which contradicts rule (b) below and the cell's own code.
+Re-measured by this author by reading `standingSeal()` at `rebuild/coach/test/engine-revision.test.cjs:54-80`
+at the chain tip: the function reads the standing id out of `rebuild.yml`, and then
+**(i)** if `receipts/S9.json` exists it is `sealed`; **(ii)** if it does not and `packages/S9.json`
+does not exist either, it THROWS "neither a sealed receipt nor a spec" - **C5 RED**; **(iii)** if
+`packages/S9.json` exists but its `status` is not `BRIEF-ACCEPTED`, it THROWS - **C5 RED**; **(iv)**
+if it exists, is `BRIEF-ACCEPTED`, names `parent.chosen: S8` and `receipts/S8.json` exists, it
+returns the WINDOW state and expects the constant to name the PARENT receipt - **C5 GREEN**, because
+that is exactly the value section 4 keeps. **So: C5 is red from the moment this branch names
+`--package S9` until an accepted `packages/S9.json` is committed, and GREEN for the rest of the
+sealing window; a red after that point means a VIOLATED window invariant and is a finding.**
+`B PACKAGE S9 PUBLIC CI EVIDENCE PASS` prints on both OS throughout.
 
 **Rule (b) - the revision cells read the SEALING WINDOW.** `DECISIONS:499`, one function
 `standingSeal(repoRoot)` with `REVISION_RULE` quoted in every refusal. Read against S9 that is:
@@ -524,8 +566,8 @@ integration** (section 9 item 10), because integration adds PM-A1's runner commi
 
 **The release must not collide with an execution pin.** The runner refuses a released path that
 `proposed()` would put back into `executionPins` by any of its five routes - the runner, this
-package file, the brief, the carrier successor, or a child argv target (`b-package.cjs:1519-1547`,
-`:3320-:3327`; `DECISIONS:567`). Release DELETION is admitted; unrelated drift, completeness and
+package file, the brief, the carrier successor, or a child argv target (`b-package.cjs:1553-1581`,
+`:3354-:3361` at `a224c7b0`; `DECISIONS:567`). Release DELETION is admitted; unrelated drift, completeness and
 held checks remain; and **a ticket that moves a released file before the `sourceBase` stops S9
 sealing**. Neither `preview.css` nor `build.mjs` is any of the five today, and that is TO RE-MEASURE
 at integration because C-UI-1 may add a child.
@@ -535,17 +577,39 @@ at integration because C-UI-1 may add a child.
 1. **Brief accepted by name** - a PM line naming `rebuild/lanes/b/S9-UI-PINS-BRIEF.md`.
 2. **FOUR token lines on the tip**, not three: THEME, BRIEF-BY-SHA, GATE-SUPERSESSION and, new to
    this package, RELEASE-FROM-SEAL. Their exact required text is section 10.
-3. **The author cites all four in `packages/S9.json`** (`authorizations.theme`,
-   `brief.acceptedLedgerLine`, `coverage.superseded.rulingLineSha256`, `release.rulingLineSha256`),
-   each a sha256 over the exact line bytes with no trailing newline. A null
-   `coverage.superseded.rulingLineSha256` is a HARD refusal,
+3. **The author cites all four in `packages/S9.json`, and the FOUR FIELDS ARE NOT ALL THE SAME
+   SHAPE.** **CORRECTED IN LOOP ROUND 1, review L1 B5:** an earlier draft called all four "each a
+   sha256 over the exact line bytes". **Only TWO are.**
+   `coverage.superseded.rulingLineSha256` and `release.rulingLineSha256` are 64-hex STRINGS.
+   `authorizations.theme` and `brief.acceptedLedgerLine` are four-key CLAIM OBJECTS
+   (`['ledgerLine','role','line','lineSha256']`, `CLAIM_KEYS` at `b-package.cjs:1161`), and section
+   10.6 already said so correctly. Measured by this author at `a224c7b0` with the real `claim()`:
+   a bare 64-hex string refuses `Authorization claim theme` and `Authorization claim brief
+   acceptance` on the closed-key assertion at `:1326-:1330`, while the four-key object with
+   `role: 'cowork'` and `sha(line) === lineSha256` is ADMITTED. Review L1 measured the same two
+   refusals at `397ac466`. In every case the hash is taken over the exact line bytes with no
+   trailing newline. A null `coverage.superseded.rulingLineSha256` is a HARD refusal,
    `GATE-SUPERSESSION-RULING-NOT-CITED`, exit 1, before the theme and brief obligations are reached
-   (`b-package.cjs:1408-1410`); a spec that carries a `release` block with no released declaration
-   refuses `RELEASE-BLOCK-WITHOUT-A-RELEASED-DECLARATION` (`:1478`).
-4. **`--ci --package S9` prints `PUBLIC CI EVIDENCE PASS`**, artifact re-proposed through
-   `proposed()`.
+   (`b-package.cjs:1442-1444`); a spec that carries a `release` block with no released declaration
+   refuses `RELEASE-BLOCK-WITHOUT-A-RELEASED-DECLARATION` (`:1512`).
+   **Then COMMIT the final runner and the final spec, before step 4 runs (review L1 B10, below).**
+4. **COMMIT FIRST, THEN `--ci --package S9` prints `PUBLIC CI EVIDENCE PASS`**, artifact re-proposed
+   through `proposed()`.
+   **ADDED IN LOOP ROUND 1, review L1 B10: the commit is not a tidiness step, it is a precondition.**
+   The runner compares the bytes ON DISK with the bytes IN GIT AT `HEAD`:
+   `assert.equal(gitSha('HEAD', RUNNER), s.tooling.runnerSha256, 'RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER-IN-GIT')`
+   at `b-package.cjs:1880`, and the same shape for the spec at `:1886`,
+   `SPEC-BYTES-NOT-THE-REVIEWED-SPEC-IN-GIT`. Review L1 executed both with distinct synthetic
+   disk and Git bytes and got both refusals by name; this author re-read both asserts at `a224c7b0`
+   and they stand at those two lines. **So an uncommitted final runner or spec refuses the run.**
+   **ADDED, review L1 N10: `proposed()` RETURNS AN OBJECT AND `--ci` DOES NOT WRITE IT.** The
+   integrator serializes the recomputed object and a PENDING review envelope before review, and
+   re-proposes after ANY input changes; otherwise `envelope()` can refuse
+   `SEALED-PROFILE-RECOMPUTATION`. Naming the export command is an integration hand
+   (section 9 item 12).
 5. **ONE integrated re-measure** (spec E.2's last row): every pre/post from Git, every needle by
-   running each child, the spec sha256, the brief sha256, `--ci` again.
+   running each child, the spec sha256, the brief sha256. **Then COMMIT every changed input,
+   RE-PROPOSE the candidate, and run `--ci` again** - in that order, for the reason step 4 gives.
 6. **Fable final review** over the sealed candidate (`DECISIONS:439`), independent of the build's
    reviewers, high effort.
 7. **PM `--full` with the private census on the PC**, verdict-only.
@@ -555,8 +619,20 @@ at integration because C-UI-1 may add a child.
 10. **MERGE the tip into the reviewed head. NEVER rebase.** Under `DECISIONS:582`'s integrator
     preflight, before any chain merge-forward, intersect the `chain...lane` changed names with the
     youngest product and `executionPins`; a sealed hit routes the lane to a reseal child.
-11. **Authorized `--full`**, then **the coach constant, once**, then the **second authorized
-    `--full`** (`AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY`).
+11. **Authorized `--full`**, then **COMMIT THE RECEIPT**, then **the coach constant, once**, then
+    **COMMIT THE COACH UPDATE**, then the **second authorized `--full`**
+    (`AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY`).
+    **THE TWO COMMITS WERE MISSING AND THEY ARE NOT OPTIONAL (ADDED IN LOOP ROUND 1, review L1
+    B10).** `sealedRunReceipt()` (`b-package.cjs:3553`) returns
+    `{ok:false, code:'SEALED-RUN-RECEIPT-NOT-IN-GIT', file, at:'HEAD'}` when the receipt is not
+    committed at `HEAD` (`:3564`), and a second return at `:3575` refuses when it differs at the
+    receipt base. Review L1 executed this with distinct synthetic disk and Git bytes and got exactly
+    that object; this author re-read both returns at `a224c7b0`. **An uncommitted receipt makes the
+    authorized rerun a FULL run rather than a BYTE-IDENTITY one**, which is not the evidence this
+    step is for. So: commit the receipt, **name its SHA-256 in `VERDICT-S9.md`** as
+    `sealedRunReceiptInstruction()` (`:3644`) requires, commit the coach constant, and only then
+    request BYTE-IDENTITY. Every commit in this step is the integrator's; none of it is done by a
+    preparation lane and none of it was performed in this review.
 12. **CI green on both OS**, then **fast-forward**. Under `DECISIONS:563` as amended by `:565`, the
     PM alone merges the tip at acceptance, pushes, holds the ledger, waits for both OS and only then
     fast-forwards and appends. `:565`'s product-tree exception applies only to a later merge
@@ -810,12 +886,15 @@ value in between.
 ## 10. THE FOUR PM TOKEN LINES, AS REQUIRED TEXT
 
 **NOTHING IN THIS SECTION IS AN ISSUED LINE, AND NO LINE HERE GRANTS ANYTHING.** These are the four
-exact text requirements the runner enforces, READ OUT OF THE RUNNER'S CODE at `397ac466` and never
+exact text requirements the runner enforces, READ OUT OF THE RUNNER'S CODE at the ACCEPTED head
+`a224c7b0` and never
 from memory, so that the PM can write four real lines on the chain branch and the author can cite
-them. A brief cannot authorize itself, and a line written on a lane branch authorizes nothing: the
+them. **Every line number in this section was RE-LOCATED BY TEXT at `a224c7b0` in loop round 1; the
+grammars themselves are unchanged from `397ac466`, because H27 touched only `canonicalSpecPaths()`.**
+A brief cannot authorize itself, and a line written on a lane branch authorizes nothing: the
 runner re-reads `rebuild/DECISIONS.md` at `CHAIN_REF` on EVERY call, splits on `/\r?\n/`, hashes
 each complete UTF-8 line WITHOUT its newline, and requires EXACTLY ONE line to hash to the cited
-value (`b-package.cjs:1418-1421`, `:1485-:1488`). The leading `- ` is part of the hashed bytes; the
+value (`b-package.cjs:1452-1455`, `:1519-:1522`). The leading `- ` is part of the hashed bytes; the
 trailing newline is not. There is no cache: a ruling withdrawn mid-run stops admitting mid-run.
 
 **SEP below means the single character U+00B7, and this section prints it LITERALLY, exactly as the
@@ -829,7 +908,7 @@ prose leaves the clause something other than the token and **frees nothing**
 (`b-package.cjs:971-995`).
 
 **10.1 RELEASE-FROM-SEAL.** Feeds `release.rulingLineSha256` in `packages/S9.json`, a 64-hex string
-and never the text (`b-package.cjs:1474-1504`).
+and never the text (`b-package.cjs:1508-1538` at `a224c7b0`).
 
 Grammar, verbatim from `b-package.cjs:993`:
 `/^RELEASE-FROM-SEAL\s+(M2-[A-Za-z0-9-]+)\s+([A-Za-z0-9_.\/-]+(?:,[A-Za-z0-9_.\/-]+)*)$/`
@@ -845,13 +924,13 @@ No space after the comma; the path list is one token. The LINE that carries it m
 LAST SEP-delimited clause, trimmed, exactly the bare word `RULED` (P-A1, `b-package.cjs:1013`,
 `ruledTerminal`): a line ending "this is NOT RULED" is not a ruling and two reviewers in turn
 measured the old last-word test admitting one. The granted path set and the declared `released` set
-must be EQUAL in BOTH directions (`:1501-:1504`), every granted path must be a key of the PARENT
+must be EQUAL in BOTH directions (`:1535-:1538`), every granted path must be a key of the PARENT
 artifact's product map with its declared `pre` equal to that parent pin, and no granted path may be
 one `proposed()` would put back into `executionPins` by any of its five routes.
 
 **10.2 GATE-SUPERSESSION.** Feeds `coverage.superseded.rulingLineSha256`. A null there is a HARD
 refusal, `GATE-SUPERSESSION-RULING-NOT-CITED`, exit 1, before the theme and brief obligations are
-reached (`b-package.cjs:1408-1410`).
+reached (`b-package.cjs:1442-1444` at `a224c7b0`).
 
 Grammar, verbatim from `b-package.cjs:980`:
 `/^GATE-SUPERSESSION\s+(M2-[A-Za-z0-9-]+)\s+([a-z0-9]+(?:-[a-z0-9]+)*(?:,[a-z0-9]+(?:-[a-z0-9]+)*)*)$/`
@@ -865,19 +944,36 @@ GATE-SUPERSESSION M2-S9-UI-PINS <carrier>[,<carrier>...]
 **The carrier vocabulary is CLOSED and measured at `b-package.cjs:926-927`:**
 `source-carriers`, `inherited-carriers`, `defect-witnesses`, `writers-differential`, `second-gate`.
 A token naming anything else refuses
-`GATE-SUPERSESSION-RULING-NAMES-A-CARRIER-THAT-IS-NOT-A-BYTE-IDENTITY-GATE` by name. **Which of the
-five S9 names is TO DECIDE AT INTEGRATION from the declared `coverage.moves` and the six `s9-*`
-mirrors, and this brief does not guess it.** Same RULED terminal rule as 10.1; the two functions
+`GATE-SUPERSESSION-RULING-NAMES-A-CARRIER-THAT-IS-NOT-A-BYTE-IDENTITY-GATE` by name.
+
+**CORRECTED IN LOOP ROUND 1, review L1 B9: THE CARRIER SET IS NOT DERIVED FROM `coverage.moves`,
+AND CANNOT BE.** An earlier draft said which of the five S9 names is decided "from the declared
+`coverage.moves`". **`coverage.moves` must be `{}`.** Measured by this author at `a224c7b0`:
+`MOVES_RULING` is the literal `null` at `b-package.cjs:198`, and the assert at `:1952-:1954` reads
+`assert(MOVES_RULING !== null || !Object.keys(s.coverage.moves).length,
+'COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING ...; coverage.moves must be {} under this runner')`.
+Review L1 executed it with `moves={'source-carriers':{}}` at `397ac466` and got
+`COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING source-carriers`. **So the carrier set is derived from
+`coverage.superseded.gates` and its PER-CARRIER evidence** (`b-package.cjs:1649` onward: every
+superseded carrier must carry at least one named and executed piece of evidence;
+`supersededGates()` at `:3155` is what decides it at run time), **with `coverage.moves` left empty.**
+**Which of the five S9 names is TO MEASURE AT INTEGRATION from `coverage.superseded.gates`, its
+evidence and the six `s9-*` mirrors, and this brief does not guess it; the PM's own line is
+obtained for it.** Review L1's measured recommendation, which this brief records without adopting:
+S8 already supersedes all five carriers and the six mirrors preserve that intent, so the same five
+are the likely answer, **conditional on the final executed evidence**. Same RULED terminal rule as
+10.1; the two functions
 share the single `ruledTerminal()` test on purpose, because a chain whose two ruling functions
 disagree about what a ruled line is has a hole wherever the weaker one stands.
 
 **10.3 THEME.** Feeds `authorizations.theme`, whose closed key set is
 `['ledgerLine','role','line','lineSha256']` with `role` exactly `cowork`, `line` a single line with
-no CR or LF, and `sha(line) === lineSha256` (`b-package.cjs:1161`, `:1292-:1296`). It is resolved at
+no CR or LF, and `sha(line) === lineSha256` (`b-package.cjs:1161` for `CLAIM_KEYS`, `:1326-:1330`
+for `claim()` itself, both re-located at `a224c7b0`). It is resolved at
 `CHAIN_REF`, not at the parent's receipt base, because it accepts work the parent never saw
-(`:2588-:2600`).
+(`:2622-:2634`).
 
-**There is no THEME token regex.** The requirement is on the LINE, at `b-package.cjs:1981-1982`:
+**There is no THEME token regex.** The requirement is on the LINE, at `b-package.cjs:2015-2016`:
 
 ```
 line.includes('M2-S9-UI-PINS') && line.endsWith(' · ACCEPTED')
@@ -888,11 +984,11 @@ that is, the line must name the package id and **END with SPACE, SEP, SPACE, `AC
 `THEME-LINE-DOES-NOT-BIND-THIS-PACKAGE-ID M2-S9-UI-PINS`.
 
 **10.4 BRIEF-BY-SHA.** Feeds `brief`, whose closed key set is `['file','sha256','acceptedLedgerLine']`
-(`b-package.cjs:1801`), with `acceptedLedgerLine` a claim of the same four keys. `file` is
+(`b-package.cjs:1835` at `a224c7b0`), with `acceptedLedgerLine` a claim of the same four keys. `file` is
 `rebuild/lanes/b/S9-UI-PINS-BRIEF.md` and `sha256` is the sha256 of the ACCEPTED bytes of this file,
 **TO MEASURE on the day it is accepted and not before, because this file is still being written.**
 
-**There is no BRIEF-BY-SHA token regex either.** The requirement, at `b-package.cjs:1805-1806`:
+**There is no BRIEF-BY-SHA token regex either.** The requirement, at `b-package.cjs:1839-1840`:
 
 ```
 line.includes('M2-S9-UI-PINS') && line.includes('rebuild/lanes/b/S9-UI-PINS-BRIEF.md')
@@ -902,14 +998,15 @@ line.includes('M2-S9-UI-PINS') && line.includes('rebuild/lanes/b/S9-UI-PINS-BRIE
 that is, the line names the package id AND the brief path AND ends in `ACCEPTED` preceded by a space
 or by SEP. A non-null citation additionally forces `status === 'BRIEF-ACCEPTED'`
 (`BRIEF-ACCEPTANCE-STATUS`), and `status: 'BRIEF-ACCEPTED'` with a null citation refuses
-`BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE` (`:1811-:1812`).
+`BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE` (`:1845-:1846`, with `BRIEF-ACCEPTANCE-STATUS` itself
+at `:1838`).
 
 **10.5 The two terminals do not conflict, and the PM has ruled it.** `DECISIONS:567`'s P-A7 says
 every M2-S9-UI-PINS token line ends in a separator then the bare word `RULED`; the runner requires
 the THEME and brief-acceptance lines to end in `ACCEPTED`. **RULED: P-A7 speaks of the GRANT KINDS
 only.** The two grants, `RELEASE-FROM-SEAL` and `GATE-SUPERSESSION`, stand on lines whose final
 clause is exactly `RULED`. The THEME citation line and the BRIEF-BY-SHA citation line end
-`ACCEPTED`, exactly as the runner enforces them at `:1981` and `:1806`. **This is settled and no
+`ACCEPTED`, exactly as the runner enforces them at `:2015` and `:1840` at `a224c7b0`. **This is settled and no
 grammar is invented here.** A practical consequence the PM writes around: one ledger line cannot
 carry a grant and a theme acceptance at once, because its last clause cannot be both words.
 
@@ -1053,12 +1150,19 @@ which is why no F2 or fence post-image in section 2 is presented as final; (11) 
 corrected at `6f808cfa` (section 9 item 5).
 
 **12.1 OPEN, and this brief does not close it: E fact 17 against the runner's
-`PRODUCT-PINNED-UNCHANGED-IS-NOT-EXECUTED-BY-A-DECLARED-CHILD`.** Measured in section 2.4.1: four
-of the six `pinned-unchanged` declarations refuse by name at the runner as it stands at `397ac466`,
-because no file in `rebuild/` reaches those four documents through a relative literal specifier of
-the four shapes `executedClosure()` reads. Three dispositions are named with their cost and none is
-recommended. **The PM rules this, and until then the sentence in E fact 17 and the assert at
-`b-package.cjs:1896` cannot both be right as written.**
+`PRODUCT-PINNED-UNCHANGED-IS-NOT-EXECUTED-BY-A-DECLARED-CHILD`.** Re-measured in loop round 1 and
+stated in section 2.4.1: four
+of the six `pinned-unchanged` declarations refuse by name at the runner as it stands at the
+ACCEPTED head `a224c7b0`, because no file in `rebuild/` reaches those four documents through a
+relative literal specifier of
+the four shapes `executedClosure()` reads; the real closure over the four today targets reaches
+**0 of 4 documents and 2 of 2 writers**, uncapped. **Review L1 CONFIRMED the refusal, REFUTED
+disposition (a) by execution and RECOMMENDS (b); its measurements and its recommendation now stand
+beside all three dispositions in the table at 2.4.1.** Review L1's N2 measurement additionally shows
+that two of the four documents are named only in a COMMENT of `design.cjs`, not in its runtime
+`APPROVED` array. **THIS ITEM REMAINS OPEN AND NEITHER THE AUTHOR NOR THE REVIEWER PICKS A
+DISPOSITION. The PM rules it**, and until then the sentence in E fact 17 and the assert at
+`b-package.cjs:1930` cannot both be right as written.
 
 **12.2 OPEN: whether the E21 and E22 CI steps carry `if: ${{ !cancelled() }}`.**
 `DECISIONS:570` says the PM must decide whether those steps also run after a standing-step failure
@@ -1072,8 +1176,13 @@ final and nothing downstream may take a pack number from section 3.1.** The one 
 C's row there, and the one place to record what survives is D-C-FINAL in section 8.
 
 **12.4 OPEN: which carriers the GATE-SUPERSESSION line names.** The vocabulary is the closed five
-(section 10.2); which of them S9 supersedes follows from the declared `coverage.moves` and the six
-`s9-*` mirrors, which are not measurable until integration. **This brief does not guess.**
+(section 10.2). **CORRECTED IN LOOP ROUND 1, review L1 B9: the input is NOT `coverage.moves`, which
+must be `{}` because `MOVES_RULING` is `null` (`b-package.cjs:198`, `:1952-:1954`, measured at
+`a224c7b0`).** Which of them S9 supersedes follows from `coverage.superseded.gates` and its
+per-carrier executed evidence, together with the six `s9-*` mirrors, none of which is measurable
+until integration; **and the PM's own line is obtained for it.** **This brief does not guess.**
+Review L1's recommendation, recorded and not adopted: the same five S8 supersedes, conditional on
+the final executed evidence.
 
 **12.5 A smaller one, recorded rather than resolved: "the N5 paper numbers".** This author read that
 instruction as the four stale statements review R6 found in B's author report, which the integrator

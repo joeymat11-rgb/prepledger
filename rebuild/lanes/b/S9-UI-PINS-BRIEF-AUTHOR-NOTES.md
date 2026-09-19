@@ -120,3 +120,69 @@ walk at `:2568`.
 Settled: one `edited` cell owed, three not. Section 2.6 corrected and the three named so the
 omission is a decision.
 
+### B9 supersession carriers - CORRECTED
+Command: read `MOVES_RULING` and the `coverage()` assert at `a224c7b0`.
+Output: `const MOVES_RULING = null;` at `:198`; the assert at `:1952-:1954` is
+`assert(MOVES_RULING !== null || !Object.keys(s.coverage.moves).length,
+'COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING ...; coverage.moves must be {} under this runner
+(TOOLING-REVIEW-r3 X1)')`. Review L1 EXECUTED it with `moves={'source-carriers':{}}` at `397ac466`
+and got `COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING source-carriers`.
+Settled: the carrier set comes from `coverage.superseded.gates` and its per-carrier executed
+evidence (`:1649` onward, `supersededGates()` at `:3155`), with `coverage.moves` left `{}`.
+Sections 10.2 and 12.4 corrected; the choice stays TO MEASURE AT INTEGRATION and the PM's line is
+obtained for it.
+
+### B10 commit checkpoints - CORRECTED
+Command: re-read the three asserts and the receipt return at `a224c7b0`.
+Output: `:1880` `assert.equal(gitSha('HEAD', RUNNER), s.tooling.runnerSha256,
+'RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER-IN-GIT')`; `:1886` the same shape for the spec,
+`SPEC-BYTES-NOT-THE-REVIEWED-SPEC-IN-GIT`; `sealedRunReceipt()` at `:3553` returns
+`{ok:false, code:'SEALED-RUN-RECEIPT-NOT-IN-GIT', file, at:'HEAD'}` at `:3564` and a second refusal
+at the receipt base at `:3575`; `sealedRunReceiptInstruction()` at `:3644`. Review L1 executed all
+three with distinct synthetic disk and Git bytes and got all three by name.
+Settled: section 6 steps 3, 4, 5 and 11 now carry the commit checkpoints, and step 11 names the
+receipt SHA-256 in `VERDICT-S9.md` before BYTE-IDENTITY is requested.
+
+### The runner line citations - CORRECTED throughout
+Command: `git diff -U0 397ac466 a224c7b0 -- rebuild/lanes/b/tooling/b-package.cjs`, then `grep -n`
+for each cited refusal name, constant and function at `a224c7b0`.
+Output: one file, 37 insertions, 3 deletions, hunks at old `1228,3` and `1234,0`; net +34 for every
+line at or above old `:1235`. Re-located by text and verified one by one: `:1871-:1872` to
+`:1905-:1906`; `:1896-:1897` to `:1930-:1931`; `:1992-:1995` to `:2026-:2029`; `:1292-:1296` to
+`:1326-:1330`; `:1408-:1410` to `:1442-:1444`; `:1418-:1421` to `:1452-:1455`; `:1474-:1504` to
+`:1508-:1538`; `:1478` to `:1512`; `:1485-:1488` to `:1519-:1522`; `:1501-:1504` to `:1535-:1538`;
+`:1519-:1547` to `:1553-:1581`; `:1801` to `:1835`; `:1805-:1806` to `:1839-:1840`; `:1811-:1812` to
+`:1845-:1846`; `:1981-:1982` to `:2015-:2016`; `:2419-:2420` to `:2453-:2454`; `:2588-:2600` to
+`:2622-:2634`; `:3320-:3327` to `:3354-:3361`; `:3408-:3420` to `:3442-:3454`. UNCHANGED, because
+they stand below the hunk: `:177`, `:198`, `:324`, `:329-:330`, `:341`, `:367`, `:371-:385`,
+`:427-:481`, `:453-:460`, `:531-:532`, `:750-:768`, `:926-:927`, `:971-:995`, `:980`, `:993`,
+`:1012`, `:1013`, `:1161`.
+Settled: every citation in the brief now names `a224c7b0`'s line.
+
+### N1 the C5 window prediction - CORRECTED
+Command: read `standingSeal()` at `rebuild/coach/test/engine-revision.test.cjs:54-80`.
+Output: four branches - sealed receipt; no receipt AND no spec (THROWS); spec not `BRIEF-ACCEPTED`
+(THROWS); spec `BRIEF-ACCEPTED` with `parent.chosen: S8` and `receipts/S8.json` present (returns the
+WINDOW state, expecting the PARENT receipt, which is the value section 4 keeps).
+Settled: C5 is red only between flipping the standing step and committing an accepted
+`packages/S9.json`, and GREEN for the rest of the window. Sections 3.5 and 5(a) corrected.
+
+### N2 design.cjs - CORRECTED, and it makes 12.1 worse rather than better
+Command: read `rebuild/m3/w7-preview/today/design.cjs:33-48` at the chain tip.
+Output: `:33-:42` is a `/* */` comment citing the HANDOFF line 9 and `MOCK.md` line 20 as an
+AUTHORITY; `const APPROVED = Object.freeze([...])` at `:43-:48` holds TWO entries, the two HTML
+paths, each with a `sha256`.
+Settled: two of the four documents are prose in a comment, not runtime data. Section 2.4.1
+corrected and the consequence carried into 12.1 and D-REFERENCE-CLOSURE.
+
+### N7 the S8 report citation - CORRECTED
+Command: read `rebuild/lanes/b/S8-PREP-AUTHOR-REPORT.md:115-121`.
+Output: `:117` is the heading `## 3. THE NEEDLE TABLE, MEASURED`; the instruction begins at `:119`.
+Settled: section 3.3 now cites `:119` onward.
+
+### N11 the fifth CHILD_SPECS cell - CORRECTED
+Command: search each of the five named cells at `a224c7b0` for the `'S9'` literal.
+Output: `food`, `machine-settings-ui`, `problem` and `setup` carry it; `measure/test/boundary.test.mjs`
+does NOT, its list still ends at `'S8'`.
+Settled: E fact 12 now reads FOUR BUILT, ONE TO DO, with the fifth post TO MEASURE.
+
