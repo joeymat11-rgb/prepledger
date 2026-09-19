@@ -199,7 +199,7 @@ a { text-decoration: none; }
 .greeting { font-family: var(--serif); font-size: 52px; line-height: 1; margin-top: 5px; letter-spacing: 0; text-shadow: var(--text-shadow); }
 .status-line { font-size: 15.5px; line-height: 1.3; color: var(--text-soft); margin-top: 8px; font-weight: 430; }
 .eyebrow { font-size: 12px; line-height: 1.3; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 450; }
-.link { display: inline-flex; align-items: center; min-height: var(--hit); font-size: 13.5px; font-weight: 450; color: var(--text); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, var(--text) 55%, transparent); }
+.link { display: inline-flex; align-items: center; min-height: var(--hit); min-width: var(--hit); font-size: 13.5px; font-weight: 450; color: var(--text); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, var(--text) 55%, transparent); }
 
 /* ---------- Timeline ---------- */
 .timeline { position: relative; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
