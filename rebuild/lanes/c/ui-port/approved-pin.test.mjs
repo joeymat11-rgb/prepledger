@@ -18,18 +18,36 @@
    pins into the 09-18 pack, this cell follows the move and says so by name instead of
    going quietly green over two files nothing points at any more.
 
-   THE FIVE REFUSALS. LIST-EMPTY (design.APPROVED names nothing, so the cell refuses rather
+   THE SIX REFUSALS. LIST-EMPTY (design.APPROVED names nothing, so the cell refuses rather
    than passing over an empty loop), UNLISTED (a named file with no literal entry: R4 N8,
    ADOPTED, and it is the refusal C-UI-1's own move creates), MISSING (a named file that is
    not on disk), NOT-A-REGULAR-FILE (R4 N1.2, ADOPTED: lstat, never follow a link) and
    MISMATCH. One refusal per named file, in that order, so one defect prints one line.
+   THEN ORPHAN (R1 BLOCKING-1): a literal entry the run-time list NO LONGER NAMES. The
+   first five all walk the list and ask the literal; ORPHAN walks the literal and asks the
+   list, and it is the only one of the six that can see a design.APPROVED that SHRANK. Put
+   the other way: UNLISTED catches a list that moved to files this cell never pinned,
+   ORPHAN catches a file this cell still pins that the list has let go of. Without it a
+   dropped 09-08 reference is covered by neither this cell nor PACK-PIN, whose root is
+   rebuild/m1/approved-2026-09-18/ only, and design.test.cjs:17's length assert is exactly
+   the line C.5.3 step 4 expects C-UI-1 to edit on the day it would have mattered.
+   ORPHAN lines come last, in path byte order, because they speak about this cell's own
+   literal rather than about the list. LIST-EMPTY is judged first and prints alone.
 
    BOTH OPERATING SYSTEMS (R4 N1.1, ADOPTED). Every path this cell prints is spelled the
    way design.APPROVED spells it: repository-root-relative, forward slashes, on every OS.
    It joins with the platform separator only to open the file and never to name it. The
    refusals come back in design.APPROVED's OWN ORDER, which is identical on both operating
-   systems and is the order design.cjs's own asserts speak in (approved[0], approved[1]);
-   the one place this cell sorts, the literal map's key order, sorts by path BYTES.
+   systems and is the order design.cjs's own asserts speak in (approved[0], approved[1]).
+   The two places this cell sorts - the literal map's key order, and the ORPHAN lines -
+   both sort by path BYTES, and a row proves each.
+
+   ONE RESIDUAL, STATED SO IT IS A DECISION (R1 N8). A design.APPROVED that names the SAME
+   file twice is green in the engine: the second visit asks the literal the same question
+   and gets the same answer. The live case is covered, because the row "design.APPROVED is
+   readable at run time" asserts the real list holds no duplicate; the engine's silence is
+   benign and deliberate, so that a caller may pass any list without the engine inventing
+   an opinion about its shape.
 
    THE LITERAL IS EMPTY ON THIS BRANCH, so the REAL ROW at the bottom FAILS BY NAME today:
    every file design.APPROVED names is UNLISTED. It does not skip and it cannot pass
@@ -102,6 +120,16 @@ function approvedPin(root, files, literal) {
     if (st === null) { refusals.push("APPROVED-PIN MISSING " + file); continue; }
     if (!st.isFile()) { refusals.push("APPROVED-PIN NOT-A-REGULAR-FILE " + file); continue; }
     if (sha256(fs.readFileSync(full)) !== literal[file]) refusals.push("APPROVED-PIN MISMATCH " + file);
+  }
+  /* THEN THE OTHER DIRECTION (R1 BLOCKING-1). Walking the run-time list only ever asks
+     "is this named file pinned?". This asks the inverse, "is this pinned file still
+     named?", which is the question a SHRINKING design.APPROVED answers badly: without it a
+     dropped file keeps a literal entry that nothing consults, and its bytes move in
+     silence. In path BYTE order, after every statement about a named file, because it is a
+     statement about THIS CELL'S LITERAL and not about the list. */
+  const named = new Set(files);
+  for (const key of Object.keys(literal).sort(byteCompare)) {
+    if (!named.has(key)) refusals.push("APPROVED-PIN ORPHAN " + key);
   }
   return refusals;
 }
@@ -242,7 +270,11 @@ test("the verdict comes from THIS cell's literal, never from design.APPROVED's s
   withRefs((root, files, literal) => {
     void files;
     const lying = Object.freeze({ ...literal, [REF_A]: "b".repeat(64) });
-    const mod = { APPROVED: [{ file: REF_A, sha256: sha256(txt(BODY[REF_A])) }] };
+    /* BOTH files are named, so this row stays about ONE fact: with ORPHAN in the engine, a
+       module that named only REF_A would also print ORPHAN REF_C, which is true and is
+       another row's business. */
+    const mod = { APPROVED: [{ file: REF_A, sha256: sha256(txt(BODY[REF_A])) },
+      { file: REF_C, sha256: sha256(txt(BODY[REF_C])) }] };
     assert.deepEqual(approvedPin(root, namesOf(mod), lying), ["APPROVED-PIN MISMATCH " + REF_A]);
   });
 });
@@ -459,10 +491,11 @@ export const REFUSALS = Object.freeze([
   "APPROVED-PIN MISSING",
   "APPROVED-PIN NOT-A-REGULAR-FILE",
   "APPROVED-PIN MISMATCH",
+  "APPROVED-PIN ORPHAN",
 ]);
 
-test("the refusal vocabulary is exactly five, and every one of them is reachable above", () => {
-  assert.equal(REFUSALS.length, 5);
+test("the refusal vocabulary is exactly six, and every one of them is reachable above", () => {
+  assert.equal(REFUSALS.length, 6);
   assert.deepEqual(REFUSALS, [...new Set(REFUSALS)]);
   for (const r of REFUSALS) assert.match(r, /^APPROVED-PIN [A-Z-]+$/);
 });
