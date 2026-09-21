@@ -1478,6 +1478,69 @@ test('GSS-LATE-COMPLETION / GSS-OUTCOME-PARITY keeps replacement ownership', asy
   refused.dom.window.close();
 });
 
+test('GSS-L1-1 mounted replacement Save retries after every older settlement', async () => {
+  const results = [];
+  for (const mode of ['success', 'refusal', 'rejection']) {
+    for (const theme of ['light', 'dark']) {
+      const dom = new JSDOM(shell(), { url: 'http://127.0.0.1/' });
+      const doc = dom.window.document, phone = doc.getElementById('phone');
+      doc.documentElement.dataset.theme = theme;
+      const held = gssDeferred();
+      let saves = 0, latest = null;
+      const view = { phase: 'active', startId: 'synthetic-start', title: 'Synthetic workout',
+        session: { instruction: { display: 'Synthetic workout' } },
+        lift: { id: 'synthetic-lift', label: 'Synthetic lift', index: 1, count: 1 },
+        set: { slot: 0, lift: 'synthetic-lift', position: 1 },
+        prescription: { reason: [], setup: null, line: 'Synthetic plan', effort: 'Synthetic effort' },
+        strip: [], entry: { load: null, reps: null, step: null }, previous: '', upNext: null, message: null };
+      const model = { day: DAY, read: async () => structuredClone(view), effortChoices: () => [],
+        start: async () => ({ ok: true }) };
+      const settings = { latest: async () => latest, save: async (machine) => {
+        saves += 1;
+        if (saves === 1) {
+          await held.promise;
+          if (mode === 'refusal') return { ok: false };
+        }
+        latest = { machine: structuredClone(machine) };
+        return { ok: true };
+      } };
+      const mounted = mountGym(doc, phone, { model, onBack: () => {}, settings });
+      await mounted; await mounted.settings.read(); await settle();
+      const pick = (selector) => phone.querySelector(selector);
+      const click = (selector) => { const control = pick(selector); assert(control, selector); control.click(); };
+      const type = (selector, value) => {
+        const control = pick(selector); control.value = value;
+        control.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+      };
+      click('[data-action="settings-open"]'); await settle();
+      type('[data-settings-name="0"]', 'Seat'); type('[data-settings-value="0"]', 'four');
+      click('[data-slot="settings-save"]');
+      const pending = mounted.settings.pending(); pending.catch(() => {});
+      assert.equal(saves, 1, mode + '/' + theme + ' first Save did not enter');
+      click('[data-action="settings-open"]'); await settle();
+      type('[data-settings-name="0"]', 'Seat'); type('[data-settings-value="0"]', 'five');
+      const editorBefore = pick('[data-slot="settings-editor"]'), focusBefore = doc.activeElement;
+      if (mode === 'rejection') held.reject(new Error('SYNTHETIC_BEFORE_WRITE'));
+      else held.resolve();
+      let rejected = false;
+      try { await pending; } catch (error) { rejected = error.message === 'SYNTHETIC_BEFORE_WRITE'; }
+      await settle();
+      const editorAfter = pick('[data-slot="settings-editor"]');
+      const after = { mode, theme, disabled: pick('[data-slot="settings-save"]').disabled,
+        hidden: editorAfter.hidden, typed: pick('[data-settings-value="0"]')?.value || null,
+        error: pick('[data-slot="settings-error"]').textContent,
+        rootReplaced: editorBefore !== editorAfter, focusReplaced: focusBefore !== doc.activeElement,
+        rejected };
+      click('[data-slot="settings-save"]'); await mounted.settings.pending().catch(() => {}); await settle();
+      results.push({ ...after, retrySaves: saves });
+      dom.window.close();
+    }
+  }
+  assert.deepEqual(results, results.map(({ mode, theme }) => ({ mode, theme, disabled: false,
+    hidden: false, typed: 'five', error: '', rootReplaced: mode === 'success',
+    focusReplaced: mode === 'success', rejected: mode === 'rejection', retrySaves: 2 })));
+});
+
 test('GSS-PENDING-GYM keeps cross-action exclusion and releases after rejection', async () => {
   const undoHeld = gssDeferred(), undoSettled = gssDeferred();
   const savedView = { phase: 'saved', startId: 'start-a', lift: { id: 'lift-a' },

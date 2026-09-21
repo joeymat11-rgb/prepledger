@@ -33,6 +33,10 @@ Authority: accepted specification at 6fe4d12c; no acceptance claimed
 - Candidate2: syntax 5/5; gym 65/65; UI 60/60; fence 401/401.
 - Immutable d1fa563 reds: listener identity 0/1; raw-copy depth 0/1.
 - Repaired candidate: lane/UI syntax 2/2 and expanded UI 65/65.
+- L1 REJECT: 6/6 replacement editors stayed disabled; baseline retried 6/6;
+  eight same-editor refusal/rejection controls retried.
+- Added mounted six-case GSS-L1-1 regression at test-only checkpoint; author
+  execution awaits the serialized runtime slot. Product bytes are unchanged.
 - Red/green logs: %TEMP%/gss-final-proof-b35a48e3.
 - Candidate versus helper/host reference: three deterministic separate-store
   sequences have equal complete serialized operations/outbox after reopen.
