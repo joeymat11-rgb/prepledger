@@ -23,6 +23,20 @@ SPACE_JOINERS = '\u2060'
 # line that holds nothing but the sign
 KEPT_NEWLINES = '\n\r'
 MINUS_SIGN = '\u2212'
+# The minus sign rule reads its own fold. A TAB is a cell boundary, not a space: a table cell
+# holding "\u22125" and the next cell holding "\u22128" are two separate numbers, and folding the
+# TAB between them to a space made the second one read as the far end of a range. So the minus
+# rule keeps the TAB, the line feed and the carriage return as breaks and splits on all three,
+# while the spaced hyphen test and the word sweeps keep the fold they were ruled to have: a TAB
+# beside a hyphen is a space a reader sees, and it folds.
+MINUS_BREAKS = '\n\r\t'
+# The closed list of characters that may stand directly in front of an honest negative number,
+# beside the start of a line: a space (after the fold), an opening bracket, brace or quotation
+# mark (Unicode's Ps and Pi, plus the two ASCII quotes), a colon, a slash, an equals sign, the
+# multiplication sign, and a currency symbol (Unicode's Sc). Anything else in front of the sign is
+# a dash doing a dash's job and fails: a letter (a word), a digit (a range), a comma, a full stop.
+MINUS_OPENER_CHARS = ' :/=\u00d7"\''
+MINUS_OPENER_CATEGORIES = ('Ps', 'Pi', 'Sc')
 # U+2043 HYPHEN BULLET and U+2053 SWUNG DASH draw the same stroke as a dash, and Unicode files them
 # under Po, other punctuation, so the category rule cannot reach them. They are the two neighbours
 # the category leaves out, named here rather than left to it.
@@ -61,30 +75,62 @@ def fold_spaces(text):
                    for c in text)
 
 
+def is_minus_opener(ch):
+    """May this character stand directly in front of an honest negative number?
+
+    The list is closed and it is named in MINUS_OPENER_CHARS and MINUS_OPENER_CATEGORIES above.
+    An empty string is the start of the line, which opens a number too. A character predicate is
+    not proof of meaning, so every clause of this rule carries a positive and a negative row in
+    quality/teeth.py rather than standing on its own.
+    """
+    if ch == '':
+        return True
+    return ch in MINUS_OPENER_CHARS or unicodedata.category(ch) in MINUS_OPENER_CATEGORIES
+
+
+def fold_for_minus(text):
+    """The string the minus sign rule reads: fold_spaces, plus the TAB kept as a break.
+
+    Every space a reader sees is written as one, exactly as fold_spaces does it, except that the
+    TAB joins the line feed and the carriage return as a break the rule splits on. A TAB reaches
+    the swept string through an attribute value or a "white-space: pre" context, where it is a
+    cell boundary rather than a word space.
+    """
+    return ''.join(c if c in MINUS_BREAKS else fold_spaces(c) for c in text)
+
+
 def minus_problems(text):
-    """U+2212 MINUS SIGN where it is doing a dash's job.
+    """U+2212 MINUS SIGN where it is doing a dash's job. Read fold_for_minus(text).
 
     The character is filed as a maths symbol rather than as punctuation, so the dash category does
-    not reach it, and it has two honest uses that a flat ban would refuse. It is a minus sign in front of
-    a negative number, which means a digit directly follows it, AND the character directly
-    before it is a space, the start of the line or an opening bracket, AND the nearest character
-    before it that is not a space is not a digit. A digit on each side is a range and a letter in
-    front of it is a word, and both of those are a dash. It is a control's label when it is the whole of its own
-    line in the swept string, which is how the decrement button beside a set's load reads
-    (app/states.js:113 and app/states-workout.js:270 draw the pair "minus" and "plus" around
-    "50 lb"). Measured on the prototype: sweeping it flatly made the state sheet
-    "418 renders, 2 with problems", W-18 ink and W-18 dawn, exit 1, on that button alone, and the
-    swept string puts its label on a line of its own. Anywhere else it is a dash and it fails.
+    not reach it, and it has two honest uses that a flat ban would refuse.
+
+    It is the sign of a negative number when all three of these hold: a digit directly follows it;
+    the character directly in front of it is one of the closed list of openers named above, or it
+    stands at the start of a line or a cell; and the nearest character in front of the sign which
+    is not a space is not a digit, because a digit across a space makes the pair a range. So
+    "(−5 lb)", "load:−5", "8/−5", "= −5", "8×−5", "$−5" and "5, −5" are
+    numbers and pass, while "3 −5", "3−5", "body−5", "today,−5" and "− one" are dashes and
+    fail. Two numbers in two cells are split by the TAB the browser puts between cells, so each is
+    read on its own; two numbers in one line of text with a space between them read as a range to
+    the athlete and to this rule alike, whatever elements the markup wrapped them in.
+
+    It is a control's label when it is the whole of its own line or cell in the swept string, which
+    is how the decrement button beside a set's load reads (app/states.js:113 and
+    app/states-workout.js:270 draw the pair "minus" and "plus" around "50 lb"). Measured on the
+    prototype: sweeping it flatly made the state sheet "418 renders, 2 with problems", W-18 ink and
+    W-18 dawn, exit 1, on that button alone, and the swept string puts its label on a line of its
+    own. Anywhere else it is a dash and it fails.
     """
-    for line in text.split('\n'):
+    for line in re.split('[' + MINUS_BREAKS + ']', text):
         if line.strip() == MINUS_SIGN:
             continue
         for m in re.finditer(MINUS_SIGN, line):
-            before = line[:m.start()].rstrip(' ')
-            # a negative number is opened by a space, a line start or a bracket, never by a letter
-            opener = (line[m.start() - 1:m.start()] if m.start() else '') in ('', ' ', '(', '[')
-            negative = (line[m.end():m.end() + 1].isdigit() and opener
-                        and not before[-1:].isdigit())
+            i = m.start()
+            opener = line[i - 1] if i else ''
+            head = line[:i].rstrip(' ')
+            negative = (line[m.end():m.end() + 1].isdigit() and is_minus_opener(opener)
+                        and not head[-1:].isdigit())
             if not negative:
                 return [MINUS_SIGN]
     return []
@@ -117,7 +163,8 @@ def copy_problems(text):
     folded = fold_spaces(text)
     bad = [SPACED_HYPHEN] if SPACED_HYPHEN in folded else []
     bad += sorted({c for c in text if is_dash(c)})
-    bad += minus_problems(folded)
+    # the minus rule reads its own fold, which keeps the TAB as a cell boundary
+    bad += minus_problems(fold_for_minus(text))
     bad += sorted({f'U+{ord(c):04X}' for c in text if unicodedata.category(c) == 'Cf'})
     low = sweep_form(text)
     bad += [w for w in READINESS if re.search(r'\b' + w + r'\b', low)]
