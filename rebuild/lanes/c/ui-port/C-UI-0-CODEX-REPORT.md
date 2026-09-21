@@ -23,8 +23,21 @@ independent q9/q11 teeth are present.
 Items 15 to 18: sampled scope, trusted-reference/accept limits, report identity,
 counts, precision, prose, and package pins are recorded.
 
-The saved code already addresses every current implementation item. No static
-counterexample justified a new defect fix or a red checkpoint in this pass.
+Blind review found item 4 open: statesheet selects only visible candidates, so
+an absent or hidden required primary has no named primary problem. Record drift
+can fail the render but does not prove the required control contract.
+
+## Item 4 red
+
+At 6c593603, independent contained runs found honest T-02 and intentional
+no-primary T-57 green at 2 renders, 0 problems. Removing T-02 #start or retaining
+it with visibility hidden exited 1 with 2 problems, but zero named `primary
+action` problems. Touched-file before/revert hashes matched.
+
+Durable rows z1 and z2 now require named hidden and absent failures for T-02;
+z3 keeps T-57 green. At the unchanged gate, z1/z2 disagree and z3 passes:
+3 enumerated, 3 run, 2 disagreeing. The first PATH-Python attempt lacked numpy
+and is environmental non-evidence. PM publication precedes implementation.
 
 ## Runtime prerequisites
 

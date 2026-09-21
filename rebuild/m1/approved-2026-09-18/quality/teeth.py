@@ -465,6 +465,18 @@ def mut_v15(work):
     append_css(work, '#recovery:hover, #recovery:active { background: #3a2f26 !important;'
                      ' border-color: #3a2f26 !important; }')
 
+def mut_z1(work):
+    # T-02's definition draws #start as its required action. Keeping the node while hiding it
+    # must fail the state-primary contract by name, not only through a changed baseline record.
+    append_css(work, '#start { visibility: hidden !important; }')
+
+def mut_z2(work):
+    # Remove only the action T-02's existing definition declares. The state still applies and
+    # renders, so only a state-specific required-primary contract can name the missing control.
+    sub(work, 'app/states-today.js',
+        "    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');",
+        "    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample');")
+
 T02_APPLY = ("  R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', "
              "component: 'sample note', apply: function (a) {\n")
 
@@ -563,6 +575,7 @@ GATE_WORKOUT = ['quality/gate.py', '--screens', 'workout', '--sizes', '393x852']
 SHEET_T02 = ['quality/statesheet.py', '--only', 'T-02']
 SHEET_T0 = ['quality/statesheet.py', '--only', 'T-0']
 SHEET_T84 = ['quality/statesheet.py', '--only', 'T-84']
+SHEET_T57 = ['quality/statesheet.py', '--only', 'T-57']
 GATE_BAD_SIZE = ['quality/gate.py', '--screens', 'today', '--sizes', '390x844']
 
 COPY_CHECK = 'copy: no dashes, readiness words, vendor names'
@@ -713,6 +726,12 @@ ROWS = [
      dict(exit=1, stdout=['" font size ', 'T-02'])),
     ('v15', 'a surface with a hover style and no pressed style of its own', mut_v15, GATE_TODAY,
      dict(exit=1, fails=[('pressed state on every tappable surface', '#recovery')])),
+    ('z1', "T-02's required primary retained but hidden", mut_z1, SHEET_T02,
+     dict(exit=1, stdout=['required primary action #start is not drawn', 'T-02'])),
+    ('z2', "T-02's required primary absent from the page", mut_z2, SHEET_T02,
+     dict(exit=1, stdout=['required primary action #start is not on the page', 'T-02'])),
+    ('z3', 'T-57 explanation-only panel intentionally has no primary', mut_none, SHEET_T57,
+     dict(exit=0, stdout=['0 with problems'], not_stdout=['required primary action'])),
     ('v16', 'teeth --only with an id this list does not carry', mut_none,
      ['quality/teeth.py', '--only', 'zzz'],
      dict(exit=2, stdout=['REFUSED', 'zzz', 'does not carry'])),
