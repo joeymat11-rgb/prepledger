@@ -2,7 +2,7 @@
  "version": 1,
  "lanePackage": "C-UI-0",
  "packageId": "C-UI-0-GATES-WITH-TEETH",
- "status": "PROPOSED, revised for reviews R1 to R5",
+ "status": "PROPOSED, revised for reviews R1 to R5 and for the PM second teeth audit, batches 1 and 2",
  "reviews": [
   {
    "round": "R1",
@@ -50,7 +50,7 @@
    "sha256": "c2093d23abdb17a4bc88962f6c75d38314c6b50ce350f48cb52089817012f110"
   }
  },
- "branch": "rebuild/c-ui-0-gates",
+ "branch": "rebuild/c-ui-0-gates-next (cut from 814f0a0; the audited branch rebuild/c-ui-0-gates is not to move again)",
  "sourceBase": "e0a6c8ef2b2c7421ca8deb64ade1a7ed7f4de688",
  "head": {
   "commit": "4bfa16062ead9cd2a8bba860b5f6701ad00cbb24",
@@ -655,7 +655,29 @@
     "exit": 0
    }
   },
-  "finalHead": "the lane lead re-runs the four gates on this round's final head on the owner's PC and states those numbers in the PR-READY line and in rebuild/lanes/STATUS.md, so the package does not need another commit after this one"
+  "finalHead": "the final head's Windows runs are reported on rebuild/lanes/STATUS.md by the lane lead",
+  "finalTreeAt814f0a0": {
+   "what": "the lane lead's runs on the owner's PC on the real tree at 814f0a0, 2026-09-19 13:35 to 14:00 ET (Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34)",
+   "gate": {
+    "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
+    "exit": 0,
+    "seconds": 89
+   },
+   "stateSheet": {
+    "summary": "STATE SHEET: 418 renders, 0 with problems",
+    "exit": 0,
+    "seconds": 528,
+    "worstMeasured": "nothing moved in 418 renders; advisory against the linux thumbnails, 1.26 of 2.00 C-63 ink"
+   },
+   "teeth": {
+    "summary": "TEETH: 46 rows, 0 disagreeing, 789 s",
+    "exit": 0
+   },
+   "phoneSheet": {
+    "summary": "python quality/phonesheet.py --state T-14 ran",
+    "exit": 0
+   }
+  }
  },
  "r3notes": {
   "round": "R3 notes, phases A and B",
@@ -677,5 +699,62 @@
   },
   "phaseB": "done. The lane lead ran \"python quality/statesheet.py --accept\" on the owner's PC at 3893530 and pushed 84512ce: 419 files, the 418 JSON records with each rect to two decimals and INDEX.json whose env gained the app digest. The 418 win32 thumbnails and states/win32/ENV.txt came out byte identical. The builder then ran the four gates on that tree.",
   "crossPlatformAtTwoDecimals": "the shared records were written by --accept on the owner's PC (Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34, DirectWrite) and judged by a full run in the builder's Linux sandbox (Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37, FreeType), both launched with common.LAUNCH_ARGS. With each rect held to two decimals and compared unrounded, 418 renders came back 0 with problems and the worst rect edge in the whole set moved 0.04 px of the 3 allowed, at W-05 ink element 22 \"Unsure\" left; colour 0.00 of 3. The round's platform claim is now measured at sub pixel precision rather than at whole pixels."
+ },
+ "audit2": {
+  "what": "the PM's independent second teeth audit, a different reviewer. The static half executed nothing, so every finding was a lead until it was reproduced here: red first, then the fix, then a teeth row that bites for the named reason.",
+  "sources": [
+   {
+    "file": "rebuild/lanes/astra/reviews/C-UI-0-STATIC-PRE-AUDIT.md",
+    "branch": "rebuild/r-astra-cui0-static",
+    "commit": "c30093aa",
+    "read at": "18c3b63",
+    "what": "the static pre-audit, nine findings, nothing executed"
+   },
+   {
+    "file": "rebuild/lanes/astra/reviews/C-UI-0-AUDIT2-R4-FIXES-STATIC.md",
+    "branch": "rebuild/r-astra-cui0-recheck",
+    "commit": "9dedb123",
+    "read at": "64a9e09",
+    "what": "the static re-check of the two R4 fixes, five notes, verdict fixes sound with notes"
+   }
+  ],
+  "rulings": [
+   "DECISIONS:593 the owner ruling that put the audit beside the lane round rather than after it",
+   "DECISIONS:594 batch 1: P-CUI-1 to P-CUI-3",
+   "DECISIONS:597 batch 2: finding 1 widened to all three walks, the paper items, and two things named for C-UI-GATES-2"
+  ],
+  "P-CUI-1": {
+   "finding 1": {
+    "lead": "a null offsetParent was read as hidden in the record walk and in both 44 px walks; inset() was parsed through its round radii; a text indent was read on inline text it does not move",
+    "red": "a 30 by 20 control positioned absolute and another positioned fixed: the gate named only \"abs20 30.00x20.00\" and never saw the fixed one",
+    "fix": "one shared common.JS_RENDERED (display, and a client rect) in all three walks and in the extra copy sweep; inset() parsed only up to \"round\"; the text indent exclusion read only on a block container",
+    "after": "the same scratch copy: \"abs20 30.00x20.00, fix20 30.00x20.00\"",
+    "rows": "u1 the paired control, u2 inset(0 round 50%), u3 a text indent on an inline span, both bitingon \"contrast (measured behind the text)\"",
+    "records": "unchanged: the approved prototype has no fixed or sticky position, no clip path and no text indent, so nothing enters or leaves a record"
+   },
+   "finding 3": {
+    "lead": "two raw text siblings of R4 B1: the set x sweep and the workout optional rule",
+    "red": "a fullwidth x in a set string and \"optional\" written with a fullwidth letter both passed",
+    "fix": "both read sweep_form now; the Pd and Cf scans keep reading the raw string so a report still names the character the markup carries",
+    "rows": "u4 and u5"
+   },
+   "finding 5": {
+    "lead": "the primary was tested for existing and for its bottom edge only, and the RIR chips' visible was a null offsetParent",
+    "red": "a primary pushed sideways, a primary at opacity 0 and a chip at visibility hidden all passed the checks that name them",
+    "fix": "wholly inside every edge, unrounded, and drawn by the shared test, on both gates; the sheet keeps silent about a state with no primary because its own rule promises nothing there; the chips use the shared test",
+    "rows": "u6, u7, u8"
+   },
+   "finding 6": {
+    "lead": "the tolerance promises 3 px on every edge and four were compared, so left plus 3 with width plus 3 moved the right edge 6 px and passed",
+    "red": "that mutation passed",
+    "fix": "right and bottom are derived from what the record already holds and compared unrounded, so no record changes",
+    "rows": "u9; h1 and h3 still agree, so the 2 px and 4 px sides of the tolerance are where they were"
+   },
+   "q5": "the catcher names the guarded render's own line, the state and the first line of the error it raised, instead of an exit code and a substring any other problem could supply"
+  },
+  "P-CUI-2": "findings 4 and 7: the standard's words are narrowed to what the code measures, beside each check. The check names in section 13's first column are untouched and still match the code exactly, 33 for 33. Widening any of those checks is C-UI-GATES-2.",
+  "P-CUI-3": "finding 9's paper drift closed (55 rows in both labels and the standard, q8 to q11 and u1 to u9 named in README's list, 0.04 px where the prose said 0.00, the --only prefix sentence, the U+2060 sentence as fold_spaces reads at this commit, and STANDARD's small box exclusions); finding 8 written in as two known limits with the rule that a baseline or record is only ever accepted from a run whose ordinary twin was green; the worst measured block's wording aligned with what the code prints; the re-check's note 2 written in as a known false red that fails closed.",
+  "C-UI-GATES-2": "the named home of what was narrowed or deferred: widening the sampled checks of findings 4 and 7, making accept transactional (finding 8), and a permanent teeth row for the state sheet's Refused branch (re-check note 5).",
+  "prototype": "nothing under app/ changed, and the prototype is green under every repaired check"
  }
 }

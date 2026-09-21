@@ -38,7 +38,7 @@ builder hits one of the open questions in section 6, each of which has a default
 | `quality/STANDARD.md` | the numbered UI standard (13 sections): layout, type, colour, scene, motion, copy, process, the chassis, the plates, and section 13, the full list of what the gates check | the ACCEPTANCE BAR for every screen and state |
 | `quality/gate.py` | 33 distinct checks on the six views, 372 result rows across three phone sizes, two themes and three screens (errors, motion, transitions with motion allowed and refused, copy, generated content the sweep cannot read, the multiplication sign in every set string, targets, fit, thumb zone, columns, page margin, card inner edge, icon inset, bottom safe area, spacing, type scale, radii, pressed states, contrast in two tiers measured behind the text, the two fonts by sha256 and by face, serif versus sans, the RIR lock, seams, mist edges, visual regression against `quality/baseline/<platform>/`) | the gate the port must pass on the real client |
 | `quality/statesheet.py` | renders every state in both themes, checks each (errors, copy, targets, primary in the first viewport, contrast in two tiers, label overflow, seams) and compares it to its committed record; 418 renders, exit 1 on any problem | the second gate |
-| `quality/teeth.py` | the executable mutation list: 55 forbidden changes applied one at a time to a scratch copy, each run through the scratch copy's own gate and asserted to fail for the stated reason | what proves the two gates can still refuse |
+| `quality/teeth.py` | the executable mutation list: 87 forbidden changes applied one at a time to a scratch copy, each run through the scratch copy's own gate and asserted to fail for the stated reason; its head line says how many rows were enumerated, how many ran and how many this platform did not run | what proves the two gates can still refuse |
 | `quality/phonesheet.py` | phone-zoom contact sheets in thirds, of the three base screens or of any drawn state (`--state T-40`) | what the reviewer looks at |
 | `quality/baseline/<platform>/*.png` and `ENV.txt` | the six accepted screen renders for the machine that drew them, and the OS, Python, playwright and Chromium versions of that machine and the launch list it used | what the regression check measures against |
 | `quality/baseline/states/<ID>-<theme>.json` and `INDEX.json` | one shared record per state and theme: the visible text, every text bearing element's text, rect, colour, family and size; and the list of ids and themes, with the machine and launch list that wrote them | what the state sheet measures against, on any platform: measured at a worst edge of 0.04 px and 0.00 levels across two operating systems (section 3.1) |
@@ -78,7 +78,9 @@ Standing rules from the owner (2026-09-17): no dashes in UI copy (no en or em da
 a full stop or the word "to"); no readiness words (ready, readiness, recovered, fatigued);
 no vendor or model names; everything offline; only the embers and the mist may animate and
 both are still under reduced motion; the plate is never directly behind text; every target
-is 44 px; the primary action sits in the first viewport; Log stays in the thumb zone.
+is 44 px, with two exclusions and no others (a box of zero width, and a box that is positioned
+absolute or fixed AND clipped to nothing, which is how the pack hides a label for assistive
+technology alone); the primary action sits in the first viewport; Log stays in the thumb zone.
 
 **Typeface note.** The prototype's sans is DM Sans (ruled). Its serif is Liberation Serif,
 a metric stand-in matched to the boards by eye; the boards' own serif is unnamed. It reads
@@ -337,7 +339,7 @@ no report is committed, and that a reviewer reads the baseline diff in the pull 
 
 **`quality/teeth.py`** keeps all of this honest: it copies the pack to a scratch directory,
 applies one forbidden change at a time, runs the scratch copy's own gate against it and asserts
-the exact refusal. Fifty five rows: every row of the audit's mutation table, plus a dropped RIR
+the exact refusal. Eighty seven rows: every row of the audit's mutation table, plus a dropped RIR
 chip, a serif element switched to sans and a card moved 6 px off the margin, plus the rows the
 three review rounds added and the rows the PM's leads added. p1 takes the hinting argument out of
 `LAUNCH_ARGS` and the state sheet must FAIL on a moved rect, judged on T-84 where that mutation
@@ -350,12 +352,23 @@ leads (an unknown size, a listed word split by a soft hyphen, a horizontal bar a
 bullet, primary text tagged with a muted class and painted with the muted token, a state whose
 apply throws, and `--accept` pointed at another build), q8 to q11 are review R4's and R5's (a
 minus sign doing a dash's job, a spaced hyphen whose spaces are a tab and a no break space, a
-visible target behind an inert clip, and a minus sign as a range and against a letter), and u1
-to u9 are the second teeth audit's: a control positioned fixed that no walk could see, an
-`inset(0 round 50%)` that insets nothing, a text indent read on an inline box, a fullwidth x in
-a set string, "optional" written with a fullwidth letter, a primary pushed sideways, a primary
-at opacity 0, an RIR chip at visibility hidden, and a right edge moved 6 px by two 3 px moves. It prints a table and exits 1 if any row slips through, and a
-row whose anchor did not match is VOID, which is counted as disagreeing and never as a pass.
+visible target behind an inert clip, and a minus sign as a range and against a letter), and u1 to u9, v1 to v21, w1 to w9 and y1 and y2 are the second teeth audit's one list.
+u1 to u9: a control positioned fixed that no walk could see, an `inset(0 round 50%)` that insets
+nothing, a text indent read on an inline box, a fullwidth x in a set string, "optional" written
+with a fullwidth letter, a primary pushed sideways, a primary at opacity 0, an RIR chip at
+visibility hidden, and a right edge moved 6 px by two 3 px moves. v1 to v21: fixed copy and a
+fixed control on both gates, the same two hiding constructs on the state sheet, a fullwidth x
+judged by the sheet, a primary above the fold, a primary that is not on the page and one whose
+bottom edge is 0.3 px past the viewport, an RIR chip at opacity 0, one clipped away and one
+pushed off the side, a bottom edge moved 6 px by two 3 px moves, a 3.05 px move and a 0.51 px
+font size, a surface with a hover style and no pressed style, the four `--only` selections of
+`teeth.py` itself, and the phone sheet asked for a state whose apply throws and for one that
+applies. w1 to w9 are the minus sign and spaced hyphen clauses, each with its own row and with
+positive rows that assert the copy check did NOT fail on an honest number. y1 and y2 are the
+contrast tier: the same colour outside the muted recipe fails and inside it passes. It prints a
+table and exits 1 if any row slips through, and a row whose anchor did not match is VOID, which
+is counted as disagreeing and never as a pass. `--only` refuses in one line and exits 2 on an id
+the list does not carry, on a mixed selection and on a selection that names nothing.
 
 Rigor per LANES.md, screens tier: one independent Opus reviewer told to disagree (author is not
 the reviewer), CI green on both OS, and the two gates green; the PM (Fable) judges. No ticket
@@ -390,11 +403,17 @@ self-accepts. The builder's cells pin every copy string they move.
   to train" matches and "already" does not), and each vendor name as a plain substring. U+2212
   MINUS SIGN is filed as a maths symbol rather than as punctuation, so it is swept by a rule of
   its own: it fails unless it is the sign of a negative number, which means a digit directly
-  follows it, the character directly before it is a space, the start of the line or an opening
-  bracket, and the nearest character before it that is not a space is not a digit; or it is the
-  whole of its own line in the swept string, which is a control whose entire label is the sign. A
-  digit on each side is a range and a letter in front of it is a word, and both of those are a
-  dash. The prototype draws exactly
+  follows it, the character directly in front of it is one of a closed list of openers, or it
+  stands at the start of a line or a cell, and the nearest character before that opener which is
+  not a space is not a digit; or it is the whole of its own line or cell in the swept string,
+  which is a control whose entire label is the sign. The openers are a space (after the fold), an
+  opening bracket, brace or quotation mark (Unicode's Ps and Pi, plus the two ASCII quotes), a
+  colon, a slash, an equals sign, the multiplication sign, and a currency symbol (Unicode's Sc);
+  everything else in front of the sign is a dash, a letter (a word) and a digit (a range)
+  included. For this rule alone a TAB is a cell boundary and splits the string the way a line feed
+  and a carriage return do, because a TAB reaches the sweep through an attribute value or a
+  `white-space: pre` context; for the spaced hyphen and the word sweeps it folds to a space, as it
+  did. The prototype draws exactly
   that on a set's decrement button (`app/states.js:113`, `app/states-workout.js:270`); sweeping
   the character flatly made the state sheet `418 renders, 2 with problems` on W-18 alone, which
   is the measurement that shaped the rule. The one sweep that matters most had been written `r'\\b'`, which is a literal

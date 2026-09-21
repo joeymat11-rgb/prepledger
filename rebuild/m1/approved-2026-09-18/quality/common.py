@@ -23,6 +23,20 @@ SPACE_JOINERS = '\u2060'
 # line that holds nothing but the sign
 KEPT_NEWLINES = '\n\r'
 MINUS_SIGN = '\u2212'
+# The minus sign rule reads its own fold. A TAB is a cell boundary, not a space: a table cell
+# holding "\u22125" and the next cell holding "\u22128" are two separate numbers, and folding the
+# TAB between them to a space made the second one read as the far end of a range. So the minus
+# rule keeps the TAB, the line feed and the carriage return as breaks and splits on all three,
+# while the spaced hyphen test and the word sweeps keep the fold they were ruled to have: a TAB
+# beside a hyphen is a space a reader sees, and it folds.
+MINUS_BREAKS = '\n\r\t'
+# The closed list of characters that may stand directly in front of an honest negative number,
+# beside the start of a line: a space (after the fold), an opening bracket, brace or quotation
+# mark (Unicode's Ps and Pi, plus the two ASCII quotes), a colon, a slash, an equals sign, the
+# multiplication sign, and a currency symbol (Unicode's Sc). Anything else in front of the sign is
+# a dash doing a dash's job and fails: a letter (a word), a digit (a range), a comma, a full stop.
+MINUS_OPENER_CHARS = ' :/=\u00d7"\''
+MINUS_OPENER_CATEGORIES = ('Ps', 'Pi', 'Sc')
 # U+2043 HYPHEN BULLET and U+2053 SWUNG DASH draw the same stroke as a dash, and Unicode files them
 # under Po, other punctuation, so the category rule cannot reach them. They are the two neighbours
 # the category leaves out, named here rather than left to it.
@@ -61,30 +75,61 @@ def fold_spaces(text):
                    for c in text)
 
 
+def is_minus_opener(ch):
+    """May this character stand directly in front of an honest negative number?
+
+    The list is closed and it is named in MINUS_OPENER_CHARS and MINUS_OPENER_CATEGORIES above.
+    An empty string is the start of the line, which opens a number too. A character predicate is
+    not proof of meaning, so every clause of this rule carries a positive and a negative row in
+    quality/teeth.py rather than standing on its own.
+    """
+    if ch == '':
+        return True
+    return ch in MINUS_OPENER_CHARS or unicodedata.category(ch) in MINUS_OPENER_CATEGORIES
+
+
+def fold_for_minus(text):
+    """The string the minus sign rule reads: fold_spaces, plus the TAB kept as a break.
+
+    Every space a reader sees is written as one, exactly as fold_spaces does it, except that the
+    TAB joins the line feed and the carriage return as a break the rule splits on. A TAB reaches
+    the swept string through an attribute value or a "white-space: pre" context, where it is a
+    cell boundary rather than a word space.
+    """
+    return ''.join(c if c in MINUS_BREAKS else
+                   (' ' if (c in SPACE_JOINERS or c.isspace()) else c)
+                   for c in text)
+
+
 def minus_problems(text):
-    """U+2212 MINUS SIGN where it is doing a dash's job.
+    """U+2212 MINUS SIGN where it is doing a dash's job. Read fold_for_minus(text).
 
     The character is filed as a maths symbol rather than as punctuation, so the dash category does
-    not reach it, and it has two honest uses that a flat ban would refuse. It is a minus sign in front of
-    a negative number, which means a digit directly follows it, AND the character directly
-    before it is a space, the start of the line or an opening bracket, AND the nearest character
-    before it that is not a space is not a digit. A digit on each side is a range and a letter in
-    front of it is a word, and both of those are a dash. It is a control's label when it is the whole of its own
-    line in the swept string, which is how the decrement button beside a set's load reads
-    (app/states.js:113 and app/states-workout.js:270 draw the pair "minus" and "plus" around
-    "50 lb"). Measured on the prototype: sweeping it flatly made the state sheet
-    "418 renders, 2 with problems", W-18 ink and W-18 dawn, exit 1, on that button alone, and the
-    swept string puts its label on a line of its own. Anywhere else it is a dash and it fails.
+    not reach it, and it has two honest uses that a flat ban would refuse.
+
+    It is the sign of a negative number when all three of these hold: a digit directly follows it;
+    the character directly in front of it is one of the closed list of openers named above, or it
+    stands at the start of a line or a cell; and the nearest character before that opener which is
+    not a space is not a digit, because a digit there makes the pair a range. So "(−5 lb)",
+    "load: −5", "8/−5", "= −5", "8 × −5" and "$−5" are numbers and pass,
+    while "3 −5", "3−5", "body−5", "5, −5" and "− one" are dashes and fail.
+
+    It is a control's label when it is the whole of its own line or cell in the swept string, which
+    is how the decrement button beside a set's load reads (app/states.js:113 and
+    app/states-workout.js:270 draw the pair "minus" and "plus" around "50 lb"). Measured on the
+    prototype: sweeping it flatly made the state sheet "418 renders, 2 with problems", W-18 ink and
+    W-18 dawn, exit 1, on that button alone, and the swept string puts its label on a line of its
+    own. Anywhere else it is a dash and it fails.
     """
-    for line in text.split('\n'):
+    for line in re.split('[' + MINUS_BREAKS + ']', text):
         if line.strip() == MINUS_SIGN:
             continue
         for m in re.finditer(MINUS_SIGN, line):
-            before = line[:m.start()].rstrip(' ')
-            # a negative number is opened by a space, a line start or a bracket, never by a letter
-            opener = (line[m.start() - 1:m.start()] if m.start() else '') in ('', ' ', '(', '[')
-            negative = (line[m.end():m.end() + 1].isdigit() and opener
-                        and not before[-1:].isdigit())
+            i = m.start()
+            opener = line[i - 1] if i else ''
+            head = (line[:i - 1] if i else '').rstrip(' ')
+            negative = (line[m.end():m.end() + 1].isdigit() and is_minus_opener(opener)
+                        and not head[-1:].isdigit())
             if not negative:
                 return [MINUS_SIGN]
     return []
@@ -117,7 +162,8 @@ def copy_problems(text):
     folded = fold_spaces(text)
     bad = [SPACED_HYPHEN] if SPACED_HYPHEN in folded else []
     bad += sorted({c for c in text if is_dash(c)})
-    bad += minus_problems(folded)
+    # the minus rule reads its own fold, which keeps the TAB as a cell boundary
+    bad += minus_problems(fold_for_minus(text))
     bad += sorted({f'U+{ord(c):04X}' for c in text if unicodedata.category(c) == 'Cf'})
     low = sweep_form(text)
     bad += [w for w in READINESS if re.search(r'\b' + w + r'\b', low)]
@@ -150,6 +196,20 @@ MUTED_CLASSES = frozenset([
 ])
 # The two quiet greys are never body copy anywhere (app/app.css:36, 37 for Ink, 92, 93 for Dawn).
 QUIET_TOKENS = frozenset(['--muted', '--faint'])
+# A CLASS NAME ALONE NEVER LOWERS THE TIER. A status line relabelled with a class off the list
+# above, and painted any colour at all, used to drop to 3.0:1 and pass at 3.2 while only the
+# regression check went red. A muted class earns the lower tier only when the element is ALSO
+# painted with one of the quiet tokens the pack's own stylesheets give those classes, which are
+# these three and no others, read off every declaration that paints a class on the list:
+# --muted (app/app.css:192, 201, 210, 220, 224, 233, 253, 264, 270, 277, 278, 287, 299, 434, 439,
+# 444, 611, 646, 663; app/states.css:5, 33, 38, 50, 52, 57, 58, 70, 74, 77, 82, 104, 107;
+# app/states-workout.css:8, 16, 37, 38, 41; app/states-coach.css:5, 8, 37), --faint
+# (app/app.css:294, 329, 435) and --text-soft (app/app.css:280, 446, 647, 648, 662, 664, 834;
+# app/states.css:6, 77). The other colours those same classes take are --text, --good and --gold:
+# the first two are body colours and keep 4.5:1, and the gold marker rule below governs the third.
+MUTED_CLASS_TOKENS = frozenset(['--muted', '--faint', '--text-soft'])
+# the tokens both gates resolve a computed colour back to, so that tier_for can be given one
+QUIET_TOKEN_NAMES = ['--muted', '--faint', '--gold', '--text-soft']
 # The state colour (app/app.css:38 and 93) is the lower tier only where it is doing the job
 # STANDARD.md section 10 gives it, marking a state: the element carries one of the marker or
 # eyebrow classes, or its text is too short to be a sentence. A paragraph painted gold is body
@@ -213,9 +273,16 @@ def tier_for(cls, size, token, disabled=False, textlen=0):
     muted label, and because an inactive control is not something the athlete is being asked to
     read. The state colour sits there only when it is marking a state: a gold marker class, or a
     string shorter than a sentence. Gold on a paragraph is body copy and keeps 4.5:1.
+
+    A class name on its own lowers nothing. Muted is the pack's own recipe, a class off
+    MUTED_CLASSES painted with one of MUTED_CLASS_TOKENS, and a quiet token lowers the tier
+    wherever it is painted, class or no class. Relabelling primary copy without changing what
+    paints it leaves it at 4.5:1.
     """
     classes = set((cls or '').split())
-    if disabled or token in QUIET_TOKENS or (classes & MUTED_CLASSES) or size >= LARGE_TEXT_PX:
+    if disabled or size >= LARGE_TEXT_PX or token in QUIET_TOKENS:
+        return MUTED_RATIO
+    if (classes & MUTED_CLASSES) and token in MUTED_CLASS_TOKENS:
         return MUTED_RATIO
     if token == GOLD_TOKEN and ((classes & GOLD_MARKER_CLASSES) or textlen < GOLD_MARKER_CHARS):
         return MUTED_RATIO
@@ -338,6 +405,30 @@ def playwright_version():
         return 'unknown'
 
 
+def report_identity(root, mode, scope, chromium_version=''):
+    """The four lines every ordinary report carries, so that a report read on its own says what it
+    measured and what measured it.
+
+    No published report named the build it was pointed at, which matters most exactly where the
+    answer is not the pack's own prototype: the later tickets are judged with EARNED_APP set, and
+    a green report that does not name the client it measured is not evidence about that client.
+    So: the mode (ordinary, or which accept), the scope the run was narrowed to, the URL under
+    test with a digest of the pack's prototype when that is what was measured, and the versions
+    that drew it. One form, used by gate.py, statesheet.py and phonesheet.py.
+    """
+    env = os.environ.get('EARNED_APP')
+    if env:
+        where = (f'build under test: {env} (EARNED_APP: an external build, which this pack does '
+                 'not hold and takes no digest of)')
+    else:
+        where = f'build under test: {app_url()}, app digest {app_digest(root)}'
+    return [f'mode: {mode}',
+            f'scope: {scope}',
+            where,
+            f'versions: python {plat.python_version()}, playwright {playwright_version()}, '
+            f'chromium {chromium_version or "not recorded"}, platform {platform_key()}']
+
+
 def env_text(chromium_version, drew):
     """ENV.txt beside a committed set of baselines: the machine that drew them, how the browser
     was launched, and what was drawn. One form, written by gate.py beside the screen baselines
@@ -370,9 +461,28 @@ def env_text(chromium_version, drew):
 # nothing on screen escaped today, but a port will have one, and the shortcut also stood in both
 # 44 px walks, where it dropped such a control before any of the hidden text rules ran.
 #
-# So: one test, shared by the record walk, both target walks and the extra copy sweep. An element
-# is in the box tree when it has a client rect; display:none has none. Everything else the walks
-# exclude stays exactly as it was ruled.
+# THREE POLICIES, NOT ONE FILTER. One undifferentiated visibility test would be wrong, because the
+# three questions the scripts ask are different questions:
+#   1. IS THIS TEXT VISIBLE?  __seen below. It is the strict one: a box with area, inside the
+#      viewport, not hidden by visibility, by a walked opacity, by an empty clip path or by an
+#      indent that carries its line away. The record walk, both contrast walks, the primary's own
+#      "is it drawn" test and the RIR chips' "all visible" ask it, and nothing else does.
+#   2. IS THIS TARGET MEASURED?  __rendered plus __clippedAway. A finger can press a box a reader
+#      cannot read, so the 44 px walks measure every box in the box tree and excuse only the one
+#      construct the pack uses to hide a label from sight, an absolute or fixed box clipped to
+#      nothing. A box at opacity 0 or at inherited visibility hidden is still MEASURED against
+#      44 px, which is why rows rb2d and rb2e are red: conservative, and deliberately so.
+#   3. DOES A REQUIRED CONTROL EXIST, AND WHERE IS ITS BOX?  Neither of the above. A primary
+#      action that is not on the page, a card whose padding cannot be read, an icon with no box:
+#      each is named as missing by the check that requires it, never quietly dropped from a list
+#      and passed. The geometry and type walks that go with those rules (the page margin, the card
+#      inner edge, the icon inset, the safe area, the gaps, the type scale, the radii, the serif
+#      and sans walk, the face state and the underline check) read the box tree itself, __rendered
+#      and nothing narrower, because a box that is laid out is a box those rules govern.
+# __rendered is the floor under all three: an element is in the box tree when it has a client
+# rect, and display:none has none. It is strictly wider than the "!e.offsetParent" shortcut it
+# replaces, which also dropped every viewport fixed box, so no site that moved to it measures less
+# than it did. No bare offsetParent test is left in the three scripts.
 JS_RENDERED = """
     const __rendered=e=>{const cs=getComputedStyle(e);
       if(cs.display==='none')return false;

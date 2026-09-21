@@ -36,7 +36,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, worst_ratio, app_url, label_font,
                     Refused, JS_SWEPT_TEXT, JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS,
                     platform_key, playwright_version, env_text, app_digest,
-                    TAPPABLE_SELECTOR, TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED, sweep_form)
+                    TAPPABLE_SELECTOR, TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED, sweep_form,
+                    QUIET_TOKEN_NAMES, report_identity)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -85,18 +86,21 @@ JS_INFO = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!u
     ui.querySelectorAll('__TAPPABLE__').forEach(e=>{if(!__rendered(e)||__clippedAway(e))return;const r=e.getBoundingClientRect();if(r.width===0)return;
       const cs=getComputedStyle(e,'::before');let h=r.height,w=r.width;if(cs.content!=='none'&&cs.height&&cs.height!=='auto')h=Math.max(h,parseFloat(cs.height));
       if(h<__PX__||w<__PX__)small.push((e.id||e.className||e.tagName)+' '+side(w)+'x'+side(h))});
-    const prim=Array.from(document.querySelectorAll('.screen.is-active #start, .screen.is-active #log, .screen.is-active .mic-button, .screen.is-active .panel-primary')).find(e=>__seen(e)&&e.getBoundingClientRect().width>0)||null;
+    const cand=Array.from(document.querySelectorAll('.screen.is-active #start, .screen.is-active #log, .screen.is-active .mic-button, .screen.is-active .panel-primary'));
+    const prim=cand.find(e=>__seen(e)&&e.getBoundingClientRect().width>0)||null;
     const pr=prim?prim.getBoundingClientRect():null;
-    const overflow=[];ui.querySelectorAll('.primary, #log, .decision, .chip, .save').forEach(e=>{if(e.offsetParent===null)return;
+    const overflow=[];ui.querySelectorAll('.primary, #log, .decision, .chip, .save').forEach(e=>{if(!__rendered(e))return;
       if(e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1)overflow.push((e.id||e.className)+' '+e.textContent.trim().slice(0,24))});
     const sc=ui.querySelector(':scope > .body')||ui;
     return {text, small, overflow, scroll: sc.scrollHeight, client: sc.clientHeight,
-      prim: pr?[pr.top, pr.bottom, pr.left, pr.right]:null, applied: document.documentElement.getAttribute('data-state')}}"""
+      prim: pr?[pr.top, pr.bottom, pr.left, pr.right]:null,
+      cand: cand.map(e=>e.id||e.className||e.tagName),
+      applied: document.documentElement.getAttribute('data-state')}}"""
 
 JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];const out=[];
     __SEEN__
     const cs0=getComputedStyle(document.documentElement);const tok={};
-    ['--muted','--faint','--gold'].forEach(k=>{const v=cs0.getPropertyValue(k).trim().toLowerCase();if(v)tok[v]=k});
+    __TOKENS__.forEach(k=>{const v=cs0.getPropertyValue(k).trim().toLowerCase();if(v)tok[v]=k});
     const hex=s=>{const m=s.match(/\\d+/g);return m?'#'+m.slice(0,3).map(x=>(+x).toString(16).padStart(2,'0')).join(''):s.toLowerCase()};
     const off='button:disabled, input:disabled, select:disabled, textarea:disabled, fieldset:disabled';
     ui.querySelectorAll('*').forEach(e=>{if(!__seen(e))return;
@@ -131,11 +135,11 @@ JS_RECORD = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(
       const px=v=>Math.round(v*100)/100;   /* two decimals: "more than 3 px" then means what it says */
       els.push([norm(own), [px(r.left),px(r.top),px(r.width),px(r.height)],
         m?m.slice(0,3).map(Number):[0,0,0], cs.fontFamily.split(',')[0].replace(/["']/g,'').trim(),
-        Math.round(parseFloat(cs.fontSize)*10)/10])});
+        Math.round(parseFloat(cs.fontSize)*100)/100])});
     return {text: norm(said.join(' ')), els: els}}"""
 
 
-JS_BOXES = JS_BOXES.replace('__SEEN__', JS_SEEN)
+JS_BOXES = JS_BOXES.replace('__SEEN__', JS_SEEN).replace('__TOKENS__', json.dumps(QUIET_TOKEN_NAMES))
 JS_RECORD = JS_RECORD.replace('__SEEN__', JS_SEEN)
 JS_INFO = (JS_INFO.replace('__TAPPABLE__', TAPPABLE_SELECTOR).replace('__PX__', str(TARGET_PX))
            .replace('__CLIP__', JS_CLIPPED_AWAY).replace('__SEEN__', JS_SEEN))
@@ -463,7 +467,7 @@ async def main():
         write_env(chromium_version, states)
         written = len(pending)
     write_sheets(states)
-    write_report(rows, orphans, worst, written, cross, app_advisory())
+    write_report(rows, orphans, worst, written, cross, app_advisory(), chromium_version)
 
 
 async def render_one(pg, st, t, n0, errs, rows, worst, cross, pending):
@@ -529,6 +533,14 @@ async def render_one(pg, st, t, n0, errs, rows, worst, cross, pending):
             + ([f'left {pleft:.2f} < 0'] if pleft < 0 else []) + ([f'right {pright:.2f} > {W}'] if pright > W else [])
         if poff:
             problems.append('primary action outside the first viewport: ' + ', '.join(poff))
+    # A state whose primary is ON THE PAGE and not drawn is NOT a problem here, and the attempt to
+    # make it one was measured and withdrawn: 29 of the 209 states draw a panel or a sheet over
+    # the screen and leave the screen's primary in the markup behind it, so that rule reddened 58
+    # of 418 renders of the approved prototype (T-53 to T-59, T-61, T-68 to T-72, T-86, T-87,
+    # T-92, T-95, W-01 to W-04, W-35, W-44, C-02, C-06 to C-08, C-63, C-64, both themes each).
+    # Which states owe a drawn primary is a property of the state, and the states are declared in
+    # app/, which this ticket does not touch; the contract therefore belongs to C-UI-GATES-2 with
+    # the driver declaring it. info['cand'] names what was on the page: measured, and not judged.
     # the committed record
     if rec is None:
         problems.append('the screen could not be recorded')
@@ -597,13 +609,17 @@ def report_name():
     return 'states-report' + ('-' + ONLY.rstrip('-') if ONLY else '') + '.txt'
 
 
-def write_report(rows, orphans, worst, written=0, cross=None, advisory=''):
+def write_report(rows, orphans, worst, written=0, cross=None, advisory='', chromium_version=''):
     bad = [r for r in rows if r[4]]
     head = (f'STATE SHEET: {len(rows)} renders, {len(bad)} with problems'
             + (f', {len(orphans)} records with no state' if orphans else '')
             + (f', {len(rows)} SET' if ACCEPT else '')
             + (f', {written} SET' if written else ''))
-    lines = [head, '']
+    mode = ('ACCEPT: it wrote the shared records, the index and this platform\'s thumbnails'
+            if ACCEPT else 'ACCEPT THUMBS: it compared every other half of every record'
+            if ACCEPT_THUMBS else 'ordinary run')
+    lines = [head] + report_identity(ROOT, mode, f'states {ONLY}' if ONLY else 'every registered state',
+                                     chromium_version) + ['']
     if ACCEPT:
         lines = ['ACCEPT RUN: the state records compared nothing'] + lines
     elif ACCEPT_THUMBS:
