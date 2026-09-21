@@ -94,7 +94,7 @@ function genSession(s, iso, slp) {
   const pool = _sessionPool(s, dt);
   const ex = pool.map((e) => {
     const isDebutNow = active.has(e.id);
-    const q = isDebutNow ? s.queue.find((x) => x.exId === e.id && !x.done && (x.kind === "debut" || x.kind === "unlock")) : null;
+    const q = isDebutNow ? s.queue.find((x) => x.exId === e.id && !x.done && x.state !== "PROPOSED" && (x.kind === "debut" || x.kind === "unlock")) : null;
     const w = q && q.newW != null ? q.newW : e.w;
     /* NATIVE-NEXT-TARGETS — the card reads the governing last line and metadata
        through the shared source-owned helpers (legacy-only: the same cache). */
