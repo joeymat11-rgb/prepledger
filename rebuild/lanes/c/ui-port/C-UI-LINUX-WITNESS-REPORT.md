@@ -1,9 +1,12 @@
 # C-UI Linux witness author report
 
 Role: auxiliary Sol workflow builder, not reviewer or PM.
-Status: PROPOSED workflow only; it has not been pushed or executed.
+Status: PROPOSED correction; no Linux gate has executed.
 Bound candidate: cf14982050a8169c7f4848ec0bf1f69c2bb5759f.
 Auxiliary branch: rebuild/ops-cui-linux.
+Run 35662825212 failed in preflight before install or either gate. The pinned
+checkout leaves cone mode unset and frames its pattern with a leading blank.
+Reproductions now hold default false and exactly one nonempty approved pattern.
 
 ## Scope
 

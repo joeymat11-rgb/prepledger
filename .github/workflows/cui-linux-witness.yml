@@ -47,19 +47,35 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$CANDIDATE"
-          test "$(git config --bool core.sparseCheckout)" = true
-          test "$(git config --bool core.sparseCheckoutCone)" = false
-          test "$(cat .git/info/sparse-checkout)" = "/rebuild/m1/approved-2026-09-18/"
-          test ! -e app.js
-          test ! -e src
-          test ! -e ledger
-          test ! -e rebuild/conform/private
+          fail() { echo "::error title=CUI witness preflight::$1"; exit 1; }
+          candidate_head=$(git rev-parse HEAD) || fail "cannot read candidate HEAD"
+          test "$candidate_head" = "$CANDIDATE" || fail "candidate HEAD mismatch"
+          sparse=$(git config --bool --default false core.sparseCheckout) \
+            || fail "cannot read sparse-checkout mode"
+          test "$sparse" = true || fail "sparse checkout is not enabled"
+          cone=$(git config --bool --default false core.sparseCheckoutCone) \
+            || fail "cannot read cone mode"
+          test "$cone" = false || fail "cone mode is enabled"
+          mapfile -t pattern_lines < .git/info/sparse-checkout \
+            || fail "cannot read sparse pattern"
+          nonempty_patterns=()
+          for line in "${pattern_lines[@]}"; do
+            test -z "$line" || nonempty_patterns+=("$line")
+          done
+          test "${#nonempty_patterns[@]}" -eq 1 \
+            || fail "sparse pattern file has other nonempty patterns"
+          test "${nonempty_patterns[0]}" = "/rebuild/m1/approved-2026-09-18/" \
+            || fail "sparse pattern is not the exact pack"
+          test ! -e app.js || fail "old app root was populated"
+          test ! -e src || fail "old source root was populated"
+          test ! -e ledger || fail "ledger root was populated"
+          test ! -e rebuild/conform/private || fail "private path was populated"
           unexpected=$(find . -path './.git' -prune -o -type f \
-            ! -path "./$PACK/*" -print -quit)
-          test -z "$unexpected"
-          link_before=$(find "$PACK" -type l -print -quit) || exit 1
-          test -z "$link_before"
+            ! -path "./$PACK/*" -print -quit) || fail "footprint walk failed"
+          test -z "$unexpected" || fail "a file outside the exact pack was populated"
+          link_before=$(find "$PACK" -type l -print -quit) \
+            || fail "symlink walk failed"
+          test -z "$link_before" || fail "the pack contains a symlink"
           digest() {
             git ls-files -z -- "$1" | xargs -0 sha256sum | sha256sum | cut -d' ' -f1
           }
@@ -67,17 +83,24 @@ jobs:
             find "$1" -type f ! -path "$PACK/quality/run/*" -print0 \
               | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1
           }
-          candidate_head=$(git rev-parse HEAD) || exit 1
-          pack_tracked_count=$(git ls-files -- "$PACK" | wc -l) || exit 1
-          baseline_tracked_count=$(git ls-files -- "$PACK/quality/baseline" | wc -l) || exit 1
-          test "$pack_tracked_count" -gt 0
-          test "$baseline_tracked_count" -gt 0
-          pack_before=$(digest "$PACK") || exit 1
-          baseline_before=$(digest "$PACK/quality/baseline") || exit 1
-          pack_footprint_before=$(footprint "$PACK") || exit 1
-          baseline_footprint_before=$(footprint "$PACK/quality/baseline") || exit 1
-          pack_file_count_before=$(find "$PACK" -type f ! -path "$PACK/quality/run/*" | wc -l) || exit 1
-          baseline_file_count_before=$(find "$PACK/quality/baseline" -type f | wc -l) || exit 1
+          pack_tracked_count=$(git ls-files -- "$PACK" | wc -l) \
+            || fail "cannot count tracked pack files"
+          baseline_tracked_count=$(git ls-files -- "$PACK/quality/baseline" | wc -l) \
+            || fail "cannot count tracked baseline files"
+          test "$pack_tracked_count" -gt 0 || fail "tracked pack is empty"
+          test "$baseline_tracked_count" -gt 0 || fail "tracked baseline is empty"
+          pack_before=$(digest "$PACK") || fail "cannot hash tracked pack"
+          baseline_before=$(digest "$PACK/quality/baseline") \
+            || fail "cannot hash tracked baseline"
+          pack_footprint_before=$(footprint "$PACK") \
+            || fail "cannot hash actual pack footprint"
+          baseline_footprint_before=$(footprint "$PACK/quality/baseline") \
+            || fail "cannot hash actual baseline footprint"
+          pack_file_count_before=$(find "$PACK" -type f \
+            ! -path "$PACK/quality/run/*" | wc -l) \
+            || fail "cannot count actual pack files"
+          baseline_file_count_before=$(find "$PACK/quality/baseline" -type f | wc -l) \
+            || fail "cannot count actual baseline files"
           {
             echo "candidate=$CANDIDATE"
             echo "candidate_head=$candidate_head"
