@@ -199,9 +199,10 @@ JS_FACES = """()=>{const out=[];for(const ss of document.styleSheets){let rs;try
     return out}"""
 
 JS_FACE_STATE = """([serifSel,sansSel])=>{const out={status:{},elems:{}};
+    __RENDERED__
     out.check={serif:document.fonts.check('16px "Earned Serif"'), sans:document.fonts.check('16px "Earned Sans"')};
     document.fonts.forEach(f=>{if(!(f.family in out.status)||f.status==='loaded')out.status[f.family]=f.status});
-    const fam=sel=>{const e=document.querySelector('.screen.is-active '+sel);return e&&e.offsetParent?getComputedStyle(e).fontFamily.split(',')[0].replace(/["']/g,'').trim():null};
+    const fam=sel=>{const e=document.querySelector('.screen.is-active '+sel);return e&&__rendered(e)?getComputedStyle(e).fontFamily.split(',')[0].replace(/["']/g,'').trim():null};
     out.elems.serif=[serifSel,fam(serifSel)]; out.elems.sans=[sansSel,fam(sansSel)];
     const cv=document.createElement('canvas');cv.width=560;cv.height=72;const c=cv.getContext('2d');
     const probe='Earned 105 lb Hamburgefonstiv';
@@ -213,14 +214,15 @@ JS_FACE_STATE = """([serifSel,sansSel])=>{const out={status:{},elems:{}};
     return out}"""
 
 JS_FONTMAP = """(serifSels)=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return null;
+    __RENDERED__
     const out={missing:[],wrongSerif:[],notSans:[]};const serifEls=new Set();
     const first=e=>getComputedStyle(e).fontFamily.split(',')[0].replace(/["']/g,'').trim();
     serifSels.forEach(s=>{const l=document.querySelectorAll('.screen.is-active '+s);
       if(!l.length){out.missing.push(s+' is not on the page');return}
-      let seen=false;l.forEach(e=>{serifEls.add(e);if(!e.offsetParent)return;seen=true;
+      let seen=false;l.forEach(e=>{serifEls.add(e);if(!__rendered(e))return;seen=true;
         const f=first(e);if(f!=='Earned Serif')out.wrongSerif.push(s+' is '+f)});
       if(!seen)out.missing.push(s+' is not on the page')});
-    ui.querySelectorAll('*').forEach(e=>{if(!e.offsetParent||serifEls.has(e))return;
+    ui.querySelectorAll('*').forEach(e=>{if(!__rendered(e)||serifEls.has(e))return;
       const has=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim());if(!has)return;
       const f=first(e);if(f!=='Earned Sans')out.notSans.push((e.id||e.className||e.tagName)+' is '+f)});
     return out}"""
@@ -231,42 +233,60 @@ JS_RIR = """()=>{const wrap=document.querySelector('.screen.is-active #rir');if(
 JS_RIR = JS_RIR.replace('__SEEN__', JS_SEEN)
 
 JS_MARGIN = """(inner)=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];
+    __RENDERED__
     const body=ui.querySelector(':scope > .body'), stack=ui.querySelector(':scope > .stack');const out=[];
-    const vis=l=>[...l].filter(e=>e.offsetParent&&e.getBoundingClientRect().width>0&&e.getBoundingClientRect().height>0);
+    const vis=l=>[...l].filter(e=>__rendered(e)&&e.getBoundingClientRect().width>0&&e.getBoundingClientRect().height>0);
     const add=(e,side)=>{const r=e.getBoundingClientRect();out.push([(e.id||e.className||e.tagName),Math.round(r.left*10)/10,Math.round(r.right*10)/10,side])};
     if(body||stack){[body,stack].forEach(c=>{if(c)vis(c.children).forEach(e=>add(e,'both'))})}else{vis(ui.children).forEach(e=>add(e,'both'))}
-    inner.forEach(([sel,side])=>{document.querySelectorAll('.screen.is-active '+sel).forEach(e=>{if(!e.offsetParent)return;add(e,side)})});
+    inner.forEach(([sel,side])=>{document.querySelectorAll('.screen.is-active '+sel).forEach(e=>{if(!__rendered(e))return;add(e,side)})});
     return out}"""
 
-JS_PAD = """(pairs)=>{const out=[];pairs.forEach(([sel,side])=>{const e=document.querySelector('.screen.is-active '+sel);
-    if(!e||!e.offsetParent){out.push([sel,side,null]);return}out.push([sel,side,parseFloat(getComputedStyle(e)[side])])});return out}"""
+JS_PAD = """(pairs)=>{const out=[];__RENDERED__
+    pairs.forEach(([sel,side])=>{const e=document.querySelector('.screen.is-active '+sel);
+    if(!e||!__rendered(e)){out.push([sel,side,null]);return}out.push([sel,side,parseFloat(getComputedStyle(e)[side])])});return out}"""
 
-JS_ICON_INSET = """(pairs)=>{const out=[];pairs.forEach(([c,i])=>{const ce=document.querySelector('.screen.is-active '+c),ie=document.querySelector('.screen.is-active '+i);
-    if(!ce||!ie||!ce.offsetParent||!ie.offsetParent){out.push([c,null]);return}
+JS_ICON_INSET = """(pairs)=>{const out=[];__RENDERED__
+    pairs.forEach(([c,i])=>{const ce=document.querySelector('.screen.is-active '+c),ie=document.querySelector('.screen.is-active '+i);
+    if(!ce||!ie||!__rendered(ce)||!__rendered(ie)){out.push([c,null]);return}
     const cr=ce.getBoundingClientRect(),ir=ie.getBoundingClientRect();
     out.push([c, Math.round((ir.left-(cr.left+ce.clientLeft))*10)/10])});return out}"""
 
 JS_SAFE = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return null;
+    __RENDERED__
     const stack=ui.querySelector(':scope > .stack')||ui;
-    const kids=[...stack.children].filter(e=>e.offsetParent&&e.getBoundingClientRect().height>0);
+    const kids=[...stack.children].filter(e=>__rendered(e)&&e.getBoundingClientRect().height>0);
     const last=kids[kids.length-1];if(!last)return null;
     return {id:(last.id||last.className), bottom:Math.round(last.getBoundingClientRect().bottom*10)/10}}"""
 
 JS_GAPS = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];
+    __RENDERED__
     const body=ui.querySelector(':scope > .body'),stack=ui.querySelector(':scope > .stack');
-    const vis=l=>[...l].filter(e=>e.offsetParent&&!e.classList.contains('chrome')&&e.getBoundingClientRect().height>0);
+    const vis=l=>[...l].filter(e=>__rendered(e)&&!e.classList.contains('chrome')&&e.getBoundingClientRect().height>0);
     /* gaps are measured between siblings of one container; the seam between a scrolling body and its fixed stack is set by the content, not the scale */
     const groups=body?[vis(body.children),vis(stack?stack.children:[])]:[vis(ui.children)];const out=[];
     groups.forEach(kids=>{for(let i=1;i<kids.length;i++){const a=kids[i-1].getBoundingClientRect(),b=kids[i].getBoundingClientRect();
       out.push([kids[i-1].id||kids[i-1].className, kids[i].id||kids[i].className, Math.round((b.top-a.bottom)*10)/10])}});return out}"""
 
-JS_TYPE = """()=>{const sizes=new Set(),weights=new Set();document.querySelectorAll('.screen.is-active .ui *').forEach(e=>{if(!e.offsetParent)return;
+JS_TYPE = """()=>{const sizes=new Set(),weights=new Set();__RENDERED__
+    document.querySelectorAll('.screen.is-active .ui *').forEach(e=>{if(!__rendered(e))return;
     const has=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim());if(!has)return;const cs=getComputedStyle(e);
     sizes.add(parseFloat(cs.fontSize));weights.add(parseInt(cs.fontWeight))});return {sizes:[...sizes],weights:[...weights]}}"""
 
 JS_BOXES = JS_BOXES.replace('__SEEN__', JS_SEEN).replace('__TOKENS__', json.dumps(QUIET_TOKEN_NAMES))
 
-JS_RADII = """()=>{const out=new Set();document.querySelectorAll('.screen.is-active .tcard,.screen.is-active .rowcard,.screen.is-active .setcard,.screen.is-active .prompt,.screen.is-active .primary,.screen.is-active .log,.screen.is-active .edit,.screen.is-active .chip').forEach(e=>{if(e.offsetParent)out.add(getComputedStyle(e).borderTopLeftRadius)});return [...out]}"""
+JS_RADII = """()=>{const out=new Set();__RENDERED__
+    document.querySelectorAll('.screen.is-active .tcard,.screen.is-active .rowcard,.screen.is-active .setcard,.screen.is-active .prompt,.screen.is-active .primary,.screen.is-active .log,.screen.is-active .edit,.screen.is-active .chip').forEach(e=>{if(__rendered(e))out.add(getComputedStyle(e).borderTopLeftRadius)});return [...out]}"""
+
+JS_UNDERLINE = """()=>{__RENDERED__
+    return [...document.querySelectorAll('.screen.is-active .link')]
+      .filter(e=>__rendered(e)&&getComputedStyle(e).textDecorationLine.includes('underline'))
+      .map(e=>e.id||e.textContent)}"""
+
+# One substitution for every page script that measures a box: each asks common.JS_RENDERED, so no
+# script can keep a shortcut of its own and no bare offsetParent test is left in this file.
+for _name in ('JS_FACE_STATE', 'JS_FONTMAP', 'JS_MARGIN', 'JS_PAD', 'JS_ICON_INSET', 'JS_SAFE',
+              'JS_GAPS', 'JS_TYPE', 'JS_RADII', 'JS_UNDERLINE'):
+    globals()[_name] = globals()[_name].replace('__RENDERED__', JS_RENDERED)
 
 
 async def goto(pg, theme, screen, chrome=0, extra=''):
@@ -530,7 +550,7 @@ async def one_screen(pg, t, s, W, H, where):
         return
     # ---------- the column checks, the spacing scale, the underlines, the pressed states ----------
     await goto(pg, t, s)
-    ul = await pg.evaluate("()=>[...document.querySelectorAll('.screen.is-active .link')].filter(e=>e.offsetParent&&getComputedStyle(e).textDecorationLine.includes('underline')).map(e=>e.id||e.textContent)")
+    ul = await pg.evaluate(JS_UNDERLINE)
     rec('FAIL' if ul else 'PASS', 'tertiary links have no underline', where, ', '.join(ul))
     offs = []
     for gsel, csel in GLYPHS[s]:

@@ -86,13 +86,16 @@ JS_INFO = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!u
     ui.querySelectorAll('__TAPPABLE__').forEach(e=>{if(!__rendered(e)||__clippedAway(e))return;const r=e.getBoundingClientRect();if(r.width===0)return;
       const cs=getComputedStyle(e,'::before');let h=r.height,w=r.width;if(cs.content!=='none'&&cs.height&&cs.height!=='auto')h=Math.max(h,parseFloat(cs.height));
       if(h<__PX__||w<__PX__)small.push((e.id||e.className||e.tagName)+' '+side(w)+'x'+side(h))});
-    const prim=Array.from(document.querySelectorAll('.screen.is-active #start, .screen.is-active #log, .screen.is-active .mic-button, .screen.is-active .panel-primary')).find(e=>__seen(e)&&e.getBoundingClientRect().width>0)||null;
+    const cand=Array.from(document.querySelectorAll('.screen.is-active #start, .screen.is-active #log, .screen.is-active .mic-button, .screen.is-active .panel-primary'));
+    const prim=cand.find(e=>__seen(e)&&e.getBoundingClientRect().width>0)||null;
     const pr=prim?prim.getBoundingClientRect():null;
-    const overflow=[];ui.querySelectorAll('.primary, #log, .decision, .chip, .save').forEach(e=>{if(e.offsetParent===null)return;
+    const overflow=[];ui.querySelectorAll('.primary, #log, .decision, .chip, .save').forEach(e=>{if(!__rendered(e))return;
       if(e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1)overflow.push((e.id||e.className)+' '+e.textContent.trim().slice(0,24))});
     const sc=ui.querySelector(':scope > .body')||ui;
     return {text, small, overflow, scroll: sc.scrollHeight, client: sc.clientHeight,
-      prim: pr?[pr.top, pr.bottom, pr.left, pr.right]:null, applied: document.documentElement.getAttribute('data-state')}}"""
+      prim: pr?[pr.top, pr.bottom, pr.left, pr.right]:null,
+      cand: cand.map(e=>e.id||e.className||e.tagName),
+      applied: document.documentElement.getAttribute('data-state')}}"""
 
 JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];const out=[];
     __SEEN__
@@ -530,6 +533,14 @@ async def render_one(pg, st, t, n0, errs, rows, worst, cross, pending):
             + ([f'left {pleft:.2f} < 0'] if pleft < 0 else []) + ([f'right {pright:.2f} > {W}'] if pright > W else [])
         if poff:
             problems.append('primary action outside the first viewport: ' + ', '.join(poff))
+    # A state whose primary is ON THE PAGE and not drawn is NOT a problem here, and the attempt to
+    # make it one was measured and withdrawn: 29 of the 209 states draw a panel or a sheet over
+    # the screen and leave the screen's primary in the markup behind it, so that rule reddened 58
+    # of 418 renders of the approved prototype (T-53 to T-59, T-61, T-68 to T-72, T-86, T-87,
+    # T-92, T-95, W-01 to W-04, W-35, W-44, C-02, C-06 to C-08, C-63, C-64, both themes each).
+    # Which states owe a drawn primary is a property of the state, and the states are declared in
+    # app/, which this ticket does not touch; the contract therefore belongs to C-UI-GATES-2 with
+    # the driver declaring it. info['cand'] names what was on the page: measured, and not judged.
     # the committed record
     if rec is None:
         problems.append('the screen could not be recorded')

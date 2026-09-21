@@ -415,9 +415,28 @@ def env_text(chromium_version, drew):
 # nothing on screen escaped today, but a port will have one, and the shortcut also stood in both
 # 44 px walks, where it dropped such a control before any of the hidden text rules ran.
 #
-# So: one test, shared by the record walk, both target walks and the extra copy sweep. An element
-# is in the box tree when it has a client rect; display:none has none. Everything else the walks
-# exclude stays exactly as it was ruled.
+# THREE POLICIES, NOT ONE FILTER. One undifferentiated visibility test would be wrong, because the
+# three questions the scripts ask are different questions:
+#   1. IS THIS TEXT VISIBLE?  __seen below. It is the strict one: a box with area, inside the
+#      viewport, not hidden by visibility, by a walked opacity, by an empty clip path or by an
+#      indent that carries its line away. The record walk, both contrast walks, the primary's own
+#      "is it drawn" test and the RIR chips' "all visible" ask it, and nothing else does.
+#   2. IS THIS TARGET MEASURED?  __rendered plus __clippedAway. A finger can press a box a reader
+#      cannot read, so the 44 px walks measure every box in the box tree and excuse only the one
+#      construct the pack uses to hide a label from sight, an absolute or fixed box clipped to
+#      nothing. A box at opacity 0 or at inherited visibility hidden is still MEASURED against
+#      44 px, which is why rows rb2d and rb2e are red: conservative, and deliberately so.
+#   3. DOES A REQUIRED CONTROL EXIST, AND WHERE IS ITS BOX?  Neither of the above. A primary
+#      action that is not on the page, a card whose padding cannot be read, an icon with no box:
+#      each is named as missing by the check that requires it, never quietly dropped from a list
+#      and passed. The geometry and type walks that go with those rules (the page margin, the card
+#      inner edge, the icon inset, the safe area, the gaps, the type scale, the radii, the serif
+#      and sans walk, the face state and the underline check) read the box tree itself, __rendered
+#      and nothing narrower, because a box that is laid out is a box those rules govern.
+# __rendered is the floor under all three: an element is in the box tree when it has a client
+# rect, and display:none has none. It is strictly wider than the "!e.offsetParent" shortcut it
+# replaces, which also dropped every viewport fixed box, so no site that moved to it measures less
+# than it did. No bare offsetParent test is left in the three scripts.
 JS_RENDERED = """
     const __rendered=e=>{const cs=getComputedStyle(e);
       if(cs.display==='none')return false;
@@ -446,9 +465,10 @@ JS_SEEN = JS_RENDERED + """
       const r=e.getBoundingClientRect();
       if(r.width<=0||r.height<=0)return false;
       if(r.bottom<=0||r.right<=0||r.top>=window.innerHeight||r.left>=window.innerWidth)return false;
-      /* a text indent carries away the first line of a block container. It does not move an
-         inline box's own text, so the exclusion is only read where it really moves the text */
-      if(!/^inline/.test(cs.display)&&parseFloat(cs.textIndent||'0')<=-1000)return false;
+      /* a text indent carries away the first line of a block container, and an inline-block is
+         one. It does nothing to an inline box that declares it: that box's text moves only with
+         the line it sits on, and then its rect moves too and the viewport test above reads it */
+      if(cs.display!=='inline'&&parseFloat(cs.textIndent||'0')<=-1000)return false;
       const cp=(cs.clipPath||'none').trim();
       if(cp!=='none'&&__clipEmpty(cp,r))return false;
       return true};
