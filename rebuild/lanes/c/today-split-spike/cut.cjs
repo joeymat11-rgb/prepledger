@@ -60,6 +60,13 @@ const ONLY_REF = opt("witness", null);
    rather than inside an instrument. --only limits the cut to the files named, so a round
    that ships two of the three cuts cannot emit the third by accident. */
 const PRODUCT = argv.includes("--product");
+/* An instrument may deliberately feed a planted source through the region checks. The
+   mode is loud in the report and can never emit a product. Normal cuts are source-pinned. */
+const UNPINNED_INPUT = argv.includes("--unpinned-input");
+if (UNPINNED_INPUT && PRODUCT) {
+  console.error("REFUSED: --unpinned-input is an instrument mode and cannot be combined with --product.");
+  process.exit(1);
+}
 /* --no-replace is a MEASUREMENT mode and never a build mode (R1's closing note, "a
    regenerated CROSSINGS.md on the build's own output would be worth more than the prose").
    It witnesses every replace region exactly as usual and then leaves its released lines
@@ -129,6 +136,10 @@ if (!WITNESS || !REF_NAMES.length) {
     ". S-R19: a generator cannot be its own check. Run gen-witness.cjs at a named ref first.");
 }
 function sha256(s) { return crypto.createHash("sha256").update(s, "utf8").digest("hex"); }
+function gitBlobOid(bytes) {
+  return crypto.createHash("sha1").update(Buffer.from("blob " + bytes.length + "\0", "utf8"))
+    .update(bytes).digest("hex");
+}
 
 /* ---- THE DECLARED-TEXT WITNESS (R1 NOTE-1) ------------------------------------------
  * S-R19 closed "a generator cannot be its own check" on the PRE-IMAGE. R1 showed it was
@@ -633,15 +644,54 @@ fs.mkdirSync(OUT, { recursive: true });
 /* R1 NOTE-1: the declared TEXT is checked BEFORE a single source file is opened, so a
    tampered `to` refuses by row id and never reaches an output byte. */
 const DECLARED = checkDeclaredText();
-const report = { root: ROOT, files: {}, substitutions: [], seams: [], drift: [],
-  machineSeams: [], alignedSeams: [], witness: { refsOffered: REF_NAMES, byFile: {} },
+/* S-R31, THE SOURCE DOOR. Region digests can cover every moved byte and still miss a
+   planted binding in the released source around them. Pin the complete raw source blob,
+   including its exact CR/LF bytes, before resolving even one anchor. A new source needs a
+   new named ref and a visible re-witness. The only bypass is the loud instrument mode
+   above, which is forbidden for products. */
+const SOURCE_TEXT = new Map();
+const SOURCE_REFS = {};
+let commonSourceRefs = REF_NAMES.slice();
+for (const file of Object.keys(table.files)) {
+  if (ONLY.length && !ONLY.includes(file)) continue;
+  const rel = TODAY + "/" + file;
+  const raw = fs.readFileSync(path.join(ROOT, TODAY, file));
+  SOURCE_TEXT.set(file, raw.toString("utf8"));
+  if (UNPINNED_INPUT) {
+    SOURCE_REFS[file] = ["UNPINNED"];
+    continue;
+  }
+  const offered = [];
+  for (const refName of REF_NAMES) {
+    const row = WITNESS.sourceBlobs && WITNESS.sourceBlobs[refName]
+      && WITNESS.sourceBlobs[refName][file];
+    if (!row) fail("SOURCE BLOB IDENTITY MISSING: " + file + " at " + refName);
+    if (row.path !== rel || !/^[0-9a-f]{40}$/.test(String(row.oid))) {
+      fail("SOURCE BLOB IDENTITY INVALID: " + file + " at " + refName);
+    }
+    if (gitBlobOid(raw) === row.oid) offered.push(refName);
+  }
+  if (!offered.length) {
+    fail("SOURCE BLOB IDENTITY MISMATCH: " + file + " at " + REF_NAMES.join(" or "));
+  }
+  SOURCE_REFS[file] = offered;
+  commonSourceRefs = commonSourceRefs.filter((n) => offered.includes(n));
+}
+if (!UNPINNED_INPUT && !commonSourceRefs.length) {
+  fail("SOURCE BLOB IDENTITIES do not agree on one named ref across the cut sources");
+}
+
+const report = { inputMode: UNPINNED_INPUT ? "UNPINNED INSTRUMENT INPUT" : "PINNED SOURCE BLOBS",
+  root: ROOT, files: {}, substitutions: [], seams: [], drift: [],
+  machineSeams: [], alignedSeams: [], witness: {
+    refsOffered: REF_NAMES, sourceRefs: commonSourceRefs, sourceByFile: SOURCE_REFS, byFile: {}
+  },
   replacements: [], statementRewrites: [], unappliedSubstitutions: [] };
 const linemap = {};
 
 for (const [file, regions] of Object.entries(table.files)) {
   if (ONLY.length && !ONLY.includes(file)) continue;
-  const srcPath = path.join(ROOT, TODAY, file);
-  const src = fs.readFileSync(srcPath, "utf8");
+  const src = SOURCE_TEXT.get(file);
   const lines = src.split("\n");
   const resolved = regions.map((r) => ({ r, ...resolve(lines, r, file) }));
 
@@ -695,7 +745,7 @@ for (const [file, regions] of Object.entries(table.files)) {
   /* THE WITNESS, BEFORE ANY SUBSTITUTION (S-R19, S-R20). Every witnessed region of this
      file must match one recorded ref, and they must all match the SAME one: a table half at
      the tip and half at S9 is a table nobody took at any ref. */
-  let agree = REF_NAMES.slice();
+  let agree = UNPINNED_INPUT ? REF_NAMES.slice() : SOURCE_REFS[file].slice();
   for (const x of sorted) {
     if (!WITNESSED_KINDS.has(x.r.kind)) continue;
     const body = lines.slice(x.start - 1, x.end).join("\n");

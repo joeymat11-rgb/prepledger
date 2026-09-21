@@ -36,6 +36,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { spawnSync } = require("child_process");
 
 const argv = process.argv.slice(2);
 const opt = (n, d) => { const i = argv.indexOf("--" + n); return i >= 0 ? argv[i + 1] : d; };
@@ -60,6 +61,26 @@ const TODAY = table.today;
 const WITNESSED = new Set(["move", "replace"]);
 
 const sha256 = (s) => crypto.createHash("sha256").update(s, "utf8").digest("hex");
+const gitBlobOid = (bytes) => crypto.createHash("sha1")
+  .update(Buffer.from("blob " + bytes.length + "\0", "utf8")).update(bytes).digest("hex");
+function repoRoot() {
+  let d = __dirname;
+  for (let i = 0; i < 8; i += 1) {
+    if (fs.existsSync(path.join(d, ".git"))) return d;
+    d = path.dirname(d);
+  }
+  console.error("REFUSED: cannot find the repository above " + __dirname);
+  process.exit(1);
+}
+function refBlobOid(ref, rel) {
+  const res = spawnSync("git", ["-C", repoRoot(), "rev-parse", ref + ":" + rel],
+    { encoding: "utf8" });
+  if (res.status !== 0 || !/^[0-9a-f]{40}\s*$/.test(res.stdout || "")) {
+    console.error("REFUSED: cannot identify SOURCE blob " + rel + " at " + ref);
+    process.exit(1);
+  }
+  return res.stdout.trim();
+}
 
 /* ---- --declared: the DECLARED-TEXT witness (R1 NOTE-1) -------------------------------
  * The canonical serialization is the row's own identity and its two texts, and nothing
@@ -155,10 +176,23 @@ witness.refs.push({ name: REF_NAME, ref: REF, branch: BRANCH, taken: TAKEN });
 witness.refs.sort((a, b) => (a.name < b.name ? -1 : 1));
 witness.regions = witness.regions || {};
 witness.movedLines = witness.movedLines || {};
+witness.sourceBlobs = witness.sourceBlobs || {};
+witness.sourceBlobs[REF_NAME] = {};
 
 let n = 0;
 for (const [file, regions] of Object.entries(table.files)) {
-  const src = fs.readFileSync(path.join(ROOT, TODAY, file), "utf8");
+  const rel = TODAY + "/" + file;
+  const raw = fs.readFileSync(path.join(ROOT, TODAY, file));
+  const oid = gitBlobOid(raw);
+  const expected = refBlobOid(REF, rel);
+  if (oid !== expected) {
+    console.error("REFUSED: SOURCE BLOB IDENTITY MISMATCH: " + file + " at " + REF_NAME +
+      ". --root has " + oid + ", named ref " + REF + " has " + expected + ". " +
+      "Re-witnessing changed source requires a new ref.");
+    process.exit(1);
+  }
+  witness.sourceBlobs[REF_NAME][file] = { path: rel, oid };
+  const src = raw.toString("utf8");
   const lines = src.split("\n");
   let moved = 0;
   for (const r of regions) {

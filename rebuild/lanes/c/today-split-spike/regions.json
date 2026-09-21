@@ -4768,13 +4768,13 @@
     "name": "s9",
     "ref": "da9f86839d69a67dfa8c6a59b727aa518bc1164f",
     "branch": "rebuild/b-s9-ui-pins",
-    "taken": "2026-09-19"
+    "taken": "2026-09-21"
    },
    {
     "name": "tip",
     "ref": "4d2112c92ddffa3fafdd8cfd9dcd4180addb504c",
     "branch": "rebuild/t2-client-core",
-    "taken": "2026-09-19"
+    "taken": "2026-09-21"
    }
   ],
   "regions": {
@@ -8434,7 +8434,7 @@
    }
   },
   "declared": {
-   "taken": "2026-09-19",
+   "taken": "2026-09-21",
    "note": "R1 NOTE-1. sha256 per substitution row and per replacement row, over [id, file, region, from, to, kind] and [id, file, replacement]. TAMPER EVIDENCE over authored text, not an independent oracle: re-taking it re-blesses, and the control is that re-taking it is a visible diff here, beside the row it blesses. R2 F4 extends it to the `product` and `compose` blocks, over [dest, head, open, close] and [file, after, afterLines, at, insert].",
    "substitutions": {
     "W6a": {
@@ -9397,7 +9397,7 @@
      "closeLines": 22
     },
     "today-lanes.cjs": {
-     "sha256": "b93de171f5b7b00cdb7c8ed22661f29c0b5b7f01961e95efe87ce2bf3aa37487",
+     "sha256": "ce1eb3d808c37d132e1f7cfdf3ac9463f211b65f99e9a8e05d9b4784cfbd1860",
      "headLines": 54,
      "closeLines": 143
     }
@@ -9424,6 +9424,36 @@
     "replacements": 141,
     "products": 3,
     "composes": 3
+   }
+  },
+  "sourceBlobs": {
+   "s9": {
+    "today-app.cjs": {
+     "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+     "oid": "ea98aef614f29dfbf3ade5206fc877120bda3c9d"
+    },
+    "gym-app.mjs": {
+     "path": "rebuild/m3/w7-preview/today/gym-app.mjs",
+     "oid": "48bf0531fdbcccffe981bd3c4d2f44a91f7abd6d"
+    },
+    "today-model.cjs": {
+     "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+     "oid": "6a146ff95a145f2f7835b35e9b86be8fcc840e5d"
+    }
+   },
+   "tip": {
+    "today-app.cjs": {
+     "path": "rebuild/m3/w7-preview/today/today-app.cjs",
+     "oid": "bc91374d6491993da7b0e9143f81e259cef5208b"
+    },
+    "gym-app.mjs": {
+     "path": "rebuild/m3/w7-preview/today/gym-app.mjs",
+     "oid": "48bf0531fdbcccffe981bd3c4d2f44a91f7abd6d"
+    },
+    "today-model.cjs": {
+     "path": "rebuild/m3/w7-preview/today/today-model.cjs",
+     "oid": "487ea1a1d275eb4eee7b28999212b3fbdcdd12f9"
+    }
    }
   }
  },
@@ -9572,12 +9602,12 @@
     " * ZERO over this build's own output (spec B.5's acceptance test, H.2 STOP 11).",
     " *",
     " * WHAT IS NOT IN HERE, said plainly, because a reader will look for it.",
-    " *  - SPEC B.6's OUTCOME TYPE IS NOT BUILT. recordSleep still composes its eleven",
-    " *    sentences and recordIntake its two, from constants this factory is HANDED rather",
-    " *    than holding: twelve copy constants arrive by name in the signature below, so this",
-    " *    file DECLARES NO COPY CONSTANT OF ITS OWN and every copy byte the athlete reads",
-    " *    stayed in the released view where C-UI-7 edits it. It is not free of string",
-    " *    literals, and a reader must not be told that it is: 127 string literals parse in",
+    " *  - SPEC B.6's OUTCOME TYPE IS NOT BUILT. recordSleep and recordIntake still compose",
+    " *    athlete-facing sentences in this file.",
+    " *    The twelve injected copy constants stay in the released view.",
+    " *    Moved fallback reason literals and sentence assembly remain in this sealed file.",
+    " *    This file DECLARES NO COPY CONSTANT OF ITS OWN. It is not free of string literals,",
+    " *    and a reader must not be told that it is: 127 string literals parse in",
     " *    this file and 117 of them are moved bytes. THE TEN AUTHORED ONES, and not one of",
     " *    them is a word the athlete ever sees: \"use strict\", the three require paths, the",
     " *    two `typeof` tags \"function\" in the boot hooks, the empty string that clears",

@@ -26,12 +26,12 @@
  * ZERO over this build's own output (spec B.5's acceptance test, H.2 STOP 11).
  *
  * WHAT IS NOT IN HERE, said plainly, because a reader will look for it.
- *  - SPEC B.6's OUTCOME TYPE IS NOT BUILT. recordSleep still composes its eleven
- *    sentences and recordIntake its two, from constants this factory is HANDED rather
- *    than holding: twelve copy constants arrive by name in the signature below, so this
- *    file DECLARES NO COPY CONSTANT OF ITS OWN and every copy byte the athlete reads
- *    stayed in the released view where C-UI-7 edits it. It is not free of string
- *    literals, and a reader must not be told that it is: 127 string literals parse in
+ *  - SPEC B.6's OUTCOME TYPE IS NOT BUILT. recordSleep and recordIntake still compose
+ *    athlete-facing sentences in this file.
+ *    The twelve injected copy constants stay in the released view.
+ *    Moved fallback reason literals and sentence assembly remain in this sealed file.
+ *    This file DECLARES NO COPY CONSTANT OF ITS OWN. It is not free of string literals,
+ *    and a reader must not be told that it is: 127 string literals parse in
  *    this file and 117 of them are moved bytes. THE TEN AUTHORED ONES, and not one of
  *    them is a word the athlete ever sees: "use strict", the three require paths, the
  *    two `typeof` tags "function" in the boot hooks, the empty string that clears

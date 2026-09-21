@@ -1,5 +1,6 @@
 {
- "root": "/home/claude/farm/scratch/split2-loop2/base",
+ "inputMode": "PINNED SOURCE BLOBS",
+ "root": "C:\\Users\\joeym\\AppData\\Local\\Temp\\astra-split-l3-67\\source-s9",
  "files": {
   "today-app.cjs": {
    "dest": "today-lanes.cjs",
@@ -11,8 +12,7 @@
    "movedLines": 679,
    "releasedLines": 1972,
    "witnessedAt": [
-    "s9",
-    "tip"
+    "s9"
    ],
    "substitutionsApplied": 41,
    "verbatimFailures": 0
@@ -1300,10 +1300,17 @@
    "s9",
    "tip"
   ],
+  "sourceRefs": [
+   "s9"
+  ],
+  "sourceByFile": {
+   "today-app.cjs": [
+    "s9"
+   ]
+  },
   "byFile": {
    "today-app.cjs": [
-    "s9",
-    "tip"
+    "s9"
    ]
   }
  },

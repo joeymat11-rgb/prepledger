@@ -39,6 +39,7 @@ const assert = require("node:assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const crypto = require("crypto");
 const { spawnSync } = require("child_process");
 
 const SPIKE = path.join(__dirname, "..");
@@ -85,6 +86,10 @@ function gitBlob(ref, rel) {
     { encoding: "utf8" });
   if (res.status !== 0) throw new Error("cannot identify " + rel + " at " + ref);
   return res.stdout.trim();
+}
+function rawGitBlob(bytes) {
+  return crypto.createHash("sha1").update(Buffer.from("blob " + bytes.length + "\0", "utf8"))
+    .update(bytes).digest("hex");
 }
 
 /* The PRE-CUT sources at the named ref, written to a throwaway tree. Nothing here ever
@@ -214,6 +219,7 @@ test("RED S-R31: gen-witness records the complete SOURCE blob inventory for its 
     FILES.slice().sort(), "gen-witness did not record every cut source at s9");
   for (const file of FILES) {
     const row = made.witness.sourceBlobs.s9[file];
+    assert.strictEqual(row.path, table.today + "/" + file, file + " source path");
     assert.strictEqual(row.oid, gitBlob(ref.ref, table.today + "/" + file), file);
   }
 });
@@ -230,6 +236,68 @@ test("RED S-R31: a missing SOURCE identity is refused by name at the door before
   assert.strictEqual(r.status, 1, "a cut with no SOURCE identity exited 0");
   assert.match(r.stderr, /REFUSED: SOURCE BLOB IDENTITY MISSING: today-app\.cjs at s9/);
   assert.doesNotMatch(r.stderr, /anchor/i, "anchor resolution ran before the SOURCE door");
+});
+
+test("S-R31: an invalid SOURCE path is refused by file and ref at the door", () => {
+  const tree = tmpTreeAt("s9");
+  const bad = JSON.parse(JSON.stringify(table));
+  bad.witness.sourceBlobs.s9["today-app.cjs"].path = "wrong/today-app.cjs";
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf, "--witness", "s9", "--only", "today-app.cjs"]);
+  assert.strictEqual(r.status, 1, "an invalid SOURCE path exited 0");
+  assert.match(r.stderr, /REFUSED: SOURCE BLOB IDENTITY INVALID: today-app\.cjs at s9/);
+  assert.doesNotMatch(r.stderr, /anchor/i, "anchor resolution ran before the SOURCE door");
+});
+
+test("S-R31: all cut sources must identify one common named ref", () => {
+  const tree = tmpTreeAt("s9");
+  const tip = table.witness.refs.find((x) => x.name === "tip");
+  fs.writeFileSync(path.join(tree, table.today, "today-model.cjs"),
+    gitShow(tip.ref, table.today + "/today-model.cjs"));
+  const r = runCut(tree);
+  assert.strictEqual(r.status, 1, "a mixed-ref source tree exited 0");
+  assert.match(r.stderr, /SOURCE BLOB IDENTITIES do not agree on one named ref across the cut sources/);
+  assert.doesNotMatch(r.stderr, /anchor/i, "anchor resolution ran before the SOURCE door");
+});
+
+test("S-R31: region witnesses are restricted to the ref identified by the complete source", () => {
+  const tree = tmpTreeAt("s9");
+  const bad = JSON.parse(JSON.stringify(table));
+  bad.witness.regions["TA-S01"].s9.sha256 = "0".repeat(64);
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf, "--only", "today-app.cjs"]);
+  assert.strictEqual(r.status, 1, "the s9 source borrowed tip's region witness");
+  assert.match(r.stderr, /TA-S01: the file's regions do not agree on one witnessed ref\. This region matches tip; the regions before it matched s9/);
+});
+
+test("S-R31: SOURCE identity covers raw CRLF bytes before newline normalization", () => {
+  const tree = tmpTreeAt("s9");
+  const file = path.join(tree, table.today, "today-app.cjs");
+  const raw = fs.readFileSync(file);
+  const lf = raw.indexOf(10);
+  assert.ok(lf >= 0 && raw[lf - 1] !== 13, "the fixture has no LF-only boundary to test");
+  fs.writeFileSync(file, Buffer.concat([raw.subarray(0, lf), Buffer.from("\r\n"), raw.subarray(lf + 1)]));
+  const r = runCut(tree, ["--witness", "s9", "--only", "today-app.cjs"]);
+  assert.strictEqual(r.status, 1, "a raw LF-to-CRLF byte change exited 0");
+  assert.match(r.stderr, /REFUSED: SOURCE BLOB IDENTITY MISMATCH: today-app\.cjs at s9/);
+  assert.doesNotMatch(r.stderr, /anchor/i, "newline normalization happened before the SOURCE door");
+});
+
+test("S-R31: gen-witness refuses changed source under an old ref and requires a new ref", () => {
+  const tree = tmpTreeAt("s9");
+  const file = path.join(tree, table.today, "today-app.cjs");
+  fs.appendFileSync(file, "// SYNTHETIC SOURCE CHANGE\n");
+  const bad = JSON.parse(JSON.stringify(table));
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const ref = table.witness.refs.find((x) => x.name === "s9");
+  const w = runNode("gen-witness.cjs", ["--root", tree, "--ref-name", ref.name,
+    "--ref", ref.ref, "--branch", ref.branch, "--regions", rf, "--write"]);
+  assert.strictEqual(w.status, 1, "changed source was re-witnessed under the old ref");
+  assert.match(w.stderr, /SOURCE BLOB IDENTITY MISMATCH: today-app\.cjs at s9/);
+  assert.match(w.stderr, /requires a new ref/);
 });
 
 test("RED S-R31: the exact L3 binding plant is refused at the SOURCE door at both refs", () => {
@@ -263,6 +331,43 @@ test("RED S-R31: the exact L3 binding plant is refused at the SOURCE door at bot
   }
 });
 
+test("S-R31: a visible re-witness of the L3 plant is caught by product byte equality", () => {
+  const tree = tmpTreeAt("s9");
+  const lines = readLines(tree, "today-app.cjs");
+  const shadow = [
+    "function astraShadow() {",
+    "  const sleepNightDate = () => \"LOCAL\";",
+    "  function renderSleep(focus) {",
+    "    const root = template(\"t-sleep\");",
+    "    const map = slots(root);",
+    "    const date = sleepNightDate();",
+    "    readSleepCheckIn(date);",
+    "    put(map, \"sleep-title\", SLEEP_TITLE);",
+    "    return date;",
+    "  }",
+    "  return renderSleep(false);",
+    "}",
+    ""];
+  for (const original of ["    const date = sleepNightDate();", "    readSleepCheckIn(date);"]) {
+    const at = lines.indexOf(original);
+    assert.ok(at >= 0, original);
+    lines[at] = " " + lines[at];
+  }
+  writeLines(tree, "today-app.cjs", shadow.concat(lines));
+  const bad = JSON.parse(JSON.stringify(table));
+  const source = fs.readFileSync(path.join(tree, table.today, "today-app.cjs"));
+  bad.witness.sourceBlobs.s9["today-app.cjs"].oid = rawGitBlob(source);
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf, "--witness", "s9", "--only", "today-app.cjs", "--product"]);
+  assert.strictEqual(r.status, 0, r.stderr);
+  const emitted = fs.readFileSync(path.join(r.out, "today-app.cjs"));
+  const shipped = fs.readFileSync(path.join(ROOT, table.today, "today-app.cjs"));
+  assert.notStrictEqual(crypto.createHash("sha256").update(emitted).digest("hex"),
+    crypto.createHash("sha256").update(shipped).digest("hex"),
+    "the L3 plant survived a visible re-witness and product equality did not catch it");
+});
+
 test("RED S-R31: --unpinned-input is visibly first in the report and can never make a product cut", () => {
   const tree = tmpTreeAt("s9");
   const r = runCut(tree, ["--witness", "s9", "--only", "today-app.cjs", "--unpinned-input"]);
@@ -285,6 +390,10 @@ test("the untampered tree passes the witness, and every file agrees on one recor
   assert.strictEqual(r.status, 0, r.stderr);
   assert.match(r.stdout, /WITNESS CHECK \(S-R19, S-R20\)/);
   assert.match(r.stdout, /every one matched, every file agreed on one ref/);
+  const rep = JSON.parse(fs.readFileSync(path.join(r.out, "cut-report.json"), "utf8"));
+  assert.strictEqual(Object.keys(rep)[0], "inputMode", "pinned input is not at the report top");
+  assert.strictEqual(rep.inputMode, "PINNED SOURCE BLOBS");
+  assert.deepStrictEqual(rep.witness.sourceRefs, [REF_NAME], "the report lost the binding source ref");
   for (const f of FILES) {
     assert.match(r.stdout, new RegExp(f.replace(/\./g, "\\.") + "\\s+witnessed at "));
   }
@@ -300,7 +409,7 @@ test("RED S-R19: weakening the sleep writer's double-write fence inside TA-S30 i
   assert.ok(at >= 0, "the sleep writer's fence line is not inside TA-S30 any more; re-read the region");
   lines[start - 1 + at] = "    if (sleepBusy) return;";
   writeLines(tree, file, lines);
-  const r = runCut(tree);
+  const r = runCut(tree, ["--unpinned-input"]);
   assert.strictEqual(r.status, 1, "THE CUT EXITED 0 ON A WEAKENED DOUBLE-WRITE FENCE. " +
     "That is exactly R3's BLOCKING-1 and the witness is not being compared. " + r.stdout);
   assert.match(r.stderr, /REFUSED: today-app\.cjs TA-S30: BYTES DO NOT MATCH THE WITNESS/);
@@ -313,7 +422,7 @@ test("RED S-R20 (a): two statement-aligned lines inserted inside TA-S19 leave a 
   const { file, lines, start } = resolveIn(tree, "TA-S19");
   lines.splice(start, 0, "  if (options.debugHook) {", "  }");
   writeLines(tree, file, lines);
-  const r = runCut(tree);
+  const r = runCut(tree, ["--unpinned-input"]);
   assert.strictEqual(r.status, 1, "THE CUT EXITED 0 WITH TA-S19 SHRUNK AND measureDeps LEFT RELEASED. " + r.stdout);
   assert.match(r.stderr, /REFUSED: today-app\.cjs TA-S19: LAST ANCHOR IS AMBIGUOUS/);
   assert.match(r.stderr, /the witness records/);
@@ -325,7 +434,7 @@ test("RED S-R20 (b): one space added to TA-S24's own closing brace drags release
   assert.strictEqual(lines[end - 1], "  }", "TA-S24 no longer ends on a bare two-space brace");
   lines[end - 1] = "  }  ";
   writeLines(tree, file, lines);
-  const r = runCut(tree);
+  const r = runCut(tree, ["--unpinned-input"]);
   assert.strictEqual(r.status, 1, "THE CUT EXITED 0 WITH TA-S24 EXTENDED OVER reasonOf. " + r.stdout);
   assert.match(r.stderr, /REFUSED: today-app\.cjs TA-S24: LAST ANCHOR IS AMBIGUOUS/);
 });
@@ -337,7 +446,7 @@ test("RED: a first anchor altered by one character is REFUSED naming the region"
   const { file, r, lines, start } = resolveIn(tree, "TA-S13");
   lines[start - 1] = lines[start - 1] + " ";
   writeLines(tree, file, lines);
-  const res = runCut(tree);
+  const res = runCut(tree, ["--unpinned-input"]);
   assert.strictEqual(res.status, 1);
   assert.match(res.stderr, new RegExp("REFUSED: " + file.replace(/\./g, "\\.") + " " + r.id +
     ": first anchor matches ZERO places"));
@@ -348,7 +457,7 @@ test("RED: a first anchor duplicated so it matches twice is REFUSED as ambiguous
   const { file, r, lines, start } = resolveIn(tree, "TA-S09");
   lines.splice(start - 1, 0, lines[start - 1]);
   writeLines(tree, file, lines);
-  const res = runCut(tree);
+  const res = runCut(tree, ["--unpinned-input"]);
   assert.strictEqual(res.status, 1);
   /* Since loop round 1 the RECORDED COUNT refuses this first, because it is the stronger of
      the two rules: it catches a second occurrence whether or not the row carries an index.
@@ -362,7 +471,7 @@ test("RED: a first anchor duplicated so it matches twice is REFUSED as ambiguous
   for (const n of Object.keys(bare.witness.regions[r.id])) delete bare.witness.regions[r.id][n].occurrences;
   const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
   fs.writeFileSync(rf, JSON.stringify(bare));
-  const res2 = runCut(tree, ["--regions", rf]);
+  const res2 = runCut(tree, ["--regions", rf, "--unpinned-input"]);
   assert.strictEqual(res2.status, 1);
   assert.match(res2.stderr, new RegExp("REFUSED: " + file.replace(/\./g, "\\.") + " " + r.id +
     ": first anchor matches 2 places and the table gives no disambiguating index"));
@@ -772,7 +881,7 @@ test("RED blind F5 / incremental F1: a COMPETING OCCURRENCE of a content anchor 
   const tree = tmpTree();
   const before = readLines(tree, "today-app.cjs");
   writeLines(tree, "today-app.cjs", shadow.concat(before));
-  const r = runCut(tree, ["--only", "today-app.cjs"]);
+  const r = runCut(tree, ["--only", "today-app.cjs", "--unpinned-input"]);
   assert.strictEqual(r.status, 1, "A COMPETING OCCURRENCE OF A CONTENT ANCHOR REWROTE ANOTHER " +
     "BINDING AND THE CUT EXITED 0. " + r.stdout);
   assert.match(r.stderr, /TA-I042: first anchor matches 3 places and the table RECORDED 2 at its named refs/);
@@ -782,7 +891,7 @@ test("RED blind F5 / incremental F1: a COMPETING OCCURRENCE of a content anchor 
   bad.files["today-app.cjs"].find((x) => x.id === "TA-I042").first.occurrences = 3;
   const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
   fs.writeFileSync(rf, JSON.stringify(bad));
-  const r2 = runCut(tree, ["--regions", rf, "--only", "today-app.cjs"]);
+  const r2 = runCut(tree, ["--regions", rf, "--only", "today-app.cjs", "--unpinned-input"]);
   assert.strictEqual(r2.status, 1, "BUMPING THE TABLE'S OWN COUNT GOT THE PLANT THROUGH. " + r2.stdout);
   assert.match(r2.stderr, /TA-I042: THE FIRST ANCHOR MATCHES 3 PLACES/);
   assert.match(r2.stderr, /the witness records .*=2/);
@@ -1001,7 +1110,7 @@ test("RED L2 B1: a COUNT-PRESERVING competing occurrence is REFUSED by the witne
     writeLines(tree, "today-app.cjs", shadow.concat(lines));
     const after = shadow.concat(lines).filter((l) => l === anchor).length;
     assert.strictEqual(after, 2, "the input must PRESERVE the witnessed count of 2 at " + refName);
-    const r = runCut(tree, ["--only", "today-app.cjs"]);
+    const r = runCut(tree, ["--only", "today-app.cjs", "--unpinned-input"]);
     assert.strictEqual(r.status, 1, "A COUNT-PRESERVING PLANT TOOK TA-I042's ORDINAL AND THE " +
       "CUT EXITED 0 AT " + refName + ". " + r.stdout);
     assert.match(r.stderr, /TA-I042: the declared `first\.context` matches 0 of the 2 occurrences/);
@@ -1022,7 +1131,7 @@ test("RED L2 B1 (b): a plant that copies the WHOLE witnessed context is refused 
   const plant = [ctx.enclosing].concat(ctx.before,
     [table.files["today-app.cjs"].find((x) => x.id === "TA-I042").first.text], ctx.after, ["  }", ""]);
   writeLines(tree, "today-app.cjs", plant.concat(lines));
-  const r = runCut(tree, ["--only", "today-app.cjs"]);
+  const r = runCut(tree, ["--only", "today-app.cjs", "--unpinned-input"]);
   assert.strictEqual(r.status, 1, "A FULL-CONTEXT PLANT GOT THROUGH. " + r.stdout);
   assert.match(r.stderr, /TA-I043: first anchor matches 2 places and the table RECORDED 1/);
 });
