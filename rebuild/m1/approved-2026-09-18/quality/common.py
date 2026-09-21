@@ -150,6 +150,20 @@ MUTED_CLASSES = frozenset([
 ])
 # The two quiet greys are never body copy anywhere (app/app.css:36, 37 for Ink, 92, 93 for Dawn).
 QUIET_TOKENS = frozenset(['--muted', '--faint'])
+# A CLASS NAME ALONE NEVER LOWERS THE TIER. A status line relabelled with a class off the list
+# above, and painted any colour at all, used to drop to 3.0:1 and pass at 3.2 while only the
+# regression check went red. A muted class earns the lower tier only when the element is ALSO
+# painted with one of the quiet tokens the pack's own stylesheets give those classes, which are
+# these three and no others, read off every declaration that paints a class on the list:
+# --muted (app/app.css:192, 201, 210, 220, 224, 233, 253, 264, 270, 277, 278, 287, 299, 434, 439,
+# 444, 611, 646, 663; app/states.css:5, 33, 38, 50, 52, 57, 58, 70, 74, 77, 82, 104, 107;
+# app/states-workout.css:8, 16, 37, 38, 41; app/states-coach.css:5, 8, 37), --faint
+# (app/app.css:294, 329, 435) and --text-soft (app/app.css:280, 446, 647, 648, 662, 664, 834;
+# app/states.css:6, 77). The other colours those same classes take are --text, --good and --gold:
+# the first two are body colours and keep 4.5:1, and the gold marker rule below governs the third.
+MUTED_CLASS_TOKENS = frozenset(['--muted', '--faint', '--text-soft'])
+# the tokens both gates resolve a computed colour back to, so that tier_for can be given one
+QUIET_TOKEN_NAMES = ['--muted', '--faint', '--gold', '--text-soft']
 # The state colour (app/app.css:38 and 93) is the lower tier only where it is doing the job
 # STANDARD.md section 10 gives it, marking a state: the element carries one of the marker or
 # eyebrow classes, or its text is too short to be a sentence. A paragraph painted gold is body
@@ -213,9 +227,16 @@ def tier_for(cls, size, token, disabled=False, textlen=0):
     muted label, and because an inactive control is not something the athlete is being asked to
     read. The state colour sits there only when it is marking a state: a gold marker class, or a
     string shorter than a sentence. Gold on a paragraph is body copy and keeps 4.5:1.
+
+    A class name on its own lowers nothing. Muted is the pack's own recipe, a class off
+    MUTED_CLASSES painted with one of MUTED_CLASS_TOKENS, and a quiet token lowers the tier
+    wherever it is painted, class or no class. Relabelling primary copy without changing what
+    paints it leaves it at 4.5:1.
     """
     classes = set((cls or '').split())
-    if disabled or token in QUIET_TOKENS or (classes & MUTED_CLASSES) or size >= LARGE_TEXT_PX:
+    if disabled or size >= LARGE_TEXT_PX or token in QUIET_TOKENS:
+        return MUTED_RATIO
+    if (classes & MUTED_CLASSES) and token in MUTED_CLASS_TOKENS:
         return MUTED_RATIO
     if token == GOLD_TOKEN and ((classes & GOLD_MARKER_CLASSES) or textlen < GOLD_MARKER_CHARS):
         return MUTED_RATIO

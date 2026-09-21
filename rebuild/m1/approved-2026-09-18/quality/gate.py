@@ -24,7 +24,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, lum_array, worst_ratio, app_url,
                     sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused, JS_SWEPT_TEXT,
                     JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS, env_text, TAPPABLE_SELECTOR,
-                    TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED, report_identity)
+                    TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED, QUIET_TOKEN_NAMES,
+                    report_identity)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -172,7 +173,7 @@ JS_ANIM = """()=>{const out=[];
 JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];const out=[];
     __SEEN__
     const cs0=getComputedStyle(document.documentElement);const tok={};
-    ['--muted','--faint','--gold'].forEach(k=>{const v=cs0.getPropertyValue(k).trim().toLowerCase();if(v)tok[v]=k});
+    __TOKENS__.forEach(k=>{const v=cs0.getPropertyValue(k).trim().toLowerCase();if(v)tok[v]=k});
     const hex=s=>{const m=s.match(/\\d+/g);return m?'#'+m.slice(0,3).map(x=>(+x).toString(16).padStart(2,'0')).join(''):s.toLowerCase()};
     const off='button:disabled, input:disabled, select:disabled, textarea:disabled, fieldset:disabled';
     ui.querySelectorAll('*').forEach(e=>{if(!__seen(e))return;
@@ -263,7 +264,7 @@ JS_TYPE = """()=>{const sizes=new Set(),weights=new Set();document.querySelector
     const has=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim());if(!has)return;const cs=getComputedStyle(e);
     sizes.add(parseFloat(cs.fontSize));weights.add(parseInt(cs.fontWeight))});return {sizes:[...sizes],weights:[...weights]}}"""
 
-JS_BOXES = JS_BOXES.replace('__SEEN__', JS_SEEN)
+JS_BOXES = JS_BOXES.replace('__SEEN__', JS_SEEN).replace('__TOKENS__', json.dumps(QUIET_TOKEN_NAMES))
 
 JS_RADII = """()=>{const out=new Set();document.querySelectorAll('.screen.is-active .tcard,.screen.is-active .rowcard,.screen.is-active .setcard,.screen.is-active .prompt,.screen.is-active .primary,.screen.is-active .log,.screen.is-active .edit,.screen.is-active .chip').forEach(e=>{if(e.offsetParent)out.add(getComputedStyle(e).borderTopLeftRadius)});return [...out]}"""
 
