@@ -52,8 +52,9 @@ Authority: accepted specification at 6fe4d12c; no acceptance claimed here
 - The eight failures were one stale producer-owner expectation and seven fence
   anchor/count defects: binding collision, two missed plants, stale custody hash,
   API multiplicity, after-read anchor and a function-definition paint match.
-- Static reconciliation now uses measured exact anchors/counts; diff-check passes.
-- Product correctness is not inferred from assertion reconciliation.
-- Still required: exact-head focused rerun, all 17 groups and clause mutants,
-  real operation/outbox/reopen parity, and all 13 D2 cells plus 2 supports.
-- Status: UNACCEPTED author checkpoint; independent review remains mandatory.
+- Candidate2 gss-candidate2-b35a48e3: syntax 5/5 green.
+- Focused exact worktree: gym 65/65; UI 60/60; fence 401/401.
+- Static reconciliation uses measured exact anchors/counts; diff-check passes.
+- Green focused cells do not infer product correctness or acceptance.
+- Still required: all 17 groups/mutants, real operation/outbox/reopen parity,
+  and all 13 D2 cells plus 2 supports; independent review is mandatory.

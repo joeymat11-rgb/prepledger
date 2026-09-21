@@ -2167,7 +2167,17 @@ const gssApiShape = (source) => {
 
 test("GSS-API-PARITY: api is acquired once and its lane is passed through once", () => {
   const source = readRepo(TODAY + "/gym-app.mjs");
-  assert.deepEqual(gssApiShape(source), { bareApi: 6, exactLane: 1 });
+  const expected = { bareApi: 6, exactLane: 1 };
+  assert.deepEqual(gssApiShape(source), expected);
+  for (const [name, edit] of [
+    ["unrelated", (s) => s.replace("  first.settings = Object.freeze({",
+      "  void 0;\n  first.settings = Object.freeze({")],
+    ["reformat", (s) => s.replace("    lane: () => api.lane(),", "    lane : ( ) => api . lane ( ),")],
+  ]) {
+    const control = edit(source);
+    assert.notEqual(control, source, name + " control missed");
+    assert.deepEqual(gssApiShape(control), expected, name);
+  }
   for (const [name, edit] of [
     ["alias", (s) => s.replace("  first.settings = Object.freeze({",
       "  const leakedApi = api;\n  first.settings = Object.freeze({")],
@@ -2179,7 +2189,7 @@ test("GSS-API-PARITY: api is acquired once and its lane is passed through once",
   ]) {
     const mutant = edit(source);
     assert.notEqual(mutant, source, name + " plant missed");
-    assert.notDeepEqual(gssApiShape(mutant), { bareApi: 6, exactLane: 1 }, name);
+    assert.notDeepEqual(gssApiShape(mutant), expected, name);
   }
 });
 
@@ -2200,8 +2210,8 @@ test("GSS-STATIC-AFTER-READ / AFTER-START plants are independently visible", () 
   const raw = readRepo(TODAY + "/gym-app.mjs");
   const afterRead = raw.replace("    const view = await hooks.readView();",
     "    const view = await hooks.readView();\n    phone.querySelector('[data-slot=log]').click();");
-  const afterStart = raw.replace("      if (!started.ok) return refusalScreen(view, started);",
-    "      phone.querySelector('[data-slot=log]').click();\n      if (!started.ok) return refusalScreen(view, started);");
+  const afterStart = raw.replace("      const started = await model.start();",
+    "      const started = await model.start();\n      phone.querySelector('[data-slot=log]').click();");
   assert.notEqual(afterRead, raw, "after-read plant missed its exact anchor");
   assert.notEqual(afterStart, raw, "after-start plant missed its exact anchor");
   assert.equal((codeOf(afterRead).match(/\.\s*click\s*\(/g) || []).length, 1);
