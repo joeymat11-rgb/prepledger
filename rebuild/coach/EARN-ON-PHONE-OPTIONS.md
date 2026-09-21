@@ -3,7 +3,9 @@
 ## For Joe
 
 "The phone earns weights" means your saved workouts can earn an offer to lift more.
-The app checks what you lifted, your reps and how hard they felt; you still say yes.
+Today, an ordinary earned one-rung step can queue by itself after the qualifying
+workouts. Every option below would change that: the new weight would wait for
+your yes. With A, you would also have to press Check before the offer appears.
 The heavier weight appears when that lift is next allowed to move up.
 Until then, your card stays as it was; a workout already started stays as it was.
 You have ordered this after the look and before your trial. The choice is how.
@@ -28,10 +30,15 @@ The coach route cannot be promised in that window on the evidence available here
 The separate fault could show and save an extra jump without your agreement, then lower it again.
 You already ordered its repair; none of these choices asks you to approve that again.
 As of 2026-09-21, that two-part repair has independent review with debts, but
-its package is not accepted yet. A separate part that carries the choice into
-a workout still refuses the repaired result. Fixing it is a third engine change
-that needs your word; it is not included in the repair you already ordered.
-Which choice do you want, including the changes needed to offer and save your next weight?
+its package is not accepted yet. There is also a separate workout-preparation
+fault. When an untaken bigger offer sits beside an ordinary earned step for the
+same lift, the phone can refuse to prepare that day's workout card. This happens
+with or without the two-part repair, and the card stays unavailable until you
+accept or decline the offer. This additional repair needs your word; it is not
+included in the repair you already ordered.
+Do you want to change today's automatic ordinary rung so every newly earned
+weight waits for your yes, and if so which route do you want?
+Do you authorize the separate workout-preparation repair described above?
 If B cannot be ready and checked before the trial, would A be acceptable instead?
 
 ## Evidence and the owner's settled timing
@@ -265,17 +272,19 @@ the separate defect repair is an accepted-parent dependency, not an option.
 
 ### Shared obligations, deliberately explicit
 
-PROPOSED invariant - Log/Finish save facts, never authorize a new load.
+PROPOSED invariant, subject to Joe's answer above - Log/Finish save facts, never
+authorize a new load.
 A later qualified Close can land an ALREADY accepted debut on source projection.
 Every new offer requires a separate yes; Finish itself is not that yes. Each
 option also offers adoption of a first/different observed load as a separate,
 clearly named choice, not as an earned increase.
 
-READ - this follows the assignment's locked rule and DECISIONS.md:89;
-rebuild/coach/TOOL-CONTRACT.md:4-6,447-488 requires engine-issued numbers and a
-yes through consent. It is NOT a claim that the legacy automatic DEBUT already
-requires a yes. That conflict is retained in section 6. Using an unchanged
-engine rule to generate a candidate does not authorize its automatic apply.
+READ - DECISIONS.md:89 and rebuild/coach/TOOL-CONTRACT.md:4-6,447-488 require
+engine-issued numbers and a yes through consent for coach-issued plan changes.
+They do not settle whether legacy automatic ordinary earning should change.
+Joe's answer in the first section is required. Using an unchanged engine rule
+to generate a candidate does not authorize its automatic apply under the
+proposed routes.
 
 PROPOSED - The common engine file native-load.cjs would contain:
 
@@ -605,12 +614,13 @@ the applicable ruling. This paper supplies no default number for those choices.
 
 READ :631 - timing is settled: after the seal and look, before his trial.
 Repair authorization is settled only for the named clauses in FC02/FC02b.
-Neither is reopened here. It does not authorize the separate capture repair.
-The owner-facing questions are in the first section: choose the route and
-authorize its scoped engine work; decide the capture repair separately; name
-whether A is an acceptable fallback if B cannot meet that sequence. PM must
-present the concrete engine scope with that choice. A timing ruling alone does
-not approve FC01 or the third capture change.
+Neither is reopened here. It does not authorize the separate
+workout-preparation repair.
+The owner-facing questions are in the first section: decide whether to replace
+automatic ordinary earning with a yes and choose the route; authorize the
+workout-preparation repair separately; name whether A is an acceptable fallback
+if B cannot meet that sequence. PM must present the concrete engine scope with
+that choice. A timing ruling alone does not approve FC01 or the third change.
 
 The options preserve facts, require a separate yes for a newly issued native
 change, distinguish adoption from earning, and retain the full vector/prefix
@@ -627,6 +637,9 @@ An unresolved case must refuse visibly, retain facts and stay named work.
 The PM cannot authorize engine bytes on Joe's behalf or waive the full gate.
 The remaining legacy/native consent-policy scope is discussed below; the
 untapped-entry defect is not a philosophical question left for that discussion.
+The build brief must explicitly decide whether an untaken two-rung offer remains
+beside an accepted rung and how import-merged pairs are represented. This paper
+does not assume either queue design.
 
 ## 5. Comparison and before-trial dependencies
 
@@ -656,15 +669,16 @@ carriage if it has not already landed in the selected parent; no double charge
 for an already accepted repair is intended.
 
 CURRENT UNRESOLVED SCOPE - the estimates above preserve the historical-parent
-inventory and do not include a guessed capture repair. The refusal at
-rebuild/m4/workout/engine-capture.cjs:69 is a separate named prerequisite.
+inventory and do not include a guessed workout-preparation repair. The refusal
+currently observed at rebuild/m4/workout/engine-capture.cjs:69 is a separate
+named prerequisite.
 Its exact files, rows and seal impact remain unbound until Joe authorizes that
 third engine change and PM supplies its accepted scope. The inventory is not an
 exhaustive before-trial total while that prerequisite remains unresolved.
 
 Shared readiness inputs: Joe's scoped engine word, an accepted repaired parent,
-a separately authorized and accepted capture repair, a complete source/consent/
-spend protocol, concrete R manifest, available author and independent reviewer,
+a separately authorized and accepted workout-preparation repair, a complete
+source/consent/spend protocol, concrete R manifest, available author and independent reviewer,
 full engine gate and owed repair checks accounted for, PM final, CI, successor
 seal, and phone proof on the same accepted candidate.
 Output required before trial: a saved native workout can actually earn a
@@ -700,10 +714,10 @@ and returns the fallback choice; the trial must not silently start without earni
    TOOL-CONTRACT.md:447-488 under rebuild/coach enforces that architecture.
    The legacy rule explicitly auto-queues an ordinary DEBUT without a separate
    proposal tap (rebuild/engine/earn.cjs:66-89); the first/different scalar
-   completion also adopts w (writers.cjs:338-349). The assignment treats
-   "a change happens only on a yes" as locked for this native repair. The
-   options obey it; I do not claim those older mechanisms already obey it or
-   silently extend a historical coach ruling to all old/imported behavior.
+   completion also adopts w (writers.cjs:338-349). All four proposed options
+   would require a yes for a newly earned native change, but Joe has not yet
+   ruled that policy change. I do not claim the older mechanisms already obey
+   it or silently extend a historical coach ruling to all old/imported behavior.
    READ, also required by the check's "Is contradiction 3 stated fairly?":
    the ordinary no-tap DEBUT is a one-rung step under the published law
    (READ 2 qualified top sessions with an honest opener, or a difference
@@ -711,8 +725,9 @@ and returns the fallback choice; the trial must not silently start without earni
    slot. PROPOSED explicitly promises "Rides only on your tap" (earn.cjs:80,97).
    The untapped defect therefore breaks the legacy engine's OWN promise; it
    is not a disagreement between old and new consent philosophy. Its repair
-   is already ordered. Scope the new native yes policy and preservation of
-   legitimate imported legacy decisions in the option brief, separately.
+   is already ordered. Scope the new native yes policy, the chosen queue
+   coexistence behavior and preservation of legitimate imported legacy
+   decisions in the option brief, separately.
 4. MEASURED BY THE CHECK - the unsafe producer order reaches both the card
    AND stored working load, then the lower leftover debut and repeated
    establishment. Import merge can mint it too. The separately ordered repair
@@ -809,7 +824,7 @@ Claude review at f0a5eb1a reviewed the two-clause repair core with debts, not
 the whole package. Oracle, sensitivity, private, CI and seal obligations remain.
 This readiness correction still needs its independent check and the current
 PM's judgment.
-No option, third capture repair, new engine bytes, calendar promise or release
+No option, additional workout-preparation repair, new engine bytes, calendar promise or release
 is approved by this paper.
 
 ## Revision 2: landed or disputed
