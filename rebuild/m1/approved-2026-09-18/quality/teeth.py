@@ -12,10 +12,14 @@ stated tolerance. Prints a table and exits 1 if any row disagrees.
 
 Rows a to j2 are the mutation table of GATE-TEETH-AUDIT-R1; k1 to k3 are the lane's additions;
 m1 to m7 are review R1's; n1 to n5 are review R2's; p1 to p4 are the lane lead's Windows run and
-review R3's notes; q1 to q6 are the PM's leads of 2026-09-19. The gate rows run with --screens and --sizes narrowed to the screen the
-change is on, to stay inside the budget, so a row asserts the named refusal only: the full gate
-also raises the regression rows on the screens the narrowed run drops, and a reviewer re-running
-a row at full scope should expect more FAIL rows, never fewer.
+review R3's notes; q1 to q11 are the PM's leads of 2026-09-19; u1 to u9, v1 to v24, w1 to w11 and
+y1 and y2 are the one list of the PM's second teeth audit. Each protection of that list has a row
+that goes red when that protection alone is taken out and the row is kept; where one row is held
+by two protections at once (v20 by both of the phone sheet's proofs, w9 by the opener clause and
+the range clause) a second row beside it isolates each. The gate rows run with --screens and
+--sizes narrowed to the screen the change is on, to stay inside the budget, so a row asserts the
+named refusal only: the full gate also raises the regression rows on the screens the narrowed run
+drops, and a reviewer re-running a row at full scope should expect more FAIL rows, never fewer.
 
 A VOID row is never a pass: it says the anchor did not match, it is counted as disagreeing and
 the run exits 1, so the list refuses to certify itself rather than quietly losing a tooth.
@@ -24,7 +28,8 @@ Row p1 takes the hinting argument out of the launch list. Headless Chromium hint
 default on Linux and not on win32 or darwin, so on those two the mutation changes no layout and
 the row cannot fail. It is neither passed silently nor skipped silently there: the row is printed
 with the words that say the argument does nothing on this platform, and counted as expected.
-Exit code: 0 every row as expected, 1 any row disagrees, 2 the scratch copy could not be made.
+Exit code: 0 every row as expected, 1 any row disagrees, 2 the scratch copy could not be made
+or --only named nothing this list carries.
 """
 import json, os, re, shutil, subprocess, sys, tempfile, time
 
@@ -38,9 +43,26 @@ PACK = os.path.abspath(os.path.join(HERE, '..'))
 ARGS = sys.argv[1:]
 KEEP = '--keep' in ARGS
 ONLY = None
+ONLY_GIVEN = '--only' in ARGS
 for i, a in enumerate(ARGS):
     if a == '--only' and i + 1 < len(ARGS):
         ONLY = [x.strip() for x in ARGS[i + 1].split(',') if x.strip()]
+
+
+# How deep a teeth run is allowed to stand inside another one. Four rows run teeth.py itself, to
+# hold its own --only contract, so one level of nesting is the contract; two is a loop. It is not
+# hypothetical: with the selection check taken out, a row that runs "--only ," selects every row,
+# reaches itself, and starts again, and the copies were still multiplying twenty minutes later.
+DEPTH = int(os.environ.get('EARNED_TEETH_DEPTH', '0') or '0')
+MAX_DEPTH = 1
+
+
+def refuse(msg):
+    """One line, exit 2. A selection that names nothing this list carries is refused before any
+    row runs: it used to print "0 rows, 0 disagreeing" and exit 0, which reads exactly like a
+    clean run of the whole list, and a typed id is the likeliest way anyone meets it."""
+    print(f'TEETH: REFUSED. {msg}')
+    sys.exit(2)
 
 APPEND_ANCHOR = ':root { --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --card-pad: 14px; --chev-right: 16px; }'
 
@@ -252,11 +274,13 @@ def mut_q3(work):
 
 
 def mut_q9(work):
-    # the spaced hyphen drawn with a tab on one side and a no break space on the other: the
-    # screen reads it as the plain spaced hyphen, and so must the rule. Two different invisible
-    # widths in one string, so the row fires only if both of them were folded.
-    sub(work, 'app/app.html', 'Upper body today. One change to review.',
-        'Upper body today\t-\u00a0one change to review.')
+    # a raw TAB on one side of a hyphen and an ordinary space on the other, in an attribute value,
+    # where a TAB survives: the screen reads a spaced hyphen and so must the rule. The old form of
+    # this row put the TAB in element text, where the browser folds it to a space before innerText
+    # answers, so the TAB half of the fold was held by no row. The no break space half is row w7,
+    # on its own: with the fold narrowed back to the space separators this row goes quiet and w7
+    # does not, and with the fold taken out altogether both do.
+    sub(work, 'app/app.html', 'placeholder="Your weight"', 'placeholder="load\t- today"')
 
 
 def mut_q10(work):
@@ -268,10 +292,11 @@ def mut_q10(work):
 
 
 def mut_q11(work):
-    # two dash uses of the minus sign in one sentence: a numeric range, and the sign pressed
-    # against a letter. Neither is a negative number, which is opened by a space or a bracket.
+    # the sign pressed against a letter, which is a word and not a number: the opener clause alone
+    # refuses it. The numeric range is row w9, on its own, because one needle over two faults could
+    # not say which clause had gone.
     sub(work, 'app/app.html', 'Upper body today. One change to review.',
-        'Upper body\u22125 today. Do 3\u22125 sets.')
+        'Upper body\u22125 today. One change to review.')
 
 
 def mut_q8(work):
@@ -318,7 +343,11 @@ def mut_u1(work):
 def mut_u2(work):
     # inset(0 round 50%) insets nothing: the radii after "round" are a corner rounding. Reading
     # them as sides made the walk call the box empty and drop the text, contrast and all.
-    _recolour(work, '#4a463f')
+    # The title alone is recoloured, not the status line beside it: with both of them low the row
+    # went on passing with the clause reverted, because the status line supplied the same failure.
+    sub(work, 'app/app.css',
+        '.tcard .title { font-size: 14.5px; line-height: 1.35; color: var(--text); font-weight: 480; }',
+        '.tcard .title { font-size: 14.5px; line-height: 1.35; color: #4a463f; font-weight: 480; }')
     append_css(work, '.tcard .title { clip-path: inset(0 round 50%) !important; }')
 
 def mut_u3(work):
@@ -351,6 +380,179 @@ def mut_u9(work):
     old = '.status-line { font-size: 15.5px; line-height: 1.3; color: var(--text-soft); margin-top: 8px; font-weight: 430; }'
     sub(work, 'app/app.css', old, old + '\n.status-line { position: relative; left: 3px; width: calc(100% + 3px); }')
 
+# ------------------------------------------------- the PM's second teeth audit, the one list
+# Most of these run one screen at one size that is NOT the reference size, which is how the rows
+# above are narrowed: at 375x812 the gate measures copy, targets, contrast, the primary, the
+# fonts, the margins and the type scale, and it skips the reference-only passes (the mist, the
+# motion pair, the columns, the pressed state, the seams and the regression), so a row that has
+# nothing to say about those costs a third of the time. A row that needs one of them says so by
+# running at 393x852.
+GATE_TODAY_ONE = ['quality/gate.py', '--screens', 'today', '--sizes', '375x812']
+GATE_WORKOUT_ONE = ['quality/gate.py', '--screens', 'workout', '--sizes', '375x812']
+SHEET_W18 = ['quality/statesheet.py', '--only', 'W-18']
+FIXED_COPY = ('<p id="fixcopy" aria-label="Ready for Claude" style="position:fixed;left:24px;'
+              'top:420px;width:300px;color:#4a463f">Fixed copy the sweep never read.</p>')
+
+def mut_v1(work):
+    # item 1, the gate side: one viewport fixed paragraph carrying low contrast text, an
+    # assistive label with two words off the owner's lists, and a set string in generated
+    # content. A fixed box has no offset parent, so none of the three was ever read.
+    sub(work, 'app/app.html', TITLE, TITLE + FIXED_COPY)
+    append_css(work, '#fixcopy::after { content: " 8 x 1"; }')
+
+def mut_v2(work):
+    # item 1, the sheet side: a fixed 30 by 20 control and fixed low contrast text on a state
+    sub(work, 'app/app.html', TITLE, TITLE +
+        '<button type="button" id="fix20" style="position:fixed;left:30px;top:300px;'
+        'width:30px;height:20px">F</button>' + FIXED_COPY)
+
+def mut_v3(work):
+    # item 2 on the sheet: inset(0 round 50%) insets nothing, so the text it holds is on the
+    # screen and its contrast is this check's business
+    append_css(work, '.note-block.sample { clip-path: inset(0 round 50%) !important;'
+                     ' color: #4a463f !important; }')
+
+def mut_v4(work):
+    # item 2 on the sheet: a text indent does not carry away an inline box's own text
+    sub(work, 'app/app.html', TITLE,
+        '<div class="title"><span style="text-indent:-9999px;color:#4a463f">'
+        'Eat about 2,300 kcal today.</span></div>')
+
+def mut_v5(work):
+    # item 3 on the sheet: a set written with a fullwidth letter x
+    sub(work, 'app/app.html', 'placeholder="Your weight"', 'placeholder="8 \uff58 105"')
+
+def mut_v6(work):
+    append_css(work, '#start { position: relative !important; top: -800px !important; }')
+
+def mut_v7(work):
+    # the primary is not on the page at all, which is a failure by name and not a silent pass
+    sub(work, 'app/app.html', 'id="start"', 'id="start-renamed"')
+
+def mut_v8(work):
+    # the primary's bottom edge is 0.3 px past the viewport: a rect rounded before the comparison
+    # reads 852 and says nothing
+    append_css(work, '#start { position: fixed !important; margin: 0 !important;'
+                     ' left: 22px !important; top: 851.8px !important; width: 349px !important;'
+                     ' height: 0.5px !important; }')
+
+def mut_v9(work):
+    append_css(work, '#rir .chip[data-rir="1"] { opacity: 0 !important; }')
+
+def mut_v10(work):
+    append_css(work, '#rir .chip[data-rir="1"] { clip-path: inset(100%) !important; }')
+
+def mut_v11(work):
+    append_css(work, '#rir .chip[data-rir="1"] { position: relative !important; left: 1000px !important; }')
+
+def mut_v12(work):
+    # top plus 3 and height plus 3: both stored edges move 3, which the tolerance allows, and the
+    # bottom edge moves 6, which it does not
+    append_css(work, '.status-line { position: relative !important; top: 3px !important;'
+                     ' padding-bottom: 3px !important; }')
+
+def mut_v13(work):
+    _shift_status(work, 3.05)   # the smallest move a two decimal record can hold past 3 px
+
+def mut_v14(work):
+    # 15.5 px becomes 16.01 px: 0.51 px, which the tolerance does not allow, and which a record
+    # holding one decimal reads as exactly 0.50 and passes
+    append_css(work, '.status-line { font-size: 16.01px !important; }')
+
+def mut_v15(work):
+    # a surface with a hover style and no pressed style of its own: with the pointer resting on
+    # it, the idle photograph and the pressed photograph are the same picture
+    append_css(work, '#recovery:hover, #recovery:active { background: #3a2f26 !important;'
+                     ' border-color: #3a2f26 !important; }')
+
+T02_APPLY = ("  R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', "
+             "component: 'sample note', apply: function (a) {\n")
+
+def mut_v22(work):
+    # the apply throws in one theme only: the first theme's picture is already taken when the
+    # second one refuses, and no sheet may be written from the half that worked
+    sub(work, 'app/states-today.js', T02_APPLY, T02_APPLY +
+        "    if (document.documentElement.getAttribute('data-theme') === 'dawn') "
+        "throw new Error('teeth v22: this state cannot apply in dawn');\n")
+
+def mut_v23(work):
+    # no error at all, and the driver's applied marker names another state: only the marker
+    # clause can refuse this one
+    sub(work, 'app/states.js', "document.documentElement.setAttribute('data-state', id);",
+        "document.documentElement.setAttribute('data-state', 'T-01');")
+
+def mut_v24(work):
+    # the marker is right and an error is raised behind it: only the error clause can refuse this
+    sub(work, 'app/states-today.js', T02_APPLY, T02_APPLY +
+        "    setTimeout(function () { throw new Error('teeth v24: raised behind the marker'); }, 0);\n")
+
+def mut_w1(work):
+    # honest negative numbers: a colon, a slash, the multiplication sign and an equals sign
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Rest:\u22125 s, gain/\u22125 kg, set \u00d7\u22125 reps, delta =\u22125 kg.')
+
+def mut_w2(work):
+    # honest negative numbers: a currency sign, a quotation mark, a brace and two brackets
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Cost $\u22125, note "\u22125", pair {\u22125}, span (\u22125) and [\u22125].')
+
+def mut_w3(work):
+    # a comma is not on the opener list, so the sign after it is a dash
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Upper body today,\u22125 change to review.')
+
+def mut_w4(work):
+    # two numeric cells split by a raw TAB, which survives in an attribute value. Folded to a
+    # space the pair reads as one range and the honest number is refused.
+    sub(work, 'app/app.html', 'placeholder="Your weight"', 'placeholder="\u22125\t\u22128"')
+
+def mut_w5(work):
+    # the same pair split by a line break
+    sub(work, 'app/app.html', 'placeholder="Your weight"', 'placeholder="\u22125\n\u22128"')
+
+def mut_w10(work):
+    # the same pair split by a carriage return. A raw one in the markup is turned into a line feed
+    # by the parser before any script sees it, so it is written as a character reference, which is
+    # how a carriage return really reaches an attribute value.
+    sub(work, 'app/app.html', 'placeholder="Your weight"', 'placeholder="\u22125&#13;\u22128"')
+
+def mut_w11(work):
+    # two numbers drawn as two real cells in the status line: the browser puts a TAB between the
+    # cells of one row when it answers innerText, and the rule reads each cell on its own
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Upper body today. <span style="display:table-cell;padding-right:8px">3</span>'
+        '<span style="display:table-cell">\u22125</span>')
+
+def mut_w7(work):
+    # the spaced hyphen drawn with a no break space on each side, and no TAB anywhere: the screen
+    # reads it as the plain spaced hyphen, and so must the rule
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Upper body today\u00a0-\u00a0one change to review.')
+
+def mut_w8(work):
+    # a range written with a space: the sign is opened by a space, and the nearest character
+    # before that space which is not a space is a digit, so the pair is a range and not a number
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Upper body today. Do 3 \u22125 sets.')
+
+def mut_w9(work):
+    # a numeric range written with the minus sign and no space: a digit stands directly in front
+    # of the sign, which is not on the opener list, and a digit follows it
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Upper body today. Do 3\u22125 sets.')
+
+def mut_y1(work):
+    # primary copy relabelled with a class off the muted list and painted a colour that is not any
+    # of the pack's quiet tokens: the class alone used to buy it the 3.0 tier and 3.2 passed
+    sub(work, 'app/app.html', 'class="status-line" id="status-line"',
+        'class="status-line from" id="status-line"')
+    append_css(work, '#status-line { color: #8a8378 !important; }')
+
+def mut_y2(work):
+    # the same colour, inside the pack's own muted recipe this time: a class off the list painted
+    # with a quiet token. It sits at 3.0 and it passes, which is the tier the standard gives it.
+    append_css(work, ':root[data-theme="dawn"] { --muted: #8a8378 !important; }')
+
 def mut_none(work):
     pass
 
@@ -376,9 +578,9 @@ ROWS = [
     ('c',  'the sans face pointed at the serif file', mut_c, GATE_TODAY,
      dict(exit=1, fails=[('fonts pinned by sha256', 'Earned Sans'),
                          ('serif and sans faces loaded and distinct', 'same glyphs')])),
-    ('d-1', '#start pushed 620 px down at 393x852', mut_d1, GATE_TODAY,
+    ('d-1', '#start pushed 630 px down at 393x852', mut_d1, GATE_TODAY,
      dict(exit=1, fails=[('primary action in first viewport', 'bottom')], report=True)),
-    ('d-2', '#start pushed 200 px down at 375x812 and 360x780 only', mut_d2, GATE_TODAY_SMALL,
+    ('d-2', '#start pushed 210 px down at 375x812 and 360x780 only', mut_d2, GATE_TODAY_SMALL,
      dict(exit=1, fails=[('primary action in first viewport', 'bottom')])),
     ('e1', 'Today\'s titles and status line under 4.5:1 and over 3.0:1', mut_e1, GATE_TODAY,
      dict(exit=1, fails=[('contrast (measured behind the text)', '< 4.5')],
@@ -453,38 +655,139 @@ ROWS = [
      dict(exit=1, fails=[('visual regression vs baseline', 'of pixels changed')], hinted=True)),
     ('p4', "the other platform's T-02 thumbnails copied over this platform's", mut_p4, SHEET_T02,
      dict(exit=1, stdout=['is byte identical to', 'never copied', 'T-02-ink.png'])),
-    ('u1', 'a 20 px control positioned absolute and one positioned fixed', mut_u1, GATE_TODAY,
+    ('u1', 'a 20 px control positioned absolute and one positioned fixed', mut_u1,
+     GATE_TODAY_ONE,
      dict(exit=1, fails=[('touch targets >= 44 px', 'abs20 30.00x20.00'),
                          ('touch targets >= 44 px', 'fix20 30.00x20.00')])),
-    ('u2', 'text hidden from the walk by inset(0 round 50%), which insets nothing', mut_u2, GATE_TODAY,
+    ('u2', 'text hidden from the walk by inset(0 round 50%), which insets nothing', mut_u2,
+     GATE_TODAY_ONE,
      dict(exit=1, fails=[('contrast (measured behind the text)', '< 4.5')])),
-    ('u3', 'an inline span excluded by a text indent that does not move its text', mut_u3, GATE_TODAY,
+    ('u3', 'an inline span excluded by a text indent that does not move its text', mut_u3,
+     GATE_TODAY_ONE,
      dict(exit=1, fails=[('contrast (measured behind the text)', '< 4.5')])),
-    ('u4', 'a set written with a fullwidth letter x', mut_u4, GATE_TODAY,
+    ('u4', 'a set written with a fullwidth letter x', mut_u4, GATE_TODAY_ONE,
      dict(exit=1, fails=[('the multiplication sign in every set string', "'8 x 1'")])),
     ('u5', '"optional" written with a fullwidth letter, on a set screen', mut_u5,
      ['quality/statesheet.py', '--only', 'W-43'],
      dict(exit=1, stdout=['copy: "optional" on a set screen'])),
-    ('u6', 'the primary pushed sideways out of the viewport', mut_u6, GATE_TODAY,
+    ('u6', 'the primary pushed sideways out of the viewport', mut_u6, GATE_TODAY_ONE,
      dict(exit=1, fails=[('primary action in first viewport', 'right')])),
-    ('u7', 'the primary at opacity 0', mut_u7, GATE_TODAY,
+    ('u7', 'the primary at opacity 0', mut_u7, GATE_TODAY_ONE,
      dict(exit=1, fails=[('primary action in first viewport', 'is not drawn on the screen')])),
-    ('u8', 'an RIR chip at visibility hidden', mut_u8, GATE_WORKOUT,
+    ('u8', 'an RIR chip at visibility hidden', mut_u8, GATE_WORKOUT_ONE,
      dict(exit=1, fails=[('RIR chips are the five locked values', 'not visible')])),
     ('u9', "T-02's status line moved 3 px left and widened 3 px, so its right edge moves 6",
      mut_u9, SHEET_T02,
      dict(exit=1, stdout=['T-02', 'right', 'rect edge moved (px)'])),
+    # ---------------------------------------------------------- the one list of the second audit
+    ('v1', 'a viewport fixed paragraph: its label, its generated set and its contrast', mut_v1,
+     GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, "'ready'"), (COPY_CHECK, "'claude'"),
+                         ('the multiplication sign in every set string', "'8 x 1'"),
+                         ('contrast (measured behind the text)', '< 4.5')])),
+    ('v2', 'a fixed 20 px control and fixed text on a state', mut_v2, SHEET_T02,
+     dict(exit=1, stdout=['fix20 30.00x20.00', 'contrast:', 'T-02'])),
+    ('v3', 'a state\'s note under inset(0 round 50%), which insets nothing', mut_v3, SHEET_T02,
+     dict(exit=1, stdout=['contrast:', 'T-02'])),
+    ('v4', 'an inline span on a state under an indent that does not move its text', mut_v4,
+     SHEET_T02, dict(exit=1, stdout=['contrast:', 'T-02'])),
+    ('v5', 'a set written with a fullwidth letter x, judged by the state sheet', mut_v5, SHEET_T02,
+     dict(exit=1, stdout=['set written with the letter x', 'T-02'])),
+    ('v6', 'the primary pushed above the top of the viewport', mut_v6, GATE_TODAY_ONE,
+     dict(exit=1, fails=[('primary action in first viewport', '< 0')])),
+    ('v7', 'the primary not on the page at all', mut_v7, GATE_TODAY_ONE,
+     dict(exit=1, fails=[('primary action in first viewport', 'is not on the page')])),
+    ('v8', "the primary's bottom edge 0.3 px past the viewport", mut_v8, SHEET_T02,
+     dict(exit=1, stdout=['outside the first viewport: bottom 852.3', 'T-02'])),
+    ('v9', 'an RIR chip at opacity 0', mut_v9, GATE_WORKOUT_ONE,
+     dict(exit=1, fails=[('RIR chips are the five locked values', 'not visible')])),
+    ('v10', 'an RIR chip clipped away by clip-path: inset(100%)', mut_v10, GATE_WORKOUT_ONE,
+     dict(exit=1, fails=[('RIR chips are the five locked values', 'not visible')])),
+    ('v11', 'an RIR chip pushed off the side of the viewport', mut_v11, GATE_WORKOUT_ONE,
+     dict(exit=1, fails=[('RIR chips are the five locked values', 'not visible')])),
+    ('v12', "T-02's status line moved 3 px down and grown 3 px, so its bottom edge moves 6",
+     mut_v12, SHEET_T02, dict(exit=1, stdout=['" bottom ', 'rect edge moved (px)', 'T-02'])),
+    ('v13', "T-02's status line moved 3.05 px, the smallest move a record can hold past 3",
+     mut_v13, SHEET_T02, dict(exit=1, stdout=['became', 'rect edge moved (px)', 'T-02'])),
+    ('v14', "T-02's status line at 16.01 px, which is 0.51 px off the record", mut_v14, SHEET_T02,
+     dict(exit=1, stdout=['" font size ', 'T-02'])),
+    ('v15', 'a surface with a hover style and no pressed style of its own', mut_v15, GATE_TODAY,
+     dict(exit=1, fails=[('pressed state on every tappable surface', '#recovery')])),
+    ('v16', 'teeth --only with an id this list does not carry', mut_none,
+     ['quality/teeth.py', '--only', 'zzz'],
+     dict(exit=2, stdout=['REFUSED', 'zzz', 'does not carry'])),
+    ('v17', 'teeth --only with one id it carries and one it does not', mut_none,
+     ['quality/teeth.py', '--only', 'q1,zzz'],
+     dict(exit=2, stdout=['REFUSED', 'zzz'], not_stdout=['enumerated'])),
+    ('v18', 'teeth --only with a selection that names nothing', mut_none,
+     ['quality/teeth.py', '--only', ','],
+     dict(exit=2, stdout=['REFUSED', 'was given no id'])),
+    ('v19', 'teeth --only with an id it carries, which must run a row', mut_none,
+     ['quality/teeth.py', '--only', 'q1'],
+     dict(exit=0, stdout=['TEETH: 1 rows, 0 disagreeing',
+                          'rows: 1 enumerated, 1 run, 0 not run'])),
+    ('v20', 'the phone sheet asked for a state whose apply throws', mut_q5,
+     ['quality/phonesheet.py', '--state', 'T-02'],
+     dict(exit=2, stdout=['REFUSED', 'T-02', 'no sheet is written'],
+          nofiles=['quality/run/phonesheet-T-02.png'])),
+    ('v21', 'the phone sheet asked for a state that applies', mut_none,
+     ['quality/phonesheet.py', '--state', 'T-14'],
+     dict(exit=0, stdout=['wrote'], files=['quality/run/phonesheet-T-14.png'])),
+    ('v22', 'the phone sheet asked for a state whose apply throws in one theme only', mut_v22,
+     ['quality/phonesheet.py', '--state', 'T-02'],
+     dict(exit=2, stdout=['REFUSED', 'T-02', 'theme dawn', 'no sheet is written'],
+          nofiles=['quality/run/phonesheet-T-02.png'])),
+    ('v23', 'the phone sheet asked for a state whose applied marker names another state', mut_v23,
+     ['quality/phonesheet.py', '--state', 'T-02'],
+     dict(exit=2, stdout=['REFUSED', 'T-02', "marker reads 'T-01'", 'no sheet is written'],
+          nofiles=['quality/run/phonesheet-T-02.png'])),
+    ('v24', 'the phone sheet asked for a state that raises an error behind a correct marker',
+     mut_v24, ['quality/phonesheet.py', '--state', 'T-02'],
+     dict(exit=2, stdout=['REFUSED', 'T-02', 'raised an error while it applied', 'teeth v24'],
+          nofiles=['quality/run/phonesheet-T-02.png'])),
+    ('w1', 'negative numbers after a colon, a slash, the multiplication sign and an equals sign',
+     mut_w1, GATE_TODAY_ONE, dict(exit=0, absent=[(COPY_CHECK, '\u2212')],
+                                  stdout=['0 FAIL'])),
+    ('w2', 'negative numbers after a currency sign, a quotation mark, a brace and a bracket',
+     mut_w2, GATE_TODAY_ONE, dict(exit=0, absent=[(COPY_CHECK, '\u2212')],
+                                  stdout=['0 FAIL'])),
+    ('w3', 'a minus sign after a comma, which is not on the opener list', mut_w3, GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('w4', 'two signed numbers in two cells split by a raw TAB', mut_w4, GATE_TODAY_ONE,
+     dict(exit=0, absent=[(COPY_CHECK, '\u2212')], stdout=['0 FAIL'])),
+    ('w5', 'two signed numbers split by a line break', mut_w5, GATE_TODAY_ONE,
+     dict(exit=0, absent=[(COPY_CHECK, '\u2212')], stdout=['0 FAIL'])),
+    ('w10', 'two signed numbers split by a carriage return', mut_w10, GATE_TODAY_ONE,
+     dict(exit=0, absent=[(COPY_CHECK, '\u2212')], stdout=['0 FAIL'])),
+    ('w11', 'two numbers in two real cells of one row, the second of them signed', mut_w11,
+     GATE_TODAY_ONE, dict(exit=0, absent=[(COPY_CHECK, '\u2212')], stdout=['0 FAIL'])),
+    ('w6', "W-18's decrement button, whose whole label is the sign", mut_none, SHEET_W18,
+     dict(exit=0, stdout=['0 with problems'])),
+    ('w7', 'a spaced hyphen whose two spaces are no break spaces', mut_w7,
+     GATE_TODAY_ONE, dict(exit=1, fails=[(COPY_CHECK, repr(' - '))])),
+    ('w8', 'a minus sign after a space, with a digit before that space', mut_w8, GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('w9', 'a minus sign written as a numeric range', mut_w9, GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('y1', 'primary copy relabelled with a muted class and painted no quiet token', mut_y1,
+     GATE_TODAY_ONE,
+     dict(exit=1, fails=[('contrast (measured behind the text)', '< 4.5')],
+          ratio_in=[('contrast (measured behind the text)', 3.0, 4.5)])),
+    ('y2', 'the same colour inside the muted recipe, which sits at 3.0 and passes', mut_y2,
+     GATE_TODAY_ONE, dict(exit=0, absent=[('contrast (measured behind the text)', '<')],
+                          stdout=['0 FAIL'])),
     ('q1', 'a size the gate does not know, which used to empty the list', mut_none, GATE_BAD_SIZE,
      dict(exit=2, stdout=['REFUSED', '--sizes 390x844', 'the sizes are'])),
     ('q2', 'a word off the owner\'s list split by a soft hyphen', mut_q2, GATE_TODAY,
      dict(exit=1, fails=[(COPY_CHECK, 'U+00AD'), (COPY_CHECK, "'ready'")])),
     ('q3', 'a horizontal bar and a hyphen bullet, two dashes the old list missed', mut_q3, GATE_TODAY,
      dict(exit=1, fails=[(COPY_CHECK, repr('\u2015')), (COPY_CHECK, repr('\u2043'))])),
-    ('q9', 'a spaced hyphen whose two spaces are a tab and a no break space', mut_q9, GATE_TODAY,
+    ('q9', 'a spaced hyphen whose two spaces are a raw TAB and an ordinary space', mut_q9,
+     GATE_TODAY_ONE,
      dict(exit=1, fails=[(COPY_CHECK, repr(' - '))])),
     ('q10', 'a visible 20 px target carrying a clip its positioning makes inert', mut_q10, GATE_TODAY,
      dict(exit=1, fails=[('touch targets >= 44 px', '274x20.00')])),
-    ('q11', 'a minus sign as a range and pressed against a letter', mut_q11, GATE_TODAY,
+    ('q11', 'a minus sign pressed against a letter', mut_q11, GATE_TODAY_ONE,
      dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
     ('q4', 'primary text tagged muted and painted with the muted token', mut_q4, SHEET_T02,
      dict(exit=1, stdout=['T-02', 'colour', 'became', 'colour moved (levels)'])),
@@ -500,6 +803,19 @@ ROWS = [
      ['quality/statesheet.py', '--accept'],
      dict(exit=2, stdout=['REFUSED', 'EARNED_APP'], app='compare')),
 ]
+
+
+def check_selection():
+    """--only must name rows this list carries, and must name at least one."""
+    ids = [r[0] for r in ROWS]
+    if ONLY_GIVEN and not ONLY:
+        refuse('--only was given no id: name at least one of the ' + str(len(ids))
+               + ' rows this list carries, or leave --only off to run them all')
+    if ONLY:
+        unknown = [x for x in ONLY if x not in ids]
+        if unknown:
+            refuse('--only names ' + ', '.join(unknown) + ', which this list does not carry; it '
+                   'carries ' + str(len(ids)) + ' rows, and "python quality/teeth.py" prints them')
 
 
 def fresh(pristine, work):
@@ -521,8 +837,11 @@ def judge(row_id, want, proc, work):
     for needle in want.get('stdout', []):
         if needle not in out:
             wrong.append(f'"{needle}" is not in the output')
+    for needle in want.get('not_stdout', []):
+        if needle in out:
+            wrong.append(f'"{needle}" is in the output and this row says it must not be')
     fails = []
-    if want.get('fails') or want.get('ratio_in'):
+    if want.get('fails') or want.get('ratio_in') or want.get('absent'):
         rp = os.path.join(work, 'quality', 'run', 'report.json')
         try:
             with open(rp, encoding='utf-8') as f:
@@ -536,6 +855,18 @@ def judge(row_id, want, proc, work):
             if not hit:
                 near = '; '.join(sorted({r[1] for r in fails})) or 'nothing failed'
                 wrong.append(f'no FAIL on "{check}" saying "{needle}" (the run failed: {near})')
+    # a row can assert that a check did NOT fail, which is how an honest case is held: a negative
+    # control that only says "exit 0" would go on passing if the check stopped running at all
+    for check, needle in want.get('absent', []):
+        hit = [r for r in fails if r[1] == check and needle in r[3]]
+        if hit:
+            wrong.append(f'"{check}" failed saying "{hit[0][3][:70]}" and this row says it must not')
+    for f in want.get('files', []):
+        if not os.path.exists(os.path.join(work, f.replace('/', os.sep))):
+            wrong.append(f'{f} was not written')
+    for f in want.get('nofiles', []):
+        if os.path.exists(os.path.join(work, f.replace('/', os.sep))):
+            wrong.append(f'{f} was written and this row says it must not be')
     for check, lo, hi in want.get('ratio_in', []):
         vals = [float(m) for r in fails if r[1] == check for m in re.findall(r'(\d+\.\d+) <', r[3])]
         if not vals:
@@ -567,11 +898,12 @@ def main():
 
     work = os.path.join(tmp, 'work')
     table = []
+    enumerated = [r for r in ROWS if not ONLY or r[0] in ONLY]
+    skipped = []
     started = time.time()
-    for row_id, what, mutate, cmd, want in ROWS:
-        if ONLY and row_id not in ONLY:
-            continue
+    for row_id, what, mutate, cmd, want in enumerated:
         if want.get('hinted') and sys.platform not in HINTED:
+            skipped.append(row_id)
             # neither passed silently nor skipped silently: the row is printed, with the reason
             table.append((row_id, what, 'as expected',
                           f'glyphs are not hinted on {sys.platform}, so taking the argument out of '
@@ -583,7 +915,9 @@ def main():
         try:
             mutate(work)
         except NotHere as e:
-            # printed, not skipped: the row says in words why this machine cannot build it
+            # printed, not skipped in silence: the row says in words why this machine cannot
+            # build it, and it is counted as a row this platform did not run
+            skipped.append(row_id)
             table.append((row_id, what, 'as expected', str(e), time.time() - t0))
             continue
         except AssertionError as e:
@@ -591,6 +925,7 @@ def main():
             continue
         env = dict(os.environ)
         env.pop('EARNED_APP', None)
+        env['EARNED_TEETH_DEPTH'] = str(DEPTH + 1)
         if want.get('app') == 'empty':
             env['EARNED_APP'] = _file_url(empty) + '/'
         elif want.get('app') == 'compare':
@@ -603,7 +938,17 @@ def main():
 
     lines = []
     bad = [r for r in table if r[2] != 'as expected']
+    # The head line keeps the form every earlier receipt and the audit's own rows read ("N rows, M
+    # disagreeing, S s"), and the line under it says what that N is made of: what this machine
+    # ENUMERATED, what it RAN, and what it could not run here. A row counted as expected because
+    # the platform cannot build its change is not a row that ran, and a head line alone cannot be
+    # read for how much of the list this machine actually proved.
     lines.append(f'TEETH: {len(table)} rows, {len(bad)} disagreeing, {time.time() - started:.0f} s')
+    lines.append(f'rows: {len(enumerated)} enumerated, {len(table) - len(skipped)} run, '
+                 f'{len(skipped)} not run on {sys.platform}'
+                 + (f' ({", ".join(skipped)})' if skipped else ''))
+    lines.append(f'pack under test: {PACK}')
+    lines.append(f'selection: {", ".join(ONLY) if ONLY else "every row"}')
     lines.append('')
     lines.append(f'{"row":5s} {"mutation":58s} {"verdict":12s} note')
     for row_id, what, verdict, note, secs in table:
@@ -629,4 +974,8 @@ def _file_url(path):
 
 
 if __name__ == '__main__':
+    if DEPTH > MAX_DEPTH:
+        refuse(f'this run stands {DEPTH} deep inside another teeth run, and the list nests one '
+               'level only, for the rows that hold teeth.py\'s own --only contract')
+    check_selection()
     main()
