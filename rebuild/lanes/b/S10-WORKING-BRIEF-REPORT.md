@@ -9,8 +9,9 @@ does not invent the missing final S9 parent, GSS head, copy lock, package id,
 pins, counts, hashes, acceptance token or owner choice.
 
 Hard stops precede product work: accepted final S9/CUI/copy-lock inputs and an
-accepted GSS child. Current GSS is under repair after rejection. CUI Windows
-evidence exists, while final independent and Linux evidence remain pending.
+accepted GSS child. GSS candidate 04ea is in independent L3 review. CUI Windows
+and Linux execution evidence exists; final independent package review remains
+pending.
 
 D-SPLIT-PARENT rechecks all three actual-parent blobs against
 regions.json.sourceBlobs.s9. Changed input requires a new named ref, visible
@@ -25,9 +26,14 @@ L3 debts D3, D5, D6, D7 and D9, including the 21 survivor ids, are verbatim.
 S-R33 gets its plain-options row in S10. D-SPLIT-LISTEN remains assigned to
 TODAY-OUTCOME-TYPE; no pre-S10 patch is proposed.
 
-The instructions cover file roles, tests, ancestors/children, changed pins,
-runner/workflow/mirror closure, copy lock, safe public evidence, PM token kinds,
-exact-byte finalization, seal/recheck/integration order and post-S10 children.
+The instructions cover distinct product/execution roles, tests,
+ancestors/children, changed pins, runner/workflow/mirror closure and the eight
+required copy-lock answers plus its coordinated-deletion plant.
+
+They name RELEASE-FROM-SEAL, GATE-SUPERSESSION, THEME and BRIEF-BY-SHA with
+their distinct fields/predicates, and order proposed artifact, PM-only first
+full, acceptance envelope, merge-forward, authorized receipt, separate coach
+commit, BYTE-IDENTITY reverify, both-OS CI and fast-forward.
 
 EW2 suite preparation may precede S10, but EW2 product bytes stay after S10.
 TODAY-MODEL-HANDOFF, TODAY-OUTCOME-TYPE and GYM-START-IN-PAINT follow S10 in

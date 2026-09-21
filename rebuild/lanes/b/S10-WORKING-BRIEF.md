@@ -42,16 +42,16 @@ review file, and role.
 |---|---|---|
 | S9 parent | Accepted integrated S9 commit, runner, release machinery, declarations, workflow and all final UI pins | No S10 branch or package until this exact parent exists. |
 | TODAY-SPLIT | Accepted `b35a48e3...` or an explicitly reviewed successor | Any product change after that head requires its own disposition. |
-| GSS | Final accepted GYM-SETTINGS-WRITER-SEAL product and tests | Current rejected/in-flight candidate is not an input. |
+| GSS | Final accepted GYM-SETTINGS-WRITER-SEAL product and tests | Candidate 04ea in independent L3 review is not yet an accepted input. |
 | Copy lock | Accepted design/copy declaration including screens not yet ported | No released on-screen copy may enter the seal without it. |
-| C-UI | Final accepted source/package and both-platform evidence needed by S9/S10 | Windows-only or proposed package state is insufficient. |
+| C-UI | Final accepted source/package and both-platform evidence needed by S9/S10 | Both-platform execution alone is insufficient while independent package review is pending. |
 | S10 declarations | Final S9 inventory schema, S10 package id, product and execution maps, child rules | Do not copy S8/S9 counts or field shapes by memory. |
 
 Current readiness on 2026-09-21 is deliberately incomplete: the split is an
-accepted build base; GSS remains under repair after independent rejection; CUI
-has exact-candidate Windows evidence while final independent and Linux evidence
-remain pending; the final S9 parent and copy lock do not exist. This paper is
-preparation, never permission to bypass those stops.
+accepted build base; GSS candidate 04ea is in independent L3 review; CUI has
+exact-candidate Windows and Linux execution evidence while final independent
+package review remains pending; the final S9 parent and copy lock do not exist.
+This paper is preparation, never permission to bypass those stops.
 
 ## 3. Parent and source custody
 
@@ -125,10 +125,19 @@ declaration, the accepted runner's S10 registration, and the existing
 `.github/workflows/rebuild.yml` registration when the PM commissions that last
 hunk. Do not create a second workflow or shadow runner.
 
-Every path added to a product declaration is reconciled with execution pins,
-children, mirrors, required inputs, release roles, and changed-pin owners. A
-file cannot be product-pinned but unexecuted, executed but undeclared, released
-in one mirror and sealed in another, or named by a child under the wrong role.
+Product and execution maps are separate. For every affected path, measure its
+actual role, pre/post pin and coverage owner. Execution pins come only from the
+runner, spec, brief, carrier and actual child argv; product-only data/design
+assets are not forced into execution. An executed source still needs its proper
+declaration, and all mirrors must agree on sealed/released role.
+
+`today-app.cjs` and `gym-app.mjs` use pre=the bound S9-parent product pin and
+post=null under the exact release grant; they must not collide with an
+execution route. Check `today-model.cjs` against the actual parent product map:
+never invent a release for a file that was not sealed there. Pin the accepted
+post-GSS `machine-settings-view.mjs` bytes as :628 requires. Measure the final
+product/execution roles of every changed test instead of assuming all tests
+belong to both maps.
 
 ## 5. S-R30 released exceptions and review rule
 
@@ -198,20 +207,30 @@ Their inherited behavior is reported, not fixed or declared accepted by S10.
 
 ## 8. Copy lock
 
-Before a released view is declared, the accepted copy lock must provide:
+Before a released view is declared, insert the accepted C.6/:549 answers. The
+required eight-answer contract states, without this brief choosing answers:
 
-- exact source files and extraction rules for athlete-facing literals;
-- ownership for sealed fallback reasons and released presentation sentences;
-- exact-byte locks for current screens and a rule for screens not yet ported;
-- generated-content and dynamic/refusal-copy treatment;
-- a changed-copy review route and owner-copy route where required;
-- mirrors that agree on the same source, digest, exceptions, and release role.
+1. the comparison unit;
+2. the observed client whose copy is measured;
+3. the enumerated state set;
+4. the policy for states/screens not yet ported;
+5. the price/treatment of a legitimate record change;
+6. the exact relationship between the copy arrays;
+7. the machine on which reproduction is required;
+8. whether and how that reproduction is enforced in CI.
 
-Run the lock on the actual composed product, not only on source fragments. It
-must catch copy moving into an unscanned file, disappearing, duplicating, or
+It also names exact source/extraction ownership for released presentation copy,
+sealed fallback reasons, generated/dynamic refusal copy, and all mirrors. These
+are missing-input STOPs until the accepted lock supplies them; this brief does
+not design substitute answers.
+
+Run the lock on the actual composed product, not only on source fragments. Its
+mandatory two-sided negative fixture deletes one sentence from both a rendered
+screen and `APPROVED_COPY`; the lock must still refuse and name that missing
+sentence. It must also catch copy moving into an unscanned file, duplicating or
 changing ownership. Proposed EW2 wording and later ticket wording are excluded.
-Missing design declarations, unresolved copy ownership, or an uncovered screen
-is a STOP. S10 does not invent copy to close it.
+Missing answers, unresolved ownership, an uncovered screen, or a passing
+coordinated-deletion plant is a STOP.
 
 ## 9. Ancestors, children, pins and mirrors
 
@@ -220,14 +239,17 @@ Build a final reconciliation table with one row per changed path:
 `path | parent role/pin | S10 role/pin | execution owner | child effect |
 mirror locations | evidence | reviewer`.
 
-For every changed pin:
+For every changed pin or role:
 
 1. Name the old owner and why its pin changes or is removed.
 2. Name the new owner and exact digest source.
-3. Update every runner/package/workflow mirror in the same integration group.
+3. Update every runner/package/workflow mirror in the same integration group,
+   while keeping product and execution maps distinct.
 4. Prove ancestor packages either remain byte-valid or are intentionally
    superseded by an accepted child rule.
 5. Prove no child can re-pin a released file or omit a new sealed dependency.
+6. For both released views, bind pre to the actual S9 parent and post to null,
+   check the exact grant, and refuse any execution-route collision.
 
 Run the accepted runner's own mirror and mutation rows. A marker-only match is
 not proof. The workflow condition must be the complete permitted expression,
@@ -265,17 +287,36 @@ green evidence. Later success cannot hide an earlier failing gate.
 ## 11. PM tokens and exact-byte finalization
 
 Do not write a PM token from this working brief. After all inputs exist, copy
-the exact line kinds and field grammar from the final accepted runner/release
-spec. At minimum the flow distinguishes REQUEST/PROPOSED, independent review,
-ACCEPTED, seal/receipt, and integration evidence; no line combines proposal and
-acceptance.
+the exact full U+00B7 clause grammar from the final accepted runner/brief. The
+four known line kinds are distinct:
 
-Every token binds the exact candidate commit, parent, package id, brief digest,
-sourceBase, product and execution inventories, review file/commit, evidence
-run ids, and artifact/receipt identity required by the final grammar. Compute
-all values from final bytes. A placeholder, shortened identity where full is
-required, stale parent, report-only successor with changed product, or token
-whose target moved is refused.
+- RELEASE-FROM-SEAL has exact token shape
+  `RELEASE-FROM-SEAL <packageId> <path>[,<path>...]`. It binds
+  `release.rulingLineSha256`, exactly 64 lowercase hex, in its own full clause
+  and ends with bare final `RULED`.
+- GATE-SUPERSESSION has exact token shape
+  `GATE-SUPERSESSION <packageId> <carrier>[,<carrier>...]`. It binds
+  `coverage.superseded.rulingLineSha256`, exactly 64 lowercase hex, in its own
+  full clause and ends with bare final `RULED`.
+- THEME reads the four-key cowork claim at `authorizations.theme`: exactly
+  `ledgerLine`, `role`, `line`, and `lineSha256`, with `role` equal to `cowork`.
+  Its line names this package id and ends with literal
+  `SPACE U+00B7 SPACE ACCEPTED`.
+- BRIEF-BY-SHA reads the separate four-key cowork claim at
+  `brief.acceptedLedgerLine`, with the same exact keys and cowork role. Its line
+  names this package id and `brief.file`, and matches terminal
+  `(?:^|[ \u00b7])ACCEPTED$`; `brief.sha256` and `BRIEF-ACCEPTED` bind the
+  final brief bytes under that distinct predicate.
+
+Each cited `lineSha256` hashes the exact UTF-8 line bytes without its newline
+and resolves uniquely on `CHAIN_REF`; `ledgerLine` is the positive integer
+coordinate. Unknown final ids, paths, carriers, lines and hashes remain STOPs.
+
+Do not combine these kinds, substitute a generic ACCEPTED line, or claim every
+kind carries every commit/inventory field. Each line carries only the fields
+and predicate its final accepted grammar requires. Compute hashes from final
+bytes. A placeholder, stale ruling line, wrong field shape, or moved target is
+refused.
 
 The PM reads every released exception hunk and the final declaration diff.
 Author, independent Astra reviewer, PM/integrator, and Claude data-path final
@@ -293,16 +334,21 @@ remain distinct hands.
 8. Obtain independent Astra review and fix/disprove findings round by round.
 9. Obtain the separate Claude final over moved writers, GSS writer logic,
    released exception hunks and soon-sealed declarations.
-10. PM performs exact-byte read and writes the proposed/accepted token sequence.
-11. Flip workflow/declaration state in the order the final release spec requires;
-    only then create the proposed seal artifact and receipt.
-12. Reverify artifact inputs, product/execution pins, coach/revision transition,
-    inventory fence and exact receipt bytes without regenerating evidence.
-13. Integrator merge-forwards the accepted child, never rebases it, and proves
-    name-only product/execution equality before and after the merge.
-14. Run exact-head Windows and Linux CI. Any product or execution change after
-    review returns to the appropriate evidence step.
-15. A live deployment, import, or phone action requires its own authorization
+10. PM performs the exact-byte read; final runner, spec and workflow posts are
+    committed before `--ci` or `proposed()`. `proposed()` returns an object;
+    `--ci` writes no artifact or receipt.
+11. Create the exact proposed artifact, still pending review. The PM alone runs
+    the first authorized full in REVIEW-PENDING mode.
+12. Record POSTFIX-ACCEPTANCE plus the accepted review envelope. The integrator
+    then merge-forwards the accepted child, never rebases it.
+13. Only an authorized full writes the receipt. Commit that receipt unchanged;
+    the verdict names its exact sha. Commit the coach constant separately.
+14. Run the authorized BYTE-IDENTITY reverify, then exact-head Windows and Linux
+    CI, then fast-forward. A later DECISIONS/STATUS-only merge may reuse evidence
+    only under the named :563/:565 name-only proof and confirming chain run.
+15. Any product/execution change after review returns to the responsible proof;
+    there is no author permission to run a seal or write a receipt.
+16. A live deployment, import, or phone action requires its own authorization
     and live-slice proof. S10 acceptance alone does not grant it.
 
 ## 13. Final STOP list
