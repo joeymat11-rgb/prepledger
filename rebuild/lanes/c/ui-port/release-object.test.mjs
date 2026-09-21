@@ -29,6 +29,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -85,6 +86,7 @@ const FENCE_READ = only(FENCE_SRC, FENCE,
 const runnerReleasedMap = new Function("declaredPins", "bound", "s", RELEASED_MAP + "\n  return releasedMap;");
 const runnerEmit = new Function("release", "releasedMap", "return {\n" + EMIT + "\n};");
 const fenceReadsReleased = new Function("inv", FENCE_READ + "\n  return released;");
+const conditionIsNotCancelled = (cond) => /!\s*cancelled\(\)/.test(cond);
 
 /* One package's declaration list, through the runner's own two expressions, ending in the
    half of the artifact object this cell is about. `declared` is [path, pre] pairs; the
@@ -191,23 +193,22 @@ test("(5) `released` is the last ARTIFACT_KEYS entry and envelope() closes it by
      (nothing)
         the runner's released block and the fence's reading of it agree in both directions
    Anyone who makes this row green by any other means has removed the cell. */
-test("REAL ROW: the released block of the real acceptance artifact, against the fence's own reading", () => {
-  const abs = path.join(REPO, ...ARTIFACT.split("/"));
+function releaseObjectRefusals(abs, artifact = ARTIFACT) {
   const refusals = [];
   let inv = null;
-  if (!fs.existsSync(abs)) refusals.push("RELEASE-OBJECT ARTIFACT-ABSENT " + ARTIFACT);
+  if (!fs.existsSync(abs)) refusals.push("RELEASE-OBJECT ARTIFACT-ABSENT " + artifact);
   else {
     try { inv = JSON.parse(fs.readFileSync(abs, "utf8")); }
-    catch (e) { refusals.push("RELEASE-OBJECT ARTIFACT-NOT-JSON " + ARTIFACT + ": " + String(e.message).split("\n")[0]); }
+    catch (e) { refusals.push("RELEASE-OBJECT ARTIFACT-NOT-JSON " + artifact + ": " + String(e.message).split("\n")[0]); }
     if (inv !== null && (typeof inv !== "object" || Array.isArray(inv))) {
-      refusals.push("RELEASE-OBJECT ARTIFACT-NOT-JSON " + ARTIFACT + ": it parses, but not as a JSON object");
+      refusals.push("RELEASE-OBJECT ARTIFACT-NOT-JSON " + artifact + ": it parses, but not as a JSON object");
       inv = null;
     }
   }
   if (inv !== null) {
-    if (!Object.prototype.hasOwnProperty.call(inv, "released")) refusals.push("RELEASE-OBJECT RELEASED-BLOCK-ABSENT " + ARTIFACT);
+    if (!Object.prototype.hasOwnProperty.call(inv, "released")) refusals.push("RELEASE-OBJECT RELEASED-BLOCK-ABSENT " + artifact);
     else if (inv.released === null || typeof inv.released !== "object" || Array.isArray(inv.released))
-      refusals.push("RELEASE-OBJECT RELEASED-NOT-AN-OBJECT-KEYED-BY-PATH " + ARTIFACT);
+      refusals.push("RELEASE-OBJECT RELEASED-NOT-AN-OBJECT-KEYED-BY-PATH " + artifact);
     else {
       const seen = fenceReadsReleased(inv);
       for (const file of [CSS, BUILD]) {
@@ -221,11 +222,28 @@ test("REAL ROW: the released block of the real acceptance artifact, against the 
         if (file !== CSS && file !== BUILD) refusals.push("RELEASE-OBJECT RELEASED-UNEXPECTED " + file);
     }
   }
+  return refusals;
+}
+
+test("REAL ROW: the released block of the real acceptance artifact, against the fence's own reading", () => {
+  const abs = path.join(REPO, ...ARTIFACT.split("/"));
+  const refusals = releaseObjectRefusals(abs);
   assert.deepEqual(refusals, [],
     "the release object and the fence's reading of it do not agree at this head. Refusals:\n  "
     + refusals.join("\n  ")
     + "\n(Before the seal the single refusal ARTIFACT-ABSENT is EXPECTED and is the red this"
     + " row was written for: nothing in integration part 1 writes an artifact.)");
+});
+
+test("D-NULL-ARTIFACT: JSON null is refused by the real release-object reader", (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "s9-null-artifact-"));
+  t.after(() => fs.rmSync(dir, { recursive: true }));
+  const artifact = "synthetic-null.json";
+  const abs = path.join(dir, artifact);
+  fs.writeFileSync(abs, "null\n");
+  assert.deepEqual(releaseObjectRefusals(abs, artifact), [
+    "RELEASE-OBJECT ARTIFACT-NOT-JSON " + artifact + ": it parses, but not as a JSON object",
+  ]);
 });
 
 /* (7) THIS CELL'S OWN STEP IN rebuild.yml, and the condition on it. Same rule, same
@@ -247,8 +265,14 @@ test("(7) this cell's own step in rebuild.yml exists, names it by exact path and
   assert.notEqual(cond, undefined,
     "this cell's step carries no `if:` at all, so GitHub skips it after the standing step "
     + "at :150 fails: " + block.map((l) => l.trim()).join(" / "));
-  assert.match(cond, /!\s*cancelled\(\)/,
+  assert.equal(conditionIsNotCancelled(cond), true,
     "the condition is not `not cancelled`: " + cond.trim());
+});
+
+test("D-CONDITION-MATCHER: release-object requires the whole permitted expression", () => {
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() }}"), true);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() && false }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ false || !cancelled() }}"), false);
 });
 
 /* The refusal vocabulary of the real row, named so it is readable from outside and

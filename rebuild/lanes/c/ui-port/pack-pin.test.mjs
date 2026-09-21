@@ -68,6 +68,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+const conditionIsNotCancelled = (cond) => /!\s*cancelled\(\)/.test(cond);
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, "../../../..");
 
@@ -1310,9 +1312,15 @@ test("P-FENCE-1 / DECISIONS:570 - this cell's own step in rebuild.yml carries th
     "the pack step carries no `if:` at all, so GitHub skips it after the standing step at "
     + ":150 fails - which is every branch these two cells exist for (P-FENCE-1, "
     + "DECISIONS:559): " + block.map((l) => l.trim()).join(" / "));
-  assert.match(cond, /!\s*cancelled\(\)/,
+  assert.equal(conditionIsNotCancelled(cond), true,
     "the condition is not `not cancelled`, so the step either never runs after a failure "
     + "or runs after a cancellation: " + cond.trim());
+});
+
+test("D-CONDITION-MATCHER: pack reader requires the whole permitted expression", () => {
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() }}"), true);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() && false }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ false || !cancelled() }}"), false);
 });
 
 /* Named so the refusal vocabulary is readable from outside and cannot drift in silence:

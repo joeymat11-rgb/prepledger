@@ -62,6 +62,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+const conditionIsNotCancelled = (cond) => /!\s*cancelled\(\)/.test(cond);
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 /* rebuild/lanes/c/ui-port -> the repository root. */
 const REPO = path.resolve(HERE, "..", "..", "..", "..");
@@ -1197,9 +1199,15 @@ test("P-FENCE-1 (18) - this cell's own step in rebuild.yml carries the not-cance
     "the fence's own step carries no `if:` at all, so GitHub skips it after the standing "
     + "step at :150 fails - which is every branch this fence exists for (P-FENCE-1): "
     + block.map((l) => l.trim()).join(" / "));
-  assert.match(cond, /!\s*cancelled\(\)/,
+  assert.equal(conditionIsNotCancelled(cond), true,
     "the condition is not `not cancelled`, so the step either never runs after a failure "
     + "or runs after a cancellation: " + cond.trim());
+});
+
+test("D-CONDITION-MATCHER: fence readers require the whole permitted expression", () => {
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() }}"), true);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() && false }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ false || !cancelled() }}"), false);
 });
 
 /* ================== R3's TWO BLOCKING FINDINGS, AND THE ROWS THAT CLOSE THEM =========
@@ -1583,7 +1591,7 @@ function assertNotCancelled(file) {
     file + "'s step carries no `if:` at all, so GitHub skips it after the standing step at "
     + ":150 fails, which is every branch this package is built on (P-S9-3, DECISIONS:627): "
     + block.map((l) => l.trim()).join(" / "));
-  assert.match(cond, /!\s*cancelled\(\)/,
+  assert.equal(conditionIsNotCancelled(cond), true,
     "the condition is not `not cancelled`, so the step either never runs after a failure "
     + "or runs after a cancellation: " + cond.trim());
 }
