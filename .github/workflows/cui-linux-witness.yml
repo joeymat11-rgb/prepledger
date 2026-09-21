@@ -1,0 +1,228 @@
+name: CUI Linux witness
+
+on:
+  push:
+    branches:
+      - rebuild/ops-cui-linux
+    paths:
+      - .github/workflows/cui-linux-witness.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cui-linux-witness
+  cancel-in-progress: false
+
+env:
+  CANDIDATE: cf14982050a8169c7f4848ec0bf1f69c2bb5759f
+  PACK: rebuild/m1/approved-2026-09-18
+  MEASURED_TEST_NOW: '2026-09-03'
+  TZ: America/New_York
+  PYTHONDONTWRITEBYTECODE: '1'
+  EARNED_APP: ''
+  EARNED_APP_DIGEST: ''
+
+jobs:
+  witness:
+    name: ordinary Linux gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Check out the exact candidate pack
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: cf14982050a8169c7f4848ec0bf1f69c2bb5759f
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: /rebuild/m1/approved-2026-09-18/
+          sparse-checkout-cone-mode: false
+
+      - name: Set up exact Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: 3.11.15
+
+      - name: Prove candidate and capture before custody
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$CANDIDATE"
+          test "$(git config --bool core.sparseCheckout)" = true
+          test "$(git config --bool core.sparseCheckoutCone)" = false
+          test "$(cat .git/info/sparse-checkout)" = "/rebuild/m1/approved-2026-09-18/"
+          test ! -e app.js
+          test ! -e src
+          test ! -e ledger
+          test ! -e rebuild/conform/private
+          unexpected=$(find . -path './.git' -prune -o -type f \
+            ! -path "./$PACK/*" -print -quit)
+          test -z "$unexpected"
+          link_before=$(find "$PACK" -type l -print -quit) || exit 1
+          test -z "$link_before"
+          digest() {
+            git ls-files -z -- "$1" | xargs -0 sha256sum | sha256sum | cut -d' ' -f1
+          }
+          footprint() {
+            find "$1" -type f ! -path "$PACK/quality/run/*" -print0 \
+              | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1
+          }
+          candidate_head=$(git rev-parse HEAD) || exit 1
+          pack_tracked_count=$(git ls-files -- "$PACK" | wc -l) || exit 1
+          baseline_tracked_count=$(git ls-files -- "$PACK/quality/baseline" | wc -l) || exit 1
+          test "$pack_tracked_count" -gt 0
+          test "$baseline_tracked_count" -gt 0
+          pack_before=$(digest "$PACK") || exit 1
+          baseline_before=$(digest "$PACK/quality/baseline") || exit 1
+          pack_footprint_before=$(footprint "$PACK") || exit 1
+          baseline_footprint_before=$(footprint "$PACK/quality/baseline") || exit 1
+          pack_file_count_before=$(find "$PACK" -type f ! -path "$PACK/quality/run/*" | wc -l) || exit 1
+          baseline_file_count_before=$(find "$PACK/quality/baseline" -type f | wc -l) || exit 1
+          {
+            echo "candidate=$CANDIDATE"
+            echo "candidate_head=$candidate_head"
+            echo "workflow_event_sha=$GITHUB_SHA"
+            echo "workflow_ref=$GITHUB_WORKFLOW_REF"
+            echo "pack_tracked_count=$pack_tracked_count"
+            echo "baseline_tracked_count=$baseline_tracked_count"
+            echo "pack_before=$pack_before"
+            echo "baseline_before=$baseline_before"
+            echo "pack_footprint_before=$pack_footprint_before"
+            echo "baseline_footprint_before=$baseline_footprint_before"
+            echo "pack_file_count_before=$pack_file_count_before"
+            echo "baseline_file_count_before=$baseline_file_count_before"
+          } > "$RUNNER_TEMP/cui-before.env"
+
+      - name: Install isolated pinned witness dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-cache-dir \
+            'numpy==2.3.5' 'Pillow==12.0.0' 'playwright==1.56.0'
+          python -m playwright install --with-deps chromium
+
+      - name: Run both ordinary gates
+        id: gates
+        shell: bash
+        working-directory: rebuild/m1/approved-2026-09-18
+        run: |
+          set -uo pipefail
+          unset EARNED_APP EARNED_APP_DIGEST
+          set +e
+          python quality/gate.py
+          gate_exit=$?
+          python quality/statesheet.py
+          states_exit=$?
+          set -e
+          echo "gate_exit=$gate_exit" >> "$GITHUB_OUTPUT"
+          echo "states_exit=$states_exit" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Capture after custody and witness metadata
+        id: custody
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          digest() {
+            git ls-files -z -- "$1" | xargs -0 sha256sum | sha256sum | cut -d' ' -f1
+          }
+          footprint() {
+            find "$1" -type f ! -path "$PACK/quality/run/*" -print0 \
+              | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1
+          }
+          source "$RUNNER_TEMP/cui-before.env"
+          link_after=$(find "$PACK" -type l -print -quit) || exit 1
+          test -z "$link_after"
+          pack_after=$(digest "$PACK") || exit 1
+          baseline_after=$(digest "$PACK/quality/baseline") || exit 1
+          pack_footprint_after=$(footprint "$PACK") || exit 1
+          baseline_footprint_after=$(footprint "$PACK/quality/baseline") || exit 1
+          pack_file_count_after=$(find "$PACK" -type f ! -path "$PACK/quality/run/*" | wc -l) || exit 1
+          baseline_file_count_after=$(find "$PACK/quality/baseline" -type f | wc -l) || exit 1
+          tracked_delta=$(git status --porcelain --untracked-files=no -- "$PACK") || exit 1
+          app_digest=$(python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          root = Path('rebuild/m1/approved-2026-09-18/app')
+          rows = []
+          for path in root.rglob('*'):
+              if path.is_file():
+                  rel = path.relative_to(root).as_posix()
+                  rows.append(f'{rel} {hashlib.sha256(path.read_bytes()).hexdigest()}')
+          print(hashlib.sha256('\n'.join(sorted(rows)).encode()).hexdigest())
+          PY
+          ) || exit 1
+          {
+            cat "$RUNNER_TEMP/cui-before.env"
+            echo "pack_after=$pack_after"
+            echo "baseline_after=$baseline_after"
+            echo "pack_footprint_after=$pack_footprint_after"
+            echo "baseline_footprint_after=$baseline_footprint_after"
+            echo "pack_file_count_after=$pack_file_count_after"
+            echo "baseline_file_count_after=$baseline_file_count_after"
+            echo "tracked_pack_clean=$([ -z "$tracked_delta" ] && echo yes || echo no)"
+            echo "prototype_app_digest=$app_digest"
+            echo "gate_exit=${{ steps.gates.outputs.gate_exit }}"
+            echo "states_exit=${{ steps.gates.outputs.states_exit }}"
+            echo "mode=ordinary; no accept flags"
+            echo "python=$(python --version 2>&1)"
+            python - <<'PY'
+          from importlib.metadata import version
+          for name in ('playwright', 'numpy', 'Pillow'):
+              print(f'{name}={version(name)}')
+          PY
+            for report in \
+              "$PACK/quality/run/report.txt" \
+              "$PACK/quality/run/states-report.txt"; do
+              if [ -f "$report" ]; then
+                grep -E '^(mode|scope|build under test|versions):' "$report" || true
+              else
+                echo "missing_report=$report"
+              fi
+            done
+          } > "$RUNNER_TEMP/cui-linux-witness.txt"
+          [ "$pack_before" = "$pack_after" ] && pack_equal=yes || pack_equal=no
+          [ "$baseline_before" = "$baseline_after" ] && baseline_equal=yes || baseline_equal=no
+          [ "$pack_footprint_before" = "$pack_footprint_after" ] && footprint_equal=yes || footprint_equal=no
+          [ "$baseline_footprint_before" = "$baseline_footprint_after" ] && baseline_footprint_equal=yes || baseline_footprint_equal=no
+          [ "$pack_file_count_before" = "$pack_file_count_after" ] && file_count_equal=yes || file_count_equal=no
+          [ "$baseline_file_count_before" = "$baseline_file_count_after" ] && baseline_file_count_equal=yes || baseline_file_count_equal=no
+          echo "pack_equal=$pack_equal" >> "$GITHUB_OUTPUT"
+          echo "baseline_equal=$baseline_equal" >> "$GITHUB_OUTPUT"
+          echo "footprint_equal=$footprint_equal" >> "$GITHUB_OUTPUT"
+          echo "baseline_footprint_equal=$baseline_footprint_equal" >> "$GITHUB_OUTPUT"
+          echo "file_count_equal=$file_count_equal" >> "$GITHUB_OUTPUT"
+          echo "baseline_file_count_equal=$baseline_file_count_equal" >> "$GITHUB_OUTPUT"
+          echo "tracked_clean=$([ -z "$tracked_delta" ] && echo yes || echo no)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload scoped synthetic witness
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: cui-linux-witness-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/cui-linux-witness.txt
+            rebuild/m1/approved-2026-09-18/quality/run/report.txt
+            rebuild/m1/approved-2026-09-18/quality/run/report.json
+            rebuild/m1/approved-2026-09-18/quality/run/states-report.txt
+            rebuild/m1/approved-2026-09-18/quality/run/statesheet-today.jpg
+            rebuild/m1/approved-2026-09-18/quality/run/statesheet-workout.jpg
+            rebuild/m1/approved-2026-09-18/quality/run/statesheet-coach.jpg
+
+      - name: Enforce both outcomes and custody
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ steps.gates.outputs.gate_exit }}" = 0
+          test "${{ steps.gates.outputs.states_exit }}" = 0
+          test "${{ steps.custody.outputs.pack_equal }}" = yes
+          test "${{ steps.custody.outputs.baseline_equal }}" = yes
+          test "${{ steps.custody.outputs.footprint_equal }}" = yes
+          test "${{ steps.custody.outputs.baseline_footprint_equal }}" = yes
+          test "${{ steps.custody.outputs.file_count_equal }}" = yes
+          test "${{ steps.custody.outputs.baseline_file_count_equal }}" = yes
+          test "${{ steps.custody.outputs.tracked_clean }}" = yes
