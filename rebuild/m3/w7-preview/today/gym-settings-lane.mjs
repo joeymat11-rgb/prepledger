@@ -250,8 +250,8 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
       if (binding.kind === 'settings') {
         subjectBusy.recordSettings = false;
         const current = activeEditor && [...controlBindings.values()].find((row) => row.kind === 'settings'
-          && row.editorToken === binding.editorToken && row.editorToken === activeEditor.token && !row.revoked);
-        if (current && current.control.isConnected) current.control.disabled = false;
+          && row.editorToken === activeEditor.token && !row.revoked && sameContext(row));
+        if (current && current.control.isConnected && phone.contains(current.control)) current.control.disabled = false;
       }
       else { subjectBusy[binding.action] = false; workoutBusy = false; }
     }).then(settleOperation, rejectOperation);

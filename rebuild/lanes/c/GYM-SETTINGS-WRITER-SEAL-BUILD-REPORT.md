@@ -22,7 +22,7 @@ Authority: accepted specification at 6fe4d12c; no acceptance claimed
 - App R comprises 14 listener lines, six paint calls on seven physical lines,
   five API mappings, the constructor handoff and model-read retarget.
 - N +369/-162: lane controller +299/-79; app lifecycle/outcomes +70/-83.
-- Test N/R verification +549/-50: changed fence anchors are R; new rows are N.
+- Test N/R verification +612/-50: changed fence anchors are R; new rows are N.
 - Candidate equalities: gym sites 6 -> 1 Start; listeners 19 -> 0;
   interfaces 3 -> 4; static imports 0 -> 1; host edge 1 -> 1; painter 1 -> 1.
 - Fence 409 -> 401: nine obsolete facade.lane syntax cases removed, one API
@@ -35,9 +35,11 @@ Authority: accepted specification at 6fe4d12c; no acceptance claimed
 - Repaired candidate: lane/UI syntax 2/2 and expanded UI 65/65.
 - L1 REJECT: 6/6 replacement editors stayed disabled; baseline retried 6/6;
   eight same-editor refusal/rejection controls retried.
-- Added mounted six-case GSS-L1-1 regression at test-only checkpoint; author
-  execution awaits the serialized runtime slot. Product bytes are unchanged.
-- Red/green logs: %TEMP%/gss-final-proof-b35a48e3.
+- Permanent mounted L1 row: immutable 79a3c31 RED 0/1; repaired 1/1.
+- Repaired lane/UI syntax 2/2 and full UI 66/66; six mounted cases covered.
+- Minimal repair enables only the current live active-editor binding after the
+  older operation's real settlement; token-bound outcome ownership is unchanged.
+- Logs: %TEMP%/gss-final-proof-b35a48e3; L1: %TEMP%/gss-l1-proof-79a3c31.
 - Candidate versus helper/host reference: three deterministic separate-store
   sequences have equal complete serialized operations/outbox after reopen.
 - This is not immutable old-card parity or full section E UI parity; rendered
