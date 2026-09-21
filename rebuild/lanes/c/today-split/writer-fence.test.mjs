@@ -190,8 +190,7 @@ const READINGS_PROSE = [
   " lb, to one decimal place. Nothing was recorded.",
 ];
 
-/* gym-app.mjs's six DECLARED seams: the durable writers the released card still names, each
-   with the region id regions.json gives it. A seventh fails.
+/* gym-app.mjs's one DECLARED seam: the Start exception the released card still names.
  *
  * KEYED BY SITE, NOT BY NAME (R1 BLOCKING-2, second half). The first form of this row
  * compared the SET OF NAMES, so a seventh durable write that happened to reuse one of the six
@@ -201,14 +200,9 @@ const READINGS_PROSE = [
  * `(call).save` is `facade.lane().save(machine)`, whose receiver is a call expression and not
  * an identifier. */
 const GYM_DECLARED_SEAMS = {
-  "(call).save": "GA-M01 / GA-R04, SEAM G1 recordSettings: `facade.lane().save(machine)`. The released half still decides what is stored, and the build report names it as the S-R17 (g) STOP it is. B.9's token protocol is part 2.",
-  "model.logSet": "GA-M02, a released control handler",
-  "model.finish": "GA-M03, a released control handler",
-  "model.forget": "GA-M04, a released control handler",
-  "model.undo": "GA-M05, a released control handler",
   "model.start": "GA-M06, model.start() inside paint(): the ONE durable PUT any paint root reaches in these three files. A pre-existing fact of the page, left byte-identical under S-R12, with its own ticket GYM-START-IN-PAINT.",
 };
-const GYM_DECLARED_SITES = 6;
+const GYM_DECLARED_SITES = 1;
 
 /* PART 2. today-app.cjs's OWN declared seams, the same shape and the same rule: keyed by
  * SITE, counted, and a fourth fails. THREE, and each is a line the big cut deliberately
@@ -571,13 +565,9 @@ const RELEASED_FILES = [
     capabilities: {},
     holders: { settings: [
       'settings } = { } )',
-      'createGymSettingsLane ( doc , model , settings ,',
+      'createGymSettingsLane ( doc , phone , model , settings ,',
     ] },
-    lane: [
-      '! facade . lane ( )',
-      'await facade . lane ( ) . save (',
-      'lane : ( ) => facade . lane ( )',
-    ],
+    lane: [],
     edges: ['import:./today-app.cjs', 'import:./plain-copy.cjs',
       'import:./machine-settings-view.mjs', 'import:./gym-settings-lane.mjs'],
     syntax: { bracket: [], templateCall: [], shadow: [], arguments: [], destructure: [
@@ -880,13 +870,12 @@ test("RED: a sentence planted in gym-settings-lane.mjs FAILS", () => {
 
 /* ---- ROW 3: the interface objects are frozen ------------------------------------------ */
 
-test("the gym lane source declares three Object.freeze wrappers (no deep-freeze claim)", () => {
+test("the gym lane source freezes the outer, facade, hooks and api interfaces", () => {
   const code = codeOf(readRepo(TODAY + "/gym-settings-lane.mjs"));
   assert.match(code, /return Object\.freeze\(\{/, "the returned interface is not frozen");
-  assert.match(code, /facade:\s*Object\.freeze\(\{/, "the facade table is not frozen");
-  assert.match(code, /hooks:\s*Object\.freeze\(\{/, "the callback table is not frozen");
-  assert.equal((code.match(/Object\.freeze\(/g) || []).length, 3,
-    "three frozen objects and no more: a fourth is an interface nobody declared");
+  assert.match(code, /const facade = Object\.freeze\(\{/, "the facade table is not frozen");
+  assert.match(code, /const hooks = Object\.freeze\(\{/, "the callback table is not frozen");
+  assert.match(code, /const api = Object\.freeze\(\{/, "the api table is not frozen");
 });
 
 test("the paint handle the released card hands in is FROZEN", () => {
@@ -897,9 +886,9 @@ test("the paint handle the released card hands in is FROZEN", () => {
 
 test("RED: an unfrozen interface object FAILS", () => {
   const src = planted(TODAY + "/gym-settings-lane.mjs",
-    (s) => s.replace("    hooks: Object.freeze({", "    hooks: ({"));
+    (s) => s.replace("  const hooks = Object.freeze({", "  const hooks = ({"));
   const code = codeOf(src);
-  assert.equal(/hooks:\s*Object\.freeze\(\{/.test(code), false,
+  assert.equal(/const hooks = Object\.freeze\(\{/.test(code), false,
     "THE FENCE DID NOT SEE AN UNFROZEN CALLBACK TABLE");
 });
 
@@ -942,21 +931,21 @@ test("FENCE-SEALED-BINDING-ASSIGNED: no released file assigns a binding declared
   }
 });
 
-test("RED: the pre-split gym-app.mjs:279 assignment of settingsSaving FAILS", () => {
+test("RED: a released assignment to the sealed activeEditor binding FAILS", () => {
   const src = planted(TODAY + "/gym-app.mjs",
-    (s) => s.replace("      hooks.saving(recordSettings(map, view, paintedDraft));",
-      "      settingsSaving = recordSettings(map, view, paintedDraft);"));
+    (s) => s.replace("  const { facade, hooks, api } = createGymSettingsLane(doc, phone, model, settings, painter);",
+      "  const { facade, hooks, api } = createGymSettingsLane(doc, phone, model, settings, painter);\n  activeEditor = null;"));
   const names = factoryScopeNames(TODAY + "/gym-settings-lane.mjs");
-  assert.equal(names.includes("settingsSaving"), true, "settingsSaving is not sealed");
+  assert.equal(names.includes("activeEditor"), true, "activeEditor is not sealed");
   const code = codeOf(src);
-  const re = new RegExp("(^|[^.\\w$])settingsSaving\\s*(=[^=])", "m");
+  const re = new RegExp("(^|[^.\\w$])activeEditor\\s*(=[^=])", "m");
   assert.equal(re.test(code), true,
     "THE FENCE DID NOT SEE THE EXACT ROW THE SPIKE FOUND AND B.9 NEVER HAD");
 });
 
 /* ---- ROW 5: the sealed modules' module edges ------------------------------------------ */
 
-test("FENCE-VIEW-IMPORT: today-readings.cjs reaches NOTHING, and the gym lane's only edge is its declared host", () => {
+test("FENCE-VIEW-IMPORT: the gym lane has one producer import and one dynamic host edge", () => {
   const readings = codeOf(readRepo(TODAY + "/today-readings.cjs"));
   assert.deepEqual([...readings.matchAll(/\b(?:require|import)\s*\(/g)].map((m) => m[0]), [],
     "the sealed weigh-in writer takes every binding it needs by injection and imports nothing");
@@ -966,7 +955,9 @@ test("FENCE-VIEW-IMPORT: today-readings.cjs reaches NOTHING, and the gym lane's 
     .matchAll(/\b(?:require|import)\s*\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
   assert.deepEqual(edges, ["./machine-settings-host.mjs"],
     "FENCE-SECOND-SEALED-IMPORT: the gym lane opens the fifth lane and reaches nothing else");
-  assert.equal(/^\s*import\s/m.test(lane), false, "and it has no static import at all");
+  const statics = [...readRepo(TODAY + "/gym-settings-lane.mjs")
+    .matchAll(/^\s*import[^'\"]*['\"]([^'\"]+)['\"]/gm)].map((m) => m[1]);
+  assert.deepEqual(statics, ["../../../coach/machine-settings-commands.cjs"]);
 });
 
 /* R1 NOTE-3: this row shipped without a red counterpart. R1 planted one by hand and the row
@@ -1260,7 +1251,7 @@ const LOOK_EDITS = {
   'read , weighIn ,': ['setPendingAdoption,', 'setPendingAdoption, lookHint: null,'],
   'read , weighIn , reopen ,': ['setPendingAdoption,', 'setPendingAdoption, lookHint: null,'],
   'settings } = { } )': ['{ model, onBack,', '{ lookHint, model, onBack,'],
-  'createGymSettingsLane ( doc , model , settings ,': ['settings, painter);', 'settings, painter); void painter;'],
+  'createGymSettingsLane ( doc , phone , model , settings ,': ['settings, painter);', 'settings, painter); void painter;'],
   '! facade . lane ( )': ['{ block.hidden = true;', '{ block.title = ""; block.hidden = true;'],
   'await facade . lane ( ) . save (': ['await facade.lane().save(machine);', 'await facade.lane().save(machine); void machine;'],
   'lane : ( ) => facade . lane ( )': ['lane: () => facade.lane(),', 'lane: () => facade.lane(), lookHint: null,'],
@@ -1402,24 +1393,25 @@ for (const file of RELEASED_FILES) {
   }
 }
 
-test('S-R29 recorded laxity: entryFor returns a mutable cache entry visible through stateFor', async () => {
-  /* This is a recorded laxity, NOT a desired contract. The later ticket sealing
-   * recordSettings must rewrite this row on purpose for detached, deeply frozen copies. */
+test('GSS-CACHE-DETACHED: entryFor returns detached deeply frozen data', async () => {
   const { createGymSettingsLane } = await import('../../../m3/w7-preview/today/gym-settings-lane.mjs');
-  const latest = Object.freeze({ machine: { settings: [{ name: 'Seat', value: 'four' }] } });
-  const pair = createGymSettingsLane({}, {}, { latest: async () => latest }, { repaint: () => {} });
-  for (const object of [pair, pair.facade, pair.hooks]) assert.equal(Object.isFrozen(object), true);
+  const latest = { machine: { settings: [{ name: 'Seat', value: 'four' }] } };
+  const phone = { querySelectorAll: () => [], contains: () => false };
+  const pair = createGymSettingsLane({}, phone, { day: '2026-09-03', read: async () => ({}) },
+    { latest: async () => latest }, { repaint: () => {} });
+  for (const object of [pair, pair.facade, pair.hooks, pair.api]) assert.equal(Object.isFrozen(object), true);
   await pair.hooks.startRead('synthetic-lift');
   const entry = pair.facade.entryFor('synthetic-lift');
-  assert.equal(Object.isFrozen(entry), false);
+  assert.equal(Object.isFrozen(entry), true);
   assert.equal(pair.facade.stateFor('synthetic-lift'), 'known');
-  entry.state = 'failed';
-  assert.equal(pair.facade.stateFor('synthetic-lift'), 'failed');
-  assert.equal(pair.facade.entryFor('synthetic-lift'), entry);
+  assert.throws(() => { entry.state = 'failed'; }, TypeError);
+  assert.equal(pair.facade.stateFor('synthetic-lift'), 'known');
+  assert.notEqual(pair.facade.entryFor('synthetic-lift'), entry);
   assert.equal(Object.isFrozen(entry.latest), true);
-  assert.equal(Object.isFrozen(entry.latest.machine.settings), false);
-  entry.latest.machine.settings[0].value = 'injected';
-  assert.equal(pair.facade.entryFor('synthetic-lift').latest.machine.settings[0].value, 'injected');
+  assert.equal(Object.isFrozen(entry.latest.machine.settings), true);
+  assert.equal(Object.isFrozen(entry.latest.machine.settings[0]), true);
+  latest.machine.settings[0].value = 'injected';
+  assert.equal(pair.facade.entryFor('synthetic-lift').latest.machine.settings[0].value, 'four');
 });
 
 /* Retain every old measurement: the gym holder pin turns its three rows RED. */
@@ -1448,8 +1440,8 @@ const RESIDUE = [
   { shape: 'mutable object returned by facade',
     line: "const cached = facade.entryFor(liftId); if (cached) cached.state = 'failed';" },
   { shape: 'released helper parameter mutation',
-    anchor: '  async function recordSettings(map, view, submittedDraft) {',
-    line: "    submittedDraft.cues = 'Synthetic changed cue.';" },
+    anchor: "      () => ({ rows: paintedDraft.rows, cues: paintedDraft.cues }), async (outcome) => {",
+    line: "    paintedDraft.cues = 'Synthetic changed cue.';" },
   { shape: 'review F1 R4: computed writer through an intermediate local',
     line: "const store = model; const key = 'log' + 'Set'; store[key](m);" },
   { shape: 'review F1 R5: destructure through an intermediate local',
@@ -1760,7 +1752,7 @@ test("RED E.5 row 8: one more `model` read in the released today-app.cjs FAILS",
 const LISTENERS_OUTSIDE_SHIM = {
   [TODAY + "/today-app.cjs"]: 0,
   [TODAY + "/today-model.cjs"]: 0,
-  [TODAY + "/gym-app.mjs"]: 19,
+  [TODAY + "/gym-app.mjs"]: 0,
 };
 
 test("E.5 row 19: NO released file calls addEventListener outside hooks.listen, except the gym card, counted", () => {
@@ -2124,7 +2116,7 @@ test("RED E.6 (blind F1): a guarded writer moved OUT of its listener body, into 
 });
 
 /* ---- GSS RED CHECKPOINT: desired writer-seal shape ------------------------------- */
-const GSS_HELPER_SHA256 = "8f60cae0306032e6f6165f0eb435eb5e73a8f5f975aa765d175ba6d6c1619c8c";
+const GSS_HELPER_SHA256 = "824e9dba46a288110190b4bac497e53484a955f86ce2fa158655d86f13dd33ff";
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const gssHelperSpan = (source) => {
   const lines = source.split("\n");
@@ -2148,25 +2140,57 @@ test("GSS-CUSTODY RED: the exact 23-line helper/comment span moved into the seal
 });
 
 test("GSS-NO-HOST-LEAK RED: four frozen interface objects and one api.lane mapping", () => {
-  const lane = codeOf(readRepo(TODAY + "/gym-settings-lane.mjs"));
-  assert.match(lane, /api:\s*Object\.freeze\(\{/);
+  const raw = readRepo(TODAY + "/gym-settings-lane.mjs");
+  const lane = codeOf(raw);
+  assert.match(lane, /const api = Object\.freeze\(\{/);
   assert.equal((lane.match(/Object\.freeze\(/g) || []).length >= 4, true,
     "outer, facade, hooks and api must all be frozen");
   assert.equal((lane.match(/lane:\s*\(\)\s*=>\s*settingsLane/g) || []).length, 1,
     "api.lane is the one exact public host mapping");
-  assert.doesNotMatch(lane, /facade:\s*Object\.freeze\(\{[\s\S]*?lane:\s*\(\)/,
+  const facade = lane.slice(lane.indexOf("const facade = Object.freeze({"),
+    lane.indexOf("const hooks = Object.freeze({"));
+  assert.doesNotMatch(facade, /lane:\s*\(\)/,
     "facade must not expose the host");
-  assert.match(lane, /import\s+MachineSettings\s+from\s+['"]\.\.\/\.\.\/\.\.\/coach\/machine-settings-commands\.cjs['"]/);
-  const dynamic = [...lane.matchAll(/import\s*\(\s*['"]([^'"]+)['"]\s*\)/g)].map((row) => row[1]);
+  assert.match(raw, /import\s+MachineSettings\s+from\s+['"]\.\.\/\.\.\/\.\.\/coach\/machine-settings-commands\.cjs['"]/);
+  const dynamic = [...raw.matchAll(/import\s*\(\s*['"]([^'"]+)['"]\s*\)/g)].map((row) => row[1]);
   assert.deepEqual(dynamic, ["./machine-settings-host.mjs"]);
+});
+
+const gssApiShape = (source) => {
+  const tokens = codeTokens(source);
+  const bareApi = tokens.filter((token, index) => token.kind === "id" && token.value === "api"
+    && ![".", "?."].includes(tokens[index - 1]?.value));
+  const exactLane = tokens.filter((token, index) => token.value === "api"
+    && windowAt(tokens, index, "api", "lane : ( ) => api . lane ( )"));
+  return { bareApi: bareApi.length, exactLane: exactLane.length };
+};
+
+test("GSS-API-PARITY: api is acquired once and its lane is passed through once", () => {
+  const source = readRepo(TODAY + "/gym-app.mjs");
+  assert.deepEqual(gssApiShape(source), { bareApi: 6, exactLane: 1 });
+  for (const [name, edit] of [
+    ["alias", (s) => s.replace("  first.settings = Object.freeze({",
+      "  const leakedApi = api;\n  first.settings = Object.freeze({")],
+    ["computed", (s) => s.replace("    lane: () => api.lane(),", "    lane: () => api['lane'](),")],
+    ["Reflect", (s) => s.replace("  first.settings = Object.freeze({",
+      "  const leakedLane = Reflect.get(api, 'lane');\n  first.settings = Object.freeze({")],
+    ["ready host", (s) => s.replace("  first.settings = Object.freeze({",
+      "  const leakedReady = api.ready();\n  first.settings = Object.freeze({")],
+  ]) {
+    const mutant = edit(source);
+    assert.notEqual(mutant, source, name + " plant missed");
+    assert.notDeepEqual(gssApiShape(mutant), { bareApi: 6, exactLane: 1 }, name);
+  }
 });
 
 test("GSS-GESTURE-CONTROL RED: released gym sources have zero direct dispatch spelling", () => {
   for (const rel of ["gym-app.mjs", "machine-settings-view.mjs", "gym-settings-lane.mjs",
     "today-app.cjs", "today-lanes.cjs"]) {
     const source = codeOf(readRepo(TODAY + "/" + rel));
+    const listenerCount = { "gym-app.mjs": 0, "machine-settings-view.mjs": 5,
+      "gym-settings-lane.mjs": 4, "today-app.cjs": 0, "today-lanes.cjs": 2 }[rel];
     assert.equal((source.match(/\.\s*(?:add|remove)EventListener\s*\(/g) || []).length,
-      rel === "machine-settings-view.mjs" ? 4 : (rel === "today-lanes.cjs" ? 2 : 0), rel);
+      listenerCount, rel);
     assert.equal((source.match(/\.\s*click\s*\(/g) || []).length, 0, rel + " .click");
     assert.equal((source.match(/\bdispatchEvent\s*\(/g) || []).length, 0, rel + " dispatchEvent");
   }
@@ -2174,8 +2198,8 @@ test("GSS-GESTURE-CONTROL RED: released gym sources have zero direct dispatch sp
 
 test("GSS-STATIC-AFTER-READ / AFTER-START plants are independently visible", () => {
   const raw = readRepo(TODAY + "/gym-app.mjs");
-  const afterRead = raw.replace("    if (!owns) return null;\n    if (view.phase === 'blocked')",
-    "    phone.querySelector('[data-slot=log]').click();\n    if (!owns) return null;\n    if (view.phase === 'blocked')");
+  const afterRead = raw.replace("    const view = await hooks.readView();",
+    "    const view = await hooks.readView();\n    phone.querySelector('[data-slot=log]').click();");
   const afterStart = raw.replace("      if (!started.ok) return refusalScreen(view, started);",
     "      phone.querySelector('[data-slot=log]').click();\n      if (!started.ok) return refusalScreen(view, started);");
   assert.notEqual(afterRead, raw, "after-read plant missed its exact anchor");
@@ -2186,14 +2210,18 @@ test("GSS-STATIC-AFTER-READ / AFTER-START plants are independently visible", () 
 
 test("GSS paint RED: exactly six synchronous drawing returns use hooks.paint", () => {
   const source = codeOf(readRepo(TODAY + "/gym-app.mjs"));
-  const calls = ["refusalScreen(view, view)", "stub(view, WORKOUT_RECORDED,",
-    "refusalScreen(view, started)", "renderSaved(view)", "renderComplete(view)", "renderActive(view)"];
-  for (const call of calls) {
-    const at = source.indexOf(call);
-    assert.notEqual(at, -1, "missing original paint call " + call);
-    assert.match(source.slice(Math.max(0, at - 40), at + call.length + 8), /hooks\.paint\(\(\)\s*=>/,
-      call + " is not under synchronous refusal depth");
-  }
+  const calls = [
+    "hooks.paint(() => refusalScreen(view, view))",
+    "hooks.paint(() => stub(view, WORKOUT_RECORDED,",
+    "hooks.paint(() => refusalScreen(view, started))",
+    "hooks.paint(() => renderSaved(view))",
+    "hooks.paint(() => renderComplete(view))",
+    "hooks.paint(() => renderActive(view))",
+  ];
+  for (const call of calls) assert.equal(source.split(call).length - 1, 1,
+    "missing or repeated synchronous paint root " + call);
+  assert.equal((source.match(/hooks\.paint\s*\(/g) || []).length, 6,
+    "the released card has a seventh synchronous paint root");
   assert.match(source, /const started = await model\.start\(\);/, "Start exception moved");
   assert.match(source, /return paint\(\);/, "Start recursive return moved");
 });

@@ -31,11 +31,29 @@ Authority: accepted specification at 6fe4d12c; no acceptance claimed here
 
 ## Implementation accounting
 
-- M: pending.
-- R: pending.
-- N: pending.
+- M: exact 23-line helper/comment span moved view -> lane; accepted-source SHA256
+  824e9dba46a288110190b4bac497e53484a955f86ce2fa158655d86f13dd33ff.
+- R: producer/helper import/export custody, constructor/API/listener/action calls,
+  six exact paint returns, and fence anchors/counts.
+- N: sealed lifecycle, detached reads, editor identity, depth-zero binders,
+  pending serialization, typed outcomes, and their regression rows.
+- Baseline -> candidate equalities: gym raw sites 6 -> 1 Start exception;
+  direct card listeners 19 -> 0; interface tables 3 -> 4; static lane imports
+  0 -> 1; dynamic host edge 1 -> 1; painter entries 1 -> 1.
+- Fence denominator 409 -> 401: nine obsolete facade.lane subtests removed
+  (three spellings x RED repetition/GREEN unrelated/GREEN reformat), replaced
+  by one API token-shape row with four independent leak plants. Net -8.
 
 ## Verification
 
 - Red proof used the required Node/env serially; no full Today step ran.
-- Final proof will name focused cells, D2 annex cells, mutants and retained scratch.
+- First unaccepted candidate run: gss-candidate-b35a48e3.
+- gym.test 65/65; machine-settings-ui 59/60; writer-fence 394/401.
+- The eight failures were one stale producer-owner expectation and seven fence
+  anchor/count defects: binding collision, two missed plants, stale custody hash,
+  API multiplicity, after-read anchor and a function-definition paint match.
+- Static reconciliation now uses measured exact anchors/counts; diff-check passes.
+- Product correctness is not inferred from assertion reconciliation.
+- Still required: exact-head focused rerun, all 17 groups and clause mutants,
+  real operation/outbox/reopen parity, and all 13 D2 cells plus 2 supports.
+- Status: UNACCEPTED author checkpoint; independent review remains mandatory.

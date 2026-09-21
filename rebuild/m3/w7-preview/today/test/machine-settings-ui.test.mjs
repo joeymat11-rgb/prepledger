@@ -399,18 +399,22 @@ test('S6b - no second profile, validator or payload shape exists anywhere in tod
     const code = codeOf(readRepo('rebuild/m3/w7-preview/today/' + name));
     assert.equal(code.includes('earned/machine-settings'), false,
       name + ' spells the machine-settings profile itself (mutant S-M5)');
-    if (name === 'machine-settings-host.mjs' || name === 'machine-settings-view.mjs') continue;
+    if (name === 'machine-settings-host.mjs' || name === 'machine-settings-view.mjs'
+      || name === 'gym-settings-lane.mjs') continue;
     assert.equal(/machineOf\s*\(/.test(code), false, name + ' gates a capture of its own');
   }
   const host = codeOf(readRepo('rebuild/m3/w7-preview/today/machine-settings-host.mjs'));
   const view = codeOf(readRepo('rebuild/m3/w7-preview/today/machine-settings-view.mjs'));
+  const lane = codeOf(readRepo('rebuild/m3/w7-preview/today/gym-settings-lane.mjs'));
   const importsProducer = (code) => /import\s+\w+\s+from\s+'[^']*coach\/machine-settings-commands\.cjs'/.test(code);
   assert(importsProducer(host), 'the host imports the coach\'s producer');
-  assert(importsProducer(view), 'the view gates on the coach\'s producer');
-  /* And the one gate really is `machineOf`: the view calls it rather than listing
+  assert(importsProducer(view), 'the view imports the producer\'s row cap');
+  assert(importsProducer(lane), 'the sealed lane imports the coach\'s producer');
+  /* And the one gate really is `machineOf`: the seal calls it rather than listing
      the caps again. A local re-implementation is mutant S-M4. */
-  assert(view.includes('machineOf('), 'the view calls the producer\'s own gate');
-  assert.equal(/SETTING_TEXT_MAX\s*=|TEXT_MAX\s*=|EXERCISE_ID_MAX\s*=/.test(view + host), false,
+  assert(lane.includes('machineOf('), 'the seal calls the producer\'s own gate');
+  assert.equal(view.includes('machineOf('), false, 'drawing still calls the producer gate');
+  assert.equal(/SETTING_TEXT_MAX\s*=|TEXT_MAX\s*=|EXERCISE_ID_MAX\s*=/.test(view + host + lane), false,
     'a cap is re-declared in the page instead of imported');
 });
 
@@ -1222,8 +1226,9 @@ test('GSS-CACHE-DETACHED / GSS-NO-HOST-LEAK / GSS-CACHE-FRESHNESS', async () => 
   assert.deepEqual(Object.keys(unit.lane), ['facade', 'hooks', 'api']);
   assert.deepEqual(Object.keys(unit.lane.api), ['pending', 'ready', 'lane', 'read', 'stateFor']);
   assert.equal(unit.lane.api.lane() !== null, true, 'the one pinned host passthrough remains');
-  assert.equal(unit.lane.hooks.open() === null || typeof unit.lane.hooks.open().then === 'function', true);
-  if (unit.lane.hooks.open()) assert.equal(typeof await unit.lane.hooks.open(), 'boolean');
+  const opening = unit.lane.hooks.open();
+  assert.equal(opening === null || typeof opening.then === 'function', true);
+  if (opening) assert.equal(typeof await opening, 'boolean');
   assert.equal(Object.isFrozen(unit.read), true, 'model view is detached and frozen');
   assert.equal(Object.isFrozen(unit.read.lift), true, 'nested model view is frozen');
   const first = unit.lane.facade.entryFor('lift-a');
@@ -1275,12 +1280,12 @@ test('GSS-TOKEN-IDENTITY / GSS-EDITOR-LIFETIME / GSS-BINDING-DISPOSE', async () 
   const disposeSecond = unit.lane.hooks.bindSettingsSave(second.editorToken,
     () => ({ rows: [{ name: 'Seat', value: 'five' }], cues: '' }), () => { secondCalls += 1; });
   disposeFirst();
+  unit.lane.hooks.settingsEditClosed(first.editorToken);
   unit.phone.querySelector('[data-slot="settings-save"]')
     .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
   await unit.lane.api.pending();
   assert.equal(firstCalls, 0, 'replacement editor revoked the first binding');
   assert.equal(secondCalls, 1, 'old disposer did not remove the replacement');
-  unit.lane.hooks.settingsEditClosed(first.editorToken);
   assert.equal(unit.lane.hooks.settingsEditOpened() !== null, true,
     'stale Cancel cannot close its replacement');
   disposeSecond();
@@ -1332,6 +1337,7 @@ test('GSS-LATE-COMPLETION / GSS-OUTCOME-PARITY keeps replacement ownership', asy
 
 test('GSS-PENDING-GYM / GSS-INDEPENDENT-LANES / GSS-FORGET-NO-PUT', async () => {
   const settingsHeld = gssDeferred(), logHeld = gssDeferred(), paintHeld = gssDeferred();
+  const logSettled = gssDeferred(), forgetSettled = gssDeferred();
   const view = { phase: 'active', startId: 'start-a', lift: { id: 'lift-a' },
     set: { slot: 0, lift: 'lift-a' }, next: null };
   const unit = await gssLane({ view,
@@ -1345,7 +1351,7 @@ test('GSS-PENDING-GYM / GSS-INDEPENDENT-LANES / GSS-FORGET-NO-PUT', async () => 
   unit.lane.hooks.bindSettingsSave(editor.editorToken,
     () => ({ rows: [{ name: 'Seat', value: 'four' }], cues: '' }), () => {});
   unit.lane.hooks.bindGymAction('logSet',
-    () => ({ load: '40', reps: '10', effort: { value: 2 } }), () => {});
+    () => ({ load: '40', reps: '10', effort: { value: 2 } }), () => { logSettled.resolve(); });
   unit.phone.querySelector('[data-slot="settings-save"]')
     .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
   const settingsPending = unit.lane.api.pending();
@@ -1356,10 +1362,11 @@ test('GSS-PENDING-GYM / GSS-INDEPENDENT-LANES / GSS-FORGET-NO-PUT', async () => 
   assert.equal(unit.calls.filter(([name]) => name === 'recordSettings').length, 1);
   assert.equal(unit.calls.filter(([name]) => name === 'logSet').length, 1,
     'settings pending does not block Log Set, but workout pending blocks its repeat');
-  logHeld.resolve(); settingsHeld.resolve(); await settingsPending;
+  logHeld.resolve(); settingsHeld.resolve(); await settingsPending; await logSettled.promise;
   view.phase = 'saved'; view.next = { position: 2 };
   await unit.lane.hooks.readView();
-  unit.lane.hooks.bindGymAction('forget', () => undefined, () => paintHeld.promise);
+  unit.lane.hooks.bindGymAction('forget', () => undefined,
+    () => paintHeld.promise.then(() => { forgetSettled.resolve(); }));
   const primary = unit.phone.querySelector('[data-slot="primary"]');
   primary.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
   primary.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
@@ -1368,6 +1375,6 @@ test('GSS-PENDING-GYM / GSS-INDEPENDENT-LANES / GSS-FORGET-NO-PUT', async () => 
     'transient advance holds the shared slot through paint settlement');
   assert.equal(unit.calls.filter(([name]) => name === 'recordSettings').length, 1,
     'forget never creates a durable settings operation');
-  paintHeld.resolve(); await unit.lane.api.pending();
+  paintHeld.resolve(); await forgetSettled.promise;
   unit.dom.window.close();
 });
