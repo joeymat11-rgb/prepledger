@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, lum_array, worst_ratio, app_url,
                     sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused, JS_SWEPT_TEXT,
                     JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS, env_text, TAPPABLE_SELECTOR,
-                    TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED)
+                    TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED, report_identity)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -661,7 +661,13 @@ def write_report(chromium_version=''):
     sets = [r for r in results if r[0] == 'SET']
     passes = [r for r in results if r[0] == 'PASS']
     head = f'EARNED UI GATE: {len(fails)} FAIL, {len(warns)} WARN, ' + (f'{len(sets)} SET, ' if sets else '') + f'{len(passes)} PASS'
-    lines = (['ACCEPT RUN: regression compared nothing'] if ACCEPT else []) + [head, '']
+    ident = report_identity(
+        ROOT,
+        'ACCEPT: it wrote this platform\'s baselines and compared nothing' if ACCEPT else 'ordinary run',
+        f'screens {", ".join(SCREENS)}; sizes {", ".join(f"{w}x{h}" for w, h in SIZES)}; themes '
+        + ', '.join(THEMES),
+        chromium_version)
+    lines = (['ACCEPT RUN: regression compared nothing'] if ACCEPT else []) + [head] + ident + ['']
     for lv, ch, wh, de in fails + warns + sets:
         lines.append(f'{lv:4s}  {ch:52s} {wh:22s} {de}')
     checks = sorted({r[1] for r in passes} - {r[1] for r in fails + warns})

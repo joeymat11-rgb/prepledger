@@ -19,7 +19,7 @@ try:   # a Windows console or a redirected log must not choke on the multiplicat
 except Exception:
     pass
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import app_url, label_font, Refused, LAUNCH_ARGS
+from common import app_url, label_font, Refused, LAUNCH_ARGS, report_identity
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -39,6 +39,10 @@ async def main():
         ctx = await b.new_context(viewport={'width': 393, 'height': 852}, device_scale_factor=3, reduced_motion='reduce')
         pg = await ctx.new_page()
         f = label_font(34)
+        for line in report_identity(ROOT, 'review sheet, no check and no comparison',
+                                    ', '.join(STATE_IDS) if STATE_IDS else 'the three base screens',
+                                    b.version):
+            print(line)
         try:
             await pg.goto(f'{APP}?theme=ink&screen=today&chrome=1&date=board')
         except Exception as e:

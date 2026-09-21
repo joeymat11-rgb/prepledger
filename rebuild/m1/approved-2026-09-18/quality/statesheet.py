@@ -36,7 +36,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (copy_problems, set_x_problems, tier_for, worst_ratio, app_url, label_font,
                     Refused, JS_SWEPT_TEXT, JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS,
                     platform_key, playwright_version, env_text, app_digest,
-                    TAPPABLE_SELECTOR, TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED, sweep_form)
+                    TAPPABLE_SELECTOR, TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED, sweep_form,
+                    report_identity)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -463,7 +464,7 @@ async def main():
         write_env(chromium_version, states)
         written = len(pending)
     write_sheets(states)
-    write_report(rows, orphans, worst, written, cross, app_advisory())
+    write_report(rows, orphans, worst, written, cross, app_advisory(), chromium_version)
 
 
 async def render_one(pg, st, t, n0, errs, rows, worst, cross, pending):
@@ -597,13 +598,17 @@ def report_name():
     return 'states-report' + ('-' + ONLY.rstrip('-') if ONLY else '') + '.txt'
 
 
-def write_report(rows, orphans, worst, written=0, cross=None, advisory=''):
+def write_report(rows, orphans, worst, written=0, cross=None, advisory='', chromium_version=''):
     bad = [r for r in rows if r[4]]
     head = (f'STATE SHEET: {len(rows)} renders, {len(bad)} with problems'
             + (f', {len(orphans)} records with no state' if orphans else '')
             + (f', {len(rows)} SET' if ACCEPT else '')
             + (f', {written} SET' if written else ''))
-    lines = [head, '']
+    mode = ('ACCEPT: it wrote the shared records, the index and this platform\'s thumbnails'
+            if ACCEPT else 'ACCEPT THUMBS: it compared every other half of every record'
+            if ACCEPT_THUMBS else 'ordinary run')
+    lines = [head] + report_identity(ROOT, mode, f'states {ONLY}' if ONLY else 'every registered state',
+                                     chromium_version) + ['']
     if ACCEPT:
         lines = ['ACCEPT RUN: the state records compared nothing'] + lines
     elif ACCEPT_THUMBS:

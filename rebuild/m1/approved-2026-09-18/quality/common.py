@@ -338,6 +338,30 @@ def playwright_version():
         return 'unknown'
 
 
+def report_identity(root, mode, scope, chromium_version=''):
+    """The four lines every ordinary report carries, so that a report read on its own says what it
+    measured and what measured it.
+
+    No published report named the build it was pointed at, which matters most exactly where the
+    answer is not the pack's own prototype: the later tickets are judged with EARNED_APP set, and
+    a green report that does not name the client it measured is not evidence about that client.
+    So: the mode (ordinary, or which accept), the scope the run was narrowed to, the URL under
+    test with a digest of the pack's prototype when that is what was measured, and the versions
+    that drew it. One form, used by gate.py, statesheet.py and phonesheet.py.
+    """
+    env = os.environ.get('EARNED_APP')
+    if env:
+        where = (f'build under test: {env} (EARNED_APP: an external build, which this pack does '
+                 'not hold and takes no digest of)')
+    else:
+        where = f'build under test: {app_url()}, app digest {app_digest(root)}'
+    return [f'mode: {mode}',
+            f'scope: {scope}',
+            where,
+            f'versions: python {plat.python_version()}, playwright {playwright_version()}, '
+            f'chromium {chromium_version or "not recorded"}, platform {platform_key()}']
+
+
 def env_text(chromium_version, drew):
     """ENV.txt beside a committed set of baselines: the machine that drew them, how the browser
     was launched, and what was drawn. One form, written by gate.py beside the screen baselines
