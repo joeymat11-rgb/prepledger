@@ -89,6 +89,35 @@ const fenceReadsReleased = new Function("inv", FENCE_READ + "\n  return released
 const conditionIsNotCancelled = (cond) =>
   /^\s*if:\s*\$\{\{\s*!cancelled\(\)\s*\}\}\s*$/.test(cond);
 
+function assertConditionedRun(yml, file, label) {
+  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(file));
+  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + file + " at all");
+  assert.equal(/[*?]/.test(yml[runAt]), false,
+    "the step globs instead of naming its files: " + yml[runAt].trim());
+  let nameAt = runAt;
+  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
+  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), "the run: line sits in no named step");
+  const block = yml.slice(nameAt, runAt + 1);
+  const cond = block.find((l) => /^\s*if:/.test(l));
+  assert.notEqual(cond, undefined,
+    label + " carries no `if:` at all, so GitHub skips it after the standing step: "
+    + block.map((l) => l.trim()).join(" / "));
+  assert.equal(conditionIsNotCancelled(cond), true,
+    "the condition is not `not cancelled`: " + cond.trim());
+}
+
+function decoyWorkflows(file) {
+  const run = "        run: node --test " + file;
+  return {
+    control: ["      - name: target", "        if: ${{ !cancelled() }}", run],
+    D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
+    E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
+      "        if: ${{ false }}", run],
+    F: ["      - name: decoy", "        if: ${{ !cancelled() }}", "        run: echo " + file,
+      "      - name: target", "        if: ${{ false }}", run],
+  };
+}
+
 /* One package's declaration list, through the runner's own two expressions, ending in the
    half of the artifact object this cell is about. `declared` is [path, pre] pairs; the
    edited pin below is there so every row measures that the FILTER is doing work and that
@@ -256,19 +285,14 @@ test("D-NULL-ARTIFACT: JSON null is refused by the real release-object reader", 
    ever run on before the S9 fast-forward. */
 test("(7) this cell's own step in rebuild.yml exists, names it by exact path and carries the not-cancelled condition", () => {
   const yml = fs.readFileSync(path.join(REPO, ".github", "workflows", "rebuild.yml"), "utf8").split(/\r?\n/);
-  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(SELF));
-  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + SELF + " at all");
-  assert.equal(/[*?]/.test(yml[runAt]), false, "the step globs instead of naming its files: " + yml[runAt].trim());
-  let nameAt = runAt;
-  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
-  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), "the run: line sits in no named step");
-  const block = yml.slice(nameAt, runAt + 1);
-  const cond = block.find((l) => /^\s*if:/.test(l));
-  assert.notEqual(cond, undefined,
-    "this cell's step carries no `if:` at all, so GitHub skips it after the standing step "
-    + "at :150 fails: " + block.map((l) => l.trim()).join(" / "));
-  assert.equal(conditionIsNotCancelled(cond), true,
-    "the condition is not `not cancelled`: " + cond.trim());
+  assertConditionedRun(yml, SELF, "this cell's step");
+});
+
+test("D-S9G-DECOY: release-object reader refuses D, E and F workflow decoys", () => {
+  const worlds = decoyWorkflows(SELF);
+  assert.doesNotThrow(() => assertConditionedRun(worlds.control, SELF, "control"));
+  for (const id of ["D", "E", "F"])
+    assert.throws(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
 });
 
 test("D-CONDITION-MATCHER: release-object requires the whole permitted expression", () => {

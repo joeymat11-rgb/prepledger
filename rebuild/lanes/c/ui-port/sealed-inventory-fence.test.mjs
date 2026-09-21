@@ -1187,22 +1187,7 @@ test("F9 (19) - a branch cut BEFORE the chain sealed this artifact is not accuse
    number, and never globs. */
 test("P-FENCE-1 (18) - this cell's own step in rebuild.yml carries the not-cancelled condition", () => {
   const SELF = path.relative(REPO, fileURLToPath(import.meta.url)).split(path.sep).join("/");
-  const yml = fs.readFileSync(path.join(REPO, ".github", "workflows", "rebuild.yml"), "utf8")
-    .split(/\r?\n/);
-  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(SELF));
-  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + SELF + " at all");
-  let nameAt = runAt;
-  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
-  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), "the run: line sits in no named step");
-  const block = yml.slice(nameAt, runAt + 1);
-  const cond = block.find((l) => /^\s*if:/.test(l));
-  assert.notEqual(cond, undefined,
-    "the fence's own step carries no `if:` at all, so GitHub skips it after the standing "
-    + "step at :150 fails - which is every branch this fence exists for (P-FENCE-1): "
-    + block.map((l) => l.trim()).join(" / "));
-  assert.equal(conditionIsNotCancelled(cond), true,
-    "the condition is not `not cancelled`, so the step either never runs after a failure "
-    + "or runs after a cancellation: " + cond.trim());
+  assertNotCancelled(YML_LINES(), SELF);
 });
 
 test("D-CONDITION-MATCHER: fence readers require the whole permitted expression", () => {
@@ -1210,6 +1195,20 @@ test("D-CONDITION-MATCHER: fence readers require the whole permitted expression"
   assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() && false }}"), false);
   assert.equal(conditionIsNotCancelled("  if: ${{ false || !cancelled() }}"), false);
   assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() || true }}"), false);
+});
+
+test("D-S9G-DECOY: all three fence-owned readers refuse D, E and F workflow decoys", () => {
+  const files = [
+    path.relative(REPO, fileURLToPath(import.meta.url)).split(path.sep).join("/"),
+    "rebuild/lanes/c/passphrase-normalize/helper.test.mjs",
+    "rebuild/m3/w6/test/local-import.test.mjs",
+  ];
+  for (const file of files) {
+    const worlds = decoyWorkflows(file);
+    assert.doesNotThrow(() => assertNotCancelled(worlds.control, file), file + " control");
+    for (const id of ["D", "E", "F"])
+      assert.throws(() => assertNotCancelled(worlds[id], file), undefined, file + " " + id);
+  }
 });
 
 /* ================== R3's TWO BLOCKING FINDINGS, AND THE ROWS THAT CLOSE THEM =========
@@ -1576,8 +1575,7 @@ test("R6-Z2/Z3 (29) - a SAME-LENGTH inventory edit and a ZERO-BYTE inventory eac
    EVERY ROW BELOW READS THE WORKING TREE, FINDS ITS STEP BY EXACT PATH AND NEVER GLOBS,
    which is row (18)'s method and not a new one. */
 const YML_LINES = () => fs.readFileSync(path.join(REPO, ".github", "workflows", "rebuild.yml"), "utf8").split(/\r?\n/);
-function conditionOfStepRunning(file) {
-  const yml = YML_LINES();
+function conditionOfStepRunning(yml, file) {
   const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(file));
   assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + file + " at all");
   assert.equal(/[*?]/.test(yml[runAt]), false, "the step globs instead of naming its files: " + yml[runAt].trim());
@@ -1587,8 +1585,8 @@ function conditionOfStepRunning(file) {
   const block = yml.slice(nameAt, runAt + 1);
   return { block, cond: block.find((l) => /^\s*if:/.test(l)) };
 }
-function assertNotCancelled(file) {
-  const { block, cond } = conditionOfStepRunning(file);
+function assertNotCancelled(yml, file) {
+  const { block, cond } = conditionOfStepRunning(yml, file);
   assert.notEqual(cond, undefined,
     file + "'s step carries no `if:` at all, so GitHub skips it after the standing step at "
     + ":150 fails, which is every branch this package is built on (P-S9-3, DECISIONS:627): "
@@ -1598,11 +1596,23 @@ function assertNotCancelled(file) {
     + "or runs after a cancellation: " + cond.trim());
 }
 
+function decoyWorkflows(file) {
+  const run = "        run: node --test " + file;
+  return {
+    control: ["      - name: target", "        if: ${{ !cancelled() }}", run],
+    D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
+    E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
+      "        if: ${{ false }}", run],
+    F: ["      - name: decoy", "        if: ${{ !cancelled() }}", "        run: echo " + file,
+      "      - name: target", "        if: ${{ false }}", run],
+  };
+}
+
 /* P-S9-3, first half. The passphrase lane's step is the guard that keeps every sealed
    bundle valid (E fact 21, that lane's review R2), so it is worth less than nothing if it
    is skipped on the branches that carry the bundle it guards. */
 test("P-S9-3 (30) - the passphrase lane's step carries the not-cancelled condition", () => {
-  assertNotCancelled("rebuild/lanes/c/passphrase-normalize/helper.test.mjs");
+  assertNotCancelled(YML_LINES(), "rebuild/lanes/c/passphrase-normalize/helper.test.mjs");
 });
 
 /* P-S9-3, second half, AND THIS IS THE ROW THE BRIEF MEANS BY "its row lives elsewhere".
@@ -1612,7 +1622,7 @@ test("P-S9-3 (30) - the passphrase lane's step carries the not-cancelled conditi
    rebuild.yml named that file ZERO times, and the cell that pins the phone's five seal
    constants against the PC's ran in no workflow at all. */
 test("P-S9-3 (31) - the local-import step exists and carries the not-cancelled condition", () => {
-  assertNotCancelled("rebuild/m3/w6/test/local-import.test.mjs");
+  assertNotCancelled(YML_LINES(), "rebuild/m3/w6/test/local-import.test.mjs");
 });
 
 /* P-S9-5, THE TWO RE-HOMED INVARIANTS. ci-second-gate.test.cjs:29 asserted three things

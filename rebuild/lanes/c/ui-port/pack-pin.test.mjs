@@ -71,6 +71,35 @@ import { fileURLToPath } from "node:url";
 const conditionIsNotCancelled = (cond) =>
   /^\s*if:\s*\$\{\{\s*!cancelled\(\)\s*\}\}\s*$/.test(cond);
 
+function assertConditionedRun(yml, file, label) {
+  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(file));
+  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + file + " at all");
+  assert.equal(/[*?]/.test(yml[runAt]), false,
+    "the step globs instead of naming its files: " + yml[runAt].trim());
+  let nameAt = runAt;
+  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
+  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), "the run: line sits in no named step");
+  const block = yml.slice(nameAt, runAt + 1);
+  const cond = block.find((l) => /^\s*if:/.test(l));
+  assert.notEqual(cond, undefined,
+    label + " carries no `if:` at all, so GitHub skips it after the standing step: "
+    + block.map((l) => l.trim()).join(" / "));
+  assert.equal(conditionIsNotCancelled(cond), true,
+    "the condition is not `not cancelled`: " + cond.trim());
+}
+
+function decoyWorkflows(file) {
+  const run = "        run: node --test " + file;
+  return {
+    control: ["      - name: target", "        if: ${{ !cancelled() }}", run],
+    D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
+    E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
+      "        if: ${{ false }}", run],
+    F: ["      - name: decoy", "        if: ${{ !cancelled() }}", "        run: echo " + file,
+      "      - name: target", "        if: ${{ false }}", run],
+  };
+}
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, "../../../..");
 
@@ -1301,21 +1330,15 @@ test("P-FENCE-1 / DECISIONS:570 - this cell's own step in rebuild.yml carries th
   const SELF = path.relative(REPO_ROOT, fileURLToPath(import.meta.url)).split(path.sep).join("/");
   const yml = fs.readFileSync(path.join(REPO_ROOT, ".github", "workflows", "rebuild.yml"), "utf8")
     .split(/\r?\n/);
-  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(SELF));
-  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + SELF + " at all");
-  assert.equal(/[*?]/.test(yml[runAt]), false, "the step globs instead of naming its files: " + yml[runAt].trim());
-  let nameAt = runAt;
-  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
-  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), "the run: line sits in no named step");
-  const block = yml.slice(nameAt, runAt + 1);
-  const cond = block.find((l) => /^\s*if:/.test(l));
-  assert.notEqual(cond, undefined,
-    "the pack step carries no `if:` at all, so GitHub skips it after the standing step at "
-    + ":150 fails - which is every branch these two cells exist for (P-FENCE-1, "
-    + "DECISIONS:559): " + block.map((l) => l.trim()).join(" / "));
-  assert.equal(conditionIsNotCancelled(cond), true,
-    "the condition is not `not cancelled`, so the step either never runs after a failure "
-    + "or runs after a cancellation: " + cond.trim());
+  assertConditionedRun(yml, SELF, "the pack step");
+});
+
+test("D-S9G-DECOY: pack reader refuses D, E and F workflow decoys", () => {
+  const SELF = path.relative(REPO_ROOT, fileURLToPath(import.meta.url)).split(path.sep).join("/");
+  const worlds = decoyWorkflows(SELF);
+  assert.doesNotThrow(() => assertConditionedRun(worlds.control, SELF, "control"));
+  for (const id of ["D", "E", "F"])
+    assert.throws(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
 });
 
 test("D-CONDITION-MATCHER: pack reader requires the whole permitted expression", () => {
