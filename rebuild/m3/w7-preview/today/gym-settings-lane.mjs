@@ -123,7 +123,7 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
       && binding.editorToken === activeEditor.token && editorMatchesView()))
     && (binding.kind !== 'gym' || actionFits(binding.action, activeView));
 
-  function startSettingsRead(liftId, refresh = false) {
+  function startSettingsRead(liftId, refresh = false, editorToken = null) {
     if (!settingsLane || typeof liftId !== 'string' || !liftId) return Promise.resolve();
     if (!refresh && settingsRead.has(liftId)) return Promise.resolve();
     if (settingsInFlight.has(liftId)) return settingsInFlight.get(liftId);
@@ -134,7 +134,8 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
         () => { settingsRead.set(liftId, freezeDeep({ state: 'failed', latest: null })); },
       )
       .then(() => {
-        if (mountLive && liftOf(activeView) === liftId) return repaint();
+        if (mountLive && liftOf(activeView) === liftId
+          && (!activeEditor || activeEditor.token === editorToken)) return repaint();
         return undefined;
       })
       .finally(() => { settingsInFlight.delete(liftId); });
@@ -180,7 +181,7 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
     const result = await settingsLane.save(machine);
     if (!result || result.ok !== true) return settingOutcome('not-saved', null, token);
     settingsRead.delete(liftId);
-    await startSettingsRead(liftId, true);
+    await startSettingsRead(liftId, true, token);
     return settingOutcome('saved', null, token, liftId);
   }
 

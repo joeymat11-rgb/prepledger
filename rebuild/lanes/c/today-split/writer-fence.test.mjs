@@ -2160,14 +2160,22 @@ const gssApiShape = (source) => {
   const tokens = codeTokens(source);
   const bareApi = tokens.filter((token, index) => token.kind === "id" && token.value === "api"
     && ![".", "?."].includes(tokens[index - 1]?.value));
-  const exactLane = tokens.filter((token, index) => token.value === "api"
-    && windowAt(tokens, index, "api", "lane : ( ) => api . lane ( )"));
-  return { bareApi: bareApi.length, exactLane: exactLane.length };
+  const exact = (window) => tokens.filter((token, index) => token.value === "api"
+    && windowAt(tokens, index, "api", window)).length;
+  return {
+    bareApi: bareApi.length,
+    exactPending: exact("pending : ( ) => api . pending ( )"),
+    exactReady: exact("ready : ( ) => api . ready ( )"),
+    exactLane: exact("lane : ( ) => api . lane ( )"),
+    exactRead: exact("read : ( ) => api . read ( )"),
+    exactStateFor: exact("stateFor : ( liftId ) => api . stateFor ( liftId )"),
+  };
 };
 
-test("GSS-API-PARITY: api is acquired once and its lane is passed through once", () => {
+test("GSS-API-PARITY: api is acquired once and all five methods map exactly", () => {
   const source = readRepo(TODAY + "/gym-app.mjs");
-  const expected = { bareApi: 6, exactLane: 1 };
+  const expected = { bareApi: 6, exactPending: 1, exactReady: 1, exactLane: 1,
+    exactRead: 1, exactStateFor: 1 };
   assert.deepEqual(gssApiShape(source), expected);
   for (const [name, edit] of [
     ["unrelated", (s) => s.replace("  first.settings = Object.freeze({",

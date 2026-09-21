@@ -21,8 +21,8 @@ Authority: accepted specification at 6fe4d12c; no acceptance claimed
 - R +36/-34: view wiring +6/-5; lane import/default +2/-1; app +28/-28.
 - App R comprises 14 listener lines, six paint calls on seven physical lines,
   five API mappings, the constructor handoff and model-read retarget.
-- N +369/-162: lane controller +299/-79; app lifecycle/outcomes +70/-83.
-- Test N/R verification +624/-50: changed fence anchors are R; new rows are N.
+- N +370/-162: lane controller +300/-79; app lifecycle/outcomes +70/-83.
+- Test N/R verification +633/-50: changed fence anchors are R; new rows are N.
 - Candidate equalities: gym sites 6 -> 1 Start; listeners 19 -> 0;
   interfaces 3 -> 4; static imports 0 -> 1; host edge 1 -> 1; painter 1 -> 1.
 - Fence 409 -> 401: nine obsolete facade rows became one API parity row with
@@ -30,16 +30,16 @@ Authority: accepted specification at 6fe4d12c; no acceptance claimed
 
 ## Verification
 
-- Candidate2: syntax 5/5; gym 65/65; UI 60/60; fence 401/401.
+- L2 GREEN: focus 1/1; full UI 66/66; fence 403/403; zero skips/cancels.
 - Immutable d1fa563 reds: listener identity 0/1; raw-copy depth 0/1.
-- L1 REJECT: 6/6 replacement editors stayed disabled; baseline retried 6/6;
-  eight same-editor refusal/rejection controls retried.
+- L1 REJECT: replacement editors stayed disabled 6/6; eight same-editor controls retried.
 - L1 closed: immutable 79a3c31 RED 0/1; repaired full UI 66/66.
-- L2 REJECT: old success steals replacement INPUT focus in 2/2 themes;
-  two same-count pending/ready API mapping leaks pass the 401-row fence.
 - L2 RED: focus row 0/1; success lost 2/2, refusal/rejection held 4/4.
-- Complete fence 401/403; both mapping rows red; product/guard unchanged.
-- Evidence: %TEMP%/gss-l2-red-bda6a93; prior gss-final-proof-b35a48e3/gss-l1-proof-79a3c31.
+- Fence RED 401/403; both mapping rows escaped the original guard.
+- L2 repair refreshes the captured lift but skips repaint only while a different
+  live editor token owns input; same/no editor retains the repaint path.
+- Fence pins all five exact mappings; retains two positives/six negative plants.
+- Evidence: %TEMP%/gss-l2-red-bda6a93 and gss-l2-green-b3a5a3b; b3 blobs bound 4/4.
 - Candidate versus helper/host reference: three deterministic separate-store
   sequences have equal complete serialized operations/outbox after reopen.
 - This is not immutable old-card parity or full section E UI parity; rendered
@@ -57,4 +57,4 @@ Authority: accepted specification at 6fe4d12c; no acceptance claimed
 - Separate rebuild/lanes/c/LAUNCH-ADOPTION-PROBES.mjs completed 2/2;
   retained settings operation count was unchanged.
 - No full Today step, private input, engine byte, seal or receipt was used.
-- Status: UNACCEPTED L2 test-only checkpoint; review and Claude gates remain.
+- Status: UNACCEPTED L2 repair; independent review and Claude gates remain.

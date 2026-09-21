@@ -1486,7 +1486,7 @@ test('GSS-L1-1 mounted replacement Save retries after every older settlement', a
       const doc = dom.window.document, phone = doc.getElementById('phone');
       doc.documentElement.dataset.theme = theme;
       const held = gssDeferred();
-      let saves = 0, latest = null;
+      let saves = 0, latestReads = 0, latest = null;
       const view = { phase: 'active', startId: 'synthetic-start', title: 'Synthetic workout',
         session: { instruction: { display: 'Synthetic workout' } },
         lift: { id: 'synthetic-lift', label: 'Synthetic lift', index: 1, count: 1 },
@@ -1495,7 +1495,7 @@ test('GSS-L1-1 mounted replacement Save retries after every older settlement', a
         strip: [], entry: { load: null, reps: null, step: null }, previous: '', upNext: null, message: null };
       const model = { day: DAY, read: async () => structuredClone(view), effortChoices: () => [],
         start: async () => ({ ok: true }) };
-      const settings = { latest: async () => latest, save: async (machine) => {
+      const settings = { latest: async () => { latestReads += 1; return latest; }, save: async (machine) => {
         saves += 1;
         if (saves === 1) {
           await held.promise;
@@ -1532,7 +1532,7 @@ test('GSS-L1-1 mounted replacement Save retries after every older settlement', a
         hidden: editorAfter.hidden, typed: pick('[data-settings-value="0"]')?.value || null,
         error: pick('[data-slot="settings-error"]').textContent,
         focusOnReplacementValue: doc.activeElement === pick('[data-settings-value="0"]'),
-        rejected };
+        cacheReads: latestReads, rejected };
       click('[data-slot="settings-save"]'); await mounted.settings.pending().catch(() => {}); await settle();
       results.push({ ...after, retrySaves: saves });
       dom.window.close();
@@ -1540,6 +1540,7 @@ test('GSS-L1-1 mounted replacement Save retries after every older settlement', a
   }
   assert.deepEqual(results, results.map(({ mode, theme }) => ({ mode, theme, disabled: false,
     hidden: false, typed: 'five', error: '', focusOnReplacementValue: true,
+    cacheReads: mode === 'success' ? 2 : 1,
     rejected: mode === 'rejection', retrySaves: 2 })));
 });
 
