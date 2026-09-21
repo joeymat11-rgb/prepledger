@@ -34,7 +34,7 @@ its package is not accepted yet. There is also a separate workout-preparation
 fault. When an untaken bigger offer sits beside an ordinary earned step for the
 same lift, the phone can refuse to prepare that day's workout card. This happens
 with or without the two-part repair, and the card stays unavailable until you
-accept or decline the offer. This additional repair needs your word; it is not
+accept the offer. This additional repair needs your word; it is not
 included in the repair you already ordered.
 Do you want to change today's automatic ordinary rung so every newly earned
 weight waits for your yes, and if so which route do you want?
