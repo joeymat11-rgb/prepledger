@@ -27,6 +27,10 @@ The coach route cannot be promised in that window on the evidence available here
 
 The separate fault could show and save an extra jump without your agreement, then lower it again.
 You already ordered its repair; none of these choices asks you to approve that again.
+As of 2026-09-21, that two-part repair has independent review with debts, but
+its package is not accepted yet. A separate part that carries the choice into
+a workout still refuses the repaired result. Fixing it is a third engine change
+that needs your word; it is not included in the repair you already ordered.
 Which choice do you want, including the changes needed to offer and save your next weight?
 If B cannot be ready and checked before the trial, would A be acceptable instead?
 
@@ -228,6 +232,21 @@ baseline failures, unchanged with repair; it is not a full green engine gate.
 It did not run the port oracle, sensitivity pass or full selftest. Those owed
 checks must be named and resolved under the repair's acceptance process.
 
+CURRENT READINESS CORRECTION, 2026-09-21 - this explicitly supersedes the
+inherited check section 7 inference that unchanged rows and goldens meant no
+departure from the frozen implementation. The two clauses deliberately change
+observable card selection and working-load landing. Unchanged narrow public
+totals do not discharge that behavioral departure or the owed oracle,
+sensitivity, private, CI and seal obligations. Claude review f0a5eb1a reviewed
+the two-clause core with named debts; the package itself is not accepted.
+
+READ CURRENT CAPTURE PREREQUISITE - Claude review f0a5eb1a reports that
+rebuild/m4/workout/engine-capture.cjs:69 refuses the producer-issued pair in
+both the repair BASE and HEAD. The reviewed two-clause repair therefore does
+not prove that pair can reach the shipped workout card through capture. A third
+engine repair remains owner-held: it needs Joe's own word and is neither
+included in the existing permission nor proved by the two-clause repair.
+
 READ - :631 orders the check's EPP-R1 through EPP-R7 producer-order, card,
 store, regression/double-debut, tap, reversed-order and half-repair witnesses.
 The repair follows its own engine review and seal path; it rides S9 if ready,
@@ -239,8 +258,9 @@ That dependency is not another taste decision or permission request.
 
 These are proposed designs, not a build brief or an owner decision.
 A is the smallest slice; B is my recommendation because the offer follows the
-workout without a remembered request. D adds a conversation dependency. Each
-option must now be built, reviewed and sealed after the look and before trial;
+workout without a remembered request. D adds a conversation dependency. The
+selected option must then be built, reviewed and sealed after the look and
+before trial;
 the separate defect repair is an accepted-parent dependency, not an option.
 
 ### Shared obligations, deliberately explicit
@@ -584,11 +604,13 @@ the applicable ruling. This paper supplies no default number for those choices.
 ## 4. What the owner must rule, and what is already settled
 
 READ :631 - timing is settled: after the seal and look, before his trial.
-Repair authorization is settled for the named clauses in FC02/FC02b. Neither
-is reopened here. The owner-facing questions are in the first section: choose
-the route and authorize its scoped engine work; name whether A is an acceptable
-fallback if B cannot meet that sequence. PM must present the concrete engine
-scope with that choice. A timing ruling alone does not approve FC01.
+Repair authorization is settled only for the named clauses in FC02/FC02b.
+Neither is reopened here. It does not authorize the separate capture repair.
+The owner-facing questions are in the first section: choose the route and
+authorize its scoped engine work; decide the capture repair separately; name
+whether A is an acceptable fallback if B cannot meet that sequence. PM must
+present the concrete engine scope with that choice. A timing ruling alone does
+not approve FC01 or the third capture change.
 
 The options preserve facts, require a separate yes for a newly issued native
 change, distinguish adoption from earning, and retain the full vector/prefix
@@ -613,7 +635,7 @@ not changed source lines, executed tests, hours or elapsed days. R is additional
 seal/evidence administration, unbound until PM selects the accepted parent.
 S8 is the READ map used for this inventory, not a claim it is the delivery parent.
 
-| Option | Inclusive files + R (ordered repair counted) | Inclusive S8 keys + R | Incremental files + R (repair already accepted) | Incremental S8 keys + R | Named option row families |
+| Option | Inclusive files + R (ordered repair counted) | Inclusive S8 keys + R | Incremental files + R (historical accepted-repair assumption) | Incremental S8 keys + R | Named option row families |
 |---|---|---|---|---|---|
 | A | ESTIMATE 17 + R | ESTIMATE 11 + R | ESTIMATE 15 + R | ESTIMATE 9 + R | ESTIMATE 22 |
 | B | ESTIMATE 19 + R | ESTIMATE 12 + R | ESTIMATE 17 + R | ESTIMATE 10 + R | ESTIMATE 24 |
@@ -633,10 +655,18 @@ or accepted implementation manifest exists. R also covers evidence for repair
 carriage if it has not already landed in the selected parent; no double charge
 for an already accepted repair is intended.
 
+CURRENT UNRESOLVED SCOPE - the estimates above preserve the historical-parent
+inventory and do not include a guessed capture repair. The refusal at
+rebuild/m4/workout/engine-capture.cjs:69 is a separate named prerequisite.
+Its exact files, rows and seal impact remain unbound until Joe authorizes that
+third engine change and PM supplies its accepted scope. The inventory is not an
+exhaustive before-trial total while that prerequisite remains unresolved.
+
 Shared readiness inputs: Joe's scoped engine word, an accepted repaired parent,
-a complete source/consent/spend protocol, concrete R manifest, available author
-and independent reviewer, full engine gate and owed repair checks accounted for,
-PM final, CI, successor seal, and phone proof on the same accepted candidate.
+a separately authorized and accepted capture repair, a complete source/consent/
+spend protocol, concrete R manifest, available author and independent reviewer,
+full engine gate and owed repair checks accounted for, PM final, CI, successor
+seal, and phone proof on the same accepted candidate.
 Output required before trial: a saved native workout can actually earn a
 basis-bound offer; Yes survives restart; the real next eligible card uses the
 accepted target; the later qualified debut writes the agreed working load.
@@ -687,7 +717,11 @@ and returns the fallback choice; the trial must not silently start without earni
    AND stored working load, then the lower leftover debut and repeated
    establishment. Import merge can mint it too. The separately ordered repair
    covers today.cjs AND writers.cjs; its accepted behavior is required by every
-   option. Ordered is not verified landed, and this paper applies no clause.
+   option. As of 2026-09-21, Claude f0a5eb1a reviewed that two-clause core with
+   named debts, but the package is not accepted. That review reports the
+   separate capture consumer still refuses the producer-issued pair in BASE
+   and HEAD; repairing it is a third owner-held engine change. This paper
+   applies no clause.
 5. READ - native deriveSighting already works through _loadTenure's native
    branch (rebuild/engine/progression.cjs:188-201,608-653), but _mintJointEarn
    still reads legacy sessionLog (rebuild/engine/migrate.cjs:51-54). Neither
@@ -770,10 +804,13 @@ selftest or complete engine-gate PASS. This paper does not close those debts,
 rewrite frozen laws or authorize access to restricted evidence. The authorized
 repair team must handle its owed checks in its allowed setting.
 
-A Claude hand has already checked the original paper and ordered corrections;
-that happened, and the old statement that no check occurred is retired.
-This revision still needs its independent check and PM4's judgment. No option,
-new engine bytes, calendar promise or release is approved by this paper.
+A Claude hand checked the original paper and ordered corrections. A later
+Claude review at f0a5eb1a reviewed the two-clause repair core with debts, not
+the whole package. Oracle, sensitivity, private, CI and seal obligations remain.
+This readiness correction still needs its independent check and the current
+PM's judgment.
+No option, third capture repair, new engine bytes, calendar promise or release
+is approved by this paper.
 
 ## Revision 2: landed or disputed
 
@@ -792,3 +829,14 @@ READ - all six corrections are LANDED in this paper; none is DISPUTED.
 READ :631 is incorporated separately: repair already ordered, timing settled,
 option-specific before-trial conditions explicit, coach dependency not presumed
 ready. No measurement contradicting the check was found or claimed.
+
+## Revision 3: current readiness correction
+
+READ current state on 2026-09-21 - the two-clause core has Claude review
+f0a5eb1a with named debts; the package is not accepted. Its card and landing
+changes deliberately depart from the frozen implementation despite unchanged
+narrow public totals. Owed oracle, sensitivity, private, CI and seal gates stay
+open. Claude f0a5eb1a reports capture at rebuild/m4/workout/engine-capture.cjs:69
+refuses the producer-issued pair in BASE and HEAD. That third engine repair
+remains owner-held and outside the existing permission, proof and historical-
+parent estimates.
