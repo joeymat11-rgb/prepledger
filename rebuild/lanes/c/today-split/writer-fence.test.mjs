@@ -53,6 +53,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 function repoRoot() {
@@ -2120,4 +2121,79 @@ test("RED E.6 (blind F1): a guarded writer moved OUT of its listener body, into 
   const bare = sites.filter((t) => !/hooks\.listen\([^,]+,\s*"click",\s*\(\)\s*=>\s*\{\s*hooks\.record(Intake|Sleep)\(/.test(t));
   assert.equal(bare.length, 1,
     "THE FENCE DID NOT SEE A GUARDED WRITER CALLED OUTSIDE ITS LISTENER BODY");
+});
+
+/* ---- GSS RED CHECKPOINT: desired writer-seal shape ------------------------------- */
+const GSS_HELPER_SHA256 = "8f60cae0306032e6f6165f0eb435eb5e73a8f5f975aa765d175ba6d6c1619c8c";
+const sha256 = (value) => createHash("sha256").update(value).digest("hex");
+const gssHelperSpan = (source) => {
+  const lines = source.split("\n");
+  const from = lines.findIndex((line) => line.startsWith("/* The draft as the producer's `machine`"));
+  const acceptable = lines.findIndex((line, index) => index > from && line === "export function acceptable(machine) {");
+  let to = acceptable;
+  while (to >= 0 && to < lines.length && lines[to] !== "}") to += 1;
+  if (from < 0 || acceptable < 0 || to >= lines.length) return null;
+  return lines.slice(from, to + 2).join("\n");
+};
+
+test("GSS-CUSTODY RED: the exact 23-line helper/comment span moved into the seal", () => {
+  const lane = readRepo(TODAY + "/gym-settings-lane.mjs");
+  const view = readRepo(TODAY + "/machine-settings-view.mjs");
+  const span = gssHelperSpan(lane);
+  assert(span, "the moved helper span is absent from the sealed lane");
+  assert.equal(sha256(span), GSS_HELPER_SHA256, "the pure move changed a byte");
+  assert.equal(gssHelperSpan(view), null, "writer helpers still live in the view");
+  assert.match(view, /import\s*\{[^}]*machineFromDraft[^}]*acceptable[^}]*\}\s*from\s*['"]\.\/gym-settings-lane\.mjs['"]/s);
+  assert.match(view, /export\s*\{[^}]*machineFromDraft[^}]*acceptable[^}]*\}/s);
+});
+
+test("GSS-NO-HOST-LEAK RED: four frozen interface objects and one api.lane mapping", () => {
+  const lane = codeOf(readRepo(TODAY + "/gym-settings-lane.mjs"));
+  assert.match(lane, /api:\s*Object\.freeze\(\{/);
+  assert.equal((lane.match(/Object\.freeze\(/g) || []).length >= 4, true,
+    "outer, facade, hooks and api must all be frozen");
+  assert.equal((lane.match(/lane:\s*\(\)\s*=>\s*settingsLane/g) || []).length, 1,
+    "api.lane is the one exact public host mapping");
+  assert.doesNotMatch(lane, /facade:\s*Object\.freeze\(\{[\s\S]*?lane:\s*\(\)/,
+    "facade must not expose the host");
+  assert.match(lane, /import\s+MachineSettings\s+from\s+['"]\.\.\/\.\.\/\.\.\/coach\/machine-settings-commands\.cjs['"]/);
+  const dynamic = [...lane.matchAll(/import\s*\(\s*['"]([^'"]+)['"]\s*\)/g)].map((row) => row[1]);
+  assert.deepEqual(dynamic, ["./machine-settings-host.mjs"]);
+});
+
+test("GSS-GESTURE-CONTROL RED: released gym sources have zero direct dispatch spelling", () => {
+  for (const rel of ["gym-app.mjs", "machine-settings-view.mjs", "gym-settings-lane.mjs",
+    "today-app.cjs", "today-lanes.cjs"]) {
+    const source = codeOf(readRepo(TODAY + "/" + rel));
+    assert.equal((source.match(/\.\s*(?:add|remove)EventListener\s*\(/g) || []).length,
+      rel === "machine-settings-view.mjs" ? 4 : (rel === "today-lanes.cjs" ? 2 : 0), rel);
+    assert.equal((source.match(/\.\s*click\s*\(/g) || []).length, 0, rel + " .click");
+    assert.equal((source.match(/\bdispatchEvent\s*\(/g) || []).length, 0, rel + " dispatchEvent");
+  }
+});
+
+test("GSS-STATIC-AFTER-READ / AFTER-START plants are independently visible", () => {
+  const raw = readRepo(TODAY + "/gym-app.mjs");
+  const afterRead = raw.replace("    if (!owns) return null;\n    if (view.phase === 'blocked')",
+    "    phone.querySelector('[data-slot=log]').click();\n    if (!owns) return null;\n    if (view.phase === 'blocked')");
+  const afterStart = raw.replace("      if (!started.ok) return refusalScreen(view, started);",
+    "      phone.querySelector('[data-slot=log]').click();\n      if (!started.ok) return refusalScreen(view, started);");
+  assert.notEqual(afterRead, raw, "after-read plant missed its exact anchor");
+  assert.notEqual(afterStart, raw, "after-start plant missed its exact anchor");
+  assert.equal((codeOf(afterRead).match(/\.\s*click\s*\(/g) || []).length, 1);
+  assert.equal((codeOf(afterStart).match(/\.\s*click\s*\(/g) || []).length, 1);
+});
+
+test("GSS paint RED: exactly six synchronous drawing returns use hooks.paint", () => {
+  const source = codeOf(readRepo(TODAY + "/gym-app.mjs"));
+  const calls = ["refusalScreen(view, view)", "stub(view, WORKOUT_RECORDED,",
+    "refusalScreen(view, started)", "renderSaved(view)", "renderComplete(view)", "renderActive(view)"];
+  for (const call of calls) {
+    const at = source.indexOf(call);
+    assert.notEqual(at, -1, "missing original paint call " + call);
+    assert.match(source.slice(Math.max(0, at - 40), at + call.length + 8), /hooks\.paint\(\(\)\s*=>/,
+      call + " is not under synchronous refusal depth");
+  }
+  assert.match(source, /const started = await model\.start\(\);/, "Start exception moved");
+  assert.match(source, /return paint\(\);/, "Start recursive return moved");
 });

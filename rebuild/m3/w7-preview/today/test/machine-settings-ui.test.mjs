@@ -25,6 +25,7 @@ import { faultDatabase } from '../../../w6/test/support.mjs';
 import { createGymHost } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES } from '../gym-model.mjs';
 import GymApp, { mountGym } from '../gym-app.mjs';
+import { createGymSettingsLane } from '../gym-settings-lane.mjs';
 import { createMachineSettingsHost, PROFILE, ACTION } from '../machine-settings-host.mjs';
 import MachineSettingsView from '../machine-settings-view.mjs';
 import MachineSettings from '../../../../coach/machine-settings-commands.cjs';
@@ -1176,4 +1177,197 @@ test('D2.R2 - a read that FAILS after navigation is equally silent', async () =>
   assert.equal(phone.textContent, 'SYNTHETIC_TODAY', 'a failed late read paints nothing either');
   assert.equal(doc.querySelector('#phone [data-slot="settings-block"]'), null);
   kit.settings.close(); kit.gymHost.close(); dom.window.close();
+});
+
+/* ===========================================================================
+   GSS - sealed settings writer contract. These rows are intentionally RED on
+   the accepted split base: the old lane exposes its host and has no binders.
+   ========================================================================== */
+const gssDeferred = () => {
+  let resolve, reject;
+  const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
+  return { promise, resolve, reject };
+};
+
+async function gssLane(options = {}) {
+  const dom = new JSDOM('<!doctype html><main id="phone">' +
+    '<button data-slot="settings-save"><span data-check></span></button>' +
+    '<button data-slot="log"></button><button data-slot="primary"></button>' +
+    '<button data-action="undo"></button><button data-action="ordinary"></button></main>');
+  const doc = dom.window.document;
+  const phone = doc.getElementById('phone');
+  const view = options.view || { phase: 'active', startId: 'start-a',
+    lift: { id: 'lift-a' }, set: { slot: 0, lift: 'lift-a' }, next: null };
+  const latest = options.latest || { machine: { exercise_id: 'lift-a',
+    settings: [{ name: 'Seat', value: 'four' }], cues: 'Elbows in.' } };
+  const calls = [];
+  const model = Object.assign({ day: DAY, read: async () => view,
+    logSet: async (raw) => { calls.push(['logSet', raw]); return { ok: true }; },
+    finish: async (raw) => { calls.push(['finish', raw]); return { ok: true }; },
+    undo: async (raw) => { calls.push(['undo', raw]); return { ok: true }; },
+    forget: () => { calls.push(['forget']); }, start: async () => ({ ok: true }) }, options.model);
+  const settings = Object.assign({ latest: async () => latest,
+    save: async (machine) => { calls.push(['recordSettings', machine]); return { ok: true }; } }, options.settings);
+  let paints = 0;
+  const lane = createGymSettingsLane(doc, phone, model, settings,
+    Object.freeze({ repaint: () => { paints += 1; } }));
+  const read = await lane.hooks.readView();
+  lane.hooks.startRead('lift-a');
+  if (lane.api.read()) await lane.api.read();
+  return { dom, doc, phone, view, latest, calls, lane, read, paints: () => paints };
+}
+
+test('GSS-CACHE-DETACHED / GSS-NO-HOST-LEAK / GSS-CACHE-FRESHNESS', async () => {
+  const unit = await gssLane();
+  assert.deepEqual(Object.keys(unit.lane), ['facade', 'hooks', 'api']);
+  assert.deepEqual(Object.keys(unit.lane.api), ['pending', 'ready', 'lane', 'read', 'stateFor']);
+  assert.equal(unit.lane.api.lane() !== null, true, 'the one pinned host passthrough remains');
+  assert.equal(unit.lane.hooks.open() === null || typeof unit.lane.hooks.open().then === 'function', true);
+  if (unit.lane.hooks.open()) assert.equal(typeof await unit.lane.hooks.open(), 'boolean');
+  assert.equal(Object.isFrozen(unit.read), true, 'model view is detached and frozen');
+  assert.equal(Object.isFrozen(unit.read.lift), true, 'nested model view is frozen');
+  const first = unit.lane.facade.entryFor('lift-a');
+  assert.equal(Object.isFrozen(first), true);
+  assert.equal(Object.isFrozen(first.latest.machine.settings[0]), true);
+  unit.latest.machine.settings[0].value = 'MUTATED_HOST';
+  assert.equal(unit.lane.facade.entryFor('lift-a').latest.machine.settings[0].value, 'four');
+  assert.notEqual(unit.lane.facade.entryFor('lift-a'), first, 'each public result is detached');
+  for (const table of [unit.lane, unit.lane.facade, unit.lane.hooks, unit.lane.api]) {
+    assert.equal(Object.isFrozen(table), true);
+  }
+  unit.dom.window.close();
+});
+
+test('GSS-RAW-PARITY / GSS-RAW-SNAPSHOT / GSS-PENDING-SETTINGS', async () => {
+  const held = gssDeferred();
+  let saved = null;
+  const unit = await gssLane({ settings: {
+    latest: async () => ({ machine: { exercise_id: 'lift-a', settings: [] } }),
+    save: async (machine) => { saved = machine; await held.promise; return { ok: true }; },
+  } });
+  const opened = unit.lane.hooks.settingsEditOpened();
+  assert(opened && opened.editorToken, 'the seal minted the editor identity');
+  const raw = { rows: [{ name: 7, value: 5 }], cues: '' };
+  const outcomes = [];
+  unit.lane.hooks.bindSettingsSave(opened.editorToken, () => raw, (outcome) => outcomes.push(outcome));
+  const save = unit.phone.querySelector('[data-slot="settings-save"]');
+  const firstEvent = new unit.dom.window.Event('click', { bubbles: true });
+  save.dispatchEvent(firstEvent);
+  const pending = unit.lane.api.pending();
+  assert(pending && typeof pending.then === 'function', 'the admitted operation is published synchronously');
+  raw.rows[0].name = 'MUTATED'; raw.rows[0].value = 'MUTATED'; raw.rows.push({ name: 'Late', value: 'row' });
+  save.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  save.dispatchEvent(firstEvent);
+  assert.deepEqual(saved, { exercise_id: 'lift-a', settings: [{ name: '7', value: '5' }] });
+  assert.equal(unit.lane.api.pending(), pending, 'ignored repeats cannot replace pending');
+  held.resolve(); await pending;
+  assert.equal(outcomes.filter((row) => row.kind === 'saved').length, 1);
+  unit.dom.window.close();
+});
+
+test('GSS-TOKEN-IDENTITY / GSS-EDITOR-LIFETIME / GSS-BINDING-DISPOSE', async () => {
+  const unit = await gssLane();
+  const first = unit.lane.hooks.settingsEditOpened();
+  let firstCalls = 0, secondCalls = 0;
+  const disposeFirst = unit.lane.hooks.bindSettingsSave(first.editorToken,
+    () => ({ rows: [{ name: 'Seat', value: 'four' }], cues: '' }), () => { firstCalls += 1; });
+  const second = unit.lane.hooks.settingsEditOpened();
+  const disposeSecond = unit.lane.hooks.bindSettingsSave(second.editorToken,
+    () => ({ rows: [{ name: 'Seat', value: 'five' }], cues: '' }), () => { secondCalls += 1; });
+  disposeFirst();
+  unit.phone.querySelector('[data-slot="settings-save"]')
+    .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  await unit.lane.api.pending();
+  assert.equal(firstCalls, 0, 'replacement editor revoked the first binding');
+  assert.equal(secondCalls, 1, 'old disposer did not remove the replacement');
+  unit.lane.hooks.settingsEditClosed(first.editorToken);
+  assert.equal(unit.lane.hooks.settingsEditOpened() !== null, true,
+    'stale Cancel cannot close its replacement');
+  disposeSecond();
+  unit.lane.hooks.leave();
+  assert.equal(unit.lane.hooks.settingsEditOpened(), null, 'leave retires editor authority');
+  unit.dom.window.close();
+});
+
+test('GSS-GESTURE-CONTROL / GSS-GESTURE-NESTED / GSS-DEPTH-HELD-AWAIT', async () => {
+  const unit = await gssLane();
+  const opened = unit.lane.hooks.settingsEditOpened();
+  let reads = 0;
+  unit.lane.hooks.bindSettingsSave(opened.editorToken,
+    () => { reads += 1; return { rows: [{ name: 'Seat', value: 'four' }], cues: '' }; }, () => {});
+  const save = unit.phone.querySelector('[data-slot="settings-save"]');
+  const ordinary = unit.phone.querySelector('[data-action="ordinary"]');
+  unit.lane.hooks.paint(() => save.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true })));
+  unit.lane.hooks.listen(ordinary, 'click', () => save.dispatchEvent(
+    new unit.dom.window.Event('click', { bubbles: true })));
+  ordinary.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  assert.equal(reads, 0, 'drawing and ordinary sealed listeners are refusal scopes');
+  const paintHeld = gssDeferred();
+  const painting = unit.lane.hooks.paint(() => paintHeld.promise);
+  save.querySelector('span').dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  await unit.lane.api.pending();
+  assert.equal(reads, 1, 'refusal depth ends when the synchronous draw returns');
+  paintHeld.resolve(); await painting;
+  unit.dom.window.close();
+});
+
+test('GSS-LATE-COMPLETION / GSS-OUTCOME-PARITY keeps replacement ownership', async () => {
+  const held = gssDeferred();
+  const unit = await gssLane({ settings: { latest: async () => null,
+    save: async () => { await held.promise; return { ok: true }; } } });
+  const oldEditor = unit.lane.hooks.settingsEditOpened();
+  const oldOutcomes = [];
+  unit.lane.hooks.bindSettingsSave(oldEditor.editorToken,
+    () => ({ rows: [{ name: 'Seat', value: 'four' }], cues: '' }), (row) => oldOutcomes.push(row));
+  unit.phone.querySelector('[data-slot="settings-save"]')
+    .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  const pending = unit.lane.api.pending();
+  const replacement = unit.lane.hooks.settingsEditOpened();
+  assert.notEqual(replacement.editorToken, oldEditor.editorToken);
+  held.resolve(); await pending;
+  assert.equal(oldOutcomes.some((row) => row.kind === 'saved'), false,
+    'late success cannot clear or announce against a replacement editor');
+  unit.dom.window.close();
+});
+
+test('GSS-PENDING-GYM / GSS-INDEPENDENT-LANES / GSS-FORGET-NO-PUT', async () => {
+  const settingsHeld = gssDeferred(), logHeld = gssDeferred(), paintHeld = gssDeferred();
+  const view = { phase: 'active', startId: 'start-a', lift: { id: 'lift-a' },
+    set: { slot: 0, lift: 'lift-a' }, next: null };
+  const unit = await gssLane({ view,
+    settings: { latest: async () => null, save: async (machine) => {
+      unit.calls.push(['recordSettings', machine]); await settingsHeld.promise; return { ok: true };
+    } },
+    model: { logSet: async (raw) => {
+      unit.calls.push(['logSet', raw]); await logHeld.promise; return { ok: true };
+    }, forget: () => { unit.calls.push(['forget']); } } });
+  const editor = unit.lane.hooks.settingsEditOpened();
+  unit.lane.hooks.bindSettingsSave(editor.editorToken,
+    () => ({ rows: [{ name: 'Seat', value: 'four' }], cues: '' }), () => {});
+  unit.lane.hooks.bindGymAction('logSet',
+    () => ({ load: '40', reps: '10', effort: { value: 2 } }), () => {});
+  unit.phone.querySelector('[data-slot="settings-save"]')
+    .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  const settingsPending = unit.lane.api.pending();
+  unit.phone.querySelector('[data-slot="log"]')
+    .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  unit.phone.querySelector('[data-slot="log"]')
+    .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  assert.equal(unit.calls.filter(([name]) => name === 'recordSettings').length, 1);
+  assert.equal(unit.calls.filter(([name]) => name === 'logSet').length, 1,
+    'settings pending does not block Log Set, but workout pending blocks its repeat');
+  logHeld.resolve(); settingsHeld.resolve(); await settingsPending;
+  view.phase = 'saved'; view.next = { position: 2 };
+  await unit.lane.hooks.readView();
+  unit.lane.hooks.bindGymAction('forget', () => undefined, () => paintHeld.promise);
+  const primary = unit.phone.querySelector('[data-slot="primary"]');
+  primary.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  primary.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  await Promise.resolve();
+  assert.equal(unit.calls.filter(([name]) => name === 'forget').length, 1,
+    'transient advance holds the shared slot through paint settlement');
+  assert.equal(unit.calls.filter(([name]) => name === 'recordSettings').length, 1,
+    'forget never creates a durable settings operation');
+  paintHeld.resolve(); await unit.lane.api.pending();
+  unit.dom.window.close();
 });
