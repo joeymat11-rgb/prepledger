@@ -1,6 +1,6 @@
 # Earned PM checkpoint, 2026-09-21
 Status: preparation only. Astra remains PM; this is NOT a seat transfer or authorization for a second PM.
-Measured PC time: 2026-09-21 17:17 ET. Chain before this file: 9b15391afa130c79be009218f5e9592f62007e9a, ledger through679.
+Measured PC time: 2026-09-21 17:47 ET. Chain before this refresh: 2eabe0052e9a2c499a78cabddbdd16f8cfa560c9, ledger through684.
 Read HANDOFF-PM-2026-09-21.md for standing operations/privacy and the cited September19 seal procedure; then DECISIONS:637 onward, with later owner words controlling. Refresh this checkpoint and publish an explicit closing entry before transfer.
 
 ## Authority and scope
@@ -8,32 +8,33 @@ Joe authorized useful parallel Codex work and existing credits (:668/:674); qual
 Joe asks PM to recommend efficient chat rollover and supply both prompt and goal (:679). Do so at a saved checkpoint; do not assume child-agent control transfers between root chats.
 Queue remains S9 seal/look, phone earns weights before trial day1, split/Edit My Week, later work. Do not make deferred product work an extra trial prerequisite.
 One PM/ledger writer. Author, independent reviewer and integrator differ. Data path and soon-sealed work need Claude final review. No guard weakened, no new engine byte or owner choice inferred.
-The original handoff's credit/design/seat state is historical: Codex owns design now, credits6250 exist, Astra is seated. Most recent gauge77 percent weekly used.
+The original handoff's credit/design/seat state is historical: Codex owns design now, credits6250 exist, Astra is seated. Most recent gauge83 percent weekly used.
 Fast mode is available but current live tier is UNKNOWN and no setting was changed. Local live-server control failed; no restart attempted. Model speed is not whole-project speed (:678).
 Planning ETA remains4-7 calendar days, September25-28, conditional on owner decisions/reviews and verification; no faster forecast is proven (:675).
 
 ## Live children and single runtime slot
 Root thread01a0c4a5-2230-7070-a91c-44fedfd7e7fc owns these child sessions. Do not start duplicate authors/reviewers from a new chat.
-CUI author /root/engine_evidence now owns the sole local Node/browser slot for focused z1-z7 and copy/identity/VOID controls. GSS explicitly released it after first candidate cells. PM relays handoffs because sibling routing failed.
-GSS /root/split_r31_r32 repairs assertions/anchors statically; CUI reviewer /root/engine_blind_review prepares supplemental controls statically. All three confirmed running this turn.
+CUI reviewer /root/engine_blind_review now owns the sole local Node/browser slot for final candidate supplements and ordinary full Windows gate/state. Author confirmed every process terminal before release. PM relays handoffs because sibling routing failed.
+GSS /root/split_r31_r32 builds remaining proof statically. Sol /root/engine_evidence is reassigned to isolated Linux workflow authoring, no local runtime. Live child ownership stays here until explicit retirement and handoff.
 No headless process is assumed dead from a timeout. Preserve any handles and prove terminal state before replacement. No automations or old heartbeat reactivation.
 
 ## CUI critical path
-Author worktree %TEMP%/earned-cui0-accelerated, branch rebuild/c-cui0-accelerated; saved base6c5936036c58b2381ebd56551888ea0e5867719e, reportd9b7b13, durable redf8a68cedb4ba497f45db3bf6f85cd3bcabbcebab.
-Own six quality files common.py/gate.py/statesheet.py/phonesheet.py/teeth.py/STANDARD.md under rebuild/m1/approved-2026-09-18, C-UI-0.json package and C-UI-0-CODEX-REPORT.md. Six quality files plus report dirty; PM read every current hunk, runtime/package evidence still pending.
+Author worktree %TEMP%/earned-cui0-accelerated, branch rebuild/c-cui0-accelerated, clean final candidate5f12f8c926479643c82d5a0f213878bb46a4af99 published UNACCEPTED. Saved redf8a68ced and103ad57; implementation1163b7a had independently reproduced copy bypasses now narrowed.
+Owned six quality files common.py/gate.py/statesheet.py/phonesheet.py/teeth.py/STANDARD.md under rebuild/m1/approved-2026-09-18, C-UI-0.json and C-UI-0-CODEX-REPORT.md. PM read all hunks/whole60-line report, verified27 pins and retained report hashes. Focused28/28 and ordinary372 PASS/0 FAIL/WARN are author evidence, not acceptance. STANDARD corrected92 to102 rows.
 Existing18 obligations (:616) and53 required rows (:625) remain the full scope. Fix named required-primary absent/hidden failure with legitimate no-primary controls; valid separated numeric minus spans; immutable external identity; VOID counted as run although child never launched. No prototype/baseline edits.
-Reviewer worktree %TEMP%/earned-astra-cui0-accelerated-l1, branch rebuild/r-astra-cui0-accelerated-l1, HEAD6c593603. Report rebuild/lanes/astra/reviews/C-UI-0-ACCELERATED-REVIEW-L1.md, PENDING, untracked and not published.
+Reviewer worktree %TEMP%/earned-astra-cui0-accelerated-l1, branch rebuild/r-astra-cui0-accelerated-l1, FF confirmed exact5f12f8c. Report rebuild/lanes/astra/reviews/C-UI-0-ACCELERATED-REVIEW-L1.md, PENDING, untracked and preserved.26 further supplements ran; invalid transient plants excluded and persistent replacements prepared.
 Reviewer executed46/53 original rows:43 expected, two invalid historical plants y4a/y8a need corrected witnesses, y13c actual defect. y14a-g await fix; explicit y14g anchor adaptation retained.418-render primary census completed without errors,29 intentional no-primary states.
 Remaining: supplements, clause sensitivity, final candidate review, full ordinary Windows, isolated failed-accept hash witnesses, Linux and final package/source binding. Never turn an invalid plant into a passing guard claim.
 Review scratch %TEMP%/astra-cui0-review-l1 is this review's synthetic evidence only. Reviewer says unmutated app digest b391366fd413130672bd524c7af40046185029ca52f6c13516868393dde54550; earlier0e0b digest included a deliberate CSS control, never use it as baseline identity. Recompute before binding Linux.
-After author candidate publication, move author to %TEMP%/earned-cui-linux-witness, branch rebuild/ops-cui-linux, using queued %TEMP%/earned-cui-linux-job.txt with exact candidate40SHA. No candidate yet. Independent workflow review before push-triggered execution; no baseline resets.
+Linux author DISPATCHED to %TEMP%/earned-cui-linux-witness, branch rebuild/ops-cui-linux, using %TEMP%/earned-cui-linux-job.txt bound to5f12f8c926479643c82d5a0f213878bb46a4af99. Own new .github/workflows/cui-linux-witness.yml and C-UI-LINUX-WITNESS-REPORT.md only. Independent workflow review before push-triggered execution; no baseline resets.
 Linux local WSL absent/Docker unavailable. Outside-pack hosted workflow is allowed; ordinary gate/state results at exact candidate remain owed, not whole-rebuild CI acceptance. S10 paper yields until this critical work is dispatched.
 
 ## GSS critical path
 Worktree %TEMP%/earned-gss-build, branch rebuild/c-gym-settings-writer-build; accepted split baseb35a48e35a1f3e3c278c377934794a32b632535b. Red26805bedfe8379dc32c710d6fbc06259a6f032ca published.
-Commission %TEMP%/earned-gss-build-job.txt; accepted paper6fe4d12c:rebuild/lanes/c/GYM-SETTINGS-WRITER-SEAL-SPEC.md. Current report still red-checkpoint evidence, not implementation acceptance.
+Commission %TEMP%/earned-gss-build-job.txt; accepted paper6fe4d12c:rebuild/lanes/c/GYM-SETTINGS-WRITER-SEAL-SPEC.md. Implementationc5abd672 and focused-proof childd1fa563125d93b0ff025d967651f10b5ad184db1 published UNACCEPTED.
 Own gym-app.mjs, gym-settings-lane.mjs, machine-settings-view.mjs, test/machine-settings-ui.test.mjs, test/gym.test.mjs under rebuild/m3/w7-preview/today; writer-fence.test.mjs under rebuild/lanes/c/today-split; one build report.
-First candidate: syntax5/5, gym65/65, UI59/60, fence394/401. Author calls remaining failures assertion/anchor reconciliation; PM requires proof and denominator accounting against red409. Logs %TEMP%/gss-candidate-b35a48e3. No acceptance. Need all17 groups,15-file D2 annex, actual byte parity, independent Astra/Claude and integration; inspect helper reads before full cells.
+Second candidate retained logs %TEMP%/gss-candidate2-b35a48e3 independently read: gym65/65, UI60/60, fence401/401, zero fail/skip. Red409 denominator:9 facade tests replaced by1 API parity group, four leak plants plus unrelated/reformat positives retained; independent equivalence judgment owed. All17 groups, actual byte parity, D2, Astra/Claude and integration remain.
+At:684 original/current D2 census is12 direct cells plus2 supports, while accepted R1 said13+2 without naming a thirteenth. Run all identified cells after containment and inspect separately named C/LAUNCH-ADOPTION-PROBES; retain discrepancy for independent/Claude resolution, never claim12=13. Author currently adds remaining proofs statically.
 Coupled controller/view/API contract is not usefully split between extra authors. Test slot priority gives early correction feedback; no acceptance from counts alone.
 
 ## Claude returns and owner decisions
@@ -48,4 +49,4 @@ S10 queued %TEMP%/earned-s10-brief-job.txt and worktree %TEMP%/earned-s10-workin
 PM worktree C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm. Never switch/edit old-app checkout C:/Users/joeym/Documents/prepledger-dev.
 %TEMP%/pm-ledger.cjs remains append/commit/push helper, dry first, exact next line. PM publishes only owned files on lane branches, no force; shared node_modules are junctions only. Reports <=60 lines.
 Never read private paths, old-app src/app.js, ledger/, EarnedPort, protected soak, astra-job-50 session or any claude-epp scratch. Narrow explicit paths and inspect helper graphs before executing. Measurements never enter reports.
-Next actions: collect focused CUI results; publish completed fix group; rebind independent review to immutable candidate; commission Linux witness; reconcile GSS failures/denominators; collect Claude returns; then refresh this file and decide safe PM retirement.
+Next actions: collect independent final CUI evidence; independently review then publish Linux witness; complete GSS17-group/D2/parity proof and separate review; collect Claude returns. Then refresh this file, save/retire or explicitly delegate child control, and publish closing seat entry before recommending actual PM transfer.
