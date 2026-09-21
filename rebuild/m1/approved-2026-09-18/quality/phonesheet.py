@@ -38,6 +38,11 @@ async def main():
         b = await p.chromium.launch(args=LAUNCH_ARGS)
         ctx = await b.new_context(viewport={'width': 393, 'height': 852}, device_scale_factor=3, reduced_motion='reduce')
         pg = await ctx.new_page()
+        # an apply that throws is a page error, and a sheet drawn after one would be the base
+        # screen under a state's title, which is the one thing this sheet must never hand a reviewer
+        errs = []
+        pg.on('pageerror', lambda e: errs.append(str(e)))
+        pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
         f = label_font(34)
         for line in report_identity(ROOT, 'review sheet, no check and no comparison',
                                     ', '.join(STATE_IDS) if STATE_IDS else 'the three base screens',
@@ -70,8 +75,22 @@ async def main():
             shots = {}
             for t in ['ink', 'dawn']:
                 extra = f'&state={sid}' if sid else ''
+                n0 = len(errs)
                 await pg.goto(f'{APP}?theme={t}&screen={screen}&chrome=1&date=board{extra}')
                 await pg.evaluate('document.fonts.ready'); await pg.wait_for_timeout(500)
+                # the picture is labelled with the state's id, so the state has to have been
+                # applied before it is drawn: the driver's own applied marker has to equal the id
+                # that was asked for, and the apply must not have raised. Otherwise this refuses in
+                # one line and writes no sheet for that state, rather than handing a reviewer the
+                # base screen under a state's title.
+                if sid:
+                    applied = await pg.evaluate("()=>document.documentElement.getAttribute('data-state')")
+                    if applied != sid:
+                        raise Refused(f'{sid} was not applied in theme {t}: the driver\'s applied '
+                                      f'marker reads {applied!r}, so no sheet is written for it')
+                    if len(errs) > n0:
+                        raise Refused(f'{sid} raised an error while it applied in theme {t}: '
+                                      f'{errs[-1][:120]}, so no sheet is written for it')
                 shots[t] = Image.open(io.BytesIO(await pg.screenshot()))
             W, H = shots['ink'].size; third = H // 3
             # layout: rows = thirds, columns = ink, dawn; each third shown at full 3x width
