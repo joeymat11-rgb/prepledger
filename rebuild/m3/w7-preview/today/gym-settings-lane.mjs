@@ -226,8 +226,10 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
     });
     if (binding.kind === 'settings') settingsPending = operation;
     const execute = async () => {
-      let raw = underRefusal(() => binding.readRaw());
-      raw = binding.kind === 'settings' ? copySettingsRaw(raw) : copyGymRaw(raw);
+      const raw = underRefusal(() => {
+        const supplied = binding.readRaw();
+        return binding.kind === 'settings' ? copySettingsRaw(supplied) : copyGymRaw(supplied);
+      });
       if (binding.revoked || !sameContext(binding)) return;
       let outcome;
       if (binding.kind === 'settings') {
@@ -315,15 +317,20 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
       if (!element || typeof element.addEventListener !== 'function' || typeof listener !== 'function') return;
       let types = listenerBindings.get(element);
       if (!types) { types = new Map(); listenerBindings.set(element, types); }
+      let listeners = types.get(type);
+      if (!listeners) { listeners = new Map(); types.set(type, listeners); }
+      if (listeners.has(listener)) return;
       const wrapper = (event) => underRefusal(() => listener(event));
-      types.set(listener, { type, wrapper });
+      listeners.set(listener, wrapper);
       element.addEventListener(type, wrapper);
     },
     unlisten: (element, type, listener) => {
-      const types = listenerBindings.get(element), row = types && types.get(listener);
-      if (!row || row.type !== type) return;
-      element.removeEventListener(type, row.wrapper);
-      types.delete(listener);
+      const types = listenerBindings.get(element), listeners = types && types.get(type);
+      const wrapper = listeners && listeners.get(listener);
+      if (!wrapper) return;
+      element.removeEventListener(type, wrapper);
+      listeners.delete(listener);
+      if (listeners.size === 0) types.delete(type);
     },
     paint: (draw) => underRefusal(draw),
   });

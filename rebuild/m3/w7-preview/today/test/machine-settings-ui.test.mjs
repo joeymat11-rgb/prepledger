@@ -1245,10 +1245,10 @@ test('GSS-CACHE-DETACHED / GSS-NO-HOST-LEAK / GSS-CACHE-FRESHNESS', async () => 
 
 test('GSS-RAW-PARITY / GSS-RAW-SNAPSHOT / GSS-PENDING-SETTINGS', async () => {
   const held = gssDeferred();
-  let saved = null;
+  let saved = null, saves = 0;
   const unit = await gssLane({ settings: {
     latest: async () => ({ machine: { exercise_id: 'lift-a', settings: [] } }),
-    save: async (machine) => { saved = machine; await held.promise; return { ok: true }; },
+    save: async (machine) => { saves += 1; saved = machine; await held.promise; return { ok: true }; },
   } });
   const opened = unit.lane.hooks.settingsEditOpened();
   assert(opened && opened.editorToken, 'the seal minted the editor identity');
@@ -1267,7 +1267,72 @@ test('GSS-RAW-PARITY / GSS-RAW-SNAPSHOT / GSS-PENDING-SETTINGS', async () => {
   assert.equal(unit.lane.api.pending(), pending, 'ignored repeats cannot replace pending');
   held.resolve(); await pending;
   assert.equal(outcomes.filter((row) => row.kind === 'saved').length, 1);
+  save.dispatchEvent(firstEvent);
+  await Promise.resolve();
+  assert.equal(saves, 1,
+    'the consumed event cannot be replayed after settlement');
   unit.dom.window.close();
+});
+
+test('GSS-PENDING-SETTINGS releases a rejected save and the live replacement can retry', async () => {
+  let attempts = 0;
+  const unit = await gssLane({ settings: {
+    latest: async () => null,
+    save: async (machine) => {
+      unit.calls.push(['recordSettings', machine]);
+      attempts += 1;
+      if (attempts === 1) throw new Error('SYNTHETIC_SAVE_REJECTION');
+      return { ok: true };
+    },
+  } });
+  const opened = unit.lane.hooks.settingsEditOpened();
+  const outcomes = [];
+  unit.lane.hooks.bindSettingsSave(opened.editorToken,
+    () => ({ rows: [{ name: 'Seat', value: 'four' }], cues: '' }), (row) => outcomes.push(row));
+  const save = unit.phone.querySelector('[data-slot="settings-save"]');
+  save.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  const rejected = unit.lane.api.pending();
+  await assert.rejects(rejected, /SYNTHETIC_SAVE_REJECTION/);
+  assert.equal(save.disabled, false, 'finally releases the matching live Save control');
+  save.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  const retried = unit.lane.api.pending();
+  assert.notEqual(retried, rejected, 'retry publishes its own admitted operation');
+  await retried;
+  assert.equal(attempts, 2);
+  assert.equal(outcomes.filter((row) => row.kind === 'saved').length, 1);
+  unit.dom.window.close();
+});
+
+test('GSS-CACHE-FRESHNESS newest readView owns context and failed refresh stays distinct', async () => {
+  const oldRead = gssDeferred(), newRead = gssDeferred();
+  let readCount = 0, latestCount = 0;
+  const dom = new JSDOM('<!doctype html><main id="phone"><button data-slot="settings-save"></button></main>');
+  const doc = dom.window.document, phone = doc.getElementById('phone');
+  const model = { day: DAY, read: () => (++readCount === 1 ? oldRead.promise : newRead.promise) };
+  const settings = {
+    latest: async (liftId) => {
+      latestCount += 1;
+      if (latestCount > 1) throw new Error('SYNTHETIC_REFRESH_FAILURE');
+      return { machine: { exercise_id: liftId, settings: [{ name: 'Seat', value: 'four' }] } };
+    },
+    save: async () => ({ ok: true }),
+  };
+  const lane = createGymSettingsLane(doc, phone, model, settings, Object.freeze({ repaint: () => {} }));
+  const first = lane.hooks.readView(), second = lane.hooks.readView();
+  newRead.resolve({ phase: 'active', startId: 'new', lift: { id: 'lift-b' }, set: { slot: 0, lift: 'lift-b' } });
+  assert.equal((await second).lift.id, 'lift-b');
+  oldRead.resolve({ phase: 'active', startId: 'old', lift: { id: 'lift-a' }, set: { slot: 0, lift: 'lift-a' } });
+  assert.equal(await first, null, 'the older read cannot reactivate its lift');
+  await lane.hooks.startRead('lift-b');
+  const opened = lane.hooks.settingsEditOpened();
+  assert.equal(opened.latest.machine.exercise_id, 'lift-b');
+  lane.hooks.bindSettingsSave(opened.editorToken,
+    () => ({ rows: [{ name: 'Seat', value: 'five' }], cues: '' }), () => {});
+  phone.querySelector('[data-slot="settings-save"]')
+    .dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+  await lane.api.pending();
+  assert.equal(lane.facade.stateFor('lift-b'), 'failed', 'failed refresh is not known-null');
+  dom.window.close();
 });
 
 test('GSS-TOKEN-IDENTITY / GSS-EDITOR-LIFETIME / GSS-BINDING-DISPOSE', async () => {
@@ -1294,14 +1359,74 @@ test('GSS-TOKEN-IDENTITY / GSS-EDITOR-LIFETIME / GSS-BINDING-DISPOSE', async () 
   unit.dom.window.close();
 });
 
-test('GSS-GESTURE-CONTROL / GSS-GESTURE-NESTED / GSS-DEPTH-HELD-AWAIT', async () => {
+test('GSS-GESTURE-CONTROL consumes one refused event for its whole lifetime', async () => {
   const unit = await gssLane();
   const opened = unit.lane.hooks.settingsEditOpened();
   let reads = 0;
   unit.lane.hooks.bindSettingsSave(opened.editorToken,
-    () => { reads += 1; return { rows: [{ name: 'Seat', value: 'four' }], cues: '' }; }, () => {});
+    () => { reads += 1; return { rows: [], cues: '' }; }, () => {});
+  const event = new unit.dom.window.Event('click', { bubbles: true });
+  unit.phone.querySelector('[data-slot="settings-save"]').dispatchEvent(event);
+  await unit.lane.api.pending();
+  unit.phone.querySelector('[data-slot="settings-save"]').dispatchEvent(event);
+  await Promise.resolve();
+  assert.equal(reads, 1, 'a refused event cannot be replayed after its operation settles');
+  unit.dom.window.close();
+});
+
+test('GSS-EDITOR-LIFETIME invalidates on lift and phase changes', async () => {
+  const view = { phase: 'active', startId: 'start-a', lift: { id: 'lift-a' },
+    set: { slot: 0, lift: 'lift-a' }, next: null };
+  const unit = await gssLane({ view });
+  const opened = unit.lane.hooks.settingsEditOpened();
+  unit.lane.hooks.bindSettingsSave(opened.editorToken,
+    () => ({ rows: [{ name: 'Seat', value: 'four' }], cues: '' }), () => {});
+  view.lift = { id: 'lift-b' }; view.set = { slot: 0, lift: 'lift-b' };
+  await unit.lane.hooks.readView();
+  unit.phone.querySelector('[data-slot="settings-save"]')
+    .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  assert.equal(unit.lane.api.pending(), null, 'lift change retires the old editor binding');
+  await unit.lane.hooks.startRead('lift-b');
+  const replacement = unit.lane.hooks.settingsEditOpened();
+  assert(replacement && replacement.editorToken !== opened.editorToken);
+  view.phase = 'saved'; view.saved = { opId: 'op-a' }; view.next = null;
+  await unit.lane.hooks.readView();
+  unit.lane.hooks.settingsEditClosed(replacement.editorToken);
+  assert.equal(unit.lane.hooks.settingsEditOpened(), null, 'nonactive phase cannot retain an editor');
+  unit.dom.window.close();
+});
+
+test('GSS-GESTURE-CONTROL / GSS-GESTURE-NESTED / GSS-DEPTH-HELD-AWAIT', async () => {
+  const unit = await gssLane();
+  const opened = unit.lane.hooks.settingsEditOpened();
+  let reads = 0;
+  unit.lane.hooks.bindGymAction('logSet',
+    () => ({ load: '40', reps: '10', effort: { reserve: { tag: 'unknown' } } }), () => {});
+  unit.lane.hooks.bindSettingsSave(opened.editorToken,
+    () => { reads += 1; return { get rows() {
+      unit.phone.querySelector('[data-slot="log"]')
+        .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+      return [{ name: 'Seat', value: 'four' }];
+    }, cues: '' }; }, () => unit.phone.querySelector('[data-slot="log"]')
+      .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true })));
   const save = unit.phone.querySelector('[data-slot="settings-save"]');
   const ordinary = unit.phone.querySelector('[data-action="ordinary"]');
+  save.disabled = true;
+  save.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  save.disabled = false;
+  save.remove();
+  save.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  unit.phone.prepend(save);
+  assert.equal(reads, 0, 'disabled and detached controls carry no authority');
+  let ordinaryCalls = 0;
+  const ordinaryListener = (event) => { ordinaryCalls += 1; assert.equal(event.currentTarget, ordinary); };
+  unit.lane.hooks.listen(ordinary, 'click', ordinaryListener);
+  unit.lane.hooks.listen(ordinary, 'click', ordinaryListener);
+  ordinary.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  assert.equal(ordinaryCalls, 1, 'duplicate ordinary registration preserves listener identity');
+  unit.lane.hooks.unlisten(ordinary, 'click', ordinaryListener);
+  ordinary.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  assert.equal(ordinaryCalls, 1, 'unlisten removes the exact wrapper');
   unit.lane.hooks.paint(() => save.dispatchEvent(new unit.dom.window.Event('click', { bubbles: true })));
   unit.lane.hooks.listen(ordinary, 'click', () => save.dispatchEvent(
     new unit.dom.window.Event('click', { bubbles: true })));
@@ -1312,6 +1437,8 @@ test('GSS-GESTURE-CONTROL / GSS-GESTURE-NESTED / GSS-DEPTH-HELD-AWAIT', async ()
   save.querySelector('span').dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
   await unit.lane.api.pending();
   assert.equal(reads, 1, 'refusal depth ends when the synchronous draw returns');
+  assert.equal(unit.calls.filter(([name]) => name === 'logSet').length, 0,
+    'raw-answer copying and outcome delivery remain inside refusal scopes');
   paintHeld.resolve(); await painting;
   unit.dom.window.close();
 });
@@ -1333,6 +1460,63 @@ test('GSS-LATE-COMPLETION / GSS-OUTCOME-PARITY keeps replacement ownership', asy
   assert.equal(oldOutcomes.some((row) => row.kind === 'saved'), false,
     'late success cannot clear or announce against a replacement editor');
   unit.dom.window.close();
+
+  const refusedHeld = gssDeferred();
+  const refused = await gssLane({ settings: { latest: async () => null,
+    save: async () => { await refusedHeld.promise; return { ok: false }; } } });
+  const refusedEditor = refused.lane.hooks.settingsEditOpened();
+  const refusedOutcomes = [];
+  refused.lane.hooks.bindSettingsSave(refusedEditor.editorToken,
+    () => ({ rows: [{ name: 'Seat', value: 'four' }], cues: '' }),
+    (row) => refusedOutcomes.push(row));
+  refused.phone.querySelector('[data-slot="settings-save"]')
+    .dispatchEvent(new refused.dom.window.Event('click', { bubbles: true }));
+  const refusedPending = refused.lane.api.pending();
+  refused.lane.hooks.settingsEditOpened();
+  refusedHeld.resolve(); await refusedPending;
+  assert.deepEqual(refusedOutcomes, [], 'late refusal cannot error a replacement editor');
+  refused.dom.window.close();
+});
+
+test('GSS-PENDING-GYM keeps cross-action exclusion and releases after rejection', async () => {
+  const undoHeld = gssDeferred(), undoSettled = gssDeferred();
+  const savedView = { phase: 'saved', startId: 'start-a', lift: { id: 'lift-a' },
+    saved: { opId: 'op-a' }, next: null };
+  const unit = await gssLane({ view: savedView, model: {
+    undo: async (raw) => { unit.calls.push(['undo', raw]); await undoHeld.promise; return { ok: true }; },
+    finish: async (raw) => { unit.calls.push(['finish', raw]); return { ok: true }; },
+  } });
+  unit.lane.hooks.bindGymAction('undo', () => undefined, () => { undoSettled.resolve(); });
+  unit.lane.hooks.bindGymAction('finish', () => undefined, () => {});
+  unit.phone.querySelector('[data-action="undo"]')
+    .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  await waitFor(() => unit.calls.some(([name]) => name === 'undo'), 'undo to enter');
+  unit.phone.querySelector('[data-slot="primary"]')
+    .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  assert.equal(unit.calls.some(([name]) => name === 'finish'), false,
+    'finish cannot enter while undo owns the shared workout slot');
+  undoHeld.resolve(); await undoSettled.promise; await settle(2);
+  unit.phone.querySelector('[data-slot="primary"]')
+    .dispatchEvent(new unit.dom.window.Event('click', { bubbles: true }));
+  await waitFor(() => unit.calls.some(([name]) => name === 'finish'), 'finish retry after undo');
+  unit.dom.window.close();
+
+  let attempts = 0, outcomes = 0;
+  const retry = await gssLane({ model: { logSet: async () => {
+    attempts += 1;
+    if (attempts === 1) throw new Error('SYNTHETIC_LOG_REJECTION');
+    return { ok: true };
+  } } });
+  retry.lane.hooks.bindGymAction('logSet',
+    () => ({ load: '40', reps: '10', effort: { reserve: { tag: 'unknown' } } }),
+    () => { outcomes += 1; });
+  const log = retry.phone.querySelector('[data-slot="log"]');
+  log.dispatchEvent(new retry.dom.window.Event('click', { bubbles: true }));
+  await waitFor(() => attempts === 1, 'rejected log to enter');
+  await Promise.resolve(); await Promise.resolve();
+  log.dispatchEvent(new retry.dom.window.Event('click', { bubbles: true }));
+  await waitFor(() => attempts === 2 && outcomes === 1, 'log retry after rejection');
+  retry.dom.window.close();
 });
 
 test('GSS-PENDING-GYM / GSS-INDEPENDENT-LANES / GSS-FORGET-NO-PUT', async () => {
