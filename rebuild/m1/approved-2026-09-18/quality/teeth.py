@@ -489,6 +489,12 @@ def mut_z7(work):
     # rather than claiming it launched a gate child.
     sub(work, 'app/states-today.js', "  R('T-02',", "  R( 'T-02',")
 
+def mut_z8(work):
+    # An element boundary inside a word is not a numeric cell boundary. The athlete reads the
+    # same forbidden letter-minus-number phrase as the same-node q11 control.
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Upper body<span>\u22125</span> today. One change to review.')
+
 T02_APPLY = ("  R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', "
              "component: 'sample note', apply: function (a) {\n")
 
@@ -761,6 +767,9 @@ ROWS = [
     ('z7', 'a failed mutation anchor is VOID before a child run starts', mut_z7,
      ['quality/teeth.py', '--only', 'q5'],
      dict(exit=1, stdout=['1 enumerated, 0 run', '0 skipped on', '1 VOID before run (q5)'])),
+    ('z8', 'an element boundary inside a forbidden letter-minus-number phrase', mut_z8,
+     GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
     ('v16', 'teeth --only with an id this list does not carry', mut_none,
      ['quality/teeth.py', '--only', 'zzz'],
      dict(exit=2, stdout=['REFUSED', 'zzz', 'does not carry'])),
