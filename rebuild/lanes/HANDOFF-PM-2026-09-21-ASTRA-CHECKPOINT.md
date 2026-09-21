@@ -1,6 +1,6 @@
 # Earned PM checkpoint, 2026-09-21
 Status: preparation only. Astra remains PM; this is NOT a seat transfer or authorization for a second PM.
-Snapshot after DECISIONS:693, CUIcf149820 and GSS04ea69e published UNACCEPTED. Independent Windows418 and372 ordinary checks passed. Corrected Linux run35663737457 is executing both gates after setup passed. Later ledger and explicit runtime handoffs control.
+Snapshot after DECISIONS:694, CUIcf149820 and GSS04ea69e published UNACCEPTED. Windows418/372 passed. Linux35663737457 remains active; CUI local39602 owns runtime. S10 paper0cfefdb is under independent correction. Later ledger and explicit runtime handoffs control.
 Read HANDOFF-PM-2026-09-21.md for standing operations/privacy and the cited September19 seal procedure; then DECISIONS:637 onward, with later owner words controlling. Refresh this checkpoint and publish an explicit closing entry before transfer.
 
 ## Authority and scope
@@ -8,14 +8,14 @@ Joe authorized useful parallel Codex work and existing credits (:668/:674); qual
 Joe asks PM to recommend efficient chat rollover and supply both prompt and goal (:679). Do so at a saved checkpoint; do not assume child-agent control transfers between root chats.
 Queue remains S9 seal/look, phone earns weights before trial day1, split/Edit My Week, later work. Do not make deferred product work an extra trial prerequisite.
 One PM/ledger writer. Author, independent reviewer and integrator differ. Data path and soon-sealed work need Claude final review. No guard weakened, no new engine byte or owner choice inferred.
-The original handoff's credit/design/seat state is historical: Codex owns design now, credits6250 exist, Astra is seated. Most recent gauge97 percent weekly used.
+The original handoff's credit/design/seat state is historical: Codex owns design now, Astra is seated. At22:53UTC gauge100 percent weekly used,5708.94 existing credits; ordinaryUsageAllowed=false. No purchase, reset or model change authorized by this reading.
 Fast mode is available but current live tier is UNKNOWN and no setting was changed. Local live-server control failed; no restart attempted. Model speed is not whole-project speed (:678).
 Planning ETA remains4-7 calendar days, September25-28, conditional on owner decisions/reviews and verification; no faster forecast is proven (:675).
 
 ## Live children and single runtime slot
 Root thread01a0c4a5-2230-7070-a91c-44fedfd7e7fc owns these child sessions. Do not start duplicate authors/reviewers from a new chat.
-CUI reviewer /root/engine_blind_review owns sole runtime:16-guard mutant sequence56080 active, then two disposable failed-accept witnesses. Windows418/372 passed,1320 files unchanged. Selected36 terminal exit0/0disagree/0skip/0VOID; wrapper-tail false alarm reconciled from fullreport without rerun. Independent34 numeric,restoration,11 gate/state and y14a-g7/7 passed.
-GSS author /root/split_r31_r32 completed04ea69e, clean/no process. /root/gss_writer_blind_review reactivated STATIC ONLY for L3 in earned-astra-gss-writer-l3 exact04ea69e, new REVIEW-L3 only; runtime waits CUI. Sol /root/engine_evidence resumes S10 paper after published Linux correction. Live child control remains here.
+CUI reviewer /root/engine_blind_review owns sole runtime39602: disposable failed-accept statesheet. Sixteen guard mutants produced26 intended kills; two item14 mutants killed; failed-accept gate exited1 and changed six scratch baselines, the documented nontransactional limitation. Candidate/source custody preserved; full state witness pending. Windows418/372 and selected36 passed.
+GSS /root/gss_writer_blind_review L3 bounded repair replay passed:24 focus cases, six replacement retries,403/403 controls and intended leak kills. STATIC ONLY now, preparing full SectionE real-store/workout parity; no full acceptance. Sol /root/engine_evidence handles S10 paper corrections directly with CUI reviewer. Live child control remains here.
 No headless process is assumed dead from a timeout. Preserve any handles and prove terminal state before replacement. No automations or old heartbeat reactivation.
 
 ## CUI critical path
@@ -27,7 +27,7 @@ Reviewer original46/53:43 expected, y4a/y8a invalid historical plants later corr
 At5f12: required-primary10/10, externalidentity9/9, VOID1/1, selection12 callbacks and2 clause mutants witnessed. Numeric indexOf replacement can erase an earlier forbidden range when later cells have matching text; independent63PASS/exit0 proves false-pass. RED reports/final-ambiguous-minus/report.txt SHA888dd0f151bead0ef0f307fd5ef51138994810d3bed4bf26c839199c364b2ece under review scratch. Repair, remaining supplements, full Windows, failed-accept custody and Linux owed.
 Review scratch %TEMP%/astra-cui0-review-l1 is this review's synthetic evidence only. Reviewer says unmutated app digest b391366fd413130672bd524c7af40046185029ca52f6c13516868393dde54550; earlier0e0b digest included a deliberate CSS control, never use it as baseline identity. Recompute before binding Linux.
 Linux worktree %TEMP%/earned-cui-linux-witness, branch rebuild/ops-cui-linux, corrected workflow3c62f2c after independent L2 ACCEPTd5ef284. Run35663737457/job106544697255 active in actual gates, setup/custody/install passed. Earlier35662825212 failed before gates; no app result. YAMLf3b3061/reportaa8d214 exact hashes approved; default/framing corrected from Git/source reproduction. Full footprints/no baseline resets retained.
-Linux local WSL absent/Docker unavailable. Outside-pack hosted workflow is allowed; ordinary gate/state results at exact candidate remain owed, not whole-rebuild CI acceptance. S10 paper yields until this critical work is dispatched.
+Linux local WSL absent/Docker unavailable. Hosted witness is allowed; exact-candidate results owed, not whole-rebuild CI acceptance. Safe collector %TEMP%/earned-cui-linux-artifact.ps1 -RunId35663737457 downloads only seven allowlisted artifact files after terminal state. Inspect metadata/hashes/reports and give evidence to independent reviewer.
 
 ## GSS critical path
 Worktree %TEMP%/earned-gss-build, branch rebuild/c-gym-settings-writer-build; accepted split baseb35a48e35a1f3e3c278c377934794a32b632535b. Red26805bedfe8379dc32c710d6fbc06259a6f032ca published.
@@ -46,7 +46,7 @@ Separate workout-capture engine correction also needs owner words. Native-load s
 
 ## Saved secondary work and operating route
 EW2 reach paper5b51633 accepted as paper only at:671 with independent8db1c35; executable blobs unchanged, D3/D4 actual product/recovery/copy checks owed after S10. Never re-audit accepted paper without new cause.
-S10 paper author resumed %TEMP%/earned-s10-brief-job.txt in earned-s10-working-brief; owns only rebuild/lanes/b/S10-WORKING-BRIEF.md and S10-WORKING-BRIEF-REPORT.md. Four S-R30 exceptions and D3/D5/D6/D7/D9 L3 debts verbatim; actual final S9 source blobs control parent. Explicit missing-input STOPs, no build authority. GSS precedes S10; TMH/TodayOutcome/GymStart later.
+S10 paper0cfefdb published UNACCEPTED in earned-s10-working-brief, two owned brief/report files,320/40 lines. Independent static review found token grammar and seal order blockers; direct author loop active. Review scratch %TEMP%/astra-cui0-review-l1/s10-working-brief-review-l1.md. No runtime/build authority. CUI1 commission %TEMP%/earned-cui1-build-job.txt is QUEUED DRAFT ONLY: resolve accepted design.cjs carry before dispatch. No CUI1 builder exists.
 PM worktree C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm. Never switch/edit old-app checkout C:/Users/joeym/Documents/prepledger-dev.
 %TEMP%/pm-ledger.cjs remains append/commit/push helper, dry first, exact next line. PM publishes only owned files on lane branches, no force; shared node_modules are junctions only. Reports <=60 lines.
 Never read private paths, old-app src/app.js, ledger/, EarnedPort, protected soak, astra-job-50 session or any claude-epp scratch. Narrow explicit paths and inspect helper graphs before executing. Measurements never enter reports.
