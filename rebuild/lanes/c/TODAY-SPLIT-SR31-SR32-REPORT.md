@@ -34,7 +34,8 @@ Red checkpoint: `6bf501413c6146a2310fd1bf7b693fd5b7943997`.
 - Red-first targeted cell: 6 tests, 0 pass, 6 fail, exit 1.
 - Final S-R31/S-R32 cell plus pinned baseline: 13 tests, 13 pass.
 - Corrected rows plus preserved source attacks: 18 tests, 18 pass.
-- Full instrument cell: 46/52 pass; the 6 unavailable rows are exactly the inherited eslint-scope rows.
+- Author's earlier full instrument cell: 46/52 pass; 6 inherited eslint-scope rows unavailable.
+- Independent L4 exact-head full instrument cell: 47/53 pass; the same 6 rows unavailable.
 - Single-clause scratch cell: control plus 12 mutants, 13/13 distinguished.
 - Safe Today cells: check-in 28/28, food 57/57, problem 131/131, copy 39/39, view 23/23.
 - Product regeneration at `s9`: 169 region witnesses matched; 39 substitution rows / 41 occurrences.
