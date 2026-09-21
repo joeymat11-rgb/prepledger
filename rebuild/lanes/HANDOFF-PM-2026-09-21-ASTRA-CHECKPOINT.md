@@ -1,6 +1,6 @@
 # Earned PM checkpoint, 2026-09-21
 Status: preparation only. Astra remains PM; this is NOT a seat transfer or authorization for a second PM.
-Measured PC time: 2026-09-21 17:47 ET. Chain before this refresh: 2eabe0052e9a2c499a78cabddbdd16f8cfa560c9, ledger through684.
+Snapshot after DECISIONS:685, chain437e8f4. Critical change: independent execution found a further copy false-pass at5f12f8c; that candidate is BLOCKED, not accepted. Later ledger and explicit runtime handoffs control.
 Read HANDOFF-PM-2026-09-21.md for standing operations/privacy and the cited September19 seal procedure; then DECISIONS:637 onward, with later owner words controlling. Refresh this checkpoint and publish an explicit closing entry before transfer.
 
 ## Authority and scope
@@ -14,8 +14,8 @@ Planning ETA remains4-7 calendar days, September25-28, conditional on owner deci
 
 ## Live children and single runtime slot
 Root thread01a0c4a5-2230-7070-a91c-44fedfd7e7fc owns these child sessions. Do not start duplicate authors/reviewers from a new chat.
-CUI reviewer /root/engine_blind_review now owns the sole local Node/browser slot for final candidate supplements and ordinary full Windows gate/state. Author confirmed every process terminal before release. PM relays handoffs because sibling routing failed.
-GSS /root/split_r31_r32 builds remaining proof statically. Sol /root/engine_evidence is reassigned to isolated Linux workflow authoring, no local runtime. Live child ownership stays here until explicit retirement and handoff.
+CUI reviewer /root/engine_blind_review completed the unaffected group and explicitly released every process. GSS /root/split_r31_r32 now owns sole runtime for d1 red/new green, actual reopen parity and contained D2 cells. PM relays handoffs because sibling routing failed.
+Sol /root/engine_evidence returned to CUI numeric occurrence repair statically; Linux worktree remains clean and paused. Reviewer prepares remaining controls statically. Live child ownership stays here until explicit retirement and handoff.
 No headless process is assumed dead from a timeout. Preserve any handles and prove terminal state before replacement. No automations or old heartbeat reactivation.
 
 ## CUI critical path
@@ -24,9 +24,9 @@ Owned six quality files common.py/gate.py/statesheet.py/phonesheet.py/teeth.py/S
 Existing18 obligations (:616) and53 required rows (:625) remain the full scope. Fix named required-primary absent/hidden failure with legitimate no-primary controls; valid separated numeric minus spans; immutable external identity; VOID counted as run although child never launched. No prototype/baseline edits.
 Reviewer worktree %TEMP%/earned-astra-cui0-accelerated-l1, branch rebuild/r-astra-cui0-accelerated-l1, FF confirmed exact5f12f8c. Report rebuild/lanes/astra/reviews/C-UI-0-ACCELERATED-REVIEW-L1.md, PENDING, untracked and preserved.26 further supplements ran; invalid transient plants excluded and persistent replacements prepared.
 Reviewer executed46/53 original rows:43 expected, two invalid historical plants y4a/y8a need corrected witnesses, y13c actual defect. y14a-g await fix; explicit y14g anchor adaptation retained.418-render primary census completed without errors,29 intentional no-primary states.
-Remaining: supplements, clause sensitivity, final candidate review, full ordinary Windows, isolated failed-accept hash witnesses, Linux and final package/source binding. Never turn an invalid plant into a passing guard claim.
+At5f12: required-primary10/10, externalidentity9/9, VOID1/1, selection12 callbacks and2 clause mutants witnessed. Numeric indexOf replacement can erase an earlier forbidden range when later cells have matching text; independent63PASS/exit0 proves false-pass. RED reports/final-ambiguous-minus/report.txt SHA888dd0f151bead0ef0f307fd5ef51138994810d3bed4bf26c839199c364b2ece under review scratch. Repair, remaining supplements, full Windows, failed-accept custody and Linux owed.
 Review scratch %TEMP%/astra-cui0-review-l1 is this review's synthetic evidence only. Reviewer says unmutated app digest b391366fd413130672bd524c7af40046185029ca52f6c13516868393dde54550; earlier0e0b digest included a deliberate CSS control, never use it as baseline identity. Recompute before binding Linux.
-Linux author DISPATCHED to %TEMP%/earned-cui-linux-witness, branch rebuild/ops-cui-linux, using %TEMP%/earned-cui-linux-job.txt bound to5f12f8c926479643c82d5a0f213878bb46a4af99. Own new .github/workflows/cui-linux-witness.yml and C-UI-LINUX-WITNESS-REPORT.md only. Independent workflow review before push-triggered execution; no baseline resets.
+Linux author PAUSED before creating files at %TEMP%/earned-cui-linux-witness, branch rebuild/ops-cui-linux; %TEMP%/earned-cui-linux-job.txt must bind the next repaired candidate, not5f12f8c. Own new .github/workflows/cui-linux-witness.yml and C-UI-LINUX-WITNESS-REPORT.md only. Independent workflow review before push-triggered execution; no baseline resets.
 Linux local WSL absent/Docker unavailable. Outside-pack hosted workflow is allowed; ordinary gate/state results at exact candidate remain owed, not whole-rebuild CI acceptance. S10 paper yields until this critical work is dispatched.
 
 ## GSS critical path
