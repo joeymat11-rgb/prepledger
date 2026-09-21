@@ -111,9 +111,8 @@ def minus_problems(text):
     is not a space is not a digit, because a digit across a space makes the pair a range. So
     "(−5 lb)", "load:−5", "8/−5", "= −5", "8×−5", "$−5" and "5, −5" are
     numbers and pass, while "3 −5", "3−5", "body−5", "today,−5" and "− one" are dashes and
-    fail. Two numbers in two cells are split by the TAB the browser puts between cells, so each is
-    read on its own; two numbers in one line of text with a space between them read as a range to
-    the athlete and to this rule alike, whatever elements the markup wrapped them in.
+    fail. Separate visible text-bearing elements are cells for this rule, with a TAB inserted
+    between them; two numbers in one text node with a space between them remain a range.
 
     It is a control's label when it is the whole of its own line or cell in the swept string, which
     is how the decrement button beside a set's load reads (app/states.js:113 and
@@ -150,7 +149,7 @@ def sweep_form(text):
     return unicodedata.normalize('NFKC', kept).casefold()
 
 
-def copy_problems(text):
+def copy_problems(text, minus_text=None):
     """The copy sweeps on one screen's visible text: dashes, invisible characters, the owner's
     word list and vendor names.
 
@@ -163,8 +162,10 @@ def copy_problems(text):
     folded = fold_spaces(text)
     bad = [SPACED_HYPHEN] if SPACED_HYPHEN in folded else []
     bad += sorted({c for c in text if is_dash(c)})
-    # the minus rule reads its own fold, which keeps the TAB as a cell boundary
-    bad += minus_problems(fold_for_minus(text))
+    # The DOM walk supplies minus_text with a TAB between separate text-bearing elements. The
+    # word/vendor sweeps keep reading the flat visible sentence, so splitting Ready across spans
+    # cannot bypass them. Only the minus rule treats the two numeric elements as separate cells.
+    bad += minus_problems(fold_for_minus(text if minus_text is None else minus_text))
     bad += sorted({f'U+{ord(c):04X}' for c in text if unicodedata.category(c) == 'Cf'})
     low = sweep_form(text)
     bad += [w for w in READINESS if re.search(r'\b' + w + r'\b', low)]
@@ -349,6 +350,19 @@ def app_url():
     return pathlib.Path(os.path.join(root, 'app', 'app.html')).as_uri()
 
 
+def external_app_digest():
+    """The caller-supplied immutable identity for an external build.
+
+    The gate cannot honestly compute one digest for every file:// and HTTPS deployment shape.
+    When EARNED_APP transfers custody outside this pack, its producer therefore supplies the
+    digest it assigned that build. Reports label it caller-supplied; they do not call it verified.
+    """
+    digest = os.environ.get('EARNED_APP_DIGEST', '')
+    if not re.fullmatch(r'[0-9a-fA-F]{64}', digest):
+        raise Refused('EARNED_APP requires EARNED_APP_DIGEST as its 64 digit sha256 build identity')
+    return digest.lower()
+
+
 def sha256_bytes(b):
     return hashlib.sha256(b).hexdigest()
 
@@ -419,8 +433,8 @@ def report_identity(root, mode, scope, chromium_version=''):
     """
     env = os.environ.get('EARNED_APP')
     if env:
-        where = (f'build under test: {env} (EARNED_APP: an external build, which this pack does '
-                 'not hold and takes no digest of)')
+        where = (f'build under test: {env} (EARNED_APP; caller-supplied external build digest '
+                 f'{external_app_digest()})')
     else:
         where = f'build under test: {app_url()}, app digest {app_digest(root)}'
     return [f'mode: {mode}',
@@ -527,10 +541,10 @@ JS_SEEN = JS_RENDERED + """
 # are all read off the screen or read out loud, and all of them are outside innerText. Both gates
 # sweep this one string so neither can be stricter than the other.
 JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui');
-    if(!ui)return {text:'', unreadable:[]};""" + JS_RENDERED + """
-    const parts=[ui.innerText], unreadable=[];
+    if(!ui)return {text:'', unreadable:[]};""" + JS_SEEN + """
+    const parts=[ui.innerText], minus=[], unreadable=[];
     const attrs=['placeholder','aria-label','title','alt'];
-    const push=v=>{if(typeof v==='string'&&v.trim())parts.push(v)};
+    const push=v=>{if(typeof v==='string'&&v.trim()){parts.push(v);if(minus.length)minus.push('\\n');minus.push(v)}};
     /* attr() is resolved into a quoted string by the time getComputedStyle answers, so it is swept.
        counter() and counters() are not: the computed value still carries the call, and the number
        the screen draws is not available here. That is its own FAIL, never a silent pass. */
@@ -541,11 +555,14 @@ JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui')
       if(/counters?\\(/.test(c.replace(/"[^"]*"|'[^']*'/g,'')))
         unreadable.push((e.id||e.className||e.tagName)+which+' '+c.slice(0,60))};
     
+    const tw=document.createTreeWalker(ui,NodeFilter.SHOW_TEXT);let n,last=null;
+    while((n=tw.nextNode())){const e=n.parentElement;if(!e||!__seen(e)||!n.textContent.trim())continue;
+      if(last&&last!==e)minus.push('\\t');minus.push(n.textContent);last=e}
     ui.querySelectorAll('*').forEach(e=>{if(!__rendered(e))return;
       attrs.forEach(a=>push(e.getAttribute(a)));
       if(('value' in e)&&e.tagName!=='BUTTON')push(e.value);
       gen(e,'::before');gen(e,'::after')});
-    return {text: parts.join('\\n'), unreadable: unreadable}}"""
+    return {text: parts.join('\\n'), minusText: minus.join(''), unreadable: unreadable}}"""
 
 # the check name both gates use when generated content carries a value the sweep cannot resolve
 UNREADABLE_CHECK = 'generated content the sweep cannot read'

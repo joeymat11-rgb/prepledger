@@ -25,7 +25,7 @@ from common import (copy_problems, set_x_problems, tier_for, lum_array, worst_ra
                     sha256_bytes, platform_key, CONTRAST_TOLERANCE, Refused, JS_SWEPT_TEXT,
                     JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS, env_text, TAPPABLE_SELECTOR,
                     TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED, QUIET_TOKEN_NAMES,
-                    report_identity)
+                    report_identity, external_app_digest)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -379,6 +379,8 @@ def check_margin(rows, W, where):
 
 
 async def main():
+    if os.environ.get('EARNED_APP'):
+        external_app_digest()
     started = False
     async with async_playwright() as p:
         b = await p.chromium.launch(args=LAUNCH_ARGS)
@@ -492,7 +494,7 @@ async def one_screen(pg, t, s, W, H, where):
     # ---------- copy ----------
     swept = await pg.evaluate(JS_SWEPT_TEXT)
     text = swept['text']
-    bad = copy_problems(text)
+    bad = copy_problems(text, swept.get('minusText'))
     rec('FAIL' if bad else 'PASS', 'copy: no dashes, readiness words, vendor names', where, ', '.join(repr(x) for x in bad))
     unread = swept.get('unreadable') or []
     rec('FAIL' if unread else 'PASS', UNREADABLE_CHECK, where, ', '.join(unread[:3]))

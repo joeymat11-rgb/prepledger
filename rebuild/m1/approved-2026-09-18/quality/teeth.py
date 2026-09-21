@@ -477,6 +477,18 @@ def mut_z2(work):
         "    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');",
         "    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample');")
 
+def mut_z4(work):
+    # Adjacent numeric cells may each carry a signed value. They are separate text-bearing
+    # elements, while the forbidden same-element range controls remain in w9 and q11.
+    sub(work, 'app/app.html',
+        '<p class="status-line" id="status-line">Upper body today. One change to review.</p>',
+        '<p class="status-line" id="status-line"><span>3</span> <span>\u22125 lb.</span></p>')
+
+def mut_z7(work):
+    # Break the anchor q5 itself needs. The nested teeth run must call this VOID before run,
+    # rather than claiming it launched a gate child.
+    sub(work, 'app/states-today.js', "  R('T-02',", "  R( 'T-02',")
+
 T02_APPLY = ("  R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', "
              "component: 'sample note', apply: function (a) {\n")
 
@@ -576,6 +588,9 @@ SHEET_T02 = ['quality/statesheet.py', '--only', 'T-02']
 SHEET_T0 = ['quality/statesheet.py', '--only', 'T-0']
 SHEET_T84 = ['quality/statesheet.py', '--only', 'T-84']
 SHEET_T57 = ['quality/statesheet.py', '--only', 'T-57']
+IDENTITY_PROBE = ['-c', "import sys;sys.path.insert(0,'quality');from common import report_identity,Refused;"
+                  "\ntry: print('\\n'.join(report_identity('.', 'probe', 'one target')))"
+                  "\nexcept Refused as e: print('REFUSED:',e);raise SystemExit(2)"]
 GATE_BAD_SIZE = ['quality/gate.py', '--screens', 'today', '--sizes', '390x844']
 
 COPY_CHECK = 'copy: no dashes, readiness words, vendor names'
@@ -732,6 +747,20 @@ ROWS = [
      dict(exit=1, stdout=['required primary action #start is not on the page', 'T-02'])),
     ('z3', 'T-57 explanation-only panel intentionally has no primary', mut_none, SHEET_T57,
      dict(exit=0, stdout=['0 with problems'], not_stdout=['required primary action'])),
+    ('z4', 'separate inline numeric cells each carry their own signed value', mut_z4,
+     GATE_TODAY_ONE,
+     dict(exit=0, absent=[(COPY_CHECK, 'U+2212')], stdout=['0 FAIL'])),
+    ('z5', 'an external target report carries its caller-supplied immutable digest', mut_none,
+     IDENTITY_PROBE,
+     dict(exit=0, app='compare', stdout=['EARNED_APP; caller-supplied external build digest',
+                                         '0123456789abcdef' * 4])),
+    ('z6', 'an external target without an immutable digest is refused', mut_none,
+     IDENTITY_PROBE,
+     dict(exit=2, app='compare', digest=False,
+          stdout=['REFUSED', 'EARNED_APP_DIGEST', '64 digit sha256 build identity'])),
+    ('z7', 'a failed mutation anchor is VOID before a child run starts', mut_z7,
+     ['quality/teeth.py', '--only', 'q5'],
+     dict(exit=1, stdout=['1 enumerated, 0 run', '0 skipped on', '1 VOID before run (q5)'])),
     ('v16', 'teeth --only with an id this list does not carry', mut_none,
      ['quality/teeth.py', '--only', 'zzz'],
      dict(exit=2, stdout=['REFUSED', 'zzz', 'does not carry'])),
@@ -744,7 +773,7 @@ ROWS = [
     ('v19', 'teeth --only with an id it carries, which must run a row', mut_none,
      ['quality/teeth.py', '--only', 'q1'],
      dict(exit=0, stdout=['TEETH: 1 rows, 0 disagreeing',
-                          'rows: 1 enumerated, 1 run, 0 not run'])),
+                          'rows: 1 enumerated, 1 run, 0 skipped', '0 VOID before run'])),
     ('v20', 'the phone sheet asked for a state whose apply throws', mut_q5,
      ['quality/phonesheet.py', '--state', 'T-02'],
      dict(exit=2, stdout=['REFUSED', 'T-02', 'no sheet is written'],
@@ -917,6 +946,8 @@ def main():
 
     work = os.path.join(tmp, 'work')
     table = []
+    launched = []
+    void = []
     enumerated = [r for r in ROWS if not ONLY or r[0] in ONLY]
     skipped = []
     started = time.time()
@@ -940,6 +971,7 @@ def main():
             table.append((row_id, what, 'as expected', str(e), time.time() - t0))
             continue
         except AssertionError as e:
+            void.append(row_id)
             table.append((row_id, what, 'VOID', str(e), time.time() - t0))
             continue
         env = dict(os.environ)
@@ -949,6 +981,11 @@ def main():
             env['EARNED_APP'] = _file_url(empty) + '/'
         elif want.get('app') == 'compare':
             env['EARNED_APP'] = _file_url(os.path.join(work, 'app', 'compare.html'))
+        if env.get('EARNED_APP') and want.get('digest', True):
+            env['EARNED_APP_DIGEST'] = '0123456789abcdef' * 4
+        else:
+            env.pop('EARNED_APP_DIGEST', None)
+        launched.append(row_id)
         proc = subprocess.run([sys.executable] + cmd, cwd=work, env=env,
                               capture_output=True, text=True, encoding='utf-8', errors='replace')
         wrong = judge(row_id, want, proc, work)
@@ -963,9 +1000,11 @@ def main():
     # the platform cannot build its change is not a row that ran, and a head line alone cannot be
     # read for how much of the list this machine actually proved.
     lines.append(f'TEETH: {len(table)} rows, {len(bad)} disagreeing, {time.time() - started:.0f} s')
-    lines.append(f'rows: {len(enumerated)} enumerated, {len(table) - len(skipped)} run, '
-                 f'{len(skipped)} not run on {sys.platform}'
-                 + (f' ({", ".join(skipped)})' if skipped else ''))
+    lines.append(f'rows: {len(enumerated)} enumerated, {len(launched)} run, '
+                 f'{len(skipped)} skipped on {sys.platform}'
+                 + (f' ({", ".join(skipped)})' if skipped else '')
+                 + f', {len(void)} VOID before run'
+                 + (f' ({", ".join(void)})' if void else ''))
     lines.append(f'pack under test: {PACK}')
     lines.append(f'selection: {", ".join(ONLY) if ONLY else "every row"}')
     lines.append('')

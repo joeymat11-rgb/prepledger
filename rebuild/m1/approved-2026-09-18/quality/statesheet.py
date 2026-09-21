@@ -37,7 +37,7 @@ from common import (copy_problems, set_x_problems, tier_for, worst_ratio, app_ur
                     Refused, JS_SWEPT_TEXT, JS_SEEN, UNREADABLE_CHECK, LAUNCH_ARGS,
                     platform_key, playwright_version, env_text, app_digest,
                     TAPPABLE_SELECTOR, TARGET_PX, JS_CLIPPED_AWAY, JS_RENDERED, sweep_form,
-                    QUIET_TOKEN_NAMES, report_identity)
+                    QUIET_TOKEN_NAMES, report_identity, external_app_digest)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 APP = app_url()
@@ -61,6 +61,31 @@ SCALE = 16           # the thumbnail is a 1/16 scale greyscale copy: layout regi
                      # shift moves it 1.7 levels and a 60 px shift moves it 8.5, so the two tolerances agree.
 THUMB = (W // SCALE, H // SCALE)
 
+# The state declarations are the design record for whether a state owes an action. This frozen
+# contract was checked across both themes at the approved prototype: 56 #start, 33 #log, 59
+# .mic-button, 32 .panel-primary and these 29 deliberate explanation/overlay states with none.
+# It is intentionally independent of the rendered result, so removing or hiding a required node
+# cannot redefine the expectation it is being checked against.
+NO_PRIMARY = frozenset('''
+T-53 T-54 T-55 T-56 T-57 T-58 T-59 T-61 T-68 T-69 T-70 T-71 T-72 T-86 T-87 T-92 T-95
+W-01 W-02 W-03 W-04 W-35 W-44
+C-02 C-06 C-07 C-08 C-63 C-64
+'''.split())
+PANEL_PRIMARY = frozenset('''
+T-60 T-62 T-63 T-64 T-65 T-66 T-67 T-73 T-74 T-75 T-76 T-77 T-78 T-79 T-80 T-81
+T-82 T-83 T-84 T-85 T-88 T-89 T-90 T-91 T-93 T-94
+W-30 W-31 W-37 W-38 W-39 W-40
+'''.split())
+SCREEN_PRIMARY = {'today': '#start', 'workout': '#log', 'coach': '.mic-button'}
+
+
+def required_primary(st):
+    if st['id'] in NO_PRIMARY:
+        return None
+    if st['id'] in PANEL_PRIMARY:
+        return '.panel-primary'
+    return SCREEN_PRIMARY[st['screen']]
+
 # This sentence is quoted in README section 3 in the same words.
 STATE_TOLERANCE = ('A state fails when its visible text differs at all, when an element moves more '
                    'than 3 px on any edge, when its colour moves more than 3 levels in any channel, '
@@ -79,22 +104,22 @@ TEXT_ONLY_BG_CSS = ('.ui * { color: transparent !important; text-shadow: none !i
                     ' .ui svg, .ui .set-dots, .ui .tdot { visibility: hidden !important; }'
                     ' .ui input::placeholder { color: transparent !important; } .chrome { visibility: hidden !important; }')
 
-JS_INFO = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return null;const text=ui.innerText;const small=[];
+JS_INFO = """required=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return null;const text=ui.innerText;const small=[];
     __SEEN__
     __CLIP__
     const side=v=>v<__PX__?v.toFixed(2):String(Math.round(v));   /* the side that failed prints the number that failed */
     ui.querySelectorAll('__TAPPABLE__').forEach(e=>{if(!__rendered(e)||__clippedAway(e))return;const r=e.getBoundingClientRect();if(r.width===0)return;
       const cs=getComputedStyle(e,'::before');let h=r.height,w=r.width;if(cs.content!=='none'&&cs.height&&cs.height!=='auto')h=Math.max(h,parseFloat(cs.height));
       if(h<__PX__||w<__PX__)small.push((e.id||e.className||e.tagName)+' '+side(w)+'x'+side(h))});
-    const cand=Array.from(document.querySelectorAll('.screen.is-active #start, .screen.is-active #log, .screen.is-active .mic-button, .screen.is-active .panel-primary'));
-    const prim=cand.find(e=>__seen(e)&&e.getBoundingClientRect().width>0)||null;
-    const pr=prim?prim.getBoundingClientRect():null;
+    const prim=required?document.querySelector('.screen.is-active '+required):null;
+    const drawn=!!(prim&&__seen(prim)&&prim.getBoundingClientRect().width>0);
+    const pr=drawn?prim.getBoundingClientRect():null;
     const overflow=[];ui.querySelectorAll('.primary, #log, .decision, .chip, .save').forEach(e=>{if(!__rendered(e))return;
       if(e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1)overflow.push((e.id||e.className)+' '+e.textContent.trim().slice(0,24))});
     const sc=ui.querySelector(':scope > .body')||ui;
     return {text, small, overflow, scroll: sc.scrollHeight, client: sc.clientHeight,
       prim: pr?[pr.top, pr.bottom, pr.left, pr.right]:null,
-      cand: cand.map(e=>e.id||e.className||e.tagName),
+      required: required, requiredPresent: !!prim, requiredDrawn: drawn,
       applied: document.documentElement.getAttribute('data-state')}}"""
 
 JS_BOXES = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(!ui)return [];const out=[];
@@ -411,6 +436,8 @@ def first_text_difference(a, b):
 
 
 async def main():
+    if os.environ.get('EARNED_APP'):
+        external_app_digest()
     rows = []; worst = {}; pending = []; cross = {}
     async with async_playwright() as p:
         b = await p.chromium.launch(args=LAUNCH_ARGS)
@@ -483,7 +510,8 @@ async def render_one(pg, st, t, n0, errs, rows, worst, cross, pending):
     shot = Image.open(io.BytesIO(png))
     shot.save(os.path.join(OUT, f'{st["id"]}-{t}.png'))
     thumb = shot.convert('L').resize(THUMB, Image.LANCZOS)
-    info = await pg.evaluate(JS_INFO)
+    expected_primary = required_primary(st)
+    info = await pg.evaluate(JS_INFO, expected_primary)
     if info is None:
         rows.append((st['id'], t, st['title'], st['status'], ['the screen has no ".screen.is-active .ui"']))
         return
@@ -509,7 +537,7 @@ async def render_one(pg, st, t, n0, errs, rows, worst, cross, pending):
     sweep = await pg.evaluate(JS_SWEPT_TEXT)
     swept = sweep['text']
     unread = sweep.get('unreadable') or []
-    bad = copy_problems(swept)
+    bad = copy_problems(swept, sweep.get('minusText'))
     if bad: problems.append('copy: ' + ', '.join(repr(x) for x in bad))
     if unread: problems.append(UNREADABLE_CHECK + ': ' + ', '.join(unread[:3]))
     xbad = set_x_problems(swept)
@@ -524,23 +552,18 @@ async def render_one(pg, st, t, n0, errs, rows, worst, cross, pending):
     seam = [int(y) + 60 for y in range(1, len(lm)) if abs(lm[y] - lm[y - 1]) > 5 and abs(rm[y] - rm[y - 1]) > 5 and (lm[y] - lm[y - 1]) * (rm[y] - rm[y - 1]) > 0 and flat(lm, y) and flat(rm, y)]
     if seam: problems.append('seam at rows ' + ', '.join(str(y) for y in seam[:4]))
     if lowc: problems.append('contrast: ' + ', '.join(lowc[:3]))
-    # in the first viewport means wholly in it, on every edge and unrounded, and the element
-    # has to be drawn (the shared visibility test, not a null offsetParent). The sheet's rule
-    # promises nothing about a state that draws no primary, and nothing is invented here.
-    if info['prim']:
+    # Requiredness comes from the frozen state contract above, not from whatever survived this
+    # render. Existence, shared drawn visibility and every unrounded viewport edge are distinct.
+    if expected_primary and not info['requiredPresent']:
+        problems.append(f'required primary action {expected_primary} is not on the page')
+    elif expected_primary and not info['requiredDrawn']:
+        problems.append(f'required primary action {expected_primary} is not drawn')
+    elif expected_primary:
         ptop, pbottom, pleft, pright = info['prim']
         poff = ([f'top {ptop:.2f} < 0'] if ptop < 0 else []) + ([f'bottom {pbottom:.2f} > {H}'] if pbottom > H else []) \
             + ([f'left {pleft:.2f} < 0'] if pleft < 0 else []) + ([f'right {pright:.2f} > {W}'] if pright > W else [])
         if poff:
             problems.append('primary action outside the first viewport: ' + ', '.join(poff))
-    # A state whose primary is ON THE PAGE and not drawn is NOT a problem here, and the attempt to
-    # make it one was measured and withdrawn: 29 of the 209 states draw a panel or a sheet over
-    # the screen and leave the screen's primary in the markup behind it, so that rule reddened 58
-    # of 418 renders of the approved prototype (T-53 to T-59, T-61, T-68 to T-72, T-86, T-87,
-    # T-92, T-95, W-01 to W-04, W-35, W-44, C-02, C-06 to C-08, C-63, C-64, both themes each).
-    # Which states owe a drawn primary is a property of the state, and the states are declared in
-    # app/, which this ticket does not touch; the contract therefore belongs to C-UI-GATES-2 with
-    # the driver declaring it. info['cand'] names what was on the page: measured, and not judged.
     # the committed record
     if rec is None:
         problems.append('the screen could not be recorded')

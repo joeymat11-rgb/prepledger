@@ -2,50 +2,47 @@
 
 Role: commissioned Sol builder under DECISIONS:668.
 Base: 6c5936036c58b2381ebd56551888ea0e5867719e.
+Red checkpoint: f8a68cedb4ba497f45db3bf6f85cd3bcabbcebab.
 Input judgment: 4ecc1012, section 6 items 1 to 18.
-Status: author evidence only; the saved package remains PROPOSED.
-
-## Static readiness
-
-Items 1 to 3: three visibility policies, inset/indent parsing, and normalized
-set/optional copy are present with named teeth.
-Items 4 to 8: the screen primary's edges/drawn state, state geometry rows,
-retained RIR visibility, far-edge/font precision, contrast tiers, and
-hover-settled press comparison are present. This does not accept the package's
-disposition of the state-specific expected-primary contract.
-Items 9 and 10: teeth selection refuses unknown/mixed/empty input, and q5 names
-the apply error rather than accepting an unrelated state problem.
-Item 11: Refused and ordinary exceptions have distinct source contracts. The
-package assigns the permanent pair elsewhere; this report does not accept that
-disposition, and independent execution is owed.
-Items 12 to 14: phone-sheet application proof, numeric minus/TAB semantics, and
-independent q9/q11 teeth are present.
-Items 15 to 18: sampled scope, trusted-reference/accept limits, report identity,
-counts, precision, prose, and package pins are recorded.
-
-Blind review found item 4 open: statesheet selects only visible candidates, so
-an absent or hidden required primary has no named primary problem. Record drift
-can fail the render but does not prove the required control contract.
+Status: author candidate only; package remains PROPOSED.
 
 ## Item 4 red
 
-At 6c593603, independent contained runs found honest T-02 and intentional
-no-primary T-57 green at 2 renders, 0 problems. Removing T-02 #start or retaining
-it with visibility hidden exited 1 with 2 problems, but zero named `primary
-action` problems. Touched-file before/revert hashes matched.
+At the unchanged source, honest T-02 and intentional no-primary T-57 were
+2 renders, 0 problems. Hidden and absent T-02 #start each exited 1 with two
+generic record problems but zero named primary-action problems. Durable z1/z2
+disagreed and z3 passed: 3 enumerated, 3 run, 2 disagreeing.
 
-Durable rows z1 and z2 now require named hidden and absent failures for T-02;
-z3 keeps T-57 green. At the unchanged gate, z1/z2 disagree and z3 passes:
-3 enumerated, 3 run, 2 disagreeing. The first PATH-Python attempt lacked numpy
-and is environmental non-evidence. PM publication precedes implementation.
+The repair freezes the approved state declarations as 56 #start, 33 #log,
+59 .mic-button, 32 .panel-primary and 29 intentional no-primary states.
+Existence, drawn visibility and every unrounded viewport edge are separate.
+Removing or hiding a required node cannot redefine its requirement.
 
-## Runtime prerequisites
+## Items 13 and 17 red
 
-Run from rebuild/m1/approved-2026-09-18 with Python, numpy, Pillow, Playwright,
-and its Chromium installed. Keep EARNED_APP unset for prototype and teeth runs;
-retain committed win32 baselines, writable OS temp and ignored quality/run.
-Set MEASURED_TEST_NOW=2026-09-03 and TZ=America/New_York. Run one browser job at
-a time after the GSS slot is released. No accept path is authorized here.
+Independent y13c put 3 and U+2212 5 in separate inline spans. The unchanged
+gate exited 1 with four COPY failures; colon and multiple-opener controls were
+green. The repair gives only the minus rule element boundaries. The flat word
+and vendor sweep is unchanged, and same-node ranges remain forbidden.
 
-Browser tests were not run while GSS owned the testing slot. The independent
-53-row audit at 3b186404 is prior reviewer evidence, not author acceptance.
+An external-target identity probe found report_identity omitted its supplied
+SHA-256. A failed q5 mutation anchor started no child but was reported as one
+run. The repair requires and labels caller-supplied EARNED_APP_DIGEST, and
+reports launched, platform-skipped and pre-run VOID counts separately.
+
+## Scoped implementation
+
+Durable z4 holds the split-span signed values. z5/z6 hold present and missing
+external identity. z7 holds VOID-before-run accounting. Existing forbidden
+minus, word, vendor and selection rows remain. STANDARD now states the actual
+eight pressed samples, conservative target walk, admitted sans 400, sampled
+radius check, state primary contract and external identity custody.
+
+## Evidence and limits
+
+Independent approved-source census: 418 renders, both themes agreeing, every
+state applied, zero page/console errors; selector counts are above.
+Author focused candidate execution is pending the sole browser slot.
+No accept path, baseline write, prototype edit, external crawl or full suite
+was run. The PATH-Python missing-numpy attempt is environmental non-evidence.
+Independent Astra execution and Claude final review remain required.
