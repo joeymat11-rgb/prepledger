@@ -80,6 +80,12 @@ function gitShow(ref, rel) {
   }
   return res.stdout;
 }
+function gitBlob(ref, rel) {
+  const res = spawnSync("git", ["-C", ROOT, "rev-parse", ref + ":" + rel],
+    { encoding: "utf8" });
+  if (res.status !== 0) throw new Error("cannot identify " + rel + " at " + ref);
+  return res.stdout.trim();
+}
 
 /* The PRE-CUT sources at the named ref, written to a throwaway tree. Nothing here ever
    reads the working tree's copies of the three files, so a cut file in the tree is
@@ -172,6 +178,103 @@ test("the cut refuses outright when regions.json carries no witness (a generator
   const r = runCut(tree, ["--regions", rf]);
   assert.notStrictEqual(r.status, 0);
   assert.match(r.stderr, /carries no witness/);
+});
+
+/* ---- S-R31: the whole SOURCE blob is pinned before anchor resolution ---------------- */
+
+test("RED S-R31: every named ref records the complete Git blob identity of every cut source", () => {
+  const sources = table.witness.sourceBlobs;
+  assert.ok(sources, "the witness records no SOURCE blob identities");
+  for (const ref of table.witness.refs) {
+    assert.deepStrictEqual(Object.keys(sources[ref.name] || {}).sort(), FILES.slice().sort(),
+      "the SOURCE blob inventory is incomplete at " + ref.name);
+    for (const file of FILES) {
+      const row = sources[ref.name][file];
+      assert.ok(row, file + " has no SOURCE blob identity at " + ref.name);
+      assert.strictEqual(row.path, table.today + "/" + file, file + " path at " + ref.name);
+      assert.match(String(row.oid), /^[0-9a-f]{40}$/, file + " Git blob oid at " + ref.name);
+      assert.strictEqual(row.oid, gitBlob(ref.ref, row.path), file + " Git blob oid at " + ref.name);
+    }
+  }
+});
+
+test("RED S-R31: gen-witness records the complete SOURCE blob inventory for its named ref", () => {
+  const tree = tmpTreeAt("s9");
+  const bad = JSON.parse(JSON.stringify(table));
+  bad.witness.sourceBlobs = JSON.parse(JSON.stringify(bad.witness.sourceBlobs || {}));
+  delete bad.witness.sourceBlobs.s9;
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const ref = table.witness.refs.find((x) => x.name === "s9");
+  const w = runNode("gen-witness.cjs", ["--root", tree, "--ref-name", ref.name,
+    "--ref", ref.ref, "--branch", ref.branch, "--regions", rf, "--write"]);
+  assert.strictEqual(w.status, 0, w.stderr);
+  const made = JSON.parse(fs.readFileSync(rf, "utf8"));
+  assert.deepStrictEqual(Object.keys((made.witness.sourceBlobs || {}).s9 || {}).sort(),
+    FILES.slice().sort(), "gen-witness did not record every cut source at s9");
+  for (const file of FILES) {
+    const row = made.witness.sourceBlobs.s9[file];
+    assert.strictEqual(row.oid, gitBlob(ref.ref, table.today + "/" + file), file);
+  }
+});
+
+test("RED S-R31: a missing SOURCE identity is refused by name at the door before anchors resolve", () => {
+  const tree = tmpTreeAt("s9");
+  const bad = JSON.parse(JSON.stringify(table));
+  bad.witness.sourceBlobs = JSON.parse(JSON.stringify(bad.witness.sourceBlobs || {}));
+  if (bad.witness.sourceBlobs.s9) delete bad.witness.sourceBlobs.s9["today-app.cjs"];
+  bad.files["today-app.cjs"][0].first.text = "PLANTED ANCHOR THAT CANNOT RESOLVE";
+  const rf = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "splitb-reg-")), "regions.json");
+  fs.writeFileSync(rf, JSON.stringify(bad));
+  const r = runCut(tree, ["--regions", rf, "--witness", "s9", "--only", "today-app.cjs"]);
+  assert.strictEqual(r.status, 1, "a cut with no SOURCE identity exited 0");
+  assert.match(r.stderr, /REFUSED: SOURCE BLOB IDENTITY MISSING: today-app\.cjs at s9/);
+  assert.doesNotMatch(r.stderr, /anchor/i, "anchor resolution ran before the SOURCE door");
+});
+
+test("RED S-R31: the exact L3 binding plant is refused at the SOURCE door at both refs", () => {
+  const shadow = [
+    "function astraShadow() {",
+    "  const sleepNightDate = () => \"LOCAL\";",
+    "  function renderSleep(focus) {",
+    "    const root = template(\"t-sleep\");",
+    "    const map = slots(root);",
+    "    const date = sleepNightDate();",
+    "    readSleepCheckIn(date);",
+    "    put(map, \"sleep-title\", SLEEP_TITLE);",
+    "    return date;",
+    "  }",
+    "  return renderSleep(false);",
+    "}",
+    ""];
+  for (const refName of table.witness.refs.map((x) => x.name)) {
+    const tree = tmpTreeAt(refName);
+    const lines = readLines(tree, "today-app.cjs");
+    for (const original of ["    const date = sleepNightDate();", "    readSleepCheckIn(date);"]) {
+      const at = lines.indexOf(original);
+      assert.ok(at >= 0, original + " is absent at " + refName);
+      lines[at] = " " + lines[at];
+    }
+    writeLines(tree, "today-app.cjs", shadow.concat(lines));
+    const r = runCut(tree, ["--witness", refName, "--only", "today-app.cjs"]);
+    assert.strictEqual(r.status, 1, "the L3 SOURCE plant exited 0 at " + refName);
+    assert.match(r.stderr, new RegExp("REFUSED: SOURCE BLOB IDENTITY MISMATCH: today-app\\.cjs at " + refName));
+    assert.doesNotMatch(r.stderr, /TA-I042|anchor/i, "the L3 plant reached anchor resolution at " + refName);
+  }
+});
+
+test("RED S-R31: --unpinned-input is visibly first in the report and can never make a product cut", () => {
+  const tree = tmpTreeAt("s9");
+  const r = runCut(tree, ["--witness", "s9", "--only", "today-app.cjs", "--unpinned-input"]);
+  assert.strictEqual(r.status, 0, r.stderr);
+  const raw = fs.readFileSync(path.join(r.out, "cut-report.json"), "utf8");
+  const rep = JSON.parse(raw);
+  assert.strictEqual(Object.keys(rep)[0], "inputMode", "unpinned input is not at the report top");
+  assert.strictEqual(rep.inputMode, "UNPINNED INSTRUMENT INPUT");
+  const product = runCut(tree, ["--witness", "s9", "--only", "today-app.cjs",
+    "--unpinned-input", "--product"]);
+  assert.strictEqual(product.status, 1, "--unpinned-input combined with --product exited 0");
+  assert.match(product.stderr, /REFUSED: --unpinned-input is an instrument mode and cannot be combined with --product/);
 });
 
 /* ---- the baseline: the untampered tree passes --------------------------------------- */
@@ -1071,4 +1174,16 @@ test("L2 B3: the corrected banner says what the file is, measured against the fi
     assert.ok(new RegExp("(let|const) " + name + "\\b").test(upto),
       "the banner names " + name + " as an authored declaration and it is not declared before TA-S01");
   }
+});
+
+test("RED S-R32: the table banner states the copy boundary and makes no undefined sentence count", () => {
+  const banner = table.product["today-lanes.cjs"].head.join("\n");
+  assert.match(banner, /twelve injected copy constants stay in the released view/i,
+    "the banner does not state where the twelve injected copy constants stay");
+  assert.match(banner, /moved fallback reason literals and sentence assembly remain in this sealed file/i,
+    "the banner hides the fallback reasons and sentence assembly that moved into the seal");
+  assert.doesNotMatch(banner, /eleven sentences/i,
+    "the undefined eleven-sentences count must be enumerated or struck; this round strikes it");
+  assert.doesNotMatch(banner, /every copy byte the athlete reads\s+\*\s+stayed in the released view/i,
+    "the banner still makes L3 B3's false every-copy-byte claim");
 });
