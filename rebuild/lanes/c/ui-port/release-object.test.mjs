@@ -86,7 +86,8 @@ const FENCE_READ = only(FENCE_SRC, FENCE,
 const runnerReleasedMap = new Function("declaredPins", "bound", "s", RELEASED_MAP + "\n  return releasedMap;");
 const runnerEmit = new Function("release", "releasedMap", "return {\n" + EMIT + "\n};");
 const fenceReadsReleased = new Function("inv", FENCE_READ + "\n  return released;");
-const conditionIsNotCancelled = (cond) => /!\s*cancelled\(\)/.test(cond);
+const conditionIsNotCancelled = (cond) =>
+  /^\s*if:\s*\$\{\{\s*!cancelled\(\)\s*\}\}\s*$/.test(cond);
 
 /* One package's declaration list, through the runner's own two expressions, ending in the
    half of the artifact object this cell is about. `declared` is [path, pre] pairs; the
@@ -196,11 +197,12 @@ test("(5) `released` is the last ARTIFACT_KEYS entry and envelope() closes it by
 function releaseObjectRefusals(abs, artifact = ARTIFACT) {
   const refusals = [];
   let inv = null;
+  let parsed = false;
   if (!fs.existsSync(abs)) refusals.push("RELEASE-OBJECT ARTIFACT-ABSENT " + artifact);
   else {
-    try { inv = JSON.parse(fs.readFileSync(abs, "utf8")); }
+    try { inv = JSON.parse(fs.readFileSync(abs, "utf8")); parsed = true; }
     catch (e) { refusals.push("RELEASE-OBJECT ARTIFACT-NOT-JSON " + artifact + ": " + String(e.message).split("\n")[0]); }
-    if (inv !== null && (typeof inv !== "object" || Array.isArray(inv))) {
+    if (parsed && (inv === null || typeof inv !== "object" || Array.isArray(inv))) {
       refusals.push("RELEASE-OBJECT ARTIFACT-NOT-JSON " + artifact + ": it parses, but not as a JSON object");
       inv = null;
     }
@@ -273,6 +275,7 @@ test("D-CONDITION-MATCHER: release-object requires the whole permitted expressio
   assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() }}"), true);
   assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() && false }}"), false);
   assert.equal(conditionIsNotCancelled("  if: ${{ false || !cancelled() }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() || true }}"), false);
 });
 
 /* The refusal vocabulary of the real row, named so it is readable from outside and

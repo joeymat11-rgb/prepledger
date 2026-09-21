@@ -62,7 +62,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const conditionIsNotCancelled = (cond) => /!\s*cancelled\(\)/.test(cond);
+const conditionIsNotCancelled = (cond) =>
+  /^\s*if:\s*\$\{\{\s*!cancelled\(\)\s*\}\}\s*$/.test(cond);
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 /* rebuild/lanes/c/ui-port -> the repository root. */
@@ -1208,6 +1209,7 @@ test("D-CONDITION-MATCHER: fence readers require the whole permitted expression"
   assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() }}"), true);
   assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() && false }}"), false);
   assert.equal(conditionIsNotCancelled("  if: ${{ false || !cancelled() }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() || true }}"), false);
 });
 
 /* ================== R3's TWO BLOCKING FINDINGS, AND THE ROWS THAT CLOSE THEM =========

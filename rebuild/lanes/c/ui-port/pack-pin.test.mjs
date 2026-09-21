@@ -68,7 +68,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const conditionIsNotCancelled = (cond) => /!\s*cancelled\(\)/.test(cond);
+const conditionIsNotCancelled = (cond) =>
+  /^\s*if:\s*\$\{\{\s*!cancelled\(\)\s*\}\}\s*$/.test(cond);
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, "../../../..");
@@ -1321,6 +1322,7 @@ test("D-CONDITION-MATCHER: pack reader requires the whole permitted expression",
   assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() }}"), true);
   assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() && false }}"), false);
   assert.equal(conditionIsNotCancelled("  if: ${{ false || !cancelled() }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() || true }}"), false);
 });
 
 /* Named so the refusal vocabulary is readable from outside and cannot drift in silence:

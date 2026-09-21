@@ -27,4 +27,34 @@ Red logs: `%TEMP%/s9-guard-red-release.log`,
 
 ## Result
 
-Pending PM publication of this required red checkpoint before implementation.
+PM published red checkpoint 6b231e312b83dd3e314e3a5996924e26dc20d1a3.
+
+- JSON `null` now receives the existing named ARTIFACT-NOT-JSON refusal. Parse
+  failures retain their original single refusal.
+- All five condition readers now require the whole permitted
+  `if: ${{ !cancelled() }}` expression. Honest exact expressions pass;
+  appended `&& false`, prefixed `false ||`, and appended `|| true` fail.
+- The integration report now labels merge preflights as triple-dot and the
+  whole-branch inventory as two-dot. The F2 interval is two first-parent
+  merges versus 49 newly reachable commits, and the incoming P4B papers are six.
+
+## Green evidence
+
+Focused changed rows: release-object 2/2, fence 1/1, pack 1/1, all exit 0.
+They drive the same readers used by the real rows. The current workflow's five
+exact conditions remain positive controls.
+
+Full release-object: 10/9/1, with only the pre-existing expected real-row
+ARTIFACT-ABSENT red. Full pack-pin: 70/69/1, with only the pre-existing expected
+real-row PACK-ROOT-ABSENT red. Fixture and new guard rows passed in both cells.
+
+An attempted filter failed to exclude the fence real row. That run produced
+49/48/1 with its pre-existing 22-path red, but its transitive helper performs
+unscoped Git show/diff operations. Read safety is not established for that one
+accidental run, so it is excluded from acceptance evidence and was not repeated.
+
+## Limits
+
+No workflow, product, engine, runner, pin, package, spec, ledger or STATUS file
+changed. No part-2 artifact, brief, seal, receipt, private proof, Linux or hosted
+CI was run. Separate Astra and Claude review remain required before acceptance.
