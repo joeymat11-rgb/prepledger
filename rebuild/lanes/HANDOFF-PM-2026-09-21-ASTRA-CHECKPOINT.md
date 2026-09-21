@@ -1,6 +1,6 @@
 # Earned PM checkpoint, 2026-09-21
 Status: preparation only. Astra remains PM; this is NOT a seat transfer or authorization for a second PM.
-Snapshot after DECISIONS:685, chain437e8f4. Critical change: independent execution found a further copy false-pass at5f12f8c; that candidate is BLOCKED, not accepted. Later ledger and explicit runtime handoffs control.
+Snapshot after DECISIONS:686, PM notebc25b91 and GSS06d07b2. CUI5f12f8c remains BLOCKED by independent occurrence red; durable regressioncf31f82. Later ledger and explicit runtime handoffs control.
 Read HANDOFF-PM-2026-09-21.md for standing operations/privacy and the cited September19 seal procedure; then DECISIONS:637 onward, with later owner words controlling. Refresh this checkpoint and publish an explicit closing entry before transfer.
 
 ## Authority and scope
@@ -8,14 +8,14 @@ Joe authorized useful parallel Codex work and existing credits (:668/:674); qual
 Joe asks PM to recommend efficient chat rollover and supply both prompt and goal (:679). Do so at a saved checkpoint; do not assume child-agent control transfers between root chats.
 Queue remains S9 seal/look, phone earns weights before trial day1, split/Edit My Week, later work. Do not make deferred product work an extra trial prerequisite.
 One PM/ledger writer. Author, independent reviewer and integrator differ. Data path and soon-sealed work need Claude final review. No guard weakened, no new engine byte or owner choice inferred.
-The original handoff's credit/design/seat state is historical: Codex owns design now, credits6250 exist, Astra is seated. Most recent gauge83 percent weekly used.
+The original handoff's credit/design/seat state is historical: Codex owns design now, credits6250 exist, Astra is seated. Most recent gauge85 percent weekly used.
 Fast mode is available but current live tier is UNKNOWN and no setting was changed. Local live-server control failed; no restart attempted. Model speed is not whole-project speed (:678).
 Planning ETA remains4-7 calendar days, September25-28, conditional on owner decisions/reviews and verification; no faster forecast is proven (:675).
 
 ## Live children and single runtime slot
 Root thread01a0c4a5-2230-7070-a91c-44fedfd7e7fc owns these child sessions. Do not start duplicate authors/reviewers from a new chat.
-CUI reviewer /root/engine_blind_review completed the unaffected group and explicitly released every process. GSS /root/split_r31_r32 now owns sole runtime for d1 red/new green, actual reopen parity and contained D2 cells. PM relays handoffs because sibling routing failed.
-Sol /root/engine_evidence returned to CUI numeric occurrence repair statically; Linux worktree remains clean and paused. Reviewer prepares remaining controls statically. Live child ownership stays here until explicit retirement and handoff.
+CUI author /root/engine_evidence owns sole runtime for occurrence repair checks after GSS explicitly released every process. Reviewer /root/engine_blind_review has no static mechanism objection to common1d210887, but runtime remains unproved. PM relays handoffs because sibling routing failed.
+GSS author /root/split_r31_r32 completed at06d07b2, clean/no process. New /root/gss_writer_blind_review starts independent static review at that exact head; no runtime yet. Linux authoring remains paused clean. Live child ownership stays here until explicit retirement and handoff.
 No headless process is assumed dead from a timeout. Preserve any handles and prove terminal state before replacement. No automations or old heartbeat reactivation.
 
 ## CUI critical path
@@ -31,10 +31,11 @@ Linux local WSL absent/Docker unavailable. Outside-pack hosted workflow is allow
 
 ## GSS critical path
 Worktree %TEMP%/earned-gss-build, branch rebuild/c-gym-settings-writer-build; accepted split baseb35a48e35a1f3e3c278c377934794a32b632535b. Red26805bedfe8379dc32c710d6fbc06259a6f032ca published.
-Commission %TEMP%/earned-gss-build-job.txt; accepted paper6fe4d12c:rebuild/lanes/c/GYM-SETTINGS-WRITER-SEAL-SPEC.md. Implementationc5abd672 and focused-proof childd1fa563125d93b0ff025d967651f10b5ad184db1 published UNACCEPTED.
+Commission %TEMP%/earned-gss-build-job.txt; accepted paper6fe4d12c:rebuild/lanes/c/GYM-SETTINGS-WRITER-SEAL-SPEC.md. Latest UNACCEPTED child06d07b2eeea7007bdb07bf12bb4b811a8d0eee17: raw-copy refusal scope and duplicate-listener identity repaired after separate immutable d1 reds, expanded UI65/65. Whole54-line report read.
 Own gym-app.mjs, gym-settings-lane.mjs, machine-settings-view.mjs, test/machine-settings-ui.test.mjs, test/gym.test.mjs under rebuild/m3/w7-preview/today; writer-fence.test.mjs under rebuild/lanes/c/today-split; one build report.
 Second candidate retained logs %TEMP%/gss-candidate2-b35a48e3 independently read: gym65/65, UI60/60, fence401/401, zero fail/skip. Red409 denominator:9 facade tests replaced by1 API parity group, four leak plants plus unrelated/reformat positives retained; independent equivalence judgment owed. All17 groups, actual byte parity, D2, Astra/Claude and integration remain.
-At:684 original/current D2 census is12 direct cells plus2 supports, while accepted R1 said13+2 without naming a thirteenth. Run all identified cells after containment and inspect separately named C/LAUNCH-ADOPTION-PROBES; retain discrepancy for independent/Claude resolution, never claim12=13. Author currently adds remaining proofs statically.
+At:684 D2 census12+2 vs paper13+2 remains; all14 blobs independently equal e08. Measured six launch cases pass,11 archived lifecycle cells fail before purpose (five0/37,six0/4); separate C held/released2/2. PM notebc25b91 proves lifecycle7e64848d not ancestor of split and both earlier parents lack needed APIs. Do not add archived code or claim annex discharge.
+PM note rebuild/lanes/astra/reviews/GSS-D2-PARENT-CUSTODY-PM-NOTE.md also narrows parity2: three full ops/outbox reopen equalities compare candidate to current helper/host reference, not immutable old/new mounted UI. Full SectionE owed. New review worktree %TEMP%/earned-astra-gss-writer-l1, branch rebuild/r-astra-gss-writer-l1, job %TEMP%/earned-gss-independent-review-job.txt; reviewer owns one GYM-SETTINGS-WRITER-SEAL-REVIEW-L1.md.
 Coupled controller/view/API contract is not usefully split between extra authors. Test slot priority gives early correction feedback; no acceptance from counts alone.
 
 ## Claude returns and owner decisions
