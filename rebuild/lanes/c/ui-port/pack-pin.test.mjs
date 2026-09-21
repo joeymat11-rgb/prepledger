@@ -107,6 +107,17 @@ function decoyWorkflows(file) {
   const run = "        run: node --test " + file;
   return {
     control: ["      - name: target", "        if: ${{ !cancelled() }}", run],
+    grouped: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        run: node --test synthetic-control.test.mjs " + file],
+    siblingContinue: ["      - name: sibling", "        continue-on-error: true",
+      "        run: echo sibling", "      - name: target", "        if: ${{ !cancelled() }}", run],
+    nestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        env:", "          continue-on-error: true", "        with:",
+      "          continue-on-error: false", run],
+    continueTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        continue-on-error: true", run],
+    continueFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        continue-on-error: false", run],
     D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
     E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
       "        if: ${{ false }}", run],
@@ -1365,6 +1376,22 @@ test("D-S9G-DECOY: pack reader refuses D, E and F workflow decoys", () => {
     assert.throws(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
   for (const id of ["duplicateCondition", "duplicateRunner", "siblingPath"])
     assert.throws(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+});
+
+test("D-S9G-CONTINUE: pack reader refuses a direct continue-on-error key", () => {
+  const SELF = path.relative(REPO_ROOT, fileURLToPath(import.meta.url)).split(path.sep).join("/");
+  const worlds = decoyWorkflows(SELF);
+  for (const id of ["control", "grouped", "siblingContinue", "nestedContinue"])
+    assert.doesNotThrow(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+  const outcomes = ["continueTrue", "continueFalse"].map((id) => {
+    try { assertConditionedRun(worlds[id], SELF, id); return id + ": accepted"; }
+    catch (e) {
+      return id + (e instanceof assert.AssertionError
+        && String(e.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+        ? ": refused by name" : ": wrong refusal");
+    }
+  });
+  assert.deepEqual(outcomes, ["continueTrue: refused by name", "continueFalse: refused by name"]);
 });
 
 test("D-CONDITION-MATCHER: pack reader requires the whole permitted expression", () => {

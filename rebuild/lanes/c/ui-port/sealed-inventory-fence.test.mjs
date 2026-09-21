@@ -1214,6 +1214,31 @@ test("D-S9G-DECOY: all three fence-owned readers refuse D, E and F workflow deco
   }
 });
 
+test("D-S9G-CONTINUE: all three fence-owned readers refuse a direct continue-on-error key", () => {
+  const files = [
+    path.relative(REPO, fileURLToPath(import.meta.url)).split(path.sep).join("/"),
+    "rebuild/lanes/c/passphrase-normalize/helper.test.mjs",
+    "rebuild/m3/w6/test/local-import.test.mjs",
+  ];
+  const outcomes = [];
+  for (const file of files) {
+    const worlds = decoyWorkflows(file);
+    for (const id of ["control", "grouped", "siblingContinue", "nestedContinue"])
+      assert.doesNotThrow(() => assertNotCancelled(worlds[id], file), undefined, file + " " + id);
+    for (const id of ["continueTrue", "continueFalse"]) {
+      try { assertNotCancelled(worlds[id], file); outcomes.push(file + " " + id + ": accepted"); }
+      catch (e) {
+        outcomes.push(file + " " + id + (e instanceof assert.AssertionError
+          && String(e.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+          ? ": refused by name" : ": wrong refusal"));
+      }
+    }
+  }
+  assert.deepEqual(outcomes, files.flatMap((file) => [
+    file + " continueTrue: refused by name", file + " continueFalse: refused by name",
+  ]));
+});
+
 /* ================== R3's TWO BLOCKING FINDINGS, AND THE ROWS THAT CLOSE THEM =========
    R3 swept 50 clauses of fence(), killed 44, and the two findings below are what the six
    survivors came to. Each row here exists because a clause was load-bearing and silent. */
@@ -1623,6 +1648,17 @@ function decoyWorkflows(file) {
   const run = "        run: node --test " + file;
   return {
     control: ["      - name: target", "        if: ${{ !cancelled() }}", run],
+    grouped: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        run: node --test synthetic-control.test.mjs " + file],
+    siblingContinue: ["      - name: sibling", "        continue-on-error: true",
+      "        run: echo sibling", "      - name: target", "        if: ${{ !cancelled() }}", run],
+    nestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        env:", "          continue-on-error: true", "        with:",
+      "          continue-on-error: false", run],
+    continueTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        continue-on-error: true", run],
+    continueFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        continue-on-error: false", run],
     D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
     E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
       "        if: ${{ false }}", run],
