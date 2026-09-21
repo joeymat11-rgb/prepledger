@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Earned states</title>
+<style>
+  @font-face { font-family: "Earned Serif"; src: url("fonts/earned-serif.woff2") format("woff2"); font-display: block; }
+  @font-face { font-family: "Earned Sans"; src: url("fonts/earned-sans.woff2") format("woff2"); font-weight: 100 1000; font-display: block; }
+  :root { --ground: #0b0a09; --text: #f2eee6; --muted: #bdb8ae; --gold: #caa98a; --line: #26231f; --card: #161412; }
+  html { background: var(--ground); }
+  body { margin: 0; background: var(--ground); color: var(--text); font-family: "Earned Sans", "DM Sans", sans-serif; -webkit-font-smoothing: antialiased; }
+  header { padding: 28px 24px 8px; display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+  header .brand { font-family: "Earned Serif", "Times New Roman", serif; font-size: 36px; line-height: 1; }
+  header .tag { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); }
+  header .links { margin-left: auto; display: flex; gap: 16px; font-size: 14px; }
+  header .links a { color: var(--text); text-decoration: underline; text-underline-offset: 4px; }
+  p.note { margin: 0 24px 16px; color: var(--muted); font-size: 14px; max-width: 760px; line-height: 1.5; }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 0 24px 12px; }
+  .bar button, .bar select { font: inherit; font-size: 14px; color: var(--text); background: #1a1918; border: 1px solid #2b2926; border-radius: 8px; padding: 8px 12px; cursor: pointer; min-height: 40px; }
+  .bar button[aria-pressed="true"] { background: #2a241c; border-color: #a08a66; }
+  .bar select { max-width: min(520px, 100%); }
+  .bar .sp { flex: 1 1 8px; }
+  .bar.nav { flex-wrap: nowrap; } .bar.nav select { flex: 1 1 auto; min-width: 0; max-width: 520px; } .bar.nav button { flex: 0 0 auto; min-width: 44px; }
+  .main { display: flex; gap: 28px; padding: 0 24px 40px; align-items: flex-start; flex-wrap: wrap; }
+  .phone { position: relative; width: 393px; height: 852px; flex: 0 0 auto; }
+  .frame { position: absolute; inset: -11px; border-radius: 58px; background: linear-gradient(160deg, #d8b98f 0%, #6b5237 30%, #f0d7b3 52%, #5a4630 75%, #cdae86 100%); box-shadow: 0 30px 80px rgba(0,0,0,0.55); }
+  .frame::after { content: ""; position: absolute; inset: 3px; border-radius: 55px; background: #0a0908; }
+  .phone iframe { position: absolute; inset: 0; width: 393px; height: 852px; border: 0; border-radius: 47px; background: #0c0b0a; }
+  .detail { flex: 1 1 320px; min-width: 260px; max-width: 520px; }
+  .detail h2 { font-family: "Earned Serif", serif; font-weight: 400; font-size: 28px; margin: 0 0 6px; line-height: 1.1; }
+  .detail .id { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+  .detail .meta { color: var(--muted); font-size: 14px; line-height: 1.5; margin-top: 8px; }
+  .detail .meta b { color: var(--text); font-weight: 500; }
+  .list { margin-top: 20px; border-top: 1px solid var(--line); }
+  .list h3 { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin: 18px 0 6px; font-weight: 500; }
+  .list button { display: flex; width: 100%; text-align: left; gap: 10px; align-items: baseline; font: inherit; font-size: 14px; color: var(--text); background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 10px 4px; cursor: pointer; min-height: 44px; }
+  .list button .k { color: var(--muted); font-size: 12px; min-width: 46px; }
+  .list button .s { margin-left: auto; color: var(--muted); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+  .list button[aria-current="true"] { background: #17150f; }
+  .list button:active { background: #221d16; }
+  @media (max-width: 860px) {
+    header { padding: 20px 16px 4px; } p.note, .bar { margin-left: 16px; margin-right: 16px; } .main { padding: 0 16px 32px; gap: 20px; }
+    .phone { width: calc(393px * var(--s, 1)); height: calc(852px * var(--s, 1)); }
+    .phone .frame { transform: scale(var(--s, 1)); transform-origin: top left; inset: 0; width: 415px; height: 874px; margin: -11px 0 0 -11px; }
+    .phone iframe { width: 393px; height: 852px; transform: scale(var(--s, 1)); transform-origin: top left; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">Earned.</span>
+  <span class="tag">Every state · 209 drawn</span>
+  <nav class="links"><a href="index.html">Six views</a><a href="app.html?theme=ink&screen=today">Open the app</a><a href="compare.html">Mismatches</a></nav>
+</header>
+<p class="note">Each entry puts the live prototype into one state from the inventory. The numbers are examples. LIVE means the athlete can reach it on the phone today; DORMANT means the code path exists but its input is never written; NOT WIRED means a brief names it and no code exists yet.</p>
+<div class="bar">
+  <button type="button" data-screen="today" aria-pressed="true">Today</button>
+  <button type="button" data-screen="workout" aria-pressed="false">Workout</button>
+  <button type="button" data-screen="coach" aria-pressed="false">Coach</button>
+  <span class="sp"></span>
+  <button type="button" data-theme="ink" aria-pressed="true">Ink</button>
+  <button type="button" data-theme="dawn" aria-pressed="false">Dawn</button>
+</div>
+<div class="bar nav">
+  <button type="button" id="prev" aria-label="Previous state">‹</button>
+  <select id="pick" aria-label="State"></select>
+  <button type="button" id="next" aria-label="Next state">›</button>
+</div>
+<div class="main">
+  <div class="phone"><div class="frame"></div><iframe id="fr" title="The prototype in one state" src="app.html?theme=ink&screen=today&chrome=1&date=board"></iframe></div>
+  <div class="detail">
+    <div class="id" id="d-id">Default</div>
+    <h2 id="d-title">The board as drawn</h2>
+    <div class="meta" id="d-meta"></div>
+    <div class="list" id="list"></div>
+  </div>
+</div>
+<script src="states-index.js"></script>
+<script>
+(function () {
+  var all = window.EARNED_STATE_INDEX || [], screen = 'today', theme = 'ink', cur = null;
+  var fr = document.getElementById('fr'), pick = document.getElementById('pick'), list = document.getElementById('list');
+  function q(s) { return Array.prototype.slice.call(document.querySelectorAll(s)); }
+  function visible() { return all.filter(function (s) { return s.screen === screen; }); }
+  function src() { return 'app.html?theme=' + theme + '&screen=' + screen + '&chrome=1&date=board' + (cur ? '&state=' + encodeURIComponent(cur) : ''); }
+  function render() {
+    var vs = visible();
+    pick.innerHTML = '<option value="">Default board</option>' + vs.map(function (s) { return '<option value="' + s.id + '"' + (s.id === cur ? ' selected' : '') + '>' + s.id + ' · ' + s.title + '</option>'; }).join('');
+    list.innerHTML = '<h3>' + screen + ' · ' + vs.length + ' states</h3>' + vs.map(function (s) { return '<button type="button" data-id="' + s.id + '" aria-current="' + (s.id === cur) + '"><span class="k">' + s.id + '</span><span>' + s.title + '</span><span class="s">' + s.status + '</span></button>'; }).join('');
+    var d = vs.filter(function (s) { return s.id === cur; })[0];
+    document.getElementById('d-id').textContent = d ? d.id + ' · ' + d.status : 'Default';
+    document.getElementById('d-title').textContent = d ? d.title : 'The board as drawn';
+    document.getElementById('d-meta').innerHTML = d ? ('<b>Rules</b> ' + (d.rules || 'none') + (d.component ? '<br><b>Component</b> ' + d.component : '')) : 'Pick a state, or step through them with the arrows.';
+    fr.src = src();
+    try { history.replaceState(null, '', '?screen=' + screen + '&theme=' + theme + (cur ? '&state=' + cur : '')); } catch (e) {}
+  }
+  function step(n) { var vs = visible(), ids = [''].concat(vs.map(function (s) { return s.id; })); var i = ids.indexOf(cur || ''); i = (i + n + ids.length) % ids.length; cur = ids[i] || null; render(); }
+  q('[data-screen]').forEach(function (b) { b.addEventListener('click', function () { screen = b.getAttribute('data-screen'); cur = null; q('[data-screen]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); render(); }); });
+  q('[data-theme]').forEach(function (b) { b.addEventListener('click', function () { theme = b.getAttribute('data-theme'); q('[data-theme]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); render(); }); });
+  pick.addEventListener('change', function () { cur = pick.value || null; render(); });
+  list.addEventListener('click', function (e) { var b = e.target.closest('button[data-id]'); if (!b) return; cur = b.getAttribute('data-id'); render(); fr.scrollIntoView({ block: 'start' }); });
+  document.getElementById('prev').addEventListener('click', function () { step(-1); });
+  document.getElementById('next').addEventListener('click', function () { step(1); });
+  function fit() { var s = Math.min(1, (window.innerWidth - 32) / 393); document.documentElement.style.setProperty('--s', s.toFixed(4)); } fit(); window.addEventListener('resize', fit);
+  var p = new URLSearchParams(location.search);
+  if (p.get('screen')) { screen = p.get('screen'); q('[data-screen]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-screen') === screen)); }); }
+  if (p.get('theme')) { theme = p.get('theme'); q('[data-theme]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-theme') === theme)); }); }
+  if (p.get('state')) { cur = p.get('state'); var s0 = all.filter(function (s) { return s.id === cur; })[0]; if (s0) { screen = s0.screen; q('[data-screen]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-screen') === screen)); }); } }
+  render();
+})();
+</script>
+</body>
+</html>
