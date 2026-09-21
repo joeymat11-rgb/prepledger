@@ -2,6 +2,13 @@
 Author: Astra (Codex), a named assignment under DECISIONS:412, :569 point 3 and :613; high effort; no product byte and no existing test changed
 Measured head: 99fab1426184ab5ce879bd16d9237acb264e25e3
 
+D1/D2 correction measured from 5626eef50237b74bdd2f13f75babe8435334d78b
+after independent review cff2c578cdfb718cddbc6fc2d547edfae0cae2e3. The
+inherited ew2c seal route was unsafe because it reached the real port oracle.
+Those original cells were not executed. The corrected cells use their own
+invented envelope helper and label oracle/count metadata and producer evidence
+synthetic.
+
 Authority: `refs/remotes/origin/rebuild/t2-client-core:rebuild/DECISIONS.md`, lines
 621, 630 and 631 only, read by line filter. Owner :631 answer 3 rules:
 "A SECOND, DIFFERENT HISTORY FILE ON ONE PHONE IS REFUSED FOR NOW, BY NAME,
@@ -66,11 +73,12 @@ The road, including its guards (source inspection; executions distinguished belo
    L:32-62 checks completed marker/active selection, ready view, three equal
    bases, installation, state shape and label. T:2482-2488 adopts or falls back.
 
-Counterexample through the real machinery: P:14-81 seals invented A/B/C through
-the real port and drives the support helper's custody/review/prepare/publish/
-reconcile path. At this head B and C are admitted. M:198-221 independently finds
-two retained selections, changed derived digest, unchanged operations/outbox.
-The helper uses synthetic producer evidence, not the screen's production registry.
+Counterexample through the real machinery after envelope creation: P seals
+invented A/B/C with its dedicated AES-GCM helper and drives the actual encrypted
+repository, custody/review/prepare/publish/reconcile path. Its oracle PASS/count
+metadata and producer evidence are synthetic declarations, never oracle or
+provenance proof. At this head B and C are admitted. M independently finds two
+retained selections, changed derived digest, unchanged operations/outbox.
 
 Do not confuse that execution with a normal second tap on an adopted screen:
 U:626-627 already shows only a summary when done/admitted. T:2488 supplies the
@@ -156,6 +164,11 @@ selection/application/derived/ops/outbox do not change. J1/J2/J4 are preserved.
 The original pin omitted J6 despite the brief's six-journey table; P carries it
 unchanged from `ew2b-r39-probe.mjs`: B alone on a fresh installation is admitted.
 P collects failures, so the first red cannot hide the after-reload counterexample.
+For each named refusal, the complete loaded generation is equal before and after
+prepare. The whole carry/refuse/retract journey is different: revision advances
+twice, the pending import leaves the live array, one append-only retraction
+remains, and custody remains. Admitted selections, application and collections
+stay equal.
 | Journey | Current product | Scratch prepare guard |
 |---|---|---|
 | 1 first A | PASS: admitted | PASS: admitted |
@@ -164,8 +177,12 @@ P collects failures, so the first red cannot hide the after-reload counterexampl
 | 4 same A cold | PASS: LOCAL_IMPORT_ALREADY_PRESENT | same |
 | 5 never-carried C cold | RED: admitted, expected new refusal name | PASS: new refusal name |
 | 6 B fresh | PASS: admitted | PASS: admitted |
-Current P exits 1, RED journeys exactly 3,5. Scratch P exits 0. M exits 0.
-PC runs were sequential; set each variable below before tests. The port child runs synchronously.
+Current P exits 1, RED journeys exactly 3,5. Guarded P exits 0 with 6/6.
+M exits 0. A safe D2 counterexample that reports retraction success without
+performing it exits 1 with J3/J5 red, proving the lifecycle assertions detect
+the missing revision, pending-import removal and appended retraction.
+PC runs were sequential; set each variable below before tests. Each Node process
+completed before the next began.
 ```powershell
 $env:MEASURED_TEST_NOW='2026-09-03'
 $env:TZ='America/New_York'
@@ -174,7 +191,10 @@ $env:TZ='America/New_York'
 ```
 P optionally takes M's printed candidate file URL. M's wrong anchor indent and
 data-slot instead of input id were corrected harness failures, not product faults.
-Final M assertions all passed. Product bytes compare equal.
+Final M assertions all passed. The refusal leaves the entire post-carry loaded
+generation equal through prepare. After retraction the encrypted custody record
+is still readable, revision is +2, the pending import is gone, one retraction is
+appended, and admitted state is equal. Product bytes compare equal.
 
 ## E. D1 and the ordered build
 
@@ -213,6 +233,8 @@ A's guard inventory above is source inspection, not a claim all arms ran here.
 No mixed-edit admission fold, machine-note translation, second-source recovery of
 old multi-source installations, crash/power-loss device durability, or new build
 base was proved. IDB is fake-indexeddb with the real encrypted repository; its
-transaction abort is executed, not a physical power failure. Sealing uses the
-existing real-port helper on invented inputs; no private fixture was listed,
-opened or created by these programs. No product implementation is accepted here.
+transaction abort is executed, not a physical power failure. The earlier inherited
+seal route could reach protected oracle and legacy inputs and was not executed in
+this correction. The dedicated ew2c helper invokes neither port nor oracle. No
+private fixture was listed, opened or created by these programs. No product
+implementation is accepted here.

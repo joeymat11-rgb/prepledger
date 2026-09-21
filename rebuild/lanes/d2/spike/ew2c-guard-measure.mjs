@@ -1,5 +1,5 @@
 /* Measured paper only. Candidate modules and diffs live in OS temp.
-   No source fixture outside the invented port bundles is opened here. */
+   No source fixture outside the invented synthetic envelopes is opened here. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -7,7 +7,8 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, carry,
-  material, producerRegistryFor, SETUP, shellWindow, slot, tap, pickBundle } from '../../../m3/w7-preview/import/test/support.mjs';
+  material, producerRegistryFor, SETUP, shellWindow, slot, tap, pickBundle,
+  parseStrictJson } from './ew2c-synthetic-envelope.mjs';
 import * as original from '../../../m3/w6/local/source-admission.mjs';
 import { refusalLines, createImportScreen } from '../../../m3/w7-preview/import/import-screen.mjs';
 
@@ -68,6 +69,9 @@ console.log('PROPOSED COPY: ' + copy);
 const A = sealInventedBundle();
 const B = sealInventedBundle(SETUP,
   { sessions: [['2026-08-14', 'U'], ['2026-08-18', 'L'], ['2026-08-24', 'U']] });
+for (const fixture of [A, B]) assert.deepEqual(fixture.evidence,
+  { oracle: 'synthetic', counts: 'synthetic', producer: 'synthetic' });
+console.log('FIXTURE invented envelope; oracle/count metadata and producer evidence are synthetic');
 const day = '2026-09-16', at = day + 'T16:00:00.000Z';
 const scope = { databaseName: 'ew2c-guard', namespace: 'synthetic/ew2c-guard',
   athleteId: 'ath-ew2b', deviceId: 'dev-ew2b' };
@@ -151,8 +155,11 @@ const indexedDB = { open(...args) {
 let era = await boot(indexedDB);
 let c = await controller(era, A, candidate);
 const badReview = await c.c.reviewSource(c.name);
+const beforeIdentityRefusal = await era.generation();
 await assert.rejects(() => c.c.prepareSource(badReview, { identityConfirmed: false }),
   { code: 'LOCAL_SOURCE_IDENTITY_CONFIRMATION_REQUIRED' });
+assert.deepEqual(await era.generation(), beforeIdentityRefusal,
+  'identity refusal changed the complete loaded generation');
 absent(await state(era));
 const retract = await era.client.retractImport(c.name, 'review-refused');
 assert.equal(retract.retracted, true);
@@ -183,15 +190,34 @@ assert.equal((await c.c.view(await c.c.reopen(c.name))).ready, true);
 const roll = await publish(candidate, await c.c.rollback(first.metadata.localSources.active));
 assert.equal((await c.c.view(roll)).ready, true);
 assert.equal(Object.keys(selections(await state(era))).length, 2);
+const beforeSecondCarry = await era.generation();
 const second = await controller(era, B, candidate);
+const afterSecondCarry = await era.generation();
+assert.equal(afterSecondCarry.revision, beforeSecondCarry.revision + 1);
 await assert.rejects(() => qualify(second), { code });
+assert.deepEqual(await era.generation(), afterSecondCarry,
+  'second-source prepare refusal changed the complete loaded generation');
 assert.equal((await era.client.retractImport(second.name, 'review-refused')).retracted, true);
-assert.equal(Object.keys(selections(await state(era))).length, 2);
+const afterSecondRetract = await era.generation();
+const retainedSecond = await second.repo.importCustody({ parseStrictJson,
+  validateContext: () => null }).load(second.name);
+assert.ok(retainedSecond.sourceBytes.length);
+assert.equal(afterSecondRetract.revision, beforeSecondCarry.revision + 2);
+assert.deepEqual(afterSecondRetract.generation.metadata.imports,
+  beforeSecondCarry.generation.metadata.imports);
+assert.equal((afterSecondRetract.generation.metadata.importRetractions || []).length,
+  (beforeSecondCarry.generation.metadata.importRetractions || []).length + 1);
+assert.deepEqual(afterSecondRetract.generation.metadata.localSources,
+  beforeSecondCarry.generation.metadata.localSources);
+assert.deepEqual(afterSecondRetract.generation.metadata.localSourceApplication,
+  beforeSecondCarry.generation.metadata.localSourceApplication);
+assert.deepEqual(afterSecondRetract.generation.collections, beforeSecondCarry.generation.collections);
+assert.equal(Object.keys(selections(afterSecondRetract.generation)).length, 2);
 era.close();
 console.log('PREPARE: failed identity + retraction + reload + retry PASS');
 console.log('PREPARE: aborted active write + unchanged generation + reload + retry PASS');
 console.log('PREPARE: committed selection survives reload; reopen and same-source rollback PASS');
-console.log('PREPARE: second refused by name; pending custody retracted PASS');
+console.log('PREPARE: second refusal is write-free; carry/retract changes custody and revision only PASS');
 
 // Already-carried B cannot bypass either admission guard. A custody-only guard
 // would never run again here: both importBundle calls happen before admission.

@@ -6,7 +6,7 @@
    Optional controller URL is a scratch-only candidate, never a product edit. */
 import assert from 'node:assert/strict';
 import { IDBFactory, sealInventedBundle, liveAt, eraFor, firstRun, admit,
-  SETUP, carry, material, producerRegistryFor } from '../../../m3/w7-preview/import/test/support.mjs';
+  SETUP, carry, material, producerRegistryFor, parseStrictJson } from './ew2c-synthetic-envelope.mjs';
 
 const candidate = process.argv[2] ? await import(process.argv[2]) : null;
 const CODE = 'LOCAL_SOURCE_SECOND_ADMISSION_REFUSED';
@@ -15,19 +15,39 @@ const files = [sealInventedBundle(), sealInventedBundle(SETUP,
   { sessions: [['2026-08-14', 'U'], ['2026-08-18', 'L'], ['2026-08-24', 'U']] }),
 sealInventedBundle(SETUP,
   { sessions: [['2026-08-14', 'U'], ['2026-08-17', 'L'], ['2026-08-31', 'U']] })];
+for (const fixture of files) assert.deepEqual(fixture.evidence,
+  { oracle: 'synthetic', counts: 'synthetic', producer: 'synthetic' });
+console.log('FIXTURE invented envelope; oracle/count metadata and producer evidence are synthetic');
 const names = { databaseName: 'ew2c-r39', namespace: 'synthetic/ew2c-r39',
   athleteId: 'ath-ew2b', deviceId: 'dev-ew2b' };
 async function attempt(era, file, day) {
+  const start = candidate ? await era.generation() : null;
   try {
     if (!candidate) return await admit(era, file, { day, ...names });
     const { carried, platform } = await carry(era, file);
     if (!carried.imported) return { admitted: false, stage: 'custody', code: carried.code };
+    const afterCarry = await era.generation();
     const held = await material(era, platform, carried.name);
     const controller = candidate.createLocalSourceController({ repository: held.repository,
       ...names, platform, asOf: () => day,
       producerRegistry: producerRegistryFor({ platform, ...held }) });
     const review = await controller.reviewSource(carried.name);
-    const prepared = await controller.prepareSource(review, { identityConfirmed: true, prefixAnswer: true });
+    let prepared;
+    try {
+      prepared = await controller.prepareSource(review, { identityConfirmed: true, prefixAnswer: true });
+    } catch (error) {
+      if ((error.code || error.message) !== CODE) throw error;
+      const afterRefusal = await era.generation();
+      assert.deepEqual(afterRefusal, afterCarry, 'refused prepare changed the complete loaded generation');
+      const retracted = await era.client.retractImport(carried.name, 'review-refused');
+      assert.equal(retracted.retracted, true, 'refused custody was not retracted');
+      const retained = await held.repository.importCustody({ parseStrictJson,
+        validateContext: () => null }).load(carried.name);
+      assert.ok(retained.sourceBytes.length, 'append-only custody was not retained');
+      return { admitted: false, stage: 'throw', code: CODE,
+        lifecycle: { start, afterCarry, afterRefusal, afterRetract: await era.generation(),
+          custodyRetained: true } };
+    }
     if (prepared.profile !== 'earned/local-source-qualification/v1')
       return { admitted: false, stage: 'prepare', codes: prepared.issues.map(i => i.code) };
     const cap = candidate.localSourceCommitCapability(prepared);
@@ -35,10 +55,26 @@ async function attempt(era, file, day) {
     return { admitted: true, view: await controller.view(await cap.reconcile()) };
   } catch (e) { return { admitted: false, stage: 'throw', code: e.code || e.message }; }
 }
-async function record(era) {
+async function admittedRecord(era) {
   const { generation: g } = await era.generation();
   return { sources: g.metadata.localSources, application: g.metadata.localSourceApplication,
     derived: g.collections.derived.localSource, ops: g.collections.ops, outbox: g.collections.outbox };
+}
+function assertRefusalLifecycle(actual) {
+  const x = actual.lifecycle;
+  assert.ok(x, 'named refusal must report its carry/refuse/retract lifecycle');
+  assert.equal(x.afterCarry.revision, x.start.revision + 1, 'carry revision');
+  assert.deepEqual(x.afterRefusal, x.afterCarry, 'prepare refusal must be write-free');
+  assert.equal(x.custodyRetained, true, 'encrypted custody must remain append-only');
+  assert.equal(x.afterRetract.revision, x.start.revision + 2, 'carry plus retract revision');
+  const before = x.start.generation, after = x.afterRetract.generation;
+  assert.deepEqual(after.metadata.imports, before.metadata.imports, 'pending import must be removed');
+  assert.equal((after.metadata.importRetractions || []).length,
+    (before.metadata.importRetractions || []).length + 1, 'retraction register must append');
+  assert.deepEqual(after.metadata.localSources, before.metadata.localSources, 'selections changed');
+  assert.deepEqual(after.metadata.localSourceApplication, before.metadata.localSourceApplication,
+    'application changed');
+  assert.deepEqual(after.collections, before.collections, 'admitted collections changed');
 }
 const results = [];
 function check(id, actual, assertions) {
@@ -52,7 +88,7 @@ const indexedDB = new IDBFactory();
 const era1 = await eraFor({ indexedDB, live: liveAt(days[0] + 'T16:00:00.000Z'), ...names });
 await firstRun(era1, days[0]);
 const first = await attempt(era1, files[0], days[0]);
-const afterA = await record(era1);
+const afterA = await admittedRecord(era1);
 check(1, first, () => { assert.equal(first.admitted, true); assert.equal(first.view.ready, true);
   assert.equal(Object.keys(afterA.sources.selections).length, 1);
   assert.equal(afterA.derived.basis.local_selection_id, afterA.sources.active); });
@@ -60,18 +96,20 @@ const same = await attempt(era1, files[0], days[1]);
 check(2, same, () => { assert.equal(same.admitted, false); assert.equal(same.stage, 'custody');
   assert.equal(same.code, 'LOCAL_IMPORT_ALREADY_PRESENT'); });
 const second = await attempt(era1, files[1], days[1]);
-const afterB = await record(era1);
+const afterB = await admittedRecord(era1);
 check(3, second, () => { assert.equal(second.admitted, false); assert.equal(second.code || second.codes?.[0], CODE);
+  assertRefusalLifecycle(second);
   assert.deepEqual(afterB, afterA, 'second source must not publish or rewrite an operation'); });
 era1.close();
 const era2 = await eraFor({ indexedDB, live: liveAt(days[2] + 'T16:00:00.000Z'), ...names });
 const sameCold = await attempt(era2, files[0], days[2]);
 check(4, sameCold, () => { assert.equal(sameCold.admitted, false); assert.equal(sameCold.stage, 'custody');
   assert.equal(sameCold.code, 'LOCAL_IMPORT_ALREADY_PRESENT'); });
-const beforeC = await record(era2);
+const beforeC = await admittedRecord(era2);
 const third = await attempt(era2, files[2], days[2]);
-const afterC = await record(era2);
+const afterC = await admittedRecord(era2);
 check(5, third, () => { assert.equal(third.admitted, false); assert.equal(third.code || third.codes?.[0], CODE);
+  assertRefusalLifecycle(third);
   assert.deepEqual(afterC, beforeC, 'never-carried source must not publish after reload'); });
 era2.close();
 const fresh = await eraFor({ indexedDB: new IDBFactory(), live: liveAt(days[0] + 'T16:00:00.000Z'), ...names });
@@ -81,4 +119,5 @@ check(6, control, () => { assert.equal(control.admitted, true); assert.equal(con
 fresh.close();
 const reds = results.filter(r => !r.ok).map(r => r.id);
 console.log('RED journeys: ' + (reds.join(',') || 'none'));
+if (!reds.length) console.log('LIFECYCLE: refused prepare kept full loaded generation; carry/retract kept custody and appended retraction only');
 process.exitCode = reds.length ? 1 : 0;
