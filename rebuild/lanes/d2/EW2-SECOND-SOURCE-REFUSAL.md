@@ -5,9 +5,10 @@ Measured head: 99fab1426184ab5ce879bd16d9237acb264e25e3
 D1/D2 correction measured from 5626eef50237b74bdd2f13f75babe8435334d78b
 after independent review cff2c578cdfb718cddbc6fc2d547edfae0cae2e3. The
 inherited ew2c seal route was unsafe because it reached the real port oracle.
-Those original cells were not executed. The corrected cells use their own
-invented envelope helper and label oracle/count metadata and producer evidence
-synthetic.
+The inherited cells were not executed during this D1/D2 correction; the original
+addendum records earlier real-port runs, whose read safety is not established
+here. The corrected cells use their own invented envelope helper and label
+oracle/count metadata and producer evidence synthetic.
 
 Authority: `refs/remotes/origin/rebuild/t2-client-core:rebuild/DECISIONS.md`, lines
 621, 630 and 631 only, read by line filter. Owner :631 answer 3 rules:

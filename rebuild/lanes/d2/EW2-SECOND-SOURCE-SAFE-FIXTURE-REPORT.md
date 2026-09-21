@@ -15,7 +15,8 @@ Oracle PASS/count metadata and producer evidence are labeled synthetic.
 ## Scope and safety
 
 No product or engine byte is in scope. The original ew2c cells are unsafe to run
-because their inherited seal helper reaches the real port oracle. They were not run.
+because their inherited seal helper reaches the real port oracle. They were not
+run during this correction.
 D3 linked-screen and D4 mixed-history remain build debts.
 
 ## Evidence
