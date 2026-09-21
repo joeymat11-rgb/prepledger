@@ -49,10 +49,12 @@ anchored positive test-name selector.
 Expected red: each selected row reports that direct `continue-on-error` was
 accepted. Expected controls: ordinary, grouped, sibling and nested cases pass.
 
-## Runtime red
-Each selected file ran exactly one test, zero skips, and exited red.
-Pack log sha256: 8a889bd548f673773c335ae9fc7653fd7162ba72e103b7e0469a785d4203238c.
-Release log sha256: 4cba65d43710d23af24a15b23f491797882a74c25ef02a0858c90da96c5a010a.
-Fence log sha256: eb707d64cb90fd7b4af355a002bc18f696c3136ac2f0629e60b40d8828c29053.
-All five callbacks accepted both direct keys, matching the static red.
+## Candidate evidence
+Published red dd973e3656d5444586923785300bdbe3983159e9 proved all five readers accepted both keys.
+Each candidate file ran exactly one selected test, zero skips, and passed.
+Logs: %TEMP%/earned-s9g-continue-candidate-848c07837ac2497abdef14a5b49d6f52.
+Pack log sha256: 635cc5339ab2f6fe50e46733a31f48fcd2f1aca3f207e161092596fdc3850722.
+Release log sha256: cb4eb50072a46ac2a1f66c2fc075b32f8bb6abccc06dac7803a523fca4404062.
+Fence log sha256: 4bcf70bb60651ce244e491246bce50d3037d07f81ff55cb73e6ffd48be4b604a.
+All five readers now refuse both direct keys by name; every scoped control passes.
 No product, workflow, runner, package, pin, seal, ledger or status file changed.

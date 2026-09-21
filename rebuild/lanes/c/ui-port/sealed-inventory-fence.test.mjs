@@ -1624,6 +1624,13 @@ function conditionOfStepRunning(yml, file) {
   const { block, runIndent, line } = owners[0];
   assert.equal(/[*?]/.test(line), false,
     "the step globs instead of naming its files: " + line.trim());
+  const continueKeys = block.filter((entry) => {
+    const match = /^(\s*)continue-on-error\s*:/.exec(entry);
+    return match && match[1].length === runIndent;
+  });
+  assert.equal(continueKeys.length, 0,
+    "STEP-CONTINUE-ON-ERROR-FORBIDDEN " + file + ": "
+    + continueKeys.map((entry) => entry.trim()).join(" / "));
   const conditions = block.filter((entry) => {
     const match = /^(\s*)if:/.exec(entry);
     return match && match[1].length === runIndent;
