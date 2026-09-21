@@ -72,20 +72,35 @@ const conditionIsNotCancelled = (cond) =>
   /^\s*if:\s*\$\{\{\s*!cancelled\(\)\s*\}\}\s*$/.test(cond);
 
 function assertConditionedRun(yml, file, label) {
-  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(file));
-  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + file + " at all");
-  assert.equal(/[*?]/.test(yml[runAt]), false,
-    "the step globs instead of naming its files: " + yml[runAt].trim());
-  let nameAt = runAt;
-  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
-  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), "the run: line sits in no named step");
-  const block = yml.slice(nameAt, runAt + 1);
-  const cond = block.find((l) => /^\s*if:/.test(l));
-  assert.notEqual(cond, undefined,
-    label + " carries no `if:` at all, so GitHub skips it after the standing step: "
-    + block.map((l) => l.trim()).join(" / "));
-  assert.equal(conditionIsNotCancelled(cond), true,
-    "the condition is not `not cancelled`: " + cond.trim());
+  const owners = [];
+  for (let nameAt = 0; nameAt < yml.length; nameAt += 1) {
+    const named = /^(\s*)-\s+name:/.exec(yml[nameAt]);
+    if (!named) continue;
+    const stepIndent = named[1].length;
+    let end = nameAt + 1;
+    while (end < yml.length && (!yml[end].trim()
+      || /^\s*/.exec(yml[end])[0].length > stepIndent)) end += 1;
+    const block = yml.slice(nameAt, end);
+    for (const line of block) {
+      const run = /^(\s*)run:\s*node\s+--test\s+(.+?)\s*$/.exec(line);
+      if (!run || run[1].length !== stepIndent + 2) continue;
+      const files = run[2].split(/\s+/);
+      if (files.includes(file)) owners.push({ block, runIndent: run[1].length, line });
+    }
+  }
+  assert.equal(owners.length, 1, "expected exactly one node --test step for " + file);
+  const { block, runIndent, line } = owners[0];
+  assert.equal(/[*?]/.test(line), false,
+    "the step globs instead of naming its files: " + line.trim());
+  const conditions = block.filter((entry) => {
+    const match = /^(\s*)if:/.exec(entry);
+    return match && match[1].length === runIndent;
+  });
+  assert.equal(conditions.length, 1,
+    label + " must carry exactly one step-level `if:`: "
+    + block.map((entry) => entry.trim()).join(" / "));
+  assert.equal(conditionIsNotCancelled(conditions[0]), true,
+    "the condition is not `not cancelled`: " + conditions[0].trim());
 }
 
 function decoyWorkflows(file) {
@@ -97,6 +112,14 @@ function decoyWorkflows(file) {
       "        if: ${{ false }}", run],
     F: ["      - name: decoy", "        if: ${{ !cancelled() }}", "        run: echo " + file,
       "      - name: target", "        if: ${{ false }}", run],
+    afterRun: ["      - name: target", run, "        env:", "          if: ${{ false }}",
+      "        if: ${{ !cancelled() }}"],
+    duplicateCondition: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        if: ${{ !cancelled() }}", run],
+    duplicateRunner: ["      - name: first", "        if: ${{ !cancelled() }}", run,
+      "      - name: second", "        if: ${{ false }}", run],
+    siblingPath: ["      - name: target", "        if: ${{ !cancelled() }}",
+      run + ".bak"],
   };
 }
 
@@ -1337,7 +1360,10 @@ test("D-S9G-DECOY: pack reader refuses D, E and F workflow decoys", () => {
   const SELF = path.relative(REPO_ROOT, fileURLToPath(import.meta.url)).split(path.sep).join("/");
   const worlds = decoyWorkflows(SELF);
   assert.doesNotThrow(() => assertConditionedRun(worlds.control, SELF, "control"));
+  assert.doesNotThrow(() => assertConditionedRun(worlds.afterRun, SELF, "after run"));
   for (const id of ["D", "E", "F"])
+    assert.throws(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+  for (const id of ["duplicateCondition", "duplicateRunner", "siblingPath"])
     assert.throws(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
 });
 

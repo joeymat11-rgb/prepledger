@@ -2,6 +2,7 @@
 
 Role: commissioned Sol builder under PM ledger 658. Author evidence only.
 Base: cf4fc766b7e7ab711eaa9a13257df3b25db70d00.
+Red checkpoint: 747de184e8e3ca6b8517099dce5ac8786016e493.
 Review: 171058207c068ba460e6758b3277d5c5528529ba.
 
 ## Scope
@@ -24,4 +25,21 @@ reached in this author run. Logs: %TEMP%/s9-decoy-red-{release,pack,fence}.log.
 
 ## Result
 
-RED READY for PM publication before the narrow reader fix.
+PM published the red checkpoint before the fix.
+
+## Fix
+
+Each reader now selects a named step only through an exact path token in a
+step-level `node --test` run. It requires one owning run and exactly one `if:`
+at the run indentation, then checks the whole permitted expression. Echoes,
+nested keys, sibling paths, duplicate conditions, and duplicate owners refuse.
+
+## Green
+
+The same three positively selected rows each produced 1 test, 1 pass, and 0
+failures. Together they exercised all five readers with honest direct and
+after-run conditions, D/E/F, duplicate-condition, duplicate-runner, and sibling
+path controls. Logs: %TEMP%/s9-decoy-green-{release,pack,fence}.log.
+
+No full cell, real workflow row, fence, seal, artifact, filesystem helper, or
+child process was run. Independent candidate review remains required.
