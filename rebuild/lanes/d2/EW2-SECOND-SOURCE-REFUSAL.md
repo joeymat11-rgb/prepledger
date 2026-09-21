@@ -86,6 +86,14 @@ U:626-627 already shows only a summary when done/admitted. T:2488 supplies the
 admitted flag from the basis read. M:103-121 mounts U and proves admitted=true
 removes the chooser. That presentation guard supplies no named admission refusal.
 
+Claude's source review found the real-screen reach that this paper had omitted.
+A selection can be committed while the basis read doubts the marker, three
+bases, installation, state shape or label. Today then paints clean-init: the
+import link is visible but the original imported history is absent. Picking the
+same file says `LOCAL_IMPORT_ALREADY_PRESENT`; picking a different file reaches
+the proposed refusal. The selection is real, but the screen does not show its
+history, so the refusal must be shown to Joe with that adoption-doubt context.
+
 ## B. Smallest complete guard, alternative, durable witness and cost
 
 RECOMMENDED: prepare, immediately after A:752, before replay or any qualification:
@@ -117,6 +125,12 @@ latter appends reselection evidence (A:813,828), not an undo to no admission.
 Thus it correctly leaves the guard armed. A lost reply also is not a failed commit.
 Custody can outlive an abort: retry reviews that custody; the screen can retract
 an unadmitted attempt before carrying it again. Successful custody alone is no ban.
+
+Claude executed the missing premise: an admission requires a setup operation,
+so an installation with a committed selection is not zero-operation. A file
+carried after admission therefore cannot take I:581-582's zero-operation seed
+road into the derived cache. The refused carry and its retract leave the
+admitted basis unchanged while appending their custody/retraction revisions.
 
 ONE ALTERNATIVE: review, after A:177, using the same durable record:
 ```js
@@ -156,6 +170,11 @@ the real screen's file-read failure/catch/paint with the novel code injected.
 Today's refusal box is exactly `LOCAL_SOURCE_SECOND_ADMISSION_REFUSED`.
 The scratch copy-map renders the code plus the proposed sentence, once.
 This is a renderer measurement, not a full production-registry second-import UI run.
+
+The sentence remains PROPOSED. Joe must see it in the adoption-doubt scenario:
+his first history is retained in the record but could not be opened on this
+screen. He may keep the shorter sentence or choose a contextual alternative;
+this paper does not invent his answer or approve either UI wording.
 
 ## D. Red-first pin and reproducible outcomes
 
@@ -206,7 +225,11 @@ Amend brief section 2 (:188-245), without editing that accepted brief:
 - B0 retains its 28 selectable ids; register this refusal cell explicitly in the
   suite, without pretending it was already one of those ids.
 - Insert B1a as the FIRST PRODUCT step: pin this red, build guard plus copy,
-  turn it green, carry failure/abort/retry/reload/reopen and CAS controls.
+  turn it green, carry failure/abort/retry/reload/reopen and CAS controls. Its
+  proposed D3 REAL-screen row starts with a committed selection whose adoption
+  basis is doubted, then picks a different file, observes refusal, retracts and
+  redraws. It separately proves the original retained state, pending cleanup,
+  copy placement and recovery rather than treating one paint as all four.
 - B1's existing mixed-history EW-21 admission row remains red-first before B8.
   It is now the first-admission plus native-edit obligation, not a second-source
   provenance design. Do not drop immutable operations, attribution or rollback proof.
@@ -216,14 +239,18 @@ Amend brief section 2 (:188-245), without editing that accepted brief:
   build-base, Today split, C-UI-9, F2, S10 and reseal dependencies. Apply :630's
   existing B12/B13 rulings; this addendum does not reopen them. B16 remains last.
 The refusal cell closes only the second-admission reachability arm, not all D1.
+The pre-S10 suite may specify and pin that B1a/D3 row; the linked-screen product
+work remains post-S10 D3. D4's mixed-history obligation remains a separate debt.
 
-## F. Door left open: five requirements for allowing a second file later
+## F. Door left open: six requirements for allowing a second file later
 
 1. Retain each selection's own basis, identity_review, order_input and order_map; M:198-216 proves they survive today (maps here are null).
 2. Define immutable per-edit and per-note source/id-space provenance without rewriting saved operations.
 3. Resolve correspondence per admitted source, beyond the singular derived cache A:818 replaces.
 4. Prove mixed-history edits and notes preserve lift attribution across second selection, reload and rollback, or refuse before publish.
 5. Revisit consent, displayed reason and the refusal pin under an owner ruling, then independently accept and reseal the wider path.
+6. Reserve a retracted file's name: the same bytes may re-stage, but different
+   bytes under that name still refuse `LOCAL_IMPORT_NAME_TAKEN`.
 
 ## G. Not measured
 
