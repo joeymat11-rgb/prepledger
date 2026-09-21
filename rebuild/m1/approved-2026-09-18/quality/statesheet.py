@@ -135,7 +135,7 @@ JS_RECORD = """()=>{const ui=document.querySelector('.screen.is-active .ui');if(
       const px=v=>Math.round(v*100)/100;   /* two decimals: "more than 3 px" then means what it says */
       els.push([norm(own), [px(r.left),px(r.top),px(r.width),px(r.height)],
         m?m.slice(0,3).map(Number):[0,0,0], cs.fontFamily.split(',')[0].replace(/["']/g,'').trim(),
-        Math.round(parseFloat(cs.fontSize)*10)/10])});
+        Math.round(parseFloat(cs.fontSize)*100)/100])});
     return {text: norm(said.join(' ')), els: els}}"""
 
 
