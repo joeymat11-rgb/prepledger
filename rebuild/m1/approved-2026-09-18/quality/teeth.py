@@ -506,6 +506,24 @@ def mut_z10(work):
     sub(work, 'app/app.html', 'Upper body today. One change to review.',
         '<span>3</span><span>\u22125</span> today. One change to review.')
 
+def mut_z11(work):
+    # The later honest block pair has the same flat text as the earlier forbidden range. A
+    # boundary belongs to its DOM occurrence and must not rewrite the first matching sentence.
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Do 3 \u22125 sets. <span style="display:block">3</span> '
+        '<span style="display:block">\u22125</span>')
+
+def mut_z12(work):
+    # Reversing the two occurrences must not let the earlier honest pair erase the later range.
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        '<span style="display:block">3</span> <span style="display:block">\u22125</span> '
+        'Do 3 \u22125 sets.')
+
+def mut_z13(work):
+    # Two identical honest pairs each own their boundary and both remain permitted.
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        '<span>3</span> <span>\u22125</span>; <span>3</span> <span>\u22125</span>')
+
 T02_APPLY = ("  R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', "
              "component: 'sample note', apply: function (a) {\n")
 
@@ -787,6 +805,15 @@ ROWS = [
     ('z10', 'adjacent numeric spans with no whitespace form a range', mut_z10,
      GATE_TODAY_ONE,
      dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('z11', 'a later honest pair cannot hide an earlier equal-text range', mut_z11,
+     GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('z12', 'an earlier honest pair cannot hide a later equal-text range', mut_z12,
+     GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('z13', 'two duplicate honest numeric sibling pairs remain permitted', mut_z13,
+     GATE_TODAY_ONE,
+     dict(exit=0, absent=[(COPY_CHECK, 'U+2212')], stdout=['0 FAIL'])),
     ('v16', 'teeth --only with an id this list does not carry', mut_none,
      ['quality/teeth.py', '--only', 'zzz'],
      dict(exit=2, stdout=['REFUSED', 'zzz', 'does not carry'])),

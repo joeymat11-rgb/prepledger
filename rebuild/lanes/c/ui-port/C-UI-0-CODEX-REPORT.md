@@ -8,17 +8,13 @@ Status: author candidate only; package remains PROPOSED.
 
 ## Item 4 red
 
-At the unchanged source, honest T-02 and intentional no-primary T-57 were
-2 renders, 0 problems. Hidden and absent T-02 #start each exited 1 with two
-generic record problems but zero named primary-action problems. Durable z1
-disagreed and z3 passed. The first z2 only removed a label-setting call, left
-#start present and is excluded as an invalid absence plant. Revised z2 removes
-the actual node; independent actual-node removal supplies the unchanged red.
+At the unchanged source, honest T-02/T-57 were clean. Hidden and actual-node-
+absent T-02 had generic record failures but no named primary-action problem.
+The first z2 left #start present and is excluded; revised z2 removes the node.
 
-The repair freezes the approved state declarations as 56 #start, 33 #log,
-59 .mic-button, 32 .panel-primary and 29 intentional no-primary states.
-Existence, drawn visibility and every unrounded viewport edge are separate.
-Removing or hiding a required node cannot redefine its requirement.
+The frozen contract is 56 #start, 33 #log, 59 .mic-button, 32 .panel-primary
+and 29 intentional no-primary states. Existence, drawn visibility and every
+unrounded viewport edge are separate; a mutation cannot redefine requirement.
 
 ## Items 13 and 17 red
 
@@ -29,6 +25,9 @@ element boundary exited 0 with no COPY failure. Its retained report is
 %TEMP%/cui0-author-evidence/1163b7a-z8-red.txt, SHA-256 2f59f01f48d6899603
 dd9b86aa2809b9159deaac56d2f7a2f58121804fd691d. Independent probes also found
 an adjacent-span range and a normal-flow collapsed source newline bypass.
+At final 5f12f8c, a later honest pair with equal flat text hid an earlier
+forbidden range: exit 0, 63 PASS and no COPY failure, with restored hashes.
+Durable z11/z12 hold both orders; z13 holds duplicate honest pairs.
 
 An external-target identity probe found report_identity omitted its supplied
 SHA-256. A failed q5 mutation anchor started no child but was reported as one
@@ -48,9 +47,9 @@ radius check, state primary contract and external identity custody.
 
 Independent approved-source census: 418 renders, both themes agreeing, every
 state applied, zero page/console errors; selector counts are above.
-Final focused candidate: 28 enumerated/run, zero skipped/VOID/disagreeing,
+At 5f12f8c, prior focused candidate: 28 run, zero skipped/VOID/disagreeing,
 189 s. Retained report SHA-256: 9c3812f4f5760c96d590494e4e286ffa3ed1b8e
-3a0f6ee3b957d866f2f18a8d2. Ordinary gate: 372 PASS, 0 FAIL/WARN,
+3a0f6ee3b957d866f2f18a8d2. Same-source ordinary gate: 372 PASS, 0 FAIL/WARN,
 both themes and all three sizes. Retained report SHA-256: cb458fa9ac3117e924
 db9d0c9df39fc9e7249996db0f7bdcbffd806b121fc745.
 The earlier missing-JS_SEEN run and 24/25 invalid-z2 run are excluded.
