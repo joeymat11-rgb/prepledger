@@ -1,0 +1,172 @@
+# TODAY-MODEL-HANDOFF specification
+Author: Astra (Codex), a named specification assignment under DECISIONS:412, :569 point 3 and :613; high effort; PAPER ONLY, no product or test byte changed
+Measured head: c02b001e3646555050594c39856bfd31f2d48590
+
+## Authority, scope and notation
+READ authority: origin/rebuild/t2-client-core DECISIONS physical lines :550, :574, :610, :626 and :628, each read separately; no fetch. This supersedes T3's ordering recommendation in AFTER-THE-CUT-TICKETS.md on origin/rebuild/c-after-the-cut-tickets. S-R30 orders gym settings before S10, then this ticket as the first reseal child, then outcomes and gym Start. S10's named exceptions remain until their individual children land.
+READ :626 point (5) actually ASSIGNS recoverWorkout here. This task asks that assignment remain separable; B specifies both scopes and recommends keeping recovery. Read with TODAY-SPLIT-SPEC.md and R3's binding corrections. The cut's byte witness cannot certify this new logic. READ :628 and the gym spec/reviews require small interfaces, executable positives, equality pins and retained probes.
+READ path abbreviations: T = rebuild/m3/w7-preview/today; W = rebuild/m3/w6; F = rebuild/lanes/c/today-split/writer-fence.test.mjs; S8 = rebuild/m4/spec/acceptance-s8-real-shape.json. Colon numbers are READ physical lines at the measured head unless another ref is explicit. MEASURED means my executable probe; READ means source/ruling inspection. REQUIRED is a builder obligation, not an executed PASS. Scratch sizes measure partial edits, not forecasts.
+Invariant clauses: I-CAP = after pinned model acquisition/handoff, released Today uses declared model projections only, with no other retained model capability. I-VALUE = sealed submission takes raw field text and preserves conversion, admission and operation. I-GESTURE = guarded writers occur directly in hooks.listen callbacks and use Today's guard. I-PENDING = a second weigh-in while pending has no effect. I-PAINT = equal text, refusal location, focus and tap count.
+Scope: I-CAP is the Today MODEL handoff, not a claim that every facade lane becomes powerless. READ :626 retains live food/sleep/check-in/setup/measure/workout access as a separate S10 exception. Their declared acquisitions/public passthroughs remain pinned; new acquisitions are forbidden. This ticket cannot retire that wider exception.
+
+## A. What the code does today
+READ weigh-in: T/today-app.cjs:855 installs submit; :864 checks the released disabled button; :865 disables; :866 trims; :868 converts only nonempty text with Number and calls model.weighIn; :869 catches; :870-877 re-enables, paints refusal/focuses input or closes and renders Today. T/today-readings.cjs:46-66 tests adopted reading before range/precision before missing host, then calls readings.weighIn({date:day,lb}). T/today-model.cjs:412-414 injects dependencies; :440 re-exports weighIn/reopen; :443 exposes readings.
+READ durable tail: T/reading-host.mjs:35-46 -> era.createReadingHost; W/local/today-bindings.mjs:340-344 -> local-client.execute('weighIn'); W/local/local-client.mjs:347-352 -> bridge.execute; W/bridge.mjs:18 stages, :21-25 refuses unsuccessful candidates without commit, :45 awaits repository.commit before :47 publishes; W/repository.mjs:290-307 seals/publishes, :249-250 puts previous/active, :259 resolves on transaction completion. rebuild/client/index.cjs:341 rejects non-number/non-finite input and constructs the reading payload. Reopen differs: T/today-readings.cjs:69-72 -> restart -> W/local/local-client.mjs:295 possible metadata commit; it is not another weight action.
+READ recovery: T/today-app.cjs:745-754 dispatches primary click, selects stranded, disables primary, awaits facade.workout().recover(), re-enables in finally, then renders Today without heading focus. T/today-entry.mjs:202-206 reads current summary.unfinished, calls gym.closeUnfinished, then refreshes even after returned refusal. T/gym-model.mjs:557-575 validates target, opens that session's day, prepares continuation, selects start plus completed-slot causal parents, executes close with completion_kind:'early', and closes temporary host in finally. W/public-client.mjs:371-387 uses bridge.execute('workout'); same durable tail. Recorded sets are not deleted.
+MEASURED probe.cjs/census.cjs: F's tokenizer finds 32 model identifiers: parameter at app:357, shorthand handoff at :384, and these 30 occurrences, one row each. R = read-only projection use; W = writer-capable use. Every R still retains the writer-bearing holder until rewritten. The engine row removes its broad intermediate capability.
+
+| READ app line / occurrence | Class and use | Required replacement |
+|---|---|---|
+| :635 | R read() | facade.read() |
+| :868 | W weighIn(converted text) | hooks.submitWeighIn(input.value) |
+| :883 | R read() | facade.read() |
+| :917 | R read() under try | facade.read(); preserve catch |
+| :1022 first | R typeof loggedFood | optional check inside projection |
+| :1022 second | R loggedFood(...) | facade.loggedFood(...) |
+| :1022 third | R today | facade.today() |
+| :1023 first | R typeof recordedFood | optional check inside projection |
+| :1023 second | R recordedFood(...) | facade.recordedFood(...) |
+| :1023 third | R today | facade.today() |
+| :1030 first | R typeof foodUnavailable | optional check inside projection |
+| :1030 second | R foodUnavailable(...) | facade.foodUnavailable(...) |
+| :1030 third | R today | facade.today() |
+| :1219 first | R typeof loggedSleep | optional check inside projection |
+| :1219 second | R loggedSleep(date) | facade.loggedSleep(date) |
+| :1220 first | R typeof recordedSleep | optional check inside projection |
+| :1220 second | R recordedSleep(date) | facade.recordedSleep(date) |
+| :1352 | R today in dayAfter comparison | facade.today() |
+| :1437 | R today in timesRefusal | facade.today() |
+| :1444 | W engine acquisition; R sleepSpanH call | facade.sleepSpanH, exact pure helper reference |
+| :1486 first | R typeof loggedSleep | optional check inside projection |
+| :1486 second | R loggedSleep(...) | facade.loggedSleep(...) |
+| :1486 third | R today for nightDateFor | facade.today() |
+| :1520 | R read() | facade.read() |
+| :1576 first | R typeof stateFromOps | optional check inside projection |
+| :1576 second | R stateFromOps() under try | facade.stateFromOps(); preserve catch |
+| :1668 first | R typeof loggedFood | optional check inside projection |
+| :1668 second | R loggedFood(...) | facade.loggedFood(...) |
+| :1668 third | R today | facade.today() |
+| :1898 | R returned read closure | read: () => facade.read() |
+
+READ other released model acquisitions stay at T/today-model.cjs:412-414,:440,:443, constrained by F:556-597,:653-711. App's createTodayModel import/re-export stays unchanged; no invoked second factory. READ app workout acquisitions: :1604 truthiness, :1606 diagnostic gymHost, :1766 routing, :1782/:1786 open, :1914 public workoutEntry. Pin contexts/multiplicities and retain public mapping; :750 is the recovery acquisition removed. No alias of recover from another retained site is authorized.
+
+## B. Smallest design
+READ current law: T/today-lanes.cjs:82-95 holds a synchronous gesture counter, closed in finally; :945/:947 wrap recordIntake/recordSleep. F:2084-2106 demands calls directly inside hooks.listen callbacks. MEASURED probe.cjs: direct dispatch admitted; outside call refused; nested paint under a shimmed listener admitted. F:2067-2083 already names that limitation. Do not copy gym refusal-depth binders, add isTrusted, require a native-browser gate, or claim this counter alone proves directness. Keep the static direct-callback law and independent review. Remeasure the accepted split fix head before building; preserve any stronger accepted guard and rows, not this old counter by fiat.
+
+| Sealed entry / exact signature | Output and invariant | Cut-counterexample |
+|---|---|---|
+| hooks.submitWeighIn(rawText: string): InFlight or Promise<WeightOutcome> | I-VALUE/I-GESTURE/I-PENDING; guarded; mount owns pending | Released parseFloat changes value; removed guard admits paint; removed pending admits overlapping writes |
+| hooks.recoverWorkout(): Promise<RecoveryResult> | Separable; I-GESTURE/I-PAINT; return workout.recover() unchanged, including rejection | Released recovery callable in paint; swallowed rejection wrongly renders completion |
+| facade.read(): TodayView | I-CAP/I-PAINT; detached current read | Cached initial view paints stale post-adoption/weight state |
+| facade.today(): string | I-CAP/I-VALUE; current model.today primitive | Browser date changes declared-day validations |
+| facade.loggedFood(date): Day or null | I-CAP/I-PAINT; same typeof fallback/argument as :1022/:1668 | Missing optional method crashes no-food fixture |
+| facade.recordedFood(date): RecordedDay or null | I-CAP/I-PAINT; same fallback as :1023 | Lane return grants save; omitted record loses provenance |
+| facade.foodUnavailable(date): boolean | I-CAP/I-PAINT; same typeof and && at :1030 | Default true falsely paints unavailable |
+| facade.loggedSleep(date): Night or null | I-CAP/I-PAINT; same optional check/date | Default to today reads wrong night |
+| facade.recordedSleep(date): RecordedNight or null | I-CAP/I-PAINT; same optional check/date | Winning record/stamp vanishes |
+| facade.stateFromOps(): State or null | I-CAP/I-PAINT; optional check; caller catch stays | Raw-model return exposes weighIn; stale state mislabels setup |
+| facade.sleepSpanH getter: exact model.engine.sleepSpanH function | I-CAP/I-PAINT; lazy getter; arguments unchanged; no engine returned | Eager mount access breaks stubs that never render Sleep; whole engine leaks writers |
+
+READ T/today-model.cjs:397 already JSON-clones read(), :251-268 rebuilds state; :450-464 selects food/sleep data. Keep facade frozen. Each data projection calls the method anew and returns structuredClone(result), preserving null, undefined and non-finite scalars without JSON normalization; function-bearing results must fail before crossing. Detached copies may be mutable: detachment prevents mutation of subsequent sealed decisions; deep freeze buys no required clause. No model, engine, readings, host, lane or model method crosses. sleepSpanH is the sole declared function exception. Preserve thrown getter/method errors at the existing caller, not invented blank results. Do not cache at factory creation.
+Type names above alias the corresponding existing model method's returned data shape, not newly reduced DTOs; retain every existing field. Date parameters accept the same string/undefined arguments as those model methods. RecoveryResult aliases Awaited<ReturnType<WorkoutEntry.recover>> unchanged; its caller awaits and discards it. READ Split:588,:1567 requires sleepSpanH by reference, uncalled in lanes; preserve the existing caller census in T/test/problem.test.mjs rather than widening it.
+READ model.today is per-model day; food methods own date-or-day default (:450-455), sleep methods do not (:463-464). Forward arguments unchanged. Optional methods retain null/false behavior; required read/helper remain required at their former use points only. Preserve exports, mount API key order/descriptors, ready's live getter (:1922), and declared public lane passthroughs. Promises remain live only where unchanged APIs already expose them.
+Pending: after Today's guard admits the entry, return {kind:'in-flight'} synchronously if weightPending, without trim/model/message/repaint work. Otherwise set the flag before asynchronous work, capture rawText.trim(), invoke model.weighIn(raw === '' ? raw : Number(raw)), hold through settlement and clear in finally on success/refusal/rejection. No rounding, parseFloat, new range/finite test or field coercion. Input domain is the string returned by input.value, not arbitrary objects/getters.
+WeightOutcome = {kind:'result',ok:boolean,copy:string|null|undefined} or {kind:'thrown',detail:string}; InFlight = {kind:'in-flight'}. Copy result.ok/copy unchanged; state/op_id stay with model/writer because this view does not consume them. For thrown detail use the old truthy-message selection with empty-string concatenation; no sentence enters the seal. App's catch sentence becomes the thrown mapper with identical trailing space/fallback. lastMessage remains written by today-readings, never by the mapper.
+Required callback: preventDefault; existing submit.disabled early return; const attempt = hooks.submitWeighIn(input.value); return immediately for in-flight; disable, await, map, re-enable; retain :871-877. Invocation is directly in the async hooks.listen callback before its first await, not a helper. No event/node/mapper/closure crosses the command. In-flight does not toggle disabled, focus, change text, close or render. Preserve cancel/Escape/step controls and close().
+MEASURED sketch.cjs: isolated pending proposal called writer once while held, returned in-flight for another call, then permitted retry after refusal. No identity token is needed: the mount's pending slot distinguishes concurrent requests. This adds no stale-sheet cancellation policy; admitted writes settle after closing a sheet and must retain old late-paint behavior under the required parity cell.
+Separable recovery: replace only :750's awaited call with hooks.recoverWorkout(), directly in the existing click callback; keep disabled/finally/render and rejection behavior. Seal uses CURRENT workout entry, preserving rebinding; unchanged entry/model chooses target/day/parents. No recovery token/pending flag: READ Spec:687-694 and :626 point (5) assign pending to submitWeighIn. Core-only meets model/weight clauses but leaves recovery as an S10 exception; with recovery retire only its writer exception, retaining other workout acquisitions.
+MEASURED recovery routing increment: scratch app +1/-1, lane +1/-0, plus required recovery rows below whose authored size is UNMEASURED. Recommend include, as :626 assigns. Durable recovery producer remains unchanged. A later PM ruling can split it without weakening core weight behavior.
+Alternative: construct separate commands and a read-only model before mountToday, handing commands to sealed composition separately. READ T/today-entry.mjs:150 and T/today-model.cjs:439-469 expose the additional factory/caller/public surface affected. It needs a new command carrier and compatibility work for direct callers. Earlier separation buys no extra required weight behavior; recommend existing handoff. Alternative implementation and line price are UNMEASURED, not the old paper's estimated range.
+
+## C. Files, custody and declared hunks
+PURE MOVE (M) requires byte identity of a named span; DECLARED STATEMENT REWRITE (R) requires before/after expression map and parity; NEW WRITER LOGIC (N) requires counterexample, red-first row, independent writer-path review and PM final. No complete M hunk is claimed here: trim/conversion expressions retain their semantics in an R/N wrapper. Hooks, pending and detachment are not pure moves. No wording/admission improvement is authorized.
+
+| READ path / custody | Required hunks and class | MEASURED scratch cost / limit |
+|---|---|---|
+| T/today-app.cjs; S8 product :786, not execution pin; S10 releases | R A-table projections/optional guards, raw submit/typed mapper, :1898 read closure; separable R :750 recovery; R comments; boot order unchanged | Core +23/-21; recovery +1/-1. Normalized scratch includes comment substitutions, not finished banner cleanup |
+| T/today-lanes.cjs; born by split, absent S8; S10 seals product | N projection/detachment, pending/outcome, guarded routing; R exact trim/empty/Number/catch-detail expressions; separable N recovery hook; R truthful banner | Core +26/-0; recovery +1/-0. MEASURED sketch: 16 command lines, 9 projection lines; excludes final banners/tests/custody |
+| F; free of S8 product/execution pins; born as split tooling; S10 standing fence | R exceptions/anchors/equality diagnostics; N acquisition/direct-callback checks and plants | Authored size UNMEASURED; retain existing rows through successors below |
+| T/test/adapter.test.mjs; S8 product :726, execution pin :1604; retained S10 | N submitted-text/operation, pending, projection/API rows; R only source-owner assertions that actually break | Size UNMEASURED; extend synthetic durable harness :29-43; no weakened assertions |
+| T/test/gym.test.mjs; S8 product :751, execution pin :1610; retained S10 | Separable N recovery click/guard/operation parity; retain unfinished/close/refusal evidence :829-879 | Size UNMEASURED; unnecessary to core-only scope |
+| T/today-model.cjs; free S8; readings sibling born by split, sealed at S10 | UNCHANGED constructor, projections, admission and re-export pins | No hunk or new factory/dependency |
+| T/today-entry.mjs; S8 product :791; T/gym-model.mjs, reading-host and W client/bridge/repository | UNCHANGED dependencies; retain descendant custody | No producer/host/operation hunk |
+
+READ S8 key membership confirms app/tests product status, adapter/gym executionPins, and absence of model/lanes/F; this is not hash acceptance. S10's final inventory is unavailable at this head; disposition follows S-R30, not inspected future pins. Child must declare actual S10 product/execution-pin successors and causes; administrative package/report/receipt files belong to the reseal hand, not invented product paths here. Builder lists that surface before acceptance. No build input or copy-source-list expansion: changed modules already exist.
+MEASURED sketch.cjs writes scratch copies only; git diff --no-index measures physical added/deleted lines after both sides normalize CRLF and escape non-ASCII. It is a size sketch, not byte witness/build candidate. All copies parse. Final report gives actual M/R/N hunk counts and every equality change; independent Claude review and PM read every final writer line. Do not report partial sketch counts as complete price.
+
+## D. Rows, red first
+Every REQUIRED row earns the stated clause. Plant must fail actual candidate and retain an unplanted positive. These proposed repository cells were not run; executed scratch plants are identified separately.
+
+| Row / clause | Assertion and RED plant |
+|---|---|
+| TMH-ACQUISITION / I-CAP | Pin mount parameter position/spelling and exact shorthand handoff, each once; no other reference before/after handoff. Plant alias/destructure/returned model/computed access/renamed binding; scratch result below |
+| TMH-PROJECTION-CAPABILITY / I-CAP | Data projections detach; nested mutation never changes later read/submitted value. Plant raw model/readings or nested function: fail before crossing; plant live nested data and observe changed subsequent value |
+| TMH-PROJECTION-FRESH / I-CAP/I-PAINT | Adopt basis, settle weight, replace food/sleep lanes, missing optional methods, declared day and setup fallback without remount. Plant boot cache, wrong night default or swallowed error; compare old text/values |
+| TMH-API / I-CAP/I-PAINT | Same exports/mount key order/descriptors/live ready, exact helper reference and pinned passthroughs. Plant eager engine access, whole engine or ready snapshot; extra plain display fields stay green |
+| TMH-RAW / I-VALUE | Real submit passes input.value exactly; seal trims/converts; E table equal. Plant Number on empty, parseFloat, rounding or conversion still in app; each fails |
+| TMH-PENDING / I-PENDING | Hold first completion; same form and newly opened sheet produce no second model/message/DOM effect. Success/refusal/rejection settlement permits subsequent normal admission. Plant absent flag, early clear, late set or missing finally; positive retry required |
+| TMH-GESTURE / I-GESTURE | Direct hooks.listen submit/click admits EACH new writer; outside/timer-after-dispatch/post-dispatch/throw paths refuse. Plant removed wrapper/leaked counter. Positive must reach intended writer, not merely throw a different error |
+| TMH-DIRECT / I-GESTURE | Call lies in direct callback function body, including branch/try, before first suspension. Plant helper, nested paint, deferred call, hook alias and extra call; token boundaries, not permissive line regex |
+| TMH-WEIGHT-PAINT / I-PAINT | #weigh-error/input focus on refusal; close/render focus on success; disabled/cancel/Escape parity. Plant early close, missing focus/fallback/space, new sentence or paint on in-flight |
+| TMH-RECOVERY / I-GESTURE/I-PAINT | Separable real synthetic stranded primary: equal close/parents/early kind/preserved sets/refusal refresh/render(false). Plant wrong day/target, missing refresh, swallowed rejection or retained facade recovery call |
+
+Counting: MEASURED baseline 32 becomes READ Spec:678-680 target 2 total, both acquisition references, zero outside their exact windows. Diagnose token/line and cause, never a ceiling. MEASURED scratch control GREEN; const retained=model, const {weighIn:write}=model, () => model, model[key](value), and whole-binding rename to athlete each RED. This is a narrow acquisition tripwire using F's tokenizer, not arbitrary data-flow proof. Canonical parameter pin prevents rename evasion. Keep arguments/shadow-builtin/destructure/computed/import restrictions and independent hunk review.
+Pin the new lane projection bodies/member sources and pure-helper exception, rejecting holder returns even when app's model count is correct. Raw-model-return plant belongs here too. Extra plain fields from model.read remain allowed. Module allowlists and existing today-model re-export/readings windows stay unchanged. Pin remaining workout acquisition contexts listed in A; forbid a new recover acquisition even under an old truthiness/open window.
+
+| READ existing F rows | Required successor and equality/cause |
+|---|---|
+| :225-229 declarations; :1633-1665 E.5 rows 1/11 | Remove model.weighIn, plus (call).recover with recovery. READ 3 seams becomes core 2/recommended 1, retaining importScreen.reopen. Retarget model.read anchors to facade.read; alias, new site and duplicate allowed site plants still fail |
+| :1713-1745 FENCE-MODEL-HELD / E.5 row 8 | Replace debt check with TMH-ACQUISITION, not deletion. MEASURED 32 -> READ Spec target 2 pinned/zero other; READ options equality 2 unchanged. Keep extra-read plant and add all spellings; unrelated markup/text green |
+| :1669-1702 E.5 rows 15/12 | Keep no new sentence in seal and frozen tables; status/detail only, catch sentence in view. Add projection raw-return plant; do not widen copy count |
+| :1765-1790 E.5 row 19 | Keep zero Today listeners outside shim and wrapper-removal identity. Gym exception belongs to gym ticket; never restore its superseded count |
+| :1821-1910 E.6 runtime/control/source rows | Keep food/sleep. READ wrapped entries 2 becomes core 3/recommended 4, by names submitWeighIn/recoverWorkout, not global writer denominator. Positives/refusals for each, using accepted fix-round guard |
+| :1947-1983 closure/throw/reject | Keep same-instance evidence, extend new entries; decrement/finally mutants red. Do not hold dispatch scope across await; later honest gesture stays admitted |
+| :2084-2122 direct sites / RED paint | READ sites 2 becomes core 3/recommended 4. Add submit event and recovery click using balanced callback boundaries; preserve food/sleep plant, add new subjects; raw/token counts agree |
+| :653-711 other acquisition restrictions; :995-1021 gym Start | Preserve; this child owns neither Start nor wider facade-power closure |
+
+READ equality rule F:1724-1728 applies to all changed counts, including generated acquisition-window multiplicities. Intentional deltas above; facade/hook membership, workout windows and fix-round pins must be measured and reported beside each cause, never silently rebaselined. Reject undeclared deltas. No row deleted/skipped/weakened: successor retains old defect plus new boundary. The projection/helper/body pins are N verification logic; changed anchors/windows are R; all new test rows are N.
+MEASURED counts.cjs adds the remaining interface arithmetic: baseline facade 37; core sketch 46 after the declared 9 projections; baseline hooks 29, core 30, with recovery 31. Baseline released facade.workout acquisitions 9, with recovery 8; core-only stays 9. These are membership/site equalities with the exact additions/removal named in A/B, not interchangeable budgets. MEASURED both scratch app variants retain exactly 2 code-position model identifiers. Counts at the eventual child head supersede these only with a reported cause.
+Builder runs affected cells individually/sequentially with project clock, then required child CI/gates under reseal brief. No full Today step concurrently on owner's PC or manufactured receipt. Blind reviewer reruns targeted rows and independently attacks checker; PM reads all hunks. This paper author ran only named probes.
+
+## E. Parity table
+MEASURED durable.cjs ran every listed measured raw-text conversion through real Today model/reading host on fresh synthetic fake-indexeddb stores; extra.cjs covered same-day/no-store and byte-equal operations after reopening. Baseline only, not new hook/DOM. probe.cjs's stub forwards empty/NaN/Infinity: its synthetic success is not product success.
+Required old/new cell: separate stores from SAME synthetic baseline with identical device/athlete/lease, clock and operation identity inputs. Compare full serialized operations/outbox after reopen: IDs/stamps/dates/parents/payload/key order. No stripped fields or randomized-ciphertext comparison. Compare actual text/error location/active element/disabled/visibility/tap count. Success copy is host answer, not a sentence to add to the sheet; compare model message/status too.
+READ/MEASURED copy names: INVALID = "This couldn't be saved on your phone. Nothing was recorded. A weight is required."; RANGE = "A morning weight is recorded between 60 and 400 lb, to one decimal place. Nothing was recorded."; SAVED = "Saved on this phone \u00b7 not yet synced". ALREADY and NO_STORE are exact T/today-readings.cjs:33 and T/today-model.cjs:178 strings. FAIL = app:869 prefix plus selected message, then :872 plainOrDrop/fallback.
+
+| Input/state | MEASURED baseline unless marked READ; required equal output |
+|---|---|
+| Empty ''; spaces '   ' | trim -> ''; no operation; INVALID, in-place error/input focus |
+| 'junk'; 'Infinity' | NaN/Infinity reaches client; no operation; INVALID |
+| '1.8e2'; '+180'; '0xB4' | Number -> 180; one reading; lb.value=180, unit='lb', source='athlete'; SAVED |
+| '-180'; '-0' | Finite out of form range; no operation; RANGE |
+| '60'; '400' | Endpoints accepted unchanged; one reading; SAVED |
+| '59.9'; '400.1' | No operation; RANGE |
+| '180.01' | Excess precision refused, never rounded; no operation; RANGE |
+| '180.10' | Number -> 180.1; one reading with that value; SAVED |
+| Existing same-day 180, submit 181 | ALREADY; no extra operation; prior operation bytes equal after reopen |
+| Missing readings host, empty text | NO_STORE precedes client's invalid-number check; no operation |
+| READ no host + finite out-of-range; existing day + invalid text | RANGE before NO_STORE; ALREADY before both; branch order :50-61 |
+| READ '\t180\n', '  +1.8e2  ', 'NaN', '180x', '6e1', '4e2', '180.00000000000003' | Same trim/Number/form/client decision; no parseFloat/rounding; expanded cell not executed here |
+| READ refusal with null/empty copy; Error('synthetic'); throw without message | Same :869/:872 fallback/space/plainOrDrop; sheet error, not page replacement |
+| READ held commit; transaction failure; acknowledgment then repaint | No close before acknowledgment; equal operations/outbox/readback/text; retry after refusal |
+| READ repeat pending, including close/open another sheet | New path ignores second request; compare original operation. Declared concurrency correction, not parity with old extra accepted write |
+| READ cancel/Escape/steps; cancel while admitted write settles | Same field manipulation/focus and old late-result paint; no new cancellation/token policy |
+| READ stranded session/completed slots; unavailable/refused continuation; rejection; rebind | Equal day/start/unique parents/early close/preserved sets. Refusal refreshes; rejection re-enables primary and skips render; same tap/sentences |
+
+READ raw-string table is hook domain; browser sanitization may change typed spelling into another input.value. UI cells compare actual value through unchanged control, not assume browser acceptance from host probe. No keyboard/native-browser synthesis is added as a gate.
+
+## F. What Joe and a look-ticket author may notice
+Normally nothing changes: the same typed weight is saved, the same messages appear in the same place, and closing an unfinished workout takes the same tap. A second weight submission while the first is saving quietly does nothing. READ basis: app:745-754,:838-877 and E; no changed weight/workout rule.
+After this ticket a look ticket may change Today layout, spacing, typography, accessibility markup, slot composition and declared read-only display fields while preserving field value semantics and existing text/focus behavior. It may not change the raw submit expression, direct hooks.listen placement, result mapper's behavior, recovery call, acquisition pins or another named S10 exception without writer-path review and PM final. It must never reacquire the raw model or add a writer through a projection. Fence is a tripwire; every released hunk still gets independent review.
+
+## G. Open questions for PM
+Recovery is already assigned by READ :626 point (5); recommend keeping the separable part on B's measured routing cost. That is a recorded ruling, not an owner question.
+Question: does the accepted split fix strengthen Today's guard beyond the measured counter/direct-site combination? Recommend build on that accepted law and preserve its counterexamples, with no gym mechanism here. MEASURED nested-paint admission and READ F:2067-2122 explain why both halves matter. Builder reports exact head/guard/sites before editing and returns mismatches for PM adjudication, never reverting a fix silently.
+Question: confirm post-S10 product/execution-pin administrative surface in this child's brief. Recommend app released, lanes sealed, adapter/gym execution pins replaced only through child; keep model/readings custody and separate facade-power exception. READ S8 membership in C and :626 support this; final S10 artifact was unavailable here. No new product choice goes to Joe.
+
+## H. Limits and retained probes
+No candidate product built. No new repository row, old/new DOM/operation comparison, recovery durable execution, browser/phone/assistive drive, full Today/conformance/design suite, package/receipt/deployment run. Detachment/outcomes are requirements plus syntax-checked partial sketch, not projection proof. Other reports' PASS counts are READ only. Guard probe lifts the source fragment, not whole fence. Broader injected producer/lease/adoption internals are outside trace. No real athlete data, protected path, auth file or soak accessed.
+MEASURED retained folder: C:/Users/joeym/AppData/Local/Temp/astra-today-model-handoff-c02b001. Executed Node files: probe.cjs (tokenizer/plants/guard/stub writer); census.cjs (occurrences/S8 keys); counts.cjs (interface/acquisition counts); durable.cjs (real synthetic input table); extra.cjs (same-day/reopen/no-store); sketch.cjs (partial diff/isolated pending); scratch-hygiene.cjs (ASCII/LF scratch normalization/parse checks). finish.cjs records final paper hygiene. Processes sequential; exact supplied Node executable; MEASURED_TEST_NOW=2026-09-03 and TZ=America/New_York set separately before each.
+Retained data/copies, file by file: tokens.json; weight-output.json; durable-output.json; extra-output.json; handoff-control.cjs; handoff-alias.cjs; handoff-destructure.cjs; handoff-returned.cjs; handoff-computed.cjs; handoff-renamed.cjs; app.before; app.after; app-recovery.after; lanes.before; lanes.after; lanes-recovery.after. Source retrievals: after.txt; GYM-SETTINGS-WRITER-SEAL-SPEC.md; GYM-SETTINGS-WRITER-SEAL-SPEC-REVIEW-R1.md; GYM-SETTINGS-WRITER-SEAL-SPEC-REVIEW-R2.md. Copies/output use ASCII escapes. Scratch retained, not shipped.
+MEASURED preparation limits: rg unavailable; bounded PowerShell reads used. Initial NEXT/ROADMAP output truncated; relevant ROADMAP preamble/Now and task authorities read; no claim depends on historical NEXT output. No commit/push/checkout/reset/stash/clean/fetch/install/tracked edit/deletion. Sole new repository file is this paper. Final scoped status/stat is pasted in the completion commentary; untracked paper is absent from ordinary diff --stat.
+MEASURED finish.cjs, after all specification edits: 172 physical lines; 0 non-ASCII bytes; 0 CR bytes; 172 LF bytes; final newline present. Re-read and verified after writing this measurement; no later paper edit.
