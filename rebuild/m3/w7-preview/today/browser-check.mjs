@@ -98,6 +98,11 @@ try {
 
   await page.goto(url, { waitUntil: "load" });
   await page.waitForSelector('[data-slot="instruction"]');
+  const sceneWitness = await page.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());
+  assert(sceneWitness, "C-UI-1 SCENE-RUNTIME-MISSING: actual preview exposed no scene witness");
+  assert.deepEqual(sceneWitness.hooks, { theme: "ink", screen: "today", chrome: false, date: null, state: null });
+  assert.equal(sceneWitness.assets, 4, "the actual preview owns four pinned scene assets");
+  assert(sceneWitness.draws >= 1 && sceneWitness.scheduled >= 1, "the moving scene drew and scheduled a frame");
 
   /* review F2: the ONE primary action must be reachable without scrolling, in both
      states. Measured against the scrolling viewport, not the document. */
@@ -401,6 +406,19 @@ try {
   }
 
   assert.deepEqual(problems, [], "no page error, console error or offsite request");
+  const reduced = await browser.newContext({ viewport: VIEWPORT, reducedMotion: "reduce" });
+  try {
+    const still = await reduced.newPage();
+    await still.goto(url + "?theme=dawn&screen=workout&chrome=1&date=board&state=W-18", { waitUntil: "load" });
+    await still.waitForSelector('[data-slot="instruction"]');
+    const witness = await still.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());
+    assert.deepEqual(witness.hooks,
+      { theme: "dawn", screen: "workout", chrome: true, date: "board", state: "W-18" });
+    assert.equal(witness.draws, 1, "reduced motion draws exactly one still scene frame");
+    assert.equal(witness.scheduled, 0, "reduced motion schedules no scene animation frame");
+  } finally {
+    await reduced.close();
+  }
   console.log(`A1 TODAY BROWSER CHECK PASS — mounted, weighed in (${logged}), spike note shown, impossible weight `
     + `refused, survived a real reload and a new page; primary action inside the ${VIEWPORT.width}x${VIEWPORT.height} `
     + `viewport in both states (bottom ${before.bottom} and ${afterBox.bottom} of ${before.viewport}; `

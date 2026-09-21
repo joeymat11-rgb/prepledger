@@ -1,7 +1,7 @@
 "use strict";
 
-/* A1 — the binding to the design of record. These tests are what stop the page drifting
-   away from rebuild/m1/approved-2026-09-08/, and what stop a builder inventing a class,
+/* C-UI-1: the binding to the design of record. These tests stop the page drifting
+   away from rebuild/m1/approved-2026-09-18/, and stop a builder inventing a class,
    a phrase, or one of the prototype's fictional figures. */
 
 const assert = require("node:assert/strict");
@@ -12,18 +12,26 @@ const path = require("node:path");
 const { createHash } = require("node:crypto");
 const design = require("../design.cjs");
 
-test("both approved references are pinned by sha256 and read byte-for-byte", () => {
+test("all four approved stylesheets are pinned by sha256 and read byte-for-byte", () => {
   const approved = design.readApproved();
-  assert.equal(approved.length, 2);
+  assert.deepEqual(approved.map((entry) => entry.file), [
+    "rebuild/m1/approved-2026-09-18/app/app.css",
+    "rebuild/m1/approved-2026-09-18/app/states.css",
+    "rebuild/m1/approved-2026-09-18/app/states-workout.css",
+    "rebuild/m1/approved-2026-09-18/app/states-coach.css",
+  ]);
+  assert.deepEqual(approved.map((entry) => entry.sha256), [
+    "bf4924e74fc4edc5cebf7fba6519613d9eec7f44397db990396fe402c124edc2",
+    "eae53de1838338a76a416052a381494602c5fc9545c330afce2438a19a2ca219",
+    "5d6e4082c88e9129979f764dc992e4cbb0439c3a9b2e0d625535c524d47a4f0a",
+    "d33f62e0c54004063b5fe40720f220350d9311213bf80f13d49d260061ca0686",
+  ]);
   for (const entry of approved) {
     const bytes = fs.readFileSync(path.join(design.ROOT, entry.file));
     assert.equal(createHash("sha256").update(bytes).digest("hex"), entry.sha256, entry.file);
     assert(entry.styles.length > 1000, entry.file + " carries a stylesheet");
+    assert.equal(entry.styles, bytes.toString("utf8"), entry.file + " is copied byte-for-byte");
   }
-  /* Refinement A first, Additions C second, so the authoritative reference wins every
-     rule the two share — which is what keeps Today's primary action in one viewport. */
-  assert.match(approved[0].file, /Earned-refinement-A\.html$/);
-  assert.match(approved[1].file, /Earned-additions-C-approved\.html$/);
 });
 
 /* review F5: this replaces an assertion that could not fail. The pin is now pointed at a
@@ -38,9 +46,9 @@ test("a single changed byte in an approved reference fails the pin", () => {
     assert.doesNotThrow(() => design.readApproved(room), "an untouched copy still passes the pin");
     const victim = path.join(room, design.APPROVED[1].file);
     const bytes = fs.readFileSync(victim);
-    const index = bytes.indexOf(Buffer.from("Keep the plan."));
+    const index = bytes.indexOf(Buffer.from(".panel"));
     assert(index > 0, "the tampering target is really in the file");
-    bytes[index] = bytes[index] === 0x4b ? 0x6b : 0x4b;   // "K" <-> "k": one byte
+    bytes[index] = bytes[index] === 0x2e ? 0x23 : 0x2e;   // "." <-> "#": one byte
     fs.writeFileSync(victim, bytes);
     assert.throws(() => design.readApproved(room), /APPROVED-PIN FAIL/,
       "a one-byte change to the design of record fails the build");
@@ -51,12 +59,35 @@ test("a single changed byte in an approved reference fails the pin", () => {
 
 test("both typefaces are pinned by sha256 and inlined, so the page fetches nothing", () => {
   const fonts = design.readFonts();
-  assert.equal(fonts.length, 2);
-  const manifest = JSON.parse(fs.readFileSync(path.join(design.ROOT, design.FONT_DIR, "SOURCES.json"), "utf8"));
+  const expected = [
+    { family: "DM Sans", name: "earned-sans.woff2",
+      sha256: "c04be0b43dc3911dd36a7cb7203c5ff6daa4f42522e2bc2e6fa3325a61c43d8b" },
+    { family: "Liberation Serif", name: "earned-serif.woff2",
+      sha256: "ff90213df9f50596c71ada04c34d2dee9327fe86526e713a9d49a7064b1db660" },
+  ];
+  assert.deepEqual(fonts.map(({ family, name, sha256 }) => ({ family, name, sha256 })), expected);
   for (const font of fonts) {
-    const pin = manifest.files.find((f) => f.name === font.name);
-    assert.equal(createHash("sha256").update(font.bytes).digest("hex"), pin.sha256, font.name);
+    const pin = expected.find((entry) => entry.name === font.name);
+    assert.equal(createHash("sha256").update(font.bytes).digest("hex"), pin.sha256,
+      font.name + " actual bytes match the approved pin");
     assert.equal(font.bytes.subarray(0, 4).toString("latin1"), "wOF2", font.name);
+  }
+  const room = fs.mkdtempSync(path.join(os.tmpdir(), "cui1-font-pin-"));
+  try {
+    for (const font of design.FONTS) {
+      const from = path.join(design.ROOT, design.FONT_DIR, font.name);
+      const to = path.join(room, design.FONT_DIR, font.name);
+      fs.mkdirSync(path.dirname(to), { recursive: true });
+      fs.copyFileSync(from, to);
+    }
+    const victim = path.join(room, design.FONT_DIR, design.FONTS[0].name);
+    const bytes = fs.readFileSync(victim);
+    bytes[bytes.length - 1] ^= 1;
+    fs.writeFileSync(victim, bytes);
+    assert.throws(() => design.readFonts(room), /TYPOGRAPHY-(?:PIN|SIZE) FAIL/,
+      "one changed font byte refuses instead of trusting metadata");
+  } finally {
+    fs.rmSync(room, { recursive: true, force: true });
   }
   const css = design.fontFaceCss(fonts);
   assert.equal((css.match(/@font-face/g) || []).length, 2);
@@ -65,6 +96,29 @@ test("both typefaces are pinned by sha256 and inlined, so the page fetches nothi
   assert.doesNotMatch(design.shellHtml(), /https?:\/\//, "the page shell references no remote origin");
   assert.doesNotMatch(design.composeStyles(design.readApproved(), design.chromeCss(), fonts), /@import|url\(http/,
     "the shipped stylesheet fetches nothing");
+});
+
+test("all four scene images are pinned by actual bytes and embedded offline", () => {
+  const expected = [
+    { file: "rebuild/m1/approved-2026-09-18/app/assets/plate-ink-tall.jpg",
+      sha256: "e4a05e29f4e12cd763897428da63466aa7ddaa1ddf7d84264c3d6d3f04dda93e" },
+    { file: "rebuild/m1/approved-2026-09-18/app/assets/plate-dawn-tall.jpg",
+      sha256: "3192f9b2d7dea8d1efda6bd37ab4c438b939c510a6c2d496fa269e5a4479bfb4" },
+    { file: "rebuild/m1/approved-2026-09-18/app/assets/mist.png",
+      sha256: "72de840ebed8524916c8ff28bf246bbcee4ffac9ab8c0e8ec53cf40ef7325bbd" },
+    { file: "rebuild/m1/approved-2026-09-18/app/assets/grain.png",
+      sha256: "878b291b3454fca2ec07ac2d9e2bc22fb1d06604c8209a03f066e9f9a17fb57e" },
+  ];
+  const assets = design.readSceneAssets();
+  assert.deepEqual(assets.map(({ file, sha256 }) => ({ file, sha256 })), expected);
+  for (const asset of assets) {
+    assert.equal(createHash("sha256").update(asset.bytes).digest("hex"), asset.sha256,
+      asset.file + " actual bytes match the approved pin");
+    assert.match(asset.url, /^data:image\/(?:jpeg|png);base64,/);
+  }
+  const css = design.sceneAssetCss(assets);
+  for (const asset of assets) assert(css.includes(asset.url), asset.file + " is embedded in scene CSS");
+  assert.doesNotMatch(css, /url\(["']?assets\//, "the built scene has no asset fetch");
 });
 
 test("the shipped template and view bind to the approved design", () => {
@@ -171,20 +225,11 @@ test("the headline vocabulary is read out of the engine source, not hand-listed"
   assert.throws(() => design.headlineVocabulary(os.tmpdir()), /HEADLINE-VOCABULARY FAIL|ENOENT/);
 });
 
-/* review D-3: the ordering authority is cited, and the misattributed line is not. */
-test("the C-wins ordering cites the handoff line 9 and MOCK.md line 20", () => {
+test("the design binding cites C-UI-1 and the approved 2026-09-18 pack", () => {
   const source = fs.readFileSync(path.join(design.SOURCE, "design.cjs"), "utf8");
-  assert.match(source, /ADDITIONS-C-APPROVED-HANDOFF\.md LINE 9/);
-  assert.match(source, /MOCK\.md LINE 20/);
-  assert.match(source, /NOT MOCK\.md line 14/);
-  // And the cited lines really say what they are cited for.
-  const handoff = fs.readFileSync(path.join(design.ROOT,
-    "rebuild/m1/approved-2026-09-08/ADDITIONS-C-APPROVED-HANDOFF.md"), "utf8").split("\n");
-  assert.match(handoff[8], /Local authoritative implementation reference is/);
-  assert(handoff[8].includes(design.APPROVED[1].sha256), "handoff line 9 pins the C bytes");
-  const mock = fs.readFileSync(path.join(design.ROOT, "rebuild/m1/MOCK.md"), "utf8").split("\n");
-  assert.match(mock[19], /must not "improve" the design/);
-  assert.match(mock[13], /B-stage renders/, "line 14 is about the B PNGs, not Refinement A");
+  assert.match(source, /C-UI-1/);
+  assert.match(source, /approved-2026-09-18/);
+  assert.doesNotMatch(source, /approved-2026-09-08/);
 });
 
 test("the page shell has exactly one slot for the approved templates", () => {
