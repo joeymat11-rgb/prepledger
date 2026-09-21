@@ -138,11 +138,11 @@
    "role": "edited: sections 1, 3 (with 3.1), 4 and 7; 3.1 rewritten in R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": {
-   "sha256": "63758e6a552357fc8955f488c173944a2432d9e5ded1f817240f063ffc66d471",
+   "sha256": "732df8f9fc2f8f431d674be673aea43e732e73ab40b2191f52573ff2886a4c80",
    "role": "edited: actual samples and review duties, state-primary contract, numeric sibling boundary, external identity and run/skip/VOID reporting"
   },
   "rebuild/m1/approved-2026-09-18/quality/common.py": {
-   "sha256": "3292fd2c080bbf5cf6a9d87f7835033ca31ee9e15e93dbb825292759aae2074c",
+   "sha256": "1d210887dc15a0dbcb9ba6c462c1fa5b35ae6f3987a9d6e959277e650544b2f7",
    "role": "shared gate helpers; adds caller-supplied external identity and a rendered-whitespace minus channel with the narrow numeric-sibling exception"
   },
   "rebuild/m1/approved-2026-09-18/quality/gate.py": {
@@ -158,11 +158,11 @@
    "role": "review sheet; refuses an external run without immutable identity before starting a browser"
   },
   "rebuild/m1/approved-2026-09-18/quality/teeth.py": {
-   "sha256": "62457cb5231af83355c69e4487181b3b7d61ecbfe560c3bbda1eb3fdad12b1ab",
-   "role": "102 executable mutation rows; adds state-primary, numeric sibling/decoy, external identity and pre-run VOID custody rows"
+   "sha256": "75eb54d0b78a5d6f19cbc6faa8e8797fa49bc89a7a086bf12f471c38f8339828",
+   "role": "105 executable mutation rows; adds state-primary, numeric sibling/decoy, external identity and pre-run VOID custody rows"
   },
   "rebuild/lanes/c/ui-port/C-UI-0-CODEX-REPORT.md": {
-   "sha256": "bcb638369b59be5aa43911e893d8d4c1317af323fc9151c4f11c2b4997efd46e",
+   "sha256": "3b11814d9e39eb3fde977a50d6f6318bbfb1701d550e58c871465a9474910a32",
    "role": "Sol author report; red custody, focused author evidence, ordinary gate and pending independent obligations"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": {
@@ -993,7 +993,7 @@
   "13": {
    "class": "M: fixed, with a permanent row that goes red when the protection alone is removed (successor only)",
    "before": "executed red by y13a and y13b at 814f0a0: honest signed values after a colon, the multiplication sign, a currency sign, an equals sign, a quotation mark, a brace and a slash were refused as dashes",
-   "fix": "the closed opener/range rules remain. The minus channel uses rendered innerText whitespace and adds a TAB only between adjacent numeric sibling elements separated by markup whitespace. It does not turn a boundary inside a word, adjacent spans without whitespace or a source newline collapsed by normal-flow HTML into a cell. Word/vendor/Cf and set sweeps retain the flat text.",
+   "fix": "the closed opener/range rules remain. The minus channel uses rendered innerText whitespace and marks the exact markup-whitespace DOM occurrence between adjacent numeric siblings before rendering it as TAB. It does not search equal flat text elsewhere, or turn a boundary inside a word, adjacent spans without whitespace or a source newline collapsed by normal-flow HTML into a cell. Word/vendor/Cf and set sweeps retain the flat text.",
    "reading": "the lane lead's brief words the range test as the nearest non space character before the OPENER. It is implemented as the PM ruled it in P-CUI-4, the nearest non space character before the SIGN: the two are the same whenever the opener is a space, and only this reading lets a digit stand before a slash or the multiplication sign, which the PM's row y13b requires. The lead should confirm.",
    "rows": [
     "w1",
@@ -1011,10 +1011,13 @@
     "z4",
     "z8",
     "z9",
-    "z10"
+    "z10",
+    "z11",
+    "z12",
+    "z13"
    ],
-   "controls": "z4 and w1/w2/w4/w5/w10/w11 are positive. z8 split-word, z9 collapsed-newline and z10 adjacent-span range are negative alongside w3/w8/w9/q11. z8 red is published at 103ad57.",
-   "revert": "author focused candidate ran all listed z/w/q numeric cases plus readiness/vendor/Cf/set controls as expected. Independent exact-candidate execution remains pending."
+   "controls": "z4/z13 and w1/w2/w4/w5/w10/w11 are positive. z8 split-word, z9 collapsed-newline, z10 adjacent-span range and z11/z12 equal-text opposite orderings are negative alongside w3/w8/w9/q11. z8 red is 103ad57; occurrence red is cf31f82.",
+   "revert": "author repaired-source focus ran z4, z8-z13, w1-w11, q8/q9/q11 and readiness/vendor/Cf/set controls: 25/25 as expected. Independent exact-candidate execution remains pending."
   },
   "14": {
    "class": "M: fixed, with a permanent row that goes red when the protection alone is removed (successor only)",
@@ -1043,14 +1046,14 @@
   },
   "18": {
    "class": "D",
-   "words": "STANDARD section 13 matches current code: 102 teeth rows; U+2060/fold_spaces; conservative target exclusions; 372-row green gate; exact eight pressed sample; admitted 400 versus design 430 floor; radius sampling; state-primary contract; numeric sibling exception and its three decoys; immutable external identity; launched/skipped/VOID counts. Candidate file digests below were recomputed after the author run."
+   "words": "STANDARD section 13 matches current code: 105 teeth rows; U+2060/fold_spaces; conservative target exclusions; 372-row green gate; exact eight pressed sample; admitted 400 versus design 430 floor; radius sampling; state-primary contract; numeric sibling exception and occurrence decoys; immutable external identity; launched/skipped/VOID counts. Candidate file digests below are refreshed after scoped author proof."
   },
   "codexRepair": {
    "status": "PROPOSED author candidate; independent full state sheet, Windows reviewer and Claude final remain pending",
-   "sourceCheckpoint": "1163b7a385c1158e5b2e0d464ed6f1ac7ae21ef9 (unaccepted implementation); later uncommitted numeric narrowing is bound by file digests below",
-   "red": "f8a68ced item4; 103ad57 z8 split-element bypass; independent external identity and VOID counterexamples",
-   "authorFocused": "28 enumerated, 28 run, 0 skipped, 0 VOID, 0 disagreeing, 189 s; retained %TEMP%/cui0-author-evidence/candidate-focused-28-green.txt sha256 9c3812f4f5760c96d590494e4e286ffa3ed1b8e3a0f6ee3b957d866f2f18a8d2",
-   "authorOrdinaryGate": "0 FAIL, 0 WARN, 372 PASS; retained %TEMP%/cui0-author-evidence/candidate-gate-372-green.txt sha256 cb458fa9ac3117e924db9d0c9df39fc9e7249996db0f7bdcbffd806b121fc745",
+   "sourceCheckpoint": "cf31f82a668aee79a5fb52bf1f78132facf8989d durable occurrence red; repaired child is bound by file digests below",
+   "red": "f8a68ced item4; 103ad57 z8 split-element bypass; cf31f82 equal-text occurrence bypass; independent external identity and VOID counterexamples",
+   "authorFocused": "25 enumerated, 25 run, 0 skipped, 0 VOID, 0 disagreeing, 179 s; retained %TEMP%/cui0-author-evidence/occurrence-focused-25-green.txt sha256 336002601c0d14e2b3b8216f0fc12e84d69871fcf03a413dc19fa07173bc37bb",
+   "authorOrdinaryGate": "0 FAIL, 0 WARN, 372 PASS; retained %TEMP%/cui0-author-evidence/occurrence-gate-372-green.txt sha256 cb458fa9ac3117e924db9d0c9df39fc9e7249996db0f7bdcbffd806b121fc745",
    "excluded": "first 25-row attempt stopped every browser row at missing JS_SEEN wiring; second was 24/25 with invalid old z2; neither is green evidence"
   },
   "yRowPreCheck": {
@@ -1619,7 +1622,7 @@
     }
    }
   },
-  "prototype": "nothing under app/ changed on this branch beyond the one owner ratified line in app.css, and the unmutated prototype is green under every repaired check. One repaired rule did redden it and was withdrawn, not softened: item 4, the state sheet and a primary that is on the page and not drawn (58 of 418 renders).",
-  "C-UI-GATES-2": "the named home of what was narrowed or deferred: widening the sampled checks of findings 4 and 7, making accept transactional (finding 8), and a permanent teeth row for the state sheet's Refused branch (re-check note 5). Added by the one list: the per state expected primary contract (item 4), the nested gaps and the rest of the sampled scope (item 15), and the permanent Refused pair (item 11)."
+  "prototype": "nothing under app/ changed on this branch beyond the one owner-ratified line in app.css. Historical context: a global drawn-primary requirement reddened 58 of 418 renders and was withdrawn. That deferral is superseded by audit2 item 4's frozen state-specific contract, which names 29 intentional no-primary states and requires the other 180 selectors.",
+  "C-UI-GATES-2": "the remaining named home of narrowed or deferred scope: widening sampled geometry/contrast/pressed/radius/gap/type checks, making accept transactional, and the permanent state-sheet Refused pair. The state-specific expected-primary contract is no longer deferred; audit2 item 4 closes it here."
  }
 }

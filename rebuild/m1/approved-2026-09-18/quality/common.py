@@ -543,9 +543,10 @@ JS_SEEN = JS_RENDERED + """
 # sweep this one string so neither can be stricter than the other.
 JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui');
     if(!ui)return {text:'', unreadable:[]};""" + JS_SEEN + """
-    const parts=[ui.innerText], unreadable=[];let minusText=ui.innerText;
+    const parts=[ui.innerText], unreadable=[];
     const attrs=['placeholder','aria-label','title','alt'];
-    const push=v=>{if(typeof v==='string'&&v.trim()){parts.push(v);minusText+='\\n'+v}};
+    let minusText='';const extra=[];
+    const push=v=>{if(typeof v==='string'&&v.trim()){parts.push(v);extra.push(v)}};
     /* attr() is resolved into a quoted string by the time getComputedStyle answers, so it is swept.
        counter() and counters() are not: the computed value still carries the call, and the number
        the screen draws is not available here. That is its own FAIL, never a silent pass. */
@@ -559,19 +560,28 @@ JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui')
     /* innerText owns rendered whitespace semantics: a formatting newline in normal-flow source
        remains a space, while PRE/TAB/table cells keep their rendered boundary. The one addition
        is the approved pair of numeric sibling cells: separate elements, markup whitespace between
-       them, and each entire element is a signed or unsigned number with an optional unit. */
+       them, and each entire element is a signed or unsigned number with an optional unit. A
+       temporary private-use marker occupies that exact whitespace while innerText renders it;
+       replacing the marker with TAB cannot attach a later pair to an equal phrase elsewhere. */
     const numeric=/^[+\\-\\u2212]?\\d+(?:[.,]\\d+)?(?:\\s*[A-Za-z%]+\\.?)?$/;
+    let marker='\\uE000';while(parts[0].includes(marker))marker+='\\uE001';
+    const eligible=[],touched=[];
     ui.querySelectorAll('*').forEach(p=>{const ns=Array.from(p.childNodes);
       for(let i=0;i<ns.length;i++){const a=ns[i];if(a.nodeType!==1||!__seen(a))continue;
-        let j=i+1,space=false;while(j<ns.length&&ns[j].nodeType===3&&/^\\s*$/.test(ns[j].textContent))
-          {space=space||ns[j].textContent.length>0;j++}
-        const b=ns[j];if(!space||!b||b.nodeType!==1||!__seen(b))continue;
+        let j=i+1,gap=[];while(j<ns.length&&ns[j].nodeType===3&&/^\\s*$/.test(ns[j].textContent))
+          {if(ns[j].textContent.length)gap.push(ns[j]);j++}
+        const b=ns[j];if(!gap.length||!b||b.nodeType!==1||!__seen(b))continue;
         const l=a.innerText.trim(),r=b.innerText.trim();if(!numeric.test(l)||!numeric.test(r))continue;
-        const flat=l+' '+r,at=minusText.indexOf(flat);if(at>=0)minusText=minusText.slice(0,at)+l+'\\t'+r+minusText.slice(at+flat.length)}});
+        eligible.push(gap)}});
+    try{eligible.forEach(gap=>gap.forEach((n,k)=>{touched.push([n,n.data]);n.data=k?'':marker}));
+      minusText=ui.innerText.split(marker).join('\\t')}
+    finally{touched.forEach(x=>{x[0].data=x[1]})}
+    if(touched.some(x=>x[0].data!==x[1]))unreadable.push('minus-cell DOM restoration failed');
     ui.querySelectorAll('*').forEach(e=>{if(!__rendered(e))return;
       attrs.forEach(a=>push(e.getAttribute(a)));
       if(('value' in e)&&e.tagName!=='BUTTON')push(e.value);
       gen(e,'::before');gen(e,'::after')});
+    if(extra.length)minusText+='\\n'+extra.join('\\n');
     return {text: parts.join('\\n'), minusText: minusText, unreadable: unreadable}}"""
 
 # the check name both gates use when generated content carries a value the sweep cannot resolve

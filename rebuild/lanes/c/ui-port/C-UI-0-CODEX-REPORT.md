@@ -25,9 +25,10 @@ element boundary exited 0 with no COPY failure. Its retained report is
 %TEMP%/cui0-author-evidence/1163b7a-z8-red.txt, SHA-256 2f59f01f48d6899603
 dd9b86aa2809b9159deaac56d2f7a2f58121804fd691d. Independent probes also found
 an adjacent-span range and a normal-flow collapsed source newline bypass.
-At final 5f12f8c, a later honest pair with equal flat text hid an earlier
+At 5f12f8c, a later honest pair with equal flat text hid an earlier
 forbidden range: exit 0, 63 PASS and no COPY failure, with restored hashes.
-Durable z11/z12 hold both orders; z13 holds duplicate honest pairs.
+Durable z11/z12 hold both orders; z13 holds duplicate honest pairs. Occurrence
+red checkpoint: cf31f82a668aee79a5fb52bf1f78132facf8989d.
 
 An external-target identity probe found report_identity omitted its supplied
 SHA-256. A failed q5 mutation anchor started no child but was reported as one
@@ -47,11 +48,11 @@ radius check, state primary contract and external identity custody.
 
 Independent approved-source census: 418 renders, both themes agreeing, every
 state applied, zero page/console errors; selector counts are above.
-At 5f12f8c, prior focused candidate: 28 run, zero skipped/VOID/disagreeing,
-189 s. Retained report SHA-256: 9c3812f4f5760c96d590494e4e286ffa3ed1b8e
-3a0f6ee3b957d866f2f18a8d2. Same-source ordinary gate: 372 PASS, 0 FAIL/WARN,
-both themes and all three sizes. Retained report SHA-256: cb458fa9ac3117e924
-db9d0c9df39fc9e7249996db0f7bdcbffd806b121fc745.
+At the repaired child of cf31f82, focused numeric/copy controls: 25 run, zero
+skipped/VOID/disagreeing, 179 s. Retained SHA-256: 336002601c0d14e2b3b8
+216f0fc12e84d69871fcf03a413dc19fa07173bc37bb. Same-source ordinary gate:
+372 PASS, 0 FAIL/WARN, both themes and all three sizes. Retained SHA-256:
+cb458fa9ac3117e924db9d0c9df39fc9e7249996db0f7bdcbffd806b121fc745.
 The earlier missing-JS_SEEN run and 24/25 invalid-z2 run are excluded.
 No accept path, baseline write, prototype edit, external crawl or full suite
 was run. The PATH-Python missing-numpy attempt is environmental non-evidence.
