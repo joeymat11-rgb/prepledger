@@ -1,26 +1,64 @@
 # Earn on phone: options, not a decision
 
-Evidence head: 89a9c4ccc9021ae9fb9efd4ef07f41863213f7fc.
-Assignment: paper only. No option is approved or implemented by this paper.
-READ means source inspection at that head. MEASURED means execution using
-invented inputs at that head. All numerical examples are INVENTED.
+## For Joe
 
-## 1. The question in one screen
+"The phone earns weights" means your saved workouts can earn an offer to lift more.
+The app checks what you lifted, your reps and how hard they felt; you still say yes.
+The heavier weight appears when that lift is next allowed to move up.
+Until then, your card stays as it was; a workout already started stays as it was.
+You have ordered this after the look and before your trial. The choice is how.
 
-Today, hitting every rep twice on the phone does not earn a heavier load.
-A lifter would expect the next workout to offer the next earned weight.
-It still needs the other checks, and a change needs his yes.
-One way: offer it when he finishes, then ask him to accept.
-Another: offer it when he next opens his workout, then ask him to accept.
-Another: let him ask for a check and accept the earned change there.
-Another: let the coach offer it and apply it after his yes.
-These are choices for Joe, not instructions to build.
+A. Ask for a check: Finish saves your workout; a button lets you ask for the offer.
+It takes the least added work, but if you forget the button, your weight stays put.
 
-The evidence for today is in section 2. The choices remain unapproved.
+B. Offer after Finish: once your workout is saved, the app offers the earned weight.
+It needs extra work to recover an unanswered offer; a failed offer must not hide a save.
+
+C. Offer next time: Finish saves; the choice appears when you next open your workout.
+It needs extra checks around starting and resuming; getting them wrong changes a workout underway.
+
+D. Ask the coach: Finish saves; you ask for the offer and say yes in the conversation.
+It adds a conversation and more connections to prove; an "accepted" reply could fail to reach your card.
+With any choice, no yes means no newly accepted increase on the next card.
+
+I recommend B because you see what you earned while the workout is still fresh.
+It includes A's button to recover a missed offer, without making remembering it your job.
+The coach route cannot be promised in that window on the evidence available here.
+
+The separate fault could show and save an extra jump without your agreement, then lower it again.
+You already ordered its repair; none of these choices asks you to approve that again.
+Which choice do you want, including the changes needed to offer and save your next weight?
+If B cannot be ready and checked before the trial, would A be acceptable instead?
+
+## Evidence and the owner's settled timing
+
+Paper only; Astra authors, a Claude hand checks, PM4 judges. No option is
+selected, built or authorized here. READ authority: DECISIONS.md:412,
+:569 point 3, :613 and :631, read as selected lines from
+refs/remotes/origin/rebuild/t2-client-core, without fetching.
+READ revision head: a731f48393a1d7a79b0bb86afebfd8efca2d0ec3.
+READ original evidence head: 89a9c4ccc9021ae9fb9efd4ef07f41863213f7fc.
+The complete EARN-ON-PHONE-OPTIONS-CHECK.md at this worktree is the check.
+Its measurements are attributed below; they are not reruns by this revision.
+Original measurements retained below are explicitly attributed to the original
+paper. All fixture inputs AND numerical outputs are INVENTED synthetic cases,
+never Joe's measurements. READ labels source facts/constants; MEASURED labels
+executed observations with their author; ESTIMATE labels proposed scope.
+Citation lines, hashes, section/row/file IDs and milestone names are READ
+identifiers, not measurements or estimates of delivery. A paragraph's label
+applies to all its quantities; table quantities carry their own labels.
+
+READ - :631 settles WHEN: the S9 seal and the look, then phone earning, then
+trial day one. The split/Edit My Week follows; already-running work yields
+hands, rather than becoming a prerequisite. It also orders the separate
+untapped-entry repair now. Ordered is not landed: acceptance and seal completion
+were not measured here. None of the options asks Joe to order that repair again.
+The choices still need his word for their NEW engine behavior. No calendar
+length for this window was supplied, so no day/hour completion claim follows.
 
 ## 2. What already exists and is proven
 
-All citations are relative to the repository and the evidence head above.
+Original citations are relative to the repository and original evidence head.
 Bare engine filenames in this paper mean rebuild/engine/.
 READ describes inspected source, not a fresh gate pass. Proposed designs below
 are conditional, not claims that missing functions already exist.
@@ -58,7 +96,7 @@ ratings are zero; `en.rir >= 1` releases the hold. :368 excludes the first
 technique-era session from the generic earn. :338-349 separately adopts a
 first/different logged scalar load; :261-268 lands a queued debut. A load can
 therefore change by adoption rather than by earning. These are distinct acts.
-READ - rebuild/engine/progression.cjs:346-370 gets the next greater recorded
+READ - rebuild/engine/progression.cjs:359-370 (nextLoad) gets the next greater recorded
 rung, otherwise the configured increment; missing load returns null. None of
 the options below supplies its own increment, error band or effort threshold.
 
@@ -71,8 +109,8 @@ not a durable writer or an authorization. READ - rebuild/m4/workout/
 engine-runtime.cjs:38-40, :68-78 exposes five readers, not deriveSighting,
 earnWalk or completeSession. Composing a factory is not exposing a writer.
 
-MEASURED - using the invented-only constructor printed at
-rebuild/coach/EARN-ON-PHONE-GAP-MAP.md:136-165, executed again at this head:
+MEASURED by the original paper, not rerun here - using the invented-only constructor at
+rebuild/coach/EARN-ON-PHONE-GAP-MAP.md:136-165, executed at the original evidence head:
 INVENTED working load 100, rung list [90,95,100,105,110,115], set count 2,
 window ceiling 12, two native sessions with loads [100,100], reps [12,11]
 and exact reserve [2,0]. deriveSighting returned {topAt:100,topRun:2};
@@ -81,9 +119,9 @@ runtime cards agreed at load 100; input state stayed byte-identical.
 Code exercised: progression.cjs:608-653; today.cjs:89-112; both runtime
 compositions (rebuild/m4/workout/engine-runtime.cjs:53-69 and
 rebuild/m3/w6/host/engine-runtime-host.cjs:97-114).
-Every number in this paragraph is INVENTED fixture data or its measured result.
+Every fixture value and output in this paragraph is INVENTED; citations are READ identifiers.
 
-MEASURED - same INVENTED fixture with working load null: card load null,
+MEASURED by the original paper - same INVENTED fixture with working load null: card load null,
 baselineAsk true, targets [0,0]. Changing the second INVENTED rep line to
 [12,10] made deriveSighting return {topAt:null,topRun:0}. A typed EDITED entry
 whose original load was 100 and current load 110 still produced a card at 100;
@@ -125,10 +163,18 @@ requires provisional/no-next-load receipts (rebuild/engine/migrate.cjs:35-74,
 especially :51-62). Ordinary migration reconciles without mint (:2118).
 READ - import preparation calls migrate(mergeState(...)) when local state
 exists (rebuild/m4/import/replay-core.cjs:44-49).
-Thus the shipped import merge can create a legacy joint earn; it is not just
+Thus the shipped import merge can mint new queue items; it is not just
 a transport of pre-existing queue items. Native sightings alone do not meet
 that old-entry lookup. Native observation admission expressly is not consent
 to invoke completion/plan effects (rebuild/m4/import/replay-core.cjs:178-188).
+
+MEASURED BY THE CHECK, section 6 - the merge itself minted the same unsafe
+PROPOSED-first pair when both invented replicas had empty queues. INVENTED
+output: [PROPOSED 110, DEBUT 105], then card 110 with no tap. With each replica's
+one-sighting offer still live, mint was blocked; a further qualifying completion
+then minted the unsafe pair. Migration/reconciliation left entry order unchanged.
+This proves a producer reachable through the shipped import preparation route;
+it is not an end-to-end phone import or native Finish measurement.
 
 ### The consent-selection discrepancy is real
 
@@ -137,38 +183,73 @@ genSession retains selected exercise IDs (:92-93), then finds the FIRST active
 debut/unlock for that exercise without excluding PROPOSED (:97). It reads that
 entry's newW (:98). Selection by exercise identity loses queue-entry identity.
 
-MEASURED - all following loads and counts are INVENTED. Same native fixture,
+MEASURED by the original paper - all following loads and counts are INVENTED. Same native fixture,
 queue order: debut/PROPOSED newW=110, then debut/DEBUT newW=105, both unfinished
 and for the same active lift. pickStructural selected the latter, 105;
 genSession prescribed 110. Reversing order prescribed 105. PROPOSED alone
 selected no structural item and prescribed the unchanged 100. The defect
 needs an eligible item for that same lift; an isolated PROPOSED is not enough.
 
-MEASURED - earnWalk itself reproduced the dangerous ordering with INVENTED
+MEASURED by the original paper - earnWalk itself reproduced the dangerous ordering with INVENTED
 w=100, topAt=100, topRun=1, reps=[12,11], previous same-load reps=[12,11],
 exact opener reserve=2 and terminal reserve=3, and the INVENTED ladder above:
 queue [{state:PROPOSED,newW:110},{state:DEBUT,newW:105}]; card load 110.
 This executes earn.cjs:75-88 and today.cjs:92-98, not a native Finish writer.
 It is stronger than merely hand-constructing a possible queue.
 
-The paper does not repair it. Every viable option below budgets an authorized
-engine correction and a row covering this exact order. Confirmation cannot be
-claimed while an untapped alternative can supply the card's load.
+### Separate repair already ordered: shown AND written down
+
+MEASURED BY THE CHECK, sections 2-5 - completeSession itself produced the
+unsafe order. In its INVENTED ladder fixture, working load 100, reps [10,10],
+window 8 to 10, opener reserve 2 and terminal reserve 3, the next card showed
+110. Completing that card marked the UNTAPPED entry ESTABLISH and stored
+ex.w=110 and ex.wSets=[110,110]. The leftover classic DEBUT then showed 105,
+below stored 110, and its completion stored 105 with another ESTABLISH.
+The INVENTED output sequence was 100 -> 110 -> 105: an unconsented increase,
+a recorded regression without a deload/reset, and the same earn debuting twice.
+A genuine tap correctly superseded the lower entry; the reversed-order control
+also worked. The invariant is agreement between selected entry, card and store,
+with no PROPOSED entry landing before its promised tap.
+
+MEASURED BY THE CHECK, section 8 - changing only today.cjs gave INVENTED
+card 105/store 110; changing only writers.cjs gave INVENTED card 110/store 105;
+changing both gave INVENTED card 105/store 105. READ :631 orders exactly
+2 clauses in 2 files: add `x.state !== "PROPOSED"` to today.cjs:97 and
+writers.cjs:227, matching today.cjs:55. It does not authorize a broader
+queue redesign. Both are sealed engine files (READ S8 keys :286 and :296).
+
+MEASURED BY THE CHECK, section 7 - repaired public conformance reported
+99 reference GREEN, 99 STRONG, 141 mutants detected, 70 adapter GREEN and
+29 RED-as-specified, identical to baseline. No existing assertion row or golden
+changed in its runs. This is not proof the defect was harmless: the public
+progression laws use a reference model, not this card/writer lookup, and the
+census reads targetsFor. The check reports 6 cells unable to load and 7 other
+baseline failures, unchanged with repair; it is not a full green engine gate.
+It did not run the port oracle, sensitivity pass or full selftest. Those owed
+checks must be named and resolved under the repair's acceptance process.
+
+READ - :631 orders the check's EPP-R1 through EPP-R7 producer-order, card,
+store, regression/double-debut, tap, reversed-order and half-repair witnesses.
+The repair follows its own engine review and seal path; it rides S9 if ready,
+otherwise S10, and the look never waits. Native earning must consume an
+accepted repaired parent (or accepted repair carried into its chosen child).
+That dependency is not another taste decision or permission request.
 
 ## 3. The options
 
-These are four proposed designs, not a build brief or a ranked decision.
-A is the smallest complete product slice described here. D is the one I would
-not pick as the first repair: it makes a basic workout capability depend on a
-coach conversation. It remains a real design for a conversational product.
+These are proposed designs, not a build brief or an owner decision.
+A is the smallest slice; B is my recommendation because the offer follows the
+workout without a remembered request. D adds a conversation dependency. Each
+option must now be built, reviewed and sealed after the look and before trial;
+the separate defect repair is an accepted-parent dependency, not an option.
 
 ### Shared obligations, deliberately explicit
 
-PROPOSED - Every option saves facts on Log and Finish without changing the
-working load. It offers a specific engine-issued change and applies it only
-on a separate yes. Finish means the workout is finished, not yes to a heavier
-weight. All four also offer adoption of a first/different observed load as a
-separate, clearly named choice, not as an earned increase.
+PROPOSED invariant - Log/Finish save facts, never authorize a new load.
+A later qualified Close can land an ALREADY accepted debut on source projection.
+Every new offer requires a separate yes; Finish itself is not that yes. Each
+option also offers adoption of a first/different observed load as a separate,
+clearly named choice, not as an earned increase.
 
 READ - this follows the assignment's locked rule and DECISIONS.md:89;
 rebuild/coach/TOOL-CONTRACT.md:4-6,447-488 requires engine-issued numbers and a
@@ -261,190 +342,112 @@ limitation on mixed-load lifts and the PM names the completion work. It must
 not be called the general solution. All file/row estimates below budget the
 vector obligation, not a silent scalar-only success.
 
-### A. Ask for the check, then accept (smallest)
+### A. Ask for the check, then accept
 
-(a) Athlete sentence: "Tap Check next weight when you want; if you have earned
-a change, see why and tap Yes to use it in an eligible future workout."
+SEE: Finish shows the saved workout; it does not offer a new weight by itself.
+Check next weight shows the engine's offer/reason or why the load stays put.
+After Yes, the next eligible new card shows the accepted target; before Yes
+it keeps the prior authorized plan. An already-started workout stays fixed.
+WRITE: Log/Finish save observations/Close. The check writes no plan effect.
+Yes durably stores its issuance and response; adoption establishes working
+load then, while an earn queues a target and establishes working load only
+from the later qualifying completed debut. Restart reconstructs that effect.
+BYTES/SEALS: new engine FC01 requires Joe's own word. From the accepted repair,
+use FC03-FC13 and FA01-FA03; every S-marked file below needs the selected child
+seal. Separate repair dependencies are FC02 and FC02b, never a new option choice.
+RISK: he misses the button and never advances; stale evidence or duplicate
+checks could apply the wrong increase. Inputs/outputs must satisfy the common
+invariants and N01-N20 plus A01-A02 below.
+SIZE: ESTIMATE 15 + R incremental component files, ESTIMATE 9 S8-key files + R,
+ESTIMATE 22 named row families including inherited repair preservation N01.
+WINDOW: the smallest credible fallback. It can fit only if the shared durable
+writer/import protocol, exact parent manifest, full engine proof, independent
+engine review, PM final, CI and phone restart/card witness fit before trial.
+No automatic Finish/open integration is required, but a visible usable button
+and recovery are required. Small UI does not make the common engine work small.
 
-(b) No writer runs on Log or Finish. A user request evaluates the whole
-unspent completed native history on demand; the card is a transient offer.
-On confirm, applyNativeLoadDecision projects an adoption into w or an earned
-increase into the accepted queue. For the latter, w lands from the later
-qualified native Close when the source projection next reads it. No counter or pending
-offer needs a separate persistent store.
+### B. Offer immediately after Finish (recommended)
 
-(c) A separate Yes is mandatory for increase and adoption. The model supplies
-no number; the engine emits the offer. The automatic legacy branch can only
-supply a candidate under this new native contract, never a silent apply.
-
-(d) Proposed touched files: FC01-FC13 plus FA01-FA03 in the inventory below.
-Every engine edit needs Joe's own word; every S8 key needs a successor seal.
-No existing queue, consent or replay file is presumed safe merely because the
-new button is small.
-
-(e) Unchanged pure functions: the common readers above. New functions:
-evaluateNativeLoad, applyNativeLoadDecision, foldNativeLoadDecisions and
-requestNativeLoadCheck. The request function lives in the new panel/host;
-the fold lives in FC03. No on-close adapter is needed.
-
-(f) Every edge row in the table applies at the requested check and again at
-Yes. An edit/late import between those moments makes the offer stale. A fresh
-lift can use the same explicit check to confirm its baseline. A missed rep
-gets an honest reason for staying put. Other-device evidence must be admitted
-before it can count; the button does not fetch or assume unseen history.
-
-(g) Risks: he never finds the button, so the load never moves (A01); a repeated
-check spends a sighting twice (A02/N15); scalar projection turns a different
-logged load into a top at the card's load (N09/N11); the queue bug changes an
-untapped offer (N01). Each is an athlete-visible failure, not just a cache bug.
-
-(h) Smallest new bar: N01-N20 plus A01-A02, all specified below, red first.
-Existing engine/reseal and both-OS CI requirements also stand.
-
-(i) New science numbers needed: NONE for this design. It reuses the quoted
-rule, actual equipment increments, and exact source identity. No expiry,
-reminder interval, calibration-session count or load tolerance is introduced.
-
-### B. Offer immediately after Finish
-
-(a) Athlete sentence: "After your workout is saved, see the weight you have
-earned and say Yes if you want to take it next time."
-
-(b) Finish first durably records Close. After that acknowledgement the host
-computes an offer from that completed basis. The offer is recoverable by
-re-derivation if the app closes; it is not a load write. Only the separate
-confirm persists the accepted decision: adoption projects w then; an earn
-authorizes the queued target and w lands from its later qualified native Close
-on the next projection. Log never changes w.
-Failure to calculate an offer cannot make the saved workout disappear or
-turn Saved into a false statement.
-
-(c) Finish and Yes are distinct controls/messages. The same engine-issued,
-basis-bound consent applies; neither completion nor viewing a success screen
-is implied yes. Existing automatic candidates are offered under that boundary.
-
-(d) Proposed touched files: FC01-FC13, FA01-FA03, FB01-FB02. The extra Finish hook
-is free in S8 but its gym host is sealed. See the full classification below.
-
-(e) Reuses the same unchanged pure readers. Adds offerAfterDurableClose,
-recoverFinishedOffer and the shared evaluator/effect fold. No new physiology
-and no completeSession call inside a Close replay.
-
-(f) The common edge table applies. Edits after Finish stale the offer; late
-Close uses its source basis; fresh/different loads are labelled adoption, not
-success. Missed reps still save. Another device's Close cannot be treated as
-a second completion; re-entry recovers the same evidence identity.
-
-(g) Risks: a crash hides an earned offer forever (B01); a failed offer makes
-Finish appear unsaved (B02); the app applies a change just because Finish was
-tapped (N05); retry/import double-earns (N06/N14/N15); noisy evidence jumps the
-load (N03/N04/N12).
-
-(h) Smallest new bar: N01-N20, A01-A02, B01-B02. A's explicit check remains
-as recovery/discoverability entry. Red first; full engine/reseal bar stands.
-
-(i) New science numbers needed: NONE. No extra "successful workout" score,
-rest interval or grace count. Recovery is driven by fact identity, not a timer.
+SEE: Finish first confirms the workout is saved, then offers the earned weight
+with a separate Yes; an ineligible workout gets a reason for staying put.
+The next eligible new card changes only after Yes. A's button recovers an
+unanswered still-valid offer if he leaves or the app closes.
+WRITE: Close commits before evaluation; offer failure cannot revoke that save.
+Only Yes persists the issued decision. Adoption establishes working load then;
+an earn queues the target and working load lands from its later qualified
+Close. Recovery derives the offer again without double-counting the workout.
+BYTES/SEALS: new engine FC01 needs Joe's own word; FC03-FC13, FA01-FA03 and
+FB01-FB02 follow the inventory's seal statuses. In addition to A's sealed
+paths, gym-host.mjs is sealed. FC02/FC02b are the separate repaired dependency.
+RISK: offer failure is mistaken for a lost workout, or double Finish earns
+again; an unanswered offer can disappear. N01-N20, A01-A02 and B01-B02 cover
+the shared obligations and saved-Close/recovery counterexamples.
+SIZE: ESTIMATE 17 + R incremental component files, ESTIMATE 10 S8-key files + R,
+ESTIMATE 24 named row families including inherited repair preservation N01.
+WINDOW: credible only if A's whole common path is accepted in time and the
+existing durable Finish acknowledgement can host the offer without waiting
+for the Today split. Prove crash-after-save recovery and Saved-is-saved, then
+full engine review, PM final, CI, seal and a phone Finish-to-card
+witness before trial. If this does not fit, PM brings the concrete A fallback
+to Joe; this paper does not silently substitute it or start a non-earning trial.
 
 ### C. Derive the offer on next open
 
-(a) Athlete sentence: "When you next open your workout, see any earned weight
-change and choose Yes before the new workout uses it."
+SEE: Finish confirms save; the next fresh workout open shows any earned offer
+before Start. Yes changes the next eligible new card. On resume, the active
+card stays fixed and the offer clearly applies to a later workout.
+WRITE: open/reload evaluates without a plan write. Yes commits the issued
+response; adoption establishes working load then, while an earn queues its
+target and working load lands from a later qualified Close. Start is not Yes.
+BYTES/SEALS: new engine FC01 needs Joe's own word; FC03-FC13 and FA01-FA03 have
+the same seal scope as A. FC02/FC02b remain the separately ordered dependency.
+RISK: Start bypasses the choice; repeated open spends evidence again; a resumed
+workout is silently changed. Require N01-N20, A01-A02 and C01-C03.
+SIZE: ESTIMATE 15 + R incremental component files, ESTIMATE 9 S8-key files + R,
+ESTIMATE 25 named row families including inherited repair preservation N01.
+WINDOW: possible only if the common writer proof fits and the accepted current
+open/Start composition can isolate new starts from resume without waiting for
+the split. Review, seal and phone proof must include reload, import projection
+and resume. Equal file count to A does not imply equal work or a faster window.
 
-(b) On open, evaluate completed evidence as a pure projection; keep no durable
-sighting/offer cache. Open itself writes no w. Confirm commits the accepted
-decision: adoption reconstructs w then; an earn authorizes a queued debut,
-whose later qualified Close establishes w on the next projection. A resumed
-active capture remains fixed; the offer explicitly applies after it.
+### D. Coach-mediated offer and yes
 
-(c) Opening, scrolling, or tapping Start cannot count as Yes. The coach may
-explain the engine's result but cannot create it. This is not persistent
-replay of completeSession on every open.
-
-(d) Proposed touched files: FC01-FC13, FA01-FA03. Same proposed file count as A,
-but the boot/open path is more consequential and needs additional behavior
-rows. No shortcut past sealed today-bindings or import replay.
-
-(e) Reuses unchanged common readers. Adds deriveOpenLoadOffer and
-revalidateBeforeStart, with the shared evaluator/effect fold. An accepted
-effect is replayed once by identity, not earned again from its observations.
-
-(f) Common edge table at open and confirm. Late logs/corrections received
-between visits naturally change the unaccepted offer; edited plan authority
-still wins. Fresh-lift baseline adoption appears on the next open. Missed
-prefix reps remove an unaccepted earn. A second device needs the same
-admitted facts/consent set to derive the same answer.
-
-(g) Risks: a previously earned load never moves because Start bypasses the
-offer (C01); merely reopening mutates the plan (C02); a corrected past session
-rewrites a completed or active capture (C03/N08); import makes an already spent
-pair earn again (N14/N15). The exact PROPOSED-order defect still needs N01.
-
-(h) Smallest new bar: N01-N20, A01-A02, C01-C03, red first; full gate stands.
-
-(i) New science numbers needed: NONE. There is no lookback expiry, minimum
-elapsed time or "fresh enough" cutoff; causal admissibility is not a number.
-
-### D. Coach-mediated offer and yes (not my first repair)
-
-(a) Athlete sentence: "Ask the coach about your next weight; it explains the
-earned change, and changes it only after you say Yes."
-
-(b) A dedicated no-number request asks evaluateNativeLoad for the completed
-evidence. The coach reads its exact result in the same turn. accept_proposal
-must durably carry the issuance into the shared effect fold; on that yes the
-engine projects adoption into w or authorizes the earned debut. Earned w lands
-from the later qualified native Close on the next projection. No free-form
-coach sentence, Log, or unconfirmed Finish authorizes that change.
-Text can deliver this design before voice; voice is not an excuse to postpone
-the underlying writer proof.
-
-(c) Yes is tied to this offer, this turn and this current basis. Confirming a
-fact is not accepting a plan change; a generic conversational "yes" cannot
-be recycled. This directly follows the locked coach rule, but requires a NEW
-native-load producer and effect join. READ - the currently documented replan
-producers are volume, phase and ladder, not native earning
-(rebuild/coach/TOOL-CONTRACT.md:449-475).
-
-(d) Proposed touched files: FC01-FC13, FA02, FD01-FD04. The new coach paths are
-absent from S8's two maps, but they are not released from their own contracts,
-CI or future sealing. This option still edits engine and sealed import paths.
-
-(e) Reuses unchanged pure readers and the existing proposal digest/response
-primitive. New functions: requestNativeLoadProposal plus the common evaluator,
-transition and effect fold; tool dispatch binds request, proposal and yes.
-The model is never a numerical adapter.
-
-(f) Common edge table; any EDITED load, new fact or late import invalidates a
-conversation's old basis. Fresh/different loads get an explicit adoption
-offer. Misses/unknowns get engine refusals, not a motivational increase.
-Another device cannot reuse a conversation handle as consent on a new basis.
-
-(g) Risks: no conversation means the load never moves (D01); ungrounded coach
-numbers alter it (D02); a stale/wrong-turn yes accepts a different proposal
-(D03); "accepted" is saved without changing the real card after restart
-(D04/N06). Imported evidence can still double-earn (N14/N15).
-
-(h) Smallest new bar: N01-N20 plus D01-D04, red first; the existing coach
-traceability/consent cells and full engine/reseal bar also stand.
-
-(i) New science numbers needed: NONE. No conversational confidence threshold,
-new load increment or remembered-number shortcut. If the product adds timed
-nudges or stale-offer expiry, that would need a new number and a separate
-source/decision; it is not part of this option.
+SEE: Finish confirms save; no offer appears until he asks the coach. The coach
+reports the engine's current offer/refusal. A Yes bound to that offer changes
+the next eligible new card; a conversational acknowledgement alone changes none.
+WRITE: facts save independently. The accepted proposal's issuance and response
+must reach the durable effect fold; adoption establishes working load then,
+or an earn queues a target and later qualified Close establishes working load.
+BYTES/SEALS: new engine FC01 needs Joe's own word; FC03-FC13, FA02 and FD01-FD04
+are required. S-marked shared runtime/import/build paths need a child seal;
+coach files being absent from S8 does not release their contracts or other pins.
+FC02/FC02b remain the separate repair dependency.
+RISK: he never asks; the coach invents a number, reuses an old yes, or reports
+accepted while the card stays unchanged. Require N01-N20 and D01-D04 plus
+existing coach grounding and consent checks through the actual durable host.
+SIZE: ESTIMATE 17 + R incremental component files, ESTIMATE 9 S8-key files + R,
+ESTIMATE 24 named row families including inherited repair preservation N01.
+WINDOW: cannot credibly be the before-trial route on the evidence here. It adds
+an unproved real coach request/issuance/yes/effect join to the common engine work.
+Text-only could qualify only if that join is already built and independently
+accepted in time, followed by full engine review, PM final, CI, child seal and
+phone proof that the accepted answer survives restart and reaches the real card.
+That prerequisite is not evidenced. Voice-dependent D cannot make this scoped
+window without additional work outside this inventory; no voice readiness was
+measured. This is a scope/dependency judgment, not a measured calendar impossibility.
 
 ### Proposed file inventory, applicable to the option IDs above
 
-READ - there is no acceptance-s*.json in rebuild/m2 at this head (bounded
-directory query). The highest numbered matching artifact under rebuild/m4/spec
-is acceptance-s8-real-shape.json, whose package identity is at :3-4. I parsed
-BOTH its product and executionPins maps, rather than assuming a directory is
-sealed. S below means a literal key there; F means absent from both maps at
-this head, NOT exemption from review, an execution pin elsewhere, or future
+READ - the original paper's bounded query found no acceptance-s*.json under
+rebuild/m2 and used acceptance-s8-real-shape.json under rebuild/m4/spec
+(package identity :3-4). This revision rechecked the listed keys against BOTH
+its product and executionPins maps. S means a literal key there; F means absent
+from both maps, NOT exemption from review, another execution pin or future
 sealing. E means engine byte: Joe's own word is needed even for a NEW file.
-These classifications are READ; this was a key query, not a hash/gate run.
+These are READ classifications, not a hash/gate pass or newer-parent discovery.
 
-Every listed component is a PROPOSED touch, not an instruction to edit it.
+FC02/FC02b are READ ordered repair scope; all other touches are ESTIMATE.
+They name future work, not edits authorized by this paper.
 File IDs begin with F; behavior-row IDs below do not.
 New file names are concrete design names, not files created in this assignment.
 S8 line numbers in the last column are the key's location, not code evidence.
@@ -452,7 +455,8 @@ S8 line numbers in the last column are the key's location, not code evidence.
 | ID | Proposed file | Engine? / S8 status | Proposed purpose / S8 key line |
 |---|---|---|---|
 | FC01 | rebuild/engine/native-load.cjs (new) | E / F | Native offer, hold/tenure qualification, accepted adoption and debut-landing transition; no new threshold |
-| FC02 | rebuild/engine/today.cjs | E / S | Retain exact selected queue item, preventing untapped-load selection; :286 |
+| FC02 | rebuild/engine/today.cjs | E / S | SEPARATE ORDERED REPAIR: exclude PROPOSED at the lookup; :286 |
+| FC02b | rebuild/engine/writers.cjs | E / S | SEPARATE ORDERED REPAIR: exclude PROPOSED at landing lookup; :296 |
 | FC03 | rebuild/m4/workout/native-load-effects.cjs (new) | no / F | Validate source/consent/spend coverage and fold accepted effects; no scoring here |
 | FC04 | rebuild/m4/workout/engine-runtime.cjs | no / S | Bind new engine reader/transition under explicit capability; :996 |
 | FC05 | rebuild/m3/w6/host/engine-runtime-host.cjs | no / S | Browser mirror of that capability; :436 |
@@ -474,8 +478,9 @@ S8 line numbers in the last column are the key's location, not code evidence.
 | FD03 | rebuild/coach/TOOL-CONTRACT.md | no / F | Document new producer, basis-bound yes and effect result |
 | FD04 | rebuild/coach/test/native-load.test.cjs (new) | no / F | Grounding, wrong-turn yes and durable real-card effect rows |
 
-A adds FA01-FA03 to FC01-FC13. B adds FA01-FA03 and FB01-FB02. C adds FA01-FA03.
-D adds FA02 and FD01-FD04; the real page-to-coach composition is included.
+Option-only common scope is FC01 and FC03-FC13, consuming repaired FC02/FC02b.
+A and C add FA01-FA03; B also adds FB01-FB02; D adds FA02 and FD01-FD04.
+The inclusive dependency inventory counts FC02/FC02b separately from new work.
 All runtime/adapter edits remain on the consequential engine path even when
 the file's physical location is not rebuild/engine. F is not authority.
 
@@ -519,7 +524,7 @@ must turn the named row red before green is credited.
 
 | Row | Observable result that must be proved; defect it catches |
 |---|---|
-| N01 PROPOSED-ORDER | The measured proposed-before-automatic queue, its reversed order and proposed-alone control; no untapped target ever appears. Red witness is section 2. |
+| N01 REPAIR-PRESERVED | Inherit the separately ordered EPP-R1 through EPP-R7 proof and retain its behavior in the new composition: untapped entry neither shown nor stored; no down-pull/double debut; tap, reversed-order and half-repair controls. This is preservation, not a new repair decision. |
 | N02 WINDOW-NOT-CARD | Hitting a lower card target is not topping the window; a miss in the progression prefix breaks the run. Stops false earns and stuck valid prefixes. |
 | N03 NOISE-AND-EARLY | Ordinary first sighting stays provisional; clear-margin branch and terminal-qualified early offer follow exact existing predicates and still need Yes. Stops noise jumps. |
 | N04 REPEAT-AND-HOLD | Repeated qualified tops offer the earned rung; hot opener/held state do not auto-advance; hold release follows native original opener evidence. Stops both unjustified jumps and permanent hold. |
@@ -553,7 +558,7 @@ must turn the named row red before green is credited.
 
 Each option also needs the existing full engine gate, unchanged-law conformance
 and selftest obligations, second gate, parent/child fidelity and seal checks,
-independent Claude challenge, and CI on both supported operating systems.
+independent engine review, and CI on both supported operating systems.
 The authorized team must do any protected-data proof in its authorized setting;
 this paper neither runs it nor waives it. A phone witness of the selected
 entry/yes/restart path remains necessary before claiming phone delivery.
@@ -576,74 +581,81 @@ earn cap has been smuggled in. Adding ANY would create a new-number obligation:
 name it, locate its corpus support or state that support is absent, and obtain
 the applicable ruling. This paper supplies no default number for those choices.
 
-## 4. What the owner must rule
+## 4. What the owner must rule, and what is already settled
 
-These are the product choices to put in front of Joe, not questions answered
-by this paper. They are separate from his still-pending answer about WHEN.
+READ :631 - timing is settled: after the seal and look, before his trial.
+Repair authorization is settled for the named clauses in FC02/FC02b. Neither
+is reopened here. The owner-facing questions are in the first section: choose
+the route and authorize its scoped engine work; name whether A is an acceptable
+fallback if B cannot meet that sequence. PM must present the concrete engine
+scope with that choice. A timing ruling alone does not approve FC01.
 
-| Option | Plain yes/no or A/B product questions |
-|---|---|
-| A | "Is a Check next weight button enough for the first delivery: yes or no?" "For a first or different weight, should the app ask 'Use this next time?': yes or no?" |
-| B | "Show the offer just after I finish, or wait until my next workout?" "If I leave without answering, should the same still-valid choice be available next time: yes or no?" |
-| C | "Show the offer when I next open the workout: yes or no?" "If I am resuming a workout, offer the change for the following workout, or wait to ask until this one is finished?" |
-| D | "May the first repair require asking the coach: yes or no?" "Start with text, or wait for voice?" |
+The options preserve facts, require a separate yes for a newly issued native
+change, distinguish adoption from earning, and retain the full vector/prefix
+obligation. No mixed-load exclusion has been chosen. If the actual brief cannot
+support those inputs, PM must return the visible limitation to Joe and name
+its successor; the cost tables do not buy permission to call a scalar slice
+general earning. No new scientific threshold is proposed.
 
-Cross-option taste questions, if needed for the chosen brief: "Offer a separate
-choice to use a different weight I logged, or keep my planned weight until I
-ask?" "Must the first delivery support different weights across sets, or may
-it clearly say that this case still needs a manual plan choice?" A limited
-first slice needs a visible limitation and an assigned successor, not another
-unowned O1. None of these choices approves new scientific thresholds.
+PM4 chooses the accepted parent, exact file ownership and seal manifest,
+builder/reviewer assignments and source/effect conflict protocol consistent
+with the invariants. A later edit must not lose to an older offer; failed
+consent writes nothing; replay is not consent; an active capture stays fixed.
+An unresolved case must refuse visibly, retain facts and stay named work.
+The PM cannot authorize engine bytes on Joe's behalf or waive the full gate.
+The remaining legacy/native consent-policy scope is discussed below; the
+untapped-entry defect is not a philosophical question left for that discussion.
 
-What the PM can decide: delivery order within Joe's timing answer; which
-accepted parent the work follows; lane/custody and exact file names; source
-coverage, effect identity and conflict protocol; whether safe existing helpers
-can remain unchanged; test parameterization, package registration and reviewer
-assignment. Those choices must satisfy the existing laws and cannot weaken
-consent, invent a dose or authorize engine bytes on Joe's behalf. The PM also
-resolves the provisional R inventory into an exact build manifest before work.
+## 5. Comparison and before-trial dependencies
 
-What needs no new taste decision: facts stay saved; a changed offer needs a new
-yes; the coach cannot make up a number; a replay is not consent; a retry is not
-a second earned increase; source evidence and actual loads are retained; an
-active capture does not change under the lifter. These are the shared design
-constraints under the assignment and TOOL-CONTRACT, not optional shortcuts.
+ESTIMATE - numbers count proposed component files and named row families,
+not changed source lines, executed tests, hours or elapsed days. R is additional
+seal/evidence administration, unbound until PM selects the accepted parent.
+S8 is the READ map used for this inventory, not a claim it is the delivery parent.
 
-Separate authorization, not a taste poll: every option here contains engine
-bytes. Joe's own word is required for that concrete scoped package. This
-assignment grants PAPER ONLY. It cannot supply that authorization, a seal
-ruling, a release date or a product decision. The PM must also resolve the
-legacy automatic-queue/locked-consent discrepancy before an implementation
-brief calls this policy settled (section 6).
+| Option | Inclusive files + R (ordered repair counted) | Inclusive S8 keys + R | Incremental files + R (repair already accepted) | Incremental S8 keys + R | Named option row families |
+|---|---|---|---|---|---|
+| A | ESTIMATE 17 + R | ESTIMATE 11 + R | ESTIMATE 15 + R | ESTIMATE 9 + R | ESTIMATE 22 |
+| B | ESTIMATE 19 + R | ESTIMATE 12 + R | ESTIMATE 17 + R | ESTIMATE 10 + R | ESTIMATE 24 |
+| C | ESTIMATE 17 + R | ESTIMATE 11 + R | ESTIMATE 15 + R | ESTIMATE 9 + R | ESTIMATE 25 |
+| D | ESTIMATE 19 + R | ESTIMATE 11 + R | ESTIMATE 17 + R | ESTIMATE 9 + R | ESTIMATE 24 |
 
-## 5. Comparison
+The inclusive columns land the check's missing-writer correction exactly.
+The incremental columns remove BOTH repair files from the work these choices
+must commission. They do not remove the repaired behavior from acceptance.
+ESTIMATE row accounting: common N01-N20 = 20 families; A adds 2, B adds 4,
+C adds 5 and D adds 4. N01 preserves the separately commissioned repair's
+READ 7 EPP families, not another repair implementation. Excluding inherited
+N01 leaves ESTIMATE 21 / 23 / 24 / 23 new option-specific/common families.
+These are behavior rows, not a bound on parameterized cases or source-code
+rows. Changed source-line counts were NOT measured or estimated: no prototype
+or accepted implementation manifest exists. R also covers evidence for repair
+carriage if it has not already landed in the selected parent; no double charge
+for an already accepted repair is intended.
 
-Counts are the PROPOSED component inventory and named new row families above;
-R is the explicitly unbound seal/evidence work, not zero extra files. All
-figures here describe proposed scope, not executed test totals or athlete data.
-A and C tie in component files; A is smaller in automatic lifecycle integration
-and in named behavior obligations. This is not a time/cost estimate.
+Shared readiness inputs: Joe's scoped engine word, an accepted repaired parent,
+a complete source/consent/spend protocol, concrete R manifest, available author
+and independent reviewer, full engine gate and owed repair checks accounted for,
+PM final, CI, successor seal, and phone proof on the same accepted candidate.
+Output required before trial: a saved native workout can actually earn a
+basis-bound offer; Yes survives restart; the real next eligible card uses the
+accepted target; the later qualified debut writes the agreed working load.
+A receipt saying accepted alone is a counterexample, not completion.
 
-| Option | Athlete sees | Engine bytes | S8-key component files | New science numbers | Component files / named new rows | What waits on S9 or S10 |
-|---|---|---|---|---|---|---|
-| A: explicit check | Offer only when asked; separate Yes | Yes: FC01,FC02 | 10, plus R | None | 16 + R / 22 | Sealed host/build/import edits need a child; if integrated after Today split, FA02 must use that accepted composition. No existing S9/S10 assignment is assumed. |
-| B: after Finish | Offer after durable save; separate Yes | Yes: FC01,FC02 | 11, plus R | None | 18 + R / 24 | Same child; gym host and Finish binding must follow the accepted split/writer boundary. Does not make a pure-move ticket carry new behavior. |
-| C: next open | Re-derived offer before new workout; separate Yes | Yes: FC01,FC02 | 10, plus R | None | 16 + R / 25 | Boot/read/Start composition must match whichever S10 split lands; S9 release of views does not free load writers. |
-| D: coach | Engine-backed conversation and a bound Yes | Yes: FC01,FC02 | 10, plus R | None | 18 + R / 24 | Same engine/import child plus the real coach host/effect join; no premise that S9 or S10 delivers that join or voice. |
-
-READ - S9 is a release-of-screen-files/reseal path, not blanket freedom for
-athlete-data writers (rebuild/DECISIONS.md:536,542-543). The S10 work described
-at :564 and :574 carries the Today split, Edit My Week and tag work; the pure
-move and the separate writer-seal repair are distinct. The relevant source
-status here is S8; pending work on other branches was not fetched or measured.
-There is no technical law that native earning must wait for a milestone named
-S9 or S10. Queue placement and the conflict-free seal parent are PM decisions
-under Joe's timing answer. This paper does not insert an option into either
-milestone or declare their current queues to include it.
+READ :631 moves earning ahead of the split/Edit My Week. Existing S9 screen
+release does not release engine/import/data writers; pending split work must
+not become an assumed dependency. PM selects a conflict-free accepted parent
+and updates the S8-based inventory against it before building. Each option's
+WINDOW block names its extra conditions. A is the least integration work;
+B adds post-save recovery; C adds open/Start/resume proof. D's full coach-first
+scope cannot be credibly committed to this window without the unproved join
+already becoming accepted. No option is measured ready and no gate is waived
+by the owner's urgency. If the window slips, PM reports the unmet dependency
+and returns the fallback choice; the trial must not silently start without earning.
 
 ## 6. Contradictions and open facts, not resolved here
 
-1. READ - the assignment names rebuild/m2/acceptance-s*.json. None was found
+1. READ - the original assignment named rebuild/m2/acceptance-s*.json. None was found
    there. The actual bounded-query result is S8 in rebuild/m4/spec; its maps
    drive this paper. Whether a newer off-branch child changes this inventory
    is unverified. An old path must not become a false "free file" conclusion.
@@ -662,12 +674,20 @@ milestone or declare their current queues to include it.
    "a change happens only on a yes" as locked for this native repair. The
    options obey it; I do not claim those older mechanisms already obey it or
    silently extend a historical coach ruling to all old/imported behavior.
-   Engine-authorized native consent handling and preservation of imported
-   legacy decisions need an explicit scoped interpretation in the brief.
-4. MEASURED - pickStructural and genSession disagree on which queue entry
-   supplies the load (section 2). The canonical earn producer can create the
-   failing order. This blocks an honest consent claim even if the new UI asks
-   correctly. No engine fix or permission is delivered by this paper.
+   READ, also required by the check's "Is contradiction 3 stated fairly?":
+   the ordinary no-tap DEBUT is a one-rung step under the published law
+   (READ 2 qualified top sessions with an honest opener, or a difference
+   2 standard errors clear of noise), and runs only when it wins the structural
+   slot. PROPOSED explicitly promises "Rides only on your tap" (earn.cjs:80,97).
+   The untapped defect therefore breaks the legacy engine's OWN promise; it
+   is not a disagreement between old and new consent philosophy. Its repair
+   is already ordered. Scope the new native yes policy and preservation of
+   legitimate imported legacy decisions in the option brief, separately.
+4. MEASURED BY THE CHECK - the unsafe producer order reaches both the card
+   AND stored working load, then the lower leftover debut and repeated
+   establishment. Import merge can mint it too. The separately ordered repair
+   covers today.cjs AND writers.cjs; its accepted behavior is required by every
+   option. Ordered is not verified landed, and this paper applies no clause.
 5. READ - native deriveSighting already works through _loadTenure's native
    branch (rebuild/engine/progression.cjs:188-201,608-653), but _mintJointEarn
    still reads legacy sessionLog (rebuild/engine/migrate.cjs:51-54). Neither
@@ -709,56 +729,66 @@ milestone or declare their current queues to include it.
     and test obligations, not a ruling that those lifters may never advance.
     A smallest slice and a general solution must be labelled separately.
 
-## 7. What I did not verify
+## 7. What I did not measure
 
-I did not implement any option, create a test file, change an engine/product
-byte, run the whole Today step, run a conformance/sealed package, install
-anything, or make any git mutation. No protected/private/auth source or
-protected soak was opened; no prohibited data location was listed or searched.
-No network, deployment, real athlete measurement or external publication
-verification was part of this assignment.
+This revision ran no Node process, synthetic runtime probe, test suite, build,
+seal, gate, browser, phone, deployment or import. It wrote only this paper.
+It did not inspect private/protected data, auth files, the protected soak or
+live main source; it made no commit, push, fetch or other repository mutation
+beyond the authorized uncommitted paper edit. No scratch folder was needed.
 
-MEASURED scope only: the invented native-reader fixtures, input immutability,
-accepted/browser runtime equality for those fixtures, deriveSighting,
-missed-prefix control, the queue-order controls, and the canonical earnWalk
-queue-order reproduction in section 2. The invocation reused only the
-constructor at gap-map lines 136-165, passed code through stdin to the exact
-Node binary in the assignment, and made no fixture/script file. All example
-loads, counts, dates and effort values in those drives were INVENTED.
+READ in this revision: the full check, the original paper, selected authority
+lines and named public source/map excerpts. The original native-reader and
+queue-order measurements are retained with their original attribution.
+The check independently measured the writer landing, regression/double debut,
+tap/reversed-order controls, merge producer and scratch half/full repairs.
+Those results are MEASURED BY THE CHECK, not freshly executed by Astra here.
+All their fixture loads, reps, effort ratings, dates, counts and outputs are
+INVENTED. None describes the owner's weights or how often he encounters the fault.
 
-I did not exercise an actual phone, browser storage, Finish/edit/yes UI,
-durable restart, full import admission, second device, earned-debut landing,
-undo, or a new effect family's convergence. Queue selection is measured;
-shipped import mint routing is READ, not a fresh import PASS. The prior map's
-other result lines were not silently upgraded to fresh measurements.
+No end-to-end native Finish/yes, durable restart, full import admission,
+second-device conflict, undo or new effect convergence was measured here.
+The check did not establish those outcomes either. Its completion-writer
+landing must not be reported as a shipped native Finish writer: native runtime
+still exposes readers. Import producer reach is stronger than a hypothetical
+transport but weaker than a real phone import/Finish journey.
 
-The tests in section 3 are a proposed bar, not executed tests. File counts
-exclude unresolved seal administration and future split-driven relocation,
-which are explicitly disclosed. This is not a complete accepted build manifest,
-a gate verdict, a science clearance or an estimate of hours to delivery.
+MEASURED in this revision by static enumeration: the inventory matches the
+S8 product/executionPins key maps; inclusive files are 17 / 19 / 17 / 19 and
+sealed keys 11 / 12 / 11 / 11 in A/B/C/D order. Future touch counts stay ESTIMATE.
 
-The required next check is by a Claude hand, explicitly told to disagree with
-this author, then PM4's judgment. That check has not occurred in this job.
-Neither an answer about timing nor any of the product/engine rulings has been
-assumed. Joe decides taste/authorization; PM4 decides delivery and acceptance.
+No option's implementation time, changed code rows, reviewer availability,
+current coach host readiness, newer seal parent, pending branch integration
+or actual before-trial calendar duration was measured. All future file/row
+budgets are ESTIMATE and exclude unbound R administration and relocations.
+The inclusive map is a dependency inventory; the incremental map assumes the
+separate repair is accepted. Neither is a complete accepted build manifest.
+The recommendations compare dependencies, not measured days-to-delivery.
 
-## Final worktree checks
+The check's public-conformance result is not a port-oracle, sensitivity,
+selftest or complete engine-gate PASS. This paper does not close those debts,
+rewrite frozen laws or authorize access to restricted evidence. The authorized
+repair team must handle its owed checks in its allowed setting.
 
-The last shell commands were the two git commands below, after setting the
-required environment variables on separate lines. Their stdout is pasted
-verbatim. The diff has no stdout because this new paper is untracked.
-Git also emitted the same inaccessible-global-ignore warning twice:
-`warning: unable to access 'C:\Users\joeym/.config/git/ignore': Permission denied`
-No attempt was made to open that file. These results were appended to this
-paper after the commands; no further shell command was run.
+A Claude hand has already checked the original paper and ordered corrections;
+that happened, and the old statement that no check occurred is retired.
+This revision still needs its independent check and PM4's judgment. No option,
+new engine bytes, calendar promise or release is approved by this paper.
 
-```text
-$ git status --porcelain
-?? rebuild/coach/EARN-ON-PHONE-OPTIONS.md
-$ git diff --stat -- rebuild/coach/EARN-ON-PHONE-OPTIONS.md
-```
+## Revision 2: landed or disputed
 
-Before these final commands, byte inspection found ASCII only and LF only;
-section 1 had nine nonblank lines. The proposed component counts and S8-key
-counts in the comparison were mechanically checked against the file table
-and S8 maps. HEAD remained the evidence head printed at the top.
+READ - all six corrections are LANDED in this paper; none is DISPUTED.
+"Landed" here means text corrected, never a product repair or an accepted seal.
+
+| Check order | Disposition and location |
+|---|---|
+| Section 9 correction 1 | LANDED: separate-repair evidence and contradiction 4 join the card to the untapped ESTABLISH and stored w/wSets. Measurements attributed to the check. |
+| Section 9 correction 2 | LANDED: FC02b adds writers.cjs and its S8 key :296; comparison gives corrected inclusive ESTIMATE 11 / 12 / 11 / 11 sealed keys and ESTIMATE 17 / 19 / 17 / 19 files + R. Incremental option costs remove both already-ordered repair files. |
+| Section 9 correction 3 | LANDED: owner section, separate-repair evidence and contradiction 4 name the recorded regression and double debut. |
+| Section 9 correction 4 | LANDED: import evidence explicitly names the merge-minted unsafe pair and untapped card; no native Finish or end-to-end import claim is added. |
+| Section 9 correction 5 | LANDED: nextLoad citation is READ progression.cjs:359-370, re-read here. |
+| "Is contradiction 3 stated fairly?" | LANDED: contradiction 3 distinguishes the lawful automatic ordinary rung from the explicit tap promise; the ordered defect repair is outside the options decision. |
+
+READ :631 is incorporated separately: repair already ordered, timing settled,
+option-specific before-trial conditions explicit, coach dependency not presumed
+ready. No measurement contradicting the check was found or claimed.
