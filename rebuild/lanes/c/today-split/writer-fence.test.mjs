@@ -2193,6 +2193,16 @@ test("GSS-API-PARITY: api is acquired once and its lane is passed through once",
   }
 });
 
+for (const [name, from, to] of [
+  ["pending returns api", "    pending: () => api.pending(),", "    pending: () => api,"],
+  ["ready maps lane", "    ready: () => api.ready(),", "    ready: () => api.lane(),"],
+]) test("GSS-API-MAPPING RED: " + name, () => {
+  const source = readRepo(TODAY + "/gym-app.mjs");
+  const mutant = source.replace(from, to);
+  assert.notEqual(mutant, source, name + " plant missed");
+  assert.notDeepEqual(gssApiShape(mutant), gssApiShape(source), name);
+});
+
 test("GSS-GESTURE-CONTROL RED: released gym sources have zero direct dispatch spelling", () => {
   for (const rel of ["gym-app.mjs", "machine-settings-view.mjs", "gym-settings-lane.mjs",
     "today-app.cjs", "today-lanes.cjs"]) {

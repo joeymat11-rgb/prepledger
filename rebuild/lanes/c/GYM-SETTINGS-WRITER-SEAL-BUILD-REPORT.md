@@ -22,24 +22,24 @@ Authority: accepted specification at 6fe4d12c; no acceptance claimed
 - App R comprises 14 listener lines, six paint calls on seven physical lines,
   five API mappings, the constructor handoff and model-read retarget.
 - N +369/-162: lane controller +299/-79; app lifecycle/outcomes +70/-83.
-- Test N/R verification +612/-50: changed fence anchors are R; new rows are N.
+- Test N/R verification +624/-50: changed fence anchors are R; new rows are N.
 - Candidate equalities: gym sites 6 -> 1 Start; listeners 19 -> 0;
   interfaces 3 -> 4; static imports 0 -> 1; host edge 1 -> 1; painter 1 -> 1.
-- Fence 409 -> 401: nine obsolete facade.lane syntax cases removed, one API
-  token row added with unrelated/reformat controls and four leak plants; net -8.
+- Fence 409 -> 401: nine obsolete facade rows became one API parity row with
+  two controls/four leak plants; L2 adds two measured-red rows: 401/403.
 
 ## Verification
 
 - Candidate2: syntax 5/5; gym 65/65; UI 60/60; fence 401/401.
 - Immutable d1fa563 reds: listener identity 0/1; raw-copy depth 0/1.
-- Repaired candidate: lane/UI syntax 2/2 and expanded UI 65/65.
 - L1 REJECT: 6/6 replacement editors stayed disabled; baseline retried 6/6;
   eight same-editor refusal/rejection controls retried.
-- Permanent mounted L1 row: immutable 79a3c31 RED 0/1; repaired 1/1.
-- Repaired lane/UI syntax 2/2 and full UI 66/66; six mounted cases covered.
-- Minimal repair enables only the current live active-editor binding after the
-  older operation's real settlement; token-bound outcome ownership is unchanged.
-- Logs: %TEMP%/gss-final-proof-b35a48e3; L1: %TEMP%/gss-l1-proof-79a3c31.
+- L1 closed: immutable 79a3c31 RED 0/1; repaired full UI 66/66.
+- L2 REJECT: old success steals replacement INPUT focus in 2/2 themes;
+  two same-count pending/ready API mapping leaks pass the 401-row fence.
+- L2 RED: focus row 0/1; success lost 2/2, refusal/rejection held 4/4.
+- Complete fence 401/403; both mapping rows red; product/guard unchanged.
+- Evidence: %TEMP%/gss-l2-red-bda6a93; prior gss-final-proof-b35a48e3/gss-l1-proof-79a3c31.
 - Candidate versus helper/host reference: three deterministic separate-store
   sequences have equal complete serialized operations/outbox after reopen.
 - This is not immutable old-card parity or full section E UI parity; rendered
@@ -57,4 +57,4 @@ Authority: accepted specification at 6fe4d12c; no acceptance claimed
 - Separate rebuild/lanes/c/LAUNCH-ADOPTION-PROBES.mjs completed 2/2;
   retained settings operation count was unchanged.
 - No full Today step, private input, engine byte, seal or receipt was used.
-- Status: UNACCEPTED candidate; independent Astra and Claude gates remain.
+- Status: UNACCEPTED L2 test-only checkpoint; review and Claude gates remain.

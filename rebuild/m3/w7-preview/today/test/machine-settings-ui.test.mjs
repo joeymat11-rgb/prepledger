@@ -1519,7 +1519,9 @@ test('GSS-L1-1 mounted replacement Save retries after every older settlement', a
       assert.equal(saves, 1, mode + '/' + theme + ' first Save did not enter');
       click('[data-action="settings-open"]'); await settle();
       type('[data-settings-name="0"]', 'Seat'); type('[data-settings-value="0"]', 'five');
-      const editorBefore = pick('[data-slot="settings-editor"]'), focusBefore = doc.activeElement;
+      const focusedBefore = pick('[data-settings-value="0"]');
+      focusedBefore.focus();
+      assert.equal(doc.activeElement, focusedBefore, mode + '/' + theme + ' replacement focus setup');
       if (mode === 'rejection') held.reject(new Error('SYNTHETIC_BEFORE_WRITE'));
       else held.resolve();
       let rejected = false;
@@ -1529,7 +1531,7 @@ test('GSS-L1-1 mounted replacement Save retries after every older settlement', a
       const after = { mode, theme, disabled: pick('[data-slot="settings-save"]').disabled,
         hidden: editorAfter.hidden, typed: pick('[data-settings-value="0"]')?.value || null,
         error: pick('[data-slot="settings-error"]').textContent,
-        rootReplaced: editorBefore !== editorAfter, focusReplaced: focusBefore !== doc.activeElement,
+        focusOnReplacementValue: doc.activeElement === pick('[data-settings-value="0"]'),
         rejected };
       click('[data-slot="settings-save"]'); await mounted.settings.pending().catch(() => {}); await settle();
       results.push({ ...after, retrySaves: saves });
@@ -1537,8 +1539,8 @@ test('GSS-L1-1 mounted replacement Save retries after every older settlement', a
     }
   }
   assert.deepEqual(results, results.map(({ mode, theme }) => ({ mode, theme, disabled: false,
-    hidden: false, typed: 'five', error: '', rootReplaced: mode === 'success',
-    focusReplaced: mode === 'success', rejected: mode === 'rejection', retrySaves: 2 })));
+    hidden: false, typed: 'five', error: '', focusOnReplacementValue: true,
+    rejected: mode === 'rejection', retrySaves: 2 })));
 });
 
 test('GSS-PENDING-GYM keeps cross-action exclusion and releases after rejection', async () => {
