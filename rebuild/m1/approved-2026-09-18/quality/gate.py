@@ -614,9 +614,17 @@ async def check_pressed(pg, t, s, W, H, where):
             # an element pushed outside the viewport cannot be photographed: report it, do not crash
             same.append(f'{sel} (outside the viewport at {box["x"]:.0f},{box["y"]:.0f})'); continue
         clip = {'x': x0, 'y': y0, 'width': x1 - x0, 'height': y1 - y0}
+        cx, cy = x0 + (x1 - x0) / 2, y0 + (y1 - y0) / 2
         try:
+            # The pointer arrives FIRST and the idle photograph is taken with it resting on the
+            # surface. Photographing idle before the pointer arrived compared a plain surface with
+            # a hovered and pressed one, so a :hover style with no :active style passed the check
+            # that names the pressed state, and a phone has no hover to give it. Measured on the
+            # approved app: zero :hover rules and twenty :active rules, so on this build the two
+            # photographs are the same picture and nothing on screen changes.
+            await pg.mouse.move(cx, cy); await pg.wait_for_timeout(120)
             idle = await pg.screenshot(clip=clip)
-            await pg.mouse.move(x0 + (x1 - x0) / 2, y0 + (y1 - y0) / 2); await pg.mouse.down(); await pg.wait_for_timeout(40)
+            await pg.mouse.down(); await pg.wait_for_timeout(40)
             down = await pg.screenshot(clip=clip); await pg.mouse.up(); await pg.wait_for_timeout(40)
         except Exception as e:
             same.append(f'{sel} ({type(e).__name__})'); continue
