@@ -111,8 +111,9 @@ def minus_problems(text):
     is not a space is not a digit, because a digit across a space makes the pair a range. So
     "(−5 lb)", "load:−5", "8/−5", "= −5", "8×−5", "$−5" and "5, −5" are
     numbers and pass, while "3 −5", "3−5", "body−5", "today,−5" and "− one" are dashes and
-    fail. Separate visible text-bearing elements are cells for this rule, with a TAB inserted
-    between them; two numbers in one text node with a space between them remain a range.
+    fail. Two adjacent numeric elements separated by markup whitespace are cells for this rule;
+    a boundary inside a word, adjacent elements with no separating whitespace and two numbers in
+    one text node remain one rendered phrase.
 
     It is a control's label when it is the whole of its own line or cell in the swept string, which
     is how the decrement button beside a set's load reads (app/states.js:113 and
@@ -162,9 +163,9 @@ def copy_problems(text, minus_text=None):
     folded = fold_spaces(text)
     bad = [SPACED_HYPHEN] if SPACED_HYPHEN in folded else []
     bad += sorted({c for c in text if is_dash(c)})
-    # The DOM walk supplies minus_text with a TAB between separate text-bearing elements. The
-    # word/vendor sweeps keep reading the flat visible sentence, so splitting Ready across spans
-    # cannot bypass them. Only the minus rule treats the two numeric elements as separate cells.
+    # The DOM walk supplies minus_text with a TAB only between adjacent numeric elements that
+    # markup whitespace separates. The word/vendor sweeps keep reading the flat visible sentence,
+    # so splitting Ready across spans cannot bypass them. Only the minus rule sees cell boundaries.
     bad += minus_problems(fold_for_minus(text if minus_text is None else minus_text))
     bad += sorted({f'U+{ord(c):04X}' for c in text if unicodedata.category(c) == 'Cf'})
     low = sweep_form(text)
@@ -542,9 +543,9 @@ JS_SEEN = JS_RENDERED + """
 # sweep this one string so neither can be stricter than the other.
 JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui');
     if(!ui)return {text:'', unreadable:[]};""" + JS_SEEN + """
-    const parts=[ui.innerText], minus=[], unreadable=[];
+    const parts=[ui.innerText], unreadable=[];let minusText=ui.innerText;
     const attrs=['placeholder','aria-label','title','alt'];
-    const push=v=>{if(typeof v==='string'&&v.trim()){parts.push(v);if(minus.length)minus.push('\\n');minus.push(v)}};
+    const push=v=>{if(typeof v==='string'&&v.trim()){parts.push(v);minusText+='\\n'+v}};
     /* attr() is resolved into a quoted string by the time getComputedStyle answers, so it is swept.
        counter() and counters() are not: the computed value still carries the call, and the number
        the screen draws is not available here. That is its own FAIL, never a silent pass. */
@@ -555,14 +556,23 @@ JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui')
       if(/counters?\\(/.test(c.replace(/"[^"]*"|'[^']*'/g,'')))
         unreadable.push((e.id||e.className||e.tagName)+which+' '+c.slice(0,60))};
     
-    const tw=document.createTreeWalker(ui,NodeFilter.SHOW_TEXT);let n,last=null;
-    while((n=tw.nextNode())){const e=n.parentElement;if(!e||!__seen(e)||!n.textContent.trim())continue;
-      if(last&&last!==e)minus.push('\\t');minus.push(n.textContent);last=e}
+    /* innerText owns rendered whitespace semantics: a formatting newline in normal-flow source
+       remains a space, while PRE/TAB/table cells keep their rendered boundary. The one addition
+       is the approved pair of numeric sibling cells: separate elements, markup whitespace between
+       them, and each entire element is a signed or unsigned number with an optional unit. */
+    const numeric=/^[+\\-\\u2212]?\\d+(?:[.,]\\d+)?(?:\\s*[A-Za-z%]+\\.?)?$/;
+    ui.querySelectorAll('*').forEach(p=>{const ns=Array.from(p.childNodes);
+      for(let i=0;i<ns.length;i++){const a=ns[i];if(a.nodeType!==1||!__seen(a))continue;
+        let j=i+1,space=false;while(j<ns.length&&ns[j].nodeType===3&&/^\\s*$/.test(ns[j].textContent))
+          {space=space||ns[j].textContent.length>0;j++}
+        const b=ns[j];if(!space||!b||b.nodeType!==1||!__seen(b))continue;
+        const l=a.innerText.trim(),r=b.innerText.trim();if(!numeric.test(l)||!numeric.test(r))continue;
+        const flat=l+' '+r,at=minusText.indexOf(flat);if(at>=0)minusText=minusText.slice(0,at)+l+'\\t'+r+minusText.slice(at+flat.length)}});
     ui.querySelectorAll('*').forEach(e=>{if(!__rendered(e))return;
       attrs.forEach(a=>push(e.getAttribute(a)));
       if(('value' in e)&&e.tagName!=='BUTTON')push(e.value);
       gen(e,'::before');gen(e,'::after')});
-    return {text: parts.join('\\n'), minusText: minus.join(''), unreadable: unreadable}}"""
+    return {text: parts.join('\\n'), minusText: minusText, unreadable: unreadable}}"""
 
 # the check name both gates use when generated content carries a value the sweep cannot resolve
 UNREADABLE_CHECK = 'generated content the sweep cannot read'

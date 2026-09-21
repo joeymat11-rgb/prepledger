@@ -471,11 +471,11 @@ def mut_z1(work):
     append_css(work, '#start { visibility: hidden !important; }')
 
 def mut_z2(work):
-    # Remove only the action T-02's existing definition declares. The state still applies and
+    # Remove the actual node after T-02 finishes declaring it. The state still applies and
     # renders, so only a state-specific required-primary contract can name the missing control.
     sub(work, 'app/states-today.js',
         "    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week');",
-        "    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample');")
+        "    face(a, { status: 'Upper body today. Sample data.' }); a.noteBlock('#status-line', 'Sample data. Set up your week to start your own.', 'sample'); primary(a, 'Set up your week'); document.querySelector('#start').remove();")
 
 def mut_z4(work):
     # Adjacent numeric cells may each carry a signed value. They are separate text-bearing
@@ -494,6 +494,17 @@ def mut_z8(work):
     # same forbidden letter-minus-number phrase as the same-node q11 control.
     sub(work, 'app/app.html', 'Upper body today. One change to review.',
         'Upper body<span>\u22125</span> today. One change to review.')
+
+def mut_z9(work):
+    # A source-formatting newline collapses to a space in normal-flow HTML. It remains a rendered
+    # range, unlike a literal line break in a preformatted cell.
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        'Do 3\n\u22125 sets. One change to review.')
+
+def mut_z10(work):
+    # Adjacent elements with no markup whitespace are one rendered range, not separate cells.
+    sub(work, 'app/app.html', 'Upper body today. One change to review.',
+        '<span>3</span><span>\u22125</span> today. One change to review.')
 
 T02_APPLY = ("  R('T-02', { screen: T, title: 'Preview before setup, sample marked', rules: 'none', "
              "component: 'sample note', apply: function (a) {\n")
@@ -768,6 +779,12 @@ ROWS = [
      ['quality/teeth.py', '--only', 'q5'],
      dict(exit=1, stdout=['1 enumerated, 0 run', '0 skipped on', '1 VOID before run (q5)'])),
     ('z8', 'an element boundary inside a forbidden letter-minus-number phrase', mut_z8,
+     GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('z9', 'a normal-flow source newline inside a numeric range', mut_z9,
+     GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('z10', 'adjacent numeric spans with no whitespace form a range', mut_z10,
      GATE_TODAY_ONE,
      dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
     ('v16', 'teeth --only with an id this list does not carry', mut_none,

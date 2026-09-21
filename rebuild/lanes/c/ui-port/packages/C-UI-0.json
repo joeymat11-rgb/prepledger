@@ -138,28 +138,32 @@
    "role": "edited: sections 1, 3 (with 3.1), 4 and 7; 3.1 rewritten in R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": {
-   "sha256": "7d82ee975b1b9fdf12a81784157a68ac6605ba6e46dd6310e00537d2fb774657",
-   "role": "edited: every gate tag names its check, section 7 item 5, section 13; the launch list and the record halves added in R3"
+   "sha256": "63758e6a552357fc8955f488c173944a2432d9e5ded1f817240f063ffc66d471",
+   "role": "edited: actual samples and review duties, state-primary contract, numeric sibling boundary, external identity and run/skip/VOID reporting"
   },
   "rebuild/m1/approved-2026-09-18/quality/common.py": {
-   "sha256": "471347efe08a59b3b2dfa229f70cd205018435b148efe70a9e57084cc390fb64",
-   "role": "added: what the three gates share; in R3 the launch list, playwright_version() and env_text(); in the one list: report_identity(), the contrast tier recipe, the three visibility policies in words, the minus sign rule's closed opener list and its own fold"
+   "sha256": "3292fd2c080bbf5cf6a9d87f7835033ca31ee9e15e93dbb825292759aae2074c",
+   "role": "shared gate helpers; adds caller-supplied external identity and a rendered-whitespace minus channel with the narrow numeric-sibling exception"
   },
   "rebuild/m1/approved-2026-09-18/quality/gate.py": {
-   "sha256": "1d34515ed013708c629e46b510e290c8c91dddc92b605fa80aee0e2e9f0e725e",
-   "role": "edited: the screen gate; in R3 the launch list and ENV.txt; in the one list: every box walk asks common.JS_RENDERED, the pressed check settles the pointer first, the report names what it measured"
+   "sha256": "dea7763e163643084ce8cd8813a9fac87b4eb064b77274cc3fdb77b75320600a",
+   "role": "screen gate; consumes the narrow minus channel and refuses an external run without immutable identity"
   },
   "rebuild/m1/approved-2026-09-18/quality/statesheet.py": {
-   "sha256": "91fe95a56ad3093096a93e7a28c2ec3d2bf90df65d6e70fb9140b840bf64ccbb",
-   "role": "edited: the state gate; in R3 the per platform thumbnails, --accept-thumbs, the index env and newline=LF; in the one list: label overflow asks common.JS_RENDERED, the font size is read to two decimals, the report names what it measured"
+   "sha256": "b9877a8e3da7ed6ff0ef0ef7cac60b2c347cefa1e9e2b402fecc1a446f11bc14",
+   "role": "state gate; freezes state-specific required selectors and intentional no-primary states, consumes the narrow minus channel and external identity"
   },
   "rebuild/m1/approved-2026-09-18/quality/phonesheet.py": {
-   "sha256": "331884093875aa2d250da1c0d82ecde6ca1b9cca1c2181fe534a4b87eb653954",
-   "role": "edited: the review sheet; in the one list: it proves the state applied before it labels a picture, and prints what it measured"
+   "sha256": "9c2277682a99ff22de81fccd9e706bf03883afadcbef9805f1d76b028f3ebfb4",
+   "role": "review sheet; refuses an external run without immutable identity before starting a browser"
   },
   "rebuild/m1/approved-2026-09-18/quality/teeth.py": {
-   "sha256": "6697ce515b273b136e9828d1a4656dd59c81e440c200f61819d7525f0f067eba",
-   "role": "added: the executable mutation list; 33 rows after R3; in the one list: 92 rows, the --only refusals, the rows line under the head line"
+   "sha256": "62457cb5231af83355c69e4487181b3b7d61ecbfe560c3bbda1eb3fdad12b1ab",
+   "role": "102 executable mutation rows; adds state-primary, numeric sibling/decoy, external identity and pre-run VOID custody rows"
+  },
+  "rebuild/lanes/c/ui-port/C-UI-0-CODEX-REPORT.md": {
+   "sha256": "bcb638369b59be5aa43911e893d8d4c1317af323fc9151c4f11c2b4997efd46e",
+   "role": "Sol author report; red custody, focused author evidence, ordinary gate and pending independent obligations"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": {
    "sha256": "c4bb05a2c2d9cf7ab9d6717e905aee809defe8056f6ad1b88c4702a2d4620ecb",
@@ -849,8 +853,8 @@
   },
   "4": {
    "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
-   "before": "executed red by y4b and y4c (sideways and visibility hidden raised no primary row); y4a is answered under yRowPreCheck",
-   "fix": "4439a96 and 181c595: the screen gate requires the primary on the page, wholly inside every edge compared unrounded, and drawn by the shared visibility test, naming the edge first. The state sheet holds every edge unrounded for the primary it finds. It does NOT judge a primary that is on the page and not drawn: that rule was tried and withdrawn, because 29 of the 209 states draw a panel over the screen and leave the primary in the markup behind it, which reddened 58 of 418 renders of the approved prototype (T-53 to T-59, T-61, T-68 to T-72, T-86, T-87, T-92, T-95, W-01 to W-04, W-35, W-44, C-02, C-06 to C-08, C-63, C-64, both themes). The state specific expected primary contract needs the states to declare it under app/, which this ticket may not touch: it is named for C-UI-GATES-2 in STANDARD.md section 13 and in statesheet.py.",
+   "before": "at 6c593603, honest T-02 and intentional no-primary T-57 were clean; hidden and actual-node-absent T-02 each had generic record failures but zero named primary-action problem. The first author z2 only removed a label-setting call, left #start present and is excluded.",
+   "fix": "statesheet.py freezes the approved declarations as 56 #start, 33 #log, 59 .mic-button, 32 .panel-primary and 29 intentional no-primary states. Required existence, shared drawn visibility and every unrounded viewport edge are separate checks, so a mutation cannot redefine its own expectation.",
    "rows": [
     "u6",
     "u7",
@@ -858,10 +862,12 @@
     "v7",
     "v8",
     "d-1",
-    "d-2"
+    "d-2",
+    "z1",
+    "z2",
+    "z3"
    ],
-   "revert": "bottom edge only: u6 and v6 DISAGREE, d-2 holds. No drawn test: u7 DISAGREES. No missing test: v7 DISAGREES. The sheet rounds the bottom edge: v8 (852.3) DISAGREES",
-   "needsTheLead": "the per state expected primary contract is open and is C-UI-GATES-2"
+   "revert": "focused author candidate: z1 hidden and revised z2 actual-node removal are named failures; z3 keeps intentional T-57 green. Bottom-edge, screen missing/drawn and precision rows remain. Independent full 418-render candidate execution is pending."
   },
   "5": {
    "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
@@ -987,7 +993,7 @@
   "13": {
    "class": "M: fixed, with a permanent row that goes red when the protection alone is removed (successor only)",
    "before": "executed red by y13a and y13b at 814f0a0: honest signed values after a colon, the multiplication sign, a currency sign, an equals sign, a quotation mark, a brace and a slash were refused as dashes",
-   "fix": "a closed, named opener list in common.py (start of a line or cell, a space after the fold, Unicode Ps and Pi and the two ASCII quotes, a colon, a slash, an equals sign, the multiplication sign, Unicode Sc); a digit must directly follow; the nearest character in front of the sign that is not a space must not be a digit. For this rule alone the string splits on TAB, LF and CR. The lone sign on its own line or cell stays allowed (W-18).",
+   "fix": "the closed opener/range rules remain. The minus channel uses rendered innerText whitespace and adds a TAB only between adjacent numeric sibling elements separated by markup whitespace. It does not turn a boundary inside a word, adjacent spans without whitespace or a source newline collapsed by normal-flow HTML into a cell. Word/vendor/Cf and set sweeps retain the flat text.",
    "reading": "the lane lead's brief words the range test as the nearest non space character before the OPENER. It is implemented as the PM ruled it in P-CUI-4, the nearest non space character before the SIGN: the two are the same whenever the opener is a space, and only this reading lets a digit stand before a slash or the multiplication sign, which the PM's row y13b requires. The lead should confirm.",
    "rows": [
     "w1",
@@ -1001,10 +1007,14 @@
     "w8",
     "w9",
     "q11",
-    "q8"
+    "q8",
+    "z4",
+    "z8",
+    "z9",
+    "z10"
    ],
-   "controls": "w1, w2, w4, w5, w10 and w11 are positive: they assert exit 0 AND the absence of the copy check row. w3, w8, w9 and q11 are negative.",
-   "revert": "the opener list narrowed back: w1 and w2 DISAGREE, w3 and q11 hold. The opener clause removed: w3 and q11 DISAGREE, w1, w8 and w9 hold. TAB not a break: w4 and w11 DISAGREE, w5 and w10 hold. LF not a break: w5 and w6 DISAGREE (so do w4 and w10, whose attribute values are joined to the swept string by a line feed). CR not a break: w10 DISAGREES. The range clause removed: w8 DISAGREES, w9 and q11 hold (w9, the range with no space, is held by the opener clause as well). The lone sign no longer allowed: w6 DISAGREES."
+   "controls": "z4 and w1/w2/w4/w5/w10/w11 are positive. z8 split-word, z9 collapsed-newline and z10 adjacent-span range are negative alongside w3/w8/w9/q11. z8 red is published at 103ad57.",
+   "revert": "author focused candidate ran all listed z/w/q numeric cases plus readiness/vendor/Cf/set controls as expected. Independent exact-candidate execution remains pending."
   },
   "14": {
    "class": "M: fixed, with a permanent row that goes red when the protection alone is removed (successor only)",
@@ -1021,7 +1031,7 @@
   },
   "15": {
    "class": "D",
-   "words": "STANDARD.md sections 1 (gaps: the children of one container), 5 (the pressed sample and the pointer settling first), 3 and 13 (the contrast walk, its exclusions, no claim about alpha; radii on one corner and no pill measured; the admitted weights; the type scale on the base screens only; the sheet and a primary that is not drawn). README section 3.1. Each names C-UI-GATES-2 as the home of the wider check; the visual review duties stay with the reviewer."
+   "words": "STANDARD.md states the actual samples and duties: eight pressed surfaces (3 Today, 3 Workout, 2 Coach); top-left radius on named classes and no pill measurement; the conservative target walk retains opacity/visibility-hidden hit areas; sans 430-500 remains the design while automation admits 400 and reviewer holds the 430 floor; state-primary requiredness is now frozen. Wider sampling remains C-UI-GATES-2."
   },
   "16": {
    "class": "D",
@@ -1029,18 +1039,26 @@
   },
   "17": {
    "class": "D",
-   "words": "every report of gate.py, statesheet.py and phonesheet.py carries, under its first line: mode, scope, the build under test (the URL, with a digest of the pack's app/, or a plain statement that an EARNED_APP build is external and not digested) and the versions. teeth.py keeps its head line and prints under it the rows enumerated, run and not run on this platform by id, then the pack under test and the selection. STANDARD.md section 13 says so."
+   "words": "every ordinary report names mode, scope, URL, immutable build identity and versions. EARNED_APP requires a 64-digit EARNED_APP_DIGEST and labels it caller-supplied rather than computed or verified. teeth.py separately reports enumerated, launched, platform-skipped and pre-run VOID rows; a failed mutation anchor cannot count as run. z5-z7 hold these contracts."
   },
   "18": {
    "class": "D",
-   "words": "README sections 1 and 3.1 and STANDARD.md section 13: 92 rows; d-1 and d-2 labelled 630 and 210 px as the code pushes; q8 to q11 named as they are now, with u, v, w and y; the --only prefix sentence; 0.04 px where prose said 0.00; U+2060 and fold_spaces as the code stands; the target exclusions; the diagnostic check named, with why a green run is 372 rows; the worst measured block; the minus rule as the code reads it; the false red of two signed values on one line now says separate cells or lines, where it said separate elements, which does not split them. Every digest in this package was recomputed last."
+   "words": "STANDARD section 13 matches current code: 102 teeth rows; U+2060/fold_spaces; conservative target exclusions; 372-row green gate; exact eight pressed sample; admitted 400 versus design 430 floor; radius sampling; state-primary contract; numeric sibling exception and its three decoys; immutable external identity; launched/skipped/VOID counts. Candidate file digests below were recomputed after the author run."
+  },
+  "codexRepair": {
+   "status": "PROPOSED author candidate; independent full state sheet, Windows reviewer and Claude final remain pending",
+   "sourceCheckpoint": "1163b7a385c1158e5b2e0d464ed6f1ac7ae21ef9 (unaccepted implementation); later uncommitted numeric narrowing is bound by file digests below",
+   "red": "f8a68ced item4; 103ad57 z8 split-element bypass; independent external identity and VOID counterexamples",
+   "authorFocused": "28 enumerated, 28 run, 0 skipped, 0 VOID, 0 disagreeing, 189 s; retained %TEMP%/cui0-author-evidence/candidate-focused-28-green.txt sha256 9c3812f4f5760c96d590494e4e286ffa3ed1b8e3a0f6ee3b957d866f2f18a8d2",
+   "authorOrdinaryGate": "0 FAIL, 0 WARN, 372 PASS; retained %TEMP%/cui0-author-evidence/candidate-gate-372-green.txt sha256 cb458fa9ac3117e924db9d0c9df39fc9e7249996db0f7bdcbffd806b121fc745",
+   "excluded": "first 25-row attempt stopped every browser row at missing JS_SEEN wiring; second was 24/25 with invalid old z2; neither is green evidence"
   },
   "yRowPreCheck": {
    "what": "THE BUILDER'S PRE-CHECK, NOT THE PM'S VERDICT. The PM's kit (driver.py and rows.py as published at 3b186404, unmodified) run here against a scratch copy of this head outside any work tree: linux, Python 3.11.15, playwright 1.56.0, Chromium 141, MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York, one browser job at a time. The PM's executor runs the official pass on the owner's PC.",
    "exceptions": {
     "y4a": "the row's mutation does not do what its title says. #start sits at top 591.31 (375x812) and 559.31 (360x780); top: -400px puts it at 191.31 and 159.31, wholly inside the viewport at both sizes of the row, so the primary check rightly says nothing and the contrast check is what fires. Pushed 800 px up (row v6) the check names it: \"top ... < 0\".",
     "y8a": "the row says press adds nothing, and it does add something: the row overrides the background only, and the pack's own .tcard.nav:active still moves the border colour, measured hover rgb(38, 36, 33) to pressed rgb(43, 41, 38) in ink and rgb(220, 213, 199) to rgb(211, 204, 189) in dawn, 844 and 848 pixels of the clip differing. With the border held as well (row v15) the check fails by name.",
-    "y13c": "the row calls two inline spans with a space between them separate cells. The browser answers innerText \"3 (minus)5 lb.\", one line, the same string as the range the lead's ruling keeps forbidden and the same thing the athlete reads. Two real cells (display: table-cell, row w11) are split by the TAB the browser puts between them and pass. STANDARD.md section 13 says so.",
+    "y13c": "historical pre-check only: this disposition was superseded by ledger625. The current candidate permits whitespace-separated numeric sibling spans through the minus channel while keeping flat word/vendor text and three decoy refusals; z4 and z8-z10 hold it.",
     "y14g": "VOID by construction: its anchor is the very opener block item 13 replaces, so it cannot match at this head. The experiment it stands for was run here: the opener clause removed alone, q11 DISAGREES."
    },
    "tally": {
