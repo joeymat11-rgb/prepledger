@@ -1797,7 +1797,7 @@ test("P-S9-3 (31) - the local-import step exists and carries the not-cancelled c
    a sibling or misplaced matrix cannot stand in for the one the job actually runs on. */
 function assertTwoOsJob(yml, job) {
   const escaped = job.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const key = (name) => "(?:" + name + '|"' + name + '"|\\'' + name + "\\')";
+  const key = (name) => `(?:${name}|"${name}"|'${name}')`;
   const exactKey = (indent, name) => new RegExp("^" + " ".repeat(indent) + key(name) + ":\\s*(?:#.*)?$");
   const valueKey = (indent, name, value) => new RegExp("^" + " ".repeat(indent) + key(name) + ":\\s*" + value + "\\s*$");
   const starts = yml.map((line, i) => [line, i])
