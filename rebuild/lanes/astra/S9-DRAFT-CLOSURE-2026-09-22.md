@@ -36,3 +36,15 @@ Forbidden paths, aliases, links, repository escapes, extension fallback and the5
 No omitted child target, cap truncation, guard waiver or permission expansion is allowed.
 The old helper and failed evidence remain unchanged. New helper requires independent review.
 Actual closure, final spec, child execution, exporter, both-OS CI and final Claude/seal remain owed.
+
+## Directory correction and second measured stop
+Corrected helper fb75b6a2b67b7e49776d920b23a505ccb5e87f0d211a2253eb2e1340e20f5ef7.
+Independent Windows-local ACCEPT: astra/reviews/S9-DIRECTORY-CHECKER-REVIEW-L2.md.
+PM read whole report, scoped delta and evidence hashes before rerun; link-bypass red retained.
+Terminal69776 exit1: STAGE1 PASS227/5, TARGETS83, STOP GIT_ENTRY_SHAPE.
+Parent rebuild/lanes/d/plan-edit/browser-build.test.mjs:11 uses new URL('../../../..', import.meta.url).
+This repository-root reference normalizes to '.', without a trailing slash; Git returns root entries.
+Retained checker-folder log a23c079-directory-fix-closure-verdict.log SHA256:
+b6e1cfddfcbf063bd25beab9c6ac095b07078519342de435fbe15f501915f4c1.
+Same author/reviewer own a minimal root-form correction; runtime released then granted for synthetic controls.
+No product change, target omission, policy weakening, private read, or source-closure acceptance.
