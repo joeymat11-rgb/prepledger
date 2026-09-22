@@ -17,4 +17,6 @@ Lane C (screens tier), UI port. Filed 2026-09-18 by the design chat (EARNED MAIN
 - ACCEPTANCE: gate green for `coach`; statesheet green for the C states; the mic at 657 to
   770 in every state that shows it; in text and tap modes the stack shrinks and the input or
   links stay at the bottom edge.
-- SEQUENCING: after C-UI-1; may start in parallel with C-UI-5.
+- SEQUENCING (:732): After actual S10 release, separately commissioned Coach views may build on provisional CUI1; the existing allowance for parallel C-UI-5 preparation remains. This is no automatic dispatch or acceptance.
+- ACCEPTANCE BOUNDARY (:732): every original named font, copy, scene, motion and applicable screen gate still applies to the real composed product. No incomplete CUI1 acceptance, fake element, prototype substitution or waived failure.
+- PIN PROMOTION (:732): completed CUI1 promotion requires a later named, independently reviewed reseal child. Remeasure APPROVED-PIN, design.test and affected declarations; retain parent-pinned 09-08 documents unless separately released. Whole-pack coverage stays.

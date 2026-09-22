@@ -14,4 +14,6 @@ Lane C (screens tier), UI port. Filed 2026-09-18 by the design chat (EARNED MAIN
   zone, columns, spacing, contrast); statesheet green for every T state the ticket covers,
   each within tolerance of the prototype's render; the day scrolls under a fixed stack on a
   long day with the fades as ruled.
-- SEQUENCING: after C-UI-1. Parallel with C-UI-4.
+- SEQUENCING (:732): After actual S10 release, separately commissioned Today face may build on provisional CUI1, parallel with C-UI-4. Today face precedes C-UI-3. This is no automatic dispatch or acceptance.
+- ACCEPTANCE BOUNDARY (:732): every original named font, copy, scene, motion and applicable screen gate still applies to the real composed product. No incomplete CUI1 acceptance, fake element, prototype substitution or waived failure.
+- PIN PROMOTION (:732): completed CUI1 promotion requires a later named, independently reviewed reseal child. Remeasure APPROVED-PIN, design.test and affected declarations; retain parent-pinned 09-08 documents unless separately released. Whole-pack coverage stays.

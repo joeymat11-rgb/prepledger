@@ -13,4 +13,6 @@ Lane C (screens tier), UI port. Filed 2026-09-18 by the design chat (EARNED MAIN
   (bound, never literal).
 - ACCEPTANCE: T-40 family and T-42..T-52 green and within tolerance; a tap on a decision
   records and "Change my answer" restores; the gold edge only while open.
-- SEQUENCING: after C-UI-2.
+- SEQUENCING (:732): After actual S10 release and C-UI-2 Today face, separately commissioned proposal work may compose on provisional CUI1. This is no automatic dispatch or acceptance.
+- ACCEPTANCE BOUNDARY (:732): every original named font, copy, scene, motion and applicable screen gate still applies to the real composed product. No incomplete CUI1 acceptance, fake element, prototype substitution or waived failure.
+- PIN PROMOTION (:732): completed CUI1 promotion requires a later named, independently reviewed reseal child. Remeasure APPROVED-PIN, design.test and affected declarations; retain parent-pinned 09-08 documents unless separately released. Whole-pack coverage stays.
