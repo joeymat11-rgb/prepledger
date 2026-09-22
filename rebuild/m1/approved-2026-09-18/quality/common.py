@@ -560,10 +560,12 @@ JS_SWEPT_TEXT = """()=>{const ui=document.querySelector('.screen.is-active .ui')
     /* innerText owns rendered whitespace semantics: a formatting newline in normal-flow source
        remains a space, while PRE/TAB/table cells keep their rendered boundary. The one addition
        is the approved pair of numeric sibling cells: separate elements, markup whitespace between
-       them, and each entire element is a signed or unsigned number with an optional unit. A
+       them, and each entire element is a signed or unsigned number with an optional unit from
+       the closed list: lb, lb., kg, g, kcal, %, or s. A word outside that list keeps the phrase
+       intact so a range cannot hide behind an arbitrary suffix. A
        temporary private-use marker occupies that exact whitespace while innerText renders it;
        replacing the marker with TAB cannot attach a later pair to an equal phrase elsewhere. */
-    const numeric=/^[+\\-\\u2212]?\\d+(?:[.,]\\d+)?(?:\\s*[A-Za-z%]+\\.?)?$/;
+    const numeric=/^[+\\-\\u2212]?\\d+(?:[.,]\\d+)?(?:\\s*(?:lb\\.?|kg|g|kcal|%|s))?$/;
     let marker='\\uE000';while(parts[0].includes(marker))marker+='\\uE001';
     const eligible=[],touched=[];
     ui.querySelectorAll('*').forEach(p=>{const ns=Array.from(p.childNodes);

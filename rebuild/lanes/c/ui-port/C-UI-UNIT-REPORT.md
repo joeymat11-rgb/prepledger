@@ -1,8 +1,8 @@
-# C-UI numeric sibling unit red report
+# C-UI numeric sibling unit author report
 
 Task: D-CUI-UNIT.
 Base: cf14982050a8169c7f4848ec0bf1f69c2bb5759f.
-Scope: teeth.py and this report in the static red phase.
+Scope: closed-unit guard, durable rows, documentation and proposed package pins.
 
 ## Invariant
 Markup whitespace may separate two numeric sibling cells without making the
@@ -44,14 +44,14 @@ between rows, launches one child at a time, and leaves the final task folder.
 Expected unchanged-source result: z4 and z19 agree; z14 to z18 disagree because
 the gate returns clean instead of the required named COPY_CHECK failure. An
 environmental refusal, traceback, VOID row or browser failure is not red proof.
-## Runtime red
-The first pinned-Python attempt is retained as environmental non-evidence at
-%TEMP%/earned-cui-unit-red-log-6a72fa5f64ac413d8f11d417a8a0b1ce.
-The prior-audit environment ran 7 rows: 7 launched, 0 skipped, 0 VOID, 5
-disagreeing. z4 and z19 passed. z14 through z18 each exited 0 and produced no
-named COPY_CHECK failure, exactly proving the unchanged any-word hole.
-Raw log: %TEMP%/earned-cui-unit-valid-red-dda7293bd9314982a2a2bebc6362a1ae/selected-red.log.
-Log sha256: dbbb773ad3771fc103544bdb9a6eb4bce91473d08fbd6761cd08e7faf7ecca7e.
-Retained scratch: %TEMP%/earned-teeth-6okn1s8s; no process remains live.
-common.py remains sha256 1d210887dc15a0dbcb9ba6c462c1fa5b35ae6f3987a9d6e959277e650544b2f7.
-Product, baseline, workflow, runner, package, seal, ledger and status bytes are unchanged.
+## Evidence
+Published red f1f283be ran 7 rows with 5 disagreeing. z4 and z19 passed;
+z14 through z18 each exited 0 with no named COPY_CHECK failure. Red log sha256:
+dbbb773ad3771fc103544bdb9a6eb4bce91473d08fbd6761cd08e7faf7ecca7e.
+
+The closed-list candidate ran 7 rows: 7 launched, 0 skipped, 0 VOID, 0
+disagreeing. Log: %TEMP%/earned-cui-unit-candidate-6d6b4774d38b4c068e566c13b9f3b42f/selected-green.log.
+Log sha256: c00375aeb344a21acc96c09dab0260500eeec98deb4dde56001af36cbddd0aee.
+Scratch: %TEMP%/earned-teeth-ui1yy923; no process remains live.
+No app, baseline, gate entry point, workflow, runner, engine, seal, ledger or status byte changed.
+Affected z8-z13 and ordinary gate compatibility remain separately owed.

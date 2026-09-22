@@ -2,7 +2,7 @@
  "version": 1,
  "lanePackage": "C-UI-0",
  "packageId": "C-UI-0-GATES-WITH-TEETH",
- "status": "PROPOSED, revised for reviews R1 to R5 and for the one list of the PM second teeth audit (items 1 to 18)",
+ "status": "PROPOSED, revised for reviews R1 to R5, the PM second teeth audit, and D-CUI-UNIT",
  "reviews": [
   {
    "round": "R1",
@@ -138,12 +138,12 @@
    "role": "edited: sections 1, 3 (with 3.1), 4 and 7; 3.1 rewritten in R3"
   },
   "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": {
-   "sha256": "732df8f9fc2f8f431d674be673aea43e732e73ab40b2191f52573ff2886a4c80",
-   "role": "edited: actual samples and review duties, state-primary contract, numeric sibling boundary, external identity and run/skip/VOID reporting"
+   "sha256": "37b90f4273f2710ff10ebeb8e1a536dc5eff07402854cd501962f69a6e3e5160",
+   "role": "edited: actual samples and review duties, state-primary contract, closed numeric sibling units, external identity and run/skip/VOID reporting"
   },
   "rebuild/m1/approved-2026-09-18/quality/common.py": {
-   "sha256": "1d210887dc15a0dbcb9ba6c462c1fa5b35ae6f3987a9d6e959277e650544b2f7",
-   "role": "shared gate helpers; adds caller-supplied external identity and a rendered-whitespace minus channel with the narrow numeric-sibling exception"
+   "sha256": "374a3b92ff973499a66f55d7405e62b0be456b6bd4c816ebec8a47c72f371beb",
+   "role": "shared gate helpers; numeric sibling suffixes are closed to lb, lb., kg, g, kcal, %, and s"
   },
   "rebuild/m1/approved-2026-09-18/quality/gate.py": {
    "sha256": "dea7763e163643084ce8cd8813a9fac87b4eb064b77274cc3fdb77b75320600a",
@@ -158,12 +158,16 @@
    "role": "review sheet; refuses an external run without immutable identity before starting a browser"
   },
   "rebuild/m1/approved-2026-09-18/quality/teeth.py": {
-   "sha256": "75eb54d0b78a5d6f19cbc6faa8e8797fa49bc89a7a086bf12f471c38f8339828",
-   "role": "105 executable mutation rows; adds state-primary, numeric sibling/decoy, external identity and pre-run VOID custody rows"
+   "sha256": "6f5ac2236060a36604c6d59958b9d83be5aa21accf609c5006889bdcd93b89ea",
+   "role": "111 executable mutation rows; adds closed-unit numeric sibling regressions and controls"
   },
   "rebuild/lanes/c/ui-port/C-UI-0-CODEX-REPORT.md": {
    "sha256": "3b11814d9e39eb3fde977a50d6f6318bbfb1701d550e58c871465a9474910a32",
    "role": "Sol author report; red custody, focused author evidence, ordinary gate and pending independent obligations"
+  },
+  "rebuild/lanes/c/ui-port/C-UI-UNIT-REPORT.md": {
+   "sha256": "ca8e6b65cf639d876c47faf608973847b85c8bdbbc50c5ef3564de26e1710c8a",
+   "role": "D-CUI-UNIT red custody, closed-list candidate evidence and remaining verification obligations"
   },
   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": {
    "sha256": "c4bb05a2c2d9cf7ab9d6717e905aee809defe8056f6ad1b88c4702a2d4620ecb",
@@ -1054,7 +1058,9 @@
    "red": "f8a68ced item4; 103ad57 z8 split-element bypass; cf31f82 equal-text occurrence bypass; independent external identity and VOID counterexamples",
    "authorFocused": "25 enumerated, 25 run, 0 skipped, 0 VOID, 0 disagreeing, 179 s; retained %TEMP%/cui0-author-evidence/occurrence-focused-25-green.txt sha256 336002601c0d14e2b3b8216f0fc12e84d69871fcf03a413dc19fa07173bc37bb",
    "authorOrdinaryGate": "0 FAIL, 0 WARN, 372 PASS; retained %TEMP%/cui0-author-evidence/occurrence-gate-372-green.txt sha256 cb458fa9ac3117e924db9d0c9df39fc9e7249996db0f7bdcbffd806b121fc745",
-   "excluded": "first 25-row attempt stopped every browser row at missing JS_SEEN wiring; second was 24/25 with invalid old z2; neither is green evidence"
+   "excluded": "first 25-row attempt stopped every browser row at missing JS_SEEN wiring; second was 24/25 with invalid old z2; neither is green evidence",
+   "unitDebt": "D-CUI-UNIT published red f1f283be: z4 and z19 controls passed while z14-z18 exposed the any-word suffix hole",
+   "unitCandidate": "7 enumerated, 7 run, 0 skipped, 0 VOID, 0 disagreeing; scoped z8-z13 and ordinary gate compatibility remain owed"
   },
   "yRowPreCheck": {
    "what": "THE BUILDER'S PRE-CHECK, NOT THE PM'S VERDICT. The PM's kit (driver.py and rows.py as published at 3b186404, unmodified) run here against a scratch copy of this head outside any work tree: linux, Python 3.11.15, playwright 1.56.0, Chromium 141, MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York, one browser job at a time. The PM's executor runs the official pass on the owner's PC.",

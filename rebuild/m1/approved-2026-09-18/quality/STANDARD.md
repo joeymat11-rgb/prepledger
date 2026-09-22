@@ -45,6 +45,7 @@ Where a rule departs from the boards, the departure is recorded on the compariso
 ## 6. Copy
 
 - No dashes in interface copy. No readiness words. No vendor or model names. The minus sign is a dash unless it is opening a number, which is a closed list of contexts named in section 13. *gate (copy: no dashes, readiness words, vendor names, on both gates; the word list is matched on a real word boundary)*
+- The numeric-sibling exception in section 13 admits bare numbers and exactly these suffixes: `lb`, `lb.`, `kg`, `g`, `kcal`, `%`, and `s`. Arbitrary words and unapproved spellings do not create a cell boundary.
 - Empty and error states say what happened and what was recorded ("Nothing was recorded."), never a cheerful placeholder. *reviewer*
 
 ## 7. Process: what "done" means for a state
