@@ -14,7 +14,7 @@ async function scene() {
 
 async function instrumentedScene() {
   const source = fs.readFileSync(SCENE, "utf8")
-    + "\nexport { makeParticles, sceneRenderer };\n";
+    + "\nexport { installScene, makeParticles, sceneRenderer };\n";
   return import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
 }
 
@@ -26,6 +26,47 @@ test("C-UI-1 review hooks normalize theme, screen, chrome, date and state", asyn
   assert.deepEqual(reviewHooks("?theme=wrong&screen=wrong&chrome=0&date=2026-09-03&state="), {
     theme: "ink", screen: "today", chrome: false, date: "2026-09-03", state: null,
   });
+});
+
+test("C-UI-1 board-date observer does not rewrite the mutation it caused", async () => {
+  const { installScene } = await instrumentedScene();
+  const callbacks = [];
+  class Observer {
+    constructor(callback) { callbacks.push(callback); }
+    observe() {}
+  }
+  let writes = 0, value = "";
+  const date = {};
+  Object.defineProperty(date, "textContent", {
+    get: () => value,
+    set: (next) => { writes += 1; value = next; },
+  });
+  const canvas = { getContext: () => ({}) };
+  const frame = { clientWidth: 0, clientHeight: 0, setAttribute() {},
+    querySelector: (selector) => selector === "canvas.embers" ? canvas : null };
+  const host = { scrollHeight: 0, clientHeight: 0, scrollTop: 0,
+    classList: { add() {}, toggle() {} }, addEventListener() {},
+    querySelector: (selector) => selector === '[data-slot="date"]' ? date : null };
+  const phone = { querySelector: () => null, insertBefore() {} };
+  const doc = { documentElement: { dataset: {} }, body: { classList: { toggle() {} } },
+    querySelector: (selector) => selector === ".phone" ? phone : null,
+    getElementById: (id) => id === "phone" ? host : null,
+    createElement: () => frame };
+  const PreviousImage = globalThis.Image;
+  globalThis.Image = class { set src(value) { this.url = value; } };
+  try {
+    installScene({ location: { search: "?screen=today&date=board" }, document: {},
+      MutationObserver: Observer, addEventListener() {}, matchMedia: () => ({ matches: true }),
+      requestAnimationFrame: () => 1, cancelAnimationFrame() {}, devicePixelRatio: 1,
+      __earnedSceneAssets: { mist: "data:image/png;base64,AA", grain: "data:image/png;base64,AA",
+        plateInk: "data:image/jpeg;base64,AA", plateDawn: "data:image/jpeg;base64,AA" } }, doc);
+    assert.equal(writes, 1, "the initial board date is written once");
+    callbacks.at(-1)();
+    callbacks.at(-1)();
+    assert.equal(writes, 1, "observer callbacks do not replace the same text node again");
+  } finally {
+    globalThis.Image = PreviousImage;
+  }
 });
 
 test("C-UI-1 reduced motion draws one actual frame and never schedules another", async () => {

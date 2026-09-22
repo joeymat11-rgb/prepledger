@@ -2,7 +2,7 @@
 
 Role: commissioned Sol builder, not reviewer, PM or integrator.
 Published red head: fa593d629d858bdd7d3d72ad8885598b1be8475e.
-Status: SECOND RED READY; copy guards pass and scene fidelity is incomplete.
+Status: F6 RED READY; F3-F5 repair is static and untested, F6 remains unfixed.
 Browser and independent review remain owed.
 
 The build keeps the accepted b35 Today behavior and binds the exact
@@ -39,6 +39,9 @@ TZ=America/New_York and --test-concurrency=1:
 - scene fidelity red: 2 pass, 3 intended failures, exit 1; cadence,
   depth classes and asset readiness each fail on the simplified WIP; SHA256
   0b5a3c50e65d04ff514380cd7530c42fd86543dd70f7150d01117de51ada4aa6.
+- board-date observer red against published 4d scene: 0/1 pass, exit 1;
+  callbacks wrote 3 times, expected 1; log SHA256
+  86b90b96d156948272d40157da9a3b1ebaad43d406a44cb3381363a5a6acc131.
 Logs: %TEMP%/cui1-author-candidate/design-copy-guard-red-check.txt and
 %TEMP%/cui1-author-candidate/scene-fidelity-red.txt.
 
