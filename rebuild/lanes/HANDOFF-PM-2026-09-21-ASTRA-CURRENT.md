@@ -1,5 +1,5 @@
 # Earned current PM checkpoint, 2026-09-22
-Continuity only, not a seat transfer. Later ledger entries control; latest755.
+Continuity only, not a seat transfer. Later ledger entries control; latest757.
 Sole PM task01a0c6fe-004c-7330-90f2-df02af3c7290, seated738 after release737.
 Goal: approved rebuild until verified ready for Joe's trial; not achieved. Previous turn progress.
 PM tree: C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm.
@@ -19,19 +19,19 @@ Full227custody/actual child closure still need protected access. No S9.json/fina
 Existing integration hands1-8/11 retained; no unfinishedCUI1, actual09-08 references plus whole09-18pack.
 
 ## S9 current workers
-Sol /root/s9_font_home now STATIC exact prospective S9 child/role/CI map, no spec/literal/token writes.
-Reference homee5d3d05 incorporated; mapping starts current %TEMP%/earned-s9int; no runtime.
+Sol /root/s9_font_home finished prospective map92b6f32; idle, preserved. All25parents plus planned additions.
+Map astra/S9-PROSPECTIVE-CHILD-MAP.json c2170f4; note3ba33e3;33planning entries, needles unmeasured.
 Reader unchangedbf967180; independent ACCEPTfff570c, adopted753, no localreader execution.
 CI35684542499:Ubuntu106608457970/Windows106608457960 readerstepSUCCESS; metadataonly.
 Whole public-gates jobs FAILURE; no fullCIclaim. Integration e5d3d05 clean/pushed; no full joblogs.
-Old Sol via relay01a0c64b corrects checker STATIC; no protectedread/hash or runtime.
+Old Sol via relay01a0c64b completed checker; idle/preserved, no protectedread/hash.
 Scratch %TEMP%/earned-s9-source-custody-checker-sol-20260921, s9-source-custody-check.cjs and PROPOSAL.md.
-Checker630d8e167a7ec033686e109d37c48fb1bc30b47e39766287dab089e4adf9b10e,226lines.
-Proposal3be85d9343bab6e2ca1f2cdce4fd6ce9daed3fc650744aae9ab06f82d6688854,35lines.
-Independent NEEDS CORRECTION:astra/reviews/S9-SOURCE-CHECKER-REVIEW-L1.md,44lines,32c2d668.
-Six fixes: overlaps, all5membership, Git file/case safety, output redaction, childArgv parity, no replacements.
-Only after reviewedchecker askJoe narrow static protectedread/hash permission; no other permission inferred.
-Later engine execution/private --full/import/deploy remain separate; no source disclosure.
+Checker1528b20a4f00c9e88834c3eed34c3540a3ce13e2bb087cf275cb2115e134d609,299lines/13040bytes.
+Proposal310b9f3d8a513a8c60371d8d2abdc53ba35802a8d2bab74a2043cb8d706c33d5,40lines.
+Independent STATIC ACCEPT L3 a74ccb9:astra/reviews/S9-SOURCE-CHECKER-REVIEW-L3.md,19lines,2f78f457.
+Six safety fixes plus null-prototype map complete;13KB clarity variance dispositioned. PM no-flag run HELD227/5.
+Owner permission ASKED757 this task via asyncquestion; no answer, allow-protected-five flag NEVER used.
+Scope/command boundary:astra/S9-SOURCE-CHECKER-PERMISSION-2026-09-22.md; current5c62specabsent.
 
 ## GSS evidence and bounded repair
 Oldauthor route relay01a0c64b has no PM/ledgerauthority; oldcoordinator01a0c4a5 unavailable.
@@ -49,7 +49,7 @@ UnplantedG6red published before lane-only acknowledgedLog delivery handoff; no o
 Strict mount/context/stale/foreign guards, active-onlysettingswriter, exactpayload/onecallback/write remain.
 Claude755 GYM-SETTINGS-WRITER-SEAL l2 owed; packetf93f214:astra/GSS-ANNEX-CLAUDE-L2-REQUEST.md.
 Candidate79d981a run35685091003 both OS failstep13; metadata only, no identical-cause/fullCI claim.
-Reviewer now STATIC prospective exporter; %TEMP%/earned-s9-profile-export-preparation; never executed.
+Exporter mechanics ACCEPTf20f2fe/helper7541ad/procedure9911a2; final effects/runtime HELD; reviewer idle.
 
 ## Owner queue and boundaries
 CUI86007bc NOT READY/harness380a2d5; promotion afterS10 via named reseal, phoneproof owed.
@@ -57,4 +57,4 @@ Pendingowner: yes-only ordinary increases, B afterFinish recommended; noanswer k
 Queue:S9look/seal; phoneearns beforetrial; split/EditMyWeek;N3;re-plan;P4b-2. Father's trial follows.
 Never protected/oldapp paths, engine seed/migrate/merge/index/oracle-shim, oldjob50 or claude-epp.
 No main/deploy/import/purchase/fallback/newengine semantics/sharednpm/heartbeats/guardwaivers.
-Latestweekly52percent; crossinghalf notified. Maximum speed with quality; no trialETA. Goalactive.
+Latestweekly55percent; crossinghalf notified. Prior turn progress; workers idle/runtime free. Goalactive.
