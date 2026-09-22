@@ -440,3 +440,28 @@ jobs:
         run: node --test rebuild/m3/w6/test/local-import.test.mjs
       - name: Report the evidence boundary
         run: node -e "console.log('W0 PUBLIC CI PASS; private oracle/full selftest, real backend, installed phone and final M3 SCOPE-FREEZE remain separate acceptance gates')"
+
+  # C-UI-0's accepted font transport regression is Python, while the sealed package runner
+  # deliberately admits only JavaScript children. Give the unchanged regression its own job so
+  # the expected-red S9 package/pin steps in public-gates cannot skip it. The request-context
+  # proof launches no browser, so Playwright's browser payload is neither installed nor cached.
+  font-transport:
+    name: C font transport (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14.6'
+          architecture: x64
+      - name: Install the exact font-transport Python closure
+        run: python -m pip install --disable-pip-version-check --no-deps numpy==2.5.3 Pillow==12.3.0 playwright==1.62.0 greenlet==3.5.4 pyee==13.0.1 typing-extensions==4.16.0
+      - name: C - pinned font bytes across data, file and loopback HTTP transports
+        run: python rebuild/lanes/c/ui-port/font_transport_test.py
