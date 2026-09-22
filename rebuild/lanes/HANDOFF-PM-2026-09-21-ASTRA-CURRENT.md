@@ -1,7 +1,7 @@
 # Earned current PM checkpoint, 2026-09-22
-Continuity only, not a seat transfer. Later ledger entries control; latest765.
+Continuity only, not a seat transfer. Later ledger entries control; latest767.
 Sole PM task01a0c6fe-004c-7330-90f2-df02af3c7290, seated738 after release737.
-Goal: approved rebuild until verified ready for Joe's trial; NOT achieved. S9 five-file permission757 owed.
+Goal: approved rebuild until verified ready for Joe's trial; NOT achieved. S9 specification/closure in preparation.
 PM tree: C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm.
 Detached checkout; push HEAD:rebuild/t2-client-core. Never switch old-app cwd.
 
@@ -12,14 +12,14 @@ CUI0/font0e5e194, guards88a4d063, readerb9ea32f, five tickets exact acceptedcaa0
 Guard debt repaired88a4d063, blind ACCEPT351817d 21callbacks/200probes/3kills, adopted761; finalClaude owed.
 Font home5c62cb4 blind ACCEPTb67f7e0/747; exact twoOS run35683197350 each6PASS/0skip.
 Pack preflight7a986db:1331Git/working files equal, both OS baselines present.
-SourceBase0cd07be7cf967dfbfea8c84947ba8477f58cfb5f unchanged;222public pins match,5protected excluded.
+SourceBase0cd07be7cf967dfbfea8c84947ba8477f58cfb5f unchanged; all227pins PASS after permission766.
 E17dd182f8 reader reaches itself+4docs; old four-Today diagnostic stops before protectedmigrate.
 Independent route11c4bc5:astra/reviews/S9-REMAINING-SAFE-ROUTE.md,45lines read/hash checked.
-Full227custody/actual child closure still need protected access. No S9.json/final literals/tokens/artifact/seal.
+Full227source custody complete767. Actual child closure/spec/final literals/tokens/artifact/seal remain owed.
 Existing integration hands1-8/11 retained; no unfinishedCUI1, actual09-08 references plus whole09-18pack.
 
 ## S9 current workers
-Sol /root/s9_font_home completed GSS neutral repair66d32530; idle/preserved. Child map92b6f32 retained.
+Sol /root/s9_font_home STATIC off-repo S9 draft assembly; same reviewer STATIC staging. Map92b6f32 retained.
 Map astra/S9-PROSPECTIVE-CHILD-MAP.json c2170f4; note3ba33e3;33planning entries, needles unmeasured.
 Reader unchangedbf967180; independent ACCEPTfff570c, adopted753, no localreader execution.
 CI35684542499:Ubuntu106608457970/Windows106608457960 readerstepSUCCESS; metadataonly.
@@ -29,8 +29,8 @@ Scratch %TEMP%/earned-s9-source-custody-checker-sol-20260921, s9-source-custody-
 Checker1528b20a4f00c9e88834c3eed34c3540a3ce13e2bb087cf275cb2115e134d609,299lines/13040bytes.
 Proposal310b9f3d8a513a8c60371d8d2abdc53ba35802a8d2bab74a2043cb8d706c33d5,40lines.
 Independent STATIC ACCEPT L3 a74ccb9:astra/reviews/S9-SOURCE-CHECKER-REVIEW-L3.md,19lines,2f78f457.
-Six safety fixes plus null-prototype map complete;13KB clarity variance dispositioned. PM no-flag run HELD227/5.
-Owner permission ASKED757 this task via asyncquestion; no answer, allow-protected-five flag NEVER used.
+Checker1528b20 unchanged; authorized PM session14502 exit0 STAGE1 PASS227/5, STAGE2 HELD S9_SPEC_ABSENT.
+Joe permission766 grants local five-file read/hash/static checks; flag used once, no source content or module execution.
 Scope/command boundary:astra/S9-SOURCE-CHECKER-PERMISSION-2026-09-22.md; current5c62specabsent.
 
 ## GSS evidence and bounded repair
@@ -55,6 +55,6 @@ Exporter mechanics ACCEPTf20f2fe; public-effect inventorye40fdb5 narrows future 
 CUI86007bc NOT READY/harness380a2d5; promotion afterS10 via named reseal, phoneproof owed.
 Pendingowner: yes-only ordinary increases, B afterFinish recommended; noanswer keeps engine unchanged.
 Queue:S9look/seal; phoneearns beforetrial; split/EditMyWeek;N3;re-plan;P4b-2. Father's trial follows.
-Never protected/oldapp paths, engine seed/migrate/merge/index/oracle-shim, oldjob50 or claude-epp.
+Five engine files: reviewed local read-only checks allowed766, no raw output; all other protected/oldapp bans stand.
 No main/deploy/import/purchase/fallback/newengine semantics/sharednpm/heartbeats/guardwaivers.
-Weekly60percent. Runtime FREE, workers idle/preserved. GSS CI35767357862 bothOS red; source permission757 pending.
+Weekly62percent. Runtime FREE after checker. Author/reviewer static S9 assembly; GSS CI35767357862 bothOS red.
