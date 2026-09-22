@@ -98,15 +98,15 @@ function heldLogModel(unit, seam) {
     submitted: () => copy(submitted) };
 }
 
-async function page(unit, model, draft, onBack = () => {}, onChanged = () => {}) {
+async function page(unit, model, draft, onBack = () => {}, onChanged = () => {}, options = {}) {
   const dom = unit.dom || new JSDOM(shell(), { url: 'http://127.0.0.1/' });
   unit.dom = dom;
   const phone = dom.window.document.getElementById('phone');
   const mounted = mountGym(dom.window.document, phone,
-    { model, draft, settings: unit.settings, onBack, onChanged });
+    { model, draft, settings: options.settings || unit.settings, onBack, onChanged });
   await within(mounted, 'mount');
   const reading = mounted.settings.read();
-  if (reading) await within(reading, 'settings read');
+  if (reading && options.awaitSettingsRead !== false) await within(reading, 'settings read');
   await settle();
   const pick = (selector) => phone.querySelector(selector);
   const click = (selector) => {
@@ -230,6 +230,108 @@ async function runG6(seam, plant = false) {
     }
   } finally {
     held.release(); reopened?.close(); unit.settings?.close(); unit.gymHost?.close(); unit.dom?.window.close();
+  }
+}
+
+async function runG6NeutralRepaint(kind) {
+  const unit = await device('g6-neutral-' + kind);
+  const held = heldLogModel(unit, 'after-commit'), draft = newGymDraft();
+  const readReached = deferred(), readRelease = deferred();
+  let mounted = null, reopened = null, changed = 0;
+  let readDelivered = false, lastMountedView = null;
+  try {
+    const before = await collections(unit.gymHost.repository);
+    const observedModel = Object.freeze({ ...held.model, read: async (...args) => {
+      const view = await held.model.read(...args);
+      lastMountedView = copy(view);
+      return view;
+    } });
+    let settings = unit.settings;
+    const options = {};
+    if (kind === 'settings-read') {
+      settings = { latest: async (...args) => {
+        const actual = await unit.settings.latest(...args);
+        readReached.resolve(copy(actual));
+        await readRelease.promise;
+        readDelivered = true;
+        return actual;
+      }, save: (...args) => unit.settings.save(...args), close() {} };
+      options.settings = settings;
+      options.awaitSettingsRead = false;
+    }
+    mounted = await page(unit, observedModel, draft, () => {}, () => { changed += 1; }, options);
+    const active = copy(lastMountedView);
+    assert.equal(active?.phase, 'active', 'GSS-G6-NEUTRAL-INITIAL-VIEW-' + kind);
+    const expected = { startId: active.startId, slot: active.set.slot, lift: active.set.lift,
+      load: '45', reps: '11', effort: CHOICE.reserve };
+    assert.equal(mounted.pick('[data-slot="settings-editor"]')?.hidden, true,
+      'GSS-G6-NEUTRAL-EDITOR-OPEN-' + kind);
+    if (kind === 'settings-read') {
+      await within(readReached.promise, 'G6 neutral actual settings result held');
+      assert.equal(readDelivered, false, 'GSS-G6-NEUTRAL-READ-EARLY');
+      assert.equal(mounted.mounted.settings.stateFor(active.set.lift), 'reading',
+        'GSS-G6-NEUTRAL-READ-NOT-PENDING');
+    }
+    mounted.input('#gym-weight', '45'); mounted.input('#gym-reps', '11'); mounted.chooseEffort();
+    const capturedLog = mounted.pick('[data-slot="log"]');
+    assert(capturedLog?.isConnected, 'GSS-G6-NEUTRAL-CAPTURED-LOG-MISSING-' + kind);
+    capturedLog.click(); await within(held.reached, 'G6 neutral ' + kind);
+    if (kind === 'why-toggle') {
+      mounted.click('[data-action="why"]');
+      await settle();
+    } else {
+      readRelease.resolve();
+      await within(mounted.mounted.settings.read(), 'G6 neutral actual settings delivery');
+      await settle();
+      assert.equal(readDelivered, true, 'GSS-G6-NEUTRAL-READ-NOT-DELIVERED');
+    }
+    await until(() => lastMountedView?.phase === 'active'
+      && lastMountedView.startId === expected.startId
+      && lastMountedView.set?.lift === expected.lift
+      && lastMountedView.set?.slot !== expected.slot
+      && capturedLog.isConnected === false
+      && mounted.pick('[data-slot="log"]')?.isConnected,
+    'G6 neutral observed advanced repaint ' + kind);
+    const advanced = copy(lastMountedView);
+    assert.equal(advanced.phase, 'active', 'GSS-G6-NEUTRAL-NOT-ACTIVE-' + kind);
+    assert.equal(advanced.startId, expected.startId, 'GSS-G6-NEUTRAL-WORKOUT-MOVED-' + kind);
+    assert.equal(advanced.set.lift, expected.lift, 'GSS-G6-NEUTRAL-LIFT-MOVED-' + kind);
+    assert.notEqual(advanced.set.slot, expected.slot, 'GSS-G6-NEUTRAL-SLOT-NOT-ADVANCED-' + kind);
+    assert.equal(capturedLog.isConnected, false, 'GSS-G6-NEUTRAL-DOM-NOT-REPAINTED-' + kind);
+    assert(mounted.pick('[data-slot="log"]')?.isConnected,
+      'GSS-G6-NEUTRAL-ADVANCED-BINDING-MISSING-' + kind);
+    held.release(); const envelope = await within(held.done, 'G6 neutral delivery'); await settle();
+    assertTyped(envelope, 'GSS-G6-NEUTRAL-' + kind.toUpperCase());
+    assert.equal(envelope.result.ok, true, 'GSS-G6-NEUTRAL-ACK-' + kind);
+    const saved = /logged/.test(mounted.pick('[data-slot="saved-title"]')?.textContent || '');
+    const undo = !!mounted.pick('[data-action="undo"]');
+    const clearedEntry = copy(draft.entry), clearedEffort = copy(draft.effort);
+    let nextActive = false, nextLoad = null, nextReps = null, nextPressed = [];
+    if (saved && undo) {
+      mounted.click('[data-slot="primary"]');
+      await until(() => mounted.pick('[data-slot="log"]'), 'G6 neutral next active repaint');
+      nextActive = true;
+      nextLoad = mounted.pick('#gym-weight')?.value;
+      nextReps = mounted.pick('#gym-reps')?.value;
+      nextPressed = [...mounted.phone.querySelectorAll('[data-slot="choices"] button')]
+        .filter((button) => button.getAttribute('aria-pressed') === 'true')
+        .map((button) => button.textContent);
+    }
+    const closed = await closeAndRead(unit); reopened = closed.reopened;
+    proveOneSet(before, closed.maps, held.submitted(), expected, envelope.result.opId);
+    assert.equal(saved, true, 'GSS-G6-NEUTRAL-SAVED-SCREEN-' + kind);
+    assert.equal(undo, true, 'GSS-G6-NEUTRAL-UNDO-' + kind);
+    assert.deepEqual(clearedEntry, { load: null, reps: null },
+      'GSS-G6-NEUTRAL-ENTRY-NOT-CLEARED-' + kind);
+    assert.equal(clearedEffort, null, 'GSS-G6-NEUTRAL-EFFORT-NOT-CLEARED-' + kind);
+    assert.equal(nextActive, true, 'GSS-G6-NEUTRAL-NEXT-CARD-MISSING-' + kind);
+    assert.equal(nextLoad, '', 'GSS-G6-NEUTRAL-NEXT-LOAD-NOT-CLEARED-' + kind);
+    assert.equal(nextReps, '', 'GSS-G6-NEUTRAL-NEXT-REPS-NOT-CLEARED-' + kind);
+    assert.deepEqual(nextPressed, [], 'GSS-G6-NEUTRAL-NEXT-EFFORT-NOT-CLEARED-' + kind);
+    assert.equal(changed, 1, 'GSS-G6-NEUTRAL-ONCHANGED-' + kind);
+  } finally {
+    held.release(); readRelease.resolve(); reopened?.close(); unit.settings?.close();
+    unit.gymHost?.close(); unit.dom?.window.close();
   }
 }
 
@@ -372,6 +474,16 @@ test('D-GSS-G6: held Log delivery preserves row add/edit through repaint', { tim
   await assert.rejects(runG6('after-commit', true), /GSS-G6-ROWS-LOST/);
   await runG6('before-commit');
 });
+
+test('D-GSS-NEUTRAL-REPAINT: Why toggle cannot strand a committed Log acknowledgement',
+  { timeout: 30000 }, async () => {
+    await runG6NeutralRepaint('why-toggle');
+  });
+
+test('D-GSS-NEUTRAL-REPAINT: settings-read repaint cannot strand a committed Log acknowledgement',
+  { timeout: 30000 }, async () => {
+    await runG6NeutralRepaint('settings-read');
+  });
 
 test('D-GSS-G7: actual quota result and post-repaint quota retain current state', { timeout: 60000 }, async () => {
   await assert.rejects(runG7('quota-result-held', true), /GSS-G7-CURRENT-ERROR/);
