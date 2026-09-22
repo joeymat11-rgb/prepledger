@@ -75,6 +75,9 @@ const recorded = async (page) => {
 
 const server = await startServer({ port: 0 });
 const url = `http://127.0.0.1:${server.address().port}/`;
+// The shipped fresh-install route opens setup first. The supported preview route
+// requests Today explicitly and carries deterministic review hooks for this witness.
+const todayUrl = url + "?screen=today&date=board&state=T-02";
 const browser = await chromium.launch({ executablePath, headless: true });
 let failures = 0;
 const problems = [];
@@ -96,11 +99,11 @@ try {
     }
   });
 
-  await page.goto(url, { waitUntil: "load" });
+  await page.goto(todayUrl, { waitUntil: "load" });
   await page.waitForSelector('[data-slot="instruction"]');
   const sceneWitness = await page.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());
   assert(sceneWitness, "C-UI-1 SCENE-RUNTIME-MISSING: actual preview exposed no scene witness");
-  assert.deepEqual(sceneWitness.hooks, { theme: "ink", screen: "today", chrome: false, date: null, state: null });
+  assert.deepEqual(sceneWitness.hooks, { theme: "ink", screen: "today", chrome: false, date: "board", state: "T-02" });
   assert.equal(sceneWitness.assets, 4, "the actual preview owns four pinned scene assets");
   assert(sceneWitness.draws >= 1 && sceneWitness.scheduled >= 1, "the moving scene drew and scheduled a frame");
 
@@ -184,7 +187,7 @@ try {
 
   const sweepContext = await browser.newContext({ viewport: VIEWPORT });
   const sweepPage = await sweepContext.newPage();
-  await sweepPage.goto(url, { waitUntil: "load" });
+  await sweepPage.goto(todayUrl, { waitUntil: "load" });
   await sweepPage.waitForSelector('[data-slot="primary"]');
   const sweptBefore = await sweep(sweepPage, "before a weigh-in");
   await sweepPage.reload({ waitUntil: "load" });
@@ -223,7 +226,7 @@ try {
      second browser profile so it does not disturb the reading above. */
   const spikeContext = await browser.newContext({ viewport: VIEWPORT });
   const spikePage = await spikeContext.newPage();
-  await spikePage.goto(url, { waitUntil: "load" });
+  await spikePage.goto(todayUrl, { waitUntil: "load" });
   await spikePage.waitForSelector('[data-slot="primary"]');
   await spikePage.click('[data-slot="primary"]');
   await spikePage.fill("#morning-weight", "191.7");
@@ -240,7 +243,7 @@ try {
 
   const refuseContext = await browser.newContext({ viewport: VIEWPORT });
   const refusePage = await refuseContext.newPage();
-  await refusePage.goto(url, { waitUntil: "load" });
+  await refusePage.goto(todayUrl, { waitUntil: "load" });
   await refusePage.waitForSelector('[data-slot="primary"]');
   await refusePage.click('[data-slot="primary"]');
   await refusePage.fill("#morning-weight", "10000");
@@ -261,7 +264,7 @@ try {
 
   // A genuinely new page in the same origin (the app-kill path).
   const relaunched = await context.newPage();
-  await relaunched.goto(url, { waitUntil: "load" });
+  await relaunched.goto(todayUrl, { waitUntil: "load" });
   await relaunched.waitForSelector('[data-slot="morning"]');
   assert.equal((await relaunched.textContent('[data-slot="morning"]')).trim(), logged, "a new page sees the same reading");
   await sweepForDashes(page, "Today, after a real reload");
@@ -272,7 +275,7 @@ try {
     await relaunched.click('[data-go="' + route + '"]');
     await relaunched.waitForFunction(() => !document.querySelector('[data-slot="kcal-note"]'));
     await sweepForDashes(relaunched, where);
-    await relaunched.goto(url, { waitUntil: "load" });
+    await relaunched.goto(todayUrl, { waitUntil: "load" });
     await relaunched.waitForSelector('[data-slot="morning"]');
   }
 
@@ -367,7 +370,7 @@ try {
   try {
     const first = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport: VIEWPORT });
     const killPage = first.pages()[0] || await first.newPage();
-    await killPage.goto(url, { waitUntil: "load" });
+    await killPage.goto(todayUrl, { waitUntil: "load" });
     await killPage.waitForSelector('[data-slot="primary"]');
     await killPage.click('[data-slot="primary"]');
     await killPage.waitForSelector("#morning-weight");
@@ -394,7 +397,7 @@ try {
 
     const second = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport: VIEWPORT });
     const after = second.pages()[0] || await second.newPage();
-    await after.goto(url, { waitUntil: "load" });
+    await after.goto(todayUrl, { waitUntil: "load" });
     await after.waitForSelector('[data-slot="morning"]');
     assert.equal((await after.textContent('[data-slot="morning"]')).trim(), killedLine,
       "the reading survived a REAL process kill");
@@ -410,7 +413,10 @@ try {
   try {
     const still = await reduced.newPage();
     await still.goto(url + "?theme=dawn&screen=workout&chrome=1&date=board&state=W-18", { waitUntil: "load" });
-    await still.waitForSelector('[data-slot="instruction"]');
+    await still.waitForFunction(() => document.documentElement.dataset.screen === "workout"
+      && !!document.querySelector('[data-slot="workout-title"]'));
+    assert((await still.textContent('[data-slot="workout-title"]')).trim().length > 0,
+      "the actual Workout preview is ready before its scene is judged");
     const witness = await still.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());
     assert.deepEqual(witness.hooks,
       { theme: "dawn", screen: "workout", chrome: true, date: "board", state: "W-18" });

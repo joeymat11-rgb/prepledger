@@ -126,7 +126,8 @@ test("the shipped template and view bind to the approved design", () => {
   const report = design.assertDesignBinding(approved, design.templateHtml(), design.appSource());
   assert(report.classes > 25, "the whole approved vocabulary is checked");
   assert.equal(report.copy, design.PREVIEW_COPY.length + design.APPROVED_COPY.length
-    + design.RUNTIME_COPY.length + design.CHECKIN_RUNTIME_COPY.length + design.PREVIEW_RUNTIME_COPY.length);
+    + design.RUNTIME_COPY.length + design.CHECKIN_RUNTIME_COPY.length
+    + design.ADOPTED_RUNTIME_COPY.length + design.PREVIEW_RUNTIME_COPY.length);
   // A2: the binding covers every module that can put a word on the screen, and it
   // really reads each of them — a module dropped from the list would take its copy
   // out of the binding with it. A3 adds the check-in's view and answer model.
@@ -141,19 +142,42 @@ test("the shipped template and view bind to the approved design", () => {
   }
 });
 
-/* A2 — the preview-owned runtime copy cannot be used to smuggle approved-looking
-   words in, and every entry really is said by a view module. */
-test("preview-owned runtime copy is absent from the approved references", () => {
-  const approvedText = design.readApproved().map((a) => a.html).join("\n");
+/* C-UI-1 adopts some existing runtime wording into the newer design while other
+   operational wording remains preview-owned. Every declaration must still be said. */
+test("runtime copy distinguishes newly adopted wording from preview-owned wording", () => {
+  const references = design.readCopyReferences();
+  const approvedText = references.map((a) => a.text).join("\n");
   const view = design.appSource();
   assert(design.PREVIEW_RUNTIME_COPY.length >= 5);
   for (const line of design.PREVIEW_RUNTIME_COPY) {
-    assert(!approvedText.includes(line), "claimed as preview-owned but approved: " + line);
+    assert(!approvedText.includes(line), "preview-owned wording appears upstream: " + line);
     assert(view.includes(line), "declared but never said: " + line);
   }
-  // A declared preview string that IS in the approved references fails the binding.
-  assert.throws(() => design.assertDesignBinding(design.readApproved(), design.templateHtml(),
-    view.replace("Your plan does not set a rest length.", "Take your rest.")), /COPY-BINDING FAIL/);
+  assert(design.ADOPTED_RUNTIME_COPY.length > 0);
+  for (const entry of design.ADOPTED_RUNTIME_COPY) {
+    const source = references.find((candidate) => candidate.file === entry.source);
+    assert(source && source.text.includes(entry.line), "adopted line lacks its named source: " + entry.line);
+    assert(view.includes(entry.line), "adopted line is not said: " + entry.line);
+  }
+  // A future preview declaration that is already approved must be explicitly
+  // reclassified with its source; it cannot pass merely because the union contains it.
+  assert.throws(() => design.assertRuntimeCopyBinding(view, references,
+    [...design.PREVIEW_RUNTIME_COPY, design.ADOPTED_RUNTIME_COPY[0].line]),
+  /preview runtime copy is already approved/);
+
+  const room = fs.mkdtempSync(path.join(os.tmpdir(), "cui1-copy-pin-"));
+  try {
+    for (const pin of design.COPY_SOURCES) {
+      const from = path.join(design.ROOT, pin.file), to = path.join(room, pin.file);
+      fs.mkdirSync(path.dirname(to), { recursive: true });
+      fs.copyFileSync(from, to);
+    }
+    fs.appendFileSync(path.join(room, design.COPY_SOURCES[0].file), " ");
+    assert.throws(() => design.readCopyReferences(room), /COPY-SOURCE-PIN FAIL/,
+      "unchecked words cannot authorize the build");
+  } finally {
+    fs.rmSync(room, { recursive: true, force: true });
+  }
 });
 
 test("an invented class, an invented phrase or a copied figure fails the binding", () => {
@@ -179,11 +203,20 @@ test("the template carries no figure at all", () => {
 test("the shipped stylesheet is the approved bytes, then the named corrections", () => {
   const approved = design.readApproved();
   const css = design.composeStyles(approved, design.chromeCss(), design.readFonts());
-  for (const entry of approved) assert(css.includes(entry.styles), entry.file + " is copied byte-for-byte");
-  assert(css.indexOf(approved[0].styles) < css.indexOf(approved[1].styles), "A first, C second");
+  const offline = (styles) => styles.replace(/^@font-face[^\n]*\n?/gm, "")
+    .replace(/url\(["']?assets\/plate-ink(?:-tall)?\.jpg["']?\)/g, "var(--scene-plate-ink)")
+    .replace(/url\(["']?assets\/plate-dawn(?:-tall)?\.jpg["']?\)/g, "var(--scene-plate-dawn)")
+    .replace(/url\(["']?assets\/grain\.png["']?\)/g, "var(--scene-grain)");
+  const shipped = approved.map((entry) => offline(entry.styles));
+  for (let i = 0; i < approved.length; i += 1) {
+    assert(css.includes(shipped[i]), approved[i].file + " is copied with only pinned URL rewrites");
+  }
+  const appAt = css.indexOf(shipped[0]), statesAt = css.indexOf(shipped[1]);
+  assert(appAt >= 0 && statesAt >= 0, "both rewritten pinned stylesheets are present");
+  assert(appAt < statesAt, "app.css precedes states.css");
   for (const correction of [".view .followup input", ".view .intro h1", ".view .trend .sub"]) {
     assert(css.includes(correction), correction + " is present");
-    assert(css.indexOf(correction) > css.indexOf(approved[1].styles),
+    assert(css.indexOf(correction) > statesAt,
       correction + " is laid down after the approved rules it corrects");
   }
   // The corrections are the ONLY colour/type change: nothing in the preview chrome
@@ -229,7 +262,7 @@ test("the design binding cites C-UI-1 and the approved 2026-09-18 pack", () => {
   const source = fs.readFileSync(path.join(design.SOURCE, "design.cjs"), "utf8");
   assert.match(source, /C-UI-1/);
   assert.match(source, /approved-2026-09-18/);
-  assert.doesNotMatch(source, /approved-2026-09-08/);
+  assert.match(source, /LEGACY_STRUCTURE/, "existing screen structure stays pinned during staged adoption");
 });
 
 test("the page shell has exactly one slot for the approved templates", () => {

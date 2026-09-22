@@ -1,60 +1,51 @@
 # C-UI-1 Codex author report
 
 Role: commissioned Sol builder, not reviewer, PM or integrator.
-Base: 87192300ff00504ef30d8f409b83d9a67307e8dd.
-Status: RED READY; product bytes remain unchanged.
+Published red head: fa593d629d858bdd7d3d72ad8885598b1be8475e.
+Status: SECOND RED READY; copy guards pass and scene fidelity is incomplete.
+Browser and independent review remain owed.
 
-The composed base retains accepted b35 Today behavior and the exact cf149820
-approved pack and provisional gates. The older cf app was not copied into Today.
+The build keeps the accepted b35 Today behavior and binds the exact
+2026-09-18 approved pack. Existing screen structure remains byte-pinned as a
+compatibility layer; the newer approved CSS follows it and wins on overlap.
 
-The durable rows require the four approved stylesheet pins, DM Sans and
-Liberation Serif actual bytes, a wrong-byte refusal, four pinned offline scene
-assets, review-hook normalization, renderer scheduling, actual build output,
-and the actual browser preview witness.
+The design boundary reads and hashes four approved stylesheets, both local
+font files and four scene images. The font files are inlined under the Earned
+Sans and Earned Serif CSS families. All scene images become offline data URLs.
+One changed approved byte and one changed font byte are durable refusals.
 
-Initial red, retained under %TEMP%/cui1-author-red:
-- design-red.txt: exit 1, three selected rows failed; SHA256
-  8848cf28446a5bbccc6eab8af039e5f290430e80a04bc78078ebe2dab4b35034.
-- scene-red.txt: exit 1, four first-attempt rows failed; SHA256
-  b107d2ad0475a45dd44242fdb87192fd99ccf5951cd7852a74a5ec39ec959b6c.
-The strengthened red preserves actual font-byte hashing and adds a deliberate
-wrong-byte refusal. Asset reads stay at the build/design boundary. The scene
-row drives real draw/schedule/cancel callbacks. Build reach is the actual
-three-file offline bundle; no today-entry.mjs ownership is assumed.
-Strengthened red on unchanged 87192300, fixed time and timezone:
-- design-strong-red.txt: four selected rows failed, exit 1; SHA256
+The simplified scene WIP reaches the actual preview bundle with its pinned
+assets and review hooks, but it is not yet a faithful lift of the approved
+scene. Cadence, ember depth/life, five-sheet mist, luminance occlusion and an
+asset-ready reduced-motion still remain incomplete and are held red.
+
+The actual build inventories scene.mjs, hashes it into the build identity and
+ships the scene and four image URLs in its existing three-file offline bundle.
+No today-entry ownership or behavior change was needed.
+
+Meaningful unchanged-product red evidence under %TEMP%/cui1-author-red:
+- design-strong-red.txt: 4 intended failures, exit 1; SHA256
   f9ac1344d3a9a315c11617939216a73ede655de05fd45c31a08f5b0e55f35fda.
-- scene-strong-red.txt: two missing-scene rows failed; its build row was
-  environmental non-evidence because @noble/hashes was absent. Exit 1; SHA256
-  4dce675eafb145151412e35127b70edc2c8be8051f8eaf8eaf2eea520f449440.
-The PM-authorized w5/w6 donor junctions supplied the missing public build and
-browser packages without an install. The final compact scene run has three
-intended reds: both scene APIs are absent and actual built app.js lacks
-__earnedScene. scene-final-red.txt: exit 1, SHA256
-747e39c4be82d94d38ac22da4594b22d630af6e1f9eac96195d37e35ef9c71fb.
+- scene-final-red.txt: 3 intended failures, exit 1; SHA256
+  747e39c4be82d94d38ac22da4594b22d630af6e1f9eac96195d37e35ef9c71fb.
+Earlier dependency and browser failures remain explicitly non-evidence.
 
-The unchanged default build itself passed with its existing three assets.
-default-build-prep.txt: exit 0, SHA256
-792871903c0a51fdf26e5639406d69ff736aba556ff4f2750e9a0f7eb6a86dd1.
+Focused candidate proof used pinned Node, MEASURED_TEST_NOW=2026-09-03,
+TZ=America/New_York and --test-concurrency=1:
+- design.test.cjs: prior 12/12 pass; copy-source/adoption guard bytes then
+  measured 12/12 pass, exit 0; log SHA256
+  eb89505693d8e907792b3e2dbe61a91a35ecb5034a9398d9880dc96727bb95a7.
+- prior scene.test.mjs: 3/3 pass before the new fidelity rows.
+- scene fidelity red: 2 pass, 3 intended failures, exit 1; cadence,
+  depth classes and asset readiness each fail on the simplified WIP; SHA256
+  0b5a3c50e65d04ff514380cd7530c42fd86543dd70f7150d01117de51ada4aa6.
+Logs: %TEMP%/cui1-author-candidate/design-copy-guard-red-check.txt and
+%TEMP%/cui1-author-candidate/scene-fidelity-red.txt.
 
-The base still pins 2026-09-08 references and Instrument fonts. scene.mjs is
-absent, and the real build has no scene witness or four embedded scene images.
+browser-check now uses the supported explicit Today preview route with board
+date and state hooks. Its reduced-motion row waits for the actual Workout
+screen rather than a Today-only instruction slot. It has not been rerun.
 
-A pre-junction browser attempt is NOT EVIDENCE because playwright-core was
-absent. browser-strong-red.txt: exit 1, SHA256
-4905272f48e4335c3805387700a1c3207d5eab68ce4e1fd310044b3cc3648eb5.
-After correction, Edge launched but timed out at the existing instruction
-selector before the scene assertion. It is also non-evidence and no broader
-browser repair was attempted. browser-intended-red.txt: exit 1, SHA256
-c93967e8200de7f40cae95451b8e8824f1826a029425c45eb510baab18e92cde.
-
-The existing headline-vocabulary row remains untouched, including template and
-propose title coverage. Existing copy/class binding rows remain in the cell and
-will be reconciled to the accepted reference hierarchy, never allowlisted away.
-
-No product, approved pack, baseline, quality gate, engine, storage, package,
-workflow, ledger or STATUS path changed. No browser evidence exists yet. The
-PM must publish this retained red checkpoint before product repair.
-
-Missing package schema/inventory authority remains a named later input. This
-report claims no S9 seal, C-UI-0 acceptance, both-OS result or ticket acceptance.
+No approved pack, baseline, quality gate, engine, storage, package, workflow,
+ledger or STATUS path changed. No browser, both-theme, fresh-profile,
+independent-review, Linux, seal or ticket-acceptance claim is made.
