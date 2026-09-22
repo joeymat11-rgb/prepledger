@@ -1,7 +1,7 @@
 # Earned current PM checkpoint, 2026-09-22
 Continuity only, not a seat transfer. Later ledger entries control; latest757.
 Sole PM task01a0c6fe-004c-7330-90f2-df02af3c7290, seated738 after release737.
-Goal: approved rebuild until verified ready for Joe's trial; not achieved. Previous turn progress.
+Goal: approved rebuild until verified ready for Joe's trial; NOT achieved, BLOCKED on owner approvals.
 PM tree: C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm.
 Detached checkout; push HEAD:rebuild/t2-client-core. Never switch old-app cwd.
 
@@ -49,7 +49,7 @@ UnplantedG6red published before lane-only acknowledgedLog delivery handoff; no o
 Strict mount/context/stale/foreign guards, active-onlysettingswriter, exactpayload/onecallback/write remain.
 Claude755 GYM-SETTINGS-WRITER-SEAL l2 owed; packetf93f214:astra/GSS-ANNEX-CLAUDE-L2-REQUEST.md.
 Candidate79d981a run35685091003 both OS failstep13; metadata only, no identical-cause/fullCI claim.
-Exporter mechanics ACCEPTf20f2fe/helper7541ad/procedure9911a2; final effects/runtime HELD; reviewer idle.
+Exporter mechanics ACCEPTf20f2fe; public-effect inventorye40fdb5 narrows future final review; no runtime grant.
 
 ## Owner queue and boundaries
 CUI86007bc NOT READY/harness380a2d5; promotion afterS10 via named reseal, phoneproof owed.
@@ -57,4 +57,4 @@ Pendingowner: yes-only ordinary increases, B afterFinish recommended; noanswer k
 Queue:S9look/seal; phoneearns beforetrial; split/EditMyWeek;N3;re-plan;P4b-2. Father's trial follows.
 Never protected/oldapp paths, engine seed/migrate/merge/index/oracle-shim, oldjob50 or claude-epp.
 No main/deploy/import/purchase/fallback/newengine semantics/sharednpm/heartbeats/guardwaivers.
-Latestweekly55percent; crossinghalf notified. Prior turn progress; workers idle/runtime free. Goalactive.
+Weekly55percent. Third recurring owner boundary verified; goal BLOCKED. Workers preserved/completed; runtime free.
