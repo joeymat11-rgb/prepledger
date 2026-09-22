@@ -64,6 +64,9 @@ const HEADLINES = design.headlineVocabulary();
 // tests prove slot by slot where every figure came from.
 const FICTIONAL = ["2,252", "2,344", "235 g", "180.9 lb", "181.3 lb", "135 lb", "About 60 min", "9 exercises"];
 const VIEWPORT = { width: 390, height: 844 };
+const VISUAL_DIR = path.join(os.tmpdir(), "cui1-browser-proof");
+fs.mkdirSync(VISUAL_DIR, { recursive: true });
+const visual = { viewport: VIEWPORT };
 
 /* A2 review B2: the weigh-in is a real encrypted-repository transaction now, so the
    check waits for the sheet to close and the reading to appear rather than for a
@@ -107,6 +110,27 @@ try {
   assert.deepEqual(sceneWitness.hooks, { theme: "ink", screen: "today", chrome: false, date: "board", state: "T-02" });
   assert.equal(sceneWitness.assets, 4, "the actual preview owns four pinned scene assets");
   assert(sceneWitness.draws >= 1 && sceneWitness.scheduled >= 1, "the moving scene drew and scheduled a frame");
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: path.join(VISUAL_DIR, "ink-today-390x844.png") });
+  visual.inkToday = sceneWitness;
+
+  const dawnContext = await browser.newContext({ viewport: VIEWPORT });
+  try {
+    const dawn = await dawnContext.newPage();
+    await dawn.goto(url + "?theme=dawn&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
+    await dawn.waitForSelector('[data-slot="instruction"]');
+    await dawn.waitForFunction(() => window.__earnedScene && window.__earnedScene.snapshot().ready);
+    await dawn.evaluate(() => document.fonts.ready);
+    const witness = await dawn.evaluate(() => window.__earnedScene.snapshot());
+    assert.deepEqual(witness.hooks,
+      { theme: "dawn", screen: "today", chrome: true, date: "board", state: "T-02" });
+    assert(witness.draws >= 1 && witness.scheduled >= 1,
+      "the Dawn scene completed a moving frame before capture");
+    await dawn.screenshot({ path: path.join(VISUAL_DIR, "dawn-today-390x844.png") });
+    visual.dawnToday = witness;
+  } finally {
+    await dawnContext.close();
+  }
 
   /* review F2: the ONE primary action must be reachable without scrolling, in both
      states. Measured against the scrolling viewport, not the document. */
@@ -424,9 +448,14 @@ try {
       { theme: "dawn", screen: "workout", chrome: true, date: "board", state: "W-18" });
     assert.equal(witness.draws, 1, "reduced motion draws exactly one still scene frame");
     assert.equal(witness.scheduled, 0, "reduced motion schedules no scene animation frame");
+    await still.evaluate(() => document.fonts.ready);
+    await still.screenshot({ path: path.join(VISUAL_DIR, "dawn-workout-reduced-390x844.png") });
+    visual.dawnWorkoutReduced = witness;
   } finally {
     await reduced.close();
   }
+  fs.writeFileSync(path.join(VISUAL_DIR, "visual-summary.json"),
+    JSON.stringify(visual, null, 2) + "\n", "utf8");
   console.log(`A1 TODAY BROWSER CHECK PASS — mounted, weighed in (${logged}), spike note shown, impossible weight `
     + `refused, survived a real reload and a new page; primary action inside the ${VIEWPORT.width}x${VIEWPORT.height} `
     + `viewport in both states (bottom ${before.bottom} and ${afterBox.bottom} of ${before.viewport}; `
