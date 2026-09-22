@@ -1388,7 +1388,7 @@
         "rebuild/m3/w7-preview/measure/test/model.test.mjs",
         "rebuild/m3/w7-preview/measure/test/adherence.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 11"
     },
     {
       "name": "s4-real-day",
