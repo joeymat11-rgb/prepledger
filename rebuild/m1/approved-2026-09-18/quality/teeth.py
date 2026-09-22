@@ -484,6 +484,44 @@ def mut_z4(work):
         '<p class="status-line" id="status-line">Upper body today. One change to review.</p>',
         '<p class="status-line" id="status-line"><span>3</span> <span>\u22125 lb.</span></p>')
 
+def numeric_suffix(work, suffix):
+    """Put one synthetic signed pair in sibling spans separated by markup whitespace."""
+    sub(work, 'app/app.html',
+        '<p class="status-line" id="status-line">Upper body today. One change to review.</p>',
+        '<p class="status-line" id="status-line"><span>3</span> '
+        f'<span>\u22125 {suffix}</span></p>')
+
+
+def mut_z14(work):
+    numeric_suffix(work, 'sets')
+
+
+def mut_z15(work):
+    numeric_suffix(work, 'reps')
+
+
+def mut_z16(work):
+    numeric_suffix(work, 'today')
+
+
+def mut_z17(work):
+    numeric_suffix(work, 'lbs')
+
+
+def mut_z18(work):
+    numeric_suffix(work, 'kgs')
+
+
+def mut_z19(work):
+    # Bare values and every unit painted by the approved synthetic pack stay numeric cells.
+    units = ['', 'lb', 'kg', 'g', 'kcal', '%', 's']
+    pairs = ['<span><span>3</span> <span>\u22125' + (' ' + u if u else '')
+             + '</span></span>' for u in units]
+    sub(work, 'app/app.html',
+        '<p class="status-line" id="status-line">Upper body today. One change to review.</p>',
+        '<p class="status-line" id="status-line">' + ' '.join(pairs) + '</p>')
+
+
 def mut_z7(work):
     # Break the anchor q5 itself needs. The nested teeth run must call this VOID before run,
     # rather than claiming it launched a gate child.
@@ -783,6 +821,19 @@ ROWS = [
     ('z3', 'T-57 explanation-only panel intentionally has no primary', mut_none, SHEET_T57,
      dict(exit=0, stdout=['0 with problems'], not_stdout=['required primary action'])),
     ('z4', 'separate inline numeric cells each carry their own signed value', mut_z4,
+     GATE_TODAY_ONE,
+     dict(exit=0, absent=[(COPY_CHECK, 'U+2212')], stdout=['0 FAIL'])),
+    ('z14', 'sets is not a numeric-cell unit', mut_z14, GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('z15', 'reps is not a numeric-cell unit', mut_z15, GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('z16', 'today is not a numeric-cell unit', mut_z16, GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('z17', 'the unapproved near-unit spelling lbs is refused', mut_z17, GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('z18', 'the unapproved near-unit spelling kgs is refused', mut_z18, GATE_TODAY_ONE,
+     dict(exit=1, fails=[(COPY_CHECK, repr('\u2212'))])),
+    ('z19', 'bare values and the approved synthetic units remain numeric cells', mut_z19,
      GATE_TODAY_ONE,
      dict(exit=0, absent=[(COPY_CHECK, 'U+2212')], stdout=['0 FAIL'])),
     ('z5', 'an external target report carries its caller-supplied immutable digest', mut_none,
