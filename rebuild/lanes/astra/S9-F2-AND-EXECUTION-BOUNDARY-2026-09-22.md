@@ -29,3 +29,6 @@ Author now prepares an exact allowlist-copy proposal; required downstream effect
 Today-carry public closure proceeds in parallel on the same preserved worker/reviewer team.
 Runtime FREE. Both-OS full CI, final source/spec assembly, Claude and seal steps remain owed.
 Permission766 remains bounded five-file read/hash/static only; no broader execution inferred.
+
+Publication: Git normalized the manifest CRLF to LF only; raw TEMP review binding remains3eeb55b2.
+Published manifest SHA256:1ab0a2b3713306f21fde4ae5536499b82eee15d1ae22ce5f96a7c8b3272a406d.

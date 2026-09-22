@@ -1,12 +1,12 @@
 # Earned current PM checkpoint, 2026-09-22
-Continuity only, not a seat transfer. Later ledger entries control; latest770.
+Continuity only, not a seat transfer. Later ledger entries control; latest771.
 Sole PM task01a0c6fe-004c-7330-90f2-df02af3c7290, seated738 after release737.
-Goal: approved rebuild until verified ready for Joe's trial; NOT achieved. S9 source closure PASS; five child results measured, final assembly owed.
+Goal: approved rebuild until verified ready for Joe's trial; NOT achieved. S9 source closure PASS; six child results PASS, one expected-red marker, final assembly owed.
 PM tree: C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm.
 Detached checkout; push HEAD:rebuild/t2-client-core. Never switch old-app cwd.
 
 ## S9 composition and final boundary
-Integration rebuild/b-s9-integration, %TEMP%/earned-s9int, head841c71e five observed needles, clean/pushed.
+Integration rebuild/b-s9-integration, %TEMP%/earned-s9int, headcbe5ed2 six PASS and one expected-red marker, clean/pushed.
 Prior composition785be9d/report04baabc, blind ACCEPT6b6c901 and745.
 CUI0/font0e5e194, guards88a4d063, readerb9ea32f, five tickets exact acceptedcaa0abf.
 Guard debt repaired88a4d063, blind ACCEPT351817d 21callbacks/200probes/3kills, adopted761; finalClaude owed.
@@ -15,12 +15,12 @@ Pack preflight7a986db:1331Git/working files equal, both OS baselines present.
 SourceBase0cd07be7cf967dfbfea8c84947ba8477f58cfb5f unchanged; all227pins PASS after permission766.
 E17dd182f8 reader reaches itself+4docs; old four-Today diagnostic stops before protectedmigrate.
 Independent route11c4bc5:astra/reviews/S9-REMAINING-SAFE-ROUTE.md,45lines read/hash checked.
-Full227source custody and83target/276file closure refreshedPASS atb3fb9ce, log0f9ba4a8; tokens/28needles/seal owed.
+Full227source custody and83target/276file closure refreshedPASS atb3fb9ce, log0f9ba4a8; tokens/26needles/seal owed.
 Existing integration hands1-8/11 retained; no unfinishedCUI1, actual09-08 references plus whole09-18pack.
 
 ## S9 current workers
-Sol /root/s9_font_home STATIC today-carry closure; /root/s9_passphrase_scope exact copy proposal; reviewer active.
-Map astra/S9-PROSPECTIVE-CHILD-MAP.json c2170f4; note3ba33e3;33planning entries,5observed needles/28null; spec8c25dd8e at841c71e.
+Sol /root/s9_font_home STATIC fence closure; /root/s9_passphrase_scope correcting remaining group map; reviewer active.
+Map astra/S9-PROSPECTIVE-CHILD-MAP.json c2170f4; note3ba33e3;33planning entries,6PASS+1expected-red/26null; spec7b6dc0a1 atcbe5ed2.
 Reader unchangedbf967180; independent ACCEPTfff570c, adopted753, no localreader execution.
 CI35684542499:Ubuntu106608457970/Windows106608457960 readerstepSUCCESS; metadataonly.
 Literal3072385 Windows121/121,0skip; independent L3 ACCEPT63b0f215. Receipt267e591, adopted770; no fullCIclaim.
@@ -31,7 +31,7 @@ Original1528b20/proposal310b9f3 and all failed evidence preserved; directory/lin
 Independent Windows-local ACCEPT:astra/reviews/S9-DIRECTORY-CHECKER-REVIEW-L3.md,2b7898a8; L2 retained.
 PM57711 exit0 PASS227pins/5,83targets/276files/4protected; log0f9ba4a8, runtime released.
 Joe permission766 grants local five-file read/hash/static checks; scoped reviewed invocations, no contents/module execution.
-Receipts:astra/S9-SCHEMA-AND-BOUNDED-CHILDREN-2026-09-22.md and S9-F2-AND-EXECUTION-BOUNDARY-2026-09-22.md.
+Latest receipt:astra/S9-TODAY-AND-RELEASE-STAGING-2026-09-22.md; earlier schema/F2 receipts retained.
 
 ## GSS evidence and bounded repair
 Oldauthor route relay01a0c64b has no PM/ledgerauthority; oldcoordinator01a0c4a5 unavailable.
@@ -57,4 +57,4 @@ Pendingowner: yes-only ordinary increases, B afterFinish recommended; noanswer k
 Queue:S9look/seal; phoneearns beforetrial; split/EditMyWeek;N3;re-plan;P4b-2. Father's trial follows.
 Five engine files: reviewed local read-only checks allowed766, no raw output; all other protected/oldapp bans stand.
 No main/deploy/import/purchase/fallback/newengine semantics/sharednpm/heartbeats/guardwaivers.
-Weekly82percent. Runtime FREE; public graph workers active. Passphrase private probe confirmed; broader run not cleared.
+Weekly87percent. Runtime FREE; public graph workers active. Passphrase private probe confirmed; broader run not cleared.
