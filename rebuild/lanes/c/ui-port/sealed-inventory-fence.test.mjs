@@ -1827,8 +1827,9 @@ function assertTwoOsJob(yml, job) {
   const os = osLines[0][1].split(",").map((value) => value.trim()).filter(Boolean);
   assert.deepEqual(os.slice().sort(), ["ubuntu-latest", "windows-latest"],
     job + " matrix.os must contain exactly ubuntu-latest and windows-latest once each: " + os.join(", "));
-  const runners = block.filter((line) => /^    runs-on:\s*\$\{\{\s*matrix\.os\s*\}\}\s*$/.test(line));
-  assert.equal(runners.length, 1, job + " must run exactly once on its own matrix.os");
+  const runners = block.map((line) => /^    runs-on:\s*(.*?)\s*$/.exec(line)).filter(Boolean);
+  assert.equal(runners.length, 1, job + " has " + runners.length + " direct runs-on keys, expected exactly one");
+  assert.match(runners[0][1], /^\$\{\{\s*matrix\.os\s*\}\}$/, job + " runs-on is not its own matrix.os");
 }
 
 const matrixJobFixture = (job, body) => ["  " + job + ":", ...body];
@@ -1864,6 +1865,10 @@ test("P-S9-5 (32) - every required job retains both OS runs and the workflow for
   const siblingDecoy = [...matrixWorkflowFixture(missing),
     ...matrixJobFixture("decoy", goodMatrixBody())];
   assert.throws(() => assertTwoOsJob(siblingDecoy, "public-gates"), /direct matrix\.os lines/);
+  const duplicateRunner = [...goodMatrixBody(), "    runs-on: windows-latest"];
+  assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(duplicateRunner), "public-gates"), /direct runs-on keys/);
+  const wrongRunner = [...goodMatrixBody().slice(0, -1), "    runs-on: ubuntu-latest"];
+  assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(wrongRunner), "public-gates"), /not its own matrix\.os/);
 });
 
 /* ================================================================ THE REAL ROW ========
