@@ -2,17 +2,14 @@
 
 Role: commissioned Sol builder, not reviewer, PM or integrator.
 Published candidate: c27b03fa9b53762e15f2e096b53a728bb28eae2e.
-Status: browser RED READY; reduced-motion and independent proof remain owed.
-
+Status: browser and source-boundary RED READY; no acceptance claim.
 The build keeps accepted b35 Today behavior and binds the pinned 2026-09-18
 styles, copy sources, local fonts and four scene images. Existing screen
 structure remains pinned beneath the newer CSS so the newer rules win overlap.
 All scene and font assets are offline data URLs.
 
-The scene carries the approved 40 ms cadence, persistent near/far/bokeh ember
-lives, three far plus two near mist sheets, luminance occlusion with the tall
-sky join, the eased header fade and asset-ready reduced-motion drawing.
-The board-date observer writes only when its value differs.
+The scene carries the approved cadence, ember/mist layers, luminance mask,
+header fade and asset-ready reduced-motion drawing. Date writes are idempotent.
 
 Retained red evidence:
 - unchanged-product design red: 4 intended failures, exit 1, SHA256
@@ -23,6 +20,10 @@ Retained red evidence:
   0b5a3c50e65d04ff514380cd7530c42fd86543dd70f7150d01117de51ada4aa6.
 - observer red: 1 intended failure, exit 1, SHA256
   86b90b96d156948272d40157da9a3b1ebaad43d406a44cb3381363a5a6acc131.
+- source-boundary red: 3/3 fail, exit 1; the control read all 18 synthetic
+  sources, while unknown and missing names were not refused. Log SHA256
+  146dd23aae51e3613b2549af933c048bf87c4d88d3165f32aabc50535ab4d95e.
+  design.cjs, preview.css and scene.mjs remained byte-identical. Runtime released.
 
 Focused repaired candidate, pinned Node and fixed date/timezone:
 - design.test.cjs: 12/12 pass, exit 0; log SHA256
@@ -43,18 +44,17 @@ Both actual 390x844 captures render the scene, fonts, content and primary.
 Reduced Dawn Workout and visual-summary.json are absent because the run stopped.
 No broad browser PASS, reduced-motion proof or automatic rerun is claimed.
 
-Containment correction owed before another run: headlineVocabulary currently
-reads every engine .cjs file. That broad traversal receives no containment
-credit. Replace it with an explicit pinned title-producer list while retaining
-all five literal/propose patterns and the failing long template headline.
-Known justified producers are rebuild/engine/today.cjs and policy.cjs; any
-additional proposal-title producer needs an explicit safe path from PM review.
+Containment correction owed: require the exact 18-name census before reads,
+then read only dates, constants, plan, performed, progression, sleep, energy,
+policy, today, volume, earn, writers and entered-load .cjs files. Never read
+seed, migrate, merge, index or oracle-shim. Keep all five parser patterns and
+the exact failing long template. The synthetic test requires refusal before reads.
 
-The layout diagnosis is separate: the later approved .primary rule adds its
-own margin to Additions C's bottom spacing, while the fitter can only lower
-headline type. A minimal repair should retain the 33 px floor and, only when the floor still
-overflows, remove the colliding 12 px primary margin and C's 23 px intro bottom
-margin. That reclaims the measured 35 px. No repair is applied.
+The layout diagnosis is separate. At the existing 33 px floor only, CSS can
+remove the 23 px intro bottom margin and 12 px primary margin, and reduce bottom
+padding by 8 px. The 43 px keeps the measured 35 px inside the viewport plus
+the existing 8 px breathing guard. Normal 47 px layout stays unchanged.
+No production repair is applied.
 
 No approved pack, baseline, engine, storage, workflow, ledger or STATUS changed.
 No acceptance, Linux, seal or ticket-completion claim is made.

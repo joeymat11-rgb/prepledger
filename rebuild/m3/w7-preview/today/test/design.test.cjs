@@ -12,6 +12,13 @@ const path = require("node:path");
 const { createHash } = require("node:crypto");
 const design = require("../design.cjs");
 
+const ENGINE_TITLE_SOURCES = Object.freeze(["dates.cjs", "constants.cjs", "plan.cjs", "performed.cjs",
+  "progression.cjs", "sleep.cjs", "energy.cjs", "policy.cjs", "today.cjs", "volume.cjs",
+  "earn.cjs", "writers.cjs", "entered-load.cjs"]);
+const ENGINE_NON_TITLE_SOURCES = Object.freeze([
+  "seed.cjs", "migrate.cjs", "merge.cjs", "index.cjs", "oracle-shim.cjs",
+]);
+
 test("all four approved stylesheets are pinned by sha256 and read byte-for-byte", () => {
   const approved = design.readApproved();
   assert.deepEqual(approved.map((entry) => entry.file), [
@@ -242,8 +249,7 @@ test("the headline vocabulary is read out of the engine source, not hand-listed"
   for (const title of titles) assert.equal(title, title.toUpperCase(),
     "the engine renders move.title in upper case: " + title);
   // Each one really is a title literal in the engine, not something this file invented.
-  const engine = fs.readdirSync(path.join(design.ROOT, design.ENGINE_DIR))
-    .filter((name) => name.endsWith(".cjs"))
+  const engine = ENGINE_TITLE_SOURCES
     .map((name) => fs.readFileSync(path.join(design.ROOT, design.ENGINE_DIR, name), "utf8"))
     .join("\n").toUpperCase();
   for (const title of titles) assert(engine.includes(title), "not an engine literal: " + title);
@@ -256,6 +262,97 @@ test("the headline vocabulary is read out of the engine source, not hand-listed"
   // Sorted longest first, so the worst case is swept first.
   assert.deepEqual(titles, [...titles].sort((a, b) => b.length - a.length || (a < b ? -1 : 1)));
   assert.throws(() => design.headlineVocabulary(os.tmpdir()), /HEADLINE-VOCABULARY FAIL|ENOENT/);
+});
+
+const HEADLINE_SNIPPETS = Object.freeze([
+  '({ title: "Low-energy check \u2014 one question that discriminates" })',
+  "({ title: 'At a floor \u2014 review the rate with your coach' })",
+  "({ title: `One template title reaches the layout` })",
+  "propose(`volume`, `${cap(mgLabel(vp.mg))} \u2014 earned volume: ${vp.fromWk} \u2192 ${vp.toWk} weekly sets`)",
+  'propose("trim", "Now a small calorie trim earns its place")',
+  '({ title: "Close the books first" })',
+  '({ title: "Nothing needs you" })',
+  '({ title: "One more approved title" })',
+  '({ title: "Another approved title" })',
+  '({ title: "Final approved title" })',
+  '({ title: "Diet break \u2014 a week at maintenance" })',
+]);
+const makeHeadlineRoom = (extra = [], omit = []) => {
+  const room = fs.mkdtempSync(path.join(os.tmpdir(), "cui1-headline-source-"));
+  const engine = path.join(room, "rebuild", "engine");
+  fs.mkdirSync(engine, { recursive: true });
+  for (const name of [...ENGINE_TITLE_SOURCES, ...ENGINE_NON_TITLE_SOURCES, ...extra]) {
+    if (omit.includes(name)) continue;
+    const index = ENGINE_TITLE_SOURCES.indexOf(name);
+    fs.writeFileSync(path.join(engine, name), index >= 0
+      ? (HEADLINE_SNIPPETS[index] || "// safe title producer") : "SYNTHETIC NON-TITLE SOURCE");
+  }
+  return room;
+};
+const auditHeadlineReads = (run) => {
+  const originalRead = fs.readFileSync;
+  const reads = [];
+  fs.readFileSync = function auditedRead(file, ...args) {
+    reads.push(path.basename(String(file)));
+    return originalRead.call(this, file, ...args);
+  };
+  try { return { value: run(), reads }; }
+  finally { fs.readFileSync = originalRead; }
+};
+
+test("headline source boundary control reads only 13 allowed producers", () => {
+  const room = makeHeadlineRoom();
+  try {
+    const { value: titles, reads } = auditHeadlineReads(() => design.headlineVocabulary(room));
+    assert.deepEqual(reads, ENGINE_TITLE_SOURCES, "exactly the allowed title sources are read, once each");
+    for (const required of ["LOW-ENERGY CHECK \u2014 ONE QUESTION THAT DISCRIMINATES",
+      "AT A FLOOR \u2014 REVIEW THE RATE WITH YOUR COACH",
+      "${CAP(MGLABEL(VP.MG))} \u2014 EARNED VOLUME: ${VP.FROMWK} \u2192 ${VP.TOWK} WEEKLY SETS",
+      "DIET BREAK \u2014 A WEEK AT MAINTENANCE", "NOW A SMALL CALORIE TRIM EARNS ITS PLACE",
+      "CLOSE THE BOOKS FIRST", "NOTHING NEEDS YOU"]) {
+      assert(titles.includes(required), "missing safe title pattern: " + required);
+    }
+  } finally {
+    fs.rmSync(room, { recursive: true, force: true });
+  }
+});
+
+test("headline source boundary refuses an unknown name before any source read", () => {
+  const room = makeHeadlineRoom(["000-unknown.cjs"]);
+  try {
+    const reads = [];
+    const originalRead = fs.readFileSync;
+    fs.readFileSync = function auditedRead(file, ...args) {
+      reads.push(path.basename(String(file)));
+      return originalRead.call(this, file, ...args);
+    };
+    try {
+      assert.throws(() => design.headlineVocabulary(room),
+        /HEADLINE-SOURCE-CENSUS FAIL: unknown 000-unknown\.cjs/);
+    } finally { fs.readFileSync = originalRead; }
+    assert.deepEqual(reads, [], "census refusal precedes every source read");
+  } finally {
+    fs.rmSync(room, { recursive: true, force: true });
+  }
+});
+
+test("headline source boundary refuses a missing allowed name before any source read", () => {
+  const room = makeHeadlineRoom([], ["writers.cjs"]);
+  try {
+    const reads = [];
+    const originalRead = fs.readFileSync;
+    fs.readFileSync = function auditedRead(file, ...args) {
+      reads.push(path.basename(String(file)));
+      return originalRead.call(this, file, ...args);
+    };
+    try {
+      assert.throws(() => design.headlineVocabulary(room),
+        /HEADLINE-SOURCE-CENSUS FAIL: missing writers\.cjs/);
+    } finally { fs.readFileSync = originalRead; }
+    assert.deepEqual(reads, [], "census refusal precedes every source read");
+  } finally {
+    fs.rmSync(room, { recursive: true, force: true });
+  }
 });
 
 test("the design binding cites C-UI-1 and the approved 2026-09-18 pack", () => {
