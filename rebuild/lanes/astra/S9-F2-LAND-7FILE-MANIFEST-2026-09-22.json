@@ -1,0 +1,44 @@
+{
+  "schema": "earned/s9-f2-land-copy-manifest/v1",
+  "head": "f191b2e1bde801fdff8cce6dcc56bf24b389782f",
+  "spec": {
+    "path": "rebuild/lanes/b/tooling/packages/S9.json",
+    "sha256": "994f9851681a743ac79002fd31d2088537558f2996f8865b15cdb388a4c47379"
+  },
+  "files": [
+    {
+      "path": "rebuild/lanes/d/f2/projector.test.mjs",
+      "sha256": "f74bbe5f40624237a4d24536b3ead036a75ed3bc705a52d6e55032d28bdf8dd6"
+    },
+    {
+      "path": "rebuild/lanes/d/f2/guard-coverage.test.mjs",
+      "sha256": "78d1d73c02b115981006ab38dd0a16bfcd9fddbee8afa40c872964155281b9e7"
+    },
+    {
+      "path": "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+      "sha256": "9f7116bb679eb53ead6d5ea8000e8534a5bfc94e2042e3b0b36e57f272cd52e3"
+    },
+    {
+      "path": "rebuild/m4/workout/athlete-state.cjs",
+      "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c"
+    },
+    {
+      "path": "rebuild/engine/constants.cjs",
+      "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380"
+    },
+    {
+      "path": "rebuild/m4/workout/setup-tags.cjs",
+      "sha256": "d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d"
+    },
+    {
+      "path": "rebuild/lanes/d/plan-edit/f2-tag-adapter.cjs",
+      "sha256": "d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d"
+    }
+  ],
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "rebuild/lanes/d/f2/projector.test.mjs",
+    "rebuild/lanes/d/f2/guard-coverage.test.mjs"
+  ]
+}

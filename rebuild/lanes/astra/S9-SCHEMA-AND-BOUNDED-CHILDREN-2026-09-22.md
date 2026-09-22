@@ -53,3 +53,7 @@ Independent result129e1b27 ACCEPT; full34lines/hashchecked, raw fixture/TAP kept
 f191b2e changes only measure-hermetic needle to '# pass 11':4 observed,29 null.
 Source/argv/sourceBase unchanged; source proof reused without another protected traversal.
 Runtime FREE. Two builders now inspect F2 and passphrase public port boundaries; same reviewer.
+
+Two published copies differ only by CRLF-to-LF; original TEMP hashes remain review bindings.
+Published runtime-plan SHA256:136b894471e4c18ec00353bd205207c44bd574991a4abf0e0493fed6def70e63.
+Published measure-manifest SHA256:f6ec2cb95882d2255e7ac7e4e43f2fe9ca09c489dcf80a5acd53081c69675ece.
