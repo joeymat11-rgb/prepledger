@@ -7,8 +7,8 @@ Scope: unit suffix full-match/closed set, bare/lb., near-unit refusals, occurren
 Blind source finding: the only common.py behavior delta replaces arbitrary alphabetic suffixes with anchored lb/lb./kg/g/kcal/%/s.
 Bare signed/unsigned numbers remain admitted; sets/reps/today/lbs/kgs fail full match; exact adjacent-element/whitespace ownership is unchanged.
 Marker collection, try/finally restoration and separate plain-copy channels are byte-unchanged; new tests bind actual COPY refusals and controls.
-App, gate, state/phone sheet and baseline bytes match prior cf149820; their changed-common proof remains owed at this candidate.
-Static only until explicit PM runtime grant; blind observations registered before author report and Claude debt.
+App, gate, state/phone sheet and baseline bytes match prior cf149820; changed-common Windows proof is recorded below.
+Preflight remained static until explicit PM runtime grants; blind observations preceded author report and Claude debt.
 Completed:13 selected rows,ordinary372-check gate,418 states at changed head; prior18-item audit was not repeated.
 Read author report and0ca3c8f Claude debt only after blind findings; both support a bounded suffix correction, not the prior18-item audit again.
 Changed common/teeth/STANDARD and new report pins match; package remains PROPOSED with author7-row result and compatibility obligations separate.
