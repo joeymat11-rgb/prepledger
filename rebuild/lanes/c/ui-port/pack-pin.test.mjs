@@ -125,6 +125,20 @@ function decoyWorkflows(file) {
       "        continue-on-error: true", run],
     continueFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
       "        continue-on-error: false", run],
+    quotedDoubleTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      '        "continue-on-error": true', run],
+    quotedDoubleFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      '        "continue-on-error": false', run],
+    quotedSingleTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        'continue-on-error': true", run],
+    quotedSingleFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        'continue-on-error': false", run],
+    quotedIf: ["      - name: target", '        "if": ${{ !cancelled() }}', run],
+    quotedSiblingContinue: ["      - name: sibling", '        "continue-on-error": true',
+      "        run: echo sibling", "      - name: target", "        if: ${{ !cancelled() }}", run],
+    quotedNestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        env:", '          "continue-on-error": true', "        with:",
+      "          'continue-on-error': false", run],
     D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
     E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
       "        if: ${{ false }}", run],
@@ -1399,6 +1413,31 @@ test("D-S9G-CONTINUE: pack reader refuses a direct continue-on-error key", () =>
     }
   });
   assert.deepEqual(outcomes, ["continueTrue: refused by name", "continueFalse: refused by name"]);
+});
+
+test("D-S9G-QUOTED-KEY: pack reader refuses paired quoted continue-on-error keys", () => {
+  const SELF = path.relative(REPO_ROOT, fileURLToPath(import.meta.url)).split(path.sep).join("/");
+  const worlds = decoyWorkflows(SELF);
+  for (const id of ["control", "grouped", "siblingContinue", "nestedContinue",
+    "quotedSiblingContinue", "quotedNestedContinue"])
+    assert.doesNotThrow(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+  assert.throws(() => assertConditionedRun(worlds.quotedIf, SELF, "quotedIf"), (error) =>
+    error instanceof assert.AssertionError
+      && !String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN"));
+  const real = fs.readFileSync(path.join(REPO_ROOT, ".github", "workflows", "rebuild.yml"), "utf8")
+    .split(/\r?\n/);
+  assert.doesNotThrow(() => assertConditionedRun(real, SELF, "real workflow"));
+  const ids = ["continueTrue", "continueFalse", "quotedDoubleTrue", "quotedDoubleFalse",
+    "quotedSingleTrue", "quotedSingleFalse"];
+  const outcomes = ids.map((id) => {
+    try { assertConditionedRun(worlds[id], SELF, id); return id + ": accepted"; }
+    catch (error) {
+      return id + (error instanceof assert.AssertionError
+        && String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+        ? ": refused by name" : ": wrong refusal");
+    }
+  });
+  assert.deepEqual(outcomes, ids.map((id) => id + ": refused by name"));
 });
 
 test("D-CONDITION-MATCHER: pack reader requires the whole permitted expression", () => {

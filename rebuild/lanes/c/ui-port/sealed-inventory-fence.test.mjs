@@ -1239,6 +1239,37 @@ test("D-S9G-CONTINUE: all three fence-owned readers refuse a direct continue-on-
   ]));
 });
 
+test("D-S9G-QUOTED-KEY: all three fence readers refuse paired quoted continue-on-error keys", () => {
+  const files = [
+    path.relative(REPO, fileURLToPath(import.meta.url)).split(path.sep).join("/"),
+    "rebuild/lanes/c/passphrase-normalize/helper.test.mjs",
+    "rebuild/m3/w6/test/local-import.test.mjs",
+  ];
+  const ids = ["continueTrue", "continueFalse", "quotedDoubleTrue", "quotedDoubleFalse",
+    "quotedSingleTrue", "quotedSingleFalse"];
+  const outcomes = [];
+  for (const file of files) {
+    const worlds = decoyWorkflows(file);
+    for (const id of ["control", "grouped", "siblingContinue", "nestedContinue",
+      "quotedSiblingContinue", "quotedNestedContinue"])
+      assert.doesNotThrow(() => assertNotCancelled(worlds[id], file), undefined, file + " " + id);
+    assert.throws(() => assertNotCancelled(worlds.quotedIf, file), (error) =>
+      error instanceof assert.AssertionError
+        && !String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN"));
+    assert.doesNotThrow(() => assertNotCancelled(YML_LINES(), file), undefined, file + " real workflow");
+    for (const id of ids) {
+      try { assertNotCancelled(worlds[id], file); outcomes.push(file + " " + id + ": accepted"); }
+      catch (error) {
+        outcomes.push(file + " " + id + (error instanceof assert.AssertionError
+          && String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+          ? ": refused by name" : ": wrong refusal"));
+      }
+    }
+  }
+  assert.deepEqual(outcomes, files.flatMap((file) =>
+    ids.map((id) => file + " " + id + ": refused by name")));
+});
+
 /* ================== R3's TWO BLOCKING FINDINGS, AND THE ROWS THAT CLOSE THEM =========
    R3 swept 50 clauses of fence(), killed 44, and the two findings below are what the six
    survivors came to. Each row here exists because a clause was load-bearing and silent. */
@@ -1666,6 +1697,20 @@ function decoyWorkflows(file) {
       "        continue-on-error: true", run],
     continueFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
       "        continue-on-error: false", run],
+    quotedDoubleTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      '        "continue-on-error": true', run],
+    quotedDoubleFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      '        "continue-on-error": false', run],
+    quotedSingleTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        'continue-on-error': true", run],
+    quotedSingleFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        'continue-on-error': false", run],
+    quotedIf: ["      - name: target", '        "if": ${{ !cancelled() }}', run],
+    quotedSiblingContinue: ["      - name: sibling", '        "continue-on-error": true',
+      "        run: echo sibling", "      - name: target", "        if: ${{ !cancelled() }}", run],
+    quotedNestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        env:", '          "continue-on-error": true', "        with:",
+      "          'continue-on-error': false", run],
     D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
     E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
       "        if: ${{ false }}", run],
