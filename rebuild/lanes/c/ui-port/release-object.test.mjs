@@ -111,7 +111,7 @@ function assertConditionedRun(yml, file, label) {
   assert.equal(/[*?]/.test(line), false,
     "the step globs instead of naming its files: " + line.trim());
   const continueKeys = block.filter((entry) => {
-    const match = /^(\s*)continue-on-error\s*:/.exec(entry);
+    const match = /^(\s*)(?:continue-on-error|"continue-on-error"|'continue-on-error')\s*:/.exec(entry);
     return match && match[1].length === runIndent;
   });
   assert.equal(continueKeys.length, 0,
