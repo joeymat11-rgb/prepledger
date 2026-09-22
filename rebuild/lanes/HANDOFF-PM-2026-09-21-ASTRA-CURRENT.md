@@ -42,7 +42,10 @@ Independent ACCEPTd5aa5db:astra/reviews/GSS-G5-REPAIR-REVIEW-L2.md,56lines/eight
 Reviewer G4 1/1,G5 2/2/removal complete; allPIDs terminal/released. RuntimeFREE.
 No engine/model/store/writer guard edits; preserve exact context/fresh editor and maps.
 Author/reviewer loop through ACCEPT, disputed finding or round3; PM judges at end.
-Sol /root/s9_font_home G6-G8 STATIC prep748 may compose588c840; plan review before runtime.
+Sol /root/s9_font_home G6-G8 STATIC head22d0993, tree %TEMP%/earned-gss-g6-g8, branch rebuild/c-gss-g6-g8-proof.
+G5 composed unchanged6e4731b. PM read346lineproof/47report; static corrections sent, no runtime grant.
+Require G7entry/effort/independentexpectedpayload + Saved/nextactive handling and actual refusalcode.
+G8 must hold real latest-read result, not inventednull; compare safegraph to prior proof, no protectedread.
 Old coordinator01a0c4a5 route unavailable; oldworkers idle, evidence preserved.
 
 ## Owner choices and guardrails
