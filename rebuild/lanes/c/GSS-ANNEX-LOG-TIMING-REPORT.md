@@ -1,55 +1,57 @@
-# GSS annex G4/G5 author report
+# GSS annex G4/G5 repair author report
 
-Status: MEASURED RED; G4 passes and G5 has one valid product failure.
-Base: 320d192542dec1fd340dcb2152df5c8816c0526c.
-Owned proof: today/test/gss-annex-log-timing.test.mjs.
-G3 round-2 product and accepted prior proof are unchanged.
+Status: CANDIDATE GREEN; independent and Claude review remain required.
+Parent red: b5d1b4af175a8f100de0a21c47365153225ae68b.
+Owned paths: gym-app.mjs, gss-annex-log-timing.test.mjs, this report.
+G3 round-2 behavior and proof remain unchanged.
 
-## Proof contract
-Both rows use the real mounted page, public model and encrypted synthetic hosts.
-Expected set identity is captured from the public active view before Log.
-The proof checks the exact submitted six-field snapshot, durable start/slot/lift,
-load/reps/effort, returned operation link, outbox link, exact +1 rows and every
-prior operation/outbox row unchanged.
-Only WORKOUT_RESUME_REQUIRED is an allowed precommit refusal; it must write no
-map change. Any throw, unnamed refusal or other named refusal stops the proof.
+## Confirmed red
+The immutable author G5 row failed GSS-G5-EDITOR-LOST-AFTER-LOG.
+Independent L1 reproduced that failure; review SHA256:
+a5ed9dcbd6f8c8e674cf8b046d4876574aafe7025d740385e32fe37cb2ddd6d8.
+On Saved repaint, active-only context values became null. gym-app closed the
+settings editor and erased its draft/carry before Ready for the next set.
 
-G4 changes load, reps and effort on the replacement editor during held Log.
-Its plant clears the replacement DOM load and is caught by the named assertion.
-The positive before-commit and after-commit seams retain the replacement DOM and
-shared draft while proving the actual success or exact permitted refusal result.
+## Repair
+A matching Saved view now snapshots the current settings draft into the existing
+weak carry, retires the old editor, and drops its local token and mutable draft.
+The next active view in the same workout and lift clones that snapshot and opens
+a fresh editor token through existing hooks. Other phases, workouts and lifts
+clear carry. The active-only writer guard and writer API are unchanged.
 
-G5 edits machine settings during held postcommit Log, then requires Saved/Undo,
-one onChanged, clearing of only performed entry/effort, and settings retention on
-the next active set. Its plant is only reached after the positive journey passes.
+## Focused proof
+The G4 row retains its DOM plant, before/after-commit seams, exact submitted and
+durable set identity, exact permitted refusal, full prior maps and outbox links.
+G5 proves the original positive journey and its DOM-loss plant. It additionally
+proves old input/Save controls cannot mutate or write, the fresh restored editor
+saves Seat=four exactly once, and the combined maps survive reopen. A second G5
+row rejects carry for both a different workout and a different lift.
 
-## Measured evidence
-Frozen environment: MEASURED_TEST_NOW=2026-09-03; TZ=America/New_York.
-Pinned Node, serial anchored rows, proof SHA before run:
-e2d4ad42bed54ec9a3c1140d14c3d6c1470cd076fe7536bf3be3b1b26a0c6cc7.
-Run root: C:/Users/joeym/AppData/Local/Temp/
-earned-gss-g45-final2-3bf425b1b0604e77b2c215037a8a2d6d/.
-G4: exit 0, 1/1 pass; plant and both positive seams completed.
-g4.log SHA256 dd7353e0fd99927d64fcef4801ec5162291e23510f74473c76653935a8ab694a.
-G5: exit 1, 0/1 pass; GSS-G5-EDITOR-LOST-AFTER-LOG, true versus false.
-g5.log SHA256 d08b0b12c9b084045d8df60fe4fcdabf5734cd9eb385d94836ff5e23054ff626.
-G5 stopped before its plant, as required after the valid positive-journey red.
+Fixed MEASURED_TEST_NOW=2026-09-03 and TZ=America/New_York; pinned Node.
+Final run root: C:/Users/joeym/AppData/Local/Temp/
+earned-gss-g5-repair-green-77b274bc51704b7797b80b744b99e8a1/.
+G4: exit 0, 1/1 pass; g4.log SHA256:
+4d70ac7aa5536cdcc6c8376da2ac228d54a5abd7f14328410d28d78f1a0439b5.
+G5: exit 0, 2/2 pass; g5.log SHA256:
+14e418ce600f75887c05d1233c3993ca259e9f9ad30706965c5442011b792748.
 
-Two earlier runs are retained as harness evidence, not product evidence.
-The original 763644 proof rejected the incomplete submitted snapshot:
-earned-gss-g45-red-9956b7c578494d2d85b0ce3507791286/g4.log,
-SHA256 73cdeaf38ff471a67159438553494963d5158235d9d0ade22f065ab0b9f43049.
-The six-field correction then expected the wrong public draft effort shape:
-earned-gss-g45-corrected-648109e96b2541acae5812b5c2f54c2d/g4.log,
-SHA256 41570b509a221e45c650214c22517fa467fcc9b356bceeaf4c7b4c5424d3b5f5.
-The durable identity correction first used the wrong schema nesting:
-earned-gss-g45-final-6e79fbdbbf3f4a5d96454209904082fe/g4.log,
-SHA256 998ab109daedf89203a1d47bf9b86f7050ceb1b948598620a95a664fdacf5e4f.
+Repair-removal used the exact parent product with the final proof and failed the
+positive G5 row at GSS-G5-RETIRED-INPUT-MUTATED-FRESH-EDITOR; exit 1.
+removal.log SHA256:
+5ff9cdc7f6b4c34606284ebfa910d32c2fe66c0950ce4afeb09d75e2c8124dc9.
+The exact candidate product bytes were restored after that terminal run.
 
-## Mechanism and limits
-On the Saved repaint, gym-app.mjs derives activeStart/activeLift as null and its
-context guard closes the settings editor, clears its draft and clears carry.
-Ready for the next set therefore has no settings editor to restore.
-Existing G3 draftRef/carry metadata at the base is unrelated to this G5 failure.
-No product file was changed. G6-G8 are unassigned. Broad annex, CI, integration,
-independent review and acceptance remain open. Runtime was released at terminal.
+## Instrument corrections
+Three pre-repair harness runs remain non-product evidence: incomplete submitted
+snapshot, wrong public draft effort shape, and wrong durable identity nesting.
+The first repair run used a pre-Log shared-repository baseline; its legitimate
+session-set caused GSS-G5-RETIRED-CONTROLS-WROTE. The next run counted the later
+settings op as a second workout op. Final proof separates the post-Log workout
+snapshot, exact settings +1, and reopened combined-map equality.
+
+Candidate product SHA256:
+d41d1e5c52a8850058485129de2eb8c357a6f38bb770c9f2b482ce2f7b528159.
+Candidate proof SHA256:
+cea1cd3f392d8ef679e0659eb2b8cf6c6b9742e23b343ab1927fb797d6fbb74b.
+No model/store/schema/engine/writer file changed. G6-G8 remain unassigned.
+Broad annex, CI, integration and acceptance remain open. Runtime was released.

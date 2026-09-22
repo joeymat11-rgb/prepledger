@@ -235,6 +235,8 @@ async function runG5(plant = false) {
       load: '45', reps: '11', effort: CHOICE.reserve };
     mounted.input('#gym-weight', '45'); mounted.input('#gym-reps', '11'); mounted.chooseEffort();
     await mounted.openEditor();
+    const retiredValue = mounted.pick('[data-settings-value="0"]');
+    const retiredSave = mounted.pick('[data-slot="settings-save"]');
     mounted.click('[data-slot="log"]');
     await within(held.reached, 'G5 held Log acknowledgement');
     mounted.input('[data-settings-name="0"]', 'Seat');
@@ -249,16 +251,45 @@ async function runG5(plant = false) {
     mounted.click('[data-slot="primary"]');
     await until(() => mounted.pick('[data-slot="log"]'), 'G5 next active set');
     await settle();
+    const next = await held.model.read();
+    assert.equal(next.phase, 'active', 'GSS-G5-NEXT-NOT-ACTIVE');
+    const settingsBefore = await collections(unit.settings.repository);
+    retiredValue.value = 'retired mutation';
+    retiredValue.dispatchEvent(new unit.dom.window.Event('input', { bubbles: true }));
+    retiredSave.click(); await settle();
+    assert.deepEqual(await collections(unit.settings.repository), settingsBefore,
+      'GSS-G5-RETIRED-CONTROLS-WROTE');
+    assert.equal(mounted.pick('[data-settings-value="0"]')?.value, 'four',
+      'GSS-G5-RETIRED-INPUT-MUTATED-FRESH-EDITOR');
+    proveOneSet(before, settingsBefore, held.submitted(), expectedSubmitted,
+      envelope.result.opId);
+    let expectedReopened = settingsBefore;
     if (plant && mounted.pick('[data-settings-value="0"]'))
       mounted.input('[data-settings-value="0"]', 'planted-loss');
     const observed = { editorHidden: mounted.pick('[data-slot="settings-editor"]')?.hidden,
       name: mounted.pick('[data-settings-name="0"]')?.value,
       value: mounted.pick('[data-settings-value="0"]')?.value };
+    if (!plant) {
+      mounted.click('[data-slot="settings-save"]');
+      const pending = mounted.mounted.settings.pending();
+      if (pending) await within(pending, 'G5 fresh settings save');
+      await settle();
+      const settingsAfter = await collections(unit.settings.repository);
+      assert.equal(added(settingsBefore, settingsAfter, 'ops').length, 1,
+        'GSS-G5-SETTINGS-OP-COUNT');
+      assert.equal(added(settingsBefore, settingsAfter, 'outbox').length, 1,
+        'GSS-G5-SETTINGS-OUTBOX-COUNT');
+      const latest = await unit.settings.latest(next.lift.id);
+      assert.equal(latest?.machine?.exercise_id, next.lift.id, 'GSS-G5-SETTINGS-LIFT');
+      assert.deepEqual(latest?.machine?.settings, [{ name: 'Seat', value: 'four' }],
+        'GSS-G5-SETTINGS-DURABLE');
+      expectedReopened = settingsAfter;
+    }
     mounted.click('[data-action="back"]'); await settle();
     unit.settings.close(); unit.settings = null; unit.gymHost.close(); unit.gymHost = null;
     reopened = await unit.openGym();
-    proveOneSet(before, await collections(reopened.repository), held.submitted(), expectedSubmitted,
-      envelope.result.opId);
+    assert.deepEqual(await collections(reopened.repository), expectedReopened,
+      'GSS-G5-REOPENED-MAPS');
     assert.match(savedTitle, /logged/, 'GSS-G5-SAVED-SCREEN-MISSING');
     assert.equal(undoPresent, true, 'GSS-G5-UNDO-MISSING');
     assert.equal(changed, 1, 'GSS-G5-ONCHANGED-COUNT');
@@ -271,6 +302,42 @@ async function runG5(plant = false) {
     held.release();
     mounted?.mounted.settings.owns() && mounted.click('[data-action="back"]');
     reopened?.close(); unit.settings?.close(); unit.gymHost?.close(); unit.dom?.window.close();
+  }
+}
+
+async function rejectsForeignCarry(field) {
+  const unit = await device('g5-boundary-' + field);
+  let first = null, replacement = null;
+  const draft = newGymDraft();
+  const model = createGymModel({ gymHost: unit.gymHost,
+    sessionTitle: unit.today.read().workout.title });
+  try {
+    first = await page(unit, model, draft);
+    await first.openEditor();
+    first.input('[data-settings-name="0"]', 'Seat');
+    first.input('[data-settings-value="0"]', 'four');
+    const retiredValue = first.pick('[data-settings-value="0"]');
+    first.click('[data-action="back"]'); await settle();
+    const foreign = Object.freeze({ ...model, read: async () => {
+      const view = copy(await model.read());
+      assert.equal(view.phase, 'active', 'GSS-G5-BOUNDARY-NOT-ACTIVE ' + field);
+      if (field === 'workout') view.startId += '-foreign';
+      else { view.lift.id += '-foreign'; view.set.lift = view.lift.id; }
+      return view;
+    } });
+    replacement = await page(unit, foreign, draft);
+    assert.equal(replacement.pick('[data-slot="settings-editor"]')?.hidden, true,
+      'GSS-G5-FOREIGN-CARRY-RESTORED ' + field);
+    await replacement.openEditor();
+    assert.notEqual(replacement.pick('[data-settings-value="0"]')?.value, 'four',
+      'GSS-G5-FOREIGN-DRAFT-INHERITED ' + field);
+    retiredValue.value = 'retired mutation';
+    retiredValue.dispatchEvent(new unit.dom.window.Event('input', { bubbles: true }));
+    assert.notEqual(replacement.pick('[data-settings-value="0"]')?.value, 'retired mutation',
+      'GSS-G5-FOREIGN-OLD-INPUT-MUTATED ' + field);
+  } finally {
+    replacement?.mounted.settings.owns() && replacement.click('[data-action="back"]');
+    unit.settings.close(); unit.gymHost.close(); unit.dom?.window.close();
   }
 }
 
@@ -287,4 +354,10 @@ test('D-GSS-G5: settings edits survive held Log and only performed entry clears'
     await runG5(false);
     await assert.rejects(runG5(true), (error) =>
       error && error.message.includes('GSS-G5-ANSWER-LOST-AFTER-LOG'));
+  });
+
+test('D-GSS-G5: settings carry rejects a different workout or lift',
+  { timeout: 30000 }, async () => {
+    await rejectsForeignCarry('workout');
+    await rejectsForeignCarry('lift');
   });
