@@ -37,7 +37,7 @@ CUI0 Claude0ca3c8f: D-CUI-UNIT before S9 pin; both-OS compatibility proved, Clau
 Retain review-on-Joe's-word protocol. Do not dispatch paid Claude automatically.
 Queue unchanged: S9 seal/look; phone earns weights before trial day1; split/Edit My Week;
 then N3, re-plan gap and P4b-2. Deferred work does not become a trial prerequisite.
-GSScaec517 scoped ACCEPT90f80b2:23/23. G3 red6b6fbb1 repaired:15/15 plus alias mutant killed; successor publishing for review.
+GSScaec517 scoped ACCEPT90f80b2:23/23. G3 red6b6fbb1 repaired at1d58209:15/15 plus alias mutant killed; narrow blind review active.
 E17 b9ea32f independently ACCEPT72c984f:5/5+17/17. Claude735 reader/fold,714 guards,723 units,733 fonts pending. G4-G8 owed.
 
 ## Next efficient rollover
