@@ -82,6 +82,16 @@
    sticky. */
 .view .intro h1 { font-size: var(--headline, 47px); line-height: 1.04; letter-spacing: -.025em; }
 
+/* At the existing 33px floor only, reclaim the measured 35px overflow and retain
+   the fitter's 8px breathing guard. These are existing Additions C spaces: normal
+   47px headlines and every intermediate fitted size keep the approved proportions. */
+.view .page[style*="--headline: 33px"] .intro,
+.view .page[style*="--headline:33px"] .intro { margin-bottom: 0; }
+.view .page[style*="--headline: 33px"] .bottom,
+.view .page[style*="--headline:33px"] .bottom { padding-top: 12px; }
+.view .page[style*="--headline: 33px"] .bottom .primary,
+.view .page[style*="--headline:33px"] .bottom .primary { margin-top: 0; }
+
 /* REPORT A PROBLEM (DECISIONS:140 (3)). Two corrections only, both from approved
    tokens and neither a new visual idea: the control is given the 44px minimum tap
    height the rest of this page is already held to, and the diagnostic box is held

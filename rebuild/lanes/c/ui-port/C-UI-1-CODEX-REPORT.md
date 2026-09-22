@@ -1,60 +1,54 @@
 # C-UI-1 Codex author report
 
 Role: commissioned Sol builder, not reviewer, PM or integrator.
-Published candidate: c27b03fa9b53762e15f2e096b53a728bb28eae2e.
-Status: browser and source-boundary RED READY; no acceptance claim.
-The build keeps accepted b35 Today behavior and binds the pinned 2026-09-18
-styles, copy sources, local fonts and four scene images. Existing screen
-structure remains pinned beneath the newer CSS so the newer rules win overlap.
-All scene and font assets are offline data URLs.
+Base: d5d67e9 source-boundary RED checkpoint.
+Status: candidate frozen at first browser failure; not accepted.
 
-The scene carries the approved cadence, ember/mist layers, luminance mask,
-header fade and asset-ready reduced-motion drawing. Date writes are idempotent.
+Implemented in this candidate:
+- headlineVocabulary checks the exact 18 public .cjs filename census before
+  source reads, then reads only the 13 authorized title producers.
+- seed, migrate, merge, index and oracle-shim remain outside the read closure.
+- all five literal/propose parsers and the measured long template remain.
+- only the 33 px headline floor compacts 23 + 12 + 8 = 43 px of existing
+  spacing: measured 35 px overflow plus the existing 8 px breathing guard.
+- browser captures use a fresh retained OS-temp directory and print its path.
 
 Retained red evidence:
-- unchanged-product design red: 4 intended failures, exit 1, SHA256
+- original design: 4 intended failures, SHA256
   f9ac1344d3a9a315c11617939216a73ede655de05fd45c31a08f5b0e55f35fda.
-- initial scene red: 3 intended failures, exit 1, SHA256
+- original scene: 3 intended failures, SHA256
   747e39c4be82d94d38ac22da4594b22d630af6e1f9eac96195d37e35ef9c71fb.
-- fidelity red: 3 intended failures, exit 1, SHA256
+- fidelity: 3 intended failures, SHA256
   0b5a3c50e65d04ff514380cd7530c42fd86543dd70f7150d01117de51ada4aa6.
-- observer red: 1 intended failure, exit 1, SHA256
+- observer: 1 intended failure, SHA256
   86b90b96d156948272d40157da9a3b1ebaad43d406a44cb3381363a5a6acc131.
-- source-boundary red: 3/3 fail, exit 1; the control read all 18 synthetic
-  sources, while unknown and missing names were not refused. Log SHA256
+- source boundary: 3/3 fail, SHA256
   146dd23aae51e3613b2549af933c048bf87c4d88d3165f32aabc50535ab4d95e.
-  design.cjs, preview.css and scene.mjs remained byte-identical. Runtime released.
 
-Focused repaired candidate, pinned Node and fixed date/timezone:
-- design.test.cjs: 12/12 pass, exit 0; log SHA256
-  74cb8621ac8385393074da2d77cd89e082c597ccf0506fbf5fad13474f679ede.
-- scene.test.mjs: 6/6 pass, exit 0; log SHA256
-  74963f07d6c946701601d13af7025484e74670526c4784c384145e6d779822b9.
-These focused results predate the capture-only browser-check delta.
+Measured candidate evidence, pinned Node and fixed date/timezone:
+- boundary selection: 3/3 pass; log SHA256
+  803516e80d02020e4f281b1dd01a51bf9add879dda2485caa717f5dd9241c1cb.
+- first design attempt: 14/15 pass; exact filename census also saw the test
+  directory. Log SHA256 c4d330c3e531b794b6419b0781d6ee11791218437c1fba07151dcf8079c9f782.
+- bounded correction counts only regular .cjs filenames; second design attempt
+  15/15 pass. Log SHA256 31e039786257471e8f9fea267ecf6f45e5af19e6b8312eeaecbd86810ea28e0f.
+- scene: 6/6 pass; log SHA256
+  e9a951b4f7d0ebfc6418760b7ae509f91d4a65f1ecbfb21b76789479bfcb8203.
+- default build: PASS, 3 assets and 146 pins; log SHA256
+  a761684d168811162cfca0c5d26789fb99cd6dcd1059ff1423c9b847c35f8638.
 
-Browser attempt on the exact candidate plus capture delta:
-- default build: PASS, 3 assets and 146 pinned inputs; log SHA256
-  5ea865845a49b1305c6a8a642b76de18961bfcef9acd3dfa1c5ce80bbf0f9611.
-- browser: STOP at first assertion, exit 1; one mandatory headline leaves the
-  primary bottom at 879 in an 844 px viewport at the unchanged 33 px floor.
-  Log SHA256 3a34ee335329d6b9ba30570111843b6aab1db85ba2e16899437e567d18d7cf19.
-- Ink Today PNG SHA256 7526e1d7730e1edf38e5f58afac0bd4d0c208edfab26800c975d45d45fafbc0c.
-- Dawn Today PNG SHA256 5c9aeab4d8258f0be4804654939e6e1e6bce8afe4d814cf6ff1b5c4c5a8a98fa.
-Both actual 390x844 captures render the scene, fonts, content and primary.
-Reduced Dawn Workout and visual-summary.json are absent because the run stopped.
-No broad browser PASS, reduced-motion proof or automatic rerun is claimed.
+Browser result:
+- exit 1 after 40.4 s: page.waitForFunction timed out; log SHA256
+  8a4b7826f4f234c6dbcc36c44814ae80e87cbd4097f147f53db4302ab2219f5f.
+- catch output discarded the stack and wait name. Two Today captures prove the
+  timeout occurred after both scene-ready waits, but do not identify which later
+  wait failed. No stage is guessed and no automatic retry was made.
+- retained directory: %TEMP%/cui1-browser-proof-iuP5E2.
+- Ink PNG SHA256 fd811a96db86553db51fa1168012a32b0fee5ad2eafce1ddf6a8d1889840d2da.
+- Dawn PNG SHA256 2c86da624f8d5694a0ced018ea2931a02147d9db561a42c216f0932d7a4c4a6e.
+- reduced-motion PNG and visual-summary.json are absent.
 
-Containment correction owed: require the exact 18-name census before reads,
-then read only dates, constants, plan, performed, progression, sleep, energy,
-policy, today, volume, earn, writers and entered-load .cjs files. Never read
-seed, migrate, merge, index or oracle-shim. Keep all five parser patterns and
-the exact failing long template. The synthetic test requires refusal before reads.
-
-The layout diagnosis is separate. At the existing 33 px floor only, CSS can
-remove the 23 px intro bottom margin and 12 px primary margin, and reduce bottom
-padding by 8 px. The 43 px keeps the measured 35 px inside the viewport plus
-the existing 8 px breathing guard. Normal 47 px layout stays unchanged.
-No production repair is applied.
-
+Runtime is released; no Node/browser/server process remains.
 No approved pack, baseline, engine, storage, workflow, ledger or STATUS changed.
-No acceptance, Linux, seal or ticket-completion claim is made.
+B1-B4, named-wait diagnostics, reduced motion, independent review, Linux, CI,
+seal and integration remain owed. No acceptance or ticket-completion claim.

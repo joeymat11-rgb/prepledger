@@ -64,8 +64,8 @@ const HEADLINES = design.headlineVocabulary();
 // tests prove slot by slot where every figure came from.
 const FICTIONAL = ["2,252", "2,344", "235 g", "180.9 lb", "181.3 lb", "135 lb", "About 60 min", "9 exercises"];
 const VIEWPORT = { width: 390, height: 844 };
-const VISUAL_DIR = path.join(os.tmpdir(), "cui1-browser-proof");
-fs.mkdirSync(VISUAL_DIR, { recursive: true });
+const VISUAL_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "cui1-browser-proof-"));
+console.log(`CUI1 VISUAL CAPTURE DIR ${VISUAL_DIR}`);
 const visual = { viewport: VIEWPORT };
 
 /* A2 review B2: the weigh-in is a real encrypted-repository transaction now, so the

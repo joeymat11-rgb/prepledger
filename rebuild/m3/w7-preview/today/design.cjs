@@ -990,9 +990,10 @@ function composeStyles(approved, chrome, fonts, sceneAssets = readSceneAssets())
    the engine source at test time and the layout is measured against ALL of them — a title
    added to the engine tomorrow is covered without anyone remembering to list it here.
 
-   This is deliberately a SUPERSET: it collects every title literal in the engine, not
-   only the ones theOneFix and policy.cjs can put on this slot. Testing the layout against
-   more strings than the slot can show is safe; missing one is not.
+   This is deliberately a SUPERSET of the title-producing public modules, not only the
+   ones theOneFix and policy.cjs can put on this slot. The exact directory census is
+   checked before any source is opened. That refuses an unknown producer instead of
+   silently omitting its title, while files outside the title closure remain unread.
 
    S9-TODAY-CARRY (DECISIONS:534 (b)) corrects two things the note above got wrong. A title
    is not always a quoted `title:` literal: the engine also writes template literals, and a
@@ -1002,11 +1003,24 @@ function composeStyles(approved, chrome, fonts, sceneAssets = readSceneAssets())
    check (DECISIONS:533; the owner's figures are deliberately not quoted here). Captured verbatim from the source, so a template's ${...} rides along as written;
    that is the superset doing its job, not a headline anyone will read. */
 const ENGINE_DIR = "rebuild/engine";
+const ENGINE_TITLE_SOURCES = Object.freeze(["dates.cjs", "constants.cjs", "plan.cjs", "performed.cjs",
+  "progression.cjs", "sleep.cjs", "energy.cjs", "policy.cjs", "today.cjs", "volume.cjs",
+  "earn.cjs", "writers.cjs", "entered-load.cjs"]);
+const ENGINE_NON_TITLE_SOURCES = Object.freeze([
+  "seed.cjs", "migrate.cjs", "merge.cjs", "index.cjs", "oracle-shim.cjs",
+]);
 function headlineVocabulary(root = ROOT) {
   const dir = path.join(root, ENGINE_DIR);
+  const expected = [...ENGINE_TITLE_SOURCES, ...ENGINE_NON_TITLE_SOURCES];
+  const names = fs.readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".cjs"))
+    .map((entry) => entry.name);
+  const unknown = names.filter((name) => !expected.includes(name)).sort();
+  const missing = expected.filter((name) => !names.includes(name));
+  assert.equal(unknown.length, 0, "HEADLINE-SOURCE-CENSUS FAIL: unknown " + unknown.join(", "));
+  assert.equal(missing.length, 0, "HEADLINE-SOURCE-CENSUS FAIL: missing " + missing.join(", "));
   const out = new Set();
-  for (const name of fs.readdirSync(dir)) {
-    if (!name.endsWith(".cjs")) continue;
+  for (const name of ENGINE_TITLE_SOURCES) {
     const text = fs.readFileSync(path.join(dir, name), "utf8");
     for (const pattern of [/(?:^|[\s,{(])title\s*:\s*"((?:[^"\\\n]|\\.){3,140})"/g,
       /(?:^|[\s,{(])title\s*:\s*'((?:[^'\\\n]|\\.){3,140})'/g,
@@ -1054,6 +1068,6 @@ module.exports = {
   recoverySection, recoveryVocabulary, assertRecoveryBinding, assertRuntimeCopyBinding,
   setupVocabulary, assertSetupBinding, setupSource,
   SETUP_MODEL_SOURCE, SETUP_SOURCES,
-  headlineVocabulary, ENGINE_DIR,
+  headlineVocabulary, ENGINE_DIR, ENGINE_TITLE_SOURCES, ENGINE_NON_TITLE_SOURCES,
   templateHtml, appSource, chromeCss, shellHtml,
 };
