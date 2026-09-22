@@ -1,7 +1,7 @@
 # Earned current PM checkpoint, 2026-09-22
-Continuity only, not a seat transfer. Later ledger entries control; latest764.
+Continuity only, not a seat transfer. Later ledger entries control; latest765.
 Sole PM task01a0c6fe-004c-7330-90f2-df02af3c7290, seated738 after release737.
-Goal: approved rebuild until verified ready for Joe's trial; NOT achieved. Claude764/source permission757 owed.
+Goal: approved rebuild until verified ready for Joe's trial; NOT achieved. S9 five-file permission757 owed.
 PM tree: C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm.
 Detached checkout; push HEAD:rebuild/t2-client-core. Never switch old-app cwd.
 
@@ -48,7 +48,7 @@ Independent runtime RELEASED:62280G6/G7/G8 3/3,61700G4/G5 3/3,48480removal0/1; n
 UnplantedG6red published before lane-only acknowledgedLog delivery handoff; no other product change.
 Strict mount/context/stale/foreign guards, active-onlysettingswriter, exactpayload/onecallback/write remain.
 Neutral repair66d32530 blind ACCEPTaab4fd1 8/8+2removal reds; corrected red669b467d, original395bd581 kept.
-Claude l3 ASKED764, packetastra/GSS-NEUTRAL-CLAUDE-L3-REQUEST.md; CI35767357862 bothOS redstep13.
+Claude l3 ACCEPT31c88922 closes both GSS debts; astra/GSS-CLAUDE-CLOSURE-2026-09-22.md carries S10 notes.
 Exporter mechanics ACCEPTf20f2fe; public-effect inventorye40fdb5 narrows future final review; no runtime grant.
 
 ## Owner queue and boundaries
@@ -57,4 +57,4 @@ Pendingowner: yes-only ordinary increases, B afterFinish recommended; noanswer k
 Queue:S9look/seal; phoneearns beforetrial; split/EditMyWeek;N3;re-plan;P4b-2. Father's trial follows.
 Never protected/oldapp paths, engine seed/migrate/merge/index/oracle-shim, oldjob50 or claude-epp.
 No main/deploy/import/purchase/fallback/newengine semantics/sharednpm/heartbeats/guardwaivers.
-Weekly60percent. Runtime FREE, all workers idle/preserved. Claude764 and five-file permission757 pending.
+Weekly60percent. Runtime FREE, workers idle/preserved. GSS CI35767357862 bothOS red; source permission757 pending.
