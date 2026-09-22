@@ -92,17 +92,8 @@ const byteCompare = (a, b) => Buffer.compare(Buffer.from(a, "utf8"), Buffer.from
 /* THE LITERAL MAP, path to sha256. Key order does not matter to the engine; it is held in
    path BYTE order so a reader can diff two generations of it (R4 N1.1). */
 const LITERAL = Object.freeze({
-  /* EMPTY ON PURPOSE, AND THIS COMMENT IS THE WHOLE OF WHAT FILLS IT. The S9 INTEGRATOR
-     fills this map ONCE, at the S9 head, AFTER lane C-UI has answered OQ-2 and after every
-     platform of record's baseline directory is present and set (R4 N2), by C.5.3's
-     five-step list: (1) read design.APPROVED at the S9 head and write down the file list;
-     (2) sha256 each named file FROM GIT at that head, never from a report, and paste
-     "<path>": "<64-hex>" here in path byte order; (3) re-decide E fact 17's four
-     pinned-unchanged paths against that list, adding ADDITIONS-C-APPROVED-HANDOFF.md and
-     rebuild/m1/MOCK.md, which design.test.cjs reads by hard-coded path; (4) record whether
-     C-UI-1 had to edit the SEALED design.test.cjs (:17, :25, :26, :184) and name the
-     hunks - if that edit cannot be made honestly, F.2 STOP-10 stops the round; (5) take
-     lane C-UI's answer to OQ-2 before any of the above. Never a value from a report. */
+  "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
+  "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031"
 });
 
 /* THE FILE LIST, READ AT RUN TIME. It takes the NAMES and nothing else: design.APPROVED's
