@@ -197,15 +197,40 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
     return gymOutcome(action, result);
   }
 
-  const deliver = async (binding, outcome) => {
-    const current = binding.kind === 'settings' && activeEditor
+  /* Adding a settings row repaints the active card. If the real set commit settles
+     during that repaint, the durable read advances to the next slot and the exact
+     old Log context is correctly revoked. The acknowledgement still belongs to this
+     editor only when the mount, workout and lift are unchanged and the current Log
+     binding owns the advanced slot. This narrow handoff lets that binding paint the
+     real Saved result; leaving, changing workout/lift/editor, or a refusal still has
+     no handoff and therefore no stale callback. */
+  const continuedLogBinding = (binding, outcome, capturedView, capturedEditor) => {
+    if (binding.kind !== 'gym' || binding.action !== 'logSet'
+      || !outcome || outcome.kind !== 'gym-result' || outcome.action !== 'logSet'
+      || !outcome.result || outcome.result.ok !== true || !mountLive || !workoutBusy
+      || !capturedEditor || !activeEditor || capturedEditor.token !== activeEditor.token
+      || !capturedView || capturedView.phase !== 'active'
+      || !activeView || activeView.phase !== 'active'
+      || capturedView.startId !== activeView.startId
+      || liftOf(capturedView) !== liftOf(activeView)
+      || !capturedView.set || !activeView.set || capturedView.set.slot === activeView.set.slot) return null;
+    return [...controlBindings.values()].find((row) => row.kind === 'gym'
+      && row.action === 'logSet' && !row.revoked && sameContext(row)) || null;
+  };
+
+  const deliver = async (binding, outcome, capturedView, capturedEditor) => {
+    let current = binding.kind === 'settings' && activeEditor
       ? [...controlBindings.values()].find((row) => row.kind === 'settings'
         && row.editorToken === activeEditor.token && row.editorToken === binding.editorToken && !row.revoked)
       : binding.kind === 'gym'
         ? [...controlBindings.values()].find((row) => row.kind === 'gym'
           && row.action === binding.action && row.context === binding.context && !row.revoked)
         : binding;
-    if (!current || current.revoked || !sameContext(current)) return;
+    if (!current && binding.kind === 'gym')
+      current = continuedLogBinding(binding, outcome, capturedView, capturedEditor);
+    if (!current || current.revoked || !sameContext(current)
+      || controlBindings.get(current.control) !== current
+      || !current.control.isConnected || !phone.contains(current.control)) return;
     const settlement = underRefusal(() => current.onOutcome(outcome));
     await settlement;
   };
@@ -250,7 +275,7 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
           return;
         }
       } else outcome = await runGym(binding.action, raw, capturedView);
-      await deliver(binding, outcome);
+      await deliver(binding, outcome, capturedView, capturedEditor);
     };
     execute().finally(() => {
       if (binding.kind === 'settings') {
