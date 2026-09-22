@@ -1,5 +1,5 @@
 # S9 protected-source check: review and pending permission
-Status: owner permission requested in this PM task on2026-09-22; no answer received.
+Status: Joe granted the five-file read-only check in this PM task on2026-09-22; DECISIONS:766.
 This is a concrete reviewed source-custody check, not engine execution or final package acceptance.
 Helper: %TEMP%/earned-s9-source-custody-checker-sol-20260921/s9-source-custody-check.cjs.
 SHA256:1528b20a4f00c9e88834c3eed34c3540a3ce13e2bb087cf275cb2115e134d609.
@@ -18,7 +18,7 @@ Terminal exit0: STAGE1 HELD pins=227 protected=5; VERDICT HELD.
 This proves the no-permission path stops, not that source custody or full closure passes.
 No local runtime remains occupied. Author/reviewer preparation claims predate this public preflight.
 
-## Exact pending allowance
+## Exact granted allowance
 Only rebuild/engine/seed.cjs, migrate.cjs, merge.cjs, index.cjs and oracle-shim.cjs.
 Local read/hash/static traversal for S9 using reviewed fixed snapshots; contents stay in memory.
 No source text/values in reports or shared logs; output is bounded verdicts, counts and safe paths.
@@ -27,4 +27,8 @@ Only after Joe's word may the same invocation add --allow-protected-five.
 Stage1 can then compare all227 parent/sourceBase pins; current Stage2 remains HELD because S9.json is absent.
 A changed candidate/spec/helper needs a fresh bounded review before use; permission is not a source waiver.
 Actual engine/child/exporter execution, private census, import, deployment and sealing remain separate.
-The reviewed helper has not been run with its protected allowance enabled.
+After permission766, PM ran the identical reviewed helper with --allow-protected-five; session14502 terminal exit0.
+STAGE1 PASS pins=227 protected=5; STAGE2 HELD reason=S9_SPEC_ABSENT targets=0; VERDICT HELD.
+The sourceBase check is complete. Final actual-child closure is not yet proved.
+Parent artifact bytes at fixed candidate5c62cb4 and current integration80082fa are identical (Git diff exit0).
+No engine/repository module executed and no protected contents entered output.
