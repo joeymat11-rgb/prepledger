@@ -1,0 +1,60 @@
+/* Inside the workout: the pieces the six boards do not draw. Same tokens, same spacing scale, same two radii (STANDARD.md).
+   Nothing here touches the default render: every rule is on a w- class, a state class, or an element the default screen never has. */
+
+/* ---------- The reason line: the engine's sentence under the lift name. A sub line, never a headline. ---------- */
+.w-reasons { margin-top: 8px; }
+.w-reason-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.w-reason { font-size: 14px; line-height: 1.35; color: var(--text-soft); font-weight: 430; margin: 0; }
+.w-reason.w-more { margin-top: 8px; color: var(--muted); }
+/* "Why" keeps a 44 px box without growing the line (the pattern .save and .proposal .why already use) */
+.w-why { position: relative; min-height: 0; height: 19px; min-width: 44px; justify-content: flex-end; flex: 0 0 auto; }
+.w-why::before { content: ""; position: absolute; left: -6px; right: -6px; top: 50%; height: 44px; margin-top: -22px; }
+
+/* ---------- The prescription as a line, where the engine has no figure to set in numerals ---------- */
+.w-presc { font-family: var(--serif); font-size: 24px; line-height: 1.3; text-align: center; margin-top: 12px; }
+.w-presc-x { color: var(--gold); margin: 0 10px; }
+.w-hint { font-size: 13px; line-height: 1.35; color: var(--muted); text-align: center; margin-top: 8px; font-weight: 430; }
+/* No load step on file: the steps are drawn and disabled, so the box reads as typed entry only */
+.numerals .w-step { align-self: center; flex: 0 0 44px; }
+/* A figure the athlete has not entered: an empty box, not a guess. When a refusal names it, the box wears the gold
+   line the app already uses for a field a refusal names (T-45's weigh-in field, .pfield.is-invalid in states.css). */
+.numerals .value.w-blank { display: inline-block; min-width: 60px; height: 74px; border-bottom: 1px solid var(--muted); }
+.numerals .value.w-blank.is-invalid { border-bottom: 1.5px solid var(--line-gold); }
+
+/* ---------- Refusals, each anchored to the thing it names ----------
+   A refusal about the layer sits in the stack above the Log row it refused; a refusal about the entry sits under the
+   numerals, inside the set card. Inside a card it drops the card dress it would otherwise nest: the line and the gold
+   underline above it are the whole mark. */
+.w-refusal { margin-top: 12px; }
+.setcard .w-card-refusal { margin-top: 12px; margin-bottom: 2px; padding: 0; background: none; border: 0; border-radius: 0; text-align: center; font-size: 13.5px; line-height: 1.4; color: var(--text); font-weight: 450; }
+
+/* The effort answer a refusal names: the chip group wears the gold edge, so the refusal and the field it names read as
+   one component. An overlay, so nothing in the stack moves when it appears. */
+#rir.is-invalid { position: relative; }
+#rir.is-invalid::after { content: ""; position: absolute; left: 0; right: 0; top: -8px; bottom: -8px; border: 1px solid var(--line-gold); border-radius: 18px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 18%, transparent); pointer-events: none; }
+
+/* ---------- The rest screen after a log ---------- */
+.w-facts { margin-top: 10px; font-size: 13px; line-height: 1.35; color: var(--muted); font-weight: 430; }
+.w-rest-line { margin-top: 12px; font-size: 13.5px; line-height: 1.4; color: var(--muted); font-weight: 430; }
+.w-next { margin-top: 12px; padding: 14px; border-radius: var(--radius-card); background: color-mix(in srgb, var(--card) 86%, transparent); border: 1px solid var(--line-soft); }
+.w-next-presc { font-family: var(--serif); font-size: 24px; line-height: 1; margin-top: 8px; }
+.w-next-aim { font-size: 13px; line-height: 1.35; color: var(--muted); margin-top: 8px; font-weight: 430; }
+/* The Log button does not move between the active set and the rest screen: the chassis in app.css anchors the stack at the
+   bottom, the chips that go are above the Log row, and everything below it stays. No spacer holds it in place. */
+.ui.w-rest .log { font-size: 24px; }   /* the label is a phrase here, not a figure */
+
+/* ---------- Set strip: a skipped cell ---------- */
+.set-dots i.skip { border-color: var(--muted); background: transparent; opacity: 0.4; }
+
+/* ---------- Links that sit on the page rather than in a row ---------- */
+.w-setup, .w-edit-set { align-self: flex-start; margin-top: 8px; min-width: 44px; }
+
+/* ---------- The machine row while it is being read, or when it could not be read ---------- */
+.machine.rowcard:disabled { opacity: 0.55; }
+
+/* ---------- Panels that carry a decision ----------
+   The pin is app-wide now (states.css: .panel > .pactions.is-last sits at the parent screen's own primary edge, the Log
+   button's, ending at y 716). Nothing here pins it a second time; the only workout rule left is the add/remove pair,
+   which is not the last group and stays in the flow. */
+.screen-workout .panel .pactions.w-pair { flex-direction: row; gap: 12px; }
+.screen-workout .panel .pactions.w-pair .link { align-self: center; }

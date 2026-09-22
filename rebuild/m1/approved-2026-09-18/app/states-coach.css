@@ -1,0 +1,52 @@
+/* Coach state components beyond the six boards. Same tokens, same scale, same rules (STANDARD.md).
+   Everything here is scoped to a piece the state driver builds, so the default coach board renders unchanged. */
+
+/* The muted tail on an answer: "Nothing changed." / "This conversation doesn’t change your plan." */
+.coach-answer .tail { color: var(--muted); }
+.coach-answer .tail::before { content: " "; }
+/* A machine reason, quoted rather than reworded */
+.coach-answer .quoted { display: block; margin-top: 6px; color: var(--muted); font-size: 13.5px; }
+
+/* Chips and the confirm row sit inside the answer card, above its provenance line */
+.coach-answer .chips { margin-top: 10px; }
+.coach-answer .confirm-row + .from, .coach-answer .chips + .from { margin-top: 10px; }
+
+/* Listening: the bars line stands where the coach line stands, centred under the title.
+   The header pill says Listening and the bars show it: this line only says whose turn it is. */
+.screen-coach .listening { justify-content: center; margin-top: 10px; }
+.screen-coach .listening .go { color: var(--muted); }
+
+/* ---------- Where voice cannot work: there is no mic (C-08 mic refused, C-64 offline) ----------
+   The 80 px disc goes entirely. A dead control has no business being the biggest thing on the screen, and a dimmed one
+   still invites the tap. What stays is one line where the mic label was, saying why, and the path that does work,
+   drawn as the screen's primary: a full-width decision on the same bottom edge the mic held. */
+:root .screen-coach[data-mic="off"] .mic-button { display: none; }
+.screen-coach[data-mic="off"] .mic-label { color: var(--text-soft); margin-top: 10px; }
+.screen-coach .mic-wrap .mic-alt { flex: 0 0 auto; width: 100%; height: 44px; }
+
+/* The proposal card, on this screen: the Today component without the timeline dot it has no rail for */
+.screen-coach .proposal { margin-top: 12px; padding-left: 14px; }
+
+/* The affirmative wears the gold edge, as Use 105 does on Today (#use-105) */
+.screen-coach .proposal .decisions .decision:first-child,
+.screen-coach .confirm-row .decision:first-child,
+.screen-coach .pactions .decision:first-child { border-color: var(--line-gold); box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 30%, transparent); }
+
+/* A marker line: what this state is, said plainly, never mistaken for the app talking to the athlete.
+   It carries its own soft scrim, because it can land on the scene. */
+.coach-marker { position: relative; isolation: isolate; margin-top: 12px; font-size: 13px; line-height: 1.4; color: var(--muted); font-weight: 430; text-shadow: 0 1px 10px color-mix(in srgb, var(--surface) 90%, transparent), 0 0 3px color-mix(in srgb, var(--surface) 80%, transparent); }
+.coach-marker::before { content: ""; position: absolute; left: -10px; right: -10px; top: -8px; bottom: -8px; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 82%, transparent) 0, color-mix(in srgb, var(--surface) 55%, transparent) 50%, transparent 100%); }
+
+/* ---------- The two coach links, with the row plate gone (review round 3) ----------
+   The row carried one cloud across its whole width, which read as a band under both links. Each link carries its own
+   small cloud instead, the same shape every other tertiary link on the scene carries, so two links read as two clouds. */
+.screen-coach .coach-links::before { display: none; }
+.screen-coach .coach-links .link { position: relative; isolation: isolate; }
+.screen-coach .coach-links .link::before { content: ""; position: absolute; left: -22px; right: -22px; top: -16px; bottom: -16px; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 90%, transparent) 0, color-mix(in srgb, var(--surface) 68%, transparent) 46%, color-mix(in srgb, var(--surface) 24%, transparent) 76%, transparent 100%); }
+
+/* Text mode: the input as it looks with the caret in it, and the way back to voice.
+   The link carries the same soft scrim the board's own link row carries, so it never sits straight on the picture. */
+.text-mode input.is-focused { border-color: var(--line-gold); }
+.coach-back-links { display: flex; justify-content: center; margin-top: 12px; }
+.coach-back-links .link { position: relative; isolation: isolate; }
+.coach-back-links .link::before { content: ""; position: absolute; left: -26px; right: -26px; top: -8px; bottom: -8px; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 50% 50% at 50% 50%, color-mix(in srgb, var(--surface) 86%, transparent) 0, color-mix(in srgb, var(--surface) 62%, transparent) 45%, color-mix(in srgb, var(--surface) 20%, transparent) 78%, transparent 100%); }

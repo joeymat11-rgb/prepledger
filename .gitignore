@@ -2,3 +2,7 @@ node_modules/
 .env
 .env.local
 .tmp/
+
+# gate and sheet output: the evidence of a green run is the PR-READY line and the reviewer own run
+rebuild/m1/approved-2026-09-18/quality/run/
+__pycache__/

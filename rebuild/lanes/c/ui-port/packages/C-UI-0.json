@@ -1,0 +1,1634 @@
+{
+ "version": 1,
+ "lanePackage": "C-UI-0",
+ "packageId": "C-UI-0-GATES-WITH-TEETH",
+ "status": "PROPOSED, revised for reviews R1 to R5, the PM second teeth audit, and D-CUI-UNIT",
+ "reviews": [
+  {
+   "round": "R1",
+   "file": "rebuild/lanes/c/ui-port/reviews/C-UI-0-review-R1.md",
+   "sha256": "e8534309659b3c7b1e535beeec44c609fa365398acd7ba27b87eb7c0227333fe",
+   "verdict": "REJECT, 4 blocking",
+   "addressed": "B1, B2, B3, B4, SHOULD FIX 1 to 11, docs mismatch 1 to 8"
+  },
+  {
+   "round": "R2",
+   "file": "rebuild/lanes/c/ui-port/reviews/C-UI-0-review-R2.md",
+   "sha256": "774066c3f6bc5797633fa0a9f6d21e3dfce90298fbcc06a59a215d580c3fe42b",
+   "verdict": "ACCEPT WITH NOTES, 0 blocking",
+   "addressed": "SHOULD FIX 1 to 6; the records did not change, so none was rewritten"
+  },
+  {
+   "round": "R3",
+   "file": "rebuild/lanes/c/ui-port/reviews/C-UI-0-review-R3.md",
+   "sha256": "0dfb54be3d20161b786dda38b3370c63422685a50c04259e3f790e64a1ab8e12",
+   "verdict": "ACCEPT WITH NOTES, 0 blocking, 7 should fix",
+   "addressed": "1 the one line under app/: the owner ratified it on 2026-09-19, recorded verbatim in the locked object below and in README 3.1. 2 a copied thumbnail set: a committed thumbnail byte identical to another platform's file of the same name is a FAIL naming both files, on an ordinary run and on --accept-thumbs; teeth row p4; what it does not catch is open question Q11. 3 the worst measured block: advisory rows per other platform directory, printed on every run, never a tolerance and never an exit code; 1.26 of 2.00 at C-63 ink against win32 here. 4 teeth row p1 moved to T-84, where the mutation moves a rect 170 px instead of 4, and new row p3 runs the same mutation through the screen gate. 5 teeth sub() retries an anchor with the file's own line endings, so a CRLF file on disk no longer voids k1, m6, n4 and n5; the docstring says a VOID row is never a pass. 6 README 3.1 quotes 1.66, which is what this tree prints, and attributes 1.67 to review R2 and the thumbnails R3 replaced; h1 is a 2 px shift now in any case. 7 the target line prints the number that failed, so the T-88 case reads link 43.73x44."
+  },
+  {
+   "round": "R4",
+   "file": "rebuild/lanes/c/ui-port/reviews/C-UI-0-review-R4.md",
+   "sha256": "117af4df5dcd1b984e866e2f2d636c36647c4f78a8795cfe6a6f90efc448cb80",
+   "verdict": "REJECT, 2 blocking, 4 should fix",
+   "addressed": "B1 the spaced hyphen escaped when its two spaces were no break spaces, because the test read the raw string while the word sweeps read the folded one. Reproduced: copy_problems returned [] for U+00A0, U+202F, U+2007, U+2009 and U+3000 and the plain form for an ordinary space. common.fold_spaces now folds every character of Unicode category Zs and U+2060 to an ordinary space, in one shared helper that the spaced hyphen test, the minus sign rule and the word and vendor sweeps all read; all six forms fail now. Teeth row q9. B2 a clip with no visual effect hid a visible target, because clip applies to an absolutely or fixed positioned element and to nothing else. Reproduced with the reviewer's mutation: a visible focusable 274 by 20 title carrying clip: rect(0 0 0 0) gave \"2 FAIL, 0 WARN, 58 PASS\", both rows regression, no target row. The walk now requires position absolute or fixed AND a clip with no area; the same scratch copy then gave \"4 FAIL, 0 WARN, 56 PASS\" with \"touch targets >= 44 px  title 274x20.00\" in both themes, and the assistive label at app/app.html:43, which is positioned, is still skipped. Teeth row q10. SHOULD FIX 1 the minus sign arm narrowed to a negative number: a digit after the sign and no digit before it once spaces are folded. A range fails, \"-5 lb\" passes, W-18's button label passes. Teeth row q11. SHOULD FIX 2 U+2043 and U+2053, which Unicode files under Po, are named in common.EXTRA_DASHES, README section 4 and STANDARD.md, and row q3 carries a U+2043 beside its U+2015. SHOULD FIX 3 the r3 object's digests are labelled as of f543489 in the key name and the note. SHOULD FIX 4 render_one's caller re-raises Refused, so a refusal stays one line and exit 2; changed by reading, as the reviewer had it."
+  },
+  {
+   "round": "R5",
+   "file": "rebuild/lanes/c/ui-port/reviews/C-UI-0-review-R5.md",
+   "sha256": "464f3012ac5ae4aba0269e8093cdec21b138b7c7b22a1548f9cde362fe13d644",
+   "verdict": "ACCEPT WITH NOTES, 0 blocking, 2 should fix",
+   "addressed": "1 a minus sign pressed against a letter passed (\"Upper body<minus>5 today\" returned []). The negative number arm now also requires the character directly before the sign to be a space, the start of the line or an opening bracket. That case fails now, while \"<minus>5 lb\", \"(<minus>5)\", \"[<minus>5]\", \"down to <minus>5 lb\" and W-18's lone button label still pass and the range still fails. Teeth row q11 carries the range and the letter in one sentence. 2 fold_spaces folded category Zs and nothing else, so a tab, U+2028, U+2029 and U+000B each side of a hyphen all passed. It folds every character Python's str.isspace() calls whitespace now, except the newlines that separate the swept string's lines, which are kept so the minus rule can still read a line holding nothing but the sign, plus U+2060. All of those forms fail now and the lone label still passes. Teeth row q9 carries a tab on one side and a no break space on the other, so it fires only if both were folded. README section 4 and STANDARD.md section 13 state both rules in those words."
+  }
+ ],
+ "filed": "2026-09-18",
+ "brief": {
+  "file": "rebuild/lanes/c/ui-port/C-UI-0.md",
+  "sha256": "81e24c3cc5d2a11e9e54e15059f48157a0a2520c5e42399807d796845457f54a",
+  "ruling": "DECISIONS:531",
+  "audit": {
+   "file": "rebuild/lanes/c/ui-port/GATE-TEETH-AUDIT-R1.md",
+   "sha256": "c2093d23abdb17a4bc88962f6c75d38314c6b50ce350f48cb52089817012f110"
+  }
+ },
+ "branch": "rebuild/c-ui-0-gates-next (cut from 814f0a0; the audited branch rebuild/c-ui-0-gates is not to move again)",
+ "sourceBase": "e0a6c8ef2b2c7421ca8deb64ade1a7ed7f4de688",
+ "head": {
+  "commit": "5624410c26dd97a20bcf5807840404337ba23da9",
+  "note": "the commit this package was written at; the commit that adds the package is its child, so HEAD after it is one ahead of this value by construction"
+ },
+ "commits": [
+  "5624410 C-UI-0 one list: items 15 to 18, the documents say what the code measures and prints at this commit",
+  "f701bee C-UI-0 one list: items 9, 10 and 14 and the rows of items 1 to 13, each protection with a row that goes red without it",
+  "f69d92f C-UI-0 one list: item 13, the minus sign rule keeps the honest numeric contexts and reads a TAB as a cell boundary",
+  "02c2883 C-UI-0 one list: item 12, the phone sheet proves the state applied before it labels a picture",
+  "6aed21e C-UI-0 one list: item 8, the pressed state is compared with a hover settled idle picture",
+  "e5f1193 C-UI-0 one list: item 6, the measured font size is read to two decimals",
+  "54f5b97 C-UI-0 one list: items 1, 2 and 4, no bare offsetParent test is left, and three policies are named",
+  "5edd7d0 C-UI-0 one list: item 7, a class name alone never lowers the contrast tier",
+  "b329388 C-UI-0 one list: item 17, every report names its mode, its scope, the build under test and the versions",
+  "181c595 C-UI-0 P-CUI-1: the primary names the edge it crossed before it says it is not drawn",
+  "682e3be C-UI-0 P-CUI-2 and P-CUI-3: the words say what the code measures, and the known limits are written down",
+  "4439a96 C-UI-0 P-CUI-1: the three walks share one visibility test, and four checks measure what they name",
+  "814f0a0 C-UI-0 R5 notes: the package, final, with the R5 entry and every current digest recomputed",
+  "4bfa160 C-UI-0 R5 notes: a negative number is opened by a space or a bracket, and every whitespace folds",
+  "50fea4a C-UI-0: review R5 (ACCEPT WITH NOTES, 0 blocking)",
+  "894bb40 C-UI-0 R4 fix: the spaced hyphen reads every space, and an inert clip no longer hides a target",
+  "18c3b63 C-UI-0: review R4 (REJECT, 2 blocking)",
+  "8c117f3 C-UI-0 R3 notes: the minus sign is swept by a rule that knows a button label from a dash",
+  "84512ce C-UI-0 R3 notes: the shared records written again on win32, rects to two decimals, the app digest in the index",
+  "3893530 C-UI-0 R3 notes: the package on phase A, with the owner's word and the eleven leads closed",
+  "029640e C-UI-0 R3 notes: the rest of the document edits, and the unused constant taken out",
+  "37cf01d C-UI-0 R3 notes: the minus sign clause of lead L3 is held, because the prototype uses it as a button label",
+  "f7bf2e4 C-UI-0 R3 notes: the documents carry the owner's word, the guard's limits and the machines of record",
+  "f73a83e C-UI-0 R3 notes: nine more teeth rows, and an anchor that survives a CRLF file",
+  "c606a18 C-UI-0 R3 notes: the state sheet keeps a guard per state, unrounded rects and a refusal for a copied thumbnail",
+  "528c749 C-UI-0 R3 notes: the sweeps read every dash and every invisible character, and the gate refuses an unknown value",
+  "9c03b6f C-UI-0 R3: the win32 screen baselines, the two win32 ENV.txt files and the index env",
+  "1c423cb C-UI-0: review R3 (ACCEPT WITH NOTES, 0 blocking)",
+  "7d027ac C-UI-0 R3: the README and the standard say what the launch list and the records do",
+  "5a003a4 C-UI-0 R3: two more teeth rows, the launch list and a missing thumbnail",
+  "d32ea51 C-UI-0 R3: the 418 linux state thumbnails",
+  "03f7aea C-UI-0 R3: the six linux screen baselines set again, unhinted",
+  "5c48438 C-UI-0 R3: the state thumbnails are this platform's, the records stay shared",
+  "93bb947 C-UI-0 R3: the 418 state thumbnails move under win32, the platform that drew them",
+  "449fd73 C-UI-0 R3: the one line under app/ that makes T-88's Cancel link 44 px wide",
+  "ecbef86 C-UI-0 R3: the state records set again, written on win32 with the shared launch list",
+  "ee1f191 C-UI-0 R3: one launch list for the three scripts, with glyph hinting off",
+  "8ceda9f6 C-UI-0 R2: the six notes closed, and five more teeth rows",
+  "672f8452 C-UI-0: review R2 (ACCEPT WITH NOTES, 0 blocking, 6 should fix)",
+  "6569b4dc C-UI-0 R1: the package rewritten on the review round, and the contrast sentence kept verbatim",
+  "0e721c92 C-UI-0 R1: the eight documentation mismatches review R1 listed",
+  "35495639 C-UI-0 R1: seven more teeth rows, the ones review R1 slipped through",
+  "86aa90bb C-UI-0 R1: the state sheet holds the record list, and records only what can be seen",
+  "8e4ff944 C-UI-0 R1: the gate reads pseudo elements, placeholders and generated content, and has no third advisory band",
+  "e7d7d536 C-UI-0: review R1 (REJECT, 4 blocking)",
+  "3baef85f C-UI-0: the package, with the three run summaries, the teeth table and the open questions",
+  "df3622a0 C-UI-0: the four scripts write UTF-8 whatever the console is set to",
+  "da631b63 C-UI-0: the README and the standard say what the code does",
+  "fc1b141e C-UI-0: quality/teeth.py, the executable mutation list",
+  "ba7ef33a C-UI-0: the phone sheet runs on Windows and takes a state",
+  "c7a2920b C-UI-0: the state sheet compares every state to a committed record and exits non zero on a miss",
+  "cbfb26ef C-UI-0: the gate refuses again (platform keyed baselines, fonts, contrast tiers, the RIR lock, the item 11 rules)"
+ ],
+ "locked": {
+  "app": "one line under rebuild/m1/approved-2026-09-18/app/ is changed on this branch and no more: app/app.css line 202, the .link rule, gains \"min-width: var(--hit);\" directly after \"min-height: var(--hit);\"",
+  "why": "laid out unhinted, which is how every real device lays it out, T-88's Cancel link is 43.734375 px wide by 44 px high, under the owner's standing rule that every target is 44 px. Hinted headless Chromium on Linux had rounded that advance up to 44, which is the only reason review R2 saw the state sheet green. Ticket item 16 allows a one line copy or attribute fix in the prototype when a new check finds a real defect in it, provided the round says so out loud: commit 449fd73, README section 3.1 and section 4, and this object say it",
+  "whatItMoves": "0.27 px on that one box. A record's rect is rounded to whole pixels, so 43.734375 and 44 both record as 44 and nothing either gate records moves",
+  "proof": "git diff e0a6c8ef HEAD -- rebuild/m1/approved-2026-09-18/app is 13 lines, one file, one line added and one removed",
+  "ratification": {
+   "whoWasAsked": "the owner",
+   "whoAsked": "the lane C UI lead, in the lane lead's chat",
+   "when": "2026-09-19, about 08:55 ET",
+   "question": "On the 'Sleep correcting' screen the Cancel link's tap area is 43.7 px wide, and your rule is 44 px. One line of CSS makes it 44. Nothing you can see moves (0.3 px), and all 418 screens were re-checked with it. OK to make that change?",
+   "answer": "Yes, make it 44",
+   "why": "review R3 SHOULD FIX 1: ticket item 16 asks for the boards, and a lane lead's ruling is not that. The reviewer had no technical objection and had measured both sides."
+  }
+ },
+ "files": {
+  ".gitignore": {
+   "sha256": "d2261f8459d658135f9654605a3f19e460ee9ebd6c678eb30fd08037aa7c0fe5",
+   "role": "edited: quality/run/ and __pycache__/ are untracked from here on"
+  },
+  "rebuild/m1/approved-2026-09-18/app/app.css": {
+   "sha256": "bf4924e74fc4edc5cebf7fba6519613d9eec7f44397db990396fe402c124edc2",
+   "role": "edited in R3: line 202, the .link rule, gains \"min-width: var(--hit);\" (the locked object above says why)"
+  },
+  "rebuild/m1/approved-2026-09-18/README.md": {
+   "sha256": "3bca3a954bd60cec565af1f992e83b5cbaed11a87cce5f928b726ce4307f4dff",
+   "role": "edited: sections 1, 3 (with 3.1), 4 and 7; 3.1 rewritten in R3"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": {
+   "sha256": "37b90f4273f2710ff10ebeb8e1a536dc5eff07402854cd501962f69a6e3e5160",
+   "role": "edited: actual samples and review duties, state-primary contract, closed numeric sibling units, external identity and run/skip/VOID reporting"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/common.py": {
+   "sha256": "374a3b92ff973499a66f55d7405e62b0be456b6bd4c816ebec8a47c72f371beb",
+   "role": "shared gate helpers; numeric sibling suffixes are closed to lb, lb., kg, g, kcal, %, and s"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/gate.py": {
+   "sha256": "dea7763e163643084ce8cd8813a9fac87b4eb064b77274cc3fdb77b75320600a",
+   "role": "screen gate; consumes the narrow minus channel and refuses an external run without immutable identity"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/statesheet.py": {
+   "sha256": "b9877a8e3da7ed6ff0ef0ef7cac60b2c347cefa1e9e2b402fecc1a446f11bc14",
+   "role": "state gate; freezes state-specific required selectors and intentional no-primary states, consumes the narrow minus channel and external identity"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/phonesheet.py": {
+   "sha256": "9c2277682a99ff22de81fccd9e706bf03883afadcbef9805f1d76b028f3ebfb4",
+   "role": "review sheet; refuses an external run without immutable identity before starting a browser"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/teeth.py": {
+   "sha256": "6f5ac2236060a36604c6d59958b9d83be5aa21accf609c5006889bdcd93b89ea",
+   "role": "111 executable mutation rows; adds closed-unit numeric sibling regressions and controls"
+  },
+  "rebuild/lanes/c/ui-port/C-UI-0-CODEX-REPORT.md": {
+   "sha256": "3b11814d9e39eb3fde977a50d6f6318bbfb1701d550e58c871465a9474910a32",
+   "role": "Sol author report; red custody, focused author evidence, ordinary gate and pending independent obligations"
+  },
+  "rebuild/lanes/c/ui-port/C-UI-UNIT-REPORT.md": {
+   "sha256": "ca8e6b65cf639d876c47faf608973847b85c8bdbbc50c5ef3564de26e1710c8a",
+   "role": "D-CUI-UNIT red custody, closed-list candidate evidence and remaining verification obligations"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": {
+   "sha256": "c4bb05a2c2d9cf7ab9d6717e905aee809defe8056f6ad1b88c4702a2d4620ecb",
+   "role": "set by \"python quality/gate.py --accept\" on linux in R3; it carries the launch line now"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-today.png": {
+   "sha256": "32f52cfd814e23e2bc688861dba4c028dea3d277ba9f33f46037aab5ad101813",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-workout.png": {
+   "sha256": "7cd837db28d1403628599d495b6f49757cdbb44f985bd0a36e77b4b0dd83bcf3",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-coach.png": {
+   "sha256": "0c9b741a7174042f8f04dd338c50933c4137f784d06fb2be275e4b5f17c5c425",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-today.png": {
+   "sha256": "e5417552426859f2e2f5514aa160f33d69dfb049cdd3951a08a164a90236de31",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-workout.png": {
+   "sha256": "925e0fd1dc3c9aae6591aacd5d4464731c1bc0bdbff85661460920c9cfde30cc",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-coach.png": {
+   "sha256": "c40a1f0e8a67a9618849cc90f3d3cc14226eea0157136aa15d714765881a27f0",
+   "role": "set fresh by \"python quality/gate.py --accept\" on linux in R3, unhinted"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/states/INDEX.json": {
+   "sha256": "1a68c1c3a22efd7980ad8f3cbad322765176f6c2e73012679612244f3923b837",
+   "role": "the shared list of ids and themes, with the env object the lane lead's accept run wrote: the machine, the launch list and the app digest, none of which any comparison reads"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/states/linux/ENV.txt": {
+   "sha256": "f388bb6d58d2d4501380e76335f611a5ebe664f8650b89df07e953d778b7197a",
+   "role": "set by \"python quality/statesheet.py --accept-thumbs\" on linux in R3"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/ink-today.png": {
+   "sha256": "8b825dfb9e7f2222e83570585d63eeb40ea3e1c458b428e277fc4015115305de",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/ink-workout.png": {
+   "sha256": "6c6d8c6c5fe983eab78035389ded6995c28eb0cea49ba113760718141415bb15",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/ink-coach.png": {
+   "sha256": "f563a3a61571fd48332780065a14a457ebfb67fbd762c19b93ac9469afd6430c",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/dawn-today.png": {
+   "sha256": "4527c68efb5aaf850089f7e2ee3a33e918ee621ccc29d3db5b16fc5b23d8aa47",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/dawn-workout.png": {
+   "sha256": "62929ffa8b46dbb9c6c48a17f44c121092573bafb92d7839ec58adad3d461632",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/dawn-coach.png": {
+   "sha256": "42058579b3b12a38664edcd7c631ab4b27a8557982c1393057ed8b3d21965bb0",
+   "role": "set by \"python quality/gate.py --accept\" on the owner's PC"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/win32/ENV.txt": {
+   "sha256": "4943aa6d57603ae5ccf08387b253d3356d0375a0c30a118a734aa8669befaf56",
+   "role": "the machine that set the win32 screen baselines"
+  },
+  "rebuild/m1/approved-2026-09-18/quality/baseline/states/win32/ENV.txt": {
+   "sha256": "1c1e166caa460dc043af91a78c6b959b22c6d4824e3c3da3f1e1f88d9e410d3a",
+   "role": "the machine that drew the win32 state thumbnails"
+  }
+ },
+ "stateRecords": {
+  "path": "rebuild/m1/approved-2026-09-18/quality/baseline/states/",
+  "files": 1257,
+  "bytes": 1437414,
+  "megabytes": 1.437,
+  "budget": "under 3 MB, and the whole tree is inside it with both platforms' thumbnails in it",
+  "shape": {
+   "linux": "419 files, 390586 bytes",
+   "shared": "419 files, 654203 bytes",
+   "win32": "419 files, 392625 bytes"
+  },
+  "index": "rebuild/m1/approved-2026-09-18/quality/baseline/states/INDEX.json",
+  "manifestSha256": "74995f1581cc03dc21796a71c2cc8fcce17c45c844dacdea4808b7221c10c10b",
+  "manifestForm": "sha256 of the lines \"<path> <sha256>\" for every file under the tree, the path relative to the tree with forward slashes, sorted by that line, joined by newline",
+  "rects": "each rect is held to two decimals and compared unrounded (lead L9)"
+ },
+ "runs": {
+  "machine": "linux, the builder worktree: Linux 6.18.44-fc-v37, Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37, 2 cores",
+  "command": "cd rebuild/m1/approved-2026-09-18 && python quality/gate.py",
+  "gate": {
+   "command": "python quality/gate.py",
+   "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
+   "exit": 0,
+   "seconds": 134
+  },
+  "stateSheet": {
+   "command": "python quality/statesheet.py",
+   "summary": "STATE SHEET: 418 renders, 0 with problems",
+   "exit": 0,
+   "seconds": 1076,
+   "worstMeasured": "colour moved (levels) 0.00 of 3.00 nothing moved; rect edge moved (px) 0.04 of 3.00 W-05 ink element 22 \"Unsure\" left; thumbnail mean shift 0.00 of 2.00 nothing moved; thumbnail pixels over 24 levels 0.00 of 1.00 nothing moved; advisory, not a tolerance: this run against the win32 thumbnails; thumbnail mean shift 1.26 of 2.00 C-63 ink; thumbnail pixels over 24 levels 0.00 of 1.00 nothing moved"
+  },
+  "teeth": {
+   "command": "python quality/teeth.py",
+   "summary": "TEETH: 92 rows, 0 disagreeing, 1370 s",
+   "rows": "rows: 92 enumerated, 92 run, 0 not run on linux",
+   "exit": 0,
+   "seconds": 1370,
+   "budget": "the ticket allows 25 minutes (1500 s) on this machine. 92 rows against 55 before; the u rows, q9 and q11 were narrowed to one screen at 375x812 the way the new rows are. This sandbox ran slower than in the last round (the same full state sheet took 1076 s against 910 s)"
+  },
+  "phoneSheet": {
+   "command": "python quality/phonesheet.py --state T-14",
+   "summary": "wrote phonesheet-T-14.png and phonesheet-all.png (2448, 2796)",
+   "exit": 0,
+   "seconds": 9
+  },
+  "against": "the shared records as the lane lead wrote them on the owner's PC at 84512ce, each rect to two decimals; nothing was accepted here",
+  "at": "5624410c26dd97a20bcf5807840404337ba23da9, the tree the package commit is the child of; the package commit changes this file only"
+ },
+ "tolerances": {
+  "regression": "The gate fails a screen when more than 0.1% of its pixels differ from the baseline by more than 10 levels in any channel, or when the mean absolute shift exceeds 0.5 levels.",
+  "state": "A state fails when its visible text differs at all, when an element moves more than 3 px on any edge, when its colour moves more than 3 levels in any channel, when its font family changes or its size moves more than 0.5 px, or when its thumbnail mean absolute shift reaches 2.0 levels or 1% of the thumbnail pixels differ by more than 24 levels.",
+  "contrast": "Primary text needs 4.5:1 against what is actually behind it; muted text, a disabled control's label, the state colour where it is marking a state and text 24 px or larger need 3.0:1.",
+  "whereQuoted": "each sentence appears in the same words in the code and in README section 3.1"
+ },
+ "teethTable": [
+  "TEETH: 92 rows, 0 disagreeing, 1370 s",
+  "rows: 92 enumerated, 92 run, 0 not run on linux",
+  "pack under test: <the clone>/rebuild/m1/approved-2026-09-18",
+  "selection: every row",
+  "",
+  "row   mutation                                                   verdict      note",
+  "a     an em dash in Today's status sentence                      as expected",
+  "b1    a word from the owner's word list in a card title          as expected",
+  "b2    a vendor name in a card title                              as expected",
+  "c     the sans face pointed at the serif file                    as expected",
+  "d-1   #start pushed 630 px down at 393x852                       as expected",
+  "d-2   #start pushed 210 px down at 375x812 and 360x780 only      as expected",
+  "e1    Today's titles and status line under 4.5:1 and over 3.0:1  as expected",
+  "e2    the same text under 3.0:1                                  as expected",
+  "f     a keyframe animation on #start, live under reduced motion  as expected",
+  "g     one word of T-02's copy                                    as expected",
+  "g2    an em dash inside the same state copy                      as expected",
+  "h1    T-02's status line shifted 2 px (inside the tolerance)     as expected",
+  "h3    T-02's status line shifted 4 px (outside it)               as expected",
+  "h2    T-02's status line shifted 60 px                           as expected",
+  "i     this platform's ink-today baseline deleted                 as expected",
+  "j1    EARNED_APP at an empty folder                              as expected",
+  "j2    EARNED_APP at app/compare.html, a real page of the pack    as expected",
+  "k1    one RIR chip dropped                                       as expected",
+  "k2    a serif element switched to sans                           as expected",
+  "k3    a card moved 6 px off the page margin                      as expected",
+  "m1    a 4 px dot pulsing for ever on a pseudo element            as expected",
+  "m2    a transition on a pseudo element                           as expected",
+  "m3    three faults in a placeholder, judged by the gate          as expected",
+  "m4    the same three faults in CSS generated content             as expected",
+  "m5    three faults in a placeholder, judged by the state sheet   as expected",
+  "m6    T-02 dropped from the driver, its records left committed   as expected",
+  "m7    T-02's sample note hidden at opacity 0                     as expected",
+  "n1    a set string drawn by counter() in generated content       as expected",
+  "n2    T-02's sample note hidden by clip-path: inset(100%)        as expected",
+  "n3    T-02's sample note hidden by text-indent: -9999px          as expected",
+  "n4    a theme in the index that the sheet does not render        as expected",
+  "n5    a theme the sheet renders that the index lost              as expected",
+  "p1    the hinting argument taken out of the launch list          as expected",
+  "p2    this platform's thumbnail for T-02 deleted                 as expected",
+  "p3    the same launch list, judged by the screen gate            as expected",
+  "p4    the other platform's T-02 thumbnails copied over this plat as expected",
+  "u1    a 20 px control positioned absolute and one positioned fix as expected",
+  "u2    text hidden from the walk by inset(0 round 50%), which ins as expected",
+  "u3    an inline span excluded by a text indent that does not mov as expected",
+  "u4    a set written with a fullwidth letter x                    as expected",
+  "u5    \"optional\" written with a fullwidth letter, on a set scree as expected",
+  "u6    the primary pushed sideways out of the viewport            as expected",
+  "u7    the primary at opacity 0                                   as expected",
+  "u8    an RIR chip at visibility hidden                           as expected",
+  "u9    T-02's status line moved 3 px left and widened 3 px, so it as expected",
+  "v1    a viewport fixed paragraph: its label, its generated set a as expected",
+  "v2    a fixed 20 px control and fixed text on a state            as expected",
+  "v3    a state's note under inset(0 round 50%), which insets noth as expected",
+  "v4    an inline span on a state under an indent that does not mo as expected",
+  "v5    a set written with a fullwidth letter x, judged by the sta as expected",
+  "v6    the primary pushed above the top of the viewport           as expected",
+  "v7    the primary not on the page at all                         as expected",
+  "v8    the primary's bottom edge 0.3 px past the viewport         as expected",
+  "v9    an RIR chip at opacity 0                                   as expected",
+  "v10   an RIR chip clipped away by clip-path: inset(100%)         as expected",
+  "v11   an RIR chip pushed off the side of the viewport            as expected",
+  "v12   T-02's status line moved 3 px down and grown 3 px, so its  as expected",
+  "v13   T-02's status line moved 3.05 px, the smallest move a reco as expected",
+  "v14   T-02's status line at 16.01 px, which is 0.51 px off the r as expected",
+  "v15   a surface with a hover style and no pressed style of its o as expected",
+  "v16   teeth --only with an id this list does not carry           as expected",
+  "v17   teeth --only with one id it carries and one it does not    as expected",
+  "v18   teeth --only with a selection that names nothing           as expected",
+  "v19   teeth --only with an id it carries, which must run a row   as expected",
+  "v20   the phone sheet asked for a state whose apply throws       as expected",
+  "v21   the phone sheet asked for a state that applies             as expected",
+  "v22   the phone sheet asked for a state whose apply throws in on as expected",
+  "v23   the phone sheet asked for a state whose applied marker nam as expected",
+  "v24   the phone sheet asked for a state that raises an error beh as expected",
+  "w1    negative numbers after a colon, a slash, the multiplicatio as expected",
+  "w2    negative numbers after a currency sign, a quotation mark,  as expected",
+  "w3    a minus sign after a comma, which is not on the opener lis as expected",
+  "w4    two signed numbers in two cells split by a raw TAB         as expected",
+  "w5    two signed numbers split by a line break                   as expected",
+  "w10   two signed numbers split by a carriage return              as expected",
+  "w11   two numbers in two real cells of one row, the second of th as expected",
+  "w6    W-18's decrement button, whose whole label is the sign     as expected",
+  "w7    a spaced hyphen whose two spaces are no break spaces       as expected",
+  "w8    a minus sign after a space, with a digit before that space as expected",
+  "w9    a minus sign written as a numeric range                    as expected",
+  "y1    primary copy relabelled with a muted class and painted no  as expected",
+  "y2    the same colour inside the muted recipe, which sits at 3.0 as expected",
+  "q1    a size the gate does not know, which used to empty the lis as expected",
+  "q2    a word off the owner's list split by a soft hyphen         as expected",
+  "q3    a horizontal bar and a hyphen bullet, two dashes the old l as expected",
+  "q9    a spaced hyphen whose two spaces are a raw TAB and an ordi as expected",
+  "q10   a visible 20 px target carrying a clip its positioning mak as expected",
+  "q11   a minus sign pressed against a letter                      as expected",
+  "q4    primary text tagged muted and painted with the muted token as expected",
+  "q8    a minus sign doing a dash's job in Today's status sentence as expected",
+  "q5    one state whose apply throws                               as expected",
+  "q6    --accept pointed at another build by EARNED_APP            as expected"
+ ],
+ "env": {
+  "screenBaselines": {
+   "file": "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt",
+   "contents": "the machine that set these baselines\nos: Linux 6.18.44-fc-v37 (linux)\npython: 3.11.15\nplaywright: 1.56.0\nchromium: 141.0.7390.37\nlaunch: --allow-file-access-from-files --font-render-hinting=none\nscreens: ink-today, ink-workout, ink-coach, dawn-today, dawn-workout, dawn-coach\nviewport: 393x852, chrome=1, date=board\n"
+  },
+  "stateThumbnails": {
+   "file": "rebuild/m1/approved-2026-09-18/quality/baseline/states/linux/ENV.txt",
+   "contents": "the machine that set these baselines\nos: Linux 6.18.44-fc-v37 (linux)\npython: 3.11.15\nplaywright: 1.56.0\nchromium: 141.0.7390.37\nlaunch: --allow-file-access-from-files --font-render-hinting=none\nstates: 209 ids, 418 renders, themes ink and dawn\nviewport: 393x852, chrome=1, date=board\nthumbnail: 24x53 greyscale, 1/16 scale\n"
+  },
+  "win32": "the lane lead writes quality/baseline/win32/ENV.txt and quality/baseline/states/win32/ENV.txt on the owner's PC with the same two commands"
+ },
+ "checks": {
+  "gate": {
+   "distinct": 33,
+   "resultRows": 372,
+   "note": "quality/run/report.json's distinct check names are exactly the 33 rows of STANDARD.md section 13's table, measured on this tree"
+  },
+  "stateSheet": {
+   "renders": 418,
+   "recordFiles": 1257,
+   "recordFileShape": "one shared json per state and theme plus INDEX.json, and one png per state and theme under each platform that has run"
+  },
+  "teeth": {
+   "rows": 92,
+   "disagreeing": 0,
+   "enumerated": 92,
+   "run": 92,
+   "notRunOnThisPlatform": 0,
+   "notRunIds": [],
+   "platform": "linux",
+   "onWin32": "p1 and p3 take the hinting argument out of the launch list, which moves nothing on win32 or darwin, so there they are printed with the reason and counted as not run"
+  }
+ },
+ "openQuestions": [
+  {
+   "id": "Q1",
+   "for": "the lane lead and the boards",
+   "question": "In Dawn the one state colour (--gold, #9a7f5e) measures about 3.4:1 on the card, so the proposal eyebrow and the recorded line's gold word sit between the two tiers.",
+   "howItIsHeldNow": "The state colour is held to the 3.0:1 tier only where it is marking a state: the element carries a marker or eyebrow class, or its text is shorter than 24 characters (review R1 SHOULD FIX 11). Gold on a paragraph is body copy and keeps 4.5:1. Nothing in app/ was changed.",
+   "whatWouldChange": "If the boards want the gold to carry 4.5:1 in Dawn even as a marker, the Dawn --gold token changes and GOLD_MARKER_CLASSES in quality/common.py goes. Eleven Dawn states would FAIL until then."
+  },
+  {
+   "id": "Q2",
+   "for": "the lane lead",
+   "question": "The disabled Save button's label measures 3.3:1 in Dawn (app.css:222 dims a disabled control to 55% opacity), on T-07, T-44 and T-48.",
+   "howItIsHeldNow": "A disabled control's label is held to the 3.0:1 tier, because STANDARD.md section 10 already calls a disabled primary's label a muted label.",
+   "whatWouldChange": "Nothing, unless the standard decides an inactive control must still carry 4.5:1."
+  },
+  {
+   "id": "Q3",
+   "for": "the lane lead",
+   "question": "The state record thumbnail is 1/16 scale, not the 1/8 the ticket named.",
+   "howItIsHeldNow": "At 1/8 a 3 px shift, which the rect half of the tolerance allows, already moves the thumbnail 3.5 levels and would fail the thumbnail half, so the tolerance would contradict itself and mutation h1 could not pass. At 1/16 the same shift moves it 1.7 and a 60 px shift moves it 8.5. The tree is 1256 files and 1.4 MB with both platforms' thumbnails in it, inside the 3 MB budget.",
+   "whatWouldChange": "Nothing, unless the rect tolerance tightens below 3 px, in which case the scale can go back."
+  },
+  {
+   "id": "Q4",
+   "for": "the lane lead",
+   "question": "The win32 screen baselines do not exist yet.",
+   "howItIsHeldNow": "The mechanism is keyed on sys.platform and a missing baseline for the current platform is a FAIL naming the exact path and the remedy, so a Windows run today reports six FAILs and no vacuous pass.",
+   "whatWouldChange": "The lane lead runs \"python quality/gate.py --accept\" on the owner PC before the branch is offered, and commits quality/baseline/win32/, ENV.txt included. The win32 state thumbnails already exist, under quality/baseline/states/win32/; their ENV.txt arrives with the lead's next \"python quality/statesheet.py --accept\" run."
+  },
+  {
+   "id": "Q5",
+   "for": "the lane lead",
+   "question": "quality/common.py is a file the ticket did not name.",
+   "howItIsHeldNow": "It holds only what gate.py and statesheet.py must agree on: the copy sweeps, the contrast tiers with the muted class list, the label font chain and the refusal type. The word sweep bug existed in one gate and not the other, which is the drift this file exists to stop. No new dependency.",
+   "whatWouldChange": "If the lane wants one file per gate, the constants are duplicated and a test has to hold them equal."
+  },
+  {
+   "id": "Q6",
+   "for": "the lane lead",
+   "question": "\"fits without scrolling at 393x852\" was a WARN and is now a FAIL, because WARN is reserved for the type scale and the spacing scale.",
+   "howItIsHeldNow": "It passes on all six prototype renders today. The chassis is designed to scroll, so a later ticket that grows the default Today could turn this into a FAIL for a screen that is behaving as ruled.",
+   "whatWouldChange": "Either the check is retired, or it stays and a scrolling default is a decision the ticket records. Nothing in this ticket depends on it."
+  },
+  {
+   "id": "Q7",
+   "for": "the second auditor",
+   "question": "teeth.py runs the gate rows with --screens and --sizes narrowed to the screen the change is on, to stay inside the 25 minute budget (19 rows in 462 s).",
+   "howItIsHeldNow": "The narrowed run is the same code on fewer iterations, and --accept refuses to run with either flag so a partial baseline cannot be written. Review R1 is right that it is not the same evidence: the full gate also raises the regression rows on the screens the narrowed run drops, so a row asserts the named refusal only. The teeth.py docstring says so now.",
+   "whatWouldChange": "A hand re-run of any row with the full gate takes about two minutes per row and should report the same FAIL plus the regression rows the change also moves."
+  },
+  {
+   "id": "Q8",
+   "for": "the lane lead",
+   "question": "A baseline carries no provenance. A hand written quality/baseline/win32/ full of another platform's renders would sit there unread on a Linux run (review R1, NOTES).",
+   "howItIsHeldNow": "An accept run labels its own report, no report is committed, and README section 3.1 now says in one line that a reviewer reads the baseline diff in the pull request.",
+   "whatWouldChange": "A stronger guard would sign the baseline directory with the ENV.txt it was drawn under and refuse a set whose ENV.txt does not match the running machine, which would also refuse every legitimate machine upgrade. Not taken."
+  },
+  {
+   "id": "Q9",
+   "for": "the second auditor",
+   "question": "The record's visible text is now the text of the elements that survive the visibility test, joined in document order, rather than innerText (review R1 SHOULD FIX 1).",
+   "howItIsHeldNow": "It is the only way a line hidden at opacity 0 can read as removed, which is what the review asked for. visibility: hidden leaves the record by the same test, where before it left only because innerText excluded it.",
+   "whatWouldChange": "Every record was rewritten with --accept for it. A reviewer comparing an old record to a new one will see the text field change shape on states with hidden content."
+  },
+  {
+   "id": "Q10",
+   "for": "the lane lead and the boards",
+   "question": "on every unhinted platform, which is every real device, T-14's \"Upper body, 4 exercises \u00b7 Workout in progress\" line wraps to two lines: the element is 17 px high hinted and 34 px unhinted, and every element below it in the scrolling body moves down by exactly 17 px (the proposal card's \"One call needs you\" from top 383 to 400, its two buttons from 468 to 485, \"Plans changed?\" from 525 to 542; the fixed stack does not move). The hinted Linux render the boards were compared against showed one line",
+   "howItIsHeldNow": "the records carry the two line version, because that is what every real device draws. Nothing in app/ is changed for this: the one line this round changed under app/ is the .link min-width of the locked object, which does not touch T-14",
+   "whatWouldChange": "if the boards want one line, the copy is shortened in app/states-today.js and the records are written again; if they accept the wrap, nothing changes and this question closes",
+   "otherStatesWhoseLineCountChanged": [
+    "T-14 gained a line: element 9 \"Upper body, 4 exercises \u00b7 Workout in progress\" 17 to 34 px",
+    "C-28 lost one: element 3 \"From your check-in on Wed, Sep 16. You were asked how your energy was...\" 81 to 61 px",
+    "C-37 lost one: element 3 \"I could not keep that, and I have kept nothing.\" 41 to 20 px",
+    "C-47 lost one: element 3 \"I have not recorded which machine you used. There is no field for equipment...\" 81 to 61 px",
+    "T-71 lost one: element 3 \"Your intake cannot be recorded on this device yet.\" 36 to 17 px",
+    "T-72 lost one: element 4 \"Sleep cannot be recorded on this device yet. Earned could not open its encrypted store...\" 93 to 74 px",
+    "T-84 lost one: element 10 \"Nothing was recorded.\" 36 to 17 px",
+    "W-19 lost one: element 10 \"Enter the weight and reps you actually completed.\" 38 to 19 px"
+   ],
+   "howThatListWasDerived": "every one of the 418 committed records at ee1f191 and at ecbef86 was read with git show and compared element by element; the eight states above are every state, in both themes, where an element's recorded height moved by 12 px or more, which is less than one line of any size the pack uses. T-14 is the only one that gained a line"
+  },
+  {
+   "id": "Q11",
+   "for": "the lane lead and the second auditor",
+   "question": "what the per platform thumbnail split is NOT protected by. A committed thumbnail that is byte identical to another platform's file of the same name is now a FAIL (review R3 SHOULD FIX 2), and that catches a copy. It does not catch a set honestly drawn on the wrong machine, or re-encoded: the two committed sets differ by at most 1.26 of the 2.00 mean budget (0.85 on T-02) and by none of the 1% over 24 levels, so a whole wrong platform's set fits inside the tolerance with room to spare.",
+   "howItIsHeldNow": "three things, none of them a check on the file's provenance: the byte identity FAIL above; the advisory rows in the worst measured block, which print this run's distance from every other platform's thumbnails on every run and would have printed 0.85 on the reviewer's mutation; and teeth row h1, which is the detector that noticed in this round's first hours, because a 2 px shift judged against the other platform's thumbnails eats headroom the row needs. ENV.txt is still read by nothing: it is documentation.",
+   "whatWouldChange": "a real guard would sign each thumbnail directory with the ENV.txt it was drawn under and refuse a set whose ENV.txt does not match the running machine, which also refuses every legitimate machine upgrade; or the thumbnail tolerance tightens below the 1.26 the platforms genuinely differ by, which no longer leaves room for the 1.66 h1 needs. Both are the lane lead's call and neither is taken here. This is R2's Q8 with the surface multiplied from six files to 418 per platform, and it is its own question rather than a line under Q8."
+  }
+ ],
+ "r3": {
+  "round": "R3",
+  "why": "review R2 accepted the branch with the lane lead's Windows run still owed. That run was red on the second gate, which is blocking by R2's own definition: a platform claim the code does not implement",
+  "finding": {
+   "machine": "the owner's PC, Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34, at ee1f191 against the records a hinted Linux run had written",
+   "gate": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS, exit 0",
+   "stateSheet": "STATE SHEET: 418 renders, 254 with problems, exit 1",
+   "worst": "rect edge 170 px of 3 (T-84 ink, element 10, \"Nothing was recorded.\", left); thumbnail mean shift 3.53 of 2.00 (T-14 ink); colour 0.00 of 3"
+  },
+  "cause": "headless Chromium on Linux hints glyphs by default and snaps each glyph advance to a whole pixel, so a line of text is a few pixels wider or narrower than on Windows, on macOS or on a phone, and some lines wrap on a different word. An element's rect is the sum of those advances, so a rect is not free of rasterisation and README 3.1's claim that it was had no code behind it",
+  "proofOfCause": "a Linux run of the same commit launched with --font-render-hinting=none failed the committed hinted records on the same 254 renders with the same 254 report lines as the Windows run, word for word and number for number, worst thumbnail 3.03; on Windows the argument changes nothing, 372 PASS against screen baselines drawn without it",
+  "ruling": "the lane lead: the JSON half of a record stays one shared set, the thumbnail half is filed per platform the way the screen baselines already are. No tolerance is loosened and the thumbnail is not blinded to text",
+  "fix": [
+   "quality/common.py: LAUNCH_ARGS, one launch list for the three scripts, glyph hinting off (ee1f191, the lead)",
+   "app/app.css line 202: the .link rule gains min-width: var(--hit); see the locked object (449fd73)",
+   "quality/baseline/states/*.png moved to quality/baseline/states/win32/ by git mv, nothing else in that commit (93bb947)",
+   "quality/statesheet.py: thumbnails read and written at quality/baseline/states/<sys.platform>/ with an ENV.txt beside them; a missing thumbnail for the current platform is a FAIL naming the path and the remedy; --accept writes the shared records, the index and this platform's thumbnails; --accept-thumbs compares every render against the shared records, compares no thumbnail, and writes this platform's thumbnails and ENV.txt only when every render was clean, otherwise nothing, exit 1; both refuse --only and cannot be combined; INDEX.json gains an env object no comparison reads; every committed file is written with newline LF (5c48438)",
+   "quality/gate.py: ENV.txt gains a launch line and is written with newline LF, through the same common.env_text helper the state sheet uses (5c48438)",
+   "quality/teeth.py: rows p1 and p2 (5a003a4)",
+   "README 3.1 and section 1, STANDARD.md sections 7 and 13 (7d027ac)"
+  ],
+  "crossPlatformProof": {
+   "what": "the shared JSON records were written by \"python quality/statesheet.py --accept\" on the owner's PC (Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34) and judged by a full run in the builder's Linux sandbox (Linux 6.18.44-fc-v37, Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37), both launched with common.LAUNCH_ARGS",
+   "result": "418 renders; rect edge 0.00 px of 3 on every element of every render; colour 0.00 of 3; the only two problems were T-88 in each theme, \"targets: link 44x44\", which both platforms reported in the same words and which app/app.css line 202 fixes",
+   "reRunOnTheFinalCode": "\"python quality/statesheet.py --accept-thumbs\" on the final tree: \"ACCEPT THUMBS RUN: every record compared except its thumbnail, which this run wrote: 418 thumbnails and ENV.txt in quality/baseline/states/linux\", \"STATE SHEET: 418 renders, 0 with problems, 418 SET\", \"none measured: nothing moved in 418 renders\", exit 0, 879 s",
+   "thumbnailHalf": "not platform independent: rasterisation alone costs up to 1.26 levels of the 2.00 budget between those two machines (C-63 ink), and teeth row h1, the 3 px shift that must PASS, measures 1.67 on the machine that wrote the thumbnails and disagreed on Linux against win32 written thumbnails. With the thumbnails filed per platform h1 agrees again on Linux, with no tolerance touched"
+  },
+  "runs": {
+   "command": "cd rebuild/m1/approved-2026-09-18 && python quality/gate.py",
+   "machine": "linux, the builder worktree: Linux 6.18.44-fc-v37, Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37, 2 cores",
+   "gate": {
+    "command": "python quality/gate.py",
+    "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
+    "exit": 0,
+    "seconds": 112
+   },
+   "stateSheet": {
+    "command": "python quality/statesheet.py",
+    "summary": "STATE SHEET: 418 renders, 0 with problems",
+    "exit": 0,
+    "seconds": 881,
+    "worstMeasured": "none measured: nothing moved in 418 renders"
+   },
+   "teeth": {
+    "command": "python quality/teeth.py",
+    "summary": "TEETH: 33 rows, 0 disagreeing, 711 s",
+    "exit": 0,
+    "seconds": 712
+   },
+   "phoneSheet": {
+    "command": "python quality/phonesheet.py --state T-14",
+    "summary": "wrote quality/run/phonesheet-T-14.png and phonesheet-all.png (2448, 2796)",
+    "exit": 0,
+    "seconds": 7
+   }
+  },
+  "teethTable": [
+   "TEETH: 33 rows, 0 disagreeing, 711 s",
+   "row   mutation                                                   verdict      note",
+   "a     an em dash in Today's status sentence                      as expected",
+   "b1    a word from the owner's word list in a card title          as expected",
+   "b2    a vendor name in a card title                              as expected",
+   "c     the sans face pointed at the serif file                    as expected",
+   "d-1   #start pushed 620 px down at 393x852                       as expected",
+   "d-2   #start pushed 200 px down at 375x812 and 360x780 only      as expected",
+   "e1    Today's titles and status line under 4.5:1 and over 3.0:1  as expected",
+   "e2    the same text under 3.0:1                                  as expected",
+   "f     a keyframe animation on #start, live under reduced motion  as expected",
+   "g     one word of T-02's copy                                    as expected",
+   "g2    an em dash inside the same state copy                      as expected",
+   "h1    T-02's status line shifted 3 px (inside the tolerance)     as expected",
+   "h2    T-02's status line shifted 60 px                           as expected",
+   "i     this platform's ink-today baseline deleted                 as expected",
+   "j1    EARNED_APP at an empty folder                              as expected",
+   "j2    EARNED_APP at app/compare.html, a real page of the pack    as expected",
+   "k1    one RIR chip dropped                                       as expected",
+   "k2    a serif element switched to sans                           as expected",
+   "k3    a card moved 6 px off the page margin                      as expected",
+   "m1    a 4 px dot pulsing for ever on a pseudo element            as expected",
+   "m2    a transition on a pseudo element                           as expected",
+   "m3    three faults in a placeholder, judged by the gate          as expected",
+   "m4    the same three faults in CSS generated content             as expected",
+   "m5    three faults in a placeholder, judged by the state sheet   as expected",
+   "m6    T-02 dropped from the driver, its records left committed   as expected",
+   "m7    T-02's sample note hidden at opacity 0                     as expected",
+   "n1    a set string drawn by counter() in generated content       as expected",
+   "n2    T-02's sample note hidden by clip-path: inset(100%)        as expected",
+   "n3    T-02's sample note hidden by text-indent: -9999px          as expected",
+   "n4    a theme in the index that the sheet does not render        as expected",
+   "n5    a theme the sheet renders that the index lost              as expected",
+   "p1    the hinting argument taken out of the launch list          as expected",
+   "p2    this platform's thumbnail for T-02 deleted                 as expected",
+   "TEETH EXIT 0"
+  ],
+  "filesTouchedNote": "the sha256 of every file the R3 round changed, AS AT f543489, the commit that round ended on, which is why the key says so: they are provenance, not a checkable digest of this tree. Seven of them moved in the rounds that followed. The digests true for the tree now are the ones in the \"files\" object, which the reviewer verifies.",
+  "notCarriedAsPatches": "93bb947, 03f7aea and d32ea51 move or write binary files only. The patch folder carries a RECIPE for each instead: the exact command and the resulting tree hash",
+  "owed": "the lane lead re-runs \"python quality/statesheet.py --accept\" and \"python quality/gate.py --accept\" on the owner's PC after this round lands. That run rewrites the shared records with LF bytes, adds the env object to INDEX.json, and writes quality/baseline/states/win32/ENV.txt and quality/baseline/win32/. The committed INDEX.json carries no env until then, by design: an accept run from Linux would rewrite the shared records from the wrong machine",
+  "filesTouchedAtF543489": {
+   "rebuild/m1/approved-2026-09-18/README.md": "deb51a00f49426333e671a1784341b610a0ec21ae17af6000195772107cefbee",
+   "rebuild/m1/approved-2026-09-18/app/app.css": "bf4924e74fc4edc5cebf7fba6519613d9eec7f44397db990396fe402c124edc2",
+   "rebuild/m1/approved-2026-09-18/quality/STANDARD.md": "a573d5d70231140e584e9cf0c69ff764b115d23fc779028cb3bf34176349b878",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ENV.txt": "c4bb05a2c2d9cf7ab9d6717e905aee809defe8056f6ad1b88c4702a2d4620ecb",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-coach.png": "c40a1f0e8a67a9618849cc90f3d3cc14226eea0157136aa15d714765881a27f0",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-today.png": "e5417552426859f2e2f5514aa160f33d69dfb049cdd3951a08a164a90236de31",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/dawn-workout.png": "925e0fd1dc3c9aae6591aacd5d4464731c1bc0bdbff85661460920c9cfde30cc",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-coach.png": "0c9b741a7174042f8f04dd338c50933c4137f784d06fb2be275e4b5f17c5c425",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-today.png": "32f52cfd814e23e2bc688861dba4c028dea3d277ba9f33f46037aab5ad101813",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/linux/ink-workout.png": "7cd837db28d1403628599d495b6f49757cdbb44f985bd0a36e77b4b0dd83bcf3",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/states/INDEX.json": "fbfa03366de62a1ef936f6a900dd79f4134299c7caae4f2639160e908eaccf43",
+   "rebuild/m1/approved-2026-09-18/quality/baseline/states/linux/ENV.txt": "f388bb6d58d2d4501380e76335f611a5ebe664f8650b89df07e953d778b7197a",
+   "rebuild/m1/approved-2026-09-18/quality/common.py": "8ee065776c4fd912ea41455312e5c9497d8a8e0e15efaaef44da53d42a956326",
+   "rebuild/m1/approved-2026-09-18/quality/gate.py": "f86e7d911a401141e5c22e98aaf7cc67bbc734625c3655603ac567698569d248",
+   "rebuild/m1/approved-2026-09-18/quality/statesheet.py": "bf794ff9ecd7269dc1029960f3664d12c3fe37a2b7596a1b9a4665dc5c552332",
+   "rebuild/m1/approved-2026-09-18/quality/teeth.py": "75f308fa8fa0e3ac9a7cc796a8ef323701f7c5d3c008095ea0ccadd19e49eaaf"
+  }
+ },
+ "notesForTheSecondAuditor": [
+  {
+   "source": "review R3, NOTES",
+   "note": "h1 passed with zero headroom on the rect half, 3.00 of 3.00, so a machine that moved one rect by a single pixel would have flipped the row that must PASS.",
+   "actedOn": "yes. Lead L9 moves h1 to a 2 px shift, which has headroom in both halves, and adds row h3 at 4 px for the other side of the line. The warning was not merely noted."
+  },
+  {
+   "source": "review R3, NOTES",
+   "note": "on a platform that does not hint, the teeth count still includes rows that ran nothing, so the table can read 42 rows, 0 disagreeing while two of them launched no browser.",
+   "actedOn": "read the note column, not the count. p1 and p3 print the reason in words on that platform, and row p4 does the same where a tree holds no other platform's thumbnails to copy."
+  },
+  {
+   "source": "review R3, NOTES",
+   "note": "a raster only change is thinly held. A text-shadow on T-02's note moves no rect and no computed colour: it is caught in Dawn by the contrast check at 1.3 < 3.0 and not at all in Ink, and the thumbnail measures only 0.47 of 2.00.",
+   "actedOn": "not changed. It is the surface --accept-thumbs sits on, and it is stated here and in Q11 rather than fixed, because the fix is a tighter thumbnail tolerance and no tolerance moves in this round."
+  }
+ ],
+ "windowsRuns": {
+  "what": "a helper ran the R3 code on the owner's PC in a scratch copy, with the files verified by sha256, at f543489. These are that helper's runs and nothing else; the final tree's Windows runs are the lane lead's to add after this round.",
+  "gate": {
+   "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
+   "exit": 0,
+   "seconds": 88
+  },
+  "stateSheet": {
+   "summary": "STATE SHEET: 418 renders, 0 with problems",
+   "exit": 0,
+   "seconds": 484,
+   "worstMeasured": "nothing moved"
+  },
+  "phoneSheet": {
+   "summary": "python quality/phonesheet.py --state T-14 ran",
+   "exit": 0
+  },
+  "acceptPaths": "both wrote LF only, 0 CR bytes in every file written, and the 418 records, 418 thumbnails and 6 screen PNGs they wrote were byte identical to the committed ones",
+  "refusals": "both new refusals exit 2 and write nothing",
+  "teeth": {
+   "summary": "TEETH: 33 rows, 2 disagreeing, 544 s",
+   "note": "n4 and n5 VOID because the INDEX.json then on disk in the owner's working tree had been written CRLF by a pre R3 accept run. That is review R3 SHOULD FIX 5, fixed in this round: sub() retries with the file's own line endings, proved on a scratch copy whose INDEX.json, app.html and states-today.js were converted to CRLF, where k1, m6, n4 and n5 came back 4 rows, 0 disagreeing."
+  },
+  "acceptAt3893530": {
+   "what": "the lane lead ran \"python quality/statesheet.py --accept\" on the owner's PC at 3893530 and pushed 84512ce",
+   "summary": "418 renders, 0 with problems, 418 SET",
+   "exit": 0,
+   "wrote": "419 files: the 418 JSON records with each rect to two decimals, and INDEX.json whose env gained the app digest. The 418 win32 thumbnails and quality/baseline/states/win32/ENV.txt came out byte identical, so they do not appear in that commit."
+  },
+  "acceptAt1c423cb": {
+   "what": "the lane lead ran \"python quality/gate.py --accept\" and \"python quality/statesheet.py --accept\" on the owner's PC at 1c423cb and pushed 9c03b6f",
+   "wrote": "the win32 screen baselines, both win32 ENV.txt files and INDEX.json with its env object"
+  },
+  "finalTreeAtBbfd60c": {
+   "what": "the lane lead's runs on the owner's PC on the real tree at bbfd60c, 2026-09-19 11:15 to 11:37 ET (Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34)",
+   "gate": {
+    "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
+    "exit": 0,
+    "seconds": 89
+   },
+   "stateSheet": {
+    "summary": "STATE SHEET: 418 renders, 0 with problems",
+    "exit": 0,
+    "seconds": 492,
+    "worstMeasured": "none measured: nothing moved in 418 renders; advisory, this run against the linux thumbnails, thumbnail mean shift 1.26 of 2.00 C-63 ink"
+   },
+   "teeth": {
+    "summary": "TEETH: 43 rows, 0 disagreeing, 701 s",
+    "exit": 0,
+    "note": "n4 and n5 agree on Windows now, which is review R3 SHOULD FIX 5 closed from the other side; p1 and p3 print their \"glyphs are not hinted on win32\" sentence and count as expected, which is the row count caveat in notesForTheSecondAuditor"
+   },
+   "phoneSheet": {
+    "summary": "python quality/phonesheet.py --state T-14 ran",
+    "exit": 0
+   },
+   "note": "the lane lead re-runs these on the final head of this round and appends them"
+  },
+  "finalTreeAt64a9e09": {
+   "what": "the lane lead's runs on the owner's PC on the real tree at 64a9e09, 2026-09-19 12:39 to 13:03 ET (Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34)",
+   "gate": {
+    "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
+    "exit": 0,
+    "seconds": 89
+   },
+   "stateSheet": {
+    "summary": "STATE SHEET: 418 renders, 0 with problems",
+    "exit": 0,
+    "seconds": 514,
+    "worstMeasured": "none measured: nothing moved in 418 renders; advisory, this run against the linux thumbnails, thumbnail mean shift 1.26 of 2.00 C-63 ink"
+   },
+   "teeth": {
+    "summary": "TEETH: 46 rows, 0 disagreeing, 776 s",
+    "exit": 0
+   },
+   "phoneSheet": {
+    "summary": "python quality/phonesheet.py --state T-14 ran",
+    "exit": 0
+   }
+  },
+  "finalHead": "the final head's Windows runs are reported on rebuild/lanes/STATUS.md by the lane lead",
+  "finalTreeAt814f0a0": {
+   "what": "the lane lead's runs on the owner's PC on the real tree at 814f0a0, 2026-09-19 13:35 to 14:00 ET (Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34)",
+   "gate": {
+    "summary": "EARNED UI GATE: 0 FAIL, 0 WARN, 372 PASS",
+    "exit": 0,
+    "seconds": 89
+   },
+   "stateSheet": {
+    "summary": "STATE SHEET: 418 renders, 0 with problems",
+    "exit": 0,
+    "seconds": 528,
+    "worstMeasured": "nothing moved in 418 renders; advisory against the linux thumbnails, 1.26 of 2.00 C-63 ink"
+   },
+   "teeth": {
+    "summary": "TEETH: 46 rows, 0 disagreeing, 789 s",
+    "exit": 0
+   },
+   "phoneSheet": {
+    "summary": "python quality/phonesheet.py --state T-14 ran",
+    "exit": 0
+   }
+  }
+ },
+ "r3notes": {
+  "round": "R3 notes, phases A and B",
+  "brief": "the lane C UI lead's brief of 2026-09-19, closing review R3's seven notes and the PM's leads L1 to L11",
+  "standsOn": "9c03b6f0091d10c0bdf572d982dcfc7d626f3bb1, the lane lead's accept commit from the owner's PC",
+  "leads": {
+   "L1": "closed: an unknown --screens or --sizes value refuses in one line naming the value and the valid ones, exit 2, and a run that ends with no result rows refuses rather than reporting a green summary over nothing. Measured before: 0 FAIL, 0 WARN, 0 PASS at exit 0. Teeth row q1.",
+   "L2": "closed: a character of Unicode category Cf is a problem named by its code point, and the word and vendor sweeps read the string with those removed, no break spaces made ordinary, NFKC normalised and casefolded. common.sweep_form, shared. Teeth row q2.",
+   "L3": "closed. A dash is every character of Unicode category Pd except the plain hyphen, and U+2212 unless a digit directly follows it or it is the whole of its own line in the swept string, which is a control whose entire label is the sign. Teeth rows q3 and q8. The second condition was measured, not assumed: sweeping U+2212 flatly made the full sheet \"418 renders, 2 with problems\", exit 1, both rows W-18, on the decrement button beside a set's load that app/states.js:113 and app/states-workout.js:270 draw, and the swept string of W-18 puts that button's label on a line of its own. Phase A held the clause and reported the numbers rather than editing app/; the lane lead ruled on those numbers that the prototype is right and the rule is refined. Nothing under app/ changed.",
+   "L4": "answered by execution, and it is not a finding. Tagging a T-02 card title .sub and painting it with the muted token exits 1 on the record's colour half, \"colour (242, 238, 230) became (189, 184, 174)\", colour moved 77.00 of 3.00 in Dawn. The tier decides which ratio is demanded; the record decides the colour may not change at all. Teeth row q4, and README 3.1 says which check holds the line.",
+   "L5": "closed: a render is its own function and one that throws is a problem row naming the state and the first line of the error, the run carries on, the report is written, exit 1. Proved by making one render raise: 16 renders, 2 with problems, both naming T-04. Teeth row q5.",
+   "L6": "closed: --accept on both scripts and --accept-thumbs refuse with EARNED_APP set, exit 2. Teeth row q6.",
+   "L7": "answered in README 3.1 in one paragraph: the shared records sit outside the platform directories because they are platform independent and that is measured rather than assumed, 0.00 px and 0.00 levels over 418 renders on two operating systems; either machine could have written them and the index env says which did.",
+   "L8": "closed: both gates measure every tappable surface through one shared definition, common.TAPPABLE_SELECTOR, built from the focusable elements, the control roles, label[for] and the classes the pack's own tap highlight rule declares tappable at app/app.css:625. Running it found one element the walk must not count, app/app.html:43's label for the weight field, which app/app.css:150 clips to nothing for assistive technology alone; common.JS_CLIPPED_AWAY skips a clip that leaves no area and nothing else. Nothing under app/ was touched and the prototype passes: 372 PASS, 418 renders 0 problems. README 3.1 says what that skip is and what it is not: it is the target walk alone, and the record and the copy sweeps still hold the element, because its text is read aloud and is therefore interface copy.",
+   "L9": "closed: a problem list longer than six ends with \"and N more\"; a record holds each rect to two decimals and the comparison reads the values as measured, so \"more than 3 px\" means more than 3 px where 3.49 px used to pass. Whole pixel records stay valid input and read back at 0.50 of 3.00. h1 moves to a 2 px shift and new row h3 holds 4 px, which answers the reviewer's warning that h1 sat on the boundary.",
+   "L10": "closed in the documents: --only matches a prefix, it narrows the index comparison with it, and only a full run is evidence.",
+   "L11": "closed: --accept writes an app digest into the index env, the sha256 of the sorted lines \"<path> <sha256>\" for every file under app/, and an ordinary run prints ONE advisory line when the pack's app/ no longer matches it or the index carries none. Never a problem, never an exit code, because a teeth row's job is to change app/ in a scratch copy and the row that must PASS still has to exit 0. README 3.1 says what really pins the records: a full run against the pack's own prototype, and ticket S9.",
+   "machinesOfRecord": "README 3.1 gains the paragraph: the owner's PC for win32, the sandbox image for linux, each described by its own ENV.txt; a CI workflow on a hosted runner lives outside the pack, and until someone measures a runner's render against these baselines a runner is not evidence."
+  },
+  "phaseB": "done. The lane lead ran \"python quality/statesheet.py --accept\" on the owner's PC at 3893530 and pushed 84512ce: 419 files, the 418 JSON records with each rect to two decimals and INDEX.json whose env gained the app digest. The 418 win32 thumbnails and states/win32/ENV.txt came out byte identical. The builder then ran the four gates on that tree.",
+  "crossPlatformAtTwoDecimals": "the shared records were written by --accept on the owner's PC (Windows 11, Python 3.14.6, playwright 1.62.0, Chromium 151.0.7922.34, DirectWrite) and judged by a full run in the builder's Linux sandbox (Python 3.11.15, playwright 1.56.0, Chromium 141.0.7390.37, FreeType), both launched with common.LAUNCH_ARGS. With each rect held to two decimals and compared unrounded, 418 renders came back 0 with problems and the worst rect edge in the whole set moved 0.04 px of the 3 allowed, at W-05 ink element 22 \"Unsure\" left; colour 0.00 of 3. The round's platform claim is now measured at sub pixel precision rather than at whole pixels."
+ },
+ "audit2": {
+  "what": "the PM's independent second teeth audit, closed against THE ONE LIST: section (6) of the auditor's judgment of the executed half, eighteen items, which replaces fix batches 1 to 3 and drops nothing from them. Keyed below by the list's ids 1 to 18. Every M item was taken red first (from the PM's executed y rows where they cover it, otherwise here), fixed, given a permanent row, and then the protection ALONE was removed in a scratch copy with the row kept, and the row disagreed.",
+  "sources": [
+   {
+    "file": "rebuild/lanes/astra/reviews/C-UI-0-STATIC-PRE-AUDIT.md",
+    "branch": "rebuild/r-astra-cui0-static",
+    "commit": "c30093aa",
+    "read at": "18c3b63",
+    "what": "the static pre-audit, nine findings, nothing executed"
+   },
+   {
+    "file": "rebuild/lanes/astra/reviews/C-UI-0-AUDIT2-R4-FIXES-STATIC.md",
+    "branch": "rebuild/r-astra-cui0-recheck",
+    "commit": "9dedb123",
+    "read at": "64a9e09",
+    "what": "the static re-check of the two R4 fixes, five notes, verdict fixes sound with notes"
+   },
+   {
+    "file": "rebuild/lanes/astra/reviews/C-UI-0-AUDIT2-JUDGMENT.md",
+    "branch": "rebuild/r-astra-cui0-judge",
+    "commit": "4ecc1012",
+    "what": "the judgment of the executed half; its section (6) is the one list"
+   },
+   {
+    "file": "RUN-REPORT-3.md with rows.py ids y1a to y14g",
+    "branch": "rebuild/r-cui0-audit2",
+    "commit": "3b186404",
+    "what": "the PM's 53 acceptance rows for items 1 to 14, run red first: 25 red, 28 as wanted"
+   }
+  ],
+  "rulings": [
+   "DECISIONS:593 the owner ruling that put the audit beside the lane round rather than after it",
+   "DECISIONS:594 batch 1: P-CUI-1 to P-CUI-3",
+   "DECISIONS:597 batch 2: finding 1 widened to all three walks, the paper items, and two things named for C-UI-GATES-2",
+   "DECISIONS:604 batch 3: PM-1 to PM-8 and P-CUI-4 (the minus rule: not a letter and not a digit, the digit across a space stays, a TAB is a cell boundary)",
+   "DECISIONS:616 the judgment upheld; PM-5 refined into three policies, PM-6 promoted to a row, P-CUI-5 (what a walk cannot read may be forbidden where the count is zero)",
+   "DECISIONS:625 the 53 y rows accepted as the delta's acceptance rows, run by the PM's executor and never by the lane"
+  ],
+  "routes": {
+   "1": "READ",
+   "2": "READ",
+   "3": "READ",
+   "note": "P-CUI-5 allowed a forbid where a construct could not be read honestly. None was needed: every construct of items 1, 2 and 3 is read by the walks, so no forbid check exists and no zero count had to be written into STANDARD.md."
+  },
+  "revertMethod": "one scratch copy of the pack; one protection replaced by what stood there before; python quality/teeth.py --only <the rows that name it, and rows that must hold>; the copy restored and proved byte identical by sha256 after each. 28 experiments by the script, one by hand (item 9's empty selection), one by the PM's own kit (item 10, row y10a). Executed on linux, Python 3.11.15, playwright 1.56.0, Chromium 141.",
+  "1": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
+   "route": "READ",
+   "before": "executed red by the PM's rows y1a, y1c, y1e and y1i at 64a9e09: a fixed element's assistive label, its generated content, its contrast and its 20 px focusable box all passed, exit 0, while the in flow and absolute twins were caught",
+   "fix": "4439a96 put one shared common.JS_RENDERED (display, and a client rect) under the record walk, both 44 px walks and the extra copy sweep. This round removed the last bare offsetParent tests: ten page scripts in gate.py (face state, serif and sans walk, margin, card inner edge, icon inset, safe area, gaps, type scale, radii, underline) and the label overflow walk in statesheet.py. A grep of the three scripts finds the word only in comments. common.py names THREE POLICIES: whether text is visible (__seen), whether a target is measured (__rendered and __clippedAway; rb2d and rb2e stay red on purpose), whether a required control exists (named as missing by the check that requires it).",
+   "rows": [
+    "u1",
+    "v1",
+    "v2"
+   ],
+   "revert": "__rendered given back \"!e.offsetParent\": u1, v1 and v2 all DISAGREE"
+  },
+  "2": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
+   "route": "READ",
+   "before": "executed red by y2a and y2d: visible text under clip-path inset(0 round 50%) and an inline span with a negative text indent, both at 3.2:1, passed contrast, exit 0",
+   "fix": "4439a96 reads inset() only up to its round. The indent exclusion is read on every box except an inline one (an inline-block is a block container and its indent does hide its first line; an inline box that declares an indent moves nothing; an inline box on an indented line moves with the line and the viewport test reads its rect). The truly hidden controls y2c and y2f stay out of the contrast walk.",
+   "rows": [
+    "u2",
+    "v3",
+    "u3",
+    "v4"
+   ],
+   "revert": "inset() read through its radii again: u2 and v3 DISAGREE. The indent read on an inline box again: u3 and v4 DISAGREE"
+  },
+  "3": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
+   "route": "READ",
+   "before": "executed red by y3a and y3c: a set written with U+FF58 passed the screen gate and \"optional\" written with U+FF49 passed the state sheet",
+   "fix": "4439a96: set_x_problems and the workout optional rule read common.sweep_form (NFKC, casefolded); the Pd and Cf scans keep reading the raw string so a report names the character the markup carries",
+   "rows": [
+    "u4",
+    "v5",
+    "u5"
+   ],
+   "revert": "the set sweep on the raw string: u4 and v5 DISAGREE. The optional rule on the raw string: u5 DISAGREES"
+  },
+  "4": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
+   "before": "at 6c593603, honest T-02 and intentional no-primary T-57 were clean; hidden and actual-node-absent T-02 each had generic record failures but zero named primary-action problem. The first author z2 only removed a label-setting call, left #start present and is excluded.",
+   "fix": "statesheet.py freezes the approved declarations as 56 #start, 33 #log, 59 .mic-button, 32 .panel-primary and 29 intentional no-primary states. Required existence, shared drawn visibility and every unrounded viewport edge are separate checks, so a mutation cannot redefine its own expectation.",
+   "rows": [
+    "u6",
+    "u7",
+    "v6",
+    "v7",
+    "v8",
+    "d-1",
+    "d-2",
+    "z1",
+    "z2",
+    "z3"
+   ],
+   "revert": "focused author candidate: z1 hidden and revised z2 actual-node removal are named failures; z3 keeps intentional T-57 green. Bottom-edge, screen missing/drawn and precision rows remain. Independent full 418-render candidate execution is pending."
+  },
+  "5": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
+   "before": "executed red by y5a: the RIR 2 chip at opacity 0 kept the lock green",
+   "fix": "4439a96: every chip has to pass the shared visibility test",
+   "rows": [
+    "u8",
+    "v9",
+    "v10",
+    "v11"
+   ],
+   "revert": "a chip visible when its offsetParent is not null: u8 (visibility), v9 (opacity), v10 (clipped) and v11 (off the side) all DISAGREE"
+  },
+  "6": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
+   "before": "executed red by y6a: left plus 3 with width plus 3 moved the right edge 6 px and passed",
+   "fix": "4439a96 derives right and bottom from what a record already holds and compares all six unrounded. This round reads the measured font size to two decimals, so 0.51 px off fails where one decimal read 0.50.",
+   "rows": [
+    "u9",
+    "v12",
+    "v13",
+    "v14",
+    "h1",
+    "h3"
+   ],
+   "revert": "four stored numbers only: u9 and v12 DISAGREE. The move counted in whole pixels: v13 (3.05 px) DISAGREES, h3 and u9 hold. The font size to one decimal: v14 (16.01 px) DISAGREES. One experiment did not come out as first written: rounding each edge to a whole pixel first left v13 red, because other elements of T-02 cross a half pixel.",
+   "records": "no record changes and none has to be written again: every font size the approved build draws is exact at one decimal, and the far edges are derived. Nothing was accepted here."
+  },
+  "7": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
+   "before": "executed red twice, x20 and y7a: the bare class \"from\" lowered primary copy to the 3.0 tier and 3.2 passed",
+   "fix": "a muted class earns 3.0 only when the element is ALSO painted with one of the quiet tokens the pack's stylesheets give those classes: --muted, --faint and --text-soft, listed in common.py with the line numbers of every declaration. A quiet token lowers the tier wherever it is painted; a disabled control, the gold marker rule and text of 24 px or more keep their tiers. The unmutated prototype is green on both gates.",
+   "rows": [
+    "y1",
+    "y2",
+    "e1",
+    "q4"
+   ],
+   "revert": "a muted class alone lowers the tier again: y1 DISAGREES, y2 (the honest recipe) holds"
+  },
+  "8": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
+   "before": "y8a is answered under yRowPreCheck; red first here with both the background and the border held identical under :hover and :active on #recovery, which passed",
+   "fix": "the pointer moves onto the surface, rests 120 ms, the idle picture is taken, then the press. A surface with a hover style and no active style of its own FAILs. Measured on the approved app: zero :hover rules, twenty :active rules.",
+   "rows": [
+    "v15"
+   ],
+   "revert": "idle taken before the pointer arrives: v15 DISAGREES. The genuine :active recipes pass on all eight sampled surfaces in the clean full gate."
+  },
+  "9": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
+   "before": "executed red by y9a, y9b and y9c: \"0 rows, 0 disagreeing\" exit 0, one row run in silence, and the whole list run for a bare comma",
+   "fix": "check_selection refuses in one line, exit 2, before any row runs. The rows that run teeth.py itself are bounded by a depth counter, so a nested run refuses at two levels.",
+   "rows": [
+    "v16",
+    "v17",
+    "v18",
+    "v19"
+   ],
+   "revert": "unknown ids not refused: v16 and v17 DISAGREE, v19 holds. The empty selection clause removed: NOT RUN TO ITS END; \"teeth.py --only v18\" had printed no refusal after 40 s and was working through the whole list when it was stopped (exit 124 from timeout)."
+  },
+  "10": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed",
+   "before": "executed red by y10a: q5 stayed as expected with the sheet's apply error detection removed",
+   "fix": "4439a96: q5 asserts the guarded render's own words, \"state did not apply\" and the first line of the error the apply raised, with the report written",
+   "rows": [
+    "q5"
+   ],
+   "revert": "the PM's own row y10a against this head: q5 DISAGREES, teeth exit 1"
+  },
+  "11": {
+   "class": "E: an execution owed",
+   "how": "the PM's kit rows y11a and y11b, run here against a scratch copy of this head; the statesheet --only T-0 scope is theirs",
+   "refusedInsideTheRenderLoop": {
+    "wanted": "one line and exit 2",
+    "command": "python quality/statesheet.py --only T-0",
+    "exit": 2,
+    "reportWritten": "the report file holds the same one line and nothing else, which is how a refusal keeps a stale green report from being read in its place",
+    "rawOutput": [
+     "STATE SHEET: REFUSED. audit3 probe: an injected refusal inside render_one"
+    ]
+   },
+   "ordinaryExceptionInsideTheRenderLoop": {
+    "wanted": "a problem row naming the state, the other states continuing, a report and exit 1",
+    "command": "python quality/statesheet.py --only T-0",
+    "exit": 1,
+    "reportWritten": true,
+    "rawOutput": [
+     "wrote statesheet-today.jpg (2470, 2704) 8 states",
+     "STATE SHEET: 16 renders, 2 with problems",
+     "mode: ordinary run",
+     "scope: states T-0",
+     "build under test: file:///<scratch copy of the pack>/app/app.html, app digest b391366fd413130672bd524c7af40046185029ca52f6c13516868393dde54550",
+     "versions: python 3.11.15, playwright 1.56.0, chromium 141.0.7390.37, platform linux",
+     "",
+     "T-03    ink   LIVE       Enrolled, adoption of your record pending    the render failed: ValueError: audit3 probe: an ordinary exception inside render_one",
+     "T-03    dawn  LIVE       Enrolled, adoption of your record pending    the render failed: ValueError: audit3 probe: an ordinary exception inside render_one",
+     "",
+     "worst measured:",
+     "  none measured: nothing moved in 16 renders",
+     "  advisory, not a tolerance: this run against the win32 thumbnails",
+     "  thumbnail mean shift                   0.97 of   2.00   T-04 ink",
+     "  thumbnail pixels over 24 levels        0.00 of   1.00   nothing moved",
+     "",
+     "clean: T-02, T-04, T-05, T-06, T-07, T-08, T-09"
+    ]
+   },
+   "permanentPair": "not added: the judgment lets it wait, and it is named for C-UI-GATES-2 in STANDARD.md"
+  },
+  "12": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed (promoted from D by the PM)",
+   "before": "executed red by y12a: a labelled sheet of a state whose apply threw, exit 0",
+   "fix": "before each theme's picture the sheet reads the driver's applied marker, which has to equal the requested id, and the page errors since the navigation, of which there must be none; otherwise one line, exit 2, and no sheet for that state",
+   "rows": [
+    "v20",
+    "v21",
+    "v22",
+    "v23",
+    "v24"
+   ],
+   "revert": "no marker test: v23 DISAGREES and v20, v21, v22, v24 hold. No error test: v24 DISAGREES and v20, v22, v23 hold. v20 (the apply throws) is held by both proofs at once, which is why v23 and v24 isolate each; v22 is the throw in one theme only, and no sheet is written from the theme that applied."
+  },
+  "13": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed (successor only)",
+   "before": "executed red by y13a and y13b at 814f0a0: honest signed values after a colon, the multiplication sign, a currency sign, an equals sign, a quotation mark, a brace and a slash were refused as dashes",
+   "fix": "the closed opener/range rules remain. The minus channel uses rendered innerText whitespace and marks the exact markup-whitespace DOM occurrence between adjacent numeric siblings before rendering it as TAB. It does not search equal flat text elsewhere, or turn a boundary inside a word, adjacent spans without whitespace or a source newline collapsed by normal-flow HTML into a cell. Word/vendor/Cf and set sweeps retain the flat text.",
+   "reading": "the lane lead's brief words the range test as the nearest non space character before the OPENER. It is implemented as the PM ruled it in P-CUI-4, the nearest non space character before the SIGN: the two are the same whenever the opener is a space, and only this reading lets a digit stand before a slash or the multiplication sign, which the PM's row y13b requires. The lead should confirm.",
+   "rows": [
+    "w1",
+    "w2",
+    "w3",
+    "w4",
+    "w5",
+    "w10",
+    "w11",
+    "w6",
+    "w8",
+    "w9",
+    "q11",
+    "q8",
+    "z4",
+    "z8",
+    "z9",
+    "z10",
+    "z11",
+    "z12",
+    "z13"
+   ],
+   "controls": "z4/z13 and w1/w2/w4/w5/w10/w11 are positive. z8 split-word, z9 collapsed-newline, z10 adjacent-span range and z11/z12 equal-text opposite orderings are negative alongside w3/w8/w9/q11. z8 red is 103ad57; occurrence red is cf31f82.",
+   "revert": "author repaired-source focus ran z4, z8-z13, w1-w11, q8/q9/q11 and readiness/vendor/Cf/set controls: 25/25 as expected. Independent exact-candidate execution remains pending."
+  },
+  "14": {
+   "class": "M: fixed, with a permanent row that goes red when the protection alone is removed (successor only)",
+   "before": "executed red by y14f and y14g at 814f0a0: q9 and q11 each survived the removal of one of their two clauses",
+   "fix": "one clause, one row. q9 is a raw TAB and an ordinary space around a hyphen in an attribute value, where a TAB survives; w7 is the no break space pair. q11 is the sign pressed against a letter; w9 is the range.",
+   "rows": [
+    "q9",
+    "w7",
+    "q11",
+    "w9",
+    "w8"
+   ],
+   "revert": "the fold narrowed back to the space separators: q9 DISAGREES, w7 holds. The fold keeps the TAB and drops the space separators: w7 DISAGREES, q9 holds. The opener clause removed: q11 DISAGREES (item 13)."
+  },
+  "15": {
+   "class": "D",
+   "words": "STANDARD.md states the actual samples and duties: eight pressed surfaces (3 Today, 3 Workout, 2 Coach); top-left radius on named classes and no pill measurement; the conservative target walk retains opacity/visibility-hidden hit areas; sans 430-500 remains the design while automation admits 400 and reviewer holds the 430 floor; state-primary requiredness is now frozen. Wider sampling remains C-UI-GATES-2."
+  },
+  "16": {
+   "class": "D",
+   "words": "STANDARD.md section 7 item 5 and README section 3.1: baselines and records are trusted references that review owns; an accept run's exit code does not say whether it wrote; a full accept is not transactional (--accept-thumbs is the exception); a baseline or a record is only ever accepted from a run whose ordinary twin was green. Transactional accept is C-UI-GATES-2."
+  },
+  "17": {
+   "class": "D",
+   "words": "every ordinary report names mode, scope, URL, immutable build identity and versions. EARNED_APP requires a 64-digit EARNED_APP_DIGEST and labels it caller-supplied rather than computed or verified. teeth.py separately reports enumerated, launched, platform-skipped and pre-run VOID rows; a failed mutation anchor cannot count as run. z5-z7 hold these contracts."
+  },
+  "18": {
+   "class": "D",
+   "words": "STANDARD section 13 matches current code: 105 teeth rows; U+2060/fold_spaces; conservative target exclusions; 372-row green gate; exact eight pressed sample; admitted 400 versus design 430 floor; radius sampling; state-primary contract; numeric sibling exception and occurrence decoys; immutable external identity; launched/skipped/VOID counts. Candidate file digests below are refreshed after scoped author proof."
+  },
+  "codexRepair": {
+   "status": "PROPOSED author candidate; independent full state sheet, Windows reviewer and Claude final remain pending",
+   "sourceCheckpoint": "cf31f82a668aee79a5fb52bf1f78132facf8989d durable occurrence red; repaired child is bound by file digests below",
+   "red": "f8a68ced item4; 103ad57 z8 split-element bypass; cf31f82 equal-text occurrence bypass; independent external identity and VOID counterexamples",
+   "authorFocused": "25 enumerated, 25 run, 0 skipped, 0 VOID, 0 disagreeing, 179 s; retained %TEMP%/cui0-author-evidence/occurrence-focused-25-green.txt sha256 336002601c0d14e2b3b8216f0fc12e84d69871fcf03a413dc19fa07173bc37bb",
+   "authorOrdinaryGate": "0 FAIL, 0 WARN, 372 PASS; retained %TEMP%/cui0-author-evidence/occurrence-gate-372-green.txt sha256 cb458fa9ac3117e924db9d0c9df39fc9e7249996db0f7bdcbffd806b121fc745",
+   "excluded": "first 25-row attempt stopped every browser row at missing JS_SEEN wiring; second was 24/25 with invalid old z2; neither is green evidence",
+   "unitDebt": "D-CUI-UNIT published red f1f283be: z4 and z19 controls passed while z14-z18 exposed the any-word suffix hole",
+   "unitCandidate": "7 enumerated, 7 run, 0 skipped, 0 VOID, 0 disagreeing; scoped z8-z13 and ordinary gate compatibility remain owed"
+  },
+  "yRowPreCheck": {
+   "what": "THE BUILDER'S PRE-CHECK, NOT THE PM'S VERDICT. The PM's kit (driver.py and rows.py as published at 3b186404, unmodified) run here against a scratch copy of this head outside any work tree: linux, Python 3.11.15, playwright 1.56.0, Chromium 141, MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York, one browser job at a time. The PM's executor runs the official pass on the owner's PC.",
+   "exceptions": {
+    "y4a": "the row's mutation does not do what its title says. #start sits at top 591.31 (375x812) and 559.31 (360x780); top: -400px puts it at 191.31 and 159.31, wholly inside the viewport at both sizes of the row, so the primary check rightly says nothing and the contrast check is what fires. Pushed 800 px up (row v6) the check names it: \"top ... < 0\".",
+    "y8a": "the row says press adds nothing, and it does add something: the row overrides the background only, and the pack's own .tcard.nav:active still moves the border colour, measured hover rgb(38, 36, 33) to pressed rgb(43, 41, 38) in ink and rgb(220, 213, 199) to rgb(211, 204, 189) in dawn, 844 and 848 pixels of the clip differing. With the border held as well (row v15) the check fails by name.",
+    "y13c": "historical pre-check only: this disposition was superseded by ledger625. The current candidate permits whitespace-separated numeric sibling spans through the minus channel while keeping flat word/vendor text and three decoy refusals; z4 and z8-z10 hold it.",
+    "y14g": "VOID by construction: its anchor is the very opener block item 13 replaces, so it cannot match at this head. The experiment it stands for was run here: the opener clause removed alone, q11 DISAGREES."
+   },
+   "tally": {
+    "the25RedAtThePMsRun": {
+     "asWantedNow": 21,
+     "not": [
+      "y4a",
+      "y8a",
+      "y13c",
+      "y14g"
+     ]
+    },
+    "the28Controls": {
+     "unchanged": 28,
+     "not": []
+    }
+   },
+   "rows": {
+    "y1a": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.2,
+     "failNames": [
+      "copy: no dashes, readiness words, vendor names"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y1b": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.3,
+     "failNames": [
+      "copy: no dashes, readiness words, vendor names"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y1c": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.2,
+     "failNames": [
+      "copy: no dashes, readiness words, vendor names"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y1d": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.2,
+     "failNames": [
+      "copy: no dashes, readiness words, vendor names"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y1e": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.3,
+     "failNames": [
+      "contrast (measured behind the text)"
+     ],
+     "summary": [
+      "EARNED UI GATE: 2 FAIL, 0 WARN, 61 PASS"
+     ]
+    },
+    "y1h": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.2,
+     "failNames": [
+      "touch targets >= 44 px"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y1i": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.3,
+     "failNames": [
+      "touch targets >= 44 px"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y2a": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.2,
+     "failNames": [
+      "contrast (measured behind the text)"
+     ],
+     "summary": [
+      "EARNED UI GATE: 2 FAIL, 0 WARN, 61 PASS"
+     ]
+    },
+    "y2c": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 4.2,
+     "failNames": [],
+     "summary": [
+      "EARNED UI GATE: 0 FAIL, 0 WARN, 63 PASS"
+     ]
+    },
+    "y2d": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.3,
+     "failNames": [
+      "contrast (measured behind the text)"
+     ],
+     "summary": [
+      "EARNED UI GATE: 2 FAIL, 0 WARN, 61 PASS"
+     ]
+    },
+    "y2e": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.3,
+     "failNames": [
+      "contrast (measured behind the text)"
+     ],
+     "summary": [
+      "EARNED UI GATE: 2 FAIL, 0 WARN, 61 PASS"
+     ]
+    },
+    "y2f": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 4.4,
+     "failNames": [],
+     "summary": [
+      "EARNED UI GATE: 0 FAIL, 0 WARN, 63 PASS"
+     ]
+    },
+    "y3a": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.2,
+     "failNames": [
+      "the multiplication sign in every set string"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y3b": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 4.3,
+     "failNames": [],
+     "summary": [
+      "EARNED UI GATE: 0 FAIL, 0 WARN, 63 PASS"
+     ]
+    },
+    "y3c": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 6.8,
+     "failNames": [],
+     "summary": [
+      "STATE SHEET: 2 renders, 2 with problems"
+     ]
+    },
+    "y3d": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 6.8,
+     "failNames": [],
+     "summary": [
+      "STATE SHEET: 2 renders, 2 with problems"
+     ]
+    },
+    "y4a": {
+     "status": "DISAGREES",
+     "exit": 1,
+     "seconds": 4.3,
+     "failNames": [
+      "contrast (measured behind the text)"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ],
+     "why": [
+      "no FAIL whose check name is exactly 'primary action in first viewport' (FAIL names seen: ['contrast (measured behind the text)'])",
+      "'#start' is not in the output"
+     ]
+    },
+    "y4b": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.3,
+     "failNames": [
+      "page margin 22 px",
+      "primary action in first viewport"
+     ],
+     "summary": [
+      "EARNED UI GATE: 8 FAIL, 0 WARN, 55 PASS"
+     ]
+    },
+    "y4c": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.3,
+     "failNames": [
+      "primary action in first viewport"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y4d": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.3,
+     "failNames": [
+      "contrast (measured behind the text)"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y4e": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 43.7,
+     "failNames": [
+      "contrast (measured behind the text)",
+      "primary action in first viewport",
+      "visual regression vs baseline"
+     ],
+     "summary": [
+      "EARNED UI GATE: 6 FAIL, 2 WARN, 52 PASS"
+     ]
+    },
+    "y5a": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.1,
+     "failNames": [
+      "RIR chips are the five locked values"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 67 PASS"
+     ]
+    },
+    "y5b": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 4.2,
+     "failNames": [],
+     "summary": [
+      "EARNED UI GATE: 0 FAIL, 0 WARN, 71 PASS"
+     ]
+    },
+    "y6a": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 6.2,
+     "failNames": [],
+     "summary": [
+      "STATE SHEET: 2 renders, 2 with problems"
+     ]
+    },
+    "y6b": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 6.1,
+     "failNames": [],
+     "summary": [
+      "STATE SHEET: 2 renders, 0 with problems"
+     ]
+    },
+    "y6c": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 6.2,
+     "failNames": [],
+     "summary": [
+      "STATE SHEET: 2 renders, 2 with problems"
+     ]
+    },
+    "y7a": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.1,
+     "failNames": [
+      "contrast (measured behind the text)"
+     ],
+     "summary": [
+      "EARNED UI GATE: 2 FAIL, 0 WARN, 61 PASS"
+     ]
+    },
+    "y7b": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 4.1,
+     "failNames": [],
+     "summary": [
+      "EARNED UI GATE: 0 FAIL, 0 WARN, 63 PASS"
+     ]
+    },
+    "y7c": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 4.2,
+     "failNames": [],
+     "summary": [
+      "EARNED UI GATE: 0 FAIL, 4 WARN, 59 PASS"
+     ]
+    },
+    "y8a": {
+     "status": "DISAGREES",
+     "exit": 0,
+     "seconds": 43.0,
+     "failNames": [],
+     "summary": [
+      "EARNED UI GATE: 0 FAIL, 0 WARN, 60 PASS"
+     ],
+     "why": [
+      "exit 0, the row expects 1",
+      "no FAIL whose check name is exactly 'pressed state on every tappable surface' (FAIL names seen: none)",
+      "'card-eat' is not in the output"
+     ]
+    },
+    "y8b": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 43.6,
+     "failNames": [],
+     "summary": [
+      "EARNED UI GATE: 0 FAIL, 0 WARN, 60 PASS"
+     ]
+    },
+    "y9a": {
+     "status": "as expected",
+     "exit": 2,
+     "seconds": 0.0,
+     "failNames": [],
+     "summary": [
+      "TEETH: REFUSED. --only names zzz, which this list does not carry; it carries 92 rows, and \"python quality/teeth.py\" prints them"
+     ]
+    },
+    "y9b": {
+     "status": "as expected",
+     "exit": 2,
+     "seconds": 0.0,
+     "failNames": [],
+     "summary": [
+      "TEETH: REFUSED. --only names zzz, which this list does not carry; it carries 92 rows, and \"python quality/teeth.py\" prints them"
+     ]
+    },
+    "y9c": {
+     "status": "as expected",
+     "exit": 2,
+     "seconds": 0.0,
+     "failNames": [],
+     "summary": [
+      "TEETH: REFUSED. --only was given no id: name at least one of the 92 rows this list carries, or leave --only off to run them all"
+     ]
+    },
+    "y9d": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 0.7,
+     "failNames": [],
+     "summary": [
+      "TEETH: 1 rows, 0 disagreeing, 0 s"
+     ]
+    },
+    "y10a": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 40.4,
+     "failNames": [],
+     "summary": [
+      "TEETH: 1 rows, 1 disagreeing, 40 s"
+     ]
+    },
+    "y10b": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 40.4,
+     "failNames": [],
+     "summary": [
+      "TEETH: 1 rows, 0 disagreeing, 40 s"
+     ]
+    },
+    "y11a": {
+     "status": "as expected",
+     "exit": 2,
+     "seconds": 6.1,
+     "failNames": [],
+     "summary": [
+      "STATE SHEET: REFUSED. audit3 probe: an injected refusal inside render_one"
+     ]
+    },
+    "y11b": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 35.3,
+     "failNames": [],
+     "summary": [
+      "STATE SHEET: 16 renders, 2 with problems"
+     ]
+    },
+    "y12a": {
+     "status": "as expected",
+     "exit": 2,
+     "seconds": 2.1,
+     "failNames": [],
+     "summary": [
+      "PHONE SHEET: REFUSED. T-02 was not applied in theme ink: the driver's applied marker reads None, so no sheet is written for it"
+     ]
+    },
+    "y12b": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 8.4,
+     "failNames": [],
+     "summary": []
+    },
+    "y13a": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 4.1,
+     "failNames": [],
+     "summary": [
+      "EARNED UI GATE: 0 FAIL, 0 WARN, 63 PASS"
+     ]
+    },
+    "y13b": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 4.1,
+     "failNames": [],
+     "summary": [
+      "EARNED UI GATE: 0 FAIL, 0 WARN, 63 PASS"
+     ]
+    },
+    "y13c": {
+     "status": "DISAGREES",
+     "exit": 1,
+     "seconds": 4.1,
+     "failNames": [
+      "copy: no dashes, readiness words, vendor names"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ],
+     "why": [
+      "exit 1, the row expects 0",
+      "the check 'copy: no dashes, readiness words, vendor names' FAILED and this row says it must not"
+     ]
+    },
+    "y13d": {
+     "status": "as expected",
+     "exit": 0,
+     "seconds": 4.2,
+     "failNames": [],
+     "summary": [
+      "EARNED UI GATE: 0 FAIL, 0 WARN, 63 PASS"
+     ]
+    },
+    "y13e": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.1,
+     "failNames": [
+      "copy: no dashes, readiness words, vendor names"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y14a": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.2,
+     "failNames": [
+      "copy: no dashes, readiness words, vendor names"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y14b": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.1,
+     "failNames": [
+      "copy: no dashes, readiness words, vendor names"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y14c": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.1,
+     "failNames": [
+      "copy: no dashes, readiness words, vendor names"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y14d": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.2,
+     "failNames": [
+      "copy: no dashes, readiness words, vendor names"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y14e": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 4.2,
+     "failNames": [
+      "copy: no dashes, readiness words, vendor names"
+     ],
+     "summary": [
+      "EARNED UI GATE: 4 FAIL, 0 WARN, 59 PASS"
+     ]
+    },
+    "y14f": {
+     "status": "as expected",
+     "exit": 1,
+     "seconds": 3.2,
+     "failNames": [],
+     "summary": [
+      "TEETH: 1 rows, 1 disagreeing, 3 s"
+     ]
+    },
+    "y14g": {
+     "status": "VOID",
+     "exit": null,
+     "seconds": null,
+     "failNames": [],
+     "summary": [],
+     "note": "quality/common.py: the anchor matched 0 times, expected 1: '            # a negative number is opened by a space, a line start or '"
+    }
+   }
+  },
+  "prototype": "nothing under app/ changed on this branch beyond the one owner-ratified line in app.css. Historical context: a global drawn-primary requirement reddened 58 of 418 renders and was withdrawn. That deferral is superseded by audit2 item 4's frozen state-specific contract, which names 29 intentional no-primary states and requires the other 180 selectors.",
+  "C-UI-GATES-2": "the remaining named home of narrowed or deferred scope: widening sampled geometry/contrast/pressed/radius/gap/type checks, making accept transactional, and the permanent state-sheet Refused pair. The state-specific expected-primary contract is no longer deferred; audit2 item 4 closes it here."
+ }
+}
