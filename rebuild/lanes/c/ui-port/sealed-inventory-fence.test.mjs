@@ -1792,19 +1792,126 @@ test("P-S9-3 (31) - the local-import step exists and carries the not-cancelled c
    re-homes these two. NOTHING IS QUIETLY DROPPED: the two assertions below are the same
    two claims, in a cell a CI step really runs on both systems.
 
-   They are stated over the file as a whole, not over one step, because that is what they
-   are about: the matrix that makes every step run twice, and the absence of the one shell
-   idiom that turns a red step green. */
-test("P-S9-5 (32) - rebuild.yml retains both OS jobs and forgives no step with an or-true", () => {
+   The no-forgiveness rule is stated over the file as a whole. The OS rule is bound to
+   each required job, so adding a second legitimate matrix cannot weaken either job and
+   a sibling or misplaced matrix cannot stand in for the one the job actually runs on. */
+function assertTwoOsJob(yml, job) {
+  const escaped = job.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const key = (name) => `(?:${name}|"${name}"|'${name}')`;
+  const exactKey = (indent, name) => new RegExp("^" + " ".repeat(indent) + key(name) + ":\\s*(?:#.*)?$");
+  const anyKey = (indent, name) => new RegExp("^" + " ".repeat(indent) + key(name) + ":(?:\\s.*)?$");
+  const valueKey = (indent, name, value) => new RegExp("^" + " ".repeat(indent) + key(name) + ":\\s*" + value + "\\s*$");
+  const starts = yml.map((line, i) => [line, i])
+    .filter(([line]) => anyKey(2, escaped).test(line));
+  assert.equal(starts.length, 1, job + " has " + starts.length + " job definitions, expected exactly one");
+  assert.match(starts[0][0], exactKey(2, escaped), job + " must be a block job definition");
+  const from = starts[0][1];
+  let to = yml.length;
+  for (let i = from + 1; i < yml.length; i += 1) {
+    if (/^  (?:[A-Za-z0-9_-]+|"[^"\r\n]+"|'[^'\r\n]+'):(?:\s.*)?$/.test(yml[i])) { to = i; break; }
+    if (/^\S/.test(yml[i]) && !/^\s*#/.test(yml[i])) { to = i; break; }
+  }
+  const block = yml.slice(from, to);
+  const strategy = block.map((line, i) => [line, i]).filter(([line]) => anyKey(4, "strategy").test(line));
+  assert.equal(strategy.length, 1, job + " has " + strategy.length + " strategy blocks, expected exactly one");
+  assert.match(strategy[0][0], exactKey(4, "strategy"), job + " strategy must be a block");
+  const strategyFrom = strategy[0][1];
+  let strategyTo = block.length;
+  for (let i = strategyFrom + 1; i < block.length; i += 1) {
+    if (/^    \S/.test(block[i]) && !/^\s*#/.test(block[i])) { strategyTo = i; break; }
+  }
+  const strategyBlock = block.slice(strategyFrom, strategyTo);
+  const matrices = strategyBlock.map((line, i) => [line, i]).filter(([line]) => anyKey(6, "matrix").test(line));
+  assert.equal(matrices.length, 1, job + " has " + matrices.length + " matrix blocks, expected exactly one");
+  assert.match(matrices[0][0], exactKey(6, "matrix"), job + " matrix must be a block");
+  const matrixFrom = matrices[0][1];
+  let matrixTo = strategyBlock.length;
+  for (let i = matrixFrom + 1; i < strategyBlock.length; i += 1) {
+    if (/^      \S/.test(strategyBlock[i]) && !/^\s*#/.test(strategyBlock[i])) { matrixTo = i; break; }
+  }
+  const matrixBlock = strategyBlock.slice(matrixFrom, matrixTo);
+  const osRe = valueKey(8, "os", "\\[([^\\]]*)\\]");
+  const osKeys = matrixBlock.filter((line) => anyKey(8, "os").test(line));
+  assert.equal(osKeys.length, 1, job + " has " + osKeys.length + " direct matrix.os keys, expected exactly one");
+  const osLine = osRe.exec(osKeys[0]);
+  assert.notEqual(osLine, null, job + " matrix.os must be an inline list");
+  const os = osLine[1].split(",").map((value) => value.trim()).filter(Boolean);
+  assert.deepEqual(os.slice().sort(), ["ubuntu-latest", "windows-latest"],
+    job + " matrix.os must contain exactly ubuntu-latest and windows-latest once each: " + os.join(", "));
+  const runnerRe = valueKey(4, "runs-on", "(.*?)");
+  const runners = block.filter((line) => anyKey(4, "runs-on").test(line));
+  assert.equal(runners.length, 1, job + " has " + runners.length + " direct runs-on keys, expected exactly one");
+  const runner = runnerRe.exec(runners[0]);
+  assert.notEqual(runner, null, job + " runs-on must carry a value");
+  assert.match(runner[1], /^\$\{\{\s*matrix\.os\s*\}\}$/, job + " runs-on is not its own matrix.os");
+}
+
+const matrixJobFixture = (job, body) => ["  " + job + ":", ...body];
+const goodMatrixBody = () => ["    strategy:", "      matrix:",
+  "        os: [ubuntu-latest, windows-latest]", "    runs-on: ${{ matrix.os }}"];
+const matrixWorkflowFixture = (primary) => ["jobs:",
+  ...matrixJobFixture("public-gates", primary), ...matrixJobFixture("font-transport", goodMatrixBody())];
+
+test("P-S9-5 (32) - every required job retains both OS runs and the workflow forgives no step", () => {
   const yml = YML_LINES();
-  const matrix = yml.filter((l) => /^\s*os:\s*\[/.test(l));
-  assert.equal(matrix.length, 1, "rebuild.yml has " + matrix.length + " os: matrix lines, expected exactly one");
-  assert.match(matrix[0], /ubuntu-latest/, "the ubuntu job is gone from the matrix: " + matrix[0].trim());
-  assert.match(matrix[0], /windows-latest/, "the windows job is gone from the matrix: " + matrix[0].trim());
+  for (const job of ["public-gates", "font-transport"]) assertTwoOsJob(yml, job);
   const forgiven = yml.map((l, i) => [i + 1, l]).filter(([, l]) => l.includes("|| true"));
   assert.deepEqual(forgiven, [],
     "a step is forgiven by an or-true, so its failure cannot fail the job: "
     + forgiven.map(([n, l]) => n + ": " + l.trim()).join(" / "));
+
+  /* Teeth: the intact font matrix and unrelated decoys must never satisfy the primary
+     job's obligation. Every mutant below leaves font-transport valid. */
+  assert.doesNotThrow(() => assertTwoOsJob(matrixWorkflowFixture(goodMatrixBody()), "public-gates"));
+  const missing = ["    strategy:", "      matrix:", "    runs-on: ${{ matrix.os }}"];
+  assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(missing), "public-gates"), /direct matrix\.os keys/);
+  const relocated = ["    strategy:", "      matrix:", "    env:",
+    "      os: [ubuntu-latest, windows-latest]", "    runs-on: ${{ matrix.os }}"];
+  assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(relocated), "public-gates"), /direct matrix\.os keys/);
+  const duplicate = [...goodMatrixBody().slice(0, 3), "      matrix:",
+    "        os: [ubuntu-latest, windows-latest]", "    runs-on: ${{ matrix.os }}"];
+  assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(duplicate), "public-gates"), /matrix blocks/);
+  for (const only of ["ubuntu-latest", "windows-latest"]) {
+    const oneOs = ["    strategy:", "      matrix:", "        os: [" + only + "]",
+      "    runs-on: ${{ matrix.os }}"];
+    assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(oneOs), "public-gates"), /must contain exactly/);
+  }
+  const siblingDecoy = [...matrixWorkflowFixture(missing),
+    ...matrixJobFixture("decoy", goodMatrixBody())];
+  assert.throws(() => assertTwoOsJob(siblingDecoy, "public-gates"), /direct matrix\.os keys/);
+  const duplicateRunner = [...goodMatrixBody(), "    runs-on: windows-latest"];
+  assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(duplicateRunner), "public-gates"), /direct runs-on keys/);
+  const wrongRunner = [...goodMatrixBody().slice(0, -1), "    runs-on: ubuntu-latest"];
+  assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(wrongRunner), "public-gates"), /not its own matrix\.os/);
+
+  /* YAML accepts quoted keys too. Each spelling must be accepted when it is the sole
+     key and counted when it shadows the checked spelling. */
+  for (const quote of ['"', "'"]) {
+    const q = (name) => quote + name + quote;
+    const quotedBody = ["    " + q("strategy") + ":", "      " + q("matrix") + ":",
+      "        " + q("os") + ": [ubuntu-latest, windows-latest]",
+      "    " + q("runs-on") + ": ${{ matrix.os }}"];
+    const quotedWorkflow = ["jobs:", ...matrixJobFixture(q("public-gates"), quotedBody),
+      ...matrixJobFixture("font-transport", goodMatrixBody())];
+    assert.doesNotThrow(() => assertTwoOsJob(quotedWorkflow, "public-gates"));
+
+    const shadowJob = [...matrixWorkflowFixture(goodMatrixBody()),
+      ...matrixJobFixture(q("public-gates"), goodMatrixBody())];
+    assert.throws(() => assertTwoOsJob(shadowJob, "public-gates"), /job definitions/);
+    const shadowStrategy = [...goodMatrixBody(), "    " + q("strategy") + ": {matrix: {os: [windows-latest]}}"];
+    assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(shadowStrategy), "public-gates"), /strategy blocks/);
+    const shadowMatrix = [...goodMatrixBody().slice(0, 3),
+      "      " + q("matrix") + ": {os: [windows-latest]}", "    runs-on: ${{ matrix.os }}"];
+    assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(shadowMatrix), "public-gates"), /matrix blocks/);
+    const shadowOs = [...goodMatrixBody().slice(0, 3),
+      "        " + q("os") + ": windows-latest", "    runs-on: ${{ matrix.os }}"];
+    assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(shadowOs), "public-gates"), /direct matrix\.os keys/);
+    const shadowRunner = [...goodMatrixBody(), "    " + q("runs-on") + ": windows-latest"];
+    assert.throws(() => assertTwoOsJob(matrixWorkflowFixture(shadowRunner), "public-gates"), /direct runs-on keys/);
+    const quotedSibling = ["jobs:", ...matrixJobFixture("public-gates", missing),
+      ...matrixJobFixture(q("decoy"), goodMatrixBody()), ...matrixJobFixture("font-transport", goodMatrixBody())];
+    assert.throws(() => assertTwoOsJob(quotedSibling, "public-gates"), /direct matrix\.os keys/);
+  }
 });
 
 /* ================================================================ THE REAL ROW ========
