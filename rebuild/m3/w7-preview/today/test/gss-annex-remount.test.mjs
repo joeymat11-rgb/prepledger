@@ -312,3 +312,84 @@ async function oldDomCannotMutateReplacement() {
 
 test('GSS-G3-OLD-DOM: retired input/add/remove controls cannot mutate replacement state',
   { timeout: 20000 }, oldDomCannotMutateReplacement);
+
+async function refusedEditor(unit, draft) {
+  const before = await collections(unit.settings.repository);
+  const page = await mount(unit, draft, unit.settings);
+  await page.openEditor();
+  page.input('[data-settings-name="0"]', 'Seat');
+  page.input('[data-settings-value="0"]', 'four');
+  unit.fault.state.armed = true; unit.fault.state.mode = 'quota';
+  page.click('[data-slot="settings-save"]');
+  await within(page.mounted.settings.pending(), 'retired control quota');
+  unit.fault.state.armed = false; await settle();
+  assert.equal(page.pick('[data-slot="settings-error"]').textContent, GymApp.SETTINGS_NOT_SAVED,
+    'GSS-G3-RETIRED-QUOTA-PRECONDITION');
+  assert.deepEqual(await collections(unit.settings.repository), before,
+    'GSS-G3-RETIRED-QUOTA-WROTE');
+  return { before, page };
+}
+
+function proveRestored(page, label) {
+  assert.equal(page.pick('[data-slot="settings-editor"]')?.hidden, false,
+    label + '-EDITOR');
+  assert.equal(page.pick('[data-settings-value="0"]')?.value, 'four',
+    label + '-DRAFT');
+  assert.equal(page.pick('[data-slot="settings-error"]')?.textContent, GymApp.SETTINGS_NOT_SAVED,
+    label + '-ERROR');
+}
+
+test('GSS-G3-RETIRED-CANCEL: a retired Cancel cannot erase replacement carry',
+  { timeout: 20000 }, async () => {
+    const unit = await world(); let reopened;
+    try {
+      const draft = newGymDraft();
+      const { before, page: first } = await refusedEditor(unit, draft);
+      const oldCancel = first.pick('[data-action="settings-cancel"]');
+      first.click('[data-action="back"]'); await settle();
+      assert.equal(first.mounted.settings.owns(), false, 'GSS-G3-RETIRED-CANCEL-OLD-OWNS');
+      const second = await mount(unit, draft, unit.settings);
+      proveRestored(second, 'GSS-G3-RETIRED-CANCEL-SECOND');
+      assert.equal(oldCancel.isConnected, false, 'GSS-G3-RETIRED-CANCEL-STILL-CONNECTED');
+      oldCancel.click(); await settle();
+      assert.equal(second.pick('[data-settings-value="0"]').value, 'four',
+        'GSS-G3-RETIRED-CANCEL-MUTATED-REPLACEMENT');
+      second.click('[data-action="back"]'); await settle();
+      const third = await mount(unit, draft, unit.settings);
+      proveRestored(third, 'INDEPENDENT-G3-RETIRED-CANCEL-CARRY');
+      unit.settings.close(); unit.settings = null;
+      reopened = await createMachineSettingsHost({ day: DAY, indexedDB: unit.fault.indexedDB,
+        crypto: webcrypto });
+      assert.deepEqual(await collections(reopened.repository), before,
+        'GSS-G3-RETIRED-CANCEL-WROTE');
+    } finally { unit.fault.state.armed = false; reopened?.close(); unit.settings?.close();
+      unit.dom.window.close(); }
+  });
+
+test('GSS-G3-DELAYED-RESTORE: retired input cannot mutate carry before its clone',
+  { timeout: 20000 }, async () => {
+    const unit = await world(); let reopened; const entered = deferred(), release = deferred();
+    try {
+      const draft = newGymDraft();
+      const { before, page: first } = await refusedEditor(unit, draft);
+      const oldInput = first.pick('[data-settings-value="0"]');
+      first.click('[data-action="back"]'); await settle();
+      assert.equal(first.mounted.settings.owns(), false, 'GSS-G3-DELAYED-RESTORE-OLD-OWNS');
+      const delayed = { latest: async (...args) => { entered.resolve(); await release.promise;
+        return unit.settings.latest(...args); }, save: (...args) => unit.settings.save(...args) };
+      const mounting = mount(unit, draft, delayed);
+      await within(entered.promise, 'delayed restore read entered');
+      assert.equal(oldInput.isConnected, false, 'GSS-G3-DELAYED-RESTORE-INPUT-CONNECTED');
+      oldInput.value = 'retired mutation';
+      oldInput.dispatchEvent(new unit.dom.window.Event('input', { bubbles: true }));
+      release.resolve();
+      const second = await within(mounting, 'delayed restore mount');
+      proveRestored(second, 'INDEPENDENT-G3-DELAYED-RESTORE');
+      unit.settings.close(); unit.settings = null;
+      reopened = await createMachineSettingsHost({ day: DAY, indexedDB: unit.fault.indexedDB,
+        crypto: webcrypto });
+      assert.deepEqual(await collections(reopened.repository), before,
+        'GSS-G3-DELAYED-RESTORE-WROTE');
+    } finally { release.resolve(); unit.fault.state.armed = false; reopened?.close();
+      unit.settings?.close(); unit.dom.window.close(); }
+  });
