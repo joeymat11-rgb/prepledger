@@ -1,6 +1,6 @@
 # S9 P-S9-2 reference-closure author report
 
-Status: MEASURED RED; the constructed MOCK.md digest omission is detected.
+Status: FOCUSED CANDIDATE GREEN; independent review and integration remain owed.
 Base: f123133922868ea2a976e399e5b8abb133a3d540.
 Branch: rebuild/c-s9-reference-closure.
 Owned cell: rebuild/lanes/c/ui-port/reference-closure.test.mjs.
@@ -11,14 +11,19 @@ literal relative new URL expressions and independent sha256 literals.
 The production row reads all four URLs and requires no named refusal.
 Four changed-document controls use that same assertion path and require an
 AssertionError containing D-REFERENCE-CLOSURE CHANGED plus the exact path.
-The red-first source deliberately omits only MOCK.md's digest comparison.
+Red commit 43d5a470 deliberately omitted only MOCK.md's digest comparison.
 That constructed omission is test scaffolding, not a pre-existing product defect.
-Expected red: four reference controls green; MOCK.md changed control red by absence.
+Measured red: four reference controls green; MOCK.md changed control red by absence.
 Removing any one final digest comparison must make its matching control red.
 Measured with the exact command below: 5 tests, 4 pass, 1 fail, exit 1.
 The named red is D-REFERENCE-CLOSURE changed document: rebuild/m1/MOCK.md.
 Red log: C:/Users/joeym/AppData/Local/Temp/earned-s9-reference-closure-d015f1f5fbc446f99fdd23d438b7f403/red.log.
 Red log SHA256: 9b254bbc2b538232f986619f73f8edb2dd39fa8f3e99dd55b9767c1b6e6caf57.
+Final source restores that comparison and checks all four through one assertion path.
+Final cell SHA256: 0ac19325f0969270037f4e9c778a1e126793767442c455ad856dc4c4b607f48b.
+Measured final: 5 tests, 5 pass, 0 fail, exit 0.
+Green log: C:/Users/joeym/AppData/Local/Temp/earned-s9-reference-closure-a22f7ed3c24044cdb41a0285122d007a/green.log.
+Green log SHA256: 604acba445acba85f96c76ddac63ae958542cc12821ce5340372884a2d3bdb59.
 
 ## Git-measured reference hashes
 Earned-refinement-A.html: fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031.
@@ -42,4 +47,5 @@ $env:MEASURED_TEST_NOW='2026-09-03'; $env:TZ='America/New_York';
 ## Limits
 No package, pin literal, CI, token, runner, engine, seal, ledger or status edit.
 The reader is not yet declared by S9.json; integration owns that declaration.
+Runtime is released and no process handle remains.
 No seal, acceptance, full-candidate PASS or cross-platform conclusion is claimed.

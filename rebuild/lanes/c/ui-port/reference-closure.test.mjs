@@ -44,9 +44,6 @@ function referenceRefusals(readFile = fs.readFileSync) {
     let bytes;
     try { bytes = readFile(reference.url); }
     catch { refusals.push("D-REFERENCE-CLOSURE UNREADABLE " + reference.repoPath); continue; }
-    /* CONSTRUCTED RED MUTANT: one digest comparison is deliberately absent for the
-       red-first checkpoint. This is not an existing product defect. */
-    if (reference.repoPath === "rebuild/m1/MOCK.md") continue;
     if (sha256(bytes) !== reference.sha256)
       refusals.push("D-REFERENCE-CLOSURE CHANGED " + reference.repoPath);
   }
