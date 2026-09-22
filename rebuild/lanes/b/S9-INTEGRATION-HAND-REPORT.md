@@ -37,8 +37,8 @@ rather than borrowing the other platform's.
 
 Each merge is a MERGE COMMIT made with `git merge --no-ff --no-commit` and then
 `git -c user.name=... commit -F <msgfile>`. No rebase, no squash, no fast-forward. Each was
-preceded by the preflight the ledger orders: the changed NAMES of the lane against this branch's
-base, intersected with the `product` and `executionPins` keys of
+preceded by the preflight the ledger orders: the incoming changed NAMES from the lane against this
+branch's base, measured with a triple-dot diff and intersected with the `product` and `executionPins` keys of
 `rebuild/m4/spec/acceptance-s8-real-shape.json`.
 
 **The parent artifact, measured in the reading room at this branch's base:** `product` has **224**
@@ -49,7 +49,7 @@ preflight below is intersected with.
 that `DECISIONS:455` and `:582` send such a lane to. Every hit below is part of part 2's
 declaration list, and this section is where that list comes from.
 
-| # | lane | head | changed names vs `8c2bc36e` | sealed hits | conflict |
+| # | lane | head | incoming changed names vs `8c2bc36e` (triple-dot) | sealed hits | conflict |
 | --- | --- | --- | --- | --- | --- |
 | 1 | `origin/rebuild/b-s9-prep-runner` | `a224c7b0` | 26 | **13** | none |
 | 2 | `origin/rebuild/b-s9-prep-cells` | `6f808cfa` | 11 | **3** | none |
@@ -95,15 +95,16 @@ that lane's own comment says it belongs, and no previously landed step was moved
 homes brief item 6 names all exist at the head, and section 5 below lists them with their line
 numbers.
 
-**THE F2 HEAD IS LATER THAN THE BRIEF'S CITATION, AND THIS IS WHAT THE LATER COMMITS ARE.** The
-brief cites `b9777fe4`; `origin/rebuild/d-f2-land` is at `24bef9b9`. Between them stand three
-commits: `938f65ca` and `24bef9b9`, two chain-tip merge-forwards the integrator made for the
-both-OS run under `DECISIONS:563` and `:565`, and `4f89fb9b`, a ledger commit (`DECISIONS:579` to
-`:581`). **F2's own product bytes did not move between the two heads:** `git diff b9777fe4
+**THE F2 HEAD IS LATER THAN THE BRIEF'S CITATION, AND THIS IS WHAT THE LATER HISTORY CONTAINS.** The
+brief cites `b9777fe4`; `origin/rebuild/d-f2-land` is at `24bef9b9`. The first-parent interval has
+two merges, `938f65ca` and `24bef9b9`, both chain-tip merge-forwards the integrator made for the
+both-OS run under `DECISIONS:563` and `:565`. The full ancestry difference makes 49 commits newly
+reachable, including `4f89fb9b`, a ledger commit (`DECISIONS:579` to `:581`). **F2's own product
+bytes did not move between the two heads:** `git diff b9777fe4
 24bef9b9` names `rebuild/m4/workout/setup-tags.cjs` zero times and `rebuild/lanes/d/f2/` zero
 times. What the two merge-forwards brought that this branch did not have is the CHAIN's content up
 to that point: P4b-1's four coach memory modules and two cells, `rebuild/coach/TOOL-CONTRACT.md`,
-`model-adapter.md`, `tools.cjs`, `local-world.mjs`, `test/no-dashes.test.cjs`, five P4B-1 lane
+`model-adapter.md`, `tools.cjs`, `local-world.mjs`, `test/no-dashes.test.cjs`, six P4B-1 lane
 papers, and `rebuild/DECISIONS.md` and `rebuild/lanes/STATUS.md` advancing from 548 lines to 581.
 **This hand edited neither ledger file**; they arrived by merge only, which brief section 2.5 and
 the loop rules both allow. Part 2 should note that this branch therefore already carries the chain
@@ -547,7 +548,7 @@ see what moved, not so anyone can paste them into a spec.
 
 ### 9.2 The preflight of this WHOLE branch against its base, which is part 2's declaration list
 
-`git diff --name-only 8c2bc36e f925b6fe` returns **86** names; intersected with the parent
+The two-dot whole-branch command `git diff --name-only 8c2bc36e f925b6fe` returns **86** names; intersected with the parent
 artifact's 227 keys that is **16 sealed hits**:
 
 ```

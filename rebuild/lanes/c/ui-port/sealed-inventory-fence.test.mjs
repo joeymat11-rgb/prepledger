@@ -62,6 +62,9 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+const conditionIsNotCancelled = (cond) =>
+  /^\s*if:\s*\$\{\{\s*!cancelled\(\)\s*\}\}\s*$/.test(cond);
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 /* rebuild/lanes/c/ui-port -> the repository root. */
 const REPO = path.resolve(HERE, "..", "..", "..", "..");
@@ -1184,22 +1187,87 @@ test("F9 (19) - a branch cut BEFORE the chain sealed this artifact is not accuse
    number, and never globs. */
 test("P-FENCE-1 (18) - this cell's own step in rebuild.yml carries the not-cancelled condition", () => {
   const SELF = path.relative(REPO, fileURLToPath(import.meta.url)).split(path.sep).join("/");
-  const yml = fs.readFileSync(path.join(REPO, ".github", "workflows", "rebuild.yml"), "utf8")
-    .split(/\r?\n/);
-  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(SELF));
-  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + SELF + " at all");
-  let nameAt = runAt;
-  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
-  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), "the run: line sits in no named step");
-  const block = yml.slice(nameAt, runAt + 1);
-  const cond = block.find((l) => /^\s*if:/.test(l));
-  assert.notEqual(cond, undefined,
-    "the fence's own step carries no `if:` at all, so GitHub skips it after the standing "
-    + "step at :150 fails - which is every branch this fence exists for (P-FENCE-1): "
-    + block.map((l) => l.trim()).join(" / "));
-  assert.match(cond, /!\s*cancelled\(\)/,
-    "the condition is not `not cancelled`, so the step either never runs after a failure "
-    + "or runs after a cancellation: " + cond.trim());
+  assertNotCancelled(YML_LINES(), SELF);
+});
+
+test("D-CONDITION-MATCHER: fence readers require the whole permitted expression", () => {
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() }}"), true);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() && false }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ false || !cancelled() }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() || true }}"), false);
+});
+
+test("D-S9G-DECOY: all three fence-owned readers refuse D, E and F workflow decoys", () => {
+  const files = [
+    path.relative(REPO, fileURLToPath(import.meta.url)).split(path.sep).join("/"),
+    "rebuild/lanes/c/passphrase-normalize/helper.test.mjs",
+    "rebuild/m3/w6/test/local-import.test.mjs",
+  ];
+  for (const file of files) {
+    const worlds = decoyWorkflows(file);
+    assert.doesNotThrow(() => assertNotCancelled(worlds.control, file), file + " control");
+    assert.doesNotThrow(() => assertNotCancelled(worlds.afterRun, file), file + " after run");
+    for (const id of ["D", "E", "F"])
+      assert.throws(() => assertNotCancelled(worlds[id], file), undefined, file + " " + id);
+    for (const id of ["duplicateCondition", "duplicateRunner", "siblingPath"])
+      assert.throws(() => assertNotCancelled(worlds[id], file), undefined, file + " " + id);
+  }
+});
+
+test("D-S9G-CONTINUE: all three fence-owned readers refuse a direct continue-on-error key", () => {
+  const files = [
+    path.relative(REPO, fileURLToPath(import.meta.url)).split(path.sep).join("/"),
+    "rebuild/lanes/c/passphrase-normalize/helper.test.mjs",
+    "rebuild/m3/w6/test/local-import.test.mjs",
+  ];
+  const outcomes = [];
+  for (const file of files) {
+    const worlds = decoyWorkflows(file);
+    for (const id of ["control", "grouped", "siblingContinue", "nestedContinue"])
+      assert.doesNotThrow(() => assertNotCancelled(worlds[id], file), undefined, file + " " + id);
+    for (const id of ["continueTrue", "continueFalse"]) {
+      try { assertNotCancelled(worlds[id], file); outcomes.push(file + " " + id + ": accepted"); }
+      catch (e) {
+        outcomes.push(file + " " + id + (e instanceof assert.AssertionError
+          && String(e.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+          ? ": refused by name" : ": wrong refusal"));
+      }
+    }
+  }
+  assert.deepEqual(outcomes, files.flatMap((file) => [
+    file + " continueTrue: refused by name", file + " continueFalse: refused by name",
+  ]));
+});
+
+test("D-S9G-QUOTED-KEY: all three fence readers refuse paired quoted continue-on-error keys", () => {
+  const files = [
+    path.relative(REPO, fileURLToPath(import.meta.url)).split(path.sep).join("/"),
+    "rebuild/lanes/c/passphrase-normalize/helper.test.mjs",
+    "rebuild/m3/w6/test/local-import.test.mjs",
+  ];
+  const ids = ["continueTrue", "continueFalse", "quotedDoubleTrue", "quotedDoubleFalse",
+    "quotedSingleTrue", "quotedSingleFalse"];
+  const outcomes = [];
+  for (const file of files) {
+    const worlds = decoyWorkflows(file);
+    for (const id of ["control", "grouped", "siblingContinue", "nestedContinue",
+      "quotedSiblingContinue", "quotedNestedContinue"])
+      assert.doesNotThrow(() => assertNotCancelled(worlds[id], file), undefined, file + " " + id);
+    assert.throws(() => assertNotCancelled(worlds.quotedIf, file), (error) =>
+      error instanceof assert.AssertionError
+        && !String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN"));
+    assert.doesNotThrow(() => assertNotCancelled(YML_LINES(), file), undefined, file + " real workflow");
+    for (const id of ids) {
+      try { assertNotCancelled(worlds[id], file); outcomes.push(file + " " + id + ": accepted"); }
+      catch (error) {
+        outcomes.push(file + " " + id + (error instanceof assert.AssertionError
+          && String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+          ? ": refused by name" : ": wrong refusal"));
+      }
+    }
+  }
+  assert.deepEqual(outcomes, files.flatMap((file) =>
+    ids.map((id) => file + " " + id + ": refused by name")));
 });
 
 /* ================== R3's TWO BLOCKING FINDINGS, AND THE ROWS THAT CLOSE THEM =========
@@ -1566,33 +1634,104 @@ test("R6-Z2/Z3 (29) - a SAME-LENGTH inventory edit and a ZERO-BYTE inventory eac
    EVERY ROW BELOW READS THE WORKING TREE, FINDS ITS STEP BY EXACT PATH AND NEVER GLOBS,
    which is row (18)'s method and not a new one. */
 const YML_LINES = () => fs.readFileSync(path.join(REPO, ".github", "workflows", "rebuild.yml"), "utf8").split(/\r?\n/);
-function conditionOfStepRunning(file) {
-  const yml = YML_LINES();
-  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(file));
-  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + file + " at all");
-  assert.equal(/[*?]/.test(yml[runAt]), false, "the step globs instead of naming its files: " + yml[runAt].trim());
-  let nameAt = runAt;
-  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
-  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), file + "'s run: line sits in no named step");
-  const block = yml.slice(nameAt, runAt + 1);
-  return { block, cond: block.find((l) => /^\s*if:/.test(l)) };
+function conditionOfStepRunning(yml, file) {
+  const owners = [];
+  for (let nameAt = 0; nameAt < yml.length; nameAt += 1) {
+    const named = /^(\s*)-\s+name:/.exec(yml[nameAt]);
+    if (!named) continue;
+    const stepIndent = named[1].length;
+    let end = nameAt + 1;
+    while (end < yml.length && (!yml[end].trim()
+      || /^\s*/.exec(yml[end])[0].length > stepIndent)) end += 1;
+    const block = yml.slice(nameAt, end);
+    for (const line of block) {
+      const run = /^(\s*)run:\s*node\s+--test\s+(.+?)\s*$/.exec(line);
+      if (!run || run[1].length !== stepIndent + 2) continue;
+      const files = run[2].split(/\s+/);
+      if (files.includes(file)) owners.push({ block, runIndent: run[1].length, line });
+    }
+  }
+  assert.equal(owners.length, 1, "expected exactly one node --test step for " + file);
+  const { block, runIndent, line } = owners[0];
+  assert.equal(/[*?]/.test(line), false,
+    "the step globs instead of naming its files: " + line.trim());
+  const continueKeys = block.filter((entry) => {
+    const match = /^(\s*)(?:continue-on-error|"continue-on-error"|'continue-on-error')\s*:/.exec(entry);
+    return match && match[1].length === runIndent;
+  });
+  assert.equal(continueKeys.length, 0,
+    "STEP-CONTINUE-ON-ERROR-FORBIDDEN " + file + ": "
+    + continueKeys.map((entry) => entry.trim()).join(" / "));
+  const conditions = block.filter((entry) => {
+    const match = /^(\s*)if:/.exec(entry);
+    return match && match[1].length === runIndent;
+  });
+  assert.equal(conditions.length, 1,
+    file + "'s step must carry exactly one step-level `if:`: "
+    + block.map((entry) => entry.trim()).join(" / "));
+  return { block, cond: conditions[0] };
 }
-function assertNotCancelled(file) {
-  const { block, cond } = conditionOfStepRunning(file);
+function assertNotCancelled(yml, file) {
+  const { block, cond } = conditionOfStepRunning(yml, file);
   assert.notEqual(cond, undefined,
     file + "'s step carries no `if:` at all, so GitHub skips it after the standing step at "
     + ":150 fails, which is every branch this package is built on (P-S9-3, DECISIONS:627): "
     + block.map((l) => l.trim()).join(" / "));
-  assert.match(cond, /!\s*cancelled\(\)/,
+  assert.equal(conditionIsNotCancelled(cond), true,
     "the condition is not `not cancelled`, so the step either never runs after a failure "
     + "or runs after a cancellation: " + cond.trim());
+}
+
+function decoyWorkflows(file) {
+  const run = "        run: node --test " + file;
+  return {
+    control: ["      - name: target", "        if: ${{ !cancelled() }}", run],
+    grouped: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        run: node --test synthetic-control.test.mjs " + file],
+    siblingContinue: ["      - name: sibling", "        continue-on-error: true",
+      "        run: echo sibling", "      - name: target", "        if: ${{ !cancelled() }}", run],
+    nestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        env:", "          continue-on-error: true", "        with:",
+      "          continue-on-error: false", run],
+    continueTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        continue-on-error: true", run],
+    continueFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        continue-on-error: false", run],
+    quotedDoubleTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      '        "continue-on-error": true', run],
+    quotedDoubleFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      '        "continue-on-error": false', run],
+    quotedSingleTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        'continue-on-error': true", run],
+    quotedSingleFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        'continue-on-error': false", run],
+    quotedIf: ["      - name: target", '        "if": ${{ !cancelled() }}', run],
+    quotedSiblingContinue: ["      - name: sibling", '        "continue-on-error": true',
+      "        run: echo sibling", "      - name: target", "        if: ${{ !cancelled() }}", run],
+    quotedNestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        env:", '          "continue-on-error": true', "        with:",
+      "          'continue-on-error': false", run],
+    D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
+    E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
+      "        if: ${{ false }}", run],
+    F: ["      - name: decoy", "        if: ${{ !cancelled() }}", "        run: echo " + file,
+      "      - name: target", "        if: ${{ false }}", run],
+    afterRun: ["      - name: target", run, "        env:", "          if: ${{ false }}",
+      "        if: ${{ !cancelled() }}"],
+    duplicateCondition: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        if: ${{ !cancelled() }}", run],
+    duplicateRunner: ["      - name: first", "        if: ${{ !cancelled() }}", run,
+      "      - name: second", "        if: ${{ false }}", run],
+    siblingPath: ["      - name: target", "        if: ${{ !cancelled() }}",
+      run + ".bak"],
+  };
 }
 
 /* P-S9-3, first half. The passphrase lane's step is the guard that keeps every sealed
    bundle valid (E fact 21, that lane's review R2), so it is worth less than nothing if it
    is skipped on the branches that carry the bundle it guards. */
 test("P-S9-3 (30) - the passphrase lane's step carries the not-cancelled condition", () => {
-  assertNotCancelled("rebuild/lanes/c/passphrase-normalize/helper.test.mjs");
+  assertNotCancelled(YML_LINES(), "rebuild/lanes/c/passphrase-normalize/helper.test.mjs");
 });
 
 /* P-S9-3, second half, AND THIS IS THE ROW THE BRIEF MEANS BY "its row lives elsewhere".
@@ -1602,7 +1741,7 @@ test("P-S9-3 (30) - the passphrase lane's step carries the not-cancelled conditi
    rebuild.yml named that file ZERO times, and the cell that pins the phone's five seal
    constants against the PC's ran in no workflow at all. */
 test("P-S9-3 (31) - the local-import step exists and carries the not-cancelled condition", () => {
-  assertNotCancelled("rebuild/m3/w6/test/local-import.test.mjs");
+  assertNotCancelled(YML_LINES(), "rebuild/m3/w6/test/local-import.test.mjs");
 });
 
 /* P-S9-5, THE TWO RE-HOMED INVARIANTS. ci-second-gate.test.cjs:29 asserted three things

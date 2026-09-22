@@ -29,6 +29,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -85,6 +86,92 @@ const FENCE_READ = only(FENCE_SRC, FENCE,
 const runnerReleasedMap = new Function("declaredPins", "bound", "s", RELEASED_MAP + "\n  return releasedMap;");
 const runnerEmit = new Function("release", "releasedMap", "return {\n" + EMIT + "\n};");
 const fenceReadsReleased = new Function("inv", FENCE_READ + "\n  return released;");
+const conditionIsNotCancelled = (cond) =>
+  /^\s*if:\s*\$\{\{\s*!cancelled\(\)\s*\}\}\s*$/.test(cond);
+
+function assertConditionedRun(yml, file, label) {
+  const owners = [];
+  for (let nameAt = 0; nameAt < yml.length; nameAt += 1) {
+    const named = /^(\s*)-\s+name:/.exec(yml[nameAt]);
+    if (!named) continue;
+    const stepIndent = named[1].length;
+    let end = nameAt + 1;
+    while (end < yml.length && (!yml[end].trim()
+      || /^\s*/.exec(yml[end])[0].length > stepIndent)) end += 1;
+    const block = yml.slice(nameAt, end);
+    for (const line of block) {
+      const run = /^(\s*)run:\s*node\s+--test\s+(.+?)\s*$/.exec(line);
+      if (!run || run[1].length !== stepIndent + 2) continue;
+      const files = run[2].split(/\s+/);
+      if (files.includes(file)) owners.push({ block, runIndent: run[1].length, line });
+    }
+  }
+  assert.equal(owners.length, 1, "expected exactly one node --test step for " + file);
+  const { block, runIndent, line } = owners[0];
+  assert.equal(/[*?]/.test(line), false,
+    "the step globs instead of naming its files: " + line.trim());
+  const continueKeys = block.filter((entry) => {
+    const match = /^(\s*)(?:continue-on-error|"continue-on-error"|'continue-on-error')\s*:/.exec(entry);
+    return match && match[1].length === runIndent;
+  });
+  assert.equal(continueKeys.length, 0,
+    "STEP-CONTINUE-ON-ERROR-FORBIDDEN " + label + ": "
+    + continueKeys.map((entry) => entry.trim()).join(" / "));
+  const conditions = block.filter((entry) => {
+    const match = /^(\s*)if:/.exec(entry);
+    return match && match[1].length === runIndent;
+  });
+  assert.equal(conditions.length, 1,
+    label + " must carry exactly one step-level `if:`: "
+    + block.map((entry) => entry.trim()).join(" / "));
+  assert.equal(conditionIsNotCancelled(conditions[0]), true,
+    "the condition is not `not cancelled`: " + conditions[0].trim());
+}
+
+function decoyWorkflows(file) {
+  const run = "        run: node --test " + file;
+  return {
+    control: ["      - name: target", "        if: ${{ !cancelled() }}", run],
+    grouped: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        run: node --test synthetic-control.test.mjs " + file],
+    siblingContinue: ["      - name: sibling", "        continue-on-error: true",
+      "        run: echo sibling", "      - name: target", "        if: ${{ !cancelled() }}", run],
+    nestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        env:", "          continue-on-error: true", "        with:",
+      "          continue-on-error: false", run],
+    continueTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        continue-on-error: true", run],
+    continueFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        continue-on-error: false", run],
+    quotedDoubleTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      '        "continue-on-error": true', run],
+    quotedDoubleFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      '        "continue-on-error": false', run],
+    quotedSingleTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        'continue-on-error': true", run],
+    quotedSingleFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        'continue-on-error': false", run],
+    quotedIf: ["      - name: target", '        "if": ${{ !cancelled() }}', run],
+    quotedSiblingContinue: ["      - name: sibling", '        "continue-on-error": true',
+      "        run: echo sibling", "      - name: target", "        if: ${{ !cancelled() }}", run],
+    quotedNestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        env:", '          "continue-on-error": true', "        with:",
+      "          'continue-on-error': false", run],
+    D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
+    E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
+      "        if: ${{ false }}", run],
+    F: ["      - name: decoy", "        if: ${{ !cancelled() }}", "        run: echo " + file,
+      "      - name: target", "        if: ${{ false }}", run],
+    afterRun: ["      - name: target", run, "        env:", "          if: ${{ false }}",
+      "        if: ${{ !cancelled() }}"],
+    duplicateCondition: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        if: ${{ !cancelled() }}", run],
+    duplicateRunner: ["      - name: first", "        if: ${{ !cancelled() }}", run,
+      "      - name: second", "        if: ${{ false }}", run],
+    siblingPath: ["      - name: target", "        if: ${{ !cancelled() }}",
+      run + ".bak"],
+  };
+}
 
 /* One package's declaration list, through the runner's own two expressions, ending in the
    half of the artifact object this cell is about. `declared` is [path, pre] pairs; the
@@ -191,23 +278,23 @@ test("(5) `released` is the last ARTIFACT_KEYS entry and envelope() closes it by
      (nothing)
         the runner's released block and the fence's reading of it agree in both directions
    Anyone who makes this row green by any other means has removed the cell. */
-test("REAL ROW: the released block of the real acceptance artifact, against the fence's own reading", () => {
-  const abs = path.join(REPO, ...ARTIFACT.split("/"));
+function releaseObjectRefusals(abs, artifact = ARTIFACT) {
   const refusals = [];
   let inv = null;
-  if (!fs.existsSync(abs)) refusals.push("RELEASE-OBJECT ARTIFACT-ABSENT " + ARTIFACT);
+  let parsed = false;
+  if (!fs.existsSync(abs)) refusals.push("RELEASE-OBJECT ARTIFACT-ABSENT " + artifact);
   else {
-    try { inv = JSON.parse(fs.readFileSync(abs, "utf8")); }
-    catch (e) { refusals.push("RELEASE-OBJECT ARTIFACT-NOT-JSON " + ARTIFACT + ": " + String(e.message).split("\n")[0]); }
-    if (inv !== null && (typeof inv !== "object" || Array.isArray(inv))) {
-      refusals.push("RELEASE-OBJECT ARTIFACT-NOT-JSON " + ARTIFACT + ": it parses, but not as a JSON object");
+    try { inv = JSON.parse(fs.readFileSync(abs, "utf8")); parsed = true; }
+    catch (e) { refusals.push("RELEASE-OBJECT ARTIFACT-NOT-JSON " + artifact + ": " + String(e.message).split("\n")[0]); }
+    if (parsed && (inv === null || typeof inv !== "object" || Array.isArray(inv))) {
+      refusals.push("RELEASE-OBJECT ARTIFACT-NOT-JSON " + artifact + ": it parses, but not as a JSON object");
       inv = null;
     }
   }
   if (inv !== null) {
-    if (!Object.prototype.hasOwnProperty.call(inv, "released")) refusals.push("RELEASE-OBJECT RELEASED-BLOCK-ABSENT " + ARTIFACT);
+    if (!Object.prototype.hasOwnProperty.call(inv, "released")) refusals.push("RELEASE-OBJECT RELEASED-BLOCK-ABSENT " + artifact);
     else if (inv.released === null || typeof inv.released !== "object" || Array.isArray(inv.released))
-      refusals.push("RELEASE-OBJECT RELEASED-NOT-AN-OBJECT-KEYED-BY-PATH " + ARTIFACT);
+      refusals.push("RELEASE-OBJECT RELEASED-NOT-AN-OBJECT-KEYED-BY-PATH " + artifact);
     else {
       const seen = fenceReadsReleased(inv);
       for (const file of [CSS, BUILD]) {
@@ -221,11 +308,28 @@ test("REAL ROW: the released block of the real acceptance artifact, against the 
         if (file !== CSS && file !== BUILD) refusals.push("RELEASE-OBJECT RELEASED-UNEXPECTED " + file);
     }
   }
+  return refusals;
+}
+
+test("REAL ROW: the released block of the real acceptance artifact, against the fence's own reading", () => {
+  const abs = path.join(REPO, ...ARTIFACT.split("/"));
+  const refusals = releaseObjectRefusals(abs);
   assert.deepEqual(refusals, [],
     "the release object and the fence's reading of it do not agree at this head. Refusals:\n  "
     + refusals.join("\n  ")
     + "\n(Before the seal the single refusal ARTIFACT-ABSENT is EXPECTED and is the red this"
     + " row was written for: nothing in integration part 1 writes an artifact.)");
+});
+
+test("D-NULL-ARTIFACT: JSON null is refused by the real release-object reader", (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "s9-null-artifact-"));
+  t.after(() => fs.rmSync(dir, { recursive: true }));
+  const artifact = "synthetic-null.json";
+  const abs = path.join(dir, artifact);
+  fs.writeFileSync(abs, "null\n");
+  assert.deepEqual(releaseObjectRefusals(abs, artifact), [
+    "RELEASE-OBJECT ARTIFACT-NOT-JSON " + artifact + ": it parses, but not as a JSON object",
+  ]);
 });
 
 /* (7) THIS CELL'S OWN STEP IN rebuild.yml, and the condition on it. Same rule, same
@@ -236,19 +340,63 @@ test("REAL ROW: the released block of the real acceptance artifact, against the 
    ever run on before the S9 fast-forward. */
 test("(7) this cell's own step in rebuild.yml exists, names it by exact path and carries the not-cancelled condition", () => {
   const yml = fs.readFileSync(path.join(REPO, ".github", "workflows", "rebuild.yml"), "utf8").split(/\r?\n/);
-  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(SELF));
-  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + SELF + " at all");
-  assert.equal(/[*?]/.test(yml[runAt]), false, "the step globs instead of naming its files: " + yml[runAt].trim());
-  let nameAt = runAt;
-  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
-  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), "the run: line sits in no named step");
-  const block = yml.slice(nameAt, runAt + 1);
-  const cond = block.find((l) => /^\s*if:/.test(l));
-  assert.notEqual(cond, undefined,
-    "this cell's step carries no `if:` at all, so GitHub skips it after the standing step "
-    + "at :150 fails: " + block.map((l) => l.trim()).join(" / "));
-  assert.match(cond, /!\s*cancelled\(\)/,
-    "the condition is not `not cancelled`: " + cond.trim());
+  assertConditionedRun(yml, SELF, "this cell's step");
+});
+
+test("D-S9G-DECOY: release-object reader refuses D, E and F workflow decoys", () => {
+  const worlds = decoyWorkflows(SELF);
+  assert.doesNotThrow(() => assertConditionedRun(worlds.control, SELF, "control"));
+  assert.doesNotThrow(() => assertConditionedRun(worlds.afterRun, SELF, "after run"));
+  for (const id of ["D", "E", "F"])
+    assert.throws(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+  for (const id of ["duplicateCondition", "duplicateRunner", "siblingPath"])
+    assert.throws(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+});
+
+test("D-S9G-CONTINUE: release-object reader refuses a direct continue-on-error key", () => {
+  const worlds = decoyWorkflows(SELF);
+  for (const id of ["control", "grouped", "siblingContinue", "nestedContinue"])
+    assert.doesNotThrow(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+  const outcomes = ["continueTrue", "continueFalse"].map((id) => {
+    try { assertConditionedRun(worlds[id], SELF, id); return id + ": accepted"; }
+    catch (e) {
+      return id + (e instanceof assert.AssertionError
+        && String(e.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+        ? ": refused by name" : ": wrong refusal");
+    }
+  });
+  assert.deepEqual(outcomes, ["continueTrue: refused by name", "continueFalse: refused by name"]);
+});
+
+test("D-S9G-QUOTED-KEY: release-object reader refuses paired quoted continue-on-error keys", () => {
+  const worlds = decoyWorkflows(SELF);
+  for (const id of ["control", "grouped", "siblingContinue", "nestedContinue",
+    "quotedSiblingContinue", "quotedNestedContinue"])
+    assert.doesNotThrow(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+  assert.throws(() => assertConditionedRun(worlds.quotedIf, SELF, "quotedIf"), (error) =>
+    error instanceof assert.AssertionError
+      && !String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN"));
+  const real = fs.readFileSync(path.join(REPO, ".github", "workflows", "rebuild.yml"), "utf8")
+    .split(/\r?\n/);
+  assert.doesNotThrow(() => assertConditionedRun(real, SELF, "real workflow"));
+  const ids = ["continueTrue", "continueFalse", "quotedDoubleTrue", "quotedDoubleFalse",
+    "quotedSingleTrue", "quotedSingleFalse"];
+  const outcomes = ids.map((id) => {
+    try { assertConditionedRun(worlds[id], SELF, id); return id + ": accepted"; }
+    catch (error) {
+      return id + (error instanceof assert.AssertionError
+        && String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+        ? ": refused by name" : ": wrong refusal");
+    }
+  });
+  assert.deepEqual(outcomes, ids.map((id) => id + ": refused by name"));
+});
+
+test("D-CONDITION-MATCHER: release-object requires the whole permitted expression", () => {
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() }}"), true);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() && false }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ false || !cancelled() }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() || true }}"), false);
 });
 
 /* The refusal vocabulary of the real row, named so it is readable from outside and

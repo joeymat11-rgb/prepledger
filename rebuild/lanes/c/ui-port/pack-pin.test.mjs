@@ -68,6 +68,93 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+const conditionIsNotCancelled = (cond) =>
+  /^\s*if:\s*\$\{\{\s*!cancelled\(\)\s*\}\}\s*$/.test(cond);
+
+function assertConditionedRun(yml, file, label) {
+  const owners = [];
+  for (let nameAt = 0; nameAt < yml.length; nameAt += 1) {
+    const named = /^(\s*)-\s+name:/.exec(yml[nameAt]);
+    if (!named) continue;
+    const stepIndent = named[1].length;
+    let end = nameAt + 1;
+    while (end < yml.length && (!yml[end].trim()
+      || /^\s*/.exec(yml[end])[0].length > stepIndent)) end += 1;
+    const block = yml.slice(nameAt, end);
+    for (const line of block) {
+      const run = /^(\s*)run:\s*node\s+--test\s+(.+?)\s*$/.exec(line);
+      if (!run || run[1].length !== stepIndent + 2) continue;
+      const files = run[2].split(/\s+/);
+      if (files.includes(file)) owners.push({ block, runIndent: run[1].length, line });
+    }
+  }
+  assert.equal(owners.length, 1, "expected exactly one node --test step for " + file);
+  const { block, runIndent, line } = owners[0];
+  assert.equal(/[*?]/.test(line), false,
+    "the step globs instead of naming its files: " + line.trim());
+  const continueKeys = block.filter((entry) => {
+    const match = /^(\s*)(?:continue-on-error|"continue-on-error"|'continue-on-error')\s*:/.exec(entry);
+    return match && match[1].length === runIndent;
+  });
+  assert.equal(continueKeys.length, 0,
+    "STEP-CONTINUE-ON-ERROR-FORBIDDEN " + label + ": "
+    + continueKeys.map((entry) => entry.trim()).join(" / "));
+  const conditions = block.filter((entry) => {
+    const match = /^(\s*)if:/.exec(entry);
+    return match && match[1].length === runIndent;
+  });
+  assert.equal(conditions.length, 1,
+    label + " must carry exactly one step-level `if:`: "
+    + block.map((entry) => entry.trim()).join(" / "));
+  assert.equal(conditionIsNotCancelled(conditions[0]), true,
+    "the condition is not `not cancelled`: " + conditions[0].trim());
+}
+
+function decoyWorkflows(file) {
+  const run = "        run: node --test " + file;
+  return {
+    control: ["      - name: target", "        if: ${{ !cancelled() }}", run],
+    grouped: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        run: node --test synthetic-control.test.mjs " + file],
+    siblingContinue: ["      - name: sibling", "        continue-on-error: true",
+      "        run: echo sibling", "      - name: target", "        if: ${{ !cancelled() }}", run],
+    nestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        env:", "          continue-on-error: true", "        with:",
+      "          continue-on-error: false", run],
+    continueTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        continue-on-error: true", run],
+    continueFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        continue-on-error: false", run],
+    quotedDoubleTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      '        "continue-on-error": true', run],
+    quotedDoubleFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      '        "continue-on-error": false', run],
+    quotedSingleTrue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        'continue-on-error': true", run],
+    quotedSingleFalse: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        'continue-on-error': false", run],
+    quotedIf: ["      - name: target", '        "if": ${{ !cancelled() }}', run],
+    quotedSiblingContinue: ["      - name: sibling", '        "continue-on-error": true',
+      "        run: echo sibling", "      - name: target", "        if: ${{ !cancelled() }}", run],
+    quotedNestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        env:", '          "continue-on-error": true', "        with:",
+      "          'continue-on-error': false", run],
+    D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
+    E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
+      "        if: ${{ false }}", run],
+    F: ["      - name: decoy", "        if: ${{ !cancelled() }}", "        run: echo " + file,
+      "      - name: target", "        if: ${{ false }}", run],
+    afterRun: ["      - name: target", run, "        env:", "          if: ${{ false }}",
+      "        if: ${{ !cancelled() }}"],
+    duplicateCondition: ["      - name: target", "        if: ${{ !cancelled() }}",
+      "        if: ${{ !cancelled() }}", run],
+    duplicateRunner: ["      - name: first", "        if: ${{ !cancelled() }}", run,
+      "      - name: second", "        if: ${{ false }}", run],
+    siblingPath: ["      - name: target", "        if: ${{ !cancelled() }}",
+      run + ".bak"],
+  };
+}
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, "../../../..");
 
@@ -1298,21 +1385,66 @@ test("P-FENCE-1 / DECISIONS:570 - this cell's own step in rebuild.yml carries th
   const SELF = path.relative(REPO_ROOT, fileURLToPath(import.meta.url)).split(path.sep).join("/");
   const yml = fs.readFileSync(path.join(REPO_ROOT, ".github", "workflows", "rebuild.yml"), "utf8")
     .split(/\r?\n/);
-  const runAt = yml.findIndex((l) => l.trim().startsWith("run:") && l.includes(SELF));
-  assert.notEqual(runAt, -1, "no step in rebuild.yml runs " + SELF + " at all");
-  assert.equal(/[*?]/.test(yml[runAt]), false, "the step globs instead of naming its files: " + yml[runAt].trim());
-  let nameAt = runAt;
-  while (nameAt > 0 && !/^\s*-\s+name:/.test(yml[nameAt])) nameAt -= 1;
-  assert.ok(/^\s*-\s+name:/.test(yml[nameAt]), "the run: line sits in no named step");
-  const block = yml.slice(nameAt, runAt + 1);
-  const cond = block.find((l) => /^\s*if:/.test(l));
-  assert.notEqual(cond, undefined,
-    "the pack step carries no `if:` at all, so GitHub skips it after the standing step at "
-    + ":150 fails - which is every branch these two cells exist for (P-FENCE-1, "
-    + "DECISIONS:559): " + block.map((l) => l.trim()).join(" / "));
-  assert.match(cond, /!\s*cancelled\(\)/,
-    "the condition is not `not cancelled`, so the step either never runs after a failure "
-    + "or runs after a cancellation: " + cond.trim());
+  assertConditionedRun(yml, SELF, "the pack step");
+});
+
+test("D-S9G-DECOY: pack reader refuses D, E and F workflow decoys", () => {
+  const SELF = path.relative(REPO_ROOT, fileURLToPath(import.meta.url)).split(path.sep).join("/");
+  const worlds = decoyWorkflows(SELF);
+  assert.doesNotThrow(() => assertConditionedRun(worlds.control, SELF, "control"));
+  assert.doesNotThrow(() => assertConditionedRun(worlds.afterRun, SELF, "after run"));
+  for (const id of ["D", "E", "F"])
+    assert.throws(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+  for (const id of ["duplicateCondition", "duplicateRunner", "siblingPath"])
+    assert.throws(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+});
+
+test("D-S9G-CONTINUE: pack reader refuses a direct continue-on-error key", () => {
+  const SELF = path.relative(REPO_ROOT, fileURLToPath(import.meta.url)).split(path.sep).join("/");
+  const worlds = decoyWorkflows(SELF);
+  for (const id of ["control", "grouped", "siblingContinue", "nestedContinue"])
+    assert.doesNotThrow(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+  const outcomes = ["continueTrue", "continueFalse"].map((id) => {
+    try { assertConditionedRun(worlds[id], SELF, id); return id + ": accepted"; }
+    catch (e) {
+      return id + (e instanceof assert.AssertionError
+        && String(e.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+        ? ": refused by name" : ": wrong refusal");
+    }
+  });
+  assert.deepEqual(outcomes, ["continueTrue: refused by name", "continueFalse: refused by name"]);
+});
+
+test("D-S9G-QUOTED-KEY: pack reader refuses paired quoted continue-on-error keys", () => {
+  const SELF = path.relative(REPO_ROOT, fileURLToPath(import.meta.url)).split(path.sep).join("/");
+  const worlds = decoyWorkflows(SELF);
+  for (const id of ["control", "grouped", "siblingContinue", "nestedContinue",
+    "quotedSiblingContinue", "quotedNestedContinue"])
+    assert.doesNotThrow(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+  assert.throws(() => assertConditionedRun(worlds.quotedIf, SELF, "quotedIf"), (error) =>
+    error instanceof assert.AssertionError
+      && !String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN"));
+  const real = fs.readFileSync(path.join(REPO_ROOT, ".github", "workflows", "rebuild.yml"), "utf8")
+    .split(/\r?\n/);
+  assert.doesNotThrow(() => assertConditionedRun(real, SELF, "real workflow"));
+  const ids = ["continueTrue", "continueFalse", "quotedDoubleTrue", "quotedDoubleFalse",
+    "quotedSingleTrue", "quotedSingleFalse"];
+  const outcomes = ids.map((id) => {
+    try { assertConditionedRun(worlds[id], SELF, id); return id + ": accepted"; }
+    catch (error) {
+      return id + (error instanceof assert.AssertionError
+        && String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+        ? ": refused by name" : ": wrong refusal");
+    }
+  });
+  assert.deepEqual(outcomes, ids.map((id) => id + ": refused by name"));
+});
+
+test("D-CONDITION-MATCHER: pack reader requires the whole permitted expression", () => {
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() }}"), true);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() && false }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ false || !cancelled() }}"), false);
+  assert.equal(conditionIsNotCancelled("  if: ${{ !cancelled() || true }}"), false);
 });
 
 /* Named so the refusal vocabulary is readable from outside and cannot drift in silence:
