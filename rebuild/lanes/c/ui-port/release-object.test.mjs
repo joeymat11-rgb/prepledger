@@ -157,6 +157,16 @@ function decoyWorkflows(file) {
     quotedNestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
       "        env:", '          "continue-on-error": true', "        with:",
       "          'continue-on-error': false", run],
+    commentCutIndented: ["      - name: target", "        if: ${{ !cancelled() }}", run,
+      "      # same step", "        continue-on-error: true"],
+    commentCutColumn0: ["      - name: target", "        if: ${{ !cancelled() }}", run,
+      "# same step", "        continue-on-error: true"],
+    commentBoundaryIndented: ["      - name: target", "        if: ${{ !cancelled() }}", run,
+      "      # divider", "      - name: sibling", "        continue-on-error: true",
+      "        run: echo sibling"],
+    commentBoundaryColumn0: ["      - name: target", "        if: ${{ !cancelled() }}", run,
+      "# divider", "      - name: sibling", "        continue-on-error: true",
+      "        run: echo sibling"],
     D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
     E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
       "        if: ${{ false }}", run],
@@ -381,6 +391,25 @@ test("D-S9G-QUOTED-KEY: release-object reader refuses paired quoted continue-on-
   assert.doesNotThrow(() => assertConditionedRun(real, SELF, "real workflow"));
   const ids = ["continueTrue", "continueFalse", "quotedDoubleTrue", "quotedDoubleFalse",
     "quotedSingleTrue", "quotedSingleFalse"];
+  const outcomes = ids.map((id) => {
+    try { assertConditionedRun(worlds[id], SELF, id); return id + ": accepted"; }
+    catch (error) {
+      return id + (error instanceof assert.AssertionError
+        && String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+        ? ": refused by name" : ": wrong refusal");
+    }
+  });
+  assert.deepEqual(outcomes, ids.map((id) => id + ": refused by name"));
+});
+
+test("D-S9G-COMMENT-CUT: release reader crosses comments without crossing step boundaries", () => {
+  const worlds = decoyWorkflows(SELF);
+  for (const id of ["control", "commentBoundaryIndented", "commentBoundaryColumn0"])
+    assert.doesNotThrow(() => assertConditionedRun(worlds[id], SELF, id), undefined, id);
+  const real = fs.readFileSync(path.join(REPO, ".github", "workflows", "rebuild.yml"), "utf8")
+    .split(/\r?\n/);
+  assert.doesNotThrow(() => assertConditionedRun(real, SELF, "real workflow"));
+  const ids = ["commentCutIndented", "commentCutColumn0"];
   const outcomes = ids.map((id) => {
     try { assertConditionedRun(worlds[id], SELF, id); return id + ": accepted"; }
     catch (error) {

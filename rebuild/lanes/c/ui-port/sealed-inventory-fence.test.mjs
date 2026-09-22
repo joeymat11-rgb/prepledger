@@ -1270,6 +1270,33 @@ test("D-S9G-QUOTED-KEY: all three fence readers refuse paired quoted continue-on
     ids.map((id) => file + " " + id + ": refused by name")));
 });
 
+test("D-S9G-COMMENT-CUT: all three fence readers cross comments but retain step boundaries", () => {
+  const files = [
+    path.relative(REPO, fileURLToPath(import.meta.url)).split(path.sep).join("/"),
+    "rebuild/lanes/c/passphrase-normalize/helper.test.mjs",
+    "rebuild/m3/w6/test/local-import.test.mjs",
+  ];
+  const outcomes = [];
+  for (const file of files) {
+    const worlds = decoyWorkflows(file);
+    for (const id of ["control", "commentBoundaryIndented", "commentBoundaryColumn0"])
+      assert.doesNotThrow(() => assertNotCancelled(worlds[id], file), undefined, file + " " + id);
+    assert.doesNotThrow(() => assertNotCancelled(YML_LINES(), file), undefined, file + " real workflow");
+    for (const id of ["commentCutIndented", "commentCutColumn0"]) {
+      try { assertNotCancelled(worlds[id], file); outcomes.push(file + " " + id + ": accepted"); }
+      catch (error) {
+        outcomes.push(file + " " + id + (error instanceof assert.AssertionError
+          && String(error.message).includes("STEP-CONTINUE-ON-ERROR-FORBIDDEN")
+          ? ": refused by name" : ": wrong refusal"));
+      }
+    }
+  }
+  assert.deepEqual(outcomes, files.flatMap((file) => [
+    file + " commentCutIndented: refused by name",
+    file + " commentCutColumn0: refused by name",
+  ]));
+});
+
 /* ================== R3's TWO BLOCKING FINDINGS, AND THE ROWS THAT CLOSE THEM =========
    R3 swept 50 clauses of fence(), killed 44, and the two findings below are what the six
    survivors came to. Each row here exists because a clause was load-bearing and silent. */
@@ -1711,6 +1738,16 @@ function decoyWorkflows(file) {
     quotedNestedContinue: ["      - name: target", "        if: ${{ !cancelled() }}",
       "        env:", '          "continue-on-error": true', "        with:",
       "          'continue-on-error': false", run],
+    commentCutIndented: ["      - name: target", "        if: ${{ !cancelled() }}", run,
+      "      # same step", "        continue-on-error: true"],
+    commentCutColumn0: ["      - name: target", "        if: ${{ !cancelled() }}", run,
+      "# same step", "        continue-on-error: true"],
+    commentBoundaryIndented: ["      - name: target", "        if: ${{ !cancelled() }}", run,
+      "      # divider", "      - name: sibling", "        continue-on-error: true",
+      "        run: echo sibling"],
+    commentBoundaryColumn0: ["      - name: target", "        if: ${{ !cancelled() }}", run,
+      "# divider", "      - name: sibling", "        continue-on-error: true",
+      "        run: echo sibling"],
     D: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}", run],
     E: ["      - name: target", "        env:", "          if: ${{ !cancelled() }}",
       "        if: ${{ false }}", run],
