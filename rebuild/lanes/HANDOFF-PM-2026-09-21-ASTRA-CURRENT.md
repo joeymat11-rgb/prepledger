@@ -1,5 +1,5 @@
 # Earned current PM checkpoint, 2026-09-21
-Continuity only, not a seat transfer. Later ledger entries control; latest748.
+Continuity only, not a seat transfer. Later ledger entries control; latest749.
 Sole PM task01a0c6fe-004c-7330-90f2-df02af3c7290, seated738 after release737.
 Goal remains approved rebuild until verified ready for Joe's trial; not achieved.
 PM tree: C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm.
@@ -38,11 +38,11 @@ ProductSHAd41d1e5c52a8850058485129de2eb8c357a6f38bb770c9f2b482ce2f7b528159.
 ProofSHAcea1cd3f392d8ef679e0659eb2b8cf6c6b9742e23b343ab1927fb797d6fbb74b.
 Removal fails missing restored editor at earlier RETIRED-INPUT-MUTATED-FRESH-EDITOR.
 Original immutable red retained; no assertion order change to manufacture oldmarker.
-Author terminal/released; /root/s9_quoted_review now owns sole runtime for narrow L2.
-Reviewer G4 started PID25300; verify terminal/release before any next grant.
+Independent ACCEPTd5aa5db:astra/reviews/GSS-G5-REPAIR-REVIEW-L2.md,56lines/eight hashes checked749.
+Reviewer G4 1/1,G5 2/2/removal complete; allPIDs terminal/released. RuntimeFREE.
 No engine/model/store/writer guard edits; preserve exact context/fresh editor and maps.
 Author/reviewer loop through ACCEPT, disputed finding or round3; PM judges at end.
-Sol /root/s9_font_home assigned disjoint G6-G8 STATIC proof prep748, no runtime/product edits.
+Sol /root/s9_font_home G6-G8 STATIC prep748 may compose588c840; plan review before runtime.
 Old coordinator01a0c4a5 route unavailable; oldworkers idle, evidence preserved.
 
 ## Owner choices and guardrails
@@ -53,4 +53,4 @@ Separate preparation/capture engine issue still needs its own owner word.
 Queue unchanged:S9look/seal; phoneearns beforetrial; split/EditMyWeek;N3;re-plan;P4b-2.
 Never protected/old-app paths or engine seed,migrate,merge,index,oracle-shim.
 No main/deploy/import/purchase/fallback/newengine semantics inferred.
-One runtime, no heartbeats/sharednpm/duplicatework/weakenedguards. Latestweekly44percent.
+One runtime, no heartbeats/sharednpm/duplicatework/weakenedguards. Latestweekly45percent.
