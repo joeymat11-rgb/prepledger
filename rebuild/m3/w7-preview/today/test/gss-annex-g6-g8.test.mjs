@@ -85,6 +85,7 @@ function heldLogModel(unit, seam) {
       submitted = copy(raw);
       let envelope;
       try {
+        if (seam === 'before-prepare') { reached.resolve({ seam }); await release.promise; }
         const result = await actual.logSet(raw);
         envelope = { kind: 'returned', result: copy(result) };
         return result;
@@ -235,7 +236,7 @@ async function runG6(seam, plant = false) {
 async function runG7(mode, plant = false) {
   const unit = await device('g7-' + mode + '-' + (plant ? 'plant' : 'candidate'));
   const seam = mode === 'quota-after-repaint' || mode === 'clean-after-repaint'
-    ? 'before-commit' : 'after-commit';
+    ? 'before-prepare' : 'after-commit';
   const held = heldLogModel(unit, seam), draft = newGymDraft();
   let mounted = null, reopened = null, changed = 0;
   try {
