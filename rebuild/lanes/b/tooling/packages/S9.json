@@ -1,0 +1,1691 @@
+{
+  "version": 1,
+  "lanePackage": "S9",
+  "packageId": "M2-S9-UI-PINS",
+  "status": "PROPOSED",
+  "brief": {
+    "file": "rebuild/lanes/b/S9-UI-PINS-BRIEF.md",
+    "sha256": "abf3f670835803b94ac768bf0c0b0a0de5d2570302abd7651179e9005efb3f58",
+    "acceptedLedgerLine": null
+  },
+  "sourceBase": "0cd07be7cf967dfbfea8c84947ba8477f58cfb5f",
+  "dIds": [],
+  "laws": {},
+  "carriedAcceptedIds": [
+    "D12",
+    "D33",
+    "D34",
+    "D35",
+    "D41",
+    "D43"
+  ],
+  "privateLiveTriggered": [],
+  "parent": {
+    "decided": true,
+    "chosen": "S8",
+    "options": [
+      {
+        "id": "S8",
+        "artifact": "rebuild/m4/spec/acceptance-s8-real-shape.json",
+        "sha256": "3cf58e0edd76a56353b35008ef154d484098b5017fedeb648eb64a0ae6568d48",
+        "review": "rebuild/m4/spec/review-s8-real-shape.json",
+        "reviewSha256": "f7b9b51e38755f3364b398189b50be927e058b8606945f1a9fb51e1cd66cc632",
+        "receiptLedgerLine": null,
+        "note": "Parent files measured; receipt and authority prose remain PM-owned."
+      }
+    ]
+  },
+  "tooling": {
+    "runner": "rebuild/lanes/b/tooling/b-package.cjs",
+    "runnerSha256": "5321181a14bd5716c1d8692d40d5086cd10179609dcccced6d7a6da04704fd22"
+  },
+  "product": {
+    ".github/workflows/rebuild.yml": {
+      "pre": "8403d10b1a54d721a17e92cc0c2eb7fe119379b65cc4ba9625e6a7196ad9d532",
+      "post": "66f2ac9ceb19322a69b0b8a5ea725511fb208d546ac7662d4f0f751d9b3d9d0e",
+      "role": "edited"
+    },
+    ".github/workflows/shared-preflight.yml": {
+      "pre": "99edda0784bdcaac010bb0261d6eaa37f8ed5c0cc562928e900489d145f4f491",
+      "post": "99edda0784bdcaac010bb0261d6eaa37f8ed5c0cc562928e900489d145f4f491",
+      "role": "carried"
+    },
+    "rebuild/engine/constants.cjs": {
+      "pre": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "post": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "role": "carried"
+    },
+    "rebuild/engine/dates.cjs": {
+      "pre": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "post": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "role": "carried"
+    },
+    "rebuild/engine/earn.cjs": {
+      "pre": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "post": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "role": "carried"
+    },
+    "rebuild/engine/energy.cjs": {
+      "pre": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "post": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "role": "carried"
+    },
+    "rebuild/engine/entered-load.cjs": {
+      "pre": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "post": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "role": "carried"
+    },
+    "rebuild/engine/index.cjs": {
+      "pre": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/index.cjs].post",
+      "post": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/index.cjs].post",
+      "role": "carried"
+    },
+    "rebuild/engine/merge.cjs": {
+      "pre": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/merge.cjs].post",
+      "post": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/merge.cjs].post",
+      "role": "carried"
+    },
+    "rebuild/engine/migrate.cjs": {
+      "pre": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/migrate.cjs].post",
+      "post": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/migrate.cjs].post",
+      "role": "carried"
+    },
+    "rebuild/engine/oracle-shim.cjs": {
+      "pre": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/oracle-shim.cjs].post",
+      "post": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/oracle-shim.cjs].post",
+      "role": "carried"
+    },
+    "rebuild/engine/performed.cjs": {
+      "pre": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "post": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "role": "carried"
+    },
+    "rebuild/engine/plan.cjs": {
+      "pre": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "post": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "role": "carried"
+    },
+    "rebuild/engine/policy.cjs": {
+      "pre": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "post": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "role": "carried"
+    },
+    "rebuild/engine/progression.cjs": {
+      "pre": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "post": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "role": "carried"
+    },
+    "rebuild/engine/seed.cjs": {
+      "pre": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/seed.cjs].post",
+      "post": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/seed.cjs].post",
+      "role": "carried"
+    },
+    "rebuild/engine/sleep.cjs": {
+      "pre": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "post": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "role": "carried"
+    },
+    "rebuild/engine/today.cjs": {
+      "pre": "685f6e1e907cd9bba268e5d8f6927120172869febe1c747ffb9bd851aa17c45a",
+      "post": "685f6e1e907cd9bba268e5d8f6927120172869febe1c747ffb9bd851aa17c45a",
+      "role": "carried"
+    },
+    "rebuild/engine/volume.cjs": {
+      "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "post": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "role": "carried"
+    },
+    "rebuild/engine/writers.cjs": {
+      "pre": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+      "post": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+      "role": "carried"
+    },
+    "rebuild/lanes/b/tooling/b-package.cjs": {
+      "pre": "e31dd206c0fb0fc0c295df45eae3992d4c59b1a76de8da04a4d0f22948e9335e",
+      "post": "5321181a14bd5716c1d8692d40d5086cd10179609dcccced6d7a6da04704fd22",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/B-NTC.json": {
+      "pre": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
+      "post": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
+      "role": "carried"
+    },
+    "rebuild/lanes/b/tooling/packages/H3.json": {
+      "pre": "137cc5ee36bbdd50ab2a34b4f0c7e407e1d889063e2f176b01e9d31566ba275e",
+      "post": "8962c995669829ee4b7e0678203f3fea31025da1e62adac3e712c56b68692fe9",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/S3.json": {
+      "pre": "d354cec7bbe020912ff317477dc66e4ef6e9f94e625e729e2504d6e33143d84d",
+      "post": "c534bd3724f5af2ab003d8c3ed8a06410651299716849b2c28bc02980bf4ca61",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/S4.json": {
+      "pre": "165bd6b16581be91a711fc63addc6835a2eac3f143e649e61d321c5d6a93bab2",
+      "post": "23b73cca3727ccf817aa17893c761832658ab2a0969c300b162e32b89bda76cd",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/S5.json": {
+      "pre": "60a00077b6e2ea48fc5c94832e97ea759852b9c32b9e4c835765737fef4ff1fc",
+      "post": "ff9ab81fe0f15df71fb744f209619e0f66a4f3bc7475319f211b637327242034",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/packages/S6.json": {
+      "pre": "45eea528180d256843a6edd71b5768a9fce0f78b0f0742e7cc70680e8a9e10cd",
+      "post": "4e6346ad4ef56fce79b61958325428dc9f63a62136516507a7c3e5088f009c98",
+      "role": "edited"
+    },
+    "rebuild/lanes/b/tooling/test/pinned-unchanged-and-ruled-substitutions.test.cjs": {
+      "pre": "24525b8f97e90ef0a4501ef233c253989387281315127ed1742943acee19d3e1",
+      "post": "a8ebdb7d74c95c563896cb71fd9d8fa901091d865bd238f27267b87145d65195",
+      "role": "edited"
+    },
+    "rebuild/lanes/d/b-lom/legacy-order.test.mjs": {
+      "pre": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
+      "post": "f091a5600852e539beb50a0a34ea2b392eb7f2f20ec28e400a679a1cf8f7cc48",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/import-retract/retract.test.mjs": {
+      "pre": "1f1f3feb6a7d6cb4c14ffeafb19c22b49a2692cf6e4d4584364886bbd188612e",
+      "post": "1f1f3feb6a7d6cb4c14ffeafb19c22b49a2692cf6e4d4584364886bbd188612e",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs": {
+      "pre": "5c8f04e31f7e07af0313b326bcc7dbffadc5115fc509618e0232fe3e46264a88",
+      "post": "5c8f04e31f7e07af0313b326bcc7dbffadc5115fc509618e0232fe3e46264a88",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-followons/admission-swap.test.mjs": {
+      "pre": "2aa2ccf53362f5a69ceda88f153e9a9201c050b9ef355a1f9e731a45eee61300",
+      "post": "2aa2ccf53362f5a69ceda88f153e9a9201c050b9ef355a1f9e731a45eee61300",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs": {
+      "pre": "45b435343a7b74a7db977bbbfc792db4af3d3d25b3f81d08954ca9280731830f",
+      "post": "45b435343a7b74a7db977bbbfc792db4af3d3d25b3f81d08954ca9280731830f",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs": {
+      "pre": "08f9a5fbcb4d83d70c807422578986b751b74bdce849eb046b84157e641bb383",
+      "post": "08f9a5fbcb4d83d70c807422578986b751b74bdce849eb046b84157e641bb383",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs": {
+      "pre": "ae5c3c7853960885df175e46a697e817befa58fc038ab79044de9787c80ced83",
+      "post": "ae5c3c7853960885df175e46a697e817befa58fc038ab79044de9787c80ced83",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs": {
+      "pre": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
+      "post": "9d1001ec1a1cb199b6f2012ac80e98a971845d245d10bece6c457d257ac5ac94",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs": {
+      "pre": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
+      "post": "1a93e75f23a8c650783956cc1bf134d743ad12918939ad781c66c151ff63be26",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs": {
+      "pre": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
+      "post": "89c87be1e5c42bfbc0c4a11addd02da4921d7ac845d8522c91a352dfc87e51eb",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs": {
+      "pre": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
+      "post": "3fe8f76f21a69e95827551f4c44ee78933643f4a5a06517a62fda4e7a44e8964",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs": {
+      "pre": "448193e0216cabd3eedc4a50e8b1719c0ca493c9385ec291e0fc35f5143ece2d",
+      "post": "448193e0216cabd3eedc4a50e8b1719c0ca493c9385ec291e0fc35f5143ece2d",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs": {
+      "pre": "ab94da99c18e7c27f283d51b2a561688d313490eb76e3569681ba9a8cbd58748",
+      "post": "ab94da99c18e7c27f283d51b2a561688d313490eb76e3569681ba9a8cbd58748",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/plan-edit/browser-build.test.mjs": {
+      "pre": "20480bef0ebf788b1a4b5a9eb138fa68f4c1d0c22936d56620a1c7ec50149f1a",
+      "post": "20480bef0ebf788b1a4b5a9eb138fa68f4c1d0c22936d56620a1c7ec50149f1a",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/plan-edit/client-p6.test.cjs": {
+      "pre": "b31a25e43dc318ee9ddc900b44244edf5a02adf490a9df86e40b1c44e8102d7c",
+      "post": "b31a25e43dc318ee9ddc900b44244edf5a02adf490a9df86e40b1c44e8102d7c",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/plan-edit/durable-host.test.mjs": {
+      "pre": "e986c046bb675309eabef894706353979c5ee9e51d58bf67b5829593ea068b63",
+      "post": "e986c046bb675309eabef894706353979c5ee9e51d58bf67b5829593ea068b63",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/plan-edit/f2-tag-adapter.cjs": {
+      "pre": "d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d",
+      "post": "d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/plan-edit/model.test.cjs": {
+      "pre": "afb88e790020cc1140914c1a16eeda009b38cab7cf6dda9561cc5eaf8ea9a275",
+      "post": "afb88e790020cc1140914c1a16eeda009b38cab7cf6dda9561cc5eaf8ea9a275",
+      "role": "carried"
+    },
+    "rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs": {
+      "pre": "71339f43e3556323dbc1a9a3cddc7636904c3e03cd2a24a66cfe5eb54a4dbf0e",
+      "post": "71339f43e3556323dbc1a9a3cddc7636904c3e03cd2a24a66cfe5eb54a4dbf0e",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/engine-runtime-host.cjs": {
+      "pre": "836a369db3a94f340348fd2db02d6e8cd3ad636a851725518d583cfcbe07f334",
+      "post": "836a369db3a94f340348fd2db02d6e8cd3ad636a851725518d583cfcbe07f334",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/host-entry.mjs": {
+      "pre": "9f996ecba92f2cb92f28457b79f52c73366657f0d4a75cb1ebe8abbcfd94c25f",
+      "post": "9f996ecba92f2cb92f28457b79f52c73366657f0d4a75cb1ebe8abbcfd94c25f",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/plan-edit-host.mjs": {
+      "pre": "b138196d20cd192bd7871ece0b2aea91a8cf0a02bffc69addc8ac027f5989b93",
+      "post": "b138196d20cd192bd7871ece0b2aea91a8cf0a02bffc69addc8ac027f5989b93",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": {
+      "pre": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "post": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/food-live-save.test.mjs": {
+      "pre": "90113e78543df8848c0f148af2e6151a286df7d31c67dd660df7950afa8f7348",
+      "post": "90113e78543df8848c0f148af2e6151a286df7d31c67dd660df7950afa8f7348",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/host-seams.test.mjs": {
+      "pre": "bdd0b83b17c75c8b3d5158feb7ab3b10566fd45cc3180fa85dbd2294fdf175c9",
+      "post": "bdd0b83b17c75c8b3d5158feb7ab3b10566fd45cc3180fa85dbd2294fdf175c9",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/journey-fixture.cjs": {
+      "pre": "cbca2b7721bb2291691d7bd74bc568493d0b5b10f0bcb3e6dec34f5e4736cba4",
+      "post": "cbca2b7721bb2291691d7bd74bc568493d0b5b10f0bcb3e6dec34f5e4736cba4",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/journey.test.mjs": {
+      "pre": "2ac6a7f23bcc079406a1493fe01629b61abc66984c04289dc40fbbec60c20af9",
+      "post": "2ac6a7f23bcc079406a1493fe01629b61abc66984c04289dc40fbbec60c20af9",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/local-real-day.test.mjs": {
+      "pre": "43780e9b692c836f33a9ea34cb1433a40f1ad11ffe6d7f8ba8a48e0f16af5084",
+      "post": "43780e9b692c836f33a9ea34cb1433a40f1ad11ffe6d7f8ba8a48e0f16af5084",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/workout-host.mjs": {
+      "pre": "f0f36328595673061132d5c55d76b1a9a93de5fc5fca5171ed4a1647e85ccb9f",
+      "post": "f0f36328595673061132d5c55d76b1a9a93de5fc5fca5171ed4a1647e85ccb9f",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/browser-entry.mjs": {
+      "pre": "7f7bdde8488ff43791454962407a21373a9b07316dad2dc32aa754ca7f0ff052",
+      "post": "7f7bdde8488ff43791454962407a21373a9b07316dad2dc32aa754ca7f0ff052",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/host-bindings.mjs": {
+      "pre": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
+      "post": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/host-browser-entry.mjs": {
+      "pre": "476b6c0266ccacefa82d02d5f5f5dcdd042c11ca78af45b86f01eefca6aacecb",
+      "post": "476b6c0266ccacefa82d02d5f5f5dcdd042c11ca78af45b86f01eefca6aacecb",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/import-bundle.mjs": {
+      "pre": "565ee5d84ac95c002d9fe15df1965d60882653167258d008ab3a820add7b4c85",
+      "post": "6a9432376346e375b04bb798dbe6f7d055f986b5479cd532f61d90fb517731f7",
+      "role": "edited"
+    },
+    "rebuild/m3/w6/local/local-client.mjs": {
+      "pre": "1f74bb2eff97fe9becb7b473def4e2e6e49f511ff32a9878a5ee817fe9d3ff9c",
+      "post": "1f74bb2eff97fe9becb7b473def4e2e6e49f511ff32a9878a5ee817fe9d3ff9c",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/local-era.mjs": {
+      "pre": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
+      "post": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/local-keys.mjs": {
+      "pre": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
+      "post": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/source-admission.mjs": {
+      "pre": "2f477147b79d3fc1b03feae873b25f40359334425051a851570880b7423113a3",
+      "post": "2f477147b79d3fc1b03feae873b25f40359334425051a851570880b7423113a3",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/source-platform.mjs": {
+      "pre": "5afc98dcb1a7891df0bf17467893eee1dcf59b324e2382ca239003f44e75cfa7",
+      "post": "5afc98dcb1a7891df0bf17467893eee1dcf59b324e2382ca239003f44e75cfa7",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/today-bindings.mjs": {
+      "pre": "23c1179794b12259c027f9b30780186211e7ac4b6f2770eaca3fe663e59bbf12",
+      "post": "23c1179794b12259c027f9b30780186211e7ac4b6f2770eaca3fe663e59bbf12",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/today-browser-entry.mjs": {
+      "pre": "633391e2b778e0b5c1f8eb16e6e24d4cca60bcdec13333e9cefcbb185772bd27",
+      "post": "633391e2b778e0b5c1f8eb16e6e24d4cca60bcdec13333e9cefcbb185772bd27",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/test/local-source-admission.test.mjs": {
+      "pre": "6144c7863991654da3b47215ce6d2ce04f9f335c77ceb643706a3603e9ce9491",
+      "post": "6144c7863991654da3b47215ce6d2ce04f9f335c77ceb643706a3603e9ce9491",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/test/local-source-consumer.test.mjs": {
+      "pre": "856b3627665b016e33d6a196e232c99981397c266ae2bab90ba4b64bc3e51af6",
+      "post": "856b3627665b016e33d6a196e232c99981397c266ae2bab90ba4b64bc3e51af6",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/test/local-today-journey.test.mjs": {
+      "pre": "4a371979a8b52b03e393f3e72baf2daf536ff1474f48f2ffffa1233ef6dc8a7a",
+      "post": "4a371979a8b52b03e393f3e72baf2daf536ff1474f48f2ffffa1233ef6dc8a7a",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/browser-engine.cjs": {
+      "pre": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "post": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/build.mjs": {
+      "pre": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "post": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/import-screen.mjs": {
+      "pre": "ea4a178821ffad7f8fdcec6744e30f78fc873b9275e5da5645cb645cf730649e",
+      "post": "50da6910761b5cec9a81f14f232b5e38e9eef5b1e630b4e27a7015b88810f493",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/import/test/edge-route.mjs": {
+      "pre": "46669f53be4fd543c4a4ace4752a987bf469819903bf31ebd05ab73a30d41b72",
+      "post": "46669f53be4fd543c4a4ace4752a987bf469819903bf31ebd05ab73a30d41b72",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/test/edge-seed-entry.mjs": {
+      "pre": "55c22a1f4b6280e73b8c25b642ed1fc22396aa915559b8d71ea9f1432a0dd895",
+      "post": "55c22a1f4b6280e73b8c25b642ed1fc22396aa915559b8d71ea9f1432a0dd895",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/test/live-clock.test.mjs": {
+      "pre": "618471e725d4efbff2a16d9fa3e201db665444c55a162617be129434fe01b32e",
+      "post": "618471e725d4efbff2a16d9fa3e201db665444c55a162617be129434fe01b32e",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs": {
+      "pre": "9b56ee6e22001296f354c77e0fa5fab6711d4c8f635e72a82e6c2977a13c62b3",
+      "post": "e7fe36724aef60d9bdb14396cb12f2fcd58c412873929719552d698e6ae13220",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs": {
+      "pre": "5edb49e3d853d946ea9695cb9e9a04166f5137368e700572d185607565007579",
+      "post": "5edb49e3d853d946ea9695cb9e9a04166f5137368e700572d185607565007579",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/test/refusals.test.mjs": {
+      "pre": "5d12a328d09b42a8a5525f4f18e31161f0826e236efe4f583af9059fa5a220e3",
+      "post": "5d12a328d09b42a8a5525f4f18e31161f0826e236efe4f583af9059fa5a220e3",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/test/route.test.mjs": {
+      "pre": "4726474ef8931f937c7a18a79f6bb024a7dda50d25fcabdfaf8d47f21d887133",
+      "post": "4726474ef8931f937c7a18a79f6bb024a7dda50d25fcabdfaf8d47f21d887133",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/import/test/support.mjs": {
+      "pre": "adea55fcd2ff7aab1177385b8ac8c43135203d15e977dc88a1cd24c361edd2cb",
+      "post": "adea55fcd2ff7aab1177385b8ac8c43135203d15e977dc88a1cd24c361edd2cb",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-baseline.mjs": {
+      "pre": "802effc6eddff433409507e604e523deb0ea52987ba12b6523bc62080cf65be6",
+      "post": "802effc6eddff433409507e604e523deb0ea52987ba12b6523bc62080cf65be6",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-commands.cjs": {
+      "pre": "112c67b9f05dbee2d16703d9d7b2b8825765c5d5af77f2572986a434193c8649",
+      "post": "112c67b9f05dbee2d16703d9d7b2b8825765c5d5af77f2572986a434193c8649",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-fixture.json": {
+      "pre": "a141382091a8c6323cc4830fe093051a5506f80b38afd6cade3ec2320bbc11f5",
+      "post": "a141382091a8c6323cc4830fe093051a5506f80b38afd6cade3ec2320bbc11f5",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-host.mjs": {
+      "pre": "bce23c31528d1799526da59360d0cfe291ecd8e412a4fd37861914d85e0a052b",
+      "post": "bce23c31528d1799526da59360d0cfe291ecd8e412a4fd37861914d85e0a052b",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-model.mjs": {
+      "pre": "fbdac126c2b2f3ac476bbcdf66786459f429df4a8ebc5ebe34c74b93cf91ad87",
+      "post": "fbdac126c2b2f3ac476bbcdf66786459f429df4a8ebc5ebe34c74b93cf91ad87",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-screen.mjs": {
+      "pre": "0e87b872749f6ceaa3ae04a369d4df143ab7528a3d7f15a149dbb0d57dc8e2ad",
+      "post": "0e87b872749f6ceaa3ae04a369d4df143ab7528a3d7f15a149dbb0d57dc8e2ad",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-sources.mjs": {
+      "pre": "8e7f620c5286cdde7933ec4829539b74e36f0b6aba660d89e317d468351b84d4",
+      "post": "8e7f620c5286cdde7933ec4829539b74e36f0b6aba660d89e317d468351b84d4",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/measure-view.mjs": {
+      "pre": "836bc79e07899d806d33ca680d1830ebc996adc81131b7193e1f05e1580b57ac",
+      "post": "836bc79e07899d806d33ca680d1830ebc996adc81131b7193e1f05e1580b57ac",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/adherence.test.mjs": {
+      "pre": "219ad91f1e83ff97e1a61e2d1d609a28d4416e3a1e40768502789f3c4cda7446",
+      "post": "219ad91f1e83ff97e1a61e2d1d609a28d4416e3a1e40768502789f3c4cda7446",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/baseline.test.mjs": {
+      "pre": "04c81447e373bc2764e298416899139fee1e5c7801ffd2e39e64a98b6e26cd0a",
+      "post": "04c81447e373bc2764e298416899139fee1e5c7801ffd2e39e64a98b6e26cd0a",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/boundary.test.mjs": {
+      "pre": "b1f066f901c6833c340ff43bffee3389bcece180544c732ad2f0db9ae5f91c6f",
+      "post": "d1057407a4f501a2e6b3688eb59e8769c6dd72bc1639651809eda9715c9807f9",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/measure/test/journey.test.mjs": {
+      "pre": "2520a774e8de269af2a032b2ac7c444753a4d87698e0ac68286ac26c2290306a",
+      "post": "2520a774e8de269af2a032b2ac7c444753a4d87698e0ac68286ac26c2290306a",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/lane.test.mjs": {
+      "pre": "e077f07e04c14944023e1f35357397d4ac44b9f3aa45e3b6019cc2a5c01d1155",
+      "post": "e077f07e04c14944023e1f35357397d4ac44b9f3aa45e3b6019cc2a5c01d1155",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/model.test.mjs": {
+      "pre": "ff2a531fd74afe98cc9acbcfd875dc175ae3686661eda5e34e8b5d61529b566e",
+      "post": "ff2a531fd74afe98cc9acbcfd875dc175ae3686661eda5e34e8b5d61529b566e",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/measure/test/support.mjs": {
+      "pre": "f72c6176ecbaf3d60cabb731a9c4a612b4abcd8657ebe6dc260466aac8449cdf",
+      "post": "f72c6176ecbaf3d60cabb731a9c4a612b4abcd8657ebe6dc260466aac8449cdf",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/build.mjs": {
+      "pre": "d04a10ef406708b801749b1118246e82fecc53bbbafe1ac11068eb24bc52cf9c",
+      "post": null,
+      "role": "released"
+    },
+    "rebuild/m3/w7-preview/today/food-host.mjs": {
+      "pre": "5eca457bfbc7ec69e6edff9d9fd9a43e31a62c1937b0147491ad86397bae801f",
+      "post": "5eca457bfbc7ec69e6edff9d9fd9a43e31a62c1937b0147491ad86397bae801f",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/gym-app.mjs": {
+      "pre": "4c8ba0c93f48b1b38be34d08ee23d274841c55680e51a61954754d17bcf8ec53",
+      "post": "4c8ba0c93f48b1b38be34d08ee23d274841c55680e51a61954754d17bcf8ec53",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/gym-host.mjs": {
+      "pre": "70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85",
+      "post": "70b28a8d73b5a49239886a6f3b2edf82990eeacbfa5b0f1aacb4a51414ea7c85",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/machine-settings-host.mjs": {
+      "pre": "be586088f56d819db242f4a67402fa4cfe877062388bdaacfc5f3bdf1ab28ef3",
+      "post": "be586088f56d819db242f4a67402fa4cfe877062388bdaacfc5f3bdf1ab28ef3",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/preview.css": {
+      "pre": "7cf97598c2c2cb2390dd0a7a855f322b68b27f4fa801df3e23536e4846126ea1",
+      "post": null,
+      "role": "released"
+    },
+    "rebuild/m3/w7-preview/today/problem-report.cjs": {
+      "pre": "ae59ca7d67f7f7e3a5b4985bd3ce7bbdc86eedf4cb91fc9a3fe32f4b1262e6ae",
+      "post": "ae59ca7d67f7f7e3a5b4985bd3ce7bbdc86eedf4cb91fc9a3fe32f4b1262e6ae",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/reading-host.mjs": {
+      "pre": "079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4",
+      "post": "079828012c2405910891b4c0889ed93dd71b298801f792083a816ca95299eaf4",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/adapter.test.mjs": {
+      "pre": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+      "post": "5cf387de05c836ba8a36d5e7dd3dcd295d3af5bbac112d46c34ca09924d7eeda",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/test/checkin.test.mjs": {
+      "pre": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+      "post": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/copy.test.mjs": {
+      "pre": "290a90ab6d79c5558a01067b9755192655cd1fe465581bdb8cc358e24fd9f9e5",
+      "post": "290a90ab6d79c5558a01067b9755192655cd1fe465581bdb8cc358e24fd9f9e5",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/design.test.cjs": {
+      "pre": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "post": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/food.test.mjs": {
+      "pre": "088530cfccbba5eceb19fbae627b7977794f42bd4849126edede061f74a9c95b",
+      "post": "47b9acf37884918075c9f7381ef2970dfa312c94f4c609f9839f0e9f5e94a17c",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
+      "pre": "79aa531e5483f532736f2a387bc8839e7ac94395bcaaf67737c9e6869c12d508",
+      "post": "79aa531e5483f532736f2a387bc8839e7ac94395bcaaf67737c9e6869c12d508",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs": {
+      "pre": "e532f8d4e5aa5435845908e5f76667b4933f7c7a6ffe1ac39740c14d71910a7f",
+      "post": "8e9cb020d024be1e0cdbeee4de75a6d014dd539a3fcb1187125449bb0c23246a",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": {
+      "pre": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+      "post": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/package.test.cjs": {
+      "pre": "1a29e3e09b9454a48866b6156688a6893b2ce2aae657f8cca68efad67a7381ad",
+      "post": "6f773e411ad12b9feca599a78206a9f4a112cbe1b22fc4f777e17ce6d5ddbc6a",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/test/problem.test.mjs": {
+      "pre": "cb42052b4aa055cc5e9a6449fe78d2fcc1425b1adf8c99916b9104608be56b4e",
+      "post": "a2c7a06ef11b4c1ac644eaac1230eb775ad006901edeaff9e62680fbc9a94b59",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/test/setup.test.mjs": {
+      "pre": "80e5e2eab1e526f7594fb2c304bdb8cc03ff21588c38a4866f53e2091464d90d",
+      "post": "3d1248540d3f57e94947b0d133f29a742d4e176a5471edc85aa31214469ff772",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": {
+      "pre": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+      "post": "3736dfa218ebb1b5b635a02e27aba6dd84af32c319606968bf300b20ac854ad6",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/today-app.cjs": {
+      "pre": "dc9a826eda96659b6cd5d5ca63ad137507586f5a59f4acf709ee67d98736b7af",
+      "post": "efaf6c0dbb871730788d8953ed470f2650d739b5de7c52fa7f779f2c125df933",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/today-entry.mjs": {
+      "pre": "8b1697582d7d9f21bda4668f590187e612d3d554b8be32a31cfc6fb82ab91276",
+      "post": "8b1697582d7d9f21bda4668f590187e612d3d554b8be32a31cfc6fb82ab91276",
+      "role": "carried"
+    },
+    "rebuild/m4/import/body-composition-class.cjs": {
+      "pre": "e16e2449ce2f6e0dbc7258e5338bf016b94528862c62bf4c2bf64acb017b7551",
+      "post": "e16e2449ce2f6e0dbc7258e5338bf016b94528862c62bf4c2bf64acb017b7551",
+      "role": "carried"
+    },
+    "rebuild/m4/import/browser-replay.mjs": {
+      "pre": "2b7112798db0ba41497aae0b38bdbf7deea5116b23f872ada0ebe6a52f0f10ba",
+      "post": "2b7112798db0ba41497aae0b38bdbf7deea5116b23f872ada0ebe6a52f0f10ba",
+      "role": "carried"
+    },
+    "rebuild/m4/import/daily-history.cjs": {
+      "pre": "5358b3ba6a9a92e217651f0a74d85511f50a30d276c7a483a025034de6e604f7",
+      "post": "5358b3ba6a9a92e217651f0a74d85511f50a30d276c7a483a025034de6e604f7",
+      "role": "carried"
+    },
+    "rebuild/m4/import/engine-provider.cjs": {
+      "pre": "1899ba3c451c830b904f65c8e4afd4012e59ca18fcfa0b990993c58c2786f896",
+      "post": "1899ba3c451c830b904f65c8e4afd4012e59ca18fcfa0b990993c58c2786f896",
+      "role": "carried"
+    },
+    "rebuild/m4/import/local-source-order.cjs": {
+      "pre": "6c89fd55696b846c519c8f195b1df5fa3b6aa6bf5ec1d23d2074622ad742cf43",
+      "post": "6c89fd55696b846c519c8f195b1df5fa3b6aa6bf5ec1d23d2074622ad742cf43",
+      "role": "carried"
+    },
+    "rebuild/m4/import/local-source-profile.cjs": {
+      "pre": "2de07820664ee2ec42c72fecd665a31dfb3768d607870745798c590bd79640e9",
+      "post": "2de07820664ee2ec42c72fecd665a31dfb3768d607870745798c590bd79640e9",
+      "role": "carried"
+    },
+    "rebuild/m4/import/measure-replay.cjs": {
+      "pre": "61a4a9204985a468dbfadd5df6a87d92237a0e1587b7b1c11e10c9446c42876e",
+      "post": "61a4a9204985a468dbfadd5df6a87d92237a0e1587b7b1c11e10c9446c42876e",
+      "role": "carried"
+    },
+    "rebuild/m4/import/prepare.cjs": {
+      "pre": "2f76d35232f929edd0d9f3e2c490dc8a171a6cff63373881be5b5b703d77fd8c",
+      "post": "2f76d35232f929edd0d9f3e2c490dc8a171a6cff63373881be5b5b703d77fd8c",
+      "role": "carried"
+    },
+    "rebuild/m4/import/production-mapping.cjs": {
+      "pre": "abf1ff157045b2070c030de2d473eb6784f9bcffbfca433c09897de9a8b4264a",
+      "post": "abf1ff157045b2070c030de2d473eb6784f9bcffbfca433c09897de9a8b4264a",
+      "role": "carried"
+    },
+    "rebuild/m4/import/reading-replay.cjs": {
+      "pre": "0580c0d0cd7910f4eae7960c970744ebee8a814186259f15d28aed29d46123ad",
+      "post": "0580c0d0cd7910f4eae7960c970744ebee8a814186259f15d28aed29d46123ad",
+      "role": "carried"
+    },
+    "rebuild/m4/import/replay-core.cjs": {
+      "pre": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "post": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "role": "carried"
+    },
+    "rebuild/m4/import/replay-registry.cjs": {
+      "pre": "e8f6af5d123c47b079e682cc43b0b263d9aa0a18b397e1d57bfa42c9499b8521",
+      "post": "e8f6af5d123c47b079e682cc43b0b263d9aa0a18b397e1d57bfa42c9499b8521",
+      "role": "carried"
+    },
+    "rebuild/m4/import/sleep-replay.cjs": {
+      "pre": "16020d1fe1ec2af9f40aeac28d6ee2098d4c21eff46a4cda4e0f39506217035a",
+      "post": "16020d1fe1ec2af9f40aeac28d6ee2098d4c21eff46a4cda4e0f39506217035a",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/browser-parity.test.mjs": {
+      "pre": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632",
+      "post": "1c57f9d864a32cf72440d37799bad7829c91452ed6b933f8b0cd3c19f2720632",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/engine-provider.test.cjs": {
+      "pre": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8",
+      "post": "a51cb0e78ce97fa7a0ff2177b2d256853bbea45a51e7c7ea43c289184f8602a8",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/local-source-order.test.cjs": {
+      "pre": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
+      "post": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/prepare.test.cjs": {
+      "pre": "8c9511d8e32ba2d52754288de301054e1a2b17111cc1c352b83f89ea1df7015c",
+      "post": "8c9511d8e32ba2d52754288de301054e1a2b17111cc1c352b83f89ea1df7015c",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/production-admission.test.mjs": {
+      "pre": "142eb51849ba50e3b47e7480f0d23a4cd1f82624151446fa521b3e23bf556994",
+      "post": "142eb51849ba50e3b47e7480f0d23a4cd1f82624151446fa521b3e23bf556994",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/production-mapping.test.cjs": {
+      "pre": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
+      "post": "c8ac076f8260743a72e9652f6a3597ccb7365ba28a9118832d92e4a0b1539251",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/reading-replay.test.cjs": {
+      "pre": "83c9f88d961af688164d345964b38018429aadff26b2e37e106e92484ed94fca",
+      "post": "83c9f88d961af688164d345964b38018429aadff26b2e37e106e92484ed94fca",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/s3/engine.cjs": {
+      "pre": "ff0db8ce9d83b75821cc1326b2110a8be0c6a371686a165c73d1571ff4acefe4",
+      "post": "ff0db8ce9d83b75821cc1326b2110a8be0c6a371686a165c73d1571ff4acefe4",
+      "role": "carried"
+    },
+    "rebuild/m4/import/test/s3/fixtures.mjs": {
+      "pre": "74bbba37999191d5ce5ae17061e676b96280542ed379f880c92957a6b87a3e5d",
+      "post": "74bbba37999191d5ce5ae17061e676b96280542ed379f880c92957a6b87a3e5d",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-cases.cjs": {
+      "pre": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
+      "post": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-defect-witnesses.cjs": {
+      "pre": "d6a39f0051a5c3374ce53e0273a9fbd0b60695eaf1fa218a3d2a0c27967ceeb7",
+      "post": "d6a39f0051a5c3374ce53e0273a9fbd0b60695eaf1fa218a3d2a0c27967ceeb7",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-direct.cjs": {
+      "pre": "a043bffc9a0c99f0cfb3aa24ead3e75d4b3f4fc1635fc1df094c089b0b55142a",
+      "post": "a043bffc9a0c99f0cfb3aa24ead3e75d4b3f4fc1635fc1df094c089b0b55142a",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-focused.cjs": {
+      "pre": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+      "post": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-inherited-carriers.cjs": {
+      "pre": "505cf440ed736a4deb8cc2d7faf7c2c7b6e10a8d9b640b89ef4ee2e29b9433c1",
+      "post": "505cf440ed736a4deb8cc2d7faf7c2c7b6e10a8d9b640b89ef4ee2e29b9433c1",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-journeys.cjs": {
+      "pre": "cb59f37e39b6eaa17207b3b6a0f6d8fcba4b90798381853ba39221d7ee5271be",
+      "post": "cb59f37e39b6eaa17207b3b6a0f6d8fcba4b90798381853ba39221d7ee5271be",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-legacy.cjs": {
+      "pre": "287526762da17bbf7d46ea2b9d567e8a90752b4ba8a4b1e91aa8864c9d3309c8",
+      "post": "287526762da17bbf7d46ea2b9d567e8a90752b4ba8a4b1e91aa8864c9d3309c8",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs": {
+      "pre": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+      "post": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs": {
+      "pre": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+      "post": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-second-gate.cjs": {
+      "pre": "b87b8949f9b7f03ab8f62abf3fb9bc8293c7ab7aadfdbcfa489202f6ff9f60c8",
+      "post": "b87b8949f9b7f03ab8f62abf3fb9bc8293c7ab7aadfdbcfa489202f6ff9f60c8",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-source-carriers.cjs": {
+      "pre": "89bb7727e08d0f0783ada0b584620a793a6acae73f0efb9e6f9c72a228b0e578",
+      "post": "89bb7727e08d0f0783ada0b584620a793a6acae73f0efb9e6f9c72a228b0e578",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-successors.cjs": {
+      "pre": "2efe4a480f952a58bd2fd3e2301054334cfced297f14a46b7b4945962fabe6f9",
+      "post": "2efe4a480f952a58bd2fd3e2301054334cfced297f14a46b7b4945962fabe6f9",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-successors.test.cjs": {
+      "pre": "bf63c764a5cb0a86d24a80c9a299711c71801075288ba7339e1c94964fee7ca3",
+      "post": "bf63c764a5cb0a86d24a80c9a299711c71801075288ba7339e1c94964fee7ca3",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-traces.cjs": {
+      "pre": "0137dc617d83ed1e0171054da62f3699a32232342ed88cd54eded578a83c2325",
+      "post": "0137dc617d83ed1e0171054da62f3699a32232342ed88cd54eded578a83c2325",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-witnesses.cjs": {
+      "pre": "6a601742f8b1bfae28ca7c7ee3acb0a3930614b21b17e4271f7db0b82fe6207e",
+      "post": "6a601742f8b1bfae28ca7c7ee3acb0a3930614b21b17e4271f7db0b82fe6207e",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-writers-differential.cjs": {
+      "pre": "abf14c3f3b37954a9bcf131506d28f0ad44b9e1c6e1c3b0c24c90682735d53d9",
+      "post": "abf14c3f3b37954a9bcf131506d28f0ad44b9e1c6e1c3b0c24c90682735d53d9",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/athlete-state.cjs": {
+      "pre": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+      "post": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/engine-order.cjs": {
+      "pre": "d06fc9fcb0e8a7f3bb3f093d49ac91c98955a025e5f684c2b5454e50f93cc638",
+      "post": "d06fc9fcb0e8a7f3bb3f093d49ac91c98955a025e5f684c2b5454e50f93cc638",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/engine-runtime.cjs": {
+      "pre": "95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30",
+      "post": "95d0c6757a0e646a0bbd0f6328ccbfd70cba6c5f97f0e1009eb6ae2ccb614f30",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/legacy-order-mapping.cjs": {
+      "pre": "d85907166f910d936efee6135ed39199f51d8de9f2f311a93209bafca1f1808a",
+      "post": "d85907166f910d936efee6135ed39199f51d8de9f2f311a93209bafca1f1808a",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/native-trend-context.cjs": {
+      "pre": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+      "post": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/plan-edit-commands.cjs": {
+      "pre": "9b7f260dad01dcfa0d1839db7fb8c6144a098c0a79bd556a39e248a45a1c06e3",
+      "post": "9b7f260dad01dcfa0d1839db7fb8c6144a098c0a79bd556a39e248a45a1c06e3",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/plan-edit-model.cjs": {
+      "pre": "7cdb4ade63c596cd2a5e6aeec7b97fc9c3f2cfc2cd4386cd116c7d8e70ee4724",
+      "post": "7cdb4ade63c596cd2a5e6aeec7b97fc9c3f2cfc2cd4386cd116c7d8e70ee4724",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-clean-init.test.cjs": {
+      "pre": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
+      "post": "7eac2e17269bee5e9d0dc2772f261dd4c7e3a0181974ae00a64b7bd43f27e5f1",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-engine-files-differential.cjs": {
+      "pre": "d0f59c48b9d50997c5cd4a8cbd9e8a48fdae4765f17c8cf74f03cffafd41d9bf",
+      "post": "d0f59c48b9d50997c5cd4a8cbd9e8a48fdae4765f17c8cf74f03cffafd41d9bf",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-supersede-defect-witnesses.test.cjs": {
+      "pre": "e41ec9f2d1ea8d7d650ce139799da783301f7d5e99365e6386c0ccf61e990c7f",
+      "post": "e41ec9f2d1ea8d7d650ce139799da783301f7d5e99365e6386c0ccf61e990c7f",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-supersede-inherited-carriers.test.cjs": {
+      "pre": "69c8d05fa3a1ccf6b3b3458706ffc633c9f83063dd604bd15549ba61d1c7f0ff",
+      "post": "69c8d05fa3a1ccf6b3b3458706ffc633c9f83063dd604bd15549ba61d1c7f0ff",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs": {
+      "pre": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+      "post": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs": {
+      "pre": "dc92e91810246fca195ab3a031236aaffba2b04522e5718fb72f9f6eda62d0dc",
+      "post": "dc92e91810246fca195ab3a031236aaffba2b04522e5718fb72f9f6eda62d0dc",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs": {
+      "pre": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+      "post": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/legacy-order-mapping.test.cjs": {
+      "pre": "f7a3e4a4b3d99f6863cbcc56d69023027c7d8b1722661d86ba1845f61d03ba15",
+      "post": "f7a3e4a4b3d99f6863cbcc56d69023027c7d8b1722661d86ba1845f61d03ba15",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/native-trend-context.test.cjs": {
+      "pre": "cb4643af81e7a7d6082ba7c2cbd1cb51c4896aa0f82ac69d9274c683659979ab",
+      "post": "cb4643af81e7a7d6082ba7c2cbd1cb51c4896aa0f82ac69d9274c683659979ab",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-companion-gensession-differential.test.cjs": {
+      "pre": "a3dcc8d37d798527df4f9d9e484419ac092db5fd9ec6d58a2ac2caffc8c787da",
+      "post": "a3dcc8d37d798527df4f9d9e484419ac092db5fd9ec6d58a2ac2caffc8c787da",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-companion-membership.test.cjs": {
+      "pre": "764ee61633c88633eaec803f4889c50628e6d1d673744641015110210bda3eb0",
+      "post": "764ee61633c88633eaec803f4889c50628e6d1d673744641015110210bda3eb0",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-companion-merge-native-date.test.cjs": {
+      "pre": "165d5adeed47cc3b65a11e511b589628f5d4695c90117b4c01d54adbb88e12f0",
+      "post": "165d5adeed47cc3b65a11e511b589628f5d4695c90117b4c01d54adbb88e12f0",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-engine-files-differential.cjs": {
+      "pre": "3951f3a08fec46879460a49666a37b54a977a8067d891dbdd2f1a39efbde3eeb",
+      "post": "3951f3a08fec46879460a49666a37b54a977a8067d891dbdd2f1a39efbde3eeb",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-supersede-defect-witnesses.test.cjs": {
+      "pre": "92781c5bff89bc4ebda34f0d86bbde0ff97345bc7c6b533a03d952e18ed96682",
+      "post": "92781c5bff89bc4ebda34f0d86bbde0ff97345bc7c6b533a03d952e18ed96682",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-supersede-inherited-carriers.test.cjs": {
+      "pre": "06300f812ac64930cf9231d82628f5a21bb47c9ff519ab910cae5034a8787691",
+      "post": "06300f812ac64930cf9231d82628f5a21bb47c9ff519ab910cae5034a8787691",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-supersede-second-gate.test.cjs": {
+      "pre": "6819e3928fd144474abe15f4b98ad78df1b49ff09bcef50098abe7ff91628755",
+      "post": "6819e3928fd144474abe15f4b98ad78df1b49ff09bcef50098abe7ff91628755",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-supersede-source-carriers.test.cjs": {
+      "pre": "ac001b53d6e9a6cd44fa02e12e5c981ed5f84795643a32882fdc515f7a8a1aff",
+      "post": "ac001b53d6e9a6cd44fa02e12e5c981ed5f84795643a32882fdc515f7a8a1aff",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s3-supersede-writers-differential.test.cjs": {
+      "pre": "169a815bd42f6f8c19c925608eaa67184aab47045d0ddd9a478c97eeafce8052",
+      "post": "169a815bd42f6f8c19c925608eaa67184aab47045d0ddd9a478c97eeafce8052",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-engine-files-differential.cjs": {
+      "pre": "6fde05da585d7cf5d22a8b961274074cc2cbf295cf860b17889a1b82b01beb7e",
+      "post": "6fde05da585d7cf5d22a8b961274074cc2cbf295cf860b17889a1b82b01beb7e",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-supersede-defect-witnesses.test.cjs": {
+      "pre": "034a226aa4b101c522a3cf3c85320167dba1cd0e2e52633f377a91f55f89c0c7",
+      "post": "034a226aa4b101c522a3cf3c85320167dba1cd0e2e52633f377a91f55f89c0c7",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-supersede-inherited-carriers.test.cjs": {
+      "pre": "6ae869632a7d80055bd46a0e2d46abd23558aa29c88176442f5ff8e363f0f05c",
+      "post": "6ae869632a7d80055bd46a0e2d46abd23558aa29c88176442f5ff8e363f0f05c",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-supersede-second-gate.test.cjs": {
+      "pre": "cb2c1ea96da0b0c545fda1d5910cc306d2de0da2ae93e9670ffc07032272a9f7",
+      "post": "cb2c1ea96da0b0c545fda1d5910cc306d2de0da2ae93e9670ffc07032272a9f7",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-supersede-source-carriers.test.cjs": {
+      "pre": "1dd908981b535e8501e774da30331ae4c3797beeb572fc82a1fc90fc7669d77a",
+      "post": "1dd908981b535e8501e774da30331ae4c3797beeb572fc82a1fc90fc7669d77a",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s4-supersede-writers-differential.test.cjs": {
+      "pre": "38c01c17d7c0e8e515823d350f583c9ac3dcafeb46d21ec8ee15b901928e5d1a",
+      "post": "38c01c17d7c0e8e515823d350f583c9ac3dcafeb46d21ec8ee15b901928e5d1a",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-engine-files-differential.cjs": {
+      "pre": "51a95754fa2a142550b9f96373b55f03d2aa97ab90808cde34d28365e09c3360",
+      "post": "51a95754fa2a142550b9f96373b55f03d2aa97ab90808cde34d28365e09c3360",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-supersede-defect-witnesses.test.cjs": {
+      "pre": "a105d3d44ae2e9a468306246f8ce6d49926df8284410651e1ef229f4fb7ba524",
+      "post": "a105d3d44ae2e9a468306246f8ce6d49926df8284410651e1ef229f4fb7ba524",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-supersede-inherited-carriers.test.cjs": {
+      "pre": "11213a18863ef81194798d263cff081870adf2d09eaa42ec81b75738e140230d",
+      "post": "11213a18863ef81194798d263cff081870adf2d09eaa42ec81b75738e140230d",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-supersede-second-gate.test.cjs": {
+      "pre": "bb4211b4fe7044fddee1178b1669ba2561f72fcb25cc1bfcf1169a27aa2dc200",
+      "post": "bb4211b4fe7044fddee1178b1669ba2561f72fcb25cc1bfcf1169a27aa2dc200",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-supersede-source-carriers.test.cjs": {
+      "pre": "bd586db17227a94dcd2557622c88654c7989b0d78f105e8a6ee6081c8a7da4c8",
+      "post": "bd586db17227a94dcd2557622c88654c7989b0d78f105e8a6ee6081c8a7da4c8",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s5-supersede-writers-differential.test.cjs": {
+      "pre": "53ebf0c6427fb321dc025d015a1e7ff9a3043c74221d9203ca26802312daa331",
+      "post": "53ebf0c6427fb321dc025d015a1e7ff9a3043c74221d9203ca26802312daa331",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-engine-files-differential.cjs": {
+      "pre": "392e5e8c0d62ecba76e5ee9b883a34d31c67cd4b27debfdf41bad8a0bd0ad4d9",
+      "post": "392e5e8c0d62ecba76e5ee9b883a34d31c67cd4b27debfdf41bad8a0bd0ad4d9",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-supersede-defect-witnesses.test.cjs": {
+      "pre": "1cbb4f92ba9ddfae0d69059734ea033820ff96df2d57f76627f16f0a832c4800",
+      "post": "1cbb4f92ba9ddfae0d69059734ea033820ff96df2d57f76627f16f0a832c4800",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-supersede-inherited-carriers.test.cjs": {
+      "pre": "1dc1a8444d67de278af4d8219b9703a0fbf05b9be1b193b7f3582df433639ed5",
+      "post": "1dc1a8444d67de278af4d8219b9703a0fbf05b9be1b193b7f3582df433639ed5",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-supersede-second-gate.test.cjs": {
+      "pre": "aabd394889930a5806fc8ab967d778d4c9d908c3eaef745f408d8478bb14da1d",
+      "post": "aabd394889930a5806fc8ab967d778d4c9d908c3eaef745f408d8478bb14da1d",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-supersede-source-carriers.test.cjs": {
+      "pre": "daa1635fbb7b2f012fb7bd50d244ca2bc4fd4f236d08536e9c7b045aca8576ac",
+      "post": "daa1635fbb7b2f012fb7bd50d244ca2bc4fd4f236d08536e9c7b045aca8576ac",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s6-supersede-writers-differential.test.cjs": {
+      "pre": "5a56bb475c193b3124b9574b19f877e6132b35763e3cb20b3a08c2fce34ecadb",
+      "post": "5a56bb475c193b3124b9574b19f877e6132b35763e3cb20b3a08c2fce34ecadb",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-engine-files-differential.cjs": {
+      "pre": "29a0e28f4b6ade10970de5a1b926f813eefd0a948b5daa24a54a064d02b0194d",
+      "post": "29a0e28f4b6ade10970de5a1b926f813eefd0a948b5daa24a54a064d02b0194d",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-defect-witnesses.test.cjs": {
+      "pre": "b359f584239e0c58897cce51d846816cbc9d125c01f3c886b01c51a8f6a3dcd2",
+      "post": "b359f584239e0c58897cce51d846816cbc9d125c01f3c886b01c51a8f6a3dcd2",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-inherited-carriers.test.cjs": {
+      "pre": "91e0e87a5ac4a877762efc3d9081e47a43e445b6d679550e65c90684778b3627",
+      "post": "91e0e87a5ac4a877762efc3d9081e47a43e445b6d679550e65c90684778b3627",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-second-gate.test.cjs": {
+      "pre": "7d469315ffdaf78ecbd1f977c08ec5294d94f2bd9e24e7e135c0a16ae7483c7e",
+      "post": "7d469315ffdaf78ecbd1f977c08ec5294d94f2bd9e24e7e135c0a16ae7483c7e",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-source-carriers.test.cjs": {
+      "pre": "c0db22f212370ef41d412a55b8676370f7ad600b240e1097f15a9f28a7635bf1",
+      "post": "c0db22f212370ef41d412a55b8676370f7ad600b240e1097f15a9f28a7635bf1",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s7-supersede-writers-differential.test.cjs": {
+      "pre": "bf2026bc64266e709b7078d73b2289d3c2ed4eafccfc31cd03ba2ad8be663446",
+      "post": "bf2026bc64266e709b7078d73b2289d3c2ed4eafccfc31cd03ba2ad8be663446",
+      "role": "carried"
+    },
+    "rebuild/lanes/b/tooling/packages/S7.json": {
+      "pre": "00d7f1f8a43f3c923f6996766cd547f0d50517d1457e5cad23a4afedd263040d",
+      "post": "7a89547b32f5ce7dccddcb8ff9b170a8b82e31afbf01876f091191dfcb2efa3c",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/local-source-basis.mjs": {
+      "pre": "3e04c246e1db083b1db66df284f0910560e4a898cd8eeb038c925ddefa031675",
+      "post": "3e04c246e1db083b1db66df284f0910560e4a898cd8eeb038c925ddefa031675",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/engine-history.cjs": {
+      "pre": "2ec6e44b2aae61bb80babc0246bde51528685734f545210ab8d39795633e560f",
+      "post": "2ec6e44b2aae61bb80babc0246bde51528685734f545210ab8d39795633e560f",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/lift-correspondence.cjs": {
+      "pre": "8bec2a64bbc39dc1edd5fb8fd6a06b2a15298e323ac2b17188177319813d2e7f",
+      "post": "8bec2a64bbc39dc1edd5fb8fd6a06b2a15298e323ac2b17188177319813d2e7f",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s8-supersede-source-carriers.test.cjs": {
+      "pre": "e9996b0a97980b7bd9221c822e619678b0eb84770c232d28ba38594615f5c8b9",
+      "post": "e9996b0a97980b7bd9221c822e619678b0eb84770c232d28ba38594615f5c8b9",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s8-supersede-inherited-carriers.test.cjs": {
+      "pre": "cfd81f4bbc05cd21d586d5a7bbf580bff0cc3887dcc6b683a508f3011d46e2d3",
+      "post": "cfd81f4bbc05cd21d586d5a7bbf580bff0cc3887dcc6b683a508f3011d46e2d3",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s8-supersede-defect-witnesses.test.cjs": {
+      "pre": "32dc363d0a73fc9fe37c1fa729b57d71f229e769a9605c959844811278f2a42d",
+      "post": "32dc363d0a73fc9fe37c1fa729b57d71f229e769a9605c959844811278f2a42d",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s8-supersede-writers-differential.test.cjs": {
+      "pre": "684e6fb6a200e82d5b04a44b635b6781fb550b7d2bec71f7276ae0dc5b1bc68d",
+      "post": "684e6fb6a200e82d5b04a44b635b6781fb550b7d2bec71f7276ae0dc5b1bc68d",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s8-supersede-second-gate.test.cjs": {
+      "pre": "06a08a396a6e92ad285d7300bced68fe437117f06eb7f6f1eaca7cd4fc5ffbc3",
+      "post": "06a08a396a6e92ad285d7300bced68fe437117f06eb7f6f1eaca7cd4fc5ffbc3",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/s8-engine-files-differential.cjs": {
+      "pre": "49ee104c00e722137fc21823b20a3f3f9207edf8e9427fa02630f593bdffbe2f",
+      "post": "49ee104c00e722137fc21823b20a3f3f9207edf8e9427fa02630f593bdffbe2f",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-real-shape/legacy-fixture.cjs": {
+      "pre": "e94ceba9064be78f556d69029009e7730b99087d5565d1d2906a36f31ab48ff3",
+      "post": "e94ceba9064be78f556d69029009e7730b99087d5565d1d2906a36f31ab48ff3",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-real-shape/real-shape-support.mjs": {
+      "pre": "7c27dad17968b9c1d98f5f6943e4e63549c279b4add4cd7eb0979796387d5bf1",
+      "post": "7c27dad17968b9c1d98f5f6943e4e63549c279b4add4cd7eb0979796387d5bf1",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs": {
+      "pre": "ee82c8045c9e453b89e9acfdedb9224fb513505f9e12910389d488d7853013cb",
+      "post": "ee82c8045c9e453b89e9acfdedb9224fb513505f9e12910389d488d7853013cb",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs": {
+      "pre": "ade7312b59412bf2532e565bf8c17de721ff9c49cea9fd8336aa512c54ec47c7",
+      "post": "ade7312b59412bf2532e565bf8c17de721ff9c49cea9fd8336aa512c54ec47c7",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs": {
+      "pre": "3145ebbcec86822c747a4492e43417e2a9fbc21714c6b04f0018ab6d388c9e82",
+      "post": "3145ebbcec86822c747a4492e43417e2a9fbc21714c6b04f0018ab6d388c9e82",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs": {
+      "pre": "f0268238eb0116d266f402be08f79f3acbc2249866a120a4b8c4879777a1a8a1",
+      "post": "f0268238eb0116d266f402be08f79f3acbc2249866a120a4b8c4879777a1a8a1",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs": {
+      "pre": "6ab4bd3598050463f6e929efcb844f2b1ea6016e2b0f641de537ed5dbf993c97",
+      "post": "6ab4bd3598050463f6e929efcb844f2b1ea6016e2b0f641de537ed5dbf993c97",
+      "role": "carried"
+    },
+    "rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs": {
+      "pre": "9e5d647e5fc02cdb6b319867f4ecb98984058f0a3b91f9a4717d60cf3ed6c8c4",
+      "post": "9e5d647e5fc02cdb6b319867f4ecb98984058f0a3b91f9a4717d60cf3ed6c8c4",
+      "role": "carried"
+    },
+    "rebuild/lanes/b/tooling/packages/S8.json": {
+      "pre": "6fbbb1b901c2d7cacc0595b41b41172a8c0faab12b52b470fcb85f4686878899",
+      "post": "f17183d3561a42ddb42bb7d41143d3569b5711b9197baeb6e1a3d642367d4e88",
+      "role": "superseded-by-child"
+    },
+    "rebuild/lanes/b/tooling/test/release-from-seal.test.cjs": {
+      "pre": null,
+      "post": "d872eaff3fb12a75227822218c569cf8deec820efeb59fe88aa84df0516422d0",
+      "role": "new"
+    },
+    "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs": {
+      "pre": null,
+      "post": "9e6b9a8fa68f48a6a01bf8326bee88ff392ab25bafa5d0ae1367255c0b1afd2f",
+      "role": "new"
+    },
+    "rebuild/lanes/c/ui-port/pack-pin.test.mjs": {
+      "pre": null,
+      "post": "0bf656950e277a1d25c2c79257c0b01c2ef44e1ef710b527b0bb2094e6c2d4ff",
+      "role": "new"
+    },
+    "rebuild/lanes/c/ui-port/approved-pin.test.mjs": {
+      "pre": null,
+      "post": "231e7332b66d2b0e103d6cdbc367f471255dfbb2f5cd16e7ccf1abbc8c1b618b",
+      "role": "new"
+    },
+    "rebuild/lanes/c/ui-port/reference-closure.test.mjs": {
+      "pre": null,
+      "post": "0ac19325f0969270037f4e9c778a1e126793767442c455ad856dc4c4b607f48b",
+      "role": "new"
+    },
+    "rebuild/lanes/c/ui-port/release-object.test.mjs": {
+      "pre": null,
+      "post": "a5fd5d431ebc4eaa93895ae8d80b8b29b4a2e23a04753864644741ac28d6c3ab",
+      "role": "new"
+    },
+    "rebuild/lanes/c/passphrase-normalize/helper.test.mjs": {
+      "pre": null,
+      "post": "3f817f0a31db102d881fbeaee5a9ecbb3c0c6ab1e471d690e979a5c240196f68",
+      "role": "new"
+    },
+    "rebuild/lanes/c/passphrase-normalize/route.test.mjs": {
+      "pre": null,
+      "post": "0a9a4dde7a59d9b46f6267313d29c8f630d73509610b553864b9ed92691033dc",
+      "role": "new"
+    },
+    "rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs": {
+      "pre": null,
+      "post": "1d109886b26c7dd52a452a1b0ff7e2e508f29bd47d690cf4f691d9f75a0340f8",
+      "role": "new"
+    },
+    "rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs": {
+      "pre": "1833df024af7a2fd593e0b7c63fa3bac7b7b9c3e7e38b5869acc76cc8a9b1c46",
+      "post": "1833df024af7a2fd593e0b7c63fa3bac7b7b9c3e7e38b5869acc76cc8a9b1c46",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs": {
+      "pre": "2222ca121b5ff6814b02627b1164b65f81edee3e26e01fb0f5e8cd311c20b66a",
+      "post": "2222ca121b5ff6814b02627b1164b65f81edee3e26e01fb0f5e8cd311c20b66a",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs": {
+      "pre": null,
+      "post": "d587ebb5fa1c7e4feebef33bd82d1694125bf513342eaa84d71077f4ddb754ff",
+      "role": "new"
+    },
+    "rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs": {
+      "pre": null,
+      "post": "95746485d577919f56162e5bc5cda0852c9b6ec8cfc0a2ca439458b70870ec79",
+      "role": "new"
+    },
+    "rebuild/lanes/d/f2/projector.test.mjs": {
+      "pre": null,
+      "post": "f74bbe5f40624237a4d24536b3ead036a75ed3bc705a52d6e55032d28bdf8dd6",
+      "role": "new"
+    },
+    "rebuild/lanes/d/f2/guard-coverage.test.mjs": {
+      "pre": null,
+      "post": "78d1d73c02b115981006ab38dd0a16bfcd9fddbee8afa40c872964155281b9e7",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s9-supersede-source-carriers.test.cjs": {
+      "pre": null,
+      "post": "c442c90e65c20ce559860f8a90a091d91ae2197326009dad2ace6ce28343cf99",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s9-supersede-inherited-carriers.test.cjs": {
+      "pre": null,
+      "post": "5e5fa1fabaf0217418b32ef9c36f27ec6c16c685bd760dd9a88e41d93098db58",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s9-supersede-defect-witnesses.test.cjs": {
+      "pre": null,
+      "post": "65865226480206ea3c7a1a4a5b767c2f7ed856dd9ee4448c8b36e8c1cb54b472",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s9-supersede-writers-differential.test.cjs": {
+      "pre": null,
+      "post": "b8151326b3211f4c2f047f195db4bd255bab87584b38f80a7727464e6e74653c",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s9-supersede-second-gate.test.cjs": {
+      "pre": null,
+      "post": "985d01b1ad85fb660da7499b6749470f38d5ce90bc636284f3dab7faf7b44449",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/s9-engine-files-differential.cjs": {
+      "pre": null,
+      "post": "7ad3937d41dcd2fc7ca5135448df9dc62dc61d1253433620f9abed779f8a92ba",
+      "role": "new"
+    },
+    "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html": {
+      "pre": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031",
+      "post": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html": {
+      "pre": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
+      "post": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/m1/approved-2026-09-08/ADDITIONS-C-APPROVED-HANDOFF.md": {
+      "pre": "a0963e54240ba0d60c44a18d51399728e11d68239dcad798b094d48de60b6cf5",
+      "post": "a0963e54240ba0d60c44a18d51399728e11d68239dcad798b094d48de60b6cf5",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/m1/MOCK.md": {
+      "pre": "cdf8eb5c3be00359f8f16706022ce153c8d77482df4323e136d223280464300c",
+      "post": "cdf8eb5c3be00359f8f16706022ce153c8d77482df4323e136d223280464300c",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/m3/w7-preview/today/gym-model.mjs": {
+      "pre": "7033f735319541544f6852abd31483d21dd0fd240c9cf5c10f229f9e94deb28b",
+      "post": "7033f735319541544f6852abd31483d21dd0fd240c9cf5c10f229f9e94deb28b",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/m3/w7-preview/today/checkin-app.mjs": {
+      "pre": "db8295cb5f12a4e6d65033b6a74cf696b63ec32368c1d6d6161cf1e0519161b0",
+      "post": "db8295cb5f12a4e6d65033b6a74cf696b63ec32368c1d6d6161cf1e0519161b0",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/m3/w6/test/local-import.test.mjs": {
+      "pre": "f7ea519ac46b19a4b58792ac69515f076f3ceeb20365b7bccd28ebb36ab2ac95",
+      "post": "f7ea519ac46b19a4b58792ac69515f076f3ceeb20365b7bccd28ebb36ab2ac95",
+      "role": "pinned-unchanged"
+    },
+    "rebuild/m3/setup/port/passphrase.cjs": {
+      "pre": null,
+      "post": "69c23e45412db61e5c8c96fc464a818fd660de1446fb2bdbcf13f7dc47b3c929",
+      "role": "new"
+    },
+    "rebuild/m4/workout/setup-tags.cjs": {
+      "pre": null,
+      "post": "d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d",
+      "role": "new"
+    }
+  },
+  "coverage": {
+    "inherited": {},
+    "moves": {},
+    "successors": null,
+    "superseded": {
+      "status": "TO_COMPLETE_BY_PM"
+    }
+  },
+  "carrierSuccessor": null,
+  "witnessFlips": [],
+  "protectedSurfaces": [
+    "rebuild/conform/goldens (public census and frozen goldens)",
+    "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
+  ],
+  "authorizations": {},
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-s9-ui-pins.json",
+    "review": "rebuild/m4/spec/review-s9-ui-pins.json"
+  },
+  "children": [
+    {
+      "name": "today-17",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/today/test/adapter.test.mjs",
+        "rebuild/m3/w7-preview/today/test/catalogue.test.mjs",
+        "rebuild/m3/w7-preview/today/test/checkin.test.mjs",
+        "rebuild/m3/w7-preview/today/test/copy.test.mjs",
+        "rebuild/m3/w7-preview/today/test/design.test.cjs",
+        "rebuild/m3/w7-preview/today/test/food.test.mjs",
+        "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+        "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+        "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs",
+        "rebuild/m3/w7-preview/today/test/package.test.cjs",
+        "rebuild/m3/w7-preview/today/test/problem.test.mjs",
+        "rebuild/m3/w7-preview/today/test/setup.test.mjs",
+        "rebuild/m3/w7-preview/today/test/view.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/journey.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/lane.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/baseline.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/boundary.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "measure-hermetic",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/measure/test/model.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/adherence.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s4-real-day",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/local-real-day.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "a0-journeys",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/journey.test.mjs",
+        "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s9-sup-source-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-source-carriers.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s9-sup-inherited-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-inherited-carriers.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s9-sup-defect-witnesses",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-defect-witnesses.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s9-sup-writers-differential",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-writers-differential.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s9-sup-second-gate",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-second-gate.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "s9-engine-files-differential",
+      "argv": [
+        "rebuild/m4/workout/test/s9-engine-files-differential.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "d-plan-edit",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/plan-edit/model.test.cjs",
+        "rebuild/lanes/d/plan-edit/durable-host.test.mjs",
+        "rebuild/lanes/d/plan-edit/browser-build.test.mjs",
+        "rebuild/lanes/d/plan-edit/client-p6.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "m4-import",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/import/test/prepare.test.cjs",
+        "rebuild/m4/import/test/reading-replay.test.cjs",
+        "rebuild/m4/import/test/engine-provider.test.cjs",
+        "rebuild/m4/import/test/local-source-order.test.cjs",
+        "rebuild/m4/import/test/browser-parity.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "m4-import-production",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/import/test/production-mapping.test.cjs",
+        "rebuild/m4/import/test/production-admission.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "d-import-retract",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/import-retract/retract.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "d-admission-swap",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-followons/admission-swap.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "d-replay-measure",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs",
+        "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "d-capture-start",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "food-live-save",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/food-live-save.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "w7-import",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/import/test/route.test.mjs",
+        "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs",
+        "rebuild/m3/w7-preview/import/test/live-clock.test.mjs",
+        "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs",
+        "rebuild/m3/w7-preview/import/test/refusals.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "w6-host-seams",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/host-seams.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "w6-local-source",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/test/local-source-admission.test.mjs",
+        "rebuild/m3/w6/test/local-source-consumer.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "d-replay-all",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "b-lom",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/b-lom/legacy-order.test.mjs",
+        "rebuild/m4/workout/test/legacy-order-mapping.test.cjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "d-port-admission",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs",
+        "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs",
+        "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "d-real-shape",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs",
+        "rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs",
+        "rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "sealed-inventory-fence",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "ui-pack-pins",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/ui-port/pack-pin.test.mjs",
+        "rebuild/lanes/c/ui-port/approved-pin.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "reference-closure",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/ui-port/reference-closure.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "release-object",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/ui-port/release-object.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "today-carry",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs",
+        "rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "passphrase-normalize",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/c/passphrase-normalize/helper.test.mjs",
+        "rebuild/lanes/c/passphrase-normalize/route.test.mjs",
+        "rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "w6-local-import",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/test/local-import.test.mjs"
+      ],
+      "needle": null
+    },
+    {
+      "name": "f2-land",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/f2/projector.test.mjs",
+        "rebuild/lanes/d/f2/guard-coverage.test.mjs"
+      ],
+      "needle": null
+    }
+  ],
+  "notes": [
+    "NONFINAL OFF-REPO PROPOSED draft; acceptedLedgerLine remains null.",
+    "Needles, authority claims, coverage prose, final closure and final hashes remain day-of work.",
+    "Python font transport is workflow-only, never child argv.",
+    "No deferred product or reference promotion is declared."
+  ]
+}
