@@ -1658,7 +1658,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/release-object.test.mjs"
       ],
-      "needle": null
+      "needle": "# tests 14"
     },
     {
       "name": "today-carry",
@@ -1668,7 +1668,7 @@
         "rebuild/lanes/c/p3-today-hotfix/today-headline.test.mjs",
         "rebuild/lanes/c/s9-today-carry/plan-sentence.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 9"
     },
     {
       "name": "passphrase-normalize",
