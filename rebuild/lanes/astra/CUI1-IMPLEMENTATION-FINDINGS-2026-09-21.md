@@ -44,3 +44,10 @@ then real offline preview at phone dimensions in both themes and reduced motion.
 Existing three scene tests only cover hook values, scheduling and bundle asset markers.
 No template/product look decision, engine change, gate weakening, baseline edit or seal granted.
 Author received these findings through the outgoing proof coordinator; same worker retained.
+
+F6 BOARD DATE OBSERVER SELF-TRIGGER
+installScene observes host childList/subtree, then its date callback unconditionally
+assigns target.textContent. That assignment replaces a text node even when unchanged,
+which schedules the same observer again on the board-date browser route.
+Make the update idempotent and prove its own mutation cannot cause repeated writes.
+Static mechanism finding only; a bounded regression must precede this repair.
