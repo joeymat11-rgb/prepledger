@@ -1,48 +1,52 @@
-# GSS G6-G8 bounded evidence report
+# GSS G6 repair and G7 completion report
 
-Status: VALID PRODUCT RED. G7 and G8 pass their bounded rows; G6 is not accepted.
+Status: AUTHOR GREEN, INDEPENDENT REVIEW OWED. No package or final acceptance claim.
 
-## Composition and ownership
-- Base: `b5d1b4af175a8f100de0a21c47365153225ae68b`.
-- Accepted G5 repair `588c84082753696facc902890047c190c49f7318` is composed unchanged.
-- Branch: `rebuild/c-gss-g6-g8-proof`; executed correction head: `b09398eba9cf66f156dbf8212b299c67bc938cc8`.
-- Authored files only: this report and `gss-annex-g6-g8.test.mjs`; no product file changed.
+## Custody and scope
+- Branch: `rebuild/c-gss-g6-g8-proof`.
+- Immutable strengthened red proof: `bb21732538decf5bb2a47965edc2db0085e8cf10`.
+- Repair head: `bd16baf4a98c5444361550039149adb4db0c03bb`.
+- Product change: `rebuild/m3/w7-preview/today/gym-settings-lane.mjs` only.
+- Proof: `rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs`.
+- `gym-app.mjs`, model, host, stores, engine, schema, packages, and guards are unchanged.
+- Fixed runtime: Node v24.19.0, `MEASURED_TEST_NOW=2026-09-03`, `TZ=America/New_York`.
 
-## Safe graph and setup
-- Imports/setup match accepted G4/G5: current public hosts/models/mount, `faultDatabase`,
-  JSDOM, WebCrypto, `TodayModel`, and `design`.
-- Novel effects: existing fault mode, public settings `latest`, actual DOM controls/callbacks,
-  and reopened encrypted full `ops`/`outbox` maps.
-- Protected seed, migrate, merge, index, and oracle-shim files were not opened or traversed.
-- Owned working bytes matched committed LF blobs before execution.
-- Node: pinned `v24.19.0`; `MEASURED_TEST_NOW=2026-09-03`; `TZ=America/New_York`.
-- Existing dependencies were exposed by local ignored junctions; nothing was installed or written there.
+## Strengthened red
+- G6 now runs the unplanted after-commit positive before its row-loss plant.
+- G7 retains its three existing modes and adds distinct no-fault before-commit.
+- PID `19796`, exact G6/G7 rows: 1 pass, 1 fail, 0 skip, exit 1.
+- G7 all four modes passed; unplanted G6 failed `GSS-G6-SAVED-SCREEN`.
+- Its acknowledged exact set/outbox already existed; Saved/Undo/callback were absent.
+- This red head is the repair-removal witness: it has the same proof without the handoff.
 
-## Commands and process evidence
-- Full: `node --test-concurrency=1 --test rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs`.
-- Full PID `62048`, exit `1`: 3 tests, 1 pass, 2 fail, 0 skipped.
-- Mechanical G7 correction moved its post-repaint hold before preparation so quota actually executes.
-- G7-only: same file with `--test-name-pattern=D-GSS-G7`.
-- G7 PID `58516`, exit `0`: 1 test, 1 pass, 0 fail, 0 skipped.
-- Earlier PIDs `58168`, `61136`, `54856` exited during dependency loading before any row ran.
+## Repair mechanism
+- Exact-context delivery remains the primary path.
+- A successful pending Log may hand off only to the current connected Log binding when the
+  same live mount, editor token, workout start, and lift remain and only the set slot advanced.
+- Retired mount, changed editor/workout/lift, refusal, unchanged slot, disconnected control,
+  and non-Log actions cannot use the handoff.
+- The real model result drives Saved; no result, acknowledgement, or callback is fabricated.
 
-## Outcomes
-- G6 RED: after actual acknowledged set plus settings add/edit repaint, the current screen did
-  not become Saved. It failed `GSS-G6-SAVED-SCREEN` before the row-loss plant oracle.
-- Therefore G6 after-commit positive, row-loss plant verdict, and separate precommit case are
-  explicitly unreached; no G6 proof is claimed.
-- G7 PASS on corrected head: held actual quota result, quota armed after repaint, and no-fault
-  pre-prepare control all retained entry/effort/rows and matched current code/write/callback facts.
-- G7 error plant failed the intended `GSS-G7-CURRENT-ERROR` assertion inside the passing row.
-- G8 PASS on the full run: actual settings result stayed pending across real Log and Back;
-  ownership/destination, exact +1 set, zero settings write, and zero stale callback held.
-- G8 destination plant failed its intended assertion inside the passing row.
+## Focused outcomes
+- PID `43208`, G6/G7: 2 pass, 0 fail, 0 skip, exit 0.
+- G6 after-commit positive and planted repeat both acknowledged exactly one real set; Saved,
+  Undo, one callback, cleared performed entry/effort, and both settings rows passed.
+- G6 before-commit retained rows/current typed outcome and matched its write/callback branch;
+  the runner output did not separately print success versus `WORKOUT_RESUME_REQUIRED`.
+- G7 held quota and post-repaint quota returned `TRANSACTION_WRITE_FAILED`, retaining
+  entry/effort/rows/current code with zero write/callback.
+- Both G7 no-fault seams completed and matched typed outcome to full-map/callback facts;
+  the runner output did not separately print their success/refusal branches.
+- PID `60304`, existing G4/G5 plus foreign workout/lift carry: 3/3, exit 0.
+- PID `42244`, G8 navigation because the repair reads mount ownership: 1/1, exit 0.
+- All focused runs had zero skips; no broader suite ran.
 
-## Immutable evidence
-- Proof SHA-256: `d781069dcb0921e62d132116b0c199fb7b0dc2665682d91c5e626c38a4c3080b`.
-- Full stdout: `%TEMP%/earned-gss-g6-g8-c6de54d-run4.stdout.log`, SHA-256
-  `8151de75402f73334cdb39c0e6badad5aa5579d6a25f9bb978bd81a861171e6d`.
-- G7 stdout: `%TEMP%/earned-gss-g6-g8-b09398e-g7.stdout.log`, SHA-256
-  `97c8283a2b6859774423c11e6c18b2c1c0493c1aced254342288c4b3a845a83c`.
-- Both stderr files are empty, SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
-- Runtime slot was released immediately after PID `58516` terminated. No broader test ran.
+## Evidence
+- Proof SHA-256: `e2bd176f1a6a42bf1594b55eec152757d53132b74b155892b361200a9588b171`.
+- Lane SHA-256: `c162a0badd47aaf38db30804499a98f19c727683f11a5ee774fcc1d4878f5289`.
+- Red stdout SHA-256: `e391f48bcaac54904dc8deb75d3ef1e214516ecd5b2307b2c21f51a2da9ae1ef`.
+- G6/G7 stdout SHA-256: `06e56165f830986cd06973ae9a952980a22b561e6a39c6b08d2ae717d8142d84`.
+- G4/G5 stdout SHA-256: `a459e870358c8de0cbcd5d2eb152b34813eabf476d3bc1b56ca0a52f37472f6e`.
+- G8 stdout SHA-256: `c8ae8a3abace7a6188808aebdbfc633974e11b56e67447eb3792e6d4283edc61`.
+- All four stderr logs were empty; runtime was released before this report.
+- Claude review, full CI, integration, and reseal remain owed.
