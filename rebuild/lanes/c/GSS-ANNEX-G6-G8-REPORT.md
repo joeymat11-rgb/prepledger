@@ -1,52 +1,49 @@
-# GSS G6 repair and G7 completion report
+# GSS neutral repaint repair report
 
-Status: AUTHOR GREEN, INDEPENDENT REVIEW OWED. No package or final acceptance claim.
+Status: AUTHOR GREEN; FINAL DATA-PATH CLAUDE REVIEW, CI, AND RESEAL OWED.
 
-## Custody and scope
+## Custody
 - Branch: `rebuild/c-gss-g6-g8-proof`.
-- Immutable strengthened red proof: `bb21732538decf5bb2a47965edc2db0085e8cf10`.
-- Repair head: `bd16baf4a98c5444361550039149adb4db0c03bb`.
-- Product change: `rebuild/m3/w7-preview/today/gym-settings-lane.mjs` only.
-- Proof: `rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs`.
-- `gym-app.mjs`, model, host, stores, engine, schema, packages, and guards are unchanged.
-- Fixed runtime: Node v24.19.0, `MEASURED_TEST_NOW=2026-09-03`, `TZ=America/New_York`.
+- Prior accepted candidate: `79d981a7cf96d65a7a125c680c7a9df05aca7fc1`.
+- Original neutral-repaint red: `395bd581bc67e547909fc60bf6444e72d1523659`.
+- Corrected immutable red: `669b467da215b57fa39076dca1f9daf78ec09ffd`.
+- Corrected proof: `rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs`.
+- Sole product change: `rebuild/m3/w7-preview/today/gym-settings-lane.mjs`.
+- Node v24.19.0; `MEASURED_TEST_NOW=2026-09-03`; `TZ=America/New_York`.
 
-## Strengthened red
-- G6 now runs the unplanted after-commit positive before its row-loss plant.
-- G7 retains its three existing modes and adds distinct no-fault before-commit.
-- PID `19796`, exact G6/G7 rows: 1 pass, 1 fail, 0 skip, exit 1.
-- G7 all four modes passed; unplanted G6 failed `GSS-G6-SAVED-SCREEN`.
-- Its acknowledged exact set/outbox already existed; Saved/Undo/callback were absent.
-- This red head is the repair-removal witness: it has the same proof without the handoff.
+## Red and oracle correction
+- PID `45220`, unchanged parent lane: both neutral rows failed `GSS-G6-NEUTRAL-SAVED-SCREEN`.
+- Before failing, both passively observed same-workout/lift advanced-slot mount reads and a replacement connected Log.
+- Both also proved the exact submitted payload/identity, unchanged prior reopened maps, and one linked set/outbox write.
+- The first repaired run, PID `47296`, reached Saved/Undo/Next but found prescribed next load `40`, not blank.
+- Unchanged `gym-app.mjs` lines 388-389 correctly use next `view.entry` defaults when shared draft fields are null.
+- The corrected proof derives exact next defaults from a new post-Next mount read, converts null to blank,
+  requires load and reps each differ from submitted `45`/`11`, and compares the DOM exactly.
+- Shared draft load/reps null, effort null, no pressed effort, Saved/Undo, one callback, and full maps remain required.
 
-## Repair mechanism
-- Exact-context delivery remains the primary path.
-- A successful pending Log may hand off only to the current connected Log binding when the
-  same live mount, editor token, workout start, and lift remain and only the set slot advanced.
-- Retired mount, changed editor/workout/lift, refusal, unchanged slot, disconnected control,
-  and non-Log actions cannot use the handoff.
-- The real model result drives Saved; no result, acknowledgement, or callback is fabricated.
+## Repair
+- `continuedLogBinding` no longer requires a captured/current settings editor or equal editor tokens.
+- It still requires successful Log result, live busy mount, captured/current active views, exact workout/lift,
+  changed slot, and the current registered, non-revoked, connected Log control with exact live context.
+- Refusals, retired mounts, foreign workout/lift, unchanged slot, stale/disconnected controls, and other actions remain barred.
+- The comment now describes neutral repaint and current workout/lift instead of an editor-only settings-row case.
 
-## Focused outcomes
-- PID `43208`, G6/G7: 2 pass, 0 fail, 0 skip, exit 0.
-- G6 after-commit positive and planted repeat both acknowledged exactly one real set; Saved,
-  Undo, one callback, cleared performed entry/effort, and both settings rows passed.
-- G6 before-commit retained rows/current typed outcome and matched its write/callback branch;
-  the runner output did not separately print success versus `WORKOUT_RESUME_REQUIRED`.
-- G7 held quota and post-repaint quota returned `TRANSACTION_WRITE_FAILED`, retaining
-  entry/effort/rows/current code with zero write/callback.
-- Both G7 no-fault seams completed and matched typed outcome to full-map/callback facts;
-  the runner output did not separately print their success/refusal branches.
-- PID `60304`, existing G4/G5 plus foreign workout/lift carry: 3/3, exit 0.
-- PID `42244`, G8 navigation because the repair reads mount ownership: 1/1, exit 0.
-- All focused runs had zero skips; no broader suite ran.
+## Focused results
+- PID `64136`, corrected neutral rows: 2 pass, 0 fail, 0 skip, exit 0.
+- Their typed real results were successful; Saved/Undo, one callback, cleared performed draft, exact next defaults,
+  no pressed effort, exact payload/op/outbox identity, and full reopened maps passed in both variants.
+- PID `60188`, original G6/G7/G8: 3 pass, 0 fail, 0 skip, exit 0.
+- PID `57576`, affected G4/G5 including foreign workout/lift carry: 3 pass, 0 fail, 0 skip, exit 0.
+- PID `10744`, exact-parent removal: both neutral rows reproduced missing Saved, 0 pass, 2 fail, 0 skip, exit 1.
+- No broader suite, CI, protected/private path, engine, schema, host, store, or second product file ran or changed.
 
 ## Evidence
-- Proof SHA-256: `e2bd176f1a6a42bf1594b55eec152757d53132b74b155892b361200a9588b171`.
-- Lane SHA-256: `c162a0badd47aaf38db30804499a98f19c727683f11a5ee774fcc1d4878f5289`.
-- Red stdout SHA-256: `e391f48bcaac54904dc8deb75d3ef1e214516ecd5b2307b2c21f51a2da9ae1ef`.
-- G6/G7 stdout SHA-256: `06e56165f830986cd06973ae9a952980a22b561e6a39c6b08d2ae717d8142d84`.
-- G4/G5 stdout SHA-256: `a459e870358c8de0cbcd5d2eb152b34813eabf476d3bc1b56ca0a52f37472f6e`.
-- G8 stdout SHA-256: `c8ae8a3abace7a6188808aebdbfc633974e11b56e67447eb3792e6d4283edc61`.
-- All four stderr logs were empty; runtime was released before this report.
-- Claude review, full CI, integration, and reseal remain owed.
+- Proof SHA-256: `83f4c1db2e7e0216345e5f7478e88f2e5476dd941368ca67b2fd3877052b4a2c`.
+- Lane SHA-256: `1de11798fff62eb5d4eba07798050db91ca1d2b5fa18dbd131bdff2f20d1ae6a`.
+- Corrected red stdout: `3fa3757337d206c989dcd99b286a655c7b2dd8c4b19fc97d9fcd1d5cf5b36018`.
+- Corrected green stdout: `918270991c9dcea3c708ff41655325f5a8ec293fa6a9271a99f7aeacdde97a38`.
+- G6/G7/G8 stdout: `fde1d8689d161726ef58f87772456078aa40c2babd5b9d2e6235553738b0198a`.
+- G4/G5 stdout: `9b02f8604c5b3984ff0056dd1e172deaf97c309f40969f436e001aa1f63602df`.
+- Removal stdout: `7981d85b40b3c1c040a33362d3b9de533f83ef91b73d2595aa8de5e4f5a239ad`.
+- Every stderr log was empty (`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`).
+- Runtime was released immediately after the removal process terminated.

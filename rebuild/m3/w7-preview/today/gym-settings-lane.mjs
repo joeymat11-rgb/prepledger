@@ -197,18 +197,16 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
     return gymOutcome(action, result);
   }
 
-  /* Adding a settings row repaints the active card. If the real set commit settles
-     during that repaint, the durable read advances to the next slot and the exact
-     old Log context is correctly revoked. The acknowledgement still belongs to this
-     editor only when the mount, workout and lift are unchanged and the current Log
-     binding owns the advanced slot. This narrow handoff lets that binding paint the
-     real Saved result; leaving, changing workout/lift/editor, or a refusal still has
-     no handoff and therefore no stale callback. */
+  /* A neutral repaint can replace the active card while a real set commit settles.
+     The durable read advances to the next slot and the exact old Log context is
+     correctly revoked. The acknowledgement still belongs to the current workout and
+     lift only when the live Log binding owns the advanced slot. This narrow handoff
+     lets it paint the real Saved result; leaving, changing workout/lift, or a refusal
+     still has no handoff and therefore no stale callback. */
   const continuedLogBinding = (binding, outcome, capturedView, capturedEditor) => {
     if (binding.kind !== 'gym' || binding.action !== 'logSet'
       || !outcome || outcome.kind !== 'gym-result' || outcome.action !== 'logSet'
       || !outcome.result || outcome.result.ok !== true || !mountLive || !workoutBusy
-      || !capturedEditor || !activeEditor || capturedEditor.token !== activeEditor.token
       || !capturedView || capturedView.phase !== 'active'
       || !activeView || activeView.phase !== 'active'
       || capturedView.startId !== activeView.startId
