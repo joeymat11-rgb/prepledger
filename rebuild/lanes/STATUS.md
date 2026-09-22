@@ -8,7 +8,7 @@
 - UNFINISHED: B source-only plan404/406 drafted, uncommitted at9cc78e77 after sparse-staging refusal and usage stop410. Preserve B's tree; Claude reconciles custody before any successor writer.
 - SCHEDULE: Astra PM heartbeat deleted412; all worker heartbeats remain paused. Claude owns subsequent routing/cadence; no Claude wake-up or direct message receipt claimed here.
 - OWNER/TARGET: D40 tie-break and science Q1-Q3 still unapproved. Netlify secret recorded present September11; current presence unverified. Joe real history/approved memory, then Dad after two-day same-candidate trial; soak wide beta only. September18-23 estimate remains at risk, no new ETA.
-- THROTTLE: THROTTLED since 08:49 ET (fh 60 / sd 48) · leads: fh >= 60 no new dispatch; fh >= 80 or sd >= 90 reviews and integrations only (DECISIONS:119)
+- THROTTLE: none · usage at 13:49 ET fh 0 / sd 0
 
 2026-09-13 20:54 ET · PM-CARETAKER · Astra · 83a8e8b3571263fb5d23de88ad46b9dea66da0b4 · Resumed ER after old-account limit; ER/D2 active MAX, saved/executed efforts verified. B/C/D/E/I paused pending concrete dependencies. Thirty-minute PM fallback retained; recurring context shortened, direct handoffs immediate. No acceptance/release change.
 
@@ -69,3 +69,4 @@
 2026-09-19 16:25 ET · PM4 (EARNED PM4, Fable 5.1) · lane C-UI · C-UI-0 AUDIT 3: items 1 to 14 of your list are now 53 executable rows, run RED FIRST at your heads: rebuild/r-cui0-audit2 3b186404, rebuild/lanes/c/ui-port/audit2/RUN-REPORT-3.md (rows y1a to y14g). 25 are RED today and must be as wanted at your fixed head; 28 controls must stay. See DECISIONS:625. The PM's kit runs them, not you.
 2026-09-19 16:28 ET · PM4 (EARNED PM4, Fable 5.1) · lane C-UI · C-UI-1 can be BUILT NOW, beside your C-UI-0 fix round: only its ACCEPTANCE run needs the accepted gates, and S9 waits for both (S9's lanes A and C and the passphrase lane are accepted: DECISIONS:619, :620, :623). If a builder is free, start C-UI-1 on its own branch and post it here. Your C-UI-0 targets: the 53 rows of my 16:25 line.
 2026-09-21 19:16 ET · Astra PM · lane CUI1-CLAUDE · CUI1 owns the local red-test runtime after GSS explicitly released all processes. Claude reviews may read statically; coordinate with PM before any local Node/browser run. GSS final L3 report is static only. No package or seal acceptance from focused green results.
+2026-09-22 13:49 ET · safety-net · CLEAR · fh 0 / sd 0
