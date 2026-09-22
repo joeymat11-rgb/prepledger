@@ -136,6 +136,7 @@ function proveOneDurableSettingsWrite(before, after, submitted, latest) {
 
 function proveG1Editor(observed) {
   assert.equal(observed.open, true, 'GSS-G1-STALE-EDITOR-CLEAR');
+  assert.equal(observed.saveEnabled, true, 'GSS-G1-REVISED-OUTCOME-REBIND');
   assert.equal(observed.value, 'six', 'GSS-G1-NEWER-ANSWER-LOST');
   assert.equal(observed.error, GymApp.SETTINGS_NOTHING, 'GSS-G1-NEWER-ERROR-LOST');
 }
@@ -151,6 +152,7 @@ function proveG2Draft(observed) {
 function observeG1(page) {
   const editor = page.pick('[data-slot="settings-editor"]');
   return { open: !!editor && !editor.hidden,
+    saveEnabled: page.pick('[data-slot="settings-save"]')?.disabled === false,
     value: page.pick('[data-settings-value="0"]')?.value || null,
     error: page.pick('[data-slot="settings-error"]')?.textContent || '' };
 }
@@ -328,6 +330,7 @@ async function runG1Aba() {
     const after = await collections(reopened.repository);
     proveOneDurableSettingsWrite(before, after, hold.submitted(), await reopened.latest(LIFT));
     assert.equal(observed.open, true, 'GSS-G1-ABA-EDITOR-CLEAR');
+    assert.equal(observed.saveEnabled, true, 'GSS-G1-ABA-REVISED-OUTCOME-REBIND');
     assert.equal(observed.value, 'four', 'GSS-G1-ABA-ANSWER-LOST');
     assert.equal(observed.error, GymApp.SETTINGS_NOTHING, 'GSS-G1-ABA-ERROR-LOST');
   } finally {

@@ -136,6 +136,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   // A repaint replaces DOM nodes, not the draft's refusal. Weak keys also keep a
   // delayed result from assigning the old draft's message to a replacement draft.
   const settingsErrors = new WeakMap();
+  const settingsSubmittedRevisions = new WeakMap();
 
 
 
@@ -266,13 +267,27 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const save = map.get('settings-save');
     save.disabled = facade.settingsBusy();
     return () => hooks.bindSettingsSave(paintedToken,
-      () => ({ rows: paintedDraft.rows, cues: paintedDraft.cues, revision: settingsDraftRevision }), async (outcome) => {
+      () => {
+        settingsSubmittedRevisions.set(paintedToken, settingsDraftRevision);
+        return { rows: paintedDraft.rows, cues: paintedDraft.cues, revision: settingsDraftRevision };
+      }, async (outcome) => {
         if (!outcome || outcome.kind === 'ignored') return;
         if (outcome.editorToken !== paintedToken) return;
         if (outcome.kind === 'saved') {
-          if (settingsEditorToken === paintedToken && outcome.editorRevised !== true) {
-            settingsDraft = null; settingsDraftLift = null; settingsEditorToken = null;
-            settingsDraftRevision = 0;
+          if (settingsEditorToken === paintedToken) {
+            const submittedRevision = settingsSubmittedRevisions.get(paintedToken);
+            const revised = Number.isSafeInteger(submittedRevision)
+              && settingsDraftRevision !== submittedRevision;
+            if (revised) {
+              const message = settingsErrors.get(paintedToken) || '';
+              const reopened = hooks.settingsEditOpened();
+              if (!reopened) return;
+              settingsEditorToken = reopened.editorToken;
+              if (message) settingsErrors.set(settingsEditorToken, message);
+            } else {
+              settingsDraft = null; settingsDraftLift = null; settingsEditorToken = null;
+              settingsDraftRevision = 0;
+            }
           }
           await paint();
           return;

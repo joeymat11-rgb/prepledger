@@ -1,55 +1,50 @@
-# GSS annex timing proof: G1/G2 candidate report
+# GSS annex timing proof: focused repair report
 
-Status: REVIEW RED. Original three pass; four of seven identity/reentrancy rows fail.
-Candidate under review: 46af1b846801cbbf67f6ac8ef1e582038a133f9f.
-Scope: G1, ABA, G2, plus seven bounded writer ownership controls.
-Owned tests: today/test/gss-annex-{timing,identity-reentrancy}.test.mjs.
+Status: CANDIDATE GREEN for the focused G1/G2 and ownership rows.
+Base red: d7666445dc769410d90b51c3ced967b24d4290b4.
+Scope: G1, ABA, G2, and seven bounded writer ownership controls.
+Owned paths: gym-app.mjs, gym-settings-lane.mjs, and the two annex tests.
 
-## Proof rows
-G1 holds acknowledgement after a real settings commit, then edits the same live
-editor. It requires the newer answer and existing named error to remain visible.
-After reopening the real host, it requires the originally submitted payload in
-exactly one new operation and its one linked outbox entry.
-G2 runs two fresh-store variants while the real Save acknowledgement is held.
-The first changes both entry fields. The second uses the load stepper and changes
-effort. Both require the unchanged editor to close without clearing those changes.
-G2 executes both variants even if the first records a failed assertion.
-Each variant reopens the host and compares full serialized ops/outbox maps.
-The appended ABA row proves edit-then-revert remains a newer editor revision.
-Seven synthetic controls cover exact opaque token identity and post-read invalidation.
+## Repair
+The writer invokes readRaw exactly once and preserves the opaque editorToken.
+After the released post-save repaint callback, it rechecks mount, context, current
+editor, current binding identity, connected control, and phone containment.
+Only the still-current binding can retire its editor and receive the saved outcome.
+The UI records the submitted revision against the opaque token during that one read.
+A newer same-editor draft makes the UI open a fresh editor token after old retirement.
+The draft, its named error, and its monotonic revision survive that rebind.
+An unchanged editor still closes after Save. Reservation and refusal behavior remain.
 
-## Teeth and safety
-G1 and G2 first run a second real mounted/store journey through held delivery.
-At that seam G1 hides the mounted editor; G2 resets the mounted load field.
-The same DOM capture and durable reopen checks then require the named failure:
-GSS-G1-STALE-EDITOR-CLEAR or GSS-G2-INDEPENDENT-LOAD-LOST.
-Rows have node:test timeouts; held acknowledgement and delivery waits are bounded.
-Imports use current mountGym and createMachineSettingsHost APIs only.
-No lifecycleState, refreshState, archived counter, old app, private, or soak path.
-Red static manifest: C:/Users/joeym/AppData/Local/Temp/earned-gss-annex-static-04ea69e-g1g2/import-closure-effect-scan.txt
+## Proof
+The seven controls import the real writer. They require one raw capture, exact token
+identity, stale-delivery refusal after replace/leave/dispose during the existing
+post-save repaint, no nested writer, reservation release, and stale-token refusal.
+The mounted G1 and ABA rows require the revised answer, named error, open editor, and
+a live fresh Save binding after held delivery. G2 retains both independent variants.
+Each mounted variant uses a fresh real host, checks all prior ops/outbox rows survive,
+counts one new op and one linked outbox row, checks the submitted durable payload,
+and reopens the host to check the latest machine. It does not compare full maps.
+G1/G2 mounted plants still reach the same DOM capture seam and named failures.
+
+## Measured evidence
+Fixed environment: MEASURED_TEST_NOW=2026-09-03; TZ=America/New_York.
+Pinned Node: C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe.
+Run root: C:/Users/joeym/AppData/Local/Temp/earned-gss-complete-fix-ea224aa957684e56a85c422a11f9c53a.
+identity: exit 0, 7 tests, 7 pass, SHA256 2a4a14add54e532e05029b2d4163f9e76d94fb5fe0ffc4784742ef55965d168c.
+G1: exit 0, 1 selected, 1 pass, SHA256 60c0f1e38bf2098d4364f98c524cafc25e496add9a67ce185bf2c65a2398366a.
+ABA: exit 0, 1 selected, 1 pass, SHA256 9fc91a94d03973350bc834507306b26ada7a8df10df47c4de4f71378278804d9.
+G2: exit 0, 1 selected, 1 pass, SHA256 86169e86115ff265454d6107513ae6429482ff4eae9c985a5d0221aaaacb334f.
+Commands were serial: the identity file, then anchored ^D-GSS-G1:,
+^D-GSS-G1-ABA:, and ^D-GSS-G2: with --test-concurrency=1.
+An earlier repair run reached 5/7 before a new button-state proxy failed.
+That test had manually enabled the button; product evidence was not inferred.
+Retained log SHA256: 3adc90c6b635a5068444d413ddec41fee50db0f1f9408a638ae868e09e785ed6.
+The corrected control directly proves a retired token cannot bind a second write.
+
+## Safety and limits
+Static manifest: C:/Users/joeym/AppData/Local/Temp/earned-gss-annex-static-04ea69e-g1g2/import-closure-effect-scan.txt.
 Manifest SHA256: 31803a36079cfbda100757d5dbc9abd66472fcdae5b882d3b94264fca5db4a25.
-It hashes 130 repository files, records zero forbidden paths, and names all ten
-literal dynamic branches. They are conservatively included in the closure.
-Its named OS/external-effect text patterns had zero matches; this is not a purity claim.
-The mounted proof import graph is unchanged; the controls import the real writer and jsdom.
-Shell, JSDOM, IndexedDB, host/store, and journey helpers run inside test callbacks.
-Imported ESM/CJS initializers still run; package internals are outside the manifest.
-The harness opens no network, browser, server, subprocess, or external target.
-## Published red and measured candidate runtime
-Pinned Node exists at C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe.
-Run these exact PowerShell commands sequentially from the candidate root:
-1. $env:MEASURED_TEST_NOW='2026-09-03'; $env:TZ='America/New_York'; & 'C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe' --test --test-concurrency=1 --test-name-pattern '^D-GSS-G1:' 'rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs'
-2. $env:MEASURED_TEST_NOW='2026-09-03'; $env:TZ='America/New_York'; & 'C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe' --test --test-concurrency=1 --test-name-pattern '^D-GSS-G1-ABA:' 'rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs'
-3. $env:MEASURED_TEST_NOW='2026-09-03'; $env:TZ='America/New_York'; & 'C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe' --test --test-concurrency=1 --test-name-pattern '^D-GSS-G2:' 'rebuild/m3/w7-preview/today/test/gss-annex-timing.test.mjs'
-Each original anchored command selected one row: three pass, zero fail.
-Repository controls ran seven: three pass, four fail, exit 1.
-Failures: revised token identity and replace/leave/dispose stale delivery.
-Control log: C:/Users/joeym/AppData/Local/Temp/earned-gss-identity-red-db4c824cae8a4c55b107958422360eb1/red.log
-Control log SHA256 f0a85cd5293d783a2fa8059cf50400757ade7f2b00e1abd7d32a8fbd6a84ca08.
-Control test SHA256 35b7e1550ecb84aea96eb7de978e4653a2454c2ce230b19336d4b0833d29c141.
-Original green logs remain under earned-gss-g1g2-fix-b433956ce11c4fef914d53c067e722f2.
-## Limits
-G3-G8 are outside this initial batch and remain open.
-Mounted DOM plants prove the observation seam; they do not claim a source-level
-guard-removal mutant is killed.
-No annex closure, acceptance, repair, or full-candidate PASS is claimed.
+It covers 130 repository files and ten named literal dynamic branches; package
+internals and opaque dynamic branches remain outside its source-pattern claim.
+No install, network, browser, server, subprocess, old API, private, or soak path.
+The runtime is released. G3-G8, annex closure, acceptance, and integration remain open.

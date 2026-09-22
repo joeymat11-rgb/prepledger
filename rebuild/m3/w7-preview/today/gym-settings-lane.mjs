@@ -239,13 +239,13 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
         outcome = await recordSettings(raw, binding.editorToken, capturedEditor.liftId);
         if (outcome.kind === 'saved' && activeEditor && activeEditor.token === binding.editorToken) {
           const callback = [...controlBindings.values()].find((row) => row.kind === 'settings'
-            && row.editorToken === binding.editorToken && !row.revoked) || binding;
-          const currentRaw = underRefusal(() => copySettingsRaw(callback.readRaw()));
-          const editorRevised = currentRaw.revision !== raw.revision;
-          if (!editorRevised) retireEditor();
-          const delivered = editorRevised
-            ? freezeDeep(Object.assign({}, clone(outcome), { editorRevised: true })) : outcome;
-          const settlement = underRefusal(() => callback.onOutcome(delivered));
+            && row.editorToken === binding.editorToken && !row.revoked);
+          if (!callback || !mountLive || !activeEditor || activeEditor.token !== binding.editorToken
+            || callback.revoked || !sameContext(callback)
+            || controlBindings.get(callback.control) !== callback
+            || !callback.control.isConnected || !phone.contains(callback.control)) return;
+          retireEditor();
+          const settlement = underRefusal(() => callback.onOutcome(outcome));
           await settlement;
           return;
         }
