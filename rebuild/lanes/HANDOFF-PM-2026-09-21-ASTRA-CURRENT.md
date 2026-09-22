@@ -1,5 +1,5 @@
 # Earned current PM checkpoint, 2026-09-21
-Continuity only, not a seat transfer. Later ledger entries control; latest746.
+Continuity only, not a seat transfer. Later ledger entries control; latest748.
 Sole PM task01a0c6fe-004c-7330-90f2-df02af3c7290, seated738 after release737.
 Goal remains approved rebuild until verified ready for Joe's trial; not achieved.
 PM tree: C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm.
@@ -7,8 +7,8 @@ Use detached checkout, push HEAD:rebuild/t2-client-core; never switch old-app cw
 
 ## S9 current composition
 Integration branch rebuild/b-s9-integration, tree %TEMP%/earned-s9int.
-Product candidate785be9d1d6d5976dc4f616564a0d15db07832228.
-Head04baabc1a2fbb16e69d24e8deeae274df6331e6e adds only38line composition report.
+Prior composition785be9d1d6d5976dc4f616564a0d15db07832228; report head04baabc.
+Current head5c62cb423848b72c260552dd1f425b2a31ca04c0 adds font CI home/report.
 Report: rebuild/lanes/b/S9-COMPOSITION-CHECKPOINT-2026-09-21.md.
 Merges CUI0/font0e5e194, guardfb999645 and E17 readerb9ea32f, all clean.
 Whole09-18pack exact; five actual CUI tickets and S9 brief exact acceptedcaa0abf.
@@ -20,29 +20,29 @@ No automatic paid Claude dispatch; only Joe's word starts it.
 Parent sourceBase0cd07be7cf967dfbfea8c84947ba8477f58cfb5f unchanged.
 Public preflight222match,5protected paths excluded; not full227 proof.
 No literals/tokens/S9package/artifact/execution-closure/CI/seal acceptance yet.
-Direct Sol /root/s9_font_home preparing required explicit font regression home.
-Proposal %TEMP%/earned-s9-font-home-proposal/PROPOSAL.md,60lines read.
-Workflow-only recommended beside existing Today design font row; no runner bridge.
-Before edit grant, verifies official Python/PyPI availability of actual local pins.
-No font code/workflow edits or runtime granted. Next grant needs own branch.
+Font blind ACCEPTb67f7e0:astra/reviews/S9-FONT-HOME-REVIEW-L1.md; adopted747.
+Exact run35683197350 Ubuntu106604408346/Windows106604408375 each6PASS/0skip.
+E17 preflightdd182f8 reaches reader+4docs; full closure refuses before protected migrate.
+Pack preflight7a986db:1331Git/working files equal, both OS baselines present; no literal filled.
+Final package/closure/primary CI/Claude/seal remain owed; no partial proof promoted.
 
 ## GSS proof and live repair
 Existing author Sol lives under relay01a0c64b-6e69-70a1-8782-8a33af720761.
 Relay only, no PM/ledger authority. This is the working author route.
 Author tree %TEMP%/earned-gss-build, branch rebuild/c-gym-settings-writer-build.
 G3 product320d192 independent19/19 plus2mutants recorded741, review1bcb90b retained.
-New immutable G4/G5 proofb5d1b4af175a8f100de0a21c47365153225ae68b is clean/pushed.
-ProofSHAe2d4ad42bed54ec9a3c1140d14c3d6c1470cd076fe7536bf3be3b1b26a0c6cc7.
-Independent3eda17c:astra/reviews/GSS-G4-G5-REVIEW-L1.md,54lines read/hashes checked.
-G4PASS; G5 valid EDITOR-LOST-AFTER-LOG red after successful Saved/durable+1.
-Reviewer PIDs61288/10412 terminal and runtime released; no accepted audits repeated.
-Commission746 returns sole runtime to same author for bounded G5repair.
-Owned gym-app.mjs, targeted proof, report only; no engine/model/store/lane-guard edits.
-Preserve exactworkout/lift carry throughSaved; nextset must have fresh usable editor.
-Require actual restored Save, stale-control/boundary/no-write and removal witnesses.
-Same direct Astra /root/s9_quoted_review owns blind recheck when candidate saved.
+Immutable redb5d1b4af, independent3eda17c G4PASS/G5EDITOR-LOST-AFTER-LOG retained.
+Repair588c84082753696facc902890047c190c49f7318 clean/pushed, exactly3ownedpaths.
+Author G4 1/1,G5 2/2;57line c/GSS-ANNEX-LOG-TIMING-REPORT.md whole/hashes checked748.
+ProductSHAd41d1e5c52a8850058485129de2eb8c357a6f38bb770c9f2b482ce2f7b528159.
+ProofSHAcea1cd3f392d8ef679e0659eb2b8cf6c6b9742e23b343ab1927fb797d6fbb74b.
+Removal fails missing restored editor at earlier RETIRED-INPUT-MUTATED-FRESH-EDITOR.
+Original immutable red retained; no assertion order change to manufacture oldmarker.
+Author terminal/released; /root/s9_quoted_review now owns sole runtime for narrow L2.
+Reviewer G4 started PID25300; verify terminal/release before any next grant.
+No engine/model/store/writer guard edits; preserve exact context/fresh editor and maps.
 Author/reviewer loop through ACCEPT, disputed finding or round3; PM judges at end.
-G6-G8 actually unassigned, not prepared. No full annex/Claude/CI/reseal acceptance.
+Sol /root/s9_font_home assigned disjoint G6-G8 STATIC proof prep748, no runtime/product edits.
 Old coordinator01a0c4a5 route unavailable; oldworkers idle, evidence preserved.
 
 ## Owner choices and guardrails
@@ -53,4 +53,4 @@ Separate preparation/capture engine issue still needs its own owner word.
 Queue unchanged:S9look/seal; phoneearns beforetrial; split/EditMyWeek;N3;re-plan;P4b-2.
 Never protected/old-app paths or engine seed,migrate,merge,index,oracle-shim.
 No main/deploy/import/purchase/fallback/newengine semantics inferred.
-One runtime, no heartbeats/sharednpm/duplicatework/weakenedguards. Latestweekly40percent.
+One runtime, no heartbeats/sharednpm/duplicatework/weakenedguards. Latestweekly44percent.
