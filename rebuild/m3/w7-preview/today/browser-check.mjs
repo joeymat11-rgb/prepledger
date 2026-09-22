@@ -453,14 +453,33 @@ try {
   const reduced = await browser.newContext({ viewport: VIEWPORT, reducedMotion: "reduce" });
   try {
     const still = await reduced.newPage();
+    /* A fresh browser context must open the real public Today lifecycle before it
+       can open the workout over that context's local installation. Going straight
+       to ?screen=workout leaves the app host unpainted even though the independent
+       scene review hook correctly says "workout". */
+    await still.goto(url + "?theme=dawn&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
+    await still.waitForSelector('[data-slot="instruction"]');
+    await namedWait(still, "reduced-bootstrap-scene-ready",
+      () => window.__earnedScene && window.__earnedScene.snapshot().ready);
     await still.goto(url + "?theme=dawn&screen=workout&chrome=1&date=board&state=W-18", { waitUntil: "load" });
     await namedWait(still, "workout-screen-ready",
       () => document.documentElement.dataset.screen === "workout"
-        && !!document.querySelector('[data-slot="workout-title"]'));
+        && !!document.querySelector('[data-slot="session-title"]')
+        && !!document.querySelector('[data-slot="lift"]'));
     await namedWait(still, "reduced-scene-ready",
       () => window.__earnedScene && window.__earnedScene.snapshot().ready);
-    assert((await still.textContent('[data-slot="workout-title"]')).trim().length > 0,
-      "the actual Workout preview is ready before its scene is judged");
+    const active = await still.evaluate(() => {
+      const state = (selector) => {
+        const node = document.querySelector(selector);
+        if (!node) return { visible: false, nonempty: false };
+        const style = getComputedStyle(node);
+        return { visible: !node.hidden && style.display !== "none" && style.visibility !== "hidden",
+          nonempty: node.textContent.trim().length > 0 };
+      };
+      return { title: state('[data-slot="session-title"]'), lift: state('[data-slot="lift"]') };
+    });
+    assert(active.title.visible && active.title.nonempty && active.lift.visible && active.lift.nonempty,
+      "the actual active Workout title and lift are ready before its scene is judged");
     const witness = await still.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());
     assert.deepEqual(witness.hooks,
       { theme: "dawn", screen: "workout", chrome: true, date: "board", state: "W-18" });

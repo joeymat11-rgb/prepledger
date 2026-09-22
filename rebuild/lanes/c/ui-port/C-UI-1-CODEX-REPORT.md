@@ -1,8 +1,8 @@
 # C-UI-1 Codex author report
 
 Role: commissioned Sol builder, not reviewer, PM or integrator.
-Base: 9d062283dc0c54857547c3a04d3226155915049f diagnostic checkpoint.
-Status: candidate frozen at named browser failure; not accepted.
+Base: fa59c85a35be012cfc4ede66ca444e80c5fb5057 diagnostic result.
+Status: harness repair prepared but unexecuted; not accepted.
 
 Implemented in this candidate:
 - headlineVocabulary checks the exact 18 public .cjs filename census before
@@ -46,9 +46,14 @@ Browser result:
 - Ink PNG SHA256 6cead7c00d63300c25c8aae9fc3c955f231ec74f431951f4991f48323b3eb57b.
 - Dawn PNG SHA256 f75b8b62b06964bd587dc9afc8293ae7e6bc83f8accd3841a6aa9a6d30f868b9.
 - reduced-motion PNG and visual-summary.json are absent; no retry was made.
-- Wait conditions, timeouts, assertions and product bytes were unchanged.
+- focused lifecycle probe: real Today then Workout settled the active title and
+  lift, with reduced draws 1/scheduled 0 and zero errors/offsite. Log SHA256
+  ba4215179c5fda841a7729da5e88b9f5072218943272d467be515a9c5f21d2c6.
+- prepared harness now performs that real lifecycle and requires visible,
+  nonempty active session-title plus lift. Refusal-only copy cannot satisfy it.
+- reduced scene assertions and all product bytes remain unchanged.
 
 Runtime is released; no Node/browser/server process remains.
 No approved pack, baseline, engine, storage, workflow, ledger or STATUS changed.
-B1-B4, workout-route diagnosis, reduced motion, independent review, Linux, CI,
+B1-B4, repaired full browser proof, independent review, Linux, CI,
 seal and integration remain owed. No acceptance or ticket-completion claim.
