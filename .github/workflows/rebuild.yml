@@ -375,6 +375,9 @@ jobs:
       - name: C - the design pack pin and the approved-reference pin
         if: ${{ !cancelled() }}
         run: node --test rebuild/lanes/c/ui-port/pack-pin.test.mjs rebuild/lanes/c/ui-port/approved-pin.test.mjs
+      - name: C - the accepted reference closure
+        if: ${{ !cancelled() }}
+        run: node --test rebuild/lanes/c/ui-port/reference-closure.test.mjs
       # C - THE CROSS-LANE RELEASE-OBJECT CELL, the S9 integration's own (DECISIONS:559,
       # ruled the integration's by DECISIONS:627 P-S9-6; brief section 9 item 2). It is
       # the one cell that holds BOTH halves of the release at once: the block proposed()
