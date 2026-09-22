@@ -147,7 +147,8 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     if (!owns || !settingsDraft || !view || typeof view.startId !== 'string'
       || !view.lift || typeof view.lift.id !== 'string') return;
     SETTINGS_DRAFT_CARRY.set(held, Object.freeze({ startId: view.startId, liftId: view.lift.id,
-      draft: settingsDraft, revision: settingsDraftRevision,
+      draft: { rows: settingsDraft.rows.map((row) => ({ name: row.name, value: row.value })),
+        cues: settingsDraft.cues }, revision: settingsDraftRevision,
       error: typeof error === 'string' ? error : '' }));
   };
 
@@ -294,7 +295,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     hooks.listen(root.querySelector('[data-action="settings-cancel"]'), 'click', () => {
       /* CANCELLING WRITES NOTHING. The draft is thrown away and the durable record is
          whatever it already was; the athlete is returned to the block. */
-      if (settingsDraft !== paintedDraft || settingsEditorToken !== paintedToken) return;
+      if (!owns || settingsDraft !== paintedDraft || settingsEditorToken !== paintedToken) return;
       hooks.settingsEditClosed(paintedToken);
       settingsDraft = null; settingsDraftStart = null; settingsDraftLift = null; settingsEditorToken = null;
       clearSettingsCarry();
