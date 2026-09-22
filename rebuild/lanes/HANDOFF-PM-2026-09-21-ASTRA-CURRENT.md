@@ -1,5 +1,5 @@
-# Earned current PM checkpoint, 2026-09-21
-Continuity only, not a seat transfer. Later ledger entries control; latest753.
+# Earned current PM checkpoint, 2026-09-22
+Continuity only, not a seat transfer. Later ledger entries control; latest755.
 Sole PM task01a0c6fe-004c-7330-90f2-df02af3c7290, seated738 after release737.
 Goal: approved rebuild until verified ready for Joe's trial; not achieved. Previous turn progress.
 PM tree: C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm.
@@ -19,8 +19,8 @@ Full227custody/actual child closure still need protected access. No S9.json/fina
 Existing integration hands1-8/11 retained; no unfinishedCUI1, actual09-08 references plus whole09-18pack.
 
 ## S9 current workers
-Sol /root/s9_font_home built CI homee5d3d05bee3aaecdc4e01815b281111058a42d03, now on G6repair.
-Branch rebuild/b-s9-reference-home, %TEMP%/earned-s9-reference-home,3workflowlines+29report readwhole.
+Sol /root/s9_font_home now STATIC exact prospective S9 child/role/CI map, no spec/literal/token writes.
+Reference homee5d3d05 incorporated; mapping starts current %TEMP%/earned-s9int; no runtime.
 Reader unchangedbf967180; independent ACCEPTfff570c, adopted753, no localreader execution.
 CI35684542499:Ubuntu106608457970/Windows106608457960 readerstepSUCCESS; metadataonly.
 Whole public-gates jobs FAILURE; no fullCIclaim. Integration e5d3d05 clean/pushed; no full joblogs.
@@ -38,18 +38,18 @@ Oldauthor route relay01a0c64b has no PM/ledgerauthority; oldcoordinator01a0c4a5 
 G3product320d192, independent1bcb90b19/19+2kills adopted741; original23row evidence retained.
 G5repair588c840, independentd5aa5db G4 1/1,G5 2/2+exactparentkill adopted749.
 G6-G8 branch rebuild/c-gss-g6-g8-proof, %TEMP%/earned-gss-g6-g8, /root/s9_font_home owns.
-New immutable redbb217325; lane-only repairbd16baf4; final79d981a7; author report read52lines.
-Independent2fde0bf:astra/reviews/GSS-G6-G8-REVIEW-L1.md,58lines/eight hashes checked752.
-G6 genuine unplantedred: actual+1/maps pass; neutralrowpaint advances slot, revokes priorLogdelivery.
-Saved absent/callback0; Undo/reopen/roworacle/precommit unreached. Do not claim G6 plant killed.
-G7 strengthened red adds required distinct nofaultbefore-commit; author allfour modes PASS.
+Redbb217325; lane-only repairbd16baf4; final79d981a7; author52line report/hunks/hashes checked.
+Independent repair ACCEPTcf94e16:astra/reviews/GSS-G6-REPAIR-G7-REVIEW-L2.md,58lines/all hashes checked754.
+G6 aftercommit actual+1/maps/Saved/Undo/rows/callback PASS; oldlane removal SAVED-SCREEN red.
+G6 beforecommit WORKOUT_RESUME_REQUIRED; zero write/callback/fullmaps retained; rowloss plant now valid.
+G7 allfour modes independently PASS; precommit actual refusal, preprepare succeeds, both quota codes exact.
 G8 realheldread+Log+Back/fullmaps and destinationplant pass. No broaderpackageacceptance.
-Author released runtime:19796red,43208G6/G7 2/2,60304G4/G5/foreign3/3,42244G8 1/1.
+Independent runtime RELEASED:62280G6/G7/G8 3/3,61700G4/G5 3/3,48480removal0/1; no skips.
 UnplantedG6red published before lane-only acknowledgedLog delivery handoff; no other product change.
 Strict mount/context/stale/foreign guards, active-onlysettingswriter, exactpayload/onecallback/write remain.
-Independent /root/s9_quoted_review now owns sole runtime; blind focused proof/removal/guard review.
-Author/reviewerloop toACCEPT/dispute/round3; mechanical20min, release runtime before report.
-Direct author/reviewer corrections authorized with explicit runtime transfer; PM judges at disposition.
+Claude755 GYM-SETTINGS-WRITER-SEAL l2 owed; packetf93f214:astra/GSS-ANNEX-CLAUDE-L2-REQUEST.md.
+Candidate79d981a run35685091003 both OS failstep13; metadata only, no identical-cause/fullCI claim.
+Reviewer now STATIC prospective exporter; %TEMP%/earned-s9-profile-export-preparation; never executed.
 
 ## Owner queue and boundaries
 CUI86007bc NOT READY/harness380a2d5; promotion afterS10 via named reseal, phoneproof owed.
@@ -57,4 +57,4 @@ Pendingowner: yes-only ordinary increases, B afterFinish recommended; noanswer k
 Queue:S9look/seal; phoneearns beforetrial; split/EditMyWeek;N3;re-plan;P4b-2. Father's trial follows.
 Never protected/oldapp paths, engine seed/migrate/merge/index/oracle-shim, oldjob50 or claude-epp.
 No main/deploy/import/purchase/fallback/newengine semantics/sharednpm/heartbeats/guardwaivers.
-Latestweekly51percent; crossinghalf notified. Joe requests maximum speed; quality preserved. Goalactive.
+Latestweekly52percent; crossinghalf notified. Maximum speed with quality; no trialETA. Goalactive.
