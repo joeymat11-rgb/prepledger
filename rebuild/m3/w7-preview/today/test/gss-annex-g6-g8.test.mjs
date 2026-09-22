@@ -238,11 +238,12 @@ async function runG6NeutralRepaint(kind) {
   const held = heldLogModel(unit, 'after-commit'), draft = newGymDraft();
   const readReached = deferred(), readRelease = deferred();
   let mounted = null, reopened = null, changed = 0;
-  let readDelivered = false, lastMountedView = null;
+  let readDelivered = false, lastMountedView = null, mountedReadCount = 0;
   try {
     const before = await collections(unit.gymHost.repository);
     const observedModel = Object.freeze({ ...held.model, read: async (...args) => {
       const view = await held.model.read(...args);
+      mountedReadCount += 1;
       lastMountedView = copy(view);
       return view;
     } });
@@ -307,9 +308,22 @@ async function runG6NeutralRepaint(kind) {
     const undo = !!mounted.pick('[data-action="undo"]');
     const clearedEntry = copy(draft.entry), clearedEffort = copy(draft.effort);
     let nextActive = false, nextLoad = null, nextReps = null, nextPressed = [];
+    let nextExpectedLoad = null, nextExpectedReps = null;
     if (saved && undo) {
+      const readsBeforeNext = mountedReadCount;
       mounted.click('[data-slot="primary"]');
-      await until(() => mounted.pick('[data-slot="log"]'), 'G6 neutral next active repaint');
+      await until(() => mountedReadCount > readsBeforeNext && mounted.pick('[data-slot="log"]'),
+        'G6 neutral next active repaint');
+      const nextView = copy(lastMountedView);
+      assert.equal(nextView?.phase, 'active', 'GSS-G6-NEUTRAL-NEXT-VIEW-' + kind);
+      assert.equal(nextView.startId, expected.startId, 'GSS-G6-NEUTRAL-NEXT-WORKOUT-' + kind);
+      assert.equal(nextView.set.lift, expected.lift, 'GSS-G6-NEUTRAL-NEXT-LIFT-' + kind);
+      assert.equal(nextView.set.slot, advanced.set.slot, 'GSS-G6-NEUTRAL-NEXT-SLOT-' + kind);
+      assert.notEqual(nextView.set.slot, expected.slot, 'GSS-G6-NEUTRAL-NEXT-SLOT-STALE-' + kind);
+      nextExpectedLoad = nextView.entry.load === null ? '' : String(nextView.entry.load);
+      nextExpectedReps = nextView.entry.reps === null ? '' : String(nextView.entry.reps);
+      assert.notEqual(nextExpectedLoad, expected.load, 'GSS-G6-NEUTRAL-NEXT-LOAD-FIXTURE-' + kind);
+      assert.notEqual(nextExpectedReps, expected.reps, 'GSS-G6-NEUTRAL-NEXT-REPS-FIXTURE-' + kind);
       nextActive = true;
       nextLoad = mounted.pick('#gym-weight')?.value;
       nextReps = mounted.pick('#gym-reps')?.value;
@@ -325,8 +339,8 @@ async function runG6NeutralRepaint(kind) {
       'GSS-G6-NEUTRAL-ENTRY-NOT-CLEARED-' + kind);
     assert.equal(clearedEffort, null, 'GSS-G6-NEUTRAL-EFFORT-NOT-CLEARED-' + kind);
     assert.equal(nextActive, true, 'GSS-G6-NEUTRAL-NEXT-CARD-MISSING-' + kind);
-    assert.equal(nextLoad, '', 'GSS-G6-NEUTRAL-NEXT-LOAD-NOT-CLEARED-' + kind);
-    assert.equal(nextReps, '', 'GSS-G6-NEUTRAL-NEXT-REPS-NOT-CLEARED-' + kind);
+    assert.equal(nextLoad, nextExpectedLoad, 'GSS-G6-NEUTRAL-NEXT-LOAD-NOT-CLEARED-' + kind);
+    assert.equal(nextReps, nextExpectedReps, 'GSS-G6-NEUTRAL-NEXT-REPS-NOT-CLEARED-' + kind);
     assert.deepEqual(nextPressed, [], 'GSS-G6-NEUTRAL-NEXT-EFFORT-NOT-CLEARED-' + kind);
     assert.equal(changed, 1, 'GSS-G6-NEUTRAL-ONCHANGED-' + kind);
   } finally {
