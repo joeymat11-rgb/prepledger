@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  CANDIDATE: cf14982050a8169c7f4848ec0bf1f69c2bb5759f
+  CANDIDATE: 80fad72b62577900ce07a2910a9b6a1db47d7cca
   PACK: rebuild/m1/approved-2026-09-18
   MEASURED_TEST_NOW: '2026-09-03'
   TZ: America/New_York
@@ -32,7 +32,7 @@ jobs:
       - name: Check out the exact candidate pack
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: cf14982050a8169c7f4848ec0bf1f69c2bb5759f
+          ref: 80fad72b62577900ce07a2910a9b6a1db47d7cca
           fetch-depth: 1
           persist-credentials: false
           sparse-checkout: /rebuild/m1/approved-2026-09-18/
