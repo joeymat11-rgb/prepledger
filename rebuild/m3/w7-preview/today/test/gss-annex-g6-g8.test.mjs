@@ -236,7 +236,8 @@ async function runG6(seam, plant = false) {
 async function runG7(mode, plant = false) {
   const unit = await device('g7-' + mode + '-' + (plant ? 'plant' : 'candidate'));
   const seam = mode === 'quota-after-repaint' || mode === 'clean-after-repaint'
-    ? 'before-prepare' : 'after-commit';
+    ? 'before-prepare' : mode === 'clean-before-commit' ? 'before-commit' : 'after-commit';
+  const clean = mode.startsWith('clean-');
   const held = heldLogModel(unit, seam), draft = newGymDraft();
   let mounted = null, reopened = null, changed = 0;
   try {
@@ -281,12 +282,12 @@ async function runG7(mode, plant = false) {
         .find((button) => button.textContent === CHOICE.label);
       assert.equal(pressed?.getAttribute('aria-pressed'), 'true', 'GSS-G7-REFUSAL-DOM-EFFORT-' + mode);
     }
-    if (mode === 'clean-after-repaint' && !envelope.result.ok) {
+    if (clean && !envelope.result.ok) {
       assert.equal(envelope.result.code, 'WORKOUT_RESUME_REQUIRED', 'GSS-G7-CLEAN-REFUSAL-CODE');
       assert((mounted.pick('#gym-error')?.textContent || '').includes(envelope.result.code),
         'GSS-G7-CLEAN-CURRENT-CODE');
     }
-    if (mode !== 'clean-after-repaint') {
+    if (!clean) {
       assert.equal(envelope.result.ok, false, 'GSS-G7-QUOTA-FALSE-SUCCESS-' + mode);
       assert.equal(envelope.result.code, 'TRANSACTION_WRITE_FAILED', 'GSS-G7-QUOTA-CODE-' + mode);
       if (plant) mounted.pick('#gym-error').textContent = '';
@@ -367,8 +368,8 @@ async function runG8(plant = false) {
 }
 
 test('D-GSS-G6: held Log delivery preserves row add/edit through repaint', { timeout: 45000 }, async () => {
-  await assert.rejects(runG6('after-commit', true), /GSS-G6-ROWS-LOST/);
   await runG6('after-commit');
+  await assert.rejects(runG6('after-commit', true), /GSS-G6-ROWS-LOST/);
   await runG6('before-commit');
 });
 
@@ -377,6 +378,7 @@ test('D-GSS-G7: actual quota result and post-repaint quota retain current state'
   await runG7('quota-result-held');
   await runG7('quota-after-repaint');
   await runG7('clean-after-repaint');
+  await runG7('clean-before-commit');
 });
 
 test('D-GSS-G8: pending settings read plus actual Log plus Back is one owned journey',
