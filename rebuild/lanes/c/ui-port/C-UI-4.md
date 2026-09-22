@@ -13,4 +13,6 @@ Lane C (screens tier), UI port. Filed 2026-09-18 by the design chat (EARNED MAIN
 - ACCEPTANCE: gate green for `workout` (Log centre ≥ 70% of the height; label uses ×);
   statesheet green for the W states covered; a live tap on Log without an effort answer
   inserts the same element the drawn W-20 shows, and Log does not move.
-- SEQUENCING: after C-UI-1. Parallel with C-UI-2.
+- SEQUENCING (:732): After actual S10 release, separately commissioned workout views may build on provisional CUI1, parallel with C-UI-2. This is no automatic dispatch or acceptance.
+- ACCEPTANCE BOUNDARY (:732): every original named font, copy, scene, motion and applicable screen gate still applies to the real composed product. No incomplete CUI1 acceptance, fake element, prototype substitution or waived failure.
+- PIN PROMOTION (:732): completed CUI1 promotion requires a later named, independently reviewed reseal child. Remeasure APPROVED-PIN, design.test and affected declarations; retain parent-pinned 09-08 documents unless separately released. Whole-pack coverage stays.
