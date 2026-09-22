@@ -28,8 +28,8 @@ Same Sol authorized smallest memory-carrier correction only: ownership-aware Can
 New immutable two-red checkpoint ff4613cb28e0dff5de2dddeb6fa7917bb541a34e; product unchanged there.
 Final repair320d192542dec1fd340dcb2152df5c8816c0526c published; author repo7/7 plus reviewer-control replay10/10.
 Runtime FREE: all commands terminal, no handles. Independent round-2 recheck still owed; no acceptance inferred.
-G4/G5 only untracked file: gss-annex-log-timing.test.mjs; source SHA46229dfe72dec8c59dfaa935d542026dd3167fa918aa3c800516b93b51327d95.
-G4 precommit records actual envelope; arbitrary WORKOUT_* refusal is not sufficient. Aftercommit needs exact linked pair.
+G4/G5 only untracked file: gss-annex-log-timing.test.mjs; source SHAc7a7654ab0d516c3a5c893cc6ea1ce41b7878f668c074c380122078433075387.
+G4 precommit permits only exact WORKOUT_RESUME_REQUIRED refusal with unchanged maps; other refusals STOP. Aftercommit needs exact linked pair.
 G5 observes Saved/Undo and retained editor on next active set, not a newly invented Saved-screen editor.
 G6-G8 second Sol proof-only, new disjoint test/report; first real failure stops before product repair.
 Brief c/GSS-ANNEX-CLOSURE-BRIEF.md56lines; mapping6db4b77; full reopened maps, actual DOM, valid plants.
