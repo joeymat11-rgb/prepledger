@@ -1698,7 +1698,7 @@
         "rebuild/lanes/d/f2/projector.test.mjs",
         "rebuild/lanes/d/f2/guard-coverage.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 81"
     }
   ],
   "notes": [
