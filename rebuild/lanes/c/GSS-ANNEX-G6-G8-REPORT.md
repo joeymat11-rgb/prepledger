@@ -1,47 +1,48 @@
-# GSS G6-G8 proof harness candidate
+# GSS G6-G8 bounded evidence report
 
-Status: STATIC ONLY, UNEXECUTED. This report makes no proof or CI claim.
+Status: VALID PRODUCT RED. G7 and G8 pass their bounded rows; G6 is not accepted.
 
-## Base and ownership
-- Immutable base: `b5d1b4af175a8f100de0a21c47365153225ae68b`.
-- Branch: `rebuild/c-gss-g6-g8-proof`.
-- Owned additions only: this report and `rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs`.
-- Accepted G5 repair `588c84082753696facc902890047c190c49f7318` is composed as `6e4731b`; it is not authored here.
-- No product, engine, model, store, guard, existing test, package, or workflow file changed.
+## Composition and ownership
+- Base: `b5d1b4af175a8f100de0a21c47365153225ae68b`.
+- Accepted G5 repair `588c84082753696facc902890047c190c49f7318` is composed unchanged.
+- Branch: `rebuild/c-gss-g6-g8-proof`; executed correction head: `b09398eba9cf66f156dbf8212b299c67bc938cc8`.
+- Authored files only: this report and `gss-annex-g6-g8.test.mjs`; no product file changed.
 
-## Static graph preflight
-- Imports and setup match the accepted G4/G5 harness: `faultDatabase`, current public gym and
-  settings hosts/models, `mountGym`, `TodayModel`, `design`, JSDOM, and WebCrypto.
-- The accepted composition already reaches `today-engine.cjs`; no novel product import is added.
-- Inspection did not open or traverse protected seed, migrate, merge, index, or oracle-shim files.
-- Novel effects are limited to the existing fault database mode, public settings `latest`, actual
-  DOM add/input/Log/Back controls, callbacks, and reopened full `ops`/`outbox` map reads.
-- The workout/settings hosts share one real encrypted synthetic repository and full maps.
-- All waits are bounded. Reopen reads compare full `ops` and `outbox` maps.
+## Safe graph and setup
+- Imports/setup match accepted G4/G5: current public hosts/models/mount, `faultDatabase`,
+  JSDOM, WebCrypto, `TodayModel`, and `design`.
+- Novel effects: existing fault mode, public settings `latest`, actual DOM controls/callbacks,
+  and reopened encrypted full `ops`/`outbox` maps.
+- Protected seed, migrate, merge, index, and oracle-shim files were not opened or traversed.
+- Owned working bytes matched committed LF blobs before execution.
+- Node: pinned `v24.19.0`; `MEASURED_TEST_NOW=2026-09-03`; `TZ=America/New_York`.
+- Existing dependencies were exposed by local ignored junctions; nothing was installed or written there.
 
-## Candidate proof rows
-- G6 holds the actual set result before delivery, adds a settings row, edits both rows through
-  repaint, then requires Saved, Undo, one callback, exact submitted set bytes, and exact +1 op/outbox.
-- G6 separately holds before commit. It accepts only the actual typed success or the named
-  `WORKOUT_RESUME_REQUIRED` refusal and matches persistence/callback assertions to that result.
-- G7 first obtains the real quota envelope (`TRANSACTION_WRITE_FAILED`), holds its delivery,
-  adds/edits a row through repaint, then requires retained entry/effort/rows, current error,
-  and no write/callback.
-- G7 separately arms quota only after the repaint, plus a no-fault precommit control whose
-  persistence expectation follows its actual typed outcome rather than assuming success.
-- G8 obtains the actual public settings-host read result and holds its delivery, obtains a real
-  acknowledged set, presses Back while the read is demonstrably pending, then releases both.
-  It requires retired ownership, intact destination, exact +1 set, zero settings write/callback.
-- Each row includes a targeted negative plant executed after its named seam is reached.
+## Commands and process evidence
+- Full: `node --test-concurrency=1 --test rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs`.
+- Full PID `62048`, exit `1`: 3 tests, 1 pass, 2 fail, 0 skipped.
+- Mechanical G7 correction moved its post-repaint hold before preparation so quota actually executes.
+- G7-only: same file with `--test-name-pattern=D-GSS-G7`.
+- G7 PID `58516`, exit `0`: 1 test, 1 pass, 0 fail, 0 skipped.
+- Earlier PIDs `58168`, `61136`, `54856` exited during dependency loading before any row ran.
 
-## Narrow runtime plan after composition grant
-1. Confirm the composed accepted G5 repair and this harness are the exact runtime head.
-2. Run only `node --test rebuild/m3/w7-preview/today/test/gss-annex-g6-g8.test.mjs`.
-3. Require 3 tests, 0 failures, 0 skips; record PID, command, exit, head, and file hashes.
-4. If red, report the exact seam/outcome. Do not change product under this proof ownership.
-5. Independent review must confirm the plants fail for the intended assertion.
+## Outcomes
+- G6 RED: after actual acknowledged set plus settings add/edit repaint, the current screen did
+  not become Saved. It failed `GSS-G6-SAVED-SCREEN` before the row-loss plant oracle.
+- Therefore G6 after-commit positive, row-loss plant verdict, and separate precommit case are
+  explicitly unreached; no G6 proof is claimed.
+- G7 PASS on corrected head: held actual quota result, quota armed after repaint, and no-fault
+  pre-prepare control all retained entry/effort/rows and matched current code/write/callback facts.
+- G7 error plant failed the intended `GSS-G7-CURRENT-ERROR` assertion inside the passing row.
+- G8 PASS on the full run: actual settings result stayed pending across real Log and Back;
+  ownership/destination, exact +1 set, zero settings write, and zero stale callback held.
+- G8 destination plant failed its intended assertion inside the passing row.
 
-## Current uncertainty
-- Runtime is intentionally deferred pending PM grant on the composed static head.
-- Static inspection predicts the held quota delivery may expose a detached-root error repaint;
-  only the bounded run can decide it, and this branch does not repair that mechanism.
+## Immutable evidence
+- Proof SHA-256: `d781069dcb0921e62d132116b0c199fb7b0dc2665682d91c5e626c38a4c3080b`.
+- Full stdout: `%TEMP%/earned-gss-g6-g8-c6de54d-run4.stdout.log`, SHA-256
+  `8151de75402f73334cdb39c0e6badad5aa5579d6a25f9bb978bd81a861171e6d`.
+- G7 stdout: `%TEMP%/earned-gss-g6-g8-b09398e-g7.stdout.log`, SHA-256
+  `97c8283a2b6859774423c11e6c18b2c1c0493c1aced254342288c4b3a845a83c`.
+- Both stderr files are empty, SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+- Runtime slot was released immediately after PID `58516` terminated. No broader test ran.
