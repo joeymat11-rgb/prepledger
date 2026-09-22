@@ -34,7 +34,7 @@ Runtime ownership and S9 -> S10 -> CUI promotion order are unchanged.
 
 ## Verification of this process change
 PM restarted both completed seats with concrete work; the independent reviewer agreed on the same three avoidable delays.
-The corrected group map is still being checked, not assumed accepted. The fence command started immediately after exact-head independent readiness ACCEPT.
+Corrected public3 map independently accepted; exact90+9+23 tests passed with no skips in2.215s wall time. Fence R3 independently accepted53/53 after PM caught a quoted-key shadow; no acceptance gate was waived.
 For the next accepted wave record ready/start/finish/review/integration event times where available, test outcome and review rounds.
 Judge progress by accepted functioning outcomes and elapsed critical-path time, not messages, documents or busy seats.
 If quality findings rise, fix the underlying handoff or implementation; do not waive the finding to preserve a speed claim.
