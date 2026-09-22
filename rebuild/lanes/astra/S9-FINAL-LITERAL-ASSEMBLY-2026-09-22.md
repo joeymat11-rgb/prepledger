@@ -41,3 +41,10 @@ Independent readiness L2:d63cd0ed22c23c101b5a7a4e47e9ce59fb3595c923109addb24aa27
 Independent result L3 ACCEPT:63b0f2158aff34e97e7a2bdf977d264830d5f7c8e62d0b1195aeddedea6b46fd.
 Whole reviews and evidence hashes checked. Runtime FREE; integration clean/pushed.
 Exact-head both-OS CI, final source closure, all child needles, authority, artifact and Claude seal owed.
+
+## Exact literal-head hosted evidence
+At3072385 rebuild run35778645651: Ubuntu job106918170652 and Windows106918170913.
+Both step29 design-pack/approved-reference and step30 reference-closure SUCCESS.
+Whole jobs FAILURE at13,16,31; no fullCI claim or inferred failure reason.
+Read-only GitHub step metadata only; no job logs or Linux TAP counts read.
+Windows '# pass 121' is not portable: Linux retains2 intrinsic ACL skips; '# tests 121' is a candidate.
