@@ -1,6 +1,6 @@
 # CUI font transport B4 author report
 
-Status: MEASURED RED. Real Playwright transport refuses data: before bytes exist.
+Status: LOCAL CANDIDATE GREEN. Independent review remains owed.
 Base: 80fad72b62577900ce07a2910a9b6a1db47d7cca.
 Branch: rebuild/c-cui-font-transport.
 Scope: face_bytes transport only, one focused synthetic test, this report.
@@ -38,6 +38,16 @@ Named mechanism: APIRequestContext.get refuses Protocol "data:" not supported.
 Log: C:/Users/joeym/AppData/Local/Temp/earned-cui-font-red-4deb78debb3341ec8116862fdec42fd1/red.log
 Log SHA256: 1fcd1340146f145030421ab9c901d2904051b5db05eaea439529c93c3db6bd30.
 gate.py remained dea7763e163643084ce8cd8813a9fac87b4eb064b77274cc3fdb77b75320600a.
+
+## Minimal repair and green
+face_bytes now recognizes only data:font/woff2;base64, before file/http dispatch.
+It decodes with base64 validation and refuses empty or malformed content by name.
+It does not change the file branch or Playwright HTTP request branch.
+The same command then ran six tests: six pass, zero fail, exit 0.
+Green log: C:/Users/joeym/AppData/Local/Temp/earned-cui-font-green-0b4c3b8f4cb84e28882531f6b475c600/green.log
+Green log SHA256: 9a973d65e71c9ba6db7db966f23d65fd059e281430c8dac4ba228fd6a792ebfb.
+gate.py SHA256: a3dc60f8822be3823a52749a779319ec592430f3918df5338cc434b320a7b0f6.
+Test SHA256: ee1f9ee28fee97c3fe8b30d5924c2b741ee975be7aa55856b95188815b9e4d0e.
 
 ## Limits
 This is candidate preparation, not CUI0 acceptance or integration.

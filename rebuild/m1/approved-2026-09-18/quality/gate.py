@@ -10,7 +10,7 @@ Point it at another build (the real client's preview) with EARNED_APP=<url or fi
 Exit code: 0 green, 1 any FAIL, 2 refused (it could not run). A report is written whenever the
 run got as far as producing results.
 """
-import asyncio, os, sys, io, json, hashlib, urllib.parse, urllib.request
+import asyncio, os, sys, io, json, hashlib, urllib.parse, urllib.request, base64, binascii
 import numpy as np
 from PIL import Image
 from playwright.async_api import async_playwright
@@ -314,6 +314,17 @@ async def face_bytes(pg, url):
     if url.startswith('file:'):
         with open(file_url_to_path(url), 'rb') as f:
             return f.read()
+    if url.startswith('data:'):
+        prefix = 'data:font/woff2;base64,'
+        if not url.startswith(prefix):
+            raise ValueError('font data URI must use base64')
+        encoded = url[len(prefix):]
+        if not encoded:
+            raise ValueError('malformed base64 font data URI')
+        try:
+            return base64.b64decode(encoded, validate=True)
+        except (binascii.Error, ValueError, UnicodeEncodeError):
+            raise ValueError('malformed base64 font data URI') from None
     resp = await pg.request.get(url)
     if not resp.ok:
         raise IOError(f'{url} answered {resp.status}')
