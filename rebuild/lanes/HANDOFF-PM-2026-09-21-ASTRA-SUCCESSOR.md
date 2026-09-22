@@ -1,7 +1,7 @@
 # Earned PM successor checkpoint, 2026-09-21
 
 ## Seat and reading route
-Current sole PM/ledger writer: thread 01a0c64b-6e69-70a1-8782-8a33af720761.
+For the latest coordinated transfer, read HANDOFF-PM-2026-09-21-ASTRA-ROLLOVER.md and the closing/seat ledger entries.
 Outgoing 01a0c4a5-2230-7070-a91c-44fedfd7e7fc released at DECISIONS:702, commit0243388.
 Incoming seat:703, commitd9861bb. Direct coordination completed before that write.
 This file does not transfer the seat. A successor needs a coordinated closing line first.
