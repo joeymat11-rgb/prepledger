@@ -559,12 +559,19 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const view = await hooks.readView();
     if (!owns) return null;
     if (!view) return null;
-    const activeLift = view.phase === 'active' && view.lift ? view.lift.id : null;
-    const activeStart = view.phase === 'active' ? view.startId : null;
-    if (settingsEditorToken && (settingsDraftLift !== activeLift || settingsDraftStart !== activeStart)) {
+    const viewLift = view.lift && typeof view.lift.id === 'string' ? view.lift.id : null;
+    const viewStart = typeof view.startId === 'string' ? view.startId : null;
+    const sameSettingsContext = settingsDraftLift === viewLift && settingsDraftStart === viewStart;
+    if (settingsEditorToken && (view.phase !== 'active' || !sameSettingsContext)) {
+      /* Saved is a temporary screen inside the same workout/lift. Its lane view has
+         already retired the old editor token, so retain only a detached draft and
+         let the next active view mint fresh editor authority. Every other departure
+         clears the carry exactly as before. */
+      const carryAcrossSaved = view.phase === 'saved' && sameSettingsContext;
+      if (carryAcrossSaved) rememberSettings(view, settingsErrors.get(settingsEditorToken) || '');
       hooks.settingsEditClosed(settingsEditorToken);
       settingsDraft = null; settingsDraftStart = null; settingsDraftLift = null; settingsEditorToken = null;
-      clearSettingsCarry();
+      if (!carryAcrossSaved) clearSettingsCarry();
       settingsDraftRevision = 0;
     }
     if (view.phase === 'blocked') return hooks.paint(() => refusalScreen(view, view));
