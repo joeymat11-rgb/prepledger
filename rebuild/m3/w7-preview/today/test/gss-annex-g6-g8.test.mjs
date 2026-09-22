@@ -213,6 +213,9 @@ async function runG6(seam, plant = false) {
     const rows = editorRows(mounted);
     assert.deepEqual(rows, [{ name: 'Seat', value: 'four' }, { name: 'Pin', value: '3' }],
       'GSS-G6-ROWS-LOST-' + seam);
+    if (!envelope.result.ok)
+      assert((mounted.pick('#gym-error')?.textContent || '').includes(envelope.result.code),
+        'GSS-G6-PRECOMMIT-CURRENT-CODE');
     mounted.click('[data-action="back"]'); await settle();
     const closed = await closeAndRead(unit); reopened = closed.reopened;
     if (envelope.result.ok) {
@@ -238,6 +241,9 @@ async function runG7(mode, plant = false) {
   try {
     const before = await collections(unit.gymHost.repository);
     mounted = await page(unit, held.model, draft, () => {}, () => { changed += 1; });
+    const active = await held.model.read();
+    const expected = { startId: active.startId, slot: active.set.slot, lift: active.set.lift,
+      load: '45', reps: '11', effort: CHOICE.reserve };
     mounted.input('#gym-weight', '45'); mounted.input('#gym-reps', '11'); mounted.chooseEffort();
     await mounted.openEditor();
     mounted.input('[data-settings-name="0"]', 'Seat');
@@ -255,22 +261,41 @@ async function runG7(mode, plant = false) {
     held.release(); const envelope = await within(held.done, 'G7 delivery'); await settle();
     unit.fault.state.armed = false; unit.fault.state.mode = null;
     assertTyped(envelope, 'GSS-G7-' + mode.toUpperCase());
-    if (plant) mounted.input('[data-settings-value="1"]', 'PLANTED_LOSS');
+    if (envelope.result.ok) {
+      assert.match(mounted.pick('[data-slot="saved-title"]')?.textContent || '', /logged/,
+        'GSS-G7-CLEAN-SAVED-SCREEN');
+      assert(mounted.pick('[data-action="undo"]'), 'GSS-G7-CLEAN-UNDO');
+      mounted.click('[data-slot="primary"]');
+      await until(() => mounted.pick('[data-slot="log"]'), 'G7 clean next active repaint');
+    }
     assert.deepEqual(editorRows(mounted), [{ name: 'Seat', value: 'four' }, { name: 'Pin', value: '3' }],
       'GSS-G7-ROWS-LOST-' + mode);
-    if (mode === 'clean-after-repaint' && !envelope.result.ok)
+    if (!envelope.result.ok) {
+      assert.deepEqual(draft.entry, { load: '45', reps: '11' }, 'GSS-G7-REFUSAL-ENTRY-' + mode);
+      assert.deepEqual(draft.effort, { label: CHOICE.label, reserve: CHOICE.reserve },
+        'GSS-G7-REFUSAL-EFFORT-' + mode);
+      assert.equal(mounted.pick('#gym-weight')?.value, '45', 'GSS-G7-REFUSAL-DOM-LOAD-' + mode);
+      assert.equal(mounted.pick('#gym-reps')?.value, '11', 'GSS-G7-REFUSAL-DOM-REPS-' + mode);
+      const pressed = [...mounted.phone.querySelectorAll('[data-slot="choices"] button')]
+        .find((button) => button.textContent === CHOICE.label);
+      assert.equal(pressed?.getAttribute('aria-pressed'), 'true', 'GSS-G7-REFUSAL-DOM-EFFORT-' + mode);
+    }
+    if (mode === 'clean-after-repaint' && !envelope.result.ok) {
       assert.equal(envelope.result.code, 'WORKOUT_RESUME_REQUIRED', 'GSS-G7-CLEAN-REFUSAL-CODE');
+      assert((mounted.pick('#gym-error')?.textContent || '').includes(envelope.result.code),
+        'GSS-G7-CLEAN-CURRENT-CODE');
+    }
     if (mode !== 'clean-after-repaint') {
       assert.equal(envelope.result.ok, false, 'GSS-G7-QUOTA-FALSE-SUCCESS-' + mode);
       assert.equal(envelope.result.code, 'TRANSACTION_WRITE_FAILED', 'GSS-G7-QUOTA-CODE-' + mode);
+      if (plant) mounted.pick('#gym-error').textContent = '';
       assert((mounted.pick('#gym-error')?.textContent || '').includes('TRANSACTION_WRITE_FAILED'),
         'GSS-G7-CURRENT-ERROR-' + mode);
     }
     mounted.click('[data-action="back"]'); await settle();
     const closed = await closeAndRead(unit); reopened = closed.reopened;
     if (envelope.result.ok) {
-      const active = held.submitted();
-      proveOneSet(before, closed.maps, active, active, envelope.result.opId);
+      proveOneSet(before, closed.maps, held.submitted(), expected, envelope.result.opId);
       assert.equal(changed, 1, 'GSS-G7-CLEAN-CALLBACK');
     } else {
       assert.deepEqual(closed.maps, before, 'GSS-G7-REFUSAL-WROTE-' + mode);
@@ -284,13 +309,21 @@ async function runG7(mode, plant = false) {
 
 async function runG8(plant = false) {
   const unit = await device('g8-' + (plant ? 'plant' : 'candidate'));
-  const held = heldLogModel(unit, 'after-commit'), draft = newGymDraft(), read = deferred();
+  const held = heldLogModel(unit, 'after-commit'), draft = newGymDraft();
+  const readReached = deferred(), readRelease = deferred();
   let mounted = null, reopened = null, changed = 0, ownedInsideBack = null;
+  let readDelivered = false;
   try {
     const before = await collections(unit.gymHost.repository);
     const dom = new JSDOM(shell(), { url: 'http://127.0.0.1/' }); unit.dom = dom;
     const phone = dom.window.document.getElementById('phone');
-    const settings = { latest: () => read.promise, save: (...args) => unit.settings.save(...args), close() {} };
+    const settings = { latest: async (...args) => {
+      const actual = await unit.settings.latest(...args);
+      readReached.resolve(copy(actual));
+      await readRelease.promise;
+      readDelivered = true;
+      return actual;
+    }, save: (...args) => unit.settings.save(...args), close() {} };
     mounted = mountGym(dom.window.document, phone, { model: held.model, draft, settings,
       onChanged: () => { changed += 1; }, onBack: () => {
         ownedInsideBack = mounted.settings.owns();
@@ -307,11 +340,17 @@ async function runG8(plant = false) {
     const active = await held.model.read();
     const expected = { startId: active.startId, slot: active.set.slot, lift: active.set.lift,
       load: '45', reps: '11', effort: CHOICE.reserve };
+    await within(readReached.promise, 'G8 actual settings result held');
+    assert.equal(mounted.settings.stateFor(active.set.lift), 'reading', 'GSS-G8-READ-NOT-PENDING-BEFORE-LOG');
+    assert.equal(readDelivered, false, 'GSS-G8-READ-DELIVERED-BEFORE-LOG');
     pick('[data-slot="log"]').click(); await within(held.reached, 'G8 actual acknowledgement');
+    assert.equal(readDelivered, false, 'GSS-G8-READ-DELIVERED-BEFORE-BACK');
     pick('[data-action="back"]').click();
     assert.equal(ownedInsideBack, false, 'GSS-G8-OWNERSHIP-INSIDE-BACK');
+    assert.equal(readDelivered, false, 'GSS-G8-READ-NOT-PENDING-AFTER-BACK');
     held.release(); const envelope = await within(held.done, 'G8 log delivery');
-    read.resolve(null); await within(mounted.settings.read(), 'G8 optional read'); await settle();
+    readRelease.resolve(); await within(mounted.settings.read(), 'G8 actual optional read delivery'); await settle();
+    assert.equal(readDelivered, true, 'GSS-G8-ACTUAL-READ-NOT-DELIVERED');
     if (plant) phone.textContent = 'PLANTED_RECLAIM';
     assert.equal(phone.querySelector('[data-slot="g8-destination"]')?.textContent, 'SYNTHETIC_TODAY',
       'GSS-G8-DESTINATION-LOST');
@@ -321,7 +360,7 @@ async function runG8(plant = false) {
     proveOneSet(before, closed.maps, held.submitted(), expected, envelope.result.opId);
     assert.equal(changed, 0, 'GSS-G8-RETIRED-CALLBACK');
   } finally {
-    held.release(); read.resolve(null); reopened?.close(); unit.settings?.close();
+    held.release(); readRelease.resolve(); reopened?.close(); unit.settings?.close();
     unit.gymHost?.close(); unit.dom?.window.close();
   }
 }
@@ -333,7 +372,7 @@ test('D-GSS-G6: held Log delivery preserves row add/edit through repaint', { tim
 });
 
 test('D-GSS-G7: actual quota result and post-repaint quota retain current state', { timeout: 60000 }, async () => {
-  await assert.rejects(runG7('quota-result-held', true), /GSS-G7-ROWS-LOST/);
+  await assert.rejects(runG7('quota-result-held', true), /GSS-G7-CURRENT-ERROR/);
   await runG7('quota-result-held');
   await runG7('quota-after-repaint');
   await runG7('clean-after-repaint');
