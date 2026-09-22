@@ -1,8 +1,8 @@
 # C-UI-1 Codex author report
 
 Role: commissioned Sol builder, not reviewer, PM or integrator.
-Base: 32dee443dde6d399ed931af9ccfbd295c285c94a candidate checkpoint.
-Status: candidate frozen at first browser failure; not accepted.
+Base: 9d062283dc0c54857547c3a04d3226155915049f diagnostic checkpoint.
+Status: candidate frozen at named browser failure; not accepted.
 
 Implemented in this candidate:
 - headlineVocabulary checks the exact 18 public .cjs filename census before
@@ -38,21 +38,17 @@ Measured candidate evidence, pinned Node and fixed date/timezone:
   a761684d168811162cfca0c5d26789fb99cd6dcd1059ff1423c9b847c35f8638.
 
 Browser result:
-- exit 1 after 40.4 s: page.waitForFunction timed out; log SHA256
-  8a4b7826f4f234c6dbcc36c44814ae80e87cbd4097f147f53db4302ab2219f5f.
-- catch output discarded the stack and wait name. Two Today captures prove the
-  timeout occurred after both scene-ready waits, but do not identify which later
-  wait failed. No stage is guessed and no automatic retry was made.
-- retained directory: %TEMP%/cui1-browser-proof-iuP5E2.
-- Ink PNG SHA256 fd811a96db86553db51fa1168012a32b0fee5ad2eafce1ddf6a8d1889840d2da.
-- Dawn PNG SHA256 2c86da624f8d5694a0ced018ea2931a02147d9db561a42c216f0932d7a4c4a6e.
-- reduced-motion PNG and visual-summary.json are absent.
-
-Prepared diagnostic child, not executed: every waitForFunction prints a named
-START/PASS/FAIL marker, and the outer refusal retains the public error stack.
-Predicates, timeouts, assertions and product bytes are unchanged.
+- exact-head default build: PASS, 3 assets and 146 pins.
+- single diagnostic run: exit 1 at workout-screen-ready after every earlier
+  named wait passed. Public stack names browser-check.mjs lines 73 and 457.
+- log SHA256 ea62e79b429c3635b2b6f60a45452fd93af0e4a3c0c6da98aeaf99e7edce46e0.
+- retained directory: %TEMP%/cui1-browser-proof-c38ynS.
+- Ink PNG SHA256 6cead7c00d63300c25c8aae9fc3c955f231ec74f431951f4991f48323b3eb57b.
+- Dawn PNG SHA256 f75b8b62b06964bd587dc9afc8293ae7e6bc83f8accd3841a6aa9a6d30f868b9.
+- reduced-motion PNG and visual-summary.json are absent; no retry was made.
+- Wait conditions, timeouts, assertions and product bytes were unchanged.
 
 Runtime is released; no Node/browser/server process remains.
 No approved pack, baseline, engine, storage, workflow, ledger or STATUS changed.
-B1-B4, diagnostic execution, reduced motion, independent review, Linux, CI,
+B1-B4, workout-route diagnosis, reduced motion, independent review, Linux, CI,
 seal and integration remain owed. No acceptance or ticket-completion claim.
