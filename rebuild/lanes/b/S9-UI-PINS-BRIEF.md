@@ -1,7 +1,7 @@
 # M2-S9-UI-PINS - the reseal that hands two screen files out of the seal and pins the pack that judges them
 
-**STATUS: DRAFT FOR ACCEPTANCE BY NAME. NOT YET ACCEPTED, and no PM token line has been issued for
-it.** Lane B, ENGINE-TIER PACKAGE PROCESS, child of `M2-S8-REAL-SHAPE`
+**STATUS: Prior brief accepted at DECISIONS:627; this sequencing fold requires independent
+review and acceptance of its new hash before any token. No seal is authorized by this edit.** Lane B, ENGINE-TIER PACKAGE PROCESS, child of `M2-S8-REAL-SHAPE`
 (`rebuild/lanes/b/tooling/b-package.cjs`), size M. Parent artifact
 `rebuild/m4/spec/acceptance-s8-real-shape.json` sha256
 `3cf58e0edd76a56353b35008ef154d484098b5017fedeb648eb64a0ae6568d48`, 89873 B, 224 `product` entries
@@ -9,6 +9,34 @@ and 71 `executionPins` - MEASURED by this author in the farm at chain tip `789ba
 not copied from a report. **It is the ARTIFACT sha and not the receipt sha
 `3b1b8b91dd5a6ff049dffd721ec723b9fe550b0b71ba78e37574cfc96210d409` (`DECISIONS:529`); E fact 8 of
 the spec names confusing the two as the single most likely error of this round.**
+
+
+## Binding sequencing amendment, DECISIONS:732
+
+This fold implements CUI-SEQUENCING-PM-DISPOSITION (a12be09), independently reviewed
+at 9ece212. It supersedes only the CUI1-in-S9 carry/wait clauses of :536, :549(E),
+:627, S9-RELEASE-SPEC C.5.3 scheduling/day-of text and E.2 waits.
+S9 retains the actual measured 09-08 runtime references. The entire approved09-18
+pack remains independently pinned and the authority for the final appearance.
+Accepted CUI0 and its required independent audit still precede pack measurement.
+P-S9-2's literal reader, approved-content hashes and changed-document refusal must
+be accepted BEFORE S9; E17 roles and the actual executed closure are measured at
+the composed candidate. A candidate reader is not an integration measurement.
+No unfinished CUI1 product or reference promotion rides S9. S10 still requires
+accepted GSS, actual source closure and the eight-answer copy lock including
+unported screens, composed-product enforcement and coordinated deletion.
+After actual S10 release, separately commissioned isolated CUI views may build
+on provisional CUI1. Today face precedes proposal. Every original named font,
+copy, scene, motion and applicable screen gate remains required for acceptance.
+Before completed CUI1 reference promotion, name and independently review its
+later reseal child, remeasure APPROVED-PIN, design.test and affected declarations.
+Parent-pinned 09-08 documents remain unchanged unless separately released by
+authority. Pre-S9 selection grants no permission to remove parent pins later.
+All sourceBase, parent-pin, two-path-release, workflow, refusal, artifact,
+independent-review and exact-head both-OS checks remain; other accepted carries stay.
+Measure this final accepted brief's actual SHA before any token. Older snapshot
+measurements below are historical evidence, never final declarations or hashes.
+The approved look and phone-earned weights precede Joe's trial; father's follows.
 
 This brief is written on `rebuild/b-s9-ui-pins` at `da9f868`. **`da9f868` is the PREPARATION base
 and is NOT this package's `sourceBase`.**
@@ -113,14 +141,14 @@ parent does NOT pin carries its `sourceBase` blob as `pre`, which is the runner'
 `new` (`pre === null` OR `pre !== post`).
 
 **THE COUNTS ARE TO MEASURE AT INTEGRATION AND THIS BRIEF ASSERTS NONE.** S8's were 224 = 24 edited
-+ 17 new + 182 carried + 1 superseded-by-child. S9's cannot be stated before C-UI-1's file set is
-known (section 11), and the spec's own E fact 9 forbids copying them from a report. The command that
++ 17 new + 182 carried + 1 superseded-by-child. S9's are measured from its final composed carries and actual reference closure
+(section 11), excluding unfinished CUI1, and the spec's own E fact 9 forbids copying them from a report. The command that
 measures them is the runner itself: `node rebuild/lanes/b/tooling/b-package.cjs --ci --package S9`,
 whose `SPEC OBSERVED` line prints the declared product count, the D-ids, the child count and the
 root count in one sentence (`b-package.cjs:2026-2029` at `a224c7b0`).
 
 **2.1 The product files.** The two releases; the carried lanes' product edits; the new passphrase
-helper and the F2 projector; and C-UI-1's eventual moved files, which are not yet knowable.
+helper and the F2 projector. CUI1 product and reference promotion are excluded by :732.
 
 | path | role | pre | post |
 | --- | --- | --- | --- |
@@ -131,7 +159,7 @@ helper and the F2 projector; and C-UI-1's eventual moved files, which are not ye
 | `rebuild/m3/w7-preview/import/import-screen.mjs` | edited (passphrase carry) | TO MEASURE | TO MEASURE |
 | `rebuild/m3/setup/port/passphrase.cjs` | new, SEALED (it decides key material on the phone) | `null` | TO MEASURE, **and it moves once more**: see section 11 |
 | `rebuild/m4/workout/setup-tags.cjs` | new, SEALED (E fact 23) | `null` | `d0436809e9e51b5072ed5c1db46eb31bfc2f58294706c6037c980575631fc94d` at `b9777fe4`, measured by this author; final TO MEASURE |
-| C-UI-1's moved files | TO MEASURE | TO MEASURE | TO MEASURE |
+| C-UI-1 product/reference promotion | EXCLUDED from S9 by :732 | not declared | later reviewed reseal child |
 
 `passphrase.cjs` is role `new` and SEALED because it decides key material on the phone
 (`DECISIONS:543` B). `setup-tags.cjs` makes the closed workout class four files and calls for law 17
@@ -232,7 +260,10 @@ therefore declared product. The runner's own comment says so at `b-package.cjs:4
 roots stand or fall together because `childArgv()` judges EVERY target against `CHILD_ROOTS`.
 
 **2.4.1 The six `pinned-unchanged` declarations of E fact 17, and a refusal this author MEASURED
-that the spec does not predict.** Four are the design of record
+that the spec does not predict.** Under :732, retain these four actual runtime references
+with measured hashes and honest roles; the approved09-18 whole pack separately governs
+final appearance. P-S9-2 must establish literal reads, content assertions and a changed-document
+refusal before S9, then the integrator measures actual executed closure. Four are the historical references
 (`rebuild/m1/approved-2026-09-08/Earned-refinement-A.html`,
 `.../Earned-additions-C-approved.html`, `.../ADDITIONS-C-APPROVED-HANDOFF.md`, `rebuild/m1/MOCK.md`)
 and two are the writers that stand outside the seal
@@ -304,9 +335,11 @@ this brief carries that out loud in section 8 as a fence limit.
 `rebuild/m3/w7-preview/today/browser-check.mjs` is NOT declared and has NO CI home; it is run on the
 PC before each seal and its result belongs in the VERDICT (spec E fact 19).
 `rebuild/m3/w7-preview/today/design.cjs` is NOT one of the `pinned-unchanged` six (PM-R6, changed
-from spec v2); its sibling `today/test/design.test.cjs` is `edited` **only if** C-UI-1 moves
-`design.APPROVED`, which is zero to three hunks and a SEALED cell either way, with STOP-10 applying
-(spec C.5.3 step 4, F.2 STOP-10). `copy-bind.test.mjs` is WITHDRAWN (PM-R6'(ii)). The TODAY-SPLIT
+from spec v2). Under :732, S9 does not promote `design.APPROVED`; its sibling
+`today/test/design.test.cjs` retains its actual parent-pinned bytes unless another accepted
+carry separately requires a declared edit. A later named and reviewed CUI1 reseal remeasures
+both and every affected declaration. STOP-10 remains for that real migration; no substitute
+is permitted (spec C.5.3 step 4, F.2 STOP-10). `copy-bind.test.mjs` is WITHDRAWN (PM-R6'(ii)). The TODAY-SPLIT
 spec and build, the seal generator on `rebuild/b-seal-gen`, and every lane's Markdown report are
 not declarations of this package. `rebuild/DECISIONS.md` and `rebuild/lanes/STATUS.md` move with the
 tip merge and are outside every package's product map by standing practice.
@@ -558,7 +591,7 @@ integration** (section 9 item 10), because integration adds PM-A1's runner commi
 | --- | --- | --- |
 | 1 | `IDS` gains `'S9'`, directly behind `'S8'` and ahead of `'B1'`; THIRTEEN ids | BUILT. Re-measured by this author at `a224c7b0`, `b-package.cjs:177`, by compiling the real runner and reading the constant: `['B-NTC','H3','S3','S4','S5','S6','S7','S8','S9','B1','B2','B4','B3']`, length 13. Unchanged from `397ac466` |
 | 2 | `NO_REGISTER_IDS` gains `'S9'`; NINE ids | BUILT. Re-measured at `a224c7b0`, `:324`: nine ids. `S9` is an S- id, so the shape assert at `:329-:330` admits it without a by-name PM ruling. Unchanged from `397ac466` |
-| 3 | `CHILD_ROOTS` gains the new lane roots | BUILT to TWENTY-FOUR. Re-measured by this author at the ACCEPTED head `a224c7b0`, `:427-:481`, by compiling the real runner and reading the constant: `CHILD_ROOTS.length === 24` - S8's twenty plus `rebuild/lanes/d/p3-layout-v2/`, `rebuild/lanes/c/p3-today-hotfix/`, `rebuild/lanes/c/passphrase-normalize/` and `rebuild/lanes/c/s9-today-carry/`. **TWO roots are still missing, not one (CORRECTED IN LOOP ROUND 1, review L1 B2): `rebuild/lanes/c/ui-port/` AND `rebuild/lanes/d/f2/`.** Both measured absent at `a224c7b0`. F7 asserts every root is a real directory of this repository, so `ui-port/` is added with C-UI-1's bytes at the single re-measure; `rebuild/lanes/d/f2/` is a real directory at the accepted F2 head today and is added with E fact 23's step. **The resulting count is TO MEASURE AT INTEGRATION and this brief asserts none** |
+| 3 | `CHILD_ROOTS` gains the new lane roots | BUILT to TWENTY-FOUR. Re-measured by this author at the ACCEPTED head `a224c7b0`, `:427-:481`, by compiling the real runner and reading the constant: `CHILD_ROOTS.length === 24` - S8's twenty plus `rebuild/lanes/d/p3-layout-v2/`, `rebuild/lanes/c/p3-today-hotfix/`, `rebuild/lanes/c/passphrase-normalize/` and `rebuild/lanes/c/s9-today-carry/`. **TWO roots are still missing, not one (CORRECTED IN LOOP ROUND 1, review L1 B2): `rebuild/lanes/c/ui-port/` AND `rebuild/lanes/d/f2/`.** Both measured absent at `a224c7b0`. F7 asserts every root is a real directory of this repository, so `ui-port/` is added for the required S9 pack/reference cells without carrying CUI1 product at the single re-measure; `rebuild/lanes/d/f2/` is a real directory at the accepted F2 head today and is added with E fact 23's step. **The resulting count is TO MEASURE AT INTEGRATION and this brief asserts none** |
 | 4 | Of the new roots, ONLY `rebuild/lanes/c/ui-port/` joins `PUBLIC_TAIL_ROOTS` | NOT YET. Re-measured at `a224c7b0`, `:531-:532`: `PUBLIC_TAIL_ROOTS.length === 6`, unchanged. **This fact survives review L1 B2 exactly as written: `rebuild/lanes/d/f2/` becomes a CHILD root and does NOT join the tail list.** A child root says a suite may be EXECUTED; that list says its output may be PRINTED, and the second is argued per root with `TAIL_DENYLIST` in hand |
 | 5 | Six `s9-supersede-*` / `s9-engine-files-differential` mirrors | BUILT, and red today at 0 pass / 1 fail each with `ENOENT packages/S9.json` (section 3.4) |
 | 6 | F6 takes `IDS` of thirteen, `NO_REGISTER_IDS` of nine and `PRODUCT_ROLES` of SIX by literal and `deepEqual`; F7 takes `CHILD_ROOTS` whole and in its `slice(8)` literal | BUILT. Re-measured at `a224c7b0`: `pinned-unchanged-and-ruled-substitutions.test.cjs` F6 at `:272`, F6b at `:341` ("PRODUCT_ROLES is the closed six, in order, with M2-S9-UI-PINS's released last"), F7 at `:383`, F8 at `:489` - all four line numbers unchanged from `397ac466`. `PRODUCT_ROLES` at `b-package.cjs:367` is `['edited','carried','new','superseded-by-child','pinned-unchanged','released']`. **CONSEQUENCE OF REVIEW L1 B2: F7's own title and literal say this package adds FOUR roots behind S8's; adding `rebuild/lanes/c/ui-port/` and `rebuild/lanes/d/f2/` makes it SIX, so F7's literal, its `slice(8)` window and its stated count all move with the hunk, and F8's `PUBLIC_TAIL_ROOTS` literal moves by exactly ONE.** Both re-measured at integration |
@@ -575,8 +608,8 @@ integration** (section 9 item 10), because integration adds PM-A1's runner commi
 | 14 | The D.2 fence cell and its `rebuild.yml` step, reading the inventory out of Git at `CHAIN_REF` | ACCEPTED at `8019abf6` (`DECISIONS:591`). The step is still TO ADD to `rebuild.yml` |
 | 15 | The `released` block in `rebuild/m4/spec/acceptance-s9-ui-pins.json`, both paths, each with `role: "released"`, `lastSealedSha256`, `sealedBy: "M2-S8-REAL-SHAPE"` and the token line's sha256 | TO DO. Written by `proposed()`, never by hand |
 | 16 | H18, H18b, H18c in `today/test/package.test.cjs` | TO DO. H18 is the 26-entry `REQUIRED_INPUTS` literal for `today/**`, 26 of 48 and not of 51; H18b binds the whole 48 by count; H18c the engine pack (`DECISIONS:570`). **Without H18 that goes red on a deleted entry, `build.mjs` leaves the closed list and the token line is rewritten before it is written** (F.2 STOP-6) |
-| 17 | SIX `pinned-unchanged` declarations, `design.cjs` NOT one of them | TO DO, **and see 2.4.1: as the runner stands, four of the six refuse by name.** This fact is the one that adds `rebuild/m1/` to the sealed inventory for the first time |
-| 18 | H19 and H19b, the two pack cells under `rebuild/lanes/c/ui-port/`, both `role: "new"`, with their `rebuild.yml` step beside the fence's; `copy-bind.test.mjs` WITHDRAWN | BUILT at `d857d775`, literals unfilled, **and REJECTED by narrow check R5 at `0a74d8f2`** (section 3.1) |
+| 17 | SIX `pinned-unchanged` declarations, `design.cjs` NOT one of them | TO DO, **and see 2.4.1: as the runner stands, four of the six refuse by name.** This fact adds `rebuild/m1/` to the sealed inventory for the first time. Under :732, retain the actual 09-08 list, accept P-S9-2 first, then measure hashes, honest roles and actual executed closure at the composed S9 head |
+| 18 | H19 and H19b, the two pack cells under `rebuild/lanes/c/ui-port/`, both `role: "new"`, with their `rebuild.yml` step beside the fence's; `copy-bind.test.mjs` WITHDRAWN | BUILT at `d857d775`, literals unfilled, **and REJECTED by narrow check R5 at `0a74d8f2`** (section 3.1). Under :732, the accepted successors, ui-port child/CI roots and final literal measurement remain required without CUI1 product carriage |
 | 19 | `today-model.cjs` NOT declared and carried out loud; `browser-check.mjs` NOT declared and NO CI home | Section 2.5 and section 8 |
 | 20 | S9-TODAY-CARRY's FOUR declarations | `today-app.cjs` (`edited`, the one binding line), `today/test/view.test.mjs` and `today/test/adapter.test.mjs` (`edited`, product AND execution pins), `.github/workflows/rebuild.yml` (`edited`). **E20's sentence that the two lane cells are not declarations is SUPERSEDED by the runner's rule** (section 2.4) |
 | 21 | PASSPHRASE-NORMALIZE's declarations | `import-bundle.mjs`, `import-screen.mjs`, `import/test/page-bundle.test.mjs`, `rebuild/m3/setup/port/passphrase.cjs` (`new`, SEALED), plus the three lane cells with a CI STEP and a CHILD ROOT. That step is the guard that keeps every sealed bundle valid, not a convenience |
@@ -589,7 +622,7 @@ package file, the brief, the carrier successor, or a child argv target (`b-packa
 `:3354-:3361` at `a224c7b0`; `DECISIONS:567`). Release DELETION is admitted; unrelated drift, completeness and
 held checks remain; and **a ticket that moves a released file before the `sourceBase` stops S9
 sealing**. Neither `preview.css` nor `build.mjs` is any of the five today, and that is TO RE-MEASURE
-at integration because C-UI-1 may add a child.
+at integration against all actual S9 children; no unfinished CUI1 child is inferred.
 
 ## 6. The flow, in S8's order with S9's names
 
@@ -671,8 +704,8 @@ read the sealed artifact out of Git at `CHAIN_REF` on a GitHub runner; (8) a D.2
 be derived from a branch declaration, in which case the fence ships with no skip at all; (9a)
 PACK-PIN unable to name the path, and (9b) anyone proposing to narrow the whole-pack pin, which is a
 PM decision on the record and never an author's convenience; (10) a `design.test.cjs` edit that
-cannot be made honestly when C-UI-1 seals, in which case S9 reports rather than inventing a
-substitute; (11) anyone proposing to ship S9 with a sentence saying the copy locks are now real.
+cannot be made honestly when the real CUI1 migration seals, in which case that round reports
+rather than inventing a substitute; :732 excludes that migration from S9; (11) anyone proposing to ship S9 with a sentence saying the copy locks are now real.
 **Eleven stands as eleven and this brief adds none and removes none.**
 
 **Carried and none blocking**, each named so it does not vanish under a green tooling total
@@ -789,7 +822,7 @@ completeness are S10's precondition (`DECISIONS:546`, `:549`).
 WORDS.** They come from `rebuild/lanes/astra/reviews/S9-UI-PINS-BRIEF-REVIEW-L1.md` at `a93367b` on
 `rebuild/r-astra-s9-brief-l1`, and this author neither rewords nor narrows them:
 
-> D-REFERENCE-CLOSURE: executedClosure is a bounded static literal-specifier walk, not proof of runtime reading or of authority. A reader added for the four design documents must assert their approved content, and a changed-document counterexample must fail. Re-measure the closure after C-UI-1; a computed path alone remains invisible.
+> D-REFERENCE-CLOSURE: executedClosure is a bounded static literal-specifier walk, not proof of runtime reading or of authority. A reader added for the four design documents must assert their approved content, and a changed-document counterexample must fail. Under :732, accept that reader before S9 and remeasure actual closure at the composed S9 head; a computed path alone remains invisible. Remeasure again for any later reviewed CUI1 migration.
 
 > D-INTEGRATION-COUNTS: all S9 product, execution, child, root, pack and test totals remain integration outputs. S8's 224/71/25/182 and preparation bars are historical inputs, never S9 needles. New compatibility, workflow-condition and R6-Z2/Z3 rows change the final totals.
 
@@ -825,7 +858,8 @@ reaches the chain before S9 (`DECISIONS:556`, Q4).
 `chain...lane` changed names with the youngest `product` and `executionPins`; a sealed hit routes
 the lane to a reseal child instead of a merge): the runner lane `rebuild/b-s9-prep-runner`; the
 fence lane `rebuild/b-s9-prep-cells`; the pack lane `rebuild/b-s9-prep-pack`; `rebuild/d-f2-land`
-(E fact 23, whole branch); and C-UI-1 when it lands. `rebuild/c-passphrase-normalize` at `ba04c07f`
+(E fact 23, whole branch); and the accepted S9 guard, pack and P-S9-2 successors.
+Do not carry unfinished CUI1 product or reference promotion (:732). `rebuild/c-passphrase-normalize` at `ba04c07f`
 and S9-TODAY-CARRY are already merged into this lane.
 
 **CORRECTED IN LOOP ROUND 1, review L1 B1: `git rev-parse HEAD` after a merge is NOT the
@@ -841,7 +875,7 @@ record it in `packages/S9.json`, and never let a merge silently replace it.**
 not named by this brief; review L1 measured the same 227 of 227 independently. **After every merge,
 every pre/post below is re-measured AGAINST THAT PRESERVED `sourceBase`, and the merge's own effect
 on the product inputs is re-checked (section 6 step 10).** Take the final accepted passphrase, pack
-and C-UI heads, including the pending passphrase comment correction of section 11.3, before
+and CUI0/reference-cell heads, excluding CUI1 product, including the pending passphrase comment correction of section 11.3, before
 measuring their pins.
 
 **2. The cross-lane cell: the fence's release-object shape against the runner's real artifact.**
@@ -964,7 +998,8 @@ of the four.** This author re-measured the load-bearing fact in loop round 1 and
 mechanical act before the seal and it is done in ONE sitting, in this order.
 (i) **Every platform-of-record baseline must exist first** (R4's correction, adopted as a literal
 precondition at `DECISIONS:549` B): otherwise the first Windows accept forces a reseal.
-(ii) Check out the design lane's ACTUAL head, the one C-UI-0 and C-UI-1 leave behind, and confirm it
+(ii) Check out the design lane's ACTUAL accepted CUI0 head after its required independent audit,
+without unfinished CUI1 product, and confirm it
 against the binding identity, tree `6d7710467408f69e61a2917c583540fc2336a3fa` (`DECISIONS:546`);
 **the README's claimed composite sha is unreproducible and is not the identity.**
 (iii) Walk the spec's pack root, `rebuild/m1/approved-2026-09-18/**`, **the WHOLE tree including
@@ -976,8 +1011,9 @@ trusted root and compares each component's spelling exactly with its parent's ow
 `6121aa91...` are superseded and must not be reused** (spec C.5.1, R15).
 (v) Run the Windows working-tree comparison before the literal is committed.
 (vi) APPROVED-PIN's literal is whatever runtime `design.APPROVED` names at the S9 head, read
-parametrically, **including approved paths OUTSIDE the new pack**; it needs lane C-UI's answer to
-OQ-2 first. Its vocabulary now has seven refusals, including `UNLISTED` for a runtime path absent
+parametrically, **including approved paths OUTSIDE the new pack**. OQ-2 is selected by :732:
+retain S9's actual 09-08 runtime list; independently pin the entire approved09-18 pack.
+Accept P-S9-2 and measure E17's actual closure and hashes before sealing. Its vocabulary now has seven refusals, including `UNLISTED` for a runtime path absent
 from the literal (R4, `:549` B) and `ORPHAN` and `UNREADABLE` (`:556`), and the full refusal string
 is matched, never the prefix `design.cjs` already uses.
 (vii) Only then are the two real rows expected to go green. **Both literals are integrator-only**
@@ -1181,13 +1217,15 @@ found NOT SOUND. **Until C-UI-0 is accepted the pack does not stop moving, and t
 of section 9 item 9 cannot start.** Nothing in this brief may be read as C-UI-0 being close: three
 batches are open and the lane's own PR-READY claim has been withdrawn once already.
 
-**11.2 C-UI-1.** Its bytes decide the final inventory: the moved product files, `design.APPROVED`'s
-resulting list, APPROVED-PIN's literal, E fact 17's re-decided path list, the zero-to-three
-`design.test.cjs` hunks with STOP-10 standing over them, `rebuild/lanes/c/ui-port/` becoming the
-twenty-fifth `CHILD_ROOTS` entry and the only new `PUBLIC_TAIL_ROOTS` entry, every needle, and the
-`--ci --package S9` walk itself, which hashes those bytes. **`DECISIONS:531` blocks its seal until
-the gates are fixed and re-audited, so C-UI-1 waits on 11.1 and S9 waits on C-UI-1.** OQ-2's
-approved-reference decision feeds the final `design.APPROVED` measurement.
+**11.2 C-UI-1, deferred from S9 by DECISIONS:732.** S9 excludes unfinished CUI1
+product and reference promotion. Its inventory, APPROVED-PIN literal and E17 declarations
+use the actual retained 09-08 references and independently accepted literal reader.
+Required ui-port pack/reference children, CI and root declarations remain in S9.
+Accepted CUI0 and its independent audit remain prerequisites to final pack measurement.
+After S10 actually releases the views, separately commissioned isolated CUI1/2/3/4/6
+composition may use provisional CUI1. All original named acceptance checks remain.
+A later named and reviewed reseal child handles completed CUI1 promotion and remeasures
+APPROVED-PIN, design.test and all affected declarations without silently dropping parent pins.
 
 **11.3 The passphrase cell round, AND a comment-only correction of a file S9 SEALS.** S9 declares
 `rebuild/m3/setup/port/passphrase.cjs` role `new` and SEALED, so its sha256 is a sealed byte of this
@@ -1214,12 +1252,16 @@ refusal names and red-first rows against a throwaway fixture pack; H18's 26-entr
 `pinned-unchanged` pins that are measurable today; the carried lanes' declarations; and this brief.
 None of them needs a byte from lane C.
 
-**11.5 The order the owner set, and S9 does not re-order it.** `DECISIONS:575`, reaffirmed at
-`:578`: the look, then C-UI-0's audit, then C-UI-1, then S9, then the trial. `DECISIONS:590`'s
-question about where phone-earn sits was put to the owner and is **explicitly NOT RULED**; no
-proposed order is presented here as accepted. `DECISIONS:582` puts the EW2 build cut after S10.
-TODAY-SPLIT and the wording lock are S10's, and they are later WORK, not unfinished implementation
-for S9 to declare.
+**11.5 Effective technical carriage under DECISIONS:732.** Accepted CUI0 and the
+required independent audit precede final whole-pack measurement. S9 retains the actual
+09-08 runtime references and accepts P-S9-2 before sealing. S10 requires that accepted
+S9 parent, final GSS, source closure and the accepted eight-answer copy lock. Actual
+S10 release precedes separately commissioned isolated view composition on provisional
+CUI1, with Today face before proposal. Completed CUI1 promotion gets its own reviewed
+reseal child. The exact approved look and phone-earned weights precede Joe's trial;
+father's trial follows Joe's. This changes only the carried dependencies, not the queue,
+owner appearance requirement, engine scope or any acceptance check. EW2 product remains
+after S10 (:582). TODAY-SPLIT and the wording lock remain S10 work, not S9 declarations.
 
 ## 12. WHERE THIS BRIEF DISAGREES WITH ITS INPUTS, AND WHAT IS STILL OPEN
 
