@@ -101,6 +101,7 @@ try {
 
   await page.goto(todayUrl, { waitUntil: "load" });
   await page.waitForSelector('[data-slot="instruction"]');
+  await page.waitForFunction(() => window.__earnedScene && window.__earnedScene.snapshot().ready);
   const sceneWitness = await page.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());
   assert(sceneWitness, "C-UI-1 SCENE-RUNTIME-MISSING: actual preview exposed no scene witness");
   assert.deepEqual(sceneWitness.hooks, { theme: "ink", screen: "today", chrome: false, date: "board", state: "T-02" });
@@ -415,6 +416,7 @@ try {
     await still.goto(url + "?theme=dawn&screen=workout&chrome=1&date=board&state=W-18", { waitUntil: "load" });
     await still.waitForFunction(() => document.documentElement.dataset.screen === "workout"
       && !!document.querySelector('[data-slot="workout-title"]'));
+    await still.waitForFunction(() => window.__earnedScene && window.__earnedScene.snapshot().ready);
     assert((await still.textContent('[data-slot="workout-title"]')).trim().length > 0,
       "the actual Workout preview is ready before its scene is judged");
     const witness = await still.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());

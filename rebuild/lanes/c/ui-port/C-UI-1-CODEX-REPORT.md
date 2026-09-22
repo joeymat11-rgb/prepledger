@@ -2,7 +2,7 @@
 
 Role: commissioned Sol builder, not reviewer, PM or integrator.
 Published red head: fa593d629d858bdd7d3d72ad8885598b1be8475e.
-Status: F6 RED READY; F3-F5 repair is static and untested, F6 remains unfixed.
+Status: focused repair checks green; browser and independent review remain owed.
 Browser and independent review remain owed.
 
 The build keeps the accepted b35 Today behavior and binds the exact
@@ -14,10 +14,10 @@ font files and four scene images. The font files are inlined under the Earned
 Sans and Earned Serif CSS families. All scene images become offline data URLs.
 One changed approved byte and one changed font byte are durable refusals.
 
-The simplified scene WIP reaches the actual preview bundle with its pinned
-assets and review hooks, but it is not yet a faithful lift of the approved
-scene. Cadence, ember depth/life, five-sheet mist, luminance occlusion and an
-asset-ready reduced-motion still remain incomplete and are held red.
+The repaired scene lifts the approved cadence, ember depth/life, five-sheet
+mist and luminance occlusion into the actual offline preview bundle.
+Asset-ready still rendering and the idempotent date observer pass focused rows.
+Visual fidelity still requires the real browser and independent review.
 
 The actual build inventories scene.mjs, hashes it into the build identity and
 ships the scene and four image URLs in its existing three-file offline bundle.
@@ -44,6 +44,9 @@ TZ=America/New_York and --test-concurrency=1:
   86b90b96d156948272d40157da9a3b1ebaad43d406a44cb3381363a5a6acc131.
 Logs: %TEMP%/cui1-author-candidate/design-copy-guard-red-check.txt and
 %TEMP%/cui1-author-candidate/scene-fidelity-red.txt.
+Repaired candidate: design 12/12 and scene 6/6 pass, both exit 0.
+Logs design-focused-3.txt SHA256 74cb8621ac8385393074da2d77cd89e082c597ccf0506fbf5fad13474f679ede;
+scene-focused-3.txt SHA256 74963f07d6c946701601d13af7025484e74670526c4784c384145e6d779822b9.
 
 browser-check now uses the supported explicit Today preview route with board
 date and state hooks. Its reduced-motion row waits for the actual Workout
