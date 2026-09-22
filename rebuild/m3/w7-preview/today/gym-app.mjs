@@ -95,6 +95,10 @@ const SETTINGS_COPY = Object.freeze({
    is cleared, and a caller that passes nothing gets a fresh one — which is exactly
    what every existing caller and every A2 test does. */
 export function newGymDraft() { return { effort: null, entry: { load: null, reps: null } }; }
+/* A supplied gym draft is the public lifetime of one transient card across remounts.
+   Keep the settings editor's editable state beside that object, never inside the
+   durable payload and never with its old token or control authority. */
+const SETTINGS_DRAFT_CARRY = new WeakMap();
 
 export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draft, settings } = {}) {
   if (!phone) throw new Error('Gym card: no host element');
@@ -130,6 +134,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   const painter = Object.freeze({ repaint: () => paint() });
   const { facade, hooks, api } = createGymSettingsLane(doc, phone, model, settings, painter);
   let settingsDraft = null;       // non-null only while the editor is open
+  let settingsDraftStart = null;  // the actual workout this editor belongs to
   let settingsDraftLift = null;   // the lift that draft belongs to
   let settingsEditorToken = null;
   let settingsDraftRevision = 0;  // input identity inside one editor token
@@ -137,6 +142,14 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   // delayed result from assigning the old draft's message to a replacement draft.
   const settingsErrors = new WeakMap();
   const settingsSubmittedRevisions = new WeakMap();
+  const clearSettingsCarry = () => SETTINGS_DRAFT_CARRY.delete(held);
+  const rememberSettings = (view, error) => {
+    if (!owns || !settingsDraft || !view || typeof view.startId !== 'string'
+      || !view.lift || typeof view.lift.id !== 'string') return;
+    SETTINGS_DRAFT_CARRY.set(held, Object.freeze({ startId: view.startId, liftId: view.lift.id,
+      draft: settingsDraft, revision: settingsDraftRevision,
+      error: typeof error === 'string' ? error : '' }));
+  };
 
 
 
@@ -229,13 +242,31 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
        editor here would seed it from a null the athlete never chose. */
     if (state !== 'known') { openControl.disabled = true; editor.hidden = true; return null; }
     openControl.disabled = false;
+    if (!settingsDraft || !settingsEditorToken) {
+      const carried = SETTINGS_DRAFT_CARRY.get(held);
+      if (carried && carried.startId === view.startId && carried.liftId === liftId) {
+        const reopened = hooks.settingsEditOpened();
+        if (reopened) {
+          settingsEditorToken = reopened.editorToken;
+          settingsDraft = { rows: carried.draft.rows.map((row) => ({ name: row.name, value: row.value })),
+            cues: carried.draft.cues };
+          settingsDraftStart = carried.startId;
+          settingsDraftLift = carried.liftId;
+          settingsDraftRevision = carried.revision;
+          if (carried.error) settingsErrors.set(settingsEditorToken, carried.error);
+          rememberSettings(view, carried.error);
+        }
+      } else if (carried) clearSettingsCarry();
+    }
     hooks.listen(openControl, 'click', () => {
       const opened = hooks.settingsEditOpened();
       if (!opened) return;
       settingsEditorToken = opened.editorToken;
       settingsDraft = MachineSettingsView.draftFrom(opened.latest);
+      settingsDraftStart = view.startId;
       settingsDraftLift = liftId;
       settingsDraftRevision = 0;
+      rememberSettings(view, '');
       paint();
     });
     if (!settingsDraft || !settingsEditorToken || settingsDraftLift !== liftId) {
@@ -249,11 +280,15 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       onChanged: () => {
         if (settingsDraft !== paintedDraft || settingsEditorToken !== paintedToken) return;
         settingsDraftRevision += 1;
+        rememberSettings(view, settingsErrors.get(paintedToken) || '');
         paint();
       } });
     hooks.listen(editor, 'input', () => {
       if (settingsDraft === paintedDraft && settingsEditorToken === paintedToken
-        && editor.isConnected && phone.contains(editor)) settingsDraftRevision += 1;
+        && editor.isConnected && phone.contains(editor)) {
+        settingsDraftRevision += 1;
+        rememberSettings(view, settingsErrors.get(paintedToken) || '');
+      }
     });
     map.get('settings-error').textContent = plainOrDrop(settingsErrors.get(paintedToken) || '', 'settings-error');
     hooks.listen(root.querySelector('[data-action="settings-cancel"]'), 'click', () => {
@@ -261,7 +296,8 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
          whatever it already was; the athlete is returned to the block. */
       if (settingsDraft !== paintedDraft || settingsEditorToken !== paintedToken) return;
       hooks.settingsEditClosed(paintedToken);
-      settingsDraft = null; settingsDraftLift = null; settingsEditorToken = null;
+      settingsDraft = null; settingsDraftStart = null; settingsDraftLift = null; settingsEditorToken = null;
+      clearSettingsCarry();
       settingsDraftRevision = 0; paint();
     });
     const save = map.get('settings-save');
@@ -284,8 +320,10 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
               if (!reopened) return;
               settingsEditorToken = reopened.editorToken;
               if (message) settingsErrors.set(settingsEditorToken, message);
+              rememberSettings(view, message);
             } else {
-              settingsDraft = null; settingsDraftLift = null; settingsEditorToken = null;
+              settingsDraft = null; settingsDraftStart = null; settingsDraftLift = null; settingsEditorToken = null;
+              clearSettingsCarry();
               settingsDraftRevision = 0;
             }
           }
@@ -295,6 +333,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
         const message = outcome.kind === 'not-saved' ? SETTINGS_NOT_SAVED
           : outcome.reason === 'empty' ? SETTINGS_NOTHING : SETTINGS_REFUSED;
         settingsErrors.set(paintedToken, message);
+        rememberSettings(view, message);
         const current = phone.querySelector('[data-slot="settings-error"]');
         if (owns && settingsEditorToken === paintedToken && current) {
           current.textContent = plainOrDrop(message, 'settings-error');
@@ -520,9 +559,11 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     if (!owns) return null;
     if (!view) return null;
     const activeLift = view.phase === 'active' && view.lift ? view.lift.id : null;
-    if (settingsEditorToken && settingsDraftLift !== activeLift) {
+    const activeStart = view.phase === 'active' ? view.startId : null;
+    if (settingsEditorToken && (settingsDraftLift !== activeLift || settingsDraftStart !== activeStart)) {
       hooks.settingsEditClosed(settingsEditorToken);
-      settingsDraft = null; settingsDraftLift = null; settingsEditorToken = null;
+      settingsDraft = null; settingsDraftStart = null; settingsDraftLift = null; settingsEditorToken = null;
+      clearSettingsCarry();
       settingsDraftRevision = 0;
     }
     if (view.phase === 'blocked') return hooks.paint(() => refusalScreen(view, view));

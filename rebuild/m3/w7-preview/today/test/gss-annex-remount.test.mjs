@@ -7,7 +7,7 @@ import { webcrypto } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
 import GymApp, { mountGym, newGymDraft } from '../gym-app.mjs';
-import { createMachineSettingsHost } from '../machine-settings-host.mjs';
+import { createMachineSettingsHost, PROFILE } from '../machine-settings-host.mjs';
 import design from '../design.cjs';
 
 const DAY = '2026-09-03';
@@ -64,9 +64,10 @@ async function world() {
     crypto: webcrypto });
   const dom = new JSDOM(shell(), { url: 'http://127.0.0.1/' });
   const phone = dom.window.document.getElementById('phone');
-  const model = { day: DAY, read: async () => copy(activeView()), effortChoices: () => EFFORTS,
+  let view = activeView();
+  const model = { day: DAY, read: async () => copy(view), effortChoices: () => EFFORTS,
     start: async () => ({ ok: true }) };
-  return { fault, settings, dom, phone, model };
+  return { fault, settings, dom, phone, model, setView(next) { view = copy(next); } };
 }
 
 async function mount(world, draft, settings, onBack = () => {}) {
@@ -100,7 +101,7 @@ async function quotaCancelWritesNothing() {
   } finally { unit.fault.state.armed = false; reopened?.close(); unit.settings.close(); unit.dom.window.close(); }
 }
 
-async function heldQuotaRemount(plant = false) {
+async function heldQuotaRemount(plant = false, action = 'cancel') {
   const unit = await world(); let reopened, replacementPromise = null, oldOwnedInsideBack = null;
   const reached = deferred(), release = deferred();
   try {
@@ -148,6 +149,31 @@ async function heldQuotaRemount(plant = false) {
     assert.equal(observed.name, 'Seat', 'GSS-G3-NAME-LOST-ON-REMOUNT');
     assert.equal(observed.value, 'four', 'GSS-G3-ANSWER-LOST-ON-REMOUNT');
     assert.equal(observed.error, GymApp.SETTINGS_NOT_SAVED, 'GSS-G3-ERROR-LOST-ON-REMOUNT');
+    if (action === 'save') {
+      replacement.click('[data-slot="settings-save"]');
+      await within(replacement.mounted.settings.pending(), 'fresh remount Save'); await settle();
+      const after = await collections(reopened.repository);
+      const opIds = Object.keys(after.ops).filter((id) => !Object.hasOwn(before.ops, id));
+      const outboxIds = Object.keys(after.outbox).filter((id) => !Object.hasOwn(before.outbox, id));
+      for (const [id, op] of Object.entries(before.ops))
+        assert.deepEqual(after.ops[id], op, 'GSS-G3-FRESH-SAVE-PRIOR-OP-CHANGED ' + id);
+      for (const [id, item] of Object.entries(before.outbox))
+        assert.deepEqual(after.outbox[id], item, 'GSS-G3-FRESH-SAVE-PRIOR-OUTBOX-CHANGED ' + id);
+      assert.equal(opIds.length, 1, 'GSS-G3-FRESH-SAVE-OP-COUNT');
+      assert.equal(outboxIds.length, 1, 'GSS-G3-FRESH-SAVE-OUTBOX-COUNT');
+      assert.deepEqual(after.ops[opIds[0]].payload, { profile: PROFILE,
+        machine: { exercise_id: LIFT, settings: [{ name: 'Seat', value: 'four' }] } },
+      'GSS-G3-FRESH-SAVE-PAYLOAD');
+      assert.equal(after.outbox[outboxIds[0]].op_id, after.ops[opIds[0]].op_id,
+        'GSS-G3-FRESH-SAVE-OUTBOX-LINK');
+      assert.equal(replacement.pick('[data-slot="settings-editor"]').hidden, true,
+        'GSS-G3-FRESH-SAVE-DID-NOT-CLEAR');
+    } else {
+      replacement.click('[data-action="settings-cancel"]'); await settle();
+      assert.equal(replacement.pick('[data-slot="settings-editor"]').hidden, true,
+        'GSS-G3-REMOUNT-CANCEL-DID-NOT-CLEAR');
+      assert.deepEqual(await collections(reopened.repository), before, 'GSS-G3-REMOUNT-CANCEL-WROTE');
+    }
   } finally { release.resolve(); unit.fault.state.armed = false; reopened?.close();
     unit.settings.close(); unit.dom.window.close(); }
 }
@@ -159,3 +185,130 @@ test('D-GSS-G3: real quota refusal survives Cancel and a held same-phone remount
       error && error.message.includes('GSS-G3-INDEPENDENT-ENTRY-LOST'));
     await heldQuotaRemount(false);
   });
+
+test('GSS-G3-CARRIER: restored settings use a fresh Save authority exactly once',
+  { timeout: 30000 }, () => heldQuotaRemount(false, 'save'));
+
+async function staleOutcomeCannotOverwrite() {
+  const unit = await world(); let reopened, replacementPromise = null, oldOwnedInsideBack = null;
+  const reached = deferred(), release = deferred();
+  try {
+    const draft = newGymDraft(); draft.entry = { load: '41', reps: '8' }; draft.effort = EFFORTS[0];
+    const before = await collections(unit.settings.repository);
+    const heldSettings = { latest: (...args) => unit.settings.latest(...args), save: async (machine) => {
+      const result = await unit.settings.save(machine); reached.resolve(result); await release.promise; return result;
+    } };
+    let first;
+    first = await mount(unit, draft, heldSettings, () => {
+      oldOwnedInsideBack = first.mounted.settings.owns();
+      replacementPromise = mount(unit, draft, unit.settings);
+    });
+    await first.openEditor(); first.input('[data-settings-name="0"]', 'Seat');
+    first.input('[data-settings-value="0"]', 'four');
+    unit.fault.state.armed = true; unit.fault.state.mode = 'quota';
+    first.click('[data-slot="settings-save"]'); const pending = first.mounted.settings.pending();
+    assert.equal((await within(reached.promise, 'stale quota result')).ok, false);
+    unit.fault.state.armed = false;
+    first.click('[data-action="back"]');
+    const replacement = await within(replacementPromise, 'stale same-phone remount');
+    assert.equal(oldOwnedInsideBack, false, 'GSS-G3-STALE-OLD-OWNERSHIP');
+    assert.equal(replacement.pick('[data-slot="settings-editor"]').hidden, false,
+      'GSS-G3-STALE-RESTORE-MISSING');
+    replacement.input('[data-settings-value="0"]', 'five');
+    release.resolve(); await within(pending, 'stale old delivery'); await settle();
+    assert.equal(replacement.pick('[data-settings-value="0"]').value, 'five',
+      'GSS-G3-STALE-OUTCOME-OVERWROTE-DRAFT');
+    assert.equal(replacement.pick('[data-slot="settings-error"]').textContent, '',
+      'GSS-G3-STALE-OUTCOME-OVERWROTE-ERROR');
+    reopened = await createMachineSettingsHost({ day: DAY, indexedDB: unit.fault.indexedDB,
+      crypto: webcrypto });
+    assert.deepEqual(await collections(reopened.repository), before, 'GSS-G3-STALE-OUTCOME-WROTE');
+    replacement.click('[data-action="settings-cancel"]'); await settle();
+  } finally { release.resolve(); unit.fault.state.armed = false; reopened?.close();
+    unit.settings.close(); unit.dom.window.close(); }
+}
+
+async function isolatedCarrier(kind) {
+  const unit = await world(); let reopened, replacementPromise = null;
+  try {
+    const draft = newGymDraft(); draft.entry = { load: '41', reps: '8' }; draft.effort = EFFORTS[0];
+    const before = await collections(unit.settings.repository);
+    let first;
+    first = await mount(unit, draft, unit.settings, () => {
+      let nextDraft = draft;
+      if (kind === 'context') {
+        const other = activeView(); other.startId = 'gss-g3-other-start'; other.lift.id = 'other-lift';
+        other.set.lift = 'other-lift'; unit.setView(other);
+      } else nextDraft = newGymDraft();
+      replacementPromise = mount(unit, nextDraft, unit.settings);
+    });
+    await first.openEditor(); first.input('[data-settings-name="0"]', 'Seat');
+    first.input('[data-settings-value="0"]', 'four');
+    unit.fault.state.armed = true; unit.fault.state.mode = 'quota';
+    first.click('[data-slot="settings-save"]'); await within(first.mounted.settings.pending(), kind + ' quota');
+    unit.fault.state.armed = false;
+    assert.equal(first.pick('[data-slot="settings-error"]').textContent, GymApp.SETTINGS_NOT_SAVED);
+    first.click('[data-action="back"]');
+    const replacement = await within(replacementPromise, kind + ' isolated remount');
+    assert.equal(first.mounted.settings.owns(), false, 'GSS-G3-ISOLATION-OLD-OWNERSHIP ' + kind);
+    assert.equal(replacement.pick('[data-slot="settings-editor"]').hidden, true,
+      'GSS-G3-ISOLATION-EDITOR-INHERITED ' + kind);
+    assert.equal(replacement.pick('[data-slot="settings-error"]').textContent, '',
+      'GSS-G3-ISOLATION-ERROR-INHERITED ' + kind);
+    reopened = await createMachineSettingsHost({ day: DAY, indexedDB: unit.fault.indexedDB,
+      crypto: webcrypto });
+    assert.deepEqual(await collections(reopened.repository), before, 'GSS-G3-ISOLATION-WROTE ' + kind);
+  } finally { unit.fault.state.armed = false; reopened?.close(); unit.settings.close(); unit.dom.window.close(); }
+}
+
+test('GSS-G3-STALE: an old outcome cannot overwrite a replacement mount',
+  { timeout: 20000 }, staleOutcomeCannotOverwrite);
+
+test('GSS-G3-ISOLATION: different workout context and different draft inherit nothing',
+  { timeout: 30000 }, async () => {
+    await isolatedCarrier('context');
+    await isolatedCarrier('draft');
+  });
+
+async function oldDomCannotMutateReplacement() {
+  const unit = await world(); let reopened, replacementPromise = null;
+  try {
+    const draft = newGymDraft();
+    const before = await collections(unit.settings.repository);
+    let first;
+    first = await mount(unit, draft, unit.settings, () => {
+      replacementPromise = mount(unit, draft, unit.settings);
+    });
+    await first.openEditor();
+    first.click('[data-action="settings-add"]'); await settle();
+    first.input('[data-settings-name="0"]', 'Seat'); first.input('[data-settings-value="0"]', 'four');
+    first.input('[data-settings-name="1"]', 'Pin'); first.input('[data-settings-value="1"]', 'three');
+    const oldValue = first.pick('[data-settings-value="0"]');
+    const oldAdd = first.pick('[data-action="settings-add"]');
+    const oldRemove = first.pick('[data-settings-remove="1"]');
+    assert(oldValue && oldAdd && oldRemove, 'GSS-G3-OLD-DOM-PRECONDITION');
+    first.click('[data-action="back"]');
+    const replacement = await within(replacementPromise, 'old DOM remount');
+    assert.equal(replacement.pick('[data-slot="settings-editor"]').hidden, false,
+      'GSS-G3-OLD-DOM-RESTORE-MISSING');
+    oldValue.value = 'stale';
+    oldValue.dispatchEvent(new unit.dom.window.Event('input', { bubbles: true }));
+    oldAdd.click(); oldRemove.click();
+    replacement.click('[data-action="settings-add"]'); await settle();
+    assert.equal(replacement.pick('[data-settings-value="0"]').value, 'four',
+      'GSS-G3-OLD-DOM-INPUT-MUTATED-REPLACEMENT');
+    assert.equal(replacement.pick('[data-settings-name="1"]').value, 'Pin',
+      'GSS-G3-OLD-DOM-REMOVE-MUTATED-REPLACEMENT');
+    assert.equal(replacement.pick('[data-settings-value="1"]').value, 'three',
+      'GSS-G3-OLD-DOM-ROW-MUTATED-REPLACEMENT');
+    assert.equal(unit.phone.querySelectorAll('[data-slot="settings-rows"] .row').length, 3,
+      'GSS-G3-OLD-DOM-ADD-MUTATED-REPLACEMENT');
+    replacement.click('[data-action="settings-cancel"]'); await settle();
+    reopened = await createMachineSettingsHost({ day: DAY, indexedDB: unit.fault.indexedDB,
+      crypto: webcrypto });
+    assert.deepEqual(await collections(reopened.repository), before, 'GSS-G3-OLD-DOM-WROTE');
+  } finally { reopened?.close(); unit.settings.close(); unit.dom.window.close(); }
+}
+
+test('GSS-G3-OLD-DOM: retired input/add/remove controls cannot mutate replacement state',
+  { timeout: 20000 }, oldDomCannotMutateReplacement);
