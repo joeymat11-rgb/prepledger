@@ -16,13 +16,13 @@ Send grants and receive results through that thread; never assume cross-root chi
 No worker duplicated for takeover. Historical split author absent; sole Sol replacement created at:705.
 Existing Sol engine_evidence owns CUI1 in %TEMP%/earned-cui1-design, branch rebuild/c-ui1-design.
 Base8719230; immutable redfa593d6 pushed: four design/three scene failures. Product grant:706.
-CUI1 reds4d76e53 (three fidelity failures) and5fa644c (observer self-trigger) published.
-Candidate32dee44: boundary3/design15/scene6 green; browser timeout after both captures. B1-B3 open.
+Sequencing732 adopts a12be09: S9 keeps current references plus whole new pack; CUI1 promotion after S10.
+Candidate32dee44: boundary3/design15/scene6 green; diagnosticsfa59c85 locate Workout-ready timeout. B1-B3 open.
 Missing w5/w6 node_modules junctions added to exact earned-adm donors, no install. One runtime slot.
 S9 guard fix f123133 on rebuild/b-s9-guard-debts, worktree %TEMP%/earned-s9-guard-debts.
 Immutable red dd973e3; three green targeted rows cover five readers. No acceptance yet.
 Independent S9 ACCEPT6244696,31lines read with evidence; runtime released. Claude scoped L3 asked:714.
-Root child s9_continue_author: unit80fad72; font transport0e5e194 after redeaa4d76, six green; unreviewed.
+Root child s9_continue_author: font0e5e194 independently ACCEPTa3fca86,12/12; Claude narrow asked733.
 Independent ac1b092 ACCEPT:Windows13/13,372PASS,418clean;1320 hashes unchanged; runtime released.
 Linux35673922107 SUCCESS372/418,1331 unchanged; receipt076bc45. Claude unit l2 asked723.
 
@@ -37,7 +37,7 @@ CUI0 Claude0ca3c8f: D-CUI-UNIT before S9 pin; both-OS compatibility proved, Clau
 Retain review-on-Joe's-word protocol. Do not dispatch paid Claude automatically.
 Queue unchanged: S9 seal/look; phone earns weights before trial day1; split/Edit My Week;
 then N3, re-plan gap and P4b-2. Deferred work does not become a trial prerequisite.
-GSS46af1b8 fixes initial7931f57 red; independent review finds four token/lifecycle reds. Repair pending.
+GSScaec517 repairs four reviewer reds, keeps one raw capture; author10/10. Same reviewer rechecking.
 CI receiptb98f375: CUI/base chain-tip, GSS/base sealed-profile. No waiver/release/import; LISTEN deferred.
 
 ## Next efficient rollover
@@ -46,7 +46,7 @@ Preferred rollover: CUI1 evidence published, Claude returns triaged, S9 inputs/n
 before starting the S9 integration/seal sequence. Do not switch PM midway through a seal transaction.
 Roll earlier at a saved boundary if repeated context recovery starts delaying decisions.
 Refresh this file with exact heads, open decisions, runtime handles and worker routes before transfer.
-Read :730 onward: GSS reviewer owns runtime; font released. Sequencing proposal2c3076a under review.
+Runtime: GSS reviewer owns slot; root Sol prepares E17 reader statically. Read :731 onward for grants.
 
 Starter prompt:
 Take over as Earned's PM on rebuild/t2-client-core. Read NEXT.md in the active PM worktree,
