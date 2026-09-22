@@ -294,3 +294,51 @@ test('D-GSS-G2: entry and stepper-effort changes survive held real Save',
   }
   if (failures.length) throw failures[0];
 });
+
+async function runG1Aba() {
+  const indexedDB = new IDBFactory(), databaseName = 'gss-annex-g1-aba';
+  let host, reopened, page, hold;
+  try {
+    host = await openHost(indexedDB, databaseName);
+    const before = await collections(host.repository);
+    hold = holdAcknowledgement(host);
+    page = await mountedPage(hold.settings);
+    await page.openEditor();
+    page.click('[data-slot="settings-save"]');
+    await within(page.mounted.settings.pending(), 'G1 ABA invalid Save delivery');
+    await settle();
+    assert.equal(page.pick('[data-slot="settings-error"]').textContent, GymApp.SETTINGS_NOTHING,
+      'GSS-G1-ABA-ERROR-PRECONDITION');
+    page.input('[data-settings-name="0"]', 'Seat');
+    page.input('[data-settings-value="0"]', 'four');
+    page.click('[data-slot="settings-save"]');
+    const pending = page.mounted.settings.pending();
+    await within(hold.reached, 'G1 ABA held Save acknowledgement');
+    page.input('[data-settings-value="0"]', 'six');
+    page.input('[data-settings-value="0"]', 'four');
+    assert.equal(page.pick('[data-settings-value="0"]').value, 'four',
+      'GSS-G1-ABA-REVISION-PRECONDITION');
+    hold.release();
+    await within(pending, 'G1 ABA held Save delivery');
+    await settle();
+    const observed = observeG1(page);
+
+    host.close(); host = null;
+    reopened = await openHost(indexedDB, databaseName);
+    const after = await collections(reopened.repository);
+    proveOneDurableSettingsWrite(before, after, hold.submitted(), await reopened.latest(LIFT));
+    assert.equal(observed.open, true, 'GSS-G1-ABA-EDITOR-CLEAR');
+    assert.equal(observed.value, 'four', 'GSS-G1-ABA-ANSWER-LOST');
+    assert.equal(observed.error, GymApp.SETTINGS_NOTHING, 'GSS-G1-ABA-ERROR-LOST');
+  } finally {
+    hold?.release();
+    const cleanup = page?.mounted.settings.pending();
+    if (cleanup) await within(cleanup, 'G1 ABA cleanup', 2000).catch(() => {});
+    page?.dom.window.close();
+    reopened?.close();
+    host?.close();
+  }
+}
+
+test('D-GSS-G1-ABA: edit then revert is still a newer held-Save revision',
+  { timeout: 20000 }, runG1Aba);

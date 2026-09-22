@@ -132,6 +132,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   let settingsDraft = null;       // non-null only while the editor is open
   let settingsDraftLift = null;   // the lift that draft belongs to
   let settingsEditorToken = null;
+  let settingsDraftRevision = 0;  // input identity inside one editor token
   // A repaint replaces DOM nodes, not the draft's refusal. Weak keys also keep a
   // delayed result from assigning the old draft's message to a replacement draft.
   const settingsErrors = new WeakMap();
@@ -233,6 +234,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       settingsEditorToken = opened.editorToken;
       settingsDraft = MachineSettingsView.draftFrom(opened.latest);
       settingsDraftLift = liftId;
+      settingsDraftRevision = 0;
       paint();
     });
     if (!settingsDraft || !settingsEditorToken || settingsDraftLift !== liftId) {
@@ -243,24 +245,34 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const paintedDraft = settingsDraft;
     const paintedToken = settingsEditorToken;
     MachineSettingsView.renderEditor(doc, map, { copy: SETTINGS_COPY, draft: paintedDraft, put,
-      onChanged: () => { paint(); } });
+      onChanged: () => {
+        if (settingsDraft !== paintedDraft || settingsEditorToken !== paintedToken) return;
+        settingsDraftRevision += 1;
+        paint();
+      } });
+    hooks.listen(editor, 'input', () => {
+      if (settingsDraft === paintedDraft && settingsEditorToken === paintedToken
+        && editor.isConnected && phone.contains(editor)) settingsDraftRevision += 1;
+    });
     map.get('settings-error').textContent = plainOrDrop(settingsErrors.get(paintedToken) || '', 'settings-error');
     hooks.listen(root.querySelector('[data-action="settings-cancel"]'), 'click', () => {
       /* CANCELLING WRITES NOTHING. The draft is thrown away and the durable record is
          whatever it already was; the athlete is returned to the block. */
       if (settingsDraft !== paintedDraft || settingsEditorToken !== paintedToken) return;
       hooks.settingsEditClosed(paintedToken);
-      settingsDraft = null; settingsDraftLift = null; settingsEditorToken = null; paint();
+      settingsDraft = null; settingsDraftLift = null; settingsEditorToken = null;
+      settingsDraftRevision = 0; paint();
     });
     const save = map.get('settings-save');
     save.disabled = facade.settingsBusy();
     return () => hooks.bindSettingsSave(paintedToken,
-      () => ({ rows: paintedDraft.rows, cues: paintedDraft.cues }), async (outcome) => {
+      () => ({ rows: paintedDraft.rows, cues: paintedDraft.cues, revision: settingsDraftRevision }), async (outcome) => {
         if (!outcome || outcome.kind === 'ignored') return;
         if (outcome.editorToken !== paintedToken) return;
         if (outcome.kind === 'saved') {
-          if (settingsEditorToken === paintedToken) {
+          if (settingsEditorToken === paintedToken && outcome.editorRevised !== true) {
             settingsDraft = null; settingsDraftLift = null; settingsEditorToken = null;
+            settingsDraftRevision = 0;
           }
           await paint();
           return;
@@ -496,6 +508,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     if (settingsEditorToken && settingsDraftLift !== activeLift) {
       hooks.settingsEditClosed(settingsEditorToken);
       settingsDraft = null; settingsDraftLift = null; settingsEditorToken = null;
+      settingsDraftRevision = 0;
     }
     if (view.phase === 'blocked') return hooks.paint(() => refusalScreen(view, view));
     if (view.phase === 'finished') return hooks.paint(() => stub(view, WORKOUT_RECORDED,

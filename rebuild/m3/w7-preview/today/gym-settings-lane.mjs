@@ -163,6 +163,7 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
     rows: raw && Array.isArray(raw.rows)
       ? raw.rows.map((row) => ({ name: row && row.name, value: row && row.value })) : [],
     cues: raw && raw.cues,
+    revision: raw && Number.isSafeInteger(raw.revision) && raw.revision >= 0 ? raw.revision : 0,
   });
   const copyGymRaw = (raw) => ({ load: raw && raw.load, reps: raw && raw.reps,
     effort: raw && raw.effort ? detached(raw.effort) : null });
@@ -239,8 +240,12 @@ export function createGymSettingsLane(doc, phone, model, settings, painter) {
         if (outcome.kind === 'saved' && activeEditor && activeEditor.token === binding.editorToken) {
           const callback = [...controlBindings.values()].find((row) => row.kind === 'settings'
             && row.editorToken === binding.editorToken && !row.revoked) || binding;
-          retireEditor();
-          const settlement = underRefusal(() => callback.onOutcome(outcome));
+          const currentRaw = underRefusal(() => copySettingsRaw(callback.readRaw()));
+          const editorRevised = currentRaw.revision !== raw.revision;
+          if (!editorRevised) retireEditor();
+          const delivered = editorRevised
+            ? freezeDeep(Object.assign({}, clone(outcome), { editorRevised: true })) : outcome;
+          const settlement = underRefusal(() => callback.onOutcome(delivered));
           await settlement;
           return;
         }
