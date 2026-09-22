@@ -1,9 +1,8 @@
 # C-UI-1 Codex author report
 
 Role: commissioned Sol builder, not reviewer, PM or integrator.
-Base: fa59c85a35be012cfc4ede66ca444e80c5fb5057 diagnostic result.
-Status: harness repair prepared but unexecuted; not accepted.
-
+Base: 02079e026dd7985fef0f58d91f031a56667987e7 active-harness candidate.
+Status: browser stopped on a new layout assertion; not accepted.
 Implemented in this candidate:
 - headlineVocabulary checks the exact 18 public .cjs filename census before
   source reads, then reads only the 13 authorized title producers.
@@ -37,23 +36,25 @@ Measured candidate evidence, pinned Node and fixed date/timezone:
 - default build: PASS, 3 assets and 146 pins; log SHA256
   a761684d168811162cfca0c5d26789fb99cd6dcd1059ff1423c9b847c35f8638.
 
-Browser result:
-- exact-head default build: PASS, 3 assets and 146 pins.
-- single diagnostic run: exit 1 at workout-screen-ready after every earlier
-  named wait passed. Public stack names browser-check.mjs lines 73 and 457.
-- log SHA256 ea62e79b429c3635b2b6f60a45452fd93af0e4a3c0c6da98aeaf99e7edce46e0.
-- retained directory: %TEMP%/cui1-browser-proof-c38ynS.
-- Ink PNG SHA256 6cead7c00d63300c25c8aae9fc3c955f231ec74f431951f4991f48323b3eb57b.
-- Dawn PNG SHA256 f75b8b62b06964bd587dc9afc8293ae7e6bc83f8accd3841a6aa9a6d30f868b9.
-- reduced-motion PNG and visual-summary.json are absent; no retry was made.
+Browser evidence:
+- named diagnostic localized the original timeout to workout-screen-ready; log
+  SHA256 ea62e79b429c3635b2b6f60a45452fd93af0e4a3c0c6da98aeaf99e7edce46e0.
 - focused lifecycle probe: real Today then Workout settled the active title and
   lift, with reduced draws 1/scheduled 0 and zero errors/offsite. Log SHA256
   ba4215179c5fda841a7729da5e88b9f5072218943272d467be515a9c5f21d2c6.
-- prepared harness now performs that real lifecycle and requires visible,
-  nonempty active session-title plus lift. Refusal-only copy cannot satisfy it.
-- reduced scene assertions and all product bytes remain unchanged.
+- active-only harness requires visible, nonempty session-title plus lift and
+  preserves reduced draws 1/scheduled 0. Refusal copy cannot satisfy it.
+- exact-head build PASS, 3 assets/146 pins; log SHA256
+  3a20026cf67da7403943fc5aa5933707549408d385191b1649e6c6e7dee92aed.
+- one browser run stopped before reduced proof: the measured long template's
+  existing 33 px floor assertion received NaNpx. Stack: sweep lines 218/231.
+- log SHA256 6cf91d1e5752ead7821af3d443ac589d88a6970f3e1481a4817a256ef7a5d2e8.
+- retained %TEMP%/cui1-browser-proof-85gcsZ: Ink SHA256
+  9eceb447cd473966ab73abd9f57668af6345e690e2f947c4b1c12b3853b5a73e;
+  Dawn SHA256 ba7d12b9ded5131091ef94edcd4bdc9d78df6e0578f0faa9c0c8a5bc43113abe.
+- reduced PNG/summary absent; no retry or product change.
 
 Runtime is released; no Node/browser/server process remains.
 No approved pack, baseline, engine, storage, workflow, ledger or STATUS changed.
-B1-B4, repaired full browser proof, independent review, Linux, CI,
+B1-B4, layout diagnosis, reduced proof, independent review, Linux, CI,
 seal and integration remain owed. No acceptance or ticket-completion claim.
