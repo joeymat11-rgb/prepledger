@@ -1,0 +1,135 @@
+# INERT SNAPSHOT. PROPOSAL_NOT_AUTHORIZED. Not a workflow file; never dispatch from this text.
+# Proposed home on a proof branch only: .github/workflows/s9-hosted20-proof.yml
+# Controls it reads (proof branch only), byte-identical to the packet:
+#   rebuild/lanes/b/tooling/s9-hosted20-runner.cjs         = HOSTED20-RUNNER.cjs.txt   (sha256 pinned below)
+#   rebuild/lanes/b/tooling/s9-hosted20-inventory.json     = HOSTED20-INVENTORY.json   (sha256 pinned below; never edited to authorize)
+#   rebuild/lanes/b/tooling/s9-hosted20-authorization.json = AUTHORIZATION.json        (sha256 pinned below; the only file authorization edits)
+# Stays inert until review and Joe's words: all three pins are placeholders the pin checks reject, and
+# AUTHORIZATION.json says PROPOSAL_NOT_AUTHORIZED, no grants, authorizedBy null, every group PENDING (b-lom HELD).
+#
+# PINS, each verified from a public source through the PC shell on 2026-09-22 (no value invented):
+#   actions/checkout 11d5960a326750d5838078e36cf38b85af677262
+#     `git ls-remote https://github.com/actions/checkout "refs/tags/v4*"` -> refs/tags/v4 and refs/tags/v4.4.0 both 11d5960a326750d5838078e36cf38b85af677262 (lightweight tags, no ^{} peel lines)
+#   actions/setup-node 49933ea5288caeca8642d1e84afbd3f7d6820020 (also the SHA shared-preflight.yml:28 uses)
+#     `git ls-remote https://github.com/actions/setup-node "refs/tags/v4*"` -> refs/tags/v4 and refs/tags/v4.4.0 both 49933ea5288caeca8642d1e84afbd3f7d6820020
+#   Node 22.23.2: newest v22.x in https://nodejs.org/dist/index.json (fetched by node): v22.23.2, 2026-07-28, lts Jod
+#   pnpm 9.15.9: newest 9.x in https://registry.npmjs.org/pnpm; dist-tags latest-9 = 9.15.9, integrity
+#     sha512-aARhQYk8ZvrQHAeSMRKOmvuJ74fiaR1p5NQO7iKJiClf1GghgbrlW1hBjDolO95lpQXsfF+UA+zlzDzTfc8lMQ==
+# ACCEPTED LIMITATION: the ubuntu-24.04 hosted image cannot be pinned; the runner records ImageOS, ImageVersion
+#   and `uname -a` in the public receipt instead.
+name: S9 hosted20 proof
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: s9-hosted20-proof
+  cancel-in-progress: false
+
+jobs:
+  proof:
+    runs-on: ubuntu-24.04 # accepted limitation: image identity recorded in the receipt
+    # Hosted maximum is 360. The runner's own budget is 300 minutes for all groups (45 per group);
+    # budget exhaustion is an explicit RED receipt, so this outer limit is only a backstop.
+    timeout-minutes: 355
+    env:
+      SOURCE_HEAD: fe9f14b5a764efe0cc66fa0380a27b1e32d5672c
+      HOSTED20_INVENTORY_SHA256: UNSET_UNTIL_AUTHORIZED
+      HOSTED20_RUNNER_SHA256: UNSET_UNTIL_AUTHORIZED
+      HOSTED20_AUTHORIZATION_SHA256: UNSET_UNTIL_AUTHORIZED
+      TZ: America/New_York
+      MEASURED_TEST_NOW: '2026-09-03'
+    steps:
+      - name: Fetch the proof controls only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4 = v4.4.0, ls-remote verified
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/workflows/s9-hosted20-proof.yml
+            rebuild/lanes/b/tooling/s9-hosted20-runner.cjs
+            rebuild/lanes/b/tooling/s9-hosted20-inventory.json
+            rebuild/lanes/b/tooling/s9-hosted20-authorization.json
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4 = v4.4.0, ls-remote verified; no dependency cache
+        with:
+          node-version: '22.23.2'
+      - name: Copy controls out, check all three pins, delete the bootstrap checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          C="$RUNNER_TEMP/controls"
+          mkdir -m 700 "$C"
+          cp rebuild/lanes/b/tooling/s9-hosted20-runner.cjs rebuild/lanes/b/tooling/s9-hosted20-inventory.json rebuild/lanes/b/tooling/s9-hosted20-authorization.json "$C/"
+          printf '%s  %s\n' "$HOSTED20_INVENTORY_SHA256" "$C/s9-hosted20-inventory.json" | sha256sum --check --status
+          printf '%s  %s\n' "$HOSTED20_RUNNER_SHA256" "$C/s9-hosted20-runner.cjs" | sha256sum --check --status
+          printf '%s  %s\n' "$HOSTED20_AUTHORIZATION_SHA256" "$C/s9-hosted20-authorization.json" | sha256sum --check --status
+          test "$(node --version)" = "v22.23.2"
+          chmod a-w "$C"/*
+          sha256sum "$C"/* | sed "s#$C/##"
+          cd "$RUNNER_TEMP"
+          find "$GITHUB_WORKSPACE" -mindepth 1 -delete
+          test -z "$(ls -A "$GITHUB_WORKSPACE")"
+          node --version
+          git --version
+      - name: Construct the source island (empty repo, blobless depth-one named commits, exact hydration)
+        shell: bash
+        env:
+          HOSTED20_FETCH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -m 700 "$RUNNER_TEMP/empty-home"
+          export HOSTED20_EMPTY_HOME="$RUNNER_TEMP/empty-home"
+          C="$RUNNER_TEMP/controls"; R="$C/s9-hosted20-runner.cjs"; I="$C/s9-hosted20-inventory.json"; A="$C/s9-hosted20-authorization.json"
+          node "$R" island "$I" "$A" "$RUNNER_TEMP/island" "https://github.com/${GITHUB_REPOSITORY}.git"
+      - name: Materialize the current allowlist, seal the island, probe before any dependency or test
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HOSTED20_EMPTY_HOME="$RUNNER_TEMP/empty-home"
+          C="$RUNNER_TEMP/controls"; R="$C/s9-hosted20-runner.cjs"; I="$C/s9-hosted20-inventory.json"; A="$C/s9-hosted20-authorization.json"
+          node "$R" materialize "$I" "$A" "$RUNNER_TEMP/island"
+          node "$R" seal "$I" "$A" "$RUNNER_TEMP/island"
+          node "$R" probe "$I" "$A" "$RUNNER_TEMP/island"
+      - name: Prepare locked dependencies in separate prep roots, lifecycle scripts off
+        shell: bash
+        run: |
+          set -euo pipefail
+          S="$RUNNER_TEMP/island"; P="$RUNNER_TEMP/prep"
+          mkdir -p "$P/root" "$P/w6" "$P/w5"
+          cp "$S/package.json" "$S/package-lock.json" "$P/root/"
+          cp "$S/rebuild/m3/w6/package.json" "$S/rebuild/m3/w6/pnpm-lock.yaml" "$S/rebuild/m3/w6/.npmrc" "$P/w6/"
+          cp "$S/rebuild/m3/w5/package.json" "$S/rebuild/m3/w5/pnpm-lock.yaml" "$P/w5/"
+          (cd "$P/root" && npm ci --ignore-scripts --no-audit --no-fund --include=dev)
+          npm install --global --ignore-scripts --no-audit --no-fund pnpm@9.15.9
+          test "$(pnpm --version)" = "9.15.9"
+          (cd "$P/w6" && pnpm install --frozen-lockfile --ignore-scripts)
+          (cd "$P/w5" && pnpm install --frozen-lockfile --ignore-scripts --ignore-workspace)
+          for pair in "root:." "w6:rebuild/m3/w6" "w5:rebuild/m3/w5"; do
+            from="$P/${pair%%:*}/node_modules"; to="$S/${pair#*:}/node_modules"
+            test ! -e "$to"
+            cp -a "$from" "$to"
+            chmod -R a-w "$to"
+          done
+      - name: Re-probe, then every AUTHORIZED group serially; HELD groups reported, never run
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HOSTED20_EMPTY_HOME="$RUNNER_TEMP/empty-home"
+          C="$RUNNER_TEMP/controls"; R="$C/s9-hosted20-runner.cjs"; I="$C/s9-hosted20-inventory.json"; A="$C/s9-hosted20-authorization.json"
+          cd "$RUNNER_TEMP"
+          node "$R" run "$I" "$A" "$RUNNER_TEMP/island" "$RUNNER_TEMP/raw" "$RUNNER_TEMP/s9-hosted20-receipt.json"
+      - name: Public receipt (group, code, exit, TAP counters, source/tool hashes, stream hashes only)
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "$RUNNER_TEMP/s9-hosted20-receipt.json" && cat "$RUNNER_TEMP/s9-hosted20-receipt.json" || echo "NO RECEIPT"
+      # Exit codes of the run step: 0 PASS (nothing held, nothing red), 1 RED, 2 HELD_INCOMPLETE, 3 STOP.
+      # Any nonzero code fails the job; a held group can never produce an all-green job.
+      # Deliberately absent: upload-artifact, cache, deploy, retry, continue-on-error, matrix.
+      # Raw child stdout/stderr stay in $RUNNER_TEMP/raw (mode 0600, exclusive) and die with the runner.

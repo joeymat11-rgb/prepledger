@@ -1,0 +1,31 @@
+{
+ "version": 1,
+ "kind": "hosted20-authorization",
+ "status": "PROPOSAL_NOT_AUTHORIZED",
+ "inventorySha256": "15042fbcd813ec5b4de032f05771020d19e1839213438ba605a26c0ae32b2a22",
+ "grants": [],
+ "groups": {
+  "today-17": "PENDING",
+  "s4-real-day": "PENDING",
+  "s9-sup-source-carriers": "PENDING",
+  "s9-sup-inherited-carriers": "PENDING",
+  "s9-sup-defect-witnesses": "PENDING",
+  "s9-sup-writers-differential": "PENDING",
+  "s9-sup-second-gate": "PENDING",
+  "m4-import": "PENDING",
+  "m4-import-production": "PENDING",
+  "d-import-retract": "PENDING",
+  "d-admission-swap": "PENDING",
+  "d-replay-measure": "PENDING",
+  "d-capture-start": "PENDING",
+  "food-live-save": "PENDING",
+  "w7-import": "PENDING",
+  "w6-local-source": "PENDING",
+  "d-replay-all": "PENDING",
+  "b-lom": "HELD",
+  "d-port-admission": "PENDING",
+  "d-real-shape": "PENDING"
+ },
+ "authorizedBy": null,
+ "rule": "To authorize, change only this file: status REVIEWED_AND_AUTHORIZED, the owner grants Joe gives (EXECUTE_PROTECTED_ENGINE_COMPOSITION, CONSUME_PROTECTED_E_SEED_OR_FROZEN_RECORD_VALUES, READ_CURRENT_AND_FE516C1_SRC_APP_JSX), and each PENDING group to AUTHORIZED. HELD is allowed only for a group the inventory marks SPLIT_REQUIRED, and such a group can never be AUTHORIZED. Set authorizedBy to { ledger: \"rebuild/DECISIONS.md\", decisionsLine: <the DECISIONS line recording Joe's words>, ownerQuote: \"<Joe's words, verbatim>\" }; the runner checks only that it is present and well formed, the PM checks it against the ledger. Then pin this file's new sha256 as HOSTED20_AUTHORIZATION_SHA256 in the workflow. The inventory bytes and inventorySha256 do not change."
+}

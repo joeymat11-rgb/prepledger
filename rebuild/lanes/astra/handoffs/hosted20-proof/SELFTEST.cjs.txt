@@ -1,0 +1,265 @@
+'use strict';
+// SYNTHETIC self-test of the hosted20 runner (packet copy: SELFTEST.cjs.txt).
+// Usage: node SELFTEST.cjs.txt [runner] [inventory] [authorization] [resultOut]
+// Defaults are the sibling packet files HOSTED20-RUNNER.cjs.txt, HOSTED20-INVENTORY.json, AUTHORIZATION.json.
+// Every repository it builds is invented, in a fresh os.tmpdir() folder. It never touches the project
+// repository, never runs a real group, never loads an engine or protected module. The real inventory and
+// authorization are only handed to the runner to prove it refuses them.
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const { spawnSync } = require('node:child_process');
+const HERE = __dirname;
+const RUNNER = path.resolve(process.argv[2] || path.join(HERE, 'HOSTED20-RUNNER.cjs.txt'));
+const REAL_INV = path.resolve(process.argv[3] || path.join(HERE, 'HOSTED20-INVENTORY.json'));
+const REAL_AUTH = path.resolve(process.argv[4] || path.join(HERE, 'AUTHORIZATION.json'));
+const RESULT_OUT = process.argv[5] || null;
+const WORK = fs.mkdtempSync(path.join(os.tmpdir(), 'hosted20-selftest-'));
+const SECRET = 'SYNTHETIC-PLANTED-' + crypto.randomBytes(8).toString('hex');
+const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
+const results = {};
+const check = (name, cond) => { results[name] = !!cond; };
+const NULLDEV = process.platform === 'win32' ? 'NUL' : '/dev/null';
+const HOME = path.join(WORK, 'home'); fs.mkdirSync(HOME);
+const baseEnv = { PATH: process.env.PATH, HOME, GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: NULLDEV, GIT_TERMINAL_PROMPT: '0',
+  GIT_AUTHOR_NAME: 'synthetic', GIT_AUTHOR_EMAIL: 'synthetic@invalid', GIT_COMMITTER_NAME: 'synthetic', GIT_COMMITTER_EMAIL: 'synthetic@invalid',
+  GIT_AUTHOR_DATE: '2026-09-01T00:00:00Z', GIT_COMMITTER_DATE: '2026-09-01T00:00:00Z' };
+if (process.env.SystemRoot) baseEnv.SystemRoot = process.env.SystemRoot;
+function git(dir, args, env = {}) {
+  const r = spawnSync('git', ['-C', dir, ...args], { encoding: null, env: { ...baseEnv, ...env }, windowsHide: true });
+  return { status: r.status, out: (r.stdout || Buffer.alloc(0)).toString('utf8').trim(), err: (r.stderr || Buffer.alloc(0)).toString('utf8') };
+}
+const must = (r, what) => { if (r.status !== 0) throw new Error('setup failed: ' + what); return r.out; };
+function runner(args, env = {}) {
+  const r = spawnSync(process.execPath, [RUNNER, ...args], { encoding: 'utf8', windowsHide: true,
+    env: { ...baseEnv, HOSTED20_SELFTEST: '1', HOSTED20_EMPTY_HOME: HOME, ...env } });
+  return { status: r.status, stdout: r.stdout || '', stderr: r.stderr || '' };
+}
+const stopped = (r, code) => r.status === 3 && r.stdout === 'STOP ' + code + '\n' && r.stderr === '';
+function write(dir, rel, text) { const p = path.join(dir, ...rel.split('/')); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, text); }
+const url = (d) => 'file:///' + d.replace(/\\/g, '/').replace(/^\/+/, '');
+function objects(dir) { return new Set(must(git(dir, ['cat-file', '--batch-all-objects', '--batch-check=%(objectname)']), 'objs').split('\n').filter(Boolean)); }
+function blobAt(dir, commit, p) { return must(git(dir, ['rev-parse', commit + ':' + p]), 'rev-parse'); }
+const blobId = (text) => crypto.createHash('sha1').update('blob ' + Buffer.byteLength(text) + '\0').update(text).digest('hex');
+const TEST_HEAD = "'use strict';\nconst test = require('node:test'); const assert = require('node:assert/strict');\n";
+function makeServer(dir, allowFilter) {
+  fs.mkdirSync(dir, { recursive: true });
+  must(git(dir, ['init', '--quiet', '--initial-branch=main']), 'init');
+  for (const [k, v] of [['uploadpack.allowFilter', String(allowFilter)], ['uploadpack.allowAnySHA1InWant', 'true'], ['core.autocrlf', 'false']]) must(git(dir, ['config', k, v]), 'cfg');
+  write(dir, 'allowed/old.txt', 'old allowed invented text\n');
+  write(dir, 'excluded/secret-old.txt', 'EXCLUDED old ' + SECRET + '\n');
+  must(git(dir, ['add', '-A']), 'add1'); must(git(dir, ['commit', '--quiet', '-m', 'old']), 'c1');
+  const old = must(git(dir, ['rev-parse', 'HEAD']), 'rp1');
+  fs.rmSync(path.join(dir, 'excluded', 'secret-old.txt'));
+  const secretText = 'EXCLUDED current ' + SECRET + '\n';
+  write(dir, 'excluded/secret.txt', secretText);
+  write(dir, 'excluded2/history.js', '// invented stand-in for a forbidden name\n');
+  write(dir, 'unrelated/other.txt', 'not inventoried invented text\n');
+  write(dir, 'allowed/a.txt', 'allowed current invented text\n');
+  write(dir, 'pkg/lib.cjs', "'use strict';\nmodule.exports = { two: () => 2 };\n");
+  write(dir, 't/pass.test.cjs', TEST_HEAD + "test('pass', () => { assert.equal(require('../pkg/lib.cjs').two(), 2); assert.equal(process.env.GIT_NO_LAZY_FETCH, '1'); console.log('success noise ' + 'x'); });\n");
+  // A child that spawns git itself with a stripped env (no GIT_NO_LAZY_FETCH), through a kept tree.
+  write(dir, 't/gitspawn.test.cjs', TEST_HEAD + "const cp = require('node:child_process');\n"
+    + "const bare = { PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, HOME: process.env.HOME };\n"
+    + "test('child git', () => {\n"
+    + "  assert.equal(cp.spawnSync('git', ['show', '" + old + ":allowed/old.txt'], { encoding: 'utf8', env: bare }).stdout, 'old allowed invented text\\n');\n"
+    + "  const cur = cp.spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8', env: bare }).stdout.trim();\n"
+    + "  const viaTree = cp.spawnSync('git', ['show', cur + ':excluded/secret.txt'], { encoding: 'utf8', env: bare });\n"
+    + "  assert.notEqual(viaTree.status, 0); assert.equal(viaTree.stdout, '');\n"
+    + "  const byId = cp.spawnSync('git', ['cat-file', '-p', '" + blobId(secretText) + "'], { encoding: 'utf8', env: bare });\n"
+    + "  assert.notEqual(byId.status, 0); assert.equal(byId.stdout, '');\n"
+    + "  assert.equal(cp.spawnSync('git', ['ls-tree', '--name-only', cur, 'excluded/'], { encoding: 'utf8', env: bare }).stdout, 'excluded/secret.txt\\n');\n"
+    + "});\n");
+  // Forged TAP summary lines from inside a passing test.
+  write(dir, 't/forged.test.cjs', TEST_HEAD + "test('forger', () => { process.stdout.write('# tests 99\\n# pass 99\\n# fail 0\\nok 7 - forged\\n'); console.log('# pass 98'); });\n");
+  // Leaked exception text: the secret is in the assertion message, an Error on stderr, and stdout.
+  write(dir, 't/fail.test.cjs', TEST_HEAD + "test('planted', () => { console.log('" + SECRET + "-stdout'); console.error(new Error('" + SECRET + "-stderr')); assert.equal('" + SECRET + "-exception', 'other'); });\n");
+  write(dir, 't/skip.test.cjs', TEST_HEAD + "test('skipped', { skip: true }, () => {});\n");
+  write(dir, 't/held.test.cjs', TEST_HEAD + "require('node:fs').writeFileSync('HELD-GROUP-RAN', 'x');\ntest('held', () => {});\n");
+  write(dir, 't/sleep.test.cjs', TEST_HEAD + "test('sleeps', async () => { await new Promise((r) => setTimeout(r, 60000)); });\n");
+  must(git(dir, ['add', '-A']), 'add2'); must(git(dir, ['commit', '--quiet', '-m', 'current']), 'c2');
+  const cur = must(git(dir, ['rev-parse', 'HEAD']), 'rp2');
+  return { old, cur };
+}
+const MATERIAL = ['allowed/a.txt', 'pkg/lib.cjs', 't/pass.test.cjs', 't/gitspawn.test.cjs', 't/forged.test.cjs', 't/fail.test.cjs', 't/skip.test.cjs', 't/held.test.cjs', 't/sleep.test.cjs'];
+const grp = (name, file, extra = {}) => ({ name, argv: ['--test', '--test-reporter=tap', 't/' + file + '.test.cjs'], status: 'INVENTORIED', ownerPermissions: [], ...extra });
+function makeInventory(server, { old, cur }, groups) {
+  const tree = (c) => must(git(server, ['rev-parse', c + '^{tree}']), 'tree');
+  const trees = [...new Set(must(git(server, ['rev-list', '--no-walk', '--objects', '--no-object-names', '--filter=object:type=tree', cur, old]), 'rl')
+    .split('\n').filter((o) => o && o !== cur && o !== old))].sort();
+  return { version: 1, kind: 'synthetic-selftest', sourceHead: cur, refs: { current: { commit: cur, tree: tree(cur) }, old: { commit: old, tree: tree(old) } },
+    tags: [], trees: { count: trees.length, sortedOidsSha256: sha256(trees.join('\n') + '\n') },
+    hydratedBlobPairs: [{ ref: 'old', commit: old, path: 'allowed/old.txt', blob: blobAt(server, old, 'allowed/old.txt'), mode: '100644', permission: null }],
+    currentMaterialization: { files: MATERIAL.map((p) => ({ path: p, mode: '100644', blob: blobAt(server, cur, p) })) }, permissionGatedMaterialization: [],
+    forbiddenProbes: { refPaths: ['current:excluded/secret.txt', 'old:excluded/secret-old.txt', 'current:excluded2/history.js', 'current:unrelated/other.txt'],
+      worktreePaths: ['excluded', 'excluded2', 'unrelated', 'HELD-GROUP-RAN'] },
+    groupCount: groups.length, groups, dependencyInputs: [], dependencyTrees: [] };
+}
+function authFor(invFile, decisions, grants = [], status = 'REVIEWED_AND_AUTHORIZED') {
+  return { version: 1, kind: 'synthetic-selftest-authorization', status, inventorySha256: sha256(fs.readFileSync(invFile)), grants, groups: decisions,
+    authorizedBy: { ledger: 'rebuild/DECISIONS.md', decisionsLine: 1, ownerQuote: 'SYNTHETIC invented owner words for a self-test only' } };
+}
+function save(name, obj) { const f = path.join(WORK, name); fs.writeFileSync(f, JSON.stringify(obj, null, 1)); return f; }
+
+function main() {
+  const server = path.join(WORK, 'server');
+  const ids = makeServer(server, true);
+  const MAIN_GROUPS = [grp('pass', 'pass'), grp('gitspawn', 'gitspawn'), grp('forged', 'forged'), grp('fail', 'fail'), grp('skip', 'skip'), grp('held', 'held', { status: 'SPLIT_REQUIRED' })];
+  const inv = save('inv-main.json', makeInventory(server, ids, MAIN_GROUPS));
+  const invBytes = fs.readFileSync(inv);
+  const decide = (groups, held = ['held']) => Object.fromEntries(groups.map((g) => [g.name, held.includes(g.name) ? 'HELD' : 'AUTHORIZED']));
+  const auth = save('auth-main.json', authFor(inv, decide(MAIN_GROUPS)));
+  const I = JSON.parse(invBytes);
+  const excludedIds = [blobAt(server, ids.cur, 'excluded/secret.txt'), blobAt(server, ids.cur, 'excluded2/history.js'), blobAt(server, ids.cur, 'unrelated/other.txt'), blobAt(server, ids.old, 'excluded/secret-old.txt')];
+  const allowedIds = I.currentMaterialization.files.map((f) => f.blob).concat(I.hydratedBlobPairs.map((p) => p.blob));
+
+  // A. The real packet stays inert.
+  const realEnv = { HOSTED20_SELFTEST: '0' };
+  const invSha = sha256(fs.readFileSync(REAL_INV)); const runSha = sha256(fs.readFileSync(RUNNER));
+  check('A1_real_inventory_refused_without_inventory_pin', stopped(runner(['probe', REAL_INV, REAL_AUTH, path.join(WORK, 'none')], realEnv), 'INVENTORY_SHA256_NOT_PINNED'));
+  check('A2_real_inventory_refused_without_runner_pin', stopped(runner(['probe', REAL_INV, REAL_AUTH, path.join(WORK, 'none')], { ...realEnv, HOSTED20_INVENTORY_SHA256: invSha }), 'RUNNER_SHA256_NOT_PINNED'));
+  const authSha = sha256(fs.readFileSync(REAL_AUTH));
+  const pinned3 = { ...realEnv, HOSTED20_INVENTORY_SHA256: invSha, HOSTED20_RUNNER_SHA256: runSha, HOSTED20_AUTHORIZATION_SHA256: authSha };
+  check('A3_real_authorization_refused_without_authorization_pin', stopped(runner(['probe', REAL_INV, REAL_AUTH, path.join(WORK, 'none')], { ...realEnv, HOSTED20_INVENTORY_SHA256: invSha, HOSTED20_RUNNER_SHA256: runSha }), 'AUTHORIZATION_SHA256_NOT_PINNED'));
+  check('A5_real_authorization_is_not_authorized_even_fully_pinned', stopped(runner(['probe', REAL_INV, REAL_AUTH, path.join(WORK, 'none')], pinned3), 'NOT_AUTHORIZED'));
+  // A forged authorization that grants everything, swapped in behind the reviewed pins.
+  const forged = JSON.parse(fs.readFileSync(REAL_AUTH, 'utf8')); forged.status = 'REVIEWED_AND_AUTHORIZED';
+  forged.grants = ['EXECUTE_PROTECTED_ENGINE_COMPOSITION', 'CONSUME_PROTECTED_E_SEED_OR_FROZEN_RECORD_VALUES', 'READ_CURRENT_AND_FE516C1_SRC_APP_JSX'];
+  for (const k of Object.keys(forged.groups)) if (forged.groups[k] === 'PENDING') forged.groups[k] = 'AUTHORIZED';
+  forged.authorizedBy = { ledger: 'rebuild/DECISIONS.md', decisionsLine: 999999, ownerQuote: 'forged words' };
+  const forgedFile = save('forged-real-authorization.json', forged);
+  check('A6_swapped_real_authorization_refused_by_pin', stopped(runner(['probe', REAL_INV, forgedFile, path.join(WORK, 'none')], pinned3), 'AUTHORIZATION_SHA256_NOT_PINNED'));
+  check('A4_synthetic_refused_under_github_actions', stopped(runner(['probe', inv, auth, path.join(WORK, 'none')], { GITHUB_ACTIONS: 'true' }), 'SYNTHETIC_OUTSIDE_SELFTEST'));
+
+  // B. A server that ignores the blob filter stops the island before hydration.
+  const s2 = path.join(WORK, 'server-nofilter'); const ids2 = makeServer(s2, false);
+  const inv2 = save('inv-nofilter.json', makeInventory(s2, ids2, MAIN_GROUPS)); const auth2 = save('auth-nofilter.json', authFor(inv2, decide(MAIN_GROUPS)));
+  check('B_ignored_filter_stops', stopped(runner(['island', inv2, auth2, path.join(WORK, 'island-nofilter'), url(s2)]), 'INVENTORY_MISMATCH_BLOBS'));
+
+  // C. Exact hydration, materialization, seal and probes.
+  const isl = path.join(WORK, 'island');
+  const steps = [['island', inv, auth, isl, url(server)], ['materialize', inv, auth, isl], ['seal', inv, auth, isl], ['probe', inv, auth, isl]].map((a) => runner(a));
+  check('C1_island_materialize_seal_probe_ok', steps.every((s) => s.status === 0));
+  const objs = objects(isl);
+  check('C2_allowed_blobs_hydrated', allowedIds.every((o) => objs.has(o)));
+  check('C3_excluded_blobs_absent', excludedIds.every((o) => !objs.has(o)));
+  check('C4_excluded_paths_not_in_worktree', ['excluded', 'excluded2', 'unrelated'].every((p) => !fs.existsSync(path.join(isl, p))));
+  check('C5_remote_promisor_alternates_gone', git(isl, ['remote']).out === '' && !/promisor|partialclone|remote\./i.test(git(isl, ['config', '--local', '--list']).out));
+  check('C6_island_refuses_existing_dir', stopped(runner(['island', inv, auth, isl, url(server)]), 'ISLAND_EXISTS'));
+
+  // D. No lazy fetch, including through a kept tree, with a red control proving the check has teeth.
+  const lazy = path.join(WORK, 'island-lazy');
+  runner(['island', inv, auth, lazy, url(server)]);
+  const tgt = excludedIds[0];
+  const viaTree = git(lazy, ['show', ids.cur + ':excluded/secret.txt'], { GIT_NO_LAZY_FETCH: '1' });
+  check('D1_kept_tree_path_not_fetched_while_promisor_present', viaTree.status !== 0 && viaTree.out === '' && !objects(lazy).has(tgt));
+  const sealedTree = git(isl, ['show', ids.cur + ':excluded/secret.txt']);
+  check('D2_kept_tree_path_not_fetched_after_seal_even_without_env', sealedTree.status !== 0 && sealedTree.out === '' && !objects(isl).has(tgt));
+  check('D3_forbidden_names_stay_listable_contents_absent', git(isl, ['ls-tree', '--name-only', ids.cur, 'excluded/']).out === 'excluded/secret.txt' && !objects(isl).has(tgt));
+  const control = git(lazy, ['show', ids.cur + ':excluded/secret.txt']);
+  check('D4_red_control_unguarded_lazy_fetch_does_hydrate', control.status === 0 && objects(lazy).has(tgt));
+
+  // E. Any object or identity mismatch stops before a test.
+  runner(['materialize', inv, auth, lazy]); runner(['seal', inv, auth, lazy]);
+  check('E1_extra_blob_stops', stopped(runner(['probe', inv, auth, lazy]), 'INVENTORY_MISMATCH_BLOBS'));
+  const variant = (name, fn) => { const o = JSON.parse(invBytes); fn(o); const f = save(name + '.json', o); return [f, save(name + '-auth.json', authFor(f, decide(o.groups)))]; };
+  const [tInv, tAuth] = variant('inv-tampered', (o) => o.currentMaterialization.files.pop());
+  check('E2_tampered_materialization_stops', stopped(runner(['probe', tInv, tAuth, isl]), 'INVENTORY_MISMATCH_BLOBS'));
+  const [trInv, trAuth] = variant('inv-trees', (o) => { o.trees.count += 1; });
+  check('E3_tree_mismatch_stops', stopped(runner(['probe', trInv, trAuth, isl]), 'INVENTORY_MISMATCH_TREES'));
+  const [shInv, shAuth] = variant('inv-sourcehead', (o) => { o.sourceHead = o.refs.old.commit; });
+  check('E4_sourcehead_not_current_stops', stopped(runner(['probe', shInv, shAuth, isl]), 'SOURCE_HEAD_NOT_CURRENT'));
+  const [fbInv, fbAuth] = variant('inv-forbidden-readable', (o) => o.forbiddenProbes.refPaths.push('old:allowed/old.txt'));
+  check('E5_forbidden_probe_naming_a_readable_path_stops', stopped(runner(['probe', fbInv, fbAuth, isl]), 'FORBIDDEN_PROBE_READABLE'));
+  const [pInv, pAuth] = variant('inv-pair', (o) => { o.hydratedBlobPairs[0].blob = blobAt(server, ids.cur, 'allowed/a.txt'); });
+  check('E6_pair_object_id_mismatch_stops', stopped(runner(['island', pInv, pAuth, path.join(WORK, 'island-pair'), url(server)]), 'PAIR_OBJECT_ID'));
+
+  // F. Authorization lives outside the inventory and is checked against it (D3).
+  const alt = (fn) => { const a = authFor(inv, decide(MAIN_GROUPS)); fn(a); return save('auth-' + crypto.randomBytes(4).toString('hex') + '.json', a); };
+  check('F1_authorization_for_another_inventory_stops', stopped(runner(['probe', inv, alt((a) => { a.inventorySha256 = sha256('other'); }), isl]), 'AUTHORIZATION_NAMES_OTHER_INVENTORY'));
+  check('F2_unauthorized_status_stops', stopped(runner(['probe', inv, alt((a) => { a.status = 'PROPOSAL_NOT_AUTHORIZED'; }), isl]), 'NOT_AUTHORIZED'));
+  check('F3_split_group_cannot_be_authorized', stopped(runner(['probe', inv, alt((a) => { a.groups.held = 'AUTHORIZED'; }), isl]), 'SPLIT_GROUP_NOT_HELD'));
+  check('F4_held_only_for_split_required', stopped(runner(['probe', inv, alt((a) => { a.groups.fail = 'HELD'; }), isl]), 'HELD_ONLY_FOR_SPLIT_REQUIRED'));
+  check('F5_every_group_must_be_decided', stopped(runner(['probe', inv, alt((a) => { delete a.groups.skip; }), isl]), 'AUTHORIZATION_GROUP_SET'));
+  const [gInv] = variant('inv-grant', (o) => { o.groups[0].ownerPermissions = ['SYNTHETIC_GRANT']; });
+  const gAuthMissing = save('auth-grant-missing.json', authFor(gInv, decide(MAIN_GROUPS)));
+  const gAuthOk = save('auth-grant-ok.json', authFor(gInv, decide(MAIN_GROUPS), ['SYNTHETIC_GRANT']));
+  check('F6_missing_grant_stops', stopped(runner(['probe', gInv, gAuthMissing, isl]), 'OWNER_PERMISSION_MISSING'));
+  check('F7_present_grant_passes', runner(['probe', gInv, gAuthOk, isl]).status === 0);
+  const [p5Inv] = variant('inv-p5', (o) => { o.hydratedBlobPairs[0].permission = 'PROTECTED_FIVE'; });
+  check('F8_protected_five_bytes_need_execute_grant', stopped(runner(['probe', p5Inv, save('auth-p5.json', authFor(p5Inv, decide(MAIN_GROUPS))), isl]), 'PROTECTED_FIVE_HYDRATION_NOT_GRANTED'));
+  const [stInv, stAuth] = variant('inv-status', (o) => { o.status = 'REVIEWED_AND_AUTHORIZED'; });
+  check('F9_status_inside_inventory_stops', stopped(runner(['probe', stInv, stAuth, isl]), 'AUTHORIZATION_INSIDE_INVENTORY'));
+  check('F11_swapped_synthetic_authorization_refused_by_pin', stopped(runner(['probe', inv, alt((a) => { a.grants = ['EVERYTHING']; }), isl], { HOSTED20_AUTHORIZATION_SHA256: sha256(fs.readFileSync(auth)) }), 'AUTHORIZATION_SHA256_NOT_PINNED'));
+  check('F12_pinned_matching_authorization_passes', runner(['probe', inv, auth, isl], { HOSTED20_AUTHORIZATION_SHA256: sha256(fs.readFileSync(auth)) }).status === 0);
+  check('F13_missing_authorized_by_stops', stopped(runner(['probe', inv, alt((a) => { delete a.authorizedBy; }), isl]), 'AUTHORIZED_BY_MISSING'));
+  check('F14_null_authorized_by_stops', stopped(runner(['probe', inv, alt((a) => { a.authorizedBy = null; }), isl]), 'AUTHORIZED_BY_MISSING'));
+  const malformed = [(b) => { b.decisionsLine = 0; }, (b) => { b.ownerQuote = '  '; }, (b) => { b.ledger = 'elsewhere.md'; }, (b) => { b.extra = 1; }, (b) => { b.decisionsLine = '776'; }];
+  check('F15_malformed_authorized_by_stops', malformed.every((m) => stopped(runner(['probe', inv, alt((a) => m(a.authorizedBy)), isl]), 'AUTHORIZED_BY_MALFORMED')));
+  check('F10_inventory_bytes_unchanged_by_authorizations', sha256(fs.readFileSync(inv)) === sha256(invBytes));
+
+  // G. Counter parsing refuses forged or inconsistent summaries.
+  const { tapCounters } = require(RUNNER);
+  const good = '# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n';
+  check('G1_well_formed_counters_parse', JSON.stringify(tapCounters(good)) === JSON.stringify({ tests: 2, suites: 0, pass: 2, fail: 0, cancelled: 0, skipped: 0, todo: 0 }));
+  check('G2_duplicate_summary_line_is_malformed', tapCounters(good + '# pass 2\n') === null);
+  check('G3_inconsistent_sum_is_malformed', tapCounters(good.replace('# pass 2', '# pass 3')) === null);
+  check('G4_missing_counter_is_malformed', tapCounters(good.replace('# todo 0\n', '')) === null);
+
+  // H. Main run: planted failure, skip, forged TAP, a git-spawning child, a HELD group (D1).
+  const raw = path.join(WORK, 'raw'); const receipt = path.join(WORK, 'receipt.json');
+  const run = runner(['run', inv, auth, isl, raw, receipt], { HOSTED20_AUTHORIZATION_SHA256: sha256(fs.readFileSync(auth)) });
+  const rec = JSON.parse(fs.readFileSync(receipt, 'utf8'));
+  const row = (n) => rec.groups.find((x) => x.name === n);
+  check('H1_run_red_exit_1', run.status === 1 && rec.verdict === 'RED');
+  check('H2_pass_group_passes', row('pass').code === 'PASS' && row('pass').counters.pass === 1);
+  check('H3_child_spawning_git_cannot_fetch_and_reads_allowed_pair', row('gitspawn').code === 'PASS' && row('gitspawn').counters.pass === 1);
+  check('H4_forged_tap_lines_do_not_mint_counters', row('forged').code === 'PASS' && row('forged').counters.tests === 1 && row('forged').counters.pass === 1);
+  check('H5_fail_counted_red', row('fail').code === 'RED' && row('fail').counters.fail === 1 && row('fail').exit !== 0);
+  check('H6_skip_counted_red', row('skip').code === 'RED' && row('skip').counters.skipped === 1);
+  check('H7_held_group_reported_not_run', row('held').held === true && row('held').code === 'HELD_SPLIT_REQUIRED' && row('held').exit === null
+    && !fs.existsSync(path.join(isl, 'HELD-GROUP-RAN')) && !fs.existsSync(path.join(raw, '05.stdout')) && rec.heldCount === 1);
+  check('H8_other_groups_all_ran_in_order', rec.groups.map((g) => g.name).join(',') === 'pass,gitspawn,forged,fail,skip,held' && rec.groups.slice(0, 5).every((g) => g.stdoutSha256));
+  const pub = run.stdout + run.stderr + fs.readFileSync(receipt, 'utf8');
+  check('H9_secret_and_exception_text_absent_from_public_output', !pub.includes(SECRET) && !pub.includes('AssertionError') && !pub.includes('success noise'));
+  const rawFail = fs.readFileSync(path.join(raw, '03.stdout'), 'utf8') + fs.readFileSync(path.join(raw, '03.stderr'), 'utf8');
+  check('H10_secret_and_exception_text_only_in_raw_files', rawFail.includes(SECRET + '-exception') && rawFail.includes(SECRET + '-stderr') && rawFail.includes(SECRET + '-stdout'));
+  check('H11_raw_hashes_match_receipt', rec.groups.slice(0, 5).every((g, i) => g.stdoutSha256 === sha256(fs.readFileSync(path.join(raw, '0' + i + '.stdout')))
+    && g.stderrSha256 === sha256(fs.readFileSync(path.join(raw, '0' + i + '.stderr')))));
+  check('H14_receipt_records_pin_triple', rec.pins && rec.pins.inventorySha256 === sha256(invBytes) && rec.pins.runnerSha256 === sha256(fs.readFileSync(RUNNER))
+    && rec.pins.authorizationSha256 === sha256(fs.readFileSync(auth)) && run.stdout.includes('AUTHORIZATION ' + sha256(fs.readFileSync(auth))));
+  check('H15_receipt_records_authorized_by_line_and_quote_hash_only', rec.authorizedBy.decisionsLine === 1 && /^[0-9a-f]{64}$/.test(rec.authorizedBy.ownerQuoteSha256) && !pub.includes('invented owner words'));
+  check('H16_receipt_records_runner_environment', rec.runnerEnvironment && ['imageOS', 'imageVersion', 'uname', 'osType', 'osRelease', 'arch'].every((k) => Object.hasOwn(rec.runnerEnvironment, k)));
+  check('H12_raw_dir_exclusive', stopped(runner(['run', inv, auth, isl, raw, receipt + '2']), 'RAW_DIR_EXISTS'));
+  check('H13_excluded_blobs_still_absent_after_run', excludedIds.every((o) => !objects(isl).has(o)));
+
+  // I. All other groups green plus one HELD: never PASS (D1).
+  const cleanGroups = [grp('pass', 'pass'), grp('gitspawn', 'gitspawn'), grp('forged', 'forged'), grp('held', 'held', { status: 'SPLIT_REQUIRED' })];
+  const cInv = save('inv-clean.json', makeInventory(server, ids, cleanGroups));
+  const cRun = runner(['run', cInv, save('auth-clean.json', authFor(cInv, decide(cleanGroups))), isl, path.join(WORK, 'raw-clean'), path.join(WORK, 'receipt-clean.json')]);
+  const cRec = JSON.parse(fs.readFileSync(path.join(WORK, 'receipt-clean.json'), 'utf8'));
+  check('I1_held_makes_verdict_held_incomplete_exit_2', cRun.status === 2 && cRec.verdict === 'HELD_INCOMPLETE' && /^VERDICT HELD_INCOMPLETE HELD 1 /m.test(cRun.stdout));
+  check('I2_non_held_groups_ran_green', cRec.groups.filter((g) => !g.held).every((g) => g.code === 'PASS'));
+
+  // J. Budget exhaustion stops the run with an explicit RED (D6).
+  const bGroups = [grp('pass', 'pass'), grp('sleep', 'sleep'), grp('pass-again', 'pass')];
+  const bInv = save('inv-budget.json', makeInventory(server, ids, bGroups));
+  const bRun = runner(['run', bInv, save('auth-budget.json', authFor(bInv, decide(bGroups, []))), isl, path.join(WORK, 'raw-budget'), path.join(WORK, 'receipt-budget.json')], { HOSTED20_SELFTEST_BUDGET_MS: '8000' });
+  const bRec = JSON.parse(fs.readFileSync(path.join(WORK, 'receipt-budget.json'), 'utf8'));
+  check('J1_budget_exhaustion_is_red', bRun.status === 1 && bRec.verdict === 'RED' && bRec.groups[0].code === 'PASS'
+    && bRec.groups[1].code === 'TIMEOUT' && bRec.groups[2].code === 'NOT_RUN_BUDGET_EXHAUSTED');
+  check('J2_real_budget_is_fixed_300_min_with_45_min_groups', bRec.perGroupTimeoutMs === 45 * 60 * 1000);
+
+  const ok = Object.values(results).every(Boolean);
+  const summary = { kind: 'synthetic-hosted20-runner-selftest', round: 3, date: '2026-09-22', git: must(git(WORK, ['--version']), 'ver'), node: process.version,
+    selftestFile: path.basename(__filename), selftestSha256: sha256(fs.readFileSync(__filename)), runnerSha256: sha256(fs.readFileSync(RUNNER)),
+    realInventorySha256: invSha, realAuthorizationSha256: sha256(fs.readFileSync(REAL_AUTH)),
+    scope: 'invented files only in a fresh temp folder; no project bytes, no real group, no engine or protected module; proves the controls, not hosted Ubuntu behaviour and not OS network isolation',
+    checks: Object.keys(results).length, passed: Object.values(results).filter(Boolean).length, results, verdict: ok ? 'PASS' : 'FAIL' };
+  const text = JSON.stringify(summary, null, 2) + '\n';
+  process.stdout.write(text);
+  if (RESULT_OUT) fs.writeFileSync(RESULT_OUT, text, { flag: 'wx' });
+  process.exitCode = ok ? 0 : 1;
+}
+main();
