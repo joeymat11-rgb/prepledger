@@ -1679,7 +1679,7 @@
         "rebuild/lanes/c/passphrase-normalize/route.test.mjs",
         "rebuild/lanes/c/passphrase-normalize/unlock-forms.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 29"
     },
     {
       "name": "w6-local-import",
@@ -1688,7 +1688,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/test/local-import.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 22"
     },
     {
       "name": "f2-land",
