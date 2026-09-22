@@ -1,7 +1,7 @@
 # C-UI-1 Codex author report
 
 Role: commissioned Sol builder, not reviewer, PM or integrator.
-Base: d5d67e9 source-boundary RED checkpoint.
+Base: 32dee443dde6d399ed931af9ccfbd295c285c94a candidate checkpoint.
 Status: candidate frozen at first browser failure; not accepted.
 
 Implemented in this candidate:
@@ -48,7 +48,11 @@ Browser result:
 - Dawn PNG SHA256 2c86da624f8d5694a0ced018ea2931a02147d9db561a42c216f0932d7a4c4a6e.
 - reduced-motion PNG and visual-summary.json are absent.
 
+Prepared diagnostic child, not executed: every waitForFunction prints a named
+START/PASS/FAIL marker, and the outer refusal retains the public error stack.
+Predicates, timeouts, assertions and product bytes are unchanged.
+
 Runtime is released; no Node/browser/server process remains.
 No approved pack, baseline, engine, storage, workflow, ledger or STATUS changed.
-B1-B4, named-wait diagnostics, reduced motion, independent review, Linux, CI,
+B1-B4, diagnostic execution, reduced motion, independent review, Linux, CI,
 seal and integration remain owed. No acceptance or ticket-completion claim.

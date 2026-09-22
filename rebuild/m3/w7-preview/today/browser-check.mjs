@@ -67,13 +67,25 @@ const VIEWPORT = { width: 390, height: 844 };
 const VISUAL_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "cui1-browser-proof-"));
 console.log(`CUI1 VISUAL CAPTURE DIR ${VISUAL_DIR}`);
 const visual = { viewport: VIEWPORT };
+const namedWait = async (page, name, predicate) => {
+  console.log(`CUI1 WAIT START ${name}`);
+  try {
+    const result = await page.waitForFunction(predicate);
+    console.log(`CUI1 WAIT PASS ${name}`);
+    return result;
+  } catch (error) {
+    console.error(`CUI1 WAIT FAIL ${name}`);
+    throw error;
+  }
+};
 
 /* A2 review B2: the weigh-in is a real encrypted-repository transaction now, so the
    check waits for the sheet to close and the reading to appear rather than for a
    selector that was already on screen. */
 const recorded = async (page) => {
   await page.waitForSelector('[role="dialog"]', { state: "detached" });
-  await page.waitForFunction(() => /\u2713/.test(document.querySelector('[data-slot="morning"]').textContent));
+  await namedWait(page, "morning-recorded-checkmark",
+    () => /\u2713/.test(document.querySelector('[data-slot="morning"]').textContent));
 };
 
 const server = await startServer({ port: 0 });
@@ -104,7 +116,8 @@ try {
 
   await page.goto(todayUrl, { waitUntil: "load" });
   await page.waitForSelector('[data-slot="instruction"]');
-  await page.waitForFunction(() => window.__earnedScene && window.__earnedScene.snapshot().ready);
+  await namedWait(page, "ink-scene-ready",
+    () => window.__earnedScene && window.__earnedScene.snapshot().ready);
   const sceneWitness = await page.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());
   assert(sceneWitness, "C-UI-1 SCENE-RUNTIME-MISSING: actual preview exposed no scene witness");
   assert.deepEqual(sceneWitness.hooks, { theme: "ink", screen: "today", chrome: false, date: "board", state: "T-02" });
@@ -119,7 +132,8 @@ try {
     const dawn = await dawnContext.newPage();
     await dawn.goto(url + "?theme=dawn&screen=today&chrome=1&date=board&state=T-02", { waitUntil: "load" });
     await dawn.waitForSelector('[data-slot="instruction"]');
-    await dawn.waitForFunction(() => window.__earnedScene && window.__earnedScene.snapshot().ready);
+    await namedWait(dawn, "dawn-scene-ready",
+      () => window.__earnedScene && window.__earnedScene.snapshot().ready);
     await dawn.evaluate(() => document.fonts.ready);
     const witness = await dawn.evaluate(() => window.__earnedScene.snapshot());
     assert.deepEqual(witness.hooks,
@@ -273,7 +287,8 @@ try {
   await refusePage.click('[data-slot="primary"]');
   await refusePage.fill("#morning-weight", "10000");
   await refusePage.click('[role="dialog"] button[type="submit"]');
-  await refusePage.waitForFunction(() => document.querySelector("#weigh-error").textContent.trim().length > 0);
+  await namedWait(refusePage, "impossible-weight-refusal",
+    () => document.querySelector("#weigh-error").textContent.trim().length > 0);
   const refusal = (await refusePage.textContent("#weigh-error")).trim();
   assert(refusal.length > 0, "an impossible weight is refused in words, not silently");
   assert.match(refusal, /Nothing was recorded/);
@@ -298,7 +313,8 @@ try {
   for (const [route, where] of [["why", "Why this plan"], ["nutrition", "the nutrition entry"],
     ["coach", "the coach entry"], ["recovery", "the recovery check-in"]]) {
     await relaunched.click('[data-go="' + route + '"]');
-    await relaunched.waitForFunction(() => !document.querySelector('[data-slot="kcal-note"]'));
+    await namedWait(relaunched, "route-leaves-today-" + route,
+      () => !document.querySelector('[data-slot="kcal-note"]'));
     await sweepForDashes(relaunched, where);
     await relaunched.goto(todayUrl, { waitUntil: "load" });
     await relaunched.waitForSelector('[data-slot="morning"]');
@@ -332,7 +348,7 @@ try {
      sideways at either width. */
   await page.click('[data-slot="problem-entry"]');
   await page.waitForSelector('[data-slot="problem-text"]', { state: "visible" });
-  await page.waitForFunction(() => {
+  await namedWait(page, "problem-report-populated", () => {
     const area = document.querySelector('[data-slot="problem-text"]');
     return !!area && area.value.length > 0;
   });
@@ -438,9 +454,11 @@ try {
   try {
     const still = await reduced.newPage();
     await still.goto(url + "?theme=dawn&screen=workout&chrome=1&date=board&state=W-18", { waitUntil: "load" });
-    await still.waitForFunction(() => document.documentElement.dataset.screen === "workout"
-      && !!document.querySelector('[data-slot="workout-title"]'));
-    await still.waitForFunction(() => window.__earnedScene && window.__earnedScene.snapshot().ready);
+    await namedWait(still, "workout-screen-ready",
+      () => document.documentElement.dataset.screen === "workout"
+        && !!document.querySelector('[data-slot="workout-title"]'));
+    await namedWait(still, "reduced-scene-ready",
+      () => window.__earnedScene && window.__earnedScene.snapshot().ready);
     assert((await still.textContent('[data-slot="workout-title"]')).trim().length > 0,
       "the actual Workout preview is ready before its scene is judged");
     const witness = await still.evaluate(() => window.__earnedScene && window.__earnedScene.snapshot());
@@ -475,7 +493,7 @@ try {
     + `320px: ${narrow.primaryTop} to ${narrow.primaryBottom} of ${narrow.viewport})`);
 } catch (error) {
   failures = 1;
-  console.error("A1 TODAY BROWSER CHECK FAIL — " + error.message);
+  console.error("A1 TODAY BROWSER CHECK FAIL — " + (error && error.stack ? error.stack : String(error)));
   for (const problem of problems) console.error("  " + problem);
 } finally {
   await browser.close();
