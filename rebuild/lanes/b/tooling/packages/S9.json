@@ -1459,7 +1459,7 @@
       "argv": [
         "rebuild/m4/workout/test/s9-engine-files-differential.cjs"
       ],
-      "needle": null
+      "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent; 18 named and NOT ONE moves, so all 45 tracked rebuild/engine file(s) stand byte-identical to the parent's own post;"
     },
     {
       "name": "d-plan-edit",
@@ -1640,7 +1640,7 @@
         "rebuild/lanes/c/ui-port/pack-pin.test.mjs",
         "rebuild/lanes/c/ui-port/approved-pin.test.mjs"
       ],
-      "needle": null
+      "needle": "# tests 121"
     },
     {
       "name": "reference-closure",
@@ -1649,7 +1649,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/reference-closure.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 5"
     },
     {
       "name": "release-object",
