@@ -1,12 +1,12 @@
 # Earned current PM checkpoint, 2026-09-22
-Continuity only, not a seat transfer. Later ledger entries control; latest767.
+Continuity only, not a seat transfer. Later ledger entries control; latest768.
 Sole PM task01a0c6fe-004c-7330-90f2-df02af3c7290, seated738 after release737.
 Goal: approved rebuild until verified ready for Joe's trial; NOT achieved. S9 specification/closure in preparation.
 PM tree: C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm.
 Detached checkout; push HEAD:rebuild/t2-client-core. Never switch old-app cwd.
 
 ## S9 composition and final boundary
-Integration rebuild/b-s9-integration, %TEMP%/earned-s9int, head80082fa after exact accepted comment-cut blobs.
+Integration rebuild/b-s9-integration, %TEMP%/earned-s9int, local heada23c079 nonfinal spec after80082fa accepted comment-cut blobs.
 Prior composition785be9d/report04baabc, blind ACCEPT6b6c901 and745.
 CUI0/font0e5e194, guards88a4d063, readerb9ea32f, five tickets exact acceptedcaa0abf.
 Guard debt repaired88a4d063, blind ACCEPT351817d 21callbacks/200probes/3kills, adopted761; finalClaude owed.
@@ -15,23 +15,23 @@ Pack preflight7a986db:1331Git/working files equal, both OS baselines present.
 SourceBase0cd07be7cf967dfbfea8c84947ba8477f58cfb5f unchanged; all227pins PASS after permission766.
 E17dd182f8 reader reaches itself+4docs; old four-Today diagnostic stops before protectedmigrate.
 Independent route11c4bc5:astra/reviews/S9-REMAINING-SAFE-ROUTE.md,45lines read/hash checked.
-Full227source custody complete767. Actual child closure/spec/final literals/tokens/artifact/seal remain owed.
+Full227source custody complete767. Child closure stopped768; draft local a23c079; final literals/tokens/artifact/seal remain owed.
 Existing integration hands1-8/11 retained; no unfinishedCUI1, actual09-08 references plus whole09-18pack.
 
 ## S9 current workers
-Sol /root/s9_font_home STATIC off-repo S9 draft assembly; same reviewer STATIC staging. Map92b6f32 retained.
+Sol /root/s9_font_home owns synthetic checker directory-fix controls; same reviewer STATIC then review.
 Map astra/S9-PROSPECTIVE-CHILD-MAP.json c2170f4; note3ba33e3;33planning entries, needles unmeasured.
 Reader unchangedbf967180; independent ACCEPTfff570c, adopted753, no localreader execution.
 CI35684542499:Ubuntu106608457970/Windows106608457960 readerstepSUCCESS; metadataonly.
-Whole public-gates jobs FAILURE; no fullCIclaim. Integration80082fa clean/pushed; no full joblogs.
+Whole public-gates jobs FAILURE; no fullCIclaim. Integrationa23c079 clean/local only; no full joblogs.
 Old Sol via relay01a0c64b completed guard88a4d063; idle/preserved. Checker complete, no protectedread.
 Scratch %TEMP%/earned-s9-source-custody-checker-sol-20260921, s9-source-custody-check.cjs and PROPOSAL.md.
 Checker1528b20a4f00c9e88834c3eed34c3540a3ce13e2bb087cf275cb2115e134d609,299lines/13040bytes.
 Proposal310b9f3d8a513a8c60371d8d2abdc53ba35802a8d2bab74a2043cb8d706c33d5,40lines.
 Independent STATIC ACCEPT L3 a74ccb9:astra/reviews/S9-SOURCE-CHECKER-REVIEW-L3.md,19lines,2f78f457.
-Checker1528b20 unchanged; authorized PM session14502 exit0 STAGE1 PASS227/5, STAGE2 HELD S9_SPEC_ABSENT.
-Joe permission766 grants local five-file read/hash/static checks; flag used once, no source content or module execution.
-Scope/command boundary:astra/S9-SOURCE-CHECKER-PERMISSION-2026-09-22.md; current5c62specabsent.
+Checker20ac3a candidate-only at a23c079, independent custody ACCEPT;43302 PASS227/5 then directory STOP.
+Joe permission766 grants local five-file read/hash/static checks; flag used in two reviewed invocations, no source content or module execution.
+Scope/command boundary:astra/S9-SOURCE-CHECKER-PERMISSION-2026-09-22.md; Draft a23c079 source walk stopped on repository-directory URL; failedlog retained.
 
 ## GSS evidence and bounded repair
 Oldauthor route relay01a0c64b has no PM/ledgerauthority; oldcoordinator01a0c4a5 unavailable.
@@ -57,4 +57,4 @@ Pendingowner: yes-only ordinary increases, B afterFinish recommended; noanswer k
 Queue:S9look/seal; phoneearns beforetrial; split/EditMyWeek;N3;re-plan;P4b-2. Father's trial follows.
 Five engine files: reviewed local read-only checks allowed766, no raw output; all other protected/oldapp bans stand.
 No main/deploy/import/purchase/fallback/newengine semantics/sharednpm/heartbeats/guardwaivers.
-Weekly62percent. Runtime FREE after checker. Author/reviewer static S9 assembly; GSS CI35767357862 bothOS red.
+Weekly65percent. Checker43302 STOP PATH_REFUSED; Sol synthetic runtime. GSS CI35767357862 bothOS red.
