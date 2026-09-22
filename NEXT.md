@@ -1,3 +1,6 @@
+## PM HANDOFF, 2026-09-22: Claude Opus 5.5
+Read `rebuild/lanes/HANDOFF-PM-2026-09-22-CLAUDE-OPUS-5-5.md` first after this NEXT.md. Astra releases through DECISIONS:776; incoming PM verifies it before recording a seat. Older role/status text below is historical where it conflicts.
+
 REBUILD: read rebuild/ROADMAP.md first — the durable plan and status.
 
 ## REBUILD NOTE (2026-09-17): RIR DISPLAY is designed by the owner in Claude Design

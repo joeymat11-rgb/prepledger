@@ -1,0 +1,234 @@
+{
+  "version": 1,
+  "status": "PROPOSAL_NOT_AUTHORIZED",
+  "sourceHead": "fe9f14b5a764efe0cc66fa0380a27b1e32d5672c",
+  "specPath": "rebuild/lanes/b/tooling/packages/S9.json",
+  "specSha256": "7dcdab1f0dc5c1b826d6fe993e88176cb5420bb386b98cfda938ed4f9cbb27e5",
+  "groupCount": 20,
+  "groups": [
+    {
+      "name": "today-17",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/today/test/adapter.test.mjs",
+        "rebuild/m3/w7-preview/today/test/catalogue.test.mjs",
+        "rebuild/m3/w7-preview/today/test/checkin.test.mjs",
+        "rebuild/m3/w7-preview/today/test/copy.test.mjs",
+        "rebuild/m3/w7-preview/today/test/design.test.cjs",
+        "rebuild/m3/w7-preview/today/test/food.test.mjs",
+        "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+        "rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+        "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs",
+        "rebuild/m3/w7-preview/today/test/package.test.cjs",
+        "rebuild/m3/w7-preview/today/test/problem.test.mjs",
+        "rebuild/m3/w7-preview/today/test/setup.test.mjs",
+        "rebuild/m3/w7-preview/today/test/view.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/journey.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/lane.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/baseline.test.mjs",
+        "rebuild/m3/w7-preview/measure/test/boundary.test.mjs"
+      ]
+    },
+    {
+      "name": "s4-real-day",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/local-real-day.test.mjs"
+      ]
+    },
+    {
+      "name": "s9-sup-source-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-source-carriers.test.cjs"
+      ]
+    },
+    {
+      "name": "s9-sup-inherited-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-inherited-carriers.test.cjs"
+      ]
+    },
+    {
+      "name": "s9-sup-defect-witnesses",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-defect-witnesses.test.cjs"
+      ]
+    },
+    {
+      "name": "s9-sup-writers-differential",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-writers-differential.test.cjs"
+      ]
+    },
+    {
+      "name": "s9-sup-second-gate",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/s9-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "name": "m4-import",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/import/test/prepare.test.cjs",
+        "rebuild/m4/import/test/reading-replay.test.cjs",
+        "rebuild/m4/import/test/engine-provider.test.cjs",
+        "rebuild/m4/import/test/local-source-order.test.cjs",
+        "rebuild/m4/import/test/browser-parity.test.mjs"
+      ]
+    },
+    {
+      "name": "m4-import-production",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/import/test/production-mapping.test.cjs",
+        "rebuild/m4/import/test/production-admission.test.mjs"
+      ]
+    },
+    {
+      "name": "d-import-retract",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/import-retract/retract.test.mjs"
+      ]
+    },
+    {
+      "name": "d-admission-swap",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-followons/admission-swap.test.mjs"
+      ]
+    },
+    {
+      "name": "d-replay-measure",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-replay-measure/measure-family.test.mjs",
+        "rebuild/lanes/d/p3-replay-measure/measure-order.test.mjs"
+      ]
+    },
+    {
+      "name": "d-capture-start",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-capture-start/capture-start.test.mjs"
+      ]
+    },
+    {
+      "name": "food-live-save",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/food-live-save.test.mjs"
+      ]
+    },
+    {
+      "name": "w7-import",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/import/test/route.test.mjs",
+        "rebuild/m3/w7-preview/import/test/refusal-route.test.mjs",
+        "rebuild/m3/w7-preview/import/test/live-clock.test.mjs",
+        "rebuild/m3/w7-preview/import/test/page-bundle.test.mjs",
+        "rebuild/m3/w7-preview/import/test/refusals.test.mjs"
+      ]
+    },
+    {
+      "name": "w6-local-source",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/test/local-source-admission.test.mjs",
+        "rebuild/m3/w6/test/local-source-consumer.test.mjs"
+      ]
+    },
+    {
+      "name": "d-replay-all",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-replay-all/class-membership.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/sleep-family.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/writer-enumeration.test.mjs",
+        "rebuild/lanes/d/p3-replay-all/writer-order.test.mjs"
+      ]
+    },
+    {
+      "name": "b-lom",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/b-lom/legacy-order.test.mjs",
+        "rebuild/m4/workout/test/legacy-order-mapping.test.cjs"
+      ]
+    },
+    {
+      "name": "d-port-admission",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-port-fix/programme-rule.test.mjs",
+        "rebuild/lanes/d/p3-port-fix/owner-route.test.mjs",
+        "rebuild/lanes/d/p3-port-fix/capture-codes.test.mjs"
+      ]
+    },
+    {
+      "name": "d-real-shape",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/d/p3-real-shape/real-shape-walk.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/real-shape-capture.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/bar-admit.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/bar-keep.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/r1-fixes.test.mjs",
+        "rebuild/lanes/d/p3-real-shape/q1-producer.test.mjs",
+        "rebuild/lanes/d/p3-layout-v2/layout-v2.test.mjs",
+        "rebuild/lanes/d/p3-layout-v2/projector-parity.test.mjs"
+      ]
+    }
+  ],
+  "gitRefs": {
+    "current": "fe9f14b5a764efe0cc66fa0380a27b1e32d5672c",
+    "s9SourceBase": "0cd07be7cf967dfbfea8c84947ba8477f58cfb5f",
+    "s8SourceBase": "8ebc860c30980dc5793be15202ea1a292e3769ba",
+    "s4SourceBase": "f84e694e42ecbbf892b8f8c47bd898ad7f3a45e2",
+    "nativeCarrierBase": "189523bdb2fa37187ce9e08b93c4e6dc27d41efd",
+    "frozenApp": "fe516c1",
+    "priorEngine": "7347ca976b1131cc44adc6a562c2a795c9e78d0b"
+  },
+  "forbiddenPaths": [
+    "ledger/**",
+    "src/history.js",
+    "rebuild/conform/private/**",
+    "**/*soak*",
+    "C:/Users/joeym/EarnedPort/**"
+  ],
+  "explicitOwnerPermissionNeeded": [
+    "execute the protected engine composition, including seed.cjs, migrate.cjs, merge.cjs, index.cjs and oracle-shim.cjs",
+    "consume protected E.SEED/frozen-record values inside unchanged tests",
+    "read current src/app.jsx and git blob fe516c1:src/app.jsx for unchanged source-carrier checks"
+  ],
+  "hydratedBlobPairs": null,
+  "hydratedBlobObjectIds": null,
+  "closureState": "BLOCKED_UNTIL_EXACT_REF_PATH_AND_OBJECT_ID_ALLOWLIST_IS_REVIEWED"
+}

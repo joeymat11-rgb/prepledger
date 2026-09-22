@@ -1,6 +1,6 @@
 # Earned current PM checkpoint, 2026-09-22
-Continuity only, not a seat transfer. Later ledger entries control; evidence through775.
-Sole PM task01a0c6fe-004c-7330-90f2-df02af3c7290, seated738 after release737.
+Historical evidence through775. PM transfer now follows HANDOFF-PM-2026-09-22-CLAUDE-OPUS-5-5.md and release776.
+Outgoing task01a0c6fe-004c-7330-90f2-df02af3c7290, seated738; sole PM/ledger role released by776 for incoming Claude.
 Goal: approved rebuild until verified ready for Joe's trial; NOT achieved. S9 source closure PASS; twelve child results PASS, one expected-red marker, final assembly owed.
 PM tree: C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/t2-client-core-pm.
 Detached checkout; push HEAD:rebuild/t2-client-core. Never switch old-app cwd.
