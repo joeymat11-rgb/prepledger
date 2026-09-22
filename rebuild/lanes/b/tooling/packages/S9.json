@@ -1172,7 +1172,7 @@
     },
     "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs": {
       "pre": null,
-      "post": "9e6b9a8fa68f48a6a01bf8326bee88ff392ab25bafa5d0ae1367255c0b1afd2f",
+      "post": "af7b6f34a10d6a36c2982ae0713ff127a26a4e34736ac69346b6f3e66822a29c",
       "role": "new"
     },
     "rebuild/lanes/c/ui-port/pack-pin.test.mjs": {
@@ -1407,7 +1407,7 @@
         "rebuild/m3/w6/host/test/journey.test.mjs",
         "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 23"
     },
     {
       "name": "s9-sup-source-carriers",
@@ -1471,7 +1471,7 @@
         "rebuild/lanes/d/plan-edit/browser-build.test.mjs",
         "rebuild/lanes/d/plan-edit/client-p6.test.cjs"
       ],
-      "needle": null
+      "needle": "# pass 90"
     },
     {
       "name": "m4-import",
@@ -1562,7 +1562,7 @@
         "--test-reporter=tap",
         "rebuild/m3/w6/host/test/host-seams.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 9"
     },
     {
       "name": "w6-local-source",
@@ -1630,7 +1630,7 @@
         "--test-reporter=tap",
         "rebuild/lanes/c/ui-port/sealed-inventory-fence.test.mjs"
       ],
-      "needle": null
+      "needle": "# pass 53"
     },
     {
       "name": "ui-pack-pins",
