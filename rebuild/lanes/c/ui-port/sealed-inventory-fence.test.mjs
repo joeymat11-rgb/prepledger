@@ -1668,7 +1668,7 @@ function conditionOfStepRunning(yml, file) {
     if (!named) continue;
     const stepIndent = named[1].length;
     let end = nameAt + 1;
-    while (end < yml.length && (!yml[end].trim()
+    while (end < yml.length && (!yml[end].trim() || /^\s*#/.test(yml[end])
       || /^\s*/.exec(yml[end])[0].length > stepIndent)) end += 1;
     const block = yml.slice(nameAt, end);
     for (const line of block) {
