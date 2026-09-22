@@ -30,8 +30,8 @@
         "sha256": "3cf58e0edd76a56353b35008ef154d484098b5017fedeb648eb64a0ae6568d48",
         "review": "rebuild/m4/spec/review-s8-real-shape.json",
         "reviewSha256": "f7b9b51e38755f3364b398189b50be927e058b8606945f1a9fb51e1cd66cc632",
-        "receiptLedgerLine": null,
-        "note": "Parent files measured; receipt and authority prose remain PM-owned."
+        "receiptLedgerLine": 528,
+        "note": "Accepted S8 parent artifact and review; exact receipt line at the review-pinned ancestor commit."
       }
     ]
   },
@@ -76,23 +76,23 @@
       "role": "carried"
     },
     "rebuild/engine/index.cjs": {
-      "pre": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/index.cjs].post",
-      "post": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/index.cjs].post",
+      "pre": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "post": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
       "role": "carried"
     },
     "rebuild/engine/merge.cjs": {
-      "pre": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/merge.cjs].post",
-      "post": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/merge.cjs].post",
+      "pre": "01e9d6e6000fd625b9f50c336c3440fb8f84e61f3e77bce4a9bf93fb8fb63b00",
+      "post": "01e9d6e6000fd625b9f50c336c3440fb8f84e61f3e77bce4a9bf93fb8fb63b00",
       "role": "carried"
     },
     "rebuild/engine/migrate.cjs": {
-      "pre": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/migrate.cjs].post",
-      "post": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/migrate.cjs].post",
+      "pre": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "post": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
       "role": "carried"
     },
     "rebuild/engine/oracle-shim.cjs": {
-      "pre": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/oracle-shim.cjs].post",
-      "post": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/oracle-shim.cjs].post",
+      "pre": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "post": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
       "role": "carried"
     },
     "rebuild/engine/performed.cjs": {
@@ -116,8 +116,8 @@
       "role": "carried"
     },
     "rebuild/engine/seed.cjs": {
-      "pre": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/seed.cjs].post",
-      "post": "PROVISIONAL_PARENT_PIN:S8.product[rebuild/engine/seed.cjs].post",
+      "pre": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "post": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
       "role": "carried"
     },
     "rebuild/engine/sleep.cjs": {
