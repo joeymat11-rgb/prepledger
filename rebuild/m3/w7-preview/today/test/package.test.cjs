@@ -132,7 +132,16 @@ test("the bundle carries the real engine and the real client and nothing forbidd
    array literal's own path lines - the same extraction that MEASURED 26 of 48, moved
    inside the sealed cell. The two halves are complementary and neither replaces the
    other: one asserts the build's refusal, the other asserts that this seal's literal is
-   still the whole today/ half. No product file is touched by either. */
+   still the whole today/ half. No product file is touched by either.
+
+   S10 RE-MEASURES THE LIST (Astra S10-INTEGRATION-REVIEW-L1 B3). The accepted Today split
+   (b35a48e3, DECISIONS:662) and the gym-settings writer (66d32530, :765) add THREE sealed
+   siblings to build.mjs's REQUIRED_INPUTS: today-readings.cjs, today-lanes.cjs and
+   gym-settings-lane.mjs. MEASURED from build.mjs's own source text by this file's rule:
+   48 path literals / 26 today/ at the S9 candidate 6dc2596, 51 / 29 at the S10 head, and the
+   difference is exactly those three paths (nothing removed, nothing renamed). The literal
+   below names them, so H18 now asserts the build's refusal for each of the 29 and H18b/H18c
+   pin 51 and 29; no row is dropped and no count is loosened. */
 const TODAY_REQUIRED_INPUTS = [
   "rebuild/m3/w7-preview/today/today-model.cjs",
   "rebuild/m3/w7-preview/today/today-app.cjs",
@@ -160,13 +169,17 @@ const TODAY_REQUIRED_INPUTS = [
   "rebuild/m3/w7-preview/today/sleep-commands.cjs",
   "rebuild/m3/w7-preview/today/sleep-model.cjs",
   "rebuild/m3/w7-preview/today/sleep-host.mjs",
+  // S10: the split's two sealed siblings and the gym-settings writer's sealed lane.
+  "rebuild/m3/w7-preview/today/today-readings.cjs",
+  "rebuild/m3/w7-preview/today/today-lanes.cjs",
+  "rebuild/m3/w7-preview/today/gym-settings-lane.mjs",
 ];
 
-test("H18 - the build still refuses a bundle that lost any of the 26 today/ required inputs", () => {
-  assert.equal(TODAY_REQUIRED_INPUTS.length, 26,
-    "the literal list is not the 26 today/ entries of REQUIRED_INPUTS that A.4 measured");
-  assert.equal(new Set(TODAY_REQUIRED_INPUTS).size, 26, "the literal list repeats a path");
-  /* the green control first, so the 26 rows below fail for the reason they name rather
+test("H18 - the build still refuses a bundle that lost any of the 29 today/ required inputs", () => {
+  assert.equal(TODAY_REQUIRED_INPUTS.length, 29,
+    "the literal list is not the 29 today/ entries of REQUIRED_INPUTS measured at S10 (A.4's 26 plus the split's three)");
+  assert.equal(new Set(TODAY_REQUIRED_INPUTS).size, 29, "the literal list repeats a path");
+  /* the green control first, so the 29 rows below fail for the reason they name rather
      than because assertBundleInputs refuses everything it is handed. */
   assert.doesNotThrow(() => build.assertBundleInputs(result.inputs.map((p) => ({ path: p }))));
   for (const required of TODAY_REQUIRED_INPUTS) {
@@ -211,7 +224,7 @@ const requiredInputsOf = (src) => {
 };
 const requiredInputsOfBuildSource = () => requiredInputsOf(buildSource());
 
-test("H18b - the 26 are still the WHOLE today/ half of build.mjs's REQUIRED_INPUTS", () => {
+test("H18b - the 29 are still the WHOLE today/ half of build.mjs's REQUIRED_INPUTS", () => {
   const all = requiredInputsOfBuildSource();
   /* the today/ half FIRST, because its failure NAMES the paths that moved and the
      counts below only name a number: R1 N6's lesson, applied to this cell's own reds. */
@@ -220,10 +233,10 @@ test("H18b - the 26 are still the WHOLE today/ half of build.mjs's REQUIRED_INPU
     "the today/ half of build.mjs's REQUIRED_INPUTS is no longer the " + TODAY_REQUIRED_INPUTS.length
     + " paths this seal pins: it now holds " + today.length
     + ". An ADDED entry is invisible to H18 and this is the cell that sees it");
-  assert.equal(all.length, 48,
-    "build.mjs's REQUIRED_INPUTS no longer holds 48 path literals but " + all.length
-    + ": A.4's seven laws are stated over that list and this seal pins 26 of it");
-  assert.equal(new Set(all).size, 48, "build.mjs's REQUIRED_INPUTS repeats a path literal");
+  assert.equal(all.length, 51,
+    "build.mjs's REQUIRED_INPUTS no longer holds 51 path literals but " + all.length
+    + ": A.4's seven laws are stated over that list and this seal pins 29 of it");
+  assert.equal(new Set(all).size, 51, "build.mjs's REQUIRED_INPUTS repeats a path literal");
 });
 
 /* H18c, R2 N7. H18b's per-line rule counts any bare quoted string that sits alone on its
@@ -238,7 +251,7 @@ test("H18b - the 26 are still the WHOLE today/ half of build.mjs's REQUIRED_INPU
 test("H18c - a prose string alone on its own line inside REQUIRED_INPUTS is not a path", () => {
   const src = buildSource();
   const real = requiredInputsOf(src);
-  assert.equal(real.length, 48, "the baseline is not 48: " + real.length);
+  assert.equal(real.length, 51, "the baseline is not 51 (S10: the split's three added to 48): " + real.length);
   const planted = src.replace("\nconst REQUIRED_INPUTS = Object.freeze([\n",
     "\nconst REQUIRED_INPUTS = Object.freeze([\n  \"and this line is prose, not a path\",\n");
   assert.notEqual(planted, src, "the plant did not land: the block header has moved");
