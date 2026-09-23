@@ -152,7 +152,12 @@
     },
     "rebuild/lanes/b/S10-REGEN.cjs": {
       "pre": null,
-      "post": "2481496fe70f434d5209278080915ee08fb17ac8b68b84d42d4b2ba0eb6989a1",
+      "post": "fe1845270fc18c49888d229976b86ed33e8beeedd1a49fc35256ad551543caf5",
+      "role": "new"
+    },
+    "rebuild/lanes/b/S10-REGEN.test.cjs": {
+      "pre": null,
+      "post": "d8a9a8ff1f5d598bd7a5036b5a9cfa1ab367138e808499a0a82d9fee96bbb953",
       "role": "new"
     },
     "rebuild/lanes/b/tooling/b-package.cjs": {
