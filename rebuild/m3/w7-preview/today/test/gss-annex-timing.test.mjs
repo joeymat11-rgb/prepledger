@@ -6,11 +6,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
-import { IDBFactory } from 'fake-indexeddb';
+import { createRequire } from 'node:module';
 import { JSDOM } from 'jsdom';
 import GymApp, { mountGym } from '../gym-app.mjs';
 import { createMachineSettingsHost, PROFILE } from '../machine-settings-host.mjs';
 import design from '../design.cjs';
+// fake-indexeddb is a dependency of rebuild/m3/w6 only (its package.json), so it is resolved
+// from there, as browser-check.mjs resolves w6's dependencies; a bare import from this
+// directory cannot reach rebuild/m3/w6/node_modules (S10, DECISIONS:792).
+const { IDBFactory } = createRequire(new URL('../../../w6/package.json', import.meta.url))('fake-indexeddb');
 
 const DAY = '2026-09-03';
 const LIFT = 'gss-annex-lift';
