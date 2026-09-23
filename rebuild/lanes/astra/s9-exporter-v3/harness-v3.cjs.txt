@@ -1,0 +1,229 @@
+'use strict';
+// SYNTHETIC harness for export-s9-profile-v3.cjs (round 3; successor of harness.cjs, which is kept).
+// Every repo file below is invented here; nothing is copied from any real repository,
+// protected, private or src path. v1 and v2 cells are red-first evidence, v3 cells the fix.
+const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process'), crypto = require('node:crypto');
+const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+const PREP = 'C:/Users/joeym/AppData/Local/Temp/earned-s9-profile-export-preparation';
+const V1 = PREP + '/export-s9-profile.cjs', V2 = PREP + '/export-s9-profile-v2.cjs', V3 = PREP + '/export-s9-profile-v3.cjs';
+const V1_SHA = '7541ad0eddf124dc61f08ffe2aeae97c583f61d351bf618b40c15b0344deddc4';
+const V2_SHA = '70f2a92ba983b95aa9c94466cf45ee599244e1b6e45c43b35601fc12861e7105';
+const REAL_SCRATCH = "const scratchRoot = 'C:/Users/joeym/AppData/Local/Temp/earned-s9-profile-export-results';";
+const T = 'C:/Users/joeym/AppData/Local/Temp/earned-s9x-v2-test';
+const W = T + '/run3-' + Date.now().toString(36);
+const REPO = W + '/repo', DECOY = W + '/decoy', SCRATCH = W + '/scratch-results';
+const results = { harness: 'earned-s9x-v3-test', started: new Date().toISOString(), cases: [] };
+const cleanEnv = extra => Object.assign(Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^GIT_/i.test(k))), extra || {});
+const g = (cwd, args) => cp.execFileSync('git', ['-C', cwd, ...args], { stdio: ['ignore', 'pipe', 'pipe'], env: cleanEnv() }).toString('utf8').trim();
+const put = (rel, text, base = REPO) => { const f = path.join(base, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, text); };
+const commit = (cwd, msg) => { g(cwd, ['add', '-A']); g(cwd, ['-c', 'user.name=synthetic', '-c', 'user.email=synthetic@invalid', 'commit', '-q', '-m', msg]); return g(cwd, ['rev-parse', 'HEAD']); };
+function assert0(ok, what) { if (!ok) throw new Error('HARNESS SETUP FAILED: ' + what); }
+// 1. Test copies: only the fixed scratch-root literal differs from the file under test.
+assert0(sha(fs.readFileSync(V1)) === V1_SHA, 'v1 sha'); assert0(sha(fs.readFileSync(V2)) === V2_SHA, 'v2 sha');
+fs.mkdirSync(SCRATCH, { recursive: true });
+const copyWith = (src, dst) => {
+  const text = fs.readFileSync(src, 'utf8'), lines = text.split('\n');
+  assert0(lines.filter(l => l === REAL_SCRATCH).length === 1, 'one scratch literal in ' + src);
+  const out = lines.map(l => l === REAL_SCRATCH ? "const scratchRoot = '" + SCRATCH + "';" : l);
+  fs.writeFileSync(dst, out.join('\n'));
+  const diff = out.filter((l, i) => l !== lines[i]).length; assert0(diff === 1, 'one line differs');
+  return { source: src, sourceSha256: sha(fs.readFileSync(src)), copy: dst, copySha256: sha(fs.readFileSync(dst)), linesDiffering: diff };
+};
+results.copies = [copyWith(V1, W + '/v1-test-copy.cjs'), copyWith(V2, W + '/v2-test-copy.cjs'), copyWith(V3, W + '/v3-test-copy.cjs')];
+// 2. Invented repository shape (as harness.cjs, plus an invented sibling spec S8.json).
+g(W, ['init', '-q', '-b', 'main', REPO]); g(REPO, ['config', 'core.autocrlf', 'false']);
+const P = 'rebuild/conform/v4/postfix/', M = 'rebuild/m4/spec/', PK = 'rebuild/lanes/b/tooling/packages/';
+put(P + 'trace-v2.cjs', "'use strict';\n// invented module: trace-v2\nmodule.exports = { kind: 'trace' };\n");
+put(P + 'run.cjs', "'use strict';\n// invented module: run\nconst path = require('node:path');\nrequire(path.join(__dirname, 'trace-v2.cjs'));\nmodule.exports = { kind: 'run' };\n");
+put(P + 'legacy-gates.cjs', "'use strict';\n// invented module: legacy-gates\nmodule.exports = { kind: 'gates' };\n");
+put(P + 'strict-json.cjs', "'use strict';\n// invented module: strict-json\nmodule.exports = { parse: b => JSON.parse(String(b)) };\n");
+put(P + 'target.cjs', "'use strict';\n// invented module: target\nconst c = require('node:crypto');\nmodule.exports = { sha: b => c.createHash('sha256').update(b).digest('hex') };\n");
+put(M + 'load-write-source.cjs', "'use strict';\n// invented module: load-write-source\nmodule.exports = { kind: 'source' };\n");
+put(M + 'load-write-reference.cjs', "'use strict';\n// invented module: load-write-reference\nconst path = require('node:path');\nrequire(path.join(__dirname, 'load-write-source.cjs'));\nmodule.exports = { kind: 'reference' };\n");
+put(M + 'native-carriers-errors.cjs', "'use strict';\n// invented module: native-carriers-errors\nmodule.exports = { codes: ['SYNTHETIC-A'] };\n");
+put(M + 'extra-unpinned.cjs', "'use strict';\n// invented module outside the pinned eight\nmodule.exports = 1;\n");
+const SLOTS = ['seed', 'migrate', 'merge', 'index', 'oracle-shim'];
+for (const s of SLOTS) put('rebuild/engine/' + s + '.cjs', "'use strict';\n// invented stand-in occupying the " + s + " slot path; not engine text\nmodule.exports = { invented: 'synthetic-" + s + "-placeholder-text-for-leak-detection-only' };\n");
+put('rebuild/ui/synthetic-view.js', '// invented product file\nexport const view = 1;\n');
+put(M + 'acceptance-s8-synthetic.json', '{\n  "invented": true\n}\n');
+put(M + 'review-s8-synthetic.json', '{\n  "version": 1,\n  "status": "ACCEPTED",\n  "receipt": "invented"\n}\n');
+put(PK + 'S8.json', '{\n  "packageId": "S8-synthetic-sibling",\n  "invented": true\n}\n');
+const product = { 'rebuild/ui/synthetic-view.js': { role: 'new' } };
+for (const s of SLOTS) product['rebuild/engine/' + s + '.cjs'] = { role: 'carried' };
+put(PK + 'S9.json', JSON.stringify({ packageId: 'S9-synthetic', product,
+  parent: { artifact: M + 'acceptance-s8-synthetic.json', review: M + 'review-s8-synthetic.json' } }, null, 2) + '\n');
+const MARKER = /^const marker = '(.*)';$/m.exec(fs.readFileSync(V3, 'utf8'))[1];
+put('rebuild/lanes/b/tooling/b-package.cjs', ["'use strict';",
+  '// INVENTED synthetic runner for the exporter harness (not the real runner).',
+  "const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process');",
+  "const root = path.resolve(__dirname, '../../../..'), P = path.join(root, 'rebuild/conform/v4/postfix');",
+  "const R = require(path.join(P, 'run.cjs')), L = require(path.join(P, 'legacy-gates.cjs')), J = require(path.join(P, 'strict-json.cjs'));",
+  "const { sha } = require(path.join(P, 'target.cjs'));",
+  "require(path.join(root, 'rebuild/m4/spec/native-carriers-errors.cjs')); require(path.join(root, 'rebuild/m4/spec/load-write-reference.cjs'));",
+  "if (process.env.SYNTH_EXTRA === '1') require(path.join(root, 'rebuild/m4/spec/extra-unpinned.cjs'));",
+  "const RUNNER = 'rebuild/lanes/b/tooling/b-package.cjs', SPEC = 'rebuild/lanes/b/tooling/packages/S9.json', CHAIN = 'refs/remotes/origin/rebuild/t2-client-core';",
+  "const git = a => cp.execFileSync('git', ['-C', root, ...a], { stdio: ['ignore', 'pipe', 'pipe'] }).toString('utf8').trim();",
+  'const disk = f => sha(fs.readFileSync(path.join(root, f)));',
+  'function spec() { return J.parse(fs.readFileSync(path.join(root, SPEC))); }',
+  "function parent(s) { const seen = { chain: git(['rev-parse', CHAIN]), top: git(['rev-parse', '--show-toplevel']), gitDir: process.env.GIT_DIR || null, gitWorkTree: process.env.GIT_WORK_TREE || null };",
+  "  if (process.env.SYNTH_MOVE_CHAIN === '1') git(['update-ref', CHAIN, 'HEAD']);",
+  '  return { seen, artifact: s.parent.artifact, review: s.parent.review }; }',
+  'function proposed(s, b) { const pins = { [RUNNER]: disk(RUNNER), [SPEC]: disk(SPEC) };',
+  '  const product = Object.fromEntries(Object.entries(s.product).map(([f, p]) => [f, { role: p.role, post: disk(f) }]));',
+  "  return { version: 1, lanePackage: 'S9', packageId: s.packageId, runnerSaw: b.seen,",
+  '    parent: { artifact: b.artifact, sha256: disk(b.artifact), review: b.review, reviewSha256: disk(b.review) },',
+  '    spec: { file: SPEC, sha256: pins[SPEC] }, runner: { file: RUNNER, sha256: pins[RUNNER] }, product, executionPins: pins,',
+  "    note: process.env.SYNTH_LEAK === '1' ? fs.readFileSync(path.join(root, 'rebuild/engine/index.cjs'), 'utf8') : 'synthetic' }; }",
+  MARKER,
+  "console.log('synthetic main sequence must never run'); fs.writeFileSync(path.join(root, 'MAIN-RAN'), 'x'); process.exit(3);", ''].join('\n'));
+const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
+const chainCommit = commit(REPO, 'synthetic chain commit');
+g(REPO, ['update-ref', CHAIN_REF, chainCommit]);
+put('rebuild/ui/second.txt', 'invented second commit\n');
+const head = commit(REPO, 'synthetic head commit');
+const runnerSha = sha(fs.readFileSync(path.join(REPO, 'rebuild/lanes/b/tooling/b-package.cjs')));
+g(W, ['-c', 'core.autocrlf=false', 'clone', '-q', REPO, DECOY]);
+g(DECOY, ['update-ref', CHAIN_REF, chainCommit]);
+put('decoy-only.txt', 'invented decoy commit\n', DECOY);
+const decoyHead = commit(DECOY, 'synthetic decoy commit');
+Object.assign(results, { workDir: W, repoHead: head, chainCommit, decoyHead, runnerSha256: runnerSha, marker: MARKER });
+// 3. Runner for one exporter invocation (v2 and v3 take the 6th chain argv).
+let n = 0;
+const run = (which, args, extraEnv) => {
+  const name = 's9-' + which + '-' + (++n);
+  const argv = [W + '/' + which + '-test-copy.cjs', '--execute-reviewed-export', REPO, args.head || head, runnerSha, name];
+  if (which !== 'v1' && args.chain !== null) argv.push(args.chain || chainCommit);
+  const r = cp.spawnSync(process.execPath, argv, { env: cleanEnv(extraEnv), encoding: 'utf8', timeout: 30000 });
+  const dest = path.join(SCRATCH, name), files = fs.existsSync(dest) ? fs.readdirSync(dest).sort() : null;
+  return { which, outputName: name, exit: r.status, stdout: r.stdout, stderr: r.stderr, files, dest };
+};
+const refused = r => r.exit === 1 && r.stdout === 'S9 PROFILE EXPORT REFUSED\n' && r.files === null;
+const exported = r => r.exit === 0 && /^S9 PROFILE EXPORTED PENDING [a-f0-9]{64} [a-f0-9]{64}/.test(r.stdout)
+  && JSON.stringify(r.files) === '["acceptance-s9-ui-pins.json","review-s9-ui-pins.json"]';
+const record = (id, claim, cells, pass, extra) => { results.cases.push(Object.assign({ id, claim, pass: !!pass, cells: cells.map(c => ({ which: c.which, exit: c.exit, stdout: c.stdout.trim(), stderrBytes: (c.stderr || '').length, files: c.files })) }, extra || {})); };
+// Clean = no tracked change, no untracked or ignored entry, every index flag H, chain in place, main never ran.
+const clean = () => g(REPO, ['status', '--porcelain', '--untracked-files=all', '--ignored=matching']) === ''
+  && g(REPO, ['ls-files', '-v']).split('\n').every(l => l.startsWith('H ')) && g(REPO, ['rev-parse', CHAIN_REF]) === chainCommit
+  && !fs.existsSync(path.join(REPO, 'MAIN-RAN'));
+assert0(clean(), 'repo clean after setup');
+const artOf = r => r.files ? fs.readFileSync(path.join(r.dest, 'acceptance-s9-ui-pins.json')) : null;
+// 4. Regression cases A-G (v2 harness semantics, now against v3).
+{ // A happy path + I byte identity v1 == v2 == v3
+  const r = run('v3', {}), r1 = run('v1', {}), r2 = run('v2', {});
+  const art = artOf(r), rev = r.files ? fs.readFileSync(path.join(r.dest, 'review-s9-ui-pins.json'), 'utf8') : '';
+  const m = /^S9 PROFILE EXPORTED PENDING ([a-f0-9]{64}) ([a-f0-9]{64}) chain=([a-f0-9]{40}) node=(\S+) git=(\S+)\n$/.exec(r.stdout);
+  const ok = exported(r) && m && m[1] === sha(art) && m[2] === sha(rev) && m[3] === chainCommit && m[4] === process.version
+    && rev === '{\n  "version": 1,\n  "status": "PENDING",\n  "receipt": null\n}\n' && JSON.parse(art).lanePackage === 'S9'
+    && !art.toString('utf8').includes('placeholder-text-for-leak-detection-only') && clean();
+  record('A-happy', 'v3 writes exactly the two declared files; stdout records chain, node and git versions', [r], ok);
+  const same = exported(r1) && exported(r2) && sha(artOf(r1)) === sha(art) && sha(artOf(r2)) === sha(art);
+  record('I-byte-identity', 'v1, v2 and v3 on identical clean inputs write byte-identical artifacts', [r1, r2, r], same && clean(), { artifactSha256: art ? sha(art) : null });
+}
+{ // B D1
+  g(REPO, ['update-ref', CHAIN_REF, head]);
+  const red = run('v1', {}), wrong = run('v3', { chain: chainCommit });
+  g(REPO, ['update-ref', CHAIN_REF, chainCommit]);
+  record('B1-d1-chain-mismatch-start', 'chain ref moved to an unreviewed commit: v1 exports (red), v3 refuses', [red, wrong], exported(red) && refused(wrong) && clean());
+  const bad = run('v3', { chain: head });
+  record('B2-d1-wrong-argv', 'v3 given a wrong 6th argv refuses', [bad], refused(bad) && clean());
+  const five = run('v3', { chain: null });
+  record('B3-d1-five-args', 'v3 invoked with the old 5-arg form refuses', [five], refused(five) && clean());
+  const mid = run('v3', {}, { SYNTH_MOVE_CHAIN: '1' });
+  const moved = g(REPO, ['rev-parse', CHAIN_REF]) === head;
+  g(REPO, ['update-ref', CHAIN_REF, chainCommit]);
+  record('B4-d1-mid-move', 'runner moves the chain ref during compile: v3 refuses', [mid], moved && refused(mid) && clean());
+}
+{ // C D3 env injection
+  const env = { GIT_DIR: DECOY + '/.git', GIT_WORK_TREE: DECOY, GIT_INDEX_FILE: DECOY + '/.git/index' };
+  const redAccept = run('v1', { head: decoyHead }, env), greenRefuse = run('v3', { head: decoyHead }, env), greenOk = run('v3', {}, env);
+  const saw = greenOk.files ? JSON.parse(artOf(greenOk)).runnerSaw : null;
+  const sawOk = saw && saw.gitDir === null && saw.gitWorkTree === null && saw.chain === chainCommit
+    && fs.realpathSync(saw.top).toLowerCase() === fs.realpathSync(REPO).toLowerCase();
+  record('C-d3-env-injection', 'GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE -> decoy: v1 seals the decoy HEAD (red); v3 refuses the decoy HEAD and exports the real one, runner saw no GIT_*',
+    [redAccept, greenRefuse, greenOk], exported(redAccept) && refused(greenRefuse) && exported(greenOk) && sawOk && clean(), { runnerSawUnderV3: saw });
+}
+{ // D D3 tampered import behind skip-worktree
+  const rel = P + 'strict-json.cjs', file = path.join(REPO, rel), orig = fs.readFileSync(file);
+  g(REPO, ['update-index', '--skip-worktree', rel]);
+  fs.writeFileSync(file, orig.toString('utf8') + "require('node:fs').writeFileSync(process.env.SYNTH_TAMPER_MARK, 'tampered module executed');\n");
+  const statusHidden = g(REPO, ['status', '--porcelain']) === '';
+  const markV1 = W + '/TAMPER-RAN-v1', markV3 = W + '/TAMPER-RAN-v3';
+  const red = run('v1', {}, { SYNTH_TAMPER_MARK: markV1 }), green = run('v3', {}, { SYNTH_TAMPER_MARK: markV3 });
+  const ranV1 = fs.existsSync(markV1), ranV3 = fs.existsSync(markV3);
+  fs.writeFileSync(file, orig); g(REPO, ['update-index', '--no-skip-worktree', rel]);
+  record('D-d3-tampered-import', 'pinned import tampered behind skip-worktree: v1 runs it and exports (red); v3 refuses before compile',
+    [red, green], statusHidden && exported(red) && ranV1 && refused(green) && !ranV3 && clean(), { statusHidden, tamperedRanUnderV1: ranV1, tamperedRanUnderV3: ranV3 });
+}
+{ // E D2 leak, F unpinned module
+  const red = run('v1', {}, { SYNTH_LEAK: '1' }), green = run('v3', {}, { SYNTH_LEAK: '1' });
+  const leakedV1 = red.files ? artOf(red).toString('utf8').includes('placeholder-text-for-leak-detection-only') : false;
+  record('E-d2-protected-leak', 'runner copies an invented protected-slot file into the artifact: v1 emits it (red); v3 refuses', [red, green], exported(red) && leakedV1 && refused(green) && clean());
+  const redF = run('v1', {}, { SYNTH_EXTRA: '1' }), greenF = run('v3', {}, { SYNTH_EXTRA: '1' });
+  record('F-d3-unpinned-module', 'runner loads a 9th in-root module: v1 exports (red); v3 refuses', [redF, greenF], exported(redF) && refused(greenF) && clean());
+}
+// 5. E1 cases (round 3): a file parent() would read that git status is made not to show.
+const HIDDEN = PK + 'S7-hidden.json', hiddenFile = path.join(REPO, HIDDEN);
+const statusUnder = env => cp.execFileSync('git', ['-C', REPO, 'status', '--porcelain'], { stdio: ['ignore', 'pipe', 'pipe'], env: cleanEnv(env) }).toString('utf8').trim();
+const hiddenCase = (id, claim, env, arrange, undo) => {
+  put(HIDDEN, '{\n  "packageId": "S7-invented-untracked"\n}\n');
+  const control = run('v2', {});
+  arrange();
+  const hidden = statusUnder(env) === '';
+  const r1 = run('v1', {}, env), r2 = run('v2', {}, env), r3 = run('v3', {}, env);
+  undo(); fs.unlinkSync(hiddenFile);
+  record(id, claim, [control, r1, r2, r3], refused(control) && hidden && exported(r1) && exported(r2) && refused(r3) && clean(), { statusShowedNothingUnderAttack: hidden });
+};
+{ // H4 XDG_CONFIG_HOME global config
+  const xdg = W + '/xdg'; put('git/config', '[status]\n\tshowUntrackedFiles = no\n', xdg);
+  hiddenCase('H4-e1-xdg-global-config', 'XDG_CONFIG_HOME/git/config sets status.showUntrackedFiles=no over an untracked packages/*.json: control v2 refuses without it; v1 and v2 export (red); v3 refuses',
+    { XDG_CONFIG_HOME: xdg }, () => {}, () => {});
+}
+{ // H4b HOME global config
+  const home = W + '/home'; put('.gitconfig', '[status]\n\tshowUntrackedFiles = no\n', home);
+  hiddenCase('H4b-e1-home-global-config', 'HOME/.gitconfig sets status.showUntrackedFiles=no: v1 and v2 export (red); v3 refuses', { HOME: home }, () => {}, () => {});
+}
+{ // H9 repo-local config (not an env channel; closed by the explicit status flags)
+  hiddenCase('H9-e1-local-config', '.git/config status.showUntrackedFiles=no: v1 and v2 export (red); v3 refuses (flags override config)', {},
+    () => g(REPO, ['config', 'status.showUntrackedFiles', 'no']), () => g(REPO, ['config', '--unset', 'status.showUntrackedFiles']));
+}
+{ // H8 .git/info/exclude
+  const ex = path.join(REPO, '.git/info/exclude'), orig = fs.readFileSync(ex);
+  hiddenCase('H8-e1-info-exclude', '.git/info/exclude lists the untracked packages/*.json: v1 and v2 export (red); v3 refuses (ignored under rebuild/)', {},
+    () => fs.writeFileSync(ex, orig.toString('utf8') + HIDDEN + '\n'), () => fs.writeFileSync(ex, orig));
+  // Control: an ignored file OUTSIDE rebuild/ and .github/ stays allowed.
+  fs.writeFileSync(ex, orig.toString('utf8') + 'outside-notes.txt\n'); put('outside-notes.txt', 'invented ignored scratch\n');
+  const ok = run('v3', {});
+  fs.unlinkSync(path.join(REPO, 'outside-notes.txt')); fs.writeFileSync(ex, orig);
+  record('H8c-e1-ignored-outside-scope', 'control: an ignored file at the repo root (outside rebuild/ and .github/) does not refuse v3', [ok], exported(ok) && clean());
+}
+const flagCase = (id, claim, flag, unflag, modify) => {
+  const file = path.join(REPO, PK + 'S8.json'), orig = fs.readFileSync(file);
+  g(REPO, ['update-index', flag, PK + 'S8.json']);
+  if (modify) fs.writeFileSync(file, '{\n  "packageId": "S8-synthetic-sibling",\n  "invented": "modified behind the index flag"\n}\n');
+  const hidden = g(REPO, ['status', '--porcelain']) === '';
+  const r1 = run('v1', {}), r2 = run('v2', {}), r3 = run('v3', {});
+  fs.writeFileSync(file, orig); g(REPO, ['update-index', unflag, PK + 'S8.json']);
+  record(id, claim, [r1, r2, r3], hidden && exported(r1) && exported(r2) && refused(r3) && clean(), { statusShowedNothingUnderAttack: hidden });
+};
+flagCase('SW-e1-skip-worktree', 'unpinned sibling spec packages/S8.json modified behind skip-worktree: v1 and v2 export (red); v3 refuses (ls-files -v S)', '--skip-worktree', '--no-skip-worktree', true);
+flagCase('AU-e1-assume-unchanged', 'the same behind assume-unchanged: v1 and v2 export (red); v3 refuses (ls-files -v h)', '--assume-unchanged', '--no-assume-unchanged', true);
+flagCase('SWf-e1-flag-only', 'skip-worktree flag set on an unmodified file: v3 refuses on the flag alone', '--skip-worktree', '--no-skip-worktree', false);
+{ // G D5 unit, extracted verbatim from v3
+  const line = fs.readFileSync(V3, 'utf8').split('\n').filter(l => l.startsWith('function toolchainOk('));
+  assert0(line.length === 1, 'one toolchainOk line');
+  const f = new Function(line[0] + '\nreturn toolchainOk;')();
+  const table = [['v24.19.0', 'git version 2.55.0.windows.3', true], ['v24.0.0', 'git version 2.44.0', true],
+    ['v24.1.2', 'git version 3.0.1', true], ['v24.1.2', 'git version 2.43.7.windows.1', false], ['v24.1.2', 'git version 1.99.0', false],
+    ['v22.11.0', 'git version 2.55.0', false], ['v25.0.0', 'git version 2.55.0', false], ['v23.9.9', 'git version 2.55.0', false],
+    ['v24.1.2', 'git version 2.55', false], ['v24.1.2', 'git version 2.55.0 extra', false], ['24.1.2', 'git version 2.55.0', false]];
+  const rows = table.map(([nv, gv, want]) => ({ node: nv, git: gv, want, got: f(nv, gv) }));
+  results.cases.push({ id: 'G-d5-toolchain-unit', claim: 'unit on invented strings: node major 24, git >= 2.44', pass: rows.every(r => r.want === r.got), rows });
+}
+results.finished = new Date().toISOString();
+results.allPass = results.cases.every(c => c.pass);
+results.v1Sha256 = sha(fs.readFileSync(V1)); results.v2Sha256 = sha(fs.readFileSync(V2)); results.v3Sha256 = sha(fs.readFileSync(V3));
+results.harnessSha256 = sha(fs.readFileSync(__filename));
+const outText = JSON.stringify(results, null, 2) + '\n';
+fs.writeFileSync(T + '/results-v3.json', outText); fs.writeFileSync(W + '/results.json', outText);
+process.stdout.write('HARNESS ' + (results.allPass ? 'ALL PASS' : 'FAILURES') + ' ' + results.cases.map(c => c.id + '=' + (c.pass ? 'pass' : 'FAIL')).join(' ') + '\n');
+process.exitCode = results.allPass ? 0 : 1;

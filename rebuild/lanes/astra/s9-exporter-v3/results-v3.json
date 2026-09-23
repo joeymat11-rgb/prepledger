@@ -1,0 +1,640 @@
+{
+  "harness": "earned-s9x-v3-test",
+  "started": "2026-09-23T01:17:06.362Z",
+  "cases": [
+    {
+      "id": "A-happy",
+      "claim": "v3 writes exactly the two declared files; stdout records chain, node and git versions",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v3",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "I-byte-identity",
+      "claim": "v1, v2 and v3 on identical clean inputs write byte-identical artifacts",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v2",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        }
+      ],
+      "artifactSha256": "82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a"
+    },
+    {
+      "id": "B1-d1-chain-mismatch-start",
+      "claim": "chain ref moved to an unreviewed commit: v1 exports (red), v3 refuses",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 43c4c4413d148f1060c6b86e9fa6cb9399e19496d782d1c2b7da8c7129a3e78c 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ]
+    },
+    {
+      "id": "B2-d1-wrong-argv",
+      "claim": "v3 given a wrong 6th argv refuses",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ]
+    },
+    {
+      "id": "B3-d1-five-args",
+      "claim": "v3 invoked with the old 5-arg form refuses",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ]
+    },
+    {
+      "id": "B4-d1-mid-move",
+      "claim": "runner moves the chain ref during compile: v3 refuses",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ]
+    },
+    {
+      "id": "C-d3-env-injection",
+      "claim": "GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE -> decoy: v1 seals the decoy HEAD (red); v3 refuses the decoy HEAD and exports the real one, runner saw no GIT_*",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING ec6fc38ebee0b98fd17e23319930b920213c0aa7a561ea7b76bcc5b337acb00b 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        },
+        {
+          "which": "v3",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        }
+      ],
+      "runnerSawUnderV3": {
+        "chain": "b3b0882a48cceed7f48e1266d6550f6be95e3932",
+        "top": "C:/Users/joeym/AppData/Local/Temp/earned-s9x-v2-test/run3-mudexoe2/repo",
+        "gitDir": null,
+        "gitWorkTree": null
+      }
+    },
+    {
+      "id": "D-d3-tampered-import",
+      "claim": "pinned import tampered behind skip-worktree: v1 runs it and exports (red); v3 refuses before compile",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ],
+      "statusHidden": true,
+      "tamperedRanUnderV1": true,
+      "tamperedRanUnderV3": false
+    },
+    {
+      "id": "E-d2-protected-leak",
+      "claim": "runner copies an invented protected-slot file into the artifact: v1 emits it (red); v3 refuses",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 7f8873dad8502b0c515d799bf451d628df9879e5806ba3404b39ee5f7f72387f 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ]
+    },
+    {
+      "id": "F-d3-unpinned-module",
+      "claim": "runner loads a 9th in-root module: v1 exports (red); v3 refuses",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ]
+    },
+    {
+      "id": "H4-e1-xdg-global-config",
+      "claim": "XDG_CONFIG_HOME/git/config sets status.showUntrackedFiles=no over an untracked packages/*.json: control v2 refuses without it; v1 and v2 export (red); v3 refuses",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v2",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        },
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v2",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ],
+      "statusShowedNothingUnderAttack": true
+    },
+    {
+      "id": "H4b-e1-home-global-config",
+      "claim": "HOME/.gitconfig sets status.showUntrackedFiles=no: v1 and v2 export (red); v3 refuses",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v2",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        },
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v2",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ],
+      "statusShowedNothingUnderAttack": true
+    },
+    {
+      "id": "H9-e1-local-config",
+      "claim": ".git/config status.showUntrackedFiles=no: v1 and v2 export (red); v3 refuses (flags override config)",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v2",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        },
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v2",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ],
+      "statusShowedNothingUnderAttack": true
+    },
+    {
+      "id": "H8-e1-info-exclude",
+      "claim": ".git/info/exclude lists the untracked packages/*.json: v1 and v2 export (red); v3 refuses (ignored under rebuild/)",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v2",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        },
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v2",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ],
+      "statusShowedNothingUnderAttack": true
+    },
+    {
+      "id": "H8c-e1-ignored-outside-scope",
+      "claim": "control: an ignored file at the repo root (outside rebuild/ and .github/) does not refuse v3",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v3",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SW-e1-skip-worktree",
+      "claim": "unpinned sibling spec packages/S8.json modified behind skip-worktree: v1 and v2 export (red); v3 refuses (ls-files -v S)",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v2",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ],
+      "statusShowedNothingUnderAttack": true
+    },
+    {
+      "id": "AU-e1-assume-unchanged",
+      "claim": "the same behind assume-unchanged: v1 and v2 export (red); v3 refuses (ls-files -v h)",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v2",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ],
+      "statusShowedNothingUnderAttack": true
+    },
+    {
+      "id": "SWf-e1-flag-only",
+      "claim": "skip-worktree flag set on an unmodified file: v3 refuses on the flag alone",
+      "pass": true,
+      "cells": [
+        {
+          "which": "v1",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v2",
+          "exit": 0,
+          "stdout": "S9 PROFILE EXPORTED PENDING 82319b0797e49da9685b139d88e4637e9f5c4e494d9187c1fb445a574604a23a 5c2811a4eea3ad87b98753128d9f53b9b52c7ab3170aedca9964c8cf4204cb30 chain=b3b0882a48cceed7f48e1266d6550f6be95e3932 node=v24.19.0 git=2.55.0.windows.3",
+          "stderrBytes": 0,
+          "files": [
+            "acceptance-s9-ui-pins.json",
+            "review-s9-ui-pins.json"
+          ]
+        },
+        {
+          "which": "v3",
+          "exit": 1,
+          "stdout": "S9 PROFILE EXPORT REFUSED",
+          "stderrBytes": 0,
+          "files": null
+        }
+      ],
+      "statusShowedNothingUnderAttack": true
+    },
+    {
+      "id": "G-d5-toolchain-unit",
+      "claim": "unit on invented strings: node major 24, git >= 2.44",
+      "pass": true,
+      "rows": [
+        {
+          "node": "v24.19.0",
+          "git": "git version 2.55.0.windows.3",
+          "want": true,
+          "got": true
+        },
+        {
+          "node": "v24.0.0",
+          "git": "git version 2.44.0",
+          "want": true,
+          "got": true
+        },
+        {
+          "node": "v24.1.2",
+          "git": "git version 3.0.1",
+          "want": true,
+          "got": true
+        },
+        {
+          "node": "v24.1.2",
+          "git": "git version 2.43.7.windows.1",
+          "want": false,
+          "got": false
+        },
+        {
+          "node": "v24.1.2",
+          "git": "git version 1.99.0",
+          "want": false,
+          "got": false
+        },
+        {
+          "node": "v22.11.0",
+          "git": "git version 2.55.0",
+          "want": false,
+          "got": false
+        },
+        {
+          "node": "v25.0.0",
+          "git": "git version 2.55.0",
+          "want": false,
+          "got": false
+        },
+        {
+          "node": "v23.9.9",
+          "git": "git version 2.55.0",
+          "want": false,
+          "got": false
+        },
+        {
+          "node": "v24.1.2",
+          "git": "git version 2.55",
+          "want": false,
+          "got": false
+        },
+        {
+          "node": "v24.1.2",
+          "git": "git version 2.55.0 extra",
+          "want": false,
+          "got": false
+        },
+        {
+          "node": "24.1.2",
+          "git": "git version 2.55.0",
+          "want": false,
+          "got": false
+        }
+      ]
+    }
+  ],
+  "copies": [
+    {
+      "source": "C:/Users/joeym/AppData/Local/Temp/earned-s9-profile-export-preparation/export-s9-profile.cjs",
+      "sourceSha256": "7541ad0eddf124dc61f08ffe2aeae97c583f61d351bf618b40c15b0344deddc4",
+      "copy": "C:/Users/joeym/AppData/Local/Temp/earned-s9x-v2-test/run3-mudexoe2/v1-test-copy.cjs",
+      "copySha256": "ed7bd9fae485c3da749dba4b1a16f650994fe79a6d6532c270168c17595fdd44",
+      "linesDiffering": 1
+    },
+    {
+      "source": "C:/Users/joeym/AppData/Local/Temp/earned-s9-profile-export-preparation/export-s9-profile-v2.cjs",
+      "sourceSha256": "70f2a92ba983b95aa9c94466cf45ee599244e1b6e45c43b35601fc12861e7105",
+      "copy": "C:/Users/joeym/AppData/Local/Temp/earned-s9x-v2-test/run3-mudexoe2/v2-test-copy.cjs",
+      "copySha256": "673c7d204e86e066373d548e58cc3243277d45b550f20ca802b3f4e967aa87c3",
+      "linesDiffering": 1
+    },
+    {
+      "source": "C:/Users/joeym/AppData/Local/Temp/earned-s9-profile-export-preparation/export-s9-profile-v3.cjs",
+      "sourceSha256": "576fd22ea385bbd3e0fb744526988161ebfc79f37b4b2b6015e961f374eea5a5",
+      "copy": "C:/Users/joeym/AppData/Local/Temp/earned-s9x-v2-test/run3-mudexoe2/v3-test-copy.cjs",
+      "copySha256": "e33ea9dda2d1330d0e86e8e0db249f11cc6733660b9c60e020f58e8e42915162",
+      "linesDiffering": 1
+    }
+  ],
+  "workDir": "C:/Users/joeym/AppData/Local/Temp/earned-s9x-v2-test/run3-mudexoe2",
+  "repoHead": "984f21ba588ef617c6520e621ff801d80e438631",
+  "chainCommit": "b3b0882a48cceed7f48e1266d6550f6be95e3932",
+  "decoyHead": "c7069549485da88d305e8cfb0fcf5937e37ae261",
+  "runnerSha256": "0c750ed9ec1ad48bc8bf51b35d4b0607114dddc12c92e1e6a2ab5fa75c24eb8a",
+  "marker": "// ------------------------------------------------------------------ 8. main sequence",
+  "finished": "2026-09-23T01:17:40.893Z",
+  "allPass": true,
+  "v1Sha256": "7541ad0eddf124dc61f08ffe2aeae97c583f61d351bf618b40c15b0344deddc4",
+  "v2Sha256": "70f2a92ba983b95aa9c94466cf45ee599244e1b6e45c43b35601fc12861e7105",
+  "v3Sha256": "576fd22ea385bbd3e0fb744526988161ebfc79f37b4b2b6015e961f374eea5a5",
+  "harnessSha256": "4065a714cd76783538fc13afe242661d6078328d49ff6f0824e155f8d9b6de4f"
+}
